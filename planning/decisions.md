@@ -86,3 +86,7 @@ WP02-S04-T03 is committed as `d7e6f4d`. [Initial fixture guidance](../docs/archi
 ## WP03-S01-T01 application identity
 
 WP02-S04-T04 is committed as `2b18579`. [Application identity discovery](../docs/modules/logging/application-identity-discovery.md) now implements supplied/application/entry identity precedence in internal `CIS.Configuration` types. It excludes Core's assembly, preserves informational strings and explicit build IDs, and handles expected optional discovery failures per fact. The internal namespace, reader seam and exception filter are implementation choices within the authorized roadmap. Public facade publication, full identity validation, process facts and Linux process execution remain pending.
+
+## WP03-S01-T02 process and runtime facts
+
+WP03-S01-T01 is committed as `5e91e6b`. [Process/runtime discovery](../docs/modules/logging/runtime-metadata-discovery.md) reads actual process start, visible host, OS family/description, separate OS/process architectures, runtime description and PID through typed internal seams. It isolates expected native failures per fact and never substitutes initialization time or collector/deployment settings. Null for undefined architecture/nonpositive PID, trimmed optional text and `Win32Exception` handling are implementation choices within the authorized task; new platform support, public snapshot publication and Linux process execution remain pending.

@@ -1645,6 +1645,222 @@
         "REQ-007"
       ],
       "source": "WP03-S01-T01 excludes Core identity even when a second copy is loaded into another managed assembly context."
+    },
+    {
+      "id": "UT-RUNTIME-FAMILY",
+      "family": "unit",
+      "title": "FamilyRecognitionIsIndependentOfTheExecutionHost",
+      "implementation": "Implemented",
+      "method": "CIS.Tests.UnitTests.RuntimeMetadataDiscoveryTests.FamilyRecognitionIsIndependentOfTheExecutionHost",
+      "minimumExecutions": 5,
+      "lanes": [
+        "windows-x64",
+        "linux-ubuntu2404-x64"
+      ],
+      "requirements": [
+        "REQ-002",
+        "REQ-003",
+        "REQ-007"
+      ],
+      "source": "WP03-S01-T02 internal process/host/OS/runtime facts; controlled family cases do not establish an execution lane."
+    },
+    {
+      "id": "UT-RUNTIME-ARCHITECTURES",
+      "family": "unit",
+      "title": "ArchitecturesUseDefinedLowercaseNamesOrRemainAbsent",
+      "implementation": "Implemented",
+      "method": "CIS.Tests.UnitTests.RuntimeMetadataDiscoveryTests.ArchitecturesUseDefinedLowercaseNamesOrRemainAbsent",
+      "minimumExecutions": 13,
+      "lanes": [
+        "windows-x64",
+        "linux-ubuntu2404-x64"
+      ],
+      "requirements": [
+        "REQ-002",
+        "REQ-003",
+        "REQ-007"
+      ],
+      "source": "WP03-S01-T02 internal process/host/OS/runtime facts; controlled family cases do not establish an execution lane."
+    },
+    {
+      "id": "UT-RUNTIME-DISTINCT-ARCHITECTURES",
+      "family": "unit",
+      "title": "ProcessArchitectureIsNotReplacedWithOSArchitecture",
+      "implementation": "Implemented",
+      "method": "CIS.Tests.UnitTests.RuntimeMetadataDiscoveryTests.ProcessArchitectureIsNotReplacedWithOSArchitecture",
+      "minimumExecutions": 1,
+      "lanes": [
+        "windows-x64",
+        "linux-ubuntu2404-x64"
+      ],
+      "requirements": [
+        "REQ-002",
+        "REQ-003",
+        "REQ-007"
+      ],
+      "source": "WP03-S01-T02 internal process/host/OS/runtime facts; controlled family cases do not establish an execution lane."
+    },
+    {
+      "id": "UT-RUNTIME-PID",
+      "family": "unit",
+      "title": "ProcessIdsMustBePositiveOrRemainAbsent",
+      "implementation": "Implemented",
+      "method": "CIS.Tests.UnitTests.RuntimeMetadataDiscoveryTests.ProcessIdsMustBePositiveOrRemainAbsent",
+      "minimumExecutions": 7,
+      "lanes": [
+        "windows-x64",
+        "linux-ubuntu2404-x64"
+      ],
+      "requirements": [
+        "REQ-002",
+        "REQ-003",
+        "REQ-007"
+      ],
+      "source": "WP03-S01-T02 internal process/host/OS/runtime facts; controlled family cases do not establish an execution lane."
+    },
+    {
+      "id": "UT-RUNTIME-PROCESS-START",
+      "family": "unit",
+      "title": "ProcessStartUsesTheDiscoveredInstantInUTC",
+      "implementation": "Implemented",
+      "method": "CIS.Tests.UnitTests.RuntimeMetadataDiscoveryTests.ProcessStartUsesTheDiscoveredInstantInUTC",
+      "minimumExecutions": 4,
+      "lanes": [
+        "windows-x64",
+        "linux-ubuntu2404-x64"
+      ],
+      "requirements": [
+        "REQ-002",
+        "REQ-003",
+        "REQ-007"
+      ],
+      "source": "WP03-S01-T02 internal process/host/OS/runtime facts; controlled family cases do not establish an execution lane."
+    },
+    {
+      "id": "UT-RUNTIME-UNAVAILABLE",
+      "family": "unit",
+      "title": "UnavailableFactsStayAbsentWithoutAClockOrOtherSubstitution",
+      "implementation": "Implemented",
+      "method": "CIS.Tests.UnitTests.RuntimeMetadataDiscoveryTests.UnavailableFactsStayAbsentWithoutAClockOrOtherSubstitution",
+      "minimumExecutions": 1,
+      "lanes": [
+        "windows-x64",
+        "linux-ubuntu2404-x64"
+      ],
+      "requirements": [
+        "REQ-002",
+        "REQ-003",
+        "REQ-007"
+      ],
+      "source": "WP03-S01-T02 internal process/host/OS/runtime facts; controlled family cases do not establish an execution lane."
+    },
+    {
+      "id": "UT-RUNTIME-TEXT",
+      "family": "unit",
+      "title": "OptionalTextIsAbsentWhenBlankAndPreservesTrimmedCase",
+      "implementation": "Implemented",
+      "method": "CIS.Tests.UnitTests.RuntimeMetadataDiscoveryTests.OptionalTextIsAbsentWhenBlankAndPreservesTrimmedCase",
+      "minimumExecutions": 6,
+      "lanes": [
+        "windows-x64",
+        "linux-ubuntu2404-x64"
+      ],
+      "requirements": [
+        "REQ-002",
+        "REQ-003",
+        "REQ-007"
+      ],
+      "source": "WP03-S01-T02 internal process/host/OS/runtime facts; controlled family cases do not establish an execution lane."
+    },
+    {
+      "id": "UT-RUNTIME-CAPTURE",
+      "family": "unit",
+      "title": "CapturedFactsDoNotRetainTheMutableSource",
+      "implementation": "Implemented",
+      "method": "CIS.Tests.UnitTests.RuntimeMetadataDiscoveryTests.CapturedFactsDoNotRetainTheMutableSource",
+      "minimumExecutions": 1,
+      "lanes": [
+        "windows-x64",
+        "linux-ubuntu2404-x64"
+      ],
+      "requirements": [
+        "REQ-002",
+        "REQ-003",
+        "REQ-007"
+      ],
+      "source": "WP03-S01-T02 internal process/host/OS/runtime facts; controlled family cases do not establish an execution lane."
+    },
+    {
+      "id": "UT-RUNTIME-NATIVE-FAILURES",
+      "family": "unit",
+      "title": "NativeFailureAffectsOnlyTheUnavailableFact",
+      "implementation": "Implemented",
+      "method": "CIS.Tests.UnitTests.RuntimeMetadataFailureTests.NativeFailureAffectsOnlyTheUnavailableFact",
+      "minimumExecutions": 8,
+      "lanes": [
+        "windows-x64",
+        "linux-ubuntu2404-x64"
+      ],
+      "requirements": [
+        "REQ-002",
+        "REQ-003",
+        "REQ-007"
+      ],
+      "source": "WP03-S01-T02 internal process/host/OS/runtime facts; controlled family cases do not establish an execution lane."
+    },
+    {
+      "id": "UT-RUNTIME-START-FAILURES",
+      "family": "unit",
+      "title": "UnavailableProcessStartNeverUsesInitializationOrCurrentTime",
+      "implementation": "Implemented",
+      "method": "CIS.Tests.UnitTests.RuntimeMetadataFailureTests.UnavailableProcessStartNeverUsesInitializationOrCurrentTime",
+      "minimumExecutions": 4,
+      "lanes": [
+        "windows-x64",
+        "linux-ubuntu2404-x64"
+      ],
+      "requirements": [
+        "REQ-002",
+        "REQ-003",
+        "REQ-007"
+      ],
+      "source": "WP03-S01-T02 internal process/host/OS/runtime facts; controlled family cases do not establish an execution lane."
+    },
+    {
+      "id": "UT-RUNTIME-UNEXPECTED-FAULTS",
+      "family": "unit",
+      "title": "UnexpectedValueOrReferenceFaultsAndCancellationPropagate",
+      "implementation": "Implemented",
+      "method": "CIS.Tests.UnitTests.RuntimeMetadataFailureTests.UnexpectedValueOrReferenceFaultsAndCancellationPropagate",
+      "minimumExecutions": 4,
+      "lanes": [
+        "windows-x64",
+        "linux-ubuntu2404-x64"
+      ],
+      "requirements": [
+        "REQ-002",
+        "REQ-003",
+        "REQ-007"
+      ],
+      "source": "WP03-S01-T02 internal process/host/OS/runtime facts; controlled family cases do not establish an execution lane."
+    },
+    {
+      "id": "UT-RUNTIME-REAL-FACTS",
+      "family": "unit",
+      "title": "NativeAdapterMatchesCurrentProcessAndRuntimeFacts",
+      "implementation": "Implemented",
+      "method": "CIS.Tests.UnitTests.RuntimeMetadataSourceTests.NativeAdapterMatchesCurrentProcessAndRuntimeFacts",
+      "minimumExecutions": 1,
+      "lanes": [
+        "windows-x64",
+        "linux-ubuntu2404-x64"
+      ],
+      "requirements": [
+        "REQ-002",
+        "REQ-003",
+        "REQ-007"
+      ],
+      "source": "WP03-S01-T02 internal process/host/OS/runtime facts; controlled family cases do not establish an execution lane."
     }
   ]
 }

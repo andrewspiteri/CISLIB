@@ -1,3 +1,4 @@
+using System.ComponentModel;
 using System.Reflection;
 using System.Security;
 
@@ -11,19 +12,33 @@ internal static class OptionalMetadataDiscovery
         {
             return discover();
         }
-        catch (Exception exception) when (exception is
-            NotSupportedException or
-            InvalidOperationException or
-            IOException or
-            UnauthorizedAccessException or
-            SecurityException or
-            CustomAttributeFormatException or
-            AmbiguousMatchException or
-            TypeLoadException or
-            ReflectionTypeLoadException)
+        catch (Exception exception) when (IsExpectedDiscoveryFailure(exception))
         {
-            // Unavailable facts remain absent. Unexpected faults and cancellation still propagate.
             return null;
         }
     }
+
+    public static T? ReadValue<T>(Func<T?> discover) where T : struct
+    {
+        try
+        {
+            return discover();
+        }
+        catch (Exception exception) when (IsExpectedDiscoveryFailure(exception))
+        {
+            return null;
+        }
+    }
+
+    private static bool IsExpectedDiscoveryFailure(Exception exception) => exception is
+        NotSupportedException or
+        InvalidOperationException or
+        IOException or
+        UnauthorizedAccessException or
+        SecurityException or
+        Win32Exception or
+        CustomAttributeFormatException or
+        AmbiguousMatchException or
+        TypeLoadException or
+        ReflectionTypeLoadException;
 }
