@@ -70,3 +70,7 @@ WP02-S01 was committed as ccb7237. WP02-S02 defines schema/value/bound contracts
 ## WP02-S04-T01 preservation review
 
 WP02-S03 was committed as 875053e. Within the user-authorized roadmap, the maintainer selected [permanent preservation of published contracts](../docs/architecture/compatibility-policy.md), including prereleases and intermediate releases, with no major-version, obsolete-warning, rewritten-baseline or target-removal waiver. The [C# review](../compatibility/csharp/preservation-review.json) records exact unpublished proposals and remaining prepublication qualification. This is a policy selection, not separate user confirmation, a publication baseline or proof of runtime compatibility.
+
+## WP02-S04-T02 publication format
+
+WP02-S04-T01 is committed as `69ebd90`. The [C# publication format](../compatibility/csharp/publications/README.md) selects a strict ledger plus immutable hashed record/artifact references, including prereleases/intermediate versions, package/API/contract metadata, unchanged consumer origins and exact execution/toolchain materialization. The actual ledger contains no publication rows. Selected canonical version/path syntax and trusted previous-snapshot comparison are development choices within the roadmap; schema/hash controls do not attest publication or qualify historical compatibility. T03/T04 and the later package harness remain pending.

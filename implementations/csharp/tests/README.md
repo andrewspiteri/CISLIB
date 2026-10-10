@@ -31,3 +31,5 @@ WP02-S01 compiler controls run before the architecture suite in Developer verifi
 WP02-S02 adds native data-driven architecture cases for every portable event record and explicitly tagged value input. The validator is development-only and never captures, truncates or writes logs; runtime expectations remain for WP04/WP05. The reference-only compiler now checks both startup and event inputs.
 
 WP02-S03 adds 45 admission-model and 28 drain-projection cases, one lifecycle-catalog integrity check and one exact reference-metadata inspection. These development-only validators do not execute factories, queues, shutdown, provider disposal or I/O. Future runtime expectations remain visibly unexecuted.
+
+WP02-S04-T02 adds 43 publication format/integrity/append-only architecture controls (six positive, 37 expected rejections). Every control owns its inputs and asserts the validator leaves them unchanged. Their synthetic opaque artifacts never enter the actual publication ledger and do not qualify source/binary/runtime compatibility.

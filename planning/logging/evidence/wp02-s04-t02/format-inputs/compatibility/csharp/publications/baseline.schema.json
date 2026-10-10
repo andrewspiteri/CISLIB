@@ -1,0 +1,526 @@
+{
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "recordKind",
+    "registryId",
+    "sequence",
+    "identityId",
+    "packageId",
+    "packageVersion",
+    "exposedAtUtc",
+    "aggregateReleaseId",
+    "aggregatePromotionStateAtExposure",
+    "publicationSource",
+    "verifiedCandidatePackage",
+    "distributedPackage",
+    "sourceState",
+    "targets",
+    "contracts",
+    "sourceFixtures",
+    "binaryFixtures",
+    "executions",
+    "verificationBundle",
+    "verificationSummary"
+  ],
+  "properties": {
+    "schemaVersion": {
+      "const": 1
+    },
+    "recordKind": {
+      "const": "actual-package-publication"
+    },
+    "registryId": {
+      "const": "cislib.csharp.publications"
+    },
+    "sequence": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "identityId": {
+      "type": "string",
+      "minLength": 1,
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]*$"
+    },
+    "packageId": {
+      "type": "string",
+      "minLength": 1,
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]*$"
+    },
+    "packageVersion": {
+      "type": "string",
+      "minLength": 1,
+      "pattern": "^(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)(-([0-9A-Za-z-]+)(\\.[0-9A-Za-z-]+)*)?$"
+    },
+    "exposedAtUtc": {
+      "type": "string",
+      "minLength": 1,
+      "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}\\.\\d{7}Z$"
+    },
+    "aggregateReleaseId": {
+      "type": "string",
+      "minLength": 1,
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]*$"
+    },
+    "aggregatePromotionStateAtExposure": {
+      "enum": [
+        "complete",
+        "partial"
+      ]
+    },
+    "publicationSource": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "location",
+        "receipt"
+      ],
+      "properties": {
+        "location": {
+          "type": "string",
+          "minLength": 1,
+          "pattern": "^https://"
+        },
+        "receipt": {
+          "$ref": "#/$defs/artifact"
+        }
+      }
+    },
+    "verifiedCandidatePackage": {
+      "$ref": "#/$defs/artifact"
+    },
+    "distributedPackage": {
+      "$ref": "#/$defs/artifact"
+    },
+    "sourceState": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "commit",
+        "sourceArchive",
+        "sourceInventory"
+      ],
+      "properties": {
+        "commit": {
+          "anyOf": [
+            {
+              "type": "null"
+            },
+            {
+              "type": "string",
+              "minLength": 1,
+              "pattern": "^([a-f0-9]{40}|[a-f0-9]{64})$"
+            }
+          ]
+        },
+        "sourceArchive": {
+          "$ref": "#/$defs/artifact"
+        },
+        "sourceInventory": {
+          "$ref": "#/$defs/artifact"
+        }
+      }
+    },
+    "targets": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "targetFramework",
+          "minimumRuntimeFamily",
+          "runtimeIdentifier",
+          "assetPath",
+          "assemblyIdentity",
+          "assembly",
+          "publicApiMetadata"
+        ],
+        "properties": {
+          "targetFramework": {
+            "type": "string",
+            "minLength": 1,
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]*$"
+          },
+          "minimumRuntimeFamily": {
+            "type": "string",
+            "minLength": 1,
+            "pattern": "^\\d+\\.\\d+$"
+          },
+          "runtimeIdentifier": {
+            "anyOf": [
+              {
+                "type": "null"
+              },
+              {
+                "type": "string",
+                "minLength": 1,
+                "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]*$"
+              }
+            ]
+          },
+          "assetPath": {
+            "type": "string",
+            "minLength": 1,
+            "pattern": "^(?!.*(?:^|/)\\.\\.?(/|$))[A-Za-z0-9_.-]+(?:/[A-Za-z0-9_.-]+)*$"
+          },
+          "assemblyIdentity": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "name",
+              "assemblyVersion",
+              "fileVersion",
+              "informationalVersion",
+              "culture",
+              "publicKeyToken"
+            ],
+            "properties": {
+              "name": {
+                "type": "string",
+                "minLength": 1,
+                "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]*$"
+              },
+              "assemblyVersion": {
+                "type": "string",
+                "minLength": 1,
+                "pattern": "^\\d+\\.\\d+\\.\\d+\\.\\d+$"
+              },
+              "fileVersion": {
+                "type": "string",
+                "minLength": 1,
+                "pattern": "^\\d+\\.\\d+\\.\\d+\\.\\d+$"
+              },
+              "informationalVersion": {
+                "type": "string",
+                "minLength": 1
+              },
+              "culture": {
+                "type": "string",
+                "minLength": 1
+              },
+              "publicKeyToken": {
+                "anyOf": [
+                  {
+                    "type": "null"
+                  },
+                  {
+                    "type": "string",
+                    "minLength": 1,
+                    "pattern": "^[a-f0-9]{16}$"
+                  }
+                ]
+              }
+            }
+          },
+          "assembly": {
+            "$ref": "#/$defs/artifact"
+          },
+          "publicApiMetadata": {
+            "$ref": "#/$defs/artifact"
+          }
+        }
+      }
+    },
+    "contracts": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "contractId",
+          "contractVersion",
+          "apiAndBehaviorSpecification",
+          "configurationFixtures",
+          "wireFixtures",
+          "behaviorFixtures"
+        ],
+        "properties": {
+          "contractId": {
+            "type": "string",
+            "minLength": 1,
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]*$"
+          },
+          "contractVersion": {
+            "type": "string",
+            "minLength": 1,
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]*$"
+          },
+          "apiAndBehaviorSpecification": {
+            "$ref": "#/$defs/artifact"
+          },
+          "configurationFixtures": {
+            "$ref": "#/$defs/artifact"
+          },
+          "wireFixtures": {
+            "$ref": "#/$defs/artifact"
+          },
+          "behaviorFixtures": {
+            "$ref": "#/$defs/artifact"
+          }
+        }
+      }
+    },
+    "sourceFixtures": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "fixtureId",
+          "contractTargetFramework",
+          "languageVersion",
+          "nullable",
+          "warningsAsErrors",
+          "sourceArchive",
+          "buildSettings",
+          "dependencyInventory",
+          "expectedBehavior"
+        ],
+        "properties": {
+          "fixtureId": {
+            "type": "string",
+            "minLength": 1,
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]*$"
+          },
+          "contractTargetFramework": {
+            "type": "string",
+            "minLength": 1,
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]*$"
+          },
+          "languageVersion": {
+            "type": "string",
+            "minLength": 1
+          },
+          "nullable": {
+            "enum": [
+              "enable",
+              "disable",
+              "warnings",
+              "annotations"
+            ]
+          },
+          "warningsAsErrors": {
+            "const": true
+          },
+          "sourceArchive": {
+            "$ref": "#/$defs/artifact"
+          },
+          "buildSettings": {
+            "$ref": "#/$defs/artifact"
+          },
+          "dependencyInventory": {
+            "$ref": "#/$defs/artifact"
+          },
+          "expectedBehavior": {
+            "$ref": "#/$defs/artifact"
+          }
+        }
+      }
+    },
+    "binaryFixtures": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "fixtureId",
+          "sourceFixtureId",
+          "consumerAssembly",
+          "runtimeConfiguration",
+          "dependencyManifest",
+          "dependencyInventory",
+          "dependencyArtifacts",
+          "expectedBehavior",
+          "originalExecutionId"
+        ],
+        "properties": {
+          "fixtureId": {
+            "type": "string",
+            "minLength": 1,
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]*$"
+          },
+          "sourceFixtureId": {
+            "type": "string",
+            "minLength": 1,
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]*$"
+          },
+          "consumerAssembly": {
+            "$ref": "#/$defs/artifact"
+          },
+          "runtimeConfiguration": {
+            "$ref": "#/$defs/artifact"
+          },
+          "dependencyManifest": {
+            "$ref": "#/$defs/artifact"
+          },
+          "dependencyInventory": {
+            "$ref": "#/$defs/artifact"
+          },
+          "dependencyArtifacts": {
+            "type": "array",
+            "minItems": 0,
+            "items": {
+              "$ref": "#/$defs/artifact"
+            }
+          },
+          "expectedBehavior": {
+            "$ref": "#/$defs/artifact"
+          },
+          "originalExecutionId": {
+            "type": "string",
+            "minLength": 1,
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]*$"
+          }
+        }
+      }
+    },
+    "executions": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "executionId",
+          "laneId",
+          "osDescription",
+          "architecture",
+          "targetFramework",
+          "sdkVersion",
+          "runtimeVersion",
+          "rollForward",
+          "executionMode",
+          "consumerFixtureIds",
+          "toolchainManifest",
+          "prerequisitesInventory",
+          "materializationArchive",
+          "nativeReports"
+        ],
+        "properties": {
+          "executionId": {
+            "type": "string",
+            "minLength": 1,
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]*$"
+          },
+          "laneId": {
+            "type": "string",
+            "minLength": 1,
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]*$"
+          },
+          "osDescription": {
+            "type": "string",
+            "minLength": 1
+          },
+          "architecture": {
+            "type": "string",
+            "minLength": 1,
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]*$"
+          },
+          "targetFramework": {
+            "type": "string",
+            "minLength": 1,
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]*$"
+          },
+          "sdkVersion": {
+            "type": "string",
+            "minLength": 1,
+            "pattern": "^(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)(-([0-9A-Za-z-]+)(\\.[0-9A-Za-z-]+)*)?$"
+          },
+          "runtimeVersion": {
+            "type": "string",
+            "minLength": 1,
+            "pattern": "^(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)(-([0-9A-Za-z-]+)(\\.[0-9A-Za-z-]+)*)?$"
+          },
+          "rollForward": {
+            "enum": [
+              "Disable",
+              "LatestPatch",
+              "Minor",
+              "LatestMinor",
+              "Major",
+              "LatestMajor"
+            ]
+          },
+          "executionMode": {
+            "enum": [
+              "framework-dependent",
+              "self-contained"
+            ]
+          },
+          "consumerFixtureIds": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "type": "string",
+              "minLength": 1,
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]*$"
+            }
+          },
+          "toolchainManifest": {
+            "$ref": "#/$defs/artifact"
+          },
+          "prerequisitesInventory": {
+            "$ref": "#/$defs/artifact"
+          },
+          "materializationArchive": {
+            "$ref": "#/$defs/artifact"
+          },
+          "nativeReports": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "$ref": "#/$defs/artifact"
+            }
+          }
+        }
+      }
+    },
+    "verificationBundle": {
+      "$ref": "#/$defs/artifact"
+    },
+    "verificationSummary": {
+      "$ref": "#/$defs/artifact"
+    }
+  },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Immutable C# publication/baseline record v1",
+  "$defs": {
+    "artifact": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "path",
+        "sha256",
+        "bytes",
+        "mediaType"
+      ],
+      "properties": {
+        "path": {
+          "type": "string",
+          "minLength": 1,
+          "pattern": "^(?!.*(?:^|/)\\.\\.?(/|$))[A-Za-z0-9_.-]+(?:/[A-Za-z0-9_.-]+)*$"
+        },
+        "sha256": {
+          "type": "string",
+          "minLength": 1,
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        "bytes": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        },
+        "mediaType": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    }
+  },
+  "description": "Capture exact distributed and verified package bytes, full API/contract fixtures and unchanged consumers/toolchain. Format validity alone does not attest actual publication or compatibility success."
+}

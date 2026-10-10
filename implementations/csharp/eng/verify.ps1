@@ -89,6 +89,11 @@ try {
         Invoke-VerificationStage $context 'build' { $null = Invoke-VerificationCommand (Join-Path $reportRoot 'logs/build.log') @('build', 'CisLib.slnx', '-c', 'Release', '--no-restore') }
         $core = Join-Path $languageRoot 'src/CIS.Core/bin/Release/net10.0/CIS.Core.dll'
         Invoke-VerificationStage $context 'startup-contract' { $null = Invoke-VerificationCommand (Join-Path $reportRoot 'logs/startup-contract.log') @('-NoProfile', '-File', (Join-Path $PSScriptRoot 'check-startup-contract.ps1'), '-OutputRoot', (Join-Path $reportRoot 'contracts/startup')) 'pwsh' }
+        Invoke-VerificationStage $context 'publication-ledger' {
+            $publicationReport = Join-Path $reportRoot 'contracts/publications/validation.json'
+            if (Test-Path -LiteralPath $publicationReport) { Remove-Item -LiteralPath $publicationReport }
+            $null = Invoke-VerificationCommand (Join-Path $reportRoot 'logs/publication-ledger.log') @('-NoProfile', '-File', (Join-Path $PSScriptRoot 'check-publications.ps1'), '-OutputPath', $publicationReport) 'pwsh'
+        }
         Invoke-VerificationStage $context 'pack' { $null = Invoke-VerificationCommand (Join-Path $reportRoot 'logs/pack.log') @('pack', 'src/CIS.Core/CIS.Core.csproj', '-c', 'Release', '--no-build', '--no-restore', '-o', $packageRoot) }
         $version = (& dotnet msbuild src/CIS.Core/CIS.Core.csproj -getProperty:Version).Trim()
         if ($LASTEXITCODE -ne 0) { throw 'Unable to evaluate package version.' }
