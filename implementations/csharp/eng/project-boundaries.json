@@ -1,0 +1,114 @@
+{
+  "schemaVersion": 1,
+  "targetFramework": "net10.0",
+  "implicitFramework": "Microsoft.NETCore.App",
+  "shippingIdentity": {
+    "AssemblyName": "CIS.Core",
+    "PackageId": "CIS.Core",
+    "RootNamespace": "CIS"
+  },
+  "projects": [
+    {
+      "path": "src/CIS.Core/CIS.Core.csproj",
+      "role": "shipping",
+      "projectReferences": [],
+      "packageReferences": [
+        "Microsoft.Extensions.Logging.Abstractions"
+      ]
+    },
+    {
+      "path": "tests/CIS.Core.UnitTests/CIS.Core.UnitTests.csproj",
+      "role": "test",
+      "projectReferences": [
+        "src/CIS.Core/CIS.Core.csproj",
+        "tests/CIS.Core.TestSupport/CIS.Core.TestSupport.csproj"
+      ],
+      "packageReferences": [
+        "Microsoft.NET.Test.Sdk",
+        "MSTest.TestFramework",
+        "MSTest.TestAdapter"
+      ]
+    },
+    {
+      "path": "tests/CIS.Core.IntegrationTests/CIS.Core.IntegrationTests.csproj",
+      "role": "test",
+      "projectReferences": [
+        "src/CIS.Core/CIS.Core.csproj",
+        "tests/CIS.Core.TestSupport/CIS.Core.TestSupport.csproj"
+      ],
+      "packageReferences": [
+        "Microsoft.NET.Test.Sdk",
+        "MSTest.TestFramework",
+        "MSTest.TestAdapter"
+      ]
+    },
+    {
+      "path": "tests/CIS.Core.ArchitectureTests/CIS.Core.ArchitectureTests.csproj",
+      "role": "test",
+      "projectReferences": [
+        "src/CIS.Core/CIS.Core.csproj",
+        "tests/CIS.Core.TestSupport/CIS.Core.TestSupport.csproj"
+      ],
+      "packageReferences": [
+        "Microsoft.NET.Test.Sdk",
+        "MSTest.TestFramework",
+        "MSTest.TestAdapter"
+      ]
+    },
+    {
+      "path": "tests/CIS.Core.CompatibilityTests/CIS.Core.CompatibilityTests.csproj",
+      "role": "test",
+      "projectReferences": [
+        "src/CIS.Core/CIS.Core.csproj",
+        "tests/CIS.Core.TestSupport/CIS.Core.TestSupport.csproj"
+      ],
+      "packageReferences": [
+        "Microsoft.NET.Test.Sdk",
+        "MSTest.TestFramework",
+        "MSTest.TestAdapter"
+      ]
+    },
+    {
+      "path": "tests/CIS.Core.BusinessCases/CIS.Core.BusinessCases.csproj",
+      "role": "test",
+      "projectReferences": [
+        "src/CIS.Core/CIS.Core.csproj",
+        "tests/CIS.Core.TestSupport/CIS.Core.TestSupport.csproj"
+      ],
+      "packageReferences": [
+        "Microsoft.NET.Test.Sdk",
+        "MSTest.TestFramework",
+        "MSTest.TestAdapter"
+      ]
+    },
+    {
+      "path": "tests/CIS.Core.TestSupport/CIS.Core.TestSupport.csproj",
+      "role": "test-support",
+      "projectReferences": [],
+      "packageReferences": []
+    },
+    {
+      "path": "eng/CIS.DependencyChecker/CIS.DependencyChecker.csproj",
+      "role": "verification-tool",
+      "projectReferences": [
+        "tests/CIS.Core.TestSupport/CIS.Core.TestSupport.csproj"
+      ],
+      "packageReferences": []
+    },
+    {
+      "path": "examples/logging/ConsoleHuman/ConsoleHuman.csproj",
+      "role": "example",
+      "projectReferences": [
+        "src/CIS.Core/CIS.Core.csproj"
+      ],
+      "packageReferences": []
+    }
+  ],
+  "moduleRules": [
+    "Environment resolution and event contracts do not depend on output implementations.",
+    "Logging consumes immutable environment state; outputs consume captured events.",
+    "MicrosoftLogger is inside Core and maps into the same pipeline.",
+    "Third-party runtime integrations may depend on Core; Core must never depend on them."
+  ],
+  "moduleRuleQualification": "Type/namespace rules will be exercised against real types in WP07-S02; project/package/assembly rules execute now."
+}

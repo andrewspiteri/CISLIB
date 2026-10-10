@@ -1,0 +1,12 @@
+<Project>
+  <PropertyGroup Condition="'$(IsTestProject)' == 'true'">
+    <UseVSTest>true</UseVSTest>
+    <EnableMSTestRunner>false</EnableMSTestRunner>
+  </PropertyGroup>
+  <ItemGroup Condition="'$(IsTestProject)' == 'true'">
+    <PackageReference Include="Microsoft.NET.Test.Sdk" PrivateAssets="all" />
+    <PackageReference Include="MSTest.TestFramework" PrivateAssets="all" />
+    <PackageReference Include="MSTest.TestAdapter" PrivateAssets="all" />
+    <Compile Include="$(MSBuildThisFileDirectory)TestAssembly.cs" Link="TestAssembly.cs" />
+  </ItemGroup>
+</Project>

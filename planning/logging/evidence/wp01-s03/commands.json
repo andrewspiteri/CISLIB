@@ -1,0 +1,331 @@
+[
+  {
+    "name": "dotnet-info",
+    "executable": "dotnet",
+    "arguments": [
+      "--info"
+    ],
+    "workingDirectory": "C:\\miscwork\\portfolio\\cislib\\.artifacts\\csharp\\toolchain\\20261010T191017Z-639f01714d1049ff976376272d10809d\\source\\implementations\\csharp",
+    "expectedExit": 0,
+    "exitCode": 0,
+    "log": "logs/dotnet-info.log"
+  },
+  {
+    "name": "runtimes",
+    "executable": "dotnet",
+    "arguments": [
+      "--list-runtimes"
+    ],
+    "workingDirectory": "C:\\miscwork\\portfolio\\cislib\\.artifacts\\csharp\\toolchain\\20261010T191017Z-639f01714d1049ff976376272d10809d\\source\\implementations\\csharp",
+    "expectedExit": 0,
+    "exitCode": 0,
+    "log": "logs/runtimes.log"
+  },
+  {
+    "name": "tool-restore",
+    "executable": "dotnet",
+    "arguments": [
+      "tool",
+      "restore",
+      "--tool-manifest",
+      ".config/dotnet-tools.json",
+      "--configfile",
+      "eng/Tools.NuGet.config",
+      "--no-http-cache"
+    ],
+    "workingDirectory": "C:\\miscwork\\portfolio\\cislib\\.artifacts\\csharp\\toolchain\\20261010T191017Z-639f01714d1049ff976376272d10809d\\source\\implementations\\csharp",
+    "expectedExit": 0,
+    "exitCode": 0,
+    "log": "logs/tool-restore.log"
+  },
+  {
+    "name": "stryker-help",
+    "executable": "dotnet",
+    "arguments": [
+      "exec",
+      "--fx-version",
+      "8.0.31",
+      "--roll-forward",
+      "Disable",
+      "C:\\miscwork\\portfolio\\cislib\\.artifacts\\csharp\\toolchain\\20261010T191017Z-639f01714d1049ff976376272d10809d\\packages\\dotnet-stryker\\4.16.0\\tools\\net8.0\\any\\Stryker.CLI.dll",
+      "--help"
+    ],
+    "workingDirectory": "C:\\miscwork\\portfolio\\cislib\\.artifacts\\csharp\\toolchain\\20261010T191017Z-639f01714d1049ff976376272d10809d\\source\\implementations\\csharp",
+    "expectedExit": 0,
+    "exitCode": 0,
+    "log": "logs/stryker-help.log"
+  },
+  {
+    "name": "apicompat-version",
+    "executable": "dotnet",
+    "arguments": [
+      "exec",
+      "--fx-version",
+      "8.0.31",
+      "--roll-forward",
+      "Disable",
+      "C:\\miscwork\\portfolio\\cislib\\.artifacts\\csharp\\toolchain\\20261010T191017Z-639f01714d1049ff976376272d10809d\\packages\\microsoft.dotnet.apicompat.tool\\10.0.401\\tools\\net8.0\\any\\Microsoft.DotNet.ApiCompat.Tool.dll",
+      "--version"
+    ],
+    "workingDirectory": "C:\\miscwork\\portfolio\\cislib\\.artifacts\\csharp\\toolchain\\20261010T191017Z-639f01714d1049ff976376272d10809d\\source\\implementations\\csharp",
+    "expectedExit": 0,
+    "exitCode": 0,
+    "log": "logs/apicompat-version.log"
+  },
+  {
+    "name": "locked-restore",
+    "executable": "dotnet",
+    "arguments": [
+      "restore",
+      "CisLib.slnx",
+      "--locked-mode",
+      "--configfile",
+      "NuGet.config",
+      "--no-http-cache"
+    ],
+    "workingDirectory": "C:\\miscwork\\portfolio\\cislib\\.artifacts\\csharp\\toolchain\\20261010T191017Z-639f01714d1049ff976376272d10809d\\source\\implementations\\csharp",
+    "expectedExit": 0,
+    "exitCode": 0,
+    "log": "logs/locked-restore.log"
+  },
+  {
+    "name": "developer-verification",
+    "executable": "pwsh",
+    "arguments": [
+      "-NoProfile",
+      "-File",
+      "eng/verify.ps1"
+    ],
+    "workingDirectory": "C:\\miscwork\\portfolio\\cislib\\.artifacts\\csharp\\toolchain\\20261010T191017Z-639f01714d1049ff976376272d10809d\\source\\implementations\\csharp",
+    "expectedExit": 0,
+    "exitCode": 0,
+    "log": "logs/developer-verification.log"
+  },
+  {
+    "name": "exact-runtime-host",
+    "executable": "dotnet",
+    "arguments": [
+      "exec",
+      "--fx-version",
+      "10.0.12",
+      "--roll-forward",
+      "Disable",
+      "examples/logging/ConsoleHuman/bin/Release/net10.0/CisLib.Examples.ConsoleHuman.dll"
+    ],
+    "workingDirectory": "C:\\miscwork\\portfolio\\cislib\\.artifacts\\csharp\\toolchain\\20261010T191017Z-639f01714d1049ff976376272d10809d\\source\\implementations\\csharp",
+    "expectedExit": 0,
+    "exitCode": 0,
+    "log": "logs/exact-runtime-host.log"
+  },
+  {
+    "name": "parser-coverage",
+    "executable": "dotnet",
+    "arguments": [
+      "test",
+      "tests/CIS.Core.UnitTests/CIS.Core.UnitTests.csproj",
+      "-c",
+      "Release",
+      "--no-build",
+      "--no-restore",
+      "--filter",
+      "FullyQualifiedName~SeverityTokenParserTests",
+      "--settings",
+      "verification/coverage/core.runsettings",
+      "--collect",
+      "Code Coverage;Format=cobertura",
+      "--results-directory",
+      "C:\\miscwork\\portfolio\\cislib\\.artifacts\\csharp\\toolchain\\20261010T191017Z-639f01714d1049ff976376272d10809d\\coverage",
+      "--logger",
+      "trx;LogFileName=parser.trx",
+      "--diag",
+      "C:\\miscwork\\portfolio\\cislib\\.artifacts\\csharp\\toolchain\\20261010T191017Z-639f01714d1049ff976376272d10809d\\coverage\\vstest.log"
+    ],
+    "workingDirectory": "C:\\miscwork\\portfolio\\cislib\\.artifacts\\csharp\\toolchain\\20261010T191017Z-639f01714d1049ff976376272d10809d\\source\\implementations\\csharp",
+    "expectedExit": 0,
+    "exitCode": 0,
+    "log": "logs/parser-coverage.log"
+  },
+  {
+    "name": "apicompat-core",
+    "executable": "dotnet",
+    "arguments": [
+      "exec",
+      "--fx-version",
+      "8.0.31",
+      "--roll-forward",
+      "Disable",
+      "C:\\miscwork\\portfolio\\cislib\\.artifacts\\csharp\\toolchain\\20261010T191017Z-639f01714d1049ff976376272d10809d\\packages\\microsoft.dotnet.apicompat.tool\\10.0.401\\tools\\net8.0\\any\\Microsoft.DotNet.ApiCompat.Tool.dll",
+      "--left",
+      "C:\\miscwork\\portfolio\\cislib\\.artifacts\\csharp\\toolchain\\20261010T191017Z-639f01714d1049ff976376272d10809d\\source\\implementations\\csharp\\src\\CIS.Core\\bin\\Release\\net10.0\\CIS.Core.dll",
+      "--right",
+      "C:\\miscwork\\portfolio\\cislib\\.artifacts\\csharp\\toolchain\\20261010T191017Z-639f01714d1049ff976376272d10809d\\source\\implementations\\csharp\\src\\CIS.Core\\bin\\Release\\net10.0\\CIS.Core.dll",
+      "--strict-mode"
+    ],
+    "workingDirectory": "C:\\miscwork\\portfolio\\cislib\\.artifacts\\csharp\\toolchain\\20261010T191017Z-639f01714d1049ff976376272d10809d\\source\\implementations\\csharp",
+    "expectedExit": 0,
+    "exitCode": 0,
+    "log": "logs/apicompat-core.log"
+  },
+  {
+    "name": "api-build-baseline",
+    "executable": "dotnet",
+    "arguments": [
+      "build",
+      "C:\\miscwork\\portfolio\\cislib\\.artifacts\\csharp\\toolchain\\20261010T191017Z-639f01714d1049ff976376272d10809d\\api-controls\\baseline\\ApiControl.csproj",
+      "-c",
+      "Release",
+      "-p:RestoreConfigFile=C:\\miscwork\\portfolio\\cislib\\.artifacts\\csharp\\toolchain\\20261010T191017Z-639f01714d1049ff976376272d10809d\\source\\implementations\\csharp\\NuGet.config"
+    ],
+    "workingDirectory": "C:\\miscwork\\portfolio\\cislib\\.artifacts\\csharp\\toolchain\\20261010T191017Z-639f01714d1049ff976376272d10809d\\source\\implementations\\csharp",
+    "expectedExit": 0,
+    "exitCode": 0,
+    "log": "logs/api-build-baseline.log"
+  },
+  {
+    "name": "api-build-compatible",
+    "executable": "dotnet",
+    "arguments": [
+      "build",
+      "C:\\miscwork\\portfolio\\cislib\\.artifacts\\csharp\\toolchain\\20261010T191017Z-639f01714d1049ff976376272d10809d\\api-controls\\compatible\\ApiControl.csproj",
+      "-c",
+      "Release",
+      "-p:RestoreConfigFile=C:\\miscwork\\portfolio\\cislib\\.artifacts\\csharp\\toolchain\\20261010T191017Z-639f01714d1049ff976376272d10809d\\source\\implementations\\csharp\\NuGet.config"
+    ],
+    "workingDirectory": "C:\\miscwork\\portfolio\\cislib\\.artifacts\\csharp\\toolchain\\20261010T191017Z-639f01714d1049ff976376272d10809d\\source\\implementations\\csharp",
+    "expectedExit": 0,
+    "exitCode": 0,
+    "log": "logs/api-build-compatible.log"
+  },
+  {
+    "name": "api-build-breaking",
+    "executable": "dotnet",
+    "arguments": [
+      "build",
+      "C:\\miscwork\\portfolio\\cislib\\.artifacts\\csharp\\toolchain\\20261010T191017Z-639f01714d1049ff976376272d10809d\\api-controls\\breaking\\ApiControl.csproj",
+      "-c",
+      "Release",
+      "-p:RestoreConfigFile=C:\\miscwork\\portfolio\\cislib\\.artifacts\\csharp\\toolchain\\20261010T191017Z-639f01714d1049ff976376272d10809d\\source\\implementations\\csharp\\NuGet.config"
+    ],
+    "workingDirectory": "C:\\miscwork\\portfolio\\cislib\\.artifacts\\csharp\\toolchain\\20261010T191017Z-639f01714d1049ff976376272d10809d\\source\\implementations\\csharp",
+    "expectedExit": 0,
+    "exitCode": 0,
+    "log": "logs/api-build-breaking.log"
+  },
+  {
+    "name": "apicompat-positive",
+    "executable": "dotnet",
+    "arguments": [
+      "exec",
+      "--fx-version",
+      "8.0.31",
+      "--roll-forward",
+      "Disable",
+      "C:\\miscwork\\portfolio\\cislib\\.artifacts\\csharp\\toolchain\\20261010T191017Z-639f01714d1049ff976376272d10809d\\packages\\microsoft.dotnet.apicompat.tool\\10.0.401\\tools\\net8.0\\any\\Microsoft.DotNet.ApiCompat.Tool.dll",
+      "--left",
+      "C:\\miscwork\\portfolio\\cislib\\.artifacts\\csharp\\toolchain\\20261010T191017Z-639f01714d1049ff976376272d10809d\\api-controls\\baseline\\bin\\Release\\net10.0\\ApiControl.dll",
+      "--right",
+      "C:\\miscwork\\portfolio\\cislib\\.artifacts\\csharp\\toolchain\\20261010T191017Z-639f01714d1049ff976376272d10809d\\api-controls\\compatible\\bin\\Release\\net10.0\\ApiControl.dll",
+      "--strict-mode"
+    ],
+    "workingDirectory": "C:\\miscwork\\portfolio\\cislib\\.artifacts\\csharp\\toolchain\\20261010T191017Z-639f01714d1049ff976376272d10809d\\source\\implementations\\csharp",
+    "expectedExit": 0,
+    "exitCode": 0,
+    "log": "logs/apicompat-positive.log"
+  },
+  {
+    "name": "apicompat-negative",
+    "executable": "dotnet",
+    "arguments": [
+      "exec",
+      "--fx-version",
+      "8.0.31",
+      "--roll-forward",
+      "Disable",
+      "C:\\miscwork\\portfolio\\cislib\\.artifacts\\csharp\\toolchain\\20261010T191017Z-639f01714d1049ff976376272d10809d\\packages\\microsoft.dotnet.apicompat.tool\\10.0.401\\tools\\net8.0\\any\\Microsoft.DotNet.ApiCompat.Tool.dll",
+      "--left",
+      "C:\\miscwork\\portfolio\\cislib\\.artifacts\\csharp\\toolchain\\20261010T191017Z-639f01714d1049ff976376272d10809d\\api-controls\\baseline\\bin\\Release\\net10.0\\ApiControl.dll",
+      "--right",
+      "C:\\miscwork\\portfolio\\cislib\\.artifacts\\csharp\\toolchain\\20261010T191017Z-639f01714d1049ff976376272d10809d\\api-controls\\breaking\\bin\\Release\\net10.0\\ApiControl.dll",
+      "--strict-mode"
+    ],
+    "workingDirectory": "C:\\miscwork\\portfolio\\cislib\\.artifacts\\csharp\\toolchain\\20261010T191017Z-639f01714d1049ff976376272d10809d\\source\\implementations\\csharp",
+    "expectedExit": 1,
+    "exitCode": 1,
+    "log": "logs/apicompat-negative.log"
+  },
+  {
+    "name": "mutation",
+    "executable": "dotnet",
+    "arguments": [
+      "exec",
+      "--fx-version",
+      "8.0.31",
+      "--roll-forward",
+      "Disable",
+      "C:\\miscwork\\portfolio\\cislib\\.artifacts\\csharp\\toolchain\\20261010T191017Z-639f01714d1049ff976376272d10809d\\packages\\dotnet-stryker\\4.16.0\\tools\\net8.0\\any\\Stryker.CLI.dll",
+      "--config-file",
+      "../../verification/mutation/stryker-config.json",
+      "--output",
+      "C:\\miscwork\\portfolio\\cislib\\.artifacts\\csharp\\toolchain\\20261010T191017Z-639f01714d1049ff976376272d10809d\\mutation",
+      "--skip-version-check",
+      "--log-to-file"
+    ],
+    "workingDirectory": "C:\\miscwork\\portfolio\\cislib\\.artifacts\\csharp\\toolchain\\20261010T191017Z-639f01714d1049ff976376272d10809d\\source\\implementations\\csharp\\tests\\CIS.Core.UnitTests",
+    "expectedExit": 0,
+    "exitCode": 0,
+    "log": "logs/mutation.log"
+  },
+  {
+    "name": "fresh-unmutated-build",
+    "executable": "dotnet",
+    "arguments": [
+      "build",
+      "src/CIS.Core/CIS.Core.csproj",
+      "-c",
+      "Release",
+      "--no-restore",
+      "--no-incremental"
+    ],
+    "workingDirectory": "C:\\miscwork\\portfolio\\cislib\\.artifacts\\csharp\\toolchain\\20261010T191017Z-639f01714d1049ff976376272d10809d\\source\\implementations\\csharp",
+    "expectedExit": 0,
+    "exitCode": 0,
+    "log": "logs/fresh-unmutated-build.log"
+  },
+  {
+    "name": "fresh-unmutated-pack",
+    "executable": "dotnet",
+    "arguments": [
+      "pack",
+      "src/CIS.Core/CIS.Core.csproj",
+      "-c",
+      "Release",
+      "--no-build",
+      "--no-restore",
+      "-o",
+      "C:\\miscwork\\portfolio\\cislib\\.artifacts\\csharp\\toolchain\\20261010T191017Z-639f01714d1049ff976376272d10809d\\unmutated-package"
+    ],
+    "workingDirectory": "C:\\miscwork\\portfolio\\cislib\\.artifacts\\csharp\\toolchain\\20261010T191017Z-639f01714d1049ff976376272d10809d\\source\\implementations\\csharp",
+    "expectedExit": 0,
+    "exitCode": 0,
+    "log": "logs/fresh-unmutated-pack.log"
+  },
+  {
+    "name": "unmutated-package-boundaries",
+    "executable": "pwsh",
+    "arguments": [
+      "-NoProfile",
+      "-File",
+      "eng/check-dependencies.ps1",
+      "-ProjectPath",
+      "src/CIS.Core/CIS.Core.csproj",
+      "-AssemblyPath",
+      "C:\\miscwork\\portfolio\\cislib\\.artifacts\\csharp\\toolchain\\20261010T191017Z-639f01714d1049ff976376272d10809d\\source\\implementations\\csharp\\src\\CIS.Core\\bin\\Release\\net10.0\\CIS.Core.dll",
+      "-PackagePath",
+      "C:\\miscwork\\portfolio\\cislib\\.artifacts\\csharp\\toolchain\\20261010T191017Z-639f01714d1049ff976376272d10809d\\unmutated-package\\CIS.Core.0.1.0-dev.1.nupkg"
+    ],
+    "workingDirectory": "C:\\miscwork\\portfolio\\cislib\\.artifacts\\csharp\\toolchain\\20261010T191017Z-639f01714d1049ff976376272d10809d\\source\\implementations\\csharp",
+    "expectedExit": 0,
+    "exitCode": 0,
+    "log": "logs/unmutated-package-boundaries.log"
+  }
+]

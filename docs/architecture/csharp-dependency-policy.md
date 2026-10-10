@@ -1,0 +1,37 @@
+# C# dependency boundaries
+
+Implemented for WP01-S02 on 10 October 2026, applying the user's single `CIS.Core` package and Microsoft-maintained runtime dependency decisions.
+
+## Dependency directions
+
+| Project role | Allowed local dependencies | Packaging |
+| --- | --- | --- |
+| `CIS.Core` | No other project. Approved Microsoft runtime packages plus the implicit `Microsoft.NETCore.App` framework. | The only shipping package. |
+| Five test families | Core and `CIS.Core.TestSupport`. | Nonpackable; test packages have `PrivateAssets=all`. |
+| `CIS.Core.TestSupport` | No project or NuGet dependency. | Nonpackable. |
+| `CIS.DependencyChecker` | TestSupport for metadata inspection. | Development executable; nonpackable and absent from Core's graph. |
+| ConsoleHuman | Core through an explicit development project reference. | Nonpackable example. |
+| Future third-party runtime integration | May depend on Core in a separately inventoried optional package. Core cannot depend back on it. | Separate package when actually implemented. |
+
+The [project manifest](../../implementations/csharp/eng/project-boundaries.json) lists exact edges and direct package IDs. New projects require an explicit manifest entry. Conditional/imported project items are evaluated with the pinned SDK; source XML inspection alone does not establish the boundary.
+
+Core's [runtime inventory](../../implementations/csharp/eng/runtime-dependencies.json) remains two packages at `10.0.12`. The separate [development inventory](../../implementations/csharp/eng/development-dependencies.json) records all 12 resolved test-tool packages, exact versions, Microsoft provenance and licences. The shared framework is declared separately from NuGet packages. The direct test inputs are MSTest framework/adapter `4.5.1` and `Microsoft.NET.Test.Sdk` `18.10.1`, using explicit VSTest selection. These are setup inputs; the coverage/mutation/API compatibility proof is still pending.
+
+MSTest imports three additional assembly references from its build targets. Only those named entries, coming from the recorded package/version directory for both their target and HintPath, are permitted in test projects. Manual assembly references remain forbidden in Core and the other roles.
+
+## Executed gates
+
+[check-dependencies.ps1](../../implementations/csharp/eng/check-dependencies.ps1) checks:
+
+1. All registered evaluated projects, their target/packability, exact project edges, explicit package IDs and frameworks. Convenience frameworks such as ASP.NET cannot enter Core.
+2. Each restored target graph, including exact runtime/development versions and local project origins. Core's runtime closure must equal its approved inventory.
+3. Packed dependency groups and versions, and a closed asset list. Bundled third-party/test DLLs, native assets and unapproved content/build scripts are rejected.
+4. Compiled Core DLL references using .NET managed metadata APIs, without executing the inspected assembly. Allowed names come only from the SDK's resolved `Microsoft.NETCore.App` reference pack and approved runtime packages. The packed DLL must match the inspected build when both paths are supplied.
+
+Normal developer verification runs every project gate before build, then checks the built and packed Core DLL. `-ProjectPath` scopes isolated negative-fixture checks to one already registered project; it does not alter the normal whole-manifest verification. `-LanguageRoot`/`-AssetsPath` permit copied fixture inputs rather than corrupting real source/restore data.
+
+The architecture suite proves rejection of a direct and imported Core-to-tests reference, a convenience framework, an unapproved explicit package, an unapproved restored package/version, bundled test assets and forbidden compiled AssemblyRefs. The unit support checks prove cleanup isolation and drainage beyond pipe-buffer sizes.
+
+## Remaining qualification
+
+Type/namespace directions, resolved metadata ownership and public API collection/static-field rules are declared responsibilities and will be inspected as real Core types exist, completed under WP07-S02. There are no logging implementation types to validate yet. No claims are made for empty integration, compatibility, business-case or mutation suites. Historical compatibility, coverage/mutation and Linux qualification remain pending; release verification must remain nonzero until required evidence exists.

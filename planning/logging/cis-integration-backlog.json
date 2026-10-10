@@ -1,0 +1,202 @@
+{
+  "schema_version": 1,
+  "id": "CIS-CORE-PREPARATION-001",
+  "status": "Proposed",
+  "created_on": "2026-10-09",
+  "purpose": "Additional CIS adoption and distribution work; does not replace CORE-PLAN-001 or claim CIS import compatibility.",
+  "source_backlog": "sources/core-library-backlog-v1.json",
+  "stories": [
+    {
+      "id": "CISCORE-S01",
+      "title": "Establish ownership, initial consumer and release identities",
+      "status": "Proposed",
+      "depends_on": [],
+      "source_stories": [
+        "WP01-S01",
+        "WP02-S04"
+      ],
+      "deliverables": [
+        "Repository/package ownership record",
+        "First consumer target evidence",
+        "Decision record for publication and compatibility"
+      ],
+      "acceptance_criteria": [
+        "Repository home, package IDs, assembly identities, namespaces, licence and release owner are recorded before publication.",
+        "The actual first consumer is named and its supported framework recorded; CIS is not assumed to be that consumer.",
+        "EnviormentsOptions spelling and the guide's indefinite compatibility commitment, including prereleases, have an explicit disposition before a public baseline is created."
+      ]
+    },
+    {
+      "id": "CISCORE-S02",
+      "title": "Define a reusable library module descriptor",
+      "status": "Proposed",
+      "depends_on": [
+        "CISCORE-S01"
+      ],
+      "source_stories": [
+        "WP02-S01",
+        "WP02-S02",
+        "WP02-S04"
+      ],
+      "deliverables": [
+        "Descriptor schema and logging entry",
+        "Invalid and incompatible descriptor fixtures"
+      ],
+      "acceptance_criteria": [
+        "Descriptor identifies module, exact library and guidance versions, package IDs, frameworks, capabilities, examples, skills, contracts, provenance and hashes.",
+        "Library module descriptors remain data and do not discover or execute target-repository assemblies.",
+        "Unknown schemas, invalid paths and incompatible version/capability selections produce useful diagnostics before installation.",
+        "Module identity remains distinct from CIS CLI modules and from Cis.Abstractions."
+      ]
+    },
+    {
+      "id": "CISCORE-S03",
+      "title": "Package versioned logging guidance and reference examples",
+      "status": "Proposed",
+      "depends_on": [
+        "CISCORE-S02"
+      ],
+      "source_stories": [
+        "WP07-S05",
+        "WP07-S06",
+        "WP08-S01",
+        "WP08-S02",
+        "WP08-S03",
+        "WP08-S04"
+      ],
+      "deliverables": [
+        "Versioned reference bundle",
+        "Packaged file inventory",
+        "Clean extraction and package-consumption evidence"
+      ],
+      "acceptance_criteria": [
+        "All eight source examples, developer instructions and skill references identify the same exact tested candidate packages.",
+        "CIS packaging preserves supported dotfiles and portable skills in both tool and standalone distributions.",
+        "Examples consume candidate packages without source project references; full verification archives remain separate from the lightweight installed reference bundle.",
+        "Package acquisition supports the selected feed or offline source explicitly; absence never triggers a silent latest-version fallback."
+      ]
+    },
+    {
+      "id": "CISCORE-S04",
+      "title": "Extend managed reference installation without changing applications",
+      "status": "Proposed",
+      "depends_on": [
+        "CISCORE-S03"
+      ],
+      "source_stories": [
+        "WP08-S01",
+        "WP08-S04"
+      ],
+      "deliverables": [
+        "Logging reference selection and installation",
+        "Ownership/version manifest migration",
+        "Installation regression evidence"
+      ],
+      "acceptance_criteria": [
+        "Existing .NET engineering examples still install and reconcile; logging references have a separate identity.",
+        "Dry-run, repeat initialization, opt-out, user-edited/unowned files, retired files, malformed manifests and unsafe paths are exercised.",
+        "Reference copying does not edit application packages or startup, run examples, restore packages or execute tests.",
+        "Installed reference files remain excluded from application classification and implementation evidence.",
+        "A mismatched installed library and guidance version is surfaced; local edits are preserved during updates."
+      ]
+    },
+    {
+      "id": "CISCORE-S05",
+      "title": "Author and qualify portable logging skills",
+      "status": "Proposed",
+      "depends_on": [
+        "CISCORE-S02"
+      ],
+      "source_stories": [
+        "WP08-S01",
+        "WP08-S02",
+        "WP08-S03",
+        "WP08-S04"
+      ],
+      "deliverables": [
+        "core-logging-adopt skill",
+        "core-logging-instrument skill",
+        "core-logging-diagnose skill",
+        "Versioned references and bounded task evaluations"
+      ],
+      "acceptance_criteria": [
+        "Triggers distinguish initial adoption, application instrumentation and delivery diagnosis; unrelated logging tasks do not automatically select the core.",
+        "Skills inspect installed version, host ownership, existing providers and framework before proposing changes; unsupported or missing versions produce a clear next action.",
+        "API snippets and commands compile/run against the matching candidate and link to tested examples rather than inventing a second implementation.",
+        "Evaluations cover clean stdout, filtered deferred work, exception ownership, scope isolation, loss/deadline reporting and version mismatch.",
+        "No skill claims passing tests, durable delivery or approval without corresponding evidence; strict skill validation and deterministic audit run before release."
+      ]
+    },
+    {
+      "id": "CISCORE-S06",
+      "title": "Connect library selection to CIS instructions and skill routing",
+      "status": "Proposed",
+      "depends_on": [
+        "CISCORE-S04",
+        "CISCORE-S05"
+      ],
+      "source_stories": [
+        "WP08-S01"
+      ],
+      "deliverables": [
+        "Classification/adoption routing",
+        "Generated instruction references",
+        "Selection and reconciliation fixtures"
+      ],
+      "acceptance_criteria": [
+        "C# detection can offer reference material but does not establish application adoption of the library.",
+        "Explicit selection or package evidence identifies the applicable logging skill/version; no duplicate generic logging authority is generated.",
+        "CIS .github/skills integration and portable reference skills point to the same maintained source.",
+        "Generated guidance retains user-owned content and states the available package, examples and limitations."
+      ]
+    },
+    {
+      "id": "CISCORE-S07",
+      "title": "Qualify one consumer and reconcile existing diagnostic examples",
+      "status": "Proposed",
+      "depends_on": [
+        "CISCORE-S06"
+      ],
+      "source_stories": [
+        "WP06-S02",
+        "WP08-S04"
+      ],
+      "deliverables": [
+        "Synthetic consumer adoption rehearsal",
+        "Existing diagnostic example comparison",
+        "Consumer-level regression evidence"
+      ],
+      "acceptance_criteria": [
+        "A clean synthetic consumer installs exact packages using the supplied instructions and runs the selected skill scenarios.",
+        "The comparison distinguishes reusable logging from test-only diagnostic journals, metrics, traces and evidence retention.",
+        "Any proposed migration of CIS or existing examples is separately scoped; the core does not automatically replace their observability systems.",
+        "Consumer runs prove stdout/stderr separation, one runtime owner, independent filters and bounded shutdown with actual results."
+      ]
+    },
+    {
+      "id": "CISCORE-S08",
+      "title": "Bind the CIS reference release to verified library bytes",
+      "status": "Proposed",
+      "depends_on": [
+        "CISCORE-S07"
+      ],
+      "source_stories": [
+        "WP09-S01",
+        "WP09-S02",
+        "WP09-S03",
+        "WP09-S04"
+      ],
+      "deliverables": [
+        "Core/CIS compatibility matrix",
+        "Reference bundle provenance",
+        "Upgrade and rollback procedure"
+      ],
+      "acceptance_criteria": [
+        "CIS release metadata records exact compatible library, guide, example, skill and schema versions plus hashes.",
+        "The source guide's complete core release gates remain required if adopted; passing CIS installation checks does not substitute for them.",
+        "Clean installed-CIS replay verifies guidance and example integrity, version mismatch handling and user-edit preservation.",
+        "Publish the already-verified assets through the chosen release process, retaining older versioned guidance and historical core baselines."
+      ]
+    }
+  ]
+}

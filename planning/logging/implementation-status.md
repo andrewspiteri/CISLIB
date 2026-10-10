@@ -1,0 +1,26 @@
+# Logging implementation status
+
+Updated 10 October 2026. This record tracks work against the preserved source task IDs, applying [plan amendments](plan-amendments.md). Original source plans/backlog and their recorded hashes remain unchanged.
+
+## Current foundation tasks
+
+| Task | State | Outcome and evidence |
+| --- | --- | --- |
+| `WP01-S01-T03` | Done | [Assembly policy](../../docs/architecture/csharp-assembly-policy.md) selects stable assembly identity, advancing release versions and unsigned modern .NET scope, and assesses default/plugin/legacy loader scenarios. Project settings are aligned; built and packed metadata are recorded in [Windows evidence](evidence/wp01-s01-t03-t04-windows.json). |
+| `WP01-S01-T04` | Done | [Platform policy](../../docs/architecture/csharp-platform-policy.md), [contract targets](../../implementations/csharp/support/contract-targets.json) and [execution matrix](../../implementations/csharp/support/execution-matrix.json) separate retained framework assets from actual Windows scaffold checks and the unexecuted Linux lane. Historical runtime and roll-forward treatment are explicit. |
+| `WP01-S02-T01` | Done | Five test-family projects, shared support and development checker added to the solution; existing shared contracts/compatibility/examples retained; mutation preparation directory added. MicrosoftLogger remains inside Core. |
+| `WP01-S02-T02` | Done | Exact [project boundaries](../../implementations/csharp/eng/project-boundaries.json), existing runtime inventory and separate [development inventory](../../implementations/csharp/eng/development-dependencies.json) constrain dependencies; tests use private assets and development projects are nonpackable. |
+| `WP01-S02-T03` | Done | Existing strict nullable/analyzer/docs/deterministic/format settings retained; [maintainability standard](../../docs/architecture/csharp-maintainability.md) records decomposition triggers without broad suppressions. Release build/format passed. |
+| `WP01-S02-T04` | Done | Built/packed Core metadata and dependency/assets checks pass. Real architecture fixtures reject forbidden dependencies at evaluated-project, restored-graph, package and compiled-reference levels. [Windows evidence](evidence/wp01-s02-windows.json) records reports and hashes. |
+| `WP01-S03-T01` | Done | [Toolchain policy](../../implementations/csharp/eng/toolchain.json) fixes SDK/runtime, MSTest/VSTest, Microsoft coverage, APICompat and Stryker versions with explicit VSTest and exact CLI host runtime selection. |
+| `WP01-S03-T02` | Done | Scoped SDK/runner settings, central versions, nine lockfiles, local CLI manifest, separate tool source mapping and exact project/tool dependency inventories retained; fresh isolated restore executed. |
+| `WP01-S03-T03` | Done | Genuine internal severity parser and retained MSTest cases implement full names plus the user's abbreviations. Microsoft coverage, real isolated Stryker and APICompat controls executed. |
+| `WP01-S03-T04` | Done | [Windows evidence](evidence/wp01-s03-windows.json) retains native reports, nonzero denominators, source/tool identities, commands and prerequisites. Sixteen exact NuGet archives are retained locally; release-level offline retention remains later work. |
+
+T03/T04 in S01 complete the requested decisions; the four S02 tasks complete the amended foundation structure and dependency-gate implementation. The four S03 tasks and acceptance criteria now have executed Windows evidence for genuine behavior and the pinned toolchain. It does not mean either platform's full release suite has passed. `WP01-S01` remains In progress pending reconciliation of T01/T02 and all story acceptance evidence, including the public API spelling disposition. The user explicitly selected S02 while that reconciliation remains pending. S02's task evidence is complete; M1 and the full logging runtime remain unfinished.
+
+## Verification limits and next work
+
+Windows developer verification passes with 95 unit cases (93 parser cases and two shared-support cases) and ten architecture cases, with zero failures/skips. Parser coverage is 15/15 lines (100%) and 75/76 branches (98.68%). Stryker created 35 mutants: 28 killed, six native compile errors and one native ignored block duplicate, with source/tool-bound dispositions and no exclusion kill credit. Both native and conservative testable-mutation scores are 100%. APICompat passes matching fixtures and reports CP0002 for a deliberately removed member. Three other functional-family projects remain empty and are not claimed as passing. Packed assembly metadata agrees with the selected policy, and the host runs on explicitly selected runtime `10.0.12`. Release verification still fails because required logging, six-family, example and replay evidence is absent. Linux and historical binary compatibility are unexecuted; there are no published releases yet.
+
+Finish the remaining S01 identity/consumer record reconciliation, and proceed to WP01-S04 verification entry points, inventories and deterministic support. WP01-S03 is complete for this Windows smoke scope; later implementation must expand coverage/mutation scope. Licence, distribution signing/feed choices and complete public compatibility policy remain prepublication work.

@@ -1,0 +1,179 @@
+Stryker: Stryker mutator for .Net
+
+Stryker mutator for .Net
+
+Usage: Stryker [command] [options]
+
+Options:
+  -f|--config-file <relative-path>    Choose the file containing your stryker
+                                      configuration relative to current working
+                                      directory. Supports json and yaml formats.
+                                      | default: stryker-config.json
+
+  -b|--break-at <0-100>               Anything below this mutation score will
+                                      return a non-zero exit code. Must be less
+                                      than or equal to threshold low. | default:
+                                      '0' | allowed: 0 - 100
+
+  --threshold-high <0-100>            Minimum good mutation score. Must be
+                                      higher than or equal to threshold low. |
+                                      default: '80' | allowed: 0 - 100
+
+  --threshold-low <0-100>             Minimum acceptable mutation score. Must be
+                                      less than or equal to threshold high and
+                                      more than or equal to threshold break. |
+                                      default: '60' | allowed: 0 - 100
+
+  -L|--log-to-file                    Makes the logger write to a file. Logging
+                                      to file always uses loglevel trace. |
+                                      default: 'False'
+
+  -V|--verbosity                      The verbosity (loglevel) for output to the
+                                      console. | default: 'info' | allowed:
+                                      error, warning, info, debug, trace
+
+  -c|--concurrency <number>           By default Stryker tries to make the most
+                                      of your CPU, by spawning as many parallel
+                                      processes as you have CPU cores.
+                                      This setting allows you to override this
+                                      default behavior.
+                                      Reasons you might want to lower this
+                                      setting:
+                                      
+                                      - Your test runner starts a browser
+                                      (another CPU-intensive process)
+                                      - You're running on a shared server
+                                      - You are running stryker in the
+                                      background while doing other work |
+                                      default: '10'
+
+  --disable-bail                      Disable abort unit testrun as soon as the
+                                      first unit test fails. | default: 'False'
+
+
+Build options:
+  -s|--solution <file-path>           Full path to your solution file. Required
+                                      on dotnet framework.
+
+  --configuration <Release,Debug>     Configuration to use when building the
+                                      project(s) (e.g., 'Debug' or 'Release').
+                                      If not specified, the default
+                                      configuration of the project(s) will be
+                                      used.
+
+  -p|--project <project-name.csproj>  Used to find the project to test in the
+                                      project references of the test project.
+                                      Example: "ExampleProject.csproj" |
+                                      default: ''
+
+  -tp|--test-project                  Specify the test projects. | default: []
+
+  --msbuild-path                      The path to the msbuild executable to use
+                                      to build your .NET Framework application.
+                                      Not used for .net (core).
+
+  --target-framework                  The framework to build the project
+                                      against.
+
+
+Mutation options:
+  -m|--mutate <glob-pattern>          Allows to specify file that should in- or
+                                      excluded for the mutations.
+                                      Use glob syntax for wildcards:
+                                      https://en.wikipedia.org/wiki/Glob_(programming)
+                                      Use '!' at the start of a pattern to
+                                      exclude all matched files.
+                                      Use '{<start>..<end>}' at the end of a
+                                      pattern to specify spans of text in files
+                                      to in- or exclude.
+                                      Example:
+                                      ['**/*Service.cs','!**/MySpecialService.cs',
+                                      '**/MyOtherService.cs{1..10}{32..45}'] |
+                                      default: ['**/*']
+
+  -l|--mutation-level                 Specify which mutation levels to place.
+                                      Every higher level includes the mutations
+                                      from the lower levels. | default:
+                                      'Standard' | allowed: Basic, Standard,
+                                      Advanced, Complete
+
+  --since[:<committish>]              Enables diff compare. Only test changed
+                                      files. | default: 'False'
+
+  --with-baseline[:<committish>]      EXPERIMENTAL: Use results stored in
+                                      stryker dashboard to only test new
+                                      mutants. | default: 'False'
+
+
+Reporting options:
+  -o|--open-report[:<report-type>]    When this option is passed, generated
+                                      reports should open in the browser
+                                      automatically once Stryker starts testing
+                                      mutants, and will update the report till
+                                      Stryker is done. Both html and dashboard
+                                      reports can be opened automatically. |
+                                      default: 'Html' | allowed: Html, Dashboard
+
+  -r|--reporter                       Reporters inform about various stages in
+                                      the mutation testrun. | default:
+                                      ['Progress', 'Html'] | allowed: All,
+                                      Progress, Dots, ClearText, ClearTextTree,
+                                      Json, Html, Dashboard, RealTimeDashboard,
+                                      Markdown, Baseline, Gitlab
+
+  -v|--version                        Project version used in dashboard reporter
+                                      and baseline feature. | default: ''
+
+  --dashboard-api-key                 Api key for dashboard reporter.
+
+  --azure-fileshare-sas               A Shared Access Signature for Azure File
+                                      Storage is required when Azure File
+                                      Storage is used for dashboard compare. For
+                                      more information:
+                                      https://docs.microsoft.com/en-us/azure/storage/common/storage-sas-overview
+                                      | default: ''
+
+  --s3-bucket-name                    The name of the S3 bucket to store
+                                      baseline reports in. Required when the S3
+                                      baseline provider is selected. | default:
+                                      ''
+
+  --s3-endpoint                       Custom endpoint URL for S3-compatible
+                                      storage (e.g. MinIO, Backblaze B2).
+                                      Optional; when not set the default AWS S3
+                                      endpoint is used. | default: ''
+
+  --s3-region                         The region for the S3 bucket (e.g.
+                                      us-east-1). Optional; when not set the SDK
+                                      resolves the region from environment
+                                      variables or profile. | default: ''
+
+  -O|--output                         Changes the output path for Stryker logs
+                                      and reports. This can be an absolute or
+                                      relative path.
+
+
+Misc options:
+  --skip-version-check                Skips check for newer version. | default:
+                                      false
+
+  --break-on-initial-test-failure     Instruct Stryker to break execution when
+                                      at least one test failed on initial run. |
+                                      default: 'False'
+
+  --diag                              Stryker enters diagnostic mode. Useful
+                                      when encountering issues.
+                                      Setting this flag makes Stryker increase
+                                      the debug level and log more information
+                                      to help troubleshooting. | default:
+                                      'False'
+
+  -t|--test-runner <vstest,mtp>       Specify the test runner to use. | default:
+                                      'vstest' | allowed: vstest, mtp
+
+
+Commands:
+  init                                
+
+Run 'Stryker [command] -?|-h|--help' for more information about a command.
+Welcome to Stryker for .Net! Run dotnet stryker to kick off a mutation test run

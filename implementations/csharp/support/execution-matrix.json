@@ -1,0 +1,81 @@
+{
+  "schemaVersion": 1,
+  "implementation": "csharp",
+  "recordedOn": "2026-10-10",
+  "taskId": "WP01-S01-T04",
+  "targetContract": "implementations/csharp/support/contract-targets.json",
+  "sdkSelection": {
+    "configuration": "implementations/csharp/global.json",
+    "version": "10.0.401",
+    "rollForward": "disable",
+    "allowPrerelease": false
+  },
+  "lanes": [
+    {
+      "id": "windows-x64",
+      "requiredForInitialRelease": true,
+      "status": "foundation-and-toolchain-verified-release-unqualified",
+      "os": {
+        "name": "Microsoft Windows 11 Home",
+        "release": "25H2",
+        "version": "10.0.26200.9550"
+      },
+      "architecture": "x64",
+      "runtimeIdentifier": "win-x64",
+      "executionMode": "managed-framework-dependent",
+      "targetFramework": "net10.0",
+      "sdkVersion": "10.0.401",
+      "runtimeVersion": "10.0.12",
+      "powerShellVersion": "7.6.5",
+      "hostRuntimeSelection": {
+        "runtimeConfigRequestedVersion": "10.0.0",
+        "rollForward": "Minor",
+        "rollForwardOrigin": "runtime-default-no-environment-override",
+        "exactRuntimeCheck": {
+          "requestedVersion": "10.0.12",
+          "rollForward": "Disable",
+          "overrideOrigin": "test-only-dotnet-exec-command-line"
+        }
+      },
+      "evidence": "planning/logging/evidence/wp01-s01-t03-t04-windows.json",
+      "scope": "scaffold-build-host-package-and-assembly-metadata-only",
+      "fullReleaseSuiteExecuted": false,
+      "historicalRuntimeReplayExecuted": false,
+      "qualificationEvidence": [
+        "planning/logging/evidence/wp01-s02-windows.json",
+        "planning/logging/evidence/wp01-s03-windows.json"
+      ],
+      "toolchainQualification": {
+        "scope": "genuine severity parser; populated unit/architecture families and APICompat controls",
+        "testRunner": "VSTest",
+        "toolHostRuntime": "8.0.31",
+        "sdkVersion": "10.0.401",
+        "targetRuntimeVersion": "10.0.12",
+        "evidence": "planning/logging/evidence/wp01-s03-windows.json"
+      }
+    },
+    {
+      "id": "linux-ubuntu2404-x64",
+      "requiredForInitialRelease": true,
+      "status": "planned-unexecuted",
+      "os": {
+        "name": "Ubuntu",
+        "release": "24.04",
+        "version": null,
+        "imageDigest": null
+      },
+      "architecture": "x64",
+      "runtimeIdentifier": "linux-x64",
+      "executionMode": "managed-framework-dependent",
+      "targetFramework": "net10.0",
+      "plannedSdkVersion": "10.0.401",
+      "executedSdkVersion": null,
+      "executedRuntimeVersion": null,
+      "evidence": null,
+      "fullReleaseSuiteExecuted": false,
+      "historicalRuntimeReplayExecuted": false
+    }
+  ],
+  "historicalRuntimePolicy": "docs/architecture/csharp-platform-policy.md#runtime-selection-and-historical-replay",
+  "publishedHistoricalReleaseCount": 0
+}
