@@ -1,0 +1,43 @@
+{
+  "schemaVersion": 1,
+  "scope": "Nonshipping owned test-directory cleanup",
+  "recordedUtc": "2026-10-10T23:18:23.087765+00:00",
+  "checkpointCommit": "0ded9ac",
+  "trigger": "A second fresh replay failed the existing HungOwnedChildIsStoppedAtTheFiniteDeadline test during immediate recursive cleanup with a Windows directory-in-use IOException; the lock holder was not established.",
+  "change": "Retry only Windows sharing/lock violations (native codes 32/33), at most 20 attempts with 25 ms between attempts (475 ms maximum retry delay). Other exceptions and persistent locks still propagate. Exact owned-directory boundary is unchanged.",
+  "focusedChecks": {
+    "total": 12,
+    "passed": 12,
+    "failed": 0,
+    "skipped": 0,
+    "newControlledCases": 10,
+    "existingRealIntegrationCases": 2
+  },
+  "reports": [
+    {
+      "path": "planning/logging/evidence/test-support-sharing-cleanup/focused/report.trx",
+      "sha256": "f1901e51c78af8ab69dc60d4e45b0fd2d9e105f9b9d86ce282628814698015ee",
+      "bytes": 16962
+    },
+    {
+      "path": "planning/logging/evidence/test-support-sharing-cleanup/failed-replay/summary.json",
+      "sha256": "224f365cfd96ae4b5e8ef2df65f89264e36f0b48be4fd52b2efdcb1ea5d1d8af",
+      "bytes": 442
+    },
+    {
+      "path": "planning/logging/evidence/test-support-sharing-cleanup/failed-replay/verification.log",
+      "sha256": "fb14792c237ec551d8cb6fc670afc7dce61de6a1c2b09b130a095cb81089ab49",
+      "bytes": 53945
+    },
+    {
+      "path": "planning/logging/evidence/test-support-sharing-cleanup/failed-replay/unit-report.trx",
+      "sha256": "5aee6358aa160200ce85efa036210285bfe52082c5ea9278d1fea344159f71bb",
+      "bytes": 372357
+    },
+    {
+      "path": "planning/logging/evidence/test-support-sharing-cleanup/failed-replay/unit-execution.log",
+      "sha256": "9e80293f7a3cc69448ed73f2d49025f3123df8cf5e98b65b6c2980b08803e213",
+      "bytes": 2184
+    }
+  ]
+}

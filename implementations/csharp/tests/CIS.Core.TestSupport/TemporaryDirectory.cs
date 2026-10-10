@@ -30,7 +30,10 @@ public sealed class TemporaryDirectory : IDisposable
 
         if (Directory.Exists(Path))
         {
-            Directory.Delete(Path, recursive: true);
+            OwnedDirectoryCleanup.Delete(
+                Path,
+                path => Directory.Delete(path, recursive: true),
+                () => Thread.Sleep(25));
         }
 
         disposed = true;
