@@ -11,7 +11,8 @@ public static class ProcessRunner
         string executable,
         IEnumerable<string> arguments,
         string workingDirectory,
-        TimeSpan timeout)
+        TimeSpan timeout,
+        IReadOnlyDictionary<string, string?>? environment = null)
     {
         if (timeout <= TimeSpan.Zero || timeout.TotalMilliseconds > uint.MaxValue - 1)
         {
@@ -29,6 +30,15 @@ public static class ProcessRunner
         foreach (string argument in arguments)
         {
             startInfo.ArgumentList.Add(argument);
+        }
+
+        if (environment is not null)
+        {
+            foreach ((string name, string? value) in environment)
+            {
+                if (value is null) { startInfo.Environment.Remove(name); }
+                else { startInfo.Environment[name] = value; }
+            }
         }
 
         using var process = new Process { StartInfo = startInfo };

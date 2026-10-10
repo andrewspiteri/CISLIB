@@ -47,6 +47,10 @@ The user selected WP01-S02 next and supplied `https://github.com/andrewspiteri/C
 
 Five test-family projects, nonpackable shared support and a development-only metadata checker are in the solution. Evaluated project/package/assembly directions and exact test dependencies are recorded in the [dependency policy](../docs/architecture/csharp-dependency-policy.md). Strong shipping isolation is preserved: Core still resolves only its original two approved runtime packages. Basic MSTest/VSTest setup is complete; full toolchain qualification remains WP01-S03 work.
 
+## Commit checkpoint and WP01-S04
+
+At the user's request, the foundation through WP01-S03 was committed as `ea8e9cf` on `main`. The historical setup records above describe the earlier uncommitted state. WP01-S04 now adds structured verification/source replay, initial six-family case inventories and deterministic test support. Release qualification remains pending; [verification guidance](../docs/architecture/csharp-verification.md) records the bootstrap scope.
+
 ## Remaining publication decisions
 
 Resolve licence, publishing destination, distribution signing (NuGet author signing/Authenticode, if used), and the remaining public API/behavior compatibility policy before publishing any release, including a prerelease. The assembly identity and target-retention decisions above are selected; complete both platform lanes and qualify test, coverage, mutation and compatibility tools against real behavior before claiming a release is verified.

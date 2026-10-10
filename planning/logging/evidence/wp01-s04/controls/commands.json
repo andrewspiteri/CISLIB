@@ -1,0 +1,70 @@
+[
+  {
+    "id": "check-developer",
+    "executable": "pwsh",
+    "arguments": [
+      "-NoProfile",
+      "-File",
+      "eng/check-release.ps1",
+      "-Profile",
+      "Developer"
+    ],
+    "expectedExitCode": 0,
+    "actualExitCode": 0,
+    "log": "C:\\miscwork\\portfolio\\cislib\\.artifacts\\csharp\\s04\\check-developer.log"
+  },
+  {
+    "id": "verify-release",
+    "executable": "pwsh",
+    "arguments": [
+      "-NoProfile",
+      "-File",
+      "eng/verify.ps1",
+      "-Profile",
+      "Release"
+    ],
+    "expectedExitCode": 2,
+    "actualExitCode": 2,
+    "log": "C:\\miscwork\\portfolio\\cislib\\.artifacts\\csharp\\s04\\verify-release.log"
+  },
+  {
+    "id": "check-release",
+    "executable": "pwsh",
+    "arguments": [
+      "-NoProfile",
+      "-File",
+      "eng/check-release.ps1"
+    ],
+    "expectedExitCode": 2,
+    "actualExitCode": 2,
+    "log": "C:\\miscwork\\portfolio\\cislib\\.artifacts\\csharp\\s04\\check-release.log"
+  },
+  {
+    "id": "replay-release",
+    "executable": "pwsh",
+    "arguments": [
+      "-NoProfile",
+      "-File",
+      "eng/replay.ps1",
+      "-Profile",
+      "Release"
+    ],
+    "expectedExitCode": 2,
+    "actualExitCode": 2,
+    "log": "C:\\miscwork\\portfolio\\cislib\\.artifacts\\csharp\\s04\\replay-release.log"
+  },
+  {
+    "id": "replay-developer",
+    "executable": "pwsh",
+    "arguments": [
+      "-NoProfile",
+      "-File",
+      "eng/replay.ps1",
+      "-Profile",
+      "Developer"
+    ],
+    "expectedExitCode": 0,
+    "actualExitCode": 0,
+    "log": "C:\\miscwork\\portfolio\\cislib\\.artifacts\\csharp\\s04\\replay-developer.log"
+  }
+]

@@ -4,9 +4,9 @@ The solution has five MSTest/VSTest projects and one nonpackable shared-support 
 
 | Project | Responsibility | Current execution |
 | --- | --- | --- |
-| `CIS.Core.UnitTests` | Deterministic Core behavior and test-support checks. | Severity parsing tests cover names, abbreviations, trimming, absence, invalid values and culture independence. Two support tests exercise cleanup isolation and independent stream drainage. |
+| `CIS.Core.UnitTests` | Deterministic Core behavior and test-support checks. | Severity parsing tests cover names, abbreviations, trimming, absence, invalid values and culture independence. Eleven support tests exercise deterministic clocks/inputs/concurrency/writers, cleanup isolation and bounded child processes, including independent stream drainage. |
 | `CIS.Core.IntegrationTests` | Real consumers, streams, files and lifecycle. | Project scaffold; no cases yet. |
-| `CIS.Core.ArchitectureTests` | Dependency and public-surface boundaries. | Ten foundation cases, including deliberately invalid project/package/framework/assembly fixtures. Type/API rules follow real Core types. |
+| `CIS.Core.ArchitectureTests` | Dependency and public-surface boundaries. | Seventeen foundation cases, including deliberately invalid project/package/framework/assembly fixtures and evidence-validator controls. Type/API rules follow real Core types. |
 | `CIS.Core.CompatibilityTests` | API/source/binary/configuration/behavior replay. | Project scaffold; no cases or historical releases yet. |
 | `CIS.Core.BusinessCases` | Named developer/operator acceptance scenarios. | Project scaffold; no cases yet. |
 | `CIS.Core.TestSupport` | Owned temporary directories, bounded child processes and managed metadata inspection. | Used by actual foundation tests and the development checker. No Core or NuGet dependency. |
@@ -24,4 +24,4 @@ dotnet test tests/CIS.Core.ArchitectureTests/CIS.Core.ArchitectureTests.csproj -
 
 Architecture tests need the Release checker and the current locally packed Core package. Negative fixtures use owned temporary directories or copied assets/packages; they never modify the legitimate shipping source or candidate.
 
-Test-only fake clocks, controlled writers and complete candidate-process/replay support will be added when their behavior exists, under WP01-S04 and later stories. The current process helper has finite deadlines, argument-list escaping and concurrent independent stream capture.
+WP01-S04 adds manual UTC/monotonic clocks and timers, explicit metadata/UUID sequences, bounded asynchronous signals/barriers and controllable writers. The process helper supports isolated child environments and stops owned children at finite deadlines. Nine new unit cases exercise these behaviors. Architecture tests add a genuine native-report positive baseline and six independent evidence rejection controls. Read [verification and source replay](../../../docs/architecture/csharp-verification.md) for manifests, required cases, report paths and source replay limits.

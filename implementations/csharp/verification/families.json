@@ -1,0 +1,136 @@
+{
+  "schemaVersion": 1,
+  "implementation": "csharp",
+  "families": [
+    {
+      "id": "unit",
+      "project": "tests/CIS.Core.UnitTests/CIS.Core.UnitTests.csproj",
+      "harness": null,
+      "reportSchema": "vstest.trx/2010",
+      "developerEnabled": true,
+      "developerReason": null,
+      "pendingReason": "Full shipping scope and complete logging cases remain pending.",
+      "slots": {
+        "discovery": "families/unit/discovery.json",
+        "execution": "families/unit/execution.json",
+        "nativeReport": "families/unit/report.trx"
+      }
+    },
+    {
+      "id": "integration",
+      "project": "tests/CIS.Core.IntegrationTests/CIS.Core.IntegrationTests.csproj",
+      "harness": null,
+      "reportSchema": "vstest.trx/2010",
+      "developerEnabled": false,
+      "developerReason": "No implemented logging cases yet; not executed or counted as passing.",
+      "pendingReason": "Full shipping scope and complete logging cases remain pending.",
+      "slots": {
+        "discovery": "families/integration/discovery.json",
+        "execution": "families/integration/execution.json",
+        "nativeReport": "families/integration/report.trx"
+      }
+    },
+    {
+      "id": "mutation",
+      "project": null,
+      "harness": "eng/verify-toolchain.ps1",
+      "reportSchema": "stryker.mutation/v3",
+      "developerEnabled": false,
+      "developerReason": "Explicit separate parser qualification command; not part of the fast developer profile.",
+      "pendingReason": "Full shipping scope and complete logging cases remain pending.",
+      "slots": {
+        "discovery": "families/mutation/discovery.json",
+        "execution": "families/mutation/execution.json",
+        "nativeReport": "families/mutation/mutation-report.json"
+      }
+    },
+    {
+      "id": "architecture",
+      "project": "tests/CIS.Core.ArchitectureTests/CIS.Core.ArchitectureTests.csproj",
+      "harness": null,
+      "reportSchema": "vstest.trx/2010",
+      "developerEnabled": true,
+      "developerReason": null,
+      "pendingReason": "Full shipping scope and complete logging cases remain pending.",
+      "slots": {
+        "discovery": "families/architecture/discovery.json",
+        "execution": "families/architecture/execution.json",
+        "nativeReport": "families/architecture/report.trx"
+      }
+    },
+    {
+      "id": "compatibility",
+      "project": "tests/CIS.Core.CompatibilityTests/CIS.Core.CompatibilityTests.csproj",
+      "harness": null,
+      "reportSchema": "vstest.trx/2010",
+      "developerEnabled": false,
+      "developerReason": "No implemented logging cases yet; not executed or counted as passing.",
+      "pendingReason": "Full shipping scope and complete logging cases remain pending.",
+      "slots": {
+        "discovery": "families/compatibility/discovery.json",
+        "execution": "families/compatibility/execution.json",
+        "nativeReport": "families/compatibility/report.trx"
+      }
+    },
+    {
+      "id": "business",
+      "project": "tests/CIS.Core.BusinessCases/CIS.Core.BusinessCases.csproj",
+      "harness": null,
+      "reportSchema": "vstest.trx/2010",
+      "developerEnabled": false,
+      "developerReason": "No implemented logging cases yet; not executed or counted as passing.",
+      "pendingReason": "Full shipping scope and complete logging cases remain pending.",
+      "slots": {
+        "discovery": "families/business/discovery.json",
+        "execution": "families/business/execution.json",
+        "nativeReport": "families/business/report.trx"
+      }
+    }
+  ],
+  "lanes": [
+    {
+      "id": "windows-x64",
+      "requiredForInitialRelease": true,
+      "scope": "Windows .NET managed framework-dependent; local foundation only qualified."
+    },
+    {
+      "id": "linux-ubuntu2404-x64",
+      "requiredForInitialRelease": true,
+      "scope": "Ubuntu 24.04 .NET managed framework-dependent; planned and unexecuted."
+    }
+  ],
+  "releaseGates": [
+    {
+      "id": "runtime",
+      "reason": "Complete logging runtime/provider are not implemented."
+    },
+    {
+      "id": "package-suites",
+      "reason": "Real candidate-package integration/business/compatibility suites are pending."
+    },
+    {
+      "id": "coverage",
+      "reason": "Full shipping-code coverage and source/candidate linkage are pending."
+    },
+    {
+      "id": "mutation",
+      "reason": "Full shipping mutation matrix and release evidence validator are pending."
+    },
+    {
+      "id": "history",
+      "reason": "Source/binary/configuration/behavior replay and first-release baseline harness are pending."
+    },
+    {
+      "id": "examples",
+      "reason": "Exact candidate-package reference examples are pending."
+    },
+    {
+      "id": "lanes",
+      "reason": "Both required release platform lanes are not qualified."
+    },
+    {
+      "id": "bundle",
+      "reason": "Complete retained verification kit/materialization and licence review are pending."
+    }
+  ]
+}
