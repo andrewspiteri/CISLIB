@@ -1,0 +1,161 @@
+{
+  "schema": "cis.verification/v1",
+  "profile": "Developer",
+  "lane": "windows-x64",
+  "runId": "4655586b646243049dfe7bc872d62d91",
+  "startedUtc": "2026-10-10T23:35:23.6496235Z",
+  "finishedUtc": "2026-10-10T23:35:30.3238727Z",
+  "exitCode": 1,
+  "source": {
+    "commit": "07d34008469a66fa627138f41fdf50a1e5ee3f07",
+    "inputInventory": {
+      "path": "source-inputs.json",
+      "sha256": "f8d86106e23325b6929bdad74d3fe8b80d1cabb62e6013067906a07163acc1df",
+      "schema": "cis.source-inputs/v1"
+    }
+  },
+  "families": [
+    {
+      "id": "unit",
+      "status": "NotRun",
+      "reason": null,
+      "scope": "foundation-only",
+      "discovery": {
+        "path": "families/unit/discovery.json",
+        "sha256": "e163411451ed80e79d8c0a1d22cd2a925ea9612a13e78d340b76da2b564a19ce",
+        "schema": "cis.discovery/v1"
+      },
+      "execution": {
+        "path": "families/unit/execution.json",
+        "sha256": "fffd9e6b90ba90abf5db5f0034d7fefd3807488c72daf03b6c48ca80a1f61271",
+        "schema": "cis.execution/v1"
+      },
+      "report": null
+    },
+    {
+      "id": "integration",
+      "status": "NotRun",
+      "reason": null,
+      "scope": "foundation-only",
+      "discovery": {
+        "path": "families/integration/discovery.json",
+        "sha256": "db501b9c5937324eee752f2f94dc323c0a46cf2a1d12d0c43f492fbc60a2ce0c",
+        "schema": "cis.discovery/v1"
+      },
+      "execution": {
+        "path": "families/integration/execution.json",
+        "sha256": "523a1321e1509a6f8fc786956aed1b397707ea27ce9d6c9a59795bc2da00977f",
+        "schema": "cis.execution/v1"
+      },
+      "report": null
+    },
+    {
+      "id": "mutation",
+      "status": "NotRun",
+      "reason": "Explicit separate parser qualification command; not part of the fast developer profile.",
+      "scope": "foundation-only",
+      "discovery": {
+        "path": "families/mutation/discovery.json",
+        "sha256": "8262fd4f2df16da918b2d1aa74328b975a47a84bbc7b00bc9024f1dc28a3503e",
+        "schema": "cis.discovery/v1"
+      },
+      "execution": {
+        "path": "families/mutation/execution.json",
+        "sha256": "dccad37a1e3c9de1de7a7412ffaef0228f9ea182f3d9b8de445e55aeffaff1c5",
+        "schema": "cis.execution/v1"
+      },
+      "report": null
+    },
+    {
+      "id": "architecture",
+      "status": "NotRun",
+      "reason": null,
+      "scope": "foundation-only",
+      "discovery": {
+        "path": "families/architecture/discovery.json",
+        "sha256": "2e9029aa12b44b3de47cc1c008fe4dc4ce1675ca5adc9f88221c5b4537788006",
+        "schema": "cis.discovery/v1"
+      },
+      "execution": {
+        "path": "families/architecture/execution.json",
+        "sha256": "010af1cb8fffcecf571426663d6d7fa07ad116cdc2d9955ec33765ffc0a23a30",
+        "schema": "cis.execution/v1"
+      },
+      "report": null
+    },
+    {
+      "id": "compatibility",
+      "status": "NotRun",
+      "reason": "No implemented logging cases yet; not executed or counted as passing.",
+      "scope": "foundation-only",
+      "discovery": {
+        "path": "families/compatibility/discovery.json",
+        "sha256": "c7e7e9d029b147a5a679dc044b6748fb18356efad464d3fa1df336b5c9a28054",
+        "schema": "cis.discovery/v1"
+      },
+      "execution": {
+        "path": "families/compatibility/execution.json",
+        "sha256": "5efe10a7962d49d6a820cbf38744179d98198da1b5d837dc27ae818b381b5c5a",
+        "schema": "cis.execution/v1"
+      },
+      "report": null
+    },
+    {
+      "id": "business",
+      "status": "NotRun",
+      "reason": "No implemented logging cases yet; not executed or counted as passing.",
+      "scope": "foundation-only",
+      "discovery": {
+        "path": "families/business/discovery.json",
+        "sha256": "49e4481766fb5e68b93e70d2f949bc67dd2e152ac469adc875a40a0da6fbdb10",
+        "schema": "cis.discovery/v1"
+      },
+      "execution": {
+        "path": "families/business/execution.json",
+        "sha256": "f44bda8b2ac012602fccefab9d06a36f1f436eec573cda60c18ac6953255994b",
+        "schema": "cis.execution/v1"
+      },
+      "report": null
+    }
+  ],
+  "stages": [
+    {
+      "id": "restore",
+      "status": "Passed",
+      "exitCode": 0,
+      "startedUtc": "2026-10-10T23:35:25.7580592Z",
+      "finishedUtc": "2026-10-10T23:35:27.3665265Z",
+      "detail": null
+    },
+    {
+      "id": "project-boundaries",
+      "status": "Failed",
+      "exitCode": 1,
+      "startedUtc": "2026-10-10T23:35:27.3674287Z",
+      "finishedUtc": "2026-10-10T23:35:30.2804927Z",
+      "detail": "pwsh -NoProfile -File C:\\miscwork\\portfolio\\cislib\\implementations\\csharp\\eng\\check-dependencies.ps1 failed with exit 1. See C:\\miscwork\\portfolio\\cislib\\.artifacts\\csharp\\verification\\Developer\\logs\\project-boundaries.log"
+    }
+  ],
+  "issues": [
+    {
+      "code": "FailedStage",
+      "detail": "project-boundaries"
+    },
+    {
+      "code": "MissingFamilyExecution",
+      "detail": "unit: "
+    },
+    {
+      "code": "MissingFamilyExecution",
+      "detail": "integration: "
+    },
+    {
+      "code": "MissingFamilyExecution",
+      "detail": "architecture: "
+    },
+    {
+      "code": "StageFailure",
+      "detail": "pwsh -NoProfile -File C:\\miscwork\\portfolio\\cislib\\implementations\\csharp\\eng\\check-dependencies.ps1 failed with exit 1. See C:\\miscwork\\portfolio\\cislib\\.artifacts\\csharp\\verification\\Developer\\logs\\project-boundaries.log"
+    }
+  ]
+}

@@ -1,0 +1,1247 @@
+{
+  "schemaVersion": 1,
+  "story": "WP03-S01",
+  "scope": "Internal discovered facts, version selection and initialization generation only; not full snapshot validation/publication or platform execution claims.",
+  "cases": [
+    {
+      "id": "DISC-WINDOWS",
+      "inputs": {
+        "application": {
+          "name": null,
+          "build": null,
+          "explicitAssembly": null,
+          "entryAssembly": "application",
+          "assemblyName": "Fixture.App",
+          "information": "3.4.5-rc.2+sha.AbC123",
+          "version": "7.0.0.0",
+          "commit": null,
+          "buildId": null
+        },
+        "runtime": {
+          "platform": "windows",
+          "start": "2026-10-10T09:00:00+02:00",
+          "host": "Visible.Host",
+          "description": "Windows Fixture",
+          "osArch": "X64",
+          "processArch": "X86",
+          "framework": ".NET Fixture",
+          "pid": 42
+        },
+        "service": {
+          "core": null,
+          "dd": null,
+          "setup": null
+        },
+        "initialization": {
+          "time": "2026-10-10T08:00:00Z",
+          "id": "00000000-0000-0000-0000-000000000017"
+        }
+      },
+      "expected": {
+        "Application": {
+          "ApplicationName": "Fixture.App",
+          "BuildVersion": "3.4.5-rc.2+sha.AbC123",
+          "CommitId": null,
+          "BuildId": null
+        },
+        "Versions": {
+          "BuildVersion": "3.4.5-rc.2+sha.AbC123",
+          "ServiceVersion": "3.4.5-rc.2+sha.AbC123",
+          "ServiceVersionSource": "BuildVersion"
+        },
+        "Runtime": {
+          "ProcessStartedAtUtc": "2026-10-10T07:00:00+00:00",
+          "HostName": "Visible.Host",
+          "OperatingSystem": "windows",
+          "OperatingSystemDescription": "Windows Fixture",
+          "OSArchitecture": "x64",
+          "ProcessArchitecture": "x86",
+          "RuntimeDescription": ".NET Fixture",
+          "ProcessId": 42
+        },
+        "Initialization": {
+          "InstanceId": "00000000-0000-0000-0000-000000000017",
+          "InitializedAtUtc": "2026-10-10T08:00:00+00:00"
+        }
+      }
+    },
+    {
+      "id": "DISC-LINUX",
+      "inputs": {
+        "application": {
+          "name": null,
+          "build": null,
+          "explicitAssembly": null,
+          "entryAssembly": "application",
+          "assemblyName": "Fixture.App",
+          "information": "3.4.5-rc.2+sha.AbC123",
+          "version": "7.0.0.0",
+          "commit": null,
+          "buildId": null
+        },
+        "runtime": {
+          "platform": "linux",
+          "start": "2026-10-10T09:00:00+02:00",
+          "host": "linux-visible",
+          "description": "Linux Fixture",
+          "osArch": "X64",
+          "processArch": "X64",
+          "framework": ".NET Fixture",
+          "pid": 42
+        },
+        "service": {
+          "core": null,
+          "dd": null,
+          "setup": null
+        },
+        "initialization": {
+          "time": "2026-10-10T08:00:00Z",
+          "id": "00000000-0000-0000-0000-000000000017"
+        }
+      },
+      "expected": {
+        "Application": {
+          "ApplicationName": "Fixture.App",
+          "BuildVersion": "3.4.5-rc.2+sha.AbC123",
+          "CommitId": null,
+          "BuildId": null
+        },
+        "Versions": {
+          "BuildVersion": "3.4.5-rc.2+sha.AbC123",
+          "ServiceVersion": "3.4.5-rc.2+sha.AbC123",
+          "ServiceVersionSource": "BuildVersion"
+        },
+        "Runtime": {
+          "ProcessStartedAtUtc": "2026-10-10T07:00:00+00:00",
+          "HostName": "linux-visible",
+          "OperatingSystem": "linux",
+          "OperatingSystemDescription": "Linux Fixture",
+          "OSArchitecture": "x64",
+          "ProcessArchitecture": "x64",
+          "RuntimeDescription": ".NET Fixture",
+          "ProcessId": 42
+        },
+        "Initialization": {
+          "InstanceId": "00000000-0000-0000-0000-000000000017",
+          "InitializedAtUtc": "2026-10-10T08:00:00+00:00"
+        }
+      }
+    },
+    {
+      "id": "DISC-MACOS",
+      "inputs": {
+        "application": {
+          "name": null,
+          "build": null,
+          "explicitAssembly": null,
+          "entryAssembly": "application",
+          "assemblyName": "Fixture.App",
+          "information": "3.4.5-rc.2+sha.AbC123",
+          "version": "7.0.0.0",
+          "commit": null,
+          "buildId": null
+        },
+        "runtime": {
+          "platform": "macos",
+          "start": "2026-10-10T09:00:00+02:00",
+          "host": "Visible.Host",
+          "description": "Darwin Fixture",
+          "osArch": "Arm64",
+          "processArch": "Arm64",
+          "framework": ".NET Fixture",
+          "pid": 42
+        },
+        "service": {
+          "core": null,
+          "dd": null,
+          "setup": null
+        },
+        "initialization": {
+          "time": "2026-10-10T08:00:00Z",
+          "id": "00000000-0000-0000-0000-000000000017"
+        }
+      },
+      "expected": {
+        "Application": {
+          "ApplicationName": "Fixture.App",
+          "BuildVersion": "3.4.5-rc.2+sha.AbC123",
+          "CommitId": null,
+          "BuildId": null
+        },
+        "Versions": {
+          "BuildVersion": "3.4.5-rc.2+sha.AbC123",
+          "ServiceVersion": "3.4.5-rc.2+sha.AbC123",
+          "ServiceVersionSource": "BuildVersion"
+        },
+        "Runtime": {
+          "ProcessStartedAtUtc": "2026-10-10T07:00:00+00:00",
+          "HostName": "Visible.Host",
+          "OperatingSystem": "macos",
+          "OperatingSystemDescription": "Darwin Fixture",
+          "OSArchitecture": "arm64",
+          "ProcessArchitecture": "arm64",
+          "RuntimeDescription": ".NET Fixture",
+          "ProcessId": 42
+        },
+        "Initialization": {
+          "InstanceId": "00000000-0000-0000-0000-000000000017",
+          "InitializedAtUtc": "2026-10-10T08:00:00+00:00"
+        }
+      }
+    },
+    {
+      "id": "DISC-UNKNOWN",
+      "inputs": {
+        "application": {
+          "name": null,
+          "build": null,
+          "explicitAssembly": null,
+          "entryAssembly": "application",
+          "assemblyName": "Fixture.App",
+          "information": "3.4.5-rc.2+sha.AbC123",
+          "version": "7.0.0.0",
+          "commit": null,
+          "buildId": null
+        },
+        "runtime": {
+          "platform": "freebsd",
+          "start": "2026-10-10T09:00:00+02:00",
+          "host": "Visible.Host",
+          "description": "Windows Fixture",
+          "osArch": "X64",
+          "processArch": "X86",
+          "framework": ".NET Fixture",
+          "pid": 42
+        },
+        "service": {
+          "core": null,
+          "dd": null,
+          "setup": null
+        },
+        "initialization": {
+          "time": "2026-10-10T08:00:00Z",
+          "id": "00000000-0000-0000-0000-000000000017"
+        }
+      },
+      "expected": {
+        "Application": {
+          "ApplicationName": "Fixture.App",
+          "BuildVersion": "3.4.5-rc.2+sha.AbC123",
+          "CommitId": null,
+          "BuildId": null
+        },
+        "Versions": {
+          "BuildVersion": "3.4.5-rc.2+sha.AbC123",
+          "ServiceVersion": "3.4.5-rc.2+sha.AbC123",
+          "ServiceVersionSource": "BuildVersion"
+        },
+        "Runtime": {
+          "ProcessStartedAtUtc": "2026-10-10T07:00:00+00:00",
+          "HostName": "Visible.Host",
+          "OperatingSystem": "unknown",
+          "OperatingSystemDescription": "Windows Fixture",
+          "OSArchitecture": "x64",
+          "ProcessArchitecture": "x86",
+          "RuntimeDescription": ".NET Fixture",
+          "ProcessId": 42
+        },
+        "Initialization": {
+          "InstanceId": "00000000-0000-0000-0000-000000000017",
+          "InitializedAtUtc": "2026-10-10T08:00:00+00:00"
+        }
+      }
+    },
+    {
+      "id": "DISC-OPTIONAL-UNAVAILABLE",
+      "inputs": {
+        "application": {
+          "name": null,
+          "build": null,
+          "explicitAssembly": null,
+          "entryAssembly": "application",
+          "assemblyName": "Fixture.App",
+          "information": "3.4.5-rc.2+sha.AbC123",
+          "version": "7.0.0.0",
+          "commit": null,
+          "buildId": null
+        },
+        "runtime": {
+          "platform": "windows",
+          "start": null,
+          "host": null,
+          "description": null,
+          "osArch": null,
+          "processArch": null,
+          "framework": null,
+          "pid": null
+        },
+        "service": {
+          "core": null,
+          "dd": null,
+          "setup": null
+        },
+        "initialization": {
+          "time": "2026-10-10T08:00:00Z",
+          "id": "00000000-0000-0000-0000-000000000017"
+        }
+      },
+      "expected": {
+        "Application": {
+          "ApplicationName": "Fixture.App",
+          "BuildVersion": "3.4.5-rc.2+sha.AbC123",
+          "CommitId": null,
+          "BuildId": null
+        },
+        "Versions": {
+          "BuildVersion": "3.4.5-rc.2+sha.AbC123",
+          "ServiceVersion": "3.4.5-rc.2+sha.AbC123",
+          "ServiceVersionSource": "BuildVersion"
+        },
+        "Runtime": {
+          "ProcessStartedAtUtc": null,
+          "HostName": null,
+          "OperatingSystem": "windows",
+          "OperatingSystemDescription": null,
+          "OSArchitecture": null,
+          "ProcessArchitecture": null,
+          "RuntimeDescription": null,
+          "ProcessId": null
+        },
+        "Initialization": {
+          "InstanceId": "00000000-0000-0000-0000-000000000017",
+          "InitializedAtUtc": "2026-10-10T08:00:00+00:00"
+        }
+      }
+    },
+    {
+      "id": "DISC-ENTRY-MISSING",
+      "inputs": {
+        "application": {
+          "name": " Explicit.App ",
+          "build": null,
+          "explicitAssembly": null,
+          "entryAssembly": null,
+          "assemblyName": "Fixture.App",
+          "information": "3.4.5-rc.2+sha.AbC123",
+          "version": "7.0.0.0",
+          "commit": null,
+          "buildId": null
+        },
+        "runtime": {
+          "platform": "windows",
+          "start": "2026-10-10T09:00:00+02:00",
+          "host": "Visible.Host",
+          "description": "Windows Fixture",
+          "osArch": "X64",
+          "processArch": "X86",
+          "framework": ".NET Fixture",
+          "pid": 42
+        },
+        "service": {
+          "core": null,
+          "dd": null,
+          "setup": null
+        },
+        "initialization": {
+          "time": "2026-10-10T08:00:00Z",
+          "id": "00000000-0000-0000-0000-000000000017"
+        }
+      },
+      "expected": {
+        "Application": {
+          "ApplicationName": "Explicit.App",
+          "BuildVersion": "unknown",
+          "CommitId": null,
+          "BuildId": null
+        },
+        "Versions": {
+          "BuildVersion": "unknown",
+          "ServiceVersion": "unknown",
+          "ServiceVersionSource": "BuildVersion"
+        },
+        "Runtime": {
+          "ProcessStartedAtUtc": "2026-10-10T07:00:00+00:00",
+          "HostName": "Visible.Host",
+          "OperatingSystem": "windows",
+          "OperatingSystemDescription": "Windows Fixture",
+          "OSArchitecture": "x64",
+          "ProcessArchitecture": "x86",
+          "RuntimeDescription": ".NET Fixture",
+          "ProcessId": 42
+        },
+        "Initialization": {
+          "InstanceId": "00000000-0000-0000-0000-000000000017",
+          "InitializedAtUtc": "2026-10-10T08:00:00+00:00"
+        }
+      }
+    },
+    {
+      "id": "DISC-INFO-MISSING",
+      "inputs": {
+        "application": {
+          "name": null,
+          "build": null,
+          "explicitAssembly": null,
+          "entryAssembly": "application",
+          "assemblyName": "Fixture.App",
+          "information": null,
+          "version": "7.0.0.0",
+          "commit": null,
+          "buildId": null
+        },
+        "runtime": {
+          "platform": "windows",
+          "start": "2026-10-10T09:00:00+02:00",
+          "host": "Visible.Host",
+          "description": "Windows Fixture",
+          "osArch": "X64",
+          "processArch": "X86",
+          "framework": ".NET Fixture",
+          "pid": 42
+        },
+        "service": {
+          "core": null,
+          "dd": null,
+          "setup": null
+        },
+        "initialization": {
+          "time": "2026-10-10T08:00:00Z",
+          "id": "00000000-0000-0000-0000-000000000017"
+        }
+      },
+      "expected": {
+        "Application": {
+          "ApplicationName": "Fixture.App",
+          "BuildVersion": "7.0.0.0",
+          "CommitId": null,
+          "BuildId": null
+        },
+        "Versions": {
+          "BuildVersion": "7.0.0.0",
+          "ServiceVersion": "7.0.0.0",
+          "ServiceVersionSource": "BuildVersion"
+        },
+        "Runtime": {
+          "ProcessStartedAtUtc": "2026-10-10T07:00:00+00:00",
+          "HostName": "Visible.Host",
+          "OperatingSystem": "windows",
+          "OperatingSystemDescription": "Windows Fixture",
+          "OSArchitecture": "x64",
+          "ProcessArchitecture": "x86",
+          "RuntimeDescription": ".NET Fixture",
+          "ProcessId": 42
+        },
+        "Initialization": {
+          "InstanceId": "00000000-0000-0000-0000-000000000017",
+          "InitializedAtUtc": "2026-10-10T08:00:00+00:00"
+        }
+      }
+    },
+    {
+      "id": "DISC-INFO-BLANK",
+      "inputs": {
+        "application": {
+          "name": null,
+          "build": null,
+          "explicitAssembly": null,
+          "entryAssembly": "application",
+          "assemblyName": "Fixture.App",
+          "information": " \t",
+          "version": "7.0.0.0",
+          "commit": null,
+          "buildId": null
+        },
+        "runtime": {
+          "platform": "windows",
+          "start": "2026-10-10T09:00:00+02:00",
+          "host": "Visible.Host",
+          "description": "Windows Fixture",
+          "osArch": "X64",
+          "processArch": "X86",
+          "framework": ".NET Fixture",
+          "pid": 42
+        },
+        "service": {
+          "core": null,
+          "dd": null,
+          "setup": null
+        },
+        "initialization": {
+          "time": "2026-10-10T08:00:00Z",
+          "id": "00000000-0000-0000-0000-000000000017"
+        }
+      },
+      "expected": {
+        "Application": {
+          "ApplicationName": "Fixture.App",
+          "BuildVersion": "7.0.0.0",
+          "CommitId": null,
+          "BuildId": null
+        },
+        "Versions": {
+          "BuildVersion": "7.0.0.0",
+          "ServiceVersion": "7.0.0.0",
+          "ServiceVersionSource": "BuildVersion"
+        },
+        "Runtime": {
+          "ProcessStartedAtUtc": "2026-10-10T07:00:00+00:00",
+          "HostName": "Visible.Host",
+          "OperatingSystem": "windows",
+          "OperatingSystemDescription": "Windows Fixture",
+          "OSArchitecture": "x64",
+          "ProcessArchitecture": "x86",
+          "RuntimeDescription": ".NET Fixture",
+          "ProcessId": 42
+        },
+        "Initialization": {
+          "InstanceId": "00000000-0000-0000-0000-000000000017",
+          "InitializedAtUtc": "2026-10-10T08:00:00+00:00"
+        }
+      }
+    },
+    {
+      "id": "DISC-SUPPLIED-BUILD",
+      "inputs": {
+        "application": {
+          "name": null,
+          "build": " 4.5.6-preview.3+Build.MixedCase ",
+          "explicitAssembly": null,
+          "entryAssembly": "application",
+          "assemblyName": "Fixture.App",
+          "information": "3.4.5-rc.2+sha.AbC123",
+          "version": "7.0.0.0",
+          "commit": null,
+          "buildId": null
+        },
+        "runtime": {
+          "platform": "windows",
+          "start": "2026-10-10T09:00:00+02:00",
+          "host": "Visible.Host",
+          "description": "Windows Fixture",
+          "osArch": "X64",
+          "processArch": "X86",
+          "framework": ".NET Fixture",
+          "pid": 42
+        },
+        "service": {
+          "core": null,
+          "dd": null,
+          "setup": null
+        },
+        "initialization": {
+          "time": "2026-10-10T08:00:00Z",
+          "id": "00000000-0000-0000-0000-000000000017"
+        }
+      },
+      "expected": {
+        "Application": {
+          "ApplicationName": "Fixture.App",
+          "BuildVersion": "4.5.6-preview.3+Build.MixedCase",
+          "CommitId": null,
+          "BuildId": null
+        },
+        "Versions": {
+          "BuildVersion": "4.5.6-preview.3+Build.MixedCase",
+          "ServiceVersion": "4.5.6-preview.3+Build.MixedCase",
+          "ServiceVersionSource": "BuildVersion"
+        },
+        "Runtime": {
+          "ProcessStartedAtUtc": "2026-10-10T07:00:00+00:00",
+          "HostName": "Visible.Host",
+          "OperatingSystem": "windows",
+          "OperatingSystemDescription": "Windows Fixture",
+          "OSArchitecture": "x64",
+          "ProcessArchitecture": "x86",
+          "RuntimeDescription": ".NET Fixture",
+          "ProcessId": 42
+        },
+        "Initialization": {
+          "InstanceId": "00000000-0000-0000-0000-000000000017",
+          "InitializedAtUtc": "2026-10-10T08:00:00+00:00"
+        }
+      }
+    },
+    {
+      "id": "DISC-SUPPLIED-NAME",
+      "inputs": {
+        "application": {
+          "name": " Explicit.App ",
+          "build": null,
+          "explicitAssembly": null,
+          "entryAssembly": "application",
+          "assemblyName": "Fixture.App",
+          "information": "3.4.5-rc.2+sha.AbC123",
+          "version": "7.0.0.0",
+          "commit": null,
+          "buildId": null
+        },
+        "runtime": {
+          "platform": "windows",
+          "start": "2026-10-10T09:00:00+02:00",
+          "host": "Visible.Host",
+          "description": "Windows Fixture",
+          "osArch": "X64",
+          "processArch": "X86",
+          "framework": ".NET Fixture",
+          "pid": 42
+        },
+        "service": {
+          "core": null,
+          "dd": null,
+          "setup": null
+        },
+        "initialization": {
+          "time": "2026-10-10T08:00:00Z",
+          "id": "00000000-0000-0000-0000-000000000017"
+        }
+      },
+      "expected": {
+        "Application": {
+          "ApplicationName": "Explicit.App",
+          "BuildVersion": "3.4.5-rc.2+sha.AbC123",
+          "CommitId": null,
+          "BuildId": null
+        },
+        "Versions": {
+          "BuildVersion": "3.4.5-rc.2+sha.AbC123",
+          "ServiceVersion": "3.4.5-rc.2+sha.AbC123",
+          "ServiceVersionSource": "BuildVersion"
+        },
+        "Runtime": {
+          "ProcessStartedAtUtc": "2026-10-10T07:00:00+00:00",
+          "HostName": "Visible.Host",
+          "OperatingSystem": "windows",
+          "OperatingSystemDescription": "Windows Fixture",
+          "OSArchitecture": "x64",
+          "ProcessArchitecture": "x86",
+          "RuntimeDescription": ".NET Fixture",
+          "ProcessId": 42
+        },
+        "Initialization": {
+          "InstanceId": "00000000-0000-0000-0000-000000000017",
+          "InitializedAtUtc": "2026-10-10T08:00:00+00:00"
+        }
+      }
+    },
+    {
+      "id": "DISC-SUPPLIED-IDS",
+      "inputs": {
+        "application": {
+          "name": null,
+          "build": null,
+          "explicitAssembly": null,
+          "entryAssembly": "application",
+          "assemblyName": "Fixture.App",
+          "information": "3.4.5-rc.2+sha.AbC123",
+          "version": "7.0.0.0",
+          "commit": " AbC123 ",
+          "buildId": " Build-17 "
+        },
+        "runtime": {
+          "platform": "windows",
+          "start": "2026-10-10T09:00:00+02:00",
+          "host": "Visible.Host",
+          "description": "Windows Fixture",
+          "osArch": "X64",
+          "processArch": "X86",
+          "framework": ".NET Fixture",
+          "pid": 42
+        },
+        "service": {
+          "core": null,
+          "dd": null,
+          "setup": null
+        },
+        "initialization": {
+          "time": "2026-10-10T08:00:00Z",
+          "id": "00000000-0000-0000-0000-000000000017"
+        }
+      },
+      "expected": {
+        "Application": {
+          "ApplicationName": "Fixture.App",
+          "BuildVersion": "3.4.5-rc.2+sha.AbC123",
+          "CommitId": "AbC123",
+          "BuildId": "Build-17"
+        },
+        "Versions": {
+          "BuildVersion": "3.4.5-rc.2+sha.AbC123",
+          "ServiceVersion": "3.4.5-rc.2+sha.AbC123",
+          "ServiceVersionSource": "BuildVersion"
+        },
+        "Runtime": {
+          "ProcessStartedAtUtc": "2026-10-10T07:00:00+00:00",
+          "HostName": "Visible.Host",
+          "OperatingSystem": "windows",
+          "OperatingSystemDescription": "Windows Fixture",
+          "OSArchitecture": "x64",
+          "ProcessArchitecture": "x86",
+          "RuntimeDescription": ".NET Fixture",
+          "ProcessId": 42
+        },
+        "Initialization": {
+          "InstanceId": "00000000-0000-0000-0000-000000000017",
+          "InitializedAtUtc": "2026-10-10T08:00:00+00:00"
+        }
+      }
+    },
+    {
+      "id": "DISC-EXPLICIT-ASSEMBLY",
+      "inputs": {
+        "application": {
+          "name": null,
+          "build": null,
+          "explicitAssembly": "application",
+          "entryAssembly": null,
+          "assemblyName": "Fixture.App",
+          "information": "3.4.5-rc.2+sha.AbC123",
+          "version": "7.0.0.0",
+          "commit": null,
+          "buildId": null
+        },
+        "runtime": {
+          "platform": "windows",
+          "start": "2026-10-10T09:00:00+02:00",
+          "host": "Visible.Host",
+          "description": "Windows Fixture",
+          "osArch": "X64",
+          "processArch": "X86",
+          "framework": ".NET Fixture",
+          "pid": 42
+        },
+        "service": {
+          "core": null,
+          "dd": null,
+          "setup": null
+        },
+        "initialization": {
+          "time": "2026-10-10T08:00:00Z",
+          "id": "00000000-0000-0000-0000-000000000017"
+        }
+      },
+      "expected": {
+        "Application": {
+          "ApplicationName": "Fixture.App",
+          "BuildVersion": "3.4.5-rc.2+sha.AbC123",
+          "CommitId": null,
+          "BuildId": null
+        },
+        "Versions": {
+          "BuildVersion": "3.4.5-rc.2+sha.AbC123",
+          "ServiceVersion": "3.4.5-rc.2+sha.AbC123",
+          "ServiceVersionSource": "BuildVersion"
+        },
+        "Runtime": {
+          "ProcessStartedAtUtc": "2026-10-10T07:00:00+00:00",
+          "HostName": "Visible.Host",
+          "OperatingSystem": "windows",
+          "OperatingSystemDescription": "Windows Fixture",
+          "OSArchitecture": "x64",
+          "ProcessArchitecture": "x86",
+          "RuntimeDescription": ".NET Fixture",
+          "ProcessId": 42
+        },
+        "Initialization": {
+          "InstanceId": "00000000-0000-0000-0000-000000000017",
+          "InitializedAtUtc": "2026-10-10T08:00:00+00:00"
+        }
+      }
+    },
+    {
+      "id": "DISC-CORE-EXPLICIT",
+      "inputs": {
+        "application": {
+          "name": null,
+          "build": null,
+          "explicitAssembly": "core",
+          "entryAssembly": "application",
+          "assemblyName": "Fixture.App",
+          "information": "3.4.5-rc.2+sha.AbC123",
+          "version": "7.0.0.0",
+          "commit": null,
+          "buildId": null
+        },
+        "runtime": {
+          "platform": "windows",
+          "start": "2026-10-10T09:00:00+02:00",
+          "host": "Visible.Host",
+          "description": "Windows Fixture",
+          "osArch": "X64",
+          "processArch": "X86",
+          "framework": ".NET Fixture",
+          "pid": 42
+        },
+        "service": {
+          "core": null,
+          "dd": null,
+          "setup": null
+        },
+        "initialization": {
+          "time": "2026-10-10T08:00:00Z",
+          "id": "00000000-0000-0000-0000-000000000017"
+        }
+      },
+      "expected": {
+        "Application": {
+          "ApplicationName": null,
+          "BuildVersion": "unknown",
+          "CommitId": null,
+          "BuildId": null
+        },
+        "Versions": {
+          "BuildVersion": "unknown",
+          "ServiceVersion": "unknown",
+          "ServiceVersionSource": "BuildVersion"
+        },
+        "Runtime": {
+          "ProcessStartedAtUtc": "2026-10-10T07:00:00+00:00",
+          "HostName": "Visible.Host",
+          "OperatingSystem": "windows",
+          "OperatingSystemDescription": "Windows Fixture",
+          "OSArchitecture": "x64",
+          "ProcessArchitecture": "x86",
+          "RuntimeDescription": ".NET Fixture",
+          "ProcessId": 42
+        },
+        "Initialization": {
+          "InstanceId": "00000000-0000-0000-0000-000000000017",
+          "InitializedAtUtc": "2026-10-10T08:00:00+00:00"
+        }
+      }
+    },
+    {
+      "id": "DISC-CORE-ENTRY",
+      "inputs": {
+        "application": {
+          "name": null,
+          "build": null,
+          "explicitAssembly": null,
+          "entryAssembly": "core",
+          "assemblyName": "Fixture.App",
+          "information": "3.4.5-rc.2+sha.AbC123",
+          "version": "7.0.0.0",
+          "commit": null,
+          "buildId": null
+        },
+        "runtime": {
+          "platform": "windows",
+          "start": "2026-10-10T09:00:00+02:00",
+          "host": "Visible.Host",
+          "description": "Windows Fixture",
+          "osArch": "X64",
+          "processArch": "X86",
+          "framework": ".NET Fixture",
+          "pid": 42
+        },
+        "service": {
+          "core": null,
+          "dd": null,
+          "setup": null
+        },
+        "initialization": {
+          "time": "2026-10-10T08:00:00Z",
+          "id": "00000000-0000-0000-0000-000000000017"
+        }
+      },
+      "expected": {
+        "Application": {
+          "ApplicationName": null,
+          "BuildVersion": "unknown",
+          "CommitId": null,
+          "BuildId": null
+        },
+        "Versions": {
+          "BuildVersion": "unknown",
+          "ServiceVersion": "unknown",
+          "ServiceVersionSource": "BuildVersion"
+        },
+        "Runtime": {
+          "ProcessStartedAtUtc": "2026-10-10T07:00:00+00:00",
+          "HostName": "Visible.Host",
+          "OperatingSystem": "windows",
+          "OperatingSystemDescription": "Windows Fixture",
+          "OSArchitecture": "x64",
+          "ProcessArchitecture": "x86",
+          "RuntimeDescription": ".NET Fixture",
+          "ProcessId": 42
+        },
+        "Initialization": {
+          "InstanceId": "00000000-0000-0000-0000-000000000017",
+          "InitializedAtUtc": "2026-10-10T08:00:00+00:00"
+        }
+      }
+    },
+    {
+      "id": "DISC-CORE-LABEL",
+      "inputs": {
+        "application": {
+          "name": null,
+          "build": null,
+          "explicitAssembly": null,
+          "entryAssembly": "application",
+          "assemblyName": "Fixture.App",
+          "information": "3.4.5-rc.2+sha.AbC123",
+          "version": "7.0.0.0",
+          "commit": null,
+          "buildId": null
+        },
+        "runtime": {
+          "platform": "windows",
+          "start": "2026-10-10T09:00:00+02:00",
+          "host": "Visible.Host",
+          "description": "Windows Fixture",
+          "osArch": "X64",
+          "processArch": "X86",
+          "framework": ".NET Fixture",
+          "pid": 42
+        },
+        "service": {
+          "core": " Deployment.Core ",
+          "dd": "Alias",
+          "setup": "Setup"
+        },
+        "initialization": {
+          "time": "2026-10-10T08:00:00Z",
+          "id": "00000000-0000-0000-0000-000000000017"
+        }
+      },
+      "expected": {
+        "Application": {
+          "ApplicationName": "Fixture.App",
+          "BuildVersion": "3.4.5-rc.2+sha.AbC123",
+          "CommitId": null,
+          "BuildId": null
+        },
+        "Versions": {
+          "BuildVersion": "3.4.5-rc.2+sha.AbC123",
+          "ServiceVersion": "Deployment.Core",
+          "ServiceVersionSource": "CORE_SERVICE_VERSION"
+        },
+        "Runtime": {
+          "ProcessStartedAtUtc": "2026-10-10T07:00:00+00:00",
+          "HostName": "Visible.Host",
+          "OperatingSystem": "windows",
+          "OperatingSystemDescription": "Windows Fixture",
+          "OSArchitecture": "x64",
+          "ProcessArchitecture": "x86",
+          "RuntimeDescription": ".NET Fixture",
+          "ProcessId": 42
+        },
+        "Initialization": {
+          "InstanceId": "00000000-0000-0000-0000-000000000017",
+          "InitializedAtUtc": "2026-10-10T08:00:00+00:00"
+        }
+      }
+    },
+    {
+      "id": "DISC-DD-LABEL",
+      "inputs": {
+        "application": {
+          "name": null,
+          "build": null,
+          "explicitAssembly": null,
+          "entryAssembly": "application",
+          "assemblyName": "Fixture.App",
+          "information": "3.4.5-rc.2+sha.AbC123",
+          "version": "7.0.0.0",
+          "commit": null,
+          "buildId": null
+        },
+        "runtime": {
+          "platform": "windows",
+          "start": "2026-10-10T09:00:00+02:00",
+          "host": "Visible.Host",
+          "description": "Windows Fixture",
+          "osArch": "X64",
+          "processArch": "X86",
+          "framework": ".NET Fixture",
+          "pid": 42
+        },
+        "service": {
+          "core": " \t",
+          "dd": " Deployment.Alias ",
+          "setup": "Setup"
+        },
+        "initialization": {
+          "time": "2026-10-10T08:00:00Z",
+          "id": "00000000-0000-0000-0000-000000000017"
+        }
+      },
+      "expected": {
+        "Application": {
+          "ApplicationName": "Fixture.App",
+          "BuildVersion": "3.4.5-rc.2+sha.AbC123",
+          "CommitId": null,
+          "BuildId": null
+        },
+        "Versions": {
+          "BuildVersion": "3.4.5-rc.2+sha.AbC123",
+          "ServiceVersion": "Deployment.Alias",
+          "ServiceVersionSource": "DD_VERSION"
+        },
+        "Runtime": {
+          "ProcessStartedAtUtc": "2026-10-10T07:00:00+00:00",
+          "HostName": "Visible.Host",
+          "OperatingSystem": "windows",
+          "OperatingSystemDescription": "Windows Fixture",
+          "OSArchitecture": "x64",
+          "ProcessArchitecture": "x86",
+          "RuntimeDescription": ".NET Fixture",
+          "ProcessId": 42
+        },
+        "Initialization": {
+          "InstanceId": "00000000-0000-0000-0000-000000000017",
+          "InitializedAtUtc": "2026-10-10T08:00:00+00:00"
+        }
+      }
+    },
+    {
+      "id": "DISC-SETUP-LABEL",
+      "inputs": {
+        "application": {
+          "name": null,
+          "build": null,
+          "explicitAssembly": null,
+          "entryAssembly": "application",
+          "assemblyName": "Fixture.App",
+          "information": "3.4.5-rc.2+sha.AbC123",
+          "version": "7.0.0.0",
+          "commit": null,
+          "buildId": null
+        },
+        "runtime": {
+          "platform": "windows",
+          "start": "2026-10-10T09:00:00+02:00",
+          "host": "Visible.Host",
+          "description": "Windows Fixture",
+          "osArch": "X64",
+          "processArch": "X86",
+          "framework": ".NET Fixture",
+          "pid": 42
+        },
+        "service": {
+          "core": null,
+          "dd": null,
+          "setup": " Setup.MixedCase "
+        },
+        "initialization": {
+          "time": "2026-10-10T08:00:00Z",
+          "id": "00000000-0000-0000-0000-000000000017"
+        }
+      },
+      "expected": {
+        "Application": {
+          "ApplicationName": "Fixture.App",
+          "BuildVersion": "3.4.5-rc.2+sha.AbC123",
+          "CommitId": null,
+          "BuildId": null
+        },
+        "Versions": {
+          "BuildVersion": "3.4.5-rc.2+sha.AbC123",
+          "ServiceVersion": "Setup.MixedCase",
+          "ServiceVersionSource": "EnvironmentSetup.ServiceVersion"
+        },
+        "Runtime": {
+          "ProcessStartedAtUtc": "2026-10-10T07:00:00+00:00",
+          "HostName": "Visible.Host",
+          "OperatingSystem": "windows",
+          "OperatingSystemDescription": "Windows Fixture",
+          "OSArchitecture": "x64",
+          "ProcessArchitecture": "x86",
+          "RuntimeDescription": ".NET Fixture",
+          "ProcessId": 42
+        },
+        "Initialization": {
+          "InstanceId": "00000000-0000-0000-0000-000000000017",
+          "InitializedAtUtc": "2026-10-10T08:00:00+00:00"
+        }
+      }
+    },
+    {
+      "id": "DISC-SHADOWED-INVALID",
+      "inputs": {
+        "application": {
+          "name": null,
+          "build": null,
+          "explicitAssembly": null,
+          "entryAssembly": "application",
+          "assemblyName": "Fixture.App",
+          "information": "3.4.5-rc.2+sha.AbC123",
+          "version": "7.0.0.0",
+          "commit": null,
+          "buildId": null
+        },
+        "runtime": {
+          "platform": "windows",
+          "start": "2026-10-10T09:00:00+02:00",
+          "host": "Visible.Host",
+          "description": "Windows Fixture",
+          "osArch": "X64",
+          "processArch": "X86",
+          "framework": ".NET Fixture",
+          "pid": 42
+        },
+        "service": {
+          "core": "Deployment.Core",
+          "dd": "bad\nAlias",
+          "setup": "bad\nSetup"
+        },
+        "initialization": {
+          "time": "2026-10-10T08:00:00Z",
+          "id": "00000000-0000-0000-0000-000000000017"
+        }
+      },
+      "expected": {
+        "Application": {
+          "ApplicationName": "Fixture.App",
+          "BuildVersion": "3.4.5-rc.2+sha.AbC123",
+          "CommitId": null,
+          "BuildId": null
+        },
+        "Versions": {
+          "BuildVersion": "3.4.5-rc.2+sha.AbC123",
+          "ServiceVersion": "Deployment.Core",
+          "ServiceVersionSource": "CORE_SERVICE_VERSION"
+        },
+        "Runtime": {
+          "ProcessStartedAtUtc": "2026-10-10T07:00:00+00:00",
+          "HostName": "Visible.Host",
+          "OperatingSystem": "windows",
+          "OperatingSystemDescription": "Windows Fixture",
+          "OSArchitecture": "x64",
+          "ProcessArchitecture": "x86",
+          "RuntimeDescription": ".NET Fixture",
+          "ProcessId": 42
+        },
+        "Initialization": {
+          "InstanceId": "00000000-0000-0000-0000-000000000017",
+          "InitializedAtUtc": "2026-10-10T08:00:00+00:00"
+        }
+      }
+    },
+    {
+      "id": "DISC-DISTINCT-UTC-TIMES",
+      "inputs": {
+        "application": {
+          "name": null,
+          "build": null,
+          "explicitAssembly": null,
+          "entryAssembly": "application",
+          "assemblyName": "Fixture.App",
+          "information": "3.4.5-rc.2+sha.AbC123",
+          "version": "7.0.0.0",
+          "commit": null,
+          "buildId": null
+        },
+        "runtime": {
+          "platform": "windows",
+          "start": "2026-10-10T00:00:00-07:00",
+          "host": "Visible.Host",
+          "description": "Windows Fixture",
+          "osArch": "X64",
+          "processArch": "X86",
+          "framework": ".NET Fixture",
+          "pid": 42
+        },
+        "service": {
+          "core": null,
+          "dd": null,
+          "setup": null
+        },
+        "initialization": {
+          "time": "2026-10-10T10:00:00+02:00",
+          "id": "00000000-0000-0000-0000-000000000017"
+        }
+      },
+      "expected": {
+        "Application": {
+          "ApplicationName": "Fixture.App",
+          "BuildVersion": "3.4.5-rc.2+sha.AbC123",
+          "CommitId": null,
+          "BuildId": null
+        },
+        "Versions": {
+          "BuildVersion": "3.4.5-rc.2+sha.AbC123",
+          "ServiceVersion": "3.4.5-rc.2+sha.AbC123",
+          "ServiceVersionSource": "BuildVersion"
+        },
+        "Runtime": {
+          "ProcessStartedAtUtc": "2026-10-10T07:00:00+00:00",
+          "HostName": "Visible.Host",
+          "OperatingSystem": "windows",
+          "OperatingSystemDescription": "Windows Fixture",
+          "OSArchitecture": "x64",
+          "ProcessArchitecture": "x86",
+          "RuntimeDescription": ".NET Fixture",
+          "ProcessId": 42
+        },
+        "Initialization": {
+          "InstanceId": "00000000-0000-0000-0000-000000000017",
+          "InitializedAtUtc": "2026-10-10T08:00:00+00:00"
+        }
+      }
+    },
+    {
+      "id": "DISC-UNICODE-IDENTITY",
+      "inputs": {
+        "application": {
+          "name": " My.App.α ",
+          "build": " 1.2.3+MixedCase.β ",
+          "explicitAssembly": null,
+          "entryAssembly": "application",
+          "assemblyName": "Fixture.App",
+          "information": "3.4.5-rc.2+sha.AbC123",
+          "version": "7.0.0.0",
+          "commit": null,
+          "buildId": null
+        },
+        "runtime": {
+          "platform": "windows",
+          "start": "2026-10-10T09:00:00+02:00",
+          "host": "Visible.Host",
+          "description": "Windows Fixture",
+          "osArch": "X64",
+          "processArch": "X86",
+          "framework": ".NET Fixture",
+          "pid": 42
+        },
+        "service": {
+          "core": null,
+          "dd": null,
+          "setup": null
+        },
+        "initialization": {
+          "time": "2026-10-10T08:00:00Z",
+          "id": "00000000-0000-0000-0000-000000000017"
+        }
+      },
+      "expected": {
+        "Application": {
+          "ApplicationName": "My.App.α",
+          "BuildVersion": "1.2.3+MixedCase.β",
+          "CommitId": null,
+          "BuildId": null
+        },
+        "Versions": {
+          "BuildVersion": "1.2.3+MixedCase.β",
+          "ServiceVersion": "1.2.3+MixedCase.β",
+          "ServiceVersionSource": "BuildVersion"
+        },
+        "Runtime": {
+          "ProcessStartedAtUtc": "2026-10-10T07:00:00+00:00",
+          "HostName": "Visible.Host",
+          "OperatingSystem": "windows",
+          "OperatingSystemDescription": "Windows Fixture",
+          "OSArchitecture": "x64",
+          "ProcessArchitecture": "x86",
+          "RuntimeDescription": ".NET Fixture",
+          "ProcessId": 42
+        },
+        "Initialization": {
+          "InstanceId": "00000000-0000-0000-0000-000000000017",
+          "InitializedAtUtc": "2026-10-10T08:00:00+00:00"
+        }
+      }
+    }
+  ]
+}

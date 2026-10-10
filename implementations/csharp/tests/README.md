@@ -5,7 +5,7 @@ The solution has five MSTest/VSTest projects and one nonpackable shared-support 
 | Project | Responsibility | Current execution |
 | --- | --- | --- |
 | `CIS.Core.UnitTests` | Deterministic Core behavior and test-support checks. | Application identity discovery tests cover supplied/application/entry precedence, actual version strings, unavailable facts, explicit IDs and failure isolation; real reflection fixtures use distinct application/file/Core versions. Severity parsing tests cover names, abbreviations, trimming, absence, invalid values and culture independence. Eleven support tests exercise deterministic clocks/inputs/concurrency/writers, cleanup isolation and bounded child processes, including independent stream drainage. |
-| `CIS.Core.IntegrationTests` | Real consumers, streams, files and lifecycle. | Project scaffold; no cases yet. |
+| `CIS.Core.IntegrationTests` | Real consumers, streams, files and lifecycle. | Seven actual discovery child-process cases; full logging integration remains pending. |
 | `CIS.Core.ArchitectureTests` | Dependency and public-surface boundaries. | Data-driven foundation/contract cases, including deliberately invalid project/package/framework/assembly fixtures, evidence-validator controls, startup catalog/fixture checks and reference-only API inspection. Type/API rules follow real Core types. |
 | `CIS.Core.CompatibilityTests` | API/source/binary/configuration/behavior replay. | Project scaffold; no cases or historical releases yet. |
 | `CIS.Core.BusinessCases` | Named developer/operator acceptance scenarios. | Project scaffold; no cases yet. |
@@ -13,7 +13,7 @@ The solution has five MSTest/VSTest projects and one nonpackable shared-support 
 
 Mutation is the sixth family under [verification/mutation](../verification/mutation/README.md). It uses a separately pinned development CLI and is not another C# test project. WP01-S03 qualifies the pinned coverage, mutation and API compatibility tools against genuine severity parsing and public compatibility controls; see [toolchain qualification](../../../docs/architecture/csharp-toolchain.md). Full logging and historical compatibility qualification remain pending.
 
-Run `pwsh -File eng/verify.ps1` from the repository root. It runs the available UnitTests/ArchitectureTests and rejects empty or skipped results for those runs. The three empty families are not executed or counted as passing. Release verification still rejects incomplete evidence.
+Run `pwsh -File eng/verify.ps1` from the repository root. It runs the available UnitTests/IntegrationTests/ArchitectureTests and rejects empty or skipped results for those runs. The two empty C# families are not executed or counted as passing. Release verification still rejects incomplete evidence.
 
 Run individual populated projects from `implementations/csharp` after Release build and Core packaging:
 
@@ -43,3 +43,5 @@ WP03-S01-T02 adds 55 native cases for process/runtime facts, including real curr
 WP03-S01-T03 adds 37 native version/initialization cases with injected single-key variables, clock and UUID sources. Selected-invalid values retain their origin for later validation; no successful static publication is simulated. See [initialization guidance](../../../docs/modules/logging/initialization-identity.md).
 
 Ten additional controlled cases verify bounded cleanup of an owned temporary directory after transient Windows sharing/lock violations. Other failures and persistent locks remain visible; the existing isolation and real child-timeout cases also execute.
+
+WP03-S01-T04 adds 20 portable discovery-table cases and seven real child-process integration cases. The nonshipping [DiscoveryHost](fixtures/DiscoveryHost/Program.cs) and [portable driver](fixtures/DiscoveryHost/verify-process.py) also run exact-runtime discovery scenarios on Windows and Ubuntu 24.04 under WSL2. The populated integration family executes in Developer; full logging integration and Linux SDK/full-suite qualification remain pending. See [fixture guidance](../../../docs/modules/logging/discovery-fixtures.md).

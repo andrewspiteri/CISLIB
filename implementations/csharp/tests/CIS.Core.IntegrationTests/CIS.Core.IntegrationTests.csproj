@@ -7,5 +7,12 @@
   <ItemGroup>
     <ProjectReference Include="../../src/CIS.Core/CIS.Core.csproj" />
     <ProjectReference Include="../CIS.Core.TestSupport/CIS.Core.TestSupport.csproj" />
+    <ProjectReference Include="../fixtures/DiscoveryHost/CIS.Core.DiscoveryFixture.csproj" />
   </ItemGroup>
+  <Target Name="CopyDiscoveryFixture" AfterTargets="Build">
+    <ItemGroup>
+      <DiscoveryFixtureFiles Include="../fixtures/DiscoveryHost/bin/$(Configuration)/$(TargetFramework)/*" />
+    </ItemGroup>
+    <Copy SourceFiles="@(DiscoveryFixtureFiles)" DestinationFolder="$(TargetDir)discovery-fixture" />
+  </Target>
 </Project>

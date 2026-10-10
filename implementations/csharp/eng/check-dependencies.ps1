@@ -24,7 +24,7 @@ function Invoke-Evaluation {
         $arguments += @('-t:ResolveReferences', '-getItem:ReferencePath')
     }
     else {
-        $arguments += @('-getItem:ProjectReference,PackageReference,FrameworkReference,Reference', '-getProperty:TargetFramework,IsPackable,IsTestProject,AssemblyName,PackageId,RootNamespace')
+        $arguments += @('-getItem:ProjectReference,PackageReference,FrameworkReference,Reference', '-getProperty:TargetFramework,IsPackable,IsTestProject,AssemblyName,PackageId,RootNamespace,OutputType')
     }
     $result = & dotnet @arguments
     if ($LASTEXITCODE -ne 0) { throw "Project evaluation failed: $Path" }
@@ -51,7 +51,7 @@ function Check-RestoredGraph {
             continue
         }
         if ($entry.type -ne 'package') { throw "Unexpected restored dependency type: $identity" }
-        $allowed = $Project.role -in @('shipping', 'test', 'example') -and $runtimeAllowed.ContainsKey($id) -and $runtimeAllowed[$id] -eq $version
+        $allowed = $Project.role -in @('shipping', 'test', 'example', 'process-fixture') -and $runtimeAllowed.ContainsKey($id) -and $runtimeAllowed[$id] -eq $version
         if ($Project.role -eq 'test') { $allowed = $allowed -or ($developmentAllowed.ContainsKey($id) -and $developmentAllowed[$id] -eq $version) }
         if (-not $allowed) { throw "Unapproved $($Project.role) package dependency: $identity" }
         $resolved[$id] = $version
@@ -94,6 +94,7 @@ try {
             }
         }
         if ($project.role -eq 'test' -and $evaluation.Properties.IsTestProject -ne 'true') { throw "Test project is not enabled: $($project.path)" }
+        if ($project.role -eq 'process-fixture' -and ($evaluation.Properties.IsTestProject -ne 'false' -or $evaluation.Properties.OutputType -ne 'Exe')) { throw "Process fixture must be a non-test executable: $($project.path)" }
         $actualReferences = @()
         foreach ($reference in $evaluation.Items.ProjectReference) {
             $referencePath = [IO.Path]::GetFullPath((Join-Path (Split-Path $path -Parent) $reference.Identity))

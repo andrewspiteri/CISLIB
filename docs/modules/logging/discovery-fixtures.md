@@ -1,0 +1,19 @@
+# Discovery tables and process fixtures
+
+WP03-S01-T04 exercises Core's internal application, version, runtime and initialization discovery together. The [portable discovery table](../../../conformance/logging/discovery-cases.json) has 20 independently declared input/output rows for Windows/Linux/macOS/unknown projection, missing optional facts, supplied/entry/explicit/Core assembly selection, actual build fallbacks, telemetry labels, explicit IDs, Unicode/case, and separate UTC timestamps. It deliberately does not stand in for the twelve complete public snapshot vectors or static publication.
+
+The [nonshipping host](../../../implementations/csharp/tests/fixtures/DiscoveryHost/Program.cs) calls the actual Core internals. Its informational version is `9.8.7-rc.2+sha.Application`, its assembly version is `23.0.0.0`, and its file-version decoy is `88.0.0.0`. Core retains assembly version `1.0.0.0` and its own different informational version. The real entry-assembly fallback must retain the application name and full informational suffix, never a Core/file version. Loaded application/Core paths and SHA-256 values accompany the native observations.
+
+The `native` mode reads real process start, application-visible machine name, native OS family/description, separate architectures, PID and runtime. The `assembly-version` mode masks only the informational attribute through the existing internal reader seam, proving the assembly-version fallback. The `unavailable` mode explicitly masks both discovered versions and optional process facts; OS family still comes from the actual runtime. These controlled absence modes test unavailable behavior; they do not assert those facts are unavailable on this machine. Required UUID/time generation always runs normally and stays independent of process start.
+
+Seven [integration cases](../../../implementations/csharp/tests/CIS.Core.IntegrationTests/DiscoveryProcessTests.cs) launch real children with finite deadlines, independently drained output streams and per-child variables. They test Core/alias/build version sources, absent/blank values, differing deployment labels, unchanged parent environment and a `DD_AGENT_HOST` collector decoy. Only the fixture receives these variables. Its records are test observations, not logging output or an implemented public facade.
+
+The [standalone driver](../../../implementations/csharp/tests/fixtures/DiscoveryHost/verify-process.py) runs the same seven child scenarios with exact `.NET 10.0.12` selection and roll-forward disabled. Example from the repository root after a Release build:
+
+```powershell
+python implementations/csharp/tests/fixtures/DiscoveryHost/verify-process.py --dotnet dotnet --host implementations/csharp/tests/fixtures/DiscoveryHost/bin/Release/net10.0/CIS.Core.DiscoveryFixture.dll --family windows --output .artifacts/discovery/windows-new-run
+```
+
+On Linux use `python3`, a Linux `dotnet` path, `--family linux`, and a fresh output directory. The portable managed host is built with the pinned Windows SDK for this task, then the same bytes execute on Ubuntu 24.04.4 x64 under WSL2. The existing Microsoft runtime image supplies a task-local runtime copy; no Linux SDK or system runtime installation is performed. This does not qualify the full Linux Developer/release suite, build toolchain, coverage/mutation, historical compatibility, deployment modes or offline restore. macOS remains table recognition only.
+
+[Task evidence](../../../planning/logging/evidence/wp03-s01-t04-windows-linux.json) retains native Windows test reports, standalone Windows/Linux child outputs, fixture/Core assemblies, runtime source/hash inventory and source replay. The [execution matrix](../../../implementations/csharp/support/execution-matrix.json) records this narrower Linux scope. All four WP03-S01 acceptance criteria have discovery evidence; the public resolver, validation, snapshot publisher and logging remain later work.
