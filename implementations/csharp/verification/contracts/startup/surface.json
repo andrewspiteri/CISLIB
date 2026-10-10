@@ -33,6 +33,19 @@
     "CIS.Logging.HumanOutputDetail": {
       "Normal": 0,
       "Verbose": 1
+    },
+    "CIS.Logging.LogValueKind": {
+      "Null": 0,
+      "Boolean": 1,
+      "String": 2,
+      "Number": 3,
+      "Integer": 4,
+      "IntegerString": 5,
+      "DecimalString": 6,
+      "Uuid": 7,
+      "Timestamp": 8,
+      "Array": 9,
+      "Map": 10
     }
   },
   "setup": {
@@ -60,7 +73,8 @@
     "ShutdownTimeoutMilliseconds": "int?",
     "FileMaxBytes": "long?",
     "FileRetainedFiles": "int?",
-    "SchemaVersion": "int?"
+    "SchemaVersion": "int?",
+    "MaxEntryBytes": "int?"
   },
   "snapshot": {
     "ApplicationName": "string",
@@ -99,7 +113,8 @@
     "FileRetainedFiles": "int",
     "SchemaVersion": "int",
     "ConsoleEnabled": "bool",
-    "FileEnabled": "bool"
+    "FileEnabled": "bool",
+    "MaxEntryBytes": "int"
   },
   "eventMetadata": {
     "ApplicationName": "string",
@@ -157,5 +172,46 @@
   },
   "compileOnlySpecification": "implementations/csharp/verification/contracts/startup/PublicSurface.cs",
   "runtimeImplementationStory": "WP03-S04",
-  "scope": "Proposed C# public surface only; portable semantics are contracts/logging/v1/startup-contract.json."
+  "scope": "Proposed C# public surface only; portable semantics are contracts/logging/v1/startup-contract.json.",
+  "eventInput": {
+    "type": "CIS.Logging.LogEventData",
+    "properties": {
+      "EventName": "string",
+      "Message": "string",
+      "MessageTemplate": "string?",
+      "OperationId": "string?",
+      "Attributes": "IReadOnlyDictionary<string,LogValue>?",
+      "Exception": "Exception?"
+    },
+    "severity": "No input property; method-level severity is the sole authority."
+  },
+  "scopeInput": {
+    "type": "CIS.Logging.OperationContextData",
+    "properties": {
+      "OperationId": "string?",
+      "Attributes": "IReadOnlyDictionary<string,LogValue>?"
+    }
+  },
+  "value": {
+    "type": "CIS.Logging.LogValue",
+    "sealed": true,
+    "readOnlyProperties": [
+      "Kind",
+      "IsTruncated"
+    ],
+    "explicitFactories": [
+      "Null",
+      "Boolean",
+      "String",
+      "Number",
+      "Integer",
+      "IntegerString",
+      "DecimalString",
+      "Uuid",
+      "Timestamp",
+      "Array",
+      "Map"
+    ],
+    "objectOverload": false
+  }
 }

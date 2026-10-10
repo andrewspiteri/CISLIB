@@ -58,3 +58,5 @@ The [C# assembly policy](docs/architecture/csharp-assembly-policy.md) records ve
 Core may use explicitly approved Microsoft-maintained NuGet packages. Third-party runtime dependencies must remain in separate optional integrations. A package prefix alone does not establish its provenance or allow it into Core; the actual dependency graph is checked against the allowlist.
 
 CisLib has its own repository and release process. CIS will consume versioned guidance and reference bundles; the Core runtime does not depend on CIS. The user-created [CISLIB GitHub repository](https://github.com/andrewspiteri/CISLIB) is configured as `origin`. The initial foundation checkpoint is committed as `ea8e9cf`. No push, publication licence or public package release has been created by this setup.
+
+WP02-S02 [event/value contracts](docs/modules/logging/event-contract.md) and shared fixtures are defined and checked by development-only C# validation; event capture/output implementation remains planned.

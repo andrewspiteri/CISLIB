@@ -1,0 +1,139 @@
+{
+  "schemaVersion": 1,
+  "story": "WP02-S02",
+  "state": "Unpublished contract definition; C# fixture validation is development-only",
+  "schema": "contracts/logging/v1/event.schema.json",
+  "bounds": {
+    "recordUtf8BytesIncludingLf": 65536,
+    "attributeDepthIncludingRoot": 8,
+    "attributeNodesIncludingRoot": 1024,
+    "eventNameScalars": 255,
+    "componentScalars": 255,
+    "attributeKeyScalars": 255,
+    "operationIdScalars": 255,
+    "messageScalars": 8192,
+    "templateScalars": 8192,
+    "exceptionNodes": 16,
+    "exceptionDepthIncludingRoot": 4,
+    "exceptionMessageScalars": 4096,
+    "exceptionStackScalars": 16384,
+    "operationScopeLevels": 32,
+    "applicationNameScalars": 255,
+    "environmentNameScalars": 255,
+    "versionAndBuildIdentifierScalars": 512,
+    "recordMinimumConfiguredBytes": 16384,
+    "recordMaximumConfiguredBytes": 16777216
+  },
+  "severity": {
+    "Trace": "trace",
+    "Debug": "debug",
+    "Information": "info",
+    "Warning": "warn",
+    "Error": "error",
+    "Critical": "critical",
+    "None": null
+  },
+  "resourceProjection": {
+    "BuildVersion": "build_version",
+    "InstanceId": "instance_id",
+    "InitializedAtUtc": "initialized_at",
+    "ProcessStartedAtUtc": "process_started_at",
+    "EnvironmentKind": "environment_kind",
+    "HostName": "host_name",
+    "OperatingSystem": "os_family",
+    "OperatingSystemDescription": "os_description",
+    "OSArchitecture": "os_architecture",
+    "ProcessArchitecture": "process_architecture",
+    "RuntimeDescription": "runtime_description",
+    "ProcessId": "process_id",
+    "CommitId": "commit_id",
+    "BuildId": "build_id"
+  },
+  "topLevelProjection": {
+    "ApplicationName": "service",
+    "EnvironmentName": "env",
+    "ServiceVersion": "version"
+  },
+  "optionalFields": "Omit unavailable resource and top-level fields. No null optional fields. Attribute null is explicit and preserved. Empty attributes and empty message/template are valid.",
+  "text": "Valid Unicode scalar sequences only; no unpaired UTF-16 surrogates. Reject Unicode category Control in identities, event/component names, attribute keys and operation IDs. Names/keys must not be empty. Preserve message/template text verbatim. Trim optional identifiers; blanks become absent.",
+  "timestamp": "UTC invariant yyyy-MM-dd'T'HH:mm:ss.fffffff'Z'; convert offset instants to UTC before encoding. Reject impossible calendar dates.",
+  "uuid": "Lowercase 8-4-4-4-12 hexadecimal D form. A UUID attribute is a string; construction is explicit.",
+  "values": {
+    "null": {
+      "wire": "null"
+    },
+    "boolean": {
+      "wire": "boolean"
+    },
+    "string": {
+      "wire": "string"
+    },
+    "integer": {
+      "wire": "number",
+      "minimum": "-9007199254740991",
+      "maximum": "9007199254740991",
+      "input": "Canonical signed base-10 string in portable constructor fixtures, parsed exactly; C# API accepts long."
+    },
+    "integer-string": {
+      "wire": "string",
+      "pattern": "^(0|-?[1-9][0-9]*)$"
+    },
+    "decimal-string": {
+      "wire": "string",
+      "pattern": "^-?(0|[1-9][0-9]*)\\.[0-9]+$",
+      "detail": "Explicit invariant non-exponent decimal text; preserve fractional precision/trailing zeros. Decimal whole values use .0; never automatically converted from numbers."
+    },
+    "number": {
+      "wire": "number",
+      "input": "Invariant floating-point text in portable fixtures; finite IEEE-754 double only. Integer-valued doubles remain the explicit number kind. Wire numbers alone cannot prove which constructor was chosen."
+    },
+    "uuid": {
+      "wire": "string"
+    },
+    "timestamp": {
+      "wire": "string"
+    },
+    "array": {
+      "wire": "array",
+      "ownership": "Recursively owned supported values; preserve order. Bounded projection records truncation instead of copying excessive children."
+    },
+    "map": {
+      "wire": "object",
+      "ownership": "Ordinal, case-sensitive, unique string keys; recursively owned supported values with bounded traversal/truncation provenance."
+    },
+    "unsupported": "Reject arbitrary objects, reflection serialization, arbitrary ToString, cyclic inputs, non-finite numbers and unrecognized value kinds. A separately specified provider adapter may normalize supported runtime scalars."
+  },
+  "accounting": "Root attributes map is node 1 at depth 1. Each scalar/map/array adds one node; each containment edge adds one depth. Keys are not value nodes. Check while traversing/copying; truncate scope inputs and final merged payload independently, preserving provenance. Aggregate bytes count the entire actual UTF-8 JSON, escapes and one LF, with no BOM. Truncate ordinary oversized payload before admission; never split records. An already serialized fixture above the configured cap is invalid output.",
+  "scope": {
+    "copyAt": "BeginScope; no retained mutable maps/arrays",
+    "merge": "Outer to inner scope attributes, then event attributes; last ordinal key wins.",
+    "operationId": "Nonblank trimmed event ID overrides innermost nonblank scope ID; blank is absent.",
+    "reserved": "service/env/version/resource and operation_id/trace_id/span_id are never sourced from free-form attributes. Attribute keys with these spellings remain ordinary nested attributes; they cannot alter top-level fields.",
+    "flow": "Runtime instance and async execution-context isolation; child task context inheritance. LIFO disposal; repeat in owner flow harmless; out-of-order InvalidOperationException leaves state unchanged. No cross-concurrent-flow disposal."
+  },
+  "activity": "At event creation, use only a valid W3C Activity.Current trace/span pair: lowercase nonzero 32/16 hex IDs. Omit both otherwise. Scopes/attributes cannot override the pair.",
+  "exception": "Capture type/message/stack and ordered AggregateException children at event creation; exclude Data and arbitrary properties. Preorder traversal retains at most 16 nodes at depth at most 4. Clip text at scalar boundaries. Mark truncated:true on every node whose own text or child content was omitted; omit false/absent markers. Required type/message retained. Re-check aggregate bytes after projection; truncate remaining ordinary payload if still too large; keep all retained exception node markers.",
+  "evolution": "Producers emit only v1 projection fields. Readers ignore unknown optional fields, including inside resource/exception. Existing field names/types/meaning and schema version remain fixed. Member order is not contractual. No config/destination objects are projected by producers.",
+  "forwarding": "Forwarded domain events preserve original producer metadata; a consumer-created log uses consumer metadata.",
+  "csharpSurface": "implementations/csharp/verification/contracts/startup/EventSurface.cs",
+  "executionLimit": "Contract validator and compile-only consumers do not implement event capture, scopes, exception clipping, output serialization/admission, other languages or collector ingestion.",
+  "authority": "User requests during WP02-S02 override the supplied fixed/reject policy: default 64 KiB, environment override and truncation of oversized entries. Names and override range are maintainer prepublication choices.",
+  "oversize": {
+    "policy": "Truncate",
+    "configurationKey": "CORE_LOG_MAX_ENTRY_BYTES",
+    "setupProperty": "Logging.MaxEntryBytes",
+    "defaultBytes": 65536,
+    "minimumBytes": 16384,
+    "maximumBytes": 16777216,
+    "protected": "Preserve schema, severity, timestamp, event/component names, service/env/version, core build/instance/startup/resource identifiers, operation ID and trace/span IDs. Never split a record or silently change a value type.",
+    "payload": "Oversized message/template/exception text is clipped at Unicode scalar boundaries. Attribute depth/node excess omits remaining children while retaining map/array shape. Cut UTF-8 strings safely; omit an entire integer-string/decimal-string/UUID/timestamp value rather than corrupting its representation.",
+    "marker": "Top-level truncated:true is emitted only when event payload/context content was omitted. Exception nodes also retain their local truncated:true marker. Attribute keys called truncated cannot overwrite this marker.",
+    "order": "First apply field/traversal bounds. Reserve protected envelope and top-level marker bytes. Retain payload in order: message, attributes in ordinal key order (arrays in input order), exception preorder, message_template, optional descriptive resource text. Allocate remaining bytes greedily in that order, including JSON escaping, delimiters and LF; omit optional payload fields/children that cannot fit. Required message and attributes remain valid, possibly empty. Omit empty optional template/exception only when truncating. Preserve ordinal keys and all retained value types.",
+    "traversal": "Stop copying ordinary content at bounds; never create or queue the full oversized secondary representation, invoke arbitrary ToString or split the entry. Scope capture owns a bounded projection and carries truncation provenance into subsequent events.",
+    "minimumRationale": "16 KiB accommodates the maximum required v1 identities/correlation plus marker under minimal UTF-8 escaping. The selected 16 MiB maximum is a configurable resource ceiling, not a new default. Measure actual encoded size for every rendered output, including human escapes.",
+    "unrepresentableEnvelope": "If the protected envelope cannot fit because of future projection extensions or extra escaping, report InvalidEvent with a specific envelope-too-large error; never emit an oversized/invalid record or alter identity. This is not the ordinary payload oversize path.",
+    "invalidInputs": "Unsupported objects, invalid numeric representations, malformed Unicode, invalid identities/names/keys and scope misuse remain errors; they are not fixed by truncation.",
+    "execution": "Truncation is specified here; real bounded capture/rendering execution belongs to WP04/WP05.",
+    "fileConsistency": "When the file output is enabled, FileMaxBytes must be at least MaxEntryBytes. A smaller selected file segment bound is an OutOfRange issue for CORE_LOG_FILE_MAX_BYTES; do not fault later on an otherwise admitted large record. Disabled-file settings still validate individual bounds."
+  }
+}

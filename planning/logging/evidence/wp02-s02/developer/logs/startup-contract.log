@@ -1,0 +1,220 @@
+{
+  "schema": "cis.startup-contract/v1",
+  "scope": "Reference-only API specification and compile-time consumers; no runtime implementation or published compatibility claim.",
+  "status": "Passed",
+  "exitCode": 0,
+  "source": [
+    {
+      "path": "implementations/csharp/verification/contracts/startup/Consumer.cs",
+      "sha256": "0a4d002cee99a372120cfbb4710098ba50e111eef87e65de005ce11f2254e4b7"
+    },
+    {
+      "path": "implementations/csharp/verification/contracts/startup/Consumer.csproj.template",
+      "sha256": "9f411720086f431c1d05c0b099171ac234007b26c05fc90223ef24c5daed8e01"
+    },
+    {
+      "path": "implementations/csharp/verification/contracts/startup/EventConsumer.cs",
+      "sha256": "cf51172f3d52da65845318ae3d62a1249b8aa34c82b748446cb5a420b34bad03"
+    },
+    {
+      "path": "implementations/csharp/verification/contracts/startup/EventSurface.cs",
+      "sha256": "250451d56855467d66d51e4b13716bcacd6fe368206648f43891bde92343818d"
+    },
+    {
+      "path": "implementations/csharp/verification/contracts/startup/negative-cases.json",
+      "sha256": "2d2178372232a065eb5256600577836db4f2f8e430de20b86ca1583c1d916a22"
+    },
+    {
+      "path": "implementations/csharp/verification/contracts/startup/negative/corrected-facade-name.cs",
+      "sha256": "4a07fa4c329d5e696850652c1fa202caf6e0517266cfdc6eb3ccb3309343ea25"
+    },
+    {
+      "path": "implementations/csharp/verification/contracts/startup/negative/immutable-issues.cs",
+      "sha256": "05603b968c888d71e745b616af6108bb732f49eaf2e9613eeb04a2c55d4a72ce"
+    },
+    {
+      "path": "implementations/csharp/verification/contracts/startup/negative/immutable-logging.cs",
+      "sha256": "02d7898ea349274ece0f0f09f4b0287e535c8898648d42f7276149e768454f83"
+    },
+    {
+      "path": "implementations/csharp/verification/contracts/startup/negative/immutable-metadata.cs",
+      "sha256": "effe8adbe2aee9dcc98000990f132ab248ccd7615ae8b9da72b172498714b636"
+    },
+    {
+      "path": "implementations/csharp/verification/contracts/startup/negative/immutable-snapshot.cs",
+      "sha256": "41bda819dfe9c03a4b7a4c33c1a43e8ab9de3c6f6e82ffbc9dd56c9795b926ba"
+    },
+    {
+      "path": "implementations/csharp/verification/contracts/startup/negative/immutable-value.cs",
+      "sha256": "54875812be8f08cdd003674b80d9d64f5130c1d78c3c6545c0a7559a21b38a80"
+    },
+    {
+      "path": "implementations/csharp/verification/contracts/startup/negative/no-event-severity.cs",
+      "sha256": "8f7adc8586f2cc5619af956ca2ae006a33fe8b214d90dd98e1a7f5d56974c5e7"
+    },
+    {
+      "path": "implementations/csharp/verification/contracts/startup/negative/no-reset.cs",
+      "sha256": "f208d8feb3e83f2ef2ef61e00b457c7ca7a50c55581ede32a78db4a435b6c5cd"
+    },
+    {
+      "path": "implementations/csharp/verification/contracts/startup/negative/unsupported-object.cs",
+      "sha256": "225957ec24e77723a90a7a608a670963d0a932ddb0d3e88541e1656eacbf87af"
+    },
+    {
+      "path": "implementations/csharp/verification/contracts/startup/PublicSurface.cs",
+      "sha256": "1f210f2552ec92161d1837ecfb6714a5c1ade8dae2c349128fc8a2dae294b630"
+    },
+    {
+      "path": "implementations/csharp/verification/contracts/startup/README.md",
+      "sha256": "5d1b85f2778de3879b1d182525bd3e6bbb34c1c1a6c11eab7c68f8a98e4de5c3"
+    },
+    {
+      "path": "implementations/csharp/verification/contracts/startup/Reference.csproj.template",
+      "sha256": "1ecdc62bddeddbdd0b0d42fb46408c939fbe0f3e783c79bc38f3c73d120540bb"
+    },
+    {
+      "path": "implementations/csharp/verification/contracts/startup/surface.json",
+      "sha256": "3860c68e48f79b07e555679e040f8a9d4eefa9cb11b056804ef70ed944b51ae6"
+    }
+  ],
+  "controls": [
+    {
+      "id": "reference-only-specification",
+      "actualExitCode": 0,
+      "expectedDiagnostic": null,
+      "matched": true,
+      "log": {
+        "path": "reference/compiler.log",
+        "sha256": "732fe6f3efb3b6182e4884d277927cdd8ed619a0f6a6f60c43340d273f640c4e",
+        "schema": "dotnet.compiler-log/v1"
+      }
+    },
+    {
+      "id": "positive-consumer",
+      "actualExitCode": 0,
+      "expectedDiagnostic": "",
+      "matched": true,
+      "log": {
+        "path": "positive/compiler.log",
+        "sha256": "12cf20d7abcd40f9fe8586f37ef29556dd20799183cb0db73e1dfee563c2259b",
+        "schema": "dotnet.compiler-log/v1"
+      }
+    },
+    {
+      "id": "event-consumer",
+      "actualExitCode": 0,
+      "expectedDiagnostic": "",
+      "matched": true,
+      "log": {
+        "path": "event-consumer/compiler.log",
+        "sha256": "55b783ab9026939bc37b7f369bd5bd7c02f0fe6a88aa33b706e9f1fbc3d41c3b",
+        "schema": "dotnet.compiler-log/v1"
+      }
+    },
+    {
+      "id": "immutable-snapshot",
+      "actualExitCode": 1,
+      "expectedDiagnostic": "CS0200",
+      "matched": true,
+      "log": {
+        "path": "immutable-snapshot/compiler.log",
+        "sha256": "82280092d556a8d85c110234722b25a3385bc05bd77bd8799a75b8b7e401fe25",
+        "schema": "dotnet.compiler-log/v1"
+      }
+    },
+    {
+      "id": "immutable-logging",
+      "actualExitCode": 1,
+      "expectedDiagnostic": "CS0200",
+      "matched": true,
+      "log": {
+        "path": "immutable-logging/compiler.log",
+        "sha256": "86167fd4fb0137649c06df007649b857aa288119a56bc5eb7a3f4803279f37d0",
+        "schema": "dotnet.compiler-log/v1"
+      }
+    },
+    {
+      "id": "immutable-metadata",
+      "actualExitCode": 1,
+      "expectedDiagnostic": "CS0200",
+      "matched": true,
+      "log": {
+        "path": "immutable-metadata/compiler.log",
+        "sha256": "70c774958770e2436db6f932b566454d2961d16ac741864a00850f8daa4ed69e",
+        "schema": "dotnet.compiler-log/v1"
+      }
+    },
+    {
+      "id": "immutable-issues",
+      "actualExitCode": 1,
+      "expectedDiagnostic": "CS0200",
+      "matched": true,
+      "log": {
+        "path": "immutable-issues/compiler.log",
+        "sha256": "a6c2525a36f5a0ba5b851dd6350f741a49b51d031816d163963c1686661c5473",
+        "schema": "dotnet.compiler-log/v1"
+      }
+    },
+    {
+      "id": "no-reset",
+      "actualExitCode": 1,
+      "expectedDiagnostic": "CS0117",
+      "matched": true,
+      "log": {
+        "path": "no-reset/compiler.log",
+        "sha256": "67df66c0817153a0c366198552fe63dcbb8fbe58229aefc2037d98b3bd47e1a4",
+        "schema": "dotnet.compiler-log/v1"
+      }
+    },
+    {
+      "id": "corrected-facade-name",
+      "actualExitCode": 1,
+      "expectedDiagnostic": "CS0103",
+      "matched": true,
+      "log": {
+        "path": "corrected-facade-name/compiler.log",
+        "sha256": "a426fcfe1dd0d07ff14fa0007dad64f946fa3a9381407cbb85a0dd3f70698afb",
+        "schema": "dotnet.compiler-log/v1"
+      }
+    },
+    {
+      "id": "immutable-value",
+      "actualExitCode": 1,
+      "expectedDiagnostic": "CS0200",
+      "matched": true,
+      "log": {
+        "path": "immutable-value/compiler.log",
+        "sha256": "01ea4da5026f0e582adba18e31f26d6c8eb7f6e9a206e123b3f636d12cbb0cbc",
+        "schema": "dotnet.compiler-log/v1"
+      }
+    },
+    {
+      "id": "unsupported-object",
+      "actualExitCode": 1,
+      "expectedDiagnostic": "CS1503",
+      "matched": true,
+      "log": {
+        "path": "unsupported-object/compiler.log",
+        "sha256": "b9f9369a9287ef2ba9bc3da848012535f612261a52aa11ddc7cfa03922e32850",
+        "schema": "dotnet.compiler-log/v1"
+      }
+    },
+    {
+      "id": "no-event-severity",
+      "actualExitCode": 1,
+      "expectedDiagnostic": "CS1061",
+      "matched": true,
+      "log": {
+        "path": "no-event-severity/compiler.log",
+        "sha256": "8e19e84424d1e321e2451a91aec2af4b2b2a75d397a8f3d3f80b21d0dfb75ff7",
+        "schema": "dotnet.compiler-log/v1"
+      }
+    }
+  ],
+  "detail": null,
+  "referenceAssembly": {
+    "path": "reference/bin/Release/net10.0/CIS.Core.ContractSpecification.dll",
+    "sha256": "901b55e15e542497e4731a8310185d8334de5d2b2ce2075b5c128d374d502353",
+    "schema": "dotnet.reference-assembly/v1"
+  }
+}

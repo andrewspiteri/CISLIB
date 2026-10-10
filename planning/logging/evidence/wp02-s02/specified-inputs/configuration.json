@@ -1,0 +1,308 @@
+{
+  "schemaVersion": 1,
+  "state": "Proposed, unpublished contract",
+  "story": "WP02-S01",
+  "source": "Supplied guide sections 7/8/9, amended by user decisions.",
+  "precedence": [
+    "nonblank CORE variable",
+    "nonblank supported DD alias",
+    "non-null/nonblank explicit setup",
+    "discovered fallback",
+    "documented default"
+  ],
+  "blankHandling": "Trim surrounding whitespace; null/empty/whitespace-only are absent at every configurable string layer.",
+  "tokens": "Trim, then ordinal case-insensitive recognition. Identity strings preserve case. Numeric severity tokens are invalid.",
+  "integers": "Invariant ASCII base-10 digits with optional leading + or -; no grouping, fractional notation or exponent; apply inclusive bounds.",
+  "invalidHigherPriority": "Reject the first selected nonblank invalid value; never fall through to a lower-priority source.",
+  "disabledOutputs": "Validate every selected recognized setting even when the corresponding output is disabled.",
+  "unknownKeys": "Ignore unknown CORE keys at runtime; read only recognized keys/aliases; never dump the process environment.",
+  "environmentMutation": "Do not modify process variables or the already-created host framework environment.",
+  "levelInheritance": "Console/file inherit Level only when their own threshold is absent; Level is not a global cap.",
+  "outputEnablement": {
+    "console": "ConsoleLevel != None",
+    "file": "Nonblank FilePath and FileLevel != None"
+  },
+  "schemaSelection": "Only version 1; invalid integer syntax is InvalidToken, any other integer is UnsupportedSchemaVersion.",
+  "booleans": "No boolean environment key exists in section 8. Future recognized boolean settings must explicitly accept only true/false case-insensitively.",
+  "settings": [
+    {
+      "key": "CORE_SERVICE_NAME",
+      "property": "ApplicationName",
+      "kind": "identity",
+      "default": {
+        "discovery": "applicationName"
+      },
+      "aliases": [
+        "DD_SERVICE"
+      ],
+      "maxScalars": 255
+    },
+    {
+      "key": "CORE_ENVIRONMENT",
+      "property": "EnvironmentName",
+      "kind": "identity",
+      "default": "unknown",
+      "aliases": [
+        "DD_ENV"
+      ],
+      "maxScalars": 255
+    },
+    {
+      "key": "CORE_SERVICE_VERSION",
+      "property": "ServiceVersion",
+      "kind": "identity",
+      "default": {
+        "metadata": "BuildVersion"
+      },
+      "aliases": [
+        "DD_VERSION"
+      ],
+      "maxScalars": 512
+    },
+    {
+      "key": "CORE_LOG_LEVEL",
+      "property": "Logging.Level",
+      "kind": "severity",
+      "default": "Information",
+      "aliases": [],
+      "tokens": {
+        "Trace": [
+          "Trace",
+          "TRC"
+        ],
+        "Debug": [
+          "Debug",
+          "DBG"
+        ],
+        "Information": [
+          "Information",
+          "INF",
+          "INFO"
+        ],
+        "Warning": [
+          "Warning",
+          "WRN",
+          "WARN"
+        ],
+        "Error": [
+          "Error",
+          "ERR"
+        ],
+        "Critical": [
+          "Critical",
+          "CRT",
+          "CRIT"
+        ],
+        "None": [
+          "None"
+        ]
+      }
+    },
+    {
+      "key": "CORE_LOG_CONSOLE_FORMAT",
+      "property": "Logging.ConsoleFormat",
+      "kind": "token",
+      "default": "human",
+      "aliases": [],
+      "tokens": [
+        "human",
+        "jsonl"
+      ]
+    },
+    {
+      "key": "CORE_LOG_CONSOLE_LEVEL",
+      "property": "Logging.ConsoleLevel",
+      "kind": "severity",
+      "default": {
+        "inherit": "Logging.Level"
+      },
+      "aliases": [],
+      "tokens": {
+        "Trace": [
+          "Trace",
+          "TRC"
+        ],
+        "Debug": [
+          "Debug",
+          "DBG"
+        ],
+        "Information": [
+          "Information",
+          "INF",
+          "INFO"
+        ],
+        "Warning": [
+          "Warning",
+          "WRN",
+          "WARN"
+        ],
+        "Error": [
+          "Error",
+          "ERR"
+        ],
+        "Critical": [
+          "Critical",
+          "CRT",
+          "CRIT"
+        ],
+        "None": [
+          "None"
+        ]
+      }
+    },
+    {
+      "key": "CORE_LOG_CONSOLE_STREAM",
+      "property": "Logging.ConsoleStream",
+      "kind": "token",
+      "default": "stderr",
+      "aliases": [],
+      "tokens": [
+        "stderr",
+        "stdout"
+      ]
+    },
+    {
+      "key": "CORE_LOG_HUMAN_DETAIL",
+      "property": "Logging.HumanDetail",
+      "kind": "token",
+      "default": "normal",
+      "aliases": [],
+      "tokens": [
+        "normal",
+        "verbose"
+      ]
+    },
+    {
+      "key": "CORE_LOG_FILE_PATH",
+      "property": "Logging.FilePath",
+      "kind": "path",
+      "default": null,
+      "aliases": [],
+      "resolution": "Capture current directory once during initialization; resolve an absolute path without filesystem writes."
+    },
+    {
+      "key": "CORE_LOG_FILE_FORMAT",
+      "property": "Logging.FileFormat",
+      "kind": "token",
+      "default": "jsonl",
+      "aliases": [],
+      "tokens": [
+        "jsonl",
+        "human"
+      ]
+    },
+    {
+      "key": "CORE_LOG_FILE_LEVEL",
+      "property": "Logging.FileLevel",
+      "kind": "severity",
+      "default": {
+        "inherit": "Logging.Level"
+      },
+      "aliases": [],
+      "tokens": {
+        "Trace": [
+          "Trace",
+          "TRC"
+        ],
+        "Debug": [
+          "Debug",
+          "DBG"
+        ],
+        "Information": [
+          "Information",
+          "INF",
+          "INFO"
+        ],
+        "Warning": [
+          "Warning",
+          "WRN",
+          "WARN"
+        ],
+        "Error": [
+          "Error",
+          "ERR"
+        ],
+        "Critical": [
+          "Critical",
+          "CRT",
+          "CRIT"
+        ],
+        "None": [
+          "None"
+        ]
+      }
+    },
+    {
+      "key": "CORE_LOG_QUEUE_CAPACITY",
+      "property": "Logging.QueueCapacity",
+      "kind": "integer",
+      "default": 1024,
+      "aliases": [],
+      "minimum": 1,
+      "maximum": 65536,
+      "unit": "events-per-enabled-output"
+    },
+    {
+      "key": "CORE_LOG_FLUSH_INTERVAL_MS",
+      "property": "Logging.FlushIntervalMilliseconds",
+      "kind": "integer",
+      "default": 1000,
+      "aliases": [],
+      "minimum": 10,
+      "maximum": 60000,
+      "unit": "milliseconds"
+    },
+    {
+      "key": "CORE_LOG_SHUTDOWN_TIMEOUT_MS",
+      "property": "Logging.ShutdownTimeoutMilliseconds",
+      "kind": "integer",
+      "default": 5000,
+      "aliases": [],
+      "minimum": 1,
+      "maximum": 300000,
+      "unit": "milliseconds"
+    },
+    {
+      "key": "CORE_LOG_FILE_MAX_BYTES",
+      "property": "Logging.FileMaxBytes",
+      "kind": "integer",
+      "default": 10485760,
+      "aliases": [],
+      "minimum": 65536,
+      "maximum": 1073741824,
+      "unit": "bytes-per-segment"
+    },
+    {
+      "key": "CORE_LOG_FILE_RETAINED_FILES",
+      "property": "Logging.FileRetainedFiles",
+      "kind": "integer",
+      "default": 10,
+      "aliases": [],
+      "minimum": 1,
+      "maximum": 1000,
+      "unit": "closed-segments-plus-one-active"
+    },
+    {
+      "key": "CORE_LOG_SCHEMA_VERSION",
+      "property": "Logging.SchemaVersion",
+      "kind": "integer",
+      "default": 1,
+      "aliases": [],
+      "minimum": 1,
+      "maximum": 1,
+      "unit": "schema-version"
+    },
+    {
+      "key": "CORE_LOG_MAX_ENTRY_BYTES",
+      "property": "Logging.MaxEntryBytes",
+      "kind": "integer",
+      "default": 65536,
+      "aliases": [],
+      "minimum": 16384,
+      "maximum": 16777216,
+      "unit": "encoded-bytes-per-entry-including-LF",
+      "authority": "User-selected default/override/truncation during WP02-S02; range chosen before publication."
+    }
+  ],
+  "setupFixtureEncoding": "Flattened logical property paths and canonical symbolic values; each language adapter maps them into its typed named setup inputs."
+}

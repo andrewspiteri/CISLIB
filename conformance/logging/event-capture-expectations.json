@@ -1,0 +1,440 @@
+{
+  "schemaVersion": 1,
+  "scope": "Specified runtime expectations only. WP04 must execute copy/merge/activity/exception/scopes against real capture; these are not results from the C# contract validator.",
+  "caseCount": 22,
+  "cases": [
+    {
+      "id": "CAPTURE-IDENTITY-ALLOWLIST",
+      "inputs": {
+        "metadata": {
+          "ApplicationName": "orders-worker",
+          "EnvironmentName": "qa",
+          "ServiceVersion": "2.4.0",
+          "BuildVersion": "2.4.0+AbC123"
+        },
+        "logging": {
+          "FilePath": "private.log",
+          "Destination": "private"
+        }
+      },
+      "expected": {
+        "service": "orders-worker",
+        "env": "qa",
+        "version": "2.4.0",
+        "resource": {
+          "build_version": "2.4.0+AbC123"
+        },
+        "excluded": [
+          "logging",
+          "FilePath",
+          "Destination"
+        ]
+      }
+    },
+    {
+      "id": "CAPTURE-NESTED-OVERRIDES",
+      "inputs": {
+        "scopes": [
+          {
+            "operationId": " outer ",
+            "attributes": {
+              "tenant": "one",
+              "shared": "outer"
+            }
+          },
+          {
+            "operationId": " inner ",
+            "attributes": {
+              "shared": "inner"
+            }
+          }
+        ],
+        "event": {
+          "operationId": " event ",
+          "attributes": {
+            "shared": "event"
+          }
+        }
+      },
+      "expected": {
+        "operation_id": "event",
+        "attributes": {
+          "tenant": "one",
+          "shared": "event"
+        }
+      }
+    },
+    {
+      "id": "CAPTURE-BLANK-IDS",
+      "inputs": {
+        "scopes": [
+          {
+            "operationId": "outer",
+            "attributes": {}
+          },
+          {
+            "operationId": "  ",
+            "attributes": {}
+          }
+        ],
+        "event": {
+          "operationId": "\t",
+          "attributes": {}
+        }
+      },
+      "expected": {
+        "operation_id": "outer",
+        "attributes": {}
+      }
+    },
+    {
+      "id": "CAPTURE-RESERVED-CORRELATION",
+      "inputs": {
+        "activity": {
+          "format": "W3C",
+          "traceId": "11111111111111111111111111111111",
+          "spanId": "2222222222222222"
+        },
+        "event": {
+          "operationId": "op-1",
+          "attributes": {
+            "service": "attempt",
+            "trace_id": "attempt",
+            "span_id": "attempt",
+            "operation_id": "attempt"
+          }
+        }
+      },
+      "expected": {
+        "service": "orders-worker",
+        "trace_id": "11111111111111111111111111111111",
+        "span_id": "2222222222222222",
+        "operation_id": "op-1",
+        "attributes": {
+          "service": "attempt",
+          "trace_id": "attempt",
+          "span_id": "attempt",
+          "operation_id": "attempt"
+        }
+      }
+    },
+    {
+      "id": "CAPTURE-NO-VALID-ACTIVITY",
+      "inputs": {
+        "activity": {
+          "format": "Hierarchical",
+          "traceId": "11111111111111111111111111111111",
+          "spanId": "2222222222222222"
+        }
+      },
+      "expected": {
+        "absent": [
+          "trace_id",
+          "span_id"
+        ]
+      }
+    },
+    {
+      "id": "CAPTURE-NESTED-OWNERSHIP",
+      "inputs": {
+        "scopeAttributes": {
+          "nested": {
+            "array": [
+              1,
+              {
+                "value": "original"
+              }
+            ]
+          }
+        },
+        "mutationsAfterBeginScope": [
+          {
+            "path": [
+              "nested",
+              "array",
+              1,
+              "value"
+            ],
+            "value": "changed"
+          }
+        ],
+        "eventAttributes": {
+          "items": [
+            {
+              "value": "before"
+            }
+          ]
+        },
+        "mutationsAfterCapture": [
+          {
+            "path": [
+              "items",
+              0,
+              "value"
+            ],
+            "value": "after"
+          }
+        ]
+      },
+      "expected": {
+        "attributes": {
+          "nested": {
+            "array": [
+              1,
+              {
+                "value": "original"
+              }
+            ]
+          },
+          "items": [
+            {
+              "value": "before"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "CAPTURE-SCOPE-32",
+      "inputs": {
+        "scopeLevels": 32
+      },
+      "expected": {
+        "beginScope": "Allowed"
+      }
+    },
+    {
+      "id": "CAPTURE-SCOPE-33",
+      "inputs": {
+        "scopeLevels": 33
+      },
+      "expected": {
+        "beginScope": "InvalidOperationException",
+        "currentScopeUnchanged": true
+      }
+    },
+    {
+      "id": "CAPTURE-MERGED-NODE-OVERFLOW",
+      "inputs": {
+        "scopeDistinctScalarAttributes": 600,
+        "eventDistinctScalarAttributes": 600
+      },
+      "expected": {
+        "attributeNodesIncludingRoot": 1024,
+        "truncated": true,
+        "identityPreserved": true
+      }
+    },
+    {
+      "id": "CAPTURE-EXCEPTION-TEXT-CLIP",
+      "inputs": {
+        "type": "Error",
+        "message": {
+          "repeat": "😀",
+          "count": 4097
+        },
+        "stackTrace": {
+          "repeat": "x",
+          "count": 16385
+        },
+        "Data": {
+          "private": "exclude"
+        }
+      },
+      "expected": {
+        "exception": {
+          "type": "Error",
+          "message": {
+            "repeat": "😀",
+            "count": 4096
+          },
+          "stack_trace": {
+            "repeat": "x",
+            "count": 16384
+          },
+          "truncated": true
+        },
+        "DataIncluded": false
+      }
+    },
+    {
+      "id": "CAPTURE-EXCEPTION-CHILD-ORDER",
+      "inputs": {
+        "aggregateChildMessages": [
+          "first",
+          "second",
+          "third"
+        ]
+      },
+      "expected": {
+        "innerExceptionMessages": [
+          "first",
+          "second",
+          "third"
+        ]
+      }
+    },
+    {
+      "id": "CAPTURE-EXCEPTION-NODES-CLIP",
+      "inputs": {
+        "aggregateChildCount": 17
+      },
+      "expected": {
+        "retainedRootAndChildren": 16,
+        "retainedChildIndexes": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12,
+          13,
+          14
+        ],
+        "rootTruncated": true
+      }
+    },
+    {
+      "id": "CAPTURE-EXCEPTION-DEPTH-CLIP",
+      "inputs": {
+        "linearExceptionDepth": 5
+      },
+      "expected": {
+        "retainedDepth": 4,
+        "truncatedAtDepth": 4
+      }
+    },
+    {
+      "id": "CAPTURE-EXCEPTION-AGGREGATE-TRUNCATE",
+      "inputs": {
+        "boundedExceptionText": true,
+        "recordBytesAfterProjection": 65537
+      },
+      "expected": {
+        "recordBytesAtMost": 65536,
+        "truncated": true,
+        "validJson": true,
+        "exceptionLocalMarkersPreserved": true
+      }
+    },
+    {
+      "id": "CAPTURE-FORWARDED-PRODUCER",
+      "inputs": {
+        "producerService": "orders-worker",
+        "consumerService": "billing-worker",
+        "forwardDomainEvent": true
+      },
+      "expected": {
+        "service": "orders-worker"
+      }
+    },
+    {
+      "id": "CAPTURE-SIZE-TRUNCATION",
+      "inputs": {
+        "maxEntryBytes": 65536,
+        "attachment": {
+          "repeat": "x",
+          "count": 1048576
+        }
+      },
+      "expected": {
+        "recordBytesAtMost": 65536,
+        "truncated": true,
+        "identityAndCorrelationPreserved": true,
+        "oneRecord": true,
+        "fullAttachmentCopied": false
+      }
+    },
+    {
+      "id": "CAPTURE-SIZE-OVERRIDE",
+      "inputs": {
+        "maxEntryBytes": 131072,
+        "recordBytesWithoutTruncation": 70000
+      },
+      "expected": {
+        "truncated": false,
+        "recordBytes": 70000
+      }
+    },
+    {
+      "id": "CAPTURE-ESCAPED-SIZE-TRUNCATION",
+      "inputs": {
+        "maxEntryBytes": 65536,
+        "attachment": {
+          "repeat": "\"",
+          "count": 40000
+        }
+      },
+      "expected": {
+        "recordBytesAtMost": 65536,
+        "truncated": true,
+        "validJson": true
+      }
+    },
+    {
+      "id": "CAPTURE-SCALAR-TEXT-TRUNCATION",
+      "inputs": {
+        "message": {
+          "repeat": "😀",
+          "count": 8193
+        }
+      },
+      "expected": {
+        "message": {
+          "repeat": "😀",
+          "count": 8192
+        },
+        "truncated": true,
+        "noSplitSurrogate": true
+      }
+    },
+    {
+      "id": "CAPTURE-ATTRIBUTE-DEPTH-TRUNCATION",
+      "inputs": {
+        "attributeDepth": 9
+      },
+      "expected": {
+        "maximumRetainedDepth": 8,
+        "truncated": true,
+        "retainedContainerTypesPreserved": true
+      }
+    },
+    {
+      "id": "CAPTURE-EXPLICIT-NUMERIC-OMISSION",
+      "inputs": {
+        "maxEntryBytes": 65536,
+        "attribute": {
+          "kind": "integer-string",
+          "value": {
+            "repeat": "9",
+            "count": 70000
+          }
+        }
+      },
+      "expected": {
+        "attributeOmitted": true,
+        "truncated": true,
+        "noPartialNumericString": true
+      }
+    },
+    {
+      "id": "CAPTURE-SCOPE-TRUNCATION-PROVENANCE",
+      "inputs": {
+        "scopeDistinctScalarAttributes": 1024,
+        "eventAttributes": {}
+      },
+      "expected": {
+        "retainedScopeAttributeNodesIncludingRoot": 1024,
+        "eventTruncated": true,
+        "scopeCopiedBeforeMutation": true
+      }
+    }
+  ]
+}

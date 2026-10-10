@@ -1,0 +1,23 @@
+[
+  {
+    "command": "pwsh -NoProfile -File implementations/csharp/eng/check-release.ps1 -Profile Developer -EvidenceRoot C:\\miscwork\\portfolio\\cislib\\.artifacts\\csharp\\replay\\20261010T203419Z-4a32e5deca064b768b46595b0c91f962\\work\\.artifacts\\csharp\\verification\\Developer -OutputPath .artifacts/csharp/wp02-s02/controls/check-developer.json",
+    "actualExitCode": 0,
+    "expectedExitCode": 0
+  },
+  {
+    "command": "pwsh -NoProfile -File eng/verify.ps1 -Profile Release",
+    "actualExitCode": 2,
+    "expectedExitCode": 2
+  },
+  {
+    "command": "pwsh -NoProfile -File eng/check-release.ps1 -Profile Release",
+    "actualExitCode": 2,
+    "expectedExitCode": 2
+  },
+  {
+    "command": "pwsh -NoProfile -File eng/replay.ps1 -Profile Developer",
+    "actualExitCode": 0,
+    "expectedExitCode": 0,
+    "runRoot": "C:\\miscwork\\portfolio\\cislib\\.artifacts\\csharp\\replay\\20261010T203419Z-4a32e5deca064b768b46595b0c91f962"
+  }
+]

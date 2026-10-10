@@ -1095,7 +1095,7 @@
         "REQ-007"
       ],
       "source": "Supplied guide sections 14-17, as amended; stable inventory refined additively with implementation.",
-      "requiredResult": "Supported values follow the exact type/encoding rules; unsupported/oversized input is explicitly rejected and accounted for."
+      "requiredResult": "Supported values retain their explicit representations; unsupported or malformed input is rejected and accounted for. Oversized payload is safely truncated into one valid entry within the configured byte cap, with identity/correlation preserved and truncated:true."
     },
     {
       "id": "BC-016",
@@ -1198,6 +1198,101 @@
         "REQ-010"
       ],
       "source": "WP02-S01 contract integrity/compile-only checks; no runtime resolution/publication claim."
+    },
+    {
+      "id": "ARCH-EVENT-RECORDS",
+      "family": "architecture",
+      "title": "EveryRecordFixtureMatchesItsExpectedValidity",
+      "implementation": "Implemented",
+      "method": "CIS.Tests.ArchitectureTests.EventContractTests.EveryRecordFixtureMatchesItsExpectedValidity",
+      "minimumExecutions": 140,
+      "lanes": [
+        "windows-x64",
+        "linux-ubuntu2404-x64"
+      ],
+      "requirements": [
+        "REQ-003",
+        "REQ-004",
+        "REQ-006",
+        "REQ-010"
+      ],
+      "source": "WP02-S02 development-only fixture validation; no runtime capture/output claim."
+    },
+    {
+      "id": "ARCH-EVENT-VALUES",
+      "family": "architecture",
+      "title": "EveryValueFixtureMatchesItsExplicitRepresentation",
+      "implementation": "Implemented",
+      "method": "CIS.Tests.ArchitectureTests.EventContractTests.EveryValueFixtureMatchesItsExplicitRepresentation",
+      "minimumExecutions": 47,
+      "lanes": [
+        "windows-x64",
+        "linux-ubuntu2404-x64"
+      ],
+      "requirements": [
+        "REQ-003",
+        "REQ-004",
+        "REQ-006",
+        "REQ-010"
+      ],
+      "source": "WP02-S02 development-only fixture validation; no runtime capture/output claim."
+    },
+    {
+      "id": "ARCH-EVENT-BOUNDS",
+      "family": "architecture",
+      "title": "AllGuideBoundsAndProjectionFieldsAreDeclared",
+      "implementation": "Implemented",
+      "method": "CIS.Tests.ArchitectureTests.EventContractTests.AllGuideBoundsAndProjectionFieldsAreDeclared",
+      "minimumExecutions": 1,
+      "lanes": [
+        "windows-x64",
+        "linux-ubuntu2404-x64"
+      ],
+      "requirements": [
+        "REQ-003",
+        "REQ-004",
+        "REQ-006",
+        "REQ-010"
+      ],
+      "source": "WP02-S02 development-only fixture validation; no runtime capture/output claim."
+    },
+    {
+      "id": "ARCH-EVENT-EXPECTATIONS",
+      "family": "architecture",
+      "title": "CaptureExpectationsRemainExplicitAndPending",
+      "implementation": "Implemented",
+      "method": "CIS.Tests.ArchitectureTests.EventContractTests.CaptureExpectationsRemainExplicitAndPending",
+      "minimumExecutions": 1,
+      "lanes": [
+        "windows-x64",
+        "linux-ubuntu2404-x64"
+      ],
+      "requirements": [
+        "REQ-003",
+        "REQ-004",
+        "REQ-006",
+        "REQ-010"
+      ],
+      "source": "WP02-S02 development-only fixture validation; no runtime capture/output claim."
+    },
+    {
+      "id": "ARCH-EVENT-VALIDATOR",
+      "family": "architecture",
+      "title": "ValidatorRejectsUnsupportedSchemaKeywords",
+      "implementation": "Implemented",
+      "method": "CIS.Tests.ArchitectureTests.EventContractTests.ValidatorRejectsUnsupportedSchemaKeywords",
+      "minimumExecutions": 1,
+      "lanes": [
+        "windows-x64",
+        "linux-ubuntu2404-x64"
+      ],
+      "requirements": [
+        "REQ-003",
+        "REQ-004",
+        "REQ-006",
+        "REQ-010"
+      ],
+      "source": "WP02-S02 development-only fixture validation; no runtime capture/output claim."
     }
   ]
 }

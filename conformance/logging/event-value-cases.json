@@ -1,0 +1,451 @@
+{
+  "schemaVersion": 1,
+  "scope": "Portable explicitly tagged constructor inputs; C# test-only normalization validates these expressions. Does not implement the shipping value model.",
+  "caseCount": 47,
+  "cases": [
+    {
+      "id": "VALUE-INTEGER--9007199254740991",
+      "input": {
+        "kind": "integer",
+        "value": "-9007199254740991"
+      },
+      "expectedValid": true,
+      "expectedJson": -9007199254740991
+    },
+    {
+      "id": "VALUE-INTEGER-9007199254740991",
+      "input": {
+        "kind": "integer",
+        "value": "9007199254740991"
+      },
+      "expectedValid": true,
+      "expectedJson": 9007199254740991
+    },
+    {
+      "id": "VALUE-INTEGER-0",
+      "input": {
+        "kind": "integer",
+        "value": "0"
+      },
+      "expectedValid": true,
+      "expectedJson": 0
+    },
+    {
+      "id": "VALUE-UNSAFE--9007199254740992",
+      "input": {
+        "kind": "integer",
+        "value": "-9007199254740992"
+      },
+      "expectedValid": false
+    },
+    {
+      "id": "VALUE-UNSAFE-9007199254740992",
+      "input": {
+        "kind": "integer",
+        "value": "9007199254740992"
+      },
+      "expectedValid": false
+    },
+    {
+      "id": "VALUE-INTEGER-STRING-9223372036854775808123456789",
+      "input": {
+        "kind": "integer-string",
+        "value": "9223372036854775808123456789"
+      },
+      "expectedValid": true,
+      "expectedJson": "9223372036854775808123456789"
+    },
+    {
+      "id": "VALUE-INTEGER-STRING--9223372036854775808123456789",
+      "input": {
+        "kind": "integer-string",
+        "value": "-9223372036854775808123456789"
+      },
+      "expectedValid": true,
+      "expectedJson": "-9223372036854775808123456789"
+    },
+    {
+      "id": "VALUE-INTEGER-STRING-0",
+      "input": {
+        "kind": "integer-string",
+        "value": "0"
+      },
+      "expectedValid": true,
+      "expectedJson": "0"
+    },
+    {
+      "id": "VALUE-INVALID-INTEGER-STRING-8",
+      "input": {
+        "kind": "integer-string",
+        "value": "01"
+      },
+      "expectedValid": false
+    },
+    {
+      "id": "VALUE-INVALID-INTEGER-STRING-9",
+      "input": {
+        "kind": "integer-string",
+        "value": "+1"
+      },
+      "expectedValid": false
+    },
+    {
+      "id": "VALUE-INVALID-INTEGER-STRING-10",
+      "input": {
+        "kind": "integer-string",
+        "value": "1.0"
+      },
+      "expectedValid": false
+    },
+    {
+      "id": "VALUE-INVALID-INTEGER-STRING-11",
+      "input": {
+        "kind": "integer-string",
+        "value": "1e30"
+      },
+      "expectedValid": false
+    },
+    {
+      "id": "VALUE-INVALID-INTEGER-STRING-12",
+      "input": {
+        "kind": "integer-string",
+        "value": "-0"
+      },
+      "expectedValid": false
+    },
+    {
+      "id": "VALUE-DECIMAL-13",
+      "input": {
+        "kind": "decimal-string",
+        "value": "12.3400"
+      },
+      "expectedValid": true,
+      "expectedJson": "12.3400"
+    },
+    {
+      "id": "VALUE-DECIMAL-14",
+      "input": {
+        "kind": "decimal-string",
+        "value": "-0.01"
+      },
+      "expectedValid": true,
+      "expectedJson": "-0.01"
+    },
+    {
+      "id": "VALUE-DECIMAL-15",
+      "input": {
+        "kind": "decimal-string",
+        "value": "100000000000000000000000.0"
+      },
+      "expectedValid": true,
+      "expectedJson": "100000000000000000000000.0"
+    },
+    {
+      "id": "VALUE-INVALID-DECIMAL-16",
+      "input": {
+        "kind": "decimal-string",
+        "value": "12"
+      },
+      "expectedValid": false
+    },
+    {
+      "id": "VALUE-INVALID-DECIMAL-17",
+      "input": {
+        "kind": "decimal-string",
+        "value": "1,25"
+      },
+      "expectedValid": false
+    },
+    {
+      "id": "VALUE-INVALID-DECIMAL-18",
+      "input": {
+        "kind": "decimal-string",
+        "value": "1e2"
+      },
+      "expectedValid": false
+    },
+    {
+      "id": "VALUE-INVALID-DECIMAL-19",
+      "input": {
+        "kind": "decimal-string",
+        "value": "NaN"
+      },
+      "expectedValid": false
+    },
+    {
+      "id": "VALUE-INVALID-DECIMAL-20",
+      "input": {
+        "kind": "decimal-string",
+        "value": "01.00"
+      },
+      "expectedValid": false
+    },
+    {
+      "id": "VALUE-FINITE-21",
+      "input": {
+        "kind": "number",
+        "value": "0"
+      },
+      "expectedValid": true,
+      "expectedJson": 0.0
+    },
+    {
+      "id": "VALUE-FINITE-22",
+      "input": {
+        "kind": "number",
+        "value": "1.5"
+      },
+      "expectedValid": true,
+      "expectedJson": 1.5
+    },
+    {
+      "id": "VALUE-FINITE-23",
+      "input": {
+        "kind": "number",
+        "value": "1e20"
+      },
+      "expectedValid": true,
+      "expectedJson": 1e+20
+    },
+    {
+      "id": "VALUE-FINITE-24",
+      "input": {
+        "kind": "number",
+        "value": "-1.7976931348623157e308"
+      },
+      "expectedValid": true,
+      "expectedJson": -1.7976931348623157e+308
+    },
+    {
+      "id": "VALUE-NONFINITE-25",
+      "input": {
+        "kind": "number",
+        "value": "NaN"
+      },
+      "expectedValid": false
+    },
+    {
+      "id": "VALUE-NONFINITE-26",
+      "input": {
+        "kind": "number",
+        "value": "Infinity"
+      },
+      "expectedValid": false
+    },
+    {
+      "id": "VALUE-NONFINITE-27",
+      "input": {
+        "kind": "number",
+        "value": "-Infinity"
+      },
+      "expectedValid": false
+    },
+    {
+      "id": "VALUE-NONFINITE-28",
+      "input": {
+        "kind": "number",
+        "value": "1e309"
+      },
+      "expectedValid": false
+    },
+    {
+      "id": "VALUE-UUID",
+      "input": {
+        "kind": "uuid",
+        "value": "5FBAB327-67AB-47D1-B814-B3A98C16E41F"
+      },
+      "expectedValid": true,
+      "expectedJson": "5fbab327-67ab-47d1-b814-b3a98c16e41f"
+    },
+    {
+      "id": "VALUE-BAD-UUID",
+      "input": {
+        "kind": "uuid",
+        "value": "not-a-uuid"
+      },
+      "expectedValid": false
+    },
+    {
+      "id": "VALUE-UTC",
+      "input": {
+        "kind": "timestamp",
+        "value": "2026-10-10T14:34:56.1234567+02:00"
+      },
+      "expectedValid": true,
+      "expectedJson": "2026-10-10T12:34:56.1234567Z"
+    },
+    {
+      "id": "VALUE-BAD-TIMESTAMP",
+      "input": {
+        "kind": "timestamp",
+        "value": "2026-02-30T12:00:00.0000000Z"
+      },
+      "expectedValid": false
+    },
+    {
+      "id": "VALUE-NULL",
+      "input": {
+        "kind": "null",
+        "value": null
+      },
+      "expectedValid": true,
+      "expectedJson": null
+    },
+    {
+      "id": "VALUE-BOOLEAN",
+      "input": {
+        "kind": "boolean",
+        "value": true
+      },
+      "expectedValid": true,
+      "expectedJson": true
+    },
+    {
+      "id": "VALUE-STRING",
+      "input": {
+        "kind": "string",
+        "value": "valid 😀\n"
+      },
+      "expectedValid": true,
+      "expectedJson": "valid 😀\n"
+    },
+    {
+      "id": "VALUE-ARRAY",
+      "input": {
+        "kind": "array",
+        "value": [
+          {
+            "kind": "integer",
+            "value": "1"
+          },
+          {
+            "kind": "null",
+            "value": null
+          }
+        ]
+      },
+      "expectedValid": true,
+      "expectedJson": [
+        1,
+        null
+      ]
+    },
+    {
+      "id": "VALUE-MAP",
+      "input": {
+        "kind": "map",
+        "value": {
+          "a": {
+            "kind": "decimal-string",
+            "value": "1.00"
+          },
+          "b": {
+            "kind": "array",
+            "value": [
+              {
+                "kind": "boolean",
+                "value": false
+              }
+            ]
+          }
+        }
+      },
+      "expectedValid": true,
+      "expectedJson": {
+        "a": "1.00",
+        "b": [
+          false
+        ]
+      }
+    },
+    {
+      "id": "VALUE-UNSUPPORTED-OBJECT",
+      "input": {
+        "kind": "object",
+        "value": {
+          "arbitrary": "state"
+        }
+      },
+      "expectedValid": false
+    },
+    {
+      "id": "VALUE-UNSUPPORTED-REFLECTION",
+      "input": {
+        "kind": "reflection",
+        "value": {
+          "arbitrary": "state"
+        }
+      },
+      "expectedValid": false
+    },
+    {
+      "id": "VALUE-UNSUPPORTED-TO-STRING",
+      "input": {
+        "kind": "to-string",
+        "value": {
+          "arbitrary": "state"
+        }
+      },
+      "expectedValid": false
+    },
+    {
+      "id": "VALUE-UNSUPPORTED-DECIMAL",
+      "input": {
+        "kind": "decimal",
+        "value": {
+          "arbitrary": "state"
+        }
+      },
+      "expectedValid": false
+    },
+    {
+      "id": "VALUE-UNSUPPORTED-INT64",
+      "input": {
+        "kind": "int64",
+        "value": {
+          "arbitrary": "state"
+        }
+      },
+      "expectedValid": false
+    },
+    {
+      "id": "VALUE-UNSUPPORTED-CYCLIC-REFERENCE",
+      "input": {
+        "kind": "cyclic-reference",
+        "value": {
+          "arbitrary": "state"
+        }
+      },
+      "expectedValid": false
+    },
+    {
+      "id": "VALUE-INVALID-MAP-KEY",
+      "input": {
+        "kind": "map",
+        "value": {
+          "bad\n": {
+            "kind": "null",
+            "value": null
+          }
+        }
+      },
+      "expectedValid": false
+    },
+    {
+      "id": "VALUE-INVALID-BOOL",
+      "input": {
+        "kind": "boolean",
+        "value": "true"
+      },
+      "expectedValid": false
+    },
+    {
+      "id": "VALUE-INVALID-INTEGER-TYPE",
+      "input": {
+        "kind": "integer",
+        "value": 1
+      },
+      "expectedValid": false
+    }
+  ]
+}

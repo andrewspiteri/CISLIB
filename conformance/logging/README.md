@@ -1,5 +1,7 @@
 # Shared logging conformance cases
 
-Place language-neutral input/output fixtures and a stable case catalog here as logging behavior is specified. Cases need explicit capabilities and runtime applicability; do not silently omit unsupported cases or claim that a C# run verifies another language.
+These catalogs are language-neutral. Stable native case groups and requirement mappings distinguish implemented checks from planned obligations. Configuration, metadata and startup lifecycle vectors remain runtime expectations for WP03.
 
-WP02-S01 adds configuration, metadata and startup lifecycle expectations, with explicit pending runtime execution. The configuration catalog covers every section 8 key, alias/default, token/range, precedence and applicable path rule. C# contract metadata/consumer checks verify shape and fixture completeness; they do not count these vectors as passing resolver tests. JSON encodings, scope identity and observable output lifecycle remain later stories. Native binary compatibility and platform-specific file behavior use their language/platform verification lanes.
+WP02-S02 adds [record fixtures](event-record-cases.json), [explicit value fixtures](event-value-cases.json), and [future capture expectations](event-capture-expectations.json). The C# development-only validator executes every record/value case, including Unicode, node/depth, numeric and exact escaped-byte boundaries. Producer projection and additive reader evolution use distinct modes. Tagged constructor inputs preserve distinctions that cannot be inferred from serialized strings/numbers alone.
+
+Capture expectations for correlation overrides, nested copying, scopes and exception clipping remain unexecuted until WP04 uses the real library. Compiler-only consumers qualify shape, not behavior. No other language, collector ingestion, binary compatibility or platform-specific file behavior is established by these checks.

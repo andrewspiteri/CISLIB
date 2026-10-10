@@ -62,3 +62,7 @@ The user selected WP01-S03 and expanded severity abbreviations during implementa
 ## WP02-S01 contract definition
 
 WP01-S04 was committed as `b7b8b78` at the user's request. The user selected the corrected unpublished facade name `EnvironmentOptions`. Portable startup/configuration semantics remain under shared contracts; C# signatures remain under `implementations/csharp`. A reference-only specification and compiled consumers qualify shape without inserting placeholder startup APIs into Core. [Contract guidance](../docs/modules/logging/startup-contract.md) and [Windows evidence](logging/evidence/wp02-s01-windows.json) record selected details and execution limits. Runtime resolution and publication remain WP03 work.
+
+## WP02-S02 event contracts
+
+WP02-S01 was committed as ccb7237. WP02-S02 defines schema/value/bound contracts and executes C# development-only record/value validation. The user amended oversize behavior to configurable entry bytes (64 KiB default) and truncation. CORE_LOG_MAX_ENTRY_BYTES and the selected 16 KiB–16 MiB range, marker/projection choices and validation limits are recorded in [event guidance](../docs/modules/logging/event-contract.md). Real bounded capture/truncation and output rendering remain WP04/WP05 work.

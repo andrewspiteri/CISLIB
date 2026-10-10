@@ -1,0 +1,7247 @@
+{
+  "schemaVersion": 1,
+  "story": "WP02-S01",
+  "state": "Specified expectations; runtime resolution not executed",
+  "caseCount": 350,
+  "cases": [
+    {
+      "id": "CFG-SERVICE-NAME-ABSENT",
+      "key": "CORE_SERVICE_NAME",
+      "category": "absent",
+      "inputs": {
+        "environment": {},
+        "setup": {},
+        "discovery": {
+          "applicationName": "Fixture.App",
+          "buildVersion": "2.3.4-rc.1+build.8"
+        }
+      },
+      "expected": {
+        "status": "Resolved",
+        "value": "Fixture.App"
+      }
+    },
+    {
+      "id": "CFG-SERVICE-NAME-BLANK-1",
+      "key": "CORE_SERVICE_NAME",
+      "category": "absent",
+      "inputs": {
+        "environment": {
+          "CORE_SERVICE_NAME": ""
+        },
+        "setup": {},
+        "discovery": {
+          "applicationName": "Fixture.App",
+          "buildVersion": "2.3.4-rc.1+build.8"
+        }
+      },
+      "expected": {
+        "status": "Resolved",
+        "value": "Fixture.App"
+      }
+    },
+    {
+      "id": "CFG-SERVICE-NAME-BLANK-2",
+      "key": "CORE_SERVICE_NAME",
+      "category": "absent",
+      "inputs": {
+        "environment": {
+          "CORE_SERVICE_NAME": " "
+        },
+        "setup": {},
+        "discovery": {
+          "applicationName": "Fixture.App",
+          "buildVersion": "2.3.4-rc.1+build.8"
+        }
+      },
+      "expected": {
+        "status": "Resolved",
+        "value": "Fixture.App"
+      }
+    },
+    {
+      "id": "CFG-SERVICE-NAME-BLANK-3",
+      "key": "CORE_SERVICE_NAME",
+      "category": "absent",
+      "inputs": {
+        "environment": {
+          "CORE_SERVICE_NAME": "\t\r\n"
+        },
+        "setup": {},
+        "discovery": {
+          "applicationName": "Fixture.App",
+          "buildVersion": "2.3.4-rc.1+build.8"
+        }
+      },
+      "expected": {
+        "status": "Resolved",
+        "value": "Fixture.App"
+      }
+    },
+    {
+      "id": "CFG-SERVICE-NAME-BLANK-4",
+      "key": "CORE_SERVICE_NAME",
+      "category": "absent",
+      "inputs": {
+        "environment": {
+          "CORE_SERVICE_NAME": "  "
+        },
+        "setup": {},
+        "discovery": {
+          "applicationName": "Fixture.App",
+          "buildVersion": "2.3.4-rc.1+build.8"
+        }
+      },
+      "expected": {
+        "status": "Resolved",
+        "value": "Fixture.App"
+      }
+    },
+    {
+      "id": "CFG-SERVICE-NAME-TRIM-CASE",
+      "key": "CORE_SERVICE_NAME",
+      "category": "valid",
+      "inputs": {
+        "environment": {
+          "CORE_SERVICE_NAME": " \tMixed.Case-Deployment\r\n"
+        },
+        "setup": {},
+        "discovery": {
+          "applicationName": "Fixture.App",
+          "buildVersion": "2.3.4-rc.1+build.8"
+        }
+      },
+      "expected": {
+        "status": "Resolved",
+        "value": "Mixed.Case-Deployment"
+      }
+    },
+    {
+      "id": "CFG-SERVICE-NAME-AT-LIMIT",
+      "key": "CORE_SERVICE_NAME",
+      "category": "boundary",
+      "inputs": {
+        "environment": {
+          "CORE_SERVICE_NAME": "🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂"
+        },
+        "setup": {},
+        "discovery": {
+          "applicationName": "Fixture.App",
+          "buildVersion": "2.3.4-rc.1+build.8"
+        }
+      },
+      "expected": {
+        "status": "Resolved",
+        "value": "🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂"
+      },
+      "notes": "Count Unicode scalars, not UTF-16 code units."
+    },
+    {
+      "id": "CFG-SERVICE-NAME-OVER-LIMIT",
+      "key": "CORE_SERVICE_NAME",
+      "category": "boundary",
+      "inputs": {
+        "environment": {
+          "CORE_SERVICE_NAME": "🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂"
+        },
+        "setup": {},
+        "discovery": {
+          "applicationName": "Fixture.App",
+          "buildVersion": "2.3.4-rc.1+build.8"
+        }
+      },
+      "expected": {
+        "status": "Invalid",
+        "issues": [
+          {
+            "code": "InvalidIdentity",
+            "key": "CORE_SERVICE_NAME"
+          }
+        ]
+      },
+      "notes": "Count Unicode scalars, not UTF-16 code units."
+    },
+    {
+      "id": "CFG-SERVICE-NAME-EXPLICIT",
+      "key": "CORE_SERVICE_NAME",
+      "category": "valid",
+      "inputs": {
+        "environment": {
+          "CORE_SERVICE_NAME": "Mixed.Case-Deployment"
+        },
+        "setup": {},
+        "discovery": {
+          "applicationName": "Fixture.App",
+          "buildVersion": "2.3.4-rc.1+build.8"
+        }
+      },
+      "expected": {
+        "status": "Resolved",
+        "value": "Mixed.Case-Deployment"
+      }
+    },
+    {
+      "id": "CFG-SERVICE-NAME-INVALID",
+      "key": "CORE_SERVICE_NAME",
+      "category": "invalid",
+      "inputs": {
+        "environment": {
+          "CORE_SERVICE_NAME": "unsafe\u0001identity"
+        },
+        "setup": {},
+        "discovery": {
+          "applicationName": "Fixture.App",
+          "buildVersion": "2.3.4-rc.1+build.8"
+        }
+      },
+      "expected": {
+        "status": "Invalid",
+        "issues": [
+          {
+            "code": "InvalidIdentity",
+            "key": "CORE_SERVICE_NAME"
+          }
+        ]
+      }
+    },
+    {
+      "id": "CFG-SERVICE-NAME-CORE-BEATS-SETUP",
+      "key": "CORE_SERVICE_NAME",
+      "category": "precedence",
+      "inputs": {
+        "environment": {
+          "CORE_SERVICE_NAME": "Mixed.Case-Deployment"
+        },
+        "setup": {
+          "ApplicationName": "Fixture.App"
+        },
+        "discovery": {
+          "applicationName": "Fixture.App",
+          "buildVersion": "2.3.4-rc.1+build.8"
+        }
+      },
+      "expected": {
+        "status": "Resolved",
+        "value": "Mixed.Case-Deployment"
+      }
+    },
+    {
+      "id": "CFG-SERVICE-NAME-INVALID-CORE-STOPS",
+      "key": "CORE_SERVICE_NAME",
+      "category": "precedence",
+      "inputs": {
+        "environment": {
+          "CORE_SERVICE_NAME": "unsafe\u0001identity"
+        },
+        "setup": {
+          "ApplicationName": "Mixed.Case-Deployment"
+        },
+        "discovery": {
+          "applicationName": "Fixture.App",
+          "buildVersion": "2.3.4-rc.1+build.8"
+        }
+      },
+      "expected": {
+        "status": "Invalid",
+        "issues": [
+          {
+            "code": "InvalidIdentity",
+            "key": "CORE_SERVICE_NAME"
+          }
+        ]
+      }
+    },
+    {
+      "id": "CFG-SERVICE-NAME-BLANK-CORE-USES-SETUP",
+      "key": "CORE_SERVICE_NAME",
+      "category": "precedence",
+      "inputs": {
+        "environment": {
+          "CORE_SERVICE_NAME": " \t"
+        },
+        "setup": {
+          "ApplicationName": "Mixed.Case-Deployment"
+        },
+        "discovery": {
+          "applicationName": "Fixture.App",
+          "buildVersion": "2.3.4-rc.1+build.8"
+        }
+      },
+      "expected": {
+        "status": "Resolved",
+        "value": "Mixed.Case-Deployment"
+      }
+    },
+    {
+      "id": "CFG-SERVICE-NAME-SETUP-BEATS-DISCOVERY",
+      "key": "CORE_SERVICE_NAME",
+      "category": "precedence",
+      "inputs": {
+        "environment": {},
+        "setup": {
+          "ApplicationName": "Mixed.Case-Deployment"
+        },
+        "discovery": {
+          "applicationName": "Fixture.App",
+          "buildVersion": "2.3.4-rc.1+build.8"
+        }
+      },
+      "expected": {
+        "status": "Resolved",
+        "value": "Mixed.Case-Deployment"
+      }
+    },
+    {
+      "id": "CFG-SERVICE-NAME-ALIAS-BEATS-SETUP",
+      "key": "CORE_SERVICE_NAME",
+      "category": "precedence",
+      "inputs": {
+        "environment": {
+          "DD_SERVICE": "Alias.Case"
+        },
+        "setup": {
+          "ApplicationName": "Setup.Case"
+        },
+        "discovery": {
+          "applicationName": "Fixture.App",
+          "buildVersion": "2.3.4-rc.1+build.8"
+        }
+      },
+      "expected": {
+        "status": "Resolved",
+        "value": "Alias.Case"
+      }
+    },
+    {
+      "id": "CFG-SERVICE-NAME-CORE-BEATS-ALIAS",
+      "key": "CORE_SERVICE_NAME",
+      "category": "precedence",
+      "inputs": {
+        "environment": {
+          "CORE_SERVICE_NAME": "Core.Case",
+          "DD_SERVICE": "Alias.Case"
+        },
+        "setup": {
+          "ApplicationName": "Setup.Case"
+        },
+        "discovery": {
+          "applicationName": "Fixture.App",
+          "buildVersion": "2.3.4-rc.1+build.8"
+        }
+      },
+      "expected": {
+        "status": "Resolved",
+        "value": "Core.Case"
+      }
+    },
+    {
+      "id": "CFG-SERVICE-NAME-BLANK-CORE-USES-ALIAS",
+      "key": "CORE_SERVICE_NAME",
+      "category": "precedence",
+      "inputs": {
+        "environment": {
+          "CORE_SERVICE_NAME": " ",
+          "DD_SERVICE": "Alias.Case"
+        },
+        "setup": {},
+        "discovery": {
+          "applicationName": "Fixture.App",
+          "buildVersion": "2.3.4-rc.1+build.8"
+        }
+      },
+      "expected": {
+        "status": "Resolved",
+        "value": "Alias.Case"
+      }
+    },
+    {
+      "id": "CFG-SERVICE-NAME-BLANK-ALIAS-USES-SETUP",
+      "key": "CORE_SERVICE_NAME",
+      "category": "precedence",
+      "inputs": {
+        "environment": {
+          "DD_SERVICE": "\t"
+        },
+        "setup": {
+          "ApplicationName": "Setup.Case"
+        },
+        "discovery": {
+          "applicationName": "Fixture.App",
+          "buildVersion": "2.3.4-rc.1+build.8"
+        }
+      },
+      "expected": {
+        "status": "Resolved",
+        "value": "Setup.Case"
+      }
+    },
+    {
+      "id": "CFG-SERVICE-NAME-INVALID-CORE-NO-ALIAS-FALLBACK",
+      "key": "CORE_SERVICE_NAME",
+      "category": "precedence",
+      "inputs": {
+        "environment": {
+          "CORE_SERVICE_NAME": "unsafe\u0001identity",
+          "DD_SERVICE": "Alias.Case"
+        },
+        "setup": {},
+        "discovery": {
+          "applicationName": "Fixture.App",
+          "buildVersion": "2.3.4-rc.1+build.8"
+        }
+      },
+      "expected": {
+        "status": "Invalid",
+        "issues": [
+          {
+            "code": "InvalidIdentity",
+            "key": "CORE_SERVICE_NAME"
+          }
+        ]
+      }
+    },
+    {
+      "id": "CFG-SERVICE-NAME-INVALID-ALIAS-NO-SETUP-FALLBACK",
+      "key": "CORE_SERVICE_NAME",
+      "category": "precedence",
+      "inputs": {
+        "environment": {
+          "DD_SERVICE": "unsafe\u0001identity"
+        },
+        "setup": {
+          "ApplicationName": "Setup.Case"
+        },
+        "discovery": {
+          "applicationName": "Fixture.App",
+          "buildVersion": "2.3.4-rc.1+build.8"
+        }
+      },
+      "expected": {
+        "status": "Invalid",
+        "issues": [
+          {
+            "code": "InvalidIdentity",
+            "key": "DD_SERVICE"
+          }
+        ]
+      }
+    },
+    {
+      "id": "CFG-ENVIRONMENT-ABSENT",
+      "key": "CORE_ENVIRONMENT",
+      "category": "absent",
+      "inputs": {
+        "environment": {},
+        "setup": {},
+        "discovery": {
+          "applicationName": "Fixture.App",
+          "buildVersion": "2.3.4-rc.1+build.8"
+        }
+      },
+      "expected": {
+        "status": "Resolved",
+        "value": "unknown"
+      }
+    },
+    {
+      "id": "CFG-ENVIRONMENT-BLANK-1",
+      "key": "CORE_ENVIRONMENT",
+      "category": "absent",
+      "inputs": {
+        "environment": {
+          "CORE_ENVIRONMENT": ""
+        },
+        "setup": {},
+        "discovery": {
+          "applicationName": "Fixture.App",
+          "buildVersion": "2.3.4-rc.1+build.8"
+        }
+      },
+      "expected": {
+        "status": "Resolved",
+        "value": "unknown"
+      }
+    },
+    {
+      "id": "CFG-ENVIRONMENT-BLANK-2",
+      "key": "CORE_ENVIRONMENT",
+      "category": "absent",
+      "inputs": {
+        "environment": {
+          "CORE_ENVIRONMENT": " "
+        },
+        "setup": {},
+        "discovery": {
+          "applicationName": "Fixture.App",
+          "buildVersion": "2.3.4-rc.1+build.8"
+        }
+      },
+      "expected": {
+        "status": "Resolved",
+        "value": "unknown"
+      }
+    },
+    {
+      "id": "CFG-ENVIRONMENT-BLANK-3",
+      "key": "CORE_ENVIRONMENT",
+      "category": "absent",
+      "inputs": {
+        "environment": {
+          "CORE_ENVIRONMENT": "\t\r\n"
+        },
+        "setup": {},
+        "discovery": {
+          "applicationName": "Fixture.App",
+          "buildVersion": "2.3.4-rc.1+build.8"
+        }
+      },
+      "expected": {
+        "status": "Resolved",
+        "value": "unknown"
+      }
+    },
+    {
+      "id": "CFG-ENVIRONMENT-BLANK-4",
+      "key": "CORE_ENVIRONMENT",
+      "category": "absent",
+      "inputs": {
+        "environment": {
+          "CORE_ENVIRONMENT": "  "
+        },
+        "setup": {},
+        "discovery": {
+          "applicationName": "Fixture.App",
+          "buildVersion": "2.3.4-rc.1+build.8"
+        }
+      },
+      "expected": {
+        "status": "Resolved",
+        "value": "unknown"
+      }
+    },
+    {
+      "id": "CFG-ENVIRONMENT-TRIM-CASE",
+      "key": "CORE_ENVIRONMENT",
+      "category": "valid",
+      "inputs": {
+        "environment": {
+          "CORE_ENVIRONMENT": " \tMixed.Case-Deployment\r\n"
+        },
+        "setup": {},
+        "discovery": {
+          "applicationName": "Fixture.App",
+          "buildVersion": "2.3.4-rc.1+build.8"
+        }
+      },
+      "expected": {
+        "status": "Resolved",
+        "value": "Mixed.Case-Deployment"
+      }
+    },
+    {
+      "id": "CFG-ENVIRONMENT-AT-LIMIT",
+      "key": "CORE_ENVIRONMENT",
+      "category": "boundary",
+      "inputs": {
+        "environment": {
+          "CORE_ENVIRONMENT": "🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂"
+        },
+        "setup": {},
+        "discovery": {
+          "applicationName": "Fixture.App",
+          "buildVersion": "2.3.4-rc.1+build.8"
+        }
+      },
+      "expected": {
+        "status": "Resolved",
+        "value": "🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂"
+      },
+      "notes": "Count Unicode scalars, not UTF-16 code units."
+    },
+    {
+      "id": "CFG-ENVIRONMENT-OVER-LIMIT",
+      "key": "CORE_ENVIRONMENT",
+      "category": "boundary",
+      "inputs": {
+        "environment": {
+          "CORE_ENVIRONMENT": "🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂"
+        },
+        "setup": {},
+        "discovery": {
+          "applicationName": "Fixture.App",
+          "buildVersion": "2.3.4-rc.1+build.8"
+        }
+      },
+      "expected": {
+        "status": "Invalid",
+        "issues": [
+          {
+            "code": "InvalidIdentity",
+            "key": "CORE_ENVIRONMENT"
+          }
+        ]
+      },
+      "notes": "Count Unicode scalars, not UTF-16 code units."
+    },
+    {
+      "id": "CFG-ENVIRONMENT-EXPLICIT",
+      "key": "CORE_ENVIRONMENT",
+      "category": "valid",
+      "inputs": {
+        "environment": {
+          "CORE_ENVIRONMENT": "Mixed.Case-Deployment"
+        },
+        "setup": {},
+        "discovery": {
+          "applicationName": "Fixture.App",
+          "buildVersion": "2.3.4-rc.1+build.8"
+        }
+      },
+      "expected": {
+        "status": "Resolved",
+        "value": "Mixed.Case-Deployment"
+      }
+    },
+    {
+      "id": "CFG-ENVIRONMENT-INVALID",
+      "key": "CORE_ENVIRONMENT",
+      "category": "invalid",
+      "inputs": {
+        "environment": {
+          "CORE_ENVIRONMENT": "unsafe\u0001identity"
+        },
+        "setup": {},
+        "discovery": {
+          "applicationName": "Fixture.App",
+          "buildVersion": "2.3.4-rc.1+build.8"
+        }
+      },
+      "expected": {
+        "status": "Invalid",
+        "issues": [
+          {
+            "code": "InvalidIdentity",
+            "key": "CORE_ENVIRONMENT"
+          }
+        ]
+      }
+    },
+    {
+      "id": "CFG-ENVIRONMENT-CORE-BEATS-SETUP",
+      "key": "CORE_ENVIRONMENT",
+      "category": "precedence",
+      "inputs": {
+        "environment": {
+          "CORE_ENVIRONMENT": "Mixed.Case-Deployment"
+        },
+        "setup": {
+          "EnvironmentName": "unknown"
+        },
+        "discovery": {
+          "applicationName": "Fixture.App",
+          "buildVersion": "2.3.4-rc.1+build.8"
+        }
+      },
+      "expected": {
+        "status": "Resolved",
+        "value": "Mixed.Case-Deployment"
+      }
+    },
+    {
+      "id": "CFG-ENVIRONMENT-INVALID-CORE-STOPS",
+      "key": "CORE_ENVIRONMENT",
+      "category": "precedence",
+      "inputs": {
+        "environment": {
+          "CORE_ENVIRONMENT": "unsafe\u0001identity"
+        },
+        "setup": {
+          "EnvironmentName": "Mixed.Case-Deployment"
+        },
+        "discovery": {
+          "applicationName": "Fixture.App",
+          "buildVersion": "2.3.4-rc.1+build.8"
+        }
+      },
+      "expected": {
+        "status": "Invalid",
+        "issues": [
+          {
+            "code": "InvalidIdentity",
+            "key": "CORE_ENVIRONMENT"
+          }
+        ]
+      }
+    },
+    {
+      "id": "CFG-ENVIRONMENT-BLANK-CORE-USES-SETUP",
+      "key": "CORE_ENVIRONMENT",
+      "category": "precedence",
+      "inputs": {
+        "environment": {
+          "CORE_ENVIRONMENT": " \t"
+        },
+        "setup": {
+          "EnvironmentName": "Mixed.Case-Deployment"
+        },
+        "discovery": {
+          "applicationName": "Fixture.App",
+          "buildVersion": "2.3.4-rc.1+build.8"
+        }
+      },
+      "expected": {
+        "status": "Resolved",
+        "value": "Mixed.Case-Deployment"
+      }
+    },
+    {
+      "id": "CFG-ENVIRONMENT-SETUP-BEATS-DISCOVERY",
+      "key": "CORE_ENVIRONMENT",
+      "category": "precedence",
+      "inputs": {
+        "environment": {},
+        "setup": {
+          "EnvironmentName": "Mixed.Case-Deployment"
+        },
+        "discovery": {
+          "applicationName": "Fixture.App",
+          "buildVersion": "2.3.4-rc.1+build.8"
+        }
+      },
+      "expected": {
+        "status": "Resolved",
+        "value": "Mixed.Case-Deployment"
+      }
+    },
+    {
+      "id": "CFG-ENVIRONMENT-ALIAS-BEATS-SETUP",
+      "key": "CORE_ENVIRONMENT",
+      "category": "precedence",
+      "inputs": {
+        "environment": {
+          "DD_ENV": "Alias.Case"
+        },
+        "setup": {
+          "EnvironmentName": "Setup.Case"
+        },
+        "discovery": {
+          "applicationName": "Fixture.App",
+          "buildVersion": "2.3.4-rc.1+build.8"
+        }
+      },
+      "expected": {
+        "status": "Resolved",
+        "value": "Alias.Case"
+      }
+    },
+    {
+      "id": "CFG-ENVIRONMENT-CORE-BEATS-ALIAS",
+      "key": "CORE_ENVIRONMENT",
+      "category": "precedence",
+      "inputs": {
+        "environment": {
+          "CORE_ENVIRONMENT": "Core.Case",
+          "DD_ENV": "Alias.Case"
+        },
+        "setup": {
+          "EnvironmentName": "Setup.Case"
+        },
+        "discovery": {
+          "applicationName": "Fixture.App",
+          "buildVersion": "2.3.4-rc.1+build.8"
+        }
+      },
+      "expected": {
+        "status": "Resolved",
+        "value": "Core.Case"
+      }
+    },
+    {
+      "id": "CFG-ENVIRONMENT-BLANK-CORE-USES-ALIAS",
+      "key": "CORE_ENVIRONMENT",
+      "category": "precedence",
+      "inputs": {
+        "environment": {
+          "CORE_ENVIRONMENT": " ",
+          "DD_ENV": "Alias.Case"
+        },
+        "setup": {},
+        "discovery": {
+          "applicationName": "Fixture.App",
+          "buildVersion": "2.3.4-rc.1+build.8"
+        }
+      },
+      "expected": {
+        "status": "Resolved",
+        "value": "Alias.Case"
+      }
+    },
+    {
+      "id": "CFG-ENVIRONMENT-BLANK-ALIAS-USES-SETUP",
+      "key": "CORE_ENVIRONMENT",
+      "category": "precedence",
+      "inputs": {
+        "environment": {
+          "DD_ENV": "\t"
+        },
+        "setup": {
+          "EnvironmentName": "Setup.Case"
+        },
+        "discovery": {
+          "applicationName": "Fixture.App",
+          "buildVersion": "2.3.4-rc.1+build.8"
+        }
+      },
+      "expected": {
+        "status": "Resolved",
+        "value": "Setup.Case"
+      }
+    },
+    {
+      "id": "CFG-ENVIRONMENT-INVALID-CORE-NO-ALIAS-FALLBACK",
+      "key": "CORE_ENVIRONMENT",
+      "category": "precedence",
+      "inputs": {
+        "environment": {
+          "CORE_ENVIRONMENT": "unsafe\u0001identity",
+          "DD_ENV": "Alias.Case"
+        },
+        "setup": {},
+        "discovery": {
+          "applicationName": "Fixture.App",
+          "buildVersion": "2.3.4-rc.1+build.8"
+        }
+      },
+      "expected": {
+        "status": "Invalid",
+        "issues": [
+          {
+            "code": "InvalidIdentity",
+            "key": "CORE_ENVIRONMENT"
+          }
+        ]
+      }
+    },
+    {
+      "id": "CFG-ENVIRONMENT-INVALID-ALIAS-NO-SETUP-FALLBACK",
+      "key": "CORE_ENVIRONMENT",
+      "category": "precedence",
+      "inputs": {
+        "environment": {
+          "DD_ENV": "unsafe\u0001identity"
+        },
+        "setup": {
+          "EnvironmentName": "Setup.Case"
+        },
+        "discovery": {
+          "applicationName": "Fixture.App",
+          "buildVersion": "2.3.4-rc.1+build.8"
+        }
+      },
+      "expected": {
+        "status": "Invalid",
+        "issues": [
+          {
+            "code": "InvalidIdentity",
+            "key": "DD_ENV"
+          }
+        ]
+      }
+    },
+    {
+      "id": "CFG-SERVICE-VERSION-ABSENT",
+      "key": "CORE_SERVICE_VERSION",
+      "category": "absent",
+      "inputs": {
+        "environment": {},
+        "setup": {},
+        "discovery": {
+          "applicationName": "Fixture.App",
+          "buildVersion": "2.3.4-rc.1+build.8"
+        }
+      },
+      "expected": {
+        "status": "Resolved",
+        "value": "2.3.4-rc.1+build.8"
+      }
+    },
+    {
+      "id": "CFG-SERVICE-VERSION-BLANK-1",
+      "key": "CORE_SERVICE_VERSION",
+      "category": "absent",
+      "inputs": {
+        "environment": {
+          "CORE_SERVICE_VERSION": ""
+        },
+        "setup": {},
+        "discovery": {
+          "applicationName": "Fixture.App",
+          "buildVersion": "2.3.4-rc.1+build.8"
+        }
+      },
+      "expected": {
+        "status": "Resolved",
+        "value": "2.3.4-rc.1+build.8"
+      }
+    },
+    {
+      "id": "CFG-SERVICE-VERSION-BLANK-2",
+      "key": "CORE_SERVICE_VERSION",
+      "category": "absent",
+      "inputs": {
+        "environment": {
+          "CORE_SERVICE_VERSION": " "
+        },
+        "setup": {},
+        "discovery": {
+          "applicationName": "Fixture.App",
+          "buildVersion": "2.3.4-rc.1+build.8"
+        }
+      },
+      "expected": {
+        "status": "Resolved",
+        "value": "2.3.4-rc.1+build.8"
+      }
+    },
+    {
+      "id": "CFG-SERVICE-VERSION-BLANK-3",
+      "key": "CORE_SERVICE_VERSION",
+      "category": "absent",
+      "inputs": {
+        "environment": {
+          "CORE_SERVICE_VERSION": "\t\r\n"
+        },
+        "setup": {},
+        "discovery": {
+          "applicationName": "Fixture.App",
+          "buildVersion": "2.3.4-rc.1+build.8"
+        }
+      },
+      "expected": {
+        "status": "Resolved",
+        "value": "2.3.4-rc.1+build.8"
+      }
+    },
+    {
+      "id": "CFG-SERVICE-VERSION-BLANK-4",
+      "key": "CORE_SERVICE_VERSION",
+      "category": "absent",
+      "inputs": {
+        "environment": {
+          "CORE_SERVICE_VERSION": "  "
+        },
+        "setup": {},
+        "discovery": {
+          "applicationName": "Fixture.App",
+          "buildVersion": "2.3.4-rc.1+build.8"
+        }
+      },
+      "expected": {
+        "status": "Resolved",
+        "value": "2.3.4-rc.1+build.8"
+      }
+    },
+    {
+      "id": "CFG-SERVICE-VERSION-TRIM-CASE",
+      "key": "CORE_SERVICE_VERSION",
+      "category": "valid",
+      "inputs": {
+        "environment": {
+          "CORE_SERVICE_VERSION": " \tMixed.Case-Deployment\r\n"
+        },
+        "setup": {},
+        "discovery": {
+          "applicationName": "Fixture.App",
+          "buildVersion": "2.3.4-rc.1+build.8"
+        }
+      },
+      "expected": {
+        "status": "Resolved",
+        "value": "Mixed.Case-Deployment"
+      }
+    },
+    {
+      "id": "CFG-SERVICE-VERSION-AT-LIMIT",
+      "key": "CORE_SERVICE_VERSION",
+      "category": "boundary",
+      "inputs": {
+        "environment": {
+          "CORE_SERVICE_VERSION": "🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂"
+        },
+        "setup": {},
+        "discovery": {
+          "applicationName": "Fixture.App",
+          "buildVersion": "2.3.4-rc.1+build.8"
+        }
+      },
+      "expected": {
+        "status": "Resolved",
+        "value": "🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂"
+      },
+      "notes": "Count Unicode scalars, not UTF-16 code units."
+    },
+    {
+      "id": "CFG-SERVICE-VERSION-OVER-LIMIT",
+      "key": "CORE_SERVICE_VERSION",
+      "category": "boundary",
+      "inputs": {
+        "environment": {
+          "CORE_SERVICE_VERSION": "🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂"
+        },
+        "setup": {},
+        "discovery": {
+          "applicationName": "Fixture.App",
+          "buildVersion": "2.3.4-rc.1+build.8"
+        }
+      },
+      "expected": {
+        "status": "Invalid",
+        "issues": [
+          {
+            "code": "InvalidIdentity",
+            "key": "CORE_SERVICE_VERSION"
+          }
+        ]
+      },
+      "notes": "Count Unicode scalars, not UTF-16 code units."
+    },
+    {
+      "id": "CFG-SERVICE-VERSION-EXPLICIT",
+      "key": "CORE_SERVICE_VERSION",
+      "category": "valid",
+      "inputs": {
+        "environment": {
+          "CORE_SERVICE_VERSION": "Mixed.Case-Deployment"
+        },
+        "setup": {},
+        "discovery": {
+          "applicationName": "Fixture.App",
+          "buildVersion": "2.3.4-rc.1+build.8"
+        }
+      },
+      "expected": {
+        "status": "Resolved",
+        "value": "Mixed.Case-Deployment"
+      }
+    },
+    {
+      "id": "CFG-SERVICE-VERSION-INVALID",
+      "key": "CORE_SERVICE_VERSION",
+      "category": "invalid",
+      "inputs": {
+        "environment": {
+          "CORE_SERVICE_VERSION": "unsafe\u0001identity"
+        },
+        "setup": {},
+        "discovery": {
+          "applicationName": "Fixture.App",
+          "buildVersion": "2.3.4-rc.1+build.8"
+        }
+      },
+      "expected": {
+        "status": "Invalid",
+        "issues": [
+          {
+            "code": "InvalidIdentity",
+            "key": "CORE_SERVICE_VERSION"
+          }
+        ]
+      }
+    },
+    {
+      "id": "CFG-SERVICE-VERSION-CORE-BEATS-SETUP",
+      "key": "CORE_SERVICE_VERSION",
+      "category": "precedence",
+      "inputs": {
+        "environment": {
+          "CORE_SERVICE_VERSION": "Mixed.Case-Deployment"
+        },
+        "setup": {
+          "ServiceVersion": "2.3.4-rc.1+build.8"
+        },
+        "discovery": {
+          "applicationName": "Fixture.App",
+          "buildVersion": "2.3.4-rc.1+build.8"
+        }
+      },
+      "expected": {
+        "status": "Resolved",
+        "value": "Mixed.Case-Deployment"
+      }
+    },
+    {
+      "id": "CFG-SERVICE-VERSION-INVALID-CORE-STOPS",
+      "key": "CORE_SERVICE_VERSION",
+      "category": "precedence",
+      "inputs": {
+        "environment": {
+          "CORE_SERVICE_VERSION": "unsafe\u0001identity"
+        },
+        "setup": {
+          "ServiceVersion": "Mixed.Case-Deployment"
+        },
+        "discovery": {
+          "applicationName": "Fixture.App",
+          "buildVersion": "2.3.4-rc.1+build.8"
+        }
+      },
+      "expected": {
+        "status": "Invalid",
+        "issues": [
+          {
+            "code": "InvalidIdentity",
+            "key": "CORE_SERVICE_VERSION"
+          }
+        ]
+      }
+    },
+    {
+      "id": "CFG-SERVICE-VERSION-BLANK-CORE-USES-SETUP",
+      "key": "CORE_SERVICE_VERSION",
+      "category": "precedence",
+      "inputs": {
+        "environment": {
+          "CORE_SERVICE_VERSION": " \t"
+        },
+        "setup": {
+          "ServiceVersion": "Mixed.Case-Deployment"
+        },
+        "discovery": {
+          "applicationName": "Fixture.App",
+          "buildVersion": "2.3.4-rc.1+build.8"
+        }
+      },
+      "expected": {
+        "status": "Resolved",
+        "value": "Mixed.Case-Deployment"
+      }
+    },
+    {
+      "id": "CFG-SERVICE-VERSION-SETUP-BEATS-DISCOVERY",
+      "key": "CORE_SERVICE_VERSION",
+      "category": "precedence",
+      "inputs": {
+        "environment": {},
+        "setup": {
+          "ServiceVersion": "Mixed.Case-Deployment"
+        },
+        "discovery": {
+          "applicationName": "Fixture.App",
+          "buildVersion": "2.3.4-rc.1+build.8"
+        }
+      },
+      "expected": {
+        "status": "Resolved",
+        "value": "Mixed.Case-Deployment"
+      }
+    },
+    {
+      "id": "CFG-SERVICE-VERSION-ALIAS-BEATS-SETUP",
+      "key": "CORE_SERVICE_VERSION",
+      "category": "precedence",
+      "inputs": {
+        "environment": {
+          "DD_VERSION": "Alias.Case"
+        },
+        "setup": {
+          "ServiceVersion": "Setup.Case"
+        },
+        "discovery": {
+          "applicationName": "Fixture.App",
+          "buildVersion": "2.3.4-rc.1+build.8"
+        }
+      },
+      "expected": {
+        "status": "Resolved",
+        "value": "Alias.Case"
+      }
+    },
+    {
+      "id": "CFG-SERVICE-VERSION-CORE-BEATS-ALIAS",
+      "key": "CORE_SERVICE_VERSION",
+      "category": "precedence",
+      "inputs": {
+        "environment": {
+          "CORE_SERVICE_VERSION": "Core.Case",
+          "DD_VERSION": "Alias.Case"
+        },
+        "setup": {
+          "ServiceVersion": "Setup.Case"
+        },
+        "discovery": {
+          "applicationName": "Fixture.App",
+          "buildVersion": "2.3.4-rc.1+build.8"
+        }
+      },
+      "expected": {
+        "status": "Resolved",
+        "value": "Core.Case"
+      }
+    },
+    {
+      "id": "CFG-SERVICE-VERSION-BLANK-CORE-USES-ALIAS",
+      "key": "CORE_SERVICE_VERSION",
+      "category": "precedence",
+      "inputs": {
+        "environment": {
+          "CORE_SERVICE_VERSION": " ",
+          "DD_VERSION": "Alias.Case"
+        },
+        "setup": {},
+        "discovery": {
+          "applicationName": "Fixture.App",
+          "buildVersion": "2.3.4-rc.1+build.8"
+        }
+      },
+      "expected": {
+        "status": "Resolved",
+        "value": "Alias.Case"
+      }
+    },
+    {
+      "id": "CFG-SERVICE-VERSION-BLANK-ALIAS-USES-SETUP",
+      "key": "CORE_SERVICE_VERSION",
+      "category": "precedence",
+      "inputs": {
+        "environment": {
+          "DD_VERSION": "\t"
+        },
+        "setup": {
+          "ServiceVersion": "Setup.Case"
+        },
+        "discovery": {
+          "applicationName": "Fixture.App",
+          "buildVersion": "2.3.4-rc.1+build.8"
+        }
+      },
+      "expected": {
+        "status": "Resolved",
+        "value": "Setup.Case"
+      }
+    },
+    {
+      "id": "CFG-SERVICE-VERSION-INVALID-CORE-NO-ALIAS-FALLBACK",
+      "key": "CORE_SERVICE_VERSION",
+      "category": "precedence",
+      "inputs": {
+        "environment": {
+          "CORE_SERVICE_VERSION": "unsafe\u0001identity",
+          "DD_VERSION": "Alias.Case"
+        },
+        "setup": {},
+        "discovery": {
+          "applicationName": "Fixture.App",
+          "buildVersion": "2.3.4-rc.1+build.8"
+        }
+      },
+      "expected": {
+        "status": "Invalid",
+        "issues": [
+          {
+            "code": "InvalidIdentity",
+            "key": "CORE_SERVICE_VERSION"
+          }
+        ]
+      }
+    },
+    {
+      "id": "CFG-SERVICE-VERSION-INVALID-ALIAS-NO-SETUP-FALLBACK",
+      "key": "CORE_SERVICE_VERSION",
+      "category": "precedence",
+      "inputs": {
+        "environment": {
+          "DD_VERSION": "unsafe\u0001identity"
+        },
+        "setup": {
+          "ServiceVersion": "Setup.Case"
+        },
+        "discovery": {
+          "applicationName": "Fixture.App",
+          "buildVersion": "2.3.4-rc.1+build.8"
+        }
+      },
+      "expected": {
+        "status": "Invalid",
+        "issues": [
+          {
+            "code": "InvalidIdentity",
+            "key": "DD_VERSION"
+          }
+        ]
+      }
+    },
+    {
+      "id": "CFG-LOG-LEVEL-ABSENT",
+      "key": "CORE_LOG_LEVEL",
+      "category": "absent",
+      "inputs": {
+        "environment": {},
+        "setup": {},
+        "discovery": {
+          "applicationName": "Fixture.App",
+          "buildVersion": "2.3.4-rc.1+build.8"
+        }
+      },
+      "expected": {
+        "status": "Resolved",
+        "value": "Information"
+      }
+    },
+    {
+      "id": "CFG-LOG-LEVEL-BLANK-1",
+      "key": "CORE_LOG_LEVEL",
+      "category": "absent",
+      "inputs": {
+        "environment": {
+          "CORE_LOG_LEVEL": ""
+        },
+        "setup": {},
+        "discovery": {
+          "applicationName": "Fixture.App",
+          "buildVersion": "2.3.4-rc.1+build.8"
+        }
+      },
+      "expected": {
+        "status": "Resolved",
+        "value": "Information"
+      }
+    },
+    {
+      "id": "CFG-LOG-LEVEL-BLANK-2",
+      "key": "CORE_LOG_LEVEL",
+      "category": "absent",
+      "inputs": {
+        "environment": {
+          "CORE_LOG_LEVEL": " "
+        },
+        "setup": {},
+        "discovery": {
+          "applicationName": "Fixture.App",
+          "buildVersion": "2.3.4-rc.1+build.8"
+        }
+      },
+      "expected": {
+        "status": "Resolved",
+        "value": "Information"
+      }
+    },
+    {
+      "id": "CFG-LOG-LEVEL-BLANK-3",
+      "key": "CORE_LOG_LEVEL",
+      "category": "absent",
+      "inputs": {
+        "environment": {
+          "CORE_LOG_LEVEL": "\t\r\n"
+        },
+        "setup": {},
+        "discovery": {
+          "applicationName": "Fixture.App",
+          "buildVersion": "2.3.4-rc.1+build.8"
+        }
+      },
+      "expected": {
+        "status": "Resolved",
+        "value": "Information"
+      }
+    },
+    {
+      "id": "CFG-LOG-LEVEL-BLANK-4",
+      "key": "CORE_LOG_LEVEL",
+      "category": "absent",
+      "inputs": {
+        "environment": {
+          "CORE_LOG_LEVEL": "  "
+        },
+        "setup": {},
+        "discovery": {
+          "applicationName": "Fixture.App",
+          "buildVersion": "2.3.4-rc.1+build.8"
+        }
+      },
+      "expected": {
+        "status": "Resolved",
+        "value": "Information"
+      }
+    },
+    {
+      "id": "CFG-LOG-LEVEL-TOKEN-TRACE",
+      "key": "CORE_LOG_LEVEL",
+      "category": "valid",
+      "inputs": {
+        "environment": {
+          "CORE_LOG_LEVEL": " \ttRACE\r\n"
+        },
+        "setup": {},
+        "discovery": {
+          "applicationName": "Fixture.App",
+          "buildVersion": "2.3.4-rc.1+build.8"
+        }
+      },
+      "expected": {
+        "status": "Resolved",
+        "value": "Trace"
+      }
+    },
+    {
+      "id": "CFG-LOG-LEVEL-TOKEN-TRC",
+      "key": "CORE_LOG_LEVEL",
+      "category": "valid",
+      "inputs": {
+        "environment": {
+          "CORE_LOG_LEVEL": " \ttrc\r\n"
+        },
+        "setup": {},
+        "discovery": {
+          "applicationName": "Fixture.App",
+          "buildVersion": "2.3.4-rc.1+build.8"
+        }
+      },
+      "expected": {
+        "status": "Resolved",
+        "value": "Trace"
+      }
+    },
+    {
+      "id": "CFG-LOG-LEVEL-TOKEN-DEBUG",
+      "key": "CORE_LOG_LEVEL",
+      "category": "valid",
+      "inputs": {
+        "environment": {
+          "CORE_LOG_LEVEL": " \tdEBUG\r\n"
+        },
+        "setup": {},
+        "discovery": {
+          "applicationName": "Fixture.App",
+          "buildVersion": "2.3.4-rc.1+build.8"
+        }
+      },
+      "expected": {
+        "status": "Resolved",
+        "value": "Debug"
+      }
+    },
+    {
+      "id": "CFG-LOG-LEVEL-TOKEN-DBG",
+      "key": "CORE_LOG_LEVEL",
+      "category": "valid",
+      "inputs": {
+        "environment": {
+          "CORE_LOG_LEVEL": " \tdbg\r\n"
+        },
+        "setup": {},
+        "discovery": {
+          "applicationName": "Fixture.App",
+          "buildVersion": "2.3.4-rc.1+build.8"
+        }
+      },
+      "expected": {
+        "status": "Resolved",
+        "value": "Debug"
+      }
+    },
+    {
+      "id": "CFG-LOG-LEVEL-TOKEN-INFORMATION",
+      "key": "CORE_LOG_LEVEL",
+      "category": "valid",
+      "inputs": {
+        "environment": {
+          "CORE_LOG_LEVEL": " \tiNFORMATION\r\n"
+        },
+        "setup": {},
+        "discovery": {
+          "applicationName": "Fixture.App",
+          "buildVersion": "2.3.4-rc.1+build.8"
+        }
+      },
+      "expected": {
+        "status": "Resolved",
+        "value": "Information"
+      }
+    },
+    {
+      "id": "CFG-LOG-LEVEL-TOKEN-INF",
+      "key": "CORE_LOG_LEVEL",
+      "category": "valid",
+      "inputs": {
+        "environment": {
+          "CORE_LOG_LEVEL": " \tinf\r\n"
+        },
+        "setup": {},
+        "discovery": {
+          "applicationName": "Fixture.App",
+          "buildVersion": "2.3.4-rc.1+build.8"
+        }
+      },
+      "expected": {
+        "status": "Resolved",
+        "value": "Information"
+      }
+    },
+    {
+      "id": "CFG-LOG-LEVEL-TOKEN-INFO",
+      "key": "CORE_LOG_LEVEL",
+      "category": "valid",
+      "inputs": {
+        "environment": {
+          "CORE_LOG_LEVEL": " \tinfo\r\n"
+        },
+        "setup": {},
+        "discovery": {
+          "applicationName": "Fixture.App",
+          "buildVersion": "2.3.4-rc.1+build.8"
+        }
+      },
+      "expected": {
+        "status": "Resolved",
+        "value": "Information"
+      }
+    },
+    {
+      "id": "CFG-LOG-LEVEL-TOKEN-WARNING",
+      "key": "CORE_LOG_LEVEL",
+      "category": "valid",
+      "inputs": {
+        "environment": {
+          "CORE_LOG_LEVEL": " \twARNING\r\n"
+        },
+        "setup": {},
+        "discovery": {
+          "applicationName": "Fixture.App",
+          "buildVersion": "2.3.4-rc.1+build.8"
+        }
+      },
+      "expected": {
+        "status": "Resolved",
+        "value": "Warning"
+      }
+    },
+    {
+      "id": "CFG-LOG-LEVEL-TOKEN-WRN",
+      "key": "CORE_LOG_LEVEL",
+      "category": "valid",
+      "inputs": {
+        "environment": {
+          "CORE_LOG_LEVEL": " \twrn\r\n"
+        },
+        "setup": {},
+        "discovery": {
+          "applicationName": "Fixture.App",
+          "buildVersion": "2.3.4-rc.1+build.8"
+        }
+      },
+      "expected": {
+        "status": "Resolved",
+        "value": "Warning"
+      }
+    },
+    {
+      "id": "CFG-LOG-LEVEL-TOKEN-WARN",
+      "key": "CORE_LOG_LEVEL",
+      "category": "valid",
+      "inputs": {
+        "environment": {
+          "CORE_LOG_LEVEL": " \twarn\r\n"
+        },
+        "setup": {},
+        "discovery": {
+          "applicationName": "Fixture.App",
+          "buildVersion": "2.3.4-rc.1+build.8"
+        }
+      },
+      "expected": {
+        "status": "Resolved",
+        "value": "Warning"
+      }
+    },
+    {
+      "id": "CFG-LOG-LEVEL-TOKEN-ERROR",
+      "key": "CORE_LOG_LEVEL",
+      "category": "valid",
+      "inputs": {
+        "environment": {
+          "CORE_LOG_LEVEL": " \teRROR\r\n"
+        },
+        "setup": {},
+        "discovery": {
+          "applicationName": "Fixture.App",
+          "buildVersion": "2.3.4-rc.1+build.8"
+        }
+      },
+      "expected": {
+        "status": "Resolved",
+        "value": "Error"
+      }
+    },
+    {
+      "id": "CFG-LOG-LEVEL-TOKEN-ERR",
+      "key": "CORE_LOG_LEVEL",
+      "category": "valid",
+      "inputs": {
+        "environment": {
+          "CORE_LOG_LEVEL": " \terr\r\n"
+        },
+        "setup": {},
+        "discovery": {
+          "applicationName": "Fixture.App",
+          "buildVersion": "2.3.4-rc.1+build.8"
+        }
+      },
+      "expected": {
+        "status": "Resolved",
+        "value": "Error"
+      }
+    },
+    {
+      "id": "CFG-LOG-LEVEL-TOKEN-CRITICAL",
+      "key": "CORE_LOG_LEVEL",
+      "category": "valid",
+      "inputs": {
+        "environment": {
+          "CORE_LOG_LEVEL": " \tcRITICAL\r\n"
+        },
+        "setup": {},
+        "discovery": {
+          "applicationName": "Fixture.App",
+          "buildVersion": "2.3.4-rc.1+build.8"
+        }
+      },
+      "expected": {
+        "status": "Resolved",
+        "value": "Critical"
+      }
+    },
+    {
+      "id": "CFG-LOG-LEVEL-TOKEN-CRT",
+      "key": "CORE_LOG_LEVEL",
+      "category": "valid",
+      "inputs": {
+        "environment": {
+          "CORE_LOG_LEVEL": " \tcrt\r\n"
+        },
+        "setup": {},
+        "discovery": {
+          "applicationName": "Fixture.App",
+          "buildVersion": "2.3.4-rc.1+build.8"
+        }
+      },
+      "expected": {
+        "status": "Resolved",
+        "value": "Critical"
+      }
+    },
+    {
+      "id": "CFG-LOG-LEVEL-TOKEN-CRIT",
+      "key": "CORE_LOG_LEVEL",
+      "category": "valid",
+      "inputs": {
+        "environment": {
+          "CORE_LOG_LEVEL": " \tcrit\r\n"
+        },
+        "setup": {},
+        "discovery": {
+          "applicationName": "Fixture.App",
+          "buildVersion": "2.3.4-rc.1+build.8"
+        }
+      },
+      "expected": {
+        "status": "Resolved",
+        "value": "Critical"
+      }
+    },
+    {
+      "id": "CFG-LOG-LEVEL-TOKEN-NONE",
+      "key": "CORE_LOG_LEVEL",
+      "category": "valid",
+      "inputs": {
+        "environment": {
+          "CORE_LOG_LEVEL": " \tnONE\r\n"
+        },
+        "setup": {},
+        "discovery": {
+          "applicationName": "Fixture.App",
+          "buildVersion": "2.3.4-rc.1+build.8"
+        }
+      },
+      "expected": {
+        "status": "Resolved",
+        "value": "None"
+      }
+    },
+    {
+      "id": "CFG-LOG-LEVEL-EXPLICIT",
+      "key": "CORE_LOG_LEVEL",
+      "category": "valid",
+      "inputs": {
+        "environment": {
+          "CORE_LOG_LEVEL": "Warning"
+        },
+        "setup": {},
+        "discovery": {
+          "applicationName": "Fixture.App",
+          "buildVersion": "2.3.4-rc.1+build.8"
+        }
+      },
+      "expected": {
+        "status": "Resolved",
+        "value": "Warning"
+      }
+    },
+    {
+      "id": "CFG-LOG-LEVEL-INVALID",
+      "key": "CORE_LOG_LEVEL",
+      "category": "invalid",
+      "inputs": {
+        "environment": {
+          "CORE_LOG_LEVEL": "4"
+        },
+        "setup": {},
+        "discovery": {
+          "applicationName": "Fixture.App",
+          "buildVersion": "2.3.4-rc.1+build.8"
+        }
+      },
+      "expected": {
+        "status": "Invalid",
+        "issues": [
+          {
+            "code": "InvalidToken",
+            "key": "CORE_LOG_LEVEL"
+          }
+        ]
+      }
+    },
+    {
+      "id": "CFG-LOG-LEVEL-CORE-BEATS-SETUP",
+      "key": "CORE_LOG_LEVEL",
+      "category": "precedence",
+      "inputs": {
+        "environment": {
+          "CORE_LOG_LEVEL": "Warning"
+        },
+        "setup": {
+          "Logging.Level": "Information"
+        },
+        "discovery": {
+          "applicationName": "Fixture.App",
+          "buildVersion": "2.3.4-rc.1+build.8"
+        }
+      },
+      "expected": {
+        "status": "Resolved",
+        "value": "Warning"
+      }
+    },
+    {
+      "id": "CFG-LOG-LEVEL-INVALID-CORE-STOPS",
+      "key": "CORE_LOG_LEVEL",
+      "category": "precedence",
+      "inputs": {
+        "environment": {
+          "CORE_LOG_LEVEL": "4"
+        },
+        "setup": {
+          "Logging.Level": "Warning"
+        },
+        "discovery": {
+          "applicationName": "Fixture.App",
+          "buildVersion": "2.3.4-rc.1+build.8"
+        }
+      },
+      "expected": {
+        "status": "Invalid",
+        "issues": [
+          {
+            "code": "InvalidToken",
+            "key": "CORE_LOG_LEVEL"
+          }
+        ]
+      }
+    },
+    {
+      "id": "CFG-LOG-LEVEL-BLANK-CORE-USES-SETUP",
+      "key": "CORE_LOG_LEVEL",
+      "category": "precedence",
+      "inputs": {
+        "environment": {
+          "CORE_LOG_LEVEL": " \t"
+        },
+        "setup": {
+          "Logging.Level": "Warning"
+        },
+        "discovery": {
+          "applicationName": "Fixture.App",
+          "buildVersion": "2.3.4-rc.1+build.8"
+        }
+      },
+      "expected": {
+        "status": "Resolved",
+        "value": "Warning"
+      }
+    },
+    {
+      "id": "CFG-LOG-LEVEL-SETUP-BEATS-DISCOVERY",
+      "key": "CORE_LOG_LEVEL",
+      "category": "precedence",
+      "inputs": {
+        "environment": {},
+        "setup": {
+          "Logging.Level": "Warning"
+        },
+        "discovery": {
+          "applicationName": "Fixture.App",
+          "buildVersion": "2.3.4-rc.1+build.8"
+        }
+      },
+      "expected": {
+        "status": "Resolved",
+        "value": "Warning"
+      }
+    },
+    {
+      "id": "CFG-LOG-CONSOLE-FORMAT-ABSENT",
+      "key": "CORE_LOG_CONSOLE_FORMAT",
+      "category": "absent",
+      "inputs": {
+        "environment": {},
+        "setup": {},
+        "discovery": {
+          "applicationName": "Fixture.App",
+          "buildVersion": "2.3.4-rc.1+build.8"
+        }
+      },
+      "expected": {
+        "status": "Resolved",
+        "value": "human"
+      }
+    },
+    {
+      "id": "CFG-LOG-CONSOLE-FORMAT-BLANK-1",
+      "key": "CORE_LOG_CONSOLE_FORMAT",
+      "category": "absent",
+      "inputs": {
+        "environment": {
+          "CORE_LOG_CONSOLE_FORMAT": ""
+        },
+        "setup": {},
+        "discovery": {
+          "applicationName": "Fixture.App",
+          "buildVersion": "2.3.4-rc.1+build.8"
+        }
+      },
+      "expected": {
+        "status": "Resolved",
+        "value": "human"
+      }
+    },
+    {
+      "id": "CFG-LOG-CONSOLE-FORMAT-BLANK-2",
+      "key": "CORE_LOG_CONSOLE_FORMAT",
+      "category": "absent",
+      "inputs": {
+        "environment": {
+          "CORE_LOG_CONSOLE_FORMAT": " "
+        },
+        "setup": {},
+        "discovery": {
+          "applicationName": "Fixture.App",
+          "buildVersion": "2.3.4-rc.1+build.8"
+        }
+      },
+      "expected": {
+        "status": "Resolved",
+        "value": "human"
+      }
+    },
+    {
+      "id": "CFG-LOG-CONSOLE-FORMAT-BLANK-3",
+      "key": "CORE_LOG_CONSOLE_FORMAT",
+      "category": "absent",
+      "inputs": {
+        "environment": {
+          "CORE_LOG_CONSOLE_FORMAT": "\t\r\n"
+        },
+        "setup": {},
+        "discovery": {
+          "applicationName": "Fixture.App",
+          "buildVersion": "2.3.4-rc.1+build.8"
+        }
+      },
+      "expected": {
+        "status": "Resolved",
+        "value": "human"
+      }
+    },
+    {
+      "id": "CFG-LOG-CONSOLE-FORMAT-BLANK-4",
+      "key": "CORE_LOG_CONSOLE_FORMAT",
+      "category": "absent",
+      "inputs": {
+        "environment": {
+          "CORE_LOG_CONSOLE_FORMAT": "  "
+        },
+        "setup": {},
+        "discovery": {
+          "applicationName": "Fixture.App",
+          "buildVersion": "2.3.4-rc.1+build.8"
+        }
+      },
+      "expected": {
+        "status": "Resolved",
+        "value": "human"
+      }
+    },
+    {
+      "id": "CFG-LOG-CONSOLE-FORMAT-TOKEN-HUMAN",
+      "key": "CORE_LOG_CONSOLE_FORMAT",
+      "category": "valid",
+      "inputs": {
+        "environment": {
+          "CORE_LOG_CONSOLE_FORMAT": " \tHUMAN\r\n"
+        },
+        "setup": {},
+        "discovery": {
+          "applicationName": "Fixture.App",
+          "buildVersion": "2.3.4-rc.1+build.8"
+        }
+      },
+      "expected": {
+        "status": "Resolved",
+        "value": "human"
+      }
+    },
+    {
+      "id": "CFG-LOG-CONSOLE-FORMAT-TOKEN-JSONL",
+      "key": "CORE_LOG_CONSOLE_FORMAT",
+      "category": "valid",
+      "inputs": {
+        "environment": {
+          "CORE_LOG_CONSOLE_FORMAT": " \tJSONL\r\n"
+        },
+        "setup": {},
+        "discovery": {
+          "applicationName": "Fixture.App",
+          "buildVersion": "2.3.4-rc.1+build.8"
+        }
+      },
+      "expected": {
+        "status": "Resolved",
+        "value": "jsonl"
+      }
+    },
+    {
+      "id": "CFG-LOG-CONSOLE-FORMAT-EXPLICIT",
+      "key": "CORE_LOG_CONSOLE_FORMAT",
+      "category": "valid",
+      "inputs": {
+        "environment": {
+          "CORE_LOG_CONSOLE_FORMAT": "human"
+        },
+        "setup": {},
+        "discovery": {
+          "applicationName": "Fixture.App",
+          "buildVersion": "2.3.4-rc.1+build.8"
+        }
+      },
+      "expected": {
+        "status": "Resolved",
+        "value": "human"
+      }
+    },
+    {
+      "id": "CFG-LOG-CONSOLE-FORMAT-INVALID",
+      "key": "CORE_LOG_CONSOLE_FORMAT",
+      "category": "invalid",
+      "inputs": {
+        "environment": {
+          "CORE_LOG_CONSOLE_FORMAT": "not-a-token"
+        },
+        "setup": {},
+        "discovery": {
+          "applicationName": "Fixture.App",
+          "buildVersion": "2.3.4-rc.1+build.8"
+        }
+      },
+      "expected": {
+        "status": "Invalid",
+        "issues": [
+          {
+            "code": "InvalidToken",
+            "key": "CORE_LOG_CONSOLE_FORMAT"
+          }
+        ]
+      }
+    },
+    {
+      "id": "CFG-LOG-CONSOLE-FORMAT-CORE-BEATS-SETUP",
+      "key": "CORE_LOG_CONSOLE_FORMAT",
+      "category": "precedence",
+      "inputs": {
+        "environment": {
+          "CORE_LOG_CONSOLE_FORMAT": "human"
+        },
+        "setup": {
+          "Logging.ConsoleFormat": "human"
+        },
+        "discovery": {
+          "applicationName": "Fixture.App",
+          "buildVersion": "2.3.4-rc.1+build.8"
+        }
+      },
+      "expected": {
+        "status": "Resolved",
+        "value": "human"
+      }
+    },
+    {
+      "id": "CFG-LOG-CONSOLE-FORMAT-INVALID-CORE-STOPS",
+      "key": "CORE_LOG_CONSOLE_FORMAT",
+      "category": "precedence",
+      "inputs": {
+        "environment": {
+          "CORE_LOG_CONSOLE_FORMAT": "not-a-token"
+        },
+        "setup": {
+          "Logging.ConsoleFormat": "human"
+        },
+        "discovery": {
+          "applicationName": "Fixture.App",
+          "buildVersion": "2.3.4-rc.1+build.8"
+        }
+      },
+      "expected": {
+        "status": "Invalid",
+        "issues": [
+          {
+            "code": "InvalidToken",
+            "key": "CORE_LOG_CONSOLE_FORMAT"
+          }
+        ]
+      }
+    },
+    {
+      "id": "CFG-LOG-CONSOLE-FORMAT-BLANK-CORE-USES-SETUP",
+      "key": "CORE_LOG_CONSOLE_FORMAT",
+      "category": "precedence",
+      "inputs": {
+        "environment": {
+          "CORE_LOG_CONSOLE_FORMAT": " \t"
+        },
+        "setup": {
+          "Logging.ConsoleFormat": "human"
+        },
+        "discovery": {
+          "applicationName": "Fixture.App",
+          "buildVersion": "2.3.4-rc.1+build.8"
+        }
+      },
+      "expected": {
+        "status": "Resolved",
+        "value": "human"
+      }
+    },
+    {
+      "id": "CFG-LOG-CONSOLE-FORMAT-SETUP-BEATS-DISCOVERY",
+      "key": "CORE_LOG_CONSOLE_FORMAT",
+      "category": "precedence",
+      "inputs": {
+        "environment": {},
+        "setup": {
+          "Logging.ConsoleFormat": "human"
+        },
+        "discovery": {
+          "applicationName": "Fixture.App",
+          "buildVersion": "2.3.4-rc.1+build.8"
+        }
+      },
+      "expected": {
+        "status": "Resolved",
+        "value": "human"
+      }
+    },
+    {
+      "id": "CFG-LOG-CONSOLE-LEVEL-ABSENT",
+      "key": "CORE_LOG_CONSOLE_LEVEL",
+      "category": "absent",
+      "inputs": {
+        "environment": {},
+        "setup": {},
+        "discovery": {
+          "applicationName": "Fixture.App",
+          "buildVersion": "2.3.4-rc.1+build.8"
+        }
+      },
+      "expected": {
+        "status": "Resolved",
+        "value": "Information"
+      }
+    },
+    {
+      "id": "CFG-LOG-CONSOLE-LEVEL-BLANK-1",
+      "key": "CORE_LOG_CONSOLE_LEVEL",
+      "category": "absent",
+      "inputs": {
+        "environment": {
+          "CORE_LOG_CONSOLE_LEVEL": ""
+        },
+        "setup": {},
+        "discovery": {
+          "applicationName": "Fixture.App",
+          "buildVersion": "2.3.4-rc.1+build.8"
+        }
+      },
+      "expected": {
+        "status": "Resolved",
+        "value": "Information"
+      }
+    },
+    {
+      "id": "CFG-LOG-CONSOLE-LEVEL-BLANK-2",
+      "key": "CORE_LOG_CONSOLE_LEVEL",
+      "category": "absent",
+      "inputs": {
+        "environment": {
+          "CORE_LOG_CONSOLE_LEVEL": " "
+        },
+        "setup": {},
+        "discovery": {
+          "applicationName": "Fixture.App",
+          "buildVersion": "2.3.4-rc.1+build.8"
+        }
+      },
+      "expected": {
+        "status": "Resolved",
+        "value": "Information"
+      }
+    },
+    {
+      "id": "CFG-LOG-CONSOLE-LEVEL-BLANK-3",
+      "key": "CORE_LOG_CONSOLE_LEVEL",
+      "category": "absent",
+      "inputs": {
+        "environment": {
+          "CORE_LOG_CONSOLE_LEVEL": "\t\r\n"
+        },
+        "setup": {},
+        "discovery": {
+          "applicationName": "Fixture.App",
+          "buildVersion": "2.3.4-rc.1+build.8"
+        }
+      },
+      "expected": {
+        "status": "Resolved",
+        "value": "Information"
+      }
+    },
+    {
+      "id": "CFG-LOG-CONSOLE-LEVEL-BLANK-4",
+      "key": "CORE_LOG_CONSOLE_LEVEL",
+      "category": "absent",
+      "inputs": {
+        "environment": {
+          "CORE_LOG_CONSOLE_LEVEL": "  "
+        },
+        "setup": {},
+        "discovery": {
+          "applicationName": "Fixture.App",
+          "buildVersion": "2.3.4-rc.1+build.8"
+        }
+      },
+      "expected": {
+        "status": "Resolved",
+        "value": "Information"
+      }
+    },
+    {
+      "id": "CFG-LOG-CONSOLE-LEVEL-TOKEN-TRACE",
+      "key": "CORE_LOG_CONSOLE_LEVEL",
+      "category": "valid",
+      "inputs": {
+        "environment": {
+          "CORE_LOG_CONSOLE_LEVEL": " \ttRACE\r\n"
+        },
+        "setup": {},
+        "discovery": {
+          "applicationName": "Fixture.App",
+          "buildVersion": "2.3.4-rc.1+build.8"
+        }
+      },
+      "expected": {
+        "status": "Resolved",
+        "value": "Trace"
+      }
+    },
+    {
+      "id": "CFG-LOG-CONSOLE-LEVEL-TOKEN-TRC",
+      "key": "CORE_LOG_CONSOLE_LEVEL",
+      "category": "valid",
+      "inputs": {
+        "environment": {
+          "CORE_LOG_CONSOLE_LEVEL": " \ttrc\r\n"
+        },
+        "setup": {},
+        "discovery": {
+          "applicationName": "Fixture.App",
+          "buildVersion": "2.3.4-rc.1+build.8"
+        }
+      },
+      "expected": {
+        "status": "Resolved",
+        "value": "Trace"
+      }
+    },
+    {
+      "id": "CFG-LOG-CONSOLE-LEVEL-TOKEN-DEBUG",
+      "key": "CORE_LOG_CONSOLE_LEVEL",
+      "category": "valid",
+      "inputs": {
+        "environment": {
+          "CORE_LOG_CONSOLE_LEVEL": " \tdEBUG\r\n"
+        },
+        "setup": {},
+        "discovery": {
+          "applicationName": "Fixture.App",
+          "buildVersion": "2.3.4-rc.1+build.8"
+        }
+      },
+      "expected": {
+        "status": "Resolved",
+        "value": "Debug"
+      }
+    },
+    {
+      "id": "CFG-LOG-CONSOLE-LEVEL-TOKEN-DBG",
+      "key": "CORE_LOG_CONSOLE_LEVEL",
+      "category": "valid",
+      "inputs": {
+        "environment": {
+          "CORE_LOG_CONSOLE_LEVEL": " \tdbg\r\n"
+        },
+        "setup": {},
+        "discovery": {
+          "applicationName": "Fixture.App",
+          "buildVersion": "2.3.4-rc.1+build.8"
+        }
+      },
+      "expected": {
+        "status": "Resolved",
+        "value": "Debug"
+      }
+    },
+    {
+      "id": "CFG-LOG-CONSOLE-LEVEL-TOKEN-INFORMATION",
+      "key": "CORE_LOG_CONSOLE_LEVEL",
+      "category": "valid",
+      "inputs": {
+        "environment": {
+          "CORE_LOG_CONSOLE_LEVEL": " \tiNFORMATION\r\n"
+        },
+        "setup": {},
+        "discovery": {
+          "applicationName": "Fixture.App",
+          "buildVersion": "2.3.4-rc.1+build.8"
+        }
+      },
+      "expected": {
+        "status": "Resolved",
+        "value": "Information"
+      }
+    },
+    {
+      "id": "CFG-LOG-CONSOLE-LEVEL-TOKEN-INF",
+      "key": "CORE_LOG_CONSOLE_LEVEL",
+      "category": "valid",
+      "inputs": {
+        "environment": {
+          "CORE_LOG_CONSOLE_LEVEL": " \tinf\r\n"
+        },
+        "setup": {},
+        "discovery": {
+          "applicationName": "Fixture.App",
+          "buildVersion": "2.3.4-rc.1+build.8"
+        }
+      },
+      "expected": {
+        "status": "Resolved",
+        "value": "Information"
+      }
+    },
+    {
+      "id": "CFG-LOG-CONSOLE-LEVEL-TOKEN-INFO",
+      "key": "CORE_LOG_CONSOLE_LEVEL",
+      "category": "valid",
+      "inputs": {
+        "environment": {
+          "CORE_LOG_CONSOLE_LEVEL": " \tinfo\r\n"
+        },
+        "setup": {},
+        "discovery": {
+          "applicationName": "Fixture.App",
+          "buildVersion": "2.3.4-rc.1+build.8"
+        }
+      },
+      "expected": {
+        "status": "Resolved",
+        "value": "Information"
+      }
+    },
+    {
+      "id": "CFG-LOG-CONSOLE-LEVEL-TOKEN-WARNING",
+      "key": "CORE_LOG_CONSOLE_LEVEL",
+      "category": "valid",
+      "inputs": {
+        "environment": {
+          "CORE_LOG_CONSOLE_LEVEL": " \twARNING\r\n"
+        },
+        "setup": {},
+        "discovery": {
+          "applicationName": "Fixture.App",
+          "buildVersion": "2.3.4-rc.1+build.8"
+        }
+      },
+      "expected": {
+        "status": "Resolved",
+        "value": "Warning"
+      }
+    },
+    {
+      "id": "CFG-LOG-CONSOLE-LEVEL-TOKEN-WRN",
+      "key": "CORE_LOG_CONSOLE_LEVEL",
+      "category": "valid",
+      "inputs": {
+        "environment": {
+          "CORE_LOG_CONSOLE_LEVEL": " \twrn\r\n"
+        },
+        "setup": {},
+        "discovery": {
+          "applicationName": "Fixture.App",
+          "buildVersion": "2.3.4-rc.1+build.8"
+        }
+      },
+      "expected": {
+        "status": "Resolved",
+        "value": "Warning"
+      }
+    },
+    {
+      "id": "CFG-LOG-CONSOLE-LEVEL-TOKEN-WARN",
+      "key": "CORE_LOG_CONSOLE_LEVEL",
+      "category": "valid",
+      "inputs": {
+        "environment": {
+          "CORE_LOG_CONSOLE_LEVEL": " \twarn\r\n"
+        },
+        "setup": {},
+        "discovery": {
+          "applicationName": "Fixture.App",
+          "buildVersion": "2.3.4-rc.1+build.8"
+        }
+      },
+      "expected": {
+        "status": "Resolved",
+        "value": "Warning"
+      }
+    },
+    {
+      "id": "CFG-LOG-CONSOLE-LEVEL-TOKEN-ERROR",
+      "key": "CORE_LOG_CONSOLE_LEVEL",
+      "category": "valid",
+      "inputs": {
+        "environment": {
+          "CORE_LOG_CONSOLE_LEVEL": " \teRROR\r\n"
+        },
+        "setup": {},
+        "discovery": {
+          "applicationName": "Fixture.App",
+          "buildVersion": "2.3.4-rc.1+build.8"
+        }
+      },
+      "expected": {
+        "status": "Resolved",
+        "value": "Error"
+      }
+    },
+    {
+      "id": "CFG-LOG-CONSOLE-LEVEL-TOKEN-ERR",
+      "key": "CORE_LOG_CONSOLE_LEVEL",
+      "category": "valid",
+      "inputs": {
+        "environment": {
+          "CORE_LOG_CONSOLE_LEVEL": " \terr\r\n"
+        },
+        "setup": {},
+        "discovery": {
+          "applicationName": "Fixture.App",
+          "buildVersion": "2.3.4-rc.1+build.8"
+        }
+      },
+      "expected": {
+        "status": "Resolved",
+        "value": "Error"
+      }
+    },
+    {
+      "id": "CFG-LOG-CONSOLE-LEVEL-TOKEN-CRITICAL",
+      "key": "CORE_LOG_CONSOLE_LEVEL",
+      "category": "valid",
+      "inputs": {
+        "environment": {
+          "CORE_LOG_CONSOLE_LEVEL": " \tcRITICAL\r\n"
+        },
+        "setup": {},
+        "discovery": {
+          "applicationName": "Fixture.App",
+          "buildVersion": "2.3.4-rc.1+build.8"
+        }
+      },
+      "expected": {
+        "status": "Resolved",
+        "value": "Critical"
+      }
+    },
+    {
+      "id": "CFG-LOG-CONSOLE-LEVEL-TOKEN-CRT",
+      "key": "CORE_LOG_CONSOLE_LEVEL",
+      "category": "valid",
+      "inputs": {
+        "environment": {
+          "CORE_LOG_CONSOLE_LEVEL": " \tcrt\r\n"
+        },
+        "setup": {},
+        "discovery": {
+          "applicationName": "Fixture.App",
+          "buildVersion": "2.3.4-rc.1+build.8"
+        }
+      },
+      "expected": {
+        "status": "Resolved",
+        "value": "Critical"
+      }
+    },
+    {
+      "id": "CFG-LOG-CONSOLE-LEVEL-TOKEN-CRIT",
+      "key": "CORE_LOG_CONSOLE_LEVEL",
+      "category": "valid",
+      "inputs": {
+        "environment": {
+          "CORE_LOG_CONSOLE_LEVEL": " \tcrit\r\n"
+        },
+        "setup": {},
+        "discovery": {
+          "applicationName": "Fixture.App",
+          "buildVersion": "2.3.4-rc.1+build.8"
+        }
+      },
+      "expected": {
+        "status": "Resolved",
+        "value": "Critical"
+      }
+    },
+    {
+      "id": "CFG-LOG-CONSOLE-LEVEL-TOKEN-NONE",
+      "key": "CORE_LOG_CONSOLE_LEVEL",
+      "category": "valid",
+      "inputs": {
+        "environment": {
+          "CORE_LOG_CONSOLE_LEVEL": " \tnONE\r\n"
+        },
+        "setup": {},
+        "discovery": {
+          "applicationName": "Fixture.App",
+          "buildVersion": "2.3.4-rc.1+build.8"
+        }
+      },
+      "expected": {
+        "status": "Resolved",
+        "value": "None"
+      }
+    },
+    {
+      "id": "CFG-LOG-CONSOLE-LEVEL-EXPLICIT",
+      "key": "CORE_LOG_CONSOLE_LEVEL",
+      "category": "valid",
+      "inputs": {
+        "environment": {
+          "CORE_LOG_CONSOLE_LEVEL": "Warning"
+        },
+        "setup": {},
+        "discovery": {
+          "applicationName": "Fixture.App",
+          "buildVersion": "2.3.4-rc.1+build.8"
+        }
+      },
+      "expected": {
+        "status": "Resolved",
+        "value": "Warning"
+      }
+    },
+    {
+      "id": "CFG-LOG-CONSOLE-LEVEL-INVALID",
+      "key": "CORE_LOG_CONSOLE_LEVEL",
+      "category": "invalid",
+      "inputs": {
+        "environment": {
+          "CORE_LOG_CONSOLE_LEVEL": "4"
+        },
+        "setup": {},
+        "discovery": {
+          "applicationName": "Fixture.App",
+          "buildVersion": "2.3.4-rc.1+build.8"
+        }
+      },
+      "expected": {
+        "status": "Invalid",
+        "issues": [
+          {
+            "code": "InvalidToken",
+            "key": "CORE_LOG_CONSOLE_LEVEL"
+          }
+        ]
+      }
+    },
+    {
+      "id": "CFG-LOG-CONSOLE-LEVEL-CORE-BEATS-SETUP",
+      "key": "CORE_LOG_CONSOLE_LEVEL",
+      "category": "precedence",
+      "inputs": {
+        "environment": {
+          "CORE_LOG_CONSOLE_LEVEL": "Warning"
+        },
+        "setup": {
+          "Logging.ConsoleLevel": "Information"
+        },
+        "discovery": {
+          "applicationName": "Fixture.App",
+          "buildVersion": "2.3.4-rc.1+build.8"
+        }
+      },
+      "expected": {
+        "status": "Resolved",
+        "value": "Warning"
+      }
+    },
+    {
+      "id": "CFG-LOG-CONSOLE-LEVEL-INVALID-CORE-STOPS",
+      "key": "CORE_LOG_CONSOLE_LEVEL",
+      "category": "precedence",
+      "inputs": {
+        "environment": {
+          "CORE_LOG_CONSOLE_LEVEL": "4"
+        },
+        "setup": {
+          "Logging.ConsoleLevel": "Warning"
+        },
+        "discovery": {
+          "applicationName": "Fixture.App",
+          "buildVersion": "2.3.4-rc.1+build.8"
+        }
+      },
+      "expected": {
+        "status": "Invalid",
+        "issues": [
+          {
+            "code": "InvalidToken",
+            "key": "CORE_LOG_CONSOLE_LEVEL"
+          }
+        ]
+      }
+    },
+    {
+      "id": "CFG-LOG-CONSOLE-LEVEL-BLANK-CORE-USES-SETUP",
+      "key": "CORE_LOG_CONSOLE_LEVEL",
+      "category": "precedence",
+      "inputs": {
+        "environment": {
+          "CORE_LOG_CONSOLE_LEVEL": " \t"
+        },
+        "setup": {
+          "Logging.ConsoleLevel": "Warning"
+        },
+        "discovery": {
+          "applicationName": "Fixture.App",
+          "buildVersion": "2.3.4-rc.1+build.8"
+        }
+      },
+      "expected": {
+        "status": "Resolved",
+        "value": "Warning"
+      }
+    },
+    {
+      "id": "CFG-LOG-CONSOLE-LEVEL-SETUP-BEATS-DISCOVERY",
+      "key": "CORE_LOG_CONSOLE_LEVEL",
+      "category": "precedence",
+      "inputs": {
+        "environment": {},
+        "setup": {
+          "Logging.ConsoleLevel": "Warning"
+        },
+        "discovery": {
+          "applicationName": "Fixture.App",
+          "buildVersion": "2.3.4-rc.1+build.8"
+        }
+      },
+      "expected": {
+        "status": "Resolved",
+        "value": "Warning"
+      }
+    },
+    {
+      "id": "CFG-LOG-CONSOLE-STREAM-ABSENT",
+      "key": "CORE_LOG_CONSOLE_STREAM",
+      "category": "absent",
+      "inputs": {
+        "environment": {},
+        "setup": {},
+        "discovery": {
+          "applicationName": "Fixture.App",
+          "buildVersion": "2.3.4-rc.1+build.8"
+        }
+      },
+      "expected": {
+        "status": "Resolved",
+        "value": "stderr"
+      }
+    },
+    {
+      "id": "CFG-LOG-CONSOLE-STREAM-BLANK-1",
+      "key": "CORE_LOG_CONSOLE_STREAM",
+      "category": "absent",
+      "inputs": {
+        "environment": {
+          "CORE_LOG_CONSOLE_STREAM": ""
+        },
+        "setup": {},
+        "discovery": {
+          "applicationName": "Fixture.App",
+          "buildVersion": "2.3.4-rc.1+build.8"
+        }
+      },
+      "expected": {
+        "status": "Resolved",
+        "value": "stderr"
+      }
+    },
+    {
+      "id": "CFG-LOG-CONSOLE-STREAM-BLANK-2",
+      "key": "CORE_LOG_CONSOLE_STREAM",
+      "category": "absent",
+      "inputs": {
+        "environment": {
+          "CORE_LOG_CONSOLE_STREAM": " "
+        },
+        "setup": {},
+        "discovery": {
+          "applicationName": "Fixture.App",
+          "buildVersion": "2.3.4-rc.1+build.8"
+        }
+      },
+      "expected": {
+        "status": "Resolved",
+        "value": "stderr"
+      }
+    },
+    {
+      "id": "CFG-LOG-CONSOLE-STREAM-BLANK-3",
+      "key": "CORE_LOG_CONSOLE_STREAM",
+      "category": "absent",
+      "inputs": {
+        "environment": {
+          "CORE_LOG_CONSOLE_STREAM": "\t\r\n"
+        },
+        "setup": {},
+        "discovery": {
+          "applicationName": "Fixture.App",
+          "buildVersion": "2.3.4-rc.1+build.8"
+        }
+      },
+      "expected": {
+        "status": "Resolved",
+        "value": "stderr"
+      }
+    },
+    {
+      "id": "CFG-LOG-CONSOLE-STREAM-BLANK-4",
+      "key": "CORE_LOG_CONSOLE_STREAM",
+      "category": "absent",
+      "inputs": {
+        "environment": {
+          "CORE_LOG_CONSOLE_STREAM": "  "
+        },
+        "setup": {},
+        "discovery": {
+          "applicationName": "Fixture.App",
+          "buildVersion": "2.3.4-rc.1+build.8"
+        }
+      },
+      "expected": {
+        "status": "Resolved",
+        "value": "stderr"
+      }
+    },
+    {
+      "id": "CFG-LOG-CONSOLE-STREAM-TOKEN-STDERR",
+      "key": "CORE_LOG_CONSOLE_STREAM",
+      "category": "valid",
+      "inputs": {
+        "environment": {
+          "CORE_LOG_CONSOLE_STREAM": " \tSTDERR\r\n"
+        },
+        "setup": {},
+        "discovery": {
+          "applicationName": "Fixture.App",
+          "buildVersion": "2.3.4-rc.1+build.8"
+        }
+      },
+      "expected": {
+        "status": "Resolved",
+        "value": "stderr"
+      }
+    },
+    {
+      "id": "CFG-LOG-CONSOLE-STREAM-TOKEN-STDOUT",
+      "key": "CORE_LOG_CONSOLE_STREAM",
+      "category": "valid",
+      "inputs": {
+        "environment": {
+          "CORE_LOG_CONSOLE_STREAM": " \tSTDOUT\r\n"
+        },
+        "setup": {},
+        "discovery": {
+          "applicationName": "Fixture.App",
+          "buildVersion": "2.3.4-rc.1+build.8"
+        }
+      },
+      "expected": {
+        "status": "Resolved",
+        "value": "stdout"
+      }
+    },
+    {
+      "id": "CFG-LOG-CONSOLE-STREAM-EXPLICIT",
+      "key": "CORE_LOG_CONSOLE_STREAM",
+      "category": "valid",
+      "inputs": {
+        "environment": {
+          "CORE_LOG_CONSOLE_STREAM": "stderr"
+        },
+        "setup": {},
+        "discovery": {
+          "applicationName": "Fixture.App",
+          "buildVersion": "2.3.4-rc.1+build.8"
+        }
+      },
+      "expected": {
+        "status": "Resolved",
+        "value": "stderr"
+      }
+    },
+    {
+      "id": "CFG-LOG-CONSOLE-STREAM-INVALID",
+      "key": "CORE_LOG_CONSOLE_STREAM",
+      "category": "invalid",
+      "inputs": {
+        "environment": {
+          "CORE_LOG_CONSOLE_STREAM": "not-a-token"
+        },
+        "setup": {},
+        "discovery": {
+          "applicationName": "Fixture.App",
+          "buildVersion": "2.3.4-rc.1+build.8"
+        }
+      },
+      "expected": {
+        "status": "Invalid",
+        "issues": [
+          {
+            "code": "InvalidToken",
+            "key": "CORE_LOG_CONSOLE_STREAM"
+          }
+        ]
+      }
+    },
+    {
+      "id": "CFG-LOG-CONSOLE-STREAM-CORE-BEATS-SETUP",
+      "key": "CORE_LOG_CONSOLE_STREAM",
+      "category": "precedence",
+      "inputs": {
+        "environment": {
+          "CORE_LOG_CONSOLE_STREAM": "stderr"
+        },
+        "setup": {
+          "Logging.ConsoleStream": "stderr"
+        },
+        "discovery": {
+          "applicationName": "Fixture.App",
+          "buildVersion": "2.3.4-rc.1+build.8"
+        }
+      },
+      "expected": {
+        "status": "Resolved",
+        "value": "stderr"
+      }
+    },
+    {
+      "id": "CFG-LOG-CONSOLE-STREAM-INVALID-CORE-STOPS",
+      "key": "CORE_LOG_CONSOLE_STREAM",
+      "category": "precedence",
+      "inputs": {
+        "environment": {
+          "CORE_LOG_CONSOLE_STREAM": "not-a-token"
+        },
+        "setup": {
+          "Logging.ConsoleStream": "stderr"
+        },
+        "discovery": {
+          "applicationName": "Fixture.App",
+          "buildVersion": "2.3.4-rc.1+build.8"
+        }
+      },
+      "expected": {
+        "status": "Invalid",
+        "issues": [
+          {
+            "code": "InvalidToken",
+            "key": "CORE_LOG_CONSOLE_STREAM"
+          }
+        ]
+      }
+    },
+    {
+      "id": "CFG-LOG-CONSOLE-STREAM-BLANK-CORE-USES-SETUP",
+      "key": "CORE_LOG_CONSOLE_STREAM",
+      "category": "precedence",
+      "inputs": {
+        "environment": {
+          "CORE_LOG_CONSOLE_STREAM": " \t"
+        },
+        "setup": {
+          "Logging.ConsoleStream": "stderr"
+        },
+        "discovery": {
+          "applicationName": "Fixture.App",
+          "buildVersion": "2.3.4-rc.1+build.8"
+        }
+      },
+      "expected": {
+        "status": "Resolved",
+        "value": "stderr"
+      }
+    },
+    {
+      "id": "CFG-LOG-CONSOLE-STREAM-SETUP-BEATS-DISCOVERY",
+      "key": "CORE_LOG_CONSOLE_STREAM",
+      "category": "precedence",
+      "inputs": {
+        "environment": {},
+        "setup": {
+          "Logging.ConsoleStream": "stderr"
+        },
+        "discovery": {
+          "applicationName": "Fixture.App",
+          "buildVersion": "2.3.4-rc.1+build.8"
+        }
+      },
+      "expected": {
+        "status": "Resolved",
+        "value": "stderr"
+      }
+    },
+    {
+      "id": "CFG-LOG-HUMAN-DETAIL-ABSENT",
+      "key": "CORE_LOG_HUMAN_DETAIL",
+      "category": "absent",
+      "inputs": {
+        "environment": {},
+        "setup": {},
+        "discovery": {
+          "applicationName": "Fixture.App",
+          "buildVersion": "2.3.4-rc.1+build.8"
+        }
+      },
+      "expected": {
+        "status": "Resolved",
+        "value": "normal"
+      }
+    },
+    {
+      "id": "CFG-LOG-HUMAN-DETAIL-BLANK-1",
+      "key": "CORE_LOG_HUMAN_DETAIL",
+      "category": "absent",
+      "inputs": {
+        "environment": {
+          "CORE_LOG_HUMAN_DETAIL": ""
+        },
+        "setup": {},
+        "discovery": {
+          "applicationName": "Fixture.App",
+          "buildVersion": "2.3.4-rc.1+build.8"
+        }
+      },
+      "expected": {
+        "status": "Resolved",
+        "value": "normal"
+      }
+    },
+    {
+      "id": "CFG-LOG-HUMAN-DETAIL-BLANK-2",
+      "key": "CORE_LOG_HUMAN_DETAIL",
+      "category": "absent",
+      "inputs": {
+        "environment": {
+          "CORE_LOG_HUMAN_DETAIL": " "
+        },
+        "setup": {},
+        "discovery": {
+          "applicationName": "Fixture.App",
+          "buildVersion": "2.3.4-rc.1+build.8"
+        }
+      },
+      "expected": {
+        "status": "Resolved",
+        "value": "normal"
+      }
+    },
+    {
+      "id": "CFG-LOG-HUMAN-DETAIL-BLANK-3",
+      "key": "CORE_LOG_HUMAN_DETAIL",
+      "category": "absent",
+      "inputs": {
+        "environment": {
+          "CORE_LOG_HUMAN_DETAIL": "\t\r\n"
+        },
+        "setup": {},
+        "discovery": {
+          "applicationName": "Fixture.App",
+          "buildVersion": "2.3.4-rc.1+build.8"
+        }
+      },
+      "expected": {
+        "status": "Resolved",
+        "value": "normal"
+      }
+    },
+    {
+      "id": "CFG-LOG-HUMAN-DETAIL-BLANK-4",
+      "key": "CORE_LOG_HUMAN_DETAIL",
+      "category": "absent",
+      "inputs": {
+        "environment": {
+          "CORE_LOG_HUMAN_DETAIL": "  "
+        },
+        "setup": {},
+        "discovery": {
+          "applicationName": "Fixture.App",
+          "buildVersion": "2.3.4-rc.1+build.8"
+        }
+      },
+      "expected": {
+        "status": "Resolved",
+        "value": "normal"
+      }
+    },
+    {
+      "id": "CFG-LOG-HUMAN-DETAIL-TOKEN-NORMAL",
+      "key": "CORE_LOG_HUMAN_DETAIL",
+      "category": "valid",
+      "inputs": {
+        "environment": {
+          "CORE_LOG_HUMAN_DETAIL": " \tNORMAL\r\n"
+        },
+        "setup": {},
+        "discovery": {
+          "applicationName": "Fixture.App",
+          "buildVersion": "2.3.4-rc.1+build.8"
+        }
+      },
+      "expected": {
+        "status": "Resolved",
+        "value": "normal"
+      }
+    },
+    {
+      "id": "CFG-LOG-HUMAN-DETAIL-TOKEN-VERBOSE",
+      "key": "CORE_LOG_HUMAN_DETAIL",
+      "category": "valid",
+      "inputs": {
+        "environment": {
+          "CORE_LOG_HUMAN_DETAIL": " \tVERBOSE\r\n"
+        },
+        "setup": {},
+        "discovery": {
+          "applicationName": "Fixture.App",
+          "buildVersion": "2.3.4-rc.1+build.8"
+        }
+      },
+      "expected": {
+        "status": "Resolved",
+        "value": "verbose"
+      }
+    },
+    {
+      "id": "CFG-LOG-HUMAN-DETAIL-EXPLICIT",
+      "key": "CORE_LOG_HUMAN_DETAIL",
+      "category": "valid",
+      "inputs": {
+        "environment": {
+          "CORE_LOG_HUMAN_DETAIL": "normal"
+        },
+        "setup": {},
+        "discovery": {
+          "applicationName": "Fixture.App",
+          "buildVersion": "2.3.4-rc.1+build.8"
+        }
+      },
+      "expected": {
+        "status": "Resolved",
+        "value": "normal"
+      }
+    },
+    {
+      "id": "CFG-LOG-HUMAN-DETAIL-INVALID",
+      "key": "CORE_LOG_HUMAN_DETAIL",
+      "category": "invalid",
+      "inputs": {
+        "environment": {
+          "CORE_LOG_HUMAN_DETAIL": "not-a-token"
+        },
+        "setup": {},
+        "discovery": {
+          "applicationName": "Fixture.App",
+          "buildVersion": "2.3.4-rc.1+build.8"
+        }
+      },
+      "expected": {
+        "status": "Invalid",
+        "issues": [
+          {
+            "code": "InvalidToken",
+            "key": "CORE_LOG_HUMAN_DETAIL"
+          }
+        ]
+      }
+    },
+    {
+      "id": "CFG-LOG-HUMAN-DETAIL-CORE-BEATS-SETUP",
+      "key": "CORE_LOG_HUMAN_DETAIL",
+      "category": "precedence",
+      "inputs": {
+        "environment": {
+          "CORE_LOG_HUMAN_DETAIL": "normal"
+        },
+        "setup": {
+          "Logging.HumanDetail": "normal"
+        },
+        "discovery": {
+          "applicationName": "Fixture.App",
+          "buildVersion": "2.3.4-rc.1+build.8"
+        }
+      },
+      "expected": {
+        "status": "Resolved",
+        "value": "normal"
+      }
+    },
+    {
+      "id": "CFG-LOG-HUMAN-DETAIL-INVALID-CORE-STOPS",
+      "key": "CORE_LOG_HUMAN_DETAIL",
+      "category": "precedence",
+      "inputs": {
+        "environment": {
+          "CORE_LOG_HUMAN_DETAIL": "not-a-token"
+        },
+        "setup": {
+          "Logging.HumanDetail": "normal"
+        },
+        "discovery": {
+          "applicationName": "Fixture.App",
+          "buildVersion": "2.3.4-rc.1+build.8"
+        }
+      },
+      "expected": {
+        "status": "Invalid",
+        "issues": [
+          {
+            "code": "InvalidToken",
+            "key": "CORE_LOG_HUMAN_DETAIL"
+          }
+        ]
+      }
+    },
+    {
+      "id": "CFG-LOG-HUMAN-DETAIL-BLANK-CORE-USES-SETUP",
+      "key": "CORE_LOG_HUMAN_DETAIL",
+      "category": "precedence",
+      "inputs": {
+        "environment": {
+          "CORE_LOG_HUMAN_DETAIL": " \t"
+        },
+        "setup": {
+          "Logging.HumanDetail": "normal"
+        },
+        "discovery": {
+          "applicationName": "Fixture.App",
+          "buildVersion": "2.3.4-rc.1+build.8"
+        }
+      },
+      "expected": {
+        "status": "Resolved",
+        "value": "normal"
+      }
+    },
+    {
+      "id": "CFG-LOG-HUMAN-DETAIL-SETUP-BEATS-DISCOVERY",
+      "key": "CORE_LOG_HUMAN_DETAIL",
+      "category": "precedence",
+      "inputs": {
+        "environment": {},
+        "setup": {
+          "Logging.HumanDetail": "normal"
+        },
+        "discovery": {
+          "applicationName": "Fixture.App",
+          "buildVersion": "2.3.4-rc.1+build.8"
+        }
+      },
+      "expected": {
+        "status": "Resolved",
+        "value": "normal"
+      }
+    },
+    {
+      "id": "CFG-LOG-FILE-PATH-ABSENT",
+      "key": "CORE_LOG_FILE_PATH",
+      "category": "absent",
+      "inputs": {
+        "environment": {},
+        "setup": {},
+        "discovery": {
+          "applicationName": "Fixture.App",
+          "buildVersion": "2.3.4-rc.1+build.8"
+        }
+      },
+      "expected": {
+        "status": "Resolved",
+        "value": null
+      }
+    },
+    {
+      "id": "CFG-LOG-FILE-PATH-BLANK-1",
+      "key": "CORE_LOG_FILE_PATH",
+      "category": "absent",
+      "inputs": {
+        "environment": {
+          "CORE_LOG_FILE_PATH": ""
+        },
+        "setup": {},
+        "discovery": {
+          "applicationName": "Fixture.App",
+          "buildVersion": "2.3.4-rc.1+build.8"
+        }
+      },
+      "expected": {
+        "status": "Resolved",
+        "value": null
+      }
+    },
+    {
+      "id": "CFG-LOG-FILE-PATH-BLANK-2",
+      "key": "CORE_LOG_FILE_PATH",
+      "category": "absent",
+      "inputs": {
+        "environment": {
+          "CORE_LOG_FILE_PATH": " "
+        },
+        "setup": {},
+        "discovery": {
+          "applicationName": "Fixture.App",
+          "buildVersion": "2.3.4-rc.1+build.8"
+        }
+      },
+      "expected": {
+        "status": "Resolved",
+        "value": null
+      }
+    },
+    {
+      "id": "CFG-LOG-FILE-PATH-BLANK-3",
+      "key": "CORE_LOG_FILE_PATH",
+      "category": "absent",
+      "inputs": {
+        "environment": {
+          "CORE_LOG_FILE_PATH": "\t\r\n"
+        },
+        "setup": {},
+        "discovery": {
+          "applicationName": "Fixture.App",
+          "buildVersion": "2.3.4-rc.1+build.8"
+        }
+      },
+      "expected": {
+        "status": "Resolved",
+        "value": null
+      }
+    },
+    {
+      "id": "CFG-LOG-FILE-PATH-BLANK-4",
+      "key": "CORE_LOG_FILE_PATH",
+      "category": "absent",
+      "inputs": {
+        "environment": {
+          "CORE_LOG_FILE_PATH": "  "
+        },
+        "setup": {},
+        "discovery": {
+          "applicationName": "Fixture.App",
+          "buildVersion": "2.3.4-rc.1+build.8"
+        }
+      },
+      "expected": {
+        "status": "Resolved",
+        "value": null
+      }
+    },
+    {
+      "id": "CFG-LOG-FILE-PATH-RELATIVE",
+      "key": "CORE_LOG_FILE_PATH",
+      "category": "valid",
+      "inputs": {
+        "environment": {
+          "CORE_LOG_FILE_PATH": "logs/app.jsonl"
+        },
+        "setup": {},
+        "discovery": {
+          "applicationName": "Fixture.App",
+          "buildVersion": "2.3.4-rc.1+build.8"
+        }
+      },
+      "expected": {
+        "status": "Resolved",
+        "value": {
+          "input": "logs/app.jsonl",
+          "absoluteAgainst": "initial-working-directory",
+          "resolveOnce": true
+        }
+      }
+    },
+    {
+      "id": "CFG-LOG-FILE-PATH-WINDOWS-X64",
+      "key": "CORE_LOG_FILE_PATH",
+      "category": "path-resolution",
+      "inputs": {
+        "environment": {
+          "CORE_LOG_FILE_PATH": "logs/app.jsonl"
+        },
+        "setup": {},
+        "discovery": {
+          "applicationName": "Fixture.App",
+          "buildVersion": "2.3.4-rc.1+build.8"
+        },
+        "workingDirectoryAtInitialization": "C:\\fixtures\\startup",
+        "workingDirectoryAfterInitialization": "C:\\fixtures\\startup-changed"
+      },
+      "expected": {
+        "status": "Resolved",
+        "value": "C:\\fixtures\\startup\\logs\\app.jsonl"
+      },
+      "notes": "Changing current directory after initialization must not redirect the captured path; no directory/file is created.",
+      "lanes": [
+        "windows-x64"
+      ]
+    },
+    {
+      "id": "CFG-LOG-FILE-PATH-LINUX-UBUNTU2404-X64",
+      "key": "CORE_LOG_FILE_PATH",
+      "category": "path-resolution",
+      "inputs": {
+        "environment": {
+          "CORE_LOG_FILE_PATH": "logs/app.jsonl"
+        },
+        "setup": {},
+        "discovery": {
+          "applicationName": "Fixture.App",
+          "buildVersion": "2.3.4-rc.1+build.8"
+        },
+        "workingDirectoryAtInitialization": "/fixtures/startup",
+        "workingDirectoryAfterInitialization": "/fixtures/startup-changed"
+      },
+      "expected": {
+        "status": "Resolved",
+        "value": "/fixtures/startup/logs/app.jsonl"
+      },
+      "notes": "Changing current directory after initialization must not redirect the captured path; no directory/file is created.",
+      "lanes": [
+        "linux-ubuntu2404-x64"
+      ]
+    },
+    {
+      "id": "CFG-LOG-FILE-PATH-EXPLICIT",
+      "key": "CORE_LOG_FILE_PATH",
+      "category": "valid",
+      "inputs": {
+        "environment": {
+          "CORE_LOG_FILE_PATH": "logs/app.jsonl"
+        },
+        "setup": {},
+        "discovery": {
+          "applicationName": "Fixture.App",
+          "buildVersion": "2.3.4-rc.1+build.8"
+        }
+      },
+      "expected": {
+        "status": "Resolved",
+        "value": {
+          "input": "logs/app.jsonl",
+          "absoluteAgainst": "initial-working-directory",
+          "resolveOnce": true
+        }
+      }
+    },
+    {
+      "id": "CFG-LOG-FILE-PATH-INVALID",
+      "key": "CORE_LOG_FILE_PATH",
+      "category": "invalid",
+      "inputs": {
+        "environment": {
+          "CORE_LOG_FILE_PATH": "invalid\u0000path"
+        },
+        "setup": {},
+        "discovery": {
+          "applicationName": "Fixture.App",
+          "buildVersion": "2.3.4-rc.1+build.8"
+        }
+      },
+      "expected": {
+        "status": "Invalid",
+        "issues": [
+          {
+            "code": "InvalidPath",
+            "key": "CORE_LOG_FILE_PATH"
+          }
+        ]
+      }
+    },
+    {
+      "id": "CFG-LOG-FILE-PATH-CORE-BEATS-SETUP",
+      "key": "CORE_LOG_FILE_PATH",
+      "category": "precedence",
+      "inputs": {
+        "environment": {
+          "CORE_LOG_FILE_PATH": "logs/app.jsonl"
+        },
+        "setup": {
+          "Logging.FilePath": null
+        },
+        "discovery": {
+          "applicationName": "Fixture.App",
+          "buildVersion": "2.3.4-rc.1+build.8"
+        }
+      },
+      "expected": {
+        "status": "Resolved",
+        "value": {
+          "input": "logs/app.jsonl",
+          "absoluteAgainst": "initial-working-directory",
+          "resolveOnce": true
+        }
+      }
+    },
+    {
+      "id": "CFG-LOG-FILE-PATH-INVALID-CORE-STOPS",
+      "key": "CORE_LOG_FILE_PATH",
+      "category": "precedence",
+      "inputs": {
+        "environment": {
+          "CORE_LOG_FILE_PATH": "invalid\u0000path"
+        },
+        "setup": {
+          "Logging.FilePath": "logs/app.jsonl"
+        },
+        "discovery": {
+          "applicationName": "Fixture.App",
+          "buildVersion": "2.3.4-rc.1+build.8"
+        }
+      },
+      "expected": {
+        "status": "Invalid",
+        "issues": [
+          {
+            "code": "InvalidPath",
+            "key": "CORE_LOG_FILE_PATH"
+          }
+        ]
+      }
+    },
+    {
+      "id": "CFG-LOG-FILE-PATH-BLANK-CORE-USES-SETUP",
+      "key": "CORE_LOG_FILE_PATH",
+      "category": "precedence",
+      "inputs": {
+        "environment": {
+          "CORE_LOG_FILE_PATH": " \t"
+        },
+        "setup": {
+          "Logging.FilePath": "logs/app.jsonl"
+        },
+        "discovery": {
+          "applicationName": "Fixture.App",
+          "buildVersion": "2.3.4-rc.1+build.8"
+        }
+      },
+      "expected": {
+        "status": "Resolved",
+        "value": {
+          "input": "logs/app.jsonl",
+          "absoluteAgainst": "initial-working-directory",
+          "resolveOnce": true
+        }
+      }
+    },
+    {
+      "id": "CFG-LOG-FILE-PATH-SETUP-BEATS-DISCOVERY",
+      "key": "CORE_LOG_FILE_PATH",
+      "category": "precedence",
+      "inputs": {
+        "environment": {},
+        "setup": {
+          "Logging.FilePath": "logs/app.jsonl"
+        },
+        "discovery": {
+          "applicationName": "Fixture.App",
+          "buildVersion": "2.3.4-rc.1+build.8"
+        }
+      },
+      "expected": {
+        "status": "Resolved",
+        "value": {
+          "input": "logs/app.jsonl",
+          "absoluteAgainst": "initial-working-directory",
+          "resolveOnce": true
+        }
+      }
+    },
+    {
+      "id": "CFG-LOG-FILE-FORMAT-ABSENT",
+      "key": "CORE_LOG_FILE_FORMAT",
+      "category": "absent",
+      "inputs": {
+        "environment": {},
+        "setup": {},
+        "discovery": {
+          "applicationName": "Fixture.App",
+          "buildVersion": "2.3.4-rc.1+build.8"
+        }
+      },
+      "expected": {
+        "status": "Resolved",
+        "value": "jsonl"
+      }
+    },
+    {
+      "id": "CFG-LOG-FILE-FORMAT-BLANK-1",
+      "key": "CORE_LOG_FILE_FORMAT",
+      "category": "absent",
+      "inputs": {
+        "environment": {
+          "CORE_LOG_FILE_FORMAT": ""
+        },
+        "setup": {},
+        "discovery": {
+          "applicationName": "Fixture.App",
+          "buildVersion": "2.3.4-rc.1+build.8"
+        }
+      },
+      "expected": {
+        "status": "Resolved",
+        "value": "jsonl"
+      }
+    },
+    {
+      "id": "CFG-LOG-FILE-FORMAT-BLANK-2",
+      "key": "CORE_LOG_FILE_FORMAT",
+      "category": "absent",
+      "inputs": {
+        "environment": {
+          "CORE_LOG_FILE_FORMAT": " "
+        },
+        "setup": {},
+        "discovery": {
+          "applicationName": "Fixture.App",
+          "buildVersion": "2.3.4-rc.1+build.8"
+        }
+      },
+      "expected": {
+        "status": "Resolved",
+        "value": "jsonl"
+      }
+    },
+    {
+      "id": "CFG-LOG-FILE-FORMAT-BLANK-3",
+      "key": "CORE_LOG_FILE_FORMAT",
+      "category": "absent",
+      "inputs": {
+        "environment": {
+          "CORE_LOG_FILE_FORMAT": "\t\r\n"
+        },
+        "setup": {},
+        "discovery": {
+          "applicationName": "Fixture.App",
+          "buildVersion": "2.3.4-rc.1+build.8"
+        }
+      },
+      "expected": {
+        "status": "Resolved",
+        "value": "jsonl"
+      }
+    },
+    {
+      "id": "CFG-LOG-FILE-FORMAT-BLANK-4",
+      "key": "CORE_LOG_FILE_FORMAT",
+      "category": "absent",
+      "inputs": {
+        "environment": {
+          "CORE_LOG_FILE_FORMAT": "  "
+        },
+        "setup": {},
+        "discovery": {
+          "applicationName": "Fixture.App",
+          "buildVersion": "2.3.4-rc.1+build.8"
+        }
+      },
+      "expected": {
+        "status": "Resolved",
+        "value": "jsonl"
+      }
+    },
+    {
+      "id": "CFG-LOG-FILE-FORMAT-TOKEN-JSONL",
+      "key": "CORE_LOG_FILE_FORMAT",
+      "category": "valid",
+      "inputs": {
+        "environment": {
+          "CORE_LOG_FILE_FORMAT": " \tJSONL\r\n"
+        },
+        "setup": {},
+        "discovery": {
+          "applicationName": "Fixture.App",
+          "buildVersion": "2.3.4-rc.1+build.8"
+        }
+      },
+      "expected": {
+        "status": "Resolved",
+        "value": "jsonl"
+      }
+    },
+    {
+      "id": "CFG-LOG-FILE-FORMAT-TOKEN-HUMAN",
+      "key": "CORE_LOG_FILE_FORMAT",
+      "category": "valid",
+      "inputs": {
+        "environment": {
+          "CORE_LOG_FILE_FORMAT": " \tHUMAN\r\n"
+        },
+        "setup": {},
+        "discovery": {
+          "applicationName": "Fixture.App",
+          "buildVersion": "2.3.4-rc.1+build.8"
+        }
+      },
+      "expected": {
+        "status": "Resolved",
+        "value": "human"
+      }
+    },
+    {
+      "id": "CFG-LOG-FILE-FORMAT-EXPLICIT",
+      "key": "CORE_LOG_FILE_FORMAT",
+      "category": "valid",
+      "inputs": {
+        "environment": {
+          "CORE_LOG_FILE_FORMAT": "jsonl"
+        },
+        "setup": {},
+        "discovery": {
+          "applicationName": "Fixture.App",
+          "buildVersion": "2.3.4-rc.1+build.8"
+        }
+      },
+      "expected": {
+        "status": "Resolved",
+        "value": "jsonl"
+      }
+    },
+    {
+      "id": "CFG-LOG-FILE-FORMAT-INVALID",
+      "key": "CORE_LOG_FILE_FORMAT",
+      "category": "invalid",
+      "inputs": {
+        "environment": {
+          "CORE_LOG_FILE_FORMAT": "not-a-token"
+        },
+        "setup": {},
+        "discovery": {
+          "applicationName": "Fixture.App",
+          "buildVersion": "2.3.4-rc.1+build.8"
+        }
+      },
+      "expected": {
+        "status": "Invalid",
+        "issues": [
+          {
+            "code": "InvalidToken",
+            "key": "CORE_LOG_FILE_FORMAT"
+          }
+        ]
+      }
+    },
+    {
+      "id": "CFG-LOG-FILE-FORMAT-CORE-BEATS-SETUP",
+      "key": "CORE_LOG_FILE_FORMAT",
+      "category": "precedence",
+      "inputs": {
+        "environment": {
+          "CORE_LOG_FILE_FORMAT": "jsonl"
+        },
+        "setup": {
+          "Logging.FileFormat": "jsonl"
+        },
+        "discovery": {
+          "applicationName": "Fixture.App",
+          "buildVersion": "2.3.4-rc.1+build.8"
+        }
+      },
+      "expected": {
+        "status": "Resolved",
+        "value": "jsonl"
+      }
+    },
+    {
+      "id": "CFG-LOG-FILE-FORMAT-INVALID-CORE-STOPS",
+      "key": "CORE_LOG_FILE_FORMAT",
+      "category": "precedence",
+      "inputs": {
+        "environment": {
+          "CORE_LOG_FILE_FORMAT": "not-a-token"
+        },
+        "setup": {
+          "Logging.FileFormat": "jsonl"
+        },
+        "discovery": {
+          "applicationName": "Fixture.App",
+          "buildVersion": "2.3.4-rc.1+build.8"
+        }
+      },
+      "expected": {
+        "status": "Invalid",
+        "issues": [
+          {
+            "code": "InvalidToken",
+            "key": "CORE_LOG_FILE_FORMAT"
+          }
+        ]
+      }
+    },
+    {
+      "id": "CFG-LOG-FILE-FORMAT-BLANK-CORE-USES-SETUP",
+      "key": "CORE_LOG_FILE_FORMAT",
+      "category": "precedence",
+      "inputs": {
+        "environment": {
+          "CORE_LOG_FILE_FORMAT": " \t"
+        },
+        "setup": {
+          "Logging.FileFormat": "jsonl"
+        },
+        "discovery": {
+          "applicationName": "Fixture.App",
+          "buildVersion": "2.3.4-rc.1+build.8"
+        }
+      },
+      "expected": {
+        "status": "Resolved",
+        "value": "jsonl"
+      }
+    },
+    {
+      "id": "CFG-LOG-FILE-FORMAT-SETUP-BEATS-DISCOVERY",
+      "key": "CORE_LOG_FILE_FORMAT",
+      "category": "precedence",
+      "inputs": {
+        "environment": {},
+        "setup": {
+          "Logging.FileFormat": "jsonl"
+        },
+        "discovery": {
+          "applicationName": "Fixture.App",
+          "buildVersion": "2.3.4-rc.1+build.8"
+        }
+      },
+      "expected": {
+        "status": "Resolved",
+        "value": "jsonl"
+      }
+    },
+    {
+      "id": "CFG-LOG-FILE-LEVEL-ABSENT",
+      "key": "CORE_LOG_FILE_LEVEL",
+      "category": "absent",
+      "inputs": {
+        "environment": {},
+        "setup": {},
+        "discovery": {
+          "applicationName": "Fixture.App",
+          "buildVersion": "2.3.4-rc.1+build.8"
+        }
+      },
+      "expected": {
+        "status": "Resolved",
+        "value": "Information"
+      }
+    },
+    {
+      "id": "CFG-LOG-FILE-LEVEL-BLANK-1",
+      "key": "CORE_LOG_FILE_LEVEL",
+      "category": "absent",
+      "inputs": {
+        "environment": {
+          "CORE_LOG_FILE_LEVEL": ""
+        },
+        "setup": {},
+        "discovery": {
+          "applicationName": "Fixture.App",
+          "buildVersion": "2.3.4-rc.1+build.8"
+        }
+      },
+      "expected": {
+        "status": "Resolved",
+        "value": "Information"
+      }
+    },
+    {
+      "id": "CFG-LOG-FILE-LEVEL-BLANK-2",
+      "key": "CORE_LOG_FILE_LEVEL",
+      "category": "absent",
+      "inputs": {
+        "environment": {
+          "CORE_LOG_FILE_LEVEL": " "
+        },
+        "setup": {},
+        "discovery": {
+          "applicationName": "Fixture.App",
+          "buildVersion": "2.3.4-rc.1+build.8"
+        }
+      },
+      "expected": {
+        "status": "Resolved",
+        "value": "Information"
+      }
+    },
+    {
+      "id": "CFG-LOG-FILE-LEVEL-BLANK-3",
+      "key": "CORE_LOG_FILE_LEVEL",
+      "category": "absent",
+      "inputs": {
+        "environment": {
+          "CORE_LOG_FILE_LEVEL": "\t\r\n"
+        },
+        "setup": {},
+        "discovery": {
+          "applicationName": "Fixture.App",
+          "buildVersion": "2.3.4-rc.1+build.8"
+        }
+      },
+      "expected": {
+        "status": "Resolved",
+        "value": "Information"
+      }
+    },
+    {
+      "id": "CFG-LOG-FILE-LEVEL-BLANK-4",
+      "key": "CORE_LOG_FILE_LEVEL",
+      "category": "absent",
+      "inputs": {
+        "environment": {
+          "CORE_LOG_FILE_LEVEL": "  "
+        },
+        "setup": {},
+        "discovery": {
+          "applicationName": "Fixture.App",
+          "buildVersion": "2.3.4-rc.1+build.8"
+        }
+      },
+      "expected": {
+        "status": "Resolved",
+        "value": "Information"
+      }
+    },
+    {
+      "id": "CFG-LOG-FILE-LEVEL-TOKEN-TRACE",
+      "key": "CORE_LOG_FILE_LEVEL",
+      "category": "valid",
+      "inputs": {
+        "environment": {
+          "CORE_LOG_FILE_LEVEL": " \ttRACE\r\n"
+        },
+        "setup": {},
+        "discovery": {
+          "applicationName": "Fixture.App",
+          "buildVersion": "2.3.4-rc.1+build.8"
+        }
+      },
+      "expected": {
+        "status": "Resolved",
+        "value": "Trace"
+      }
+    },
+    {
+      "id": "CFG-LOG-FILE-LEVEL-TOKEN-TRC",
+      "key": "CORE_LOG_FILE_LEVEL",
+      "category": "valid",
+      "inputs": {
+        "environment": {
+          "CORE_LOG_FILE_LEVEL": " \ttrc\r\n"
+        },
+        "setup": {},
+        "discovery": {
+          "applicationName": "Fixture.App",
+          "buildVersion": "2.3.4-rc.1+build.8"
+        }
+      },
+      "expected": {
+        "status": "Resolved",
+        "value": "Trace"
+      }
+    },
+    {
+      "id": "CFG-LOG-FILE-LEVEL-TOKEN-DEBUG",
+      "key": "CORE_LOG_FILE_LEVEL",
+      "category": "valid",
+      "inputs": {
+        "environment": {
+          "CORE_LOG_FILE_LEVEL": " \tdEBUG\r\n"
+        },
+        "setup": {},
+        "discovery": {
+          "applicationName": "Fixture.App",
+          "buildVersion": "2.3.4-rc.1+build.8"
+        }
+      },
+      "expected": {
+        "status": "Resolved",
+        "value": "Debug"
+      }
+    },
+    {
+      "id": "CFG-LOG-FILE-LEVEL-TOKEN-DBG",
+      "key": "CORE_LOG_FILE_LEVEL",
+      "category": "valid",
+      "inputs": {
+        "environment": {
+          "CORE_LOG_FILE_LEVEL": " \tdbg\r\n"
+        },
+        "setup": {},
+        "discovery": {
+          "applicationName": "Fixture.App",
+          "buildVersion": "2.3.4-rc.1+build.8"
+        }
+      },
+      "expected": {
+        "status": "Resolved",
+        "value": "Debug"
+      }
+    },
+    {
+      "id": "CFG-LOG-FILE-LEVEL-TOKEN-INFORMATION",
+      "key": "CORE_LOG_FILE_LEVEL",
+      "category": "valid",
+      "inputs": {
+        "environment": {
+          "CORE_LOG_FILE_LEVEL": " \tiNFORMATION\r\n"
+        },
+        "setup": {},
+        "discovery": {
+          "applicationName": "Fixture.App",
+          "buildVersion": "2.3.4-rc.1+build.8"
+        }
+      },
+      "expected": {
+        "status": "Resolved",
+        "value": "Information"
+      }
+    },
+    {
+      "id": "CFG-LOG-FILE-LEVEL-TOKEN-INF",
+      "key": "CORE_LOG_FILE_LEVEL",
+      "category": "valid",
+      "inputs": {
+        "environment": {
+          "CORE_LOG_FILE_LEVEL": " \tinf\r\n"
+        },
+        "setup": {},
+        "discovery": {
+          "applicationName": "Fixture.App",
+          "buildVersion": "2.3.4-rc.1+build.8"
+        }
+      },
+      "expected": {
+        "status": "Resolved",
+        "value": "Information"
+      }
+    },
+    {
+      "id": "CFG-LOG-FILE-LEVEL-TOKEN-INFO",
+      "key": "CORE_LOG_FILE_LEVEL",
+      "category": "valid",
+      "inputs": {
+        "environment": {
+          "CORE_LOG_FILE_LEVEL": " \tinfo\r\n"
+        },
+        "setup": {},
+        "discovery": {
+          "applicationName": "Fixture.App",
+          "buildVersion": "2.3.4-rc.1+build.8"
+        }
+      },
+      "expected": {
+        "status": "Resolved",
+        "value": "Information"
+      }
+    },
+    {
+      "id": "CFG-LOG-FILE-LEVEL-TOKEN-WARNING",
+      "key": "CORE_LOG_FILE_LEVEL",
+      "category": "valid",
+      "inputs": {
+        "environment": {
+          "CORE_LOG_FILE_LEVEL": " \twARNING\r\n"
+        },
+        "setup": {},
+        "discovery": {
+          "applicationName": "Fixture.App",
+          "buildVersion": "2.3.4-rc.1+build.8"
+        }
+      },
+      "expected": {
+        "status": "Resolved",
+        "value": "Warning"
+      }
+    },
+    {
+      "id": "CFG-LOG-FILE-LEVEL-TOKEN-WRN",
+      "key": "CORE_LOG_FILE_LEVEL",
+      "category": "valid",
+      "inputs": {
+        "environment": {
+          "CORE_LOG_FILE_LEVEL": " \twrn\r\n"
+        },
+        "setup": {},
+        "discovery": {
+          "applicationName": "Fixture.App",
+          "buildVersion": "2.3.4-rc.1+build.8"
+        }
+      },
+      "expected": {
+        "status": "Resolved",
+        "value": "Warning"
+      }
+    },
+    {
+      "id": "CFG-LOG-FILE-LEVEL-TOKEN-WARN",
+      "key": "CORE_LOG_FILE_LEVEL",
+      "category": "valid",
+      "inputs": {
+        "environment": {
+          "CORE_LOG_FILE_LEVEL": " \twarn\r\n"
+        },
+        "setup": {},
+        "discovery": {
+          "applicationName": "Fixture.App",
+          "buildVersion": "2.3.4-rc.1+build.8"
+        }
+      },
+      "expected": {
+        "status": "Resolved",
+        "value": "Warning"
+      }
+    },
+    {
+      "id": "CFG-LOG-FILE-LEVEL-TOKEN-ERROR",
+      "key": "CORE_LOG_FILE_LEVEL",
+      "category": "valid",
+      "inputs": {
+        "environment": {
+          "CORE_LOG_FILE_LEVEL": " \teRROR\r\n"
+        },
+        "setup": {},
+        "discovery": {
+          "applicationName": "Fixture.App",
+          "buildVersion": "2.3.4-rc.1+build.8"
+        }
+      },
+      "expected": {
+        "status": "Resolved",
+        "value": "Error"
+      }
+    },
+    {
+      "id": "CFG-LOG-FILE-LEVEL-TOKEN-ERR",
+      "key": "CORE_LOG_FILE_LEVEL",
+      "category": "valid",
+      "inputs": {
+        "environment": {
+          "CORE_LOG_FILE_LEVEL": " \terr\r\n"
+        },
+        "setup": {},
+        "discovery": {
+          "applicationName": "Fixture.App",
+          "buildVersion": "2.3.4-rc.1+build.8"
+        }
+      },
+      "expected": {
+        "status": "Resolved",
+        "value": "Error"
+      }
+    },
+    {
+      "id": "CFG-LOG-FILE-LEVEL-TOKEN-CRITICAL",
+      "key": "CORE_LOG_FILE_LEVEL",
+      "category": "valid",
+      "inputs": {
+        "environment": {
+          "CORE_LOG_FILE_LEVEL": " \tcRITICAL\r\n"
+        },
+        "setup": {},
+        "discovery": {
+          "applicationName": "Fixture.App",
+          "buildVersion": "2.3.4-rc.1+build.8"
+        }
+      },
+      "expected": {
+        "status": "Resolved",
+        "value": "Critical"
+      }
+    },
+    {
+      "id": "CFG-LOG-FILE-LEVEL-TOKEN-CRT",
+      "key": "CORE_LOG_FILE_LEVEL",
+      "category": "valid",
+      "inputs": {
+        "environment": {
+          "CORE_LOG_FILE_LEVEL": " \tcrt\r\n"
+        },
+        "setup": {},
+        "discovery": {
+          "applicationName": "Fixture.App",
+          "buildVersion": "2.3.4-rc.1+build.8"
+        }
+      },
+      "expected": {
+        "status": "Resolved",
+        "value": "Critical"
+      }
+    },
+    {
+      "id": "CFG-LOG-FILE-LEVEL-TOKEN-CRIT",
+      "key": "CORE_LOG_FILE_LEVEL",
+      "category": "valid",
+      "inputs": {
+        "environment": {
+          "CORE_LOG_FILE_LEVEL": " \tcrit\r\n"
+        },
+        "setup": {},
+        "discovery": {
+          "applicationName": "Fixture.App",
+          "buildVersion": "2.3.4-rc.1+build.8"
+        }
+      },
+      "expected": {
+        "status": "Resolved",
+        "value": "Critical"
+      }
+    },
+    {
+      "id": "CFG-LOG-FILE-LEVEL-TOKEN-NONE",
+      "key": "CORE_LOG_FILE_LEVEL",
+      "category": "valid",
+      "inputs": {
+        "environment": {
+          "CORE_LOG_FILE_LEVEL": " \tnONE\r\n"
+        },
+        "setup": {},
+        "discovery": {
+          "applicationName": "Fixture.App",
+          "buildVersion": "2.3.4-rc.1+build.8"
+        }
+      },
+      "expected": {
+        "status": "Resolved",
+        "value": "None"
+      }
+    },
+    {
+      "id": "CFG-LOG-FILE-LEVEL-EXPLICIT",
+      "key": "CORE_LOG_FILE_LEVEL",
+      "category": "valid",
+      "inputs": {
+        "environment": {
+          "CORE_LOG_FILE_LEVEL": "Warning"
+        },
+        "setup": {},
+        "discovery": {
+          "applicationName": "Fixture.App",
+          "buildVersion": "2.3.4-rc.1+build.8"
+        }
+      },
+      "expected": {
+        "status": "Resolved",
+        "value": "Warning"
+      }
+    },
+    {
+      "id": "CFG-LOG-FILE-LEVEL-INVALID",
+      "key": "CORE_LOG_FILE_LEVEL",
+      "category": "invalid",
+      "inputs": {
+        "environment": {
+          "CORE_LOG_FILE_LEVEL": "4"
+        },
+        "setup": {},
+        "discovery": {
+          "applicationName": "Fixture.App",
+          "buildVersion": "2.3.4-rc.1+build.8"
+        }
+      },
+      "expected": {
+        "status": "Invalid",
+        "issues": [
+          {
+            "code": "InvalidToken",
+            "key": "CORE_LOG_FILE_LEVEL"
+          }
+        ]
+      }
+    },
+    {
+      "id": "CFG-LOG-FILE-LEVEL-CORE-BEATS-SETUP",
+      "key": "CORE_LOG_FILE_LEVEL",
+      "category": "precedence",
+      "inputs": {
+        "environment": {
+          "CORE_LOG_FILE_LEVEL": "Warning"
+        },
+        "setup": {
+          "Logging.FileLevel": "Information"
+        },
+        "discovery": {
+          "applicationName": "Fixture.App",
+          "buildVersion": "2.3.4-rc.1+build.8"
+        }
+      },
+      "expected": {
+        "status": "Resolved",
+        "value": "Warning"
+      }
+    },
+    {
+      "id": "CFG-LOG-FILE-LEVEL-INVALID-CORE-STOPS",
+      "key": "CORE_LOG_FILE_LEVEL",
+      "category": "precedence",
+      "inputs": {
+        "environment": {
+          "CORE_LOG_FILE_LEVEL": "4"
+        },
+        "setup": {
+          "Logging.FileLevel": "Warning"
+        },
+        "discovery": {
+          "applicationName": "Fixture.App",
+          "buildVersion": "2.3.4-rc.1+build.8"
+        }
+      },
+      "expected": {
+        "status": "Invalid",
+        "issues": [
+          {
+            "code": "InvalidToken",
+            "key": "CORE_LOG_FILE_LEVEL"
+          }
+        ]
+      }
+    },
+    {
+      "id": "CFG-LOG-FILE-LEVEL-BLANK-CORE-USES-SETUP",
+      "key": "CORE_LOG_FILE_LEVEL",
+      "category": "precedence",
+      "inputs": {
+        "environment": {
+          "CORE_LOG_FILE_LEVEL": " \t"
+        },
+        "setup": {
+          "Logging.FileLevel": "Warning"
+        },
+        "discovery": {
+          "applicationName": "Fixture.App",
+          "buildVersion": "2.3.4-rc.1+build.8"
+        }
+      },
+      "expected": {
+        "status": "Resolved",
+        "value": "Warning"
+      }
+    },
+    {
+      "id": "CFG-LOG-FILE-LEVEL-SETUP-BEATS-DISCOVERY",
+      "key": "CORE_LOG_FILE_LEVEL",
+      "category": "precedence",
+      "inputs": {
+        "environment": {},
+        "setup": {
+          "Logging.FileLevel": "Warning"
+        },
+        "discovery": {
+          "applicationName": "Fixture.App",
+          "buildVersion": "2.3.4-rc.1+build.8"
+        }
+      },
+      "expected": {
+        "status": "Resolved",
+        "value": "Warning"
+      }
+    },
+    {
+      "id": "CFG-LOG-QUEUE-CAPACITY-ABSENT",
+      "key": "CORE_LOG_QUEUE_CAPACITY",
+      "category": "absent",
+      "inputs": {
+        "environment": {},
+        "setup": {},
+        "discovery": {
+          "applicationName": "Fixture.App",
+          "buildVersion": "2.3.4-rc.1+build.8"
+        }
+      },
+      "expected": {
+        "status": "Resolved",
+        "value": 1024
+      }
+    },
+    {
+      "id": "CFG-LOG-QUEUE-CAPACITY-BLANK-1",
+      "key": "CORE_LOG_QUEUE_CAPACITY",
+      "category": "absent",
+      "inputs": {
+        "environment": {
+          "CORE_LOG_QUEUE_CAPACITY": ""
+        },
+        "setup": {},
+        "discovery": {
+          "applicationName": "Fixture.App",
+          "buildVersion": "2.3.4-rc.1+build.8"
+        }
+      },
+      "expected": {
+        "status": "Resolved",
+        "value": 1024
+      }
+    },
+    {
+      "id": "CFG-LOG-QUEUE-CAPACITY-BLANK-2",
+      "key": "CORE_LOG_QUEUE_CAPACITY",
+      "category": "absent",
+      "inputs": {
+        "environment": {
+          "CORE_LOG_QUEUE_CAPACITY": " "
+        },
+        "setup": {},
+        "discovery": {
+          "applicationName": "Fixture.App",
+          "buildVersion": "2.3.4-rc.1+build.8"
+        }
+      },
+      "expected": {
+        "status": "Resolved",
+        "value": 1024
+      }
+    },
+    {
+      "id": "CFG-LOG-QUEUE-CAPACITY-BLANK-3",
+      "key": "CORE_LOG_QUEUE_CAPACITY",
+      "category": "absent",
+      "inputs": {
+        "environment": {
+          "CORE_LOG_QUEUE_CAPACITY": "\t\r\n"
+        },
+        "setup": {},
+        "discovery": {
+          "applicationName": "Fixture.App",
+          "buildVersion": "2.3.4-rc.1+build.8"
+        }
+      },
+      "expected": {
+        "status": "Resolved",
+        "value": 1024
+      }
+    },
+    {
+      "id": "CFG-LOG-QUEUE-CAPACITY-BLANK-4",
+      "key": "CORE_LOG_QUEUE_CAPACITY",
+      "category": "absent",
+      "inputs": {
+        "environment": {
+          "CORE_LOG_QUEUE_CAPACITY": "  "
+        },
+        "setup": {},
+        "discovery": {
+          "applicationName": "Fixture.App",
+          "buildVersion": "2.3.4-rc.1+build.8"
+        }
+      },
+      "expected": {
+        "status": "Resolved",
+        "value": 1024
+      }
+    },
+    {
+      "id": "CFG-LOG-QUEUE-CAPACITY-PLUS",
+      "key": "CORE_LOG_QUEUE_CAPACITY",
+      "category": "valid",
+      "inputs": {
+        "environment": {
+          "CORE_LOG_QUEUE_CAPACITY": " +1024 "
+        },
+        "setup": {},
+        "discovery": {
+          "applicationName": "Fixture.App",
+          "buildVersion": "2.3.4-rc.1+build.8"
+        }
+      },
+      "expected": {
+        "status": "Resolved",
+        "value": 1024
+      }
+    },
+    {
+      "id": "CFG-LOG-QUEUE-CAPACITY-MIN",
+      "key": "CORE_LOG_QUEUE_CAPACITY",
+      "category": "boundary",
+      "inputs": {
+        "environment": {
+          "CORE_LOG_QUEUE_CAPACITY": "1"
+        },
+        "setup": {},
+        "discovery": {
+          "applicationName": "Fixture.App",
+          "buildVersion": "2.3.4-rc.1+build.8"
+        }
+      },
+      "expected": {
+        "status": "Resolved",
+        "value": 1
+      }
+    },
+    {
+      "id": "CFG-LOG-QUEUE-CAPACITY-MAX",
+      "key": "CORE_LOG_QUEUE_CAPACITY",
+      "category": "boundary",
+      "inputs": {
+        "environment": {
+          "CORE_LOG_QUEUE_CAPACITY": "65536"
+        },
+        "setup": {},
+        "discovery": {
+          "applicationName": "Fixture.App",
+          "buildVersion": "2.3.4-rc.1+build.8"
+        }
+      },
+      "expected": {
+        "status": "Resolved",
+        "value": 65536
+      }
+    },
+    {
+      "id": "CFG-LOG-QUEUE-CAPACITY-BELOW",
+      "key": "CORE_LOG_QUEUE_CAPACITY",
+      "category": "boundary",
+      "inputs": {
+        "environment": {
+          "CORE_LOG_QUEUE_CAPACITY": "0"
+        },
+        "setup": {},
+        "discovery": {
+          "applicationName": "Fixture.App",
+          "buildVersion": "2.3.4-rc.1+build.8"
+        }
+      },
+      "expected": {
+        "status": "Invalid",
+        "issues": [
+          {
+            "code": "OutOfRange",
+            "key": "CORE_LOG_QUEUE_CAPACITY"
+          }
+        ]
+      }
+    },
+    {
+      "id": "CFG-LOG-QUEUE-CAPACITY-ABOVE",
+      "key": "CORE_LOG_QUEUE_CAPACITY",
+      "category": "boundary",
+      "inputs": {
+        "environment": {
+          "CORE_LOG_QUEUE_CAPACITY": "65537"
+        },
+        "setup": {},
+        "discovery": {
+          "applicationName": "Fixture.App",
+          "buildVersion": "2.3.4-rc.1+build.8"
+        }
+      },
+      "expected": {
+        "status": "Invalid",
+        "issues": [
+          {
+            "code": "OutOfRange",
+            "key": "CORE_LOG_QUEUE_CAPACITY"
+          }
+        ]
+      }
+    },
+    {
+      "id": "CFG-LOG-QUEUE-CAPACITY-INTEGER-1",
+      "key": "CORE_LOG_QUEUE_CAPACITY",
+      "category": "invalid",
+      "inputs": {
+        "environment": {
+          "CORE_LOG_QUEUE_CAPACITY": "1,000"
+        },
+        "setup": {},
+        "discovery": {
+          "applicationName": "Fixture.App",
+          "buildVersion": "2.3.4-rc.1+build.8"
+        }
+      },
+      "expected": {
+        "status": "Invalid",
+        "issues": [
+          {
+            "code": "InvalidToken",
+            "key": "CORE_LOG_QUEUE_CAPACITY"
+          }
+        ]
+      }
+    },
+    {
+      "id": "CFG-LOG-QUEUE-CAPACITY-INTEGER-2",
+      "key": "CORE_LOG_QUEUE_CAPACITY",
+      "category": "invalid",
+      "inputs": {
+        "environment": {
+          "CORE_LOG_QUEUE_CAPACITY": "1e3"
+        },
+        "setup": {},
+        "discovery": {
+          "applicationName": "Fixture.App",
+          "buildVersion": "2.3.4-rc.1+build.8"
+        }
+      },
+      "expected": {
+        "status": "Invalid",
+        "issues": [
+          {
+            "code": "InvalidToken",
+            "key": "CORE_LOG_QUEUE_CAPACITY"
+          }
+        ]
+      }
+    },
+    {
+      "id": "CFG-LOG-QUEUE-CAPACITY-INTEGER-3",
+      "key": "CORE_LOG_QUEUE_CAPACITY",
+      "category": "invalid",
+      "inputs": {
+        "environment": {
+          "CORE_LOG_QUEUE_CAPACITY": "0x1000"
+        },
+        "setup": {},
+        "discovery": {
+          "applicationName": "Fixture.App",
+          "buildVersion": "2.3.4-rc.1+build.8"
+        }
+      },
+      "expected": {
+        "status": "Invalid",
+        "issues": [
+          {
+            "code": "InvalidToken",
+            "key": "CORE_LOG_QUEUE_CAPACITY"
+          }
+        ]
+      }
+    },
+    {
+      "id": "CFG-LOG-QUEUE-CAPACITY-INTEGER-4",
+      "key": "CORE_LOG_QUEUE_CAPACITY",
+      "category": "invalid",
+      "inputs": {
+        "environment": {
+          "CORE_LOG_QUEUE_CAPACITY": "999999999999999999999999999"
+        },
+        "setup": {},
+        "discovery": {
+          "applicationName": "Fixture.App",
+          "buildVersion": "2.3.4-rc.1+build.8"
+        }
+      },
+      "expected": {
+        "status": "Invalid",
+        "issues": [
+          {
+            "code": "OutOfRange",
+            "key": "CORE_LOG_QUEUE_CAPACITY"
+          }
+        ]
+      }
+    },
+    {
+      "id": "CFG-LOG-QUEUE-CAPACITY-EXPLICIT",
+      "key": "CORE_LOG_QUEUE_CAPACITY",
+      "category": "valid",
+      "inputs": {
+        "environment": {
+          "CORE_LOG_QUEUE_CAPACITY": "1024"
+        },
+        "setup": {},
+        "discovery": {
+          "applicationName": "Fixture.App",
+          "buildVersion": "2.3.4-rc.1+build.8"
+        }
+      },
+      "expected": {
+        "status": "Resolved",
+        "value": 1024
+      }
+    },
+    {
+      "id": "CFG-LOG-QUEUE-CAPACITY-INVALID",
+      "key": "CORE_LOG_QUEUE_CAPACITY",
+      "category": "invalid",
+      "inputs": {
+        "environment": {
+          "CORE_LOG_QUEUE_CAPACITY": "1.5"
+        },
+        "setup": {},
+        "discovery": {
+          "applicationName": "Fixture.App",
+          "buildVersion": "2.3.4-rc.1+build.8"
+        }
+      },
+      "expected": {
+        "status": "Invalid",
+        "issues": [
+          {
+            "code": "InvalidToken",
+            "key": "CORE_LOG_QUEUE_CAPACITY"
+          }
+        ]
+      }
+    },
+    {
+      "id": "CFG-LOG-QUEUE-CAPACITY-CORE-BEATS-SETUP",
+      "key": "CORE_LOG_QUEUE_CAPACITY",
+      "category": "precedence",
+      "inputs": {
+        "environment": {
+          "CORE_LOG_QUEUE_CAPACITY": "1024"
+        },
+        "setup": {
+          "Logging.QueueCapacity": 1024
+        },
+        "discovery": {
+          "applicationName": "Fixture.App",
+          "buildVersion": "2.3.4-rc.1+build.8"
+        }
+      },
+      "expected": {
+        "status": "Resolved",
+        "value": 1024
+      }
+    },
+    {
+      "id": "CFG-LOG-QUEUE-CAPACITY-INVALID-CORE-STOPS",
+      "key": "CORE_LOG_QUEUE_CAPACITY",
+      "category": "precedence",
+      "inputs": {
+        "environment": {
+          "CORE_LOG_QUEUE_CAPACITY": "1.5"
+        },
+        "setup": {
+          "Logging.QueueCapacity": 1024
+        },
+        "discovery": {
+          "applicationName": "Fixture.App",
+          "buildVersion": "2.3.4-rc.1+build.8"
+        }
+      },
+      "expected": {
+        "status": "Invalid",
+        "issues": [
+          {
+            "code": "InvalidToken",
+            "key": "CORE_LOG_QUEUE_CAPACITY"
+          }
+        ]
+      }
+    },
+    {
+      "id": "CFG-LOG-QUEUE-CAPACITY-BLANK-CORE-USES-SETUP",
+      "key": "CORE_LOG_QUEUE_CAPACITY",
+      "category": "precedence",
+      "inputs": {
+        "environment": {
+          "CORE_LOG_QUEUE_CAPACITY": " \t"
+        },
+        "setup": {
+          "Logging.QueueCapacity": 1024
+        },
+        "discovery": {
+          "applicationName": "Fixture.App",
+          "buildVersion": "2.3.4-rc.1+build.8"
+        }
+      },
+      "expected": {
+        "status": "Resolved",
+        "value": 1024
+      }
+    },
+    {
+      "id": "CFG-LOG-QUEUE-CAPACITY-SETUP-BEATS-DISCOVERY",
+      "key": "CORE_LOG_QUEUE_CAPACITY",
+      "category": "precedence",
+      "inputs": {
+        "environment": {},
+        "setup": {
+          "Logging.QueueCapacity": 1024
+        },
+        "discovery": {
+          "applicationName": "Fixture.App",
+          "buildVersion": "2.3.4-rc.1+build.8"
+        }
+      },
+      "expected": {
+        "status": "Resolved",
+        "value": 1024
+      }
+    },
+    {
+      "id": "CFG-LOG-FLUSH-INTERVAL-MS-ABSENT",
+      "key": "CORE_LOG_FLUSH_INTERVAL_MS",
+      "category": "absent",
+      "inputs": {
+        "environment": {},
+        "setup": {},
+        "discovery": {
+          "applicationName": "Fixture.App",
+          "buildVersion": "2.3.4-rc.1+build.8"
+        }
+      },
+      "expected": {
+        "status": "Resolved",
+        "value": 1000
+      }
+    },
+    {
+      "id": "CFG-LOG-FLUSH-INTERVAL-MS-BLANK-1",
+      "key": "CORE_LOG_FLUSH_INTERVAL_MS",
+      "category": "absent",
+      "inputs": {
+        "environment": {
+          "CORE_LOG_FLUSH_INTERVAL_MS": ""
+        },
+        "setup": {},
+        "discovery": {
+          "applicationName": "Fixture.App",
+          "buildVersion": "2.3.4-rc.1+build.8"
+        }
+      },
+      "expected": {
+        "status": "Resolved",
+        "value": 1000
+      }
+    },
+    {
+      "id": "CFG-LOG-FLUSH-INTERVAL-MS-BLANK-2",
+      "key": "CORE_LOG_FLUSH_INTERVAL_MS",
+      "category": "absent",
+      "inputs": {
+        "environment": {
+          "CORE_LOG_FLUSH_INTERVAL_MS": " "
+        },
+        "setup": {},
+        "discovery": {
+          "applicationName": "Fixture.App",
+          "buildVersion": "2.3.4-rc.1+build.8"
+        }
+      },
+      "expected": {
+        "status": "Resolved",
+        "value": 1000
+      }
+    },
+    {
+      "id": "CFG-LOG-FLUSH-INTERVAL-MS-BLANK-3",
+      "key": "CORE_LOG_FLUSH_INTERVAL_MS",
+      "category": "absent",
+      "inputs": {
+        "environment": {
+          "CORE_LOG_FLUSH_INTERVAL_MS": "\t\r\n"
+        },
+        "setup": {},
+        "discovery": {
+          "applicationName": "Fixture.App",
+          "buildVersion": "2.3.4-rc.1+build.8"
+        }
+      },
+      "expected": {
+        "status": "Resolved",
+        "value": 1000
+      }
+    },
+    {
+      "id": "CFG-LOG-FLUSH-INTERVAL-MS-BLANK-4",
+      "key": "CORE_LOG_FLUSH_INTERVAL_MS",
+      "category": "absent",
+      "inputs": {
+        "environment": {
+          "CORE_LOG_FLUSH_INTERVAL_MS": "  "
+        },
+        "setup": {},
+        "discovery": {
+          "applicationName": "Fixture.App",
+          "buildVersion": "2.3.4-rc.1+build.8"
+        }
+      },
+      "expected": {
+        "status": "Resolved",
+        "value": 1000
+      }
+    },
+    {
+      "id": "CFG-LOG-FLUSH-INTERVAL-MS-PLUS",
+      "key": "CORE_LOG_FLUSH_INTERVAL_MS",
+      "category": "valid",
+      "inputs": {
+        "environment": {
+          "CORE_LOG_FLUSH_INTERVAL_MS": " +1000 "
+        },
+        "setup": {},
+        "discovery": {
+          "applicationName": "Fixture.App",
+          "buildVersion": "2.3.4-rc.1+build.8"
+        }
+      },
+      "expected": {
+        "status": "Resolved",
+        "value": 1000
+      }
+    },
+    {
+      "id": "CFG-LOG-FLUSH-INTERVAL-MS-MIN",
+      "key": "CORE_LOG_FLUSH_INTERVAL_MS",
+      "category": "boundary",
+      "inputs": {
+        "environment": {
+          "CORE_LOG_FLUSH_INTERVAL_MS": "10"
+        },
+        "setup": {},
+        "discovery": {
+          "applicationName": "Fixture.App",
+          "buildVersion": "2.3.4-rc.1+build.8"
+        }
+      },
+      "expected": {
+        "status": "Resolved",
+        "value": 10
+      }
+    },
+    {
+      "id": "CFG-LOG-FLUSH-INTERVAL-MS-MAX",
+      "key": "CORE_LOG_FLUSH_INTERVAL_MS",
+      "category": "boundary",
+      "inputs": {
+        "environment": {
+          "CORE_LOG_FLUSH_INTERVAL_MS": "60000"
+        },
+        "setup": {},
+        "discovery": {
+          "applicationName": "Fixture.App",
+          "buildVersion": "2.3.4-rc.1+build.8"
+        }
+      },
+      "expected": {
+        "status": "Resolved",
+        "value": 60000
+      }
+    },
+    {
+      "id": "CFG-LOG-FLUSH-INTERVAL-MS-BELOW",
+      "key": "CORE_LOG_FLUSH_INTERVAL_MS",
+      "category": "boundary",
+      "inputs": {
+        "environment": {
+          "CORE_LOG_FLUSH_INTERVAL_MS": "9"
+        },
+        "setup": {},
+        "discovery": {
+          "applicationName": "Fixture.App",
+          "buildVersion": "2.3.4-rc.1+build.8"
+        }
+      },
+      "expected": {
+        "status": "Invalid",
+        "issues": [
+          {
+            "code": "OutOfRange",
+            "key": "CORE_LOG_FLUSH_INTERVAL_MS"
+          }
+        ]
+      }
+    },
+    {
+      "id": "CFG-LOG-FLUSH-INTERVAL-MS-ABOVE",
+      "key": "CORE_LOG_FLUSH_INTERVAL_MS",
+      "category": "boundary",
+      "inputs": {
+        "environment": {
+          "CORE_LOG_FLUSH_INTERVAL_MS": "60001"
+        },
+        "setup": {},
+        "discovery": {
+          "applicationName": "Fixture.App",
+          "buildVersion": "2.3.4-rc.1+build.8"
+        }
+      },
+      "expected": {
+        "status": "Invalid",
+        "issues": [
+          {
+            "code": "OutOfRange",
+            "key": "CORE_LOG_FLUSH_INTERVAL_MS"
+          }
+        ]
+      }
+    },
+    {
+      "id": "CFG-LOG-FLUSH-INTERVAL-MS-INTEGER-1",
+      "key": "CORE_LOG_FLUSH_INTERVAL_MS",
+      "category": "invalid",
+      "inputs": {
+        "environment": {
+          "CORE_LOG_FLUSH_INTERVAL_MS": "1,000"
+        },
+        "setup": {},
+        "discovery": {
+          "applicationName": "Fixture.App",
+          "buildVersion": "2.3.4-rc.1+build.8"
+        }
+      },
+      "expected": {
+        "status": "Invalid",
+        "issues": [
+          {
+            "code": "InvalidToken",
+            "key": "CORE_LOG_FLUSH_INTERVAL_MS"
+          }
+        ]
+      }
+    },
+    {
+      "id": "CFG-LOG-FLUSH-INTERVAL-MS-INTEGER-2",
+      "key": "CORE_LOG_FLUSH_INTERVAL_MS",
+      "category": "invalid",
+      "inputs": {
+        "environment": {
+          "CORE_LOG_FLUSH_INTERVAL_MS": "1e3"
+        },
+        "setup": {},
+        "discovery": {
+          "applicationName": "Fixture.App",
+          "buildVersion": "2.3.4-rc.1+build.8"
+        }
+      },
+      "expected": {
+        "status": "Invalid",
+        "issues": [
+          {
+            "code": "InvalidToken",
+            "key": "CORE_LOG_FLUSH_INTERVAL_MS"
+          }
+        ]
+      }
+    },
+    {
+      "id": "CFG-LOG-FLUSH-INTERVAL-MS-INTEGER-3",
+      "key": "CORE_LOG_FLUSH_INTERVAL_MS",
+      "category": "invalid",
+      "inputs": {
+        "environment": {
+          "CORE_LOG_FLUSH_INTERVAL_MS": "0x1000"
+        },
+        "setup": {},
+        "discovery": {
+          "applicationName": "Fixture.App",
+          "buildVersion": "2.3.4-rc.1+build.8"
+        }
+      },
+      "expected": {
+        "status": "Invalid",
+        "issues": [
+          {
+            "code": "InvalidToken",
+            "key": "CORE_LOG_FLUSH_INTERVAL_MS"
+          }
+        ]
+      }
+    },
+    {
+      "id": "CFG-LOG-FLUSH-INTERVAL-MS-INTEGER-4",
+      "key": "CORE_LOG_FLUSH_INTERVAL_MS",
+      "category": "invalid",
+      "inputs": {
+        "environment": {
+          "CORE_LOG_FLUSH_INTERVAL_MS": "999999999999999999999999999"
+        },
+        "setup": {},
+        "discovery": {
+          "applicationName": "Fixture.App",
+          "buildVersion": "2.3.4-rc.1+build.8"
+        }
+      },
+      "expected": {
+        "status": "Invalid",
+        "issues": [
+          {
+            "code": "OutOfRange",
+            "key": "CORE_LOG_FLUSH_INTERVAL_MS"
+          }
+        ]
+      }
+    },
+    {
+      "id": "CFG-LOG-FLUSH-INTERVAL-MS-EXPLICIT",
+      "key": "CORE_LOG_FLUSH_INTERVAL_MS",
+      "category": "valid",
+      "inputs": {
+        "environment": {
+          "CORE_LOG_FLUSH_INTERVAL_MS": "1000"
+        },
+        "setup": {},
+        "discovery": {
+          "applicationName": "Fixture.App",
+          "buildVersion": "2.3.4-rc.1+build.8"
+        }
+      },
+      "expected": {
+        "status": "Resolved",
+        "value": 1000
+      }
+    },
+    {
+      "id": "CFG-LOG-FLUSH-INTERVAL-MS-INVALID",
+      "key": "CORE_LOG_FLUSH_INTERVAL_MS",
+      "category": "invalid",
+      "inputs": {
+        "environment": {
+          "CORE_LOG_FLUSH_INTERVAL_MS": "1.5"
+        },
+        "setup": {},
+        "discovery": {
+          "applicationName": "Fixture.App",
+          "buildVersion": "2.3.4-rc.1+build.8"
+        }
+      },
+      "expected": {
+        "status": "Invalid",
+        "issues": [
+          {
+            "code": "InvalidToken",
+            "key": "CORE_LOG_FLUSH_INTERVAL_MS"
+          }
+        ]
+      }
+    },
+    {
+      "id": "CFG-LOG-FLUSH-INTERVAL-MS-CORE-BEATS-SETUP",
+      "key": "CORE_LOG_FLUSH_INTERVAL_MS",
+      "category": "precedence",
+      "inputs": {
+        "environment": {
+          "CORE_LOG_FLUSH_INTERVAL_MS": "1000"
+        },
+        "setup": {
+          "Logging.FlushIntervalMilliseconds": 1000
+        },
+        "discovery": {
+          "applicationName": "Fixture.App",
+          "buildVersion": "2.3.4-rc.1+build.8"
+        }
+      },
+      "expected": {
+        "status": "Resolved",
+        "value": 1000
+      }
+    },
+    {
+      "id": "CFG-LOG-FLUSH-INTERVAL-MS-INVALID-CORE-STOPS",
+      "key": "CORE_LOG_FLUSH_INTERVAL_MS",
+      "category": "precedence",
+      "inputs": {
+        "environment": {
+          "CORE_LOG_FLUSH_INTERVAL_MS": "1.5"
+        },
+        "setup": {
+          "Logging.FlushIntervalMilliseconds": 1000
+        },
+        "discovery": {
+          "applicationName": "Fixture.App",
+          "buildVersion": "2.3.4-rc.1+build.8"
+        }
+      },
+      "expected": {
+        "status": "Invalid",
+        "issues": [
+          {
+            "code": "InvalidToken",
+            "key": "CORE_LOG_FLUSH_INTERVAL_MS"
+          }
+        ]
+      }
+    },
+    {
+      "id": "CFG-LOG-FLUSH-INTERVAL-MS-BLANK-CORE-USES-SETUP",
+      "key": "CORE_LOG_FLUSH_INTERVAL_MS",
+      "category": "precedence",
+      "inputs": {
+        "environment": {
+          "CORE_LOG_FLUSH_INTERVAL_MS": " \t"
+        },
+        "setup": {
+          "Logging.FlushIntervalMilliseconds": 1000
+        },
+        "discovery": {
+          "applicationName": "Fixture.App",
+          "buildVersion": "2.3.4-rc.1+build.8"
+        }
+      },
+      "expected": {
+        "status": "Resolved",
+        "value": 1000
+      }
+    },
+    {
+      "id": "CFG-LOG-FLUSH-INTERVAL-MS-SETUP-BEATS-DISCOVERY",
+      "key": "CORE_LOG_FLUSH_INTERVAL_MS",
+      "category": "precedence",
+      "inputs": {
+        "environment": {},
+        "setup": {
+          "Logging.FlushIntervalMilliseconds": 1000
+        },
+        "discovery": {
+          "applicationName": "Fixture.App",
+          "buildVersion": "2.3.4-rc.1+build.8"
+        }
+      },
+      "expected": {
+        "status": "Resolved",
+        "value": 1000
+      }
+    },
+    {
+      "id": "CFG-LOG-SHUTDOWN-TIMEOUT-MS-ABSENT",
+      "key": "CORE_LOG_SHUTDOWN_TIMEOUT_MS",
+      "category": "absent",
+      "inputs": {
+        "environment": {},
+        "setup": {},
+        "discovery": {
+          "applicationName": "Fixture.App",
+          "buildVersion": "2.3.4-rc.1+build.8"
+        }
+      },
+      "expected": {
+        "status": "Resolved",
+        "value": 5000
+      }
+    },
+    {
+      "id": "CFG-LOG-SHUTDOWN-TIMEOUT-MS-BLANK-1",
+      "key": "CORE_LOG_SHUTDOWN_TIMEOUT_MS",
+      "category": "absent",
+      "inputs": {
+        "environment": {
+          "CORE_LOG_SHUTDOWN_TIMEOUT_MS": ""
+        },
+        "setup": {},
+        "discovery": {
+          "applicationName": "Fixture.App",
+          "buildVersion": "2.3.4-rc.1+build.8"
+        }
+      },
+      "expected": {
+        "status": "Resolved",
+        "value": 5000
+      }
+    },
+    {
+      "id": "CFG-LOG-SHUTDOWN-TIMEOUT-MS-BLANK-2",
+      "key": "CORE_LOG_SHUTDOWN_TIMEOUT_MS",
+      "category": "absent",
+      "inputs": {
+        "environment": {
+          "CORE_LOG_SHUTDOWN_TIMEOUT_MS": " "
+        },
+        "setup": {},
+        "discovery": {
+          "applicationName": "Fixture.App",
+          "buildVersion": "2.3.4-rc.1+build.8"
+        }
+      },
+      "expected": {
+        "status": "Resolved",
+        "value": 5000
+      }
+    },
+    {
+      "id": "CFG-LOG-SHUTDOWN-TIMEOUT-MS-BLANK-3",
+      "key": "CORE_LOG_SHUTDOWN_TIMEOUT_MS",
+      "category": "absent",
+      "inputs": {
+        "environment": {
+          "CORE_LOG_SHUTDOWN_TIMEOUT_MS": "\t\r\n"
+        },
+        "setup": {},
+        "discovery": {
+          "applicationName": "Fixture.App",
+          "buildVersion": "2.3.4-rc.1+build.8"
+        }
+      },
+      "expected": {
+        "status": "Resolved",
+        "value": 5000
+      }
+    },
+    {
+      "id": "CFG-LOG-SHUTDOWN-TIMEOUT-MS-BLANK-4",
+      "key": "CORE_LOG_SHUTDOWN_TIMEOUT_MS",
+      "category": "absent",
+      "inputs": {
+        "environment": {
+          "CORE_LOG_SHUTDOWN_TIMEOUT_MS": "  "
+        },
+        "setup": {},
+        "discovery": {
+          "applicationName": "Fixture.App",
+          "buildVersion": "2.3.4-rc.1+build.8"
+        }
+      },
+      "expected": {
+        "status": "Resolved",
+        "value": 5000
+      }
+    },
+    {
+      "id": "CFG-LOG-SHUTDOWN-TIMEOUT-MS-PLUS",
+      "key": "CORE_LOG_SHUTDOWN_TIMEOUT_MS",
+      "category": "valid",
+      "inputs": {
+        "environment": {
+          "CORE_LOG_SHUTDOWN_TIMEOUT_MS": " +5000 "
+        },
+        "setup": {},
+        "discovery": {
+          "applicationName": "Fixture.App",
+          "buildVersion": "2.3.4-rc.1+build.8"
+        }
+      },
+      "expected": {
+        "status": "Resolved",
+        "value": 5000
+      }
+    },
+    {
+      "id": "CFG-LOG-SHUTDOWN-TIMEOUT-MS-MIN",
+      "key": "CORE_LOG_SHUTDOWN_TIMEOUT_MS",
+      "category": "boundary",
+      "inputs": {
+        "environment": {
+          "CORE_LOG_SHUTDOWN_TIMEOUT_MS": "1"
+        },
+        "setup": {},
+        "discovery": {
+          "applicationName": "Fixture.App",
+          "buildVersion": "2.3.4-rc.1+build.8"
+        }
+      },
+      "expected": {
+        "status": "Resolved",
+        "value": 1
+      }
+    },
+    {
+      "id": "CFG-LOG-SHUTDOWN-TIMEOUT-MS-MAX",
+      "key": "CORE_LOG_SHUTDOWN_TIMEOUT_MS",
+      "category": "boundary",
+      "inputs": {
+        "environment": {
+          "CORE_LOG_SHUTDOWN_TIMEOUT_MS": "300000"
+        },
+        "setup": {},
+        "discovery": {
+          "applicationName": "Fixture.App",
+          "buildVersion": "2.3.4-rc.1+build.8"
+        }
+      },
+      "expected": {
+        "status": "Resolved",
+        "value": 300000
+      }
+    },
+    {
+      "id": "CFG-LOG-SHUTDOWN-TIMEOUT-MS-BELOW",
+      "key": "CORE_LOG_SHUTDOWN_TIMEOUT_MS",
+      "category": "boundary",
+      "inputs": {
+        "environment": {
+          "CORE_LOG_SHUTDOWN_TIMEOUT_MS": "0"
+        },
+        "setup": {},
+        "discovery": {
+          "applicationName": "Fixture.App",
+          "buildVersion": "2.3.4-rc.1+build.8"
+        }
+      },
+      "expected": {
+        "status": "Invalid",
+        "issues": [
+          {
+            "code": "OutOfRange",
+            "key": "CORE_LOG_SHUTDOWN_TIMEOUT_MS"
+          }
+        ]
+      }
+    },
+    {
+      "id": "CFG-LOG-SHUTDOWN-TIMEOUT-MS-ABOVE",
+      "key": "CORE_LOG_SHUTDOWN_TIMEOUT_MS",
+      "category": "boundary",
+      "inputs": {
+        "environment": {
+          "CORE_LOG_SHUTDOWN_TIMEOUT_MS": "300001"
+        },
+        "setup": {},
+        "discovery": {
+          "applicationName": "Fixture.App",
+          "buildVersion": "2.3.4-rc.1+build.8"
+        }
+      },
+      "expected": {
+        "status": "Invalid",
+        "issues": [
+          {
+            "code": "OutOfRange",
+            "key": "CORE_LOG_SHUTDOWN_TIMEOUT_MS"
+          }
+        ]
+      }
+    },
+    {
+      "id": "CFG-LOG-SHUTDOWN-TIMEOUT-MS-INTEGER-1",
+      "key": "CORE_LOG_SHUTDOWN_TIMEOUT_MS",
+      "category": "invalid",
+      "inputs": {
+        "environment": {
+          "CORE_LOG_SHUTDOWN_TIMEOUT_MS": "1,000"
+        },
+        "setup": {},
+        "discovery": {
+          "applicationName": "Fixture.App",
+          "buildVersion": "2.3.4-rc.1+build.8"
+        }
+      },
+      "expected": {
+        "status": "Invalid",
+        "issues": [
+          {
+            "code": "InvalidToken",
+            "key": "CORE_LOG_SHUTDOWN_TIMEOUT_MS"
+          }
+        ]
+      }
+    },
+    {
+      "id": "CFG-LOG-SHUTDOWN-TIMEOUT-MS-INTEGER-2",
+      "key": "CORE_LOG_SHUTDOWN_TIMEOUT_MS",
+      "category": "invalid",
+      "inputs": {
+        "environment": {
+          "CORE_LOG_SHUTDOWN_TIMEOUT_MS": "1e3"
+        },
+        "setup": {},
+        "discovery": {
+          "applicationName": "Fixture.App",
+          "buildVersion": "2.3.4-rc.1+build.8"
+        }
+      },
+      "expected": {
+        "status": "Invalid",
+        "issues": [
+          {
+            "code": "InvalidToken",
+            "key": "CORE_LOG_SHUTDOWN_TIMEOUT_MS"
+          }
+        ]
+      }
+    },
+    {
+      "id": "CFG-LOG-SHUTDOWN-TIMEOUT-MS-INTEGER-3",
+      "key": "CORE_LOG_SHUTDOWN_TIMEOUT_MS",
+      "category": "invalid",
+      "inputs": {
+        "environment": {
+          "CORE_LOG_SHUTDOWN_TIMEOUT_MS": "0x1000"
+        },
+        "setup": {},
+        "discovery": {
+          "applicationName": "Fixture.App",
+          "buildVersion": "2.3.4-rc.1+build.8"
+        }
+      },
+      "expected": {
+        "status": "Invalid",
+        "issues": [
+          {
+            "code": "InvalidToken",
+            "key": "CORE_LOG_SHUTDOWN_TIMEOUT_MS"
+          }
+        ]
+      }
+    },
+    {
+      "id": "CFG-LOG-SHUTDOWN-TIMEOUT-MS-INTEGER-4",
+      "key": "CORE_LOG_SHUTDOWN_TIMEOUT_MS",
+      "category": "invalid",
+      "inputs": {
+        "environment": {
+          "CORE_LOG_SHUTDOWN_TIMEOUT_MS": "999999999999999999999999999"
+        },
+        "setup": {},
+        "discovery": {
+          "applicationName": "Fixture.App",
+          "buildVersion": "2.3.4-rc.1+build.8"
+        }
+      },
+      "expected": {
+        "status": "Invalid",
+        "issues": [
+          {
+            "code": "OutOfRange",
+            "key": "CORE_LOG_SHUTDOWN_TIMEOUT_MS"
+          }
+        ]
+      }
+    },
+    {
+      "id": "CFG-LOG-SHUTDOWN-TIMEOUT-MS-EXPLICIT",
+      "key": "CORE_LOG_SHUTDOWN_TIMEOUT_MS",
+      "category": "valid",
+      "inputs": {
+        "environment": {
+          "CORE_LOG_SHUTDOWN_TIMEOUT_MS": "5000"
+        },
+        "setup": {},
+        "discovery": {
+          "applicationName": "Fixture.App",
+          "buildVersion": "2.3.4-rc.1+build.8"
+        }
+      },
+      "expected": {
+        "status": "Resolved",
+        "value": 5000
+      }
+    },
+    {
+      "id": "CFG-LOG-SHUTDOWN-TIMEOUT-MS-INVALID",
+      "key": "CORE_LOG_SHUTDOWN_TIMEOUT_MS",
+      "category": "invalid",
+      "inputs": {
+        "environment": {
+          "CORE_LOG_SHUTDOWN_TIMEOUT_MS": "1.5"
+        },
+        "setup": {},
+        "discovery": {
+          "applicationName": "Fixture.App",
+          "buildVersion": "2.3.4-rc.1+build.8"
+        }
+      },
+      "expected": {
+        "status": "Invalid",
+        "issues": [
+          {
+            "code": "InvalidToken",
+            "key": "CORE_LOG_SHUTDOWN_TIMEOUT_MS"
+          }
+        ]
+      }
+    },
+    {
+      "id": "CFG-LOG-SHUTDOWN-TIMEOUT-MS-CORE-BEATS-SETUP",
+      "key": "CORE_LOG_SHUTDOWN_TIMEOUT_MS",
+      "category": "precedence",
+      "inputs": {
+        "environment": {
+          "CORE_LOG_SHUTDOWN_TIMEOUT_MS": "5000"
+        },
+        "setup": {
+          "Logging.ShutdownTimeoutMilliseconds": 5000
+        },
+        "discovery": {
+          "applicationName": "Fixture.App",
+          "buildVersion": "2.3.4-rc.1+build.8"
+        }
+      },
+      "expected": {
+        "status": "Resolved",
+        "value": 5000
+      }
+    },
+    {
+      "id": "CFG-LOG-SHUTDOWN-TIMEOUT-MS-INVALID-CORE-STOPS",
+      "key": "CORE_LOG_SHUTDOWN_TIMEOUT_MS",
+      "category": "precedence",
+      "inputs": {
+        "environment": {
+          "CORE_LOG_SHUTDOWN_TIMEOUT_MS": "1.5"
+        },
+        "setup": {
+          "Logging.ShutdownTimeoutMilliseconds": 5000
+        },
+        "discovery": {
+          "applicationName": "Fixture.App",
+          "buildVersion": "2.3.4-rc.1+build.8"
+        }
+      },
+      "expected": {
+        "status": "Invalid",
+        "issues": [
+          {
+            "code": "InvalidToken",
+            "key": "CORE_LOG_SHUTDOWN_TIMEOUT_MS"
+          }
+        ]
+      }
+    },
+    {
+      "id": "CFG-LOG-SHUTDOWN-TIMEOUT-MS-BLANK-CORE-USES-SETUP",
+      "key": "CORE_LOG_SHUTDOWN_TIMEOUT_MS",
+      "category": "precedence",
+      "inputs": {
+        "environment": {
+          "CORE_LOG_SHUTDOWN_TIMEOUT_MS": " \t"
+        },
+        "setup": {
+          "Logging.ShutdownTimeoutMilliseconds": 5000
+        },
+        "discovery": {
+          "applicationName": "Fixture.App",
+          "buildVersion": "2.3.4-rc.1+build.8"
+        }
+      },
+      "expected": {
+        "status": "Resolved",
+        "value": 5000
+      }
+    },
+    {
+      "id": "CFG-LOG-SHUTDOWN-TIMEOUT-MS-SETUP-BEATS-DISCOVERY",
+      "key": "CORE_LOG_SHUTDOWN_TIMEOUT_MS",
+      "category": "precedence",
+      "inputs": {
+        "environment": {},
+        "setup": {
+          "Logging.ShutdownTimeoutMilliseconds": 5000
+        },
+        "discovery": {
+          "applicationName": "Fixture.App",
+          "buildVersion": "2.3.4-rc.1+build.8"
+        }
+      },
+      "expected": {
+        "status": "Resolved",
+        "value": 5000
+      }
+    },
+    {
+      "id": "CFG-LOG-FILE-MAX-BYTES-ABSENT",
+      "key": "CORE_LOG_FILE_MAX_BYTES",
+      "category": "absent",
+      "inputs": {
+        "environment": {},
+        "setup": {},
+        "discovery": {
+          "applicationName": "Fixture.App",
+          "buildVersion": "2.3.4-rc.1+build.8"
+        }
+      },
+      "expected": {
+        "status": "Resolved",
+        "value": 10485760
+      }
+    },
+    {
+      "id": "CFG-LOG-FILE-MAX-BYTES-BLANK-1",
+      "key": "CORE_LOG_FILE_MAX_BYTES",
+      "category": "absent",
+      "inputs": {
+        "environment": {
+          "CORE_LOG_FILE_MAX_BYTES": ""
+        },
+        "setup": {},
+        "discovery": {
+          "applicationName": "Fixture.App",
+          "buildVersion": "2.3.4-rc.1+build.8"
+        }
+      },
+      "expected": {
+        "status": "Resolved",
+        "value": 10485760
+      }
+    },
+    {
+      "id": "CFG-LOG-FILE-MAX-BYTES-BLANK-2",
+      "key": "CORE_LOG_FILE_MAX_BYTES",
+      "category": "absent",
+      "inputs": {
+        "environment": {
+          "CORE_LOG_FILE_MAX_BYTES": " "
+        },
+        "setup": {},
+        "discovery": {
+          "applicationName": "Fixture.App",
+          "buildVersion": "2.3.4-rc.1+build.8"
+        }
+      },
+      "expected": {
+        "status": "Resolved",
+        "value": 10485760
+      }
+    },
+    {
+      "id": "CFG-LOG-FILE-MAX-BYTES-BLANK-3",
+      "key": "CORE_LOG_FILE_MAX_BYTES",
+      "category": "absent",
+      "inputs": {
+        "environment": {
+          "CORE_LOG_FILE_MAX_BYTES": "\t\r\n"
+        },
+        "setup": {},
+        "discovery": {
+          "applicationName": "Fixture.App",
+          "buildVersion": "2.3.4-rc.1+build.8"
+        }
+      },
+      "expected": {
+        "status": "Resolved",
+        "value": 10485760
+      }
+    },
+    {
+      "id": "CFG-LOG-FILE-MAX-BYTES-BLANK-4",
+      "key": "CORE_LOG_FILE_MAX_BYTES",
+      "category": "absent",
+      "inputs": {
+        "environment": {
+          "CORE_LOG_FILE_MAX_BYTES": "  "
+        },
+        "setup": {},
+        "discovery": {
+          "applicationName": "Fixture.App",
+          "buildVersion": "2.3.4-rc.1+build.8"
+        }
+      },
+      "expected": {
+        "status": "Resolved",
+        "value": 10485760
+      }
+    },
+    {
+      "id": "CFG-LOG-FILE-MAX-BYTES-PLUS",
+      "key": "CORE_LOG_FILE_MAX_BYTES",
+      "category": "valid",
+      "inputs": {
+        "environment": {
+          "CORE_LOG_FILE_MAX_BYTES": " +10485760 "
+        },
+        "setup": {},
+        "discovery": {
+          "applicationName": "Fixture.App",
+          "buildVersion": "2.3.4-rc.1+build.8"
+        }
+      },
+      "expected": {
+        "status": "Resolved",
+        "value": 10485760
+      }
+    },
+    {
+      "id": "CFG-LOG-FILE-MAX-BYTES-MIN",
+      "key": "CORE_LOG_FILE_MAX_BYTES",
+      "category": "boundary",
+      "inputs": {
+        "environment": {
+          "CORE_LOG_FILE_MAX_BYTES": "65536"
+        },
+        "setup": {},
+        "discovery": {
+          "applicationName": "Fixture.App",
+          "buildVersion": "2.3.4-rc.1+build.8"
+        }
+      },
+      "expected": {
+        "status": "Resolved",
+        "value": 65536
+      }
+    },
+    {
+      "id": "CFG-LOG-FILE-MAX-BYTES-MAX",
+      "key": "CORE_LOG_FILE_MAX_BYTES",
+      "category": "boundary",
+      "inputs": {
+        "environment": {
+          "CORE_LOG_FILE_MAX_BYTES": "1073741824"
+        },
+        "setup": {},
+        "discovery": {
+          "applicationName": "Fixture.App",
+          "buildVersion": "2.3.4-rc.1+build.8"
+        }
+      },
+      "expected": {
+        "status": "Resolved",
+        "value": 1073741824
+      }
+    },
+    {
+      "id": "CFG-LOG-FILE-MAX-BYTES-BELOW",
+      "key": "CORE_LOG_FILE_MAX_BYTES",
+      "category": "boundary",
+      "inputs": {
+        "environment": {
+          "CORE_LOG_FILE_MAX_BYTES": "65535"
+        },
+        "setup": {},
+        "discovery": {
+          "applicationName": "Fixture.App",
+          "buildVersion": "2.3.4-rc.1+build.8"
+        }
+      },
+      "expected": {
+        "status": "Invalid",
+        "issues": [
+          {
+            "code": "OutOfRange",
+            "key": "CORE_LOG_FILE_MAX_BYTES"
+          }
+        ]
+      }
+    },
+    {
+      "id": "CFG-LOG-FILE-MAX-BYTES-ABOVE",
+      "key": "CORE_LOG_FILE_MAX_BYTES",
+      "category": "boundary",
+      "inputs": {
+        "environment": {
+          "CORE_LOG_FILE_MAX_BYTES": "1073741825"
+        },
+        "setup": {},
+        "discovery": {
+          "applicationName": "Fixture.App",
+          "buildVersion": "2.3.4-rc.1+build.8"
+        }
+      },
+      "expected": {
+        "status": "Invalid",
+        "issues": [
+          {
+            "code": "OutOfRange",
+            "key": "CORE_LOG_FILE_MAX_BYTES"
+          }
+        ]
+      }
+    },
+    {
+      "id": "CFG-LOG-FILE-MAX-BYTES-INTEGER-1",
+      "key": "CORE_LOG_FILE_MAX_BYTES",
+      "category": "invalid",
+      "inputs": {
+        "environment": {
+          "CORE_LOG_FILE_MAX_BYTES": "1,000"
+        },
+        "setup": {},
+        "discovery": {
+          "applicationName": "Fixture.App",
+          "buildVersion": "2.3.4-rc.1+build.8"
+        }
+      },
+      "expected": {
+        "status": "Invalid",
+        "issues": [
+          {
+            "code": "InvalidToken",
+            "key": "CORE_LOG_FILE_MAX_BYTES"
+          }
+        ]
+      }
+    },
+    {
+      "id": "CFG-LOG-FILE-MAX-BYTES-INTEGER-2",
+      "key": "CORE_LOG_FILE_MAX_BYTES",
+      "category": "invalid",
+      "inputs": {
+        "environment": {
+          "CORE_LOG_FILE_MAX_BYTES": "1e3"
+        },
+        "setup": {},
+        "discovery": {
+          "applicationName": "Fixture.App",
+          "buildVersion": "2.3.4-rc.1+build.8"
+        }
+      },
+      "expected": {
+        "status": "Invalid",
+        "issues": [
+          {
+            "code": "InvalidToken",
+            "key": "CORE_LOG_FILE_MAX_BYTES"
+          }
+        ]
+      }
+    },
+    {
+      "id": "CFG-LOG-FILE-MAX-BYTES-INTEGER-3",
+      "key": "CORE_LOG_FILE_MAX_BYTES",
+      "category": "invalid",
+      "inputs": {
+        "environment": {
+          "CORE_LOG_FILE_MAX_BYTES": "0x1000"
+        },
+        "setup": {},
+        "discovery": {
+          "applicationName": "Fixture.App",
+          "buildVersion": "2.3.4-rc.1+build.8"
+        }
+      },
+      "expected": {
+        "status": "Invalid",
+        "issues": [
+          {
+            "code": "InvalidToken",
+            "key": "CORE_LOG_FILE_MAX_BYTES"
+          }
+        ]
+      }
+    },
+    {
+      "id": "CFG-LOG-FILE-MAX-BYTES-INTEGER-4",
+      "key": "CORE_LOG_FILE_MAX_BYTES",
+      "category": "invalid",
+      "inputs": {
+        "environment": {
+          "CORE_LOG_FILE_MAX_BYTES": "999999999999999999999999999"
+        },
+        "setup": {},
+        "discovery": {
+          "applicationName": "Fixture.App",
+          "buildVersion": "2.3.4-rc.1+build.8"
+        }
+      },
+      "expected": {
+        "status": "Invalid",
+        "issues": [
+          {
+            "code": "OutOfRange",
+            "key": "CORE_LOG_FILE_MAX_BYTES"
+          }
+        ]
+      }
+    },
+    {
+      "id": "CFG-LOG-FILE-MAX-BYTES-EXPLICIT",
+      "key": "CORE_LOG_FILE_MAX_BYTES",
+      "category": "valid",
+      "inputs": {
+        "environment": {
+          "CORE_LOG_FILE_MAX_BYTES": "10485760"
+        },
+        "setup": {},
+        "discovery": {
+          "applicationName": "Fixture.App",
+          "buildVersion": "2.3.4-rc.1+build.8"
+        }
+      },
+      "expected": {
+        "status": "Resolved",
+        "value": 10485760
+      }
+    },
+    {
+      "id": "CFG-LOG-FILE-MAX-BYTES-INVALID",
+      "key": "CORE_LOG_FILE_MAX_BYTES",
+      "category": "invalid",
+      "inputs": {
+        "environment": {
+          "CORE_LOG_FILE_MAX_BYTES": "1.5"
+        },
+        "setup": {},
+        "discovery": {
+          "applicationName": "Fixture.App",
+          "buildVersion": "2.3.4-rc.1+build.8"
+        }
+      },
+      "expected": {
+        "status": "Invalid",
+        "issues": [
+          {
+            "code": "InvalidToken",
+            "key": "CORE_LOG_FILE_MAX_BYTES"
+          }
+        ]
+      }
+    },
+    {
+      "id": "CFG-LOG-FILE-MAX-BYTES-CORE-BEATS-SETUP",
+      "key": "CORE_LOG_FILE_MAX_BYTES",
+      "category": "precedence",
+      "inputs": {
+        "environment": {
+          "CORE_LOG_FILE_MAX_BYTES": "10485760"
+        },
+        "setup": {
+          "Logging.FileMaxBytes": 10485760
+        },
+        "discovery": {
+          "applicationName": "Fixture.App",
+          "buildVersion": "2.3.4-rc.1+build.8"
+        }
+      },
+      "expected": {
+        "status": "Resolved",
+        "value": 10485760
+      }
+    },
+    {
+      "id": "CFG-LOG-FILE-MAX-BYTES-INVALID-CORE-STOPS",
+      "key": "CORE_LOG_FILE_MAX_BYTES",
+      "category": "precedence",
+      "inputs": {
+        "environment": {
+          "CORE_LOG_FILE_MAX_BYTES": "1.5"
+        },
+        "setup": {
+          "Logging.FileMaxBytes": 10485760
+        },
+        "discovery": {
+          "applicationName": "Fixture.App",
+          "buildVersion": "2.3.4-rc.1+build.8"
+        }
+      },
+      "expected": {
+        "status": "Invalid",
+        "issues": [
+          {
+            "code": "InvalidToken",
+            "key": "CORE_LOG_FILE_MAX_BYTES"
+          }
+        ]
+      }
+    },
+    {
+      "id": "CFG-LOG-FILE-MAX-BYTES-BLANK-CORE-USES-SETUP",
+      "key": "CORE_LOG_FILE_MAX_BYTES",
+      "category": "precedence",
+      "inputs": {
+        "environment": {
+          "CORE_LOG_FILE_MAX_BYTES": " \t"
+        },
+        "setup": {
+          "Logging.FileMaxBytes": 10485760
+        },
+        "discovery": {
+          "applicationName": "Fixture.App",
+          "buildVersion": "2.3.4-rc.1+build.8"
+        }
+      },
+      "expected": {
+        "status": "Resolved",
+        "value": 10485760
+      }
+    },
+    {
+      "id": "CFG-LOG-FILE-MAX-BYTES-SETUP-BEATS-DISCOVERY",
+      "key": "CORE_LOG_FILE_MAX_BYTES",
+      "category": "precedence",
+      "inputs": {
+        "environment": {},
+        "setup": {
+          "Logging.FileMaxBytes": 10485760
+        },
+        "discovery": {
+          "applicationName": "Fixture.App",
+          "buildVersion": "2.3.4-rc.1+build.8"
+        }
+      },
+      "expected": {
+        "status": "Resolved",
+        "value": 10485760
+      }
+    },
+    {
+      "id": "CFG-LOG-FILE-RETAINED-FILES-ABSENT",
+      "key": "CORE_LOG_FILE_RETAINED_FILES",
+      "category": "absent",
+      "inputs": {
+        "environment": {},
+        "setup": {},
+        "discovery": {
+          "applicationName": "Fixture.App",
+          "buildVersion": "2.3.4-rc.1+build.8"
+        }
+      },
+      "expected": {
+        "status": "Resolved",
+        "value": 10
+      }
+    },
+    {
+      "id": "CFG-LOG-FILE-RETAINED-FILES-BLANK-1",
+      "key": "CORE_LOG_FILE_RETAINED_FILES",
+      "category": "absent",
+      "inputs": {
+        "environment": {
+          "CORE_LOG_FILE_RETAINED_FILES": ""
+        },
+        "setup": {},
+        "discovery": {
+          "applicationName": "Fixture.App",
+          "buildVersion": "2.3.4-rc.1+build.8"
+        }
+      },
+      "expected": {
+        "status": "Resolved",
+        "value": 10
+      }
+    },
+    {
+      "id": "CFG-LOG-FILE-RETAINED-FILES-BLANK-2",
+      "key": "CORE_LOG_FILE_RETAINED_FILES",
+      "category": "absent",
+      "inputs": {
+        "environment": {
+          "CORE_LOG_FILE_RETAINED_FILES": " "
+        },
+        "setup": {},
+        "discovery": {
+          "applicationName": "Fixture.App",
+          "buildVersion": "2.3.4-rc.1+build.8"
+        }
+      },
+      "expected": {
+        "status": "Resolved",
+        "value": 10
+      }
+    },
+    {
+      "id": "CFG-LOG-FILE-RETAINED-FILES-BLANK-3",
+      "key": "CORE_LOG_FILE_RETAINED_FILES",
+      "category": "absent",
+      "inputs": {
+        "environment": {
+          "CORE_LOG_FILE_RETAINED_FILES": "\t\r\n"
+        },
+        "setup": {},
+        "discovery": {
+          "applicationName": "Fixture.App",
+          "buildVersion": "2.3.4-rc.1+build.8"
+        }
+      },
+      "expected": {
+        "status": "Resolved",
+        "value": 10
+      }
+    },
+    {
+      "id": "CFG-LOG-FILE-RETAINED-FILES-BLANK-4",
+      "key": "CORE_LOG_FILE_RETAINED_FILES",
+      "category": "absent",
+      "inputs": {
+        "environment": {
+          "CORE_LOG_FILE_RETAINED_FILES": "  "
+        },
+        "setup": {},
+        "discovery": {
+          "applicationName": "Fixture.App",
+          "buildVersion": "2.3.4-rc.1+build.8"
+        }
+      },
+      "expected": {
+        "status": "Resolved",
+        "value": 10
+      }
+    },
+    {
+      "id": "CFG-LOG-FILE-RETAINED-FILES-PLUS",
+      "key": "CORE_LOG_FILE_RETAINED_FILES",
+      "category": "valid",
+      "inputs": {
+        "environment": {
+          "CORE_LOG_FILE_RETAINED_FILES": " +10 "
+        },
+        "setup": {},
+        "discovery": {
+          "applicationName": "Fixture.App",
+          "buildVersion": "2.3.4-rc.1+build.8"
+        }
+      },
+      "expected": {
+        "status": "Resolved",
+        "value": 10
+      }
+    },
+    {
+      "id": "CFG-LOG-FILE-RETAINED-FILES-MIN",
+      "key": "CORE_LOG_FILE_RETAINED_FILES",
+      "category": "boundary",
+      "inputs": {
+        "environment": {
+          "CORE_LOG_FILE_RETAINED_FILES": "1"
+        },
+        "setup": {},
+        "discovery": {
+          "applicationName": "Fixture.App",
+          "buildVersion": "2.3.4-rc.1+build.8"
+        }
+      },
+      "expected": {
+        "status": "Resolved",
+        "value": 1
+      }
+    },
+    {
+      "id": "CFG-LOG-FILE-RETAINED-FILES-MAX",
+      "key": "CORE_LOG_FILE_RETAINED_FILES",
+      "category": "boundary",
+      "inputs": {
+        "environment": {
+          "CORE_LOG_FILE_RETAINED_FILES": "1000"
+        },
+        "setup": {},
+        "discovery": {
+          "applicationName": "Fixture.App",
+          "buildVersion": "2.3.4-rc.1+build.8"
+        }
+      },
+      "expected": {
+        "status": "Resolved",
+        "value": 1000
+      }
+    },
+    {
+      "id": "CFG-LOG-FILE-RETAINED-FILES-BELOW",
+      "key": "CORE_LOG_FILE_RETAINED_FILES",
+      "category": "boundary",
+      "inputs": {
+        "environment": {
+          "CORE_LOG_FILE_RETAINED_FILES": "0"
+        },
+        "setup": {},
+        "discovery": {
+          "applicationName": "Fixture.App",
+          "buildVersion": "2.3.4-rc.1+build.8"
+        }
+      },
+      "expected": {
+        "status": "Invalid",
+        "issues": [
+          {
+            "code": "OutOfRange",
+            "key": "CORE_LOG_FILE_RETAINED_FILES"
+          }
+        ]
+      }
+    },
+    {
+      "id": "CFG-LOG-FILE-RETAINED-FILES-ABOVE",
+      "key": "CORE_LOG_FILE_RETAINED_FILES",
+      "category": "boundary",
+      "inputs": {
+        "environment": {
+          "CORE_LOG_FILE_RETAINED_FILES": "1001"
+        },
+        "setup": {},
+        "discovery": {
+          "applicationName": "Fixture.App",
+          "buildVersion": "2.3.4-rc.1+build.8"
+        }
+      },
+      "expected": {
+        "status": "Invalid",
+        "issues": [
+          {
+            "code": "OutOfRange",
+            "key": "CORE_LOG_FILE_RETAINED_FILES"
+          }
+        ]
+      }
+    },
+    {
+      "id": "CFG-LOG-FILE-RETAINED-FILES-INTEGER-1",
+      "key": "CORE_LOG_FILE_RETAINED_FILES",
+      "category": "invalid",
+      "inputs": {
+        "environment": {
+          "CORE_LOG_FILE_RETAINED_FILES": "1,000"
+        },
+        "setup": {},
+        "discovery": {
+          "applicationName": "Fixture.App",
+          "buildVersion": "2.3.4-rc.1+build.8"
+        }
+      },
+      "expected": {
+        "status": "Invalid",
+        "issues": [
+          {
+            "code": "InvalidToken",
+            "key": "CORE_LOG_FILE_RETAINED_FILES"
+          }
+        ]
+      }
+    },
+    {
+      "id": "CFG-LOG-FILE-RETAINED-FILES-INTEGER-2",
+      "key": "CORE_LOG_FILE_RETAINED_FILES",
+      "category": "invalid",
+      "inputs": {
+        "environment": {
+          "CORE_LOG_FILE_RETAINED_FILES": "1e3"
+        },
+        "setup": {},
+        "discovery": {
+          "applicationName": "Fixture.App",
+          "buildVersion": "2.3.4-rc.1+build.8"
+        }
+      },
+      "expected": {
+        "status": "Invalid",
+        "issues": [
+          {
+            "code": "InvalidToken",
+            "key": "CORE_LOG_FILE_RETAINED_FILES"
+          }
+        ]
+      }
+    },
+    {
+      "id": "CFG-LOG-FILE-RETAINED-FILES-INTEGER-3",
+      "key": "CORE_LOG_FILE_RETAINED_FILES",
+      "category": "invalid",
+      "inputs": {
+        "environment": {
+          "CORE_LOG_FILE_RETAINED_FILES": "0x1000"
+        },
+        "setup": {},
+        "discovery": {
+          "applicationName": "Fixture.App",
+          "buildVersion": "2.3.4-rc.1+build.8"
+        }
+      },
+      "expected": {
+        "status": "Invalid",
+        "issues": [
+          {
+            "code": "InvalidToken",
+            "key": "CORE_LOG_FILE_RETAINED_FILES"
+          }
+        ]
+      }
+    },
+    {
+      "id": "CFG-LOG-FILE-RETAINED-FILES-INTEGER-4",
+      "key": "CORE_LOG_FILE_RETAINED_FILES",
+      "category": "invalid",
+      "inputs": {
+        "environment": {
+          "CORE_LOG_FILE_RETAINED_FILES": "999999999999999999999999999"
+        },
+        "setup": {},
+        "discovery": {
+          "applicationName": "Fixture.App",
+          "buildVersion": "2.3.4-rc.1+build.8"
+        }
+      },
+      "expected": {
+        "status": "Invalid",
+        "issues": [
+          {
+            "code": "OutOfRange",
+            "key": "CORE_LOG_FILE_RETAINED_FILES"
+          }
+        ]
+      }
+    },
+    {
+      "id": "CFG-LOG-FILE-RETAINED-FILES-EXPLICIT",
+      "key": "CORE_LOG_FILE_RETAINED_FILES",
+      "category": "valid",
+      "inputs": {
+        "environment": {
+          "CORE_LOG_FILE_RETAINED_FILES": "10"
+        },
+        "setup": {},
+        "discovery": {
+          "applicationName": "Fixture.App",
+          "buildVersion": "2.3.4-rc.1+build.8"
+        }
+      },
+      "expected": {
+        "status": "Resolved",
+        "value": 10
+      }
+    },
+    {
+      "id": "CFG-LOG-FILE-RETAINED-FILES-INVALID",
+      "key": "CORE_LOG_FILE_RETAINED_FILES",
+      "category": "invalid",
+      "inputs": {
+        "environment": {
+          "CORE_LOG_FILE_RETAINED_FILES": "1.5"
+        },
+        "setup": {},
+        "discovery": {
+          "applicationName": "Fixture.App",
+          "buildVersion": "2.3.4-rc.1+build.8"
+        }
+      },
+      "expected": {
+        "status": "Invalid",
+        "issues": [
+          {
+            "code": "InvalidToken",
+            "key": "CORE_LOG_FILE_RETAINED_FILES"
+          }
+        ]
+      }
+    },
+    {
+      "id": "CFG-LOG-FILE-RETAINED-FILES-CORE-BEATS-SETUP",
+      "key": "CORE_LOG_FILE_RETAINED_FILES",
+      "category": "precedence",
+      "inputs": {
+        "environment": {
+          "CORE_LOG_FILE_RETAINED_FILES": "10"
+        },
+        "setup": {
+          "Logging.FileRetainedFiles": 10
+        },
+        "discovery": {
+          "applicationName": "Fixture.App",
+          "buildVersion": "2.3.4-rc.1+build.8"
+        }
+      },
+      "expected": {
+        "status": "Resolved",
+        "value": 10
+      }
+    },
+    {
+      "id": "CFG-LOG-FILE-RETAINED-FILES-INVALID-CORE-STOPS",
+      "key": "CORE_LOG_FILE_RETAINED_FILES",
+      "category": "precedence",
+      "inputs": {
+        "environment": {
+          "CORE_LOG_FILE_RETAINED_FILES": "1.5"
+        },
+        "setup": {
+          "Logging.FileRetainedFiles": 10
+        },
+        "discovery": {
+          "applicationName": "Fixture.App",
+          "buildVersion": "2.3.4-rc.1+build.8"
+        }
+      },
+      "expected": {
+        "status": "Invalid",
+        "issues": [
+          {
+            "code": "InvalidToken",
+            "key": "CORE_LOG_FILE_RETAINED_FILES"
+          }
+        ]
+      }
+    },
+    {
+      "id": "CFG-LOG-FILE-RETAINED-FILES-BLANK-CORE-USES-SETUP",
+      "key": "CORE_LOG_FILE_RETAINED_FILES",
+      "category": "precedence",
+      "inputs": {
+        "environment": {
+          "CORE_LOG_FILE_RETAINED_FILES": " \t"
+        },
+        "setup": {
+          "Logging.FileRetainedFiles": 10
+        },
+        "discovery": {
+          "applicationName": "Fixture.App",
+          "buildVersion": "2.3.4-rc.1+build.8"
+        }
+      },
+      "expected": {
+        "status": "Resolved",
+        "value": 10
+      }
+    },
+    {
+      "id": "CFG-LOG-FILE-RETAINED-FILES-SETUP-BEATS-DISCOVERY",
+      "key": "CORE_LOG_FILE_RETAINED_FILES",
+      "category": "precedence",
+      "inputs": {
+        "environment": {},
+        "setup": {
+          "Logging.FileRetainedFiles": 10
+        },
+        "discovery": {
+          "applicationName": "Fixture.App",
+          "buildVersion": "2.3.4-rc.1+build.8"
+        }
+      },
+      "expected": {
+        "status": "Resolved",
+        "value": 10
+      }
+    },
+    {
+      "id": "CFG-LOG-SCHEMA-VERSION-ABSENT",
+      "key": "CORE_LOG_SCHEMA_VERSION",
+      "category": "absent",
+      "inputs": {
+        "environment": {},
+        "setup": {},
+        "discovery": {
+          "applicationName": "Fixture.App",
+          "buildVersion": "2.3.4-rc.1+build.8"
+        }
+      },
+      "expected": {
+        "status": "Resolved",
+        "value": 1
+      }
+    },
+    {
+      "id": "CFG-LOG-SCHEMA-VERSION-BLANK-1",
+      "key": "CORE_LOG_SCHEMA_VERSION",
+      "category": "absent",
+      "inputs": {
+        "environment": {
+          "CORE_LOG_SCHEMA_VERSION": ""
+        },
+        "setup": {},
+        "discovery": {
+          "applicationName": "Fixture.App",
+          "buildVersion": "2.3.4-rc.1+build.8"
+        }
+      },
+      "expected": {
+        "status": "Resolved",
+        "value": 1
+      }
+    },
+    {
+      "id": "CFG-LOG-SCHEMA-VERSION-BLANK-2",
+      "key": "CORE_LOG_SCHEMA_VERSION",
+      "category": "absent",
+      "inputs": {
+        "environment": {
+          "CORE_LOG_SCHEMA_VERSION": " "
+        },
+        "setup": {},
+        "discovery": {
+          "applicationName": "Fixture.App",
+          "buildVersion": "2.3.4-rc.1+build.8"
+        }
+      },
+      "expected": {
+        "status": "Resolved",
+        "value": 1
+      }
+    },
+    {
+      "id": "CFG-LOG-SCHEMA-VERSION-BLANK-3",
+      "key": "CORE_LOG_SCHEMA_VERSION",
+      "category": "absent",
+      "inputs": {
+        "environment": {
+          "CORE_LOG_SCHEMA_VERSION": "\t\r\n"
+        },
+        "setup": {},
+        "discovery": {
+          "applicationName": "Fixture.App",
+          "buildVersion": "2.3.4-rc.1+build.8"
+        }
+      },
+      "expected": {
+        "status": "Resolved",
+        "value": 1
+      }
+    },
+    {
+      "id": "CFG-LOG-SCHEMA-VERSION-BLANK-4",
+      "key": "CORE_LOG_SCHEMA_VERSION",
+      "category": "absent",
+      "inputs": {
+        "environment": {
+          "CORE_LOG_SCHEMA_VERSION": "  "
+        },
+        "setup": {},
+        "discovery": {
+          "applicationName": "Fixture.App",
+          "buildVersion": "2.3.4-rc.1+build.8"
+        }
+      },
+      "expected": {
+        "status": "Resolved",
+        "value": 1
+      }
+    },
+    {
+      "id": "CFG-LOG-SCHEMA-VERSION-PLUS",
+      "key": "CORE_LOG_SCHEMA_VERSION",
+      "category": "valid",
+      "inputs": {
+        "environment": {
+          "CORE_LOG_SCHEMA_VERSION": " +1 "
+        },
+        "setup": {},
+        "discovery": {
+          "applicationName": "Fixture.App",
+          "buildVersion": "2.3.4-rc.1+build.8"
+        }
+      },
+      "expected": {
+        "status": "Resolved",
+        "value": 1
+      }
+    },
+    {
+      "id": "CFG-LOG-SCHEMA-VERSION-MIN",
+      "key": "CORE_LOG_SCHEMA_VERSION",
+      "category": "boundary",
+      "inputs": {
+        "environment": {
+          "CORE_LOG_SCHEMA_VERSION": "1"
+        },
+        "setup": {},
+        "discovery": {
+          "applicationName": "Fixture.App",
+          "buildVersion": "2.3.4-rc.1+build.8"
+        }
+      },
+      "expected": {
+        "status": "Resolved",
+        "value": 1
+      }
+    },
+    {
+      "id": "CFG-LOG-SCHEMA-VERSION-MAX",
+      "key": "CORE_LOG_SCHEMA_VERSION",
+      "category": "boundary",
+      "inputs": {
+        "environment": {
+          "CORE_LOG_SCHEMA_VERSION": "1"
+        },
+        "setup": {},
+        "discovery": {
+          "applicationName": "Fixture.App",
+          "buildVersion": "2.3.4-rc.1+build.8"
+        }
+      },
+      "expected": {
+        "status": "Resolved",
+        "value": 1
+      }
+    },
+    {
+      "id": "CFG-LOG-SCHEMA-VERSION-BELOW",
+      "key": "CORE_LOG_SCHEMA_VERSION",
+      "category": "boundary",
+      "inputs": {
+        "environment": {
+          "CORE_LOG_SCHEMA_VERSION": "0"
+        },
+        "setup": {},
+        "discovery": {
+          "applicationName": "Fixture.App",
+          "buildVersion": "2.3.4-rc.1+build.8"
+        }
+      },
+      "expected": {
+        "status": "Invalid",
+        "issues": [
+          {
+            "code": "UnsupportedSchemaVersion",
+            "key": "CORE_LOG_SCHEMA_VERSION"
+          }
+        ]
+      }
+    },
+    {
+      "id": "CFG-LOG-SCHEMA-VERSION-ABOVE",
+      "key": "CORE_LOG_SCHEMA_VERSION",
+      "category": "boundary",
+      "inputs": {
+        "environment": {
+          "CORE_LOG_SCHEMA_VERSION": "2"
+        },
+        "setup": {},
+        "discovery": {
+          "applicationName": "Fixture.App",
+          "buildVersion": "2.3.4-rc.1+build.8"
+        }
+      },
+      "expected": {
+        "status": "Invalid",
+        "issues": [
+          {
+            "code": "UnsupportedSchemaVersion",
+            "key": "CORE_LOG_SCHEMA_VERSION"
+          }
+        ]
+      }
+    },
+    {
+      "id": "CFG-LOG-SCHEMA-VERSION-INTEGER-1",
+      "key": "CORE_LOG_SCHEMA_VERSION",
+      "category": "invalid",
+      "inputs": {
+        "environment": {
+          "CORE_LOG_SCHEMA_VERSION": "1,000"
+        },
+        "setup": {},
+        "discovery": {
+          "applicationName": "Fixture.App",
+          "buildVersion": "2.3.4-rc.1+build.8"
+        }
+      },
+      "expected": {
+        "status": "Invalid",
+        "issues": [
+          {
+            "code": "InvalidToken",
+            "key": "CORE_LOG_SCHEMA_VERSION"
+          }
+        ]
+      }
+    },
+    {
+      "id": "CFG-LOG-SCHEMA-VERSION-INTEGER-2",
+      "key": "CORE_LOG_SCHEMA_VERSION",
+      "category": "invalid",
+      "inputs": {
+        "environment": {
+          "CORE_LOG_SCHEMA_VERSION": "1e3"
+        },
+        "setup": {},
+        "discovery": {
+          "applicationName": "Fixture.App",
+          "buildVersion": "2.3.4-rc.1+build.8"
+        }
+      },
+      "expected": {
+        "status": "Invalid",
+        "issues": [
+          {
+            "code": "InvalidToken",
+            "key": "CORE_LOG_SCHEMA_VERSION"
+          }
+        ]
+      }
+    },
+    {
+      "id": "CFG-LOG-SCHEMA-VERSION-INTEGER-3",
+      "key": "CORE_LOG_SCHEMA_VERSION",
+      "category": "invalid",
+      "inputs": {
+        "environment": {
+          "CORE_LOG_SCHEMA_VERSION": "0x1000"
+        },
+        "setup": {},
+        "discovery": {
+          "applicationName": "Fixture.App",
+          "buildVersion": "2.3.4-rc.1+build.8"
+        }
+      },
+      "expected": {
+        "status": "Invalid",
+        "issues": [
+          {
+            "code": "InvalidToken",
+            "key": "CORE_LOG_SCHEMA_VERSION"
+          }
+        ]
+      }
+    },
+    {
+      "id": "CFG-LOG-SCHEMA-VERSION-INTEGER-4",
+      "key": "CORE_LOG_SCHEMA_VERSION",
+      "category": "invalid",
+      "inputs": {
+        "environment": {
+          "CORE_LOG_SCHEMA_VERSION": "999999999999999999999999999"
+        },
+        "setup": {},
+        "discovery": {
+          "applicationName": "Fixture.App",
+          "buildVersion": "2.3.4-rc.1+build.8"
+        }
+      },
+      "expected": {
+        "status": "Invalid",
+        "issues": [
+          {
+            "code": "OutOfRange",
+            "key": "CORE_LOG_SCHEMA_VERSION"
+          }
+        ]
+      }
+    },
+    {
+      "id": "CFG-LOG-SCHEMA-VERSION-EXPLICIT",
+      "key": "CORE_LOG_SCHEMA_VERSION",
+      "category": "valid",
+      "inputs": {
+        "environment": {
+          "CORE_LOG_SCHEMA_VERSION": "1"
+        },
+        "setup": {},
+        "discovery": {
+          "applicationName": "Fixture.App",
+          "buildVersion": "2.3.4-rc.1+build.8"
+        }
+      },
+      "expected": {
+        "status": "Resolved",
+        "value": 1
+      }
+    },
+    {
+      "id": "CFG-LOG-SCHEMA-VERSION-INVALID",
+      "key": "CORE_LOG_SCHEMA_VERSION",
+      "category": "invalid",
+      "inputs": {
+        "environment": {
+          "CORE_LOG_SCHEMA_VERSION": "1.5"
+        },
+        "setup": {},
+        "discovery": {
+          "applicationName": "Fixture.App",
+          "buildVersion": "2.3.4-rc.1+build.8"
+        }
+      },
+      "expected": {
+        "status": "Invalid",
+        "issues": [
+          {
+            "code": "InvalidToken",
+            "key": "CORE_LOG_SCHEMA_VERSION"
+          }
+        ]
+      }
+    },
+    {
+      "id": "CFG-LOG-SCHEMA-VERSION-CORE-BEATS-SETUP",
+      "key": "CORE_LOG_SCHEMA_VERSION",
+      "category": "precedence",
+      "inputs": {
+        "environment": {
+          "CORE_LOG_SCHEMA_VERSION": "1"
+        },
+        "setup": {
+          "Logging.SchemaVersion": 1
+        },
+        "discovery": {
+          "applicationName": "Fixture.App",
+          "buildVersion": "2.3.4-rc.1+build.8"
+        }
+      },
+      "expected": {
+        "status": "Resolved",
+        "value": 1
+      }
+    },
+    {
+      "id": "CFG-LOG-SCHEMA-VERSION-INVALID-CORE-STOPS",
+      "key": "CORE_LOG_SCHEMA_VERSION",
+      "category": "precedence",
+      "inputs": {
+        "environment": {
+          "CORE_LOG_SCHEMA_VERSION": "1.5"
+        },
+        "setup": {
+          "Logging.SchemaVersion": 1
+        },
+        "discovery": {
+          "applicationName": "Fixture.App",
+          "buildVersion": "2.3.4-rc.1+build.8"
+        }
+      },
+      "expected": {
+        "status": "Invalid",
+        "issues": [
+          {
+            "code": "InvalidToken",
+            "key": "CORE_LOG_SCHEMA_VERSION"
+          }
+        ]
+      }
+    },
+    {
+      "id": "CFG-LOG-SCHEMA-VERSION-BLANK-CORE-USES-SETUP",
+      "key": "CORE_LOG_SCHEMA_VERSION",
+      "category": "precedence",
+      "inputs": {
+        "environment": {
+          "CORE_LOG_SCHEMA_VERSION": " \t"
+        },
+        "setup": {
+          "Logging.SchemaVersion": 1
+        },
+        "discovery": {
+          "applicationName": "Fixture.App",
+          "buildVersion": "2.3.4-rc.1+build.8"
+        }
+      },
+      "expected": {
+        "status": "Resolved",
+        "value": 1
+      }
+    },
+    {
+      "id": "CFG-LOG-SCHEMA-VERSION-SETUP-BEATS-DISCOVERY",
+      "key": "CORE_LOG_SCHEMA_VERSION",
+      "category": "precedence",
+      "inputs": {
+        "environment": {},
+        "setup": {
+          "Logging.SchemaVersion": 1
+        },
+        "discovery": {
+          "applicationName": "Fixture.App",
+          "buildVersion": "2.3.4-rc.1+build.8"
+        }
+      },
+      "expected": {
+        "status": "Resolved",
+        "value": 1
+      }
+    },
+    {
+      "id": "CFG-MAX-ENTRY-BYTES-ABSENT",
+      "key": "CORE_LOG_MAX_ENTRY_BYTES",
+      "category": "absent",
+      "inputs": {
+        "environment": {},
+        "setup": {},
+        "discovery": {}
+      },
+      "expected": {
+        "status": "Resolved",
+        "value": 65536
+      }
+    },
+    {
+      "id": "CFG-MAX-ENTRY-BYTES-BLANK-0",
+      "key": "CORE_LOG_MAX_ENTRY_BYTES",
+      "category": "absent",
+      "inputs": {
+        "environment": {
+          "CORE_LOG_MAX_ENTRY_BYTES": ""
+        },
+        "setup": {},
+        "discovery": {}
+      },
+      "expected": {
+        "status": "Resolved",
+        "value": 65536
+      }
+    },
+    {
+      "id": "CFG-MAX-ENTRY-BYTES-BLANK-1",
+      "key": "CORE_LOG_MAX_ENTRY_BYTES",
+      "category": "absent",
+      "inputs": {
+        "environment": {
+          "CORE_LOG_MAX_ENTRY_BYTES": " "
+        },
+        "setup": {},
+        "discovery": {}
+      },
+      "expected": {
+        "status": "Resolved",
+        "value": 65536
+      }
+    },
+    {
+      "id": "CFG-MAX-ENTRY-BYTES-BLANK-2",
+      "key": "CORE_LOG_MAX_ENTRY_BYTES",
+      "category": "absent",
+      "inputs": {
+        "environment": {
+          "CORE_LOG_MAX_ENTRY_BYTES": "\t\r\n"
+        },
+        "setup": {},
+        "discovery": {}
+      },
+      "expected": {
+        "status": "Resolved",
+        "value": 65536
+      }
+    },
+    {
+      "id": "CFG-MAX-ENTRY-BYTES-MIN",
+      "key": "CORE_LOG_MAX_ENTRY_BYTES",
+      "category": "valid",
+      "inputs": {
+        "environment": {
+          "CORE_LOG_MAX_ENTRY_BYTES": "16384"
+        },
+        "setup": {},
+        "discovery": {}
+      },
+      "expected": {
+        "status": "Resolved",
+        "value": 16384
+      }
+    },
+    {
+      "id": "CFG-MAX-ENTRY-BYTES-MAX",
+      "key": "CORE_LOG_MAX_ENTRY_BYTES",
+      "category": "valid",
+      "inputs": {
+        "environment": {
+          "CORE_LOG_MAX_ENTRY_BYTES": "16777216"
+        },
+        "setup": {},
+        "discovery": {}
+      },
+      "expected": {
+        "status": "Resolved",
+        "value": 16777216
+      }
+    },
+    {
+      "id": "CFG-MAX-ENTRY-BYTES-DEFAULT",
+      "key": "CORE_LOG_MAX_ENTRY_BYTES",
+      "category": "valid",
+      "inputs": {
+        "environment": {
+          "CORE_LOG_MAX_ENTRY_BYTES": "65536"
+        },
+        "setup": {},
+        "discovery": {}
+      },
+      "expected": {
+        "status": "Resolved",
+        "value": 65536
+      }
+    },
+    {
+      "id": "CFG-MAX-ENTRY-BYTES-OVERRIDE",
+      "key": "CORE_LOG_MAX_ENTRY_BYTES",
+      "category": "valid",
+      "inputs": {
+        "environment": {
+          "CORE_LOG_MAX_ENTRY_BYTES": "131072"
+        },
+        "setup": {},
+        "discovery": {}
+      },
+      "expected": {
+        "status": "Resolved",
+        "value": 131072
+      }
+    },
+    {
+      "id": "CFG-MAX-ENTRY-BYTES-BELOW",
+      "key": "CORE_LOG_MAX_ENTRY_BYTES",
+      "category": "invalid",
+      "inputs": {
+        "environment": {
+          "CORE_LOG_MAX_ENTRY_BYTES": "16383"
+        },
+        "setup": {},
+        "discovery": {}
+      },
+      "expected": {
+        "status": "Invalid",
+        "code": "OutOfRange"
+      }
+    },
+    {
+      "id": "CFG-MAX-ENTRY-BYTES-ABOVE",
+      "key": "CORE_LOG_MAX_ENTRY_BYTES",
+      "category": "invalid",
+      "inputs": {
+        "environment": {
+          "CORE_LOG_MAX_ENTRY_BYTES": "16777217"
+        },
+        "setup": {},
+        "discovery": {}
+      },
+      "expected": {
+        "status": "Invalid",
+        "code": "OutOfRange"
+      }
+    },
+    {
+      "id": "CFG-MAX-ENTRY-BYTES-INVALID-0",
+      "key": "CORE_LOG_MAX_ENTRY_BYTES",
+      "category": "invalid",
+      "inputs": {
+        "environment": {
+          "CORE_LOG_MAX_ENTRY_BYTES": "0"
+        },
+        "setup": {},
+        "discovery": {}
+      },
+      "expected": {
+        "status": "Invalid",
+        "code": "OutOfRange"
+      }
+    },
+    {
+      "id": "CFG-MAX-ENTRY-BYTES-INVALID-1",
+      "key": "CORE_LOG_MAX_ENTRY_BYTES",
+      "category": "invalid",
+      "inputs": {
+        "environment": {
+          "CORE_LOG_MAX_ENTRY_BYTES": "-1"
+        },
+        "setup": {},
+        "discovery": {}
+      },
+      "expected": {
+        "status": "Invalid",
+        "code": "OutOfRange"
+      }
+    },
+    {
+      "id": "CFG-MAX-ENTRY-BYTES-INVALID-2",
+      "key": "CORE_LOG_MAX_ENTRY_BYTES",
+      "category": "invalid",
+      "inputs": {
+        "environment": {
+          "CORE_LOG_MAX_ENTRY_BYTES": "999999999999999999999999"
+        },
+        "setup": {},
+        "discovery": {}
+      },
+      "expected": {
+        "status": "Invalid",
+        "code": "InvalidToken"
+      }
+    },
+    {
+      "id": "CFG-MAX-ENTRY-BYTES-INVALID-3",
+      "key": "CORE_LOG_MAX_ENTRY_BYTES",
+      "category": "invalid",
+      "inputs": {
+        "environment": {
+          "CORE_LOG_MAX_ENTRY_BYTES": "65536.0"
+        },
+        "setup": {},
+        "discovery": {}
+      },
+      "expected": {
+        "status": "Invalid",
+        "code": "InvalidToken"
+      }
+    },
+    {
+      "id": "CFG-MAX-ENTRY-BYTES-INVALID-4",
+      "key": "CORE_LOG_MAX_ENTRY_BYTES",
+      "category": "invalid",
+      "inputs": {
+        "environment": {
+          "CORE_LOG_MAX_ENTRY_BYTES": "64kb"
+        },
+        "setup": {},
+        "discovery": {}
+      },
+      "expected": {
+        "status": "Invalid",
+        "code": "InvalidToken"
+      }
+    },
+    {
+      "id": "CFG-MAX-ENTRY-BYTES-INVALID-5",
+      "key": "CORE_LOG_MAX_ENTRY_BYTES",
+      "category": "invalid",
+      "inputs": {
+        "environment": {
+          "CORE_LOG_MAX_ENTRY_BYTES": "1e6"
+        },
+        "setup": {},
+        "discovery": {}
+      },
+      "expected": {
+        "status": "Invalid",
+        "code": "InvalidToken"
+      }
+    },
+    {
+      "id": "CFG-MAX-ENTRY-BYTES-INVALID-6",
+      "key": "CORE_LOG_MAX_ENTRY_BYTES",
+      "category": "invalid",
+      "inputs": {
+        "environment": {
+          "CORE_LOG_MAX_ENTRY_BYTES": "invalid"
+        },
+        "setup": {},
+        "discovery": {}
+      },
+      "expected": {
+        "status": "Invalid",
+        "code": "InvalidToken"
+      }
+    },
+    {
+      "id": "CFG-MAX-ENTRY-BYTES-SIGNED",
+      "key": "CORE_LOG_MAX_ENTRY_BYTES",
+      "category": "valid",
+      "inputs": {
+        "environment": {
+          "CORE_LOG_MAX_ENTRY_BYTES": " +65536 "
+        },
+        "setup": {},
+        "discovery": {}
+      },
+      "expected": {
+        "status": "Resolved",
+        "value": 65536
+      }
+    },
+    {
+      "id": "CFG-MAX-ENTRY-BYTES-ENV-OVERRIDES-SETUP",
+      "key": "CORE_LOG_MAX_ENTRY_BYTES",
+      "category": "precedence",
+      "inputs": {
+        "environment": {
+          "CORE_LOG_MAX_ENTRY_BYTES": "131072"
+        },
+        "setup": {
+          "Logging.MaxEntryBytes": 65536
+        },
+        "discovery": {}
+      },
+      "expected": {
+        "status": "Resolved",
+        "value": 131072
+      }
+    },
+    {
+      "id": "CFG-MAX-ENTRY-BYTES-BLANK-ENV-USES-SETUP",
+      "key": "CORE_LOG_MAX_ENTRY_BYTES",
+      "category": "precedence",
+      "inputs": {
+        "environment": {
+          "CORE_LOG_MAX_ENTRY_BYTES": " "
+        },
+        "setup": {
+          "Logging.MaxEntryBytes": 32768
+        },
+        "discovery": {}
+      },
+      "expected": {
+        "status": "Resolved",
+        "value": 32768
+      }
+    },
+    {
+      "id": "CFG-MAX-ENTRY-BYTES-INVALID-ENV-NO-FALLTHROUGH",
+      "key": "CORE_LOG_MAX_ENTRY_BYTES",
+      "category": "precedence",
+      "inputs": {
+        "environment": {
+          "CORE_LOG_MAX_ENTRY_BYTES": "typo"
+        },
+        "setup": {
+          "Logging.MaxEntryBytes": 65536
+        },
+        "discovery": {}
+      },
+      "expected": {
+        "status": "Invalid",
+        "code": "InvalidToken"
+      }
+    },
+    {
+      "id": "CFG-MAX-ENTRY-BYTES-DISABLED-OUTPUTS-VALIDATE",
+      "key": "CORE_LOG_MAX_ENTRY_BYTES",
+      "category": "invalid",
+      "inputs": {
+        "environment": {
+          "CORE_LOG_MAX_ENTRY_BYTES": "0",
+          "CORE_LOG_LEVEL": "None"
+        },
+        "setup": {},
+        "discovery": {}
+      },
+      "expected": {
+        "status": "Invalid",
+        "code": "OutOfRange"
+      }
+    },
+    {
+      "id": "CFG-MAX-ENTRY-BYTES-SETUP-OUT-OF-RANGE",
+      "key": "CORE_LOG_MAX_ENTRY_BYTES",
+      "category": "invalid",
+      "inputs": {
+        "environment": {},
+        "setup": {
+          "Logging.MaxEntryBytes": 16777217
+        },
+        "discovery": {}
+      },
+      "expected": {
+        "status": "Invalid",
+        "code": "OutOfRange"
+      }
+    }
+  ],
+  "crossOptionCases": [
+    {
+      "id": "CFG-INDEPENDENT-LEVELS",
+      "inputs": {
+        "CORE_LOG_LEVEL": "Information",
+        "CORE_LOG_CONSOLE_LEVEL": "Warning",
+        "CORE_LOG_FILE_LEVEL": "Debug",
+        "CORE_LOG_FILE_PATH": "logs/app.jsonl"
+      },
+      "expected": {
+        "fallback": "Information",
+        "console": "Warning",
+        "file": "Debug",
+        "fileInterestedInDebug": true
+      }
+    },
+    {
+      "id": "CFG-CONSOLE-DISABLED-INVALID-FORMAT",
+      "inputs": {
+        "CORE_LOG_CONSOLE_LEVEL": "None",
+        "CORE_LOG_CONSOLE_FORMAT": "invalid"
+      },
+      "expectedIssue": {
+        "code": "InvalidToken",
+        "key": "CORE_LOG_CONSOLE_FORMAT"
+      }
+    },
+    {
+      "id": "CFG-FILE-ABSENT-INVALID-LIMIT",
+      "inputs": {
+        "CORE_LOG_FILE_MAX_BYTES": "1"
+      },
+      "expectedIssue": {
+        "code": "OutOfRange",
+        "key": "CORE_LOG_FILE_MAX_BYTES"
+      }
+    },
+    {
+      "id": "CFG-FILE-NONE-INVALID-FORMAT",
+      "inputs": {
+        "CORE_LOG_FILE_LEVEL": "None",
+        "CORE_LOG_FILE_FORMAT": "invalid"
+      },
+      "expectedIssue": {
+        "code": "InvalidToken",
+        "key": "CORE_LOG_FILE_FORMAT"
+      }
+    },
+    {
+      "id": "CFG-HOST-ENVIRONMENT-ISOLATION",
+      "inputs": {
+        "CORE_ENVIRONMENT": "live",
+        "hostEnvironment": "Production"
+      },
+      "expected": {
+        "EnvironmentName": "live",
+        "hostEnvironmentAfter": "Production",
+        "mutatesProcessVariables": false
+      }
+    },
+    {
+      "id": "CFG-MULTIPLE-SAFE-ISSUES",
+      "inputs": {
+        "CORE_LOG_QUEUE_CAPACITY": "0",
+        "CORE_LOG_CONSOLE_FORMAT": "invalid",
+        "UNRELATED_PASSWORD": "must-not-appear"
+      },
+      "expectedIssues": [
+        {
+          "code": "OutOfRange",
+          "key": "CORE_LOG_QUEUE_CAPACITY"
+        },
+        {
+          "code": "InvalidToken",
+          "key": "CORE_LOG_CONSOLE_FORMAT"
+        }
+      ],
+      "diagnosticsMustExclude": [
+        "must-not-appear",
+        "UNRELATED_PASSWORD",
+        "raw selected values"
+      ]
+    },
+    {
+      "id": "CFG-UNKNOWN-CORE-IGNORED",
+      "inputs": {
+        "CORE_FUTURE_OPTION": "future-value"
+      },
+      "expected": {
+        "ignored": true,
+        "dumpsEnvironment": false
+      }
+    },
+    {
+      "id": "CFG-FILE-ENTRY-SIZE-CONSISTENCY",
+      "inputs": {
+        "CORE_LOG_FILE_PATH": "logs/app.jsonl",
+        "CORE_LOG_MAX_ENTRY_BYTES": "131072",
+        "CORE_LOG_FILE_MAX_BYTES": "65536"
+      },
+      "expectedIssue": {
+        "code": "OutOfRange",
+        "key": "CORE_LOG_FILE_MAX_BYTES"
+      }
+    },
+    {
+      "id": "CFG-FILE-DISABLED-ENTRY-SIZE",
+      "inputs": {
+        "CORE_LOG_FILE_PATH": "logs/app.jsonl",
+        "CORE_LOG_FILE_LEVEL": "None",
+        "CORE_LOG_MAX_ENTRY_BYTES": "131072",
+        "CORE_LOG_FILE_MAX_BYTES": "65536"
+      },
+      "expected": {
+        "MaxEntryBytes": 131072,
+        "FileEnabled": false
+      }
+    }
+  ]
+}

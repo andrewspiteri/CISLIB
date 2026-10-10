@@ -31,3 +31,5 @@ Optional `-InputRoot` and `-InventoryPath` accept another source directory and a
 `CIS.Core.TestSupport` remains nonpackable and dependency-free. Its manual `TimeProvider` separates UTC corrections from monotonic time and advances timers explicitly. Metadata and UUID sequences are supplied by fixtures, with visible exhaustion instead of random fallback. One-shot asynchronous signals/barriers have finite deadlines. Controlled text writers signal entry and wait for explicit release or failure, letting tests observe ordering without sleeps. Temporary directories own their cleanup. Child processes use argument lists, finite deadlines, per-child environment overrides and concurrent independent stdout/stderr drainage; only the owned process tree is stopped on timeout.
 
 These helpers support tests; they are not shipping Core API or implementations of the logging runtime.
+
+WP02-S02 extends reference-only compilation with event/value/scope inputs and negative consumers. Architecture tests execute each portable record/value fixture using a development-only schema/semantic validator. Capture/ownership/scope expectations remain pending real runtime execution.

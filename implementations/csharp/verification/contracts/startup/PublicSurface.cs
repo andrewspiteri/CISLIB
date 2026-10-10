@@ -117,6 +117,7 @@ namespace CIS.Logging
         public extern string? FilePath { [MethodImpl(MethodImplOptions.InternalCall)] get; [MethodImpl(MethodImplOptions.InternalCall)] set; }
         public extern LogOutputFormat? FileFormat { [MethodImpl(MethodImplOptions.InternalCall)] get; [MethodImpl(MethodImplOptions.InternalCall)] set; }
         public extern CoreLogLevel? FileLevel { [MethodImpl(MethodImplOptions.InternalCall)] get; [MethodImpl(MethodImplOptions.InternalCall)] set; }
+        public extern int? MaxEntryBytes { [MethodImpl(MethodImplOptions.InternalCall)] get; [MethodImpl(MethodImplOptions.InternalCall)] set; }
         public extern int? QueueCapacity { [MethodImpl(MethodImplOptions.InternalCall)] get; [MethodImpl(MethodImplOptions.InternalCall)] set; }
         public extern int? FlushIntervalMilliseconds { [MethodImpl(MethodImplOptions.InternalCall)] get; [MethodImpl(MethodImplOptions.InternalCall)] set; }
         public extern int? ShutdownTimeoutMilliseconds { [MethodImpl(MethodImplOptions.InternalCall)] get; [MethodImpl(MethodImplOptions.InternalCall)] set; }
@@ -136,6 +137,7 @@ namespace CIS.Logging
         public extern string? FilePath { [MethodImpl(MethodImplOptions.InternalCall)] get; }
         public extern LogOutputFormat FileFormat { [MethodImpl(MethodImplOptions.InternalCall)] get; }
         public extern CoreLogLevel FileLevel { [MethodImpl(MethodImplOptions.InternalCall)] get; }
+        public extern int MaxEntryBytes { [MethodImpl(MethodImplOptions.InternalCall)] get; }
         public extern int QueueCapacity { [MethodImpl(MethodImplOptions.InternalCall)] get; }
         public extern TimeSpan FlushInterval { [MethodImpl(MethodImplOptions.InternalCall)] get; }
         public extern TimeSpan ShutdownTimeout { [MethodImpl(MethodImplOptions.InternalCall)] get; }

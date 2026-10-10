@@ -20,8 +20,8 @@ public sealed class StartupContractTests
         string guide = File.ReadAllText(Path.Combine(RepositoryRoot, "planning/logging/sources/core-library-implementation-guide-v1.md"));
         string[] documented = Regex.Matches(guide, @"^\| `(CORE_[A-Z_]+)` \|", RegexOptions.Multiline).Select(match => match.Groups[1].Value).Order().ToArray();
         string[] actual = settings.Select(setting => setting.GetProperty("key").GetString()!).Order().ToArray();
-        CollectionAssert.AreEqual(documented, actual);
-        Assert.AreEqual(17, actual.Length);
+        CollectionAssert.AreEqual(documented.Append("CORE_LOG_MAX_ENTRY_BYTES").Order().ToArray(), actual);
+        Assert.AreEqual(18, actual.Length);
         string[] aliases = settings.SelectMany(setting => setting.GetProperty("aliases").EnumerateArray()).Select(alias => alias.GetString()!).Order().ToArray();
         CollectionAssert.AreEqual(new[] { "DD_ENV", "DD_SERVICE", "DD_VERSION" }, aliases);
         using JsonDocument contract = Read("implementations/csharp/verification/contracts/startup/surface.json");
@@ -77,7 +77,7 @@ public sealed class StartupContractTests
             }
         }
 
-        Assert.AreEqual(7, fixtures.RootElement.GetProperty("crossOptionCases").GetArrayLength());
+        Assert.AreEqual(9, fixtures.RootElement.GetProperty("crossOptionCases").GetArrayLength());
     }
 
     [TestMethod]
@@ -110,7 +110,7 @@ public sealed class StartupContractTests
         using JsonDocument report = Read(relative + "/summary.json");
         Assert.AreEqual("Passed", report.RootElement.GetProperty("status").GetString());
         Assert.AreEqual(0, report.RootElement.GetProperty("exitCode").GetInt32());
-        Assert.AreEqual(8, report.RootElement.GetProperty("controls").GetArrayLength());
+        Assert.AreEqual(12, report.RootElement.GetProperty("controls").GetArrayLength());
         foreach (JsonElement control in report.RootElement.GetProperty("controls").EnumerateArray())
         {
             Assert.IsTrue(control.GetProperty("matched").GetBoolean(), control.GetProperty("id").GetString());
@@ -152,7 +152,7 @@ public sealed class StartupContractTests
                 }
             }
 
-            if (name is "EnvironmentSnapshot" or "LoggingOptions" or "EventMetadata" or "ConfigurationIssue" or "CoreConfigurationException")
+            if (name is "EnvironmentSnapshot" or "LoggingOptions" or "EventMetadata" or "ConfigurationIssue" or "CoreConfigurationException" or "LogValue")
             {
                 Assert.IsTrue((type.Attributes & TypeAttributes.Sealed) != 0, fullName);
                 foreach (PropertyDefinitionHandle propertyHandle in type.GetProperties())

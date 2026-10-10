@@ -1,0 +1,403 @@
+{
+  "schemaVersion": 1,
+  "story": "WP02-S02",
+  "outcome": "Passed for user-amended contract definition, fixture validation and compile-only qualification",
+  "recordedUtc": "2026-10-10T20:37:57.393478+00:00",
+  "implementation": "csharp",
+  "lane": "windows-x64",
+  "sdk": "10.0.401",
+  "checkpointCommit": "ccb7237",
+  "implementationChangesCommitted": false,
+  "tasks": {
+    "WP02-S02-T01": "Done",
+    "WP02-S02-T02": "Done",
+    "WP02-S02-T03": "Done",
+    "WP02-S02-T04": "Done"
+  },
+  "acceptance": {
+    "WP02-S02-AC01": "Required service/env/version, all 14 allowlisted resource fields, fixed severity, UTC/UUID forms and null/absence rules defined and fixture validated. Producers exclude config/destinations; readers allow optional additions.",
+    "WP02-S02-AC02": "Explicit tagged values and reference-only factories preserve safe integers, large integer/decimal strings, finite numbers, owned arrays/maps, UUIDs and instants. Invalid and unsupported constructor fixtures fail without automatic type fallback.",
+    "WP02-S02-AC03": "Every section 9 bound declared; Unicode/escaping and exact 65536/65537-byte wire boundaries validated. User amendment specifies configurable entry bytes and truncation of oversized payload, not runtime rejection. Actual oversize/truncation input-output behavior remains WP04/WP05.",
+    "WP02-S02-AC04": "All 140 serialized record fixtures and 47 tagged value fixtures execute against development-only C# validators; expected accept/reject results match. No other language runtime or hosted collector is tested."
+  },
+  "entrySize": {
+    "environmentKey": "CORE_LOG_MAX_ENTRY_BYTES",
+    "setupProperty": "LoggingSetup.MaxEntryBytes",
+    "resolvedProperty": "LoggingOptions.MaxEntryBytes",
+    "defaultBytes": 65536,
+    "minimumBytes": 16384,
+    "maximumBytes": 16777216,
+    "oversizePolicy": "Truncate",
+    "marker": "truncated:true",
+    "rangeAuthority": "Maintainer prepublication choice; default/override/truncation requested by the user",
+    "runtimeExecuted": false
+  },
+  "nativeChecks": {
+    "unit": 104,
+    "architecture": 211,
+    "total": 315,
+    "failed": 0,
+    "skipped": 0
+  },
+  "executedFixtureValidation": {
+    "records": 140,
+    "validRecords": 46,
+    "invalidRecords": 94,
+    "values": 47,
+    "validValues": 20,
+    "invalidValues": 27,
+    "scope": "Development-only projected-output and tagged-constructor validation, not shipping capture/truncation/serialization"
+  },
+  "compilerControls": {
+    "referenceOnly": 1,
+    "positiveConsumers": 2,
+    "negativeConsumers": 9,
+    "allExpectedOutcomesMatched": true
+  },
+  "specifiedExpectations": {
+    "configurationKeys": 18,
+    "compatibilityAliases": 3,
+    "configurationPerKeyVectors": 350,
+    "crossOptionVectors": 9,
+    "metadataVectors": 12,
+    "startupLifecycleVectors": 6,
+    "captureVectors": 22,
+    "runtimeVectorsExecuted": 0
+  },
+  "developerReplay": {
+    "schema": "cis.replay/v1",
+    "profile": "Developer",
+    "lane": "windows-x64",
+    "runRoot": "C:\\miscwork\\portfolio\\cislib\\.artifacts\\csharp\\replay\\20261010T203419Z-4a32e5deca064b768b46595b0c91f962",
+    "exitCode": 0,
+    "inputVerifiedBefore": true,
+    "inputVerifiedAfter": true,
+    "detail": "Copied source/input replay with isolated caches. This is not historical binary/package replay or a release bundle certification."
+  },
+  "verificationExits": {
+    "developerReplay": 0,
+    "checkDeveloper": 0,
+    "releaseVerify": 2,
+    "checkRelease": 2
+  },
+  "sourceInventory": "planning/logging/evidence/wp02-s02/developer/source-inputs.json",
+  "sourceIdentity": "Canonical copied-source replay verifies exact maintained implementation, fixture, contract and driver bytes before/after. The only later inventoried edit aligns the planned BC-015 requiredResult wording with the user truncation amendment; no executed bindings or verified code/fixture inputs changed. Retained evidence was added afterwards.",
+  "postReplayInventoriedEdits": [
+    "conformance/logging/case-inventory.json"
+  ],
+  "referenceAssemblyRetainedPath": "planning/logging/evidence/wp02-s02/compiler/reference-assembly/CIS.Core.ContractSpecification.dll",
+  "retentionNote": "Native reports remain byte-exact with their original generated paths. Separate retained reference/consumer DLLs are nonshipping compiler fixtures, not historical release binaries.",
+  "reports": [
+    {
+      "path": "planning/logging/evidence/wp02-s02/compiler/corrected-facade-name/compiler.log",
+      "sha256": "a426fcfe1dd0d07ff14fa0007dad64f946fa3a9381407cbb85a0dd3f70698afb",
+      "bytes": 1349
+    },
+    {
+      "path": "planning/logging/evidence/wp02-s02/compiler/event-consumer/compiler.log",
+      "sha256": "55b783ab9026939bc37b7f369bd5bd7c02f0fe6a88aa33b706e9f1fbc3d41c3b",
+      "bytes": 589
+    },
+    {
+      "path": "planning/logging/evidence/wp02-s02/compiler/event-consumer-assembly/StartupContractConsumer.dll",
+      "sha256": "702c50dace126104cb01c7f24e06d300edf5ac0408a4788b5a4766cc39261292",
+      "bytes": 5632
+    },
+    {
+      "path": "planning/logging/evidence/wp02-s02/compiler/immutable-issues/compiler.log",
+      "sha256": "a6c2525a36f5a0ba5b851dd6350f741a49b51d031816d163963c1686661c5473",
+      "bytes": 1402
+    },
+    {
+      "path": "planning/logging/evidence/wp02-s02/compiler/immutable-logging/compiler.log",
+      "sha256": "86167fd4fb0137649c06df007649b857aa288119a56bc5eb7a3f4803279f37d0",
+      "bytes": 1377
+    },
+    {
+      "path": "planning/logging/evidence/wp02-s02/compiler/immutable-metadata/compiler.log",
+      "sha256": "70c774958770e2436db6f932b566454d2961d16ac741864a00850f8daa4ed69e",
+      "bytes": 1378
+    },
+    {
+      "path": "planning/logging/evidence/wp02-s02/compiler/immutable-snapshot/compiler.log",
+      "sha256": "82280092d556a8d85c110234722b25a3385bc05bd77bd8799a75b8b7e401fe25",
+      "bytes": 1396
+    },
+    {
+      "path": "planning/logging/evidence/wp02-s02/compiler/immutable-value/compiler.log",
+      "sha256": "01ea4da5026f0e582adba18e31f26d6c8eb7f6e9a206e123b3f636d12cbb0cbc",
+      "bytes": 1337
+    },
+    {
+      "path": "planning/logging/evidence/wp02-s02/compiler/no-event-severity/compiler.log",
+      "sha256": "8e19e84424d1e321e2451a91aec2af4b2b2a75d397a8f3d3f80b21d0dfb75ff7",
+      "bytes": 1659
+    },
+    {
+      "path": "planning/logging/evidence/wp02-s02/compiler/no-reset/compiler.log",
+      "sha256": "67df66c0817153a0c366198552fe63dcbb8fbe58229aefc2037d98b3bd47e1a4",
+      "bytes": 1274
+    },
+    {
+      "path": "planning/logging/evidence/wp02-s02/compiler/positive/compiler.log",
+      "sha256": "12cf20d7abcd40f9fe8586f37ef29556dd20799183cb0db73e1dfee563c2259b",
+      "bytes": 578
+    },
+    {
+      "path": "planning/logging/evidence/wp02-s02/compiler/positive-assembly/StartupContractConsumer.dll",
+      "sha256": "62001099a219ffb874e42995d19d0131b89bfa081177b16eb18870ae8e04da14",
+      "bytes": 8192
+    },
+    {
+      "path": "planning/logging/evidence/wp02-s02/compiler/reference/compiler.log",
+      "sha256": "732fe6f3efb3b6182e4884d277927cdd8ed619a0f6a6f60c43340d273f640c4e",
+      "bytes": 588
+    },
+    {
+      "path": "planning/logging/evidence/wp02-s02/compiler/reference-assembly/CIS.Core.ContractSpecification.dll",
+      "sha256": "901b55e15e542497e4731a8310185d8334de5d2b2ce2075b5c128d374d502353",
+      "bytes": 12800
+    },
+    {
+      "path": "planning/logging/evidence/wp02-s02/compiler/summary.json",
+      "sha256": "799cd97f5dedba4cddc2075cbfb27a05bb4f4cafec7a81592f7bbc13b35ee033",
+      "bytes": 8150
+    },
+    {
+      "path": "planning/logging/evidence/wp02-s02/compiler/unsupported-object/compiler.log",
+      "sha256": "b9f9369a9287ef2ba9bc3da848012535f612261a52aa11ddc7cfa03922e32850",
+      "bytes": 1304
+    },
+    {
+      "path": "planning/logging/evidence/wp02-s02/controls/check-developer.json",
+      "sha256": "ef4b67392fb7611ed6ad4dfa4f8f5b916535d50cb40ae5e01f6c742ccf21adfb",
+      "bytes": 127
+    },
+    {
+      "path": "planning/logging/evidence/wp02-s02/controls/check-developer.log",
+      "sha256": "ef4b67392fb7611ed6ad4dfa4f8f5b916535d50cb40ae5e01f6c742ccf21adfb",
+      "bytes": 127
+    },
+    {
+      "path": "planning/logging/evidence/wp02-s02/controls/check-release.log",
+      "sha256": "0cc4ddf885b793418944f434cc81d70ef6c5322c5c28f8cdbfad3629934c2ec7",
+      "bytes": 5704
+    },
+    {
+      "path": "planning/logging/evidence/wp02-s02/controls/commands.json",
+      "sha256": "6fc7ff71734ce532e3053d827481c8e346d2af5c900ff900dc3224e04bddbf71",
+      "bytes": 946
+    },
+    {
+      "path": "planning/logging/evidence/wp02-s02/controls/release.log",
+      "sha256": "4ad1e48a2498abf5dead85d5ceabc5bf90c99cf0b3918c939ad3685c6bd33dcb",
+      "bytes": 5273
+    },
+    {
+      "path": "planning/logging/evidence/wp02-s02/controls/replay-developer.log",
+      "sha256": "1a48f72afd2cf3dbc43799cfa2e0a34777601cbc54650addb2a9bbbbc7de22f8",
+      "bytes": 38760
+    },
+    {
+      "path": "planning/logging/evidence/wp02-s02/developer/families/architecture/discovery.json",
+      "sha256": "7cb17fa664c39e5fa576a8aaaaee5cfa580cb05106eb4180c7b1e132e641a833",
+      "bytes": 18968
+    },
+    {
+      "path": "planning/logging/evidence/wp02-s02/developer/families/architecture/discovery.log",
+      "sha256": "f27cc20264be2409e137c25541a5e36531e6d6f8855b3ba8f89de97657926a84",
+      "bytes": 16866
+    },
+    {
+      "path": "planning/logging/evidence/wp02-s02/developer/families/architecture/execution.json",
+      "sha256": "12848c508ce24046d18d5528aac2e30a1ddf2c97037bfa6fc0e2e3f68f96211b",
+      "bytes": 163
+    },
+    {
+      "path": "planning/logging/evidence/wp02-s02/developer/families/architecture/execution.log",
+      "sha256": "89721c151cf8f18799c99d45bcce93e99a072e0d847c3cebcc6a309acae6ab48",
+      "bytes": 643
+    },
+    {
+      "path": "planning/logging/evidence/wp02-s02/developer/families/architecture/report.trx",
+      "sha256": "5fc03315767bf35b866697adf0d4cd1583c1bd256dc8dcc239ebc9ad39711460",
+      "bytes": 331615
+    },
+    {
+      "path": "planning/logging/evidence/wp02-s02/developer/families/business/discovery.json",
+      "sha256": "49e4481766fb5e68b93e70d2f949bc67dd2e152ac469adc875a40a0da6fbdb10",
+      "bytes": 211
+    },
+    {
+      "path": "planning/logging/evidence/wp02-s02/developer/families/business/execution.json",
+      "sha256": "f44bda8b2ac012602fccefab9d06a36f1f436eec573cda60c18ac6953255994b",
+      "bytes": 239
+    },
+    {
+      "path": "planning/logging/evidence/wp02-s02/developer/families/compatibility/discovery.json",
+      "sha256": "c7e7e9d029b147a5a679dc044b6748fb18356efad464d3fa1df336b5c9a28054",
+      "bytes": 216
+    },
+    {
+      "path": "planning/logging/evidence/wp02-s02/developer/families/compatibility/execution.json",
+      "sha256": "5efe10a7962d49d6a820cbf38744179d98198da1b5d837dc27ae818b381b5c5a",
+      "bytes": 244
+    },
+    {
+      "path": "planning/logging/evidence/wp02-s02/developer/families/integration/discovery.json",
+      "sha256": "35b99f9010b41112dc87abc1722c6a953b9cef4b1c61b295beab4b39003c59ae",
+      "bytes": 214
+    },
+    {
+      "path": "planning/logging/evidence/wp02-s02/developer/families/integration/execution.json",
+      "sha256": "e88c17a06432e5e9cb4f6f1f7cfa52e9c18e938aa3aa039eebdee88c546238c6",
+      "bytes": 242
+    },
+    {
+      "path": "planning/logging/evidence/wp02-s02/developer/families/mutation/discovery.json",
+      "sha256": "8262fd4f2df16da918b2d1aa74328b975a47a84bbc7b00bc9024f1dc28a3503e",
+      "bytes": 229
+    },
+    {
+      "path": "planning/logging/evidence/wp02-s02/developer/families/mutation/execution.json",
+      "sha256": "dccad37a1e3c9de1de7a7412ffaef0228f9ea182f3d9b8de445e55aeffaff1c5",
+      "bytes": 257
+    },
+    {
+      "path": "planning/logging/evidence/wp02-s02/developer/families/unit/discovery.json",
+      "sha256": "c7a9017264f9068ff7fee9fd432ac6cc528bb6948cc883c79c34c755d0137ddf",
+      "bytes": 8128
+    },
+    {
+      "path": "planning/logging/evidence/wp02-s02/developer/families/unit/discovery.log",
+      "sha256": "bd70b0dcbbaa4a4697237695fd07fa8a1d491799d1fd8812808b1a491e7bb8e6",
+      "bytes": 6706
+    },
+    {
+      "path": "planning/logging/evidence/wp02-s02/developer/families/unit/execution.json",
+      "sha256": "1511bcd593485fcf5be87f63a9f4965e3a673b8cb83016b6d7d2f6bd06deaf4f",
+      "bytes": 155
+    },
+    {
+      "path": "planning/logging/evidence/wp02-s02/developer/families/unit/execution.log",
+      "sha256": "2f0bf858dfbd4125d296f66354fb648b8ec638ce88e82cc581e59be7e7616420",
+      "bytes": 614
+    },
+    {
+      "path": "planning/logging/evidence/wp02-s02/developer/families/unit/report.trx",
+      "sha256": "104c7843e01e1c352e5826283d7df5ec08d46d60ded502a611c7738b66b8beb9",
+      "bytes": 156986
+    },
+    {
+      "path": "planning/logging/evidence/wp02-s02/developer/logs/build.log",
+      "sha256": "961031f8f5665f8063bfa9fae9e2c0517b1d2290060d2d0243e9c2686024333c",
+      "bytes": 2181
+    },
+    {
+      "path": "planning/logging/evidence/wp02-s02/developer/logs/host.log",
+      "sha256": "08bc754f88cba1a98cc3683262ec9412d23fb473074ab51494e0955bb2c6d44e",
+      "bytes": 89
+    },
+    {
+      "path": "planning/logging/evidence/wp02-s02/developer/logs/pack.log",
+      "sha256": "fd3156473a57fed01af50432959d5dc092360eeecf2f13063a3321701aa65563",
+      "bytes": 198
+    },
+    {
+      "path": "planning/logging/evidence/wp02-s02/developer/logs/package-boundaries.log",
+      "sha256": "bbdd09e448a19a2aca351577d8f7479f38ccfd028b0aabf74e7ee7e46e90c0fa",
+      "bytes": 589
+    },
+    {
+      "path": "planning/logging/evidence/wp02-s02/developer/logs/project-boundaries.log",
+      "sha256": "52c517da5afec75d120815dcc0da262b3e71e5e537287ec4285b61443eb330b4",
+      "bytes": 101
+    },
+    {
+      "path": "planning/logging/evidence/wp02-s02/developer/logs/restore.log",
+      "sha256": "45e0b925463346a0823f64947eab555a033eb36d8188618a02ad89262c608e48",
+      "bytes": 1965
+    },
+    {
+      "path": "planning/logging/evidence/wp02-s02/developer/logs/startup-contract.log",
+      "sha256": "799cd97f5dedba4cddc2075cbfb27a05bb4f4cafec7a81592f7bbc13b35ee033",
+      "bytes": 8150
+    },
+    {
+      "path": "planning/logging/evidence/wp02-s02/developer/source-inputs.json",
+      "sha256": "b0dcd05a155af1c35c69e2da4edc829c4fdc01e0d9dfe2a39115ac00f0b2f6c9",
+      "bytes": 57271
+    },
+    {
+      "path": "planning/logging/evidence/wp02-s02/developer/summary.json",
+      "sha256": "d62925ccc1a8cb842af533f62cc9ab6cd93e3fb4a781bb597036a87bdaaa66c3",
+      "bytes": 6834
+    },
+    {
+      "path": "planning/logging/evidence/wp02-s02/developer/validation.json",
+      "sha256": "ef4b67392fb7611ed6ad4dfa4f8f5b916535d50cb40ae5e01f6c742ccf21adfb",
+      "bytes": 127
+    },
+    {
+      "path": "planning/logging/evidence/wp02-s02/replay/input-inventory.json",
+      "sha256": "b0dcd05a155af1c35c69e2da4edc829c4fdc01e0d9dfe2a39115ac00f0b2f6c9",
+      "bytes": 57271
+    },
+    {
+      "path": "planning/logging/evidence/wp02-s02/replay/summary.json",
+      "sha256": "a7a0a39da244c82fe008eeb41a706378239cfd830e6831d958f8c8c15160ac56",
+      "bytes": 442
+    },
+    {
+      "path": "planning/logging/evidence/wp02-s02/replay/verification.log",
+      "sha256": "a9252865940f0a11afc033439bcc05c36692992d107320b4af13ea8d9e0153ee",
+      "bytes": 38318
+    },
+    {
+      "path": "planning/logging/evidence/wp02-s02/specified-inputs/configuration-cases.json",
+      "sha256": "cd32b1edd8b30312e5a997dd4f496f63c1390451545b657123d55f1e07887d30",
+      "bytes": 189513
+    },
+    {
+      "path": "planning/logging/evidence/wp02-s02/specified-inputs/configuration.json",
+      "sha256": "b7dc1e048f17d74eabaced693a1b741537daf5a4cddb592a55cbc8ffdcf64f61",
+      "bytes": 7892
+    },
+    {
+      "path": "planning/logging/evidence/wp02-s02/specified-inputs/event-capture-expectations.json",
+      "sha256": "a9d8737be62f494b45c8b1e1964599998a5fbce39b69a5cb47cc85eff84450d3",
+      "bytes": 9622
+    },
+    {
+      "path": "planning/logging/evidence/wp02-s02/specified-inputs/event-contract.json",
+      "sha256": "ef6f2cc9d1db9667630f41f6bf48b431d768f09c72d647f0aa29a0c3fad77de8",
+      "bytes": 10305
+    },
+    {
+      "path": "planning/logging/evidence/wp02-s02/specified-inputs/event-record-cases.json",
+      "sha256": "5cdaf3c499ab38e378a2dc341a882fda6dcfab06bf573ebebe5f1451f32c483d",
+      "bytes": 1153981
+    },
+    {
+      "path": "planning/logging/evidence/wp02-s02/specified-inputs/event-value-cases.json",
+      "sha256": "2450f372be433f8c48789436c471173d5545a69de4dfd06ee79f88b87118bf3f",
+      "bytes": 9529
+    },
+    {
+      "path": "planning/logging/evidence/wp02-s02/specified-inputs/event.schema.json",
+      "sha256": "0bdda87558f9687ecf61174dc8a3d9aa5555db15b12224a9eb46ccc825addc32",
+      "bytes": 5120
+    },
+    {
+      "path": "planning/logging/evidence/wp02-s02/specified-inputs/surface.json",
+      "sha256": "3860c68e48f79b07e555679e040f8a9d4eefa9cb11b056804ef70ed944b51ae6",
+      "bytes": 6346
+    }
+  ],
+  "limits": [
+    "No shipping startup/event APIs or logger, scope, truncation engine, exception capture or writer are implemented by this story.",
+    "Configuration resolution remains WP03; real bounded capture/merge/mutation isolation/truncation remains WP04 and encoded output/file behavior WP05.",
+    "Contract fixture validation and compilation do not establish logging runtime behavior.",
+    "Linux, future language runtime conformance, collector ingestion, historical binary compatibility and full Release remain unqualified."
+  ]
+}

@@ -14,6 +14,7 @@ public static class Consumer
             ConsoleLevel = CoreLogLevel.Warning, ConsoleStream = ConsoleOutputStream.StandardError,
             HumanDetail = HumanOutputDetail.Verbose, FilePath = "logs/app.jsonl",
             FileFormat = LogOutputFormat.JsonLines, FileLevel = CoreLogLevel.Debug,
+            MaxEntryBytes = 65536,
             QueueCapacity = 1024, FlushIntervalMilliseconds = 1000,
             ShutdownTimeoutMilliseconds = 5000, FileMaxBytes = 10485760L,
             FileRetainedFiles = 10, SchemaVersion = 1
@@ -70,6 +71,7 @@ public static class Consumer
         string? loggingFilePath = resolved.Logging.FilePath;
         LogOutputFormat loggingFileFormat = resolved.Logging.FileFormat;
         CoreLogLevel loggingFileLevel = resolved.Logging.FileLevel;
+        int maximumEntryBytes = resolved.Logging.MaxEntryBytes;
         int loggingQueueCapacity = resolved.Logging.QueueCapacity;
         TimeSpan loggingFlushInterval = resolved.Logging.FlushInterval;
         TimeSpan loggingShutdownTimeout = resolved.Logging.ShutdownTimeout;

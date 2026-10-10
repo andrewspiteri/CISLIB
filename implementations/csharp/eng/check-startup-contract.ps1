@@ -33,6 +33,7 @@ try {
     $referenceRoot = Join-Path $OutputRoot 'reference'
     New-Item -ItemType Directory -Path $referenceRoot -Force | Out-Null
     Copy-Item -LiteralPath (Join-Path $sourceRoot 'PublicSurface.cs') -Destination (Join-Path $referenceRoot 'PublicSurface.cs')
+    Copy-Item -LiteralPath (Join-Path $sourceRoot 'EventSurface.cs') -Destination (Join-Path $referenceRoot 'EventSurface.cs')
     Copy-Item -LiteralPath (Join-Path $sourceRoot 'Reference.csproj.template') -Destination (Join-Path $referenceRoot 'Reference.csproj')
     $lines = @(& dotnet build (Join-Path $referenceRoot 'Reference.csproj') -c Release -v minimal -p:RestoreConfigFile="$languageRoot/NuGet.config" 2>&1 | ForEach-Object { $_.ToString() })
     $actual = $LASTEXITCODE
@@ -42,6 +43,7 @@ try {
     if ($actual -ne 0) { throw "Reference-only specification failed to compile. See $log" }
     $summary.referenceAssembly = New-EvidenceReference $OutputRoot (Join-Path $referenceRoot 'bin/Release/net10.0/CIS.Core.ContractSpecification.dll') 'dotnet.reference-assembly/v1'
     Invoke-CompilerControl 'positive-consumer' (Join-Path $OutputRoot 'positive') (Join-Path $sourceRoot 'Consumer.cs') ''
+    Invoke-CompilerControl 'event-consumer' (Join-Path $OutputRoot 'event-consumer') (Join-Path $sourceRoot 'EventConsumer.cs') ''
     foreach ($case in @(Get-Content -Raw -LiteralPath (Join-Path $sourceRoot 'negative-cases.json') | ConvertFrom-Json)) {
         Invoke-CompilerControl $case.id (Join-Path $OutputRoot $case.id) (Join-Path $sourceRoot $case.file) $case.expectedDiagnostic
     }
