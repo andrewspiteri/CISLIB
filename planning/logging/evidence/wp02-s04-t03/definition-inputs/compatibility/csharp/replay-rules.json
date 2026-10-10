@@ -1,0 +1,237 @@
+{
+  "schemaVersion": 1,
+  "taskId": "WP02-S04-T03",
+  "implementation": "csharp",
+  "state": "DefinitionOnly",
+  "runtimeHarnessImplemented": false,
+  "historicalCompatibilityExecuted": false,
+  "authority": "Selected maintainer replay rules from guide section 13 and WP07-S04, subject to recorded user amendments; no extra user directions or actual release claim.",
+  "documentation": "docs/architecture/csharp-compatibility-replay.md",
+  "publicationLedger": "compatibility/csharp/publications/ledger.json",
+  "publicationFormat": "compatibility/csharp/publications/README.md",
+  "identity": {
+    "corePackage": "CIS.Core",
+    "coreAssembly": "CIS.Core",
+    "rootNamespace": "CIS",
+    "microsoftProviderInCore": true,
+    "separateMicrosoftProviderPackage": false,
+    "optionalThirdPartyIntegrations": "Separate registered identities and retained binaries, when actually published."
+  },
+  "history": {
+    "membershipSource": "Trusted append-only actual-publication ledger, never candidate APIs/TFMs or latest/stable selection.",
+    "includePrereleases": true,
+    "includeIntermediatePublications": true,
+    "includePartialPromotions": true,
+    "baselineRewriteAllowed": false,
+    "missingPrerequisiteIsPass": false,
+    "newIdentityWithNoBaseline": "Record NoBaselineForIdentity; qualify its first-publication controls while replaying every applicable existing identity."
+  },
+  "layers": [
+    {
+      "id": "A",
+      "caseGroup": "COMPAT-API",
+      "name": "Package and API",
+      "required": [
+        "Iterate each historical package/contract identity and every published target/RID asset; missing candidate assets fail rather than reduce applicability.",
+        "Compare exact retained baseline to exact candidate with pinned APICompat/package validation in compatibility mode; additive surface is permitted only when supported old usage is preserved.",
+        "Explicitly enable supported parameter-name and relevant attribute rules; independently inspect published names, optional defaults, constants/enums, nullable/construction/interface/layout and assembly identity guarantees that tooling does not cover.",
+        "Preserve package target/minimum-runtime and approved dependency-closure contracts. Current C# Core has one assembly including the provider.",
+        "No baseline-TFM ignore, rebuilt baseline or real-break suppression; a tool false positive requires narrow tool/source-bound disposition plus independent historical regression.",
+        "Keep native invocation/report/tool hashes and baseline/candidate identity for every comparison; one PackageValidationBaselineVersion is not cumulative history."
+      ]
+    },
+    {
+      "id": "B",
+      "caseGroup": "COMPAT-SOURCE",
+      "name": "Historical source compilation and execution",
+      "required": [
+        "Hash-verify and copy preserved source/settings into an owned workspace; never edit archives, historical lockfiles, source calls or expectations.",
+        "Substitute only requested CisLib package versions and necessary permitted dependency closure in the workspace; retain a substitution manifest and project/restore diff.",
+        "Preserve original contract TFM, RID where declared, language version, nullable, warning-as-error and compilation settings; no suppressions or implicit retargeting.",
+        "Regenerate a temporary lockfile only for the substituted workspace; restore exact staged candidate bytes from isolated sources/caches and record resolved assets/closure.",
+        "Compile original constructors, named arguments, null, extension/overload/conversion and supported public-interface consumer patterns; warnings-as-errors remains active.",
+        "Execute the compiled consumer and compare its frozen behavior expectations; compiler exit zero alone is insufficient.",
+        "Historical SDK/target/runtime execution is separate from supplementary current-toolchain/current-runtime execution; missing archived prerequisites refuse required qualification."
+      ]
+    },
+    {
+      "id": "C",
+      "caseGroup": "COMPAT-BINARY",
+      "name": "Unchanged binary replay",
+      "required": [
+        "Copy frozen consumer DLL and any retained PDB and runtime/dependency material into an isolated workspace; verify original consumer hashes before/after and never compile, instrument or rewrite that consumer.",
+        "Execute CoreReplacement and CompleteUpgrade independently for every applicable retained consumer; use old optional integrations in replacement and candidate integrations in complete upgrade.",
+        "MicrosoftLogger is replaced with its containing CIS.Core DLL in both scenarios; when Core is the only library identity, retain separate scenario evidence even if their payloads match.",
+        "Keep unaffected dependencies frozen and materialize only the necessary permitted closure changes; record dependency-manifest/probing/runtime-host adaptations outside immutable storage.",
+        "Prove actual loaded candidate Core/integration/dependency paths, assembly metadata and SHA-256 from the consumer process; restoration or a copied DLL alone is not proof.",
+        "Keep original-runtime replay and explicitly selected current-runtime replay distinct; record actual runtime/OS/architecture and any test-only roll-forward override.",
+        "Compare frozen behavior and prove every required scenario/target/lane executed; missing material, fallback to old Core or an unexpected skip cannot pass."
+      ]
+    },
+    {
+      "id": "D",
+      "caseGroup": "COMPAT-CONFIG-WIRE-BEHAVIOR",
+      "name": "Configuration, wire and documented behavior",
+      "required": [
+        "Execute all accumulated historical configuration, event, error and behavioral fixtures against the exact candidate; new expectations cannot replace old ones.",
+        "Compare defaults/aliases/precedence/blank-invalid/bounds and one-time paths; preserve immutable metadata, error types/codes, ownership, sync/async and cancellation meanings.",
+        "Compare stream separation, enabled/filtered/lazy admission, scope flow/precedence, bounded projection/truncation, per-output ordering/failure and fixed-boundary loss/accounting.",
+        "Preserve JSON schema selection, required/known optional presence, null vs omission, value kinds/precision, UTC/UUID forms, framing/encoding and unknown-optional reader policy.",
+        "Compare human information availability/stream/bounds guarantees independently from permitted presentation changes; never trim captured message/attribute text to hide differences.",
+        "Apply only baseline-authorized named normalization rules after validating raw data and cross-record invariants; never apply a generic ignore list or reorder delivered records.",
+        "Retain raw and compared observations, named transformations/predicate checks, candidate load proof and per-fixture outcomes."
+      ]
+    }
+  ],
+  "sourceSubstitution": {
+    "allowedWorkspaceChanges": [
+      "Selected CisLib PackageReference version values or equivalent generated version overrides",
+      "Necessary approved runtime dependency resolution",
+      "Temporary restored lockfile and probing/source configuration"
+    ],
+    "forbiddenChanges": [
+      "Consumer source calls",
+      "Contract target/RID/language/nullable/warnings settings",
+      "Historical fixture inputs/expectations",
+      "Archived lockfiles/manifests",
+      "Added obsolete/warning suppressions"
+    ],
+    "requiredProof": [
+      "Original source/settings hashes before and after",
+      "Exact package substitution map and workspace diff",
+      "Resolved candidate package/assembly hashes",
+      "Native compiler result and executed consumer behavior"
+    ]
+  },
+  "binaryScenarios": [
+    {
+      "id": "CoreReplacement",
+      "consumer": "Frozen historical binary",
+      "core": "Exact candidate Core",
+      "optionalIntegrations": "Frozen historical optional integration DLLs where present",
+      "dependencies": "Preserve unaffected historical artifacts; record only permitted closure changes required for candidate Core."
+    },
+    {
+      "id": "CompleteUpgrade",
+      "consumer": "Same frozen historical binary",
+      "core": "Exact candidate Core",
+      "optionalIntegrations": "Exact candidate versions for every applicable published optional integration identity",
+      "dependencies": "Resolved approved candidate closure; record every materialized path/hash."
+    }
+  ],
+  "runtimeScenarios": [
+    {
+      "id": "OriginalRuntime",
+      "selection": "Exact retained original runtime/SDK materialization; record test-only Disable roll-forward override for the replay host, without editing archived runtimeconfig.",
+      "replacesOriginalTargetCoverage": false
+    },
+    {
+      "id": "CurrentRuntime",
+      "selection": "Explicit supported runtime and recorded host roll-forward; preserve original binary/target/config archives. Supplementary evidence cannot replace original-runtime evidence.",
+      "replacesOriginalTargetCoverage": false
+    }
+  ],
+  "normalization": {
+    "default": "Exact documented semantic comparison; deterministic inputs stay exact. No transformation applies by default.",
+    "authorization": "A frozen fixture must select a rule by ID and scope. Validate raw shape/format, availability and invariants before canonicalizing only named generated values.",
+    "wireObjectMemberOrder": "Not a contract; compare parsed objects structurally, preserving array/stream order and all known fields.",
+    "unknownOptionalFields": "Only the historical reader policy permits additive unknown fields; preserve known field meaning and producer projection guarantees.",
+    "rules": [
+      {
+        "id": "N-INSTANCE",
+        "wirePaths": [
+          "/resource/instance_id"
+        ],
+        "action": "Bind generated lowercase D UUID to a run-local token after verifying format, stable snapshot/event identity and independent-process uniqueness. Never normalize a supplied UUID attribute."
+      },
+      {
+        "id": "N-UTC",
+        "wirePaths": [
+          "/timestamp",
+          "/resource/initialized_at",
+          "/resource/process_started_at"
+        ],
+        "observationMembers": [
+          "CIS.Logging.LogFlushResult.BoundaryCapturedAtUtc",
+          "CIS.Logging.LogStopResult.BoundaryCapturedAtUtc"
+        ],
+        "action": "Bind explicitly generated instants only after validating seven-digit UTC form, actual process-start vs initialization distinction, snapshot immutability and fixture-defined clock/deadline relations. Injected deterministic instants remain exact."
+      },
+      {
+        "id": "N-HOST",
+        "wirePaths": [
+          "/resource/process_id",
+          "/resource/host_name",
+          "/resource/os_description",
+          "/resource/runtime_description"
+        ],
+        "action": "Compare optional availability and actual independently observed child/process/runtime metadata under the fixture capture policy, then bind only verified environment-specific values. Never normalize service/env/version/build IDs, os_family, architectures or environment_kind."
+      },
+      {
+        "id": "N-WORKSPACE",
+        "wirePaths": [],
+        "observationMembers": [
+          "CIS.Logging.LoggingOptions.FilePath"
+        ],
+        "action": "Only a fixture-declared owned workspace root alias may vary. Assert absolute path, exact suffix, containment and once-only resolution before binding the root. Literal paths and wrong-directory resolution remain failures; do not rewrite frozen source/inputs."
+      }
+    ],
+    "forbidden": [
+      "Broad wildcards or ignore-property lists",
+      "Normalizing missing fields or invalid forms",
+      "Changing number/string/null types or decimal-string precision",
+      "Erasing severities, names, messages, operation/trace/span IDs, user attributes, errors, counters or truncation markers",
+      "Sorting event streams/arrays or collapsing independent output outcomes",
+      "Changing timeouts, completion/success/loss, cancellation, ownership or validation order"
+    ]
+  },
+  "zeroHistory": {
+    "globalCondition": "Trusted complete ledger.publications.Count == 0, not no stable releases or no remaining candidate targets.",
+    "historicalComparisonStatus": "NoHistoricalPublications",
+    "historicalComparisonCount": 0,
+    "syntheticRecordsEnterPublicationLedger": false,
+    "requiredFirstReleaseWork": [
+      "Qualify all four harness layers with positive and deliberately incompatible controls",
+      "Compile supported candidate source consumer patterns under declared settings",
+      "Freeze and replay candidate-built binary consumers without recompilation",
+      "Execute schema/configuration/behavior fixtures and both binary/runtime scenarios where applicable",
+      "Prove exact candidate loads and required platform coverage",
+      "Retain consumer source/settings/binaries/dependencies/toolchains and complete verification kit",
+      "Append immutable first baseline only after actual package exposure"
+    ],
+    "afterAnyPrerelease": "Empty-history exception ends immediately for subsequent candidates, including first stable."
+  },
+  "evidence": {
+    "expectedCaseKey": [
+      "identityId",
+      "historicalPackageVersion",
+      "baselineRecordSha256",
+      "layer",
+      "fixtureId",
+      "contractTargetFramework",
+      "laneId",
+      "runtimeScenario",
+      "binaryScenario"
+    ],
+    "required": [
+      "Expected membership matrix derived before execution",
+      "Exact candidate and baseline package/assembly hashes",
+      "Tool/SDK/runtime/OS/arch/roll-forward identities",
+      "Per-case native exit/outcome/report hashes",
+      "Loaded assembly proof and resolved closure",
+      "All input hashes before/after and recorded workspace adaptations",
+      "Raw/normalized observations with named rule checks",
+      "Negative-control rejection at the intended layer; tool crash/unavailable is not break detection"
+    ],
+    "requiredCasePassRate": 1.0,
+    "missingRequiredCaseAllowed": false,
+    "unexpectedSkipAllowed": false,
+    "notApplicable": "Only fixture-declared scope that was not promised by that historical contract; retain explicit reason and matrix row. Candidate omissions cannot change applicability.",
+    "definitionStatusMayBeReportedAsExecution": false
+  },
+  "nextImplementation": [
+    "WP02-S04-T04 compiling source patterns and incompatible samples",
+    "WP07-S04 actual cumulative package/source/binary/behavior harness",
+    "WP08-S04 upgrade consumer and WP09 actual publication retention"
+  ]
+}
