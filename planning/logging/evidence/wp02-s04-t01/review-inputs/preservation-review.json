@@ -1,0 +1,1266 @@
+{
+  "schemaVersion": 1,
+  "taskId": "WP02-S04-T01",
+  "reviewedOn": "2026-10-10",
+  "state": "Maintainer review of unpublished proposals; not a publication manifest, immutable release baseline or proof of runtime behavior",
+  "authority": "Roadmap implementation applies recorded user amendments. Permanent preservation is the selected maintainer policy from guide section 13, not a claim of separate user confirmation or actual publication.",
+  "policy": "docs/architecture/compatibility-policy.md",
+  "preservation": {
+    "duration": "indefinite-for-every-published-supported-contract",
+    "begins": "first-actual-publication-including-prereleases",
+    "majorVersionWaiver": false,
+    "warningProducingObsoleteAllowed": false,
+    "baselineRewriteAllowed": false,
+    "dropPublishedTargetAllowed": false,
+    "raisePublishedMinimumFrameworkAllowed": false,
+    "publishedHistoryClaimed": false
+  },
+  "identity": {
+    "packageId": "CIS.Core",
+    "assemblyName": "CIS.Core",
+    "rootNamespace": "CIS",
+    "moduleNamespaces": [
+      "CIS.Logging",
+      "CIS.Logging.MicrosoftLogger",
+      "CIS.Configuration"
+    ],
+    "assemblyVersion": "1.0.0.0",
+    "culture": "neutral",
+    "publicKeyToken": null,
+    "thirdPartyRuntimeDependencies": "Isolated optional packages; approved Microsoft closures stay explicitly checked",
+    "dependencyVersionPolicy": "Approved dependency upgrades must preserve historical binding, public Microsoft interfaces, allowed closure and declared target support; versions are not permanently pinned by this review."
+  },
+  "reviewedInputs": [
+    {
+      "path": "implementations/csharp/verification/contracts/startup/PublicSurface.cs",
+      "sha256": "1f210f2552ec92161d1837ecfb6714a5c1ade8dae2c349128fc8a2dae294b630",
+      "state": "selected-unpublished-proposal"
+    },
+    {
+      "path": "implementations/csharp/verification/contracts/startup/EventSurface.cs",
+      "sha256": "250451d56855467d66d51e4b13716bcacd6fe368206648f43891bde92343818d",
+      "state": "selected-unpublished-proposal"
+    },
+    {
+      "path": "implementations/csharp/verification/contracts/startup/RuntimeSurface.cs",
+      "sha256": "fd7c59b436d5d2abfdf83e8c7d6e111929ea40f17411829cf637cf3f7b809103",
+      "state": "selected-unpublished-proposal"
+    },
+    {
+      "path": "implementations/csharp/verification/contracts/startup/ProviderSurface.cs",
+      "sha256": "7d2521d831bf3c60e0d3e29cba20e68c6b6b7bba9ea1940f53258bcd6dad116a",
+      "state": "selected-unpublished-proposal"
+    },
+    {
+      "path": "implementations/csharp/verification/contracts/startup/surface.json",
+      "sha256": "9cc54d7858244f24aa94901178076b04639234afbc5e1481afb1fde9fdbfa2c4",
+      "state": "selected-unpublished-proposal"
+    },
+    {
+      "path": "implementations/csharp/verification/contracts/startup/runtime-surface.json",
+      "sha256": "e380f208bacc09c61d0ca429bd928f1c4005b1ac459e6b5ac6de48f0db610185",
+      "state": "selected-unpublished-proposal"
+    },
+    {
+      "path": "contracts/logging/v1/startup-contract.json",
+      "sha256": "2bd6988cfb247f2e7a9e442af47ebf0703d29d203b94c5151f93d5eda45b0fa1",
+      "state": "selected-unpublished-proposal"
+    },
+    {
+      "path": "contracts/logging/v1/configuration.json",
+      "sha256": "b7dc1e048f17d74eabaced693a1b741537daf5a4cddb592a55cbc8ffdcf64f61",
+      "state": "selected-unpublished-proposal"
+    },
+    {
+      "path": "contracts/logging/v1/event.schema.json",
+      "sha256": "0bdda87558f9687ecf61174dc8a3d9aa5555db15b12224a9eb46ccc825addc32",
+      "state": "selected-unpublished-proposal"
+    },
+    {
+      "path": "contracts/logging/v1/event-contract.json",
+      "sha256": "ef6f2cc9d1db9667630f41f6bf48b431d768f09c72d647f0aa29a0c3fad77de8",
+      "state": "selected-unpublished-proposal"
+    },
+    {
+      "path": "contracts/logging/v1/runtime-contract.json",
+      "sha256": "1f0ec5e8e43a8b3ccee6eef67703e8e86b748153cf0f4a8f69f27c48a6948672",
+      "state": "selected-unpublished-proposal"
+    },
+    {
+      "path": "implementations/csharp/support/contract-targets.json",
+      "sha256": "fc8578928ed444ecdc5c6e9df5bd963b722db5b329f2aae3b588919afd961aad",
+      "state": "selected-unpublished-proposal"
+    },
+    {
+      "path": "implementations/csharp/eng/runtime-dependencies.json",
+      "sha256": "1e7a7d87169b5d81999239dabbf7821b71d973becf25928ecd6e4a02bcba264f",
+      "state": "selected-unpublished-proposal"
+    },
+    {
+      "path": "docs/architecture/csharp-assembly-policy.md",
+      "sha256": "5da6356556e667ece4c5010217876ceb951ed050697d0ba9ba91ce8d61a9876c",
+      "state": "selected-unpublished-proposal"
+    },
+    {
+      "path": "docs/architecture/csharp-platform-policy.md",
+      "sha256": "7b22969053f2f119c223a8a9545bd99b8211b3a3780196bf6e85afc2b295a887",
+      "state": "selected-unpublished-proposal"
+    }
+  ],
+  "publicTypes": [
+    {
+      "type": "CIS.EnvironmentOptions",
+      "kind": "static-class",
+      "source": "implementations/csharp/verification/contracts/startup/PublicSurface.cs",
+      "construction": {
+        "publicConstructors": []
+      },
+      "preserve": "Full declaration, namespace, accessibility, sealed/static shape, interfaces, nullable annotations, accessor visibility, ordered parameter names/types and documented semantics after actual publication.",
+      "properties": {
+        "Current": "EnvironmentSnapshot",
+        "IsInitialized": "bool",
+        "ApplicationName": "string",
+        "BuildVersion": "string",
+        "ServiceVersion": "string",
+        "EnvironmentName": "string",
+        "HostName": "string?",
+        "OperatingSystem": "string",
+        "Logging": "LoggingOptions",
+        "EventMetadata": "EventMetadata"
+      },
+      "methods": {
+        "Initialize": {
+          "static": true,
+          "return": "EnvironmentSnapshot",
+          "parameters": {
+            "setup": "EnvironmentSetup"
+          }
+        }
+      }
+    },
+    {
+      "type": "CIS.EnvironmentSetup",
+      "kind": "sealed-class",
+      "source": "implementations/csharp/verification/contracts/startup/PublicSurface.cs",
+      "construction": {
+        "publicConstructors": [
+          {}
+        ],
+        "propertiesMutable": true
+      },
+      "preserve": "Full declaration, namespace, accessibility, sealed/static shape, interfaces, nullable annotations, accessor visibility, ordered parameter names/types and documented semantics after actual publication.",
+      "properties": {
+        "ApplicationAssembly": "Assembly?",
+        "ApplicationName": "string?",
+        "BuildVersion": "string?",
+        "ServiceVersion": "string?",
+        "EnvironmentName": "string?",
+        "EnvironmentKind": "EnvironmentKind",
+        "CommitId": "string?",
+        "BuildId": "string?",
+        "Logging": "LoggingSetup?"
+      }
+    },
+    {
+      "type": "CIS.EnvironmentSnapshot",
+      "kind": "sealed-class",
+      "source": "implementations/csharp/verification/contracts/startup/PublicSurface.cs",
+      "construction": {
+        "publicConstructors": [],
+        "propertiesMutable": false
+      },
+      "preserve": "Full declaration, namespace, accessibility, sealed/static shape, interfaces, nullable annotations, accessor visibility, ordered parameter names/types and documented semantics after actual publication.",
+      "properties": {
+        "ApplicationName": "string",
+        "BuildVersion": "string",
+        "ServiceVersion": "string",
+        "EnvironmentName": "string",
+        "EnvironmentKind": "EnvironmentKind",
+        "InstanceId": "string",
+        "ProcessStartedAtUtc": "DateTimeOffset?",
+        "InitializedAtUtc": "DateTimeOffset",
+        "HostName": "string?",
+        "OperatingSystem": "string",
+        "OperatingSystemDescription": "string?",
+        "OSArchitecture": "string?",
+        "ProcessArchitecture": "string?",
+        "RuntimeDescription": "string?",
+        "ProcessId": "int?",
+        "CommitId": "string?",
+        "BuildId": "string?",
+        "Logging": "LoggingOptions",
+        "EventMetadata": "EventMetadata"
+      }
+    },
+    {
+      "type": "CIS.Logging.LoggingSetup",
+      "kind": "sealed-class",
+      "source": "implementations/csharp/verification/contracts/startup/PublicSurface.cs",
+      "construction": {
+        "publicConstructors": [
+          {}
+        ],
+        "propertiesMutable": true
+      },
+      "preserve": "Full declaration, namespace, accessibility, sealed/static shape, interfaces, nullable annotations, accessor visibility, ordered parameter names/types and documented semantics after actual publication.",
+      "properties": {
+        "Level": "CoreLogLevel?",
+        "ConsoleFormat": "LogOutputFormat?",
+        "ConsoleLevel": "CoreLogLevel?",
+        "ConsoleStream": "ConsoleOutputStream?",
+        "HumanDetail": "HumanOutputDetail?",
+        "FilePath": "string?",
+        "FileFormat": "LogOutputFormat?",
+        "FileLevel": "CoreLogLevel?",
+        "QueueCapacity": "int?",
+        "FlushIntervalMilliseconds": "int?",
+        "ShutdownTimeoutMilliseconds": "int?",
+        "FileMaxBytes": "long?",
+        "FileRetainedFiles": "int?",
+        "SchemaVersion": "int?",
+        "MaxEntryBytes": "int?"
+      }
+    },
+    {
+      "type": "CIS.Logging.LoggingOptions",
+      "kind": "sealed-class",
+      "source": "implementations/csharp/verification/contracts/startup/PublicSurface.cs",
+      "construction": {
+        "publicConstructors": [],
+        "propertiesMutable": false
+      },
+      "preserve": "Full declaration, namespace, accessibility, sealed/static shape, interfaces, nullable annotations, accessor visibility, ordered parameter names/types and documented semantics after actual publication.",
+      "properties": {
+        "Level": "CoreLogLevel",
+        "ConsoleFormat": "LogOutputFormat",
+        "ConsoleLevel": "CoreLogLevel",
+        "ConsoleStream": "ConsoleOutputStream",
+        "HumanDetail": "HumanOutputDetail",
+        "FilePath": "string?",
+        "FileFormat": "LogOutputFormat",
+        "FileLevel": "CoreLogLevel",
+        "QueueCapacity": "int",
+        "FlushInterval": "TimeSpan",
+        "ShutdownTimeout": "TimeSpan",
+        "FileMaxBytes": "long",
+        "FileRetainedFiles": "int",
+        "SchemaVersion": "int",
+        "ConsoleEnabled": "bool",
+        "FileEnabled": "bool",
+        "MaxEntryBytes": "int"
+      }
+    },
+    {
+      "type": "CIS.Logging.EventMetadata",
+      "kind": "sealed-class",
+      "source": "implementations/csharp/verification/contracts/startup/PublicSurface.cs",
+      "construction": {
+        "publicConstructors": [],
+        "propertiesMutable": false
+      },
+      "preserve": "Full declaration, namespace, accessibility, sealed/static shape, interfaces, nullable annotations, accessor visibility, ordered parameter names/types and documented semantics after actual publication.",
+      "properties": {
+        "ApplicationName": "string",
+        "BuildVersion": "string",
+        "ServiceVersion": "string",
+        "EnvironmentName": "string",
+        "EnvironmentKind": "EnvironmentKind",
+        "InstanceId": "string",
+        "ProcessStartedAtUtc": "DateTimeOffset?",
+        "InitializedAtUtc": "DateTimeOffset",
+        "HostName": "string?",
+        "OperatingSystem": "string",
+        "OperatingSystemDescription": "string?",
+        "OSArchitecture": "string?",
+        "ProcessArchitecture": "string?",
+        "RuntimeDescription": "string?",
+        "ProcessId": "int?",
+        "CommitId": "string?",
+        "BuildId": "string?"
+      }
+    },
+    {
+      "type": "CIS.Configuration.ConfigurationIssue",
+      "kind": "sealed-class",
+      "source": "implementations/csharp/verification/contracts/startup/PublicSurface.cs",
+      "construction": {
+        "publicConstructors": [
+          {
+            "code": "string",
+            "key": "string",
+            "explanation": "string"
+          }
+        ]
+      },
+      "preserve": "Full declaration, namespace, accessibility, sealed/static shape, interfaces, nullable annotations, accessor visibility, ordered parameter names/types and documented semantics after actual publication.",
+      "properties": {
+        "Code": "string",
+        "Key": "string",
+        "Explanation": "string"
+      }
+    },
+    {
+      "type": "CIS.Configuration.CoreConfigurationException",
+      "kind": "sealed-exception",
+      "source": "implementations/csharp/verification/contracts/startup/PublicSurface.cs",
+      "construction": {
+        "publicConstructors": [
+          {
+            "issues": "IEnumerable<ConfigurationIssue>"
+          }
+        ],
+        "copiesInput": true
+      },
+      "preserve": "Full declaration, namespace, accessibility, sealed/static shape, interfaces, nullable annotations, accessor visibility, ordered parameter names/types and documented semantics after actual publication.",
+      "properties": {
+        "Issues": "IReadOnlyList<ConfigurationIssue>"
+      }
+    },
+    {
+      "type": "CIS.Configuration.ConfigurationIssueCodes",
+      "kind": "static-class",
+      "source": "implementations/csharp/verification/contracts/startup/PublicSurface.cs",
+      "construction": {
+        "publicConstructors": []
+      },
+      "preserve": "Full declaration, namespace, accessibility, sealed/static shape, interfaces, nullable annotations, accessor visibility, ordered parameter names/types and documented semantics after actual publication.",
+      "constants": {
+        "InvalidToken": "InvalidToken",
+        "OutOfRange": "OutOfRange",
+        "UnsupportedSchemaVersion": "UnsupportedSchemaVersion",
+        "InvalidPath": "InvalidPath",
+        "InvalidIdentity": "InvalidIdentity",
+        "InvalidEnvironmentKind": "InvalidEnvironmentKind",
+        "MissingApplicationName": "MissingApplicationName"
+      }
+    },
+    {
+      "type": "CIS.Logging.LogEventData",
+      "kind": "sealed-class",
+      "source": "implementations/csharp/verification/contracts/startup/EventSurface.cs",
+      "construction": {
+        "publicConstructors": [
+          {}
+        ],
+        "propertiesMutable": true
+      },
+      "preserve": "Full declaration, namespace, accessibility, sealed/static shape, interfaces, nullable annotations, accessor visibility, ordered parameter names/types and documented semantics after actual publication.",
+      "properties": {
+        "EventName": "string",
+        "Message": "string",
+        "MessageTemplate": "string?",
+        "OperationId": "string?",
+        "Attributes": "IReadOnlyDictionary<string,LogValue>?",
+        "Exception": "Exception?"
+      }
+    },
+    {
+      "type": "CIS.Logging.OperationContextData",
+      "kind": "sealed-class",
+      "source": "implementations/csharp/verification/contracts/startup/EventSurface.cs",
+      "construction": {
+        "publicConstructors": [
+          {}
+        ],
+        "propertiesMutable": true
+      },
+      "preserve": "Full declaration, namespace, accessibility, sealed/static shape, interfaces, nullable annotations, accessor visibility, ordered parameter names/types and documented semantics after actual publication.",
+      "properties": {
+        "OperationId": "string?",
+        "Attributes": "IReadOnlyDictionary<string,LogValue>?"
+      }
+    },
+    {
+      "type": "CIS.Logging.LogValue",
+      "kind": "sealed-class",
+      "source": "implementations/csharp/verification/contracts/startup/EventSurface.cs",
+      "construction": {
+        "publicConstructors": [],
+        "implicitConversions": false,
+        "objectFactory": false
+      },
+      "preserve": "Full declaration, namespace, accessibility, sealed/static shape, interfaces, nullable annotations, accessor visibility, ordered parameter names/types and documented semantics after actual publication.",
+      "properties": {
+        "Kind": "LogValueKind",
+        "IsTruncated": "bool"
+      },
+      "methods": {
+        "Null": {
+          "static": true,
+          "return": "LogValue",
+          "parameters": {}
+        },
+        "Boolean": {
+          "static": true,
+          "return": "LogValue",
+          "parameters": {
+            "value": "bool"
+          }
+        },
+        "String": {
+          "static": true,
+          "return": "LogValue",
+          "parameters": {
+            "value": "string"
+          }
+        },
+        "Number": {
+          "static": true,
+          "return": "LogValue",
+          "parameters": {
+            "value": "double"
+          }
+        },
+        "Integer": {
+          "static": true,
+          "return": "LogValue",
+          "parameters": {
+            "value": "long"
+          }
+        },
+        "IntegerString": {
+          "static": true,
+          "return": "LogValue",
+          "parameters": {
+            "value": "string"
+          }
+        },
+        "DecimalString": {
+          "static": true,
+          "return": "LogValue",
+          "parameters": {
+            "value": "string"
+          }
+        },
+        "Uuid": {
+          "static": true,
+          "return": "LogValue",
+          "parameters": {
+            "value": "Guid"
+          }
+        },
+        "Timestamp": {
+          "static": true,
+          "return": "LogValue",
+          "parameters": {
+            "value": "DateTimeOffset"
+          }
+        },
+        "Array": {
+          "static": true,
+          "return": "LogValue",
+          "parameters": {
+            "items": "IEnumerable<LogValue>"
+          }
+        },
+        "Map": {
+          "static": true,
+          "return": "LogValue",
+          "parameters": {
+            "properties": "IReadOnlyDictionary<string, LogValue>"
+          }
+        }
+      }
+    },
+    {
+      "type": "CIS.Logging.LogWriteResult",
+      "kind": "sealed-class",
+      "source": "implementations/csharp/verification/contracts/startup/RuntimeSurface.cs",
+      "construction": {
+        "publicConstructors": [],
+        "propertiesMutable": false
+      },
+      "preserve": "Full declaration, namespace, accessibility, sealed/static shape, interfaces, nullable annotations, accessor visibility, ordered parameter names/types and documented semantics after actual publication.",
+      "properties": {
+        "Outcome": "LogWriteOutcome",
+        "Outputs": "IReadOnlyList<LogOutputWriteResult>",
+        "ErrorCode": "string?",
+        "IsTruncated": "bool"
+      }
+    },
+    {
+      "type": "CIS.Logging.LogOutputWriteResult",
+      "kind": "sealed-class",
+      "source": "implementations/csharp/verification/contracts/startup/RuntimeSurface.cs",
+      "construction": {
+        "publicConstructors": [],
+        "propertiesMutable": false
+      },
+      "preserve": "Full declaration, namespace, accessibility, sealed/static shape, interfaces, nullable annotations, accessor visibility, ordered parameter names/types and documented semantics after actual publication.",
+      "properties": {
+        "OutputName": "string",
+        "Status": "LogOutputWriteStatus",
+        "AcceptedSequence": "long?"
+      }
+    },
+    {
+      "type": "CIS.Logging.LogFlushResult",
+      "kind": "sealed-class",
+      "source": "implementations/csharp/verification/contracts/startup/RuntimeSurface.cs",
+      "construction": {
+        "publicConstructors": [],
+        "propertiesMutable": false
+      },
+      "preserve": "Full declaration, namespace, accessibility, sealed/static shape, interfaces, nullable annotations, accessor visibility, ordered parameter names/types and documented semantics after actual publication.",
+      "properties": {
+        "Completion": "LogCompletion",
+        "Succeeded": "bool",
+        "LossObserved": "bool",
+        "BoundaryCapturedAtUtc": "DateTimeOffset",
+        "ObservedAtUtc": "DateTimeOffset",
+        "InvalidEventCount": "long",
+        "TruncatedEventCount": "long",
+        "Outputs": "IReadOnlyList<LogOutputDrainResult>"
+      }
+    },
+    {
+      "type": "CIS.Logging.LogStopResult",
+      "kind": "sealed-class",
+      "source": "implementations/csharp/verification/contracts/startup/RuntimeSurface.cs",
+      "construction": {
+        "publicConstructors": [],
+        "propertiesMutable": false
+      },
+      "preserve": "Full declaration, namespace, accessibility, sealed/static shape, interfaces, nullable annotations, accessor visibility, ordered parameter names/types and documented semantics after actual publication.",
+      "properties": {
+        "Completion": "LogCompletion",
+        "Succeeded": "bool",
+        "LossObserved": "bool",
+        "BoundaryCapturedAtUtc": "DateTimeOffset",
+        "ObservedAtUtc": "DateTimeOffset",
+        "InvalidEventCount": "long",
+        "TruncatedEventCount": "long",
+        "Outputs": "IReadOnlyList<LogOutputDrainResult>"
+      }
+    },
+    {
+      "type": "CIS.Logging.LogOutputDrainResult",
+      "kind": "sealed-class",
+      "source": "implementations/csharp/verification/contracts/startup/RuntimeSurface.cs",
+      "construction": {
+        "publicConstructors": [],
+        "propertiesMutable": false
+      },
+      "preserve": "Full declaration, namespace, accessibility, sealed/static shape, interfaces, nullable annotations, accessor visibility, ordered parameter names/types and documented semantics after actual publication.",
+      "properties": {
+        "OutputName": "string",
+        "AcceptedSequenceBoundary": "long",
+        "Written": "long",
+        "Failed": "long",
+        "Abandoned": "long",
+        "Pending": "long",
+        "WriterFlushStatus": "LogWriterFlushStatus",
+        "WriterFlushSucceeded": "bool",
+        "Rejections": "LogOutputRejectionSnapshot"
+      }
+    },
+    {
+      "type": "CIS.Logging.LogOutputRejectionSnapshot",
+      "kind": "sealed-class",
+      "source": "implementations/csharp/verification/contracts/startup/RuntimeSurface.cs",
+      "construction": {
+        "publicConstructors": [],
+        "propertiesMutable": false
+      },
+      "preserve": "Full declaration, namespace, accessibility, sealed/static shape, interfaces, nullable annotations, accessor visibility, ordered parameter names/types and documented semantics after actual publication.",
+      "properties": {
+        "Filtered": "long",
+        "QueueFull": "long",
+        "Unavailable": "long"
+      }
+    },
+    {
+      "type": "CIS.Logging.CoreLogDiagnostics",
+      "kind": "sealed-class",
+      "source": "implementations/csharp/verification/contracts/startup/RuntimeSurface.cs",
+      "construction": {
+        "publicConstructors": [],
+        "propertiesMutable": false
+      },
+      "preserve": "Full declaration, namespace, accessibility, sealed/static shape, interfaces, nullable annotations, accessor visibility, ordered parameter names/types and documented semantics after actual publication.",
+      "properties": {
+        "State": "CoreLogState",
+        "AdmissionClosed": "bool",
+        "ObservedAtUtc": "DateTimeOffset",
+        "ShutdownStartedAtUtc": "DateTimeOffset?",
+        "InvalidEventCount": "long",
+        "TruncatedEventCount": "long",
+        "Outputs": "IReadOnlyList<LogOutputDiagnostics>",
+        "LastStopResult": "LogStopResult?"
+      }
+    },
+    {
+      "type": "CIS.Logging.LogOutputDiagnostics",
+      "kind": "sealed-class",
+      "source": "implementations/csharp/verification/contracts/startup/RuntimeSurface.cs",
+      "construction": {
+        "publicConstructors": [],
+        "propertiesMutable": false
+      },
+      "preserve": "Full declaration, namespace, accessibility, sealed/static shape, interfaces, nullable annotations, accessor visibility, ordered parameter names/types and documented semantics after actual publication.",
+      "properties": {
+        "OutputName": "string",
+        "State": "LogOutputState",
+        "AcceptedSequence": "long",
+        "Filtered": "long",
+        "AdmissionAttempts": "long",
+        "Accepted": "long",
+        "QueueFull": "long",
+        "Unavailable": "long",
+        "Written": "long",
+        "Failed": "long",
+        "Abandoned": "long",
+        "Pending": "long",
+        "LastFaultCode": "string?",
+        "LastFaultAtUtc": "DateTimeOffset?"
+      }
+    },
+    {
+      "type": "CIS.Logging.CoreLogInitializationException",
+      "kind": "sealed-exception",
+      "source": "implementations/csharp/verification/contracts/startup/RuntimeSurface.cs",
+      "construction": {
+        "publicConstructors": [],
+        "propertiesMutable": false
+      },
+      "preserve": "Full declaration, namespace, accessibility, sealed/static shape, interfaces, nullable annotations, accessor visibility, ordered parameter names/types and documented semantics after actual publication.",
+      "properties": {
+        "OutputName": "string",
+        "ErrorCode": "string"
+      }
+    },
+    {
+      "type": "CIS.Logging.CoreLogRuntime",
+      "kind": "sealed-class",
+      "source": "implementations/csharp/verification/contracts/startup/RuntimeSurface.cs",
+      "construction": {
+        "publicConstructors": [],
+        "ownsRuntime": "Application owns this runtime",
+        "interfaces": [
+          "IAsyncDisposable"
+        ]
+      },
+      "preserve": "Full declaration, namespace, accessibility, sealed/static shape, interfaces, nullable annotations, accessor visibility, ordered parameter names/types and documented semantics after actual publication.",
+      "methods": {
+        "Create": {
+          "return": "CoreLogRuntime",
+          "static": true,
+          "parameters": {
+            "environment": "EnvironmentSnapshot"
+          }
+        },
+        "CreateLogger": {
+          "return": "CoreLogger",
+          "parameters": {
+            "component": "string"
+          }
+        },
+        "BeginScope": {
+          "return": "IDisposable",
+          "parameters": {
+            "context": "OperationContextData"
+          }
+        },
+        "FlushAsync": {
+          "return": "Task<LogFlushResult>",
+          "parameters": {
+            "timeout": "TimeSpan",
+            "cancellationToken": "CancellationToken"
+          }
+        },
+        "StopAsync": {
+          "return": "Task<LogStopResult>",
+          "parameters": {
+            "cancellationToken": "CancellationToken"
+          }
+        },
+        "GetDiagnostics": {
+          "return": "CoreLogDiagnostics",
+          "parameters": {}
+        },
+        "DisposeAsync": {
+          "return": "ValueTask",
+          "parameters": {}
+        }
+      }
+    },
+    {
+      "type": "CIS.Logging.CoreLogger",
+      "kind": "sealed-class",
+      "source": "implementations/csharp/verification/contracts/startup/RuntimeSurface.cs",
+      "construction": {
+        "publicConstructors": [],
+        "ownsRuntime": false,
+        "interfaces": []
+      },
+      "preserve": "Full declaration, namespace, accessibility, sealed/static shape, interfaces, nullable annotations, accessor visibility, ordered parameter names/types and documented semantics after actual publication.",
+      "methods": {
+        "IsEnabled": {
+          "return": "bool",
+          "parameters": {
+            "level": "CoreLogLevel"
+          }
+        },
+        "Write": {
+          "return": "LogWriteResult",
+          "parameters": {
+            "level": "CoreLogLevel",
+            "data": "LogEventData"
+          }
+        },
+        "WriteLazy": {
+          "return": "LogWriteResult",
+          "parameters": {
+            "level": "CoreLogLevel",
+            "factory": "Func<LogEventData>"
+          }
+        }
+      }
+    },
+    {
+      "type": "CIS.Logging.MicrosoftLogger.CoreLoggerProvider",
+      "kind": "sealed-class",
+      "source": "implementations/csharp/verification/contracts/startup/ProviderSurface.cs",
+      "construction": {
+        "publicConstructors": [
+          {
+            "runtime": "CoreLogRuntime"
+          }
+        ],
+        "ownsRuntime": false,
+        "interfaces": [
+          "ILoggerProvider",
+          "ISupportExternalScope",
+          "IDisposable"
+        ]
+      },
+      "preserve": "Full declaration, namespace, accessibility, sealed/static shape, interfaces, nullable annotations, accessor visibility, ordered parameter names/types and documented semantics after actual publication.",
+      "methods": {
+        "CreateLogger": {
+          "return": "ILogger",
+          "parameters": {
+            "categoryName": "string"
+          }
+        },
+        "SetScopeProvider": {
+          "return": "void",
+          "parameters": {
+            "scopeProvider": "IExternalScopeProvider"
+          }
+        },
+        "Dispose": {
+          "return": "void",
+          "parameters": {}
+        }
+      }
+    },
+    {
+      "type": "CIS.Logging.LogErrorCodes",
+      "kind": "static-class",
+      "source": "implementations/csharp/verification/contracts/startup/RuntimeSurface.cs",
+      "construction": {
+        "publicConstructors": []
+      },
+      "preserve": "Full declaration, namespace, accessibility, sealed/static shape, interfaces, nullable annotations, accessor visibility, ordered parameter names/types and documented semantics after actual publication.",
+      "constants": {
+        "InvalidEventName": "InvalidEventName",
+        "InvalidMessage": "InvalidMessage",
+        "InvalidOperationId": "InvalidOperationId",
+        "InvalidAttributeKey": "InvalidAttributeKey",
+        "UnsupportedValue": "UnsupportedValue",
+        "InvalidUnicode": "InvalidUnicode",
+        "InvalidFactoryResult": "InvalidFactoryResult",
+        "EnvelopeTooLarge": "EnvelopeTooLarge",
+        "OutputInitializationFailed": "OutputInitializationFailed",
+        "OutputOwnershipUnavailable": "OutputOwnershipUnavailable",
+        "WriteFailed": "WriteFailed",
+        "RenderFailed": "RenderFailed",
+        "FlushFailed": "FlushFailed"
+      }
+    },
+    {
+      "type": "CIS.EnvironmentKind",
+      "kind": "int32-enum",
+      "source": "implementations/csharp/verification/contracts/startup/PublicSurface.cs",
+      "construction": {
+        "implicitNumericReinterpretation": false
+      },
+      "preserve": "Full declaration, namespace, accessibility, sealed/static shape, interfaces, nullable annotations, accessor visibility, ordered parameter names/types and documented semantics after actual publication.",
+      "constants": {
+        "Unknown": 0,
+        "Console": 1,
+        "Service": 2,
+        "Web": 3,
+        "Function": 4
+      }
+    },
+    {
+      "type": "CIS.Logging.CoreLogLevel",
+      "kind": "int32-enum",
+      "source": "implementations/csharp/verification/contracts/startup/PublicSurface.cs",
+      "construction": {
+        "implicitNumericReinterpretation": false
+      },
+      "preserve": "Full declaration, namespace, accessibility, sealed/static shape, interfaces, nullable annotations, accessor visibility, ordered parameter names/types and documented semantics after actual publication.",
+      "constants": {
+        "Trace": 0,
+        "Debug": 1,
+        "Information": 2,
+        "Warning": 3,
+        "Error": 4,
+        "Critical": 5,
+        "None": 6
+      }
+    },
+    {
+      "type": "CIS.Logging.LogOutputFormat",
+      "kind": "int32-enum",
+      "source": "implementations/csharp/verification/contracts/startup/PublicSurface.cs",
+      "construction": {
+        "implicitNumericReinterpretation": false
+      },
+      "preserve": "Full declaration, namespace, accessibility, sealed/static shape, interfaces, nullable annotations, accessor visibility, ordered parameter names/types and documented semantics after actual publication.",
+      "constants": {
+        "Human": 0,
+        "JsonLines": 1
+      }
+    },
+    {
+      "type": "CIS.Logging.ConsoleOutputStream",
+      "kind": "int32-enum",
+      "source": "implementations/csharp/verification/contracts/startup/PublicSurface.cs",
+      "construction": {
+        "implicitNumericReinterpretation": false
+      },
+      "preserve": "Full declaration, namespace, accessibility, sealed/static shape, interfaces, nullable annotations, accessor visibility, ordered parameter names/types and documented semantics after actual publication.",
+      "constants": {
+        "StandardError": 0,
+        "StandardOutput": 1
+      }
+    },
+    {
+      "type": "CIS.Logging.HumanOutputDetail",
+      "kind": "int32-enum",
+      "source": "implementations/csharp/verification/contracts/startup/PublicSurface.cs",
+      "construction": {
+        "implicitNumericReinterpretation": false
+      },
+      "preserve": "Full declaration, namespace, accessibility, sealed/static shape, interfaces, nullable annotations, accessor visibility, ordered parameter names/types and documented semantics after actual publication.",
+      "constants": {
+        "Normal": 0,
+        "Verbose": 1
+      }
+    },
+    {
+      "type": "CIS.Logging.LogValueKind",
+      "kind": "int32-enum",
+      "source": "implementations/csharp/verification/contracts/startup/EventSurface.cs",
+      "construction": {
+        "implicitNumericReinterpretation": false
+      },
+      "preserve": "Full declaration, namespace, accessibility, sealed/static shape, interfaces, nullable annotations, accessor visibility, ordered parameter names/types and documented semantics after actual publication.",
+      "constants": {
+        "Null": 0,
+        "Boolean": 1,
+        "String": 2,
+        "Number": 3,
+        "Integer": 4,
+        "IntegerString": 5,
+        "DecimalString": 6,
+        "Uuid": 7,
+        "Timestamp": 8,
+        "Array": 9,
+        "Map": 10
+      }
+    },
+    {
+      "type": "CIS.Logging.LogWriteOutcome",
+      "kind": "int32-enum",
+      "source": "implementations/csharp/verification/contracts/startup/RuntimeSurface.cs",
+      "construction": {
+        "implicitNumericReinterpretation": false
+      },
+      "preserve": "Full declaration, namespace, accessibility, sealed/static shape, interfaces, nullable annotations, accessor visibility, ordered parameter names/types and documented semantics after actual publication.",
+      "constants": {
+        "Accepted": 0,
+        "PartiallyAccepted": 1,
+        "Filtered": 2,
+        "Rejected": 3,
+        "Stopped": 4,
+        "InvalidEvent": 5
+      }
+    },
+    {
+      "type": "CIS.Logging.LogOutputWriteStatus",
+      "kind": "int32-enum",
+      "source": "implementations/csharp/verification/contracts/startup/RuntimeSurface.cs",
+      "construction": {
+        "implicitNumericReinterpretation": false
+      },
+      "preserve": "Full declaration, namespace, accessibility, sealed/static shape, interfaces, nullable annotations, accessor visibility, ordered parameter names/types and documented semantics after actual publication.",
+      "constants": {
+        "Accepted": 0,
+        "Filtered": 1,
+        "QueueFull": 2,
+        "Faulted": 3,
+        "Stopped": 4
+      }
+    },
+    {
+      "type": "CIS.Logging.LogCompletion",
+      "kind": "int32-enum",
+      "source": "implementations/csharp/verification/contracts/startup/RuntimeSurface.cs",
+      "construction": {
+        "implicitNumericReinterpretation": false
+      },
+      "preserve": "Full declaration, namespace, accessibility, sealed/static shape, interfaces, nullable annotations, accessor visibility, ordered parameter names/types and documented semantics after actual publication.",
+      "constants": {
+        "Completed": 0,
+        "TimedOut": 1
+      }
+    },
+    {
+      "type": "CIS.Logging.LogOutputState",
+      "kind": "int32-enum",
+      "source": "implementations/csharp/verification/contracts/startup/RuntimeSurface.cs",
+      "construction": {
+        "implicitNumericReinterpretation": false
+      },
+      "preserve": "Full declaration, namespace, accessibility, sealed/static shape, interfaces, nullable annotations, accessor visibility, ordered parameter names/types and documented semantics after actual publication.",
+      "constants": {
+        "Running": 0,
+        "Faulted": 1,
+        "Stopping": 2,
+        "Stopped": 3
+      }
+    },
+    {
+      "type": "CIS.Logging.CoreLogState",
+      "kind": "int32-enum",
+      "source": "implementations/csharp/verification/contracts/startup/RuntimeSurface.cs",
+      "construction": {
+        "implicitNumericReinterpretation": false
+      },
+      "preserve": "Full declaration, namespace, accessibility, sealed/static shape, interfaces, nullable annotations, accessor visibility, ordered parameter names/types and documented semantics after actual publication.",
+      "constants": {
+        "Running": 0,
+        "Stopping": 1,
+        "Stopped": 2
+      }
+    },
+    {
+      "type": "CIS.Logging.LogWriterFlushStatus",
+      "kind": "int32-enum",
+      "source": "implementations/csharp/verification/contracts/startup/RuntimeSurface.cs",
+      "construction": {
+        "implicitNumericReinterpretation": false
+      },
+      "preserve": "Full declaration, namespace, accessibility, sealed/static shape, interfaces, nullable annotations, accessor visibility, ordered parameter names/types and documented semantics after actual publication.",
+      "constants": {
+        "NotRequested": 0,
+        "Pending": 1,
+        "Succeeded": 2,
+        "Failed": 3
+      }
+    }
+  ],
+  "configuration": {
+    "catalog": "contracts/logging/v1/configuration.json",
+    "preserveAllDeclaredSelectionRules": true,
+    "defaults": [
+      {
+        "key": "CORE_SERVICE_NAME",
+        "property": "ApplicationName",
+        "default": {
+          "discovery": "applicationName"
+        },
+        "aliases": [
+          "DD_SERVICE"
+        ],
+        "maxScalars": 255
+      },
+      {
+        "key": "CORE_ENVIRONMENT",
+        "property": "EnvironmentName",
+        "default": "unknown",
+        "aliases": [
+          "DD_ENV"
+        ],
+        "maxScalars": 255
+      },
+      {
+        "key": "CORE_SERVICE_VERSION",
+        "property": "ServiceVersion",
+        "default": {
+          "metadata": "BuildVersion"
+        },
+        "aliases": [
+          "DD_VERSION"
+        ],
+        "maxScalars": 512
+      },
+      {
+        "key": "CORE_LOG_LEVEL",
+        "property": "Logging.Level",
+        "default": "Information",
+        "aliases": [],
+        "tokens": {
+          "Trace": [
+            "Trace",
+            "TRC"
+          ],
+          "Debug": [
+            "Debug",
+            "DBG"
+          ],
+          "Information": [
+            "Information",
+            "INF",
+            "INFO"
+          ],
+          "Warning": [
+            "Warning",
+            "WRN",
+            "WARN"
+          ],
+          "Error": [
+            "Error",
+            "ERR"
+          ],
+          "Critical": [
+            "Critical",
+            "CRT",
+            "CRIT"
+          ],
+          "None": [
+            "None"
+          ]
+        }
+      },
+      {
+        "key": "CORE_LOG_CONSOLE_FORMAT",
+        "property": "Logging.ConsoleFormat",
+        "default": "human",
+        "aliases": [],
+        "tokens": [
+          "human",
+          "jsonl"
+        ]
+      },
+      {
+        "key": "CORE_LOG_CONSOLE_LEVEL",
+        "property": "Logging.ConsoleLevel",
+        "default": {
+          "inherit": "Logging.Level"
+        },
+        "aliases": [],
+        "tokens": {
+          "Trace": [
+            "Trace",
+            "TRC"
+          ],
+          "Debug": [
+            "Debug",
+            "DBG"
+          ],
+          "Information": [
+            "Information",
+            "INF",
+            "INFO"
+          ],
+          "Warning": [
+            "Warning",
+            "WRN",
+            "WARN"
+          ],
+          "Error": [
+            "Error",
+            "ERR"
+          ],
+          "Critical": [
+            "Critical",
+            "CRT",
+            "CRIT"
+          ],
+          "None": [
+            "None"
+          ]
+        }
+      },
+      {
+        "key": "CORE_LOG_CONSOLE_STREAM",
+        "property": "Logging.ConsoleStream",
+        "default": "stderr",
+        "aliases": [],
+        "tokens": [
+          "stderr",
+          "stdout"
+        ]
+      },
+      {
+        "key": "CORE_LOG_HUMAN_DETAIL",
+        "property": "Logging.HumanDetail",
+        "default": "normal",
+        "aliases": [],
+        "tokens": [
+          "normal",
+          "verbose"
+        ]
+      },
+      {
+        "key": "CORE_LOG_FILE_PATH",
+        "property": "Logging.FilePath",
+        "default": null,
+        "aliases": [],
+        "resolution": "Capture current directory once during initialization; resolve an absolute path without filesystem writes."
+      },
+      {
+        "key": "CORE_LOG_FILE_FORMAT",
+        "property": "Logging.FileFormat",
+        "default": "jsonl",
+        "aliases": [],
+        "tokens": [
+          "jsonl",
+          "human"
+        ]
+      },
+      {
+        "key": "CORE_LOG_FILE_LEVEL",
+        "property": "Logging.FileLevel",
+        "default": {
+          "inherit": "Logging.Level"
+        },
+        "aliases": [],
+        "tokens": {
+          "Trace": [
+            "Trace",
+            "TRC"
+          ],
+          "Debug": [
+            "Debug",
+            "DBG"
+          ],
+          "Information": [
+            "Information",
+            "INF",
+            "INFO"
+          ],
+          "Warning": [
+            "Warning",
+            "WRN",
+            "WARN"
+          ],
+          "Error": [
+            "Error",
+            "ERR"
+          ],
+          "Critical": [
+            "Critical",
+            "CRT",
+            "CRIT"
+          ],
+          "None": [
+            "None"
+          ]
+        }
+      },
+      {
+        "key": "CORE_LOG_QUEUE_CAPACITY",
+        "property": "Logging.QueueCapacity",
+        "default": 1024,
+        "aliases": [],
+        "minimum": 1,
+        "maximum": 65536,
+        "unit": "events-per-enabled-output"
+      },
+      {
+        "key": "CORE_LOG_FLUSH_INTERVAL_MS",
+        "property": "Logging.FlushIntervalMilliseconds",
+        "default": 1000,
+        "aliases": [],
+        "minimum": 10,
+        "maximum": 60000,
+        "unit": "milliseconds"
+      },
+      {
+        "key": "CORE_LOG_SHUTDOWN_TIMEOUT_MS",
+        "property": "Logging.ShutdownTimeoutMilliseconds",
+        "default": 5000,
+        "aliases": [],
+        "minimum": 1,
+        "maximum": 300000,
+        "unit": "milliseconds"
+      },
+      {
+        "key": "CORE_LOG_FILE_MAX_BYTES",
+        "property": "Logging.FileMaxBytes",
+        "default": 10485760,
+        "aliases": [],
+        "minimum": 65536,
+        "maximum": 1073741824,
+        "unit": "bytes-per-segment"
+      },
+      {
+        "key": "CORE_LOG_FILE_RETAINED_FILES",
+        "property": "Logging.FileRetainedFiles",
+        "default": 10,
+        "aliases": [],
+        "minimum": 1,
+        "maximum": 1000,
+        "unit": "closed-segments-plus-one-active"
+      },
+      {
+        "key": "CORE_LOG_SCHEMA_VERSION",
+        "property": "Logging.SchemaVersion",
+        "default": 1,
+        "aliases": [],
+        "minimum": 1,
+        "maximum": 1,
+        "unit": "schema-version"
+      },
+      {
+        "key": "CORE_LOG_MAX_ENTRY_BYTES",
+        "property": "Logging.MaxEntryBytes",
+        "default": 65536,
+        "aliases": [],
+        "minimum": 16384,
+        "maximum": 16777216,
+        "unit": "encoded-bytes-per-entry-including-LF"
+      }
+    ]
+  },
+  "targetAssets": [
+    {
+      "targetFramework": "net10.0",
+      "minimumRuntimeFamily": "10.0",
+      "assemblyAsset": "lib/net10.0/CIS.Core.dll",
+      "assetKind": "portable-managed",
+      "osSpecificTargetFramework": false,
+      "runtimeSpecificAssets": []
+    }
+  ],
+  "ownership": [
+    "Startup inputs are copied; published snapshot/getters never mutate or Reset.",
+    "LogValue/captured scope/event/result graphs own bounded copies.",
+    "Application owns runtime; logger and Microsoft provider borrow it.",
+    "Runtime owns file workers/handles; never disposes borrowed console streams.",
+    "Scope handles stay in the owning runtime/logical flow and dispose LIFO.",
+    "Flush/stop observations are immutable; cancellation only cancels caller wait and Dispose joins the original shutdown operation."
+  ],
+  "behaviorAnchors": {
+    "startup": "contracts/logging/v1/startup-contract.json",
+    "configuration": "contracts/logging/v1/configuration.json",
+    "eventAndValues": "contracts/logging/v1/event-contract.json",
+    "eventWire": "contracts/logging/v1/event.schema.json",
+    "admissionAndLifecycle": "contracts/logging/v1/runtime-contract.json"
+  },
+  "prepublicationObligations": [
+    "Replace reference-only declarations with real implemented APIs and match the final shipping public metadata.",
+    "Record runtime default property values and validation for all parameterless data/setup construction paths; extern specifications do not establish constructor behavior.",
+    "Complete provider mappings/filter/scope/formatter and file rendering/ownership/rotation/retention behavior before freezing corresponding guarantees.",
+    "Freeze final release identities/targets and signatures, configuration, wire and behavioral fixtures only after all release evidence passes.",
+    "Resolve licence, distribution destination/signing and both platform qualification lanes.",
+    "Publication history/append-only baseline format remains WP02-S04-T02; replay rules and fixture qualification remain T03/T04 and WP07/WP09."
+  ],
+  "evidenceScope": "Coverage/consistency review and existing WP02-S03 compiler metadata evidence; no new runtime tests, actual release, port or historical compatibility success."
+}

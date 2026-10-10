@@ -66,3 +66,7 @@ WP01-S04 was committed as `b7b8b78` at the user's request. The user selected the
 ## WP02-S02 event contracts
 
 WP02-S01 was committed as ccb7237. WP02-S02 defines schema/value/bound contracts and executes C# development-only record/value validation. The user amended oversize behavior to configurable entry bytes (64 KiB default) and truncation. CORE_LOG_MAX_ENTRY_BYTES and the selected 16 KiB–16 MiB range, marker/projection choices and validation limits are recorded in [event guidance](../docs/modules/logging/event-contract.md). Real bounded capture/truncation and output rendering remain WP04/WP05 work.
+
+## WP02-S04-T01 preservation review
+
+WP02-S03 was committed as 875053e. Within the user-authorized roadmap, the maintainer selected [permanent preservation of published contracts](../docs/architecture/compatibility-policy.md), including prereleases and intermediate releases, with no major-version, obsolete-warning, rewritten-baseline or target-removal waiver. The [C# review](../compatibility/csharp/preservation-review.json) records exact unpublished proposals and remaining prepublication qualification. This is a policy selection, not separate user confirmation, a publication baseline or proof of runtime compatibility.
