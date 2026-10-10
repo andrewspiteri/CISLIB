@@ -45,3 +45,7 @@ WP02-S04-T04 adds the `compatibility-samples` stage and 20 pure wire architectur
 WP03-S01-T01 adds 45 unit cases for real internal application identity discovery, including application reflection and unavailable-fact behavior. [Discovery guidance](../modules/logging/application-identity-discovery.md) distinguishes these checks from full metadata/snapshot/process qualification. Developer now checks 498 native cases and the unchanged 43 compiler controls.
 
 WP03-S01-T02 adds 55 unit cases for [process/runtime discovery](../modules/logging/runtime-metadata-discovery.md), including a real current-process/runtime check. Developer now checks 553 native cases (204 unit, 349 architecture), with the same 43 compiler controls. Controlled family/architecture mappings do not qualify additional execution lanes or complete snapshot/publication expectations.
+
+WP03-S01-T03 adds 37 [version/initialization cases](../modules/logging/initialization-identity.md). Developer now checks 600 native cases (251 unit, 349 architecture) and the unchanged 43 compiler controls. The actual static publisher, full configuration validator and process fixtures are still pending.
+
+Ten supplementary cleanup controls cover bounded Windows sharing/lock retries, unchanged owned paths, finite exhaustion and immediate propagation of other errors. The retry permits at most 475 ms of delay; it is limited to nonshipping test-directory cleanup. [Cleanup evidence](../../planning/logging/evidence/test-support-sharing-cleanup-windows.json) retains the initial failed replay and focused checks.

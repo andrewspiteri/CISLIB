@@ -1861,6 +1861,395 @@
         "REQ-007"
       ],
       "source": "WP03-S01-T02 internal process/host/OS/runtime facts; controlled family cases do not establish an execution lane."
+    },
+    {
+      "id": "UT-VERSION-PRECEDENCE",
+      "family": "unit",
+      "title": "TelemetryVersionSelectsTheFirstNonblankSourceWithoutChangingTheBuild",
+      "implementation": "Implemented",
+      "method": "CIS.Tests.UnitTests.ApplicationVersionSelectorTests.TelemetryVersionSelectsTheFirstNonblankSourceWithoutChangingTheBuild",
+      "minimumExecutions": 12,
+      "lanes": [
+        "windows-x64",
+        "linux-ubuntu2404-x64"
+      ],
+      "requirements": [
+        "REQ-002",
+        "REQ-003",
+        "REQ-004",
+        "REQ-007"
+      ],
+      "source": "WP03-S01-T03 separate build/telemetry selection and initialization time/UUID generation; not static snapshot publication."
+    },
+    {
+      "id": "UT-VERSION-KNOWN-KEYS",
+      "family": "unit",
+      "title": "SelectionReadsOnlyRecognizedUnshadowedVersionKeys",
+      "implementation": "Implemented",
+      "method": "CIS.Tests.UnitTests.ApplicationVersionSelectorTests.SelectionReadsOnlyRecognizedUnshadowedVersionKeys",
+      "minimumExecutions": 2,
+      "lanes": [
+        "windows-x64",
+        "linux-ubuntu2404-x64"
+      ],
+      "requirements": [
+        "REQ-002",
+        "REQ-003",
+        "REQ-004",
+        "REQ-007"
+      ],
+      "source": "WP03-S01-T03 separate build/telemetry selection and initialization time/UUID generation; not static snapshot publication."
+    },
+    {
+      "id": "UT-VERSION-FACT-SEPARATION",
+      "family": "unit",
+      "title": "ChangingTelemetryLabelsKeepsActualBuildFactsStable",
+      "implementation": "Implemented",
+      "method": "CIS.Tests.UnitTests.ApplicationVersionSelectorTests.ChangingTelemetryLabelsKeepsActualBuildFactsStable",
+      "minimumExecutions": 2,
+      "lanes": [
+        "windows-x64",
+        "linux-ubuntu2404-x64"
+      ],
+      "requirements": [
+        "REQ-002",
+        "REQ-003",
+        "REQ-004",
+        "REQ-007"
+      ],
+      "source": "WP03-S01-T03 separate build/telemetry selection and initialization time/UUID generation; not static snapshot publication."
+    },
+    {
+      "id": "UT-VERSION-READ-FAILURE",
+      "family": "unit",
+      "title": "VariableReadFailuresPropagateWithoutTryingAUserOrBuildFallback",
+      "implementation": "Implemented",
+      "method": "CIS.Tests.UnitTests.ApplicationVersionSelectorTests.VariableReadFailuresPropagateWithoutTryingAUserOrBuildFallback",
+      "minimumExecutions": 2,
+      "lanes": [
+        "windows-x64",
+        "linux-ubuntu2404-x64"
+      ],
+      "requirements": [
+        "REQ-002",
+        "REQ-003",
+        "REQ-004",
+        "REQ-007"
+      ],
+      "source": "WP03-S01-T03 separate build/telemetry selection and initialization time/UUID generation; not static snapshot publication."
+    },
+    {
+      "id": "UT-VERSION-NULL-INPUT",
+      "family": "unit",
+      "title": "NullBuildIdentityIsAProgrammingError",
+      "implementation": "Implemented",
+      "method": "CIS.Tests.UnitTests.ApplicationVersionSelectorTests.NullBuildIdentityIsAProgrammingError",
+      "minimumExecutions": 1,
+      "lanes": [
+        "windows-x64",
+        "linux-ubuntu2404-x64"
+      ],
+      "requirements": [
+        "REQ-002",
+        "REQ-003",
+        "REQ-004",
+        "REQ-007"
+      ],
+      "source": "WP03-S01-T03 separate build/telemetry selection and initialization time/UUID generation; not static snapshot publication."
+    },
+    {
+      "id": "UT-VERSION-PROCESS-SOURCE",
+      "family": "unit",
+      "title": "ProcessVariableSourceReadsExactKeysWithoutChangingTheEnvironment",
+      "implementation": "Implemented",
+      "method": "CIS.Tests.UnitTests.ApplicationVersionSelectorTests.ProcessVariableSourceReadsExactKeysWithoutChangingTheEnvironment",
+      "minimumExecutions": 1,
+      "lanes": [
+        "windows-x64",
+        "linux-ubuntu2404-x64"
+      ],
+      "requirements": [
+        "REQ-002",
+        "REQ-003",
+        "REQ-004",
+        "REQ-007"
+      ],
+      "source": "WP03-S01-T03 separate build/telemetry selection and initialization time/UUID generation; not static snapshot publication."
+    },
+    {
+      "id": "UT-INITIALIZATION-TIME",
+      "family": "unit",
+      "title": "InitializationUsesTheSuppliedClockInstantInUTC",
+      "implementation": "Implemented",
+      "method": "CIS.Tests.UnitTests.InitializationIdentityFactoryTests.InitializationUsesTheSuppliedClockInstantInUTC",
+      "minimumExecutions": 4,
+      "lanes": [
+        "windows-x64",
+        "linux-ubuntu2404-x64"
+      ],
+      "requirements": [
+        "REQ-002",
+        "REQ-003",
+        "REQ-004",
+        "REQ-007"
+      ],
+      "source": "WP03-S01-T03 separate build/telemetry selection and initialization time/UUID generation; not static snapshot publication."
+    },
+    {
+      "id": "UT-INITIALIZATION-UUID",
+      "family": "unit",
+      "title": "InstanceIdentifiersUseCanonicalUUIDStrings",
+      "implementation": "Implemented",
+      "method": "CIS.Tests.UnitTests.InitializationIdentityFactoryTests.InstanceIdentifiersUseCanonicalUUIDStrings",
+      "minimumExecutions": 2,
+      "lanes": [
+        "windows-x64",
+        "linux-ubuntu2404-x64"
+      ],
+      "requirements": [
+        "REQ-002",
+        "REQ-003",
+        "REQ-004",
+        "REQ-007"
+      ],
+      "source": "WP03-S01-T03 separate build/telemetry selection and initialization time/UUID generation; not static snapshot publication."
+    },
+    {
+      "id": "UT-INITIALIZATION-NEW-VALUES",
+      "family": "unit",
+      "title": "EachGenerationCapturesANewIdAndTimeAndExistingValuesStayStable",
+      "implementation": "Implemented",
+      "method": "CIS.Tests.UnitTests.InitializationIdentityFactoryTests.EachGenerationCapturesANewIdAndTimeAndExistingValuesStayStable",
+      "minimumExecutions": 1,
+      "lanes": [
+        "windows-x64",
+        "linux-ubuntu2404-x64"
+      ],
+      "requirements": [
+        "REQ-002",
+        "REQ-003",
+        "REQ-004",
+        "REQ-007"
+      ],
+      "source": "WP03-S01-T03 separate build/telemetry selection and initialization time/UUID generation; not static snapshot publication."
+    },
+    {
+      "id": "UT-INITIALIZATION-SEPARATE-START",
+      "family": "unit",
+      "title": "ProcessStartAndInitializationTimeRemainIndependent",
+      "implementation": "Implemented",
+      "method": "CIS.Tests.UnitTests.InitializationIdentityFactoryTests.ProcessStartAndInitializationTimeRemainIndependent",
+      "minimumExecutions": 2,
+      "lanes": [
+        "windows-x64",
+        "linux-ubuntu2404-x64"
+      ],
+      "requirements": [
+        "REQ-002",
+        "REQ-003",
+        "REQ-004",
+        "REQ-007"
+      ],
+      "source": "WP03-S01-T03 separate build/telemetry selection and initialization time/UUID generation; not static snapshot publication."
+    },
+    {
+      "id": "UT-INITIALIZATION-ID-EXHAUSTION",
+      "family": "unit",
+      "title": "ExhaustedIdSourcesDoNotFallBackToRandomGeneration",
+      "implementation": "Implemented",
+      "method": "CIS.Tests.UnitTests.InitializationIdentityFactoryTests.ExhaustedIdSourcesDoNotFallBackToRandomGeneration",
+      "minimumExecutions": 1,
+      "lanes": [
+        "windows-x64",
+        "linux-ubuntu2404-x64"
+      ],
+      "requirements": [
+        "REQ-002",
+        "REQ-003",
+        "REQ-004",
+        "REQ-007"
+      ],
+      "source": "WP03-S01-T03 separate build/telemetry selection and initialization time/UUID generation; not static snapshot publication."
+    },
+    {
+      "id": "UT-INITIALIZATION-EMPTY-ID",
+      "family": "unit",
+      "title": "EmptyGeneratedIdsAreRejectedBeforeReturningAnIdentity",
+      "implementation": "Implemented",
+      "method": "CIS.Tests.UnitTests.InitializationIdentityFactoryTests.EmptyGeneratedIdsAreRejectedBeforeReturningAnIdentity",
+      "minimumExecutions": 1,
+      "lanes": [
+        "windows-x64",
+        "linux-ubuntu2404-x64"
+      ],
+      "requirements": [
+        "REQ-002",
+        "REQ-003",
+        "REQ-004",
+        "REQ-007"
+      ],
+      "source": "WP03-S01-T03 separate build/telemetry selection and initialization time/UUID generation; not static snapshot publication."
+    },
+    {
+      "id": "UT-INITIALIZATION-CLOCK-FAILURE",
+      "family": "unit",
+      "title": "ClockFailuresPropagateWithoutGeneratingAnotherId",
+      "implementation": "Implemented",
+      "method": "CIS.Tests.UnitTests.InitializationIdentityFactoryTests.ClockFailuresPropagateWithoutGeneratingAnotherId",
+      "minimumExecutions": 2,
+      "lanes": [
+        "windows-x64",
+        "linux-ubuntu2404-x64"
+      ],
+      "requirements": [
+        "REQ-002",
+        "REQ-003",
+        "REQ-004",
+        "REQ-007"
+      ],
+      "source": "WP03-S01-T03 separate build/telemetry selection and initialization time/UUID generation; not static snapshot publication."
+    },
+    {
+      "id": "UT-INITIALIZATION-ID-FAILURE",
+      "family": "unit",
+      "title": "IdSourceFailuresPropagateWithoutReadingTheClock",
+      "implementation": "Implemented",
+      "method": "CIS.Tests.UnitTests.InitializationIdentityFactoryTests.IdSourceFailuresPropagateWithoutReadingTheClock",
+      "minimumExecutions": 2,
+      "lanes": [
+        "windows-x64",
+        "linux-ubuntu2404-x64"
+      ],
+      "requirements": [
+        "REQ-002",
+        "REQ-003",
+        "REQ-004",
+        "REQ-007"
+      ],
+      "source": "WP03-S01-T03 separate build/telemetry selection and initialization time/UUID generation; not static snapshot publication."
+    },
+    {
+      "id": "UT-INITIALIZATION-CAPTURE-ORDER",
+      "family": "unit",
+      "title": "InitializationTimeIsCapturedAfterTheIdentityIsReady",
+      "implementation": "Implemented",
+      "method": "CIS.Tests.UnitTests.InitializationIdentityFactoryTests.InitializationTimeIsCapturedAfterTheIdentityIsReady",
+      "minimumExecutions": 1,
+      "lanes": [
+        "windows-x64",
+        "linux-ubuntu2404-x64"
+      ],
+      "requirements": [
+        "REQ-002",
+        "REQ-003",
+        "REQ-004",
+        "REQ-007"
+      ],
+      "source": "WP03-S01-T03 separate build/telemetry selection and initialization time/UUID generation; not static snapshot publication."
+    },
+    {
+      "id": "UT-INITIALIZATION-DEFAULTS",
+      "family": "unit",
+      "title": "DefaultsUseNewUUIDsAndUTCInitializationTime",
+      "implementation": "Implemented",
+      "method": "CIS.Tests.UnitTests.InitializationIdentityFactoryTests.DefaultsUseNewUUIDsAndUTCInitializationTime",
+      "minimumExecutions": 1,
+      "lanes": [
+        "windows-x64",
+        "linux-ubuntu2404-x64"
+      ],
+      "requirements": [
+        "REQ-002",
+        "REQ-003",
+        "REQ-004",
+        "REQ-007"
+      ],
+      "source": "WP03-S01-T03 separate build/telemetry selection and initialization time/UUID generation; not static snapshot publication."
+    },
+    {
+      "id": "UT-TEMP-CLEANUP-SUCCESS",
+      "family": "unit",
+      "title": "SuccessfulDeletionDoesNotWaitOrChangeTheTarget",
+      "implementation": "Implemented",
+      "method": "CIS.Tests.UnitTests.TemporaryDirectoryCleanupTests.SuccessfulDeletionDoesNotWaitOrChangeTheTarget",
+      "minimumExecutions": 1,
+      "lanes": [
+        "windows-x64",
+        "linux-ubuntu2404-x64"
+      ],
+      "requirements": [
+        "REQ-007",
+        "REQ-008"
+      ],
+      "source": "Supplementary bounded owned test-directory cleanup controls; controlled Windows error codes do not establish Linux execution."
+    },
+    {
+      "id": "UT-TEMP-CLEANUP-TRANSIENT",
+      "family": "unit",
+      "title": "TransientSharingErrorsRetryOnlyOnWindows",
+      "implementation": "Implemented",
+      "method": "CIS.Tests.UnitTests.TemporaryDirectoryCleanupTests.TransientSharingErrorsRetryOnlyOnWindows",
+      "minimumExecutions": 2,
+      "lanes": [
+        "windows-x64",
+        "linux-ubuntu2404-x64"
+      ],
+      "requirements": [
+        "REQ-007",
+        "REQ-008"
+      ],
+      "source": "Supplementary bounded owned test-directory cleanup controls; controlled Windows error codes do not establish Linux execution."
+    },
+    {
+      "id": "UT-TEMP-CLEANUP-OTHER-IO",
+      "family": "unit",
+      "title": "OtherIOFailuresPropagateImmediately",
+      "implementation": "Implemented",
+      "method": "CIS.Tests.UnitTests.TemporaryDirectoryCleanupTests.OtherIOFailuresPropagateImmediately",
+      "minimumExecutions": 4,
+      "lanes": [
+        "windows-x64",
+        "linux-ubuntu2404-x64"
+      ],
+      "requirements": [
+        "REQ-007",
+        "REQ-008"
+      ],
+      "source": "Supplementary bounded owned test-directory cleanup controls; controlled Windows error codes do not establish Linux execution."
+    },
+    {
+      "id": "UT-TEMP-CLEANUP-FINITE",
+      "family": "unit",
+      "title": "PersistentSharingErrorsStillFailAtTheFiniteLimit",
+      "implementation": "Implemented",
+      "method": "CIS.Tests.UnitTests.TemporaryDirectoryCleanupTests.PersistentSharingErrorsStillFailAtTheFiniteLimit",
+      "minimumExecutions": 2,
+      "lanes": [
+        "windows-x64",
+        "linux-ubuntu2404-x64"
+      ],
+      "requirements": [
+        "REQ-007",
+        "REQ-008"
+      ],
+      "source": "Supplementary bounded owned test-directory cleanup controls; controlled Windows error codes do not establish Linux execution."
+    },
+    {
+      "id": "UT-TEMP-CLEANUP-ACCESS",
+      "family": "unit",
+      "title": "AccessFailuresAreNotHiddenByTheRetry",
+      "implementation": "Implemented",
+      "method": "CIS.Tests.UnitTests.TemporaryDirectoryCleanupTests.AccessFailuresAreNotHiddenByTheRetry",
+      "minimumExecutions": 1,
+      "lanes": [
+        "windows-x64",
+        "linux-ubuntu2404-x64"
+      ],
+      "requirements": [
+        "REQ-007",
+        "REQ-008"
+      ],
+      "source": "Supplementary bounded owned test-directory cleanup controls; controlled Windows error codes do not establish Linux execution."
     }
   ]
 }

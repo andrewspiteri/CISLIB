@@ -90,3 +90,7 @@ WP02-S04-T04 is committed as `2b18579`. [Application identity discovery](../docs
 ## WP03-S01-T02 process and runtime facts
 
 WP03-S01-T01 is committed as `5e91e6b`. [Process/runtime discovery](../docs/modules/logging/runtime-metadata-discovery.md) reads actual process start, visible host, OS family/description, separate OS/process architectures, runtime description and PID through typed internal seams. It isolates expected native failures per fact and never substitutes initialization time or collector/deployment settings. Null for undefined architecture/nonpositive PID, trimmed optional text and `Win32Exception` handling are implementation choices within the authorized task; new platform support, public snapshot publication and Linux process execution remain pending.
+
+## WP03-S01-T03 versions and initialization identity
+
+WP03-S01-T02 is committed as `0ded9ac`. [Version/initialization behavior](../docs/modules/logging/initialization-identity.md) separates actual BuildVersion from the selected CORE/DD/setup telemetry label, retains the selected source for later diagnostics, and generates UUID/time through internal callbacks. Empty-ID rejection and timestamp capture after UUID generation are maintainer choices within the task. Factories propagate required-source failures without fallback; the later publisher owns winning validation/publication and run stability. Full static initialization, configuration validation and Linux process execution remain pending.

@@ -39,3 +39,7 @@ WP02-S04-T04 adds 20 deterministic wire-sample architecture controls for validit
 WP03-S01-T01 adds 45 native unit cases for genuine internal application identity discovery. Concrete `UT-APPLICATION-*` methods/counts are required in the case inventory; the full `UT-IDENTITY` group remains Planned until process, initialization and snapshot behavior is implemented. See [discovery guidance](../../../docs/modules/logging/application-identity-discovery.md).
 
 WP03-S01-T02 adds 55 native cases for process/runtime facts, including real current-process metadata, UTC conversion, independent OS/process architectures, optional absence and per-read native failure handling. Twelve concrete `UT-RUNTIME-*` bindings require their native methods/counts. Family/architecture injections do not advertise execution support; see [runtime discovery guidance](../../../docs/modules/logging/runtime-metadata-discovery.md).
+
+WP03-S01-T03 adds 37 native version/initialization cases with injected single-key variables, clock and UUID sources. Selected-invalid values retain their origin for later validation; no successful static publication is simulated. See [initialization guidance](../../../docs/modules/logging/initialization-identity.md).
+
+Ten additional controlled cases verify bounded cleanup of an owned temporary directory after transient Windows sharing/lock violations. Other failures and persistent locks remain visible; the existing isolation and real child-timeout cases also execute.
