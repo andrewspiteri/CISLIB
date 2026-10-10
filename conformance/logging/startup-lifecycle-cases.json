@@ -1,0 +1,84 @@
+{
+  "schemaVersion": 1,
+  "story": "WP02-S01",
+  "state": "Specified expectations; static publication not executed",
+  "cases": [
+    {
+      "id": "STARTUP-BEFORE-PUBLICATION",
+      "sequence": [
+        "Read IsInitialized",
+        "Read Current",
+        "Read each convenience getter"
+      ],
+      "expected": {
+        "IsInitialized": false,
+        "readsThrow": "InvalidOperationException"
+      }
+    },
+    {
+      "id": "STARTUP-INVALID-THEN-VALID",
+      "sequence": [
+        "Initialize invalid setup",
+        "Read IsInitialized",
+        "Initialize valid setup"
+      ],
+      "expected": {
+        "invalidThrows": "CoreConfigurationException",
+        "publishesInvalidSnapshot": false,
+        "validCanSucceed": true
+      }
+    },
+    {
+      "id": "STARTUP-ONE-PUBLICATION",
+      "sequence": [
+        "Initialize valid setup",
+        "Read Current repeatedly",
+        "Initialize again"
+      ],
+      "expected": {
+        "successfulPublishers": 1,
+        "CurrentReferenceEqualsInitializeResult": true,
+        "laterThrows": "InvalidOperationException",
+        "replacesSnapshot": false
+      }
+    },
+    {
+      "id": "STARTUP-CONCURRENT-VALID",
+      "sequence": [
+        "Release finite barrier for several valid Initialize calls"
+      ],
+      "expected": {
+        "successfulPublishers": 1,
+        "otherCallsThrow": "InvalidOperationException",
+        "partialSnapshotVisible": false
+      }
+    },
+    {
+      "id": "STARTUP-CONCURRENT-INVALID-VALID",
+      "sequence": [
+        "Start invalid and valid Initialize attempts concurrently"
+      ],
+      "expected": {
+        "invalidPublishes": false,
+        "validSuccessfulPublishers": 1,
+        "existingSnapshotReplaced": false
+      }
+    },
+    {
+      "id": "STARTUP-NO-RESET-OR-SIDE-EFFECTS",
+      "sequence": [
+        "Inspect API and all resolution/publication paths"
+      ],
+      "expected": {
+        "productionResetApi": false,
+        "mutableStaticOptionValues": false,
+        "globalOperationContext": false,
+        "createsDirectories": false,
+        "opensOutputs": false,
+        "startsWorkers": false,
+        "subscribesGlobalExceptions": false,
+        "contactsInfrastructure": false
+      }
+    }
+  ]
+}

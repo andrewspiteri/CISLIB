@@ -1,0 +1,161 @@
+{
+  "schemaVersion": 1,
+  "state": "Proposed contract; unpublished; no runtime implementation claim",
+  "story": "WP02-S01",
+  "facade": "CIS.EnvironmentOptions",
+  "supersedesSourceSpelling": "EnviormentsOptions",
+  "authority": "User selected EnvironmentOptions before publication; other semantics follow the amended supplied guide.",
+  "enums": {
+    "CIS.EnvironmentKind": {
+      "Unknown": 0,
+      "Console": 1,
+      "Service": 2,
+      "Web": 3,
+      "Function": 4
+    },
+    "CIS.Logging.CoreLogLevel": {
+      "Trace": 0,
+      "Debug": 1,
+      "Information": 2,
+      "Warning": 3,
+      "Error": 4,
+      "Critical": 5,
+      "None": 6
+    },
+    "CIS.Logging.LogOutputFormat": {
+      "Human": 0,
+      "JsonLines": 1
+    },
+    "CIS.Logging.ConsoleOutputStream": {
+      "StandardError": 0,
+      "StandardOutput": 1
+    },
+    "CIS.Logging.HumanOutputDetail": {
+      "Normal": 0,
+      "Verbose": 1
+    }
+  },
+  "setup": {
+    "ApplicationAssembly": "Assembly?",
+    "ApplicationName": "string?",
+    "BuildVersion": "string?",
+    "ServiceVersion": "string?",
+    "EnvironmentName": "string?",
+    "EnvironmentKind": "EnvironmentKind",
+    "CommitId": "string?",
+    "BuildId": "string?",
+    "Logging": "LoggingSetup?"
+  },
+  "loggingSetup": {
+    "Level": "CoreLogLevel?",
+    "ConsoleFormat": "LogOutputFormat?",
+    "ConsoleLevel": "CoreLogLevel?",
+    "ConsoleStream": "ConsoleOutputStream?",
+    "HumanDetail": "HumanOutputDetail?",
+    "FilePath": "string?",
+    "FileFormat": "LogOutputFormat?",
+    "FileLevel": "CoreLogLevel?",
+    "QueueCapacity": "int?",
+    "FlushIntervalMilliseconds": "int?",
+    "ShutdownTimeoutMilliseconds": "int?",
+    "FileMaxBytes": "long?",
+    "FileRetainedFiles": "int?",
+    "SchemaVersion": "int?"
+  },
+  "snapshot": {
+    "ApplicationName": "string",
+    "BuildVersion": "string",
+    "ServiceVersion": "string",
+    "EnvironmentName": "string",
+    "EnvironmentKind": "EnvironmentKind",
+    "InstanceId": "string",
+    "ProcessStartedAtUtc": "DateTimeOffset?",
+    "InitializedAtUtc": "DateTimeOffset",
+    "HostName": "string?",
+    "OperatingSystem": "string",
+    "OperatingSystemDescription": "string?",
+    "OSArchitecture": "string?",
+    "ProcessArchitecture": "string?",
+    "RuntimeDescription": "string?",
+    "ProcessId": "int?",
+    "CommitId": "string?",
+    "BuildId": "string?",
+    "Logging": "LoggingOptions",
+    "EventMetadata": "EventMetadata"
+  },
+  "logging": {
+    "Level": "CoreLogLevel",
+    "ConsoleFormat": "LogOutputFormat",
+    "ConsoleLevel": "CoreLogLevel",
+    "ConsoleStream": "ConsoleOutputStream",
+    "HumanDetail": "HumanOutputDetail",
+    "FilePath": "string?",
+    "FileFormat": "LogOutputFormat",
+    "FileLevel": "CoreLogLevel",
+    "QueueCapacity": "int",
+    "FlushInterval": "TimeSpan",
+    "ShutdownTimeout": "TimeSpan",
+    "FileMaxBytes": "long",
+    "FileRetainedFiles": "int",
+    "SchemaVersion": "int",
+    "ConsoleEnabled": "bool",
+    "FileEnabled": "bool"
+  },
+  "eventMetadata": {
+    "ApplicationName": "string",
+    "BuildVersion": "string",
+    "ServiceVersion": "string",
+    "EnvironmentName": "string",
+    "EnvironmentKind": "EnvironmentKind",
+    "InstanceId": "string",
+    "ProcessStartedAtUtc": "DateTimeOffset?",
+    "InitializedAtUtc": "DateTimeOffset",
+    "HostName": "string?",
+    "OperatingSystem": "string",
+    "OperatingSystemDescription": "string?",
+    "OSArchitecture": "string?",
+    "ProcessArchitecture": "string?",
+    "RuntimeDescription": "string?",
+    "ProcessId": "int?",
+    "CommitId": "string?",
+    "BuildId": "string?"
+  },
+  "convenienceGetters": {
+    "ApplicationName": "string",
+    "BuildVersion": "string",
+    "ServiceVersion": "string",
+    "EnvironmentName": "string",
+    "HostName": "string?",
+    "OperatingSystem": "string",
+    "Logging": "LoggingOptions",
+    "EventMetadata": "EventMetadata"
+  },
+  "diagnostics": {
+    "namespace": "CIS.Configuration",
+    "codes": [
+      "InvalidToken",
+      "OutOfRange",
+      "UnsupportedSchemaVersion",
+      "InvalidPath",
+      "InvalidIdentity",
+      "InvalidEnvironmentKind",
+      "MissingApplicationName"
+    ],
+    "issueProperties": [
+      "Code",
+      "Key",
+      "Explanation"
+    ],
+    "exceptionIssuesType": "IReadOnlyList<ConfigurationIssue>",
+    "constructorCopiesInput": true,
+    "safeExplanation": "No raw input values, arbitrary environment variables, paths, credentials or collector addresses."
+  },
+  "ownership": {
+    "setup": "Caller-owned mutable startup input; resolver copies all selected fields and nested logging input before publication.",
+    "resolved": "Sealed, getter-only outputs; no retained caller-owned mutable state.",
+    "metadata": "Allowlisted copied process facts; excludes configuration, destinations and operation context."
+  },
+  "compileOnlySpecification": "implementations/csharp/verification/contracts/startup/PublicSurface.cs",
+  "runtimeImplementationStory": "WP03-S04",
+  "scope": "Proposed C# public surface only; portable semantics are contracts/logging/v1/startup-contract.json."
+}

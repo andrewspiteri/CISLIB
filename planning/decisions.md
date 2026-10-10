@@ -23,7 +23,7 @@ Recorded 10 October 2026 from the user's directions in the preparation conversat
 - Approved initial runtime package: `Microsoft.Extensions.Logging.Abstractions` 10.0.12. Its restored .NET 10 dependency closure is checked against the explicit allowlist.
 - Git initialization creates a local repository on `main`. No remote or initial commit is part of this scaffold.
 
-These are development choices, not a published compatibility baseline. The original `EnviormentsOptions` name has not been implemented or changed.
+These are development choices, not a published compatibility baseline. During WP02-S01 the user selected `EnvironmentOptions`, correcting the original unpublished `EnviormentsOptions` spelling. The proposed C# facade is `CIS.EnvironmentOptions`; no misspelled alias is required.
 
 ## Assembly and platform decisions
 
@@ -58,3 +58,7 @@ Resolve licence, publishing destination, distribution signing (NuGet author sign
 ## WP01-S03 implementation
 
 The user selected WP01-S03 and expanded severity abbreviations during implementation. The retained internal parser and tests recognize `TRC`, `DBG`, `INF`/`INFO`, `WRN`/`WARN`, `ERR` and `CRT`/`CRIT` alongside full names. [Toolchain qualification](../docs/architecture/csharp-toolchain.md) records exact CLI/runtime pins, fresh restore, real Microsoft coverage and isolated mutation, API compatibility controls, native exclusions, source identity and retention limits. [Windows evidence](logging/evidence/wp01-s03-windows.json) records the completed smoke run. Linux, historical replay and the full logging release remain unqualified.
+
+## WP02-S01 contract definition
+
+WP01-S04 was committed as `b7b8b78` at the user's request. The user selected the corrected unpublished facade name `EnvironmentOptions`. Portable startup/configuration semantics remain under shared contracts; C# signatures remain under `implementations/csharp`. A reference-only specification and compiled consumers qualify shape without inserting placeholder startup APIs into Core. [Contract guidance](../docs/modules/logging/startup-contract.md) and [Windows evidence](logging/evidence/wp02-s01-windows.json) record selected details and execution limits. Runtime resolution and publication remain WP03 work.

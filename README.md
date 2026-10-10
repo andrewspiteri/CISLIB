@@ -2,7 +2,7 @@
 
 CisLib is a reusable, multi-module core library with shared contracts, examples, instructions and agent skills. Logging is the first module, and C# is the first implementation. Additional languages will have their own implementations and build tools while sharing the applicable module contracts and conformance cases.
 
-The repository currently contains a buildable foundation with a tested internal severity parser, test projects and executable dependency checks. The logging runtime and Microsoft logger integration are planned; the example host identifies that state explicitly.
+The repository currently contains a buildable foundation with a tested internal severity parser, test projects and executable dependency checks. WP02-S01 also defines the unpublished startup API and configuration fixtures, validated with compile-only consumers. The logging runtime and Microsoft logger integration are planned; the example host identifies that state explicitly.
 
 ## Start with C#
 
@@ -31,6 +31,8 @@ It also requires .NET runtimes **10.0.12** and **8.0.31**, Git, and HTTPS access
 Open [CisLib.slnx](implementations/csharp/CisLib.slnx) for the C# solution. The root [eng/verify.ps1](eng/verify.ps1) dispatches to the initial C# verification lane.
 
 The [verification and source replay guide](docs/architecture/csharp-verification.md) explains structured reports, all six family slots and the required-case inventory. Validate existing Developer evidence with `pwsh -File eng/check-release.ps1 -Profile Developer`, or rebuild it with isolated caches using `pwsh -File eng/replay.ps1 -Profile Developer`. Release verification and replay remain nonzero until their required implementation and evidence exist.
+
+Read the [startup, identity and configuration contract](docs/modules/logging/startup-contract.md) for `CIS.EnvironmentOptions`, immutable outputs and configuration precedence. Runtime resolution and publication follow in WP03.
 
 ## Repository layout
 

@@ -3,7 +3,13 @@
   "requirements": [
     {
       "id": "REQ-001",
-      "acceptedOutcome": {
+      "caseIds": [
+        "INT-HUMAN",
+        "INT-MICROSOFT-LOGGER",
+        "BC-001",
+        "BC-013"
+      ],
+      "sourceRequirement": {
         "id": "REQ-001",
         "description": "Implement the core functionality before creating the reference examples and language ports.",
         "stories": [
@@ -21,16 +27,23 @@
           "TS-S04"
         ]
       },
-      "caseIds": [
-        "INT-HUMAN",
-        "INT-MICROSOFT-LOGGER",
-        "BC-001",
-        "BC-013"
-      ]
+      "effectiveDirection": "Implement the core functionality before creating the reference examples and language ports."
     },
     {
       "id": "REQ-002",
-      "acceptedOutcome": {
+      "caseIds": [
+        "UT-CONFIG-PRECEDENCE",
+        "UT-CONFIG-BOUNDS",
+        "UT-IDENTITY",
+        "ARCH-IMMUTABLE-CONFIG",
+        "BC-003",
+        "BC-006",
+        "ARCH-STARTUP-CATALOG",
+        "ARCH-STARTUP-FIXTURES",
+        "ARCH-STARTUP-METADATA",
+        "ARCH-STARTUP-REFERENCE"
+      ],
+      "sourceRequirement": {
         "id": "REQ-002",
         "description": "Provide the static `EnviormentsOptions` entry point for validated startup configuration and application/runtime identity.",
         "stories": [
@@ -47,18 +60,30 @@
           "WP09-S02"
         ]
       },
-      "caseIds": [
-        "UT-CONFIG-PRECEDENCE",
-        "UT-CONFIG-BOUNDS",
-        "UT-IDENTITY",
-        "ARCH-IMMUTABLE-CONFIG",
-        "BC-003",
-        "BC-006"
-      ]
+      "effectiveDirection": "Provide the static `EnvironmentOptions` entry point for validated startup configuration and application/runtime identity."
     },
     {
       "id": "REQ-003",
-      "acceptedOutcome": {
+      "caseIds": [
+        "UT-IDENTITY",
+        "UT-IMMUTABILITY",
+        "UT-SERIALIZATION",
+        "UT-CONTEXT",
+        "INT-JSONL-STREAMS",
+        "INT-IDENTITY-RESTART",
+        "BC-001",
+        "BC-002",
+        "BC-005",
+        "BC-011",
+        "BC-012",
+        "BC-014",
+        "BC-015",
+        "ARCH-STARTUP-CATALOG",
+        "ARCH-STARTUP-FIXTURES",
+        "ARCH-STARTUP-METADATA",
+        "ARCH-STARTUP-REFERENCE"
+      ],
+      "sourceRequirement": {
         "id": "REQ-003",
         "description": "Automatically attach application name, build version, deployment environment, instance, host, OS, and available runtime context to events.",
         "stories": [
@@ -84,25 +109,42 @@
           "TS-S03"
         ]
       },
-      "caseIds": [
-        "UT-IDENTITY",
-        "UT-IMMUTABILITY",
-        "UT-SERIALIZATION",
-        "UT-CONTEXT",
-        "INT-JSONL-STREAMS",
-        "INT-IDENTITY-RESTART",
-        "BC-001",
-        "BC-002",
-        "BC-005",
-        "BC-011",
-        "BC-012",
-        "BC-014",
-        "BC-015"
-      ]
+      "effectiveDirection": "Automatically attach application name, build version, deployment environment, instance, host, OS, and available runtime context to events."
     },
     {
       "id": "REQ-004",
-      "acceptedOutcome": {
+      "caseIds": [
+        "UT-SEVERITY-NAMES",
+        "UT-SEVERITY-ABSENT",
+        "UT-SEVERITY-INVALID",
+        "UT-SEVERITY-CULTURE",
+        "UT-CONFIG-PRECEDENCE",
+        "UT-CONFIG-BOUNDS",
+        "UT-FILTERING",
+        "UT-DEFERRED",
+        "UT-DELIVERY",
+        "UT-FILE-POLICY",
+        "INT-HUMAN",
+        "INT-JSONL-STREAMS",
+        "INT-OUTPUTS",
+        "INT-FAILURE-ISOLATION",
+        "INT-FILE-LIFECYCLE",
+        "INT-BURST-STOP",
+        "BC-001",
+        "BC-002",
+        "BC-003",
+        "BC-004",
+        "BC-006",
+        "BC-007",
+        "BC-008",
+        "BC-011",
+        "BC-016",
+        "ARCH-STARTUP-CATALOG",
+        "ARCH-STARTUP-FIXTURES",
+        "ARCH-STARTUP-METADATA",
+        "ARCH-STARTUP-REFERENCE"
+      ],
+      "sourceRequirement": {
         "id": "REQ-004",
         "description": "Configure human, coding-agent, and log-collector output through documented environment variables.",
         "stories": [
@@ -132,37 +174,22 @@
           "TS-S03"
         ]
       },
-      "caseIds": [
-        "UT-SEVERITY-NAMES",
-        "UT-SEVERITY-ABSENT",
-        "UT-SEVERITY-INVALID",
-        "UT-SEVERITY-CULTURE",
-        "UT-CONFIG-PRECEDENCE",
-        "UT-CONFIG-BOUNDS",
-        "UT-FILTERING",
-        "UT-DEFERRED",
-        "UT-DELIVERY",
-        "UT-FILE-POLICY",
-        "INT-HUMAN",
-        "INT-JSONL-STREAMS",
-        "INT-OUTPUTS",
-        "INT-FAILURE-ISOLATION",
-        "INT-FILE-LIFECYCLE",
-        "INT-BURST-STOP",
-        "BC-001",
-        "BC-002",
-        "BC-003",
-        "BC-004",
-        "BC-006",
-        "BC-007",
-        "BC-008",
-        "BC-011",
-        "BC-016"
-      ]
+      "effectiveDirection": "Configure human, coding-agent, and log-collector output through documented environment variables."
     },
     {
       "id": "REQ-005",
-      "acceptedOutcome": {
+      "caseIds": [
+        "ARCH-CORE-REFERENCES",
+        "ARCH-FOREIGN-ASSEMBLIES",
+        "ARCH-DEPENDENCIES",
+        "ARCH-IMPORTED-REFERENCES",
+        "ARCH-RESTORED-GRAPH",
+        "ARCH-PACKED-ASSETS",
+        "ARCH-PUBLIC-TYPES",
+        "BC-009",
+        "BC-013"
+      ],
+      "sourceRequirement": {
         "id": "REQ-005",
         "description": "Keep all shipping core code free of third-party NuGet dependencies, including transitive runtime dependencies. Prefer zero explicit package references in the core itself.",
         "stories": [
@@ -184,21 +211,19 @@
           "WP09-S04"
         ]
       },
-      "caseIds": [
-        "ARCH-CORE-REFERENCES",
-        "ARCH-FOREIGN-ASSEMBLIES",
-        "ARCH-DEPENDENCIES",
-        "ARCH-IMPORTED-REFERENCES",
-        "ARCH-RESTORED-GRAPH",
-        "ARCH-PACKED-ASSETS",
-        "ARCH-PUBLIC-TYPES",
-        "BC-009",
-        "BC-013"
-      ]
+      "effectiveDirection": "Allow explicitly approved Microsoft-maintained Core dependencies and their checked runtime closures; isolate third-party runtime dependencies in optional packages."
     },
     {
       "id": "REQ-006",
-      "acceptedOutcome": {
+      "caseIds": [
+        "COMPAT-API",
+        "COMPAT-SOURCE",
+        "COMPAT-BINARY",
+        "COMPAT-CONFIG-WIRE-BEHAVIOR",
+        "BC-009",
+        "BC-010"
+      ],
+      "sourceRequirement": {
         "id": "REQ-006",
         "description": "Preserve published backwards compatibility indefinitely, including source, binary, configuration, wire format, and documented behavior.",
         "stories": [
@@ -220,40 +245,10 @@
           "TS-S05"
         ]
       },
-      "caseIds": [
-        "COMPAT-API",
-        "COMPAT-SOURCE",
-        "COMPAT-BINARY",
-        "COMPAT-CONFIG-WIRE-BEHAVIOR",
-        "BC-009",
-        "BC-010"
-      ]
+      "effectiveDirection": "Preserve published backwards compatibility indefinitely, including source, binary, configuration, wire format, and documented behavior."
     },
     {
       "id": "REQ-007",
-      "acceptedOutcome": {
-        "id": "REQ-007",
-        "description": "Execute and distribute the complete unit, integration, mutation, architecture, backwards-compatibility, and business-case verification material with every published version.",
-        "stories": [
-          "WP01-S03",
-          "WP01-S04",
-          "WP02-S04",
-          "WP06-S03",
-          "WP07-S01",
-          "WP07-S02",
-          "WP07-S03",
-          "WP07-S04",
-          "WP07-S05",
-          "WP07-S06",
-          "WP08-S03",
-          "WP08-S04",
-          "WP09-S01",
-          "WP09-S02",
-          "WP09-S03",
-          "WP09-S04",
-          "TS-S05"
-        ]
-      },
       "caseIds": [
         "UT-SEVERITY-NAMES",
         "UT-SEVERITY-ABSENT",
@@ -288,12 +283,70 @@
         "BC-013",
         "BC-014",
         "BC-015",
-        "BC-016"
-      ]
+        "BC-016",
+        "ARCH-STARTUP-CATALOG",
+        "ARCH-STARTUP-FIXTURES",
+        "ARCH-STARTUP-METADATA",
+        "ARCH-STARTUP-REFERENCE"
+      ],
+      "sourceRequirement": {
+        "id": "REQ-007",
+        "description": "Execute and distribute the complete unit, integration, mutation, architecture, backwards-compatibility, and business-case verification material with every published version.",
+        "stories": [
+          "WP01-S03",
+          "WP01-S04",
+          "WP02-S04",
+          "WP06-S03",
+          "WP07-S01",
+          "WP07-S02",
+          "WP07-S03",
+          "WP07-S04",
+          "WP07-S05",
+          "WP07-S06",
+          "WP08-S03",
+          "WP08-S04",
+          "WP09-S01",
+          "WP09-S02",
+          "WP09-S03",
+          "WP09-S04",
+          "TS-S05"
+        ]
+      },
+      "effectiveDirection": "Execute and distribute the complete unit, integration, mutation, architecture, backwards-compatibility, and business-case verification material with every published version."
     },
     {
       "id": "REQ-008",
-      "acceptedOutcome": {
+      "caseIds": [
+        "UT-TEMP-OWNERSHIP",
+        "UT-PROCESS-STREAMS",
+        "UT-CLOCK-MONOTONIC",
+        "UT-CLOCK-DELAY",
+        "UT-CLOCK-TIMERS",
+        "UT-EXPLICIT-INPUTS",
+        "UT-BARRIER",
+        "UT-WRITER-RELEASE",
+        "UT-WRITER-FAILURE",
+        "UT-PROCESS-ENVIRONMENT",
+        "UT-PROCESS-DEADLINE",
+        "ARCH-CORE-REFERENCES",
+        "ARCH-FOREIGN-ASSEMBLIES",
+        "ARCH-DEPENDENCIES",
+        "ARCH-IMPORTED-REFERENCES",
+        "ARCH-RESTORED-GRAPH",
+        "ARCH-PACKED-ASSETS",
+        "UT-IMMUTABILITY",
+        "INT-MICROSOFT-LOGGER",
+        "MUT-FULL-CORE",
+        "ARCH-PUBLIC-TYPES",
+        "ARCH-IMMUTABLE-CONFIG",
+        "BC-012",
+        "BC-013",
+        "ARCH-STARTUP-CATALOG",
+        "ARCH-STARTUP-FIXTURES",
+        "ARCH-STARTUP-METADATA",
+        "ARCH-STARTUP-REFERENCE"
+      ],
+      "sourceRequirement": {
         "id": "REQ-008",
         "description": "Demonstrate readable C# and enforce responsibility and dependency boundaries automatically.",
         "stories": [
@@ -320,36 +373,23 @@
           "TS-S05"
         ]
       },
+      "effectiveDirection": "Demonstrate readable C# and enforce responsibility and dependency boundaries automatically."
+    },
+    {
+      "id": "REQ-009",
       "caseIds": [
-        "UT-TEMP-OWNERSHIP",
-        "UT-PROCESS-STREAMS",
-        "UT-CLOCK-MONOTONIC",
-        "UT-CLOCK-DELAY",
-        "UT-CLOCK-TIMERS",
-        "UT-EXPLICIT-INPUTS",
-        "UT-BARRIER",
-        "UT-WRITER-RELEASE",
-        "UT-WRITER-FAILURE",
-        "UT-PROCESS-ENVIRONMENT",
-        "UT-PROCESS-DEADLINE",
         "ARCH-CORE-REFERENCES",
         "ARCH-FOREIGN-ASSEMBLIES",
         "ARCH-DEPENDENCIES",
         "ARCH-IMPORTED-REFERENCES",
         "ARCH-RESTORED-GRAPH",
         "ARCH-PACKED-ASSETS",
-        "UT-IMMUTABILITY",
-        "INT-MICROSOFT-LOGGER",
-        "MUT-FULL-CORE",
         "ARCH-PUBLIC-TYPES",
-        "ARCH-IMMUTABLE-CONFIG",
-        "BC-012",
-        "BC-013"
-      ]
-    },
-    {
-      "id": "REQ-009",
-      "acceptedOutcome": {
+        "BC-009",
+        "BC-010",
+        "BC-014"
+      ],
+      "sourceRequirement": {
         "id": "REQ-009",
         "description": "Keep the core usable across applications without a dependency on CIS orchestration, CTEP persistence, a game engine, or a collector SDK.",
         "stories": [
@@ -378,22 +418,23 @@
           "TS-S01"
         ]
       },
-      "caseIds": [
-        "ARCH-CORE-REFERENCES",
-        "ARCH-FOREIGN-ASSEMBLIES",
-        "ARCH-DEPENDENCIES",
-        "ARCH-IMPORTED-REFERENCES",
-        "ARCH-RESTORED-GRAPH",
-        "ARCH-PACKED-ASSETS",
-        "ARCH-PUBLIC-TYPES",
-        "BC-009",
-        "BC-010",
-        "BC-014"
-      ]
+      "effectiveDirection": "Keep the core usable across applications without a dependency on CIS orchestration, CTEP persistence, a game engine, or a collector SDK."
     },
     {
       "id": "REQ-010",
-      "acceptedOutcome": {
+      "caseIds": [
+        "UT-SERIALIZATION",
+        "INT-JSONL-STREAMS",
+        "COMPAT-CONFIG-WIRE-BEHAVIOR",
+        "BC-002",
+        "BC-014",
+        "BC-015",
+        "ARCH-STARTUP-CATALOG",
+        "ARCH-STARTUP-FIXTURES",
+        "ARCH-STARTUP-METADATA",
+        "ARCH-STARTUP-REFERENCE"
+      ],
+      "sourceRequirement": {
         "id": "REQ-010",
         "description": "Preserve a language-neutral contract and fixtures that a later TypeScript implementation can pass.",
         "stories": [
@@ -421,14 +462,7 @@
           "TS-S05"
         ]
       },
-      "caseIds": [
-        "UT-SERIALIZATION",
-        "INT-JSONL-STREAMS",
-        "COMPAT-CONFIG-WIRE-BEHAVIOR",
-        "BC-002",
-        "BC-014",
-        "BC-015"
-      ]
+      "effectiveDirection": "Preserve language-neutral contracts and applicable fixtures for future language implementations; no next language is selected."
     }
   ],
   "policyAmendments": "planning/logging/plan-amendments.md",

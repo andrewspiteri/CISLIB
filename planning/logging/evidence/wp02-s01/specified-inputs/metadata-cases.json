@@ -1,0 +1,163 @@
+{
+  "schemaVersion": 1,
+  "story": "WP02-S01",
+  "state": "Specified expectations; metadata resolver not executed",
+  "cases": [
+    {
+      "id": "META-APPLICATION-ASSEMBLY",
+      "inputs": {
+        "explicitAssembly": {
+          "name": "Fixture.App",
+          "informationalVersion": "3.4.5-rc.2+sha.AbC123",
+          "assemblyVersion": "3.0.0.0"
+        },
+        "entryAssembly": {
+          "name": "Other.Host",
+          "informationalVersion": "9.0.0"
+        },
+        "coreAssemblyVersion": "1.0.0.0"
+      },
+      "expected": {
+        "ApplicationName": "Fixture.App",
+        "BuildVersion": "3.4.5-rc.2+sha.AbC123",
+        "ServiceVersion": "3.4.5-rc.2+sha.AbC123"
+      }
+    },
+    {
+      "id": "META-SUPPLIED-BUILD",
+      "inputs": {
+        "setupBuildVersion": "4.5.6-preview.3+Build.MixedCase",
+        "informationalVersion": "3.0.0"
+      },
+      "expected": {
+        "BuildVersion": "4.5.6-preview.3+Build.MixedCase"
+      }
+    },
+    {
+      "id": "META-ASSEMBLY-VERSION-FALLBACK",
+      "inputs": {
+        "informationalVersion": null,
+        "assemblyVersion": "2.3.0.0"
+      },
+      "expected": {
+        "BuildVersion": "2.3.0.0"
+      }
+    },
+    {
+      "id": "META-BUILD-UNAVAILABLE",
+      "inputs": {
+        "applicationName": "Explicit.App",
+        "applicationAssembly": null,
+        "entryAssembly": null
+      },
+      "expected": {
+        "ApplicationName": "Explicit.App",
+        "BuildVersion": "unknown",
+        "CommitId": null,
+        "BuildId": null
+      }
+    },
+    {
+      "id": "META-TELEMETRY-RELEASE",
+      "inputs": {
+        "buildVersion": "1.2.3+abc",
+        "CORE_SERVICE_VERSION": "release-2026-10"
+      },
+      "expected": {
+        "BuildVersion": "1.2.3+abc",
+        "ServiceVersion": "release-2026-10"
+      }
+    },
+    {
+      "id": "META-PROCESS-AND-INITIALIZATION-TIMES",
+      "inputs": {
+        "processStartedAt": "2026-10-10T09:00:00+02:00",
+        "initializedAt": "2026-10-10T07:05:00Z"
+      },
+      "expected": {
+        "ProcessStartedAtUtc": "2026-10-10T07:00:00Z",
+        "InitializedAtUtc": "2026-10-10T07:05:00Z",
+        "substitutesInitializationForProcessStart": false
+      }
+    },
+    {
+      "id": "META-OPTIONAL-UNAVAILABLE",
+      "inputs": {
+        "hostDiscovery": "unavailable",
+        "processDiscovery": "unavailable",
+        "runtimeDescription": "unavailable",
+        "osFamily": "unavailable"
+      },
+      "expected": {
+        "HostName": null,
+        "ProcessId": null,
+        "ProcessStartedAtUtc": null,
+        "OperatingSystemDescription": null,
+        "OSArchitecture": null,
+        "ProcessArchitecture": null,
+        "RuntimeDescription": null,
+        "OperatingSystem": "unknown"
+      }
+    },
+    {
+      "id": "META-HOST-NOT-COLLECTOR",
+      "inputs": {
+        "observedHostName": "container-visible-host",
+        "DD_AGENT_HOST": "collector.internal"
+      },
+      "expected": {
+        "HostName": "container-visible-host"
+      }
+    },
+    {
+      "id": "META-DO-NOT-INFER-BUILD-IDS",
+      "inputs": {
+        "buildVersion": "1.2.3+sha.abc-file-42"
+      },
+      "expected": {
+        "BuildVersion": "1.2.3+sha.abc-file-42",
+        "CommitId": null,
+        "BuildId": null
+      }
+    },
+    {
+      "id": "META-NEW-INSTANCE-PER-PUBLICATION",
+      "inputs": {
+        "firstExplicitUuid": "00000000-0000-4000-8000-000000000001",
+        "secondExplicitUuid": "00000000-0000-4000-8000-000000000002"
+      },
+      "expected": {
+        "stableWithinRun": true,
+        "differentAcrossSuccessfulRuns": true
+      }
+    },
+    {
+      "id": "META-OWNED-IMMUTABLE-INPUT",
+      "inputs": {
+        "setup.ApplicationName": "Original.App",
+        "setup.Logging.QueueCapacity": 1024
+      },
+      "mutationAfterPublication": {
+        "setup.ApplicationName": "Changed.App",
+        "setup.Logging.QueueCapacity": 1
+      },
+      "expected": {
+        "ApplicationName": "Original.App",
+        "Logging.QueueCapacity": 1024,
+        "sharesCallerMutableReferences": false
+      }
+    },
+    {
+      "id": "META-NO-APPLICATION-IDENTITY",
+      "inputs": {
+        "applicationName": null,
+        "explicitAssembly": null,
+        "entryAssembly": null
+      },
+      "expectedIssue": {
+        "code": "MissingApplicationName",
+        "key": "CORE_SERVICE_NAME"
+      }
+    }
+  ]
+}

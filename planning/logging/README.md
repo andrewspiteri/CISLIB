@@ -20,7 +20,7 @@ Run `python validate-preparation.py` from this directory to repeat the mechanica
 
 ## Implementation sequence
 
-1. Complete the WP-01 foundation: assembly/target decisions, repository boundaries, real test-toolchain qualification and verification inventories. Then establish module/configuration/event/lifecycle contracts in WP-02, applying the recorded amendments. Keep the `EnviormentsOptions` spelling as a pending public API choice.
+1. Complete the WP-01 foundation: assembly/target decisions, repository boundaries, real test-toolchain qualification and verification inventories. Then establish module/configuration/event/lifecycle contracts in WP-02, applying the recorded amendments. Use the user-selected `EnvironmentOptions` spelling for the unpublished API. WP02-S01 contract definitions and compile-only consumers do not claim runtime implementation.
 2. Implement environment resolution, immutable events and scoped context with real tests. Qualify the proposed Microsoft test/coverage and development-only mutation tools using genuine behavior.
 3. Add the bounded output pipeline, console/files, accounting, flush and stop. Connect the Microsoft logger folder to that same pipeline.
 4. Replace the scaffold console host with a runnable runtime example. Extend the complete eight-example catalog and versioned instructions/skills after functionality exists.

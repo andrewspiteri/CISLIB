@@ -6,7 +6,7 @@ The solution has five MSTest/VSTest projects and one nonpackable shared-support 
 | --- | --- | --- |
 | `CIS.Core.UnitTests` | Deterministic Core behavior and test-support checks. | Severity parsing tests cover names, abbreviations, trimming, absence, invalid values and culture independence. Eleven support tests exercise deterministic clocks/inputs/concurrency/writers, cleanup isolation and bounded child processes, including independent stream drainage. |
 | `CIS.Core.IntegrationTests` | Real consumers, streams, files and lifecycle. | Project scaffold; no cases yet. |
-| `CIS.Core.ArchitectureTests` | Dependency and public-surface boundaries. | Seventeen foundation cases, including deliberately invalid project/package/framework/assembly fixtures and evidence-validator controls. Type/API rules follow real Core types. |
+| `CIS.Core.ArchitectureTests` | Dependency and public-surface boundaries. | Twenty-one foundation/contract cases, including deliberately invalid project/package/framework/assembly fixtures, evidence-validator controls, startup catalog/fixture checks and reference-only API inspection. Type/API rules follow real Core types. |
 | `CIS.Core.CompatibilityTests` | API/source/binary/configuration/behavior replay. | Project scaffold; no cases or historical releases yet. |
 | `CIS.Core.BusinessCases` | Named developer/operator acceptance scenarios. | Project scaffold; no cases yet. |
 | `CIS.Core.TestSupport` | Owned temporary directories, bounded child processes and managed metadata inspection. | Used by actual foundation tests and the development checker. No Core or NuGet dependency. |
@@ -25,3 +25,5 @@ dotnet test tests/CIS.Core.ArchitectureTests/CIS.Core.ArchitectureTests.csproj -
 Architecture tests need the Release checker and the current locally packed Core package. Negative fixtures use owned temporary directories or copied assets/packages; they never modify the legitimate shipping source or candidate.
 
 WP01-S04 adds manual UTC/monotonic clocks and timers, explicit metadata/UUID sequences, bounded asynchronous signals/barriers and controllable writers. The process helper supports isolated child environments and stops owned children at finite deadlines. Nine new unit cases exercise these behaviors. Architecture tests add a genuine native-report positive baseline and six independent evidence rejection controls. Read [verification and source replay](../../../docs/architecture/csharp-verification.md) for manifests, required cases, report paths and source replay limits.
+
+WP02-S01 compiler controls run before the architecture suite in Developer verification. Run `pwsh -File implementations/csharp/eng/check-startup-contract.ps1` before individual architecture execution. These controls compile a nonshipping API specification and consumers; they do not execute a metadata resolver or static startup implementation.

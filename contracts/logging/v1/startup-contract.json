@@ -1,0 +1,150 @@
+{
+  "schemaVersion": 1,
+  "state": "Proposed portable contract; unpublished; runtime expectations not executed",
+  "story": "WP02-S01",
+  "authority": "User decisions amend the supplied guide; original files remain preserved source material.",
+  "csharpSurface": "implementations/csharp/verification/contracts/startup/surface.json",
+  "configurationCatalog": "contracts/logging/v1/configuration.json",
+  "metadataFields": {
+    "ApplicationName": {
+      "kind": "string",
+      "optional": false,
+      "maximumUnicodeScalars": 255
+    },
+    "BuildVersion": {
+      "kind": "string",
+      "optional": false,
+      "maximumUnicodeScalars": 512
+    },
+    "ServiceVersion": {
+      "kind": "string",
+      "optional": false,
+      "maximumUnicodeScalars": 512
+    },
+    "EnvironmentName": {
+      "kind": "string",
+      "optional": false,
+      "maximumUnicodeScalars": 255
+    },
+    "EnvironmentKind": {
+      "kind": "environment-kind",
+      "optional": false
+    },
+    "InstanceId": {
+      "kind": "uuid-string",
+      "optional": false
+    },
+    "ProcessStartedAtUtc": {
+      "kind": "utc-instant",
+      "optional": true
+    },
+    "InitializedAtUtc": {
+      "kind": "utc-instant",
+      "optional": false
+    },
+    "HostName": {
+      "kind": "string",
+      "optional": true
+    },
+    "OperatingSystem": {
+      "kind": "string",
+      "optional": false
+    },
+    "OperatingSystemDescription": {
+      "kind": "string",
+      "optional": true
+    },
+    "OSArchitecture": {
+      "kind": "string",
+      "optional": true
+    },
+    "ProcessArchitecture": {
+      "kind": "string",
+      "optional": true
+    },
+    "RuntimeDescription": {
+      "kind": "string",
+      "optional": true
+    },
+    "ProcessId": {
+      "kind": "integer",
+      "optional": true
+    },
+    "CommitId": {
+      "kind": "string",
+      "optional": true,
+      "maximumUnicodeScalars": 512
+    },
+    "BuildId": {
+      "kind": "string",
+      "optional": true,
+      "maximumUnicodeScalars": 512
+    }
+  },
+  "environmentKinds": {
+    "unknown": 0,
+    "console": 1,
+    "service": 2,
+    "web": 3,
+    "function": 4
+  },
+  "initialization": {
+    "readBeforePublication": "Uninitialized-state error; initialization flag remains false.",
+    "validationFailure": "Collect independent safe issues, publish nothing; a later valid attempt remains possible.",
+    "success": "Publish one complete immutable snapshot and return the same instance observed by current-state reads.",
+    "repeat": "Already-initialized-state error; never replace the published snapshot.",
+    "concurrent": "Exactly one successful publisher; no partial reads.",
+    "reset": "No production reset operation.",
+    "sideEffects": "Resolution/publication does not create outputs, start workers, mutate process variables or contact infrastructure."
+  },
+  "buildIdentity": {
+    "order": [
+      "explicit application build information",
+      "explicit application assembly informational version",
+      "application assembly version",
+      "unknown"
+    ],
+    "entryAssembly": "Fallback only when an explicit application assembly is not supplied.",
+    "coreAssembly": "Never substitute Core identity for application identity.",
+    "serviceVersion": "Configurable telemetry release label; distinct from actual BuildVersion.",
+    "commitAndBuildIds": "Explicit build inputs only; never inferred from version suffixes/filenames."
+  },
+  "processFacts": {
+    "processStartedAt": "Actual nullable process start in UTC; never initialization time.",
+    "initializedAt": "Successful initialization instant in UTC.",
+    "instanceId": "New UUID string per successful application initialization, stable for that run.",
+    "host": "Observed application-visible host, optional when unavailable; never DD_AGENT_HOST.",
+    "osFamily": [
+      "windows",
+      "linux",
+      "macos",
+      "unknown"
+    ],
+    "architectures": "Optional lowercase normalized runtime architecture names."
+  },
+  "ownership": {
+    "setup": "Caller-owned mutable startup input; resolver copies all selected fields and nested logging input before publication.",
+    "resolved": "Sealed, getter-only outputs; no retained caller-owned mutable state.",
+    "metadata": "Allowlisted copied process facts; excludes configuration, destinations and operation context."
+  },
+  "diagnostics": {
+    "issueFields": [
+      "code",
+      "key",
+      "explanation"
+    ],
+    "codes": [
+      "InvalidToken",
+      "OutOfRange",
+      "UnsupportedSchemaVersion",
+      "InvalidPath",
+      "InvalidIdentity",
+      "InvalidEnvironmentKind",
+      "MissingApplicationName"
+    ],
+    "collection": "Owned immutable copy, including immutable issue values.",
+    "safeExplanation": "No raw input values, arbitrary environment variables, paths, credentials or collector addresses."
+  },
+  "metadataProjection": "Allowlisted identity/process facts only; excludes logging settings, paths, destinations, credentials, arbitrary environment variables and operation context.",
+  "futureImplementations": "Declare supported runtime capabilities and apply portable expectations; C# namespace/assembly/signature mechanics remain specific to C#."
+}
