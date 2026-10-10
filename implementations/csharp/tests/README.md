@@ -33,3 +33,5 @@ WP02-S02 adds native data-driven architecture cases for every portable event rec
 WP02-S03 adds 45 admission-model and 28 drain-projection cases, one lifecycle-catalog integrity check and one exact reference-metadata inspection. These development-only validators do not execute factories, queues, shutdown, provider disposal or I/O. Future runtime expectations remain visibly unexecuted.
 
 WP02-S04-T02 adds 43 publication format/integrity/append-only architecture controls (six positive, 37 expected rejections). Every control owns its inputs and asserts the validator leaves them unchanged. Their synthetic opaque artifacts never enter the actual publication ledger and do not qualify source/binary/runtime compatibility.
+
+WP02-S04-T04 adds 20 deterministic wire-sample architecture controls for validity versus preserved meaning. The preceding `compatibility-samples` stage compiles six consumers and eight deliberately changed reference surfaces/consumers (22 expected compiler outcomes). These are nonshipping development samples; the actual cumulative compatibility family remains pending.

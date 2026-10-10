@@ -1,0 +1,210 @@
+{
+  "schemaVersion": 1,
+  "taskId": "WP02-S04-T04",
+  "scope": "Deterministic pure wire samples for later harness qualification; no producer/runtime/history execution.",
+  "baseline": "wire/baseline.jsonl",
+  "mode": "reader",
+  "normalizationRules": [],
+  "cases": [
+    {
+      "id": "WIRE-SAME",
+      "file": "wire/WIRE-SAME.jsonl",
+      "expectedValid": true,
+      "expectedCompatible": true,
+      "contracts": [
+        "Preserved deterministic event meaning"
+      ],
+      "laterLayer": "D"
+    },
+    {
+      "id": "WIRE-OBJECT-ORDER",
+      "file": "wire/WIRE-OBJECT-ORDER.jsonl",
+      "expectedValid": true,
+      "expectedCompatible": true,
+      "contracts": [
+        "Object member order is not a wire contract"
+      ],
+      "laterLayer": "D"
+    },
+    {
+      "id": "WIRE-ROOT-ADDITION",
+      "file": "wire/WIRE-ROOT-ADDITION.jsonl",
+      "expectedValid": true,
+      "expectedCompatible": true,
+      "contracts": [
+        "Historical reader tolerates unknown optional root fields"
+      ],
+      "laterLayer": "D"
+    },
+    {
+      "id": "WIRE-RESOURCE-ADDITION",
+      "file": "wire/WIRE-RESOURCE-ADDITION.jsonl",
+      "expectedValid": true,
+      "expectedCompatible": true,
+      "contracts": [
+        "Historical reader tolerates unknown optional resource fields"
+      ],
+      "laterLayer": "D"
+    },
+    {
+      "id": "WIRE-STATUS-MEANING",
+      "file": "wire/WIRE-STATUS-MEANING.jsonl",
+      "expectedValid": true,
+      "expectedCompatible": false,
+      "contracts": [
+        "Existing severity meaning"
+      ],
+      "laterLayer": "D"
+    },
+    {
+      "id": "WIRE-SERVICE-MEANING",
+      "file": "wire/WIRE-SERVICE-MEANING.jsonl",
+      "expectedValid": true,
+      "expectedCompatible": false,
+      "contracts": [
+        "Application identity meaning"
+      ],
+      "laterLayer": "D"
+    },
+    {
+      "id": "WIRE-NULL-OMISSION",
+      "file": "wire/WIRE-NULL-OMISSION.jsonl",
+      "expectedValid": true,
+      "expectedCompatible": false,
+      "contracts": [
+        "Attribute null differs from missing payload"
+      ],
+      "laterLayer": "D"
+    },
+    {
+      "id": "WIRE-DECIMAL-PRECISION",
+      "file": "wire/WIRE-DECIMAL-PRECISION.jsonl",
+      "expectedValid": true,
+      "expectedCompatible": false,
+      "contracts": [
+        "Decimal-string precision preserved"
+      ],
+      "laterLayer": "D"
+    },
+    {
+      "id": "WIRE-NUMBER-STRING",
+      "file": "wire/WIRE-NUMBER-STRING.jsonl",
+      "expectedValid": true,
+      "expectedCompatible": false,
+      "contracts": [
+        "Number and string value kinds preserved"
+      ],
+      "laterLayer": "D"
+    },
+    {
+      "id": "WIRE-ARRAY-ORDER",
+      "file": "wire/WIRE-ARRAY-ORDER.jsonl",
+      "expectedValid": true,
+      "expectedCompatible": false,
+      "contracts": [
+        "Array order preserved"
+      ],
+      "laterLayer": "D"
+    },
+    {
+      "id": "WIRE-MESSAGE-TEXT",
+      "file": "wire/WIRE-MESSAGE-TEXT.jsonl",
+      "expectedValid": true,
+      "expectedCompatible": false,
+      "contracts": [
+        "Captured message whitespace preserved"
+      ],
+      "laterLayer": "D"
+    },
+    {
+      "id": "WIRE-SCHEMA-CHANGE",
+      "file": "wire/WIRE-SCHEMA-CHANGE.jsonl",
+      "expectedValid": false,
+      "expectedCompatible": false,
+      "contracts": [
+        "Default selected schema version preserved"
+      ],
+      "laterLayer": "D"
+    },
+    {
+      "id": "WIRE-MISSING-SERVICE",
+      "file": "wire/WIRE-MISSING-SERVICE.jsonl",
+      "expectedValid": false,
+      "expectedCompatible": false,
+      "contracts": [
+        "Required service field retained"
+      ],
+      "laterLayer": "D"
+    },
+    {
+      "id": "WIRE-IMPOSSIBLE-TIME",
+      "file": "wire/WIRE-IMPOSSIBLE-TIME.jsonl",
+      "expectedValid": false,
+      "expectedCompatible": false,
+      "contracts": [
+        "Timestamp must represent an actual UTC instant"
+      ],
+      "laterLayer": "D"
+    },
+    {
+      "id": "WIRE-NEW-OPERATION",
+      "file": "wire/WIRE-NEW-OPERATION.jsonl",
+      "expectedValid": true,
+      "expectedCompatible": false,
+      "contracts": [
+        "Known optional absence/correlation meaning retained"
+      ],
+      "laterLayer": "D"
+    },
+    {
+      "id": "WIRE-ATTRIBUTE-INJECTION",
+      "file": "wire/WIRE-ATTRIBUTE-INJECTION.jsonl",
+      "expectedValid": true,
+      "expectedCompatible": false,
+      "contracts": [
+        "Attribute maps are caller payload, not extensible protocol fields"
+      ],
+      "laterLayer": "D"
+    },
+    {
+      "id": "WIRE-SPAN-MEANING",
+      "file": "wire/WIRE-SPAN-MEANING.jsonl",
+      "expectedValid": true,
+      "expectedCompatible": false,
+      "contracts": [
+        "Supplied trace/span identifiers preserved"
+      ],
+      "laterLayer": "D"
+    },
+    {
+      "id": "WIRE-SERVICE-TYPE",
+      "file": "wire/WIRE-SERVICE-TYPE.jsonl",
+      "expectedValid": false,
+      "expectedCompatible": false,
+      "contracts": [
+        "Existing service field type retained"
+      ],
+      "laterLayer": "D"
+    },
+    {
+      "id": "WIRE-NO-LF",
+      "file": "wire/WIRE-NO-LF.jsonl",
+      "expectedValid": false,
+      "expectedCompatible": false,
+      "contracts": [
+        "Complete single physical JSONL line with final LF"
+      ],
+      "laterLayer": "D"
+    },
+    {
+      "id": "WIRE-BOM",
+      "file": "wire/WIRE-BOM.jsonl",
+      "expectedValid": false,
+      "expectedCompatible": false,
+      "contracts": [
+        "UTF-8 JSONL has no BOM"
+      ],
+      "laterLayer": "D"
+    }
+  ]
+}

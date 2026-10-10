@@ -1,0 +1,242 @@
+{
+  "schemaVersion": 1,
+  "taskId": "WP02-S04-T04",
+  "scope": "Nonshipping compile-only source patterns and deliberately incompatible reference API samples; no real/historical runtime execution.",
+  "contractState": "Selected unpublished proposal",
+  "targetFramework": "net10.0",
+  "languageVersion": "14.0",
+  "nullable": "enable",
+  "warningsAsErrors": true,
+  "sources": [
+    {
+      "id": "construction-names",
+      "file": "source/construction-names.cs",
+      "expectedExitCode": 0,
+      "contracts": [
+        "EnvironmentOptions.Initialize(setup)",
+        "CoreLogRuntime.Create(environment)",
+        "CoreLogRuntime.CreateLogger(component)",
+        "LogEventData()",
+        "ConfigurationIssue(code,key,explanation)",
+        "CoreConfigurationException(issues)",
+        "CoreLogger.Write(level,data)"
+      ],
+      "laterLayers": [
+        "B",
+        "C",
+        "D"
+      ]
+    },
+    {
+      "id": "null-calls",
+      "file": "source/null-calls.cs",
+      "expectedExitCode": 0,
+      "contracts": [
+        "Null overload binding for setup/data/factory/value",
+        "Write versus WriteLazy separation; null arguments remain documented errors where nonnullable"
+      ],
+      "laterLayers": [
+        "B",
+        "C",
+        "D"
+      ]
+    },
+    {
+      "id": "numeric-values",
+      "file": "source/numeric-values.cs",
+      "expectedExitCode": 0,
+      "contracts": [
+        "Integer(long) implicit byte/short/int conversions and safe long range",
+        "Number(double) int/float/double conversions",
+        "Exact IntegerString/DecimalString construction"
+      ],
+      "laterLayers": [
+        "B",
+        "C",
+        "D"
+      ]
+    },
+    {
+      "id": "lazy-lifecycle",
+      "file": "source/lazy-lifecycle.cs",
+      "expectedExitCode": 0,
+      "contracts": [
+        "WriteLazy(level,factory)",
+        "BeginScope(context)",
+        "FlushAsync(timeout,cancellationToken)",
+        "StopAsync(cancellationToken)",
+        "IAsyncDisposable and result/diagnostic observations"
+      ],
+      "laterLayers": [
+        "B",
+        "C",
+        "D"
+      ]
+    },
+    {
+      "id": "logging-extensions",
+      "file": "source/logging-extensions.cs",
+      "expectedExitCode": 0,
+      "contracts": [
+        "Microsoft LoggerExtensions overloads/params and EventId",
+        "ILogger.BeginScope<TState>",
+        "CoreLoggerProvider(runtime) and CreateLogger(categoryName)"
+      ],
+      "laterLayers": [
+        "B",
+        "C",
+        "D"
+      ]
+    },
+    {
+      "id": "custom-scopes",
+      "file": "source/custom-scopes.cs",
+      "expectedExitCode": 0,
+      "contracts": [
+        "Supported custom IExternalScopeProvider implementation",
+        "ISupportExternalScope.SetScopeProvider(scopeProvider)",
+        "ILoggerProvider consumption and nonowning provider surface"
+      ],
+      "laterLayers": [
+        "B",
+        "C",
+        "D"
+      ]
+    }
+  ],
+  "apiSamples": [
+    {
+      "id": "API-REMOVE-LAZY",
+      "surfaceFile": "RuntimeSurface.cs",
+      "find": "    [MethodImpl(MethodImplOptions.InternalCall)]\n    public extern LogWriteResult WriteLazy(CoreLogLevel level, Func<LogEventData> factory);",
+      "replace": "",
+      "consumerId": "lazy-lifecycle",
+      "expectedDiagnostic": "CS1061",
+      "contracts": [
+        "Existing WriteLazy method"
+      ],
+      "laterLayers": [
+        "A",
+        "B"
+      ],
+      "currentDetection": "Native reference build plus consumer compiler diagnostic; APICompat and binary/behavior replay remain later harness work."
+    },
+    {
+      "id": "API-RENAME-DATA",
+      "surfaceFile": "RuntimeSurface.cs",
+      "find": "public extern LogWriteResult Write(CoreLogLevel level, LogEventData data);",
+      "replace": "public extern LogWriteResult Write(CoreLogLevel level, LogEventData entry);",
+      "consumerId": "construction-names",
+      "expectedDiagnostic": "CS1739",
+      "contracts": [
+        "Named data argument"
+      ],
+      "laterLayers": [
+        "A",
+        "B"
+      ],
+      "currentDetection": "Native reference build plus consumer compiler diagnostic; APICompat and binary/behavior replay remain later harness work."
+    },
+    {
+      "id": "API-REQUIRED-CTOR",
+      "surfaceFile": "EventSurface.cs",
+      "find": "public extern LogEventData();",
+      "replace": "public extern LogEventData(string eventName);",
+      "consumerId": "construction-names",
+      "expectedDiagnostic": "CS7036",
+      "contracts": [
+        "Parameterless event construction"
+      ],
+      "laterLayers": [
+        "A",
+        "B"
+      ],
+      "currentDetection": "Native reference build plus consumer compiler diagnostic; APICompat and binary/behavior replay remain later harness work."
+    },
+    {
+      "id": "API-REQUIRED-PROPERTY",
+      "surfaceFile": "EventSurface.cs",
+      "find": "public sealed class LogEventData\n{",
+      "replace": "public sealed class LogEventData\n{\n    public required int ProtocolSelection { get; init; }",
+      "consumerId": "construction-names",
+      "expectedDiagnostic": "CS9035",
+      "contracts": [
+        "No new required property on old construction"
+      ],
+      "laterLayers": [
+        "A",
+        "B"
+      ],
+      "currentDetection": "Native reference build plus consumer compiler diagnostic; APICompat and binary/behavior replay remain later harness work."
+    },
+    {
+      "id": "API-OBSOLETE-WARNING",
+      "surfaceFile": "RuntimeSurface.cs",
+      "find": "public static extern CoreLogRuntime Create(EnvironmentSnapshot environment);",
+      "replace": "[Obsolete(\"Synthetic break: supported call is obsolete.\")]\n    public static extern CoreLogRuntime Create(EnvironmentSnapshot environment);",
+      "consumerId": "construction-names",
+      "expectedDiagnostic": "CS0618",
+      "contracts": [
+        "Warnings-as-errors on supported runtime construction"
+      ],
+      "laterLayers": [
+        "A",
+        "B"
+      ],
+      "currentDetection": "Native reference build plus consumer compiler diagnostic; APICompat and binary/behavior replay remain later harness work."
+    },
+    {
+      "id": "API-NULL-OVERLOAD",
+      "surfaceFile": "RuntimeSurface.cs",
+      "find": "public extern LogWriteResult Write(CoreLogLevel level, LogEventData data);",
+      "replace": "public extern LogWriteResult Write(CoreLogLevel level, LogEventData data);\n    [MethodImpl(MethodImplOptions.InternalCall)]\n    public extern LogWriteResult Write(CoreLogLevel level, Func<LogEventData> data);",
+      "consumerId": "null-calls",
+      "expectedDiagnostic": "CS0121",
+      "contracts": [
+        "Unambiguous null data calls"
+      ],
+      "laterLayers": [
+        "A",
+        "B"
+      ],
+      "currentDetection": "Native reference build plus consumer compiler diagnostic; APICompat and binary/behavior replay remain later harness work."
+    },
+    {
+      "id": "API-MESSAGE-TYPE",
+      "surfaceFile": "EventSurface.cs",
+      "find": "public extern string Message {",
+      "replace": "public extern int Message {",
+      "consumerId": "construction-names",
+      "expectedDiagnostic": "CS0029",
+      "contracts": [
+        "Message string property type"
+      ],
+      "laterLayers": [
+        "A",
+        "B"
+      ],
+      "currentDetection": "Native reference build plus consumer compiler diagnostic; APICompat and binary/behavior replay remain later harness work."
+    },
+    {
+      "id": "API-NARROW-INTEGER",
+      "surfaceFile": "EventSurface.cs",
+      "find": "public static extern LogValue Integer(long value);",
+      "replace": "public static extern LogValue Integer(int value);",
+      "consumerId": "numeric-values",
+      "expectedDiagnostic": "CS1503",
+      "contracts": [
+        "Supported long integer parameter and conversion path"
+      ],
+      "laterLayers": [
+        "A",
+        "B"
+      ],
+      "currentDetection": "Native reference build plus consumer compiler diagnostic; APICompat and binary/behavior replay remain later harness work."
+    }
+  ],
+  "configurationFixtures": {
+    "contract": "contracts/logging/v1/configuration.json",
+    "cases": "conformance/logging/configuration-cases.json",
+    "coverage": "All 18 settings/defaults/aliases/bounds and 350 per-key plus nine cross-option vectors. Fixtures are specified; actual resolver/default replay remains WP03/WP07 work."
+  }
+}

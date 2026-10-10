@@ -78,3 +78,7 @@ WP02-S04-T01 is committed as `69ebd90`. The [C# publication format](../compatibi
 ## WP02-S04-T03 replay definition
 
 WP02-S04-T02 is committed as `365b3b4`. The [four-layer replay definition](../docs/architecture/csharp-compatibility-replay.md) specifies cumulative API/source/unchanged-binary/configuration-wire-behavior checks, isolated version/lockfile substitutions, two integration-aware binary scenarios, separate original/current runtime evidence, named validated normalization and an honest zero-history path. These are maintainer choices within the roadmap, reflecting the provider-inside-Core amendment. The [structured protocol](../compatibility/csharp/replay-rules.json) is definition-only; no harness/runtime/publication or historical compatibility pass is claimed. T04 and WP07-S04 remain pending.
+
+## WP02-S04-T04 initial fixtures
+
+WP02-S04-T03 is committed as `d7e6f4d`. [Initial fixture guidance](../docs/architecture/csharp-compatibility-samples.md) binds six compiler patterns, eight deliberate API changes and 20 deterministic wire samples to actual selected contracts. Reference-only compilation and pure wire comparison execute without adding shipping placeholders or claiming a historical/package runtime pass. Existing configuration vectors supply defaults/bounds expectations; actual resolver/harness work remains pending. Raw wire fixtures retain exact bytes, including deliberate framing failures.
