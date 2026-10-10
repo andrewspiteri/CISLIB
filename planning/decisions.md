@@ -82,3 +82,7 @@ WP02-S04-T02 is committed as `365b3b4`. The [four-layer replay definition](../do
 ## WP02-S04-T04 initial fixtures
 
 WP02-S04-T03 is committed as `d7e6f4d`. [Initial fixture guidance](../docs/architecture/csharp-compatibility-samples.md) binds six compiler patterns, eight deliberate API changes and 20 deterministic wire samples to actual selected contracts. Reference-only compilation and pure wire comparison execute without adding shipping placeholders or claiming a historical/package runtime pass. Existing configuration vectors supply defaults/bounds expectations; actual resolver/harness work remains pending. Raw wire fixtures retain exact bytes, including deliberate framing failures.
+
+## WP03-S01-T01 application identity
+
+WP02-S04-T04 is committed as `2b18579`. [Application identity discovery](../docs/modules/logging/application-identity-discovery.md) now implements supplied/application/entry identity precedence in internal `CIS.Configuration` types. It excludes Core's assembly, preserves informational strings and explicit build IDs, and handles expected optional discovery failures per fact. The internal namespace, reader seam and exception filter are implementation choices within the authorized roadmap. Public facade publication, full identity validation, process facts and Linux process execution remain pending.

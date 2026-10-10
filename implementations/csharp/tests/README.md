@@ -4,7 +4,7 @@ The solution has five MSTest/VSTest projects and one nonpackable shared-support 
 
 | Project | Responsibility | Current execution |
 | --- | --- | --- |
-| `CIS.Core.UnitTests` | Deterministic Core behavior and test-support checks. | Severity parsing tests cover names, abbreviations, trimming, absence, invalid values and culture independence. Eleven support tests exercise deterministic clocks/inputs/concurrency/writers, cleanup isolation and bounded child processes, including independent stream drainage. |
+| `CIS.Core.UnitTests` | Deterministic Core behavior and test-support checks. | Application identity discovery tests cover supplied/application/entry precedence, actual version strings, unavailable facts, explicit IDs and failure isolation; real reflection fixtures use distinct application/file/Core versions. Severity parsing tests cover names, abbreviations, trimming, absence, invalid values and culture independence. Eleven support tests exercise deterministic clocks/inputs/concurrency/writers, cleanup isolation and bounded child processes, including independent stream drainage. |
 | `CIS.Core.IntegrationTests` | Real consumers, streams, files and lifecycle. | Project scaffold; no cases yet. |
 | `CIS.Core.ArchitectureTests` | Dependency and public-surface boundaries. | Data-driven foundation/contract cases, including deliberately invalid project/package/framework/assembly fixtures, evidence-validator controls, startup catalog/fixture checks and reference-only API inspection. Type/API rules follow real Core types. |
 | `CIS.Core.CompatibilityTests` | API/source/binary/configuration/behavior replay. | Project scaffold; no cases or historical releases yet. |
@@ -35,3 +35,5 @@ WP02-S03 adds 45 admission-model and 28 drain-projection cases, one lifecycle-ca
 WP02-S04-T02 adds 43 publication format/integrity/append-only architecture controls (six positive, 37 expected rejections). Every control owns its inputs and asserts the validator leaves them unchanged. Their synthetic opaque artifacts never enter the actual publication ledger and do not qualify source/binary/runtime compatibility.
 
 WP02-S04-T04 adds 20 deterministic wire-sample architecture controls for validity versus preserved meaning. The preceding `compatibility-samples` stage compiles six consumers and eight deliberately changed reference surfaces/consumers (22 expected compiler outcomes). These are nonshipping development samples; the actual cumulative compatibility family remains pending.
+
+WP03-S01-T01 adds 45 native unit cases for genuine internal application identity discovery. Concrete `UT-APPLICATION-*` methods/counts are required in the case inventory; the full `UT-IDENTITY` group remains Planned until process, initialization and snapshot behavior is implemented. See [discovery guidance](../../../docs/modules/logging/application-identity-discovery.md).
