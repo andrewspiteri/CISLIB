@@ -1,0 +1,1281 @@
+{
+  "schemaVersion": 1,
+  "caseCount": 28,
+  "counterEncoding": "Exact base-10 strings for Int64 fixture transport; event JSON is unchanged.",
+  "scope": "Executed only as immutable result projection validation; real flush/stop/cancellation and atomic observation remain WP05.",
+  "cases": [
+    {
+      "id": "DRAIN-LOSSLESS",
+      "expectedValid": true,
+      "boundaryContext": {
+        "capturedAtUtc": "2026-10-10T20:00:00.0000000Z",
+        "invalidEventCount": "0",
+        "truncatedEventCount": "0",
+        "outputs": {
+          "console": {
+            "acceptedSequenceBoundary": "2",
+            "rejections": {
+              "filtered": "0",
+              "queueFull": "0",
+              "unavailable": "0"
+            }
+          }
+        }
+      },
+      "result": {
+        "completion": "Completed",
+        "succeeded": true,
+        "lossObserved": false,
+        "boundaryCapturedAtUtc": "2026-10-10T20:00:00.0000000Z",
+        "observedAtUtc": "2026-10-10T20:00:05.0000000Z",
+        "invalidEventCount": "0",
+        "truncatedEventCount": "0",
+        "outputs": [
+          {
+            "outputName": "console",
+            "acceptedSequenceBoundary": "2",
+            "written": "2",
+            "failed": "0",
+            "abandoned": "0",
+            "pending": "0",
+            "writerFlushStatus": "Succeeded",
+            "writerFlushSucceeded": true,
+            "rejections": {
+              "filtered": "0",
+              "queueFull": "0",
+              "unavailable": "0"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "DRAIN-COMPLETED-WRITE-FAILURE",
+      "expectedValid": true,
+      "boundaryContext": {
+        "capturedAtUtc": "2026-10-10T20:00:00.0000000Z",
+        "invalidEventCount": "0",
+        "truncatedEventCount": "0",
+        "outputs": {
+          "console": {
+            "acceptedSequenceBoundary": "2",
+            "rejections": {
+              "filtered": "0",
+              "queueFull": "0",
+              "unavailable": "0"
+            }
+          }
+        }
+      },
+      "result": {
+        "completion": "Completed",
+        "succeeded": false,
+        "lossObserved": true,
+        "boundaryCapturedAtUtc": "2026-10-10T20:00:00.0000000Z",
+        "observedAtUtc": "2026-10-10T20:00:05.0000000Z",
+        "invalidEventCount": "0",
+        "truncatedEventCount": "0",
+        "outputs": [
+          {
+            "outputName": "console",
+            "acceptedSequenceBoundary": "2",
+            "written": "1",
+            "failed": "1",
+            "abandoned": "0",
+            "pending": "0",
+            "writerFlushStatus": "Failed",
+            "writerFlushSucceeded": false,
+            "rejections": {
+              "filtered": "0",
+              "queueFull": "0",
+              "unavailable": "0"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "DRAIN-SUCCESS-WITH-PRIOR-INVALID",
+      "expectedValid": true,
+      "boundaryContext": {
+        "capturedAtUtc": "2026-10-10T20:00:00.0000000Z",
+        "invalidEventCount": "1",
+        "truncatedEventCount": "0",
+        "outputs": {
+          "console": {
+            "acceptedSequenceBoundary": "2",
+            "rejections": {
+              "filtered": "0",
+              "queueFull": "0",
+              "unavailable": "0"
+            }
+          }
+        }
+      },
+      "result": {
+        "completion": "Completed",
+        "succeeded": true,
+        "lossObserved": true,
+        "boundaryCapturedAtUtc": "2026-10-10T20:00:00.0000000Z",
+        "observedAtUtc": "2026-10-10T20:00:05.0000000Z",
+        "invalidEventCount": "1",
+        "truncatedEventCount": "0",
+        "outputs": [
+          {
+            "outputName": "console",
+            "acceptedSequenceBoundary": "2",
+            "written": "2",
+            "failed": "0",
+            "abandoned": "0",
+            "pending": "0",
+            "writerFlushStatus": "Succeeded",
+            "writerFlushSucceeded": true,
+            "rejections": {
+              "filtered": "0",
+              "queueFull": "0",
+              "unavailable": "0"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "DRAIN-SUCCESS-WITH-PRIOR-TRUNCATION",
+      "expectedValid": true,
+      "boundaryContext": {
+        "capturedAtUtc": "2026-10-10T20:00:00.0000000Z",
+        "invalidEventCount": "0",
+        "truncatedEventCount": "1",
+        "outputs": {
+          "console": {
+            "acceptedSequenceBoundary": "2",
+            "rejections": {
+              "filtered": "0",
+              "queueFull": "0",
+              "unavailable": "0"
+            }
+          }
+        }
+      },
+      "result": {
+        "completion": "Completed",
+        "succeeded": true,
+        "lossObserved": true,
+        "boundaryCapturedAtUtc": "2026-10-10T20:00:00.0000000Z",
+        "observedAtUtc": "2026-10-10T20:00:05.0000000Z",
+        "invalidEventCount": "0",
+        "truncatedEventCount": "1",
+        "outputs": [
+          {
+            "outputName": "console",
+            "acceptedSequenceBoundary": "2",
+            "written": "2",
+            "failed": "0",
+            "abandoned": "0",
+            "pending": "0",
+            "writerFlushStatus": "Succeeded",
+            "writerFlushSucceeded": true,
+            "rejections": {
+              "filtered": "0",
+              "queueFull": "0",
+              "unavailable": "0"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "DRAIN-SUCCESS-WITH-PRIOR-QUEUE-LOSS",
+      "expectedValid": true,
+      "boundaryContext": {
+        "capturedAtUtc": "2026-10-10T20:00:00.0000000Z",
+        "invalidEventCount": "0",
+        "truncatedEventCount": "0",
+        "outputs": {
+          "console": {
+            "acceptedSequenceBoundary": "2",
+            "rejections": {
+              "filtered": "0",
+              "queueFull": "3",
+              "unavailable": "0"
+            }
+          }
+        }
+      },
+      "result": {
+        "completion": "Completed",
+        "succeeded": true,
+        "lossObserved": true,
+        "boundaryCapturedAtUtc": "2026-10-10T20:00:00.0000000Z",
+        "observedAtUtc": "2026-10-10T20:00:05.0000000Z",
+        "invalidEventCount": "0",
+        "truncatedEventCount": "0",
+        "outputs": [
+          {
+            "outputName": "console",
+            "acceptedSequenceBoundary": "2",
+            "written": "2",
+            "failed": "0",
+            "abandoned": "0",
+            "pending": "0",
+            "writerFlushStatus": "Succeeded",
+            "writerFlushSucceeded": true,
+            "rejections": {
+              "filtered": "0",
+              "queueFull": "3",
+              "unavailable": "0"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "DRAIN-SUCCESS-WITH-PRIOR-UNAVAILABLE",
+      "expectedValid": true,
+      "boundaryContext": {
+        "capturedAtUtc": "2026-10-10T20:00:00.0000000Z",
+        "invalidEventCount": "0",
+        "truncatedEventCount": "0",
+        "outputs": {
+          "console": {
+            "acceptedSequenceBoundary": "2",
+            "rejections": {
+              "filtered": "0",
+              "queueFull": "0",
+              "unavailable": "1"
+            }
+          }
+        }
+      },
+      "result": {
+        "completion": "Completed",
+        "succeeded": true,
+        "lossObserved": true,
+        "boundaryCapturedAtUtc": "2026-10-10T20:00:00.0000000Z",
+        "observedAtUtc": "2026-10-10T20:00:05.0000000Z",
+        "invalidEventCount": "0",
+        "truncatedEventCount": "0",
+        "outputs": [
+          {
+            "outputName": "console",
+            "acceptedSequenceBoundary": "2",
+            "written": "2",
+            "failed": "0",
+            "abandoned": "0",
+            "pending": "0",
+            "writerFlushStatus": "Succeeded",
+            "writerFlushSucceeded": true,
+            "rejections": {
+              "filtered": "0",
+              "queueFull": "0",
+              "unavailable": "1"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "DRAIN-FILTERED-IS-NOT-LOSS",
+      "expectedValid": true,
+      "boundaryContext": {
+        "capturedAtUtc": "2026-10-10T20:00:00.0000000Z",
+        "invalidEventCount": "0",
+        "truncatedEventCount": "0",
+        "outputs": {
+          "console": {
+            "acceptedSequenceBoundary": "2",
+            "rejections": {
+              "filtered": "99",
+              "queueFull": "0",
+              "unavailable": "0"
+            }
+          }
+        }
+      },
+      "result": {
+        "completion": "Completed",
+        "succeeded": true,
+        "lossObserved": false,
+        "boundaryCapturedAtUtc": "2026-10-10T20:00:00.0000000Z",
+        "observedAtUtc": "2026-10-10T20:00:05.0000000Z",
+        "invalidEventCount": "0",
+        "truncatedEventCount": "0",
+        "outputs": [
+          {
+            "outputName": "console",
+            "acceptedSequenceBoundary": "2",
+            "written": "2",
+            "failed": "0",
+            "abandoned": "0",
+            "pending": "0",
+            "writerFlushStatus": "Succeeded",
+            "writerFlushSucceeded": true,
+            "rejections": {
+              "filtered": "99",
+              "queueFull": "0",
+              "unavailable": "0"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "DRAIN-TIMED-OUT-UNRESOLVED",
+      "expectedValid": true,
+      "boundaryContext": {
+        "capturedAtUtc": "2026-10-10T20:00:00.0000000Z",
+        "invalidEventCount": "0",
+        "truncatedEventCount": "0",
+        "outputs": {
+          "console": {
+            "acceptedSequenceBoundary": "2",
+            "rejections": {
+              "filtered": "0",
+              "queueFull": "0",
+              "unavailable": "0"
+            }
+          }
+        }
+      },
+      "result": {
+        "completion": "TimedOut",
+        "succeeded": false,
+        "lossObserved": false,
+        "boundaryCapturedAtUtc": "2026-10-10T20:00:00.0000000Z",
+        "observedAtUtc": "2026-10-10T20:00:05.0000000Z",
+        "invalidEventCount": "0",
+        "truncatedEventCount": "0",
+        "outputs": [
+          {
+            "outputName": "console",
+            "acceptedSequenceBoundary": "2",
+            "written": "1",
+            "failed": "0",
+            "abandoned": "0",
+            "pending": "1",
+            "writerFlushStatus": "NotRequested",
+            "writerFlushSucceeded": false,
+            "rejections": {
+              "filtered": "0",
+              "queueFull": "0",
+              "unavailable": "0"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "DRAIN-TIMED-OUT-FLUSH-ONLY",
+      "expectedValid": true,
+      "boundaryContext": {
+        "capturedAtUtc": "2026-10-10T20:00:00.0000000Z",
+        "invalidEventCount": "0",
+        "truncatedEventCount": "0",
+        "outputs": {
+          "console": {
+            "acceptedSequenceBoundary": "2",
+            "rejections": {
+              "filtered": "0",
+              "queueFull": "0",
+              "unavailable": "0"
+            }
+          }
+        }
+      },
+      "result": {
+        "completion": "TimedOut",
+        "succeeded": false,
+        "lossObserved": false,
+        "boundaryCapturedAtUtc": "2026-10-10T20:00:00.0000000Z",
+        "observedAtUtc": "2026-10-10T20:00:05.0000000Z",
+        "invalidEventCount": "0",
+        "truncatedEventCount": "0",
+        "outputs": [
+          {
+            "outputName": "console",
+            "acceptedSequenceBoundary": "2",
+            "written": "2",
+            "failed": "0",
+            "abandoned": "0",
+            "pending": "0",
+            "writerFlushStatus": "Pending",
+            "writerFlushSucceeded": false,
+            "rejections": {
+              "filtered": "0",
+              "queueFull": "0",
+              "unavailable": "0"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "DRAIN-DEADLINE-ABANDONED-PENDING",
+      "expectedValid": true,
+      "boundaryContext": {
+        "capturedAtUtc": "2026-10-10T20:00:00.0000000Z",
+        "invalidEventCount": "0",
+        "truncatedEventCount": "0",
+        "outputs": {
+          "console": {
+            "acceptedSequenceBoundary": "4",
+            "rejections": {
+              "filtered": "0",
+              "queueFull": "0",
+              "unavailable": "0"
+            }
+          }
+        }
+      },
+      "result": {
+        "completion": "TimedOut",
+        "succeeded": false,
+        "lossObserved": true,
+        "boundaryCapturedAtUtc": "2026-10-10T20:00:00.0000000Z",
+        "observedAtUtc": "2026-10-10T20:00:05.0000000Z",
+        "invalidEventCount": "0",
+        "truncatedEventCount": "0",
+        "outputs": [
+          {
+            "outputName": "console",
+            "acceptedSequenceBoundary": "4",
+            "written": "1",
+            "failed": "0",
+            "abandoned": "2",
+            "pending": "1",
+            "writerFlushStatus": "NotRequested",
+            "writerFlushSucceeded": false,
+            "rejections": {
+              "filtered": "0",
+              "queueFull": "0",
+              "unavailable": "0"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "DRAIN-COMPLETED-FLUSH-FAILURE",
+      "expectedValid": true,
+      "boundaryContext": {
+        "capturedAtUtc": "2026-10-10T20:00:00.0000000Z",
+        "invalidEventCount": "0",
+        "truncatedEventCount": "0",
+        "outputs": {
+          "console": {
+            "acceptedSequenceBoundary": "2",
+            "rejections": {
+              "filtered": "0",
+              "queueFull": "0",
+              "unavailable": "0"
+            }
+          }
+        }
+      },
+      "result": {
+        "completion": "Completed",
+        "succeeded": false,
+        "lossObserved": true,
+        "boundaryCapturedAtUtc": "2026-10-10T20:00:00.0000000Z",
+        "observedAtUtc": "2026-10-10T20:00:05.0000000Z",
+        "invalidEventCount": "0",
+        "truncatedEventCount": "0",
+        "outputs": [
+          {
+            "outputName": "console",
+            "acceptedSequenceBoundary": "2",
+            "written": "2",
+            "failed": "0",
+            "abandoned": "0",
+            "pending": "0",
+            "writerFlushStatus": "Failed",
+            "writerFlushSucceeded": false,
+            "rejections": {
+              "filtered": "0",
+              "queueFull": "0",
+              "unavailable": "0"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "DRAIN-NO-OUTPUTS",
+      "expectedValid": true,
+      "boundaryContext": {
+        "capturedAtUtc": "2026-10-10T20:00:00.0000000Z",
+        "invalidEventCount": "0",
+        "truncatedEventCount": "0",
+        "outputs": {}
+      },
+      "result": {
+        "completion": "Completed",
+        "succeeded": true,
+        "lossObserved": false,
+        "boundaryCapturedAtUtc": "2026-10-10T20:00:00.0000000Z",
+        "observedAtUtc": "2026-10-10T20:00:05.0000000Z",
+        "invalidEventCount": "0",
+        "truncatedEventCount": "0",
+        "outputs": []
+      }
+    },
+    {
+      "id": "DRAIN-INDEPENDENT-BOUNDARIES",
+      "expectedValid": true,
+      "boundaryContext": {
+        "capturedAtUtc": "2026-10-10T20:00:00.0000000Z",
+        "invalidEventCount": "0",
+        "truncatedEventCount": "0",
+        "outputs": {
+          "console": {
+            "acceptedSequenceBoundary": "2",
+            "rejections": {
+              "filtered": "0",
+              "queueFull": "0",
+              "unavailable": "0"
+            }
+          },
+          "file": {
+            "acceptedSequenceBoundary": "2",
+            "rejections": {
+              "filtered": "0",
+              "queueFull": "0",
+              "unavailable": "0"
+            }
+          }
+        }
+      },
+      "result": {
+        "completion": "TimedOut",
+        "succeeded": false,
+        "lossObserved": false,
+        "boundaryCapturedAtUtc": "2026-10-10T20:00:00.0000000Z",
+        "observedAtUtc": "2026-10-10T20:00:05.0000000Z",
+        "invalidEventCount": "0",
+        "truncatedEventCount": "0",
+        "outputs": [
+          {
+            "outputName": "console",
+            "acceptedSequenceBoundary": "2",
+            "written": "2",
+            "failed": "0",
+            "abandoned": "0",
+            "pending": "0",
+            "writerFlushStatus": "Succeeded",
+            "writerFlushSucceeded": true,
+            "rejections": {
+              "filtered": "0",
+              "queueFull": "0",
+              "unavailable": "0"
+            }
+          },
+          {
+            "outputName": "file",
+            "acceptedSequenceBoundary": "2",
+            "written": "1",
+            "failed": "0",
+            "abandoned": "0",
+            "pending": "1",
+            "writerFlushStatus": "Pending",
+            "writerFlushSucceeded": false,
+            "rejections": {
+              "filtered": "0",
+              "queueFull": "0",
+              "unavailable": "0"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "DRAIN-UTC-CORRECTION",
+      "expectedValid": true,
+      "boundaryContext": {
+        "capturedAtUtc": "2026-10-10T20:00:00.0000000Z",
+        "invalidEventCount": "0",
+        "truncatedEventCount": "0",
+        "outputs": {
+          "console": {
+            "acceptedSequenceBoundary": "2",
+            "rejections": {
+              "filtered": "0",
+              "queueFull": "0",
+              "unavailable": "0"
+            }
+          }
+        }
+      },
+      "result": {
+        "completion": "Completed",
+        "succeeded": true,
+        "lossObserved": false,
+        "boundaryCapturedAtUtc": "2026-10-10T20:00:00.0000000Z",
+        "observedAtUtc": "2026-10-10T19:59:00.0000000Z",
+        "invalidEventCount": "0",
+        "truncatedEventCount": "0",
+        "outputs": [
+          {
+            "outputName": "console",
+            "acceptedSequenceBoundary": "2",
+            "written": "2",
+            "failed": "0",
+            "abandoned": "0",
+            "pending": "0",
+            "writerFlushStatus": "Succeeded",
+            "writerFlushSucceeded": true,
+            "rejections": {
+              "filtered": "0",
+              "queueFull": "0",
+              "unavailable": "0"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "DRAIN-BAD-ACCOUNTING",
+      "expectedValid": false,
+      "boundaryContext": {
+        "capturedAtUtc": "2026-10-10T20:00:00.0000000Z",
+        "invalidEventCount": "0",
+        "truncatedEventCount": "0",
+        "outputs": {
+          "console": {
+            "acceptedSequenceBoundary": "2",
+            "rejections": {
+              "filtered": "0",
+              "queueFull": "0",
+              "unavailable": "0"
+            }
+          }
+        }
+      },
+      "result": {
+        "completion": "Completed",
+        "succeeded": true,
+        "lossObserved": false,
+        "boundaryCapturedAtUtc": "2026-10-10T20:00:00.0000000Z",
+        "observedAtUtc": "2026-10-10T20:00:05.0000000Z",
+        "invalidEventCount": "0",
+        "truncatedEventCount": "0",
+        "outputs": [
+          {
+            "outputName": "console",
+            "acceptedSequenceBoundary": "2",
+            "written": "3",
+            "failed": "0",
+            "abandoned": "0",
+            "pending": "0",
+            "writerFlushStatus": "Succeeded",
+            "writerFlushSucceeded": true,
+            "rejections": {
+              "filtered": "0",
+              "queueFull": "0",
+              "unavailable": "0"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "DRAIN-REJECTED-TICKET-INVENTED",
+      "expectedValid": false,
+      "boundaryContext": {
+        "capturedAtUtc": "2026-10-10T20:00:00.0000000Z",
+        "invalidEventCount": "0",
+        "truncatedEventCount": "0",
+        "outputs": {
+          "console": {
+            "acceptedSequenceBoundary": "2",
+            "rejections": {
+              "filtered": "0",
+              "queueFull": "0",
+              "unavailable": "0"
+            }
+          }
+        }
+      },
+      "result": {
+        "completion": "Completed",
+        "succeeded": true,
+        "lossObserved": false,
+        "boundaryCapturedAtUtc": "2026-10-10T20:00:00.0000000Z",
+        "observedAtUtc": "2026-10-10T20:00:05.0000000Z",
+        "invalidEventCount": "0",
+        "truncatedEventCount": "0",
+        "outputs": [
+          {
+            "outputName": "console",
+            "acceptedSequenceBoundary": "3",
+            "written": "2",
+            "failed": "0",
+            "abandoned": "0",
+            "pending": "0",
+            "writerFlushStatus": "Succeeded",
+            "writerFlushSucceeded": true,
+            "rejections": {
+              "filtered": "0",
+              "queueFull": "0",
+              "unavailable": "0"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "DRAIN-MISSING-LOSS",
+      "expectedValid": false,
+      "boundaryContext": {
+        "capturedAtUtc": "2026-10-10T20:00:00.0000000Z",
+        "invalidEventCount": "1",
+        "truncatedEventCount": "0",
+        "outputs": {
+          "console": {
+            "acceptedSequenceBoundary": "2",
+            "rejections": {
+              "filtered": "0",
+              "queueFull": "0",
+              "unavailable": "0"
+            }
+          }
+        }
+      },
+      "result": {
+        "completion": "Completed",
+        "succeeded": true,
+        "lossObserved": false,
+        "boundaryCapturedAtUtc": "2026-10-10T20:00:00.0000000Z",
+        "observedAtUtc": "2026-10-10T20:00:05.0000000Z",
+        "invalidEventCount": "1",
+        "truncatedEventCount": "0",
+        "outputs": [
+          {
+            "outputName": "console",
+            "acceptedSequenceBoundary": "2",
+            "written": "2",
+            "failed": "0",
+            "abandoned": "0",
+            "pending": "0",
+            "writerFlushStatus": "Succeeded",
+            "writerFlushSucceeded": true,
+            "rejections": {
+              "filtered": "0",
+              "queueFull": "0",
+              "unavailable": "0"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "DRAIN-FALSE-TRUNCATION-LOSS",
+      "expectedValid": false,
+      "boundaryContext": {
+        "capturedAtUtc": "2026-10-10T20:00:00.0000000Z",
+        "invalidEventCount": "0",
+        "truncatedEventCount": "1",
+        "outputs": {
+          "console": {
+            "acceptedSequenceBoundary": "2",
+            "rejections": {
+              "filtered": "0",
+              "queueFull": "0",
+              "unavailable": "0"
+            }
+          }
+        }
+      },
+      "result": {
+        "completion": "Completed",
+        "succeeded": true,
+        "lossObserved": false,
+        "boundaryCapturedAtUtc": "2026-10-10T20:00:00.0000000Z",
+        "observedAtUtc": "2026-10-10T20:00:05.0000000Z",
+        "invalidEventCount": "0",
+        "truncatedEventCount": "1",
+        "outputs": [
+          {
+            "outputName": "console",
+            "acceptedSequenceBoundary": "2",
+            "written": "2",
+            "failed": "0",
+            "abandoned": "0",
+            "pending": "0",
+            "writerFlushStatus": "Succeeded",
+            "writerFlushSucceeded": true,
+            "rejections": {
+              "filtered": "0",
+              "queueFull": "0",
+              "unavailable": "0"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "DRAIN-FALSE-DRAIN-SUCCESS",
+      "expectedValid": false,
+      "boundaryContext": {
+        "capturedAtUtc": "2026-10-10T20:00:00.0000000Z",
+        "invalidEventCount": "0",
+        "truncatedEventCount": "0",
+        "outputs": {
+          "console": {
+            "acceptedSequenceBoundary": "3",
+            "rejections": {
+              "filtered": "0",
+              "queueFull": "0",
+              "unavailable": "0"
+            }
+          }
+        }
+      },
+      "result": {
+        "completion": "Completed",
+        "succeeded": true,
+        "lossObserved": true,
+        "boundaryCapturedAtUtc": "2026-10-10T20:00:00.0000000Z",
+        "observedAtUtc": "2026-10-10T20:00:05.0000000Z",
+        "invalidEventCount": "0",
+        "truncatedEventCount": "0",
+        "outputs": [
+          {
+            "outputName": "console",
+            "acceptedSequenceBoundary": "3",
+            "written": "2",
+            "failed": "1",
+            "abandoned": "0",
+            "pending": "0",
+            "writerFlushStatus": "Failed",
+            "writerFlushSucceeded": false,
+            "rejections": {
+              "filtered": "0",
+              "queueFull": "0",
+              "unavailable": "0"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "DRAIN-PENDING-CALLED-COMPLETED",
+      "expectedValid": false,
+      "boundaryContext": {
+        "capturedAtUtc": "2026-10-10T20:00:00.0000000Z",
+        "invalidEventCount": "0",
+        "truncatedEventCount": "0",
+        "outputs": {
+          "console": {
+            "acceptedSequenceBoundary": "3",
+            "rejections": {
+              "filtered": "0",
+              "queueFull": "0",
+              "unavailable": "0"
+            }
+          }
+        }
+      },
+      "result": {
+        "completion": "Completed",
+        "succeeded": false,
+        "lossObserved": false,
+        "boundaryCapturedAtUtc": "2026-10-10T20:00:00.0000000Z",
+        "observedAtUtc": "2026-10-10T20:00:05.0000000Z",
+        "invalidEventCount": "0",
+        "truncatedEventCount": "0",
+        "outputs": [
+          {
+            "outputName": "console",
+            "acceptedSequenceBoundary": "3",
+            "written": "2",
+            "failed": "0",
+            "abandoned": "0",
+            "pending": "1",
+            "writerFlushStatus": "Pending",
+            "writerFlushSucceeded": false,
+            "rejections": {
+              "filtered": "0",
+              "queueFull": "0",
+              "unavailable": "0"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "DRAIN-FLUSH-FLAG-MISMATCH",
+      "expectedValid": false,
+      "boundaryContext": {
+        "capturedAtUtc": "2026-10-10T20:00:00.0000000Z",
+        "invalidEventCount": "0",
+        "truncatedEventCount": "0",
+        "outputs": {
+          "console": {
+            "acceptedSequenceBoundary": "2",
+            "rejections": {
+              "filtered": "0",
+              "queueFull": "0",
+              "unavailable": "0"
+            }
+          }
+        }
+      },
+      "result": {
+        "completion": "Completed",
+        "succeeded": true,
+        "lossObserved": false,
+        "boundaryCapturedAtUtc": "2026-10-10T20:00:00.0000000Z",
+        "observedAtUtc": "2026-10-10T20:00:05.0000000Z",
+        "invalidEventCount": "0",
+        "truncatedEventCount": "0",
+        "outputs": [
+          {
+            "outputName": "console",
+            "acceptedSequenceBoundary": "2",
+            "written": "2",
+            "failed": "0",
+            "abandoned": "0",
+            "pending": "0",
+            "writerFlushStatus": "Succeeded",
+            "writerFlushSucceeded": false,
+            "rejections": {
+              "filtered": "0",
+              "queueFull": "0",
+              "unavailable": "0"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "DRAIN-NEGATIVE-COUNTER",
+      "expectedValid": false,
+      "boundaryContext": {
+        "capturedAtUtc": "2026-10-10T20:00:00.0000000Z",
+        "invalidEventCount": "0",
+        "truncatedEventCount": "0",
+        "outputs": {
+          "console": {
+            "acceptedSequenceBoundary": "2",
+            "rejections": {
+              "filtered": "0",
+              "queueFull": "0",
+              "unavailable": "0"
+            }
+          }
+        }
+      },
+      "result": {
+        "completion": "Completed",
+        "succeeded": true,
+        "lossObserved": false,
+        "boundaryCapturedAtUtc": "2026-10-10T20:00:00.0000000Z",
+        "observedAtUtc": "2026-10-10T20:00:05.0000000Z",
+        "invalidEventCount": "0",
+        "truncatedEventCount": "0",
+        "outputs": [
+          {
+            "outputName": "console",
+            "acceptedSequenceBoundary": "2",
+            "written": "2",
+            "failed": "0",
+            "abandoned": "0",
+            "pending": "-1",
+            "writerFlushStatus": "Succeeded",
+            "writerFlushSucceeded": true,
+            "rejections": {
+              "filtered": "0",
+              "queueFull": "0",
+              "unavailable": "0"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "DRAIN-FRACTIONAL-COUNTER",
+      "expectedValid": false,
+      "boundaryContext": {
+        "capturedAtUtc": "2026-10-10T20:00:00.0000000Z",
+        "invalidEventCount": "0",
+        "truncatedEventCount": "0",
+        "outputs": {
+          "console": {
+            "acceptedSequenceBoundary": "2",
+            "rejections": {
+              "filtered": "0",
+              "queueFull": "0",
+              "unavailable": "0"
+            }
+          }
+        }
+      },
+      "result": {
+        "completion": "Completed",
+        "succeeded": true,
+        "lossObserved": false,
+        "boundaryCapturedAtUtc": "2026-10-10T20:00:00.0000000Z",
+        "observedAtUtc": "2026-10-10T20:00:05.0000000Z",
+        "invalidEventCount": "0",
+        "truncatedEventCount": "0",
+        "outputs": [
+          {
+            "outputName": "console",
+            "acceptedSequenceBoundary": "2",
+            "written": "2.0",
+            "failed": "0",
+            "abandoned": "0",
+            "pending": "0",
+            "writerFlushStatus": "Succeeded",
+            "writerFlushSucceeded": true,
+            "rejections": {
+              "filtered": "0",
+              "queueFull": "0",
+              "unavailable": "0"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "DRAIN-LATER-INVALID-REPLACED-INITIAL",
+      "expectedValid": false,
+      "boundaryContext": {
+        "capturedAtUtc": "2026-10-10T20:00:00.0000000Z",
+        "invalidEventCount": "0",
+        "truncatedEventCount": "0",
+        "outputs": {
+          "console": {
+            "acceptedSequenceBoundary": "2",
+            "rejections": {
+              "filtered": "0",
+              "queueFull": "0",
+              "unavailable": "0"
+            }
+          }
+        }
+      },
+      "result": {
+        "completion": "Completed",
+        "succeeded": true,
+        "lossObserved": false,
+        "boundaryCapturedAtUtc": "2026-10-10T20:00:00.0000000Z",
+        "observedAtUtc": "2026-10-10T20:00:05.0000000Z",
+        "invalidEventCount": "3",
+        "truncatedEventCount": "0",
+        "outputs": [
+          {
+            "outputName": "console",
+            "acceptedSequenceBoundary": "2",
+            "written": "2",
+            "failed": "0",
+            "abandoned": "0",
+            "pending": "0",
+            "writerFlushStatus": "Succeeded",
+            "writerFlushSucceeded": true,
+            "rejections": {
+              "filtered": "0",
+              "queueFull": "0",
+              "unavailable": "0"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "DRAIN-LATER-REJECTIONS-REPLACED-INITIAL",
+      "expectedValid": false,
+      "boundaryContext": {
+        "capturedAtUtc": "2026-10-10T20:00:00.0000000Z",
+        "invalidEventCount": "0",
+        "truncatedEventCount": "0",
+        "outputs": {
+          "console": {
+            "acceptedSequenceBoundary": "2",
+            "rejections": {
+              "filtered": "0",
+              "queueFull": "0",
+              "unavailable": "0"
+            }
+          }
+        }
+      },
+      "result": {
+        "completion": "Completed",
+        "succeeded": true,
+        "lossObserved": false,
+        "boundaryCapturedAtUtc": "2026-10-10T20:00:00.0000000Z",
+        "observedAtUtc": "2026-10-10T20:00:05.0000000Z",
+        "invalidEventCount": "0",
+        "truncatedEventCount": "0",
+        "outputs": [
+          {
+            "outputName": "console",
+            "acceptedSequenceBoundary": "2",
+            "written": "2",
+            "failed": "0",
+            "abandoned": "0",
+            "pending": "0",
+            "writerFlushStatus": "Succeeded",
+            "writerFlushSucceeded": true,
+            "rejections": {
+              "filtered": "0",
+              "queueFull": "9",
+              "unavailable": "0"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "DRAIN-TIMESTAMP-OFFSET",
+      "expectedValid": false,
+      "boundaryContext": {
+        "capturedAtUtc": "2026-10-10T20:00:00.0000000Z",
+        "invalidEventCount": "0",
+        "truncatedEventCount": "0",
+        "outputs": {
+          "console": {
+            "acceptedSequenceBoundary": "2",
+            "rejections": {
+              "filtered": "0",
+              "queueFull": "0",
+              "unavailable": "0"
+            }
+          }
+        }
+      },
+      "result": {
+        "completion": "Completed",
+        "succeeded": true,
+        "lossObserved": false,
+        "boundaryCapturedAtUtc": "2026-10-10T20:00:00.0000000Z",
+        "observedAtUtc": "2026-10-10T22:00:05.0000000+02:00",
+        "invalidEventCount": "0",
+        "truncatedEventCount": "0",
+        "outputs": [
+          {
+            "outputName": "console",
+            "acceptedSequenceBoundary": "2",
+            "written": "2",
+            "failed": "0",
+            "abandoned": "0",
+            "pending": "0",
+            "writerFlushStatus": "Succeeded",
+            "writerFlushSucceeded": true,
+            "rejections": {
+              "filtered": "0",
+              "queueFull": "0",
+              "unavailable": "0"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "DRAIN-DUPLICATE-OUTPUT",
+      "expectedValid": false,
+      "boundaryContext": {
+        "capturedAtUtc": "2026-10-10T20:00:00.0000000Z",
+        "invalidEventCount": "0",
+        "truncatedEventCount": "0",
+        "outputs": {
+          "console": {
+            "acceptedSequenceBoundary": "2",
+            "rejections": {
+              "filtered": "0",
+              "queueFull": "0",
+              "unavailable": "0"
+            }
+          }
+        }
+      },
+      "result": {
+        "completion": "Completed",
+        "succeeded": true,
+        "lossObserved": false,
+        "boundaryCapturedAtUtc": "2026-10-10T20:00:00.0000000Z",
+        "observedAtUtc": "2026-10-10T20:00:05.0000000Z",
+        "invalidEventCount": "0",
+        "truncatedEventCount": "0",
+        "outputs": [
+          {
+            "outputName": "console",
+            "acceptedSequenceBoundary": "2",
+            "written": "2",
+            "failed": "0",
+            "abandoned": "0",
+            "pending": "0",
+            "writerFlushStatus": "Succeeded",
+            "writerFlushSucceeded": true,
+            "rejections": {
+              "filtered": "0",
+              "queueFull": "0",
+              "unavailable": "0"
+            }
+          },
+          {
+            "outputName": "console",
+            "acceptedSequenceBoundary": "2",
+            "written": "2",
+            "failed": "0",
+            "abandoned": "0",
+            "pending": "0",
+            "writerFlushStatus": "Succeeded",
+            "writerFlushSucceeded": true,
+            "rejections": {
+              "filtered": "0",
+              "queueFull": "0",
+              "unavailable": "0"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "DRAIN-INT64-OVERFLOW",
+      "expectedValid": false,
+      "boundaryContext": {
+        "capturedAtUtc": "2026-10-10T20:00:00.0000000Z",
+        "invalidEventCount": "0",
+        "truncatedEventCount": "0",
+        "outputs": {
+          "console": {
+            "acceptedSequenceBoundary": "2",
+            "rejections": {
+              "filtered": "0",
+              "queueFull": "0",
+              "unavailable": "0"
+            }
+          }
+        }
+      },
+      "result": {
+        "completion": "Completed",
+        "succeeded": true,
+        "lossObserved": false,
+        "boundaryCapturedAtUtc": "2026-10-10T20:00:00.0000000Z",
+        "observedAtUtc": "2026-10-10T20:00:05.0000000Z",
+        "invalidEventCount": "0",
+        "truncatedEventCount": "0",
+        "outputs": [
+          {
+            "outputName": "console",
+            "acceptedSequenceBoundary": "2",
+            "written": "9223372036854775808",
+            "failed": "0",
+            "abandoned": "0",
+            "pending": "0",
+            "writerFlushStatus": "Succeeded",
+            "writerFlushSucceeded": true,
+            "rejections": {
+              "filtered": "0",
+              "queueFull": "0",
+              "unavailable": "0"
+            }
+          }
+        ]
+      }
+    }
+  ]
+}

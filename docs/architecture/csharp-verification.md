@@ -33,3 +33,5 @@ Optional `-InputRoot` and `-InventoryPath` accept another source directory and a
 These helpers support tests; they are not shipping Core API or implementations of the logging runtime.
 
 WP02-S02 extends reference-only compilation with event/value/scope inputs and negative consumers. Architecture tests execute each portable record/value fixture using a development-only schema/semantic validator. Capture/ownership/scope expectations remain pending real runtime execution.
+
+WP02-S03 adds pure specification checks for admission and fixed-boundary result projections, reference-only runtime/provider APIs and explicit future lifecycle expectations. Twenty-one compiler controls verify signatures and expected rejections using the already approved/restored Microsoft abstraction asset. These checks establish contract consistency; concurrency, cancellation, ownership and writer behavior remain runtime work.

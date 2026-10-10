@@ -1,0 +1,17 @@
+[
+  {
+    "command": "pwsh -NoProfile -File eng/verify.ps1 -Profile Release",
+    "expectedExit": 2,
+    "actualExit": 2
+  },
+  {
+    "command": "pwsh -NoProfile -File eng/check-release.ps1",
+    "expectedExit": 2,
+    "actualExit": 2
+  },
+  {
+    "command": "pwsh -NoProfile -File eng/check-release.ps1 -Profile Developer",
+    "expectedExit": 0,
+    "actualExit": 0
+  }
+]

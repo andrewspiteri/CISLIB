@@ -1,0 +1,88 @@
+{
+  "schemaVersion": 1,
+  "story": "WP02-S03",
+  "state": "Unpublished contract; pure specification validation/compile-only qualification, no runtime implementation",
+  "authority": "Source guide sections 10-13 as amended by user architecture, facade name and oversized-payload truncation. New property/type/code/enum names are maintainer prepublication choices.",
+  "csharpSurface": "implementations/csharp/verification/contracts/startup/runtime-surface.json",
+  "writeOrder": [
+    "Required data/factory nonnull",
+    "Defined method level",
+    "Admission closed -> Stopped",
+    "None/no configured interest -> Filtered",
+    "All interested outputs faulted -> Rejected without capture",
+    "Invoke factory once if lazy, capture once",
+    "Invalid capture -> global InvalidEvent; ordinary oversize -> bounded truncation",
+    "Attempt nonblocking independent output admission"
+  ],
+  "arguments": {
+    "Create": "Null environment -> ArgumentNullException; output initialization -> CoreLogInitializationException with safe OutputName/ErrorCode and rollback of owned resources.",
+    "CreateLogger": "Null component -> ArgumentNullException; empty/blank/control/over-255-scalar component -> ArgumentException. May create a logger after stop; it cannot reopen admission.",
+    "IsEnabled": "Undefined level -> ArgumentOutOfRangeException, including after stop; None/closed/all interested faulted -> false. Queue fullness does not make it false.",
+    "Write": "Null data -> ArgumentNullException before validating level; undefined level -> ArgumentOutOfRangeException. Invalid captured content -> InvalidEvent/ErrorCode, no output entries.",
+    "WriteLazy": "Null factory -> ArgumentNullException before validating level. Invoke at most once only after early decision stages. Caller exception propagates unchanged without output entries/capture counts; null return -> InvalidEvent/InvalidFactoryResult.",
+    "BeginScope": "Null context -> ArgumentNullException; closed admission -> InvalidOperationException before content traversal. Invalid operation ID -> ArgumentException. Oversized supported payload is copied with truncation provenance. Depth >32 or out-of-order/cross-flow disposal -> InvalidOperationException without scope mutation. Repeat owner-flow disposal harmless.",
+    "FlushAsync": "Validate positive finite timeout before registering boundary or checking cancellation; zero/negative/Timeout.InfiniteTimeSpan -> ArgumentOutOfRangeException. Positive TimeSpan values supported. Capture/register boundary even if caller token is already cancelled; cancellation throws OperationCanceledException for the caller only.",
+    "StopAsync": "First request closes admission and starts shared shutdown even when caller token already cancelled; cancellation affects caller wait only.",
+    "DisposeAsync": "Joins shared shutdown, no synchronous Dispose or additional deadline. Repeated disposal safe. Drain failure remains a result, not a thrown business logging I/O failure.",
+    "GetDiagnostics": "Always available after fault/stop/disposal; creates an owned immutable observation without routing another log."
+  },
+  "outcomes": {
+    "Accepted": 0,
+    "PartiallyAccepted": 1,
+    "Filtered": 2,
+    "Rejected": 3,
+    "Stopped": 4,
+    "InvalidEvent": 5
+  },
+  "outputStatuses": {
+    "Accepted": 0,
+    "Filtered": 1,
+    "QueueFull": 2,
+    "Faulted": 3,
+    "Stopped": 4
+  },
+  "completion": {
+    "Completed": 0,
+    "TimedOut": 1
+  },
+  "writeResults": "Each enabled output appears in configured console-then-file order; disabled outputs omitted. AcceptedSequence exists only for successful admission and is positive/contiguous per output. Empty boundary is 0. Filtered includes per-enabled-output Filtered entries; none enabled is empty. Stopped uses Stopped entries regardless of level. InvalidEvent has safe ErrorCode and no entries. ErrorCode null for other normal outcomes. IsTruncated records actual capture truncation even if later admission rejects it; false on early paths.",
+  "counterRules": "Runtime InvalidEventCount increments once only on invalid capture before fan-out, with no per-output counter changes. TruncatedEventCount increments once for a valid truncated capture; it does not increment InvalidEventCount. Factory exceptions are caller exceptions, not successful writes or invented capture rejections. Per-output admissionAttempts counts interested accepted/queue-full/unavailable attempts (including all-faulted early rejection); filtered increments only on valid/early filtered paths. No rejected/filtered attempt advances accepted sequence.",
+  "observations": {
+    "counts": "Nonnegative Int64 counters; Pending includes queued plus unresolved in-flight accepted work and is a gauge. Portable result fixtures encode Int64 values as exact base-10 strings; this is fixture transport, not event JSON.",
+    "initial": "BoundaryCapturedAtUtc, InvalidEventCount, TruncatedEventCount and per-output rejection snapshots captured with initial accepted boundaries. Do not replace them with later cumulative values.",
+    "final": "ObservedAtUtc and written/failed/abandoned/pending through those fixed boundaries observed consistently at return. Report objects/collections never mutate afterwards; later diagnostics can differ. UTC timestamps may move backwards; deadlines use monotonic elapsed time.",
+    "identity": "AcceptedSequenceBoundary = Written + Failed + Abandoned + Pending; no dequeued/partial record is confirmed written.",
+    "completion": "Completed iff all covered pending is zero and every covered writer flush is resolved (Succeeded or Failed). TimedOut iff a boundary or flush remains unresolved at timeout/deadline.",
+    "succeeded": "All covered pending/failed/abandoned zero and every writer flush succeeded. Empty outputs succeed. Completed can report Succeeded=false.",
+    "lossObserved": "Initial invalid/truncated counts >0, initial queue-full/unavailable rejections >0, covered failed/abandoned counts >0 or writer flush Failed. Filtered is not loss. Pending alone is unresolved, not confirmed loss. Succeeded=true and LossObserved=true can coexist.",
+    "writerFlush": "NotRequested/Pending/Succeeded/Failed distinguish no request, unresolved, buffer flush confirmation and terminal flush/unavailable failure. WriterFlushSucceeded iff status Succeeded."
+  },
+  "coordination": {
+    "admission": "One bounded queue and one sequential worker per enabled output. Nonblocking TryWrite; full rejects incoming output admission, preserves previously accepted events. No synchronous continuations into business calls.",
+    "ordering": "Each output orders successful admission independently; caller timestamps do not define concurrent order. No cross-output total order.",
+    "flushBoundary": "Register nondroppable coordination under same synchronization as ticket boundary capture before later admission overtakes it. Later events do not extend the target. Serialize flushes with writes.",
+    "coalescing": "At most one retained coordination record per outstanding accepted boundary plus the completed boundary currently being flushed. Same-boundary calls coalesce; callers retain their original boundary/counters/deadline and detach on cancellation/timeout/completion. No per-cancelled-caller retained list.",
+    "timer": "File buffer interval schedules a flush even after one event then idle; blocked I/O may delay completion and remains observable.",
+    "deadlines": "Use internal TimeProvider seam and monotonic elapsed time; UTC only labels observations. First StopAsync starts the configured overall deadline once; later stops/disposals join it.",
+    "shutdown": "At shared deadline, abandon only queued/not-started accepted work; request cancellation of in-flight I/O and keep unresolved work Pending. Do not dispose resources under unresolved writes or spawn replacement writes/retries. Safely close owned outputs once outstanding I/O resolves; borrowed console streams never disposed.",
+    "cachedStop": "One immutable stop result is retained in LastStopResult. Subsequent StopAsync/DisposeAsync join the same operation/result even when later live diagnostics show completion. Never reopen admission or restart deadline.",
+    "fault": "Terminal output failure records in-flight failure/queued abandonment and rejects new output admissions without affecting other workers. Keep last safe fault code/time through Stopped; no automatic retry/recovery; explicitly recreate runtime."
+  },
+  "ownership": {
+    "application": "Owns Create -> scopes/background work -> explicit Stop/result inspection -> DisposeAsync lifecycle.",
+    "logger": "Borrows runtime; no independent shutdown owner.",
+    "provider": "CoreLoggerProvider in CIS.Logging.MicrosoftLogger borrows runtime; IDisposable stops only provider-owned registrations/scopes, never the shared runtime. Initial API has no owning-mode overload. Host and core scopes use the same bounded copy/precedence contract.",
+    "scope": "Belongs to creating runtime and logical async flow, disposed LIFO; no cross-concurrent-flow transfer.",
+    "writers": "Runtime owns file handles/workers; console TextWriters are borrowed. Startup rollback preserves pre-existing files/segments.",
+    "results": "Sealed getter-only, owned immutable collections; no public result constructors or live counter views."
+  },
+  "deliveryTerms": {
+    "accepted": "Enqueued for that output, not delivery.",
+    "written": "Confirmed complete encoded record handed to the writer; partial/failed I/O is not written.",
+    "flushed": "Writer userspace buffer flush succeeded through captured boundary.",
+    "durable": "No disk fsync/crash durability guarantee.",
+    "collectorAcknowledged": "No hosted collector acknowledgement/exactly-once delivery promise."
+  },
+  "executionLimit": "Decision/result validators evaluate portable specification examples only. Real queues, workers, timeouts, cancellation, provider ownership and disposal remain WP04/WP05/WP06 runtime tests.",
+  "threadSafety": "Runtime/logger methods and diagnostics support concurrent calls. Configuration/thresholds are immutable. Never hold admission synchronization while invoking caller factories or traversing content. Recheck closure after capture under the same synchronization that protects independent output TryWrite/tickets; Stop cannot split one fan-out. If Stop wins, return Stopped with stopped enabled-output entries and no accepted tickets. Capture may already have occurred, so preserve IsTruncated/global capture diagnostics. Early Stopped still never captures. Results remain immutable; scopes belong to their logical flow. Provider disposal is idempotent and does not stop shared runtime; mapping behavior is qualified in WP06."
+}

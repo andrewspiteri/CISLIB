@@ -1,0 +1,1798 @@
+{
+  "schemaVersion": 1,
+  "caseCount": 45,
+  "scope": "Executed only against a pure development specification evaluator; real logger/queue/lazy-factory behavior remains WP04/WP05.",
+  "cases": [
+    {
+      "id": "ADMISSION-WRITE-ACCEPTED",
+      "inputs": {
+        "operation": "Write",
+        "level": "Information",
+        "argumentNull": false,
+        "admissionClosed": false,
+        "capture": "Valid",
+        "captureErrorCode": "UnsupportedValue",
+        "outputs": [
+          {
+            "name": "console",
+            "threshold": "Information",
+            "state": "Running",
+            "queueFull": false,
+            "acceptedSequence": "0"
+          }
+        ]
+      },
+      "expected": {
+        "stage": "Admission",
+        "exception": null,
+        "outcome": "Accepted",
+        "errorCode": null,
+        "isTruncated": false,
+        "factoryCalls": 0,
+        "captures": 1,
+        "invalidEventDelta": 0,
+        "truncatedEventDelta": 0,
+        "outputs": [
+          {
+            "name": "console",
+            "status": "Accepted",
+            "acceptedSequence": "1"
+          }
+        ],
+        "isEnabled": true
+      }
+    },
+    {
+      "id": "ADMISSION-WRITE-NONE",
+      "inputs": {
+        "operation": "Write",
+        "level": "None",
+        "argumentNull": false,
+        "admissionClosed": false,
+        "capture": "Invalid",
+        "captureErrorCode": "UnsupportedValue",
+        "outputs": [
+          {
+            "name": "console",
+            "threshold": "Information",
+            "state": "Running",
+            "queueFull": false,
+            "acceptedSequence": "0"
+          }
+        ]
+      },
+      "expected": {
+        "stage": "Filtered",
+        "exception": null,
+        "outcome": "Filtered",
+        "errorCode": null,
+        "isTruncated": false,
+        "factoryCalls": 0,
+        "captures": 0,
+        "invalidEventDelta": 0,
+        "truncatedEventDelta": 0,
+        "outputs": [
+          {
+            "name": "console",
+            "status": "Filtered",
+            "acceptedSequence": null
+          }
+        ],
+        "isEnabled": false
+      }
+    },
+    {
+      "id": "ADMISSION-WRITE-CLOSED-NONE",
+      "inputs": {
+        "operation": "Write",
+        "level": "None",
+        "argumentNull": false,
+        "admissionClosed": true,
+        "capture": "Invalid",
+        "captureErrorCode": "UnsupportedValue",
+        "outputs": [
+          {
+            "name": "console",
+            "threshold": "Information",
+            "state": "Running",
+            "queueFull": false,
+            "acceptedSequence": "0"
+          }
+        ]
+      },
+      "expected": {
+        "stage": "Stopped",
+        "exception": null,
+        "outcome": "Stopped",
+        "errorCode": null,
+        "isTruncated": false,
+        "factoryCalls": 0,
+        "captures": 0,
+        "invalidEventDelta": 0,
+        "truncatedEventDelta": 0,
+        "outputs": [
+          {
+            "name": "console",
+            "status": "Stopped",
+            "acceptedSequence": null
+          }
+        ],
+        "isEnabled": false
+      }
+    },
+    {
+      "id": "ADMISSION-WRITE-CLOSED",
+      "inputs": {
+        "operation": "Write",
+        "level": "Information",
+        "argumentNull": false,
+        "admissionClosed": true,
+        "capture": "Valid",
+        "captureErrorCode": "UnsupportedValue",
+        "outputs": [
+          {
+            "name": "console",
+            "threshold": "Information",
+            "state": "Running",
+            "queueFull": false,
+            "acceptedSequence": "0"
+          }
+        ]
+      },
+      "expected": {
+        "stage": "Stopped",
+        "exception": null,
+        "outcome": "Stopped",
+        "errorCode": null,
+        "isTruncated": false,
+        "factoryCalls": 0,
+        "captures": 0,
+        "invalidEventDelta": 0,
+        "truncatedEventDelta": 0,
+        "outputs": [
+          {
+            "name": "console",
+            "status": "Stopped",
+            "acceptedSequence": null
+          }
+        ],
+        "isEnabled": false
+      }
+    },
+    {
+      "id": "ADMISSION-WRITE-NULL-ARG-CLOSED",
+      "inputs": {
+        "operation": "Write",
+        "level": "Information",
+        "argumentNull": true,
+        "admissionClosed": true,
+        "capture": "Valid",
+        "captureErrorCode": "UnsupportedValue",
+        "outputs": [
+          {
+            "name": "console",
+            "threshold": "Information",
+            "state": "Running",
+            "queueFull": false,
+            "acceptedSequence": "0"
+          }
+        ]
+      },
+      "expected": {
+        "stage": "ArgumentValidation",
+        "exception": "ArgumentNullException",
+        "outcome": null,
+        "errorCode": null,
+        "isTruncated": false,
+        "factoryCalls": 0,
+        "captures": 0,
+        "invalidEventDelta": 0,
+        "truncatedEventDelta": 0,
+        "outputs": [],
+        "isEnabled": false
+      }
+    },
+    {
+      "id": "ADMISSION-WRITE-BAD-LEVEL-CLOSED",
+      "inputs": {
+        "operation": "Write",
+        "level": "Invalid",
+        "argumentNull": false,
+        "admissionClosed": true,
+        "capture": "Valid",
+        "captureErrorCode": "UnsupportedValue",
+        "outputs": [
+          {
+            "name": "console",
+            "threshold": "Information",
+            "state": "Running",
+            "queueFull": false,
+            "acceptedSequence": "0"
+          }
+        ]
+      },
+      "expected": {
+        "stage": "ArgumentValidation",
+        "exception": "ArgumentOutOfRangeException",
+        "outcome": null,
+        "errorCode": null,
+        "isTruncated": false,
+        "factoryCalls": 0,
+        "captures": 0,
+        "invalidEventDelta": 0,
+        "truncatedEventDelta": 0,
+        "outputs": [],
+        "isEnabled": null
+      }
+    },
+    {
+      "id": "ADMISSION-WRITE-NULL-ARG-AND-LEVEL",
+      "inputs": {
+        "operation": "Write",
+        "level": "Invalid",
+        "argumentNull": true,
+        "admissionClosed": false,
+        "capture": "Valid",
+        "captureErrorCode": "UnsupportedValue",
+        "outputs": [
+          {
+            "name": "console",
+            "threshold": "Information",
+            "state": "Running",
+            "queueFull": false,
+            "acceptedSequence": "0"
+          }
+        ]
+      },
+      "expected": {
+        "stage": "ArgumentValidation",
+        "exception": "ArgumentNullException",
+        "outcome": null,
+        "errorCode": null,
+        "isTruncated": false,
+        "factoryCalls": 0,
+        "captures": 0,
+        "invalidEventDelta": 0,
+        "truncatedEventDelta": 0,
+        "outputs": [],
+        "isEnabled": null
+      }
+    },
+    {
+      "id": "ADMISSION-WRITE-ALL-DISABLED",
+      "inputs": {
+        "operation": "Write",
+        "level": "Information",
+        "argumentNull": false,
+        "admissionClosed": false,
+        "capture": "Valid",
+        "captureErrorCode": "UnsupportedValue",
+        "outputs": [
+          {
+            "name": "console",
+            "threshold": "None",
+            "state": "Running",
+            "queueFull": false,
+            "acceptedSequence": "0"
+          }
+        ]
+      },
+      "expected": {
+        "stage": "Filtered",
+        "exception": null,
+        "outcome": "Filtered",
+        "errorCode": null,
+        "isTruncated": false,
+        "factoryCalls": 0,
+        "captures": 0,
+        "invalidEventDelta": 0,
+        "truncatedEventDelta": 0,
+        "outputs": [],
+        "isEnabled": false
+      }
+    },
+    {
+      "id": "ADMISSION-WRITE-NO-INTEREST",
+      "inputs": {
+        "operation": "Write",
+        "level": "Information",
+        "argumentNull": false,
+        "admissionClosed": false,
+        "capture": "Invalid",
+        "captureErrorCode": "UnsupportedValue",
+        "outputs": [
+          {
+            "name": "console",
+            "threshold": "Warning",
+            "state": "Running",
+            "queueFull": false,
+            "acceptedSequence": "0"
+          }
+        ]
+      },
+      "expected": {
+        "stage": "Filtered",
+        "exception": null,
+        "outcome": "Filtered",
+        "errorCode": null,
+        "isTruncated": false,
+        "factoryCalls": 0,
+        "captures": 0,
+        "invalidEventDelta": 0,
+        "truncatedEventDelta": 0,
+        "outputs": [
+          {
+            "name": "console",
+            "status": "Filtered",
+            "acceptedSequence": null
+          }
+        ],
+        "isEnabled": false
+      }
+    },
+    {
+      "id": "ADMISSION-WRITE-ALL-FAULTED",
+      "inputs": {
+        "operation": "Write",
+        "level": "Information",
+        "argumentNull": false,
+        "admissionClosed": false,
+        "capture": "Invalid",
+        "captureErrorCode": "UnsupportedValue",
+        "outputs": [
+          {
+            "name": "console",
+            "threshold": "Information",
+            "state": "Faulted",
+            "queueFull": false,
+            "acceptedSequence": "0"
+          }
+        ]
+      },
+      "expected": {
+        "stage": "AllFaulted",
+        "exception": null,
+        "outcome": "Rejected",
+        "errorCode": null,
+        "isTruncated": false,
+        "factoryCalls": 0,
+        "captures": 0,
+        "invalidEventDelta": 0,
+        "truncatedEventDelta": 0,
+        "outputs": [
+          {
+            "name": "console",
+            "status": "Faulted",
+            "acceptedSequence": null
+          }
+        ],
+        "isEnabled": false
+      }
+    },
+    {
+      "id": "ADMISSION-WRITE-QUEUES-FULL",
+      "inputs": {
+        "operation": "Write",
+        "level": "Information",
+        "argumentNull": false,
+        "admissionClosed": false,
+        "capture": "Valid",
+        "captureErrorCode": "UnsupportedValue",
+        "outputs": [
+          {
+            "name": "console",
+            "threshold": "Information",
+            "state": "Running",
+            "queueFull": true,
+            "acceptedSequence": "7"
+          }
+        ]
+      },
+      "expected": {
+        "stage": "Admission",
+        "exception": null,
+        "outcome": "Rejected",
+        "errorCode": null,
+        "isTruncated": false,
+        "factoryCalls": 0,
+        "captures": 1,
+        "invalidEventDelta": 0,
+        "truncatedEventDelta": 0,
+        "outputs": [
+          {
+            "name": "console",
+            "status": "QueueFull",
+            "acceptedSequence": null
+          }
+        ],
+        "isEnabled": true
+      }
+    },
+    {
+      "id": "ADMISSION-WRITE-PARTIAL-FULL",
+      "inputs": {
+        "operation": "Write",
+        "level": "Information",
+        "argumentNull": false,
+        "admissionClosed": false,
+        "capture": "Valid",
+        "captureErrorCode": "UnsupportedValue",
+        "outputs": [
+          {
+            "name": "console",
+            "threshold": "Information",
+            "state": "Running",
+            "queueFull": true,
+            "acceptedSequence": "0"
+          },
+          {
+            "name": "file",
+            "threshold": "Debug",
+            "state": "Running",
+            "queueFull": false,
+            "acceptedSequence": "8"
+          }
+        ]
+      },
+      "expected": {
+        "stage": "Admission",
+        "exception": null,
+        "outcome": "PartiallyAccepted",
+        "errorCode": null,
+        "isTruncated": false,
+        "factoryCalls": 0,
+        "captures": 1,
+        "invalidEventDelta": 0,
+        "truncatedEventDelta": 0,
+        "outputs": [
+          {
+            "name": "console",
+            "status": "QueueFull",
+            "acceptedSequence": null
+          },
+          {
+            "name": "file",
+            "status": "Accepted",
+            "acceptedSequence": "9"
+          }
+        ],
+        "isEnabled": true
+      }
+    },
+    {
+      "id": "ADMISSION-WRITE-PARTIAL-FAULTED",
+      "inputs": {
+        "operation": "Write",
+        "level": "Information",
+        "argumentNull": false,
+        "admissionClosed": false,
+        "capture": "Valid",
+        "captureErrorCode": "UnsupportedValue",
+        "outputs": [
+          {
+            "name": "console",
+            "threshold": "Information",
+            "state": "Faulted",
+            "queueFull": false,
+            "acceptedSequence": "0"
+          },
+          {
+            "name": "file",
+            "threshold": "Debug",
+            "state": "Running",
+            "queueFull": false,
+            "acceptedSequence": "0"
+          }
+        ]
+      },
+      "expected": {
+        "stage": "Admission",
+        "exception": null,
+        "outcome": "PartiallyAccepted",
+        "errorCode": null,
+        "isTruncated": false,
+        "factoryCalls": 0,
+        "captures": 1,
+        "invalidEventDelta": 0,
+        "truncatedEventDelta": 0,
+        "outputs": [
+          {
+            "name": "console",
+            "status": "Faulted",
+            "acceptedSequence": null
+          },
+          {
+            "name": "file",
+            "status": "Accepted",
+            "acceptedSequence": "1"
+          }
+        ],
+        "isEnabled": true
+      }
+    },
+    {
+      "id": "ADMISSION-WRITE-INDEPENDENT-THRESHOLDS",
+      "inputs": {
+        "operation": "Write",
+        "level": "Debug",
+        "argumentNull": false,
+        "admissionClosed": false,
+        "capture": "Valid",
+        "captureErrorCode": "UnsupportedValue",
+        "outputs": [
+          {
+            "name": "console",
+            "threshold": "Warning",
+            "state": "Running",
+            "queueFull": false,
+            "acceptedSequence": "0"
+          },
+          {
+            "name": "file",
+            "threshold": "Debug",
+            "state": "Running",
+            "queueFull": false,
+            "acceptedSequence": "0"
+          }
+        ]
+      },
+      "expected": {
+        "stage": "Admission",
+        "exception": null,
+        "outcome": "Accepted",
+        "errorCode": null,
+        "isTruncated": false,
+        "factoryCalls": 0,
+        "captures": 1,
+        "invalidEventDelta": 0,
+        "truncatedEventDelta": 0,
+        "outputs": [
+          {
+            "name": "console",
+            "status": "Filtered",
+            "acceptedSequence": null
+          },
+          {
+            "name": "file",
+            "status": "Accepted",
+            "acceptedSequence": "1"
+          }
+        ],
+        "isEnabled": true
+      }
+    },
+    {
+      "id": "ADMISSION-WRITE-INVALID-CAPTURE",
+      "inputs": {
+        "operation": "Write",
+        "level": "Information",
+        "argumentNull": false,
+        "admissionClosed": false,
+        "capture": "Invalid",
+        "captureErrorCode": "UnsupportedValue",
+        "outputs": [
+          {
+            "name": "console",
+            "threshold": "Information",
+            "state": "Running",
+            "queueFull": false,
+            "acceptedSequence": "0"
+          }
+        ]
+      },
+      "expected": {
+        "stage": "InvalidCapture",
+        "exception": null,
+        "outcome": "InvalidEvent",
+        "errorCode": "UnsupportedValue",
+        "isTruncated": false,
+        "factoryCalls": 0,
+        "captures": 1,
+        "invalidEventDelta": 1,
+        "truncatedEventDelta": 0,
+        "outputs": [],
+        "isEnabled": true
+      }
+    },
+    {
+      "id": "ADMISSION-WRITE-ENVELOPE-TOO-LARGE",
+      "inputs": {
+        "operation": "Write",
+        "level": "Information",
+        "argumentNull": false,
+        "admissionClosed": false,
+        "capture": "Invalid",
+        "captureErrorCode": "EnvelopeTooLarge",
+        "outputs": [
+          {
+            "name": "console",
+            "threshold": "Information",
+            "state": "Running",
+            "queueFull": false,
+            "acceptedSequence": "0"
+          }
+        ]
+      },
+      "expected": {
+        "stage": "InvalidCapture",
+        "exception": null,
+        "outcome": "InvalidEvent",
+        "errorCode": "EnvelopeTooLarge",
+        "isTruncated": false,
+        "factoryCalls": 0,
+        "captures": 1,
+        "invalidEventDelta": 1,
+        "truncatedEventDelta": 0,
+        "outputs": [],
+        "isEnabled": true
+      }
+    },
+    {
+      "id": "ADMISSION-WRITE-TRUNCATED-ACCEPTED",
+      "inputs": {
+        "operation": "Write",
+        "level": "Information",
+        "argumentNull": false,
+        "admissionClosed": false,
+        "capture": "Truncated",
+        "captureErrorCode": "UnsupportedValue",
+        "outputs": [
+          {
+            "name": "console",
+            "threshold": "Information",
+            "state": "Running",
+            "queueFull": false,
+            "acceptedSequence": "0"
+          }
+        ]
+      },
+      "expected": {
+        "stage": "Admission",
+        "exception": null,
+        "outcome": "Accepted",
+        "errorCode": null,
+        "isTruncated": true,
+        "factoryCalls": 0,
+        "captures": 1,
+        "invalidEventDelta": 0,
+        "truncatedEventDelta": 1,
+        "outputs": [
+          {
+            "name": "console",
+            "status": "Accepted",
+            "acceptedSequence": "1"
+          }
+        ],
+        "isEnabled": true
+      }
+    },
+    {
+      "id": "ADMISSION-WRITE-TRUNCATED-QUEUE-FULL",
+      "inputs": {
+        "operation": "Write",
+        "level": "Information",
+        "argumentNull": false,
+        "admissionClosed": false,
+        "capture": "Truncated",
+        "captureErrorCode": "UnsupportedValue",
+        "outputs": [
+          {
+            "name": "console",
+            "threshold": "Information",
+            "state": "Running",
+            "queueFull": true,
+            "acceptedSequence": "0"
+          }
+        ]
+      },
+      "expected": {
+        "stage": "Admission",
+        "exception": null,
+        "outcome": "Rejected",
+        "errorCode": null,
+        "isTruncated": true,
+        "factoryCalls": 0,
+        "captures": 1,
+        "invalidEventDelta": 0,
+        "truncatedEventDelta": 1,
+        "outputs": [
+          {
+            "name": "console",
+            "status": "QueueFull",
+            "acceptedSequence": null
+          }
+        ],
+        "isEnabled": true
+      }
+    },
+    {
+      "id": "ADMISSION-WRITE-ALL-FAULTED-FILTERED-OTHER",
+      "inputs": {
+        "operation": "Write",
+        "level": "Information",
+        "argumentNull": false,
+        "admissionClosed": false,
+        "capture": "Valid",
+        "captureErrorCode": "UnsupportedValue",
+        "outputs": [
+          {
+            "name": "console",
+            "threshold": "Information",
+            "state": "Faulted",
+            "queueFull": false,
+            "acceptedSequence": "0"
+          },
+          {
+            "name": "file",
+            "threshold": "Warning",
+            "state": "Running",
+            "queueFull": false,
+            "acceptedSequence": "0"
+          }
+        ]
+      },
+      "expected": {
+        "stage": "AllFaulted",
+        "exception": null,
+        "outcome": "Rejected",
+        "errorCode": null,
+        "isTruncated": false,
+        "factoryCalls": 0,
+        "captures": 0,
+        "invalidEventDelta": 0,
+        "truncatedEventDelta": 0,
+        "outputs": [
+          {
+            "name": "console",
+            "status": "Faulted",
+            "acceptedSequence": null
+          },
+          {
+            "name": "file",
+            "status": "Filtered",
+            "acceptedSequence": null
+          }
+        ],
+        "isEnabled": false
+      }
+    },
+    {
+      "id": "ADMISSION-WRITE-ALL-ACCEPTED",
+      "inputs": {
+        "operation": "Write",
+        "level": "Information",
+        "argumentNull": false,
+        "admissionClosed": false,
+        "capture": "Valid",
+        "captureErrorCode": "UnsupportedValue",
+        "outputs": [
+          {
+            "name": "console",
+            "threshold": "Information",
+            "state": "Running",
+            "queueFull": false,
+            "acceptedSequence": "4"
+          },
+          {
+            "name": "file",
+            "threshold": "Debug",
+            "state": "Running",
+            "queueFull": false,
+            "acceptedSequence": "10"
+          }
+        ]
+      },
+      "expected": {
+        "stage": "Admission",
+        "exception": null,
+        "outcome": "Accepted",
+        "errorCode": null,
+        "isTruncated": false,
+        "factoryCalls": 0,
+        "captures": 1,
+        "invalidEventDelta": 0,
+        "truncatedEventDelta": 0,
+        "outputs": [
+          {
+            "name": "console",
+            "status": "Accepted",
+            "acceptedSequence": "5"
+          },
+          {
+            "name": "file",
+            "status": "Accepted",
+            "acceptedSequence": "11"
+          }
+        ],
+        "isEnabled": true
+      }
+    },
+    {
+      "id": "ADMISSION-WRITELAZY-ACCEPTED",
+      "inputs": {
+        "operation": "WriteLazy",
+        "level": "Information",
+        "argumentNull": false,
+        "admissionClosed": false,
+        "capture": "Valid",
+        "captureErrorCode": "UnsupportedValue",
+        "outputs": [
+          {
+            "name": "console",
+            "threshold": "Information",
+            "state": "Running",
+            "queueFull": false,
+            "acceptedSequence": "0"
+          }
+        ]
+      },
+      "expected": {
+        "stage": "Admission",
+        "exception": null,
+        "outcome": "Accepted",
+        "errorCode": null,
+        "isTruncated": false,
+        "factoryCalls": 1,
+        "captures": 1,
+        "invalidEventDelta": 0,
+        "truncatedEventDelta": 0,
+        "outputs": [
+          {
+            "name": "console",
+            "status": "Accepted",
+            "acceptedSequence": "1"
+          }
+        ],
+        "isEnabled": true
+      }
+    },
+    {
+      "id": "ADMISSION-WRITELAZY-NONE",
+      "inputs": {
+        "operation": "WriteLazy",
+        "level": "None",
+        "argumentNull": false,
+        "admissionClosed": false,
+        "capture": "Invalid",
+        "captureErrorCode": "UnsupportedValue",
+        "outputs": [
+          {
+            "name": "console",
+            "threshold": "Information",
+            "state": "Running",
+            "queueFull": false,
+            "acceptedSequence": "0"
+          }
+        ]
+      },
+      "expected": {
+        "stage": "Filtered",
+        "exception": null,
+        "outcome": "Filtered",
+        "errorCode": null,
+        "isTruncated": false,
+        "factoryCalls": 0,
+        "captures": 0,
+        "invalidEventDelta": 0,
+        "truncatedEventDelta": 0,
+        "outputs": [
+          {
+            "name": "console",
+            "status": "Filtered",
+            "acceptedSequence": null
+          }
+        ],
+        "isEnabled": false
+      }
+    },
+    {
+      "id": "ADMISSION-WRITELAZY-CLOSED-NONE",
+      "inputs": {
+        "operation": "WriteLazy",
+        "level": "None",
+        "argumentNull": false,
+        "admissionClosed": true,
+        "capture": "Invalid",
+        "captureErrorCode": "UnsupportedValue",
+        "outputs": [
+          {
+            "name": "console",
+            "threshold": "Information",
+            "state": "Running",
+            "queueFull": false,
+            "acceptedSequence": "0"
+          }
+        ]
+      },
+      "expected": {
+        "stage": "Stopped",
+        "exception": null,
+        "outcome": "Stopped",
+        "errorCode": null,
+        "isTruncated": false,
+        "factoryCalls": 0,
+        "captures": 0,
+        "invalidEventDelta": 0,
+        "truncatedEventDelta": 0,
+        "outputs": [
+          {
+            "name": "console",
+            "status": "Stopped",
+            "acceptedSequence": null
+          }
+        ],
+        "isEnabled": false
+      }
+    },
+    {
+      "id": "ADMISSION-WRITELAZY-CLOSED",
+      "inputs": {
+        "operation": "WriteLazy",
+        "level": "Information",
+        "argumentNull": false,
+        "admissionClosed": true,
+        "capture": "Valid",
+        "captureErrorCode": "UnsupportedValue",
+        "outputs": [
+          {
+            "name": "console",
+            "threshold": "Information",
+            "state": "Running",
+            "queueFull": false,
+            "acceptedSequence": "0"
+          }
+        ]
+      },
+      "expected": {
+        "stage": "Stopped",
+        "exception": null,
+        "outcome": "Stopped",
+        "errorCode": null,
+        "isTruncated": false,
+        "factoryCalls": 0,
+        "captures": 0,
+        "invalidEventDelta": 0,
+        "truncatedEventDelta": 0,
+        "outputs": [
+          {
+            "name": "console",
+            "status": "Stopped",
+            "acceptedSequence": null
+          }
+        ],
+        "isEnabled": false
+      }
+    },
+    {
+      "id": "ADMISSION-WRITELAZY-NULL-ARG-CLOSED",
+      "inputs": {
+        "operation": "WriteLazy",
+        "level": "Information",
+        "argumentNull": true,
+        "admissionClosed": true,
+        "capture": "Valid",
+        "captureErrorCode": "UnsupportedValue",
+        "outputs": [
+          {
+            "name": "console",
+            "threshold": "Information",
+            "state": "Running",
+            "queueFull": false,
+            "acceptedSequence": "0"
+          }
+        ]
+      },
+      "expected": {
+        "stage": "ArgumentValidation",
+        "exception": "ArgumentNullException",
+        "outcome": null,
+        "errorCode": null,
+        "isTruncated": false,
+        "factoryCalls": 0,
+        "captures": 0,
+        "invalidEventDelta": 0,
+        "truncatedEventDelta": 0,
+        "outputs": [],
+        "isEnabled": false
+      }
+    },
+    {
+      "id": "ADMISSION-WRITELAZY-BAD-LEVEL-CLOSED",
+      "inputs": {
+        "operation": "WriteLazy",
+        "level": "Invalid",
+        "argumentNull": false,
+        "admissionClosed": true,
+        "capture": "Valid",
+        "captureErrorCode": "UnsupportedValue",
+        "outputs": [
+          {
+            "name": "console",
+            "threshold": "Information",
+            "state": "Running",
+            "queueFull": false,
+            "acceptedSequence": "0"
+          }
+        ]
+      },
+      "expected": {
+        "stage": "ArgumentValidation",
+        "exception": "ArgumentOutOfRangeException",
+        "outcome": null,
+        "errorCode": null,
+        "isTruncated": false,
+        "factoryCalls": 0,
+        "captures": 0,
+        "invalidEventDelta": 0,
+        "truncatedEventDelta": 0,
+        "outputs": [],
+        "isEnabled": null
+      }
+    },
+    {
+      "id": "ADMISSION-WRITELAZY-NULL-ARG-AND-LEVEL",
+      "inputs": {
+        "operation": "WriteLazy",
+        "level": "Invalid",
+        "argumentNull": true,
+        "admissionClosed": false,
+        "capture": "Valid",
+        "captureErrorCode": "UnsupportedValue",
+        "outputs": [
+          {
+            "name": "console",
+            "threshold": "Information",
+            "state": "Running",
+            "queueFull": false,
+            "acceptedSequence": "0"
+          }
+        ]
+      },
+      "expected": {
+        "stage": "ArgumentValidation",
+        "exception": "ArgumentNullException",
+        "outcome": null,
+        "errorCode": null,
+        "isTruncated": false,
+        "factoryCalls": 0,
+        "captures": 0,
+        "invalidEventDelta": 0,
+        "truncatedEventDelta": 0,
+        "outputs": [],
+        "isEnabled": null
+      }
+    },
+    {
+      "id": "ADMISSION-WRITELAZY-ALL-DISABLED",
+      "inputs": {
+        "operation": "WriteLazy",
+        "level": "Information",
+        "argumentNull": false,
+        "admissionClosed": false,
+        "capture": "Valid",
+        "captureErrorCode": "UnsupportedValue",
+        "outputs": [
+          {
+            "name": "console",
+            "threshold": "None",
+            "state": "Running",
+            "queueFull": false,
+            "acceptedSequence": "0"
+          }
+        ]
+      },
+      "expected": {
+        "stage": "Filtered",
+        "exception": null,
+        "outcome": "Filtered",
+        "errorCode": null,
+        "isTruncated": false,
+        "factoryCalls": 0,
+        "captures": 0,
+        "invalidEventDelta": 0,
+        "truncatedEventDelta": 0,
+        "outputs": [],
+        "isEnabled": false
+      }
+    },
+    {
+      "id": "ADMISSION-WRITELAZY-NO-INTEREST",
+      "inputs": {
+        "operation": "WriteLazy",
+        "level": "Information",
+        "argumentNull": false,
+        "admissionClosed": false,
+        "capture": "Invalid",
+        "captureErrorCode": "UnsupportedValue",
+        "outputs": [
+          {
+            "name": "console",
+            "threshold": "Warning",
+            "state": "Running",
+            "queueFull": false,
+            "acceptedSequence": "0"
+          }
+        ]
+      },
+      "expected": {
+        "stage": "Filtered",
+        "exception": null,
+        "outcome": "Filtered",
+        "errorCode": null,
+        "isTruncated": false,
+        "factoryCalls": 0,
+        "captures": 0,
+        "invalidEventDelta": 0,
+        "truncatedEventDelta": 0,
+        "outputs": [
+          {
+            "name": "console",
+            "status": "Filtered",
+            "acceptedSequence": null
+          }
+        ],
+        "isEnabled": false
+      }
+    },
+    {
+      "id": "ADMISSION-WRITELAZY-ALL-FAULTED",
+      "inputs": {
+        "operation": "WriteLazy",
+        "level": "Information",
+        "argumentNull": false,
+        "admissionClosed": false,
+        "capture": "Invalid",
+        "captureErrorCode": "UnsupportedValue",
+        "outputs": [
+          {
+            "name": "console",
+            "threshold": "Information",
+            "state": "Faulted",
+            "queueFull": false,
+            "acceptedSequence": "0"
+          }
+        ]
+      },
+      "expected": {
+        "stage": "AllFaulted",
+        "exception": null,
+        "outcome": "Rejected",
+        "errorCode": null,
+        "isTruncated": false,
+        "factoryCalls": 0,
+        "captures": 0,
+        "invalidEventDelta": 0,
+        "truncatedEventDelta": 0,
+        "outputs": [
+          {
+            "name": "console",
+            "status": "Faulted",
+            "acceptedSequence": null
+          }
+        ],
+        "isEnabled": false
+      }
+    },
+    {
+      "id": "ADMISSION-WRITELAZY-QUEUES-FULL",
+      "inputs": {
+        "operation": "WriteLazy",
+        "level": "Information",
+        "argumentNull": false,
+        "admissionClosed": false,
+        "capture": "Valid",
+        "captureErrorCode": "UnsupportedValue",
+        "outputs": [
+          {
+            "name": "console",
+            "threshold": "Information",
+            "state": "Running",
+            "queueFull": true,
+            "acceptedSequence": "7"
+          }
+        ]
+      },
+      "expected": {
+        "stage": "Admission",
+        "exception": null,
+        "outcome": "Rejected",
+        "errorCode": null,
+        "isTruncated": false,
+        "factoryCalls": 1,
+        "captures": 1,
+        "invalidEventDelta": 0,
+        "truncatedEventDelta": 0,
+        "outputs": [
+          {
+            "name": "console",
+            "status": "QueueFull",
+            "acceptedSequence": null
+          }
+        ],
+        "isEnabled": true
+      }
+    },
+    {
+      "id": "ADMISSION-WRITELAZY-PARTIAL-FULL",
+      "inputs": {
+        "operation": "WriteLazy",
+        "level": "Information",
+        "argumentNull": false,
+        "admissionClosed": false,
+        "capture": "Valid",
+        "captureErrorCode": "UnsupportedValue",
+        "outputs": [
+          {
+            "name": "console",
+            "threshold": "Information",
+            "state": "Running",
+            "queueFull": true,
+            "acceptedSequence": "0"
+          },
+          {
+            "name": "file",
+            "threshold": "Debug",
+            "state": "Running",
+            "queueFull": false,
+            "acceptedSequence": "8"
+          }
+        ]
+      },
+      "expected": {
+        "stage": "Admission",
+        "exception": null,
+        "outcome": "PartiallyAccepted",
+        "errorCode": null,
+        "isTruncated": false,
+        "factoryCalls": 1,
+        "captures": 1,
+        "invalidEventDelta": 0,
+        "truncatedEventDelta": 0,
+        "outputs": [
+          {
+            "name": "console",
+            "status": "QueueFull",
+            "acceptedSequence": null
+          },
+          {
+            "name": "file",
+            "status": "Accepted",
+            "acceptedSequence": "9"
+          }
+        ],
+        "isEnabled": true
+      }
+    },
+    {
+      "id": "ADMISSION-WRITELAZY-PARTIAL-FAULTED",
+      "inputs": {
+        "operation": "WriteLazy",
+        "level": "Information",
+        "argumentNull": false,
+        "admissionClosed": false,
+        "capture": "Valid",
+        "captureErrorCode": "UnsupportedValue",
+        "outputs": [
+          {
+            "name": "console",
+            "threshold": "Information",
+            "state": "Faulted",
+            "queueFull": false,
+            "acceptedSequence": "0"
+          },
+          {
+            "name": "file",
+            "threshold": "Debug",
+            "state": "Running",
+            "queueFull": false,
+            "acceptedSequence": "0"
+          }
+        ]
+      },
+      "expected": {
+        "stage": "Admission",
+        "exception": null,
+        "outcome": "PartiallyAccepted",
+        "errorCode": null,
+        "isTruncated": false,
+        "factoryCalls": 1,
+        "captures": 1,
+        "invalidEventDelta": 0,
+        "truncatedEventDelta": 0,
+        "outputs": [
+          {
+            "name": "console",
+            "status": "Faulted",
+            "acceptedSequence": null
+          },
+          {
+            "name": "file",
+            "status": "Accepted",
+            "acceptedSequence": "1"
+          }
+        ],
+        "isEnabled": true
+      }
+    },
+    {
+      "id": "ADMISSION-WRITELAZY-INDEPENDENT-THRESHOLDS",
+      "inputs": {
+        "operation": "WriteLazy",
+        "level": "Debug",
+        "argumentNull": false,
+        "admissionClosed": false,
+        "capture": "Valid",
+        "captureErrorCode": "UnsupportedValue",
+        "outputs": [
+          {
+            "name": "console",
+            "threshold": "Warning",
+            "state": "Running",
+            "queueFull": false,
+            "acceptedSequence": "0"
+          },
+          {
+            "name": "file",
+            "threshold": "Debug",
+            "state": "Running",
+            "queueFull": false,
+            "acceptedSequence": "0"
+          }
+        ]
+      },
+      "expected": {
+        "stage": "Admission",
+        "exception": null,
+        "outcome": "Accepted",
+        "errorCode": null,
+        "isTruncated": false,
+        "factoryCalls": 1,
+        "captures": 1,
+        "invalidEventDelta": 0,
+        "truncatedEventDelta": 0,
+        "outputs": [
+          {
+            "name": "console",
+            "status": "Filtered",
+            "acceptedSequence": null
+          },
+          {
+            "name": "file",
+            "status": "Accepted",
+            "acceptedSequence": "1"
+          }
+        ],
+        "isEnabled": true
+      }
+    },
+    {
+      "id": "ADMISSION-WRITELAZY-INVALID-CAPTURE",
+      "inputs": {
+        "operation": "WriteLazy",
+        "level": "Information",
+        "argumentNull": false,
+        "admissionClosed": false,
+        "capture": "Invalid",
+        "captureErrorCode": "UnsupportedValue",
+        "outputs": [
+          {
+            "name": "console",
+            "threshold": "Information",
+            "state": "Running",
+            "queueFull": false,
+            "acceptedSequence": "0"
+          }
+        ]
+      },
+      "expected": {
+        "stage": "InvalidCapture",
+        "exception": null,
+        "outcome": "InvalidEvent",
+        "errorCode": "UnsupportedValue",
+        "isTruncated": false,
+        "factoryCalls": 1,
+        "captures": 1,
+        "invalidEventDelta": 1,
+        "truncatedEventDelta": 0,
+        "outputs": [],
+        "isEnabled": true
+      }
+    },
+    {
+      "id": "ADMISSION-WRITELAZY-ENVELOPE-TOO-LARGE",
+      "inputs": {
+        "operation": "WriteLazy",
+        "level": "Information",
+        "argumentNull": false,
+        "admissionClosed": false,
+        "capture": "Invalid",
+        "captureErrorCode": "EnvelopeTooLarge",
+        "outputs": [
+          {
+            "name": "console",
+            "threshold": "Information",
+            "state": "Running",
+            "queueFull": false,
+            "acceptedSequence": "0"
+          }
+        ]
+      },
+      "expected": {
+        "stage": "InvalidCapture",
+        "exception": null,
+        "outcome": "InvalidEvent",
+        "errorCode": "EnvelopeTooLarge",
+        "isTruncated": false,
+        "factoryCalls": 1,
+        "captures": 1,
+        "invalidEventDelta": 1,
+        "truncatedEventDelta": 0,
+        "outputs": [],
+        "isEnabled": true
+      }
+    },
+    {
+      "id": "ADMISSION-WRITELAZY-TRUNCATED-ACCEPTED",
+      "inputs": {
+        "operation": "WriteLazy",
+        "level": "Information",
+        "argumentNull": false,
+        "admissionClosed": false,
+        "capture": "Truncated",
+        "captureErrorCode": "UnsupportedValue",
+        "outputs": [
+          {
+            "name": "console",
+            "threshold": "Information",
+            "state": "Running",
+            "queueFull": false,
+            "acceptedSequence": "0"
+          }
+        ]
+      },
+      "expected": {
+        "stage": "Admission",
+        "exception": null,
+        "outcome": "Accepted",
+        "errorCode": null,
+        "isTruncated": true,
+        "factoryCalls": 1,
+        "captures": 1,
+        "invalidEventDelta": 0,
+        "truncatedEventDelta": 1,
+        "outputs": [
+          {
+            "name": "console",
+            "status": "Accepted",
+            "acceptedSequence": "1"
+          }
+        ],
+        "isEnabled": true
+      }
+    },
+    {
+      "id": "ADMISSION-WRITELAZY-TRUNCATED-QUEUE-FULL",
+      "inputs": {
+        "operation": "WriteLazy",
+        "level": "Information",
+        "argumentNull": false,
+        "admissionClosed": false,
+        "capture": "Truncated",
+        "captureErrorCode": "UnsupportedValue",
+        "outputs": [
+          {
+            "name": "console",
+            "threshold": "Information",
+            "state": "Running",
+            "queueFull": true,
+            "acceptedSequence": "0"
+          }
+        ]
+      },
+      "expected": {
+        "stage": "Admission",
+        "exception": null,
+        "outcome": "Rejected",
+        "errorCode": null,
+        "isTruncated": true,
+        "factoryCalls": 1,
+        "captures": 1,
+        "invalidEventDelta": 0,
+        "truncatedEventDelta": 1,
+        "outputs": [
+          {
+            "name": "console",
+            "status": "QueueFull",
+            "acceptedSequence": null
+          }
+        ],
+        "isEnabled": true
+      }
+    },
+    {
+      "id": "ADMISSION-WRITELAZY-ALL-FAULTED-FILTERED-OTHER",
+      "inputs": {
+        "operation": "WriteLazy",
+        "level": "Information",
+        "argumentNull": false,
+        "admissionClosed": false,
+        "capture": "Valid",
+        "captureErrorCode": "UnsupportedValue",
+        "outputs": [
+          {
+            "name": "console",
+            "threshold": "Information",
+            "state": "Faulted",
+            "queueFull": false,
+            "acceptedSequence": "0"
+          },
+          {
+            "name": "file",
+            "threshold": "Warning",
+            "state": "Running",
+            "queueFull": false,
+            "acceptedSequence": "0"
+          }
+        ]
+      },
+      "expected": {
+        "stage": "AllFaulted",
+        "exception": null,
+        "outcome": "Rejected",
+        "errorCode": null,
+        "isTruncated": false,
+        "factoryCalls": 0,
+        "captures": 0,
+        "invalidEventDelta": 0,
+        "truncatedEventDelta": 0,
+        "outputs": [
+          {
+            "name": "console",
+            "status": "Faulted",
+            "acceptedSequence": null
+          },
+          {
+            "name": "file",
+            "status": "Filtered",
+            "acceptedSequence": null
+          }
+        ],
+        "isEnabled": false
+      }
+    },
+    {
+      "id": "ADMISSION-WRITELAZY-ALL-ACCEPTED",
+      "inputs": {
+        "operation": "WriteLazy",
+        "level": "Information",
+        "argumentNull": false,
+        "admissionClosed": false,
+        "capture": "Valid",
+        "captureErrorCode": "UnsupportedValue",
+        "outputs": [
+          {
+            "name": "console",
+            "threshold": "Information",
+            "state": "Running",
+            "queueFull": false,
+            "acceptedSequence": "4"
+          },
+          {
+            "name": "file",
+            "threshold": "Debug",
+            "state": "Running",
+            "queueFull": false,
+            "acceptedSequence": "10"
+          }
+        ]
+      },
+      "expected": {
+        "stage": "Admission",
+        "exception": null,
+        "outcome": "Accepted",
+        "errorCode": null,
+        "isTruncated": false,
+        "factoryCalls": 1,
+        "captures": 1,
+        "invalidEventDelta": 0,
+        "truncatedEventDelta": 0,
+        "outputs": [
+          {
+            "name": "console",
+            "status": "Accepted",
+            "acceptedSequence": "5"
+          },
+          {
+            "name": "file",
+            "status": "Accepted",
+            "acceptedSequence": "11"
+          }
+        ],
+        "isEnabled": true
+      }
+    },
+    {
+      "id": "ADMISSION-LAZY-NULL-RESULT",
+      "inputs": {
+        "operation": "WriteLazy",
+        "level": "Information",
+        "argumentNull": false,
+        "admissionClosed": false,
+        "capture": "NullFactoryResult",
+        "captureErrorCode": "UnsupportedValue",
+        "outputs": [
+          {
+            "name": "console",
+            "threshold": "Information",
+            "state": "Running",
+            "queueFull": false,
+            "acceptedSequence": "0"
+          }
+        ]
+      },
+      "expected": {
+        "stage": "InvalidCapture",
+        "exception": null,
+        "outcome": "InvalidEvent",
+        "errorCode": "InvalidFactoryResult",
+        "isTruncated": false,
+        "factoryCalls": 1,
+        "captures": 1,
+        "invalidEventDelta": 1,
+        "truncatedEventDelta": 0,
+        "outputs": [],
+        "isEnabled": true
+      }
+    },
+    {
+      "id": "ADMISSION-LAZY-FACTORY-THROWS",
+      "inputs": {
+        "operation": "WriteLazy",
+        "level": "Information",
+        "argumentNull": false,
+        "admissionClosed": false,
+        "capture": "FactoryThrows",
+        "captureErrorCode": "UnsupportedValue",
+        "outputs": [
+          {
+            "name": "console",
+            "threshold": "Information",
+            "state": "Running",
+            "queueFull": false,
+            "acceptedSequence": "0"
+          }
+        ]
+      },
+      "expected": {
+        "stage": "Factory",
+        "exception": "CallerFactoryException",
+        "outcome": null,
+        "errorCode": null,
+        "isTruncated": false,
+        "factoryCalls": 1,
+        "captures": 0,
+        "invalidEventDelta": 0,
+        "truncatedEventDelta": 0,
+        "outputs": [],
+        "isEnabled": true
+      }
+    },
+    {
+      "id": "ADMISSION-LAZY-THROW-SUPPRESSED-CLOSED",
+      "inputs": {
+        "operation": "WriteLazy",
+        "level": "Information",
+        "argumentNull": false,
+        "admissionClosed": true,
+        "capture": "FactoryThrows",
+        "captureErrorCode": "UnsupportedValue",
+        "outputs": [
+          {
+            "name": "console",
+            "threshold": "Information",
+            "state": "Running",
+            "queueFull": false,
+            "acceptedSequence": "0"
+          }
+        ]
+      },
+      "expected": {
+        "stage": "Stopped",
+        "exception": null,
+        "outcome": "Stopped",
+        "errorCode": null,
+        "isTruncated": false,
+        "factoryCalls": 0,
+        "captures": 0,
+        "invalidEventDelta": 0,
+        "truncatedEventDelta": 0,
+        "outputs": [
+          {
+            "name": "console",
+            "status": "Stopped",
+            "acceptedSequence": null
+          }
+        ],
+        "isEnabled": false
+      }
+    },
+    {
+      "id": "ADMISSION-LAZY-THROW-SUPPRESSED-FILTERED",
+      "inputs": {
+        "operation": "WriteLazy",
+        "level": "None",
+        "argumentNull": false,
+        "admissionClosed": false,
+        "capture": "FactoryThrows",
+        "captureErrorCode": "UnsupportedValue",
+        "outputs": [
+          {
+            "name": "console",
+            "threshold": "Information",
+            "state": "Running",
+            "queueFull": false,
+            "acceptedSequence": "0"
+          }
+        ]
+      },
+      "expected": {
+        "stage": "Filtered",
+        "exception": null,
+        "outcome": "Filtered",
+        "errorCode": null,
+        "isTruncated": false,
+        "factoryCalls": 0,
+        "captures": 0,
+        "invalidEventDelta": 0,
+        "truncatedEventDelta": 0,
+        "outputs": [
+          {
+            "name": "console",
+            "status": "Filtered",
+            "acceptedSequence": null
+          }
+        ],
+        "isEnabled": false
+      }
+    },
+    {
+      "id": "ADMISSION-LAZY-THROW-SUPPRESSED-FAULTED",
+      "inputs": {
+        "operation": "WriteLazy",
+        "level": "Information",
+        "argumentNull": false,
+        "admissionClosed": false,
+        "capture": "FactoryThrows",
+        "captureErrorCode": "UnsupportedValue",
+        "outputs": [
+          {
+            "name": "console",
+            "threshold": "Information",
+            "state": "Faulted",
+            "queueFull": false,
+            "acceptedSequence": "0"
+          }
+        ]
+      },
+      "expected": {
+        "stage": "AllFaulted",
+        "exception": null,
+        "outcome": "Rejected",
+        "errorCode": null,
+        "isTruncated": false,
+        "factoryCalls": 0,
+        "captures": 0,
+        "invalidEventDelta": 0,
+        "truncatedEventDelta": 0,
+        "outputs": [
+          {
+            "name": "console",
+            "status": "Faulted",
+            "acceptedSequence": null
+          }
+        ],
+        "isEnabled": false
+      }
+    }
+  ]
+}

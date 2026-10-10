@@ -1,0 +1,244 @@
+{
+  "schemaVersion": 1,
+  "caseCount": 18,
+  "scope": "Specified runtime expectations only; no asynchronous lifecycle/provider/worker behavior executed by the pure contract checks.",
+  "cases": [
+    {
+      "id": "LIFECYCLE-STOP-PRECANCELLED",
+      "inputs": {
+        "call": "StopAsync",
+        "callerToken": "already-cancelled",
+        "admissionOpen": true
+      },
+      "expected": {
+        "admissionClosed": true,
+        "sharedShutdownStarted": true,
+        "caller": "OperationCanceledException"
+      }
+    },
+    {
+      "id": "LIFECYCLE-SHARED-DEADLINE",
+      "inputs": {
+        "shutdownTimeoutMs": 5000,
+        "requests": [
+          {
+            "atElapsedMs": 0,
+            "call": "StopAsync"
+          },
+          {
+            "atElapsedMs": 2000,
+            "call": "StopAsync"
+          },
+          {
+            "atElapsedMs": 3000,
+            "call": "DisposeAsync"
+          }
+        ]
+      },
+      "expected": {
+        "sharedDeadlineElapsedMs": 5000,
+        "operationsStarted": 1,
+        "admissionReopened": false
+      }
+    },
+    {
+      "id": "LIFECYCLE-CANCELLED-STOP-WAIT",
+      "inputs": {
+        "firstStopStarted": true,
+        "callerCancelsAtMs": 100
+      },
+      "expected": {
+        "caller": "OperationCanceledException",
+        "sharedShutdownContinues": true,
+        "deadlineRestarted": false
+      }
+    },
+    {
+      "id": "LIFECYCLE-FLUSH-LATER-ADMISSION",
+      "inputs": {
+        "boundaryTicket": "2",
+        "laterAcceptedTicket": "3"
+      },
+      "expected": {
+        "coveredThrough": "2",
+        "laterWorkExtendsBoundary": false
+      }
+    },
+    {
+      "id": "LIFECYCLE-FLUSH-SATURATED",
+      "inputs": {
+        "queueFull": true,
+        "request": "FlushAsync"
+      },
+      "expected": {
+        "controlDroppable": false,
+        "registeredWithTicketBoundary": true,
+        "writerFlushSerializedWithWrites": true
+      }
+    },
+    {
+      "id": "LIFECYCLE-COALESCED-CANCELLED-WAITS",
+      "inputs": {
+        "sameBoundaryCalls": 10000,
+        "allCallerWaitsCancelled": true,
+        "outstandingAcceptedBoundaries": 1
+      },
+      "expected": {
+        "retainedCoordinationRecordsAtMost": 2,
+        "retainedCancelledCallerWaiters": 0
+      }
+    },
+    {
+      "id": "LIFECYCLE-ORIGINAL-CALLER-OBSERVATIONS",
+      "inputs": {
+        "sameAcceptedBoundary": true,
+        "callerAQueueFull": "1",
+        "callerBQueueFull": "4"
+      },
+      "expected": {
+        "callerAReportsQueueFull": "1",
+        "callerBReportsQueueFull": "4",
+        "workerCoordinationShared": true
+      }
+    },
+    {
+      "id": "LIFECYCLE-DEADLINE-PENDING",
+      "inputs": {
+        "queuedNotStarted": "2",
+        "inFlightUnresolved": "1",
+        "deadlineReached": true
+      },
+      "expected": {
+        "abandoned": "2",
+        "pending": "1",
+        "inFlightCancellationRequested": true,
+        "resourceDisposedUnderUnresolvedWrite": false
+      }
+    },
+    {
+      "id": "LIFECYCLE-IMMUTABLE-LATE-COMPLETION",
+      "inputs": {
+        "stopResult": "TimedOut",
+        "pendingAtReturn": "1",
+        "laterWriterCompletes": true
+      },
+      "expected": {
+        "originalResultStill": "TimedOut",
+        "originalPendingStill": "1",
+        "liveDiagnosticPending": "0",
+        "lastStopResultSameObservation": true
+      }
+    },
+    {
+      "id": "LIFECYCLE-UTC-CORRECTION",
+      "inputs": {
+        "wallClockCorrectionMs": -60000,
+        "monotonicElapsedMs": 5000,
+        "shutdownTimeoutMs": 5000
+      },
+      "expected": {
+        "deadlineReached": true,
+        "deadlineRestarted": false
+      }
+    },
+    {
+      "id": "LIFECYCLE-REPEATED-DISPOSE",
+      "inputs": {
+        "disposeCalls": 3,
+        "originalShutdownDeadlineReached": true
+      },
+      "expected": {
+        "sharedShutdownOperations": 1,
+        "newDrainWindow": false,
+        "admissionReopened": false
+      }
+    },
+    {
+      "id": "LIFECYCLE-PROVIDER-NONOWNING",
+      "inputs": {
+        "providerDisposed": true,
+        "runtimeInitiallyRunning": true
+      },
+      "expected": {
+        "runtimeStoppedByProvider": false,
+        "runtimeDisposedByProvider": false,
+        "otherCoreLoggersRemainAvailable": true
+      }
+    },
+    {
+      "id": "LIFECYCLE-BORROWED-CONSOLE",
+      "inputs": {
+        "runtimeDisposes": true,
+        "consoleWriterBorrowed": true
+      },
+      "expected": {
+        "consoleWriterDisposed": false
+      }
+    },
+    {
+      "id": "LIFECYCLE-IDLE-FILE-FLUSH",
+      "inputs": {
+        "writtenEvents": "1",
+        "laterTraffic": "0",
+        "intervalElapsed": true
+      },
+      "expected": {
+        "writerFlushScheduled": true
+      }
+    },
+    {
+      "id": "LIFECYCLE-FAULT-ISOLATION",
+      "inputs": {
+        "fileWritePartiallyFailed": true,
+        "consoleRunning": true
+      },
+      "expected": {
+        "fileConfirmedWrittenDelta": "0",
+        "fileFailedDelta": "1",
+        "consoleWorkerStillRunning": true,
+        "replacementWritesSpawned": false
+      }
+    },
+    {
+      "id": "LIFECYCLE-SCOPE-LIFO",
+      "inputs": {
+        "disposeOrder": [
+          "outer",
+          "inner"
+        ]
+      },
+      "expected": {
+        "firstDispose": "InvalidOperationException",
+        "currentScopeUnchanged": true
+      }
+    },
+    {
+      "id": "LIFECYCLE-NO-DURABILITY",
+      "inputs": {
+        "writerBufferFlushSucceeded": true
+      },
+      "expected": {
+        "diskDurabilityPromised": false,
+        "collectorAcknowledgementPromised": false,
+        "crossOutputTotalOrderPromised": false
+      }
+    },
+    {
+      "id": "LIFECYCLE-CAPTURE-STOP-RACE",
+      "inputs": {
+        "factoryEnteredBeforeStop": true,
+        "factoryReturnsAfterStop": true,
+        "validTruncatedCapture": true
+      },
+      "expected": {
+        "outcome": "Stopped",
+        "acceptedTickets": 0,
+        "factoryCalls": 1,
+        "isTruncated": true,
+        "truncatedEventDelta": 1,
+        "admissionReopened": false,
+        "stopWaitsForCallerFactory": false
+      }
+    }
+  ]
+}
