@@ -11,6 +11,16 @@ internal static class Program
 {
     private static int Main(string[] args)
     {
+        if (args.Length == 3 && args[0] == "startup-concurrency" && args[1] is "valid-2" or "valid-16" or "valid-32" or "mixed-16" or "invalid-then-valid" or "held-valid" or "held-invalid")
+        {
+            return StartupConcurrencyProcessFixture.Run(args[1], args[2]);
+        }
+
+        if (args.Length == 2 && args[0] == "startup-reentrancy" && args[1] is "reentrant-valid" or "reentrant-invalid" or "required-failure")
+        {
+            return StartupReentrancyProcessFixture.Run(args[1]);
+        }
+
         if (args.Length == 3 && args[0] == "startup-ownership" && args[1] is "mutate" or "replace" or "sources" or "collected")
         {
             return StartupOwnershipProcessFixture.Run(args[1], args[2]);

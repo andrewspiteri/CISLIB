@@ -8,6 +8,7 @@ public static class EnvironmentOptions
 {
     private static readonly object Gate = new();
     private static EnvironmentSnapshot? current;
+    private static bool initializing;
 
     // Only the private gate is allocated; no configuration or metadata is read here.
     static EnvironmentOptions() { }
@@ -42,7 +43,7 @@ public static class EnvironmentOptions
     /// <returns>The same immutable instance subsequently exposed through Current.</returns>
     /// <exception cref="ArgumentNullException">setup is null.</exception>
     /// <exception cref="CoreConfigurationException">Selected inputs fail validation; nothing is published.</exception>
-    /// <exception cref="InvalidOperationException">A snapshot has already been published.</exception>
+    /// <exception cref="InvalidOperationException">A snapshot has already been published, or a metadata callback re-enters initialization.</exception>
     public static EnvironmentSnapshot Initialize(EnvironmentSetup setup)
     {
         ArgumentNullException.ThrowIfNull(setup);
@@ -52,9 +53,21 @@ public static class EnvironmentOptions
             {
                 throw new InvalidOperationException("Core has already been initialized.");
             }
-            EnvironmentSnapshot snapshot = EnvironmentSnapshotFactory.Create(setup);
-            current = snapshot;
-            return snapshot;
+            if (initializing)
+            {
+                throw new InvalidOperationException("Core initialization is already in progress.");
+            }
+            initializing = true;
+            try
+            {
+                EnvironmentSnapshot snapshot = EnvironmentSnapshotFactory.Create(setup);
+                current = snapshot;
+                return snapshot;
+            }
+            finally
+            {
+                initializing = false;
+            }
         }
     }
 

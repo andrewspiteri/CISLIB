@@ -86,10 +86,11 @@ public sealed class ConfigurationAmbientStateTests
         Type facade = typeof(CIS.EnvironmentOptions);
         Assert.AreEqual((TypeAttributes)0, facade.Attributes & TypeAttributes.BeforeFieldInit);
         FieldInfo[] fields = facade.GetFields(BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic);
-        Assert.AreEqual(2, fields.Length);
+        Assert.AreEqual(3, fields.Length);
         Assert.IsTrue(fields.All(field => field.IsPrivate));
         Assert.AreEqual(1, fields.Count(field => field.FieldType == typeof(object) && field.IsInitOnly));
         Assert.AreEqual(1, fields.Count(field => field.FieldType == typeof(CIS.EnvironmentSnapshot) && !field.IsInitOnly));
+        Assert.AreEqual(1, fields.Count(field => field.FieldType == typeof(bool) && !field.IsInitOnly));
         MethodBase[] calls = Calls(facade.TypeInitializer!).ToArray();
         Assert.AreEqual(1, calls.Length);
         Assert.AreEqual(typeof(object), calls[0].DeclaringType);
@@ -97,6 +98,51 @@ public sealed class ConfigurationAmbientStateTests
         Assert.IsNull(facade.GetMethod("Reset", BindingFlags.Public | BindingFlags.Static));
         Assert.IsNull(typeof(CIS.EnvironmentOptions).Assembly.GetType("CIS.EnviormentsOptions"));
     }
+
+    [TestMethod]
+    [DataRow("Initialize")]
+    [DataRow("Current")]
+    [DataRow("IsInitialized")]
+    public void PublicationReadsAndWritesUseTheIdenticalPrivateMonitorGate(string member)
+    {
+        Type facade = typeof(CIS.EnvironmentOptions);
+        MethodBase method = member == "Initialize" ? facade.GetMethod(member)! : facade.GetProperty(member)!.GetMethod!;
+        var instructions = Instructions(method).ToArray();
+        var enter = instructions.Single(item => item.Member is MethodBase call && call.DeclaringType == typeof(Monitor) && call.Name == "Enter");
+        var exit = instructions.Single(item => item.Member is MethodBase call && call.DeclaringType == typeof(Monitor) && call.Name == "Exit");
+        var gate = instructions.Single(item => item.Code == OpCodes.Ldsfld && item.Member is FieldInfo field && field.Name == "Gate");
+        Assert.IsTrue(gate.Offset < enter.Offset);
+        Assert.AreEqual(facade, gate.Member!.DeclaringType);
+        var accesses = instructions.Where(item => item.Member is FieldInfo field && field.Name == "current").ToArray();
+        Assert.IsTrue(accesses.Length > 0);
+        Assert.IsTrue(accesses.All(item => item.Offset > enter.Offset && item.Offset < exit.Offset));
+    }
+
+    [TestMethod]
+    public void InitializationGuardIsSetBeforeConstructionAndClearedInsideFinally()
+    {
+        MethodInfo method = typeof(CIS.EnvironmentOptions).GetMethod("Initialize")!;
+        var instructions = Instructions(method).ToArray();
+        int create = instructions.Single(item => item.Member is MethodBase call && call.DeclaringType?.FullName == "CIS.Configuration.EnvironmentSnapshotFactory" && call.Name == "Create").Offset;
+        int publish = instructions.Single(item => item.Code == OpCodes.Stsfld && item.Member is FieldInfo field && field.Name == "current").Offset;
+        var stores = instructions.Where(item => item.Code == OpCodes.Stsfld && item.Member is FieldInfo field && field.Name == "initializing").ToArray();
+        Assert.AreEqual(2, stores.Length);
+        Assert.IsTrue(stores[0].Offset < create && create < publish && publish < stores[1].Offset);
+        Assert.IsTrue(method.GetMethodBody()!.ExceptionHandlingClauses.Cast<ExceptionHandlingClause>().Any(clause => clause.Flags == ExceptionHandlingClauseOptions.Finally && clause.HandlerOffset <= stores[1].Offset && stores[1].Offset < clause.HandlerOffset + clause.HandlerLength));
+    }
+
+    [TestMethod]
+    public void CompiledGateInspectorDistinguishesNeverInvokedUngatedFieldAccess()
+    {
+        MethodInfo probe = typeof(ConfigurationAmbientStateTests).GetMethod(nameof(UngatedFieldProbe), BindingFlags.NonPublic | BindingFlags.Static)!;
+        var instructions = Instructions(probe).ToArray();
+        Assert.IsTrue(instructions.Any(item => item.Code == OpCodes.Ldsfld && item.Member is FieldInfo));
+        Assert.IsFalse(instructions.Any(item => item.Member is MethodBase call && call.DeclaringType == typeof(Monitor)));
+    }
+
+    private static readonly object UngatedValue = new();
+    // Only its compiled IL is inspected.
+    private static object UngatedFieldProbe() => UngatedValue;
 
     private static bool IsStartupType(Type type) =>
         type.Namespace is "CIS.Configuration" or "CIS.Logging.Configuration" ||
@@ -143,20 +189,24 @@ public sealed class ConfigurationAmbientStateTests
         return Console.IsOutputRedirected || Console.IsErrorRedirected || Console.IsInputRedirected || System.Diagnostics.Debugger.IsAttached || Environment.GetEnvironmentVariables().Count > 0;
     }
 
-    private static IEnumerable<MethodBase> Calls(MethodBase method)
+    private static IEnumerable<MethodBase> Calls(MethodBase method) => Instructions(method).Select(item => item.Member).OfType<MethodBase>();
+
+    private static IEnumerable<(int Offset, OpCode Code, MemberInfo? Member)> Instructions(MethodBase method)
     {
         byte[] bytes = method.GetMethodBody()?.GetILAsByteArray() ?? [];
         for (int offset = 0; offset < bytes.Length;)
         {
+            int instructionOffset = offset;
             byte first = bytes[offset++];
             short value = first == 0xfe ? (short)(0xfe00 | bytes[offset++]) : first;
             OpCode code = Codes[value];
-            if (code.OperandType == OperandType.InlineMethod)
+            MemberInfo? member = null;
+            if (code.OperandType is OperandType.InlineMethod or OperandType.InlineField)
             {
                 int token = BitConverter.ToInt32(bytes, offset);
-                MethodBase? called = method.Module.ResolveMethod(token, method.DeclaringType?.GetGenericArguments(), method.IsGenericMethod ? method.GetGenericArguments() : null);
-                if (called is not null) { yield return called; }
+                member = method.Module.ResolveMember(token, method.DeclaringType?.GetGenericArguments(), method.IsGenericMethod ? method.GetGenericArguments() : null);
             }
+            yield return (instructionOffset, code, member);
             offset += code.OperandType switch
             {
                 OperandType.InlineNone => 0,

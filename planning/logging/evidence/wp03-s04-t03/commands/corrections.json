@@ -1,0 +1,15 @@
+{
+  "taskId": "WP03-S04-T03",
+  "corrections": [
+    {
+      "scope": "Actual public publisher",
+      "finding": "A virtual Assembly.GetName callback can re-enter the monitor and publish a nested snapshot before outer construction finishes. Actual controls observed two successful initializers, and failed outer validation/source reads left a nested publication and prevented retry.",
+      "change": "Private initializing flag checked inside the shared gate and cleared in finally; nested non-null calls reject before capture; null guard stays first.",
+      "productionBehaviorChanged": true,
+      "preGuardControls": 3,
+      "preGuardSuccessfulInitializersForValidOuter": 2,
+      "preGuardFailedOutersLeftPublished": true,
+      "preGuardReportsDirectory": "planning/logging/evidence/wp03-s04-t03/pre-guard"
+    }
+  ]
+}
