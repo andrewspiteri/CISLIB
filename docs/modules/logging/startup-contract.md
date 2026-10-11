@@ -79,3 +79,7 @@ During WP02-S02 the user requested configurable entry bytes and truncation. CORE
 An enabled file output requires FileMaxBytes >= MaxEntryBytes, so an admitted bounded entry can fit a complete segment; a smaller segment setting reports OutOfRange. This cross-option rule is a prepublication implementation choice prompted by the configurable entry cap. Disabled outputs still validate each selected option individually.
 
 WP03-S02-T01 implements [recognized-variable capture and source precedence](configuration-inputs.md). Complete option parsing, validation and public publication remain pending.
+
+## WP03-S04-T01 implementation checkpoint
+
+The reference-only declarations above describe the original WP02 contract qualification. The actual shipping startup subset now implements EnvironmentOptions, setup/snapshot, LoggingSetup/LoggingOptions/EventMetadata and their five enums. [Implementation guidance](environment-options.md) and [Windows evidence](../../../planning/logging/evidence/wp03-s04-t01-windows.json) distinguish executed initialization/getters from remaining T02–T04 ownership/concurrency/lifecycle qualification. Future event/runtime/provider declarations remain reference-only; original contract fixture bytes are preserved.

@@ -1,0 +1,20 @@
+{
+  "taskId": "WP03-S04-T01",
+  "corrections": [
+    {
+      "scope": "Architecture test compilation",
+      "finding": "Assert expected int zero against TypeAttributes enum, causing CS0411",
+      "change": "Use typed enum zero; production behavior unchanged"
+    },
+    {
+      "scope": "Initial fresh-process test fixture",
+      "finding": "CORE_ENV was an unknown name and the recognized aliases were not all cleared",
+      "change": "Use catalog name CORE_ENVIRONMENT and flatten all aliases; assert exactly 21 cleared recognized names",
+      "initialReport": ".artifacts/csharp/tasks/wp03-s04-t01/initial-process-failure.trx",
+      "initialTotal": 6,
+      "initialPassed": 5,
+      "initialFailed": 1,
+      "productionBehaviorChanged": false
+    }
+  ]
+}

@@ -1,0 +1,26 @@
+Test run for C:\miscwork\portfolio\cislib\implementations\csharp\tests\CIS.Core.IntegrationTests\bin\Release\net10.0\CIS.Core.IntegrationTests.dll (.NETCoreApp,Version=v10.0)
+A total of 1 test files matched the specified pattern.
+  Failed ActualPublicFacadeSupportsExplicitInitializationAndStoredReadsInFreshProcesses ("overrides") [386 ms]
+  Error Message:
+   Assertion failed. Expected strings to be equal.
+Strings have different lengths (expected: 8, actual: 14) and differ at 1 location(s). First difference at index 0.
+
+expected:   "Env.Live"
+actual:     "ignored-dd-env"
+difference: -^
+
+Assert.AreEqual(overrides ? "Env.Live" : defaults ? "unknown" : "Setup.Live", snapshot["EnvironmentName"]!.GetValue<string>())
+  Stack Trace:
+     at CIS.Tests.IntegrationTests.EnvironmentOptionsProcessTests.ActualPublicFacadeSupportsExplicitInitializationAndStoredReadsInFreshProcesses(String scenario) in C:\miscwork\portfolio\cislib\implementations\csharp\tests\CIS.Core.IntegrationTests\EnvironmentOptionsProcessTests.cs:line 64
+   at Microsoft.VisualStudio.TestPlatform.MSTest.TestAdapter.Execution.TestMethodInfo.ExecuteInternalAsync(Object[] arguments, CancellationTokenSource timeoutTokenSource, TestInvocationState invocationState)
+  Standard Output Messages:
+ 
+ 
+ TestContext Messages:
+ {"scenario":"overrides","snapshot":{"ApplicationName":"Env.App","BuildVersion":"1.2.3-rc.4\u002Bapp.5","ServiceVersion":"env-release","EnvironmentName":"ignored-dd-env","EnvironmentKind":2,"InstanceId":"30ff869e-c814-4d49-af87-f5a59de1d479","ProcessStartedAtUtc":"2026-10-11T02:51:40.7141293+00:00","InitializedAtUtc":"2026-10-11T02:51:40.928097+00:00","HostName":"ARCTURUS","OperatingSystem":"windows","OperatingSystemDescription":"Microsoft Windows 10.0.26200","OSArchitecture":"x64","ProcessArchitecture":"x64","RuntimeDescription":".NET 10.0.12","ProcessId":120428,"CommitId":"commit-8","BuildId":"build-9","Logging":{"Level":3,"ConsoleFormat":1,"ConsoleLevel":4,"ConsoleStream":1,"HumanDetail":1,"FilePath":"C:\\Users\\andrs\\AppData\\Local\\Temp\\cislib-tests\\122bb58b59eb48078410a634f09ba87e\\before\\logs\\~app.jsonl","FileFormat":1,"FileLevel":0,"QueueCapacity":2,"FlushInterval":"00:00:00.0110000","ShutdownTimeout":"00:00:00.0120000","FileMaxBytes":1048576,"FileRetainedFiles":3,"SchemaVersion":1,"ConsoleEnabled":true,"FileEnabled":true,"MaxEntryBytes":131072},"EventMetadata":{"ApplicationName":"Env.App","BuildVersion":"1.2.3-rc.4\u002Bapp.5","ServiceVersion":"env-release","EnvironmentName":"ignored-dd-env","EnvironmentKind":2,"InstanceId":"30ff869e-c814-4d49-af87-f5a59de1d479","ProcessStartedAtUtc":"2026-10-11T02:51:40.7141293+00:00","InitializedAtUtc":"2026-10-11T02:51:40.928097+00:00","HostName":"ARCTURUS","OperatingSystem":"windows","OperatingSystemDescription":"Microsoft Windows 10.0.26200","OSArchitecture":"x64","ProcessArchitecture":"x64","RuntimeDescription":".NET 10.0.12","ProcessId":120428,"CommitId":"commit-8","BuildId":"build-9"}},"issuePairs":[],"initialized":true,"observed":{"beforeDirectory":"C:\\Users\\andrs\\AppData\\Local\\Temp\\cislib-tests\\122bb58b59eb48078410a634f09ba87e\\before","afterDirectory":"C:\\Users\\andrs\\AppData\\Local\\Temp\\cislib-tests\\122bb58b59eb48078410a634f09ba87e\\after","beforeInitialization":"2026-10-11T02:51:40.865374+00:00","afterInitialization":"2026-10-11T02:51:40.9341388+00:00","processId":120428,"processStartedAtUtc":"2026-10-11T02:51:40.7141293+00:00","hostName":"ARCTURUS","operatingSystem":"windows","osDescription":"Microsoft Windows 10.0.26200","osArchitecture":"x64","processArchitecture":"x64","runtimeDescription":".NET 10.0.12","fixtureName":"CIS.Core.DiscoveryFixture","fixtureBuild":"9.8.7-rc.2\u002Bsha.Application","fixtureSha256":"f0c7aec75445991944644da591fbb0f335361235467b42a40879852999e4e4dc","coreSha256":"174f7b64907d99b675169a6310a2efd2acf33bcb82ff392c7cae4dc0cc5cd8a5","storedProjectionStable":true}}
+ 
+
+
+Results File: C:\miscwork\portfolio\cislib\.artifacts\csharp\tasks\wp03-s04-t01\focused\startup-process.trx
+
+Failed!  - Failed:     1, Passed:     5, Skipped:     0, Total:     6, Duration: 409 ms - CIS.Core.IntegrationTests.dll (net10.0)

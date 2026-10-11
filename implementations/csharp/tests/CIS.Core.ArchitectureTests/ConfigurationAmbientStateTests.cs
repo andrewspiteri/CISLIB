@@ -10,14 +10,14 @@ public sealed class ConfigurationAmbientStateTests
     private static readonly Dictionary<short, OpCode> Codes = typeof(OpCodes).GetFields(BindingFlags.Public | BindingFlags.Static)
         .Where(field => field.FieldType == typeof(OpCode)).Select(field => (OpCode)field.GetValue(null)!).ToDictionary(code => code.Value);
 
-    private static readonly string[] ForbiddenCalls = ["System.Console.get_IsOutputRedirected", "System.Console.get_IsErrorRedirected", "System.Console.get_IsInputRedirected", "System.Diagnostics.Debugger.get_IsAttached", "System.Environment.GetEnvironmentVariables", "System.Environment.SetEnvironmentVariable"];
+    private static readonly string[] ForbiddenCalls = ["System.Console.get_IsOutputRedirected", "System.Console.get_IsErrorRedirected", "System.Console.get_IsInputRedirected", "System.Diagnostics.Debugger.get_IsAttached", "System.Environment.GetEnvironmentVariables", "System.Environment.SetEnvironmentVariable", "System.AppDomain.add_UnhandledException", "System.AppDomain.add_FirstChanceException", "System.Threading.Tasks.TaskScheduler.add_UnobservedTaskException"];
 
     [TestMethod]
     public void ConfigurationHelpersDoNotQueryAmbientPresentationOrDumpOrMutateVariables()
     {
         Assembly core = Assembly.LoadFrom(Path.Combine(AppContext.BaseDirectory, "CIS.Core.dll"));
         int checkedCalls = 0;
-        foreach (Type type in core.GetTypes().Where(type => type.Namespace is "CIS.Configuration" or "CIS.Logging.Configuration"))
+        foreach (Type type in core.GetTypes().Where(type => IsStartupType(type)))
         {
             const BindingFlags flags = BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static | BindingFlags.Instance | BindingFlags.DeclaredOnly;
             IEnumerable<MethodBase> methods = type.GetMethods(flags).Cast<MethodBase>().Concat(type.GetConstructors(flags));
@@ -51,7 +51,7 @@ public sealed class ConfigurationAmbientStateTests
     {
         Assembly core = Assembly.LoadFrom(Path.Combine(AppContext.BaseDirectory, "CIS.Core.dll"));
         int checkedMethods = 0;
-        foreach (Type type in core.GetTypes().Where(type => type.Namespace is "CIS.Configuration" or "CIS.Logging.Configuration"))
+        foreach (Type type in core.GetTypes().Where(type => IsStartupType(type)))
         {
             const BindingFlags flags = BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static | BindingFlags.Instance | BindingFlags.DeclaredOnly;
             IEnumerable<MethodBase> methods = type.GetMethods(flags).Cast<MethodBase>().Concat(type.GetConstructors(flags));
@@ -79,6 +79,29 @@ public sealed class ConfigurationAmbientStateTests
         }
         Assert.IsFalse(Calls(typeof(string).GetMethod(nameof(string.IsNullOrWhiteSpace), [typeof(string)])!).Any(IsInfrastructureCall));
     }
+
+    [TestMethod]
+    public void ActualFacadeHasOnlyPrivatePublicationStateAndATrivialExplicitStaticConstructor()
+    {
+        Type facade = typeof(CIS.EnvironmentOptions);
+        Assert.AreEqual((TypeAttributes)0, facade.Attributes & TypeAttributes.BeforeFieldInit);
+        FieldInfo[] fields = facade.GetFields(BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic);
+        Assert.AreEqual(2, fields.Length);
+        Assert.IsTrue(fields.All(field => field.IsPrivate));
+        Assert.AreEqual(1, fields.Count(field => field.FieldType == typeof(object) && field.IsInitOnly));
+        Assert.AreEqual(1, fields.Count(field => field.FieldType == typeof(CIS.EnvironmentSnapshot) && !field.IsInitOnly));
+        MethodBase[] calls = Calls(facade.TypeInitializer!).ToArray();
+        Assert.AreEqual(1, calls.Length);
+        Assert.AreEqual(typeof(object), calls[0].DeclaringType);
+        Assert.AreEqual(".ctor", calls[0].Name);
+        Assert.IsNull(facade.GetMethod("Reset", BindingFlags.Public | BindingFlags.Static));
+        Assert.IsNull(typeof(CIS.EnvironmentOptions).Assembly.GetType("CIS.EnviormentsOptions"));
+    }
+
+    private static bool IsStartupType(Type type) =>
+        type.Namespace is "CIS.Configuration" or "CIS.Logging.Configuration" ||
+        type == typeof(CIS.EnvironmentOptions) || type == typeof(CIS.EnvironmentSetup) || type == typeof(CIS.EnvironmentSnapshot) ||
+        type == typeof(CIS.Logging.LoggingSetup) || type == typeof(CIS.Logging.LoggingOptions) || type == typeof(CIS.Logging.EventMetadata);
 
     private static bool IsInfrastructureCall(MethodBase called)
     {
@@ -114,6 +137,9 @@ public sealed class ConfigurationAmbientStateTests
     private static bool AmbientProbe()
     {
         Environment.SetEnvironmentVariable("CIS_NEVER_INVOKE_AMBIENT_PROBE", "not-executed");
+        AppDomain.CurrentDomain.UnhandledException += static (_, _) => { };
+        AppDomain.CurrentDomain.FirstChanceException += static (_, _) => { };
+        TaskScheduler.UnobservedTaskException += static (_, _) => { };
         return Console.IsOutputRedirected || Console.IsErrorRedirected || Console.IsInputRedirected || System.Diagnostics.Debugger.IsAttached || Environment.GetEnvironmentVariables().Count > 0;
     }
 

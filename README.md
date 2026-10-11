@@ -2,7 +2,7 @@
 
 CisLib is a reusable, multi-module core library with shared contracts, examples, instructions and agent skills. Logging is the first module, and C# is the first implementation. Additional languages will have their own implementations and build tools while sharing the applicable module contracts and conformance cases.
 
-The repository currently contains a buildable foundation with a tested internal severity parser, test projects and executable dependency checks. WP02-S01 also defines the unpublished startup API and configuration fixtures, validated with compile-only consumers. The logging runtime and Microsoft logger integration are planned; the example host identifies that state explicitly.
+The repository currently contains tested configuration resolution/validation and the actual [C# EnvironmentOptions startup API](docs/modules/logging/environment-options.md), alongside test projects and executable dependency checks. Shared startup/event/runtime contracts remain unpublished. The logging runtime and Microsoft logger integration are planned; the example host identifies that state explicitly.
 
 ## Start with C#
 
@@ -12,7 +12,7 @@ Install .NET SDK **10.0.401** and PowerShell 7. Run from the repository root:
 pwsh -NoProfile -File eng/verify.ps1 -Profile Developer
 ```
 
-The developer check restores locked dependencies, evaluates project/package boundaries, checks formatting, builds Release, inspects built/packed assembly references, runs the two populated foundation test suites and starts the console host. This verifies the foundation, not the complete logging release suite. Run the individual steps from `implementations/csharp` when working in an IDE:
+The developer check restores locked dependencies, evaluates project/package boundaries, checks formatting, builds Release, inspects built/packed assembly references, runs the populated unit, integration and architecture suites and starts the console host. This verifies the foundation, not the complete logging release suite. Run the individual steps from `implementations/csharp` when working in an IDE:
 
 ```powershell
 dotnet restore CisLib.slnx --locked-mode
