@@ -41,6 +41,21 @@ internal static class ExceptionProjectionProcessFixture
         return 0;
     }
 
+    internal static int Boundary(string id)
+    {
+        JsonObject result = ExceptionBoundaryFixture.Execute(id);
+        result["observed"] = new JsonObject
+        {
+            ["publicFacadeInitialized"] = EnvironmentOptions.IsInitialized,
+            ["runtimeDescription"] = RuntimeInformation.FrameworkDescription,
+            ["operatingSystem"] = OperatingSystem.IsWindows() ? "windows" : "linux",
+            ["fixtureSha256"] = Hash(typeof(ExceptionProjectionProcessFixture).Assembly.Location),
+            ["coreSha256"] = Hash(typeof(ExceptionProjection).Assembly.Location)
+        };
+        Console.WriteLine(result.ToJsonString());
+        return 0;
+    }
+
     private static Exception? Create(string mode) => mode switch
     {
         "plain" => new InvalidOperationException("plain😀\n"),

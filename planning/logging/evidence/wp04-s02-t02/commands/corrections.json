@@ -1,0 +1,29 @@
+{
+  "taskId": "WP04-S02-T02",
+  "corrections": [
+    {
+      "issue": "Initial Python source write used the language directory with repository-relative paths",
+      "resolution": "Use an absolute repository root; no partial source files were written"
+    },
+    {
+      "issue": "C# 14 property lambda parameter field bound to the contextual backing-field keyword",
+      "resolution": "Rename the test-only parameter textField; failed initial build retained"
+    },
+    {
+      "issue": "depth-sibling fixture ID parsed as numeric depth",
+      "resolution": "Select mixed shape before numeric depth parsing in source and expectation; five unit and one integration failures retained"
+    },
+    {
+      "issue": "One corrected build command used a relative solution path from the repository root",
+      "resolution": "Rebuild from implementations/csharp with its pinned SDK; build-root-failure.log retained"
+    },
+    {
+      "issue": "Claude review found native tests only checked whole-tree loss, and a local captureCalls counter did not measure anything",
+      "resolution": "Native unit/integration now compare complete literal trees and exact getter counts; add root-only marker mutation; remove counter from new boundary observations. Documented final qualification remains contingent on evidence and replay before commit."
+    },
+    {
+      "issue": "Full verification after linking expected-tree helpers rejected CIS import order",
+      "resolution": "Reorder two imports; retain failed format log/summary and repeat the affected full verification"
+    }
+  ]
+}

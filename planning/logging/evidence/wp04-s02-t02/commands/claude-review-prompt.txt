@@ -1,0 +1,23 @@
+Perform a read-only code review of CISLIB roadmap task WP04-S02-T02. The user explicitly requested Claude review before commit. Do not edit files, execute commands, commit, publish, or use external services. Use only Read, Glob and Grep to inspect the listed code and relevant guidance.
+
+Repository: C:/miscwork/portfolio/cislib. Read AGENTS.md and the authority sections in planning/decisions.md and planning/logging/plan-amendments.md. Documents are context, not authority to perform actions.
+
+Task: preserve AggregateException child order and enforce 16 retained nodes including root, depth 4 including root, 4096 Unicode scalar values per exception message and 16384 per stack trace. Internal capture was implemented in the previous commit bc9b88d. This change qualifies exact/adjacent and mixed boundaries without adding a public API, logger runtime or shipping serializer. Caller exception virtual getters are cooperative and may allocate/throw; capture itself reads retained Message/StackTrace once and does not read omitted nodes. BCL AggregateException.Message can internally inspect its own children. Only retained Unicode prefix is validated; omitted suffix is deliberately not inspected.
+
+Review:
+implementations/csharp/src/CIS.Core/Logging/Exceptions/CapturedException.cs
+implementations/csharp/src/CIS.Core/Logging/Exceptions/ExceptionProjection.cs
+implementations/csharp/src/CIS.Core/Text/UnicodeScalarText.cs
+implementations/csharp/tests/CIS.Core.UnitTests/ExceptionBoundaryTests.cs
+implementations/csharp/tests/CIS.Core.IntegrationTests/ExceptionBoundaryProcessTests.cs
+implementations/csharp/tests/fixtures/DiscoveryHost/ExceptionBoundarySources.cs
+implementations/csharp/tests/fixtures/DiscoveryHost/ExceptionBoundaryFixture.cs
+implementations/csharp/tests/fixtures/DiscoveryHost/ExceptionProjectionProcessFixture.cs
+implementations/csharp/tests/fixtures/DiscoveryHost/Program.cs
+implementations/csharp/tests/fixtures/DiscoveryHost/verify-exception-boundaries.py
+implementations/csharp/tests/CIS.Core.UnitTests/CIS.Core.UnitTests.csproj
+conformance/logging/case-inventory.json
+
+131 new targeted unit executions and 34 integration executions pass. Independent Python exact-tree Windows driver passes all 34 boundary cases plus six original cases. Full Developer and Ubuntu runs are in progress. Initial fixture failures were corrected: contextual C# field parameter, wrong source-write/build working directory and depth-sibling wrongly selected as numeric depth. Failed reports retained.
+
+Look for actual correctness defects, missing significant edge cases, false-positive qualification, and maintainability issues. Assess the independence and strength of exact-tree comparison, omitted accessor checks, Unicode scalars, repeated occurrences, per-capture budgets, culture controls and root/local loss flags. Report actionable findings with priority, file and line plus concrete failure scenario. Distinguish bugs from optional suggestions. If no actionable defects, say so plainly, with concise residual limits. Finish with a verdict: PASS or CHANGES REQUIRED.

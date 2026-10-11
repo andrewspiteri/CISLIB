@@ -1,0 +1,33 @@
+Re-review the revised WP04-S02-T02 exception boundary code, read-only. The human explicitly authorized Claude review. Use Read, Glob and Grep only; no edits, shell, commit or publishing.
+
+Your earlier review (read .artifacts/csharp/tasks/wp04-s02-t02/claude-review.json result) found no shipping defects and requested:
+1) final qualification evidence before commit,
+2) native full-tree/per-node marker and accessor observations,
+3) remove the constant captureCalls observation.
+
+Resolution:
+- This is still UNCOMMITTED work. Final documentation has been prepared for the successful end state. No commit will occur until raw reports are retained, exact hashes validated, and a fresh canonical copied-source replay passes. The root evidence record and replay reports are deliberately appended AFTER canonical source capture; its currently absent link is a preparation step, not a claimed committed qualification. Failed reports are retained. Please assess whether the pending finalization is adequately stated, rather than treating unfinished artifact assembly as a shipping bug.
+- Added ExceptionBoundaryExpectations.cs: literal full expected JSON trees, complete DeepEquals comparison, independent expected-tree traversal, exact complete probe read list/count verification. Linked to both native test assemblies.
+- Native unit/integration now check full trees and exact per-probe read counts. Unit mutation removes only mixed-over root.truncated while descendant b still reports loss; this must fail. New targeted runs passed 132 unit and 34 integration executions.
+- New boundary observations and assertions no longer expose captureCalls. Original T01 observations remain historical/unmodified.
+- C# integration case list now uses the common source list. Independent Python list/tree expectations remain separate.
+- Culture claims clarify that controlled capture fixtures execute under three cultures, not BCL message localization.
+- Full Developer re-run and the revised 40 original+boundary children per Windows/Ubuntu are executing. Source replay follows after final review/evidence preparation.
+
+Read AGENTS.md and relevant authority. Inspect:
+implementations/csharp/src/CIS.Core/Logging/Exceptions/CapturedException.cs
+implementations/csharp/src/CIS.Core/Logging/Exceptions/ExceptionProjection.cs
+implementations/csharp/src/CIS.Core/Text/UnicodeScalarText.cs
+implementations/csharp/tests/fixtures/DiscoveryHost/ExceptionBoundaryExpectations.cs
+implementations/csharp/tests/fixtures/DiscoveryHost/ExceptionBoundaryFixture.cs
+implementations/csharp/tests/fixtures/DiscoveryHost/ExceptionBoundarySources.cs
+implementations/csharp/tests/fixtures/DiscoveryHost/verify-exception-boundaries.py
+implementations/csharp/tests/CIS.Core.UnitTests/ExceptionBoundaryTests.cs
+implementations/csharp/tests/CIS.Core.IntegrationTests/ExceptionBoundaryProcessTests.cs
+implementations/csharp/tests/CIS.Core.UnitTests/CIS.Core.UnitTests.csproj
+implementations/csharp/tests/CIS.Core.IntegrationTests/CIS.Core.IntegrationTests.csproj
+docs/modules/logging/exception-projection.md
+conformance/logging/case-inventory.json
+.artifacts/csharp/tasks/wp04-s02-t02/retain-evidence.py
+
+Look for real correctness issues and significant remaining native qualification gaps. Give actionable findings with priority/file/line/failure scenario. Distinguish required changes from optional suggestions. Conclude PASS or CHANGES REQUIRED (PASS may be explicitly conditional on the promised final verification and evidence checks).
