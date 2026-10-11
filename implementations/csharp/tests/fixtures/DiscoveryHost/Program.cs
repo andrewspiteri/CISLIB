@@ -11,6 +11,11 @@ internal static class Program
 {
     private static int Main(string[] args)
     {
+        if (args.Length == 2 && args[0] == "scope-merge")
+        {
+            return OperationScopeMergeProcessFixture.Run(args[1]);
+        }
+
         if (args.Length == 2 && args[0] == "scope-foundation")
         {
             return OperationScopeProcessFixture.RunAsync(args[1]).GetAwaiter().GetResult();

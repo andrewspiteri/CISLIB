@@ -1,13 +1,15 @@
 namespace CIS.Logging.Scopes;
 
 // One instance belongs to one future CoreLogRuntime; there is no process-wide scope slot.
-// Runtime admission/closure and merged event capture are separate later integrations.
+// Runtime admission/closure and event capture are separate later integrations.
 internal sealed class OperationScopeStore
 {
     internal const int MaximumDepth = 32;
     private readonly AsyncLocal<OperationScopeFrame?> current = new();
 
     internal OperationScopeFrame? CurrentFrame => current.Value;
+
+    internal CapturedScopeContext Capture() => CapturedScopeContext.FromHead(current.Value);
 
     internal IDisposable BeginScope(OperationContextData context)
     {
