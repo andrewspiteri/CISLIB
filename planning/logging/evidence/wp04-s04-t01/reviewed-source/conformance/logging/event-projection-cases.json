@@ -1,0 +1,3102 @@
+{
+  "schemaVersion": 1,
+  "taskId": "WP04-S04-T01",
+  "implementationPhase": "owned-event-facts",
+  "scope": "Literal controlled metadata/payload projections against actual Core. This development observation is not the complete v1 record or an encoder/runtime substitute; UTC/activity capture and encoded-entry allocation follow.",
+  "caseCount": 32,
+  "nativeBindings": {
+    "csharp": {
+      "exceptionType": "System.InvalidOperationException"
+    }
+  },
+  "cases": [
+    {
+      "id": "EVENT-SEVERITY-TRACE",
+      "input": {
+        "metadata": {
+          "service": "Projection.App",
+          "env": "qa",
+          "version": "telemetry-v2",
+          "build_version": "3.4.5+CommitMixed",
+          "instance_id": "00000000-0000-4000-8000-000000000111",
+          "initialized_at": "2026-10-11T06:00:00.1234567Z",
+          "environment_kind": "service",
+          "process_started_at": "2026-10-11T08:00:00.0000000+02:00",
+          "host_name": "sandbox-visible-host",
+          "os_family": "linux",
+          "os_description": "Fixture OS",
+          "os_architecture": "arm64",
+          "process_architecture": "x64",
+          "runtime_description": ".NET Fixture",
+          "process_id": 123,
+          "commit_id": "Commit.Mixed",
+          "build_id": "Build.1"
+        },
+        "severity": "Trace",
+        "component": "Orders.Worker",
+        "scope": {
+          "operationId": " scope ",
+          "attributes": {
+            "scope": {
+              "kind": "string",
+              "value": "shared"
+            },
+            "shared": {
+              "kind": "string",
+              "value": "scope"
+            }
+          }
+        },
+        "event": {
+          "eventName": "order.accepted",
+          "message": "before\n\"body\"",
+          "messageTemplate": "before {value}",
+          "operationId": " event ",
+          "attributes": {
+            "shared": {
+              "kind": "string",
+              "value": "event"
+            },
+            "null": {
+              "kind": "null"
+            },
+            "count": {
+              "kind": "integer",
+              "value": "17"
+            }
+          }
+        }
+      },
+      "expected": {
+        "caseId": "EVENT-SEVERITY-TRACE",
+        "projection": {
+          "schema_version": 1,
+          "status": "trace",
+          "event_name": "order.accepted",
+          "message": "before\n\"body\"",
+          "message_template": "before {value}",
+          "operation_id": "event",
+          "service": "Projection.App",
+          "env": "qa",
+          "version": "telemetry-v2",
+          "component": "Orders.Worker",
+          "resource": {
+            "build_version": "3.4.5+CommitMixed",
+            "instance_id": "00000000-0000-4000-8000-000000000111",
+            "initialized_at": "2026-10-11T06:00:00.1234567Z",
+            "environment_kind": "service",
+            "process_started_at": "2026-10-11T06:00:00.0000000Z",
+            "host_name": "sandbox-visible-host",
+            "os_family": "linux",
+            "os_description": "Fixture OS",
+            "os_architecture": "arm64",
+            "process_architecture": "x64",
+            "runtime_description": ".NET Fixture",
+            "process_id": 123,
+            "commit_id": "Commit.Mixed",
+            "build_id": "Build.1"
+          },
+          "attributes": {
+            "scope": "shared",
+            "shared": "event",
+            "null": null,
+            "count": 17
+          }
+        },
+        "scopeHeadUnchanged": true,
+        "stableAfterMutation": true,
+        "callerMutationApplied": true
+      }
+    },
+    {
+      "id": "EVENT-SEVERITY-DEBUG",
+      "input": {
+        "metadata": {
+          "service": "Projection.App",
+          "env": "qa",
+          "version": "telemetry-v2",
+          "build_version": "3.4.5+CommitMixed",
+          "instance_id": "00000000-0000-4000-8000-000000000111",
+          "initialized_at": "2026-10-11T06:00:00.1234567Z",
+          "environment_kind": "service",
+          "process_started_at": "2026-10-11T08:00:00.0000000+02:00",
+          "host_name": "sandbox-visible-host",
+          "os_family": "linux",
+          "os_description": "Fixture OS",
+          "os_architecture": "arm64",
+          "process_architecture": "x64",
+          "runtime_description": ".NET Fixture",
+          "process_id": 123,
+          "commit_id": "Commit.Mixed",
+          "build_id": "Build.1"
+        },
+        "severity": "Debug",
+        "component": "Orders.Worker",
+        "scope": {
+          "operationId": " scope ",
+          "attributes": {
+            "scope": {
+              "kind": "string",
+              "value": "shared"
+            },
+            "shared": {
+              "kind": "string",
+              "value": "scope"
+            }
+          }
+        },
+        "event": {
+          "eventName": "order.accepted",
+          "message": "before\n\"body\"",
+          "messageTemplate": "before {value}",
+          "operationId": " event ",
+          "attributes": {
+            "shared": {
+              "kind": "string",
+              "value": "event"
+            },
+            "null": {
+              "kind": "null"
+            },
+            "count": {
+              "kind": "integer",
+              "value": "17"
+            }
+          }
+        }
+      },
+      "expected": {
+        "caseId": "EVENT-SEVERITY-DEBUG",
+        "projection": {
+          "schema_version": 1,
+          "status": "debug",
+          "event_name": "order.accepted",
+          "message": "before\n\"body\"",
+          "message_template": "before {value}",
+          "operation_id": "event",
+          "service": "Projection.App",
+          "env": "qa",
+          "version": "telemetry-v2",
+          "component": "Orders.Worker",
+          "resource": {
+            "build_version": "3.4.5+CommitMixed",
+            "instance_id": "00000000-0000-4000-8000-000000000111",
+            "initialized_at": "2026-10-11T06:00:00.1234567Z",
+            "environment_kind": "service",
+            "process_started_at": "2026-10-11T06:00:00.0000000Z",
+            "host_name": "sandbox-visible-host",
+            "os_family": "linux",
+            "os_description": "Fixture OS",
+            "os_architecture": "arm64",
+            "process_architecture": "x64",
+            "runtime_description": ".NET Fixture",
+            "process_id": 123,
+            "commit_id": "Commit.Mixed",
+            "build_id": "Build.1"
+          },
+          "attributes": {
+            "scope": "shared",
+            "shared": "event",
+            "null": null,
+            "count": 17
+          }
+        },
+        "scopeHeadUnchanged": true,
+        "stableAfterMutation": true,
+        "callerMutationApplied": true
+      }
+    },
+    {
+      "id": "EVENT-SEVERITY-INFORMATION",
+      "input": {
+        "metadata": {
+          "service": "Projection.App",
+          "env": "qa",
+          "version": "telemetry-v2",
+          "build_version": "3.4.5+CommitMixed",
+          "instance_id": "00000000-0000-4000-8000-000000000111",
+          "initialized_at": "2026-10-11T06:00:00.1234567Z",
+          "environment_kind": "service",
+          "process_started_at": "2026-10-11T08:00:00.0000000+02:00",
+          "host_name": "sandbox-visible-host",
+          "os_family": "linux",
+          "os_description": "Fixture OS",
+          "os_architecture": "arm64",
+          "process_architecture": "x64",
+          "runtime_description": ".NET Fixture",
+          "process_id": 123,
+          "commit_id": "Commit.Mixed",
+          "build_id": "Build.1"
+        },
+        "severity": "Information",
+        "component": "Orders.Worker",
+        "scope": {
+          "operationId": " scope ",
+          "attributes": {
+            "scope": {
+              "kind": "string",
+              "value": "shared"
+            },
+            "shared": {
+              "kind": "string",
+              "value": "scope"
+            }
+          }
+        },
+        "event": {
+          "eventName": "order.accepted",
+          "message": "before\n\"body\"",
+          "messageTemplate": "before {value}",
+          "operationId": " event ",
+          "attributes": {
+            "shared": {
+              "kind": "string",
+              "value": "event"
+            },
+            "null": {
+              "kind": "null"
+            },
+            "count": {
+              "kind": "integer",
+              "value": "17"
+            }
+          }
+        }
+      },
+      "expected": {
+        "caseId": "EVENT-SEVERITY-INFORMATION",
+        "projection": {
+          "schema_version": 1,
+          "status": "info",
+          "event_name": "order.accepted",
+          "message": "before\n\"body\"",
+          "message_template": "before {value}",
+          "operation_id": "event",
+          "service": "Projection.App",
+          "env": "qa",
+          "version": "telemetry-v2",
+          "component": "Orders.Worker",
+          "resource": {
+            "build_version": "3.4.5+CommitMixed",
+            "instance_id": "00000000-0000-4000-8000-000000000111",
+            "initialized_at": "2026-10-11T06:00:00.1234567Z",
+            "environment_kind": "service",
+            "process_started_at": "2026-10-11T06:00:00.0000000Z",
+            "host_name": "sandbox-visible-host",
+            "os_family": "linux",
+            "os_description": "Fixture OS",
+            "os_architecture": "arm64",
+            "process_architecture": "x64",
+            "runtime_description": ".NET Fixture",
+            "process_id": 123,
+            "commit_id": "Commit.Mixed",
+            "build_id": "Build.1"
+          },
+          "attributes": {
+            "scope": "shared",
+            "shared": "event",
+            "null": null,
+            "count": 17
+          }
+        },
+        "scopeHeadUnchanged": true,
+        "stableAfterMutation": true,
+        "callerMutationApplied": true
+      }
+    },
+    {
+      "id": "EVENT-SEVERITY-WARNING",
+      "input": {
+        "metadata": {
+          "service": "Projection.App",
+          "env": "qa",
+          "version": "telemetry-v2",
+          "build_version": "3.4.5+CommitMixed",
+          "instance_id": "00000000-0000-4000-8000-000000000111",
+          "initialized_at": "2026-10-11T06:00:00.1234567Z",
+          "environment_kind": "service",
+          "process_started_at": "2026-10-11T08:00:00.0000000+02:00",
+          "host_name": "sandbox-visible-host",
+          "os_family": "linux",
+          "os_description": "Fixture OS",
+          "os_architecture": "arm64",
+          "process_architecture": "x64",
+          "runtime_description": ".NET Fixture",
+          "process_id": 123,
+          "commit_id": "Commit.Mixed",
+          "build_id": "Build.1"
+        },
+        "severity": "Warning",
+        "component": "Orders.Worker",
+        "scope": {
+          "operationId": " scope ",
+          "attributes": {
+            "scope": {
+              "kind": "string",
+              "value": "shared"
+            },
+            "shared": {
+              "kind": "string",
+              "value": "scope"
+            }
+          }
+        },
+        "event": {
+          "eventName": "order.accepted",
+          "message": "before\n\"body\"",
+          "messageTemplate": "before {value}",
+          "operationId": " event ",
+          "attributes": {
+            "shared": {
+              "kind": "string",
+              "value": "event"
+            },
+            "null": {
+              "kind": "null"
+            },
+            "count": {
+              "kind": "integer",
+              "value": "17"
+            }
+          }
+        }
+      },
+      "expected": {
+        "caseId": "EVENT-SEVERITY-WARNING",
+        "projection": {
+          "schema_version": 1,
+          "status": "warn",
+          "event_name": "order.accepted",
+          "message": "before\n\"body\"",
+          "message_template": "before {value}",
+          "operation_id": "event",
+          "service": "Projection.App",
+          "env": "qa",
+          "version": "telemetry-v2",
+          "component": "Orders.Worker",
+          "resource": {
+            "build_version": "3.4.5+CommitMixed",
+            "instance_id": "00000000-0000-4000-8000-000000000111",
+            "initialized_at": "2026-10-11T06:00:00.1234567Z",
+            "environment_kind": "service",
+            "process_started_at": "2026-10-11T06:00:00.0000000Z",
+            "host_name": "sandbox-visible-host",
+            "os_family": "linux",
+            "os_description": "Fixture OS",
+            "os_architecture": "arm64",
+            "process_architecture": "x64",
+            "runtime_description": ".NET Fixture",
+            "process_id": 123,
+            "commit_id": "Commit.Mixed",
+            "build_id": "Build.1"
+          },
+          "attributes": {
+            "scope": "shared",
+            "shared": "event",
+            "null": null,
+            "count": 17
+          }
+        },
+        "scopeHeadUnchanged": true,
+        "stableAfterMutation": true,
+        "callerMutationApplied": true
+      }
+    },
+    {
+      "id": "EVENT-SEVERITY-ERROR",
+      "input": {
+        "metadata": {
+          "service": "Projection.App",
+          "env": "qa",
+          "version": "telemetry-v2",
+          "build_version": "3.4.5+CommitMixed",
+          "instance_id": "00000000-0000-4000-8000-000000000111",
+          "initialized_at": "2026-10-11T06:00:00.1234567Z",
+          "environment_kind": "service",
+          "process_started_at": "2026-10-11T08:00:00.0000000+02:00",
+          "host_name": "sandbox-visible-host",
+          "os_family": "linux",
+          "os_description": "Fixture OS",
+          "os_architecture": "arm64",
+          "process_architecture": "x64",
+          "runtime_description": ".NET Fixture",
+          "process_id": 123,
+          "commit_id": "Commit.Mixed",
+          "build_id": "Build.1"
+        },
+        "severity": "Error",
+        "component": "Orders.Worker",
+        "scope": {
+          "operationId": " scope ",
+          "attributes": {
+            "scope": {
+              "kind": "string",
+              "value": "shared"
+            },
+            "shared": {
+              "kind": "string",
+              "value": "scope"
+            }
+          }
+        },
+        "event": {
+          "eventName": "order.accepted",
+          "message": "before\n\"body\"",
+          "messageTemplate": "before {value}",
+          "operationId": " event ",
+          "attributes": {
+            "shared": {
+              "kind": "string",
+              "value": "event"
+            },
+            "null": {
+              "kind": "null"
+            },
+            "count": {
+              "kind": "integer",
+              "value": "17"
+            }
+          }
+        }
+      },
+      "expected": {
+        "caseId": "EVENT-SEVERITY-ERROR",
+        "projection": {
+          "schema_version": 1,
+          "status": "error",
+          "event_name": "order.accepted",
+          "message": "before\n\"body\"",
+          "message_template": "before {value}",
+          "operation_id": "event",
+          "service": "Projection.App",
+          "env": "qa",
+          "version": "telemetry-v2",
+          "component": "Orders.Worker",
+          "resource": {
+            "build_version": "3.4.5+CommitMixed",
+            "instance_id": "00000000-0000-4000-8000-000000000111",
+            "initialized_at": "2026-10-11T06:00:00.1234567Z",
+            "environment_kind": "service",
+            "process_started_at": "2026-10-11T06:00:00.0000000Z",
+            "host_name": "sandbox-visible-host",
+            "os_family": "linux",
+            "os_description": "Fixture OS",
+            "os_architecture": "arm64",
+            "process_architecture": "x64",
+            "runtime_description": ".NET Fixture",
+            "process_id": 123,
+            "commit_id": "Commit.Mixed",
+            "build_id": "Build.1"
+          },
+          "attributes": {
+            "scope": "shared",
+            "shared": "event",
+            "null": null,
+            "count": 17
+          }
+        },
+        "scopeHeadUnchanged": true,
+        "stableAfterMutation": true,
+        "callerMutationApplied": true
+      }
+    },
+    {
+      "id": "EVENT-SEVERITY-CRITICAL",
+      "input": {
+        "metadata": {
+          "service": "Projection.App",
+          "env": "qa",
+          "version": "telemetry-v2",
+          "build_version": "3.4.5+CommitMixed",
+          "instance_id": "00000000-0000-4000-8000-000000000111",
+          "initialized_at": "2026-10-11T06:00:00.1234567Z",
+          "environment_kind": "service",
+          "process_started_at": "2026-10-11T08:00:00.0000000+02:00",
+          "host_name": "sandbox-visible-host",
+          "os_family": "linux",
+          "os_description": "Fixture OS",
+          "os_architecture": "arm64",
+          "process_architecture": "x64",
+          "runtime_description": ".NET Fixture",
+          "process_id": 123,
+          "commit_id": "Commit.Mixed",
+          "build_id": "Build.1"
+        },
+        "severity": "Critical",
+        "component": "Orders.Worker",
+        "scope": {
+          "operationId": " scope ",
+          "attributes": {
+            "scope": {
+              "kind": "string",
+              "value": "shared"
+            },
+            "shared": {
+              "kind": "string",
+              "value": "scope"
+            }
+          }
+        },
+        "event": {
+          "eventName": "order.accepted",
+          "message": "before\n\"body\"",
+          "messageTemplate": "before {value}",
+          "operationId": " event ",
+          "attributes": {
+            "shared": {
+              "kind": "string",
+              "value": "event"
+            },
+            "null": {
+              "kind": "null"
+            },
+            "count": {
+              "kind": "integer",
+              "value": "17"
+            }
+          }
+        }
+      },
+      "expected": {
+        "caseId": "EVENT-SEVERITY-CRITICAL",
+        "projection": {
+          "schema_version": 1,
+          "status": "critical",
+          "event_name": "order.accepted",
+          "message": "before\n\"body\"",
+          "message_template": "before {value}",
+          "operation_id": "event",
+          "service": "Projection.App",
+          "env": "qa",
+          "version": "telemetry-v2",
+          "component": "Orders.Worker",
+          "resource": {
+            "build_version": "3.4.5+CommitMixed",
+            "instance_id": "00000000-0000-4000-8000-000000000111",
+            "initialized_at": "2026-10-11T06:00:00.1234567Z",
+            "environment_kind": "service",
+            "process_started_at": "2026-10-11T06:00:00.0000000Z",
+            "host_name": "sandbox-visible-host",
+            "os_family": "linux",
+            "os_description": "Fixture OS",
+            "os_architecture": "arm64",
+            "process_architecture": "x64",
+            "runtime_description": ".NET Fixture",
+            "process_id": 123,
+            "commit_id": "Commit.Mixed",
+            "build_id": "Build.1"
+          },
+          "attributes": {
+            "scope": "shared",
+            "shared": "event",
+            "null": null,
+            "count": 17
+          }
+        },
+        "scopeHeadUnchanged": true,
+        "stableAfterMutation": true,
+        "callerMutationApplied": true
+      }
+    },
+    {
+      "id": "EVENT-KIND-UNKNOWN",
+      "input": {
+        "metadata": {
+          "service": "Projection.App",
+          "env": "qa",
+          "version": "telemetry-v2",
+          "build_version": "3.4.5+CommitMixed",
+          "instance_id": "00000000-0000-4000-8000-000000000111",
+          "initialized_at": "2026-10-11T06:00:00.1234567Z",
+          "environment_kind": "unknown",
+          "process_started_at": "2026-10-11T08:00:00.0000000+02:00",
+          "host_name": "sandbox-visible-host",
+          "os_family": "linux",
+          "os_description": "Fixture OS",
+          "os_architecture": "arm64",
+          "process_architecture": "x64",
+          "runtime_description": ".NET Fixture",
+          "process_id": 123,
+          "commit_id": "Commit.Mixed",
+          "build_id": "Build.1"
+        },
+        "severity": "Information",
+        "component": "Orders.Worker",
+        "scope": {
+          "operationId": " scope ",
+          "attributes": {
+            "scope": {
+              "kind": "string",
+              "value": "shared"
+            },
+            "shared": {
+              "kind": "string",
+              "value": "scope"
+            }
+          }
+        },
+        "event": {
+          "eventName": "order.accepted",
+          "message": "before\n\"body\"",
+          "messageTemplate": "before {value}",
+          "operationId": " event ",
+          "attributes": {
+            "shared": {
+              "kind": "string",
+              "value": "event"
+            },
+            "null": {
+              "kind": "null"
+            },
+            "count": {
+              "kind": "integer",
+              "value": "17"
+            }
+          }
+        }
+      },
+      "expected": {
+        "caseId": "EVENT-KIND-UNKNOWN",
+        "projection": {
+          "schema_version": 1,
+          "status": "info",
+          "event_name": "order.accepted",
+          "message": "before\n\"body\"",
+          "message_template": "before {value}",
+          "operation_id": "event",
+          "service": "Projection.App",
+          "env": "qa",
+          "version": "telemetry-v2",
+          "component": "Orders.Worker",
+          "resource": {
+            "build_version": "3.4.5+CommitMixed",
+            "instance_id": "00000000-0000-4000-8000-000000000111",
+            "initialized_at": "2026-10-11T06:00:00.1234567Z",
+            "environment_kind": "unknown",
+            "process_started_at": "2026-10-11T06:00:00.0000000Z",
+            "host_name": "sandbox-visible-host",
+            "os_family": "linux",
+            "os_description": "Fixture OS",
+            "os_architecture": "arm64",
+            "process_architecture": "x64",
+            "runtime_description": ".NET Fixture",
+            "process_id": 123,
+            "commit_id": "Commit.Mixed",
+            "build_id": "Build.1"
+          },
+          "attributes": {
+            "scope": "shared",
+            "shared": "event",
+            "null": null,
+            "count": 17
+          }
+        },
+        "scopeHeadUnchanged": true,
+        "stableAfterMutation": true,
+        "callerMutationApplied": true
+      }
+    },
+    {
+      "id": "EVENT-KIND-CONSOLE",
+      "input": {
+        "metadata": {
+          "service": "Projection.App",
+          "env": "qa",
+          "version": "telemetry-v2",
+          "build_version": "3.4.5+CommitMixed",
+          "instance_id": "00000000-0000-4000-8000-000000000111",
+          "initialized_at": "2026-10-11T06:00:00.1234567Z",
+          "environment_kind": "console",
+          "process_started_at": "2026-10-11T08:00:00.0000000+02:00",
+          "host_name": "sandbox-visible-host",
+          "os_family": "linux",
+          "os_description": "Fixture OS",
+          "os_architecture": "arm64",
+          "process_architecture": "x64",
+          "runtime_description": ".NET Fixture",
+          "process_id": 123,
+          "commit_id": "Commit.Mixed",
+          "build_id": "Build.1"
+        },
+        "severity": "Information",
+        "component": "Orders.Worker",
+        "scope": {
+          "operationId": " scope ",
+          "attributes": {
+            "scope": {
+              "kind": "string",
+              "value": "shared"
+            },
+            "shared": {
+              "kind": "string",
+              "value": "scope"
+            }
+          }
+        },
+        "event": {
+          "eventName": "order.accepted",
+          "message": "before\n\"body\"",
+          "messageTemplate": "before {value}",
+          "operationId": " event ",
+          "attributes": {
+            "shared": {
+              "kind": "string",
+              "value": "event"
+            },
+            "null": {
+              "kind": "null"
+            },
+            "count": {
+              "kind": "integer",
+              "value": "17"
+            }
+          }
+        }
+      },
+      "expected": {
+        "caseId": "EVENT-KIND-CONSOLE",
+        "projection": {
+          "schema_version": 1,
+          "status": "info",
+          "event_name": "order.accepted",
+          "message": "before\n\"body\"",
+          "message_template": "before {value}",
+          "operation_id": "event",
+          "service": "Projection.App",
+          "env": "qa",
+          "version": "telemetry-v2",
+          "component": "Orders.Worker",
+          "resource": {
+            "build_version": "3.4.5+CommitMixed",
+            "instance_id": "00000000-0000-4000-8000-000000000111",
+            "initialized_at": "2026-10-11T06:00:00.1234567Z",
+            "environment_kind": "console",
+            "process_started_at": "2026-10-11T06:00:00.0000000Z",
+            "host_name": "sandbox-visible-host",
+            "os_family": "linux",
+            "os_description": "Fixture OS",
+            "os_architecture": "arm64",
+            "process_architecture": "x64",
+            "runtime_description": ".NET Fixture",
+            "process_id": 123,
+            "commit_id": "Commit.Mixed",
+            "build_id": "Build.1"
+          },
+          "attributes": {
+            "scope": "shared",
+            "shared": "event",
+            "null": null,
+            "count": 17
+          }
+        },
+        "scopeHeadUnchanged": true,
+        "stableAfterMutation": true,
+        "callerMutationApplied": true
+      }
+    },
+    {
+      "id": "EVENT-KIND-SERVICE",
+      "input": {
+        "metadata": {
+          "service": "Projection.App",
+          "env": "qa",
+          "version": "telemetry-v2",
+          "build_version": "3.4.5+CommitMixed",
+          "instance_id": "00000000-0000-4000-8000-000000000111",
+          "initialized_at": "2026-10-11T06:00:00.1234567Z",
+          "environment_kind": "service",
+          "process_started_at": "2026-10-11T08:00:00.0000000+02:00",
+          "host_name": "sandbox-visible-host",
+          "os_family": "linux",
+          "os_description": "Fixture OS",
+          "os_architecture": "arm64",
+          "process_architecture": "x64",
+          "runtime_description": ".NET Fixture",
+          "process_id": 123,
+          "commit_id": "Commit.Mixed",
+          "build_id": "Build.1"
+        },
+        "severity": "Information",
+        "component": "Orders.Worker",
+        "scope": {
+          "operationId": " scope ",
+          "attributes": {
+            "scope": {
+              "kind": "string",
+              "value": "shared"
+            },
+            "shared": {
+              "kind": "string",
+              "value": "scope"
+            }
+          }
+        },
+        "event": {
+          "eventName": "order.accepted",
+          "message": "before\n\"body\"",
+          "messageTemplate": "before {value}",
+          "operationId": " event ",
+          "attributes": {
+            "shared": {
+              "kind": "string",
+              "value": "event"
+            },
+            "null": {
+              "kind": "null"
+            },
+            "count": {
+              "kind": "integer",
+              "value": "17"
+            }
+          }
+        }
+      },
+      "expected": {
+        "caseId": "EVENT-KIND-SERVICE",
+        "projection": {
+          "schema_version": 1,
+          "status": "info",
+          "event_name": "order.accepted",
+          "message": "before\n\"body\"",
+          "message_template": "before {value}",
+          "operation_id": "event",
+          "service": "Projection.App",
+          "env": "qa",
+          "version": "telemetry-v2",
+          "component": "Orders.Worker",
+          "resource": {
+            "build_version": "3.4.5+CommitMixed",
+            "instance_id": "00000000-0000-4000-8000-000000000111",
+            "initialized_at": "2026-10-11T06:00:00.1234567Z",
+            "environment_kind": "service",
+            "process_started_at": "2026-10-11T06:00:00.0000000Z",
+            "host_name": "sandbox-visible-host",
+            "os_family": "linux",
+            "os_description": "Fixture OS",
+            "os_architecture": "arm64",
+            "process_architecture": "x64",
+            "runtime_description": ".NET Fixture",
+            "process_id": 123,
+            "commit_id": "Commit.Mixed",
+            "build_id": "Build.1"
+          },
+          "attributes": {
+            "scope": "shared",
+            "shared": "event",
+            "null": null,
+            "count": 17
+          }
+        },
+        "scopeHeadUnchanged": true,
+        "stableAfterMutation": true,
+        "callerMutationApplied": true
+      }
+    },
+    {
+      "id": "EVENT-KIND-WEB",
+      "input": {
+        "metadata": {
+          "service": "Projection.App",
+          "env": "qa",
+          "version": "telemetry-v2",
+          "build_version": "3.4.5+CommitMixed",
+          "instance_id": "00000000-0000-4000-8000-000000000111",
+          "initialized_at": "2026-10-11T06:00:00.1234567Z",
+          "environment_kind": "web",
+          "process_started_at": "2026-10-11T08:00:00.0000000+02:00",
+          "host_name": "sandbox-visible-host",
+          "os_family": "linux",
+          "os_description": "Fixture OS",
+          "os_architecture": "arm64",
+          "process_architecture": "x64",
+          "runtime_description": ".NET Fixture",
+          "process_id": 123,
+          "commit_id": "Commit.Mixed",
+          "build_id": "Build.1"
+        },
+        "severity": "Information",
+        "component": "Orders.Worker",
+        "scope": {
+          "operationId": " scope ",
+          "attributes": {
+            "scope": {
+              "kind": "string",
+              "value": "shared"
+            },
+            "shared": {
+              "kind": "string",
+              "value": "scope"
+            }
+          }
+        },
+        "event": {
+          "eventName": "order.accepted",
+          "message": "before\n\"body\"",
+          "messageTemplate": "before {value}",
+          "operationId": " event ",
+          "attributes": {
+            "shared": {
+              "kind": "string",
+              "value": "event"
+            },
+            "null": {
+              "kind": "null"
+            },
+            "count": {
+              "kind": "integer",
+              "value": "17"
+            }
+          }
+        }
+      },
+      "expected": {
+        "caseId": "EVENT-KIND-WEB",
+        "projection": {
+          "schema_version": 1,
+          "status": "info",
+          "event_name": "order.accepted",
+          "message": "before\n\"body\"",
+          "message_template": "before {value}",
+          "operation_id": "event",
+          "service": "Projection.App",
+          "env": "qa",
+          "version": "telemetry-v2",
+          "component": "Orders.Worker",
+          "resource": {
+            "build_version": "3.4.5+CommitMixed",
+            "instance_id": "00000000-0000-4000-8000-000000000111",
+            "initialized_at": "2026-10-11T06:00:00.1234567Z",
+            "environment_kind": "web",
+            "process_started_at": "2026-10-11T06:00:00.0000000Z",
+            "host_name": "sandbox-visible-host",
+            "os_family": "linux",
+            "os_description": "Fixture OS",
+            "os_architecture": "arm64",
+            "process_architecture": "x64",
+            "runtime_description": ".NET Fixture",
+            "process_id": 123,
+            "commit_id": "Commit.Mixed",
+            "build_id": "Build.1"
+          },
+          "attributes": {
+            "scope": "shared",
+            "shared": "event",
+            "null": null,
+            "count": 17
+          }
+        },
+        "scopeHeadUnchanged": true,
+        "stableAfterMutation": true,
+        "callerMutationApplied": true
+      }
+    },
+    {
+      "id": "EVENT-KIND-FUNCTION",
+      "input": {
+        "metadata": {
+          "service": "Projection.App",
+          "env": "qa",
+          "version": "telemetry-v2",
+          "build_version": "3.4.5+CommitMixed",
+          "instance_id": "00000000-0000-4000-8000-000000000111",
+          "initialized_at": "2026-10-11T06:00:00.1234567Z",
+          "environment_kind": "function",
+          "process_started_at": "2026-10-11T08:00:00.0000000+02:00",
+          "host_name": "sandbox-visible-host",
+          "os_family": "linux",
+          "os_description": "Fixture OS",
+          "os_architecture": "arm64",
+          "process_architecture": "x64",
+          "runtime_description": ".NET Fixture",
+          "process_id": 123,
+          "commit_id": "Commit.Mixed",
+          "build_id": "Build.1"
+        },
+        "severity": "Information",
+        "component": "Orders.Worker",
+        "scope": {
+          "operationId": " scope ",
+          "attributes": {
+            "scope": {
+              "kind": "string",
+              "value": "shared"
+            },
+            "shared": {
+              "kind": "string",
+              "value": "scope"
+            }
+          }
+        },
+        "event": {
+          "eventName": "order.accepted",
+          "message": "before\n\"body\"",
+          "messageTemplate": "before {value}",
+          "operationId": " event ",
+          "attributes": {
+            "shared": {
+              "kind": "string",
+              "value": "event"
+            },
+            "null": {
+              "kind": "null"
+            },
+            "count": {
+              "kind": "integer",
+              "value": "17"
+            }
+          }
+        }
+      },
+      "expected": {
+        "caseId": "EVENT-KIND-FUNCTION",
+        "projection": {
+          "schema_version": 1,
+          "status": "info",
+          "event_name": "order.accepted",
+          "message": "before\n\"body\"",
+          "message_template": "before {value}",
+          "operation_id": "event",
+          "service": "Projection.App",
+          "env": "qa",
+          "version": "telemetry-v2",
+          "component": "Orders.Worker",
+          "resource": {
+            "build_version": "3.4.5+CommitMixed",
+            "instance_id": "00000000-0000-4000-8000-000000000111",
+            "initialized_at": "2026-10-11T06:00:00.1234567Z",
+            "environment_kind": "function",
+            "process_started_at": "2026-10-11T06:00:00.0000000Z",
+            "host_name": "sandbox-visible-host",
+            "os_family": "linux",
+            "os_description": "Fixture OS",
+            "os_architecture": "arm64",
+            "process_architecture": "x64",
+            "runtime_description": ".NET Fixture",
+            "process_id": 123,
+            "commit_id": "Commit.Mixed",
+            "build_id": "Build.1"
+          },
+          "attributes": {
+            "scope": "shared",
+            "shared": "event",
+            "null": null,
+            "count": 17
+          }
+        },
+        "scopeHeadUnchanged": true,
+        "stableAfterMutation": true,
+        "callerMutationApplied": true
+      }
+    },
+    {
+      "id": "EVENT-OMIT-PROCESS_STARTED_AT",
+      "input": {
+        "metadata": {
+          "service": "Projection.App",
+          "env": "qa",
+          "version": "telemetry-v2",
+          "build_version": "3.4.5+CommitMixed",
+          "instance_id": "00000000-0000-4000-8000-000000000111",
+          "initialized_at": "2026-10-11T06:00:00.1234567Z",
+          "environment_kind": "service",
+          "process_started_at": null,
+          "host_name": "sandbox-visible-host",
+          "os_family": "linux",
+          "os_description": "Fixture OS",
+          "os_architecture": "arm64",
+          "process_architecture": "x64",
+          "runtime_description": ".NET Fixture",
+          "process_id": 123,
+          "commit_id": "Commit.Mixed",
+          "build_id": "Build.1"
+        },
+        "severity": "Information",
+        "component": "Orders.Worker",
+        "scope": {
+          "operationId": " scope ",
+          "attributes": {
+            "scope": {
+              "kind": "string",
+              "value": "shared"
+            },
+            "shared": {
+              "kind": "string",
+              "value": "scope"
+            }
+          }
+        },
+        "event": {
+          "eventName": "order.accepted",
+          "message": "before\n\"body\"",
+          "messageTemplate": "before {value}",
+          "operationId": " event ",
+          "attributes": {
+            "shared": {
+              "kind": "string",
+              "value": "event"
+            },
+            "null": {
+              "kind": "null"
+            },
+            "count": {
+              "kind": "integer",
+              "value": "17"
+            }
+          }
+        }
+      },
+      "expected": {
+        "caseId": "EVENT-OMIT-PROCESS_STARTED_AT",
+        "projection": {
+          "schema_version": 1,
+          "status": "info",
+          "event_name": "order.accepted",
+          "message": "before\n\"body\"",
+          "message_template": "before {value}",
+          "operation_id": "event",
+          "service": "Projection.App",
+          "env": "qa",
+          "version": "telemetry-v2",
+          "component": "Orders.Worker",
+          "resource": {
+            "build_version": "3.4.5+CommitMixed",
+            "instance_id": "00000000-0000-4000-8000-000000000111",
+            "initialized_at": "2026-10-11T06:00:00.1234567Z",
+            "environment_kind": "service",
+            "host_name": "sandbox-visible-host",
+            "os_family": "linux",
+            "os_description": "Fixture OS",
+            "os_architecture": "arm64",
+            "process_architecture": "x64",
+            "runtime_description": ".NET Fixture",
+            "process_id": 123,
+            "commit_id": "Commit.Mixed",
+            "build_id": "Build.1"
+          },
+          "attributes": {
+            "scope": "shared",
+            "shared": "event",
+            "null": null,
+            "count": 17
+          }
+        },
+        "scopeHeadUnchanged": true,
+        "stableAfterMutation": true,
+        "callerMutationApplied": true
+      }
+    },
+    {
+      "id": "EVENT-OMIT-HOST_NAME",
+      "input": {
+        "metadata": {
+          "service": "Projection.App",
+          "env": "qa",
+          "version": "telemetry-v2",
+          "build_version": "3.4.5+CommitMixed",
+          "instance_id": "00000000-0000-4000-8000-000000000111",
+          "initialized_at": "2026-10-11T06:00:00.1234567Z",
+          "environment_kind": "service",
+          "process_started_at": "2026-10-11T08:00:00.0000000+02:00",
+          "host_name": null,
+          "os_family": "linux",
+          "os_description": "Fixture OS",
+          "os_architecture": "arm64",
+          "process_architecture": "x64",
+          "runtime_description": ".NET Fixture",
+          "process_id": 123,
+          "commit_id": "Commit.Mixed",
+          "build_id": "Build.1"
+        },
+        "severity": "Information",
+        "component": "Orders.Worker",
+        "scope": {
+          "operationId": " scope ",
+          "attributes": {
+            "scope": {
+              "kind": "string",
+              "value": "shared"
+            },
+            "shared": {
+              "kind": "string",
+              "value": "scope"
+            }
+          }
+        },
+        "event": {
+          "eventName": "order.accepted",
+          "message": "before\n\"body\"",
+          "messageTemplate": "before {value}",
+          "operationId": " event ",
+          "attributes": {
+            "shared": {
+              "kind": "string",
+              "value": "event"
+            },
+            "null": {
+              "kind": "null"
+            },
+            "count": {
+              "kind": "integer",
+              "value": "17"
+            }
+          }
+        }
+      },
+      "expected": {
+        "caseId": "EVENT-OMIT-HOST_NAME",
+        "projection": {
+          "schema_version": 1,
+          "status": "info",
+          "event_name": "order.accepted",
+          "message": "before\n\"body\"",
+          "message_template": "before {value}",
+          "operation_id": "event",
+          "service": "Projection.App",
+          "env": "qa",
+          "version": "telemetry-v2",
+          "component": "Orders.Worker",
+          "resource": {
+            "build_version": "3.4.5+CommitMixed",
+            "instance_id": "00000000-0000-4000-8000-000000000111",
+            "initialized_at": "2026-10-11T06:00:00.1234567Z",
+            "environment_kind": "service",
+            "process_started_at": "2026-10-11T06:00:00.0000000Z",
+            "os_family": "linux",
+            "os_description": "Fixture OS",
+            "os_architecture": "arm64",
+            "process_architecture": "x64",
+            "runtime_description": ".NET Fixture",
+            "process_id": 123,
+            "commit_id": "Commit.Mixed",
+            "build_id": "Build.1"
+          },
+          "attributes": {
+            "scope": "shared",
+            "shared": "event",
+            "null": null,
+            "count": 17
+          }
+        },
+        "scopeHeadUnchanged": true,
+        "stableAfterMutation": true,
+        "callerMutationApplied": true
+      }
+    },
+    {
+      "id": "EVENT-OMIT-OS_DESCRIPTION",
+      "input": {
+        "metadata": {
+          "service": "Projection.App",
+          "env": "qa",
+          "version": "telemetry-v2",
+          "build_version": "3.4.5+CommitMixed",
+          "instance_id": "00000000-0000-4000-8000-000000000111",
+          "initialized_at": "2026-10-11T06:00:00.1234567Z",
+          "environment_kind": "service",
+          "process_started_at": "2026-10-11T08:00:00.0000000+02:00",
+          "host_name": "sandbox-visible-host",
+          "os_family": "linux",
+          "os_description": null,
+          "os_architecture": "arm64",
+          "process_architecture": "x64",
+          "runtime_description": ".NET Fixture",
+          "process_id": 123,
+          "commit_id": "Commit.Mixed",
+          "build_id": "Build.1"
+        },
+        "severity": "Information",
+        "component": "Orders.Worker",
+        "scope": {
+          "operationId": " scope ",
+          "attributes": {
+            "scope": {
+              "kind": "string",
+              "value": "shared"
+            },
+            "shared": {
+              "kind": "string",
+              "value": "scope"
+            }
+          }
+        },
+        "event": {
+          "eventName": "order.accepted",
+          "message": "before\n\"body\"",
+          "messageTemplate": "before {value}",
+          "operationId": " event ",
+          "attributes": {
+            "shared": {
+              "kind": "string",
+              "value": "event"
+            },
+            "null": {
+              "kind": "null"
+            },
+            "count": {
+              "kind": "integer",
+              "value": "17"
+            }
+          }
+        }
+      },
+      "expected": {
+        "caseId": "EVENT-OMIT-OS_DESCRIPTION",
+        "projection": {
+          "schema_version": 1,
+          "status": "info",
+          "event_name": "order.accepted",
+          "message": "before\n\"body\"",
+          "message_template": "before {value}",
+          "operation_id": "event",
+          "service": "Projection.App",
+          "env": "qa",
+          "version": "telemetry-v2",
+          "component": "Orders.Worker",
+          "resource": {
+            "build_version": "3.4.5+CommitMixed",
+            "instance_id": "00000000-0000-4000-8000-000000000111",
+            "initialized_at": "2026-10-11T06:00:00.1234567Z",
+            "environment_kind": "service",
+            "process_started_at": "2026-10-11T06:00:00.0000000Z",
+            "host_name": "sandbox-visible-host",
+            "os_family": "linux",
+            "os_architecture": "arm64",
+            "process_architecture": "x64",
+            "runtime_description": ".NET Fixture",
+            "process_id": 123,
+            "commit_id": "Commit.Mixed",
+            "build_id": "Build.1"
+          },
+          "attributes": {
+            "scope": "shared",
+            "shared": "event",
+            "null": null,
+            "count": 17
+          }
+        },
+        "scopeHeadUnchanged": true,
+        "stableAfterMutation": true,
+        "callerMutationApplied": true
+      }
+    },
+    {
+      "id": "EVENT-OMIT-OS_ARCHITECTURE",
+      "input": {
+        "metadata": {
+          "service": "Projection.App",
+          "env": "qa",
+          "version": "telemetry-v2",
+          "build_version": "3.4.5+CommitMixed",
+          "instance_id": "00000000-0000-4000-8000-000000000111",
+          "initialized_at": "2026-10-11T06:00:00.1234567Z",
+          "environment_kind": "service",
+          "process_started_at": "2026-10-11T08:00:00.0000000+02:00",
+          "host_name": "sandbox-visible-host",
+          "os_family": "linux",
+          "os_description": "Fixture OS",
+          "os_architecture": null,
+          "process_architecture": "x64",
+          "runtime_description": ".NET Fixture",
+          "process_id": 123,
+          "commit_id": "Commit.Mixed",
+          "build_id": "Build.1"
+        },
+        "severity": "Information",
+        "component": "Orders.Worker",
+        "scope": {
+          "operationId": " scope ",
+          "attributes": {
+            "scope": {
+              "kind": "string",
+              "value": "shared"
+            },
+            "shared": {
+              "kind": "string",
+              "value": "scope"
+            }
+          }
+        },
+        "event": {
+          "eventName": "order.accepted",
+          "message": "before\n\"body\"",
+          "messageTemplate": "before {value}",
+          "operationId": " event ",
+          "attributes": {
+            "shared": {
+              "kind": "string",
+              "value": "event"
+            },
+            "null": {
+              "kind": "null"
+            },
+            "count": {
+              "kind": "integer",
+              "value": "17"
+            }
+          }
+        }
+      },
+      "expected": {
+        "caseId": "EVENT-OMIT-OS_ARCHITECTURE",
+        "projection": {
+          "schema_version": 1,
+          "status": "info",
+          "event_name": "order.accepted",
+          "message": "before\n\"body\"",
+          "message_template": "before {value}",
+          "operation_id": "event",
+          "service": "Projection.App",
+          "env": "qa",
+          "version": "telemetry-v2",
+          "component": "Orders.Worker",
+          "resource": {
+            "build_version": "3.4.5+CommitMixed",
+            "instance_id": "00000000-0000-4000-8000-000000000111",
+            "initialized_at": "2026-10-11T06:00:00.1234567Z",
+            "environment_kind": "service",
+            "process_started_at": "2026-10-11T06:00:00.0000000Z",
+            "host_name": "sandbox-visible-host",
+            "os_family": "linux",
+            "os_description": "Fixture OS",
+            "process_architecture": "x64",
+            "runtime_description": ".NET Fixture",
+            "process_id": 123,
+            "commit_id": "Commit.Mixed",
+            "build_id": "Build.1"
+          },
+          "attributes": {
+            "scope": "shared",
+            "shared": "event",
+            "null": null,
+            "count": 17
+          }
+        },
+        "scopeHeadUnchanged": true,
+        "stableAfterMutation": true,
+        "callerMutationApplied": true
+      }
+    },
+    {
+      "id": "EVENT-OMIT-PROCESS_ARCHITECTURE",
+      "input": {
+        "metadata": {
+          "service": "Projection.App",
+          "env": "qa",
+          "version": "telemetry-v2",
+          "build_version": "3.4.5+CommitMixed",
+          "instance_id": "00000000-0000-4000-8000-000000000111",
+          "initialized_at": "2026-10-11T06:00:00.1234567Z",
+          "environment_kind": "service",
+          "process_started_at": "2026-10-11T08:00:00.0000000+02:00",
+          "host_name": "sandbox-visible-host",
+          "os_family": "linux",
+          "os_description": "Fixture OS",
+          "os_architecture": "arm64",
+          "process_architecture": null,
+          "runtime_description": ".NET Fixture",
+          "process_id": 123,
+          "commit_id": "Commit.Mixed",
+          "build_id": "Build.1"
+        },
+        "severity": "Information",
+        "component": "Orders.Worker",
+        "scope": {
+          "operationId": " scope ",
+          "attributes": {
+            "scope": {
+              "kind": "string",
+              "value": "shared"
+            },
+            "shared": {
+              "kind": "string",
+              "value": "scope"
+            }
+          }
+        },
+        "event": {
+          "eventName": "order.accepted",
+          "message": "before\n\"body\"",
+          "messageTemplate": "before {value}",
+          "operationId": " event ",
+          "attributes": {
+            "shared": {
+              "kind": "string",
+              "value": "event"
+            },
+            "null": {
+              "kind": "null"
+            },
+            "count": {
+              "kind": "integer",
+              "value": "17"
+            }
+          }
+        }
+      },
+      "expected": {
+        "caseId": "EVENT-OMIT-PROCESS_ARCHITECTURE",
+        "projection": {
+          "schema_version": 1,
+          "status": "info",
+          "event_name": "order.accepted",
+          "message": "before\n\"body\"",
+          "message_template": "before {value}",
+          "operation_id": "event",
+          "service": "Projection.App",
+          "env": "qa",
+          "version": "telemetry-v2",
+          "component": "Orders.Worker",
+          "resource": {
+            "build_version": "3.4.5+CommitMixed",
+            "instance_id": "00000000-0000-4000-8000-000000000111",
+            "initialized_at": "2026-10-11T06:00:00.1234567Z",
+            "environment_kind": "service",
+            "process_started_at": "2026-10-11T06:00:00.0000000Z",
+            "host_name": "sandbox-visible-host",
+            "os_family": "linux",
+            "os_description": "Fixture OS",
+            "os_architecture": "arm64",
+            "runtime_description": ".NET Fixture",
+            "process_id": 123,
+            "commit_id": "Commit.Mixed",
+            "build_id": "Build.1"
+          },
+          "attributes": {
+            "scope": "shared",
+            "shared": "event",
+            "null": null,
+            "count": 17
+          }
+        },
+        "scopeHeadUnchanged": true,
+        "stableAfterMutation": true,
+        "callerMutationApplied": true
+      }
+    },
+    {
+      "id": "EVENT-OMIT-RUNTIME_DESCRIPTION",
+      "input": {
+        "metadata": {
+          "service": "Projection.App",
+          "env": "qa",
+          "version": "telemetry-v2",
+          "build_version": "3.4.5+CommitMixed",
+          "instance_id": "00000000-0000-4000-8000-000000000111",
+          "initialized_at": "2026-10-11T06:00:00.1234567Z",
+          "environment_kind": "service",
+          "process_started_at": "2026-10-11T08:00:00.0000000+02:00",
+          "host_name": "sandbox-visible-host",
+          "os_family": "linux",
+          "os_description": "Fixture OS",
+          "os_architecture": "arm64",
+          "process_architecture": "x64",
+          "runtime_description": null,
+          "process_id": 123,
+          "commit_id": "Commit.Mixed",
+          "build_id": "Build.1"
+        },
+        "severity": "Information",
+        "component": "Orders.Worker",
+        "scope": {
+          "operationId": " scope ",
+          "attributes": {
+            "scope": {
+              "kind": "string",
+              "value": "shared"
+            },
+            "shared": {
+              "kind": "string",
+              "value": "scope"
+            }
+          }
+        },
+        "event": {
+          "eventName": "order.accepted",
+          "message": "before\n\"body\"",
+          "messageTemplate": "before {value}",
+          "operationId": " event ",
+          "attributes": {
+            "shared": {
+              "kind": "string",
+              "value": "event"
+            },
+            "null": {
+              "kind": "null"
+            },
+            "count": {
+              "kind": "integer",
+              "value": "17"
+            }
+          }
+        }
+      },
+      "expected": {
+        "caseId": "EVENT-OMIT-RUNTIME_DESCRIPTION",
+        "projection": {
+          "schema_version": 1,
+          "status": "info",
+          "event_name": "order.accepted",
+          "message": "before\n\"body\"",
+          "message_template": "before {value}",
+          "operation_id": "event",
+          "service": "Projection.App",
+          "env": "qa",
+          "version": "telemetry-v2",
+          "component": "Orders.Worker",
+          "resource": {
+            "build_version": "3.4.5+CommitMixed",
+            "instance_id": "00000000-0000-4000-8000-000000000111",
+            "initialized_at": "2026-10-11T06:00:00.1234567Z",
+            "environment_kind": "service",
+            "process_started_at": "2026-10-11T06:00:00.0000000Z",
+            "host_name": "sandbox-visible-host",
+            "os_family": "linux",
+            "os_description": "Fixture OS",
+            "os_architecture": "arm64",
+            "process_architecture": "x64",
+            "process_id": 123,
+            "commit_id": "Commit.Mixed",
+            "build_id": "Build.1"
+          },
+          "attributes": {
+            "scope": "shared",
+            "shared": "event",
+            "null": null,
+            "count": 17
+          }
+        },
+        "scopeHeadUnchanged": true,
+        "stableAfterMutation": true,
+        "callerMutationApplied": true
+      }
+    },
+    {
+      "id": "EVENT-OMIT-PROCESS_ID",
+      "input": {
+        "metadata": {
+          "service": "Projection.App",
+          "env": "qa",
+          "version": "telemetry-v2",
+          "build_version": "3.4.5+CommitMixed",
+          "instance_id": "00000000-0000-4000-8000-000000000111",
+          "initialized_at": "2026-10-11T06:00:00.1234567Z",
+          "environment_kind": "service",
+          "process_started_at": "2026-10-11T08:00:00.0000000+02:00",
+          "host_name": "sandbox-visible-host",
+          "os_family": "linux",
+          "os_description": "Fixture OS",
+          "os_architecture": "arm64",
+          "process_architecture": "x64",
+          "runtime_description": ".NET Fixture",
+          "process_id": null,
+          "commit_id": "Commit.Mixed",
+          "build_id": "Build.1"
+        },
+        "severity": "Information",
+        "component": "Orders.Worker",
+        "scope": {
+          "operationId": " scope ",
+          "attributes": {
+            "scope": {
+              "kind": "string",
+              "value": "shared"
+            },
+            "shared": {
+              "kind": "string",
+              "value": "scope"
+            }
+          }
+        },
+        "event": {
+          "eventName": "order.accepted",
+          "message": "before\n\"body\"",
+          "messageTemplate": "before {value}",
+          "operationId": " event ",
+          "attributes": {
+            "shared": {
+              "kind": "string",
+              "value": "event"
+            },
+            "null": {
+              "kind": "null"
+            },
+            "count": {
+              "kind": "integer",
+              "value": "17"
+            }
+          }
+        }
+      },
+      "expected": {
+        "caseId": "EVENT-OMIT-PROCESS_ID",
+        "projection": {
+          "schema_version": 1,
+          "status": "info",
+          "event_name": "order.accepted",
+          "message": "before\n\"body\"",
+          "message_template": "before {value}",
+          "operation_id": "event",
+          "service": "Projection.App",
+          "env": "qa",
+          "version": "telemetry-v2",
+          "component": "Orders.Worker",
+          "resource": {
+            "build_version": "3.4.5+CommitMixed",
+            "instance_id": "00000000-0000-4000-8000-000000000111",
+            "initialized_at": "2026-10-11T06:00:00.1234567Z",
+            "environment_kind": "service",
+            "process_started_at": "2026-10-11T06:00:00.0000000Z",
+            "host_name": "sandbox-visible-host",
+            "os_family": "linux",
+            "os_description": "Fixture OS",
+            "os_architecture": "arm64",
+            "process_architecture": "x64",
+            "runtime_description": ".NET Fixture",
+            "commit_id": "Commit.Mixed",
+            "build_id": "Build.1"
+          },
+          "attributes": {
+            "scope": "shared",
+            "shared": "event",
+            "null": null,
+            "count": 17
+          }
+        },
+        "scopeHeadUnchanged": true,
+        "stableAfterMutation": true,
+        "callerMutationApplied": true
+      }
+    },
+    {
+      "id": "EVENT-OMIT-COMMIT_ID",
+      "input": {
+        "metadata": {
+          "service": "Projection.App",
+          "env": "qa",
+          "version": "telemetry-v2",
+          "build_version": "3.4.5+CommitMixed",
+          "instance_id": "00000000-0000-4000-8000-000000000111",
+          "initialized_at": "2026-10-11T06:00:00.1234567Z",
+          "environment_kind": "service",
+          "process_started_at": "2026-10-11T08:00:00.0000000+02:00",
+          "host_name": "sandbox-visible-host",
+          "os_family": "linux",
+          "os_description": "Fixture OS",
+          "os_architecture": "arm64",
+          "process_architecture": "x64",
+          "runtime_description": ".NET Fixture",
+          "process_id": 123,
+          "commit_id": null,
+          "build_id": "Build.1"
+        },
+        "severity": "Information",
+        "component": "Orders.Worker",
+        "scope": {
+          "operationId": " scope ",
+          "attributes": {
+            "scope": {
+              "kind": "string",
+              "value": "shared"
+            },
+            "shared": {
+              "kind": "string",
+              "value": "scope"
+            }
+          }
+        },
+        "event": {
+          "eventName": "order.accepted",
+          "message": "before\n\"body\"",
+          "messageTemplate": "before {value}",
+          "operationId": " event ",
+          "attributes": {
+            "shared": {
+              "kind": "string",
+              "value": "event"
+            },
+            "null": {
+              "kind": "null"
+            },
+            "count": {
+              "kind": "integer",
+              "value": "17"
+            }
+          }
+        }
+      },
+      "expected": {
+        "caseId": "EVENT-OMIT-COMMIT_ID",
+        "projection": {
+          "schema_version": 1,
+          "status": "info",
+          "event_name": "order.accepted",
+          "message": "before\n\"body\"",
+          "message_template": "before {value}",
+          "operation_id": "event",
+          "service": "Projection.App",
+          "env": "qa",
+          "version": "telemetry-v2",
+          "component": "Orders.Worker",
+          "resource": {
+            "build_version": "3.4.5+CommitMixed",
+            "instance_id": "00000000-0000-4000-8000-000000000111",
+            "initialized_at": "2026-10-11T06:00:00.1234567Z",
+            "environment_kind": "service",
+            "process_started_at": "2026-10-11T06:00:00.0000000Z",
+            "host_name": "sandbox-visible-host",
+            "os_family": "linux",
+            "os_description": "Fixture OS",
+            "os_architecture": "arm64",
+            "process_architecture": "x64",
+            "runtime_description": ".NET Fixture",
+            "process_id": 123,
+            "build_id": "Build.1"
+          },
+          "attributes": {
+            "scope": "shared",
+            "shared": "event",
+            "null": null,
+            "count": 17
+          }
+        },
+        "scopeHeadUnchanged": true,
+        "stableAfterMutation": true,
+        "callerMutationApplied": true
+      }
+    },
+    {
+      "id": "EVENT-OMIT-BUILD_ID",
+      "input": {
+        "metadata": {
+          "service": "Projection.App",
+          "env": "qa",
+          "version": "telemetry-v2",
+          "build_version": "3.4.5+CommitMixed",
+          "instance_id": "00000000-0000-4000-8000-000000000111",
+          "initialized_at": "2026-10-11T06:00:00.1234567Z",
+          "environment_kind": "service",
+          "process_started_at": "2026-10-11T08:00:00.0000000+02:00",
+          "host_name": "sandbox-visible-host",
+          "os_family": "linux",
+          "os_description": "Fixture OS",
+          "os_architecture": "arm64",
+          "process_architecture": "x64",
+          "runtime_description": ".NET Fixture",
+          "process_id": 123,
+          "commit_id": "Commit.Mixed",
+          "build_id": null
+        },
+        "severity": "Information",
+        "component": "Orders.Worker",
+        "scope": {
+          "operationId": " scope ",
+          "attributes": {
+            "scope": {
+              "kind": "string",
+              "value": "shared"
+            },
+            "shared": {
+              "kind": "string",
+              "value": "scope"
+            }
+          }
+        },
+        "event": {
+          "eventName": "order.accepted",
+          "message": "before\n\"body\"",
+          "messageTemplate": "before {value}",
+          "operationId": " event ",
+          "attributes": {
+            "shared": {
+              "kind": "string",
+              "value": "event"
+            },
+            "null": {
+              "kind": "null"
+            },
+            "count": {
+              "kind": "integer",
+              "value": "17"
+            }
+          }
+        }
+      },
+      "expected": {
+        "caseId": "EVENT-OMIT-BUILD_ID",
+        "projection": {
+          "schema_version": 1,
+          "status": "info",
+          "event_name": "order.accepted",
+          "message": "before\n\"body\"",
+          "message_template": "before {value}",
+          "operation_id": "event",
+          "service": "Projection.App",
+          "env": "qa",
+          "version": "telemetry-v2",
+          "component": "Orders.Worker",
+          "resource": {
+            "build_version": "3.4.5+CommitMixed",
+            "instance_id": "00000000-0000-4000-8000-000000000111",
+            "initialized_at": "2026-10-11T06:00:00.1234567Z",
+            "environment_kind": "service",
+            "process_started_at": "2026-10-11T06:00:00.0000000Z",
+            "host_name": "sandbox-visible-host",
+            "os_family": "linux",
+            "os_description": "Fixture OS",
+            "os_architecture": "arm64",
+            "process_architecture": "x64",
+            "runtime_description": ".NET Fixture",
+            "process_id": 123,
+            "commit_id": "Commit.Mixed"
+          },
+          "attributes": {
+            "scope": "shared",
+            "shared": "event",
+            "null": null,
+            "count": 17
+          }
+        },
+        "scopeHeadUnchanged": true,
+        "stableAfterMutation": true,
+        "callerMutationApplied": true
+      }
+    },
+    {
+      "id": "EVENT-OMIT-ALL",
+      "input": {
+        "metadata": {
+          "service": "Projection.App",
+          "env": "qa",
+          "version": "telemetry-v2",
+          "build_version": "3.4.5+CommitMixed",
+          "instance_id": "00000000-0000-4000-8000-000000000111",
+          "initialized_at": "2026-10-11T06:00:00.1234567Z",
+          "environment_kind": "service",
+          "process_started_at": null,
+          "host_name": null,
+          "os_family": "linux",
+          "os_description": null,
+          "os_architecture": null,
+          "process_architecture": null,
+          "runtime_description": null,
+          "process_id": null,
+          "commit_id": null,
+          "build_id": null
+        },
+        "severity": "Information",
+        "component": "Orders.Worker",
+        "scope": {
+          "operationId": " scope ",
+          "attributes": {
+            "scope": {
+              "kind": "string",
+              "value": "shared"
+            },
+            "shared": {
+              "kind": "string",
+              "value": "scope"
+            }
+          }
+        },
+        "event": {
+          "eventName": "order.accepted",
+          "message": "before\n\"body\"",
+          "messageTemplate": "before {value}",
+          "operationId": " event ",
+          "attributes": {
+            "shared": {
+              "kind": "string",
+              "value": "event"
+            },
+            "null": {
+              "kind": "null"
+            },
+            "count": {
+              "kind": "integer",
+              "value": "17"
+            }
+          }
+        }
+      },
+      "expected": {
+        "caseId": "EVENT-OMIT-ALL",
+        "projection": {
+          "schema_version": 1,
+          "status": "info",
+          "event_name": "order.accepted",
+          "message": "before\n\"body\"",
+          "message_template": "before {value}",
+          "operation_id": "event",
+          "service": "Projection.App",
+          "env": "qa",
+          "version": "telemetry-v2",
+          "component": "Orders.Worker",
+          "resource": {
+            "build_version": "3.4.5+CommitMixed",
+            "instance_id": "00000000-0000-4000-8000-000000000111",
+            "initialized_at": "2026-10-11T06:00:00.1234567Z",
+            "environment_kind": "service",
+            "os_family": "linux"
+          },
+          "attributes": {
+            "scope": "shared",
+            "shared": "event",
+            "null": null,
+            "count": 17
+          }
+        },
+        "scopeHeadUnchanged": true,
+        "stableAfterMutation": true,
+        "callerMutationApplied": true
+      }
+    },
+    {
+      "id": "EVENT-OS-WINDOWS",
+      "input": {
+        "metadata": {
+          "service": "Projection.App",
+          "env": "qa",
+          "version": "telemetry-v2",
+          "build_version": "3.4.5+CommitMixed",
+          "instance_id": "00000000-0000-4000-8000-000000000111",
+          "initialized_at": "2026-10-11T06:00:00.1234567Z",
+          "environment_kind": "service",
+          "process_started_at": "2026-10-11T08:00:00.0000000+02:00",
+          "host_name": "sandbox-visible-host",
+          "os_family": "windows",
+          "os_description": "Fixture OS",
+          "os_architecture": "arm64",
+          "process_architecture": "x64",
+          "runtime_description": ".NET Fixture",
+          "process_id": 123,
+          "commit_id": "Commit.Mixed",
+          "build_id": "Build.1"
+        },
+        "severity": "Information",
+        "component": "Orders.Worker",
+        "scope": {
+          "operationId": " scope ",
+          "attributes": {
+            "scope": {
+              "kind": "string",
+              "value": "shared"
+            },
+            "shared": {
+              "kind": "string",
+              "value": "scope"
+            }
+          }
+        },
+        "event": {
+          "eventName": "order.accepted",
+          "message": "before\n\"body\"",
+          "messageTemplate": "before {value}",
+          "operationId": " event ",
+          "attributes": {
+            "shared": {
+              "kind": "string",
+              "value": "event"
+            },
+            "null": {
+              "kind": "null"
+            },
+            "count": {
+              "kind": "integer",
+              "value": "17"
+            }
+          }
+        }
+      },
+      "expected": {
+        "caseId": "EVENT-OS-WINDOWS",
+        "projection": {
+          "schema_version": 1,
+          "status": "info",
+          "event_name": "order.accepted",
+          "message": "before\n\"body\"",
+          "message_template": "before {value}",
+          "operation_id": "event",
+          "service": "Projection.App",
+          "env": "qa",
+          "version": "telemetry-v2",
+          "component": "Orders.Worker",
+          "resource": {
+            "build_version": "3.4.5+CommitMixed",
+            "instance_id": "00000000-0000-4000-8000-000000000111",
+            "initialized_at": "2026-10-11T06:00:00.1234567Z",
+            "environment_kind": "service",
+            "process_started_at": "2026-10-11T06:00:00.0000000Z",
+            "host_name": "sandbox-visible-host",
+            "os_family": "windows",
+            "os_description": "Fixture OS",
+            "os_architecture": "arm64",
+            "process_architecture": "x64",
+            "runtime_description": ".NET Fixture",
+            "process_id": 123,
+            "commit_id": "Commit.Mixed",
+            "build_id": "Build.1"
+          },
+          "attributes": {
+            "scope": "shared",
+            "shared": "event",
+            "null": null,
+            "count": 17
+          }
+        },
+        "scopeHeadUnchanged": true,
+        "stableAfterMutation": true,
+        "callerMutationApplied": true
+      }
+    },
+    {
+      "id": "EVENT-OS-LINUX",
+      "input": {
+        "metadata": {
+          "service": "Projection.App",
+          "env": "qa",
+          "version": "telemetry-v2",
+          "build_version": "3.4.5+CommitMixed",
+          "instance_id": "00000000-0000-4000-8000-000000000111",
+          "initialized_at": "2026-10-11T06:00:00.1234567Z",
+          "environment_kind": "service",
+          "process_started_at": "2026-10-11T08:00:00.0000000+02:00",
+          "host_name": "sandbox-visible-host",
+          "os_family": "linux",
+          "os_description": "Fixture OS",
+          "os_architecture": "arm64",
+          "process_architecture": "x64",
+          "runtime_description": ".NET Fixture",
+          "process_id": 123,
+          "commit_id": "Commit.Mixed",
+          "build_id": "Build.1"
+        },
+        "severity": "Information",
+        "component": "Orders.Worker",
+        "scope": {
+          "operationId": " scope ",
+          "attributes": {
+            "scope": {
+              "kind": "string",
+              "value": "shared"
+            },
+            "shared": {
+              "kind": "string",
+              "value": "scope"
+            }
+          }
+        },
+        "event": {
+          "eventName": "order.accepted",
+          "message": "before\n\"body\"",
+          "messageTemplate": "before {value}",
+          "operationId": " event ",
+          "attributes": {
+            "shared": {
+              "kind": "string",
+              "value": "event"
+            },
+            "null": {
+              "kind": "null"
+            },
+            "count": {
+              "kind": "integer",
+              "value": "17"
+            }
+          }
+        }
+      },
+      "expected": {
+        "caseId": "EVENT-OS-LINUX",
+        "projection": {
+          "schema_version": 1,
+          "status": "info",
+          "event_name": "order.accepted",
+          "message": "before\n\"body\"",
+          "message_template": "before {value}",
+          "operation_id": "event",
+          "service": "Projection.App",
+          "env": "qa",
+          "version": "telemetry-v2",
+          "component": "Orders.Worker",
+          "resource": {
+            "build_version": "3.4.5+CommitMixed",
+            "instance_id": "00000000-0000-4000-8000-000000000111",
+            "initialized_at": "2026-10-11T06:00:00.1234567Z",
+            "environment_kind": "service",
+            "process_started_at": "2026-10-11T06:00:00.0000000Z",
+            "host_name": "sandbox-visible-host",
+            "os_family": "linux",
+            "os_description": "Fixture OS",
+            "os_architecture": "arm64",
+            "process_architecture": "x64",
+            "runtime_description": ".NET Fixture",
+            "process_id": 123,
+            "commit_id": "Commit.Mixed",
+            "build_id": "Build.1"
+          },
+          "attributes": {
+            "scope": "shared",
+            "shared": "event",
+            "null": null,
+            "count": 17
+          }
+        },
+        "scopeHeadUnchanged": true,
+        "stableAfterMutation": true,
+        "callerMutationApplied": true
+      }
+    },
+    {
+      "id": "EVENT-OS-MACOS",
+      "input": {
+        "metadata": {
+          "service": "Projection.App",
+          "env": "qa",
+          "version": "telemetry-v2",
+          "build_version": "3.4.5+CommitMixed",
+          "instance_id": "00000000-0000-4000-8000-000000000111",
+          "initialized_at": "2026-10-11T06:00:00.1234567Z",
+          "environment_kind": "service",
+          "process_started_at": "2026-10-11T08:00:00.0000000+02:00",
+          "host_name": "sandbox-visible-host",
+          "os_family": "macos",
+          "os_description": "Fixture OS",
+          "os_architecture": "arm64",
+          "process_architecture": "x64",
+          "runtime_description": ".NET Fixture",
+          "process_id": 123,
+          "commit_id": "Commit.Mixed",
+          "build_id": "Build.1"
+        },
+        "severity": "Information",
+        "component": "Orders.Worker",
+        "scope": {
+          "operationId": " scope ",
+          "attributes": {
+            "scope": {
+              "kind": "string",
+              "value": "shared"
+            },
+            "shared": {
+              "kind": "string",
+              "value": "scope"
+            }
+          }
+        },
+        "event": {
+          "eventName": "order.accepted",
+          "message": "before\n\"body\"",
+          "messageTemplate": "before {value}",
+          "operationId": " event ",
+          "attributes": {
+            "shared": {
+              "kind": "string",
+              "value": "event"
+            },
+            "null": {
+              "kind": "null"
+            },
+            "count": {
+              "kind": "integer",
+              "value": "17"
+            }
+          }
+        }
+      },
+      "expected": {
+        "caseId": "EVENT-OS-MACOS",
+        "projection": {
+          "schema_version": 1,
+          "status": "info",
+          "event_name": "order.accepted",
+          "message": "before\n\"body\"",
+          "message_template": "before {value}",
+          "operation_id": "event",
+          "service": "Projection.App",
+          "env": "qa",
+          "version": "telemetry-v2",
+          "component": "Orders.Worker",
+          "resource": {
+            "build_version": "3.4.5+CommitMixed",
+            "instance_id": "00000000-0000-4000-8000-000000000111",
+            "initialized_at": "2026-10-11T06:00:00.1234567Z",
+            "environment_kind": "service",
+            "process_started_at": "2026-10-11T06:00:00.0000000Z",
+            "host_name": "sandbox-visible-host",
+            "os_family": "macos",
+            "os_description": "Fixture OS",
+            "os_architecture": "arm64",
+            "process_architecture": "x64",
+            "runtime_description": ".NET Fixture",
+            "process_id": 123,
+            "commit_id": "Commit.Mixed",
+            "build_id": "Build.1"
+          },
+          "attributes": {
+            "scope": "shared",
+            "shared": "event",
+            "null": null,
+            "count": 17
+          }
+        },
+        "scopeHeadUnchanged": true,
+        "stableAfterMutation": true,
+        "callerMutationApplied": true
+      }
+    },
+    {
+      "id": "EVENT-OS-UNKNOWN",
+      "input": {
+        "metadata": {
+          "service": "Projection.App",
+          "env": "qa",
+          "version": "telemetry-v2",
+          "build_version": "3.4.5+CommitMixed",
+          "instance_id": "00000000-0000-4000-8000-000000000111",
+          "initialized_at": "2026-10-11T06:00:00.1234567Z",
+          "environment_kind": "service",
+          "process_started_at": "2026-10-11T08:00:00.0000000+02:00",
+          "host_name": "sandbox-visible-host",
+          "os_family": "unknown",
+          "os_description": "Fixture OS",
+          "os_architecture": "arm64",
+          "process_architecture": "x64",
+          "runtime_description": ".NET Fixture",
+          "process_id": 123,
+          "commit_id": "Commit.Mixed",
+          "build_id": "Build.1"
+        },
+        "severity": "Information",
+        "component": "Orders.Worker",
+        "scope": {
+          "operationId": " scope ",
+          "attributes": {
+            "scope": {
+              "kind": "string",
+              "value": "shared"
+            },
+            "shared": {
+              "kind": "string",
+              "value": "scope"
+            }
+          }
+        },
+        "event": {
+          "eventName": "order.accepted",
+          "message": "before\n\"body\"",
+          "messageTemplate": "before {value}",
+          "operationId": " event ",
+          "attributes": {
+            "shared": {
+              "kind": "string",
+              "value": "event"
+            },
+            "null": {
+              "kind": "null"
+            },
+            "count": {
+              "kind": "integer",
+              "value": "17"
+            }
+          }
+        }
+      },
+      "expected": {
+        "caseId": "EVENT-OS-UNKNOWN",
+        "projection": {
+          "schema_version": 1,
+          "status": "info",
+          "event_name": "order.accepted",
+          "message": "before\n\"body\"",
+          "message_template": "before {value}",
+          "operation_id": "event",
+          "service": "Projection.App",
+          "env": "qa",
+          "version": "telemetry-v2",
+          "component": "Orders.Worker",
+          "resource": {
+            "build_version": "3.4.5+CommitMixed",
+            "instance_id": "00000000-0000-4000-8000-000000000111",
+            "initialized_at": "2026-10-11T06:00:00.1234567Z",
+            "environment_kind": "service",
+            "process_started_at": "2026-10-11T06:00:00.0000000Z",
+            "host_name": "sandbox-visible-host",
+            "os_family": "unknown",
+            "os_description": "Fixture OS",
+            "os_architecture": "arm64",
+            "process_architecture": "x64",
+            "runtime_description": ".NET Fixture",
+            "process_id": 123,
+            "commit_id": "Commit.Mixed",
+            "build_id": "Build.1"
+          },
+          "attributes": {
+            "scope": "shared",
+            "shared": "event",
+            "null": null,
+            "count": 17
+          }
+        },
+        "scopeHeadUnchanged": true,
+        "stableAfterMutation": true,
+        "callerMutationApplied": true
+      }
+    },
+    {
+      "id": "EVENT-OPTIONALS-ABSENT",
+      "input": {
+        "metadata": {
+          "service": "Projection.App",
+          "env": "qa",
+          "version": "telemetry-v2",
+          "build_version": "3.4.5+CommitMixed",
+          "instance_id": "00000000-0000-4000-8000-000000000111",
+          "initialized_at": "2026-10-11T06:00:00.1234567Z",
+          "environment_kind": "service",
+          "process_started_at": "2026-10-11T08:00:00.0000000+02:00",
+          "host_name": "sandbox-visible-host",
+          "os_family": "linux",
+          "os_description": "Fixture OS",
+          "os_architecture": "arm64",
+          "process_architecture": "x64",
+          "runtime_description": ".NET Fixture",
+          "process_id": 123,
+          "commit_id": "Commit.Mixed",
+          "build_id": "Build.1"
+        },
+        "severity": "Information",
+        "component": "Orders.Worker",
+        "scope": {
+          "operationId": " scope ",
+          "attributes": {
+            "scope": {
+              "kind": "string",
+              "value": "shared"
+            },
+            "shared": {
+              "kind": "string",
+              "value": "scope"
+            }
+          }
+        },
+        "event": {
+          "eventName": "order.accepted",
+          "message": "before\n\"body\"",
+          "messageTemplate": null,
+          "operationId": " \t ",
+          "attributes": null
+        }
+      },
+      "expected": {
+        "caseId": "EVENT-OPTIONALS-ABSENT",
+        "projection": {
+          "schema_version": 1,
+          "status": "info",
+          "event_name": "order.accepted",
+          "message": "before\n\"body\"",
+          "operation_id": "scope",
+          "service": "Projection.App",
+          "env": "qa",
+          "version": "telemetry-v2",
+          "component": "Orders.Worker",
+          "resource": {
+            "build_version": "3.4.5+CommitMixed",
+            "instance_id": "00000000-0000-4000-8000-000000000111",
+            "initialized_at": "2026-10-11T06:00:00.1234567Z",
+            "environment_kind": "service",
+            "process_started_at": "2026-10-11T06:00:00.0000000Z",
+            "host_name": "sandbox-visible-host",
+            "os_family": "linux",
+            "os_description": "Fixture OS",
+            "os_architecture": "arm64",
+            "process_architecture": "x64",
+            "runtime_description": ".NET Fixture",
+            "process_id": 123,
+            "commit_id": "Commit.Mixed",
+            "build_id": "Build.1"
+          },
+          "attributes": {
+            "scope": "shared",
+            "shared": "scope"
+          }
+        },
+        "scopeHeadUnchanged": true,
+        "stableAfterMutation": true,
+        "callerMutationApplied": true
+      }
+    },
+    {
+      "id": "EVENT-EMPTY-TEXT",
+      "input": {
+        "metadata": {
+          "service": "Projection.App",
+          "env": "qa",
+          "version": "telemetry-v2",
+          "build_version": "3.4.5+CommitMixed",
+          "instance_id": "00000000-0000-4000-8000-000000000111",
+          "initialized_at": "2026-10-11T06:00:00.1234567Z",
+          "environment_kind": "service",
+          "process_started_at": "2026-10-11T08:00:00.0000000+02:00",
+          "host_name": "sandbox-visible-host",
+          "os_family": "linux",
+          "os_description": "Fixture OS",
+          "os_architecture": "arm64",
+          "process_architecture": "x64",
+          "runtime_description": ".NET Fixture",
+          "process_id": 123,
+          "commit_id": "Commit.Mixed",
+          "build_id": "Build.1"
+        },
+        "severity": "Information",
+        "component": "Orders.Worker",
+        "scope": {
+          "operationId": " scope ",
+          "attributes": {
+            "scope": {
+              "kind": "string",
+              "value": "shared"
+            },
+            "shared": {
+              "kind": "string",
+              "value": "scope"
+            }
+          }
+        },
+        "event": {
+          "eventName": "order.accepted",
+          "message": "",
+          "messageTemplate": "",
+          "operationId": null,
+          "attributes": {
+            "shared": {
+              "kind": "string",
+              "value": "event"
+            },
+            "null": {
+              "kind": "null"
+            },
+            "count": {
+              "kind": "integer",
+              "value": "17"
+            }
+          }
+        }
+      },
+      "expected": {
+        "caseId": "EVENT-EMPTY-TEXT",
+        "projection": {
+          "schema_version": 1,
+          "status": "info",
+          "event_name": "order.accepted",
+          "message": "",
+          "message_template": "",
+          "operation_id": "scope",
+          "service": "Projection.App",
+          "env": "qa",
+          "version": "telemetry-v2",
+          "component": "Orders.Worker",
+          "resource": {
+            "build_version": "3.4.5+CommitMixed",
+            "instance_id": "00000000-0000-4000-8000-000000000111",
+            "initialized_at": "2026-10-11T06:00:00.1234567Z",
+            "environment_kind": "service",
+            "process_started_at": "2026-10-11T06:00:00.0000000Z",
+            "host_name": "sandbox-visible-host",
+            "os_family": "linux",
+            "os_description": "Fixture OS",
+            "os_architecture": "arm64",
+            "process_architecture": "x64",
+            "runtime_description": ".NET Fixture",
+            "process_id": 123,
+            "commit_id": "Commit.Mixed",
+            "build_id": "Build.1"
+          },
+          "attributes": {
+            "scope": "shared",
+            "shared": "event",
+            "null": null,
+            "count": 17
+          }
+        },
+        "scopeHeadUnchanged": true,
+        "stableAfterMutation": true,
+        "callerMutationApplied": true
+      }
+    },
+    {
+      "id": "EVENT-NESTED-RESERVED",
+      "input": {
+        "metadata": {
+          "service": "Projection.App",
+          "env": "qa",
+          "version": "telemetry-v2",
+          "build_version": "3.4.5+CommitMixed",
+          "instance_id": "00000000-0000-4000-8000-000000000111",
+          "initialized_at": "2026-10-11T06:00:00.1234567Z",
+          "environment_kind": "service",
+          "process_started_at": "2026-10-11T08:00:00.0000000+02:00",
+          "host_name": "sandbox-visible-host",
+          "os_family": "linux",
+          "os_description": "Fixture OS",
+          "os_architecture": "arm64",
+          "process_architecture": "x64",
+          "runtime_description": ".NET Fixture",
+          "process_id": 123,
+          "commit_id": "Commit.Mixed",
+          "build_id": "Build.1"
+        },
+        "severity": "Information",
+        "component": "Orders.Worker",
+        "scope": {
+          "operationId": " scope ",
+          "attributes": {
+            "scope": {
+              "kind": "string",
+              "value": "shared"
+            },
+            "shared": {
+              "kind": "string",
+              "value": "scope"
+            }
+          }
+        },
+        "event": {
+          "eventName": "order.accepted",
+          "message": "before\n\"body\"",
+          "messageTemplate": "before {value}",
+          "operationId": " event ",
+          "attributes": {
+            "shared": {
+              "kind": "string",
+              "value": "event"
+            },
+            "null": {
+              "kind": "null"
+            },
+            "count": {
+              "kind": "integer",
+              "value": "17"
+            },
+            "service": {
+              "kind": "string",
+              "value": "nested-decoy"
+            },
+            "trace_id": {
+              "kind": "null"
+            }
+          }
+        }
+      },
+      "expected": {
+        "caseId": "EVENT-NESTED-RESERVED",
+        "projection": {
+          "schema_version": 1,
+          "status": "info",
+          "event_name": "order.accepted",
+          "message": "before\n\"body\"",
+          "message_template": "before {value}",
+          "operation_id": "event",
+          "service": "Projection.App",
+          "env": "qa",
+          "version": "telemetry-v2",
+          "component": "Orders.Worker",
+          "resource": {
+            "build_version": "3.4.5+CommitMixed",
+            "instance_id": "00000000-0000-4000-8000-000000000111",
+            "initialized_at": "2026-10-11T06:00:00.1234567Z",
+            "environment_kind": "service",
+            "process_started_at": "2026-10-11T06:00:00.0000000Z",
+            "host_name": "sandbox-visible-host",
+            "os_family": "linux",
+            "os_description": "Fixture OS",
+            "os_architecture": "arm64",
+            "process_architecture": "x64",
+            "runtime_description": ".NET Fixture",
+            "process_id": 123,
+            "commit_id": "Commit.Mixed",
+            "build_id": "Build.1"
+          },
+          "attributes": {
+            "scope": "shared",
+            "shared": "event",
+            "null": null,
+            "count": 17,
+            "service": "nested-decoy",
+            "trace_id": null
+          }
+        },
+        "scopeHeadUnchanged": true,
+        "stableAfterMutation": true,
+        "callerMutationApplied": true
+      }
+    },
+    {
+      "id": "EVENT-DISTINCT-IDENTITIES",
+      "input": {
+        "metadata": {
+          "service": "Another.App",
+          "env": "prod",
+          "version": "deployment-release",
+          "build_version": "9.0.0+BuildOnly",
+          "instance_id": "00000000-0000-4000-8000-000000000111",
+          "initialized_at": "2026-10-11T06:00:00.1234567Z",
+          "environment_kind": "service",
+          "process_started_at": "2026-10-11T08:00:00.0000000+02:00",
+          "host_name": "sandbox-visible-host",
+          "os_family": "linux",
+          "os_description": "Fixture OS",
+          "os_architecture": "arm64",
+          "process_architecture": "x64",
+          "runtime_description": ".NET Fixture",
+          "process_id": 123,
+          "commit_id": "Commit.Mixed",
+          "build_id": "Build.1"
+        },
+        "severity": "Information",
+        "component": "Orders.Worker",
+        "scope": {
+          "operationId": " scope ",
+          "attributes": {
+            "scope": {
+              "kind": "string",
+              "value": "shared"
+            },
+            "shared": {
+              "kind": "string",
+              "value": "scope"
+            }
+          }
+        },
+        "event": {
+          "eventName": "order.accepted",
+          "message": "before\n\"body\"",
+          "messageTemplate": "before {value}",
+          "operationId": " event ",
+          "attributes": {
+            "shared": {
+              "kind": "string",
+              "value": "event"
+            },
+            "null": {
+              "kind": "null"
+            },
+            "count": {
+              "kind": "integer",
+              "value": "17"
+            }
+          }
+        }
+      },
+      "expected": {
+        "caseId": "EVENT-DISTINCT-IDENTITIES",
+        "projection": {
+          "schema_version": 1,
+          "status": "info",
+          "event_name": "order.accepted",
+          "message": "before\n\"body\"",
+          "message_template": "before {value}",
+          "operation_id": "event",
+          "service": "Another.App",
+          "env": "prod",
+          "version": "deployment-release",
+          "component": "Orders.Worker",
+          "resource": {
+            "build_version": "9.0.0+BuildOnly",
+            "instance_id": "00000000-0000-4000-8000-000000000111",
+            "initialized_at": "2026-10-11T06:00:00.1234567Z",
+            "environment_kind": "service",
+            "process_started_at": "2026-10-11T06:00:00.0000000Z",
+            "host_name": "sandbox-visible-host",
+            "os_family": "linux",
+            "os_description": "Fixture OS",
+            "os_architecture": "arm64",
+            "process_architecture": "x64",
+            "runtime_description": ".NET Fixture",
+            "process_id": 123,
+            "commit_id": "Commit.Mixed",
+            "build_id": "Build.1"
+          },
+          "attributes": {
+            "scope": "shared",
+            "shared": "event",
+            "null": null,
+            "count": 17
+          }
+        },
+        "scopeHeadUnchanged": true,
+        "stableAfterMutation": true,
+        "callerMutationApplied": true
+      }
+    },
+    {
+      "id": "EVENT-MESSAGE-CLIPPED",
+      "input": {
+        "metadata": {
+          "service": "Projection.App",
+          "env": "qa",
+          "version": "telemetry-v2",
+          "build_version": "3.4.5+CommitMixed",
+          "instance_id": "00000000-0000-4000-8000-000000000111",
+          "initialized_at": "2026-10-11T06:00:00.1234567Z",
+          "environment_kind": "service",
+          "process_started_at": "2026-10-11T08:00:00.0000000+02:00",
+          "host_name": "sandbox-visible-host",
+          "os_family": "linux",
+          "os_description": "Fixture OS",
+          "os_architecture": "arm64",
+          "process_architecture": "x64",
+          "runtime_description": ".NET Fixture",
+          "process_id": 123,
+          "commit_id": "Commit.Mixed",
+          "build_id": "Build.1"
+        },
+        "severity": "Information",
+        "component": "Orders.Worker",
+        "scope": {
+          "operationId": " scope ",
+          "attributes": {
+            "scope": {
+              "kind": "string",
+              "value": "shared"
+            },
+            "shared": {
+              "kind": "string",
+              "value": "scope"
+            }
+          }
+        },
+        "event": {
+          "eventName": "order.accepted",
+          "message": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+          "messageTemplate": "before {value}",
+          "operationId": " event ",
+          "attributes": {
+            "shared": {
+              "kind": "string",
+              "value": "event"
+            },
+            "null": {
+              "kind": "null"
+            },
+            "count": {
+              "kind": "integer",
+              "value": "17"
+            }
+          }
+        }
+      },
+      "expected": {
+        "caseId": "EVENT-MESSAGE-CLIPPED",
+        "projection": {
+          "schema_version": 1,
+          "status": "info",
+          "event_name": "order.accepted",
+          "message": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+          "message_template": "before {value}",
+          "operation_id": "event",
+          "service": "Projection.App",
+          "env": "qa",
+          "version": "telemetry-v2",
+          "component": "Orders.Worker",
+          "resource": {
+            "build_version": "3.4.5+CommitMixed",
+            "instance_id": "00000000-0000-4000-8000-000000000111",
+            "initialized_at": "2026-10-11T06:00:00.1234567Z",
+            "environment_kind": "service",
+            "process_started_at": "2026-10-11T06:00:00.0000000Z",
+            "host_name": "sandbox-visible-host",
+            "os_family": "linux",
+            "os_description": "Fixture OS",
+            "os_architecture": "arm64",
+            "process_architecture": "x64",
+            "runtime_description": ".NET Fixture",
+            "process_id": 123,
+            "commit_id": "Commit.Mixed",
+            "build_id": "Build.1"
+          },
+          "attributes": {
+            "scope": "shared",
+            "shared": "event",
+            "null": null,
+            "count": 17
+          },
+          "truncated": true
+        },
+        "scopeHeadUnchanged": true,
+        "stableAfterMutation": true,
+        "callerMutationApplied": true
+      }
+    },
+    {
+      "id": "EVENT-EXCEPTION",
+      "input": {
+        "metadata": {
+          "service": "Projection.App",
+          "env": "qa",
+          "version": "telemetry-v2",
+          "build_version": "3.4.5+CommitMixed",
+          "instance_id": "00000000-0000-4000-8000-000000000111",
+          "initialized_at": "2026-10-11T06:00:00.1234567Z",
+          "environment_kind": "service",
+          "process_started_at": "2026-10-11T08:00:00.0000000+02:00",
+          "host_name": "sandbox-visible-host",
+          "os_family": "linux",
+          "os_description": "Fixture OS",
+          "os_architecture": "arm64",
+          "process_architecture": "x64",
+          "runtime_description": ".NET Fixture",
+          "process_id": 123,
+          "commit_id": "Commit.Mixed",
+          "build_id": "Build.1"
+        },
+        "severity": "Information",
+        "component": "Orders.Worker",
+        "scope": {
+          "operationId": " scope ",
+          "attributes": {
+            "scope": {
+              "kind": "string",
+              "value": "shared"
+            },
+            "shared": {
+              "kind": "string",
+              "value": "scope"
+            }
+          }
+        },
+        "event": {
+          "eventName": "order.accepted",
+          "message": "before\n\"body\"",
+          "messageTemplate": "before {value}",
+          "operationId": " event ",
+          "attributes": {
+            "shared": {
+              "kind": "string",
+              "value": "event"
+            },
+            "null": {
+              "kind": "null"
+            },
+            "count": {
+              "kind": "integer",
+              "value": "17"
+            }
+          },
+          "exception": {
+            "typeTag": "operation",
+            "message": "boom"
+          }
+        }
+      },
+      "expected": {
+        "caseId": "EVENT-EXCEPTION",
+        "projection": {
+          "schema_version": 1,
+          "status": "info",
+          "event_name": "order.accepted",
+          "message": "before\n\"body\"",
+          "message_template": "before {value}",
+          "operation_id": "event",
+          "service": "Projection.App",
+          "env": "qa",
+          "version": "telemetry-v2",
+          "component": "Orders.Worker",
+          "resource": {
+            "build_version": "3.4.5+CommitMixed",
+            "instance_id": "00000000-0000-4000-8000-000000000111",
+            "initialized_at": "2026-10-11T06:00:00.1234567Z",
+            "environment_kind": "service",
+            "process_started_at": "2026-10-11T06:00:00.0000000Z",
+            "host_name": "sandbox-visible-host",
+            "os_family": "linux",
+            "os_description": "Fixture OS",
+            "os_architecture": "arm64",
+            "process_architecture": "x64",
+            "runtime_description": ".NET Fixture",
+            "process_id": 123,
+            "commit_id": "Commit.Mixed",
+            "build_id": "Build.1"
+          },
+          "attributes": {
+            "scope": "shared",
+            "shared": "event",
+            "null": null,
+            "count": 17
+          },
+          "exception": {
+            "type": "@exception-type",
+            "message": "boom"
+          }
+        },
+        "scopeHeadUnchanged": true,
+        "stableAfterMutation": true,
+        "callerMutationApplied": true
+      }
+    },
+    {
+      "id": "EVENT-NONE",
+      "input": {
+        "metadata": {
+          "service": "Projection.App",
+          "env": "qa",
+          "version": "telemetry-v2",
+          "build_version": "3.4.5+CommitMixed",
+          "instance_id": "00000000-0000-4000-8000-000000000111",
+          "initialized_at": "2026-10-11T06:00:00.1234567Z",
+          "environment_kind": "service",
+          "process_started_at": "2026-10-11T08:00:00.0000000+02:00",
+          "host_name": "sandbox-visible-host",
+          "os_family": "linux",
+          "os_description": "Fixture OS",
+          "os_architecture": "arm64",
+          "process_architecture": "x64",
+          "runtime_description": ".NET Fixture",
+          "process_id": 123,
+          "commit_id": "Commit.Mixed",
+          "build_id": "Build.1"
+        },
+        "severity": "None",
+        "component": "Orders.Worker",
+        "scope": {
+          "operationId": " scope ",
+          "attributes": {
+            "scope": {
+              "kind": "string",
+              "value": "shared"
+            },
+            "shared": {
+              "kind": "string",
+              "value": "scope"
+            }
+          }
+        },
+        "event": {
+          "eventName": "order.accepted",
+          "message": "before\n\"body\"",
+          "messageTemplate": "before {value}",
+          "operationId": " event ",
+          "attributes": {
+            "shared": {
+              "kind": "string",
+              "value": "event"
+            },
+            "null": {
+              "kind": "null"
+            },
+            "count": {
+              "kind": "integer",
+              "value": "17"
+            }
+          }
+        }
+      },
+      "expected": {
+        "caseId": "EVENT-NONE",
+        "projection": null,
+        "scopeHeadUnchanged": true,
+        "stableAfterMutation": true,
+        "callerMutationApplied": true
+      }
+    }
+  ]
+}

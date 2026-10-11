@@ -65,7 +65,7 @@ WP01-S04 was committed as `b7b8b78` at the user's request. The user selected the
 
 ## WP02-S02 event contracts
 
-WP02-S01 was committed as ccb7237. WP02-S02 defines schema/value/bound contracts and executes C# development-only record/value validation. The user amended oversize behavior to configurable entry bytes (64 KiB default) and truncation. CORE_LOG_MAX_ENTRY_BYTES and the selected 16 KiB–16 MiB range, marker/projection choices and validation limits are recorded in [event guidance](../docs/modules/logging/event-contract.md). Real bounded capture/truncation and output rendering remain WP04/WP05 work.
+WP02-S01 was committed as ccb7237. WP02-S02 defines schema/value/bound contracts and executes C# development-only record/value validation. The user amended oversize behavior to configurable entry bytes (64 KiB default) and truncation. CORE_LOG_MAX_ENTRY_BYTES and the selected 16 KiBâ€“16 MiB range, marker/projection choices and validation limits are recorded in [event guidance](../docs/modules/logging/event-contract.md). Real bounded capture/truncation and output rendering remain WP04/WP05 work.
 
 ## WP02-S04-T01 preservation review
 
@@ -206,3 +206,8 @@ WP04-S03-T02 is committed as `3b0e684`. On 11 October 2026 the user explicitly k
 ## WP04-S03-T04 barrier-driven scope qualification
 
 WP04-S03-T03 is committed as `c8b897c`. Shared semantic rows, literal expected views, readiness/release barriers, joined worker cleanup and independent C#/Python comparators are qualification choices within the original T04 task. The user-selected creator-disposes contract remains authoritative. Native diagnostic names/messages are adapter bindings; no universal owner detection, simultaneous cross-flow atomicity or public runtime replacement is introduced. Shipping Core and dependencies remain unchanged. The acceptance map preserves original criterion text while declaring the internal scope-state phase and pending public integration. Task execution and completion are recorded separately in retained evidence/status.
+
+
+## WP04-S04-T01 owned event projection
+
+WP04-S03-T04 is committed as `369607e`. The actual public LogEventData follows the preserved named input shape; immutable internal CapturedEventFacts and EventProjection hold projected allowlisted facts without configuration/caller/scope references. Explicit severity/resource maps, bounded candidate merging, existing typed values/exception projection, and scalar-safe message/template clipping are implementation choices under the selected truncation amendment. None skips projection; undefined native severity fails before content. Supplied malformed message/template suffixes remain invalid. This does not introduce public logger placeholders or redefine S04 completion: T02 detailed precedence, T03 event UTC/W3C capture, T04 byte encoding and T05 complete structural fixtures remain required. Shared observations are development transport with controlled metadata and independently observed actual process identities. Original supplied plans and historical evidence remain unchanged.
