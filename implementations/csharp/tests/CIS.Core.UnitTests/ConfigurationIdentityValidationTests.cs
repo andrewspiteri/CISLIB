@@ -30,18 +30,18 @@ public sealed class ConfigurationIdentityValidationTests
         JsonNode discovery = input["discovery"]!;
         var application = new ApplicationIdentity(Text(discovery, "applicationName"), Text(discovery, "buildVersion"), null, null);
         ConfigurationResolution result = ConfigurationResolver.Resolve(ConfigurationFixtureAdapter.Setup(input), application, CapturedEnvironment.Capture(source));
-        IReadOnlyList<ConfigurationIssue> issues = ConfigurationValidator.CollectIssues(result);
+        IReadOnlyList<ConfigurationIssue> issues = ConfigurationValidator.CollectIdentityAndOptionIssues(result);
         JsonNode expected = row["expected"]!;
         if (Text(expected, "status") == "Invalid")
         {
             CollectionAssert.AreEqual(expected["issues"]!.AsArray().Select(issue => Text(issue!, "code") + ":" + Text(issue!, "key")).ToArray(), issues.Select(issue => issue.Code + ":" + issue.Key).ToArray(), id);
-            CoreConfigurationException exception = Assert.ThrowsExactly<CoreConfigurationException>(() => ConfigurationValidator.ThrowIfInvalid(result));
+            CoreConfigurationException exception = Assert.ThrowsExactly<CoreConfigurationException>(() => ConfigurationValidator.ThrowIfIdentityOrOptionsInvalid(result));
             Assert.AreEqual(issues.Count, exception.Issues.Count);
         }
         else
         {
             Assert.AreEqual(0, issues.Count, id);
-            ConfigurationValidator.ThrowIfInvalid(result);
+            ConfigurationValidator.ThrowIfIdentityOrOptionsInvalid(result);
             JsonNode? value = ConfigurationFixtureAdapter.Project(result)["settings"]!.AsArray().Single(setting => Text(setting!, "key") == Text(row, "key"))!["value"];
             Assert.IsTrue(JsonNode.DeepEquals(expected["value"], value), id);
         }
@@ -68,7 +68,7 @@ public sealed class ConfigurationIdentityValidationTests
             "interrupted-pair" => "x" + (char)0xd800 + "a" + (char)0xdc00,
             _ => throw new InvalidDataException("Unknown scenario.")
         };
-        IReadOnlyList<ConfigurationIssue> issues = ConfigurationValidator.CollectIssues(ForField(identityField, value));
+        IReadOnlyList<ConfigurationIssue> issues = ConfigurationValidator.CollectIdentityAndOptionIssues(ForField(identityField, value));
         bool valid = scenario is "maximum" or "combining-maximum";
         Assert.AreEqual(valid ? 0 : 1, issues.Count);
         if (!valid)
@@ -84,7 +84,7 @@ public sealed class ConfigurationIdentityValidationTests
     {
         foreach (string identityField in Fields)
         {
-            IReadOnlyList<ConfigurationIssue> issues = ConfigurationValidator.CollectIssues(ForField(identityField, "start" + (char)scalar + "end"));
+            IReadOnlyList<ConfigurationIssue> issues = ConfigurationValidator.CollectIdentityAndOptionIssues(ForField(identityField, "start" + (char)scalar + "end"));
             Assert.AreEqual(1, issues.Count, identityField);
             Assert.AreEqual(ConfigurationIssueCodes.InvalidIdentity, issues[0].Code, identityField);
             Assert.AreEqual(SourceKey(identityField), issues[0].Key, identityField);
@@ -104,7 +104,7 @@ public sealed class ConfigurationIdentityValidationTests
         var setup = new EnvironmentConfigurationInput { EnvironmentKind = (ConfigurationEnvironmentKind)99 };
         var application = new ApplicationIdentity("safe-app", "private" + (char)1, "private" + (char)1, "private" + (char)1);
         ConfigurationResolution result = ConfigurationResolver.Resolve(setup, application, CapturedEnvironment.Capture(source));
-        CoreConfigurationException exception = Assert.ThrowsExactly<CoreConfigurationException>(() => ConfigurationValidator.ThrowIfInvalid(result));
+        CoreConfigurationException exception = Assert.ThrowsExactly<CoreConfigurationException>(() => ConfigurationValidator.ThrowIfIdentityOrOptionsInvalid(result));
         CollectionAssert.AreEqual(new[] { "DD_SERVICE", "CORE_ENVIRONMENT", "CORE_SERVICE_VERSION", "CORE_LOG_CONSOLE_FORMAT", "CORE_LOG_QUEUE_CAPACITY", "BuildVersion", "CommitId", "BuildId", "EnvironmentSetup.EnvironmentKind" }, exception.Issues.Select(issue => issue.Key).ToArray());
         string diagnostic = exception.ToString() + string.Join("|", exception.Issues.Select(issue => issue.Code + issue.Key + issue.Explanation));
         Assert.IsFalse(diagnostic.Contains("private", StringComparison.Ordinal));
@@ -117,22 +117,22 @@ public sealed class ConfigurationIdentityValidationTests
     {
         var badApplication = new ApplicationIdentity("valid", "invalid" + (char)1, null, null);
         ConfigurationResolution result = Resolve(new() { ServiceVersion = "Telemetry.Release" }, badApplication);
-        CollectionAssert.AreEqual(new[] { "BuildVersion" }, ConfigurationValidator.CollectIssues(result).Select(issue => issue.Key).ToArray());
+        CollectionAssert.AreEqual(new[] { "BuildVersion" }, ConfigurationValidator.CollectIdentityAndOptionIssues(result).Select(issue => issue.Key).ToArray());
         result = Resolve(new(), badApplication);
-        CollectionAssert.AreEqual(new[] { "BuildVersion" }, ConfigurationValidator.CollectIssues(result).Select(issue => issue.Key).ToArray());
+        CollectionAssert.AreEqual(new[] { "BuildVersion" }, ConfigurationValidator.CollectIdentityAndOptionIssues(result).Select(issue => issue.Key).ToArray());
     }
 
     [TestMethod]
     public void MissingApplicationNameAndOptionalBuildIdentifiersFollowDiscoveryAbsenceRules()
     {
         ConfigurationResolution result = Resolve(new(), new(null, "unknown", null, null));
-        IReadOnlyList<ConfigurationIssue> issues = ConfigurationValidator.CollectIssues(result);
+        IReadOnlyList<ConfigurationIssue> issues = ConfigurationValidator.CollectIdentityAndOptionIssues(result);
         Assert.AreEqual(1, issues.Count);
         Assert.AreEqual(ConfigurationIssueCodes.MissingApplicationName, issues[0].Code);
         Assert.AreEqual("CORE_SERVICE_NAME", issues[0].Key);
         var identity = ApplicationIdentityDiscovery.Discover(new() { ApplicationName = " explicit ", BuildVersion = " Release+Case ", CommitId = " ", BuildId = "\t" });
         result = Resolve(new(), identity);
-        Assert.AreEqual(0, ConfigurationValidator.CollectIssues(result).Count);
+        Assert.AreEqual(0, ConfigurationValidator.CollectIdentityAndOptionIssues(result).Count);
         Assert.AreEqual("Release+Case", result.BuildVersion);
         Assert.IsNull(result.CommitId);
         Assert.IsNull(result.BuildId);
@@ -145,7 +145,7 @@ public sealed class ConfigurationIdentityValidationTests
         foreach (string identityField in Fields)
         {
             ConfigurationResolution result = ForField(identityField, value);
-            Assert.AreEqual(0, ConfigurationValidator.CollectIssues(result).Count);
+            Assert.AreEqual(0, ConfigurationValidator.CollectIdentityAndOptionIssues(result).Count);
             string actual = identityField switch
             {
                 "ApplicationName" => result.ApplicationName.Value,
@@ -164,9 +164,9 @@ public sealed class ConfigurationIdentityValidationTests
     public void KnownValidationCollectsOwnedResultsAndDoesNotClaimPathOrPublicationValidation()
     {
         ConfigurationResolution result = Resolve(new() { Logging = new() { FilePath = "nul" + (char)0 } });
-        ConfigurationValidator.ThrowIfInvalid(result);
-        Assert.ThrowsExactly<NotSupportedException>(() => ((IList<ConfigurationIssue>)ConfigurationValidator.CollectIssues(result)).Clear());
-        Assert.ThrowsExactly<ArgumentNullException>(() => ConfigurationValidator.CollectIssues(null!));
+        ConfigurationValidator.ThrowIfIdentityOrOptionsInvalid(result);
+        Assert.ThrowsExactly<NotSupportedException>(() => ((IList<ConfigurationIssue>)ConfigurationValidator.CollectIdentityAndOptionIssues(result)).Clear());
+        Assert.ThrowsExactly<ArgumentNullException>(() => ConfigurationValidator.CollectIdentityAndOptionIssues(null!));
     }
 
     private static string SourceKey(string identityField) => identityField switch
