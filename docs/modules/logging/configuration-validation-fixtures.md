@@ -1,0 +1,32 @@
+# Complete configuration-validation fixtures
+
+WP03-S03-T04 qualifies the actual internal Core validation pass through [24 neutral cases](../../../conformance/logging/configuration-validation-cases.json), all applicable [per-key vectors](../../../conformance/logging/configuration-cases.json), owned public diagnostics and real child processes. No shipping production behavior is replaced or simulated. The complete pass returns local `ValidatedConfiguration` only after identity, option and path validation succeed; the public EnvironmentOptions facade and snapshot publisher remain WP03-S04.
+
+## Fixture protocol and boundaries
+
+The new catalog uses the existing typed setup encoding and explicit injected application/build/optional-identifier facts. It qualifies validation of those facts, rather than assembly discovery. Expected results declare exact ordered code/key pairs, optional selected state/source-key and valid-value subsets, independent output decisions and relative-path expectations. Failure projection omits selected values and retains only safe diagnostics/provenance. JSON enables selected NUL/control-character errors without claiming native environment transport or malformed UTF-16 transport.
+
+Cases combine all seven inclusive numeric minima/maxima with maximum supplementary/combining identity strings, every below/above bound, invalid CORE/DD/setup priorities, disabled/absent outputs, parent-error suppression, independent build/service errors, invalid setup kind, missing application identity, shadowed invalid lower inputs and ignored unknown credential keys. The largest case requires all 20 independent errors in catalog/build/identifier/kind order. Valid Unicode/tilde paths remain stored after real cwd changes. The public issue collection rejects mutation and retains its owned values across later validation.
+
+The full per-key test executes 349 native-applicable rows: all 336 non-path rows plus 13 paths. The omitted path row belongs to the other native platform; the existing T03 Windows/Ubuntu path driver qualifies the union of all 14. Twenty-three original entry-size rows intentionally omit unrelated discovery facts because they were specified for option-only validation. The full-pass harness supplies Fixture.App only when applicationName is omitted, preserving explicit null/missing-identity cases and all original fixture bytes/expectations. It does not suppress extra errors or change production fallback behavior.
+
+## Side effects and stored reads
+
+Every real validation child captures actual cwd once, freezes the 21 recognized variable reads, blocks subsequent source requests, validates, projects stored state, changes actual cwd and projects again. Complete projections must remain equal. Owned harness before/after directories stay empty, and parent cwd/environment stay unchanged. Expected absolute paths use independent Python native join/normalization, rather than calling the Core resolver. Failure stdout must exclude the declared dummy credentials, unknown names, invalid raw markers and lower-priority marker strings.
+
+Compiled guards inspect Core configuration methods/constructors/type initializers, including stored getters, for direct file/directory probe/output, Console, network, thread/timer/task scheduling and process-start calls. Required Directory.GetCurrentDirectory capture remains permitted. Existing guards forbid environment dumps/mutation and ambient presentation queries. A separate never-invoked compiled probe qualifies recognition of directory creation, file opening/existence, HTTP client construction and worker scheduling; it is inspected as IL and never executed. These guards concern compiled Core calls, not arbitrary user callbacks or all framework internals. The [T03 tilde protection](configuration-file-paths.md) separately handles the known Windows short-name lookup inside native path normalization.
+
+## Acceptance evidence
+
+| Criterion | Executed evidence for internal validation |
+| --- | --- |
+| WP03-S03-AC01 | Complete per-key and combined CORE/DD/setup priority cases reject selected invalid inputs; all supplied selected output settings validate with disabled or absent destinations. Shadowed lower input is intentionally ignored. |
+| WP03-S03-AC02 | Exact complete ordered issue pairs, the 20-error aggregate, actual owned immutable public issues, repeated safe exception formatting and forbidden credential/unknown/raw-marker checks. |
+| WP03-S03-AC03 | Stored Unicode/tilde/disabled-file absolute paths and complete projections survive actual cwd transitions in native integration and both platform child lanes. |
+| WP03-S03-AC04 | Frozen/source-blocked stored reads, unchanged empty owned output directories and parent state, plus positive/negative compiled infrastructure and ambient-call guards. Public facade reads are requalified when S04 implements them. |
+
+[Windows/Ubuntu evidence](../../../planning/logging/evidence/wp03-s03-t04-windows-linux.json) retains 380 new native cases in six bound methods: 374 unit, four integration and two architecture cases. Full Windows Developer verification and fresh source replay pass 1457 unit, 22 integration and 353 architecture cases (1832 total), with zero failures/skips and 43 matching compiler controls. All 24 shared combined cases execute on each of Windows and Ubuntu 24.04.4 under WSL2 with exact existing .NET 10.0.12, roll-forward disabled and identical managed host/Core/input bytes.
+
+The first fixture-adapter build used an incorrect internal property name and was corrected before tests ran. The first full-table test exposed the missing unrelated application context in those 23 option-only rows; the test-only composition above resolves it. An initial platform-driver check assumed aliases were read after all CORE keys; it now derives the actual catalog key/alias order from the independent shared contract. Retained correction logs distinguish these harness issues from final qualified behavior.
+
+S03 is complete for selected-setting validation, immutable safe diagnostics and local stored absolute paths before publication. Complete public metadata/startup/lifecycle snapshots remain S04 work. Release verify/check still return 2 for incomplete logging/six-family/examples/history/bundle evidence. No public facade, runtime outputs/truncation, Linux SDK/full native test families, macOS or release qualification is claimed. Original supplied plans and historical evidence remain unchanged; Core keeps its two approved Microsoft runtime packages.
