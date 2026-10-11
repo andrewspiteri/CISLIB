@@ -45,7 +45,7 @@ public sealed class ConfigurationOptionValidationTests
         JsonObject discovery = input["discovery"]!.AsObject();
         var application = new ApplicationIdentity(Text(discovery, "applicationName"), ConfigurationFixtureAdapter.Text(discovery, "buildVersion") ?? "unknown", null, null);
         ConfigurationResolution result = ConfigurationResolver.Resolve(ConfigurationFixtureAdapter.Setup(input), application, CapturedEnvironment.Capture(source));
-        IReadOnlyList<ConfigurationProblem> issues = ConfigurationOptionValidator.Validate(result);
+        IReadOnlyList<ConfigurationIssue> issues = ConfigurationOptionValidator.Validate(result);
         JsonNode expected = row["expected"]!;
         if (Text(expected, "status") == "Invalid")
         {
@@ -76,7 +76,7 @@ public sealed class ConfigurationOptionValidationTests
         }
         var setup = new EnvironmentConfigurationInput { EnvironmentName = ConfigurationFixtureAdapter.Text(input, "hostEnvironment") };
         ConfigurationResolution result = Resolve(setup, source);
-        IReadOnlyList<ConfigurationProblem> issues = ConfigurationOptionValidator.Validate(result);
+        IReadOnlyList<ConfigurationIssue> issues = ConfigurationOptionValidator.Validate(result);
         string[] expected = row["expectedIssues"] is JsonArray many ? ExpectedIssues(many)
             : row["expectedIssue"] is { } one ? [Text(one, "code") + ":" + Text(one, "key")] : [];
         // The older multiple-error fixture declares membership; catalog order is checked below.
@@ -138,7 +138,7 @@ public sealed class ConfigurationOptionValidationTests
     public void TypedSetupUsesTheSameInclusiveNumericBounds(string key, long value, bool valid)
     {
         ConfigurationResolution result = Resolve(NumericSetup(key, value));
-        IReadOnlyList<ConfigurationProblem> issues = ConfigurationOptionValidator.Validate(result);
+        IReadOnlyList<ConfigurationIssue> issues = ConfigurationOptionValidator.Validate(result);
         Assert.AreEqual(valid ? 0 : 1, issues.Count);
         if (!valid)
         {
@@ -168,7 +168,7 @@ public sealed class ConfigurationOptionValidationTests
             "detail" => new() { ConsoleLevel = ConfigurationSeverity.None, HumanDetail = (ConfigurationHumanDetail)99 },
             _ => throw new InvalidDataException("Unknown test option.")
         };
-        IReadOnlyList<ConfigurationProblem> issues = ConfigurationOptionValidator.Validate(Resolve(new() { Logging = logging }));
+        IReadOnlyList<ConfigurationIssue> issues = ConfigurationOptionValidator.Validate(Resolve(new() { Logging = logging }));
         Assert.AreEqual(1, issues.Count);
         Assert.AreEqual("InvalidToken", issues[0].Code);
         Assert.IsTrue(issues[0].Key.StartsWith("LoggingSetup.", StringComparison.Ordinal));
@@ -187,7 +187,7 @@ public sealed class ConfigurationOptionValidationTests
     {
         ConfigurationResolution result = Resolve(new() { EnvironmentKind = (ConfigurationEnvironmentKind)kind });
         Assert.AreEqual(kind, (int)result.EnvironmentKind);
-        IReadOnlyList<ConfigurationProblem> issues = ConfigurationOptionValidator.Validate(result);
+        IReadOnlyList<ConfigurationIssue> issues = ConfigurationOptionValidator.Validate(result);
         Assert.AreEqual(valid ? 0 : 1, issues.Count);
         if (!valid)
         {
@@ -221,7 +221,7 @@ public sealed class ConfigurationOptionValidationTests
         using var directory = new TemporaryDirectory();
         string filePath = Path.Combine(directory.Path, "never-created", "log.jsonl");
         var setup = new EnvironmentConfigurationInput { Logging = new() { FilePath = filePath, FileLevel = enabled ? ConfigurationSeverity.Debug : ConfigurationSeverity.None, FileMaxBytes = fileBytes, MaxEntryBytes = entryBytes } };
-        IReadOnlyList<ConfigurationProblem> issues = ConfigurationOptionValidator.Validate(Resolve(setup));
+        IReadOnlyList<ConfigurationIssue> issues = ConfigurationOptionValidator.Validate(Resolve(setup));
         Assert.AreEqual(0, Directory.EnumerateFileSystemEntries(directory.Path).Count());
         Assert.AreEqual(count, issues.Count);
         if (count != 0)
@@ -241,7 +241,7 @@ public sealed class ConfigurationOptionValidationTests
         var source = new EnvironmentVariableStub();
         source.Values[key] = token;
         ConfigurationResolution result = Resolve(new() { Logging = new() { FilePath = "never-created/log.jsonl", FileMaxBytes = 65536, MaxEntryBytes = 131072 } }, source);
-        IReadOnlyList<ConfigurationProblem> issues = ConfigurationOptionValidator.Validate(result);
+        IReadOnlyList<ConfigurationIssue> issues = ConfigurationOptionValidator.Validate(result);
         Assert.AreEqual(1, issues.Count);
         Assert.AreEqual(code, issues[0].Code);
         Assert.AreEqual(key, issues[0].Key);
@@ -269,7 +269,7 @@ public sealed class ConfigurationOptionValidationTests
         source.Values["CORE_LOG_MAX_ENTRY_BYTES"] = "1";
         source.Values["UNRELATED_PASSWORD"] = "secret-must-stay-unread";
         ConfigurationResolution result = Resolve(new() { EnvironmentKind = (ConfigurationEnvironmentKind)99, Logging = new() { FilePath = "private-path/no-output.log" } }, source);
-        IReadOnlyList<ConfigurationProblem> issues = ConfigurationOptionValidator.Validate(result);
+        IReadOnlyList<ConfigurationIssue> issues = ConfigurationOptionValidator.Validate(result);
         CollectionAssert.AreEqual(new[] { "CORE_LOG_LEVEL", "CORE_LOG_CONSOLE_FORMAT", "CORE_LOG_FILE_FORMAT", "CORE_LOG_QUEUE_CAPACITY", "CORE_LOG_FILE_MAX_BYTES", "CORE_LOG_SCHEMA_VERSION", "CORE_LOG_MAX_ENTRY_BYTES", "EnvironmentSetup.EnvironmentKind" }, issues.Select(issue => issue.Key).ToArray());
         string diagnostic = string.Join("|", issues.Select(issue => issue.Code + issue.Key + issue.Explanation));
         foreach (string secret in new[] { "sensitive-selected-token", "private-path", "secret-must-stay-unread", "UNRELATED_PASSWORD" })
@@ -308,7 +308,7 @@ public sealed class ConfigurationOptionValidationTests
             Assert.AreEqual(0, ConfigurationOptionValidator.Validate(Resolve(new(), source)).Count);
             source.Values["CORE_LOG_QUEUE_CAPACITY"] = "1,000";
             source.Values["CORE_LOG_FILE_MAX_BYTES"] = "65535";
-            IReadOnlyList<ConfigurationProblem> issues = ConfigurationOptionValidator.Validate(Resolve(new(), source));
+            IReadOnlyList<ConfigurationIssue> issues = ConfigurationOptionValidator.Validate(Resolve(new(), source));
             CollectionAssert.AreEqual(new[] { "InvalidToken:CORE_LOG_QUEUE_CAPACITY", "OutOfRange:CORE_LOG_FILE_MAX_BYTES" }, IssuePairs(issues));
             Assert.AreEqual("Use an integer between 65536 and 1073741824, inclusive.", issues[1].Explanation);
         }
@@ -323,11 +323,11 @@ public sealed class ConfigurationOptionValidationTests
     {
         var source = new EnvironmentVariableStub();
         source.Values["CORE_LOG_QUEUE_CAPACITY"] = "0";
-        IReadOnlyList<ConfigurationProblem> issues = ConfigurationOptionValidator.Validate(Resolve(new(), source));
+        IReadOnlyList<ConfigurationIssue> issues = ConfigurationOptionValidator.Validate(Resolve(new(), source));
         source.Values["CORE_LOG_QUEUE_CAPACITY"] = "1024";
         Assert.AreEqual(1, issues.Count);
         Assert.AreEqual(0, ConfigurationOptionValidator.Validate(Resolve(new(), source)).Count);
-        Assert.ThrowsExactly<NotSupportedException>(() => ((IList<ConfigurationProblem>)issues).Clear());
+        Assert.ThrowsExactly<NotSupportedException>(() => ((IList<ConfigurationIssue>)issues).Clear());
         Assert.ThrowsExactly<ArgumentNullException>(() => ConfigurationOptionValidator.Validate(null!));
     }
 
@@ -354,7 +354,7 @@ public sealed class ConfigurationOptionValidationTests
     };
     private static ConfigurationResolution Resolve(EnvironmentConfigurationInput setup, EnvironmentVariableStub? source = null) =>
         ConfigurationResolver.Resolve(setup, Application, CapturedEnvironment.Capture(source ?? new EnvironmentVariableStub()));
-    private static string[] IssuePairs(IReadOnlyList<ConfigurationProblem> issues) => issues.Select(issue => issue.Code + ":" + issue.Key).ToArray();
+    private static string[] IssuePairs(IReadOnlyList<ConfigurationIssue> issues) => issues.Select(issue => issue.Code + ":" + issue.Key).ToArray();
     private static string[] ExpectedIssues(JsonArray issues) => issues.Select(issue => Text(issue!, "code") + ":" + Text(issue!, "key")).ToArray();
     private static string Text(JsonNode node, string key) => ConfigurationFixtureAdapter.Text(node, key)!;
     private static string Root() => Directory.GetParent(Directory.GetParent(Directory.GetParent(ConfigurationFixtureAdapter.FindFixture())!.FullName)!.FullName)!.FullName;

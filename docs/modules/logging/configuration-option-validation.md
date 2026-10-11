@@ -20,6 +20,8 @@ The internal `ConfigurationEnvironmentKind` carries the setup-only contract valu
 
 The returned collection owns getter-only problem descriptors and rejects mutation. Explanations contain fixed guidance and invariant known bounds, never selected tokens, identity/path values or unrelated variables. This phase has no filesystem or host side effects and does not resolve path syntax. The complete public `CoreConfigurationException`, identity/control-character checks and full metadata issue aggregation belong to T02; captured working-directory/path validation belongs to T03. A zero-length option problem list does not establish a valid startup snapshot.
 
+T02 now implements [identity validation and public immutable diagnostics](configuration-identity-validation.md), replacing the preliminary internal problem value with the public ConfigurationIssue contract. The T01 execution snapshots below retain their original scope.
+
 ## Executed checks
 
 [Windows evidence](../../../planning/logging/evidence/wp03-s03-t01-windows.json) retains 349 new cases in 15 bound methods: all 276 logging-option rows from the existing per-key table, all nine cross-option membership cases, typed setup boundaries, undefined enums, EnvironmentKind, culture invariance, relationship boundaries, duplicate suppression, safe ordering and owned problem results. Six file-size setup cases inspect an owned empty directory before disposal to establish that validation creates no output. The multiple-error legacy vector specifies membership; a separate test enforces catalog order.

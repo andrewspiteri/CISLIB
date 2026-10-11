@@ -25,9 +25,13 @@ internal sealed class ConfigurationResolution
         ParsedConfigurationSetting<int> fileRetainedFiles,
         ParsedConfigurationSetting<int> schemaVersion,
         ParsedConfigurationSetting<int> maxEntryBytes,
-        ConfigurationEnvironmentKind environmentKind = ConfigurationEnvironmentKind.Unknown)
+        ConfigurationEnvironmentKind environmentKind = ConfigurationEnvironmentKind.Unknown,
+        string? commitId = null,
+        string? buildId = null)
     {
         BuildVersion = buildVersion;
+        CommitId = commitId;
+        BuildId = buildId;
         EnvironmentKind = environmentKind;
         ApplicationName = applicationName;
         EnvironmentName = environmentName;
@@ -54,6 +58,8 @@ internal sealed class ConfigurationResolution
     }
 
     public string BuildVersion { get; }
+    public string? CommitId { get; }
+    public string? BuildId { get; }
     public ConfigurationEnvironmentKind EnvironmentKind { get; }
     public ParsedConfigurationSetting<string> ApplicationName { get; }
     public ParsedConfigurationSetting<string> EnvironmentName { get; }
