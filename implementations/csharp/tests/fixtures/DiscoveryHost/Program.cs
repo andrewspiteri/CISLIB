@@ -11,6 +11,11 @@ internal static class Program
 {
     private static int Main(string[] args)
     {
+        if (args.Length == 3 && args[0] == "log-value")
+        {
+            return LogValueProcessFixture.Run(args[1], args[2]);
+        }
+
         if (args.Length == 3 && args[0] == "startup-metadata")
         {
             return StartupQualificationProcessFixture.Metadata(args[1], args[2]);
