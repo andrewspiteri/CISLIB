@@ -1,0 +1,199 @@
+{
+  "schemaVersion": 1,
+  "taskId": "WP03-S04-T04",
+  "metadataSource": "conformance/logging/metadata-cases.json",
+  "lifecycleSource": "conformance/logging/startup-lifecycle-cases.json",
+  "metadata": [
+    {
+      "caseId": "META-APPLICATION-ASSEMBLY",
+      "nativeGroups": [
+        "UT-STARTUP-QUALIFICATION-01",
+        "IT-STARTUP-QUALIFICATION-03"
+      ],
+      "mode": "startup-metadata",
+      "resolution": "Actual Core snapshot factory with explicitly controlled discovery, variables, clock and UUID; no static publication"
+    },
+    {
+      "caseId": "META-SUPPLIED-BUILD",
+      "nativeGroups": [
+        "UT-STARTUP-QUALIFICATION-01",
+        "IT-STARTUP-QUALIFICATION-03"
+      ],
+      "mode": "startup-metadata",
+      "resolution": "Actual Core snapshot factory with explicitly controlled discovery, variables, clock and UUID; no static publication"
+    },
+    {
+      "caseId": "META-ASSEMBLY-VERSION-FALLBACK",
+      "nativeGroups": [
+        "UT-STARTUP-QUALIFICATION-01",
+        "IT-STARTUP-QUALIFICATION-03"
+      ],
+      "mode": "startup-metadata",
+      "resolution": "Actual Core snapshot factory with explicitly controlled discovery, variables, clock and UUID; no static publication"
+    },
+    {
+      "caseId": "META-BUILD-UNAVAILABLE",
+      "nativeGroups": [
+        "UT-STARTUP-QUALIFICATION-01",
+        "IT-STARTUP-QUALIFICATION-03"
+      ],
+      "mode": "startup-metadata",
+      "resolution": "Actual Core snapshot factory with explicitly controlled discovery, variables, clock and UUID; no static publication"
+    },
+    {
+      "caseId": "META-TELEMETRY-RELEASE",
+      "nativeGroups": [
+        "UT-STARTUP-QUALIFICATION-01",
+        "IT-STARTUP-QUALIFICATION-03"
+      ],
+      "mode": "startup-metadata",
+      "resolution": "Actual Core snapshot factory with explicitly controlled discovery, variables, clock and UUID; no static publication"
+    },
+    {
+      "caseId": "META-PROCESS-AND-INITIALIZATION-TIMES",
+      "nativeGroups": [
+        "UT-STARTUP-QUALIFICATION-01",
+        "IT-STARTUP-QUALIFICATION-03"
+      ],
+      "mode": "startup-metadata",
+      "resolution": "Actual Core snapshot factory with explicitly controlled discovery, variables, clock and UUID; no static publication"
+    },
+    {
+      "caseId": "META-OPTIONAL-UNAVAILABLE",
+      "nativeGroups": [
+        "UT-STARTUP-QUALIFICATION-01",
+        "IT-STARTUP-QUALIFICATION-03"
+      ],
+      "mode": "startup-metadata",
+      "resolution": "Actual Core snapshot factory with explicitly controlled discovery, variables, clock and UUID; no static publication"
+    },
+    {
+      "caseId": "META-HOST-NOT-COLLECTOR",
+      "nativeGroups": [
+        "UT-STARTUP-QUALIFICATION-01",
+        "IT-STARTUP-QUALIFICATION-03"
+      ],
+      "mode": "startup-metadata",
+      "resolution": "Actual Core snapshot factory with explicitly controlled discovery, variables, clock and UUID; no static publication"
+    },
+    {
+      "caseId": "META-DO-NOT-INFER-BUILD-IDS",
+      "nativeGroups": [
+        "UT-STARTUP-QUALIFICATION-01",
+        "IT-STARTUP-QUALIFICATION-03"
+      ],
+      "mode": "startup-metadata",
+      "resolution": "Actual Core snapshot factory with explicitly controlled discovery, variables, clock and UUID; no static publication"
+    },
+    {
+      "caseId": "META-NEW-INSTANCE-PER-PUBLICATION",
+      "nativeGroups": [
+        "UT-STARTUP-QUALIFICATION-01",
+        "IT-STARTUP-QUALIFICATION-03"
+      ],
+      "mode": "startup-metadata",
+      "resolution": "Actual Core snapshot factory with explicitly controlled discovery, variables, clock and UUID; no static publication"
+    },
+    {
+      "caseId": "META-OWNED-IMMUTABLE-INPUT",
+      "nativeGroups": [
+        "UT-STARTUP-QUALIFICATION-01",
+        "IT-STARTUP-QUALIFICATION-03"
+      ],
+      "mode": "startup-metadata",
+      "resolution": "Actual Core snapshot factory with explicitly controlled discovery, variables, clock and UUID; no static publication"
+    },
+    {
+      "caseId": "META-NO-APPLICATION-IDENTITY",
+      "nativeGroups": [
+        "UT-STARTUP-QUALIFICATION-01",
+        "IT-STARTUP-QUALIFICATION-03"
+      ],
+      "mode": "startup-metadata",
+      "resolution": "Actual Core snapshot factory with explicitly controlled discovery, variables, clock and UUID; no static publication"
+    }
+  ],
+  "lifecycle": [
+    {
+      "caseId": "STARTUP-BEFORE-PUBLICATION",
+      "nativeGroups": [
+        "IT-STARTUP-QUALIFICATION-04"
+      ],
+      "mode": [
+        "startup-facade",
+        "before"
+      ]
+    },
+    {
+      "caseId": "STARTUP-INVALID-THEN-VALID",
+      "nativeGroups": [
+        "IT-STARTUP-QUALIFICATION-04"
+      ],
+      "mode": [
+        "startup-facade",
+        "retry"
+      ]
+    },
+    {
+      "caseId": "STARTUP-ONE-PUBLICATION",
+      "nativeGroups": [
+        "IT-STARTUP-QUALIFICATION-04"
+      ],
+      "mode": [
+        "startup-facade",
+        "explicit"
+      ]
+    },
+    {
+      "caseId": "STARTUP-CONCURRENT-VALID",
+      "nativeGroups": [
+        "IT-STARTUP-QUALIFICATION-04"
+      ],
+      "mode": [
+        "startup-concurrency",
+        "valid-16"
+      ]
+    },
+    {
+      "caseId": "STARTUP-CONCURRENT-INVALID-VALID",
+      "nativeGroups": [
+        "IT-STARTUP-QUALIFICATION-04"
+      ],
+      "mode": [
+        "startup-concurrency",
+        "mixed-16"
+      ]
+    },
+    {
+      "caseId": "STARTUP-NO-RESET-OR-SIDE-EFFECTS",
+      "nativeGroups": [
+        "IT-STARTUP-QUALIFICATION-04",
+        "AR-STARTUP-QUALIFICATION-06"
+      ],
+      "mode": [
+        "startup-independent"
+      ]
+    }
+  ],
+  "additionalPublicQualification": [
+    {
+      "caseId": "META-NEW-INSTANCE-PER-PUBLICATION",
+      "nativeGroup": "IT-STARTUP-QUALIFICATION-05",
+      "scenarios": [
+        "independent-first",
+        "independent-second"
+      ],
+      "resolution": "Two genuine separately initialized application processes using public Initialize and actual process/runtime/UUID sources"
+    },
+    {
+      "caseId": "META-OWNED-IMMUTABLE-INPUT",
+      "scenarios": [
+        "public-setup-mutation",
+        "independent-first",
+        "independent-second"
+      ],
+      "resolution": "Actual public mutation tests supplement the exact controlled metadata row; public snapshot and all convenience getters retain original values"
+    }
+  ],
+  "limits": "Direct compiled Core side-effect guards execute in Windows native/replay families; Ubuntu executes the same managed children with exact runtime and empty owned output directories. No Linux SDK/full-suite, macOS, logging runtime or release claim."
+}

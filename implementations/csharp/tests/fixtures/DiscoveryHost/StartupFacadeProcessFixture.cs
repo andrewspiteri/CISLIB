@@ -14,9 +14,14 @@ internal static class StartupFacadeProcessFixture
     {
         string beforeDirectory = Directory.GetCurrentDirectory();
         Require(!EnvironmentOptions.IsInitialized, "fresh process must be uninitialized");
-        RequireUninitializedReads();
+        Dictionary<string, string> preInitializationErrors = RequireUninitializedReads();
         EnvironmentSnapshot? snapshot = null;
         string[] issuePairs = [];
+        string? invalidException = null;
+        bool? initializedAfterFailure = null;
+        Dictionary<string, string>? failureReadErrors = null;
+        int successfulPublishers = 0;
+        string? laterException = null;
         DateTimeOffset beforeInitialization = DateTimeOffset.UtcNow;
         if (scenario == "null")
         {
@@ -58,13 +63,19 @@ internal static class StartupFacadeProcessFixture
                 setup.Logging!.QueueCapacity = 0;
                 setup.Logging.FilePath = "bad" + (char)0;
                 try { EnvironmentOptions.Initialize(setup); throw new InvalidDataException("invalid setup unexpectedly succeeded"); }
-                catch (CoreConfigurationException error) { issuePairs = error.Issues.Select(issue => issue.Code + ":" + issue.Key).ToArray(); }
-                Require(!EnvironmentOptions.IsInitialized, "failed validation must not publish");
-                RequireUninitializedReads();
+                catch (CoreConfigurationException error)
+                {
+                    issuePairs = error.Issues.Select(issue => issue.Code + ":" + issue.Key).ToArray();
+                    invalidException = error.GetType().Name;
+                }
+                initializedAfterFailure = EnvironmentOptions.IsInitialized;
+                Require(!initializedAfterFailure.Value, "failed validation must not publish");
+                failureReadErrors = RequireUninitializedReads();
                 setup.Logging.QueueCapacity = 2;
                 setup.Logging.FilePath = "logs/~app.jsonl";
             }
             snapshot = EnvironmentOptions.Initialize(setup);
+            successfulPublishers++;
             Require(EnvironmentOptions.IsInitialized, "valid setup must publish");
             Require(ReferenceEquals(snapshot, EnvironmentOptions.Current), "return and Current must be identical");
             RequireNullGuard();
@@ -73,7 +84,7 @@ internal static class StartupFacadeProcessFixture
                 EnvironmentOptions.Initialize(new() { ApplicationName = "replacement", Logging = new() { QueueCapacity = 0 } });
                 throw new InvalidDataException("second call unexpectedly succeeded");
             }
-            catch (InvalidOperationException) { }
+            catch (InvalidOperationException error) { laterException = error.GetType().Name; }
             Require(ReferenceEquals(snapshot, EnvironmentOptions.Current), "later call must preserve winner");
             RequirePublishedReads(snapshot);
         }
@@ -97,6 +108,13 @@ internal static class StartupFacadeProcessFixture
             initialized = EnvironmentOptions.IsInitialized,
             observed = new
             {
+                preInitializationErrors,
+                invalidException,
+                initializedAfterFailure,
+                failureReadErrors,
+                successfulPublishers,
+                laterException,
+                currentReferenceEqualsInitializeResult = snapshot is not null && ReferenceEquals(snapshot, EnvironmentOptions.Current),
                 beforeDirectory,
                 afterDirectory = Directory.GetCurrentDirectory(),
                 beforeInitialization,
@@ -119,13 +137,18 @@ internal static class StartupFacadeProcessFixture
         return 0;
     }
 
-    private static void RequireUninitializedReads()
+    private static Dictionary<string, string> RequireUninitializedReads()
     {
+        var errors = new Dictionary<string, string>(StringComparer.Ordinal);
         foreach (string name in new[] { "Current", "ApplicationName", "BuildVersion", "ServiceVersion", "EnvironmentName", "HostName", "OperatingSystem", "Logging", "EventMetadata" })
         {
             try { typeof(EnvironmentOptions).GetProperty(name)!.GetValue(null); throw new InvalidDataException("uninitialized getter succeeded: " + name); }
-            catch (TargetInvocationException error) when (error.InnerException?.GetType() == typeof(InvalidOperationException)) { }
+            catch (TargetInvocationException error) when (error.InnerException?.GetType() == typeof(InvalidOperationException))
+            {
+                errors.Add(name, error.InnerException.GetType().Name);
+            }
         }
+        return errors;
     }
 
     private static void RequireNullGuard()
