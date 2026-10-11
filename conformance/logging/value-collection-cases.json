@@ -1,0 +1,372 @@
+{
+  "schemaVersion": 1,
+  "taskId": "WP04-S01-T03",
+  "description": "Typed public collection-construction descriptors and independent retained shape expectations. Repeated containment occurrences count separately. Infinite sources are cooperative and throw if more than 1024 entries are requested.",
+  "caseCount": 22,
+  "cases": [
+    {
+      "id": "COLLECTION-ARRAY-CHILDREN-0",
+      "input": {
+        "kind": "array",
+        "scenario": "flat",
+        "count": 0
+      },
+      "expected": {
+        "kind": "Array",
+        "nodes": 1,
+        "depth": 1,
+        "rootCount": 0,
+        "isTruncated": false
+      }
+    },
+    {
+      "id": "COLLECTION-ARRAY-CHILDREN-1022",
+      "input": {
+        "kind": "array",
+        "scenario": "flat",
+        "count": 1022
+      },
+      "expected": {
+        "kind": "Array",
+        "nodes": 1023,
+        "depth": 2,
+        "rootCount": 1022,
+        "isTruncated": false
+      }
+    },
+    {
+      "id": "COLLECTION-ARRAY-CHILDREN-1023",
+      "input": {
+        "kind": "array",
+        "scenario": "flat",
+        "count": 1023
+      },
+      "expected": {
+        "kind": "Array",
+        "nodes": 1024,
+        "depth": 2,
+        "rootCount": 1023,
+        "isTruncated": false
+      }
+    },
+    {
+      "id": "COLLECTION-ARRAY-CHILDREN-1024",
+      "input": {
+        "kind": "array",
+        "scenario": "flat",
+        "count": 1024
+      },
+      "expected": {
+        "kind": "Array",
+        "nodes": 1024,
+        "depth": 2,
+        "rootCount": 1023,
+        "isTruncated": true
+      }
+    },
+    {
+      "id": "COLLECTION-ARRAY-DEPTH-8",
+      "input": {
+        "kind": "array",
+        "scenario": "chain",
+        "depth": 8
+      },
+      "expected": {
+        "kind": "Array",
+        "nodes": 8,
+        "depth": 8,
+        "rootCount": 1,
+        "isTruncated": false,
+        "deepestKind": "Integer"
+      }
+    },
+    {
+      "id": "COLLECTION-ARRAY-DEPTH-9",
+      "input": {
+        "kind": "array",
+        "scenario": "chain",
+        "depth": 9
+      },
+      "expected": {
+        "kind": "Array",
+        "nodes": 8,
+        "depth": 8,
+        "rootCount": 1,
+        "isTruncated": true,
+        "deepestKind": "Array"
+      }
+    },
+    {
+      "id": "COLLECTION-ARRAY-DEPTH-64",
+      "input": {
+        "kind": "array",
+        "scenario": "chain",
+        "depth": 64
+      },
+      "expected": {
+        "kind": "Array",
+        "nodes": 8,
+        "depth": 8,
+        "rootCount": 1,
+        "isTruncated": true,
+        "deepestKind": "Array"
+      }
+    },
+    {
+      "id": "COLLECTION-ARRAY-INFINITE",
+      "input": {
+        "kind": "array",
+        "scenario": "infinite"
+      },
+      "expected": {
+        "kind": "Array",
+        "nodes": 1024,
+        "depth": 2,
+        "rootCount": 1023,
+        "isTruncated": true,
+        "produced": 1024,
+        "enumerations": 1,
+        "disposed": true
+      }
+    },
+    {
+      "id": "COLLECTION-ARRAY-NESTED-EXACT",
+      "input": {
+        "kind": "array",
+        "scenario": "nested",
+        "groups": 32,
+        "childItems": 31,
+        "lastItems": 30
+      },
+      "expected": {
+        "kind": "Array",
+        "nodes": 1024,
+        "depth": 3,
+        "rootCount": 32,
+        "isTruncated": false,
+        "lastChildCount": 30,
+        "sourceChildCount": 31,
+        "sourceUnchanged": true
+      }
+    },
+    {
+      "id": "COLLECTION-ARRAY-NESTED-OVER",
+      "input": {
+        "kind": "array",
+        "scenario": "nested",
+        "groups": 33,
+        "childItems": 31,
+        "lastItems": 31
+      },
+      "expected": {
+        "kind": "Array",
+        "nodes": 1024,
+        "depth": 3,
+        "rootCount": 32,
+        "isTruncated": true,
+        "lastChildCount": 30,
+        "sourceChildCount": 31,
+        "sourceUnchanged": true
+      }
+    },
+    {
+      "id": "COLLECTION-ARRAY-PRIOR-TRUNCATION",
+      "input": {
+        "kind": "array",
+        "scenario": "prior"
+      },
+      "expected": {
+        "kind": "Array",
+        "nodes": 1024,
+        "depth": 3,
+        "rootCount": 1,
+        "isTruncated": true,
+        "lastChildCount": 1022,
+        "sourceChildCount": 1023,
+        "sourceUnchanged": true
+      }
+    },
+    {
+      "id": "COLLECTION-MAP-CHILDREN-0",
+      "input": {
+        "kind": "map",
+        "scenario": "flat",
+        "count": 0
+      },
+      "expected": {
+        "kind": "Map",
+        "nodes": 1,
+        "depth": 1,
+        "rootCount": 0,
+        "isTruncated": false
+      }
+    },
+    {
+      "id": "COLLECTION-MAP-CHILDREN-1022",
+      "input": {
+        "kind": "map",
+        "scenario": "flat",
+        "count": 1022
+      },
+      "expected": {
+        "kind": "Map",
+        "nodes": 1023,
+        "depth": 2,
+        "rootCount": 1022,
+        "isTruncated": false
+      }
+    },
+    {
+      "id": "COLLECTION-MAP-CHILDREN-1023",
+      "input": {
+        "kind": "map",
+        "scenario": "flat",
+        "count": 1023
+      },
+      "expected": {
+        "kind": "Map",
+        "nodes": 1024,
+        "depth": 2,
+        "rootCount": 1023,
+        "isTruncated": false
+      }
+    },
+    {
+      "id": "COLLECTION-MAP-CHILDREN-1024",
+      "input": {
+        "kind": "map",
+        "scenario": "flat",
+        "count": 1024
+      },
+      "expected": {
+        "kind": "Map",
+        "nodes": 1024,
+        "depth": 2,
+        "rootCount": 1023,
+        "isTruncated": true
+      }
+    },
+    {
+      "id": "COLLECTION-MAP-DEPTH-8",
+      "input": {
+        "kind": "map",
+        "scenario": "chain",
+        "depth": 8
+      },
+      "expected": {
+        "kind": "Map",
+        "nodes": 8,
+        "depth": 8,
+        "rootCount": 1,
+        "isTruncated": false,
+        "deepestKind": "Integer"
+      }
+    },
+    {
+      "id": "COLLECTION-MAP-DEPTH-9",
+      "input": {
+        "kind": "map",
+        "scenario": "chain",
+        "depth": 9
+      },
+      "expected": {
+        "kind": "Map",
+        "nodes": 8,
+        "depth": 8,
+        "rootCount": 1,
+        "isTruncated": true,
+        "deepestKind": "Map"
+      }
+    },
+    {
+      "id": "COLLECTION-MAP-DEPTH-64",
+      "input": {
+        "kind": "map",
+        "scenario": "chain",
+        "depth": 64
+      },
+      "expected": {
+        "kind": "Map",
+        "nodes": 8,
+        "depth": 8,
+        "rootCount": 1,
+        "isTruncated": true,
+        "deepestKind": "Map"
+      }
+    },
+    {
+      "id": "COLLECTION-MAP-INFINITE",
+      "input": {
+        "kind": "map",
+        "scenario": "infinite"
+      },
+      "expected": {
+        "kind": "Map",
+        "nodes": 1024,
+        "depth": 2,
+        "rootCount": 1023,
+        "isTruncated": true,
+        "produced": 1024,
+        "enumerations": 1,
+        "disposed": true
+      }
+    },
+    {
+      "id": "COLLECTION-MAP-NESTED-EXACT",
+      "input": {
+        "kind": "map",
+        "scenario": "nested",
+        "groups": 32,
+        "childItems": 31,
+        "lastItems": 30
+      },
+      "expected": {
+        "kind": "Map",
+        "nodes": 1024,
+        "depth": 3,
+        "rootCount": 32,
+        "isTruncated": false,
+        "lastChildCount": 30,
+        "sourceChildCount": 31,
+        "sourceUnchanged": true
+      }
+    },
+    {
+      "id": "COLLECTION-MAP-NESTED-OVER",
+      "input": {
+        "kind": "map",
+        "scenario": "nested",
+        "groups": 33,
+        "childItems": 31,
+        "lastItems": 31
+      },
+      "expected": {
+        "kind": "Map",
+        "nodes": 1024,
+        "depth": 3,
+        "rootCount": 32,
+        "isTruncated": true,
+        "lastChildCount": 30,
+        "sourceChildCount": 31,
+        "sourceUnchanged": true
+      }
+    },
+    {
+      "id": "COLLECTION-MAP-PRIOR-TRUNCATION",
+      "input": {
+        "kind": "map",
+        "scenario": "prior"
+      },
+      "expected": {
+        "kind": "Map",
+        "nodes": 1024,
+        "depth": 3,
+        "rootCount": 1,
+        "isTruncated": true,
+        "lastChildCount": 1022,
+        "sourceChildCount": 1023,
+        "sourceUnchanged": true
+      }
+    }
+  ]
+}

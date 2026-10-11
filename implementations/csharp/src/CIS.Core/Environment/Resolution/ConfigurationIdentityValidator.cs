@@ -1,29 +1,11 @@
-using System.Buffers;
-using System.Text;
+using CIS.Text;
 
 namespace CIS.Configuration;
 
 internal static class ConfigurationIdentityValidator
 {
-    public static bool IsValid(string value, int maximumScalars)
-    {
-        if (string.IsNullOrWhiteSpace(value))
-        {
-            return false;
-        }
-        ReadOnlySpan<char> remaining = value.AsSpan();
-        int count = 0;
-        while (!remaining.IsEmpty)
-        {
-            if (Rune.DecodeFromUtf16(remaining, out Rune scalar, out int consumed) != OperationStatus.Done
-                || Rune.IsControl(scalar) || ++count > maximumScalars)
-            {
-                return false;
-            }
-            remaining = remaining[consumed..];
-        }
-        return true;
-    }
+    public static bool IsValid(string value, int maximumScalars) =>
+        !string.IsNullOrWhiteSpace(value) && UnicodeScalarText.IsValid(value, maximumScalars, allowControls: false);
 
     public static void AddSelected(List<ConfigurationIssue> issues, ParsedConfigurationSetting<string> setting, int maximumScalars, bool applicationName = false)
     {

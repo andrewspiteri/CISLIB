@@ -1,0 +1,13 @@
+{
+  "taskId": "WP04-S01-T03",
+  "corrections": [
+    {
+      "scope": "architecture test compilation",
+      "detail": "Initial focused architecture tests attempted direct internal access from an assembly without InternalsVisibleTo. Kept the shipping friend boundary unchanged and used existing reflection/compiled-metadata inspection patterns before execution."
+    },
+    {
+      "scope": "setup command working directory",
+      "detail": "A setup script was first invoked from the language directory and failed before edits due to a doubled path. Re-ran from the explicit repository root with an assertion; formatting remained read-only."
+    }
+  ]
+}

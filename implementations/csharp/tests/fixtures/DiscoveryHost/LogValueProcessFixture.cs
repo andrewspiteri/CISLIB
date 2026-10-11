@@ -7,11 +7,19 @@ namespace CIS.Tests.DiscoveryFixture;
 
 internal static class LogValueProcessFixture
 {
-    public static int Run(string inputPath, string id)
+    public static int Run(string inputPath, string id, bool collections = false)
     {
         JsonObject row = ConfigurationFixtureAdapter.Case(ConfigurationFixtureAdapter.ReadDocument(inputPath), id);
-        JsonObject result = LogValueFixtureAdapter.Execute(row);
-        LogValueFixtureAdapter.Validate(row, result);
+        JsonObject result;
+        if (collections)
+        {
+            result = LogValueCollectionFixtureAdapter.Execute(row);
+        }
+        else
+        {
+            result = LogValueFixtureAdapter.Execute(row);
+            LogValueFixtureAdapter.Validate(row, result);
+        }
         result["observed"] = new JsonObject
         {
             ["publicFacadeInitialized"] = EnvironmentOptions.IsInitialized,

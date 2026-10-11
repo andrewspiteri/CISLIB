@@ -1,43 +1,12 @@
-using System.Buffers;
-using System.Text;
+using CIS.Text;
 
 namespace CIS.Logging.Values;
 
 internal static class LogValueText
 {
-    public static bool IsValidUnicode(string value)
-    {
-        ReadOnlySpan<char> remaining = value.AsSpan();
-        while (!remaining.IsEmpty)
-        {
-            if (Rune.DecodeFromUtf16(remaining, out _, out int consumed) != OperationStatus.Done)
-            {
-                return false;
-            }
-            remaining = remaining[consumed..];
-        }
-        return true;
-    }
+    public static bool IsValidUnicode(string value) => UnicodeScalarText.IsValid(value, int.MaxValue, allowControls: true);
 
-    public static bool IsValidKey(string value)
-    {
-        if (value.Length == 0)
-        {
-            return false;
-        }
-        ReadOnlySpan<char> remaining = value.AsSpan();
-        int scalars = 0;
-        while (!remaining.IsEmpty)
-        {
-            if (Rune.DecodeFromUtf16(remaining, out Rune scalar, out int consumed) != OperationStatus.Done ||
-                Rune.IsControl(scalar) || ++scalars > 255)
-            {
-                return false;
-            }
-            remaining = remaining[consumed..];
-        }
-        return true;
-    }
+    public static bool IsValidKey(string value) => value.Length > 0 && UnicodeScalarText.IsValid(value, 255, allowControls: false);
 
     public static bool IsInteger(string value)
     {

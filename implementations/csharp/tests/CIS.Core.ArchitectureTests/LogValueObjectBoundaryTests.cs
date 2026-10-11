@@ -13,7 +13,7 @@ public sealed class LogValueObjectBoundaryTests
     public void ActualValueGraphHasNoArbitraryFormattingReflectionOrSerializationCalls()
     {
         Type[] types = typeof(LogValue).Assembly.GetTypes()
-            .Where(type => type == typeof(LogValue) || type.Namespace == "CIS.Logging.Values").ToArray();
+            .Where(type => type == typeof(LogValue) || type.Namespace is "CIS.Logging.Values" or "CIS.Text").ToArray();
         int checkedCalls = 0;
         var typedFormatters = new HashSet<Type>();
         foreach (Type type in types)

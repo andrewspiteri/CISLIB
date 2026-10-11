@@ -6,7 +6,8 @@ namespace CIS.Logging;
 
 /// <summary>An immutable, explicitly typed scalar or owned collection of attribute values.</summary>
 /// <remarks>Collection inputs are copied; already immutable child values may be shared.
-/// Collection traversal projection follows in WP04-S01-T03.
+/// Every collection root is node 1 at depth 1; retained shapes have at most 1024 nodes and depth 8.
+/// Oversized collections keep a bounded projection and carry truncation provenance.
 /// UUID/time factories accept typed scalars; arbitrary objects have no conversion path.
 /// Event capture/rendering applies the separately configured aggregate entry limit.</remarks>
 public sealed class LogValue
@@ -17,22 +18,36 @@ public sealed class LogValue
     private readonly ReadOnlyDictionary<string, LogValue>? map;
 
     private LogValue(LogValueKind kind, LogValueScalar scalar = default,
-        ReadOnlyCollection<LogValue>? array = null, ReadOnlyDictionary<string, LogValue>? map = null)
+        ReadOnlyCollection<LogValue>? array = null, ReadOnlyDictionary<string, LogValue>? map = null, bool isTruncated = false)
     {
         Kind = kind;
         this.scalar = scalar;
         this.array = array;
         this.map = map;
+        var shape = (Nodes: 1, Depth: 1, Truncated: false);
+        if (array is not null)
+        {
+            shape = Measure(array);
+        }
+        else if (map is not null)
+        {
+            shape = Measure(map.Values);
+        }
+        NodeCount = shape.Nodes;
+        Depth = shape.Depth;
+        IsTruncated = isTruncated || shape.Truncated;
     }
 
     /// <summary>Gets the constructor-selected representation; magnitude never changes it.</summary>
     public LogValueKind Kind { get; }
 
-    /// <summary>Gets whether content was omitted from this value.</summary>
-    /// <remarks>The current representation factories retain complete input and return false.
-    /// Bounded projection/truncation provenance follows in WP04-S01-T03.</remarks>
-    public bool IsTruncated => false;
+    /// <summary>Gets whether this value or a retained descendant has omitted content.</summary>
+    /// <remarks>Collection projection propagates prior and newly observed truncation.
+    /// Aggregate entry-byte projection remains an event capture/rendering responsibility.</remarks>
+    public bool IsTruncated { get; }
 
+    internal int NodeCount { get; }
+    internal int Depth { get; }
     internal LogValueScalar Scalar => scalar;
     internal IReadOnlyList<LogValue> ArrayItems => array ?? throw new InvalidOperationException("Value is not an array.");
     internal IReadOnlyDictionary<string, LogValue> MapProperties => map ?? throw new InvalidOperationException("Value is not a map.");
@@ -115,39 +130,47 @@ public sealed class LogValue
     public static LogValue Timestamp(DateTimeOffset value) => new(LogValueKind.Timestamp,
         new(value.UtcDateTime.ToString("yyyy-MM-dd'T'HH:mm:ss.fffffff'Z'", CultureInfo.InvariantCulture)));
 
-    /// <summary>Creates an owned array, preserving the order of immutable child values.</summary>
+    /// <summary>Creates a bounded owned array, preserving input order.</summary>
+    /// <remarks>The root counts as node/depth 1. At most 1024 nodes and depth 8 are retained.
+    /// Copying stops after the first excess child; observed invalid children remain errors.</remarks>
     /// <exception cref="ArgumentNullException">items is null.</exception>
     /// <exception cref="ArgumentException">items contains a null reference instead of LogValue.Null().</exception>
     public static LogValue Array(IEnumerable<LogValue> items)
     {
         ArgumentNullException.ThrowIfNull(items);
-        var owned = new List<LogValue>();
-        foreach (LogValue item in items)
-        {
-            if (item is null)
-            {
-                throw new ArgumentException("Use LogValue.Null() for explicit null array elements.", nameof(items));
-            }
-            owned.Add(item);
-        }
-        return new(LogValueKind.Array, array: owned.AsReadOnly());
+        return new LogValueProjection().Array(items, depth: 1);
     }
 
-    /// <summary>Creates an owned ordinal map, preserving key text and immutable child values.</summary>
+    /// <summary>Creates a bounded owned ordinal map, preserving key text.</summary>
+    /// <remarks>The root counts as node/depth 1. At most 1024 nodes and depth 8 are retained.
+    /// Structural projection keeps the enumeration prefix and stops at the first excess child.
+    /// Retained keys compare ordinally; observed invalid keys/children remain errors.</remarks>
     /// <exception cref="ArgumentNullException">properties is null.</exception>
     /// <exception cref="ArgumentException">A key is empty, malformed, contains controls, exceeds 255 scalars,
     /// occurs twice, or a value is a null reference instead of LogValue.Null().</exception>
     public static LogValue Map(IReadOnlyDictionary<string, LogValue> properties)
     {
         ArgumentNullException.ThrowIfNull(properties);
-        var owned = new Dictionary<string, LogValue>(StringComparer.Ordinal);
-        foreach ((string key, LogValue value) in properties)
+        return new LogValueProjection().Map(properties, depth: 1);
+    }
+
+    internal static LogValue OwnedArray(List<LogValue> items, bool truncated) =>
+        new(LogValueKind.Array, array: items.AsReadOnly(), isTruncated: truncated);
+
+    internal static LogValue OwnedMap(Dictionary<string, LogValue> properties, bool truncated) =>
+        new(LogValueKind.Map, map: new(properties), isTruncated: truncated);
+
+    private static (int Nodes, int Depth, bool Truncated) Measure(IEnumerable<LogValue> children)
+    {
+        int nodes = 1;
+        int depth = 1;
+        bool truncated = false;
+        foreach (LogValue child in children)
         {
-            if (key is null || !LogValueText.IsValidKey(key) || value is null || !owned.TryAdd(key, value))
-            {
-                throw new ArgumentException("Use unique ordinal keys of 1–255 valid Unicode scalars without controls, and explicit LogValue values.", nameof(properties));
-            }
+            nodes += child.NodeCount;
+            depth = Math.Max(depth, child.Depth + 1);
+            truncated |= child.IsTruncated;
         }
-        return new(LogValueKind.Map, map: new(owned));
+        return (nodes, depth, truncated);
     }
 }
