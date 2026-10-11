@@ -1,0 +1,17 @@
+# Shared logging conformance cases
+
+These catalogs are language-neutral. Stable native case groups and requirement mappings distinguish implemented checks from planned obligations. Configuration, metadata and startup lifecycle vectors remain runtime expectations for WP03.
+
+WP02-S02 adds [record fixtures](event-record-cases.json), [explicit value fixtures](event-value-cases.json), and [future capture expectations](event-capture-expectations.json). The C# development-only validator executes every record/value case, including Unicode, node/depth, numeric and exact escaped-byte boundaries. Producer projection and additive reader evolution use distinct modes. Tagged constructor inputs preserve distinctions that cannot be inferred from serialized strings/numbers alone.
+
+Capture expectations for correlation overrides, nested copying, scopes and exception clipping remain unexecuted until WP04 uses the real library. Compiler-only consumers qualify shape, not behavior. No other language, collector ingestion, binary compatibility or platform-specific file behavior is established by these checks.
+
+WP02-S03 adds [45 admission examples](admission-cases.json) and [28 fixed-boundary result projections](drain-result-cases.json), executed only against development specification validators. The [18 runtime lifecycle expectations](runtime-lifecycle-expectations.json) remain unexecuted until real queue/worker/provider implementation. Exact decimal counter strings preserve Int64 fixture transport; they do not amend event wire types.
+
+WP03-S03-T04 adds [24 complete validation fixtures](configuration-validation-cases.json), including ordered combined errors, source priority, disabled outputs, Unicode/numeric bounds and safe diagnostics. [Qualification guidance](../../docs/modules/logging/configuration-validation-fixtures.md) distinguishes injected discovery facts, full native applicability, source-blocked stored reads and actual Windows/Ubuntu cwd changes from the pending public facade/snapshot publisher.
+
+WP04-S03-T04 adds [fourteen shared scope scenarios](scope-qualification-cases.json) and a [four-criterion map](scope-qualification-map.json) for actual internal scope state. Native exception observations use explicit C# bindings; ordered participants mean descriptor indices, not scheduling order. These development observations do not execute the complete event capture expectations or public runtime/provider integration. Read task evidence for actual qualification results.
+
+WP04-S04-T01 adds `event-projection-cases.json`: literal allowlisted event/resource facts with explicit native exception bindings. It uses actual owned Core projection under controlled validated metadata; UTC/activity capture, complete v1 encoding and runtime admission remain later tasks. Mapping is not execution evidence.
+
+WP04-S04-T02 adds event-precedence-cases.json: 28 literal owned-fact cases and direct native bindings to the original nested/blank-ID vectors. Reserved trace/span spellings stay nested; actual W3C pair capture and complete original reserved-correlation qualification remain T03/T05. Test bindings are not execution results.
