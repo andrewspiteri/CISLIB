@@ -1,0 +1,176 @@
+{
+  "status": "matched",
+  "repositoryPath": "C:\\miscwork\\portfolio\\cislib",
+  "graphPath": ".cis/local/graph/context.db",
+  "build": {
+    "id": "sha256:dcddf418312903db96a514b9a63b33fc33b7edffd65f78d5884dfc272dbab507",
+    "repositoryId": "cislib",
+    "head": "3b0e68409982cafeda373d8519bf10ac79226f4e",
+    "dirty": true,
+    "status": "partial"
+  },
+  "freshness": "fresh",
+  "query": {
+    "context": "callers",
+    "depth": "1",
+    "direction": "both",
+    "edges": "calls,depends-on,consumed-by,subscribes-to,references",
+    "id": "cislib::symbol::cis-core/csharp/method/CIS.Logging.Scopes.OperationScopeStore.Handle.Dispose%28%29",
+    "includeProposed": "false",
+    "limit": "12",
+    "operation": "related"
+  },
+  "nodes": [
+    {
+      "key": "cislib::symbol::cis-core/csharp/method/CIS.Logging.Scopes.OperationScopeStore.Handle.Dispose%28%29",
+      "repositoryId": "cislib",
+      "kind": "symbol",
+      "subtype": "method",
+      "localId": "cis-core/csharp/method/CIS.Logging.Scopes.OperationScopeStore.Handle.Dispose%28%29",
+      "label": "CIS.Logging.Scopes.OperationScopeStore.Handle.Dispose()",
+      "facets": [
+        "compiler-bound",
+        "csharp"
+      ],
+      "authority": "derived",
+      "lifecycle": "active",
+      "locations": [
+        {
+          "path": "implementations/csharp/src/CIS.Core/Logging/Scopes/OperationScopeStore.cs",
+          "locatorKind": "line",
+          "locatorValue": "39"
+        }
+      ],
+      "properties": {
+        "attributes": "",
+        "binding": "compiler",
+        "callSemantics": "",
+        "component": "cis-core",
+        "external": "false",
+        "generated": "false",
+        "generatedReasons": "",
+        "interfaces": "",
+        "language": "csharp",
+        "qualifiedName": "CIS.Logging.Scopes.OperationScopeStore.Handle.Dispose()",
+        "signature": "Dispose"
+      },
+      "provenance": [
+        {
+          "sourceKind": "repository-source",
+          "path": "implementations/csharp/src/CIS.Core/Logging/Scopes/OperationScopeStore.cs",
+          "locatorKind": "line",
+          "locatorValue": "39",
+          "contentHash": "sha256:82d2113e2d437e402b47627d4626ecf8ae3fddbfefe68bb1f3cad73ffef01d0f",
+          "method": "compiler-binding",
+          "extractor": "cis.csharp.compiler/5",
+          "confidence": "high",
+          "confidenceReason": "Roslyn resolved the declaration within the repository compilation."
+        }
+      ]
+    },
+    {
+      "key": "cislib::symbol::external/csharp/method/System.Private.CoreLib/object.ReferenceEquals%28object%3F%2C%20object%3F%29",
+      "repositoryId": "cislib",
+      "kind": "symbol",
+      "subtype": "method",
+      "localId": "external/csharp/method/System.Private.CoreLib/object.ReferenceEquals%28object%3F%2C%20object%3F%29",
+      "label": "object.ReferenceEquals(object?, object?)",
+      "facets": [
+        "compiler-bound",
+        "csharp",
+        "external"
+      ],
+      "authority": "derived",
+      "lifecycle": "active",
+      "locations": [
+        {
+          "path": "implementations/csharp/tests/fixtures/DiscoveryHost/OperationScopeDisposalProcessFixture.cs",
+          "locatorKind": "line",
+          "locatorValue": "143"
+        }
+      ],
+      "properties": {
+        "assembly": "System.Private.CoreLib",
+        "component": "external:System.Private.CoreLib",
+        "external": "true",
+        "language": "csharp",
+        "qualifiedName": "object.ReferenceEquals(object?, object?)",
+        "semantics": "",
+        "signature": "ReferenceEquals"
+      },
+      "provenance": [
+        {
+          "sourceKind": "repository-source",
+          "path": "implementations/csharp/tests/fixtures/DiscoveryHost/OperationScopeDisposalProcessFixture.cs",
+          "locatorKind": "line",
+          "locatorValue": "143",
+          "contentHash": "sha256:bb5e3eaf1ea087128f44419bc5aaca1227710ce7dd431bca72d245a43413483e",
+          "method": "compiler-call",
+          "extractor": "cis.csharp.semantic-facts/3",
+          "confidence": "high",
+          "confidenceReason": "Roslyn produced a bounded semantic fact for object.ReferenceEquals(object?, object?)."
+        }
+      ]
+    }
+  ],
+  "traversals": [
+    {
+      "depth": 1,
+      "direction": "out",
+      "edge": {
+        "key": "cislib::edge::2d36993c71f9d057fda27f803ce82a83b6f5afd9c9ac22a72c51746e7e4674ba",
+        "type": "calls",
+        "from": "cislib::symbol::cis-core/csharp/method/CIS.Logging.Scopes.OperationScopeStore.Handle.Dispose%28%29",
+        "to": "cislib::symbol::external/csharp/method/System.Private.CoreLib/object.ReferenceEquals%28object%3F%2C%20object%3F%29",
+        "state": "discovered",
+        "confidence": "high",
+        "observations": [
+          {
+            "sourceKind": "repository-source",
+            "path": "implementations/csharp/src/CIS.Core/Logging/Scopes/OperationScopeStore.cs",
+            "locatorKind": "line",
+            "locatorValue": "42",
+            "contentHash": "sha256:82d2113e2d437e402b47627d4626ecf8ae3fddbfefe68bb1f3cad73ffef01d0f",
+            "method": "compiler-call",
+            "extractor": "cis.csharp.semantic-facts/3",
+            "confidence": "high",
+            "confidenceReason": "Roslyn produced a bounded semantic fact for object.ReferenceEquals(object?, object?)."
+          },
+          {
+            "sourceKind": "repository-source",
+            "path": "implementations/csharp/src/CIS.Core/Logging/Scopes/OperationScopeStore.cs",
+            "locatorKind": "line",
+            "locatorValue": "50",
+            "contentHash": "sha256:82d2113e2d437e402b47627d4626ecf8ae3fddbfefe68bb1f3cad73ffef01d0f",
+            "method": "compiler-call",
+            "extractor": "cis.csharp.semantic-facts/3",
+            "confidence": "high",
+            "confidenceReason": "Roslyn produced a bounded semantic fact for object.ReferenceEquals(object?, object?)."
+          }
+        ],
+        "properties": {
+          "argumentKinds": "identifier; identifier",
+          "genericArguments": "",
+          "ordinal": "1; 2",
+          "scope": "external",
+          "semantics": ""
+        }
+      }
+    }
+  ],
+  "truncated": false,
+  "diagnostics": [
+    {
+      "code": "CIS-GRAPH-QUERY-PARTIAL-001",
+      "severity": "warning",
+      "message": "The graph was built with extraction warnings; query results may be incomplete.",
+      "evidence": [
+        "sha256:dcddf418312903db96a514b9a63b33fc33b7edffd65f78d5884dfc272dbab507"
+      ]
+    }
+  ],
+  "repositoryConfigurationValid": true,
+  "graphAvailable": true,
+  "queryValid": true,
+  "exitCode": 0
+}

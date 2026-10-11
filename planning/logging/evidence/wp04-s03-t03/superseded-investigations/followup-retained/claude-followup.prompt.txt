@@ -1,0 +1,21 @@
+Read-only follow-up review for WP04-S03-T03; human contract choice remains pending. Do not edit or treat your recommendation as approval of a contract change.
+
+Review new native tests:
+implementations/csharp/tests/CIS.Core.UnitTests/OperationScopeDisposalTests.cs
+conformance/logging/case-inventory.json (UT-SCOPE-T03-01 through07)
+conformance/logging/requirement-case-map.json (their REQ-003/REQ-010 bindings)
+.artifacts/csharp/tasks/wp04-s03-t03/all-scope-tests/all-scopes.trx (90 scope rows passed;9 new across7 methods)
+
+Review independent investigation follow-up:
+.artifacts/csharp/tasks/wp04-s03-t03/lifetime-probe/source/Program.cs
+.artifacts/csharp/tasks/wp04-s03-t03/lifetime-probe/windows.stdout.json
+.artifacts/csharp/tasks/wp04-s03-t03/lifetime-probe/linux.stdout.json
+.artifacts/csharp/tasks/wp04-s03-t03/ownership-probe/source/Program.cs
+.artifacts/csharp/tasks/wp04-s03-t03/ownership-probe/windows.stdout.json
+.artifacts/csharp/tasks/wp04-s03-t03/ownership-probe/linux.stdout.json
+implementations/csharp/src/CIS.Core/Logging/Scopes/OperationScopeStore.cs
+.artifacts/csharp/tasks/wp04-s03-t03/ownership-decision.md
+
+Your previous review recommended retaining original BeginScope/creator-disposes rules, withdrawing the unpublished universal rejection promise, precise detectable-state/error wording, async-helper/detached-work docs, and correctly noting callback-only Core APIs cannot eliminate Microsoft's IDisposable scope surface. Human has not answered that choice, so production/source contracts remain unchanged. The new lifetime probe investigates all four additional paths you identified: returned helper handle absent in caller, a completed handle in a restored stale context, child work that outlives parent scope and is then joined safely for observation, and two barrier-released concurrent inherited-handle misuses. Both platforms execute identical reviewed CoreSHA0ce9ee7dc3399685d5cd0f930c450f9dbe3d6c43fb81ebd123258ea743fbbcf8 and lifetime probeSHA19f31a1232fd5ba604bcfb0f1d07cab79fd5896ed6c81c5c645ec8e15a1b944a, exact .NET10.0.12/no-roll-forward. Assertions characterize current behavior, explicitly not conformance. Never classify misuse being accepted as a passing ownership requirement. Initial compile failures are retained. The 9 new unit rows exercise only valid creating-flow usage plus LIFO errors, with pending task qualification explicitly in case sources. Neither T03 nor T04 is marked complete. Full Developer verification currently runs independently.
+
+Identify actionable correctness, test gaps, flaky timing/cleanup, evidence overclaims, or misleading pending-design statements. Distinguish required fixes from optional followups. Use only Read/Glob/Grep and respond succinctly. Do not inspect unrelated historical evidence.

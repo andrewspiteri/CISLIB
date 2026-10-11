@@ -1,0 +1,99 @@
+{
+  "schema": "cis.operation-scope-disposal-process/v1",
+  "family": "linux",
+  "status": "Passed",
+  "exitCode": 0,
+  "driverSha256": "c6abaf605214f1f2b4aa8c6b8d662d67d0fa4aceac9e8d248031e5d412b436b5",
+  "runtimeVersion": "10.0.12",
+  "rollForward": "Disable",
+  "cases": [
+    {
+      "id": "lifo",
+      "status": "Passed",
+      "childExitCode": 0,
+      "fixtureSha256": "a37d930cb363d40f142ca312e22490f1429f45ec4a0c0c712abdd7902df037f0",
+      "coreSha256": "1d9a3204a23309c933a8642cea26acaa62b943c3da543378a4e91575f24b0089"
+    },
+    {
+      "id": "repeat",
+      "status": "Passed",
+      "childExitCode": 0,
+      "fixtureSha256": "a37d930cb363d40f142ca312e22490f1429f45ec4a0c0c712abdd7902df037f0",
+      "coreSha256": "1d9a3204a23309c933a8642cea26acaa62b943c3da543378a4e91575f24b0089"
+    },
+    {
+      "id": "await",
+      "status": "Passed",
+      "childExitCode": 0,
+      "fixtureSha256": "a37d930cb363d40f142ca312e22490f1429f45ec4a0c0c712abdd7902df037f0",
+      "coreSha256": "1d9a3204a23309c933a8642cea26acaa62b943c3da543378a4e91575f24b0089"
+    },
+    {
+      "id": "absent",
+      "status": "Passed",
+      "childExitCode": 0,
+      "fixtureSha256": "a37d930cb363d40f142ca312e22490f1429f45ec4a0c0c712abdd7902df037f0",
+      "coreSha256": "1d9a3204a23309c933a8642cea26acaa62b943c3da543378a4e91575f24b0089"
+    }
+  ],
+  "reports": [
+    {
+      "path": "lifo.stdout.json",
+      "sha256": "14cb161dc6f58ec558eaffcdcf8d00c20ade4a861a66b29337e549f097a502a6",
+      "bytes": 451
+    },
+    {
+      "path": "lifo.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "repeat.stdout.json",
+      "sha256": "4bb38070199a3ad1d7a6550cbb42daa7df19a5d0c452a10d6b655ee4e96d5a3f",
+      "bytes": 400
+    },
+    {
+      "path": "repeat.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "await.stdout.json",
+      "sha256": "64e6ce0d683277b6577d914cb43beee3eebfca2df7f8e8a3097bfdb574bc81e7",
+      "bytes": 448
+    },
+    {
+      "path": "await.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "absent.stdout.json",
+      "sha256": "c36de351009696233d0adb9fc98fd6f5ea3a60da60a043ec17664d6a51650052",
+      "bytes": 512
+    },
+    {
+      "path": "absent.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    }
+  ],
+  "comparatorControls": [
+    {
+      "mode": "lifo",
+      "field": "restoredIds",
+      "rejected": true
+    },
+    {
+      "mode": "repeat",
+      "field": "ownerRepeatsHarmless",
+      "rejected": true
+    },
+    {
+      "mode": "absent",
+      "field": "message",
+      "rejected": true
+    }
+  ],
+  "parentEnvironmentAndDirectoryUnchanged": true
+}

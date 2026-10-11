@@ -33,6 +33,7 @@ internal sealed class OperationScopeStore
 
     private sealed class Handle(OperationScopeStore owner, OperationScopeFrame frame) : IDisposable
     {
+        // Idempotence state only: an inherited frame or this flag cannot identify a flow owner.
         private int disposed;
 
         public void Dispose()
@@ -53,7 +54,7 @@ internal sealed class OperationScopeStore
             }
             if (Volatile.Read(ref disposed) == 0)
             {
-                throw new InvalidOperationException("Dispose an operation scope in its creating logical flow.");
+                throw new InvalidOperationException("The operation scope is not active in the current asynchronous context.");
             }
         }
     }

@@ -1,0 +1,23 @@
+Read-only final implementation review for WP04-S03-T03 in C:/miscwork/portfolio/cislib. Only Read, Glob and Grep. Do not edit files. The human explicitly selected on 11 October 2026: Keep BeginScope and the creator-disposes rule; document the detection limits. This is authority for correcting our later unpublished WP02-S03 universal cross-flow rejection promise, while preserving original supplied plans and published/historical evidence. Do not keep treating the decision as pending.
+
+Review these current canonical files:
+implementations/csharp/src/CIS.Core/Logging/Scopes/OperationScopeStore.cs
+implementations/csharp/tests/CIS.Core.UnitTests/OperationScopeDisposalTests.cs
+implementations/csharp/tests/CIS.Core.UnitTests/OperationScopeCaptureGuardTests.cs
+implementations/csharp/tests/CIS.Core.IntegrationTests/OperationScopeDisposalProcessTests.cs
+implementations/csharp/tests/fixtures/DiscoveryHost/OperationScopeDisposalProcessFixture.cs
+implementations/csharp/tests/fixtures/DiscoveryHost/verify-scope-disposal.py
+implementations/csharp/tests/fixtures/DiscoveryHost/Program.cs
+contracts/logging/v1/runtime-contract.json
+docs/modules/logging/runtime-contract.md
+docs/modules/logging/operation-scopes.md
+planning/logging/plan-amendments.md (final section)
+planning/decisions.md (final section)
+conformance/logging/case-inventory.json (10 SCOPE-T03 groups,16 rows)
+conformance/logging/requirement-case-map.json
+
+Shipping stack algorithm unchanged; absent-frame diagnostic now describes current context. A matching head pops; ancestor nonhead throws LIFO unchanged; absent frame before any successful disposal throws unchanged; otherwise repeated disposal is harmless for valid owner use. Shared disposed flag is not owner identity. Cross-flow transfer/disposal prohibited with unspecified behavior; no universal detection or cross-flow atomicity guarantee. Stale restored contexts can retain frames. Async helper cannot install scope into caller by returning its handle. Await children for intended operation lifetime. Public runtime integration and T04 full shared-story qualification remain later.
+
+Initial and lifetime probes under .artifacts/csharp/tasks/wp04-s03-t03/*-probe are investigations of prohibited misuse, not requirement acceptance. Earlier receipts/reviews marked DecisionPending are immutable superseded investigation evidence. Current tests have twelve unit rows and four integration rows; focused tests are running and full final verification is still pending. Do not claim their success before reading actual results. The new FailedLifoAttemptPreservesTheNeverCompletedAbsentFrameGuard adds the concrete guard test you requested. Every ancestor test now verifies exact parent restoration at every pop. Existing absent-case name now states never-disposed context.
+
+Find actionable correctness, binding, flaky-test, boundary and documentation/evidence-claim issues. Distinguish required fixes from optional future work. Return concise verdict with file/method locations. Do not inspect unrelated historical evidence.

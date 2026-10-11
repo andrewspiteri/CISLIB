@@ -6211,9 +6211,9 @@
     {
       "id": "UT-SCOPE-T01-19",
       "family": "unit",
-      "title": "AHandleAbsentFromTheCallingFlowRejectsDisposalWithoutMutation",
+      "title": "ANeverDisposedHandleAbsentFromTheCallingContextRejectsDisposalWithoutMutation",
       "implementation": "Implemented",
-      "method": "CIS.Tests.UnitTests.OperationScopeCaptureGuardTests.AHandleAbsentFromTheCallingFlowRejectsDisposalWithoutMutation",
+      "method": "CIS.Tests.UnitTests.OperationScopeCaptureGuardTests.ANeverDisposedHandleAbsentFromTheCallingContextRejectsDisposalWithoutMutation",
       "minimumExecutions": 1,
       "lanes": [
         "windows-x64",
@@ -6513,6 +6513,176 @@
         "REQ-010"
       ],
       "source": "WP04-S03-T02 actual bounded outer-to-inner merged scope view and depth qualification; full owning-flow disposal, shared story and event/runtime integration remain pending."
+    },
+    {
+      "id": "UT-SCOPE-T03-01",
+      "family": "unit",
+      "title": "EveryActiveAncestorRejectsDisposalWithoutChangingTheCapturedScope",
+      "implementation": "Implemented",
+      "method": "CIS.Tests.UnitTests.OperationScopeDisposalTests.EveryActiveAncestorRejectsDisposalWithoutChangingTheCapturedScope",
+      "minimumExecutions": 3,
+      "lanes": [
+        "windows-x64",
+        "linux-ubuntu2404-x64"
+      ],
+      "requirements": [
+        "REQ-003",
+        "REQ-010"
+      ],
+      "source": "WP04-S03-T03 creator-owned LIFO/repeats and detectable-state guards under the user-selected detection limits. Prohibited-misuse investigations are not acceptance cases; T04 shared story and public runtime/provider integration remain later tasks."
+    },
+    {
+      "id": "UT-SCOPE-T03-02",
+      "family": "unit",
+      "title": "RepeatedAncestorDisposalErrorsPreserveTheHeadAndAllowLaterLifoCleanup",
+      "implementation": "Implemented",
+      "method": "CIS.Tests.UnitTests.OperationScopeDisposalTests.RepeatedAncestorDisposalErrorsPreserveTheHeadAndAllowLaterLifoCleanup",
+      "minimumExecutions": 1,
+      "lanes": [
+        "windows-x64",
+        "linux-ubuntu2404-x64"
+      ],
+      "requirements": [
+        "REQ-003",
+        "REQ-010"
+      ],
+      "source": "WP04-S03-T03 creator-owned LIFO/repeats and detectable-state guards under the user-selected detection limits. Prohibited-misuse investigations are not acceptance cases; T04 shared story and public runtime/provider integration remain later tasks."
+    },
+    {
+      "id": "UT-SCOPE-T03-03",
+      "family": "unit",
+      "title": "CompletedInnerHandleCanRepeatWhileANewerIdenticalScopeRemainsActive",
+      "implementation": "Implemented",
+      "method": "CIS.Tests.UnitTests.OperationScopeDisposalTests.CompletedInnerHandleCanRepeatWhileANewerIdenticalScopeRemainsActive",
+      "minimumExecutions": 1,
+      "lanes": [
+        "windows-x64",
+        "linux-ubuntu2404-x64"
+      ],
+      "requirements": [
+        "REQ-003",
+        "REQ-010"
+      ],
+      "source": "WP04-S03-T03 creator-owned LIFO/repeats and detectable-state guards under the user-selected detection limits. Prohibited-misuse investigations are not acceptance cases; T04 shared story and public runtime/provider integration remain later tasks."
+    },
+    {
+      "id": "UT-SCOPE-T03-04",
+      "family": "unit",
+      "title": "CompletedRootHandleCanRepeatAfterTheStoreIsUsedForAnotherOperation",
+      "implementation": "Implemented",
+      "method": "CIS.Tests.UnitTests.OperationScopeDisposalTests.CompletedRootHandleCanRepeatAfterTheStoreIsUsedForAnotherOperation",
+      "minimumExecutions": 1,
+      "lanes": [
+        "windows-x64",
+        "linux-ubuntu2404-x64"
+      ],
+      "requirements": [
+        "REQ-003",
+        "REQ-010"
+      ],
+      "source": "WP04-S03-T03 creator-owned LIFO/repeats and detectable-state guards under the user-selected detection limits. Prohibited-misuse investigations are not acceptance cases; T04 shared story and public runtime/provider integration remain later tasks."
+    },
+    {
+      "id": "UT-SCOPE-T03-05",
+      "family": "unit",
+      "title": "OwnerCanDisposeAcrossAwaitAndUnrelatedAmbientContextChanges",
+      "implementation": "Implemented",
+      "method": "CIS.Tests.UnitTests.OperationScopeDisposalTests.OwnerCanDisposeAcrossAwaitAndUnrelatedAmbientContextChanges",
+      "minimumExecutions": 1,
+      "lanes": [
+        "windows-x64",
+        "linux-ubuntu2404-x64"
+      ],
+      "requirements": [
+        "REQ-003",
+        "REQ-010"
+      ],
+      "source": "WP04-S03-T03 creator-owned LIFO/repeats and detectable-state guards under the user-selected detection limits. Prohibited-misuse investigations are not acceptance cases; T04 shared story and public runtime/provider integration remain later tasks."
+    },
+    {
+      "id": "UT-SCOPE-T03-06",
+      "family": "unit",
+      "title": "DisposingAnOwnedChildScopeAndRepeatingItLeavesTheInheritedParentHead",
+      "implementation": "Implemented",
+      "method": "CIS.Tests.UnitTests.OperationScopeDisposalTests.DisposingAnOwnedChildScopeAndRepeatingItLeavesTheInheritedParentHead",
+      "minimumExecutions": 1,
+      "lanes": [
+        "windows-x64",
+        "linux-ubuntu2404-x64"
+      ],
+      "requirements": [
+        "REQ-003",
+        "REQ-010"
+      ],
+      "source": "WP04-S03-T03 creator-owned LIFO/repeats and detectable-state guards under the user-selected detection limits. Prohibited-misuse investigations are not acceptance cases; T04 shared story and public runtime/provider integration remain later tasks."
+    },
+    {
+      "id": "UT-SCOPE-T03-07",
+      "family": "unit",
+      "title": "IndependentStoresAllowInterleavedDisposalInTheirOwnLifoOrders",
+      "implementation": "Implemented",
+      "method": "CIS.Tests.UnitTests.OperationScopeDisposalTests.IndependentStoresAllowInterleavedDisposalInTheirOwnLifoOrders",
+      "minimumExecutions": 1,
+      "lanes": [
+        "windows-x64",
+        "linux-ubuntu2404-x64"
+      ],
+      "requirements": [
+        "REQ-003",
+        "REQ-010"
+      ],
+      "source": "WP04-S03-T03 creator-owned LIFO/repeats and detectable-state guards under the user-selected detection limits. Prohibited-misuse investigations are not acceptance cases; T04 shared story and public runtime/provider integration remain later tasks."
+    },
+    {
+      "id": "UT-SCOPE-T03-08",
+      "family": "unit",
+      "title": "FailedLifoAttemptPreservesTheNeverCompletedAbsentFrameGuard",
+      "implementation": "Implemented",
+      "method": "CIS.Tests.UnitTests.OperationScopeDisposalTests.FailedLifoAttemptPreservesTheNeverCompletedAbsentFrameGuard",
+      "minimumExecutions": 1,
+      "lanes": [
+        "windows-x64",
+        "linux-ubuntu2404-x64"
+      ],
+      "requirements": [
+        "REQ-003",
+        "REQ-010"
+      ],
+      "source": "WP04-S03-T03 creator-owned LIFO/repeats and detectable-state guards under the user-selected detection limits. Prohibited-misuse investigations are not acceptance cases; T04 shared story and public runtime/provider integration remain later tasks."
+    },
+    {
+      "id": "UT-SCOPE-T03-09",
+      "family": "unit",
+      "title": "NeverCompletedAbsentHandleRejectsWithoutChangingEmptyOrUnrelatedHeads",
+      "implementation": "Implemented",
+      "method": "CIS.Tests.UnitTests.OperationScopeDisposalTests.NeverCompletedAbsentHandleRejectsWithoutChangingEmptyOrUnrelatedHeads",
+      "minimumExecutions": 2,
+      "lanes": [
+        "windows-x64",
+        "linux-ubuntu2404-x64"
+      ],
+      "requirements": [
+        "REQ-003",
+        "REQ-010"
+      ],
+      "source": "WP04-S03-T03 creator-owned LIFO/repeats and detectable-state guards under the user-selected detection limits. Prohibited-misuse investigations are not acceptance cases; T04 shared story and public runtime/provider integration remain later tasks."
+    },
+    {
+      "id": "IT-SCOPE-T03-10",
+      "family": "integration",
+      "title": "NativeScopeDisposalRunsInAnIsolatedExactRuntimeChild",
+      "implementation": "Implemented",
+      "method": "CIS.Tests.IntegrationTests.OperationScopeDisposalProcessTests.NativeScopeDisposalRunsInAnIsolatedExactRuntimeChild",
+      "minimumExecutions": 4,
+      "lanes": [
+        "windows-x64",
+        "linux-ubuntu2404-x64"
+      ],
+      "requirements": [
+        "REQ-003",
+        "REQ-010"
+      ],
+      "source": "WP04-S03-T03 creator-owned LIFO/repeats and detectable-state guards under the user-selected detection limits. Prohibited-misuse investigations are not acceptance cases; T04 shared story and public runtime/provider integration remain later tasks."
     }
   ]
 }

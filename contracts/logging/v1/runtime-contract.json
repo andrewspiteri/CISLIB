@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "story": "WP02-S03",
   "state": "Unpublished contract; pure specification validation/compile-only qualification, no runtime implementation",
-  "authority": "Source guide sections 10-13 as amended by user architecture, facade name and oversized-payload truncation. New property/type/code/enum names are maintainer prepublication choices.",
+  "authority": "Source guide sections 10-13 as amended by user architecture, facade name and oversized-payload truncation and creator-disposes scope ownership with detection limits. New property/type/code/enum names are maintainer prepublication choices.",
   "csharpSurface": "implementations/csharp/verification/contracts/startup/runtime-surface.json",
   "writeOrder": [
     "Required data/factory nonnull",
@@ -20,7 +20,7 @@
     "IsEnabled": "Undefined level -> ArgumentOutOfRangeException, including after stop; None/closed/all interested faulted -> false. Queue fullness does not make it false.",
     "Write": "Null data -> ArgumentNullException before validating level; undefined level -> ArgumentOutOfRangeException. Invalid captured content -> InvalidEvent/ErrorCode, no output entries.",
     "WriteLazy": "Null factory -> ArgumentNullException before validating level. Invoke at most once only after early decision stages. Caller exception propagates unchanged without output entries/capture counts; null return -> InvalidEvent/InvalidFactoryResult.",
-    "BeginScope": "Null context -> ArgumentNullException; closed admission -> InvalidOperationException before content traversal. Invalid operation ID -> ArgumentException. Oversized supported payload is copied with truncation provenance. Depth >32 or out-of-order/cross-flow disposal -> InvalidOperationException without scope mutation. Repeat owner-flow disposal harmless.",
+    "BeginScope": "Null context -> ArgumentNullException; closed admission -> InvalidOperationException before content traversal. Invalid operation ID -> ArgumentException. Oversized supported payload is copied with truncation provenance. Depth >32 or disposal of a non-head active scope -> InvalidOperationException without scope mutation. Disposal of a scope absent from the current context whose handle has never completed disposal in any flow also throws InvalidOperationException without mutation. The creator alone disposes its handle in its logical flow; repeat disposal in that flow after its successful pop is harmless. Transfer/disposal from another concurrent flow is prohibited. The stated scope-state guards detect some misuse; other misuse has unspecified behavior and no universal cross-flow rejection is promised.",
     "FlushAsync": "Validate positive finite timeout before registering boundary or checking cancellation; zero/negative/Timeout.InfiniteTimeSpan -> ArgumentOutOfRangeException. Positive TimeSpan values supported. Capture/register boundary even if caller token is already cancelled; cancellation throws OperationCanceledException for the caller only.",
     "StopAsync": "First request closes admission and starts shared shutdown even when caller token already cancelled; cancellation affects caller wait only.",
     "DisposeAsync": "Joins shared shutdown, no synchronous Dispose or additional deadline. Repeated disposal safe. Drain failure remains a result, not a thrown business logging I/O failure.",
@@ -72,7 +72,7 @@
     "application": "Owns Create -> scopes/background work -> explicit Stop/result inspection -> DisposeAsync lifecycle.",
     "logger": "Borrows runtime; no independent shutdown owner.",
     "provider": "CoreLoggerProvider in CIS.Logging.MicrosoftLogger borrows runtime; IDisposable stops only provider-owned registrations/scopes, never the shared runtime. Initial API has no owning-mode overload. Host and core scopes use the same bounded copy/precedence contract.",
-    "scope": "Belongs to creating runtime and logical async flow, disposed LIFO; no cross-concurrent-flow transfer.",
+    "scope": "Belongs to creating runtime and logical async flow, disposed LIFO by the creator; no cross-concurrent-flow transfer or disposal. Normal child contexts inherit values and may create/dispose their own scopes. Completion state can be set by a prohibited pop in any flow; it is not proof of ownership. Contexts captured before a pop can retain the old frame. Returning a handle from an async helper does not install its scope in the caller. Unawaited child work may retain inherited values after the creator scope ends.",
     "writers": "Runtime owns file handles/workers; console TextWriters are borrowed. Startup rollback preserves pre-existing files/segments.",
     "results": "Sealed getter-only, owned immutable collections; no public result constructors or live counter views."
   },

@@ -75,7 +75,7 @@ public sealed class OperationScopeCaptureGuardTests
     }
 
     [TestMethod]
-    public async Task AHandleAbsentFromTheCallingFlowRejectsDisposalWithoutMutation()
+    public async Task ANeverDisposedHandleAbsentFromTheCallingContextRejectsDisposalWithoutMutation()
     {
         var store = new OperationScopeStore();
         var ready = new TaskCompletionSource<IDisposable>(TaskCreationOptions.RunContinuationsAsynchronously);

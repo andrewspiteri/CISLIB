@@ -1,0 +1,19 @@
+WP04-S03-T03 investigation review (read only).
+
+The original roadmap/guide requires LIFO in the creating logical flow, harmless repeated correct-flow disposal, out-of-order InvalidOperationException without mutation, normal child execution-context inheritance, and prohibits transferring scope handles to another concurrent flow. A later maintainer-selected unpublished runtime contract additionally promised universal cross-flow rejection. That stronger guarantee is unresolved in T01/T02.
+
+Inspect:
+implementations/csharp/src/CIS.Core/Logging/Scopes/OperationScopeStore.cs
+planning/logging/sources/core-library-implementation-guide-v1.md around line410
+planning/logging/sources/core-library-implementation-plan-v1.md around lines587-598
+contracts/logging/v1/runtime-contract.json BeginScope/ownership
+.artifacts/csharp/tasks/wp04-s03-t03/ownership-probe/source/Program.cs
+.artifacts/csharp/tasks/wp04-s03-t03/ownership-probe/windows.stdout.json
+
+The actual reviewed Core binary is SHA2560ce9ee7dc3399685d5cd0f930c450f9dbe3d6c43fb81ebd123258ea743fbbcf8. The isolated probe uses its existing friend assembly identity, never changes shipping code, initializes no public facade, and ran exactly .NET10.0.12/no-roll-forward. Its assertions observe current behavior, not compliance. It reproduced inherited parent handle disposal succeeding in a child, the same frame/ExecutionContext/AsyncLocal owner marker and null Task.CurrentId in both parent/child continuations, and absent foreign repeat accepted after owner pop. It also executes valid LIFO/repeats and valid owner disposal after unrelated AsyncLocal changes and await.
+
+Proposed decision, not adopted:
+A. Keep planned BeginScope/IDisposable API and original caller ownership rule. Enforce LIFO and detectable invalid state; explicitly withdraw the later universal cross-flow rejection promise. No claim that ambient token/frame/ExecutionContext/thread/Task.CurrentId proves ownership. Misuse remains prohibited. Qualify valid behavior thoroughly. This follows the original guide and minimizes caller burden.
+B. Redesign before publication around callback scope methods such as WithScope/WithScopeAsync(context, callback). Keep handle private, dispose in library finally. Removes handle-transfer surface; larger public/reference/consumer/API change, must not leave the old transferable API with the same universal guarantee. Arbitrary ambient fork detection still isn't promised. Callback concurrency/unawaited work requires clear lifetime docs.
+
+Review the probe's validity and limitations, whether any supported public .NET mechanism can universally distinguish arbitrary inherited child flow from legitimate owner continuation without caller cooperation, and whether A/B are accurately described. Reject fake guards based on threadID/Task.CurrentId/captured EC/AsyncLocal token. Report actionable corrections and the recommended concrete design, do not edit files. No source transmission beyond this user-authorized read-only Claude review; do not run shell or tools other than Read/Glob/Grep. You need not inspect thousands of historical reports.

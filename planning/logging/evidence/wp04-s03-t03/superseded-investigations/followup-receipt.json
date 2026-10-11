@@ -1,0 +1,998 @@
+{
+  "schema": "cis.scope-disposal-followup/v1",
+  "task": "WP04-S03-T03",
+  "status": "DecisionPending",
+  "taskComplete": false,
+  "baseCommit": "3b0e68409982cafeda373d8519bf10ac79226f4e",
+  "nativeBeforeReviewCorrection": {
+    "unit": {
+      "total": 2479,
+      "passed": 2479,
+      "failed": 0,
+      "notExecuted": 0
+    },
+    "integration": {
+      "total": 348,
+      "passed": 348,
+      "failed": 0,
+      "notExecuted": 0
+    },
+    "architecture": {
+      "total": 393,
+      "passed": 393,
+      "failed": 0,
+      "notExecuted": 0
+    }
+  },
+  "nativeCorrectedScopeRows": 90,
+  "newDisposalMethods": 7,
+  "newDisposalRows": 9,
+  "compilerControlsBeforeCorrection": 55,
+  "sourceInputsVerified": 13395,
+  "postRunSourceChanges": [
+    {
+      "path": "conformance/logging/case-inventory.json",
+      "beforeSha256": "f088a845900db1a03c18db0c4a77d57dd39dbe43a7341452744a97610f74c3b4",
+      "afterSha256": "b708d6b1a922ffc94dd0b50c04f5c9f92582e807509262b86980d0f8e1fef2d9",
+      "reason": "Claude correction: truthful method naming and per-pop frame assertions; case title/binding renamed. Full run remains pre-correction; corrected native scope run is retained separately."
+    },
+    {
+      "path": "implementations/csharp/tests/CIS.Core.UnitTests/OperationScopeDisposalTests.cs",
+      "beforeSha256": "c3266c7ea9c13a981f82e2e1a73c07727746e78c69080e5a39775a6dcc1e97f2",
+      "afterSha256": "fad733f4b1a98f5d492aa0b8c7b66e1549d61d900cc3b6726d31b5f78ba63303",
+      "reason": "Claude correction: truthful method naming and per-pop frame assertions; case title/binding renamed. Full run remains pre-correction; corrected native scope run is retained separately."
+    }
+  ],
+  "lifetimeProbe": {
+    "platforms": [
+      "windows",
+      "linux"
+    ],
+    "observationsPerPlatform": 4,
+    "meaning": "Investigation only; prohibited misuse is not accepted conformance",
+    "coreSha256": "0ce9ee7dc3399685d5cd0f930c450f9dbe3d6c43fb81ebd123258ea743fbbcf8",
+    "probeSha256": "786889a259c19687672d9052f5df5574084e6eff73ab4c582a519297807b6c92",
+    "simultaneousDisposalQualified": false
+  },
+  "claudeFindingDisposition": {
+    "requiredFindings": 2,
+    "addressed": [
+      "Truthful method naming; additionally exact frame restoration after every pop",
+      "Draft records stale views, any-flow completion flag, helper return, detached child values and sibling-only observations"
+    ],
+    "reviewIsContractApproval": false,
+    "currentSourceReviewedAfterCorrections": false
+  },
+  "limits": [
+    "Human scope contract decision remains pending; effective contract and shipping algorithm unchanged",
+    "Full3220 run predates follow-up corrections;90 corrected scope rows executed afterwards",
+    "No final source review, fresh-copy verification, final task acceptance or task commit claimed"
+  ],
+  "reports": [
+    {
+      "path": "all-scope-tests-corrected/all-scopes-corrected.trx",
+      "sha256": "a979fe240b8bce3909fdb7581b73290b7ed614ec4731c44a2938f18ac8845d28",
+      "bytes": 123130
+    },
+    {
+      "path": "all-scope-tests-corrected.exit.txt",
+      "sha256": "13bf7b3039c63bf5a50491fa3cfd8eb4e699d1ba1436315aef9cbe5711530354",
+      "bytes": 3
+    },
+    {
+      "path": "all-scope-tests-corrected.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "all-scope-tests-corrected.stdout.log",
+      "sha256": "11a6438af195040ff6ecc5edd0d1b552506aacee93721fbdff8c29862d844117",
+      "bytes": 1287
+    },
+    {
+      "path": "check-developer-pending.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "check-developer-pending.stdout.json",
+      "sha256": "ef4b67392fb7611ed6ad4dfa4f8f5b916535d50cb40ae5e01f6c742ccf21adfb",
+      "bytes": 127
+    },
+    {
+      "path": "claude-followup.exit.txt",
+      "sha256": "13bf7b3039c63bf5a50491fa3cfd8eb4e699d1ba1436315aef9cbe5711530354",
+      "bytes": 3
+    },
+    {
+      "path": "claude-followup.json",
+      "sha256": "455ecee29c454045753981d77964f71e3b8656dafafb730ef1e3289b4ce05980",
+      "bytes": 6838
+    },
+    {
+      "path": "claude-followup.prompt.txt",
+      "sha256": "6c7eb5189265c06af1962d965380ade249a32164e7c5bb6884354ab1d098d9e6",
+      "bytes": 2773
+    },
+    {
+      "path": "claude-followup.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "developer-pending/contracts/compatibility-samples/API-MESSAGE-TYPE/compiler.log",
+      "sha256": "e4af8260bb1385429a21c40ee994585885668f37be8b70f228f05a8033df5234",
+      "bytes": 843
+    },
+    {
+      "path": "developer-pending/contracts/compatibility-samples/API-MESSAGE-TYPE-reference/bin/Release/net10.0/CIS.Core.ContractSpecification.deps.json",
+      "sha256": "ca29ca3b932f1010e5685146871b8529c858bfe6bd38f59ef40606950fc54e17",
+      "bytes": 484
+    },
+    {
+      "path": "developer-pending/contracts/compatibility-samples/API-MESSAGE-TYPE-reference/compiler.log",
+      "sha256": "5af1826622d0f72e20caf32022664092653400e03450cbced8ad761678a5c31e",
+      "bytes": 364
+    },
+    {
+      "path": "developer-pending/contracts/compatibility-samples/API-NARROW-INTEGER/compiler.log",
+      "sha256": "c205eb268082d5ef7a62708e90ef724e5d413c9bbb83651db55be113a987d919",
+      "bytes": 849
+    },
+    {
+      "path": "developer-pending/contracts/compatibility-samples/API-NARROW-INTEGER-reference/bin/Release/net10.0/CIS.Core.ContractSpecification.deps.json",
+      "sha256": "ca29ca3b932f1010e5685146871b8529c858bfe6bd38f59ef40606950fc54e17",
+      "bytes": 484
+    },
+    {
+      "path": "developer-pending/contracts/compatibility-samples/API-NARROW-INTEGER-reference/compiler.log",
+      "sha256": "18741e614f84c677a3e641807a19796b5c6231c046104b67e728a12506a913f3",
+      "bytes": 366
+    },
+    {
+      "path": "developer-pending/contracts/compatibility-samples/API-NULL-OVERLOAD/compiler.log",
+      "sha256": "510882bd9950be961ae77e092829c6f3db931d90207d065200450c79eb317440",
+      "bytes": 1249
+    },
+    {
+      "path": "developer-pending/contracts/compatibility-samples/API-NULL-OVERLOAD-reference/bin/Release/net10.0/CIS.Core.ContractSpecification.deps.json",
+      "sha256": "ca29ca3b932f1010e5685146871b8529c858bfe6bd38f59ef40606950fc54e17",
+      "bytes": 484
+    },
+    {
+      "path": "developer-pending/contracts/compatibility-samples/API-NULL-OVERLOAD-reference/compiler.log",
+      "sha256": "2040327f735fcb54fc2037b85e7df9f3880b0aaa1f57136266068eef28908464",
+      "bytes": 365
+    },
+    {
+      "path": "developer-pending/contracts/compatibility-samples/API-OBSOLETE-WARNING/compiler.log",
+      "sha256": "8d8d1d0d67b6cc2c9063e639555cf74e7be5ef2a1b7dfe3ecbb75770cb04f10e",
+      "bytes": 971
+    },
+    {
+      "path": "developer-pending/contracts/compatibility-samples/API-OBSOLETE-WARNING-reference/bin/Release/net10.0/CIS.Core.ContractSpecification.deps.json",
+      "sha256": "ca29ca3b932f1010e5685146871b8529c858bfe6bd38f59ef40606950fc54e17",
+      "bytes": 484
+    },
+    {
+      "path": "developer-pending/contracts/compatibility-samples/API-OBSOLETE-WARNING-reference/compiler.log",
+      "sha256": "100d4a484d07f708046fc3b51e74d6d008d613d710d547cd5a4d6fe5e6661874",
+      "bytes": 368
+    },
+    {
+      "path": "developer-pending/contracts/compatibility-samples/API-REMOVE-LAZY/compiler.log",
+      "sha256": "19eca2b2c3927f6a4d2443db059d33632ffd6fc4e45680919b3df610d6ae92cb",
+      "bytes": 1203
+    },
+    {
+      "path": "developer-pending/contracts/compatibility-samples/API-REMOVE-LAZY-reference/bin/Release/net10.0/CIS.Core.ContractSpecification.deps.json",
+      "sha256": "ca29ca3b932f1010e5685146871b8529c858bfe6bd38f59ef40606950fc54e17",
+      "bytes": 484
+    },
+    {
+      "path": "developer-pending/contracts/compatibility-samples/API-REMOVE-LAZY-reference/compiler.log",
+      "sha256": "8e37853eb9b078b62bb48dd02b911565c8db895395784437b0c0d99c0f130595",
+      "bytes": 363
+    },
+    {
+      "path": "developer-pending/contracts/compatibility-samples/API-RENAME-DATA/compiler.log",
+      "sha256": "ee7402ec745686531be459778924b242d62e1a3ab704103db21d3f6af21081c0",
+      "bytes": 879
+    },
+    {
+      "path": "developer-pending/contracts/compatibility-samples/API-RENAME-DATA-reference/bin/Release/net10.0/CIS.Core.ContractSpecification.deps.json",
+      "sha256": "ca29ca3b932f1010e5685146871b8529c858bfe6bd38f59ef40606950fc54e17",
+      "bytes": 484
+    },
+    {
+      "path": "developer-pending/contracts/compatibility-samples/API-RENAME-DATA-reference/compiler.log",
+      "sha256": "d35aad63ee8657d4631516005a0ff5512b531438962fb7fc462bb062e58e32e6",
+      "bytes": 363
+    },
+    {
+      "path": "developer-pending/contracts/compatibility-samples/API-REQUIRED-CTOR/compiler.log",
+      "sha256": "855156576e0d71c0a670da766379c73ac626fb4da685f1b59ec5f6af371d62de",
+      "bytes": 991
+    },
+    {
+      "path": "developer-pending/contracts/compatibility-samples/API-REQUIRED-CTOR-reference/bin/Release/net10.0/CIS.Core.ContractSpecification.deps.json",
+      "sha256": "ca29ca3b932f1010e5685146871b8529c858bfe6bd38f59ef40606950fc54e17",
+      "bytes": 484
+    },
+    {
+      "path": "developer-pending/contracts/compatibility-samples/API-REQUIRED-CTOR-reference/compiler.log",
+      "sha256": "7a9c337a0cc0bef492dcc28b86825879eee6032321e32462f4b58a63fbd890cc",
+      "bytes": 365
+    },
+    {
+      "path": "developer-pending/contracts/compatibility-samples/API-REQUIRED-PROPERTY/compiler.log",
+      "sha256": "eb2f93b0df11e68e82aad69dc7a9ef165c3920618ea07bbb822a34b9f67109a1",
+      "bytes": 991
+    },
+    {
+      "path": "developer-pending/contracts/compatibility-samples/API-REQUIRED-PROPERTY-reference/bin/Release/net10.0/CIS.Core.ContractSpecification.deps.json",
+      "sha256": "ca29ca3b932f1010e5685146871b8529c858bfe6bd38f59ef40606950fc54e17",
+      "bytes": 484
+    },
+    {
+      "path": "developer-pending/contracts/compatibility-samples/API-REQUIRED-PROPERTY-reference/compiler.log",
+      "sha256": "93d51c791cfcabcf3718b6d1b5ad1a286919a84b76c9e47f8933f29d479a7171",
+      "bytes": 369
+    },
+    {
+      "path": "developer-pending/contracts/compatibility-samples/construction-names/bin/Release/net10.0/CompatibilityPatternConsumer.deps.json",
+      "sha256": "85a03f0320234d13a0e4e5faa33913d7db10250728826727717f8a225ace31b3",
+      "bytes": 478
+    },
+    {
+      "path": "developer-pending/contracts/compatibility-samples/construction-names/compiler.log",
+      "sha256": "af686ddd47169e409b178c93dc8dfe834299c853b3022729ec9dac660643acaf",
+      "bytes": 353
+    },
+    {
+      "path": "developer-pending/contracts/compatibility-samples/custom-scopes/bin/Release/net10.0/CompatibilityPatternConsumer.deps.json",
+      "sha256": "85a03f0320234d13a0e4e5faa33913d7db10250728826727717f8a225ace31b3",
+      "bytes": 478
+    },
+    {
+      "path": "developer-pending/contracts/compatibility-samples/custom-scopes/compiler.log",
+      "sha256": "e6b452d667d82c36b7c314db065c9925eee29a204134433fe802ec25ff053b3e",
+      "bytes": 348
+    },
+    {
+      "path": "developer-pending/contracts/compatibility-samples/lazy-lifecycle/bin/Release/net10.0/CompatibilityPatternConsumer.deps.json",
+      "sha256": "85a03f0320234d13a0e4e5faa33913d7db10250728826727717f8a225ace31b3",
+      "bytes": 478
+    },
+    {
+      "path": "developer-pending/contracts/compatibility-samples/lazy-lifecycle/compiler.log",
+      "sha256": "ae66cc86a28d82b917ae9053f3c9a458f77dcf1a6e1a16616c602fef446c2434",
+      "bytes": 349
+    },
+    {
+      "path": "developer-pending/contracts/compatibility-samples/logging-extensions/bin/Release/net10.0/CompatibilityPatternConsumer.deps.json",
+      "sha256": "85a03f0320234d13a0e4e5faa33913d7db10250728826727717f8a225ace31b3",
+      "bytes": 478
+    },
+    {
+      "path": "developer-pending/contracts/compatibility-samples/logging-extensions/compiler.log",
+      "sha256": "00f0bacf28e89a989c5bd5efa347ee929f9f9cbe948d25441d60f03fd9d6ad68",
+      "bytes": 353
+    },
+    {
+      "path": "developer-pending/contracts/compatibility-samples/null-calls/bin/Release/net10.0/CompatibilityPatternConsumer.deps.json",
+      "sha256": "85a03f0320234d13a0e4e5faa33913d7db10250728826727717f8a225ace31b3",
+      "bytes": 478
+    },
+    {
+      "path": "developer-pending/contracts/compatibility-samples/null-calls/compiler.log",
+      "sha256": "a1abb0df659c31175e3fe77b43df0706e620463c381ce60497fad6a7eca41ee2",
+      "bytes": 345
+    },
+    {
+      "path": "developer-pending/contracts/compatibility-samples/numeric-values/bin/Release/net10.0/CompatibilityPatternConsumer.deps.json",
+      "sha256": "85a03f0320234d13a0e4e5faa33913d7db10250728826727717f8a225ace31b3",
+      "bytes": 478
+    },
+    {
+      "path": "developer-pending/contracts/compatibility-samples/numeric-values/compiler.log",
+      "sha256": "2d97b478204f3dc04fbba647abd89202f739a3bb5080cbb4a03c9dbc4d066911",
+      "bytes": 349
+    },
+    {
+      "path": "developer-pending/contracts/compatibility-samples/summary.json",
+      "sha256": "b22714f9ffba4eca90917defad8ae4cd04280846fd845b8ecbdcec87b0500784",
+      "bytes": 12900
+    },
+    {
+      "path": "developer-pending/contracts/log-value-consumers/arbitrary-factory/compiler.log",
+      "sha256": "e3d38e3d3994923cade7cd524b39b024ef9a8e0be5f80a17afb754f4b079f7f0",
+      "bytes": 144
+    },
+    {
+      "path": "developer-pending/contracts/log-value-consumers/byte-array/compiler.log",
+      "sha256": "e476ac678c3c230d3c329e64d400aa95af88f610e650ae6914a198a8dbd125df",
+      "bytes": 186
+    },
+    {
+      "path": "developer-pending/contracts/log-value-consumers/caller-time-conversion/compiler.log",
+      "sha256": "7eb70257593da06f682a3ddda54a9d260d4fc514f645237f5ca74b08f8da61a6",
+      "bytes": 2
+    },
+    {
+      "path": "developer-pending/contracts/log-value-consumers/cyclic-object-array/compiler.log",
+      "sha256": "0f4f51e61dcc71b3dfa1c56de7f1b9f1ebc0ac656bb0024e9a79aba1ba8a1e1c",
+      "bytes": 186
+    },
+    {
+      "path": "developer-pending/contracts/log-value-consumers/decimal-number/compiler.log",
+      "sha256": "ee9c144b2e8991e0d4a84b0ca6a537ddd1c48ac2f5db1cc942ee35894ca051b2",
+      "bytes": 137
+    },
+    {
+      "path": "developer-pending/contracts/log-value-consumers/exception-object/compiler.log",
+      "sha256": "4fc78adb1751eb6b47e94f2941c4d624071b9b7388f3d5e8751c2c2d1f0821d7",
+      "bytes": 148
+    },
+    {
+      "path": "developer-pending/contracts/log-value-consumers/immutable-property/compiler.log",
+      "sha256": "7f1ad77ddfa5fffdad7e99b940eb54ce50158207bba30ce3fac0a3925be7a386",
+      "bytes": 160
+    },
+    {
+      "path": "developer-pending/contracts/log-value-consumers/numeric-keys/compiler.log",
+      "sha256": "8c3dbcaac8d2ff7117a281e9c4a4a66d8587a57f361f4f12caabe04c7225a838",
+      "bytes": 262
+    },
+    {
+      "path": "developer-pending/contracts/log-value-consumers/object-map/compiler.log",
+      "sha256": "1482a97dbe8b2cd0c3ffd5dbf6281cde6f7a7390416fc512b200b1d76d404feb",
+      "bytes": 249
+    },
+    {
+      "path": "developer-pending/contracts/log-value-consumers/object-string/compiler.log",
+      "sha256": "29f30b09d9165633bbcaf32c96a0299f26bd26ef9a5c788dab34b79b9c892ea5",
+      "bytes": 135
+    },
+    {
+      "path": "developer-pending/contracts/log-value-consumers/public-constructor/compiler.log",
+      "sha256": "e6ef833f1c38144051c72ee16b091f9a841c70ef3c8159309695152b15cbd46d",
+      "bytes": 152
+    },
+    {
+      "path": "developer-pending/contracts/log-value-consumers/summary.json",
+      "sha256": "f2d3e2bc5dd37e574787a1679a6794fcfa95327158f5687f5b451e58462f702b",
+      "bytes": 32640
+    },
+    {
+      "path": "developer-pending/contracts/log-value-consumers/typed-executable/compiler.log",
+      "sha256": "7eb70257593da06f682a3ddda54a9d260d4fc514f645237f5ca74b08f8da61a6",
+      "bytes": 2
+    },
+    {
+      "path": "developer-pending/contracts/log-value-consumers/typed-executable/Consumer.runtimeconfig.json",
+      "sha256": "bfadb8efd51d1fbdff0e6fa999c47c256bfa944d3bce0b5917ffa54a9360af48",
+      "bytes": 183
+    },
+    {
+      "path": "developer-pending/contracts/log-value-consumers/typed-executable/execution.log",
+      "sha256": "c57085a4aee44cdbdef926cab0ec9740ad69343804dae681ee31971e987c5a8e",
+      "bytes": 34
+    },
+    {
+      "path": "developer-pending/contracts/publications/validation.json",
+      "sha256": "c8946c940254d91371b058c6a85c092dc9d7db1ed3d2955173dff04c25385dc7",
+      "bytes": 371
+    },
+    {
+      "path": "developer-pending/contracts/startup/corrected-facade-name/compiler.log",
+      "sha256": "1b22764a9d6b4071e53f886abadef4a42893c7d424790ca3336f8f439c98fc17",
+      "bytes": 843
+    },
+    {
+      "path": "developer-pending/contracts/startup/event-consumer/bin/Release/net10.0/StartupContractConsumer.deps.json",
+      "sha256": "8ec3a6a29179e2ebc9a6d0bb9650a2f137f9311aa0c5af80876b6677dbfd2675",
+      "bytes": 463
+    },
+    {
+      "path": "developer-pending/contracts/startup/event-consumer/compiler.log",
+      "sha256": "0e93b2508e6ac3b2405cdad34db183a0a27e46a048ae67355540e4babde04bfb",
+      "bytes": 330
+    },
+    {
+      "path": "developer-pending/contracts/startup/immutable-drain-result/compiler.log",
+      "sha256": "34059fce51a18a415f901e50cd8497f6f9fd87c75aff281fb7d1735b2ee4de65",
+      "bytes": 887
+    },
+    {
+      "path": "developer-pending/contracts/startup/immutable-issues/compiler.log",
+      "sha256": "bb3e44b471a1d202e9b980036f0f0252435f14af3fbd50fa89ad57e895fdf59a",
+      "bytes": 901
+    },
+    {
+      "path": "developer-pending/contracts/startup/immutable-log-diagnostics/compiler.log",
+      "sha256": "9267cc1f538f960c80fb5b254b083bf20917a3f2b5c9018b751c1537f435fe5d",
+      "bytes": 923
+    },
+    {
+      "path": "developer-pending/contracts/startup/immutable-logging/compiler.log",
+      "sha256": "7c01c1a658d32683bc0942b505be7f0e7defa4ef39b80314554f94dd62804f46",
+      "bytes": 875
+    },
+    {
+      "path": "developer-pending/contracts/startup/immutable-metadata/compiler.log",
+      "sha256": "a4f68f4047145a22a8df23451f9ea93a317e90d7807cb3c003d6280bacd7e1fa",
+      "bytes": 875
+    },
+    {
+      "path": "developer-pending/contracts/startup/immutable-snapshot/compiler.log",
+      "sha256": "75643f14aca57261cc3871a79fb543e8ebff16129e018d71ce0598ff76644aac",
+      "bytes": 893
+    },
+    {
+      "path": "developer-pending/contracts/startup/immutable-value/compiler.log",
+      "sha256": "65999876a2a22dbc26f05ec19d6278c81bc92a29349261a90b72204c53d14af8",
+      "bytes": 837
+    },
+    {
+      "path": "developer-pending/contracts/startup/immutable-write-result/compiler.log",
+      "sha256": "36b3ee6a7363cae69870da8d56ee3d037cc86f75c7d33888f3e6bd869913fc08",
+      "bytes": 883
+    },
+    {
+      "path": "developer-pending/contracts/startup/no-event-severity/compiler.log",
+      "sha256": "e824ace02fcd8de4b8468b9a8400f7c7601902760b83b0c4d0794cbee4d58abd",
+      "bytes": 1157
+    },
+    {
+      "path": "developer-pending/contracts/startup/no-factory-write-overload/compiler.log",
+      "sha256": "b99f9a7bb1b4737e8885a009a40b7e13178aa13af4684589d6b182b0927eb2ef",
+      "bytes": 869
+    },
+    {
+      "path": "developer-pending/contracts/startup/no-positional-runtime-options/compiler.log",
+      "sha256": "5c5d0973caa356c12f630c8b5b8a101c0ac688e2b0441d3a0553c313ded18f69",
+      "bytes": 841
+    },
+    {
+      "path": "developer-pending/contracts/startup/no-reset/compiler.log",
+      "sha256": "4dedee2d986a3bad1c5f5ec48cd8c63a85951bfd0c74f4dc16b134db0cc0f52b",
+      "bytes": 781
+    },
+    {
+      "path": "developer-pending/contracts/startup/no-sync-runtime-dispose/compiler.log",
+      "sha256": "cbad7a174917567bdf65506cbab1b8c8b5e1d5d281c8e8e6c98b0a9fdfa1033c",
+      "bytes": 1185
+    },
+    {
+      "path": "developer-pending/contracts/startup/positive/bin/Release/net10.0/StartupContractConsumer.deps.json",
+      "sha256": "8ec3a6a29179e2ebc9a6d0bb9650a2f137f9311aa0c5af80876b6677dbfd2675",
+      "bytes": 463
+    },
+    {
+      "path": "developer-pending/contracts/startup/positive/compiler.log",
+      "sha256": "4db277b8bbe695e3ded42733a9b59fe481794526f3274036c3371f9c10a482e4",
+      "bytes": 324
+    },
+    {
+      "path": "developer-pending/contracts/startup/provider-consumer/bin/Release/net10.0/StartupContractConsumer.deps.json",
+      "sha256": "8ec3a6a29179e2ebc9a6d0bb9650a2f137f9311aa0c5af80876b6677dbfd2675",
+      "bytes": 463
+    },
+    {
+      "path": "developer-pending/contracts/startup/provider-consumer/compiler.log",
+      "sha256": "cd276350fb8d271a04aa686f1d2e34edc49dd4cb17071e70c2fad71d5150810e",
+      "bytes": 333
+    },
+    {
+      "path": "developer-pending/contracts/startup/provider-non-owning/compiler.log",
+      "sha256": "fec47340879c5ec26feeae8d54cac0811f923ef73f2bb1989a1d9e62c9556127",
+      "bytes": 879
+    },
+    {
+      "path": "developer-pending/contracts/startup/reference/bin/Release/net10.0/CIS.Core.ContractSpecification.deps.json",
+      "sha256": "ca29ca3b932f1010e5685146871b8529c858bfe6bd38f59ef40606950fc54e17",
+      "bytes": 484
+    },
+    {
+      "path": "developer-pending/contracts/startup/reference/compiler.log",
+      "sha256": "bcd5c7c99026c4240645a0e022fd9454c5b0d9e7fb555881bfaadc07043e8c36",
+      "bytes": 333
+    },
+    {
+      "path": "developer-pending/contracts/startup/runtime-consumer/bin/Release/net10.0/StartupContractConsumer.deps.json",
+      "sha256": "8ec3a6a29179e2ebc9a6d0bb9650a2f137f9311aa0c5af80876b6677dbfd2675",
+      "bytes": 463
+    },
+    {
+      "path": "developer-pending/contracts/startup/runtime-consumer/compiler.log",
+      "sha256": "502ae3d31d9ad77495f06319323530c1de4c708e248bb6e6516c012cb6818969",
+      "bytes": 332
+    },
+    {
+      "path": "developer-pending/contracts/startup/summary.json",
+      "sha256": "dac73879377e4c8f2f45aa3be8ba5ccfc4551a7163f4d2581b876cf68b009eb4",
+      "bytes": 14040
+    },
+    {
+      "path": "developer-pending/contracts/startup/unsupported-object/compiler.log",
+      "sha256": "40d4aad39e00cd9d6804b4f9fc165ca19782a99cde0e7eacc347b2076ba51a96",
+      "bytes": 801
+    },
+    {
+      "path": "developer-pending/families/architecture/discovery.json",
+      "sha256": "87ed2185d654224f359fb6d4058672a5de7344020150978223e6d73ddcec1578",
+      "bytes": 38675
+    },
+    {
+      "path": "developer-pending/families/architecture/discovery.log",
+      "sha256": "f2c827621b64a1176866e85fc93f9b43af505ee84e1694ffd1b8deea306d2a1d",
+      "bytes": 32799
+    },
+    {
+      "path": "developer-pending/families/architecture/execution.json",
+      "sha256": "53984d5dd735a24e60f6b21ca41026730740cebaf07d02af16aba1a24fa21e7a",
+      "bytes": 163
+    },
+    {
+      "path": "developer-pending/families/architecture/execution.log",
+      "sha256": "3111f7ed24e892fbcf9b27ae5ccf522cae4786b395c0b75e43160c0008c1c380",
+      "bytes": 484
+    },
+    {
+      "path": "developer-pending/families/architecture/report.trx",
+      "sha256": "bc409c1da00e066e9b34141352db5a9e959a2447df02b4358e874dfe322efff0",
+      "bytes": 559897
+    },
+    {
+      "path": "developer-pending/families/business/discovery.json",
+      "sha256": "49e4481766fb5e68b93e70d2f949bc67dd2e152ac469adc875a40a0da6fbdb10",
+      "bytes": 211
+    },
+    {
+      "path": "developer-pending/families/business/execution.json",
+      "sha256": "f44bda8b2ac012602fccefab9d06a36f1f436eec573cda60c18ac6953255994b",
+      "bytes": 239
+    },
+    {
+      "path": "developer-pending/families/compatibility/discovery.json",
+      "sha256": "c7e7e9d029b147a5a679dc044b6748fb18356efad464d3fa1df336b5c9a28054",
+      "bytes": 216
+    },
+    {
+      "path": "developer-pending/families/compatibility/execution.json",
+      "sha256": "5efe10a7962d49d6a820cbf38744179d98198da1b5d837dc27ae818b381b5c5a",
+      "bytes": 244
+    },
+    {
+      "path": "developer-pending/families/integration/discovery.json",
+      "sha256": "cd15629fced86bbd9f2095cb38d97244ceecc0c73b1e7a34a9734ada786dd301",
+      "bytes": 36612
+    },
+    {
+      "path": "developer-pending/families/integration/discovery.log",
+      "sha256": "f95b5ac9500daf97be4228e1416bb2de04c61634dcccfc75de2db7deca573c95",
+      "bytes": 33179
+    },
+    {
+      "path": "developer-pending/families/integration/execution.json",
+      "sha256": "fd40f997fd5ecd0e5016746ab0b0f8c6fc28d72e83f76c439101ef5667458c2d",
+      "bytes": 162
+    },
+    {
+      "path": "developer-pending/families/integration/execution.log",
+      "sha256": "b17c2d4e4410e91c7ec22e39bb8696bc6f3196417e50e7e4ef212710138cb655",
+      "bytes": 480
+    },
+    {
+      "path": "developer-pending/families/integration/report.trx",
+      "sha256": "68507c0449eea49193c246fc71ba0909c6af1aad544fc683e54e654e583028c2",
+      "bytes": 3739580
+    },
+    {
+      "path": "developer-pending/families/mutation/discovery.json",
+      "sha256": "8262fd4f2df16da918b2d1aa74328b975a47a84bbc7b00bc9024f1dc28a3503e",
+      "bytes": 229
+    },
+    {
+      "path": "developer-pending/families/mutation/execution.json",
+      "sha256": "dccad37a1e3c9de1de7a7412ffaef0228f9ea182f3d9b8de445e55aeffaff1c5",
+      "bytes": 257
+    },
+    {
+      "path": "developer-pending/families/unit/discovery.json",
+      "sha256": "d3048334826ba08099bf6e38bc1be766551f89d943205882e330db94ed23d09d",
+      "bytes": 260388
+    },
+    {
+      "path": "developer-pending/families/unit/discovery.log",
+      "sha256": "47fa6d71b0590e7695f3e085d8889488475b6c5301b063a22be72bf84f3e3cd2",
+      "bytes": 228295
+    },
+    {
+      "path": "developer-pending/families/unit/execution.json",
+      "sha256": "183963e08ffc98c9220156fbfd02acadd19b5e5c8f161b6e30964adf5899b744",
+      "bytes": 157
+    },
+    {
+      "path": "developer-pending/families/unit/execution.log",
+      "sha256": "332a78a176dbb11c16c4242357a0b1365c7721b4eb55692e775e4e283c6d1c48",
+      "bytes": 451
+    },
+    {
+      "path": "developer-pending/families/unit/report.trx",
+      "sha256": "8e4efed768d674f61cff47b60668a387539e79b2db459d08232bc19bf7809de7",
+      "bytes": 3519939
+    },
+    {
+      "path": "developer-pending/logs/build.log",
+      "sha256": "75d6da0458dfe0c9992fa126d673941c5d5470abb00937df4599445de09d01fb",
+      "bytes": 1624
+    },
+    {
+      "path": "developer-pending/logs/compatibility-samples.log",
+      "sha256": "b22714f9ffba4eca90917defad8ae4cd04280846fd845b8ecbdcec87b0500784",
+      "bytes": 12900
+    },
+    {
+      "path": "developer-pending/logs/format.log",
+      "sha256": "5e0e944a3397292d519a8220dd204b0e40278cb201fd0d4b39a7aa9994a4e095",
+      "bytes": 280
+    },
+    {
+      "path": "developer-pending/logs/host.log",
+      "sha256": "08bc754f88cba1a98cc3683262ec9412d23fb473074ab51494e0955bb2c6d44e",
+      "bytes": 89
+    },
+    {
+      "path": "developer-pending/logs/log-value-consumers.log",
+      "sha256": "f2d3e2bc5dd37e574787a1679a6794fcfa95327158f5687f5b451e58462f702b",
+      "bytes": 32640
+    },
+    {
+      "path": "developer-pending/logs/pack.log",
+      "sha256": "b96982c7662d32277b1823d3e45a4e665419cf32f646b328bac1cf8f9e34384d",
+      "bytes": 118
+    },
+    {
+      "path": "developer-pending/logs/package-boundaries.log",
+      "sha256": "5ab745b6d3d5f41d3ae69c27e7a1469595f845b38470e2f1562a57ada6f83864",
+      "bytes": 737
+    },
+    {
+      "path": "developer-pending/logs/project-boundaries.log",
+      "sha256": "832bc3b42edef993c5c07b60218560116e436d6173db2a253c89cd311c68564a",
+      "bytes": 102
+    },
+    {
+      "path": "developer-pending/logs/publication-ledger.log",
+      "sha256": "c8946c940254d91371b058c6a85c092dc9d7db1ed3d2955173dff04c25385dc7",
+      "bytes": 371
+    },
+    {
+      "path": "developer-pending/logs/restore.log",
+      "sha256": "1d8df5d3de9b46ae941f4cf7319a7352314b4cb71a0ba4ad3b2ed5d40c63cc2e",
+      "bytes": 452
+    },
+    {
+      "path": "developer-pending/logs/startup-contract.log",
+      "sha256": "dac73879377e4c8f2f45aa3be8ba5ccfc4551a7163f4d2581b876cf68b009eb4",
+      "bytes": 14040
+    },
+    {
+      "path": "developer-pending/source-inputs.json",
+      "sha256": "9c0c4ab8f9d1668baaff251ed1b0f28631aa9a2bfd8d7f086aca0373795a5861",
+      "bytes": 2861107
+    },
+    {
+      "path": "developer-pending/summary.json",
+      "sha256": "adfb9ba8d2ede31738d684d2afee291841194992813d9d715733298a503a9270",
+      "bytes": 7904
+    },
+    {
+      "path": "developer-pending/validation.json",
+      "sha256": "ef4b67392fb7611ed6ad4dfa4f8f5b916535d50cb40ae5e01f6c742ccf21adfb",
+      "bytes": 127
+    },
+    {
+      "path": "developer-pending.exits.json",
+      "sha256": "d571ec1ab7ae8216f30cc1cd66c0bb861220e8f461e2933b415cd96b2a88e67d",
+      "bytes": 112
+    },
+    {
+      "path": "developer-pending.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "developer-pending.stdout.log",
+      "sha256": "5cfb46f3ed7e50fcf4d5c7e11ac04b29d640a80fccad13153d87e52afe2d4171",
+      "bytes": 358897
+    },
+    {
+      "path": "followup-corrections.json",
+      "sha256": "2bac7cd6efdca5446f687b1ab8a51c4dfa18b0cd49f20eab14f4436061742fd0",
+      "bytes": 860
+    },
+    {
+      "path": "lifetime-probe/build-initial.exit.txt",
+      "sha256": "f1b2f662800122bed0ff255693df89c4487fbdcf453d3524a42d4ec20c3d9c04",
+      "bytes": 3
+    },
+    {
+      "path": "lifetime-probe/build-initial.Program.cs",
+      "sha256": "85aa7759ff935b8d75040993e3c6e35a2853052045b994e0ea008973ffbd88f6",
+      "bytes": 8147
+    },
+    {
+      "path": "lifetime-probe/build-initial.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "lifetime-probe/build-initial.stdout.log",
+      "sha256": "d89751df48bc7009599e59b177f44180ae75f9757dd8044fb0c535d0423a5126",
+      "bytes": 1130
+    },
+    {
+      "path": "lifetime-probe/build.exit.txt",
+      "sha256": "13bf7b3039c63bf5a50491fa3cfd8eb4e699d1ba1436315aef9cbe5711530354",
+      "bytes": 3
+    },
+    {
+      "path": "lifetime-probe/build.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "lifetime-probe/build.stdout.log",
+      "sha256": "a0f13409e54f8e7614c2f5bac7558477a2c1ebb1cce7071607b50a02ec01e2fa",
+      "bytes": 322
+    },
+    {
+      "path": "lifetime-probe/inputs/CIS.Core.dll",
+      "sha256": "0ce9ee7dc3399685d5cd0f930c450f9dbe3d6c43fb81ebd123258ea743fbbcf8",
+      "bytes": 83968
+    },
+    {
+      "path": "lifetime-probe/linux.exit.txt",
+      "sha256": "13bf7b3039c63bf5a50491fa3cfd8eb4e699d1ba1436315aef9cbe5711530354",
+      "bytes": 3
+    },
+    {
+      "path": "lifetime-probe/linux.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "lifetime-probe/linux.stdout.json",
+      "sha256": "25820ba8b063c37e5e8c639167b1e87313fa9d1faf4ef987458ceb9ac2753ea9",
+      "bytes": 1187
+    },
+    {
+      "path": "lifetime-probe/pre-clarification.build.exit.txt",
+      "sha256": "13bf7b3039c63bf5a50491fa3cfd8eb4e699d1ba1436315aef9cbe5711530354",
+      "bytes": 3
+    },
+    {
+      "path": "lifetime-probe/pre-clarification.build.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "lifetime-probe/pre-clarification.build.stdout.log",
+      "sha256": "4919428f453d0e46fe1603683016adecc9f3f470ddb5117cb77bbcc36e5c5f45",
+      "bytes": 322
+    },
+    {
+      "path": "lifetime-probe/pre-clarification.linux.exit.txt",
+      "sha256": "13bf7b3039c63bf5a50491fa3cfd8eb4e699d1ba1436315aef9cbe5711530354",
+      "bytes": 3
+    },
+    {
+      "path": "lifetime-probe/pre-clarification.linux.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "lifetime-probe/pre-clarification.linux.stdout.json",
+      "sha256": "6cd8b981dc38bdbe14d7ecd9e981f7cf8e60a164969a9f91b2ed7abe7c5b8fab",
+      "bytes": 1190
+    },
+    {
+      "path": "lifetime-probe/pre-clarification.windows.exit.txt",
+      "sha256": "13bf7b3039c63bf5a50491fa3cfd8eb4e699d1ba1436315aef9cbe5711530354",
+      "bytes": 3
+    },
+    {
+      "path": "lifetime-probe/pre-clarification.windows.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "lifetime-probe/pre-clarification.windows.stdout.json",
+      "sha256": "dcce9611990de347757091fc0559c9c8a34148cff7255e607393e18d01f1a410",
+      "bytes": 1193
+    },
+    {
+      "path": "lifetime-probe/source/bin/Release/net10.0/CIS.Core.DiscoveryFixture.deps.json",
+      "sha256": "0521f952abe3d1cf9d610ac48dedbf45f4d4b59af307ff27710555a01e2c0304",
+      "bytes": 848
+    },
+    {
+      "path": "lifetime-probe/source/bin/Release/net10.0/CIS.Core.DiscoveryFixture.dll",
+      "sha256": "786889a259c19687672d9052f5df5574084e6eff73ab4c582a519297807b6c92",
+      "bytes": 29696
+    },
+    {
+      "path": "lifetime-probe/source/bin/Release/net10.0/CIS.Core.DiscoveryFixture.exe",
+      "sha256": "bc3392f5898e570b7a4a1582c774531535f54b6dfccbd9bc43dcd0c993d65a25",
+      "bytes": 162816
+    },
+    {
+      "path": "lifetime-probe/source/bin/Release/net10.0/CIS.Core.DiscoveryFixture.pdb",
+      "sha256": "fbfd59e26a11d6f9175a0ee87a3ca57fe4cdda77e843a318d41e15643762e905",
+      "bytes": 16188
+    },
+    {
+      "path": "lifetime-probe/source/bin/Release/net10.0/CIS.Core.DiscoveryFixture.runtimeconfig.json",
+      "sha256": "c230a317a54dd960bcbeb5f347f52e18dc665a26f7efda2159fced9a5ac7e097",
+      "bytes": 342
+    },
+    {
+      "path": "lifetime-probe/source/bin/Release/net10.0/CIS.Core.dll",
+      "sha256": "0ce9ee7dc3399685d5cd0f930c450f9dbe3d6c43fb81ebd123258ea743fbbcf8",
+      "bytes": 83968
+    },
+    {
+      "path": "lifetime-probe/source/LifetimeProbe.csproj",
+      "sha256": "6c9c883148521d5521f191b1cd75be6936ce974fbe15add67f31c20c6f53128c",
+      "bytes": 558
+    },
+    {
+      "path": "lifetime-probe/source/Program.cs",
+      "sha256": "5c80d84609d3cd5caa666ffbca026e9cf5f1e1f0dde55d9e7e85aa9de4987cc8",
+      "bytes": 8139
+    },
+    {
+      "path": "lifetime-probe/windows.exit.txt",
+      "sha256": "13bf7b3039c63bf5a50491fa3cfd8eb4e699d1ba1436315aef9cbe5711530354",
+      "bytes": 3
+    },
+    {
+      "path": "lifetime-probe/windows.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "lifetime-probe/windows.stdout.json",
+      "sha256": "e1423b1d8140377fcd01658ce4479be061bc358fa4f2c5c2a5d512a8a1277b68",
+      "bytes": 1190
+    },
+    {
+      "path": "lifetime-probe-pre-clarification/build-initial.exit.txt",
+      "sha256": "f1b2f662800122bed0ff255693df89c4487fbdcf453d3524a42d4ec20c3d9c04",
+      "bytes": 3
+    },
+    {
+      "path": "lifetime-probe-pre-clarification/build-initial.Program.cs",
+      "sha256": "85aa7759ff935b8d75040993e3c6e35a2853052045b994e0ea008973ffbd88f6",
+      "bytes": 8147
+    },
+    {
+      "path": "lifetime-probe-pre-clarification/build-initial.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "lifetime-probe-pre-clarification/build-initial.stdout.log",
+      "sha256": "d89751df48bc7009599e59b177f44180ae75f9757dd8044fb0c535d0423a5126",
+      "bytes": 1130
+    },
+    {
+      "path": "lifetime-probe-pre-clarification/build.exit.txt",
+      "sha256": "13bf7b3039c63bf5a50491fa3cfd8eb4e699d1ba1436315aef9cbe5711530354",
+      "bytes": 3
+    },
+    {
+      "path": "lifetime-probe-pre-clarification/build.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "lifetime-probe-pre-clarification/build.stdout.log",
+      "sha256": "4919428f453d0e46fe1603683016adecc9f3f470ddb5117cb77bbcc36e5c5f45",
+      "bytes": 322
+    },
+    {
+      "path": "lifetime-probe-pre-clarification/inputs/CIS.Core.dll",
+      "sha256": "0ce9ee7dc3399685d5cd0f930c450f9dbe3d6c43fb81ebd123258ea743fbbcf8",
+      "bytes": 83968
+    },
+    {
+      "path": "lifetime-probe-pre-clarification/linux.exit.txt",
+      "sha256": "13bf7b3039c63bf5a50491fa3cfd8eb4e699d1ba1436315aef9cbe5711530354",
+      "bytes": 3
+    },
+    {
+      "path": "lifetime-probe-pre-clarification/linux.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "lifetime-probe-pre-clarification/linux.stdout.json",
+      "sha256": "6cd8b981dc38bdbe14d7ecd9e981f7cf8e60a164969a9f91b2ed7abe7c5b8fab",
+      "bytes": 1190
+    },
+    {
+      "path": "lifetime-probe-pre-clarification/source/bin/Release/net10.0/CIS.Core.DiscoveryFixture.deps.json",
+      "sha256": "0521f952abe3d1cf9d610ac48dedbf45f4d4b59af307ff27710555a01e2c0304",
+      "bytes": 848
+    },
+    {
+      "path": "lifetime-probe-pre-clarification/source/bin/Release/net10.0/CIS.Core.DiscoveryFixture.dll",
+      "sha256": "19f31a1232fd5ba604bcfb0f1d07cab79fd5896ed6c81c5c645ec8e15a1b944a",
+      "bytes": 29696
+    },
+    {
+      "path": "lifetime-probe-pre-clarification/source/bin/Release/net10.0/CIS.Core.DiscoveryFixture.exe",
+      "sha256": "bc3392f5898e570b7a4a1582c774531535f54b6dfccbd9bc43dcd0c993d65a25",
+      "bytes": 162816
+    },
+    {
+      "path": "lifetime-probe-pre-clarification/source/bin/Release/net10.0/CIS.Core.DiscoveryFixture.pdb",
+      "sha256": "18b17115a2c1709806b9816642e0f57e1bf777ad4230c1fbad64df0a4f5075ce",
+      "bytes": 16192
+    },
+    {
+      "path": "lifetime-probe-pre-clarification/source/bin/Release/net10.0/CIS.Core.DiscoveryFixture.runtimeconfig.json",
+      "sha256": "c230a317a54dd960bcbeb5f347f52e18dc665a26f7efda2159fced9a5ac7e097",
+      "bytes": 342
+    },
+    {
+      "path": "lifetime-probe-pre-clarification/source/bin/Release/net10.0/CIS.Core.dll",
+      "sha256": "0ce9ee7dc3399685d5cd0f930c450f9dbe3d6c43fb81ebd123258ea743fbbcf8",
+      "bytes": 83968
+    },
+    {
+      "path": "lifetime-probe-pre-clarification/source/LifetimeProbe.csproj",
+      "sha256": "6c9c883148521d5521f191b1cd75be6936ce974fbe15add67f31c20c6f53128c",
+      "bytes": 558
+    },
+    {
+      "path": "lifetime-probe-pre-clarification/source/Program.cs",
+      "sha256": "22b5393ee758fd2810fe9107e2269647681b6a671d07394325bb4ce78a33174a",
+      "bytes": 8155
+    },
+    {
+      "path": "lifetime-probe-pre-clarification/windows.exit.txt",
+      "sha256": "13bf7b3039c63bf5a50491fa3cfd8eb4e699d1ba1436315aef9cbe5711530354",
+      "bytes": 3
+    },
+    {
+      "path": "lifetime-probe-pre-clarification/windows.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "lifetime-probe-pre-clarification/windows.stdout.json",
+      "sha256": "dcce9611990de347757091fc0559c9c8a34148cff7255e607393e18d01f1a410",
+      "bytes": 1193
+    },
+    {
+      "path": "ownership-decision.md",
+      "sha256": "efbd3a135c351792ea3a0b748f2a8d0b769567cde695ab0b4aaf4a999cb15f31",
+      "bytes": 6112
+    },
+    {
+      "path": "pre-followup-correction/case-inventory.json",
+      "sha256": "f088a845900db1a03c18db0c4a77d57dd39dbe43a7341452744a97610f74c3b4",
+      "bytes": 285389
+    },
+    {
+      "path": "pre-followup-correction/OperationScopeDisposalTests.cs",
+      "sha256": "c3266c7ea9c13a981f82e2e1a73c07727746e78c69080e5a39775a6dcc1e97f2",
+      "bytes": 6434
+    }
+  ]
+}
