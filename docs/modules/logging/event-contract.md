@@ -32,3 +32,6 @@ WP04-S01-T03 now enforces actual per-root depth 8/node 1024 projection with occu
 
 
 WP04-S01-T04 completes the typed/cooperative value-model fixtures and acceptance mapping. [Value guidance](log-values.md) and [T04 evidence](../../../planning/logging/evidence/wp04-s01-t04-windows-linux.json) distinguish 142 real constructor rows from ten original adapter rejections, native UTF-16 capability rows, typed cyclic-input exclusion and the user-amended oversize truncation. Actual exception projection starts in WP04-S02-T01; scopes, event capture, entry-byte truncation and runtime InvalidEvent accounting remain pending.
+
+
+WP04-S02-T01 adds the actual internal [exception capture foundation](exception-projection.md): copied type/message/optional stack and ordered single/aggregate children with an immutable owned model and initial traversal/text guards. [T01 evidence](../../../planning/logging/evidence/wp04-s02-t01-windows-linux.json) records genuine native/child execution. Focused limits, marker/exclusion and shared-fixture qualification remain T02–T04; no shipping event serializer or logging runtime is implemented.

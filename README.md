@@ -2,7 +2,7 @@
 
 CisLib is a reusable, multi-module core library with shared contracts, examples, instructions and agent skills. Logging is the first module, and C# is the first implementation. Additional languages will have their own implementations and build tools while sharing the applicable module contracts and conformance cases.
 
-The repository currently contains tested configuration resolution/validation and the actual [C# EnvironmentOptions startup API](docs/modules/logging/environment-options.md), alongside test projects and executable dependency checks. Shared startup/event/runtime contracts remain unpublished. The logging runtime and Microsoft logger integration are planned; the example host identifies that state explicitly.
+The repository currently contains tested configuration resolution/validation and the actual [C# EnvironmentOptions startup API](docs/modules/logging/environment-options.md), alongside [typed C# log values](docs/modules/logging/log-values.md), the internal [exception capture foundation](docs/modules/logging/exception-projection.md), test projects and executable dependency checks. Shared startup/event/runtime contracts remain unpublished. The logging runtime and Microsoft logger integration are planned; the example host identifies that state explicitly.
 
 ## Start with C#
 

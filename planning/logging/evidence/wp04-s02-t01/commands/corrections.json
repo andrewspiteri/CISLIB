@@ -1,0 +1,23 @@
+{
+  "taskId": "WP04-S02-T01",
+  "corrections": [
+    {
+      "scope": "task build invocation",
+      "detail": "Initial command used nonexistent CIS.Core.slnx and exited MSB1009 without compiling. Retained build-initial.log; selected the actual CisLib.slnx under the pinned language directory. Corrected build passed with zero warnings/errors."
+    },
+    {
+      "scope": "new architecture guard",
+      "detail": "Initial guard classified the runtime type-name fallback as unrestricted reflection: Type.Name is declared on MemberInfo. Preserved the failing native log/TRX, explicitly allowed only the MemberInfo get_Name identity accessor, and retained negative controls for GetProperties/serialization/Data/Source/HelpLink/ToString."
+    },
+    {
+      "scope": "task documentation encoding",
+      "detail": "Default Python cp1252 reading rewrote several existing UTF-8 symbols in four documentation files. Review caught it before commit. Stopped the confirmed owned replay (exit -1 during preparation), retained interruption log/record, restored the original characters and recaptured explicit UTF-8 inputs. Shipping C# and native test inputs were unchanged.",
+      "restoredFiles": [
+        "docs/modules/logging/event-contract.md",
+        "docs/modules/logging/log-values.md",
+        "planning/decisions.md",
+        "planning/logging/implementation-status.md"
+      ]
+    }
+  ]
+}

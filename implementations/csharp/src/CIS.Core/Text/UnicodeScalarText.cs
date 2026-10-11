@@ -21,4 +21,22 @@ internal static class UnicodeScalarText
         }
         return true;
     }
+
+    // Validate the retained prefix only; never split a surrogate pair or copy an unbounded suffix.
+    internal static string Prefix(string value, int maximumScalars, out bool truncated)
+    {
+        int offset = 0;
+        int scalars = 0;
+        while (offset < value.Length && scalars < maximumScalars)
+        {
+            if (Rune.DecodeFromUtf16(value.AsSpan(offset), out _, out int consumed) != OperationStatus.Done)
+            {
+                throw new ArgumentException("Use valid Unicode scalar text.", nameof(value));
+            }
+            offset += consumed;
+            scalars++;
+        }
+        truncated = offset < value.Length;
+        return truncated ? value[..offset] : value;
+    }
 }

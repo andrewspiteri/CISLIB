@@ -11,6 +11,11 @@ internal static class Program
 {
     private static int Main(string[] args)
     {
+        if (args.Length == 2 && args[0] == "exception-projection")
+        {
+            return ExceptionProjectionProcessFixture.Run(args[1]);
+        }
+
         if (args.Length == 3 && args[0] == "log-qualification")
         {
             return LogValueProcessFixture.Run(args[1], args[2], qualification: true);
