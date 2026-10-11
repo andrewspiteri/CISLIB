@@ -1,0 +1,72 @@
+{
+  "schemaVersion": 1,
+  "storyId": "WP04-S01",
+  "taskId": "WP04-S01-T04",
+  "scope": "C# actual typed/cooperative immutable value construction; no event/scope/runtime/entry-byte qualification.",
+  "authority": "planning/logging/plan-amendments.md",
+  "originalSource": "planning/logging/sources/core-library-backlog-v1.json",
+  "catalogs": [
+    "conformance/logging/event-value-cases.json",
+    "conformance/logging/value-normalization-cases.json",
+    "conformance/logging/value-collection-cases.json",
+    "conformance/logging/value-qualification-cases.json"
+  ],
+  "compilerControls": "implementations/csharp/verification/consumers/log-values/controls.json",
+  "criteria": [
+    {
+      "id": "WP04-S01-AC01",
+      "sourceDescription": "Integer-number input outside inclusive -9007199254740991 through 9007199254740991 is rejected; explicit integer strings and decimal strings preserve their documented type.",
+      "appliedMeaning": "Real integer constructors accept inclusive safe extrema and reject adjacent/native long extrema; explicit numeric text keeps kind, precision and magnitude.",
+      "nativeCaseGroups": [
+        "UT-LOG-VALUE-T01-01",
+        "UT-LOG-VALUE-T01-02",
+        "UT-LOG-VALUE-T04-01",
+        "IT-LOG-VALUE-T04-03"
+      ]
+    },
+    {
+      "id": "WP04-S01-AC02",
+      "sourceDescription": "Mutating any original nested collection after capture cannot alter owned values; unsupported or cyclic/excessively nested input terminates with a bounded rejection.",
+      "appliedMeaning": "Owned nested graphs survive caller mutations. Typed API/actual compiler controls exclude arbitrary/cyclic object graphs. Cooperative structural oversize is bounded and truncated under the explicit user amendment; observed invalid prefixes reject. Blocking callbacks and unsafe reflection-created graphs are outside the supported surface.",
+      "nativeCaseGroups": [
+        "UT-LOG-VALUE-T01-08",
+        "UT-LOG-VALUE-T03-01",
+        "UT-LOG-VALUE-T03-02",
+        "UT-LOG-VALUE-T03-06",
+        "UT-LOG-VALUE-T04-01",
+        "AR-LOG-VALUE-T04-04"
+      ]
+    },
+    {
+      "id": "WP04-S01-AC03",
+      "sourceDescription": "The attribute root counts as depth 1 and one node, and boundary fixtures distinguish exactly-at-limit from over-limit input.",
+      "appliedMeaning": "Actual map/array roots count as depth 1/node 1; neutral exact/over limits and independently measured native/Python outputs qualify depth 8/node 1024 with repeated containment and partial descendants.",
+      "nativeCaseGroups": [
+        "UT-LOG-VALUE-T03-01",
+        "UT-LOG-VALUE-T03-03",
+        "IT-LOG-VALUE-T03-12",
+        "AR-LOG-VALUE-T03-13"
+      ]
+    },
+    {
+      "id": "WP04-S01-AC04",
+      "sourceDescription": "No input automatically changes JSON type as its magnitude grows, and rejected input is available to the caller as a stable capture error for InvalidEvent accounting.",
+      "appliedMeaning": "Actual constructor kinds remain explicit for numeric magnitude and normalized strings. Invalid typed inputs return stable argument categories/parameters without raw value echo, available to callers; logger InvalidEvent counting is later runtime work.",
+      "nativeCaseGroups": [
+        "UT-LOG-VALUE-T01-02",
+        "UT-LOG-VALUE-T01-04",
+        "UT-LOG-VALUE-T02-03",
+        "UT-LOG-VALUE-T03-05",
+        "UT-LOG-VALUE-T04-01",
+        "UT-LOG-VALUE-T04-02",
+        "IT-LOG-VALUE-T04-03"
+      ]
+    }
+  ],
+  "pending": [
+    "event/scope capture and merged-root provenance",
+    "aggregate UTF-8/human entry-byte projection",
+    "logger InvalidEvent accounting and lifecycle",
+    "Linux SDK/full-family and release qualification"
+  ]
+}

@@ -7,11 +7,15 @@ namespace CIS.Tests.DiscoveryFixture;
 
 internal static class LogValueProcessFixture
 {
-    public static int Run(string inputPath, string id, bool collections = false)
+    public static int Run(string inputPath, string id, bool collections = false, bool qualification = false)
     {
         JsonObject row = ConfigurationFixtureAdapter.Case(ConfigurationFixtureAdapter.ReadDocument(inputPath), id);
         JsonObject result;
-        if (collections)
+        if (qualification)
+        {
+            result = LogValueQualificationFixtureAdapter.Execute(row);
+        }
+        else if (collections)
         {
             result = LogValueCollectionFixtureAdapter.Execute(row);
         }

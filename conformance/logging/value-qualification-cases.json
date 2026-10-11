@@ -1,0 +1,1077 @@
+{
+  "schemaVersion": 1,
+  "taskId": "WP04-S01-T04",
+  "scope": "Additional typed-construction, error and caller-mutation vectors. Portable error names are fixture observations, not new public Core error codes. UTF-16 unit input rows declare a native construction capability; other runtimes declare applicable rejection transports.",
+  "caseCount": 71,
+  "cases": [
+    {
+      "id": "QUALIFY-INTEGER-MIN",
+      "input": {
+        "mode": "typed",
+        "kind": "integer",
+        "value": "-9007199254740991"
+      },
+      "expected": {
+        "valid": true,
+        "kind": "Integer",
+        "isTruncated": false,
+        "json": -9007199254740991,
+        "factoryCalls": 1
+      }
+    },
+    {
+      "id": "QUALIFY-INTEGER-MAX",
+      "input": {
+        "mode": "typed",
+        "kind": "integer",
+        "value": "9007199254740991"
+      },
+      "expected": {
+        "valid": true,
+        "kind": "Integer",
+        "isTruncated": false,
+        "json": 9007199254740991,
+        "factoryCalls": 1
+      }
+    },
+    {
+      "id": "QUALIFY-INTEGER-ZERO",
+      "input": {
+        "mode": "typed",
+        "kind": "integer",
+        "value": "0"
+      },
+      "expected": {
+        "valid": true,
+        "kind": "Integer",
+        "isTruncated": false,
+        "json": 0,
+        "factoryCalls": 1
+      }
+    },
+    {
+      "id": "QUALIFY-INTEGER-BELOW",
+      "input": {
+        "mode": "typed",
+        "kind": "integer",
+        "value": "-9007199254740992"
+      },
+      "expected": {
+        "valid": false,
+        "error": "argument-out-of-range",
+        "parameter": "value",
+        "factoryCalls": 1
+      }
+    },
+    {
+      "id": "QUALIFY-INTEGER-ABOVE",
+      "input": {
+        "mode": "typed",
+        "kind": "integer",
+        "value": "9007199254740992"
+      },
+      "expected": {
+        "valid": false,
+        "error": "argument-out-of-range",
+        "parameter": "value",
+        "factoryCalls": 1
+      }
+    },
+    {
+      "id": "QUALIFY-INTEGER-LONG-MIN",
+      "input": {
+        "mode": "typed",
+        "kind": "integer",
+        "value": "-9223372036854775808"
+      },
+      "expected": {
+        "valid": false,
+        "error": "argument-out-of-range",
+        "parameter": "value",
+        "factoryCalls": 1
+      }
+    },
+    {
+      "id": "QUALIFY-INTEGER-LONG-MAX",
+      "input": {
+        "mode": "typed",
+        "kind": "integer",
+        "value": "9223372036854775807"
+      },
+      "expected": {
+        "valid": false,
+        "error": "argument-out-of-range",
+        "parameter": "value",
+        "factoryCalls": 1
+      }
+    },
+    {
+      "id": "QUALIFY-NUMBER-NEGATIVE-ZERO",
+      "input": {
+        "mode": "typed",
+        "kind": "number",
+        "value": "-0"
+      },
+      "expected": {
+        "valid": true,
+        "kind": "Number",
+        "isTruncated": false,
+        "json": 0,
+        "factoryCalls": 1,
+        "numberBits": "8000000000000000"
+      }
+    },
+    {
+      "id": "QUALIFY-NUMBER-POSITIVE-ZERO",
+      "input": {
+        "mode": "typed",
+        "kind": "number",
+        "value": "0"
+      },
+      "expected": {
+        "valid": true,
+        "kind": "Number",
+        "isTruncated": false,
+        "json": 0,
+        "factoryCalls": 1,
+        "numberBits": "0000000000000000"
+      }
+    },
+    {
+      "id": "QUALIFY-NUMBER-EPSILON",
+      "input": {
+        "mode": "typed",
+        "kind": "number",
+        "value": "5E-324"
+      },
+      "expected": {
+        "valid": true,
+        "kind": "Number",
+        "isTruncated": false,
+        "json": 5e-324,
+        "factoryCalls": 1,
+        "numberBits": "0000000000000001"
+      }
+    },
+    {
+      "id": "QUALIFY-NUMBER-MAX",
+      "input": {
+        "mode": "typed",
+        "kind": "number",
+        "value": "1.7976931348623157E+308"
+      },
+      "expected": {
+        "valid": true,
+        "kind": "Number",
+        "isTruncated": false,
+        "json": 1.7976931348623157e+308,
+        "factoryCalls": 1,
+        "numberBits": "7FEFFFFFFFFFFFFF"
+      }
+    },
+    {
+      "id": "QUALIFY-NUMBER-WHOLE-OVER-SAFE",
+      "input": {
+        "mode": "typed",
+        "kind": "number",
+        "value": "9007199254740992"
+      },
+      "expected": {
+        "valid": true,
+        "kind": "Number",
+        "isTruncated": false,
+        "json": 9007199254740992,
+        "factoryCalls": 1,
+        "numberBits": "4340000000000000"
+      }
+    },
+    {
+      "id": "QUALIFY-NUMBER-NAN",
+      "input": {
+        "mode": "typed",
+        "kind": "number",
+        "value": "NaN"
+      },
+      "expected": {
+        "valid": false,
+        "error": "argument-out-of-range",
+        "parameter": "value",
+        "factoryCalls": 1
+      }
+    },
+    {
+      "id": "QUALIFY-NUMBER-POS-INF",
+      "input": {
+        "mode": "typed",
+        "kind": "number",
+        "value": "Infinity"
+      },
+      "expected": {
+        "valid": false,
+        "error": "argument-out-of-range",
+        "parameter": "value",
+        "factoryCalls": 1
+      }
+    },
+    {
+      "id": "QUALIFY-NUMBER-NEG-INF",
+      "input": {
+        "mode": "typed",
+        "kind": "number",
+        "value": "-Infinity"
+      },
+      "expected": {
+        "valid": false,
+        "error": "argument-out-of-range",
+        "parameter": "value",
+        "factoryCalls": 1
+      }
+    },
+    {
+      "id": "QUALIFY-NUMBER-OVERFLOW",
+      "input": {
+        "mode": "typed",
+        "kind": "number",
+        "value": "1e309"
+      },
+      "expected": {
+        "valid": false,
+        "error": "argument-out-of-range",
+        "parameter": "value",
+        "factoryCalls": 1
+      }
+    },
+    {
+      "id": "QUALIFY-INTEGER-TEXT-LARGE",
+      "input": {
+        "mode": "typed",
+        "kind": "integer-string",
+        "value": "922337203685477580812345678901234567890"
+      },
+      "expected": {
+        "valid": true,
+        "kind": "IntegerString",
+        "isTruncated": false,
+        "json": "922337203685477580812345678901234567890",
+        "factoryCalls": 1
+      }
+    },
+    {
+      "id": "QUALIFY-INTEGER-TEXT-NEG-LARGE",
+      "input": {
+        "mode": "typed",
+        "kind": "integer-string",
+        "value": "-922337203685477580812345678901234567890"
+      },
+      "expected": {
+        "valid": true,
+        "kind": "IntegerString",
+        "isTruncated": false,
+        "json": "-922337203685477580812345678901234567890",
+        "factoryCalls": 1
+      }
+    },
+    {
+      "id": "QUALIFY-INTEGER-TEXT-ZERO",
+      "input": {
+        "mode": "typed",
+        "kind": "integer-string",
+        "value": "0"
+      },
+      "expected": {
+        "valid": true,
+        "kind": "IntegerString",
+        "isTruncated": false,
+        "json": "0",
+        "factoryCalls": 1
+      }
+    },
+    {
+      "id": "QUALIFY-INTEGER-TEXT-EMPTY",
+      "input": {
+        "mode": "typed",
+        "kind": "integer-string",
+        "value": ""
+      },
+      "expected": {
+        "valid": false,
+        "error": "argument-invalid",
+        "parameter": "value",
+        "factoryCalls": 1
+      }
+    },
+    {
+      "id": "QUALIFY-INTEGER-TEXT-NEG-ZERO",
+      "input": {
+        "mode": "typed",
+        "kind": "integer-string",
+        "value": "-0"
+      },
+      "expected": {
+        "valid": false,
+        "error": "argument-invalid",
+        "parameter": "value",
+        "factoryCalls": 1
+      }
+    },
+    {
+      "id": "QUALIFY-INTEGER-TEXT-PLUS",
+      "input": {
+        "mode": "typed",
+        "kind": "integer-string",
+        "value": "+1"
+      },
+      "expected": {
+        "valid": false,
+        "error": "argument-invalid",
+        "parameter": "value",
+        "factoryCalls": 1
+      }
+    },
+    {
+      "id": "QUALIFY-INTEGER-TEXT-LEADING-ZERO",
+      "input": {
+        "mode": "typed",
+        "kind": "integer-string",
+        "value": "01"
+      },
+      "expected": {
+        "valid": false,
+        "error": "argument-invalid",
+        "parameter": "value",
+        "factoryCalls": 1
+      }
+    },
+    {
+      "id": "QUALIFY-INTEGER-TEXT-WHITESPACE",
+      "input": {
+        "mode": "typed",
+        "kind": "integer-string",
+        "value": " 1 "
+      },
+      "expected": {
+        "valid": false,
+        "error": "argument-invalid",
+        "parameter": "value",
+        "factoryCalls": 1
+      }
+    },
+    {
+      "id": "QUALIFY-INTEGER-TEXT-EXPONENT",
+      "input": {
+        "mode": "typed",
+        "kind": "integer-string",
+        "value": "1e10"
+      },
+      "expected": {
+        "valid": false,
+        "error": "argument-invalid",
+        "parameter": "value",
+        "factoryCalls": 1
+      }
+    },
+    {
+      "id": "QUALIFY-INTEGER-TEXT-DECIMAL",
+      "input": {
+        "mode": "typed",
+        "kind": "integer-string",
+        "value": "1.0"
+      },
+      "expected": {
+        "valid": false,
+        "error": "argument-invalid",
+        "parameter": "value",
+        "factoryCalls": 1
+      }
+    },
+    {
+      "id": "QUALIFY-INTEGER-TEXT-UNICODE-DIGITS",
+      "input": {
+        "mode": "typed",
+        "kind": "integer-string",
+        "value": "١٢٣"
+      },
+      "expected": {
+        "valid": false,
+        "error": "argument-invalid",
+        "parameter": "value",
+        "factoryCalls": 1
+      }
+    },
+    {
+      "id": "QUALIFY-INTEGER-TEXT-NO-ECHO",
+      "input": {
+        "mode": "typed",
+        "kind": "integer-string",
+        "value": "CIS_NO_VALUE_ECHO"
+      },
+      "expected": {
+        "valid": false,
+        "error": "argument-invalid",
+        "parameter": "value",
+        "factoryCalls": 1
+      }
+    },
+    {
+      "id": "QUALIFY-DECIMAL-TEXT-PRECISION",
+      "input": {
+        "mode": "typed",
+        "kind": "decimal-string",
+        "value": "12345678901234567890.00000000000000000001"
+      },
+      "expected": {
+        "valid": true,
+        "kind": "DecimalString",
+        "isTruncated": false,
+        "json": "12345678901234567890.00000000000000000001",
+        "factoryCalls": 1
+      }
+    },
+    {
+      "id": "QUALIFY-DECIMAL-TEXT-TRAILING-ZEROS",
+      "input": {
+        "mode": "typed",
+        "kind": "decimal-string",
+        "value": "12.340000"
+      },
+      "expected": {
+        "valid": true,
+        "kind": "DecimalString",
+        "isTruncated": false,
+        "json": "12.340000",
+        "factoryCalls": 1
+      }
+    },
+    {
+      "id": "QUALIFY-DECIMAL-TEXT-NEG-ZERO",
+      "input": {
+        "mode": "typed",
+        "kind": "decimal-string",
+        "value": "-0.0000"
+      },
+      "expected": {
+        "valid": true,
+        "kind": "DecimalString",
+        "isTruncated": false,
+        "json": "-0.0000",
+        "factoryCalls": 1
+      }
+    },
+    {
+      "id": "QUALIFY-DECIMAL-TEXT-LARGE",
+      "input": {
+        "mode": "typed",
+        "kind": "decimal-string",
+        "value": "99999999999999999999999999999999999999999.1234567890"
+      },
+      "expected": {
+        "valid": true,
+        "kind": "DecimalString",
+        "isTruncated": false,
+        "json": "99999999999999999999999999999999999999999.1234567890",
+        "factoryCalls": 1
+      }
+    },
+    {
+      "id": "QUALIFY-DECIMAL-TEXT-EMPTY",
+      "input": {
+        "mode": "typed",
+        "kind": "decimal-string",
+        "value": ""
+      },
+      "expected": {
+        "valid": false,
+        "error": "argument-invalid",
+        "parameter": "value",
+        "factoryCalls": 1
+      }
+    },
+    {
+      "id": "QUALIFY-DECIMAL-TEXT-WHOLE",
+      "input": {
+        "mode": "typed",
+        "kind": "decimal-string",
+        "value": "1"
+      },
+      "expected": {
+        "valid": false,
+        "error": "argument-invalid",
+        "parameter": "value",
+        "factoryCalls": 1
+      }
+    },
+    {
+      "id": "QUALIFY-DECIMAL-TEXT-DOT-ONLY",
+      "input": {
+        "mode": "typed",
+        "kind": "decimal-string",
+        "value": "."
+      },
+      "expected": {
+        "valid": false,
+        "error": "argument-invalid",
+        "parameter": "value",
+        "factoryCalls": 1
+      }
+    },
+    {
+      "id": "QUALIFY-DECIMAL-TEXT-MISSING-WHOLE",
+      "input": {
+        "mode": "typed",
+        "kind": "decimal-string",
+        "value": ".1"
+      },
+      "expected": {
+        "valid": false,
+        "error": "argument-invalid",
+        "parameter": "value",
+        "factoryCalls": 1
+      }
+    },
+    {
+      "id": "QUALIFY-DECIMAL-TEXT-MISSING-FRACTION",
+      "input": {
+        "mode": "typed",
+        "kind": "decimal-string",
+        "value": "1."
+      },
+      "expected": {
+        "valid": false,
+        "error": "argument-invalid",
+        "parameter": "value",
+        "factoryCalls": 1
+      }
+    },
+    {
+      "id": "QUALIFY-DECIMAL-TEXT-PLUS",
+      "input": {
+        "mode": "typed",
+        "kind": "decimal-string",
+        "value": "+1.0"
+      },
+      "expected": {
+        "valid": false,
+        "error": "argument-invalid",
+        "parameter": "value",
+        "factoryCalls": 1
+      }
+    },
+    {
+      "id": "QUALIFY-DECIMAL-TEXT-LEADING-ZERO",
+      "input": {
+        "mode": "typed",
+        "kind": "decimal-string",
+        "value": "01.0"
+      },
+      "expected": {
+        "valid": false,
+        "error": "argument-invalid",
+        "parameter": "value",
+        "factoryCalls": 1
+      }
+    },
+    {
+      "id": "QUALIFY-DECIMAL-TEXT-EXPONENT",
+      "input": {
+        "mode": "typed",
+        "kind": "decimal-string",
+        "value": "1.0e2"
+      },
+      "expected": {
+        "valid": false,
+        "error": "argument-invalid",
+        "parameter": "value",
+        "factoryCalls": 1
+      }
+    },
+    {
+      "id": "QUALIFY-DECIMAL-TEXT-COMMA",
+      "input": {
+        "mode": "typed",
+        "kind": "decimal-string",
+        "value": "1,0"
+      },
+      "expected": {
+        "valid": false,
+        "error": "argument-invalid",
+        "parameter": "value",
+        "factoryCalls": 1
+      }
+    },
+    {
+      "id": "QUALIFY-DECIMAL-TEXT-WHITESPACE",
+      "input": {
+        "mode": "typed",
+        "kind": "decimal-string",
+        "value": " 1.0"
+      },
+      "expected": {
+        "valid": false,
+        "error": "argument-invalid",
+        "parameter": "value",
+        "factoryCalls": 1
+      }
+    },
+    {
+      "id": "QUALIFY-DECIMAL-TEXT-UNICODE-DIGITS",
+      "input": {
+        "mode": "typed",
+        "kind": "decimal-string",
+        "value": "١.٢"
+      },
+      "expected": {
+        "valid": false,
+        "error": "argument-invalid",
+        "parameter": "value",
+        "factoryCalls": 1
+      }
+    },
+    {
+      "id": "QUALIFY-DECIMAL-TEXT-NO-ECHO",
+      "input": {
+        "mode": "typed",
+        "kind": "decimal-string",
+        "value": "CIS_NO_VALUE_ECHO.0"
+      },
+      "expected": {
+        "valid": false,
+        "error": "argument-invalid",
+        "parameter": "value",
+        "factoryCalls": 1
+      }
+    },
+    {
+      "id": "QUALIFY-STRING-EMPTY",
+      "input": {
+        "mode": "typed",
+        "kind": "string",
+        "value": ""
+      },
+      "expected": {
+        "valid": true,
+        "kind": "String",
+        "isTruncated": false,
+        "json": "",
+        "factoryCalls": 1
+      }
+    },
+    {
+      "id": "QUALIFY-STRING-CONTROLS",
+      "input": {
+        "mode": "typed",
+        "kind": "string",
+        "value": " \n\t\u0000 "
+      },
+      "expected": {
+        "valid": true,
+        "kind": "String",
+        "isTruncated": false,
+        "json": " \n\t\u0000 ",
+        "factoryCalls": 1
+      }
+    },
+    {
+      "id": "QUALIFY-STRING-COMPOSED",
+      "input": {
+        "mode": "typed",
+        "kind": "string",
+        "value": "é"
+      },
+      "expected": {
+        "valid": true,
+        "kind": "String",
+        "isTruncated": false,
+        "json": "é",
+        "factoryCalls": 1
+      }
+    },
+    {
+      "id": "QUALIFY-STRING-DECOMPOSED",
+      "input": {
+        "mode": "typed",
+        "kind": "string",
+        "value": "é"
+      },
+      "expected": {
+        "valid": true,
+        "kind": "String",
+        "isTruncated": false,
+        "json": "é",
+        "factoryCalls": 1
+      }
+    },
+    {
+      "id": "QUALIFY-STRING-ASTRAL",
+      "input": {
+        "mode": "typed",
+        "kind": "string",
+        "value": "😀"
+      },
+      "expected": {
+        "valid": true,
+        "kind": "String",
+        "isTruncated": false,
+        "json": "😀",
+        "factoryCalls": 1
+      }
+    },
+    {
+      "id": "QUALIFY-UTF16-HIGH",
+      "requires": "utf16-code-unit-input",
+      "input": {
+        "mode": "unicode",
+        "target": "string",
+        "codeUnits": [
+          55296
+        ]
+      },
+      "expected": {
+        "valid": false,
+        "error": "argument-invalid",
+        "parameter": "value",
+        "factoryCalls": 1
+      }
+    },
+    {
+      "id": "QUALIFY-UTF16-LOW",
+      "requires": "utf16-code-unit-input",
+      "input": {
+        "mode": "unicode",
+        "target": "string",
+        "codeUnits": [
+          56320
+        ]
+      },
+      "expected": {
+        "valid": false,
+        "error": "argument-invalid",
+        "parameter": "value",
+        "factoryCalls": 1
+      }
+    },
+    {
+      "id": "QUALIFY-UTF16-REVERSED",
+      "requires": "utf16-code-unit-input",
+      "input": {
+        "mode": "unicode",
+        "target": "string",
+        "codeUnits": [
+          56320,
+          55296
+        ]
+      },
+      "expected": {
+        "valid": false,
+        "error": "argument-invalid",
+        "parameter": "value",
+        "factoryCalls": 1
+      }
+    },
+    {
+      "id": "QUALIFY-UTF16-INTERRUPTED",
+      "requires": "utf16-code-unit-input",
+      "input": {
+        "mode": "unicode",
+        "target": "string",
+        "codeUnits": [
+          55296,
+          120,
+          56320
+        ]
+      },
+      "expected": {
+        "valid": false,
+        "error": "argument-invalid",
+        "parameter": "value",
+        "factoryCalls": 1
+      }
+    },
+    {
+      "id": "QUALIFY-KEY-SPACE",
+      "input": {
+        "mode": "unicode",
+        "target": "key",
+        "text": " "
+      },
+      "expected": {
+        "valid": true,
+        "factoryCalls": 1,
+        "kind": "Map",
+        "isTruncated": false,
+        "json": {
+          " ": null
+        }
+      }
+    },
+    {
+      "id": "QUALIFY-KEY-MAX-EMOJI",
+      "input": {
+        "mode": "unicode",
+        "target": "key",
+        "text": "😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀"
+      },
+      "expected": {
+        "valid": true,
+        "factoryCalls": 1,
+        "kind": "Map",
+        "isTruncated": false,
+        "json": {
+          "😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀": null
+        }
+      }
+    },
+    {
+      "id": "QUALIFY-KEY-OVER-EMOJI",
+      "input": {
+        "mode": "unicode",
+        "target": "key",
+        "text": "😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀"
+      },
+      "expected": {
+        "valid": false,
+        "factoryCalls": 1,
+        "error": "argument-invalid",
+        "parameter": "properties"
+      }
+    },
+    {
+      "id": "QUALIFY-KEY-EMPTY",
+      "input": {
+        "mode": "unicode",
+        "target": "key",
+        "text": ""
+      },
+      "expected": {
+        "valid": false,
+        "factoryCalls": 1,
+        "error": "argument-invalid",
+        "parameter": "properties"
+      }
+    },
+    {
+      "id": "QUALIFY-KEY-C0",
+      "input": {
+        "mode": "unicode",
+        "target": "key",
+        "text": "CIS_NO_VALUE_ECHO\n"
+      },
+      "expected": {
+        "valid": false,
+        "factoryCalls": 1,
+        "error": "argument-invalid",
+        "parameter": "properties"
+      }
+    },
+    {
+      "id": "QUALIFY-KEY-C1",
+      "input": {
+        "mode": "unicode",
+        "target": "key",
+        "text": "x"
+      },
+      "expected": {
+        "valid": false,
+        "factoryCalls": 1,
+        "error": "argument-invalid",
+        "parameter": "properties"
+      }
+    },
+    {
+      "id": "QUALIFY-KEY-UTF16-HIGH",
+      "requires": "utf16-code-unit-input",
+      "input": {
+        "mode": "unicode",
+        "target": "key",
+        "codeUnits": [
+          55296
+        ]
+      },
+      "expected": {
+        "valid": false,
+        "error": "argument-invalid",
+        "parameter": "properties",
+        "factoryCalls": 1
+      }
+    },
+    {
+      "id": "QUALIFY-KEY-UTF16-LOW",
+      "requires": "utf16-code-unit-input",
+      "input": {
+        "mode": "unicode",
+        "target": "key",
+        "codeUnits": [
+          56320
+        ]
+      },
+      "expected": {
+        "valid": false,
+        "error": "argument-invalid",
+        "parameter": "properties",
+        "factoryCalls": 1
+      }
+    },
+    {
+      "id": "QUALIFY-KEY-UTF16-REVERSED",
+      "requires": "utf16-code-unit-input",
+      "input": {
+        "mode": "unicode",
+        "target": "key",
+        "codeUnits": [
+          56320,
+          55296
+        ]
+      },
+      "expected": {
+        "valid": false,
+        "error": "argument-invalid",
+        "parameter": "properties",
+        "factoryCalls": 1
+      }
+    },
+    {
+      "id": "QUALIFY-KEY-UTF16-INTERRUPTED",
+      "requires": "utf16-code-unit-input",
+      "input": {
+        "mode": "unicode",
+        "target": "key",
+        "codeUnits": [
+          55296,
+          120,
+          56320
+        ]
+      },
+      "expected": {
+        "valid": false,
+        "error": "argument-invalid",
+        "parameter": "properties",
+        "factoryCalls": 1
+      }
+    },
+    {
+      "id": "QUALIFY-NULL-STRING",
+      "input": {
+        "mode": "null-argument",
+        "kind": "string"
+      },
+      "expected": {
+        "valid": false,
+        "error": "argument-null",
+        "parameter": "value",
+        "factoryCalls": 1
+      }
+    },
+    {
+      "id": "QUALIFY-NULL-INTEGER-STRING",
+      "input": {
+        "mode": "null-argument",
+        "kind": "integer-string"
+      },
+      "expected": {
+        "valid": false,
+        "error": "argument-null",
+        "parameter": "value",
+        "factoryCalls": 1
+      }
+    },
+    {
+      "id": "QUALIFY-NULL-DECIMAL-STRING",
+      "input": {
+        "mode": "null-argument",
+        "kind": "decimal-string"
+      },
+      "expected": {
+        "valid": false,
+        "error": "argument-null",
+        "parameter": "value",
+        "factoryCalls": 1
+      }
+    },
+    {
+      "id": "QUALIFY-NULL-ARRAY",
+      "input": {
+        "mode": "null-argument",
+        "kind": "array"
+      },
+      "expected": {
+        "valid": false,
+        "error": "argument-null",
+        "parameter": "items",
+        "factoryCalls": 1
+      }
+    },
+    {
+      "id": "QUALIFY-NULL-MAP",
+      "input": {
+        "mode": "null-argument",
+        "kind": "map"
+      },
+      "expected": {
+        "valid": false,
+        "error": "argument-null",
+        "parameter": "properties",
+        "factoryCalls": 1
+      }
+    },
+    {
+      "id": "QUALIFY-MUTATION-CLEAR-NESTED",
+      "input": {
+        "mode": "mutation",
+        "operation": "clear-nested"
+      },
+      "expected": {
+        "valid": true,
+        "kind": "Map",
+        "isTruncated": false,
+        "json": {
+          "items": [
+            {
+              "amount": "12.3400"
+            },
+            null
+          ]
+        },
+        "ownedGraphUnchanged": true,
+        "factoryCalls": 5
+      }
+    },
+    {
+      "id": "QUALIFY-MUTATION-REPLACE-NESTED",
+      "input": {
+        "mode": "mutation",
+        "operation": "replace-nested"
+      },
+      "expected": {
+        "valid": true,
+        "kind": "Map",
+        "isTruncated": false,
+        "json": {
+          "items": [
+            {
+              "amount": "12.3400"
+            },
+            null
+          ]
+        },
+        "ownedGraphUnchanged": true,
+        "factoryCalls": 8
+      }
+    },
+    {
+      "id": "QUALIFY-MUTATION-ADD-SNAPSHOT-REFERENCE",
+      "input": {
+        "mode": "mutation",
+        "operation": "add-snapshot-reference"
+      },
+      "expected": {
+        "valid": true,
+        "kind": "Array",
+        "isTruncated": false,
+        "json": [
+          null
+        ],
+        "ownedGraphUnchanged": true,
+        "factoryCalls": 2
+      }
+    }
+  ]
+}

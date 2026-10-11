@@ -1,0 +1,13 @@
+{
+  "taskId": "WP04-S01-T04",
+  "corrections": [
+    {
+      "scope": "new compiler harness",
+      "detail": "The successful first compilation emitted no output; an empty pipeline did not create compiler.log, so the unchanged evidence-reference helper rejected the missing file. Preserved the initial failed summary and made the harness create an explicit log even for empty successful output before rerunning."
+    },
+    {
+      "scope": "task replay orchestration",
+      "detail": "Initial inventory command imported Verification.psm1 without Evidence.psm1, so Write-VerificationJson was unavailable. Replay exited 1 before copying inputs or executing tests because the inventory file was missing. Preserved its log/summary, imported both modules and made subsequent command errors terminate preparation."
+    }
+  ]
+}

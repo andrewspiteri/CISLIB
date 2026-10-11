@@ -90,6 +90,7 @@ try {
         $core = Join-Path $languageRoot 'src/CIS.Core/bin/Release/net10.0/CIS.Core.dll'
         Invoke-VerificationStage $context 'startup-contract' { $null = Invoke-VerificationCommand (Join-Path $reportRoot 'logs/startup-contract.log') @('-NoProfile', '-File', (Join-Path $PSScriptRoot 'check-startup-contract.ps1'), '-OutputRoot', (Join-Path $reportRoot 'contracts/startup')) 'pwsh' }
         Invoke-VerificationStage $context 'compatibility-samples' { $null = Invoke-VerificationCommand (Join-Path $reportRoot 'logs/compatibility-samples.log') @('-NoProfile', '-File', (Join-Path $PSScriptRoot 'check-compatibility-samples.ps1'), '-StartupRoot', (Join-Path $reportRoot 'contracts/startup'), '-OutputRoot', (Join-Path $reportRoot 'contracts/compatibility-samples')) 'pwsh' }
+        Invoke-VerificationStage $context 'log-value-consumers' { $null = Invoke-VerificationCommand (Join-Path $reportRoot 'logs/log-value-consumers.log') @('-NoProfile', '-File', (Join-Path $PSScriptRoot 'check-log-value-consumers.ps1'), '-OutputRoot', (Join-Path $reportRoot 'contracts/log-value-consumers')) 'pwsh' }
         Invoke-VerificationStage $context 'publication-ledger' {
             $publicationReport = Join-Path $reportRoot 'contracts/publications/validation.json'
             if (Test-Path -LiteralPath $publicationReport) { Remove-Item -LiteralPath $publicationReport }
