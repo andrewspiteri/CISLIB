@@ -102,3 +102,7 @@ WP03-S01-T03 is committed as `07d3400`, with the separate test cleanup fix `e4c8
 ## WP03-S02-T01 capture and selection
 
 WP03-S01-T04 is committed as `ceb028b`. [Configuration input behavior](../docs/modules/logging/configuration-inputs.md) selects an ordinal owned snapshot of all 18 CORE names plus three DD aliases and a shared raw-token/typed-candidate precedence mechanism. Registry/provenance representation, required-read failure propagation and explicit absence are implementation choices within the roadmap. The existing version helper reuses selection, and the child fixture passes one capture. Complete option parsing, validation and public publication remain later tasks.
+
+## WP03-S02-T02 typed settings
+
+WP03-S02-T01 is committed as `fe121ef`. [Typed resolution](../docs/modules/logging/configuration-resolution.md) implements all 18 selected settings, their defaults and independent output decisions. Internal nullable setup inputs, getter-only parse results/provenance, nullable unresolved enablement and separate parse states are implementation choices within the roadmap. Selected invalid input never falls through; invalid inherited thresholds do not invent a fallback. Parsed integer domains and schema selection are implemented, while option ranges, identity/path validation, aggregated safe errors and public snapshot publication remain later tasks. The user-selected 64 KiB default is resolved; runtime truncation remains pending.
