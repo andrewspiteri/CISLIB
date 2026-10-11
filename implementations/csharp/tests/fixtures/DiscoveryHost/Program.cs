@@ -11,6 +11,11 @@ internal static class Program
 {
     private static int Main(string[] args)
     {
+        if (args.Length == 2 && args[0] == "exception-content")
+        {
+            return ExceptionProjectionProcessFixture.Content(args[1]);
+        }
+
         if (args.Length == 2 && args[0] == "exception-boundary")
         {
             return ExceptionProjectionProcessFixture.Boundary(args[1]);

@@ -1,0 +1,35 @@
+Perform a read-only review of CISLIB roadmap task WP04-S02-T03. The user explicitly requests Claude review before each task commit. Use Read, Glob and Grep only. Do not edit, execute commands, commit, publish, or use external apps.
+
+Read AGENTS.md and relevant authority in planning/decisions.md and planning/logging/plan-amendments.md. The task is: mark projections truncated=true only where exception content was clipped; never retain Exception.Data or arbitrary properties. Internal cooperative shipping capture is unchanged from preceding task 4500e56. Source getters can block/allocate/throw; AggregateException.Message can inspect its children inside the BCL getter. We qualify the capture helper's explicit reads and owned result, not a hostile-getter allocation or wall-clock limit. Shipping event/JSON-byte/runtime accounting and complete shared neutral fixtures remain later roadmap tasks.
+
+New qualification:
+- 15 literal marker shapes: complete, root/child message/stack/both clips, root+child, depth, depth sibling, node/global mixed budget, all four limits together, empty stack and null override message.
+- Throwing traps on Data, Source, HelpLink, ToString, Body, Headers and Environment, armed by seven negative getter controls. All retained getters read once; omitted nodes remain unread. Actual before/after snapshots are compared after source text/stack/raw Data mutation.
+- Three real BCL exception data graphs (single/inner/aggregate) contain a private body/header/environment marker, unformattable 64 KiB payload and cyclic dictionaries. After capture their actual Data/Source/HelpLink are changed; owned snapshots stay unchanged.
+- NoInlining creates capture plus weak references only to original exceptions, dictionaries, payloads and root header dictionary. GC is forced while the captured model stays alive. Native cases observe 4/7/10 collected targets for the three shapes; one actual retention child observes 10.
+- Closed compiled exception-getter and ambient/configuration/HTTP/serializer guards, with ten never-invoked negative call controls.
+- Complete literal-tree equality in native and separately-written Python, plus exact full probe label/count arrays. Eight comparator mutations must fail (misplaced/missing/false marker, extra data/header fields, missing read observations, nonzero forbidden count).
+
+Targeted tests pass 36 unit, 19 integration, 3 architecture executions. Full Developer verification and Windows/Ubuntu drivers are running; target full totals 2148/272/388 (2808), 59 children/platform including 6 original +34 boundary +19 content cases. Final status/docs/evidence are still being assembled; no commit until retained reports, review findings, canonical source replay and exact staged bytes all validate. Original sources/contracts and old evidence remain unchanged.
+
+Inspect:
+implementations/csharp/src/CIS.Core/Logging/Exceptions/CapturedException.cs
+implementations/csharp/src/CIS.Core/Logging/Exceptions/ExceptionProjection.cs
+implementations/csharp/src/CIS.Core/Text/UnicodeScalarText.cs
+implementations/csharp/tests/fixtures/DiscoveryHost/ExceptionContentSources.cs
+implementations/csharp/tests/fixtures/DiscoveryHost/ExceptionContentProbe.cs
+implementations/csharp/tests/fixtures/DiscoveryHost/ExceptionContentExpectations.cs
+implementations/csharp/tests/fixtures/DiscoveryHost/ExceptionContentFixture.cs
+implementations/csharp/tests/fixtures/DiscoveryHost/ExceptionRetentionFixture.cs
+implementations/csharp/tests/fixtures/DiscoveryHost/ExceptionBoundaryFixture.cs
+implementations/csharp/tests/fixtures/DiscoveryHost/ExceptionProjectionProcessFixture.cs
+implementations/csharp/tests/fixtures/DiscoveryHost/Program.cs
+implementations/csharp/tests/fixtures/DiscoveryHost/verify-exception-content.py
+implementations/csharp/tests/CIS.Core.UnitTests/ExceptionContentTests.cs
+implementations/csharp/tests/CIS.Core.IntegrationTests/ExceptionContentProcessTests.cs
+implementations/csharp/tests/CIS.Core.ArchitectureTests/ExceptionContentArchitectureTests.cs
+implementations/csharp/tests/CIS.Core.UnitTests/CIS.Core.UnitTests.csproj
+implementations/csharp/tests/CIS.Core.IntegrationTests/CIS.Core.IntegrationTests.csproj
+conformance/logging/case-inventory.json
+
+Find correctness defects, significant gaps, circular/false-positive qualification, GC/JIT lifetime problems or important maintainability concerns. Distinguish actionable defects from optional suggestions. Provide priority/file/line/concrete failure scenario and proposed fix. Conclude PASS or CHANGES REQUIRED, conditional on stated final verification if appropriate.
