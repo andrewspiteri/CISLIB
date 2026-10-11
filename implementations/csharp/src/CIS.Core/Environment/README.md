@@ -7,3 +7,5 @@ WP03-S01-T01 implements internal application build-identity discovery under `Dis
 Environment setup must not accumulate unrelated mutable module/application state. WP03-S01-T02 adds captured process/host/OS/runtime facts with nullable discovery seams; [runtime discovery guidance](../../../../../docs/modules/logging/runtime-metadata-discovery.md) separates controlled family recognition from executed platform support. Public startup types and the logging runtime remain unimplemented.
 
 WP03-S01-T03 adds version selection in `Resolution` and initialization UUID/time generation in `Discovery`. [Initialization guidance](../../../../../docs/modules/logging/initialization-identity.md) distinguishes raw selected values and generation from later validation/publication.
+
+WP03-S02-T01 adds an owned capture of the 21 exact recognized names and shared source precedence for raw environment and typed setup/discovery/default values. [Input guidance](../../../../../docs/modules/logging/configuration-inputs.md) separates selection from option parsing/validation and explains snapshot reuse.

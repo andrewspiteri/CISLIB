@@ -98,3 +98,7 @@ WP03-S01-T02 is committed as `0ded9ac`. [Version/initialization behavior](../doc
 ## WP03-S01-T04 discovery qualification
 
 WP03-S01-T03 is committed as `07d3400`, with the separate test cleanup fix `e4c82d5`. [Discovery fixtures](../docs/modules/logging/discovery-fixtures.md) combine 20 portable rows and seven real child-process integration cases. A registered nonshipping fixture has fixed application/assembly/file-version decoys and friend access to internal Core discovery, while Core's runtime dependency closure stays unchanged. Exact-runtime process scenarios execute on Windows and Ubuntu 24.04.4 x64 under WSL2 using a task-local copy of the existing Microsoft .NET 10.0.12 runtime. Fixture layout, controlled absence modes and runtime reuse are implementation choices within the authorized roadmap. This qualifies discovery only; Linux SDK/full-suite and macOS execution remain unqualified.
+
+## WP03-S02-T01 capture and selection
+
+WP03-S01-T04 is committed as `ceb028b`. [Configuration input behavior](../docs/modules/logging/configuration-inputs.md) selects an ordinal owned snapshot of all 18 CORE names plus three DD aliases and a shared raw-token/typed-candidate precedence mechanism. Registry/provenance representation, required-read failure propagation and explicit absence are implementation choices within the roadmap. The existing version helper reuses selection, and the child fixture passes one capture. Complete option parsing, validation and public publication remain later tasks.

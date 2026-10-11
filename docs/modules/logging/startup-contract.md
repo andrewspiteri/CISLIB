@@ -77,3 +77,5 @@ Run `pwsh -File eng/verify.ps1` from the repository root. For isolated compiler 
 During WP02-S02 the user requested configurable entry bytes and truncation. CORE_LOG_MAX_ENTRY_BYTES / LoggingSetup.MaxEntryBytes / LoggingOptions.MaxEntryBytes default to 65536 bytes; selected valid range is 16384–16777216. Resolution/precedence remains WP03; bounded payload truncation remains WP04/WP05. Entry size is distinct from file segment rotation size.
 
 An enabled file output requires FileMaxBytes >= MaxEntryBytes, so an admitted bounded entry can fit a complete segment; a smaller segment setting reports OutOfRange. This cross-option rule is a prepublication implementation choice prompted by the configurable entry cap. Disabled outputs still validate each selected option individually.
+
+WP03-S02-T01 implements [recognized-variable capture and source precedence](configuration-inputs.md). Complete option parsing, validation and public publication remain pending.

@@ -21,7 +21,8 @@ internal static class Program
         ApplicationIdentity application = ApplicationIdentityDiscovery.Discover(
             new ApplicationIdentityInput(),
             scenario == "native" ? null : new LimitedAssemblyMetadata(scenario));
-        ApplicationVersionSelection versions = ApplicationVersionSelector.Select(application);
+        CapturedEnvironment variables = CapturedEnvironment.Capture();
+        ApplicationVersionSelection versions = ApplicationVersionSelector.Select(application, variables: variables);
         RuntimeMetadata runtime = RuntimeMetadataDiscovery.Discover(
             scenario == "unavailable" ? new UnavailableRuntimeMetadata() : null);
         DateTimeOffset beforeInitializationUtc = DateTimeOffset.UtcNow;

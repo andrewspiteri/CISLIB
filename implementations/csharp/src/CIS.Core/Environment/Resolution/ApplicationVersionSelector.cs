@@ -9,23 +9,12 @@ internal static class ApplicationVersionSelector
     {
         ArgumentNullException.ThrowIfNull(identity);
         variables ??= ProcessEnvironmentVariableSource.Instance;
-        string? selected = Nonblank(variables.GetValue("CORE_SERVICE_VERSION"));
-        if (selected is not null)
-        {
-            return new(identity.BuildVersion, selected, "CORE_SERVICE_VERSION");
-        }
-
-        selected = Nonblank(variables.GetValue("DD_VERSION"));
-        if (selected is not null)
-        {
-            return new(identity.BuildVersion, selected, "DD_VERSION");
-        }
-
-        selected = Nonblank(serviceVersion);
-        return selected is not null
-            ? new(identity.BuildVersion, selected, "EnvironmentSetup.ServiceVersion")
-            : new(identity.BuildVersion, identity.BuildVersion, "BuildVersion");
+        ConfigurationSelection<string> selected = ConfigurationValueSelector.Select(
+            variables,
+            "CORE_SERVICE_VERSION",
+            new ConfigurationCandidate<string>(serviceVersion),
+            new ConfigurationCandidate<string>(identity.BuildVersion));
+        string version = selected.Source == ConfigurationSource.Environment ? selected.Token! : selected.Value;
+        return new(identity.BuildVersion, version, selected.SourceKey);
     }
-
-    private static string? Nonblank(string? value) => string.IsNullOrWhiteSpace(value) ? null : value.Trim();
 }
