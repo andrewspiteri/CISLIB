@@ -30,6 +30,7 @@ internal static class ConfigurationFixtureAdapter
         string? String(string key) => Text(setup, key);
         int? Integer(string key) => setup[key]?.GetValue<int>();
         long? Long(string key) => setup[key]?.GetValue<long>();
+        string? hostEnvironment = input["host"] is { } host ? Text(host, "environmentName") : null;
         ConfigurationSeverity? Severity(string key) => String(key) is { } value ? Enum.Parse<ConfigurationSeverity>(value, ignoreCase: false) : null;
         ConfigurationOutputFormat? Format(string key) => String(key) switch
         {
@@ -41,8 +42,9 @@ internal static class ConfigurationFixtureAdapter
         return new EnvironmentConfigurationInput
         {
             ApplicationName = String("ApplicationName"),
-            EnvironmentName = setup.ContainsKey("EnvironmentName") ? String("EnvironmentName") : Text(input["host"]!, "environmentName"),
+            EnvironmentName = setup.ContainsKey("EnvironmentName") ? String("EnvironmentName") : hostEnvironment,
             ServiceVersion = String("ServiceVersion"),
+            EnvironmentKind = Integer("EnvironmentKind") is { } kind ? (ConfigurationEnvironmentKind)kind : null,
             Logging = new LoggingConfigurationInput
             {
                 Level = Severity("Logging.Level"),

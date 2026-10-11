@@ -36,7 +36,8 @@ internal static class ConfigurationResolver
             ConfigurationSettingParser.LongInteger("CORE_LOG_FILE_MAX_BYTES", Select(variables, "CORE_LOG_FILE_MAX_BYTES", logging.FileMaxBytes, 10485760L)),
             ConfigurationSettingParser.Integer("CORE_LOG_FILE_RETAINED_FILES", Select(variables, "CORE_LOG_FILE_RETAINED_FILES", logging.FileRetainedFiles, 10)),
             ConfigurationSettingParser.Schema("CORE_LOG_SCHEMA_VERSION", Select(variables, "CORE_LOG_SCHEMA_VERSION", logging.SchemaVersion, 1)),
-            ConfigurationSettingParser.Integer("CORE_LOG_MAX_ENTRY_BYTES", Select(variables, "CORE_LOG_MAX_ENTRY_BYTES", logging.MaxEntryBytes, 65536)));
+            ConfigurationSettingParser.Integer("CORE_LOG_MAX_ENTRY_BYTES", Select(variables, "CORE_LOG_MAX_ENTRY_BYTES", logging.MaxEntryBytes, 65536)),
+            setup.EnvironmentKind ?? ConfigurationEnvironmentKind.Unknown);
     }
 
     private static ConfigurationCandidate<T> Candidate<T>(T? value) where T : struct =>

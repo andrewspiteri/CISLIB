@@ -7,6 +7,7 @@ internal sealed class EnvironmentConfigurationInput
     public string? ApplicationName { get; init; }
     public string? EnvironmentName { get; init; }
     public string? ServiceVersion { get; init; }
+    public ConfigurationEnvironmentKind? EnvironmentKind { get; init; }
     public LoggingConfigurationInput? Logging { get; init; }
 }
 
