@@ -1,0 +1,171 @@
+{
+  "schemaVersion": 1,
+  "storyId": "WP04-S03",
+  "taskId": "WP04-S03-T04",
+  "implementationPhase": "internal-scope-state",
+  "publicRuntimeIntegrationStatus": "Pending",
+  "scope": "Internal actual Core operation scope state under the selected creator-disposes rule; public runtime, provider, environment/event integration and encoded-entry bytes remain later work.",
+  "authority": "planning/logging/plan-amendments.md",
+  "originalSource": "planning/logging/sources/core-library-backlog-v1.json",
+  "catalogs": [
+    "conformance/logging/scope-qualification-cases.json"
+  ],
+  "criteria": [
+    {
+      "id": "WP04-S03-AC01",
+      "sourceDescription": "Concurrent asynchronous operations do not exchange operation IDs or attributes; separate runtime instances keep separate scope chains.",
+      "appliedMeaning": "Actual internal per-runtime stores retain independent immutable chains while barrier-blocked child and sibling operations overlap. Public runtime ownership/wiring and shared environment integration are pending later tasks.",
+      "sharedCases": [
+        "SCOPE-INHERIT-1",
+        "SCOPE-INHERIT-3",
+        "SCOPE-CONCURRENT-2",
+        "SCOPE-CONCURRENT-8",
+        "SCOPE-STORES-2",
+        "SCOPE-STORES-4"
+      ],
+      "nativeCaseGroups": [
+        "UT-SCOPE-T04-01",
+        "IT-SCOPE-T04-03"
+      ],
+      "guidance": [
+        "docs/modules/logging/operation-scopes.md",
+        "planning/logging/plan-amendments.md"
+      ],
+      "priorNativeCaseGroups": [
+        "UT-SCOPE-T01-10",
+        "UT-SCOPE-T02-12"
+      ],
+      "reviewEvidence": "Read-only source review also checks applied meaning and current guidance; no CIS product approval."
+    },
+    {
+      "id": "WP04-S03-AC02",
+      "sourceDescription": "Inner values override outer values, scope input is immutable after BeginScope, and the 33rd nested scope is rejected as specified.",
+      "appliedMeaning": "Literal shared observations qualify outer-to-inner winners and BeginScope copying of DTO/top-level dictionary state at depth 32. Nested LogValue construction inputs are mutated before BeginScope to independently demonstrate factory ownership, then again afterward. Existing depth-33 guards qualify rejection; event priority and entry-byte encoding remain later work.",
+      "sharedCases": [
+        "SCOPE-NESTED-2",
+        "SCOPE-NESTED-32",
+        "SCOPE-MUTATION-DICTIONARY",
+        "SCOPE-MUTATION-WRAPPER"
+      ],
+      "nativeCaseGroups": [
+        "UT-SCOPE-T04-01",
+        "IT-SCOPE-T04-03"
+      ],
+      "guidance": [
+        "docs/modules/logging/operation-scopes.md",
+        "planning/logging/plan-amendments.md"
+      ],
+      "priorNativeCaseGroups": [
+        "UT-SCOPE-T01-07",
+        "UT-SCOPE-T01-15",
+        "UT-SCOPE-T02-11",
+        "UT-SCOPE-T02-13"
+      ],
+      "reviewEvidence": "Read-only source review also checks applied meaning and current guidance; no CIS product approval."
+    },
+    {
+      "id": "WP04-S03-AC03",
+      "sourceDescription": "Out-of-order disposal throws InvalidOperationException without changing the active scope; repeated correct-flow disposal is harmless.",
+      "appliedMeaning": "Creator-owned scopes dispose LIFO, including after cancellation; invalid owner order preserves head and merged view, and valid repeats restore exact parents. User-selected detection limits apply; prohibited handle transfer is not acceptance evidence.",
+      "sharedCases": [
+        "SCOPE-NESTED-2",
+        "SCOPE-NESTED-32",
+        "SCOPE-CANCEL-WAIT",
+        "SCOPE-CANCEL-BODY",
+        "SCOPE-ORDER-3",
+        "SCOPE-ORDER-32"
+      ],
+      "nativeCaseGroups": [
+        "UT-SCOPE-T04-01",
+        "IT-SCOPE-T04-03"
+      ],
+      "guidance": [
+        "docs/modules/logging/operation-scopes.md",
+        "planning/logging/plan-amendments.md"
+      ],
+      "priorNativeCaseGroups": [
+        "UT-SCOPE-T03-01",
+        "UT-SCOPE-T03-02",
+        "UT-SCOPE-T03-03",
+        "UT-SCOPE-T03-04",
+        "UT-SCOPE-T03-05",
+        "UT-SCOPE-T03-06",
+        "UT-SCOPE-T03-07",
+        "UT-SCOPE-T03-08",
+        "UT-SCOPE-T03-09",
+        "IT-SCOPE-T03-10"
+      ],
+      "reviewEvidence": "Read-only source review also checks applied meaning and current guidance; no CIS product approval."
+    },
+    {
+      "id": "WP04-S03-AC04",
+      "sourceDescription": "Documentation states normal execution-context inheritance and prohibits passing scope handles to another concurrent flow for disposal.",
+      "appliedMeaning": "Current guidance states normal execution-context inheritance, prohibits transferred-handle disposal and documents stale/helper/detached-work limits under the selected ownership amendment.",
+      "sharedCases": [],
+      "nativeCaseGroups": [
+        "AT-SCOPE-T04-04"
+      ],
+      "guidance": [
+        "docs/modules/logging/operation-scopes.md",
+        "planning/logging/plan-amendments.md"
+      ],
+      "priorNativeCaseGroups": [],
+      "reviewEvidence": "Read-only source review also checks applied meaning and current guidance; no CIS product approval.",
+      "requiredGuidance": {
+        "docs/modules/logging/operation-scopes.md": [
+          "Child tasks inherit normal execution context",
+          "must not be passed to another concurrent flow"
+        ]
+      }
+    }
+  ],
+  "retainedPriorNativeCaseGroups": [
+    "UT-SCOPE-T01-01",
+    "UT-SCOPE-T01-02",
+    "UT-SCOPE-T01-03",
+    "UT-SCOPE-T01-04",
+    "UT-SCOPE-T01-05",
+    "UT-SCOPE-T01-06",
+    "UT-SCOPE-T01-07",
+    "UT-SCOPE-T01-08",
+    "UT-SCOPE-T01-09",
+    "UT-SCOPE-T01-10",
+    "UT-SCOPE-T01-11",
+    "UT-SCOPE-T01-12",
+    "UT-SCOPE-T01-13",
+    "UT-SCOPE-T01-14",
+    "UT-SCOPE-T01-15",
+    "AR-SCOPE-T01-16",
+    "AR-SCOPE-T01-17",
+    "IT-SCOPE-T01-18",
+    "UT-SCOPE-T01-19",
+    "UT-SCOPE-T02-01",
+    "UT-SCOPE-T02-02",
+    "UT-SCOPE-T02-03",
+    "UT-SCOPE-T02-04",
+    "UT-SCOPE-T02-05",
+    "UT-SCOPE-T02-06",
+    "UT-SCOPE-T02-07",
+    "UT-SCOPE-T02-08",
+    "UT-SCOPE-T02-09",
+    "UT-SCOPE-T02-10",
+    "UT-SCOPE-T02-11",
+    "UT-SCOPE-T02-12",
+    "UT-SCOPE-T02-13",
+    "UT-SCOPE-T02-14",
+    "AR-SCOPE-T02-15",
+    "IT-SCOPE-T02-16",
+    "UT-SCOPE-T02-17",
+    "UT-SCOPE-T03-01",
+    "UT-SCOPE-T03-02",
+    "UT-SCOPE-T03-03",
+    "UT-SCOPE-T03-04",
+    "UT-SCOPE-T03-05",
+    "UT-SCOPE-T03-06",
+    "UT-SCOPE-T03-07",
+    "UT-SCOPE-T03-08",
+    "UT-SCOPE-T03-09",
+    "IT-SCOPE-T03-10"
+  ],
+  "executionEvidence": "Read actual native/process/fresh-copy reports; this mapping does not establish execution or product approval."
+}

@@ -1,0 +1,24 @@
+Read-only WP04-S03-T04 source review in C:/miscwork/portfolio/cislib. Only Read/Glob/Grep, no edits. T03 is committed c8b897c with the human-selected BeginScope creator-disposes rule and documented detection limits. T04 qualifies original barrier-driven nested/child/concurrent/independent-store/cancellation/input-mutation/invalid-order task. No shipping Core source, public API or dependency changes.
+
+Review current canonical files:
+conformance/logging/scope-qualification-cases.json (14 literal scenario trees, native C# error binding separated)
+conformance/logging/scope-qualification-map.json (4 preserved original criteria, internal-scope-state applied scope, public runtime integration Pending)
+conformance/logging/case-inventory.json (4 T04 groups,38 rows)
+conformance/logging/requirement-case-map.json
+conformance/logging/README.md
+implementations/csharp/tests/fixtures/DiscoveryHost/OperationScopeQualificationFixture.cs
+implementations/csharp/tests/fixtures/DiscoveryHost/OperationScopeQualificationExpectations.cs
+implementations/csharp/tests/fixtures/DiscoveryHost/OperationScopeQualificationProcessFixture.cs
+implementations/csharp/tests/fixtures/DiscoveryHost/verify-scope-qualification.py
+implementations/csharp/tests/fixtures/DiscoveryHost/Program.cs
+implementations/csharp/tests/CIS.Core.UnitTests/OperationScopeQualificationTests.cs and csproj
+implementations/csharp/tests/CIS.Core.IntegrationTests/OperationScopeQualificationProcessTests.cs and csproj
+implementations/csharp/tests/CIS.Core.ArchitectureTests/OperationScopeQualificationArchitectureTests.cs
+docs/modules/logging/operation-scopes.md final T04 section
+planning/decisions.md final T04 section
+
+Actual Core internal stores are used, never fake public runtimes. Gates signal after own pushes; controller observes parent while siblings overlap, mutates DTO/dictionary/nested construction inputs or cancels real token, releases and joins before disposing its parent handles. Ready failure signals exception, all gates released, worker failures joined with explicit10s deadline/aggregate error preservation. Descriptor participant order is not completion order. Two/eight sibling operations, two/four stores, depth2/32 nesting with blank-ID fallback and exact repeated pop restoration, child inheritance, await/body cancellation, dictionary/read-only wrapper mutation, invalid owner order at depths3/32. No transferred parent handles. Early nested factory ownership is distinguished from BeginScope DTO/map copy. Native debug output is not event wire.
+
+Focused pre-format/pre-cancellation-correction reports passed20unit,14integration,4architecture. Current corrected cancellation creates its cancellable wait BEFORE signaling readiness; its focused rerun is running. Final fullDeveloper/process/fresh-copy qualification remains pending; expected totals2502unit/366integration/397architecture=3265 with55 compiler controls. Prohibited misuse probes remain T03 investigations, not acceptance. Existing scope checks qualify depth33 and other T01/T02/T03 edges; this task's map retains their bindings. All four criteria are only internal scope qualification until real runtime/provider/event wiring.
+
+Find required correctness, test gaps, race/cleanup, platform portability, native binding/source-map and evidence-overclaim issues; separate optional improvements. Don't inspect unrelated history. Return concise verdict with exact files/methods. Do not infer success for pending checks.

@@ -1,0 +1,1780 @@
+{
+  "schemaVersion": 1,
+  "taskId": "WP04-S03-T04",
+  "caseCount": 14,
+  "scope": "Shared semantic scope scenarios executed against internal runtime-owned stores; development observation JSON, not event wire or public runtime integration.",
+  "scheduling": "All worker operations await readiness/release barriers. Participant result order is descriptor index order, not scheduling/completion order.",
+  "nativeBindings": {
+    "csharp": {
+      "invalid-disposal-order": {
+        "nativeError": "InvalidOperationException",
+        "nativeMessage": "Dispose operation scopes in LIFO order."
+      }
+    }
+  },
+  "cases": [
+    {
+      "id": "SCOPE-NESTED-2",
+      "input": {
+        "scenario": "nested",
+        "participantsOrLevels": 1,
+        "blankLastId": false
+      },
+      "expected": {
+        "during": {
+          "operationId": "nested-1",
+          "scopeDepth": 2,
+          "isTruncated": false,
+          "attributes": {
+            "root": "parent",
+            "shared": "nested-1",
+            "level": 1
+          }
+        },
+        "restoredIds": [
+          "parent"
+        ],
+        "restoredDepths": [
+          1
+        ],
+        "exactParentsRestored": true,
+        "caseId": "SCOPE-NESTED-2",
+        "parentBefore": [
+          {
+            "operationId": "parent",
+            "scopeDepth": 1,
+            "isTruncated": false,
+            "attributes": {
+              "root": "parent",
+              "shared": "parent"
+            }
+          }
+        ],
+        "parentWhileChildrenBlocked": [
+          {
+            "operationId": "parent",
+            "scopeDepth": 1,
+            "isTruncated": false,
+            "attributes": {
+              "root": "parent",
+              "shared": "parent"
+            }
+          }
+        ],
+        "parentAfterChildren": [
+          {
+            "operationId": "parent",
+            "scopeDepth": 1,
+            "isTruncated": false,
+            "attributes": {
+              "root": "parent",
+              "shared": "parent"
+            }
+          }
+        ],
+        "parentHeadsUnchanged": true,
+        "storesEmptyAfterOwnerCleanup": true
+      }
+    },
+    {
+      "id": "SCOPE-NESTED-32",
+      "input": {
+        "scenario": "nested",
+        "participantsOrLevels": 31,
+        "blankLastId": true
+      },
+      "expected": {
+        "during": {
+          "operationId": "nested-30",
+          "scopeDepth": 32,
+          "isTruncated": false,
+          "attributes": {
+            "root": "parent",
+            "shared": "nested-31",
+            "level": 31
+          }
+        },
+        "restoredIds": [
+          "nested-30",
+          "nested-29",
+          "nested-28",
+          "nested-27",
+          "nested-26",
+          "nested-25",
+          "nested-24",
+          "nested-23",
+          "nested-22",
+          "nested-21",
+          "nested-20",
+          "nested-19",
+          "nested-18",
+          "nested-17",
+          "nested-16",
+          "nested-15",
+          "nested-14",
+          "nested-13",
+          "nested-12",
+          "nested-11",
+          "nested-10",
+          "nested-9",
+          "nested-8",
+          "nested-7",
+          "nested-6",
+          "nested-5",
+          "nested-4",
+          "nested-3",
+          "nested-2",
+          "nested-1",
+          "parent"
+        ],
+        "restoredDepths": [
+          31,
+          30,
+          29,
+          28,
+          27,
+          26,
+          25,
+          24,
+          23,
+          22,
+          21,
+          20,
+          19,
+          18,
+          17,
+          16,
+          15,
+          14,
+          13,
+          12,
+          11,
+          10,
+          9,
+          8,
+          7,
+          6,
+          5,
+          4,
+          3,
+          2,
+          1
+        ],
+        "exactParentsRestored": true,
+        "caseId": "SCOPE-NESTED-32",
+        "parentBefore": [
+          {
+            "operationId": "parent",
+            "scopeDepth": 1,
+            "isTruncated": false,
+            "attributes": {
+              "root": "parent",
+              "shared": "parent"
+            }
+          }
+        ],
+        "parentWhileChildrenBlocked": [
+          {
+            "operationId": "parent",
+            "scopeDepth": 1,
+            "isTruncated": false,
+            "attributes": {
+              "root": "parent",
+              "shared": "parent"
+            }
+          }
+        ],
+        "parentAfterChildren": [
+          {
+            "operationId": "parent",
+            "scopeDepth": 1,
+            "isTruncated": false,
+            "attributes": {
+              "root": "parent",
+              "shared": "parent"
+            }
+          }
+        ],
+        "parentHeadsUnchanged": true,
+        "storesEmptyAfterOwnerCleanup": true
+      }
+    },
+    {
+      "id": "SCOPE-INHERIT-1",
+      "input": {
+        "scenario": "inherit",
+        "participantsOrLevels": 1
+      },
+      "expected": {
+        "children": [
+          {
+            "inherited": {
+              "operationId": "parent",
+              "scopeDepth": 1,
+              "isTruncated": false,
+              "attributes": {
+                "root": "parent",
+                "shared": "parent"
+              }
+            },
+            "during": {
+              "operationId": "child-0",
+              "scopeDepth": 2,
+              "isTruncated": false,
+              "attributes": {
+                "root": "parent",
+                "shared": "child-0",
+                "tag": 0
+              }
+            },
+            "restored": {
+              "operationId": "parent",
+              "scopeDepth": 1,
+              "isTruncated": false,
+              "attributes": {
+                "root": "parent",
+                "shared": "parent"
+              }
+            },
+            "exactInheritedHeadRestored": true
+          }
+        ],
+        "caseId": "SCOPE-INHERIT-1",
+        "parentBefore": [
+          {
+            "operationId": "parent",
+            "scopeDepth": 1,
+            "isTruncated": false,
+            "attributes": {
+              "root": "parent",
+              "shared": "parent"
+            }
+          }
+        ],
+        "parentWhileChildrenBlocked": [
+          {
+            "operationId": "parent",
+            "scopeDepth": 1,
+            "isTruncated": false,
+            "attributes": {
+              "root": "parent",
+              "shared": "parent"
+            }
+          }
+        ],
+        "parentAfterChildren": [
+          {
+            "operationId": "parent",
+            "scopeDepth": 1,
+            "isTruncated": false,
+            "attributes": {
+              "root": "parent",
+              "shared": "parent"
+            }
+          }
+        ],
+        "parentHeadsUnchanged": true,
+        "storesEmptyAfterOwnerCleanup": true
+      }
+    },
+    {
+      "id": "SCOPE-INHERIT-3",
+      "input": {
+        "scenario": "inherit",
+        "participantsOrLevels": 3
+      },
+      "expected": {
+        "children": [
+          {
+            "inherited": {
+              "operationId": "parent",
+              "scopeDepth": 1,
+              "isTruncated": false,
+              "attributes": {
+                "root": "parent",
+                "shared": "parent"
+              }
+            },
+            "during": {
+              "operationId": "child-0",
+              "scopeDepth": 2,
+              "isTruncated": false,
+              "attributes": {
+                "root": "parent",
+                "shared": "child-0",
+                "tag": 0
+              }
+            },
+            "restored": {
+              "operationId": "parent",
+              "scopeDepth": 1,
+              "isTruncated": false,
+              "attributes": {
+                "root": "parent",
+                "shared": "parent"
+              }
+            },
+            "exactInheritedHeadRestored": true
+          },
+          {
+            "inherited": {
+              "operationId": "parent",
+              "scopeDepth": 1,
+              "isTruncated": false,
+              "attributes": {
+                "root": "parent",
+                "shared": "parent"
+              }
+            },
+            "during": {
+              "operationId": "child-1",
+              "scopeDepth": 2,
+              "isTruncated": false,
+              "attributes": {
+                "root": "parent",
+                "shared": "child-1",
+                "tag": 1
+              }
+            },
+            "restored": {
+              "operationId": "parent",
+              "scopeDepth": 1,
+              "isTruncated": false,
+              "attributes": {
+                "root": "parent",
+                "shared": "parent"
+              }
+            },
+            "exactInheritedHeadRestored": true
+          },
+          {
+            "inherited": {
+              "operationId": "parent",
+              "scopeDepth": 1,
+              "isTruncated": false,
+              "attributes": {
+                "root": "parent",
+                "shared": "parent"
+              }
+            },
+            "during": {
+              "operationId": "child-2",
+              "scopeDepth": 2,
+              "isTruncated": false,
+              "attributes": {
+                "root": "parent",
+                "shared": "child-2",
+                "tag": 2
+              }
+            },
+            "restored": {
+              "operationId": "parent",
+              "scopeDepth": 1,
+              "isTruncated": false,
+              "attributes": {
+                "root": "parent",
+                "shared": "parent"
+              }
+            },
+            "exactInheritedHeadRestored": true
+          }
+        ],
+        "caseId": "SCOPE-INHERIT-3",
+        "parentBefore": [
+          {
+            "operationId": "parent",
+            "scopeDepth": 1,
+            "isTruncated": false,
+            "attributes": {
+              "root": "parent",
+              "shared": "parent"
+            }
+          }
+        ],
+        "parentWhileChildrenBlocked": [
+          {
+            "operationId": "parent",
+            "scopeDepth": 1,
+            "isTruncated": false,
+            "attributes": {
+              "root": "parent",
+              "shared": "parent"
+            }
+          }
+        ],
+        "parentAfterChildren": [
+          {
+            "operationId": "parent",
+            "scopeDepth": 1,
+            "isTruncated": false,
+            "attributes": {
+              "root": "parent",
+              "shared": "parent"
+            }
+          }
+        ],
+        "parentHeadsUnchanged": true,
+        "storesEmptyAfterOwnerCleanup": true
+      }
+    },
+    {
+      "id": "SCOPE-CONCURRENT-2",
+      "input": {
+        "scenario": "concurrent",
+        "participantsOrLevels": 2
+      },
+      "expected": {
+        "children": [
+          {
+            "during": {
+              "operationId": "inner-0",
+              "scopeDepth": 3,
+              "isTruncated": false,
+              "attributes": {
+                "root": "parent",
+                "shared": "inner-0",
+                "tag": 0
+              }
+            },
+            "afterInner": {
+              "operationId": "operation-0",
+              "scopeDepth": 2,
+              "isTruncated": false,
+              "attributes": {
+                "root": "parent",
+                "shared": "operation-0",
+                "tag": 0
+              }
+            },
+            "restored": {
+              "operationId": "parent",
+              "scopeDepth": 1,
+              "isTruncated": false,
+              "attributes": {
+                "root": "parent",
+                "shared": "parent"
+              }
+            },
+            "exactInheritedHeadRestored": true
+          },
+          {
+            "during": {
+              "operationId": "inner-1",
+              "scopeDepth": 3,
+              "isTruncated": false,
+              "attributes": {
+                "root": "parent",
+                "shared": "inner-1",
+                "tag": 1
+              }
+            },
+            "afterInner": {
+              "operationId": "operation-1",
+              "scopeDepth": 2,
+              "isTruncated": false,
+              "attributes": {
+                "root": "parent",
+                "shared": "operation-1",
+                "tag": 1
+              }
+            },
+            "restored": {
+              "operationId": "parent",
+              "scopeDepth": 1,
+              "isTruncated": false,
+              "attributes": {
+                "root": "parent",
+                "shared": "parent"
+              }
+            },
+            "exactInheritedHeadRestored": true
+          }
+        ],
+        "caseId": "SCOPE-CONCURRENT-2",
+        "parentBefore": [
+          {
+            "operationId": "parent",
+            "scopeDepth": 1,
+            "isTruncated": false,
+            "attributes": {
+              "root": "parent",
+              "shared": "parent"
+            }
+          }
+        ],
+        "parentWhileChildrenBlocked": [
+          {
+            "operationId": "parent",
+            "scopeDepth": 1,
+            "isTruncated": false,
+            "attributes": {
+              "root": "parent",
+              "shared": "parent"
+            }
+          }
+        ],
+        "parentAfterChildren": [
+          {
+            "operationId": "parent",
+            "scopeDepth": 1,
+            "isTruncated": false,
+            "attributes": {
+              "root": "parent",
+              "shared": "parent"
+            }
+          }
+        ],
+        "parentHeadsUnchanged": true,
+        "storesEmptyAfterOwnerCleanup": true
+      }
+    },
+    {
+      "id": "SCOPE-CONCURRENT-8",
+      "input": {
+        "scenario": "concurrent",
+        "participantsOrLevels": 8
+      },
+      "expected": {
+        "children": [
+          {
+            "during": {
+              "operationId": "inner-0",
+              "scopeDepth": 3,
+              "isTruncated": false,
+              "attributes": {
+                "root": "parent",
+                "shared": "inner-0",
+                "tag": 0
+              }
+            },
+            "afterInner": {
+              "operationId": "operation-0",
+              "scopeDepth": 2,
+              "isTruncated": false,
+              "attributes": {
+                "root": "parent",
+                "shared": "operation-0",
+                "tag": 0
+              }
+            },
+            "restored": {
+              "operationId": "parent",
+              "scopeDepth": 1,
+              "isTruncated": false,
+              "attributes": {
+                "root": "parent",
+                "shared": "parent"
+              }
+            },
+            "exactInheritedHeadRestored": true
+          },
+          {
+            "during": {
+              "operationId": "inner-1",
+              "scopeDepth": 3,
+              "isTruncated": false,
+              "attributes": {
+                "root": "parent",
+                "shared": "inner-1",
+                "tag": 1
+              }
+            },
+            "afterInner": {
+              "operationId": "operation-1",
+              "scopeDepth": 2,
+              "isTruncated": false,
+              "attributes": {
+                "root": "parent",
+                "shared": "operation-1",
+                "tag": 1
+              }
+            },
+            "restored": {
+              "operationId": "parent",
+              "scopeDepth": 1,
+              "isTruncated": false,
+              "attributes": {
+                "root": "parent",
+                "shared": "parent"
+              }
+            },
+            "exactInheritedHeadRestored": true
+          },
+          {
+            "during": {
+              "operationId": "inner-2",
+              "scopeDepth": 3,
+              "isTruncated": false,
+              "attributes": {
+                "root": "parent",
+                "shared": "inner-2",
+                "tag": 2
+              }
+            },
+            "afterInner": {
+              "operationId": "operation-2",
+              "scopeDepth": 2,
+              "isTruncated": false,
+              "attributes": {
+                "root": "parent",
+                "shared": "operation-2",
+                "tag": 2
+              }
+            },
+            "restored": {
+              "operationId": "parent",
+              "scopeDepth": 1,
+              "isTruncated": false,
+              "attributes": {
+                "root": "parent",
+                "shared": "parent"
+              }
+            },
+            "exactInheritedHeadRestored": true
+          },
+          {
+            "during": {
+              "operationId": "inner-3",
+              "scopeDepth": 3,
+              "isTruncated": false,
+              "attributes": {
+                "root": "parent",
+                "shared": "inner-3",
+                "tag": 3
+              }
+            },
+            "afterInner": {
+              "operationId": "operation-3",
+              "scopeDepth": 2,
+              "isTruncated": false,
+              "attributes": {
+                "root": "parent",
+                "shared": "operation-3",
+                "tag": 3
+              }
+            },
+            "restored": {
+              "operationId": "parent",
+              "scopeDepth": 1,
+              "isTruncated": false,
+              "attributes": {
+                "root": "parent",
+                "shared": "parent"
+              }
+            },
+            "exactInheritedHeadRestored": true
+          },
+          {
+            "during": {
+              "operationId": "inner-4",
+              "scopeDepth": 3,
+              "isTruncated": false,
+              "attributes": {
+                "root": "parent",
+                "shared": "inner-4",
+                "tag": 4
+              }
+            },
+            "afterInner": {
+              "operationId": "operation-4",
+              "scopeDepth": 2,
+              "isTruncated": false,
+              "attributes": {
+                "root": "parent",
+                "shared": "operation-4",
+                "tag": 4
+              }
+            },
+            "restored": {
+              "operationId": "parent",
+              "scopeDepth": 1,
+              "isTruncated": false,
+              "attributes": {
+                "root": "parent",
+                "shared": "parent"
+              }
+            },
+            "exactInheritedHeadRestored": true
+          },
+          {
+            "during": {
+              "operationId": "inner-5",
+              "scopeDepth": 3,
+              "isTruncated": false,
+              "attributes": {
+                "root": "parent",
+                "shared": "inner-5",
+                "tag": 5
+              }
+            },
+            "afterInner": {
+              "operationId": "operation-5",
+              "scopeDepth": 2,
+              "isTruncated": false,
+              "attributes": {
+                "root": "parent",
+                "shared": "operation-5",
+                "tag": 5
+              }
+            },
+            "restored": {
+              "operationId": "parent",
+              "scopeDepth": 1,
+              "isTruncated": false,
+              "attributes": {
+                "root": "parent",
+                "shared": "parent"
+              }
+            },
+            "exactInheritedHeadRestored": true
+          },
+          {
+            "during": {
+              "operationId": "inner-6",
+              "scopeDepth": 3,
+              "isTruncated": false,
+              "attributes": {
+                "root": "parent",
+                "shared": "inner-6",
+                "tag": 6
+              }
+            },
+            "afterInner": {
+              "operationId": "operation-6",
+              "scopeDepth": 2,
+              "isTruncated": false,
+              "attributes": {
+                "root": "parent",
+                "shared": "operation-6",
+                "tag": 6
+              }
+            },
+            "restored": {
+              "operationId": "parent",
+              "scopeDepth": 1,
+              "isTruncated": false,
+              "attributes": {
+                "root": "parent",
+                "shared": "parent"
+              }
+            },
+            "exactInheritedHeadRestored": true
+          },
+          {
+            "during": {
+              "operationId": "inner-7",
+              "scopeDepth": 3,
+              "isTruncated": false,
+              "attributes": {
+                "root": "parent",
+                "shared": "inner-7",
+                "tag": 7
+              }
+            },
+            "afterInner": {
+              "operationId": "operation-7",
+              "scopeDepth": 2,
+              "isTruncated": false,
+              "attributes": {
+                "root": "parent",
+                "shared": "operation-7",
+                "tag": 7
+              }
+            },
+            "restored": {
+              "operationId": "parent",
+              "scopeDepth": 1,
+              "isTruncated": false,
+              "attributes": {
+                "root": "parent",
+                "shared": "parent"
+              }
+            },
+            "exactInheritedHeadRestored": true
+          }
+        ],
+        "caseId": "SCOPE-CONCURRENT-8",
+        "parentBefore": [
+          {
+            "operationId": "parent",
+            "scopeDepth": 1,
+            "isTruncated": false,
+            "attributes": {
+              "root": "parent",
+              "shared": "parent"
+            }
+          }
+        ],
+        "parentWhileChildrenBlocked": [
+          {
+            "operationId": "parent",
+            "scopeDepth": 1,
+            "isTruncated": false,
+            "attributes": {
+              "root": "parent",
+              "shared": "parent"
+            }
+          }
+        ],
+        "parentAfterChildren": [
+          {
+            "operationId": "parent",
+            "scopeDepth": 1,
+            "isTruncated": false,
+            "attributes": {
+              "root": "parent",
+              "shared": "parent"
+            }
+          }
+        ],
+        "parentHeadsUnchanged": true,
+        "storesEmptyAfterOwnerCleanup": true
+      }
+    },
+    {
+      "id": "SCOPE-STORES-2",
+      "input": {
+        "scenario": "stores",
+        "participantsOrLevels": 2
+      },
+      "expected": {
+        "children": [
+          {
+            "during": [
+              {
+                "operationId": "worker-0-store-0",
+                "scopeDepth": 2,
+                "isTruncated": false,
+                "attributes": {
+                  "root": "store-0",
+                  "shared": "worker-0-store-0"
+                }
+              },
+              {
+                "operationId": "worker-0-store-1",
+                "scopeDepth": 2,
+                "isTruncated": false,
+                "attributes": {
+                  "root": "store-1",
+                  "shared": "worker-0-store-1"
+                }
+              }
+            ],
+            "restored": [
+              {
+                "operationId": "store-0",
+                "scopeDepth": 1,
+                "isTruncated": false,
+                "attributes": {
+                  "root": "store-0",
+                  "shared": "store-0"
+                }
+              },
+              {
+                "operationId": "store-1",
+                "scopeDepth": 1,
+                "isTruncated": false,
+                "attributes": {
+                  "root": "store-1",
+                  "shared": "store-1"
+                }
+              }
+            ],
+            "exactInheritedHeadsRestored": true
+          },
+          {
+            "during": [
+              {
+                "operationId": "worker-1-store-0",
+                "scopeDepth": 2,
+                "isTruncated": false,
+                "attributes": {
+                  "root": "store-0",
+                  "shared": "worker-1-store-0"
+                }
+              },
+              {
+                "operationId": "worker-1-store-1",
+                "scopeDepth": 2,
+                "isTruncated": false,
+                "attributes": {
+                  "root": "store-1",
+                  "shared": "worker-1-store-1"
+                }
+              }
+            ],
+            "restored": [
+              {
+                "operationId": "store-0",
+                "scopeDepth": 1,
+                "isTruncated": false,
+                "attributes": {
+                  "root": "store-0",
+                  "shared": "store-0"
+                }
+              },
+              {
+                "operationId": "store-1",
+                "scopeDepth": 1,
+                "isTruncated": false,
+                "attributes": {
+                  "root": "store-1",
+                  "shared": "store-1"
+                }
+              }
+            ],
+            "exactInheritedHeadsRestored": true
+          }
+        ],
+        "caseId": "SCOPE-STORES-2",
+        "parentBefore": [
+          {
+            "operationId": "store-0",
+            "scopeDepth": 1,
+            "isTruncated": false,
+            "attributes": {
+              "root": "store-0",
+              "shared": "store-0"
+            }
+          },
+          {
+            "operationId": "store-1",
+            "scopeDepth": 1,
+            "isTruncated": false,
+            "attributes": {
+              "root": "store-1",
+              "shared": "store-1"
+            }
+          }
+        ],
+        "parentWhileChildrenBlocked": [
+          {
+            "operationId": "store-0",
+            "scopeDepth": 1,
+            "isTruncated": false,
+            "attributes": {
+              "root": "store-0",
+              "shared": "store-0"
+            }
+          },
+          {
+            "operationId": "store-1",
+            "scopeDepth": 1,
+            "isTruncated": false,
+            "attributes": {
+              "root": "store-1",
+              "shared": "store-1"
+            }
+          }
+        ],
+        "parentAfterChildren": [
+          {
+            "operationId": "store-0",
+            "scopeDepth": 1,
+            "isTruncated": false,
+            "attributes": {
+              "root": "store-0",
+              "shared": "store-0"
+            }
+          },
+          {
+            "operationId": "store-1",
+            "scopeDepth": 1,
+            "isTruncated": false,
+            "attributes": {
+              "root": "store-1",
+              "shared": "store-1"
+            }
+          }
+        ],
+        "parentHeadsUnchanged": true,
+        "storesEmptyAfterOwnerCleanup": true
+      }
+    },
+    {
+      "id": "SCOPE-STORES-4",
+      "input": {
+        "scenario": "stores",
+        "participantsOrLevels": 4
+      },
+      "expected": {
+        "children": [
+          {
+            "during": [
+              {
+                "operationId": "worker-0-store-0",
+                "scopeDepth": 2,
+                "isTruncated": false,
+                "attributes": {
+                  "root": "store-0",
+                  "shared": "worker-0-store-0"
+                }
+              },
+              {
+                "operationId": "worker-0-store-1",
+                "scopeDepth": 2,
+                "isTruncated": false,
+                "attributes": {
+                  "root": "store-1",
+                  "shared": "worker-0-store-1"
+                }
+              },
+              {
+                "operationId": "worker-0-store-2",
+                "scopeDepth": 2,
+                "isTruncated": false,
+                "attributes": {
+                  "root": "store-2",
+                  "shared": "worker-0-store-2"
+                }
+              },
+              {
+                "operationId": "worker-0-store-3",
+                "scopeDepth": 2,
+                "isTruncated": false,
+                "attributes": {
+                  "root": "store-3",
+                  "shared": "worker-0-store-3"
+                }
+              }
+            ],
+            "restored": [
+              {
+                "operationId": "store-0",
+                "scopeDepth": 1,
+                "isTruncated": false,
+                "attributes": {
+                  "root": "store-0",
+                  "shared": "store-0"
+                }
+              },
+              {
+                "operationId": "store-1",
+                "scopeDepth": 1,
+                "isTruncated": false,
+                "attributes": {
+                  "root": "store-1",
+                  "shared": "store-1"
+                }
+              },
+              {
+                "operationId": "store-2",
+                "scopeDepth": 1,
+                "isTruncated": false,
+                "attributes": {
+                  "root": "store-2",
+                  "shared": "store-2"
+                }
+              },
+              {
+                "operationId": "store-3",
+                "scopeDepth": 1,
+                "isTruncated": false,
+                "attributes": {
+                  "root": "store-3",
+                  "shared": "store-3"
+                }
+              }
+            ],
+            "exactInheritedHeadsRestored": true
+          },
+          {
+            "during": [
+              {
+                "operationId": "worker-1-store-0",
+                "scopeDepth": 2,
+                "isTruncated": false,
+                "attributes": {
+                  "root": "store-0",
+                  "shared": "worker-1-store-0"
+                }
+              },
+              {
+                "operationId": "worker-1-store-1",
+                "scopeDepth": 2,
+                "isTruncated": false,
+                "attributes": {
+                  "root": "store-1",
+                  "shared": "worker-1-store-1"
+                }
+              },
+              {
+                "operationId": "worker-1-store-2",
+                "scopeDepth": 2,
+                "isTruncated": false,
+                "attributes": {
+                  "root": "store-2",
+                  "shared": "worker-1-store-2"
+                }
+              },
+              {
+                "operationId": "worker-1-store-3",
+                "scopeDepth": 2,
+                "isTruncated": false,
+                "attributes": {
+                  "root": "store-3",
+                  "shared": "worker-1-store-3"
+                }
+              }
+            ],
+            "restored": [
+              {
+                "operationId": "store-0",
+                "scopeDepth": 1,
+                "isTruncated": false,
+                "attributes": {
+                  "root": "store-0",
+                  "shared": "store-0"
+                }
+              },
+              {
+                "operationId": "store-1",
+                "scopeDepth": 1,
+                "isTruncated": false,
+                "attributes": {
+                  "root": "store-1",
+                  "shared": "store-1"
+                }
+              },
+              {
+                "operationId": "store-2",
+                "scopeDepth": 1,
+                "isTruncated": false,
+                "attributes": {
+                  "root": "store-2",
+                  "shared": "store-2"
+                }
+              },
+              {
+                "operationId": "store-3",
+                "scopeDepth": 1,
+                "isTruncated": false,
+                "attributes": {
+                  "root": "store-3",
+                  "shared": "store-3"
+                }
+              }
+            ],
+            "exactInheritedHeadsRestored": true
+          }
+        ],
+        "caseId": "SCOPE-STORES-4",
+        "parentBefore": [
+          {
+            "operationId": "store-0",
+            "scopeDepth": 1,
+            "isTruncated": false,
+            "attributes": {
+              "root": "store-0",
+              "shared": "store-0"
+            }
+          },
+          {
+            "operationId": "store-1",
+            "scopeDepth": 1,
+            "isTruncated": false,
+            "attributes": {
+              "root": "store-1",
+              "shared": "store-1"
+            }
+          },
+          {
+            "operationId": "store-2",
+            "scopeDepth": 1,
+            "isTruncated": false,
+            "attributes": {
+              "root": "store-2",
+              "shared": "store-2"
+            }
+          },
+          {
+            "operationId": "store-3",
+            "scopeDepth": 1,
+            "isTruncated": false,
+            "attributes": {
+              "root": "store-3",
+              "shared": "store-3"
+            }
+          }
+        ],
+        "parentWhileChildrenBlocked": [
+          {
+            "operationId": "store-0",
+            "scopeDepth": 1,
+            "isTruncated": false,
+            "attributes": {
+              "root": "store-0",
+              "shared": "store-0"
+            }
+          },
+          {
+            "operationId": "store-1",
+            "scopeDepth": 1,
+            "isTruncated": false,
+            "attributes": {
+              "root": "store-1",
+              "shared": "store-1"
+            }
+          },
+          {
+            "operationId": "store-2",
+            "scopeDepth": 1,
+            "isTruncated": false,
+            "attributes": {
+              "root": "store-2",
+              "shared": "store-2"
+            }
+          },
+          {
+            "operationId": "store-3",
+            "scopeDepth": 1,
+            "isTruncated": false,
+            "attributes": {
+              "root": "store-3",
+              "shared": "store-3"
+            }
+          }
+        ],
+        "parentAfterChildren": [
+          {
+            "operationId": "store-0",
+            "scopeDepth": 1,
+            "isTruncated": false,
+            "attributes": {
+              "root": "store-0",
+              "shared": "store-0"
+            }
+          },
+          {
+            "operationId": "store-1",
+            "scopeDepth": 1,
+            "isTruncated": false,
+            "attributes": {
+              "root": "store-1",
+              "shared": "store-1"
+            }
+          },
+          {
+            "operationId": "store-2",
+            "scopeDepth": 1,
+            "isTruncated": false,
+            "attributes": {
+              "root": "store-2",
+              "shared": "store-2"
+            }
+          },
+          {
+            "operationId": "store-3",
+            "scopeDepth": 1,
+            "isTruncated": false,
+            "attributes": {
+              "root": "store-3",
+              "shared": "store-3"
+            }
+          }
+        ],
+        "parentHeadsUnchanged": true,
+        "storesEmptyAfterOwnerCleanup": true
+      }
+    },
+    {
+      "id": "SCOPE-CANCEL-WAIT",
+      "input": {
+        "scenario": "cancellation",
+        "participantsOrLevels": 1,
+        "cancelAwait": true
+      },
+      "expected": {
+        "children": [
+          {
+            "during": {
+              "operationId": "cancelled",
+              "scopeDepth": 2,
+              "isTruncated": false,
+              "attributes": {
+                "root": "parent",
+                "shared": "cancelled"
+              }
+            },
+            "callerCancellationObserved": true,
+            "cancellationTokenMatched": true,
+            "restored": {
+              "operationId": "parent",
+              "scopeDepth": 1,
+              "isTruncated": false,
+              "attributes": {
+                "root": "parent",
+                "shared": "parent"
+              }
+            },
+            "exactInheritedHeadRestored": true
+          }
+        ],
+        "caseId": "SCOPE-CANCEL-WAIT",
+        "parentBefore": [
+          {
+            "operationId": "parent",
+            "scopeDepth": 1,
+            "isTruncated": false,
+            "attributes": {
+              "root": "parent",
+              "shared": "parent"
+            }
+          }
+        ],
+        "parentWhileChildrenBlocked": [
+          {
+            "operationId": "parent",
+            "scopeDepth": 1,
+            "isTruncated": false,
+            "attributes": {
+              "root": "parent",
+              "shared": "parent"
+            }
+          }
+        ],
+        "parentAfterChildren": [
+          {
+            "operationId": "parent",
+            "scopeDepth": 1,
+            "isTruncated": false,
+            "attributes": {
+              "root": "parent",
+              "shared": "parent"
+            }
+          }
+        ],
+        "parentHeadsUnchanged": true,
+        "storesEmptyAfterOwnerCleanup": true
+      }
+    },
+    {
+      "id": "SCOPE-CANCEL-BODY",
+      "input": {
+        "scenario": "cancellation",
+        "participantsOrLevels": 1,
+        "cancelAwait": false
+      },
+      "expected": {
+        "children": [
+          {
+            "during": {
+              "operationId": "cancelled",
+              "scopeDepth": 2,
+              "isTruncated": false,
+              "attributes": {
+                "root": "parent",
+                "shared": "cancelled"
+              }
+            },
+            "callerCancellationObserved": true,
+            "cancellationTokenMatched": true,
+            "restored": {
+              "operationId": "parent",
+              "scopeDepth": 1,
+              "isTruncated": false,
+              "attributes": {
+                "root": "parent",
+                "shared": "parent"
+              }
+            },
+            "exactInheritedHeadRestored": true
+          }
+        ],
+        "caseId": "SCOPE-CANCEL-BODY",
+        "parentBefore": [
+          {
+            "operationId": "parent",
+            "scopeDepth": 1,
+            "isTruncated": false,
+            "attributes": {
+              "root": "parent",
+              "shared": "parent"
+            }
+          }
+        ],
+        "parentWhileChildrenBlocked": [
+          {
+            "operationId": "parent",
+            "scopeDepth": 1,
+            "isTruncated": false,
+            "attributes": {
+              "root": "parent",
+              "shared": "parent"
+            }
+          }
+        ],
+        "parentAfterChildren": [
+          {
+            "operationId": "parent",
+            "scopeDepth": 1,
+            "isTruncated": false,
+            "attributes": {
+              "root": "parent",
+              "shared": "parent"
+            }
+          }
+        ],
+        "parentHeadsUnchanged": true,
+        "storesEmptyAfterOwnerCleanup": true
+      }
+    },
+    {
+      "id": "SCOPE-MUTATION-DICTIONARY",
+      "input": {
+        "scenario": "mutation",
+        "participantsOrLevels": 1,
+        "readOnlyWrapper": false
+      },
+      "expected": {
+        "children": [
+          {
+            "before": {
+              "operationId": "before",
+              "scopeDepth": 2,
+              "isTruncated": false,
+              "attributes": {
+                "root": "parent",
+                "shared": "parent",
+                "payload": {
+                  "items": [
+                    {
+                      "leaf": "original"
+                    },
+                    null
+                  ],
+                  "flag": true
+                }
+              }
+            },
+            "after": {
+              "operationId": "before",
+              "scopeDepth": 2,
+              "isTruncated": false,
+              "attributes": {
+                "root": "parent",
+                "shared": "parent",
+                "payload": {
+                  "items": [
+                    {
+                      "leaf": "original"
+                    },
+                    null
+                  ],
+                  "flag": true
+                }
+              }
+            },
+            "restored": {
+              "operationId": "parent",
+              "scopeDepth": 1,
+              "isTruncated": false,
+              "attributes": {
+                "root": "parent",
+                "shared": "parent"
+              }
+            },
+            "exactInheritedHeadRestored": true
+          }
+        ],
+        "callerInputsActuallyMutated": true,
+        "caseId": "SCOPE-MUTATION-DICTIONARY",
+        "parentBefore": [
+          {
+            "operationId": "parent",
+            "scopeDepth": 1,
+            "isTruncated": false,
+            "attributes": {
+              "root": "parent",
+              "shared": "parent"
+            }
+          }
+        ],
+        "parentWhileChildrenBlocked": [
+          {
+            "operationId": "parent",
+            "scopeDepth": 1,
+            "isTruncated": false,
+            "attributes": {
+              "root": "parent",
+              "shared": "parent"
+            }
+          }
+        ],
+        "parentAfterChildren": [
+          {
+            "operationId": "parent",
+            "scopeDepth": 1,
+            "isTruncated": false,
+            "attributes": {
+              "root": "parent",
+              "shared": "parent"
+            }
+          }
+        ],
+        "parentHeadsUnchanged": true,
+        "storesEmptyAfterOwnerCleanup": true
+      }
+    },
+    {
+      "id": "SCOPE-MUTATION-WRAPPER",
+      "input": {
+        "scenario": "mutation",
+        "participantsOrLevels": 1,
+        "readOnlyWrapper": true
+      },
+      "expected": {
+        "children": [
+          {
+            "before": {
+              "operationId": "before",
+              "scopeDepth": 2,
+              "isTruncated": false,
+              "attributes": {
+                "root": "parent",
+                "shared": "parent",
+                "payload": {
+                  "items": [
+                    {
+                      "leaf": "original"
+                    },
+                    null
+                  ],
+                  "flag": true
+                }
+              }
+            },
+            "after": {
+              "operationId": "before",
+              "scopeDepth": 2,
+              "isTruncated": false,
+              "attributes": {
+                "root": "parent",
+                "shared": "parent",
+                "payload": {
+                  "items": [
+                    {
+                      "leaf": "original"
+                    },
+                    null
+                  ],
+                  "flag": true
+                }
+              }
+            },
+            "restored": {
+              "operationId": "parent",
+              "scopeDepth": 1,
+              "isTruncated": false,
+              "attributes": {
+                "root": "parent",
+                "shared": "parent"
+              }
+            },
+            "exactInheritedHeadRestored": true
+          }
+        ],
+        "callerInputsActuallyMutated": true,
+        "caseId": "SCOPE-MUTATION-WRAPPER",
+        "parentBefore": [
+          {
+            "operationId": "parent",
+            "scopeDepth": 1,
+            "isTruncated": false,
+            "attributes": {
+              "root": "parent",
+              "shared": "parent"
+            }
+          }
+        ],
+        "parentWhileChildrenBlocked": [
+          {
+            "operationId": "parent",
+            "scopeDepth": 1,
+            "isTruncated": false,
+            "attributes": {
+              "root": "parent",
+              "shared": "parent"
+            }
+          }
+        ],
+        "parentAfterChildren": [
+          {
+            "operationId": "parent",
+            "scopeDepth": 1,
+            "isTruncated": false,
+            "attributes": {
+              "root": "parent",
+              "shared": "parent"
+            }
+          }
+        ],
+        "parentHeadsUnchanged": true,
+        "storesEmptyAfterOwnerCleanup": true
+      }
+    },
+    {
+      "id": "SCOPE-ORDER-3",
+      "input": {
+        "scenario": "invalid-order",
+        "participantsOrLevels": 2
+      },
+      "expected": {
+        "children": [
+          {
+            "error": "invalid-disposal-order",
+            "headUnchanged": true,
+            "during": {
+              "operationId": "order-2",
+              "scopeDepth": 3,
+              "isTruncated": false,
+              "attributes": {
+                "root": "parent",
+                "shared": "order-2",
+                "level": 2
+              }
+            },
+            "afterError": {
+              "operationId": "order-2",
+              "scopeDepth": 3,
+              "isTruncated": false,
+              "attributes": {
+                "root": "parent",
+                "shared": "order-2",
+                "level": 2
+              }
+            },
+            "restored": {
+              "operationId": "parent",
+              "scopeDepth": 1,
+              "isTruncated": false,
+              "attributes": {
+                "root": "parent",
+                "shared": "parent"
+              }
+            },
+            "exactInheritedHeadRestored": true
+          }
+        ],
+        "caseId": "SCOPE-ORDER-3",
+        "parentBefore": [
+          {
+            "operationId": "parent",
+            "scopeDepth": 1,
+            "isTruncated": false,
+            "attributes": {
+              "root": "parent",
+              "shared": "parent"
+            }
+          }
+        ],
+        "parentWhileChildrenBlocked": [
+          {
+            "operationId": "parent",
+            "scopeDepth": 1,
+            "isTruncated": false,
+            "attributes": {
+              "root": "parent",
+              "shared": "parent"
+            }
+          }
+        ],
+        "parentAfterChildren": [
+          {
+            "operationId": "parent",
+            "scopeDepth": 1,
+            "isTruncated": false,
+            "attributes": {
+              "root": "parent",
+              "shared": "parent"
+            }
+          }
+        ],
+        "parentHeadsUnchanged": true,
+        "storesEmptyAfterOwnerCleanup": true
+      }
+    },
+    {
+      "id": "SCOPE-ORDER-32",
+      "input": {
+        "scenario": "invalid-order",
+        "participantsOrLevels": 31
+      },
+      "expected": {
+        "children": [
+          {
+            "error": "invalid-disposal-order",
+            "headUnchanged": true,
+            "during": {
+              "operationId": "order-31",
+              "scopeDepth": 32,
+              "isTruncated": false,
+              "attributes": {
+                "root": "parent",
+                "shared": "order-31",
+                "level": 31
+              }
+            },
+            "afterError": {
+              "operationId": "order-31",
+              "scopeDepth": 32,
+              "isTruncated": false,
+              "attributes": {
+                "root": "parent",
+                "shared": "order-31",
+                "level": 31
+              }
+            },
+            "restored": {
+              "operationId": "parent",
+              "scopeDepth": 1,
+              "isTruncated": false,
+              "attributes": {
+                "root": "parent",
+                "shared": "parent"
+              }
+            },
+            "exactInheritedHeadRestored": true
+          }
+        ],
+        "caseId": "SCOPE-ORDER-32",
+        "parentBefore": [
+          {
+            "operationId": "parent",
+            "scopeDepth": 1,
+            "isTruncated": false,
+            "attributes": {
+              "root": "parent",
+              "shared": "parent"
+            }
+          }
+        ],
+        "parentWhileChildrenBlocked": [
+          {
+            "operationId": "parent",
+            "scopeDepth": 1,
+            "isTruncated": false,
+            "attributes": {
+              "root": "parent",
+              "shared": "parent"
+            }
+          }
+        ],
+        "parentAfterChildren": [
+          {
+            "operationId": "parent",
+            "scopeDepth": 1,
+            "isTruncated": false,
+            "attributes": {
+              "root": "parent",
+              "shared": "parent"
+            }
+          }
+        ],
+        "parentHeadsUnchanged": true,
+        "storesEmptyAfterOwnerCleanup": true
+      }
+    }
+  ],
+  "nativeAssertionPolicy": "nativeError/nativeMessage are C# observations composed from the declared binding, not portable error text. Future adapters supply their native binding."
+}

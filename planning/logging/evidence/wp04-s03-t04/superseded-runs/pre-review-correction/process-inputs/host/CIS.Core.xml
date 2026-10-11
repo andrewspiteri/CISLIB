@@ -1,0 +1,546 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>CIS.Core</name>
+    </assembly>
+    <members>
+        <member name="T:CIS.Configuration.ConfigurationIssue">
+            <summary>Describes one configuration problem with a stable code and source key.</summary>
+            <remarks>Callers supplying their own issues must provide safe explanations without raw configuration values.</remarks>
+        </member>
+        <member name="M:CIS.Configuration.ConfigurationIssue.#ctor(System.String,System.String,System.String)">
+            <summary>Creates an immutable issue, preserving the supplied strings.</summary>
+            <exception cref="T:System.ArgumentNullException">Any argument is null.</exception>
+        </member>
+        <member name="P:CIS.Configuration.ConfigurationIssue.Code">
+            <summary>Gets the stable diagnostic code.</summary>
+        </member>
+        <member name="P:CIS.Configuration.ConfigurationIssue.Key">
+            <summary>Gets the recognized setting or metadata/setup field responsible for the issue.</summary>
+        </member>
+        <member name="P:CIS.Configuration.ConfigurationIssue.Explanation">
+            <summary>Gets guidance that should exclude raw input values and credentials.</summary>
+        </member>
+        <member name="T:CIS.Configuration.ConfigurationIssueCodes">
+            <summary>Stable codes for configuration validation problems.</summary>
+        </member>
+        <member name="F:CIS.Configuration.ConfigurationIssueCodes.InvalidToken">
+            <summary>Identifies InvalidToken configuration problems.</summary>
+        </member>
+        <member name="F:CIS.Configuration.ConfigurationIssueCodes.OutOfRange">
+            <summary>Identifies OutOfRange configuration problems.</summary>
+        </member>
+        <member name="F:CIS.Configuration.ConfigurationIssueCodes.UnsupportedSchemaVersion">
+            <summary>Identifies UnsupportedSchemaVersion configuration problems.</summary>
+        </member>
+        <member name="F:CIS.Configuration.ConfigurationIssueCodes.InvalidPath">
+            <summary>Identifies InvalidPath configuration problems.</summary>
+        </member>
+        <member name="F:CIS.Configuration.ConfigurationIssueCodes.InvalidIdentity">
+            <summary>Identifies InvalidIdentity configuration problems.</summary>
+        </member>
+        <member name="F:CIS.Configuration.ConfigurationIssueCodes.InvalidEnvironmentKind">
+            <summary>Identifies InvalidEnvironmentKind configuration problems.</summary>
+        </member>
+        <member name="F:CIS.Configuration.ConfigurationIssueCodes.MissingApplicationName">
+            <summary>Identifies MissingApplicationName configuration problems.</summary>
+        </member>
+        <member name="T:CIS.Configuration.CoreConfigurationException">
+            <summary>Reports independent startup configuration problems through an owned immutable collection.</summary>
+        </member>
+        <member name="M:CIS.Configuration.CoreConfigurationException.#ctor(System.Collections.Generic.IEnumerable{CIS.Configuration.ConfigurationIssue})">
+            <summary>Copies the supplied issues in enumeration order.</summary>
+            <param name="issues">Immutable issue values; an empty sequence is permitted.</param>
+            <exception cref="T:System.ArgumentNullException">The sequence is null.</exception>
+            <exception cref="T:System.ArgumentException">The sequence contains a null issue.</exception>
+        </member>
+        <member name="P:CIS.Configuration.CoreConfigurationException.Issues">
+            <summary>Gets the copied issue values in their original order.</summary>
+        </member>
+        <member name="T:CIS.EnvironmentKind">
+            <summary>The application execution kind selected explicitly at startup.</summary>
+        </member>
+        <member name="F:CIS.EnvironmentKind.Unknown">
+            <summary>Unknown.</summary>
+        </member>
+        <member name="F:CIS.EnvironmentKind.Console">
+            <summary>Console.</summary>
+        </member>
+        <member name="F:CIS.EnvironmentKind.Service">
+            <summary>Service.</summary>
+        </member>
+        <member name="F:CIS.EnvironmentKind.Web">
+            <summary>Web.</summary>
+        </member>
+        <member name="F:CIS.EnvironmentKind.Function">
+            <summary>Function.</summary>
+        </member>
+        <member name="T:CIS.EnvironmentOptions">
+            <summary>Explicit, one-time publication of validated application configuration and metadata.</summary>
+        </member>
+        <member name="P:CIS.EnvironmentOptions.IsInitialized">
+            <summary>Reports whether a complete snapshot has been successfully published.</summary>
+        </member>
+        <member name="P:CIS.EnvironmentOptions.Current">
+            <summary>Gets the identical immutable snapshot published by Initialize.</summary>
+            <exception cref="T:System.InvalidOperationException">No successful initialization has occurred.</exception>
+        </member>
+        <member name="M:CIS.EnvironmentOptions.Initialize(CIS.EnvironmentSetup)">
+            <summary>Copies, resolves and validates startup inputs, then publishes the complete snapshot once.</summary>
+            <param name="setup">Caller-owned startup input; it must not be mutated concurrently with this call.</param>
+            <returns>The same immutable instance subsequently exposed through Current.</returns>
+            <exception cref="T:System.ArgumentNullException">setup is null.</exception>
+            <exception cref="T:CIS.Configuration.CoreConfigurationException">Selected inputs fail validation; nothing is published.</exception>
+            <exception cref="T:System.InvalidOperationException">A snapshot has already been published, or a metadata callback re-enters initialization.</exception>
+        </member>
+        <member name="P:CIS.EnvironmentOptions.ApplicationName">
+            <summary>The application identity, independent of collector destinations.</summary>
+            <exception cref="T:System.InvalidOperationException">No successful initialization has occurred.</exception>
+        </member>
+        <member name="P:CIS.EnvironmentOptions.BuildVersion">
+            <summary>The actual application build identity, including prerelease and build text.</summary>
+            <exception cref="T:System.InvalidOperationException">No successful initialization has occurred.</exception>
+        </member>
+        <member name="P:CIS.EnvironmentOptions.ServiceVersion">
+            <summary>The deployment or telemetry release label, independent of BuildVersion.</summary>
+            <exception cref="T:System.InvalidOperationException">No successful initialization has occurred.</exception>
+        </member>
+        <member name="P:CIS.EnvironmentOptions.EnvironmentName">
+            <summary>The application environment label; it does not modify the host environment.</summary>
+            <exception cref="T:System.InvalidOperationException">No successful initialization has occurred.</exception>
+        </member>
+        <member name="P:CIS.EnvironmentOptions.HostName">
+            <summary>The host name observed by this application, or null when unavailable.</summary>
+            <exception cref="T:System.InvalidOperationException">No successful initialization has occurred.</exception>
+        </member>
+        <member name="P:CIS.EnvironmentOptions.OperatingSystem">
+            <summary>The lowercase operating-system family.</summary>
+            <exception cref="T:System.InvalidOperationException">No successful initialization has occurred.</exception>
+        </member>
+        <member name="P:CIS.EnvironmentOptions.Logging">
+            <summary>The logging configuration for this application.</summary>
+            <exception cref="T:System.InvalidOperationException">No successful initialization has occurred.</exception>
+        </member>
+        <member name="P:CIS.EnvironmentOptions.EventMetadata">
+            <summary>The immutable allowlisted application and process facts used by logging.</summary>
+            <exception cref="T:System.InvalidOperationException">No successful initialization has occurred.</exception>
+        </member>
+        <member name="T:CIS.EnvironmentSetup">
+            <summary>Caller-owned startup input. Changes after Initialize returns do not affect the published snapshot; do not mutate it during initialization.</summary>
+        </member>
+        <member name="P:CIS.EnvironmentSetup.ApplicationAssembly">
+            <summary>The consuming application assembly used for identity discovery when supplied.</summary>
+        </member>
+        <member name="P:CIS.EnvironmentSetup.ApplicationName">
+            <summary>The application identity, independent of collector destinations.</summary>
+        </member>
+        <member name="P:CIS.EnvironmentSetup.BuildVersion">
+            <summary>The actual application build identity, including prerelease and build text.</summary>
+        </member>
+        <member name="P:CIS.EnvironmentSetup.ServiceVersion">
+            <summary>The deployment or telemetry release label, independent of BuildVersion.</summary>
+        </member>
+        <member name="P:CIS.EnvironmentSetup.EnvironmentName">
+            <summary>The application environment label; it does not modify the host environment.</summary>
+        </member>
+        <member name="P:CIS.EnvironmentSetup.EnvironmentKind">
+            <summary>The explicitly selected application execution kind.</summary>
+        </member>
+        <member name="P:CIS.EnvironmentSetup.CommitId">
+            <summary>An optional explicit build commit identifier.</summary>
+        </member>
+        <member name="P:CIS.EnvironmentSetup.BuildId">
+            <summary>An optional explicit build identifier.</summary>
+        </member>
+        <member name="P:CIS.EnvironmentSetup.Logging">
+            <summary>The logging configuration for this application.</summary>
+        </member>
+        <member name="T:CIS.EnvironmentSnapshot">
+            <summary>The immutable application startup snapshot, created only from validated owned inputs.</summary>
+        </member>
+        <member name="P:CIS.EnvironmentSnapshot.ApplicationName">
+            <summary>The application identity, independent of collector destinations.</summary>
+        </member>
+        <member name="P:CIS.EnvironmentSnapshot.BuildVersion">
+            <summary>The actual application build identity, including prerelease and build text.</summary>
+        </member>
+        <member name="P:CIS.EnvironmentSnapshot.ServiceVersion">
+            <summary>The deployment or telemetry release label, independent of BuildVersion.</summary>
+        </member>
+        <member name="P:CIS.EnvironmentSnapshot.EnvironmentName">
+            <summary>The application environment label; it does not modify the host environment.</summary>
+        </member>
+        <member name="P:CIS.EnvironmentSnapshot.EnvironmentKind">
+            <summary>The explicitly selected application execution kind.</summary>
+        </member>
+        <member name="P:CIS.EnvironmentSnapshot.InstanceId">
+            <summary>The UUID identifying this successful application initialization.</summary>
+        </member>
+        <member name="P:CIS.EnvironmentSnapshot.ProcessStartedAtUtc">
+            <summary>The actual process start instant in UTC, or null when unavailable.</summary>
+        </member>
+        <member name="P:CIS.EnvironmentSnapshot.InitializedAtUtc">
+            <summary>The successful initialization instant in UTC.</summary>
+        </member>
+        <member name="P:CIS.EnvironmentSnapshot.HostName">
+            <summary>The host name observed by this application, or null when unavailable.</summary>
+        </member>
+        <member name="P:CIS.EnvironmentSnapshot.OperatingSystem">
+            <summary>The lowercase operating-system family.</summary>
+        </member>
+        <member name="P:CIS.EnvironmentSnapshot.OperatingSystemDescription">
+            <summary>The observed operating-system description, or null when unavailable.</summary>
+        </member>
+        <member name="P:CIS.EnvironmentSnapshot.OSArchitecture">
+            <summary>The lowercase operating-system architecture, or null when unavailable.</summary>
+        </member>
+        <member name="P:CIS.EnvironmentSnapshot.ProcessArchitecture">
+            <summary>The lowercase process architecture, or null when unavailable.</summary>
+        </member>
+        <member name="P:CIS.EnvironmentSnapshot.RuntimeDescription">
+            <summary>The observed runtime description, or null when unavailable.</summary>
+        </member>
+        <member name="P:CIS.EnvironmentSnapshot.ProcessId">
+            <summary>The observed positive process identifier, or null when unavailable.</summary>
+        </member>
+        <member name="P:CIS.EnvironmentSnapshot.CommitId">
+            <summary>An optional explicit build commit identifier.</summary>
+        </member>
+        <member name="P:CIS.EnvironmentSnapshot.BuildId">
+            <summary>An optional explicit build identifier.</summary>
+        </member>
+        <member name="P:CIS.EnvironmentSnapshot.Logging">
+            <summary>The logging configuration for this application.</summary>
+        </member>
+        <member name="P:CIS.EnvironmentSnapshot.EventMetadata">
+            <summary>The immutable allowlisted application and process facts used by logging.</summary>
+        </member>
+        <member name="T:CIS.Logging.CoreLogLevel">
+            <summary>The logging severity; None disables interest.</summary>
+        </member>
+        <member name="F:CIS.Logging.CoreLogLevel.Trace">
+            <summary>Trace.</summary>
+        </member>
+        <member name="F:CIS.Logging.CoreLogLevel.Debug">
+            <summary>Debug.</summary>
+        </member>
+        <member name="F:CIS.Logging.CoreLogLevel.Information">
+            <summary>Information.</summary>
+        </member>
+        <member name="F:CIS.Logging.CoreLogLevel.Warning">
+            <summary>Warning.</summary>
+        </member>
+        <member name="F:CIS.Logging.CoreLogLevel.Error">
+            <summary>Error.</summary>
+        </member>
+        <member name="F:CIS.Logging.CoreLogLevel.Critical">
+            <summary>Critical.</summary>
+        </member>
+        <member name="F:CIS.Logging.CoreLogLevel.None">
+            <summary>None.</summary>
+        </member>
+        <member name="T:CIS.Logging.EventMetadata">
+            <summary>Immutable allowlisted application/process facts, excluding settings, paths and operation context.</summary>
+        </member>
+        <member name="P:CIS.Logging.EventMetadata.ApplicationName">
+            <summary>The application identity, independent of collector destinations.</summary>
+        </member>
+        <member name="P:CIS.Logging.EventMetadata.BuildVersion">
+            <summary>The actual application build identity, including prerelease and build text.</summary>
+        </member>
+        <member name="P:CIS.Logging.EventMetadata.ServiceVersion">
+            <summary>The deployment or telemetry release label, independent of BuildVersion.</summary>
+        </member>
+        <member name="P:CIS.Logging.EventMetadata.EnvironmentName">
+            <summary>The application environment label; it does not modify the host environment.</summary>
+        </member>
+        <member name="P:CIS.Logging.EventMetadata.EnvironmentKind">
+            <summary>The explicitly selected application execution kind.</summary>
+        </member>
+        <member name="P:CIS.Logging.EventMetadata.InstanceId">
+            <summary>The UUID identifying this successful application initialization.</summary>
+        </member>
+        <member name="P:CIS.Logging.EventMetadata.ProcessStartedAtUtc">
+            <summary>The actual process start instant in UTC, or null when unavailable.</summary>
+        </member>
+        <member name="P:CIS.Logging.EventMetadata.InitializedAtUtc">
+            <summary>The successful initialization instant in UTC.</summary>
+        </member>
+        <member name="P:CIS.Logging.EventMetadata.HostName">
+            <summary>The host name observed by this application, or null when unavailable.</summary>
+        </member>
+        <member name="P:CIS.Logging.EventMetadata.OperatingSystem">
+            <summary>The lowercase operating-system family.</summary>
+        </member>
+        <member name="P:CIS.Logging.EventMetadata.OperatingSystemDescription">
+            <summary>The observed operating-system description, or null when unavailable.</summary>
+        </member>
+        <member name="P:CIS.Logging.EventMetadata.OSArchitecture">
+            <summary>The lowercase operating-system architecture, or null when unavailable.</summary>
+        </member>
+        <member name="P:CIS.Logging.EventMetadata.ProcessArchitecture">
+            <summary>The lowercase process architecture, or null when unavailable.</summary>
+        </member>
+        <member name="P:CIS.Logging.EventMetadata.RuntimeDescription">
+            <summary>The observed runtime description, or null when unavailable.</summary>
+        </member>
+        <member name="P:CIS.Logging.EventMetadata.ProcessId">
+            <summary>The observed positive process identifier, or null when unavailable.</summary>
+        </member>
+        <member name="P:CIS.Logging.EventMetadata.CommitId">
+            <summary>An optional explicit build commit identifier.</summary>
+        </member>
+        <member name="P:CIS.Logging.EventMetadata.BuildId">
+            <summary>An optional explicit build identifier.</summary>
+        </member>
+        <member name="T:CIS.Logging.LoggingOptions">
+            <summary>Immutable validated logging options. Reading options does not initialize any output.</summary>
+        </member>
+        <member name="P:CIS.Logging.LoggingOptions.Level">
+            <summary>The fallback severity used when an output has no explicit threshold.</summary>
+        </member>
+        <member name="P:CIS.Logging.LoggingOptions.ConsoleFormat">
+            <summary>The console output representation.</summary>
+        </member>
+        <member name="P:CIS.Logging.LoggingOptions.ConsoleLevel">
+            <summary>The independent console severity threshold; None disables console output.</summary>
+        </member>
+        <member name="P:CIS.Logging.LoggingOptions.ConsoleStream">
+            <summary>The selected standard console stream.</summary>
+        </member>
+        <member name="P:CIS.Logging.LoggingOptions.HumanDetail">
+            <summary>The detail level of human-readable output.</summary>
+        </member>
+        <member name="P:CIS.Logging.LoggingOptions.FilePath">
+            <summary>The file destination; resolved options store an absolute path or null.</summary>
+        </member>
+        <member name="P:CIS.Logging.LoggingOptions.FileFormat">
+            <summary>The file output representation.</summary>
+        </member>
+        <member name="P:CIS.Logging.LoggingOptions.FileLevel">
+            <summary>The independent file severity threshold; None disables file output.</summary>
+        </member>
+        <member name="P:CIS.Logging.LoggingOptions.QueueCapacity">
+            <summary>The maximum number of entries in an output queue.</summary>
+        </member>
+        <member name="P:CIS.Logging.LoggingOptions.FlushInterval">
+            <summary>The resolved writer flush interval.</summary>
+        </member>
+        <member name="P:CIS.Logging.LoggingOptions.ShutdownTimeout">
+            <summary>The resolved shared shutdown deadline.</summary>
+        </member>
+        <member name="P:CIS.Logging.LoggingOptions.FileMaxBytes">
+            <summary>The maximum complete file segment size in bytes.</summary>
+        </member>
+        <member name="P:CIS.Logging.LoggingOptions.FileRetainedFiles">
+            <summary>The number of retained file segments.</summary>
+        </member>
+        <member name="P:CIS.Logging.LoggingOptions.SchemaVersion">
+            <summary>The selected event schema version.</summary>
+        </member>
+        <member name="P:CIS.Logging.LoggingOptions.ConsoleEnabled">
+            <summary>Whether the resolved console threshold enables console output.</summary>
+        </member>
+        <member name="P:CIS.Logging.LoggingOptions.FileEnabled">
+            <summary>Whether a path and resolved threshold enable file output.</summary>
+        </member>
+        <member name="P:CIS.Logging.LoggingOptions.MaxEntryBytes">
+            <summary>The maximum encoded log-entry size in bytes; the default is 65536.</summary>
+        </member>
+        <member name="T:CIS.Logging.LogOutputFormat">
+            <summary>The output representation.</summary>
+        </member>
+        <member name="F:CIS.Logging.LogOutputFormat.Human">
+            <summary>Human.</summary>
+        </member>
+        <member name="F:CIS.Logging.LogOutputFormat.JsonLines">
+            <summary>JsonLines.</summary>
+        </member>
+        <member name="T:CIS.Logging.ConsoleOutputStream">
+            <summary>The selected standard console stream.</summary>
+        </member>
+        <member name="F:CIS.Logging.ConsoleOutputStream.StandardError">
+            <summary>StandardError.</summary>
+        </member>
+        <member name="F:CIS.Logging.ConsoleOutputStream.StandardOutput">
+            <summary>StandardOutput.</summary>
+        </member>
+        <member name="T:CIS.Logging.HumanOutputDetail">
+            <summary>The human output detail level.</summary>
+        </member>
+        <member name="F:CIS.Logging.HumanOutputDetail.Normal">
+            <summary>Normal.</summary>
+        </member>
+        <member name="F:CIS.Logging.HumanOutputDetail.Verbose">
+            <summary>Verbose.</summary>
+        </member>
+        <member name="T:CIS.Logging.LoggingSetup">
+            <summary>Caller-owned optional logging inputs, copied during initialization. Later changes do not affect published options. Null means absent; selected invalid values fail initialization.</summary>
+        </member>
+        <member name="P:CIS.Logging.LoggingSetup.Level">
+            <summary>The fallback severity used when an output has no explicit threshold.</summary>
+        </member>
+        <member name="P:CIS.Logging.LoggingSetup.ConsoleFormat">
+            <summary>The console output representation.</summary>
+        </member>
+        <member name="P:CIS.Logging.LoggingSetup.ConsoleLevel">
+            <summary>The independent console severity threshold; None disables console output.</summary>
+        </member>
+        <member name="P:CIS.Logging.LoggingSetup.ConsoleStream">
+            <summary>The selected standard console stream.</summary>
+        </member>
+        <member name="P:CIS.Logging.LoggingSetup.HumanDetail">
+            <summary>The detail level of human-readable output.</summary>
+        </member>
+        <member name="P:CIS.Logging.LoggingSetup.FilePath">
+            <summary>The file destination; resolved options store an absolute path or null.</summary>
+        </member>
+        <member name="P:CIS.Logging.LoggingSetup.FileFormat">
+            <summary>The file output representation.</summary>
+        </member>
+        <member name="P:CIS.Logging.LoggingSetup.FileLevel">
+            <summary>The independent file severity threshold; None disables file output.</summary>
+        </member>
+        <member name="P:CIS.Logging.LoggingSetup.QueueCapacity">
+            <summary>The maximum number of entries in an output queue.</summary>
+        </member>
+        <member name="P:CIS.Logging.LoggingSetup.FlushIntervalMilliseconds">
+            <summary>The writer flush interval in milliseconds.</summary>
+        </member>
+        <member name="P:CIS.Logging.LoggingSetup.ShutdownTimeoutMilliseconds">
+            <summary>The shared shutdown deadline in milliseconds.</summary>
+        </member>
+        <member name="P:CIS.Logging.LoggingSetup.FileMaxBytes">
+            <summary>The maximum complete file segment size in bytes.</summary>
+        </member>
+        <member name="P:CIS.Logging.LoggingSetup.FileRetainedFiles">
+            <summary>The number of retained file segments.</summary>
+        </member>
+        <member name="P:CIS.Logging.LoggingSetup.SchemaVersion">
+            <summary>The selected event schema version.</summary>
+        </member>
+        <member name="P:CIS.Logging.LoggingSetup.MaxEntryBytes">
+            <summary>The maximum encoded log-entry size in bytes; the default is 65536.</summary>
+        </member>
+        <member name="T:CIS.Logging.LogValue">
+            <summary>An immutable, explicitly typed scalar or owned collection of attribute values.</summary>
+            <remarks>Collection inputs are copied; already immutable child values may be shared.
+            Every collection root is node 1 at depth 1; retained shapes have at most 1024 nodes and depth 8.
+            Oversized collections keep a bounded projection and carry truncation provenance.
+            UUID/time factories accept typed scalars; arbitrary objects have no conversion path.
+            Event capture/rendering applies the separately configured aggregate entry limit.</remarks>
+        </member>
+        <member name="P:CIS.Logging.LogValue.Kind">
+            <summary>Gets the constructor-selected representation; magnitude never changes it.</summary>
+        </member>
+        <member name="P:CIS.Logging.LogValue.IsTruncated">
+            <summary>Gets whether this value or a retained descendant has omitted content.</summary>
+            <remarks>Collection projection propagates prior and newly observed truncation.
+            Aggregate entry-byte projection remains an event capture/rendering responsibility.</remarks>
+        </member>
+        <member name="M:CIS.Logging.LogValue.Null">
+            <summary>Creates an explicit null value.</summary>
+        </member>
+        <member name="M:CIS.Logging.LogValue.Boolean(System.Boolean)">
+            <summary>Creates a Boolean value.</summary>
+        </member>
+        <member name="M:CIS.Logging.LogValue.String(System.String)">
+            <summary>Creates a string, preserving valid Unicode text and control characters.</summary>
+            <exception cref="T:System.ArgumentNullException">value is null.</exception>
+            <exception cref="T:System.ArgumentException">value contains malformed UTF-16.</exception>
+        </member>
+        <member name="M:CIS.Logging.LogValue.Number(System.Double)">
+            <summary>Creates a finite floating-point number, including integer-valued doubles.</summary>
+            <exception cref="T:System.ArgumentOutOfRangeException">value is NaN or infinite.</exception>
+        </member>
+        <member name="M:CIS.Logging.LogValue.Integer(System.Int64)">
+            <summary>Creates an integer within inclusive -9007199254740991 through 9007199254740991.</summary>
+            <exception cref="T:System.ArgumentOutOfRangeException">value is outside the portable safe range.</exception>
+        </member>
+        <member name="M:CIS.Logging.LogValue.IntegerString(System.String)">
+            <summary>Creates a canonical base-10 integer string without limiting its magnitude.</summary>
+            <remarks>No exponent, leading plus/zeros, whitespace or negative zero is accepted.</remarks>
+            <exception cref="T:System.ArgumentNullException">value is null.</exception>
+            <exception cref="T:System.ArgumentException">value is not a canonical integer representation.</exception>
+        </member>
+        <member name="M:CIS.Logging.LogValue.DecimalString(System.String)">
+            <summary>Creates invariant non-exponent decimal text, preserving fractional precision.</summary>
+            <remarks>A fractional part is required; trailing zeros and negative decimal zero are preserved.</remarks>
+            <exception cref="T:System.ArgumentNullException">value is null.</exception>
+            <exception cref="T:System.ArgumentException">value is not an invariant decimal representation.</exception>
+        </member>
+        <member name="M:CIS.Logging.LogValue.Uuid(System.Guid)">
+            <summary>Creates a lowercase UUID string in hyphenated 8-4-4-4-12 form.</summary>
+            <remarks>All Guid values, including Guid.Empty, are valid attribute scalars.</remarks>
+        </member>
+        <member name="M:CIS.Logging.LogValue.Timestamp(System.DateTimeOffset)">
+            <summary>Creates a UTC timestamp with exactly seven fractional digits.</summary>
+            <remarks>The supplied offset is converted to the same UTC instant; formatting is invariant.</remarks>
+        </member>
+        <member name="M:CIS.Logging.LogValue.Array(System.Collections.Generic.IEnumerable{CIS.Logging.LogValue})">
+            <summary>Creates a bounded owned array, preserving input order.</summary>
+            <remarks>The root counts as node/depth 1. At most 1024 nodes and depth 8 are retained.
+            Copying stops after the first excess child; observed invalid children remain errors.</remarks>
+            <exception cref="T:System.ArgumentNullException">items is null.</exception>
+            <exception cref="T:System.ArgumentException">items contains a null reference instead of LogValue.Null().</exception>
+        </member>
+        <member name="M:CIS.Logging.LogValue.Map(System.Collections.Generic.IReadOnlyDictionary{System.String,CIS.Logging.LogValue})">
+            <summary>Creates a bounded owned ordinal map, preserving key text.</summary>
+            <remarks>The root counts as node/depth 1. At most 1024 nodes and depth 8 are retained.
+            Structural projection keeps the enumeration prefix and stops at the first excess child.
+            Retained keys compare ordinally; observed invalid keys/children remain errors.</remarks>
+            <exception cref="T:System.ArgumentNullException">properties is null.</exception>
+            <exception cref="T:System.ArgumentException">A key is empty, malformed, contains controls, exceeds 255 scalars,
+            occurs twice, or a value is a null reference instead of LogValue.Null().</exception>
+        </member>
+        <member name="T:CIS.Logging.LogValueKind">
+            <summary>The explicitly selected portable representation of an attribute value.</summary>
+        </member>
+        <member name="F:CIS.Logging.LogValueKind.Null">
+            <summary>An explicit null value.</summary>
+        </member>
+        <member name="F:CIS.Logging.LogValueKind.Boolean">
+            <summary>A Boolean value.</summary>
+        </member>
+        <member name="F:CIS.Logging.LogValueKind.String">
+            <summary>A Unicode string.</summary>
+        </member>
+        <member name="F:CIS.Logging.LogValueKind.Number">
+            <summary>A finite floating-point JSON number.</summary>
+        </member>
+        <member name="F:CIS.Logging.LogValueKind.Integer">
+            <summary>An integer within the inclusive portable safe range.</summary>
+        </member>
+        <member name="F:CIS.Logging.LogValueKind.IntegerString">
+            <summary>An explicitly selected canonical integer string.</summary>
+        </member>
+        <member name="F:CIS.Logging.LogValueKind.DecimalString">
+            <summary>An explicitly selected invariant decimal string.</summary>
+        </member>
+        <member name="F:CIS.Logging.LogValueKind.Uuid">
+            <summary>An explicitly selected lowercase hyphenated UUID string.</summary>
+        </member>
+        <member name="F:CIS.Logging.LogValueKind.Timestamp">
+            <summary>An explicitly selected invariant UTC timestamp with seven fractional digits.</summary>
+        </member>
+        <member name="F:CIS.Logging.LogValueKind.Array">
+            <summary>An ordered array of supported values.</summary>
+        </member>
+        <member name="F:CIS.Logging.LogValueKind.Map">
+            <summary>A map with ordinal, case-sensitive string keys.</summary>
+        </member>
+        <member name="T:CIS.Logging.OperationContextData">
+            <summary>Caller-owned operation identity and explicitly typed scope attributes.</summary>
+            <remarks>Scope creation captures both properties and owns a bounded copy of the attribute map.
+            Later caller changes do not change an existing scope. This input does not modify process identity.</remarks>
+        </member>
+        <member name="P:CIS.Logging.OperationContextData.OperationId">
+            <summary>Gets or sets the optional operation identifier, trimmed when the scope is captured.</summary>
+            <remarks>Blank is absent. A retained identifier has at most 255 valid Unicode scalars without controls.</remarks>
+        </member>
+        <member name="P:CIS.Logging.OperationContextData.Attributes">
+            <summary>Gets or sets optional attributes; null means an empty map.</summary>
+            <remarks>Use immutable LogValue instances. Scope creation copies the caller map and preserves truncation.</remarks>
+        </member>
+    </members>
+</doc>
