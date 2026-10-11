@@ -3,7 +3,7 @@ using CIS.Logging;
 
 namespace CIS;
 
-/// <summary>Caller-owned startup input. Do not mutate this input while Initialize is running.</summary>
+/// <summary>Caller-owned startup input. Changes after Initialize returns do not affect the published snapshot; do not mutate it during initialization.</summary>
 public sealed class EnvironmentSetup
 {
     /// <summary>The consuming application assembly used for identity discovery when supplied.</summary>

@@ -11,6 +11,11 @@ internal static class Program
 {
     private static int Main(string[] args)
     {
+        if (args.Length == 3 && args[0] == "startup-ownership" && args[1] is "mutate" or "replace" or "sources" or "collected")
+        {
+            return StartupOwnershipProcessFixture.Run(args[1], args[2]);
+        }
+
         if (args.Length == 3 && args[0] == "startup-facade" && args[1] is "before" or "null" or "defaults" or "explicit" or "overrides" or "retry")
         {
             return StartupFacadeProcessFixture.Run(args[1], args[2]);

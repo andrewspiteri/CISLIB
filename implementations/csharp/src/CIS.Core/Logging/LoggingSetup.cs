@@ -1,6 +1,6 @@
 namespace CIS.Logging;
 
-/// <summary>Caller-owned optional logging inputs. Null means absent; selected invalid values fail initialization.</summary>
+/// <summary>Caller-owned optional logging inputs, copied during initialization. Later changes do not affect published options. Null means absent; selected invalid values fail initialization.</summary>
 public sealed class LoggingSetup
 {
     /// <summary>The fallback severity used when an output has no explicit threshold.</summary>
