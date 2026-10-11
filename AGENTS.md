@@ -28,3 +28,20 @@
 - The user requests Claude review when available. Before committing concrete changes, run a read-only Claude review and address actionable findings. Check the host environment outside the sandbox when needed, including the VS Code extension CLI; a missing sandbox PATH entry does not establish that Claude is unavailable. Report an unavailable route honestly.
 - Use readable C#, nullable checking, SDK analyzers, warnings as errors and documented public behavior.
 - Do not overwrite user edits, publish, transmit repository content to another service or approve product records without the corresponding authorization.
+
+<!-- cis:repository-guidance:start -->
+## CIS integration
+
+For CIS commands and artifacts, read `.github/instructions/cis-import.instructions.md`. Existing project directives remain authoritative; unresolved overlaps are recorded in `.cis/local/import/report.json`.
+<!-- cis:repository-guidance:end -->
+
+## Graph context for the logging roadmap
+
+- Use `.github/skills/cis-graph-context/SKILL.md` for graph queries. `pwsh -NoProfile -File eng/cis.ps1` resolves the selected local CLI; append the skill's command arguments. Before a roadmap task, check `graph status --repo . --format agent`; rebuild a missing or stale graph with `graph build --workspace . --format agent`. Find exact symbols/tests before requesting bounded related/caller/context results, then inspect the referenced source. Exact keys cannot separate merged declarations; for anonymous/lambda callers, inspect edge observation paths/line locators rather than the merged node location.
+- Refresh derived graph context after code or canonical documentation changes. Do not hand-edit or commit `.cis/local/` graph state. Record missing bindings, compiler diagnostics and truncation instead of implying full coverage.
+- The existing roadmap/status, case inventory, native reports and commits remain completion evidence. CIS initialization does not migrate those tasks into approved CIS plans or approve product records.
+
+## CIS initialization scope
+
+- Imported provider, AI and retention templates under `docs/cis/references/` remain Draft proposals. They do not authorize CIS agent execution, change this repository's Claude read-only review scope, or adopt imported application/browser requirements.
+- `.cis/local/import/report.json` is local-only. New checkouts can read `planning/cis/initialization.md` and the tracked assessment under `planning/cis/evidence/initialization/` for the setup findings and their limits.

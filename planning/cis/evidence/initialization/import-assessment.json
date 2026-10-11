@@ -1,0 +1,327 @@
+{
+  "repositoryPath": "C:\\miscwork\\portfolio\\cislib",
+  "method": "local-requirement-evidence",
+  "inventoryComplete": true,
+  "coverage": [
+    {
+      "id": "navigation",
+      "title": "Read authoritative source evidence",
+      "status": "evidence-found-unverified",
+      "action": "preserve",
+      "sources": [
+        "AGENTS.md"
+      ],
+      "detail": "Requirement-specific text found. Preserve it; scope, correctness and enforcement still require verification.",
+      "addition": null
+    },
+    {
+      "id": "security",
+      "title": "Backend authorization",
+      "status": "gap-in-inspected-guidance",
+      "action": "add",
+      "sources": [],
+      "detail": "The inspected guidance did not contain all evidence for this requirement. Propose a scoped baseline; retain existing project policy.",
+      "addition": "Enforce authorization at the backend boundary; client-side visibility is not an access control."
+    },
+    {
+      "id": "security-secrets",
+      "title": "Secrets and credentials",
+      "status": "gap-in-inspected-guidance",
+      "action": "add",
+      "sources": [],
+      "detail": "The inspected guidance did not contain all evidence for this requirement. Propose a scoped baseline; retain existing project policy.",
+      "addition": "Never commit credentials or expose secrets in logs, generated context or model requests. Use approved secret storage and redaction."
+    },
+    {
+      "id": "security-denied",
+      "title": "Denied access and tenant isolation tests",
+      "status": "gap-in-inspected-guidance",
+      "action": "add",
+      "sources": [],
+      "detail": "The inspected guidance did not contain all evidence for this requirement. Propose a scoped baseline; retain existing project policy.",
+      "addition": "Test applicable unauthenticated, wrong-role and cross-tenant cases alongside allowed behavior."
+    },
+    {
+      "id": "security-scans",
+      "title": "Security scan evidence",
+      "status": "gap-in-inspected-guidance",
+      "action": "add",
+      "sources": [],
+      "detail": "The inspected guidance did not contain all evidence for this requirement. Propose a scoped baseline; retain existing project policy.",
+      "addition": "Use the adopted security scanners and record actual findings and execution limits. Do not treat a configured scanner as a passed check or replace a CI gate during import."
+    },
+    {
+      "id": "security-exceptions",
+      "title": "Review security exceptions",
+      "status": "gap-in-inspected-guidance",
+      "action": "add",
+      "sources": [],
+      "detail": "The inspected guidance did not contain all evidence for this requirement. Propose a scoped baseline; retain existing project policy.",
+      "addition": "Security exceptions require an identified reviewer, rationale, scope and expiry; import and model suggestions cannot accept risk."
+    },
+    {
+      "id": "testing",
+      "title": "Use real test commands",
+      "status": "gap-in-inspected-guidance",
+      "action": "add",
+      "sources": [],
+      "detail": "The inspected guidance did not contain all evidence for this requirement. Propose a scoped baseline; retain existing project policy.",
+      "addition": "Use the repository\u0027s real build and test commands with their documented prerequisites; do not invent a runner or a passing result."
+    },
+    {
+      "id": "testing-results",
+      "title": "Report checks that ran and did not run",
+      "status": "evidence-found-unverified",
+      "action": "preserve",
+      "sources": [
+        "AGENTS.md"
+      ],
+      "detail": "Requirement-specific text found. Preserve it; scope, correctness and enforcement still require verification.",
+      "addition": null
+    },
+    {
+      "id": "browser",
+      "title": "Preserve the adopted browser harness",
+      "status": "gap-in-inspected-guidance",
+      "action": "add",
+      "sources": [],
+      "detail": "The inspected guidance did not contain all evidence for this requirement. Propose a scoped baseline; retain existing project policy.",
+      "addition": "For browser work, preserve the adopted harness, including .NET Playwright where present. A missing harness requires a reviewed choice."
+    },
+    {
+      "id": "browser-state",
+      "title": "Verify actions and resulting state",
+      "status": "gap-in-inspected-guidance",
+      "action": "add",
+      "sources": [],
+      "detail": "The inspected guidance did not contain all evidence for this requirement. Propose a scoped baseline; retain existing project policy.",
+      "addition": "Browser tests must verify actions and resulting state, including relevant denied and error states; a successful click alone is not evidence of correct behavior."
+    },
+    {
+      "id": "browser-data",
+      "title": "Deterministic browser data",
+      "status": "gap-in-inspected-guidance",
+      "action": "add",
+      "sources": [],
+      "detail": "The inspected guidance did not contain all evidence for this requirement. Propose a scoped baseline; retain existing project policy.",
+      "addition": "Use deterministic, isolated data for browser tests and document application startup and cleanup prerequisites."
+    },
+    {
+      "id": "browser-auth",
+      "title": "Keep test authentication out of production",
+      "status": "gap-in-inspected-guidance",
+      "action": "add",
+      "sources": [],
+      "detail": "The inspected guidance did not contain all evidence for this requirement. Propose a scoped baseline; retain existing project policy.",
+      "addition": "Test identities and authentication bypasses must remain isolated from production and must not weaken backend authorization."
+    },
+    {
+      "id": "browser-artifacts",
+      "title": "Retain browser failure evidence",
+      "status": "gap-in-inspected-guidance",
+      "action": "add",
+      "sources": [],
+      "detail": "The inspected guidance did not contain all evidence for this requirement. Propose a scoped baseline; retain existing project policy.",
+      "addition": "Retain useful failure traces, screenshots or equivalent browser artifacts, with secrets and personal data excluded."
+    },
+    {
+      "id": "architecture",
+      "title": "Preserve adopted architecture and frameworks",
+      "status": "gap-in-inspected-guidance",
+      "action": "add",
+      "sources": [],
+      "detail": "The inspected guidance did not contain all evidence for this requirement. Propose a scoped baseline; retain existing project policy.",
+      "addition": "Preserve approved architecture, framework choices and module boundaries; review decisions before replacing an adopted approach."
+    },
+    {
+      "id": "contracts",
+      "title": "Check contract compatibility",
+      "status": "gap-in-inspected-guidance",
+      "action": "add",
+      "sources": [],
+      "detail": "The inspected guidance did not contain all evidence for this requirement. Propose a scoped baseline; retain existing project policy.",
+      "addition": "Identify affected callers and compatibility obligations before changing public APIs, events or schemas."
+    },
+    {
+      "id": "delivery",
+      "title": "Preserve human approval gates",
+      "status": "evidence-found-unverified",
+      "action": "preserve",
+      "sources": [
+        "AGENTS.md"
+      ],
+      "detail": "Requirement-specific text found. Preserve it; scope, correctness and enforcement still require verification.",
+      "addition": null
+    }
+  ],
+  "inventory": [
+    {
+      "path": ".cis/repository.yml",
+      "contentHash": "missing"
+    },
+    {
+      "path": ".github/copilot-instructions.md",
+      "contentHash": "missing"
+    },
+    {
+      "path": "AGENTS.md",
+      "contentHash": "sha256:afaf119131df7cfdae54b6eadfd3ecbd02c84640a8d2152d9b0930b05b740b0a"
+    },
+    {
+      "path": "CLAUDE.md",
+      "contentHash": "missing"
+    },
+    {
+      "path": "docs/cis/references/agent-provider-profile.md",
+      "contentHash": "missing"
+    },
+    {
+      "path": "docs/cis/references/ai-evaluation-datasets/index-card.md",
+      "contentHash": "missing"
+    },
+    {
+      "path": "docs/cis/references/ai-model-registry.md",
+      "contentHash": "missing"
+    },
+    {
+      "path": "docs/cis/references/ai-routing-profile.md",
+      "contentHash": "missing"
+    },
+    {
+      "path": "docs/cis/references/local-artifact-retention.md",
+      "contentHash": "missing"
+    },
+    {
+      "path": "docs/cis/references/security-suite-profile.md",
+      "contentHash": "missing"
+    },
+    {
+      "path": "docs/cis/references/source-evidence.md",
+      "contentHash": "missing"
+    },
+    {
+      "path": "docs/cis/references/test-suite-profile.md",
+      "contentHash": "missing"
+    }
+  ],
+  "findings": [
+    {
+      "kind": "capability-setup",
+      "path": "docs/cis/references/test-suite-profile.md",
+      "detail": "No supported test command could be inferred. Select and verify the adopted harness before configuring CIS testing; no substitute runner is installed."
+    },
+    {
+      "kind": "capability-setup",
+      "path": "docs/cis/references/security-suite-profile.md",
+      "detail": "Map the adopted scanners, commands, output formats and CI gates in a focused review. Security prose alone is not an executable binding; import does not select replacement scanners."
+    }
+  ],
+  "limitations": [
+    "Local requirement evidence matching only. A match does not prove equivalent scope, correctness or enforcement. A missing match is a proposed gap, not proof that project guidance is absent. This is not a semantic merge.",
+    "Inspects root entry points, conventional GitHub guidance and discovered local references (500 files, 256 KB/file, 4 million characters). Other locations and implicit references may remain undiscovered.",
+    "Temporary, cache, build, dependency and generated runtime folders are intentionally excluded, including .github/tmp and .github/copilot-runtime. Links into these folders are not evidence.",
+    "No commands, tests, scanners or CI gates were executed. Framework choices, policy equivalence and automation dependencies require a focused follow-up review."
+  ],
+  "inputHash": "sha256:f1adae123b76d79a2d38db03fa27a496ab27cfe9686d1bc11e395cacc3875e8a",
+  "setup": [
+    {
+      "id": "repository-registration",
+      "title": "CIS repository registration",
+      "status": "missing-configuration",
+      "action": "add",
+      "sources": [
+        ".cis/repository.yml"
+      ],
+      "detail": "Register the selected documentation root for CIS commands.",
+      "addition": null
+    },
+    {
+      "id": "reference.ai-routing-profile",
+      "title": "ai routing profile",
+      "status": "missing-configuration",
+      "action": "add",
+      "sources": [
+        "docs/cis/references/ai-routing-profile.md"
+      ],
+      "detail": "Add the missing CIS runtime profile. These scoped defaults do not replace project directives or approve a model, source document or agent run.",
+      "addition": null
+    },
+    {
+      "id": "reference.agent-provider-profile",
+      "title": "agent provider profile",
+      "status": "missing-configuration",
+      "action": "add",
+      "sources": [
+        "docs/cis/references/agent-provider-profile.md"
+      ],
+      "detail": "Add the missing CIS runtime profile. These scoped defaults do not replace project directives or approve a model, source document or agent run.",
+      "addition": null
+    },
+    {
+      "id": "reference.source-evidence",
+      "title": "source evidence",
+      "status": "missing-configuration",
+      "action": "add",
+      "sources": [
+        "docs/cis/references/source-evidence.md"
+      ],
+      "detail": "Add the missing CIS runtime profile. These scoped defaults do not replace project directives or approve a model, source document or agent run.",
+      "addition": null
+    },
+    {
+      "id": "reference.ai-model-registry",
+      "title": "ai model registry",
+      "status": "missing-configuration",
+      "action": "add",
+      "sources": [
+        "docs/cis/references/ai-model-registry.md"
+      ],
+      "detail": "Add the missing CIS runtime profile. These scoped defaults do not replace project directives or approve a model, source document or agent run.",
+      "addition": null
+    },
+    {
+      "id": "reference.ai-evaluation-index-card",
+      "title": "ai evaluation index card",
+      "status": "missing-configuration",
+      "action": "add",
+      "sources": [
+        "docs/cis/references/ai-evaluation-datasets/index-card.md"
+      ],
+      "detail": "Add the missing CIS runtime profile. These scoped defaults do not replace project directives or approve a model, source document or agent run.",
+      "addition": null
+    },
+    {
+      "id": "reference.local-artifact-retention",
+      "title": "local artifact retention",
+      "status": "missing-configuration",
+      "action": "add",
+      "sources": [
+        "docs/cis/references/local-artifact-retention.md"
+      ],
+      "detail": "Add the missing CIS runtime profile. These scoped defaults do not replace project directives or approve a model, source document or agent run.",
+      "addition": null
+    },
+    {
+      "id": "reference.test-suite-profile",
+      "title": "Test command bindings",
+      "status": "missing-configuration",
+      "action": "defer",
+      "sources": [
+        "docs/cis/references/test-suite-profile.md"
+      ],
+      "detail": "No supported test command could be inferred. Select and verify the adopted harness before configuring CIS testing; no substitute runner is installed.",
+      "addition": null
+    },
+    {
+      "id": "reference.security-suite-profile",
+      "title": "Security scanner bindings",
+      "status": "missing-configuration",
+      "action": "defer",
+      "sources": [
+        "docs/cis/references/security-suite-profile.md"
+      ],
+      "detail": "Map the adopted scanners, commands, output formats and CI gates in a focused review. Security prose alone is not an executable binding; import does not select replacement scanners.",
+      "addition": null
+    }
+  ]
+}

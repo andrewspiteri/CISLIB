@@ -15,3 +15,11 @@ planning/logging/evidence/** -text
 
 # Raw JSONL compatibility controls include intentional BOM/missing-LF samples.
 conformance/logging/compatibility/samples/wire/** -text
+
+# CIS configuration has stable LF bytes; retained diagnostics keep original bytes.
+.gitattributes text eol=lf
+.cis/*.yml text eol=lf
+.cis/.gitignore text eol=lf
+.cis/import-mode text eol=lf
+docs/cis/*.yml text eol=lf
+planning/cis/evidence/** -text whitespace=-blank-at-eof,cr-at-eol

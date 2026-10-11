@@ -1,0 +1,597 @@
+{
+  "schemaVersion": 1,
+  "date": "2026-10-11",
+  "repository": "cislib",
+  "baselineCommit": "a3d28c83bd86a8a4a3d80229dcdaa2598951c094",
+  "selected": {
+    "ecosystem": "cis",
+    "product": "cislib",
+    "documentationRoot": "docs/cis",
+    "participation": "owned",
+    "relationship": "none",
+    "guidanceMode": "minimal"
+  },
+  "status": "initialized with documented graph limitations; no product acceptance",
+  "taskSequence": {
+    "completed": "WP04-S02-T03",
+    "next": "WP04-S02-T04",
+    "nextStarted": false
+  },
+  "import": {
+    "applied": true,
+    "exitCode": 0,
+    "errors": 0,
+    "collisions": 0,
+    "mergeReviewHash": "sha256:ecf5203791e3bb830b40e42c2eb59573752f7b3686867c03826f3ab718c4a708"
+  },
+  "toolIdentity": "evidence/initialization/tool-identity.json",
+  "components": {
+    "solutionProjects": 10,
+    "toolingFallbacks": 1
+  },
+  "graph": {
+    "buildId": "sha256:c15da95c8bd1cf5c018dadcd14242effa865148140f6acee973e7b9cf3a06607",
+    "freshness": "fresh",
+    "nodeCount": 3908,
+    "edgeCount": 15426,
+    "warningCount": 39,
+    "errorCount": 0,
+    "additionalLimit": "Anonymous/lambda caller nodes merge per component; inspect edge observation paths/lines. Callers queries include both incoming and outgoing neighbors."
+  },
+  "deepGraphValidation": {
+    "nonStrictExitCode": 0,
+    "strictExitCode": 5,
+    "warnings": 40,
+    "unconfirmedSymbolTestNodes": 272,
+    "completeOwnershipQualified": false
+  },
+  "queries": {
+    "core-exception-symbols-reviewed": {
+      "status": "matched",
+      "freshness": "fresh",
+      "nodes": 5,
+      "truncated": false,
+      "exitCode": 0
+    },
+    "next-task-route-reviewed": {
+      "status": "matched",
+      "freshness": "fresh",
+      "nodes": 1,
+      "truncated": false,
+      "exitCode": 0
+    },
+    "capture-callers-reviewed": {
+      "status": "matched",
+      "freshness": "fresh",
+      "nodes": 20,
+      "truncated": true,
+      "exitCode": 0
+    },
+    "exception-tests-complete": {
+      "status": "matched",
+      "freshness": "fresh",
+      "nodes": 3,
+      "truncated": false,
+      "exitCode": 0
+    }
+  },
+  "commands": [
+    {
+      "name": "docs-validation-final",
+      "command": "pwsh -NoProfile -File eng/cis.ps1 docs validate --repo . --root docs/cis --strict --format agent",
+      "exitCode": 2
+    },
+    {
+      "name": "skills-validation-final",
+      "command": "pwsh -NoProfile -File eng/cis.ps1 skills validate --repo . --strict --format agent",
+      "exitCode": 0
+    },
+    {
+      "name": "skills-audit-final",
+      "command": "pwsh -NoProfile -File eng/cis.ps1 skills audit --repo . --no-model --format agent",
+      "exitCode": 2
+    },
+    {
+      "name": "launcher-smoke-final",
+      "command": "pwsh -NoProfile -File eng/cis.ps1 graph status --repo . --format json",
+      "exitCode": 0
+    },
+    {
+      "name": "graph-build-reviewed",
+      "command": "pwsh -NoProfile -File eng/cis.ps1 graph build --workspace . --format json",
+      "exitCode": 0
+    },
+    {
+      "name": "graph-status-reviewed",
+      "command": "pwsh -NoProfile -File eng/cis.ps1 graph status --repo . --format json",
+      "exitCode": 0
+    },
+    {
+      "name": "graph-validation-reviewed",
+      "command": "pwsh -NoProfile -File eng/cis.ps1 graph validate --workspace . --format json",
+      "exitCode": 0
+    },
+    {
+      "name": "graph-strict-reviewed",
+      "command": "pwsh -NoProfile -File eng/cis.ps1 graph validate --workspace . --strict --format json",
+      "exitCode": 5
+    },
+    {
+      "name": "core-exception-symbols-reviewed",
+      "command": "pwsh -NoProfile -File eng/cis.ps1 context search --repo . --kind symbol --text CIS.Logging.Exceptions.ExceptionProjection --limit 20 --format json",
+      "exitCode": 0
+    },
+    {
+      "name": "next-task-route-reviewed",
+      "command": "pwsh -NoProfile -File eng/cis.ps1 context search --repo . --kind reference-item --text WP04-S02-T04 --limit 10 --format json",
+      "exitCode": 0
+    },
+    {
+      "name": "capture-callers-reviewed",
+      "command": "pwsh -NoProfile -File eng/cis.ps1 context callers --repo . --id cislib::symbol::cis-core/csharp/method/CIS.Logging.Exceptions.ExceptionProjection.Capture%28Exception%3F%29 --limit 20 --format json",
+      "exitCode": 0
+    },
+    {
+      "command": "pwsh -NoProfile -File eng/cis.ps1 docs validate --repo . --strict --format agent",
+      "exitCode": 0,
+      "name": "docs-validation-corrected"
+    },
+    {
+      "command": "pwsh -NoProfile -File eng/cis.ps1 skills audit --repo . --no-llm --format agent",
+      "exitCode": 0,
+      "name": "skills-audit-corrected"
+    },
+    {
+      "command": "pwsh -NoProfile -File eng/cis.ps1 docs validate --repo . --strict --format agent",
+      "name": "docs-validation-complete",
+      "exitCode": 0
+    },
+    {
+      "command": "pwsh -NoProfile -File eng/cis.ps1 graph build --workspace . --format json",
+      "name": "graph-build-complete",
+      "exitCode": 0
+    },
+    {
+      "command": "pwsh -NoProfile -File eng/cis.ps1 graph status --repo . --format json",
+      "name": "graph-status-complete",
+      "exitCode": 0
+    },
+    {
+      "command": "pwsh -NoProfile -File eng/cis.ps1 context search --repo . --kind test --text ExceptionContent --limit 20 --format json",
+      "name": "exception-tests-complete",
+      "exitCode": 0
+    },
+    {
+      "exitCode": 0,
+      "command": "pwsh -NoProfile -File eng/cis.ps1 graph validate --workspace . --format json",
+      "name": "graph-validation-complete"
+    },
+    {
+      "exitCode": 5,
+      "command": "pwsh -NoProfile -File eng/cis.ps1 graph validate --workspace . --strict --format json",
+      "name": "graph-strict-complete"
+    }
+  ],
+  "initialFlagFailures": {
+    "docs-validation-final": "Unsupported --root removed; corrected command passes.",
+    "skills-audit-final": "Unsupported --no-model replaced by --no-llm; corrected deterministic audit passes."
+  },
+  "reviews": {
+    "sourceAwareInitial": "PASS with findings; corrected scope/metadata/evidence/identity wording",
+    "readerInitial": "Two misunderstandings: current task and reference-copy builds; corrected",
+    "sourceAwareFollowUp": "PASS with findings; all seven initial findings resolved; remaining lambda-location/tool-placement/Draft-authority findings corrected",
+    "readerFollowUp": "Correctly answered the six task/replay/navigation questions; additional clarification notes retained; not human usability evidence",
+    "humanUsabilityTest": false,
+    "approvalConferred": false,
+    "sourceAwareFinal": "PASS; no remaining actionable findings; read-only automated advisory review",
+    "gitAttributes": "PASS; exact staged-byte preservation independently verified by host script, advisory review did not execute commands"
+  },
+  "preservedBaseline": {
+    "gitDiffExitCode": 0,
+    "paths": [
+      "implementations",
+      "contracts",
+      "conformance",
+      "planning/logging/evidence",
+      "planning/logging/sources"
+    ],
+    "nativeTestsRepeatedForInitialization": false,
+    "reason": "No library, contracts or native harness changed; use retained T03 qualification."
+  },
+  "canonicalInputs": [
+    {
+      "path": "AGENTS.md",
+      "sha256": "sha256:7e941a058ad0371e189e2406325a7303fa1cf70032a4155c67ae23b55f7e945f"
+    },
+    {
+      "path": "eng/cis.ps1",
+      "sha256": "sha256:1273e4f4bb1a22a7ce7fbb8d4f2cc96423cdfb4eba78d80b4387553036245822"
+    },
+    {
+      "path": ".cis/.gitignore",
+      "sha256": "sha256:d8da4778be68a8d9e094ccfec41f46805ded0bbdb7cee1445d378cd6a4ceda8c"
+    },
+    {
+      "path": ".cis/import-mode",
+      "sha256": "sha256:d9ba01ca22a2e217ee6a7dd7329d57fd375507abeb6a9aaebc8c1e58c858614a"
+    },
+    {
+      "path": ".cis/repository.yml",
+      "sha256": "sha256:e2d2370d95eb509cee893f1759e31382398ceb96b5a4e378b9e42d8d2bf386ab"
+    },
+    {
+      "path": ".cis/starter-manifest.yml",
+      "sha256": "sha256:50ed93792ca81d9fd45ca31c30b8856e7798d9f01a9f8e76b5af1d840759ff14"
+    },
+    {
+      "path": ".cis/workspace.yml",
+      "sha256": "sha256:6caea0f454055f18d7e397e728419e03aa451e930e2d9d6c92e6b754c43a03ac"
+    },
+    {
+      "path": "docs/cis/catalog.yml",
+      "sha256": "sha256:6b608a8915b7a32c95aa63b233b35f0256baf229856596ce2fffa0392ee91147"
+    },
+    {
+      "path": "docs/cis/graph-context.md",
+      "sha256": "sha256:3bb28ea1236564c3a2c6388f15fc7bb4eb7f07f4fb57713c3bb21db46e7be2fe"
+    },
+    {
+      "path": "docs/cis/README.md",
+      "sha256": "sha256:a00dc40f23caadec343de41e43ebbbada4ee72d0628bd3a61b510474858997a2"
+    },
+    {
+      "path": "docs/cis/references/agent-provider-profile.md",
+      "sha256": "sha256:51d0de20d4af7272f6b94aacfab4fbffa7f64e7c1a61e8bceb11a9ab9dac26dc"
+    },
+    {
+      "path": "docs/cis/references/ai-evaluation-datasets/index-card.md",
+      "sha256": "sha256:c08777c0b568037a269dc8dc72b2a622df08faa467eb5375c4041c13b1786625"
+    },
+    {
+      "path": "docs/cis/references/ai-model-registry.md",
+      "sha256": "sha256:2dd2163d7c34b597b894eec7e58df5dec069fcaa79d73ddd89ead41e3e0534e2"
+    },
+    {
+      "path": "docs/cis/references/ai-routing-profile.md",
+      "sha256": "sha256:da4848c5c90e4829e5d085636ae13455ca3712f953f3871272bcbf1f2866418d"
+    },
+    {
+      "path": "docs/cis/references/local-artifact-retention.md",
+      "sha256": "sha256:8825038d92ef1e1cac5e02295a01b5d0cc7f93168a2f03017f2c1c54aa211526"
+    },
+    {
+      "path": "docs/cis/references/repository-profile.md",
+      "sha256": "sha256:8e28e10a001d3766a31837059eb1711828c9c057e709cc857db823be163ced55"
+    },
+    {
+      "path": "docs/cis/references/source-evidence.md",
+      "sha256": "sha256:a4daefda5f0c8b386545a1735c326138945fef46d834c8761e8021cf9a073ca4"
+    },
+    {
+      "path": "docs/cis/references/traceability-matrix.md",
+      "sha256": "sha256:6cec55c949dae82d2503b43172990270c94712eebc4d6905341a9ec34db2075a"
+    },
+    {
+      "path": ".github/instructions/cis-import.instructions.md",
+      "sha256": "sha256:1a3b74e30195c1790e95e208299b1cb139b298e073a3e4ebdf6e46aa92038043"
+    },
+    {
+      "path": ".github/skills/cis-graph-context/SKILL.md",
+      "sha256": "sha256:c9b145da9e6988fa11c96485b617709a39de8eff85e3242777601734e45ee80c"
+    },
+    {
+      "path": "planning/cis/initialization.md",
+      "sha256": "sha256:90dc260b40531cc6a3db315ad2c7c27fdf019fa34e483764b03ceb1a6f27b813"
+    },
+    {
+      "path": ".gitattributes",
+      "sha256": "sha256:f2a99b902f7195faff7fc93a41ec9648fff53923c61ed924be05514ef3327b81"
+    }
+  ],
+  "retainedEvidence": [
+    {
+      "path": "evidence/initialization/capture-callers-before-review.json",
+      "sha256": "sha256:6874312dc19e963687852e3eddbfaaf0b346c25c9897b4f396979259b80960d1"
+    },
+    {
+      "path": "evidence/initialization/capture-callers-reviewed.log",
+      "sha256": "sha256:303d4c74aaf2d5bc2dfa0ec02beb4d5c2161ca65f2606d436e5aaa6eeaa7a0f4"
+    },
+    {
+      "path": "evidence/initialization/capture-callers-reviewed.stderr.log",
+      "sha256": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "evidence/initialization/checks-complete.json",
+      "sha256": "sha256:afb26b23f8239db4453d4ab6e352a80136c83b5685c79194d8b062e6b52d7a23"
+    },
+    {
+      "path": "evidence/initialization/checks-corrected.json",
+      "sha256": "sha256:039b5759a8a4aa4536f32354e0f1a258a7870443a4c7aae54c77a9d1f187da31"
+    },
+    {
+      "path": "evidence/initialization/checks-deep-complete.json",
+      "sha256": "sha256:3525a0f87228a140b7586d25bd9d7fccf03b2d98aad1d7fe57d9b5064f708ba0"
+    },
+    {
+      "path": "evidence/initialization/checks-reviewed.json",
+      "sha256": "sha256:c6bd46160860959ea7cb2ac75ae77d997367543a239e9cf3ddad3340f41bcd7c"
+    },
+    {
+      "path": "evidence/initialization/claude-attributes-exit.json",
+      "sha256": "sha256:ea61d7736f0b7ecb9b35158f03de77013db6b100cf1d36c957e78e6c8817c5b6"
+    },
+    {
+      "path": "evidence/initialization/claude-attributes.json",
+      "sha256": "sha256:436f93eb45e72e667a9fd3eb1f6ba2bd3664349c2b6a553044dd12157d9c8caf"
+    },
+    {
+      "path": "evidence/initialization/claude-final-exit.json",
+      "sha256": "sha256:ea61d7736f0b7ecb9b35158f03de77013db6b100cf1d36c957e78e6c8817c5b6"
+    },
+    {
+      "path": "evidence/initialization/claude-final.json",
+      "sha256": "sha256:b09a762889f374a84f4b7ac77337b29f6fa82f381727cd3c570d471aae773e73"
+    },
+    {
+      "path": "evidence/initialization/claude-followup-exit.json",
+      "sha256": "sha256:ea61d7736f0b7ecb9b35158f03de77013db6b100cf1d36c957e78e6c8817c5b6"
+    },
+    {
+      "path": "evidence/initialization/claude-followup.json",
+      "sha256": "sha256:feb07bbf6a15f41798f9d9ec45047d6693d66269209db5e591b707eb7ce47873"
+    },
+    {
+      "path": "evidence/initialization/claude-reader-followup-exit.json",
+      "sha256": "sha256:ea61d7736f0b7ecb9b35158f03de77013db6b100cf1d36c957e78e6c8817c5b6"
+    },
+    {
+      "path": "evidence/initialization/claude-reader-followup.json",
+      "sha256": "sha256:c9a6fdb7ec93706afa7fe9e668830691130a0cd99d6acf50fa0a49418d7e2bfd"
+    },
+    {
+      "path": "evidence/initialization/claude-reader-initial-exit.json",
+      "sha256": "sha256:ea61d7736f0b7ecb9b35158f03de77013db6b100cf1d36c957e78e6c8817c5b6"
+    },
+    {
+      "path": "evidence/initialization/claude-reader-initial.json",
+      "sha256": "sha256:06c6d71feca6d5e0cd8a0aa916fbfc9a75db6d06b95237419463d2a9fd008f4e"
+    },
+    {
+      "path": "evidence/initialization/claude-review-initial-exit.json",
+      "sha256": "sha256:ea61d7736f0b7ecb9b35158f03de77013db6b100cf1d36c957e78e6c8817c5b6"
+    },
+    {
+      "path": "evidence/initialization/claude-review-initial.json",
+      "sha256": "sha256:d60718b2d7a8a2493752f317ef9c70848c71b590a543634145dc71b3ca5fc587"
+    },
+    {
+      "path": "evidence/initialization/core-exception-symbols-before-review.json",
+      "sha256": "sha256:3f1913aa398f80043e6003ffead3842c39d9c23ca17e6c829efb7399807b7ace"
+    },
+    {
+      "path": "evidence/initialization/core-exception-symbols-reviewed.log",
+      "sha256": "sha256:b58b853242c23228877154abb1a49e81b2496ff79f5f73094a1f275a27ec7313"
+    },
+    {
+      "path": "evidence/initialization/core-exception-symbols-reviewed.stderr.log",
+      "sha256": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "evidence/initialization/docs-validation-complete.log",
+      "sha256": "sha256:4f5e17a3f1d92ad055d7a0b3279e5addd35bbe46c055bb1d286261d041ab6472"
+    },
+    {
+      "path": "evidence/initialization/docs-validation-complete.stderr.log",
+      "sha256": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "evidence/initialization/docs-validation-corrected.log",
+      "sha256": "sha256:4f5e17a3f1d92ad055d7a0b3279e5addd35bbe46c055bb1d286261d041ab6472"
+    },
+    {
+      "path": "evidence/initialization/docs-validation-corrected.stderr.log",
+      "sha256": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "evidence/initialization/docs-validation-final.log",
+      "sha256": "sha256:35057e81d6fcc93b313c091d77d66adb90f1df702b33b1f14744be96d3ce4750"
+    },
+    {
+      "path": "evidence/initialization/docs-validation-final.stderr.log",
+      "sha256": "sha256:fed835fc4964f06f93c005bbd2f6dfc209d8b01ab416cb05ca12f154ffed24cd"
+    },
+    {
+      "path": "evidence/initialization/exception-tests-complete.log",
+      "sha256": "sha256:98483bd8ad33e9c111f9d57f2d7de127fa358a21c81f8484be5c5e99cef1945a"
+    },
+    {
+      "path": "evidence/initialization/exception-tests-complete.stderr.log",
+      "sha256": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "evidence/initialization/graph-build-before-review.json",
+      "sha256": "sha256:2935d98ac1976d7f267709919bdc4a6ded8cc0762a8c796a14fcb1d46c7cb642"
+    },
+    {
+      "path": "evidence/initialization/graph-build-complete.log",
+      "sha256": "sha256:fa63a03d4b6c24a8ba3cd7011bf234a3a6dfcf54ccf5902f8b8037d18d579814"
+    },
+    {
+      "path": "evidence/initialization/graph-build-complete.stderr.log",
+      "sha256": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "evidence/initialization/graph-build-reviewed.log",
+      "sha256": "sha256:c0e4afc354b3d50d88078aa1df0c1b856a9690c475b9f19701281784df8ed9bc"
+    },
+    {
+      "path": "evidence/initialization/graph-build-reviewed.stderr.log",
+      "sha256": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "evidence/initialization/graph-status-complete.log",
+      "sha256": "sha256:6e1daaaca16c63dc060f3b4056096e6f30cda2459490adb8fd323edc03cfe443"
+    },
+    {
+      "path": "evidence/initialization/graph-status-complete.stderr.log",
+      "sha256": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "evidence/initialization/graph-status-reviewed.log",
+      "sha256": "sha256:a6e8e7bebaf9518578998b2dc272a3a55c215e3b680a970c27d4b99fcff9321f"
+    },
+    {
+      "path": "evidence/initialization/graph-status-reviewed.stderr.log",
+      "sha256": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "evidence/initialization/graph-strict-before-review.json",
+      "sha256": "sha256:06d19087fedf3812ebaf9985e16890fb22a94a50bd9eb0d1b546adf2d8da011f"
+    },
+    {
+      "path": "evidence/initialization/graph-strict-complete.log",
+      "sha256": "sha256:c39bf970b3b88be7f104692cf2f0598f593b3a7fb9dc633009b1635b5032ae5d"
+    },
+    {
+      "path": "evidence/initialization/graph-strict-complete.stderr.log",
+      "sha256": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "evidence/initialization/graph-strict-reviewed.log",
+      "sha256": "sha256:1319e76113143483e02d9d28e3def8aea831a148a212063dfe458cd7de5d3268"
+    },
+    {
+      "path": "evidence/initialization/graph-strict-reviewed.stderr.log",
+      "sha256": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "evidence/initialization/graph-validation-complete.log",
+      "sha256": "sha256:77484ee7e19345992edafb4a9dd322dd67cd8e66587b40c0a572c41e0502a076"
+    },
+    {
+      "path": "evidence/initialization/graph-validation-complete.stderr.log",
+      "sha256": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "evidence/initialization/graph-validation-reviewed.log",
+      "sha256": "sha256:cdbf1bad2b4d3e5cc7ea314c0dd62c4b6543eb0260b04c5eac16492cc06a9c7e"
+    },
+    {
+      "path": "evidence/initialization/graph-validation-reviewed.stderr.log",
+      "sha256": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "evidence/initialization/import-applied.json",
+      "sha256": "sha256:037a59384aa0a12e4dacfecb67853d646a11e8501de49c045a4434f58247789c"
+    },
+    {
+      "path": "evidence/initialization/import-assessment.json",
+      "sha256": "sha256:a8eecb1a9ebb22185833b8fed087b2a33909cc4570cd407151b9a56163df4f03"
+    },
+    {
+      "path": "evidence/initialization/import-preview.json",
+      "sha256": "sha256:e4cfd02a889b1d7442c3850b67e527117ee9727206bccfa0822b2e94e54fa61b"
+    },
+    {
+      "path": "evidence/initialization/launcher-smoke-final.log",
+      "sha256": "sha256:5c623c9605d7d8d394dce5fb404ab68334ceaac38a11d1a1d7d16bbc9ad4f170"
+    },
+    {
+      "path": "evidence/initialization/launcher-smoke-final.stderr.log",
+      "sha256": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "evidence/initialization/next-task-route-reviewed.log",
+      "sha256": "sha256:67f58e45bb716966e92bef319f729f4a661899778f1da3732bc7970111480ca0"
+    },
+    {
+      "path": "evidence/initialization/next-task-route-reviewed.stderr.log",
+      "sha256": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "evidence/initialization/reconciliation-scope.json",
+      "sha256": "sha256:4623fc7ce0f0ac396f916110588282b1a50dac3098132d9f4db57660f6603568"
+    },
+    {
+      "path": "evidence/initialization/skills-audit-corrected.log",
+      "sha256": "sha256:4461701a1a7fe499585432d217fc14eb67250f77072592478618d8ee795d47e5"
+    },
+    {
+      "path": "evidence/initialization/skills-audit-corrected.stderr.log",
+      "sha256": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "evidence/initialization/skills-audit-final.log",
+      "sha256": "sha256:b5e7b77194d7b378442e09b5bc00cb7e0de5dd3a3c714bfdd596ce5b801cee27"
+    },
+    {
+      "path": "evidence/initialization/skills-audit-final.stderr.log",
+      "sha256": "sha256:c06cc1315cf35777b26c026f1d160d344b8f58d5c646082bcb0bef0935d1f2ab"
+    },
+    {
+      "path": "evidence/initialization/skills-validation-final.log",
+      "sha256": "sha256:6cb5b205034248ef2235c9de5f5d5dbf6026567efa722f8fcf7916d12350c128"
+    },
+    {
+      "path": "evidence/initialization/skills-validation-final.stderr.log",
+      "sha256": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "evidence/initialization/staged-blob-preservation.json",
+      "sha256": "sha256:2d5c38740b5b24376bcee19c7ed2dcf9d826b51aa517c8ba1699ec62b32c6b06"
+    },
+    {
+      "path": "evidence/initialization/staged-diff-corrected-exit.json",
+      "sha256": "sha256:ea61d7736f0b7ecb9b35158f03de77013db6b100cf1d36c957e78e6c8817c5b6"
+    },
+    {
+      "path": "evidence/initialization/staged-diff-corrected.log",
+      "sha256": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "evidence/initialization/staged-diff-corrected.stderr.log",
+      "sha256": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "evidence/initialization/staged-diff-initial-exit.json",
+      "sha256": "sha256:aa3d9378de7f4d3ff3df98343211a3af7a164693f85c46843d5512fe6638ec41"
+    },
+    {
+      "path": "evidence/initialization/staged-diff-initial.log",
+      "sha256": "sha256:8e5cd507e9db9394f022c67fa44639c9d3473fa0f025b7f3a34c8c638279996c"
+    },
+    {
+      "path": "evidence/initialization/staged-diff-initial.stderr.log",
+      "sha256": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "evidence/initialization/starter-manifest-imported.yml",
+      "sha256": "sha256:39fd115ca0dcfc94b174a81d33b9d41c140761a82c8c87d48022b68506688fb6"
+    },
+    {
+      "path": "evidence/initialization/task-route-before-review.json",
+      "sha256": "sha256:0d1549fb6767860ee370269a717ca4ad112590fa4d7a47ea41c29b142dc92c88"
+    },
+    {
+      "path": "evidence/initialization/tool-identity.json",
+      "sha256": "sha256:e204b39bcfb62c26d7e539d48416de3c1802a00bcbff3c0ed6496a6d90f53cf5"
+    }
+  ],
+  "qualification": "Minimal registration and bounded navigation ready with explicitly partial C# graph; strict ownership validation remains failed.",
+  "lineEndingPreservation": {
+    "canonicalCisYaml": "LF",
+    "retainedEvidence": "Git -text; original artifact bytes, including intentional diagnostic blank lines",
+    "initialStagedDiffFailure": "Retained; corrected by scoped attributes without changing raw diagnostics",
+    "correctedDiffExitCode": 0,
+    "stagedBlobHashesVerified": {
+      "method": "Compare each indexed Git blob to its recorded exact working-file SHA-256 after scoped renormalization",
+      "canonicalFiles": 22,
+      "retainedEvidenceFiles": 69,
+      "mismatches": 0,
+      "selfExcluded": true,
+      "initializationRecordExcluded": true
+    },
+    "finalRecordedInputBlobs": 94
+  }
+}

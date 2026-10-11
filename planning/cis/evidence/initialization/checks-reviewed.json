@@ -1,0 +1,57 @@
+[
+  {
+    "name": "docs-validation-final",
+    "command": "pwsh -NoProfile -File eng/cis.ps1 docs validate --repo . --root docs/cis --strict --format agent",
+    "exitCode": 2
+  },
+  {
+    "name": "skills-validation-final",
+    "command": "pwsh -NoProfile -File eng/cis.ps1 skills validate --repo . --strict --format agent",
+    "exitCode": 0
+  },
+  {
+    "name": "skills-audit-final",
+    "command": "pwsh -NoProfile -File eng/cis.ps1 skills audit --repo . --no-model --format agent",
+    "exitCode": 2
+  },
+  {
+    "name": "launcher-smoke-final",
+    "command": "pwsh -NoProfile -File eng/cis.ps1 graph status --repo . --format json",
+    "exitCode": 0
+  },
+  {
+    "name": "graph-build-reviewed",
+    "command": "pwsh -NoProfile -File eng/cis.ps1 graph build --workspace . --format json",
+    "exitCode": 0
+  },
+  {
+    "name": "graph-status-reviewed",
+    "command": "pwsh -NoProfile -File eng/cis.ps1 graph status --repo . --format json",
+    "exitCode": 0
+  },
+  {
+    "name": "graph-validation-reviewed",
+    "command": "pwsh -NoProfile -File eng/cis.ps1 graph validate --workspace . --format json",
+    "exitCode": 0
+  },
+  {
+    "name": "graph-strict-reviewed",
+    "command": "pwsh -NoProfile -File eng/cis.ps1 graph validate --workspace . --strict --format json",
+    "exitCode": 5
+  },
+  {
+    "name": "core-exception-symbols-reviewed",
+    "command": "pwsh -NoProfile -File eng/cis.ps1 context search --repo . --kind symbol --text CIS.Logging.Exceptions.ExceptionProjection --limit 20 --format json",
+    "exitCode": 0
+  },
+  {
+    "name": "next-task-route-reviewed",
+    "command": "pwsh -NoProfile -File eng/cis.ps1 context search --repo . --kind reference-item --text WP04-S02-T04 --limit 10 --format json",
+    "exitCode": 0
+  },
+  {
+    "name": "capture-callers-reviewed",
+    "command": "pwsh -NoProfile -File eng/cis.ps1 context callers --repo . --id cislib::symbol::cis-core/csharp/method/CIS.Logging.Exceptions.ExceptionProjection.Capture%28Exception%3F%29 --limit 20 --format json",
+    "exitCode": 0
+  }
+]

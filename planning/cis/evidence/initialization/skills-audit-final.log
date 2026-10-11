@@ -1,0 +1,19 @@
+'--no-model' was not matched. Did you mean one of the following?
+--model
+
+Description:
+  Isolate duplicate, overlapping, and conflicting repository skills using deterministic and local-first model review.
+
+Usage:
+  cis skills audit [options]
+
+Options:
+  --repo <repo>            Repository path. Defaults to the current directory. [default: C:\miscwork\portfolio\cislib]
+  --strict                 Return a failing exit code for any unresolved deterministic or model audit finding.
+  --no-llm                 Run deterministic auditing only and skip automatic local or remote model review.
+  --fix                    Move redundant duplicate copies and both sides of evidence-backed conflicts into .github/skills-quarantine/.
+  --model <model>          Optional model name. Provider selection prefers an available local provider, then a configured remote provider.
+  --max-pairs <max-pairs>  Maximum bounded candidate pairs submitted for semantic review, from 1 to 1000. [default: 100]
+  --format <format>        Output format: human, json, or agent. [default: human]
+  -?, -h, --help           Show help and usage information
+

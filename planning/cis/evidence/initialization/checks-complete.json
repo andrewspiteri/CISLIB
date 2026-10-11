@@ -1,0 +1,22 @@
+[
+  {
+    "command": "pwsh -NoProfile -File eng/cis.ps1 docs validate --repo . --strict --format agent",
+    "name": "docs-validation-complete",
+    "exitCode": 0
+  },
+  {
+    "command": "pwsh -NoProfile -File eng/cis.ps1 graph build --workspace . --format json",
+    "name": "graph-build-complete",
+    "exitCode": 0
+  },
+  {
+    "command": "pwsh -NoProfile -File eng/cis.ps1 graph status --repo . --format json",
+    "name": "graph-status-complete",
+    "exitCode": 0
+  },
+  {
+    "command": "pwsh -NoProfile -File eng/cis.ps1 context search --repo . --kind test --text ExceptionContent --limit 20 --format json",
+    "name": "exception-tests-complete",
+    "exitCode": 0
+  }
+]

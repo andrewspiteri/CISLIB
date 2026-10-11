@@ -1,0 +1,506 @@
+{
+  "status": "imported",
+  "workspacePath": "C:\\miscwork\\portfolio\\cislib",
+  "configurationPath": "C:\\miscwork\\portfolio\\cislib\\.cis\\workspace.yml",
+  "repositories": [
+    {
+      "id": "cislib",
+      "repositoryPath": "C:\\miscwork\\portfolio\\cislib",
+      "documentationRoot": "docs/cis",
+      "participation": "owned",
+      "relationship": "none",
+      "componentScope": [],
+      "status": "initialized",
+      "filesToCreate": [
+        "docs/cis/README.md",
+        ".cis/repository.yml",
+        ".cis/.gitignore",
+        ".cis/import-mode",
+        ".cis/local/import/report.json",
+        "docs/cis/references/ai-routing-profile.md",
+        "docs/cis/references/agent-provider-profile.md",
+        "docs/cis/references/source-evidence.md",
+        "docs/cis/references/ai-model-registry.md",
+        "docs/cis/references/ai-evaluation-datasets/index-card.md",
+        "docs/cis/references/local-artifact-retention.md",
+        ".github/instructions/cis-import.instructions.md",
+        "docs/cis/catalog.yml",
+        ".cis/starter-manifest.yml",
+        ".cis/local/init/scan.json"
+      ],
+      "filesToUpdate": [
+        "AGENTS.md"
+      ],
+      "warnings": [
+        "Conditional .NET test/package declaration in implementations/csharp/tests/Directory.Build.targets requires evaluated configuration review.",
+        "Engineering completion gates are not adopted. Review repo init --adopt-engineering-defaults --dry-run before explicitly enabling them for this existing repository.",
+        "Native test binding for implementations\\csharp\\tests\\CIS.Core.ArchitectureTests\\CIS.Core.ArchitectureTests.csproj requires runner/reporter qualification; no VSTest command was generated for this MTP or unverified configuration.",
+        "Native test binding for implementations\\csharp\\tests\\CIS.Core.BusinessCases\\CIS.Core.BusinessCases.csproj requires runner/reporter qualification; no VSTest command was generated for this MTP or unverified configuration.",
+        "Native test binding for implementations\\csharp\\tests\\CIS.Core.CompatibilityTests\\CIS.Core.CompatibilityTests.csproj requires runner/reporter qualification; no VSTest command was generated for this MTP or unverified configuration.",
+        "Native test binding for implementations\\csharp\\tests\\CIS.Core.IntegrationTests\\CIS.Core.IntegrationTests.csproj requires runner/reporter qualification; no VSTest command was generated for this MTP or unverified configuration.",
+        "Native test binding for implementations\\csharp\\tests\\CIS.Core.UnitTests\\CIS.Core.UnitTests.csproj requires runner/reporter qualification; no VSTest command was generated for this MTP or unverified configuration."
+      ]
+    }
+  ],
+  "warnings": [
+    "C:\\miscwork\\portfolio\\cislib: Conditional .NET test/package declaration in implementations/csharp/tests/Directory.Build.targets requires evaluated configuration review.",
+    "C:\\miscwork\\portfolio\\cislib: Engineering completion gates are not adopted. Review repo init --adopt-engineering-defaults --dry-run before explicitly enabling them for this existing repository.",
+    "C:\\miscwork\\portfolio\\cislib: Native test binding for implementations\\csharp\\tests\\CIS.Core.ArchitectureTests\\CIS.Core.ArchitectureTests.csproj requires runner/reporter qualification; no VSTest command was generated for this MTP or unverified configuration.",
+    "C:\\miscwork\\portfolio\\cislib: Native test binding for implementations\\csharp\\tests\\CIS.Core.BusinessCases\\CIS.Core.BusinessCases.csproj requires runner/reporter qualification; no VSTest command was generated for this MTP or unverified configuration.",
+    "C:\\miscwork\\portfolio\\cislib: Native test binding for implementations\\csharp\\tests\\CIS.Core.CompatibilityTests\\CIS.Core.CompatibilityTests.csproj requires runner/reporter qualification; no VSTest command was generated for this MTP or unverified configuration.",
+    "C:\\miscwork\\portfolio\\cislib: Native test binding for implementations\\csharp\\tests\\CIS.Core.IntegrationTests\\CIS.Core.IntegrationTests.csproj requires runner/reporter qualification; no VSTest command was generated for this MTP or unverified configuration.",
+    "C:\\miscwork\\portfolio\\cislib: Native test binding for implementations\\csharp\\tests\\CIS.Core.UnitTests\\CIS.Core.UnitTests.csproj requires runner/reporter qualification; no VSTest command was generated for this MTP or unverified configuration."
+  ],
+  "collisions": [],
+  "errors": [],
+  "confirmationRequired": false,
+  "applied": true,
+  "fileMerges": [
+    {
+      "repositoryPath": "C:\\miscwork\\portfolio\\cislib",
+      "relativePath": "AGENTS.md",
+      "currentContent": "# Agent guidance\n\n## Scope and authority\n\n- CisLib is a separate repository for a multi-module, multi-language core library. Logging and C# are the first implementation scope.\n- Read \u0060planning/decisions.md\u0060 and \u0060planning/logging/plan-amendments.md\u0060 before using the original logging plans. Explicit user decisions take precedence over attached design documents.\n- Distinguish scaffold, implemented behavior, executed evidence and published contracts. Do not claim passing tests from empty projects or generated reports.\n\n## Architecture\n\n- Put shared module contracts in \u0060contracts/\u0060 and shared cases in \u0060conformance/\u0060. Keep C# public types and implementation details in \u0060implementations/csharp/\u0060.\n- Build the C# library as one \u0060CIS.Core\u0060 project/package/assembly, with root namespace \u0060CIS\u0060. Use explicit \u0060CIS.*\u0060 namespaces for handwritten module types. \u0060CIS.Logging\u0060 and \u0060CIS.Logging.MicrosoftLogger\u0060 are namespaces and folders inside it. Future modules are siblings of Logging.\n- Approve actual Microsoft-maintained package identities and dependency closures explicitly. Isolate third-party runtime dependencies in separate optional projects/packages.\n- Keep Core independent of CIS, application infrastructure and collector SDKs. The application owns its runtime lifecycle.\n- Keep language build settings local to \u0060implementations/\u003Clanguage\u003E/\u0060. New runtimes declare supported capabilities and conformance applicability; do not promise C# binary/API mechanics in another language.\n- Preserve published contracts and historical baselines. Library naming is selected; resolve the remaining publication choices before the first release.\n\n## Verification and examples\n\n- Run \u0060pwsh -File eng/verify.ps1\u0060 for scaffold verification. The release profile must continue to fail until required release evidence exists.\n- Add tests when real behavior is implemented. Follow the six verification families in the logging plan and keep development tools outside shipping dependencies.\n- Keep developer source-reference examples explicit. Release reference examples must consume the exact verified packages.\n- Avoid public placeholder APIs and simulated logging implementations. The console host currently identifies that logging is not implemented.\n- Runnable skill/API examples must be verified against their matching package version before activation.\n\n## Changes\n\n- The user requests Claude review when available. Before committing concrete changes, run a read-only Claude review and address actionable findings. Check the host environment outside the sandbox when needed, including the VS Code extension CLI; a missing sandbox PATH entry does not establish that Claude is unavailable. Report an unavailable route honestly.\n- Use readable C#, nullable checking, SDK analyzers, warnings as errors and documented public behavior.\n- Do not overwrite user edits, publish, transmit repository content to another service or approve product records without the corresponding authorization.\n",
+      "proposedContent": "# Agent guidance\n\n## Scope and authority\n\n- CisLib is a separate repository for a multi-module, multi-language core library. Logging and C# are the first implementation scope.\n- Read \u0060planning/decisions.md\u0060 and \u0060planning/logging/plan-amendments.md\u0060 before using the original logging plans. Explicit user decisions take precedence over attached design documents.\n- Distinguish scaffold, implemented behavior, executed evidence and published contracts. Do not claim passing tests from empty projects or generated reports.\n\n## Architecture\n\n- Put shared module contracts in \u0060contracts/\u0060 and shared cases in \u0060conformance/\u0060. Keep C# public types and implementation details in \u0060implementations/csharp/\u0060.\n- Build the C# library as one \u0060CIS.Core\u0060 project/package/assembly, with root namespace \u0060CIS\u0060. Use explicit \u0060CIS.*\u0060 namespaces for handwritten module types. \u0060CIS.Logging\u0060 and \u0060CIS.Logging.MicrosoftLogger\u0060 are namespaces and folders inside it. Future modules are siblings of Logging.\n- Approve actual Microsoft-maintained package identities and dependency closures explicitly. Isolate third-party runtime dependencies in separate optional projects/packages.\n- Keep Core independent of CIS, application infrastructure and collector SDKs. The application owns its runtime lifecycle.\n- Keep language build settings local to \u0060implementations/\u003Clanguage\u003E/\u0060. New runtimes declare supported capabilities and conformance applicability; do not promise C# binary/API mechanics in another language.\n- Preserve published contracts and historical baselines. Library naming is selected; resolve the remaining publication choices before the first release.\n\n## Verification and examples\n\n- Run \u0060pwsh -File eng/verify.ps1\u0060 for scaffold verification. The release profile must continue to fail until required release evidence exists.\n- Add tests when real behavior is implemented. Follow the six verification families in the logging plan and keep development tools outside shipping dependencies.\n- Keep developer source-reference examples explicit. Release reference examples must consume the exact verified packages.\n- Avoid public placeholder APIs and simulated logging implementations. The console host currently identifies that logging is not implemented.\n- Runnable skill/API examples must be verified against their matching package version before activation.\n\n## Changes\n\n- The user requests Claude review when available. Before committing concrete changes, run a read-only Claude review and address actionable findings. Check the host environment outside the sandbox when needed, including the VS Code extension CLI; a missing sandbox PATH entry does not establish that Claude is unavailable. Report an unavailable route honestly.\n- Use readable C#, nullable checking, SDK analyzers, warnings as errors and documented public behavior.\n- Do not overwrite user edits, publish, transmit repository content to another service or approve product records without the corresponding authorization.\n\n\u003C!-- cis:repository-guidance:start --\u003E\n## CIS integration\n\nFor CIS commands and artifacts, read \u0060.github/instructions/cis-import.instructions.md\u0060. Existing project directives remain authoritative; unresolved overlaps are recorded in \u0060.cis/local/import/report.json\u0060.\n\u003C!-- cis:repository-guidance:end --\u003E\n",
+      "reviewHash": "sha256:20572add838e48f5d8d2106844ec9deaf8696d090f2951e157f9eaf0d44437d0",
+      "guidanceSources": [
+        {
+          "path": "AGENTS.md",
+          "content": "## CIS integration\n\nFor CIS commands and artifacts, read \u0060.github/instructions/cis-import.instructions.md\u0060. Existing project directives remain authoritative; unresolved overlaps are recorded in \u0060.cis/local/import/report.json\u0060.\n"
+        }
+      ],
+      "guidanceReview": null,
+      "contextSources": [],
+      "contextWarnings": [],
+      "retire": false
+    }
+  ],
+  "mergeReviewHash": "sha256:ecf5203791e3bb830b40e42c2eb59573752f7b3686867c03826f3ab718c4a708",
+  "guidanceProviders": [],
+  "remoteReviewBatchCount": 0,
+  "remoteReviewConcurrency": 4,
+  "reviewBudgetSeconds": 600,
+  "reviewPaused": false,
+  "guidanceMode": "minimal",
+  "assessments": [
+    {
+      "repositoryPath": "C:\\miscwork\\portfolio\\cislib",
+      "method": "local-requirement-evidence",
+      "inventoryComplete": true,
+      "coverage": [
+        {
+          "id": "navigation",
+          "title": "Read authoritative source evidence",
+          "status": "evidence-found-unverified",
+          "action": "preserve",
+          "sources": [
+            "AGENTS.md"
+          ],
+          "detail": "Requirement-specific text found. Preserve it; scope, correctness and enforcement still require verification.",
+          "addition": null
+        },
+        {
+          "id": "security",
+          "title": "Backend authorization",
+          "status": "gap-in-inspected-guidance",
+          "action": "add",
+          "sources": [],
+          "detail": "The inspected guidance did not contain all evidence for this requirement. Propose a scoped baseline; retain existing project policy.",
+          "addition": "Enforce authorization at the backend boundary; client-side visibility is not an access control."
+        },
+        {
+          "id": "security-secrets",
+          "title": "Secrets and credentials",
+          "status": "gap-in-inspected-guidance",
+          "action": "add",
+          "sources": [],
+          "detail": "The inspected guidance did not contain all evidence for this requirement. Propose a scoped baseline; retain existing project policy.",
+          "addition": "Never commit credentials or expose secrets in logs, generated context or model requests. Use approved secret storage and redaction."
+        },
+        {
+          "id": "security-denied",
+          "title": "Denied access and tenant isolation tests",
+          "status": "gap-in-inspected-guidance",
+          "action": "add",
+          "sources": [],
+          "detail": "The inspected guidance did not contain all evidence for this requirement. Propose a scoped baseline; retain existing project policy.",
+          "addition": "Test applicable unauthenticated, wrong-role and cross-tenant cases alongside allowed behavior."
+        },
+        {
+          "id": "security-scans",
+          "title": "Security scan evidence",
+          "status": "gap-in-inspected-guidance",
+          "action": "add",
+          "sources": [],
+          "detail": "The inspected guidance did not contain all evidence for this requirement. Propose a scoped baseline; retain existing project policy.",
+          "addition": "Use the adopted security scanners and record actual findings and execution limits. Do not treat a configured scanner as a passed check or replace a CI gate during import."
+        },
+        {
+          "id": "security-exceptions",
+          "title": "Review security exceptions",
+          "status": "gap-in-inspected-guidance",
+          "action": "add",
+          "sources": [],
+          "detail": "The inspected guidance did not contain all evidence for this requirement. Propose a scoped baseline; retain existing project policy.",
+          "addition": "Security exceptions require an identified reviewer, rationale, scope and expiry; import and model suggestions cannot accept risk."
+        },
+        {
+          "id": "testing",
+          "title": "Use real test commands",
+          "status": "gap-in-inspected-guidance",
+          "action": "add",
+          "sources": [],
+          "detail": "The inspected guidance did not contain all evidence for this requirement. Propose a scoped baseline; retain existing project policy.",
+          "addition": "Use the repository\u0027s real build and test commands with their documented prerequisites; do not invent a runner or a passing result."
+        },
+        {
+          "id": "testing-results",
+          "title": "Report checks that ran and did not run",
+          "status": "evidence-found-unverified",
+          "action": "preserve",
+          "sources": [
+            "AGENTS.md"
+          ],
+          "detail": "Requirement-specific text found. Preserve it; scope, correctness and enforcement still require verification.",
+          "addition": null
+        },
+        {
+          "id": "browser",
+          "title": "Preserve the adopted browser harness",
+          "status": "gap-in-inspected-guidance",
+          "action": "add",
+          "sources": [],
+          "detail": "The inspected guidance did not contain all evidence for this requirement. Propose a scoped baseline; retain existing project policy.",
+          "addition": "For browser work, preserve the adopted harness, including .NET Playwright where present. A missing harness requires a reviewed choice."
+        },
+        {
+          "id": "browser-state",
+          "title": "Verify actions and resulting state",
+          "status": "gap-in-inspected-guidance",
+          "action": "add",
+          "sources": [],
+          "detail": "The inspected guidance did not contain all evidence for this requirement. Propose a scoped baseline; retain existing project policy.",
+          "addition": "Browser tests must verify actions and resulting state, including relevant denied and error states; a successful click alone is not evidence of correct behavior."
+        },
+        {
+          "id": "browser-data",
+          "title": "Deterministic browser data",
+          "status": "gap-in-inspected-guidance",
+          "action": "add",
+          "sources": [],
+          "detail": "The inspected guidance did not contain all evidence for this requirement. Propose a scoped baseline; retain existing project policy.",
+          "addition": "Use deterministic, isolated data for browser tests and document application startup and cleanup prerequisites."
+        },
+        {
+          "id": "browser-auth",
+          "title": "Keep test authentication out of production",
+          "status": "gap-in-inspected-guidance",
+          "action": "add",
+          "sources": [],
+          "detail": "The inspected guidance did not contain all evidence for this requirement. Propose a scoped baseline; retain existing project policy.",
+          "addition": "Test identities and authentication bypasses must remain isolated from production and must not weaken backend authorization."
+        },
+        {
+          "id": "browser-artifacts",
+          "title": "Retain browser failure evidence",
+          "status": "gap-in-inspected-guidance",
+          "action": "add",
+          "sources": [],
+          "detail": "The inspected guidance did not contain all evidence for this requirement. Propose a scoped baseline; retain existing project policy.",
+          "addition": "Retain useful failure traces, screenshots or equivalent browser artifacts, with secrets and personal data excluded."
+        },
+        {
+          "id": "architecture",
+          "title": "Preserve adopted architecture and frameworks",
+          "status": "gap-in-inspected-guidance",
+          "action": "add",
+          "sources": [],
+          "detail": "The inspected guidance did not contain all evidence for this requirement. Propose a scoped baseline; retain existing project policy.",
+          "addition": "Preserve approved architecture, framework choices and module boundaries; review decisions before replacing an adopted approach."
+        },
+        {
+          "id": "contracts",
+          "title": "Check contract compatibility",
+          "status": "gap-in-inspected-guidance",
+          "action": "add",
+          "sources": [],
+          "detail": "The inspected guidance did not contain all evidence for this requirement. Propose a scoped baseline; retain existing project policy.",
+          "addition": "Identify affected callers and compatibility obligations before changing public APIs, events or schemas."
+        },
+        {
+          "id": "delivery",
+          "title": "Preserve human approval gates",
+          "status": "evidence-found-unverified",
+          "action": "preserve",
+          "sources": [
+            "AGENTS.md"
+          ],
+          "detail": "Requirement-specific text found. Preserve it; scope, correctness and enforcement still require verification.",
+          "addition": null
+        }
+      ],
+      "inventory": [
+        {
+          "path": ".cis/repository.yml",
+          "contentHash": "missing"
+        },
+        {
+          "path": ".github/copilot-instructions.md",
+          "contentHash": "missing"
+        },
+        {
+          "path": "AGENTS.md",
+          "contentHash": "sha256:afaf119131df7cfdae54b6eadfd3ecbd02c84640a8d2152d9b0930b05b740b0a"
+        },
+        {
+          "path": "CLAUDE.md",
+          "contentHash": "missing"
+        },
+        {
+          "path": "docs/cis/references/agent-provider-profile.md",
+          "contentHash": "missing"
+        },
+        {
+          "path": "docs/cis/references/ai-evaluation-datasets/index-card.md",
+          "contentHash": "missing"
+        },
+        {
+          "path": "docs/cis/references/ai-model-registry.md",
+          "contentHash": "missing"
+        },
+        {
+          "path": "docs/cis/references/ai-routing-profile.md",
+          "contentHash": "missing"
+        },
+        {
+          "path": "docs/cis/references/local-artifact-retention.md",
+          "contentHash": "missing"
+        },
+        {
+          "path": "docs/cis/references/security-suite-profile.md",
+          "contentHash": "missing"
+        },
+        {
+          "path": "docs/cis/references/source-evidence.md",
+          "contentHash": "missing"
+        },
+        {
+          "path": "docs/cis/references/test-suite-profile.md",
+          "contentHash": "missing"
+        }
+      ],
+      "findings": [
+        {
+          "kind": "capability-setup",
+          "path": "docs/cis/references/test-suite-profile.md",
+          "detail": "No supported test command could be inferred. Select and verify the adopted harness before configuring CIS testing; no substitute runner is installed."
+        },
+        {
+          "kind": "capability-setup",
+          "path": "docs/cis/references/security-suite-profile.md",
+          "detail": "Map the adopted scanners, commands, output formats and CI gates in a focused review. Security prose alone is not an executable binding; import does not select replacement scanners."
+        }
+      ],
+      "limitations": [
+        "Local requirement evidence matching only. A match does not prove equivalent scope, correctness or enforcement. A missing match is a proposed gap, not proof that project guidance is absent. This is not a semantic merge.",
+        "Inspects root entry points, conventional GitHub guidance and discovered local references (500 files, 256 KB/file, 4 million characters). Other locations and implicit references may remain undiscovered.",
+        "Temporary, cache, build, dependency and generated runtime folders are intentionally excluded, including .github/tmp and .github/copilot-runtime. Links into these folders are not evidence.",
+        "No commands, tests, scanners or CI gates were executed. Framework choices, policy equivalence and automation dependencies require a focused follow-up review."
+      ],
+      "inputHash": "sha256:f1adae123b76d79a2d38db03fa27a496ab27cfe9686d1bc11e395cacc3875e8a",
+      "setup": [
+        {
+          "id": "repository-registration",
+          "title": "CIS repository registration",
+          "status": "missing-configuration",
+          "action": "add",
+          "sources": [
+            ".cis/repository.yml"
+          ],
+          "detail": "Register the selected documentation root for CIS commands.",
+          "addition": null
+        },
+        {
+          "id": "reference.ai-routing-profile",
+          "title": "ai routing profile",
+          "status": "missing-configuration",
+          "action": "add",
+          "sources": [
+            "docs/cis/references/ai-routing-profile.md"
+          ],
+          "detail": "Add the missing CIS runtime profile. These scoped defaults do not replace project directives or approve a model, source document or agent run.",
+          "addition": null
+        },
+        {
+          "id": "reference.agent-provider-profile",
+          "title": "agent provider profile",
+          "status": "missing-configuration",
+          "action": "add",
+          "sources": [
+            "docs/cis/references/agent-provider-profile.md"
+          ],
+          "detail": "Add the missing CIS runtime profile. These scoped defaults do not replace project directives or approve a model, source document or agent run.",
+          "addition": null
+        },
+        {
+          "id": "reference.source-evidence",
+          "title": "source evidence",
+          "status": "missing-configuration",
+          "action": "add",
+          "sources": [
+            "docs/cis/references/source-evidence.md"
+          ],
+          "detail": "Add the missing CIS runtime profile. These scoped defaults do not replace project directives or approve a model, source document or agent run.",
+          "addition": null
+        },
+        {
+          "id": "reference.ai-model-registry",
+          "title": "ai model registry",
+          "status": "missing-configuration",
+          "action": "add",
+          "sources": [
+            "docs/cis/references/ai-model-registry.md"
+          ],
+          "detail": "Add the missing CIS runtime profile. These scoped defaults do not replace project directives or approve a model, source document or agent run.",
+          "addition": null
+        },
+        {
+          "id": "reference.ai-evaluation-index-card",
+          "title": "ai evaluation index card",
+          "status": "missing-configuration",
+          "action": "add",
+          "sources": [
+            "docs/cis/references/ai-evaluation-datasets/index-card.md"
+          ],
+          "detail": "Add the missing CIS runtime profile. These scoped defaults do not replace project directives or approve a model, source document or agent run.",
+          "addition": null
+        },
+        {
+          "id": "reference.local-artifact-retention",
+          "title": "local artifact retention",
+          "status": "missing-configuration",
+          "action": "add",
+          "sources": [
+            "docs/cis/references/local-artifact-retention.md"
+          ],
+          "detail": "Add the missing CIS runtime profile. These scoped defaults do not replace project directives or approve a model, source document or agent run.",
+          "addition": null
+        },
+        {
+          "id": "reference.test-suite-profile",
+          "title": "Test command bindings",
+          "status": "missing-configuration",
+          "action": "defer",
+          "sources": [
+            "docs/cis/references/test-suite-profile.md"
+          ],
+          "detail": "No supported test command could be inferred. Select and verify the adopted harness before configuring CIS testing; no substitute runner is installed.",
+          "addition": null
+        },
+        {
+          "id": "reference.security-suite-profile",
+          "title": "Security scanner bindings",
+          "status": "missing-configuration",
+          "action": "defer",
+          "sources": [
+            "docs/cis/references/security-suite-profile.md"
+          ],
+          "detail": "Map the adopted scanners, commands, output formats and CI gates in a focused review. Security prose alone is not an executable binding; import does not select replacement scanners.",
+          "addition": null
+        }
+      ]
+    }
+  ],
+  "previews": [
+    {
+      "repositoryPath": "C:\\miscwork\\portfolio\\cislib",
+      "relativePath": "docs/cis/README.md",
+      "currentContent": "",
+      "proposedContent": "---\ntitle: \u0022cislib CIS documentation\u0022\ntype: navigation\nstatus: Active\nowner: Repository maintainer\nreview_cadence: on change\ncis:\n  stable_id: cislib:docs:root\n---\n\n# CIS documentation\n\nThis is the selected root for new CIS artifacts. Existing project documents remain authoritative until explicitly reconciled.\n\nImport installs CIS runtime configuration, scoped guidance and test bindings where a supported harness was detected. Existing profiles are preserved. Validate inferred commands before use; security scanner bindings, additional specifications, standards and capability packs remain explicit follow-up work.\n"
+    },
+    {
+      "repositoryPath": "C:\\miscwork\\portfolio\\cislib",
+      "relativePath": ".cis/repository.yml",
+      "currentContent": "",
+      "proposedContent": "schema_version: 1\n\nrepository:\n  id: cislib\n\ndocumentation_root: docs/cis\n"
+    },
+    {
+      "repositoryPath": "C:\\miscwork\\portfolio\\cislib",
+      "relativePath": ".cis/.gitignore",
+      "currentContent": "",
+      "proposedContent": "local/\ncache/\nruns/\n"
+    },
+    {
+      "repositoryPath": "C:\\miscwork\\portfolio\\cislib",
+      "relativePath": ".cis/import-mode",
+      "currentContent": "",
+      "proposedContent": "minimal\n"
+    },
+    {
+      "repositoryPath": "C:\\miscwork\\portfolio\\cislib",
+      "relativePath": "AGENTS.md",
+      "currentContent": "# Agent guidance\n\n## Scope and authority\n\n- CisLib is a separate repository for a multi-module, multi-language core library. Logging and C# are the first implementation scope.\n- Read \u0060planning/decisions.md\u0060 and \u0060planning/logging/plan-amendments.md\u0060 before using the original logging plans. Explicit user decisions take precedence over attached design documents.\n- Distinguish scaffold, implemented behavior, executed evidence and published contracts. Do not claim passing tests from empty projects or generated reports.\n\n## Architecture\n\n- Put shared module contracts in \u0060contracts/\u0060 and shared cases in \u0060conformance/\u0060. Keep C# public types and implementation details in \u0060implementations/csharp/\u0060.\n- Build the C# library as one \u0060CIS.Core\u0060 project/package/assembly, with root namespace \u0060CIS\u0060. Use explicit \u0060CIS.*\u0060 namespaces for handwritten module types. \u0060CIS.Logging\u0060 and \u0060CIS.Logging.MicrosoftLogger\u0060 are namespaces and folders inside it. Future modules are siblings of Logging.\n- Approve actual Microsoft-maintained package identities and dependency closures explicitly. Isolate third-party runtime dependencies in separate optional projects/packages.\n- Keep Core independent of CIS, application infrastructure and collector SDKs. The application owns its runtime lifecycle.\n- Keep language build settings local to \u0060implementations/\u003Clanguage\u003E/\u0060. New runtimes declare supported capabilities and conformance applicability; do not promise C# binary/API mechanics in another language.\n- Preserve published contracts and historical baselines. Library naming is selected; resolve the remaining publication choices before the first release.\n\n## Verification and examples\n\n- Run \u0060pwsh -File eng/verify.ps1\u0060 for scaffold verification. The release profile must continue to fail until required release evidence exists.\n- Add tests when real behavior is implemented. Follow the six verification families in the logging plan and keep development tools outside shipping dependencies.\n- Keep developer source-reference examples explicit. Release reference examples must consume the exact verified packages.\n- Avoid public placeholder APIs and simulated logging implementations. The console host currently identifies that logging is not implemented.\n- Runnable skill/API examples must be verified against their matching package version before activation.\n\n## Changes\n\n- The user requests Claude review when available. Before committing concrete changes, run a read-only Claude review and address actionable findings. Check the host environment outside the sandbox when needed, including the VS Code extension CLI; a missing sandbox PATH entry does not establish that Claude is unavailable. Report an unavailable route honestly.\n- Use readable C#, nullable checking, SDK analyzers, warnings as errors and documented public behavior.\n- Do not overwrite user edits, publish, transmit repository content to another service or approve product records without the corresponding authorization.\n",
+      "proposedContent": "# Agent guidance\n\n## Scope and authority\n\n- CisLib is a separate repository for a multi-module, multi-language core library. Logging and C# are the first implementation scope.\n- Read \u0060planning/decisions.md\u0060 and \u0060planning/logging/plan-amendments.md\u0060 before using the original logging plans. Explicit user decisions take precedence over attached design documents.\n- Distinguish scaffold, implemented behavior, executed evidence and published contracts. Do not claim passing tests from empty projects or generated reports.\n\n## Architecture\n\n- Put shared module contracts in \u0060contracts/\u0060 and shared cases in \u0060conformance/\u0060. Keep C# public types and implementation details in \u0060implementations/csharp/\u0060.\n- Build the C# library as one \u0060CIS.Core\u0060 project/package/assembly, with root namespace \u0060CIS\u0060. Use explicit \u0060CIS.*\u0060 namespaces for handwritten module types. \u0060CIS.Logging\u0060 and \u0060CIS.Logging.MicrosoftLogger\u0060 are namespaces and folders inside it. Future modules are siblings of Logging.\n- Approve actual Microsoft-maintained package identities and dependency closures explicitly. Isolate third-party runtime dependencies in separate optional projects/packages.\n- Keep Core independent of CIS, application infrastructure and collector SDKs. The application owns its runtime lifecycle.\n- Keep language build settings local to \u0060implementations/\u003Clanguage\u003E/\u0060. New runtimes declare supported capabilities and conformance applicability; do not promise C# binary/API mechanics in another language.\n- Preserve published contracts and historical baselines. Library naming is selected; resolve the remaining publication choices before the first release.\n\n## Verification and examples\n\n- Run \u0060pwsh -File eng/verify.ps1\u0060 for scaffold verification. The release profile must continue to fail until required release evidence exists.\n- Add tests when real behavior is implemented. Follow the six verification families in the logging plan and keep development tools outside shipping dependencies.\n- Keep developer source-reference examples explicit. Release reference examples must consume the exact verified packages.\n- Avoid public placeholder APIs and simulated logging implementations. The console host currently identifies that logging is not implemented.\n- Runnable skill/API examples must be verified against their matching package version before activation.\n\n## Changes\n\n- The user requests Claude review when available. Before committing concrete changes, run a read-only Claude review and address actionable findings. Check the host environment outside the sandbox when needed, including the VS Code extension CLI; a missing sandbox PATH entry does not establish that Claude is unavailable. Report an unavailable route honestly.\n- Use readable C#, nullable checking, SDK analyzers, warnings as errors and documented public behavior.\n- Do not overwrite user edits, publish, transmit repository content to another service or approve product records without the corresponding authorization.\n\n\u003C!-- cis:repository-guidance:start --\u003E\n## CIS integration\n\nFor CIS commands and artifacts, read \u0060.github/instructions/cis-import.instructions.md\u0060. Existing project directives remain authoritative; unresolved overlaps are recorded in \u0060.cis/local/import/report.json\u0060.\n\u003C!-- cis:repository-guidance:end --\u003E\n"
+    },
+    {
+      "repositoryPath": "C:\\miscwork\\portfolio\\cislib",
+      "relativePath": "docs/cis/references/ai-routing-profile.md",
+      "currentContent": "",
+      "proposedContent": "---\ntitle: \u0022AI Routing Profile\u0022\ntype: ai-routing-profile\nstatus: Active\nowner: \u0022Repository maintainers\u0022\nlast_reviewed: \u00222026-08-27\u0022\nreview_cadence: \u0022on provider, model, privacy, or cost-policy change\u0022\n---\n\n# AI routing profile\n\nLocal Ollama is the default. Remote transmission requires both a reviewed route\nand explicit \u0060--allow-remote\u0060 authorization for the exact submitted content.\n\n| Capability | Provider | Model | Allow remote | Cache |\n|---|---|---|---|---|\n| index-card | ollama | repository-smallest-local | no | yes |\n| brd-question-suggestion | ollama | repository-smallest-local | no | no |\n| context-summary | ollama | repository-smallest-local | no | yes |\n| learning-summary | ollama | repository-smallest-local | no | yes |"
+    },
+    {
+      "repositoryPath": "C:\\miscwork\\portfolio\\cislib",
+      "relativePath": "docs/cis/references/agent-provider-profile.md",
+      "currentContent": "",
+      "proposedContent": "---\ntitle: \u0022Agent Provider Profile\u0022\ntype: agent-provider-profile\nstatus: Active\nowner: \u0022Repository maintainers\u0022\nlast_reviewed: \u00222026-08-28\u0022\nreview_cadence: \u0022on provider, permission, isolation, or retention-policy change\u0022\n---\n\n# Agent provider profile\n\nNo direct provider is selected by default. A controller must select Codex, Claude,\nor another discovered provider until this profile is reviewed. Credentials remain\nprovider-native and must never be copied into this document.\n\n| Setting | Value | Rationale |\n|---|---|---|\n| default-provider | none | Avoid silent vendor selection. |\n| default-transport | provider-preferred | Capability negotiation remains explicit. |\n| implementation-isolation | git-worktree | Preserve the user\u0027s current working tree while seeding the isolated worktree from its exact tracked and non-ignored untracked baseline. |\n| direct-dirty-working-tree | denied | Requires an explicit reviewed policy change. |\n| maximum-run-seconds | 3600 | Bound local foreground execution. |\n| maximum-startup-seconds | 30 | Fail closed when a provider produces no startup evidence. |\n| maximum-idle-seconds | 300 | Classify a silent stalled provider separately from total expiry. |\n| approve-within-ceiling | denied | Permission requests require explicit controller authorization per run. |\n\n## Providers\n\n| Provider | Enabled | Preferred transport | Allowed modes | Maximum permission | Notes |\n|---|---|---|---|---|---|\n| codex | yes | app-server | plan, implement, review | workspace-write | \u0060exec-json\u0060 is an explicit non-interactive fallback. Resolution checks \u0060CIS_CODEX_EXECUTABLE\u0060, process PATH, then the current Windows Codex Desktop installation. Inconclusive login status is advisory because ambient Desktop/App Server authentication can still execute. Explicit setup uses provider-native browser or device authentication through \u0060cis agent provider authenticate codex\u0060; CIS never receives credentials. |\n| claude | yes | stream-json | plan, implement, review | workspace-write | Headless execution does not relay interactive approvals. Implementation-only \u0060--allow-command\u0060 adds literal native rules per attempt; denied commands fail. Native rules are not an OS sandbox. |\n| portable | yes | envelope | plan, implement, review | read-only | Preparation only; no direct execution. |"
+    },
+    {
+      "repositoryPath": "C:\\miscwork\\portfolio\\cislib",
+      "relativePath": "docs/cis/references/source-evidence.md",
+      "currentContent": "",
+      "proposedContent": "---\ntitle: \u0022Source Evidence Registry\u0022\ntype: source-evidence-registry\nstatus: Active\nowner: \u0022Repository maintainers\u0022\nlast_reviewed: \u00222026-08-30\u0022\nreview_cadence: \u0022on source selection or source revision\u0022\n---\n\n# Source evidence registry\n\nOriginal files remain authoritative. Markdown projections under\n\u0060.cis/local/references/\u0060 are derived routing evidence and may be rebuilt without\nrewriting governed specifications.\n\n| ID | Source path | Format | Registered SHA-256 | Assessment | Actor | Registered at (UTC) | Rationale |\n| --- | --- | --- | --- | --- | --- | --- | --- |"
+    },
+    {
+      "repositoryPath": "C:\\miscwork\\portfolio\\cislib",
+      "relativePath": "docs/cis/references/ai-model-registry.md",
+      "currentContent": "",
+      "proposedContent": "---\ntitle: \u0022AI Model Registry\u0022\ntype: ai-model-registry\nstatus: Active\nowner: \u0022Repository maintainers\u0022\nlast_reviewed: \u00222026-08-27\u0022\nreview_cadence: \u0022on provider, model, prompt, task-class, privacy, or policy change\u0022\n---\n\n# AI model registry\n\nAvailability is not approval. Approve a provider/model for each task class only after\na real capability probe, deterministic benchmark, and runtime prompt-regression pass.\n\n| Provider | Model | Task class | State | Reviewer | Reason | Evidence digest | Approved UTC |\n|---|---|---|---|---|---|---|---|"
+    },
+    {
+      "repositoryPath": "C:\\miscwork\\portfolio\\cislib",
+      "relativePath": "docs/cis/references/ai-evaluation-datasets/index-card.md",
+      "currentContent": "",
+      "proposedContent": "---\ntitle: \u0022Index Card AI Evaluation Dataset\u0022\ntype: ai-evaluation-dataset\nstatus: Active\nowner: \u0022Repository maintainers\u0022\nlast_reviewed: \u00222026-08-27\u0022\nreview_cadence: \u0022on prompt, model, task-class, or routing change\u0022\ntask_class: index-card\n---\n\n# Index card AI evaluation dataset\n\n| Case ID | Prompt | Required terms |\n|---|---|---|\n| concise-routing-summary | Return a concise file-routing summary that states the file purpose and important symbols. | purpose |"
+    },
+    {
+      "repositoryPath": "C:\\miscwork\\portfolio\\cislib",
+      "relativePath": "docs/cis/references/local-artifact-retention.md",
+      "currentContent": "",
+      "proposedContent": "---\ntitle: \u0022Local Artifact Retention\u0022\ntype: local-artifact-retention\nstatus: Active\nowner: \u0022Repository maintainers\u0022\nlast_reviewed: \u00222026-08-27\u0022\nreview_cadence: \u0022on evidence, storage, privacy, or recovery-policy change\u0022\n---\n\n# Local artifact retention\n\nRules apply only to immediate entries beneath the declared \u0060.cis/local/\u0060 path.\nCanonical Markdown and user-managed repository files are never eligible.\n\n| Family | Path | Retain days | Keep latest | Action |\n|---|---|---:|---:|---|\n| graph | .cis/local/graph | 0 | 0 | preserve |\n| api | .cis/local/api | 0 | 0 | preserve |\n| references | .cis/local/references | 0 | 0 | preserve |\n| frontend | .cis/local/frontend | 0 | 0 | preserve |\n| policy-impact | .cis/local/impact | 0 | 0 | preserve |\n| index-cards | .cis/local/index-cards | 0 | 0 | preserve |\n| brd-question-suggestions | .cis/local/brd/questions | 0 | 0 | preserve |\n| context | .cis/local/context | 30 | 20 | archive |\n| workflows | .cis/local/workflows | 30 | 20 | archive |\n| testing | .cis/local/testing/runs | 30 | 10 | archive |\n| security | .cis/local/security/runs | 30 | 10 | archive |\n| ci | .cis/local/ci | 14 | 20 | archive |\n| diagnostics | .cis/local/diagnostics | 30 | 20 | archive |\n| agents | .cis/local/agents | 30 | 20 | archive |\n| generation | .cis/local/generate | 30 | 20 | archive |\n| ai-cache | .cis/local/ai/cache | 7 | 50 | delete |\n| ai-qualification | .cis/local/ai/qualification | 90 | 20 | archive |"
+    },
+    {
+      "repositoryPath": "C:\\miscwork\\portfolio\\cislib",
+      "relativePath": ".github/instructions/cis-import.instructions.md",
+      "currentContent": "",
+      "proposedContent": "---\napplyTo: \u0022**\u0022\n---\n\n# CIS import essentials\n\nScope: CIS commands and newly created CIS artifacts. Existing project directives, authoritative documents, frameworks and approval gates remain in force. This file does not replace repository-wide routing or resolve conflicts.\n\n- CIS configuration is \u0060.cis/repository.yml\u0060; the selected CIS documentation root is \u0060docs/cis\u0060. Existing documents elsewhere remain authoritative until explicitly reconciled.\n- Use \u0060cis repo doctor\u0060 to check registration and \u0060cis graph build --workspace \u003Cworkspace\u003E\u0060 to refresh derived workspace context. Use \u0060cis --help\u0060 and command help to discover capabilities; use the listed CIS runtime profiles and review inferred test bindings before execution. Security scanner bindings and other capability setup remain explicit follow-up work.\n- Read source documents before relying on generated context. Imported evidence and generated drafts do not establish currency or approval. Preserve project-specific requirements and report contradictions for a focused decision.\n- Keep automatic model selection local. Remote model use requires explicit authorization for the selected content; never send secrets or credentials.\n- Review planned file changes before applying them. Record actual validation results and unresolved decisions; CIS does not grant deployment or policy approval.\n\n## Proposed requirement baselines\n\nExisting project policy takes precedence. These additions apply only where that policy is silent; text matching does not prove full coverage.\n\n- **Backend authorization:** Enforce authorization at the backend boundary; client-side visibility is not an access control.\n- **Secrets and credentials:** Never commit credentials or expose secrets in logs, generated context or model requests. Use approved secret storage and redaction.\n- **Denied access and tenant isolation tests:** Test applicable unauthenticated, wrong-role and cross-tenant cases alongside allowed behavior.\n- **Security scan evidence:** Use the adopted security scanners and record actual findings and execution limits. Do not treat a configured scanner as a passed check or replace a CI gate during import.\n- **Review security exceptions:** Security exceptions require an identified reviewer, rationale, scope and expiry; import and model suggestions cannot accept risk.\n- **Use real test commands:** Use the repository\u0027s real build and test commands with their documented prerequisites; do not invent a runner or a passing result.\n- **Preserve the adopted browser harness:** For browser work, preserve the adopted harness, including .NET Playwright where present. A missing harness requires a reviewed choice.\n- **Verify actions and resulting state:** Browser tests must verify actions and resulting state, including relevant denied and error states; a successful click alone is not evidence of correct behavior.\n- **Deterministic browser data:** Use deterministic, isolated data for browser tests and document application startup and cleanup prerequisites.\n- **Keep test authentication out of production:** Test identities and authentication bypasses must remain isolated from production and must not weaken backend authorization.\n- **Retain browser failure evidence:** Retain useful failure traces, screenshots or equivalent browser artifacts, with secrets and personal data excluded.\n- **Preserve adopted architecture and frameworks:** Preserve approved architecture, framework choices and module boundaries; review decisions before replacing an adopted approach.\n- **Check contract compatibility:** Identify affected callers and compatibility obligations before changing public APIs, events or schemas.\n\nThe local import assessment is available in \u0060.cis/local/import/report.json\u0060. Overlap, routing and unverified items remain follow-up work.\n"
+    },
+    {
+      "repositoryPath": "C:\\miscwork\\portfolio\\cislib",
+      "relativePath": "docs/cis/catalog.yml",
+      "currentContent": "",
+      "proposedContent": "schema_version: 1\nrepository: cislib\ndocuments:\n  - id: cislib:docs:root\n    path: docs/cis/README.md\n    type: navigation\n    status: active\n    authority: routing\n  - id: cislib:reference:agent-provider-profile\n    path: docs/cis/references/agent-provider-profile.md\n    type: agent-provider-profile\n    status: active\n    authority: canonical\n  - id: cislib:reference:ai-evaluation-index-card\n    path: docs/cis/references/ai-evaluation-datasets/index-card.md\n    type: ai-evaluation-dataset\n    status: active\n    authority: canonical\n  - id: cislib:reference:ai-model-registry\n    path: docs/cis/references/ai-model-registry.md\n    type: ai-model-registry\n    status: active\n    authority: canonical\n  - id: cislib:reference:ai-routing-profile\n    path: docs/cis/references/ai-routing-profile.md\n    type: ai-routing-profile\n    status: active\n    authority: canonical\n  - id: cislib:reference:local-artifact-retention\n    path: docs/cis/references/local-artifact-retention.md\n    type: local-artifact-retention\n    status: active\n    authority: canonical\n  - id: cislib:reference:source-evidence\n    path: docs/cis/references/source-evidence.md\n    type: source-evidence-registry\n    status: active\n    authority: canonical\n"
+    },
+    {
+      "repositoryPath": "C:\\miscwork\\portfolio\\cislib",
+      "relativePath": ".cis/starter-manifest.yml",
+      "currentContent": "",
+      "proposedContent": "schema_version: 1\nrepository_shape: monorepo\ncomponents: []\nmanaged_artifacts:\n- id: guidance.instruction.import\n  path: .github/instructions/cis-import.instructions.md\n  definition: guidance.instruction.import\n  template_version: 1\n  applied_hash: sha256:ea2efb6b0c71229eb60fde36c1b6ab439f21e52b8c00e2070ad0e69a564d60ff\n  ownership: managed\n- id: guidance.import.entry-point.AGENTS.md\n  path: AGENTS.md\n  definition: guidance.import.entry-point\n  template_version: 1\n  applied_hash: sha256:eeda83740166e0571e57d3879fa36a92b6d2dc80e2fa5199eb35e41d8cadc9a7\n  ownership: human\n  guidance_template_hash: sha256:43d52a8be6ce8aa117f9c4684060653ef5110262c885c1c23e3b2a8916074fcf\n- id: reference.agent-provider-profile\n  path: docs/cis/references/agent-provider-profile.md\n  definition: reference.agent-provider-profile\n  template_version: 1\n  applied_hash: sha256:415150b762a157bbd67a8be09471e3490ff3c432fd84c569ef91fc8798e046ab\n  ownership: managed\n- id: reference.ai-evaluation-index-card\n  path: docs/cis/references/ai-evaluation-datasets/index-card.md\n  definition: reference.ai-evaluation-index-card\n  template_version: 1\n  applied_hash: sha256:23f09bdca5df93dce9edc5f0e49adda72d09fc9f135a60e7811c693084be6702\n  ownership: managed\n- id: reference.ai-model-registry\n  path: docs/cis/references/ai-model-registry.md\n  definition: reference.ai-model-registry\n  template_version: 1\n  applied_hash: sha256:6390aa27b88670905383bd07821338f5df86703ce1996231aabcb240970f4370\n  ownership: managed\n- id: reference.ai-routing-profile\n  path: docs/cis/references/ai-routing-profile.md\n  definition: reference.ai-routing-profile\n  template_version: 1\n  applied_hash: sha256:3a21d39308aa7faa191145ef9efc071cfbe435ea1d5b99e880261b9b38b96cf5\n  ownership: managed\n- id: reference.local-artifact-retention\n  path: docs/cis/references/local-artifact-retention.md\n  definition: reference.local-artifact-retention\n  template_version: 1\n  applied_hash: sha256:117cae154f17bfcce6b9427b97d6602a029b22365fcaa00d8914ae8510487855\n  ownership: managed\n- id: reference.source-evidence\n  path: docs/cis/references/source-evidence.md\n  definition: reference.source-evidence\n  template_version: 1\n  applied_hash: sha256:d80e630b97cb8d5d3a605cb076edfc89c24d6f53792f3134fee255f9ace30e61\n  ownership: managed\n"
+    },
+    {
+      "repositoryPath": "C:\\miscwork\\portfolio\\cislib",
+      "relativePath": ".cis/workspace.yml",
+      "currentContent": "",
+      "proposedContent": "schema_version: 2\necosystem:\n  id: cis\n  name: cis\nproduct:\n  id: cislib\n  name: cislib\nrepositories:\n- id: cislib\n  path: .\n  documentation_root: docs/cis\n  role: authority\n  participation: owned\n  relationship: none\n  components: []\n"
+    }
+  ],
+  "exitCode": 0
+}

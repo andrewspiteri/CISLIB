@@ -1,0 +1,31 @@
+# CISLIB initialization record
+
+On 11 October 2026, CISLIB was registered as the single owned authority repository in ecosystem `cis`, product `cislib`, with documentation root `docs/cis`. These identifiers and the root were explicitly selected by the user. Setup follows completed WP04-S02-T03, commit `a3d28c83bd86a8a4a3d80229dcdaa2598951c094`; WP04-S02-T04 remains next and is not started by this initialization.
+
+## Scope and tool identity
+
+Minimal import adds registration, scoped guidance, a physical component inventory, one graph-context skill and a selective Draft index for WP04-S02. It preserves the existing roadmap, task evidence, verification harness, shipping library, API, dependencies, source plans and user decisions. Ten solution projects plus a tooling fallback are mapped by repository profile. `.cis/local/` contains disposable machine-local state and is ignored.
+
+The CLI was built from [CIS source commit d4f36080](https://github.com/andrewspiteri/CIS/tree/d4f36080d820745dee0907d0f9d87b669a3428fc) with no tracked source changes. The exact source working directory, publish command, complete-directory copy into CISLIB and hashes for the local tool files are in [tool-identity.json](evidence/initialization/tool-identity.json). It is a framework-dependent .NET 10 build; the executable is ignored, and a new checkout obtains CIS separately through the [graph guide](../../docs/cis/graph-context.md). No CIS assembly is added to Core.
+
+The import preview was inspected before application. Its merge review was bound to `sha256:ecf5203791e3bb830b40e42c2eb59573752f7b3686867c03826f3ab718c4a708`. Applied import reports no errors or collisions. The retained [assessment](evidence/initialization/import-assessment.json) is the original local text-matching assessment, not a semantic policy review or executed verification result.
+
+## Imported proposals and review corrections
+
+Import suggested general application authorization, tenant/security and browser baselines. They remain proposals in the retained assessment; no new browser framework, application requirement or security exception policy is adopted. CIS import instructions are scoped to CIS files and defer to AGENTS.md.
+
+The six provider/AI/evidence/retention templates remain Draft proposals in their frontmatter and the catalog. Their original template review dates are retained separately. Initialization reviewed metadata and scope only, without approving their provider permissions, model routes, retention actions or evaluation settings. Existing read-only Claude review guidance remains authoritative. Draft metadata does not guarantee that CIS agent/retention commands ignore these files; this setup does not run those operations. The canonical starter manifest records matching hashes and repository ownership for these metadata/scope customizations; its original import version is retained as provenance. A `repo init --accept-current --dry-run` preview proposed full starters/examples beyond minimal import and was not applied. Editing canonical initialization configuration does not confer CIS product or policy approval.
+
+Claude performed a read-only source-aware review and a separate guide-only reader check. Initial review found no blocking defect, but identified misleading imported authority, missing fresh-clone evidence, incomplete ambiguity counts and missing tool identity. The reader check identified unclear current-task routing and whether both replay copies were built. The corrections preserve the protected AGENTS import block, distinguish Draft proposals from adopted guidance, retain the assessment for new checkouts, record tool identity and explicitly build only the working replay copy. These are automated advisory reviews, not human usability testing or product acceptance. Final review and command results are retained alongside the initial results.
+
+## Unresolved setup and graph limits
+
+At initialization, graph construction reports 39 C# ownership ambiguities. Deep validation reports an additional warning for 272 symbol/test nodes without confirmed component identity. Shared qualified names in live code, reference API sources, historical source copies and separate project entry points account for these limits. The current tool exposes no repository graph-exclusion configuration. Original evidence and namespaces are preserved; affected graph symbols cannot establish exact project ownership or complete caller coverage. Non-strict validation succeeds with warnings; strict validation fails with exit 5. Exact Core exception symbols and Draft task routes are available for bounded navigation. Anonymous/lambda caller nodes merge per component and can show an unrelated declaration location; inspect `traversals[].edge.observations[]` paths and line locators for actual call sites. The current `callers` operation includes neighbors in both directions, so its results are not an incoming-only call list. Exact keys cannot separate declarations already merged by the tool.
+
+Conditional test packages in `implementations/csharp/tests/Directory.Build.targets` prevented inferred native test bindings. The real `eng/verify.ps1 -Profile Developer` harness remains authoritative. Engineering completion gates, scanner bindings, standards, full roadmap migration and provider/model workflows remain unadopted or unconfigured. These setup gaps do not negate the native verification retained for completed tasks.
+
+The graph skill passes strict validation and its no-model audit. Documentation validation, launcher smoke, final graph/status and bounded context queries qualify this tooling/documentation change. Native Core tests and source replay were not repeated for initialization because no library code, contracts or verification harness changed; T03's retained replay passed 2,810 tests. Graph links prove navigation, not execution, completeness or acceptance.
+
+## Retained evidence
+
+The structured [initialization record](initialization.json) lists command exit codes, graph identity/diagnostics, review results and hashes of retained files under `evidence/initialization/`. Local graph caches, CLI binaries and `.artifacts` are not committed. Neither initialization nor its automated review approves a governed CIS plan or product record. The next library task remains WP04-S02-T04.
