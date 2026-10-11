@@ -1,0 +1,82 @@
+{
+  "schema": "cis.operation-scope-process/v1",
+  "family": "windows",
+  "status": "Passed",
+  "exitCode": 0,
+  "driverSha256": "db0f47bfd5a4bb7ff0ed7b7331047b6fef942e0cfc74dc41846b86009327e47f",
+  "runtimeVersion": "10.0.12",
+  "rollForward": "Disable",
+  "cases": [
+    {
+      "id": "copy",
+      "status": "Passed",
+      "childExitCode": 0,
+      "fixtureSha256": "b52ce370639376243dec7189b1f703817f70c50d30b73d3c0ff5fe9f580bfdaf",
+      "coreSha256": "6cd5d706358489801d606d781bb4a7b0b36fc282d2acd5b75a330fd85e9abd3a"
+    },
+    {
+      "id": "inherit",
+      "status": "Passed",
+      "childExitCode": 0,
+      "fixtureSha256": "b52ce370639376243dec7189b1f703817f70c50d30b73d3c0ff5fe9f580bfdaf",
+      "coreSha256": "6cd5d706358489801d606d781bb4a7b0b36fc282d2acd5b75a330fd85e9abd3a"
+    },
+    {
+      "id": "isolated",
+      "status": "Passed",
+      "childExitCode": 0,
+      "fixtureSha256": "b52ce370639376243dec7189b1f703817f70c50d30b73d3c0ff5fe9f580bfdaf",
+      "coreSha256": "6cd5d706358489801d606d781bb4a7b0b36fc282d2acd5b75a330fd85e9abd3a"
+    }
+  ],
+  "reports": [
+    {
+      "path": "copy.stdout.json",
+      "sha256": "8e8a81e9ec2e0c5f9fd49bb870201ccc43ab66ddebfd75469d47b32024246a20",
+      "bytes": 386
+    },
+    {
+      "path": "copy.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "inherit.stdout.json",
+      "sha256": "89bb66b033a7e417c42095adb86b998119718bb1e78f7cc5c87780c3bc201c34",
+      "bytes": 386
+    },
+    {
+      "path": "inherit.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "isolated.stdout.json",
+      "sha256": "3b9ce5d81ebbd5d4024c8571c94af0290971a5ed9a4d1cab4b5f38e76537c427",
+      "bytes": 379
+    },
+    {
+      "path": "isolated.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    }
+  ],
+  "comparatorControls": [
+    {
+      "mode": "copy",
+      "field": "nodes",
+      "rejected": true
+    },
+    {
+      "mode": "inherit",
+      "field": "childId",
+      "rejected": true
+    },
+    {
+      "mode": "isolated",
+      "field": "second",
+      "rejected": true
+    }
+  ],
+  "parentEnvironmentAndDirectoryUnchanged": true
+}

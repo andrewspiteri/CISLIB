@@ -1,0 +1,82 @@
+{
+  "schema": "cis.operation-scope-process/v1",
+  "family": "linux",
+  "status": "Passed",
+  "exitCode": 0,
+  "driverSha256": "db0f47bfd5a4bb7ff0ed7b7331047b6fef942e0cfc74dc41846b86009327e47f",
+  "runtimeVersion": "10.0.12",
+  "rollForward": "Disable",
+  "cases": [
+    {
+      "id": "copy",
+      "status": "Passed",
+      "childExitCode": 0,
+      "fixtureSha256": "b52ce370639376243dec7189b1f703817f70c50d30b73d3c0ff5fe9f580bfdaf",
+      "coreSha256": "6cd5d706358489801d606d781bb4a7b0b36fc282d2acd5b75a330fd85e9abd3a"
+    },
+    {
+      "id": "inherit",
+      "status": "Passed",
+      "childExitCode": 0,
+      "fixtureSha256": "b52ce370639376243dec7189b1f703817f70c50d30b73d3c0ff5fe9f580bfdaf",
+      "coreSha256": "6cd5d706358489801d606d781bb4a7b0b36fc282d2acd5b75a330fd85e9abd3a"
+    },
+    {
+      "id": "isolated",
+      "status": "Passed",
+      "childExitCode": 0,
+      "fixtureSha256": "b52ce370639376243dec7189b1f703817f70c50d30b73d3c0ff5fe9f580bfdaf",
+      "coreSha256": "6cd5d706358489801d606d781bb4a7b0b36fc282d2acd5b75a330fd85e9abd3a"
+    }
+  ],
+  "reports": [
+    {
+      "path": "copy.stdout.json",
+      "sha256": "eecb9641d71548114b3a1b0172ad92171d5fb94b796688252510f9955e4179ab",
+      "bytes": 383
+    },
+    {
+      "path": "copy.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "inherit.stdout.json",
+      "sha256": "2ea006a7d9dbcc4d82f5480a32e6902cab93fb1583c975e6067887477b221470",
+      "bytes": 383
+    },
+    {
+      "path": "inherit.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "isolated.stdout.json",
+      "sha256": "660e859af3ec7f32018e1e839c72abc32f9f3f1178ac6df24a7d6a281e0ad8ff",
+      "bytes": 376
+    },
+    {
+      "path": "isolated.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    }
+  ],
+  "comparatorControls": [
+    {
+      "mode": "copy",
+      "field": "nodes",
+      "rejected": true
+    },
+    {
+      "mode": "inherit",
+      "field": "childId",
+      "rejected": true
+    },
+    {
+      "mode": "isolated",
+      "field": "second",
+      "rejected": true
+    }
+  ],
+  "parentEnvironmentAndDirectoryUnchanged": true
+}

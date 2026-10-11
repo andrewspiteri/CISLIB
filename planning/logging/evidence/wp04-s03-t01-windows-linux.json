@@ -1,0 +1,2198 @@
+{
+  "schemaVersion": 1,
+  "taskId": "WP04-S03-T01",
+  "recordedUtc": "2026-10-11T11:15:35.049617+00:00",
+  "checkpointCommit": "1024d40784508f72d282fc99eb6bbda908e2380a",
+  "taskChangesCommitted": false,
+  "originalTaskDescription": "Implement runtime-specific asynchronous scope storage and BeginScope using copied OperationContextData and the supported value model.",
+  "outcome": "Implement the actual context input and internal per-store asynchronous scope foundation with copied bounded payloads and immutable parent frames",
+  "nativeChecks": {
+    "newUnitCases": 40,
+    "newIntegrationCases": 3,
+    "newArchitectureCases": 2,
+    "newCases": 45,
+    "boundMethods": 19,
+    "unit": 2429,
+    "integration": 344,
+    "architecture": 392,
+    "total": 3165,
+    "failed": 0,
+    "skipped": 0
+  },
+  "compilerControls": {
+    "existingStartup": 21,
+    "compatibilitySamples": 22,
+    "actualCoreValueControls": 12,
+    "total": 55,
+    "allMatched": true
+  },
+  "standaloneProcesses": {
+    "childrenPerPlatform": 3,
+    "runtimeVersion": "10.0.12",
+    "rollForward": "Disable",
+    "fixtureSha256": "b52ce370639376243dec7189b1f703817f70c50d30b73d3c0ff5fe9f580bfdaf",
+    "coreSha256": "6cd5d706358489801d606d781bb4a7b0b36fc282d2acd5b75a330fd85e9abd3a",
+    "optimizationSafeComparatorControlsPerPlatform": 3
+  },
+  "externalClaudeReview": {
+    "reviewCompleted": true,
+    "readOnly": true,
+    "outsideSandbox": true,
+    "initialVerdict": "PASS with four low-priority items",
+    "finalVerdict": "PASS; no actionable findings",
+    "actionableFindingsResolved": true,
+    "resolved": [
+      "L1 accurate inventory scope",
+      "L2 absent-frame disposal branch tested",
+      "L3 nullable read/write annotations tested",
+      "L4 inherited-frame, repeated-foreign and concurrent-disposal requirements recorded for T03"
+    ],
+    "reviews": [
+      "claude-review.json",
+      "claude-final.json",
+      "claude-evidence.json",
+      "claude-evidence-final.json"
+    ],
+    "productApproval": false,
+    "evidenceSupplementInitialVerdict": "One medium and two low provenance findings; no source/test/count/status issue",
+    "evidenceSupplementFindingsResolved": true,
+    "evidenceSupplementCorrections": [
+      "Retained executable inspector and both measured/checked versions",
+      "Corrected audit requires receipt and every report to be staged, including ignored binaries, and rejects nonignored untracked files",
+      "Helper-run output availability is explicitly stated; actual direct/fresh/process exit files are checked"
+    ],
+    "evidenceSupplementFinalVerdict": "Previous medium/low/info findings confirmed fixed; one final low provenance finding resolved with retained append/finalization scripts and a complete final-state audit outside the report hash set",
+    "evidenceSupplementFinalFindingResolved": true
+  },
+  "buildArtifactComparison": {
+    "directCoreSha256": "6cd5d706358489801d606d781bb4a7b0b36fc282d2acd5b75a330fd85e9abd3a",
+    "freshCopyCoreSha256": "3535ef7673635129bddddc9391300fe04cdf2e00496171a5992bffeb189b7e25",
+    "byteIdentical": false,
+    "managedMethodDefinitionsMatched": 581,
+    "managedMethodBodiesMatched": 563,
+    "methodSignaturesILAndExceptionRegionsEqual": true,
+    "differentRecordedPdbPaths": true,
+    "sameAssemblyAndInformationalVersions": true,
+    "scope": "Fresh-copy source/native verification, not path-independent byte reproducibility. Distinct artifact identities are retained.",
+    "compilerPathDocumentation": "https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/compiler-options/main-compiler-option",
+    "versionsMatched": {
+      "assemblyName": "CIS.Core, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null",
+      "assemblyVersion": "1.0.0.0",
+      "fileVersion": "0.1.0.1",
+      "informationalVersion": "0.1.0-dev.1+1024d40784508f72d282fc99eb6bbda908e2380a"
+    },
+    "inspector": "planning/logging/evidence/wp04-s03-t01/commands/inspect-builds.ps1",
+    "inspection": "planning/logging/evidence/wp04-s03-t01/commands/binary-inspection-v2.json",
+    "originalInspectionPreserved": true
+  },
+  "verificationExits": {
+    "directDeveloper": 0,
+    "checkDeveloper": 0,
+    "releaseVerify": 2,
+    "checkRelease": 2,
+    "freshCopyDeveloper": 0,
+    "windowsScopeDriver": 0,
+    "ubuntuScopeDriver": 0
+  },
+  "freshCopyVerification": {
+    "schema": "cis.replay/v1",
+    "profile": "Developer",
+    "lane": "windows-x64",
+    "runRoot": "C:\\miscwork\\portfolio\\cislib\\.artifacts\\csharp\\replay\\20261011T105844Z-211c646bfac942e2a2f9507de44af0ba",
+    "exitCode": 0,
+    "inputVerifiedBefore": true,
+    "inputVerifiedAfter": true,
+    "detail": "Copied source/input replay with isolated caches. This is not historical binary/package replay or a release bundle certification."
+  },
+  "canonicalSourceInventory": "planning/logging/evidence/wp04-s03-t01/fresh-copy/input-inventory.json",
+  "verifiedCanonicalInputCount": 12708,
+  "postCaptureInventoriedEdits": [
+    {
+      "path": "docs/cis/references/traceability-matrix.md",
+      "capturedSha256": "56d9d1926b296f83589c9734ca5c5e0fc0a6bd9873cd286d28cd7d38d8685965",
+      "finalSha256": "572373b39cc70adfbaea90ab21a9da3c9f9c00ea3661ad1c6c57f287cbea07ba",
+      "reason": "Completion-only documentation after executed fresh-copy verification; no production/test/case changes."
+    },
+    {
+      "path": "docs/modules/logging/operation-scopes.md",
+      "capturedSha256": "828c14e93e5db832970d17420d4d77f1fda343282d90ef41610d622b4ee1f578",
+      "finalSha256": "bf23b52b4624f852e2d07d4f32c12d3804a879ddd7f73d8d7943404585775a17",
+      "reason": "Completion-only documentation after executed fresh-copy verification; no production/test/case changes."
+    },
+    {
+      "path": "planning/logging/implementation-status.md",
+      "capturedSha256": "5fda6745ae9c4321a82af5667f9089239ef041867dd687dd0b8c32f10ccc80e1",
+      "finalSha256": "5789e928b3aa9d52b1dad9774357f6b9b8ba2af68200c199045b40724f7b4493",
+      "reason": "Completion-only documentation after executed fresh-copy verification; no production/test/case changes."
+    }
+  ],
+  "sourceIdentity": "Main/reference/work SHA256 values verified before and after isolated fresh-copy Developer execution. Retained final results and this receipt are appended after capture; checkpoint is capture-time Git identity. Three completion-only documentation inputs were updated after execution; their captured/final hashes and retained original metadata are explicit. Production/test/conformance inputs stayed unchanged.",
+  "historicalReportReferencesVerified": 11915,
+  "originalSourceHashes": {
+    "core-library-implementation-guide-v1.md": "01b4b234fd460088f6c94abb0fc151ca7089375edaf473bf90bc1215d780a675",
+    "core-library-backlog-v1.json": "4abb87f20bc85beaa145c82714bb5d34cb923ef7b9b7b857e678839110dcd549",
+    "core-library-implementation-plan-v1.md": "41f1568583c9a04c783dd6db5fe80cd24ba8a6142a78983f910c4973e72bf7a5"
+  },
+  "changedShippingFiles": [
+    {
+      "path": "implementations/csharp/src/CIS.Core/Logging/OperationContextData.cs",
+      "sha256": "d66670917376217ccdcc27a07792d55637aad2cd69bec1665a5ae6f354921db8"
+    },
+    {
+      "path": "implementations/csharp/src/CIS.Core/Logging/Scopes/CapturedOperationContext.cs",
+      "sha256": "245c134b049cf1e6b04c4717c0a6c2adfa56189a6725b2093b9dfda448168ad9"
+    },
+    {
+      "path": "implementations/csharp/src/CIS.Core/Logging/Scopes/OperationScopeFrame.cs",
+      "sha256": "7c3f20896086fd4c90b76a95e76b2dcb15ea7bf7e3a10707336eadf929e9e2aa"
+    },
+    {
+      "path": "implementations/csharp/src/CIS.Core/Logging/Scopes/OperationScopeStore.cs",
+      "sha256": "096fed671ccbb47c05707b5ded18b8869e9f7339bf91ff09a0dadb5efa99b666"
+    }
+  ],
+  "supersededRuns": [
+    {
+      "run": "retention-initial",
+      "reason": "An extra helper assertion wrongly required path-independent DLL equality. Source/native verification had passed; actual debug paths and MVIDs differ, while all581 method signatures and563 bodies match. Corrected retention records both exact artifact hashes without making a byte-reproducibility claim."
+    },
+    {
+      "run": "focused-initial",
+      "reason": "Malformed surrogate attribute transport changed the input; native code units now constructed in test bodies; 2 failures retained."
+    },
+    {
+      "run": "format-initial",
+      "reason": "Switch arm formatting corrected; initial exit2 retained."
+    },
+    {
+      "run": "build-guards",
+      "reason": "Architecture project cannot access Core internals; compiled metadata reflection replaces direct internal typeof; CS0122 retained without broadening friendship."
+    }
+  ],
+  "qualificationLimits": "Actual internal scope foundation only. Windows native families plus fresh-copy verification, three exact .NET10.0.12 roll-forward-disabled children per Windows/Ubuntu with identical managed bytes. Universal inherited-frame cross-flow disposal rejection remains explicitly unresolved for T03; no placeholder public runtime/logger APIs. Full Linux SDK/native families, macOS and release remain pending.",
+  "pending": [
+    "WP04-S03-T02 outer-to-inner merge and complete bounds",
+    "WP04-S03-T03 full owning-flow disposal including inherited-frame and foreign-repeat cases",
+    "WP04-S03-T04 complete shared scope scenarios",
+    "public runtime/logger/event and byte-budget integration",
+    "Linux SDK/native families, macOS and release"
+  ],
+  "storyComplete": false,
+  "taskComplete": true,
+  "reports": [
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/commands/append-report-supplements.py",
+      "sha256": "69e7f52d1d12f633169ac60647cee58300b845a2b1d852b6471756be2525035c",
+      "bytes": 1678
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/commands/audit-commit-corrected-exit.json",
+      "sha256": "ea61d7736f0b7ecb9b35158f03de77013db6b100cf1d36c957e78e6c8817c5b6",
+      "bytes": 23
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/commands/audit-commit-corrected.json",
+      "sha256": "501267d0b15a908d113a4ea0ebd2d015981d0a11249c39c2c6024d8fba923e15",
+      "bytes": 205
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/commands/audit-commit-corrected.py",
+      "sha256": "c9bd0b2428a3d9601380c0c98f6b5d86b717f8ba80c4b96100260d6483dc410f",
+      "bytes": 3705
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/commands/audit-commit-corrected.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/commands/audit-commit.py",
+      "sha256": "e69a4ee6d35983f70289dd5471d0d420d638dc2be12e2bcc85f927604448a080",
+      "bytes": 3113
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/commands/binary-inspection-v2.json",
+      "sha256": "8aefe2056607a6d7158e942623fcddbcc34f9c440f00521f9ab113ff8981e62a",
+      "bytes": 513741
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/commands/binary-inspection.json",
+      "sha256": "0ea0f812e61fca6cc7226b78476ddcb1daa34694287d63d313fd606a4956d3a8",
+      "bytes": 513263
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/commands/build-architecture-corrected-exit.json",
+      "sha256": "ea61d7736f0b7ecb9b35158f03de77013db6b100cf1d36c957e78e6c8817c5b6",
+      "bytes": 23
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/commands/build-architecture-corrected.log",
+      "sha256": "f24c3106c45a62b61bd0a17a02a66338bf3875980d0c150e7419b1fa22bfd657",
+      "bytes": 1624
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/commands/build-architecture-corrected.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/commands/build-corrected-exit.json",
+      "sha256": "ea61d7736f0b7ecb9b35158f03de77013db6b100cf1d36c957e78e6c8817c5b6",
+      "bytes": 23
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/commands/build-corrected.log",
+      "sha256": "bfd90d627094088b6237a4fed6419b391d6e30450456377f6fed065387ecfa25",
+      "bytes": 1624
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/commands/build-corrected.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/commands/build-guards-exit.json",
+      "sha256": "c34bc644b4dfc96082e294ccb49ac40bdf34a3c659c956ffef43981ed30b2234",
+      "bytes": 23
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/commands/build-guards.log",
+      "sha256": "80d6418118e3f4f94700c7b97a81f9158371e4a819361d8954298cf33520780a",
+      "bytes": 4114
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/commands/build-guards.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/commands/build-initial-exit.json",
+      "sha256": "ea61d7736f0b7ecb9b35158f03de77013db6b100cf1d36c957e78e6c8817c5b6",
+      "bytes": 23
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/commands/build-initial.log",
+      "sha256": "ea0e0e94b8b707c2d8bbf830d66a3725a6de301fe14423d2fa5ffbd185b87ece",
+      "bytes": 1624
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/commands/build-initial.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/commands/build-process-exit.json",
+      "sha256": "ea61d7736f0b7ecb9b35158f03de77013db6b100cf1d36c957e78e6c8817c5b6",
+      "bytes": 23
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/commands/build-process.log",
+      "sha256": "968cf5dbf2a8ca6ff33bbb1d939c0d42557e17bd6c54754502412787e815ee1e",
+      "bytes": 1624
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/commands/build-process.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/commands/check-developer.log",
+      "sha256": "ef4b67392fb7611ed6ad4dfa4f8f5b916535d50cb40ae5e01f6c742ccf21adfb",
+      "bytes": 127
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/commands/check-developer.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/commands/check-release.log",
+      "sha256": "95a2a05c9d70f1af365c94c9a90dc805056a29ef3ba3177154d4faef96146f83",
+      "bytes": 5772
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/commands/check-release.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/commands/cis-build-final.json",
+      "sha256": "70b2e1875e70088c58f8bf863c3d39bb19b06f2c683c80e7fa198417bb060e06",
+      "bytes": 20695
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/commands/cis-build-final.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/commands/cis-build-source.json",
+      "sha256": "c1caa70f9e0675f1356d35049b5c70f6ea3d3502435650cc0c9896b39579a825",
+      "bytes": 20695
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/commands/cis-build-source.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/commands/cis-context-candidates.json",
+      "sha256": "8863ad67edb7f5206cda00be639b0d0a6d73a5ce9d303cdfdbecd82bd2627b22",
+      "bytes": 33389
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/commands/cis-context-candidates.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/commands/cis-docs-final.json",
+      "sha256": "df65f093e388034b2fef76d073b55882a053a7238dd691fb801d5ee708f72fb7",
+      "bytes": 306
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/commands/cis-docs-final.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/commands/cis-exact-LogValueProjection.json",
+      "sha256": "0ccb52a4c8c89130de110062ef85d86a4e69769d89569caedcdd7f5613464b4c",
+      "bytes": 2762
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/commands/cis-exact-LogValueProjection.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/commands/cis-exact-OperationContextData-merged.json",
+      "sha256": "4d0a2ffb2e829cda8f3c36c21a937ed87d515b69ac3d9c8bdbbab6528288cb4a",
+      "bytes": 1352
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/commands/cis-exact-OperationContextData-merged.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/commands/cis-exact-OperationContextData.json",
+      "sha256": "31f7adabca3b9e88c7a6165c0bdee158289c68eafad26e441ce0216a6a762e45",
+      "bytes": 1045
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/commands/cis-exact-OperationContextData.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/commands/cis-exact-OperationScopeStore.json",
+      "sha256": "c7a482b06d1453f64bd3f113bee6af7bc9e3e3207b3ad462fa94d45344680ed9",
+      "bytes": 2770
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/commands/cis-exact-OperationScopeStore.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/commands/cis-operation-context-roots.json",
+      "sha256": "2b220274d332ba71bd01100ea352eb60984c060787386da8d7875860bafa80bb",
+      "bytes": 11750
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/commands/cis-status-before.json",
+      "sha256": "a3c1ed9d8de0629d34016c3d9c043d1036b3f39367636b2b7fce3ccd10444988",
+      "bytes": 17391
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/commands/cis-status-final.json",
+      "sha256": "db604eb6d2479f07d4c6e72a8c25ec9f04addae43f2f7045a27befc59b212dd0",
+      "bytes": 17804
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/commands/cis-status-final.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/commands/cis-value-projection-roots.json",
+      "sha256": "010e4115c9fb3e4eb4316fe733da328a803b1fa8034422694bd8c9007e1deeb1",
+      "bytes": 20929
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/commands/claude-evidence-exit.json",
+      "sha256": "ea61d7736f0b7ecb9b35158f03de77013db6b100cf1d36c957e78e6c8817c5b6",
+      "bytes": 23
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/commands/claude-evidence-final-exit.json",
+      "sha256": "ea61d7736f0b7ecb9b35158f03de77013db6b100cf1d36c957e78e6c8817c5b6",
+      "bytes": 23
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/commands/claude-evidence-final-prompt.txt",
+      "sha256": "bfae529bc8b9811bfc2acd0e7b74cad1fc13d29a050011d48ee3e4d6f719bac9",
+      "bytes": 2126
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/commands/claude-evidence-final.json",
+      "sha256": "93fbe602cd4bce415c636f878b655abfb38c57b84f513c3173f8509f06cfe016",
+      "bytes": 5936
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/commands/claude-evidence-final.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/commands/claude-evidence-prompt.txt",
+      "sha256": "221ed4f596592e30e560b003e11bfaba18c1aab6797d9e107b845e783121db4a",
+      "bytes": 2089
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/commands/claude-evidence.json",
+      "sha256": "1a4dc4bf5be5381b2a8bd6c4e07c2bba9094500f8588e69baa7886fcb6330a5d",
+      "bytes": 6497
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/commands/claude-evidence.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/commands/claude-final-exit.json",
+      "sha256": "ea61d7736f0b7ecb9b35158f03de77013db6b100cf1d36c957e78e6c8817c5b6",
+      "bytes": 23
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/commands/claude-final-prompt.txt",
+      "sha256": "94e30322227dfeefde2a1d6a8b901e04382285d8a3869f9b0342934952da71d2",
+      "bytes": 2053
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/commands/claude-final.json",
+      "sha256": "ad6a63230847c1a9449f5c102db06ebace8074448cabcabdacce7db0d735b9a3",
+      "bytes": 7103
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/commands/claude-final.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/commands/claude-review-assessment.json",
+      "sha256": "10d1a25e20a586369f2e6ec2a984b50173f9bafb4c9735cfaa28609023c7a3ad",
+      "bytes": 567
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/commands/claude-review-exit.json",
+      "sha256": "ea61d7736f0b7ecb9b35158f03de77013db6b100cf1d36c957e78e6c8817c5b6",
+      "bytes": 23
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/commands/claude-review-prompt.txt",
+      "sha256": "3d5c7147a1d8eb41cb8b781151469da4f4a420f59e9a5212660e58be2e502729",
+      "bytes": 2674
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/commands/claude-review.json",
+      "sha256": "97a6382df0af7fd0dd67da1d119cf6be63d09e901d5fefc03edcc9948c5caa40",
+      "bytes": 7954
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/commands/claude-review.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/commands/complete-evidence-record-exit.json",
+      "sha256": "ea61d7736f0b7ecb9b35158f03de77013db6b100cf1d36c957e78e6c8817c5b6",
+      "bytes": 23
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/commands/complete-evidence-record.log",
+      "sha256": "1167e847cac9ca2daf84f8a72ce5fecea05b17f58579a82bcf612ae124ecfa25",
+      "bytes": 149
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/commands/complete-evidence-record.py",
+      "sha256": "7eca530acd0dfcc7a15ad735cc21452859baf4fb2c8957504470e635c8728d91",
+      "bytes": 5151
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/commands/complete-evidence-record.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/commands/developer-exit.json",
+      "sha256": "ea61d7736f0b7ecb9b35158f03de77013db6b100cf1d36c957e78e6c8817c5b6",
+      "bytes": 23
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/commands/developer.log",
+      "sha256": "4ecf8e33d880eb80c57843b7f19c018bc6754a0606d75ac592e077879b759497",
+      "bytes": 354611
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/commands/developer.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/commands/finalize-metadata.py",
+      "sha256": "cc1e7fc13a5d5ce7ff4cba0498df296e0d98dc1fdb2b5e8c3b9f16c8e48c7947",
+      "bytes": 6446
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/commands/finalize-receipt.py",
+      "sha256": "2b81e145c03a11372eb38821256cb55459a7589bcb3cdf5968796ff267c114fe",
+      "bytes": 3230
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/commands/focused-architecture-corrected-ArchitectureTests.log",
+      "sha256": "49291a796235e68bc899142019d5db7f19f7ec6b3cf6f8aca4ac44372047a4f3",
+      "bytes": 508
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/commands/focused-architecture-corrected-ArchitectureTests.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/commands/focused-architecture-corrected-exits.json",
+      "sha256": "1e4a072e7f351b6a40cb4df28e3f53bd077b85880adee04c2080ec19e31b5643",
+      "bytes": 51
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/commands/focused-architecture-corrected-UnitTests.log",
+      "sha256": "416ba68b95b5c8067f49dfd9082b5120f1f237662bff9a8553f4b5709cb7abe2",
+      "bytes": 476
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/commands/focused-architecture-corrected-UnitTests.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/commands/focused-corrected-exit.json",
+      "sha256": "ea61d7736f0b7ecb9b35158f03de77013db6b100cf1d36c957e78e6c8817c5b6",
+      "bytes": 23
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/commands/focused-corrected.log",
+      "sha256": "d9001b52c4b17667f0a32eab5833c0cfed267d8da04c68f122db145d051e6992",
+      "bytes": 463
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/commands/focused-corrected.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/commands/focused-initial-exit.json",
+      "sha256": "c34bc644b4dfc96082e294ccb49ac40bdf34a3c659c956ffef43981ed30b2234",
+      "bytes": 23
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/commands/focused-initial.log",
+      "sha256": "dd6ffe4931cade86aa2f6bcaf781ade74ce51cdeb889391f7d76898549ae99e5",
+      "bytes": 2548
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/commands/focused-initial.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/commands/focused-process-exit.json",
+      "sha256": "ea61d7736f0b7ecb9b35158f03de77013db6b100cf1d36c957e78e6c8817c5b6",
+      "bytes": 23
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/commands/focused-process.log",
+      "sha256": "0e2c2806317783c16b15f8fd08d86468a6b99b20d1b841917a5670c279fad1fe",
+      "bytes": 490
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/commands/focused-process.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/commands/format-corrected-exit.json",
+      "sha256": "ea61d7736f0b7ecb9b35158f03de77013db6b100cf1d36c957e78e6c8817c5b6",
+      "bytes": 23
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/commands/format-corrected.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/commands/format-corrected.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/commands/format-initial-exit.json",
+      "sha256": "c7eb0654dc3b2dad76ce34561ce020db323a0adce426e939761e942355a9609e",
+      "bytes": 23
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/commands/format-initial.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/commands/format-initial.stderr.log",
+      "sha256": "0cd0634d1c49c39d0fb18a4265a1409c0e59ea1795a0c15ae9b038b9106f37fd",
+      "bytes": 1956
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/commands/fresh-copy-exit.json",
+      "sha256": "ea61d7736f0b7ecb9b35158f03de77013db6b100cf1d36c957e78e6c8817c5b6",
+      "bytes": 23
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/commands/fresh-copy.log",
+      "sha256": "2fceed35b055934db040f7b04c92e507be16b609f79ed87096bf599f890ee08c",
+      "bytes": 359007
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/commands/fresh-copy.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/commands/inspect-builds-exit.json",
+      "sha256": "ea61d7736f0b7ecb9b35158f03de77013db6b100cf1d36c957e78e6c8817c5b6",
+      "bytes": 23
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/commands/inspect-builds.log",
+      "sha256": "8fb9830aea02e0e8c71d0b4eff61edd4e3091dfbc5a58fa8c10e10b5368f3fb9",
+      "bytes": 83
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/commands/inspect-builds.ps1",
+      "sha256": "9dc3ebb2d7866963acdf5cb30db10a08b2027a28de4ec64df2ca2e2d88b82a83",
+      "bytes": 3518
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/commands/inspect-builds.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/commands/process-exits.json",
+      "sha256": "77960bae0d398e70710dff8e342a2d344badcae82644cc4bc782f9dabd1ce9ef",
+      "bytes": 37
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/commands/process-linux.log",
+      "sha256": "4f748529f8027ee3abe3f6865a4ba310fcc741e592967588cf000cd00fcec9d0",
+      "bytes": 2327
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/commands/process-linux.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/commands/process-windows.log",
+      "sha256": "06a7ffee441c31b742f42ffd04392855ed565bd39e2efccb3a97b887349c9335",
+      "bytes": 2411
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/commands/process-windows.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/commands/retain-evidence-corrected.py",
+      "sha256": "d7c7e6652e968a0a69cd06a0172bb42e22bf95ed105804ffbab5d74b0385dec2",
+      "bytes": 13334
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/commands/retain-evidence.py",
+      "sha256": "6d630b6a9604d0024e03e9ffa3f9fe826db1a37074a3dd17de7f9223791bcd76",
+      "bytes": 11921
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/commands/retention-initial-exit.json",
+      "sha256": "dcbe11d39dd928c81d6e80ba517c6babb5d9b49da05cc0fb4e7579c3326e49a8",
+      "bytes": 121
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/commands/retention-initial.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/commands/retention-initial.stderr.log",
+      "sha256": "6e94700922c8c4330d574ed08cf8e08b45753a2adc9c64ad5b5de768c8bb9aaa",
+      "bytes": 580
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/commands/verification-exits.json",
+      "sha256": "0f3e4489b7b8b730b7beda817f8f8a04c7c629caf6bb1bd704e31f5d2463f38a",
+      "bytes": 74
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/commands/verify-release.log",
+      "sha256": "03aa42df1682194b2f04eae026d19b66b1151f793bb49c2ad6aa26cc78e50b79",
+      "bytes": 5341
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/commands/verify-release.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/completion-metadata/input/docs/cis/references/traceability-matrix.md",
+      "sha256": "56d9d1926b296f83589c9734ca5c5e0fc0a6bd9873cd286d28cd7d38d8685965",
+      "bytes": 3456
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/completion-metadata/input/docs/modules/logging/operation-scopes.md",
+      "sha256": "828c14e93e5db832970d17420d4d77f1fda343282d90ef41610d622b4ee1f578",
+      "bytes": 4187
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/completion-metadata/input/planning/logging/implementation-status.md",
+      "sha256": "5fda6745ae9c4321a82af5667f9089239ef041867dd687dd0b8c32f10ccc80e1",
+      "bytes": 31724
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/developer/contracts/compatibility-samples/API-MESSAGE-TYPE/compiler.log",
+      "sha256": "a52ebe098ed2df214401c7b29946af4007aa9b031ecef84399f944c7992f32cb",
+      "bytes": 843
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/developer/contracts/compatibility-samples/API-MESSAGE-TYPE-reference/bin/Release/net10.0/CIS.Core.ContractSpecification.deps.json",
+      "sha256": "ca29ca3b932f1010e5685146871b8529c858bfe6bd38f59ef40606950fc54e17",
+      "bytes": 484
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/developer/contracts/compatibility-samples/API-MESSAGE-TYPE-reference/compiler.log",
+      "sha256": "3127b3a14fd61631b12646cd206fc09e40972eb6be6522a129951bbbefd9917e",
+      "bytes": 364
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/developer/contracts/compatibility-samples/API-NARROW-INTEGER/compiler.log",
+      "sha256": "da0952481ae60a106e46d607998c4b3fe19ead3a082f164572979979a6b72bbe",
+      "bytes": 849
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/developer/contracts/compatibility-samples/API-NARROW-INTEGER-reference/bin/Release/net10.0/CIS.Core.ContractSpecification.deps.json",
+      "sha256": "ca29ca3b932f1010e5685146871b8529c858bfe6bd38f59ef40606950fc54e17",
+      "bytes": 484
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/developer/contracts/compatibility-samples/API-NARROW-INTEGER-reference/compiler.log",
+      "sha256": "d8c395f8f33a6bc2575da3e5f011fba6f484f46a97de890c19f1eca7fff4275f",
+      "bytes": 366
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/developer/contracts/compatibility-samples/API-NULL-OVERLOAD/compiler.log",
+      "sha256": "9d2f7d9cde27d9c85a2525021fa5b8345c8fa0939adc85479c6cab4e7306dc48",
+      "bytes": 1249
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/developer/contracts/compatibility-samples/API-NULL-OVERLOAD-reference/bin/Release/net10.0/CIS.Core.ContractSpecification.deps.json",
+      "sha256": "ca29ca3b932f1010e5685146871b8529c858bfe6bd38f59ef40606950fc54e17",
+      "bytes": 484
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/developer/contracts/compatibility-samples/API-NULL-OVERLOAD-reference/compiler.log",
+      "sha256": "73a45d9d9bc94f8ec8bb96722e45eb11b9fd50c8b21a302a82e23a51370cc95b",
+      "bytes": 365
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/developer/contracts/compatibility-samples/API-OBSOLETE-WARNING/compiler.log",
+      "sha256": "e86c48e9cf17aad514ffc24eec4aabb5639375418faf16b9e6d03791366ac79d",
+      "bytes": 971
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/developer/contracts/compatibility-samples/API-OBSOLETE-WARNING-reference/bin/Release/net10.0/CIS.Core.ContractSpecification.deps.json",
+      "sha256": "ca29ca3b932f1010e5685146871b8529c858bfe6bd38f59ef40606950fc54e17",
+      "bytes": 484
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/developer/contracts/compatibility-samples/API-OBSOLETE-WARNING-reference/compiler.log",
+      "sha256": "293f704794dbcf72f4d84e6bd5f619f0b0bf6472ec2b7a3a240edde3c2089ed7",
+      "bytes": 368
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/developer/contracts/compatibility-samples/API-REMOVE-LAZY/compiler.log",
+      "sha256": "9585b6c821a3bca37db9aa7ec932aef00eb76c1b21bcb29aa289791ea5766b34",
+      "bytes": 1203
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/developer/contracts/compatibility-samples/API-REMOVE-LAZY-reference/bin/Release/net10.0/CIS.Core.ContractSpecification.deps.json",
+      "sha256": "ca29ca3b932f1010e5685146871b8529c858bfe6bd38f59ef40606950fc54e17",
+      "bytes": 484
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/developer/contracts/compatibility-samples/API-REMOVE-LAZY-reference/compiler.log",
+      "sha256": "52f2ddcefe4a2723782d053402ad7eb2253e92893f51f575d0a2aea621ec49d6",
+      "bytes": 363
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/developer/contracts/compatibility-samples/API-RENAME-DATA/compiler.log",
+      "sha256": "888f1dbc98b952dac60b279154b82b9a8a474585d610e99623c085152073c123",
+      "bytes": 879
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/developer/contracts/compatibility-samples/API-RENAME-DATA-reference/bin/Release/net10.0/CIS.Core.ContractSpecification.deps.json",
+      "sha256": "ca29ca3b932f1010e5685146871b8529c858bfe6bd38f59ef40606950fc54e17",
+      "bytes": 484
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/developer/contracts/compatibility-samples/API-RENAME-DATA-reference/compiler.log",
+      "sha256": "3b4f64f9b18b690491bbf666c93deb921ffd0d18ce31a540431dc501e48ab4d1",
+      "bytes": 363
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/developer/contracts/compatibility-samples/API-REQUIRED-CTOR/compiler.log",
+      "sha256": "42136199af09e13cc1d4e715fc3b065b28b3804028a19b0d9924e05247f38526",
+      "bytes": 991
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/developer/contracts/compatibility-samples/API-REQUIRED-CTOR-reference/bin/Release/net10.0/CIS.Core.ContractSpecification.deps.json",
+      "sha256": "ca29ca3b932f1010e5685146871b8529c858bfe6bd38f59ef40606950fc54e17",
+      "bytes": 484
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/developer/contracts/compatibility-samples/API-REQUIRED-CTOR-reference/compiler.log",
+      "sha256": "45ddec3b516670e3905f71a8cde16a9fde009b443b179c79f2e7f39a844ca697",
+      "bytes": 365
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/developer/contracts/compatibility-samples/API-REQUIRED-PROPERTY/compiler.log",
+      "sha256": "dcda03bae709b61622d456492b648cd8b933a16499b1b19e234c4b36ab0a35cc",
+      "bytes": 991
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/developer/contracts/compatibility-samples/API-REQUIRED-PROPERTY-reference/bin/Release/net10.0/CIS.Core.ContractSpecification.deps.json",
+      "sha256": "ca29ca3b932f1010e5685146871b8529c858bfe6bd38f59ef40606950fc54e17",
+      "bytes": 484
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/developer/contracts/compatibility-samples/API-REQUIRED-PROPERTY-reference/compiler.log",
+      "sha256": "3823ff9a1d21473031f5875aa27d7c7e7889a01ac0c9f171af95e0dffe49eb23",
+      "bytes": 369
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/developer/contracts/compatibility-samples/construction-names/bin/Release/net10.0/CompatibilityPatternConsumer.deps.json",
+      "sha256": "85a03f0320234d13a0e4e5faa33913d7db10250728826727717f8a225ace31b3",
+      "bytes": 478
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/developer/contracts/compatibility-samples/construction-names/compiler.log",
+      "sha256": "4220d7d0d8ff0e2bee0835bece2f52456e5c000f49accc2d07f24d5fef7ba359",
+      "bytes": 353
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/developer/contracts/compatibility-samples/custom-scopes/bin/Release/net10.0/CompatibilityPatternConsumer.deps.json",
+      "sha256": "85a03f0320234d13a0e4e5faa33913d7db10250728826727717f8a225ace31b3",
+      "bytes": 478
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/developer/contracts/compatibility-samples/custom-scopes/compiler.log",
+      "sha256": "134f3e0b4f94f01364876837754761c35b50198f84c9031cec7817f05fcf2c48",
+      "bytes": 348
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/developer/contracts/compatibility-samples/lazy-lifecycle/bin/Release/net10.0/CompatibilityPatternConsumer.deps.json",
+      "sha256": "85a03f0320234d13a0e4e5faa33913d7db10250728826727717f8a225ace31b3",
+      "bytes": 478
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/developer/contracts/compatibility-samples/lazy-lifecycle/compiler.log",
+      "sha256": "9af7bdd36a977944730c45200fa94e0560d6db8e66ca61da4c486732be48a834",
+      "bytes": 349
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/developer/contracts/compatibility-samples/logging-extensions/bin/Release/net10.0/CompatibilityPatternConsumer.deps.json",
+      "sha256": "85a03f0320234d13a0e4e5faa33913d7db10250728826727717f8a225ace31b3",
+      "bytes": 478
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/developer/contracts/compatibility-samples/logging-extensions/compiler.log",
+      "sha256": "53d7962d86538b2b758594aaa0242d24411e6787340513f16db92ec5d54575f6",
+      "bytes": 353
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/developer/contracts/compatibility-samples/null-calls/bin/Release/net10.0/CompatibilityPatternConsumer.deps.json",
+      "sha256": "85a03f0320234d13a0e4e5faa33913d7db10250728826727717f8a225ace31b3",
+      "bytes": 478
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/developer/contracts/compatibility-samples/null-calls/compiler.log",
+      "sha256": "2b6016980a121fb635ab85dc18a80aeb70c07358c3b2dda21c52652f8461c68e",
+      "bytes": 345
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/developer/contracts/compatibility-samples/numeric-values/bin/Release/net10.0/CompatibilityPatternConsumer.deps.json",
+      "sha256": "85a03f0320234d13a0e4e5faa33913d7db10250728826727717f8a225ace31b3",
+      "bytes": 478
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/developer/contracts/compatibility-samples/numeric-values/compiler.log",
+      "sha256": "f8623e1b9b737e23bd97d1b62f5573c99ff35a9476ee075bc94d422127426177",
+      "bytes": 349
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/developer/contracts/compatibility-samples/summary.json",
+      "sha256": "9a54f5db9252ea555802fc5c10c643fafbaffe72ab3116649ca2a5ffb6ced09b",
+      "bytes": 12900
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/developer/contracts/log-value-consumers/arbitrary-factory/compiler.log",
+      "sha256": "e3d38e3d3994923cade7cd524b39b024ef9a8e0be5f80a17afb754f4b079f7f0",
+      "bytes": 144
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/developer/contracts/log-value-consumers/byte-array/compiler.log",
+      "sha256": "e476ac678c3c230d3c329e64d400aa95af88f610e650ae6914a198a8dbd125df",
+      "bytes": 186
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/developer/contracts/log-value-consumers/caller-time-conversion/compiler.log",
+      "sha256": "7eb70257593da06f682a3ddda54a9d260d4fc514f645237f5ca74b08f8da61a6",
+      "bytes": 2
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/developer/contracts/log-value-consumers/cyclic-object-array/compiler.log",
+      "sha256": "0f4f51e61dcc71b3dfa1c56de7f1b9f1ebc0ac656bb0024e9a79aba1ba8a1e1c",
+      "bytes": 186
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/developer/contracts/log-value-consumers/decimal-number/compiler.log",
+      "sha256": "ee9c144b2e8991e0d4a84b0ca6a537ddd1c48ac2f5db1cc942ee35894ca051b2",
+      "bytes": 137
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/developer/contracts/log-value-consumers/exception-object/compiler.log",
+      "sha256": "4fc78adb1751eb6b47e94f2941c4d624071b9b7388f3d5e8751c2c2d1f0821d7",
+      "bytes": 148
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/developer/contracts/log-value-consumers/immutable-property/compiler.log",
+      "sha256": "7f1ad77ddfa5fffdad7e99b940eb54ce50158207bba30ce3fac0a3925be7a386",
+      "bytes": 160
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/developer/contracts/log-value-consumers/numeric-keys/compiler.log",
+      "sha256": "8c3dbcaac8d2ff7117a281e9c4a4a66d8587a57f361f4f12caabe04c7225a838",
+      "bytes": 262
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/developer/contracts/log-value-consumers/object-map/compiler.log",
+      "sha256": "1482a97dbe8b2cd0c3ffd5dbf6281cde6f7a7390416fc512b200b1d76d404feb",
+      "bytes": 249
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/developer/contracts/log-value-consumers/object-string/compiler.log",
+      "sha256": "29f30b09d9165633bbcaf32c96a0299f26bd26ef9a5c788dab34b79b9c892ea5",
+      "bytes": 135
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/developer/contracts/log-value-consumers/public-constructor/compiler.log",
+      "sha256": "e6ef833f1c38144051c72ee16b091f9a841c70ef3c8159309695152b15cbd46d",
+      "bytes": 152
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/developer/contracts/log-value-consumers/summary.json",
+      "sha256": "cbebe9de91abb5e4bf875eb5a83eeae850f406ec6d7f5beb591296af924e1564",
+      "bytes": 32640
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/developer/contracts/log-value-consumers/typed-executable/compiler.log",
+      "sha256": "7eb70257593da06f682a3ddda54a9d260d4fc514f645237f5ca74b08f8da61a6",
+      "bytes": 2
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/developer/contracts/log-value-consumers/typed-executable/Consumer.runtimeconfig.json",
+      "sha256": "61f0758640749db6ca890b06ec1704be6ae4fe82f245784d91b6e4433994870a",
+      "bytes": 183
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/developer/contracts/log-value-consumers/typed-executable/execution.log",
+      "sha256": "c57085a4aee44cdbdef926cab0ec9740ad69343804dae681ee31971e987c5a8e",
+      "bytes": 34
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/developer/contracts/publications/validation.json",
+      "sha256": "c8946c940254d91371b058c6a85c092dc9d7db1ed3d2955173dff04c25385dc7",
+      "bytes": 371
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/developer/contracts/startup/corrected-facade-name/compiler.log",
+      "sha256": "55ea65c7507762d55d07d998f9b7f493c7c2110d3eb28d0f955c449a05f8cbc4",
+      "bytes": 843
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/developer/contracts/startup/event-consumer/bin/Release/net10.0/StartupContractConsumer.deps.json",
+      "sha256": "8ec3a6a29179e2ebc9a6d0bb9650a2f137f9311aa0c5af80876b6677dbfd2675",
+      "bytes": 463
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/developer/contracts/startup/event-consumer/compiler.log",
+      "sha256": "0e93b2508e6ac3b2405cdad34db183a0a27e46a048ae67355540e4babde04bfb",
+      "bytes": 330
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/developer/contracts/startup/immutable-drain-result/compiler.log",
+      "sha256": "305eeed3f6b5d7c5bab88059484de634fc283dcac949784618ba93a0f8b05f81",
+      "bytes": 887
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/developer/contracts/startup/immutable-issues/compiler.log",
+      "sha256": "13706d3e0aab1d27856c7820d9857e79307d7fb0d50bf2c6f13f4209f9ca9b92",
+      "bytes": 901
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/developer/contracts/startup/immutable-log-diagnostics/compiler.log",
+      "sha256": "564fc2b03cbc499b5271a5873856b55008da1855520d16ed79894466e42d3a1a",
+      "bytes": 923
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/developer/contracts/startup/immutable-logging/compiler.log",
+      "sha256": "85fee5875c0c4c5afd53dc8310e910b2213e1ba976f2065c90ed41c148998da6",
+      "bytes": 875
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/developer/contracts/startup/immutable-metadata/compiler.log",
+      "sha256": "15cc74365b8071346e3be3929593e1086ad2e28854c443f2e2aa8b8c8a7f3be3",
+      "bytes": 875
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/developer/contracts/startup/immutable-snapshot/compiler.log",
+      "sha256": "b88a856aa5542987a8999476bd4266dc5733216974337abfe42d3b1d4ae47f21",
+      "bytes": 893
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/developer/contracts/startup/immutable-value/compiler.log",
+      "sha256": "fb4a1a0da7ad9e4b5d3a31f67cf3c7d78cf5b4f2ed5194e28631236a514ecc11",
+      "bytes": 837
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/developer/contracts/startup/immutable-write-result/compiler.log",
+      "sha256": "b3c922700d13e6b8e536b742b143a38355367bbe833be231f6351169ec366305",
+      "bytes": 883
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/developer/contracts/startup/no-event-severity/compiler.log",
+      "sha256": "7b799a7444d69f2d2930a1adfee2ae855ed162990dccb77d0fd3e0b4d2f62871",
+      "bytes": 1157
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/developer/contracts/startup/no-factory-write-overload/compiler.log",
+      "sha256": "b99f9a7bb1b4737e8885a009a40b7e13178aa13af4684589d6b182b0927eb2ef",
+      "bytes": 869
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/developer/contracts/startup/no-positional-runtime-options/compiler.log",
+      "sha256": "1b973438ee581cce424230bf6cb8c36aeeecb7b51a84ba6325d2a9d88e9fc14a",
+      "bytes": 841
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/developer/contracts/startup/no-reset/compiler.log",
+      "sha256": "0f58f4a2cf5e92ec63928fd091f1cb6c717e69e074dd60b636bc5686fd4407e3",
+      "bytes": 781
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/developer/contracts/startup/no-sync-runtime-dispose/compiler.log",
+      "sha256": "027414c27ef64c0fce7c4378e95bae5e3ba3d347152b3367a0c04aa855dccc41",
+      "bytes": 1185
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/developer/contracts/startup/positive/bin/Release/net10.0/StartupContractConsumer.deps.json",
+      "sha256": "8ec3a6a29179e2ebc9a6d0bb9650a2f137f9311aa0c5af80876b6677dbfd2675",
+      "bytes": 463
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/developer/contracts/startup/positive/compiler.log",
+      "sha256": "1ef867c278136a8c589517e0f9fac448f323fdef0de7e749eb027ea3aefef169",
+      "bytes": 324
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/developer/contracts/startup/provider-consumer/bin/Release/net10.0/StartupContractConsumer.deps.json",
+      "sha256": "8ec3a6a29179e2ebc9a6d0bb9650a2f137f9311aa0c5af80876b6677dbfd2675",
+      "bytes": 463
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/developer/contracts/startup/provider-consumer/compiler.log",
+      "sha256": "81c3f1373c3a473840f72b123c849b877f43f39124cbd1ee7aba644638efa9d5",
+      "bytes": 333
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/developer/contracts/startup/provider-non-owning/compiler.log",
+      "sha256": "4deb5b99970226d86cca0a61d6834c05e7ffe6b6e1590cbac1a73ea95dbf23b3",
+      "bytes": 879
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/developer/contracts/startup/reference/bin/Release/net10.0/CIS.Core.ContractSpecification.deps.json",
+      "sha256": "ca29ca3b932f1010e5685146871b8529c858bfe6bd38f59ef40606950fc54e17",
+      "bytes": 484
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/developer/contracts/startup/reference/compiler.log",
+      "sha256": "cf52bdd34649f4282dd4d8e895faf1cad04e1b537f4ce3d0ac864cdbdc4c1979",
+      "bytes": 333
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/developer/contracts/startup/runtime-consumer/bin/Release/net10.0/StartupContractConsumer.deps.json",
+      "sha256": "8ec3a6a29179e2ebc9a6d0bb9650a2f137f9311aa0c5af80876b6677dbfd2675",
+      "bytes": 463
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/developer/contracts/startup/runtime-consumer/compiler.log",
+      "sha256": "e96260e79472d1ded3f433150a74c668f3231705de4857f3372ca21e75f47930",
+      "bytes": 332
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/developer/contracts/startup/summary.json",
+      "sha256": "da777cf3b49a2431210dcd8347d307b702d3dac6c2f4d7d1491d4e77387c2a56",
+      "bytes": 14040
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/developer/contracts/startup/unsupported-object/compiler.log",
+      "sha256": "9e3ba5d035aebe964e07fa51eae4fa3aaf76cfb800924f6d11768babbcf7b10c",
+      "bytes": 801
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/developer/families/architecture/discovery.json",
+      "sha256": "7ae66904bfe443557900ce82556d9ed9d02dfdbdfbb4b84fdc6c9e35aa6a542d",
+      "bytes": 38534
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/developer/families/architecture/discovery.log",
+      "sha256": "d2e41472558a8df4d7a75ea2679ba89ae299b79375c0fa519ed7e6f956733b5e",
+      "bytes": 32726
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/developer/families/architecture/execution.json",
+      "sha256": "bd3e79008802f058dd3675b35f79c7228c08fde2e5964109138566bf453846fd",
+      "bytes": 163
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/developer/families/architecture/execution.log",
+      "sha256": "b36b1e4ee222f69fc7cea8864bd36a8ab9ec3eb9018729c5eceb9f9bf734dcb3",
+      "bytes": 484
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/developer/families/architecture/report.trx",
+      "sha256": "1d853c9429fd52f6b344da08968ac78c8546ff2f0ac12f41adf9450cff69c3a8",
+      "bytes": 558484
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/developer/families/business/discovery.json",
+      "sha256": "49e4481766fb5e68b93e70d2f949bc67dd2e152ac469adc875a40a0da6fbdb10",
+      "bytes": 211
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/developer/families/business/execution.json",
+      "sha256": "f44bda8b2ac012602fccefab9d06a36f1f436eec573cda60c18ac6953255994b",
+      "bytes": 239
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/developer/families/compatibility/discovery.json",
+      "sha256": "c7e7e9d029b147a5a679dc044b6748fb18356efad464d3fa1df336b5c9a28054",
+      "bytes": 216
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/developer/families/compatibility/execution.json",
+      "sha256": "5efe10a7962d49d6a820cbf38744179d98198da1b5d837dc27ae818b381b5c5a",
+      "bytes": 244
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/developer/families/integration/discovery.json",
+      "sha256": "cc68bfcc9c54acef0f43e425aa614434d7b88232af019feaa711c9df0fb4f30c",
+      "bytes": 36244
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/developer/families/integration/discovery.log",
+      "sha256": "fb1acea3994f027f72bab420b4f1709a8ce8b3b0af2187012120a762a04ca5de",
+      "bytes": 32896
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/developer/families/integration/execution.json",
+      "sha256": "15b4cfdb2fe14a1626a4383f6c2e202c60549a9af2f06d0003399ee2f8cf4949",
+      "bytes": 162
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/developer/families/integration/execution.log",
+      "sha256": "13aad3c313ea04c954fd6f188aabb366504216c001f350d9a40d2f33b619e122",
+      "bytes": 480
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/developer/families/integration/report.trx",
+      "sha256": "4be2d7f05ccd59cadf0927d344e72ae40096cfb3eedfd50a9973a291b261b18a",
+      "bytes": 3731660
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/developer/families/mutation/discovery.json",
+      "sha256": "8262fd4f2df16da918b2d1aa74328b975a47a84bbc7b00bc9024f1dc28a3503e",
+      "bytes": 229
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/developer/families/mutation/execution.json",
+      "sha256": "dccad37a1e3c9de1de7a7412ffaef0228f9ea182f3d9b8de445e55aeffaff1c5",
+      "bytes": 257
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/developer/families/unit/discovery.json",
+      "sha256": "a274a24f03adc61933f59ce618c91dd30ca8761cb24e537e0125c36ca0db1978",
+      "bytes": 255215
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/developer/families/unit/discovery.log",
+      "sha256": "ec03ccb30aa85b6d5f934de576e878ec1a5e46036ddb231e4cf648e05287d93f",
+      "bytes": 224735
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/developer/families/unit/execution.json",
+      "sha256": "a05520a53f1a3dc6e89ff30f98462a450679da4585fb241b95550e481715ff7c",
+      "bytes": 157
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/developer/families/unit/execution.log",
+      "sha256": "3189896bc11f8e1556859152fb0c36c8eb41fc82d2e614f1b260d684113793fa",
+      "bytes": 451
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/developer/families/unit/report.trx",
+      "sha256": "08001799234a7a06b9f8672e12ae8f2c1badab5a6a6f36934e414df91c225de3",
+      "bytes": 3452213
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/developer/logs/build.log",
+      "sha256": "5e6afbbf69af5fcb2c4459df9e6d15878e9da7a3ce8ededc410e2bbe258e46de",
+      "bytes": 1624
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/developer/logs/compatibility-samples.log",
+      "sha256": "9a54f5db9252ea555802fc5c10c643fafbaffe72ab3116649ca2a5ffb6ced09b",
+      "bytes": 12900
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/developer/logs/format.log",
+      "sha256": "5e0e944a3397292d519a8220dd204b0e40278cb201fd0d4b39a7aa9994a4e095",
+      "bytes": 280
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/developer/logs/host.log",
+      "sha256": "08bc754f88cba1a98cc3683262ec9412d23fb473074ab51494e0955bb2c6d44e",
+      "bytes": 89
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/developer/logs/log-value-consumers.log",
+      "sha256": "cbebe9de91abb5e4bf875eb5a83eeae850f406ec6d7f5beb591296af924e1564",
+      "bytes": 32640
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/developer/logs/pack.log",
+      "sha256": "b96982c7662d32277b1823d3e45a4e665419cf32f646b328bac1cf8f9e34384d",
+      "bytes": 118
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/developer/logs/package-boundaries.log",
+      "sha256": "6d876d91dfcda3dd997068f7beadb51ac8f58956906fa556d6a0a3c6106320e5",
+      "bytes": 737
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/developer/logs/project-boundaries.log",
+      "sha256": "832bc3b42edef993c5c07b60218560116e436d6173db2a253c89cd311c68564a",
+      "bytes": 102
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/developer/logs/publication-ledger.log",
+      "sha256": "c8946c940254d91371b058c6a85c092dc9d7db1ed3d2955173dff04c25385dc7",
+      "bytes": 371
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/developer/logs/restore.log",
+      "sha256": "2ad9967f2280d0195ad457a92fe6a353a8492625846632386df6dfc446efe4bc",
+      "bytes": 82
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/developer/logs/startup-contract.log",
+      "sha256": "da777cf3b49a2431210dcd8347d307b702d3dac6c2f4d7d1491d4e77387c2a56",
+      "bytes": 14040
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/developer/source-inputs.json",
+      "sha256": "0dea57250ee957653ffbfee57f7abc9c3125215cca2b593144b89c8ac9bc496e",
+      "bytes": 2667355
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/developer/summary.json",
+      "sha256": "53cbd269763ed404be330252d3fefc7ff6c196718a9292a82cd9d0eff0176057",
+      "bytes": 7904
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/developer/validation.json",
+      "sha256": "ef4b67392fb7611ed6ad4dfa4f8f5b916535d50cb40ae5e01f6c742ccf21adfb",
+      "bytes": 127
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/development-artifacts/CIS.Core.0.1.0-dev.1.nupkg",
+      "sha256": "fc4b94e6715aa73bbfd1005601ed1edb445078ae408a908c208a0cfe8e7a614d",
+      "bytes": 45401
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/development-artifacts/CIS.Core.dll",
+      "sha256": "6cd5d706358489801d606d781bb4a7b0b36fc282d2acd5b75a330fd85e9abd3a",
+      "bytes": 82944
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/focused-architecture-corrected/ArchitectureTests/report.trx",
+      "sha256": "71d991df7c2dbd6fae54a9ff82fa74c17ebe3ac95ffb2b732c232f65f245e336",
+      "bytes": 4206
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/focused-architecture-corrected/UnitTests/report.trx",
+      "sha256": "8e1ad47667271f886144a34775b45d440bd9f13ad05cd471987fa64b30baf935",
+      "bytes": 54009
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/focused-corrected/UnitTests/report.trx",
+      "sha256": "bcbe2a90643ab1f10c6267eeb33656f7e3cd4398c0c44466a16624887be36136",
+      "bytes": 48762
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/focused-initial/UnitTests/report.trx",
+      "sha256": "3532af153a008d13480160125647af6b420201a986b55122769fbc316be78558",
+      "bytes": 50964
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/focused-process/IntegrationTests/report.trx",
+      "sha256": "541232c38b49f74f3b6567a0ad551b65eb0498a294bbd3092b7689b54694f1a4",
+      "bytes": 7137
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/fresh-copy/input-inventory.json",
+      "sha256": "5b8519a3b1d187d7e2dab4d1ca9b53d0f77c23ed808af3ee7c0f13815e9d1b65",
+      "bytes": 2714504
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/fresh-copy/summary.json",
+      "sha256": "83da646debd2f852ce664feaae7ef63b1574eaf6c0ee96c7d0c3adb474a6abf3",
+      "bytes": 442
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/fresh-copy/verification.log",
+      "sha256": "f11cdecb440d49232a44920e1bc235dd576ad3dc97e8625101891709c9220221",
+      "bytes": 358565
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/fresh-copy-artifacts/CIS.Core.0.1.0-dev.1.nupkg",
+      "sha256": "2febbbd9913559b813f74c2475344b6b6655cc5396d9c6ded54ac5a3f2fad337",
+      "bytes": 45469
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/fresh-copy-artifacts/CIS.Core.dll",
+      "sha256": "3535ef7673635129bddddc9391300fe04cdf2e00496171a5992bffeb189b7e25",
+      "bytes": 82944
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/fresh-copy-developer/contracts/compatibility-samples/API-MESSAGE-TYPE/compiler.log",
+      "sha256": "88d6ddd4439037c46ee387b30dddd4a6245921d82aebdf62df354028fada485b",
+      "bytes": 1358
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/fresh-copy-developer/contracts/compatibility-samples/API-MESSAGE-TYPE-reference/bin/Release/net10.0/CIS.Core.ContractSpecification.deps.json",
+      "sha256": "ca29ca3b932f1010e5685146871b8529c858bfe6bd38f59ef40606950fc54e17",
+      "bytes": 484
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/fresh-copy-developer/contracts/compatibility-samples/API-MESSAGE-TYPE-reference/compiler.log",
+      "sha256": "18abd6cc2fa6b1381ab0444d3b3b0477efb6f1406e89584a5934d4498c21d322",
+      "bytes": 650
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/fresh-copy-developer/contracts/compatibility-samples/API-NARROW-INTEGER/compiler.log",
+      "sha256": "558980d63c88e8f36d1dd4b2f5e8e5a3bc559847d301247ca3cff6aa44e93544",
+      "bytes": 1366
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/fresh-copy-developer/contracts/compatibility-samples/API-NARROW-INTEGER-reference/bin/Release/net10.0/CIS.Core.ContractSpecification.deps.json",
+      "sha256": "ca29ca3b932f1010e5685146871b8529c858bfe6bd38f59ef40606950fc54e17",
+      "bytes": 484
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/fresh-copy-developer/contracts/compatibility-samples/API-NARROW-INTEGER-reference/compiler.log",
+      "sha256": "21eabbba49e121b0377d422b546a5c500800a0933e5e0863b3f6203f26ba7363",
+      "bytes": 654
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/fresh-copy-developer/contracts/compatibility-samples/API-NULL-OVERLOAD/compiler.log",
+      "sha256": "99d20f68b38738329866b2dd79dcc3916f06fda72dd6c70676473e58b1de9a24",
+      "bytes": 1765
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/fresh-copy-developer/contracts/compatibility-samples/API-NULL-OVERLOAD-reference/bin/Release/net10.0/CIS.Core.ContractSpecification.deps.json",
+      "sha256": "ca29ca3b932f1010e5685146871b8529c858bfe6bd38f59ef40606950fc54e17",
+      "bytes": 484
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/fresh-copy-developer/contracts/compatibility-samples/API-NULL-OVERLOAD-reference/compiler.log",
+      "sha256": "f5c7cddbd1cab275037eeb0a654aa964a77ecf4540247feff9b77ea8401bb4cc",
+      "bytes": 652
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/fresh-copy-developer/contracts/compatibility-samples/API-OBSOLETE-WARNING/compiler.log",
+      "sha256": "80e77699cd4de10e156494ff18f654e439badf3363cf058014d6740431a47d39",
+      "bytes": 1490
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/fresh-copy-developer/contracts/compatibility-samples/API-OBSOLETE-WARNING-reference/bin/Release/net10.0/CIS.Core.ContractSpecification.deps.json",
+      "sha256": "ca29ca3b932f1010e5685146871b8529c858bfe6bd38f59ef40606950fc54e17",
+      "bytes": 484
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/fresh-copy-developer/contracts/compatibility-samples/API-OBSOLETE-WARNING-reference/compiler.log",
+      "sha256": "a5bd48a5afbf856662865835f4820122e14587b130848361dcdd4fc85acce4ed",
+      "bytes": 658
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/fresh-copy-developer/contracts/compatibility-samples/API-REMOVE-LAZY/compiler.log",
+      "sha256": "c0442ed2b9160dff50122e16364626a3e3d12cc6f35bd252f88b2cfbd8d12964",
+      "bytes": 1717
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/fresh-copy-developer/contracts/compatibility-samples/API-REMOVE-LAZY-reference/bin/Release/net10.0/CIS.Core.ContractSpecification.deps.json",
+      "sha256": "ca29ca3b932f1010e5685146871b8529c858bfe6bd38f59ef40606950fc54e17",
+      "bytes": 484
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/fresh-copy-developer/contracts/compatibility-samples/API-REMOVE-LAZY-reference/compiler.log",
+      "sha256": "013e35ac27eb3f34b878030eb023ebf82cc54ebb1b4dfc293d13f205fa0a5998",
+      "bytes": 648
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/fresh-copy-developer/contracts/compatibility-samples/API-RENAME-DATA/compiler.log",
+      "sha256": "93c024c090cf9b704578f40b7d014e6b7e93df111786f164d798295d39c9202f",
+      "bytes": 1393
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/fresh-copy-developer/contracts/compatibility-samples/API-RENAME-DATA-reference/bin/Release/net10.0/CIS.Core.ContractSpecification.deps.json",
+      "sha256": "ca29ca3b932f1010e5685146871b8529c858bfe6bd38f59ef40606950fc54e17",
+      "bytes": 484
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/fresh-copy-developer/contracts/compatibility-samples/API-RENAME-DATA-reference/compiler.log",
+      "sha256": "1b151f516a88fdca233fd72974780b1b9c6de4a56f6c8abbb2ddee7fef8bcef0",
+      "bytes": 648
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/fresh-copy-developer/contracts/compatibility-samples/API-REQUIRED-CTOR/compiler.log",
+      "sha256": "69018f808ad4ab0e6516bcaafa1111b94fbd9d20ccd3dce9e34c44c4d86eae18",
+      "bytes": 1507
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/fresh-copy-developer/contracts/compatibility-samples/API-REQUIRED-CTOR-reference/bin/Release/net10.0/CIS.Core.ContractSpecification.deps.json",
+      "sha256": "ca29ca3b932f1010e5685146871b8529c858bfe6bd38f59ef40606950fc54e17",
+      "bytes": 484
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/fresh-copy-developer/contracts/compatibility-samples/API-REQUIRED-CTOR-reference/compiler.log",
+      "sha256": "25362a0aca48cfd972cddde0c98458d7b7be7c18d7980da051977202ed8bb9ac",
+      "bytes": 652
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/fresh-copy-developer/contracts/compatibility-samples/API-REQUIRED-PROPERTY/compiler.log",
+      "sha256": "cf5e7035e79f2207030867130f2d9aa28bfec53f16760333ede2f13d4d43259c",
+      "bytes": 1511
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/fresh-copy-developer/contracts/compatibility-samples/API-REQUIRED-PROPERTY-reference/bin/Release/net10.0/CIS.Core.ContractSpecification.deps.json",
+      "sha256": "ca29ca3b932f1010e5685146871b8529c858bfe6bd38f59ef40606950fc54e17",
+      "bytes": 484
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/fresh-copy-developer/contracts/compatibility-samples/API-REQUIRED-PROPERTY-reference/compiler.log",
+      "sha256": "b076f22a470c93616d11e94f2511b4ad15442b8ca0b94751acf73485463cf7b4",
+      "bytes": 660
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/fresh-copy-developer/contracts/compatibility-samples/construction-names/bin/Release/net10.0/CompatibilityPatternConsumer.deps.json",
+      "sha256": "85a03f0320234d13a0e4e5faa33913d7db10250728826727717f8a225ace31b3",
+      "bytes": 478
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/fresh-copy-developer/contracts/compatibility-samples/construction-names/compiler.log",
+      "sha256": "f531b5eae111946f25fd7b2aedc5c50ad9fadbc5199390544a41a85745732f12",
+      "bytes": 630
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/fresh-copy-developer/contracts/compatibility-samples/custom-scopes/bin/Release/net10.0/CompatibilityPatternConsumer.deps.json",
+      "sha256": "85a03f0320234d13a0e4e5faa33913d7db10250728826727717f8a225ace31b3",
+      "bytes": 478
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/fresh-copy-developer/contracts/compatibility-samples/custom-scopes/compiler.log",
+      "sha256": "fa49681f91917dcac0f5bae6d726e859f2b82d681a57082ace25f1a5bb49fdc4",
+      "bytes": 620
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/fresh-copy-developer/contracts/compatibility-samples/lazy-lifecycle/bin/Release/net10.0/CompatibilityPatternConsumer.deps.json",
+      "sha256": "85a03f0320234d13a0e4e5faa33913d7db10250728826727717f8a225ace31b3",
+      "bytes": 478
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/fresh-copy-developer/contracts/compatibility-samples/lazy-lifecycle/compiler.log",
+      "sha256": "ee3fc7ea7945f4d7bd5f9558cd27259fd4407de81272d0b2429a197b1ecbf484",
+      "bytes": 622
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/fresh-copy-developer/contracts/compatibility-samples/logging-extensions/bin/Release/net10.0/CompatibilityPatternConsumer.deps.json",
+      "sha256": "85a03f0320234d13a0e4e5faa33913d7db10250728826727717f8a225ace31b3",
+      "bytes": 478
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/fresh-copy-developer/contracts/compatibility-samples/logging-extensions/compiler.log",
+      "sha256": "5b0d217499e863bdad572d895ea475d51bee991c24d20f8ae8f3bbb07d83f0b6",
+      "bytes": 630
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/fresh-copy-developer/contracts/compatibility-samples/null-calls/bin/Release/net10.0/CompatibilityPatternConsumer.deps.json",
+      "sha256": "85a03f0320234d13a0e4e5faa33913d7db10250728826727717f8a225ace31b3",
+      "bytes": 478
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/fresh-copy-developer/contracts/compatibility-samples/null-calls/compiler.log",
+      "sha256": "c0e7fcac1b76136b6eb73b17dd4a7242e4691858c165a598c10b915fec383009",
+      "bytes": 614
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/fresh-copy-developer/contracts/compatibility-samples/numeric-values/bin/Release/net10.0/CompatibilityPatternConsumer.deps.json",
+      "sha256": "85a03f0320234d13a0e4e5faa33913d7db10250728826727717f8a225ace31b3",
+      "bytes": 478
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/fresh-copy-developer/contracts/compatibility-samples/numeric-values/compiler.log",
+      "sha256": "267fa682641c108d2295be6d63c530290663f4d20a16863ac11b691f6bb958db",
+      "bytes": 622
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/fresh-copy-developer/contracts/compatibility-samples/summary.json",
+      "sha256": "23ef2e84272c6a62ca56460b9cbaa97f007171273f330e4ada92338f23c7e5fa",
+      "bytes": 12900
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/fresh-copy-developer/contracts/log-value-consumers/arbitrary-factory/compiler.log",
+      "sha256": "e3d38e3d3994923cade7cd524b39b024ef9a8e0be5f80a17afb754f4b079f7f0",
+      "bytes": 144
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/fresh-copy-developer/contracts/log-value-consumers/byte-array/compiler.log",
+      "sha256": "e476ac678c3c230d3c329e64d400aa95af88f610e650ae6914a198a8dbd125df",
+      "bytes": 186
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/fresh-copy-developer/contracts/log-value-consumers/caller-time-conversion/compiler.log",
+      "sha256": "7eb70257593da06f682a3ddda54a9d260d4fc514f645237f5ca74b08f8da61a6",
+      "bytes": 2
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/fresh-copy-developer/contracts/log-value-consumers/cyclic-object-array/compiler.log",
+      "sha256": "0f4f51e61dcc71b3dfa1c56de7f1b9f1ebc0ac656bb0024e9a79aba1ba8a1e1c",
+      "bytes": 186
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/fresh-copy-developer/contracts/log-value-consumers/decimal-number/compiler.log",
+      "sha256": "ee9c144b2e8991e0d4a84b0ca6a537ddd1c48ac2f5db1cc942ee35894ca051b2",
+      "bytes": 137
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/fresh-copy-developer/contracts/log-value-consumers/exception-object/compiler.log",
+      "sha256": "4fc78adb1751eb6b47e94f2941c4d624071b9b7388f3d5e8751c2c2d1f0821d7",
+      "bytes": 148
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/fresh-copy-developer/contracts/log-value-consumers/immutable-property/compiler.log",
+      "sha256": "7f1ad77ddfa5fffdad7e99b940eb54ce50158207bba30ce3fac0a3925be7a386",
+      "bytes": 160
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/fresh-copy-developer/contracts/log-value-consumers/numeric-keys/compiler.log",
+      "sha256": "8c3dbcaac8d2ff7117a281e9c4a4a66d8587a57f361f4f12caabe04c7225a838",
+      "bytes": 262
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/fresh-copy-developer/contracts/log-value-consumers/object-map/compiler.log",
+      "sha256": "1482a97dbe8b2cd0c3ffd5dbf6281cde6f7a7390416fc512b200b1d76d404feb",
+      "bytes": 249
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/fresh-copy-developer/contracts/log-value-consumers/object-string/compiler.log",
+      "sha256": "29f30b09d9165633bbcaf32c96a0299f26bd26ef9a5c788dab34b79b9c892ea5",
+      "bytes": 135
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/fresh-copy-developer/contracts/log-value-consumers/public-constructor/compiler.log",
+      "sha256": "e6ef833f1c38144051c72ee16b091f9a841c70ef3c8159309695152b15cbd46d",
+      "bytes": 152
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/fresh-copy-developer/contracts/log-value-consumers/summary.json",
+      "sha256": "3da6ba0d6c6e3b0611a968df517df67e4fbd938788cfd85087e6439daff65db6",
+      "bytes": 32640
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/fresh-copy-developer/contracts/log-value-consumers/typed-executable/compiler.log",
+      "sha256": "7eb70257593da06f682a3ddda54a9d260d4fc514f645237f5ca74b08f8da61a6",
+      "bytes": 2
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/fresh-copy-developer/contracts/log-value-consumers/typed-executable/Consumer.runtimeconfig.json",
+      "sha256": "e6b14f5d749025a86f819f44b013847c25e921fd94315c0fe8b7cfde9c411325",
+      "bytes": 183
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/fresh-copy-developer/contracts/log-value-consumers/typed-executable/execution.log",
+      "sha256": "c57085a4aee44cdbdef926cab0ec9740ad69343804dae681ee31971e987c5a8e",
+      "bytes": 34
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/fresh-copy-developer/contracts/publications/validation.json",
+      "sha256": "c8946c940254d91371b058c6a85c092dc9d7db1ed3d2955173dff04c25385dc7",
+      "bytes": 371
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/fresh-copy-developer/contracts/startup/corrected-facade-name/compiler.log",
+      "sha256": "2cb6713cfffd853d12f1246537c177e47d5d10c9b2f58431f81deb8315552e27",
+      "bytes": 1349
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/fresh-copy-developer/contracts/startup/event-consumer/bin/Release/net10.0/StartupContractConsumer.deps.json",
+      "sha256": "8ec3a6a29179e2ebc9a6d0bb9650a2f137f9311aa0c5af80876b6677dbfd2675",
+      "bytes": 463
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/fresh-copy-developer/contracts/startup/event-consumer/compiler.log",
+      "sha256": "8a4511e41defb621f6f2e53b2025a10061ef6cb6739b661876205717ee3282fa",
+      "bytes": 589
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/fresh-copy-developer/contracts/startup/immutable-drain-result/compiler.log",
+      "sha256": "e7c24cd94cb83996babf3f97ffc3738ec036f881ac63edc72739f5850064596a",
+      "bytes": 1394
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/fresh-copy-developer/contracts/startup/immutable-issues/compiler.log",
+      "sha256": "bd46a80b7dd8f04a03c40ac2720eca0f3146f077ffec50db5e6746f095b853e7",
+      "bytes": 1402
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/fresh-copy-developer/contracts/startup/immutable-log-diagnostics/compiler.log",
+      "sha256": "c3001a9eba66cec1a15ec5c5cdcc9ea3aea947088ecfffe7703fde2f3a621961",
+      "bytes": 1433
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/fresh-copy-developer/contracts/startup/immutable-logging/compiler.log",
+      "sha256": "4e4d128fa5a77e930b33a31681118b8e0cc6c3feff4d357213cfeb16cf930fde",
+      "bytes": 1377
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/fresh-copy-developer/contracts/startup/immutable-metadata/compiler.log",
+      "sha256": "d684e8a8de0c12a78e2e733889c74e718987eacccf3094e9d5b1a81339301e5a",
+      "bytes": 1378
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/fresh-copy-developer/contracts/startup/immutable-snapshot/compiler.log",
+      "sha256": "984cd2f98829301b53d6eca25ce298b975881df612657f8448665150a599415e",
+      "bytes": 1396
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/fresh-copy-developer/contracts/startup/immutable-value/compiler.log",
+      "sha256": "f2a89ec5b7a1d8fe0514af855081543fdf977cea578e27084909235703c63dc3",
+      "bytes": 1337
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/fresh-copy-developer/contracts/startup/immutable-write-result/compiler.log",
+      "sha256": "6642fe9d7e1ea57466ef2a17d6bd928a2bdba8c66456f167efeea74dddb85c51",
+      "bytes": 1390
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/fresh-copy-developer/contracts/startup/no-event-severity/compiler.log",
+      "sha256": "48dc628544bc85362caf3e430eabc823000416925cec437749f4aec7a0c588e2",
+      "bytes": 1659
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/fresh-copy-developer/contracts/startup/no-factory-write-overload/compiler.log",
+      "sha256": "2f89087ee08726b5dbda4d45ea73b2eede3480861f76483eeaa511d2e511fb15",
+      "bytes": 1379
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/fresh-copy-developer/contracts/startup/no-positional-runtime-options/compiler.log",
+      "sha256": "7451524c27b3b08767cdfa17b07c80776f29be57801a058dde1ba345b055add2",
+      "bytes": 1355
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/fresh-copy-developer/contracts/startup/no-reset/compiler.log",
+      "sha256": "64fe20d24ba8d7495800ebabc47d654f791c23e4556b26dbbc27e9c5635e2875",
+      "bytes": 1274
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/fresh-copy-developer/contracts/startup/no-sync-runtime-dispose/compiler.log",
+      "sha256": "bc2b2fca0cab4fcfd2b7b5b9e8c33f89136c4fd5155dae510a35795fa8963813",
+      "bytes": 1693
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/fresh-copy-developer/contracts/startup/positive/bin/Release/net10.0/StartupContractConsumer.deps.json",
+      "sha256": "8ec3a6a29179e2ebc9a6d0bb9650a2f137f9311aa0c5af80876b6677dbfd2675",
+      "bytes": 463
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/fresh-copy-developer/contracts/startup/positive/compiler.log",
+      "sha256": "f08c4191a1fed58cafaa55d1806dad99532c3df8c79d44b3d361dd5383620272",
+      "bytes": 577
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/fresh-copy-developer/contracts/startup/provider-consumer/bin/Release/net10.0/StartupContractConsumer.deps.json",
+      "sha256": "8ec3a6a29179e2ebc9a6d0bb9650a2f137f9311aa0c5af80876b6677dbfd2675",
+      "bytes": 463
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/fresh-copy-developer/contracts/startup/provider-consumer/compiler.log",
+      "sha256": "e5abf0024c5d883a3dc273f4634aa43b822d458dd051c30bfb6ca4b9a321d705",
+      "bytes": 595
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/fresh-copy-developer/contracts/startup/provider-non-owning/compiler.log",
+      "sha256": "9a68fddd87c94ce23722312c3e6be312cafef045b2af77bc98c813cf00c2711d",
+      "bytes": 1383
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/fresh-copy-developer/contracts/startup/reference/bin/Release/net10.0/CIS.Core.ContractSpecification.deps.json",
+      "sha256": "ca29ca3b932f1010e5685146871b8529c858bfe6bd38f59ef40606950fc54e17",
+      "bytes": 484
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/fresh-copy-developer/contracts/startup/reference/compiler.log",
+      "sha256": "69961763b2f2b955ef20e56b2fc587e75a5b6ee95689ff75e2d1955fb92647ae",
+      "bytes": 588
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/fresh-copy-developer/contracts/startup/runtime-consumer/bin/Release/net10.0/StartupContractConsumer.deps.json",
+      "sha256": "8ec3a6a29179e2ebc9a6d0bb9650a2f137f9311aa0c5af80876b6677dbfd2675",
+      "bytes": 463
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/fresh-copy-developer/contracts/startup/runtime-consumer/compiler.log",
+      "sha256": "301c47b1888a55ba04c24573bba60cdab52beee76640e51c0cbfd25eb79d09f4",
+      "bytes": 593
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/fresh-copy-developer/contracts/startup/summary.json",
+      "sha256": "7069cb3b8970af527dc0ea9cf356d1983810c5bea1e714fe8c4efb5fc31143c8",
+      "bytes": 14040
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/fresh-copy-developer/contracts/startup/unsupported-object/compiler.log",
+      "sha256": "9aa9e13d4878afe2d8529263056f889ae831a64889dac3daece4671d7470c841",
+      "bytes": 1304
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/fresh-copy-developer/families/architecture/discovery.json",
+      "sha256": "7ae66904bfe443557900ce82556d9ed9d02dfdbdfbb4b84fdc6c9e35aa6a542d",
+      "bytes": 38534
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/fresh-copy-developer/families/architecture/discovery.log",
+      "sha256": "e30fbbca5d607a8969207ba92f0c039b162c8d0ef30f352250956ba1e100e109",
+      "bytes": 32806
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/fresh-copy-developer/families/architecture/execution.json",
+      "sha256": "bd3e79008802f058dd3675b35f79c7228c08fde2e5964109138566bf453846fd",
+      "bytes": 163
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/fresh-copy-developer/families/architecture/execution.log",
+      "sha256": "282f124f17ac97d6ad85adc5c2e74dfd9a5827e8f46534c67c21d0b38454e449",
+      "bytes": 644
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/fresh-copy-developer/families/architecture/report.trx",
+      "sha256": "5691100f92587566043982994595e88b1201e9ef59409bcc8dd1cbc330a269bc",
+      "bytes": 621284
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/fresh-copy-developer/families/business/discovery.json",
+      "sha256": "49e4481766fb5e68b93e70d2f949bc67dd2e152ac469adc875a40a0da6fbdb10",
+      "bytes": 211
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/fresh-copy-developer/families/business/execution.json",
+      "sha256": "f44bda8b2ac012602fccefab9d06a36f1f436eec573cda60c18ac6953255994b",
+      "bytes": 239
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/fresh-copy-developer/families/compatibility/discovery.json",
+      "sha256": "c7e7e9d029b147a5a679dc044b6748fb18356efad464d3fa1df336b5c9a28054",
+      "bytes": 216
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/fresh-copy-developer/families/compatibility/execution.json",
+      "sha256": "5efe10a7962d49d6a820cbf38744179d98198da1b5d837dc27ae818b381b5c5a",
+      "bytes": 244
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/fresh-copy-developer/families/integration/discovery.json",
+      "sha256": "cc68bfcc9c54acef0f43e425aa614434d7b88232af019feaa711c9df0fb4f30c",
+      "bytes": 36244
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/fresh-copy-developer/families/integration/discovery.log",
+      "sha256": "bbf2ceeff275b3e00427ac9892ea6b43f313ecba8abad4c501510dd851ad9237",
+      "bytes": 32976
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/fresh-copy-developer/families/integration/execution.json",
+      "sha256": "15b4cfdb2fe14a1626a4383f6c2e202c60549a9af2f06d0003399ee2f8cf4949",
+      "bytes": 162
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/fresh-copy-developer/families/integration/execution.log",
+      "sha256": "d3828aa001bfb99450b5dee129be1ea89178d0dddfdbfdc29616dd10ae223288",
+      "bytes": 640
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/fresh-copy-developer/families/integration/report.trx",
+      "sha256": "ced29752ed6000911d10aedda2635d715608f88c5086a2ce5b81a1967d41307b",
+      "bytes": 3788376
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/fresh-copy-developer/families/mutation/discovery.json",
+      "sha256": "8262fd4f2df16da918b2d1aa74328b975a47a84bbc7b00bc9024f1dc28a3503e",
+      "bytes": 229
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/fresh-copy-developer/families/mutation/execution.json",
+      "sha256": "dccad37a1e3c9de1de7a7412ffaef0228f9ea182f3d9b8de445e55aeffaff1c5",
+      "bytes": 257
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/fresh-copy-developer/families/unit/discovery.json",
+      "sha256": "a274a24f03adc61933f59ce618c91dd30ca8761cb24e537e0125c36ca0db1978",
+      "bytes": 255215
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/fresh-copy-developer/families/unit/discovery.log",
+      "sha256": "5105e70fd46276f8c839164a842a5e3d92a83766069efa064b463c53ccd07bc8",
+      "bytes": 224815
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/fresh-copy-developer/families/unit/execution.json",
+      "sha256": "a05520a53f1a3dc6e89ff30f98462a450679da4585fb241b95550e481715ff7c",
+      "bytes": 157
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/fresh-copy-developer/families/unit/execution.log",
+      "sha256": "9a1e2c798c1e776277c89869116992a7158e325bdab00b1f775a31fc5640f418",
+      "bytes": 611
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/fresh-copy-developer/families/unit/report.trx",
+      "sha256": "4cdac1649ea7d2112f1ed8a283b83324814d5bbdfdc890cd1071e7b8cf8ca803",
+      "bytes": 3840933
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/fresh-copy-developer/logs/build.log",
+      "sha256": "0a1daa8ddab9c81110509279e5309f7d312a352cf3f8484f9805d8bf4e4c078b",
+      "bytes": 2424
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/fresh-copy-developer/logs/compatibility-samples.log",
+      "sha256": "23ef2e84272c6a62ca56460b9cbaa97f007171273f330e4ada92338f23c7e5fa",
+      "bytes": 12900
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/fresh-copy-developer/logs/host.log",
+      "sha256": "08bc754f88cba1a98cc3683262ec9412d23fb473074ab51494e0955bb2c6d44e",
+      "bytes": 89
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/fresh-copy-developer/logs/log-value-consumers.log",
+      "sha256": "3da6ba0d6c6e3b0611a968df517df67e4fbd938788cfd85087e6439daff65db6",
+      "bytes": 32640
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/fresh-copy-developer/logs/pack.log",
+      "sha256": "fee2405f703507369cf89257ca5ff91b22c51138834aa75cf2855b6c80a5cfac",
+      "bytes": 198
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/fresh-copy-developer/logs/package-boundaries.log",
+      "sha256": "e8da1977c719dbde935364766f87044f6daee8af6e4ecbdc4030ef95fbe9c02d",
+      "bytes": 907
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/fresh-copy-developer/logs/project-boundaries.log",
+      "sha256": "832bc3b42edef993c5c07b60218560116e436d6173db2a253c89cd311c68564a",
+      "bytes": 102
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/fresh-copy-developer/logs/publication-ledger.log",
+      "sha256": "c8946c940254d91371b058c6a85c092dc9d7db1ed3d2955173dff04c25385dc7",
+      "bytes": 371
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/fresh-copy-developer/logs/restore.log",
+      "sha256": "867e0aa22ad01b1448b3dd0d62716a039a25a2131ad225ec2bf60e3be957a92d",
+      "bytes": 2186
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/fresh-copy-developer/logs/startup-contract.log",
+      "sha256": "7069cb3b8970af527dc0ea9cf356d1983810c5bea1e714fe8c4efb5fc31143c8",
+      "bytes": 14040
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/fresh-copy-developer/source-inputs.json",
+      "sha256": "0d6afb6b7ef279339f5082ea171e2fb808f38f0157b35371a40154c6be68a724",
+      "bytes": 2176160
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/fresh-copy-developer/summary.json",
+      "sha256": "367011bb18daa35a51fc14761efc3b7c69ed781df460ab2ababd94613385b0cc",
+      "bytes": 7866
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/fresh-copy-developer/validation.json",
+      "sha256": "ef4b67392fb7611ed6ad4dfa4f8f5b916535d50cb40ae5e01f6c742ccf21adfb",
+      "bytes": 127
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/process-inputs/host/net10.0/CIS.Core.DiscoveryFixture.deps.json",
+      "sha256": "98d9d6497dc6463ff565b13b346ca05df483f75b1df36757fba1a623516a8e11",
+      "bytes": 2494
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/process-inputs/host/net10.0/CIS.Core.DiscoveryFixture.dll",
+      "sha256": "b52ce370639376243dec7189b1f703817f70c50d30b73d3c0ff5fe9f580bfdaf",
+      "bytes": 189952
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/process-inputs/host/net10.0/CIS.Core.DiscoveryFixture.exe",
+      "sha256": "ab300b58fe1287e329095562d261faf0ea06e5e3ef98bb032dfda59a35ec152f",
+      "bytes": 162816
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/process-inputs/host/net10.0/CIS.Core.DiscoveryFixture.pdb",
+      "sha256": "77aef0b00d0cb4b8d7f4073567582930a9141c65a5b5b4f51e1ddfc166098d48",
+      "bytes": 45744
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/process-inputs/host/net10.0/CIS.Core.DiscoveryFixture.runtimeconfig.json",
+      "sha256": "c230a317a54dd960bcbeb5f347f52e18dc665a26f7efda2159fced9a5ac7e097",
+      "bytes": 342
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/process-inputs/host/net10.0/CIS.Core.dll",
+      "sha256": "6cd5d706358489801d606d781bb4a7b0b36fc282d2acd5b75a330fd85e9abd3a",
+      "bytes": 82944
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/process-inputs/host/net10.0/CIS.Core.pdb",
+      "sha256": "b6e57d7686b9901948d999b86d94830339b8f9de4f84989ce0d9f94dc07e9afe",
+      "bytes": 36132
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/process-inputs/host/net10.0/Microsoft.Extensions.DependencyInjection.Abstractions.dll",
+      "sha256": "da04edc338d5aa0f38a1f5fa5ff3ee7e36affe9c961daf3ea724a428bd746bc6",
+      "bytes": 65872
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/process-inputs/host/net10.0/Microsoft.Extensions.Logging.Abstractions.dll",
+      "sha256": "7c242f8ca612fa1acc61f78efd5f8c89e01bd0bd47dc4ecc65e0e6e24f1a1668",
+      "bytes": 66856
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/process-linux/copy.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/process-linux/copy.stdout.json",
+      "sha256": "eecb9641d71548114b3a1b0172ad92171d5fb94b796688252510f9955e4179ab",
+      "bytes": 383
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/process-linux/inherit.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/process-linux/inherit.stdout.json",
+      "sha256": "2ea006a7d9dbcc4d82f5480a32e6902cab93fb1583c975e6067887477b221470",
+      "bytes": 383
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/process-linux/isolated.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/process-linux/isolated.stdout.json",
+      "sha256": "660e859af3ec7f32018e1e839c72abc32f9f3f1178ac6df24a7d6a281e0ad8ff",
+      "bytes": 376
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/process-linux/summary.json",
+      "sha256": "4f748529f8027ee3abe3f6865a4ba310fcc741e592967588cf000cd00fcec9d0",
+      "bytes": 2327
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/process-windows/copy.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/process-windows/copy.stdout.json",
+      "sha256": "8e8a81e9ec2e0c5f9fd49bb870201ccc43ab66ddebfd75469d47b32024246a20",
+      "bytes": 386
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/process-windows/inherit.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/process-windows/inherit.stdout.json",
+      "sha256": "89bb66b033a7e417c42095adb86b998119718bb1e78f7cc5c87780c3bc201c34",
+      "bytes": 386
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/process-windows/isolated.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/process-windows/isolated.stdout.json",
+      "sha256": "3b9ce5d81ebbd5d4024c8571c94af0290971a5ed9a4d1cab4b5f38e76537c427",
+      "bytes": 379
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/process-windows/summary.json",
+      "sha256": "7cc6892fcfc7a8217d85ca2c25238f554e0bebf9366ed68441b64249ee6caf6b",
+      "bytes": 2329
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/release/families/architecture/discovery.json",
+      "sha256": "ea40203d9fa7ca04740f913a510367de51e8b66b495bc38cb30f30a9f0bf6792",
+      "bytes": 208
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/release/families/architecture/execution.json",
+      "sha256": "bed76673b4a5cb7e09786766c569d47da950ce7e8c62f966e0595b890be59620",
+      "bytes": 236
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/release/families/business/discovery.json",
+      "sha256": "af89a72b58bddbba3500cf27e250333e09388e95000ba025ac867b3ecee4af38",
+      "bytes": 204
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/release/families/business/execution.json",
+      "sha256": "a536050eaeb13b05fb9415afc61c0a6b3bf1dc61d0817396c152dff280b910a3",
+      "bytes": 232
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/release/families/compatibility/discovery.json",
+      "sha256": "f74d37a006bacedeb9b8339951b17a41fa86a969c120b0658b8eeffa94f413be",
+      "bytes": 209
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/release/families/compatibility/execution.json",
+      "sha256": "4aca84b5c51f80f4a40b4c9faee10c6e88ee3f99af3ff892c489a45f54c57343",
+      "bytes": 237
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/release/families/integration/discovery.json",
+      "sha256": "1e4796ee2040f9f75bb6f036fdc1970f4fdd849650d67f6d3951aa216b70a235",
+      "bytes": 275
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/release/families/integration/execution.json",
+      "sha256": "467298fcb2e763ef1f70307e1deeff68ea81965f59b5ce9e6aa2804857d91340",
+      "bytes": 303
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/release/families/mutation/discovery.json",
+      "sha256": "6ca1a0272d4e7204515333d8b5af5bb42fd67cd9a4ea53276d3b7c48779a33ed",
+      "bytes": 204
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/release/families/mutation/execution.json",
+      "sha256": "1ce1167c84d4c7b902f69be5c426a726efc3c75cc90dbf2be31827c603984dbd",
+      "bytes": 232
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/release/families/unit/discovery.json",
+      "sha256": "868d69a244ac0bc9e8f826f7ee92df0a987f05dd0b90fc38c84db37e1baa74ac",
+      "bytes": 200
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/release/families/unit/execution.json",
+      "sha256": "4978f6a97379fecb01adb75f45a86343c6e43250aeca6e56002e8bc57e08f42d",
+      "bytes": 228
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/release/source-inputs.json",
+      "sha256": "0dea57250ee957653ffbfee57f7abc9c3125215cca2b593144b89c8ac9bc496e",
+      "bytes": 2667355
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/release/summary.json",
+      "sha256": "ab9a63eb4c190f92487aa5ac65245cac8f821ee97da729eced04cbe05433c115",
+      "bytes": 10088
+    },
+    {
+      "path": "planning/logging/evidence/wp04-s03-t01/release/validation.json",
+      "sha256": "95a2a05c9d70f1af365c94c9a90dc805056a29ef3ba3177154d4faef96146f83",
+      "bytes": 5772
+    }
+  ],
+  "evidenceGenerationRecord": {
+    "correctedRetentionAndMetadataObservedExecSession": 17911,
+    "observedExecExitCode": 0,
+    "separatelyRedirectedOutputOrExitFilesRetained": false,
+    "record": "The receipt is the retained record of the successful corrected-retention and completion-metadata runs. Their outputs were observed through the exec session; no standalone logs/exit files were redirected. Initial failed retention logs are preserved. Original helpers remain retained; the final completed-state audit is a separate script.",
+    "correctionSupplementOutputsRetained": [
+      "planning/logging/evidence/wp04-s03-t01/commands/complete-evidence-record.log",
+      "planning/logging/evidence/wp04-s03-t01/commands/complete-evidence-record-exit.json",
+      "planning/logging/evidence/wp04-s03-t01/commands/audit-commit-corrected.json",
+      "planning/logging/evidence/wp04-s03-t01/commands/audit-commit-corrected-exit.json"
+    ]
+  },
+  "verificationExitsBackingFiles": [
+    "planning/logging/evidence/wp04-s03-t01/commands/developer-exit.json",
+    "planning/logging/evidence/wp04-s03-t01/commands/fresh-copy-exit.json",
+    "planning/logging/evidence/wp04-s03-t01/commands/process-exits.json",
+    "planning/logging/evidence/wp04-s03-t01/commands/verification-exits.json"
+  ],
+  "cisGraphContext": {
+    "buildId": "sha256:853b642f9507a6c15783426ceb410edd4c00d7e96b0f3a77eafa0448fd3b67bc",
+    "freshness": "fresh",
+    "nodeCount": 4214,
+    "edgeCount": 16789,
+    "errorCount": 0,
+    "warningCount": 40,
+    "informationCount": 0,
+    "contextOnly": true,
+    "notes": "Earlier bounded broad queries were truncated; attempted component-owned DTO class keys did not match. The actual DTO class root is ambiguous/source/ownership; inspected shipping path confirms the source. Existing live/reference/historical ownership warnings remain context limits, not execution proof."
+  },
+  "finalEvidencePreparation": {
+    "appendStepScript": "planning/logging/evidence/wp04-s03-t01/commands/append-report-supplements.py",
+    "finalizerScript": "planning/logging/evidence/wp04-s03-t01/commands/finalize-receipt.py",
+    "record": "Manifest updated after retaining correction outputs and evidence reviews. Earlier retained audits describe their intermediate manifests. A final complete-state audit runs after this finalizer and staging; its output is intentionally outside reports to avoid a self-reference. Its actual output SHA256 and final receipt SHA256 are recorded in the task commit message. All actual verification exits are compared with the receipt."
+  }
+}

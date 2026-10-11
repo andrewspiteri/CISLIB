@@ -11,6 +11,11 @@ internal static class Program
 {
     private static int Main(string[] args)
     {
+        if (args.Length == 2 && args[0] == "scope-foundation")
+        {
+            return OperationScopeProcessFixture.RunAsync(args[1]).GetAwaiter().GetResult();
+        }
+
         if (args.Length == 3 && args[0] == "exception-qualification")
         {
             return ExceptionQualificationProcessFixture.Run(args[1], args[2]);
