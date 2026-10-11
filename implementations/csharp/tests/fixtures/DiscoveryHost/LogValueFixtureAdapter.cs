@@ -8,6 +8,7 @@ namespace CIS.Tests.DiscoveryFixture;
 // Typed constructor inputs and a test-only wire projection; never a shipping serializer.
 internal static class LogValueFixtureAdapter
 {
+    // Original T01 selection stays stable; T02 qualifies the remaining original rows separately.
     internal static readonly string[] Kinds = ["null", "boolean", "string", "number", "integer", "integer-string", "decimal-string", "array", "map"];
 
     public static JsonObject Execute(JsonObject row)
@@ -74,6 +75,20 @@ internal static class LogValueFixtureAdapter
                 double number = double.Parse(Text(value), NumberStyles.Float, CultureInfo.InvariantCulture);
                 beforeFactory();
                 return LogValue.Number(number);
+            case "uuid":
+                if (!Guid.TryParseExact(Text(value), "D", out Guid uuid))
+                {
+                    throw new InvalidDataException("Expected Guid constructor transport.");
+                }
+                beforeFactory();
+                return LogValue.Uuid(uuid);
+            case "timestamp":
+                if (!DateTimeOffset.TryParse(Text(value), CultureInfo.InvariantCulture, DateTimeStyles.None, out DateTimeOffset timestamp))
+                {
+                    throw new InvalidDataException("Expected DateTimeOffset constructor transport.");
+                }
+                beforeFactory();
+                return LogValue.Timestamp(timestamp);
             case "array" when value is JsonArray items:
                 LogValue[] array = items.Select(item => Construct(item!.AsObject(), beforeFactory)).ToArray();
                 beforeFactory();
@@ -83,7 +98,7 @@ internal static class LogValueFixtureAdapter
                 beforeFactory();
                 return LogValue.Map(map);
             default:
-                throw new InvalidDataException("Constructor input is not a supported T01 typed value.");
+                throw new InvalidDataException("Constructor input is not a supported typed value.");
         }
     }
 
@@ -116,9 +131,11 @@ internal static class LogValueFixtureAdapter
                 "integer" => "Integer",
                 "integer-string" => "IntegerString",
                 "decimal-string" => "DecimalString",
+                "uuid" => "Uuid",
+                "timestamp" => "Timestamp",
                 "array" => "Array",
                 "map" => "Map",
-                _ => throw new InvalidDataException("Unexpected T01 tag.")
+                _ => throw new InvalidDataException("Unexpected supported tag.")
             };
             if (actual["kind"]!.GetValue<string>() != expectedKind)
             {
@@ -127,7 +144,7 @@ internal static class LogValueFixtureAdapter
         }
         if (expected && actual["isTruncated"]!.GetValue<bool>())
         {
-            throw new InvalidDataException("A complete T01 fixture was unexpectedly truncated.");
+            throw new InvalidDataException("A complete scalar fixture was unexpectedly truncated.");
         }
     }
 
@@ -144,6 +161,8 @@ internal static class LogValueFixtureAdapter
             case LogValueKind.String:
             case LogValueKind.IntegerString:
             case LogValueKind.DecimalString:
+            case LogValueKind.Uuid:
+            case LogValueKind.Timestamp:
                 writer.WriteStringValue(value.Scalar.Text);
                 break;
             case LogValueKind.Integer:
@@ -170,7 +189,7 @@ internal static class LogValueFixtureAdapter
                 writer.WriteEndObject();
                 break;
             default:
-                throw new InvalidDataException("Value is outside the implemented T01 subset.");
+                throw new InvalidDataException("Value is outside the supported value model.");
         }
     }
 

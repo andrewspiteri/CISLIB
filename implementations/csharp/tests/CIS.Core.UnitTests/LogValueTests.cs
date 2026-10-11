@@ -292,12 +292,12 @@ public sealed class LogValueTests
         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
     }
 
-    private static JsonObject Read()
+    internal static JsonObject Read(string name = "event-value-cases.json")
     {
         DirectoryInfo? directory = new(AppContext.BaseDirectory);
         while (directory is not null)
         {
-            string path = Path.Combine(directory.FullName, "conformance", "logging", "event-value-cases.json");
+            string path = Path.Combine(directory.FullName, "conformance", "logging", name);
             if (File.Exists(path))
             {
                 return JsonNode.Parse(File.ReadAllText(path))!.AsObject();

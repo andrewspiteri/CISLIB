@@ -1,0 +1,17 @@
+{
+  "taskId": "WP04-S01-T02",
+  "corrections": [
+    {
+      "scope": "verification command",
+      "detail": "Initial build named CIS.Core.sln, which does not exist; corrected to actual CisLib.slnx before successful build/test execution."
+    },
+    {
+      "scope": "guard terminology",
+      "detail": "Changed the declared-type negative row from DateTime to Type: DateTime has a C# implicit caller conversion to DateTimeOffset, which lies outside the typed Core boundary. Final native and focused reports use Type."
+    },
+    {
+      "scope": "native evidence integrity",
+      "detail": "The first full Developer run passed all 2168 native cases, but eight Type DataRow arguments shared one native testId. The unchanged strict checker correctly rejected that report. Converted those eight inputs to distinct string discriminators resolved to explicit Types in the test; retained initial reports and reran full verification."
+    }
+  ]
+}

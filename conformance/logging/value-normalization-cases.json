@@ -1,0 +1,116 @@
+{
+  "schemaVersion": 1,
+  "taskId": "WP04-S01-T02",
+  "description": "Additional typed UUID/time normalization vectors; portable transport is not a public Core string parser.",
+  "caseCount": 12,
+  "cases": [
+    {
+      "id": "NORMALIZE-UUID-UPPERCASE",
+      "input": {
+        "kind": "uuid",
+        "value": "5FBAB327-67AB-47D1-B814-B3A98C16E41F"
+      },
+      "expectedValid": true,
+      "expectedJson": "5fbab327-67ab-47d1-b814-b3a98c16e41f"
+    },
+    {
+      "id": "NORMALIZE-UUID-EMPTY",
+      "input": {
+        "kind": "uuid",
+        "value": "00000000-0000-0000-0000-000000000000"
+      },
+      "expectedValid": true,
+      "expectedJson": "00000000-0000-0000-0000-000000000000"
+    },
+    {
+      "id": "NORMALIZE-UUID-ALL-HEX",
+      "input": {
+        "kind": "uuid",
+        "value": "FFFFFFFF-FFFF-FFFF-FFFF-FFFFFFFFFFFF"
+      },
+      "expectedValid": true,
+      "expectedJson": "ffffffff-ffff-ffff-ffff-ffffffffffff"
+    },
+    {
+      "id": "NORMALIZE-UUID-MIXED-HEX",
+      "input": {
+        "kind": "uuid",
+        "value": "aBcDeF01-2345-6789-aBcD-eF0123456789"
+      },
+      "expectedValid": true,
+      "expectedJson": "abcdef01-2345-6789-abcd-ef0123456789"
+    },
+    {
+      "id": "NORMALIZE-TIME-POSITIVE-OFFSET",
+      "input": {
+        "kind": "timestamp",
+        "value": "2026-10-11T01:02:03.1234567+02:00"
+      },
+      "expectedValid": true,
+      "expectedJson": "2026-10-10T23:02:03.1234567Z"
+    },
+    {
+      "id": "NORMALIZE-TIME-NEGATIVE-OFFSET",
+      "input": {
+        "kind": "timestamp",
+        "value": "2026-10-11T01:02:03.1234567-03:30"
+      },
+      "expectedValid": true,
+      "expectedJson": "2026-10-11T04:32:03.1234567Z"
+    },
+    {
+      "id": "NORMALIZE-TIME-MIN",
+      "input": {
+        "kind": "timestamp",
+        "value": "0001-01-01T00:00:00.0000000+00:00"
+      },
+      "expectedValid": true,
+      "expectedJson": "0001-01-01T00:00:00.0000000Z"
+    },
+    {
+      "id": "NORMALIZE-TIME-MAX",
+      "input": {
+        "kind": "timestamp",
+        "value": "9999-12-31T23:59:59.9999999+00:00"
+      },
+      "expectedValid": true,
+      "expectedJson": "9999-12-31T23:59:59.9999999Z"
+    },
+    {
+      "id": "NORMALIZE-TIME-LEAP-DAY",
+      "input": {
+        "kind": "timestamp",
+        "value": "2024-02-29T23:59:59.9999999-00:01"
+      },
+      "expectedValid": true,
+      "expectedJson": "2024-03-01T00:00:59.9999999Z"
+    },
+    {
+      "id": "NORMALIZE-TIME-POSITIVE-LIMIT",
+      "input": {
+        "kind": "timestamp",
+        "value": "2026-01-01T00:00:00.0000001+14:00"
+      },
+      "expectedValid": true,
+      "expectedJson": "2025-12-31T10:00:00.0000001Z"
+    },
+    {
+      "id": "NORMALIZE-TIME-NEGATIVE-LIMIT",
+      "input": {
+        "kind": "timestamp",
+        "value": "2026-12-31T23:59:59.9999999-14:00"
+      },
+      "expectedValid": true,
+      "expectedJson": "2027-01-01T13:59:59.9999999Z"
+    },
+    {
+      "id": "NORMALIZE-TIME-MIN-WITH-OFFSET",
+      "input": {
+        "kind": "timestamp",
+        "value": "0001-01-01T14:00:00.0000000+14:00"
+      },
+      "expectedValid": true,
+      "expectedJson": "0001-01-01T00:00:00.0000000Z"
+    }
+  ]
+}

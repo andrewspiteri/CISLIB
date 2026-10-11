@@ -19,9 +19,13 @@ public sealed class LogValueProcessTests
     [DynamicData(nameof(PortableRows))]
     public async Task ActualTypedValueRepresentationsExecuteInFreshProcessesWithoutStartup(string id)
     {
+        await Verify(Find(), id, TestContext);
+    }
+
+    internal static async Task Verify(string input, string id, TestContext context)
+    {
         string host = Path.Combine(AppContext.BaseDirectory, "discovery-fixture", "CIS.Core.DiscoveryFixture.dll");
-        string input = Find();
-        JsonObject row = Read()["cases"]!.AsArray().Single(value => value!["id"]!.GetValue<string>() == id)!.AsObject();
+        JsonObject row = JsonNode.Parse(File.ReadAllText(input))!["cases"]!.AsArray().Single(value => value!["id"]!.GetValue<string>() == id)!.AsObject();
         using var owned = new TemporaryDirectory();
         string parentDirectory = Directory.GetCurrentDirectory();
         ProcessResult process = await ProcessRunner.RunAsync("dotnet",
@@ -30,7 +34,7 @@ public sealed class LogValueProcessTests
             new Dictionary<string, string?> { ["CORE_LOG_LEVEL"] = "invalid-must-not-be-read", ["DD_AGENT_HOST"] = "CIS_NEVER_CAPTURE_COLLECTOR" });
         Assert.AreEqual(0, process.ExitCode, process.StandardError);
         Assert.AreEqual(string.Empty, process.StandardError);
-        TestContext.WriteLine(process.StandardOutput);
+        context.WriteLine(process.StandardOutput);
         JsonObject actual = JsonNode.Parse(process.StandardOutput)!.AsObject();
         bool valid = row["expectedValid"]!.GetValue<bool>();
         Assert.AreEqual(valid, actual["valid"]!.GetValue<bool>());
@@ -51,14 +55,14 @@ public sealed class LogValueProcessTests
         Assert.AreEqual(parentDirectory, Directory.GetCurrentDirectory());
     }
 
-    private static JsonObject Read() => JsonNode.Parse(File.ReadAllText(Find()))!.AsObject();
+    internal static JsonObject Read(string name = "event-value-cases.json") => JsonNode.Parse(File.ReadAllText(Find(name)))!.AsObject();
 
-    private static string Find()
+    internal static string Find(string name = "event-value-cases.json")
     {
         DirectoryInfo? directory = new(AppContext.BaseDirectory);
         while (directory is not null)
         {
-            string path = Path.Combine(directory.FullName, "conformance", "logging", "event-value-cases.json");
+            string path = Path.Combine(directory.FullName, "conformance", "logging", name);
             if (File.Exists(path))
             {
                 return path;

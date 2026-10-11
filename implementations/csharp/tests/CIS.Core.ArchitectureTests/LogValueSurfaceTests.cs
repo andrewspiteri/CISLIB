@@ -9,7 +9,7 @@ namespace CIS.Tests.ArchitectureTests;
 public sealed class LogValueSurfaceTests
 {
     [TestMethod]
-    public void ActualValueSurfaceHasNineRealTypedFactoriesAndNoPublicMutablePayload()
+    public void ActualValueSurfaceHasElevenRealTypedFactoriesAndNoPublicMutablePayload()
     {
         Type type = typeof(LogValue);
         Assert.IsTrue(type.IsPublic && type.IsSealed);
@@ -17,13 +17,15 @@ public sealed class LogValueSurfaceTests
         CollectionAssert.AreEquivalent(new[] { "Kind", "IsTruncated" }, type.GetProperties().Select(property => property.Name).ToArray());
         Assert.IsTrue(type.GetProperties().All(property => property.GetSetMethod(nonPublic: true) is null));
         MethodInfo[] factories = type.GetMethods(BindingFlags.Public | BindingFlags.Static | BindingFlags.DeclaredOnly);
-        CollectionAssert.AreEquivalent(new[] { "Null", "Boolean", "String", "Number", "Integer", "IntegerString", "DecimalString", "Array", "Map" }, factories.Select(method => method.Name).ToArray());
+        CollectionAssert.AreEquivalent(new[] { "Null", "Boolean", "String", "Number", "Integer", "IntegerString", "DecimalString", "Uuid", "Timestamp", "Array", "Map" }, factories.Select(method => method.Name).ToArray());
         Assert.IsTrue(factories.All(method => method.ReturnType == type && method.GetMethodBody() is not null));
         Assert.IsTrue(factories.SelectMany(method => method.GetParameters()).All(parameter => parameter.ParameterType != typeof(object)));
         Assert.IsTrue(type.GetFields(BindingFlags.NonPublic | BindingFlags.Instance).All(field => field.IsPrivate && field.IsInitOnly));
         Assert.AreEqual(typeof(bool), type.GetMethod("Boolean")!.GetParameters().Single().ParameterType);
         Assert.AreEqual(typeof(double), type.GetMethod("Number")!.GetParameters().Single().ParameterType);
         Assert.AreEqual(typeof(long), type.GetMethod("Integer")!.GetParameters().Single().ParameterType);
+        Assert.AreEqual(typeof(Guid), type.GetMethod("Uuid")!.GetParameters().Single().ParameterType);
+        Assert.AreEqual(typeof(DateTimeOffset), type.GetMethod("Timestamp")!.GetParameters().Single().ParameterType);
         foreach (string name in new[] { "String", "IntegerString", "DecimalString" })
         {
             Assert.AreEqual(typeof(string), type.GetMethod(name)!.GetParameters().Single().ParameterType);

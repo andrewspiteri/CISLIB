@@ -189,7 +189,7 @@ public sealed class ConfigurationAmbientStateTests
         return Console.IsOutputRedirected || Console.IsErrorRedirected || Console.IsInputRedirected || System.Diagnostics.Debugger.IsAttached || Environment.GetEnvironmentVariables().Count > 0;
     }
 
-    private static IEnumerable<MethodBase> Calls(MethodBase method) => Instructions(method).Select(item => item.Member).OfType<MethodBase>();
+    internal static IEnumerable<MethodBase> Calls(MethodBase method) => Instructions(method).Select(item => item.Member).OfType<MethodBase>();
 
     private static IEnumerable<(int Offset, OpCode Code, MemberInfo? Member)> Instructions(MethodBase method)
     {

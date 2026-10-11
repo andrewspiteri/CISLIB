@@ -1,11 +1,13 @@
 using System.Collections.ObjectModel;
+using System.Globalization;
 using CIS.Logging.Values;
 
 namespace CIS.Logging;
 
 /// <summary>An immutable, explicitly typed scalar or owned collection of attribute values.</summary>
 /// <remarks>Collection inputs are copied; already immutable child values may be shared.
-/// Collection traversal projection and UUID/time factories follow in WP04-S01-T02/T03.
+/// Collection traversal projection follows in WP04-S01-T03.
+/// UUID/time factories accept typed scalars; arbitrary objects have no conversion path.
 /// Event capture/rendering applies the separately configured aggregate entry limit.</remarks>
 public sealed class LogValue
 {
@@ -103,6 +105,15 @@ public sealed class LogValue
         }
         return new(LogValueKind.DecimalString, new(value));
     }
+
+    /// <summary>Creates a lowercase UUID string in hyphenated 8-4-4-4-12 form.</summary>
+    /// <remarks>All Guid values, including Guid.Empty, are valid attribute scalars.</remarks>
+    public static LogValue Uuid(Guid value) => new(LogValueKind.Uuid, new(value.ToString("D")));
+
+    /// <summary>Creates a UTC timestamp with exactly seven fractional digits.</summary>
+    /// <remarks>The supplied offset is converted to the same UTC instant; formatting is invariant.</remarks>
+    public static LogValue Timestamp(DateTimeOffset value) => new(LogValueKind.Timestamp,
+        new(value.UtcDateTime.ToString("yyyy-MM-dd'T'HH:mm:ss.fffffff'Z'", CultureInfo.InvariantCulture)));
 
     /// <summary>Creates an owned array, preserving the order of immutable child values.</summary>
     /// <exception cref="ArgumentNullException">items is null.</exception>

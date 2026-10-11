@@ -17,9 +17,9 @@ public enum LogValueKind
     IntegerString = 5,
     /// <summary>An explicitly selected invariant decimal string.</summary>
     DecimalString = 6,
-    /// <summary>An explicitly selected UUID string; normalization follows in WP04-S01-T02.</summary>
+    /// <summary>An explicitly selected lowercase hyphenated UUID string.</summary>
     Uuid = 7,
-    /// <summary>An explicitly selected UTC timestamp string; normalization follows in WP04-S01-T02.</summary>
+    /// <summary>An explicitly selected invariant UTC timestamp with seven fractional digits.</summary>
     Timestamp = 8,
     /// <summary>An ordered array of supported values.</summary>
     Array = 9,

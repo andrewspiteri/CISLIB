@@ -1,4 +1,4 @@
-"""Run the actual T01 value representations against unchanged portable vectors."""
+"""Run the actual typed value representations and normalization against unchanged portable vectors."""
 import argparse
 import hashlib
 import json
@@ -27,9 +27,10 @@ def main():
     args = parser.parse_args()
     host, input_path, output = args.host.resolve(), args.input.resolve(), args.output.resolve()
     output.mkdir(parents=True, exist_ok=False)
-    kinds = {"null": "Null", "boolean": "Boolean", "string": "String", "number": "Number", "integer": "Integer", "integer-string": "IntegerString", "decimal-string": "DecimalString", "array": "Array", "map": "Map"}
-    rows = [row for row in json.loads(input_path.read_text(encoding="utf-8"))["cases"] if row["input"]["kind"] in kinds]
-    require(len(rows) == 37, "Applicable vector set differs")
+    kinds = {"null": "Null", "boolean": "Boolean", "string": "String", "number": "Number", "integer": "Integer", "integer-string": "IntegerString", "decimal-string": "DecimalString", "uuid": "Uuid", "timestamp": "Timestamp", "array": "Array", "map": "Map"}
+    catalog = json.loads(input_path.read_text(encoding="utf-8"))
+    rows = catalog["cases"]
+    require(len(rows) == catalog["caseCount"], "Complete vector set differs")
     original_environment, original_directory = dict(os.environ), os.getcwd()
     environment = dict(original_environment, CORE_LOG_LEVEL="invalid-must-not-be-read", DD_AGENT_HOST="CIS_NEVER_CAPTURE_COLLECTOR")
     record = {"schema": "cis.log-values-process/v1", "family": args.family, "status": "Failed", "exitCode": 1, "runtimeVersion": "10.0.12", "rollForward": "Disable", "inputsSha256": sha(input_path), "cases": [], "reports": []}
@@ -51,7 +52,7 @@ def main():
                 if row["expectedValid"]:
                     require(result["kind"] == kinds[row["input"]["kind"]] and result["isTruncated"] is False and result["json"] == row["expectedJson"], "Typed representation differs")
                 else:
-                    adapter_only = key in ["VALUE-INVALID-BOOL", "VALUE-INVALID-INTEGER-TYPE"]
+                    adapter_only = key in ["VALUE-INVALID-BOOL", "VALUE-INVALID-INTEGER-TYPE", "VALUE-BAD-UUID", "VALUE-BAD-TIMESTAMP"] or row["input"]["kind"] not in kinds
                     require((result["factoryCalls"] == 0) == adapter_only, "Core/transport failure attribution differs")
                     require(result["error"] == "InputAdapterTypeMismatch" if adapter_only else result["error"] in ["ArgumentException", "ArgumentOutOfRangeException"], "Error category differs")
                     if not adapter_only:
@@ -61,7 +62,7 @@ def main():
                 require(not list(Path(owned).iterdir()) and b"CIS_NEVER_CAPTURE_COLLECTOR" not in child.stdout, "Output/collector side effect")
                 record["cases"].append({"id": key, "status": "Passed", "childExitCode": child.returncode, "factoryCalls": result["factoryCalls"], "fixtureSha256": observed["fixtureSha256"], "coreSha256": observed["coreSha256"]})
         require(dict(os.environ) == original_environment and os.getcwd() == original_directory, "Parent environment/directory modified")
-        record.update(status="Passed", exitCode=0, parentEnvironmentAndDirectoryUnchanged=True, coreInvokedCases=35, transportRejectedCases=2)
+        record.update(status="Passed", exitCode=0, parentEnvironmentAndDirectoryUnchanged=True, coreInvokedCases=sum(case["factoryCalls"] > 0 for case in record["cases"]), transportRejectedCases=sum(case["factoryCalls"] == 0 for case in record["cases"]))
     except Exception as error:
         record.update(failureType=type(error).__name__, failure=str(error))
     (output / "summary.json").write_text(json.dumps(record, indent=2) + "\n", encoding="utf-8", newline="\n")
