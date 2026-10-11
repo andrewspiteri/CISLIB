@@ -1,0 +1,69 @@
+{
+  "schemaVersion": 1,
+  "storyId": "WP04-S02",
+  "taskId": "WP04-S02-T04",
+  "scope": "Actual C# cooperative owned exception projection; shared descriptors declare runtime-specific type and malformed-UTF16 bindings.",
+  "authority": "planning/logging/plan-amendments.md",
+  "originalSource": "planning/logging/sources/core-library-backlog-v1.json",
+  "catalogs": [
+    "conformance/logging/exception-qualification-cases.json"
+  ],
+  "criteria": [
+    {
+      "id": "WP04-S02-AC01",
+      "sourceDescription": "Single inner exceptions use an array of one; aggregate children retain their original order and the required type/message fields.",
+      "appliedMeaning": "Actual single, aggregate, ordered, nested and repeated source references retain required native type/message identities and single-child arrays. Shared type tags are explicitly bound per adapter.",
+      "nativeCaseGroups": [
+        "UT-EXCEPTION-T01-01",
+        "UT-EXCEPTION-T02-01",
+        "UT-EXCEPTION-T04-01",
+        "IT-EXCEPTION-T04-04"
+      ]
+    },
+    {
+      "id": "WP04-S02-AC02",
+      "sourceDescription": "Every exception-specific limit is enforced during traversal, with a truncation marker where required rather than malformed or incomplete JSON.",
+      "appliedMeaning": "Exact/adjacent native bounds and shared scalar/structural rows clip retained prefixes, preserve local markers and descendant loss, and reject malformed retained native text before any partial projection is exposed. Development JSON is independently checked; shipping event encoding remains WP04-S04.",
+      "nativeCaseGroups": [
+        "UT-EXCEPTION-T02-01",
+        "UT-EXCEPTION-T02-03",
+        "UT-EXCEPTION-T03-01",
+        "UT-EXCEPTION-T04-01",
+        "UT-EXCEPTION-T04-02",
+        "IT-EXCEPTION-T04-04"
+      ]
+    },
+    {
+      "id": "WP04-S02-AC03",
+      "sourceDescription": "Changing Exception.Data after capture has no effect, and projected records contain no automatic HTTP body/header or environment-variable capture.",
+      "appliedMeaning": "Actual source Data mutation, excluded getter traps, collectible caller graphs and closed compiled guards retain no automatic body/header/environment content. Caller-provided message/stack content is explicit input, not automatic redaction.",
+      "nativeCaseGroups": [
+        "UT-EXCEPTION-T03-02",
+        "UT-EXCEPTION-T03-03",
+        "UT-EXCEPTION-T03-04",
+        "AR-EXCEPTION-T03-07",
+        "AR-EXCEPTION-T03-08",
+        "UT-EXCEPTION-T04-01",
+        "UT-EXCEPTION-T04-07"
+      ]
+    },
+    {
+      "id": "WP04-S02-AC04",
+      "sourceDescription": "The result is an owned immutable projection with no retained mutable exception graph; its truncation and size information is available to the later aggregate event capture check in WP04-S04.",
+      "appliedMeaning": "The owned immutable model exposes bounded immutable text plus cached nodes/depth/whole-tree loss to the later aggregate budget check. Raw owned-text UTF-8 measurement remains stable after caller mutation; event escapes/envelope/LF and runtime accounting are not qualified here.",
+      "nativeCaseGroups": [
+        "AR-EXCEPTION-T01-10",
+        "UT-EXCEPTION-T03-03",
+        "UT-EXCEPTION-T04-03",
+        "UT-EXCEPTION-T04-01"
+      ]
+    }
+  ],
+  "pending": [
+    "shipping event capture and escaped/envelope/LF aggregate encoded-entry bytes",
+    "runtime InvalidEvent/TruncatedEvent accounting and output lifecycle",
+    "Linux SDK/full-family and release qualification"
+  ],
+  "evidenceStatus": "Qualified within internal cooperative exception capture; native, Windows/Ubuntu process and fresh-copy source verification passed.",
+  "evidenceRecord": "planning/logging/evidence/wp04-s02-t04-windows-linux.json"
+}

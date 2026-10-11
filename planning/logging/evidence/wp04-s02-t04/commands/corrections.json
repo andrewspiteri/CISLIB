@@ -1,0 +1,36 @@
+{
+  "taskId": "WP04-S02-T04",
+  "scope": "Retained corrections are distinct from the passing final qualification; no shipping source changes.",
+  "corrections": [
+    {
+      "kind": "preparation-directory",
+      "detail": "Initial preparation ran from implementations/csharp and could not find the root catalog; rerun from actual repository root.",
+      "reference": "preparation-correction.json"
+    },
+    {
+      "kind": "formatting",
+      "detail": "Initial imports ordering failed; corrected and final formatter exits zero.",
+      "reference": "format-initial-exit.json"
+    },
+    {
+      "kind": "linux-launch",
+      "detail": "An empty executable argument caused PermissionError before original cases; literal known runtime/host arguments fixed the launch.",
+      "reference": "linux-launch-correction.json"
+    },
+    {
+      "kind": "review",
+      "detail": "Initial two medium and five low findings, then remaining native-binding low finding, are resolved in concrete code; final read-only source review PASS.",
+      "reference": "claude-review-assessment.json"
+    },
+    {
+      "kind": "shared-driver-argument",
+      "detail": "The post-review commands supplied --inputs; parser requires --input. Both rejected with exit2 before creating a case output folder or launching children. Corrected qualification runs use --input in distinct output directories; existing passing6/34/20 runs preserved.",
+      "references": [
+        "post-review/windows-qualification.stderr.log",
+        "post-review/linux-qualification.stderr.log",
+        "post-review/windows-qualification-corrected-command.json",
+        "post-review/linux-qualification-corrected-command.json"
+      ]
+    }
+  ]
+}

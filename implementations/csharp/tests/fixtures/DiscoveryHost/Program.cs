@@ -11,6 +11,11 @@ internal static class Program
 {
     private static int Main(string[] args)
     {
+        if (args.Length == 3 && args[0] == "exception-qualification")
+        {
+            return ExceptionQualificationProcessFixture.Run(args[1], args[2]);
+        }
+
         if (args.Length == 2 && args[0] == "exception-content")
         {
             return ExceptionProjectionProcessFixture.Content(args[1]);
