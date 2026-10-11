@@ -1,0 +1,4697 @@
+{
+  "schemaVersion": 1,
+  "story": "WP03-S02",
+  "stage": "Parsed selection before option/identity/path validation or public startup",
+  "state": "Declared input/output cases; native execution recorded separately",
+  "setupEncoding": "Flattened catalog property paths, canonical severity names and format/stream/detail tokens; numeric values retain typed domains. The fixture caller supplies host.environmentName as setup only when setup.EnvironmentName is unspecified.",
+  "hostStateScope": "Controlled fixture context is preserved, not injected into Core. Actual child terminal/debugger state is observed separately; a compiled configuration-call guard checks for forbidden ambient-state reads.",
+  "caseCount": 26,
+  "cases": [
+    {
+      "id": "CFG-RESOLVE-DEFAULTS",
+      "tags": [
+        "defaults",
+        "discovery",
+        "default",
+        "absent-file"
+      ],
+      "inputs": {
+        "environment": {},
+        "setup": {},
+        "discovery": {
+          "applicationName": "CIS.Core.DiscoveryFixture",
+          "buildVersion": "9.8.7-rc.2+sha.Application"
+        },
+        "host": {
+          "environmentName": null,
+          "outputRedirected": true,
+          "errorRedirected": true,
+          "debuggerAttached": false
+        }
+      },
+      "expected": {
+        "buildVersion": "9.8.7-rc.2+sha.Application",
+        "settings": [
+          {
+            "key": "CORE_SERVICE_NAME",
+            "state": "Parsed",
+            "value": "CIS.Core.DiscoveryFixture",
+            "source": "discovery",
+            "sourceKey": "ApplicationName",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_ENVIRONMENT",
+            "state": "Parsed",
+            "value": "unknown",
+            "source": "default",
+            "sourceKey": "CORE_ENVIRONMENT",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_SERVICE_VERSION",
+            "state": "Parsed",
+            "value": "9.8.7-rc.2+sha.Application",
+            "source": "discovery",
+            "sourceKey": "BuildVersion",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_LOG_LEVEL",
+            "state": "Parsed",
+            "value": "Information",
+            "source": "default",
+            "sourceKey": "CORE_LOG_LEVEL",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_LOG_CONSOLE_FORMAT",
+            "state": "Parsed",
+            "value": "human",
+            "source": "default",
+            "sourceKey": "CORE_LOG_CONSOLE_FORMAT",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_LOG_CONSOLE_LEVEL",
+            "state": "Parsed",
+            "value": "Information",
+            "source": "default",
+            "sourceKey": "CORE_LOG_CONSOLE_LEVEL",
+            "inheritedFrom": "CORE_LOG_LEVEL"
+          },
+          {
+            "key": "CORE_LOG_CONSOLE_STREAM",
+            "state": "Parsed",
+            "value": "stderr",
+            "source": "default",
+            "sourceKey": "CORE_LOG_CONSOLE_STREAM",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_LOG_HUMAN_DETAIL",
+            "state": "Parsed",
+            "value": "normal",
+            "source": "default",
+            "sourceKey": "CORE_LOG_HUMAN_DETAIL",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_LOG_FILE_PATH",
+            "state": "Absent",
+            "value": null,
+            "source": "absent",
+            "sourceKey": "CORE_LOG_FILE_PATH",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_LOG_FILE_FORMAT",
+            "state": "Parsed",
+            "value": "jsonl",
+            "source": "default",
+            "sourceKey": "CORE_LOG_FILE_FORMAT",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_LOG_FILE_LEVEL",
+            "state": "Parsed",
+            "value": "Information",
+            "source": "default",
+            "sourceKey": "CORE_LOG_FILE_LEVEL",
+            "inheritedFrom": "CORE_LOG_LEVEL"
+          },
+          {
+            "key": "CORE_LOG_QUEUE_CAPACITY",
+            "state": "Parsed",
+            "value": 1024,
+            "source": "default",
+            "sourceKey": "CORE_LOG_QUEUE_CAPACITY",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_LOG_FLUSH_INTERVAL_MS",
+            "state": "Parsed",
+            "value": 1000,
+            "source": "default",
+            "sourceKey": "CORE_LOG_FLUSH_INTERVAL_MS",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_LOG_SHUTDOWN_TIMEOUT_MS",
+            "state": "Parsed",
+            "value": 5000,
+            "source": "default",
+            "sourceKey": "CORE_LOG_SHUTDOWN_TIMEOUT_MS",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_LOG_FILE_MAX_BYTES",
+            "state": "Parsed",
+            "value": 10485760,
+            "source": "default",
+            "sourceKey": "CORE_LOG_FILE_MAX_BYTES",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_LOG_FILE_RETAINED_FILES",
+            "state": "Parsed",
+            "value": 10,
+            "source": "default",
+            "sourceKey": "CORE_LOG_FILE_RETAINED_FILES",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_LOG_SCHEMA_VERSION",
+            "state": "Parsed",
+            "value": 1,
+            "source": "default",
+            "sourceKey": "CORE_LOG_SCHEMA_VERSION",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_LOG_MAX_ENTRY_BYTES",
+            "state": "Parsed",
+            "value": 65536,
+            "source": "default",
+            "sourceKey": "CORE_LOG_MAX_ENTRY_BYTES",
+            "inheritedFrom": null
+          }
+        ],
+        "consoleEnabled": true,
+        "fileEnabled": false,
+        "hasParseErrors": false
+      }
+    },
+    {
+      "id": "CFG-RESOLVE-SETUP-ALL",
+      "tags": [
+        "setup",
+        "all-settings"
+      ],
+      "inputs": {
+        "environment": {},
+        "setup": {
+          "ApplicationName": "Setup.App",
+          "EnvironmentName": "Setup.Environment",
+          "ServiceVersion": "Setup.Release+Exact.CASE",
+          "Logging.Level": "Error",
+          "Logging.ConsoleFormat": "jsonl",
+          "Logging.ConsoleLevel": "Warning",
+          "Logging.ConsoleStream": "stdout",
+          "Logging.HumanDetail": "verbose",
+          "Logging.FilePath": "logs/Setup.log",
+          "Logging.FileFormat": "human",
+          "Logging.FileLevel": "Debug",
+          "Logging.QueueCapacity": 2048,
+          "Logging.FlushIntervalMilliseconds": 2000,
+          "Logging.ShutdownTimeoutMilliseconds": 10000,
+          "Logging.FileMaxBytes": 20971520,
+          "Logging.FileRetainedFiles": 20,
+          "Logging.SchemaVersion": 1,
+          "Logging.MaxEntryBytes": 131072
+        },
+        "discovery": {
+          "applicationName": "CIS.Core.DiscoveryFixture",
+          "buildVersion": "9.8.7-rc.2+sha.Application"
+        },
+        "host": {
+          "environmentName": null,
+          "outputRedirected": true,
+          "errorRedirected": true,
+          "debuggerAttached": false
+        }
+      },
+      "expected": {
+        "buildVersion": "9.8.7-rc.2+sha.Application",
+        "settings": [
+          {
+            "key": "CORE_SERVICE_NAME",
+            "state": "Parsed",
+            "value": "Setup.App",
+            "source": "setup",
+            "sourceKey": "EnvironmentSetup.ApplicationName",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_ENVIRONMENT",
+            "state": "Parsed",
+            "value": "Setup.Environment",
+            "source": "setup",
+            "sourceKey": "EnvironmentSetup.EnvironmentName",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_SERVICE_VERSION",
+            "state": "Parsed",
+            "value": "Setup.Release+Exact.CASE",
+            "source": "setup",
+            "sourceKey": "EnvironmentSetup.ServiceVersion",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_LOG_LEVEL",
+            "state": "Parsed",
+            "value": "Error",
+            "source": "setup",
+            "sourceKey": "LoggingSetup.Level",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_LOG_CONSOLE_FORMAT",
+            "state": "Parsed",
+            "value": "jsonl",
+            "source": "setup",
+            "sourceKey": "LoggingSetup.ConsoleFormat",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_LOG_CONSOLE_LEVEL",
+            "state": "Parsed",
+            "value": "Warning",
+            "source": "setup",
+            "sourceKey": "LoggingSetup.ConsoleLevel",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_LOG_CONSOLE_STREAM",
+            "state": "Parsed",
+            "value": "stdout",
+            "source": "setup",
+            "sourceKey": "LoggingSetup.ConsoleStream",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_LOG_HUMAN_DETAIL",
+            "state": "Parsed",
+            "value": "verbose",
+            "source": "setup",
+            "sourceKey": "LoggingSetup.HumanDetail",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_LOG_FILE_PATH",
+            "state": "Parsed",
+            "value": "logs/Setup.log",
+            "source": "setup",
+            "sourceKey": "LoggingSetup.FilePath",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_LOG_FILE_FORMAT",
+            "state": "Parsed",
+            "value": "human",
+            "source": "setup",
+            "sourceKey": "LoggingSetup.FileFormat",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_LOG_FILE_LEVEL",
+            "state": "Parsed",
+            "value": "Debug",
+            "source": "setup",
+            "sourceKey": "LoggingSetup.FileLevel",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_LOG_QUEUE_CAPACITY",
+            "state": "Parsed",
+            "value": 2048,
+            "source": "setup",
+            "sourceKey": "LoggingSetup.QueueCapacity",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_LOG_FLUSH_INTERVAL_MS",
+            "state": "Parsed",
+            "value": 2000,
+            "source": "setup",
+            "sourceKey": "LoggingSetup.FlushIntervalMilliseconds",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_LOG_SHUTDOWN_TIMEOUT_MS",
+            "state": "Parsed",
+            "value": 10000,
+            "source": "setup",
+            "sourceKey": "LoggingSetup.ShutdownTimeoutMilliseconds",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_LOG_FILE_MAX_BYTES",
+            "state": "Parsed",
+            "value": 20971520,
+            "source": "setup",
+            "sourceKey": "LoggingSetup.FileMaxBytes",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_LOG_FILE_RETAINED_FILES",
+            "state": "Parsed",
+            "value": 20,
+            "source": "setup",
+            "sourceKey": "LoggingSetup.FileRetainedFiles",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_LOG_SCHEMA_VERSION",
+            "state": "Parsed",
+            "value": 1,
+            "source": "setup",
+            "sourceKey": "LoggingSetup.SchemaVersion",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_LOG_MAX_ENTRY_BYTES",
+            "state": "Parsed",
+            "value": 131072,
+            "source": "setup",
+            "sourceKey": "LoggingSetup.MaxEntryBytes",
+            "inheritedFrom": null
+          }
+        ],
+        "consoleEnabled": true,
+        "fileEnabled": true,
+        "hasParseErrors": false
+      }
+    },
+    {
+      "id": "CFG-RESOLVE-ENVIRONMENT-ALL",
+      "tags": [
+        "core",
+        "all-settings",
+        "core-over-alias",
+        "core-over-setup"
+      ],
+      "inputs": {
+        "environment": {
+          "CORE_SERVICE_NAME": "Core.App",
+          "CORE_ENVIRONMENT": "Core.Environment",
+          "CORE_SERVICE_VERSION": "Core.Release+Case",
+          "CORE_LOG_LEVEL": "Info",
+          "CORE_LOG_CONSOLE_FORMAT": "HUMAN",
+          "CORE_LOG_CONSOLE_LEVEL": "WRN",
+          "CORE_LOG_CONSOLE_STREAM": "STDERR",
+          "CORE_LOG_HUMAN_DETAIL": "NORMAL",
+          "CORE_LOG_FILE_PATH": "logs/Core.jsonl",
+          "CORE_LOG_FILE_FORMAT": "JSONL",
+          "CORE_LOG_FILE_LEVEL": "DBG",
+          "CORE_LOG_QUEUE_CAPACITY": "4096",
+          "CORE_LOG_FLUSH_INTERVAL_MS": "3000",
+          "CORE_LOG_SHUTDOWN_TIMEOUT_MS": "15000",
+          "CORE_LOG_FILE_MAX_BYTES": "31457280",
+          "CORE_LOG_FILE_RETAINED_FILES": "30",
+          "CORE_LOG_SCHEMA_VERSION": "1",
+          "CORE_LOG_MAX_ENTRY_BYTES": "262144",
+          "DD_SERVICE": "Shadowed.App",
+          "DD_ENV": "Shadowed.Env",
+          "DD_VERSION": "Shadowed.Version"
+        },
+        "setup": {
+          "ApplicationName": "Setup.App",
+          "EnvironmentName": "Setup.Environment",
+          "ServiceVersion": "Setup.Release+Exact.CASE",
+          "Logging.Level": "Error",
+          "Logging.ConsoleFormat": "jsonl",
+          "Logging.ConsoleLevel": "Warning",
+          "Logging.ConsoleStream": "stdout",
+          "Logging.HumanDetail": "verbose",
+          "Logging.FilePath": "logs/Setup.log",
+          "Logging.FileFormat": "human",
+          "Logging.FileLevel": "Debug",
+          "Logging.QueueCapacity": 2048,
+          "Logging.FlushIntervalMilliseconds": 2000,
+          "Logging.ShutdownTimeoutMilliseconds": 10000,
+          "Logging.FileMaxBytes": 20971520,
+          "Logging.FileRetainedFiles": 20,
+          "Logging.SchemaVersion": 1,
+          "Logging.MaxEntryBytes": 131072
+        },
+        "discovery": {
+          "applicationName": "CIS.Core.DiscoveryFixture",
+          "buildVersion": "9.8.7-rc.2+sha.Application"
+        },
+        "host": {
+          "environmentName": null,
+          "outputRedirected": true,
+          "errorRedirected": true,
+          "debuggerAttached": false
+        }
+      },
+      "expected": {
+        "buildVersion": "9.8.7-rc.2+sha.Application",
+        "settings": [
+          {
+            "key": "CORE_SERVICE_NAME",
+            "state": "Parsed",
+            "value": "Core.App",
+            "source": "environment",
+            "sourceKey": "CORE_SERVICE_NAME",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_ENVIRONMENT",
+            "state": "Parsed",
+            "value": "Core.Environment",
+            "source": "environment",
+            "sourceKey": "CORE_ENVIRONMENT",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_SERVICE_VERSION",
+            "state": "Parsed",
+            "value": "Core.Release+Case",
+            "source": "environment",
+            "sourceKey": "CORE_SERVICE_VERSION",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_LOG_LEVEL",
+            "state": "Parsed",
+            "value": "Information",
+            "source": "environment",
+            "sourceKey": "CORE_LOG_LEVEL",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_LOG_CONSOLE_FORMAT",
+            "state": "Parsed",
+            "value": "human",
+            "source": "environment",
+            "sourceKey": "CORE_LOG_CONSOLE_FORMAT",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_LOG_CONSOLE_LEVEL",
+            "state": "Parsed",
+            "value": "Warning",
+            "source": "environment",
+            "sourceKey": "CORE_LOG_CONSOLE_LEVEL",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_LOG_CONSOLE_STREAM",
+            "state": "Parsed",
+            "value": "stderr",
+            "source": "environment",
+            "sourceKey": "CORE_LOG_CONSOLE_STREAM",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_LOG_HUMAN_DETAIL",
+            "state": "Parsed",
+            "value": "normal",
+            "source": "environment",
+            "sourceKey": "CORE_LOG_HUMAN_DETAIL",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_LOG_FILE_PATH",
+            "state": "Parsed",
+            "value": "logs/Core.jsonl",
+            "source": "environment",
+            "sourceKey": "CORE_LOG_FILE_PATH",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_LOG_FILE_FORMAT",
+            "state": "Parsed",
+            "value": "jsonl",
+            "source": "environment",
+            "sourceKey": "CORE_LOG_FILE_FORMAT",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_LOG_FILE_LEVEL",
+            "state": "Parsed",
+            "value": "Debug",
+            "source": "environment",
+            "sourceKey": "CORE_LOG_FILE_LEVEL",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_LOG_QUEUE_CAPACITY",
+            "state": "Parsed",
+            "value": 4096,
+            "source": "environment",
+            "sourceKey": "CORE_LOG_QUEUE_CAPACITY",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_LOG_FLUSH_INTERVAL_MS",
+            "state": "Parsed",
+            "value": 3000,
+            "source": "environment",
+            "sourceKey": "CORE_LOG_FLUSH_INTERVAL_MS",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_LOG_SHUTDOWN_TIMEOUT_MS",
+            "state": "Parsed",
+            "value": 15000,
+            "source": "environment",
+            "sourceKey": "CORE_LOG_SHUTDOWN_TIMEOUT_MS",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_LOG_FILE_MAX_BYTES",
+            "state": "Parsed",
+            "value": 31457280,
+            "source": "environment",
+            "sourceKey": "CORE_LOG_FILE_MAX_BYTES",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_LOG_FILE_RETAINED_FILES",
+            "state": "Parsed",
+            "value": 30,
+            "source": "environment",
+            "sourceKey": "CORE_LOG_FILE_RETAINED_FILES",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_LOG_SCHEMA_VERSION",
+            "state": "Parsed",
+            "value": 1,
+            "source": "environment",
+            "sourceKey": "CORE_LOG_SCHEMA_VERSION",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_LOG_MAX_ENTRY_BYTES",
+            "state": "Parsed",
+            "value": 262144,
+            "source": "environment",
+            "sourceKey": "CORE_LOG_MAX_ENTRY_BYTES",
+            "inheritedFrom": null
+          }
+        ],
+        "consoleEnabled": true,
+        "fileEnabled": true,
+        "hasParseErrors": false
+      }
+    },
+    {
+      "id": "CFG-RESOLVE-DD-ALIASES",
+      "tags": [
+        "aliases",
+        "blank-core",
+        "alias-over-setup"
+      ],
+      "inputs": {
+        "environment": {
+          "CORE_SERVICE_NAME": " \t",
+          "CORE_ENVIRONMENT": " ",
+          "CORE_SERVICE_VERSION": "",
+          "DD_SERVICE": " Alias.App ",
+          "DD_ENV": " Alias.MixedCASE ",
+          "DD_VERSION": " Alias.Release+CASE "
+        },
+        "setup": {
+          "ApplicationName": "Setup.App",
+          "EnvironmentName": "Setup.Env",
+          "ServiceVersion": "Setup.Version"
+        },
+        "discovery": {
+          "applicationName": "CIS.Core.DiscoveryFixture",
+          "buildVersion": "9.8.7-rc.2+sha.Application"
+        },
+        "host": {
+          "environmentName": null,
+          "outputRedirected": true,
+          "errorRedirected": true,
+          "debuggerAttached": false
+        }
+      },
+      "expected": {
+        "buildVersion": "9.8.7-rc.2+sha.Application",
+        "settings": [
+          {
+            "key": "CORE_SERVICE_NAME",
+            "state": "Parsed",
+            "value": "Alias.App",
+            "source": "environment",
+            "sourceKey": "DD_SERVICE",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_ENVIRONMENT",
+            "state": "Parsed",
+            "value": "Alias.MixedCASE",
+            "source": "environment",
+            "sourceKey": "DD_ENV",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_SERVICE_VERSION",
+            "state": "Parsed",
+            "value": "Alias.Release+CASE",
+            "source": "environment",
+            "sourceKey": "DD_VERSION",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_LOG_LEVEL",
+            "state": "Parsed",
+            "value": "Information",
+            "source": "default",
+            "sourceKey": "CORE_LOG_LEVEL",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_LOG_CONSOLE_FORMAT",
+            "state": "Parsed",
+            "value": "human",
+            "source": "default",
+            "sourceKey": "CORE_LOG_CONSOLE_FORMAT",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_LOG_CONSOLE_LEVEL",
+            "state": "Parsed",
+            "value": "Information",
+            "source": "default",
+            "sourceKey": "CORE_LOG_CONSOLE_LEVEL",
+            "inheritedFrom": "CORE_LOG_LEVEL"
+          },
+          {
+            "key": "CORE_LOG_CONSOLE_STREAM",
+            "state": "Parsed",
+            "value": "stderr",
+            "source": "default",
+            "sourceKey": "CORE_LOG_CONSOLE_STREAM",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_LOG_HUMAN_DETAIL",
+            "state": "Parsed",
+            "value": "normal",
+            "source": "default",
+            "sourceKey": "CORE_LOG_HUMAN_DETAIL",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_LOG_FILE_PATH",
+            "state": "Absent",
+            "value": null,
+            "source": "absent",
+            "sourceKey": "CORE_LOG_FILE_PATH",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_LOG_FILE_FORMAT",
+            "state": "Parsed",
+            "value": "jsonl",
+            "source": "default",
+            "sourceKey": "CORE_LOG_FILE_FORMAT",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_LOG_FILE_LEVEL",
+            "state": "Parsed",
+            "value": "Information",
+            "source": "default",
+            "sourceKey": "CORE_LOG_FILE_LEVEL",
+            "inheritedFrom": "CORE_LOG_LEVEL"
+          },
+          {
+            "key": "CORE_LOG_QUEUE_CAPACITY",
+            "state": "Parsed",
+            "value": 1024,
+            "source": "default",
+            "sourceKey": "CORE_LOG_QUEUE_CAPACITY",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_LOG_FLUSH_INTERVAL_MS",
+            "state": "Parsed",
+            "value": 1000,
+            "source": "default",
+            "sourceKey": "CORE_LOG_FLUSH_INTERVAL_MS",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_LOG_SHUTDOWN_TIMEOUT_MS",
+            "state": "Parsed",
+            "value": 5000,
+            "source": "default",
+            "sourceKey": "CORE_LOG_SHUTDOWN_TIMEOUT_MS",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_LOG_FILE_MAX_BYTES",
+            "state": "Parsed",
+            "value": 10485760,
+            "source": "default",
+            "sourceKey": "CORE_LOG_FILE_MAX_BYTES",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_LOG_FILE_RETAINED_FILES",
+            "state": "Parsed",
+            "value": 10,
+            "source": "default",
+            "sourceKey": "CORE_LOG_FILE_RETAINED_FILES",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_LOG_SCHEMA_VERSION",
+            "state": "Parsed",
+            "value": 1,
+            "source": "default",
+            "sourceKey": "CORE_LOG_SCHEMA_VERSION",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_LOG_MAX_ENTRY_BYTES",
+            "state": "Parsed",
+            "value": 65536,
+            "source": "default",
+            "sourceKey": "CORE_LOG_MAX_ENTRY_BYTES",
+            "inheritedFrom": null
+          }
+        ],
+        "consoleEnabled": true,
+        "fileEnabled": false,
+        "hasParseErrors": false
+      }
+    },
+    {
+      "id": "CFG-RESOLVE-CORE-BEATS-DD",
+      "tags": [
+        "core-over-alias",
+        "core-over-setup"
+      ],
+      "inputs": {
+        "environment": {
+          "CORE_SERVICE_NAME": "Core.Name",
+          "CORE_ENVIRONMENT": "Core.Env",
+          "CORE_SERVICE_VERSION": "Core.Version",
+          "DD_SERVICE": "DD.Name",
+          "DD_ENV": "DD.Env",
+          "DD_VERSION": "DD.Version"
+        },
+        "setup": {
+          "ApplicationName": "Setup.Name",
+          "EnvironmentName": "Setup.Env",
+          "ServiceVersion": "Setup.Version"
+        },
+        "discovery": {
+          "applicationName": "CIS.Core.DiscoveryFixture",
+          "buildVersion": "9.8.7-rc.2+sha.Application"
+        },
+        "host": {
+          "environmentName": null,
+          "outputRedirected": true,
+          "errorRedirected": true,
+          "debuggerAttached": false
+        }
+      },
+      "expected": {
+        "buildVersion": "9.8.7-rc.2+sha.Application",
+        "settings": [
+          {
+            "key": "CORE_SERVICE_NAME",
+            "state": "Parsed",
+            "value": "Core.Name",
+            "source": "environment",
+            "sourceKey": "CORE_SERVICE_NAME",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_ENVIRONMENT",
+            "state": "Parsed",
+            "value": "Core.Env",
+            "source": "environment",
+            "sourceKey": "CORE_ENVIRONMENT",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_SERVICE_VERSION",
+            "state": "Parsed",
+            "value": "Core.Version",
+            "source": "environment",
+            "sourceKey": "CORE_SERVICE_VERSION",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_LOG_LEVEL",
+            "state": "Parsed",
+            "value": "Information",
+            "source": "default",
+            "sourceKey": "CORE_LOG_LEVEL",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_LOG_CONSOLE_FORMAT",
+            "state": "Parsed",
+            "value": "human",
+            "source": "default",
+            "sourceKey": "CORE_LOG_CONSOLE_FORMAT",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_LOG_CONSOLE_LEVEL",
+            "state": "Parsed",
+            "value": "Information",
+            "source": "default",
+            "sourceKey": "CORE_LOG_CONSOLE_LEVEL",
+            "inheritedFrom": "CORE_LOG_LEVEL"
+          },
+          {
+            "key": "CORE_LOG_CONSOLE_STREAM",
+            "state": "Parsed",
+            "value": "stderr",
+            "source": "default",
+            "sourceKey": "CORE_LOG_CONSOLE_STREAM",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_LOG_HUMAN_DETAIL",
+            "state": "Parsed",
+            "value": "normal",
+            "source": "default",
+            "sourceKey": "CORE_LOG_HUMAN_DETAIL",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_LOG_FILE_PATH",
+            "state": "Absent",
+            "value": null,
+            "source": "absent",
+            "sourceKey": "CORE_LOG_FILE_PATH",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_LOG_FILE_FORMAT",
+            "state": "Parsed",
+            "value": "jsonl",
+            "source": "default",
+            "sourceKey": "CORE_LOG_FILE_FORMAT",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_LOG_FILE_LEVEL",
+            "state": "Parsed",
+            "value": "Information",
+            "source": "default",
+            "sourceKey": "CORE_LOG_FILE_LEVEL",
+            "inheritedFrom": "CORE_LOG_LEVEL"
+          },
+          {
+            "key": "CORE_LOG_QUEUE_CAPACITY",
+            "state": "Parsed",
+            "value": 1024,
+            "source": "default",
+            "sourceKey": "CORE_LOG_QUEUE_CAPACITY",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_LOG_FLUSH_INTERVAL_MS",
+            "state": "Parsed",
+            "value": 1000,
+            "source": "default",
+            "sourceKey": "CORE_LOG_FLUSH_INTERVAL_MS",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_LOG_SHUTDOWN_TIMEOUT_MS",
+            "state": "Parsed",
+            "value": 5000,
+            "source": "default",
+            "sourceKey": "CORE_LOG_SHUTDOWN_TIMEOUT_MS",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_LOG_FILE_MAX_BYTES",
+            "state": "Parsed",
+            "value": 10485760,
+            "source": "default",
+            "sourceKey": "CORE_LOG_FILE_MAX_BYTES",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_LOG_FILE_RETAINED_FILES",
+            "state": "Parsed",
+            "value": 10,
+            "source": "default",
+            "sourceKey": "CORE_LOG_FILE_RETAINED_FILES",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_LOG_SCHEMA_VERSION",
+            "state": "Parsed",
+            "value": 1,
+            "source": "default",
+            "sourceKey": "CORE_LOG_SCHEMA_VERSION",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_LOG_MAX_ENTRY_BYTES",
+            "state": "Parsed",
+            "value": 65536,
+            "source": "default",
+            "sourceKey": "CORE_LOG_MAX_ENTRY_BYTES",
+            "inheritedFrom": null
+          }
+        ],
+        "consoleEnabled": true,
+        "fileEnabled": false,
+        "hasParseErrors": false
+      }
+    },
+    {
+      "id": "CFG-RESOLVE-BLANK-TEXT-FALLBACK",
+      "tags": [
+        "blank-core",
+        "blank-alias",
+        "blank-setup",
+        "discovery",
+        "default",
+        "absent-file"
+      ],
+      "inputs": {
+        "environment": {
+          "CORE_SERVICE_NAME": "  ",
+          "CORE_ENVIRONMENT": "  ",
+          "CORE_SERVICE_VERSION": "  ",
+          "CORE_LOG_LEVEL": "  ",
+          "CORE_LOG_CONSOLE_FORMAT": "  ",
+          "CORE_LOG_CONSOLE_LEVEL": "  ",
+          "CORE_LOG_CONSOLE_STREAM": "  ",
+          "CORE_LOG_HUMAN_DETAIL": "  ",
+          "CORE_LOG_FILE_PATH": "  ",
+          "CORE_LOG_FILE_FORMAT": "  ",
+          "CORE_LOG_FILE_LEVEL": "  ",
+          "CORE_LOG_QUEUE_CAPACITY": "  ",
+          "CORE_LOG_FLUSH_INTERVAL_MS": "  ",
+          "CORE_LOG_SHUTDOWN_TIMEOUT_MS": "  ",
+          "CORE_LOG_FILE_MAX_BYTES": "  ",
+          "CORE_LOG_FILE_RETAINED_FILES": "  ",
+          "CORE_LOG_SCHEMA_VERSION": "  ",
+          "CORE_LOG_MAX_ENTRY_BYTES": "  ",
+          "DD_SERVICE": "  ",
+          "DD_ENV": "  ",
+          "DD_VERSION": "  "
+        },
+        "setup": {
+          "ApplicationName": "\t",
+          "EnvironmentName": " ",
+          "ServiceVersion": "　",
+          "Logging.FilePath": " "
+        },
+        "discovery": {
+          "applicationName": "CIS.Core.DiscoveryFixture",
+          "buildVersion": "9.8.7-rc.2+sha.Application"
+        },
+        "host": {
+          "environmentName": null,
+          "outputRedirected": true,
+          "errorRedirected": true,
+          "debuggerAttached": false
+        }
+      },
+      "expected": {
+        "buildVersion": "9.8.7-rc.2+sha.Application",
+        "settings": [
+          {
+            "key": "CORE_SERVICE_NAME",
+            "state": "Parsed",
+            "value": "CIS.Core.DiscoveryFixture",
+            "source": "discovery",
+            "sourceKey": "ApplicationName",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_ENVIRONMENT",
+            "state": "Parsed",
+            "value": "unknown",
+            "source": "default",
+            "sourceKey": "CORE_ENVIRONMENT",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_SERVICE_VERSION",
+            "state": "Parsed",
+            "value": "9.8.7-rc.2+sha.Application",
+            "source": "discovery",
+            "sourceKey": "BuildVersion",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_LOG_LEVEL",
+            "state": "Parsed",
+            "value": "Information",
+            "source": "default",
+            "sourceKey": "CORE_LOG_LEVEL",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_LOG_CONSOLE_FORMAT",
+            "state": "Parsed",
+            "value": "human",
+            "source": "default",
+            "sourceKey": "CORE_LOG_CONSOLE_FORMAT",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_LOG_CONSOLE_LEVEL",
+            "state": "Parsed",
+            "value": "Information",
+            "source": "default",
+            "sourceKey": "CORE_LOG_CONSOLE_LEVEL",
+            "inheritedFrom": "CORE_LOG_LEVEL"
+          },
+          {
+            "key": "CORE_LOG_CONSOLE_STREAM",
+            "state": "Parsed",
+            "value": "stderr",
+            "source": "default",
+            "sourceKey": "CORE_LOG_CONSOLE_STREAM",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_LOG_HUMAN_DETAIL",
+            "state": "Parsed",
+            "value": "normal",
+            "source": "default",
+            "sourceKey": "CORE_LOG_HUMAN_DETAIL",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_LOG_FILE_PATH",
+            "state": "Absent",
+            "value": null,
+            "source": "absent",
+            "sourceKey": "CORE_LOG_FILE_PATH",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_LOG_FILE_FORMAT",
+            "state": "Parsed",
+            "value": "jsonl",
+            "source": "default",
+            "sourceKey": "CORE_LOG_FILE_FORMAT",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_LOG_FILE_LEVEL",
+            "state": "Parsed",
+            "value": "Information",
+            "source": "default",
+            "sourceKey": "CORE_LOG_FILE_LEVEL",
+            "inheritedFrom": "CORE_LOG_LEVEL"
+          },
+          {
+            "key": "CORE_LOG_QUEUE_CAPACITY",
+            "state": "Parsed",
+            "value": 1024,
+            "source": "default",
+            "sourceKey": "CORE_LOG_QUEUE_CAPACITY",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_LOG_FLUSH_INTERVAL_MS",
+            "state": "Parsed",
+            "value": 1000,
+            "source": "default",
+            "sourceKey": "CORE_LOG_FLUSH_INTERVAL_MS",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_LOG_SHUTDOWN_TIMEOUT_MS",
+            "state": "Parsed",
+            "value": 5000,
+            "source": "default",
+            "sourceKey": "CORE_LOG_SHUTDOWN_TIMEOUT_MS",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_LOG_FILE_MAX_BYTES",
+            "state": "Parsed",
+            "value": 10485760,
+            "source": "default",
+            "sourceKey": "CORE_LOG_FILE_MAX_BYTES",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_LOG_FILE_RETAINED_FILES",
+            "state": "Parsed",
+            "value": 10,
+            "source": "default",
+            "sourceKey": "CORE_LOG_FILE_RETAINED_FILES",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_LOG_SCHEMA_VERSION",
+            "state": "Parsed",
+            "value": 1,
+            "source": "default",
+            "sourceKey": "CORE_LOG_SCHEMA_VERSION",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_LOG_MAX_ENTRY_BYTES",
+            "state": "Parsed",
+            "value": 65536,
+            "source": "default",
+            "sourceKey": "CORE_LOG_MAX_ENTRY_BYTES",
+            "inheritedFrom": null
+          }
+        ],
+        "consoleEnabled": true,
+        "fileEnabled": false,
+        "hasParseErrors": false
+      }
+    },
+    {
+      "id": "CFG-RESOLVE-SETUP-IDENTITIES",
+      "tags": [
+        "setup",
+        "blank-core"
+      ],
+      "inputs": {
+        "environment": {
+          "CORE_SERVICE_NAME": "",
+          "CORE_ENVIRONMENT": "\t",
+          "CORE_SERVICE_VERSION": " "
+        },
+        "setup": {
+          "ApplicationName": " Setup.Name ",
+          "EnvironmentName": " Setup.MixedCASE ",
+          "ServiceVersion": " Setup.Release+CASE "
+        },
+        "discovery": {
+          "applicationName": "CIS.Core.DiscoveryFixture",
+          "buildVersion": "9.8.7-rc.2+sha.Application"
+        },
+        "host": {
+          "environmentName": null,
+          "outputRedirected": true,
+          "errorRedirected": true,
+          "debuggerAttached": false
+        }
+      },
+      "expected": {
+        "buildVersion": "9.8.7-rc.2+sha.Application",
+        "settings": [
+          {
+            "key": "CORE_SERVICE_NAME",
+            "state": "Parsed",
+            "value": "Setup.Name",
+            "source": "setup",
+            "sourceKey": "EnvironmentSetup.ApplicationName",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_ENVIRONMENT",
+            "state": "Parsed",
+            "value": "Setup.MixedCASE",
+            "source": "setup",
+            "sourceKey": "EnvironmentSetup.EnvironmentName",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_SERVICE_VERSION",
+            "state": "Parsed",
+            "value": "Setup.Release+CASE",
+            "source": "setup",
+            "sourceKey": "EnvironmentSetup.ServiceVersion",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_LOG_LEVEL",
+            "state": "Parsed",
+            "value": "Information",
+            "source": "default",
+            "sourceKey": "CORE_LOG_LEVEL",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_LOG_CONSOLE_FORMAT",
+            "state": "Parsed",
+            "value": "human",
+            "source": "default",
+            "sourceKey": "CORE_LOG_CONSOLE_FORMAT",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_LOG_CONSOLE_LEVEL",
+            "state": "Parsed",
+            "value": "Information",
+            "source": "default",
+            "sourceKey": "CORE_LOG_CONSOLE_LEVEL",
+            "inheritedFrom": "CORE_LOG_LEVEL"
+          },
+          {
+            "key": "CORE_LOG_CONSOLE_STREAM",
+            "state": "Parsed",
+            "value": "stderr",
+            "source": "default",
+            "sourceKey": "CORE_LOG_CONSOLE_STREAM",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_LOG_HUMAN_DETAIL",
+            "state": "Parsed",
+            "value": "normal",
+            "source": "default",
+            "sourceKey": "CORE_LOG_HUMAN_DETAIL",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_LOG_FILE_PATH",
+            "state": "Absent",
+            "value": null,
+            "source": "absent",
+            "sourceKey": "CORE_LOG_FILE_PATH",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_LOG_FILE_FORMAT",
+            "state": "Parsed",
+            "value": "jsonl",
+            "source": "default",
+            "sourceKey": "CORE_LOG_FILE_FORMAT",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_LOG_FILE_LEVEL",
+            "state": "Parsed",
+            "value": "Information",
+            "source": "default",
+            "sourceKey": "CORE_LOG_FILE_LEVEL",
+            "inheritedFrom": "CORE_LOG_LEVEL"
+          },
+          {
+            "key": "CORE_LOG_QUEUE_CAPACITY",
+            "state": "Parsed",
+            "value": 1024,
+            "source": "default",
+            "sourceKey": "CORE_LOG_QUEUE_CAPACITY",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_LOG_FLUSH_INTERVAL_MS",
+            "state": "Parsed",
+            "value": 1000,
+            "source": "default",
+            "sourceKey": "CORE_LOG_FLUSH_INTERVAL_MS",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_LOG_SHUTDOWN_TIMEOUT_MS",
+            "state": "Parsed",
+            "value": 5000,
+            "source": "default",
+            "sourceKey": "CORE_LOG_SHUTDOWN_TIMEOUT_MS",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_LOG_FILE_MAX_BYTES",
+            "state": "Parsed",
+            "value": 10485760,
+            "source": "default",
+            "sourceKey": "CORE_LOG_FILE_MAX_BYTES",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_LOG_FILE_RETAINED_FILES",
+            "state": "Parsed",
+            "value": 10,
+            "source": "default",
+            "sourceKey": "CORE_LOG_FILE_RETAINED_FILES",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_LOG_SCHEMA_VERSION",
+            "state": "Parsed",
+            "value": 1,
+            "source": "default",
+            "sourceKey": "CORE_LOG_SCHEMA_VERSION",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_LOG_MAX_ENTRY_BYTES",
+            "state": "Parsed",
+            "value": 65536,
+            "source": "default",
+            "sourceKey": "CORE_LOG_MAX_ENTRY_BYTES",
+            "inheritedFrom": null
+          }
+        ],
+        "consoleEnabled": true,
+        "fileEnabled": false,
+        "hasParseErrors": false
+      }
+    },
+    {
+      "id": "CFG-RESOLVE-BLANK-OUTPUT-LEVELS",
+      "tags": [
+        "inheritance",
+        "blank-core"
+      ],
+      "inputs": {
+        "environment": {
+          "CORE_LOG_LEVEL": "ERR",
+          "CORE_LOG_CONSOLE_LEVEL": " ",
+          "CORE_LOG_FILE_LEVEL": " \t",
+          "CORE_LOG_FILE_PATH": "logs/inherited.log"
+        },
+        "setup": {},
+        "discovery": {
+          "applicationName": "CIS.Core.DiscoveryFixture",
+          "buildVersion": "9.8.7-rc.2+sha.Application"
+        },
+        "host": {
+          "environmentName": null,
+          "outputRedirected": true,
+          "errorRedirected": true,
+          "debuggerAttached": false
+        }
+      },
+      "expected": {
+        "buildVersion": "9.8.7-rc.2+sha.Application",
+        "settings": [
+          {
+            "key": "CORE_SERVICE_NAME",
+            "state": "Parsed",
+            "value": "CIS.Core.DiscoveryFixture",
+            "source": "discovery",
+            "sourceKey": "ApplicationName",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_ENVIRONMENT",
+            "state": "Parsed",
+            "value": "unknown",
+            "source": "default",
+            "sourceKey": "CORE_ENVIRONMENT",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_SERVICE_VERSION",
+            "state": "Parsed",
+            "value": "9.8.7-rc.2+sha.Application",
+            "source": "discovery",
+            "sourceKey": "BuildVersion",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_LOG_LEVEL",
+            "state": "Parsed",
+            "value": "Error",
+            "source": "environment",
+            "sourceKey": "CORE_LOG_LEVEL",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_LOG_CONSOLE_FORMAT",
+            "state": "Parsed",
+            "value": "human",
+            "source": "default",
+            "sourceKey": "CORE_LOG_CONSOLE_FORMAT",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_LOG_CONSOLE_LEVEL",
+            "state": "Parsed",
+            "value": "Error",
+            "source": "default",
+            "sourceKey": "CORE_LOG_CONSOLE_LEVEL",
+            "inheritedFrom": "CORE_LOG_LEVEL"
+          },
+          {
+            "key": "CORE_LOG_CONSOLE_STREAM",
+            "state": "Parsed",
+            "value": "stderr",
+            "source": "default",
+            "sourceKey": "CORE_LOG_CONSOLE_STREAM",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_LOG_HUMAN_DETAIL",
+            "state": "Parsed",
+            "value": "normal",
+            "source": "default",
+            "sourceKey": "CORE_LOG_HUMAN_DETAIL",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_LOG_FILE_PATH",
+            "state": "Parsed",
+            "value": "logs/inherited.log",
+            "source": "environment",
+            "sourceKey": "CORE_LOG_FILE_PATH",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_LOG_FILE_FORMAT",
+            "state": "Parsed",
+            "value": "jsonl",
+            "source": "default",
+            "sourceKey": "CORE_LOG_FILE_FORMAT",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_LOG_FILE_LEVEL",
+            "state": "Parsed",
+            "value": "Error",
+            "source": "default",
+            "sourceKey": "CORE_LOG_FILE_LEVEL",
+            "inheritedFrom": "CORE_LOG_LEVEL"
+          },
+          {
+            "key": "CORE_LOG_QUEUE_CAPACITY",
+            "state": "Parsed",
+            "value": 1024,
+            "source": "default",
+            "sourceKey": "CORE_LOG_QUEUE_CAPACITY",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_LOG_FLUSH_INTERVAL_MS",
+            "state": "Parsed",
+            "value": 1000,
+            "source": "default",
+            "sourceKey": "CORE_LOG_FLUSH_INTERVAL_MS",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_LOG_SHUTDOWN_TIMEOUT_MS",
+            "state": "Parsed",
+            "value": 5000,
+            "source": "default",
+            "sourceKey": "CORE_LOG_SHUTDOWN_TIMEOUT_MS",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_LOG_FILE_MAX_BYTES",
+            "state": "Parsed",
+            "value": 10485760,
+            "source": "default",
+            "sourceKey": "CORE_LOG_FILE_MAX_BYTES",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_LOG_FILE_RETAINED_FILES",
+            "state": "Parsed",
+            "value": 10,
+            "source": "default",
+            "sourceKey": "CORE_LOG_FILE_RETAINED_FILES",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_LOG_SCHEMA_VERSION",
+            "state": "Parsed",
+            "value": 1,
+            "source": "default",
+            "sourceKey": "CORE_LOG_SCHEMA_VERSION",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_LOG_MAX_ENTRY_BYTES",
+            "state": "Parsed",
+            "value": 65536,
+            "source": "default",
+            "sourceKey": "CORE_LOG_MAX_ENTRY_BYTES",
+            "inheritedFrom": null
+          }
+        ],
+        "consoleEnabled": true,
+        "fileEnabled": true,
+        "hasParseErrors": false
+      }
+    },
+    {
+      "id": "CFG-RESOLVE-INDEPENDENT-LEVELS",
+      "tags": [
+        "independent-levels",
+        "core"
+      ],
+      "inputs": {
+        "environment": {
+          "CORE_LOG_LEVEL": "INFO",
+          "CORE_LOG_CONSOLE_LEVEL": "WRN",
+          "CORE_LOG_FILE_LEVEL": "DBG",
+          "CORE_LOG_FILE_PATH": "logs/independent.log"
+        },
+        "setup": {},
+        "discovery": {
+          "applicationName": "CIS.Core.DiscoveryFixture",
+          "buildVersion": "9.8.7-rc.2+sha.Application"
+        },
+        "host": {
+          "environmentName": null,
+          "outputRedirected": true,
+          "errorRedirected": true,
+          "debuggerAttached": false
+        }
+      },
+      "expected": {
+        "buildVersion": "9.8.7-rc.2+sha.Application",
+        "settings": [
+          {
+            "key": "CORE_SERVICE_NAME",
+            "state": "Parsed",
+            "value": "CIS.Core.DiscoveryFixture",
+            "source": "discovery",
+            "sourceKey": "ApplicationName",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_ENVIRONMENT",
+            "state": "Parsed",
+            "value": "unknown",
+            "source": "default",
+            "sourceKey": "CORE_ENVIRONMENT",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_SERVICE_VERSION",
+            "state": "Parsed",
+            "value": "9.8.7-rc.2+sha.Application",
+            "source": "discovery",
+            "sourceKey": "BuildVersion",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_LOG_LEVEL",
+            "state": "Parsed",
+            "value": "Information",
+            "source": "environment",
+            "sourceKey": "CORE_LOG_LEVEL",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_LOG_CONSOLE_FORMAT",
+            "state": "Parsed",
+            "value": "human",
+            "source": "default",
+            "sourceKey": "CORE_LOG_CONSOLE_FORMAT",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_LOG_CONSOLE_LEVEL",
+            "state": "Parsed",
+            "value": "Warning",
+            "source": "environment",
+            "sourceKey": "CORE_LOG_CONSOLE_LEVEL",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_LOG_CONSOLE_STREAM",
+            "state": "Parsed",
+            "value": "stderr",
+            "source": "default",
+            "sourceKey": "CORE_LOG_CONSOLE_STREAM",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_LOG_HUMAN_DETAIL",
+            "state": "Parsed",
+            "value": "normal",
+            "source": "default",
+            "sourceKey": "CORE_LOG_HUMAN_DETAIL",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_LOG_FILE_PATH",
+            "state": "Parsed",
+            "value": "logs/independent.log",
+            "source": "environment",
+            "sourceKey": "CORE_LOG_FILE_PATH",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_LOG_FILE_FORMAT",
+            "state": "Parsed",
+            "value": "jsonl",
+            "source": "default",
+            "sourceKey": "CORE_LOG_FILE_FORMAT",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_LOG_FILE_LEVEL",
+            "state": "Parsed",
+            "value": "Debug",
+            "source": "environment",
+            "sourceKey": "CORE_LOG_FILE_LEVEL",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_LOG_QUEUE_CAPACITY",
+            "state": "Parsed",
+            "value": 1024,
+            "source": "default",
+            "sourceKey": "CORE_LOG_QUEUE_CAPACITY",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_LOG_FLUSH_INTERVAL_MS",
+            "state": "Parsed",
+            "value": 1000,
+            "source": "default",
+            "sourceKey": "CORE_LOG_FLUSH_INTERVAL_MS",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_LOG_SHUTDOWN_TIMEOUT_MS",
+            "state": "Parsed",
+            "value": 5000,
+            "source": "default",
+            "sourceKey": "CORE_LOG_SHUTDOWN_TIMEOUT_MS",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_LOG_FILE_MAX_BYTES",
+            "state": "Parsed",
+            "value": 10485760,
+            "source": "default",
+            "sourceKey": "CORE_LOG_FILE_MAX_BYTES",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_LOG_FILE_RETAINED_FILES",
+            "state": "Parsed",
+            "value": 10,
+            "source": "default",
+            "sourceKey": "CORE_LOG_FILE_RETAINED_FILES",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_LOG_SCHEMA_VERSION",
+            "state": "Parsed",
+            "value": 1,
+            "source": "default",
+            "sourceKey": "CORE_LOG_SCHEMA_VERSION",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_LOG_MAX_ENTRY_BYTES",
+            "state": "Parsed",
+            "value": 65536,
+            "source": "default",
+            "sourceKey": "CORE_LOG_MAX_ENTRY_BYTES",
+            "inheritedFrom": null
+          }
+        ],
+        "consoleEnabled": true,
+        "fileEnabled": true,
+        "hasParseErrors": false
+      }
+    },
+    {
+      "id": "CFG-RESOLVE-GLOBAL-NONE-OWN-LEVELS",
+      "tags": [
+        "independent-levels",
+        "none"
+      ],
+      "inputs": {
+        "environment": {
+          "CORE_LOG_LEVEL": "None",
+          "CORE_LOG_CONSOLE_LEVEL": "Warning",
+          "CORE_LOG_FILE_LEVEL": "Debug",
+          "CORE_LOG_FILE_PATH": "logs/own-levels.log"
+        },
+        "setup": {},
+        "discovery": {
+          "applicationName": "CIS.Core.DiscoveryFixture",
+          "buildVersion": "9.8.7-rc.2+sha.Application"
+        },
+        "host": {
+          "environmentName": null,
+          "outputRedirected": true,
+          "errorRedirected": true,
+          "debuggerAttached": false
+        }
+      },
+      "expected": {
+        "buildVersion": "9.8.7-rc.2+sha.Application",
+        "settings": [
+          {
+            "key": "CORE_SERVICE_NAME",
+            "state": "Parsed",
+            "value": "CIS.Core.DiscoveryFixture",
+            "source": "discovery",
+            "sourceKey": "ApplicationName",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_ENVIRONMENT",
+            "state": "Parsed",
+            "value": "unknown",
+            "source": "default",
+            "sourceKey": "CORE_ENVIRONMENT",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_SERVICE_VERSION",
+            "state": "Parsed",
+            "value": "9.8.7-rc.2+sha.Application",
+            "source": "discovery",
+            "sourceKey": "BuildVersion",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_LOG_LEVEL",
+            "state": "Parsed",
+            "value": "None",
+            "source": "environment",
+            "sourceKey": "CORE_LOG_LEVEL",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_LOG_CONSOLE_FORMAT",
+            "state": "Parsed",
+            "value": "human",
+            "source": "default",
+            "sourceKey": "CORE_LOG_CONSOLE_FORMAT",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_LOG_CONSOLE_LEVEL",
+            "state": "Parsed",
+            "value": "Warning",
+            "source": "environment",
+            "sourceKey": "CORE_LOG_CONSOLE_LEVEL",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_LOG_CONSOLE_STREAM",
+            "state": "Parsed",
+            "value": "stderr",
+            "source": "default",
+            "sourceKey": "CORE_LOG_CONSOLE_STREAM",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_LOG_HUMAN_DETAIL",
+            "state": "Parsed",
+            "value": "normal",
+            "source": "default",
+            "sourceKey": "CORE_LOG_HUMAN_DETAIL",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_LOG_FILE_PATH",
+            "state": "Parsed",
+            "value": "logs/own-levels.log",
+            "source": "environment",
+            "sourceKey": "CORE_LOG_FILE_PATH",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_LOG_FILE_FORMAT",
+            "state": "Parsed",
+            "value": "jsonl",
+            "source": "default",
+            "sourceKey": "CORE_LOG_FILE_FORMAT",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_LOG_FILE_LEVEL",
+            "state": "Parsed",
+            "value": "Debug",
+            "source": "environment",
+            "sourceKey": "CORE_LOG_FILE_LEVEL",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_LOG_QUEUE_CAPACITY",
+            "state": "Parsed",
+            "value": 1024,
+            "source": "default",
+            "sourceKey": "CORE_LOG_QUEUE_CAPACITY",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_LOG_FLUSH_INTERVAL_MS",
+            "state": "Parsed",
+            "value": 1000,
+            "source": "default",
+            "sourceKey": "CORE_LOG_FLUSH_INTERVAL_MS",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_LOG_SHUTDOWN_TIMEOUT_MS",
+            "state": "Parsed",
+            "value": 5000,
+            "source": "default",
+            "sourceKey": "CORE_LOG_SHUTDOWN_TIMEOUT_MS",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_LOG_FILE_MAX_BYTES",
+            "state": "Parsed",
+            "value": 10485760,
+            "source": "default",
+            "sourceKey": "CORE_LOG_FILE_MAX_BYTES",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_LOG_FILE_RETAINED_FILES",
+            "state": "Parsed",
+            "value": 10,
+            "source": "default",
+            "sourceKey": "CORE_LOG_FILE_RETAINED_FILES",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_LOG_SCHEMA_VERSION",
+            "state": "Parsed",
+            "value": 1,
+            "source": "default",
+            "sourceKey": "CORE_LOG_SCHEMA_VERSION",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_LOG_MAX_ENTRY_BYTES",
+            "state": "Parsed",
+            "value": 65536,
+            "source": "default",
+            "sourceKey": "CORE_LOG_MAX_ENTRY_BYTES",
+            "inheritedFrom": null
+          }
+        ],
+        "consoleEnabled": true,
+        "fileEnabled": true,
+        "hasParseErrors": false
+      }
+    },
+    {
+      "id": "CFG-RESOLVE-CONSOLE-NONE",
+      "tags": [
+        "disabled-console"
+      ],
+      "inputs": {
+        "environment": {
+          "CORE_LOG_CONSOLE_LEVEL": "None",
+          "CORE_LOG_FILE_PATH": "logs/file-only.log"
+        },
+        "setup": {},
+        "discovery": {
+          "applicationName": "CIS.Core.DiscoveryFixture",
+          "buildVersion": "9.8.7-rc.2+sha.Application"
+        },
+        "host": {
+          "environmentName": null,
+          "outputRedirected": true,
+          "errorRedirected": true,
+          "debuggerAttached": false
+        }
+      },
+      "expected": {
+        "buildVersion": "9.8.7-rc.2+sha.Application",
+        "settings": [
+          {
+            "key": "CORE_SERVICE_NAME",
+            "state": "Parsed",
+            "value": "CIS.Core.DiscoveryFixture",
+            "source": "discovery",
+            "sourceKey": "ApplicationName",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_ENVIRONMENT",
+            "state": "Parsed",
+            "value": "unknown",
+            "source": "default",
+            "sourceKey": "CORE_ENVIRONMENT",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_SERVICE_VERSION",
+            "state": "Parsed",
+            "value": "9.8.7-rc.2+sha.Application",
+            "source": "discovery",
+            "sourceKey": "BuildVersion",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_LOG_LEVEL",
+            "state": "Parsed",
+            "value": "Information",
+            "source": "default",
+            "sourceKey": "CORE_LOG_LEVEL",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_LOG_CONSOLE_FORMAT",
+            "state": "Parsed",
+            "value": "human",
+            "source": "default",
+            "sourceKey": "CORE_LOG_CONSOLE_FORMAT",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_LOG_CONSOLE_LEVEL",
+            "state": "Parsed",
+            "value": "None",
+            "source": "environment",
+            "sourceKey": "CORE_LOG_CONSOLE_LEVEL",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_LOG_CONSOLE_STREAM",
+            "state": "Parsed",
+            "value": "stderr",
+            "source": "default",
+            "sourceKey": "CORE_LOG_CONSOLE_STREAM",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_LOG_HUMAN_DETAIL",
+            "state": "Parsed",
+            "value": "normal",
+            "source": "default",
+            "sourceKey": "CORE_LOG_HUMAN_DETAIL",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_LOG_FILE_PATH",
+            "state": "Parsed",
+            "value": "logs/file-only.log",
+            "source": "environment",
+            "sourceKey": "CORE_LOG_FILE_PATH",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_LOG_FILE_FORMAT",
+            "state": "Parsed",
+            "value": "jsonl",
+            "source": "default",
+            "sourceKey": "CORE_LOG_FILE_FORMAT",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_LOG_FILE_LEVEL",
+            "state": "Parsed",
+            "value": "Information",
+            "source": "default",
+            "sourceKey": "CORE_LOG_FILE_LEVEL",
+            "inheritedFrom": "CORE_LOG_LEVEL"
+          },
+          {
+            "key": "CORE_LOG_QUEUE_CAPACITY",
+            "state": "Parsed",
+            "value": 1024,
+            "source": "default",
+            "sourceKey": "CORE_LOG_QUEUE_CAPACITY",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_LOG_FLUSH_INTERVAL_MS",
+            "state": "Parsed",
+            "value": 1000,
+            "source": "default",
+            "sourceKey": "CORE_LOG_FLUSH_INTERVAL_MS",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_LOG_SHUTDOWN_TIMEOUT_MS",
+            "state": "Parsed",
+            "value": 5000,
+            "source": "default",
+            "sourceKey": "CORE_LOG_SHUTDOWN_TIMEOUT_MS",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_LOG_FILE_MAX_BYTES",
+            "state": "Parsed",
+            "value": 10485760,
+            "source": "default",
+            "sourceKey": "CORE_LOG_FILE_MAX_BYTES",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_LOG_FILE_RETAINED_FILES",
+            "state": "Parsed",
+            "value": 10,
+            "source": "default",
+            "sourceKey": "CORE_LOG_FILE_RETAINED_FILES",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_LOG_SCHEMA_VERSION",
+            "state": "Parsed",
+            "value": 1,
+            "source": "default",
+            "sourceKey": "CORE_LOG_SCHEMA_VERSION",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_LOG_MAX_ENTRY_BYTES",
+            "state": "Parsed",
+            "value": 65536,
+            "source": "default",
+            "sourceKey": "CORE_LOG_MAX_ENTRY_BYTES",
+            "inheritedFrom": null
+          }
+        ],
+        "consoleEnabled": false,
+        "fileEnabled": true,
+        "hasParseErrors": false
+      }
+    },
+    {
+      "id": "CFG-RESOLVE-FILE-NONE",
+      "tags": [
+        "disabled-file"
+      ],
+      "inputs": {
+        "environment": {
+          "CORE_LOG_FILE_LEVEL": "None",
+          "CORE_LOG_FILE_PATH": "logs/disabled.log"
+        },
+        "setup": {},
+        "discovery": {
+          "applicationName": "CIS.Core.DiscoveryFixture",
+          "buildVersion": "9.8.7-rc.2+sha.Application"
+        },
+        "host": {
+          "environmentName": null,
+          "outputRedirected": true,
+          "errorRedirected": true,
+          "debuggerAttached": false
+        }
+      },
+      "expected": {
+        "buildVersion": "9.8.7-rc.2+sha.Application",
+        "settings": [
+          {
+            "key": "CORE_SERVICE_NAME",
+            "state": "Parsed",
+            "value": "CIS.Core.DiscoveryFixture",
+            "source": "discovery",
+            "sourceKey": "ApplicationName",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_ENVIRONMENT",
+            "state": "Parsed",
+            "value": "unknown",
+            "source": "default",
+            "sourceKey": "CORE_ENVIRONMENT",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_SERVICE_VERSION",
+            "state": "Parsed",
+            "value": "9.8.7-rc.2+sha.Application",
+            "source": "discovery",
+            "sourceKey": "BuildVersion",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_LOG_LEVEL",
+            "state": "Parsed",
+            "value": "Information",
+            "source": "default",
+            "sourceKey": "CORE_LOG_LEVEL",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_LOG_CONSOLE_FORMAT",
+            "state": "Parsed",
+            "value": "human",
+            "source": "default",
+            "sourceKey": "CORE_LOG_CONSOLE_FORMAT",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_LOG_CONSOLE_LEVEL",
+            "state": "Parsed",
+            "value": "Information",
+            "source": "default",
+            "sourceKey": "CORE_LOG_CONSOLE_LEVEL",
+            "inheritedFrom": "CORE_LOG_LEVEL"
+          },
+          {
+            "key": "CORE_LOG_CONSOLE_STREAM",
+            "state": "Parsed",
+            "value": "stderr",
+            "source": "default",
+            "sourceKey": "CORE_LOG_CONSOLE_STREAM",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_LOG_HUMAN_DETAIL",
+            "state": "Parsed",
+            "value": "normal",
+            "source": "default",
+            "sourceKey": "CORE_LOG_HUMAN_DETAIL",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_LOG_FILE_PATH",
+            "state": "Parsed",
+            "value": "logs/disabled.log",
+            "source": "environment",
+            "sourceKey": "CORE_LOG_FILE_PATH",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_LOG_FILE_FORMAT",
+            "state": "Parsed",
+            "value": "jsonl",
+            "source": "default",
+            "sourceKey": "CORE_LOG_FILE_FORMAT",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_LOG_FILE_LEVEL",
+            "state": "Parsed",
+            "value": "None",
+            "source": "environment",
+            "sourceKey": "CORE_LOG_FILE_LEVEL",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_LOG_QUEUE_CAPACITY",
+            "state": "Parsed",
+            "value": 1024,
+            "source": "default",
+            "sourceKey": "CORE_LOG_QUEUE_CAPACITY",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_LOG_FLUSH_INTERVAL_MS",
+            "state": "Parsed",
+            "value": 1000,
+            "source": "default",
+            "sourceKey": "CORE_LOG_FLUSH_INTERVAL_MS",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_LOG_SHUTDOWN_TIMEOUT_MS",
+            "state": "Parsed",
+            "value": 5000,
+            "source": "default",
+            "sourceKey": "CORE_LOG_SHUTDOWN_TIMEOUT_MS",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_LOG_FILE_MAX_BYTES",
+            "state": "Parsed",
+            "value": 10485760,
+            "source": "default",
+            "sourceKey": "CORE_LOG_FILE_MAX_BYTES",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_LOG_FILE_RETAINED_FILES",
+            "state": "Parsed",
+            "value": 10,
+            "source": "default",
+            "sourceKey": "CORE_LOG_FILE_RETAINED_FILES",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_LOG_SCHEMA_VERSION",
+            "state": "Parsed",
+            "value": 1,
+            "source": "default",
+            "sourceKey": "CORE_LOG_SCHEMA_VERSION",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_LOG_MAX_ENTRY_BYTES",
+            "state": "Parsed",
+            "value": 65536,
+            "source": "default",
+            "sourceKey": "CORE_LOG_MAX_ENTRY_BYTES",
+            "inheritedFrom": null
+          }
+        ],
+        "consoleEnabled": true,
+        "fileEnabled": false,
+        "hasParseErrors": false
+      }
+    },
+    {
+      "id": "CFG-RESOLVE-BOTH-NONE",
+      "tags": [
+        "disabled-console",
+        "disabled-file"
+      ],
+      "inputs": {
+        "environment": {
+          "CORE_LOG_CONSOLE_LEVEL": "None",
+          "CORE_LOG_FILE_LEVEL": "None",
+          "CORE_LOG_FILE_PATH": "logs/disabled.log"
+        },
+        "setup": {},
+        "discovery": {
+          "applicationName": "CIS.Core.DiscoveryFixture",
+          "buildVersion": "9.8.7-rc.2+sha.Application"
+        },
+        "host": {
+          "environmentName": null,
+          "outputRedirected": true,
+          "errorRedirected": true,
+          "debuggerAttached": false
+        }
+      },
+      "expected": {
+        "buildVersion": "9.8.7-rc.2+sha.Application",
+        "settings": [
+          {
+            "key": "CORE_SERVICE_NAME",
+            "state": "Parsed",
+            "value": "CIS.Core.DiscoveryFixture",
+            "source": "discovery",
+            "sourceKey": "ApplicationName",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_ENVIRONMENT",
+            "state": "Parsed",
+            "value": "unknown",
+            "source": "default",
+            "sourceKey": "CORE_ENVIRONMENT",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_SERVICE_VERSION",
+            "state": "Parsed",
+            "value": "9.8.7-rc.2+sha.Application",
+            "source": "discovery",
+            "sourceKey": "BuildVersion",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_LOG_LEVEL",
+            "state": "Parsed",
+            "value": "Information",
+            "source": "default",
+            "sourceKey": "CORE_LOG_LEVEL",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_LOG_CONSOLE_FORMAT",
+            "state": "Parsed",
+            "value": "human",
+            "source": "default",
+            "sourceKey": "CORE_LOG_CONSOLE_FORMAT",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_LOG_CONSOLE_LEVEL",
+            "state": "Parsed",
+            "value": "None",
+            "source": "environment",
+            "sourceKey": "CORE_LOG_CONSOLE_LEVEL",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_LOG_CONSOLE_STREAM",
+            "state": "Parsed",
+            "value": "stderr",
+            "source": "default",
+            "sourceKey": "CORE_LOG_CONSOLE_STREAM",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_LOG_HUMAN_DETAIL",
+            "state": "Parsed",
+            "value": "normal",
+            "source": "default",
+            "sourceKey": "CORE_LOG_HUMAN_DETAIL",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_LOG_FILE_PATH",
+            "state": "Parsed",
+            "value": "logs/disabled.log",
+            "source": "environment",
+            "sourceKey": "CORE_LOG_FILE_PATH",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_LOG_FILE_FORMAT",
+            "state": "Parsed",
+            "value": "jsonl",
+            "source": "default",
+            "sourceKey": "CORE_LOG_FILE_FORMAT",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_LOG_FILE_LEVEL",
+            "state": "Parsed",
+            "value": "None",
+            "source": "environment",
+            "sourceKey": "CORE_LOG_FILE_LEVEL",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_LOG_QUEUE_CAPACITY",
+            "state": "Parsed",
+            "value": 1024,
+            "source": "default",
+            "sourceKey": "CORE_LOG_QUEUE_CAPACITY",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_LOG_FLUSH_INTERVAL_MS",
+            "state": "Parsed",
+            "value": 1000,
+            "source": "default",
+            "sourceKey": "CORE_LOG_FLUSH_INTERVAL_MS",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_LOG_SHUTDOWN_TIMEOUT_MS",
+            "state": "Parsed",
+            "value": 5000,
+            "source": "default",
+            "sourceKey": "CORE_LOG_SHUTDOWN_TIMEOUT_MS",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_LOG_FILE_MAX_BYTES",
+            "state": "Parsed",
+            "value": 10485760,
+            "source": "default",
+            "sourceKey": "CORE_LOG_FILE_MAX_BYTES",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_LOG_FILE_RETAINED_FILES",
+            "state": "Parsed",
+            "value": 10,
+            "source": "default",
+            "sourceKey": "CORE_LOG_FILE_RETAINED_FILES",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_LOG_SCHEMA_VERSION",
+            "state": "Parsed",
+            "value": 1,
+            "source": "default",
+            "sourceKey": "CORE_LOG_SCHEMA_VERSION",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_LOG_MAX_ENTRY_BYTES",
+            "state": "Parsed",
+            "value": 65536,
+            "source": "default",
+            "sourceKey": "CORE_LOG_MAX_ENTRY_BYTES",
+            "inheritedFrom": null
+          }
+        ],
+        "consoleEnabled": false,
+        "fileEnabled": false,
+        "hasParseErrors": false
+      }
+    },
+    {
+      "id": "CFG-RESOLVE-NO-FILE-PATH",
+      "tags": [
+        "absent-file",
+        "inheritance"
+      ],
+      "inputs": {
+        "environment": {
+          "CORE_LOG_LEVEL": "DBG"
+        },
+        "setup": {},
+        "discovery": {
+          "applicationName": "CIS.Core.DiscoveryFixture",
+          "buildVersion": "9.8.7-rc.2+sha.Application"
+        },
+        "host": {
+          "environmentName": null,
+          "outputRedirected": true,
+          "errorRedirected": true,
+          "debuggerAttached": false
+        }
+      },
+      "expected": {
+        "buildVersion": "9.8.7-rc.2+sha.Application",
+        "settings": [
+          {
+            "key": "CORE_SERVICE_NAME",
+            "state": "Parsed",
+            "value": "CIS.Core.DiscoveryFixture",
+            "source": "discovery",
+            "sourceKey": "ApplicationName",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_ENVIRONMENT",
+            "state": "Parsed",
+            "value": "unknown",
+            "source": "default",
+            "sourceKey": "CORE_ENVIRONMENT",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_SERVICE_VERSION",
+            "state": "Parsed",
+            "value": "9.8.7-rc.2+sha.Application",
+            "source": "discovery",
+            "sourceKey": "BuildVersion",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_LOG_LEVEL",
+            "state": "Parsed",
+            "value": "Debug",
+            "source": "environment",
+            "sourceKey": "CORE_LOG_LEVEL",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_LOG_CONSOLE_FORMAT",
+            "state": "Parsed",
+            "value": "human",
+            "source": "default",
+            "sourceKey": "CORE_LOG_CONSOLE_FORMAT",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_LOG_CONSOLE_LEVEL",
+            "state": "Parsed",
+            "value": "Debug",
+            "source": "default",
+            "sourceKey": "CORE_LOG_CONSOLE_LEVEL",
+            "inheritedFrom": "CORE_LOG_LEVEL"
+          },
+          {
+            "key": "CORE_LOG_CONSOLE_STREAM",
+            "state": "Parsed",
+            "value": "stderr",
+            "source": "default",
+            "sourceKey": "CORE_LOG_CONSOLE_STREAM",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_LOG_HUMAN_DETAIL",
+            "state": "Parsed",
+            "value": "normal",
+            "source": "default",
+            "sourceKey": "CORE_LOG_HUMAN_DETAIL",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_LOG_FILE_PATH",
+            "state": "Absent",
+            "value": null,
+            "source": "absent",
+            "sourceKey": "CORE_LOG_FILE_PATH",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_LOG_FILE_FORMAT",
+            "state": "Parsed",
+            "value": "jsonl",
+            "source": "default",
+            "sourceKey": "CORE_LOG_FILE_FORMAT",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_LOG_FILE_LEVEL",
+            "state": "Parsed",
+            "value": "Debug",
+            "source": "default",
+            "sourceKey": "CORE_LOG_FILE_LEVEL",
+            "inheritedFrom": "CORE_LOG_LEVEL"
+          },
+          {
+            "key": "CORE_LOG_QUEUE_CAPACITY",
+            "state": "Parsed",
+            "value": 1024,
+            "source": "default",
+            "sourceKey": "CORE_LOG_QUEUE_CAPACITY",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_LOG_FLUSH_INTERVAL_MS",
+            "state": "Parsed",
+            "value": 1000,
+            "source": "default",
+            "sourceKey": "CORE_LOG_FLUSH_INTERVAL_MS",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_LOG_SHUTDOWN_TIMEOUT_MS",
+            "state": "Parsed",
+            "value": 5000,
+            "source": "default",
+            "sourceKey": "CORE_LOG_SHUTDOWN_TIMEOUT_MS",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_LOG_FILE_MAX_BYTES",
+            "state": "Parsed",
+            "value": 10485760,
+            "source": "default",
+            "sourceKey": "CORE_LOG_FILE_MAX_BYTES",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_LOG_FILE_RETAINED_FILES",
+            "state": "Parsed",
+            "value": 10,
+            "source": "default",
+            "sourceKey": "CORE_LOG_FILE_RETAINED_FILES",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_LOG_SCHEMA_VERSION",
+            "state": "Parsed",
+            "value": 1,
+            "source": "default",
+            "sourceKey": "CORE_LOG_SCHEMA_VERSION",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_LOG_MAX_ENTRY_BYTES",
+            "state": "Parsed",
+            "value": 65536,
+            "source": "default",
+            "sourceKey": "CORE_LOG_MAX_ENTRY_BYTES",
+            "inheritedFrom": null
+          }
+        ],
+        "consoleEnabled": true,
+        "fileEnabled": false,
+        "hasParseErrors": false
+      }
+    },
+    {
+      "id": "CFG-RESOLVE-BLANK-FILE-PATH",
+      "tags": [
+        "absent-file",
+        "blank-core",
+        "blank-setup"
+      ],
+      "inputs": {
+        "environment": {
+          "CORE_LOG_FILE_PATH": " "
+        },
+        "setup": {
+          "Logging.FilePath": " \t"
+        },
+        "discovery": {
+          "applicationName": "CIS.Core.DiscoveryFixture",
+          "buildVersion": "9.8.7-rc.2+sha.Application"
+        },
+        "host": {
+          "environmentName": null,
+          "outputRedirected": true,
+          "errorRedirected": true,
+          "debuggerAttached": false
+        }
+      },
+      "expected": {
+        "buildVersion": "9.8.7-rc.2+sha.Application",
+        "settings": [
+          {
+            "key": "CORE_SERVICE_NAME",
+            "state": "Parsed",
+            "value": "CIS.Core.DiscoveryFixture",
+            "source": "discovery",
+            "sourceKey": "ApplicationName",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_ENVIRONMENT",
+            "state": "Parsed",
+            "value": "unknown",
+            "source": "default",
+            "sourceKey": "CORE_ENVIRONMENT",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_SERVICE_VERSION",
+            "state": "Parsed",
+            "value": "9.8.7-rc.2+sha.Application",
+            "source": "discovery",
+            "sourceKey": "BuildVersion",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_LOG_LEVEL",
+            "state": "Parsed",
+            "value": "Information",
+            "source": "default",
+            "sourceKey": "CORE_LOG_LEVEL",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_LOG_CONSOLE_FORMAT",
+            "state": "Parsed",
+            "value": "human",
+            "source": "default",
+            "sourceKey": "CORE_LOG_CONSOLE_FORMAT",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_LOG_CONSOLE_LEVEL",
+            "state": "Parsed",
+            "value": "Information",
+            "source": "default",
+            "sourceKey": "CORE_LOG_CONSOLE_LEVEL",
+            "inheritedFrom": "CORE_LOG_LEVEL"
+          },
+          {
+            "key": "CORE_LOG_CONSOLE_STREAM",
+            "state": "Parsed",
+            "value": "stderr",
+            "source": "default",
+            "sourceKey": "CORE_LOG_CONSOLE_STREAM",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_LOG_HUMAN_DETAIL",
+            "state": "Parsed",
+            "value": "normal",
+            "source": "default",
+            "sourceKey": "CORE_LOG_HUMAN_DETAIL",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_LOG_FILE_PATH",
+            "state": "Absent",
+            "value": null,
+            "source": "absent",
+            "sourceKey": "CORE_LOG_FILE_PATH",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_LOG_FILE_FORMAT",
+            "state": "Parsed",
+            "value": "jsonl",
+            "source": "default",
+            "sourceKey": "CORE_LOG_FILE_FORMAT",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_LOG_FILE_LEVEL",
+            "state": "Parsed",
+            "value": "Information",
+            "source": "default",
+            "sourceKey": "CORE_LOG_FILE_LEVEL",
+            "inheritedFrom": "CORE_LOG_LEVEL"
+          },
+          {
+            "key": "CORE_LOG_QUEUE_CAPACITY",
+            "state": "Parsed",
+            "value": 1024,
+            "source": "default",
+            "sourceKey": "CORE_LOG_QUEUE_CAPACITY",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_LOG_FLUSH_INTERVAL_MS",
+            "state": "Parsed",
+            "value": 1000,
+            "source": "default",
+            "sourceKey": "CORE_LOG_FLUSH_INTERVAL_MS",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_LOG_SHUTDOWN_TIMEOUT_MS",
+            "state": "Parsed",
+            "value": 5000,
+            "source": "default",
+            "sourceKey": "CORE_LOG_SHUTDOWN_TIMEOUT_MS",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_LOG_FILE_MAX_BYTES",
+            "state": "Parsed",
+            "value": 10485760,
+            "source": "default",
+            "sourceKey": "CORE_LOG_FILE_MAX_BYTES",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_LOG_FILE_RETAINED_FILES",
+            "state": "Parsed",
+            "value": 10,
+            "source": "default",
+            "sourceKey": "CORE_LOG_FILE_RETAINED_FILES",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_LOG_SCHEMA_VERSION",
+            "state": "Parsed",
+            "value": 1,
+            "source": "default",
+            "sourceKey": "CORE_LOG_SCHEMA_VERSION",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_LOG_MAX_ENTRY_BYTES",
+            "state": "Parsed",
+            "value": 65536,
+            "source": "default",
+            "sourceKey": "CORE_LOG_MAX_ENTRY_BYTES",
+            "inheritedFrom": null
+          }
+        ],
+        "consoleEnabled": true,
+        "fileEnabled": false,
+        "hasParseErrors": false
+      }
+    },
+    {
+      "id": "CFG-RESOLVE-EXPLICIT-FORMAT-STREAM",
+      "tags": [
+        "explicit-format",
+        "explicit-stream"
+      ],
+      "inputs": {
+        "environment": {
+          "CORE_LOG_CONSOLE_FORMAT": "JSONL",
+          "CORE_LOG_CONSOLE_STREAM": "STDOUT",
+          "CORE_LOG_FILE_FORMAT": "HUMAN",
+          "CORE_LOG_FILE_PATH": "logs/Extension.jsonl"
+        },
+        "setup": {},
+        "discovery": {
+          "applicationName": "CIS.Core.DiscoveryFixture",
+          "buildVersion": "9.8.7-rc.2+sha.Application"
+        },
+        "host": {
+          "environmentName": null,
+          "outputRedirected": true,
+          "errorRedirected": true,
+          "debuggerAttached": false
+        }
+      },
+      "expected": {
+        "buildVersion": "9.8.7-rc.2+sha.Application",
+        "settings": [
+          {
+            "key": "CORE_SERVICE_NAME",
+            "state": "Parsed",
+            "value": "CIS.Core.DiscoveryFixture",
+            "source": "discovery",
+            "sourceKey": "ApplicationName",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_ENVIRONMENT",
+            "state": "Parsed",
+            "value": "unknown",
+            "source": "default",
+            "sourceKey": "CORE_ENVIRONMENT",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_SERVICE_VERSION",
+            "state": "Parsed",
+            "value": "9.8.7-rc.2+sha.Application",
+            "source": "discovery",
+            "sourceKey": "BuildVersion",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_LOG_LEVEL",
+            "state": "Parsed",
+            "value": "Information",
+            "source": "default",
+            "sourceKey": "CORE_LOG_LEVEL",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_LOG_CONSOLE_FORMAT",
+            "state": "Parsed",
+            "value": "jsonl",
+            "source": "environment",
+            "sourceKey": "CORE_LOG_CONSOLE_FORMAT",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_LOG_CONSOLE_LEVEL",
+            "state": "Parsed",
+            "value": "Information",
+            "source": "default",
+            "sourceKey": "CORE_LOG_CONSOLE_LEVEL",
+            "inheritedFrom": "CORE_LOG_LEVEL"
+          },
+          {
+            "key": "CORE_LOG_CONSOLE_STREAM",
+            "state": "Parsed",
+            "value": "stdout",
+            "source": "environment",
+            "sourceKey": "CORE_LOG_CONSOLE_STREAM",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_LOG_HUMAN_DETAIL",
+            "state": "Parsed",
+            "value": "normal",
+            "source": "default",
+            "sourceKey": "CORE_LOG_HUMAN_DETAIL",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_LOG_FILE_PATH",
+            "state": "Parsed",
+            "value": "logs/Extension.jsonl",
+            "source": "environment",
+            "sourceKey": "CORE_LOG_FILE_PATH",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_LOG_FILE_FORMAT",
+            "state": "Parsed",
+            "value": "human",
+            "source": "environment",
+            "sourceKey": "CORE_LOG_FILE_FORMAT",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_LOG_FILE_LEVEL",
+            "state": "Parsed",
+            "value": "Information",
+            "source": "default",
+            "sourceKey": "CORE_LOG_FILE_LEVEL",
+            "inheritedFrom": "CORE_LOG_LEVEL"
+          },
+          {
+            "key": "CORE_LOG_QUEUE_CAPACITY",
+            "state": "Parsed",
+            "value": 1024,
+            "source": "default",
+            "sourceKey": "CORE_LOG_QUEUE_CAPACITY",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_LOG_FLUSH_INTERVAL_MS",
+            "state": "Parsed",
+            "value": 1000,
+            "source": "default",
+            "sourceKey": "CORE_LOG_FLUSH_INTERVAL_MS",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_LOG_SHUTDOWN_TIMEOUT_MS",
+            "state": "Parsed",
+            "value": 5000,
+            "source": "default",
+            "sourceKey": "CORE_LOG_SHUTDOWN_TIMEOUT_MS",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_LOG_FILE_MAX_BYTES",
+            "state": "Parsed",
+            "value": 10485760,
+            "source": "default",
+            "sourceKey": "CORE_LOG_FILE_MAX_BYTES",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_LOG_FILE_RETAINED_FILES",
+            "state": "Parsed",
+            "value": 10,
+            "source": "default",
+            "sourceKey": "CORE_LOG_FILE_RETAINED_FILES",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_LOG_SCHEMA_VERSION",
+            "state": "Parsed",
+            "value": 1,
+            "source": "default",
+            "sourceKey": "CORE_LOG_SCHEMA_VERSION",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_LOG_MAX_ENTRY_BYTES",
+            "state": "Parsed",
+            "value": 65536,
+            "source": "default",
+            "sourceKey": "CORE_LOG_MAX_ENTRY_BYTES",
+            "inheritedFrom": null
+          }
+        ],
+        "consoleEnabled": true,
+        "fileEnabled": true,
+        "hasParseErrors": false
+      }
+    },
+    {
+      "id": "CFG-RESOLVE-HOST-LABEL",
+      "tags": [
+        "host-label",
+        "host-unchanged"
+      ],
+      "inputs": {
+        "environment": {},
+        "setup": {},
+        "discovery": {
+          "applicationName": "CIS.Core.DiscoveryFixture",
+          "buildVersion": "9.8.7-rc.2+sha.Application"
+        },
+        "host": {
+          "environmentName": "Framework.Production",
+          "outputRedirected": true,
+          "errorRedirected": true,
+          "debuggerAttached": false
+        }
+      },
+      "expected": {
+        "buildVersion": "9.8.7-rc.2+sha.Application",
+        "settings": [
+          {
+            "key": "CORE_SERVICE_NAME",
+            "state": "Parsed",
+            "value": "CIS.Core.DiscoveryFixture",
+            "source": "discovery",
+            "sourceKey": "ApplicationName",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_ENVIRONMENT",
+            "state": "Parsed",
+            "value": "Framework.Production",
+            "source": "setup",
+            "sourceKey": "EnvironmentSetup.EnvironmentName",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_SERVICE_VERSION",
+            "state": "Parsed",
+            "value": "9.8.7-rc.2+sha.Application",
+            "source": "discovery",
+            "sourceKey": "BuildVersion",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_LOG_LEVEL",
+            "state": "Parsed",
+            "value": "Information",
+            "source": "default",
+            "sourceKey": "CORE_LOG_LEVEL",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_LOG_CONSOLE_FORMAT",
+            "state": "Parsed",
+            "value": "human",
+            "source": "default",
+            "sourceKey": "CORE_LOG_CONSOLE_FORMAT",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_LOG_CONSOLE_LEVEL",
+            "state": "Parsed",
+            "value": "Information",
+            "source": "default",
+            "sourceKey": "CORE_LOG_CONSOLE_LEVEL",
+            "inheritedFrom": "CORE_LOG_LEVEL"
+          },
+          {
+            "key": "CORE_LOG_CONSOLE_STREAM",
+            "state": "Parsed",
+            "value": "stderr",
+            "source": "default",
+            "sourceKey": "CORE_LOG_CONSOLE_STREAM",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_LOG_HUMAN_DETAIL",
+            "state": "Parsed",
+            "value": "normal",
+            "source": "default",
+            "sourceKey": "CORE_LOG_HUMAN_DETAIL",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_LOG_FILE_PATH",
+            "state": "Absent",
+            "value": null,
+            "source": "absent",
+            "sourceKey": "CORE_LOG_FILE_PATH",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_LOG_FILE_FORMAT",
+            "state": "Parsed",
+            "value": "jsonl",
+            "source": "default",
+            "sourceKey": "CORE_LOG_FILE_FORMAT",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_LOG_FILE_LEVEL",
+            "state": "Parsed",
+            "value": "Information",
+            "source": "default",
+            "sourceKey": "CORE_LOG_FILE_LEVEL",
+            "inheritedFrom": "CORE_LOG_LEVEL"
+          },
+          {
+            "key": "CORE_LOG_QUEUE_CAPACITY",
+            "state": "Parsed",
+            "value": 1024,
+            "source": "default",
+            "sourceKey": "CORE_LOG_QUEUE_CAPACITY",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_LOG_FLUSH_INTERVAL_MS",
+            "state": "Parsed",
+            "value": 1000,
+            "source": "default",
+            "sourceKey": "CORE_LOG_FLUSH_INTERVAL_MS",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_LOG_SHUTDOWN_TIMEOUT_MS",
+            "state": "Parsed",
+            "value": 5000,
+            "source": "default",
+            "sourceKey": "CORE_LOG_SHUTDOWN_TIMEOUT_MS",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_LOG_FILE_MAX_BYTES",
+            "state": "Parsed",
+            "value": 10485760,
+            "source": "default",
+            "sourceKey": "CORE_LOG_FILE_MAX_BYTES",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_LOG_FILE_RETAINED_FILES",
+            "state": "Parsed",
+            "value": 10,
+            "source": "default",
+            "sourceKey": "CORE_LOG_FILE_RETAINED_FILES",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_LOG_SCHEMA_VERSION",
+            "state": "Parsed",
+            "value": 1,
+            "source": "default",
+            "sourceKey": "CORE_LOG_SCHEMA_VERSION",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_LOG_MAX_ENTRY_BYTES",
+            "state": "Parsed",
+            "value": 65536,
+            "source": "default",
+            "sourceKey": "CORE_LOG_MAX_ENTRY_BYTES",
+            "inheritedFrom": null
+          }
+        ],
+        "consoleEnabled": true,
+        "fileEnabled": false,
+        "hasParseErrors": false
+      }
+    },
+    {
+      "id": "CFG-RESOLVE-TELEMETRY-CORE",
+      "tags": [
+        "host-label",
+        "host-unchanged"
+      ],
+      "inputs": {
+        "environment": {
+          "CORE_ENVIRONMENT": " Telemetry.Production "
+        },
+        "setup": {},
+        "discovery": {
+          "applicationName": "CIS.Core.DiscoveryFixture",
+          "buildVersion": "9.8.7-rc.2+sha.Application"
+        },
+        "host": {
+          "environmentName": "Framework.Development",
+          "outputRedirected": true,
+          "errorRedirected": true,
+          "debuggerAttached": false
+        }
+      },
+      "expected": {
+        "buildVersion": "9.8.7-rc.2+sha.Application",
+        "settings": [
+          {
+            "key": "CORE_SERVICE_NAME",
+            "state": "Parsed",
+            "value": "CIS.Core.DiscoveryFixture",
+            "source": "discovery",
+            "sourceKey": "ApplicationName",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_ENVIRONMENT",
+            "state": "Parsed",
+            "value": "Telemetry.Production",
+            "source": "environment",
+            "sourceKey": "CORE_ENVIRONMENT",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_SERVICE_VERSION",
+            "state": "Parsed",
+            "value": "9.8.7-rc.2+sha.Application",
+            "source": "discovery",
+            "sourceKey": "BuildVersion",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_LOG_LEVEL",
+            "state": "Parsed",
+            "value": "Information",
+            "source": "default",
+            "sourceKey": "CORE_LOG_LEVEL",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_LOG_CONSOLE_FORMAT",
+            "state": "Parsed",
+            "value": "human",
+            "source": "default",
+            "sourceKey": "CORE_LOG_CONSOLE_FORMAT",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_LOG_CONSOLE_LEVEL",
+            "state": "Parsed",
+            "value": "Information",
+            "source": "default",
+            "sourceKey": "CORE_LOG_CONSOLE_LEVEL",
+            "inheritedFrom": "CORE_LOG_LEVEL"
+          },
+          {
+            "key": "CORE_LOG_CONSOLE_STREAM",
+            "state": "Parsed",
+            "value": "stderr",
+            "source": "default",
+            "sourceKey": "CORE_LOG_CONSOLE_STREAM",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_LOG_HUMAN_DETAIL",
+            "state": "Parsed",
+            "value": "normal",
+            "source": "default",
+            "sourceKey": "CORE_LOG_HUMAN_DETAIL",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_LOG_FILE_PATH",
+            "state": "Absent",
+            "value": null,
+            "source": "absent",
+            "sourceKey": "CORE_LOG_FILE_PATH",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_LOG_FILE_FORMAT",
+            "state": "Parsed",
+            "value": "jsonl",
+            "source": "default",
+            "sourceKey": "CORE_LOG_FILE_FORMAT",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_LOG_FILE_LEVEL",
+            "state": "Parsed",
+            "value": "Information",
+            "source": "default",
+            "sourceKey": "CORE_LOG_FILE_LEVEL",
+            "inheritedFrom": "CORE_LOG_LEVEL"
+          },
+          {
+            "key": "CORE_LOG_QUEUE_CAPACITY",
+            "state": "Parsed",
+            "value": 1024,
+            "source": "default",
+            "sourceKey": "CORE_LOG_QUEUE_CAPACITY",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_LOG_FLUSH_INTERVAL_MS",
+            "state": "Parsed",
+            "value": 1000,
+            "source": "default",
+            "sourceKey": "CORE_LOG_FLUSH_INTERVAL_MS",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_LOG_SHUTDOWN_TIMEOUT_MS",
+            "state": "Parsed",
+            "value": 5000,
+            "source": "default",
+            "sourceKey": "CORE_LOG_SHUTDOWN_TIMEOUT_MS",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_LOG_FILE_MAX_BYTES",
+            "state": "Parsed",
+            "value": 10485760,
+            "source": "default",
+            "sourceKey": "CORE_LOG_FILE_MAX_BYTES",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_LOG_FILE_RETAINED_FILES",
+            "state": "Parsed",
+            "value": 10,
+            "source": "default",
+            "sourceKey": "CORE_LOG_FILE_RETAINED_FILES",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_LOG_SCHEMA_VERSION",
+            "state": "Parsed",
+            "value": 1,
+            "source": "default",
+            "sourceKey": "CORE_LOG_SCHEMA_VERSION",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_LOG_MAX_ENTRY_BYTES",
+            "state": "Parsed",
+            "value": 65536,
+            "source": "default",
+            "sourceKey": "CORE_LOG_MAX_ENTRY_BYTES",
+            "inheritedFrom": null
+          }
+        ],
+        "consoleEnabled": true,
+        "fileEnabled": false,
+        "hasParseErrors": false
+      }
+    },
+    {
+      "id": "CFG-RESOLVE-TELEMETRY-DD",
+      "tags": [
+        "host-label",
+        "host-unchanged"
+      ],
+      "inputs": {
+        "environment": {
+          "DD_ENV": " Telemetry.MixedCASE "
+        },
+        "setup": {},
+        "discovery": {
+          "applicationName": "CIS.Core.DiscoveryFixture",
+          "buildVersion": "9.8.7-rc.2+sha.Application"
+        },
+        "host": {
+          "environmentName": "Framework.Staging",
+          "outputRedirected": true,
+          "errorRedirected": true,
+          "debuggerAttached": false
+        }
+      },
+      "expected": {
+        "buildVersion": "9.8.7-rc.2+sha.Application",
+        "settings": [
+          {
+            "key": "CORE_SERVICE_NAME",
+            "state": "Parsed",
+            "value": "CIS.Core.DiscoveryFixture",
+            "source": "discovery",
+            "sourceKey": "ApplicationName",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_ENVIRONMENT",
+            "state": "Parsed",
+            "value": "Telemetry.MixedCASE",
+            "source": "environment",
+            "sourceKey": "DD_ENV",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_SERVICE_VERSION",
+            "state": "Parsed",
+            "value": "9.8.7-rc.2+sha.Application",
+            "source": "discovery",
+            "sourceKey": "BuildVersion",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_LOG_LEVEL",
+            "state": "Parsed",
+            "value": "Information",
+            "source": "default",
+            "sourceKey": "CORE_LOG_LEVEL",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_LOG_CONSOLE_FORMAT",
+            "state": "Parsed",
+            "value": "human",
+            "source": "default",
+            "sourceKey": "CORE_LOG_CONSOLE_FORMAT",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_LOG_CONSOLE_LEVEL",
+            "state": "Parsed",
+            "value": "Information",
+            "source": "default",
+            "sourceKey": "CORE_LOG_CONSOLE_LEVEL",
+            "inheritedFrom": "CORE_LOG_LEVEL"
+          },
+          {
+            "key": "CORE_LOG_CONSOLE_STREAM",
+            "state": "Parsed",
+            "value": "stderr",
+            "source": "default",
+            "sourceKey": "CORE_LOG_CONSOLE_STREAM",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_LOG_HUMAN_DETAIL",
+            "state": "Parsed",
+            "value": "normal",
+            "source": "default",
+            "sourceKey": "CORE_LOG_HUMAN_DETAIL",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_LOG_FILE_PATH",
+            "state": "Absent",
+            "value": null,
+            "source": "absent",
+            "sourceKey": "CORE_LOG_FILE_PATH",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_LOG_FILE_FORMAT",
+            "state": "Parsed",
+            "value": "jsonl",
+            "source": "default",
+            "sourceKey": "CORE_LOG_FILE_FORMAT",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_LOG_FILE_LEVEL",
+            "state": "Parsed",
+            "value": "Information",
+            "source": "default",
+            "sourceKey": "CORE_LOG_FILE_LEVEL",
+            "inheritedFrom": "CORE_LOG_LEVEL"
+          },
+          {
+            "key": "CORE_LOG_QUEUE_CAPACITY",
+            "state": "Parsed",
+            "value": 1024,
+            "source": "default",
+            "sourceKey": "CORE_LOG_QUEUE_CAPACITY",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_LOG_FLUSH_INTERVAL_MS",
+            "state": "Parsed",
+            "value": 1000,
+            "source": "default",
+            "sourceKey": "CORE_LOG_FLUSH_INTERVAL_MS",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_LOG_SHUTDOWN_TIMEOUT_MS",
+            "state": "Parsed",
+            "value": 5000,
+            "source": "default",
+            "sourceKey": "CORE_LOG_SHUTDOWN_TIMEOUT_MS",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_LOG_FILE_MAX_BYTES",
+            "state": "Parsed",
+            "value": 10485760,
+            "source": "default",
+            "sourceKey": "CORE_LOG_FILE_MAX_BYTES",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_LOG_FILE_RETAINED_FILES",
+            "state": "Parsed",
+            "value": 10,
+            "source": "default",
+            "sourceKey": "CORE_LOG_FILE_RETAINED_FILES",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_LOG_SCHEMA_VERSION",
+            "state": "Parsed",
+            "value": 1,
+            "source": "default",
+            "sourceKey": "CORE_LOG_SCHEMA_VERSION",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_LOG_MAX_ENTRY_BYTES",
+            "state": "Parsed",
+            "value": 65536,
+            "source": "default",
+            "sourceKey": "CORE_LOG_MAX_ENTRY_BYTES",
+            "inheritedFrom": null
+          }
+        ],
+        "consoleEnabled": true,
+        "fileEnabled": false,
+        "hasParseErrors": false
+      }
+    },
+    {
+      "id": "CFG-RESOLVE-UNICODE-CASE",
+      "tags": [
+        "identity-case",
+        "unicode",
+        "token-trimming"
+      ],
+      "inputs": {
+        "environment": {
+          "CORE_SERVICE_NAME": "  App.İ.I.Å  ",
+          "CORE_ENVIRONMENT": " Mixed CASE ",
+          "CORE_SERVICE_VERSION": " RC+Sha.MixedCASE ",
+          "CORE_LOG_CONSOLE_FORMAT": "　 JsOnL  ",
+          "CORE_LOG_CONSOLE_STREAM": " StDoUt "
+        },
+        "setup": {},
+        "discovery": {
+          "applicationName": "CIS.Core.DiscoveryFixture",
+          "buildVersion": "9.8.7-rc.2+sha.Application"
+        },
+        "host": {
+          "environmentName": null,
+          "outputRedirected": true,
+          "errorRedirected": true,
+          "debuggerAttached": false
+        }
+      },
+      "expected": {
+        "buildVersion": "9.8.7-rc.2+sha.Application",
+        "settings": [
+          {
+            "key": "CORE_SERVICE_NAME",
+            "state": "Parsed",
+            "value": "App.İ.I.Å",
+            "source": "environment",
+            "sourceKey": "CORE_SERVICE_NAME",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_ENVIRONMENT",
+            "state": "Parsed",
+            "value": "Mixed CASE",
+            "source": "environment",
+            "sourceKey": "CORE_ENVIRONMENT",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_SERVICE_VERSION",
+            "state": "Parsed",
+            "value": "RC+Sha.MixedCASE",
+            "source": "environment",
+            "sourceKey": "CORE_SERVICE_VERSION",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_LOG_LEVEL",
+            "state": "Parsed",
+            "value": "Information",
+            "source": "default",
+            "sourceKey": "CORE_LOG_LEVEL",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_LOG_CONSOLE_FORMAT",
+            "state": "Parsed",
+            "value": "jsonl",
+            "source": "environment",
+            "sourceKey": "CORE_LOG_CONSOLE_FORMAT",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_LOG_CONSOLE_LEVEL",
+            "state": "Parsed",
+            "value": "Information",
+            "source": "default",
+            "sourceKey": "CORE_LOG_CONSOLE_LEVEL",
+            "inheritedFrom": "CORE_LOG_LEVEL"
+          },
+          {
+            "key": "CORE_LOG_CONSOLE_STREAM",
+            "state": "Parsed",
+            "value": "stdout",
+            "source": "environment",
+            "sourceKey": "CORE_LOG_CONSOLE_STREAM",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_LOG_HUMAN_DETAIL",
+            "state": "Parsed",
+            "value": "normal",
+            "source": "default",
+            "sourceKey": "CORE_LOG_HUMAN_DETAIL",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_LOG_FILE_PATH",
+            "state": "Absent",
+            "value": null,
+            "source": "absent",
+            "sourceKey": "CORE_LOG_FILE_PATH",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_LOG_FILE_FORMAT",
+            "state": "Parsed",
+            "value": "jsonl",
+            "source": "default",
+            "sourceKey": "CORE_LOG_FILE_FORMAT",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_LOG_FILE_LEVEL",
+            "state": "Parsed",
+            "value": "Information",
+            "source": "default",
+            "sourceKey": "CORE_LOG_FILE_LEVEL",
+            "inheritedFrom": "CORE_LOG_LEVEL"
+          },
+          {
+            "key": "CORE_LOG_QUEUE_CAPACITY",
+            "state": "Parsed",
+            "value": 1024,
+            "source": "default",
+            "sourceKey": "CORE_LOG_QUEUE_CAPACITY",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_LOG_FLUSH_INTERVAL_MS",
+            "state": "Parsed",
+            "value": 1000,
+            "source": "default",
+            "sourceKey": "CORE_LOG_FLUSH_INTERVAL_MS",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_LOG_SHUTDOWN_TIMEOUT_MS",
+            "state": "Parsed",
+            "value": 5000,
+            "source": "default",
+            "sourceKey": "CORE_LOG_SHUTDOWN_TIMEOUT_MS",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_LOG_FILE_MAX_BYTES",
+            "state": "Parsed",
+            "value": 10485760,
+            "source": "default",
+            "sourceKey": "CORE_LOG_FILE_MAX_BYTES",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_LOG_FILE_RETAINED_FILES",
+            "state": "Parsed",
+            "value": 10,
+            "source": "default",
+            "sourceKey": "CORE_LOG_FILE_RETAINED_FILES",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_LOG_SCHEMA_VERSION",
+            "state": "Parsed",
+            "value": 1,
+            "source": "default",
+            "sourceKey": "CORE_LOG_SCHEMA_VERSION",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_LOG_MAX_ENTRY_BYTES",
+            "state": "Parsed",
+            "value": 65536,
+            "source": "default",
+            "sourceKey": "CORE_LOG_MAX_ENTRY_BYTES",
+            "inheritedFrom": null
+          }
+        ],
+        "consoleEnabled": true,
+        "fileEnabled": false,
+        "hasParseErrors": false
+      }
+    },
+    {
+      "id": "CFG-RESOLVE-INVALID-HIGHER-PRIORITY",
+      "tags": [
+        "selected-invalid",
+        "inheritance-error"
+      ],
+      "inputs": {
+        "environment": {
+          "CORE_LOG_LEVEL": "invalid-level"
+        },
+        "setup": {
+          "Logging.Level": "Trace"
+        },
+        "discovery": {
+          "applicationName": "CIS.Core.DiscoveryFixture",
+          "buildVersion": "9.8.7-rc.2+sha.Application"
+        },
+        "host": {
+          "environmentName": null,
+          "outputRedirected": true,
+          "errorRedirected": true,
+          "debuggerAttached": false
+        }
+      },
+      "expected": {
+        "buildVersion": "9.8.7-rc.2+sha.Application",
+        "settings": [
+          {
+            "key": "CORE_SERVICE_NAME",
+            "state": "Parsed",
+            "value": "CIS.Core.DiscoveryFixture",
+            "source": "discovery",
+            "sourceKey": "ApplicationName",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_ENVIRONMENT",
+            "state": "Parsed",
+            "value": "unknown",
+            "source": "default",
+            "sourceKey": "CORE_ENVIRONMENT",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_SERVICE_VERSION",
+            "state": "Parsed",
+            "value": "9.8.7-rc.2+sha.Application",
+            "source": "discovery",
+            "sourceKey": "BuildVersion",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_LOG_LEVEL",
+            "state": "InvalidToken",
+            "value": null,
+            "source": "environment",
+            "sourceKey": "CORE_LOG_LEVEL",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_LOG_CONSOLE_FORMAT",
+            "state": "Parsed",
+            "value": "human",
+            "source": "default",
+            "sourceKey": "CORE_LOG_CONSOLE_FORMAT",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_LOG_CONSOLE_LEVEL",
+            "state": "DependsOnInvalidSetting",
+            "value": null,
+            "source": "default",
+            "sourceKey": "CORE_LOG_CONSOLE_LEVEL",
+            "inheritedFrom": "CORE_LOG_LEVEL"
+          },
+          {
+            "key": "CORE_LOG_CONSOLE_STREAM",
+            "state": "Parsed",
+            "value": "stderr",
+            "source": "default",
+            "sourceKey": "CORE_LOG_CONSOLE_STREAM",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_LOG_HUMAN_DETAIL",
+            "state": "Parsed",
+            "value": "normal",
+            "source": "default",
+            "sourceKey": "CORE_LOG_HUMAN_DETAIL",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_LOG_FILE_PATH",
+            "state": "Absent",
+            "value": null,
+            "source": "absent",
+            "sourceKey": "CORE_LOG_FILE_PATH",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_LOG_FILE_FORMAT",
+            "state": "Parsed",
+            "value": "jsonl",
+            "source": "default",
+            "sourceKey": "CORE_LOG_FILE_FORMAT",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_LOG_FILE_LEVEL",
+            "state": "DependsOnInvalidSetting",
+            "value": null,
+            "source": "default",
+            "sourceKey": "CORE_LOG_FILE_LEVEL",
+            "inheritedFrom": "CORE_LOG_LEVEL"
+          },
+          {
+            "key": "CORE_LOG_QUEUE_CAPACITY",
+            "state": "Parsed",
+            "value": 1024,
+            "source": "default",
+            "sourceKey": "CORE_LOG_QUEUE_CAPACITY",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_LOG_FLUSH_INTERVAL_MS",
+            "state": "Parsed",
+            "value": 1000,
+            "source": "default",
+            "sourceKey": "CORE_LOG_FLUSH_INTERVAL_MS",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_LOG_SHUTDOWN_TIMEOUT_MS",
+            "state": "Parsed",
+            "value": 5000,
+            "source": "default",
+            "sourceKey": "CORE_LOG_SHUTDOWN_TIMEOUT_MS",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_LOG_FILE_MAX_BYTES",
+            "state": "Parsed",
+            "value": 10485760,
+            "source": "default",
+            "sourceKey": "CORE_LOG_FILE_MAX_BYTES",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_LOG_FILE_RETAINED_FILES",
+            "state": "Parsed",
+            "value": 10,
+            "source": "default",
+            "sourceKey": "CORE_LOG_FILE_RETAINED_FILES",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_LOG_SCHEMA_VERSION",
+            "state": "Parsed",
+            "value": 1,
+            "source": "default",
+            "sourceKey": "CORE_LOG_SCHEMA_VERSION",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_LOG_MAX_ENTRY_BYTES",
+            "state": "Parsed",
+            "value": 65536,
+            "source": "default",
+            "sourceKey": "CORE_LOG_MAX_ENTRY_BYTES",
+            "inheritedFrom": null
+          }
+        ],
+        "consoleEnabled": null,
+        "fileEnabled": false,
+        "hasParseErrors": true
+      }
+    },
+    {
+      "id": "CFG-RESOLVE-INVALID-DISABLED-OPTIONS",
+      "tags": [
+        "selected-invalid",
+        "disabled-console",
+        "disabled-file"
+      ],
+      "inputs": {
+        "environment": {
+          "CORE_LOG_CONSOLE_LEVEL": "None",
+          "CORE_LOG_FILE_LEVEL": "None",
+          "CORE_LOG_CONSOLE_FORMAT": "xml",
+          "CORE_LOG_CONSOLE_STREAM": "0",
+          "CORE_LOG_FILE_FORMAT": "xml",
+          "CORE_LOG_QUEUE_CAPACITY": "bad"
+        },
+        "setup": {},
+        "discovery": {
+          "applicationName": "CIS.Core.DiscoveryFixture",
+          "buildVersion": "9.8.7-rc.2+sha.Application"
+        },
+        "host": {
+          "environmentName": null,
+          "outputRedirected": true,
+          "errorRedirected": true,
+          "debuggerAttached": false
+        }
+      },
+      "expected": {
+        "buildVersion": "9.8.7-rc.2+sha.Application",
+        "settings": [
+          {
+            "key": "CORE_SERVICE_NAME",
+            "state": "Parsed",
+            "value": "CIS.Core.DiscoveryFixture",
+            "source": "discovery",
+            "sourceKey": "ApplicationName",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_ENVIRONMENT",
+            "state": "Parsed",
+            "value": "unknown",
+            "source": "default",
+            "sourceKey": "CORE_ENVIRONMENT",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_SERVICE_VERSION",
+            "state": "Parsed",
+            "value": "9.8.7-rc.2+sha.Application",
+            "source": "discovery",
+            "sourceKey": "BuildVersion",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_LOG_LEVEL",
+            "state": "Parsed",
+            "value": "Information",
+            "source": "default",
+            "sourceKey": "CORE_LOG_LEVEL",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_LOG_CONSOLE_FORMAT",
+            "state": "InvalidToken",
+            "value": null,
+            "source": "environment",
+            "sourceKey": "CORE_LOG_CONSOLE_FORMAT",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_LOG_CONSOLE_LEVEL",
+            "state": "Parsed",
+            "value": "None",
+            "source": "environment",
+            "sourceKey": "CORE_LOG_CONSOLE_LEVEL",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_LOG_CONSOLE_STREAM",
+            "state": "InvalidToken",
+            "value": null,
+            "source": "environment",
+            "sourceKey": "CORE_LOG_CONSOLE_STREAM",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_LOG_HUMAN_DETAIL",
+            "state": "Parsed",
+            "value": "normal",
+            "source": "default",
+            "sourceKey": "CORE_LOG_HUMAN_DETAIL",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_LOG_FILE_PATH",
+            "state": "Absent",
+            "value": null,
+            "source": "absent",
+            "sourceKey": "CORE_LOG_FILE_PATH",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_LOG_FILE_FORMAT",
+            "state": "InvalidToken",
+            "value": null,
+            "source": "environment",
+            "sourceKey": "CORE_LOG_FILE_FORMAT",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_LOG_FILE_LEVEL",
+            "state": "Parsed",
+            "value": "None",
+            "source": "environment",
+            "sourceKey": "CORE_LOG_FILE_LEVEL",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_LOG_QUEUE_CAPACITY",
+            "state": "InvalidToken",
+            "value": null,
+            "source": "environment",
+            "sourceKey": "CORE_LOG_QUEUE_CAPACITY",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_LOG_FLUSH_INTERVAL_MS",
+            "state": "Parsed",
+            "value": 1000,
+            "source": "default",
+            "sourceKey": "CORE_LOG_FLUSH_INTERVAL_MS",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_LOG_SHUTDOWN_TIMEOUT_MS",
+            "state": "Parsed",
+            "value": 5000,
+            "source": "default",
+            "sourceKey": "CORE_LOG_SHUTDOWN_TIMEOUT_MS",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_LOG_FILE_MAX_BYTES",
+            "state": "Parsed",
+            "value": 10485760,
+            "source": "default",
+            "sourceKey": "CORE_LOG_FILE_MAX_BYTES",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_LOG_FILE_RETAINED_FILES",
+            "state": "Parsed",
+            "value": 10,
+            "source": "default",
+            "sourceKey": "CORE_LOG_FILE_RETAINED_FILES",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_LOG_SCHEMA_VERSION",
+            "state": "Parsed",
+            "value": 1,
+            "source": "default",
+            "sourceKey": "CORE_LOG_SCHEMA_VERSION",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_LOG_MAX_ENTRY_BYTES",
+            "state": "Parsed",
+            "value": 65536,
+            "source": "default",
+            "sourceKey": "CORE_LOG_MAX_ENTRY_BYTES",
+            "inheritedFrom": null
+          }
+        ],
+        "consoleEnabled": false,
+        "fileEnabled": false,
+        "hasParseErrors": true
+      }
+    },
+    {
+      "id": "CFG-RESOLVE-HOST-STATE-VISIBLE-DETACHED",
+      "tags": [
+        "host-state",
+        "default-format",
+        "default-stream"
+      ],
+      "inputs": {
+        "environment": {},
+        "setup": {},
+        "discovery": {
+          "applicationName": "CIS.Core.DiscoveryFixture",
+          "buildVersion": "9.8.7-rc.2+sha.Application"
+        },
+        "host": {
+          "environmentName": null,
+          "outputRedirected": false,
+          "errorRedirected": false,
+          "debuggerAttached": false
+        }
+      },
+      "expected": {
+        "buildVersion": "9.8.7-rc.2+sha.Application",
+        "settings": [
+          {
+            "key": "CORE_SERVICE_NAME",
+            "state": "Parsed",
+            "value": "CIS.Core.DiscoveryFixture",
+            "source": "discovery",
+            "sourceKey": "ApplicationName",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_ENVIRONMENT",
+            "state": "Parsed",
+            "value": "unknown",
+            "source": "default",
+            "sourceKey": "CORE_ENVIRONMENT",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_SERVICE_VERSION",
+            "state": "Parsed",
+            "value": "9.8.7-rc.2+sha.Application",
+            "source": "discovery",
+            "sourceKey": "BuildVersion",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_LOG_LEVEL",
+            "state": "Parsed",
+            "value": "Information",
+            "source": "default",
+            "sourceKey": "CORE_LOG_LEVEL",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_LOG_CONSOLE_FORMAT",
+            "state": "Parsed",
+            "value": "human",
+            "source": "default",
+            "sourceKey": "CORE_LOG_CONSOLE_FORMAT",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_LOG_CONSOLE_LEVEL",
+            "state": "Parsed",
+            "value": "Information",
+            "source": "default",
+            "sourceKey": "CORE_LOG_CONSOLE_LEVEL",
+            "inheritedFrom": "CORE_LOG_LEVEL"
+          },
+          {
+            "key": "CORE_LOG_CONSOLE_STREAM",
+            "state": "Parsed",
+            "value": "stderr",
+            "source": "default",
+            "sourceKey": "CORE_LOG_CONSOLE_STREAM",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_LOG_HUMAN_DETAIL",
+            "state": "Parsed",
+            "value": "normal",
+            "source": "default",
+            "sourceKey": "CORE_LOG_HUMAN_DETAIL",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_LOG_FILE_PATH",
+            "state": "Absent",
+            "value": null,
+            "source": "absent",
+            "sourceKey": "CORE_LOG_FILE_PATH",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_LOG_FILE_FORMAT",
+            "state": "Parsed",
+            "value": "jsonl",
+            "source": "default",
+            "sourceKey": "CORE_LOG_FILE_FORMAT",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_LOG_FILE_LEVEL",
+            "state": "Parsed",
+            "value": "Information",
+            "source": "default",
+            "sourceKey": "CORE_LOG_FILE_LEVEL",
+            "inheritedFrom": "CORE_LOG_LEVEL"
+          },
+          {
+            "key": "CORE_LOG_QUEUE_CAPACITY",
+            "state": "Parsed",
+            "value": 1024,
+            "source": "default",
+            "sourceKey": "CORE_LOG_QUEUE_CAPACITY",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_LOG_FLUSH_INTERVAL_MS",
+            "state": "Parsed",
+            "value": 1000,
+            "source": "default",
+            "sourceKey": "CORE_LOG_FLUSH_INTERVAL_MS",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_LOG_SHUTDOWN_TIMEOUT_MS",
+            "state": "Parsed",
+            "value": 5000,
+            "source": "default",
+            "sourceKey": "CORE_LOG_SHUTDOWN_TIMEOUT_MS",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_LOG_FILE_MAX_BYTES",
+            "state": "Parsed",
+            "value": 10485760,
+            "source": "default",
+            "sourceKey": "CORE_LOG_FILE_MAX_BYTES",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_LOG_FILE_RETAINED_FILES",
+            "state": "Parsed",
+            "value": 10,
+            "source": "default",
+            "sourceKey": "CORE_LOG_FILE_RETAINED_FILES",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_LOG_SCHEMA_VERSION",
+            "state": "Parsed",
+            "value": 1,
+            "source": "default",
+            "sourceKey": "CORE_LOG_SCHEMA_VERSION",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_LOG_MAX_ENTRY_BYTES",
+            "state": "Parsed",
+            "value": 65536,
+            "source": "default",
+            "sourceKey": "CORE_LOG_MAX_ENTRY_BYTES",
+            "inheritedFrom": null
+          }
+        ],
+        "consoleEnabled": true,
+        "fileEnabled": false,
+        "hasParseErrors": false
+      }
+    },
+    {
+      "id": "CFG-RESOLVE-HOST-STATE-VISIBLE-ATTACHED",
+      "tags": [
+        "host-state",
+        "default-format",
+        "default-stream"
+      ],
+      "inputs": {
+        "environment": {},
+        "setup": {},
+        "discovery": {
+          "applicationName": "CIS.Core.DiscoveryFixture",
+          "buildVersion": "9.8.7-rc.2+sha.Application"
+        },
+        "host": {
+          "environmentName": null,
+          "outputRedirected": false,
+          "errorRedirected": false,
+          "debuggerAttached": true
+        }
+      },
+      "expected": {
+        "buildVersion": "9.8.7-rc.2+sha.Application",
+        "settings": [
+          {
+            "key": "CORE_SERVICE_NAME",
+            "state": "Parsed",
+            "value": "CIS.Core.DiscoveryFixture",
+            "source": "discovery",
+            "sourceKey": "ApplicationName",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_ENVIRONMENT",
+            "state": "Parsed",
+            "value": "unknown",
+            "source": "default",
+            "sourceKey": "CORE_ENVIRONMENT",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_SERVICE_VERSION",
+            "state": "Parsed",
+            "value": "9.8.7-rc.2+sha.Application",
+            "source": "discovery",
+            "sourceKey": "BuildVersion",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_LOG_LEVEL",
+            "state": "Parsed",
+            "value": "Information",
+            "source": "default",
+            "sourceKey": "CORE_LOG_LEVEL",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_LOG_CONSOLE_FORMAT",
+            "state": "Parsed",
+            "value": "human",
+            "source": "default",
+            "sourceKey": "CORE_LOG_CONSOLE_FORMAT",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_LOG_CONSOLE_LEVEL",
+            "state": "Parsed",
+            "value": "Information",
+            "source": "default",
+            "sourceKey": "CORE_LOG_CONSOLE_LEVEL",
+            "inheritedFrom": "CORE_LOG_LEVEL"
+          },
+          {
+            "key": "CORE_LOG_CONSOLE_STREAM",
+            "state": "Parsed",
+            "value": "stderr",
+            "source": "default",
+            "sourceKey": "CORE_LOG_CONSOLE_STREAM",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_LOG_HUMAN_DETAIL",
+            "state": "Parsed",
+            "value": "normal",
+            "source": "default",
+            "sourceKey": "CORE_LOG_HUMAN_DETAIL",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_LOG_FILE_PATH",
+            "state": "Absent",
+            "value": null,
+            "source": "absent",
+            "sourceKey": "CORE_LOG_FILE_PATH",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_LOG_FILE_FORMAT",
+            "state": "Parsed",
+            "value": "jsonl",
+            "source": "default",
+            "sourceKey": "CORE_LOG_FILE_FORMAT",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_LOG_FILE_LEVEL",
+            "state": "Parsed",
+            "value": "Information",
+            "source": "default",
+            "sourceKey": "CORE_LOG_FILE_LEVEL",
+            "inheritedFrom": "CORE_LOG_LEVEL"
+          },
+          {
+            "key": "CORE_LOG_QUEUE_CAPACITY",
+            "state": "Parsed",
+            "value": 1024,
+            "source": "default",
+            "sourceKey": "CORE_LOG_QUEUE_CAPACITY",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_LOG_FLUSH_INTERVAL_MS",
+            "state": "Parsed",
+            "value": 1000,
+            "source": "default",
+            "sourceKey": "CORE_LOG_FLUSH_INTERVAL_MS",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_LOG_SHUTDOWN_TIMEOUT_MS",
+            "state": "Parsed",
+            "value": 5000,
+            "source": "default",
+            "sourceKey": "CORE_LOG_SHUTDOWN_TIMEOUT_MS",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_LOG_FILE_MAX_BYTES",
+            "state": "Parsed",
+            "value": 10485760,
+            "source": "default",
+            "sourceKey": "CORE_LOG_FILE_MAX_BYTES",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_LOG_FILE_RETAINED_FILES",
+            "state": "Parsed",
+            "value": 10,
+            "source": "default",
+            "sourceKey": "CORE_LOG_FILE_RETAINED_FILES",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_LOG_SCHEMA_VERSION",
+            "state": "Parsed",
+            "value": 1,
+            "source": "default",
+            "sourceKey": "CORE_LOG_SCHEMA_VERSION",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_LOG_MAX_ENTRY_BYTES",
+            "state": "Parsed",
+            "value": 65536,
+            "source": "default",
+            "sourceKey": "CORE_LOG_MAX_ENTRY_BYTES",
+            "inheritedFrom": null
+          }
+        ],
+        "consoleEnabled": true,
+        "fileEnabled": false,
+        "hasParseErrors": false
+      }
+    },
+    {
+      "id": "CFG-RESOLVE-HOST-STATE-REDIRECTED-DETACHED",
+      "tags": [
+        "host-state",
+        "default-format",
+        "default-stream"
+      ],
+      "inputs": {
+        "environment": {},
+        "setup": {},
+        "discovery": {
+          "applicationName": "CIS.Core.DiscoveryFixture",
+          "buildVersion": "9.8.7-rc.2+sha.Application"
+        },
+        "host": {
+          "environmentName": null,
+          "outputRedirected": true,
+          "errorRedirected": true,
+          "debuggerAttached": false
+        }
+      },
+      "expected": {
+        "buildVersion": "9.8.7-rc.2+sha.Application",
+        "settings": [
+          {
+            "key": "CORE_SERVICE_NAME",
+            "state": "Parsed",
+            "value": "CIS.Core.DiscoveryFixture",
+            "source": "discovery",
+            "sourceKey": "ApplicationName",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_ENVIRONMENT",
+            "state": "Parsed",
+            "value": "unknown",
+            "source": "default",
+            "sourceKey": "CORE_ENVIRONMENT",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_SERVICE_VERSION",
+            "state": "Parsed",
+            "value": "9.8.7-rc.2+sha.Application",
+            "source": "discovery",
+            "sourceKey": "BuildVersion",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_LOG_LEVEL",
+            "state": "Parsed",
+            "value": "Information",
+            "source": "default",
+            "sourceKey": "CORE_LOG_LEVEL",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_LOG_CONSOLE_FORMAT",
+            "state": "Parsed",
+            "value": "human",
+            "source": "default",
+            "sourceKey": "CORE_LOG_CONSOLE_FORMAT",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_LOG_CONSOLE_LEVEL",
+            "state": "Parsed",
+            "value": "Information",
+            "source": "default",
+            "sourceKey": "CORE_LOG_CONSOLE_LEVEL",
+            "inheritedFrom": "CORE_LOG_LEVEL"
+          },
+          {
+            "key": "CORE_LOG_CONSOLE_STREAM",
+            "state": "Parsed",
+            "value": "stderr",
+            "source": "default",
+            "sourceKey": "CORE_LOG_CONSOLE_STREAM",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_LOG_HUMAN_DETAIL",
+            "state": "Parsed",
+            "value": "normal",
+            "source": "default",
+            "sourceKey": "CORE_LOG_HUMAN_DETAIL",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_LOG_FILE_PATH",
+            "state": "Absent",
+            "value": null,
+            "source": "absent",
+            "sourceKey": "CORE_LOG_FILE_PATH",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_LOG_FILE_FORMAT",
+            "state": "Parsed",
+            "value": "jsonl",
+            "source": "default",
+            "sourceKey": "CORE_LOG_FILE_FORMAT",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_LOG_FILE_LEVEL",
+            "state": "Parsed",
+            "value": "Information",
+            "source": "default",
+            "sourceKey": "CORE_LOG_FILE_LEVEL",
+            "inheritedFrom": "CORE_LOG_LEVEL"
+          },
+          {
+            "key": "CORE_LOG_QUEUE_CAPACITY",
+            "state": "Parsed",
+            "value": 1024,
+            "source": "default",
+            "sourceKey": "CORE_LOG_QUEUE_CAPACITY",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_LOG_FLUSH_INTERVAL_MS",
+            "state": "Parsed",
+            "value": 1000,
+            "source": "default",
+            "sourceKey": "CORE_LOG_FLUSH_INTERVAL_MS",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_LOG_SHUTDOWN_TIMEOUT_MS",
+            "state": "Parsed",
+            "value": 5000,
+            "source": "default",
+            "sourceKey": "CORE_LOG_SHUTDOWN_TIMEOUT_MS",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_LOG_FILE_MAX_BYTES",
+            "state": "Parsed",
+            "value": 10485760,
+            "source": "default",
+            "sourceKey": "CORE_LOG_FILE_MAX_BYTES",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_LOG_FILE_RETAINED_FILES",
+            "state": "Parsed",
+            "value": 10,
+            "source": "default",
+            "sourceKey": "CORE_LOG_FILE_RETAINED_FILES",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_LOG_SCHEMA_VERSION",
+            "state": "Parsed",
+            "value": 1,
+            "source": "default",
+            "sourceKey": "CORE_LOG_SCHEMA_VERSION",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_LOG_MAX_ENTRY_BYTES",
+            "state": "Parsed",
+            "value": 65536,
+            "source": "default",
+            "sourceKey": "CORE_LOG_MAX_ENTRY_BYTES",
+            "inheritedFrom": null
+          }
+        ],
+        "consoleEnabled": true,
+        "fileEnabled": false,
+        "hasParseErrors": false
+      }
+    },
+    {
+      "id": "CFG-RESOLVE-HOST-STATE-REDIRECTED-ATTACHED",
+      "tags": [
+        "host-state",
+        "default-format",
+        "default-stream"
+      ],
+      "inputs": {
+        "environment": {},
+        "setup": {},
+        "discovery": {
+          "applicationName": "CIS.Core.DiscoveryFixture",
+          "buildVersion": "9.8.7-rc.2+sha.Application"
+        },
+        "host": {
+          "environmentName": null,
+          "outputRedirected": true,
+          "errorRedirected": true,
+          "debuggerAttached": true
+        }
+      },
+      "expected": {
+        "buildVersion": "9.8.7-rc.2+sha.Application",
+        "settings": [
+          {
+            "key": "CORE_SERVICE_NAME",
+            "state": "Parsed",
+            "value": "CIS.Core.DiscoveryFixture",
+            "source": "discovery",
+            "sourceKey": "ApplicationName",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_ENVIRONMENT",
+            "state": "Parsed",
+            "value": "unknown",
+            "source": "default",
+            "sourceKey": "CORE_ENVIRONMENT",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_SERVICE_VERSION",
+            "state": "Parsed",
+            "value": "9.8.7-rc.2+sha.Application",
+            "source": "discovery",
+            "sourceKey": "BuildVersion",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_LOG_LEVEL",
+            "state": "Parsed",
+            "value": "Information",
+            "source": "default",
+            "sourceKey": "CORE_LOG_LEVEL",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_LOG_CONSOLE_FORMAT",
+            "state": "Parsed",
+            "value": "human",
+            "source": "default",
+            "sourceKey": "CORE_LOG_CONSOLE_FORMAT",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_LOG_CONSOLE_LEVEL",
+            "state": "Parsed",
+            "value": "Information",
+            "source": "default",
+            "sourceKey": "CORE_LOG_CONSOLE_LEVEL",
+            "inheritedFrom": "CORE_LOG_LEVEL"
+          },
+          {
+            "key": "CORE_LOG_CONSOLE_STREAM",
+            "state": "Parsed",
+            "value": "stderr",
+            "source": "default",
+            "sourceKey": "CORE_LOG_CONSOLE_STREAM",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_LOG_HUMAN_DETAIL",
+            "state": "Parsed",
+            "value": "normal",
+            "source": "default",
+            "sourceKey": "CORE_LOG_HUMAN_DETAIL",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_LOG_FILE_PATH",
+            "state": "Absent",
+            "value": null,
+            "source": "absent",
+            "sourceKey": "CORE_LOG_FILE_PATH",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_LOG_FILE_FORMAT",
+            "state": "Parsed",
+            "value": "jsonl",
+            "source": "default",
+            "sourceKey": "CORE_LOG_FILE_FORMAT",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_LOG_FILE_LEVEL",
+            "state": "Parsed",
+            "value": "Information",
+            "source": "default",
+            "sourceKey": "CORE_LOG_FILE_LEVEL",
+            "inheritedFrom": "CORE_LOG_LEVEL"
+          },
+          {
+            "key": "CORE_LOG_QUEUE_CAPACITY",
+            "state": "Parsed",
+            "value": 1024,
+            "source": "default",
+            "sourceKey": "CORE_LOG_QUEUE_CAPACITY",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_LOG_FLUSH_INTERVAL_MS",
+            "state": "Parsed",
+            "value": 1000,
+            "source": "default",
+            "sourceKey": "CORE_LOG_FLUSH_INTERVAL_MS",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_LOG_SHUTDOWN_TIMEOUT_MS",
+            "state": "Parsed",
+            "value": 5000,
+            "source": "default",
+            "sourceKey": "CORE_LOG_SHUTDOWN_TIMEOUT_MS",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_LOG_FILE_MAX_BYTES",
+            "state": "Parsed",
+            "value": 10485760,
+            "source": "default",
+            "sourceKey": "CORE_LOG_FILE_MAX_BYTES",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_LOG_FILE_RETAINED_FILES",
+            "state": "Parsed",
+            "value": 10,
+            "source": "default",
+            "sourceKey": "CORE_LOG_FILE_RETAINED_FILES",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_LOG_SCHEMA_VERSION",
+            "state": "Parsed",
+            "value": 1,
+            "source": "default",
+            "sourceKey": "CORE_LOG_SCHEMA_VERSION",
+            "inheritedFrom": null
+          },
+          {
+            "key": "CORE_LOG_MAX_ENTRY_BYTES",
+            "state": "Parsed",
+            "value": 65536,
+            "source": "default",
+            "sourceKey": "CORE_LOG_MAX_ENTRY_BYTES",
+            "inheritedFrom": null
+          }
+        ],
+        "consoleEnabled": true,
+        "fileEnabled": false,
+        "hasParseErrors": false
+      }
+    }
+  ]
+}
