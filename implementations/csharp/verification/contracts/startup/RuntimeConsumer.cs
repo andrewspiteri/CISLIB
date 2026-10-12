@@ -8,9 +8,9 @@ using CIS.Logging;
 
 internal static class RuntimeConsumer
 {
-    public static async Task Use(EnvironmentSnapshot environment, CancellationToken cancellationToken)
+    public static async Task Use(CancellationToken cancellationToken)
     {
-        await using CoreLogRuntime runtime = CoreLogRuntime.Create(environment: environment);
+        await using CoreLogRuntime runtime = CoreLogRuntime.Create();
         CoreLogger logger = runtime.CreateLogger(component: "Orders");
         bool enabled = logger.IsEnabled(level: CoreLogLevel.Information);
         using IDisposable scope = runtime.BeginScope(context: new OperationContextData { OperationId = "op-1" });

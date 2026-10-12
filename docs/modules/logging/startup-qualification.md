@@ -1,5 +1,7 @@
 # Startup lifecycle and metadata qualification
 
+> Historical qualification of the former unpublished startup lifecycle. The [passive store correction](environment-options.md) supersedes its factory/publication behavior and bindings. These receipts describe the historical source only.
+
 WP03-S04-T04 completes the EnvironmentOptions startup story. [The executed bindings](../../../conformance/logging/startup-qualification-bindings.json) connect all twelve original metadata vectors and all six startup lifecycle cases to actual Core behavior. The [retained Windows/Ubuntu evidence](../../../planning/logging/evidence/wp03-s04-t04-windows-linux.json) records native tests, standalone child reports and a fresh copied-source replay.
 
 The shared vectors remain unchanged. A nonshipping adapter builds actual owned EnvironmentSnapshot, LoggingOptions and EventMetadata instances through the internal factory. Controlled application/entry assembly facts, optional absence, an offset process-start timestamp, a fixed clock and explicit UUIDs make those exact vectors portable. The adapter never publishes global state. Expected fields and diagnostics are compared separately; negative controls reject substituted deployment/build identity and an invented unavailable host. Sources reject reads after construction. These controlled vectors qualify resolved metadata, while public-process tests qualify publication.

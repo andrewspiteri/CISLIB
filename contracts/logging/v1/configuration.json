@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "state": "Proposed, unpublished contract",
+  "state": "Current unpublished variable contract; caller-populated passive-store responsibility amendment applies",
   "story": "WP02-S01",
   "source": "Supplied guide sections 7/8/9, amended by user decisions.",
   "precedence": [
@@ -10,7 +10,7 @@
     "discovered fallback",
     "documented default"
   ],
-  "blankHandling": "Trim surrounding whitespace; null/empty/whitespace-only are absent at every configurable string layer.",
+  "blankHandling": "EnvironmentOverrides trims surrounding whitespace; null/empty/whitespace-only variables are absent. EnvironmentOptions setters/getters are passive and do not trim or supply fallbacks. Initial discovery/explicit-value trimming and absence policy belong to application startup; legacy conformance setup/discovery layers demonstrate a reference caller policy.",
   "tokens": "Trim, then ordinal case-insensitive recognition. Identity strings preserve case. Numeric severity tokens are invalid.",
   "integers": "Invariant ASCII base-10 digits with optional leading + or -; no grouping, fractional notation or exponent; apply inclusive bounds.",
   "invalidHigherPriority": "Reject the first selected nonblank invalid value; never fall through to a lower-priority source.",
@@ -304,5 +304,7 @@
       "authority": "User-selected default/override/truncation during WP02-S02; range chosen before publication."
     }
   ],
-  "setupFixtureEncoding": "Flattened logical property paths and canonical symbolic values; each language adapter maps them into its typed named setup inputs."
+  "setupFixtureEncoding": "Flattened logical property paths and canonical symbolic values; each language adapter maps them into its typed named setup inputs.",
+  "initialValuesOwner": "The application chooses default < discovered < explicit values before calling EnvironmentOverrides. It supplies ServiceVersion = BuildVersion when that fallback is wanted. The store literal defaults for both versions are unknown and do not depend on each other.",
+  "validationOwner": "Overrides validate selected variable syntax/ranges; LoggingOptions.Prepare validates logging settings/paths; EventMetadata validates consumed identity/runtime facts. No setters/getters perform validation."
 }

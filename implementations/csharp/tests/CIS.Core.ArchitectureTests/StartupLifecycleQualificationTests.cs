@@ -13,7 +13,7 @@ public sealed class StartupLifecycleQualificationTests
         string? path = null;
         while (directory is not null && path is null)
         {
-            string candidate = Path.Combine(directory.FullName, "conformance", "logging", "startup-lifecycle-cases.json");
+            string candidate = Path.Combine(directory.FullName, "contracts", "logging", "v1", "environment-contract.json");
             if (File.Exists(candidate))
             {
                 path = candidate;
@@ -21,19 +21,17 @@ public sealed class StartupLifecycleQualificationTests
             directory = directory.Parent;
         }
         Assert.IsNotNull(path);
-        JsonObject row = JsonNode.Parse(File.ReadAllText(path))!["cases"]!.AsArray()
-            .Single(value => value!["id"]!.GetValue<string>() == "STARTUP-NO-RESET-OR-SIDE-EFFECTS")!.AsObject();
+        JsonObject row = JsonNode.Parse(File.ReadAllText(path))!.AsObject();
         JsonObject expected = row["expected"]!.AsObject();
-        CollectionAssert.AreEquivalent(new[] { "productionResetApi", "mutableStaticOptionValues", "globalOperationContext", "createsDirectories", "opensOutputs", "startsWorkers", "subscribesGlobalExceptions", "contactsInfrastructure" },
+        CollectionAssert.AreEquivalent(new[] { "productionResetApi", "mutableRuntimeFacts", "globalOperationContext", "createsDirectories", "opensOutputs", "startsWorkers", "subscribesGlobalExceptions", "contactsInfrastructure" },
             expected.Select(pair => pair.Key).ToArray());
         foreach ((string rule, JsonNode? value) in expected)
         {
-            Assert.IsFalse(value!.GetValue<bool>(), rule);
+            Assert.AreEqual(false, value!.GetValue<bool>(), rule);
         }
         var guards = new ConfigurationAmbientStateTests();
         guards.ConfigurationHelpersDoNotQueryAmbientPresentationOrDumpOrMutateVariables();
         guards.ConfigurationValidationAndStoredGettersHaveNoOutputProbeNetworkOrWorkerCalls();
-        guards.ActualFacadeHasOnlyPrivatePublicationStateAndATrivialExplicitStaticConstructor();
-        new StartupOwnershipArchitectureTests().PublishedSnapshotGraphContainsOnlyReadonlyOwnedTypesAndImmutableValues();
+        guards.ContainerFactsAreReadonlyAndGettersHaveNoLifecycleEffects();
     }
 }

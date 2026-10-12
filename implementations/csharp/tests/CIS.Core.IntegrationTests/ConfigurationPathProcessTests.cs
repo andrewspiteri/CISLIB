@@ -1,5 +1,6 @@
 using System.Security.Cryptography;
 using System.Text.Json.Nodes;
+using CIS.Tests.DiscoveryFixture;
 using CIS.TestSupport;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -18,6 +19,7 @@ public sealed class ConfigurationPathProcessTests
     {
         string fixture = Path.Combine(AppContext.BaseDirectory, "discovery-fixture", "CIS.Core.DiscoveryFixture.dll");
         string inputs = FindInputs();
+        JsonObject row = JsonNode.Parse(File.ReadAllText(inputs))!["cases"]!.AsArray().Single(row => row!["id"]!.GetValue<string>() == id)!.AsObject();
         using var owned = new TemporaryDirectory();
         string beforeDirectory = Path.Combine(owned.Path, "before");
         string afterDirectory = Path.Combine(owned.Path, "after");
@@ -39,7 +41,7 @@ public sealed class ConfigurationPathProcessTests
         Assert.AreEqual(expected, result["absolutePathBefore"]?.GetValue<string>());
         Assert.AreEqual(expected, result["absolutePathAfter"]?.GetValue<string>());
         Assert.AreEqual(0, result["issues"]!.AsArray().Count);
-        Assert.AreEqual(21, result["observed"]!["recognizedReads"]!.AsArray().Count);
+        CollectionAssert.AreEqual(ConfigurationReadExpectations.Expected(row["inputs"]!.AsObject()), result["observed"]!["recognizedReads"]!.AsArray().Select(name => name!.GetValue<string>()).ToArray());
         Assert.AreEqual(Hash(fixture), result["observed"]!["fixtureSha256"]!.GetValue<string>());
         Assert.AreEqual(Hash(Path.Combine(Path.GetDirectoryName(fixture)!, "CIS.Core.dll")), result["observed"]!["coreSha256"]!.GetValue<string>());
         Assert.AreEqual(Hash(inputs), result["observed"]!["inputsSha256"]!.GetValue<string>());

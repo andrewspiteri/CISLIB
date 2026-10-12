@@ -170,7 +170,7 @@ def main():
                 verify(mode, value)
                 observed = value["observed"]
                 assert observed["runtimeDescription"] == ".NET 10.0.12" and observed["operatingSystem"] == args.family
-                assert observed["publicFacadeInitialized"] is False
+                assert observed["lifecycleApiPresent"] is False
                 assert observed["fixtureSha256"] == sha(host) and observed["coreSha256"] == sha(host.parent / "CIS.Core.dll")
                 assert not list(Path(owned).iterdir()) and b"CIS_NEVER_CAPTURE_COLLECTOR" not in child.stdout and b"CIS_EXCEPTION_PRIVATE_CONTENT" not in child.stdout
                 record["cases"].append({"id": mode, "status": "Passed", "childExitCode": child.returncode, "fixtureSha256": observed["fixtureSha256"], "coreSha256": observed["coreSha256"]})

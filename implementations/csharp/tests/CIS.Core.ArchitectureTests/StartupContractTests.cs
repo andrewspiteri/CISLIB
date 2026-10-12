@@ -29,7 +29,7 @@ public sealed class StartupContractTests
         foreach (JsonElement setting in settings)
         {
             string[] path = setting.GetProperty("property").GetString()!.Split('.');
-            JsonElement properties = contract.RootElement.GetProperty(path.Length == 1 ? "setup" : "loggingSetup");
+            JsonElement properties = contract.RootElement.GetProperty(path.Length == 1 ? "store" : "loggingOptions");
             Assert.IsTrue(properties.TryGetProperty(path[^1], out _), setting.GetProperty("key").GetString());
         }
     }
@@ -110,7 +110,7 @@ public sealed class StartupContractTests
         using JsonDocument report = Read(relative + "/summary.json");
         Assert.AreEqual("Passed", report.RootElement.GetProperty("status").GetString());
         Assert.AreEqual(0, report.RootElement.GetProperty("exitCode").GetInt32());
-        Assert.AreEqual(21, report.RootElement.GetProperty("controls").GetArrayLength());
+        Assert.AreEqual(25, report.RootElement.GetProperty("controls").GetArrayLength());
         foreach (JsonElement control in report.RootElement.GetProperty("controls").EnumerateArray())
         {
             Assert.IsTrue(control.GetProperty("matched").GetBoolean(), control.GetProperty("id").GetString());
@@ -152,7 +152,7 @@ public sealed class StartupContractTests
                 }
             }
 
-            if (name is "EnvironmentSnapshot" or "LoggingOptions" or "EventMetadata" or "ConfigurationIssue" or "CoreConfigurationException" or "LogValue" or "LogWriteResult" or "LogOutputWriteResult" or "LogFlushResult" or "LogStopResult" or "LogOutputDrainResult" or "LogOutputRejectionSnapshot" or "CoreLogDiagnostics" or "LogOutputDiagnostics" or "CoreLogInitializationException")
+            if (name is "EventMetadata" or "ConfigurationIssue" or "CoreConfigurationException" or "LogValue" or "LogWriteResult" or "LogOutputWriteResult" or "LogFlushResult" or "LogStopResult" or "LogOutputDrainResult" or "LogOutputRejectionSnapshot" or "CoreLogDiagnostics" or "LogOutputDiagnostics" or "CoreLogInitializationException")
             {
                 Assert.IsTrue((type.Attributes & TypeAttributes.Sealed) != 0, fullName);
                 foreach (PropertyDefinitionHandle propertyHandle in type.GetProperties())

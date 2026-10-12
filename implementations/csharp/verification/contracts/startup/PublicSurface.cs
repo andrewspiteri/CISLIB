@@ -1,9 +1,7 @@
-// WP02-S01 compile-only contract specification. Never include this file in CIS.Core.
-// InternalCall declarations carry signatures into a reference-only assembly; no implementation is supplied.
+// Current unpublished static-container compiler specification. Reference-only; never ship this file.
 #nullable enable
 using System;
 using System.Collections.Generic;
-using System.Reflection;
 using System.Runtime.CompilerServices;
 using CIS.Logging;
 
@@ -18,59 +16,26 @@ namespace CIS
         Function = 4,
     }
 
-    public sealed class EnvironmentSetup
-    {
-        [MethodImpl(MethodImplOptions.InternalCall)]
-        public extern EnvironmentSetup();
-        public extern Assembly? ApplicationAssembly { [MethodImpl(MethodImplOptions.InternalCall)] get; [MethodImpl(MethodImplOptions.InternalCall)] set; }
-        public extern string? ApplicationName { [MethodImpl(MethodImplOptions.InternalCall)] get; [MethodImpl(MethodImplOptions.InternalCall)] set; }
-        public extern string? BuildVersion { [MethodImpl(MethodImplOptions.InternalCall)] get; [MethodImpl(MethodImplOptions.InternalCall)] set; }
-        public extern string? ServiceVersion { [MethodImpl(MethodImplOptions.InternalCall)] get; [MethodImpl(MethodImplOptions.InternalCall)] set; }
-        public extern string? EnvironmentName { [MethodImpl(MethodImplOptions.InternalCall)] get; [MethodImpl(MethodImplOptions.InternalCall)] set; }
-        public extern EnvironmentKind EnvironmentKind { [MethodImpl(MethodImplOptions.InternalCall)] get; [MethodImpl(MethodImplOptions.InternalCall)] set; }
-        public extern string? CommitId { [MethodImpl(MethodImplOptions.InternalCall)] get; [MethodImpl(MethodImplOptions.InternalCall)] set; }
-        public extern string? BuildId { [MethodImpl(MethodImplOptions.InternalCall)] get; [MethodImpl(MethodImplOptions.InternalCall)] set; }
-        public extern LoggingSetup? Logging { [MethodImpl(MethodImplOptions.InternalCall)] get; [MethodImpl(MethodImplOptions.InternalCall)] set; }
-    }
-
-    public sealed class EnvironmentSnapshot
-    {
-        private EnvironmentSnapshot() { }
-        public extern string ApplicationName { [MethodImpl(MethodImplOptions.InternalCall)] get; }
-        public extern string BuildVersion { [MethodImpl(MethodImplOptions.InternalCall)] get; }
-        public extern string ServiceVersion { [MethodImpl(MethodImplOptions.InternalCall)] get; }
-        public extern string EnvironmentName { [MethodImpl(MethodImplOptions.InternalCall)] get; }
-        public extern EnvironmentKind EnvironmentKind { [MethodImpl(MethodImplOptions.InternalCall)] get; }
-        public extern string InstanceId { [MethodImpl(MethodImplOptions.InternalCall)] get; }
-        public extern DateTimeOffset? ProcessStartedAtUtc { [MethodImpl(MethodImplOptions.InternalCall)] get; }
-        public extern DateTimeOffset InitializedAtUtc { [MethodImpl(MethodImplOptions.InternalCall)] get; }
-        public extern string? HostName { [MethodImpl(MethodImplOptions.InternalCall)] get; }
-        public extern string OperatingSystem { [MethodImpl(MethodImplOptions.InternalCall)] get; }
-        public extern string? OperatingSystemDescription { [MethodImpl(MethodImplOptions.InternalCall)] get; }
-        public extern string? OSArchitecture { [MethodImpl(MethodImplOptions.InternalCall)] get; }
-        public extern string? ProcessArchitecture { [MethodImpl(MethodImplOptions.InternalCall)] get; }
-        public extern string? RuntimeDescription { [MethodImpl(MethodImplOptions.InternalCall)] get; }
-        public extern int? ProcessId { [MethodImpl(MethodImplOptions.InternalCall)] get; }
-        public extern string? CommitId { [MethodImpl(MethodImplOptions.InternalCall)] get; }
-        public extern string? BuildId { [MethodImpl(MethodImplOptions.InternalCall)] get; }
-        public extern LoggingOptions Logging { [MethodImpl(MethodImplOptions.InternalCall)] get; }
-        public extern EventMetadata EventMetadata { [MethodImpl(MethodImplOptions.InternalCall)] get; }
-    }
-
     public static class EnvironmentOptions
     {
-        [MethodImpl(MethodImplOptions.InternalCall)]
-        public static extern EnvironmentSnapshot Initialize(EnvironmentSetup setup);
-        public static extern EnvironmentSnapshot Current { [MethodImpl(MethodImplOptions.InternalCall)] get; }
-        public static extern bool IsInitialized { [MethodImpl(MethodImplOptions.InternalCall)] get; }
         public static extern string ApplicationName { [MethodImpl(MethodImplOptions.InternalCall)] get; }
         public static extern string BuildVersion { [MethodImpl(MethodImplOptions.InternalCall)] get; }
         public static extern string ServiceVersion { [MethodImpl(MethodImplOptions.InternalCall)] get; }
         public static extern string EnvironmentName { [MethodImpl(MethodImplOptions.InternalCall)] get; }
+        public static extern EnvironmentKind EnvironmentKind { [MethodImpl(MethodImplOptions.InternalCall)] get; [MethodImpl(MethodImplOptions.InternalCall)] set; }
+        public static extern string InstanceId { [MethodImpl(MethodImplOptions.InternalCall)] get; }
+        public static extern DateTimeOffset? ProcessStartedAtUtc { [MethodImpl(MethodImplOptions.InternalCall)] get; }
+        public static extern DateTimeOffset InitializedAtUtc { [MethodImpl(MethodImplOptions.InternalCall)] get; }
         public static extern string? HostName { [MethodImpl(MethodImplOptions.InternalCall)] get; }
         public static extern string OperatingSystem { [MethodImpl(MethodImplOptions.InternalCall)] get; }
+        public static extern string? OperatingSystemDescription { [MethodImpl(MethodImplOptions.InternalCall)] get; }
+        public static extern string? OSArchitecture { [MethodImpl(MethodImplOptions.InternalCall)] get; }
+        public static extern string? ProcessArchitecture { [MethodImpl(MethodImplOptions.InternalCall)] get; }
+        public static extern string? RuntimeDescription { [MethodImpl(MethodImplOptions.InternalCall)] get; }
+        public static extern int? ProcessId { [MethodImpl(MethodImplOptions.InternalCall)] get; }
+        public static extern string? CommitId { [MethodImpl(MethodImplOptions.InternalCall)] get; [MethodImpl(MethodImplOptions.InternalCall)] set; }
+        public static extern string? BuildId { [MethodImpl(MethodImplOptions.InternalCall)] get; [MethodImpl(MethodImplOptions.InternalCall)] set; }
         public static extern LoggingOptions Logging { [MethodImpl(MethodImplOptions.InternalCall)] get; }
-        public static extern EventMetadata EventMetadata { [MethodImpl(MethodImplOptions.InternalCall)] get; }
     }
 }
 
@@ -105,52 +70,39 @@ namespace CIS.Logging
         Verbose = 1,
     }
 
-    public sealed class LoggingSetup
-    {
-        [MethodImpl(MethodImplOptions.InternalCall)]
-        public extern LoggingSetup();
-        public extern CoreLogLevel? Level { [MethodImpl(MethodImplOptions.InternalCall)] get; [MethodImpl(MethodImplOptions.InternalCall)] set; }
-        public extern LogOutputFormat? ConsoleFormat { [MethodImpl(MethodImplOptions.InternalCall)] get; [MethodImpl(MethodImplOptions.InternalCall)] set; }
-        public extern CoreLogLevel? ConsoleLevel { [MethodImpl(MethodImplOptions.InternalCall)] get; [MethodImpl(MethodImplOptions.InternalCall)] set; }
-        public extern ConsoleOutputStream? ConsoleStream { [MethodImpl(MethodImplOptions.InternalCall)] get; [MethodImpl(MethodImplOptions.InternalCall)] set; }
-        public extern HumanOutputDetail? HumanDetail { [MethodImpl(MethodImplOptions.InternalCall)] get; [MethodImpl(MethodImplOptions.InternalCall)] set; }
-        public extern string? FilePath { [MethodImpl(MethodImplOptions.InternalCall)] get; [MethodImpl(MethodImplOptions.InternalCall)] set; }
-        public extern LogOutputFormat? FileFormat { [MethodImpl(MethodImplOptions.InternalCall)] get; [MethodImpl(MethodImplOptions.InternalCall)] set; }
-        public extern CoreLogLevel? FileLevel { [MethodImpl(MethodImplOptions.InternalCall)] get; [MethodImpl(MethodImplOptions.InternalCall)] set; }
-        public extern int? MaxEntryBytes { [MethodImpl(MethodImplOptions.InternalCall)] get; [MethodImpl(MethodImplOptions.InternalCall)] set; }
-        public extern int? QueueCapacity { [MethodImpl(MethodImplOptions.InternalCall)] get; [MethodImpl(MethodImplOptions.InternalCall)] set; }
-        public extern int? FlushIntervalMilliseconds { [MethodImpl(MethodImplOptions.InternalCall)] get; [MethodImpl(MethodImplOptions.InternalCall)] set; }
-        public extern int? ShutdownTimeoutMilliseconds { [MethodImpl(MethodImplOptions.InternalCall)] get; [MethodImpl(MethodImplOptions.InternalCall)] set; }
-        public extern long? FileMaxBytes { [MethodImpl(MethodImplOptions.InternalCall)] get; [MethodImpl(MethodImplOptions.InternalCall)] set; }
-        public extern int? FileRetainedFiles { [MethodImpl(MethodImplOptions.InternalCall)] get; [MethodImpl(MethodImplOptions.InternalCall)] set; }
-        public extern int? SchemaVersion { [MethodImpl(MethodImplOptions.InternalCall)] get; [MethodImpl(MethodImplOptions.InternalCall)] set; }
-    }
-
     public sealed class LoggingOptions
     {
-        private LoggingOptions() { }
-        public extern CoreLogLevel Level { [MethodImpl(MethodImplOptions.InternalCall)] get; }
-        public extern LogOutputFormat ConsoleFormat { [MethodImpl(MethodImplOptions.InternalCall)] get; }
-        public extern CoreLogLevel ConsoleLevel { [MethodImpl(MethodImplOptions.InternalCall)] get; }
-        public extern ConsoleOutputStream ConsoleStream { [MethodImpl(MethodImplOptions.InternalCall)] get; }
-        public extern HumanOutputDetail HumanDetail { [MethodImpl(MethodImplOptions.InternalCall)] get; }
-        public extern string? FilePath { [MethodImpl(MethodImplOptions.InternalCall)] get; }
-        public extern LogOutputFormat FileFormat { [MethodImpl(MethodImplOptions.InternalCall)] get; }
-        public extern CoreLogLevel FileLevel { [MethodImpl(MethodImplOptions.InternalCall)] get; }
-        public extern int MaxEntryBytes { [MethodImpl(MethodImplOptions.InternalCall)] get; }
-        public extern int QueueCapacity { [MethodImpl(MethodImplOptions.InternalCall)] get; }
-        public extern TimeSpan FlushInterval { [MethodImpl(MethodImplOptions.InternalCall)] get; }
-        public extern TimeSpan ShutdownTimeout { [MethodImpl(MethodImplOptions.InternalCall)] get; }
-        public extern long FileMaxBytes { [MethodImpl(MethodImplOptions.InternalCall)] get; }
-        public extern int FileRetainedFiles { [MethodImpl(MethodImplOptions.InternalCall)] get; }
-        public extern int SchemaVersion { [MethodImpl(MethodImplOptions.InternalCall)] get; }
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        public extern LoggingOptions();
+        public extern CoreLogLevel Level { [MethodImpl(MethodImplOptions.InternalCall)] get; [MethodImpl(MethodImplOptions.InternalCall)] set; }
+        public extern LogOutputFormat ConsoleFormat { [MethodImpl(MethodImplOptions.InternalCall)] get; [MethodImpl(MethodImplOptions.InternalCall)] set; }
+        public extern CoreLogLevel? ConsoleLevel { [MethodImpl(MethodImplOptions.InternalCall)] get; [MethodImpl(MethodImplOptions.InternalCall)] set; }
+        public extern ConsoleOutputStream ConsoleStream { [MethodImpl(MethodImplOptions.InternalCall)] get; [MethodImpl(MethodImplOptions.InternalCall)] set; }
+        public extern HumanOutputDetail HumanDetail { [MethodImpl(MethodImplOptions.InternalCall)] get; [MethodImpl(MethodImplOptions.InternalCall)] set; }
+        public extern string? FilePath { [MethodImpl(MethodImplOptions.InternalCall)] get; [MethodImpl(MethodImplOptions.InternalCall)] set; }
+        public extern LogOutputFormat FileFormat { [MethodImpl(MethodImplOptions.InternalCall)] get; [MethodImpl(MethodImplOptions.InternalCall)] set; }
+        public extern CoreLogLevel? FileLevel { [MethodImpl(MethodImplOptions.InternalCall)] get; [MethodImpl(MethodImplOptions.InternalCall)] set; }
+        public extern int QueueCapacity { [MethodImpl(MethodImplOptions.InternalCall)] get; [MethodImpl(MethodImplOptions.InternalCall)] set; }
+        public extern int FlushIntervalMilliseconds { [MethodImpl(MethodImplOptions.InternalCall)] get; [MethodImpl(MethodImplOptions.InternalCall)] set; }
+        public extern int ShutdownTimeoutMilliseconds { [MethodImpl(MethodImplOptions.InternalCall)] get; [MethodImpl(MethodImplOptions.InternalCall)] set; }
+        public extern long FileMaxBytes { [MethodImpl(MethodImplOptions.InternalCall)] get; [MethodImpl(MethodImplOptions.InternalCall)] set; }
+        public extern int FileRetainedFiles { [MethodImpl(MethodImplOptions.InternalCall)] get; [MethodImpl(MethodImplOptions.InternalCall)] set; }
+        public extern int SchemaVersion { [MethodImpl(MethodImplOptions.InternalCall)] get; [MethodImpl(MethodImplOptions.InternalCall)] set; }
+        public extern int MaxEntryBytes { [MethodImpl(MethodImplOptions.InternalCall)] get; [MethodImpl(MethodImplOptions.InternalCall)] set; }
+        public extern CoreLogLevel EffectiveConsoleLevel { [MethodImpl(MethodImplOptions.InternalCall)] get; }
+        public extern CoreLogLevel EffectiveFileLevel { [MethodImpl(MethodImplOptions.InternalCall)] get; }
         public extern bool ConsoleEnabled { [MethodImpl(MethodImplOptions.InternalCall)] get; }
         public extern bool FileEnabled { [MethodImpl(MethodImplOptions.InternalCall)] get; }
+        public extern TimeSpan FlushInterval { [MethodImpl(MethodImplOptions.InternalCall)] get; }
+        public extern TimeSpan ShutdownTimeout { [MethodImpl(MethodImplOptions.InternalCall)] get; }
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        public extern void Prepare(string baseDirectory);
     }
 
     public sealed class EventMetadata
     {
-        private EventMetadata() { }
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        public extern EventMetadata();
         public extern string ApplicationName { [MethodImpl(MethodImplOptions.InternalCall)] get; }
         public extern string BuildVersion { [MethodImpl(MethodImplOptions.InternalCall)] get; }
         public extern string ServiceVersion { [MethodImpl(MethodImplOptions.InternalCall)] get; }
@@ -169,7 +121,6 @@ namespace CIS.Logging
         public extern string? CommitId { [MethodImpl(MethodImplOptions.InternalCall)] get; }
         public extern string? BuildId { [MethodImpl(MethodImplOptions.InternalCall)] get; }
     }
-
 }
 
 namespace CIS.Configuration

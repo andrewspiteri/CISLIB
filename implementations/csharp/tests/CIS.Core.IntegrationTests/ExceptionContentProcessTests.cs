@@ -32,7 +32,7 @@ public sealed class ExceptionContentProcessTests
         JsonObject actual = JsonNode.Parse(child.StandardOutput)!.AsObject();
         ExceptionContentExpectations.Verify(id, actual);
         JsonNode observed = actual["observed"]!;
-        Assert.IsFalse(observed["publicFacadeInitialized"]!.GetValue<bool>());
+        Assert.IsFalse(observed["lifecycleApiPresent"]!.GetValue<bool>());
         Assert.AreEqual(".NET 10.0.12", observed["runtimeDescription"]!.GetValue<string>());
         Assert.AreEqual(Hash(host), observed["fixtureSha256"]!.GetValue<string>());
         Assert.AreEqual(Hash(Path.Combine(Path.GetDirectoryName(host)!, "CIS.Core.dll")), observed["coreSha256"]!.GetValue<string>());

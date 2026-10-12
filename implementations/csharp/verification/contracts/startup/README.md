@@ -1,3 +1,5 @@
+> Current surface: readonly static EnvironmentOptions facts populated by a static constructor, three writable policy properties, getter-only mutable Logging options, and parameterless EventMetadata capture. Public defaults/override helpers have been removed before publication. Four readonly-container assignment negatives bring the current startup compiler control count to 25. Older counts and initializer descriptions below are historical scaffold context.
+
 # Compile-only startup specification
 
 This WP02-S01 fixture declares the proposed `CIS.EnvironmentOptions` surface. It is outside shipping Core. The project templates are materialized only under ignored verification artifacts, with no PackageReference items. WP02-S03 reuses the exact approved, locked-restored Microsoft logging abstraction compile DLL through an explicit noncopying reference. `ProduceOnlyReferenceAssembly` generates a reference assembly; InternalCall declarations describe signatures and supply no runtime implementation. Consumers are compiled and are never executed.

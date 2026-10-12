@@ -15,7 +15,7 @@ internal static class EventPrecedenceProcessFixture
         EventProjectionExpectations.Validate(row, catalog["nativeBindings"]!.AsObject(), actual);
         actual["observed"] = new JsonObject
         {
-            ["publicFacadeInitialized"] = EnvironmentOptions.IsInitialized,
+            ["lifecycleApiPresent"] = (typeof(EnvironmentOptions).GetMethod("Initialize") is not null),
             ["runtimeDescription"] = RuntimeInformation.FrameworkDescription,
             ["operatingSystem"] = OperatingSystem.IsWindows() ? "windows" : OperatingSystem.IsLinux() ? "linux"
                 : OperatingSystem.IsMacOS() ? "macos" : "unknown",

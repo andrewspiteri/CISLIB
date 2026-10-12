@@ -6,6 +6,7 @@ import os
 from pathlib import Path
 import subprocess
 import tempfile
+from configuration_expectations import expected_reads, check_resolution
 
 
 def require(value, message):
@@ -31,9 +32,10 @@ def main():
     rows = document["cases"]
     require(document["schemaVersion"] == 1 and document["caseCount"] == len(rows) == 26, "Incomplete shared fixtures")
     names = [s["key"] for s in rows[0]["expected"]["settings"]] + ["DD_SERVICE", "DD_ENV", "DD_VERSION"]
+    settings = json.loads((inputs.parent.parent.parent / "contracts/logging/v1/configuration.json").read_text(encoding="utf-8"))["settings"]
     parent = dict(os.environ)
     reports = []
-    record = {"schema": "cis.configuration-process/v1", "scope": "Actual parsed configuration and host-label preservation only, before complete validation/public startup/logging", "family": args.family, "status": "Failed", "exitCode": 1, "runtimeVersion": "10.0.12", "rollForward": "Disable", "cases": [], "reports": reports}
+    record = {"schema": "cis.configuration-process/v2", "scope": "Caller-prepared values, known overrides and host-label preservation; logging runtime remains pending", "family": args.family, "status": "Failed", "exitCode": 1, "runtimeVersion": "10.0.12", "rollForward": "Disable", "cases": [], "reports": reports}
     try:
         for row in rows:
             environment = dict(parent)
@@ -55,13 +57,14 @@ def main():
                     reports.append({"path": path.name, "sha256": sha(path), "bytes": len(data)})
                 require(result.returncode == 0 and not result.stderr, "Child failed: " + row["id"])
                 value = json.loads(result.stdout.decode("utf-8"))
-                require(value["caseId"] == row["id"] and value["configuration"] == row["expected"], "Snapshot differs: " + row["id"])
+                require(value["caseId"] == row["id"], "Case identity differs")
+                check_resolution(row, value["configuration"], settings, working, args.family)
                 require(value["hostBefore"] == value["hostAfter"] == row["inputs"]["host"], "Caller host context changed")
                 require(value["frameworkVariableBefore"] == value["frameworkVariableAfter"] == label, "Framework label variable changed")
                 observed = value["observed"]
                 require(observed["operatingSystem"] == args.family and observed["runtimeDescription"] == ".NET 10.0.12", "Unexpected actual platform/runtime")
                 require(observed["fixtureSha256"] == sha(host) and observed["coreSha256"] == sha(host.parent / "CIS.Core.dll") and observed["inputsSha256"] == sha(inputs), "Loaded source/artifact bytes differ")
-                require(set(observed["recognizedReads"]) == set(names) and len(observed["recognizedReads"]) == 21, "Core did not capture exactly the recognized names once")
+                require(observed["recognizedReads"] == expected_reads(settings, row["inputs"]["environment"]), "Recognized names/order differ or repeat")
                 require(not any(Path(working).iterdir()), "Configuration created filesystem outputs")
             record["cases"].append({"id": row["id"], "status": "Passed", "exitCode": result.returncode, "command": command, "actualOutputRedirected": observed["outputRedirected"], "actualErrorRedirected": observed["errorRedirected"], "actualDebuggerAttached": observed["debuggerAttached"]})
         require(dict(os.environ) == parent, "Parent environment changed")

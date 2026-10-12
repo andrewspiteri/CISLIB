@@ -1,67 +1,45 @@
 using System.Text.Json.Nodes;
 using CIS.Configuration;
+using CIS.Logging;
 
 namespace CIS.Tests.DiscoveryFixture;
 
-// Nonshipping projection shared by fixture hosts and native tests.
+// Nonshipping caller orchestration for existing vectors; each module's real checks run explicitly.
 internal static class ConfigurationValidationAdapter
 {
-    public static string FindFixture() => Path.Combine(Directory.GetParent(ConfigurationFixtureAdapter.FindFixture())!.FullName, "configuration-validation-cases.json");
-    public static ApplicationIdentity Application(JsonObject input)
+    public static string FindFixture() => Path.Combine(Path.GetDirectoryName(ConfigurationFixtureAdapter.FindFixture())!, "passive-configuration-validation-cases.json");
+    public static (PreparedConfiguration?, CoreConfigurationException?) Execute(JsonObject input, Func<string> directory, Func<string, string?>? read = null)
     {
-        JsonNode discovery = input["discovery"]!;
-        return new ApplicationIdentity(ConfigurationFixtureAdapter.Text(discovery, "applicationName"),
-            ConfigurationFixtureAdapter.Text(discovery, "buildVersion") ?? "unknown",
-            ConfigurationFixtureAdapter.Text(discovery, "commitId"), ConfigurationFixtureAdapter.Text(discovery, "buildId"));
+        ConfigurationFixtureAdapter.Assign(input);
+        string baseDirectory = directory();
+        var issues = new List<ConfigurationIssue>();
+        try { ConfigurationFixtureAdapter.ApplyOverrides(read ?? (key => input["environment"]?[key]?.GetValue<string>())); }
+        catch (CoreConfigurationException error) { issues.AddRange(error.Issues); }
+        try { ConfigurationFixtureAdapter.Facts.Logging.Prepare(baseDirectory); }
+        catch (CoreConfigurationException error) { issues.AddRange(error.Issues); }
+        EventMetadata? metadata = null;
+        try { metadata = ConfigurationFixtureAdapter.Facts.CaptureMetadata(); }
+        catch (CoreConfigurationException error) { issues.AddRange(error.Issues); }
+        if (issues.Count != 0) { return (null, new CoreConfigurationException(issues)); }
+        return (new PreparedConfiguration(metadata!, ConfigurationFixtureAdapter.Facts.Logging), null);
     }
-
-    public static JsonObject Project(ConfigurationResolution selected, ValidatedConfiguration? validated, CoreConfigurationException? error)
+    public static JsonObject Project(PreparedConfiguration? result, CoreConfigurationException? error, string directory)
     {
-        var result = new JsonObject
+        JsonObject projection = new()
         {
             ["status"] = error is null ? "Valid" : "Invalid",
-            ["issues"] = new JsonArray((error?.Issues ?? []).Select(issue => (JsonNode)new JsonObject
-            {
-                ["code"] = issue.Code,
-                ["key"] = issue.Key,
-                ["explanation"] = issue.Explanation
-            }).ToArray()),
+            ["issues"] = new JsonArray((error?.Issues ?? []).Select(issue => (JsonNode)new JsonObject { ["code"] = issue.Code, ["key"] = issue.Key, ["explanation"] = issue.Explanation }).ToArray()),
             ["message"] = error?.Message,
             ["exceptionText"] = error?.ToString(),
-            ["filePath"] = validated?.FilePath,
-            ["workingDirectory"] = validated?.WorkingDirectory,
-            ["consoleEnabled"] = selected.ConsoleEnabled,
-            ["fileEnabled"] = selected.FileEnabled,
-            ["selected"] = new JsonObject(selected.Settings.Select(setting => new KeyValuePair<string, JsonNode?>(setting.Key, new JsonObject
-            {
-                ["state"] = setting.State.ToString(),
-                ["source"] = setting.Source.ToString().ToLowerInvariant(),
-                ["sourceKey"] = setting.SourceKey
-            })))
+            ["filePath"] = result?.Logging.FilePath,
+            ["workingDirectory"] = result is null ? null : directory,
+            ["consoleEnabled"] = result?.Logging.ConsoleEnabled,
+            ["fileEnabled"] = result?.Logging.FileEnabled
         };
-        if (validated is not null)
+        if (result is not null)
         {
-            JsonArray settings = ConfigurationFixtureAdapter.Project(validated.Selected)["settings"]!.AsArray();
-            result["values"] = new JsonObject
-            {
-                ["ApplicationName"] = settings[0]!["value"]!.DeepClone(),
-                ["EnvironmentName"] = settings[1]!["value"]!.DeepClone(),
-                ["ServiceVersion"] = settings[2]!["value"]!.DeepClone(),
-                ["BuildVersion"] = selected.BuildVersion,
-                ["CommitId"] = selected.CommitId,
-                ["BuildId"] = selected.BuildId,
-                ["EnvironmentKind"] = selected.EnvironmentKind.ToString()
-            };
-            foreach (JsonNode? setting in settings.Skip(3))
-            {
-                string key = setting!["key"]!.GetValue<string>();
-                string property = ConfigurationSettings.Find(key).DiscoveryKey;
-                if (key != "CORE_LOG_FILE_PATH")
-                {
-                    result["values"]![property] = setting["value"]?.DeepClone();
-                }
-            }
+            projection["values"] = ConfigurationFixtureAdapter.Values(result);
         }
-        return result;
+        return projection;
     }
 }

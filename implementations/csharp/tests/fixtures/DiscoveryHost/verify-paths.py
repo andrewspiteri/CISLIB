@@ -8,6 +8,7 @@ from pathlib import Path
 import posixpath
 import subprocess
 import tempfile
+from configuration_expectations import expected_reads
 
 
 def require(value, message):
@@ -35,8 +36,9 @@ def main():
     rows = [row for row in all_rows if lane in row.get("lanes", [lane])]
     require(len(all_rows) == 14 and len(rows) == 13, "Incomplete declared path coverage")
     names = [row["key"] for row in json.loads((inputs.parent.parent.parent / "contracts/logging/v1/configuration.json").read_text(encoding="utf-8"))["settings"]] + ["DD_SERVICE", "DD_ENV", "DD_VERSION"]
+    settings = json.loads((inputs.parent.parent.parent / "contracts/logging/v1/configuration.json").read_text(encoding="utf-8"))["settings"]
     parent_environment, parent_directory = dict(os.environ), os.getcwd()
-    record = {"schema": "cis.configuration-path-process/v1", "scope": "Actual Core path syntax/validation with copied fixture inputs, native BCL and child cwd changes; no public startup/snapshot or logging output", "family": args.family, "status": "Failed", "exitCode": 1, "runtimeVersion": "10.0.12", "rollForward": "Disable", "declaredPathRows": 14, "applicablePathRows": 13, "excludedIds": [row["id"] for row in all_rows if row not in rows], "cases": [], "reports": []}
+    record = {"schema": "cis.configuration-path-process/v1", "scope": "Caller-supplied absolute base and logging-owned lexical path preparation with actual child cwd changes; no logging output", "family": args.family, "status": "Failed", "exitCode": 1, "runtimeVersion": "10.0.12", "rollForward": "Disable", "declaredPathRows": 14, "applicablePathRows": 13, "excludedIds": [row["id"] for row in all_rows if row not in rows], "cases": [], "reports": []}
     native = ntpath if args.family == "windows" else posixpath
     try:
         for row in rows:
@@ -55,12 +57,13 @@ def main():
                 observed = value["observed"]
                 require(value["caseId"] == row["id"] and observed["operatingSystem"] == args.family and observed["runtimeDescription"] == ".NET 10.0.12", "Unexpected child identity/platform/runtime")
                 require(observed["fixtureSha256"] == sha(host) and observed["coreSha256"] == sha(host.parent / "CIS.Core.dll") and observed["inputsSha256"] == sha(inputs), "Loaded bytes differ")
-                require(set(observed["recognizedReads"]) == set(names) and len(observed["recognizedReads"]) == 21, "Recognized capture differs")
+                require(observed["recognizedReads"] == expected_reads(settings, row["inputs"]["environment"]), "Recognized reads differ or repeat")
                 expected_base = row["inputs"].get("workingDirectoryAtInitialization", str(before))
                 require(value["capturedDirectory"] == expected_base and value["directoryReads"] == 1, "Directory capture differs or repeats")
                 require(value["initialActualDirectory"] == str(before) and value["afterActualDirectory"] == str(after), "Actual child cwd transition differs")
                 if row["expected"]["status"] == "Invalid":
-                    require([{k: issue[k] for k in ["code", "key"]} for issue in value["issues"]] == row["expected"]["issues"], "Issue membership differs")
+                    expected_issues = [{"code": issue["code"], "key": "LoggingOptions.FilePath" if issue["code"] == "InvalidPath" else issue["key"]} for issue in row["expected"]["issues"]]
+                    require([{k: issue[k] for k in ["code", "key"]} for issue in value["issues"]] == expected_issues, "Issue membership differs")
                     require(value["absolutePathBefore"] is None and value["absolutePathAfter"] is None, "Invalid configuration produced a validated path")
                     safe = value["errorMessage"] + "|".join(issue["explanation"] for issue in value["issues"])
                     require("invalid" + chr(0) + "path" not in safe and "must-not-appear" not in safe, "Raw input leaked")

@@ -11,6 +11,14 @@ internal static class Program
 {
     private static int Main(string[] args)
     {
+        if (args.Length == 2 && args[0] == "constructor-options")
+        {
+            return ConstructorOptionsProcessFixture.Run(args[1]);
+        }
+        if (args.Length == 3 && args[0] == "event-correlation")
+        {
+            return EventCorrelationProcessFixture.Run(args[1], args[2]);
+        }
         if (args.Length == 3 && args[0] == "event-precedence")
         {
             return EventPrecedenceProcessFixture.Run(args[1], args[2]);
@@ -73,36 +81,6 @@ internal static class Program
             return LogValueProcessFixture.Run(args[1], args[2]);
         }
 
-        if (args.Length == 3 && args[0] == "startup-metadata")
-        {
-            return StartupQualificationProcessFixture.Metadata(args[1], args[2]);
-        }
-
-        if (args.Length == 2 && args[0] == "startup-independent")
-        {
-            return StartupQualificationProcessFixture.Independent(args[1]);
-        }
-
-        if (args.Length == 3 && args[0] == "startup-concurrency" && args[1] is "valid-2" or "valid-16" or "valid-32" or "mixed-16" or "invalid-then-valid" or "held-valid" or "held-invalid")
-        {
-            return StartupConcurrencyProcessFixture.Run(args[1], args[2]);
-        }
-
-        if (args.Length == 2 && args[0] == "startup-reentrancy" && args[1] is "reentrant-valid" or "reentrant-invalid" or "required-failure")
-        {
-            return StartupReentrancyProcessFixture.Run(args[1]);
-        }
-
-        if (args.Length == 3 && args[0] == "startup-ownership" && args[1] is "mutate" or "replace" or "sources" or "collected")
-        {
-            return StartupOwnershipProcessFixture.Run(args[1], args[2]);
-        }
-
-        if (args.Length == 3 && args[0] == "startup-facade" && args[1] is "before" or "null" or "defaults" or "explicit" or "overrides" or "retry")
-        {
-            return StartupFacadeProcessFixture.Run(args[1], args[2]);
-        }
-
         if (args.Length == 4 && args[0] == "configuration-validation")
         {
             return ConfigurationValidationProcessFixture.Run(args[1], args[2], args[3]);
@@ -125,26 +103,60 @@ internal static class Program
         }
 
         string scenario = args[0];
-        ApplicationIdentity application = ApplicationIdentityDiscovery.Discover(
-            new ApplicationIdentityInput(),
-            scenario == "native" ? null : new LimitedAssemblyMetadata(scenario));
-        CapturedEnvironment variables = CapturedEnvironment.Capture();
-        ApplicationVersionSelection versions = ApplicationVersionSelector.Select(application, variables: variables);
-        RuntimeMetadata runtime = RuntimeMetadataDiscovery.Discover(
-            scenario == "unavailable" ? new UnavailableRuntimeMetadata() : null);
         DateTimeOffset beforeInitializationUtc = DateTimeOffset.UtcNow;
-        InitializationIdentity initialization = new InitializationIdentityFactory().Create();
+        Assembly application = Assembly.GetEntryAssembly()!;
+        CIS.Logging.EventMetadata snapshot;
+        if (scenario == "native")
+        {
+            snapshot = new CIS.Logging.EventMetadata();
+        }
+        else
+        {
+            // Historical fallback/unavailable projection bindings use controlled test inputs.
+            // Native constructor discovery is the separate native mode; no readonly fact is reassigned.
+            using Process suppliedProcess = Process.GetCurrentProcess();
+            ConfigurationFixtureAdapter.Facts = new FixtureEnvironmentValues
+            {
+                ApplicationName = application.GetName().Name!,
+                HostName = System.Environment.MachineName,
+                OperatingSystem = OperatingSystem.IsWindows() ? "windows" : OperatingSystem.IsLinux() ? "linux" : OperatingSystem.IsMacOS() ? "macos" : "unknown",
+                OperatingSystemDescription = RuntimeInformation.OSDescription,
+                OSArchitecture = RuntimeInformation.OSArchitecture.ToString().ToLowerInvariant(),
+                ProcessArchitecture = RuntimeInformation.ProcessArchitecture.ToString().ToLowerInvariant(),
+                RuntimeDescription = RuntimeInformation.FrameworkDescription,
+                ProcessId = System.Environment.ProcessId,
+                ProcessStartedAtUtc = new DateTimeOffset(suppliedProcess.StartTime.ToUniversalTime()),
+                InstanceId = Guid.NewGuid().ToString("D"),
+                InitializedAtUtc = DateTimeOffset.UtcNow
+            };
+            FixtureEnvironmentValues facts = ConfigurationFixtureAdapter.Facts;
+            facts.BuildVersion = scenario == "assembly-version" ? application.GetName().Version!.ToString() : "unknown";
+            if (scenario == "unavailable")
+            {
+                facts.ProcessStartedAtUtc = null;
+                facts.HostName = null;
+                facts.OperatingSystemDescription = null;
+                facts.OSArchitecture = null;
+                facts.ProcessArchitecture = null;
+                facts.RuntimeDescription = null;
+                facts.ProcessId = null;
+            }
+            facts.ServiceVersion = facts.BuildVersion;
+            ConfigurationFixtureAdapter.ApplyOverrides(System.Environment.GetEnvironmentVariable);
+            snapshot = facts.CaptureMetadata();
+        }
         DateTimeOffset afterInitializationUtc = DateTimeOffset.UtcNow;
         Assembly entry = Assembly.GetEntryAssembly()!;
-        Assembly core = typeof(ApplicationIdentityDiscovery).Assembly;
+        Assembly core = typeof(EnvironmentOptions).Assembly;
         using Process process = Process.GetCurrentProcess();
         var result = new
         {
             Scenario = scenario,
-            Application = application,
-            Versions = versions,
-            Runtime = runtime,
-            Initialization = initialization,
+            FactBinding = scenario == "native" ? "static-constructor" : "controlled-internal-projection",
+            Application = new { snapshot.ApplicationName, snapshot.BuildVersion, snapshot.CommitId, snapshot.BuildId },
+            Versions = new { snapshot.BuildVersion, snapshot.ServiceVersion },
+            Runtime = new { snapshot.ProcessStartedAtUtc, snapshot.HostName, snapshot.OperatingSystem, snapshot.OperatingSystemDescription, snapshot.OSArchitecture, snapshot.ProcessArchitecture, snapshot.RuntimeDescription, snapshot.ProcessId },
+            Initialization = new { snapshot.InstanceId, snapshot.InitializedAtUtc },
             Observed = new
             {
                 EntryName = entry.GetName().Name,
@@ -176,24 +188,4 @@ internal static class Program
 
     private static string Hash(string path) => Convert.ToHexStringLower(SHA256.HashData(File.ReadAllBytes(path)));
 
-    private sealed class LimitedAssemblyMetadata(string scenario) : IApplicationAssemblyMetadata
-    {
-        private static RuntimeApplicationAssemblyMetadata Source => RuntimeApplicationAssemblyMetadata.Instance;
-        public Assembly? GetEntryAssembly() => Source.GetEntryAssembly();
-        public string? GetName(Assembly assembly) => Source.GetName(assembly);
-        public string? GetInformationalVersion(Assembly assembly) => null;
-        public string? GetVersion(Assembly assembly) => scenario == "unavailable" ? null : Source.GetVersion(assembly);
-    }
-
-    private sealed class UnavailableRuntimeMetadata : IRuntimeMetadataSource
-    {
-        public DateTimeOffset? GetProcessStartedAt() => null;
-        public string? GetHostName() => null;
-        public OSPlatform? GetOperatingSystem() => RuntimeMetadataSource.Instance.GetOperatingSystem();
-        public string? GetOperatingSystemDescription() => null;
-        public Architecture? GetOSArchitecture() => null;
-        public Architecture? GetProcessArchitecture() => null;
-        public string? GetRuntimeDescription() => null;
-        public int? GetProcessId() => null;
-    }
 }

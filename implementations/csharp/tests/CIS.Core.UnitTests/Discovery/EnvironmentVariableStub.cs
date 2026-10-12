@@ -2,7 +2,7 @@ using CIS.Configuration;
 
 namespace CIS.Tests.UnitTests.Discovery;
 
-internal sealed class EnvironmentVariableStub : IEnvironmentVariableSource
+internal sealed class EnvironmentVariableStub
 {
     public Dictionary<string, string?> Values { get; } = new(StringComparer.Ordinal);
     public List<string> Reads { get; } = [];

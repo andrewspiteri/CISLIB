@@ -1,0 +1,239 @@
+[
+  {
+    "path": "implementations/csharp/tests/CIS.Core.UnitTests/ApplicationIdentityDiscoveryTests.cs",
+    "reason": "Assembly discovery is no longer a library responsibility; Program.cs native/assembly-version/unavailable processes retain caller discovery demonstrations.",
+    "backup": ".artifacts/csharp/tasks/environment-simplification/correction-test-backup/CIS.Core.UnitTests/ApplicationIdentityDiscoveryTests.cs",
+    "testMethods": [
+      "SuppliedMetadataPrecedesTheSelectedApplicationAssembly",
+      "VersionFallbackPreservesInformationBeforeAssemblyVersion",
+      "UnavailableExplicitAssemblyMetadataDoesNotFallBackToTheEntryAssembly",
+      "CoreAssemblyCannotSupplyApplicationIdentity",
+      "AnotherLoadContextCannotSupplyCoreIdentity",
+      "CompleteSuppliedIdentityWorksWithoutAssemblyDiscovery",
+      "MissingEntryAssemblyLeavesFactsAbsentAndBuildUnknown",
+      "CommitAndBuildIdsComeOnlyFromSuppliedInputs",
+      "ProductionReaderUsesApplicationAttributesAndAssemblyIdentity",
+      "NullInputIsAProgrammingError"
+    ]
+  },
+  {
+    "path": "implementations/csharp/tests/CIS.Core.UnitTests/ApplicationIdentityFailureTests.cs",
+    "reason": "Injected discovery provider exception filtering is removed with the provider subsystem; the passive store does not read assemblies.",
+    "backup": ".artifacts/csharp/tasks/environment-simplification/correction-test-backup/CIS.Core.UnitTests/ApplicationIdentityFailureTests.cs",
+    "testMethods": [
+      "UnavailableFactsDoNotDiscardOtherMetadata",
+      "ExpectedDiscoveryFailuresUseTheAssemblyVersionFallback",
+      "UnexpectedFaultsAndCancellationPropagate"
+    ]
+  },
+  {
+    "path": "implementations/csharp/tests/CIS.Core.UnitTests/ApplicationVersionSelectorTests.cs",
+    "reason": "Deleted version-selection service; final BuildVersion/service-version precedence remains in the retained 349 per-key and 26 resolution vectors.",
+    "backup": ".artifacts/csharp/tasks/environment-simplification/correction-test-backup/CIS.Core.UnitTests/ApplicationVersionSelectorTests.cs",
+    "testMethods": [
+      "TelemetryVersionSelectsTheFirstNonblankSourceWithoutChangingTheBuild",
+      "ChangingTelemetryLabelsKeepsActualBuildFactsStable"
+    ]
+  },
+  {
+    "path": "implementations/csharp/tests/CIS.Core.UnitTests/DiscoveryTableTests.cs",
+    "reason": "Removed metadata provider source/read-count table; actual caller discovery process checks remain.",
+    "backup": ".artifacts/csharp/tasks/environment-simplification/correction-test-backup/CIS.Core.UnitTests/DiscoveryTableTests.cs",
+    "testMethods": [
+      "DiscoveredFactsMatchThePortableTable"
+    ]
+  },
+  {
+    "path": "implementations/csharp/tests/CIS.Core.UnitTests/EnvironmentInitializationTests.cs",
+    "reason": "Factory callback, copy-input, initialization semantics deleted; replace with direct override alias-read/culture tests and retained per-key vectors.",
+    "backup": ".artifacts/csharp/tasks/environment-simplification/correction-test-backup/CIS.Core.UnitTests/EnvironmentInitializationTests.cs",
+    "testMethods": [
+      "SelectedNonblankCanonicalIdentityNeverReadsItsAliasEvenWhenInvalid",
+      "FileSizeRelationshipDiagnosticUsesCopiedSetupAfterCallerMutation",
+      "RequiredVersionReadFailurePropagatesWithoutFallback",
+      "EveryInteriorC0AndC1ControlIsRejectedInAllIdentityFacts",
+      "IntegerGrammarRemainsInvariantForEveryIntegerSetting"
+    ]
+  },
+  {
+    "path": "implementations/csharp/tests/CIS.Core.UnitTests/EnvironmentSnapshotFactoryTests.cs",
+    "reason": "Snapshot factory and public lifecycle removed; replace with passive store defaults/assignment and logging capture tests.",
+    "backup": ".artifacts/csharp/tasks/environment-simplification/correction-test-backup/CIS.Core.UnitTests/EnvironmentSnapshotFactoryTests.cs",
+    "testMethods": [
+      "BuilderComposesValidatedPublicOptionsAndAllowlistedMetadataWithoutPublication",
+      "DefaultPublicInputsRemainAbsentAndResolveToDocumentedValues",
+      "UndefinedPublicEnumsReachActualValidationWithoutNarrowing",
+      "InvalidConfigurationDoesNotReadRuntimeOrGenerateInitializationIdentity",
+      "RequiredBuilderSourceFailuresPropagateWithoutInventingSnapshotValues",
+      "UnavailableOptionalRuntimeFactsStayNullInBothPublicProjections",
+      "ActualStartupTypesMatchTheDeclaredPublicSignatureAndImmutability"
+    ]
+  },
+  {
+    "path": "implementations/csharp/tests/CIS.Core.UnitTests/InitializationIdentityFactoryTests.cs",
+    "reason": "Library no longer generates clock/UUID; caller assignments and logging independent metadata captures replace these injected factory controls.",
+    "backup": ".artifacts/csharp/tasks/environment-simplification/correction-test-backup/CIS.Core.UnitTests/InitializationIdentityFactoryTests.cs",
+    "testMethods": [
+      "InitializationUsesTheSuppliedClockInstantInUTC",
+      "InstanceIdentifiersUseCanonicalUUIDStrings",
+      "EachGenerationCapturesANewIdAndTimeAndExistingValuesStayStable",
+      "ProcessStartAndInitializationTimeRemainIndependent",
+      "ExhaustedIdSourcesDoNotFallBackToRandomGeneration",
+      "EmptyGeneratedIdsAreRejectedBeforeReturningAnIdentity",
+      "ClockFailuresPropagateWithoutGeneratingAnotherId",
+      "IdSourceFailuresPropagateWithoutReadingTheClock",
+      "InitializationTimeIsCapturedAfterTheIdentityIsReady",
+      "DefaultsUseNewUUIDsAndUTCInitializationTime"
+    ]
+  },
+  {
+    "path": "implementations/csharp/tests/CIS.Core.UnitTests/RuntimeMetadataDiscoveryTests.cs",
+    "reason": "Library no longer owns runtime discovery; native caller process tests supply and observe actual facts.",
+    "backup": ".artifacts/csharp/tasks/environment-simplification/correction-test-backup/CIS.Core.UnitTests/RuntimeMetadataDiscoveryTests.cs",
+    "testMethods": [
+      "FamilyRecognitionIsIndependentOfTheExecutionHost",
+      "ArchitecturesUseDefinedLowercaseNamesOrRemainAbsent",
+      "ProcessArchitectureIsNotReplacedWithOSArchitecture",
+      "ProcessIdsMustBePositiveOrRemainAbsent",
+      "ProcessStartUsesTheDiscoveredInstantInUTC",
+      "UnavailableFactsStayAbsentWithoutAClockOrOtherSubstitution",
+      "OptionalTextIsAbsentWhenBlankAndPreservesTrimmedCase",
+      "CapturedFactsDoNotRetainTheMutableSource"
+    ]
+  },
+  {
+    "path": "implementations/csharp/tests/CIS.Core.UnitTests/RuntimeMetadataFailureTests.cs",
+    "reason": "Injected runtime provider exception filtering removed with discovery framework; unavailable facts remain ordinary nullable values.",
+    "backup": ".artifacts/csharp/tasks/environment-simplification/correction-test-backup/CIS.Core.UnitTests/RuntimeMetadataFailureTests.cs",
+    "testMethods": [
+      "NativeFailureAffectsOnlyTheUnavailableFact",
+      "UnavailableProcessStartNeverUsesInitializationOrCurrentTime",
+      "UnexpectedValueOrReferenceFaultsAndCancellationPropagate"
+    ]
+  },
+  {
+    "path": "implementations/csharp/tests/CIS.Core.UnitTests/RuntimeMetadataSourceTests.cs",
+    "reason": "Deleted runtime source-interface/framework qualification; native caller host remains.",
+    "backup": ".artifacts/csharp/tasks/environment-simplification/correction-test-backup/CIS.Core.UnitTests/RuntimeMetadataSourceTests.cs",
+    "testMethods": [
+      "NativeAdapterMatchesCurrentProcessAndRuntimeFacts"
+    ]
+  },
+  {
+    "path": "implementations/csharp/tests/CIS.Core.UnitTests/StartupInputOwnershipTests.cs",
+    "reason": "Factory snapshot copying and source callback boundaries removed; logging EventMetadata ownership and event projection retention tests remain.",
+    "backup": ".artifacts/csharp/tasks/environment-simplification/correction-test-backup/CIS.Core.UnitTests/StartupInputOwnershipTests.cs",
+    "testMethods": [
+      "EveryStartupFieldIsCopiedBeforeRequiredSourcesCanChangeTheCaller",
+      "ApplicationAssemblyIsCapturedBeforeCallerIdentityAndAssemblyReplacement",
+      "CallerRepairAfterCaptureCannotBypassValidationOfTheCapturedInputs",
+      "SeparateResolvedSnapshotsOwnTheirNestedOutputsAfterSetupReuse"
+    ]
+  },
+  {
+    "path": "implementations/csharp/tests/CIS.Core.UnitTests/Discovery/AssemblyMetadataStub.cs",
+    "reason": "Implements removed IApplicationAssemblyMetadata only.",
+    "backup": ".artifacts/csharp/tasks/environment-simplification/correction-test-backup/CIS.Core.UnitTests/Discovery/AssemblyMetadataStub.cs",
+    "testMethods": []
+  },
+  {
+    "path": "implementations/csharp/tests/CIS.Core.UnitTests/Discovery/RuntimeMetadataStub.cs",
+    "reason": "Implements removed IRuntimeMetadataSource only.",
+    "backup": ".artifacts/csharp/tasks/environment-simplification/correction-test-backup/CIS.Core.UnitTests/Discovery/RuntimeMetadataStub.cs",
+    "testMethods": []
+  },
+  {
+    "path": "implementations/csharp/tests/CIS.Core.UnitTests/Discovery/SnapshotTestHelper.cs",
+    "reason": "Calls deleted EnvironmentSnapshotFactory only.",
+    "backup": ".artifacts/csharp/tasks/environment-simplification/correction-test-backup/CIS.Core.UnitTests/Discovery/SnapshotTestHelper.cs",
+    "testMethods": []
+  },
+  {
+    "path": "implementations/csharp/tests/CIS.Core.IntegrationTests/EnvironmentOptionsProcessTests.cs",
+    "reason": "One-time initialization/readiness/retry publication no longer part of design; replace with passive fresh-process defaults/assignments/override scenarios.",
+    "backup": ".artifacts/csharp/tasks/environment-simplification/correction-test-backup/CIS.Core.IntegrationTests/EnvironmentOptionsProcessTests.cs",
+    "testMethods": [
+      "ActualPublicFacadeSupportsExplicitInitializationAndStoredReadsInFreshProcesses"
+    ]
+  },
+  {
+    "path": "implementations/csharp/tests/CIS.Core.IntegrationTests/StartupQualificationProcessTests.cs",
+    "reason": "Deleted mandatory publication/readiness lifecycle; original evidence retained; configuration/event controls kept.",
+    "backup": ".artifacts/csharp/tasks/environment-simplification/correction-test-backup/CIS.Core.IntegrationTests/StartupQualificationProcessTests.cs",
+    "testMethods": [
+      "EverySharedMetadataVectorExecutesInAnIsolatedActualCoreProcess",
+      "SharedLifecycleCasesExecuteTheirIsolatedPublicStartupPaths",
+      "IndependentlyInitializedApplicationProcessesHaveDifferentStableInstancesAndActualProcessMetadata"
+    ]
+  },
+  {
+    "path": "implementations/csharp/tests/CIS.Core.IntegrationTests/StartupOwnershipProcessTests.cs",
+    "reason": "Owned immutable snapshot graph replaced with mutable passive store and logging-owned metadata; event ownership processes retained.",
+    "backup": ".artifacts/csharp/tasks/environment-simplification/correction-test-backup/CIS.Core.IntegrationTests/StartupOwnershipProcessTests.cs",
+    "testMethods": [
+      "PublishedSnapshotSurvivesCallerMutationSourceChangesAndInputCollection"
+    ]
+  },
+  {
+    "path": "implementations/csharp/tests/CIS.Core.IntegrationTests/StartupConcurrencyProcessTests.cs",
+    "reason": "No concurrent initialization or atomic multi-property publication contract per revised request.",
+    "backup": ".artifacts/csharp/tasks/environment-simplification/correction-test-backup/CIS.Core.IntegrationTests/StartupConcurrencyProcessTests.cs",
+    "testMethods": [
+      "ConcurrentValidInvalidAndHeldAttemptsPublishOneCompleteStableSnapshot",
+      "MetadataReentryCannotPublishAndAllFailurePathsAllowAValidRetry"
+    ]
+  },
+  {
+    "path": "implementations/csharp/tests/CIS.Core.ArchitectureTests/StartupOwnershipArchitectureTests.cs",
+    "reason": "Readonly snapshot graph no longer applies to mutable values; replace with compiled passive-store guards and preserve immutable logging metadata controls.",
+    "backup": ".artifacts/csharp/tasks/environment-simplification/correction-test-backup/CIS.Core.ArchitectureTests/StartupOwnershipArchitectureTests.cs",
+    "testMethods": [
+      "PublishedSnapshotGraphContainsOnlyReadonlyOwnedTypesAndImmutableValues",
+      "ReadonlyFieldGuardRejectsAReadonlyReferenceToMutableCallerData"
+    ]
+  },
+  {
+    "path": "implementations/csharp/tests/fixtures/DiscoveryHost/StartupConcurrencyProcessFixture.cs",
+    "reason": "Only supports removed initialization/publication/provider tests; actual native/configuration/event/scope/exception/value process fixtures retained.",
+    "backup": ".artifacts/csharp/tasks/environment-simplification/correction-test-backup/fixtures/DiscoveryHost/StartupConcurrencyProcessFixture.cs",
+    "testMethods": []
+  },
+  {
+    "path": "implementations/csharp/tests/fixtures/DiscoveryHost/StartupFacadeProcessFixture.cs",
+    "reason": "Only supports removed initialization/publication/provider tests; actual native/configuration/event/scope/exception/value process fixtures retained.",
+    "backup": ".artifacts/csharp/tasks/environment-simplification/correction-test-backup/fixtures/DiscoveryHost/StartupFacadeProcessFixture.cs",
+    "testMethods": []
+  },
+  {
+    "path": "implementations/csharp/tests/fixtures/DiscoveryHost/StartupMetadataFixtureAdapter.cs",
+    "reason": "Only supports removed initialization/publication/provider tests; actual native/configuration/event/scope/exception/value process fixtures retained.",
+    "backup": ".artifacts/csharp/tasks/environment-simplification/correction-test-backup/fixtures/DiscoveryHost/StartupMetadataFixtureAdapter.cs",
+    "testMethods": []
+  },
+  {
+    "path": "implementations/csharp/tests/fixtures/DiscoveryHost/StartupMetadataFixtureSources.cs",
+    "reason": "Only supports removed initialization/publication/provider tests; actual native/configuration/event/scope/exception/value process fixtures retained.",
+    "backup": ".artifacts/csharp/tasks/environment-simplification/correction-test-backup/fixtures/DiscoveryHost/StartupMetadataFixtureSources.cs",
+    "testMethods": [
+      "BlockFurtherReads"
+    ]
+  },
+  {
+    "path": "implementations/csharp/tests/fixtures/DiscoveryHost/StartupOwnershipProcessFixture.cs",
+    "reason": "Only supports removed initialization/publication/provider tests; actual native/configuration/event/scope/exception/value process fixtures retained.",
+    "backup": ".artifacts/csharp/tasks/environment-simplification/correction-test-backup/fixtures/DiscoveryHost/StartupOwnershipProcessFixture.cs",
+    "testMethods": []
+  },
+  {
+    "path": "implementations/csharp/tests/fixtures/DiscoveryHost/StartupQualificationProcessFixture.cs",
+    "reason": "Only supports removed initialization/publication/provider tests; actual native/configuration/event/scope/exception/value process fixtures retained.",
+    "backup": ".artifacts/csharp/tasks/environment-simplification/correction-test-backup/fixtures/DiscoveryHost/StartupQualificationProcessFixture.cs",
+    "testMethods": []
+  },
+  {
+    "path": "implementations/csharp/tests/fixtures/DiscoveryHost/StartupReentrancyProcessFixture.cs",
+    "reason": "Only supports removed initialization/publication/provider tests; actual native/configuration/event/scope/exception/value process fixtures retained.",
+    "backup": ".artifacts/csharp/tasks/environment-simplification/correction-test-backup/fixtures/DiscoveryHost/StartupReentrancyProcessFixture.cs",
+    "testMethods": []
+  }
+]

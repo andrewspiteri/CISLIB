@@ -1,10 +1,10 @@
 {
   "schemaVersion": 1,
-  "state": "Proposed contract; unpublished; no runtime implementation claim",
+  "state": "Current unpublished readonly static-container reference contract; lifecycle/setup/snapshot declarations superseded",
   "story": "WP02-S01",
   "facade": "CIS.EnvironmentOptions",
   "supersedesSourceSpelling": "EnviormentsOptions",
-  "authority": "User selected EnvironmentOptions before publication; other semantics follow the amended supplied guide.",
+  "authority": "Latest direct user request and explicit static-constructor choice; no published APIs.",
   "enums": {
     "CIS.EnvironmentKind": {
       "Unknown": 0,
@@ -84,73 +84,28 @@
       "Failed": 3
     }
   },
-  "setup": {
-    "ApplicationAssembly": "Assembly?",
-    "ApplicationName": "string?",
-    "BuildVersion": "string?",
-    "ServiceVersion": "string?",
-    "EnvironmentName": "string?",
-    "EnvironmentKind": "EnvironmentKind",
-    "CommitId": "string?",
-    "BuildId": "string?",
-    "Logging": "LoggingSetup?"
-  },
-  "loggingSetup": {
-    "Level": "CoreLogLevel?",
-    "ConsoleFormat": "LogOutputFormat?",
-    "ConsoleLevel": "CoreLogLevel?",
-    "ConsoleStream": "ConsoleOutputStream?",
-    "HumanDetail": "HumanOutputDetail?",
-    "FilePath": "string?",
-    "FileFormat": "LogOutputFormat?",
-    "FileLevel": "CoreLogLevel?",
-    "QueueCapacity": "int?",
-    "FlushIntervalMilliseconds": "int?",
-    "ShutdownTimeoutMilliseconds": "int?",
-    "FileMaxBytes": "long?",
-    "FileRetainedFiles": "int?",
-    "SchemaVersion": "int?",
-    "MaxEntryBytes": "int?"
-  },
-  "snapshot": {
-    "ApplicationName": "string",
-    "BuildVersion": "string",
-    "ServiceVersion": "string",
-    "EnvironmentName": "string",
-    "EnvironmentKind": "EnvironmentKind",
-    "InstanceId": "string",
-    "ProcessStartedAtUtc": "DateTimeOffset?",
-    "InitializedAtUtc": "DateTimeOffset",
-    "HostName": "string?",
-    "OperatingSystem": "string",
-    "OperatingSystemDescription": "string?",
-    "OSArchitecture": "string?",
-    "ProcessArchitecture": "string?",
-    "RuntimeDescription": "string?",
-    "ProcessId": "int?",
-    "CommitId": "string?",
-    "BuildId": "string?",
-    "Logging": "LoggingOptions",
-    "EventMetadata": "EventMetadata"
-  },
   "logging": {
     "Level": "CoreLogLevel",
     "ConsoleFormat": "LogOutputFormat",
-    "ConsoleLevel": "CoreLogLevel",
+    "ConsoleLevel": "CoreLogLevel?",
     "ConsoleStream": "ConsoleOutputStream",
     "HumanDetail": "HumanOutputDetail",
     "FilePath": "string?",
     "FileFormat": "LogOutputFormat",
-    "FileLevel": "CoreLogLevel",
+    "FileLevel": "CoreLogLevel?",
     "QueueCapacity": "int",
-    "FlushInterval": "TimeSpan",
-    "ShutdownTimeout": "TimeSpan",
+    "FlushIntervalMilliseconds": "int",
+    "ShutdownTimeoutMilliseconds": "int",
     "FileMaxBytes": "long",
     "FileRetainedFiles": "int",
     "SchemaVersion": "int",
+    "MaxEntryBytes": "int",
+    "EffectiveConsoleLevel": "CoreLogLevel",
+    "EffectiveFileLevel": "CoreLogLevel",
     "ConsoleEnabled": "bool",
     "FileEnabled": "bool",
-    "MaxEntryBytes": "int"
+    "FlushInterval": "TimeSpan",
+    "ShutdownTimeout": "TimeSpan"
   },
   "eventMetadata": {
     "ApplicationName": "string",
@@ -170,16 +125,6 @@
     "ProcessId": "int?",
     "CommitId": "string?",
     "BuildId": "string?"
-  },
-  "convenienceGetters": {
-    "ApplicationName": "string",
-    "BuildVersion": "string",
-    "ServiceVersion": "string",
-    "EnvironmentName": "string",
-    "HostName": "string?",
-    "OperatingSystem": "string",
-    "Logging": "LoggingOptions",
-    "EventMetadata": "EventMetadata"
   },
   "diagnostics": {
     "namespace": "CIS.Configuration",
@@ -202,13 +147,12 @@
     "safeExplanation": "No raw input values, arbitrary environment variables, paths, credentials or collector addresses."
   },
   "ownership": {
-    "setup": "Caller-owned mutable startup input; resolver copies all selected fields and nested logging input before publication.",
-    "resolved": "Sealed, getter-only outputs; no retained caller-owned mutable state.",
-    "metadata": "Allowlisted copied process facts; excludes configuration, destinations and operation context."
+    "container": "Automatic readonly static facts with ordinary caller policy properties and mutable module options.",
+    "metadata": "Allowlisted copied facts; no retained configuration or operation context."
   },
   "compileOnlySpecification": "implementations/csharp/verification/contracts/startup/PublicSurface.cs",
   "runtimeImplementationStory": "WP03-S04",
-  "scope": "Proposed C# public surface only; portable semantics are contracts/logging/v1/startup-contract.json.",
+  "scope": "Current unpublished C# signatures, separate from historical startup publication contracts.",
   "eventInput": {
     "type": "CIS.Logging.LogEventData",
     "properties": {
@@ -249,5 +193,80 @@
       "Map"
     ],
     "objectOverload": false
+  },
+  "store": {
+    "ApplicationName": "string",
+    "BuildVersion": "string",
+    "ServiceVersion": "string",
+    "EnvironmentName": "string",
+    "EnvironmentKind": "EnvironmentKind",
+    "InstanceId": "string",
+    "ProcessStartedAtUtc": "DateTimeOffset?",
+    "InitializedAtUtc": "DateTimeOffset",
+    "HostName": "string?",
+    "OperatingSystem": "string",
+    "OperatingSystemDescription": "string?",
+    "OSArchitecture": "string?",
+    "ProcessArchitecture": "string?",
+    "RuntimeDescription": "string?",
+    "ProcessId": "int?",
+    "CommitId": "string?",
+    "BuildId": "string?",
+    "Logging": "LoggingOptions"
+  },
+  "loggingOptions": {
+    "Level": "CoreLogLevel",
+    "ConsoleFormat": "LogOutputFormat",
+    "ConsoleLevel": "CoreLogLevel?",
+    "ConsoleStream": "ConsoleOutputStream",
+    "HumanDetail": "HumanOutputDetail",
+    "FilePath": "string?",
+    "FileFormat": "LogOutputFormat",
+    "FileLevel": "CoreLogLevel?",
+    "QueueCapacity": "int",
+    "FlushIntervalMilliseconds": "int",
+    "ShutdownTimeoutMilliseconds": "int",
+    "FileMaxBytes": "long",
+    "FileRetainedFiles": "int",
+    "SchemaVersion": "int",
+    "MaxEntryBytes": "int",
+    "EffectiveConsoleLevel": "CoreLogLevel",
+    "EffectiveFileLevel": "CoreLogLevel",
+    "ConsoleEnabled": "bool",
+    "FileEnabled": "bool",
+    "FlushInterval": "TimeSpan",
+    "ShutdownTimeout": "TimeSpan"
+  },
+  "container": {
+    "type": "CIS.EnvironmentOptions",
+    "static": true,
+    "readonlyProperties": [
+      "ApplicationName",
+      "BuildVersion",
+      "ServiceVersion",
+      "EnvironmentName",
+      "InstanceId",
+      "ProcessStartedAtUtc",
+      "InitializedAtUtc",
+      "HostName",
+      "OperatingSystem",
+      "OperatingSystemDescription",
+      "OSArchitecture",
+      "ProcessArchitecture",
+      "RuntimeDescription",
+      "ProcessId",
+      "Logging"
+    ],
+    "writablePolicyProperties": [
+      "EnvironmentKind",
+      "CommitId",
+      "BuildId"
+    ],
+    "interned": [
+      "ApplicationName",
+      "EnvironmentName",
+      "BuildVersion",
+      "ServiceVersion"
+    ]
   }
 }

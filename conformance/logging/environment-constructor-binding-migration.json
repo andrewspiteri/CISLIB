@@ -1,0 +1,250 @@
+{
+  "authority": "Latest user request: readonly automatic facts; explicit reply keeps static container and static constructor.",
+  "scope": "Unpublished mechanics only; historical execution evidence remains untouched.",
+  "plannedReleaseCasesUnchanged": 41,
+  "bindings": [
+    {
+      "before": {
+        "id": "UT-ENV-PASSIVE-SETTERS",
+        "family": "unit",
+        "implementation": "Implemented",
+        "method": "CIS.Tests.UnitTests.EnvironmentOverridesTests.StoredAssignmentsRemainPassiveAndConsumersCheckTheirOwnValues",
+        "minimumExecutions": 1,
+        "lanes": [
+          "windows-x64",
+          "linux-ubuntu2404-x64"
+        ],
+        "source": "Current passive values/caller/logging ownership contract."
+      },
+      "current": {
+        "id": "UT-ENV-CONTROLLED-INPUTS",
+        "family": "unit",
+        "implementation": "Implemented",
+        "method": "CIS.Tests.UnitTests.EnvironmentOverridesTests.ControlledInvalidMetadataAndLoggingInputsAreRejectedAtTheirConsumers",
+        "minimumExecutions": 1,
+        "lanes": [
+          "windows-x64",
+          "linux-ubuntu2404-x64"
+        ],
+        "source": "Mutable protocol inputs are nonshipping; consumer validation is retained independently of readonly static facts."
+      },
+      "reason": "Mutable protocol inputs are nonshipping; consumer validation is retained independently of readonly static facts."
+    },
+    {
+      "before": {
+        "id": "IT-ENV-PASSIVE-APPLICATION",
+        "family": "integration",
+        "implementation": "Implemented",
+        "method": "CIS.Tests.IntegrationTests.EnvironmentOptionsProcessTests.PassiveValuesAndLoggingCaptureWorkInFreshApplicationProcesses",
+        "minimumExecutions": 4,
+        "lanes": [
+          "windows-x64",
+          "linux-ubuntu2404-x64"
+        ],
+        "source": "Current passive values/caller/logging ownership contract."
+      },
+      "current": {
+        "id": "IT-ENV-STATIC-CONSTRUCTOR",
+        "family": "integration",
+        "implementation": "Implemented",
+        "method": "CIS.Tests.IntegrationTests.EnvironmentOptionsProcessTests.ReadonlyConstructorFactsAndLoggingCaptureWorkInFreshApplicationProcesses",
+        "minimumExecutions": 5,
+        "lanes": [
+          "windows-x64",
+          "linux-ubuntu2404-x64"
+        ],
+        "source": "Fresh processes qualify real static default population, caller policy, environment overrides and permanent CLR failure semantics."
+      },
+      "reason": "Fresh processes qualify real static default population, caller policy, environment overrides and permanent CLR failure semantics."
+    },
+    {
+      "before": {
+        "id": "ARCH-ENV-PASSIVE-STORE",
+        "family": "architecture",
+        "implementation": "Implemented",
+        "method": "CIS.Tests.ArchitectureTests.ConfigurationAmbientStateTests.ValueStorePropertiesHaveNoCallsAndNoLifecycleState",
+        "minimumExecutions": 1,
+        "lanes": [
+          "windows-x64",
+          "linux-ubuntu2404-x64"
+        ],
+        "source": "Current passive values/caller/logging ownership contract."
+      },
+      "current": {
+        "id": "ARCH-ENV-READONLY-STATIC",
+        "family": "architecture",
+        "implementation": "Implemented",
+        "method": "CIS.Tests.ArchitectureTests.ConfigurationAmbientStateTests.ContainerFactsAreReadonlyAndGettersHaveNoLifecycleEffects",
+        "minimumExecutions": 1,
+        "lanes": [
+          "windows-x64",
+          "linux-ubuntu2404-x64"
+        ],
+        "source": "The user chose a static constructor; fifteen properties are getter-only and three caller policy properties remain writable."
+      },
+      "reason": "The user chose a static constructor; fifteen properties are getter-only and three caller policy properties remain writable."
+    },
+    {
+      "before": {
+        "id": "UT-ENV-DEFAULTS-VERSION",
+        "family": "unit",
+        "implementation": "Implemented",
+        "method": "CIS.Tests.UnitTests.EnvironmentDefaultsTests.CallerAssemblyInformationPrecedesAssemblyVersionAndIgnoresFileVersion",
+        "minimumExecutions": 3,
+        "lanes": [
+          "windows-x64",
+          "linux-ubuntu2404-x64"
+        ],
+        "source": "User-requested explicit defaults helper; preserves passive store and all planned release requirements."
+      },
+      "current": {
+        "id": "UT-ENV-CTOR-VERSION",
+        "family": "unit",
+        "implementation": "Implemented",
+        "method": "CIS.Tests.UnitTests.EnvironmentConstructorTests.AssemblyInformationPrecedesAssemblyVersionAndIgnoresFileVersion",
+        "minimumExecutions": 3,
+        "lanes": [
+          "windows-x64",
+          "linux-ubuntu2404-x64"
+        ],
+        "source": "The actual constructor version helper retains informational/assembly version precedence and ignores file version."
+      },
+      "reason": "The actual constructor version helper retains informational/assembly version precedence and ignores file version."
+    },
+    {
+      "before": {
+        "id": "UT-ENV-DEFAULTS-RUNTIME",
+        "family": "unit",
+        "implementation": "Implemented",
+        "method": "CIS.Tests.UnitTests.EnvironmentDefaultsTests.DefaultFactsMatchTheCurrentProcessAndProduceUsableOwnedMetadata",
+        "minimumExecutions": 1,
+        "lanes": [
+          "windows-x64",
+          "linux-ubuntu2404-x64"
+        ],
+        "source": "User-requested explicit defaults helper; preserves passive store and all planned release requirements."
+      },
+      "current": {
+        "id": "UT-ENV-CTOR-FACTS",
+        "family": "unit",
+        "implementation": "Implemented",
+        "method": "CIS.Tests.UnitTests.EnvironmentConstructorTests.AutomaticFactsMatchTheCurrentProcessAndProduceOwnedMetadata",
+        "minimumExecutions": 1,
+        "lanes": [
+          "windows-x64",
+          "linux-ubuntu2404-x64"
+        ],
+        "source": "Automatic static facts replace explicit helper assignment."
+      },
+      "reason": "Automatic static facts replace explicit helper assignment."
+    },
+    {
+      "before": {
+        "id": "UT-ENV-DEFAULTS-PRECEDENCE",
+        "family": "unit",
+        "implementation": "Implemented",
+        "method": "CIS.Tests.UnitTests.EnvironmentDefaultsTests.ExplicitValuesThenAliasesThenCanonicalOverridesPrecedeDefaults",
+        "minimumExecutions": 1,
+        "lanes": [
+          "windows-x64",
+          "linux-ubuntu2404-x64"
+        ],
+        "source": "User-requested explicit defaults helper; preserves passive store and all planned release requirements."
+      },
+      "current": {
+        "id": "UT-ENV-CTOR-INTERN",
+        "family": "unit",
+        "implementation": "Implemented",
+        "method": "CIS.Tests.UnitTests.EnvironmentConstructorTests.CommonIdentityValuesAreInternedAndPolicyValuesRemainOrdinaryProperties",
+        "minimumExecutions": 1,
+        "lanes": [
+          "windows-x64",
+          "linux-ubuntu2404-x64"
+        ],
+        "source": "Removed explicit assignment to readonly identities; original alias/canonical precedence remains in parser controls and native process cases. New identity interning is qualified."
+      },
+      "reason": "Removed explicit assignment to readonly identities; original alias/canonical precedence remains in parser controls and native process cases. New identity interning is qualified."
+    },
+    {
+      "before": {
+        "id": "UT-ENV-DEFAULTS-REPEATED",
+        "family": "unit",
+        "implementation": "Implemented",
+        "method": "CIS.Tests.UnitTests.EnvironmentDefaultsTests.RepeatedExplicitCallsReapplyFactsWithoutChangingCallerPolicyOrLogging",
+        "minimumExecutions": 1,
+        "lanes": [
+          "windows-x64",
+          "linux-ubuntu2404-x64"
+        ],
+        "source": "User-requested explicit defaults helper; preserves passive store and all planned release requirements."
+      },
+      "current": {
+        "id": "UT-ENV-CTOR-STABLE",
+        "family": "unit",
+        "implementation": "Implemented",
+        "method": "CIS.Tests.UnitTests.EnvironmentConstructorTests.RepeatedAccessRetainsTheSameFactsAndSettingsWithoutRegeneratingIds",
+        "minimumExecutions": 1,
+        "lanes": [
+          "windows-x64",
+          "linux-ubuntu2404-x64"
+        ],
+        "source": "A static constructor runs once; repeated helper reset is deliberately removed, and repeated access must preserve facts."
+      },
+      "reason": "A static constructor runs once; repeated helper reset is deliberately removed, and repeated access must preserve facts."
+    },
+    {
+      "before": {
+        "id": "UT-ENV-DEFAULTS-NULL",
+        "family": "unit",
+        "implementation": "Implemented",
+        "method": "CIS.Tests.UnitTests.EnvironmentDefaultsTests.NullApplicationAssemblyIsRejectedBeforeAnyAssignment",
+        "minimumExecutions": 1,
+        "lanes": [
+          "windows-x64",
+          "linux-ubuntu2404-x64"
+        ],
+        "source": "User-requested explicit defaults helper; preserves passive store and all planned release requirements."
+      },
+      "current": {
+        "id": "UT-ENV-CTOR-NOENTRY",
+        "family": "unit",
+        "implementation": "Implemented",
+        "method": "CIS.Tests.UnitTests.EnvironmentConstructorTests.MissingEntryAssemblyHasAnHonestUnknownBuildFallback",
+        "minimumExecutions": 1,
+        "lanes": [
+          "windows-x64",
+          "linux-ubuntu2404-x64"
+        ],
+        "source": "No caller assembly parameter exists on a static constructor; the null entry-assembly fallback is checked instead."
+      },
+      "reason": "No caller assembly parameter exists on a static constructor; the null entry-assembly fallback is checked instead."
+    },
+    {
+      "before": {
+        "id": "ARCH-ENV-DEFAULTS-OWNERSHIP",
+        "family": "architecture",
+        "implementation": "Implemented",
+        "method": "CIS.Tests.ArchitectureTests.ConfigurationAmbientStateTests.ExplicitDefaultsReadFactsWithoutReadingOverridesOrStartingConsumers",
+        "minimumExecutions": 1,
+        "lanes": [
+          "windows-x64",
+          "linux-ubuntu2404-x64"
+        ],
+        "source": "User-requested explicit defaults helper; preserves passive store and all planned release requirements."
+      },
+      "current": {
+        "id": "ARCH-ENV-CTOR-ORDER",
+        "family": "architecture",
+        "implementation": "Implemented",
+        "method": "CIS.Tests.ArchitectureTests.ConfigurationAmbientStateTests.ConstructorReadsFactsThenOverridesWithoutStartingConsumers",
+        "minimumExecutions": 1,
+        "lanes": [
+          "windows-x64",
+          "linux-ubuntu2404-x64"
+        ],
+        "source": "Compiled static constructor reads defaults, applies known overrides, then interns identities without starting consumers."
+      },
+      "reason": "Compiled static constructor reads defaults, applies known overrides, then interns identities without starting consumers."
+    }
+  ]
+}

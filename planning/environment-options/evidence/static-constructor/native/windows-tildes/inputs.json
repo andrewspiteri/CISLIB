@@ -1,0 +1,63 @@
+{
+  "cases": [
+    {
+      "id": "PATH-TILDE-ABSOLUTE",
+      "key": "CORE_LOG_FILE_PATH",
+      "category": "absent",
+      "inputs": {
+        "environment": {
+          "CORE_LOG_FILE_PATH": "C:\\PROGRA~1\\cislib-path-qualification-never-created-20261011\\log.jsonl"
+        },
+        "setup": {},
+        "discovery": {
+          "applicationName": "Fixture.App",
+          "buildVersion": "1.0.0"
+        }
+      },
+      "expected": {
+        "status": "Resolved",
+        "value": null
+      }
+    },
+    {
+      "id": "PATH-TILDE-CAPTURED-BASE",
+      "key": "CORE_LOG_FILE_PATH",
+      "category": "absent",
+      "inputs": {
+        "environment": {
+          "CORE_LOG_FILE_PATH": "cislib-path-qualification-never-created-20261011/log.jsonl"
+        },
+        "setup": {},
+        "discovery": {
+          "applicationName": "Fixture.App",
+          "buildVersion": "1.0.0"
+        },
+        "workingDirectoryAtInitialization": "C:\\PROGRA~1"
+      },
+      "expected": {
+        "status": "Resolved",
+        "value": null
+      }
+    },
+    {
+      "id": "PATH-TILDE-MARKER-COLLISION",
+      "key": "CORE_LOG_FILE_PATH",
+      "category": "absent",
+      "inputs": {
+        "environment": {
+          "CORE_LOG_FILE_PATH": "cislib-path-qualification-never-created-20261011/--~log.jsonl"
+        },
+        "setup": {},
+        "discovery": {
+          "applicationName": "Fixture.App",
+          "buildVersion": "1.0.0"
+        },
+        "workingDirectoryAtInitialization": "C:\\PROGRA~1"
+      },
+      "expected": {
+        "status": "Resolved",
+        "value": null
+      }
+    }
+  ]
+}

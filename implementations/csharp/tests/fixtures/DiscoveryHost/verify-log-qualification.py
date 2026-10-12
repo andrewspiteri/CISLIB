@@ -52,7 +52,7 @@ def main():
                 require(result["factoryCalls"] > 0, "No actual Core constructor invocation")
                 if not result["valid"]:
                     require(result["nativeException"] in ["ArgumentException", "ArgumentNullException", "ArgumentOutOfRangeException"], "Native error category differs")
-                require(observed["runtimeDescription"] == ".NET 10.0.12" and observed["operatingSystem"] == args.family and observed["publicFacadeInitialized"] is False, "Runtime/startup differs")
+                require(observed["runtimeDescription"] == ".NET 10.0.12" and observed["operatingSystem"] == args.family and observed["lifecycleApiPresent"] is False, "Runtime/startup differs")
                 require(observed["fixtureSha256"] == sha(host) and observed["coreSha256"] == sha(host.parent / "CIS.Core.dll") and observed["inputsSha256"] == sha(input_path), "Input/managed identity differs")
                 require(not list(Path(owned).iterdir()) and b"CIS_NEVER_CAPTURE_COLLECTOR" not in child.stdout, "Output/collector side effect")
                 record["cases"].append({"id": key, "status": "Passed", "childExitCode": child.returncode, "factoryCalls": result["factoryCalls"], "fixtureSha256": observed["fixtureSha256"], "coreSha256": observed["coreSha256"]})

@@ -15,7 +15,7 @@ internal static class OperationScopeQualificationProcessFixture
         OperationScopeQualificationExpectations.Validate(row, catalog["nativeBindings"]!.AsObject(), result);
         result["observed"] = new JsonObject
         {
-            ["publicFacadeInitialized"] = EnvironmentOptions.IsInitialized,
+            ["lifecycleApiPresent"] = (typeof(EnvironmentOptions).GetMethod("Initialize") is not null),
             ["runtimeDescription"] = RuntimeInformation.FrameworkDescription,
             ["operatingSystem"] = OperatingSystem.IsWindows() ? "windows" : OperatingSystem.IsLinux() ? "linux"
                 : OperatingSystem.IsMacOS() ? "macos" : "unknown",

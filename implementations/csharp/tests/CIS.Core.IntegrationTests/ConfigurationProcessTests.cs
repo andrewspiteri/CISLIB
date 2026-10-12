@@ -1,5 +1,6 @@
 using System.Security.Cryptography;
 using System.Text.Json.Nodes;
+using CIS.Tests.DiscoveryFixture;
 using CIS.TestSupport;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -20,6 +21,8 @@ public sealed class ConfigurationProcessTests
     [DataRow("CFG-RESOLVE-BOTH-NONE")]
     [DataRow("CFG-RESOLVE-TELEMETRY-CORE")]
     [DataRow("CFG-RESOLVE-TELEMETRY-DD")]
+    [DataRow("CFG-RESOLVE-INVALID-HIGHER-PRIORITY")]
+    [DataRow("CFG-RESOLVE-INVALID-DISABLED-OPTIONS")]
     public async Task ChildConfigurationMatchesSharedInputsWithoutChangingHostLabel(string id)
     {
         JsonObject document = JsonNode.Parse(File.ReadAllText(FindInputs()))!.AsObject();
@@ -39,7 +42,33 @@ public sealed class ConfigurationProcessTests
         Assert.AreEqual(string.Empty, process.StandardError);
         TestContext.WriteLine(process.StandardOutput);
         JsonObject result = JsonNode.Parse(process.StandardOutput)!.AsObject();
-        Assert.IsTrue(JsonNode.DeepEquals(row["expected"], result["configuration"]), process.StandardOutput);
+        JsonObject configuration = result["configuration"]!.AsObject();
+        JsonObject expected = row["expected"]!.AsObject();
+        if (expected["hasParseErrors"]!.GetValue<bool>())
+        {
+            Assert.AreEqual("Invalid", configuration["status"]!.GetValue<string>());
+            Assert.IsNull(configuration["values"]);
+            CollectionAssert.AreEqual(expected["settings"]!.AsArray().Where(setting => setting!["state"]!.GetValue<string>() == "InvalidToken").Select(setting => setting!["key"]!.GetValue<string>()).ToArray(),
+                configuration["issues"]!.AsArray().Select(issue => issue!["key"]!.GetValue<string>()).ToArray());
+        }
+        else
+        {
+            Assert.AreEqual("Valid", configuration["status"]!.GetValue<string>());
+            Assert.AreEqual(expected["buildVersion"]!.GetValue<string>(), configuration["values"]!["BuildVersion"]!.GetValue<string>());
+            foreach (JsonNode? setting in expected["settings"]!.AsArray())
+            {
+                string key = setting!["key"]!.GetValue<string>();
+                string property = ConfigurationReadExpectations.Catalog()["settings"]!.AsArray().Single(row => row!["key"]!.GetValue<string>() == key)!["property"]!.GetValue<string>();
+                JsonNode? wanted = setting["value"];
+                if (key == "CORE_LOG_FILE_PATH" && wanted is not null)
+                {
+                    wanted = JsonValue.Create(Path.GetFullPath(wanted.GetValue<string>(), directory.Path));
+                }
+                Assert.IsTrue(JsonNode.DeepEquals(wanted, configuration["values"]![property]), id + ":" + key);
+            }
+            Assert.IsTrue(JsonNode.DeepEquals(expected["consoleEnabled"], configuration["consoleEnabled"]));
+            Assert.IsTrue(JsonNode.DeepEquals(expected["fileEnabled"], configuration["fileEnabled"]));
+        }
         Assert.IsTrue(JsonNode.DeepEquals(input["host"], result["hostBefore"]));
         Assert.IsTrue(JsonNode.DeepEquals(result["hostBefore"], result["hostAfter"]));
         Assert.AreEqual(hostLabel, result["frameworkVariableBefore"]?.GetValue<string>());
@@ -51,8 +80,8 @@ public sealed class ConfigurationProcessTests
         Assert.AreEqual(Hash(Path.Combine(Path.GetDirectoryName(FixturePath)!, "CIS.Core.dll")), observed["coreSha256"]!.GetValue<string>());
         Assert.AreEqual(Hash(FindInputs()), observed["inputsSha256"]!.GetValue<string>());
         string[] reads = observed["recognizedReads"]!.AsArray().Select(node => node!.GetValue<string>()).ToArray();
-        Assert.AreEqual(21, reads.Length);
-        Assert.AreEqual(21, reads.Distinct(StringComparer.Ordinal).Count());
+        CollectionAssert.AreEqual(ConfigurationReadExpectations.Expected(input), reads);
+        Assert.AreEqual(reads.Length, reads.Distinct(StringComparer.Ordinal).Count());
         Assert.IsFalse(reads.Contains("ASPNETCORE_ENVIRONMENT", StringComparer.Ordinal));
         Assert.IsFalse(reads.Contains("CORE_PASSWORD", StringComparer.Ordinal));
         Assert.AreEqual(0, Directory.GetFileSystemEntries(directory.Path).Length, "Selection created filesystem outputs.");

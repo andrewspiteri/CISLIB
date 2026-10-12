@@ -43,7 +43,8 @@ function Build-IncompatibleReference {
     }
     Copy-Item -LiteralPath (Join-Path $surfaceRoot 'Reference.csproj.template') -Destination (Join-Path $directory 'Reference.csproj')
     $path = Join-Path $directory $Sample.surfaceFile
-    $original = [IO.File]::ReadAllText($path)
+    # Match the exact source anchor independently of checkout/editor line endings.
+    $original = [IO.File]::ReadAllText($path).Replace("`r`n", "`n")
     $position = $original.IndexOf($Sample.find, [StringComparison]::Ordinal)
     if ($position -lt 0 -or $position -ne $original.LastIndexOf($Sample.find, [StringComparison]::Ordinal)) { throw "Mutation anchor must occur exactly once: $($Sample.id)" }
     [IO.File]::WriteAllText($path, $original.Replace($Sample.find, $Sample.replace, [StringComparison]::Ordinal), [Text.UTF8Encoding]::new($false))

@@ -1,55 +1,32 @@
-using System.Globalization;
-using System.Runtime.InteropServices;
 using System.Text.Json.Nodes;
-using CIS.Configuration;
 using CIS.Logging;
 
 namespace CIS.Tests.DiscoveryFixture;
 
-// Controlled portable facts feed the real validated builder; actual process identity is observed separately.
-internal sealed class EventProjectionFixtureSources(JsonObject metadata) : IRuntimeMetadataSource, IEnvironmentVariableSource
+// Application-side assignments supply controlled facts. Logging owns metadata capture.
+internal static class EventProjectionFixtureSources
 {
-    internal bool Blocked { get; set; }
-    private void Read() { if (Blocked) { throw new InvalidOperationException("Projection queried a blocked startup source."); } }
-    private string? Text(string key) { Read(); return metadata[key]?.GetValue<string>(); }
-    public string? GetValue(string name) { Read(); return null; }
-    public DateTimeOffset? GetProcessStartedAt() => Text("process_started_at") is { } text ? DateTimeOffset.Parse(text, CultureInfo.InvariantCulture) : null;
-    public string? GetHostName() => Text("host_name");
-    public OSPlatform? GetOperatingSystem() => Text("os_family") switch
+    internal static EventMetadata Create(JsonObject metadata, out JsonObject suppliedFacts)
     {
-        "windows" => OSPlatform.Windows,
-        "linux" => OSPlatform.Linux,
-        "macos" => OSPlatform.OSX,
-        "unknown" => null,
-        _ => throw new InvalidDataException("Unknown portable OS family.")
-    };
-    public string? GetOperatingSystemDescription() => Text("os_description");
-    public Architecture? GetOSArchitecture() => ArchitectureValue("os_architecture");
-    public Architecture? GetProcessArchitecture() => ArchitectureValue("process_architecture");
-    public string? GetRuntimeDescription() => Text("runtime_description");
-    public int? GetProcessId() { Read(); return metadata["process_id"]?.GetValue<int>(); }
-    private Architecture? ArchitectureValue(string key) => Text(key) is { } text ? Enum.Parse<Architecture>(text, ignoreCase: true) : null;
-
-    internal static EnvironmentSnapshot Create(JsonObject metadata, out EnvironmentSetup setup, out EventProjectionFixtureSources sources)
-    {
-        setup = new EnvironmentSetup
-        {
-            ApplicationName = metadata["service"]!.GetValue<string>(),
-            EnvironmentName = metadata["env"]!.GetValue<string>(),
-            ServiceVersion = metadata["version"]!.GetValue<string>(),
-            BuildVersion = metadata["build_version"]!.GetValue<string>(),
-            EnvironmentKind = Enum.Parse<EnvironmentKind>(metadata["environment_kind"]!.GetValue<string>(), ignoreCase: true),
-            CommitId = metadata["commit_id"]?.GetValue<string>(),
-            BuildId = metadata["build_id"]?.GetValue<string>(),
-            Logging = new LoggingSetup { FilePath = "private/projection.jsonl", QueueCapacity = 777, MaxEntryBytes = 65536 }
-        };
-        sources = new EventProjectionFixtureSources(metadata);
-        EnvironmentSnapshot snapshot = EnvironmentSnapshotFactory.Create(setup, sources, runtimeSource: sources,
-            readWorkingDirectory: Directory.GetCurrentDirectory,
-            initializationFactory: new InitializationIdentityFactory(new FixedClock(metadata["initialized_at"]!.GetValue<DateTimeOffset>()),
-                () => Guid.Parse(metadata["instance_id"]!.GetValue<string>())));
-        sources.Blocked = true;
-        return snapshot;
+        ConfigurationFixtureAdapter.Facts.ApplicationName = metadata["service"]!.GetValue<string>();
+        ConfigurationFixtureAdapter.Facts.EnvironmentName = metadata["env"]!.GetValue<string>();
+        ConfigurationFixtureAdapter.Facts.ServiceVersion = metadata["version"]!.GetValue<string>();
+        ConfigurationFixtureAdapter.Facts.BuildVersion = metadata["build_version"]!.GetValue<string>();
+        ConfigurationFixtureAdapter.Facts.EnvironmentKind = Enum.Parse<EnvironmentKind>(metadata["environment_kind"]!.GetValue<string>(), ignoreCase: true);
+        ConfigurationFixtureAdapter.Facts.CommitId = metadata["commit_id"]?.GetValue<string>();
+        ConfigurationFixtureAdapter.Facts.BuildId = metadata["build_id"]?.GetValue<string>();
+        ConfigurationFixtureAdapter.Facts.InstanceId = metadata["instance_id"]!.GetValue<string>();
+        ConfigurationFixtureAdapter.Facts.InitializedAtUtc = metadata["initialized_at"]!.GetValue<DateTimeOffset>();
+        ConfigurationFixtureAdapter.Facts.ProcessStartedAtUtc = metadata["process_started_at"]?.GetValue<DateTimeOffset>();
+        ConfigurationFixtureAdapter.Facts.HostName = metadata["host_name"]?.GetValue<string>();
+        ConfigurationFixtureAdapter.Facts.OperatingSystem = metadata["os_family"]!.GetValue<string>();
+        ConfigurationFixtureAdapter.Facts.OperatingSystemDescription = metadata["os_description"]?.GetValue<string>();
+        ConfigurationFixtureAdapter.Facts.OSArchitecture = metadata["os_architecture"]?.GetValue<string>();
+        ConfigurationFixtureAdapter.Facts.ProcessArchitecture = metadata["process_architecture"]?.GetValue<string>();
+        ConfigurationFixtureAdapter.Facts.RuntimeDescription = metadata["runtime_description"]?.GetValue<string>();
+        ConfigurationFixtureAdapter.Facts.ProcessId = metadata["process_id"]?.GetValue<int>();
+        ConfigurationFixtureAdapter.Facts.Logging = new LoggingOptions { FilePath = "private/projection.jsonl", QueueCapacity = 777 };
+        suppliedFacts = metadata;
+        return ConfigurationFixtureAdapter.Facts.CaptureMetadata();
     }
-    private sealed class FixedClock(DateTimeOffset instant) : TimeProvider { public override DateTimeOffset GetUtcNow() => instant; }
 }

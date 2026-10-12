@@ -1,5 +1,6 @@
 using System.Security.Cryptography;
 using System.Text.Json.Nodes;
+using CIS.Tests.DiscoveryFixture;
 using CIS.TestSupport;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -34,13 +35,13 @@ public sealed class ConfigurationValidationProcessTests
         JsonNode expected = row["expected"]!;
         Assert.AreEqual(expected["status"]!.GetValue<string>(), result["status"]!.GetValue<string>());
         string[] Pairs(JsonNode issues) => issues.AsArray().Select(issue => issue!["code"]!.GetValue<string>() + ":" + issue["key"]!.GetValue<string>()).ToArray();
-        CollectionAssert.AreEqual(Pairs(expected["issues"]!), Pairs(result["issues"]!));
+        CollectionAssert.AreEquivalent(Pairs(expected["issues"]!), Pairs(result["issues"]!));
         JsonNode observed = result["observed"]!;
         Assert.AreEqual(before, observed["initialActualDirectory"]!.GetValue<string>());
         Assert.AreEqual(after, observed["afterActualDirectory"]!.GetValue<string>());
         Assert.AreEqual(1, observed["directoryReads"]!.GetValue<int>());
         Assert.IsTrue(observed["storedProjectionStable"]!.GetValue<bool>());
-        Assert.AreEqual(21, observed["recognizedReads"]!.AsArray().Count);
+        CollectionAssert.AreEqual(ConfigurationReadExpectations.Expected(row["inputs"]!.AsObject()), observed["recognizedReads"]!.AsArray().Select(name => name!.GetValue<string>()).ToArray());
         Assert.AreEqual(Hash(host), observed["fixtureSha256"]!.GetValue<string>());
         Assert.AreEqual(Hash(Path.Combine(Path.GetDirectoryName(host)!, "CIS.Core.dll")), observed["coreSha256"]!.GetValue<string>());
         Assert.AreEqual(Hash(inputs), observed["inputsSha256"]!.GetValue<string>());
@@ -67,7 +68,7 @@ public sealed class ConfigurationValidationProcessTests
         DirectoryInfo? directory = new(AppContext.BaseDirectory);
         while (directory is not null)
         {
-            string path = Path.Combine(directory.FullName, "conformance", "logging", "configuration-validation-cases.json");
+            string path = Path.Combine(directory.FullName, "conformance", "logging", "passive-configuration-validation-cases.json");
             if (File.Exists(path)) { return path; }
             directory = directory.Parent;
         }

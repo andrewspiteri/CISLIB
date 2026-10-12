@@ -14,19 +14,12 @@ internal static class ConfigurationProcessFixture
         JsonObject input = row["inputs"]!.AsObject();
         JsonNode hostBefore = input["host"]!.DeepClone();
         string? frameworkBefore = System.Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
-        ApplicationIdentity application = ApplicationIdentityDiscovery.Discover(new ApplicationIdentityInput());
-        JsonObject discovery = input["discovery"]!.AsObject();
-        if (application.ApplicationName != ConfigurationFixtureAdapter.Text(discovery, "applicationName") || application.BuildVersion != ConfigurationFixtureAdapter.Text(discovery, "buildVersion"))
-        {
-            throw new InvalidDataException("The fixture discovery values do not match this application host.");
-        }
         var source = new RecordingSource();
-        CapturedEnvironment variables = CapturedEnvironment.Capture(source);
-        ConfigurationResolution resolution = ConfigurationResolver.Resolve(ConfigurationFixtureAdapter.Setup(input), application, variables);
+        (PreparedConfiguration? snapshot, CoreConfigurationException? error) = ConfigurationValidationAdapter.Execute(input, Directory.GetCurrentDirectory, source.GetValue);
         var result = new JsonObject
         {
             ["caseId"] = id,
-            ["configuration"] = ConfigurationFixtureAdapter.Project(resolution),
+            ["configuration"] = ConfigurationValidationAdapter.Project(snapshot, error, Directory.GetCurrentDirectory()),
             ["hostBefore"] = hostBefore,
             ["hostAfter"] = input["host"]!.DeepClone(),
             ["frameworkVariableBefore"] = frameworkBefore,
@@ -40,7 +33,7 @@ internal static class ConfigurationProcessFixture
                 ["debuggerAttached"] = Debugger.IsAttached,
                 ["processId"] = System.Environment.ProcessId,
                 ["fixtureSha256"] = Hash(typeof(ConfigurationProcessFixture).Assembly.Location),
-                ["coreSha256"] = Hash(typeof(ConfigurationResolver).Assembly.Location),
+                ["coreSha256"] = Hash(typeof(EnvironmentOptions).Assembly.Location),
                 ["inputsSha256"] = Hash(path),
                 ["recognizedReads"] = new JsonArray(source.Reads.Select(name => (JsonNode)JsonValue.Create(name)!).ToArray())
             }
@@ -51,7 +44,7 @@ internal static class ConfigurationProcessFixture
 
     private static string Hash(string path) => Convert.ToHexStringLower(SHA256.HashData(File.ReadAllBytes(path)));
 
-    private sealed class RecordingSource : IEnvironmentVariableSource
+    private sealed class RecordingSource
     {
         public List<string> Reads { get; } = [];
         public string? GetValue(string name)

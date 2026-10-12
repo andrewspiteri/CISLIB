@@ -9,6 +9,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 namespace CIS.Tests.UnitTests;
 
 [TestClass]
+[DoNotParallelize]
 public sealed class EventPrecedenceTests
 {
     public static IEnumerable<object[]> Rows => Catalog()["cases"]!.AsArray().Select(row => new object[] { row!["id"]!.GetValue<string>() });
@@ -187,7 +188,7 @@ public sealed class EventPrecedenceTests
         using IDisposable inner = store.BeginScope(new OperationContextData { OperationId = "inner", Attributes = Strings(new JsonObject { ["shared"] = "inner" }) });
         var source = new Dictionary<string, LogValue> { ["shared"] = LogValue.String("event-first") };
         var data = new LogEventData { EventName = "event", Message = "", OperationId = " event-first ", Attributes = source };
-        EnvironmentSnapshot snapshot = Snapshot();
+        EventMetadata snapshot = Snapshot();
         CapturedEventFacts first = EventProjection.Capture(snapshot, store.Capture(), "Component", CoreLogLevel.Information, data)!;
         source.Clear(); data.OperationId = null;
         if (mode == "popped")
@@ -213,5 +214,5 @@ public sealed class EventPrecedenceTests
     private static Dictionary<string, LogValue> Strings(JsonObject values) => values.ToDictionary(pair => pair.Key,
         pair => LogValue.String(pair.Value!.GetValue<string>()), StringComparer.Ordinal);
     private static JsonObject Catalog() => LogValueTests.Read("event-precedence-cases.json");
-    private static EnvironmentSnapshot Snapshot() => EventProjectionFixtureSources.Create(Catalog()["cases"]![0]!["input"]!["metadata"]!.DeepClone().AsObject(), out _, out _);
+    private static EventMetadata Snapshot() => EventProjectionFixtureSources.Create(Catalog()["cases"]![0]!["input"]!["metadata"]!.DeepClone().AsObject(), out _);
 }

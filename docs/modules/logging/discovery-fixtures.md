@@ -1,5 +1,7 @@
 # Discovery tables and process fixtures
 
+> Historical implementation/evidence: the passive caller-populated store in [current guidance](environment-options.md) supersedes these discovery/factory/publication tasks. Original receipts and source proposals remain preserved; do not recreate the removed startup subsystem from this walkthrough.
+
 WP03-S01-T04 exercises Core's internal application, version, runtime and initialization discovery together. The [portable discovery table](../../../conformance/logging/discovery-cases.json) has 20 independently declared input/output rows for Windows/Linux/macOS/unknown projection, missing optional facts, supplied/entry/explicit/Core assembly selection, actual build fallbacks, telemetry labels, explicit IDs, Unicode/case, and separate UTC timestamps. It deliberately does not stand in for the twelve complete public snapshot vectors or static publication.
 
 The [nonshipping host](../../../implementations/csharp/tests/fixtures/DiscoveryHost/Program.cs) calls the actual Core internals. Its informational version is `9.8.7-rc.2+sha.Application`, its assembly version is `23.0.0.0`, and its file-version decoy is `88.0.0.0`. Core retains assembly version `1.0.0.0` and its own different informational version. The real entry-assembly fallback must retain the application name and full informational suffix, never a Core/file version. Loaded application/Core paths and SHA-256 values accompany the native observations.

@@ -38,7 +38,7 @@ public sealed class EventProjectionProcessTests
         Assert.AreEqual(RuntimeInformation.FrameworkDescription, observed["runtimeDescription"]!.GetValue<string>());
         Assert.AreEqual(".NET 10.0.12", observed["runtimeDescription"]!.GetValue<string>());
         Assert.AreEqual(OperatingSystem.IsWindows() ? "windows" : OperatingSystem.IsLinux() ? "linux" : OperatingSystem.IsMacOS() ? "macos" : "unknown", observed["operatingSystem"]!.GetValue<string>());
-        Assert.IsFalse(observed["publicFacadeInitialized"]!.GetValue<bool>());
+        Assert.IsFalse(observed["lifecycleApiPresent"]!.GetValue<bool>());
         Assert.AreEqual(Hash(host), observed["fixtureSha256"]!.GetValue<string>());
         Assert.AreEqual(Hash(Path.Combine(Path.GetDirectoryName(host)!, "CIS.Core.dll")), observed["coreSha256"]!.GetValue<string>());
         Assert.AreEqual(Hash(input), observed["inputsSha256"]!.GetValue<string>());

@@ -1,6 +1,8 @@
 # Typed configuration resolution
 
-WP03-S02-T02 implements the internal [resolver](../../../implementations/csharp/src/CIS.Core/Environment/Resolution/ConfigurationResolver.cs) over one [captured environment](configuration-inputs.md), typed setup inputs and discovered application identity. It selects and parses all 18 settings in the [shared catalog](../../../contracts/logging/v1/configuration.json). This result is an intermediate parsed configuration, before range/identity/path validation and the public `CIS.EnvironmentOptions` snapshot.
+> Historical implementation/evidence: the passive caller-populated store in [current guidance](environment-options.md) supersedes these discovery/factory/publication tasks. Original receipts and source proposals remain preserved; do not recreate the removed startup subsystem from this walkthrough.
+
+WP03-S02-T02 implements the internal resolver (removed by simplification) over one [captured environment](configuration-inputs.md), typed setup inputs and discovered application identity. It selects and parses all 18 settings in the [shared catalog](../../../contracts/logging/v1/configuration.json). This result is an intermediate parsed configuration, before range/identity/path validation and the public `CIS.EnvironmentOptions` snapshot.
 
 | Setting | Default |
 | --- | --- |
@@ -25,7 +27,7 @@ WP03-S02-T02 implements the internal [resolver](../../../implementations/csharp/
 
 Console and file thresholds inherit only when their own selected value is absent. Level is not a global cap: Information globally, Warning on console and Debug in the file preserves the file's Debug interest. An explicitly selected None disables that output. Console enablement depends on its threshold; file enablement requires both a nonblank path and a threshold other than None. Explicit formats and stream remain selected without inference from path extensions or host settings. All options are parsed even if both outputs are disabled.
 
-The [parser](../../../implementations/csharp/src/CIS.Core/Environment/Resolution/ConfigurationSettingParser.cs) reuses the proven severity parser, including TRC, DBG, INF/INFO, WRN/WARN, ERR and CRT/CRIT. Other accepted tokens are human/jsonl, stderr/stdout and normal/verbose. Matching is ordinal and case-insensitive after selection trims whitespace. Numeric severity tokens and undefined typed enum values are invalid. Identity and path text preserve trimmed case.
+The parser (removed by simplification) reuses the proven severity parser, including TRC, DBG, INF/INFO, WRN/WARN, ERR and CRT/CRIT. Other accepted tokens are human/jsonl, stderr/stdout and normal/verbose. Matching is ordinal and case-insensitive after selection trims whitespace. Numeric severity tokens and undefined typed enum values are invalid. Identity and path text preserve trimmed case.
 
 Integer tokens accept ASCII decimal digits with an optional leading sign, using invariant culture. Grouping, decimal fractions, exponents, hexadecimal and Unicode digits are invalid. Integer-domain overflow is OutOfRange; FileMaxBytes retains a 64-bit domain while the other numeric settings use 32-bit domains. A representable schema integer other than 1 is UnsupportedSchemaVersion. Flush and shutdown expose millisecond values and their corresponding TimeSpan values.
 

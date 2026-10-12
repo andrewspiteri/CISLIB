@@ -1,4 +1,5 @@
 using System.Globalization;
+using CIS.Logging;
 using CIS.Logging.Configuration;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -49,7 +50,7 @@ public sealed class SeverityTokenParserTests
     [DataRow(" \tcrit\r\n", 5)]
     public void NamedTokensAndAliasesHaveDefinedValues(string token, int expected)
     {
-        ConfigurationTokenState state = SeverityTokenParser.Parse(token, out ConfigurationSeverity? severity);
+        ConfigurationTokenState state = SeverityTokenParser.Parse(token, out CoreLogLevel? severity);
 
         Assert.AreEqual(ConfigurationTokenState.Valid, state);
         Assert.IsNotNull(severity);
@@ -64,7 +65,7 @@ public sealed class SeverityTokenParserTests
     [DataRow("\u2003\u00a0")]
     public void BlankValuesAreAbsentAndClearTheOutput(string? token)
     {
-        ConfigurationSeverity? severity = ConfigurationSeverity.Critical;
+        CoreLogLevel? severity = CoreLogLevel.Critical;
         ConfigurationTokenState state = SeverityTokenParser.Parse(token, out severity);
 
         Assert.AreEqual(ConfigurationTokenState.Absent, state);
@@ -121,7 +122,7 @@ public sealed class SeverityTokenParserTests
     [DataRow("XRIT")]
     public void PresentUnrecognizedTokensAreInvalidAndClearTheOutput(string token)
     {
-        ConfigurationSeverity? severity = ConfigurationSeverity.Critical;
+        CoreLogLevel? severity = CoreLogLevel.Critical;
         ConfigurationTokenState state = SeverityTokenParser.Parse(token, out severity);
 
         Assert.AreEqual(ConfigurationTokenState.Invalid, state);
@@ -137,10 +138,10 @@ public sealed class SeverityTokenParserTests
         try
         {
             CultureInfo.CurrentCulture = CultureInfo.GetCultureInfo(cultureName);
-            ConfigurationTokenState state = SeverityTokenParser.Parse("information", out ConfigurationSeverity? severity);
+            ConfigurationTokenState state = SeverityTokenParser.Parse("information", out CoreLogLevel? severity);
 
             Assert.AreEqual(ConfigurationTokenState.Valid, state);
-            Assert.AreEqual(ConfigurationSeverity.Information, severity);
+            Assert.AreEqual(CoreLogLevel.Information, severity);
         }
         finally
         {

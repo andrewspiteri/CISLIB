@@ -13,7 +13,7 @@ internal static class EventProjectionFixture
     {
         JsonObject input = row["input"]!.DeepClone().AsObject();
         JsonObject metadata = input["metadata"]!.AsObject();
-        EnvironmentSnapshot snapshot = EventProjectionFixtureSources.Create(metadata, out EnvironmentSetup setup, out _);
+        EventMetadata snapshot = EventProjectionFixtureSources.Create(metadata, out _);
         var store = new OperationScopeStore();
         JsonObject scope = input["scope"]!.AsObject();
         LogEventData data = Input(input["event"]!.AsObject());
@@ -38,8 +38,8 @@ internal static class EventProjectionFixture
         data.OperationId = "changed";
         if (data.Attributes is Dictionary<string, LogValue> original) { original.Clear(); original["new"] = LogValue.String("changed"); }
         data.Attributes = new Dictionary<string, LogValue>(); data.Exception = new Exception("changed");
-        setup.ApplicationName = "Changed.App"; setup.EnvironmentName = "changed";
-        setup.Logging!.FilePath = "changed/private.jsonl"; setup.Logging.QueueCapacity = 1;
+        ConfigurationFixtureAdapter.Facts.ApplicationName = "Changed.App"; ConfigurationFixtureAdapter.Facts.EnvironmentName = "changed";
+        ConfigurationFixtureAdapter.Facts.Logging!.FilePath = "changed/private.jsonl"; ConfigurationFixtureAdapter.Facts.Logging.QueueCapacity = 1;
         metadata["service"] = "Changed.App";
         using IDisposable replacement = store.BeginScope(new OperationContextData { OperationId = "changed" });
         JsonObject? after = Project(captured);
@@ -49,7 +49,7 @@ internal static class EventProjectionFixture
             ["projection"] = after,
             ["scopeHeadUnchanged"] = headUnchanged,
             ["stableAfterMutation"] = JsonNode.DeepEquals(before, after),
-            ["callerMutationApplied"] = data.EventName == "changed" && setup.Logging.QueueCapacity == 1
+            ["callerMutationApplied"] = data.EventName == "changed" && ConfigurationFixtureAdapter.Facts.Logging.QueueCapacity == 1
                 && metadata["service"]!.GetValue<string>() == "Changed.App" && store.Capture().OperationId == "changed"
         };
     }

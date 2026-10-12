@@ -36,7 +36,7 @@ public sealed class LogValueProjectionArchitectureTests
     [TestMethod]
     public void StringKeyAndIdentityValidationCallTheSameCompiledScalarHelper()
     {
-        foreach ((string typeName, string member) in new[] { ("CIS.Logging.Values.LogValueText", "IsValidUnicode"), ("CIS.Logging.Values.LogValueText", "IsValidKey"), ("CIS.Configuration.ConfigurationIdentityValidator", "IsValid") })
+        foreach ((string typeName, string member) in new[] { ("CIS.Logging.Values.LogValueText", "IsValidUnicode"), ("CIS.Logging.Values.LogValueText", "IsValidKey"), ("CIS.Logging.EventMetadata", "CheckIdentity"), ("CIS.Configuration.EnvironmentOverrides", "Identity") })
         {
             Type type = typeof(LogValue).Assembly.GetType(typeName, throwOnError: true)!;
             MethodInfo method = type.GetMethod(member, BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static)!;

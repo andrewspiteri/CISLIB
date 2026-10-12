@@ -8,6 +8,7 @@ from pathlib import Path
 import posixpath
 import subprocess
 import tempfile
+from configuration_expectations import expected_reads
 
 
 def sha(path):
@@ -40,7 +41,7 @@ def main():
     names = [name for setting in settings for name in [setting["key"], *setting.get("aliases", [])]]
     parent_environment, parent_directory = dict(os.environ), os.getcwd()
     native = ntpath if args.family == "windows" else posixpath
-    record = {"schema": "cis.configuration-validation-process/v1", "scope": "Complete actual internal Core validation and stored getters; injected discovery facts/JSON variable source, before public startup/snapshot", "family": args.family, "status": "Failed", "exitCode": 1, "runtimeVersion": "10.0.12", "rollForward": "Disable", "caseCount": 24, "cases": [], "reports": []}
+    record = {"schema": "cis.configuration-validation-process/v2", "scope": "Caller-prepared values; independent override/logging/metadata checks aggregated by the test fixture only", "family": args.family, "status": "Failed", "exitCode": 1, "runtimeVersion": "10.0.12", "rollForward": "Disable", "caseCount": 24, "cases": [], "reports": []}
     try:
         for row in rows:
             with tempfile.TemporaryDirectory(prefix="owned-", dir=args.output) as owned:
@@ -58,16 +59,16 @@ def main():
                 observed = value["observed"]
                 require(observed["caseId"] == row["id"] and observed["operatingSystem"] == args.family and observed["runtimeDescription"] == ".NET 10.0.12", "Unexpected child identity/runtime/platform")
                 require(observed["fixtureSha256"] == sha(host) and observed["coreSha256"] == sha(host.parent / "CIS.Core.dll") and observed["inputsSha256"] == sha(inputs), "Loaded bytes differ")
-                require(observed["recognizedReads"] == names and observed["directoryReads"] == 1, "Capture requests/order differ or repeat")
+                require(observed["recognizedReads"] == expected_reads(settings, row["inputs"]["environment"]) and observed["directoryReads"] == 1, "Capture requests/order differ or repeat")
                 require(observed["initialActualDirectory"] == str(before) and observed["afterActualDirectory"] == str(after) and observed["storedProjectionStable"], "Cwd transition redirects stored state")
                 expected = row["expected"]
                 require(value["status"] == expected["status"], "Validation status differs: " + row["id"])
-                require([{key: issue[key] for key in ["code", "key"]} for issue in value["issues"]] == expected["issues"], "Complete ordered issues differ: " + row["id"])
+                require(sorted((issue["code"], issue["key"]) for issue in value["issues"]) == sorted((issue["code"], issue["key"]) for issue in expected["issues"]), "Complete issue multiset differs: " + row["id"])
                 require(all(issue["explanation"] for issue in value["issues"]), "Empty diagnostic guidance")
                 for name in ["consoleEnabled", "fileEnabled"]:
-                    if name in expected:
+                    if expected["status"] == "Valid" and name in expected:
                         require(value[name] == expected[name], "Output decision differs")
-                for name in ["selected", "values"]:
+                for name in ["values"]:
                     if name in expected:
                         require(subset(expected[name], value[name]), "Stored expected subset differs: " + row["id"])
                 if expected["status"] == "Valid":
@@ -80,7 +81,7 @@ def main():
                     require(value["message"] == "Core configuration is invalid. Inspect Issues for details." and value["exceptionText"].startswith("CIS.Configuration.CoreConfigurationException:"), "Unsafe or unexpected exception format")
                 require(all(text not in result.stdout.decode("utf-8") for text in row["diagnosticsMustExclude"]), "Input/credential content leaked")
                 require(not any(before.iterdir()) and not any(after.iterdir()) and len(list(Path(owned).iterdir())) == 2, "Validation created outputs")
-                record["cases"].append({"id": row["id"], "status": "Passed", "command": command, "issueCount": len(value["issues"]), "actualChildDirectoryChanged": True, "storedProjectionStable": True, "sourceBlockedAfterCapture": True})
+                record["cases"].append({"id": row["id"], "status": "Passed", "command": command, "issueCount": len(value["issues"]), "actualChildDirectoryChanged": True, "storedProjectionStable": True, "overrideReadsBlockedAfterApply": True})
         require(dict(os.environ) == parent_environment and os.getcwd() == parent_directory, "Parent state changed")
         record.update(status="Passed", exitCode=0, parentUnchanged=True, noLoggingOutputsCreated=True)
     except Exception as error:

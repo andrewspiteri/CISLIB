@@ -1,16 +1,5 @@
 namespace CIS.Logging.Configuration;
 
-internal enum ConfigurationSeverity
-{
-    Trace = 0,
-    Debug = 1,
-    Information = 2,
-    Warning = 3,
-    Error = 4,
-    Critical = 5,
-    None = 6
-}
-
 internal enum ConfigurationTokenState
 {
     Absent,
@@ -21,7 +10,7 @@ internal enum ConfigurationTokenState
 // Absence and invalid input stay distinct so a later resolver can enforce precedence.
 internal static class SeverityTokenParser
 {
-    internal static ConfigurationTokenState Parse(string? token, out ConfigurationSeverity? severity)
+    internal static ConfigurationTokenState Parse(string? token, out CoreLogLevel? severity)
     {
         severity = null;
         if (string.IsNullOrWhiteSpace(token))
@@ -31,13 +20,13 @@ internal static class SeverityTokenParser
 
         severity = token.Trim().ToUpperInvariant() switch
         {
-            "TRACE" or "TRC" => ConfigurationSeverity.Trace,
-            "DEBUG" or "DBG" => ConfigurationSeverity.Debug,
-            "INFORMATION" or "INF" or "INFO" => ConfigurationSeverity.Information,
-            "WARNING" or "WRN" or "WARN" => ConfigurationSeverity.Warning,
-            "ERROR" or "ERR" => ConfigurationSeverity.Error,
-            "CRITICAL" or "CRT" or "CRIT" => ConfigurationSeverity.Critical,
-            "NONE" => ConfigurationSeverity.None,
+            "TRACE" or "TRC" => CoreLogLevel.Trace,
+            "DEBUG" or "DBG" => CoreLogLevel.Debug,
+            "INFORMATION" or "INF" or "INFO" => CoreLogLevel.Information,
+            "WARNING" or "WRN" or "WARN" => CoreLogLevel.Warning,
+            "ERROR" or "ERR" => CoreLogLevel.Error,
+            "CRITICAL" or "CRT" or "CRIT" => CoreLogLevel.Critical,
+            "NONE" => CoreLogLevel.None,
             _ => null
         };
 

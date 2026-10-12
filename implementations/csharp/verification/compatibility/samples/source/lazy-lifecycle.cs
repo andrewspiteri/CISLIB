@@ -8,9 +8,9 @@ using CIS.Logging;
 
 internal static class LazyLifecycle
 {
-    internal static async Task Use(EnvironmentSnapshot environment, CancellationToken token)
+    internal static async Task Use(CancellationToken token)
     {
-        await using CoreLogRuntime runtime = CoreLogRuntime.Create(environment: environment);
+        await using CoreLogRuntime runtime = CoreLogRuntime.Create();
         CoreLogger logger = runtime.CreateLogger(component: "Orders");
         using IDisposable scope = runtime.BeginScope(context: new OperationContextData { OperationId = "order-1" });
         _ = logger.WriteLazy(level: CoreLogLevel.Information, factory: () => new LogEventData { EventName = "created", Message = "Created" });

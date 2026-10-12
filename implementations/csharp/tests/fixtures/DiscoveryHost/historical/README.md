@@ -1,0 +1,1 @@
+The initializer, snapshot ownership, concurrency and passive-store drivers in this directory require the historical host from their matching evidence. They do not qualify the current automatic readonly static container. Use ../verify-constructor-options.py for current static construction checks. Historical script bytes are preserved.

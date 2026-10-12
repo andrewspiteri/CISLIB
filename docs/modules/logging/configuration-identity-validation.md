@@ -1,5 +1,7 @@
 # Identity validation and configuration diagnostics
 
+> Historical implementation/evidence: the passive caller-populated store in [current guidance](environment-options.md) supersedes these discovery/factory/publication tasks. Original receipts and source proposals remain preserved; do not recreate the removed startup subsystem from this walkthrough.
+
 WP03-S03-T02 adds internal `ConfigurationValidator` aggregation over the selected [typed resolution](configuration-resolution.md), reusing [option validation](configuration-option-validation.md). It implements the real public `CIS.Configuration.ConfigurationIssue`, `ConfigurationIssueCodes` and `CoreConfigurationException` types in CIS.Core. No startup facade or snapshot placeholder is added.
 
 Selected ApplicationName and EnvironmentName allow at most 255 Unicode scalars. ServiceVersion, actual BuildVersion, CommitId and BuildId allow at most 512. The validator decodes UTF-16 scalars explicitly: supplementary characters count once, combining marks count separately, and isolated/reversed/interrupted surrogate pairs fail. It rejects C0/C1 control characters. It preserves case and Unicode sequences without normalization; format characters such as zero-width space/BOM are not Unicode control characters and remain permitted identity content. Selection/discovery trims surrounding whitespace first, so leading/trailing whitespace removed by that phase is not an embedded-control failure.

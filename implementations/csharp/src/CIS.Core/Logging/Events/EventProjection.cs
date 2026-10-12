@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using CIS.Logging.Exceptions;
 using CIS.Logging.Scopes;
 using CIS.Logging.Values;
@@ -9,8 +10,8 @@ internal static class EventProjection
 {
     internal const int MaximumPayloadScalars = 8192;
 
-    internal static CapturedEventFacts? Capture(EnvironmentSnapshot snapshot, CapturedScopeContext scope,
-        string component, CoreLogLevel severity, LogEventData data)
+    internal static CapturedEventFacts? Capture(EventMetadata metadata, CapturedScopeContext scope,
+        string component, CoreLogLevel severity, LogEventData data, TimeProvider? timeProvider = null)
     {
         string? status = severity switch
         {
@@ -24,7 +25,7 @@ internal static class EventProjection
             _ => throw new ArgumentOutOfRangeException(nameof(severity), "Use a declared logging severity.")
         };
         if (status is null) { return null; }
-        ArgumentNullException.ThrowIfNull(snapshot);
+        ArgumentNullException.ThrowIfNull(metadata);
         ArgumentNullException.ThrowIfNull(scope);
         ArgumentNullException.ThrowIfNull(data);
         ValidateName(component, nameof(component));
@@ -36,8 +37,10 @@ internal static class EventProjection
         string? operationId = data.OperationId?.Trim();
         IReadOnlyDictionary<string, LogValue>? sourceAttributes = data.Attributes;
         Exception? sourceException = data.Exception;
-        EventMetadata metadata = snapshot.EventMetadata;
         ValidateName(eventName, nameof(data));
+        // Own Activity IDs before clock/payload callbacks can replace the ambient context.
+        (string? traceId, string? spanId) = CaptureActivity();
+        DateTimeOffset timestampUtc = (timeProvider ?? TimeProvider.System).GetUtcNow().ToUniversalTime();
         string capturedMessage = CaptureText(message, out bool messageClipped);
         bool templateClipped = false;
         string? capturedTemplate = template is null ? null : CaptureText(template, out templateClipped);
@@ -49,10 +52,31 @@ internal static class EventProjection
         LogValue explicitAttributes = LogValue.Map(sourceAttributes ?? new Dictionary<string, LogValue>());
         LogValue attributes = Merge(scope.Attributes, explicitAttributes);
         CapturedException? exception = ExceptionProjection.Capture(sourceException);
-        return new CapturedEventFacts(status, eventName, capturedMessage, capturedTemplate, operationId,
+        return new CapturedEventFacts(timestampUtc, traceId, spanId, status, eventName, capturedMessage, capturedTemplate, operationId,
             metadata.ApplicationName, metadata.EnvironmentName, metadata.ServiceVersion, component,
             Resource(metadata), attributes, exception,
             messageClipped || templateClipped || attributes.IsTruncated || exception?.HasTruncatedContent == true);
+    }
+
+    private static (string? TraceId, string? SpanId) CaptureActivity()
+    {
+        Activity? activity = Activity.Current;
+        if (activity?.IdFormat != ActivityIdFormat.W3C) { return (null, null); }
+        string traceId = activity.TraceId.ToHexString();
+        string spanId = activity.SpanId.ToHexString();
+        return IsValidHexId(traceId, 32) && IsValidHexId(spanId, 16) ? (traceId, spanId) : (null, null);
+    }
+
+    private static bool IsValidHexId(string value, int length)
+    {
+        if (value.Length != length) { return false; }
+        bool nonzero = false;
+        foreach (char character in value)
+        {
+            if (!(character is >= '0' and <= '9' or >= 'a' and <= 'f')) { return false; }
+            nonzero |= character != '0';
+        }
+        return nonzero;
     }
 
     private static void ValidateName(string value, string parameter)

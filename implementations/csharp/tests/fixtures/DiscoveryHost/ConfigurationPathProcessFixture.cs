@@ -13,45 +13,29 @@ internal static class ConfigurationPathProcessFixture
         JsonObject input = row["inputs"]!.AsObject();
         string initialActualDirectory = Directory.GetCurrentDirectory();
         int directoryReads = 0;
-        InitializationWorkingDirectory captured = InitializationWorkingDirectory.Capture(() =>
+        string captured = ConfigurationFixtureAdapter.Text(input, "workingDirectoryAtInitialization") ?? initialActualDirectory;
+        var source = new FixtureSource(input["environment"]!.AsObject());
+        (PreparedConfiguration? snapshot, CoreConfigurationException? error) = ConfigurationValidationAdapter.Execute(input, () =>
         {
             directoryReads++;
-            return ConfigurationFixtureAdapter.Text(input, "workingDirectoryAtInitialization") ?? Directory.GetCurrentDirectory();
-        });
-        JsonObject discovery = input["discovery"]!.AsObject();
-        ApplicationIdentity identity = ApplicationIdentityDiscovery.Discover(new ApplicationIdentityInput
-        {
-            ApplicationName = ConfigurationFixtureAdapter.Text(discovery, "applicationName"),
-            BuildVersion = ConfigurationFixtureAdapter.Text(discovery, "buildVersion")
-        });
-        var source = new FixtureSource(input["environment"]!.AsObject());
-        ConfigurationResolution selected = ConfigurationResolver.Resolve(ConfigurationFixtureAdapter.Setup(input), identity, CapturedEnvironment.Capture(source));
-        ValidatedConfiguration? validated = null;
-        IReadOnlyList<ConfigurationIssue> issues = [];
-        string? errorMessage = null;
-        try
-        {
-            validated = ConfigurationValidator.Validate(selected, captured);
-        }
-        catch (CoreConfigurationException exception)
-        {
-            issues = exception.Issues;
-            errorMessage = exception.Message;
-        }
-        string? before = validated?.FilePath;
+            return captured;
+        }, source.GetValue);
+        IReadOnlyList<ConfigurationIssue> issues = error?.Issues ?? [];
+        string? errorMessage = error?.Message;
+        string? before = snapshot?.Logging.FilePath;
         Directory.SetCurrentDirectory(afterDirectory);
-        string? after = validated?.FilePath;
+        string? after = snapshot?.Logging.FilePath;
         var result = new JsonObject
         {
             ["caseId"] = id,
             ["directorySource"] = input["workingDirectoryAtInitialization"] is null ? "actual-child-cwd" : "declared-fixture-base",
             ["initialActualDirectory"] = initialActualDirectory,
             ["afterActualDirectory"] = Directory.GetCurrentDirectory(),
-            ["capturedDirectory"] = captured.Value,
+            ["capturedDirectory"] = captured,
             ["directoryReads"] = directoryReads,
             ["absolutePathBefore"] = before,
             ["absolutePathAfter"] = after,
-            ["validatedWorkingDirectory"] = validated?.WorkingDirectory,
+            ["validatedWorkingDirectory"] = snapshot is null ? null : captured,
             ["issues"] = new JsonArray(issues.Select(issue => (JsonNode)new JsonObject { ["code"] = issue.Code, ["key"] = issue.Key, ["explanation"] = issue.Explanation }).ToArray()),
             ["errorMessage"] = errorMessage,
             ["observed"] = new JsonObject
@@ -59,7 +43,7 @@ internal static class ConfigurationPathProcessFixture
                 ["operatingSystem"] = OperatingSystem.IsWindows() ? "windows" : OperatingSystem.IsLinux() ? "linux" : "macos",
                 ["runtimeDescription"] = RuntimeInformation.FrameworkDescription,
                 ["fixtureSha256"] = Hash(typeof(ConfigurationPathProcessFixture).Assembly.Location),
-                ["coreSha256"] = Hash(typeof(ConfigurationValidator).Assembly.Location),
+                ["coreSha256"] = Hash(typeof(EnvironmentOptions).Assembly.Location),
                 ["inputsSha256"] = Hash(inputPath),
                 ["recognizedReads"] = new JsonArray(source.Reads.Select(name => (JsonNode)JsonValue.Create(name)!).ToArray())
             }
@@ -69,7 +53,7 @@ internal static class ConfigurationPathProcessFixture
     }
 
     private static string Hash(string path) => Convert.ToHexStringLower(SHA256.HashData(File.ReadAllBytes(path)));
-    private sealed class FixtureSource(JsonObject environment) : IEnvironmentVariableSource
+    private sealed class FixtureSource(JsonObject environment)
     {
         public List<string> Reads { get; } = [];
         public string? GetValue(string name)

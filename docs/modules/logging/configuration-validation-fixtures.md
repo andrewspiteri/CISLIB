@@ -1,5 +1,7 @@
 # Complete configuration-validation fixtures
 
+> Historical implementation/evidence: the passive caller-populated store in [current guidance](environment-options.md) supersedes these discovery/factory/publication tasks. Original receipts and source proposals remain preserved; do not recreate the removed startup subsystem from this walkthrough.
+
 WP03-S03-T04 qualifies the actual internal Core validation pass through [24 neutral cases](../../../conformance/logging/configuration-validation-cases.json), all applicable [per-key vectors](../../../conformance/logging/configuration-cases.json), owned public diagnostics and real child processes. No shipping production behavior is replaced or simulated. The complete pass returns local `ValidatedConfiguration` only after identity, option and path validation succeed; the public EnvironmentOptions facade and snapshot publisher remain WP03-S04.
 
 ## Fixture protocol and boundaries

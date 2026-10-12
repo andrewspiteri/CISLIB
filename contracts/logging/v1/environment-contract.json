@@ -1,0 +1,65 @@
+{
+  "schemaVersion": 1,
+  "schema": "cis.environment-container/v1",
+  "state": "Current unpublished static-container contract",
+  "authority": "Latest direct user request and explicit static-constructor choice supersede the earlier passive-store attachment.",
+  "container": "CIS.EnvironmentOptions",
+  "ownership": {
+    "facts": "Static constructor populates defaults and applies known environment overrides once; fifteen getter-only static properties.",
+    "policy": "EnvironmentKind, CommitId and BuildId are ordinary application-populated properties; supply before consumers start.",
+    "logging": "Getter-only Logging reference contains mutable options. LoggingOptions.Prepare validates module settings/paths; logging owns runtime startup."
+  },
+  "expected": {
+    "productionResetApi": false,
+    "globalOperationContext": false,
+    "createsDirectories": false,
+    "opensOutputs": false,
+    "startsWorkers": false,
+    "subscribesGlobalExceptions": false,
+    "contactsInfrastructure": false,
+    "mutableRuntimeFacts": false
+  },
+  "readonlyProperties": [
+    "ApplicationName",
+    "BuildVersion",
+    "ServiceVersion",
+    "EnvironmentName",
+    "InstanceId",
+    "ProcessStartedAtUtc",
+    "InitializedAtUtc",
+    "HostName",
+    "OperatingSystem",
+    "OperatingSystemDescription",
+    "OSArchitecture",
+    "ProcessArchitecture",
+    "RuntimeDescription",
+    "ProcessId",
+    "Logging"
+  ],
+  "writablePolicyProperties": [
+    "EnvironmentKind",
+    "CommitId",
+    "BuildId"
+  ],
+  "internedIdentities": [
+    "ApplicationName",
+    "EnvironmentName",
+    "BuildVersion",
+    "ServiceVersion"
+  ],
+  "precedence": "Discovered/literal defaults < nonblank existing alias < nonblank canonical variable. Selected invalid overrides fail; shadowed aliases are not read.",
+  "defaults": "Entry assembly name; informational version then assembly version then unknown; service version falls back to actual build; environment unknown; current host/runtime/process; new UUID; UTC population instant.",
+  "failure": "CLR wraps static-constructor invalid selected overrides or invalid discovered identity/build metadata in TypeInitializationException, permanently failing this type in the load context. Correct configuration or application assembly metadata and restart; no reset/retry API.",
+  "metadata": "Logging constructs EventMetadata(); it copies allowlisted facts without retaining settings. Internal controlled-fact fixtures do not imply writable runtime properties.",
+  "removed": [
+    "EnvironmentOptions.Initialize",
+    "EnvironmentOptions.Current",
+    "EnvironmentOptions.IsInitialized",
+    "EnvironmentSetup",
+    "EnvironmentSnapshot",
+    "LoggingSetup",
+    "EnvironmentDefaults.Apply",
+    "public EnvironmentOverrides.Apply"
+  ],
+  "compatibility": "No published releases; earlier candidates and execution evidence are historical. The logging roadmap remains paused."
+}

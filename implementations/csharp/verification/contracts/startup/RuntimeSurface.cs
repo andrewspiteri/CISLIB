@@ -181,7 +181,7 @@ public sealed class CoreLogRuntime : IAsyncDisposable
 {
     private CoreLogRuntime() { }
     [MethodImpl(MethodImplOptions.InternalCall)]
-    public static extern CoreLogRuntime Create(EnvironmentSnapshot environment);
+    public static extern CoreLogRuntime Create();
     [MethodImpl(MethodImplOptions.InternalCall)]
     public extern CoreLogger CreateLogger(string component);
     [MethodImpl(MethodImplOptions.InternalCall)]

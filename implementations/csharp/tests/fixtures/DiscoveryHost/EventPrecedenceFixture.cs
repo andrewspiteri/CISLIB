@@ -12,7 +12,7 @@ internal static class EventPrecedenceFixture
     {
         JsonObject input = row["input"]!.DeepClone().AsObject();
         JsonObject metadata = input["metadata"]!.AsObject();
-        EnvironmentSnapshot snapshot = EventProjectionFixtureSources.Create(metadata, out EnvironmentSetup setup, out _);
+        EventMetadata snapshot = EventProjectionFixtureSources.Create(metadata, out _);
         var store = new OperationScopeStore();
         OperationContextData[] contexts = input["scopes"]!.AsArray().Select(node => Context(node!.AsObject())).ToArray();
         LogEventData data = EventProjectionFixture.Input(input["event"]!.AsObject());
@@ -46,7 +46,7 @@ internal static class EventPrecedenceFixture
         data.EventName = "changed"; data.Message = "changed"; data.OperationId = "changed";
         if (data.Attributes is Dictionary<string, LogValue> eventAttributes) { eventAttributes.Clear(); eventAttributes["changed"] = LogValue.Null(); }
         data.Attributes = new Dictionary<string, LogValue>(); data.MessageTemplate = "changed";
-        setup.ApplicationName = "Changed.App"; setup.Logging!.QueueCapacity = 1;
+        ConfigurationFixtureAdapter.Facts.ApplicationName = "Changed.App"; ConfigurationFixtureAdapter.Facts.Logging!.QueueCapacity = 1;
         metadata["service"] = "Changed.App";
         using IDisposable replacement = store.BeginScope(new OperationContextData { OperationId = "changed" });
         JsonObject? after = EventProjectionFixture.Project(captured);
@@ -59,7 +59,7 @@ internal static class EventPrecedenceFixture
             ["stableAfterMutation"] = JsonNode.DeepEquals(before, after),
             ["callerMutationApplied"] = contexts.All(context => context.OperationId == "changed" && context.Attributes is null)
                 && data.EventName == "changed" && metadata["service"]!.GetValue<string>() == "Changed.App"
-                && setup.Logging.QueueCapacity == 1 && store.Capture().OperationId == "changed"
+                && ConfigurationFixtureAdapter.Facts.Logging.QueueCapacity == 1 && store.Capture().OperationId == "changed"
         };
     }
     private static OperationContextData Context(JsonObject input) => new()

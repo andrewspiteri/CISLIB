@@ -34,7 +34,7 @@ public sealed class ExceptionQualificationProcessTests
         Assert.AreEqual(id, result["caseId"]!.GetValue<string>());
         Assert.IsTrue(result["stableAfterMutation"]!.GetValue<bool>());
         JsonNode observed = result["observed"]!;
-        Assert.IsFalse(observed["publicFacadeInitialized"]!.GetValue<bool>());
+        Assert.IsFalse(observed["lifecycleApiPresent"]!.GetValue<bool>());
         Assert.AreEqual(".NET 10.0.12", observed["runtimeDescription"]!.GetValue<string>());
         Assert.AreEqual(Hash(host), observed["fixtureSha256"]!.GetValue<string>());
         Assert.AreEqual(Hash(Path.Combine(Path.GetDirectoryName(host)!, "CIS.Core.dll")), observed["coreSha256"]!.GetValue<string>());

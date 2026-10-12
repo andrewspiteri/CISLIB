@@ -30,7 +30,7 @@ internal static class ExceptionProjectionProcessFixture
             ["stackReads"] = source is MutableException readStack ? readStack.StackReads : null,
             ["observed"] = new JsonObject
             {
-                ["publicFacadeInitialized"] = EnvironmentOptions.IsInitialized,
+                ["lifecycleApiPresent"] = (typeof(EnvironmentOptions).GetMethod("Initialize") is not null),
                 ["runtimeDescription"] = RuntimeInformation.FrameworkDescription,
                 ["operatingSystem"] = OperatingSystem.IsWindows() ? "windows" : "linux",
                 ["fixtureSha256"] = Hash(typeof(ExceptionProjectionProcessFixture).Assembly.Location),
@@ -46,7 +46,7 @@ internal static class ExceptionProjectionProcessFixture
         JsonObject result = ExceptionBoundaryFixture.Execute(id);
         result["observed"] = new JsonObject
         {
-            ["publicFacadeInitialized"] = EnvironmentOptions.IsInitialized,
+            ["lifecycleApiPresent"] = (typeof(EnvironmentOptions).GetMethod("Initialize") is not null),
             ["runtimeDescription"] = RuntimeInformation.FrameworkDescription,
             ["operatingSystem"] = OperatingSystem.IsWindows() ? "windows" : "linux",
             ["fixtureSha256"] = Hash(typeof(ExceptionProjectionProcessFixture).Assembly.Location),
@@ -61,7 +61,7 @@ internal static class ExceptionProjectionProcessFixture
         JsonObject result = ExceptionContentFixture.Execute(id);
         result["observed"] = new JsonObject
         {
-            ["publicFacadeInitialized"] = EnvironmentOptions.IsInitialized,
+            ["lifecycleApiPresent"] = (typeof(EnvironmentOptions).GetMethod("Initialize") is not null),
             ["runtimeDescription"] = RuntimeInformation.FrameworkDescription,
             ["operatingSystem"] = OperatingSystem.IsWindows() ? "windows" : "linux",
             ["fixtureSha256"] = Hash(typeof(ExceptionProjectionProcessFixture).Assembly.Location),

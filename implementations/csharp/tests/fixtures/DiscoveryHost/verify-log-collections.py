@@ -60,7 +60,7 @@ def main():
                 require(result["caseId"] == key and all(result[name] == expected for name, expected in row["expected"].items()), "Boundary observation differs")
                 require(result["metadataMatchesMeasuredShape"] is True and shape(result["json"]) == (result["nodes"], result["depth"]), "Independent retained shape differs")
                 require(result["nodes"] <= 1024 and result["depth"] <= 8, "Retained shape exceeds bounds")
-                require(observed["runtimeDescription"] == ".NET 10.0.12" and observed["operatingSystem"] == args.family and observed["publicFacadeInitialized"] is False, "Runtime/startup differs")
+                require(observed["runtimeDescription"] == ".NET 10.0.12" and observed["operatingSystem"] == args.family and observed["lifecycleApiPresent"] is False, "Runtime/startup differs")
                 require(observed["fixtureSha256"] == sha(host) and observed["coreSha256"] == sha(host.parent / "CIS.Core.dll") and observed["inputsSha256"] == sha(input_path), "Input/managed identity differs")
                 require(not list(Path(owned).iterdir()) and b"CIS_NEVER_CAPTURE_COLLECTOR" not in child.stdout, "Output/collector side effect")
                 record["cases"].append({"id": key, "status": "Passed", "childExitCode": child.returncode, "nodes": result["nodes"], "depth": result["depth"], "isTruncated": result["isTruncated"], "fixtureSha256": observed["fixtureSha256"], "coreSha256": observed["coreSha256"]})

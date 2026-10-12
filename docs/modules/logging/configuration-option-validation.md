@@ -1,5 +1,7 @@
 # Configuration option validation
 
+> Historical implementation/evidence: the passive caller-populated store in [current guidance](environment-options.md) supersedes these discovery/factory/publication tasks. Original receipts and source proposals remain preserved; do not recreate the removed startup subsystem from this walkthrough.
+
 WP03-S03-T01 implements internal logging-option validation after [captured selection](configuration-inputs.md) and [typed parsing](configuration-resolution.md). It consumes the selected resolution once, reports independent problems in catalog order and preserves selected source keys. Invalid higher-priority values do not fall through to setup or defaults.
 
 | Setting | Inclusive range |

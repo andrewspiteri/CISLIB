@@ -1,0 +1,123 @@
+{
+  "schema": "cis.passive-options-process/v1",
+  "family": "linux",
+  "status": "Passed",
+  "exitCode": 0,
+  "runtimeVersion": "10.0.12",
+  "rollForward": "Disable",
+  "driverSha256": "26cbc0e300239e186e87375dcd1a53b60ab2fe86d688deecb85113d105b41548",
+  "catalogSha256": "74c8c380ad5c3045eab60e379544a7e3715cd526f46705d94721d3427c716b8e",
+  "fixtureSha256": "1baefc09b704834f649d20d0608976447919d8ec3702b1fca4dfe8865710bdce",
+  "coreSha256": "bd21a1fbe409d56020466fb991bd6d681588c52350e7d3b11b0a01488f6510cb",
+  "scope": "Four fresh application processes; no full Linux SDK or release qualification",
+  "cases": [
+    {
+      "id": "defaults",
+      "status": "Passed",
+      "command": [
+        "/mnt/c/miscwork/portfolio/cislib/.artifacts/csharp/tasks/wp03-s01-t04/linux-runtime/dotnet",
+        "exec",
+        "--fx-version",
+        "10.0.12",
+        "--roll-forward",
+        "Disable",
+        "/mnt/c/miscwork/portfolio/cislib/implementations/csharp/tests/fixtures/DiscoveryHost/bin/Release/net10.0/CIS.Core.DiscoveryFixture.dll",
+        "passive-options",
+        "defaults"
+      ],
+      "childExitCode": 0
+    },
+    {
+      "id": "explicit",
+      "status": "Passed",
+      "command": [
+        "/mnt/c/miscwork/portfolio/cislib/.artifacts/csharp/tasks/wp03-s01-t04/linux-runtime/dotnet",
+        "exec",
+        "--fx-version",
+        "10.0.12",
+        "--roll-forward",
+        "Disable",
+        "/mnt/c/miscwork/portfolio/cislib/implementations/csharp/tests/fixtures/DiscoveryHost/bin/Release/net10.0/CIS.Core.DiscoveryFixture.dll",
+        "passive-options",
+        "explicit"
+      ],
+      "childExitCode": 0
+    },
+    {
+      "id": "overrides",
+      "status": "Passed",
+      "command": [
+        "/mnt/c/miscwork/portfolio/cislib/.artifacts/csharp/tasks/wp03-s01-t04/linux-runtime/dotnet",
+        "exec",
+        "--fx-version",
+        "10.0.12",
+        "--roll-forward",
+        "Disable",
+        "/mnt/c/miscwork/portfolio/cislib/implementations/csharp/tests/fixtures/DiscoveryHost/bin/Release/net10.0/CIS.Core.DiscoveryFixture.dll",
+        "passive-options",
+        "overrides"
+      ],
+      "childExitCode": 0
+    },
+    {
+      "id": "invalid",
+      "status": "Passed",
+      "command": [
+        "/mnt/c/miscwork/portfolio/cislib/.artifacts/csharp/tasks/wp03-s01-t04/linux-runtime/dotnet",
+        "exec",
+        "--fx-version",
+        "10.0.12",
+        "--roll-forward",
+        "Disable",
+        "/mnt/c/miscwork/portfolio/cislib/implementations/csharp/tests/fixtures/DiscoveryHost/bin/Release/net10.0/CIS.Core.DiscoveryFixture.dll",
+        "passive-options",
+        "invalid"
+      ],
+      "childExitCode": 0
+    }
+  ],
+  "reports": [
+    {
+      "path": "defaults.stdout.json",
+      "sha256": "1c8882b2d3f4816d8954b4dde3328acb10d6149b9eb03e0d80ff91ae7ec36569",
+      "bytes": 1883
+    },
+    {
+      "path": "defaults.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "explicit.stdout.json",
+      "sha256": "8f7b39fc058891eff1202ff1c65298d239af9415e5a250a0dc72f6b2063f06e1",
+      "bytes": 2490
+    },
+    {
+      "path": "explicit.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "overrides.stdout.json",
+      "sha256": "c8679ae3914444231739fb16cf7b4f44f65a6d0cc9c91b7008b3886ab97f17a4",
+      "bytes": 2502
+    },
+    {
+      "path": "overrides.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "invalid.stdout.json",
+      "sha256": "70d64a8c355dc780da1e74ef5492e15ee1676bd79502ea9a8b8bd86ebde1d28b",
+      "bytes": 2031
+    },
+    {
+      "path": "invalid.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    }
+  ],
+  "parentUnchanged": true,
+  "outputsCreated": false
+}

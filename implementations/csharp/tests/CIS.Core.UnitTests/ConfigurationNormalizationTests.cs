@@ -1,113 +1,64 @@
 using System.Globalization;
+using System.Text.Json.Nodes;
 using CIS.Configuration;
-using CIS.Logging.Configuration;
+using CIS.Logging;
+using CIS.Tests.DiscoveryFixture;
 using CIS.Tests.UnitTests.Discovery;
+using CIS.TestSupport;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace CIS.Tests.UnitTests;
 
 [TestClass]
+[DoNotParallelize]
 public sealed class ConfigurationNormalizationTests
 {
-    private static readonly ApplicationIdentity Application = new("Discovered.App.Mixed", "9.8.7-RC.2+Sha.MixedCASE", null, null);
     private static readonly string[] Cultures = ["en-US", "tr-TR", "ar-SA"];
-
-    public static IEnumerable<object?[]> BlankValues =>
-        new string?[] { null, "", " ", "\t\r\n", "\u00a0", "\u2003\u202f", "\u3000" }.Select(value => new object?[] { value });
+    public static IEnumerable<object?[]> BlankValues => new string?[] { null, "", " ", "\t\r\n", "\u00a0", "\u2003\u202f", "\u3000" }.Select(value => new object?[] { value });
 
     [TestMethod]
     [DynamicData(nameof(BlankValues))]
     public void BlankCoreValuesUseTypedSetupForEverySetting(string? blank)
     {
-        var source = new EnvironmentVariableStub();
-        foreach (ConfigurationSetting setting in ConfigurationSettings.All)
+        JsonObject input = ConfigurationFixtureAdapter.Case(Read(), "CFG-RESOLVE-SETUP-ALL")["inputs"]!.DeepClone().AsObject();
+        foreach (JsonNode? setting in Contract()["settings"]!.AsArray())
         {
-            source.Values[setting.Key] = blank;
+            input["environment"]![setting!["key"]!.GetValue<string>()] = blank;
         }
-
-        EnvironmentConfigurationInput setup = CompleteSetup();
-        ConfigurationResolution result = Resolve(source, setup);
-        Assert.IsFalse(result.HasParseErrors);
-        Assert.IsTrue(result.Settings.All(setting => setting.Source == ConfigurationSource.Setup && setting.State == ConfigurationParseState.Parsed));
-        Assert.AreEqual("Setup.App.Mixed", result.ApplicationName.Value);
-        Assert.AreEqual("Host.Framework.Mixed", result.EnvironmentName.Value);
-        Assert.AreEqual("Setup.Release+Exact.CASE", result.ServiceVersion.Value);
-        Assert.AreEqual("Relative.Mixed/Output.log", result.FilePath.Value);
-        Assert.AreEqual(ConfigurationSeverity.Error, result.Level.Value);
-        Assert.AreEqual(ConfigurationSeverity.Warning, result.ConsoleLevel.Value);
-        Assert.AreEqual(ConfigurationSeverity.Debug, result.FileLevel.Value);
-        Assert.AreEqual(131072, result.MaxEntryBytes.Value);
-        Assert.AreEqual(true, result.ConsoleEnabled);
-        Assert.AreEqual(true, result.FileEnabled);
-        Assert.AreEqual(21, source.Reads.Count);
+        using var directory = new TemporaryDirectory();
+        (PreparedConfiguration? snapshot, CoreConfigurationException? error) = ConfigurationValidationAdapter.Execute(input, () => directory.Path);
+        Assert.IsNull(error);
+        foreach ((string name, JsonNode? expected) in input["setup"]!.AsObject())
+        {
+            JsonNode? actual = ConfigurationFixtureAdapter.Values(snapshot!)[name];
+            if (name == "Logging.FilePath")
+            {
+                Assert.AreEqual(Path.Combine(directory.Path, expected!.GetValue<string>().Trim().Replace('/', Path.DirectorySeparatorChar)), snapshot!.Logging.FilePath);
+            }
+            else
+            {
+                Assert.IsTrue(JsonNode.DeepEquals(expected, actual), name);
+            }
+        }
     }
 
     [TestMethod]
     [DynamicData(nameof(BlankValues))]
     public void BlankAliasesAndSetupTextUseDiscoveryOrDefaults(string? blank)
     {
-        var source = new EnvironmentVariableStub();
-        foreach (ConfigurationSetting setting in ConfigurationSettings.All.Where(setting => setting.Alias is not null))
-        {
-            source.Values[setting.Key] = blank;
-            source.Values[setting.Alias!] = blank;
-        }
-
-        var setup = new EnvironmentConfigurationInput
-        {
-            ApplicationName = blank,
-            EnvironmentName = blank,
-            ServiceVersion = blank,
-            Logging = new LoggingConfigurationInput { FilePath = blank }
-        };
-        ConfigurationResolution result = Resolve(source, setup);
-        Assert.AreEqual(Application.ApplicationName, result.ApplicationName.Value);
-        Assert.AreEqual(ConfigurationSource.Discovery, result.ApplicationName.Source);
-        Assert.AreEqual("unknown", result.EnvironmentName.Value);
-        Assert.AreEqual(ConfigurationSource.Default, result.EnvironmentName.Source);
-        Assert.AreEqual(Application.BuildVersion, result.ServiceVersion.Value);
-        Assert.AreEqual(ConfigurationSource.Discovery, result.ServiceVersion.Source);
-        Assert.AreEqual(ConfigurationParseState.Absent, result.FilePath.State);
-        Assert.AreEqual(false, result.FileEnabled);
-        Assert.IsFalse(result.HasParseErrors);
-    }
-
-    [TestMethod]
-    [DataRow("core")]
-    [DataRow("alias")]
-    [DataRow("setup")]
-    public void IdentityLayersPreserveTrimmedCaseAndUnicodeSequences(string layer)
-    {
-        const string rawName = "\u2003 App.\u0130.I.\u0131.i.A\u030a \U0001f680 \u00a0";
-        const string rawEnvironment = "\t Host.Mixed CASE.\u00d6 \u3000";
-        const string rawVersion = "\u202f Release.RC+Sha.MixedCASE.A\u030a \n";
-        string[] raw = [rawName, rawEnvironment, rawVersion];
-        var source = new EnvironmentVariableStub();
-        ConfigurationSetting[] identities = ConfigurationSettings.All.Where(setting => setting.Alias is not null).ToArray();
-        for (int index = 0; index < identities.Length; index++)
-        {
-            if (layer is "core" or "alias")
-            {
-                source.Values[layer == "core" ? identities[index].Key : identities[index].Alias!] = raw[index];
-            }
-        }
-
-        var setup = new EnvironmentConfigurationInput { ApplicationName = rawName, EnvironmentName = rawEnvironment, ServiceVersion = rawVersion };
-        ConfigurationResolution result = Resolve(source, setup);
-        Assert.AreEqual("App.\u0130.I.\u0131.i.A\u030a \U0001f680", result.ApplicationName.Value);
-        Assert.AreEqual("Host.Mixed CASE.\u00d6", result.EnvironmentName.Value);
-        Assert.AreEqual("Release.RC+Sha.MixedCASE.A\u030a", result.ServiceVersion.Value);
-        Assert.AreEqual(Application.BuildVersion, result.BuildVersion);
-        for (int index = 0; index < identities.Length; index++)
-        {
-            IParsedConfigurationSetting selected = result.Settings[index];
-            Assert.AreEqual(layer == "setup" ? ConfigurationSource.Setup : ConfigurationSource.Environment, selected.Source);
-            Assert.AreEqual(layer switch { "core" => identities[index].Key, "alias" => identities[index].Alias, _ => identities[index].SetupKey }, selected.SourceKey);
-        }
-
-        Assert.AreEqual(rawName, setup.ApplicationName);
-        Assert.AreEqual(rawEnvironment, setup.EnvironmentName);
-        Assert.AreEqual(rawVersion, setup.ServiceVersion);
+        EnvironmentStoreTestData.AssignValidFacts();
+        // Caller supplies discovered facts before the helper applies only nonblank overrides.
+        EnvironmentStoreTestData.Values.ApplicationName = "Discovered.App";
+        EnvironmentStoreTestData.Values.BuildVersion = "discovered-build";
+        EnvironmentStoreTestData.Values.ServiceVersion = EnvironmentStoreTestData.Values.BuildVersion;
+        EnvironmentStoreTestData.Values.Logging.FilePath = blank;
+        ConfigurationFixtureAdapter.ApplyOverrides(_ => blank);
+        PreparedConfiguration snapshot = EnvironmentStoreTestData.Observe();
+        Assert.AreEqual("Discovered.App", snapshot.ApplicationName);
+        Assert.AreEqual("unknown", snapshot.EnvironmentName);
+        Assert.AreEqual("discovered-build", snapshot.ServiceVersion);
+        Assert.IsNull(snapshot.Logging.FilePath);
+        Assert.IsFalse(snapshot.Logging.FileEnabled);
     }
 
     [TestMethod]
@@ -139,12 +90,9 @@ public sealed class ConfigurationNormalizationTests
                     var source = new EnvironmentVariableStub();
                     source.Values[key] = "\u2003\t" + variant + "\u00a0\u3000";
                     source.Values["CORE_SERVICE_NAME"] = " Identity.\u0130.I.\u0131.i ";
-                    ConfigurationResolution result = Resolve(source, CompleteSetup());
-                    IParsedConfigurationSetting selected = result.Settings.Single(setting => setting.Key == key);
-                    Assert.AreEqual(ConfigurationParseState.Parsed, selected.State, culture);
+                    PreparedConfiguration result = Create(source);
                     Assert.AreEqual(expected, TokenValue(result, key), culture);
-                    Assert.AreEqual(ConfigurationSource.Environment, selected.Source);
-                    Assert.AreEqual("Identity.\u0130.I.\u0131.i", result.ApplicationName.Value);
+                    Assert.AreEqual("Identity.\u0130.I.\u0131.i", result.ApplicationName);
                 }
             }
         }
@@ -169,12 +117,9 @@ public sealed class ConfigurationNormalizationTests
     {
         var source = new EnvironmentVariableStub();
         source.Values[key] = "\u2003" + raw + "\u3000";
-        ConfigurationResolution result = Resolve(source, CompleteSetup());
-        IParsedConfigurationSetting selected = result.Settings.Single(setting => setting.Key == key);
-        Assert.AreEqual(ConfigurationParseState.InvalidToken, selected.State);
-        Assert.AreEqual(ConfigurationSource.Environment, selected.Source);
-        Assert.AreEqual(key, selected.SourceKey);
-        Assert.IsTrue(result.HasParseErrors);
+        CoreConfigurationException error = Assert.ThrowsExactly<CoreConfigurationException>(() => Create(source));
+        Assert.AreEqual(ConfigurationIssueCodes.InvalidToken, error.Issues.Single().Code);
+        Assert.AreEqual(key, error.Issues.Single().Key);
     }
 
     [TestMethod]
@@ -185,13 +130,9 @@ public sealed class ConfigurationNormalizationTests
         var source = new EnvironmentVariableStub();
         source.Values["CORE_SERVICE_NAME"] = text;
         source.Values["CORE_LOG_FILE_PATH"] = text;
-        ConfigurationResolution result = Resolve(source, CompleteSetup());
-        Assert.AreEqual(text, result.ApplicationName.Value);
-        Assert.AreEqual(text, result.FilePath.Value);
-        Assert.AreEqual(ConfigurationSource.Environment, result.ApplicationName.Source);
-        Assert.AreEqual(ConfigurationSource.Environment, result.FilePath.Source);
-        // Text selection does not replace the later identity/path validator.
-        Assert.AreEqual(ConfigurationParseState.Parsed, result.ApplicationName.State);
+        PreparedConfiguration result = Create(source);
+        Assert.AreEqual(text, result.ApplicationName);
+        Assert.AreEqual(Path.Combine(Path.GetTempPath(), text), result.Logging.FilePath);
     }
 
     [TestMethod]
@@ -203,98 +144,59 @@ public sealed class ConfigurationNormalizationTests
     [DataRow("C\u041eRE_LOG_LEVEL")]
     public void UnknownNamesAreNeverReadCapturedOrFormatted(string unknown)
     {
-        const string raw = "unknown-value-must-not-be-read-or-dumped";
-        var source = new EnvironmentVariableStub { FailingName = unknown, Failure = new InvalidOperationException(raw) };
-        source.Values[unknown] = raw;
-        CapturedEnvironment captured = CapturedEnvironment.Capture(source);
-        ConfigurationResolution result = ConfigurationResolver.Resolve(new EnvironmentConfigurationInput(), Application, captured);
-        Assert.IsNull(captured.GetValue(unknown));
-        Assert.AreEqual(21, source.Reads.Count);
+        var source = new EnvironmentVariableStub { FailingName = unknown, Failure = new InvalidOperationException("unknown value") };
+        source.Values[unknown] = "unknown-value-must-not-be-read-or-dumped";
+        PreparedConfiguration snapshot = Create(source);
         Assert.IsFalse(source.Reads.Contains(unknown, StringComparer.Ordinal));
-        Assert.AreEqual(ConfigurationSeverity.Information, result.Level.Value);
-        Assert.IsFalse(result.HasParseErrors);
-        Assert.IsFalse(captured.ToString()!.Contains(raw, StringComparison.Ordinal));
-        Assert.IsFalse(result.ToString()!.Contains(raw, StringComparison.Ordinal));
-        Assert.AreEqual(raw, source.Values[unknown]);
+        Assert.AreEqual(CoreLogLevel.Information, snapshot.Logging.Level);
     }
 
     [TestMethod]
-    public void ParsedResultsAndValueGuardsDoNotDumpRawInputs()
+    [DataRow("core")]
+    [DataRow("alias")]
+    [DataRow("setup")]
+    public void IdentityLayersPreserveTrimmedCaseAndUnicodeSequences(string layer)
     {
-        const string raw = "recognized-value-must-not-be-auto-formatted";
+        string[] raw = ["\u2003 App.\u0130.I.\u0131.i.A\u030a \U0001f680 \u00a0", "\t Host.Mixed CASE.\u00d6 \u3000", "\u202f Release.RC+Sha.MixedCASE.A\u030a \n"];
         var source = new EnvironmentVariableStub();
-        source.Values["CORE_SERVICE_NAME"] = raw;
-        source.Values["CORE_LOG_LEVEL"] = raw;
-        source.Values["CORE_PASSWORD"] = raw;
-        CapturedEnvironment captured = CapturedEnvironment.Capture(source);
-        ConfigurationResolution result = ConfigurationResolver.Resolve(new EnvironmentConfigurationInput(), Application, captured);
-        Assert.AreEqual(raw, result.ApplicationName.Value);
-        foreach (object value in new object[] { captured, result }.Concat(result.Settings))
+        EnvironmentStoreTestData.AssignValidFacts();
+        EnvironmentStoreTestData.Values.ApplicationName = raw[0].Trim();
+        EnvironmentStoreTestData.Values.EnvironmentName = raw[1].Trim();
+        EnvironmentStoreTestData.Values.ServiceVersion = raw[2].Trim();
+        EnvironmentStoreTestData.Values.BuildVersion = "Actual.MixedBuild";
+        string[] keys = layer == "core" ? ["CORE_SERVICE_NAME", "CORE_ENVIRONMENT", "CORE_SERVICE_VERSION"] : ["DD_SERVICE", "DD_ENV", "DD_VERSION"];
+        if (layer != "setup")
         {
-            Assert.IsFalse(value.ToString()!.Contains(raw, StringComparison.Ordinal));
+            for (int index = 0; index < keys.Length; index++)
+            {
+                source.Values[keys[index]] = raw[index];
+            }
         }
-
-        InvalidOperationException error = Assert.ThrowsExactly<InvalidOperationException>(() => _ = result.Level.Value);
-        Assert.IsFalse(error.Message.Contains(raw, StringComparison.Ordinal));
-        Assert.IsFalse(error.ToString().Contains(raw, StringComparison.Ordinal));
+        ConfigurationFixtureAdapter.ApplyOverrides(source.GetValue);
+        PreparedConfiguration snapshot = EnvironmentStoreTestData.Observe();
+        Assert.AreEqual(raw[0].Trim(), snapshot.ApplicationName);
+        Assert.AreEqual(raw[1].Trim(), snapshot.EnvironmentName);
+        Assert.AreEqual(raw[2].Trim(), snapshot.ServiceVersion);
+        Assert.AreEqual("Actual.MixedBuild", snapshot.BuildVersion);
     }
 
-    [TestMethod]
-    public void NormalizationLeavesCallerInputsAndHostLabelsUnchanged()
+    private static PreparedConfiguration Create(EnvironmentVariableStub source)
     {
-        const string rawFrameworkLabel = " Host.Framework.MixedCASE ";
-        var setup = new EnvironmentConfigurationInput { EnvironmentName = rawFrameworkLabel };
-        var source = new EnvironmentVariableStub();
-        source.Values["CORE_ENVIRONMENT"] = "\u2003";
-        source.Values["DD_ENV"] = " Telemetry.MixedCASE ";
-        source.Values["ASPNETCORE_ENVIRONMENT"] = rawFrameworkLabel;
-        KeyValuePair<string, string?>[] before = source.Values.ToArray();
-        ConfigurationResolution result = Resolve(source, setup);
-        Assert.AreEqual("Telemetry.MixedCASE", result.EnvironmentName.Value);
-        Assert.AreEqual("DD_ENV", result.EnvironmentName.SourceKey);
-        Assert.AreEqual(rawFrameworkLabel, setup.EnvironmentName);
-        CollectionAssert.AreEqual(before, source.Values.ToArray());
-        Assert.IsFalse(source.Reads.Contains("ASPNETCORE_ENVIRONMENT", StringComparer.Ordinal));
-        Assert.AreEqual(21, source.Reads.Count);
+        EnvironmentStoreTestData.AssignValidFacts();
+        ConfigurationFixtureAdapter.ApplyOverrides(source.GetValue);
+        return EnvironmentStoreTestData.Observe();
     }
-
-    private static ConfigurationResolution Resolve(EnvironmentVariableStub source, EnvironmentConfigurationInput setup) =>
-        ConfigurationResolver.Resolve(setup, Application, CapturedEnvironment.Capture(source));
-
-    private static EnvironmentConfigurationInput CompleteSetup() => new()
+    private static JsonObject Read() => ConfigurationFixtureAdapter.ReadDocument(ConfigurationFixtureAdapter.FindFixture());
+    private static JsonObject Contract() => ConfigurationFixtureAdapter.ReadDocument(Path.Combine(Path.GetDirectoryName(ConfigurationFixtureAdapter.FindFixture())!, "..", "..", "contracts", "logging", "v1", "configuration.json"));
+    private static string TokenValue(PreparedConfiguration snapshot, string key) => key switch
     {
-        ApplicationName = " Setup.App.Mixed ",
-        EnvironmentName = " Host.Framework.Mixed ",
-        ServiceVersion = " Setup.Release+Exact.CASE ",
-        Logging = new LoggingConfigurationInput
-        {
-            Level = ConfigurationSeverity.Error,
-            ConsoleFormat = ConfigurationOutputFormat.JsonLines,
-            ConsoleLevel = ConfigurationSeverity.Warning,
-            ConsoleStream = ConfigurationConsoleStream.StandardOutput,
-            HumanDetail = ConfigurationHumanDetail.Verbose,
-            FilePath = " Relative.Mixed/Output.log ",
-            FileFormat = ConfigurationOutputFormat.Human,
-            FileLevel = ConfigurationSeverity.Debug,
-            QueueCapacity = 2048,
-            FlushIntervalMilliseconds = 2000,
-            ShutdownTimeoutMilliseconds = 10000,
-            FileMaxBytes = 20971520L,
-            FileRetainedFiles = 20,
-            SchemaVersion = 1,
-            MaxEntryBytes = 131072
-        }
-    };
-
-    private static string TokenValue(ConfigurationResolution result, string key) => key switch
-    {
-        "CORE_LOG_LEVEL" => result.Level.Value.ToString(),
-        "CORE_LOG_CONSOLE_LEVEL" => result.ConsoleLevel.Value.ToString(),
-        "CORE_LOG_FILE_LEVEL" => result.FileLevel.Value.ToString(),
-        "CORE_LOG_CONSOLE_FORMAT" => result.ConsoleFormat.Value.ToString(),
-        "CORE_LOG_FILE_FORMAT" => result.FileFormat.Value.ToString(),
-        "CORE_LOG_CONSOLE_STREAM" => result.ConsoleStream.Value.ToString(),
-        "CORE_LOG_HUMAN_DETAIL" => result.HumanDetail.Value.ToString(),
-        _ => throw new ArgumentException("Unknown test token setting.", nameof(key))
+        "CORE_LOG_LEVEL" => snapshot.Logging.Level.ToString(),
+        "CORE_LOG_CONSOLE_LEVEL" => snapshot.Logging.EffectiveConsoleLevel.ToString(),
+        "CORE_LOG_FILE_LEVEL" => snapshot.Logging.EffectiveFileLevel.ToString(),
+        "CORE_LOG_CONSOLE_FORMAT" => snapshot.Logging.ConsoleFormat.ToString(),
+        "CORE_LOG_FILE_FORMAT" => snapshot.Logging.FileFormat.ToString(),
+        "CORE_LOG_CONSOLE_STREAM" => snapshot.Logging.ConsoleStream.ToString(),
+        "CORE_LOG_HUMAN_DETAIL" => snapshot.Logging.HumanDetail.ToString(),
+        _ => throw new ArgumentException("Unknown test setting.", nameof(key))
     };
 }

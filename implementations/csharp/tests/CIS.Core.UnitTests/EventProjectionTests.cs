@@ -11,6 +11,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 namespace CIS.Tests.UnitTests;
 
 [TestClass]
+[DoNotParallelize]
 public sealed class EventProjectionTests
 {
     public static IEnumerable<object[]> Rows => Catalog()["cases"]!.AsArray().Select(row => new object[] { row!["id"]!.GetValue<string>() });
@@ -95,7 +96,7 @@ public sealed class EventProjectionTests
     [MethodImpl(MethodImplOptions.NoInlining)]
     private static (CapturedEventFacts, WeakReference[]) CreateCollectibleInputs()
     {
-        EnvironmentSnapshot snapshot = EventProjectionFixtureSources.Create(Metadata(), out EnvironmentSetup setup, out EventProjectionFixtureSources source);
+        EventMetadata snapshot = EventProjectionFixtureSources.Create(Metadata(), out JsonObject source);
         var attributes = new Dictionary<string, LogValue> { ["value"] = LogValue.Null() };
         var exception = new Exception("boom");
         var attachment = new object(); exception.Data["attachment"] = attachment;
@@ -106,8 +107,11 @@ public sealed class EventProjectionTests
         {
             facts = EventProjection.Capture(snapshot, store.Capture(), "Component", CoreLogLevel.Information, data)!;
         }
-        return (facts, new object[] { snapshot, snapshot.Logging, setup, source, data, attributes, exception, attachment, store }
-            .Select(value => new WeakReference(value)).ToArray());
+        WeakReference[] references = new object[] { snapshot, EnvironmentStoreTestData.Values.Logging, source, data, attributes, exception, attachment, store }
+            .Select(value => new WeakReference(value)).ToArray();
+        // Caller replaces its store reference; the captured event must not retain the old settings.
+        EnvironmentStoreTestData.Values.Logging = new LoggingOptions();
+        return (facts, references);
     }
 
     [TestMethod]
@@ -191,7 +195,7 @@ public sealed class EventProjectionTests
     }
 
     [TestMethod]
-    [DataRow("snapshot")]
+    [DataRow("metadata")]
     [DataRow("scope")]
     [DataRow("data")]
     public void MissingCaptureInputsFailBeforeCooperativePayloadAccess(string missing)
@@ -199,7 +203,7 @@ public sealed class EventProjectionTests
         var callback = new CallbackMap(() => throw new InvalidOperationException("Payload must not be read."));
         var data = new LogEventData { EventName = "event", Message = "message", Attributes = callback };
         ArgumentNullException error = Assert.ThrowsExactly<ArgumentNullException>(() => EventProjection.Capture(
-            missing == "snapshot" ? null! : Snapshot(), missing == "scope" ? null! : new OperationScopeStore().Capture(),
+            missing == "metadata" ? null! : Snapshot(), missing == "scope" ? null! : new OperationScopeStore().Capture(),
             "Component", CoreLogLevel.Information, missing == "data" ? null! : data));
         Assert.AreEqual(missing, error.ParamName);
         Assert.AreEqual(0, callback.Enumerations);
@@ -261,7 +265,7 @@ public sealed class EventProjectionTests
             : new Dictionary<string, LogValue> { ["event-array"] = LogValue.Array(Enumerable.Repeat(LogValue.Null(), 600)) };
         Assert.IsFalse(LogValue.Map(explicitAttributes).IsTruncated);
         OperationScopeFrame? head = store.CurrentFrame;
-        EnvironmentSnapshot snapshot = Snapshot();
+        EventMetadata snapshot = Snapshot();
         var data = new LogEventData { EventName = "event", Message = "message", OperationId = "event", Attributes = explicitAttributes };
         CapturedEventFacts facts = EventProjection.Capture(snapshot, capturedScope, "Component", CoreLogLevel.Information, data)!;
         Assert.AreEqual(1024, facts.Attributes.NodeCount);
@@ -349,7 +353,7 @@ public sealed class EventProjectionTests
 
     private static JsonObject Catalog() => LogValueTests.Read("event-projection-cases.json");
     private static JsonObject Metadata() => Catalog()["cases"]![0]!["input"]!["metadata"]!.DeepClone().AsObject();
-    private static EnvironmentSnapshot Snapshot() => EventProjectionFixtureSources.Create(Metadata(), out _, out _);
+    private static EventMetadata Snapshot() => EventProjectionFixtureSources.Create(Metadata(), out _);
     private static CapturedEventFacts Capture(LogEventData data) => EventProjection.Capture(Snapshot(), new OperationScopeStore().Capture(), "Component", CoreLogLevel.Information, data)!;
     private sealed class MutableException : Exception { internal string Text { get; set; } = ""; public override string Message => Text; }
     private sealed class CallbackMap(Action callback) : IReadOnlyDictionary<string, LogValue>

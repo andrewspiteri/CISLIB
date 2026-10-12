@@ -1,0 +1,64 @@
+{
+  "schemaVersion": 1,
+  "state": "Current unpublished contract; supersedes startup store publication and discovery obligations",
+  "authority": "EnvironmentOptions-Codex-Simplification (1).md, 11 October 2026",
+  "ownership": {
+    "store": "Caller-populated passive values with literal defaults and public setters",
+    "preparation": "Application startup explicitly calls EnvironmentDefaults.Apply(applicationAssembly), supplies explicit values, then calls EnvironmentOverrides.Apply. Consumers remain application-controlled.",
+    "logging": "LoggingOptions.Prepare checks logging values and paths; EventMetadata captures immutable allowlisted facts; runtime work remains the logging module responsibility"
+  },
+  "expected": {
+    "productionResetApi": false,
+    "mutableStaticOptionValues": true,
+    "globalOperationContext": false,
+    "createsDirectories": false,
+    "opensOutputs": false,
+    "startsWorkers": false,
+    "subscribesGlobalExceptions": false,
+    "contactsInfrastructure": false
+  },
+  "removed": [
+    "EnvironmentOptions.Initialize",
+    "EnvironmentOptions.Current",
+    "EnvironmentOptions.IsInitialized",
+    "EnvironmentSetup",
+    "EnvironmentSnapshot",
+    "LoggingSetup"
+  ],
+  "concurrency": "No atomic multi-property update or live refresh contract; populate before starting consumers.",
+  "compatibility": "Publication ledger is empty. Historical fixtures/evidence stay intact; these draft signatures may change before release.",
+  "initialValues": "Literal store defaults do not implement ServiceVersion/BuildVersion coupling, string trimming or discovery fallback. Application startup owns these policies; configuration conformance setup/discovery layers are an explicit reference caller policy.",
+  "metadataConsumption": "Logging checks required identity, UUID/startup time, valid optional Unicode, OS family, schema-valid architecture text and positive optional process ID. It owns normalized copies without changing the store.",
+  "defaultsHelper": {
+    "explicitCallRequired": true,
+    "precedence": "Discovered defaults < explicit supplied assignments < aliases < canonical environment variables",
+    "facts": [
+      "ApplicationName",
+      "BuildVersion",
+      "ServiceVersion",
+      "HostName",
+      "OperatingSystem",
+      "OperatingSystemDescription",
+      "OSArchitecture",
+      "ProcessArchitecture",
+      "RuntimeDescription",
+      "ProcessId",
+      "ProcessStartedAtUtc",
+      "InstanceId",
+      "InitializedAtUtc"
+    ],
+    "preserves": [
+      "EnvironmentName",
+      "EnvironmentKind",
+      "CommitId",
+      "BuildId",
+      "Logging"
+    ],
+    "buildVersion": "Nonblank informational version, then assembly version, then unknown; file version is not used.",
+    "optionalFailure": "Unavailable process start inspection yields null. Other failures propagate; no atomic update contract.",
+    "repeatedCall": "Reapplies discovered facts and generates a new UUID/startup timestamp; no readiness or once-only gate.",
+    "doesNot": "Read environment overrides, inspect the entry assembly implicitly, initialize consumers, validate logging, publish a snapshot or implement live refresh."
+  },
+  "status": "Historical unpublished passive-store candidate, superseded by user-requested readonly instance construction.",
+  "supersededBy": "contracts/logging/v1/environment-contract.json"
+}

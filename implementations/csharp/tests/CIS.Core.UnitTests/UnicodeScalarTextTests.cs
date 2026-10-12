@@ -1,5 +1,5 @@
-using CIS.Configuration;
 using CIS.Logging;
+using CIS.Text;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace CIS.Tests.UnitTests;
@@ -56,7 +56,7 @@ public sealed class UnicodeScalarTextTests
         {
             Assert.ThrowsExactly<ArgumentException>(() => LogValue.Map(source));
         }
-        Assert.AreEqual(validIdentity, ConfigurationIdentityValidator.IsValid(text, 255));
+        Assert.AreEqual(validIdentity, (!string.IsNullOrWhiteSpace(text) && UnicodeScalarText.IsValid(text, 255, allowControls: false)));
     }
 
     [TestMethod]
@@ -67,7 +67,7 @@ public sealed class UnicodeScalarTextTests
             string text = "safe" + (char)scalar;
             Assert.AreEqual(text, LogValue.String(text).Scalar.Text);
             Assert.ThrowsExactly<ArgumentException>(() => LogValue.Map(new Dictionary<string, LogValue> { [text] = LogValue.Null() }));
-            Assert.IsFalse(ConfigurationIdentityValidator.IsValid(text, 255));
+            Assert.IsFalse((!string.IsNullOrWhiteSpace(text) && UnicodeScalarText.IsValid(text, 255, allowControls: false)));
         }
     }
 

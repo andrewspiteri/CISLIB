@@ -13,8 +13,8 @@
       "file": "source/construction-names.cs",
       "expectedExitCode": 0,
       "contracts": [
-        "EnvironmentOptions.Initialize(setup)",
-        "CoreLogRuntime.Create(environment)",
+        "EnvironmentOptions.ApplicationName assignment",
+        "CoreLogRuntime.Create()",
         "CoreLogRuntime.CreateLogger(component)",
         "LogEventData()",
         "ConfigurationIssue(code,key,explanation)",
@@ -32,7 +32,7 @@
       "file": "source/null-calls.cs",
       "expectedExitCode": 0,
       "contracts": [
-        "Null overload binding for setup/data/factory/value",
+        "Null overload binding for data/factory/value",
         "Write versus WriteLazy separation; null arguments remain documented errors where nonnullable"
       ],
       "laterLayers": [
@@ -172,8 +172,8 @@
     {
       "id": "API-OBSOLETE-WARNING",
       "surfaceFile": "RuntimeSurface.cs",
-      "find": "public static extern CoreLogRuntime Create(EnvironmentSnapshot environment);",
-      "replace": "[Obsolete(\"Synthetic break: supported call is obsolete.\")]\n    public static extern CoreLogRuntime Create(EnvironmentSnapshot environment);",
+      "find": "public static extern CoreLogRuntime Create();",
+      "replace": "[Obsolete(\"Synthetic break: supported call is obsolete.\")]\n    public static extern CoreLogRuntime Create();",
       "consumerId": "construction-names",
       "expectedDiagnostic": "CS0618",
       "contracts": [

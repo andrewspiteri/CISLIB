@@ -1,11 +1,5 @@
-# Environment and identity
+# Environment container
 
-Shared startup configuration, validation and immutable application/runtime identity belong here. Apply the plan amendments before exposing public APIs; the selected facade name is `EnvironmentOptions`.
+EnvironmentOptions is a static container with an automatic static constructor. It reads entry-assembly and host/process defaults, applies known overrides through the internal parser, validates selected identities and interns four bounded common identities. Fifteen properties are getter-only. EnvironmentKind, CommitId and BuildId remain caller-owned policy properties. LoggingOptions stays mutable and logging owns preparation/runtime.
 
-WP03-S01-T01 implements internal application build-identity discovery under `Discovery`, using the `CIS.Configuration` namespace. Supplied metadata and the selected application assembly provide identity; optional entry-assembly fallback cannot substitute Core identity. [Behavior and scope](../../../../../docs/modules/logging/application-identity-discovery.md) describe the executed unit controls and remaining resolver/publication work.
-
-Environment setup must not accumulate unrelated mutable module/application state. WP03-S01-T02 adds captured process/host/OS/runtime facts with nullable discovery seams; [runtime discovery guidance](../../../../../docs/modules/logging/runtime-metadata-discovery.md) separates controlled family recognition from executed platform support. Public startup types and the logging runtime remain unimplemented.
-
-WP03-S01-T03 adds version selection in `Resolution` and initialization UUID/time generation in `Discovery`. [Initialization guidance](../../../../../docs/modules/logging/initialization-identity.md) distinguishes raw selected values and generation from later validation/publication.
-
-WP03-S02-T01 adds an owned capture of the 21 exact recognized names and shared source precedence for raw environment and typed setup/discovery/default values. [Input guidance](../../../../../docs/modules/logging/configuration-inputs.md) separates selection from option parsing/validation and explains snapshot reuse.
+Configure deployment variables before first access. CLR static-constructor failures remain failed in the load context and require corrected configuration plus restart. There is no public Initialize, reset, readiness, defaults helper or override helper. See [current usage](../../../../../docs/modules/logging/environment-options.md).

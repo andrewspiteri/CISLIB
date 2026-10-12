@@ -1,54 +1,34 @@
-# C# EnvironmentOptions implementation
+# EnvironmentOptions
 
-Implemented in WP03-S04-T01, 11 October 2026, against the unpublished [startup contract](startup-contract.md). The shipping assembly/package is `CIS.Core`; the public facade is `CIS.EnvironmentOptions`, with logging types in `CIS.Logging`. Original plans remain unchanged and the user-selected corrected spelling takes precedence.
-
-## Application use
-
-Initialize once during application startup, before constructing the later logging runtime:
+`CIS.EnvironmentOptions` remains a static container. Its static constructor runs automatically on first access: it populates defaults, applies known environment-variable overrides, validates the selected identities, and interns ApplicationName, EnvironmentName, BuildVersion and ServiceVersion. Getters then return stored values. Construction starts no logger, opens no output and creates no directory.
 
 ```csharp
 using CIS;
 using CIS.Logging;
 
-EnvironmentSnapshot snapshot = EnvironmentOptions.Initialize(new EnvironmentSetup
-{
-    ApplicationName = "Example.App",
-    BuildVersion = "1.2.3+build.5",
-    EnvironmentKind = EnvironmentKind.Console,
-    Logging = new LoggingSetup { Level = CoreLogLevel.Information }
-});
-
-LoggingOptions logging = EnvironmentOptions.Logging;
-EventMetadata metadata = EnvironmentOptions.EventMetadata;
-// snapshot and EnvironmentOptions.Current are the identical stored object.
+// First access applies defaults and environment overrides.
+EnvironmentOptions.EnvironmentKind = EnvironmentKind.Console;
+EnvironmentOptions.CommitId = "your-commit"; // optional caller policy
+EnvironmentOptions.Logging.Prepare(Directory.GetCurrentDirectory());
+var metadata = new EventMetadata();
 ```
 
-This initializes configuration and captured metadata. The logger, workers and Microsoft provider are later roadmap work; this call does not create them. `LoggingOptions.MaxEntryBytes` exposes the user-selected 65536-byte default and CORE_LOG_MAX_ENTRY_BYTES override. Bounded capture/truncation remains later work.
+## Automatic readonly facts
 
-## Explicit lifecycle
+ApplicationName defaults to the entry assembly name. BuildVersion uses its nonblank informational version, then assembly version, then `unknown`; file version and CIS.Core's version are not application build identities. Without an entry assembly, name and build are `unknown`. ServiceVersion defaults to BuildVersion, and EnvironmentName to `unknown`.
 
-Before success, `IsInitialized` returns false, and `Current` plus all eight convenience getters throw `InvalidOperationException`. The convenience getters are ApplicationName, BuildVersion, ServiceVersion, EnvironmentName, HostName, OperatingSystem, Logging and EventMetadata.
+HostName (null if hostname inspection is unavailable), OS family/description, OS/process architecture, runtime description and ProcessId come from the current host/process. ProcessStartedAtUtc is UTC, or null when the platform denies or cannot provide it. InstanceId is a new UUID for this static container; InitializedAtUtc records its population time in UTC. Neither is regenerated on subsequent access.
 
-`Initialize(null)` throws `ArgumentNullException` with parameter `setup`, even after initialization. Selected invalid inputs throw actual `CoreConfigurationException` with immutable safe ordered issues and publish nothing. A corrected call can succeed. Required source failures propagate without a manufactured snapshot. Optional unavailable discovery facts remain null (OS family defaults to unknown).
+All these facts have getter-only properties. EnvironmentKind, CommitId and BuildId remain ordinary assignable policy values; populate them before consumers start. Logging has a getter-only reference to mutable LoggingOptions, whose validation and runtime belong to logging. It defaults to a 65536-byte maximum entry size; `CORE_LOG_MAX_ENTRY_BYTES` can override it. Oversized log input remains subject to the selected truncation policy.
 
-A successful call returns the identical snapshot subsequently exposed by `Current`. Every later non-null initialization throws `InvalidOperationException` before reading that new setup or environment; it cannot replace the winner. There is no public reset. Application restart establishes a new initialization lifecycle.
+## Overrides and interning
 
-The CLR static constructor only allocates a private gate; it reads no configuration or metadata and performs no output work. Explicit static construction avoids the beforefieldinit flag. See Microsoft's [static constructor documentation](https://learn.microsoft.com/en-us/dotnet/csharp/programming-guide/classes-and-structs/static-constructors).
+Discovered/literal defaults precede aliases, which precede canonical variables. Missing, empty and whitespace-only values leave defaults intact. `CORE_SERVICE_NAME` overrides ApplicationName (`DD_SERVICE` alias); `CORE_ENVIRONMENT` overrides EnvironmentName (`DD_ENV`); `CORE_SERVICE_VERSION` overrides ServiceVersion (`DD_VERSION`). Service-version overrides never change the actual BuildVersion. [The configuration catalog](../../../contracts/logging/v1/configuration.json) lists the logging variables and bounds. Each needed variable is read once; a nonblank canonical value prevents reading its alias. Selected malformed overrides fail rather than falling back.
 
-## Resolution and stored ownership
+The four common identity strings are interned after selection and bounded Unicode validation. UUIDs, commit/build identifiers, paths, runtime descriptions and log payloads are not interned. Logging metadata reuses the selected identity references while owning its allowlisted facts.
 
-The private builder copies mutable startup fields, captures one initialization directory and all 21 recognized variables, discovers application identity, resolves precedence/defaults, and completes validation. It then discovers runtime facts, generates the initialization UUID/UTC time, and constructs getter-only sealed LoggingOptions, EventMetadata and EnvironmentSnapshot. No caller-owned setup object is retained. Do not mutate setup concurrently with Initialize; later caller mutation is permitted.
+## Static construction and failure
 
-BuildVersion records the actual application build. ServiceVersion independently selects CORE/DD/setup telemetry identity and cannot rewrite BuildVersion. FilePath stores an absolute path resolved against the captured directory. EventMetadata carries exactly the 17 allowed application/process/initialization facts, with no logging settings, collector destinations or global operation context. It shares those same immutable facts with EnvironmentSnapshot. Stored getters do not rediscover them.
+Configure environment variables before the first access. Subsequent environment changes are not reread. An invalid selected override or invalid discovered application identity/build metadata fails the static constructor: the CLR throws TypeInitializationException with CoreConfigurationException as its inner exception. The type remains failed in that load context; correct the deployment configuration or application assembly metadata and restart. There is no reset, refresh, initialization gate or public defaults/override helper.
 
-All access to the private published reference, including IsInitialized/Current, uses the same private monitor gate. The full build and successful publication occur inside that gate. This implements exclusive initialization and synchronized visibility without partial publication; getters can wait while initialization is running. See Microsoft's [lock statement documentation](https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/statements/lock). T03 [concurrent publication qualification](startup-publication-concurrency.md) verifies the shared gate and adds a private in-progress guard for same-thread metadata re-entry.
-
-Initialization validates syntax without opening or probing log outputs. The application owns the future logging runtime. Compiled direct-call guards cover the startup builder/facade/projections and internal resolution/discovery classes, including output/network/worker calls and global exception subscriptions. These guards inspect direct Core calls; they do not claim to inspect every transitive framework implementation.
-
-## Executed scope
-
-[Windows evidence](../../../planning/logging/evidence/wp03-s04-t01-windows.json) retains 24 new unit cases, six fresh-process integration cases and one new architecture case, plus unchanged historical evidence and a fresh isolated source replay. Integration children use exactly .NET 10.0.12 with roll-forward disabled, and verify public preinitialization reads, null guards, defaults/explicit/CORE overrides, failure followed by retry, later-call rejection, real process facts, all convenience getters, matching metadata projections and stored paths after actual child cwd changes. Test processes write their result protocol; Core emits no output and owned output directories stay empty.
-
-T01 includes genuine supporting types and safe ownership/publication mechanics because the facade must return a complete usable result. T02 now qualifies [caller mutation/copy ownership](startup-input-ownership.md). T03 now qualifies [concurrent publishers and failure/retry](startup-publication-concurrency.md); T04 still owns the complete shared lifecycle/metadata fixtures and cross-process identities. Those remaining tasks are not marked complete by the T01 prerequisites. No Linux native-suite, macOS, historical package compatibility, logging runtime or release qualification is claimed here.
-
-WP03-S04-T04 completes [shared startup lifecycle/metadata qualification](startup-qualification.md), including independently initialized public application processes. This establishes startup behavior; the logging runtime remains later work.
+The [ConsoleHuman example](../../../implementations/csharp/examples/logging/ConsoleHuman/Program.cs) uses this shape and clearly identifies the still-pending logging runtime. [The current contract](../../../contracts/logging/v1/environment-contract.json) supersedes the previous unpublished passive-store candidate. Historical plans and receipts remain preserved; controlled metadata fixtures exercise projection validation without assigning readonly runtime facts.

@@ -6,6 +6,10 @@ function Get-SourceInventory {
     if ($LASTEXITCODE -eq 0 -and [IO.Path]::GetFullPath($gitRoot) -eq [IO.Path]::GetFullPath($Root)) {
         $files = @(& git -C $Root ls-files --cached --others --exclude-standard)
         if ($LASTEXITCODE -ne 0) { throw 'Unable to enumerate Git source inputs.' }
+        # Inventory the current working tree. Git --cached includes unstaged deletions.
+        $deleted = @(& git -C $Root ls-files --deleted)
+        if ($LASTEXITCODE -ne 0) { throw 'Unable to enumerate working-tree deletions.' }
+        $files = @($files | Where-Object { $_ -notin $deleted })
     }
     else {
         $files = @(Get-ChildItem -LiteralPath $Root -Recurse -File | ForEach-Object { [IO.Path]::GetRelativePath($Root, $_.FullName).Replace('\', '/') } | Where-Object { $_ -notmatch '(^|/)(\.git|\.artifacts|bin|obj|\.vs)(/|$)' })

@@ -32,7 +32,7 @@ Open [CisLib.slnx](implementations/csharp/CisLib.slnx) for the C# solution. The 
 
 The [verification and source replay guide](docs/architecture/csharp-verification.md) explains structured reports, all six family slots and the required-case inventory. Validate existing Developer evidence with `pwsh -File eng/check-release.ps1 -Profile Developer`, or rebuild it with isolated caches using `pwsh -File eng/replay.ps1 -Profile Developer`. Release verification and replay remain nonzero until their required implementation and evidence exist.
 
-Read the [startup, identity and configuration contract](docs/modules/logging/startup-contract.md) for `CIS.EnvironmentOptions`, immutable outputs and configuration precedence. Runtime resolution and publication follow in WP03.
+Read the [startup, identity and configuration contract](docs/modules/logging/startup-contract.md) for `CIS.EnvironmentOptions`, immutable outputs and configuration precedence. The current readonly static container supersedes historical startup publication mechanics.
 
 ## Repository layout
 
@@ -60,3 +60,7 @@ Core may use explicitly approved Microsoft-maintained NuGet packages. Third-part
 CisLib has its own repository and release process. CIS will consume versioned guidance and reference bundles; the Core runtime does not depend on CIS. The user-created [CISLIB GitHub repository](https://github.com/andrewspiteri/CISLIB) is configured as `origin`. The initial foundation checkpoint is committed as `ea8e9cf`. No push, publication licence or public package release has been created by this setup.
 
 WP02-S02 [event/value contracts](docs/modules/logging/event-contract.md) and shared fixtures are defined and checked by development-only C# validation; event capture/output implementation remains planned.
+
+See [event UTC time and W3C correlation](docs/modules/logging/event-correlation.md) for the current owned-facts capture phase and its native bindings.
+
+See [EnvironmentOptions](docs/modules/logging/environment-options.md) for automatic readonly static facts and override behavior.

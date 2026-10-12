@@ -42,7 +42,7 @@ public sealed class ExceptionContentArchitectureTests
         string[] forbidden = calls.Where(call => IsExceptionMember(call) && !AllowedGetters.Contains(call.Name, StringComparer.Ordinal) ||
             IsAmbientOrSerializer(call)).Select(call => call.Name).ToArray();
         foreach (string name in new[] { "get_Data", "get_Source", "get_HelpLink", "get_TargetSite", "get_HResult",
-            "ToString", "GetBaseException", "GetEnvironmentVariables", "get_Current", "get_Headers", "get_Content", "Serialize" })
+            "ToString", "GetBaseException", "GetEnvironmentVariables", "get_Logging", "get_Headers", "get_Content", "Serialize" })
         {
             Assert.IsTrue(forbidden.Contains(name, StringComparer.Ordinal), name);
         }
@@ -88,7 +88,7 @@ public sealed class ExceptionContentArchitectureTests
         _ = source.ToString();
         _ = source.GetBaseException();
         _ = Environment.GetEnvironmentVariables();
-        _ = EnvironmentOptions.Current;
+        _ = EnvironmentOptions.Logging;
         _ = request.Headers;
         _ = request.Content;
         _ = JsonSerializer.Serialize(source);

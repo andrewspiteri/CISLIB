@@ -26,7 +26,7 @@ def verify_projection(value, host, family, mode, label, source):
     app, versions, runtime, init, observed = (value[k] for k in ("Application", "Versions", "Runtime", "Initialization", "Observed"))
     expected_build = {"native": "9.8.7-rc.2+sha.Application", "assembly-version": "23.0.0.0", "unavailable": "unknown"}[mode]
     require(app == {"ApplicationName": "CIS.Core.DiscoveryFixture", "BuildVersion": expected_build, "CommitId": None, "BuildId": None}, "Application facts or unavailable build fallback changed")
-    require(versions == {"BuildVersion": expected_build, "ServiceVersion": label, "ServiceVersionSource": source}, "Version precedence or actual build separation changed")
+    require(versions == {"BuildVersion": expected_build, "ServiceVersion": label}, "Version precedence or actual build separation changed")
     require(observed["EntryInformationalVersion"] == "9.8.7-rc.2+sha.Application", "Application suffix changed")
     require(observed["EntryAssemblyVersion"] == "23.0.0.0" and observed["EntryFileVersion"] == "88.0.0.0", "Fixture version decoys changed")
     require(observed["CoreName"] == "CIS.Core" and observed["CoreAssemblyVersion"] == "1.0.0.0", "Unexpected Core assembly")
@@ -70,13 +70,15 @@ def main():
         ("blank-core-alias", "native", " \t", "Alias.Label", "Alias.Label", "DD_VERSION"),
         ("actual-build-fallback", "native", " ", "\t", "9.8.7-rc.2+sha.Application", "BuildVersion"),
     ]
+    catalog = Path(__file__).resolve().parents[5] / "contracts/logging/v1/configuration.json"
+    names = [name for setting in json.loads(catalog.read_text(encoding="utf-8"))["settings"] for name in [setting["key"], *setting.get("aliases", [])]]
     parent = dict(os.environ)
     values = []
     reports = []
-    record = {"schema": "cis.discovery-process/v1", "scope": "Actual child-process discovery only, before public snapshot/startup/logging or full platform qualification", "family": args.family, "status": "Failed", "exitCode": 1, "cases": [], "reports": reports}
+    record = {"schema": "cis.discovery-process/v2", "scope": "Five actual static-constructor children plus two controlled internal fallback/unavailable metadata projections; logging runtime/full platform release remain pending", "family": args.family, "status": "Failed", "exitCode": 1, "cases": [], "reports": reports}
     try:
         for name, mode, core, alias, label, source in specifications:
-            environment = dict(parent)
+            environment = {name: value for name, value in parent.items() if name not in names}
             for key, value in {"CORE_SERVICE_VERSION": core, "DD_VERSION": alias, "DD_AGENT_HOST": "collector-only.example"}.items():
                 if value is None:
                     environment.pop(key, None)
@@ -90,6 +92,7 @@ def main():
                 reports.append({"path": path.name, "sha256": sha(path), "bytes": len(data)})
             require(result.returncode == 0 and not result.stderr, "Child process failed: " + name)
             value = json.loads(result.stdout.decode("utf-8"))
+            require(value["FactBinding"] == ("static-constructor" if mode == "native" else "controlled-internal-projection"), "Fact binding differs")
             verify_projection(value, host, args.family, mode, label, source)
             values.append(value)
             record["cases"].append({"id": name, "status": "Passed", "exitCode": result.returncode, "command": command})

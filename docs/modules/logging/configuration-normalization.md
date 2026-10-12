@@ -1,5 +1,7 @@
 # Blank values, tokens and identity text
 
+> Historical implementation/evidence: the passive caller-populated store in [current guidance](environment-options.md) supersedes these discovery/factory/publication tasks. Original receipts and source proposals remain preserved; do not recreate the removed startup subsystem from this walkthrough.
+
 WP03-S02-T03 qualifies the normalization behavior used by [captured input selection](configuration-inputs.md) and [typed resolution](configuration-resolution.md). The existing production mechanisms already implement the required behavior; this task adds full-resolver controls and documents their scope. It does not add a second normalization path or change the accepted severity abbreviations.
 
 Null, empty and whitespace-only configurable strings are absent. Every CORE setting can therefore fall through to typed setup/defaults. The three identity aliases also fall through when blank, followed by blank setup text and discovered/documented defaults. FilePath remains absent when its available text sources are blank. C# uses `string.IsNullOrWhiteSpace` and `Trim`; controls execute ASCII space, tab/CR/LF, nonbreaking space (U+00A0), em space (U+2003), narrow nonbreaking space (U+202F) and ideographic space (U+3000). Zero-width space (U+200B) and BOM (U+FEFF) are not treated as whitespace or silently stripped.

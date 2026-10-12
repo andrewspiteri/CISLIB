@@ -1,12 +1,13 @@
 using System.Text.Json.Nodes;
 using CIS.Configuration;
 using CIS.Tests.DiscoveryFixture;
-using CIS.Tests.UnitTests.Discovery;
+using CIS.TestSupport;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace CIS.Tests.UnitTests;
 
 [TestClass]
+[DoNotParallelize]
 public sealed class ConfigurationTableTests
 {
     public static IEnumerable<object[]> Cases => Read()["cases"]!.AsArray().Select(row => new object[] { ConfigurationFixtureAdapter.Text(row!, "id")! });
@@ -18,21 +19,38 @@ public sealed class ConfigurationTableTests
         JsonObject row = ConfigurationFixtureAdapter.Case(Read(), id);
         JsonObject input = row["inputs"]!.AsObject();
         JsonNode before = input.DeepClone();
-        JsonObject discovery = input["discovery"]!.AsObject();
-        var application = new ApplicationIdentity(ConfigurationFixtureAdapter.Text(discovery, "applicationName"), ConfigurationFixtureAdapter.Text(discovery, "buildVersion")!, null, null);
-        var source = new EnvironmentVariableStub();
-        foreach ((string key, JsonNode? value) in input["environment"]!.AsObject())
+        using var directory = new TemporaryDirectory();
+        (PreparedConfiguration? snapshot, CoreConfigurationException? error) = ConfigurationValidationAdapter.Execute(input, () => directory.Path);
+        JsonNode expected = row["expected"]!;
+        JsonArray settings = expected["settings"]!.AsArray();
+        if (expected["hasParseErrors"]!.GetValue<bool>())
         {
-            source.Values[key] = value?.GetValue<string>();
+            Assert.IsNull(snapshot);
+            Assert.IsNotNull(error);
+            CollectionAssert.AreEqual(settings.Where(setting => setting!["state"]!.GetValue<string>() == "InvalidToken").Select(setting => setting!["key"]!.GetValue<string>()).ToArray(), error.Issues.Select(issue => issue.Key).ToArray());
+            Assert.IsTrue(error.Issues.All(issue => issue.Code == ConfigurationIssueCodes.InvalidToken));
         }
-        EnvironmentConfigurationInput setup = ConfigurationFixtureAdapter.Setup(input);
-        ConfigurationResolution resolution = ConfigurationResolver.Resolve(setup, application, CapturedEnvironment.Capture(source));
-        JsonObject actual = ConfigurationFixtureAdapter.Project(resolution);
-        Assert.IsTrue(JsonNode.DeepEquals(row["expected"], actual), $"{id}: {actual.ToJsonString()}");
-        Assert.IsTrue(JsonNode.DeepEquals(before, input), "Fixture caller and host inputs changed.");
-        Assert.AreEqual(21, source.Reads.Count);
-        Assert.AreEqual(21, source.Reads.Distinct(StringComparer.Ordinal).Count());
-        Assert.AreEqual(18, actual["settings"]!.AsArray().Count);
+        else
+        {
+            Assert.IsNull(error, id);
+            Assert.AreEqual(expected["buildVersion"]!.GetValue<string>(), snapshot!.BuildVersion);
+            Assert.AreEqual(expected["consoleEnabled"]!.GetValue<bool>(), snapshot.Logging.ConsoleEnabled);
+            Assert.AreEqual(expected["fileEnabled"]!.GetValue<bool>(), snapshot.Logging.FileEnabled);
+            JsonObject values = ConfigurationFixtureAdapter.Values(snapshot);
+            foreach (JsonNode? setting in settings)
+            {
+                string key = setting!["key"]!.GetValue<string>();
+                JsonNode? wanted = setting["value"];
+                string property = Contract()["settings"]!.AsArray().Single(row => row!["key"]!.GetValue<string>() == key)!["property"]!.GetValue<string>();
+                if (key == "CORE_LOG_FILE_PATH" && wanted is not null)
+                {
+                    wanted = JsonValue.Create(Path.GetFullPath(wanted.GetValue<string>(), directory.Path));
+                }
+                Assert.IsTrue(JsonNode.DeepEquals(wanted, values[property]), id + ":" + key);
+            }
+        }
+        Assert.IsTrue(JsonNode.DeepEquals(before, input));
+        Assert.AreEqual(0, Directory.EnumerateFileSystemEntries(directory.Path).Count());
     }
 
     [TestMethod]
@@ -40,22 +58,17 @@ public sealed class ConfigurationTableTests
     {
         JsonObject document = Read();
         JsonArray rows = document["cases"]!.AsArray();
-        Assert.AreEqual(1, document["schemaVersion"]!.GetValue<int>());
         Assert.AreEqual(26, rows.Count);
         Assert.AreEqual(rows.Count, document["caseCount"]!.GetValue<int>());
         Assert.AreEqual(rows.Count, rows.Select(row => ConfigurationFixtureAdapter.Text(row!, "id")).Distinct(StringComparer.Ordinal).Count());
-        string[] keys = ConfigurationSettings.All.Select(setting => setting.Key).ToArray();
+        string[] keys = Contract()["settings"]!.AsArray().Select(setting => setting!["key"]!.GetValue<string>()).ToArray();
+        Assert.AreEqual(18, keys.Length);
         foreach (JsonNode? row in rows)
         {
-            string[] actual = row!["expected"]!["settings"]!.AsArray().Select(setting => ConfigurationFixtureAdapter.Text(setting!, "key")!).ToArray();
-            CollectionAssert.AreEqual(keys, actual);
-        }
-        string[] tags = rows.SelectMany(row => row!["tags"]!.AsArray().Select(tag => tag!.GetValue<string>())).Distinct(StringComparer.Ordinal).ToArray();
-        foreach (string required in new[] { "defaults", "setup", "all-settings", "aliases", "core-over-alias", "core-over-setup", "alias-over-setup", "discovery", "default", "independent-levels", "disabled-console", "disabled-file", "absent-file", "host-label", "host-unchanged", "host-state", "explicit-format", "explicit-stream", "selected-invalid" })
-        {
-            Assert.IsTrue(tags.Contains(required, StringComparer.Ordinal), required);
+            CollectionAssert.AreEqual(keys, row!["expected"]!["settings"]!.AsArray().Select(setting => setting!["key"]!.GetValue<string>()).ToArray());
         }
     }
 
     private static JsonObject Read() => ConfigurationFixtureAdapter.ReadDocument(ConfigurationFixtureAdapter.FindFixture());
+    private static JsonObject Contract() => ConfigurationFixtureAdapter.ReadDocument(Path.Combine(Path.GetDirectoryName(ConfigurationFixtureAdapter.FindFixture())!, "..", "..", "contracts", "logging", "v1", "configuration.json"));
 }

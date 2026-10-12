@@ -167,7 +167,7 @@ def main():
                 verify(row, result, catalog["adapterObservations"]["csharp"])
                 observed = result["observed"]
                 require(observed["runtimeDescription"] == ".NET 10.0.12" and observed["operatingSystem"] == args.family
-                        and observed["publicFacadeInitialized"] is False, "Runtime/startup differs")
+                        and observed["lifecycleApiPresent"] is False, "Runtime/startup differs")
                 require(observed["fixtureSha256"] == sha(host) and observed["coreSha256"] == sha(host.parent / "CIS.Core.dll")
                         and observed["inputsSha256"] == sha(inputs), "Managed/input identity differs")
                 require(b"CIS_PRIVATE_QUALIFICATION_DATA" not in child.stdout and b"CIS_NEVER_CAPTURE_COLLECTOR" not in child.stdout

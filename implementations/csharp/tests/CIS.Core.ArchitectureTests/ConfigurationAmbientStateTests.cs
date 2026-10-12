@@ -81,73 +81,49 @@ public sealed class ConfigurationAmbientStateTests
     }
 
     [TestMethod]
-    public void ActualFacadeHasOnlyPrivatePublicationStateAndATrivialExplicitStaticConstructor()
+    public void ContainerFactsAreReadonlyAndGettersHaveNoLifecycleEffects()
     {
-        Type facade = typeof(CIS.EnvironmentOptions);
-        Assert.AreEqual((TypeAttributes)0, facade.Attributes & TypeAttributes.BeforeFieldInit);
-        FieldInfo[] fields = facade.GetFields(BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic);
-        Assert.AreEqual(3, fields.Length);
-        Assert.IsTrue(fields.All(field => field.IsPrivate));
-        Assert.AreEqual(1, fields.Count(field => field.FieldType == typeof(object) && field.IsInitOnly));
-        Assert.AreEqual(1, fields.Count(field => field.FieldType == typeof(CIS.EnvironmentSnapshot) && !field.IsInitOnly));
-        Assert.AreEqual(1, fields.Count(field => field.FieldType == typeof(bool) && !field.IsInitOnly));
-        MethodBase[] calls = Calls(facade.TypeInitializer!).ToArray();
-        Assert.AreEqual(1, calls.Length);
-        Assert.AreEqual(typeof(object), calls[0].DeclaringType);
-        Assert.AreEqual(".ctor", calls[0].Name);
-        Assert.IsNull(facade.GetMethod("Reset", BindingFlags.Public | BindingFlags.Static));
-        Assert.IsNull(typeof(CIS.EnvironmentOptions).Assembly.GetType("CIS.EnviormentsOptions"));
+        Type store = typeof(CIS.EnvironmentOptions);
+        Assert.IsTrue(store.IsSealed && store.IsAbstract);
+        Assert.IsNotNull(store.TypeInitializer);
+        Assert.IsNull(store.GetMethod("Initialize"));
+        Assert.IsNull(store.GetProperty("Current"));
+        Assert.IsNull(store.GetProperty("IsInitialized"));
+        Assert.AreEqual(18, store.GetProperties().Length);
+        foreach (PropertyInfo property in store.GetProperties())
+        {
+            if (property.Name is "EnvironmentKind" or "CommitId" or "BuildId") { Assert.IsNotNull(property.SetMethod); }
+            else { Assert.IsNull(property.SetMethod, property.Name); }
+            Assert.AreEqual(0, Calls(property.GetMethod!).Count(), property.Name);
+        }
+        Assert.IsTrue(store.GetFields(BindingFlags.Static | BindingFlags.NonPublic).Where(field => !new[] { "<EnvironmentKind>k__BackingField", "<CommitId>k__BackingField", "<BuildId>k__BackingField" }.Contains(field.Name)).All(field => field.IsInitOnly));
+        foreach (string deleted in new[] { "CIS.EnvironmentSnapshot", "CIS.EnvironmentSetup", "CIS.Configuration.EnvironmentSnapshotFactory", "CIS.Logging.LoggingSetup", "CIS.Configuration.EnvironmentDefaults" })
+        {
+            Assert.IsNull(store.Assembly.GetType(deleted), deleted);
+        }
+        Assert.IsTrue(typeof(CIS.Logging.EventMetadata).GetFields(BindingFlags.Instance | BindingFlags.NonPublic).All(field => field.IsInitOnly));
+        Assert.IsTrue(typeof(CIS.Logging.EventMetadata).GetProperties().All(property => property.SetMethod is null));
     }
 
     [TestMethod]
-    [DataRow("Initialize")]
-    [DataRow("Current")]
-    [DataRow("IsInitialized")]
-    public void PublicationReadsAndWritesUseTheIdenticalPrivateMonitorGate(string member)
+    public void ConstructorReadsFactsThenOverridesWithoutStartingConsumers()
     {
-        Type facade = typeof(CIS.EnvironmentOptions);
-        MethodBase method = member == "Initialize" ? facade.GetMethod(member)! : facade.GetProperty(member)!.GetMethod!;
-        var instructions = Instructions(method).ToArray();
-        var enter = instructions.Single(item => item.Member is MethodBase call && call.DeclaringType == typeof(Monitor) && call.Name == "Enter");
-        var exit = instructions.Single(item => item.Member is MethodBase call && call.DeclaringType == typeof(Monitor) && call.Name == "Exit");
-        var gate = instructions.Single(item => item.Code == OpCodes.Ldsfld && item.Member is FieldInfo field && field.Name == "Gate");
-        Assert.IsTrue(gate.Offset < enter.Offset);
-        Assert.AreEqual(facade, gate.Member!.DeclaringType);
-        var accesses = instructions.Where(item => item.Member is FieldInfo field && field.Name == "current").ToArray();
-        Assert.IsTrue(accesses.Length > 0);
-        Assert.IsTrue(accesses.All(item => item.Offset > enter.Offset && item.Offset < exit.Offset));
+        ConstructorInfo constructor = typeof(CIS.EnvironmentOptions).TypeInitializer!;
+        MethodBase[] calls = Calls(constructor).ToArray();
+        int process = Array.FindIndex(calls, call => call.DeclaringType == typeof(Environment) && call.Name == "get_ProcessId");
+        int overrides = Array.FindIndex(calls, call => call.DeclaringType?.FullName == "CIS.Configuration.EnvironmentOverrides");
+        int validation = Array.FindLastIndex(calls, call => call.DeclaringType == typeof(CIS.EnvironmentOptions) && call.Name == "CheckIdentity");
+        int intern = Array.FindIndex(calls, call => call.DeclaringType == typeof(string) && call.Name == "Intern");
+        Assert.IsTrue(process >= 0 && overrides > process && validation > overrides && intern > validation);
+        Assert.IsFalse(calls.Any(call => call.DeclaringType == typeof(CIS.Logging.EventMetadata)));
+        Assert.IsTrue(calls.Any(call => call.DeclaringType == typeof(Assembly) && call.Name == "GetEntryAssembly"));
+        Assert.IsFalse(calls.Any(IsInfrastructureCall));
     }
-
-    [TestMethod]
-    public void InitializationGuardIsSetBeforeConstructionAndClearedInsideFinally()
-    {
-        MethodInfo method = typeof(CIS.EnvironmentOptions).GetMethod("Initialize")!;
-        var instructions = Instructions(method).ToArray();
-        int create = instructions.Single(item => item.Member is MethodBase call && call.DeclaringType?.FullName == "CIS.Configuration.EnvironmentSnapshotFactory" && call.Name == "Create").Offset;
-        int publish = instructions.Single(item => item.Code == OpCodes.Stsfld && item.Member is FieldInfo field && field.Name == "current").Offset;
-        var stores = instructions.Where(item => item.Code == OpCodes.Stsfld && item.Member is FieldInfo field && field.Name == "initializing").ToArray();
-        Assert.AreEqual(2, stores.Length);
-        Assert.IsTrue(stores[0].Offset < create && create < publish && publish < stores[1].Offset);
-        Assert.IsTrue(method.GetMethodBody()!.ExceptionHandlingClauses.Cast<ExceptionHandlingClause>().Any(clause => clause.Flags == ExceptionHandlingClauseOptions.Finally && clause.HandlerOffset <= stores[1].Offset && stores[1].Offset < clause.HandlerOffset + clause.HandlerLength));
-    }
-
-    [TestMethod]
-    public void CompiledGateInspectorDistinguishesNeverInvokedUngatedFieldAccess()
-    {
-        MethodInfo probe = typeof(ConfigurationAmbientStateTests).GetMethod(nameof(UngatedFieldProbe), BindingFlags.NonPublic | BindingFlags.Static)!;
-        var instructions = Instructions(probe).ToArray();
-        Assert.IsTrue(instructions.Any(item => item.Code == OpCodes.Ldsfld && item.Member is FieldInfo));
-        Assert.IsFalse(instructions.Any(item => item.Member is MethodBase call && call.DeclaringType == typeof(Monitor)));
-    }
-
-    private static readonly object UngatedValue = new();
-    // Only its compiled IL is inspected.
-    private static object UngatedFieldProbe() => UngatedValue;
 
     private static bool IsStartupType(Type type) =>
         type.Namespace is "CIS.Configuration" or "CIS.Logging.Configuration" ||
-        type == typeof(CIS.EnvironmentOptions) || type == typeof(CIS.EnvironmentSetup) || type == typeof(CIS.EnvironmentSnapshot) ||
-        type == typeof(CIS.Logging.LoggingSetup) || type == typeof(CIS.Logging.LoggingOptions) || type == typeof(CIS.Logging.EventMetadata);
+        type == typeof(CIS.EnvironmentOptions) ||
+        type == typeof(CIS.Logging.LoggingOptions) || type == typeof(CIS.Logging.EventMetadata);
 
     private static bool IsInfrastructureCall(MethodBase called)
     {

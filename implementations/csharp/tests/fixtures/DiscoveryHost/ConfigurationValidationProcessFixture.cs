@@ -13,27 +13,16 @@ internal static class ConfigurationValidationProcessFixture
         JsonObject input = row["inputs"]!.AsObject();
         string initialDirectory = Directory.GetCurrentDirectory();
         int directoryReads = 0;
-        InitializationWorkingDirectory captured = InitializationWorkingDirectory.Capture(() =>
+        var source = new FixtureSource(input["environment"]!.AsObject());
+        (PreparedConfiguration? snapshot, CoreConfigurationException? error) = ConfigurationValidationAdapter.Execute(input, () =>
         {
             directoryReads++;
             return Directory.GetCurrentDirectory();
-        });
-        var source = new FixtureSource(input["environment"]!.AsObject());
-        ConfigurationResolution selected = ConfigurationResolver.Resolve(ConfigurationFixtureAdapter.Setup(input), ConfigurationValidationAdapter.Application(input), CapturedEnvironment.Capture(source));
+        }, source.GetValue);
         source.BlockFurtherReads = true;
-        ValidatedConfiguration? validated = null;
-        CoreConfigurationException? error = null;
-        try
-        {
-            validated = ConfigurationValidator.Validate(selected, captured);
-        }
-        catch (CoreConfigurationException exception)
-        {
-            error = exception;
-        }
-        JsonObject before = ConfigurationValidationAdapter.Project(selected, validated, error);
+        JsonObject before = ConfigurationValidationAdapter.Project(snapshot, error, initialDirectory);
         Directory.SetCurrentDirectory(afterDirectory);
-        JsonObject after = ConfigurationValidationAdapter.Project(selected, validated, error);
+        JsonObject after = ConfigurationValidationAdapter.Project(snapshot, error, initialDirectory);
         bool stable = JsonNode.DeepEquals(before, after);
         after["observed"] = new JsonObject
         {
@@ -46,7 +35,7 @@ internal static class ConfigurationValidationProcessFixture
             ["operatingSystem"] = OperatingSystem.IsWindows() ? "windows" : OperatingSystem.IsLinux() ? "linux" : "macos",
             ["runtimeDescription"] = RuntimeInformation.FrameworkDescription,
             ["fixtureSha256"] = Hash(typeof(ConfigurationValidationProcessFixture).Assembly.Location),
-            ["coreSha256"] = Hash(typeof(ConfigurationValidator).Assembly.Location),
+            ["coreSha256"] = Hash(typeof(EnvironmentOptions).Assembly.Location),
             ["inputsSha256"] = Hash(inputPath)
         };
         Console.WriteLine(after.ToJsonString());
@@ -54,7 +43,7 @@ internal static class ConfigurationValidationProcessFixture
     }
 
     private static string Hash(string path) => Convert.ToHexStringLower(SHA256.HashData(File.ReadAllBytes(path)));
-    private sealed class FixtureSource(JsonObject environment) : IEnvironmentVariableSource
+    private sealed class FixtureSource(JsonObject environment)
     {
         public List<string> Reads { get; } = [];
         public bool BlockFurtherReads { get; set; }

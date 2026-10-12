@@ -1,5 +1,7 @@
 # Shared configuration tables and process fixtures
 
+> Historical implementation/evidence: the passive caller-populated store in [current guidance](environment-options.md) supersedes these discovery/factory/publication tasks. Original receipts and source proposals remain preserved; do not recreate the removed startup subsystem from this walkthrough.
+
 WP03-S02-T04 supplies the [language-neutral configuration table](../../../conformance/logging/configuration-resolution-cases.json). Its 26 independently declared rows cover every default, complete typed setup, all CORE overrides, the three DD aliases and their precedence, blank fallbacks, independent/inherited thresholds, None/absent-path disablement, explicit formats/stream, Unicode/case, selected-invalid values and differing host/telemetry labels. Each expected snapshot declares all 18 settings in catalog order, with parsed value/state, source/key, inherited threshold source, output enablement and actual BuildVersion.
 
 The table describes parsed selection before option ranges, identity/path validation or public startup. Formats, stream and detail use portable tokens; severity uses canonical names, numeric settings retain integer domains, and setup uses flattened catalog property paths. Expected snapshots were declared from the documented contract, without running Core to generate their expected values. The existing 350 per-key and nine cross-option vectors remain intact for complete validation qualification in WP03-S03.

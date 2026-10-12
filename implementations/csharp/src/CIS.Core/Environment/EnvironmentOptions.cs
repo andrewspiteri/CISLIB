@@ -1,105 +1,126 @@
+using System.ComponentModel;
+using System.Diagnostics;
+using System.Reflection;
+using System.Runtime.InteropServices;
 using CIS.Configuration;
 using CIS.Logging;
+using CIS.Text;
 
 namespace CIS;
 
-/// <summary>Explicit, one-time publication of validated application configuration and metadata.</summary>
+/// <summary>Shared application and runtime facts populated automatically on first access.</summary>
+/// <remarks>A static constructor applies discovered defaults followed by known environment overrides. It starts no module runtime.</remarks>
 public static class EnvironmentOptions
 {
-    private static readonly object Gate = new();
-    private static EnvironmentSnapshot? current;
-    private static bool initializing;
-
-    // Only the private gate is allocated; no configuration or metadata is read here.
-    static EnvironmentOptions() { }
-
-    /// <summary>Reports whether a complete snapshot has been successfully published.</summary>
-    public static bool IsInitialized
+    static EnvironmentOptions()
     {
-        get
-        {
-            lock (Gate)
-            {
-                return current is not null;
-            }
-        }
+        Assembly? application = Assembly.GetEntryAssembly();
+        BuildVersion = ReadBuildVersion(application);
+        ApplicationName = application?.GetName().Name ?? "unknown";
+        EnvironmentName = "unknown";
+        ServiceVersion = BuildVersion;
+        HostName = ReadHostName();
+        OperatingSystem = ReadOperatingSystemFamily();
+        OperatingSystemDescription = RuntimeInformation.OSDescription;
+        OSArchitecture = RuntimeInformation.OSArchitecture.ToString().ToLowerInvariant();
+        ProcessArchitecture = RuntimeInformation.ProcessArchitecture.ToString().ToLowerInvariant();
+        RuntimeDescription = RuntimeInformation.FrameworkDescription;
+        ProcessId = System.Environment.ProcessId;
+        ProcessStartedAtUtc = ReadProcessStartedAtUtc();
+        InstanceId = Guid.NewGuid().ToString("D");
+        InitializedAtUtc = DateTimeOffset.UtcNow;
+        Logging = new LoggingOptions();
+        var issues = new List<ConfigurationIssue>();
+        (ApplicationName, EnvironmentName, ServiceVersion) = EnvironmentOverrides.Apply(
+            System.Environment.GetEnvironmentVariable, ApplicationName, EnvironmentName, ServiceVersion, Logging, issues);
+        if (issues.Count != 0) { throw new CoreConfigurationException(issues); }
+        CheckIdentity(ApplicationName, nameof(ApplicationName), 255, issues);
+        CheckIdentity(EnvironmentName, nameof(EnvironmentName), 255, issues);
+        CheckIdentity(BuildVersion, nameof(BuildVersion), 512, issues);
+        CheckIdentity(ServiceVersion, nameof(ServiceVersion), 512, issues);
+        if (issues.Count != 0) { throw new CoreConfigurationException(issues); }
+        // Intern only validated, bounded identities after all overrides. Never intern UUIDs, paths or payloads.
+        ApplicationName = string.Intern(ApplicationName);
+        EnvironmentName = string.Intern(EnvironmentName);
+        BuildVersion = string.Intern(BuildVersion);
+        ServiceVersion = string.Intern(ServiceVersion);
     }
 
-    /// <summary>Gets the identical immutable snapshot published by Initialize.</summary>
-    /// <exception cref="InvalidOperationException">No successful initialization has occurred.</exception>
-    public static EnvironmentSnapshot Current
-    {
-        get
-        {
-            lock (Gate)
-            {
-                return current ?? throw new InvalidOperationException("Core has not been initialized. Call EnvironmentOptions.Initialize first.");
-            }
-        }
-    }
-
-    /// <summary>Copies, resolves and validates startup inputs, then publishes the complete snapshot once.</summary>
-    /// <param name="setup">Caller-owned startup input; it must not be mutated concurrently with this call.</param>
-    /// <returns>The same immutable instance subsequently exposed through Current.</returns>
-    /// <exception cref="ArgumentNullException">setup is null.</exception>
-    /// <exception cref="CoreConfigurationException">Selected inputs fail validation; nothing is published.</exception>
-    /// <exception cref="InvalidOperationException">A snapshot has already been published, or a metadata callback re-enters initialization.</exception>
-    public static EnvironmentSnapshot Initialize(EnvironmentSetup setup)
-    {
-        ArgumentNullException.ThrowIfNull(setup);
-        lock (Gate)
-        {
-            if (current is not null)
-            {
-                throw new InvalidOperationException("Core has already been initialized.");
-            }
-            if (initializing)
-            {
-                throw new InvalidOperationException("Core initialization is already in progress.");
-            }
-            initializing = true;
-            try
-            {
-                EnvironmentSnapshot snapshot = EnvironmentSnapshotFactory.Create(setup);
-                current = snapshot;
-                return snapshot;
-            }
-            finally
-            {
-                initializing = false;
-            }
-        }
-    }
-
-    /// <summary>The application identity, independent of collector destinations.</summary>
-    /// <exception cref="InvalidOperationException">No successful initialization has occurred.</exception>
-    public static string ApplicationName => Current.ApplicationName;
-
-    /// <summary>The actual application build identity, including prerelease and build text.</summary>
-    /// <exception cref="InvalidOperationException">No successful initialization has occurred.</exception>
-    public static string BuildVersion => Current.BuildVersion;
-
-    /// <summary>The deployment or telemetry release label, independent of BuildVersion.</summary>
-    /// <exception cref="InvalidOperationException">No successful initialization has occurred.</exception>
-    public static string ServiceVersion => Current.ServiceVersion;
-
-    /// <summary>The application environment label; it does not modify the host environment.</summary>
-    /// <exception cref="InvalidOperationException">No successful initialization has occurred.</exception>
-    public static string EnvironmentName => Current.EnvironmentName;
-
-    /// <summary>The host name observed by this application, or null when unavailable.</summary>
-    /// <exception cref="InvalidOperationException">No successful initialization has occurred.</exception>
-    public static string? HostName => Current.HostName;
-
+    /// <summary>The selected application name; interned after overrides.</summary>
+    public static string ApplicationName { get; }
+    /// <summary>The actual application build version; independent of service-version overrides and interned.</summary>
+    public static string BuildVersion { get; }
+    /// <summary>The selected deployment version; interned after overrides.</summary>
+    public static string ServiceVersion { get; }
+    /// <summary>The selected deployment environment label; interned after overrides.</summary>
+    public static string EnvironmentName { get; }
+    /// <summary>The application-selected execution kind; defaults to Unknown.</summary>
+    public static EnvironmentKind EnvironmentKind { get; set; }
+    /// <summary>The process-wide application instance UUID, without interning.</summary>
+    public static string InstanceId { get; }
+    /// <summary>The process start instant in UTC, or null when host inspection is unavailable.</summary>
+    public static DateTimeOffset? ProcessStartedAtUtc { get; }
+    /// <summary>The UTC instant at which the static container was populated.</summary>
+    public static DateTimeOffset InitializedAtUtc { get; }
+    /// <summary>The current host name.</summary>
+    public static string? HostName { get; }
     /// <summary>The lowercase operating-system family.</summary>
-    /// <exception cref="InvalidOperationException">No successful initialization has occurred.</exception>
-    public static string OperatingSystem => Current.OperatingSystem;
+    public static string OperatingSystem { get; }
+    /// <summary>The observed operating-system description.</summary>
+    public static string? OperatingSystemDescription { get; }
+    /// <summary>The lowercase operating-system architecture.</summary>
+    public static string? OSArchitecture { get; }
+    /// <summary>The lowercase process architecture.</summary>
+    public static string? ProcessArchitecture { get; }
+    /// <summary>The observed runtime description.</summary>
+    public static string? RuntimeDescription { get; }
+    /// <summary>The current positive process identifier.</summary>
+    public static int? ProcessId { get; }
+    /// <summary>The optional caller-supplied build commit identifier.</summary>
+    public static string? CommitId { get; set; }
+    /// <summary>The optional caller-supplied build identifier.</summary>
+    public static string? BuildId { get; set; }
+    /// <summary>Mutable module settings; logging owns their preparation and runtime.</summary>
+    public static LoggingOptions Logging { get; }
 
-    /// <summary>The logging configuration for this application.</summary>
-    /// <exception cref="InvalidOperationException">No successful initialization has occurred.</exception>
-    public static LoggingOptions Logging => Current.Logging;
+    internal static string ReadBuildVersion(Assembly? application)
+    {
+        string? information = application?.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion;
+        return string.IsNullOrWhiteSpace(information) ? application?.GetName().Version?.ToString() ?? "unknown" : information.Trim();
+    }
 
-    /// <summary>The immutable allowlisted application and process facts used by logging.</summary>
-    /// <exception cref="InvalidOperationException">No successful initialization has occurred.</exception>
-    public static EventMetadata EventMetadata => Current.EventMetadata;
+    private static void CheckIdentity(string value, string name, int maximum, List<ConfigurationIssue> issues)
+    {
+        if (!UnicodeScalarText.IsValid(value, maximum, allowControls: false))
+        {
+            issues.Add(new(ConfigurationIssueCodes.InvalidIdentity, "EnvironmentOptions." + name, "Supply a bounded identity without controls or malformed Unicode."));
+        }
+    }
+
+    private static string ReadOperatingSystemFamily()
+    {
+        if (System.OperatingSystem.IsWindows()) { return "windows"; }
+        if (System.OperatingSystem.IsLinux()) { return "linux"; }
+        if (System.OperatingSystem.IsMacOS()) { return "macos"; }
+        return "unknown";
+    }
+
+    private static string? ReadHostName()
+    {
+        try { return System.Environment.MachineName; }
+        catch (InvalidOperationException) { return null; }
+    }
+
+    private static DateTimeOffset? ReadProcessStartedAtUtc()
+    {
+        try
+        {
+            using Process process = Process.GetCurrentProcess();
+            return new DateTimeOffset(process.StartTime.ToUniversalTime());
+        }
+        catch (Exception error) when (error is Win32Exception or InvalidOperationException or NotSupportedException)
+        {
+            return null;
+        }
+    }
 }

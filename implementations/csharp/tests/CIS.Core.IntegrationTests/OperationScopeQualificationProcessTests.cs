@@ -38,7 +38,7 @@ public sealed class OperationScopeQualificationProcessTests
         semantic.Remove("observed");
         CIS.Tests.DiscoveryFixture.OperationScopeQualificationExpectations.Validate(row, catalog["nativeBindings"]!.AsObject(), semantic);
         JsonNode observed = result["observed"]!;
-        Assert.IsFalse(observed["publicFacadeInitialized"]!.GetValue<bool>());
+        Assert.IsFalse(observed["lifecycleApiPresent"]!.GetValue<bool>());
         Assert.AreEqual(".NET 10.0.12", observed["runtimeDescription"]!.GetValue<string>());
         Assert.AreEqual(Hash(host), observed["fixtureSha256"]!.GetValue<string>());
         Assert.AreEqual(Hash(Path.Combine(Path.GetDirectoryName(host)!, "CIS.Core.dll")), observed["coreSha256"]!.GetValue<string>());

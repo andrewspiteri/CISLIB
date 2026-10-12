@@ -2,13 +2,16 @@ using CIS.Logging.Exceptions;
 
 namespace CIS.Logging.Events;
 
-// Owned projection facts. UTC/activity capture and final encoded-entry allocation follow in S04.
+// Owned call-boundary facts; final encoded-entry allocation follows in S04.
 internal sealed class CapturedEventFacts
 {
-    internal CapturedEventFacts(string status, string eventName, string message, string? template,
+    internal CapturedEventFacts(DateTimeOffset timestampUtc, string? traceId, string? spanId, string status, string eventName, string message, string? template,
         string? operationId, string service, string environment, string version, string component,
         LogValue resource, LogValue attributes, CapturedException? exception, bool isTruncated)
     {
+        TimestampUtc = timestampUtc;
+        TraceId = traceId;
+        SpanId = spanId;
         Status = status;
         EventName = eventName;
         Message = message;
@@ -25,6 +28,9 @@ internal sealed class CapturedEventFacts
     }
 
     internal int SchemaVersion => 1;
+    internal DateTimeOffset TimestampUtc { get; }
+    internal string? TraceId { get; }
+    internal string? SpanId { get; }
     internal string Status { get; }
     internal string EventName { get; }
     internal string Message { get; }

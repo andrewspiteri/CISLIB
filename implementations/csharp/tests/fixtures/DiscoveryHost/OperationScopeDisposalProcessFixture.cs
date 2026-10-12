@@ -21,7 +21,7 @@ internal static class OperationScopeDisposalProcessFixture
         result["mode"] = mode;
         result["observed"] = new JsonObject
         {
-            ["publicFacadeInitialized"] = EnvironmentOptions.IsInitialized,
+            ["lifecycleApiPresent"] = (typeof(EnvironmentOptions).GetMethod("Initialize") is not null),
             ["runtimeDescription"] = RuntimeInformation.FrameworkDescription,
             ["operatingSystem"] = OperatingSystem.IsWindows() ? "windows" : "linux",
             ["fixtureSha256"] = Hash(typeof(OperationScopeDisposalProcessFixture).Assembly.Location),

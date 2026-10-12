@@ -1,5 +1,7 @@
 # Captured directory and file-path validation
 
+> Historical implementation/evidence: the passive caller-populated store in [current guidance](environment-options.md) supersedes these discovery/factory/publication tasks. Original receipts and source proposals remain preserved; do not recreate the removed startup subsystem from this walkthrough.
+
 WP03-S03-T03 captures one initialization working-directory value and resolves selected file paths into local immutable validated state. [Selection/parsing](configuration-resolution.md) retains the selected raw path and provenance; `ConfigurationValidator.Validate(resolution, capturedDirectory)` requires the explicit capture, validates all selected option/identity/path settings and returns `ValidatedConfiguration.FilePath` as an absolute path or null. The later public snapshot builder must use that validated path. No public facade or output runtime is added.
 
 `InitializationWorkingDirectory.Capture` reads its source exactly once, requires a fully qualified base and owns its normalized string. The normal source is `Directory.GetCurrentDirectory`; an internal callback qualifies deterministic inputs. Required source failures propagate rather than falling back to a later directory or inventing a configuration issue. The capture applies even when the selected file path is absent. Getters never reread the ambient directory.

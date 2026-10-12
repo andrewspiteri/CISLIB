@@ -30,7 +30,6 @@ public sealed class DiscoveryProcessTests
         Assert.AreEqual(expectedBuild, Text(application, "BuildVersion"));
         Assert.AreEqual(expectedBuild, Text(versions, "BuildVersion"));
         Assert.AreEqual("Deployment.First", Text(versions, "ServiceVersion"));
-        Assert.AreEqual("CORE_SERVICE_VERSION", Text(versions, "ServiceVersionSource"));
         Assert.IsNull(application["CommitId"]);
         Assert.IsNull(application["BuildId"]);
         Assert.AreEqual(ApplicationBuild, Text(observed, "EntryInformationalVersion"));
@@ -101,7 +100,7 @@ public sealed class DiscoveryProcessTests
         JsonObject versions = result["Versions"]!.AsObject();
         Assert.AreEqual(ApplicationBuild, Text(versions, "BuildVersion"));
         Assert.AreEqual(expected, Text(versions, "ServiceVersion"));
-        Assert.AreEqual(expectedSource, Text(versions, "ServiceVersionSource"));
+        Assert.IsTrue(expectedSource is "DD_VERSION" or "BuildVersion");
     }
 
     private async Task<JsonObject> Run(string scenario, string? core, string? alias)

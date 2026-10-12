@@ -8,13 +8,9 @@ internal static class ConstructionNames
 {
     internal static LogWriteResult Use()
     {
-        var setup = new EnvironmentSetup
-        {
-            ApplicationName = "Compatibility.Consumer",
-            Logging = new LoggingSetup { MaxEntryBytes = 65536 }
-        };
-        EnvironmentSnapshot snapshot = EnvironmentOptions.Initialize(setup: setup);
-        CoreLogRuntime runtime = CoreLogRuntime.Create(environment: snapshot);
+        EnvironmentOptions.EnvironmentKind = EnvironmentKind.Console;
+        EnvironmentOptions.Logging.MaxEntryBytes = 65536;
+        CoreLogRuntime runtime = CoreLogRuntime.Create();
         CoreLogger logger = runtime.CreateLogger(component: "Orders");
         var data = new LogEventData { EventName = "order.created", Message = "Created" };
         var issue = new ConfigurationIssue(code: ConfigurationIssueCodes.InvalidToken, key: "CORE_LOG_LEVEL", explanation: "A token is invalid.");
