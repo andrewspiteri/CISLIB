@@ -1,0 +1,446 @@
+{
+  "schemaVersion": 1,
+  "taskId": "WP04-S05-T01",
+  "caseCount": 23,
+  "scope": "Actual Core logger methods, capture and bounded encoding against explicitly controlled internal output admission. Tickets/capacity/fault counters belong to the test seam; no worker/I/O/delivery or complete S05 qualification is claimed.",
+  "cases": [
+    {
+      "id": "LOGGER-DIRECT-TRACE",
+      "input": {
+        "mode": "direct",
+        "level": "Trace"
+      },
+      "expected": {
+        "outcomes": [
+          "Accepted"
+        ],
+        "clockCalls": 1,
+        "factoryCalls": 0,
+        "status": "trace",
+        "accepted": [
+          1,
+          0
+        ]
+      }
+    },
+    {
+      "id": "LOGGER-DIRECT-DEBUG",
+      "input": {
+        "mode": "direct",
+        "level": "Debug"
+      },
+      "expected": {
+        "outcomes": [
+          "Accepted"
+        ],
+        "clockCalls": 1,
+        "factoryCalls": 0,
+        "status": "debug",
+        "accepted": [
+          1,
+          0
+        ]
+      }
+    },
+    {
+      "id": "LOGGER-DIRECT-INFORMATION",
+      "input": {
+        "mode": "direct",
+        "level": "Information"
+      },
+      "expected": {
+        "outcomes": [
+          "Accepted"
+        ],
+        "clockCalls": 1,
+        "factoryCalls": 0,
+        "status": "info",
+        "accepted": [
+          1,
+          0
+        ]
+      }
+    },
+    {
+      "id": "LOGGER-DIRECT-WARNING",
+      "input": {
+        "mode": "direct",
+        "level": "Warning"
+      },
+      "expected": {
+        "outcomes": [
+          "Accepted"
+        ],
+        "clockCalls": 1,
+        "factoryCalls": 0,
+        "status": "warn",
+        "accepted": [
+          1,
+          0
+        ]
+      }
+    },
+    {
+      "id": "LOGGER-DIRECT-ERROR",
+      "input": {
+        "mode": "direct",
+        "level": "Error"
+      },
+      "expected": {
+        "outcomes": [
+          "Accepted"
+        ],
+        "clockCalls": 1,
+        "factoryCalls": 0,
+        "status": "error",
+        "accepted": [
+          1,
+          0
+        ]
+      }
+    },
+    {
+      "id": "LOGGER-DIRECT-CRITICAL",
+      "input": {
+        "mode": "direct",
+        "level": "Critical"
+      },
+      "expected": {
+        "outcomes": [
+          "Accepted"
+        ],
+        "clockCalls": 1,
+        "factoryCalls": 0,
+        "status": "critical",
+        "accepted": [
+          1,
+          0
+        ]
+      }
+    },
+    {
+      "id": "LOGGER-LAZY-TRACE",
+      "input": {
+        "mode": "lazy",
+        "level": "Trace"
+      },
+      "expected": {
+        "outcomes": [
+          "Accepted"
+        ],
+        "clockCalls": 1,
+        "factoryCalls": 1,
+        "status": "trace",
+        "accepted": [
+          1,
+          0
+        ]
+      }
+    },
+    {
+      "id": "LOGGER-LAZY-DEBUG",
+      "input": {
+        "mode": "lazy",
+        "level": "Debug"
+      },
+      "expected": {
+        "outcomes": [
+          "Accepted"
+        ],
+        "clockCalls": 1,
+        "factoryCalls": 1,
+        "status": "debug",
+        "accepted": [
+          1,
+          0
+        ]
+      }
+    },
+    {
+      "id": "LOGGER-LAZY-INFORMATION",
+      "input": {
+        "mode": "lazy",
+        "level": "Information"
+      },
+      "expected": {
+        "outcomes": [
+          "Accepted"
+        ],
+        "clockCalls": 1,
+        "factoryCalls": 1,
+        "status": "info",
+        "accepted": [
+          1,
+          0
+        ]
+      }
+    },
+    {
+      "id": "LOGGER-LAZY-WARNING",
+      "input": {
+        "mode": "lazy",
+        "level": "Warning"
+      },
+      "expected": {
+        "outcomes": [
+          "Accepted"
+        ],
+        "clockCalls": 1,
+        "factoryCalls": 1,
+        "status": "warn",
+        "accepted": [
+          1,
+          0
+        ]
+      }
+    },
+    {
+      "id": "LOGGER-LAZY-ERROR",
+      "input": {
+        "mode": "lazy",
+        "level": "Error"
+      },
+      "expected": {
+        "outcomes": [
+          "Accepted"
+        ],
+        "clockCalls": 1,
+        "factoryCalls": 1,
+        "status": "error",
+        "accepted": [
+          1,
+          0
+        ]
+      }
+    },
+    {
+      "id": "LOGGER-LAZY-CRITICAL",
+      "input": {
+        "mode": "lazy",
+        "level": "Critical"
+      },
+      "expected": {
+        "outcomes": [
+          "Accepted"
+        ],
+        "clockCalls": 1,
+        "factoryCalls": 1,
+        "status": "critical",
+        "accepted": [
+          1,
+          0
+        ]
+      }
+    },
+    {
+      "id": "LOGGER-UNION",
+      "input": {
+        "mode": "union",
+        "level": "Debug"
+      },
+      "expected": {
+        "outcomes": [
+          "Accepted"
+        ],
+        "clockCalls": 1,
+        "factoryCalls": 1,
+        "status": "debug",
+        "accepted": [
+          0,
+          1
+        ]
+      }
+    },
+    {
+      "id": "LOGGER-DISABLED",
+      "input": {
+        "mode": "disabled",
+        "level": "Information"
+      },
+      "expected": {
+        "outcomes": [
+          "Filtered"
+        ],
+        "clockCalls": 0,
+        "factoryCalls": 0,
+        "status": "info",
+        "accepted": [
+          0,
+          0
+        ]
+      }
+    },
+    {
+      "id": "LOGGER-FULL",
+      "input": {
+        "mode": "full",
+        "level": "Information"
+      },
+      "expected": {
+        "outcomes": [
+          "Accepted",
+          "Rejected"
+        ],
+        "clockCalls": 2,
+        "factoryCalls": 0,
+        "status": "info",
+        "accepted": [
+          1,
+          0
+        ]
+      }
+    },
+    {
+      "id": "LOGGER-SETTINGS",
+      "input": {
+        "mode": "settings",
+        "level": "Information"
+      },
+      "expected": {
+        "outcomes": [
+          "Accepted"
+        ],
+        "clockCalls": 1,
+        "factoryCalls": 0,
+        "status": "info",
+        "accepted": [
+          1,
+          0
+        ]
+      }
+    },
+    {
+      "id": "LOGGER-FANOUT",
+      "input": {
+        "mode": "fanout",
+        "level": "Information"
+      },
+      "expected": {
+        "outcomes": [
+          "Accepted"
+        ],
+        "clockCalls": 1,
+        "factoryCalls": 0,
+        "status": "info",
+        "accepted": [
+          1,
+          1
+        ]
+      }
+    },
+    {
+      "id": "LOGGER-INVALID",
+      "input": {
+        "mode": "invalid",
+        "level": "Information"
+      },
+      "expected": {
+        "outcomes": [
+          "InvalidEvent"
+        ],
+        "clockCalls": 0,
+        "factoryCalls": 0,
+        "status": "info",
+        "accepted": [
+          0,
+          0
+        ]
+      }
+    },
+    {
+      "id": "LOGGER-NULL-RESULT",
+      "input": {
+        "mode": "null-result",
+        "level": "Information"
+      },
+      "expected": {
+        "outcomes": [
+          "InvalidEvent"
+        ],
+        "clockCalls": 0,
+        "factoryCalls": 1,
+        "status": "info",
+        "accepted": [
+          0,
+          0
+        ]
+      }
+    },
+    {
+      "id": "LOGGER-CALLER-THROWS",
+      "input": {
+        "mode": "caller-throws",
+        "level": "Information"
+      },
+      "expected": {
+        "outcomes": [],
+        "clockCalls": 0,
+        "factoryCalls": 1,
+        "status": "info",
+        "accepted": [
+          0,
+          0
+        ]
+      }
+    },
+    {
+      "id": "LOGGER-STOPPED",
+      "input": {
+        "mode": "stopped",
+        "level": "Information"
+      },
+      "expected": {
+        "outcomes": [
+          "Stopped"
+        ],
+        "clockCalls": 0,
+        "factoryCalls": 0,
+        "status": "info",
+        "accepted": [
+          0,
+          0
+        ]
+      }
+    },
+    {
+      "id": "LOGGER-ISOLATION",
+      "input": {
+        "mode": "isolation",
+        "level": "Information"
+      },
+      "expected": {
+        "outcomes": [
+          "Accepted"
+        ],
+        "clockCalls": 1,
+        "factoryCalls": 0,
+        "status": "info",
+        "accepted": [
+          1,
+          0
+        ]
+      }
+    },
+    {
+      "id": "LOGGER-TRUNCATE",
+      "input": {
+        "mode": "truncate",
+        "level": "Information",
+        "maxEntryBytes": 16384
+      },
+      "expected": {
+        "outcomes": [
+          "Accepted"
+        ],
+        "clockCalls": 1,
+        "factoryCalls": 0,
+        "status": "info",
+        "accepted": [
+          1,
+          0
+        ],
+        "truncated": true
+      }
+    }
+  ]
+}

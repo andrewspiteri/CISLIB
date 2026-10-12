@@ -66,3 +66,5 @@ See [event UTC time and W3C correlation](docs/modules/logging/event-correlation.
 See [EnvironmentOptions](docs/modules/logging/environment-options.md) for automatic readonly static facts and override behavior.
 
 [Complete event qualification](docs/modules/logging/event-qualification.md) now covers the internal capture-to-JSONL path; logger/runtime/output integration remains next on the roadmap.
+
+The [runtime-bound logger foundation](docs/modules/logging/logger-foundation.md) now implements logger methods and immutable admission results against an internal output interface; public output creation and lifecycle remain subsequent work.

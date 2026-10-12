@@ -1,0 +1,136 @@
+Test run for C:\miscwork\portfolio\cislib\implementations\csharp\tests\CIS.Core.ArchitectureTests\bin\Release\net10.0\CIS.Core.ArchitectureTests.dll (.NETCoreApp,Version=v10.0)
+A total of 1 test files matched the specified pattern.
+  Failed PublicationControlsValidateMembershipBytesAndAppendOnlyHistory ("MissingAnchor","MissingHistoryAnchor") [2 s]
+  Error Message:
+   Test method CIS.Tests.ArchitectureTests.PublicationManifestTests.PublicationControlsValidateMembershipBytesAndAppendOnlyHistory threw exception:
+System.ComponentModel.Win32Exception: An error occurred trying to start process 'pwsh' with working directory 'C:\miscwork\portfolio\cislib'. The paging file is too small for this operation to complete.
+  Stack Trace:
+     at System.Diagnostics.Process.StartWithCreateProcess(ProcessStartInfo startInfo)
+   at CIS.TestSupport.ProcessRunner.RunAsync(String executable, IEnumerable`1 arguments, String workingDirectory, TimeSpan timeout, IReadOnlyDictionary`2 environment) in C:\miscwork\portfolio\cislib\implementations\csharp\tests\CIS.Core.TestSupport\ProcessRunner.cs:line 46
+   at CIS.Tests.ArchitectureTests.Publications.PublicationFixture.Validate(String repositoryRoot, Int32 expectedExit) in C:\miscwork\portfolio\cislib\implementations\csharp\tests\CIS.Core.ArchitectureTests\Publications\PublicationFixture.cs:line 110
+   at CIS.Tests.ArchitectureTests.PublicationManifestTests.PublicationControlsValidateMembershipBytesAndAppendOnlyHistory(String control, String error) in C:\miscwork\portfolio\cislib\implementations\csharp\tests\CIS.Core.ArchitectureTests\PublicationManifestTests.cs:line 60
+   at Microsoft.VisualStudio.TestPlatform.MSTest.TestAdapter.Execution.TestMethodInfo.ExecuteInternalAsync(Object[] arguments, CancellationTokenSource timeoutTokenSource, TestInvocationState invocationState)
+
+  Failed PackageRejectsBundledTestAssembly [8 s]
+  Error Message:
+   Assertion failed. Expected string to contain the specified substring.
+
+expected substring: "Unexpected packed asset"
+actual:             "ConvertFrom-Json: C:\\miscwork\\portfolio\\cislib\\implementations\\csharp\\eng\\check-dependencies.ps1:12\r\nLine |\r\n  12 |  . geRoot 'eng/project-boundaries.json') | ConvertFrom-Json -AsHashtable\r\n     |                                            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\r\n     | Exception of type 'System.OutOfMemoryException' was thrown.\r\n"
+comparison:         Ordinal
+  Stack Trace:
+     at CIS.Tests.ArchitectureTests.DependencyBoundaryTests.AssertRejected(ProcessResult result, String expectedRule) in C:\miscwork\portfolio\cislib\implementations\csharp\tests\CIS.Core.ArchitectureTests\DependencyBoundaryTests.cs:line 117
+   at CIS.Tests.ArchitectureTests.DependencyBoundaryTests.PackageRejectsBundledTestAssembly() in C:\miscwork\portfolio\cislib\implementations\csharp\tests\CIS.Core.ArchitectureTests\DependencyBoundaryTests.cs:line 104
+   at Microsoft.VisualStudio.TestPlatform.MSTest.TestAdapter.Execution.TestMethodInfo.ExecuteInternalAsync(Object[] arguments, CancellationTokenSource timeoutTokenSource, TestInvocationState invocationState)
+  Failed RestoredGraphRejectsUnapprovedIdentityOrVersion ("Microsoft.Extensions.Logging.Abstractions/10.0.999") [9 s]
+  Error Message:
+   Assertion failed. Expected string to contain the specified substring.
+
+expected substring: "Unapproved shipping package dependency"
+actual:             "GC: PER_HEAP_ISOLATED data members initialization failed\r\nGC heap initialization failed with error 0x80004005\r\nFailed to create CoreCLR, HRESULT: 0x80004005\r\nException: C:\\miscwork\\portfolio\\cislib\\implementations\\csharp\\eng\\check-dependencies.ps1:30\r\nLine |\r\n  30 |  . if ($LASTEXITCODE -ne 0) { throw \"Project evaluation failed: $Path\" }\r\n     |                               ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\r\n     | Project evaluation failed: C:\\miscwork\\portfolio\\cislib\\implementations\\csharp\\src\\CIS.Core\\CIS.Core.csproj\r\n"
+comparison:         Ordinal
+  Stack Trace:
+     at CIS.Tests.ArchitectureTests.DependencyBoundaryTests.AssertRejected(ProcessResult result, String expectedRule) in C:\miscwork\portfolio\cislib\implementations\csharp\tests\CIS.Core.ArchitectureTests\DependencyBoundaryTests.cs:line 117
+   at CIS.Tests.ArchitectureTests.DependencyBoundaryTests.RestoredGraphRejectsUnapprovedIdentityOrVersion(String identity) in C:\miscwork\portfolio\cislib\implementations\csharp\tests\CIS.Core.ArchitectureTests\DependencyBoundaryTests.cs:line 87
+   at Microsoft.VisualStudio.TestPlatform.MSTest.TestAdapter.Execution.TestMethodInfo.ExecuteInternalAsync(Object[] arguments, CancellationTokenSource timeoutTokenSource, TestInvocationState invocationState)
+  Failed PublicationControlsValidateMembershipBytesAndAppendOnlyHistory ("IntermediateRemoved","HistoryRemoval") [8 s]
+  Error Message:
+   Assertion failed. Expected values to be equal.
+Process terminated.
+The type initializer for 'System.Management.Automation.Runspaces.InitialSessionState' threw an exception.
+   at System.Environment.FailFast(System.Runtime.CompilerServices.StackCrawlMarkHandle, System.String, System.Runtime.CompilerServices.ObjectHandleOnStack, System.String)
+   at System.Environment.FailFast(System.Threading.StackCrawlMark ByRef, System.String, System.Exception, System.String)
+   at System.Environment.FailFast(System.String, System.Exception)
+   at Microsoft.PowerShell.UnmanagedPSEntry.Start(System.String[], Int32)
+   at Microsoft.PowerShell.ManagedPSEntry.Main(System.String[])
+System.TypeInitializationException: The type initializer for 'System.Management.Automation.Runspaces.InitialSessionState' threw an exception.
+ ---> System.TypeInitializationException: The type initializer for 'System.Management.Automation.PSStyle' threw an exception.
+ ---> System.OutOfMemoryException: Exception of type 'System.OutOfMemoryException' was thrown.
+   at System.Management.Automation.PSStyle..ctor()
+   at System.Management.Automation.PSStyle..cctor()
+   --- End of inner exception stack trace ---
+   at System.Management.Automation.Runspaces.InitialSessionState..cctor()
+   --- End of inner exception stack trace ---
+   at System.Management.Automation.Runspaces.InitialSessionState.CreateDefault2()
+   at Microsoft.PowerShell.UnmanagedPSEntry.Start(String[] args, Int32 argc)
+
+expected: 2
+actual:   -2146232797
+
+Assert.AreEqual(expectedExit, result.ExitCode)
+  Stack Trace:
+     at CIS.Tests.ArchitectureTests.Publications.PublicationFixture.Validate(String repositoryRoot, Int32 expectedExit) in C:\miscwork\portfolio\cislib\implementations\csharp\tests\CIS.Core.ArchitectureTests\Publications\PublicationFixture.cs:line 111
+   at CIS.Tests.ArchitectureTests.PublicationManifestTests.PublicationControlsValidateMembershipBytesAndAppendOnlyHistory(String control, String error) in C:\miscwork\portfolio\cislib\implementations\csharp\tests\CIS.Core.ArchitectureTests\PublicationManifestTests.cs:line 60
+   at Microsoft.VisualStudio.TestPlatform.MSTest.TestAdapter.Execution.TestMethodInfo.ExecuteInternalAsync(Object[] arguments, CancellationTokenSource timeoutTokenSource, TestInvocationState invocationState)
+  Failed RestoredGraphRejectsUnapprovedIdentityOrVersion ("Unapproved.Logger/1.0.0") [9 s]
+  Error Message:
+   Assertion failed. Expected string to contain the specified substring.
+
+expected substring: "Unapproved shipping package dependency"
+actual:             "System.TypeInitializationException: The type initializer for 'Microsoft.DotNet.Cli.Parser' threw an exception.\r\n ---> System.OutOfMemoryException: Exception of type 'System.OutOfMemoryException' was thrown.\r\n   at System.RuntimeTypeHandle.GetRuntimeTypeFromHandleSlow(IntPtr handle)\r\n   at System.Reflection.RuntimeParameterInfo.GetParameters(IRuntimeMethodInfo methodHandle, MemberInfo member, Signature sig, ParameterInfo& returnParameter, Boolean fetchReturnParameter)\r\n   at System.Reflection.RuntimeConstructorInfo.GetParametersAsSpan()\r\n   at System.RuntimeType.FilterApplyMethodBase(MethodBase methodBase, BindingFlags methodFlags, BindingFlags bindingFlags, CallingConventions callConv, Type[] argumentTypes)\r\n   at System.RuntimeType.CreateInstanceImpl(BindingFlags bindingAttr, Binder binder, Object[] args, CultureInfo culture)\r\n   at System.Activator.CreateInstance(Type type, BindingFlags bindingAttr, Binder binder, Object[] args, CultureInfo culture)\r\n   at System.Text.Json.Serialization.Converters.ObjectConverterFactory.CreateConverter(Type typeToConvert, JsonSerializerOptions options)\r\n   at System.Text.Json.Serialization.JsonConverterFactory.GetConverterInternal(Type typeToConvert, JsonSerializerOptions options)\r\n   at System.Text.Json.Serialization.Metadata.DefaultJsonTypeInfoResolver.GetConverterForType(Type typeToConvert, JsonSerializerOptions options, Boolean resolveJsonConverterAttribute)\r\n   at System.Text.Json.Serialization.Metadata.DefaultJsonTypeInfoResolver.GetTypeInfo(Type type, JsonSerializerOptions options)\r\n   at System.Text.Json.JsonSerializerOptions.GetTypeInfoNoCaching(Type type)\r\n   at System.Text.Json.JsonSerializerOptions.CachingContext.CreateCacheEntry(Type type, CachingContext context)\r\n--- End of stack trace from previous location ---\r\n   at System.Text.Json.JsonSerializerOptions.GetTypeInfoInternal(Type type, Boolean ensureConfigured, Nullable`1 ensureNotNull, Boolean resolveIfMutable, Boolean fallBackToNearestAncestorType)\r\n   at System.Text.Json.JsonSerializerOptions.GetTypeInfoForRootType(Type type, Boolean fallBackToNearestAncestorType)\r\n   at System.Text.Json.JsonSerializer.GetTypeInfo[T](JsonSerializerOptions options)\r\n   at System.Text.Json.JsonSerializer.Deserialize[TValue](String json, JsonSerializerOptions options)\r\n   at Microsoft.DotNet.Cli.Commands.Test.TestCommandDefinition.Create()\r\n   at Microsoft.DotNet.Cli.Commands.DotNetCommandDefinition..ctor()\r\n   at Microsoft.DotNet.Cli.Parser.CreateCommand()\r\n   at Microsoft.DotNet.Cli.Parser..cctor()\r\n   --- End of inner exception stack trace ---\r\n   at Microsoft.DotNet.Cli.Parser.Parse(String[] args)\r\n   at Microsoft.DotNet.Cli.Program.ProcessArgs(String[] args, TimeSpan startupTime)\r\n   at Microsoft.DotNet.Cli.Program.Main(String[] args)\r\nException: C:\\miscwork\\portfolio\\cislib\\implementations\\csharp\\eng\\check-dependencies.ps1:30\r\nLine |\r\n  30 |  . if ($LASTEXITCODE -ne 0) { throw \"Project evaluation failed: $Path\" }\r\n     |                               ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\r\n     | Project evaluation failed: C:\\miscwork\\portfolio\\cislib\\implementations\\csharp\\src\\CIS.Core\\CIS.Core.csproj\r\n"
+comparison:         Ordinal
+  Stack Trace:
+     at CIS.Tests.ArchitectureTests.DependencyBoundaryTests.AssertRejected(ProcessResult result, String expectedRule) in C:\miscwork\portfolio\cislib\implementations\csharp\tests\CIS.Core.ArchitectureTests\DependencyBoundaryTests.cs:line 117
+   at CIS.Tests.ArchitectureTests.DependencyBoundaryTests.RestoredGraphRejectsUnapprovedIdentityOrVersion(String identity) in C:\miscwork\portfolio\cislib\implementations\csharp\tests\CIS.Core.ArchitectureTests\DependencyBoundaryTests.cs:line 87
+   at Microsoft.VisualStudio.TestPlatform.MSTest.TestAdapter.Execution.TestMethodInfo.ExecuteInternalAsync(Object[] arguments, CancellationTokenSource timeoutTokenSource, TestInvocationState invocationState)
+  Failed ReleaseCorePassesTheEvaluatedCompiledReferencePolicy [18 s]
+  Error Message:
+   Assertion failed. Expected values to be equal.
+Unhandled exception. System.TypeInitializationException: The type initializer for 'System.Globalization.CompareInfo' threw an exception.
+ ---> System.OutOfMemoryException: Exception of type 'System.OutOfMemoryException' was thrown.
+   at System.Buffers.SearchValues.Create(ReadOnlySpan`1 values)
+   at System.Globalization.CompareInfo..cctor()
+   --- End of inner exception stack trace ---
+   at System.String.Equals(String value, StringComparison comparisonType)
+   at Microsoft.DotNet.Cli.Utils.UILanguageOverride.Setup()
+   at Microsoft.DotNet.Cli.Program.Main(String[] args)
+Exception: C:\miscwork\portfolio\cislib\implementations\csharp\eng\check-dependencies.ps1:30
+Line |
+  30 |  . if ($LASTEXITCODE -ne 0) { throw "Project evaluation failed: $Path" }
+     |                               ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+     | Project evaluation failed: C:\miscwork\portfolio\cislib\implementations\csharp\src\CIS.Core\CIS.Core.csproj
+
+
+expected: 0
+actual:   1
+
+Assert.AreEqual(0, result.ExitCode)
+  Stack Trace:
+     at CIS.Tests.ArchitectureTests.DependencyBoundaryTests.ReleaseCorePassesTheEvaluatedCompiledReferencePolicy() in C:\miscwork\portfolio\cislib\implementations\csharp\tests\CIS.Core.ArchitectureTests\DependencyBoundaryTests.cs:line 24
+   at Microsoft.VisualStudio.TestPlatform.MSTest.TestAdapter.Execution.TestMethodInfo.ExecuteInternalAsync(Object[] arguments, CancellationTokenSource timeoutTokenSource, TestInvocationState invocationState)
+  Failed EvaluatedCoreProjectRejectsForbiddenDependencies ("FrameworkReference","Microsoft.AspNetCore.App","Forbidden framework reference") [20 s]
+  Error Message:
+   Assertion failed. Expected string to contain the specified substring.
+
+expected substring: "Forbidden framework reference"
+actual:             "Out of memory.\r\n"
+comparison:         Ordinal
+  Stack Trace:
+     at CIS.Tests.ArchitectureTests.DependencyBoundaryTests.AssertRejected(ProcessResult result, String expectedRule) in C:\miscwork\portfolio\cislib\implementations\csharp\tests\CIS.Core.ArchitectureTests\DependencyBoundaryTests.cs:line 117
+   at CIS.Tests.ArchitectureTests.DependencyBoundaryTests.EvaluatedCoreProjectRejectsForbiddenDependencies(String element, String dependency, String expectedRule) in C:\miscwork\portfolio\cislib\implementations\csharp\tests\CIS.Core.ArchitectureTests\DependencyBoundaryTests.cs:line 58
+   at Microsoft.VisualStudio.TestPlatform.MSTest.TestAdapter.Execution.TestMethodInfo.ExecuteInternalAsync(Object[] arguments, CancellationTokenSource timeoutTokenSource, TestInvocationState invocationState)
+  Failed EvaluatedCoreProjectRejectsForbiddenDependencies ("PackageReference","Unapproved.Logger","Unapproved explicit package") [21 s]
+  Error Message:
+   Assertion failed. Expected string to contain the specified substring.
+
+expected substring: "Unapproved explicit package"
+actual:             ""
+comparison:         Ordinal
+  Stack Trace:
+     at CIS.Tests.ArchitectureTests.DependencyBoundaryTests.AssertRejected(ProcessResult result, String expectedRule) in C:\miscwork\portfolio\cislib\implementations\csharp\tests\CIS.Core.ArchitectureTests\DependencyBoundaryTests.cs:line 117
+   at CIS.Tests.ArchitectureTests.DependencyBoundaryTests.EvaluatedCoreProjectRejectsForbiddenDependencies(String element, String dependency, String expectedRule) in C:\miscwork\portfolio\cislib\implementations\csharp\tests\CIS.Core.ArchitectureTests\DependencyBoundaryTests.cs:line 58
+   at Microsoft.VisualStudio.TestPlatform.MSTest.TestAdapter.Execution.TestMethodInfo.ExecuteInternalAsync(Object[] arguments, CancellationTokenSource timeoutTokenSource, TestInvocationState invocationState)
+  Failed EvaluatedCoreProjectRejectsForbiddenDependencies ("ProjectReference","../../../tests/CIS.Core.TestSupport/CIS.Core.TestSupport.csproj","Forbidden project reference") [21 s]
+  Error Message:
+   Assertion failed. Expected string to contain the specified substring.
+
+expected substring: "Forbidden project reference"
+actual:             "Fatal error.\r\nReleasing the double mapped memory failed\r\n"
+comparison:         Ordinal
+  Stack Trace:
+     at CIS.Tests.ArchitectureTests.DependencyBoundaryTests.AssertRejected(ProcessResult result, String expectedRule) in C:\miscwork\portfolio\cislib\implementations\csharp\tests\CIS.Core.ArchitectureTests\DependencyBoundaryTests.cs:line 117
+   at CIS.Tests.ArchitectureTests.DependencyBoundaryTests.EvaluatedCoreProjectRejectsForbiddenDependencies(String element, String dependency, String expectedRule) in C:\miscwork\portfolio\cislib\implementations\csharp\tests\CIS.Core.ArchitectureTests\DependencyBoundaryTests.cs:line 58
+   at Microsoft.VisualStudio.TestPlatform.MSTest.TestAdapter.Execution.TestMethodInfo.ExecuteInternalAsync(Object[] arguments, CancellationTokenSource timeoutTokenSource, TestInvocationState invocationState)
+Results File: C:\miscwork\portfolio\cislib\.artifacts\csharp\verification\Developer\families\architecture\report.trx
+
+Failed!  - Failed:     9, Passed:   387, Skipped:     0, Total:   396, Duration: 21 s - CIS.Core.ArchitectureTests.dll (net10.0)
