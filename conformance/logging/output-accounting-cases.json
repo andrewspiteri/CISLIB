@@ -1,0 +1,3310 @@
+{
+  "schemaVersion": 1,
+  "task": "WP05-S03-T01",
+  "scope": "Internal actual Core/Channel controlled writer accounting checkpoints; no physical output/flush/public diagnostics or release claim.",
+  "cases": [
+    {
+      "id": "ACCOUNT-CONSOLE",
+      "consoleEnabled": true,
+      "fileEnabled": false,
+      "consoleFails": false,
+      "fileFails": false,
+      "consoleLevel": "Warning",
+      "fileLevel": "Warning",
+      "expected": {
+        "checkpoints": [
+          {
+            "phase": "initial",
+            "invalid": "0",
+            "outputs": {
+              "console": {
+                "filtered": "0",
+                "attempts": "0",
+                "accepted": "0",
+                "queueFull": "0",
+                "unavailable": "0",
+                "rejected": "0",
+                "written": "0",
+                "failed": "0",
+                "abandoned": "0",
+                "pending": "0",
+                "inFlight": "0"
+              }
+            }
+          },
+          {
+            "phase": "blocked",
+            "invalid": "2",
+            "outputs": {
+              "console": {
+                "filtered": "2",
+                "attempts": "4",
+                "accepted": "3",
+                "queueFull": "1",
+                "unavailable": "0",
+                "rejected": "1",
+                "written": "0",
+                "failed": "0",
+                "abandoned": "0",
+                "pending": "3",
+                "inFlight": "1"
+              }
+            }
+          },
+          {
+            "phase": "progress",
+            "invalid": "2",
+            "outputs": {
+              "console": {
+                "filtered": "2",
+                "attempts": "4",
+                "accepted": "3",
+                "queueFull": "1",
+                "unavailable": "0",
+                "rejected": "1",
+                "written": "1",
+                "failed": "0",
+                "abandoned": "0",
+                "pending": "2",
+                "inFlight": "1"
+              }
+            }
+          },
+          {
+            "phase": "next",
+            "invalid": "2",
+            "outputs": {
+              "console": {
+                "filtered": "2",
+                "attempts": "5",
+                "accepted": "4",
+                "queueFull": "1",
+                "unavailable": "0",
+                "rejected": "1",
+                "written": "1",
+                "failed": "0",
+                "abandoned": "0",
+                "pending": "3",
+                "inFlight": "1"
+              }
+            }
+          },
+          {
+            "phase": "closed",
+            "invalid": "2",
+            "outputs": {
+              "console": {
+                "filtered": "2",
+                "attempts": "5",
+                "accepted": "4",
+                "queueFull": "1",
+                "unavailable": "0",
+                "rejected": "1",
+                "written": "1",
+                "failed": "0",
+                "abandoned": "0",
+                "pending": "3",
+                "inFlight": "1"
+              }
+            }
+          },
+          {
+            "phase": "final",
+            "invalid": "2",
+            "outputs": {
+              "console": {
+                "filtered": "2",
+                "attempts": "5",
+                "accepted": "4",
+                "queueFull": "1",
+                "unavailable": "0",
+                "rejected": "1",
+                "written": "4",
+                "failed": "0",
+                "abandoned": "0",
+                "pending": "0",
+                "inFlight": "0"
+              }
+            }
+          }
+        ],
+        "results": [
+          {
+            "call": "seed",
+            "outcome": "Accepted",
+            "outputs": [
+              {
+                "name": "console",
+                "status": "Accepted",
+                "ticket": 1
+              }
+            ]
+          },
+          {
+            "call": "none",
+            "outcome": "Filtered",
+            "outputs": [
+              {
+                "name": "console",
+                "status": "Filtered",
+                "ticket": null
+              }
+            ]
+          },
+          {
+            "call": "low",
+            "outcome": "Filtered",
+            "outputs": [
+              {
+                "name": "console",
+                "status": "Filtered",
+                "ticket": null
+              }
+            ]
+          },
+          {
+            "call": "invalid",
+            "outcome": "InvalidEvent",
+            "outputs": []
+          },
+          {
+            "call": "null-factory",
+            "outcome": "InvalidEvent",
+            "outputs": []
+          },
+          {
+            "call": "queued-one",
+            "outcome": "Accepted",
+            "outputs": [
+              {
+                "name": "console",
+                "status": "Accepted",
+                "ticket": 2
+              }
+            ]
+          },
+          {
+            "call": "queued-two",
+            "outcome": "Accepted",
+            "outputs": [
+              {
+                "name": "console",
+                "status": "Accepted",
+                "ticket": 3
+              }
+            ]
+          },
+          {
+            "call": "full",
+            "outcome": "Rejected",
+            "outputs": [
+              {
+                "name": "console",
+                "status": "QueueFull",
+                "ticket": null
+              }
+            ]
+          },
+          {
+            "call": "next",
+            "outcome": "Accepted",
+            "outputs": [
+              {
+                "name": "console",
+                "status": "Accepted",
+                "ticket": 4
+              }
+            ]
+          },
+          {
+            "call": "stopped",
+            "outcome": "Stopped",
+            "outputs": [
+              {
+                "name": "console",
+                "status": "Stopped",
+                "ticket": null
+              }
+            ]
+          }
+        ],
+        "writers": {
+          "console": {
+            "attempted": [
+              1,
+              2,
+              3,
+              4
+            ],
+            "confirmed": [
+              1,
+              2,
+              3,
+              4
+            ]
+          }
+        },
+        "factoryCalls": 3,
+        "originalFactoryError": true,
+        "originalFaults": 0
+      }
+    },
+    {
+      "id": "ACCOUNT-FILE",
+      "consoleEnabled": false,
+      "fileEnabled": true,
+      "consoleFails": false,
+      "fileFails": false,
+      "consoleLevel": "Warning",
+      "fileLevel": "Warning",
+      "expected": {
+        "checkpoints": [
+          {
+            "phase": "initial",
+            "invalid": "0",
+            "outputs": {
+              "file": {
+                "filtered": "0",
+                "attempts": "0",
+                "accepted": "0",
+                "queueFull": "0",
+                "unavailable": "0",
+                "rejected": "0",
+                "written": "0",
+                "failed": "0",
+                "abandoned": "0",
+                "pending": "0",
+                "inFlight": "0"
+              }
+            }
+          },
+          {
+            "phase": "blocked",
+            "invalid": "2",
+            "outputs": {
+              "file": {
+                "filtered": "2",
+                "attempts": "4",
+                "accepted": "3",
+                "queueFull": "1",
+                "unavailable": "0",
+                "rejected": "1",
+                "written": "0",
+                "failed": "0",
+                "abandoned": "0",
+                "pending": "3",
+                "inFlight": "1"
+              }
+            }
+          },
+          {
+            "phase": "progress",
+            "invalid": "2",
+            "outputs": {
+              "file": {
+                "filtered": "2",
+                "attempts": "4",
+                "accepted": "3",
+                "queueFull": "1",
+                "unavailable": "0",
+                "rejected": "1",
+                "written": "1",
+                "failed": "0",
+                "abandoned": "0",
+                "pending": "2",
+                "inFlight": "1"
+              }
+            }
+          },
+          {
+            "phase": "next",
+            "invalid": "2",
+            "outputs": {
+              "file": {
+                "filtered": "2",
+                "attempts": "5",
+                "accepted": "4",
+                "queueFull": "1",
+                "unavailable": "0",
+                "rejected": "1",
+                "written": "1",
+                "failed": "0",
+                "abandoned": "0",
+                "pending": "3",
+                "inFlight": "1"
+              }
+            }
+          },
+          {
+            "phase": "closed",
+            "invalid": "2",
+            "outputs": {
+              "file": {
+                "filtered": "2",
+                "attempts": "5",
+                "accepted": "4",
+                "queueFull": "1",
+                "unavailable": "0",
+                "rejected": "1",
+                "written": "1",
+                "failed": "0",
+                "abandoned": "0",
+                "pending": "3",
+                "inFlight": "1"
+              }
+            }
+          },
+          {
+            "phase": "final",
+            "invalid": "2",
+            "outputs": {
+              "file": {
+                "filtered": "2",
+                "attempts": "5",
+                "accepted": "4",
+                "queueFull": "1",
+                "unavailable": "0",
+                "rejected": "1",
+                "written": "4",
+                "failed": "0",
+                "abandoned": "0",
+                "pending": "0",
+                "inFlight": "0"
+              }
+            }
+          }
+        ],
+        "results": [
+          {
+            "call": "seed",
+            "outcome": "Accepted",
+            "outputs": [
+              {
+                "name": "file",
+                "status": "Accepted",
+                "ticket": 1
+              }
+            ]
+          },
+          {
+            "call": "none",
+            "outcome": "Filtered",
+            "outputs": [
+              {
+                "name": "file",
+                "status": "Filtered",
+                "ticket": null
+              }
+            ]
+          },
+          {
+            "call": "low",
+            "outcome": "Filtered",
+            "outputs": [
+              {
+                "name": "file",
+                "status": "Filtered",
+                "ticket": null
+              }
+            ]
+          },
+          {
+            "call": "invalid",
+            "outcome": "InvalidEvent",
+            "outputs": []
+          },
+          {
+            "call": "null-factory",
+            "outcome": "InvalidEvent",
+            "outputs": []
+          },
+          {
+            "call": "queued-one",
+            "outcome": "Accepted",
+            "outputs": [
+              {
+                "name": "file",
+                "status": "Accepted",
+                "ticket": 2
+              }
+            ]
+          },
+          {
+            "call": "queued-two",
+            "outcome": "Accepted",
+            "outputs": [
+              {
+                "name": "file",
+                "status": "Accepted",
+                "ticket": 3
+              }
+            ]
+          },
+          {
+            "call": "full",
+            "outcome": "Rejected",
+            "outputs": [
+              {
+                "name": "file",
+                "status": "QueueFull",
+                "ticket": null
+              }
+            ]
+          },
+          {
+            "call": "next",
+            "outcome": "Accepted",
+            "outputs": [
+              {
+                "name": "file",
+                "status": "Accepted",
+                "ticket": 4
+              }
+            ]
+          },
+          {
+            "call": "stopped",
+            "outcome": "Stopped",
+            "outputs": [
+              {
+                "name": "file",
+                "status": "Stopped",
+                "ticket": null
+              }
+            ]
+          }
+        ],
+        "writers": {
+          "file": {
+            "attempted": [
+              1,
+              2,
+              3,
+              4
+            ],
+            "confirmed": [
+              1,
+              2,
+              3,
+              4
+            ]
+          }
+        },
+        "factoryCalls": 3,
+        "originalFactoryError": true,
+        "originalFaults": 0
+      }
+    },
+    {
+      "id": "ACCOUNT-BOTH",
+      "consoleEnabled": true,
+      "fileEnabled": true,
+      "consoleFails": false,
+      "fileFails": false,
+      "consoleLevel": "Warning",
+      "fileLevel": "Warning",
+      "expected": {
+        "checkpoints": [
+          {
+            "phase": "initial",
+            "invalid": "0",
+            "outputs": {
+              "console": {
+                "filtered": "0",
+                "attempts": "0",
+                "accepted": "0",
+                "queueFull": "0",
+                "unavailable": "0",
+                "rejected": "0",
+                "written": "0",
+                "failed": "0",
+                "abandoned": "0",
+                "pending": "0",
+                "inFlight": "0"
+              },
+              "file": {
+                "filtered": "0",
+                "attempts": "0",
+                "accepted": "0",
+                "queueFull": "0",
+                "unavailable": "0",
+                "rejected": "0",
+                "written": "0",
+                "failed": "0",
+                "abandoned": "0",
+                "pending": "0",
+                "inFlight": "0"
+              }
+            }
+          },
+          {
+            "phase": "blocked",
+            "invalid": "2",
+            "outputs": {
+              "console": {
+                "filtered": "2",
+                "attempts": "4",
+                "accepted": "3",
+                "queueFull": "1",
+                "unavailable": "0",
+                "rejected": "1",
+                "written": "0",
+                "failed": "0",
+                "abandoned": "0",
+                "pending": "3",
+                "inFlight": "1"
+              },
+              "file": {
+                "filtered": "2",
+                "attempts": "4",
+                "accepted": "3",
+                "queueFull": "1",
+                "unavailable": "0",
+                "rejected": "1",
+                "written": "0",
+                "failed": "0",
+                "abandoned": "0",
+                "pending": "3",
+                "inFlight": "1"
+              }
+            }
+          },
+          {
+            "phase": "progress",
+            "invalid": "2",
+            "outputs": {
+              "console": {
+                "filtered": "2",
+                "attempts": "4",
+                "accepted": "3",
+                "queueFull": "1",
+                "unavailable": "0",
+                "rejected": "1",
+                "written": "1",
+                "failed": "0",
+                "abandoned": "0",
+                "pending": "2",
+                "inFlight": "1"
+              },
+              "file": {
+                "filtered": "2",
+                "attempts": "4",
+                "accepted": "3",
+                "queueFull": "1",
+                "unavailable": "0",
+                "rejected": "1",
+                "written": "1",
+                "failed": "0",
+                "abandoned": "0",
+                "pending": "2",
+                "inFlight": "1"
+              }
+            }
+          },
+          {
+            "phase": "next",
+            "invalid": "2",
+            "outputs": {
+              "console": {
+                "filtered": "2",
+                "attempts": "5",
+                "accepted": "4",
+                "queueFull": "1",
+                "unavailable": "0",
+                "rejected": "1",
+                "written": "1",
+                "failed": "0",
+                "abandoned": "0",
+                "pending": "3",
+                "inFlight": "1"
+              },
+              "file": {
+                "filtered": "2",
+                "attempts": "5",
+                "accepted": "4",
+                "queueFull": "1",
+                "unavailable": "0",
+                "rejected": "1",
+                "written": "1",
+                "failed": "0",
+                "abandoned": "0",
+                "pending": "3",
+                "inFlight": "1"
+              }
+            }
+          },
+          {
+            "phase": "closed",
+            "invalid": "2",
+            "outputs": {
+              "console": {
+                "filtered": "2",
+                "attempts": "5",
+                "accepted": "4",
+                "queueFull": "1",
+                "unavailable": "0",
+                "rejected": "1",
+                "written": "1",
+                "failed": "0",
+                "abandoned": "0",
+                "pending": "3",
+                "inFlight": "1"
+              },
+              "file": {
+                "filtered": "2",
+                "attempts": "5",
+                "accepted": "4",
+                "queueFull": "1",
+                "unavailable": "0",
+                "rejected": "1",
+                "written": "1",
+                "failed": "0",
+                "abandoned": "0",
+                "pending": "3",
+                "inFlight": "1"
+              }
+            }
+          },
+          {
+            "phase": "final",
+            "invalid": "2",
+            "outputs": {
+              "console": {
+                "filtered": "2",
+                "attempts": "5",
+                "accepted": "4",
+                "queueFull": "1",
+                "unavailable": "0",
+                "rejected": "1",
+                "written": "4",
+                "failed": "0",
+                "abandoned": "0",
+                "pending": "0",
+                "inFlight": "0"
+              },
+              "file": {
+                "filtered": "2",
+                "attempts": "5",
+                "accepted": "4",
+                "queueFull": "1",
+                "unavailable": "0",
+                "rejected": "1",
+                "written": "4",
+                "failed": "0",
+                "abandoned": "0",
+                "pending": "0",
+                "inFlight": "0"
+              }
+            }
+          }
+        ],
+        "results": [
+          {
+            "call": "seed",
+            "outcome": "Accepted",
+            "outputs": [
+              {
+                "name": "console",
+                "status": "Accepted",
+                "ticket": 1
+              },
+              {
+                "name": "file",
+                "status": "Accepted",
+                "ticket": 1
+              }
+            ]
+          },
+          {
+            "call": "none",
+            "outcome": "Filtered",
+            "outputs": [
+              {
+                "name": "console",
+                "status": "Filtered",
+                "ticket": null
+              },
+              {
+                "name": "file",
+                "status": "Filtered",
+                "ticket": null
+              }
+            ]
+          },
+          {
+            "call": "low",
+            "outcome": "Filtered",
+            "outputs": [
+              {
+                "name": "console",
+                "status": "Filtered",
+                "ticket": null
+              },
+              {
+                "name": "file",
+                "status": "Filtered",
+                "ticket": null
+              }
+            ]
+          },
+          {
+            "call": "invalid",
+            "outcome": "InvalidEvent",
+            "outputs": []
+          },
+          {
+            "call": "null-factory",
+            "outcome": "InvalidEvent",
+            "outputs": []
+          },
+          {
+            "call": "queued-one",
+            "outcome": "Accepted",
+            "outputs": [
+              {
+                "name": "console",
+                "status": "Accepted",
+                "ticket": 2
+              },
+              {
+                "name": "file",
+                "status": "Accepted",
+                "ticket": 2
+              }
+            ]
+          },
+          {
+            "call": "queued-two",
+            "outcome": "Accepted",
+            "outputs": [
+              {
+                "name": "console",
+                "status": "Accepted",
+                "ticket": 3
+              },
+              {
+                "name": "file",
+                "status": "Accepted",
+                "ticket": 3
+              }
+            ]
+          },
+          {
+            "call": "full",
+            "outcome": "Rejected",
+            "outputs": [
+              {
+                "name": "console",
+                "status": "QueueFull",
+                "ticket": null
+              },
+              {
+                "name": "file",
+                "status": "QueueFull",
+                "ticket": null
+              }
+            ]
+          },
+          {
+            "call": "next",
+            "outcome": "Accepted",
+            "outputs": [
+              {
+                "name": "console",
+                "status": "Accepted",
+                "ticket": 4
+              },
+              {
+                "name": "file",
+                "status": "Accepted",
+                "ticket": 4
+              }
+            ]
+          },
+          {
+            "call": "stopped",
+            "outcome": "Stopped",
+            "outputs": [
+              {
+                "name": "console",
+                "status": "Stopped",
+                "ticket": null
+              },
+              {
+                "name": "file",
+                "status": "Stopped",
+                "ticket": null
+              }
+            ]
+          }
+        ],
+        "writers": {
+          "console": {
+            "attempted": [
+              1,
+              2,
+              3,
+              4
+            ],
+            "confirmed": [
+              1,
+              2,
+              3,
+              4
+            ]
+          },
+          "file": {
+            "attempted": [
+              1,
+              2,
+              3,
+              4
+            ],
+            "confirmed": [
+              1,
+              2,
+              3,
+              4
+            ]
+          }
+        },
+        "factoryCalls": 3,
+        "originalFactoryError": true,
+        "originalFaults": 0
+      }
+    },
+    {
+      "id": "ACCOUNT-MIXED",
+      "consoleEnabled": true,
+      "fileEnabled": true,
+      "consoleFails": false,
+      "fileFails": false,
+      "consoleLevel": "Warning",
+      "fileLevel": "Information",
+      "expected": {
+        "checkpoints": [
+          {
+            "phase": "initial",
+            "invalid": "0",
+            "outputs": {
+              "console": {
+                "filtered": "0",
+                "attempts": "0",
+                "accepted": "0",
+                "queueFull": "0",
+                "unavailable": "0",
+                "rejected": "0",
+                "written": "0",
+                "failed": "0",
+                "abandoned": "0",
+                "pending": "0",
+                "inFlight": "0"
+              },
+              "file": {
+                "filtered": "0",
+                "attempts": "0",
+                "accepted": "0",
+                "queueFull": "0",
+                "unavailable": "0",
+                "rejected": "0",
+                "written": "0",
+                "failed": "0",
+                "abandoned": "0",
+                "pending": "0",
+                "inFlight": "0"
+              }
+            }
+          },
+          {
+            "phase": "blocked",
+            "invalid": "2",
+            "outputs": {
+              "console": {
+                "filtered": "2",
+                "attempts": "4",
+                "accepted": "3",
+                "queueFull": "1",
+                "unavailable": "0",
+                "rejected": "1",
+                "written": "0",
+                "failed": "0",
+                "abandoned": "0",
+                "pending": "3",
+                "inFlight": "1"
+              },
+              "file": {
+                "filtered": "1",
+                "attempts": "5",
+                "accepted": "3",
+                "queueFull": "2",
+                "unavailable": "0",
+                "rejected": "2",
+                "written": "0",
+                "failed": "0",
+                "abandoned": "0",
+                "pending": "3",
+                "inFlight": "1"
+              }
+            }
+          },
+          {
+            "phase": "progress",
+            "invalid": "2",
+            "outputs": {
+              "console": {
+                "filtered": "2",
+                "attempts": "4",
+                "accepted": "3",
+                "queueFull": "1",
+                "unavailable": "0",
+                "rejected": "1",
+                "written": "1",
+                "failed": "0",
+                "abandoned": "0",
+                "pending": "2",
+                "inFlight": "1"
+              },
+              "file": {
+                "filtered": "1",
+                "attempts": "5",
+                "accepted": "3",
+                "queueFull": "2",
+                "unavailable": "0",
+                "rejected": "2",
+                "written": "1",
+                "failed": "0",
+                "abandoned": "0",
+                "pending": "2",
+                "inFlight": "1"
+              }
+            }
+          },
+          {
+            "phase": "next",
+            "invalid": "2",
+            "outputs": {
+              "console": {
+                "filtered": "2",
+                "attempts": "5",
+                "accepted": "4",
+                "queueFull": "1",
+                "unavailable": "0",
+                "rejected": "1",
+                "written": "1",
+                "failed": "0",
+                "abandoned": "0",
+                "pending": "3",
+                "inFlight": "1"
+              },
+              "file": {
+                "filtered": "1",
+                "attempts": "6",
+                "accepted": "4",
+                "queueFull": "2",
+                "unavailable": "0",
+                "rejected": "2",
+                "written": "1",
+                "failed": "0",
+                "abandoned": "0",
+                "pending": "3",
+                "inFlight": "1"
+              }
+            }
+          },
+          {
+            "phase": "closed",
+            "invalid": "2",
+            "outputs": {
+              "console": {
+                "filtered": "2",
+                "attempts": "5",
+                "accepted": "4",
+                "queueFull": "1",
+                "unavailable": "0",
+                "rejected": "1",
+                "written": "1",
+                "failed": "0",
+                "abandoned": "0",
+                "pending": "3",
+                "inFlight": "1"
+              },
+              "file": {
+                "filtered": "1",
+                "attempts": "6",
+                "accepted": "4",
+                "queueFull": "2",
+                "unavailable": "0",
+                "rejected": "2",
+                "written": "1",
+                "failed": "0",
+                "abandoned": "0",
+                "pending": "3",
+                "inFlight": "1"
+              }
+            }
+          },
+          {
+            "phase": "final",
+            "invalid": "2",
+            "outputs": {
+              "console": {
+                "filtered": "2",
+                "attempts": "5",
+                "accepted": "4",
+                "queueFull": "1",
+                "unavailable": "0",
+                "rejected": "1",
+                "written": "4",
+                "failed": "0",
+                "abandoned": "0",
+                "pending": "0",
+                "inFlight": "0"
+              },
+              "file": {
+                "filtered": "1",
+                "attempts": "6",
+                "accepted": "4",
+                "queueFull": "2",
+                "unavailable": "0",
+                "rejected": "2",
+                "written": "4",
+                "failed": "0",
+                "abandoned": "0",
+                "pending": "0",
+                "inFlight": "0"
+              }
+            }
+          }
+        ],
+        "results": [
+          {
+            "call": "seed",
+            "outcome": "Accepted",
+            "outputs": [
+              {
+                "name": "console",
+                "status": "Accepted",
+                "ticket": 1
+              },
+              {
+                "name": "file",
+                "status": "Accepted",
+                "ticket": 1
+              }
+            ]
+          },
+          {
+            "call": "none",
+            "outcome": "Filtered",
+            "outputs": [
+              {
+                "name": "console",
+                "status": "Filtered",
+                "ticket": null
+              },
+              {
+                "name": "file",
+                "status": "Filtered",
+                "ticket": null
+              }
+            ]
+          },
+          {
+            "call": "low",
+            "outcome": "Accepted",
+            "outputs": [
+              {
+                "name": "console",
+                "status": "Filtered",
+                "ticket": null
+              },
+              {
+                "name": "file",
+                "status": "Accepted",
+                "ticket": 2
+              }
+            ]
+          },
+          {
+            "call": "invalid",
+            "outcome": "InvalidEvent",
+            "outputs": []
+          },
+          {
+            "call": "null-factory",
+            "outcome": "InvalidEvent",
+            "outputs": []
+          },
+          {
+            "call": "queued-one",
+            "outcome": "Accepted",
+            "outputs": [
+              {
+                "name": "console",
+                "status": "Accepted",
+                "ticket": 2
+              },
+              {
+                "name": "file",
+                "status": "Accepted",
+                "ticket": 3
+              }
+            ]
+          },
+          {
+            "call": "queued-two",
+            "outcome": "PartiallyAccepted",
+            "outputs": [
+              {
+                "name": "console",
+                "status": "Accepted",
+                "ticket": 3
+              },
+              {
+                "name": "file",
+                "status": "QueueFull",
+                "ticket": null
+              }
+            ]
+          },
+          {
+            "call": "full",
+            "outcome": "Rejected",
+            "outputs": [
+              {
+                "name": "console",
+                "status": "QueueFull",
+                "ticket": null
+              },
+              {
+                "name": "file",
+                "status": "QueueFull",
+                "ticket": null
+              }
+            ]
+          },
+          {
+            "call": "next",
+            "outcome": "Accepted",
+            "outputs": [
+              {
+                "name": "console",
+                "status": "Accepted",
+                "ticket": 4
+              },
+              {
+                "name": "file",
+                "status": "Accepted",
+                "ticket": 4
+              }
+            ]
+          },
+          {
+            "call": "stopped",
+            "outcome": "Stopped",
+            "outputs": [
+              {
+                "name": "console",
+                "status": "Stopped",
+                "ticket": null
+              },
+              {
+                "name": "file",
+                "status": "Stopped",
+                "ticket": null
+              }
+            ]
+          }
+        ],
+        "writers": {
+          "console": {
+            "attempted": [
+              1,
+              2,
+              3,
+              4
+            ],
+            "confirmed": [
+              1,
+              2,
+              3,
+              4
+            ]
+          },
+          "file": {
+            "attempted": [
+              1,
+              2,
+              3,
+              4
+            ],
+            "confirmed": [
+              1,
+              2,
+              3,
+              4
+            ]
+          }
+        },
+        "factoryCalls": 3,
+        "originalFactoryError": true,
+        "originalFaults": 0
+      }
+    },
+    {
+      "id": "ACCOUNT-LOW-INTEREST",
+      "consoleEnabled": true,
+      "fileEnabled": true,
+      "consoleFails": false,
+      "fileFails": false,
+      "consoleLevel": "Information",
+      "fileLevel": "Information",
+      "expected": {
+        "checkpoints": [
+          {
+            "phase": "initial",
+            "invalid": "0",
+            "outputs": {
+              "console": {
+                "filtered": "0",
+                "attempts": "0",
+                "accepted": "0",
+                "queueFull": "0",
+                "unavailable": "0",
+                "rejected": "0",
+                "written": "0",
+                "failed": "0",
+                "abandoned": "0",
+                "pending": "0",
+                "inFlight": "0"
+              },
+              "file": {
+                "filtered": "0",
+                "attempts": "0",
+                "accepted": "0",
+                "queueFull": "0",
+                "unavailable": "0",
+                "rejected": "0",
+                "written": "0",
+                "failed": "0",
+                "abandoned": "0",
+                "pending": "0",
+                "inFlight": "0"
+              }
+            }
+          },
+          {
+            "phase": "blocked",
+            "invalid": "2",
+            "outputs": {
+              "console": {
+                "filtered": "1",
+                "attempts": "5",
+                "accepted": "3",
+                "queueFull": "2",
+                "unavailable": "0",
+                "rejected": "2",
+                "written": "0",
+                "failed": "0",
+                "abandoned": "0",
+                "pending": "3",
+                "inFlight": "1"
+              },
+              "file": {
+                "filtered": "1",
+                "attempts": "5",
+                "accepted": "3",
+                "queueFull": "2",
+                "unavailable": "0",
+                "rejected": "2",
+                "written": "0",
+                "failed": "0",
+                "abandoned": "0",
+                "pending": "3",
+                "inFlight": "1"
+              }
+            }
+          },
+          {
+            "phase": "progress",
+            "invalid": "2",
+            "outputs": {
+              "console": {
+                "filtered": "1",
+                "attempts": "5",
+                "accepted": "3",
+                "queueFull": "2",
+                "unavailable": "0",
+                "rejected": "2",
+                "written": "1",
+                "failed": "0",
+                "abandoned": "0",
+                "pending": "2",
+                "inFlight": "1"
+              },
+              "file": {
+                "filtered": "1",
+                "attempts": "5",
+                "accepted": "3",
+                "queueFull": "2",
+                "unavailable": "0",
+                "rejected": "2",
+                "written": "1",
+                "failed": "0",
+                "abandoned": "0",
+                "pending": "2",
+                "inFlight": "1"
+              }
+            }
+          },
+          {
+            "phase": "next",
+            "invalid": "2",
+            "outputs": {
+              "console": {
+                "filtered": "1",
+                "attempts": "6",
+                "accepted": "4",
+                "queueFull": "2",
+                "unavailable": "0",
+                "rejected": "2",
+                "written": "1",
+                "failed": "0",
+                "abandoned": "0",
+                "pending": "3",
+                "inFlight": "1"
+              },
+              "file": {
+                "filtered": "1",
+                "attempts": "6",
+                "accepted": "4",
+                "queueFull": "2",
+                "unavailable": "0",
+                "rejected": "2",
+                "written": "1",
+                "failed": "0",
+                "abandoned": "0",
+                "pending": "3",
+                "inFlight": "1"
+              }
+            }
+          },
+          {
+            "phase": "closed",
+            "invalid": "2",
+            "outputs": {
+              "console": {
+                "filtered": "1",
+                "attempts": "6",
+                "accepted": "4",
+                "queueFull": "2",
+                "unavailable": "0",
+                "rejected": "2",
+                "written": "1",
+                "failed": "0",
+                "abandoned": "0",
+                "pending": "3",
+                "inFlight": "1"
+              },
+              "file": {
+                "filtered": "1",
+                "attempts": "6",
+                "accepted": "4",
+                "queueFull": "2",
+                "unavailable": "0",
+                "rejected": "2",
+                "written": "1",
+                "failed": "0",
+                "abandoned": "0",
+                "pending": "3",
+                "inFlight": "1"
+              }
+            }
+          },
+          {
+            "phase": "final",
+            "invalid": "2",
+            "outputs": {
+              "console": {
+                "filtered": "1",
+                "attempts": "6",
+                "accepted": "4",
+                "queueFull": "2",
+                "unavailable": "0",
+                "rejected": "2",
+                "written": "4",
+                "failed": "0",
+                "abandoned": "0",
+                "pending": "0",
+                "inFlight": "0"
+              },
+              "file": {
+                "filtered": "1",
+                "attempts": "6",
+                "accepted": "4",
+                "queueFull": "2",
+                "unavailable": "0",
+                "rejected": "2",
+                "written": "4",
+                "failed": "0",
+                "abandoned": "0",
+                "pending": "0",
+                "inFlight": "0"
+              }
+            }
+          }
+        ],
+        "results": [
+          {
+            "call": "seed",
+            "outcome": "Accepted",
+            "outputs": [
+              {
+                "name": "console",
+                "status": "Accepted",
+                "ticket": 1
+              },
+              {
+                "name": "file",
+                "status": "Accepted",
+                "ticket": 1
+              }
+            ]
+          },
+          {
+            "call": "none",
+            "outcome": "Filtered",
+            "outputs": [
+              {
+                "name": "console",
+                "status": "Filtered",
+                "ticket": null
+              },
+              {
+                "name": "file",
+                "status": "Filtered",
+                "ticket": null
+              }
+            ]
+          },
+          {
+            "call": "low",
+            "outcome": "Accepted",
+            "outputs": [
+              {
+                "name": "console",
+                "status": "Accepted",
+                "ticket": 2
+              },
+              {
+                "name": "file",
+                "status": "Accepted",
+                "ticket": 2
+              }
+            ]
+          },
+          {
+            "call": "invalid",
+            "outcome": "InvalidEvent",
+            "outputs": []
+          },
+          {
+            "call": "null-factory",
+            "outcome": "InvalidEvent",
+            "outputs": []
+          },
+          {
+            "call": "queued-one",
+            "outcome": "Accepted",
+            "outputs": [
+              {
+                "name": "console",
+                "status": "Accepted",
+                "ticket": 3
+              },
+              {
+                "name": "file",
+                "status": "Accepted",
+                "ticket": 3
+              }
+            ]
+          },
+          {
+            "call": "queued-two",
+            "outcome": "Rejected",
+            "outputs": [
+              {
+                "name": "console",
+                "status": "QueueFull",
+                "ticket": null
+              },
+              {
+                "name": "file",
+                "status": "QueueFull",
+                "ticket": null
+              }
+            ]
+          },
+          {
+            "call": "full",
+            "outcome": "Rejected",
+            "outputs": [
+              {
+                "name": "console",
+                "status": "QueueFull",
+                "ticket": null
+              },
+              {
+                "name": "file",
+                "status": "QueueFull",
+                "ticket": null
+              }
+            ]
+          },
+          {
+            "call": "next",
+            "outcome": "Accepted",
+            "outputs": [
+              {
+                "name": "console",
+                "status": "Accepted",
+                "ticket": 4
+              },
+              {
+                "name": "file",
+                "status": "Accepted",
+                "ticket": 4
+              }
+            ]
+          },
+          {
+            "call": "stopped",
+            "outcome": "Stopped",
+            "outputs": [
+              {
+                "name": "console",
+                "status": "Stopped",
+                "ticket": null
+              },
+              {
+                "name": "file",
+                "status": "Stopped",
+                "ticket": null
+              }
+            ]
+          }
+        ],
+        "writers": {
+          "console": {
+            "attempted": [
+              1,
+              2,
+              3,
+              4
+            ],
+            "confirmed": [
+              1,
+              2,
+              3,
+              4
+            ]
+          },
+          "file": {
+            "attempted": [
+              1,
+              2,
+              3,
+              4
+            ],
+            "confirmed": [
+              1,
+              2,
+              3,
+              4
+            ]
+          }
+        },
+        "factoryCalls": 3,
+        "originalFactoryError": true,
+        "originalFaults": 0
+      }
+    },
+    {
+      "id": "ACCOUNT-CONSOLE-FAULT",
+      "consoleEnabled": true,
+      "fileEnabled": true,
+      "consoleFails": true,
+      "fileFails": false,
+      "consoleLevel": "Warning",
+      "fileLevel": "Warning",
+      "expected": {
+        "checkpoints": [
+          {
+            "phase": "initial",
+            "invalid": "0",
+            "outputs": {
+              "console": {
+                "filtered": "0",
+                "attempts": "0",
+                "accepted": "0",
+                "queueFull": "0",
+                "unavailable": "0",
+                "rejected": "0",
+                "written": "0",
+                "failed": "0",
+                "abandoned": "0",
+                "pending": "0",
+                "inFlight": "0"
+              },
+              "file": {
+                "filtered": "0",
+                "attempts": "0",
+                "accepted": "0",
+                "queueFull": "0",
+                "unavailable": "0",
+                "rejected": "0",
+                "written": "0",
+                "failed": "0",
+                "abandoned": "0",
+                "pending": "0",
+                "inFlight": "0"
+              }
+            }
+          },
+          {
+            "phase": "blocked",
+            "invalid": "2",
+            "outputs": {
+              "console": {
+                "filtered": "2",
+                "attempts": "4",
+                "accepted": "3",
+                "queueFull": "1",
+                "unavailable": "0",
+                "rejected": "1",
+                "written": "0",
+                "failed": "0",
+                "abandoned": "0",
+                "pending": "3",
+                "inFlight": "1"
+              },
+              "file": {
+                "filtered": "2",
+                "attempts": "4",
+                "accepted": "3",
+                "queueFull": "1",
+                "unavailable": "0",
+                "rejected": "1",
+                "written": "0",
+                "failed": "0",
+                "abandoned": "0",
+                "pending": "3",
+                "inFlight": "1"
+              }
+            }
+          },
+          {
+            "phase": "progress",
+            "invalid": "2",
+            "outputs": {
+              "console": {
+                "filtered": "2",
+                "attempts": "4",
+                "accepted": "3",
+                "queueFull": "1",
+                "unavailable": "0",
+                "rejected": "1",
+                "written": "0",
+                "failed": "1",
+                "abandoned": "2",
+                "pending": "0",
+                "inFlight": "0"
+              },
+              "file": {
+                "filtered": "2",
+                "attempts": "4",
+                "accepted": "3",
+                "queueFull": "1",
+                "unavailable": "0",
+                "rejected": "1",
+                "written": "1",
+                "failed": "0",
+                "abandoned": "0",
+                "pending": "2",
+                "inFlight": "1"
+              }
+            }
+          },
+          {
+            "phase": "next",
+            "invalid": "2",
+            "outputs": {
+              "console": {
+                "filtered": "2",
+                "attempts": "5",
+                "accepted": "3",
+                "queueFull": "1",
+                "unavailable": "1",
+                "rejected": "2",
+                "written": "0",
+                "failed": "1",
+                "abandoned": "2",
+                "pending": "0",
+                "inFlight": "0"
+              },
+              "file": {
+                "filtered": "2",
+                "attempts": "5",
+                "accepted": "4",
+                "queueFull": "1",
+                "unavailable": "0",
+                "rejected": "1",
+                "written": "1",
+                "failed": "0",
+                "abandoned": "0",
+                "pending": "3",
+                "inFlight": "1"
+              }
+            }
+          },
+          {
+            "phase": "closed",
+            "invalid": "2",
+            "outputs": {
+              "console": {
+                "filtered": "2",
+                "attempts": "5",
+                "accepted": "3",
+                "queueFull": "1",
+                "unavailable": "1",
+                "rejected": "2",
+                "written": "0",
+                "failed": "1",
+                "abandoned": "2",
+                "pending": "0",
+                "inFlight": "0"
+              },
+              "file": {
+                "filtered": "2",
+                "attempts": "5",
+                "accepted": "4",
+                "queueFull": "1",
+                "unavailable": "0",
+                "rejected": "1",
+                "written": "1",
+                "failed": "0",
+                "abandoned": "0",
+                "pending": "3",
+                "inFlight": "1"
+              }
+            }
+          },
+          {
+            "phase": "final",
+            "invalid": "2",
+            "outputs": {
+              "console": {
+                "filtered": "2",
+                "attempts": "5",
+                "accepted": "3",
+                "queueFull": "1",
+                "unavailable": "1",
+                "rejected": "2",
+                "written": "0",
+                "failed": "1",
+                "abandoned": "2",
+                "pending": "0",
+                "inFlight": "0"
+              },
+              "file": {
+                "filtered": "2",
+                "attempts": "5",
+                "accepted": "4",
+                "queueFull": "1",
+                "unavailable": "0",
+                "rejected": "1",
+                "written": "4",
+                "failed": "0",
+                "abandoned": "0",
+                "pending": "0",
+                "inFlight": "0"
+              }
+            }
+          }
+        ],
+        "results": [
+          {
+            "call": "seed",
+            "outcome": "Accepted",
+            "outputs": [
+              {
+                "name": "console",
+                "status": "Accepted",
+                "ticket": 1
+              },
+              {
+                "name": "file",
+                "status": "Accepted",
+                "ticket": 1
+              }
+            ]
+          },
+          {
+            "call": "none",
+            "outcome": "Filtered",
+            "outputs": [
+              {
+                "name": "console",
+                "status": "Filtered",
+                "ticket": null
+              },
+              {
+                "name": "file",
+                "status": "Filtered",
+                "ticket": null
+              }
+            ]
+          },
+          {
+            "call": "low",
+            "outcome": "Filtered",
+            "outputs": [
+              {
+                "name": "console",
+                "status": "Filtered",
+                "ticket": null
+              },
+              {
+                "name": "file",
+                "status": "Filtered",
+                "ticket": null
+              }
+            ]
+          },
+          {
+            "call": "invalid",
+            "outcome": "InvalidEvent",
+            "outputs": []
+          },
+          {
+            "call": "null-factory",
+            "outcome": "InvalidEvent",
+            "outputs": []
+          },
+          {
+            "call": "queued-one",
+            "outcome": "Accepted",
+            "outputs": [
+              {
+                "name": "console",
+                "status": "Accepted",
+                "ticket": 2
+              },
+              {
+                "name": "file",
+                "status": "Accepted",
+                "ticket": 2
+              }
+            ]
+          },
+          {
+            "call": "queued-two",
+            "outcome": "Accepted",
+            "outputs": [
+              {
+                "name": "console",
+                "status": "Accepted",
+                "ticket": 3
+              },
+              {
+                "name": "file",
+                "status": "Accepted",
+                "ticket": 3
+              }
+            ]
+          },
+          {
+            "call": "full",
+            "outcome": "Rejected",
+            "outputs": [
+              {
+                "name": "console",
+                "status": "QueueFull",
+                "ticket": null
+              },
+              {
+                "name": "file",
+                "status": "QueueFull",
+                "ticket": null
+              }
+            ]
+          },
+          {
+            "call": "next",
+            "outcome": "PartiallyAccepted",
+            "outputs": [
+              {
+                "name": "console",
+                "status": "Faulted",
+                "ticket": null
+              },
+              {
+                "name": "file",
+                "status": "Accepted",
+                "ticket": 4
+              }
+            ]
+          },
+          {
+            "call": "stopped",
+            "outcome": "Stopped",
+            "outputs": [
+              {
+                "name": "console",
+                "status": "Stopped",
+                "ticket": null
+              },
+              {
+                "name": "file",
+                "status": "Stopped",
+                "ticket": null
+              }
+            ]
+          }
+        ],
+        "writers": {
+          "console": {
+            "attempted": [
+              1
+            ],
+            "confirmed": []
+          },
+          "file": {
+            "attempted": [
+              1,
+              2,
+              3,
+              4
+            ],
+            "confirmed": [
+              1,
+              2,
+              3,
+              4
+            ]
+          }
+        },
+        "factoryCalls": 3,
+        "originalFactoryError": true,
+        "originalFaults": 1
+      }
+    },
+    {
+      "id": "ACCOUNT-FILE-FAULT",
+      "consoleEnabled": true,
+      "fileEnabled": true,
+      "consoleFails": false,
+      "fileFails": true,
+      "consoleLevel": "Warning",
+      "fileLevel": "Warning",
+      "expected": {
+        "checkpoints": [
+          {
+            "phase": "initial",
+            "invalid": "0",
+            "outputs": {
+              "console": {
+                "filtered": "0",
+                "attempts": "0",
+                "accepted": "0",
+                "queueFull": "0",
+                "unavailable": "0",
+                "rejected": "0",
+                "written": "0",
+                "failed": "0",
+                "abandoned": "0",
+                "pending": "0",
+                "inFlight": "0"
+              },
+              "file": {
+                "filtered": "0",
+                "attempts": "0",
+                "accepted": "0",
+                "queueFull": "0",
+                "unavailable": "0",
+                "rejected": "0",
+                "written": "0",
+                "failed": "0",
+                "abandoned": "0",
+                "pending": "0",
+                "inFlight": "0"
+              }
+            }
+          },
+          {
+            "phase": "blocked",
+            "invalid": "2",
+            "outputs": {
+              "console": {
+                "filtered": "2",
+                "attempts": "4",
+                "accepted": "3",
+                "queueFull": "1",
+                "unavailable": "0",
+                "rejected": "1",
+                "written": "0",
+                "failed": "0",
+                "abandoned": "0",
+                "pending": "3",
+                "inFlight": "1"
+              },
+              "file": {
+                "filtered": "2",
+                "attempts": "4",
+                "accepted": "3",
+                "queueFull": "1",
+                "unavailable": "0",
+                "rejected": "1",
+                "written": "0",
+                "failed": "0",
+                "abandoned": "0",
+                "pending": "3",
+                "inFlight": "1"
+              }
+            }
+          },
+          {
+            "phase": "progress",
+            "invalid": "2",
+            "outputs": {
+              "console": {
+                "filtered": "2",
+                "attempts": "4",
+                "accepted": "3",
+                "queueFull": "1",
+                "unavailable": "0",
+                "rejected": "1",
+                "written": "1",
+                "failed": "0",
+                "abandoned": "0",
+                "pending": "2",
+                "inFlight": "1"
+              },
+              "file": {
+                "filtered": "2",
+                "attempts": "4",
+                "accepted": "3",
+                "queueFull": "1",
+                "unavailable": "0",
+                "rejected": "1",
+                "written": "0",
+                "failed": "1",
+                "abandoned": "2",
+                "pending": "0",
+                "inFlight": "0"
+              }
+            }
+          },
+          {
+            "phase": "next",
+            "invalid": "2",
+            "outputs": {
+              "console": {
+                "filtered": "2",
+                "attempts": "5",
+                "accepted": "4",
+                "queueFull": "1",
+                "unavailable": "0",
+                "rejected": "1",
+                "written": "1",
+                "failed": "0",
+                "abandoned": "0",
+                "pending": "3",
+                "inFlight": "1"
+              },
+              "file": {
+                "filtered": "2",
+                "attempts": "5",
+                "accepted": "3",
+                "queueFull": "1",
+                "unavailable": "1",
+                "rejected": "2",
+                "written": "0",
+                "failed": "1",
+                "abandoned": "2",
+                "pending": "0",
+                "inFlight": "0"
+              }
+            }
+          },
+          {
+            "phase": "closed",
+            "invalid": "2",
+            "outputs": {
+              "console": {
+                "filtered": "2",
+                "attempts": "5",
+                "accepted": "4",
+                "queueFull": "1",
+                "unavailable": "0",
+                "rejected": "1",
+                "written": "1",
+                "failed": "0",
+                "abandoned": "0",
+                "pending": "3",
+                "inFlight": "1"
+              },
+              "file": {
+                "filtered": "2",
+                "attempts": "5",
+                "accepted": "3",
+                "queueFull": "1",
+                "unavailable": "1",
+                "rejected": "2",
+                "written": "0",
+                "failed": "1",
+                "abandoned": "2",
+                "pending": "0",
+                "inFlight": "0"
+              }
+            }
+          },
+          {
+            "phase": "final",
+            "invalid": "2",
+            "outputs": {
+              "console": {
+                "filtered": "2",
+                "attempts": "5",
+                "accepted": "4",
+                "queueFull": "1",
+                "unavailable": "0",
+                "rejected": "1",
+                "written": "4",
+                "failed": "0",
+                "abandoned": "0",
+                "pending": "0",
+                "inFlight": "0"
+              },
+              "file": {
+                "filtered": "2",
+                "attempts": "5",
+                "accepted": "3",
+                "queueFull": "1",
+                "unavailable": "1",
+                "rejected": "2",
+                "written": "0",
+                "failed": "1",
+                "abandoned": "2",
+                "pending": "0",
+                "inFlight": "0"
+              }
+            }
+          }
+        ],
+        "results": [
+          {
+            "call": "seed",
+            "outcome": "Accepted",
+            "outputs": [
+              {
+                "name": "console",
+                "status": "Accepted",
+                "ticket": 1
+              },
+              {
+                "name": "file",
+                "status": "Accepted",
+                "ticket": 1
+              }
+            ]
+          },
+          {
+            "call": "none",
+            "outcome": "Filtered",
+            "outputs": [
+              {
+                "name": "console",
+                "status": "Filtered",
+                "ticket": null
+              },
+              {
+                "name": "file",
+                "status": "Filtered",
+                "ticket": null
+              }
+            ]
+          },
+          {
+            "call": "low",
+            "outcome": "Filtered",
+            "outputs": [
+              {
+                "name": "console",
+                "status": "Filtered",
+                "ticket": null
+              },
+              {
+                "name": "file",
+                "status": "Filtered",
+                "ticket": null
+              }
+            ]
+          },
+          {
+            "call": "invalid",
+            "outcome": "InvalidEvent",
+            "outputs": []
+          },
+          {
+            "call": "null-factory",
+            "outcome": "InvalidEvent",
+            "outputs": []
+          },
+          {
+            "call": "queued-one",
+            "outcome": "Accepted",
+            "outputs": [
+              {
+                "name": "console",
+                "status": "Accepted",
+                "ticket": 2
+              },
+              {
+                "name": "file",
+                "status": "Accepted",
+                "ticket": 2
+              }
+            ]
+          },
+          {
+            "call": "queued-two",
+            "outcome": "Accepted",
+            "outputs": [
+              {
+                "name": "console",
+                "status": "Accepted",
+                "ticket": 3
+              },
+              {
+                "name": "file",
+                "status": "Accepted",
+                "ticket": 3
+              }
+            ]
+          },
+          {
+            "call": "full",
+            "outcome": "Rejected",
+            "outputs": [
+              {
+                "name": "console",
+                "status": "QueueFull",
+                "ticket": null
+              },
+              {
+                "name": "file",
+                "status": "QueueFull",
+                "ticket": null
+              }
+            ]
+          },
+          {
+            "call": "next",
+            "outcome": "PartiallyAccepted",
+            "outputs": [
+              {
+                "name": "console",
+                "status": "Accepted",
+                "ticket": 4
+              },
+              {
+                "name": "file",
+                "status": "Faulted",
+                "ticket": null
+              }
+            ]
+          },
+          {
+            "call": "stopped",
+            "outcome": "Stopped",
+            "outputs": [
+              {
+                "name": "console",
+                "status": "Stopped",
+                "ticket": null
+              },
+              {
+                "name": "file",
+                "status": "Stopped",
+                "ticket": null
+              }
+            ]
+          }
+        ],
+        "writers": {
+          "console": {
+            "attempted": [
+              1,
+              2,
+              3,
+              4
+            ],
+            "confirmed": [
+              1,
+              2,
+              3,
+              4
+            ]
+          },
+          "file": {
+            "attempted": [
+              1
+            ],
+            "confirmed": []
+          }
+        },
+        "factoryCalls": 3,
+        "originalFactoryError": true,
+        "originalFaults": 1
+      }
+    },
+    {
+      "id": "ACCOUNT-ONLY-CONSOLE-FAULT",
+      "consoleEnabled": true,
+      "fileEnabled": false,
+      "consoleFails": true,
+      "fileFails": false,
+      "consoleLevel": "Warning",
+      "fileLevel": "Warning",
+      "expected": {
+        "checkpoints": [
+          {
+            "phase": "initial",
+            "invalid": "0",
+            "outputs": {
+              "console": {
+                "filtered": "0",
+                "attempts": "0",
+                "accepted": "0",
+                "queueFull": "0",
+                "unavailable": "0",
+                "rejected": "0",
+                "written": "0",
+                "failed": "0",
+                "abandoned": "0",
+                "pending": "0",
+                "inFlight": "0"
+              }
+            }
+          },
+          {
+            "phase": "blocked",
+            "invalid": "2",
+            "outputs": {
+              "console": {
+                "filtered": "2",
+                "attempts": "4",
+                "accepted": "3",
+                "queueFull": "1",
+                "unavailable": "0",
+                "rejected": "1",
+                "written": "0",
+                "failed": "0",
+                "abandoned": "0",
+                "pending": "3",
+                "inFlight": "1"
+              }
+            }
+          },
+          {
+            "phase": "progress",
+            "invalid": "2",
+            "outputs": {
+              "console": {
+                "filtered": "2",
+                "attempts": "4",
+                "accepted": "3",
+                "queueFull": "1",
+                "unavailable": "0",
+                "rejected": "1",
+                "written": "0",
+                "failed": "1",
+                "abandoned": "2",
+                "pending": "0",
+                "inFlight": "0"
+              }
+            }
+          },
+          {
+            "phase": "next",
+            "invalid": "2",
+            "outputs": {
+              "console": {
+                "filtered": "2",
+                "attempts": "5",
+                "accepted": "3",
+                "queueFull": "1",
+                "unavailable": "1",
+                "rejected": "2",
+                "written": "0",
+                "failed": "1",
+                "abandoned": "2",
+                "pending": "0",
+                "inFlight": "0"
+              }
+            }
+          },
+          {
+            "phase": "closed",
+            "invalid": "2",
+            "outputs": {
+              "console": {
+                "filtered": "2",
+                "attempts": "5",
+                "accepted": "3",
+                "queueFull": "1",
+                "unavailable": "1",
+                "rejected": "2",
+                "written": "0",
+                "failed": "1",
+                "abandoned": "2",
+                "pending": "0",
+                "inFlight": "0"
+              }
+            }
+          },
+          {
+            "phase": "final",
+            "invalid": "2",
+            "outputs": {
+              "console": {
+                "filtered": "2",
+                "attempts": "5",
+                "accepted": "3",
+                "queueFull": "1",
+                "unavailable": "1",
+                "rejected": "2",
+                "written": "0",
+                "failed": "1",
+                "abandoned": "2",
+                "pending": "0",
+                "inFlight": "0"
+              }
+            }
+          }
+        ],
+        "results": [
+          {
+            "call": "seed",
+            "outcome": "Accepted",
+            "outputs": [
+              {
+                "name": "console",
+                "status": "Accepted",
+                "ticket": 1
+              }
+            ]
+          },
+          {
+            "call": "none",
+            "outcome": "Filtered",
+            "outputs": [
+              {
+                "name": "console",
+                "status": "Filtered",
+                "ticket": null
+              }
+            ]
+          },
+          {
+            "call": "low",
+            "outcome": "Filtered",
+            "outputs": [
+              {
+                "name": "console",
+                "status": "Filtered",
+                "ticket": null
+              }
+            ]
+          },
+          {
+            "call": "invalid",
+            "outcome": "InvalidEvent",
+            "outputs": []
+          },
+          {
+            "call": "null-factory",
+            "outcome": "InvalidEvent",
+            "outputs": []
+          },
+          {
+            "call": "queued-one",
+            "outcome": "Accepted",
+            "outputs": [
+              {
+                "name": "console",
+                "status": "Accepted",
+                "ticket": 2
+              }
+            ]
+          },
+          {
+            "call": "queued-two",
+            "outcome": "Accepted",
+            "outputs": [
+              {
+                "name": "console",
+                "status": "Accepted",
+                "ticket": 3
+              }
+            ]
+          },
+          {
+            "call": "full",
+            "outcome": "Rejected",
+            "outputs": [
+              {
+                "name": "console",
+                "status": "QueueFull",
+                "ticket": null
+              }
+            ]
+          },
+          {
+            "call": "next",
+            "outcome": "Rejected",
+            "outputs": [
+              {
+                "name": "console",
+                "status": "Faulted",
+                "ticket": null
+              }
+            ]
+          },
+          {
+            "call": "stopped",
+            "outcome": "Stopped",
+            "outputs": [
+              {
+                "name": "console",
+                "status": "Stopped",
+                "ticket": null
+              }
+            ]
+          }
+        ],
+        "writers": {
+          "console": {
+            "attempted": [
+              1
+            ],
+            "confirmed": []
+          }
+        },
+        "factoryCalls": 2,
+        "originalFactoryError": true,
+        "originalFaults": 1
+      }
+    },
+    {
+      "id": "ACCOUNT-ONLY-FILE-FAULT",
+      "consoleEnabled": false,
+      "fileEnabled": true,
+      "consoleFails": false,
+      "fileFails": true,
+      "consoleLevel": "Warning",
+      "fileLevel": "Warning",
+      "expected": {
+        "checkpoints": [
+          {
+            "phase": "initial",
+            "invalid": "0",
+            "outputs": {
+              "file": {
+                "filtered": "0",
+                "attempts": "0",
+                "accepted": "0",
+                "queueFull": "0",
+                "unavailable": "0",
+                "rejected": "0",
+                "written": "0",
+                "failed": "0",
+                "abandoned": "0",
+                "pending": "0",
+                "inFlight": "0"
+              }
+            }
+          },
+          {
+            "phase": "blocked",
+            "invalid": "2",
+            "outputs": {
+              "file": {
+                "filtered": "2",
+                "attempts": "4",
+                "accepted": "3",
+                "queueFull": "1",
+                "unavailable": "0",
+                "rejected": "1",
+                "written": "0",
+                "failed": "0",
+                "abandoned": "0",
+                "pending": "3",
+                "inFlight": "1"
+              }
+            }
+          },
+          {
+            "phase": "progress",
+            "invalid": "2",
+            "outputs": {
+              "file": {
+                "filtered": "2",
+                "attempts": "4",
+                "accepted": "3",
+                "queueFull": "1",
+                "unavailable": "0",
+                "rejected": "1",
+                "written": "0",
+                "failed": "1",
+                "abandoned": "2",
+                "pending": "0",
+                "inFlight": "0"
+              }
+            }
+          },
+          {
+            "phase": "next",
+            "invalid": "2",
+            "outputs": {
+              "file": {
+                "filtered": "2",
+                "attempts": "5",
+                "accepted": "3",
+                "queueFull": "1",
+                "unavailable": "1",
+                "rejected": "2",
+                "written": "0",
+                "failed": "1",
+                "abandoned": "2",
+                "pending": "0",
+                "inFlight": "0"
+              }
+            }
+          },
+          {
+            "phase": "closed",
+            "invalid": "2",
+            "outputs": {
+              "file": {
+                "filtered": "2",
+                "attempts": "5",
+                "accepted": "3",
+                "queueFull": "1",
+                "unavailable": "1",
+                "rejected": "2",
+                "written": "0",
+                "failed": "1",
+                "abandoned": "2",
+                "pending": "0",
+                "inFlight": "0"
+              }
+            }
+          },
+          {
+            "phase": "final",
+            "invalid": "2",
+            "outputs": {
+              "file": {
+                "filtered": "2",
+                "attempts": "5",
+                "accepted": "3",
+                "queueFull": "1",
+                "unavailable": "1",
+                "rejected": "2",
+                "written": "0",
+                "failed": "1",
+                "abandoned": "2",
+                "pending": "0",
+                "inFlight": "0"
+              }
+            }
+          }
+        ],
+        "results": [
+          {
+            "call": "seed",
+            "outcome": "Accepted",
+            "outputs": [
+              {
+                "name": "file",
+                "status": "Accepted",
+                "ticket": 1
+              }
+            ]
+          },
+          {
+            "call": "none",
+            "outcome": "Filtered",
+            "outputs": [
+              {
+                "name": "file",
+                "status": "Filtered",
+                "ticket": null
+              }
+            ]
+          },
+          {
+            "call": "low",
+            "outcome": "Filtered",
+            "outputs": [
+              {
+                "name": "file",
+                "status": "Filtered",
+                "ticket": null
+              }
+            ]
+          },
+          {
+            "call": "invalid",
+            "outcome": "InvalidEvent",
+            "outputs": []
+          },
+          {
+            "call": "null-factory",
+            "outcome": "InvalidEvent",
+            "outputs": []
+          },
+          {
+            "call": "queued-one",
+            "outcome": "Accepted",
+            "outputs": [
+              {
+                "name": "file",
+                "status": "Accepted",
+                "ticket": 2
+              }
+            ]
+          },
+          {
+            "call": "queued-two",
+            "outcome": "Accepted",
+            "outputs": [
+              {
+                "name": "file",
+                "status": "Accepted",
+                "ticket": 3
+              }
+            ]
+          },
+          {
+            "call": "full",
+            "outcome": "Rejected",
+            "outputs": [
+              {
+                "name": "file",
+                "status": "QueueFull",
+                "ticket": null
+              }
+            ]
+          },
+          {
+            "call": "next",
+            "outcome": "Rejected",
+            "outputs": [
+              {
+                "name": "file",
+                "status": "Faulted",
+                "ticket": null
+              }
+            ]
+          },
+          {
+            "call": "stopped",
+            "outcome": "Stopped",
+            "outputs": [
+              {
+                "name": "file",
+                "status": "Stopped",
+                "ticket": null
+              }
+            ]
+          }
+        ],
+        "writers": {
+          "file": {
+            "attempted": [
+              1
+            ],
+            "confirmed": []
+          }
+        },
+        "factoryCalls": 2,
+        "originalFactoryError": true,
+        "originalFaults": 1
+      }
+    },
+    {
+      "id": "ACCOUNT-BOTH-FAULT",
+      "consoleEnabled": true,
+      "fileEnabled": true,
+      "consoleFails": true,
+      "fileFails": true,
+      "consoleLevel": "Warning",
+      "fileLevel": "Warning",
+      "expected": {
+        "checkpoints": [
+          {
+            "phase": "initial",
+            "invalid": "0",
+            "outputs": {
+              "console": {
+                "filtered": "0",
+                "attempts": "0",
+                "accepted": "0",
+                "queueFull": "0",
+                "unavailable": "0",
+                "rejected": "0",
+                "written": "0",
+                "failed": "0",
+                "abandoned": "0",
+                "pending": "0",
+                "inFlight": "0"
+              },
+              "file": {
+                "filtered": "0",
+                "attempts": "0",
+                "accepted": "0",
+                "queueFull": "0",
+                "unavailable": "0",
+                "rejected": "0",
+                "written": "0",
+                "failed": "0",
+                "abandoned": "0",
+                "pending": "0",
+                "inFlight": "0"
+              }
+            }
+          },
+          {
+            "phase": "blocked",
+            "invalid": "2",
+            "outputs": {
+              "console": {
+                "filtered": "2",
+                "attempts": "4",
+                "accepted": "3",
+                "queueFull": "1",
+                "unavailable": "0",
+                "rejected": "1",
+                "written": "0",
+                "failed": "0",
+                "abandoned": "0",
+                "pending": "3",
+                "inFlight": "1"
+              },
+              "file": {
+                "filtered": "2",
+                "attempts": "4",
+                "accepted": "3",
+                "queueFull": "1",
+                "unavailable": "0",
+                "rejected": "1",
+                "written": "0",
+                "failed": "0",
+                "abandoned": "0",
+                "pending": "3",
+                "inFlight": "1"
+              }
+            }
+          },
+          {
+            "phase": "progress",
+            "invalid": "2",
+            "outputs": {
+              "console": {
+                "filtered": "2",
+                "attempts": "4",
+                "accepted": "3",
+                "queueFull": "1",
+                "unavailable": "0",
+                "rejected": "1",
+                "written": "0",
+                "failed": "1",
+                "abandoned": "2",
+                "pending": "0",
+                "inFlight": "0"
+              },
+              "file": {
+                "filtered": "2",
+                "attempts": "4",
+                "accepted": "3",
+                "queueFull": "1",
+                "unavailable": "0",
+                "rejected": "1",
+                "written": "0",
+                "failed": "1",
+                "abandoned": "2",
+                "pending": "0",
+                "inFlight": "0"
+              }
+            }
+          },
+          {
+            "phase": "next",
+            "invalid": "2",
+            "outputs": {
+              "console": {
+                "filtered": "2",
+                "attempts": "5",
+                "accepted": "3",
+                "queueFull": "1",
+                "unavailable": "1",
+                "rejected": "2",
+                "written": "0",
+                "failed": "1",
+                "abandoned": "2",
+                "pending": "0",
+                "inFlight": "0"
+              },
+              "file": {
+                "filtered": "2",
+                "attempts": "5",
+                "accepted": "3",
+                "queueFull": "1",
+                "unavailable": "1",
+                "rejected": "2",
+                "written": "0",
+                "failed": "1",
+                "abandoned": "2",
+                "pending": "0",
+                "inFlight": "0"
+              }
+            }
+          },
+          {
+            "phase": "closed",
+            "invalid": "2",
+            "outputs": {
+              "console": {
+                "filtered": "2",
+                "attempts": "5",
+                "accepted": "3",
+                "queueFull": "1",
+                "unavailable": "1",
+                "rejected": "2",
+                "written": "0",
+                "failed": "1",
+                "abandoned": "2",
+                "pending": "0",
+                "inFlight": "0"
+              },
+              "file": {
+                "filtered": "2",
+                "attempts": "5",
+                "accepted": "3",
+                "queueFull": "1",
+                "unavailable": "1",
+                "rejected": "2",
+                "written": "0",
+                "failed": "1",
+                "abandoned": "2",
+                "pending": "0",
+                "inFlight": "0"
+              }
+            }
+          },
+          {
+            "phase": "final",
+            "invalid": "2",
+            "outputs": {
+              "console": {
+                "filtered": "2",
+                "attempts": "5",
+                "accepted": "3",
+                "queueFull": "1",
+                "unavailable": "1",
+                "rejected": "2",
+                "written": "0",
+                "failed": "1",
+                "abandoned": "2",
+                "pending": "0",
+                "inFlight": "0"
+              },
+              "file": {
+                "filtered": "2",
+                "attempts": "5",
+                "accepted": "3",
+                "queueFull": "1",
+                "unavailable": "1",
+                "rejected": "2",
+                "written": "0",
+                "failed": "1",
+                "abandoned": "2",
+                "pending": "0",
+                "inFlight": "0"
+              }
+            }
+          }
+        ],
+        "results": [
+          {
+            "call": "seed",
+            "outcome": "Accepted",
+            "outputs": [
+              {
+                "name": "console",
+                "status": "Accepted",
+                "ticket": 1
+              },
+              {
+                "name": "file",
+                "status": "Accepted",
+                "ticket": 1
+              }
+            ]
+          },
+          {
+            "call": "none",
+            "outcome": "Filtered",
+            "outputs": [
+              {
+                "name": "console",
+                "status": "Filtered",
+                "ticket": null
+              },
+              {
+                "name": "file",
+                "status": "Filtered",
+                "ticket": null
+              }
+            ]
+          },
+          {
+            "call": "low",
+            "outcome": "Filtered",
+            "outputs": [
+              {
+                "name": "console",
+                "status": "Filtered",
+                "ticket": null
+              },
+              {
+                "name": "file",
+                "status": "Filtered",
+                "ticket": null
+              }
+            ]
+          },
+          {
+            "call": "invalid",
+            "outcome": "InvalidEvent",
+            "outputs": []
+          },
+          {
+            "call": "null-factory",
+            "outcome": "InvalidEvent",
+            "outputs": []
+          },
+          {
+            "call": "queued-one",
+            "outcome": "Accepted",
+            "outputs": [
+              {
+                "name": "console",
+                "status": "Accepted",
+                "ticket": 2
+              },
+              {
+                "name": "file",
+                "status": "Accepted",
+                "ticket": 2
+              }
+            ]
+          },
+          {
+            "call": "queued-two",
+            "outcome": "Accepted",
+            "outputs": [
+              {
+                "name": "console",
+                "status": "Accepted",
+                "ticket": 3
+              },
+              {
+                "name": "file",
+                "status": "Accepted",
+                "ticket": 3
+              }
+            ]
+          },
+          {
+            "call": "full",
+            "outcome": "Rejected",
+            "outputs": [
+              {
+                "name": "console",
+                "status": "QueueFull",
+                "ticket": null
+              },
+              {
+                "name": "file",
+                "status": "QueueFull",
+                "ticket": null
+              }
+            ]
+          },
+          {
+            "call": "next",
+            "outcome": "Rejected",
+            "outputs": [
+              {
+                "name": "console",
+                "status": "Faulted",
+                "ticket": null
+              },
+              {
+                "name": "file",
+                "status": "Faulted",
+                "ticket": null
+              }
+            ]
+          },
+          {
+            "call": "stopped",
+            "outcome": "Stopped",
+            "outputs": [
+              {
+                "name": "console",
+                "status": "Stopped",
+                "ticket": null
+              },
+              {
+                "name": "file",
+                "status": "Stopped",
+                "ticket": null
+              }
+            ]
+          }
+        ],
+        "writers": {
+          "console": {
+            "attempted": [
+              1
+            ],
+            "confirmed": []
+          },
+          "file": {
+            "attempted": [
+              1
+            ],
+            "confirmed": []
+          }
+        },
+        "factoryCalls": 2,
+        "originalFactoryError": true,
+        "originalFaults": 2
+      }
+    },
+    {
+      "id": "ACCOUNT-DISABLED",
+      "consoleEnabled": false,
+      "fileEnabled": false,
+      "consoleFails": false,
+      "fileFails": false,
+      "consoleLevel": "Warning",
+      "fileLevel": "Warning",
+      "expected": {
+        "checkpoints": [
+          {
+            "phase": "initial",
+            "invalid": "0",
+            "outputs": {}
+          },
+          {
+            "phase": "blocked",
+            "invalid": "0",
+            "outputs": {}
+          },
+          {
+            "phase": "progress",
+            "invalid": "0",
+            "outputs": {}
+          },
+          {
+            "phase": "next",
+            "invalid": "0",
+            "outputs": {}
+          },
+          {
+            "phase": "closed",
+            "invalid": "0",
+            "outputs": {}
+          },
+          {
+            "phase": "final",
+            "invalid": "0",
+            "outputs": {}
+          }
+        ],
+        "results": [
+          {
+            "call": "seed",
+            "outcome": "Filtered",
+            "outputs": []
+          },
+          {
+            "call": "none",
+            "outcome": "Filtered",
+            "outputs": []
+          },
+          {
+            "call": "low",
+            "outcome": "Filtered",
+            "outputs": []
+          },
+          {
+            "call": "invalid",
+            "outcome": "Filtered",
+            "outputs": []
+          },
+          {
+            "call": "null-factory",
+            "outcome": "Filtered",
+            "outputs": []
+          },
+          {
+            "call": "queued-one",
+            "outcome": "Filtered",
+            "outputs": []
+          },
+          {
+            "call": "queued-two",
+            "outcome": "Filtered",
+            "outputs": []
+          },
+          {
+            "call": "full",
+            "outcome": "Filtered",
+            "outputs": []
+          },
+          {
+            "call": "next",
+            "outcome": "Filtered",
+            "outputs": []
+          },
+          {
+            "call": "stopped",
+            "outcome": "Stopped",
+            "outputs": []
+          }
+        ],
+        "writers": {},
+        "factoryCalls": 0,
+        "originalFactoryError": false,
+        "originalFaults": 0
+      }
+    }
+  ]
+}

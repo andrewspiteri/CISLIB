@@ -84,8 +84,8 @@ internal static class QueuedFanoutFixture
         }
         void ObservePending()
         {
-            RecordMaximum(ref consolePendingMaximum, queues.Console?.PendingCount ?? 0);
-            RecordMaximum(ref filePendingMaximum, queues.File?.PendingCount ?? 0);
+            RecordMaximum(ref consolePendingMaximum, queues.Console?.BufferedCount ?? 0);
+            RecordMaximum(ref filePendingMaximum, queues.File?.BufferedCount ?? 0);
         }
         async Task Burst(JsonObject[] cohort)
         {
@@ -160,7 +160,7 @@ internal static class QueuedFanoutFixture
                 "independent-file" => file.Written.Count >= 2 && console.Written.Count == 0,
                 _ => true
             };
-            int consolePendingAtBarrier = queues.Console?.PendingCount ?? 0, filePendingAtBarrier = queues.File?.PendingCount ?? 0;
+            int consolePendingAtBarrier = queues.Console?.BufferedCount ?? 0, filePendingAtBarrier = queues.File?.BufferedCount ?? 0;
             int consoleActiveAtBarrier = Volatile.Read(ref console.Active), fileActiveAtBarrier = Volatile.Read(ref file.Active);
             runtime.CloseAdmission(); runtime.CloseAdmission(); releaseConsole.TrySetResult(); releaseFile.TrySetResult();
             if (queues.Console is not null) { await console.Observe(queues.Console.Completion); }
@@ -186,7 +186,7 @@ internal static class QueuedFanoutFixture
                     ["faulted"] = queue.IsFaulted,
                     ["originalFaultObserved"] = writer.OriginalFaultObserved
                 };
-                wires[name] = new JsonObject { ["stream"] = Convert.ToBase64String(writer.Bytes.ToArray()), ["attempted"] = new JsonArray(writer.Attempted.Select((item, index) => (JsonNode)new JsonObject { ["ticket"] = item.AcceptedSequence, ["wire"] = Convert.ToBase64String(writer.Original[index]), ["after"] = Convert.ToBase64String(item.Event.JsonLine.Span) }).ToArray()), ["pendingAfterComplete"] = queue.PendingCount };
+                wires[name] = new JsonObject { ["stream"] = Convert.ToBase64String(writer.Bytes.ToArray()), ["attempted"] = new JsonArray(writer.Attempted.Select((item, index) => (JsonNode)new JsonObject { ["ticket"] = item.AcceptedSequence, ["wire"] = Convert.ToBase64String(writer.Original[index]), ["after"] = Convert.ToBase64String(item.Event.JsonLine.Span) }).ToArray()), ["pendingAfterComplete"] = queue.BufferedCount };
             }
             var paired = console.Attempted.Join(file.Attempted, item => Message(item), item => Message(item), (left, right) => ReferenceEquals(left.Event, right.Event)).ToArray();
             JsonObject actual = new()
@@ -203,7 +203,7 @@ internal static class QueuedFanoutFixture
                 foreach ((string name, OutputEventQueue? queue, Writer writer, int pending, int maximum, int active) in new[] { ("console", queues.Console, console, consolePendingAtBarrier, consolePendingMaximum, consoleActiveAtBarrier), ("file", queues.File, file, filePendingAtBarrier, filePendingMaximum, fileActiveAtBarrier) })
                 {
                     if (queue is null) { continue; }
-                    bounds[name] = new JsonObject { ["pendingAtBarrier"] = pending, ["pendingMaximum"] = maximum, ["activeAtBarrier"] = active, ["maximumActive"] = Volatile.Read(ref writer.MaximumActive), ["activeAfterComplete"] = Volatile.Read(ref writer.Active), ["pendingAfterComplete"] = queue.PendingCount };
+                    bounds[name] = new JsonObject { ["pendingAtBarrier"] = pending, ["pendingMaximum"] = maximum, ["activeAtBarrier"] = active, ["maximumActive"] = Volatile.Read(ref writer.MaximumActive), ["activeAfterComplete"] = Volatile.Read(ref writer.Active), ["pendingAfterComplete"] = queue.BufferedCount };
                 }
                 actual["bounds"] = bounds;
                 actual["workers"] = (queues.Console is null ? 0 : 1) + (queues.File is null ? 0 : 1);

@@ -66,7 +66,7 @@ public sealed class QueuedFanoutTests
         {
             Assert.AreEqual(LogOutputWriteStatus.Accepted, queue.TryAdmit(Event(1), out long? last)); Assert.AreEqual(long.MaxValue, last); await entered.Task.WaitAsync(TimeSpan.FromSeconds(10));
             Assert.AreEqual(LogOutputWriteStatus.Faulted, queue.TryAdmit(Event(2), out long? rejected)); Assert.IsNull(rejected); Assert.AreEqual(long.MaxValue, queue.LastAcceptedSequence); Assert.IsTrue(queue.IsFaulted);
-            release.TrySetResult(); await queue.Completion.WaitAsync(TimeSpan.FromSeconds(10)); CollectionAssert.AreEqual(new[] { long.MaxValue }, delivered); Assert.AreEqual(0, queue.PendingCount); Assert.AreEqual(1L, queue.UnavailableCount);
+            release.TrySetResult(); await queue.Completion.WaitAsync(TimeSpan.FromSeconds(10)); CollectionAssert.AreEqual(new[] { long.MaxValue }, delivered); Assert.AreEqual(0, queue.BufferedCount); Assert.AreEqual(1L, queue.UnavailableCount);
         }
         finally { release.TrySetResult(); queue.Complete(); await queue.Completion.WaitAsync(TimeSpan.FromSeconds(10)); }
     }
@@ -81,7 +81,7 @@ public sealed class QueuedFanoutTests
             async item => { if (consoleWrites.Count == 0) { consoleEntered.TrySetResult(); await release.Task; } consoleWrites.Add(item.AcceptedSequence); },
             async item => { if (fileWrites.Count == 0) { fileEntered.TrySetResult(); await release.Task; } fileWrites.Add(item.AcceptedSequence); });
         OutputEventQueue file = runtime.QueuedOutputs!.File!;
-        // C# unit-only private injection; no real Int64 prehistory or S03 accounting claim.
+        // C# unit-only private ticket injection; accounting counts actual admissions, not an invented Int64 prehistory.
         typeof(OutputEventQueue).GetField("lastAcceptedSequence", BindingFlags.Instance | BindingFlags.NonPublic)!.SetValue(file, long.MaxValue - 2);
         try
         {
@@ -90,12 +90,16 @@ public sealed class QueuedFanoutTests
             Assert.AreEqual(LogWriteOutcome.Accepted, first.Outcome); Assert.AreEqual(long.MaxValue - 1, first.Outputs[1].AcceptedSequence);
             await consoleEntered.Task.WaitAsync(TimeSpan.FromSeconds(10)); await fileEntered.Task.WaitAsync(TimeSpan.FromSeconds(10));
             LogWriteResult queued = logger.Write(CoreLogLevel.Information, new LogEventData { EventName = "event", Message = "queued" });
-            Assert.AreEqual(LogWriteOutcome.Accepted, queued.Outcome); Assert.AreEqual(long.MaxValue, queued.Outputs[1].AcceptedSequence); Assert.AreEqual(1, file.PendingCount);
+            Assert.AreEqual(LogWriteOutcome.Accepted, queued.Outcome); Assert.AreEqual(long.MaxValue, queued.Outputs[1].AcceptedSequence); Assert.AreEqual(1, file.BufferedCount);
             LogWriteResult exhausted = logger.Write(CoreLogLevel.Information, new LogEventData { EventName = "event", Message = "exhausted" });
             Assert.AreEqual(LogWriteOutcome.PartiallyAccepted, exhausted.Outcome); Assert.AreEqual(3L, exhausted.Outputs[0].AcceptedSequence); Assert.AreEqual(LogOutputWriteStatus.Faulted, exhausted.Outputs[1].Status); Assert.IsNull(exhausted.Outputs[1].AcceptedSequence);
             Assert.AreEqual(long.MaxValue, file.LastAcceptedSequence); Assert.IsTrue(file.IsFaulted); Assert.AreEqual(1L, file.UnavailableCount);
+            Assert.AreEqual(new OutputAccounting(Filtered: 0, Accepted: 2, QueueFull: 0, Unavailable: 1,
+                Written: 0, Failed: 0, Abandoned: 0, Pending: 2, InFlight: 1), file.CaptureAccounting());
             runtime.CloseAdmission(); release.TrySetResult(); await runtime.QueuedOutputs.Completion.WaitAsync(TimeSpan.FromSeconds(10));
-            CollectionAssert.AreEqual(new long[] { 1, 2, 3 }, consoleWrites); CollectionAssert.AreEqual(new[] { long.MaxValue - 1 }, fileWrites); Assert.AreEqual(0, file.PendingCount);
+            CollectionAssert.AreEqual(new long[] { 1, 2, 3 }, consoleWrites); CollectionAssert.AreEqual(new[] { long.MaxValue - 1 }, fileWrites); Assert.AreEqual(0, file.BufferedCount);
+            Assert.AreEqual(new OutputAccounting(Filtered: 0, Accepted: 2, QueueFull: 0, Unavailable: 1,
+                Written: 1, Failed: 0, Abandoned: 1, Pending: 0, InFlight: 0), file.CaptureAccounting());
         }
         finally { release.TrySetResult(); runtime.CloseAdmission(); await runtime.QueuedOutputs.Completion.WaitAsync(TimeSpan.FromSeconds(10)); }
     }

@@ -64,8 +64,8 @@ internal static class OutputQueueFixture
                 observations["console"]!["admissions"]!.AsArray().Add(true); observations["file"]!["admissions"]!.AsArray().Add(true);
                 await console.SecondWritten.Task.WaitAsync(TimeSpan.FromSeconds(10));
                 observations["consoleProgressWhileFileBlocked"] = file.Events.Count == 0 && file.Calls == 1 && console.Events.Count == 2;
-                observations["file"]!["pendingAtBarrier"] = queues.File.PendingCount;
-                observations["console"]!["pendingAtBarrier"] = queues.Console.PendingCount;
+                observations["file"]!["pendingAtBarrier"] = queues.File.BufferedCount;
+                observations["console"]!["pendingAtBarrier"] = queues.Console.BufferedCount;
             }
             else
             {
@@ -77,7 +77,7 @@ internal static class OutputQueueFixture
                         producer.Value = true;
                         try { observations[name]!["admissions"]!.AsArray().Add(queue.TryEnqueue(captured[index])); } finally { producer.Value = false; }
                     }
-                    observations[name]!["pendingAtBarrier"] = queue.PendingCount;
+                    observations[name]!["pendingAtBarrier"] = queue.BufferedCount;
                 }
             }
             queues.Complete(); queues.Complete();
@@ -88,7 +88,7 @@ internal static class OutputQueueFixture
             {
                 if (queue is null) { continue; }
                 JsonObject output = observations[name]!.AsObject(); output["maximumActive"] = writer.MaximumActive; output["activeAfterComplete"] = writer.Active;
-                output["ambientSeen"] = writer.AmbientSeen; output["inlineSeen"] = writer.InlineSeen; output["pendingAfterComplete"] = queue.PendingCount;
+                output["ambientSeen"] = writer.AmbientSeen; output["inlineSeen"] = writer.InlineSeen; output["pendingAfterComplete"] = queue.BufferedCount;
                 output["ownedReferences"] = writer.Events.Select((item, index) => ReferenceEquals(item, captured[index])).All(value => value);
                 output["stream"] = Convert.ToBase64String(writer.Bytes.ToArray());
                 output["expectedStream"] = Convert.ToBase64String(originalBytes.Take(writer.Events.Count).SelectMany(item => item).ToArray());

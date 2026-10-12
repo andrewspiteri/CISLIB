@@ -10,6 +10,12 @@ internal sealed class OutputEventQueue : ILogOutputAdmission
     private readonly Channel<AdmittedEvent> channel;
     private readonly Func<AdmittedEvent, ValueTask> write;
     private long lastAcceptedSequence;
+    private long acceptedCount;
+    private long queueFullCount;
+    private long writtenCount;
+    private long failedCount;
+    private long abandonedCount;
+    private bool inFlight;
     private long filteredCount;
     private long unavailableCount;
     private bool admissionClosed;
@@ -32,10 +38,18 @@ internal sealed class OutputEventQueue : ILogOutputAdmission
         else { using (ExecutionContext.SuppressFlow()) { Completion = Task.Run(ProcessAsync); } }
     }
     internal Task Completion { get; }
-    internal int PendingCount { get { lock (admissionGate) { return channel.Reader.Count; } } }
+    internal int BufferedCount { get { lock (admissionGate) { return channel.Reader.Count; } } }
     internal long LastAcceptedSequence { get { lock (admissionGate) { return lastAcceptedSequence; } } }
     internal long FilteredCount { get { lock (admissionGate) { return filteredCount; } } }
     internal long UnavailableCount { get { lock (admissionGate) { return unavailableCount; } } }
+    internal OutputAccounting CaptureAccounting()
+    {
+        lock (admissionGate)
+        {
+            return new OutputAccounting(filteredCount, acceptedCount, queueFullCount, unavailableCount,
+                writtenCount, failedCount, abandonedCount, channel.Reader.Count + (inFlight ? 1 : 0), inFlight ? 1 : 0);
+        }
+    }
     public bool IsFaulted { get { lock (admissionGate) { return faulted; } } }
     internal bool TryEnqueue(EncodedEvent captured) => TryAdmit(captured, out _) == LogOutputWriteStatus.Accepted;
     public LogOutputWriteStatus TryAdmit(EncodedEvent captured, out long? acceptedSequence)
@@ -49,15 +63,20 @@ internal sealed class OutputEventQueue : ILogOutputAdmission
                 if (faulted) { RecordUnavailable(); return LogOutputWriteStatus.Faulted; }
                 return LogOutputWriteStatus.Stopped;
             }
-            if (lastAcceptedSequence == long.MaxValue)
+            if (lastAcceptedSequence == long.MaxValue || acceptedCount == long.MaxValue)
             {
                 // No wrap, negative/duplicate ticket or invented acceptance. Exhaustion is terminal.
                 faulted = true; admissionClosed = true; channel.Writer.TryComplete(); RecordUnavailable();
                 return LogOutputWriteStatus.Faulted;
             }
             long next = lastAcceptedSequence + 1;
-            if (!channel.Writer.TryWrite(new AdmittedEvent(captured, next))) { return LogOutputWriteStatus.QueueFull; }
+            if (!channel.Writer.TryWrite(new AdmittedEvent(captured, next)))
+            {
+                if (queueFullCount != long.MaxValue) { queueFullCount++; }
+                return LogOutputWriteStatus.QueueFull;
+            }
             lastAcceptedSequence = next;
+            acceptedCount++;
             acceptedSequence = next;
             return LogOutputWriteStatus.Accepted;
         }
@@ -79,22 +98,31 @@ internal sealed class OutputEventQueue : ILogOutputAdmission
                     {
                         if (faulted) { return; }
                         if (!channel.Reader.TryRead(out admitted)) { break; }
+                        inFlight = true;
                     }
                     // Taking work under the admission gate observes its published ticket. I/O is outside it.
                     await write(admitted).ConfigureAwait(false);
+                    lock (admissionGate) { writtenCount++; inFlight = false; }
                 }
             }
         }
         catch
         {
-            lock (admissionGate) { faulted = true; admissionClosed = true; channel.Writer.TryComplete(); }
+            lock (admissionGate)
+            {
+                if (inFlight) { failedCount++; inFlight = false; }
+                faulted = true; admissionClosed = true; channel.Writer.TryComplete();
+            }
             throw;
         }
         finally
         {
-            Complete();
-            // Later output accounting owns terminal failed/abandoned observations, including exhaustion.
-            while (channel.Reader.TryRead(out _)) { }
+            lock (admissionGate)
+            {
+                Complete();
+                // Not-started accepted work is abandoned, never promoted to confirmed writes.
+                while (channel.Reader.TryRead(out _)) { abandonedCount++; }
+            }
         }
     }
 }

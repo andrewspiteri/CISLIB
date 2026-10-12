@@ -45,7 +45,7 @@ public sealed class OutputQueueTests
         OutputEventQueue queue;
         using (ExecutionContext.SuppressFlow()) { queue = new OutputEventQueue(65536, _ => ValueTask.CompletedTask); }
         queue.Complete(); queue.Complete(); await queue.Completion.WaitAsync(TimeSpan.FromSeconds(10));
-        Assert.AreEqual(0, queue.PendingCount); Assert.IsFalse(queue.TryEnqueue(Event(1)));
+        Assert.AreEqual(0, queue.BufferedCount); Assert.IsFalse(queue.TryEnqueue(Event(1)));
     }
     [TestMethod]
     public async Task FailedWriterClosesAdmissionReleasesUnattemptedWorkAndPreservesException()
@@ -57,9 +57,9 @@ public sealed class OutputQueueTests
         try
         {
             Assert.IsTrue(queue.TryEnqueue(Event(0))); await entered.Task.WaitAsync(TimeSpan.FromSeconds(10));
-            Assert.IsTrue(queue.TryEnqueue(Event(1))); Assert.IsTrue(queue.TryEnqueue(Event(2))); Assert.AreEqual(2, queue.PendingCount);
+            Assert.IsTrue(queue.TryEnqueue(Event(1))); Assert.IsTrue(queue.TryEnqueue(Event(2))); Assert.AreEqual(2, queue.BufferedCount);
             release.TrySetResult(); IOException observed = await Assert.ThrowsExactlyAsync<IOException>(() => queue.Completion.WaitAsync(TimeSpan.FromSeconds(10)));
-            Assert.AreSame(original, observed); Assert.IsFalse(queue.TryEnqueue(Event(3))); Assert.AreEqual(0, queue.PendingCount); Assert.AreEqual(1, calls);
+            Assert.AreSame(original, observed); Assert.IsFalse(queue.TryEnqueue(Event(3))); Assert.AreEqual(0, queue.BufferedCount); Assert.AreEqual(1, calls);
         }
         finally { release.TrySetResult(); queue.Complete(); try { await queue.Completion.WaitAsync(TimeSpan.FromSeconds(10)); } catch (IOException error) when (ReferenceEquals(error, original)) { } }
     }
@@ -70,7 +70,7 @@ public sealed class OutputQueueTests
         var queue = new OutputEventQueue(1, _ => throw original);
         Assert.IsTrue(queue.TryEnqueue(Event(0)));
         IOException observed = await Assert.ThrowsExactlyAsync<IOException>(() => queue.Completion.WaitAsync(TimeSpan.FromSeconds(10)));
-        Assert.AreSame(original, observed); Assert.IsFalse(queue.TryEnqueue(Event(1))); Assert.AreEqual(0, queue.PendingCount);
+        Assert.AreSame(original, observed); Assert.IsFalse(queue.TryEnqueue(Event(1))); Assert.AreEqual(0, queue.BufferedCount);
     }
     [TestMethod]
     public async Task ConcurrentProducersShareOnlyTheBoundedBufferAndOneWriter()
@@ -98,10 +98,10 @@ public sealed class OutputQueueTests
                 await releaseProducers.Task; if (queue.TryEnqueue(item)) { accepted.Add(item); }
             })).ToArray();
             await ready.Task.WaitAsync(TimeSpan.FromSeconds(10)); releaseProducers.TrySetResult(); await Task.WhenAll(workers).WaitAsync(TimeSpan.FromSeconds(10));
-            Assert.AreEqual(capacity, accepted.Count); Assert.AreEqual(capacity, queue.PendingCount);
+            Assert.AreEqual(capacity, accepted.Count); Assert.AreEqual(capacity, queue.BufferedCount);
             queue.Complete(); releaseWriter.TrySetResult(); await queue.Completion.WaitAsync(TimeSpan.FromSeconds(10));
             Assert.AreEqual(1, maximum); Assert.AreSame(first, delivered[0]); Assert.AreEqual(capacity + 1, delivered.Count);
-            CollectionAssert.AreEquivalent(accepted.ToArray(), delivered.Skip(1).ToArray()); Assert.AreEqual(0, queue.PendingCount);
+            CollectionAssert.AreEquivalent(accepted.ToArray(), delivered.Skip(1).ToArray()); Assert.AreEqual(0, queue.BufferedCount);
         }
         finally { releaseProducers.TrySetResult(); releaseWriter.TrySetResult(); queue.Complete(); await Task.WhenAll(workers).WaitAsync(TimeSpan.FromSeconds(10)); await queue.Completion.WaitAsync(TimeSpan.FromSeconds(10)); }
     }

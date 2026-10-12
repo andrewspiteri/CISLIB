@@ -36,7 +36,7 @@ public sealed class QueueOverflowTests
             LogWriteResult full = await pendingAdmission.WaitAsync(TimeSpan.FromSeconds(10));
             Assert.AreEqual(1, calls); Assert.AreEqual(LogWriteOutcome.Rejected, full.Outcome);
             Assert.AreEqual(LogOutputWriteStatus.QueueFull, full.Outputs.Single().Status); Assert.IsNull(full.Outputs.Single().AcceptedSequence);
-            Assert.AreEqual(1, runtime.QueuedOutputs!.Console!.PendingCount); Assert.AreEqual(2L, runtime.QueuedOutputs.Console.LastAcceptedSequence); Assert.IsFalse(runtime.QueuedOutputs.Console.IsFaulted);
+            Assert.AreEqual(1, runtime.QueuedOutputs!.Console!.BufferedCount); Assert.AreEqual(2L, runtime.QueuedOutputs.Console.LastAcceptedSequence); Assert.IsFalse(runtime.QueuedOutputs.Console.IsFaulted);
             LogWriteResult invalid = logger.Write(CoreLogLevel.Information, new LogEventData { EventName = "", Message = "invalid" });
             Assert.AreEqual(LogWriteOutcome.InvalidEvent, invalid.Outcome); Assert.AreEqual(0, invalid.Outputs.Count); Assert.AreEqual(2L, runtime.QueuedOutputs.Console.LastAcceptedSequence);
             runtime.CloseAdmission(); release.TrySetResult(); await runtime.QueuedOutputs.Completion.WaitAsync(TimeSpan.FromSeconds(10));

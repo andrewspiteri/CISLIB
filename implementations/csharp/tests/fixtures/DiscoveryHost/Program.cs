@@ -11,6 +11,7 @@ internal static class Program
 {
     private static int Main(string[] args)
     {
+        if (args.Length == 3 && args[0] == "output-accounting") { return OutputAccountingFixture.Run(args[1], args[2]); }
         if (args.Length == 3 && args[0] == "queued-fanout") { return QueuedFanoutFixture.Run(args[1], args[2]); }
         if (args.Length == 3 && args[0] == "output-queue")
         {
