@@ -1,0 +1,508 @@
+{
+  "schema": "cis.logging.output-queue-evidence/v1",
+  "taskId": "WP05-S02-T01",
+  "baseCommit": "9af246f0ffc75992d96b83c8ad01756b0ac9d4e6",
+  "recordedUtc": "2026-10-12T20:14:00.542567+00:00",
+  "status": "Implemented and verified; pending read-only Claude review and final graph refresh",
+  "scope": "Actual internal bounded Channels/sequential enabled workers with controlled MemoryStream writes. No public API/dependency, runtime fanout/ticket/outcome, actual console/file destination, S03 fault/counter/lifecycle or full S02/release completion.",
+  "developer": {
+    "exitCode": 0,
+    "tests": {
+      "unit": 2542,
+      "integration": 823,
+      "architecture": 407
+    },
+    "totalTests": 3772,
+    "newTests": 41,
+    "failed": 0,
+    "skipped": 0,
+    "stages": 14,
+    "totalCompilerControls": 59,
+    "nonExecutedFamilies": [
+      "mutation",
+      "compatibility",
+      "business"
+    ]
+  },
+  "native": {
+    "status": "Passed",
+    "casesPerPlatform": 11,
+    "totalFreshChildren": 22,
+    "negativeControlsPerPlatform": 10,
+    "runtime": "10.0.12",
+    "rollForward": "Disable",
+    "sameManagedAndInputBytes": true,
+    "coreSha256": "29f8e1ae69702824a4a6d4e35fafbb430dacea0a3663653ef952cdc3aedd3832",
+    "hostSha256": "cd454f1d7e7ef1d32632f94390bfb4b4b6ed9b9516b3b010108d177246a1f252",
+    "inputsSha256": "1044f2e98ad1dbce93066b972a1783c455082a4c6bdbf30280f9b9f7ee36cce0",
+    "windows": "native/windows/summary.json",
+    "ubuntu2404": "native/linux/summary.json"
+  },
+  "release": {
+    "exitCode": 2,
+    "qualified": false,
+    "plannedCasesExactlyUnchanged": 41
+  },
+  "sourceQualification": {
+    "currentPins": 471,
+    "matchedFinalDeveloperInventory": 471
+  },
+  "claude": {
+    "status": "Pending",
+    "scope": "User-authorized native CLI outside sandbox, static Read/Glob/Grep only; no commands/tests/edits/hash recomputation"
+  },
+  "cisGraph": {
+    "schemaVersion": 2,
+    "beforeBuildId": "sha256:c7d84360010a0ddf828d2c096db4af1dc1469485d048f696419a646b2ea99e6e",
+    "beforeFreshness": "fresh",
+    "beforeNodes": 5885,
+    "beforeEdges": 21951,
+    "beforeWarnings": 79,
+    "beforeErrors": 0,
+    "beforeRoot": "CIS.Logging.CoreLogRuntime.Admit",
+    "beforeQuery": "Exact full-key root; outgoing calls depth1/limit12, six nodes/five traversals, not truncated; canonical source inspected.",
+    "refresh": "Pending final canonical status/graph refresh"
+  },
+  "limitations": [
+    "Controlled memory I/O rather than physical console/file destinations or durability.",
+    "Boolean primitive admission only; runtime accepted tickets and synchronized lifecycle checks start at T02.",
+    "Queue fault closes/releases references but S03 safe diagnostics/failed-abandoned-pending counters and terminal state remain pending.",
+    "Concurrent-producer membership probe does not promise producer scheduling order or replace full T04 stress qualification.",
+    "Windows SDK verification plus native Ubuntu exact-runtime children; no Linux SDK/macOS qualification.",
+    "No mutation/compatibility/business release-family execution or published release."
+  ],
+  "files": [
+    {
+      "path": "build.log",
+      "sha256": "014bc4cf94e5f002c1da997cf362365f9fd0f3f7ab788cd39d064aca572e8b87"
+    },
+    {
+      "path": "claude-prompt.txt",
+      "sha256": "4e968a6cab984d0a3fb851c3b01fedddeccf549ff67356164326eb3fd478b2cf"
+    },
+    {
+      "path": "Developer/contracts/compatibility-samples/summary.json",
+      "sha256": "b38d5aca927b0ef042bb41503ce1e8cf951d593ada5a388f28e815c9f57e6872"
+    },
+    {
+      "path": "Developer/contracts/log-value-consumers/summary.json",
+      "sha256": "c9d58a47dfd48e8ccb8c0d993d892945e20b570f13335939c317c30a0f779191"
+    },
+    {
+      "path": "Developer/contracts/startup/summary.json",
+      "sha256": "c311c182b2d7ab8517d954828d6d555d236652d2ca3457e18e12bdb71f685dc2"
+    },
+    {
+      "path": "Developer/families/architecture/discovery.json",
+      "sha256": "6f9b0db6824c61bfab46f0270627dda14d9f1ec9282e39974117ad0b9a669c5c"
+    },
+    {
+      "path": "Developer/families/architecture/execution.json",
+      "sha256": "83bd25cc0e5e87c444ef5d5ccb94c28bdb371a2d3bd6a9b136881d7073208ff6"
+    },
+    {
+      "path": "Developer/families/architecture/execution.log",
+      "sha256": "f0e30c57a9d786a69dd81d0e50d5010e2ddb54417fadb4f903d44fcc62e74e8e"
+    },
+    {
+      "path": "Developer/families/architecture/report.trx",
+      "sha256": "de350df3872e23abe7b637aca7c10a3c1801dce8e559d2d43b636159f5b63305"
+    },
+    {
+      "path": "Developer/families/business/discovery.json",
+      "sha256": "49e4481766fb5e68b93e70d2f949bc67dd2e152ac469adc875a40a0da6fbdb10"
+    },
+    {
+      "path": "Developer/families/business/execution.json",
+      "sha256": "f44bda8b2ac012602fccefab9d06a36f1f436eec573cda60c18ac6953255994b"
+    },
+    {
+      "path": "Developer/families/compatibility/discovery.json",
+      "sha256": "c7e7e9d029b147a5a679dc044b6748fb18356efad464d3fa1df336b5c9a28054"
+    },
+    {
+      "path": "Developer/families/compatibility/execution.json",
+      "sha256": "5efe10a7962d49d6a820cbf38744179d98198da1b5d837dc27ae818b381b5c5a"
+    },
+    {
+      "path": "Developer/families/integration/discovery.json",
+      "sha256": "569e52f5934bfc2965def1876048b160dc1915aceec94ff569e3dc30d69bfa68"
+    },
+    {
+      "path": "Developer/families/integration/execution.json",
+      "sha256": "6f5bd75516b53f80df16a6d7aac6c8f407a7228c399203a7af241d04622d29b5"
+    },
+    {
+      "path": "Developer/families/integration/execution.log",
+      "sha256": "a3b60471149b5aeb99415a28586d0b675e2d3328cc136cb08c29e8407a0c20b5"
+    },
+    {
+      "path": "Developer/families/integration/report.trx",
+      "sha256": "2320dc374a33b24ff0bfd61de5d84aa1625f8c1f8552a91120c82b80e5100432"
+    },
+    {
+      "path": "Developer/families/mutation/discovery.json",
+      "sha256": "8262fd4f2df16da918b2d1aa74328b975a47a84bbc7b00bc9024f1dc28a3503e"
+    },
+    {
+      "path": "Developer/families/mutation/execution.json",
+      "sha256": "dccad37a1e3c9de1de7a7412ffaef0228f9ea182f3d9b8de445e55aeffaff1c5"
+    },
+    {
+      "path": "Developer/families/unit/discovery.json",
+      "sha256": "4c17ad4ea36201acc71ef0904dcaaceb319b4e1dba20db54e5beb6db1cf7f798"
+    },
+    {
+      "path": "Developer/families/unit/execution.json",
+      "sha256": "bcf6e2c67dfa07554f45bd02bbeb35b347d3a9cbb005b744e0fb6058dcf61f8e"
+    },
+    {
+      "path": "Developer/families/unit/execution.log",
+      "sha256": "1a3a3b24109d9b04947845a886133f78928521213d60966f1cb946c68280e0ff"
+    },
+    {
+      "path": "Developer/families/unit/report.trx",
+      "sha256": "3819a2eff584d7cdb9e749b43b469e019d80cbdf857e552142047c2132561533"
+    },
+    {
+      "path": "Developer/source-inputs.json",
+      "sha256": "ef9ca337c288875c33694ad96706961833999fc837e2bd5a2ae53830757f1d5e"
+    },
+    {
+      "path": "Developer/summary.json",
+      "sha256": "282ff93c16e8110828c273ff04f7412d7b760a76c1332622b3301361aec0ba51"
+    },
+    {
+      "path": "developer-format-failure.log",
+      "sha256": "86a1c98f7b817f0743ac784bf63e0d527067a1af8796f38ea93ce99dd6e8fc16"
+    },
+    {
+      "path": "developer.exit-code",
+      "sha256": "13bf7b3039c63bf5a50491fa3cfd8eb4e699d1ba1436315aef9cbe5711530354"
+    },
+    {
+      "path": "developer.log",
+      "sha256": "d467b5c743ed82e5572d5976240962cde17fb4d3346f51839916c7a42349cd53"
+    },
+    {
+      "path": "focused-integration.log",
+      "sha256": "bb404e278476f03a1e4c4962d6dfed1a5233311d03edb7733474a3c3ddbbdec4"
+    },
+    {
+      "path": "focused-unit.log",
+      "sha256": "39b64dfec429ada36667ca36510242be2755ef95076c2739508d1b1bb266d8cf"
+    },
+    {
+      "path": "format-CIS.Core.DiscoveryFixture.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "format-CIS.Core.IntegrationTests.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "format-CIS.Core.UnitTests.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "format-core.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "graph-before.txt",
+      "sha256": "44e1568402bed1bb8689ebecb6162c72386b03e3f78cac486138fb6724d67d33"
+    },
+    {
+      "path": "graph-related.txt",
+      "sha256": "663cbc5efb0965ee50cb5e41ff546766a2e139a2149eb6dc2d9d65e8dcf1b247"
+    },
+    {
+      "path": "graph-root-search.txt",
+      "sha256": "4f8995c81253eb9bf90f9958e0736073903c15226254daa5f8e0b64aee71ffbb"
+    },
+    {
+      "path": "input-pins.json",
+      "sha256": "dd5c7a6d2b2ad05758eb8a8ca016b6984ad80a9ee54fa28d137eea780b52bd57"
+    },
+    {
+      "path": "linux-os-release.txt",
+      "sha256": "01af466feb100306498c86aa6bad1815e33036019aa34d4362c20f374ea5c829"
+    },
+    {
+      "path": "native/linux/QUEUE-BOTH-1.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "native/linux/QUEUE-BOTH-1.stdout.json",
+      "sha256": "95be01a52965fddec65d51da847ea2577bb47143e4655fd8c0e7734a66aea468"
+    },
+    {
+      "path": "native/linux/QUEUE-BOTH-2.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "native/linux/QUEUE-BOTH-2.stdout.json",
+      "sha256": "deb8a4d85d860939083bf7a347407b2ffc480b0273c0e768c54086f91e81e0fc"
+    },
+    {
+      "path": "native/linux/QUEUE-BOTH-8.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "native/linux/QUEUE-BOTH-8.stdout.json",
+      "sha256": "5a562cc9ce5e0a1398ded9d1f048d05766a2068028ec268c650a21d6d60848e9"
+    },
+    {
+      "path": "native/linux/QUEUE-CONSOLE-1.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "native/linux/QUEUE-CONSOLE-1.stdout.json",
+      "sha256": "98100fbf54c532d013b588d304483d56c79e7da3bfe24a9a4169c3150f282b37"
+    },
+    {
+      "path": "native/linux/QUEUE-CONSOLE-2.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "native/linux/QUEUE-CONSOLE-2.stdout.json",
+      "sha256": "fe2290caf5b78bd32a645ea9c2586d65f0f3e221fbe0ddaecd07de29dc4fddce"
+    },
+    {
+      "path": "native/linux/QUEUE-CONSOLE-8.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "native/linux/QUEUE-CONSOLE-8.stdout.json",
+      "sha256": "5f061b01144a86b2c39a581b00255e95ee3beb3d0f1bb9f7320f043693c8a71a"
+    },
+    {
+      "path": "native/linux/QUEUE-DISABLED.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "native/linux/QUEUE-DISABLED.stdout.json",
+      "sha256": "b1480f5d67cef2e64f035a3c30f1c1b128e8937d9f418aadce0ac3caa0000bbf"
+    },
+    {
+      "path": "native/linux/QUEUE-FILE-1.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "native/linux/QUEUE-FILE-1.stdout.json",
+      "sha256": "9f811a3404eff7e636fc9a04de4e03bec9f6bea34733bc3aa0bb12c8e934c923"
+    },
+    {
+      "path": "native/linux/QUEUE-FILE-2.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "native/linux/QUEUE-FILE-2.stdout.json",
+      "sha256": "858a4cbfa1bbd593376be46de71d3a34d37af3c0d6d4003a7bbe3f41656c18fb"
+    },
+    {
+      "path": "native/linux/QUEUE-FILE-8.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "native/linux/QUEUE-FILE-8.stdout.json",
+      "sha256": "127b87fe97124b82fb0bcbb2c6fd47684d9abdeaf1f00027fa21d206b2e0a9a4"
+    },
+    {
+      "path": "native/linux/QUEUE-INDEPENDENT.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "native/linux/QUEUE-INDEPENDENT.stdout.json",
+      "sha256": "69416b65789711a8dbd38687b2d0262d7ce79af0ce7354151cb63325e1ceaebe"
+    },
+    {
+      "path": "native/linux/summary.json",
+      "sha256": "6f6b4bab208ec20e431545cd5d0c8c5d3aaa4761cfe41fa3cdd27b45eed3367f"
+    },
+    {
+      "path": "native/windows/QUEUE-BOTH-1.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "native/windows/QUEUE-BOTH-1.stdout.json",
+      "sha256": "aed716a57121a4a79199ba155702da79b30c4de02bf40d59f4d2264c841f6d8a"
+    },
+    {
+      "path": "native/windows/QUEUE-BOTH-2.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "native/windows/QUEUE-BOTH-2.stdout.json",
+      "sha256": "6a7afcbfe3d71d919b52000e39082a23d20262530100c77b1ebd81fcb1594fc3"
+    },
+    {
+      "path": "native/windows/QUEUE-BOTH-8.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "native/windows/QUEUE-BOTH-8.stdout.json",
+      "sha256": "644c766c5a81a8e358d0761c279f6b57221e54d9ebc9813f7538c01e5ee4e5bb"
+    },
+    {
+      "path": "native/windows/QUEUE-CONSOLE-1.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "native/windows/QUEUE-CONSOLE-1.stdout.json",
+      "sha256": "48285f5120183443242ed398bae6b3ee424e0e16cc3e9d4ea93881f09e4221db"
+    },
+    {
+      "path": "native/windows/QUEUE-CONSOLE-2.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "native/windows/QUEUE-CONSOLE-2.stdout.json",
+      "sha256": "29b4bb855282d875febf3e625e0a8cfb2e968e41cb7e402edd08d5f5941f9a47"
+    },
+    {
+      "path": "native/windows/QUEUE-CONSOLE-8.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "native/windows/QUEUE-CONSOLE-8.stdout.json",
+      "sha256": "d6279a6e5969004709730f51ecc1708c14b4ab80acbdc9ae9723ea3961802a60"
+    },
+    {
+      "path": "native/windows/QUEUE-DISABLED.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "native/windows/QUEUE-DISABLED.stdout.json",
+      "sha256": "058e4b55146533c8e1c16d46cad36c76d7ffea6952a07226eb6c5ffa65dfa8dd"
+    },
+    {
+      "path": "native/windows/QUEUE-FILE-1.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "native/windows/QUEUE-FILE-1.stdout.json",
+      "sha256": "1630e8f7928efbb4cda1310ee8d21f9ea72f0e3c0e1a7b62826cfc9b8f942bee"
+    },
+    {
+      "path": "native/windows/QUEUE-FILE-2.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "native/windows/QUEUE-FILE-2.stdout.json",
+      "sha256": "38618a640b8ccd2b1a3a5d4e105034547afdceca1bce1f2d618884aedebb0aba"
+    },
+    {
+      "path": "native/windows/QUEUE-FILE-8.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "native/windows/QUEUE-FILE-8.stdout.json",
+      "sha256": "4e4f45ccdc96987d24ecded29536aa803a24a6054bff249a7e702cfd835366fb"
+    },
+    {
+      "path": "native/windows/QUEUE-INDEPENDENT.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "native/windows/QUEUE-INDEPENDENT.stdout.json",
+      "sha256": "270632db50c6c26bf8322905880949f5dc852832ca8dcf1a8a7880c7fa010c2b"
+    },
+    {
+      "path": "native/windows/summary.json",
+      "sha256": "ee123a73745d9eb37b7eb6982694ee3c9b580f7b48a6bd0358bfba6432183df6"
+    },
+    {
+      "path": "native-linux.exit-code",
+      "sha256": "13bf7b3039c63bf5a50491fa3cfd8eb4e699d1ba1436315aef9cbe5711530354"
+    },
+    {
+      "path": "native-linux.log",
+      "sha256": "768ac9439eab94ab8da10a4a11564d34138d554ec941f5f4cdc4c260c993cfe4"
+    },
+    {
+      "path": "native-linux.sh",
+      "sha256": "d7e58f35dfd97195ec66f208f212d83b92e196dc83bfc18b6beb34d9e02aa9b0"
+    },
+    {
+      "path": "native-windows.exit-code",
+      "sha256": "13bf7b3039c63bf5a50491fa3cfd8eb4e699d1ba1436315aef9cbe5711530354"
+    },
+    {
+      "path": "native-windows.log",
+      "sha256": "4569c1b479ac6200b7c4392ba39b73e626c164d95bfb1e55d55db117358c50b2"
+    },
+    {
+      "path": "output-queue-integration.trx",
+      "sha256": "c91ff83fe328d388b819c5fafeb2bd822d6939ffc4f731ce0b36c7d8fabad6d0"
+    },
+    {
+      "path": "output-queue-unit.trx",
+      "sha256": "f69ae928c23110c92326601bdaf3497752f499c0a6d42f9996b4a06d4ad0ce50"
+    },
+    {
+      "path": "Release/families/architecture/discovery.json",
+      "sha256": "ea40203d9fa7ca04740f913a510367de51e8b66b495bc38cb30f30a9f0bf6792"
+    },
+    {
+      "path": "Release/families/architecture/execution.json",
+      "sha256": "bed76673b4a5cb7e09786766c569d47da950ce7e8c62f966e0595b890be59620"
+    },
+    {
+      "path": "Release/families/business/discovery.json",
+      "sha256": "af89a72b58bddbba3500cf27e250333e09388e95000ba025ac867b3ecee4af38"
+    },
+    {
+      "path": "Release/families/business/execution.json",
+      "sha256": "a536050eaeb13b05fb9415afc61c0a6b3bf1dc61d0817396c152dff280b910a3"
+    },
+    {
+      "path": "Release/families/compatibility/discovery.json",
+      "sha256": "f74d37a006bacedeb9b8339951b17a41fa86a969c120b0658b8eeffa94f413be"
+    },
+    {
+      "path": "Release/families/compatibility/execution.json",
+      "sha256": "4aca84b5c51f80f4a40b4c9faee10c6e88ee3f99af3ff892c489a45f54c57343"
+    },
+    {
+      "path": "Release/families/integration/discovery.json",
+      "sha256": "1e4796ee2040f9f75bb6f036fdc1970f4fdd849650d67f6d3951aa216b70a235"
+    },
+    {
+      "path": "Release/families/integration/execution.json",
+      "sha256": "467298fcb2e763ef1f70307e1deeff68ea81965f59b5ce9e6aa2804857d91340"
+    },
+    {
+      "path": "Release/families/mutation/discovery.json",
+      "sha256": "6ca1a0272d4e7204515333d8b5af5bb42fd67cd9a4ea53276d3b7c48779a33ed"
+    },
+    {
+      "path": "Release/families/mutation/execution.json",
+      "sha256": "1ce1167c84d4c7b902f69be5c426a726efc3c75cc90dbf2be31827c603984dbd"
+    },
+    {
+      "path": "Release/families/unit/discovery.json",
+      "sha256": "868d69a244ac0bc9e8f826f7ee92df0a987f05dd0b90fc38c84db37e1baa74ac"
+    },
+    {
+      "path": "Release/families/unit/execution.json",
+      "sha256": "4978f6a97379fecb01adb75f45a86343c6e43250aeca6e56002e8bc57e08f42d"
+    },
+    {
+      "path": "Release/source-inputs.json",
+      "sha256": "ef9ca337c288875c33694ad96706961833999fc837e2bd5a2ae53830757f1d5e"
+    },
+    {
+      "path": "Release/summary.json",
+      "sha256": "118f07cda640949e207b5e8feae4519c67860f66436f4f0a9872f8251d8b9a01"
+    },
+    {
+      "path": "release.exit-code",
+      "sha256": "df4e26a04a444901b95afef44e4a96cfae34690fff2ad2c66389c70079cdff2b"
+    },
+    {
+      "path": "release.log",
+      "sha256": "03aa42df1682194b2f04eae026d19b66b1151f793bb49c2ad6aa26cc78e50b79"
+    }
+  ]
+}

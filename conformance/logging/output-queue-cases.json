@@ -1,0 +1,160 @@
+{
+  "schemaVersion": 1,
+  "scope": "WP05-S02-T01 actual bounded queues/sequential workers with controlled MemoryStream writers. No runtime fanout/tickets/destination ownership, output diagnostics/flush/deadline/provider or full S02/release qualification.",
+  "cases": [
+    {
+      "id": "QUEUE-CONSOLE-1",
+      "mode": "bounded",
+      "capacity": 1,
+      "consoleEnabled": true,
+      "fileEnabled": false,
+      "expected": {
+        "workers": 1,
+        "acceptedPerOutput": 2,
+        "rejectedPerOutput": 1,
+        "maximumActive": 1,
+        "pendingAtBarrier": 1
+      }
+    },
+    {
+      "id": "QUEUE-CONSOLE-2",
+      "mode": "bounded",
+      "capacity": 2,
+      "consoleEnabled": true,
+      "fileEnabled": false,
+      "expected": {
+        "workers": 1,
+        "acceptedPerOutput": 3,
+        "rejectedPerOutput": 1,
+        "maximumActive": 1,
+        "pendingAtBarrier": 2
+      }
+    },
+    {
+      "id": "QUEUE-CONSOLE-8",
+      "mode": "bounded",
+      "capacity": 8,
+      "consoleEnabled": true,
+      "fileEnabled": false,
+      "expected": {
+        "workers": 1,
+        "acceptedPerOutput": 9,
+        "rejectedPerOutput": 1,
+        "maximumActive": 1,
+        "pendingAtBarrier": 8
+      }
+    },
+    {
+      "id": "QUEUE-FILE-1",
+      "mode": "bounded",
+      "capacity": 1,
+      "consoleEnabled": false,
+      "fileEnabled": true,
+      "expected": {
+        "workers": 1,
+        "acceptedPerOutput": 2,
+        "rejectedPerOutput": 1,
+        "maximumActive": 1,
+        "pendingAtBarrier": 1
+      }
+    },
+    {
+      "id": "QUEUE-FILE-2",
+      "mode": "bounded",
+      "capacity": 2,
+      "consoleEnabled": false,
+      "fileEnabled": true,
+      "expected": {
+        "workers": 1,
+        "acceptedPerOutput": 3,
+        "rejectedPerOutput": 1,
+        "maximumActive": 1,
+        "pendingAtBarrier": 2
+      }
+    },
+    {
+      "id": "QUEUE-FILE-8",
+      "mode": "bounded",
+      "capacity": 8,
+      "consoleEnabled": false,
+      "fileEnabled": true,
+      "expected": {
+        "workers": 1,
+        "acceptedPerOutput": 9,
+        "rejectedPerOutput": 1,
+        "maximumActive": 1,
+        "pendingAtBarrier": 8
+      }
+    },
+    {
+      "id": "QUEUE-BOTH-1",
+      "mode": "bounded",
+      "capacity": 1,
+      "consoleEnabled": true,
+      "fileEnabled": true,
+      "expected": {
+        "workers": 2,
+        "acceptedPerOutput": 2,
+        "rejectedPerOutput": 1,
+        "maximumActive": 1,
+        "pendingAtBarrier": 1
+      }
+    },
+    {
+      "id": "QUEUE-BOTH-2",
+      "mode": "bounded",
+      "capacity": 2,
+      "consoleEnabled": true,
+      "fileEnabled": true,
+      "expected": {
+        "workers": 2,
+        "acceptedPerOutput": 3,
+        "rejectedPerOutput": 1,
+        "maximumActive": 1,
+        "pendingAtBarrier": 2
+      }
+    },
+    {
+      "id": "QUEUE-BOTH-8",
+      "mode": "bounded",
+      "capacity": 8,
+      "consoleEnabled": true,
+      "fileEnabled": true,
+      "expected": {
+        "workers": 2,
+        "acceptedPerOutput": 9,
+        "rejectedPerOutput": 1,
+        "maximumActive": 1,
+        "pendingAtBarrier": 8
+      }
+    },
+    {
+      "id": "QUEUE-DISABLED",
+      "mode": "bounded",
+      "capacity": 1,
+      "consoleEnabled": false,
+      "fileEnabled": false,
+      "expected": {
+        "workers": 0,
+        "acceptedPerOutput": 0,
+        "rejectedPerOutput": 0,
+        "maximumActive": 0,
+        "pendingAtBarrier": 0
+      }
+    },
+    {
+      "id": "QUEUE-INDEPENDENT",
+      "mode": "independent",
+      "capacity": 1,
+      "consoleEnabled": true,
+      "fileEnabled": true,
+      "expected": {
+        "workers": 2,
+        "acceptedPerOutput": 2,
+        "rejectedPerOutput": 0,
+        "maximumActive": 1,
+        "pendingAtBarrier": 1
+      }
+    }
+  ]
+}

@@ -11,6 +11,10 @@ internal static class Program
 {
     private static int Main(string[] args)
     {
+        if (args.Length == 3 && args[0] == "output-queue")
+        {
+            return OutputQueueFixture.Run(args[1], args[2]);
+        }
         if (args.Length == 3 && args[0] == "rendering-story")
         {
             return RenderingStoryFixture.Run(args[1], args[2]);
