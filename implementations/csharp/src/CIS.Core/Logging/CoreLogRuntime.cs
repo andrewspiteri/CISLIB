@@ -72,6 +72,17 @@ public sealed class CoreLogRuntime
         catch { queues.Complete(); throw; }
     }
     internal OutputQueues? QueuedOutputs => queuedOutputs;
+    internal RuntimeAccounting CaptureAccounting()
+    {
+        if (queuedOutputs is null) { throw new InvalidOperationException("Accounting requires actual queued output composition."); }
+        lock (admissionGate)
+        {
+            // Output/disposition/truncation/closure changes share this gate. Invalid increments
+            // independently, so its atomic read chooses the observation point while the rest is stable.
+            return new RuntimeAccounting(admissionClosed, InvalidEventCount, TruncatedEventCount,
+                queuedOutputs.Console?.CaptureAccounting(), queuedOutputs.File?.CaptureAccounting());
+        }
+    }
 
     internal OperationScopeStore Scopes { get; } = new();
     internal long InvalidEventCount => Interlocked.Read(ref invalidEventCount);

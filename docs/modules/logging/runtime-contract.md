@@ -77,3 +77,5 @@ WP04-S05-T02 qualifies the [exact argument/state/capture/admission order](logger
 WP04-S05-T03 qualifies [once-only lazy capture, global rejection and output-owned outcomes/tickets](logger-capture-outcomes.md), and prevents global loss counts wrapping. The complete outcome table and S05 acceptance mapping are recorded in T04 outcome qualification.
 
 The complete logger interest/admission table and remaining real I/O boundary are recorded in [outcome qualification](logger-outcome-qualification.md).
+
+WP05-S03-T02 adds internal [complete-write confirmation and live observations](delivery-observations.md): both outputs and global counts are captured consistently, and actual controlled stream partial/full-but-unconfirmed/cancellation outcomes preserve pending or terminal failure. These live observations do not register WP05-S08 fixed flush targets or expose the later public diagnostics API.

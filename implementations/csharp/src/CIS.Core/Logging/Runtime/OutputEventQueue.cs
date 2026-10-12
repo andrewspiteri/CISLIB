@@ -47,7 +47,7 @@ internal sealed class OutputEventQueue : ILogOutputAdmission
         lock (admissionGate)
         {
             return new OutputAccounting(filteredCount, acceptedCount, queueFullCount, unavailableCount,
-                writtenCount, failedCount, abandonedCount, channel.Reader.Count + (inFlight ? 1 : 0), inFlight ? 1 : 0);
+                writtenCount, failedCount, abandonedCount, channel.Reader.Count + (inFlight ? 1 : 0), inFlight ? 1 : 0, lastAcceptedSequence);
         }
     }
     public bool IsFaulted { get { lock (admissionGate) { return faulted; } } }
@@ -100,7 +100,9 @@ internal sealed class OutputEventQueue : ILogOutputAdmission
                         if (!channel.Reader.TryRead(out admitted)) { break; }
                         inFlight = true;
                     }
-                    // Taking work under the admission gate observes its published ticket. I/O is outside it.
+                    // Taking work under the gate observes its published ticket. I/O is outside it.
+                    // The trusted callback confirms the complete record only by successful completion.
+                    // Unresolved/partially emitted bytes remain pending; a terminal exception is failed.
                     await write(admitted).ConfigureAwait(false);
                     lock (admissionGate) { writtenCount++; inFlight = false; }
                 }

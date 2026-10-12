@@ -1,0 +1,3271 @@
+{
+  "schemaVersion": 1,
+  "task": "WP05-S03-T02",
+  "scope": "Actual Core/Channel live boundaries and asynchronous controlled Stream WriteAsync byte/terminal outcomes. No public diagnostics, registered flush boundary, physical destination ownership or durability claim.",
+  "cases": [
+    {
+      "id": "DELIVERY-CONSOLE-PARTIAL-SUCCESS",
+      "consoleEnabled": true,
+      "fileEnabled": false,
+      "consoleMode": "partial-success",
+      "fileMode": "partial-success",
+      "consoleCancel": false,
+      "fileCancel": false,
+      "releaseFirst": "console",
+      "expected": {
+        "checkpoints": [
+          {
+            "phase": "initial",
+            "observation": {
+              "closed": false,
+              "invalid": "0",
+              "truncated": "0",
+              "outputs": {
+                "console": {
+                  "sequence": "0",
+                  "filtered": "0",
+                  "attempts": "0",
+                  "accepted": "0",
+                  "queueFull": "0",
+                  "unavailable": "0",
+                  "rejected": "0",
+                  "written": "0",
+                  "failed": "0",
+                  "abandoned": "0",
+                  "pending": "0",
+                  "inFlight": "0"
+                }
+              }
+            }
+          },
+          {
+            "phase": "held",
+            "observation": {
+              "closed": false,
+              "invalid": "1",
+              "truncated": "1",
+              "outputs": {
+                "console": {
+                  "sequence": "3",
+                  "filtered": "1",
+                  "attempts": "4",
+                  "accepted": "3",
+                  "queueFull": "1",
+                  "unavailable": "0",
+                  "rejected": "1",
+                  "written": "0",
+                  "failed": "0",
+                  "abandoned": "0",
+                  "pending": "3",
+                  "inFlight": "1"
+                }
+              }
+            }
+          },
+          {
+            "phase": "cancellation-requested",
+            "observation": {
+              "closed": false,
+              "invalid": "1",
+              "truncated": "1",
+              "outputs": {
+                "console": {
+                  "sequence": "3",
+                  "filtered": "1",
+                  "attempts": "4",
+                  "accepted": "3",
+                  "queueFull": "1",
+                  "unavailable": "0",
+                  "rejected": "1",
+                  "written": "0",
+                  "failed": "0",
+                  "abandoned": "0",
+                  "pending": "3",
+                  "inFlight": "1"
+                }
+              }
+            }
+          },
+          {
+            "phase": "closed",
+            "observation": {
+              "closed": true,
+              "invalid": "1",
+              "truncated": "1",
+              "outputs": {
+                "console": {
+                  "sequence": "3",
+                  "filtered": "1",
+                  "attempts": "4",
+                  "accepted": "3",
+                  "queueFull": "1",
+                  "unavailable": "0",
+                  "rejected": "1",
+                  "written": "0",
+                  "failed": "0",
+                  "abandoned": "0",
+                  "pending": "3",
+                  "inFlight": "1"
+                }
+              }
+            }
+          },
+          {
+            "phase": "first-terminal",
+            "observation": {
+              "closed": true,
+              "invalid": "1",
+              "truncated": "1",
+              "outputs": {
+                "console": {
+                  "sequence": "3",
+                  "filtered": "1",
+                  "attempts": "4",
+                  "accepted": "3",
+                  "queueFull": "1",
+                  "unavailable": "0",
+                  "rejected": "1",
+                  "written": "3",
+                  "failed": "0",
+                  "abandoned": "0",
+                  "pending": "0",
+                  "inFlight": "0"
+                }
+              }
+            }
+          },
+          {
+            "phase": "final",
+            "observation": {
+              "closed": true,
+              "invalid": "1",
+              "truncated": "1",
+              "outputs": {
+                "console": {
+                  "sequence": "3",
+                  "filtered": "1",
+                  "attempts": "4",
+                  "accepted": "3",
+                  "queueFull": "1",
+                  "unavailable": "0",
+                  "rejected": "1",
+                  "written": "3",
+                  "failed": "0",
+                  "abandoned": "0",
+                  "pending": "0",
+                  "inFlight": "0"
+                }
+              }
+            }
+          }
+        ],
+        "results": [
+          {
+            "call": "seed",
+            "outcome": "Accepted",
+            "truncated": false,
+            "error": null,
+            "outputs": [
+              {
+                "name": "console",
+                "status": "Accepted",
+                "ticket": 1
+              }
+            ]
+          },
+          {
+            "call": "none",
+            "outcome": "Filtered",
+            "truncated": false,
+            "error": null,
+            "outputs": [
+              {
+                "name": "console",
+                "status": "Filtered",
+                "ticket": null
+              }
+            ]
+          },
+          {
+            "call": "queued-one",
+            "outcome": "Accepted",
+            "truncated": false,
+            "error": null,
+            "outputs": [
+              {
+                "name": "console",
+                "status": "Accepted",
+                "ticket": 2
+              }
+            ]
+          },
+          {
+            "call": "queued-two",
+            "outcome": "Accepted",
+            "truncated": true,
+            "error": null,
+            "outputs": [
+              {
+                "name": "console",
+                "status": "Accepted",
+                "ticket": 3
+              }
+            ]
+          },
+          {
+            "call": "invalid",
+            "outcome": "InvalidEvent",
+            "truncated": false,
+            "error": "InvalidEventName",
+            "outputs": []
+          },
+          {
+            "call": "full",
+            "outcome": "Rejected",
+            "truncated": false,
+            "error": null,
+            "outputs": [
+              {
+                "name": "console",
+                "status": "QueueFull",
+                "ticket": null
+              }
+            ]
+          },
+          {
+            "call": "stopped",
+            "outcome": "Stopped",
+            "truncated": false,
+            "error": null,
+            "outputs": [
+              {
+                "name": "console",
+                "status": "Stopped",
+                "ticket": null
+              }
+            ]
+          }
+        ],
+        "originalErrors": 0
+      }
+    },
+    {
+      "id": "DELIVERY-FILE-PARTIAL-SUCCESS",
+      "consoleEnabled": false,
+      "fileEnabled": true,
+      "consoleMode": "partial-success",
+      "fileMode": "partial-success",
+      "consoleCancel": false,
+      "fileCancel": false,
+      "releaseFirst": "file",
+      "expected": {
+        "checkpoints": [
+          {
+            "phase": "initial",
+            "observation": {
+              "closed": false,
+              "invalid": "0",
+              "truncated": "0",
+              "outputs": {
+                "file": {
+                  "sequence": "0",
+                  "filtered": "0",
+                  "attempts": "0",
+                  "accepted": "0",
+                  "queueFull": "0",
+                  "unavailable": "0",
+                  "rejected": "0",
+                  "written": "0",
+                  "failed": "0",
+                  "abandoned": "0",
+                  "pending": "0",
+                  "inFlight": "0"
+                }
+              }
+            }
+          },
+          {
+            "phase": "held",
+            "observation": {
+              "closed": false,
+              "invalid": "1",
+              "truncated": "1",
+              "outputs": {
+                "file": {
+                  "sequence": "3",
+                  "filtered": "1",
+                  "attempts": "4",
+                  "accepted": "3",
+                  "queueFull": "1",
+                  "unavailable": "0",
+                  "rejected": "1",
+                  "written": "0",
+                  "failed": "0",
+                  "abandoned": "0",
+                  "pending": "3",
+                  "inFlight": "1"
+                }
+              }
+            }
+          },
+          {
+            "phase": "cancellation-requested",
+            "observation": {
+              "closed": false,
+              "invalid": "1",
+              "truncated": "1",
+              "outputs": {
+                "file": {
+                  "sequence": "3",
+                  "filtered": "1",
+                  "attempts": "4",
+                  "accepted": "3",
+                  "queueFull": "1",
+                  "unavailable": "0",
+                  "rejected": "1",
+                  "written": "0",
+                  "failed": "0",
+                  "abandoned": "0",
+                  "pending": "3",
+                  "inFlight": "1"
+                }
+              }
+            }
+          },
+          {
+            "phase": "closed",
+            "observation": {
+              "closed": true,
+              "invalid": "1",
+              "truncated": "1",
+              "outputs": {
+                "file": {
+                  "sequence": "3",
+                  "filtered": "1",
+                  "attempts": "4",
+                  "accepted": "3",
+                  "queueFull": "1",
+                  "unavailable": "0",
+                  "rejected": "1",
+                  "written": "0",
+                  "failed": "0",
+                  "abandoned": "0",
+                  "pending": "3",
+                  "inFlight": "1"
+                }
+              }
+            }
+          },
+          {
+            "phase": "first-terminal",
+            "observation": {
+              "closed": true,
+              "invalid": "1",
+              "truncated": "1",
+              "outputs": {
+                "file": {
+                  "sequence": "3",
+                  "filtered": "1",
+                  "attempts": "4",
+                  "accepted": "3",
+                  "queueFull": "1",
+                  "unavailable": "0",
+                  "rejected": "1",
+                  "written": "3",
+                  "failed": "0",
+                  "abandoned": "0",
+                  "pending": "0",
+                  "inFlight": "0"
+                }
+              }
+            }
+          },
+          {
+            "phase": "final",
+            "observation": {
+              "closed": true,
+              "invalid": "1",
+              "truncated": "1",
+              "outputs": {
+                "file": {
+                  "sequence": "3",
+                  "filtered": "1",
+                  "attempts": "4",
+                  "accepted": "3",
+                  "queueFull": "1",
+                  "unavailable": "0",
+                  "rejected": "1",
+                  "written": "3",
+                  "failed": "0",
+                  "abandoned": "0",
+                  "pending": "0",
+                  "inFlight": "0"
+                }
+              }
+            }
+          }
+        ],
+        "results": [
+          {
+            "call": "seed",
+            "outcome": "Accepted",
+            "truncated": false,
+            "error": null,
+            "outputs": [
+              {
+                "name": "file",
+                "status": "Accepted",
+                "ticket": 1
+              }
+            ]
+          },
+          {
+            "call": "none",
+            "outcome": "Filtered",
+            "truncated": false,
+            "error": null,
+            "outputs": [
+              {
+                "name": "file",
+                "status": "Filtered",
+                "ticket": null
+              }
+            ]
+          },
+          {
+            "call": "queued-one",
+            "outcome": "Accepted",
+            "truncated": false,
+            "error": null,
+            "outputs": [
+              {
+                "name": "file",
+                "status": "Accepted",
+                "ticket": 2
+              }
+            ]
+          },
+          {
+            "call": "queued-two",
+            "outcome": "Accepted",
+            "truncated": true,
+            "error": null,
+            "outputs": [
+              {
+                "name": "file",
+                "status": "Accepted",
+                "ticket": 3
+              }
+            ]
+          },
+          {
+            "call": "invalid",
+            "outcome": "InvalidEvent",
+            "truncated": false,
+            "error": "InvalidEventName",
+            "outputs": []
+          },
+          {
+            "call": "full",
+            "outcome": "Rejected",
+            "truncated": false,
+            "error": null,
+            "outputs": [
+              {
+                "name": "file",
+                "status": "QueueFull",
+                "ticket": null
+              }
+            ]
+          },
+          {
+            "call": "stopped",
+            "outcome": "Stopped",
+            "truncated": false,
+            "error": null,
+            "outputs": [
+              {
+                "name": "file",
+                "status": "Stopped",
+                "ticket": null
+              }
+            ]
+          }
+        ],
+        "originalErrors": 0
+      }
+    },
+    {
+      "id": "DELIVERY-BOTH-PARTIAL-SUCCESS",
+      "consoleEnabled": true,
+      "fileEnabled": true,
+      "consoleMode": "partial-success",
+      "fileMode": "partial-success",
+      "consoleCancel": false,
+      "fileCancel": false,
+      "releaseFirst": "console",
+      "expected": {
+        "checkpoints": [
+          {
+            "phase": "initial",
+            "observation": {
+              "closed": false,
+              "invalid": "0",
+              "truncated": "0",
+              "outputs": {
+                "console": {
+                  "sequence": "0",
+                  "filtered": "0",
+                  "attempts": "0",
+                  "accepted": "0",
+                  "queueFull": "0",
+                  "unavailable": "0",
+                  "rejected": "0",
+                  "written": "0",
+                  "failed": "0",
+                  "abandoned": "0",
+                  "pending": "0",
+                  "inFlight": "0"
+                },
+                "file": {
+                  "sequence": "0",
+                  "filtered": "0",
+                  "attempts": "0",
+                  "accepted": "0",
+                  "queueFull": "0",
+                  "unavailable": "0",
+                  "rejected": "0",
+                  "written": "0",
+                  "failed": "0",
+                  "abandoned": "0",
+                  "pending": "0",
+                  "inFlight": "0"
+                }
+              }
+            }
+          },
+          {
+            "phase": "held",
+            "observation": {
+              "closed": false,
+              "invalid": "1",
+              "truncated": "1",
+              "outputs": {
+                "console": {
+                  "sequence": "3",
+                  "filtered": "1",
+                  "attempts": "4",
+                  "accepted": "3",
+                  "queueFull": "1",
+                  "unavailable": "0",
+                  "rejected": "1",
+                  "written": "0",
+                  "failed": "0",
+                  "abandoned": "0",
+                  "pending": "3",
+                  "inFlight": "1"
+                },
+                "file": {
+                  "sequence": "3",
+                  "filtered": "1",
+                  "attempts": "4",
+                  "accepted": "3",
+                  "queueFull": "1",
+                  "unavailable": "0",
+                  "rejected": "1",
+                  "written": "0",
+                  "failed": "0",
+                  "abandoned": "0",
+                  "pending": "3",
+                  "inFlight": "1"
+                }
+              }
+            }
+          },
+          {
+            "phase": "cancellation-requested",
+            "observation": {
+              "closed": false,
+              "invalid": "1",
+              "truncated": "1",
+              "outputs": {
+                "console": {
+                  "sequence": "3",
+                  "filtered": "1",
+                  "attempts": "4",
+                  "accepted": "3",
+                  "queueFull": "1",
+                  "unavailable": "0",
+                  "rejected": "1",
+                  "written": "0",
+                  "failed": "0",
+                  "abandoned": "0",
+                  "pending": "3",
+                  "inFlight": "1"
+                },
+                "file": {
+                  "sequence": "3",
+                  "filtered": "1",
+                  "attempts": "4",
+                  "accepted": "3",
+                  "queueFull": "1",
+                  "unavailable": "0",
+                  "rejected": "1",
+                  "written": "0",
+                  "failed": "0",
+                  "abandoned": "0",
+                  "pending": "3",
+                  "inFlight": "1"
+                }
+              }
+            }
+          },
+          {
+            "phase": "closed",
+            "observation": {
+              "closed": true,
+              "invalid": "1",
+              "truncated": "1",
+              "outputs": {
+                "console": {
+                  "sequence": "3",
+                  "filtered": "1",
+                  "attempts": "4",
+                  "accepted": "3",
+                  "queueFull": "1",
+                  "unavailable": "0",
+                  "rejected": "1",
+                  "written": "0",
+                  "failed": "0",
+                  "abandoned": "0",
+                  "pending": "3",
+                  "inFlight": "1"
+                },
+                "file": {
+                  "sequence": "3",
+                  "filtered": "1",
+                  "attempts": "4",
+                  "accepted": "3",
+                  "queueFull": "1",
+                  "unavailable": "0",
+                  "rejected": "1",
+                  "written": "0",
+                  "failed": "0",
+                  "abandoned": "0",
+                  "pending": "3",
+                  "inFlight": "1"
+                }
+              }
+            }
+          },
+          {
+            "phase": "first-terminal",
+            "observation": {
+              "closed": true,
+              "invalid": "1",
+              "truncated": "1",
+              "outputs": {
+                "console": {
+                  "sequence": "3",
+                  "filtered": "1",
+                  "attempts": "4",
+                  "accepted": "3",
+                  "queueFull": "1",
+                  "unavailable": "0",
+                  "rejected": "1",
+                  "written": "3",
+                  "failed": "0",
+                  "abandoned": "0",
+                  "pending": "0",
+                  "inFlight": "0"
+                },
+                "file": {
+                  "sequence": "3",
+                  "filtered": "1",
+                  "attempts": "4",
+                  "accepted": "3",
+                  "queueFull": "1",
+                  "unavailable": "0",
+                  "rejected": "1",
+                  "written": "0",
+                  "failed": "0",
+                  "abandoned": "0",
+                  "pending": "3",
+                  "inFlight": "1"
+                }
+              }
+            }
+          },
+          {
+            "phase": "final",
+            "observation": {
+              "closed": true,
+              "invalid": "1",
+              "truncated": "1",
+              "outputs": {
+                "console": {
+                  "sequence": "3",
+                  "filtered": "1",
+                  "attempts": "4",
+                  "accepted": "3",
+                  "queueFull": "1",
+                  "unavailable": "0",
+                  "rejected": "1",
+                  "written": "3",
+                  "failed": "0",
+                  "abandoned": "0",
+                  "pending": "0",
+                  "inFlight": "0"
+                },
+                "file": {
+                  "sequence": "3",
+                  "filtered": "1",
+                  "attempts": "4",
+                  "accepted": "3",
+                  "queueFull": "1",
+                  "unavailable": "0",
+                  "rejected": "1",
+                  "written": "3",
+                  "failed": "0",
+                  "abandoned": "0",
+                  "pending": "0",
+                  "inFlight": "0"
+                }
+              }
+            }
+          }
+        ],
+        "results": [
+          {
+            "call": "seed",
+            "outcome": "Accepted",
+            "truncated": false,
+            "error": null,
+            "outputs": [
+              {
+                "name": "console",
+                "status": "Accepted",
+                "ticket": 1
+              },
+              {
+                "name": "file",
+                "status": "Accepted",
+                "ticket": 1
+              }
+            ]
+          },
+          {
+            "call": "none",
+            "outcome": "Filtered",
+            "truncated": false,
+            "error": null,
+            "outputs": [
+              {
+                "name": "console",
+                "status": "Filtered",
+                "ticket": null
+              },
+              {
+                "name": "file",
+                "status": "Filtered",
+                "ticket": null
+              }
+            ]
+          },
+          {
+            "call": "queued-one",
+            "outcome": "Accepted",
+            "truncated": false,
+            "error": null,
+            "outputs": [
+              {
+                "name": "console",
+                "status": "Accepted",
+                "ticket": 2
+              },
+              {
+                "name": "file",
+                "status": "Accepted",
+                "ticket": 2
+              }
+            ]
+          },
+          {
+            "call": "queued-two",
+            "outcome": "Accepted",
+            "truncated": true,
+            "error": null,
+            "outputs": [
+              {
+                "name": "console",
+                "status": "Accepted",
+                "ticket": 3
+              },
+              {
+                "name": "file",
+                "status": "Accepted",
+                "ticket": 3
+              }
+            ]
+          },
+          {
+            "call": "invalid",
+            "outcome": "InvalidEvent",
+            "truncated": false,
+            "error": "InvalidEventName",
+            "outputs": []
+          },
+          {
+            "call": "full",
+            "outcome": "Rejected",
+            "truncated": false,
+            "error": null,
+            "outputs": [
+              {
+                "name": "console",
+                "status": "QueueFull",
+                "ticket": null
+              },
+              {
+                "name": "file",
+                "status": "QueueFull",
+                "ticket": null
+              }
+            ]
+          },
+          {
+            "call": "stopped",
+            "outcome": "Stopped",
+            "truncated": false,
+            "error": null,
+            "outputs": [
+              {
+                "name": "console",
+                "status": "Stopped",
+                "ticket": null
+              },
+              {
+                "name": "file",
+                "status": "Stopped",
+                "ticket": null
+              }
+            ]
+          }
+        ],
+        "originalErrors": 0
+      }
+    },
+    {
+      "id": "DELIVERY-CONSOLE-PARTIAL-FAILURE",
+      "consoleEnabled": true,
+      "fileEnabled": true,
+      "consoleMode": "partial-failure",
+      "fileMode": "complete-success",
+      "consoleCancel": false,
+      "fileCancel": false,
+      "releaseFirst": "console",
+      "expected": {
+        "checkpoints": [
+          {
+            "phase": "initial",
+            "observation": {
+              "closed": false,
+              "invalid": "0",
+              "truncated": "0",
+              "outputs": {
+                "console": {
+                  "sequence": "0",
+                  "filtered": "0",
+                  "attempts": "0",
+                  "accepted": "0",
+                  "queueFull": "0",
+                  "unavailable": "0",
+                  "rejected": "0",
+                  "written": "0",
+                  "failed": "0",
+                  "abandoned": "0",
+                  "pending": "0",
+                  "inFlight": "0"
+                },
+                "file": {
+                  "sequence": "0",
+                  "filtered": "0",
+                  "attempts": "0",
+                  "accepted": "0",
+                  "queueFull": "0",
+                  "unavailable": "0",
+                  "rejected": "0",
+                  "written": "0",
+                  "failed": "0",
+                  "abandoned": "0",
+                  "pending": "0",
+                  "inFlight": "0"
+                }
+              }
+            }
+          },
+          {
+            "phase": "held",
+            "observation": {
+              "closed": false,
+              "invalid": "1",
+              "truncated": "1",
+              "outputs": {
+                "console": {
+                  "sequence": "3",
+                  "filtered": "1",
+                  "attempts": "4",
+                  "accepted": "3",
+                  "queueFull": "1",
+                  "unavailable": "0",
+                  "rejected": "1",
+                  "written": "0",
+                  "failed": "0",
+                  "abandoned": "0",
+                  "pending": "3",
+                  "inFlight": "1"
+                },
+                "file": {
+                  "sequence": "3",
+                  "filtered": "1",
+                  "attempts": "4",
+                  "accepted": "3",
+                  "queueFull": "1",
+                  "unavailable": "0",
+                  "rejected": "1",
+                  "written": "0",
+                  "failed": "0",
+                  "abandoned": "0",
+                  "pending": "3",
+                  "inFlight": "1"
+                }
+              }
+            }
+          },
+          {
+            "phase": "cancellation-requested",
+            "observation": {
+              "closed": false,
+              "invalid": "1",
+              "truncated": "1",
+              "outputs": {
+                "console": {
+                  "sequence": "3",
+                  "filtered": "1",
+                  "attempts": "4",
+                  "accepted": "3",
+                  "queueFull": "1",
+                  "unavailable": "0",
+                  "rejected": "1",
+                  "written": "0",
+                  "failed": "0",
+                  "abandoned": "0",
+                  "pending": "3",
+                  "inFlight": "1"
+                },
+                "file": {
+                  "sequence": "3",
+                  "filtered": "1",
+                  "attempts": "4",
+                  "accepted": "3",
+                  "queueFull": "1",
+                  "unavailable": "0",
+                  "rejected": "1",
+                  "written": "0",
+                  "failed": "0",
+                  "abandoned": "0",
+                  "pending": "3",
+                  "inFlight": "1"
+                }
+              }
+            }
+          },
+          {
+            "phase": "closed",
+            "observation": {
+              "closed": true,
+              "invalid": "1",
+              "truncated": "1",
+              "outputs": {
+                "console": {
+                  "sequence": "3",
+                  "filtered": "1",
+                  "attempts": "4",
+                  "accepted": "3",
+                  "queueFull": "1",
+                  "unavailable": "0",
+                  "rejected": "1",
+                  "written": "0",
+                  "failed": "0",
+                  "abandoned": "0",
+                  "pending": "3",
+                  "inFlight": "1"
+                },
+                "file": {
+                  "sequence": "3",
+                  "filtered": "1",
+                  "attempts": "4",
+                  "accepted": "3",
+                  "queueFull": "1",
+                  "unavailable": "0",
+                  "rejected": "1",
+                  "written": "0",
+                  "failed": "0",
+                  "abandoned": "0",
+                  "pending": "3",
+                  "inFlight": "1"
+                }
+              }
+            }
+          },
+          {
+            "phase": "first-terminal",
+            "observation": {
+              "closed": true,
+              "invalid": "1",
+              "truncated": "1",
+              "outputs": {
+                "console": {
+                  "sequence": "3",
+                  "filtered": "1",
+                  "attempts": "4",
+                  "accepted": "3",
+                  "queueFull": "1",
+                  "unavailable": "0",
+                  "rejected": "1",
+                  "written": "0",
+                  "failed": "1",
+                  "abandoned": "2",
+                  "pending": "0",
+                  "inFlight": "0"
+                },
+                "file": {
+                  "sequence": "3",
+                  "filtered": "1",
+                  "attempts": "4",
+                  "accepted": "3",
+                  "queueFull": "1",
+                  "unavailable": "0",
+                  "rejected": "1",
+                  "written": "0",
+                  "failed": "0",
+                  "abandoned": "0",
+                  "pending": "3",
+                  "inFlight": "1"
+                }
+              }
+            }
+          },
+          {
+            "phase": "final",
+            "observation": {
+              "closed": true,
+              "invalid": "1",
+              "truncated": "1",
+              "outputs": {
+                "console": {
+                  "sequence": "3",
+                  "filtered": "1",
+                  "attempts": "4",
+                  "accepted": "3",
+                  "queueFull": "1",
+                  "unavailable": "0",
+                  "rejected": "1",
+                  "written": "0",
+                  "failed": "1",
+                  "abandoned": "2",
+                  "pending": "0",
+                  "inFlight": "0"
+                },
+                "file": {
+                  "sequence": "3",
+                  "filtered": "1",
+                  "attempts": "4",
+                  "accepted": "3",
+                  "queueFull": "1",
+                  "unavailable": "0",
+                  "rejected": "1",
+                  "written": "3",
+                  "failed": "0",
+                  "abandoned": "0",
+                  "pending": "0",
+                  "inFlight": "0"
+                }
+              }
+            }
+          }
+        ],
+        "results": [
+          {
+            "call": "seed",
+            "outcome": "Accepted",
+            "truncated": false,
+            "error": null,
+            "outputs": [
+              {
+                "name": "console",
+                "status": "Accepted",
+                "ticket": 1
+              },
+              {
+                "name": "file",
+                "status": "Accepted",
+                "ticket": 1
+              }
+            ]
+          },
+          {
+            "call": "none",
+            "outcome": "Filtered",
+            "truncated": false,
+            "error": null,
+            "outputs": [
+              {
+                "name": "console",
+                "status": "Filtered",
+                "ticket": null
+              },
+              {
+                "name": "file",
+                "status": "Filtered",
+                "ticket": null
+              }
+            ]
+          },
+          {
+            "call": "queued-one",
+            "outcome": "Accepted",
+            "truncated": false,
+            "error": null,
+            "outputs": [
+              {
+                "name": "console",
+                "status": "Accepted",
+                "ticket": 2
+              },
+              {
+                "name": "file",
+                "status": "Accepted",
+                "ticket": 2
+              }
+            ]
+          },
+          {
+            "call": "queued-two",
+            "outcome": "Accepted",
+            "truncated": true,
+            "error": null,
+            "outputs": [
+              {
+                "name": "console",
+                "status": "Accepted",
+                "ticket": 3
+              },
+              {
+                "name": "file",
+                "status": "Accepted",
+                "ticket": 3
+              }
+            ]
+          },
+          {
+            "call": "invalid",
+            "outcome": "InvalidEvent",
+            "truncated": false,
+            "error": "InvalidEventName",
+            "outputs": []
+          },
+          {
+            "call": "full",
+            "outcome": "Rejected",
+            "truncated": false,
+            "error": null,
+            "outputs": [
+              {
+                "name": "console",
+                "status": "QueueFull",
+                "ticket": null
+              },
+              {
+                "name": "file",
+                "status": "QueueFull",
+                "ticket": null
+              }
+            ]
+          },
+          {
+            "call": "stopped",
+            "outcome": "Stopped",
+            "truncated": false,
+            "error": null,
+            "outputs": [
+              {
+                "name": "console",
+                "status": "Stopped",
+                "ticket": null
+              },
+              {
+                "name": "file",
+                "status": "Stopped",
+                "ticket": null
+              }
+            ]
+          }
+        ],
+        "originalErrors": 1
+      }
+    },
+    {
+      "id": "DELIVERY-FILE-PARTIAL-FAILURE",
+      "consoleEnabled": true,
+      "fileEnabled": true,
+      "consoleMode": "complete-success",
+      "fileMode": "partial-failure",
+      "consoleCancel": false,
+      "fileCancel": false,
+      "releaseFirst": "file",
+      "expected": {
+        "checkpoints": [
+          {
+            "phase": "initial",
+            "observation": {
+              "closed": false,
+              "invalid": "0",
+              "truncated": "0",
+              "outputs": {
+                "console": {
+                  "sequence": "0",
+                  "filtered": "0",
+                  "attempts": "0",
+                  "accepted": "0",
+                  "queueFull": "0",
+                  "unavailable": "0",
+                  "rejected": "0",
+                  "written": "0",
+                  "failed": "0",
+                  "abandoned": "0",
+                  "pending": "0",
+                  "inFlight": "0"
+                },
+                "file": {
+                  "sequence": "0",
+                  "filtered": "0",
+                  "attempts": "0",
+                  "accepted": "0",
+                  "queueFull": "0",
+                  "unavailable": "0",
+                  "rejected": "0",
+                  "written": "0",
+                  "failed": "0",
+                  "abandoned": "0",
+                  "pending": "0",
+                  "inFlight": "0"
+                }
+              }
+            }
+          },
+          {
+            "phase": "held",
+            "observation": {
+              "closed": false,
+              "invalid": "1",
+              "truncated": "1",
+              "outputs": {
+                "console": {
+                  "sequence": "3",
+                  "filtered": "1",
+                  "attempts": "4",
+                  "accepted": "3",
+                  "queueFull": "1",
+                  "unavailable": "0",
+                  "rejected": "1",
+                  "written": "0",
+                  "failed": "0",
+                  "abandoned": "0",
+                  "pending": "3",
+                  "inFlight": "1"
+                },
+                "file": {
+                  "sequence": "3",
+                  "filtered": "1",
+                  "attempts": "4",
+                  "accepted": "3",
+                  "queueFull": "1",
+                  "unavailable": "0",
+                  "rejected": "1",
+                  "written": "0",
+                  "failed": "0",
+                  "abandoned": "0",
+                  "pending": "3",
+                  "inFlight": "1"
+                }
+              }
+            }
+          },
+          {
+            "phase": "cancellation-requested",
+            "observation": {
+              "closed": false,
+              "invalid": "1",
+              "truncated": "1",
+              "outputs": {
+                "console": {
+                  "sequence": "3",
+                  "filtered": "1",
+                  "attempts": "4",
+                  "accepted": "3",
+                  "queueFull": "1",
+                  "unavailable": "0",
+                  "rejected": "1",
+                  "written": "0",
+                  "failed": "0",
+                  "abandoned": "0",
+                  "pending": "3",
+                  "inFlight": "1"
+                },
+                "file": {
+                  "sequence": "3",
+                  "filtered": "1",
+                  "attempts": "4",
+                  "accepted": "3",
+                  "queueFull": "1",
+                  "unavailable": "0",
+                  "rejected": "1",
+                  "written": "0",
+                  "failed": "0",
+                  "abandoned": "0",
+                  "pending": "3",
+                  "inFlight": "1"
+                }
+              }
+            }
+          },
+          {
+            "phase": "closed",
+            "observation": {
+              "closed": true,
+              "invalid": "1",
+              "truncated": "1",
+              "outputs": {
+                "console": {
+                  "sequence": "3",
+                  "filtered": "1",
+                  "attempts": "4",
+                  "accepted": "3",
+                  "queueFull": "1",
+                  "unavailable": "0",
+                  "rejected": "1",
+                  "written": "0",
+                  "failed": "0",
+                  "abandoned": "0",
+                  "pending": "3",
+                  "inFlight": "1"
+                },
+                "file": {
+                  "sequence": "3",
+                  "filtered": "1",
+                  "attempts": "4",
+                  "accepted": "3",
+                  "queueFull": "1",
+                  "unavailable": "0",
+                  "rejected": "1",
+                  "written": "0",
+                  "failed": "0",
+                  "abandoned": "0",
+                  "pending": "3",
+                  "inFlight": "1"
+                }
+              }
+            }
+          },
+          {
+            "phase": "first-terminal",
+            "observation": {
+              "closed": true,
+              "invalid": "1",
+              "truncated": "1",
+              "outputs": {
+                "console": {
+                  "sequence": "3",
+                  "filtered": "1",
+                  "attempts": "4",
+                  "accepted": "3",
+                  "queueFull": "1",
+                  "unavailable": "0",
+                  "rejected": "1",
+                  "written": "0",
+                  "failed": "0",
+                  "abandoned": "0",
+                  "pending": "3",
+                  "inFlight": "1"
+                },
+                "file": {
+                  "sequence": "3",
+                  "filtered": "1",
+                  "attempts": "4",
+                  "accepted": "3",
+                  "queueFull": "1",
+                  "unavailable": "0",
+                  "rejected": "1",
+                  "written": "0",
+                  "failed": "1",
+                  "abandoned": "2",
+                  "pending": "0",
+                  "inFlight": "0"
+                }
+              }
+            }
+          },
+          {
+            "phase": "final",
+            "observation": {
+              "closed": true,
+              "invalid": "1",
+              "truncated": "1",
+              "outputs": {
+                "console": {
+                  "sequence": "3",
+                  "filtered": "1",
+                  "attempts": "4",
+                  "accepted": "3",
+                  "queueFull": "1",
+                  "unavailable": "0",
+                  "rejected": "1",
+                  "written": "3",
+                  "failed": "0",
+                  "abandoned": "0",
+                  "pending": "0",
+                  "inFlight": "0"
+                },
+                "file": {
+                  "sequence": "3",
+                  "filtered": "1",
+                  "attempts": "4",
+                  "accepted": "3",
+                  "queueFull": "1",
+                  "unavailable": "0",
+                  "rejected": "1",
+                  "written": "0",
+                  "failed": "1",
+                  "abandoned": "2",
+                  "pending": "0",
+                  "inFlight": "0"
+                }
+              }
+            }
+          }
+        ],
+        "results": [
+          {
+            "call": "seed",
+            "outcome": "Accepted",
+            "truncated": false,
+            "error": null,
+            "outputs": [
+              {
+                "name": "console",
+                "status": "Accepted",
+                "ticket": 1
+              },
+              {
+                "name": "file",
+                "status": "Accepted",
+                "ticket": 1
+              }
+            ]
+          },
+          {
+            "call": "none",
+            "outcome": "Filtered",
+            "truncated": false,
+            "error": null,
+            "outputs": [
+              {
+                "name": "console",
+                "status": "Filtered",
+                "ticket": null
+              },
+              {
+                "name": "file",
+                "status": "Filtered",
+                "ticket": null
+              }
+            ]
+          },
+          {
+            "call": "queued-one",
+            "outcome": "Accepted",
+            "truncated": false,
+            "error": null,
+            "outputs": [
+              {
+                "name": "console",
+                "status": "Accepted",
+                "ticket": 2
+              },
+              {
+                "name": "file",
+                "status": "Accepted",
+                "ticket": 2
+              }
+            ]
+          },
+          {
+            "call": "queued-two",
+            "outcome": "Accepted",
+            "truncated": true,
+            "error": null,
+            "outputs": [
+              {
+                "name": "console",
+                "status": "Accepted",
+                "ticket": 3
+              },
+              {
+                "name": "file",
+                "status": "Accepted",
+                "ticket": 3
+              }
+            ]
+          },
+          {
+            "call": "invalid",
+            "outcome": "InvalidEvent",
+            "truncated": false,
+            "error": "InvalidEventName",
+            "outputs": []
+          },
+          {
+            "call": "full",
+            "outcome": "Rejected",
+            "truncated": false,
+            "error": null,
+            "outputs": [
+              {
+                "name": "console",
+                "status": "QueueFull",
+                "ticket": null
+              },
+              {
+                "name": "file",
+                "status": "QueueFull",
+                "ticket": null
+              }
+            ]
+          },
+          {
+            "call": "stopped",
+            "outcome": "Stopped",
+            "truncated": false,
+            "error": null,
+            "outputs": [
+              {
+                "name": "console",
+                "status": "Stopped",
+                "ticket": null
+              },
+              {
+                "name": "file",
+                "status": "Stopped",
+                "ticket": null
+              }
+            ]
+          }
+        ],
+        "originalErrors": 1
+      }
+    },
+    {
+      "id": "DELIVERY-FILE-COMPLETE-FAILURE",
+      "consoleEnabled": false,
+      "fileEnabled": true,
+      "consoleMode": "partial-success",
+      "fileMode": "complete-failure",
+      "consoleCancel": false,
+      "fileCancel": false,
+      "releaseFirst": "file",
+      "expected": {
+        "checkpoints": [
+          {
+            "phase": "initial",
+            "observation": {
+              "closed": false,
+              "invalid": "0",
+              "truncated": "0",
+              "outputs": {
+                "file": {
+                  "sequence": "0",
+                  "filtered": "0",
+                  "attempts": "0",
+                  "accepted": "0",
+                  "queueFull": "0",
+                  "unavailable": "0",
+                  "rejected": "0",
+                  "written": "0",
+                  "failed": "0",
+                  "abandoned": "0",
+                  "pending": "0",
+                  "inFlight": "0"
+                }
+              }
+            }
+          },
+          {
+            "phase": "held",
+            "observation": {
+              "closed": false,
+              "invalid": "1",
+              "truncated": "1",
+              "outputs": {
+                "file": {
+                  "sequence": "3",
+                  "filtered": "1",
+                  "attempts": "4",
+                  "accepted": "3",
+                  "queueFull": "1",
+                  "unavailable": "0",
+                  "rejected": "1",
+                  "written": "0",
+                  "failed": "0",
+                  "abandoned": "0",
+                  "pending": "3",
+                  "inFlight": "1"
+                }
+              }
+            }
+          },
+          {
+            "phase": "cancellation-requested",
+            "observation": {
+              "closed": false,
+              "invalid": "1",
+              "truncated": "1",
+              "outputs": {
+                "file": {
+                  "sequence": "3",
+                  "filtered": "1",
+                  "attempts": "4",
+                  "accepted": "3",
+                  "queueFull": "1",
+                  "unavailable": "0",
+                  "rejected": "1",
+                  "written": "0",
+                  "failed": "0",
+                  "abandoned": "0",
+                  "pending": "3",
+                  "inFlight": "1"
+                }
+              }
+            }
+          },
+          {
+            "phase": "closed",
+            "observation": {
+              "closed": true,
+              "invalid": "1",
+              "truncated": "1",
+              "outputs": {
+                "file": {
+                  "sequence": "3",
+                  "filtered": "1",
+                  "attempts": "4",
+                  "accepted": "3",
+                  "queueFull": "1",
+                  "unavailable": "0",
+                  "rejected": "1",
+                  "written": "0",
+                  "failed": "0",
+                  "abandoned": "0",
+                  "pending": "3",
+                  "inFlight": "1"
+                }
+              }
+            }
+          },
+          {
+            "phase": "first-terminal",
+            "observation": {
+              "closed": true,
+              "invalid": "1",
+              "truncated": "1",
+              "outputs": {
+                "file": {
+                  "sequence": "3",
+                  "filtered": "1",
+                  "attempts": "4",
+                  "accepted": "3",
+                  "queueFull": "1",
+                  "unavailable": "0",
+                  "rejected": "1",
+                  "written": "0",
+                  "failed": "1",
+                  "abandoned": "2",
+                  "pending": "0",
+                  "inFlight": "0"
+                }
+              }
+            }
+          },
+          {
+            "phase": "final",
+            "observation": {
+              "closed": true,
+              "invalid": "1",
+              "truncated": "1",
+              "outputs": {
+                "file": {
+                  "sequence": "3",
+                  "filtered": "1",
+                  "attempts": "4",
+                  "accepted": "3",
+                  "queueFull": "1",
+                  "unavailable": "0",
+                  "rejected": "1",
+                  "written": "0",
+                  "failed": "1",
+                  "abandoned": "2",
+                  "pending": "0",
+                  "inFlight": "0"
+                }
+              }
+            }
+          }
+        ],
+        "results": [
+          {
+            "call": "seed",
+            "outcome": "Accepted",
+            "truncated": false,
+            "error": null,
+            "outputs": [
+              {
+                "name": "file",
+                "status": "Accepted",
+                "ticket": 1
+              }
+            ]
+          },
+          {
+            "call": "none",
+            "outcome": "Filtered",
+            "truncated": false,
+            "error": null,
+            "outputs": [
+              {
+                "name": "file",
+                "status": "Filtered",
+                "ticket": null
+              }
+            ]
+          },
+          {
+            "call": "queued-one",
+            "outcome": "Accepted",
+            "truncated": false,
+            "error": null,
+            "outputs": [
+              {
+                "name": "file",
+                "status": "Accepted",
+                "ticket": 2
+              }
+            ]
+          },
+          {
+            "call": "queued-two",
+            "outcome": "Accepted",
+            "truncated": true,
+            "error": null,
+            "outputs": [
+              {
+                "name": "file",
+                "status": "Accepted",
+                "ticket": 3
+              }
+            ]
+          },
+          {
+            "call": "invalid",
+            "outcome": "InvalidEvent",
+            "truncated": false,
+            "error": "InvalidEventName",
+            "outputs": []
+          },
+          {
+            "call": "full",
+            "outcome": "Rejected",
+            "truncated": false,
+            "error": null,
+            "outputs": [
+              {
+                "name": "file",
+                "status": "QueueFull",
+                "ticket": null
+              }
+            ]
+          },
+          {
+            "call": "stopped",
+            "outcome": "Stopped",
+            "truncated": false,
+            "error": null,
+            "outputs": [
+              {
+                "name": "file",
+                "status": "Stopped",
+                "ticket": null
+              }
+            ]
+          }
+        ],
+        "originalErrors": 1
+      }
+    },
+    {
+      "id": "DELIVERY-CONSOLE-ZERO-FAILURE",
+      "consoleEnabled": true,
+      "fileEnabled": false,
+      "consoleMode": "zero-failure",
+      "fileMode": "partial-success",
+      "consoleCancel": false,
+      "fileCancel": false,
+      "releaseFirst": "console",
+      "expected": {
+        "checkpoints": [
+          {
+            "phase": "initial",
+            "observation": {
+              "closed": false,
+              "invalid": "0",
+              "truncated": "0",
+              "outputs": {
+                "console": {
+                  "sequence": "0",
+                  "filtered": "0",
+                  "attempts": "0",
+                  "accepted": "0",
+                  "queueFull": "0",
+                  "unavailable": "0",
+                  "rejected": "0",
+                  "written": "0",
+                  "failed": "0",
+                  "abandoned": "0",
+                  "pending": "0",
+                  "inFlight": "0"
+                }
+              }
+            }
+          },
+          {
+            "phase": "held",
+            "observation": {
+              "closed": false,
+              "invalid": "1",
+              "truncated": "1",
+              "outputs": {
+                "console": {
+                  "sequence": "3",
+                  "filtered": "1",
+                  "attempts": "4",
+                  "accepted": "3",
+                  "queueFull": "1",
+                  "unavailable": "0",
+                  "rejected": "1",
+                  "written": "0",
+                  "failed": "0",
+                  "abandoned": "0",
+                  "pending": "3",
+                  "inFlight": "1"
+                }
+              }
+            }
+          },
+          {
+            "phase": "cancellation-requested",
+            "observation": {
+              "closed": false,
+              "invalid": "1",
+              "truncated": "1",
+              "outputs": {
+                "console": {
+                  "sequence": "3",
+                  "filtered": "1",
+                  "attempts": "4",
+                  "accepted": "3",
+                  "queueFull": "1",
+                  "unavailable": "0",
+                  "rejected": "1",
+                  "written": "0",
+                  "failed": "0",
+                  "abandoned": "0",
+                  "pending": "3",
+                  "inFlight": "1"
+                }
+              }
+            }
+          },
+          {
+            "phase": "closed",
+            "observation": {
+              "closed": true,
+              "invalid": "1",
+              "truncated": "1",
+              "outputs": {
+                "console": {
+                  "sequence": "3",
+                  "filtered": "1",
+                  "attempts": "4",
+                  "accepted": "3",
+                  "queueFull": "1",
+                  "unavailable": "0",
+                  "rejected": "1",
+                  "written": "0",
+                  "failed": "0",
+                  "abandoned": "0",
+                  "pending": "3",
+                  "inFlight": "1"
+                }
+              }
+            }
+          },
+          {
+            "phase": "first-terminal",
+            "observation": {
+              "closed": true,
+              "invalid": "1",
+              "truncated": "1",
+              "outputs": {
+                "console": {
+                  "sequence": "3",
+                  "filtered": "1",
+                  "attempts": "4",
+                  "accepted": "3",
+                  "queueFull": "1",
+                  "unavailable": "0",
+                  "rejected": "1",
+                  "written": "0",
+                  "failed": "1",
+                  "abandoned": "2",
+                  "pending": "0",
+                  "inFlight": "0"
+                }
+              }
+            }
+          },
+          {
+            "phase": "final",
+            "observation": {
+              "closed": true,
+              "invalid": "1",
+              "truncated": "1",
+              "outputs": {
+                "console": {
+                  "sequence": "3",
+                  "filtered": "1",
+                  "attempts": "4",
+                  "accepted": "3",
+                  "queueFull": "1",
+                  "unavailable": "0",
+                  "rejected": "1",
+                  "written": "0",
+                  "failed": "1",
+                  "abandoned": "2",
+                  "pending": "0",
+                  "inFlight": "0"
+                }
+              }
+            }
+          }
+        ],
+        "results": [
+          {
+            "call": "seed",
+            "outcome": "Accepted",
+            "truncated": false,
+            "error": null,
+            "outputs": [
+              {
+                "name": "console",
+                "status": "Accepted",
+                "ticket": 1
+              }
+            ]
+          },
+          {
+            "call": "none",
+            "outcome": "Filtered",
+            "truncated": false,
+            "error": null,
+            "outputs": [
+              {
+                "name": "console",
+                "status": "Filtered",
+                "ticket": null
+              }
+            ]
+          },
+          {
+            "call": "queued-one",
+            "outcome": "Accepted",
+            "truncated": false,
+            "error": null,
+            "outputs": [
+              {
+                "name": "console",
+                "status": "Accepted",
+                "ticket": 2
+              }
+            ]
+          },
+          {
+            "call": "queued-two",
+            "outcome": "Accepted",
+            "truncated": true,
+            "error": null,
+            "outputs": [
+              {
+                "name": "console",
+                "status": "Accepted",
+                "ticket": 3
+              }
+            ]
+          },
+          {
+            "call": "invalid",
+            "outcome": "InvalidEvent",
+            "truncated": false,
+            "error": "InvalidEventName",
+            "outputs": []
+          },
+          {
+            "call": "full",
+            "outcome": "Rejected",
+            "truncated": false,
+            "error": null,
+            "outputs": [
+              {
+                "name": "console",
+                "status": "QueueFull",
+                "ticket": null
+              }
+            ]
+          },
+          {
+            "call": "stopped",
+            "outcome": "Stopped",
+            "truncated": false,
+            "error": null,
+            "outputs": [
+              {
+                "name": "console",
+                "status": "Stopped",
+                "ticket": null
+              }
+            ]
+          }
+        ],
+        "originalErrors": 1
+      }
+    },
+    {
+      "id": "DELIVERY-CONSOLE-PARTIAL-CANCEL",
+      "consoleEnabled": true,
+      "fileEnabled": true,
+      "consoleMode": "partial-cancel",
+      "fileMode": "complete-success",
+      "consoleCancel": true,
+      "fileCancel": false,
+      "releaseFirst": "console",
+      "expected": {
+        "checkpoints": [
+          {
+            "phase": "initial",
+            "observation": {
+              "closed": false,
+              "invalid": "0",
+              "truncated": "0",
+              "outputs": {
+                "console": {
+                  "sequence": "0",
+                  "filtered": "0",
+                  "attempts": "0",
+                  "accepted": "0",
+                  "queueFull": "0",
+                  "unavailable": "0",
+                  "rejected": "0",
+                  "written": "0",
+                  "failed": "0",
+                  "abandoned": "0",
+                  "pending": "0",
+                  "inFlight": "0"
+                },
+                "file": {
+                  "sequence": "0",
+                  "filtered": "0",
+                  "attempts": "0",
+                  "accepted": "0",
+                  "queueFull": "0",
+                  "unavailable": "0",
+                  "rejected": "0",
+                  "written": "0",
+                  "failed": "0",
+                  "abandoned": "0",
+                  "pending": "0",
+                  "inFlight": "0"
+                }
+              }
+            }
+          },
+          {
+            "phase": "held",
+            "observation": {
+              "closed": false,
+              "invalid": "1",
+              "truncated": "1",
+              "outputs": {
+                "console": {
+                  "sequence": "3",
+                  "filtered": "1",
+                  "attempts": "4",
+                  "accepted": "3",
+                  "queueFull": "1",
+                  "unavailable": "0",
+                  "rejected": "1",
+                  "written": "0",
+                  "failed": "0",
+                  "abandoned": "0",
+                  "pending": "3",
+                  "inFlight": "1"
+                },
+                "file": {
+                  "sequence": "3",
+                  "filtered": "1",
+                  "attempts": "4",
+                  "accepted": "3",
+                  "queueFull": "1",
+                  "unavailable": "0",
+                  "rejected": "1",
+                  "written": "0",
+                  "failed": "0",
+                  "abandoned": "0",
+                  "pending": "3",
+                  "inFlight": "1"
+                }
+              }
+            }
+          },
+          {
+            "phase": "cancellation-requested",
+            "observation": {
+              "closed": false,
+              "invalid": "1",
+              "truncated": "1",
+              "outputs": {
+                "console": {
+                  "sequence": "3",
+                  "filtered": "1",
+                  "attempts": "4",
+                  "accepted": "3",
+                  "queueFull": "1",
+                  "unavailable": "0",
+                  "rejected": "1",
+                  "written": "0",
+                  "failed": "0",
+                  "abandoned": "0",
+                  "pending": "3",
+                  "inFlight": "1"
+                },
+                "file": {
+                  "sequence": "3",
+                  "filtered": "1",
+                  "attempts": "4",
+                  "accepted": "3",
+                  "queueFull": "1",
+                  "unavailable": "0",
+                  "rejected": "1",
+                  "written": "0",
+                  "failed": "0",
+                  "abandoned": "0",
+                  "pending": "3",
+                  "inFlight": "1"
+                }
+              }
+            }
+          },
+          {
+            "phase": "closed",
+            "observation": {
+              "closed": true,
+              "invalid": "1",
+              "truncated": "1",
+              "outputs": {
+                "console": {
+                  "sequence": "3",
+                  "filtered": "1",
+                  "attempts": "4",
+                  "accepted": "3",
+                  "queueFull": "1",
+                  "unavailable": "0",
+                  "rejected": "1",
+                  "written": "0",
+                  "failed": "0",
+                  "abandoned": "0",
+                  "pending": "3",
+                  "inFlight": "1"
+                },
+                "file": {
+                  "sequence": "3",
+                  "filtered": "1",
+                  "attempts": "4",
+                  "accepted": "3",
+                  "queueFull": "1",
+                  "unavailable": "0",
+                  "rejected": "1",
+                  "written": "0",
+                  "failed": "0",
+                  "abandoned": "0",
+                  "pending": "3",
+                  "inFlight": "1"
+                }
+              }
+            }
+          },
+          {
+            "phase": "first-terminal",
+            "observation": {
+              "closed": true,
+              "invalid": "1",
+              "truncated": "1",
+              "outputs": {
+                "console": {
+                  "sequence": "3",
+                  "filtered": "1",
+                  "attempts": "4",
+                  "accepted": "3",
+                  "queueFull": "1",
+                  "unavailable": "0",
+                  "rejected": "1",
+                  "written": "0",
+                  "failed": "1",
+                  "abandoned": "2",
+                  "pending": "0",
+                  "inFlight": "0"
+                },
+                "file": {
+                  "sequence": "3",
+                  "filtered": "1",
+                  "attempts": "4",
+                  "accepted": "3",
+                  "queueFull": "1",
+                  "unavailable": "0",
+                  "rejected": "1",
+                  "written": "0",
+                  "failed": "0",
+                  "abandoned": "0",
+                  "pending": "3",
+                  "inFlight": "1"
+                }
+              }
+            }
+          },
+          {
+            "phase": "final",
+            "observation": {
+              "closed": true,
+              "invalid": "1",
+              "truncated": "1",
+              "outputs": {
+                "console": {
+                  "sequence": "3",
+                  "filtered": "1",
+                  "attempts": "4",
+                  "accepted": "3",
+                  "queueFull": "1",
+                  "unavailable": "0",
+                  "rejected": "1",
+                  "written": "0",
+                  "failed": "1",
+                  "abandoned": "2",
+                  "pending": "0",
+                  "inFlight": "0"
+                },
+                "file": {
+                  "sequence": "3",
+                  "filtered": "1",
+                  "attempts": "4",
+                  "accepted": "3",
+                  "queueFull": "1",
+                  "unavailable": "0",
+                  "rejected": "1",
+                  "written": "3",
+                  "failed": "0",
+                  "abandoned": "0",
+                  "pending": "0",
+                  "inFlight": "0"
+                }
+              }
+            }
+          }
+        ],
+        "results": [
+          {
+            "call": "seed",
+            "outcome": "Accepted",
+            "truncated": false,
+            "error": null,
+            "outputs": [
+              {
+                "name": "console",
+                "status": "Accepted",
+                "ticket": 1
+              },
+              {
+                "name": "file",
+                "status": "Accepted",
+                "ticket": 1
+              }
+            ]
+          },
+          {
+            "call": "none",
+            "outcome": "Filtered",
+            "truncated": false,
+            "error": null,
+            "outputs": [
+              {
+                "name": "console",
+                "status": "Filtered",
+                "ticket": null
+              },
+              {
+                "name": "file",
+                "status": "Filtered",
+                "ticket": null
+              }
+            ]
+          },
+          {
+            "call": "queued-one",
+            "outcome": "Accepted",
+            "truncated": false,
+            "error": null,
+            "outputs": [
+              {
+                "name": "console",
+                "status": "Accepted",
+                "ticket": 2
+              },
+              {
+                "name": "file",
+                "status": "Accepted",
+                "ticket": 2
+              }
+            ]
+          },
+          {
+            "call": "queued-two",
+            "outcome": "Accepted",
+            "truncated": true,
+            "error": null,
+            "outputs": [
+              {
+                "name": "console",
+                "status": "Accepted",
+                "ticket": 3
+              },
+              {
+                "name": "file",
+                "status": "Accepted",
+                "ticket": 3
+              }
+            ]
+          },
+          {
+            "call": "invalid",
+            "outcome": "InvalidEvent",
+            "truncated": false,
+            "error": "InvalidEventName",
+            "outputs": []
+          },
+          {
+            "call": "full",
+            "outcome": "Rejected",
+            "truncated": false,
+            "error": null,
+            "outputs": [
+              {
+                "name": "console",
+                "status": "QueueFull",
+                "ticket": null
+              },
+              {
+                "name": "file",
+                "status": "QueueFull",
+                "ticket": null
+              }
+            ]
+          },
+          {
+            "call": "stopped",
+            "outcome": "Stopped",
+            "truncated": false,
+            "error": null,
+            "outputs": [
+              {
+                "name": "console",
+                "status": "Stopped",
+                "ticket": null
+              },
+              {
+                "name": "file",
+                "status": "Stopped",
+                "ticket": null
+              }
+            ]
+          }
+        ],
+        "originalErrors": 1
+      }
+    },
+    {
+      "id": "DELIVERY-FILE-PARTIAL-CANCEL",
+      "consoleEnabled": true,
+      "fileEnabled": true,
+      "consoleMode": "complete-success",
+      "fileMode": "partial-cancel",
+      "consoleCancel": false,
+      "fileCancel": true,
+      "releaseFirst": "file",
+      "expected": {
+        "checkpoints": [
+          {
+            "phase": "initial",
+            "observation": {
+              "closed": false,
+              "invalid": "0",
+              "truncated": "0",
+              "outputs": {
+                "console": {
+                  "sequence": "0",
+                  "filtered": "0",
+                  "attempts": "0",
+                  "accepted": "0",
+                  "queueFull": "0",
+                  "unavailable": "0",
+                  "rejected": "0",
+                  "written": "0",
+                  "failed": "0",
+                  "abandoned": "0",
+                  "pending": "0",
+                  "inFlight": "0"
+                },
+                "file": {
+                  "sequence": "0",
+                  "filtered": "0",
+                  "attempts": "0",
+                  "accepted": "0",
+                  "queueFull": "0",
+                  "unavailable": "0",
+                  "rejected": "0",
+                  "written": "0",
+                  "failed": "0",
+                  "abandoned": "0",
+                  "pending": "0",
+                  "inFlight": "0"
+                }
+              }
+            }
+          },
+          {
+            "phase": "held",
+            "observation": {
+              "closed": false,
+              "invalid": "1",
+              "truncated": "1",
+              "outputs": {
+                "console": {
+                  "sequence": "3",
+                  "filtered": "1",
+                  "attempts": "4",
+                  "accepted": "3",
+                  "queueFull": "1",
+                  "unavailable": "0",
+                  "rejected": "1",
+                  "written": "0",
+                  "failed": "0",
+                  "abandoned": "0",
+                  "pending": "3",
+                  "inFlight": "1"
+                },
+                "file": {
+                  "sequence": "3",
+                  "filtered": "1",
+                  "attempts": "4",
+                  "accepted": "3",
+                  "queueFull": "1",
+                  "unavailable": "0",
+                  "rejected": "1",
+                  "written": "0",
+                  "failed": "0",
+                  "abandoned": "0",
+                  "pending": "3",
+                  "inFlight": "1"
+                }
+              }
+            }
+          },
+          {
+            "phase": "cancellation-requested",
+            "observation": {
+              "closed": false,
+              "invalid": "1",
+              "truncated": "1",
+              "outputs": {
+                "console": {
+                  "sequence": "3",
+                  "filtered": "1",
+                  "attempts": "4",
+                  "accepted": "3",
+                  "queueFull": "1",
+                  "unavailable": "0",
+                  "rejected": "1",
+                  "written": "0",
+                  "failed": "0",
+                  "abandoned": "0",
+                  "pending": "3",
+                  "inFlight": "1"
+                },
+                "file": {
+                  "sequence": "3",
+                  "filtered": "1",
+                  "attempts": "4",
+                  "accepted": "3",
+                  "queueFull": "1",
+                  "unavailable": "0",
+                  "rejected": "1",
+                  "written": "0",
+                  "failed": "0",
+                  "abandoned": "0",
+                  "pending": "3",
+                  "inFlight": "1"
+                }
+              }
+            }
+          },
+          {
+            "phase": "closed",
+            "observation": {
+              "closed": true,
+              "invalid": "1",
+              "truncated": "1",
+              "outputs": {
+                "console": {
+                  "sequence": "3",
+                  "filtered": "1",
+                  "attempts": "4",
+                  "accepted": "3",
+                  "queueFull": "1",
+                  "unavailable": "0",
+                  "rejected": "1",
+                  "written": "0",
+                  "failed": "0",
+                  "abandoned": "0",
+                  "pending": "3",
+                  "inFlight": "1"
+                },
+                "file": {
+                  "sequence": "3",
+                  "filtered": "1",
+                  "attempts": "4",
+                  "accepted": "3",
+                  "queueFull": "1",
+                  "unavailable": "0",
+                  "rejected": "1",
+                  "written": "0",
+                  "failed": "0",
+                  "abandoned": "0",
+                  "pending": "3",
+                  "inFlight": "1"
+                }
+              }
+            }
+          },
+          {
+            "phase": "first-terminal",
+            "observation": {
+              "closed": true,
+              "invalid": "1",
+              "truncated": "1",
+              "outputs": {
+                "console": {
+                  "sequence": "3",
+                  "filtered": "1",
+                  "attempts": "4",
+                  "accepted": "3",
+                  "queueFull": "1",
+                  "unavailable": "0",
+                  "rejected": "1",
+                  "written": "0",
+                  "failed": "0",
+                  "abandoned": "0",
+                  "pending": "3",
+                  "inFlight": "1"
+                },
+                "file": {
+                  "sequence": "3",
+                  "filtered": "1",
+                  "attempts": "4",
+                  "accepted": "3",
+                  "queueFull": "1",
+                  "unavailable": "0",
+                  "rejected": "1",
+                  "written": "0",
+                  "failed": "1",
+                  "abandoned": "2",
+                  "pending": "0",
+                  "inFlight": "0"
+                }
+              }
+            }
+          },
+          {
+            "phase": "final",
+            "observation": {
+              "closed": true,
+              "invalid": "1",
+              "truncated": "1",
+              "outputs": {
+                "console": {
+                  "sequence": "3",
+                  "filtered": "1",
+                  "attempts": "4",
+                  "accepted": "3",
+                  "queueFull": "1",
+                  "unavailable": "0",
+                  "rejected": "1",
+                  "written": "3",
+                  "failed": "0",
+                  "abandoned": "0",
+                  "pending": "0",
+                  "inFlight": "0"
+                },
+                "file": {
+                  "sequence": "3",
+                  "filtered": "1",
+                  "attempts": "4",
+                  "accepted": "3",
+                  "queueFull": "1",
+                  "unavailable": "0",
+                  "rejected": "1",
+                  "written": "0",
+                  "failed": "1",
+                  "abandoned": "2",
+                  "pending": "0",
+                  "inFlight": "0"
+                }
+              }
+            }
+          }
+        ],
+        "results": [
+          {
+            "call": "seed",
+            "outcome": "Accepted",
+            "truncated": false,
+            "error": null,
+            "outputs": [
+              {
+                "name": "console",
+                "status": "Accepted",
+                "ticket": 1
+              },
+              {
+                "name": "file",
+                "status": "Accepted",
+                "ticket": 1
+              }
+            ]
+          },
+          {
+            "call": "none",
+            "outcome": "Filtered",
+            "truncated": false,
+            "error": null,
+            "outputs": [
+              {
+                "name": "console",
+                "status": "Filtered",
+                "ticket": null
+              },
+              {
+                "name": "file",
+                "status": "Filtered",
+                "ticket": null
+              }
+            ]
+          },
+          {
+            "call": "queued-one",
+            "outcome": "Accepted",
+            "truncated": false,
+            "error": null,
+            "outputs": [
+              {
+                "name": "console",
+                "status": "Accepted",
+                "ticket": 2
+              },
+              {
+                "name": "file",
+                "status": "Accepted",
+                "ticket": 2
+              }
+            ]
+          },
+          {
+            "call": "queued-two",
+            "outcome": "Accepted",
+            "truncated": true,
+            "error": null,
+            "outputs": [
+              {
+                "name": "console",
+                "status": "Accepted",
+                "ticket": 3
+              },
+              {
+                "name": "file",
+                "status": "Accepted",
+                "ticket": 3
+              }
+            ]
+          },
+          {
+            "call": "invalid",
+            "outcome": "InvalidEvent",
+            "truncated": false,
+            "error": "InvalidEventName",
+            "outputs": []
+          },
+          {
+            "call": "full",
+            "outcome": "Rejected",
+            "truncated": false,
+            "error": null,
+            "outputs": [
+              {
+                "name": "console",
+                "status": "QueueFull",
+                "ticket": null
+              },
+              {
+                "name": "file",
+                "status": "QueueFull",
+                "ticket": null
+              }
+            ]
+          },
+          {
+            "call": "stopped",
+            "outcome": "Stopped",
+            "truncated": false,
+            "error": null,
+            "outputs": [
+              {
+                "name": "console",
+                "status": "Stopped",
+                "ticket": null
+              },
+              {
+                "name": "file",
+                "status": "Stopped",
+                "ticket": null
+              }
+            ]
+          }
+        ],
+        "originalErrors": 1
+      }
+    },
+    {
+      "id": "DELIVERY-CONSOLE-CANCEL-THEN-SUCCESS",
+      "consoleEnabled": true,
+      "fileEnabled": true,
+      "consoleMode": "partial-success",
+      "fileMode": "complete-success",
+      "consoleCancel": true,
+      "fileCancel": false,
+      "releaseFirst": "console",
+      "expected": {
+        "checkpoints": [
+          {
+            "phase": "initial",
+            "observation": {
+              "closed": false,
+              "invalid": "0",
+              "truncated": "0",
+              "outputs": {
+                "console": {
+                  "sequence": "0",
+                  "filtered": "0",
+                  "attempts": "0",
+                  "accepted": "0",
+                  "queueFull": "0",
+                  "unavailable": "0",
+                  "rejected": "0",
+                  "written": "0",
+                  "failed": "0",
+                  "abandoned": "0",
+                  "pending": "0",
+                  "inFlight": "0"
+                },
+                "file": {
+                  "sequence": "0",
+                  "filtered": "0",
+                  "attempts": "0",
+                  "accepted": "0",
+                  "queueFull": "0",
+                  "unavailable": "0",
+                  "rejected": "0",
+                  "written": "0",
+                  "failed": "0",
+                  "abandoned": "0",
+                  "pending": "0",
+                  "inFlight": "0"
+                }
+              }
+            }
+          },
+          {
+            "phase": "held",
+            "observation": {
+              "closed": false,
+              "invalid": "1",
+              "truncated": "1",
+              "outputs": {
+                "console": {
+                  "sequence": "3",
+                  "filtered": "1",
+                  "attempts": "4",
+                  "accepted": "3",
+                  "queueFull": "1",
+                  "unavailable": "0",
+                  "rejected": "1",
+                  "written": "0",
+                  "failed": "0",
+                  "abandoned": "0",
+                  "pending": "3",
+                  "inFlight": "1"
+                },
+                "file": {
+                  "sequence": "3",
+                  "filtered": "1",
+                  "attempts": "4",
+                  "accepted": "3",
+                  "queueFull": "1",
+                  "unavailable": "0",
+                  "rejected": "1",
+                  "written": "0",
+                  "failed": "0",
+                  "abandoned": "0",
+                  "pending": "3",
+                  "inFlight": "1"
+                }
+              }
+            }
+          },
+          {
+            "phase": "cancellation-requested",
+            "observation": {
+              "closed": false,
+              "invalid": "1",
+              "truncated": "1",
+              "outputs": {
+                "console": {
+                  "sequence": "3",
+                  "filtered": "1",
+                  "attempts": "4",
+                  "accepted": "3",
+                  "queueFull": "1",
+                  "unavailable": "0",
+                  "rejected": "1",
+                  "written": "0",
+                  "failed": "0",
+                  "abandoned": "0",
+                  "pending": "3",
+                  "inFlight": "1"
+                },
+                "file": {
+                  "sequence": "3",
+                  "filtered": "1",
+                  "attempts": "4",
+                  "accepted": "3",
+                  "queueFull": "1",
+                  "unavailable": "0",
+                  "rejected": "1",
+                  "written": "0",
+                  "failed": "0",
+                  "abandoned": "0",
+                  "pending": "3",
+                  "inFlight": "1"
+                }
+              }
+            }
+          },
+          {
+            "phase": "closed",
+            "observation": {
+              "closed": true,
+              "invalid": "1",
+              "truncated": "1",
+              "outputs": {
+                "console": {
+                  "sequence": "3",
+                  "filtered": "1",
+                  "attempts": "4",
+                  "accepted": "3",
+                  "queueFull": "1",
+                  "unavailable": "0",
+                  "rejected": "1",
+                  "written": "0",
+                  "failed": "0",
+                  "abandoned": "0",
+                  "pending": "3",
+                  "inFlight": "1"
+                },
+                "file": {
+                  "sequence": "3",
+                  "filtered": "1",
+                  "attempts": "4",
+                  "accepted": "3",
+                  "queueFull": "1",
+                  "unavailable": "0",
+                  "rejected": "1",
+                  "written": "0",
+                  "failed": "0",
+                  "abandoned": "0",
+                  "pending": "3",
+                  "inFlight": "1"
+                }
+              }
+            }
+          },
+          {
+            "phase": "first-terminal",
+            "observation": {
+              "closed": true,
+              "invalid": "1",
+              "truncated": "1",
+              "outputs": {
+                "console": {
+                  "sequence": "3",
+                  "filtered": "1",
+                  "attempts": "4",
+                  "accepted": "3",
+                  "queueFull": "1",
+                  "unavailable": "0",
+                  "rejected": "1",
+                  "written": "3",
+                  "failed": "0",
+                  "abandoned": "0",
+                  "pending": "0",
+                  "inFlight": "0"
+                },
+                "file": {
+                  "sequence": "3",
+                  "filtered": "1",
+                  "attempts": "4",
+                  "accepted": "3",
+                  "queueFull": "1",
+                  "unavailable": "0",
+                  "rejected": "1",
+                  "written": "0",
+                  "failed": "0",
+                  "abandoned": "0",
+                  "pending": "3",
+                  "inFlight": "1"
+                }
+              }
+            }
+          },
+          {
+            "phase": "final",
+            "observation": {
+              "closed": true,
+              "invalid": "1",
+              "truncated": "1",
+              "outputs": {
+                "console": {
+                  "sequence": "3",
+                  "filtered": "1",
+                  "attempts": "4",
+                  "accepted": "3",
+                  "queueFull": "1",
+                  "unavailable": "0",
+                  "rejected": "1",
+                  "written": "3",
+                  "failed": "0",
+                  "abandoned": "0",
+                  "pending": "0",
+                  "inFlight": "0"
+                },
+                "file": {
+                  "sequence": "3",
+                  "filtered": "1",
+                  "attempts": "4",
+                  "accepted": "3",
+                  "queueFull": "1",
+                  "unavailable": "0",
+                  "rejected": "1",
+                  "written": "3",
+                  "failed": "0",
+                  "abandoned": "0",
+                  "pending": "0",
+                  "inFlight": "0"
+                }
+              }
+            }
+          }
+        ],
+        "results": [
+          {
+            "call": "seed",
+            "outcome": "Accepted",
+            "truncated": false,
+            "error": null,
+            "outputs": [
+              {
+                "name": "console",
+                "status": "Accepted",
+                "ticket": 1
+              },
+              {
+                "name": "file",
+                "status": "Accepted",
+                "ticket": 1
+              }
+            ]
+          },
+          {
+            "call": "none",
+            "outcome": "Filtered",
+            "truncated": false,
+            "error": null,
+            "outputs": [
+              {
+                "name": "console",
+                "status": "Filtered",
+                "ticket": null
+              },
+              {
+                "name": "file",
+                "status": "Filtered",
+                "ticket": null
+              }
+            ]
+          },
+          {
+            "call": "queued-one",
+            "outcome": "Accepted",
+            "truncated": false,
+            "error": null,
+            "outputs": [
+              {
+                "name": "console",
+                "status": "Accepted",
+                "ticket": 2
+              },
+              {
+                "name": "file",
+                "status": "Accepted",
+                "ticket": 2
+              }
+            ]
+          },
+          {
+            "call": "queued-two",
+            "outcome": "Accepted",
+            "truncated": true,
+            "error": null,
+            "outputs": [
+              {
+                "name": "console",
+                "status": "Accepted",
+                "ticket": 3
+              },
+              {
+                "name": "file",
+                "status": "Accepted",
+                "ticket": 3
+              }
+            ]
+          },
+          {
+            "call": "invalid",
+            "outcome": "InvalidEvent",
+            "truncated": false,
+            "error": "InvalidEventName",
+            "outputs": []
+          },
+          {
+            "call": "full",
+            "outcome": "Rejected",
+            "truncated": false,
+            "error": null,
+            "outputs": [
+              {
+                "name": "console",
+                "status": "QueueFull",
+                "ticket": null
+              },
+              {
+                "name": "file",
+                "status": "QueueFull",
+                "ticket": null
+              }
+            ]
+          },
+          {
+            "call": "stopped",
+            "outcome": "Stopped",
+            "truncated": false,
+            "error": null,
+            "outputs": [
+              {
+                "name": "console",
+                "status": "Stopped",
+                "ticket": null
+              },
+              {
+                "name": "file",
+                "status": "Stopped",
+                "ticket": null
+              }
+            ]
+          }
+        ],
+        "originalErrors": 0
+      }
+    },
+    {
+      "id": "DELIVERY-DISABLED",
+      "consoleEnabled": false,
+      "fileEnabled": false,
+      "consoleMode": "partial-success",
+      "fileMode": "partial-success",
+      "consoleCancel": false,
+      "fileCancel": false,
+      "releaseFirst": "console",
+      "expected": {
+        "checkpoints": [
+          {
+            "phase": "initial",
+            "observation": {
+              "closed": false,
+              "invalid": "0",
+              "truncated": "0",
+              "outputs": {}
+            }
+          },
+          {
+            "phase": "held",
+            "observation": {
+              "closed": false,
+              "invalid": "0",
+              "truncated": "0",
+              "outputs": {}
+            }
+          },
+          {
+            "phase": "cancellation-requested",
+            "observation": {
+              "closed": false,
+              "invalid": "0",
+              "truncated": "0",
+              "outputs": {}
+            }
+          },
+          {
+            "phase": "closed",
+            "observation": {
+              "closed": true,
+              "invalid": "0",
+              "truncated": "0",
+              "outputs": {}
+            }
+          },
+          {
+            "phase": "first-terminal",
+            "observation": {
+              "closed": true,
+              "invalid": "0",
+              "truncated": "0",
+              "outputs": {}
+            }
+          },
+          {
+            "phase": "final",
+            "observation": {
+              "closed": true,
+              "invalid": "0",
+              "truncated": "0",
+              "outputs": {}
+            }
+          }
+        ],
+        "results": [
+          {
+            "call": "seed",
+            "outcome": "Filtered",
+            "truncated": false,
+            "error": null,
+            "outputs": []
+          },
+          {
+            "call": "none",
+            "outcome": "Filtered",
+            "truncated": false,
+            "error": null,
+            "outputs": []
+          },
+          {
+            "call": "queued-one",
+            "outcome": "Filtered",
+            "truncated": false,
+            "error": null,
+            "outputs": []
+          },
+          {
+            "call": "queued-two",
+            "outcome": "Filtered",
+            "truncated": false,
+            "error": null,
+            "outputs": []
+          },
+          {
+            "call": "invalid",
+            "outcome": "Filtered",
+            "truncated": false,
+            "error": null,
+            "outputs": []
+          },
+          {
+            "call": "full",
+            "outcome": "Filtered",
+            "truncated": false,
+            "error": null,
+            "outputs": []
+          },
+          {
+            "call": "stopped",
+            "outcome": "Stopped",
+            "truncated": false,
+            "error": null,
+            "outputs": []
+          }
+        ],
+        "originalErrors": 0
+      }
+    }
+  ]
+}
