@@ -26,13 +26,19 @@ internal static class QueuedFanoutFixture
         internal readonly IOException Failure = new("controlled queue writer fault");
         internal object? Gate;
         internal bool GateHeld, OriginalFaultObserved;
+        internal int Active, MaximumActive;
         internal async ValueTask WriteAsync(AdmittedEvent admitted, Task release, bool fail)
         {
-            GateHeld |= Monitor.IsEntered(Gate!); Attempted.Add(admitted); Original.Add(admitted.Event.JsonLine.ToArray());
-            if (Attempted.Count == 1) { Started.TrySetResult(); await release.ConfigureAwait(false); }
-            if (fail) { throw Failure; }
-            await Bytes.WriteAsync(admitted.Event.JsonLine).ConfigureAwait(false); Written.Add(admitted);
-            if (Written.Count == 2) { SecondWritten.TrySetResult(); }
+            int active = Interlocked.Increment(ref Active); RecordMaximum(ref MaximumActive, active);
+            try
+            {
+                GateHeld |= Monitor.IsEntered(Gate!); Attempted.Add(admitted); Original.Add(admitted.Event.JsonLine.ToArray());
+                if (Attempted.Count == 1) { Started.TrySetResult(); await release.ConfigureAwait(false); }
+                if (fail) { throw Failure; }
+                await Bytes.WriteAsync(admitted.Event.JsonLine).ConfigureAwait(false); Written.Add(admitted);
+                if (Written.Count == 2) { SecondWritten.TrySetResult(); }
+            }
+            finally { Interlocked.Decrement(ref Active); }
         }
         internal async Task Observe(Task completion)
         {
@@ -57,7 +63,7 @@ internal static class QueuedFanoutFixture
         var factoryEntered = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
         var factoryRelease = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
         var produced = new ConcurrentDictionary<int, LogWriteResult>(); var data = new ConcurrentDictionary<int, LogEventData>();
-        int factories = 0;
+        int factories = 0, consolePendingMaximum = 0, filePendingMaximum = 0;
         CoreLogRuntime runtime = CoreLogRuntime.CreateQueued(metadata.CaptureMetadata(), options,
             consoleEnabled ? admitted => console.WriteAsync(admitted, mode == "independent" ? Task.CompletedTask : releaseConsole.Task, mode is "early-fault" or "console-fault-overflow") : null,
             fileEnabled ? admitted => file.WriteAsync(admitted, mode == "independent-file" ? Task.CompletedTask : releaseFile.Task, mode is "early-fault" or "late-fault" or "file-fault-overflow") : null, clock);
@@ -76,6 +82,20 @@ internal static class QueuedFanoutFixture
             }) : logger.Write(level, Content(label));
             produced[label] = result; return result;
         }
+        void ObservePending()
+        {
+            RecordMaximum(ref consolePendingMaximum, queues.Console?.PendingCount ?? 0);
+            RecordMaximum(ref filePendingMaximum, queues.File?.PendingCount ?? 0);
+        }
+        async Task Burst(JsonObject[] cohort)
+        {
+            var ready = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+            var go = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously); int arrivals = 0;
+            producers = cohort.Select(step => Task.Run(async () => { if (Interlocked.Increment(ref arrivals) == cohort.Length) { ready.TrySetResult(); } await go.Task; Write(step); ObservePending(); })).ToArray();
+            try { await ready.Task.WaitAsync(TimeSpan.FromSeconds(10)); }
+            finally { go.TrySetResult(); }
+            await Task.WhenAll(producers).WaitAsync(TimeSpan.FromSeconds(10));
+        }
         async Task StartedFor(LogWriteResult result)
         {
             foreach (LogOutputWriteResult output in result.Outputs.Where(output => output.Status == LogOutputWriteStatus.Accepted))
@@ -93,7 +113,11 @@ internal static class QueuedFanoutFixture
             }
             else
             {
-                LogWriteResult first = Write(steps[0]); await StartedFor(first);
+                LogWriteResult first = Write(steps[0]); await StartedFor(first); ObservePending();
+                if (mode == "burst")
+                {
+                    foreach (IGrouping<int, JsonObject> cohort in steps.Skip(1).GroupBy(step => step["phase"]!.GetValue<int>()).OrderBy(cohort => cohort.Key)) { await Burst(cohort.ToArray()); }
+                }
                 if (mode == "mutate")
                 {
                     options.ConsoleLevel = CoreLogLevel.None; options.FileLevel = CoreLogLevel.None; options.FilePath = null; options.QueueCapacity = 0; options.MaxEntryBytes = 1;
@@ -112,7 +136,7 @@ internal static class QueuedFanoutFixture
                 {
                     releaseConsole.TrySetResult(); releaseFile.TrySetResult(); await console.Observe(queues.Console!.Completion); await file.Observe(queues.File!.Completion); Write(steps[1]);
                 }
-                else
+                else if (mode != "burst")
                 {
                     if (mode == "file-fault-overflow") { releaseFile.TrySetResult(); await file.Observe(queues.File!.Completion); }
                     if (mode == "console-fault-overflow") { releaseConsole.TrySetResult(); await console.Observe(queues.Console!.Completion); }
@@ -136,6 +160,8 @@ internal static class QueuedFanoutFixture
                 "independent-file" => file.Written.Count >= 2 && console.Written.Count == 0,
                 _ => true
             };
+            int consolePendingAtBarrier = queues.Console?.PendingCount ?? 0, filePendingAtBarrier = queues.File?.PendingCount ?? 0;
+            int consoleActiveAtBarrier = Volatile.Read(ref console.Active), fileActiveAtBarrier = Volatile.Read(ref file.Active);
             runtime.CloseAdmission(); runtime.CloseAdmission(); releaseConsole.TrySetResult(); releaseFile.TrySetResult();
             if (queues.Console is not null) { await console.Observe(queues.Console.Completion); }
             if (queues.File is not null) { await file.Observe(queues.File.Completion); }
@@ -163,7 +189,7 @@ internal static class QueuedFanoutFixture
                 wires[name] = new JsonObject { ["stream"] = Convert.ToBase64String(writer.Bytes.ToArray()), ["attempted"] = new JsonArray(writer.Attempted.Select((item, index) => (JsonNode)new JsonObject { ["ticket"] = item.AcceptedSequence, ["wire"] = Convert.ToBase64String(writer.Original[index]), ["after"] = Convert.ToBase64String(item.Event.JsonLine.Span) }).ToArray()), ["pendingAfterComplete"] = queue.PendingCount };
             }
             var paired = console.Attempted.Join(file.Attempted, item => Message(item), item => Message(item), (left, right) => ReferenceEquals(left.Event, right.Event)).ToArray();
-            return new JsonObject
+            JsonObject actual = new()
             {
                 ["caseId"] = row["id"]!.DeepClone(),
                 ["semantic"] = new JsonObject { ["results"] = results, ["factoryCalls"] = factories, ["clockCalls"] = clock.Calls, ["outputs"] = outputs, ["sharedCapturePairs"] = paired.Length, ["sharedCaptures"] = paired.All(value => value), ["callbackGateHeld"] = console.GateHeld || file.GateHeld },
@@ -171,6 +197,18 @@ internal static class QueuedFanoutFixture
                 ["wires"] = wires,
                 ["independentProgress"] = independentProgress
             };
+            if (mode == "burst")
+            {
+                var bounds = new JsonObject();
+                foreach ((string name, OutputEventQueue? queue, Writer writer, int pending, int maximum, int active) in new[] { ("console", queues.Console, console, consolePendingAtBarrier, consolePendingMaximum, consoleActiveAtBarrier), ("file", queues.File, file, filePendingAtBarrier, filePendingMaximum, fileActiveAtBarrier) })
+                {
+                    if (queue is null) { continue; }
+                    bounds[name] = new JsonObject { ["pendingAtBarrier"] = pending, ["pendingMaximum"] = maximum, ["activeAtBarrier"] = active, ["maximumActive"] = Volatile.Read(ref writer.MaximumActive), ["activeAfterComplete"] = Volatile.Read(ref writer.Active), ["pendingAfterComplete"] = queue.PendingCount };
+                }
+                actual["bounds"] = bounds;
+                actual["workers"] = (queues.Console is null ? 0 : 1) + (queues.File is null ? 0 : 1);
+            }
+            return actual;
         }
         finally
         {
@@ -181,12 +219,17 @@ internal static class QueuedFanoutFixture
             console.Bytes.Dispose(); file.Bytes.Dispose();
         }
     }
+    private static void RecordMaximum(ref int maximum, int value)
+    {
+        int current = Volatile.Read(ref maximum);
+        while (value > current) { int observed = Interlocked.CompareExchange(ref maximum, value, current); if (observed == current) { return; } current = observed; }
+    }
     private static JsonArray Numbers(IEnumerable<long> values) => new(values.Select(value => (JsonNode)JsonValue.Create(value)).ToArray());
     private static string Message(AdmittedEvent item) => JsonNode.Parse(item.Event.JsonLine.Span)!["message"]!.GetValue<string>();
     private static JsonObject Result(LogWriteResult result) => new() { ["outcome"] = result.Outcome.ToString(), ["outputs"] = new JsonArray(result.Outputs.Select(output => (JsonNode)new JsonObject { ["name"] = output.OutputName, ["status"] = output.Status.ToString(), ["ticket"] = output.AcceptedSequence }).ToArray()) };
     internal static int Run(string path, string id)
     {
-        JsonObject row = JsonNode.Parse(File.ReadAllText(path))!["cases"]!.AsArray().Single(row => row!["id"]!.GetValue<string>() == id)!.AsObject(); JsonObject actual = ExecuteAsync(row).GetAwaiter().GetResult(); QueuedFanoutExpectations.Validate(row, actual);
+        JsonObject row = JsonNode.Parse(File.ReadAllText(path))!["cases"]!.AsArray().Single(row => row!["id"]!.GetValue<string>() == id)!.AsObject(); JsonObject actual = ExecuteAsync(row).GetAwaiter().GetResult(); if (row["mode"]!.GetValue<string>() == "burst") { QueueBurstExpectations.Validate(row, actual); } else { QueuedFanoutExpectations.Validate(row, actual); }
         actual["observed"] = new JsonObject { ["runtimeDescription"] = RuntimeInformation.FrameworkDescription, ["operatingSystem"] = OperatingSystem.IsWindows() ? "windows" : OperatingSystem.IsLinux() ? "linux" : "unknown", ["coreSha256"] = Hash(typeof(CoreLogRuntime).Assembly.Location), ["fixtureSha256"] = Hash(typeof(QueuedFanoutFixture).Assembly.Location), ["inputsSha256"] = Hash(path) };
         Console.WriteLine(actual.ToJsonString()); return 0;
     }

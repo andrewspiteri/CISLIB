@@ -65,7 +65,7 @@ WP01-S04 was committed as `b7b8b78` at the user's request. The user selected the
 
 ## WP02-S02 event contracts
 
-WP02-S01 was committed as ccb7237. WP02-S02 defines schema/value/bound contracts and executes C# development-only record/value validation. The user amended oversize behavior to configurable entry bytes (64 KiB default) and truncation. CORE_LOG_MAX_ENTRY_BYTES and the selected 16 KiBÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Å“16 MiB range, marker/projection choices and validation limits are recorded in [event guidance](../docs/modules/logging/event-contract.md). Real bounded capture/truncation and output rendering remain WP04/WP05 work.
+WP02-S01 was committed as ccb7237. WP02-S02 defines schema/value/bound contracts and executes C# development-only record/value validation. The user amended oversize behavior to configurable entry bytes (64 KiB default) and truncation. CORE_LOG_MAX_ENTRY_BYTES and the selected 16 KiBÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â€šÂ¬Ã…â€œ16 MiB range, marker/projection choices and validation limits are recorded in [event guidance](../docs/modules/logging/event-contract.md). Real bounded capture/truncation and output rendering remain WP04/WP05 work.
 
 ## WP02-S04-T01 preservation review
 
@@ -278,3 +278,7 @@ The [actual runtime fanout](../docs/modules/logging/queued-fanout.md) uses a rea
 ## WP05-S02-T03 incoming overflow qualification
 
 The [incoming overflow cases](../docs/modules/logging/queue-overflow.md) qualify the existing real Channel admission and Core result composition rather than adding another shipping mechanism. Literal per-output outcomes, accepted caller/byte preservation and controlled one-sided recovery/fault/filter cases distinguish admission from delivery and retain only per-destination order. Reusing the existing fixture and an explicit native catalog profile are scoped verification choices; complete S03 output counters/diagnostics, T04 bookkeeping, physical outputs/lifecycle/provider and release remain pending. Original supplied plans and historical evidence remain unchanged.
+
+## WP05-S02-T04 bounded cohort qualification
+
+The [seeded producer cohorts](../docs/modules/logging/queue-bursts.md) qualify all four S02 criteria at the existing internal Core/Channel/memory-writer seam. Literal cohort counts and independently checked caller/ticket bytes avoid fixing scheduling-dependent winners. Sampled held-writer queue maxima, atomic callback maxima and canonical single-worker inspection distinguish accepted worker bounds from caller/pre-admission memory and later flush-control obligations. Explicit shared transport ticket checks and reused native transport validation are verification choices, with no shipping/API/dependency change. S03 accounting/diagnostics, physical output/lifecycle/provider and release remain pending; original plans and historical records are unchanged.

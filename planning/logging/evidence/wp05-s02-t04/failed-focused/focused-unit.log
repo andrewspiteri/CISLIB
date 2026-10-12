@@ -1,0 +1,25 @@
+Test run for C:\miscwork\portfolio\cislib\implementations\csharp\tests\CIS.Core.UnitTests\bin\Release\net10.0\CIS.Core.UnitTests.dll (.NETCoreApp,Version=v10.0)
+A total of 1 test files matched the specified pattern.
+  Failed BurstMatcherRejectsUnboundedLostOrInventedWork ("ticket") [59 ms]
+  Error Message:
+   Assertion failed. Expected exception of exact type InvalidDataException but caught NullReferenceException.
+
+expected type:    System.IO.InvalidDataException
+actual exception: System.NullReferenceException: Object reference not set to an instance of an object.
+                     at CIS.Tests.DiscoveryFixture.QueuedFanoutExpectations.<>c__DisplayClass1_1.<ValidateTransport>b__8(JsonNode output) in C:\miscwork\portfolio\cislib\implementations\csharp\tests\fixtures\DiscoveryHost\QueuedFanoutExpectations.cs:line 34
+                     at System.Linq.Enumerable.Any[TSource](IEnumerable`1 source, Func`2 predicate)
+                     at CIS.Tests.DiscoveryFixture.QueuedFanoutExpectations.<>c__DisplayClass1_1.<ValidateTransport>b__6(JsonNode binding) in C:\miscwork\portfolio\cislib\implementations\csharp\tests\fixtures\DiscoveryHost\QueuedFanoutExpectations.cs:line 34
+                     at System.Linq.Enumerable.TryGetSingle[TSource](IEnumerable`1 source, Func`2 predicate, Boolean& found)
+                     at System.Linq.Enumerable.SingleOrDefault[TSource](IEnumerable`1 source, Func`2 predicate)
+                     at CIS.Tests.DiscoveryFixture.QueuedFanoutExpectations.ValidateTransport(JsonObject row, JsonObject actual) in C:\miscwork\portfolio\cislib\implementations\csharp\tests\fixtures\DiscoveryHost\QueuedFanoutExpectations.cs:line 34
+                     at CIS.Tests.DiscoveryFixture.QueueBurstExpectations.Validate(JsonObject row, JsonObject actual) in C:\miscwork\portfolio\cislib\implementations\csharp\tests\fixtures\DiscoveryHost\QueueBurstExpectations.cs:line 9
+                     at CIS.Tests.UnitTests.QueueBurstTests.<>c__DisplayClass3_0.<BurstMatcherRejectsUnboundedLostOrInventedWork>b__0() in C:\miscwork\portfolio\cislib\implementations\csharp\tests\CIS.Core.UnitTests\QueueBurstTests.cs:line 46
+                     at Microsoft.VisualStudio.TestTools.UnitTesting.Assert.IsThrowsFailing[TException](Action action, Boolean isStrictType)
+
+Assert.ThrowsExactly<InvalidDataException>(() => QueueBurstExpectations.Validate(row, actual))
+  Stack Trace:
+     at CIS.Tests.UnitTests.QueueBurstTests.BurstMatcherRejectsUnboundedLostOrInventedWork(String fault) in C:\miscwork\portfolio\cislib\implementations\csharp\tests\CIS.Core.UnitTests\QueueBurstTests.cs:line 46
+   at Microsoft.VisualStudio.TestPlatform.MSTest.TestAdapter.Execution.TestMethodInfo.ExecuteInternalAsync(Object[] arguments, CancellationTokenSource timeoutTokenSource, TestInvocationState invocationState)
+Results File: C:\miscwork\portfolio\cislib\.artifacts\csharp\tasks\wp05-s02-t04\focused-unit.trx
+
+Failed!  - Failed:     1, Passed:   108, Skipped:     0, Total:   109, Duration: 224 ms - CIS.Core.UnitTests.dll (net10.0)

@@ -8,12 +8,27 @@ internal static class QueuedFanoutExpectations
     internal static void Validate(JsonObject row, JsonObject actual)
     {
         Require(JsonNode.DeepEquals(row["id"], actual["caseId"]) && JsonNode.DeepEquals(row["expected"], actual["semantic"]), "Literal fanout/ticket/gate/capture observations differ.");
+        ValidateTransport(row, actual);
+    }
+    internal static void ValidateTransport(JsonObject row, JsonObject actual)
+    {
+        Require(JsonNode.DeepEquals(row["id"], actual["caseId"]), "Case identity differs.");
         Require(actual["independentProgress"]!.GetValue<bool>(), "Blocked file prevented independent console progress.");
         JsonArray bindings = actual["bindings"]!.AsArray(); Require(bindings.Count == row["steps"]!.AsArray().Count, "Missing producer bindings.");
         Require(bindings.Select(item => item!["caller"]!.GetValue<int>()).Order().SequenceEqual(row["steps"]!.AsArray().Select(item => item!["label"]!.GetValue<int>()).Order()), "Producer binding set differs.");
+        var acceptedTickets = new HashSet<(string Name, long Ticket)>();
         for (int index = 0; index < bindings.Count; index++)
         {
             var binding = bindings[index]!.DeepClone().AsObject(); binding.Remove("caller"); Require(JsonNode.DeepEquals(binding, actual["semantic"]!["results"]![index]), "Binding result differs.");
+            foreach (JsonNode? output in binding["outputs"]!.AsArray())
+            {
+                string name = output!["name"]!.GetValue<string>();
+                if (output["status"]!.GetValue<string>() == "Accepted")
+                {
+                    Require(output["ticket"] is JsonValue value && value.TryGetValue<long>(out long ticket) && ticket > 0 && acceptedTickets.Add((name, ticket)), "Accepted ticket domain/uniqueness differs.");
+                }
+                else { Require(output["ticket"] is null, "Rejection has a ticket."); }
+            }
         }
         Require(actual["wires"]!.AsObject().Count == row["expected"]!["outputs"]!.AsObject().Count, "Unexpected output wire.");
         foreach (string name in new[] { "console", "file" })

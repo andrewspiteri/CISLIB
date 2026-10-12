@@ -37,6 +37,11 @@ def sha(path):
 
 def verify(row, actual):
     same(row['id'], actual['caseId']); same(row['expected'], actual['semantic']); same(True, actual['independentProgress'])
+    verify_transport(row, actual)
+
+
+def verify_transport(row, actual):
+    same(row['id'], actual['caseId']); same(True, actual['independentProgress'])
     bindings = actual['bindings']; steps = {step['label']: step for step in row['steps']}
     require(len(bindings) == len(steps) and {binding['caller'] for binding in bindings} == set(steps), 'Producer binding set differs')
     for binding, result in zip(bindings, actual['semantic']['results']):
