@@ -11,6 +11,10 @@ internal static class Program
 {
     private static int Main(string[] args)
     {
+        if (args.Length == 3 && args[0] == "logger-capture")
+        {
+            return LoggerCaptureProcessFixture.Run(args[1], args[2]);
+        }
         if (args.Length == 3 && args[0] == "logger-decision")
         {
             return LoggerDecisionProcessFixture.Run(args[1], args[2]);

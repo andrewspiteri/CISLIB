@@ -1,0 +1,3845 @@
+{
+  "schemaVersion": 1,
+  "scope": "WP04-S05-T03 actual lazy/capture/global rejection and output-owned outcomes/tickets. Controlled admission plans are explicit test inputs, not workers/delivery. T04 complete table and full S05 remain pending.",
+  "cases": [
+    {
+      "id": "CAPTURE-NAME-NULL-DIRECT",
+      "input": {
+        "method": "direct",
+        "mode": "invalid",
+        "payload": "name-null",
+        "consolePlan": [
+          "Accepted",
+          "Accepted"
+        ],
+        "filePlan": [
+          "Accepted",
+          "Accepted"
+        ],
+        "consoleSeed": 10,
+        "fileSeed": 100
+      },
+      "expected": {
+        "results": [
+          {
+            "outcome": "Accepted",
+            "errorCode": null,
+            "truncated": false,
+            "outputs": [
+              {
+                "name": "console",
+                "status": "Accepted",
+                "sequence": 11
+              },
+              {
+                "name": "file",
+                "status": "Accepted",
+                "sequence": 101
+              }
+            ]
+          },
+          {
+            "outcome": "InvalidEvent",
+            "errorCode": "InvalidEventName",
+            "truncated": false,
+            "outputs": []
+          },
+          {
+            "outcome": "Accepted",
+            "errorCode": null,
+            "truncated": false,
+            "outputs": [
+              {
+                "name": "console",
+                "status": "Accepted",
+                "sequence": 12
+              },
+              {
+                "name": "file",
+                "status": "Accepted",
+                "sequence": 102
+              }
+            ]
+          }
+        ],
+        "factoryCalls": 0,
+        "clockCalls": 2,
+        "invalidCount": 1,
+        "truncatedCount": 0,
+        "attempts": [
+          2,
+          2
+        ],
+        "accepted": [
+          2,
+          2
+        ],
+        "queueFull": [
+          0,
+          0
+        ],
+        "unavailable": [
+          0,
+          0
+        ],
+        "exceptionSame": [
+          false,
+          false,
+          false
+        ],
+        "exceptions": [
+          null,
+          null,
+          null
+        ],
+        "wireMessages": [
+          "original",
+          "original"
+        ],
+        "factoryInvocations": [
+          0,
+          0,
+          0
+        ]
+      }
+    },
+    {
+      "id": "CAPTURE-NAME-EMPTY-DIRECT",
+      "input": {
+        "method": "direct",
+        "mode": "invalid",
+        "payload": "name-empty",
+        "consolePlan": [
+          "Accepted",
+          "Accepted"
+        ],
+        "filePlan": [
+          "Accepted",
+          "Accepted"
+        ],
+        "consoleSeed": 10,
+        "fileSeed": 100
+      },
+      "expected": {
+        "results": [
+          {
+            "outcome": "Accepted",
+            "errorCode": null,
+            "truncated": false,
+            "outputs": [
+              {
+                "name": "console",
+                "status": "Accepted",
+                "sequence": 11
+              },
+              {
+                "name": "file",
+                "status": "Accepted",
+                "sequence": 101
+              }
+            ]
+          },
+          {
+            "outcome": "InvalidEvent",
+            "errorCode": "InvalidEventName",
+            "truncated": false,
+            "outputs": []
+          },
+          {
+            "outcome": "Accepted",
+            "errorCode": null,
+            "truncated": false,
+            "outputs": [
+              {
+                "name": "console",
+                "status": "Accepted",
+                "sequence": 12
+              },
+              {
+                "name": "file",
+                "status": "Accepted",
+                "sequence": 102
+              }
+            ]
+          }
+        ],
+        "factoryCalls": 0,
+        "clockCalls": 2,
+        "invalidCount": 1,
+        "truncatedCount": 0,
+        "attempts": [
+          2,
+          2
+        ],
+        "accepted": [
+          2,
+          2
+        ],
+        "queueFull": [
+          0,
+          0
+        ],
+        "unavailable": [
+          0,
+          0
+        ],
+        "exceptionSame": [
+          false,
+          false,
+          false
+        ],
+        "exceptions": [
+          null,
+          null,
+          null
+        ],
+        "wireMessages": [
+          "original",
+          "original"
+        ],
+        "factoryInvocations": [
+          0,
+          0,
+          0
+        ]
+      }
+    },
+    {
+      "id": "CAPTURE-NAME-CONTROL-DIRECT",
+      "input": {
+        "method": "direct",
+        "mode": "invalid",
+        "payload": "name-control",
+        "consolePlan": [
+          "Accepted",
+          "Accepted"
+        ],
+        "filePlan": [
+          "Accepted",
+          "Accepted"
+        ],
+        "consoleSeed": 10,
+        "fileSeed": 100
+      },
+      "expected": {
+        "results": [
+          {
+            "outcome": "Accepted",
+            "errorCode": null,
+            "truncated": false,
+            "outputs": [
+              {
+                "name": "console",
+                "status": "Accepted",
+                "sequence": 11
+              },
+              {
+                "name": "file",
+                "status": "Accepted",
+                "sequence": 101
+              }
+            ]
+          },
+          {
+            "outcome": "InvalidEvent",
+            "errorCode": "InvalidEventName",
+            "truncated": false,
+            "outputs": []
+          },
+          {
+            "outcome": "Accepted",
+            "errorCode": null,
+            "truncated": false,
+            "outputs": [
+              {
+                "name": "console",
+                "status": "Accepted",
+                "sequence": 12
+              },
+              {
+                "name": "file",
+                "status": "Accepted",
+                "sequence": 102
+              }
+            ]
+          }
+        ],
+        "factoryCalls": 0,
+        "clockCalls": 2,
+        "invalidCount": 1,
+        "truncatedCount": 0,
+        "attempts": [
+          2,
+          2
+        ],
+        "accepted": [
+          2,
+          2
+        ],
+        "queueFull": [
+          0,
+          0
+        ],
+        "unavailable": [
+          0,
+          0
+        ],
+        "exceptionSame": [
+          false,
+          false,
+          false
+        ],
+        "exceptions": [
+          null,
+          null,
+          null
+        ],
+        "wireMessages": [
+          "original",
+          "original"
+        ],
+        "factoryInvocations": [
+          0,
+          0,
+          0
+        ]
+      }
+    },
+    {
+      "id": "CAPTURE-NAME-UNICODE-DIRECT",
+      "input": {
+        "method": "direct",
+        "mode": "invalid",
+        "payload": "name-unicode",
+        "consolePlan": [
+          "Accepted",
+          "Accepted"
+        ],
+        "filePlan": [
+          "Accepted",
+          "Accepted"
+        ],
+        "consoleSeed": 10,
+        "fileSeed": 100
+      },
+      "expected": {
+        "results": [
+          {
+            "outcome": "Accepted",
+            "errorCode": null,
+            "truncated": false,
+            "outputs": [
+              {
+                "name": "console",
+                "status": "Accepted",
+                "sequence": 11
+              },
+              {
+                "name": "file",
+                "status": "Accepted",
+                "sequence": 101
+              }
+            ]
+          },
+          {
+            "outcome": "InvalidEvent",
+            "errorCode": "InvalidUnicode",
+            "truncated": false,
+            "outputs": []
+          },
+          {
+            "outcome": "Accepted",
+            "errorCode": null,
+            "truncated": false,
+            "outputs": [
+              {
+                "name": "console",
+                "status": "Accepted",
+                "sequence": 12
+              },
+              {
+                "name": "file",
+                "status": "Accepted",
+                "sequence": 102
+              }
+            ]
+          }
+        ],
+        "factoryCalls": 0,
+        "clockCalls": 2,
+        "invalidCount": 1,
+        "truncatedCount": 0,
+        "attempts": [
+          2,
+          2
+        ],
+        "accepted": [
+          2,
+          2
+        ],
+        "queueFull": [
+          0,
+          0
+        ],
+        "unavailable": [
+          0,
+          0
+        ],
+        "exceptionSame": [
+          false,
+          false,
+          false
+        ],
+        "exceptions": [
+          null,
+          null,
+          null
+        ],
+        "wireMessages": [
+          "original",
+          "original"
+        ],
+        "factoryInvocations": [
+          0,
+          0,
+          0
+        ]
+      }
+    },
+    {
+      "id": "CAPTURE-MESSAGE-NULL-DIRECT",
+      "input": {
+        "method": "direct",
+        "mode": "invalid",
+        "payload": "message-null",
+        "consolePlan": [
+          "Accepted",
+          "Accepted"
+        ],
+        "filePlan": [
+          "Accepted",
+          "Accepted"
+        ],
+        "consoleSeed": 10,
+        "fileSeed": 100
+      },
+      "expected": {
+        "results": [
+          {
+            "outcome": "Accepted",
+            "errorCode": null,
+            "truncated": false,
+            "outputs": [
+              {
+                "name": "console",
+                "status": "Accepted",
+                "sequence": 11
+              },
+              {
+                "name": "file",
+                "status": "Accepted",
+                "sequence": 101
+              }
+            ]
+          },
+          {
+            "outcome": "InvalidEvent",
+            "errorCode": "InvalidMessage",
+            "truncated": false,
+            "outputs": []
+          },
+          {
+            "outcome": "Accepted",
+            "errorCode": null,
+            "truncated": false,
+            "outputs": [
+              {
+                "name": "console",
+                "status": "Accepted",
+                "sequence": 12
+              },
+              {
+                "name": "file",
+                "status": "Accepted",
+                "sequence": 102
+              }
+            ]
+          }
+        ],
+        "factoryCalls": 0,
+        "clockCalls": 3,
+        "invalidCount": 1,
+        "truncatedCount": 0,
+        "attempts": [
+          2,
+          2
+        ],
+        "accepted": [
+          2,
+          2
+        ],
+        "queueFull": [
+          0,
+          0
+        ],
+        "unavailable": [
+          0,
+          0
+        ],
+        "exceptionSame": [
+          false,
+          false,
+          false
+        ],
+        "exceptions": [
+          null,
+          null,
+          null
+        ],
+        "wireMessages": [
+          "original",
+          "original"
+        ],
+        "factoryInvocations": [
+          0,
+          0,
+          0
+        ]
+      }
+    },
+    {
+      "id": "CAPTURE-MESSAGE-UNICODE-DIRECT",
+      "input": {
+        "method": "direct",
+        "mode": "invalid",
+        "payload": "message-unicode",
+        "consolePlan": [
+          "Accepted",
+          "Accepted"
+        ],
+        "filePlan": [
+          "Accepted",
+          "Accepted"
+        ],
+        "consoleSeed": 10,
+        "fileSeed": 100
+      },
+      "expected": {
+        "results": [
+          {
+            "outcome": "Accepted",
+            "errorCode": null,
+            "truncated": false,
+            "outputs": [
+              {
+                "name": "console",
+                "status": "Accepted",
+                "sequence": 11
+              },
+              {
+                "name": "file",
+                "status": "Accepted",
+                "sequence": 101
+              }
+            ]
+          },
+          {
+            "outcome": "InvalidEvent",
+            "errorCode": "InvalidUnicode",
+            "truncated": false,
+            "outputs": []
+          },
+          {
+            "outcome": "Accepted",
+            "errorCode": null,
+            "truncated": false,
+            "outputs": [
+              {
+                "name": "console",
+                "status": "Accepted",
+                "sequence": 12
+              },
+              {
+                "name": "file",
+                "status": "Accepted",
+                "sequence": 102
+              }
+            ]
+          }
+        ],
+        "factoryCalls": 0,
+        "clockCalls": 3,
+        "invalidCount": 1,
+        "truncatedCount": 0,
+        "attempts": [
+          2,
+          2
+        ],
+        "accepted": [
+          2,
+          2
+        ],
+        "queueFull": [
+          0,
+          0
+        ],
+        "unavailable": [
+          0,
+          0
+        ],
+        "exceptionSame": [
+          false,
+          false,
+          false
+        ],
+        "exceptions": [
+          null,
+          null,
+          null
+        ],
+        "wireMessages": [
+          "original",
+          "original"
+        ],
+        "factoryInvocations": [
+          0,
+          0,
+          0
+        ]
+      }
+    },
+    {
+      "id": "CAPTURE-TEMPLATE-UNICODE-DIRECT",
+      "input": {
+        "method": "direct",
+        "mode": "invalid",
+        "payload": "template-unicode",
+        "consolePlan": [
+          "Accepted",
+          "Accepted"
+        ],
+        "filePlan": [
+          "Accepted",
+          "Accepted"
+        ],
+        "consoleSeed": 10,
+        "fileSeed": 100
+      },
+      "expected": {
+        "results": [
+          {
+            "outcome": "Accepted",
+            "errorCode": null,
+            "truncated": false,
+            "outputs": [
+              {
+                "name": "console",
+                "status": "Accepted",
+                "sequence": 11
+              },
+              {
+                "name": "file",
+                "status": "Accepted",
+                "sequence": 101
+              }
+            ]
+          },
+          {
+            "outcome": "InvalidEvent",
+            "errorCode": "InvalidUnicode",
+            "truncated": false,
+            "outputs": []
+          },
+          {
+            "outcome": "Accepted",
+            "errorCode": null,
+            "truncated": false,
+            "outputs": [
+              {
+                "name": "console",
+                "status": "Accepted",
+                "sequence": 12
+              },
+              {
+                "name": "file",
+                "status": "Accepted",
+                "sequence": 102
+              }
+            ]
+          }
+        ],
+        "factoryCalls": 0,
+        "clockCalls": 3,
+        "invalidCount": 1,
+        "truncatedCount": 0,
+        "attempts": [
+          2,
+          2
+        ],
+        "accepted": [
+          2,
+          2
+        ],
+        "queueFull": [
+          0,
+          0
+        ],
+        "unavailable": [
+          0,
+          0
+        ],
+        "exceptionSame": [
+          false,
+          false,
+          false
+        ],
+        "exceptions": [
+          null,
+          null,
+          null
+        ],
+        "wireMessages": [
+          "original",
+          "original"
+        ],
+        "factoryInvocations": [
+          0,
+          0,
+          0
+        ]
+      }
+    },
+    {
+      "id": "CAPTURE-OPERATION-CONTROL-DIRECT",
+      "input": {
+        "method": "direct",
+        "mode": "invalid",
+        "payload": "operation-control",
+        "consolePlan": [
+          "Accepted",
+          "Accepted"
+        ],
+        "filePlan": [
+          "Accepted",
+          "Accepted"
+        ],
+        "consoleSeed": 10,
+        "fileSeed": 100
+      },
+      "expected": {
+        "results": [
+          {
+            "outcome": "Accepted",
+            "errorCode": null,
+            "truncated": false,
+            "outputs": [
+              {
+                "name": "console",
+                "status": "Accepted",
+                "sequence": 11
+              },
+              {
+                "name": "file",
+                "status": "Accepted",
+                "sequence": 101
+              }
+            ]
+          },
+          {
+            "outcome": "InvalidEvent",
+            "errorCode": "InvalidOperationId",
+            "truncated": false,
+            "outputs": []
+          },
+          {
+            "outcome": "Accepted",
+            "errorCode": null,
+            "truncated": false,
+            "outputs": [
+              {
+                "name": "console",
+                "status": "Accepted",
+                "sequence": 12
+              },
+              {
+                "name": "file",
+                "status": "Accepted",
+                "sequence": 102
+              }
+            ]
+          }
+        ],
+        "factoryCalls": 0,
+        "clockCalls": 3,
+        "invalidCount": 1,
+        "truncatedCount": 0,
+        "attempts": [
+          2,
+          2
+        ],
+        "accepted": [
+          2,
+          2
+        ],
+        "queueFull": [
+          0,
+          0
+        ],
+        "unavailable": [
+          0,
+          0
+        ],
+        "exceptionSame": [
+          false,
+          false,
+          false
+        ],
+        "exceptions": [
+          null,
+          null,
+          null
+        ],
+        "wireMessages": [
+          "original",
+          "original"
+        ],
+        "factoryInvocations": [
+          0,
+          0,
+          0
+        ]
+      }
+    },
+    {
+      "id": "CAPTURE-OPERATION-UNICODE-DIRECT",
+      "input": {
+        "method": "direct",
+        "mode": "invalid",
+        "payload": "operation-unicode",
+        "consolePlan": [
+          "Accepted",
+          "Accepted"
+        ],
+        "filePlan": [
+          "Accepted",
+          "Accepted"
+        ],
+        "consoleSeed": 10,
+        "fileSeed": 100
+      },
+      "expected": {
+        "results": [
+          {
+            "outcome": "Accepted",
+            "errorCode": null,
+            "truncated": false,
+            "outputs": [
+              {
+                "name": "console",
+                "status": "Accepted",
+                "sequence": 11
+              },
+              {
+                "name": "file",
+                "status": "Accepted",
+                "sequence": 101
+              }
+            ]
+          },
+          {
+            "outcome": "InvalidEvent",
+            "errorCode": "InvalidUnicode",
+            "truncated": false,
+            "outputs": []
+          },
+          {
+            "outcome": "Accepted",
+            "errorCode": null,
+            "truncated": false,
+            "outputs": [
+              {
+                "name": "console",
+                "status": "Accepted",
+                "sequence": 12
+              },
+              {
+                "name": "file",
+                "status": "Accepted",
+                "sequence": 102
+              }
+            ]
+          }
+        ],
+        "factoryCalls": 0,
+        "clockCalls": 3,
+        "invalidCount": 1,
+        "truncatedCount": 0,
+        "attempts": [
+          2,
+          2
+        ],
+        "accepted": [
+          2,
+          2
+        ],
+        "queueFull": [
+          0,
+          0
+        ],
+        "unavailable": [
+          0,
+          0
+        ],
+        "exceptionSame": [
+          false,
+          false,
+          false
+        ],
+        "exceptions": [
+          null,
+          null,
+          null
+        ],
+        "wireMessages": [
+          "original",
+          "original"
+        ],
+        "factoryInvocations": [
+          0,
+          0,
+          0
+        ]
+      }
+    },
+    {
+      "id": "CAPTURE-ATTRIBUTE-KEY-DIRECT",
+      "input": {
+        "method": "direct",
+        "mode": "invalid",
+        "payload": "attribute-key",
+        "consolePlan": [
+          "Accepted",
+          "Accepted"
+        ],
+        "filePlan": [
+          "Accepted",
+          "Accepted"
+        ],
+        "consoleSeed": 10,
+        "fileSeed": 100
+      },
+      "expected": {
+        "results": [
+          {
+            "outcome": "Accepted",
+            "errorCode": null,
+            "truncated": false,
+            "outputs": [
+              {
+                "name": "console",
+                "status": "Accepted",
+                "sequence": 11
+              },
+              {
+                "name": "file",
+                "status": "Accepted",
+                "sequence": 101
+              }
+            ]
+          },
+          {
+            "outcome": "InvalidEvent",
+            "errorCode": "UnsupportedValue",
+            "truncated": false,
+            "outputs": []
+          },
+          {
+            "outcome": "Accepted",
+            "errorCode": null,
+            "truncated": false,
+            "outputs": [
+              {
+                "name": "console",
+                "status": "Accepted",
+                "sequence": 12
+              },
+              {
+                "name": "file",
+                "status": "Accepted",
+                "sequence": 102
+              }
+            ]
+          }
+        ],
+        "factoryCalls": 0,
+        "clockCalls": 3,
+        "invalidCount": 1,
+        "truncatedCount": 0,
+        "attempts": [
+          2,
+          2
+        ],
+        "accepted": [
+          2,
+          2
+        ],
+        "queueFull": [
+          0,
+          0
+        ],
+        "unavailable": [
+          0,
+          0
+        ],
+        "exceptionSame": [
+          false,
+          false,
+          false
+        ],
+        "exceptions": [
+          null,
+          null,
+          null
+        ],
+        "wireMessages": [
+          "original",
+          "original"
+        ],
+        "factoryInvocations": [
+          0,
+          0,
+          0
+        ]
+      }
+    },
+    {
+      "id": "CAPTURE-ATTRIBUTE-NULL-DIRECT",
+      "input": {
+        "method": "direct",
+        "mode": "invalid",
+        "payload": "attribute-null",
+        "consolePlan": [
+          "Accepted",
+          "Accepted"
+        ],
+        "filePlan": [
+          "Accepted",
+          "Accepted"
+        ],
+        "consoleSeed": 10,
+        "fileSeed": 100
+      },
+      "expected": {
+        "results": [
+          {
+            "outcome": "Accepted",
+            "errorCode": null,
+            "truncated": false,
+            "outputs": [
+              {
+                "name": "console",
+                "status": "Accepted",
+                "sequence": 11
+              },
+              {
+                "name": "file",
+                "status": "Accepted",
+                "sequence": 101
+              }
+            ]
+          },
+          {
+            "outcome": "InvalidEvent",
+            "errorCode": "UnsupportedValue",
+            "truncated": false,
+            "outputs": []
+          },
+          {
+            "outcome": "Accepted",
+            "errorCode": null,
+            "truncated": false,
+            "outputs": [
+              {
+                "name": "console",
+                "status": "Accepted",
+                "sequence": 12
+              },
+              {
+                "name": "file",
+                "status": "Accepted",
+                "sequence": 102
+              }
+            ]
+          }
+        ],
+        "factoryCalls": 0,
+        "clockCalls": 3,
+        "invalidCount": 1,
+        "truncatedCount": 0,
+        "attempts": [
+          2,
+          2
+        ],
+        "accepted": [
+          2,
+          2
+        ],
+        "queueFull": [
+          0,
+          0
+        ],
+        "unavailable": [
+          0,
+          0
+        ],
+        "exceptionSame": [
+          false,
+          false,
+          false
+        ],
+        "exceptions": [
+          null,
+          null,
+          null
+        ],
+        "wireMessages": [
+          "original",
+          "original"
+        ],
+        "factoryInvocations": [
+          0,
+          0,
+          0
+        ]
+      }
+    },
+    {
+      "id": "CAPTURE-ATTRIBUTE-THROWS-DIRECT",
+      "input": {
+        "method": "direct",
+        "mode": "invalid",
+        "payload": "attribute-throws",
+        "consolePlan": [
+          "Accepted",
+          "Accepted"
+        ],
+        "filePlan": [
+          "Accepted",
+          "Accepted"
+        ],
+        "consoleSeed": 10,
+        "fileSeed": 100
+      },
+      "expected": {
+        "results": [
+          {
+            "outcome": "Accepted",
+            "errorCode": null,
+            "truncated": false,
+            "outputs": [
+              {
+                "name": "console",
+                "status": "Accepted",
+                "sequence": 11
+              },
+              {
+                "name": "file",
+                "status": "Accepted",
+                "sequence": 101
+              }
+            ]
+          },
+          {
+            "outcome": "InvalidEvent",
+            "errorCode": "UnsupportedValue",
+            "truncated": false,
+            "outputs": []
+          },
+          {
+            "outcome": "Accepted",
+            "errorCode": null,
+            "truncated": false,
+            "outputs": [
+              {
+                "name": "console",
+                "status": "Accepted",
+                "sequence": 12
+              },
+              {
+                "name": "file",
+                "status": "Accepted",
+                "sequence": 102
+              }
+            ]
+          }
+        ],
+        "factoryCalls": 0,
+        "clockCalls": 3,
+        "invalidCount": 1,
+        "truncatedCount": 0,
+        "attempts": [
+          2,
+          2
+        ],
+        "accepted": [
+          2,
+          2
+        ],
+        "queueFull": [
+          0,
+          0
+        ],
+        "unavailable": [
+          0,
+          0
+        ],
+        "exceptionSame": [
+          false,
+          false,
+          false
+        ],
+        "exceptions": [
+          null,
+          null,
+          null
+        ],
+        "wireMessages": [
+          "original",
+          "original"
+        ],
+        "factoryInvocations": [
+          0,
+          0,
+          0
+        ]
+      }
+    },
+    {
+      "id": "CAPTURE-EXCEPTION-THROWS-DIRECT",
+      "input": {
+        "method": "direct",
+        "mode": "invalid",
+        "payload": "exception-throws",
+        "consolePlan": [
+          "Accepted",
+          "Accepted"
+        ],
+        "filePlan": [
+          "Accepted",
+          "Accepted"
+        ],
+        "consoleSeed": 10,
+        "fileSeed": 100
+      },
+      "expected": {
+        "results": [
+          {
+            "outcome": "Accepted",
+            "errorCode": null,
+            "truncated": false,
+            "outputs": [
+              {
+                "name": "console",
+                "status": "Accepted",
+                "sequence": 11
+              },
+              {
+                "name": "file",
+                "status": "Accepted",
+                "sequence": 101
+              }
+            ]
+          },
+          {
+            "outcome": "InvalidEvent",
+            "errorCode": "UnsupportedValue",
+            "truncated": false,
+            "outputs": []
+          },
+          {
+            "outcome": "Accepted",
+            "errorCode": null,
+            "truncated": false,
+            "outputs": [
+              {
+                "name": "console",
+                "status": "Accepted",
+                "sequence": 12
+              },
+              {
+                "name": "file",
+                "status": "Accepted",
+                "sequence": 102
+              }
+            ]
+          }
+        ],
+        "factoryCalls": 0,
+        "clockCalls": 3,
+        "invalidCount": 1,
+        "truncatedCount": 0,
+        "attempts": [
+          2,
+          2
+        ],
+        "accepted": [
+          2,
+          2
+        ],
+        "queueFull": [
+          0,
+          0
+        ],
+        "unavailable": [
+          0,
+          0
+        ],
+        "exceptionSame": [
+          false,
+          false,
+          false
+        ],
+        "exceptions": [
+          null,
+          null,
+          null
+        ],
+        "wireMessages": [
+          "original",
+          "original"
+        ],
+        "factoryInvocations": [
+          0,
+          0,
+          0
+        ]
+      }
+    },
+    {
+      "id": "CAPTURE-TRUNCATED-ACCEPTED-DIRECT",
+      "input": {
+        "method": "direct",
+        "mode": "truncate",
+        "payload": "long",
+        "consolePlan": [
+          "Accepted"
+        ],
+        "filePlan": [
+          "Accepted"
+        ],
+        "consoleSeed": 10,
+        "fileSeed": 100
+      },
+      "expected": {
+        "results": [
+          {
+            "outcome": "Accepted",
+            "errorCode": null,
+            "truncated": true,
+            "outputs": [
+              {
+                "name": "console",
+                "status": "Accepted",
+                "sequence": 11
+              },
+              {
+                "name": "file",
+                "status": "Accepted",
+                "sequence": 101
+              }
+            ]
+          }
+        ],
+        "factoryCalls": 0,
+        "clockCalls": 1,
+        "invalidCount": 0,
+        "truncatedCount": 1,
+        "attempts": [
+          1,
+          1
+        ],
+        "accepted": [
+          1,
+          1
+        ],
+        "queueFull": [
+          0,
+          0
+        ],
+        "unavailable": [
+          0,
+          0
+        ],
+        "exceptionSame": [
+          false
+        ],
+        "exceptions": [
+          null
+        ],
+        "wireMessages": [
+          "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+        ],
+        "factoryInvocations": [
+          0
+        ]
+      }
+    },
+    {
+      "id": "CAPTURE-TRUNCATED-PARTIALLYACCEPTED-DIRECT",
+      "input": {
+        "method": "direct",
+        "mode": "truncate",
+        "payload": "long",
+        "consolePlan": [
+          "Accepted"
+        ],
+        "filePlan": [
+          "QueueFull"
+        ],
+        "consoleSeed": 10,
+        "fileSeed": 100
+      },
+      "expected": {
+        "results": [
+          {
+            "outcome": "PartiallyAccepted",
+            "errorCode": null,
+            "truncated": true,
+            "outputs": [
+              {
+                "name": "console",
+                "status": "Accepted",
+                "sequence": 11
+              },
+              {
+                "name": "file",
+                "status": "QueueFull",
+                "sequence": null
+              }
+            ]
+          }
+        ],
+        "factoryCalls": 0,
+        "clockCalls": 1,
+        "invalidCount": 0,
+        "truncatedCount": 1,
+        "attempts": [
+          1,
+          1
+        ],
+        "accepted": [
+          1,
+          0
+        ],
+        "queueFull": [
+          0,
+          1
+        ],
+        "unavailable": [
+          0,
+          0
+        ],
+        "exceptionSame": [
+          false
+        ],
+        "exceptions": [
+          null
+        ],
+        "wireMessages": [
+          "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+        ],
+        "factoryInvocations": [
+          0
+        ]
+      }
+    },
+    {
+      "id": "CAPTURE-TRUNCATED-REJECTED-DIRECT",
+      "input": {
+        "method": "direct",
+        "mode": "truncate",
+        "payload": "long",
+        "consolePlan": [
+          "QueueFull"
+        ],
+        "filePlan": [
+          "QueueFull"
+        ],
+        "consoleSeed": 10,
+        "fileSeed": 100
+      },
+      "expected": {
+        "results": [
+          {
+            "outcome": "Rejected",
+            "errorCode": null,
+            "truncated": true,
+            "outputs": [
+              {
+                "name": "console",
+                "status": "QueueFull",
+                "sequence": null
+              },
+              {
+                "name": "file",
+                "status": "QueueFull",
+                "sequence": null
+              }
+            ]
+          }
+        ],
+        "factoryCalls": 0,
+        "clockCalls": 1,
+        "invalidCount": 0,
+        "truncatedCount": 1,
+        "attempts": [
+          1,
+          1
+        ],
+        "accepted": [
+          0,
+          0
+        ],
+        "queueFull": [
+          1,
+          1
+        ],
+        "unavailable": [
+          0,
+          0
+        ],
+        "exceptionSame": [
+          false
+        ],
+        "exceptions": [
+          null
+        ],
+        "wireMessages": [
+          "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+        ],
+        "factoryInvocations": [
+          0
+        ]
+      }
+    },
+    {
+      "id": "CAPTURE-ADMISSION-FAULT-CONSOLE-DIRECT",
+      "input": {
+        "method": "direct",
+        "mode": "single",
+        "payload": "valid",
+        "consolePlan": [
+          "Faulted"
+        ],
+        "filePlan": [
+          "Accepted"
+        ],
+        "consoleSeed": 10,
+        "fileSeed": 100
+      },
+      "expected": {
+        "results": [
+          {
+            "outcome": "PartiallyAccepted",
+            "errorCode": null,
+            "truncated": false,
+            "outputs": [
+              {
+                "name": "console",
+                "status": "Faulted",
+                "sequence": null
+              },
+              {
+                "name": "file",
+                "status": "Accepted",
+                "sequence": 101
+              }
+            ]
+          }
+        ],
+        "factoryCalls": 0,
+        "clockCalls": 1,
+        "invalidCount": 0,
+        "truncatedCount": 0,
+        "attempts": [
+          1,
+          1
+        ],
+        "accepted": [
+          0,
+          1
+        ],
+        "queueFull": [
+          0,
+          0
+        ],
+        "unavailable": [
+          1,
+          0
+        ],
+        "exceptionSame": [
+          false
+        ],
+        "exceptions": [
+          null
+        ],
+        "wireMessages": [
+          "original"
+        ],
+        "factoryInvocations": [
+          0
+        ]
+      }
+    },
+    {
+      "id": "CAPTURE-ADMISSION-FAULT-FILE-DIRECT",
+      "input": {
+        "method": "direct",
+        "mode": "single",
+        "payload": "valid",
+        "consolePlan": [
+          "Accepted"
+        ],
+        "filePlan": [
+          "Faulted"
+        ],
+        "consoleSeed": 10,
+        "fileSeed": 100
+      },
+      "expected": {
+        "results": [
+          {
+            "outcome": "PartiallyAccepted",
+            "errorCode": null,
+            "truncated": false,
+            "outputs": [
+              {
+                "name": "console",
+                "status": "Accepted",
+                "sequence": 11
+              },
+              {
+                "name": "file",
+                "status": "Faulted",
+                "sequence": null
+              }
+            ]
+          }
+        ],
+        "factoryCalls": 0,
+        "clockCalls": 1,
+        "invalidCount": 0,
+        "truncatedCount": 0,
+        "attempts": [
+          1,
+          1
+        ],
+        "accepted": [
+          1,
+          0
+        ],
+        "queueFull": [
+          0,
+          0
+        ],
+        "unavailable": [
+          0,
+          1
+        ],
+        "exceptionSame": [
+          false
+        ],
+        "exceptions": [
+          null
+        ],
+        "wireMessages": [
+          "original"
+        ],
+        "factoryInvocations": [
+          0
+        ]
+      }
+    },
+    {
+      "id": "CAPTURE-SEQUENCES-DIRECT",
+      "input": {
+        "method": "direct",
+        "mode": "sequence",
+        "payload": "valid",
+        "consolePlan": [
+          "Accepted",
+          "QueueFull",
+          "Accepted"
+        ],
+        "filePlan": [
+          "QueueFull",
+          "Accepted",
+          "Accepted"
+        ],
+        "consoleSeed": 10,
+        "fileSeed": 100
+      },
+      "expected": {
+        "results": [
+          {
+            "outcome": "PartiallyAccepted",
+            "errorCode": null,
+            "truncated": false,
+            "outputs": [
+              {
+                "name": "console",
+                "status": "Accepted",
+                "sequence": 11
+              },
+              {
+                "name": "file",
+                "status": "QueueFull",
+                "sequence": null
+              }
+            ]
+          },
+          {
+            "outcome": "PartiallyAccepted",
+            "errorCode": null,
+            "truncated": false,
+            "outputs": [
+              {
+                "name": "console",
+                "status": "QueueFull",
+                "sequence": null
+              },
+              {
+                "name": "file",
+                "status": "Accepted",
+                "sequence": 101
+              }
+            ]
+          },
+          {
+            "outcome": "Accepted",
+            "errorCode": null,
+            "truncated": false,
+            "outputs": [
+              {
+                "name": "console",
+                "status": "Accepted",
+                "sequence": 12
+              },
+              {
+                "name": "file",
+                "status": "Accepted",
+                "sequence": 102
+              }
+            ]
+          }
+        ],
+        "factoryCalls": 0,
+        "clockCalls": 3,
+        "invalidCount": 0,
+        "truncatedCount": 0,
+        "attempts": [
+          3,
+          3
+        ],
+        "accepted": [
+          2,
+          2
+        ],
+        "queueFull": [
+          1,
+          1
+        ],
+        "unavailable": [
+          0,
+          0
+        ],
+        "exceptionSame": [
+          false,
+          false,
+          false
+        ],
+        "exceptions": [
+          null,
+          null,
+          null
+        ],
+        "wireMessages": [
+          "original",
+          "original",
+          "original"
+        ],
+        "factoryInvocations": [
+          0,
+          0,
+          0
+        ]
+      }
+    },
+    {
+      "id": "CAPTURE-NAME-NULL-LAZY",
+      "input": {
+        "method": "lazy",
+        "mode": "invalid",
+        "payload": "name-null",
+        "consolePlan": [
+          "Accepted",
+          "Accepted"
+        ],
+        "filePlan": [
+          "Accepted",
+          "Accepted"
+        ],
+        "consoleSeed": 10,
+        "fileSeed": 100
+      },
+      "expected": {
+        "results": [
+          {
+            "outcome": "Accepted",
+            "errorCode": null,
+            "truncated": false,
+            "outputs": [
+              {
+                "name": "console",
+                "status": "Accepted",
+                "sequence": 11
+              },
+              {
+                "name": "file",
+                "status": "Accepted",
+                "sequence": 101
+              }
+            ]
+          },
+          {
+            "outcome": "InvalidEvent",
+            "errorCode": "InvalidEventName",
+            "truncated": false,
+            "outputs": []
+          },
+          {
+            "outcome": "Accepted",
+            "errorCode": null,
+            "truncated": false,
+            "outputs": [
+              {
+                "name": "console",
+                "status": "Accepted",
+                "sequence": 12
+              },
+              {
+                "name": "file",
+                "status": "Accepted",
+                "sequence": 102
+              }
+            ]
+          }
+        ],
+        "factoryCalls": 3,
+        "clockCalls": 2,
+        "invalidCount": 1,
+        "truncatedCount": 0,
+        "attempts": [
+          2,
+          2
+        ],
+        "accepted": [
+          2,
+          2
+        ],
+        "queueFull": [
+          0,
+          0
+        ],
+        "unavailable": [
+          0,
+          0
+        ],
+        "exceptionSame": [
+          false,
+          false,
+          false
+        ],
+        "exceptions": [
+          null,
+          null,
+          null
+        ],
+        "wireMessages": [
+          "original",
+          "original"
+        ],
+        "factoryInvocations": [
+          1,
+          1,
+          1
+        ]
+      }
+    },
+    {
+      "id": "CAPTURE-NAME-EMPTY-LAZY",
+      "input": {
+        "method": "lazy",
+        "mode": "invalid",
+        "payload": "name-empty",
+        "consolePlan": [
+          "Accepted",
+          "Accepted"
+        ],
+        "filePlan": [
+          "Accepted",
+          "Accepted"
+        ],
+        "consoleSeed": 10,
+        "fileSeed": 100
+      },
+      "expected": {
+        "results": [
+          {
+            "outcome": "Accepted",
+            "errorCode": null,
+            "truncated": false,
+            "outputs": [
+              {
+                "name": "console",
+                "status": "Accepted",
+                "sequence": 11
+              },
+              {
+                "name": "file",
+                "status": "Accepted",
+                "sequence": 101
+              }
+            ]
+          },
+          {
+            "outcome": "InvalidEvent",
+            "errorCode": "InvalidEventName",
+            "truncated": false,
+            "outputs": []
+          },
+          {
+            "outcome": "Accepted",
+            "errorCode": null,
+            "truncated": false,
+            "outputs": [
+              {
+                "name": "console",
+                "status": "Accepted",
+                "sequence": 12
+              },
+              {
+                "name": "file",
+                "status": "Accepted",
+                "sequence": 102
+              }
+            ]
+          }
+        ],
+        "factoryCalls": 3,
+        "clockCalls": 2,
+        "invalidCount": 1,
+        "truncatedCount": 0,
+        "attempts": [
+          2,
+          2
+        ],
+        "accepted": [
+          2,
+          2
+        ],
+        "queueFull": [
+          0,
+          0
+        ],
+        "unavailable": [
+          0,
+          0
+        ],
+        "exceptionSame": [
+          false,
+          false,
+          false
+        ],
+        "exceptions": [
+          null,
+          null,
+          null
+        ],
+        "wireMessages": [
+          "original",
+          "original"
+        ],
+        "factoryInvocations": [
+          1,
+          1,
+          1
+        ]
+      }
+    },
+    {
+      "id": "CAPTURE-NAME-CONTROL-LAZY",
+      "input": {
+        "method": "lazy",
+        "mode": "invalid",
+        "payload": "name-control",
+        "consolePlan": [
+          "Accepted",
+          "Accepted"
+        ],
+        "filePlan": [
+          "Accepted",
+          "Accepted"
+        ],
+        "consoleSeed": 10,
+        "fileSeed": 100
+      },
+      "expected": {
+        "results": [
+          {
+            "outcome": "Accepted",
+            "errorCode": null,
+            "truncated": false,
+            "outputs": [
+              {
+                "name": "console",
+                "status": "Accepted",
+                "sequence": 11
+              },
+              {
+                "name": "file",
+                "status": "Accepted",
+                "sequence": 101
+              }
+            ]
+          },
+          {
+            "outcome": "InvalidEvent",
+            "errorCode": "InvalidEventName",
+            "truncated": false,
+            "outputs": []
+          },
+          {
+            "outcome": "Accepted",
+            "errorCode": null,
+            "truncated": false,
+            "outputs": [
+              {
+                "name": "console",
+                "status": "Accepted",
+                "sequence": 12
+              },
+              {
+                "name": "file",
+                "status": "Accepted",
+                "sequence": 102
+              }
+            ]
+          }
+        ],
+        "factoryCalls": 3,
+        "clockCalls": 2,
+        "invalidCount": 1,
+        "truncatedCount": 0,
+        "attempts": [
+          2,
+          2
+        ],
+        "accepted": [
+          2,
+          2
+        ],
+        "queueFull": [
+          0,
+          0
+        ],
+        "unavailable": [
+          0,
+          0
+        ],
+        "exceptionSame": [
+          false,
+          false,
+          false
+        ],
+        "exceptions": [
+          null,
+          null,
+          null
+        ],
+        "wireMessages": [
+          "original",
+          "original"
+        ],
+        "factoryInvocations": [
+          1,
+          1,
+          1
+        ]
+      }
+    },
+    {
+      "id": "CAPTURE-NAME-UNICODE-LAZY",
+      "input": {
+        "method": "lazy",
+        "mode": "invalid",
+        "payload": "name-unicode",
+        "consolePlan": [
+          "Accepted",
+          "Accepted"
+        ],
+        "filePlan": [
+          "Accepted",
+          "Accepted"
+        ],
+        "consoleSeed": 10,
+        "fileSeed": 100
+      },
+      "expected": {
+        "results": [
+          {
+            "outcome": "Accepted",
+            "errorCode": null,
+            "truncated": false,
+            "outputs": [
+              {
+                "name": "console",
+                "status": "Accepted",
+                "sequence": 11
+              },
+              {
+                "name": "file",
+                "status": "Accepted",
+                "sequence": 101
+              }
+            ]
+          },
+          {
+            "outcome": "InvalidEvent",
+            "errorCode": "InvalidUnicode",
+            "truncated": false,
+            "outputs": []
+          },
+          {
+            "outcome": "Accepted",
+            "errorCode": null,
+            "truncated": false,
+            "outputs": [
+              {
+                "name": "console",
+                "status": "Accepted",
+                "sequence": 12
+              },
+              {
+                "name": "file",
+                "status": "Accepted",
+                "sequence": 102
+              }
+            ]
+          }
+        ],
+        "factoryCalls": 3,
+        "clockCalls": 2,
+        "invalidCount": 1,
+        "truncatedCount": 0,
+        "attempts": [
+          2,
+          2
+        ],
+        "accepted": [
+          2,
+          2
+        ],
+        "queueFull": [
+          0,
+          0
+        ],
+        "unavailable": [
+          0,
+          0
+        ],
+        "exceptionSame": [
+          false,
+          false,
+          false
+        ],
+        "exceptions": [
+          null,
+          null,
+          null
+        ],
+        "wireMessages": [
+          "original",
+          "original"
+        ],
+        "factoryInvocations": [
+          1,
+          1,
+          1
+        ]
+      }
+    },
+    {
+      "id": "CAPTURE-MESSAGE-NULL-LAZY",
+      "input": {
+        "method": "lazy",
+        "mode": "invalid",
+        "payload": "message-null",
+        "consolePlan": [
+          "Accepted",
+          "Accepted"
+        ],
+        "filePlan": [
+          "Accepted",
+          "Accepted"
+        ],
+        "consoleSeed": 10,
+        "fileSeed": 100
+      },
+      "expected": {
+        "results": [
+          {
+            "outcome": "Accepted",
+            "errorCode": null,
+            "truncated": false,
+            "outputs": [
+              {
+                "name": "console",
+                "status": "Accepted",
+                "sequence": 11
+              },
+              {
+                "name": "file",
+                "status": "Accepted",
+                "sequence": 101
+              }
+            ]
+          },
+          {
+            "outcome": "InvalidEvent",
+            "errorCode": "InvalidMessage",
+            "truncated": false,
+            "outputs": []
+          },
+          {
+            "outcome": "Accepted",
+            "errorCode": null,
+            "truncated": false,
+            "outputs": [
+              {
+                "name": "console",
+                "status": "Accepted",
+                "sequence": 12
+              },
+              {
+                "name": "file",
+                "status": "Accepted",
+                "sequence": 102
+              }
+            ]
+          }
+        ],
+        "factoryCalls": 3,
+        "clockCalls": 3,
+        "invalidCount": 1,
+        "truncatedCount": 0,
+        "attempts": [
+          2,
+          2
+        ],
+        "accepted": [
+          2,
+          2
+        ],
+        "queueFull": [
+          0,
+          0
+        ],
+        "unavailable": [
+          0,
+          0
+        ],
+        "exceptionSame": [
+          false,
+          false,
+          false
+        ],
+        "exceptions": [
+          null,
+          null,
+          null
+        ],
+        "wireMessages": [
+          "original",
+          "original"
+        ],
+        "factoryInvocations": [
+          1,
+          1,
+          1
+        ]
+      }
+    },
+    {
+      "id": "CAPTURE-MESSAGE-UNICODE-LAZY",
+      "input": {
+        "method": "lazy",
+        "mode": "invalid",
+        "payload": "message-unicode",
+        "consolePlan": [
+          "Accepted",
+          "Accepted"
+        ],
+        "filePlan": [
+          "Accepted",
+          "Accepted"
+        ],
+        "consoleSeed": 10,
+        "fileSeed": 100
+      },
+      "expected": {
+        "results": [
+          {
+            "outcome": "Accepted",
+            "errorCode": null,
+            "truncated": false,
+            "outputs": [
+              {
+                "name": "console",
+                "status": "Accepted",
+                "sequence": 11
+              },
+              {
+                "name": "file",
+                "status": "Accepted",
+                "sequence": 101
+              }
+            ]
+          },
+          {
+            "outcome": "InvalidEvent",
+            "errorCode": "InvalidUnicode",
+            "truncated": false,
+            "outputs": []
+          },
+          {
+            "outcome": "Accepted",
+            "errorCode": null,
+            "truncated": false,
+            "outputs": [
+              {
+                "name": "console",
+                "status": "Accepted",
+                "sequence": 12
+              },
+              {
+                "name": "file",
+                "status": "Accepted",
+                "sequence": 102
+              }
+            ]
+          }
+        ],
+        "factoryCalls": 3,
+        "clockCalls": 3,
+        "invalidCount": 1,
+        "truncatedCount": 0,
+        "attempts": [
+          2,
+          2
+        ],
+        "accepted": [
+          2,
+          2
+        ],
+        "queueFull": [
+          0,
+          0
+        ],
+        "unavailable": [
+          0,
+          0
+        ],
+        "exceptionSame": [
+          false,
+          false,
+          false
+        ],
+        "exceptions": [
+          null,
+          null,
+          null
+        ],
+        "wireMessages": [
+          "original",
+          "original"
+        ],
+        "factoryInvocations": [
+          1,
+          1,
+          1
+        ]
+      }
+    },
+    {
+      "id": "CAPTURE-TEMPLATE-UNICODE-LAZY",
+      "input": {
+        "method": "lazy",
+        "mode": "invalid",
+        "payload": "template-unicode",
+        "consolePlan": [
+          "Accepted",
+          "Accepted"
+        ],
+        "filePlan": [
+          "Accepted",
+          "Accepted"
+        ],
+        "consoleSeed": 10,
+        "fileSeed": 100
+      },
+      "expected": {
+        "results": [
+          {
+            "outcome": "Accepted",
+            "errorCode": null,
+            "truncated": false,
+            "outputs": [
+              {
+                "name": "console",
+                "status": "Accepted",
+                "sequence": 11
+              },
+              {
+                "name": "file",
+                "status": "Accepted",
+                "sequence": 101
+              }
+            ]
+          },
+          {
+            "outcome": "InvalidEvent",
+            "errorCode": "InvalidUnicode",
+            "truncated": false,
+            "outputs": []
+          },
+          {
+            "outcome": "Accepted",
+            "errorCode": null,
+            "truncated": false,
+            "outputs": [
+              {
+                "name": "console",
+                "status": "Accepted",
+                "sequence": 12
+              },
+              {
+                "name": "file",
+                "status": "Accepted",
+                "sequence": 102
+              }
+            ]
+          }
+        ],
+        "factoryCalls": 3,
+        "clockCalls": 3,
+        "invalidCount": 1,
+        "truncatedCount": 0,
+        "attempts": [
+          2,
+          2
+        ],
+        "accepted": [
+          2,
+          2
+        ],
+        "queueFull": [
+          0,
+          0
+        ],
+        "unavailable": [
+          0,
+          0
+        ],
+        "exceptionSame": [
+          false,
+          false,
+          false
+        ],
+        "exceptions": [
+          null,
+          null,
+          null
+        ],
+        "wireMessages": [
+          "original",
+          "original"
+        ],
+        "factoryInvocations": [
+          1,
+          1,
+          1
+        ]
+      }
+    },
+    {
+      "id": "CAPTURE-OPERATION-CONTROL-LAZY",
+      "input": {
+        "method": "lazy",
+        "mode": "invalid",
+        "payload": "operation-control",
+        "consolePlan": [
+          "Accepted",
+          "Accepted"
+        ],
+        "filePlan": [
+          "Accepted",
+          "Accepted"
+        ],
+        "consoleSeed": 10,
+        "fileSeed": 100
+      },
+      "expected": {
+        "results": [
+          {
+            "outcome": "Accepted",
+            "errorCode": null,
+            "truncated": false,
+            "outputs": [
+              {
+                "name": "console",
+                "status": "Accepted",
+                "sequence": 11
+              },
+              {
+                "name": "file",
+                "status": "Accepted",
+                "sequence": 101
+              }
+            ]
+          },
+          {
+            "outcome": "InvalidEvent",
+            "errorCode": "InvalidOperationId",
+            "truncated": false,
+            "outputs": []
+          },
+          {
+            "outcome": "Accepted",
+            "errorCode": null,
+            "truncated": false,
+            "outputs": [
+              {
+                "name": "console",
+                "status": "Accepted",
+                "sequence": 12
+              },
+              {
+                "name": "file",
+                "status": "Accepted",
+                "sequence": 102
+              }
+            ]
+          }
+        ],
+        "factoryCalls": 3,
+        "clockCalls": 3,
+        "invalidCount": 1,
+        "truncatedCount": 0,
+        "attempts": [
+          2,
+          2
+        ],
+        "accepted": [
+          2,
+          2
+        ],
+        "queueFull": [
+          0,
+          0
+        ],
+        "unavailable": [
+          0,
+          0
+        ],
+        "exceptionSame": [
+          false,
+          false,
+          false
+        ],
+        "exceptions": [
+          null,
+          null,
+          null
+        ],
+        "wireMessages": [
+          "original",
+          "original"
+        ],
+        "factoryInvocations": [
+          1,
+          1,
+          1
+        ]
+      }
+    },
+    {
+      "id": "CAPTURE-OPERATION-UNICODE-LAZY",
+      "input": {
+        "method": "lazy",
+        "mode": "invalid",
+        "payload": "operation-unicode",
+        "consolePlan": [
+          "Accepted",
+          "Accepted"
+        ],
+        "filePlan": [
+          "Accepted",
+          "Accepted"
+        ],
+        "consoleSeed": 10,
+        "fileSeed": 100
+      },
+      "expected": {
+        "results": [
+          {
+            "outcome": "Accepted",
+            "errorCode": null,
+            "truncated": false,
+            "outputs": [
+              {
+                "name": "console",
+                "status": "Accepted",
+                "sequence": 11
+              },
+              {
+                "name": "file",
+                "status": "Accepted",
+                "sequence": 101
+              }
+            ]
+          },
+          {
+            "outcome": "InvalidEvent",
+            "errorCode": "InvalidUnicode",
+            "truncated": false,
+            "outputs": []
+          },
+          {
+            "outcome": "Accepted",
+            "errorCode": null,
+            "truncated": false,
+            "outputs": [
+              {
+                "name": "console",
+                "status": "Accepted",
+                "sequence": 12
+              },
+              {
+                "name": "file",
+                "status": "Accepted",
+                "sequence": 102
+              }
+            ]
+          }
+        ],
+        "factoryCalls": 3,
+        "clockCalls": 3,
+        "invalidCount": 1,
+        "truncatedCount": 0,
+        "attempts": [
+          2,
+          2
+        ],
+        "accepted": [
+          2,
+          2
+        ],
+        "queueFull": [
+          0,
+          0
+        ],
+        "unavailable": [
+          0,
+          0
+        ],
+        "exceptionSame": [
+          false,
+          false,
+          false
+        ],
+        "exceptions": [
+          null,
+          null,
+          null
+        ],
+        "wireMessages": [
+          "original",
+          "original"
+        ],
+        "factoryInvocations": [
+          1,
+          1,
+          1
+        ]
+      }
+    },
+    {
+      "id": "CAPTURE-ATTRIBUTE-KEY-LAZY",
+      "input": {
+        "method": "lazy",
+        "mode": "invalid",
+        "payload": "attribute-key",
+        "consolePlan": [
+          "Accepted",
+          "Accepted"
+        ],
+        "filePlan": [
+          "Accepted",
+          "Accepted"
+        ],
+        "consoleSeed": 10,
+        "fileSeed": 100
+      },
+      "expected": {
+        "results": [
+          {
+            "outcome": "Accepted",
+            "errorCode": null,
+            "truncated": false,
+            "outputs": [
+              {
+                "name": "console",
+                "status": "Accepted",
+                "sequence": 11
+              },
+              {
+                "name": "file",
+                "status": "Accepted",
+                "sequence": 101
+              }
+            ]
+          },
+          {
+            "outcome": "InvalidEvent",
+            "errorCode": "UnsupportedValue",
+            "truncated": false,
+            "outputs": []
+          },
+          {
+            "outcome": "Accepted",
+            "errorCode": null,
+            "truncated": false,
+            "outputs": [
+              {
+                "name": "console",
+                "status": "Accepted",
+                "sequence": 12
+              },
+              {
+                "name": "file",
+                "status": "Accepted",
+                "sequence": 102
+              }
+            ]
+          }
+        ],
+        "factoryCalls": 3,
+        "clockCalls": 3,
+        "invalidCount": 1,
+        "truncatedCount": 0,
+        "attempts": [
+          2,
+          2
+        ],
+        "accepted": [
+          2,
+          2
+        ],
+        "queueFull": [
+          0,
+          0
+        ],
+        "unavailable": [
+          0,
+          0
+        ],
+        "exceptionSame": [
+          false,
+          false,
+          false
+        ],
+        "exceptions": [
+          null,
+          null,
+          null
+        ],
+        "wireMessages": [
+          "original",
+          "original"
+        ],
+        "factoryInvocations": [
+          1,
+          1,
+          1
+        ]
+      }
+    },
+    {
+      "id": "CAPTURE-ATTRIBUTE-NULL-LAZY",
+      "input": {
+        "method": "lazy",
+        "mode": "invalid",
+        "payload": "attribute-null",
+        "consolePlan": [
+          "Accepted",
+          "Accepted"
+        ],
+        "filePlan": [
+          "Accepted",
+          "Accepted"
+        ],
+        "consoleSeed": 10,
+        "fileSeed": 100
+      },
+      "expected": {
+        "results": [
+          {
+            "outcome": "Accepted",
+            "errorCode": null,
+            "truncated": false,
+            "outputs": [
+              {
+                "name": "console",
+                "status": "Accepted",
+                "sequence": 11
+              },
+              {
+                "name": "file",
+                "status": "Accepted",
+                "sequence": 101
+              }
+            ]
+          },
+          {
+            "outcome": "InvalidEvent",
+            "errorCode": "UnsupportedValue",
+            "truncated": false,
+            "outputs": []
+          },
+          {
+            "outcome": "Accepted",
+            "errorCode": null,
+            "truncated": false,
+            "outputs": [
+              {
+                "name": "console",
+                "status": "Accepted",
+                "sequence": 12
+              },
+              {
+                "name": "file",
+                "status": "Accepted",
+                "sequence": 102
+              }
+            ]
+          }
+        ],
+        "factoryCalls": 3,
+        "clockCalls": 3,
+        "invalidCount": 1,
+        "truncatedCount": 0,
+        "attempts": [
+          2,
+          2
+        ],
+        "accepted": [
+          2,
+          2
+        ],
+        "queueFull": [
+          0,
+          0
+        ],
+        "unavailable": [
+          0,
+          0
+        ],
+        "exceptionSame": [
+          false,
+          false,
+          false
+        ],
+        "exceptions": [
+          null,
+          null,
+          null
+        ],
+        "wireMessages": [
+          "original",
+          "original"
+        ],
+        "factoryInvocations": [
+          1,
+          1,
+          1
+        ]
+      }
+    },
+    {
+      "id": "CAPTURE-ATTRIBUTE-THROWS-LAZY",
+      "input": {
+        "method": "lazy",
+        "mode": "invalid",
+        "payload": "attribute-throws",
+        "consolePlan": [
+          "Accepted",
+          "Accepted"
+        ],
+        "filePlan": [
+          "Accepted",
+          "Accepted"
+        ],
+        "consoleSeed": 10,
+        "fileSeed": 100
+      },
+      "expected": {
+        "results": [
+          {
+            "outcome": "Accepted",
+            "errorCode": null,
+            "truncated": false,
+            "outputs": [
+              {
+                "name": "console",
+                "status": "Accepted",
+                "sequence": 11
+              },
+              {
+                "name": "file",
+                "status": "Accepted",
+                "sequence": 101
+              }
+            ]
+          },
+          {
+            "outcome": "InvalidEvent",
+            "errorCode": "UnsupportedValue",
+            "truncated": false,
+            "outputs": []
+          },
+          {
+            "outcome": "Accepted",
+            "errorCode": null,
+            "truncated": false,
+            "outputs": [
+              {
+                "name": "console",
+                "status": "Accepted",
+                "sequence": 12
+              },
+              {
+                "name": "file",
+                "status": "Accepted",
+                "sequence": 102
+              }
+            ]
+          }
+        ],
+        "factoryCalls": 3,
+        "clockCalls": 3,
+        "invalidCount": 1,
+        "truncatedCount": 0,
+        "attempts": [
+          2,
+          2
+        ],
+        "accepted": [
+          2,
+          2
+        ],
+        "queueFull": [
+          0,
+          0
+        ],
+        "unavailable": [
+          0,
+          0
+        ],
+        "exceptionSame": [
+          false,
+          false,
+          false
+        ],
+        "exceptions": [
+          null,
+          null,
+          null
+        ],
+        "wireMessages": [
+          "original",
+          "original"
+        ],
+        "factoryInvocations": [
+          1,
+          1,
+          1
+        ]
+      }
+    },
+    {
+      "id": "CAPTURE-EXCEPTION-THROWS-LAZY",
+      "input": {
+        "method": "lazy",
+        "mode": "invalid",
+        "payload": "exception-throws",
+        "consolePlan": [
+          "Accepted",
+          "Accepted"
+        ],
+        "filePlan": [
+          "Accepted",
+          "Accepted"
+        ],
+        "consoleSeed": 10,
+        "fileSeed": 100
+      },
+      "expected": {
+        "results": [
+          {
+            "outcome": "Accepted",
+            "errorCode": null,
+            "truncated": false,
+            "outputs": [
+              {
+                "name": "console",
+                "status": "Accepted",
+                "sequence": 11
+              },
+              {
+                "name": "file",
+                "status": "Accepted",
+                "sequence": 101
+              }
+            ]
+          },
+          {
+            "outcome": "InvalidEvent",
+            "errorCode": "UnsupportedValue",
+            "truncated": false,
+            "outputs": []
+          },
+          {
+            "outcome": "Accepted",
+            "errorCode": null,
+            "truncated": false,
+            "outputs": [
+              {
+                "name": "console",
+                "status": "Accepted",
+                "sequence": 12
+              },
+              {
+                "name": "file",
+                "status": "Accepted",
+                "sequence": 102
+              }
+            ]
+          }
+        ],
+        "factoryCalls": 3,
+        "clockCalls": 3,
+        "invalidCount": 1,
+        "truncatedCount": 0,
+        "attempts": [
+          2,
+          2
+        ],
+        "accepted": [
+          2,
+          2
+        ],
+        "queueFull": [
+          0,
+          0
+        ],
+        "unavailable": [
+          0,
+          0
+        ],
+        "exceptionSame": [
+          false,
+          false,
+          false
+        ],
+        "exceptions": [
+          null,
+          null,
+          null
+        ],
+        "wireMessages": [
+          "original",
+          "original"
+        ],
+        "factoryInvocations": [
+          1,
+          1,
+          1
+        ]
+      }
+    },
+    {
+      "id": "CAPTURE-TRUNCATED-ACCEPTED-LAZY",
+      "input": {
+        "method": "lazy",
+        "mode": "truncate",
+        "payload": "long",
+        "consolePlan": [
+          "Accepted"
+        ],
+        "filePlan": [
+          "Accepted"
+        ],
+        "consoleSeed": 10,
+        "fileSeed": 100
+      },
+      "expected": {
+        "results": [
+          {
+            "outcome": "Accepted",
+            "errorCode": null,
+            "truncated": true,
+            "outputs": [
+              {
+                "name": "console",
+                "status": "Accepted",
+                "sequence": 11
+              },
+              {
+                "name": "file",
+                "status": "Accepted",
+                "sequence": 101
+              }
+            ]
+          }
+        ],
+        "factoryCalls": 1,
+        "clockCalls": 1,
+        "invalidCount": 0,
+        "truncatedCount": 1,
+        "attempts": [
+          1,
+          1
+        ],
+        "accepted": [
+          1,
+          1
+        ],
+        "queueFull": [
+          0,
+          0
+        ],
+        "unavailable": [
+          0,
+          0
+        ],
+        "exceptionSame": [
+          false
+        ],
+        "exceptions": [
+          null
+        ],
+        "wireMessages": [
+          "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+        ],
+        "factoryInvocations": [
+          1
+        ]
+      }
+    },
+    {
+      "id": "CAPTURE-TRUNCATED-PARTIALLYACCEPTED-LAZY",
+      "input": {
+        "method": "lazy",
+        "mode": "truncate",
+        "payload": "long",
+        "consolePlan": [
+          "Accepted"
+        ],
+        "filePlan": [
+          "QueueFull"
+        ],
+        "consoleSeed": 10,
+        "fileSeed": 100
+      },
+      "expected": {
+        "results": [
+          {
+            "outcome": "PartiallyAccepted",
+            "errorCode": null,
+            "truncated": true,
+            "outputs": [
+              {
+                "name": "console",
+                "status": "Accepted",
+                "sequence": 11
+              },
+              {
+                "name": "file",
+                "status": "QueueFull",
+                "sequence": null
+              }
+            ]
+          }
+        ],
+        "factoryCalls": 1,
+        "clockCalls": 1,
+        "invalidCount": 0,
+        "truncatedCount": 1,
+        "attempts": [
+          1,
+          1
+        ],
+        "accepted": [
+          1,
+          0
+        ],
+        "queueFull": [
+          0,
+          1
+        ],
+        "unavailable": [
+          0,
+          0
+        ],
+        "exceptionSame": [
+          false
+        ],
+        "exceptions": [
+          null
+        ],
+        "wireMessages": [
+          "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+        ],
+        "factoryInvocations": [
+          1
+        ]
+      }
+    },
+    {
+      "id": "CAPTURE-TRUNCATED-REJECTED-LAZY",
+      "input": {
+        "method": "lazy",
+        "mode": "truncate",
+        "payload": "long",
+        "consolePlan": [
+          "QueueFull"
+        ],
+        "filePlan": [
+          "QueueFull"
+        ],
+        "consoleSeed": 10,
+        "fileSeed": 100
+      },
+      "expected": {
+        "results": [
+          {
+            "outcome": "Rejected",
+            "errorCode": null,
+            "truncated": true,
+            "outputs": [
+              {
+                "name": "console",
+                "status": "QueueFull",
+                "sequence": null
+              },
+              {
+                "name": "file",
+                "status": "QueueFull",
+                "sequence": null
+              }
+            ]
+          }
+        ],
+        "factoryCalls": 1,
+        "clockCalls": 1,
+        "invalidCount": 0,
+        "truncatedCount": 1,
+        "attempts": [
+          1,
+          1
+        ],
+        "accepted": [
+          0,
+          0
+        ],
+        "queueFull": [
+          1,
+          1
+        ],
+        "unavailable": [
+          0,
+          0
+        ],
+        "exceptionSame": [
+          false
+        ],
+        "exceptions": [
+          null
+        ],
+        "wireMessages": [
+          "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+        ],
+        "factoryInvocations": [
+          1
+        ]
+      }
+    },
+    {
+      "id": "CAPTURE-ADMISSION-FAULT-CONSOLE-LAZY",
+      "input": {
+        "method": "lazy",
+        "mode": "single",
+        "payload": "valid",
+        "consolePlan": [
+          "Faulted"
+        ],
+        "filePlan": [
+          "Accepted"
+        ],
+        "consoleSeed": 10,
+        "fileSeed": 100
+      },
+      "expected": {
+        "results": [
+          {
+            "outcome": "PartiallyAccepted",
+            "errorCode": null,
+            "truncated": false,
+            "outputs": [
+              {
+                "name": "console",
+                "status": "Faulted",
+                "sequence": null
+              },
+              {
+                "name": "file",
+                "status": "Accepted",
+                "sequence": 101
+              }
+            ]
+          }
+        ],
+        "factoryCalls": 1,
+        "clockCalls": 1,
+        "invalidCount": 0,
+        "truncatedCount": 0,
+        "attempts": [
+          1,
+          1
+        ],
+        "accepted": [
+          0,
+          1
+        ],
+        "queueFull": [
+          0,
+          0
+        ],
+        "unavailable": [
+          1,
+          0
+        ],
+        "exceptionSame": [
+          false
+        ],
+        "exceptions": [
+          null
+        ],
+        "wireMessages": [
+          "original"
+        ],
+        "factoryInvocations": [
+          1
+        ]
+      }
+    },
+    {
+      "id": "CAPTURE-ADMISSION-FAULT-FILE-LAZY",
+      "input": {
+        "method": "lazy",
+        "mode": "single",
+        "payload": "valid",
+        "consolePlan": [
+          "Accepted"
+        ],
+        "filePlan": [
+          "Faulted"
+        ],
+        "consoleSeed": 10,
+        "fileSeed": 100
+      },
+      "expected": {
+        "results": [
+          {
+            "outcome": "PartiallyAccepted",
+            "errorCode": null,
+            "truncated": false,
+            "outputs": [
+              {
+                "name": "console",
+                "status": "Accepted",
+                "sequence": 11
+              },
+              {
+                "name": "file",
+                "status": "Faulted",
+                "sequence": null
+              }
+            ]
+          }
+        ],
+        "factoryCalls": 1,
+        "clockCalls": 1,
+        "invalidCount": 0,
+        "truncatedCount": 0,
+        "attempts": [
+          1,
+          1
+        ],
+        "accepted": [
+          1,
+          0
+        ],
+        "queueFull": [
+          0,
+          0
+        ],
+        "unavailable": [
+          0,
+          1
+        ],
+        "exceptionSame": [
+          false
+        ],
+        "exceptions": [
+          null
+        ],
+        "wireMessages": [
+          "original"
+        ],
+        "factoryInvocations": [
+          1
+        ]
+      }
+    },
+    {
+      "id": "CAPTURE-SEQUENCES-LAZY",
+      "input": {
+        "method": "lazy",
+        "mode": "sequence",
+        "payload": "valid",
+        "consolePlan": [
+          "Accepted",
+          "QueueFull",
+          "Accepted"
+        ],
+        "filePlan": [
+          "QueueFull",
+          "Accepted",
+          "Accepted"
+        ],
+        "consoleSeed": 10,
+        "fileSeed": 100
+      },
+      "expected": {
+        "results": [
+          {
+            "outcome": "PartiallyAccepted",
+            "errorCode": null,
+            "truncated": false,
+            "outputs": [
+              {
+                "name": "console",
+                "status": "Accepted",
+                "sequence": 11
+              },
+              {
+                "name": "file",
+                "status": "QueueFull",
+                "sequence": null
+              }
+            ]
+          },
+          {
+            "outcome": "PartiallyAccepted",
+            "errorCode": null,
+            "truncated": false,
+            "outputs": [
+              {
+                "name": "console",
+                "status": "QueueFull",
+                "sequence": null
+              },
+              {
+                "name": "file",
+                "status": "Accepted",
+                "sequence": 101
+              }
+            ]
+          },
+          {
+            "outcome": "Accepted",
+            "errorCode": null,
+            "truncated": false,
+            "outputs": [
+              {
+                "name": "console",
+                "status": "Accepted",
+                "sequence": 12
+              },
+              {
+                "name": "file",
+                "status": "Accepted",
+                "sequence": 102
+              }
+            ]
+          }
+        ],
+        "factoryCalls": 3,
+        "clockCalls": 3,
+        "invalidCount": 0,
+        "truncatedCount": 0,
+        "attempts": [
+          3,
+          3
+        ],
+        "accepted": [
+          2,
+          2
+        ],
+        "queueFull": [
+          1,
+          1
+        ],
+        "unavailable": [
+          0,
+          0
+        ],
+        "exceptionSame": [
+          false,
+          false,
+          false
+        ],
+        "exceptions": [
+          null,
+          null,
+          null
+        ],
+        "wireMessages": [
+          "original",
+          "original",
+          "original"
+        ],
+        "factoryInvocations": [
+          1,
+          1,
+          1
+        ]
+      }
+    },
+    {
+      "id": "CAPTURE-NULL-RESULT",
+      "input": {
+        "method": "lazy",
+        "mode": "invalid",
+        "payload": "null-result",
+        "consolePlan": [
+          "Accepted",
+          "Accepted"
+        ],
+        "filePlan": [
+          "Accepted",
+          "Accepted"
+        ],
+        "consoleSeed": 10,
+        "fileSeed": 100
+      },
+      "expected": {
+        "results": [
+          {
+            "outcome": "Accepted",
+            "errorCode": null,
+            "truncated": false,
+            "outputs": [
+              {
+                "name": "console",
+                "status": "Accepted",
+                "sequence": 11
+              },
+              {
+                "name": "file",
+                "status": "Accepted",
+                "sequence": 101
+              }
+            ]
+          },
+          {
+            "outcome": "InvalidEvent",
+            "errorCode": "InvalidFactoryResult",
+            "truncated": false,
+            "outputs": []
+          },
+          {
+            "outcome": "Accepted",
+            "errorCode": null,
+            "truncated": false,
+            "outputs": [
+              {
+                "name": "console",
+                "status": "Accepted",
+                "sequence": 12
+              },
+              {
+                "name": "file",
+                "status": "Accepted",
+                "sequence": 102
+              }
+            ]
+          }
+        ],
+        "factoryCalls": 3,
+        "clockCalls": 2,
+        "invalidCount": 1,
+        "truncatedCount": 0,
+        "attempts": [
+          2,
+          2
+        ],
+        "accepted": [
+          2,
+          2
+        ],
+        "queueFull": [
+          0,
+          0
+        ],
+        "unavailable": [
+          0,
+          0
+        ],
+        "exceptionSame": [
+          false,
+          false,
+          false
+        ],
+        "exceptions": [
+          null,
+          null,
+          null
+        ],
+        "wireMessages": [
+          "original",
+          "original"
+        ],
+        "factoryInvocations": [
+          1,
+          1,
+          1
+        ]
+      }
+    },
+    {
+      "id": "CAPTURE-THROW-IO",
+      "input": {
+        "method": "lazy",
+        "mode": "invalid",
+        "payload": "throw-io",
+        "consolePlan": [
+          "Accepted",
+          "Accepted"
+        ],
+        "filePlan": [
+          "Accepted",
+          "Accepted"
+        ],
+        "consoleSeed": 10,
+        "fileSeed": 100
+      },
+      "expected": {
+        "results": [
+          {
+            "outcome": "Accepted",
+            "errorCode": null,
+            "truncated": false,
+            "outputs": [
+              {
+                "name": "console",
+                "status": "Accepted",
+                "sequence": 11
+              },
+              {
+                "name": "file",
+                "status": "Accepted",
+                "sequence": 101
+              }
+            ]
+          },
+          null,
+          {
+            "outcome": "Accepted",
+            "errorCode": null,
+            "truncated": false,
+            "outputs": [
+              {
+                "name": "console",
+                "status": "Accepted",
+                "sequence": 12
+              },
+              {
+                "name": "file",
+                "status": "Accepted",
+                "sequence": 102
+              }
+            ]
+          }
+        ],
+        "factoryCalls": 3,
+        "clockCalls": 2,
+        "invalidCount": 0,
+        "truncatedCount": 0,
+        "attempts": [
+          2,
+          2
+        ],
+        "accepted": [
+          2,
+          2
+        ],
+        "queueFull": [
+          0,
+          0
+        ],
+        "unavailable": [
+          0,
+          0
+        ],
+        "exceptionSame": [
+          false,
+          true,
+          false
+        ],
+        "exceptions": [
+          null,
+          "IOException",
+          null
+        ],
+        "wireMessages": [
+          "original",
+          "original"
+        ],
+        "factoryInvocations": [
+          1,
+          1,
+          1
+        ]
+      }
+    },
+    {
+      "id": "CAPTURE-THROW-CANCEL",
+      "input": {
+        "method": "lazy",
+        "mode": "invalid",
+        "payload": "throw-cancel",
+        "consolePlan": [
+          "Accepted",
+          "Accepted"
+        ],
+        "filePlan": [
+          "Accepted",
+          "Accepted"
+        ],
+        "consoleSeed": 10,
+        "fileSeed": 100
+      },
+      "expected": {
+        "results": [
+          {
+            "outcome": "Accepted",
+            "errorCode": null,
+            "truncated": false,
+            "outputs": [
+              {
+                "name": "console",
+                "status": "Accepted",
+                "sequence": 11
+              },
+              {
+                "name": "file",
+                "status": "Accepted",
+                "sequence": 101
+              }
+            ]
+          },
+          null,
+          {
+            "outcome": "Accepted",
+            "errorCode": null,
+            "truncated": false,
+            "outputs": [
+              {
+                "name": "console",
+                "status": "Accepted",
+                "sequence": 12
+              },
+              {
+                "name": "file",
+                "status": "Accepted",
+                "sequence": 102
+              }
+            ]
+          }
+        ],
+        "factoryCalls": 3,
+        "clockCalls": 2,
+        "invalidCount": 0,
+        "truncatedCount": 0,
+        "attempts": [
+          2,
+          2
+        ],
+        "accepted": [
+          2,
+          2
+        ],
+        "queueFull": [
+          0,
+          0
+        ],
+        "unavailable": [
+          0,
+          0
+        ],
+        "exceptionSame": [
+          false,
+          true,
+          false
+        ],
+        "exceptions": [
+          null,
+          "OperationCanceledException",
+          null
+        ],
+        "wireMessages": [
+          "original",
+          "original"
+        ],
+        "factoryInvocations": [
+          1,
+          1,
+          1
+        ]
+      }
+    }
+  ]
+}

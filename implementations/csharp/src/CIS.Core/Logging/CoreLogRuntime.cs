@@ -113,7 +113,7 @@ public sealed class CoreLogRuntime
         // Owned encoding consistency errors are Core defects, not invalid caller content.
         lock (admissionGate)
         {
-            if (captured.IsTruncated) { Interlocked.Increment(ref truncatedEventCount); }
+            if (captured.IsTruncated) { IncrementLossCounter(ref truncatedEventCount); }
             if (admissionClosed) { return Stopped(captured.IsTruncated); }
             return Admit(level, captured);
         }
@@ -126,8 +126,20 @@ public sealed class CoreLogRuntime
 
     private LogWriteResult Invalid(string code)
     {
-        Interlocked.Increment(ref invalidEventCount);
+        IncrementLossCounter(ref invalidEventCount);
         return new LogWriteResult(LogWriteOutcome.InvalidEvent, [], code);
+    }
+
+    // Loss counters retain a nonnegative lower bound once Int64 can no longer represent the total.
+    private static void IncrementLossCounter(ref long counter)
+    {
+        long current = Interlocked.Read(ref counter);
+        while (current != long.MaxValue)
+        {
+            long observed = Interlocked.CompareExchange(ref counter, current + 1, current);
+            if (observed == current) { return; }
+            current = observed;
+        }
     }
 
     private LogWriteResult Stopped(bool isTruncated) => new(LogWriteOutcome.Stopped,

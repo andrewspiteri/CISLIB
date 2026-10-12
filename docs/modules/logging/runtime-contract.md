@@ -52,7 +52,7 @@ For each covered boundary, `AcceptedSequenceBoundary = Written + Failed + Abando
 
 Completed with Succeeded=false is a completed failure observation. Succeeded=true with LossObserved=true means admitted work drained successfully but earlier events or payload were lost. Filtered events are intentional and do not count as loss. Pending work alone indicates uncertainty, not confirmed loss. No enabled outputs yields Completed/Succeeded, while captured global loss can still be visible.
 
-Diagnostics distinguish runtime Running/Stopping/Stopped and per-output Running/Faulted/Stopping/Stopped. Each output records accepted tickets, filtered and interested admission attempts, rejection/failure/abandonment counts, pending gauge and safe last fault category/time. `AdmissionAttempts = Accepted + QueueFull + Unavailable`; `Accepted = Written + Failed + Abandoned + Pending`. Last fault information survives shutdown. Counters are nonnegative Int64 and must never wrap. Portable result fixtures encode them as exact decimal strings to avoid transport precision loss; this does not change event JSON.
+Diagnostics distinguish runtime Running/Stopping/Stopped and per-output Running/Faulted/Stopping/Stopped. Each output records accepted tickets, filtered and interested admission attempts, rejection/failure/abandonment counts, pending gauge and safe last fault category/time. `AdmissionAttempts = Accepted + QueueFull + Unavailable`; `Accepted = Written + Failed + Abandoned + Pending`. Last fault information survives shutdown. Counters are nonnegative Int64 and must never wrap. The implemented global invalid/truncated loss counters saturate at Int64.MaxValue, a lower bound once the total is unrepresentable; output-owned ticket/counter limits remain worker implementation work. Portable result fixtures encode them as exact decimal strings to avoid transport precision loss; this does not change event JSON.
 
 ## Coordination, cancellation and disposal
 
@@ -73,3 +73,5 @@ Forty-five admission examples execute against a pure development specification e
 WP04-S05-T01 now implements the [runtime-bound logger foundation](logger-foundation.md), including real capture/encoding and immutable admission results behind internal output composition. The remaining full runtime reference above still defines future public output creation, lifecycle and provider behavior.
 
 WP04-S05-T02 qualifies the [exact argument/state/capture/admission order](logger-decision-order.md) in that real foundation, including mixed faults and closure during caller work. Full S05 and public lifecycle/output/provider integration remain later tasks.
+
+WP04-S05-T03 qualifies [once-only lazy capture, global rejection and output-owned outcomes/tickets](logger-capture-outcomes.md), and prevents global loss counts wrapping. The complete outcome table and S05 acceptance mapping remain T04.
