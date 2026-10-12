@@ -1,6 +1,6 @@
 namespace CIS.Logging.Rendering;
 
-// Owns display bytes, including their final LF. Rendering loss is separate from capture loss.
+// Owns display bytes, including their final LF. Loss includes capture and any additional display omission.
 internal sealed class RenderedHumanEvent
 {
     private readonly byte[] line;
