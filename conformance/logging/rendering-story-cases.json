@@ -1,0 +1,803 @@
+{
+  "schemaVersion": 1,
+  "scope": "WP05-S01-T04 structural JSON and complete human information at the actual internal capture/admission/renderer seam. Supplemental existing cases qualify ambient facts and presentation choices. No output I/O, runtime presentation/stream composition, render-loss counters, lifecycle/provider or release claim. Comparers normalize no fields.",
+  "common": {
+    "timestamp": "2026-10-12T10:11:12.1234567Z",
+    "service": "Qualification.App",
+    "env": "qa",
+    "version": "release-4",
+    "component": "Jsonl",
+    "event_name": "jsonl.event",
+    "resource": {
+      "build_version": "build+AbC",
+      "instance_id": "11111111-2222-4333-8444-555555555555",
+      "initialized_at": "2026-10-12T10:00:00.0000000Z",
+      "environment_kind": "service",
+      "os_family": "linux",
+      "process_started_at": "2026-10-12T09:59:00.0000000Z",
+      "host_name": "node-1",
+      "os_description": "OS description",
+      "os_architecture": "x64",
+      "process_architecture": "arm64",
+      "runtime_description": "runtime description",
+      "process_id": 123,
+      "commit_id": "commit-1",
+      "build_id": "build-1"
+    },
+    "attributes": {
+      "null": null,
+      "true": true,
+      "false": false,
+      "text": "quote \" slash \\ newline\n caf\u00e9 \ud83d\ude00",
+      "integer": 9007199254740991,
+      "number": 1.25,
+      "integerString": "90071992547409920000",
+      "decimal": "12.3400",
+      "uuid": "00112233-4455-6677-8899-aabbccddeeff",
+      "instant": "2026-10-12T10:11:12.1234567Z",
+      "array": [
+        2,
+        1,
+        null
+      ],
+      "map": {
+        "a": true,
+        "z": "last"
+      },
+      "service": "nested service",
+      "trace_id": "nested trace",
+      "span_id": "nested span",
+      "operation_id": "nested operation",
+      "truncated": false,
+      "shared": "event"
+    },
+    "exception": {
+      "type": "CIS.Tests.DiscoveryFixture.JsonlReuseFixture+FixedException",
+      "message": "failure\nquote \" and slash \\",
+      "stack_trace": "frame1\nframe2\r\n\t\u001b[31m",
+      "inner_exceptions": [
+        {
+          "type": "System.Exception",
+          "message": "inner\ntext"
+        }
+      ]
+    }
+  },
+  "cases": [
+    {
+      "id": "RENDER-TRACE",
+      "input": {
+        "level": 0,
+        "messages": [
+          "first caf\u00e9 \ud83d\ude00",
+          "second"
+        ],
+        "mode": "full",
+        "maxEntryBytes": 65536
+      },
+      "expected": {
+        "status": "trace",
+        "truncated": false,
+        "records": 2,
+        "omittedFields": []
+      },
+      "sourceCaseId": "JSONL-TRACE",
+      "presentation": {
+        "formats": [
+          0,
+          1
+        ],
+        "details": [
+          0,
+          1
+        ],
+        "normalTruncated": false,
+        "verboseTruncated": false,
+        "verboseOmittedPayload": []
+      }
+    },
+    {
+      "id": "RENDER-DEBUG",
+      "input": {
+        "level": 1,
+        "messages": [
+          "first caf\u00e9 \ud83d\ude00",
+          "second"
+        ],
+        "mode": "full",
+        "maxEntryBytes": 65536
+      },
+      "expected": {
+        "status": "debug",
+        "truncated": false,
+        "records": 2,
+        "omittedFields": []
+      },
+      "sourceCaseId": "JSONL-DEBUG",
+      "presentation": {
+        "formats": [
+          0,
+          1
+        ],
+        "details": [
+          0,
+          1
+        ],
+        "normalTruncated": false,
+        "verboseTruncated": false,
+        "verboseOmittedPayload": []
+      }
+    },
+    {
+      "id": "RENDER-INFO",
+      "input": {
+        "level": 2,
+        "messages": [
+          "first caf\u00e9 \ud83d\ude00",
+          "second"
+        ],
+        "mode": "full",
+        "maxEntryBytes": 65536
+      },
+      "expected": {
+        "status": "info",
+        "truncated": false,
+        "records": 2,
+        "omittedFields": []
+      },
+      "sourceCaseId": "JSONL-INFO",
+      "presentation": {
+        "formats": [
+          0,
+          1
+        ],
+        "details": [
+          0,
+          1
+        ],
+        "normalTruncated": false,
+        "verboseTruncated": false,
+        "verboseOmittedPayload": []
+      }
+    },
+    {
+      "id": "RENDER-WARNING",
+      "input": {
+        "level": 3,
+        "messages": [
+          "first caf\u00e9 \ud83d\ude00",
+          "second"
+        ],
+        "mode": "full",
+        "maxEntryBytes": 65536
+      },
+      "expected": {
+        "status": "warn",
+        "truncated": false,
+        "records": 2,
+        "omittedFields": []
+      },
+      "sourceCaseId": "JSONL-WARNING",
+      "presentation": {
+        "formats": [
+          0,
+          1
+        ],
+        "details": [
+          0,
+          1
+        ],
+        "normalTruncated": false,
+        "verboseTruncated": false,
+        "verboseOmittedPayload": []
+      }
+    },
+    {
+      "id": "RENDER-ERROR",
+      "input": {
+        "level": 4,
+        "messages": [
+          "first caf\u00e9 \ud83d\ude00",
+          "second"
+        ],
+        "mode": "full",
+        "maxEntryBytes": 65536
+      },
+      "expected": {
+        "status": "error",
+        "truncated": false,
+        "records": 2,
+        "omittedFields": []
+      },
+      "sourceCaseId": "JSONL-ERROR",
+      "presentation": {
+        "formats": [
+          0,
+          1
+        ],
+        "details": [
+          0,
+          1
+        ],
+        "normalTruncated": false,
+        "verboseTruncated": false,
+        "verboseOmittedPayload": []
+      }
+    },
+    {
+      "id": "RENDER-CRITICAL",
+      "input": {
+        "level": 5,
+        "messages": [
+          "first caf\u00e9 \ud83d\ude00",
+          "second"
+        ],
+        "mode": "full",
+        "maxEntryBytes": 65536
+      },
+      "expected": {
+        "status": "critical",
+        "truncated": false,
+        "records": 2,
+        "omittedFields": []
+      },
+      "sourceCaseId": "JSONL-CRITICAL",
+      "presentation": {
+        "formats": [
+          0,
+          1
+        ],
+        "details": [
+          0,
+          1
+        ],
+        "normalTruncated": false,
+        "verboseTruncated": false,
+        "verboseOmittedPayload": []
+      }
+    },
+    {
+      "id": "RENDER-CONTROLS",
+      "input": {
+        "level": 2,
+        "messages": [
+          "\u0000\u0001\u0002\u0003\u0004\u0005\u0006\u0007\b\t\n\u000b\f\r\u000e\u000f\u0010\u0011\u0012\u0013\u0014\u0015\u0016\u0017\u0018\u0019\u001a\u001b\u001c\u001d\u001e\u001fend",
+          "control tail"
+        ],
+        "mode": "full",
+        "maxEntryBytes": 65536
+      },
+      "expected": {
+        "status": "info",
+        "truncated": false,
+        "records": 2,
+        "omittedFields": []
+      },
+      "sourceCaseId": "JSONL-CONTROLS",
+      "presentation": {
+        "formats": [
+          0,
+          1
+        ],
+        "details": [
+          0,
+          1
+        ],
+        "normalTruncated": false,
+        "verboseTruncated": false,
+        "verboseOmittedPayload": []
+      }
+    },
+    {
+      "id": "RENDER-NEWLINE-LF",
+      "input": {
+        "level": 2,
+        "messages": [
+          "left\nright",
+          "tail\nend"
+        ],
+        "mode": "full",
+        "maxEntryBytes": 65536
+      },
+      "expected": {
+        "status": "info",
+        "truncated": false,
+        "records": 2,
+        "omittedFields": []
+      },
+      "sourceCaseId": "JSONL-NEWLINE-LF",
+      "presentation": {
+        "formats": [
+          0,
+          1
+        ],
+        "details": [
+          0,
+          1
+        ],
+        "normalTruncated": false,
+        "verboseTruncated": false,
+        "verboseOmittedPayload": []
+      }
+    },
+    {
+      "id": "RENDER-NEWLINE-CRLF",
+      "input": {
+        "level": 2,
+        "messages": [
+          "left\r\nright",
+          "tail\r\nend"
+        ],
+        "mode": "full",
+        "maxEntryBytes": 65536
+      },
+      "expected": {
+        "status": "info",
+        "truncated": false,
+        "records": 2,
+        "omittedFields": []
+      },
+      "sourceCaseId": "JSONL-NEWLINE-CRLF",
+      "presentation": {
+        "formats": [
+          0,
+          1
+        ],
+        "details": [
+          0,
+          1
+        ],
+        "normalTruncated": false,
+        "verboseTruncated": false,
+        "verboseOmittedPayload": []
+      }
+    },
+    {
+      "id": "RENDER-NEWLINE-CR",
+      "input": {
+        "level": 2,
+        "messages": [
+          "left\rright",
+          "tail\rend"
+        ],
+        "mode": "full",
+        "maxEntryBytes": 65536
+      },
+      "expected": {
+        "status": "info",
+        "truncated": false,
+        "records": 2,
+        "omittedFields": []
+      },
+      "sourceCaseId": "JSONL-NEWLINE-CR",
+      "presentation": {
+        "formats": [
+          0,
+          1
+        ],
+        "details": [
+          0,
+          1
+        ],
+        "normalTruncated": false,
+        "verboseTruncated": false,
+        "verboseOmittedPayload": []
+      }
+    },
+    {
+      "id": "RENDER-NEWLINE-NEL",
+      "input": {
+        "level": 2,
+        "messages": [
+          "left\u0085right",
+          "tail\u0085end"
+        ],
+        "mode": "full",
+        "maxEntryBytes": 65536
+      },
+      "expected": {
+        "status": "info",
+        "truncated": false,
+        "records": 2,
+        "omittedFields": []
+      },
+      "sourceCaseId": "JSONL-NEWLINE-NEL",
+      "presentation": {
+        "formats": [
+          0,
+          1
+        ],
+        "details": [
+          0,
+          1
+        ],
+        "normalTruncated": false,
+        "verboseTruncated": false,
+        "verboseOmittedPayload": []
+      }
+    },
+    {
+      "id": "RENDER-NEWLINE-LS",
+      "input": {
+        "level": 2,
+        "messages": [
+          "left\u2028right",
+          "tail\u2028end"
+        ],
+        "mode": "full",
+        "maxEntryBytes": 65536
+      },
+      "expected": {
+        "status": "info",
+        "truncated": false,
+        "records": 2,
+        "omittedFields": []
+      },
+      "sourceCaseId": "JSONL-NEWLINE-LS",
+      "presentation": {
+        "formats": [
+          0,
+          1
+        ],
+        "details": [
+          0,
+          1
+        ],
+        "normalTruncated": false,
+        "verboseTruncated": false,
+        "verboseOmittedPayload": []
+      }
+    },
+    {
+      "id": "RENDER-NEWLINE-PS",
+      "input": {
+        "level": 2,
+        "messages": [
+          "left\u2029right",
+          "tail\u2029end"
+        ],
+        "mode": "full",
+        "maxEntryBytes": 65536
+      },
+      "expected": {
+        "status": "info",
+        "truncated": false,
+        "records": 2,
+        "omittedFields": []
+      },
+      "sourceCaseId": "JSONL-NEWLINE-PS",
+      "presentation": {
+        "formats": [
+          0,
+          1
+        ],
+        "details": [
+          0,
+          1
+        ],
+        "normalTruncated": false,
+        "verboseTruncated": false,
+        "verboseOmittedPayload": []
+      }
+    },
+    {
+      "id": "RENDER-INJECTION",
+      "input": {
+        "level": 2,
+        "messages": [
+          "\n{\"service\":\"fake\",\"status\":\"critical\"}\n\u001b[2J",
+          "\ufeff quote \" \\ emoji \ud83d\ude00"
+        ],
+        "mode": "full",
+        "maxEntryBytes": 65536
+      },
+      "expected": {
+        "status": "info",
+        "truncated": false,
+        "records": 2,
+        "omittedFields": []
+      },
+      "sourceCaseId": "JSONL-INJECTION",
+      "presentation": {
+        "formats": [
+          0,
+          1
+        ],
+        "details": [
+          0,
+          1
+        ],
+        "normalTruncated": false,
+        "verboseTruncated": false,
+        "verboseOmittedPayload": []
+      }
+    },
+    {
+      "id": "RENDER-ABSENT",
+      "input": {
+        "level": 2,
+        "messages": [
+          "",
+          "second"
+        ],
+        "mode": "absent",
+        "maxEntryBytes": 65536
+      },
+      "expected": {
+        "status": "info",
+        "truncated": false,
+        "records": 2,
+        "omittedFields": []
+      },
+      "sourceCaseId": "JSONL-ABSENT",
+      "presentation": {
+        "formats": [
+          0,
+          1
+        ],
+        "details": [
+          0,
+          1
+        ],
+        "normalTruncated": false,
+        "verboseTruncated": false,
+        "verboseOmittedPayload": []
+      }
+    },
+    {
+      "id": "RENDER-EMPTY",
+      "input": {
+        "level": 2,
+        "messages": [
+          "",
+          ""
+        ],
+        "mode": "empty",
+        "maxEntryBytes": 65536
+      },
+      "expected": {
+        "status": "info",
+        "truncated": false,
+        "records": 2,
+        "omittedFields": []
+      },
+      "sourceCaseId": "JSONL-EMPTY",
+      "presentation": {
+        "formats": [
+          0,
+          1
+        ],
+        "details": [
+          0,
+          1
+        ],
+        "normalTruncated": false,
+        "verboseTruncated": false,
+        "verboseOmittedPayload": []
+      }
+    },
+    {
+      "id": "RENDER-CAP-MIN",
+      "input": {
+        "level": 2,
+        "messages": [
+          "first caf\u00e9 \ud83d\ude00",
+          "second"
+        ],
+        "mode": "cap",
+        "maxEntryBytes": 16384
+      },
+      "expected": {
+        "status": "info",
+        "truncated": true,
+        "records": 2,
+        "omittedFields": [
+          "exception",
+          "message_template",
+          "resource.os_description",
+          "resource.runtime_description"
+        ]
+      },
+      "sourceCaseId": "JSONL-CAP-MIN",
+      "presentation": {
+        "formats": [
+          0,
+          1
+        ],
+        "details": [
+          0,
+          1
+        ],
+        "normalTruncated": true,
+        "verboseTruncated": true,
+        "verboseOmittedPayload": [
+          "attributes"
+        ]
+      }
+    },
+    {
+      "id": "RENDER-CAP-DEFAULT",
+      "input": {
+        "level": 2,
+        "messages": [
+          "first caf\u00e9 \ud83d\ude00",
+          "second"
+        ],
+        "mode": "cap",
+        "maxEntryBytes": 65536
+      },
+      "expected": {
+        "status": "info",
+        "truncated": true,
+        "records": 2,
+        "omittedFields": [
+          "exception",
+          "message_template",
+          "resource.os_description",
+          "resource.runtime_description"
+        ]
+      },
+      "sourceCaseId": "JSONL-CAP-DEFAULT",
+      "presentation": {
+        "formats": [
+          0,
+          1
+        ],
+        "details": [
+          0,
+          1
+        ],
+        "normalTruncated": true,
+        "verboseTruncated": true,
+        "verboseOmittedPayload": [
+          "attributes"
+        ]
+      }
+    },
+    {
+      "id": "RENDER-CAP-OVERRIDE",
+      "input": {
+        "level": 2,
+        "messages": [
+          "first caf\u00e9 \ud83d\ude00",
+          "second"
+        ],
+        "mode": "cap",
+        "maxEntryBytes": 131072
+      },
+      "expected": {
+        "status": "info",
+        "truncated": true,
+        "records": 2,
+        "omittedFields": [
+          "exception",
+          "message_template",
+          "resource.os_description",
+          "resource.runtime_description"
+        ]
+      },
+      "sourceCaseId": "JSONL-CAP-OVERRIDE",
+      "presentation": {
+        "formats": [
+          0,
+          1
+        ],
+        "details": [
+          0,
+          1
+        ],
+        "normalTruncated": true,
+        "verboseTruncated": true,
+        "verboseOmittedPayload": [
+          "attributes"
+        ]
+      }
+    },
+    {
+      "id": "RENDER-C1-DEL",
+      "input": {
+        "level": 2,
+        "messages": [
+          "\u007f\u0080\u0081\u0082\u0083\u0084\u0085\u0086\u0087\u0088\u0089\u008a\u008b\u008c\u008d\u008e\u008f\u0090\u0091\u0092\u0093\u0094\u0095\u0096\u0097\u0098\u0099\u009a\u009b\u009c\u009d\u009e\u009fend",
+          "tail"
+        ],
+        "mode": "full",
+        "maxEntryBytes": 65536
+      },
+      "expected": {
+        "status": "info",
+        "truncated": false,
+        "records": 2,
+        "omittedFields": []
+      },
+      "sourceCaseId": "JSONL-C1-DEL",
+      "presentation": {
+        "formats": [
+          0,
+          1
+        ],
+        "details": [
+          0,
+          1
+        ],
+        "normalTruncated": false,
+        "verboseTruncated": false,
+        "verboseOmittedPayload": []
+      }
+    },
+    {
+      "id": "RENDER-UNICODE-FORMAT",
+      "input": {
+        "level": 2,
+        "messages": [
+          "cafe\u0301 caf\u00e9 \ud83d\ude00 \u200d\u202e\ufeff\udb40\udc01",
+          "literal {missing:format} \u001b[2J\n{\"fake\":\"record\"}"
+        ],
+        "mode": "full",
+        "maxEntryBytes": 65536
+      },
+      "expected": {
+        "status": "info",
+        "truncated": false,
+        "records": 2,
+        "omittedFields": []
+      },
+      "sourceCaseId": null,
+      "presentation": {
+        "formats": [
+          0,
+          1
+        ],
+        "details": [
+          0,
+          1
+        ],
+        "normalTruncated": false,
+        "verboseTruncated": false,
+        "verboseOmittedPayload": []
+      }
+    }
+  ],
+  "criteria": {
+    "WP05-S01-AC01": {
+      "storyCases": "all",
+      "checks": [
+        "original JSONL UTF-8, cap and framing",
+        "whole structural identity/severity/types/metadata/optional omission",
+        "two independently parseable consecutive records"
+      ]
+    },
+    "WP05-S01-AC02": {
+      "storyCases": "all",
+      "supplementalCatalog": "human-rendering-cases.json",
+      "checks": [
+        "exact normal and verbose information field sets",
+        "captured typed attributes, complete exception tree and resource facts",
+        "whole-value omissions with explicit capture/display loss"
+      ]
+    },
+    "WP05-S01-AC03": {
+      "storyCases": "all",
+      "supplementalCatalog": "presentation-cases.json",
+      "checks": [
+        "every format/detail view reuses one actual owned capture",
+        "caller/configuration mutations preserve bytes",
+        "current 64-case presentation matrix qualifies admission/facts",
+        "visible escaping prevents terminal and record injection"
+      ]
+    },
+    "WP05-S01-AC04": {
+      "storyCases": [
+        "RENDER-INFO"
+      ],
+      "checks": [
+        "no nondeterministic normalization",
+        "whole JSON structure independent of object order and insignificant whitespace",
+        "normal and verbose display field/typed-map order and spacing positive controls",
+        "changed timestamp/types/arrays/exception text remain rejected",
+        "Equivalent numeric notation compares by mathematical value; JSON wire numbers do not prove in-memory LogValue constructor kind.",
+        "Booleans remain a distinct JSON kind despite Python bool inheriting from int."
+      ]
+    }
+  }
+}

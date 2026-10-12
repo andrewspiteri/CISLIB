@@ -1,6 +1,7 @@
 using System.Diagnostics;
 using System.Text.Json.Nodes;
 using CIS.Logging;
+using CIS.Logging.Rendering;
 
 namespace CIS.Tests.DiscoveryFixture;
 
@@ -12,7 +13,7 @@ internal static class JsonlReuseFixture
         internal FixedException() : base("failure\nquote \" and slash \\", new Exception("inner\ntext")) { Data["private"] = "CIS_EXCLUDED_EXCEPTION_DATA"; }
         public override string? StackTrace => "frame1\nframe2\r\n\t\u001b[31m";
     }
-    internal static JsonObject Execute(JsonObject row)
+    internal static JsonObject Execute(JsonObject row, bool includeRendering = false)
     {
         JsonObject input = row["input"]!.AsObject();
         string mode = input["mode"]!.GetValue<string>();
@@ -54,7 +55,7 @@ internal static class JsonlReuseFixture
             }
         }
         finally { Activity.Current = previous; }
-        return new JsonObject
+        var observation = new JsonObject
         {
             ["caseId"] = row["id"]!.DeepClone(),
             ["results"] = results,
@@ -67,6 +68,33 @@ internal static class JsonlReuseFixture
             ["wires"] = new JsonArray(Bytes(console), Bytes(file)),
             ["stream"] = Convert.ToBase64String(console.Events.SelectMany(item => item.JsonLine.ToArray()).ToArray())
         };
+        if (includeRendering)
+        {
+            var frames = new JsonArray();
+            for (int index = 0; index < console.Events.Count; index++)
+            {
+                var captured = console.Events[index];
+                foreach (JsonNode? format in row["presentation"]!["formats"]!.AsArray())
+                {
+                    foreach (JsonNode? detail in row["presentation"]!["details"]!.AsArray())
+                    {
+                        RenderedEvent rendered = EventRenderer.Render(captured, (LogOutputFormat)format!.GetValue<int>(), (HumanOutputDetail)detail!.GetValue<int>(), cap);
+                        frames.Add(new JsonObject
+                        {
+                            ["recordIndex"] = index,
+                            ["format"] = format.DeepClone(),
+                            ["detail"] = detail.DeepClone(),
+                            ["line"] = Convert.ToBase64String(rendered.Line.Span),
+                            ["truncated"] = rendered.IsTruncated,
+                            ["jsonMemoryReused"] = rendered.Line.Equals(captured.JsonLine)
+                        });
+                    }
+                }
+            }
+            observation["renderFrames"] = frames;
+            observation["afterRendering"] = Bytes(console);
+        }
+        return observation;
     }
     private static JsonArray Bytes(LoggerFoundationFixture.Output output) => new(output.Events.Select(item => (JsonNode)JsonValue.Create(Convert.ToBase64String(item.JsonLine.Span))!).ToArray());
 }

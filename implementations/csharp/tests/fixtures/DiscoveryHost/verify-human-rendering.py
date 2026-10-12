@@ -21,6 +21,8 @@ def sha(path):
 
 
 def same(left, right):
+    if type(left) in (int, float) and type(right) in (int, float):
+        require(left == right, 'Display numeric value differs'); return
     require(type(left) is type(right), 'Display JSON type differs')
     if isinstance(left, dict):
         require(set(left) == set(right), 'Display map keys differ')
@@ -40,10 +42,15 @@ def read(raw, cap):
     require(all(unicodedata.category(c) not in ['Cc', 'Cf', 'Zl', 'Zp'] for c in text), 'Raw terminal control or record boundary')
     fields = {}; offset = 0; decoder = json.JSONDecoder()
     while offset < len(text):
-        while text[offset] == ' ':
+        while offset < len(text) and text[offset] == ' ':
             offset += 1
+        if offset == len(text):
+            break
         equal = text.index('=', offset); name = text[offset:equal]
-        value, end = decoder.raw_decode(text, equal + 1)
+        value_start = equal + 1
+        while value_start < len(text) and text[value_start] == ' ':
+            value_start += 1
+        value, end = decoder.raw_decode(text, value_start)
         require(name not in fields, 'Duplicate human field')
         fields[name] = value; offset = end
         require(offset == len(text) or text[offset] == ' ', 'Missing field separator')

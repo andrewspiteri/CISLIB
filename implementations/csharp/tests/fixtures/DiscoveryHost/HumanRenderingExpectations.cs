@@ -21,7 +21,8 @@ internal static class HumanRenderingExpectations
         int offset = 0;
         while (offset < line.Length - 1)
         {
-            while (line[offset] == (byte)' ') { offset++; }
+            while (offset < line.Length - 1 && line[offset] == (byte)' ') { offset++; }
+            if (offset == line.Length - 1) { break; }
             int equal = Array.IndexOf(line, (byte)'=', offset);
             if (equal < offset) { throw new InvalidDataException("Missing field label."); }
             string name = Encoding.UTF8.GetString(line.AsSpan(offset, equal - offset));

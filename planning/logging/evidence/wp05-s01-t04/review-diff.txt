@@ -1,0 +1,314 @@
+diff --git a/conformance/logging/case-inventory.json b/conformance/logging/case-inventory.json
+index 962a8bee..fe618809 100644
+--- a/conformance/logging/case-inventory.json
++++ b/conformance/logging/case-inventory.json
+@@ -6507,6 +6507,96 @@
+         "REQ-010"
+       ],
+       "source": "WP05-S01-T03 explicit presentation separated from admission/routing; no terminal/debugger inference or template parser. Internal renderer only, output integration pending."
++    },
++    {
++      "id": "UT-RENDER-STORY",
++      "family": "unit",
++      "title": "EveryViewPreservesTheSameStructurallyQualifiedCapture",
++      "implementation": "Implemented",
++      "method": "CIS.Tests.UnitTests.RenderingStoryTests.EveryViewPreservesTheSameStructurallyQualifiedCapture",
++      "minimumExecutions": 21,
++      "lanes": [
++        "windows-x64",
++        "linux-ubuntu2404-x64"
++      ],
++      "requirements": [
++        "REQ-003",
++        "REQ-004",
++        "REQ-010"
++      ],
++      "source": "WP05-S01-T04/AC01-AC04 actual internal capture/rendering qualification, as amended. No runtime output/I/O/release claim."
++    },
++    {
++      "id": "UT-RENDER-STORY-CONTROLS",
++      "family": "unit",
++      "title": "WholeStoryComparerRejectsChangedFactsTypesOrderAndUnsafeViews",
++      "implementation": "Implemented",
++      "method": "CIS.Tests.UnitTests.RenderingStoryTests.WholeStoryComparerRejectsChangedFactsTypesOrderAndUnsafeViews",
++      "minimumExecutions": 11,
++      "lanes": [
++        "windows-x64",
++        "linux-ubuntu2404-x64"
++      ],
++      "requirements": [
++        "REQ-003",
++        "REQ-004",
++        "REQ-010"
++      ],
++      "source": "WP05-S01-T04/AC01-AC04 actual internal capture/rendering qualification, as amended. No runtime output/I/O/release claim."
++    },
++    {
++      "id": "UT-RENDER-STORY-LAYOUT",
++      "family": "unit",
++      "title": "InformationComparisonAllowsObjectAndDisplayOrderAndSpacing",
++      "implementation": "Implemented",
++      "method": "CIS.Tests.UnitTests.RenderingStoryTests.InformationComparisonAllowsObjectAndDisplayOrderAndSpacing",
++      "minimumExecutions": 4,
++      "lanes": [
++        "windows-x64",
++        "linux-ubuntu2404-x64"
++      ],
++      "requirements": [
++        "REQ-003",
++        "REQ-004",
++        "REQ-010"
++      ],
++      "source": "WP05-S01-T04/AC01-AC04 actual internal capture/rendering qualification, as amended. No runtime output/I/O/release claim."
++    },
++    {
++      "id": "UT-RENDER-STORY-MATRIX",
++      "family": "unit",
++      "title": "SharedStoryMatrixIncludesAllCriteriaLevelsBoundaryModesAndFormats",
++      "implementation": "Implemented",
++      "method": "CIS.Tests.UnitTests.RenderingStoryTests.SharedStoryMatrixIncludesAllCriteriaLevelsBoundaryModesAndFormats",
++      "minimumExecutions": 1,
++      "lanes": [
++        "windows-x64",
++        "linux-ubuntu2404-x64"
++      ],
++      "requirements": [
++        "REQ-003",
++        "REQ-004",
++        "REQ-010"
++      ],
++      "source": "WP05-S01-T04/AC01-AC04 actual internal capture/rendering qualification, as amended. No runtime output/I/O/release claim."
++    },
++    {
++      "id": "IT-RENDER-STORY",
++      "family": "integration",
++      "title": "CombinedRenderingRunsAgainstRealCoreInExactRuntimeChildren",
++      "implementation": "Implemented",
++      "method": "CIS.Tests.IntegrationTests.RenderingStoryProcessTests.CombinedRenderingRunsAgainstRealCoreInExactRuntimeChildren",
++      "minimumExecutions": 21,
++      "lanes": [
++        "windows-x64",
++        "linux-ubuntu2404-x64"
++      ],
++      "requirements": [
++        "REQ-003",
++        "REQ-004",
++        "REQ-010"
++      ],
++      "source": "WP05-S01-T04/AC01-AC04 actual internal capture/rendering qualification, as amended. No runtime output/I/O/release claim."
+     }
+   ]
+ }
+diff --git a/implementations/csharp/tests/CIS.Core.IntegrationTests/CIS.Core.IntegrationTests.csproj b/implementations/csharp/tests/CIS.Core.IntegrationTests/CIS.Core.IntegrationTests.csproj
+index 00333c09..200c2c46 100644
+--- a/implementations/csharp/tests/CIS.Core.IntegrationTests/CIS.Core.IntegrationTests.csproj
++++ b/implementations/csharp/tests/CIS.Core.IntegrationTests/CIS.Core.IntegrationTests.csproj
+@@ -28,6 +28,7 @@
+     <Compile Include="../fixtures/DiscoveryHost/JsonlReuseExpectations.cs" Link="JsonlReuseExpectations.cs" />
+     <Compile Include="../fixtures/DiscoveryHost/HumanRenderingExpectations.cs" Link="HumanRenderingExpectations.cs" />
+     <Compile Include="../fixtures/DiscoveryHost/PresentationExpectations.cs" Link="PresentationExpectations.cs" />
++    <Compile Include="../fixtures/DiscoveryHost/RenderingStoryExpectations.cs" Link="RenderingStoryExpectations.cs" />
+   </ItemGroup>
+   <Target Name="CopyDiscoveryFixture" AfterTargets="Build">
+     <ItemGroup>
+diff --git a/implementations/csharp/tests/CIS.Core.UnitTests/CIS.Core.UnitTests.csproj b/implementations/csharp/tests/CIS.Core.UnitTests/CIS.Core.UnitTests.csproj
+index 63926b9a..482fbebf 100644
+--- a/implementations/csharp/tests/CIS.Core.UnitTests/CIS.Core.UnitTests.csproj
++++ b/implementations/csharp/tests/CIS.Core.UnitTests/CIS.Core.UnitTests.csproj
+@@ -54,6 +54,8 @@
+     <Compile Include="../fixtures/DiscoveryHost/HumanRenderingExpectations.cs" Link="HumanRenderingExpectations.cs" />
+     <Compile Include="../fixtures/DiscoveryHost/HumanRenderingFixture.cs" Link="HumanRenderingFixture.cs" />
+     <Compile Include="../fixtures/DiscoveryHost/PresentationExpectations.cs" Link="PresentationExpectations.cs" />
++    <Compile Include="../fixtures/DiscoveryHost/RenderingStoryExpectations.cs" Link="RenderingStoryExpectations.cs" />
++    <Compile Include="../fixtures/DiscoveryHost/RenderingStoryFixture.cs" Link="RenderingStoryFixture.cs" />
+     <Compile Include="../fixtures/DiscoveryHost/PresentationFixture.cs" Link="PresentationFixture.cs" />
+   </ItemGroup>
+ </Project>
+diff --git a/implementations/csharp/tests/fixtures/DiscoveryHost/HumanRenderingExpectations.cs b/implementations/csharp/tests/fixtures/DiscoveryHost/HumanRenderingExpectations.cs
+index fc9b1f03..37744992 100644
+--- a/implementations/csharp/tests/fixtures/DiscoveryHost/HumanRenderingExpectations.cs
++++ b/implementations/csharp/tests/fixtures/DiscoveryHost/HumanRenderingExpectations.cs
+@@ -21,7 +21,8 @@ internal static class HumanRenderingExpectations
+         int offset = 0;
+         while (offset < line.Length - 1)
+         {
+-            while (line[offset] == (byte)' ') { offset++; }
++            while (offset < line.Length - 1 && line[offset] == (byte)' ') { offset++; }
++            if (offset == line.Length - 1) { break; }
+             int equal = Array.IndexOf(line, (byte)'=', offset);
+             if (equal < offset) { throw new InvalidDataException("Missing field label."); }
+             string name = Encoding.UTF8.GetString(line.AsSpan(offset, equal - offset));
+diff --git a/implementations/csharp/tests/fixtures/DiscoveryHost/JsonlReuseFixture.cs b/implementations/csharp/tests/fixtures/DiscoveryHost/JsonlReuseFixture.cs
+index 5b406ffa..fac0c9eb 100644
+--- a/implementations/csharp/tests/fixtures/DiscoveryHost/JsonlReuseFixture.cs
++++ b/implementations/csharp/tests/fixtures/DiscoveryHost/JsonlReuseFixture.cs
+@@ -1,6 +1,7 @@
+ using System.Diagnostics;
+ using System.Text.Json.Nodes;
+ using CIS.Logging;
++using CIS.Logging.Rendering;
+ 
+ namespace CIS.Tests.DiscoveryFixture;
+ 
+@@ -12,7 +13,7 @@ internal static class JsonlReuseFixture
+         internal FixedException() : base("failure\nquote \" and slash \\", new Exception("inner\ntext")) { Data["private"] = "CIS_EXCLUDED_EXCEPTION_DATA"; }
+         public override string? StackTrace => "frame1\nframe2\r\n\t\u001b[31m";
+     }
+-    internal static JsonObject Execute(JsonObject row)
++    internal static JsonObject Execute(JsonObject row, bool includeRendering = false)
+     {
+         JsonObject input = row["input"]!.AsObject();
+         string mode = input["mode"]!.GetValue<string>();
+@@ -54,7 +55,7 @@ internal static class JsonlReuseFixture
+             }
+         }
+         finally { Activity.Current = previous; }
+-        return new JsonObject
++        var observation = new JsonObject
+         {
+             ["caseId"] = row["id"]!.DeepClone(),
+             ["results"] = results,
+@@ -67,6 +68,33 @@ internal static class JsonlReuseFixture
+             ["wires"] = new JsonArray(Bytes(console), Bytes(file)),
+             ["stream"] = Convert.ToBase64String(console.Events.SelectMany(item => item.JsonLine.ToArray()).ToArray())
+         };
++        if (includeRendering)
++        {
++            var frames = new JsonArray();
++            for (int index = 0; index < console.Events.Count; index++)
++            {
++                var captured = console.Events[index];
++                foreach (JsonNode? format in row["presentation"]!["formats"]!.AsArray())
++                {
++                    foreach (JsonNode? detail in row["presentation"]!["details"]!.AsArray())
++                    {
++                        RenderedEvent rendered = EventRenderer.Render(captured, (LogOutputFormat)format!.GetValue<int>(), (HumanOutputDetail)detail!.GetValue<int>(), cap);
++                        frames.Add(new JsonObject
++                        {
++                            ["recordIndex"] = index,
++                            ["format"] = format.DeepClone(),
++                            ["detail"] = detail.DeepClone(),
++                            ["line"] = Convert.ToBase64String(rendered.Line.Span),
++                            ["truncated"] = rendered.IsTruncated,
++                            ["jsonMemoryReused"] = rendered.Line.Equals(captured.JsonLine)
++                        });
++                    }
++                }
++            }
++            observation["renderFrames"] = frames;
++            observation["afterRendering"] = Bytes(console);
++        }
++        return observation;
+     }
+     private static JsonArray Bytes(LoggerFoundationFixture.Output output) => new(output.Events.Select(item => (JsonNode)JsonValue.Create(Convert.ToBase64String(item.JsonLine.Span))!).ToArray());
+ }
+diff --git a/implementations/csharp/tests/fixtures/DiscoveryHost/Program.cs b/implementations/csharp/tests/fixtures/DiscoveryHost/Program.cs
+index ab05065e..10f07f55 100644
+--- a/implementations/csharp/tests/fixtures/DiscoveryHost/Program.cs
++++ b/implementations/csharp/tests/fixtures/DiscoveryHost/Program.cs
+@@ -11,6 +11,10 @@ internal static class Program
+ {
+     private static int Main(string[] args)
+     {
++        if (args.Length == 3 && args[0] == "rendering-story")
++        {
++            return RenderingStoryFixture.Run(args[1], args[2]);
++        }
+         if (args.Length == 3 && args[0] == "presentation")
+         {
+             return PresentationFixture.Run(args[1], args[2]);
+diff --git a/implementations/csharp/tests/fixtures/DiscoveryHost/verify-human-rendering.py b/implementations/csharp/tests/fixtures/DiscoveryHost/verify-human-rendering.py
+index 1e2891d9..0bba76f3 100644
+--- a/implementations/csharp/tests/fixtures/DiscoveryHost/verify-human-rendering.py
++++ b/implementations/csharp/tests/fixtures/DiscoveryHost/verify-human-rendering.py
+@@ -21,6 +21,8 @@ def sha(path):
+ 
+ 
+ def same(left, right):
++    if type(left) in (int, float) and type(right) in (int, float):
++        require(left == right, 'Display numeric value differs'); return
+     require(type(left) is type(right), 'Display JSON type differs')
+     if isinstance(left, dict):
+         require(set(left) == set(right), 'Display map keys differ')
+@@ -40,10 +42,15 @@ def read(raw, cap):
+     require(all(unicodedata.category(c) not in ['Cc', 'Cf', 'Zl', 'Zp'] for c in text), 'Raw terminal control or record boundary')
+     fields = {}; offset = 0; decoder = json.JSONDecoder()
+     while offset < len(text):
+-        while text[offset] == ' ':
++        while offset < len(text) and text[offset] == ' ':
+             offset += 1
++        if offset == len(text):
++            break
+         equal = text.index('=', offset); name = text[offset:equal]
+-        value, end = decoder.raw_decode(text, equal + 1)
++        value_start = equal + 1
++        while value_start < len(text) and text[value_start] == ' ':
++            value_start += 1
++        value, end = decoder.raw_decode(text, value_start)
+         require(name not in fields, 'Duplicate human field')
+         fields[name] = value; offset = end
+         require(offset == len(text) or text[offset] == ' ', 'Missing field separator')
+diff --git a/implementations/csharp/tests/fixtures/DiscoveryHost/verify-jsonl-reuse.py b/implementations/csharp/tests/fixtures/DiscoveryHost/verify-jsonl-reuse.py
+index fd17e141..8a4d2c34 100644
+--- a/implementations/csharp/tests/fixtures/DiscoveryHost/verify-jsonl-reuse.py
++++ b/implementations/csharp/tests/fixtures/DiscoveryHost/verify-jsonl-reuse.py
+@@ -19,6 +19,8 @@ def sha(path):
+ 
+ 
+ def same(expected, actual, path):
++    if type(expected) in (int, float) and type(actual) in (int, float):
++        require(expected == actual, path + ': numeric value differs'); return
+     require(type(expected) is type(actual), path + ': JSON type differs')
+     if isinstance(expected, dict):
+         require(set(expected) == set(actual), path + ': fields differ')
+diff --git a/planning/decisions.md b/planning/decisions.md
+index 21b1b6c4..7396a0d7 100644
+--- a/planning/decisions.md
++++ b/planning/decisions.md
+@@ -260,3 +260,9 @@ The [human output guide](../docs/modules/logging/human-output.md) describes actu
+ ## WP05-S01-T03 explicit format selection
+ 
+ The [presentation selector](../docs/modules/logging/presentation-separation.md) takes owned capture plus explicit format/detail/cap, reuses original JSONL memory and forwards human rendering loss without retaining settings, destination or caller objects. A readonly byte-view value avoids another JSONL buffer. Unknown choices fail rather than guessing; a selected cap below the captured JSONL byte length is an internal composition error. Runtime composition uses one prepared cap, while a different valid selector cap that still fits those bytes is accepted. These are maintainer implementation choices within T03, without public APIs, dependencies, message-template parsing or runtime/output composition. Qualification crosses actual logger thresholds with all presentation choices and replaces ambient/caller state before rendering. Direct shipping-IL dependency guards and canonical inspection qualify no inference, without claiming attached-debugger/TTY runs or arbitrary transitive proof. Runtime output/stream and render-loss integration remain pending.
++
++## WP05-S01-T04 rendering qualification
++
++The [rendering story qualification](../docs/modules/logging/rendering-qualification.md) extends an existing test fixture to render each original admitted capture through all explicit format/detail choices. Literal neutral structures, complete human information assertions, order/spacing controls with no normalization, and current supplemental presentation/human runs qualify all four S01 criteria at the internal seam. These are qualification choices, with no shipping source/API/dependency or runtime output/composition framework change. Operational composition and release remain pending; historical checkpoints and original plans are unchanged.
++
++T04 comparer review follows the existing v1 contract: both Integer and Number project as JSON numbers, and wire values cannot prove their constructor kind. C# semantic numeric comparison stays unchanged; Python now accepts equivalent numeric notation while preserving distinct Boolean/string kinds. Positive integer-with-.0 and exponent-notation controls plus a Boolean-to-number corruption control qualify that policy. Safe ASCII spaces after display `=` are accepted consistently. This adds no lexical-number wire contract, shipping code or field normalization.
+diff --git a/planning/logging/implementation-status.md b/planning/logging/implementation-status.md
+index c36a0e73..54c7211b 100644
+--- a/planning/logging/implementation-status.md
++++ b/planning/logging/implementation-status.md
+@@ -118,14 +118,16 @@ T03/T04 in S01 complete the requested decisions; the four S02 tasks complete the
+ 
+ | WP05-S01-T03 | Done | [Explicit presentation](../../docs/modules/logging/presentation-separation.md) adds a small internal selector and readonly byte view, reusing JSONL memory or calling the real human renderer. [Evidence](evidence/wp05-s01-t03/receipt.json) retains 143 new tests, all 3673 Developer tests, 59 compiler controls and 64 setting/admission cases per Windows/Ubuntu platform with six corruption controls each. Shipping IL checks qualify no direct routing/configuration/ambient/terminal dependency; real forbidden call-site controls validate the inspector. Claude initial and final followup reviews passed after precise cap wording, profile-wide expected-admission invariance and exact verbose field sets. Real format/stream composition, render-loss aggregation, worker/I/O/lifecycle/provider, T04 full S01 and release remain pending. |
+ 
++| WP05-S01-T04 | Done, review pending | [Combined rendering qualification](../../docs/modules/logging/rendering-qualification.md) checks all four format/detail views of each original real capture against full literal JSON and exact human information expectations. [Evidence](evidence/wp05-s01-t04/receipt.json) retains 58 new tests, all 3731 Developer tests, 59 compiler controls and 97 current native children per Windows/Ubuntu platform (21 combined cases/168 views plus 12 human and 64 presentation cases), eleven new corruption controls and four semantic object/display/number controls each. Both comparers accept safe leading/trailing ASCII spaces without accepting terminal controls or record boundaries. Shipping sources/API/dependencies and all 41 Planned release rows are unchanged. All four S01 criteria are qualified at the internal seam; final read-only review is pending. Actual runtime format/stream/render-loss composition, WP05 workers/I/O/lifecycle/provider, S05 normal I/O isolation and release remain pending. |
++
+ ## Verification limits and next work
+ 
+-Current Windows Developer verification passes 2475 unit, 791 integration and 407 architecture tests (3673 total), with no failures or skips, plus 59 compiler controls. All fourteen stages pass, including locked restore, formatting/build, dependency boundaries, package checks and the scaffold example. The Developer profile does not execute the mutation, compatibility or business families; their historical controls do not qualify a release. Earlier table rows and retained records preserve their original execution snapshots and superseded startup mechanics.
++Current Windows Developer verification passes 2512 unit, 812 integration and 407 architecture tests (3731 total), with no failures or skips, plus 59 compiler controls. All fourteen stages pass, including locked restore, formatting/build, dependency boundaries, package checks and the scaffold example. The Developer profile does not execute the mutation, compatibility or business families; their historical controls do not qualify a release. Earlier table rows and retained records preserve their original execution snapshots and superseded startup mechanics.
+ 
+ WP04-S04 is complete for internal owned event capture and bounded JSONL encoding, with all five criteria mapped separately from the original oversize-rejection text. Ordinary oversized input truncates under the user's amendment. Shared structural cases execute actual capture/encoding in 23 fresh exact-runtime children on each Windows and Ubuntu platform; Python independently inspects the encoded records. These are capture ownership/encoding probes, not a logger queue or delivery simulation.
+ 
+ Release verification still returns 2. All 41 Planned release cases remain exactly unchanged; runtime/output/provider, complete six-family qualification, Linux SDK/macOS, release examples, licence and retained-bundle gates remain pending. No releases are published. The current static EnvironmentOptions constructor and module-owned preparation replace the historical unpublished startup facade/publication mechanics.
+ 
+-WP02-S01 is committed as `ccb7237`, following `b7b8b78` and `ea8e9cf`. WP02-S02 is committed as `ecca98f`. WP02-S03 is committed as `875053e`. WP02-S04-T01 is committed as `69ebd90`. WP02-S04-T02 is committed as `365b3b4`. WP02-S04-T03 is committed as `d7e6f4d`. WP02-S04-T04 completes the initial source/API/wire fixture set; actual cumulative execution remains WP07-S04. WP02-S04 is Done for its definition/initial-control scope, not runtime release qualification. WP02-S04-T04 is committed as `2b18579`. WP03-S01-T01 implements internal application identity discovery; WP03-S01-T01 is committed as `5e91e6b`; T02 implements process/host/runtime facts. WP03-S01-T02 is committed as `0ded9ac`; T03 implements separate versions and initialization identity generation. WP03-S01-T03 is committed as `07d3400`. T04 completes internal discovery qualification and all four S01 acceptance criteria. WP03-S01 is Done for application/runtime identity discovery, before the public resolver/validator/snapshot publisher. WP03-S01-T04 is committed as `ceb028b`. WP03-S02-T01 implements captured input selection; WP03-S02 is Done for internal selection/defaults and independent outputs, before full validation/public snapshot publication. WP03-S02-T01 is committed as `fe121ef`. T02 completes typed setting parsing/defaults and independent output decisions. WP03-S02-T02 is committed as `5711027`. T03 qualifies normalization and unknown-key behavior across the full resolver. WP03-S02-T03 is committed as `a697386`. T04 completes shared configuration input/output fixtures and all four S02 acceptance criteria for the internal resolution phase. WP03-S02-T04 is committed as `a74985b`. WP03-S03-T01 completes internal option validation and cross-option rules. WP03-S03-T01 is committed as `1554e62`. T02 completes identity/control-character/Unicode validation and the immutable public configuration exception. WP03-S03-T02 is committed as `c56d7f7`. T03 completes captured working-directory and native path syntax resolution. WP03-S03-T03 is committed as `2618ed0`. T04 completes combined-error/boundary/safety qualification and all four criteria for the internal validation phase. WP03-S03 is Done for complete selected-setting validation before public startup/snapshot publication. WP03-S04-T01 implements the public facade and its supporting complete result types. WP03-S04-T02 completes ownership/copying qualification. WP03-S04-T03 completes concurrent publication and failure/retry qualification and is committed as 55a83a8. WP03-S04-T04 completes all shared startup vectors and all four S04 acceptance criteria. WP03-S04 is Done for immutable explicit startup publication. WP03-S04-T04 is committed as 5240547. WP04-S01-T01 implements nine real scalar/owned-collection representations. WP04-S01-T01 is committed as 7d8af14. WP04-S01-T02 completes typed UUID/time normalization and object-boundary qualification. WP04-S01-T02 is committed as 9b4fca4. WP04-S01-T03 completes bounded collection projection and shared Unicode validation. WP04-S01-T03 is committed as 2d847f4. WP04-S01-T04 completes value-model qualification. WP04-S01 is Done for typed/cooperative immutable value construction. WP04-S01-T04 is committed as c373e20. WP04-S02-T01 implements internal owned exception projection. WP04-S02-T01 is committed as bc9b88d. WP04-S02-T02 completes exception limits/order qualification and is committed as 4500e56. WP04-S02-T03 completes detailed truncation/exclusion qualification. WP04-S02-T03 is committed as a3d28c8; user-requested CIS initialization is committed as 4783207. WP04-S02-T04 completes shared fixtures and all four criteria for internal owned exception capture. WP04-S02-T04 is committed as 1024d40. WP04-S03-T01 completes the actual context input and per-store copied asynchronous scope foundation. WP04-S03-T01 is committed as 467b9f2. WP04-S03-T02 completes bounded merged scope views and depth qualification. WP04-S03-T02 is committed as 3b0e684. WP04-S03-T03 completes creator-owned LIFO/repeat disposal qualification under the user-selected rule, with detection limits documented and prohibited misuse kept separate from acceptance. WP04-S03-T03 is committed as c8b897c. WP04-S03-T04 completes shared barrier-driven scope cases and all four criteria for internal scope state under the selected ownership rule. WP04-S03 is Done for internal scope state. WP04-S03-T04 is committed as 369607e. WP04-S04-T01 completes initial owned event/resource facts. WP04-S04-T01 is committed as 4fe61b7. WP04-S04-T02 qualifies precedence and protected input separation. WP04-S04-T02 is committed as 3761d66. WP04-S04-T03 captures UTC time and valid paired current W3C IDs before future admission. WP04-S04-T04 implements actual escaped UTF-8 entry encoding and configurable byte-cap truncation. WP04-S04-T04 is committed as `9f43728`. T05 completes all five criteria for internal capture/JSONL. WP04-S04 is Done in that scope. WP04-S04-T05 is committed as `9277ef84`. WP04-S05-T01 implements the runtime-bound logger/filtering/write-outcome API against an internal output-admission interface. WP04-S05-T01 is committed as `c6e0d59e`. T02 qualifies the exact argument/early-decision/capture/admission order without shipping changes. WP04-S05-T02 is committed as `393e5fbf`. T03 qualifies once-only capture/global rejection/output-owned outcomes and prevents global loss counters wrapping. WP04-S05-T03 is committed as `c3d84800`. T04 completes the full outcome table and source-preserving acceptance mapping at the logger seam. All four S05 task implementations are complete; full S05 acceptance remains pending AC04 normal output I/O isolation in real WP05 outputs/workers. WP04-S05-T04 is committed as `fcfcd5b6`. WP05-S01-T01 qualifies existing JSONL byte reuse/framing through the real logger without shipping changes. WP05-S01-T01 is committed as `7655ba39`. WP05-S01-T02 implements normal/verbose human rendering with safe controls and actual byte bounds, with corrected comparator qualification and final read-only Claude PASS. WP05-S01-T02 is committed as `3dab2bd9`. WP05-S01-T03 implements explicit presentation selection and qualifies independence from logger filtering/capture, with final read-only Claude PASS. Next is WP05-S01-T04 combined story fixtures/acceptance mapping; full S01 acceptance, runtime format/stream composition and render-loss integration and S05 actual normal I/O isolation remain pending. Public runtime/provider/output integration remains pending. WP01-S01 identity/consumer reconciliation, licence, distribution feed/signing and final public compatibility decisions remain pending. Historical evidence records retain their original execution snapshots.
++WP02-S01 is committed as `ccb7237`, following `b7b8b78` and `ea8e9cf`. WP02-S02 is committed as `ecca98f`. WP02-S03 is committed as `875053e`. WP02-S04-T01 is committed as `69ebd90`. WP02-S04-T02 is committed as `365b3b4`. WP02-S04-T03 is committed as `d7e6f4d`. WP02-S04-T04 completes the initial source/API/wire fixture set; actual cumulative execution remains WP07-S04. WP02-S04 is Done for its definition/initial-control scope, not runtime release qualification. WP02-S04-T04 is committed as `2b18579`. WP03-S01-T01 implements internal application identity discovery; WP03-S01-T01 is committed as `5e91e6b`; T02 implements process/host/runtime facts. WP03-S01-T02 is committed as `0ded9ac`; T03 implements separate versions and initialization identity generation. WP03-S01-T03 is committed as `07d3400`. T04 completes internal discovery qualification and all four S01 acceptance criteria. WP03-S01 is Done for application/runtime identity discovery, before the public resolver/validator/snapshot publisher. WP03-S01-T04 is committed as `ceb028b`. WP03-S02-T01 implements captured input selection; WP03-S02 is Done for internal selection/defaults and independent outputs, before full validation/public snapshot publication. WP03-S02-T01 is committed as `fe121ef`. T02 completes typed setting parsing/defaults and independent output decisions. WP03-S02-T02 is committed as `5711027`. T03 qualifies normalization and unknown-key behavior across the full resolver. WP03-S02-T03 is committed as `a697386`. T04 completes shared configuration input/output fixtures and all four S02 acceptance criteria for the internal resolution phase. WP03-S02-T04 is committed as `a74985b`. WP03-S03-T01 completes internal option validation and cross-option rules. WP03-S03-T01 is committed as `1554e62`. T02 completes identity/control-character/Unicode validation and the immutable public configuration exception. WP03-S03-T02 is committed as `c56d7f7`. T03 completes captured working-directory and native path syntax resolution. WP03-S03-T03 is committed as `2618ed0`. T04 completes combined-error/boundary/safety qualification and all four criteria for the internal validation phase. WP03-S03 is Done for complete selected-setting validation before public startup/snapshot publication. WP03-S04-T01 implements the public facade and its supporting complete result types. WP03-S04-T02 completes ownership/copying qualification. WP03-S04-T03 completes concurrent publication and failure/retry qualification and is committed as 55a83a8. WP03-S04-T04 completes all shared startup vectors and all four S04 acceptance criteria. WP03-S04 is Done for immutable explicit startup publication. WP03-S04-T04 is committed as 5240547. WP04-S01-T01 implements nine real scalar/owned-collection representations. WP04-S01-T01 is committed as 7d8af14. WP04-S01-T02 completes typed UUID/time normalization and object-boundary qualification. WP04-S01-T02 is committed as 9b4fca4. WP04-S01-T03 completes bounded collection projection and shared Unicode validation. WP04-S01-T03 is committed as 2d847f4. WP04-S01-T04 completes value-model qualification. WP04-S01 is Done for typed/cooperative immutable value construction. WP04-S01-T04 is committed as c373e20. WP04-S02-T01 implements internal owned exception projection. WP04-S02-T01 is committed as bc9b88d. WP04-S02-T02 completes exception limits/order qualification and is committed as 4500e56. WP04-S02-T03 completes detailed truncation/exclusion qualification. WP04-S02-T03 is committed as a3d28c8; user-requested CIS initialization is committed as 4783207. WP04-S02-T04 completes shared fixtures and all four criteria for internal owned exception capture. WP04-S02-T04 is committed as 1024d40. WP04-S03-T01 completes the actual context input and per-store copied asynchronous scope foundation. WP04-S03-T01 is committed as 467b9f2. WP04-S03-T02 completes bounded merged scope views and depth qualification. WP04-S03-T02 is committed as 3b0e684. WP04-S03-T03 completes creator-owned LIFO/repeat disposal qualification under the user-selected rule, with detection limits documented and prohibited misuse kept separate from acceptance. WP04-S03-T03 is committed as c8b897c. WP04-S03-T04 completes shared barrier-driven scope cases and all four criteria for internal scope state under the selected ownership rule. WP04-S03 is Done for internal scope state. WP04-S03-T04 is committed as 369607e. WP04-S04-T01 completes initial owned event/resource facts. WP04-S04-T01 is committed as 4fe61b7. WP04-S04-T02 qualifies precedence and protected input separation. WP04-S04-T02 is committed as 3761d66. WP04-S04-T03 captures UTC time and valid paired current W3C IDs before future admission. WP04-S04-T04 implements actual escaped UTF-8 entry encoding and configurable byte-cap truncation. WP04-S04-T04 is committed as `9f43728`. T05 completes all five criteria for internal capture/JSONL. WP04-S04 is Done in that scope. WP04-S04-T05 is committed as `9277ef84`. WP04-S05-T01 implements the runtime-bound logger/filtering/write-outcome API against an internal output-admission interface. WP04-S05-T01 is committed as `c6e0d59e`. T02 qualifies the exact argument/early-decision/capture/admission order without shipping changes. WP04-S05-T02 is committed as `393e5fbf`. T03 qualifies once-only capture/global rejection/output-owned outcomes and prevents global loss counters wrapping. WP04-S05-T03 is committed as `c3d84800`. T04 completes the full outcome table and source-preserving acceptance mapping at the logger seam. All four S05 task implementations are complete; full S05 acceptance remains pending AC04 normal output I/O isolation in real WP05 outputs/workers. WP04-S05-T04 is committed as `fcfcd5b6`. WP05-S01-T01 qualifies existing JSONL byte reuse/framing through the real logger without shipping changes. WP05-S01-T01 is committed as `7655ba39`. WP05-S01-T02 implements normal/verbose human rendering with safe controls and actual byte bounds, with corrected comparator qualification and final read-only Claude PASS. WP05-S01-T02 is committed as `3dab2bd9`. WP05-S01-T03 implements explicit presentation selection and qualifies independence from logger filtering/capture, with final read-only Claude PASS. WP05-S01-T03 is committed as `db058009`. WP05-S01-T04 qualifies all four S01 criteria at the internal owned-capture/rendering seam with combined literal fixtures, current supplemental cases and safe layout comparers; final review is pending. Next is WP05-S02-T01 real bounded output channels/workers. Runtime format/stream composition, render-loss integration and S05 actual normal I/O isolation remain pending. Public runtime/provider/output integration remains pending. WP01-S01 identity/consumer reconciliation, licence, distribution feed/signing and final public compatibility decisions remain pending. Historical evidence records retain their original execution snapshots.
+ 
+ The EnvironmentOptions correction and WP04-S04-T03 were committed as `248f2f74`. The user resumed the logging roadmap on 12 October 2026. Earlier startup discovery/publication table rows describe their historical implementation checkpoints; the current readonly static constructor and module-owned preparation replace those unpublished mechanics.
+diff --git a/planning/logging/plan-amendments.md b/planning/logging/plan-amendments.md
+index bf462362..64738fb0 100644
+--- a/planning/logging/plan-amendments.md
++++ b/planning/logging/plan-amendments.md
+@@ -81,3 +81,9 @@ The [human renderer](../../docs/modules/logging/human-output.md) implements norm
+ ## WP05-S01-T03 independent presentation choices
+ 
+ The [explicit selector](../../docs/modules/logging/presentation-separation.md) keeps thresholds, output enablement/path and streams outside rendering. JSONL is a reused readonly owned view; human is the existing bounded renderer. A readonly value containing memory/loss, explicit enum validation and an error when captured JSONL exceeds the selected cap are task implementation choices. There is no new message-template language or terminal/debugger heuristic. Actual logger/admission controls qualify 64 combinations of four output profiles, both formats/detail/streams and all seven level values, with unchanged caller/ambient captured facts and exact reuse. This is internal presentation qualification, not runtime format/destination/stream composition, delivery, render-loss counters, worker/lifecycle/provider or release evidence. Original plans/contracts and historical evidence remain preserved; T04 full story mapping is still required.
++
++## WP05-S01-T04 combined rendering fixtures
++
++The [combined rendering qualification](../../docs/modules/logging/rendering-qualification.md) completes the four S01 criteria at the real internal capture/admission/rendering seam. The fixture renders original owned objects; full literal JSON expectations and exact human field/type assertions qualify every explicit format/detail view. Current supplemental catalogs cover presentation independence and protected metadata/keys/activity/scalar boundaries. Comparers normalize no fields and accept object/display order and insignificant spacing while rejecting changed facts or unsafe bytes. This does not close runtime format/stream/render-loss composition, worker/I/O/lifecycle/provider, S05 normal I/O isolation or release obligations, which must recheck these invariants when integrated. Original source plans and historical evidence remain preserved.
++
++T04 comparer review follows the existing v1 contract: both Integer and Number project as JSON numbers, and wire values cannot prove their constructor kind. C# semantic numeric comparison stays unchanged; Python now accepts equivalent numeric notation while preserving distinct Boolean/string kinds. Positive integer-with-.0 and exponent-notation controls plus a Boolean-to-number corruption control qualify that policy. Safe ASCII spaces after display `=` are accepted consistently. This adds no lexical-number wire contract, shipping code or field normalization.

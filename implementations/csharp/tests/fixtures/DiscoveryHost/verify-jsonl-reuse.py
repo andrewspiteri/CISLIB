@@ -19,6 +19,8 @@ def sha(path):
 
 
 def same(expected, actual, path):
+    if type(expected) in (int, float) and type(actual) in (int, float):
+        require(expected == actual, path + ': numeric value differs'); return
     require(type(expected) is type(actual), path + ': JSON type differs')
     if isinstance(expected, dict):
         require(set(expected) == set(actual), path + ': fields differ')
