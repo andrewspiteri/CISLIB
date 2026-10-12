@@ -1,0 +1,127 @@
+{
+  "schemaVersion": 1,
+  "story": "WP04-S04",
+  "task": "WP04-S04-T05",
+  "scope": "Complete internal owned event capture and JSONL encoding, before future runtime/output admission. Controlled metadata/clock; .NET exception tags are C# bindings, not future-language obligations.",
+  "authority": "Original criteria preserved below; direct user configurable-entry-cap/truncation and creator-disposes decisions take precedence.",
+  "criteria": [
+    {
+      "id": "WP04-S04-AC01",
+      "sourceDescription": "All required identity fields and every available allowlisted resource field appear; optional unavailable values are omitted and explicit attribute null remains JSON null.",
+      "appliedMeaning": "Every required and available allowlisted field, explicit attribute null, absent optional fields, all severity and environment-kind mappings are checked on actual encoded records.",
+      "caseIds": [
+        "EVENT-QUAL-TRACE",
+        "EVENT-QUAL-DEBUG",
+        "EVENT-QUAL-INFORMATION",
+        "EVENT-QUAL-WARNING",
+        "EVENT-QUAL-ERROR",
+        "EVENT-QUAL-CRITICAL",
+        "EVENT-QUAL-ABSENT",
+        "EVENT-QUAL-EMPTY",
+        "EVENT-QUAL-NONE",
+        "EVENT-QUAL-KIND-UNKNOWN",
+        "EVENT-QUAL-KIND-CONSOLE",
+        "EVENT-QUAL-KIND-WEB",
+        "EVENT-QUAL-KIND-FUNCTION"
+      ],
+      "bindings": [
+        "UT-EVENT-QUALIFICATION-SHARED",
+        "INT-EVENT-QUALIFICATION-SHARED"
+      ],
+      "evidence": "planning/logging/evidence/wp04-s04-t05/receipt.json"
+    },
+    {
+      "id": "WP04-S04-AC02",
+      "sourceDescription": "Captured trace IDs have 32 lowercase hexadecimal characters and span IDs have 16, neither all zero; later Activity or scope changes cannot change queued evidence.",
+      "appliedMeaning": "Real current W3C IDs are sampled before capture; owned facts encode after creator scope/activity disposal and caller changes. Children inherit trace with new spans; barrier-driven workers/stores retain isolated operations and restore their own contexts.",
+      "caseIds": [
+        "EVENT-QUAL-DELAYED",
+        "EVENT-QUAL-CHILD",
+        "EVENT-QUAL-CONCURRENT-1",
+        "EVENT-QUAL-CONCURRENT-8",
+        "EVENT-QUAL-CONCURRENT-16",
+        "EVENT-QUAL-STORES"
+      ],
+      "bindings": [
+        "UT-EVENT-QUALIFICATION-SHARED",
+        "INT-EVENT-QUALIFICATION-SHARED"
+      ],
+      "evidence": "planning/logging/evidence/wp04-s04-t05/receipt.json"
+    },
+    {
+      "id": "WP04-S04-AC03",
+      "sourceDescription": "Explicit attributes and nonblank event OperationId win the documented scope precedence, while reserved identity/correlation stays unchanged.",
+      "appliedMeaning": "Whole event attribute winners remain nested; event IDs override nonblank scopes, blank event IDs fall back. Protected identity/correlation is separately encoded.",
+      "caseIds": [
+        "EVENT-QUAL-INFORMATION",
+        "EVENT-QUAL-CHILD",
+        "EVENT-QUAL-CONCURRENT-8",
+        "EVENT-QUAL-STORES"
+      ],
+      "bindings": [
+        "UT-EVENT-QUALIFICATION-SHARED",
+        "INT-EVENT-QUALIFICATION-SHARED"
+      ],
+      "evidence": "planning/logging/evidence/wp04-s04-t05/receipt.json"
+    },
+    {
+      "id": "WP04-S04-AC04",
+      "sourceDescription": "Timestamp and numeric/string types match the shared schema; record size is checked after escaping, and an oversized event is rejected globally before any output admission.",
+      "appliedMeaning": "User truncation amendment replaces ordinary oversize rejection. Actual escaping and LF are measured at three configured caps; encoded producer records also pass the independent development schema/semantic validator. No output admission is implemented.",
+      "caseIds": [
+        "EVENT-QUAL-INFORMATION",
+        "EVENT-QUAL-AGGREGATE-MIN",
+        "EVENT-QUAL-AGGREGATE-DEFAULT",
+        "EVENT-QUAL-AGGREGATE-OVERRIDE"
+      ],
+      "bindings": [
+        "UT-EVENT-QUALIFICATION-SHARED",
+        "INT-EVENT-QUALIFICATION-SHARED"
+      ],
+      "evidence": "planning/logging/evidence/wp04-s04-t05/receipt.json"
+    },
+    {
+      "id": "WP04-S04-AC05",
+      "sourceDescription": "Messages/templates retain supplied text within their limits, ordinary oversized input is rejected, and only the documented exception projection may clip content.",
+      "appliedMeaning": "User truncation amendment replaces ordinary oversize rejection. Exact supplied text survives fitting records. Byte fitting marks ordinary loss and exception-local child omissions without mutating facts; a later fitting exception sibling remains. Prior T01/T04 tests continue to verify scalar bounds, invalid data and protected-envelope failure.",
+      "caseIds": [
+        "EVENT-QUAL-INFORMATION",
+        "EVENT-QUAL-DELAYED",
+        "EVENT-QUAL-AGGREGATE-MIN",
+        "EVENT-QUAL-EXCEPTION-SIBLING"
+      ],
+      "bindings": [
+        "UT-EVENT-QUALIFICATION-SHARED",
+        "INT-EVENT-QUALIFICATION-SHARED"
+      ],
+      "evidence": "planning/logging/evidence/wp04-s04-t05/receipt.json"
+    }
+  ],
+  "existingControls": [
+    {
+      "method": "CIS.Tests.UnitTests.EventProjectionTests.InvalidNamesIdentifiersAndMalformedPayloadsFailWithoutPublishingFacts",
+      "scope": "Malformed native inputs remain invalid; field bounds qualified by the existing full suite."
+    },
+    {
+      "method": "CIS.Tests.UnitTests.EventEncodingTests.OversizedProtectedEnvelopeHasSpecificFailureAndDoesNotAlterFacts",
+      "scope": "A protected envelope that cannot fit fails specifically; ordinary payload truncates."
+    },
+    {
+      "method": "CIS.Tests.UnitTests.EventEncodingTests.EarlierScalarProjectionLossRemainsMarkedEvenWhenEncodedEntryFits",
+      "scope": "Earlier loss provenance survives encoding."
+    },
+    {
+      "method": "CIS.Tests.UnitTests.EventCorrelationTests.NativeClrFaultInjectionOmitsTheWholeInvalidPair",
+      "scope": "C#-only fault injection of invalid current IDs; no portable reflection requirement."
+    }
+  ],
+  "limits": [
+    "No CoreLogger/output/worker/provider or admission counters. Holding captured facts across a signal is a capture ownership probe, not delivery evidence.",
+    "Native Ubuntu uses the same managed bytes with the actual runtime; full Linux SDK/macOS/release six-family qualification remains pending.",
+    "C# runtime exception type/stack and invalid UTF-16 controls are declared native bindings. Cooperative callbacks and prohibited inherited-scope handle misuse retain their documented boundaries."
+  ],
+  "comparatorControls": [
+    "UT-EVENT-QUALIFICATION-CONTROLS",
+    "native Python corrupted-null control; each final native run requires actual rejection"
+  ]
+}

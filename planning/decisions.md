@@ -236,3 +236,7 @@ The latest direct user request makes obvious runtime/identity facts readonly and
 ## Resume logging implementation (12 October 2026)
 
 The user requested continuing logging after committing the environment simplification and UTC/W3C work as `248f2f74`. Resume at WP04-S04-T04, then complete T05 before moving to runtime work. Keep solutions within their intended task scope; introduce abstractions only for a concrete requirement. The current constructor decision remains authoritative.
+
+## WP04-S04-T05 complete event qualification
+
+WP04-S04-T04 is committed as `9f43728`. The [shared qualification](../docs/modules/logging/event-qualification.md) executes real capture and JSONL encoding for every S04 criterion, applying the existing user-selected configurable-cap/truncation amendment separately from preserved source wording. Controlled test metadata/time, real activity observations, readiness/release barriers with joined cleanup, independent wire/type comparators and producer schema validation are implementation choices within the requested task. Review sharpened delayed scope/trace changes and comparator controls without changing shipping code, API, dependencies or introducing queue/output substitutes. The task completes S04 internal capture/encoding qualification; logger filtering/write outcomes start at WP04-S05-T01, with output/runtime/provider/release obligations still pending. Source plans and historical evidence remain unchanged.

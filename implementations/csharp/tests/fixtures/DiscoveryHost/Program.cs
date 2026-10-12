@@ -11,6 +11,10 @@ internal static class Program
 {
     private static int Main(string[] args)
     {
+        if (args.Length == 3 && args[0] == "event-qualification")
+        {
+            return EventQualificationProcessFixture.RunAsync(args[1], args[2]).GetAwaiter().GetResult();
+        }
         if (args.Length == 3 && args[0] == "event-encoding")
         {
             return EventEncodingProcessFixture.Run(args[1], args[2]);

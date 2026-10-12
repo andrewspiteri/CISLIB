@@ -8,4 +8,6 @@ This module is compiled into the Core project. It is not a separate project/pack
 
 `LogValue` now implements the typed immutable attribute model, including bounded owned collections. `Exceptions/` holds the internal owned exception capture foundation for later event creation; [exception guidance](../../../../../docs/modules/logging/exception-projection.md) records its scope. Neither adds a working logger/output lifecycle.
 
-`Events/` now captures owned metadata/scope/activity facts and encodes one bounded JSONL record under the configured entry cap, with the user-selected payload truncation policy. See [encoding guidance](../../../../../docs/modules/logging/event-encoding.md). Full story qualification and runtime/output/provider integration remain separate tasks.
+`Events/` now captures owned metadata/scope/activity facts and encodes one bounded JSONL record under the configured entry cap, with the user-selected payload truncation policy. See [encoding guidance](../../../../../docs/modules/logging/event-encoding.md). Runtime/output/provider integration remains subsequent work.
+
+Complete capture/encoding story qualification is described in [WP04-S04-T05](../../../../../docs/modules/logging/event-qualification.md). Runtime/output integration remains subsequent work.

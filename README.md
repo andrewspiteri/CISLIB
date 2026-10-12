@@ -64,3 +64,5 @@ WP02-S02 [event/value contracts](docs/modules/logging/event-contract.md) and sha
 See [event UTC time and W3C correlation](docs/modules/logging/event-correlation.md) for the current owned-facts capture phase and its native bindings.
 
 See [EnvironmentOptions](docs/modules/logging/environment-options.md) for automatic readonly static facts and override behavior.
+
+[Complete event qualification](docs/modules/logging/event-qualification.md) now covers the internal capture-to-JSONL path; logger/runtime/output integration remains next on the roadmap.

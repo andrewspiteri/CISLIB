@@ -9,3 +9,5 @@ A fitting entry retains all facts and prior truncation provenance. An oversized 
 Measurement stops at the selected byte budget. Oversized source strings are never fully escaped into a secondary representation. Only fitting retained text reaches the framework writer, and actual written bytes must equal the measured total. An unrepresentable protected envelope raises the internal `EventEnvelopeTooLargeException`; it never emits an oversized record or changes identity. Malformed or unsupported caller input remains invalid through the existing value/capture validation, rather than being repaired by the encoder.
 
 The [shared cases](../../../conformance/logging/event-encoding-cases.json) and focused C# tests cover actual encoding. They use controlled metadata and clock facts and real activity/scope capture. Public runtime admission, human rendering, output delivery and full S04 qualification remain later work; this encoder does not implement those components.
+
+Complete capture/encoding story qualification is described in [WP04-S04-T05](event-qualification.md). Runtime/output integration remains subsequent work.

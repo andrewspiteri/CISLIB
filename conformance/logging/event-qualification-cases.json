@@ -1,0 +1,381 @@
+{
+  "schemaVersion": 1,
+  "story": "WP04-S04",
+  "task": "WP04-S04-T05",
+  "scope": "Actual internal capture and JSONL encoding, before any runtime/output admission. Fixture metadata and clock are controlled; observed W3C IDs are sampled from real Activity instances. No queue or delivery substitute.",
+  "caseCount": 23,
+  "common": {
+    "timestamp": "2026-10-12T10:11:12.1234567Z",
+    "service": "Qualification.App",
+    "env": "qa",
+    "version": "release-4",
+    "component": "component",
+    "event_name": "qualification.event",
+    "resource": {
+      "build_version": "build+AbC",
+      "instance_id": "11111111-2222-4333-8444-555555555555",
+      "initialized_at": "2026-10-12T10:00:00.0000000Z",
+      "environment_kind": "service",
+      "os_family": "linux",
+      "process_started_at": "2026-10-12T09:59:00.0000000Z",
+      "host_name": "node-1",
+      "os_description": "OS description",
+      "os_architecture": "x64",
+      "process_architecture": "arm64",
+      "runtime_description": "runtime description",
+      "process_id": 123,
+      "commit_id": "commit-1",
+      "build_id": "build-1"
+    },
+    "attributes": {
+      "null": null,
+      "true": true,
+      "false": false,
+      "text": "quote \" slash \\ newline\n caf\u00e9 \ud83d\ude00",
+      "integer": 9007199254740991,
+      "number": 1.25,
+      "integerString": "90071992547409920000",
+      "decimal": "12.3400",
+      "uuid": "00112233-4455-6677-8899-aabbccddeeff",
+      "instant": "2026-10-12T10:11:12.1234567Z",
+      "array": [
+        2,
+        1,
+        null
+      ],
+      "map": {
+        "a": true,
+        "z": "last"
+      },
+      "service": "nested service",
+      "trace_id": "nested trace",
+      "span_id": "nested span",
+      "operation_id": "nested operation",
+      "truncated": false,
+      "shared": "event",
+      "scopeOnly": "outer"
+    }
+  },
+  "cases": [
+    {
+      "id": "EVENT-QUAL-TRACE",
+      "input": {
+        "mode": "fields",
+        "severity": "Trace",
+        "maxEntryBytes": 65536
+      },
+      "expected": {
+        "status": "trace",
+        "records": 1,
+        "truncated": false
+      }
+    },
+    {
+      "id": "EVENT-QUAL-DEBUG",
+      "input": {
+        "mode": "fields",
+        "severity": "Debug",
+        "maxEntryBytes": 65536
+      },
+      "expected": {
+        "status": "debug",
+        "records": 1,
+        "truncated": false
+      }
+    },
+    {
+      "id": "EVENT-QUAL-INFORMATION",
+      "input": {
+        "mode": "fields",
+        "severity": "Information",
+        "maxEntryBytes": 65536
+      },
+      "expected": {
+        "status": "info",
+        "records": 1,
+        "truncated": false
+      }
+    },
+    {
+      "id": "EVENT-QUAL-WARNING",
+      "input": {
+        "mode": "fields",
+        "severity": "Warning",
+        "maxEntryBytes": 65536
+      },
+      "expected": {
+        "status": "warn",
+        "records": 1,
+        "truncated": false
+      }
+    },
+    {
+      "id": "EVENT-QUAL-ERROR",
+      "input": {
+        "mode": "fields",
+        "severity": "Error",
+        "maxEntryBytes": 65536
+      },
+      "expected": {
+        "status": "error",
+        "records": 1,
+        "truncated": false
+      }
+    },
+    {
+      "id": "EVENT-QUAL-CRITICAL",
+      "input": {
+        "mode": "fields",
+        "severity": "Critical",
+        "maxEntryBytes": 65536
+      },
+      "expected": {
+        "status": "critical",
+        "records": 1,
+        "truncated": false
+      }
+    },
+    {
+      "id": "EVENT-QUAL-ABSENT",
+      "input": {
+        "mode": "absent",
+        "severity": "Information",
+        "maxEntryBytes": 65536,
+        "participants": 1
+      },
+      "expected": {
+        "status": "info",
+        "records": 1,
+        "truncated": false
+      }
+    },
+    {
+      "id": "EVENT-QUAL-EMPTY",
+      "input": {
+        "mode": "empty",
+        "severity": "Information",
+        "maxEntryBytes": 65536,
+        "participants": 1
+      },
+      "expected": {
+        "status": "info",
+        "records": 1,
+        "truncated": false
+      }
+    },
+    {
+      "id": "EVENT-QUAL-NONE",
+      "input": {
+        "mode": "none",
+        "severity": "Information",
+        "maxEntryBytes": 65536,
+        "participants": 1
+      },
+      "expected": {
+        "status": "info",
+        "records": 0,
+        "truncated": false
+      }
+    },
+    {
+      "id": "EVENT-QUAL-DELAYED",
+      "input": {
+        "mode": "delayed",
+        "severity": "Information",
+        "maxEntryBytes": 65536,
+        "participants": 1
+      },
+      "expected": {
+        "status": "info",
+        "records": 1,
+        "truncated": false
+      }
+    },
+    {
+      "id": "EVENT-QUAL-CHILD",
+      "input": {
+        "mode": "child",
+        "severity": "Information",
+        "maxEntryBytes": 65536,
+        "participants": 1
+      },
+      "expected": {
+        "status": "info",
+        "records": 3,
+        "truncated": false
+      }
+    },
+    {
+      "id": "EVENT-QUAL-CONCURRENT-1",
+      "input": {
+        "mode": "concurrent",
+        "severity": "Information",
+        "maxEntryBytes": 65536,
+        "participants": 1
+      },
+      "expected": {
+        "status": "info",
+        "records": 1,
+        "truncated": false
+      }
+    },
+    {
+      "id": "EVENT-QUAL-CONCURRENT-8",
+      "input": {
+        "mode": "concurrent",
+        "severity": "Information",
+        "maxEntryBytes": 65536,
+        "participants": 8
+      },
+      "expected": {
+        "status": "info",
+        "records": 8,
+        "truncated": false
+      }
+    },
+    {
+      "id": "EVENT-QUAL-CONCURRENT-16",
+      "input": {
+        "mode": "concurrent",
+        "severity": "Information",
+        "maxEntryBytes": 65536,
+        "participants": 16
+      },
+      "expected": {
+        "status": "info",
+        "records": 16,
+        "truncated": false
+      }
+    },
+    {
+      "id": "EVENT-QUAL-STORES",
+      "input": {
+        "mode": "stores",
+        "severity": "Information",
+        "maxEntryBytes": 65536,
+        "participants": 2
+      },
+      "expected": {
+        "status": "info",
+        "records": 2,
+        "truncated": false
+      }
+    },
+    {
+      "id": "EVENT-QUAL-AGGREGATE-MIN",
+      "input": {
+        "mode": "aggregate",
+        "severity": "Information",
+        "maxEntryBytes": 16384,
+        "participants": 1
+      },
+      "expected": {
+        "status": "info",
+        "records": 1,
+        "truncated": true
+      }
+    },
+    {
+      "id": "EVENT-QUAL-AGGREGATE-DEFAULT",
+      "input": {
+        "mode": "aggregate",
+        "severity": "Information",
+        "maxEntryBytes": 65536,
+        "participants": 1
+      },
+      "expected": {
+        "status": "info",
+        "records": 1,
+        "truncated": true
+      }
+    },
+    {
+      "id": "EVENT-QUAL-AGGREGATE-OVERRIDE",
+      "input": {
+        "mode": "aggregate",
+        "severity": "Information",
+        "maxEntryBytes": 131072,
+        "participants": 1
+      },
+      "expected": {
+        "status": "info",
+        "records": 1,
+        "truncated": true
+      }
+    },
+    {
+      "id": "EVENT-QUAL-EXCEPTION-SIBLING",
+      "input": {
+        "mode": "sibling",
+        "severity": "Information",
+        "maxEntryBytes": 16384,
+        "participants": 1
+      },
+      "expected": {
+        "status": "info",
+        "records": 1,
+        "truncated": true
+      }
+    },
+    {
+      "id": "EVENT-QUAL-KIND-UNKNOWN",
+      "input": {
+        "mode": "fields",
+        "severity": "Information",
+        "environmentKind": "Unknown",
+        "maxEntryBytes": 65536
+      },
+      "expected": {
+        "status": "info",
+        "records": 1,
+        "truncated": false,
+        "environmentKind": "unknown"
+      }
+    },
+    {
+      "id": "EVENT-QUAL-KIND-CONSOLE",
+      "input": {
+        "mode": "fields",
+        "severity": "Information",
+        "environmentKind": "Console",
+        "maxEntryBytes": 65536
+      },
+      "expected": {
+        "status": "info",
+        "records": 1,
+        "truncated": false,
+        "environmentKind": "console"
+      }
+    },
+    {
+      "id": "EVENT-QUAL-KIND-WEB",
+      "input": {
+        "mode": "fields",
+        "severity": "Information",
+        "environmentKind": "Web",
+        "maxEntryBytes": 65536
+      },
+      "expected": {
+        "status": "info",
+        "records": 1,
+        "truncated": false,
+        "environmentKind": "web"
+      }
+    },
+    {
+      "id": "EVENT-QUAL-KIND-FUNCTION",
+      "input": {
+        "mode": "fields",
+        "severity": "Information",
+        "environmentKind": "Function",
+        "maxEntryBytes": 65536
+      },
+      "expected": {
+        "status": "info",
+        "records": 1,
+        "truncated": false,
+        "environmentKind": "function"
+      }
+    }
+  ]
+}
