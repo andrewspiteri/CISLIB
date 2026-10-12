@@ -59,8 +59,8 @@ internal static class QueuedFanoutFixture
         var produced = new ConcurrentDictionary<int, LogWriteResult>(); var data = new ConcurrentDictionary<int, LogEventData>();
         int factories = 0;
         CoreLogRuntime runtime = CoreLogRuntime.CreateQueued(metadata.CaptureMetadata(), options,
-            consoleEnabled ? admitted => console.WriteAsync(admitted, mode == "independent" ? Task.CompletedTask : releaseConsole.Task, mode == "early-fault") : null,
-            fileEnabled ? admitted => file.WriteAsync(admitted, releaseFile.Task, mode is "early-fault" or "late-fault") : null, clock);
+            consoleEnabled ? admitted => console.WriteAsync(admitted, mode == "independent" ? Task.CompletedTask : releaseConsole.Task, mode is "early-fault" or "console-fault-overflow") : null,
+            fileEnabled ? admitted => file.WriteAsync(admitted, mode == "independent-file" ? Task.CompletedTask : releaseFile.Task, mode is "early-fault" or "late-fault" or "file-fault-overflow") : null, clock);
         OutputQueues queues = runtime.QueuedOutputs!; object gate = typeof(CoreLogRuntime).GetField("admissionGate", BindingFlags.Instance | BindingFlags.NonPublic)!.GetValue(runtime)!;
         console.Gate = gate; file.Gate = gate; CoreLogger logger = runtime.CreateLogger("Fanout");
         JsonObject[] steps = row["steps"]!.AsArray().Select(step => step!.AsObject()).ToArray();
@@ -114,18 +114,28 @@ internal static class QueuedFanoutFixture
                 }
                 else
                 {
+                    if (mode == "file-fault-overflow") { releaseFile.TrySetResult(); await file.Observe(queues.File!.Completion); }
+                    if (mode == "console-fault-overflow") { releaseConsole.TrySetResult(); await console.Observe(queues.Console!.Completion); }
                     for (int index = 1; index < steps.Length; index++)
                     {
                         if (mode == "saturation" && index == 3)
                         {
                             releaseConsole.TrySetResult(); releaseFile.TrySetResult(); await console.SecondWritten.Task.WaitAsync(TimeSpan.FromSeconds(10)); await file.SecondWritten.Task.WaitAsync(TimeSpan.FromSeconds(10));
                         }
+                        if (mode == "recover-console" && index == 3) { releaseConsole.TrySetResult(); await console.SecondWritten.Task.WaitAsync(TimeSpan.FromSeconds(10)); }
+                        if (mode == "recover-file" && index == 3) { releaseFile.TrySetResult(); await file.SecondWritten.Task.WaitAsync(TimeSpan.FromSeconds(10)); }
                         if (mode == "independent" && index == 2) { await console.SecondWritten.Task.WaitAsync(TimeSpan.FromSeconds(10)); }
+                        if (mode == "independent-file" && index == 2) { await file.SecondWritten.Task.WaitAsync(TimeSpan.FromSeconds(10)); }
                         Write(steps[index]);
                     }
                 }
             }
-            bool independentProgress = mode != "independent" || (console.Written.Count >= 2 && file.Written.Count == 0);
+            bool independentProgress = mode switch
+            {
+                "independent" => console.Written.Count >= 2 && file.Written.Count == 0,
+                "independent-file" => file.Written.Count >= 2 && console.Written.Count == 0,
+                _ => true
+            };
             runtime.CloseAdmission(); runtime.CloseAdmission(); releaseConsole.TrySetResult(); releaseFile.TrySetResult();
             if (queues.Console is not null) { await console.Observe(queues.Console.Completion); }
             if (queues.File is not null) { await file.Observe(queues.File.Completion); }

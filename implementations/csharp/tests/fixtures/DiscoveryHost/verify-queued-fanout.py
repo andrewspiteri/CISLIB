@@ -73,11 +73,16 @@ def verify(row, actual):
 def main():
     parser = argparse.ArgumentParser(); parser.add_argument('--dotnet', required=True); parser.add_argument('--host', required=True)
     parser.add_argument('--catalog', required=True); parser.add_argument('--output', required=True); parser.add_argument('--family', choices=['windows', 'linux'], required=True)
+    parser.add_argument('--task', choices=['WP05-S02-T02', 'WP05-S02-T03'], default='WP05-S02-T02')
     args = parser.parse_args(); directory = Path(args.output); directory.mkdir(parents=True, exist_ok=True)
     rows = json.loads(Path(args.catalog).read_text(encoding='utf-8'))['cases']
     require(len(rows) == 12 and len({row['id'] for row in rows}) == 12, 'Fanout catalog differs')
-    require({row['mode'] for row in rows} == {'basic','union','saturation','independent','late-close','late-fault','early-fault','mutate','multi'}, 'Actual runtime phase coverage differs')
-    report = dict(scope='WP05-S02-T02 actual runtime capture, successful tickets, shared gate fanout/closure and sequential Channels with controlled MemoryStream writers/IOException faults. No physical destinations, durability, public creation/lifecycle, complete S02/S03 accounting/diagnostics or release claim.', family=args.family, cases=[], negativeControlsRejected=[])
+    expected_modes = {'basic','union','saturation','independent','late-close','late-fault','early-fault','mutate','multi'} if args.task == 'WP05-S02-T02' else {'basic','file-fault-overflow','console-fault-overflow','independent-file','recover-console','recover-file'}
+    require({row['mode'] for row in rows} == expected_modes, 'Actual runtime phase coverage differs')
+    if args.task == 'WP05-S02-T03':
+        require({row['id'] for row in rows} == {'OVERFLOW-FILE-ONLY', 'OVERFLOW-BOTH-FULL', 'OVERFLOW-FILE-RECOVERS', 'OVERFLOW-CONSOLE-FULL-FILE-FILTERED', 'OVERFLOW-NONE-WHILE-FULL', 'OVERFLOW-CONSOLE-FILTERED-FILE-FULL', 'OVERFLOW-CAPACITY-TWO', 'OVERFLOW-FILE-INDEPENDENT', 'OVERFLOW-CONSOLE-ONLY', 'OVERFLOW-CONSOLE-FAULT-FILE-FULL', 'OVERFLOW-FILE-FAULT-CONSOLE-FULL', 'OVERFLOW-CONSOLE-RECOVERS'}, 'Required overflow cases differ')
+    anchor = 'FANOUT-BOTH' if args.task == 'WP05-S02-T02' else 'OVERFLOW-BOTH-FULL'
+    report = dict(scope=args.task+' actual runtime capture, successful tickets, shared gate fanout/closure and sequential Channels with controlled MemoryStream writers/IOException faults. No physical destinations, durability, public creation/lifecycle, complete S02/S03 accounting/diagnostics or release claim.', family=args.family, cases=[], negativeControlsRejected=[])
     env = dict(os.environ, CORE_LOG_QUEUE_CAPACITY='invalid-must-not-be-read')
     for row in rows:
         command = [args.dotnet,'exec','--fx-version','10.0.12','--roll-forward','Disable',args.host,'queued-fanout',args.catalog,row['id']]
@@ -88,24 +93,26 @@ def main():
             require(not list(Path(owned).iterdir()), 'Fanout created a physical destination')
         actual = json.loads(process.stdout); verify(row, actual); observed = actual['observed']
         same(args.family,observed['operatingSystem']); same('.NET 10.0.12',observed['runtimeDescription']);same(sha(args.host),observed['fixtureSha256']);same(sha(Path(args.host).with_name('CIS.Core.dll')),observed['coreSha256']);same(sha(args.catalog),observed['inputsSha256'])
-        if row['id'] == 'FANOUT-BOTH':
-            for fault in ['ticket','gap','factory','clock','gate','copy','stream','binding','fault','order','source','framing','unbound']:
+        if row['id'] == anchor:
+            for fault in ['ticket','gap','factory','clock','gate','copy','stream','binding','fault','order','source','framing','unbound'] + (['eviction'] if args.task == 'WP05-S02-T03' else []):
                 damaged = copy.deepcopy(actual); semantic = damaged['semantic']; wire = damaged['wires']['console']
                 if fault == 'ticket': semantic['results'][0]['outputs'][0]['ticket'] = None
-                elif fault == 'gap': semantic['outputs']['console']['lastAcceptedSequence'] = 4
-                elif fault == 'factory': semantic['factoryCalls'] = 2
-                elif fault == 'clock': semantic['clockCalls'] = 6
+                elif fault == 'gap': semantic['outputs']['console']['lastAcceptedSequence'] += 1
+                elif fault == 'factory': semantic['factoryCalls'] += 1
+                elif fault == 'clock': semantic['clockCalls'] += 1
                 elif fault == 'gate': semantic['callbackGateHeld'] = True
                 elif fault == 'copy': semantic['sharedCaptures'] = False
                 elif fault == 'stream': wire['stream'] = base64.b64encode(b'\n').decode('ascii')
                 elif fault == 'binding': damaged['bindings'][0]['caller'] = 2
                 elif fault == 'fault': semantic['outputs']['file']['faulted'] = True
-                elif fault == 'unbound': wire['attempted'][0]['ticket'] = 4
-                elif fault == 'order': semantic['outputs']['console']['attemptedTickets'] = [3,2,1]
+                elif fault == 'unbound': wire['attempted'][0]['ticket'] = semantic['outputs']['console']['lastAcceptedSequence'] + 1
+                elif fault == 'order': semantic['outputs']['console']['attemptedTickets'].reverse()
                 else:
                     item = wire['attempted'][0]; raw = base64.b64decode(item['wire'],validate=True)
-                    if fault == 'source':
-                        body = json.loads(raw); body['message'] = 'CIS_CHANGED_AFTER_ADMISSION'; raw = (json.dumps(body)+'\n').encode('utf-8')
+                    if fault in ('source', 'eviction'):
+                        body = json.loads(raw); body['message'] = 'record-3' if fault == 'eviction' else 'CIS_CHANGED_AFTER_ADMISSION'
+                        if fault == 'eviction': body['attributes']['input'] = 3
+                        raw = (json.dumps(body)+'\n').encode('utf-8')
                     else:
                         raw += b'\n'
                     item['wire'] = item['after'] = base64.b64encode(raw).decode('ascii'); wire['stream'] = base64.b64encode(b''.join(base64.b64decode(item['wire']) for item in wire['attempted'])).decode('ascii')
@@ -116,7 +123,7 @@ def main():
                 else:
                     raise AssertionError('Corruption accepted: '+fault)
         report['cases'].append(dict(id=row['id'],passed=True,command=command,observed=observed))
-    require(len(report['negativeControlsRejected']) == 13, 'Fanout comparator controls did not execute')
+    require(len(report['negativeControlsRejected']) == (13 if args.task == 'WP05-S02-T02' else 14), 'Fanout comparator controls did not execute')
     report.update(passed=True,count=len(rows),coreSha256=sha(Path(args.host).with_name('CIS.Core.dll')),hostSha256=sha(args.host),inputsSha256=sha(args.catalog))
     (directory/'summary.json').write_text(json.dumps(report,indent=2)+'\n',encoding='utf-8');print(json.dumps(dict(family=args.family,count=len(rows),passed=True)))
 
