@@ -1,0 +1,21 @@
+# Logger decision order
+
+WP04-S05-T02 qualifies the real CoreLogger methods and CoreLogRuntime admission path introduced in T01. The implementation already follows this order; this task adds the missing direct observations without changing shipping code, public APIs or dependencies.
+
+| Order | Decision | Observable effect |
+| --- | --- | --- |
+| 1 | Required data/factory is null | ArgumentNullException with data/factory parameter, including after closure and with an undefined level. |
+| 2 | Method level is undefined | ArgumentOutOfRangeException with level parameter before state, fault reads, factory or payload access. |
+| 3 | Admission is closed | Stopped for every enabled output; even None is Stopped. No capture or output attempts. |
+| 4 | None or no enabled output is interested | Filtered; enabled outputs record filtering, disabled outputs are absent. |
+| 5 | All interested outputs are faulted | Rejected; only interested outputs record unavailability. Healthy uninterested outputs do not change this decision. |
+| 6 | Capture | One interested lazy factory, scope/event projection and actual bounded JSONL encoding, outside admission synchronization. Invalid capture has no output entries or admission attempts. |
+| 7 | Closure recheck and admission | After valid capture, closure during caller work gives Stopped with no tickets. Otherwise each interested output independently attempts admission and supplies its own successful ticket. |
+
+[Shared descriptors](../../../conformance/logging/logger-decision-cases.json) contain 67 literal cases for direct/lazy argument precedence, stopped None/disabled outputs, no interest, all interested faulted, a sole faulted file interest, both mixed-fault orientations with healthy interested admission, healthy file interest despite an uninterested faulted console, actual capture before fanout, full admission controls, invalid capture (also after closure during capture), fault changes during capture and closure from factory/clock/attribute/exception callbacks. Poison collections guard every member and poison exceptions guard message/stack access. Traces show skipped caller work and TryAdmit order; attempt counters additionally include interested unavailability, as specified. Output results alone are insufficient evidence. IsEnabled has four additional undefined-level/state guards.
+
+Closure callbacks launch and join another thread's internal CloseAdmission operation with bounded waits and an explicit timeout observation. That demonstrates caller work does not hold the admission gate, and valid captures observe closure before admission. Invalid capture still returns InvalidEvent before the late closure check. The captured truncated-event marker/count survives closure. This tests the existing internal closure mechanism; public StopAsync, shutdown deadlines, worker disposal and I/O are still later runtime work. Admission controls own their capacity/tickets/counters and perform no I/O. Accepted fanout receives the same real owned EncodedEvent.
+
+C# and independent Python comparators inspect literal traces, argument parameter names, result/ticket lists, filtering/unavailability/attempt counters and global capture counts. Accepted original bytes are base64 transported, bounded, strictly decoded and parsed. C# corruption controls reject changed traces, attempts, tickets and UTF-8; Python also rejects reordered capture, premature factory execution, wrong unavailability and an admission after closure. The Python runner also requires all 67 unique descriptors. Scope-capture placement is inspected in production source; no injected scope spy is claimed. Both native platform runners execute actual Core in exact .NET 10.0.12 children using identical managed files and fresh empty working directories.
+
+[Retained evidence](../../../planning/logging/evidence/wp04-s05-t02/receipt.json) records executed checks and their limits. T03 owns complete lazy/global rejection/error/counter/outcome qualification, and T04 owns the complete outcome table. S05, real output delivery, full SDK/platform coverage and release gates remain unfinished.
