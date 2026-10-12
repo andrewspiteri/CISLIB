@@ -44,8 +44,8 @@ internal static class OutputQueueFixture
         byte[][] originalBytes = captured.Select(item => item.JsonLine.ToArray()).ToArray();
         string? previous = Caller.Value; Caller.Value = "CIS_CREATOR_CONTEXT";
         var queues = new OutputQueues(capacity, consoleEnabled, fileEnabled,
-            consoleEnabled ? item => console.WriteAsync(item, independent ? Task.CompletedTask : release.Task, producer) : null,
-            fileEnabled ? item => file.WriteAsync(item, release.Task, producer) : null);
+            consoleEnabled ? item => console.WriteAsync(item.Event, independent ? Task.CompletedTask : release.Task, producer) : null,
+            fileEnabled ? item => file.WriteAsync(item.Event, release.Task, producer) : null);
         try
         {
             var observations = new JsonObject();

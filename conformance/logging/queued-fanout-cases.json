@@ -1,0 +1,1564 @@
+{
+  "schemaVersion": 1,
+  "scope": "WP05-S02-T02 actual Core logger, immutable capture, successful output tickets, shared admission/dequeue/closure gate and real sequential Channel/MemoryStream writers. No physical destinations/lifecycle deadlines/full S02/S03/release claim.",
+  "cases": [
+    {
+      "id": "FANOUT-BOTH",
+      "mode": "basic",
+      "capacity": 2,
+      "consoleEnabled": true,
+      "fileEnabled": true,
+      "consoleLevel": "Trace",
+      "fileLevel": "Trace",
+      "steps": [
+        {
+          "label": 1,
+          "level": "Information",
+          "lazy": false
+        },
+        {
+          "label": 2,
+          "level": "Information",
+          "lazy": true
+        },
+        {
+          "label": 3,
+          "level": "Information",
+          "lazy": false
+        }
+      ],
+      "expected": {
+        "results": [
+          {
+            "outcome": "Accepted",
+            "outputs": [
+              {
+                "name": "console",
+                "status": "Accepted",
+                "ticket": 1
+              },
+              {
+                "name": "file",
+                "status": "Accepted",
+                "ticket": 1
+              }
+            ]
+          },
+          {
+            "outcome": "Accepted",
+            "outputs": [
+              {
+                "name": "console",
+                "status": "Accepted",
+                "ticket": 2
+              },
+              {
+                "name": "file",
+                "status": "Accepted",
+                "ticket": 2
+              }
+            ]
+          },
+          {
+            "outcome": "Accepted",
+            "outputs": [
+              {
+                "name": "console",
+                "status": "Accepted",
+                "ticket": 3
+              },
+              {
+                "name": "file",
+                "status": "Accepted",
+                "ticket": 3
+              }
+            ]
+          }
+        ],
+        "factoryCalls": 1,
+        "clockCalls": 3,
+        "outputs": {
+          "console": {
+            "lastAcceptedSequence": 3,
+            "attemptedTickets": [
+              1,
+              2,
+              3
+            ],
+            "writtenTickets": [
+              1,
+              2,
+              3
+            ],
+            "filteredCount": 0,
+            "unavailableCount": 0,
+            "faulted": false,
+            "originalFaultObserved": false
+          },
+          "file": {
+            "lastAcceptedSequence": 3,
+            "attemptedTickets": [
+              1,
+              2,
+              3
+            ],
+            "writtenTickets": [
+              1,
+              2,
+              3
+            ],
+            "filteredCount": 0,
+            "unavailableCount": 0,
+            "faulted": false,
+            "originalFaultObserved": false
+          }
+        },
+        "sharedCapturePairs": 3,
+        "sharedCaptures": true,
+        "callbackGateHeld": false
+      }
+    },
+    {
+      "id": "FANOUT-CONSOLE",
+      "mode": "basic",
+      "capacity": 2,
+      "consoleEnabled": true,
+      "fileEnabled": false,
+      "consoleLevel": "Trace",
+      "fileLevel": "Trace",
+      "steps": [
+        {
+          "label": 1,
+          "level": "Information",
+          "lazy": false
+        },
+        {
+          "label": 2,
+          "level": "Information",
+          "lazy": true
+        },
+        {
+          "label": 3,
+          "level": "Information",
+          "lazy": false
+        }
+      ],
+      "expected": {
+        "results": [
+          {
+            "outcome": "Accepted",
+            "outputs": [
+              {
+                "name": "console",
+                "status": "Accepted",
+                "ticket": 1
+              }
+            ]
+          },
+          {
+            "outcome": "Accepted",
+            "outputs": [
+              {
+                "name": "console",
+                "status": "Accepted",
+                "ticket": 2
+              }
+            ]
+          },
+          {
+            "outcome": "Accepted",
+            "outputs": [
+              {
+                "name": "console",
+                "status": "Accepted",
+                "ticket": 3
+              }
+            ]
+          }
+        ],
+        "factoryCalls": 1,
+        "clockCalls": 3,
+        "outputs": {
+          "console": {
+            "lastAcceptedSequence": 3,
+            "attemptedTickets": [
+              1,
+              2,
+              3
+            ],
+            "writtenTickets": [
+              1,
+              2,
+              3
+            ],
+            "filteredCount": 0,
+            "unavailableCount": 0,
+            "faulted": false,
+            "originalFaultObserved": false
+          }
+        },
+        "sharedCapturePairs": 0,
+        "sharedCaptures": true,
+        "callbackGateHeld": false
+      }
+    },
+    {
+      "id": "FANOUT-FILE",
+      "mode": "basic",
+      "capacity": 2,
+      "consoleEnabled": false,
+      "fileEnabled": true,
+      "consoleLevel": "Trace",
+      "fileLevel": "Trace",
+      "steps": [
+        {
+          "label": 1,
+          "level": "Information",
+          "lazy": false
+        },
+        {
+          "label": 2,
+          "level": "Information",
+          "lazy": true
+        },
+        {
+          "label": 3,
+          "level": "Information",
+          "lazy": false
+        }
+      ],
+      "expected": {
+        "results": [
+          {
+            "outcome": "Accepted",
+            "outputs": [
+              {
+                "name": "file",
+                "status": "Accepted",
+                "ticket": 1
+              }
+            ]
+          },
+          {
+            "outcome": "Accepted",
+            "outputs": [
+              {
+                "name": "file",
+                "status": "Accepted",
+                "ticket": 2
+              }
+            ]
+          },
+          {
+            "outcome": "Accepted",
+            "outputs": [
+              {
+                "name": "file",
+                "status": "Accepted",
+                "ticket": 3
+              }
+            ]
+          }
+        ],
+        "factoryCalls": 1,
+        "clockCalls": 3,
+        "outputs": {
+          "file": {
+            "lastAcceptedSequence": 3,
+            "attemptedTickets": [
+              1,
+              2,
+              3
+            ],
+            "writtenTickets": [
+              1,
+              2,
+              3
+            ],
+            "filteredCount": 0,
+            "unavailableCount": 0,
+            "faulted": false,
+            "originalFaultObserved": false
+          }
+        },
+        "sharedCapturePairs": 0,
+        "sharedCaptures": true,
+        "callbackGateHeld": false
+      }
+    },
+    {
+      "id": "FANOUT-DISABLED",
+      "mode": "basic",
+      "capacity": 2,
+      "consoleEnabled": false,
+      "fileEnabled": false,
+      "consoleLevel": "Trace",
+      "fileLevel": "Trace",
+      "steps": [
+        {
+          "label": 1,
+          "level": "Information",
+          "lazy": false
+        },
+        {
+          "label": 2,
+          "level": "Information",
+          "lazy": true
+        },
+        {
+          "label": 3,
+          "level": "Information",
+          "lazy": false
+        }
+      ],
+      "expected": {
+        "results": [
+          {
+            "outcome": "Filtered",
+            "outputs": []
+          },
+          {
+            "outcome": "Filtered",
+            "outputs": []
+          },
+          {
+            "outcome": "Filtered",
+            "outputs": []
+          }
+        ],
+        "factoryCalls": 0,
+        "clockCalls": 0,
+        "outputs": {},
+        "sharedCapturePairs": 0,
+        "sharedCaptures": true,
+        "callbackGateHeld": false
+      }
+    },
+    {
+      "id": "FANOUT-UNION",
+      "mode": "union",
+      "capacity": 3,
+      "consoleEnabled": true,
+      "fileEnabled": true,
+      "consoleLevel": "Warning",
+      "fileLevel": "Debug",
+      "steps": [
+        {
+          "label": 1,
+          "level": "Debug",
+          "lazy": false
+        },
+        {
+          "label": 2,
+          "level": "Warning",
+          "lazy": true
+        },
+        {
+          "label": 3,
+          "level": "Information",
+          "lazy": false
+        },
+        {
+          "label": 4,
+          "level": "Trace",
+          "lazy": true
+        },
+        {
+          "label": 5,
+          "level": "None",
+          "lazy": true
+        }
+      ],
+      "expected": {
+        "results": [
+          {
+            "outcome": "Accepted",
+            "outputs": [
+              {
+                "name": "console",
+                "status": "Filtered",
+                "ticket": null
+              },
+              {
+                "name": "file",
+                "status": "Accepted",
+                "ticket": 1
+              }
+            ]
+          },
+          {
+            "outcome": "Accepted",
+            "outputs": [
+              {
+                "name": "console",
+                "status": "Accepted",
+                "ticket": 1
+              },
+              {
+                "name": "file",
+                "status": "Accepted",
+                "ticket": 2
+              }
+            ]
+          },
+          {
+            "outcome": "Accepted",
+            "outputs": [
+              {
+                "name": "console",
+                "status": "Filtered",
+                "ticket": null
+              },
+              {
+                "name": "file",
+                "status": "Accepted",
+                "ticket": 3
+              }
+            ]
+          },
+          {
+            "outcome": "Filtered",
+            "outputs": [
+              {
+                "name": "console",
+                "status": "Filtered",
+                "ticket": null
+              },
+              {
+                "name": "file",
+                "status": "Filtered",
+                "ticket": null
+              }
+            ]
+          },
+          {
+            "outcome": "Filtered",
+            "outputs": [
+              {
+                "name": "console",
+                "status": "Filtered",
+                "ticket": null
+              },
+              {
+                "name": "file",
+                "status": "Filtered",
+                "ticket": null
+              }
+            ]
+          }
+        ],
+        "factoryCalls": 1,
+        "clockCalls": 3,
+        "outputs": {
+          "console": {
+            "lastAcceptedSequence": 1,
+            "attemptedTickets": [
+              1
+            ],
+            "writtenTickets": [
+              1
+            ],
+            "filteredCount": 4,
+            "unavailableCount": 0,
+            "faulted": false,
+            "originalFaultObserved": false
+          },
+          "file": {
+            "lastAcceptedSequence": 3,
+            "attemptedTickets": [
+              1,
+              2,
+              3
+            ],
+            "writtenTickets": [
+              1,
+              2,
+              3
+            ],
+            "filteredCount": 2,
+            "unavailableCount": 0,
+            "faulted": false,
+            "originalFaultObserved": false
+          }
+        },
+        "sharedCapturePairs": 1,
+        "sharedCaptures": true,
+        "callbackGateHeld": false
+      }
+    },
+    {
+      "id": "FANOUT-REJECT-THEN-ACCEPT",
+      "mode": "saturation",
+      "capacity": 1,
+      "consoleEnabled": true,
+      "fileEnabled": true,
+      "consoleLevel": "Trace",
+      "fileLevel": "Trace",
+      "steps": [
+        {
+          "label": 1,
+          "level": "Information",
+          "lazy": false
+        },
+        {
+          "label": 2,
+          "level": "Information",
+          "lazy": true
+        },
+        {
+          "label": 3,
+          "level": "Information",
+          "lazy": false
+        },
+        {
+          "label": 4,
+          "level": "Information",
+          "lazy": true
+        }
+      ],
+      "expected": {
+        "results": [
+          {
+            "outcome": "Accepted",
+            "outputs": [
+              {
+                "name": "console",
+                "status": "Accepted",
+                "ticket": 1
+              },
+              {
+                "name": "file",
+                "status": "Accepted",
+                "ticket": 1
+              }
+            ]
+          },
+          {
+            "outcome": "Accepted",
+            "outputs": [
+              {
+                "name": "console",
+                "status": "Accepted",
+                "ticket": 2
+              },
+              {
+                "name": "file",
+                "status": "Accepted",
+                "ticket": 2
+              }
+            ]
+          },
+          {
+            "outcome": "Rejected",
+            "outputs": [
+              {
+                "name": "console",
+                "status": "QueueFull",
+                "ticket": null
+              },
+              {
+                "name": "file",
+                "status": "QueueFull",
+                "ticket": null
+              }
+            ]
+          },
+          {
+            "outcome": "Accepted",
+            "outputs": [
+              {
+                "name": "console",
+                "status": "Accepted",
+                "ticket": 3
+              },
+              {
+                "name": "file",
+                "status": "Accepted",
+                "ticket": 3
+              }
+            ]
+          }
+        ],
+        "factoryCalls": 2,
+        "clockCalls": 4,
+        "outputs": {
+          "console": {
+            "lastAcceptedSequence": 3,
+            "attemptedTickets": [
+              1,
+              2,
+              3
+            ],
+            "writtenTickets": [
+              1,
+              2,
+              3
+            ],
+            "filteredCount": 0,
+            "unavailableCount": 0,
+            "faulted": false,
+            "originalFaultObserved": false
+          },
+          "file": {
+            "lastAcceptedSequence": 3,
+            "attemptedTickets": [
+              1,
+              2,
+              3
+            ],
+            "writtenTickets": [
+              1,
+              2,
+              3
+            ],
+            "filteredCount": 0,
+            "unavailableCount": 0,
+            "faulted": false,
+            "originalFaultObserved": false
+          }
+        },
+        "sharedCapturePairs": 3,
+        "sharedCaptures": true,
+        "callbackGateHeld": false
+      }
+    },
+    {
+      "id": "FANOUT-INDEPENDENT",
+      "mode": "independent",
+      "capacity": 1,
+      "consoleEnabled": true,
+      "fileEnabled": true,
+      "consoleLevel": "Trace",
+      "fileLevel": "Trace",
+      "steps": [
+        {
+          "label": 1,
+          "level": "Information",
+          "lazy": false
+        },
+        {
+          "label": 2,
+          "level": "Information",
+          "lazy": true
+        },
+        {
+          "label": 3,
+          "level": "Information",
+          "lazy": false
+        }
+      ],
+      "expected": {
+        "results": [
+          {
+            "outcome": "Accepted",
+            "outputs": [
+              {
+                "name": "console",
+                "status": "Accepted",
+                "ticket": 1
+              },
+              {
+                "name": "file",
+                "status": "Accepted",
+                "ticket": 1
+              }
+            ]
+          },
+          {
+            "outcome": "Accepted",
+            "outputs": [
+              {
+                "name": "console",
+                "status": "Accepted",
+                "ticket": 2
+              },
+              {
+                "name": "file",
+                "status": "Accepted",
+                "ticket": 2
+              }
+            ]
+          },
+          {
+            "outcome": "PartiallyAccepted",
+            "outputs": [
+              {
+                "name": "console",
+                "status": "Accepted",
+                "ticket": 3
+              },
+              {
+                "name": "file",
+                "status": "QueueFull",
+                "ticket": null
+              }
+            ]
+          }
+        ],
+        "factoryCalls": 1,
+        "clockCalls": 3,
+        "outputs": {
+          "console": {
+            "lastAcceptedSequence": 3,
+            "attemptedTickets": [
+              1,
+              2,
+              3
+            ],
+            "writtenTickets": [
+              1,
+              2,
+              3
+            ],
+            "filteredCount": 0,
+            "unavailableCount": 0,
+            "faulted": false,
+            "originalFaultObserved": false
+          },
+          "file": {
+            "lastAcceptedSequence": 2,
+            "attemptedTickets": [
+              1,
+              2
+            ],
+            "writtenTickets": [
+              1,
+              2
+            ],
+            "filteredCount": 0,
+            "unavailableCount": 0,
+            "faulted": false,
+            "originalFaultObserved": false
+          }
+        },
+        "sharedCapturePairs": 2,
+        "sharedCaptures": true,
+        "callbackGateHeld": false
+      }
+    },
+    {
+      "id": "FANOUT-LATE-CLOSE",
+      "mode": "late-close",
+      "capacity": 2,
+      "consoleEnabled": true,
+      "fileEnabled": true,
+      "consoleLevel": "Trace",
+      "fileLevel": "Trace",
+      "steps": [
+        {
+          "label": 1,
+          "level": "Information",
+          "lazy": false
+        },
+        {
+          "label": 2,
+          "level": "Information",
+          "lazy": true
+        },
+        {
+          "label": 3,
+          "level": "None",
+          "lazy": true
+        }
+      ],
+      "expected": {
+        "results": [
+          {
+            "outcome": "Accepted",
+            "outputs": [
+              {
+                "name": "console",
+                "status": "Accepted",
+                "ticket": 1
+              },
+              {
+                "name": "file",
+                "status": "Accepted",
+                "ticket": 1
+              }
+            ]
+          },
+          {
+            "outcome": "Stopped",
+            "outputs": [
+              {
+                "name": "console",
+                "status": "Stopped",
+                "ticket": null
+              },
+              {
+                "name": "file",
+                "status": "Stopped",
+                "ticket": null
+              }
+            ]
+          },
+          {
+            "outcome": "Stopped",
+            "outputs": [
+              {
+                "name": "console",
+                "status": "Stopped",
+                "ticket": null
+              },
+              {
+                "name": "file",
+                "status": "Stopped",
+                "ticket": null
+              }
+            ]
+          }
+        ],
+        "factoryCalls": 1,
+        "clockCalls": 2,
+        "outputs": {
+          "console": {
+            "lastAcceptedSequence": 1,
+            "attemptedTickets": [
+              1
+            ],
+            "writtenTickets": [
+              1
+            ],
+            "filteredCount": 0,
+            "unavailableCount": 0,
+            "faulted": false,
+            "originalFaultObserved": false
+          },
+          "file": {
+            "lastAcceptedSequence": 1,
+            "attemptedTickets": [
+              1
+            ],
+            "writtenTickets": [
+              1
+            ],
+            "filteredCount": 0,
+            "unavailableCount": 0,
+            "faulted": false,
+            "originalFaultObserved": false
+          }
+        },
+        "sharedCapturePairs": 1,
+        "sharedCaptures": true,
+        "callbackGateHeld": false
+      }
+    },
+    {
+      "id": "FANOUT-LATE-FILE-FAULT",
+      "mode": "late-fault",
+      "capacity": 2,
+      "consoleEnabled": true,
+      "fileEnabled": true,
+      "consoleLevel": "Trace",
+      "fileLevel": "Trace",
+      "steps": [
+        {
+          "label": 1,
+          "level": "Information",
+          "lazy": false
+        },
+        {
+          "label": 2,
+          "level": "Information",
+          "lazy": true
+        }
+      ],
+      "expected": {
+        "results": [
+          {
+            "outcome": "Accepted",
+            "outputs": [
+              {
+                "name": "console",
+                "status": "Accepted",
+                "ticket": 1
+              },
+              {
+                "name": "file",
+                "status": "Accepted",
+                "ticket": 1
+              }
+            ]
+          },
+          {
+            "outcome": "PartiallyAccepted",
+            "outputs": [
+              {
+                "name": "console",
+                "status": "Accepted",
+                "ticket": 2
+              },
+              {
+                "name": "file",
+                "status": "Faulted",
+                "ticket": null
+              }
+            ]
+          }
+        ],
+        "factoryCalls": 1,
+        "clockCalls": 2,
+        "outputs": {
+          "console": {
+            "lastAcceptedSequence": 2,
+            "attemptedTickets": [
+              1,
+              2
+            ],
+            "writtenTickets": [
+              1,
+              2
+            ],
+            "filteredCount": 0,
+            "unavailableCount": 0,
+            "faulted": false,
+            "originalFaultObserved": false
+          },
+          "file": {
+            "lastAcceptedSequence": 1,
+            "attemptedTickets": [
+              1
+            ],
+            "writtenTickets": [],
+            "filteredCount": 0,
+            "unavailableCount": 1,
+            "faulted": true,
+            "originalFaultObserved": true
+          }
+        },
+        "sharedCapturePairs": 1,
+        "sharedCaptures": true,
+        "callbackGateHeld": false
+      }
+    },
+    {
+      "id": "FANOUT-EARLY-BOTH-FAULT",
+      "mode": "early-fault",
+      "capacity": 2,
+      "consoleEnabled": true,
+      "fileEnabled": true,
+      "consoleLevel": "Trace",
+      "fileLevel": "Trace",
+      "steps": [
+        {
+          "label": 1,
+          "level": "Information",
+          "lazy": false
+        },
+        {
+          "label": 2,
+          "level": "Information",
+          "lazy": true
+        }
+      ],
+      "expected": {
+        "results": [
+          {
+            "outcome": "Accepted",
+            "outputs": [
+              {
+                "name": "console",
+                "status": "Accepted",
+                "ticket": 1
+              },
+              {
+                "name": "file",
+                "status": "Accepted",
+                "ticket": 1
+              }
+            ]
+          },
+          {
+            "outcome": "Rejected",
+            "outputs": [
+              {
+                "name": "console",
+                "status": "Faulted",
+                "ticket": null
+              },
+              {
+                "name": "file",
+                "status": "Faulted",
+                "ticket": null
+              }
+            ]
+          }
+        ],
+        "factoryCalls": 0,
+        "clockCalls": 1,
+        "outputs": {
+          "console": {
+            "lastAcceptedSequence": 1,
+            "attemptedTickets": [
+              1
+            ],
+            "writtenTickets": [],
+            "filteredCount": 0,
+            "unavailableCount": 1,
+            "faulted": true,
+            "originalFaultObserved": true
+          },
+          "file": {
+            "lastAcceptedSequence": 1,
+            "attemptedTickets": [
+              1
+            ],
+            "writtenTickets": [],
+            "filteredCount": 0,
+            "unavailableCount": 1,
+            "faulted": true,
+            "originalFaultObserved": true
+          }
+        },
+        "sharedCapturePairs": 1,
+        "sharedCaptures": true,
+        "callbackGateHeld": false
+      }
+    },
+    {
+      "id": "FANOUT-FROZEN-SETTINGS",
+      "mode": "mutate",
+      "capacity": 2,
+      "consoleEnabled": true,
+      "fileEnabled": true,
+      "consoleLevel": "Trace",
+      "fileLevel": "Trace",
+      "steps": [
+        {
+          "label": 1,
+          "level": "Information",
+          "lazy": false
+        },
+        {
+          "label": 2,
+          "level": "Information",
+          "lazy": true
+        },
+        {
+          "label": 3,
+          "level": "Information",
+          "lazy": false
+        }
+      ],
+      "expected": {
+        "results": [
+          {
+            "outcome": "Accepted",
+            "outputs": [
+              {
+                "name": "console",
+                "status": "Accepted",
+                "ticket": 1
+              },
+              {
+                "name": "file",
+                "status": "Accepted",
+                "ticket": 1
+              }
+            ]
+          },
+          {
+            "outcome": "Accepted",
+            "outputs": [
+              {
+                "name": "console",
+                "status": "Accepted",
+                "ticket": 2
+              },
+              {
+                "name": "file",
+                "status": "Accepted",
+                "ticket": 2
+              }
+            ]
+          },
+          {
+            "outcome": "Accepted",
+            "outputs": [
+              {
+                "name": "console",
+                "status": "Accepted",
+                "ticket": 3
+              },
+              {
+                "name": "file",
+                "status": "Accepted",
+                "ticket": 3
+              }
+            ]
+          }
+        ],
+        "factoryCalls": 1,
+        "clockCalls": 3,
+        "outputs": {
+          "console": {
+            "lastAcceptedSequence": 3,
+            "attemptedTickets": [
+              1,
+              2,
+              3
+            ],
+            "writtenTickets": [
+              1,
+              2,
+              3
+            ],
+            "filteredCount": 0,
+            "unavailableCount": 0,
+            "faulted": false,
+            "originalFaultObserved": false
+          },
+          "file": {
+            "lastAcceptedSequence": 3,
+            "attemptedTickets": [
+              1,
+              2,
+              3
+            ],
+            "writtenTickets": [
+              1,
+              2,
+              3
+            ],
+            "filteredCount": 0,
+            "unavailableCount": 0,
+            "faulted": false,
+            "originalFaultObserved": false
+          }
+        },
+        "sharedCapturePairs": 3,
+        "sharedCaptures": true,
+        "callbackGateHeld": false
+      }
+    },
+    {
+      "id": "FANOUT-PRODUCERS",
+      "mode": "multi",
+      "capacity": 16,
+      "consoleEnabled": true,
+      "fileEnabled": true,
+      "consoleLevel": "Trace",
+      "fileLevel": "Trace",
+      "steps": [
+        {
+          "label": 1,
+          "level": "Information",
+          "lazy": true
+        },
+        {
+          "label": 2,
+          "level": "Information",
+          "lazy": true
+        },
+        {
+          "label": 3,
+          "level": "Information",
+          "lazy": true
+        },
+        {
+          "label": 4,
+          "level": "Information",
+          "lazy": true
+        },
+        {
+          "label": 5,
+          "level": "Information",
+          "lazy": true
+        },
+        {
+          "label": 6,
+          "level": "Information",
+          "lazy": true
+        },
+        {
+          "label": 7,
+          "level": "Information",
+          "lazy": true
+        },
+        {
+          "label": 8,
+          "level": "Information",
+          "lazy": true
+        },
+        {
+          "label": 9,
+          "level": "Information",
+          "lazy": true
+        },
+        {
+          "label": 10,
+          "level": "Information",
+          "lazy": true
+        },
+        {
+          "label": 11,
+          "level": "Information",
+          "lazy": true
+        },
+        {
+          "label": 12,
+          "level": "Information",
+          "lazy": true
+        },
+        {
+          "label": 13,
+          "level": "Information",
+          "lazy": true
+        },
+        {
+          "label": 14,
+          "level": "Information",
+          "lazy": true
+        },
+        {
+          "label": 15,
+          "level": "Information",
+          "lazy": true
+        },
+        {
+          "label": 16,
+          "level": "Information",
+          "lazy": true
+        }
+      ],
+      "expected": {
+        "results": [
+          {
+            "outcome": "Accepted",
+            "outputs": [
+              {
+                "name": "console",
+                "status": "Accepted",
+                "ticket": 1
+              },
+              {
+                "name": "file",
+                "status": "Accepted",
+                "ticket": 1
+              }
+            ]
+          },
+          {
+            "outcome": "Accepted",
+            "outputs": [
+              {
+                "name": "console",
+                "status": "Accepted",
+                "ticket": 2
+              },
+              {
+                "name": "file",
+                "status": "Accepted",
+                "ticket": 2
+              }
+            ]
+          },
+          {
+            "outcome": "Accepted",
+            "outputs": [
+              {
+                "name": "console",
+                "status": "Accepted",
+                "ticket": 3
+              },
+              {
+                "name": "file",
+                "status": "Accepted",
+                "ticket": 3
+              }
+            ]
+          },
+          {
+            "outcome": "Accepted",
+            "outputs": [
+              {
+                "name": "console",
+                "status": "Accepted",
+                "ticket": 4
+              },
+              {
+                "name": "file",
+                "status": "Accepted",
+                "ticket": 4
+              }
+            ]
+          },
+          {
+            "outcome": "Accepted",
+            "outputs": [
+              {
+                "name": "console",
+                "status": "Accepted",
+                "ticket": 5
+              },
+              {
+                "name": "file",
+                "status": "Accepted",
+                "ticket": 5
+              }
+            ]
+          },
+          {
+            "outcome": "Accepted",
+            "outputs": [
+              {
+                "name": "console",
+                "status": "Accepted",
+                "ticket": 6
+              },
+              {
+                "name": "file",
+                "status": "Accepted",
+                "ticket": 6
+              }
+            ]
+          },
+          {
+            "outcome": "Accepted",
+            "outputs": [
+              {
+                "name": "console",
+                "status": "Accepted",
+                "ticket": 7
+              },
+              {
+                "name": "file",
+                "status": "Accepted",
+                "ticket": 7
+              }
+            ]
+          },
+          {
+            "outcome": "Accepted",
+            "outputs": [
+              {
+                "name": "console",
+                "status": "Accepted",
+                "ticket": 8
+              },
+              {
+                "name": "file",
+                "status": "Accepted",
+                "ticket": 8
+              }
+            ]
+          },
+          {
+            "outcome": "Accepted",
+            "outputs": [
+              {
+                "name": "console",
+                "status": "Accepted",
+                "ticket": 9
+              },
+              {
+                "name": "file",
+                "status": "Accepted",
+                "ticket": 9
+              }
+            ]
+          },
+          {
+            "outcome": "Accepted",
+            "outputs": [
+              {
+                "name": "console",
+                "status": "Accepted",
+                "ticket": 10
+              },
+              {
+                "name": "file",
+                "status": "Accepted",
+                "ticket": 10
+              }
+            ]
+          },
+          {
+            "outcome": "Accepted",
+            "outputs": [
+              {
+                "name": "console",
+                "status": "Accepted",
+                "ticket": 11
+              },
+              {
+                "name": "file",
+                "status": "Accepted",
+                "ticket": 11
+              }
+            ]
+          },
+          {
+            "outcome": "Accepted",
+            "outputs": [
+              {
+                "name": "console",
+                "status": "Accepted",
+                "ticket": 12
+              },
+              {
+                "name": "file",
+                "status": "Accepted",
+                "ticket": 12
+              }
+            ]
+          },
+          {
+            "outcome": "Accepted",
+            "outputs": [
+              {
+                "name": "console",
+                "status": "Accepted",
+                "ticket": 13
+              },
+              {
+                "name": "file",
+                "status": "Accepted",
+                "ticket": 13
+              }
+            ]
+          },
+          {
+            "outcome": "Accepted",
+            "outputs": [
+              {
+                "name": "console",
+                "status": "Accepted",
+                "ticket": 14
+              },
+              {
+                "name": "file",
+                "status": "Accepted",
+                "ticket": 14
+              }
+            ]
+          },
+          {
+            "outcome": "Accepted",
+            "outputs": [
+              {
+                "name": "console",
+                "status": "Accepted",
+                "ticket": 15
+              },
+              {
+                "name": "file",
+                "status": "Accepted",
+                "ticket": 15
+              }
+            ]
+          },
+          {
+            "outcome": "Accepted",
+            "outputs": [
+              {
+                "name": "console",
+                "status": "Accepted",
+                "ticket": 16
+              },
+              {
+                "name": "file",
+                "status": "Accepted",
+                "ticket": 16
+              }
+            ]
+          }
+        ],
+        "factoryCalls": 16,
+        "clockCalls": 16,
+        "outputs": {
+          "console": {
+            "lastAcceptedSequence": 16,
+            "attemptedTickets": [
+              1,
+              2,
+              3,
+              4,
+              5,
+              6,
+              7,
+              8,
+              9,
+              10,
+              11,
+              12,
+              13,
+              14,
+              15,
+              16
+            ],
+            "writtenTickets": [
+              1,
+              2,
+              3,
+              4,
+              5,
+              6,
+              7,
+              8,
+              9,
+              10,
+              11,
+              12,
+              13,
+              14,
+              15,
+              16
+            ],
+            "filteredCount": 0,
+            "unavailableCount": 0,
+            "faulted": false,
+            "originalFaultObserved": false
+          },
+          "file": {
+            "lastAcceptedSequence": 16,
+            "attemptedTickets": [
+              1,
+              2,
+              3,
+              4,
+              5,
+              6,
+              7,
+              8,
+              9,
+              10,
+              11,
+              12,
+              13,
+              14,
+              15,
+              16
+            ],
+            "writtenTickets": [
+              1,
+              2,
+              3,
+              4,
+              5,
+              6,
+              7,
+              8,
+              9,
+              10,
+              11,
+              12,
+              13,
+              14,
+              15,
+              16
+            ],
+            "filteredCount": 0,
+            "unavailableCount": 0,
+            "faulted": false,
+            "originalFaultObserved": false
+          }
+        },
+        "sharedCapturePairs": 16,
+        "sharedCaptures": true,
+        "callbackGateHeld": false
+      }
+    }
+  ]
+}

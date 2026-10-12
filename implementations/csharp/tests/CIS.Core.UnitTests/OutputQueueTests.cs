@@ -30,7 +30,7 @@ public sealed class OutputQueueTests
     [TestMethod]
     public void EnabledPresenceAndNullInputsAreValidatedBeforeWork()
     {
-        Func<EncodedEvent, ValueTask> write = _ => throw new AssertFailedException("Validation started work.");
+        Func<AdmittedEvent, ValueTask> write = _ => throw new AssertFailedException("Validation started work.");
         Assert.ThrowsExactly<ArgumentNullException>(() => new OutputEventQueue(1, null!));
         Assert.ThrowsExactly<ArgumentException>(() => new OutputQueues(1, true, false, null, null));
         Assert.ThrowsExactly<ArgumentException>(() => new OutputQueues(1, false, true, null, null));
@@ -84,7 +84,7 @@ public sealed class OutputQueueTests
         var queue = new OutputEventQueue(capacity, async item =>
         {
             int now = Interlocked.Increment(ref active); OutputQueueFixture.RecordMaximum(ref maximum, now);
-            try { if (delivered.Count == 0) { entered.TrySetResult(); await releaseWriter.Task; } delivered.Add(item); }
+            try { if (delivered.Count == 0) { entered.TrySetResult(); await releaseWriter.Task; } delivered.Add(item.Event); }
             finally { Interlocked.Decrement(ref active); }
         });
         Task[] workers = [];

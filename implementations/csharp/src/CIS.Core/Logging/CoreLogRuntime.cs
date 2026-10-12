@@ -6,10 +6,11 @@ using CIS.Text;
 namespace CIS.Logging;
 
 /// <summary>Owns logger context and independent output admission.</summary>
-/// <remarks>Output composition and public creation/shutdown are implemented in later roadmap tasks.</remarks>
+/// <remarks>Physical output composition and public creation/shutdown are implemented in later roadmap tasks.</remarks>
 public sealed class CoreLogRuntime
 {
-    private readonly object admissionGate = new();
+    private readonly object admissionGate;
+    private readonly OutputQueues? queuedOutputs;
     private readonly EventMetadata metadata;
     private readonly TimeProvider timeProvider;
     private readonly int maximumEntryBytes;
@@ -18,9 +19,9 @@ public sealed class CoreLogRuntime
     private long invalidEventCount;
     private long truncatedEventCount;
 
-    // Real logger/capture implementation, with internal output composition until workers exist.
+    // The direct internal admission seam remains available for existing focused qualification.
     internal CoreLogRuntime(EventMetadata metadata, LoggingOptions options, ILogOutputAdmission? console,
-        ILogOutputAdmission? file, TimeProvider? timeProvider = null)
+        ILogOutputAdmission? file, TimeProvider? timeProvider = null, object? sharedAdmissionGate = null, OutputQueues? queuedOutputs = null)
     {
         ArgumentNullException.ThrowIfNull(metadata);
         ArgumentNullException.ThrowIfNull(options);
@@ -29,12 +30,9 @@ public sealed class CoreLogRuntime
         bool consoleEnabled = consoleLevel != CoreLogLevel.None;
         bool fileEnabled = !string.IsNullOrWhiteSpace(options.FilePath) && fileLevel != CoreLogLevel.None;
         int maximumBytes = options.MaxEntryBytes;
-        ValidateLevel(consoleLevel);
-        ValidateLevel(fileLevel);
-        if (maximumBytes is < LoggingOptions.MinimumMaxEntryBytes or > LoggingOptions.MaximumMaxEntryBytes)
-        {
-            throw new ArgumentOutOfRangeException(nameof(options));
-        }
+        ValidateSettings(consoleLevel, fileLevel, maximumBytes);
+        admissionGate = sharedAdmissionGate ?? new object();
+        this.queuedOutputs = queuedOutputs;
         this.metadata = metadata;
         this.timeProvider = timeProvider ?? TimeProvider.System;
         maximumEntryBytes = maximumBytes;
@@ -52,6 +50,28 @@ public sealed class CoreLogRuntime
             if (admission is not null) { configured.Add(new Output(name, threshold, admission)); }
         }
     }
+
+    // Actual capture -> ticketed Channels -> sequential trusted writers; physical output ownership comes later.
+    internal static CoreLogRuntime CreateQueued(EventMetadata metadata, LoggingOptions options,
+        Func<AdmittedEvent, ValueTask>? consoleWrite, Func<AdmittedEvent, ValueTask>? fileWrite, TimeProvider? timeProvider = null)
+    {
+        ArgumentNullException.ThrowIfNull(metadata);
+        ArgumentNullException.ThrowIfNull(options);
+        var selected = new LoggingOptions
+        {
+            ConsoleLevel = options.EffectiveConsoleLevel,
+            FileLevel = options.EffectiveFileLevel,
+            FilePath = options.FilePath,
+            MaxEntryBytes = options.MaxEntryBytes,
+            QueueCapacity = options.QueueCapacity
+        };
+        ValidateSettings(selected.EffectiveConsoleLevel, selected.EffectiveFileLevel, selected.MaxEntryBytes);
+        var gate = new object();
+        var queues = new OutputQueues(selected.QueueCapacity, selected.ConsoleEnabled, selected.FileEnabled, consoleWrite, fileWrite, gate);
+        try { return new CoreLogRuntime(metadata, selected, queues.Console, queues.File, timeProvider, gate, queues); }
+        catch { queues.Complete(); throw; }
+    }
+    internal OutputQueues? QueuedOutputs => queuedOutputs;
 
     internal OperationScopeStore Scopes { get; } = new();
     internal long InvalidEventCount => Interlocked.Read(ref invalidEventCount);
@@ -121,7 +141,7 @@ public sealed class CoreLogRuntime
 
     internal void CloseAdmission()
     {
-        lock (admissionGate) { admissionClosed = true; }
+        lock (admissionGate) { admissionClosed = true; queuedOutputs?.Complete(); }
     }
 
     private LogWriteResult Invalid(string code)
@@ -222,6 +242,11 @@ public sealed class CoreLogRuntime
     }
 
     private static bool Interested(Output output, CoreLogLevel level) => level != CoreLogLevel.None && level >= output.Threshold;
+    private static void ValidateSettings(CoreLogLevel console, CoreLogLevel file, int maximumBytes)
+    {
+        ValidateLevel(console); ValidateLevel(file);
+        if (maximumBytes is < LoggingOptions.MinimumMaxEntryBytes or > LoggingOptions.MaximumMaxEntryBytes) { throw new ArgumentOutOfRangeException("options"); }
+    }
     private static void ValidateLevel(CoreLogLevel level)
     {
         if (!Enum.IsDefined(level)) { throw new ArgumentOutOfRangeException(nameof(level), "Use a declared logging level."); }
