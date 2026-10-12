@@ -26,6 +26,7 @@
 ## Changes
 
 - The user requests Claude review when available. Before committing concrete changes, run a read-only Claude review and address actionable findings. Check the host environment outside the sandbox when needed, including the VS Code extension CLI; a missing sandbox PATH entry does not establish that Claude is unavailable. Report an unavailable route honestly.
+- Keep each implementation within the requested task/module scope. Prefer direct implementations; add abstractions only for a concrete requirement.
 - Use readable C#, nullable checking, SDK analyzers, warnings as errors and documented public behavior.
 - Do not overwrite user edits, publish, transmit repository content to another service or approve product records without the corresponding authorization.
 

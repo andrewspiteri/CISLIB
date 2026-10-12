@@ -1,0 +1,413 @@
+{
+  "schema": "cis.logging.event-encoding-evidence/v1",
+  "taskId": "WP04-S04-T04",
+  "recordedUtc": "2026-10-12T12:16:19.964596+00:00",
+  "baseCommit": "248f2f740375c3307f5b09c5f18e7a5e3c4dfb7b",
+  "status": "Implemented and verified development task; uncommitted",
+  "authority": "User resumed logging implementation, with prior configurable entry cap/truncation and scope discipline decisions retained.",
+  "outcome": "Actual internal owned JSONL encoding with exact escaping/LF accounting, protected envelope and deterministic payload truncation. No new public API, dependencies, runtime queue or output.",
+  "developer": {
+    "exitCode": 0,
+    "stages": 14,
+    "tests": {
+      "unit": 2001,
+      "integration": 416,
+      "architecture": 393
+    },
+    "totalTests": 2810,
+    "failed": 0,
+    "skipped": 0,
+    "newTests": 55,
+    "compilerControls": {
+      "startup": 25,
+      "compatibility": 22,
+      "typedValues": 12
+    },
+    "totalCompilerControls": 59
+  },
+  "native": {
+    "runtime": "10.0.12",
+    "rollForward": "Disable",
+    "windows": 8,
+    "ubuntu2404": 8,
+    "totalProcesses": 16,
+    "coreSha256": "b231c79eaeb03d4c02f56eaee95188b68a9492419703c7f4f94b2cdf0ca1078f",
+    "hostSha256": "4352314032370cd872abb2bf330c17e5a063a1db343135f5b5b416093f753158",
+    "sameManagedBytes": true,
+    "scope": "Actual Core encoder/native process cases; controlled fixture metadata and clock, not full Linux SDK or release qualification."
+  },
+  "claude": {
+    "initial": "PASS; two nonblocking suggestions addressed",
+    "followup": "PASS; no blocking findings",
+    "scope": "User-authorized external native CLI, read-only Read/Glob/Grep",
+    "optionalOpenItems": "Internal envelope exception primary-constructor style and additional later-sibling exception test; no correctness blocker. Full S04 qualification remains T05."
+  },
+  "repairs": "Initial line-ending format issue and explicit internal encoded-record constructor visibility repaired; focused tests and full verification rerun. Initial failure summary/log retained; superseded raw runs remain ignored under the task directory.",
+  "release": {
+    "exitCode": 2,
+    "qualified": false,
+    "plannedCasesExactlyUnchanged": 41,
+    "scope": "Required runtime/provider, complete six-family verification, SDK/platform, release examples and retained bundle gates remain pending."
+  },
+  "sourceNotes": "All shipping code, compiled tests and current configuration/contract/case bindings match the verified input capture. Only root/module README progress links and planning status wording changed after capture; current-inputs.json records current source hashes. No shipping code changed after passing verification. At commit staging, one extra EOF blank line in EventEncoder.cs was removed; current input pins record this whitespace-only repair. Prior compiled/native evidence remains the verified behavior.",
+  "cisGraph": {
+    "initialBuildId": "sha256:b41b974182e9010c86e89e62faef49a6273f62ae3a2d9ffade8c41405ad25161",
+    "initialFreshness": "fresh",
+    "initialWarnings": 79,
+    "initialErrors": 0,
+    "exactRoot": "cislib::symbol::cis-core/csharp/method/CIS.Logging.Events.EventProjection.Capture%28CIS.Logging.EventMetadata%2C%20CIS.Logging.Scopes.CapturedScopeContext%2C%20string%2C%20CIS.Logging.CoreLogLevel%2C%20CIS.Logging.LogEventData%2C%20TimeProvider%3F%29",
+    "query": "Exact root, one node, nontruncated; bounded incoming calls query returned root only. Canonical source inspected; extraction/merged historical declaration warnings prevent complete semantic/caller claims.",
+    "refresh": "Rebuilt after this record; final local outputs under ignored .artifacts/csharp/tasks/wp04-s04-t04/graph-*.",
+    "final": {
+      "manifestSchemaVersion": 2,
+      "buildId": "sha256:8c7cc6b9acb9dc6e5f4ac615cdbee684e5348d3aa9f11cc674a2a707f7448dca",
+      "freshness": "fresh",
+      "nodes": 4898,
+      "edges": 17684,
+      "warnings": 79,
+      "errors": 0,
+      "status": "partial",
+      "buildExitCode": 0,
+      "retry": "Initial atomic sidecar write access error; retry succeeded. Database and manifest now current.",
+      "exactRoot": "cislib::symbol::cis-core/csharp/method/CIS.Logging.Events.EventEncoder.Encode%28CIS.Logging.Events.CapturedEventFacts%2C%20int%29",
+      "query": "One matched node, nontruncated, canonical source at EventEncoder.cs:8.",
+      "compilerExtractors": [
+        "cis.csharp.compiler/5",
+        "cis.csharp.semantic-facts/3"
+      ],
+      "semanticLimits": "Extraction/merged historical scope warnings remain; compiler privacy shapes and intraprocedural ordering do not establish complete semantic or caller coverage."
+    }
+  },
+  "limitations": [
+    "No public runtime/output admission, human rendering or delivery qualification.",
+    "Full S04 shared structural qualification remains WP04-S04-T05.",
+    "Configured protected envelope failures are explicit when the framework encoder uses extra escaping; identities are never shortened."
+  ],
+  "files": [
+    {
+      "path": "Developer/summary.json",
+      "sha256": "3ddd37d42d43d54175b7a66be60b5282eb06852c6ed7dac5c0a9f4f5ca84d06b",
+      "bytes": 7904
+    },
+    {
+      "path": "Developer/source-inputs.json",
+      "sha256": "67d01922488ac5517dcee9c3393f5d289155c92957891ff1c6275c72878e51e5",
+      "bytes": 3995242
+    },
+    {
+      "path": "Developer/families/unit/report.trx",
+      "sha256": "0f9cb42b9b7ed59fb6339ec22fdd1f6d3db12b2de1cda00074e8fd344cdb350e",
+      "bytes": 2825393
+    },
+    {
+      "path": "Developer/families/unit/execution.json",
+      "sha256": "7847840764bdc4a66301bd179a620abfb1676a2455d3d1adf9968d77e8705e64",
+      "bytes": 157
+    },
+    {
+      "path": "Developer/families/unit/discovery.json",
+      "sha256": "5bf63a1f88560708823d5d9e9414d7cfdce55ee37e85edc44574efdc5a544655",
+      "bytes": 205640
+    },
+    {
+      "path": "Developer/families/integration/report.trx",
+      "sha256": "39ef0d84b99e1f2fcc3c5b269a1c7521e8dc774ea4bcbd66026cc5f8c5ac504e",
+      "bytes": 3840488
+    },
+    {
+      "path": "Developer/families/integration/execution.json",
+      "sha256": "c50d2a7823e78620d43659c649073694c0cef21805e8b46791baa913a37f8383",
+      "bytes": 162
+    },
+    {
+      "path": "Developer/families/integration/discovery.json",
+      "sha256": "8f0ff23f092709cf2ede8e0d2c4f774b6f9ab2bc5b15d508e82322dd05ed41d8",
+      "bytes": 41794
+    },
+    {
+      "path": "Developer/families/architecture/report.trx",
+      "sha256": "9bd941666122f5df1469b76529b90cc27d51f144b6aca31c62d70a280c016914",
+      "bytes": 559925
+    },
+    {
+      "path": "Developer/families/architecture/execution.json",
+      "sha256": "53984d5dd735a24e60f6b21ca41026730740cebaf07d02af16aba1a24fa21e7a",
+      "bytes": 163
+    },
+    {
+      "path": "Developer/families/architecture/discovery.json",
+      "sha256": "8e5a12871bfa04f486a40e83231b66d669936f17cec65f0607a4d9535ace4f7f",
+      "bytes": 38671
+    },
+    {
+      "path": "Developer/contracts/startup/summary.json",
+      "sha256": "318d42a40321e3e8014c44f8b3bf94744258ecc7df0acf0ff10da153850fadf6",
+      "bytes": 16391
+    },
+    {
+      "path": "Developer/contracts/compatibility-samples/summary.json",
+      "sha256": "64439f6d59fa77289006db55bb2c51ca27f775ae076e0e11a4294f56866b9970",
+      "bytes": 12900
+    },
+    {
+      "path": "Developer/contracts/log-value-consumers/summary.json",
+      "sha256": "2bcad9f8c670a64dde426656851c12793878c72733e8fe092cb20bbee60efa85",
+      "bytes": 32640
+    },
+    {
+      "path": "developer-qualified.log",
+      "sha256": "b3412c899241483f692367436e5900aae3308b12046f2da22cb364b5cca7a540",
+      "bytes": 317457
+    },
+    {
+      "path": "developer-qualified-exit.txt",
+      "sha256": "5feceb66ffc86f38d952786c6d696c79c2dbc239dd4e91b46729d73a27fb57e9",
+      "bytes": 1
+    },
+    {
+      "path": "release.log",
+      "sha256": "03aa42df1682194b2f04eae026d19b66b1151f793bb49c2ad6aa26cc78e50b79",
+      "bytes": 5341
+    },
+    {
+      "path": "release-exit.txt",
+      "sha256": "d4735e3a265e16eee03f59718b9b5d03019c07d8b6c51f90da3a666eec13ab35",
+      "bytes": 1
+    },
+    {
+      "path": "claude-prompt.txt",
+      "sha256": "3d20768af8e04e2f8df25b59aee2d66afd080be50e7f6fe828ef1657486a51d1",
+      "bytes": 1977
+    },
+    {
+      "path": "claude-result.json",
+      "sha256": "b98b98f8a77deacdaf2fa9b1021f4b605f94109ef390796b865d04d829b1f93b",
+      "bytes": 8033
+    },
+    {
+      "path": "claude-stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "claude-exit.txt",
+      "sha256": "5feceb66ffc86f38d952786c6d696c79c2dbc239dd4e91b46729d73a27fb57e9",
+      "bytes": 1
+    },
+    {
+      "path": "claude-followup-prompt.txt",
+      "sha256": "a824ca39ea4c5768bf392e67ea747683066f1bb7ed77fb43e3db050a9df69eb1",
+      "bytes": 970
+    },
+    {
+      "path": "claude-followup-result.json",
+      "sha256": "c6d6603b02b84601c0aa785c83a99d0946e5a4d14501e987eac9c814df5fc344",
+      "bytes": 4906
+    },
+    {
+      "path": "claude-followup-stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "claude-followup-exit.txt",
+      "sha256": "5feceb66ffc86f38d952786c6d696c79c2dbc239dd4e91b46729d73a27fb57e9",
+      "bytes": 1
+    },
+    {
+      "path": "developer-initial-summary.json",
+      "sha256": "3096ae7b88dbbea4a33e5cf009b2fa74dc6444095f6193c3c76db3a178403147",
+      "bytes": 8973
+    },
+    {
+      "path": "architecture-initial.log",
+      "sha256": "025a6ac7d3cc0f501cb9a003ae9673296a8baefd7fe86541c74a354448459b3f",
+      "bytes": 1179
+    },
+    {
+      "path": "native-linux.sh",
+      "sha256": "c230af788f17f8a200f35a8bea50fbeef8d54e131ae93bf2c7d7f683518f48d0",
+      "bytes": 544
+    },
+    {
+      "path": "focused/encoding-final.trx",
+      "sha256": "919121ebbf5ae7c9f494d22070890ca5c9ac96df64dd76954269ca40ffa82ec1",
+      "bytes": 63550
+    },
+    {
+      "path": "Release/summary.json",
+      "sha256": "02aa386394a81d42b440487ed3c7caa965f73621ce399574ee544f15296975fa",
+      "bytes": 10088
+    },
+    {
+      "path": "native/windows-final/ENCODE-ATOMIC-STRINGS.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "native/windows-final/ENCODE-ATOMIC-STRINGS.stdout.json",
+      "sha256": "e6b1d8f371191931b7713ebe9b745401a9bec480e978038631ce0e933bfdaf0d",
+      "bytes": 1177
+    },
+    {
+      "path": "native/windows-final/ENCODE-COMPLETE.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "native/windows-final/ENCODE-COMPLETE.stdout.json",
+      "sha256": "a2743e69aa9ac09a475761ca78dcaefc6edcc800e35fbfde04f87173c5802e22",
+      "bytes": 1630
+    },
+    {
+      "path": "native/windows-final/ENCODE-ESCAPED-UNICODE.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "native/windows-final/ENCODE-ESCAPED-UNICODE.stdout.json",
+      "sha256": "47bc0d7603dedf430f4571c34a8816e00b96d0dacf44993794368f571f611818",
+      "bytes": 19782
+    },
+    {
+      "path": "native/windows-final/ENCODE-EXACT-LIMIT.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "native/windows-final/ENCODE-EXACT-LIMIT.stdout.json",
+      "sha256": "4846037bf9994e1ae65db4e1b05258d7c8be2e968a538629aa726686a60179cd",
+      "bytes": 17118
+    },
+    {
+      "path": "native/windows-final/ENCODE-EXCEPTION-STACK.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "native/windows-final/ENCODE-EXCEPTION-STACK.stdout.json",
+      "sha256": "b030b40ac5af8a3743de80e496a8e1b9111033c52002966c5efaec442667871e",
+      "bytes": 17196
+    },
+    {
+      "path": "native/windows-final/ENCODE-ONE-OVER.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "native/windows-final/ENCODE-ONE-OVER.stdout.json",
+      "sha256": "7cbce085baebb0559f6d07d2f0638d13f15e7d1217aa5a8eac3d81502caa1a64",
+      "bytes": 17124
+    },
+    {
+      "path": "native/windows-final/ENCODE-PRIOR-LOSS.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "native/windows-final/ENCODE-PRIOR-LOSS.stdout.json",
+      "sha256": "a1d4de12c1a65ed27ec314716d75d76184e8fbd1436129d0eccc50caf09290bc",
+      "bytes": 9343
+    },
+    {
+      "path": "native/windows-final/ENCODE-PROTECTED-ENVELOPE.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "native/windows-final/ENCODE-PROTECTED-ENVELOPE.stdout.json",
+      "sha256": "63aaefbc83672dbf53b665634097f9fdd0fd4d1dce6e465e1f506f1cab501cea",
+      "bytes": 429
+    },
+    {
+      "path": "native/windows-final/summary.json",
+      "sha256": "b668f82c9b15e6e8ad18cd171c283b866f3728a88952977c48d5c0d87ad7bb32",
+      "bytes": 8152
+    },
+    {
+      "path": "native/linux-final/ENCODE-ATOMIC-STRINGS.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "native/linux-final/ENCODE-ATOMIC-STRINGS.stdout.json",
+      "sha256": "8e5a889881f2679b75ac148101448dbae3ec7d1409ab80a48d6f47bd0e4d7925",
+      "bytes": 1174
+    },
+    {
+      "path": "native/linux-final/ENCODE-COMPLETE.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "native/linux-final/ENCODE-COMPLETE.stdout.json",
+      "sha256": "d709df035d5d0001e0d02e2835b042923aea8df5556b8b2b7845c447452266f5",
+      "bytes": 1627
+    },
+    {
+      "path": "native/linux-final/ENCODE-ESCAPED-UNICODE.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "native/linux-final/ENCODE-ESCAPED-UNICODE.stdout.json",
+      "sha256": "3c80563b0ef369c6a5e9a6eec70fbc40e45d412cdbe973b1d1b2492ae2402dac",
+      "bytes": 19779
+    },
+    {
+      "path": "native/linux-final/ENCODE-EXACT-LIMIT.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "native/linux-final/ENCODE-EXACT-LIMIT.stdout.json",
+      "sha256": "e0a67d5cffaa8c91381b888642c40568b397284fe38155aa73447ea1304dc10c",
+      "bytes": 17115
+    },
+    {
+      "path": "native/linux-final/ENCODE-EXCEPTION-STACK.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "native/linux-final/ENCODE-EXCEPTION-STACK.stdout.json",
+      "sha256": "2ed0332846ddeed68f4c6469eb477d0295dbf91407374423ac75da66761165c6",
+      "bytes": 17193
+    },
+    {
+      "path": "native/linux-final/ENCODE-ONE-OVER.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "native/linux-final/ENCODE-ONE-OVER.stdout.json",
+      "sha256": "124828cec6e7bf0dab6fa677f718e32f0ea41057b33ded3f5784f9a288ff8567",
+      "bytes": 17121
+    },
+    {
+      "path": "native/linux-final/ENCODE-PRIOR-LOSS.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "native/linux-final/ENCODE-PRIOR-LOSS.stdout.json",
+      "sha256": "34dd31c76084d848fb6a6a02d78ae884f220ed8d791865f14414d2a1a38d63ed",
+      "bytes": 9340
+    },
+    {
+      "path": "native/linux-final/ENCODE-PROTECTED-ENVELOPE.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "native/linux-final/ENCODE-PROTECTED-ENVELOPE.stdout.json",
+      "sha256": "d03f8d3f28c815373196192477c904357b2f7f9f5e1df19537888779908b7961",
+      "bytes": 426
+    },
+    {
+      "path": "native/linux-final/summary.json",
+      "sha256": "72769cd7703bd8a0339434b354fc06939ce92f8e3c3685ffa39091784244c9ac",
+      "bytes": 8283
+    }
+  ]
+}

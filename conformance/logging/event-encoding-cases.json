@@ -1,0 +1,95 @@
+{
+  "schemaVersion": 1,
+  "taskId": "WP04-S04-T04",
+  "scope": "Actual captured facts and shipping JSONL encoding; controlled metadata and clock. Runtime/output admission and full S04 qualification remain later work.",
+  "caseCount": 8,
+  "cases": [
+    {
+      "id": "ENCODE-COMPLETE",
+      "input": {
+        "mode": "complete",
+        "maxEntryBytes": 65536
+      },
+      "expected": {
+        "truncated": false,
+        "fillsLimit": false
+      }
+    },
+    {
+      "id": "ENCODE-EXACT-LIMIT",
+      "input": {
+        "mode": "exact",
+        "maxEntryBytes": 16384
+      },
+      "expected": {
+        "truncated": false,
+        "fillsLimit": true
+      }
+    },
+    {
+      "id": "ENCODE-ONE-OVER",
+      "input": {
+        "mode": "over",
+        "maxEntryBytes": 16384
+      },
+      "expected": {
+        "truncated": true,
+        "fillsLimit": true
+      }
+    },
+    {
+      "id": "ENCODE-ESCAPED-UNICODE",
+      "input": {
+        "mode": "unicode",
+        "maxEntryBytes": 16384
+      },
+      "expected": {
+        "truncated": true,
+        "fillsLimit": false
+      }
+    },
+    {
+      "id": "ENCODE-ATOMIC-STRINGS",
+      "input": {
+        "mode": "atomic",
+        "maxEntryBytes": 16384
+      },
+      "expected": {
+        "truncated": true,
+        "fillsLimit": false
+      }
+    },
+    {
+      "id": "ENCODE-EXCEPTION-STACK",
+      "input": {
+        "mode": "exception",
+        "maxEntryBytes": 16384
+      },
+      "expected": {
+        "truncated": true,
+        "fillsLimit": false
+      }
+    },
+    {
+      "id": "ENCODE-PRIOR-LOSS",
+      "input": {
+        "mode": "prior",
+        "maxEntryBytes": 65536
+      },
+      "expected": {
+        "truncated": true,
+        "fillsLimit": false
+      }
+    },
+    {
+      "id": "ENCODE-PROTECTED-ENVELOPE",
+      "input": {
+        "mode": "envelope",
+        "maxEntryBytes": 16384
+      },
+      "expected": {
+        "errorType": "EventEnvelopeTooLargeException"
+      }
+    }
+  ]
+}

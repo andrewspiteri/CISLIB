@@ -35,3 +35,5 @@ WP04-S01-T04 completes the typed/cooperative value-model fixtures and acceptance
 
 
 WP04-S02-T01 adds the actual internal [exception capture foundation](exception-projection.md): copied type/message/optional stack and ordered single/aggregate children with an immutable owned model and initial traversal/text guards. [T01 evidence](../../../planning/logging/evidence/wp04-s02-t01-windows-linux.json) records genuine native/child execution. Focused limits, marker/exclusion and shared-fixture qualification remain T02–T04; no shipping event serializer or logging runtime is implemented.
+
+WP04-S04-T04 now implements the internal [bounded JSONL encoder](event-encoding.md), including actual escaping/LF byte accounting and the user-selected payload truncation policy. Earlier phase limits above remain historical descriptions of those phases. Full S04 qualification, human rendering, public runtime and delivery remain later work.
