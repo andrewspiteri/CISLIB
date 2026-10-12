@@ -65,3 +65,7 @@ The latest direct user request makes obvious runtime/identity facts readonly and
 ## Logging roadmap resumed (12 October 2026)
 
 The user resumed logging implementation after commit `248f2f74`. The former pause/uncommitted descriptions above are historical checkpoints. Next is WP04-S04-T04 actual bounded JSONL encoding, under the existing configurable/truncate policy; keep this step limited to capture/encoding rather than adding runtime/output machinery. T05 still owns complete S04 qualification.
+
+## WP04-S05-T04 outcome-table qualification
+
+The [logger outcome qualification](../../docs/modules/logging/logger-outcome-qualification.md) adds the full ordered two-output table against actual Core, using explicit non-I/O controls with independently declared thresholds/capacities and owned tickets. Required expectation fields, complete case-to-criterion mapping and independent original-byte corruption checks are qualification choices within the authorized task. Claude final review passed after its actionable portability/coverage findings were corrected. Shipping API/dependencies/code and original source plans remain unchanged. All four S05 task implementations finish at the admission seam; the original AC04 normal I/O failure isolation part and full story acceptance remain pending real WP05 output integration. A Faulted status from a double does not qualify I/O isolation. The next roadmap task is WP05-S01-T01.

@@ -74,4 +74,6 @@ WP04-S05-T01 now implements the [runtime-bound logger foundation](logger-foundat
 
 WP04-S05-T02 qualifies the [exact argument/state/capture/admission order](logger-decision-order.md) in that real foundation, including mixed faults and closure during caller work. Full S05 and public lifecycle/output/provider integration remain later tasks.
 
-WP04-S05-T03 qualifies [once-only lazy capture, global rejection and output-owned outcomes/tickets](logger-capture-outcomes.md), and prevents global loss counts wrapping. The complete outcome table and S05 acceptance mapping remain T04.
+WP04-S05-T03 qualifies [once-only lazy capture, global rejection and output-owned outcomes/tickets](logger-capture-outcomes.md), and prevents global loss counts wrapping. The complete outcome table and S05 acceptance mapping are recorded in T04 outcome qualification.
+
+The complete logger interest/admission table and remaining real I/O boundary are recorded in [outcome qualification](logger-outcome-qualification.md).

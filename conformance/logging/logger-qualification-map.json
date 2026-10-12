@@ -1,0 +1,252 @@
+{
+  "schemaVersion": 1,
+  "story": "WP04-S05",
+  "task": "WP04-S05-T04",
+  "implementationPhase": "logger-admission-seam",
+  "fullStoryAcceptanceStatus": "Pending real output integration",
+  "criteria": [
+    {
+      "id": "WP04-S05-AC01",
+      "sourceDescription": "Stopped, Filtered, and all-faulted early rejection do not traverse content or invoke the factory; a valid None call after admission closes returns Stopped.",
+      "status": "Qualified at logger seam",
+      "caseIds": [
+        "OUTCOME-NONE-OPEN-ACCEPTED-FULL-DIRECT",
+        "OUTCOME-NONE-OPEN-DISABLED-DISABLED-DIRECT",
+        "OUTCOME-NONE-OPEN-FAULTED-ADMISSION-FAULT-DIRECT",
+        "OUTCOME-NONE-CLOSED-ACCEPTED-FULL-DIRECT",
+        "OUTCOME-NONE-CLOSED-DISABLED-DISABLED-DIRECT",
+        "OUTCOME-NONE-CLOSED-FAULTED-ADMISSION-FAULT-DIRECT",
+        "OUTCOME-NONE-OPEN-ACCEPTED-FULL-LAZY",
+        "OUTCOME-NONE-OPEN-DISABLED-DISABLED-LAZY",
+        "OUTCOME-NONE-OPEN-FAULTED-ADMISSION-FAULT-LAZY",
+        "OUTCOME-NONE-CLOSED-ACCEPTED-FULL-LAZY",
+        "OUTCOME-NONE-CLOSED-DISABLED-DISABLED-LAZY",
+        "OUTCOME-NONE-CLOSED-FAULTED-ADMISSION-FAULT-LAZY",
+        "OUTCOME-TABLE-FAULTED-FAULTED-LAZY",
+        "OUTCOME-TABLE-FILTERED-FILTERED-FAULTED-LAZY",
+        "OUTCOME-THROW-FILTERED-FILTERED-FAULTED",
+        "OUTCOME-THROW-FAULTED-FAULTED",
+        "OUTCOME-THROW-DISABLED-DISABLED",
+        "OUTCOME-THROW-ACCEPTED-FULL-CLOSED"
+      ],
+      "bindings": [
+        "UT-LOGGER-OUTCOME",
+        "IT-LOGGER-OUTCOME"
+      ],
+      "priorBindings": [
+        "UT-LOGGER-DECISION-ORDER",
+        "IT-LOGGER-DECISION-ORDER"
+      ],
+      "evidence": "planning/logging/evidence/wp04-s05-t04/receipt.json"
+    },
+    {
+      "id": "WP04-S05-AC02",
+      "sourceDescription": "A file interested in Debug causes one lazy evaluation even when console is Warning; full queues never trigger a second factory invocation.",
+      "status": "Qualified at logger seam",
+      "caseIds": [
+        "OUTCOME-UNION-LAZY",
+        "OUTCOME-CAPACITY-LAZY",
+        "OUTCOME-TABLE-FULL-FULL-LAZY",
+        "OUTCOME-UNION-DIRECT"
+      ],
+      "bindings": [
+        "UT-LOGGER-OUTCOME",
+        "IT-LOGGER-OUTCOME"
+      ],
+      "priorBindings": [
+        "UT-LOGGER-DECISION-ORDER",
+        "IT-LOGGER-DECISION-ORDER"
+      ],
+      "evidence": "planning/logging/evidence/wp04-s05-t04/receipt.json"
+    },
+    {
+      "id": "WP04-S05-AC03",
+      "sourceDescription": "Accepted/PartiallyAccepted/Rejected and output statuses match actual admission attempts; only successful admissions receive sequence numbers and InvalidEvent has no output admission entries.",
+      "status": "Qualified at logger seam",
+      "caseIds": [
+        "OUTCOME-TABLE-DISABLED-DISABLED-DIRECT",
+        "OUTCOME-TABLE-DISABLED-FILTERED-DIRECT",
+        "OUTCOME-TABLE-DISABLED-FILTERED-FAULTED-DIRECT",
+        "OUTCOME-TABLE-DISABLED-ACCEPTED-DIRECT",
+        "OUTCOME-TABLE-DISABLED-FULL-DIRECT",
+        "OUTCOME-TABLE-DISABLED-FAULTED-DIRECT",
+        "OUTCOME-TABLE-DISABLED-ADMISSION-FAULT-DIRECT",
+        "OUTCOME-TABLE-FILTERED-DISABLED-DIRECT",
+        "OUTCOME-TABLE-FILTERED-FILTERED-DIRECT",
+        "OUTCOME-TABLE-FILTERED-FILTERED-FAULTED-DIRECT",
+        "OUTCOME-TABLE-FILTERED-ACCEPTED-DIRECT",
+        "OUTCOME-TABLE-FILTERED-FULL-DIRECT",
+        "OUTCOME-TABLE-FILTERED-FAULTED-DIRECT",
+        "OUTCOME-TABLE-FILTERED-ADMISSION-FAULT-DIRECT",
+        "OUTCOME-TABLE-FILTERED-FAULTED-DISABLED-DIRECT",
+        "OUTCOME-TABLE-FILTERED-FAULTED-FILTERED-DIRECT",
+        "OUTCOME-TABLE-FILTERED-FAULTED-FILTERED-FAULTED-DIRECT",
+        "OUTCOME-TABLE-FILTERED-FAULTED-ACCEPTED-DIRECT",
+        "OUTCOME-TABLE-FILTERED-FAULTED-FULL-DIRECT",
+        "OUTCOME-TABLE-FILTERED-FAULTED-FAULTED-DIRECT",
+        "OUTCOME-TABLE-FILTERED-FAULTED-ADMISSION-FAULT-DIRECT",
+        "OUTCOME-TABLE-ACCEPTED-DISABLED-DIRECT",
+        "OUTCOME-TABLE-ACCEPTED-FILTERED-DIRECT",
+        "OUTCOME-TABLE-ACCEPTED-FILTERED-FAULTED-DIRECT",
+        "OUTCOME-TABLE-ACCEPTED-ACCEPTED-DIRECT",
+        "OUTCOME-TABLE-ACCEPTED-FULL-DIRECT",
+        "OUTCOME-TABLE-ACCEPTED-FAULTED-DIRECT",
+        "OUTCOME-TABLE-ACCEPTED-ADMISSION-FAULT-DIRECT",
+        "OUTCOME-TABLE-FULL-DISABLED-DIRECT",
+        "OUTCOME-TABLE-FULL-FILTERED-DIRECT",
+        "OUTCOME-TABLE-FULL-FILTERED-FAULTED-DIRECT",
+        "OUTCOME-TABLE-FULL-ACCEPTED-DIRECT",
+        "OUTCOME-TABLE-FULL-FULL-DIRECT",
+        "OUTCOME-TABLE-FULL-FAULTED-DIRECT",
+        "OUTCOME-TABLE-FULL-ADMISSION-FAULT-DIRECT",
+        "OUTCOME-TABLE-FAULTED-DISABLED-DIRECT",
+        "OUTCOME-TABLE-FAULTED-FILTERED-DIRECT",
+        "OUTCOME-TABLE-FAULTED-FILTERED-FAULTED-DIRECT",
+        "OUTCOME-TABLE-FAULTED-ACCEPTED-DIRECT",
+        "OUTCOME-TABLE-FAULTED-FULL-DIRECT",
+        "OUTCOME-TABLE-FAULTED-FAULTED-DIRECT",
+        "OUTCOME-TABLE-FAULTED-ADMISSION-FAULT-DIRECT",
+        "OUTCOME-TABLE-ADMISSION-FAULT-DISABLED-DIRECT",
+        "OUTCOME-TABLE-ADMISSION-FAULT-FILTERED-DIRECT",
+        "OUTCOME-TABLE-ADMISSION-FAULT-FILTERED-FAULTED-DIRECT",
+        "OUTCOME-TABLE-ADMISSION-FAULT-ACCEPTED-DIRECT",
+        "OUTCOME-TABLE-ADMISSION-FAULT-FULL-DIRECT",
+        "OUTCOME-TABLE-ADMISSION-FAULT-FAULTED-DIRECT",
+        "OUTCOME-TABLE-ADMISSION-FAULT-ADMISSION-FAULT-DIRECT",
+        "OUTCOME-TABLE-DISABLED-DISABLED-LAZY",
+        "OUTCOME-TABLE-DISABLED-FILTERED-LAZY",
+        "OUTCOME-TABLE-DISABLED-FILTERED-FAULTED-LAZY",
+        "OUTCOME-TABLE-DISABLED-ACCEPTED-LAZY",
+        "OUTCOME-TABLE-DISABLED-FULL-LAZY",
+        "OUTCOME-TABLE-DISABLED-FAULTED-LAZY",
+        "OUTCOME-TABLE-DISABLED-ADMISSION-FAULT-LAZY",
+        "OUTCOME-TABLE-FILTERED-DISABLED-LAZY",
+        "OUTCOME-TABLE-FILTERED-FILTERED-LAZY",
+        "OUTCOME-TABLE-FILTERED-FILTERED-FAULTED-LAZY",
+        "OUTCOME-TABLE-FILTERED-ACCEPTED-LAZY",
+        "OUTCOME-TABLE-FILTERED-FULL-LAZY",
+        "OUTCOME-TABLE-FILTERED-FAULTED-LAZY",
+        "OUTCOME-TABLE-FILTERED-ADMISSION-FAULT-LAZY",
+        "OUTCOME-TABLE-FILTERED-FAULTED-DISABLED-LAZY",
+        "OUTCOME-TABLE-FILTERED-FAULTED-FILTERED-LAZY",
+        "OUTCOME-TABLE-FILTERED-FAULTED-FILTERED-FAULTED-LAZY",
+        "OUTCOME-TABLE-FILTERED-FAULTED-ACCEPTED-LAZY",
+        "OUTCOME-TABLE-FILTERED-FAULTED-FULL-LAZY",
+        "OUTCOME-TABLE-FILTERED-FAULTED-FAULTED-LAZY",
+        "OUTCOME-TABLE-FILTERED-FAULTED-ADMISSION-FAULT-LAZY",
+        "OUTCOME-TABLE-ACCEPTED-DISABLED-LAZY",
+        "OUTCOME-TABLE-ACCEPTED-FILTERED-LAZY",
+        "OUTCOME-TABLE-ACCEPTED-FILTERED-FAULTED-LAZY",
+        "OUTCOME-TABLE-ACCEPTED-ACCEPTED-LAZY",
+        "OUTCOME-TABLE-ACCEPTED-FULL-LAZY",
+        "OUTCOME-TABLE-ACCEPTED-FAULTED-LAZY",
+        "OUTCOME-TABLE-ACCEPTED-ADMISSION-FAULT-LAZY",
+        "OUTCOME-TABLE-FULL-DISABLED-LAZY",
+        "OUTCOME-TABLE-FULL-FILTERED-LAZY",
+        "OUTCOME-TABLE-FULL-FILTERED-FAULTED-LAZY",
+        "OUTCOME-TABLE-FULL-ACCEPTED-LAZY",
+        "OUTCOME-TABLE-FULL-FULL-LAZY",
+        "OUTCOME-TABLE-FULL-FAULTED-LAZY",
+        "OUTCOME-TABLE-FULL-ADMISSION-FAULT-LAZY",
+        "OUTCOME-TABLE-FAULTED-DISABLED-LAZY",
+        "OUTCOME-TABLE-FAULTED-FILTERED-LAZY",
+        "OUTCOME-TABLE-FAULTED-FILTERED-FAULTED-LAZY",
+        "OUTCOME-TABLE-FAULTED-ACCEPTED-LAZY",
+        "OUTCOME-TABLE-FAULTED-FULL-LAZY",
+        "OUTCOME-TABLE-FAULTED-FAULTED-LAZY",
+        "OUTCOME-TABLE-FAULTED-ADMISSION-FAULT-LAZY",
+        "OUTCOME-TABLE-ADMISSION-FAULT-DISABLED-LAZY",
+        "OUTCOME-TABLE-ADMISSION-FAULT-FILTERED-LAZY",
+        "OUTCOME-TABLE-ADMISSION-FAULT-FILTERED-FAULTED-LAZY",
+        "OUTCOME-TABLE-ADMISSION-FAULT-ACCEPTED-LAZY",
+        "OUTCOME-TABLE-ADMISSION-FAULT-FULL-LAZY",
+        "OUTCOME-TABLE-ADMISSION-FAULT-FAULTED-LAZY",
+        "OUTCOME-TABLE-ADMISSION-FAULT-ADMISSION-FAULT-LAZY"
+      ],
+      "bindings": [
+        "UT-LOGGER-OUTCOME",
+        "IT-LOGGER-OUTCOME"
+      ],
+      "priorBindings": [
+        "UT-LOGGER-CAPTURE",
+        "IT-LOGGER-CAPTURE"
+      ],
+      "evidence": "planning/logging/evidence/wp04-s05-t04/receipt.json",
+      "priorCaseIds": [
+        "CAPTURE-NAME-NULL-LAZY",
+        "CAPTURE-NAME-EMPTY-LAZY",
+        "CAPTURE-NAME-CONTROL-LAZY",
+        "CAPTURE-NAME-UNICODE-LAZY",
+        "CAPTURE-MESSAGE-NULL-LAZY",
+        "CAPTURE-MESSAGE-UNICODE-LAZY",
+        "CAPTURE-TEMPLATE-UNICODE-LAZY",
+        "CAPTURE-OPERATION-CONTROL-LAZY",
+        "CAPTURE-OPERATION-UNICODE-LAZY",
+        "CAPTURE-ATTRIBUTE-KEY-LAZY",
+        "CAPTURE-ATTRIBUTE-NULL-LAZY",
+        "CAPTURE-ATTRIBUTE-THROWS-LAZY",
+        "CAPTURE-EXCEPTION-THROWS-LAZY",
+        "CAPTURE-NULL-RESULT"
+      ],
+      "priorCatalog": "conformance/logging/logger-capture-cases.json"
+    },
+    {
+      "id": "WP04-S05-AC04",
+      "sourceDescription": "IsEnabled is not represented as a capacity reservation; caller factory exceptions retain their own failure, and normal output I/O failures cannot escape through logging calls.",
+      "status": "Partially qualified",
+      "caseIds": [
+        "OUTCOME-CAPACITY-DIRECT",
+        "OUTCOME-CAPACITY-LAZY",
+        "OUTCOME-THROW-ACCEPTED-ACCEPTED",
+        "OUTCOME-THROW-FULL-FULL",
+        "OUTCOME-THROW-FAULTED-ACCEPTED",
+        "OUTCOME-STICKY-ACCEPTED-LAZY",
+        "OUTCOME-STICKY-DISABLED-LAZY",
+        "OUTCOME-STICKY-ACCEPTED-DIRECT",
+        "OUTCOME-STICKY-DISABLED-DIRECT",
+        "OUTCOME-THROW-FILTERED-FILTERED-FAULTED",
+        "OUTCOME-THROW-FAULTED-FAULTED",
+        "OUTCOME-THROW-DISABLED-DISABLED",
+        "OUTCOME-THROW-ACCEPTED-FULL-CLOSED"
+      ],
+      "bindings": [
+        "UT-LOGGER-OUTCOME",
+        "IT-LOGGER-OUTCOME"
+      ],
+      "priorBindings": [
+        "UT-LOGGER-CAPTURE",
+        "IT-LOGGER-CAPTURE"
+      ],
+      "evidence": "planning/logging/evidence/wp04-s05-t04/receipt.json",
+      "parts": [
+        {
+          "meaning": "IsEnabled does not reserve capacity; repeated hints leave attempts/capture unchanged and fullness still yields QueueFull.",
+          "status": "Qualified at logger seam"
+        },
+        {
+          "meaning": "Caller factory exceptions keep their original object; early exits skip them.",
+          "status": "Qualified at logger seam"
+        },
+        {
+          "meaning": "Normal output I/O failures cannot escape logging calls.",
+          "status": "Pending real output integration",
+          "owner": "WP05",
+          "reason": "No real output worker or I/O exists yet. A controlled Faulted admission result qualifies propagation only; no I/O isolation claim."
+        }
+      ],
+      "priorFactoryRecovery": {
+        "catalog": "conformance/logging/logger-capture-cases.json",
+        "caseIds": [
+          "CAPTURE-THROW-IO",
+          "CAPTURE-THROW-CANCEL"
+        ],
+        "meaning": "T03 already executes valid-throw-valid; factory exception identity and following accepted ticket are retained. No duplicate scenario needed."
+      }
+    }
+  ],
+  "limits": [
+    "No public runtime factory/lifecycle, queues, workers, actual output I/O, delivery or durability evidence.",
+    "Future outputs own tickets and thread-safe counters; controlled doubles are single-threaded deterministic admission controls.",
+    "Native Ubuntu executes unchanged managed bytes with .NET 10.0.12, not a Linux SDK/full-suite/release lane."
+  ]
+}
