@@ -6113,6 +6113,76 @@
         "REQ-004"
       ],
       "source": "WP04-S05-T04 full logger outcome table with explicit non-I/O doubles. Normal output I/O isolation remains pending WP05; no release-family promotion."
+    },
+    {
+      "id": "UT-JSONL-REUSE",
+      "family": "unit",
+      "title": "ActualLoggerReusesOwnedJsonlWithOneBoundedLinePerCapture",
+      "implementation": "Implemented",
+      "method": "CIS.Tests.UnitTests.JsonlReuseTests.ActualLoggerReusesOwnedJsonlWithOneBoundedLinePerCapture",
+      "minimumExecutions": 20,
+      "lanes": [
+        "windows-x64",
+        "linux-ubuntu2404-x64"
+      ],
+      "requirements": [
+        "REQ-003",
+        "REQ-004",
+        "REQ-010"
+      ],
+      "source": "WP05-S01-T01 reuses actual runtime-owned bounded JSONL bytes. Admission observations/concatenation are formatting probes, not workers/I/O/delivery; remaining S01 tasks/release pending."
+    },
+    {
+      "id": "UT-JSONL-REUSE-CONTROLS",
+      "family": "unit",
+      "title": "ComparatorRejectsFramingEncodingTypeAndBatchCorruption",
+      "implementation": "Implemented",
+      "method": "CIS.Tests.UnitTests.JsonlReuseTests.ComparatorRejectsFramingEncodingTypeAndBatchCorruption",
+      "minimumExecutions": 9,
+      "lanes": [
+        "windows-x64"
+      ],
+      "requirements": [
+        "REQ-003",
+        "REQ-004",
+        "REQ-010"
+      ],
+      "source": "WP05-S01-T01 reuses actual runtime-owned bounded JSONL bytes. Admission observations/concatenation are formatting probes, not workers/I/O/delivery; remaining S01 tasks/release pending."
+    },
+    {
+      "id": "UT-JSONL-REUSE-STRUCTURE",
+      "family": "unit",
+      "title": "StructuralComparerAcceptsDifferentJsonMemberOrderAndWhitespace",
+      "implementation": "Implemented",
+      "method": "CIS.Tests.UnitTests.JsonlReuseTests.StructuralComparerAcceptsDifferentJsonMemberOrderAndWhitespace",
+      "minimumExecutions": 1,
+      "lanes": [
+        "windows-x64"
+      ],
+      "requirements": [
+        "REQ-003",
+        "REQ-004",
+        "REQ-010"
+      ],
+      "source": "WP05-S01-T01 reuses actual runtime-owned bounded JSONL bytes. Admission observations/concatenation are formatting probes, not workers/I/O/delivery; remaining S01 tasks/release pending."
+    },
+    {
+      "id": "IT-JSONL-REUSE",
+      "family": "integration",
+      "title": "JsonlReuseTableRunsInAnIsolatedExactRuntimeChild",
+      "implementation": "Implemented",
+      "method": "CIS.Tests.IntegrationTests.JsonlReuseProcessTests.JsonlReuseTableRunsInAnIsolatedExactRuntimeChild",
+      "minimumExecutions": 20,
+      "lanes": [
+        "windows-x64",
+        "linux-ubuntu2404-x64"
+      ],
+      "requirements": [
+        "REQ-003",
+        "REQ-004",
+        "REQ-010"
+      ],
+      "source": "WP05-S01-T01 reuses actual runtime-owned bounded JSONL bytes. Admission observations/concatenation are formatting probes, not workers/I/O/delivery; remaining S01 tasks/release pending."
     }
   ]
 }

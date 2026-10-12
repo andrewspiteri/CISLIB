@@ -1,6 +1,6 @@
 # Bounded JSONL event encoding (WP04-S04-T04)
 
-The internal encoder consumes owned `CapturedEventFacts` and an explicitly supplied `LoggingOptions.MaxEntryBytes`. It starts no runtime and opens no outputs. It produces one owned UTF-8 JSON object followed by LF, without BOM or raw multiline content. The configured range remains 16384â€“16777216 bytes with a 65536-byte default. The cap includes every escape, delimiter and the final LF.
+The internal encoder consumes owned `CapturedEventFacts` and an explicitly supplied `LoggingOptions.MaxEntryBytes`. It starts no runtime and opens no outputs. It produces one owned UTF-8 JSON object followed by LF, without BOM or raw multiline content. The configured range remains 16384-16777216 bytes with a 65536-byte default. The cap includes every escape, delimiter and the final LF.
 
 The format uses the framework JSON writer and its relaxed JSON string encoder. JSON controls, quotes and backslashes are escaped; supplementary and other framework-selected characters may receive additional escaping. Measurement uses that same encoder, including exact seven-digit UTC timestamps, safe integer numbers, finite double numbers and unchanged explicit numeric strings. Retained maps are written in ordinal key order; arrays keep input order. Absent optional fields and false markers are omitted; explicit attribute nulls and empty supplied templates are preserved.
 
@@ -11,3 +11,5 @@ Measurement stops at the selected byte budget. Oversized source strings are neve
 The [shared cases](../../../conformance/logging/event-encoding-cases.json) and focused C# tests cover actual encoding. They use controlled metadata and clock facts and real activity/scope capture. Public runtime admission, human rendering, output delivery and full S04 qualification remain later work; this encoder does not implement those components.
 
 Complete capture/encoding story qualification is described in [WP04-S04-T05](event-qualification.md). Runtime/output integration remains subsequent work.
+
+The actual runtime-owned JSONL reuse and physical-line qualification are described in [WP05-S01-T01](jsonl-output-reuse.md).

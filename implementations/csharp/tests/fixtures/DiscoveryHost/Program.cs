@@ -11,6 +11,10 @@ internal static class Program
 {
     private static int Main(string[] args)
     {
+        if (args.Length == 3 && args[0] == "jsonl-reuse")
+        {
+            return JsonlReuseProcessFixture.Run(args[1], args[2]);
+        }
         if (args.Length == 3 && args[0] == "logger-outcome")
         {
             return LoggerOutcomeProcessFixture.Run(args[1], args[2]);
