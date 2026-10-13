@@ -85,3 +85,5 @@ WP05-S03-T03 implements [internal output states and retained safe faults](output
 WP05-S03-T04 implements [public owned diagnostics and complete S03 qualification](diagnostics.md) over the actual worker composition. Current snapshots contain real admission/draining state, first closure/system observation times, global counters and all fourteen selected output facts. The draft LastStopResult member remains tracked with the real WP05-S10 bounded stop operation; public factory/physical output/shutdown/provider/release work remains pending.
 
 WP05-S04-T01 adds [configured console composition](console-composition.md), with frozen presentation/stream selection, real worker writes and render-loss reporting before admission. Complete ownership/startup/environment consumers and physical file/public bounded runtime lifecycle remain their later tasks.
+
+WP05-S04-T02 qualifies [borrowed console ownership and serialized writes](console-ownership.md): runtime closure/failure preserves the selected stream and each runtime/output has one awaited record write. Startup rollback, complete consumers and public bounded lifecycle remain later tasks.

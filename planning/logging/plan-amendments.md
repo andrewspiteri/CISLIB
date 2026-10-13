@@ -111,3 +111,7 @@ The original guide requires GetDiagnostics to return immutable counter/status ob
 ## WP05-S04-T01 immutable creation inputs after environment simplification
 
 The original task mentions the former immutable environment snapshot. The user-selected static container and module-owned options supersede that transport. Actual console composition instead copies the concrete consumed options at creation, before selector/worker work. It does not add a new public startup/snapshot framework. [Console composition](../../docs/modules/logging/console-composition.md) integrates real format/detail/stream and before-admission render-loss accounting while keeping original capture bytes and final lifecycle/public creation obligations intact. These are maintainer implementation choices within the authorized roadmap, not new user directions or a release qualification.
+
+## WP05-S04-T02 existing ownership and serialization mechanism
+
+[Borrowed console qualification](../../docs/modules/logging/console-ownership.md) retains the existing concrete writer and one sequential output worker. Both already implement the task behavior; explicit source comments and real lifetime/order probes qualify it rather than adding redundant ownership or synchronization types. The chosen static environment/module options and truncation amendments remain intact. Startup rollback, full S04 consumers and final lifecycle/release obligations remain required. This is a maintainer implementation choice within the supplied task, not a new user direction.

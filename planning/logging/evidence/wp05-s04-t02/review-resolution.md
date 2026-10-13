@@ -1,0 +1,3 @@
+# Claude review resolution
+
+R1 required direct consumption of the literal written/failed/abandoned catalog fields. Both comparers now read those per-runtime values. Three altered-catalog controls, held and prefix controls, and exact rejection reasons bring the controls to thirteen. Cleanup keeps bounded producer joins and nested disposal, preserving a primary failure. Physical selection/application-output and small-record cap wording are narrowed. Final source follow-up is PASS with no required findings; its initial-report discovery limit and three nonblocking suggestions are recorded in receipt.json. Reviews do not attest execution. Final Developer/native runs and all critical bytes are independently audited.

@@ -7809,6 +7809,57 @@
         "REQ-009"
       ],
       "source": "WP05-S04-T01 actual pre-admission human-only loss controls for queue-full rejection, late closure/fault and already-faulted console with a healthy file worker. Windows C# controls use held Stream/clock barriers, real writes and joined cleanup; no release or all-platform unit claim."
+    },
+    {
+      "id": "UT-CONSOLE-OWNERSHIP",
+      "family": "unit",
+      "title": "BorrowedStreamsSurviveClosureFaultAndReuseWithSerializedRecords",
+      "implementation": "Implemented",
+      "method": "CIS.Tests.UnitTests.ConsoleOwnershipTests.BorrowedStreamsSurviveClosureFaultAndReuseWithSerializedRecords",
+      "minimumExecutions": 18,
+      "lanes": [
+        "windows-x64",
+        "linux-ubuntu2404-x64"
+      ],
+      "requirements": [
+        "REQ-004",
+        "REQ-009"
+      ],
+      "source": "WP05-S04-T02 borrowed console stream ownership, real serialized workers and literal shared consumers. Exact native bytes qualify actual standard streams separately from controlled Stream lifetime probes; startup rollback/full environment/public bounded lifecycle remain later tasks."
+    },
+    {
+      "id": "UT-CONSOLE-OWNERSHIP-CONTROLS",
+      "family": "unit",
+      "title": "OwnershipMatcherRejectsDisposalOverlapOrderAndDispositionDamage",
+      "implementation": "Implemented",
+      "method": "CIS.Tests.UnitTests.ConsoleOwnershipTests.OwnershipMatcherRejectsDisposalOverlapOrderAndDispositionDamage",
+      "minimumExecutions": 13,
+      "lanes": [
+        "windows-x64",
+        "linux-ubuntu2404-x64"
+      ],
+      "requirements": [
+        "REQ-004",
+        "REQ-009"
+      ],
+      "source": "WP05-S04-T02 borrowed console stream ownership, real serialized workers and literal shared consumers. Exact native bytes qualify actual standard streams separately from controlled Stream lifetime probes; startup rollback/full environment/public bounded lifecycle remain later tasks."
+    },
+    {
+      "id": "INT-CONSOLE-OWNERSHIP",
+      "family": "integration",
+      "title": "BorrowedConsoleConsumersPreserveApplicationStreamsAndTicketOrder",
+      "implementation": "Implemented",
+      "method": "CIS.Tests.IntegrationTests.ConsoleOwnershipProcessTests.BorrowedConsoleConsumersPreserveApplicationStreamsAndTicketOrder",
+      "minimumExecutions": 22,
+      "lanes": [
+        "windows-x64",
+        "linux-ubuntu2404-x64"
+      ],
+      "requirements": [
+        "REQ-004",
+        "REQ-009"
+      ],
+      "source": "WP05-S04-T02 borrowed console stream ownership, real serialized workers and literal shared consumers. Exact native bytes qualify actual standard streams separately from controlled Stream lifetime probes; startup rollback/full environment/public bounded lifecycle remain later tasks."
     }
   ]
 }

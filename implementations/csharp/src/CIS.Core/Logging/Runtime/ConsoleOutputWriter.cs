@@ -3,7 +3,8 @@ using CIS.Logging.Rendering;
 
 namespace CIS.Logging.Runtime;
 
-// Frozen presentation and a selected stream. Rendering precedes admission; only the worker performs I/O.
+// The selected stream is borrowed: runtime closure or failure never closes/disposes it.
+// Rendering precedes admission; the single awaited output worker serializes record writes.
 internal sealed class ConsoleOutputWriter(Stream stream, LogOutputFormat format, HumanOutputDetail detail, int maximumBytes)
 {
     internal RenderedEvent Prepare(EncodedEvent captured) => EventRenderer.Render(captured, format, detail, maximumBytes);
