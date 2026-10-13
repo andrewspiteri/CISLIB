@@ -13,6 +13,7 @@ public sealed class CoreLogRuntime
     private readonly object admissionGate;
     private readonly OutputQueues? queuedOutputs;
     private readonly ConsoleOutputWriter? consoleWriter;
+    private readonly FileOutputWriter? fileWriter;
     private readonly EventMetadata metadata;
     private readonly TimeProvider timeProvider;
     private readonly int maximumEntryBytes;
@@ -24,7 +25,7 @@ public sealed class CoreLogRuntime
 
     // The direct internal admission seam remains available for existing focused qualification.
     internal CoreLogRuntime(EventMetadata metadata, LoggingOptions options, ILogOutputAdmission? console,
-        ILogOutputAdmission? file, TimeProvider? timeProvider = null, object? sharedAdmissionGate = null, OutputQueues? queuedOutputs = null, ConsoleOutputWriter? consoleWriter = null)
+        ILogOutputAdmission? file, TimeProvider? timeProvider = null, object? sharedAdmissionGate = null, OutputQueues? queuedOutputs = null, ConsoleOutputWriter? consoleWriter = null, FileOutputWriter? fileWriter = null)
     {
         ArgumentNullException.ThrowIfNull(metadata);
         ArgumentNullException.ThrowIfNull(options);
@@ -37,6 +38,7 @@ public sealed class CoreLogRuntime
         admissionGate = sharedAdmissionGate ?? new object();
         this.queuedOutputs = queuedOutputs;
         this.consoleWriter = consoleWriter;
+        this.fileWriter = fileWriter;
         this.metadata = metadata;
         this.timeProvider = timeProvider ?? TimeProvider.System;
         maximumEntryBytes = maximumBytes;
@@ -75,6 +77,32 @@ public sealed class CoreLogRuntime
         { throw new ArgumentOutOfRangeException(nameof(options), "Use the configured queue-capacity range."); }
         if (!Enum.IsDefined(selected.ConsoleFormat) || !Enum.IsDefined(selected.HumanDetail) || !Enum.IsDefined(selected.ConsoleStream))
         { throw new ArgumentException("Use declared console presentation and stream values.", nameof(options)); }
+        ConsoleOutputWriter? writer = AcquireConsoleWriter(selected, acquireConsole);
+        return ComposeQueued(metadata, selected, writer is null ? null : writer.WriteAsync, fileWrite, timeProvider, writer, launchWorker);
+    }
+
+    internal static CoreLogRuntime CreateConfiguredQueued(EventMetadata metadata, LoggingOptions options, TimeProvider? timeProvider = null,
+        Func<ConsoleOutputStream, Stream>? acquireConsole = null, Func<Func<Task>, Task>? launchWorker = null)
+    {
+        ArgumentNullException.ThrowIfNull(metadata);
+        LoggingOptions selected = CaptureQueueOptions(options);
+        ValidateSettings(selected.EffectiveConsoleLevel, selected.EffectiveFileLevel, selected.MaxEntryBytes);
+        if (selected.QueueCapacity is < LoggingOptions.MinimumQueueCapacity or > LoggingOptions.MaximumQueueCapacity
+            || selected.FileMaxBytes is < LoggingOptions.MinimumFileMaxBytes or > LoggingOptions.MaximumFileMaxBytes
+            || selected.FileRetainedFiles is < LoggingOptions.MinimumFileRetainedFiles or > LoggingOptions.MaximumFileRetainedFiles
+            || selected.FileEnabled && selected.FileMaxBytes < selected.MaxEntryBytes)
+        { throw new ArgumentOutOfRangeException(nameof(options)); }
+        if (!Enum.IsDefined(selected.ConsoleFormat) || !Enum.IsDefined(selected.ConsoleStream) || !Enum.IsDefined(selected.FileFormat) || !Enum.IsDefined(selected.HumanDetail))
+        { throw new ArgumentException("Use declared output presentation values.", nameof(options)); }
+        if (selected.FileEnabled && !Path.IsPathFullyQualified(selected.FilePath!))
+        { throw new ArgumentException("File output requires an already captured absolute path.", nameof(options)); }
+        ConsoleOutputWriter? console = AcquireConsoleWriter(selected, acquireConsole);
+        FileOutputWriter? file = selected.FileEnabled ? new(selected.FilePath!, selected.FileFormat, selected.HumanDetail, selected.MaxEntryBytes, selected.FileMaxBytes) : null;
+        return ComposeQueued(metadata, selected, console is null ? null : console.WriteAsync, file is null ? null : file.WriteAsync, timeProvider, console, launchWorker, file);
+    }
+
+    private static ConsoleOutputWriter? AcquireConsoleWriter(LoggingOptions selected, Func<ConsoleOutputStream, Stream>? acquireConsole)
+    {
         ConsoleOutputWriter? writer = null;
         if (selected.ConsoleEnabled)
         {
@@ -89,7 +117,7 @@ public sealed class CoreLogRuntime
             catch (CoreLogInitializationException) { throw; }
             catch { throw new CoreLogInitializationException("console", "ConsoleInitializationFailed"); }
         }
-        return ComposeQueued(metadata, selected, writer is null ? null : writer.WriteAsync, fileWrite, timeProvider, writer, launchWorker);
+        return writer;
     }
 
     private static LoggingOptions CaptureQueueOptions(LoggingOptions options)
@@ -104,23 +132,27 @@ public sealed class CoreLogRuntime
             QueueCapacity = options.QueueCapacity,
             ConsoleFormat = options.ConsoleFormat,
             ConsoleStream = options.ConsoleStream,
-            HumanDetail = options.HumanDetail
+            HumanDetail = options.HumanDetail,
+            FileFormat = options.FileFormat,
+            FileMaxBytes = options.FileMaxBytes,
+            FileRetainedFiles = options.FileRetainedFiles
         };
     }
 
     private static CoreLogRuntime ComposeQueued(EventMetadata metadata, LoggingOptions selected,
         Func<AdmittedEvent, ValueTask>? consoleWrite, Func<AdmittedEvent, ValueTask>? fileWrite,
-        TimeProvider? timeProvider, ConsoleOutputWriter? writer = null, Func<Func<Task>, Task>? launchWorker = null)
+        TimeProvider? timeProvider, ConsoleOutputWriter? writer = null, Func<Func<Task>, Task>? launchWorker = null, FileOutputWriter? fileWriter = null)
     {
         ValidateSettings(selected.EffectiveConsoleLevel, selected.EffectiveFileLevel, selected.MaxEntryBytes);
         var gate = new object();
-        var queues = new OutputQueues(selected.QueueCapacity, selected.ConsoleEnabled, selected.FileEnabled, consoleWrite, fileWrite, gate, launchWorker);
+        var queues = new OutputQueues(selected.QueueCapacity, selected.ConsoleEnabled, selected.FileEnabled, consoleWrite, fileWrite, gate, launchWorker, fileWriter);
         try
         {
             writer?.Initialize();
-            return new CoreLogRuntime(metadata, selected, queues.Console, queues.File, timeProvider, gate, queues, writer);
+            fileWriter?.Initialize();
+            return new CoreLogRuntime(metadata, selected, queues.Console, queues.File, timeProvider, gate, queues, writer, fileWriter);
         }
-        catch { queues.Complete(); queues.Completion.GetAwaiter().GetResult(); throw; }
+        catch { queues.Complete(); queues.Completion.GetAwaiter().GetResult(); fileWriter?.Dispose(); throw; }
     }
     internal OutputQueues? QueuedOutputs => queuedOutputs;
     internal RuntimeAccounting CaptureAccounting()
@@ -182,7 +214,7 @@ public sealed class CoreLogRuntime
     internal LogWriteResult Write(string component, CoreLogLevel level, LogEventData? data, Func<LogEventData>? factory)
     {
         ValidateLevel(level);
-        bool renderConsole;
+        bool renderConsole, renderFile;
         lock (admissionGate)
         {
             if (admissionClosed) { return Stopped(isTruncated: false); }
@@ -192,6 +224,7 @@ public sealed class CoreLogRuntime
                 return FinishWithoutCapture(level, LogWriteOutcome.Rejected);
             }
             renderConsole = consoleWriter is not null && outputs.Any(output => output.Name == "console" && Interested(output, level) && !output.Admission.IsFaulted);
+            renderFile = fileWriter is not null && outputs.Any(output => output.Name == "file" && Interested(output, level) && !output.Admission.IsFaulted);
         }
         // No gate is held around caller factories, clock, scopes or payload callbacks.
         if (factory is not null) { data = factory(); }
@@ -210,20 +243,21 @@ public sealed class CoreLogRuntime
             return Invalid(CaptureError(eventName, message, template, operationId));
         }
         EncodedEvent captured;
-        RenderedEvent? preparedConsole = null;
+        RenderedEvent? preparedConsole = null, preparedFile = null;
         // Other owned encoding/rendering consistency errors are Core defects, not invalid caller content.
         try
         {
             captured = EventEncoder.Encode(facts, maximumEntryBytes);
             if (renderConsole) { preparedConsole = consoleWriter!.Prepare(captured); }
+            if (renderFile) { preparedFile = fileWriter!.Prepare(captured); }
         }
         catch (EventEnvelopeTooLargeException) { return Invalid("EnvelopeTooLarge"); }
-        bool isTruncated = captured.IsTruncated || preparedConsole?.IsTruncated == true;
+        bool isTruncated = captured.IsTruncated || preparedConsole?.IsTruncated == true || preparedFile?.IsTruncated == true;
         lock (admissionGate)
         {
             if (isTruncated) { IncrementLossCounter(ref truncatedEventCount); }
             if (admissionClosed) { return Stopped(isTruncated); }
-            return Admit(level, captured, preparedConsole?.Line, isTruncated);
+            return Admit(level, captured, preparedConsole?.Line, preparedFile?.Line, isTruncated);
         }
     }
 
@@ -274,7 +308,7 @@ public sealed class CoreLogRuntime
         return new LogWriteResult(outcome, observations);
     }
 
-    private LogWriteResult Admit(CoreLogLevel level, EncodedEvent captured, ReadOnlyMemory<byte>? consoleLine, bool isTruncated)
+    private LogWriteResult Admit(CoreLogLevel level, EncodedEvent captured, ReadOnlyMemory<byte>? consoleLine, ReadOnlyMemory<byte>? fileLine, bool isTruncated)
     {
         var observations = new List<LogOutputWriteResult>(outputs.Length);
         int accepted = 0;
@@ -298,6 +332,8 @@ public sealed class CoreLogRuntime
                 }
                 else if (output.Name == "console" && consoleLine is { } preparedLine)
                 { status = queuedOutputs!.Console!.TryAdmit(captured, preparedLine, out sequence); }
+                else if (output.Name == "file" && fileLine is { } preparedFileLine)
+                { status = queuedOutputs!.File!.TryAdmit(captured, preparedFileLine, out sequence); }
                 else { status = output.Admission.TryAdmit(captured, out sequence); }
                 if (status == LogOutputWriteStatus.Accepted) { accepted++; }
             }

@@ -1,0 +1,14 @@
+Traceback (most recent call last):
+  File "/mnt/c/miscwork/portfolio/cislib/implementations/csharp/tests/fixtures/DiscoveryHost/verify-file-runtime-startup.py", line 114, in <module>
+    if __name__=='__main__':main()
+                            ^^^^^^
+  File "/mnt/c/miscwork/portfolio/cislib/implementations/csharp/tests/fixtures/DiscoveryHost/verify-file-runtime-startup.py", line 88, in main
+    a=json.loads(decode(run.stdout));check(mode,a,run.stderr);observed=a['observed']
+                                     ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/mnt/c/miscwork/portfolio/cislib/implementations/csharp/tests/fixtures/DiscoveryHost/verify-file-runtime-startup.py", line 69, in check
+    if console and mode!='physical-console':records(cb,mode in ('human','mixed-console-human'),['file.event'],[message],truncated and mode!='file-display-loss',65536 if mode=='file-display-loss' else 16384)
+                                            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/mnt/c/miscwork/portfolio/cislib/implementations/csharp/tests/fixtures/DiscoveryHost/verify-file-runtime-startup.py", line 30, in records
+    else:assert value['message']==message and 'truncated' not in value,'record payload differs'
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: record payload differs

@@ -5,7 +5,7 @@ internal sealed class OutputQueues
 {
     private readonly object admissionGate;
     internal OutputQueues(int capacity, bool consoleEnabled, bool fileEnabled,
-        Func<AdmittedEvent, ValueTask>? consoleWrite, Func<AdmittedEvent, ValueTask>? fileWrite, object? sharedAdmissionGate = null, Func<Func<Task>, Task>? launchWorker = null)
+        Func<AdmittedEvent, ValueTask>? consoleWrite, Func<AdmittedEvent, ValueTask>? fileWrite, object? sharedAdmissionGate = null, Func<Func<Task>, Task>? launchWorker = null, IDisposable? fileResource = null)
     {
         admissionGate = sharedAdmissionGate ?? new object();
         if (capacity is < LoggingOptions.MinimumQueueCapacity or > LoggingOptions.MaximumQueueCapacity) { throw new ArgumentOutOfRangeException(nameof(capacity)); }
@@ -13,8 +13,8 @@ internal sealed class OutputQueues
         if (fileEnabled != (fileWrite is not null)) { throw new ArgumentException("Writer presence must match enabled file output.", nameof(fileWrite)); }
         try
         {
-            if (consoleWrite is not null) { Console = Create("console", consoleWrite); }
-            if (fileWrite is not null) { File = Create("file", fileWrite); }
+            if (consoleWrite is not null) { Console = Create("console", consoleWrite, null); }
+            if (fileWrite is not null) { File = Create("file", fileWrite, fileResource); }
             Completion = Task.WhenAll(Console?.Completion ?? Task.CompletedTask, File?.Completion ?? Task.CompletedTask);
         }
         catch
@@ -22,9 +22,9 @@ internal sealed class OutputQueues
             // Unpublished queues are empty. Close/join only this attempt's idle workers, outside the gate.
             Complete(); Console?.Completion.GetAwaiter().GetResult(); File?.Completion.GetAwaiter().GetResult(); throw;
         }
-        OutputEventQueue Create(string name, Func<AdmittedEvent, ValueTask> write)
+        OutputEventQueue Create(string name, Func<AdmittedEvent, ValueTask> write, IDisposable? ownedResource)
         {
-            try { return new OutputEventQueue(capacity, write, admissionGate, launchWorker); }
+            try { return new OutputEventQueue(capacity, write, admissionGate, launchWorker, ownedResource); }
             catch { throw new CoreLogInitializationException(name, "WorkerInitializationFailed"); }
         }
     }

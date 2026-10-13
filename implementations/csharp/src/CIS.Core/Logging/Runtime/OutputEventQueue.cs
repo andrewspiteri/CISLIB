@@ -9,6 +9,7 @@ internal sealed class OutputEventQueue : ILogOutputAdmission
     private readonly object admissionGate;
     private readonly Channel<AdmittedEvent> channel;
     private readonly Func<AdmittedEvent, ValueTask> write;
+    private readonly IDisposable? ownedResource;
     private long lastAcceptedSequence;
     private long acceptedCount;
     private long queueFullCount;
@@ -25,12 +26,13 @@ internal sealed class OutputEventQueue : ILogOutputAdmission
     private LogOutputState state;
     private string? lastFaultCode;
     private DateTimeOffset? lastFaultAtUtc;
-    internal OutputEventQueue(int capacity, Func<AdmittedEvent, ValueTask> write, object? sharedAdmissionGate = null, Func<Func<Task>, Task>? launchWorker = null)
+    internal OutputEventQueue(int capacity, Func<AdmittedEvent, ValueTask> write, object? sharedAdmissionGate = null, Func<Func<Task>, Task>? launchWorker = null, IDisposable? ownedResource = null)
     {
         ArgumentNullException.ThrowIfNull(write);
         if (capacity is < LoggingOptions.MinimumQueueCapacity or > LoggingOptions.MaximumQueueCapacity) { throw new ArgumentOutOfRangeException(nameof(capacity)); }
         admissionGate = sharedAdmissionGate ?? new object();
         this.write = write;
+        this.ownedResource = ownedResource;
         channel = Channel.CreateBounded<AdmittedEvent>(new BoundedChannelOptions(capacity)
         {
             FullMode = BoundedChannelFullMode.Wait,
@@ -146,11 +148,17 @@ internal sealed class OutputEventQueue : ILogOutputAdmission
         }
         finally
         {
-            lock (admissionGate)
+            // No pending writer call remains. Owned cleanup precedes terminal state/Completion,
+            // outside the gate, and never receives a borrowed console stream.
+            try { ownedResource?.Dispose(); }
+            finally
             {
-                admissionClosed = true; channel.Writer.TryComplete();
-                workerFinished = true;
-                state = stopRequested || !faulted ? LogOutputState.Stopped : LogOutputState.Faulted;
+                lock (admissionGate)
+                {
+                    admissionClosed = true; channel.Writer.TryComplete();
+                    workerFinished = true;
+                    state = stopRequested || !faulted ? LogOutputState.Stopped : LogOutputState.Faulted;
+                }
             }
         }
     }

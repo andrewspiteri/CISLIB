@@ -84,7 +84,7 @@ internal sealed class FileOutputOwner : IDisposable
     }
 
     private static FileStream OpenActive(string path, FileMode mode)
-        => new(path, mode, FileAccess.ReadWrite, FileShare.Read, bufferSize: 4096, FileOptions.Asynchronous | FileOptions.SequentialScan);
+        => new(path, mode, FileAccess.ReadWrite, FileShare.Read, bufferSize: 1, FileOptions.Asynchronous | FileOptions.SequentialScan);
 
     internal static FileOutputOwner Initialize(string capturedAbsolutePath, LogOutputFormat format)
     {
