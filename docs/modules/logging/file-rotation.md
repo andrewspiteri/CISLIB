@@ -15,3 +15,5 @@ The historical T01 fourteen new unit cases exercised LF-inclusive exact/one-byte
 [Task evidence](../../../planning/logging/evidence/wp05-s06-t01/receipt.json) records 4510 passing Developer tests, 134 current-assembly native consumers on Windows/Ubuntu, read-only Claude review and the indexed source/evidence audit. Original source plans and all 41 Planned release rows remain unchanged.
 
 [T04 combined S06 qualification](file-rotation-qualification.md) maps the four original criteria to current boundary, restart/retention, terminal-failure and supplemental physical-policy cases. Interrupted updates and damaged-record recovery remain S07.
+
+Current WP05-S07-T03 behavior is described in [interrupted file transitions](file-transition-recovery.md). Known pending transitions now resume after byte/identity validation; older states without transition proof still fail clearly. Historical task evidence above remains its original execution snapshot.

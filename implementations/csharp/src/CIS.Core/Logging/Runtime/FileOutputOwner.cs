@@ -8,6 +8,7 @@ internal sealed class FileOutputOwner : IDisposable
     internal FileStream ActiveFile { get; private set; }
     internal FileGroupInventory? Inventory { get; private set; }
     internal bool ActiveWasCreated { get; }
+    internal bool RecoveredPartialSegment { get; private set; }
 
     private FileOutputOwner(string absolutePath, FileStream lease, FileStream activeFile, bool activeWasCreated)
     {
@@ -19,7 +20,7 @@ internal sealed class FileOutputOwner : IDisposable
 
     internal static FileOutputOwner Initialize(string capturedAbsolutePath) => InitializeCore(capturedAbsolutePath, rejectLostActive: false);
 
-    private static FileOutputOwner InitializeCore(string capturedAbsolutePath, bool rejectLostActive)
+    private static FileOutputOwner InitializeCore(string capturedAbsolutePath, bool rejectLostActive, LogOutputFormat? format = null, int maximumRetainedFiles = LoggingOptions.MaximumFileRetainedFiles, long maximumFileBytes = long.MaxValue)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(capturedAbsolutePath);
         if (!Path.IsPathFullyQualified(capturedAbsolutePath))
@@ -46,6 +47,7 @@ internal sealed class FileOutputOwner : IDisposable
             {
                 throw new CoreLogInitializationException("file", "FileOwnershipUnavailable");
             }
+            bool recoveredPartial = format is { } selected && FileGroupTransition.Reconcile(capturedAbsolutePath, selected, maximumRetainedFiles, maximumFileBytes);
             bool activeWasCreated = false;
             try { active = OpenActive(capturedAbsolutePath, FileMode.Open); }
             catch (FileNotFoundException)
@@ -53,7 +55,7 @@ internal sealed class FileOutputOwner : IDisposable
                 if (rejectLostActive && HasExistingInventory(capturedAbsolutePath)) { throw new CoreLogInitializationException("file", "FileInventoryIncompatible"); }
                 active = OpenActive(capturedAbsolutePath, FileMode.CreateNew); activeWasCreated = true;
             }
-            var owner = new FileOutputOwner(capturedAbsolutePath, lease, active, activeWasCreated);
+            var owner = new FileOutputOwner(capturedAbsolutePath, lease, active, activeWasCreated) { RecoveredPartialSegment = recoveredPartial };
             lease = null;
             active = null;
             return owner;
@@ -86,10 +88,10 @@ internal sealed class FileOutputOwner : IDisposable
     private static FileStream OpenActive(string path, FileMode mode)
         => new(path, mode, FileAccess.ReadWrite, FileShare.Read, bufferSize: 1, FileOptions.Asynchronous | FileOptions.SequentialScan);
 
-    internal static FileOutputOwner Initialize(string capturedAbsolutePath, LogOutputFormat format)
+    internal static FileOutputOwner Initialize(string capturedAbsolutePath, LogOutputFormat format, int maximumRetainedFiles = LoggingOptions.MaximumFileRetainedFiles, long maximumFileBytes = long.MaxValue)
     {
         if (!Enum.IsDefined(format)) { throw new ArgumentOutOfRangeException(nameof(format)); }
-        FileOutputOwner owner = InitializeCore(capturedAbsolutePath, rejectLostActive: true);
+        FileOutputOwner owner = InitializeCore(capturedAbsolutePath, rejectLostActive: true, format, maximumRetainedFiles, maximumFileBytes);
         try
         {
             owner.Inventory = FileGroupInventory.OpenOrCreate(owner, format);
@@ -121,15 +123,17 @@ internal sealed class FileOutputOwner : IDisposable
             // preserves other outputs and releases this owner's handles without retry.
             throw FileOutputWriteException.RetentionDeleteFailed();
         }
+        FileGroupTransition.Begin(this, next, maximumRetainedFiles, recovery: false);
         // The lease remains held throughout. No incoming record is written until the new
         // identity is published. Failure after rename leaves no active path to append to;
-        // startup fails closed until S07 supplies interrupted-rotation reconciliation.
+        // the pending transition permits a later owner to reconcile verified stages.
         // Any rotation exception makes this writer unusable; its worker faults terminally.
         ActiveFile.Dispose();
         File.Move(AbsolutePath, closedPath, overwrite: false);
         next.PublishReplacement(AbsolutePath);
         Inventory = next;
         ActiveFile = OpenActive(AbsolutePath, FileMode.CreateNew);
+        FileGroupTransition.Complete(AbsolutePath);
     }
 
     internal void RecoverPartialSegment(int maximumRetainedFiles)
@@ -142,6 +146,7 @@ internal sealed class FileOutputOwner : IDisposable
         string damagedPath = Path.Combine(Path.GetDirectoryName(AbsolutePath)!, next.Segments[^2].FileName);
         if (File.Exists(damagedPath) || Directory.Exists(damagedPath))
         { throw new CoreLogInitializationException("file", "FileRecoveryCollision"); }
+        FileGroupTransition.Begin(this, next, maximumRetainedFiles, recovery: true);
         // Preserve the entire segment, including any intact earlier records, under
         // the same lease. A failed transition never makes old bytes appendable.
         ActiveFile.Dispose();
@@ -149,6 +154,8 @@ internal sealed class FileOutputOwner : IDisposable
         next.PublishReplacement(AbsolutePath);
         Inventory = next;
         ActiveFile = OpenActive(AbsolutePath, FileMode.CreateNew);
+        FileGroupTransition.Complete(AbsolutePath);
+        RecoveredPartialSegment = true;
     }
 
     internal void RequireOwnership()

@@ -12,7 +12,7 @@ internal static class FileRotationPolicyExpectations
         Require(actual["directoryInitiallyMissing"]!.GetValue<bool>() && actual["leaseReleased"]!.GetValue<bool>() && actual["dataReleased"]!.GetValue<bool>(), "physical creation/release");
         Require(actual["borrowedDisposes"]!.GetValue<int>() == 0 && actual["factories"]!.GetValue<int>() == 4 && actual["launches"]!.GetValue<int>() == 2 && actual["stopped"]!.GetValue<string>() == "Stopped", "lifecycle");
         Require(limited ? actual["exceptionType"]!.GetValue<string>() == "ArgumentOutOfRangeException" : actual["exceptionType"]!.GetValue<string>() is "IOException" or "UnauthorizedAccessException", "expected IO failure");
-        Require(metadata ? actual["restartError"]!.GetValue<string>() == "FileInventoryInitializationFailed" : actual["restartError"] is null, "safe restart");
+        Require(metadata ? actual["restartError"]!.GetValue<string>() == "FileTransitionInitializationFailed" : actual["restartError"] is null, "safe restart");
         long written = write && !limited ? 1 : 0;
         foreach (string phase in new[] { "fault", "final" })
         {
@@ -42,12 +42,19 @@ internal static class FileRotationPolicyExpectations
             byte[] candidateBytes = Convert.FromBase64String(actual["after"]![candidate]!.GetValue<string>()); Require(candidateBytes.Length > 0 && candidateBytes[^1] == 10 && !candidateBytes.AsSpan().StartsWith(new byte[] { 239, 187, 191 }), "candidate framing");
             var next = new JsonObject { ["schema"] = 1, ["groupId"] = actual["group"]!.DeepClone(), ["format"] = mode.Contains("human", StringComparison.Ordinal) ? "human" : "jsonl", ["encoding"] = "utf-8", ["bom"] = false, ["newline"] = "lf", ["segments"] = new JsonArray(new JsonObject { ["id"] = 2, ["fileName"] = closed[5..], ["state"] = "closed" }, new JsonObject { ["id"] = 3, ["fileName"] = active[5..], ["state"] = "active" }) };
             Require(JsonNode.DeepEquals(next, JsonNode.Parse(candidateBytes)), "candidate inventory"); expected[candidate] = actual["after"]![candidate]!.DeepClone();
+            string pending = active + ".cis.transition.json";
+            byte[] pendingBytes = Convert.FromBase64String(actual["after"]![pending]!.GetValue<string>());
+            JsonObject previous = next.DeepClone().AsObject(); previous["segments"] = new JsonArray(new JsonObject { ["id"] = 1, ["fileName"] = oldest[5..], ["state"] = "closed" }, new JsonObject { ["id"] = 2, ["fileName"] = active[5..], ["state"] = "active" });
+            byte[] prior = Convert.FromBase64String(seed.GetValue<string>());
+            var intent = new JsonObject { ["schema"] = 1, ["recovery"] = false, ["retainedLimit"] = 1, ["originalBytes"] = prior.Length, ["originalSha256"] = Convert.ToHexStringLower(System.Security.Cryptography.SHA256.HashData(prior)), ["previous"] = previous, ["next"] = next.DeepClone() };
+            Require(pendingBytes.Length > 0 && pendingBytes[^1] == 10 && JsonNode.DeepEquals(intent, JsonNode.Parse(pendingBytes)), "transition intent");
+            expected[pending] = actual["after"]![pending]!.DeepClone();
         }
         if (write && !limited) { Require(actual["controlledWriteAttempts"]!.GetValue<int>() == 2 && actual["firstRecordBytes"] is not null, "controlled attempts"); expected[active] = actual["firstRecordBytes"]!.DeepClone(); }
         else { Require(actual["controlledWriteAttempts"] is null && actual["firstRecordBytes"] is null, "configured writer"); }
         Require(JsonNode.DeepEquals(expected, actual["after"]), "exact filesystem transition");
         JsonArray names = actual["namesBefore"]!.DeepClone().AsArray();
-        if (metadata) { string activeName = "\u03a9-\U0001f642.log", oldName = oldest[5..]; names = new JsonArray(names.Select(x => x!.GetValue<string>()).Where(x => x != activeName && x != oldName).Append(closed[5..]).Append(candidate![5..]).Order(StringComparer.Ordinal).Select(x => (JsonNode)JsonValue.Create(x)!).ToArray()); }
+        if (metadata) { string activeName = "\u03a9-\U0001f642.log", oldName = oldest[5..]; names = new JsonArray(names.Select(x => x!.GetValue<string>()).Where(x => x != activeName && x != oldName).Append(closed[5..]).Append(candidate![5..]).Append(active[5..] + ".cis.transition.json").Order(StringComparer.Ordinal).Select(x => (JsonNode)JsonValue.Create(x)!).ToArray()); }
         Require(JsonNode.DeepEquals(names, actual["namesAfter"]), "exact membership");
         byte[] bytes = Convert.FromBase64String(actual["consoleBytes"]!.GetValue<string>()); Require(bytes.Length > 0 && bytes[^1] == 10 && !bytes.AsSpan().StartsWith(new byte[] { 239, 187, 191 }), "console framing"); string[] lines = new UTF8Encoding(false, true).GetString(bytes).Split('\n'); Require(lines.Length == 5, "console record count");
         for (int index = 0; index < 4; index++) { JsonObject record = JsonNode.Parse(lines[index])!.AsObject(); Require(record["component"]!.GetValue<string>() == "Policy" && record["event_name"]!.GetValue<string>() == "policy." + index && record["message"]!.GetValue<string>() == "\u03a9 \U0001f642 e\u0301\nline" && record["attributes"]!["producer_pid"]!.GetValue<long>() == actual["pid"]!.GetValue<int>() && record["truncated"] is null, "literal console records"); }

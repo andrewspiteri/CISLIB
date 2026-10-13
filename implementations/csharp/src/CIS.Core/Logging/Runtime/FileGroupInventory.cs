@@ -60,7 +60,7 @@ internal sealed class FileGroupInventory
         }
     }
 
-    private static FileGroupInventory Inspect(JsonElement root, string activePath, LogOutputFormat format)
+    internal static FileGroupInventory Inspect(JsonElement root, string activePath, LogOutputFormat format, bool inspectMembers = true)
     {
         RequireObject(root);
         if (!root.TryGetProperty("schema", out JsonElement schema) || schema.ValueKind != JsonValueKind.Number || !schema.TryGetInt32(out int version) || version != 1
@@ -91,7 +91,7 @@ internal sealed class FileGroupInventory
             if (last != (state == FileSegmentState.Active) || !names.Add(name)) { throw Incompatible(); }
             string expected = last ? activeName : ClosedName(groupId, segmentId, state);
             if (!string.Equals(name, expected, OperatingSystem.IsWindows() ? StringComparison.OrdinalIgnoreCase : StringComparison.Ordinal)) { throw Incompatible(); }
-            if (!last)
+            if (!last && inspectMembers)
             {
                 // Inspect only the exact named group members. Missing members fail unchanged.
                 try
@@ -155,21 +155,29 @@ internal sealed class FileGroupInventory
         {
             using (var writer = new Utf8JsonWriter(file))
             {
-                writer.WriteStartObject(); writer.WriteNumber("schema", 1); writer.WriteString("groupId", inventory.GroupId.ToString("N"));
-                writer.WriteString("format", FormatName(inventory.Format)); writer.WriteString("encoding", "utf-8"); writer.WriteBoolean("bom", false); writer.WriteString("newline", "lf");
-                writer.WriteStartArray("segments");
-                foreach (FileInventorySegment segment in inventory.Segments)
-                {
-                    writer.WriteStartObject(); writer.WriteNumber("id", segment.Id); writer.WriteString("fileName", segment.FileName);
-                    writer.WriteString("state", segment.State switch { FileSegmentState.Active => "active", FileSegmentState.Closed => "closed", FileSegmentState.Damaged => "damaged", _ => throw new InvalidOperationException("Unknown segment state.") });
-                    writer.WriteEndObject();
-                }
-                writer.WriteEndArray(); writer.WriteEndObject(); writer.Flush();
+                inventory.Write(writer); writer.Flush();
             }
             file.WriteByte((byte)'\n'); file.Flush(flushToDisk: true);
         }
         File.Move(candidate, path, overwrite);
     }
+
+    internal void Write(Utf8JsonWriter writer)
+    {
+        writer.WriteStartObject(); writer.WriteNumber("schema", 1); writer.WriteString("groupId", GroupId.ToString("N"));
+        writer.WriteString("format", FormatName(Format)); writer.WriteString("encoding", "utf-8"); writer.WriteBoolean("bom", false); writer.WriteString("newline", "lf");
+        writer.WriteStartArray("segments");
+        foreach (FileInventorySegment segment in Segments)
+        {
+            writer.WriteStartObject(); writer.WriteNumber("id", segment.Id); writer.WriteString("fileName", segment.FileName);
+            writer.WriteString("state", segment.State switch { FileSegmentState.Active => "active", FileSegmentState.Closed => "closed", FileSegmentState.Damaged => "damaged", _ => throw new InvalidOperationException("Unknown segment state.") });
+            writer.WriteEndObject();
+        }
+        writer.WriteEndArray(); writer.WriteEndObject();
+    }
+
+    internal bool HasSameIdentity(FileGroupInventory other)
+        => GroupId == other.GroupId && Format == other.Format && Segments.SequenceEqual(other.Segments);
 
     private static string FormatName(LogOutputFormat format) => format == LogOutputFormat.JsonLines ? "jsonl" : "human";
     private static string Text(JsonElement parent, string name)

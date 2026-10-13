@@ -13,9 +13,10 @@ internal sealed class FileOutputWriter(string absolutePath, LogOutputFormat form
     {
         if (maximumRetainedFiles is < LoggingOptions.MinimumFileRetainedFiles or > LoggingOptions.MaximumFileRetainedFiles)
         { throw new ArgumentOutOfRangeException(nameof(maximumRetainedFiles)); }
-        FileOutputOwner acquired = FileOutputOwner.Initialize(absolutePath, format);
+        FileOutputOwner acquired = FileOutputOwner.Initialize(absolutePath, format, maximumRetainedFiles, maximumFileBytes);
         try
         {
+            RecoveredPartialSegment = acquired.RecoveredPartialSegment;
             long length = acquired.ActiveFile.Length;
             if (length > maximumFileBytes) { throw new CoreLogInitializationException("file", "FileSizeLimitExceeded"); }
             bool partial = false;

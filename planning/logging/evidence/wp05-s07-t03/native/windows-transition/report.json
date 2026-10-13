@@ -1,0 +1,1091 @@
+{
+  "schema": "cis.logging.file-transition-native/v1",
+  "task": "WP05-S07-T03",
+  "family": "windows",
+  "runtime": ".NET 10.0.12",
+  "children": 16,
+  "coreSha256": "99c0ef11b94830142754d90f36dc6f450433eb3e8ccacf41675c6dcc4c9827a4",
+  "fixtureSha256": "05f3e66287ae098557fc4524f9d06853650bc0f56522b4e6e25bca425ba2ae9f",
+  "verifierSha256": "c6b6368de59800160b9cfabc0eec40a3feae7018fe48931ee3441cb6d6ae0a62",
+  "cases": [
+    {
+      "id": "rotation-intent",
+      "pid": 35376,
+      "exitCode": 0,
+      "command": [
+        "dotnet",
+        "exec",
+        "--fx-version",
+        "10.0.12",
+        "--roll-forward",
+        "Disable",
+        "C:\\miscwork\\portfolio\\cislib\\.artifacts\\csharp\\tasks\\wp05-s07-t03\\native-host\\CIS.Core.DiscoveryFixture.dll",
+        "file-transition",
+        "rotation-intent",
+        "C:\\Users\\andrs\\AppData\\Local\\Temp\\cislib-transition-gtm9wp5b\\rotation-intent"
+      ],
+      "report": {
+        "mode": "rotation-intent",
+        "composition": "staged-physical-transition-to-configured-runtime",
+        "pid": 35376,
+        "runtime": ".NET 10.0.12",
+        "os": "windows",
+        "path": "C:\\Users\\andrs\\AppData\\Local\\Temp\\cislib-transition-gtm9wp5b\\rotation-intent\\logs\\\u03a9-\ud83d\ude42.log",
+        "group": "fffa6ec0739f4ed2a7f29f4d6a6ab60b",
+        "coreSha256": "99c0ef11b94830142754d90f36dc6f450433eb3e8ccacf41675c6dcc4c9827a4",
+        "fixtureSha256": "05f3e66287ae098557fc4524f9d06853650bc0f56522b4e6e25bca425ba2ae9f",
+        "before": {
+          "logs/.cis-log-fffa6ec0739f4ed2a7f29f4d6a6ab60b-00000000000000000002.closed": "eyJvbGRlciI6dHJ1ZX0K",
+          "logs/.cis-log-fffa6ec0739f4ed2a7f29f4d6a6ab60b-00000000000000000050.closed": "dW5saXN0ZWQgbmVpZ2hib3IK",
+          "logs/\u03a9-\ud83d\ude42.log": "eyJlYXJsaWVyIjp0cnVlfQo=",
+          "logs/\u03a9-\ud83d\ude42.log.cis.inventory.json": "eyJzY2hlbWEiOjEsImdyb3VwSWQiOiJmZmZhNmVjMDczOWY0ZWQyYTdmMjlmNGQ2YTZhYjYwYiIsImZvcm1hdCI6Impzb25sIiwiZW5jb2RpbmciOiJ1dGYtOCIsImJvbSI6ZmFsc2UsIm5ld2xpbmUiOiJsZiIsInNlZ21lbnRzIjpbeyJpZCI6MSwiZmlsZU5hbWUiOiIuY2lzLWxvZy1mZmZhNmVjMDczOWY0ZWQyYTdmMjlmNGQ2YTZhYjYwYi0wMDAwMDAwMDAwMDAwMDAwMDAwMS5kYW1hZ2VkIiwic3RhdGUiOiJkYW1hZ2VkIn0seyJpZCI6MiwiZmlsZU5hbWUiOiIuY2lzLWxvZy1mZmZhNmVjMDczOWY0ZWQyYTdmMjlmNGQ2YTZhYjYwYi0wMDAwMDAwMDAwMDAwMDAwMDAwMi5jbG9zZWQiLCJzdGF0ZSI6ImNsb3NlZCJ9LHsiaWQiOjMsImZpbGVOYW1lIjoiXHUwM0E5LVx1RDgzRFx1REU0Mi5sb2ciLCJzdGF0ZSI6ImFjdGl2ZSJ9XX0=",
+          "logs/\u03a9-\ud83d\ude42.log.cis.lock": "",
+          "logs/\u03a9-\ud83d\ude42.log.cis.transition.json": "eyJzY2hlbWEiOjEsInJlY292ZXJ5IjpmYWxzZSwicmV0YWluZWRMaW1pdCI6Miwib3JpZ2luYWxCeXRlcyI6MTcsIm9yaWdpbmFsU2hhMjU2IjoiNDRjZTRhMTdhMDU1NGIyOWZmYjMzMThkNGY1Nzg4ZTU5N2UxNjNiYzA2ZWEyMTgyYjAzYzIzNWM2YWVhZDFlZCIsInByZXZpb3VzIjp7InNjaGVtYSI6MSwiZ3JvdXBJZCI6ImZmZmE2ZWMwNzM5ZjRlZDJhN2YyOWY0ZDZhNmFiNjBiIiwiZm9ybWF0IjoianNvbmwiLCJlbmNvZGluZyI6InV0Zi04IiwiYm9tIjpmYWxzZSwibmV3bGluZSI6ImxmIiwic2VnbWVudHMiOlt7ImlkIjoxLCJmaWxlTmFtZSI6Ii5jaXMtbG9nLWZmZmE2ZWMwNzM5ZjRlZDJhN2YyOWY0ZDZhNmFiNjBiLTAwMDAwMDAwMDAwMDAwMDAwMDAxLmRhbWFnZWQiLCJzdGF0ZSI6ImRhbWFnZWQifSx7ImlkIjoyLCJmaWxlTmFtZSI6Ii5jaXMtbG9nLWZmZmE2ZWMwNzM5ZjRlZDJhN2YyOWY0ZDZhNmFiNjBiLTAwMDAwMDAwMDAwMDAwMDAwMDAyLmNsb3NlZCIsInN0YXRlIjoiY2xvc2VkIn0seyJpZCI6MywiZmlsZU5hbWUiOiJcdTAzQTktXHVEODNEXHVERTQyLmxvZyIsInN0YXRlIjoiYWN0aXZlIn1dfSwibmV4dCI6eyJzY2hlbWEiOjEsImdyb3VwSWQiOiJmZmZhNmVjMDczOWY0ZWQyYTdmMjlmNGQ2YTZhYjYwYiIsImZvcm1hdCI6Impzb25sIiwiZW5jb2RpbmciOiJ1dGYtOCIsImJvbSI6ZmFsc2UsIm5ld2xpbmUiOiJsZiIsInNlZ21lbnRzIjpbeyJpZCI6MiwiZmlsZU5hbWUiOiIuY2lzLWxvZy1mZmZhNmVjMDczOWY0ZWQyYTdmMjlmNGQ2YTZhYjYwYi0wMDAwMDAwMDAwMDAwMDAwMDAwMi5jbG9zZWQiLCJzdGF0ZSI6ImNsb3NlZCJ9LHsiaWQiOjMsImZpbGVOYW1lIjoiLmNpcy1sb2ctZmZmYTZlYzA3MzlmNGVkMmE3ZjI5ZjRkNmE2YWI2MGItMDAwMDAwMDAwMDAwMDAwMDAwMDMuY2xvc2VkIiwic3RhdGUiOiJjbG9zZWQifSx7ImlkIjo0LCJmaWxlTmFtZSI6Ilx1MDNBOS1cdUQ4M0RcdURFNDIubG9nIiwic3RhdGUiOiJhY3RpdmUifV19fQo=",
+          "neighbor.bin": "/wD+"
+        },
+        "after": {
+          "logs/.cis-log-fffa6ec0739f4ed2a7f29f4d6a6ab60b-00000000000000000002.closed": "eyJvbGRlciI6dHJ1ZX0K",
+          "logs/.cis-log-fffa6ec0739f4ed2a7f29f4d6a6ab60b-00000000000000000003.closed": "eyJlYXJsaWVyIjp0cnVlfQo=",
+          "logs/.cis-log-fffa6ec0739f4ed2a7f29f4d6a6ab60b-00000000000000000050.closed": "dW5saXN0ZWQgbmVpZ2hib3IK",
+          "logs/\u03a9-\ud83d\ude42.log": "eyJzY2hlbWFfdmVyc2lvbiI6MSwidGltZXN0YW1wIjoiMjAyNi0xMC0xM1QxMDoxMToxMi4wMDAwMDAwWiIsInN0YXR1cyI6ImluZm8iLCJldmVudF9uYW1lIjoidHJhbnNpdGlvbi5mcmVzaCIsIm1lc3NhZ2UiOiLOqSBcdUQ4M0RcdURFNDIiLCJzZXJ2aWNlIjoiQ29uc29sZS5BcHAiLCJlbnYiOiJ0ZXN0IiwidmVyc2lvbiI6IjEuMi4zIiwiY29tcG9uZW50IjoiVHJhbnNpdGlvbiIsInJlc291cmNlIjp7ImJ1aWxkX3ZlcnNpb24iOiJidWlsZC0xIiwiZW52aXJvbm1lbnRfa2luZCI6ImNvbnNvbGUiLCJpbml0aWFsaXplZF9hdCI6IjIwMjYtMTAtMTNUMTA6MDA6MDAuMDAwMDAwMFoiLCJpbnN0YW5jZV9pZCI6IjExMTExMTExLTExMTEtMTExMS0xMTExLTExMTExMTExMTExMSIsIm9zX2ZhbWlseSI6InVua25vd24ifSwiYXR0cmlidXRlcyI6eyJwcm9kdWNlcl9waWQiOjM1Mzc2fX0K",
+          "logs/\u03a9-\ud83d\ude42.log.cis.inventory.json": "eyJzY2hlbWEiOjEsImdyb3VwSWQiOiJmZmZhNmVjMDczOWY0ZWQyYTdmMjlmNGQ2YTZhYjYwYiIsImZvcm1hdCI6Impzb25sIiwiZW5jb2RpbmciOiJ1dGYtOCIsImJvbSI6ZmFsc2UsIm5ld2xpbmUiOiJsZiIsInNlZ21lbnRzIjpbeyJpZCI6MiwiZmlsZU5hbWUiOiIuY2lzLWxvZy1mZmZhNmVjMDczOWY0ZWQyYTdmMjlmNGQ2YTZhYjYwYi0wMDAwMDAwMDAwMDAwMDAwMDAwMi5jbG9zZWQiLCJzdGF0ZSI6ImNsb3NlZCJ9LHsiaWQiOjMsImZpbGVOYW1lIjoiLmNpcy1sb2ctZmZmYTZlYzA3MzlmNGVkMmE3ZjI5ZjRkNmE2YWI2MGItMDAwMDAwMDAwMDAwMDAwMDAwMDMuY2xvc2VkIiwic3RhdGUiOiJjbG9zZWQifSx7ImlkIjo0LCJmaWxlTmFtZSI6Ilx1MDNBOS1cdUQ4M0RcdURFNDIubG9nIiwic3RhdGUiOiJhY3RpdmUifV19Cg==",
+          "logs/\u03a9-\ud83d\ude42.log.cis.lock": "",
+          "neighbor.bin": "/wD+"
+        },
+        "error": null,
+        "outcome": "Accepted",
+        "recovered": false,
+        "restartRecovered": false,
+        "final": {
+          "state": "Stopped",
+          "accepted": 1,
+          "written": 1,
+          "failed": 0,
+          "abandoned": 0,
+          "pending": 0,
+          "recovered": false,
+          "fault": null
+        },
+        "leaseReleased": true,
+        "dataReleased": true
+      },
+      "stdoutSha256": "91689524dc3665876b73cda2a7c3d006fe7b70915a1a538851c365eb3527f84d",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "id": "rotation-renamed",
+      "pid": 89152,
+      "exitCode": 0,
+      "command": [
+        "dotnet",
+        "exec",
+        "--fx-version",
+        "10.0.12",
+        "--roll-forward",
+        "Disable",
+        "C:\\miscwork\\portfolio\\cislib\\.artifacts\\csharp\\tasks\\wp05-s07-t03\\native-host\\CIS.Core.DiscoveryFixture.dll",
+        "file-transition",
+        "rotation-renamed",
+        "C:\\Users\\andrs\\AppData\\Local\\Temp\\cislib-transition-gtm9wp5b\\rotation-renamed"
+      ],
+      "report": {
+        "mode": "rotation-renamed",
+        "composition": "staged-physical-transition-to-configured-runtime",
+        "pid": 89152,
+        "runtime": ".NET 10.0.12",
+        "os": "windows",
+        "path": "C:\\Users\\andrs\\AppData\\Local\\Temp\\cislib-transition-gtm9wp5b\\rotation-renamed\\logs\\\u03a9-\ud83d\ude42.log",
+        "group": "5e93c7c342fe4a81b1122509e5b0e62b",
+        "coreSha256": "99c0ef11b94830142754d90f36dc6f450433eb3e8ccacf41675c6dcc4c9827a4",
+        "fixtureSha256": "05f3e66287ae098557fc4524f9d06853650bc0f56522b4e6e25bca425ba2ae9f",
+        "before": {
+          "logs/.cis-log-5e93c7c342fe4a81b1122509e5b0e62b-00000000000000000002.closed": "eyJvbGRlciI6dHJ1ZX0K",
+          "logs/.cis-log-5e93c7c342fe4a81b1122509e5b0e62b-00000000000000000003.closed": "eyJlYXJsaWVyIjp0cnVlfQo=",
+          "logs/.cis-log-5e93c7c342fe4a81b1122509e5b0e62b-00000000000000000050.closed": "dW5saXN0ZWQgbmVpZ2hib3IK",
+          "logs/\u03a9-\ud83d\ude42.log.cis.inventory.json": "eyJzY2hlbWEiOjEsImdyb3VwSWQiOiI1ZTkzYzdjMzQyZmU0YTgxYjExMjI1MDllNWIwZTYyYiIsImZvcm1hdCI6Impzb25sIiwiZW5jb2RpbmciOiJ1dGYtOCIsImJvbSI6ZmFsc2UsIm5ld2xpbmUiOiJsZiIsInNlZ21lbnRzIjpbeyJpZCI6MSwiZmlsZU5hbWUiOiIuY2lzLWxvZy01ZTkzYzdjMzQyZmU0YTgxYjExMjI1MDllNWIwZTYyYi0wMDAwMDAwMDAwMDAwMDAwMDAwMS5kYW1hZ2VkIiwic3RhdGUiOiJkYW1hZ2VkIn0seyJpZCI6MiwiZmlsZU5hbWUiOiIuY2lzLWxvZy01ZTkzYzdjMzQyZmU0YTgxYjExMjI1MDllNWIwZTYyYi0wMDAwMDAwMDAwMDAwMDAwMDAwMi5jbG9zZWQiLCJzdGF0ZSI6ImNsb3NlZCJ9LHsiaWQiOjMsImZpbGVOYW1lIjoiXHUwM0E5LVx1RDgzRFx1REU0Mi5sb2ciLCJzdGF0ZSI6ImFjdGl2ZSJ9XX0=",
+          "logs/\u03a9-\ud83d\ude42.log.cis.lock": "",
+          "logs/\u03a9-\ud83d\ude42.log.cis.transition.json": "eyJzY2hlbWEiOjEsInJlY292ZXJ5IjpmYWxzZSwicmV0YWluZWRMaW1pdCI6Miwib3JpZ2luYWxCeXRlcyI6MTcsIm9yaWdpbmFsU2hhMjU2IjoiNDRjZTRhMTdhMDU1NGIyOWZmYjMzMThkNGY1Nzg4ZTU5N2UxNjNiYzA2ZWEyMTgyYjAzYzIzNWM2YWVhZDFlZCIsInByZXZpb3VzIjp7InNjaGVtYSI6MSwiZ3JvdXBJZCI6IjVlOTNjN2MzNDJmZTRhODFiMTEyMjUwOWU1YjBlNjJiIiwiZm9ybWF0IjoianNvbmwiLCJlbmNvZGluZyI6InV0Zi04IiwiYm9tIjpmYWxzZSwibmV3bGluZSI6ImxmIiwic2VnbWVudHMiOlt7ImlkIjoxLCJmaWxlTmFtZSI6Ii5jaXMtbG9nLTVlOTNjN2MzNDJmZTRhODFiMTEyMjUwOWU1YjBlNjJiLTAwMDAwMDAwMDAwMDAwMDAwMDAxLmRhbWFnZWQiLCJzdGF0ZSI6ImRhbWFnZWQifSx7ImlkIjoyLCJmaWxlTmFtZSI6Ii5jaXMtbG9nLTVlOTNjN2MzNDJmZTRhODFiMTEyMjUwOWU1YjBlNjJiLTAwMDAwMDAwMDAwMDAwMDAwMDAyLmNsb3NlZCIsInN0YXRlIjoiY2xvc2VkIn0seyJpZCI6MywiZmlsZU5hbWUiOiJcdTAzQTktXHVEODNEXHVERTQyLmxvZyIsInN0YXRlIjoiYWN0aXZlIn1dfSwibmV4dCI6eyJzY2hlbWEiOjEsImdyb3VwSWQiOiI1ZTkzYzdjMzQyZmU0YTgxYjExMjI1MDllNWIwZTYyYiIsImZvcm1hdCI6Impzb25sIiwiZW5jb2RpbmciOiJ1dGYtOCIsImJvbSI6ZmFsc2UsIm5ld2xpbmUiOiJsZiIsInNlZ21lbnRzIjpbeyJpZCI6MiwiZmlsZU5hbWUiOiIuY2lzLWxvZy01ZTkzYzdjMzQyZmU0YTgxYjExMjI1MDllNWIwZTYyYi0wMDAwMDAwMDAwMDAwMDAwMDAwMi5jbG9zZWQiLCJzdGF0ZSI6ImNsb3NlZCJ9LHsiaWQiOjMsImZpbGVOYW1lIjoiLmNpcy1sb2ctNWU5M2M3YzM0MmZlNGE4MWIxMTIyNTA5ZTViMGU2MmItMDAwMDAwMDAwMDAwMDAwMDAwMDMuY2xvc2VkIiwic3RhdGUiOiJjbG9zZWQifSx7ImlkIjo0LCJmaWxlTmFtZSI6Ilx1MDNBOS1cdUQ4M0RcdURFNDIubG9nIiwic3RhdGUiOiJhY3RpdmUifV19fQo=",
+          "neighbor.bin": "/wD+"
+        },
+        "after": {
+          "logs/.cis-log-5e93c7c342fe4a81b1122509e5b0e62b-00000000000000000002.closed": "eyJvbGRlciI6dHJ1ZX0K",
+          "logs/.cis-log-5e93c7c342fe4a81b1122509e5b0e62b-00000000000000000003.closed": "eyJlYXJsaWVyIjp0cnVlfQo=",
+          "logs/.cis-log-5e93c7c342fe4a81b1122509e5b0e62b-00000000000000000050.closed": "dW5saXN0ZWQgbmVpZ2hib3IK",
+          "logs/\u03a9-\ud83d\ude42.log": "eyJzY2hlbWFfdmVyc2lvbiI6MSwidGltZXN0YW1wIjoiMjAyNi0xMC0xM1QxMDoxMToxMi4wMDAwMDAwWiIsInN0YXR1cyI6ImluZm8iLCJldmVudF9uYW1lIjoidHJhbnNpdGlvbi5mcmVzaCIsIm1lc3NhZ2UiOiLOqSBcdUQ4M0RcdURFNDIiLCJzZXJ2aWNlIjoiQ29uc29sZS5BcHAiLCJlbnYiOiJ0ZXN0IiwidmVyc2lvbiI6IjEuMi4zIiwiY29tcG9uZW50IjoiVHJhbnNpdGlvbiIsInJlc291cmNlIjp7ImJ1aWxkX3ZlcnNpb24iOiJidWlsZC0xIiwiZW52aXJvbm1lbnRfa2luZCI6ImNvbnNvbGUiLCJpbml0aWFsaXplZF9hdCI6IjIwMjYtMTAtMTNUMTA6MDA6MDAuMDAwMDAwMFoiLCJpbnN0YW5jZV9pZCI6IjExMTExMTExLTExMTEtMTExMS0xMTExLTExMTExMTExMTExMSIsIm9zX2ZhbWlseSI6InVua25vd24ifSwiYXR0cmlidXRlcyI6eyJwcm9kdWNlcl9waWQiOjg5MTUyfX0K",
+          "logs/\u03a9-\ud83d\ude42.log.cis.inventory.json": "eyJzY2hlbWEiOjEsImdyb3VwSWQiOiI1ZTkzYzdjMzQyZmU0YTgxYjExMjI1MDllNWIwZTYyYiIsImZvcm1hdCI6Impzb25sIiwiZW5jb2RpbmciOiJ1dGYtOCIsImJvbSI6ZmFsc2UsIm5ld2xpbmUiOiJsZiIsInNlZ21lbnRzIjpbeyJpZCI6MiwiZmlsZU5hbWUiOiIuY2lzLWxvZy01ZTkzYzdjMzQyZmU0YTgxYjExMjI1MDllNWIwZTYyYi0wMDAwMDAwMDAwMDAwMDAwMDAwMi5jbG9zZWQiLCJzdGF0ZSI6ImNsb3NlZCJ9LHsiaWQiOjMsImZpbGVOYW1lIjoiLmNpcy1sb2ctNWU5M2M3YzM0MmZlNGE4MWIxMTIyNTA5ZTViMGU2MmItMDAwMDAwMDAwMDAwMDAwMDAwMDMuY2xvc2VkIiwic3RhdGUiOiJjbG9zZWQifSx7ImlkIjo0LCJmaWxlTmFtZSI6Ilx1MDNBOS1cdUQ4M0RcdURFNDIubG9nIiwic3RhdGUiOiJhY3RpdmUifV19Cg==",
+          "logs/\u03a9-\ud83d\ude42.log.cis.lock": "",
+          "neighbor.bin": "/wD+"
+        },
+        "error": null,
+        "outcome": "Accepted",
+        "recovered": false,
+        "restartRecovered": false,
+        "final": {
+          "state": "Stopped",
+          "accepted": 1,
+          "written": 1,
+          "failed": 0,
+          "abandoned": 0,
+          "pending": 0,
+          "recovered": false,
+          "fault": null
+        },
+        "leaseReleased": true,
+        "dataReleased": true
+      },
+      "stdoutSha256": "ac9193d322abf25010e6b93f69d468335beed7e29cdcf5f4c80b3210c7eeb1f2",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "id": "rotation-published",
+      "pid": 144100,
+      "exitCode": 0,
+      "command": [
+        "dotnet",
+        "exec",
+        "--fx-version",
+        "10.0.12",
+        "--roll-forward",
+        "Disable",
+        "C:\\miscwork\\portfolio\\cislib\\.artifacts\\csharp\\tasks\\wp05-s07-t03\\native-host\\CIS.Core.DiscoveryFixture.dll",
+        "file-transition",
+        "rotation-published",
+        "C:\\Users\\andrs\\AppData\\Local\\Temp\\cislib-transition-gtm9wp5b\\rotation-published"
+      ],
+      "report": {
+        "mode": "rotation-published",
+        "composition": "staged-physical-transition-to-configured-runtime",
+        "pid": 144100,
+        "runtime": ".NET 10.0.12",
+        "os": "windows",
+        "path": "C:\\Users\\andrs\\AppData\\Local\\Temp\\cislib-transition-gtm9wp5b\\rotation-published\\logs\\\u03a9-\ud83d\ude42.log",
+        "group": "ed84934715e549eeace0d638dd4c35ff",
+        "coreSha256": "99c0ef11b94830142754d90f36dc6f450433eb3e8ccacf41675c6dcc4c9827a4",
+        "fixtureSha256": "05f3e66287ae098557fc4524f9d06853650bc0f56522b4e6e25bca425ba2ae9f",
+        "before": {
+          "logs/.cis-log-ed84934715e549eeace0d638dd4c35ff-00000000000000000002.closed": "eyJvbGRlciI6dHJ1ZX0K",
+          "logs/.cis-log-ed84934715e549eeace0d638dd4c35ff-00000000000000000003.closed": "eyJlYXJsaWVyIjp0cnVlfQo=",
+          "logs/.cis-log-ed84934715e549eeace0d638dd4c35ff-00000000000000000050.closed": "dW5saXN0ZWQgbmVpZ2hib3IK",
+          "logs/\u03a9-\ud83d\ude42.log.cis.inventory.json": "eyJzY2hlbWEiOjEsImdyb3VwSWQiOiJlZDg0OTM0NzE1ZTU0OWVlYWNlMGQ2MzhkZDRjMzVmZiIsImZvcm1hdCI6Impzb25sIiwiZW5jb2RpbmciOiJ1dGYtOCIsImJvbSI6ZmFsc2UsIm5ld2xpbmUiOiJsZiIsInNlZ21lbnRzIjpbeyJpZCI6MiwiZmlsZU5hbWUiOiIuY2lzLWxvZy1lZDg0OTM0NzE1ZTU0OWVlYWNlMGQ2MzhkZDRjMzVmZi0wMDAwMDAwMDAwMDAwMDAwMDAwMi5jbG9zZWQiLCJzdGF0ZSI6ImNsb3NlZCJ9LHsiaWQiOjMsImZpbGVOYW1lIjoiLmNpcy1sb2ctZWQ4NDkzNDcxNWU1NDllZWFjZTBkNjM4ZGQ0YzM1ZmYtMDAwMDAwMDAwMDAwMDAwMDAwMDMuY2xvc2VkIiwic3RhdGUiOiJjbG9zZWQifSx7ImlkIjo0LCJmaWxlTmFtZSI6Ilx1MDNBOS1cdUQ4M0RcdURFNDIubG9nIiwic3RhdGUiOiJhY3RpdmUifV19Cg==",
+          "logs/\u03a9-\ud83d\ude42.log.cis.lock": "",
+          "logs/\u03a9-\ud83d\ude42.log.cis.transition.json": "eyJzY2hlbWEiOjEsInJlY292ZXJ5IjpmYWxzZSwicmV0YWluZWRMaW1pdCI6Miwib3JpZ2luYWxCeXRlcyI6MTcsIm9yaWdpbmFsU2hhMjU2IjoiNDRjZTRhMTdhMDU1NGIyOWZmYjMzMThkNGY1Nzg4ZTU5N2UxNjNiYzA2ZWEyMTgyYjAzYzIzNWM2YWVhZDFlZCIsInByZXZpb3VzIjp7InNjaGVtYSI6MSwiZ3JvdXBJZCI6ImVkODQ5MzQ3MTVlNTQ5ZWVhY2UwZDYzOGRkNGMzNWZmIiwiZm9ybWF0IjoianNvbmwiLCJlbmNvZGluZyI6InV0Zi04IiwiYm9tIjpmYWxzZSwibmV3bGluZSI6ImxmIiwic2VnbWVudHMiOlt7ImlkIjoxLCJmaWxlTmFtZSI6Ii5jaXMtbG9nLWVkODQ5MzQ3MTVlNTQ5ZWVhY2UwZDYzOGRkNGMzNWZmLTAwMDAwMDAwMDAwMDAwMDAwMDAxLmRhbWFnZWQiLCJzdGF0ZSI6ImRhbWFnZWQifSx7ImlkIjoyLCJmaWxlTmFtZSI6Ii5jaXMtbG9nLWVkODQ5MzQ3MTVlNTQ5ZWVhY2UwZDYzOGRkNGMzNWZmLTAwMDAwMDAwMDAwMDAwMDAwMDAyLmNsb3NlZCIsInN0YXRlIjoiY2xvc2VkIn0seyJpZCI6MywiZmlsZU5hbWUiOiJcdTAzQTktXHVEODNEXHVERTQyLmxvZyIsInN0YXRlIjoiYWN0aXZlIn1dfSwibmV4dCI6eyJzY2hlbWEiOjEsImdyb3VwSWQiOiJlZDg0OTM0NzE1ZTU0OWVlYWNlMGQ2MzhkZDRjMzVmZiIsImZvcm1hdCI6Impzb25sIiwiZW5jb2RpbmciOiJ1dGYtOCIsImJvbSI6ZmFsc2UsIm5ld2xpbmUiOiJsZiIsInNlZ21lbnRzIjpbeyJpZCI6MiwiZmlsZU5hbWUiOiIuY2lzLWxvZy1lZDg0OTM0NzE1ZTU0OWVlYWNlMGQ2MzhkZDRjMzVmZi0wMDAwMDAwMDAwMDAwMDAwMDAwMi5jbG9zZWQiLCJzdGF0ZSI6ImNsb3NlZCJ9LHsiaWQiOjMsImZpbGVOYW1lIjoiLmNpcy1sb2ctZWQ4NDkzNDcxNWU1NDllZWFjZTBkNjM4ZGQ0YzM1ZmYtMDAwMDAwMDAwMDAwMDAwMDAwMDMuY2xvc2VkIiwic3RhdGUiOiJjbG9zZWQifSx7ImlkIjo0LCJmaWxlTmFtZSI6Ilx1MDNBOS1cdUQ4M0RcdURFNDIubG9nIiwic3RhdGUiOiJhY3RpdmUifV19fQo=",
+          "neighbor.bin": "/wD+"
+        },
+        "after": {
+          "logs/.cis-log-ed84934715e549eeace0d638dd4c35ff-00000000000000000002.closed": "eyJvbGRlciI6dHJ1ZX0K",
+          "logs/.cis-log-ed84934715e549eeace0d638dd4c35ff-00000000000000000003.closed": "eyJlYXJsaWVyIjp0cnVlfQo=",
+          "logs/.cis-log-ed84934715e549eeace0d638dd4c35ff-00000000000000000050.closed": "dW5saXN0ZWQgbmVpZ2hib3IK",
+          "logs/\u03a9-\ud83d\ude42.log": "eyJzY2hlbWFfdmVyc2lvbiI6MSwidGltZXN0YW1wIjoiMjAyNi0xMC0xM1QxMDoxMToxMi4wMDAwMDAwWiIsInN0YXR1cyI6ImluZm8iLCJldmVudF9uYW1lIjoidHJhbnNpdGlvbi5mcmVzaCIsIm1lc3NhZ2UiOiLOqSBcdUQ4M0RcdURFNDIiLCJzZXJ2aWNlIjoiQ29uc29sZS5BcHAiLCJlbnYiOiJ0ZXN0IiwidmVyc2lvbiI6IjEuMi4zIiwiY29tcG9uZW50IjoiVHJhbnNpdGlvbiIsInJlc291cmNlIjp7ImJ1aWxkX3ZlcnNpb24iOiJidWlsZC0xIiwiZW52aXJvbm1lbnRfa2luZCI6ImNvbnNvbGUiLCJpbml0aWFsaXplZF9hdCI6IjIwMjYtMTAtMTNUMTA6MDA6MDAuMDAwMDAwMFoiLCJpbnN0YW5jZV9pZCI6IjExMTExMTExLTExMTEtMTExMS0xMTExLTExMTExMTExMTExMSIsIm9zX2ZhbWlseSI6InVua25vd24ifSwiYXR0cmlidXRlcyI6eyJwcm9kdWNlcl9waWQiOjE0NDEwMH19Cg==",
+          "logs/\u03a9-\ud83d\ude42.log.cis.inventory.json": "eyJzY2hlbWEiOjEsImdyb3VwSWQiOiJlZDg0OTM0NzE1ZTU0OWVlYWNlMGQ2MzhkZDRjMzVmZiIsImZvcm1hdCI6Impzb25sIiwiZW5jb2RpbmciOiJ1dGYtOCIsImJvbSI6ZmFsc2UsIm5ld2xpbmUiOiJsZiIsInNlZ21lbnRzIjpbeyJpZCI6MiwiZmlsZU5hbWUiOiIuY2lzLWxvZy1lZDg0OTM0NzE1ZTU0OWVlYWNlMGQ2MzhkZDRjMzVmZi0wMDAwMDAwMDAwMDAwMDAwMDAwMi5jbG9zZWQiLCJzdGF0ZSI6ImNsb3NlZCJ9LHsiaWQiOjMsImZpbGVOYW1lIjoiLmNpcy1sb2ctZWQ4NDkzNDcxNWU1NDllZWFjZTBkNjM4ZGQ0YzM1ZmYtMDAwMDAwMDAwMDAwMDAwMDAwMDMuY2xvc2VkIiwic3RhdGUiOiJjbG9zZWQifSx7ImlkIjo0LCJmaWxlTmFtZSI6Ilx1MDNBOS1cdUQ4M0RcdURFNDIubG9nIiwic3RhdGUiOiJhY3RpdmUifV19Cg==",
+          "logs/\u03a9-\ud83d\ude42.log.cis.lock": "",
+          "neighbor.bin": "/wD+"
+        },
+        "error": null,
+        "outcome": "Accepted",
+        "recovered": false,
+        "restartRecovered": false,
+        "final": {
+          "state": "Stopped",
+          "accepted": 1,
+          "written": 1,
+          "failed": 0,
+          "abandoned": 0,
+          "pending": 0,
+          "recovered": false,
+          "fault": null
+        },
+        "leaseReleased": true,
+        "dataReleased": true
+      },
+      "stdoutSha256": "0cb5db66a08ef532a65f07dc0bd061026a0536943015d3bedeb98757e5df72ba",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "id": "rotation-created",
+      "pid": 104888,
+      "exitCode": 0,
+      "command": [
+        "dotnet",
+        "exec",
+        "--fx-version",
+        "10.0.12",
+        "--roll-forward",
+        "Disable",
+        "C:\\miscwork\\portfolio\\cislib\\.artifacts\\csharp\\tasks\\wp05-s07-t03\\native-host\\CIS.Core.DiscoveryFixture.dll",
+        "file-transition",
+        "rotation-created",
+        "C:\\Users\\andrs\\AppData\\Local\\Temp\\cislib-transition-gtm9wp5b\\rotation-created"
+      ],
+      "report": {
+        "mode": "rotation-created",
+        "composition": "staged-physical-transition-to-configured-runtime",
+        "pid": 104888,
+        "runtime": ".NET 10.0.12",
+        "os": "windows",
+        "path": "C:\\Users\\andrs\\AppData\\Local\\Temp\\cislib-transition-gtm9wp5b\\rotation-created\\logs\\\u03a9-\ud83d\ude42.log",
+        "group": "52cf813782934695b5d3155486d5e172",
+        "coreSha256": "99c0ef11b94830142754d90f36dc6f450433eb3e8ccacf41675c6dcc4c9827a4",
+        "fixtureSha256": "05f3e66287ae098557fc4524f9d06853650bc0f56522b4e6e25bca425ba2ae9f",
+        "before": {
+          "logs/.cis-log-52cf813782934695b5d3155486d5e172-00000000000000000002.closed": "eyJvbGRlciI6dHJ1ZX0K",
+          "logs/.cis-log-52cf813782934695b5d3155486d5e172-00000000000000000003.closed": "eyJlYXJsaWVyIjp0cnVlfQo=",
+          "logs/.cis-log-52cf813782934695b5d3155486d5e172-00000000000000000050.closed": "dW5saXN0ZWQgbmVpZ2hib3IK",
+          "logs/\u03a9-\ud83d\ude42.log": "",
+          "logs/\u03a9-\ud83d\ude42.log.cis.inventory.json": "eyJzY2hlbWEiOjEsImdyb3VwSWQiOiI1MmNmODEzNzgyOTM0Njk1YjVkMzE1NTQ4NmQ1ZTE3MiIsImZvcm1hdCI6Impzb25sIiwiZW5jb2RpbmciOiJ1dGYtOCIsImJvbSI6ZmFsc2UsIm5ld2xpbmUiOiJsZiIsInNlZ21lbnRzIjpbeyJpZCI6MiwiZmlsZU5hbWUiOiIuY2lzLWxvZy01MmNmODEzNzgyOTM0Njk1YjVkMzE1NTQ4NmQ1ZTE3Mi0wMDAwMDAwMDAwMDAwMDAwMDAwMi5jbG9zZWQiLCJzdGF0ZSI6ImNsb3NlZCJ9LHsiaWQiOjMsImZpbGVOYW1lIjoiLmNpcy1sb2ctNTJjZjgxMzc4MjkzNDY5NWI1ZDMxNTU0ODZkNWUxNzItMDAwMDAwMDAwMDAwMDAwMDAwMDMuY2xvc2VkIiwic3RhdGUiOiJjbG9zZWQifSx7ImlkIjo0LCJmaWxlTmFtZSI6Ilx1MDNBOS1cdUQ4M0RcdURFNDIubG9nIiwic3RhdGUiOiJhY3RpdmUifV19Cg==",
+          "logs/\u03a9-\ud83d\ude42.log.cis.lock": "",
+          "logs/\u03a9-\ud83d\ude42.log.cis.transition.json": "eyJzY2hlbWEiOjEsInJlY292ZXJ5IjpmYWxzZSwicmV0YWluZWRMaW1pdCI6Miwib3JpZ2luYWxCeXRlcyI6MTcsIm9yaWdpbmFsU2hhMjU2IjoiNDRjZTRhMTdhMDU1NGIyOWZmYjMzMThkNGY1Nzg4ZTU5N2UxNjNiYzA2ZWEyMTgyYjAzYzIzNWM2YWVhZDFlZCIsInByZXZpb3VzIjp7InNjaGVtYSI6MSwiZ3JvdXBJZCI6IjUyY2Y4MTM3ODI5MzQ2OTViNWQzMTU1NDg2ZDVlMTcyIiwiZm9ybWF0IjoianNvbmwiLCJlbmNvZGluZyI6InV0Zi04IiwiYm9tIjpmYWxzZSwibmV3bGluZSI6ImxmIiwic2VnbWVudHMiOlt7ImlkIjoxLCJmaWxlTmFtZSI6Ii5jaXMtbG9nLTUyY2Y4MTM3ODI5MzQ2OTViNWQzMTU1NDg2ZDVlMTcyLTAwMDAwMDAwMDAwMDAwMDAwMDAxLmRhbWFnZWQiLCJzdGF0ZSI6ImRhbWFnZWQifSx7ImlkIjoyLCJmaWxlTmFtZSI6Ii5jaXMtbG9nLTUyY2Y4MTM3ODI5MzQ2OTViNWQzMTU1NDg2ZDVlMTcyLTAwMDAwMDAwMDAwMDAwMDAwMDAyLmNsb3NlZCIsInN0YXRlIjoiY2xvc2VkIn0seyJpZCI6MywiZmlsZU5hbWUiOiJcdTAzQTktXHVEODNEXHVERTQyLmxvZyIsInN0YXRlIjoiYWN0aXZlIn1dfSwibmV4dCI6eyJzY2hlbWEiOjEsImdyb3VwSWQiOiI1MmNmODEzNzgyOTM0Njk1YjVkMzE1NTQ4NmQ1ZTE3MiIsImZvcm1hdCI6Impzb25sIiwiZW5jb2RpbmciOiJ1dGYtOCIsImJvbSI6ZmFsc2UsIm5ld2xpbmUiOiJsZiIsInNlZ21lbnRzIjpbeyJpZCI6MiwiZmlsZU5hbWUiOiIuY2lzLWxvZy01MmNmODEzNzgyOTM0Njk1YjVkMzE1NTQ4NmQ1ZTE3Mi0wMDAwMDAwMDAwMDAwMDAwMDAwMi5jbG9zZWQiLCJzdGF0ZSI6ImNsb3NlZCJ9LHsiaWQiOjMsImZpbGVOYW1lIjoiLmNpcy1sb2ctNTJjZjgxMzc4MjkzNDY5NWI1ZDMxNTU0ODZkNWUxNzItMDAwMDAwMDAwMDAwMDAwMDAwMDMuY2xvc2VkIiwic3RhdGUiOiJjbG9zZWQifSx7ImlkIjo0LCJmaWxlTmFtZSI6Ilx1MDNBOS1cdUQ4M0RcdURFNDIubG9nIiwic3RhdGUiOiJhY3RpdmUifV19fQo=",
+          "neighbor.bin": "/wD+"
+        },
+        "after": {
+          "logs/.cis-log-52cf813782934695b5d3155486d5e172-00000000000000000002.closed": "eyJvbGRlciI6dHJ1ZX0K",
+          "logs/.cis-log-52cf813782934695b5d3155486d5e172-00000000000000000003.closed": "eyJlYXJsaWVyIjp0cnVlfQo=",
+          "logs/.cis-log-52cf813782934695b5d3155486d5e172-00000000000000000050.closed": "dW5saXN0ZWQgbmVpZ2hib3IK",
+          "logs/\u03a9-\ud83d\ude42.log": "eyJzY2hlbWFfdmVyc2lvbiI6MSwidGltZXN0YW1wIjoiMjAyNi0xMC0xM1QxMDoxMToxMi4wMDAwMDAwWiIsInN0YXR1cyI6ImluZm8iLCJldmVudF9uYW1lIjoidHJhbnNpdGlvbi5mcmVzaCIsIm1lc3NhZ2UiOiLOqSBcdUQ4M0RcdURFNDIiLCJzZXJ2aWNlIjoiQ29uc29sZS5BcHAiLCJlbnYiOiJ0ZXN0IiwidmVyc2lvbiI6IjEuMi4zIiwiY29tcG9uZW50IjoiVHJhbnNpdGlvbiIsInJlc291cmNlIjp7ImJ1aWxkX3ZlcnNpb24iOiJidWlsZC0xIiwiZW52aXJvbm1lbnRfa2luZCI6ImNvbnNvbGUiLCJpbml0aWFsaXplZF9hdCI6IjIwMjYtMTAtMTNUMTA6MDA6MDAuMDAwMDAwMFoiLCJpbnN0YW5jZV9pZCI6IjExMTExMTExLTExMTEtMTExMS0xMTExLTExMTExMTExMTExMSIsIm9zX2ZhbWlseSI6InVua25vd24ifSwiYXR0cmlidXRlcyI6eyJwcm9kdWNlcl9waWQiOjEwNDg4OH19Cg==",
+          "logs/\u03a9-\ud83d\ude42.log.cis.inventory.json": "eyJzY2hlbWEiOjEsImdyb3VwSWQiOiI1MmNmODEzNzgyOTM0Njk1YjVkMzE1NTQ4NmQ1ZTE3MiIsImZvcm1hdCI6Impzb25sIiwiZW5jb2RpbmciOiJ1dGYtOCIsImJvbSI6ZmFsc2UsIm5ld2xpbmUiOiJsZiIsInNlZ21lbnRzIjpbeyJpZCI6MiwiZmlsZU5hbWUiOiIuY2lzLWxvZy01MmNmODEzNzgyOTM0Njk1YjVkMzE1NTQ4NmQ1ZTE3Mi0wMDAwMDAwMDAwMDAwMDAwMDAwMi5jbG9zZWQiLCJzdGF0ZSI6ImNsb3NlZCJ9LHsiaWQiOjMsImZpbGVOYW1lIjoiLmNpcy1sb2ctNTJjZjgxMzc4MjkzNDY5NWI1ZDMxNTU0ODZkNWUxNzItMDAwMDAwMDAwMDAwMDAwMDAwMDMuY2xvc2VkIiwic3RhdGUiOiJjbG9zZWQifSx7ImlkIjo0LCJmaWxlTmFtZSI6Ilx1MDNBOS1cdUQ4M0RcdURFNDIubG9nIiwic3RhdGUiOiJhY3RpdmUifV19Cg==",
+          "logs/\u03a9-\ud83d\ude42.log.cis.lock": "",
+          "neighbor.bin": "/wD+"
+        },
+        "error": null,
+        "outcome": "Accepted",
+        "recovered": false,
+        "restartRecovered": false,
+        "final": {
+          "state": "Stopped",
+          "accepted": 1,
+          "written": 1,
+          "failed": 0,
+          "abandoned": 0,
+          "pending": 0,
+          "recovered": false,
+          "fault": null
+        },
+        "leaseReleased": true,
+        "dataReleased": true
+      },
+      "stdoutSha256": "a43e31015503bd3cfd271f6fd6905d364328d17601f60257ec9bed66885f3d93",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "id": "recovery-intent",
+      "pid": 96856,
+      "exitCode": 0,
+      "command": [
+        "dotnet",
+        "exec",
+        "--fx-version",
+        "10.0.12",
+        "--roll-forward",
+        "Disable",
+        "C:\\miscwork\\portfolio\\cislib\\.artifacts\\csharp\\tasks\\wp05-s07-t03\\native-host\\CIS.Core.DiscoveryFixture.dll",
+        "file-transition",
+        "recovery-intent",
+        "C:\\Users\\andrs\\AppData\\Local\\Temp\\cislib-transition-gtm9wp5b\\recovery-intent"
+      ],
+      "report": {
+        "mode": "recovery-intent",
+        "composition": "staged-physical-transition-to-configured-runtime",
+        "pid": 96856,
+        "runtime": ".NET 10.0.12",
+        "os": "windows",
+        "path": "C:\\Users\\andrs\\AppData\\Local\\Temp\\cislib-transition-gtm9wp5b\\recovery-intent\\logs\\\u03a9-\ud83d\ude42.log",
+        "group": "df088442201f48869ad3e8b6c59f8020",
+        "coreSha256": "99c0ef11b94830142754d90f36dc6f450433eb3e8ccacf41675c6dcc4c9827a4",
+        "fixtureSha256": "05f3e66287ae098557fc4524f9d06853650bc0f56522b4e6e25bca425ba2ae9f",
+        "before": {
+          "logs/.cis-log-df088442201f48869ad3e8b6c59f8020-00000000000000000001.damaged": "b2xkZXIgZGFtYWdl",
+          "logs/.cis-log-df088442201f48869ad3e8b6c59f8020-00000000000000000050.closed": "dW5saXN0ZWQgbmVpZ2hib3IK",
+          "logs/\u03a9-\ud83d\ude42.log": "eyJlYXJsaWVyIjp0cnVlfQp7InBhcnRpYWwiOg==",
+          "logs/\u03a9-\ud83d\ude42.log.cis.inventory.json": "eyJzY2hlbWEiOjEsImdyb3VwSWQiOiJkZjA4ODQ0MjIwMWY0ODg2OWFkM2U4YjZjNTlmODAyMCIsImZvcm1hdCI6Impzb25sIiwiZW5jb2RpbmciOiJ1dGYtOCIsImJvbSI6ZmFsc2UsIm5ld2xpbmUiOiJsZiIsInNlZ21lbnRzIjpbeyJpZCI6MSwiZmlsZU5hbWUiOiIuY2lzLWxvZy1kZjA4ODQ0MjIwMWY0ODg2OWFkM2U4YjZjNTlmODAyMC0wMDAwMDAwMDAwMDAwMDAwMDAwMS5kYW1hZ2VkIiwic3RhdGUiOiJkYW1hZ2VkIn0seyJpZCI6MiwiZmlsZU5hbWUiOiJcdTAzQTktXHVEODNEXHVERTQyLmxvZyIsInN0YXRlIjoiYWN0aXZlIn1dfQ==",
+          "logs/\u03a9-\ud83d\ude42.log.cis.lock": "",
+          "logs/\u03a9-\ud83d\ude42.log.cis.transition.json": "eyJzY2hlbWEiOjEsInJlY292ZXJ5Ijp0cnVlLCJyZXRhaW5lZExpbWl0IjoyLCJvcmlnaW5hbEJ5dGVzIjoyOCwib3JpZ2luYWxTaGEyNTYiOiJmNzg5YjNjNTdmMzJmN2EwZTBkZDk5Y2JlYTNhNDVjMjYzYmY4OTk2ZjBjNDRjNDA0OWJmMzgzMzc3MmU2YzkxIiwicHJldmlvdXMiOnsic2NoZW1hIjoxLCJncm91cElkIjoiZGYwODg0NDIyMDFmNDg4NjlhZDNlOGI2YzU5ZjgwMjAiLCJmb3JtYXQiOiJqc29ubCIsImVuY29kaW5nIjoidXRmLTgiLCJib20iOmZhbHNlLCJuZXdsaW5lIjoibGYiLCJzZWdtZW50cyI6W3siaWQiOjEsImZpbGVOYW1lIjoiLmNpcy1sb2ctZGYwODg0NDIyMDFmNDg4NjlhZDNlOGI2YzU5ZjgwMjAtMDAwMDAwMDAwMDAwMDAwMDAwMDEuZGFtYWdlZCIsInN0YXRlIjoiZGFtYWdlZCJ9LHsiaWQiOjIsImZpbGVOYW1lIjoiXHUwM0E5LVx1RDgzRFx1REU0Mi5sb2ciLCJzdGF0ZSI6ImFjdGl2ZSJ9XX0sIm5leHQiOnsic2NoZW1hIjoxLCJncm91cElkIjoiZGYwODg0NDIyMDFmNDg4NjlhZDNlOGI2YzU5ZjgwMjAiLCJmb3JtYXQiOiJqc29ubCIsImVuY29kaW5nIjoidXRmLTgiLCJib20iOmZhbHNlLCJuZXdsaW5lIjoibGYiLCJzZWdtZW50cyI6W3siaWQiOjEsImZpbGVOYW1lIjoiLmNpcy1sb2ctZGYwODg0NDIyMDFmNDg4NjlhZDNlOGI2YzU5ZjgwMjAtMDAwMDAwMDAwMDAwMDAwMDAwMDEuZGFtYWdlZCIsInN0YXRlIjoiZGFtYWdlZCJ9LHsiaWQiOjIsImZpbGVOYW1lIjoiLmNpcy1sb2ctZGYwODg0NDIyMDFmNDg4NjlhZDNlOGI2YzU5ZjgwMjAtMDAwMDAwMDAwMDAwMDAwMDAwMDIuZGFtYWdlZCIsInN0YXRlIjoiZGFtYWdlZCJ9LHsiaWQiOjMsImZpbGVOYW1lIjoiXHUwM0E5LVx1RDgzRFx1REU0Mi5sb2ciLCJzdGF0ZSI6ImFjdGl2ZSJ9XX19Cg==",
+          "neighbor.bin": "/wD+"
+        },
+        "after": {
+          "logs/.cis-log-df088442201f48869ad3e8b6c59f8020-00000000000000000001.damaged": "b2xkZXIgZGFtYWdl",
+          "logs/.cis-log-df088442201f48869ad3e8b6c59f8020-00000000000000000002.damaged": "eyJlYXJsaWVyIjp0cnVlfQp7InBhcnRpYWwiOg==",
+          "logs/.cis-log-df088442201f48869ad3e8b6c59f8020-00000000000000000050.closed": "dW5saXN0ZWQgbmVpZ2hib3IK",
+          "logs/\u03a9-\ud83d\ude42.log": "eyJzY2hlbWFfdmVyc2lvbiI6MSwidGltZXN0YW1wIjoiMjAyNi0xMC0xM1QxMDoxMToxMi4wMDAwMDAwWiIsInN0YXR1cyI6ImluZm8iLCJldmVudF9uYW1lIjoidHJhbnNpdGlvbi5mcmVzaCIsIm1lc3NhZ2UiOiLOqSBcdUQ4M0RcdURFNDIiLCJzZXJ2aWNlIjoiQ29uc29sZS5BcHAiLCJlbnYiOiJ0ZXN0IiwidmVyc2lvbiI6IjEuMi4zIiwiY29tcG9uZW50IjoiVHJhbnNpdGlvbiIsInJlc291cmNlIjp7ImJ1aWxkX3ZlcnNpb24iOiJidWlsZC0xIiwiZW52aXJvbm1lbnRfa2luZCI6ImNvbnNvbGUiLCJpbml0aWFsaXplZF9hdCI6IjIwMjYtMTAtMTNUMTA6MDA6MDAuMDAwMDAwMFoiLCJpbnN0YW5jZV9pZCI6IjExMTExMTExLTExMTEtMTExMS0xMTExLTExMTExMTExMTExMSIsIm9zX2ZhbWlseSI6InVua25vd24ifSwiYXR0cmlidXRlcyI6eyJwcm9kdWNlcl9waWQiOjk2ODU2fX0K",
+          "logs/\u03a9-\ud83d\ude42.log.cis.inventory.json": "eyJzY2hlbWEiOjEsImdyb3VwSWQiOiJkZjA4ODQ0MjIwMWY0ODg2OWFkM2U4YjZjNTlmODAyMCIsImZvcm1hdCI6Impzb25sIiwiZW5jb2RpbmciOiJ1dGYtOCIsImJvbSI6ZmFsc2UsIm5ld2xpbmUiOiJsZiIsInNlZ21lbnRzIjpbeyJpZCI6MSwiZmlsZU5hbWUiOiIuY2lzLWxvZy1kZjA4ODQ0MjIwMWY0ODg2OWFkM2U4YjZjNTlmODAyMC0wMDAwMDAwMDAwMDAwMDAwMDAwMS5kYW1hZ2VkIiwic3RhdGUiOiJkYW1hZ2VkIn0seyJpZCI6MiwiZmlsZU5hbWUiOiIuY2lzLWxvZy1kZjA4ODQ0MjIwMWY0ODg2OWFkM2U4YjZjNTlmODAyMC0wMDAwMDAwMDAwMDAwMDAwMDAwMi5kYW1hZ2VkIiwic3RhdGUiOiJkYW1hZ2VkIn0seyJpZCI6MywiZmlsZU5hbWUiOiJcdTAzQTktXHVEODNEXHVERTQyLmxvZyIsInN0YXRlIjoiYWN0aXZlIn1dfQo=",
+          "logs/\u03a9-\ud83d\ude42.log.cis.lock": "",
+          "neighbor.bin": "/wD+"
+        },
+        "error": null,
+        "outcome": "Accepted",
+        "recovered": true,
+        "restartRecovered": false,
+        "final": {
+          "state": "Stopped",
+          "accepted": 1,
+          "written": 1,
+          "failed": 0,
+          "abandoned": 0,
+          "pending": 0,
+          "recovered": true,
+          "fault": null
+        },
+        "leaseReleased": true,
+        "dataReleased": true
+      },
+      "stdoutSha256": "bd36e30722b0f2e0037ea6baeffa991e172f146b41670a8627dec2072d0a943a",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "id": "recovery-renamed",
+      "pid": 92464,
+      "exitCode": 0,
+      "command": [
+        "dotnet",
+        "exec",
+        "--fx-version",
+        "10.0.12",
+        "--roll-forward",
+        "Disable",
+        "C:\\miscwork\\portfolio\\cislib\\.artifacts\\csharp\\tasks\\wp05-s07-t03\\native-host\\CIS.Core.DiscoveryFixture.dll",
+        "file-transition",
+        "recovery-renamed",
+        "C:\\Users\\andrs\\AppData\\Local\\Temp\\cislib-transition-gtm9wp5b\\recovery-renamed"
+      ],
+      "report": {
+        "mode": "recovery-renamed",
+        "composition": "staged-physical-transition-to-configured-runtime",
+        "pid": 92464,
+        "runtime": ".NET 10.0.12",
+        "os": "windows",
+        "path": "C:\\Users\\andrs\\AppData\\Local\\Temp\\cislib-transition-gtm9wp5b\\recovery-renamed\\logs\\\u03a9-\ud83d\ude42.log",
+        "group": "ffc946f0598240fa9d1661b90077e8f7",
+        "coreSha256": "99c0ef11b94830142754d90f36dc6f450433eb3e8ccacf41675c6dcc4c9827a4",
+        "fixtureSha256": "05f3e66287ae098557fc4524f9d06853650bc0f56522b4e6e25bca425ba2ae9f",
+        "before": {
+          "logs/.cis-log-ffc946f0598240fa9d1661b90077e8f7-00000000000000000001.damaged": "b2xkZXIgZGFtYWdl",
+          "logs/.cis-log-ffc946f0598240fa9d1661b90077e8f7-00000000000000000002.damaged": "eyJlYXJsaWVyIjp0cnVlfQp7InBhcnRpYWwiOg==",
+          "logs/.cis-log-ffc946f0598240fa9d1661b90077e8f7-00000000000000000050.closed": "dW5saXN0ZWQgbmVpZ2hib3IK",
+          "logs/\u03a9-\ud83d\ude42.log.cis.inventory.json": "eyJzY2hlbWEiOjEsImdyb3VwSWQiOiJmZmM5NDZmMDU5ODI0MGZhOWQxNjYxYjkwMDc3ZThmNyIsImZvcm1hdCI6Impzb25sIiwiZW5jb2RpbmciOiJ1dGYtOCIsImJvbSI6ZmFsc2UsIm5ld2xpbmUiOiJsZiIsInNlZ21lbnRzIjpbeyJpZCI6MSwiZmlsZU5hbWUiOiIuY2lzLWxvZy1mZmM5NDZmMDU5ODI0MGZhOWQxNjYxYjkwMDc3ZThmNy0wMDAwMDAwMDAwMDAwMDAwMDAwMS5kYW1hZ2VkIiwic3RhdGUiOiJkYW1hZ2VkIn0seyJpZCI6MiwiZmlsZU5hbWUiOiJcdTAzQTktXHVEODNEXHVERTQyLmxvZyIsInN0YXRlIjoiYWN0aXZlIn1dfQ==",
+          "logs/\u03a9-\ud83d\ude42.log.cis.lock": "",
+          "logs/\u03a9-\ud83d\ude42.log.cis.transition.json": "eyJzY2hlbWEiOjEsInJlY292ZXJ5Ijp0cnVlLCJyZXRhaW5lZExpbWl0IjoyLCJvcmlnaW5hbEJ5dGVzIjoyOCwib3JpZ2luYWxTaGEyNTYiOiJmNzg5YjNjNTdmMzJmN2EwZTBkZDk5Y2JlYTNhNDVjMjYzYmY4OTk2ZjBjNDRjNDA0OWJmMzgzMzc3MmU2YzkxIiwicHJldmlvdXMiOnsic2NoZW1hIjoxLCJncm91cElkIjoiZmZjOTQ2ZjA1OTgyNDBmYTlkMTY2MWI5MDA3N2U4ZjciLCJmb3JtYXQiOiJqc29ubCIsImVuY29kaW5nIjoidXRmLTgiLCJib20iOmZhbHNlLCJuZXdsaW5lIjoibGYiLCJzZWdtZW50cyI6W3siaWQiOjEsImZpbGVOYW1lIjoiLmNpcy1sb2ctZmZjOTQ2ZjA1OTgyNDBmYTlkMTY2MWI5MDA3N2U4ZjctMDAwMDAwMDAwMDAwMDAwMDAwMDEuZGFtYWdlZCIsInN0YXRlIjoiZGFtYWdlZCJ9LHsiaWQiOjIsImZpbGVOYW1lIjoiXHUwM0E5LVx1RDgzRFx1REU0Mi5sb2ciLCJzdGF0ZSI6ImFjdGl2ZSJ9XX0sIm5leHQiOnsic2NoZW1hIjoxLCJncm91cElkIjoiZmZjOTQ2ZjA1OTgyNDBmYTlkMTY2MWI5MDA3N2U4ZjciLCJmb3JtYXQiOiJqc29ubCIsImVuY29kaW5nIjoidXRmLTgiLCJib20iOmZhbHNlLCJuZXdsaW5lIjoibGYiLCJzZWdtZW50cyI6W3siaWQiOjEsImZpbGVOYW1lIjoiLmNpcy1sb2ctZmZjOTQ2ZjA1OTgyNDBmYTlkMTY2MWI5MDA3N2U4ZjctMDAwMDAwMDAwMDAwMDAwMDAwMDEuZGFtYWdlZCIsInN0YXRlIjoiZGFtYWdlZCJ9LHsiaWQiOjIsImZpbGVOYW1lIjoiLmNpcy1sb2ctZmZjOTQ2ZjA1OTgyNDBmYTlkMTY2MWI5MDA3N2U4ZjctMDAwMDAwMDAwMDAwMDAwMDAwMDIuZGFtYWdlZCIsInN0YXRlIjoiZGFtYWdlZCJ9LHsiaWQiOjMsImZpbGVOYW1lIjoiXHUwM0E5LVx1RDgzRFx1REU0Mi5sb2ciLCJzdGF0ZSI6ImFjdGl2ZSJ9XX19Cg==",
+          "neighbor.bin": "/wD+"
+        },
+        "after": {
+          "logs/.cis-log-ffc946f0598240fa9d1661b90077e8f7-00000000000000000001.damaged": "b2xkZXIgZGFtYWdl",
+          "logs/.cis-log-ffc946f0598240fa9d1661b90077e8f7-00000000000000000002.damaged": "eyJlYXJsaWVyIjp0cnVlfQp7InBhcnRpYWwiOg==",
+          "logs/.cis-log-ffc946f0598240fa9d1661b90077e8f7-00000000000000000050.closed": "dW5saXN0ZWQgbmVpZ2hib3IK",
+          "logs/\u03a9-\ud83d\ude42.log": "eyJzY2hlbWFfdmVyc2lvbiI6MSwidGltZXN0YW1wIjoiMjAyNi0xMC0xM1QxMDoxMToxMi4wMDAwMDAwWiIsInN0YXR1cyI6ImluZm8iLCJldmVudF9uYW1lIjoidHJhbnNpdGlvbi5mcmVzaCIsIm1lc3NhZ2UiOiLOqSBcdUQ4M0RcdURFNDIiLCJzZXJ2aWNlIjoiQ29uc29sZS5BcHAiLCJlbnYiOiJ0ZXN0IiwidmVyc2lvbiI6IjEuMi4zIiwiY29tcG9uZW50IjoiVHJhbnNpdGlvbiIsInJlc291cmNlIjp7ImJ1aWxkX3ZlcnNpb24iOiJidWlsZC0xIiwiZW52aXJvbm1lbnRfa2luZCI6ImNvbnNvbGUiLCJpbml0aWFsaXplZF9hdCI6IjIwMjYtMTAtMTNUMTA6MDA6MDAuMDAwMDAwMFoiLCJpbnN0YW5jZV9pZCI6IjExMTExMTExLTExMTEtMTExMS0xMTExLTExMTExMTExMTExMSIsIm9zX2ZhbWlseSI6InVua25vd24ifSwiYXR0cmlidXRlcyI6eyJwcm9kdWNlcl9waWQiOjkyNDY0fX0K",
+          "logs/\u03a9-\ud83d\ude42.log.cis.inventory.json": "eyJzY2hlbWEiOjEsImdyb3VwSWQiOiJmZmM5NDZmMDU5ODI0MGZhOWQxNjYxYjkwMDc3ZThmNyIsImZvcm1hdCI6Impzb25sIiwiZW5jb2RpbmciOiJ1dGYtOCIsImJvbSI6ZmFsc2UsIm5ld2xpbmUiOiJsZiIsInNlZ21lbnRzIjpbeyJpZCI6MSwiZmlsZU5hbWUiOiIuY2lzLWxvZy1mZmM5NDZmMDU5ODI0MGZhOWQxNjYxYjkwMDc3ZThmNy0wMDAwMDAwMDAwMDAwMDAwMDAwMS5kYW1hZ2VkIiwic3RhdGUiOiJkYW1hZ2VkIn0seyJpZCI6MiwiZmlsZU5hbWUiOiIuY2lzLWxvZy1mZmM5NDZmMDU5ODI0MGZhOWQxNjYxYjkwMDc3ZThmNy0wMDAwMDAwMDAwMDAwMDAwMDAwMi5kYW1hZ2VkIiwic3RhdGUiOiJkYW1hZ2VkIn0seyJpZCI6MywiZmlsZU5hbWUiOiJcdTAzQTktXHVEODNEXHVERTQyLmxvZyIsInN0YXRlIjoiYWN0aXZlIn1dfQo=",
+          "logs/\u03a9-\ud83d\ude42.log.cis.lock": "",
+          "neighbor.bin": "/wD+"
+        },
+        "error": null,
+        "outcome": "Accepted",
+        "recovered": true,
+        "restartRecovered": false,
+        "final": {
+          "state": "Stopped",
+          "accepted": 1,
+          "written": 1,
+          "failed": 0,
+          "abandoned": 0,
+          "pending": 0,
+          "recovered": true,
+          "fault": null
+        },
+        "leaseReleased": true,
+        "dataReleased": true
+      },
+      "stdoutSha256": "1f8e2240c74800e381085fb33979bd72ab1550d12e901eab363036c6952b985a",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "id": "recovery-published",
+      "pid": 164668,
+      "exitCode": 0,
+      "command": [
+        "dotnet",
+        "exec",
+        "--fx-version",
+        "10.0.12",
+        "--roll-forward",
+        "Disable",
+        "C:\\miscwork\\portfolio\\cislib\\.artifacts\\csharp\\tasks\\wp05-s07-t03\\native-host\\CIS.Core.DiscoveryFixture.dll",
+        "file-transition",
+        "recovery-published",
+        "C:\\Users\\andrs\\AppData\\Local\\Temp\\cislib-transition-gtm9wp5b\\recovery-published"
+      ],
+      "report": {
+        "mode": "recovery-published",
+        "composition": "staged-physical-transition-to-configured-runtime",
+        "pid": 164668,
+        "runtime": ".NET 10.0.12",
+        "os": "windows",
+        "path": "C:\\Users\\andrs\\AppData\\Local\\Temp\\cislib-transition-gtm9wp5b\\recovery-published\\logs\\\u03a9-\ud83d\ude42.log",
+        "group": "a6d38c54e5c2411c9d57764002adf0cc",
+        "coreSha256": "99c0ef11b94830142754d90f36dc6f450433eb3e8ccacf41675c6dcc4c9827a4",
+        "fixtureSha256": "05f3e66287ae098557fc4524f9d06853650bc0f56522b4e6e25bca425ba2ae9f",
+        "before": {
+          "logs/.cis-log-a6d38c54e5c2411c9d57764002adf0cc-00000000000000000001.damaged": "b2xkZXIgZGFtYWdl",
+          "logs/.cis-log-a6d38c54e5c2411c9d57764002adf0cc-00000000000000000002.damaged": "eyJlYXJsaWVyIjp0cnVlfQp7InBhcnRpYWwiOg==",
+          "logs/.cis-log-a6d38c54e5c2411c9d57764002adf0cc-00000000000000000050.closed": "dW5saXN0ZWQgbmVpZ2hib3IK",
+          "logs/\u03a9-\ud83d\ude42.log.cis.inventory.json": "eyJzY2hlbWEiOjEsImdyb3VwSWQiOiJhNmQzOGM1NGU1YzI0MTFjOWQ1Nzc2NDAwMmFkZjBjYyIsImZvcm1hdCI6Impzb25sIiwiZW5jb2RpbmciOiJ1dGYtOCIsImJvbSI6ZmFsc2UsIm5ld2xpbmUiOiJsZiIsInNlZ21lbnRzIjpbeyJpZCI6MSwiZmlsZU5hbWUiOiIuY2lzLWxvZy1hNmQzOGM1NGU1YzI0MTFjOWQ1Nzc2NDAwMmFkZjBjYy0wMDAwMDAwMDAwMDAwMDAwMDAwMS5kYW1hZ2VkIiwic3RhdGUiOiJkYW1hZ2VkIn0seyJpZCI6MiwiZmlsZU5hbWUiOiIuY2lzLWxvZy1hNmQzOGM1NGU1YzI0MTFjOWQ1Nzc2NDAwMmFkZjBjYy0wMDAwMDAwMDAwMDAwMDAwMDAwMi5kYW1hZ2VkIiwic3RhdGUiOiJkYW1hZ2VkIn0seyJpZCI6MywiZmlsZU5hbWUiOiJcdTAzQTktXHVEODNEXHVERTQyLmxvZyIsInN0YXRlIjoiYWN0aXZlIn1dfQo=",
+          "logs/\u03a9-\ud83d\ude42.log.cis.lock": "",
+          "logs/\u03a9-\ud83d\ude42.log.cis.transition.json": "eyJzY2hlbWEiOjEsInJlY292ZXJ5Ijp0cnVlLCJyZXRhaW5lZExpbWl0IjoyLCJvcmlnaW5hbEJ5dGVzIjoyOCwib3JpZ2luYWxTaGEyNTYiOiJmNzg5YjNjNTdmMzJmN2EwZTBkZDk5Y2JlYTNhNDVjMjYzYmY4OTk2ZjBjNDRjNDA0OWJmMzgzMzc3MmU2YzkxIiwicHJldmlvdXMiOnsic2NoZW1hIjoxLCJncm91cElkIjoiYTZkMzhjNTRlNWMyNDExYzlkNTc3NjQwMDJhZGYwY2MiLCJmb3JtYXQiOiJqc29ubCIsImVuY29kaW5nIjoidXRmLTgiLCJib20iOmZhbHNlLCJuZXdsaW5lIjoibGYiLCJzZWdtZW50cyI6W3siaWQiOjEsImZpbGVOYW1lIjoiLmNpcy1sb2ctYTZkMzhjNTRlNWMyNDExYzlkNTc3NjQwMDJhZGYwY2MtMDAwMDAwMDAwMDAwMDAwMDAwMDEuZGFtYWdlZCIsInN0YXRlIjoiZGFtYWdlZCJ9LHsiaWQiOjIsImZpbGVOYW1lIjoiXHUwM0E5LVx1RDgzRFx1REU0Mi5sb2ciLCJzdGF0ZSI6ImFjdGl2ZSJ9XX0sIm5leHQiOnsic2NoZW1hIjoxLCJncm91cElkIjoiYTZkMzhjNTRlNWMyNDExYzlkNTc3NjQwMDJhZGYwY2MiLCJmb3JtYXQiOiJqc29ubCIsImVuY29kaW5nIjoidXRmLTgiLCJib20iOmZhbHNlLCJuZXdsaW5lIjoibGYiLCJzZWdtZW50cyI6W3siaWQiOjEsImZpbGVOYW1lIjoiLmNpcy1sb2ctYTZkMzhjNTRlNWMyNDExYzlkNTc3NjQwMDJhZGYwY2MtMDAwMDAwMDAwMDAwMDAwMDAwMDEuZGFtYWdlZCIsInN0YXRlIjoiZGFtYWdlZCJ9LHsiaWQiOjIsImZpbGVOYW1lIjoiLmNpcy1sb2ctYTZkMzhjNTRlNWMyNDExYzlkNTc3NjQwMDJhZGYwY2MtMDAwMDAwMDAwMDAwMDAwMDAwMDIuZGFtYWdlZCIsInN0YXRlIjoiZGFtYWdlZCJ9LHsiaWQiOjMsImZpbGVOYW1lIjoiXHUwM0E5LVx1RDgzRFx1REU0Mi5sb2ciLCJzdGF0ZSI6ImFjdGl2ZSJ9XX19Cg==",
+          "neighbor.bin": "/wD+"
+        },
+        "after": {
+          "logs/.cis-log-a6d38c54e5c2411c9d57764002adf0cc-00000000000000000001.damaged": "b2xkZXIgZGFtYWdl",
+          "logs/.cis-log-a6d38c54e5c2411c9d57764002adf0cc-00000000000000000002.damaged": "eyJlYXJsaWVyIjp0cnVlfQp7InBhcnRpYWwiOg==",
+          "logs/.cis-log-a6d38c54e5c2411c9d57764002adf0cc-00000000000000000050.closed": "dW5saXN0ZWQgbmVpZ2hib3IK",
+          "logs/\u03a9-\ud83d\ude42.log": "eyJzY2hlbWFfdmVyc2lvbiI6MSwidGltZXN0YW1wIjoiMjAyNi0xMC0xM1QxMDoxMToxMi4wMDAwMDAwWiIsInN0YXR1cyI6ImluZm8iLCJldmVudF9uYW1lIjoidHJhbnNpdGlvbi5mcmVzaCIsIm1lc3NhZ2UiOiLOqSBcdUQ4M0RcdURFNDIiLCJzZXJ2aWNlIjoiQ29uc29sZS5BcHAiLCJlbnYiOiJ0ZXN0IiwidmVyc2lvbiI6IjEuMi4zIiwiY29tcG9uZW50IjoiVHJhbnNpdGlvbiIsInJlc291cmNlIjp7ImJ1aWxkX3ZlcnNpb24iOiJidWlsZC0xIiwiZW52aXJvbm1lbnRfa2luZCI6ImNvbnNvbGUiLCJpbml0aWFsaXplZF9hdCI6IjIwMjYtMTAtMTNUMTA6MDA6MDAuMDAwMDAwMFoiLCJpbnN0YW5jZV9pZCI6IjExMTExMTExLTExMTEtMTExMS0xMTExLTExMTExMTExMTExMSIsIm9zX2ZhbWlseSI6InVua25vd24ifSwiYXR0cmlidXRlcyI6eyJwcm9kdWNlcl9waWQiOjE2NDY2OH19Cg==",
+          "logs/\u03a9-\ud83d\ude42.log.cis.inventory.json": "eyJzY2hlbWEiOjEsImdyb3VwSWQiOiJhNmQzOGM1NGU1YzI0MTFjOWQ1Nzc2NDAwMmFkZjBjYyIsImZvcm1hdCI6Impzb25sIiwiZW5jb2RpbmciOiJ1dGYtOCIsImJvbSI6ZmFsc2UsIm5ld2xpbmUiOiJsZiIsInNlZ21lbnRzIjpbeyJpZCI6MSwiZmlsZU5hbWUiOiIuY2lzLWxvZy1hNmQzOGM1NGU1YzI0MTFjOWQ1Nzc2NDAwMmFkZjBjYy0wMDAwMDAwMDAwMDAwMDAwMDAwMS5kYW1hZ2VkIiwic3RhdGUiOiJkYW1hZ2VkIn0seyJpZCI6MiwiZmlsZU5hbWUiOiIuY2lzLWxvZy1hNmQzOGM1NGU1YzI0MTFjOWQ1Nzc2NDAwMmFkZjBjYy0wMDAwMDAwMDAwMDAwMDAwMDAwMi5kYW1hZ2VkIiwic3RhdGUiOiJkYW1hZ2VkIn0seyJpZCI6MywiZmlsZU5hbWUiOiJcdTAzQTktXHVEODNEXHVERTQyLmxvZyIsInN0YXRlIjoiYWN0aXZlIn1dfQo=",
+          "logs/\u03a9-\ud83d\ude42.log.cis.lock": "",
+          "neighbor.bin": "/wD+"
+        },
+        "error": null,
+        "outcome": "Accepted",
+        "recovered": true,
+        "restartRecovered": false,
+        "final": {
+          "state": "Stopped",
+          "accepted": 1,
+          "written": 1,
+          "failed": 0,
+          "abandoned": 0,
+          "pending": 0,
+          "recovered": true,
+          "fault": null
+        },
+        "leaseReleased": true,
+        "dataReleased": true
+      },
+      "stdoutSha256": "24a7ddac93bd5931b2be794a1957e0514dc49ac5c584e053363e561531b17eb3",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "id": "recovery-created",
+      "pid": 127460,
+      "exitCode": 0,
+      "command": [
+        "dotnet",
+        "exec",
+        "--fx-version",
+        "10.0.12",
+        "--roll-forward",
+        "Disable",
+        "C:\\miscwork\\portfolio\\cislib\\.artifacts\\csharp\\tasks\\wp05-s07-t03\\native-host\\CIS.Core.DiscoveryFixture.dll",
+        "file-transition",
+        "recovery-created",
+        "C:\\Users\\andrs\\AppData\\Local\\Temp\\cislib-transition-gtm9wp5b\\recovery-created"
+      ],
+      "report": {
+        "mode": "recovery-created",
+        "composition": "staged-physical-transition-to-configured-runtime",
+        "pid": 127460,
+        "runtime": ".NET 10.0.12",
+        "os": "windows",
+        "path": "C:\\Users\\andrs\\AppData\\Local\\Temp\\cislib-transition-gtm9wp5b\\recovery-created\\logs\\\u03a9-\ud83d\ude42.log",
+        "group": "e2906a5e608f4c65ba246db1299472e4",
+        "coreSha256": "99c0ef11b94830142754d90f36dc6f450433eb3e8ccacf41675c6dcc4c9827a4",
+        "fixtureSha256": "05f3e66287ae098557fc4524f9d06853650bc0f56522b4e6e25bca425ba2ae9f",
+        "before": {
+          "logs/.cis-log-e2906a5e608f4c65ba246db1299472e4-00000000000000000001.damaged": "b2xkZXIgZGFtYWdl",
+          "logs/.cis-log-e2906a5e608f4c65ba246db1299472e4-00000000000000000002.damaged": "eyJlYXJsaWVyIjp0cnVlfQp7InBhcnRpYWwiOg==",
+          "logs/.cis-log-e2906a5e608f4c65ba246db1299472e4-00000000000000000050.closed": "dW5saXN0ZWQgbmVpZ2hib3IK",
+          "logs/\u03a9-\ud83d\ude42.log": "",
+          "logs/\u03a9-\ud83d\ude42.log.cis.inventory.json": "eyJzY2hlbWEiOjEsImdyb3VwSWQiOiJlMjkwNmE1ZTYwOGY0YzY1YmEyNDZkYjEyOTk0NzJlNCIsImZvcm1hdCI6Impzb25sIiwiZW5jb2RpbmciOiJ1dGYtOCIsImJvbSI6ZmFsc2UsIm5ld2xpbmUiOiJsZiIsInNlZ21lbnRzIjpbeyJpZCI6MSwiZmlsZU5hbWUiOiIuY2lzLWxvZy1lMjkwNmE1ZTYwOGY0YzY1YmEyNDZkYjEyOTk0NzJlNC0wMDAwMDAwMDAwMDAwMDAwMDAwMS5kYW1hZ2VkIiwic3RhdGUiOiJkYW1hZ2VkIn0seyJpZCI6MiwiZmlsZU5hbWUiOiIuY2lzLWxvZy1lMjkwNmE1ZTYwOGY0YzY1YmEyNDZkYjEyOTk0NzJlNC0wMDAwMDAwMDAwMDAwMDAwMDAwMi5kYW1hZ2VkIiwic3RhdGUiOiJkYW1hZ2VkIn0seyJpZCI6MywiZmlsZU5hbWUiOiJcdTAzQTktXHVEODNEXHVERTQyLmxvZyIsInN0YXRlIjoiYWN0aXZlIn1dfQo=",
+          "logs/\u03a9-\ud83d\ude42.log.cis.lock": "",
+          "logs/\u03a9-\ud83d\ude42.log.cis.transition.json": "eyJzY2hlbWEiOjEsInJlY292ZXJ5Ijp0cnVlLCJyZXRhaW5lZExpbWl0IjoyLCJvcmlnaW5hbEJ5dGVzIjoyOCwib3JpZ2luYWxTaGEyNTYiOiJmNzg5YjNjNTdmMzJmN2EwZTBkZDk5Y2JlYTNhNDVjMjYzYmY4OTk2ZjBjNDRjNDA0OWJmMzgzMzc3MmU2YzkxIiwicHJldmlvdXMiOnsic2NoZW1hIjoxLCJncm91cElkIjoiZTI5MDZhNWU2MDhmNGM2NWJhMjQ2ZGIxMjk5NDcyZTQiLCJmb3JtYXQiOiJqc29ubCIsImVuY29kaW5nIjoidXRmLTgiLCJib20iOmZhbHNlLCJuZXdsaW5lIjoibGYiLCJzZWdtZW50cyI6W3siaWQiOjEsImZpbGVOYW1lIjoiLmNpcy1sb2ctZTI5MDZhNWU2MDhmNGM2NWJhMjQ2ZGIxMjk5NDcyZTQtMDAwMDAwMDAwMDAwMDAwMDAwMDEuZGFtYWdlZCIsInN0YXRlIjoiZGFtYWdlZCJ9LHsiaWQiOjIsImZpbGVOYW1lIjoiXHUwM0E5LVx1RDgzRFx1REU0Mi5sb2ciLCJzdGF0ZSI6ImFjdGl2ZSJ9XX0sIm5leHQiOnsic2NoZW1hIjoxLCJncm91cElkIjoiZTI5MDZhNWU2MDhmNGM2NWJhMjQ2ZGIxMjk5NDcyZTQiLCJmb3JtYXQiOiJqc29ubCIsImVuY29kaW5nIjoidXRmLTgiLCJib20iOmZhbHNlLCJuZXdsaW5lIjoibGYiLCJzZWdtZW50cyI6W3siaWQiOjEsImZpbGVOYW1lIjoiLmNpcy1sb2ctZTI5MDZhNWU2MDhmNGM2NWJhMjQ2ZGIxMjk5NDcyZTQtMDAwMDAwMDAwMDAwMDAwMDAwMDEuZGFtYWdlZCIsInN0YXRlIjoiZGFtYWdlZCJ9LHsiaWQiOjIsImZpbGVOYW1lIjoiLmNpcy1sb2ctZTI5MDZhNWU2MDhmNGM2NWJhMjQ2ZGIxMjk5NDcyZTQtMDAwMDAwMDAwMDAwMDAwMDAwMDIuZGFtYWdlZCIsInN0YXRlIjoiZGFtYWdlZCJ9LHsiaWQiOjMsImZpbGVOYW1lIjoiXHUwM0E5LVx1RDgzRFx1REU0Mi5sb2ciLCJzdGF0ZSI6ImFjdGl2ZSJ9XX19Cg==",
+          "neighbor.bin": "/wD+"
+        },
+        "after": {
+          "logs/.cis-log-e2906a5e608f4c65ba246db1299472e4-00000000000000000001.damaged": "b2xkZXIgZGFtYWdl",
+          "logs/.cis-log-e2906a5e608f4c65ba246db1299472e4-00000000000000000002.damaged": "eyJlYXJsaWVyIjp0cnVlfQp7InBhcnRpYWwiOg==",
+          "logs/.cis-log-e2906a5e608f4c65ba246db1299472e4-00000000000000000050.closed": "dW5saXN0ZWQgbmVpZ2hib3IK",
+          "logs/\u03a9-\ud83d\ude42.log": "eyJzY2hlbWFfdmVyc2lvbiI6MSwidGltZXN0YW1wIjoiMjAyNi0xMC0xM1QxMDoxMToxMi4wMDAwMDAwWiIsInN0YXR1cyI6ImluZm8iLCJldmVudF9uYW1lIjoidHJhbnNpdGlvbi5mcmVzaCIsIm1lc3NhZ2UiOiLOqSBcdUQ4M0RcdURFNDIiLCJzZXJ2aWNlIjoiQ29uc29sZS5BcHAiLCJlbnYiOiJ0ZXN0IiwidmVyc2lvbiI6IjEuMi4zIiwiY29tcG9uZW50IjoiVHJhbnNpdGlvbiIsInJlc291cmNlIjp7ImJ1aWxkX3ZlcnNpb24iOiJidWlsZC0xIiwiZW52aXJvbm1lbnRfa2luZCI6ImNvbnNvbGUiLCJpbml0aWFsaXplZF9hdCI6IjIwMjYtMTAtMTNUMTA6MDA6MDAuMDAwMDAwMFoiLCJpbnN0YW5jZV9pZCI6IjExMTExMTExLTExMTEtMTExMS0xMTExLTExMTExMTExMTExMSIsIm9zX2ZhbWlseSI6InVua25vd24ifSwiYXR0cmlidXRlcyI6eyJwcm9kdWNlcl9waWQiOjEyNzQ2MH19Cg==",
+          "logs/\u03a9-\ud83d\ude42.log.cis.inventory.json": "eyJzY2hlbWEiOjEsImdyb3VwSWQiOiJlMjkwNmE1ZTYwOGY0YzY1YmEyNDZkYjEyOTk0NzJlNCIsImZvcm1hdCI6Impzb25sIiwiZW5jb2RpbmciOiJ1dGYtOCIsImJvbSI6ZmFsc2UsIm5ld2xpbmUiOiJsZiIsInNlZ21lbnRzIjpbeyJpZCI6MSwiZmlsZU5hbWUiOiIuY2lzLWxvZy1lMjkwNmE1ZTYwOGY0YzY1YmEyNDZkYjEyOTk0NzJlNC0wMDAwMDAwMDAwMDAwMDAwMDAwMS5kYW1hZ2VkIiwic3RhdGUiOiJkYW1hZ2VkIn0seyJpZCI6MiwiZmlsZU5hbWUiOiIuY2lzLWxvZy1lMjkwNmE1ZTYwOGY0YzY1YmEyNDZkYjEyOTk0NzJlNC0wMDAwMDAwMDAwMDAwMDAwMDAwMi5kYW1hZ2VkIiwic3RhdGUiOiJkYW1hZ2VkIn0seyJpZCI6MywiZmlsZU5hbWUiOiJcdTAzQTktXHVEODNEXHVERTQyLmxvZyIsInN0YXRlIjoiYWN0aXZlIn1dfQo=",
+          "logs/\u03a9-\ud83d\ude42.log.cis.lock": "",
+          "neighbor.bin": "/wD+"
+        },
+        "error": null,
+        "outcome": "Accepted",
+        "recovered": true,
+        "restartRecovered": false,
+        "final": {
+          "state": "Stopped",
+          "accepted": 1,
+          "written": 1,
+          "failed": 0,
+          "abandoned": 0,
+          "pending": 0,
+          "recovered": true,
+          "fault": null
+        },
+        "leaseReleased": true,
+        "dataReleased": true
+      },
+      "stdoutSha256": "a99eebdf1acd46b6beb8999d93d521844217efe9b34ec35650f8cb696bd9e1b0",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "id": "human-intent",
+      "pid": 118168,
+      "exitCode": 0,
+      "command": [
+        "dotnet",
+        "exec",
+        "--fx-version",
+        "10.0.12",
+        "--roll-forward",
+        "Disable",
+        "C:\\miscwork\\portfolio\\cislib\\.artifacts\\csharp\\tasks\\wp05-s07-t03\\native-host\\CIS.Core.DiscoveryFixture.dll",
+        "file-transition",
+        "human-intent",
+        "C:\\Users\\andrs\\AppData\\Local\\Temp\\cislib-transition-gtm9wp5b\\human-intent"
+      ],
+      "report": {
+        "mode": "human-intent",
+        "composition": "staged-physical-transition-to-configured-runtime",
+        "pid": 118168,
+        "runtime": ".NET 10.0.12",
+        "os": "windows",
+        "path": "C:\\Users\\andrs\\AppData\\Local\\Temp\\cislib-transition-gtm9wp5b\\human-intent\\logs\\\u03a9-\ud83d\ude42.log",
+        "group": "45039755052049afaf2f7a07dafc3597",
+        "coreSha256": "99c0ef11b94830142754d90f36dc6f450433eb3e8ccacf41675c6dcc4c9827a4",
+        "fixtureSha256": "05f3e66287ae098557fc4524f9d06853650bc0f56522b4e6e25bca425ba2ae9f",
+        "before": {
+          "logs/.cis-log-45039755052049afaf2f7a07dafc3597-00000000000000000002.closed": "b2xkZXI9dHJ1ZQo=",
+          "logs/.cis-log-45039755052049afaf2f7a07dafc3597-00000000000000000050.closed": "dW5saXN0ZWQgbmVpZ2hib3IK",
+          "logs/\u03a9-\ud83d\ude42.log": "ZWFybGllcj10cnVlCg==",
+          "logs/\u03a9-\ud83d\ude42.log.cis.inventory.json": "eyJzY2hlbWEiOjEsImdyb3VwSWQiOiI0NTAzOTc1NTA1MjA0OWFmYWYyZjdhMDdkYWZjMzU5NyIsImZvcm1hdCI6Imh1bWFuIiwiZW5jb2RpbmciOiJ1dGYtOCIsImJvbSI6ZmFsc2UsIm5ld2xpbmUiOiJsZiIsInNlZ21lbnRzIjpbeyJpZCI6MSwiZmlsZU5hbWUiOiIuY2lzLWxvZy00NTAzOTc1NTA1MjA0OWFmYWYyZjdhMDdkYWZjMzU5Ny0wMDAwMDAwMDAwMDAwMDAwMDAwMS5kYW1hZ2VkIiwic3RhdGUiOiJkYW1hZ2VkIn0seyJpZCI6MiwiZmlsZU5hbWUiOiIuY2lzLWxvZy00NTAzOTc1NTA1MjA0OWFmYWYyZjdhMDdkYWZjMzU5Ny0wMDAwMDAwMDAwMDAwMDAwMDAwMi5jbG9zZWQiLCJzdGF0ZSI6ImNsb3NlZCJ9LHsiaWQiOjMsImZpbGVOYW1lIjoiXHUwM0E5LVx1RDgzRFx1REU0Mi5sb2ciLCJzdGF0ZSI6ImFjdGl2ZSJ9XX0=",
+          "logs/\u03a9-\ud83d\ude42.log.cis.lock": "",
+          "logs/\u03a9-\ud83d\ude42.log.cis.transition.json": "eyJzY2hlbWEiOjEsInJlY292ZXJ5IjpmYWxzZSwicmV0YWluZWRMaW1pdCI6Miwib3JpZ2luYWxCeXRlcyI6MTMsIm9yaWdpbmFsU2hhMjU2IjoiYmE0MjExYWIwNGU4OTkxMmJiYmQ1OWFlZmRmYWYzMjA4MmUxY2NhMzUxZjIwNTQwYWZkNTdjYTU0NTkxMmYyMSIsInByZXZpb3VzIjp7InNjaGVtYSI6MSwiZ3JvdXBJZCI6IjQ1MDM5NzU1MDUyMDQ5YWZhZjJmN2EwN2RhZmMzNTk3IiwiZm9ybWF0IjoiaHVtYW4iLCJlbmNvZGluZyI6InV0Zi04IiwiYm9tIjpmYWxzZSwibmV3bGluZSI6ImxmIiwic2VnbWVudHMiOlt7ImlkIjoxLCJmaWxlTmFtZSI6Ii5jaXMtbG9nLTQ1MDM5NzU1MDUyMDQ5YWZhZjJmN2EwN2RhZmMzNTk3LTAwMDAwMDAwMDAwMDAwMDAwMDAxLmRhbWFnZWQiLCJzdGF0ZSI6ImRhbWFnZWQifSx7ImlkIjoyLCJmaWxlTmFtZSI6Ii5jaXMtbG9nLTQ1MDM5NzU1MDUyMDQ5YWZhZjJmN2EwN2RhZmMzNTk3LTAwMDAwMDAwMDAwMDAwMDAwMDAyLmNsb3NlZCIsInN0YXRlIjoiY2xvc2VkIn0seyJpZCI6MywiZmlsZU5hbWUiOiJcdTAzQTktXHVEODNEXHVERTQyLmxvZyIsInN0YXRlIjoiYWN0aXZlIn1dfSwibmV4dCI6eyJzY2hlbWEiOjEsImdyb3VwSWQiOiI0NTAzOTc1NTA1MjA0OWFmYWYyZjdhMDdkYWZjMzU5NyIsImZvcm1hdCI6Imh1bWFuIiwiZW5jb2RpbmciOiJ1dGYtOCIsImJvbSI6ZmFsc2UsIm5ld2xpbmUiOiJsZiIsInNlZ21lbnRzIjpbeyJpZCI6MiwiZmlsZU5hbWUiOiIuY2lzLWxvZy00NTAzOTc1NTA1MjA0OWFmYWYyZjdhMDdkYWZjMzU5Ny0wMDAwMDAwMDAwMDAwMDAwMDAwMi5jbG9zZWQiLCJzdGF0ZSI6ImNsb3NlZCJ9LHsiaWQiOjMsImZpbGVOYW1lIjoiLmNpcy1sb2ctNDUwMzk3NTUwNTIwNDlhZmFmMmY3YTA3ZGFmYzM1OTctMDAwMDAwMDAwMDAwMDAwMDAwMDMuY2xvc2VkIiwic3RhdGUiOiJjbG9zZWQifSx7ImlkIjo0LCJmaWxlTmFtZSI6Ilx1MDNBOS1cdUQ4M0RcdURFNDIubG9nIiwic3RhdGUiOiJhY3RpdmUifV19fQo=",
+          "neighbor.bin": "/wD+"
+        },
+        "after": {
+          "logs/.cis-log-45039755052049afaf2f7a07dafc3597-00000000000000000002.closed": "b2xkZXI9dHJ1ZQo=",
+          "logs/.cis-log-45039755052049afaf2f7a07dafc3597-00000000000000000003.closed": "ZWFybGllcj10cnVlCg==",
+          "logs/.cis-log-45039755052049afaf2f7a07dafc3597-00000000000000000050.closed": "dW5saXN0ZWQgbmVpZ2hib3IK",
+          "logs/\u03a9-\ud83d\ude42.log": "dGltZXN0YW1wPSIyMDI2LTEwLTEzVDEwOjExOjEyLjAwMDAwMDBaIiBzZXZlcml0eT0iaW5mbyIgY29tcG9uZW50PSJUcmFuc2l0aW9uIiBldmVudF9uYW1lPSJ0cmFuc2l0aW9uLmZyZXNoIiBzZXJ2aWNlPSJDb25zb2xlLkFwcCIgZW52PSJ0ZXN0IiB2ZXJzaW9uPSIxLjIuMyIgcmVzb3VyY2UuYnVpbGRfdmVyc2lvbj0iYnVpbGQtMSIgcmVzb3VyY2UuZW52aXJvbm1lbnRfa2luZD0iY29uc29sZSIgcmVzb3VyY2UuaW5pdGlhbGl6ZWRfYXQ9IjIwMjYtMTAtMTNUMTA6MDA6MDAuMDAwMDAwMFoiIHJlc291cmNlLmluc3RhbmNlX2lkPSIxMTExMTExMS0xMTExLTExMTEtMTExMS0xMTExMTExMTExMTEiIHJlc291cmNlLm9zX2ZhbWlseT0idW5rbm93biIgbWVzc2FnZT0izqkg8J+ZgiIgYXR0cmlidXRlcz17InByb2R1Y2VyX3BpZCI6MTE4MTY4fQo=",
+          "logs/\u03a9-\ud83d\ude42.log.cis.inventory.json": "eyJzY2hlbWEiOjEsImdyb3VwSWQiOiI0NTAzOTc1NTA1MjA0OWFmYWYyZjdhMDdkYWZjMzU5NyIsImZvcm1hdCI6Imh1bWFuIiwiZW5jb2RpbmciOiJ1dGYtOCIsImJvbSI6ZmFsc2UsIm5ld2xpbmUiOiJsZiIsInNlZ21lbnRzIjpbeyJpZCI6MiwiZmlsZU5hbWUiOiIuY2lzLWxvZy00NTAzOTc1NTA1MjA0OWFmYWYyZjdhMDdkYWZjMzU5Ny0wMDAwMDAwMDAwMDAwMDAwMDAwMi5jbG9zZWQiLCJzdGF0ZSI6ImNsb3NlZCJ9LHsiaWQiOjMsImZpbGVOYW1lIjoiLmNpcy1sb2ctNDUwMzk3NTUwNTIwNDlhZmFmMmY3YTA3ZGFmYzM1OTctMDAwMDAwMDAwMDAwMDAwMDAwMDMuY2xvc2VkIiwic3RhdGUiOiJjbG9zZWQifSx7ImlkIjo0LCJmaWxlTmFtZSI6Ilx1MDNBOS1cdUQ4M0RcdURFNDIubG9nIiwic3RhdGUiOiJhY3RpdmUifV19Cg==",
+          "logs/\u03a9-\ud83d\ude42.log.cis.lock": "",
+          "neighbor.bin": "/wD+"
+        },
+        "error": null,
+        "outcome": "Accepted",
+        "recovered": false,
+        "restartRecovered": false,
+        "final": {
+          "state": "Stopped",
+          "accepted": 1,
+          "written": 1,
+          "failed": 0,
+          "abandoned": 0,
+          "pending": 0,
+          "recovered": false,
+          "fault": null
+        },
+        "leaseReleased": true,
+        "dataReleased": true
+      },
+      "stdoutSha256": "4b504f324232038b790df9b2b1121e9a3a2b61580b93e6b657e660bfd2d3bec9",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "id": "human-renamed",
+      "pid": 161904,
+      "exitCode": 0,
+      "command": [
+        "dotnet",
+        "exec",
+        "--fx-version",
+        "10.0.12",
+        "--roll-forward",
+        "Disable",
+        "C:\\miscwork\\portfolio\\cislib\\.artifacts\\csharp\\tasks\\wp05-s07-t03\\native-host\\CIS.Core.DiscoveryFixture.dll",
+        "file-transition",
+        "human-renamed",
+        "C:\\Users\\andrs\\AppData\\Local\\Temp\\cislib-transition-gtm9wp5b\\human-renamed"
+      ],
+      "report": {
+        "mode": "human-renamed",
+        "composition": "staged-physical-transition-to-configured-runtime",
+        "pid": 161904,
+        "runtime": ".NET 10.0.12",
+        "os": "windows",
+        "path": "C:\\Users\\andrs\\AppData\\Local\\Temp\\cislib-transition-gtm9wp5b\\human-renamed\\logs\\\u03a9-\ud83d\ude42.log",
+        "group": "65a0c7c72feb450099978dc09c14a952",
+        "coreSha256": "99c0ef11b94830142754d90f36dc6f450433eb3e8ccacf41675c6dcc4c9827a4",
+        "fixtureSha256": "05f3e66287ae098557fc4524f9d06853650bc0f56522b4e6e25bca425ba2ae9f",
+        "before": {
+          "logs/.cis-log-65a0c7c72feb450099978dc09c14a952-00000000000000000002.closed": "b2xkZXI9dHJ1ZQo=",
+          "logs/.cis-log-65a0c7c72feb450099978dc09c14a952-00000000000000000003.closed": "ZWFybGllcj10cnVlCg==",
+          "logs/.cis-log-65a0c7c72feb450099978dc09c14a952-00000000000000000050.closed": "dW5saXN0ZWQgbmVpZ2hib3IK",
+          "logs/\u03a9-\ud83d\ude42.log.cis.inventory.json": "eyJzY2hlbWEiOjEsImdyb3VwSWQiOiI2NWEwYzdjNzJmZWI0NTAwOTk5NzhkYzA5YzE0YTk1MiIsImZvcm1hdCI6Imh1bWFuIiwiZW5jb2RpbmciOiJ1dGYtOCIsImJvbSI6ZmFsc2UsIm5ld2xpbmUiOiJsZiIsInNlZ21lbnRzIjpbeyJpZCI6MSwiZmlsZU5hbWUiOiIuY2lzLWxvZy02NWEwYzdjNzJmZWI0NTAwOTk5NzhkYzA5YzE0YTk1Mi0wMDAwMDAwMDAwMDAwMDAwMDAwMS5kYW1hZ2VkIiwic3RhdGUiOiJkYW1hZ2VkIn0seyJpZCI6MiwiZmlsZU5hbWUiOiIuY2lzLWxvZy02NWEwYzdjNzJmZWI0NTAwOTk5NzhkYzA5YzE0YTk1Mi0wMDAwMDAwMDAwMDAwMDAwMDAwMi5jbG9zZWQiLCJzdGF0ZSI6ImNsb3NlZCJ9LHsiaWQiOjMsImZpbGVOYW1lIjoiXHUwM0E5LVx1RDgzRFx1REU0Mi5sb2ciLCJzdGF0ZSI6ImFjdGl2ZSJ9XX0=",
+          "logs/\u03a9-\ud83d\ude42.log.cis.lock": "",
+          "logs/\u03a9-\ud83d\ude42.log.cis.transition.json": "eyJzY2hlbWEiOjEsInJlY292ZXJ5IjpmYWxzZSwicmV0YWluZWRMaW1pdCI6Miwib3JpZ2luYWxCeXRlcyI6MTMsIm9yaWdpbmFsU2hhMjU2IjoiYmE0MjExYWIwNGU4OTkxMmJiYmQ1OWFlZmRmYWYzMjA4MmUxY2NhMzUxZjIwNTQwYWZkNTdjYTU0NTkxMmYyMSIsInByZXZpb3VzIjp7InNjaGVtYSI6MSwiZ3JvdXBJZCI6IjY1YTBjN2M3MmZlYjQ1MDA5OTk3OGRjMDljMTRhOTUyIiwiZm9ybWF0IjoiaHVtYW4iLCJlbmNvZGluZyI6InV0Zi04IiwiYm9tIjpmYWxzZSwibmV3bGluZSI6ImxmIiwic2VnbWVudHMiOlt7ImlkIjoxLCJmaWxlTmFtZSI6Ii5jaXMtbG9nLTY1YTBjN2M3MmZlYjQ1MDA5OTk3OGRjMDljMTRhOTUyLTAwMDAwMDAwMDAwMDAwMDAwMDAxLmRhbWFnZWQiLCJzdGF0ZSI6ImRhbWFnZWQifSx7ImlkIjoyLCJmaWxlTmFtZSI6Ii5jaXMtbG9nLTY1YTBjN2M3MmZlYjQ1MDA5OTk3OGRjMDljMTRhOTUyLTAwMDAwMDAwMDAwMDAwMDAwMDAyLmNsb3NlZCIsInN0YXRlIjoiY2xvc2VkIn0seyJpZCI6MywiZmlsZU5hbWUiOiJcdTAzQTktXHVEODNEXHVERTQyLmxvZyIsInN0YXRlIjoiYWN0aXZlIn1dfSwibmV4dCI6eyJzY2hlbWEiOjEsImdyb3VwSWQiOiI2NWEwYzdjNzJmZWI0NTAwOTk5NzhkYzA5YzE0YTk1MiIsImZvcm1hdCI6Imh1bWFuIiwiZW5jb2RpbmciOiJ1dGYtOCIsImJvbSI6ZmFsc2UsIm5ld2xpbmUiOiJsZiIsInNlZ21lbnRzIjpbeyJpZCI6MiwiZmlsZU5hbWUiOiIuY2lzLWxvZy02NWEwYzdjNzJmZWI0NTAwOTk5NzhkYzA5YzE0YTk1Mi0wMDAwMDAwMDAwMDAwMDAwMDAwMi5jbG9zZWQiLCJzdGF0ZSI6ImNsb3NlZCJ9LHsiaWQiOjMsImZpbGVOYW1lIjoiLmNpcy1sb2ctNjVhMGM3YzcyZmViNDUwMDk5OTc4ZGMwOWMxNGE5NTItMDAwMDAwMDAwMDAwMDAwMDAwMDMuY2xvc2VkIiwic3RhdGUiOiJjbG9zZWQifSx7ImlkIjo0LCJmaWxlTmFtZSI6Ilx1MDNBOS1cdUQ4M0RcdURFNDIubG9nIiwic3RhdGUiOiJhY3RpdmUifV19fQo=",
+          "neighbor.bin": "/wD+"
+        },
+        "after": {
+          "logs/.cis-log-65a0c7c72feb450099978dc09c14a952-00000000000000000002.closed": "b2xkZXI9dHJ1ZQo=",
+          "logs/.cis-log-65a0c7c72feb450099978dc09c14a952-00000000000000000003.closed": "ZWFybGllcj10cnVlCg==",
+          "logs/.cis-log-65a0c7c72feb450099978dc09c14a952-00000000000000000050.closed": "dW5saXN0ZWQgbmVpZ2hib3IK",
+          "logs/\u03a9-\ud83d\ude42.log": "dGltZXN0YW1wPSIyMDI2LTEwLTEzVDEwOjExOjEyLjAwMDAwMDBaIiBzZXZlcml0eT0iaW5mbyIgY29tcG9uZW50PSJUcmFuc2l0aW9uIiBldmVudF9uYW1lPSJ0cmFuc2l0aW9uLmZyZXNoIiBzZXJ2aWNlPSJDb25zb2xlLkFwcCIgZW52PSJ0ZXN0IiB2ZXJzaW9uPSIxLjIuMyIgcmVzb3VyY2UuYnVpbGRfdmVyc2lvbj0iYnVpbGQtMSIgcmVzb3VyY2UuZW52aXJvbm1lbnRfa2luZD0iY29uc29sZSIgcmVzb3VyY2UuaW5pdGlhbGl6ZWRfYXQ9IjIwMjYtMTAtMTNUMTA6MDA6MDAuMDAwMDAwMFoiIHJlc291cmNlLmluc3RhbmNlX2lkPSIxMTExMTExMS0xMTExLTExMTEtMTExMS0xMTExMTExMTExMTEiIHJlc291cmNlLm9zX2ZhbWlseT0idW5rbm93biIgbWVzc2FnZT0izqkg8J+ZgiIgYXR0cmlidXRlcz17InByb2R1Y2VyX3BpZCI6MTYxOTA0fQo=",
+          "logs/\u03a9-\ud83d\ude42.log.cis.inventory.json": "eyJzY2hlbWEiOjEsImdyb3VwSWQiOiI2NWEwYzdjNzJmZWI0NTAwOTk5NzhkYzA5YzE0YTk1MiIsImZvcm1hdCI6Imh1bWFuIiwiZW5jb2RpbmciOiJ1dGYtOCIsImJvbSI6ZmFsc2UsIm5ld2xpbmUiOiJsZiIsInNlZ21lbnRzIjpbeyJpZCI6MiwiZmlsZU5hbWUiOiIuY2lzLWxvZy02NWEwYzdjNzJmZWI0NTAwOTk5NzhkYzA5YzE0YTk1Mi0wMDAwMDAwMDAwMDAwMDAwMDAwMi5jbG9zZWQiLCJzdGF0ZSI6ImNsb3NlZCJ9LHsiaWQiOjMsImZpbGVOYW1lIjoiLmNpcy1sb2ctNjVhMGM3YzcyZmViNDUwMDk5OTc4ZGMwOWMxNGE5NTItMDAwMDAwMDAwMDAwMDAwMDAwMDMuY2xvc2VkIiwic3RhdGUiOiJjbG9zZWQifSx7ImlkIjo0LCJmaWxlTmFtZSI6Ilx1MDNBOS1cdUQ4M0RcdURFNDIubG9nIiwic3RhdGUiOiJhY3RpdmUifV19Cg==",
+          "logs/\u03a9-\ud83d\ude42.log.cis.lock": "",
+          "neighbor.bin": "/wD+"
+        },
+        "error": null,
+        "outcome": "Accepted",
+        "recovered": false,
+        "restartRecovered": false,
+        "final": {
+          "state": "Stopped",
+          "accepted": 1,
+          "written": 1,
+          "failed": 0,
+          "abandoned": 0,
+          "pending": 0,
+          "recovered": false,
+          "fault": null
+        },
+        "leaseReleased": true,
+        "dataReleased": true
+      },
+      "stdoutSha256": "25bbd31b7418993b5c06eb76d228a923c7224fedb6f2cf89a90679632f54bcfc",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "id": "human-published",
+      "pid": 124864,
+      "exitCode": 0,
+      "command": [
+        "dotnet",
+        "exec",
+        "--fx-version",
+        "10.0.12",
+        "--roll-forward",
+        "Disable",
+        "C:\\miscwork\\portfolio\\cislib\\.artifacts\\csharp\\tasks\\wp05-s07-t03\\native-host\\CIS.Core.DiscoveryFixture.dll",
+        "file-transition",
+        "human-published",
+        "C:\\Users\\andrs\\AppData\\Local\\Temp\\cislib-transition-gtm9wp5b\\human-published"
+      ],
+      "report": {
+        "mode": "human-published",
+        "composition": "staged-physical-transition-to-configured-runtime",
+        "pid": 124864,
+        "runtime": ".NET 10.0.12",
+        "os": "windows",
+        "path": "C:\\Users\\andrs\\AppData\\Local\\Temp\\cislib-transition-gtm9wp5b\\human-published\\logs\\\u03a9-\ud83d\ude42.log",
+        "group": "511768a962b44e40803398680dc61ab4",
+        "coreSha256": "99c0ef11b94830142754d90f36dc6f450433eb3e8ccacf41675c6dcc4c9827a4",
+        "fixtureSha256": "05f3e66287ae098557fc4524f9d06853650bc0f56522b4e6e25bca425ba2ae9f",
+        "before": {
+          "logs/.cis-log-511768a962b44e40803398680dc61ab4-00000000000000000002.closed": "b2xkZXI9dHJ1ZQo=",
+          "logs/.cis-log-511768a962b44e40803398680dc61ab4-00000000000000000003.closed": "ZWFybGllcj10cnVlCg==",
+          "logs/.cis-log-511768a962b44e40803398680dc61ab4-00000000000000000050.closed": "dW5saXN0ZWQgbmVpZ2hib3IK",
+          "logs/\u03a9-\ud83d\ude42.log.cis.inventory.json": "eyJzY2hlbWEiOjEsImdyb3VwSWQiOiI1MTE3NjhhOTYyYjQ0ZTQwODAzMzk4NjgwZGM2MWFiNCIsImZvcm1hdCI6Imh1bWFuIiwiZW5jb2RpbmciOiJ1dGYtOCIsImJvbSI6ZmFsc2UsIm5ld2xpbmUiOiJsZiIsInNlZ21lbnRzIjpbeyJpZCI6MiwiZmlsZU5hbWUiOiIuY2lzLWxvZy01MTE3NjhhOTYyYjQ0ZTQwODAzMzk4NjgwZGM2MWFiNC0wMDAwMDAwMDAwMDAwMDAwMDAwMi5jbG9zZWQiLCJzdGF0ZSI6ImNsb3NlZCJ9LHsiaWQiOjMsImZpbGVOYW1lIjoiLmNpcy1sb2ctNTExNzY4YTk2MmI0NGU0MDgwMzM5ODY4MGRjNjFhYjQtMDAwMDAwMDAwMDAwMDAwMDAwMDMuY2xvc2VkIiwic3RhdGUiOiJjbG9zZWQifSx7ImlkIjo0LCJmaWxlTmFtZSI6Ilx1MDNBOS1cdUQ4M0RcdURFNDIubG9nIiwic3RhdGUiOiJhY3RpdmUifV19Cg==",
+          "logs/\u03a9-\ud83d\ude42.log.cis.lock": "",
+          "logs/\u03a9-\ud83d\ude42.log.cis.transition.json": "eyJzY2hlbWEiOjEsInJlY292ZXJ5IjpmYWxzZSwicmV0YWluZWRMaW1pdCI6Miwib3JpZ2luYWxCeXRlcyI6MTMsIm9yaWdpbmFsU2hhMjU2IjoiYmE0MjExYWIwNGU4OTkxMmJiYmQ1OWFlZmRmYWYzMjA4MmUxY2NhMzUxZjIwNTQwYWZkNTdjYTU0NTkxMmYyMSIsInByZXZpb3VzIjp7InNjaGVtYSI6MSwiZ3JvdXBJZCI6IjUxMTc2OGE5NjJiNDRlNDA4MDMzOTg2ODBkYzYxYWI0IiwiZm9ybWF0IjoiaHVtYW4iLCJlbmNvZGluZyI6InV0Zi04IiwiYm9tIjpmYWxzZSwibmV3bGluZSI6ImxmIiwic2VnbWVudHMiOlt7ImlkIjoxLCJmaWxlTmFtZSI6Ii5jaXMtbG9nLTUxMTc2OGE5NjJiNDRlNDA4MDMzOTg2ODBkYzYxYWI0LTAwMDAwMDAwMDAwMDAwMDAwMDAxLmRhbWFnZWQiLCJzdGF0ZSI6ImRhbWFnZWQifSx7ImlkIjoyLCJmaWxlTmFtZSI6Ii5jaXMtbG9nLTUxMTc2OGE5NjJiNDRlNDA4MDMzOTg2ODBkYzYxYWI0LTAwMDAwMDAwMDAwMDAwMDAwMDAyLmNsb3NlZCIsInN0YXRlIjoiY2xvc2VkIn0seyJpZCI6MywiZmlsZU5hbWUiOiJcdTAzQTktXHVEODNEXHVERTQyLmxvZyIsInN0YXRlIjoiYWN0aXZlIn1dfSwibmV4dCI6eyJzY2hlbWEiOjEsImdyb3VwSWQiOiI1MTE3NjhhOTYyYjQ0ZTQwODAzMzk4NjgwZGM2MWFiNCIsImZvcm1hdCI6Imh1bWFuIiwiZW5jb2RpbmciOiJ1dGYtOCIsImJvbSI6ZmFsc2UsIm5ld2xpbmUiOiJsZiIsInNlZ21lbnRzIjpbeyJpZCI6MiwiZmlsZU5hbWUiOiIuY2lzLWxvZy01MTE3NjhhOTYyYjQ0ZTQwODAzMzk4NjgwZGM2MWFiNC0wMDAwMDAwMDAwMDAwMDAwMDAwMi5jbG9zZWQiLCJzdGF0ZSI6ImNsb3NlZCJ9LHsiaWQiOjMsImZpbGVOYW1lIjoiLmNpcy1sb2ctNTExNzY4YTk2MmI0NGU0MDgwMzM5ODY4MGRjNjFhYjQtMDAwMDAwMDAwMDAwMDAwMDAwMDMuY2xvc2VkIiwic3RhdGUiOiJjbG9zZWQifSx7ImlkIjo0LCJmaWxlTmFtZSI6Ilx1MDNBOS1cdUQ4M0RcdURFNDIubG9nIiwic3RhdGUiOiJhY3RpdmUifV19fQo=",
+          "neighbor.bin": "/wD+"
+        },
+        "after": {
+          "logs/.cis-log-511768a962b44e40803398680dc61ab4-00000000000000000002.closed": "b2xkZXI9dHJ1ZQo=",
+          "logs/.cis-log-511768a962b44e40803398680dc61ab4-00000000000000000003.closed": "ZWFybGllcj10cnVlCg==",
+          "logs/.cis-log-511768a962b44e40803398680dc61ab4-00000000000000000050.closed": "dW5saXN0ZWQgbmVpZ2hib3IK",
+          "logs/\u03a9-\ud83d\ude42.log": "dGltZXN0YW1wPSIyMDI2LTEwLTEzVDEwOjExOjEyLjAwMDAwMDBaIiBzZXZlcml0eT0iaW5mbyIgY29tcG9uZW50PSJUcmFuc2l0aW9uIiBldmVudF9uYW1lPSJ0cmFuc2l0aW9uLmZyZXNoIiBzZXJ2aWNlPSJDb25zb2xlLkFwcCIgZW52PSJ0ZXN0IiB2ZXJzaW9uPSIxLjIuMyIgcmVzb3VyY2UuYnVpbGRfdmVyc2lvbj0iYnVpbGQtMSIgcmVzb3VyY2UuZW52aXJvbm1lbnRfa2luZD0iY29uc29sZSIgcmVzb3VyY2UuaW5pdGlhbGl6ZWRfYXQ9IjIwMjYtMTAtMTNUMTA6MDA6MDAuMDAwMDAwMFoiIHJlc291cmNlLmluc3RhbmNlX2lkPSIxMTExMTExMS0xMTExLTExMTEtMTExMS0xMTExMTExMTExMTEiIHJlc291cmNlLm9zX2ZhbWlseT0idW5rbm93biIgbWVzc2FnZT0izqkg8J+ZgiIgYXR0cmlidXRlcz17InByb2R1Y2VyX3BpZCI6MTI0ODY0fQo=",
+          "logs/\u03a9-\ud83d\ude42.log.cis.inventory.json": "eyJzY2hlbWEiOjEsImdyb3VwSWQiOiI1MTE3NjhhOTYyYjQ0ZTQwODAzMzk4NjgwZGM2MWFiNCIsImZvcm1hdCI6Imh1bWFuIiwiZW5jb2RpbmciOiJ1dGYtOCIsImJvbSI6ZmFsc2UsIm5ld2xpbmUiOiJsZiIsInNlZ21lbnRzIjpbeyJpZCI6MiwiZmlsZU5hbWUiOiIuY2lzLWxvZy01MTE3NjhhOTYyYjQ0ZTQwODAzMzk4NjgwZGM2MWFiNC0wMDAwMDAwMDAwMDAwMDAwMDAwMi5jbG9zZWQiLCJzdGF0ZSI6ImNsb3NlZCJ9LHsiaWQiOjMsImZpbGVOYW1lIjoiLmNpcy1sb2ctNTExNzY4YTk2MmI0NGU0MDgwMzM5ODY4MGRjNjFhYjQtMDAwMDAwMDAwMDAwMDAwMDAwMDMuY2xvc2VkIiwic3RhdGUiOiJjbG9zZWQifSx7ImlkIjo0LCJmaWxlTmFtZSI6Ilx1MDNBOS1cdUQ4M0RcdURFNDIubG9nIiwic3RhdGUiOiJhY3RpdmUifV19Cg==",
+          "logs/\u03a9-\ud83d\ude42.log.cis.lock": "",
+          "neighbor.bin": "/wD+"
+        },
+        "error": null,
+        "outcome": "Accepted",
+        "recovered": false,
+        "restartRecovered": false,
+        "final": {
+          "state": "Stopped",
+          "accepted": 1,
+          "written": 1,
+          "failed": 0,
+          "abandoned": 0,
+          "pending": 0,
+          "recovered": false,
+          "fault": null
+        },
+        "leaseReleased": true,
+        "dataReleased": true
+      },
+      "stdoutSha256": "1fe4911856bc54e7746d4840777ee279709d5daedd541a15531ddb3385466785",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "id": "human-created",
+      "pid": 77256,
+      "exitCode": 0,
+      "command": [
+        "dotnet",
+        "exec",
+        "--fx-version",
+        "10.0.12",
+        "--roll-forward",
+        "Disable",
+        "C:\\miscwork\\portfolio\\cislib\\.artifacts\\csharp\\tasks\\wp05-s07-t03\\native-host\\CIS.Core.DiscoveryFixture.dll",
+        "file-transition",
+        "human-created",
+        "C:\\Users\\andrs\\AppData\\Local\\Temp\\cislib-transition-gtm9wp5b\\human-created"
+      ],
+      "report": {
+        "mode": "human-created",
+        "composition": "staged-physical-transition-to-configured-runtime",
+        "pid": 77256,
+        "runtime": ".NET 10.0.12",
+        "os": "windows",
+        "path": "C:\\Users\\andrs\\AppData\\Local\\Temp\\cislib-transition-gtm9wp5b\\human-created\\logs\\\u03a9-\ud83d\ude42.log",
+        "group": "fc4fa443be36407ca380fa76feb2d09e",
+        "coreSha256": "99c0ef11b94830142754d90f36dc6f450433eb3e8ccacf41675c6dcc4c9827a4",
+        "fixtureSha256": "05f3e66287ae098557fc4524f9d06853650bc0f56522b4e6e25bca425ba2ae9f",
+        "before": {
+          "logs/.cis-log-fc4fa443be36407ca380fa76feb2d09e-00000000000000000002.closed": "b2xkZXI9dHJ1ZQo=",
+          "logs/.cis-log-fc4fa443be36407ca380fa76feb2d09e-00000000000000000003.closed": "ZWFybGllcj10cnVlCg==",
+          "logs/.cis-log-fc4fa443be36407ca380fa76feb2d09e-00000000000000000050.closed": "dW5saXN0ZWQgbmVpZ2hib3IK",
+          "logs/\u03a9-\ud83d\ude42.log": "",
+          "logs/\u03a9-\ud83d\ude42.log.cis.inventory.json": "eyJzY2hlbWEiOjEsImdyb3VwSWQiOiJmYzRmYTQ0M2JlMzY0MDdjYTM4MGZhNzZmZWIyZDA5ZSIsImZvcm1hdCI6Imh1bWFuIiwiZW5jb2RpbmciOiJ1dGYtOCIsImJvbSI6ZmFsc2UsIm5ld2xpbmUiOiJsZiIsInNlZ21lbnRzIjpbeyJpZCI6MiwiZmlsZU5hbWUiOiIuY2lzLWxvZy1mYzRmYTQ0M2JlMzY0MDdjYTM4MGZhNzZmZWIyZDA5ZS0wMDAwMDAwMDAwMDAwMDAwMDAwMi5jbG9zZWQiLCJzdGF0ZSI6ImNsb3NlZCJ9LHsiaWQiOjMsImZpbGVOYW1lIjoiLmNpcy1sb2ctZmM0ZmE0NDNiZTM2NDA3Y2EzODBmYTc2ZmViMmQwOWUtMDAwMDAwMDAwMDAwMDAwMDAwMDMuY2xvc2VkIiwic3RhdGUiOiJjbG9zZWQifSx7ImlkIjo0LCJmaWxlTmFtZSI6Ilx1MDNBOS1cdUQ4M0RcdURFNDIubG9nIiwic3RhdGUiOiJhY3RpdmUifV19Cg==",
+          "logs/\u03a9-\ud83d\ude42.log.cis.lock": "",
+          "logs/\u03a9-\ud83d\ude42.log.cis.transition.json": "eyJzY2hlbWEiOjEsInJlY292ZXJ5IjpmYWxzZSwicmV0YWluZWRMaW1pdCI6Miwib3JpZ2luYWxCeXRlcyI6MTMsIm9yaWdpbmFsU2hhMjU2IjoiYmE0MjExYWIwNGU4OTkxMmJiYmQ1OWFlZmRmYWYzMjA4MmUxY2NhMzUxZjIwNTQwYWZkNTdjYTU0NTkxMmYyMSIsInByZXZpb3VzIjp7InNjaGVtYSI6MSwiZ3JvdXBJZCI6ImZjNGZhNDQzYmUzNjQwN2NhMzgwZmE3NmZlYjJkMDllIiwiZm9ybWF0IjoiaHVtYW4iLCJlbmNvZGluZyI6InV0Zi04IiwiYm9tIjpmYWxzZSwibmV3bGluZSI6ImxmIiwic2VnbWVudHMiOlt7ImlkIjoxLCJmaWxlTmFtZSI6Ii5jaXMtbG9nLWZjNGZhNDQzYmUzNjQwN2NhMzgwZmE3NmZlYjJkMDllLTAwMDAwMDAwMDAwMDAwMDAwMDAxLmRhbWFnZWQiLCJzdGF0ZSI6ImRhbWFnZWQifSx7ImlkIjoyLCJmaWxlTmFtZSI6Ii5jaXMtbG9nLWZjNGZhNDQzYmUzNjQwN2NhMzgwZmE3NmZlYjJkMDllLTAwMDAwMDAwMDAwMDAwMDAwMDAyLmNsb3NlZCIsInN0YXRlIjoiY2xvc2VkIn0seyJpZCI6MywiZmlsZU5hbWUiOiJcdTAzQTktXHVEODNEXHVERTQyLmxvZyIsInN0YXRlIjoiYWN0aXZlIn1dfSwibmV4dCI6eyJzY2hlbWEiOjEsImdyb3VwSWQiOiJmYzRmYTQ0M2JlMzY0MDdjYTM4MGZhNzZmZWIyZDA5ZSIsImZvcm1hdCI6Imh1bWFuIiwiZW5jb2RpbmciOiJ1dGYtOCIsImJvbSI6ZmFsc2UsIm5ld2xpbmUiOiJsZiIsInNlZ21lbnRzIjpbeyJpZCI6MiwiZmlsZU5hbWUiOiIuY2lzLWxvZy1mYzRmYTQ0M2JlMzY0MDdjYTM4MGZhNzZmZWIyZDA5ZS0wMDAwMDAwMDAwMDAwMDAwMDAwMi5jbG9zZWQiLCJzdGF0ZSI6ImNsb3NlZCJ9LHsiaWQiOjMsImZpbGVOYW1lIjoiLmNpcy1sb2ctZmM0ZmE0NDNiZTM2NDA3Y2EzODBmYTc2ZmViMmQwOWUtMDAwMDAwMDAwMDAwMDAwMDAwMDMuY2xvc2VkIiwic3RhdGUiOiJjbG9zZWQifSx7ImlkIjo0LCJmaWxlTmFtZSI6Ilx1MDNBOS1cdUQ4M0RcdURFNDIubG9nIiwic3RhdGUiOiJhY3RpdmUifV19fQo=",
+          "neighbor.bin": "/wD+"
+        },
+        "after": {
+          "logs/.cis-log-fc4fa443be36407ca380fa76feb2d09e-00000000000000000002.closed": "b2xkZXI9dHJ1ZQo=",
+          "logs/.cis-log-fc4fa443be36407ca380fa76feb2d09e-00000000000000000003.closed": "ZWFybGllcj10cnVlCg==",
+          "logs/.cis-log-fc4fa443be36407ca380fa76feb2d09e-00000000000000000050.closed": "dW5saXN0ZWQgbmVpZ2hib3IK",
+          "logs/\u03a9-\ud83d\ude42.log": "dGltZXN0YW1wPSIyMDI2LTEwLTEzVDEwOjExOjEyLjAwMDAwMDBaIiBzZXZlcml0eT0iaW5mbyIgY29tcG9uZW50PSJUcmFuc2l0aW9uIiBldmVudF9uYW1lPSJ0cmFuc2l0aW9uLmZyZXNoIiBzZXJ2aWNlPSJDb25zb2xlLkFwcCIgZW52PSJ0ZXN0IiB2ZXJzaW9uPSIxLjIuMyIgcmVzb3VyY2UuYnVpbGRfdmVyc2lvbj0iYnVpbGQtMSIgcmVzb3VyY2UuZW52aXJvbm1lbnRfa2luZD0iY29uc29sZSIgcmVzb3VyY2UuaW5pdGlhbGl6ZWRfYXQ9IjIwMjYtMTAtMTNUMTA6MDA6MDAuMDAwMDAwMFoiIHJlc291cmNlLmluc3RhbmNlX2lkPSIxMTExMTExMS0xMTExLTExMTEtMTExMS0xMTExMTExMTExMTEiIHJlc291cmNlLm9zX2ZhbWlseT0idW5rbm93biIgbWVzc2FnZT0izqkg8J+ZgiIgYXR0cmlidXRlcz17InByb2R1Y2VyX3BpZCI6NzcyNTZ9Cg==",
+          "logs/\u03a9-\ud83d\ude42.log.cis.inventory.json": "eyJzY2hlbWEiOjEsImdyb3VwSWQiOiJmYzRmYTQ0M2JlMzY0MDdjYTM4MGZhNzZmZWIyZDA5ZSIsImZvcm1hdCI6Imh1bWFuIiwiZW5jb2RpbmciOiJ1dGYtOCIsImJvbSI6ZmFsc2UsIm5ld2xpbmUiOiJsZiIsInNlZ21lbnRzIjpbeyJpZCI6MiwiZmlsZU5hbWUiOiIuY2lzLWxvZy1mYzRmYTQ0M2JlMzY0MDdjYTM4MGZhNzZmZWIyZDA5ZS0wMDAwMDAwMDAwMDAwMDAwMDAwMi5jbG9zZWQiLCJzdGF0ZSI6ImNsb3NlZCJ9LHsiaWQiOjMsImZpbGVOYW1lIjoiLmNpcy1sb2ctZmM0ZmE0NDNiZTM2NDA3Y2EzODBmYTc2ZmViMmQwOWUtMDAwMDAwMDAwMDAwMDAwMDAwMDMuY2xvc2VkIiwic3RhdGUiOiJjbG9zZWQifSx7ImlkIjo0LCJmaWxlTmFtZSI6Ilx1MDNBOS1cdUQ4M0RcdURFNDIubG9nIiwic3RhdGUiOiJhY3RpdmUifV19Cg==",
+          "logs/\u03a9-\ud83d\ude42.log.cis.lock": "",
+          "neighbor.bin": "/wD+"
+        },
+        "error": null,
+        "outcome": "Accepted",
+        "recovered": false,
+        "restartRecovered": false,
+        "final": {
+          "state": "Stopped",
+          "accepted": 1,
+          "written": 1,
+          "failed": 0,
+          "abandoned": 0,
+          "pending": 0,
+          "recovered": false,
+          "fault": null
+        },
+        "leaseReleased": true,
+        "dataReleased": true
+      },
+      "stdoutSha256": "db43e83de6d92ce388d54e38660bfafda4e84c49e9e4396895f7fcaf00f8b9b4",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "id": "ambiguous-both",
+      "pid": 106088,
+      "exitCode": 0,
+      "command": [
+        "dotnet",
+        "exec",
+        "--fx-version",
+        "10.0.12",
+        "--roll-forward",
+        "Disable",
+        "C:\\miscwork\\portfolio\\cislib\\.artifacts\\csharp\\tasks\\wp05-s07-t03\\native-host\\CIS.Core.DiscoveryFixture.dll",
+        "file-transition",
+        "ambiguous-both",
+        "C:\\Users\\andrs\\AppData\\Local\\Temp\\cislib-transition-gtm9wp5b\\ambiguous-both"
+      ],
+      "report": {
+        "mode": "ambiguous-both",
+        "composition": "staged-physical-transition-to-configured-runtime",
+        "pid": 106088,
+        "runtime": ".NET 10.0.12",
+        "os": "windows",
+        "path": "C:\\Users\\andrs\\AppData\\Local\\Temp\\cislib-transition-gtm9wp5b\\ambiguous-both\\logs\\\u03a9-\ud83d\ude42.log",
+        "group": "22aadc7f6f2541709533db88c05899d4",
+        "coreSha256": "99c0ef11b94830142754d90f36dc6f450433eb3e8ccacf41675c6dcc4c9827a4",
+        "fixtureSha256": "05f3e66287ae098557fc4524f9d06853650bc0f56522b4e6e25bca425ba2ae9f",
+        "before": {
+          "logs/.cis-log-22aadc7f6f2541709533db88c05899d4-00000000000000000002.closed": "eyJvbGRlciI6dHJ1ZX0K",
+          "logs/.cis-log-22aadc7f6f2541709533db88c05899d4-00000000000000000003.closed": "eyJlYXJsaWVyIjp0cnVlfQo=",
+          "logs/.cis-log-22aadc7f6f2541709533db88c05899d4-00000000000000000050.closed": "dW5saXN0ZWQgbmVpZ2hib3IK",
+          "logs/\u03a9-\ud83d\ude42.log": "eyJlYXJsaWVyIjp0cnVlfQo=",
+          "logs/\u03a9-\ud83d\ude42.log.cis.inventory.json": "eyJzY2hlbWEiOjEsImdyb3VwSWQiOiIyMmFhZGM3ZjZmMjU0MTcwOTUzM2RiODhjMDU4OTlkNCIsImZvcm1hdCI6Impzb25sIiwiZW5jb2RpbmciOiJ1dGYtOCIsImJvbSI6ZmFsc2UsIm5ld2xpbmUiOiJsZiIsInNlZ21lbnRzIjpbeyJpZCI6MSwiZmlsZU5hbWUiOiIuY2lzLWxvZy0yMmFhZGM3ZjZmMjU0MTcwOTUzM2RiODhjMDU4OTlkNC0wMDAwMDAwMDAwMDAwMDAwMDAwMS5kYW1hZ2VkIiwic3RhdGUiOiJkYW1hZ2VkIn0seyJpZCI6MiwiZmlsZU5hbWUiOiIuY2lzLWxvZy0yMmFhZGM3ZjZmMjU0MTcwOTUzM2RiODhjMDU4OTlkNC0wMDAwMDAwMDAwMDAwMDAwMDAwMi5jbG9zZWQiLCJzdGF0ZSI6ImNsb3NlZCJ9LHsiaWQiOjMsImZpbGVOYW1lIjoiXHUwM0E5LVx1RDgzRFx1REU0Mi5sb2ciLCJzdGF0ZSI6ImFjdGl2ZSJ9XX0=",
+          "logs/\u03a9-\ud83d\ude42.log.cis.lock": "",
+          "logs/\u03a9-\ud83d\ude42.log.cis.transition.json": "eyJzY2hlbWEiOjEsInJlY292ZXJ5IjpmYWxzZSwicmV0YWluZWRMaW1pdCI6Miwib3JpZ2luYWxCeXRlcyI6MTcsIm9yaWdpbmFsU2hhMjU2IjoiNDRjZTRhMTdhMDU1NGIyOWZmYjMzMThkNGY1Nzg4ZTU5N2UxNjNiYzA2ZWEyMTgyYjAzYzIzNWM2YWVhZDFlZCIsInByZXZpb3VzIjp7InNjaGVtYSI6MSwiZ3JvdXBJZCI6IjIyYWFkYzdmNmYyNTQxNzA5NTMzZGI4OGMwNTg5OWQ0IiwiZm9ybWF0IjoianNvbmwiLCJlbmNvZGluZyI6InV0Zi04IiwiYm9tIjpmYWxzZSwibmV3bGluZSI6ImxmIiwic2VnbWVudHMiOlt7ImlkIjoxLCJmaWxlTmFtZSI6Ii5jaXMtbG9nLTIyYWFkYzdmNmYyNTQxNzA5NTMzZGI4OGMwNTg5OWQ0LTAwMDAwMDAwMDAwMDAwMDAwMDAxLmRhbWFnZWQiLCJzdGF0ZSI6ImRhbWFnZWQifSx7ImlkIjoyLCJmaWxlTmFtZSI6Ii5jaXMtbG9nLTIyYWFkYzdmNmYyNTQxNzA5NTMzZGI4OGMwNTg5OWQ0LTAwMDAwMDAwMDAwMDAwMDAwMDAyLmNsb3NlZCIsInN0YXRlIjoiY2xvc2VkIn0seyJpZCI6MywiZmlsZU5hbWUiOiJcdTAzQTktXHVEODNEXHVERTQyLmxvZyIsInN0YXRlIjoiYWN0aXZlIn1dfSwibmV4dCI6eyJzY2hlbWEiOjEsImdyb3VwSWQiOiIyMmFhZGM3ZjZmMjU0MTcwOTUzM2RiODhjMDU4OTlkNCIsImZvcm1hdCI6Impzb25sIiwiZW5jb2RpbmciOiJ1dGYtOCIsImJvbSI6ZmFsc2UsIm5ld2xpbmUiOiJsZiIsInNlZ21lbnRzIjpbeyJpZCI6MiwiZmlsZU5hbWUiOiIuY2lzLWxvZy0yMmFhZGM3ZjZmMjU0MTcwOTUzM2RiODhjMDU4OTlkNC0wMDAwMDAwMDAwMDAwMDAwMDAwMi5jbG9zZWQiLCJzdGF0ZSI6ImNsb3NlZCJ9LHsiaWQiOjMsImZpbGVOYW1lIjoiLmNpcy1sb2ctMjJhYWRjN2Y2ZjI1NDE3MDk1MzNkYjg4YzA1ODk5ZDQtMDAwMDAwMDAwMDAwMDAwMDAwMDMuY2xvc2VkIiwic3RhdGUiOiJjbG9zZWQifSx7ImlkIjo0LCJmaWxlTmFtZSI6Ilx1MDNBOS1cdUQ4M0RcdURFNDIubG9nIiwic3RhdGUiOiJhY3RpdmUifV19fQo=",
+          "neighbor.bin": "/wD+"
+        },
+        "after": {
+          "logs/.cis-log-22aadc7f6f2541709533db88c05899d4-00000000000000000002.closed": "eyJvbGRlciI6dHJ1ZX0K",
+          "logs/.cis-log-22aadc7f6f2541709533db88c05899d4-00000000000000000003.closed": "eyJlYXJsaWVyIjp0cnVlfQo=",
+          "logs/.cis-log-22aadc7f6f2541709533db88c05899d4-00000000000000000050.closed": "dW5saXN0ZWQgbmVpZ2hib3IK",
+          "logs/\u03a9-\ud83d\ude42.log": "eyJlYXJsaWVyIjp0cnVlfQo=",
+          "logs/\u03a9-\ud83d\ude42.log.cis.inventory.json": "eyJzY2hlbWEiOjEsImdyb3VwSWQiOiIyMmFhZGM3ZjZmMjU0MTcwOTUzM2RiODhjMDU4OTlkNCIsImZvcm1hdCI6Impzb25sIiwiZW5jb2RpbmciOiJ1dGYtOCIsImJvbSI6ZmFsc2UsIm5ld2xpbmUiOiJsZiIsInNlZ21lbnRzIjpbeyJpZCI6MSwiZmlsZU5hbWUiOiIuY2lzLWxvZy0yMmFhZGM3ZjZmMjU0MTcwOTUzM2RiODhjMDU4OTlkNC0wMDAwMDAwMDAwMDAwMDAwMDAwMS5kYW1hZ2VkIiwic3RhdGUiOiJkYW1hZ2VkIn0seyJpZCI6MiwiZmlsZU5hbWUiOiIuY2lzLWxvZy0yMmFhZGM3ZjZmMjU0MTcwOTUzM2RiODhjMDU4OTlkNC0wMDAwMDAwMDAwMDAwMDAwMDAwMi5jbG9zZWQiLCJzdGF0ZSI6ImNsb3NlZCJ9LHsiaWQiOjMsImZpbGVOYW1lIjoiXHUwM0E5LVx1RDgzRFx1REU0Mi5sb2ciLCJzdGF0ZSI6ImFjdGl2ZSJ9XX0=",
+          "logs/\u03a9-\ud83d\ude42.log.cis.lock": "",
+          "logs/\u03a9-\ud83d\ude42.log.cis.transition.json": "eyJzY2hlbWEiOjEsInJlY292ZXJ5IjpmYWxzZSwicmV0YWluZWRMaW1pdCI6Miwib3JpZ2luYWxCeXRlcyI6MTcsIm9yaWdpbmFsU2hhMjU2IjoiNDRjZTRhMTdhMDU1NGIyOWZmYjMzMThkNGY1Nzg4ZTU5N2UxNjNiYzA2ZWEyMTgyYjAzYzIzNWM2YWVhZDFlZCIsInByZXZpb3VzIjp7InNjaGVtYSI6MSwiZ3JvdXBJZCI6IjIyYWFkYzdmNmYyNTQxNzA5NTMzZGI4OGMwNTg5OWQ0IiwiZm9ybWF0IjoianNvbmwiLCJlbmNvZGluZyI6InV0Zi04IiwiYm9tIjpmYWxzZSwibmV3bGluZSI6ImxmIiwic2VnbWVudHMiOlt7ImlkIjoxLCJmaWxlTmFtZSI6Ii5jaXMtbG9nLTIyYWFkYzdmNmYyNTQxNzA5NTMzZGI4OGMwNTg5OWQ0LTAwMDAwMDAwMDAwMDAwMDAwMDAxLmRhbWFnZWQiLCJzdGF0ZSI6ImRhbWFnZWQifSx7ImlkIjoyLCJmaWxlTmFtZSI6Ii5jaXMtbG9nLTIyYWFkYzdmNmYyNTQxNzA5NTMzZGI4OGMwNTg5OWQ0LTAwMDAwMDAwMDAwMDAwMDAwMDAyLmNsb3NlZCIsInN0YXRlIjoiY2xvc2VkIn0seyJpZCI6MywiZmlsZU5hbWUiOiJcdTAzQTktXHVEODNEXHVERTQyLmxvZyIsInN0YXRlIjoiYWN0aXZlIn1dfSwibmV4dCI6eyJzY2hlbWEiOjEsImdyb3VwSWQiOiIyMmFhZGM3ZjZmMjU0MTcwOTUzM2RiODhjMDU4OTlkNCIsImZvcm1hdCI6Impzb25sIiwiZW5jb2RpbmciOiJ1dGYtOCIsImJvbSI6ZmFsc2UsIm5ld2xpbmUiOiJsZiIsInNlZ21lbnRzIjpbeyJpZCI6MiwiZmlsZU5hbWUiOiIuY2lzLWxvZy0yMmFhZGM3ZjZmMjU0MTcwOTUzM2RiODhjMDU4OTlkNC0wMDAwMDAwMDAwMDAwMDAwMDAwMi5jbG9zZWQiLCJzdGF0ZSI6ImNsb3NlZCJ9LHsiaWQiOjMsImZpbGVOYW1lIjoiLmNpcy1sb2ctMjJhYWRjN2Y2ZjI1NDE3MDk1MzNkYjg4YzA1ODk5ZDQtMDAwMDAwMDAwMDAwMDAwMDAwMDMuY2xvc2VkIiwic3RhdGUiOiJjbG9zZWQifSx7ImlkIjo0LCJmaWxlTmFtZSI6Ilx1MDNBOS1cdUQ4M0RcdURFNDIubG9nIiwic3RhdGUiOiJhY3RpdmUifV19fQo=",
+          "neighbor.bin": "/wD+"
+        },
+        "error": {
+          "code": "FileTransitionIncompatible",
+          "output": "file",
+          "message": "Logging output 'file' could not initialize (FileTransitionIncompatible).",
+          "inner": false,
+          "dataCount": 0
+        },
+        "outcome": null,
+        "recovered": false,
+        "restartRecovered": false,
+        "final": null,
+        "leaseReleased": true,
+        "dataReleased": true
+      },
+      "stdoutSha256": "bfd4b43b36864eb70a22e506217cb3ca8f6fd3e61686b54ee2fabb47b962c3c2",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "id": "mismatch-bytes",
+      "pid": 171244,
+      "exitCode": 0,
+      "command": [
+        "dotnet",
+        "exec",
+        "--fx-version",
+        "10.0.12",
+        "--roll-forward",
+        "Disable",
+        "C:\\miscwork\\portfolio\\cislib\\.artifacts\\csharp\\tasks\\wp05-s07-t03\\native-host\\CIS.Core.DiscoveryFixture.dll",
+        "file-transition",
+        "mismatch-bytes",
+        "C:\\Users\\andrs\\AppData\\Local\\Temp\\cislib-transition-gtm9wp5b\\mismatch-bytes"
+      ],
+      "report": {
+        "mode": "mismatch-bytes",
+        "composition": "staged-physical-transition-to-configured-runtime",
+        "pid": 171244,
+        "runtime": ".NET 10.0.12",
+        "os": "windows",
+        "path": "C:\\Users\\andrs\\AppData\\Local\\Temp\\cislib-transition-gtm9wp5b\\mismatch-bytes\\logs\\\u03a9-\ud83d\ude42.log",
+        "group": "83ca41c2c83a4fda8030e42e141e63a7",
+        "coreSha256": "99c0ef11b94830142754d90f36dc6f450433eb3e8ccacf41675c6dcc4c9827a4",
+        "fixtureSha256": "05f3e66287ae098557fc4524f9d06853650bc0f56522b4e6e25bca425ba2ae9f",
+        "before": {
+          "logs/.cis-log-83ca41c2c83a4fda8030e42e141e63a7-00000000000000000002.closed": "eyJvbGRlciI6dHJ1ZX0K",
+          "logs/.cis-log-83ca41c2c83a4fda8030e42e141e63a7-00000000000000000003.closed": "eyJvdGhlciI6dHJ1ZX0K",
+          "logs/.cis-log-83ca41c2c83a4fda8030e42e141e63a7-00000000000000000050.closed": "dW5saXN0ZWQgbmVpZ2hib3IK",
+          "logs/\u03a9-\ud83d\ude42.log.cis.inventory.json": "eyJzY2hlbWEiOjEsImdyb3VwSWQiOiI4M2NhNDFjMmM4M2E0ZmRhODAzMGU0MmUxNDFlNjNhNyIsImZvcm1hdCI6Impzb25sIiwiZW5jb2RpbmciOiJ1dGYtOCIsImJvbSI6ZmFsc2UsIm5ld2xpbmUiOiJsZiIsInNlZ21lbnRzIjpbeyJpZCI6MSwiZmlsZU5hbWUiOiIuY2lzLWxvZy04M2NhNDFjMmM4M2E0ZmRhODAzMGU0MmUxNDFlNjNhNy0wMDAwMDAwMDAwMDAwMDAwMDAwMS5kYW1hZ2VkIiwic3RhdGUiOiJkYW1hZ2VkIn0seyJpZCI6MiwiZmlsZU5hbWUiOiIuY2lzLWxvZy04M2NhNDFjMmM4M2E0ZmRhODAzMGU0MmUxNDFlNjNhNy0wMDAwMDAwMDAwMDAwMDAwMDAwMi5jbG9zZWQiLCJzdGF0ZSI6ImNsb3NlZCJ9LHsiaWQiOjMsImZpbGVOYW1lIjoiXHUwM0E5LVx1RDgzRFx1REU0Mi5sb2ciLCJzdGF0ZSI6ImFjdGl2ZSJ9XX0=",
+          "logs/\u03a9-\ud83d\ude42.log.cis.lock": "",
+          "logs/\u03a9-\ud83d\ude42.log.cis.transition.json": "eyJzY2hlbWEiOjEsInJlY292ZXJ5IjpmYWxzZSwicmV0YWluZWRMaW1pdCI6Miwib3JpZ2luYWxCeXRlcyI6MTcsIm9yaWdpbmFsU2hhMjU2IjoiNDRjZTRhMTdhMDU1NGIyOWZmYjMzMThkNGY1Nzg4ZTU5N2UxNjNiYzA2ZWEyMTgyYjAzYzIzNWM2YWVhZDFlZCIsInByZXZpb3VzIjp7InNjaGVtYSI6MSwiZ3JvdXBJZCI6IjgzY2E0MWMyYzgzYTRmZGE4MDMwZTQyZTE0MWU2M2E3IiwiZm9ybWF0IjoianNvbmwiLCJlbmNvZGluZyI6InV0Zi04IiwiYm9tIjpmYWxzZSwibmV3bGluZSI6ImxmIiwic2VnbWVudHMiOlt7ImlkIjoxLCJmaWxlTmFtZSI6Ii5jaXMtbG9nLTgzY2E0MWMyYzgzYTRmZGE4MDMwZTQyZTE0MWU2M2E3LTAwMDAwMDAwMDAwMDAwMDAwMDAxLmRhbWFnZWQiLCJzdGF0ZSI6ImRhbWFnZWQifSx7ImlkIjoyLCJmaWxlTmFtZSI6Ii5jaXMtbG9nLTgzY2E0MWMyYzgzYTRmZGE4MDMwZTQyZTE0MWU2M2E3LTAwMDAwMDAwMDAwMDAwMDAwMDAyLmNsb3NlZCIsInN0YXRlIjoiY2xvc2VkIn0seyJpZCI6MywiZmlsZU5hbWUiOiJcdTAzQTktXHVEODNEXHVERTQyLmxvZyIsInN0YXRlIjoiYWN0aXZlIn1dfSwibmV4dCI6eyJzY2hlbWEiOjEsImdyb3VwSWQiOiI4M2NhNDFjMmM4M2E0ZmRhODAzMGU0MmUxNDFlNjNhNyIsImZvcm1hdCI6Impzb25sIiwiZW5jb2RpbmciOiJ1dGYtOCIsImJvbSI6ZmFsc2UsIm5ld2xpbmUiOiJsZiIsInNlZ21lbnRzIjpbeyJpZCI6MiwiZmlsZU5hbWUiOiIuY2lzLWxvZy04M2NhNDFjMmM4M2E0ZmRhODAzMGU0MmUxNDFlNjNhNy0wMDAwMDAwMDAwMDAwMDAwMDAwMi5jbG9zZWQiLCJzdGF0ZSI6ImNsb3NlZCJ9LHsiaWQiOjMsImZpbGVOYW1lIjoiLmNpcy1sb2ctODNjYTQxYzJjODNhNGZkYTgwMzBlNDJlMTQxZTYzYTctMDAwMDAwMDAwMDAwMDAwMDAwMDMuY2xvc2VkIiwic3RhdGUiOiJjbG9zZWQifSx7ImlkIjo0LCJmaWxlTmFtZSI6Ilx1MDNBOS1cdUQ4M0RcdURFNDIubG9nIiwic3RhdGUiOiJhY3RpdmUifV19fQo=",
+          "neighbor.bin": "/wD+"
+        },
+        "after": {
+          "logs/.cis-log-83ca41c2c83a4fda8030e42e141e63a7-00000000000000000002.closed": "eyJvbGRlciI6dHJ1ZX0K",
+          "logs/.cis-log-83ca41c2c83a4fda8030e42e141e63a7-00000000000000000003.closed": "eyJvdGhlciI6dHJ1ZX0K",
+          "logs/.cis-log-83ca41c2c83a4fda8030e42e141e63a7-00000000000000000050.closed": "dW5saXN0ZWQgbmVpZ2hib3IK",
+          "logs/\u03a9-\ud83d\ude42.log.cis.inventory.json": "eyJzY2hlbWEiOjEsImdyb3VwSWQiOiI4M2NhNDFjMmM4M2E0ZmRhODAzMGU0MmUxNDFlNjNhNyIsImZvcm1hdCI6Impzb25sIiwiZW5jb2RpbmciOiJ1dGYtOCIsImJvbSI6ZmFsc2UsIm5ld2xpbmUiOiJsZiIsInNlZ21lbnRzIjpbeyJpZCI6MSwiZmlsZU5hbWUiOiIuY2lzLWxvZy04M2NhNDFjMmM4M2E0ZmRhODAzMGU0MmUxNDFlNjNhNy0wMDAwMDAwMDAwMDAwMDAwMDAwMS5kYW1hZ2VkIiwic3RhdGUiOiJkYW1hZ2VkIn0seyJpZCI6MiwiZmlsZU5hbWUiOiIuY2lzLWxvZy04M2NhNDFjMmM4M2E0ZmRhODAzMGU0MmUxNDFlNjNhNy0wMDAwMDAwMDAwMDAwMDAwMDAwMi5jbG9zZWQiLCJzdGF0ZSI6ImNsb3NlZCJ9LHsiaWQiOjMsImZpbGVOYW1lIjoiXHUwM0E5LVx1RDgzRFx1REU0Mi5sb2ciLCJzdGF0ZSI6ImFjdGl2ZSJ9XX0=",
+          "logs/\u03a9-\ud83d\ude42.log.cis.lock": "",
+          "logs/\u03a9-\ud83d\ude42.log.cis.transition.json": "eyJzY2hlbWEiOjEsInJlY292ZXJ5IjpmYWxzZSwicmV0YWluZWRMaW1pdCI6Miwib3JpZ2luYWxCeXRlcyI6MTcsIm9yaWdpbmFsU2hhMjU2IjoiNDRjZTRhMTdhMDU1NGIyOWZmYjMzMThkNGY1Nzg4ZTU5N2UxNjNiYzA2ZWEyMTgyYjAzYzIzNWM2YWVhZDFlZCIsInByZXZpb3VzIjp7InNjaGVtYSI6MSwiZ3JvdXBJZCI6IjgzY2E0MWMyYzgzYTRmZGE4MDMwZTQyZTE0MWU2M2E3IiwiZm9ybWF0IjoianNvbmwiLCJlbmNvZGluZyI6InV0Zi04IiwiYm9tIjpmYWxzZSwibmV3bGluZSI6ImxmIiwic2VnbWVudHMiOlt7ImlkIjoxLCJmaWxlTmFtZSI6Ii5jaXMtbG9nLTgzY2E0MWMyYzgzYTRmZGE4MDMwZTQyZTE0MWU2M2E3LTAwMDAwMDAwMDAwMDAwMDAwMDAxLmRhbWFnZWQiLCJzdGF0ZSI6ImRhbWFnZWQifSx7ImlkIjoyLCJmaWxlTmFtZSI6Ii5jaXMtbG9nLTgzY2E0MWMyYzgzYTRmZGE4MDMwZTQyZTE0MWU2M2E3LTAwMDAwMDAwMDAwMDAwMDAwMDAyLmNsb3NlZCIsInN0YXRlIjoiY2xvc2VkIn0seyJpZCI6MywiZmlsZU5hbWUiOiJcdTAzQTktXHVEODNEXHVERTQyLmxvZyIsInN0YXRlIjoiYWN0aXZlIn1dfSwibmV4dCI6eyJzY2hlbWEiOjEsImdyb3VwSWQiOiI4M2NhNDFjMmM4M2E0ZmRhODAzMGU0MmUxNDFlNjNhNyIsImZvcm1hdCI6Impzb25sIiwiZW5jb2RpbmciOiJ1dGYtOCIsImJvbSI6ZmFsc2UsIm5ld2xpbmUiOiJsZiIsInNlZ21lbnRzIjpbeyJpZCI6MiwiZmlsZU5hbWUiOiIuY2lzLWxvZy04M2NhNDFjMmM4M2E0ZmRhODAzMGU0MmUxNDFlNjNhNy0wMDAwMDAwMDAwMDAwMDAwMDAwMi5jbG9zZWQiLCJzdGF0ZSI6ImNsb3NlZCJ9LHsiaWQiOjMsImZpbGVOYW1lIjoiLmNpcy1sb2ctODNjYTQxYzJjODNhNGZkYTgwMzBlNDJlMTQxZTYzYTctMDAwMDAwMDAwMDAwMDAwMDAwMDMuY2xvc2VkIiwic3RhdGUiOiJjbG9zZWQifSx7ImlkIjo0LCJmaWxlTmFtZSI6Ilx1MDNBOS1cdUQ4M0RcdURFNDIubG9nIiwic3RhdGUiOiJhY3RpdmUifV19fQo=",
+          "neighbor.bin": "/wD+"
+        },
+        "error": {
+          "code": "FileTransitionIncompatible",
+          "output": "file",
+          "message": "Logging output 'file' could not initialize (FileTransitionIncompatible).",
+          "inner": false,
+          "dataCount": 0
+        },
+        "outcome": null,
+        "recovered": false,
+        "restartRecovered": false,
+        "final": null,
+        "leaseReleased": true,
+        "dataReleased": true
+      },
+      "stdoutSha256": "926abeb813ff5ae90582df273385c7a4b7670f5b9641a9b5ff932de7e4f631e2",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "id": "nonempty-fresh",
+      "pid": 65568,
+      "exitCode": 0,
+      "command": [
+        "dotnet",
+        "exec",
+        "--fx-version",
+        "10.0.12",
+        "--roll-forward",
+        "Disable",
+        "C:\\miscwork\\portfolio\\cislib\\.artifacts\\csharp\\tasks\\wp05-s07-t03\\native-host\\CIS.Core.DiscoveryFixture.dll",
+        "file-transition",
+        "nonempty-fresh",
+        "C:\\Users\\andrs\\AppData\\Local\\Temp\\cislib-transition-gtm9wp5b\\nonempty-fresh"
+      ],
+      "report": {
+        "mode": "nonempty-fresh",
+        "composition": "staged-physical-transition-to-configured-runtime",
+        "pid": 65568,
+        "runtime": ".NET 10.0.12",
+        "os": "windows",
+        "path": "C:\\Users\\andrs\\AppData\\Local\\Temp\\cislib-transition-gtm9wp5b\\nonempty-fresh\\logs\\\u03a9-\ud83d\ude42.log",
+        "group": "f2d69a38a446482ca59762aa86bd9e3e",
+        "coreSha256": "99c0ef11b94830142754d90f36dc6f450433eb3e8ccacf41675c6dcc4c9827a4",
+        "fixtureSha256": "05f3e66287ae098557fc4524f9d06853650bc0f56522b4e6e25bca425ba2ae9f",
+        "before": {
+          "logs/.cis-log-f2d69a38a446482ca59762aa86bd9e3e-00000000000000000002.closed": "eyJvbGRlciI6dHJ1ZX0K",
+          "logs/.cis-log-f2d69a38a446482ca59762aa86bd9e3e-00000000000000000003.closed": "eyJlYXJsaWVyIjp0cnVlfQo=",
+          "logs/.cis-log-f2d69a38a446482ca59762aa86bd9e3e-00000000000000000050.closed": "dW5saXN0ZWQgbmVpZ2hib3IK",
+          "logs/\u03a9-\ud83d\ude42.log": "eyJmcmVzaCI6dHJ1ZX0K",
+          "logs/\u03a9-\ud83d\ude42.log.cis.inventory.json": "eyJzY2hlbWEiOjEsImdyb3VwSWQiOiJmMmQ2OWEzOGE0NDY0ODJjYTU5NzYyYWE4NmJkOWUzZSIsImZvcm1hdCI6Impzb25sIiwiZW5jb2RpbmciOiJ1dGYtOCIsImJvbSI6ZmFsc2UsIm5ld2xpbmUiOiJsZiIsInNlZ21lbnRzIjpbeyJpZCI6MiwiZmlsZU5hbWUiOiIuY2lzLWxvZy1mMmQ2OWEzOGE0NDY0ODJjYTU5NzYyYWE4NmJkOWUzZS0wMDAwMDAwMDAwMDAwMDAwMDAwMi5jbG9zZWQiLCJzdGF0ZSI6ImNsb3NlZCJ9LHsiaWQiOjMsImZpbGVOYW1lIjoiLmNpcy1sb2ctZjJkNjlhMzhhNDQ2NDgyY2E1OTc2MmFhODZiZDllM2UtMDAwMDAwMDAwMDAwMDAwMDAwMDMuY2xvc2VkIiwic3RhdGUiOiJjbG9zZWQifSx7ImlkIjo0LCJmaWxlTmFtZSI6Ilx1MDNBOS1cdUQ4M0RcdURFNDIubG9nIiwic3RhdGUiOiJhY3RpdmUifV19Cg==",
+          "logs/\u03a9-\ud83d\ude42.log.cis.lock": "",
+          "logs/\u03a9-\ud83d\ude42.log.cis.transition.json": "eyJzY2hlbWEiOjEsInJlY292ZXJ5IjpmYWxzZSwicmV0YWluZWRMaW1pdCI6Miwib3JpZ2luYWxCeXRlcyI6MTcsIm9yaWdpbmFsU2hhMjU2IjoiNDRjZTRhMTdhMDU1NGIyOWZmYjMzMThkNGY1Nzg4ZTU5N2UxNjNiYzA2ZWEyMTgyYjAzYzIzNWM2YWVhZDFlZCIsInByZXZpb3VzIjp7InNjaGVtYSI6MSwiZ3JvdXBJZCI6ImYyZDY5YTM4YTQ0NjQ4MmNhNTk3NjJhYTg2YmQ5ZTNlIiwiZm9ybWF0IjoianNvbmwiLCJlbmNvZGluZyI6InV0Zi04IiwiYm9tIjpmYWxzZSwibmV3bGluZSI6ImxmIiwic2VnbWVudHMiOlt7ImlkIjoxLCJmaWxlTmFtZSI6Ii5jaXMtbG9nLWYyZDY5YTM4YTQ0NjQ4MmNhNTk3NjJhYTg2YmQ5ZTNlLTAwMDAwMDAwMDAwMDAwMDAwMDAxLmRhbWFnZWQiLCJzdGF0ZSI6ImRhbWFnZWQifSx7ImlkIjoyLCJmaWxlTmFtZSI6Ii5jaXMtbG9nLWYyZDY5YTM4YTQ0NjQ4MmNhNTk3NjJhYTg2YmQ5ZTNlLTAwMDAwMDAwMDAwMDAwMDAwMDAyLmNsb3NlZCIsInN0YXRlIjoiY2xvc2VkIn0seyJpZCI6MywiZmlsZU5hbWUiOiJcdTAzQTktXHVEODNEXHVERTQyLmxvZyIsInN0YXRlIjoiYWN0aXZlIn1dfSwibmV4dCI6eyJzY2hlbWEiOjEsImdyb3VwSWQiOiJmMmQ2OWEzOGE0NDY0ODJjYTU5NzYyYWE4NmJkOWUzZSIsImZvcm1hdCI6Impzb25sIiwiZW5jb2RpbmciOiJ1dGYtOCIsImJvbSI6ZmFsc2UsIm5ld2xpbmUiOiJsZiIsInNlZ21lbnRzIjpbeyJpZCI6MiwiZmlsZU5hbWUiOiIuY2lzLWxvZy1mMmQ2OWEzOGE0NDY0ODJjYTU5NzYyYWE4NmJkOWUzZS0wMDAwMDAwMDAwMDAwMDAwMDAwMi5jbG9zZWQiLCJzdGF0ZSI6ImNsb3NlZCJ9LHsiaWQiOjMsImZpbGVOYW1lIjoiLmNpcy1sb2ctZjJkNjlhMzhhNDQ2NDgyY2E1OTc2MmFhODZiZDllM2UtMDAwMDAwMDAwMDAwMDAwMDAwMDMuY2xvc2VkIiwic3RhdGUiOiJjbG9zZWQifSx7ImlkIjo0LCJmaWxlTmFtZSI6Ilx1MDNBOS1cdUQ4M0RcdURFNDIubG9nIiwic3RhdGUiOiJhY3RpdmUifV19fQo=",
+          "neighbor.bin": "/wD+"
+        },
+        "after": {
+          "logs/.cis-log-f2d69a38a446482ca59762aa86bd9e3e-00000000000000000002.closed": "eyJvbGRlciI6dHJ1ZX0K",
+          "logs/.cis-log-f2d69a38a446482ca59762aa86bd9e3e-00000000000000000003.closed": "eyJlYXJsaWVyIjp0cnVlfQo=",
+          "logs/.cis-log-f2d69a38a446482ca59762aa86bd9e3e-00000000000000000050.closed": "dW5saXN0ZWQgbmVpZ2hib3IK",
+          "logs/\u03a9-\ud83d\ude42.log": "eyJmcmVzaCI6dHJ1ZX0K",
+          "logs/\u03a9-\ud83d\ude42.log.cis.inventory.json": "eyJzY2hlbWEiOjEsImdyb3VwSWQiOiJmMmQ2OWEzOGE0NDY0ODJjYTU5NzYyYWE4NmJkOWUzZSIsImZvcm1hdCI6Impzb25sIiwiZW5jb2RpbmciOiJ1dGYtOCIsImJvbSI6ZmFsc2UsIm5ld2xpbmUiOiJsZiIsInNlZ21lbnRzIjpbeyJpZCI6MiwiZmlsZU5hbWUiOiIuY2lzLWxvZy1mMmQ2OWEzOGE0NDY0ODJjYTU5NzYyYWE4NmJkOWUzZS0wMDAwMDAwMDAwMDAwMDAwMDAwMi5jbG9zZWQiLCJzdGF0ZSI6ImNsb3NlZCJ9LHsiaWQiOjMsImZpbGVOYW1lIjoiLmNpcy1sb2ctZjJkNjlhMzhhNDQ2NDgyY2E1OTc2MmFhODZiZDllM2UtMDAwMDAwMDAwMDAwMDAwMDAwMDMuY2xvc2VkIiwic3RhdGUiOiJjbG9zZWQifSx7ImlkIjo0LCJmaWxlTmFtZSI6Ilx1MDNBOS1cdUQ4M0RcdURFNDIubG9nIiwic3RhdGUiOiJhY3RpdmUifV19Cg==",
+          "logs/\u03a9-\ud83d\ude42.log.cis.lock": "",
+          "logs/\u03a9-\ud83d\ude42.log.cis.transition.json": "eyJzY2hlbWEiOjEsInJlY292ZXJ5IjpmYWxzZSwicmV0YWluZWRMaW1pdCI6Miwib3JpZ2luYWxCeXRlcyI6MTcsIm9yaWdpbmFsU2hhMjU2IjoiNDRjZTRhMTdhMDU1NGIyOWZmYjMzMThkNGY1Nzg4ZTU5N2UxNjNiYzA2ZWEyMTgyYjAzYzIzNWM2YWVhZDFlZCIsInByZXZpb3VzIjp7InNjaGVtYSI6MSwiZ3JvdXBJZCI6ImYyZDY5YTM4YTQ0NjQ4MmNhNTk3NjJhYTg2YmQ5ZTNlIiwiZm9ybWF0IjoianNvbmwiLCJlbmNvZGluZyI6InV0Zi04IiwiYm9tIjpmYWxzZSwibmV3bGluZSI6ImxmIiwic2VnbWVudHMiOlt7ImlkIjoxLCJmaWxlTmFtZSI6Ii5jaXMtbG9nLWYyZDY5YTM4YTQ0NjQ4MmNhNTk3NjJhYTg2YmQ5ZTNlLTAwMDAwMDAwMDAwMDAwMDAwMDAxLmRhbWFnZWQiLCJzdGF0ZSI6ImRhbWFnZWQifSx7ImlkIjoyLCJmaWxlTmFtZSI6Ii5jaXMtbG9nLWYyZDY5YTM4YTQ0NjQ4MmNhNTk3NjJhYTg2YmQ5ZTNlLTAwMDAwMDAwMDAwMDAwMDAwMDAyLmNsb3NlZCIsInN0YXRlIjoiY2xvc2VkIn0seyJpZCI6MywiZmlsZU5hbWUiOiJcdTAzQTktXHVEODNEXHVERTQyLmxvZyIsInN0YXRlIjoiYWN0aXZlIn1dfSwibmV4dCI6eyJzY2hlbWEiOjEsImdyb3VwSWQiOiJmMmQ2OWEzOGE0NDY0ODJjYTU5NzYyYWE4NmJkOWUzZSIsImZvcm1hdCI6Impzb25sIiwiZW5jb2RpbmciOiJ1dGYtOCIsImJvbSI6ZmFsc2UsIm5ld2xpbmUiOiJsZiIsInNlZ21lbnRzIjpbeyJpZCI6MiwiZmlsZU5hbWUiOiIuY2lzLWxvZy1mMmQ2OWEzOGE0NDY0ODJjYTU5NzYyYWE4NmJkOWUzZS0wMDAwMDAwMDAwMDAwMDAwMDAwMi5jbG9zZWQiLCJzdGF0ZSI6ImNsb3NlZCJ9LHsiaWQiOjMsImZpbGVOYW1lIjoiLmNpcy1sb2ctZjJkNjlhMzhhNDQ2NDgyY2E1OTc2MmFhODZiZDllM2UtMDAwMDAwMDAwMDAwMDAwMDAwMDMuY2xvc2VkIiwic3RhdGUiOiJjbG9zZWQifSx7ImlkIjo0LCJmaWxlTmFtZSI6Ilx1MDNBOS1cdUQ4M0RcdURFNDIubG9nIiwic3RhdGUiOiJhY3RpdmUifV19fQo=",
+          "neighbor.bin": "/wD+"
+        },
+        "error": {
+          "code": "FileTransitionIncompatible",
+          "output": "file",
+          "message": "Logging output 'file' could not initialize (FileTransitionIncompatible).",
+          "inner": false,
+          "dataCount": 0
+        },
+        "outcome": null,
+        "recovered": false,
+        "restartRecovered": false,
+        "final": null,
+        "leaseReleased": true,
+        "dataReleased": true
+      },
+      "stdoutSha256": "9bdd123f25300245e36158b6960a9cdfb584a7dccc7fb50bd12dc4bcf5741c28",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "id": "retirement-no-intent",
+      "pid": 168640,
+      "exitCode": 0,
+      "command": [
+        "dotnet",
+        "exec",
+        "--fx-version",
+        "10.0.12",
+        "--roll-forward",
+        "Disable",
+        "C:\\miscwork\\portfolio\\cislib\\.artifacts\\csharp\\tasks\\wp05-s07-t03\\native-host\\CIS.Core.DiscoveryFixture.dll",
+        "file-transition",
+        "retirement-no-intent",
+        "C:\\Users\\andrs\\AppData\\Local\\Temp\\cislib-transition-gtm9wp5b\\retirement-no-intent"
+      ],
+      "report": {
+        "mode": "retirement-no-intent",
+        "composition": "staged-physical-transition-to-configured-runtime",
+        "pid": 168640,
+        "runtime": ".NET 10.0.12",
+        "os": "windows",
+        "path": "C:\\Users\\andrs\\AppData\\Local\\Temp\\cislib-transition-gtm9wp5b\\retirement-no-intent\\logs\\\u03a9-\ud83d\ude42.log",
+        "group": "c34b659697634ae3983442291fa177e6",
+        "coreSha256": "99c0ef11b94830142754d90f36dc6f450433eb3e8ccacf41675c6dcc4c9827a4",
+        "fixtureSha256": "05f3e66287ae098557fc4524f9d06853650bc0f56522b4e6e25bca425ba2ae9f",
+        "before": {
+          "logs/.cis-log-c34b659697634ae3983442291fa177e6-00000000000000000002.closed": "eyJvbGRlciI6dHJ1ZX0K",
+          "logs/.cis-log-c34b659697634ae3983442291fa177e6-00000000000000000050.closed": "dW5saXN0ZWQgbmVpZ2hib3IK",
+          "logs/\u03a9-\ud83d\ude42.log": "eyJlYXJsaWVyIjp0cnVlfQo=",
+          "logs/\u03a9-\ud83d\ude42.log.cis.inventory.json": "eyJzY2hlbWEiOjEsImdyb3VwSWQiOiJjMzRiNjU5Njk3NjM0YWUzOTgzNDQyMjkxZmExNzdlNiIsImZvcm1hdCI6Impzb25sIiwiZW5jb2RpbmciOiJ1dGYtOCIsImJvbSI6ZmFsc2UsIm5ld2xpbmUiOiJsZiIsInNlZ21lbnRzIjpbeyJpZCI6MSwiZmlsZU5hbWUiOiIuY2lzLWxvZy1jMzRiNjU5Njk3NjM0YWUzOTgzNDQyMjkxZmExNzdlNi0wMDAwMDAwMDAwMDAwMDAwMDAwMS5kYW1hZ2VkIiwic3RhdGUiOiJkYW1hZ2VkIn0seyJpZCI6MiwiZmlsZU5hbWUiOiIuY2lzLWxvZy1jMzRiNjU5Njk3NjM0YWUzOTgzNDQyMjkxZmExNzdlNi0wMDAwMDAwMDAwMDAwMDAwMDAwMi5jbG9zZWQiLCJzdGF0ZSI6ImNsb3NlZCJ9LHsiaWQiOjMsImZpbGVOYW1lIjoiXHUwM0E5LVx1RDgzRFx1REU0Mi5sb2ciLCJzdGF0ZSI6ImFjdGl2ZSJ9XX0=",
+          "logs/\u03a9-\ud83d\ude42.log.cis.lock": "",
+          "neighbor.bin": "/wD+"
+        },
+        "after": {
+          "logs/.cis-log-c34b659697634ae3983442291fa177e6-00000000000000000002.closed": "eyJvbGRlciI6dHJ1ZX0K",
+          "logs/.cis-log-c34b659697634ae3983442291fa177e6-00000000000000000050.closed": "dW5saXN0ZWQgbmVpZ2hib3IK",
+          "logs/\u03a9-\ud83d\ude42.log": "eyJlYXJsaWVyIjp0cnVlfQo=",
+          "logs/\u03a9-\ud83d\ude42.log.cis.inventory.json": "eyJzY2hlbWEiOjEsImdyb3VwSWQiOiJjMzRiNjU5Njk3NjM0YWUzOTgzNDQyMjkxZmExNzdlNiIsImZvcm1hdCI6Impzb25sIiwiZW5jb2RpbmciOiJ1dGYtOCIsImJvbSI6ZmFsc2UsIm5ld2xpbmUiOiJsZiIsInNlZ21lbnRzIjpbeyJpZCI6MSwiZmlsZU5hbWUiOiIuY2lzLWxvZy1jMzRiNjU5Njk3NjM0YWUzOTgzNDQyMjkxZmExNzdlNi0wMDAwMDAwMDAwMDAwMDAwMDAwMS5kYW1hZ2VkIiwic3RhdGUiOiJkYW1hZ2VkIn0seyJpZCI6MiwiZmlsZU5hbWUiOiIuY2lzLWxvZy1jMzRiNjU5Njk3NjM0YWUzOTgzNDQyMjkxZmExNzdlNi0wMDAwMDAwMDAwMDAwMDAwMDAwMi5jbG9zZWQiLCJzdGF0ZSI6ImNsb3NlZCJ9LHsiaWQiOjMsImZpbGVOYW1lIjoiXHUwM0E5LVx1RDgzRFx1REU0Mi5sb2ciLCJzdGF0ZSI6ImFjdGl2ZSJ9XX0=",
+          "logs/\u03a9-\ud83d\ude42.log.cis.lock": "",
+          "neighbor.bin": "/wD+"
+        },
+        "error": {
+          "code": "FileInventoryIncompatible",
+          "output": "file",
+          "message": "Logging output 'file' could not initialize (FileInventoryIncompatible).",
+          "inner": false,
+          "dataCount": 0
+        },
+        "outcome": null,
+        "recovered": false,
+        "restartRecovered": false,
+        "final": null,
+        "leaseReleased": true,
+        "dataReleased": true
+      },
+      "stdoutSha256": "b43f7a0006961a14f7bb432105eb80357b340f50e041b0c339381c3ba258da05",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ],
+  "controls": [
+    {
+      "id": "composition",
+      "rejected": true,
+      "reason": "composition"
+    },
+    {
+      "id": "release",
+      "rejected": true,
+      "reason": "in-process release"
+    },
+    {
+      "id": "intent",
+      "rejected": true,
+      "reason": "pending intent"
+    },
+    {
+      "id": "code",
+      "rejected": true,
+      "reason": "safe failure"
+    },
+    {
+      "id": "failure-growth",
+      "rejected": true,
+      "reason": "unchanged failure"
+    },
+    {
+      "id": "flag",
+      "rejected": true,
+      "reason": "recovery diagnostics"
+    },
+    {
+      "id": "restart-flag",
+      "rejected": true,
+      "reason": "recovery diagnostics"
+    },
+    {
+      "id": "accounting",
+      "rejected": true,
+      "reason": "delivery accounting"
+    },
+    {
+      "id": "record",
+      "rejected": true,
+      "reason": "fresh record"
+    },
+    {
+      "id": "inventory",
+      "rejected": true,
+      "reason": "next inventory"
+    },
+    {
+      "id": "archive",
+      "rejected": true,
+      "reason": "exact physical transition"
+    },
+    {
+      "id": "neighbor",
+      "rejected": true,
+      "reason": "exact physical transition"
+    }
+  ]
+}

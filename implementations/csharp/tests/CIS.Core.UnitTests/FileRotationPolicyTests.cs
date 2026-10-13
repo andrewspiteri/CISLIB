@@ -28,9 +28,10 @@ public sealed class FileRotationPolicyTests
     [DataRow("release")]
     [DataRow("accounting")]
     [DataRow("candidate-content")]
+    [DataRow("transition-content")]
     public async Task RotationPolicyMatcherRejectsLostFailureEvidence(string corruption)
     {
-        using var root = new TemporaryDirectory(); string mode = corruption == "candidate-content" ? "metadata-jsonl-directory" : "collision-jsonl-file"; JsonObject actual = await FileRotationPolicyFixture.ExecuteAsync(mode, root.Path); FileRotationPolicyExpectations.Validate(mode, actual);
+        using var root = new TemporaryDirectory(); string mode = corruption is "candidate-content" or "transition-content" ? "metadata-jsonl-directory" : "collision-jsonl-file"; JsonObject actual = await FileRotationPolicyFixture.ExecuteAsync(mode, root.Path); FileRotationPolicyExpectations.Validate(mode, actual);
         switch (corruption)
         {
             case "filesystem": actual["after"]!.AsObject().Remove(actual["after"]!.AsObject().Select(x => x.Key).Single(x => x.EndsWith("00000000000000000001.closed", StringComparison.Ordinal) && !x.Contains("ffffffff", StringComparison.Ordinal))); break;
@@ -38,11 +39,13 @@ public sealed class FileRotationPolicyTests
             case "code": actual["fault"]!["outputs"]![1]!["faultCode"] = "Other"; break;
             case "console": actual["final"]!["outputs"]![0]!["written"] = 0L; break;
             case "release": actual["leaseReleased"] = false; break;
+            case "transition-content":
+                string pending = actual["after"]!.AsObject().Select(x => x.Key).Single(x => x.EndsWith(".cis.transition.json", StringComparison.Ordinal)); JsonObject intent = JsonNode.Parse(Convert.FromBase64String(actual["after"]![pending]!.GetValue<string>()))!.AsObject(); intent["originalSha256"] = new string('0', 64); actual["after"]![pending] = Convert.ToBase64String(System.Text.Encoding.UTF8.GetBytes(intent.ToJsonString() + "\n")); break;
             case "candidate-content":
                 string candidate = actual["after"]!.AsObject().Select(x => x.Key).Single(x => x.EndsWith(".tmp", StringComparison.Ordinal)); JsonObject next = JsonNode.Parse(Convert.FromBase64String(actual["after"]![candidate]!.GetValue<string>()))!.AsObject(); next["segments"]!.AsArray()[^1]!["id"] = 1L; actual["after"]![candidate] = Convert.ToBase64String(System.Text.Encoding.UTF8.GetBytes(next.ToJsonString() + "\n")); break;
             default: actual["final"]!["outputs"]![1]!["abandoned"] = 0L; break;
         }
         InvalidDataException error = Assert.ThrowsExactly<InvalidDataException>(() => FileRotationPolicyExpectations.Validate(mode, actual));
-        Assert.AreEqual(corruption switch { "filesystem" => "exact filesystem transition", "membership" => "exact membership", "code" => "terminal fault", "console" => "console progress", "release" => "physical creation/release", "candidate-content" => "candidate inventory", _ => "file accounting" }, error.Message);
+        Assert.AreEqual(corruption switch { "filesystem" => "exact filesystem transition", "membership" => "exact membership", "code" => "terminal fault", "console" => "console progress", "release" => "physical creation/release", "candidate-content" => "candidate inventory", "transition-content" => "transition intent", _ => "file accounting" }, error.Message);
     }
 }

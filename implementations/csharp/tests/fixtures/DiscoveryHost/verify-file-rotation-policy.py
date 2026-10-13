@@ -26,7 +26,7 @@ def check(mode,a):
     require(a['mode']==mode and a['composition']==('configured-runtime-os-capacity' if limited else 'controlled-write-with-real-first-record' if write else 'configured-runtime'),'composition')
     require(a['directoryInitiallyMissing'] is True and a['leaseReleased'] is True and a['dataReleased'] is True,'physical creation/release')
     require(a['borrowedDisposes']==0 and a['factories']==4 and a['launches']==2 and a['stopped']=='Stopped','lifecycle')
-    require(a['exceptionType'] in (('ArgumentOutOfRangeException',) if limited else ('IOException','UnauthorizedAccessException')) and a['restartError']==('FileInventoryInitializationFailed' if metadata else None),'safe IO/restart')
+    require(a['exceptionType'] in (('ArgumentOutOfRangeException',) if limited else ('IOException','UnauthorizedAccessException')) and a['restartError']==('FileTransitionInitializationFailed' if metadata else None),'safe IO/restart')
     for phase in ('fault','final'):
         d=a[phase];require(d['state']==('Running' if phase=='fault' else 'Stopped'),'runtime state');outputs={x['name']:x for x in d['outputs']};require(set(outputs)=={'console','file'},'output names');f=outputs['file'];c=outputs['console']
         require(f['state']==('Faulted' if phase=='fault' else 'Stopped') and f['faultCode']=='WriteFailed' and datetime.datetime.fromisoformat(f['faultAt']).utcoffset()==datetime.timedelta(0),'terminal fault')
@@ -50,6 +50,8 @@ def check(mode,a):
         if metadata:
             require(decoded(before[meta+'/keep.txt'])==b'metadata collision\n','metadata collision');expected[closed]=expected.pop(active);expected.pop(oldest)
             candidates=[x for x in after if x.startswith(meta+'.') and x.endswith('.tmp')];require(len(candidates)==1,'private inventory candidate');candidate=candidates[0];require(re.fullmatch(re.escape(meta)+r'\.[0-9a-f]{32}\.tmp',candidate),'candidate name');raw=decoded(after[candidate]);require(raw.endswith(b'\n') and b'\r' not in raw and not raw.startswith(b'\xef\xbb\xbf'),'candidate framing');require(json.loads(raw)==dict(head,segments=[dict(id=2,fileName=closed[5:],state='closed'),dict(id=3,fileName=ACTIVE,state='active')]),'candidate inventory');expected[candidate]=after[candidate]
+            pending=active+'.cis.transition.json';raw=decoded(after[pending]);prior=decoded(before[active]);previous=dict(head,segments=[dict(id=1,fileName=oldest[5:],state='closed'),dict(id=2,fileName=ACTIVE,state='active')]);updated=dict(head,segments=[dict(id=2,fileName=closed[5:],state='closed'),dict(id=3,fileName=ACTIVE,state='active')])
+            require(raw.endswith(b'\n') and b'\r' not in raw and not raw.startswith(b'\xef\xbb\xbf') and json.loads(raw)==dict(schema=1,recovery=False,retainedLimit=1,originalBytes=len(prior),originalSha256=digest(prior),previous=previous,next=updated),'transition intent');expected[pending]=after[pending]
         else:
             require(json.loads(decoded(before[meta]))==dict(head,segments=[dict(id=1,fileName=oldest[5:],state='closed'),dict(id=2,fileName=ACTIVE,state='active')]),'literal initial inventory');collision=closed if mode.endswith('file') else closed+'/keep.txt';keys.add(collision);require(decoded(before[collision])==b'unrelated collision\n','collision bytes')
     require(set(before)==keys,'exact preimage membership');require(after==expected,'exact filesystem transition')
@@ -89,19 +91,21 @@ def main():
                 finally:
                     reader.join(timeout=10);errors.join(timeout=10);(out/(mode+'.stdout.bin')).write_bytes(b''.join(original));(out/(mode+'.stderr.bin')).write_bytes(b''.join(stderr));p.stdin.close();p.stdout.close();p.stderr.close()
             if capacity is not None:require(p.poll() is not None,'owned cap process still live');capacity['processExited']=True;limits.append(capacity)
-        reasons={'filesystem':'exact filesystem transition','membership':'exact membership','code':'terminal fault','console':'console progress','release':'physical creation/release','accounting':'file accounting','candidate-content':'candidate inventory'}
+        reasons={'filesystem':'exact filesystem transition','membership':'exact membership','code':'terminal fault','console':'console progress','release':'physical creation/release','accounting':'file accounting','candidate-content':'candidate inventory','transition-content':'transition intent'}
         for key,reason in reasons.items():
-            bad=copy.deepcopy(publication if key=='candidate-content' else sample);mode='metadata-jsonl-directory' if key=='candidate-content' else 'collision-jsonl-file'
+            bad=copy.deepcopy(publication if key in ('candidate-content','transition-content') else sample);mode='metadata-jsonl-directory' if key in ('candidate-content','transition-content') else 'collision-jsonl-file'
             if key=='filesystem':bad['after'][next(x for x in bad['after'] if x.endswith('00000000000000000001.closed') and 'ffffffff' not in x)]=''
             elif key=='membership':bad['namesAfter'].append('new.closed')
             elif key=='code':bad['fault']['outputs'][1]['faultCode']='Other'
             elif key=='console':bad['final']['outputs'][0]['written']=0
             elif key=='release':bad['leaseReleased']=False
             elif key=='accounting':bad['final']['outputs'][1]['abandoned']=0
+            elif key=='transition-content':
+                pending=next(x for x in bad['after'] if x.endswith('.cis.transition.json'));value=json.loads(decoded(bad['after'][pending]));value['originalSha256']='0'*64;bad['after'][pending]=base64.b64encode((json.dumps(value)+'\n').encode()).decode('ascii')
             else:
                 candidate=next(x for x in bad['after'] if x.endswith('.tmp'));value=json.loads(decoded(bad['after'][candidate]));value['segments'][-1]['id']=1;bad['after'][candidate]=base64.b64encode((json.dumps(value)+'\n').encode()).decode('ascii')
             try:check(mode,bad)
             except AssertionError as error:require(str(error)==reason,'control reached wrong assertion');controls.append(dict(id=key,rejected=True,reason=str(error)))
             else:raise AssertionError('corruption accepted: '+key)
-    report=dict(schema='cis.logging.file-rotation-policy-native/v1',task='WP05-S06-T04',family=args.family,runtime='.NET 10.0.12',children=len(cases),coreSha256=core,fixtureSha256=fixture,verifierSha256=sha(__file__),cases=cases,limits=limits,controls=controls);(out/'report.json').write_text(json.dumps(report,indent=2)+'\n',encoding='utf-8',newline='\n');print(json.dumps(dict(family=args.family,children=len(cases),processCapacityLimits=len(limits),controls=7,passed=True)))
+    report=dict(schema='cis.logging.file-rotation-policy-native/v1',task='WP05-S06-T04',family=args.family,runtime='.NET 10.0.12',children=len(cases),coreSha256=core,fixtureSha256=fixture,verifierSha256=sha(__file__),cases=cases,limits=limits,controls=controls);(out/'report.json').write_text(json.dumps(report,indent=2)+'\n',encoding='utf-8',newline='\n');print(json.dumps(dict(family=args.family,children=len(cases),processCapacityLimits=len(limits),controls=8,passed=True)))
 if __name__=='__main__':main()
