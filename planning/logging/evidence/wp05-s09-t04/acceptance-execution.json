@@ -1,0 +1,188 @@
+{
+  "schema": "cis.logging.file-timer-acceptance-execution/v1",
+  "task": "WP05-S09-T04",
+  "sourceMapSha256": "700482bdabafd829c12ff912039ecc87fb484e805306ee47ace469ffa315f7ae",
+  "sourcePlanSha256": "41f1568583c9a04c783dd6db5fe80cd24ba8a6142a78983f910c4973e72bf7a5",
+  "verifierSha256": "9dd02b80d1741403efe4a0e763a73426c7e55497c9e47ad954c9f615c4fb1444",
+  "coreSha256": "a0e447f78d9b1f9d255a7202f1be5c47cf39b1388444dc394d61ebc415763525",
+  "fixtureSha256": "63647f4cf07b64758e704ea5501aad2f2917a506e1a6e1cd7ecdf710c3a32d01",
+  "criteria": [
+    {
+      "id": "WP05-S09-AC01",
+      "original": "After one written event followed by idle time, advancing the configured interval schedules a file-buffer flush without requiring another log event.",
+      "bindings": {
+        "interval": [
+          "idle-min",
+          "idle-default",
+          "idle-max",
+          "configured",
+          "env"
+        ]
+      },
+      "platforms": [
+        "windows",
+        "linux"
+      ],
+      "status": "Executed native case bindings",
+      "documentedContract": null,
+      "documentedContractStatus": null
+    },
+    {
+      "id": "WP05-S09-AC02",
+      "original": "Timer, explicit flush, and writes never execute concurrently on the same writer; blocked I/O delays completion but does not spawn accumulating timer tasks.",
+      "bindings": {
+        "timer": [
+          "blocked-write",
+          "blocked-flush",
+          "continuous"
+        ],
+        "lifecycle": [
+          "close-write",
+          "close-flush"
+        ]
+      },
+      "platforms": [
+        "windows",
+        "linux"
+      ],
+      "status": "Executed native case bindings",
+      "documentedContract": null,
+      "documentedContractStatus": null
+    },
+    {
+      "id": "WP05-S09-AC03",
+      "original": "The interval is reported as a scheduling target, not a completion/durability guarantee; file flush failure remains visible and other outputs continue.",
+      "bindings": {
+        "timer": [
+          "blocked-flush"
+        ],
+        "lifecycle": [
+          "flush-failure",
+          "flush-failure-callback",
+          "admission-fault"
+        ]
+      },
+      "platforms": [
+        "windows",
+        "linux"
+      ],
+      "status": "Executed native case bindings",
+      "documentedContract": {
+        "path": "implementations/csharp/src/CIS.Core/Logging/LoggingOptions.cs",
+        "property": "FlushIntervalMilliseconds",
+        "remarksPhrase": "scheduling target, not a completion or durability guarantee"
+      },
+      "documentedContractStatus": "Documented scheduling-target and guarantee limits checked separately from execution"
+    },
+    {
+      "id": "WP05-S09-AC04",
+      "original": "Stopped/faulted outputs do not restart periodic work, and timer behavior is verified without arbitrary sleeps as proof of correctness.",
+      "bindings": {
+        "qualification": [
+          "stopped-rearm",
+          "faulted-rearm"
+        ],
+        "timer": [
+          "duplicate-start",
+          "closed-start",
+          "detach-before-arm",
+          "detach-system-before-arm"
+        ],
+        "lifecycle": [
+          "close-callback",
+          "flush-failure-callback",
+          "detached-arm-throw"
+        ]
+      },
+      "platforms": [
+        "windows",
+        "linux"
+      ],
+      "status": "Executed native case bindings",
+      "documentedContract": null,
+      "documentedContractStatus": null
+    }
+  ],
+  "supplemental": {
+    "interval": [
+      "console-only",
+      "file-none",
+      "create-failure",
+      "arm-failure",
+      "below",
+      "above"
+    ],
+    "timer": [
+      "arm-false",
+      "arm-disposed"
+    ]
+  },
+  "rejectionControls": [
+    {
+      "id": "missing-report",
+      "rejected": true,
+      "reason": "native report missing"
+    },
+    {
+      "id": "missing-case",
+      "rejected": true,
+      "reason": "native case membership"
+    },
+    {
+      "id": "duplicate-case",
+      "rejected": true,
+      "reason": "duplicate native cases"
+    },
+    {
+      "id": "failed",
+      "rejected": true,
+      "reason": "native child failed"
+    },
+    {
+      "id": "assembly",
+      "rejected": true,
+      "reason": "assembly bytes"
+    },
+    {
+      "id": "task",
+      "rejected": true,
+      "reason": "native task identity"
+    },
+    {
+      "id": "base",
+      "rejected": true,
+      "reason": "base verifier bytes"
+    },
+    {
+      "id": "controls",
+      "rejected": true,
+      "reason": "complete lane controls"
+    },
+    {
+      "id": "verifier",
+      "rejected": true,
+      "reason": "verifier bytes"
+    },
+    {
+      "id": "inventory",
+      "rejected": true,
+      "reason": "case inventory bytes"
+    },
+    {
+      "id": "platform",
+      "rejected": true,
+      "reason": "native report identity"
+    },
+    {
+      "id": "stdout",
+      "rejected": true,
+      "reason": "original stdout bytes"
+    },
+    {
+      "id": "semantic-consistent-bytes",
+      "rejected": true,
+      "reason": "original task identities"
+    }
+  ],
+  "scope": "Real Core periodic scheduling, fixed controls and terminal output closure/fault, using controlled time and actual worker/callback/physical ownership evidence. Public bounded StopAsync/DisposeAsync and general custom-disposal failures remain dependent WP05-S10; no release or OS timer-resolution/durability claim."
+}

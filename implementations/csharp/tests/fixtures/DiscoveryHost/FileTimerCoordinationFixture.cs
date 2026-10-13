@@ -194,7 +194,7 @@ internal static class FileTimerCoordinationFixture
         finally { clock.ArmRelease.TrySetResult(); if (starter is not null) { await starter.WaitAsync(Guard); } await Cleanup(runtime, writer); }
     }
     // Nonshipping clock for periodic and caller-deadline requests. No active-callback join qualification is claimed.
-    private sealed class Clock : TimeProvider
+    internal sealed class Clock : TimeProvider
     {
         private readonly object gate = new();
         private readonly List<Timer> timers = [];

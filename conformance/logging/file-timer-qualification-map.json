@@ -1,0 +1,136 @@
+{
+  "schema": "cis.logging.file-timer-qualification-map/v1",
+  "story": "WP05-S09",
+  "task": "WP05-S09-T04",
+  "scope": "Real Core periodic scheduling, fixed controls and terminal output closure/fault, using controlled time and actual worker/callback/physical ownership evidence. Public bounded StopAsync/DisposeAsync and general custom-disposal failures remain dependent WP05-S10; no release or OS timer-resolution/durability claim.",
+  "criteria": [
+    {
+      "id": "WP05-S09-AC01",
+      "original": "After one written event followed by idle time, advancing the configured interval schedules a file-buffer flush without requiring another log event.",
+      "nativeLanes": {
+        "interval": [
+          "idle-min",
+          "idle-default",
+          "idle-max",
+          "configured",
+          "env"
+        ]
+      },
+      "platforms": [
+        "windows",
+        "linux"
+      ],
+      "limits": "Real Core periodic scheduling, fixed controls and terminal output closure/fault, using controlled time and actual worker/callback/physical ownership evidence. Public bounded StopAsync/DisposeAsync and general custom-disposal failures remain dependent WP05-S10; no release or OS timer-resolution/durability claim."
+    },
+    {
+      "id": "WP05-S09-AC02",
+      "original": "Timer, explicit flush, and writes never execute concurrently on the same writer; blocked I/O delays completion but does not spawn accumulating timer tasks.",
+      "nativeLanes": {
+        "timer": [
+          "blocked-write",
+          "blocked-flush",
+          "continuous"
+        ],
+        "lifecycle": [
+          "close-write",
+          "close-flush"
+        ]
+      },
+      "platforms": [
+        "windows",
+        "linux"
+      ],
+      "limits": "Real Core periodic scheduling, fixed controls and terminal output closure/fault, using controlled time and actual worker/callback/physical ownership evidence. Public bounded StopAsync/DisposeAsync and general custom-disposal failures remain dependent WP05-S10; no release or OS timer-resolution/durability claim."
+    },
+    {
+      "id": "WP05-S09-AC03",
+      "original": "The interval is reported as a scheduling target, not a completion/durability guarantee; file flush failure remains visible and other outputs continue.",
+      "nativeLanes": {
+        "timer": [
+          "blocked-flush"
+        ],
+        "lifecycle": [
+          "flush-failure",
+          "flush-failure-callback",
+          "admission-fault"
+        ]
+      },
+      "platforms": [
+        "windows",
+        "linux"
+      ],
+      "limits": "Real Core periodic scheduling, fixed controls and terminal output closure/fault, using controlled time and actual worker/callback/physical ownership evidence. Public bounded StopAsync/DisposeAsync and general custom-disposal failures remain dependent WP05-S10; no release or OS timer-resolution/durability claim.",
+      "documentedContract": {
+        "path": "implementations/csharp/src/CIS.Core/Logging/LoggingOptions.cs",
+        "property": "FlushIntervalMilliseconds",
+        "remarksPhrase": "scheduling target, not a completion or durability guarantee"
+      }
+    },
+    {
+      "id": "WP05-S09-AC04",
+      "original": "Stopped/faulted outputs do not restart periodic work, and timer behavior is verified without arbitrary sleeps as proof of correctness.",
+      "nativeLanes": {
+        "qualification": [
+          "stopped-rearm",
+          "faulted-rearm"
+        ],
+        "timer": [
+          "duplicate-start",
+          "closed-start",
+          "detach-before-arm",
+          "detach-system-before-arm"
+        ],
+        "lifecycle": [
+          "close-callback",
+          "flush-failure-callback",
+          "detached-arm-throw"
+        ]
+      },
+      "platforms": [
+        "windows",
+        "linux"
+      ],
+      "limits": "Real Core periodic scheduling, fixed controls and terminal output closure/fault, using controlled time and actual worker/callback/physical ownership evidence. Public bounded StopAsync/DisposeAsync and general custom-disposal failures remain dependent WP05-S10; no release or OS timer-resolution/durability claim."
+    }
+  ],
+  "lanes": {
+    "interval": {
+      "verifier": "implementations/csharp/tests/fixtures/DiscoveryHost/verify-file-interval.py",
+      "reportSchema": "cis.logging.file-interval-native/v1",
+      "caseInventory": "conformance/logging/file-interval-cases.json",
+      "fixture": "implementations/csharp/tests/fixtures/DiscoveryHost/FileIntervalFixture.cs"
+    },
+    "timer": {
+      "verifier": "implementations/csharp/tests/fixtures/DiscoveryHost/verify-file-timer-coordination.py",
+      "reportSchema": "cis.logging.file-timer-coordination-native/v1",
+      "caseInventory": "conformance/logging/file-timer-coordination-cases.json",
+      "fixture": "implementations/csharp/tests/fixtures/DiscoveryHost/FileTimerCoordinationFixture.cs"
+    },
+    "lifecycle": {
+      "verifier": "implementations/csharp/tests/fixtures/DiscoveryHost/verify-file-timer-lifecycle.py",
+      "reportSchema": "cis.logging.file-timer-lifecycle-native/v1",
+      "caseInventory": "conformance/logging/file-timer-lifecycle-cases.json",
+      "fixture": "implementations/csharp/tests/fixtures/DiscoveryHost/FileTimerLifecycleFixture.cs"
+    },
+    "qualification": {
+      "verifier": "implementations/csharp/tests/fixtures/DiscoveryHost/verify-file-timer-qualification.py",
+      "reportSchema": "cis.logging.file-timer-qualification-native/v1",
+      "caseInventory": "conformance/logging/file-timer-qualification-cases.json",
+      "fixture": "implementations/csharp/tests/fixtures/DiscoveryHost/FileTimerQualificationFixture.cs"
+    }
+  },
+  "supplementalCases": {
+    "interval": [
+      "console-only",
+      "file-none",
+      "create-failure",
+      "arm-failure",
+      "below",
+      "above"
+    ],
+    "timer": [
+      "arm-false",
+      "arm-disposed"
+    ]
+  }
+}
