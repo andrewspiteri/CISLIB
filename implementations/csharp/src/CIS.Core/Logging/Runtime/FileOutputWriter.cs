@@ -17,7 +17,13 @@ internal sealed class FileOutputWriter(string absolutePath, LogOutputFormat form
         {
             long length = acquired.ActiveFile.Length;
             if (length > maximumFileBytes) { throw new CoreLogInitializationException("file", "FileSizeLimitExceeded"); }
-            if (length != 0)
+            if (format == LogOutputFormat.JsonLines)
+            {
+                JsonlRecordBoundary boundary = JsonlRecordBoundary.Inspect(acquired);
+                if (boundary.Status is JsonlBoundaryStatus.Partial or JsonlBoundaryStatus.Invalid)
+                { throw new CoreLogInitializationException("file", "FileRecordBoundaryInvalid"); }
+            }
+            else if (length != 0)
             {
                 acquired.ActiveFile.Position = length - 1;
                 if (acquired.ActiveFile.ReadByte() != (byte)'\n') { throw new CoreLogInitializationException("file", "FileRecordBoundaryInvalid"); }
