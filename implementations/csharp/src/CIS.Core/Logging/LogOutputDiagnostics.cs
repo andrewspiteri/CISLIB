@@ -5,14 +5,17 @@ namespace CIS.Logging;
 /// <summary>An owned immutable live observation of one enabled output.</summary>
 public sealed class LogOutputDiagnostics
 {
-    internal LogOutputDiagnostics(string name, OutputAccounting counts)
+    internal LogOutputDiagnostics(string name, OutputAccounting counts, bool recoveredPartialSegment = false)
     {
         OutputName = name; State = counts.State; AcceptedSequence = counts.AcceptedSequence;
         Filtered = counts.Filtered; AdmissionAttempts = counts.AdmissionAttempts; Accepted = counts.Accepted;
         QueueFull = counts.QueueFull; Unavailable = counts.Unavailable; Written = counts.Written;
         Failed = counts.Failed; Abandoned = counts.Abandoned; Pending = counts.Pending;
         LastFaultCode = counts.LastFaultCode; LastFaultAtUtc = counts.LastFaultAtUtc;
+        RecoveredPartialSegment = recoveredPartialSegment;
     }
+    /// <summary>Whether this runtime preserved a partial file segment during successful startup. Retained after stop; false for console.</summary>
+    public bool RecoveredPartialSegment { get; }
     /// <summary>The configured destination name.</summary>
     public string OutputName { get; }
     /// <summary>The output lifecycle state at this observation.</summary>

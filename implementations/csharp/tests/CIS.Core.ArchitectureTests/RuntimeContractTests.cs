@@ -74,6 +74,32 @@ public sealed class RuntimeContractTests
         VerifyImmutableOutputs(reader, surface.RootElement.GetProperty("immutableOutputs"), types, provider);
     }
 
+    [TestMethod]
+    public void ImplementedOutputDiagnosticsMatchTheUnpublishedReferenceCatalog()
+        => VerifyImplementedOutputDiagnostics(null);
+
+    [TestMethod]
+    [DataRow("missing")]
+    [DataRow("wrong-type")]
+    public void ShippingOutputCatalogCheckRejectsActualMissingOrWrongRecoveryDeclarations(string mutation)
+        => Assert.ThrowsExactly<AssertFailedException>(() => VerifyImplementedOutputDiagnostics(mutation));
+
+    private static void VerifyImplementedOutputDiagnostics(string? mutation)
+    {
+        using JsonDocument surface = Read("implementations/csharp/verification/contracts/startup/runtime-surface.json");
+        var expected = System.Text.Json.Nodes.JsonNode.Parse(surface.RootElement.GetProperty("immutableOutputs").GetProperty("LogOutputDiagnostics").GetRawText())!.AsObject();
+        if (mutation == "missing") { expected.Remove("RecoveredPartialSegment"); }
+        if (mutation == "wrong-type") { expected["RecoveredPartialSegment"] = "long"; }
+        using JsonDocument contracts = JsonDocument.Parse(new System.Text.Json.Nodes.JsonObject { ["LogOutputDiagnostics"] = expected }.ToJsonString());
+        using var stream = File.OpenRead(typeof(CIS.Logging.LogOutputDiagnostics).Assembly.Location);
+        using var pe = new PEReader(stream);
+        MetadataReader reader = pe.GetMetadataReader();
+        TypeDefinition output = reader.TypeDefinitions.Select(reader.GetTypeDefinition).Single(type =>
+            reader.GetString(type.Namespace) == "CIS.Logging" && reader.GetString(type.Name) == "LogOutputDiagnostics");
+        var types = new Dictionary<string, TypeDefinition> { ["CIS.Logging.LogOutputDiagnostics"] = output };
+        VerifyImmutableOutputs(reader, contracts.RootElement, types, new ContractTypeNameProvider());
+    }
+
     private static void VerifyRuntimeMethods(MetadataReader reader, JsonElement contracts, Dictionary<string, TypeDefinition> types, ContractTypeNameProvider provider)
     {
         foreach (JsonProperty contract in contracts.EnumerateObject())

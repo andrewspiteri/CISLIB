@@ -9,7 +9,7 @@ namespace CIS.Tests.DiscoveryFixture;
 
 internal static class FileRuntimeStartupFixture
 {
-    internal static readonly string[] Modes = ["jsonl", "restart", "file-display-loss", "human", "mixed-file-human", "mixed-console-human", "file-only", "console-only", "disabled", "truncated-file", "truncated-both", "frozen", "held-console", "existing-owner", "file-full", "rollback-missing", "rollback-format", "rollback-partial", "rollback-over-limit", "rollback-parent", "rollback-meta-directory", "rollback-retained", "rollback-console-readonly", "rollback-console-throw", "rollback-launch-console", "rollback-launch-file", "physical-console"];
+    internal static readonly string[] Modes = ["jsonl", "restart", "file-display-loss", "human", "mixed-file-human", "mixed-console-human", "file-only", "console-only", "disabled", "truncated-file", "truncated-both", "frozen", "held-console", "existing-owner", "file-full", "rollback-missing", "rollback-format", "rollback-invalid-json", "rollback-over-limit", "rollback-parent", "rollback-meta-directory", "rollback-retained", "rollback-console-readonly", "rollback-console-throw", "rollback-launch-console", "rollback-launch-file", "physical-console"];
     private static readonly TimeSpan Limit = TimeSpan.FromSeconds(10);
     private sealed class Clock : TimeProvider { public override DateTimeOffset GetUtcNow() => new(2026, 10, 13, 10, 11, 12, TimeSpan.Zero); }
     private sealed class Borrowed(bool readOnly, bool throws, bool held) : MemoryStream
@@ -49,10 +49,10 @@ internal static class FileRuntimeStartupFixture
         JsonObject? result = null; JsonObject? diagnostics = null;
         try
         {
-            if (mode is "rollback-format" or "rollback-partial" or "rollback-over-limit" or "rollback-retained")
+            if (mode is "rollback-format" or "rollback-invalid-json" or "rollback-over-limit" or "rollback-retained")
             {
                 using (FileOutputOwner.Initialize(path, mode == "rollback-format" ? LogOutputFormat.Human : LogOutputFormat.JsonLines)) { }
-                File.WriteAllText(path, mode == "rollback-partial" ? "{\"prior\":true" : "{\"prior\":true}\n", new UTF8Encoding(false));
+                File.WriteAllText(path, mode == "rollback-invalid-json" ? "{\"prior\":\n" : "{\"prior\":true}\n", new UTF8Encoding(false));
                 if (mode == "rollback-over-limit") { File.WriteAllText(path, new string('x', 131072) + "\n"); }
                 if (mode is "rollback-retained" or "rollback-format")
                 {

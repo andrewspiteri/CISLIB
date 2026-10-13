@@ -124,6 +124,25 @@ internal sealed class FileGroupInventory
         return new FileGroupInventory(GroupId, Format, next);
     }
 
+    internal FileGroupInventory AfterPartialRecovery(string activePath, int maximumRetainedFiles)
+    {
+        if (maximumRetainedFiles is < LoggingOptions.MinimumFileRetainedFiles or > LoggingOptions.MaximumFileRetainedFiles)
+        { throw new ArgumentOutOfRangeException(nameof(maximumRetainedFiles)); }
+        if (Format != LogOutputFormat.JsonLines)
+        { throw new InvalidOperationException("Partial recovery requires managed JSONL identity."); }
+        if (Active.Id == long.MaxValue)
+        { throw new CoreLogInitializationException("file", "FileRecoveryIdentityExhausted"); }
+        // Startup does not retire pre-existing evidence. Fail before rename if the
+        // preserved partial segment would exceed the selected retained-file bound.
+        if (Segments.Count > maximumRetainedFiles)
+        { throw new CoreLogInitializationException("file", "FileRetentionLimitExceeded"); }
+        var next = new FileInventorySegment[Segments.Count + 1];
+        for (int index = 0; index < Segments.Count - 1; index++) { next[index] = Segments[index]; }
+        next[^2] = new(Active.Id, ClosedName(GroupId, Active.Id, FileSegmentState.Damaged), FileSegmentState.Damaged);
+        next[^1] = new(Active.Id + 1, Path.GetFileName(activePath), FileSegmentState.Active);
+        return new FileGroupInventory(GroupId, Format, next);
+    }
+
     internal void PublishReplacement(string activePath)
         => Publish(activePath + ".cis.inventory.json", this, overwrite: true);
 

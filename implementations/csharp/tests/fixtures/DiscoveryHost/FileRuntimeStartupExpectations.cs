@@ -7,7 +7,7 @@ namespace CIS.Tests.DiscoveryFixture;
 internal static class FileRuntimeStartupExpectations
 {
     // Literal expected cases; no expected outcome is copied from the observed report.
-    internal static readonly string[] Modes = ["jsonl", "restart", "file-display-loss", "human", "mixed-file-human", "mixed-console-human", "file-only", "console-only", "disabled", "truncated-file", "truncated-both", "frozen", "held-console", "existing-owner", "file-full", "rollback-missing", "rollback-format", "rollback-partial", "rollback-over-limit", "rollback-parent", "rollback-meta-directory", "rollback-retained", "rollback-console-readonly", "rollback-console-throw", "rollback-launch-console", "rollback-launch-file", "physical-console"];
+    internal static readonly string[] Modes = ["jsonl", "restart", "file-display-loss", "human", "mixed-file-human", "mixed-console-human", "file-only", "console-only", "disabled", "truncated-file", "truncated-both", "frozen", "held-console", "existing-owner", "file-full", "rollback-missing", "rollback-format", "rollback-invalid-json", "rollback-over-limit", "rollback-parent", "rollback-meta-directory", "rollback-retained", "rollback-console-readonly", "rollback-console-throw", "rollback-launch-console", "rollback-launch-file", "physical-console"];
     private static void Require(bool condition, string message) { if (!condition) { throw new InvalidDataException(message); } }
     internal static void Validate(string mode, JsonObject actual, byte[]? physicalConsole = null)
     {
@@ -17,7 +17,7 @@ internal static class FileRuntimeStartupExpectations
             "existing-owner" => "FileOwnershipUnavailable",
             "rollback-missing" => "FileInventoryMissing",
             "rollback-format" or "rollback-retained" => "FileInventoryIncompatible",
-            "rollback-partial" => "FileRecordBoundaryInvalid",
+            "rollback-invalid-json" => "FileRecordBoundaryInvalid",
             "rollback-over-limit" => "FileSizeLimitExceeded",
             "rollback-parent" => "FileInitializationFailed",
             "rollback-meta-directory" => "FileInventoryInitializationFailed",
@@ -46,7 +46,7 @@ internal static class FileRuntimeStartupExpectations
             foreach (JsonNode? queue in actual["queues"]!.AsArray()) { Require(queue!["state"]!.GetValue<string>() == "Stopped" && queue["accepted"]!.GetValue<long>() == 0 && queue["pending"]!.GetValue<int>() == 0, "Failed worker retained work."); }
             if (mode == "existing-owner") { CheckRecords(fileBytes, false, ["file.prior", "file.after.failure"], ["prior record", "existing writer survives"]); }
             else if (mode is "rollback-missing" or "rollback-format" or "rollback-retained") { Require(fileBytes.AsSpan().SequenceEqual(Encoding.UTF8.GetBytes("{\"prior\":true}\n")), "Pre-existing record changed."); }
-            else if (mode == "rollback-partial") { Require(fileBytes.AsSpan().SequenceEqual(Encoding.UTF8.GetBytes("{\"prior\":true")), "Partial preimage changed."); }
+            else if (mode == "rollback-invalid-json") { Require(fileBytes.AsSpan().SequenceEqual(Encoding.UTF8.GetBytes("{\"prior\":\n")), "Invalid terminated JSON preimage changed."); }
             else if (mode == "rollback-over-limit") { Require(fileBytes.AsSpan().SequenceEqual(Encoding.UTF8.GetBytes(new string('x', 131072) + "\n")), "Oversize preimage changed."); }
             else { Require(fileBytes.Length == 0, "Failed startup appended bytes."); }
             return;

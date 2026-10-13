@@ -151,6 +151,7 @@ public sealed class LogOutputDiagnostics
     public extern long Pending { [MethodImpl(MethodImplOptions.InternalCall)] get; }
     public extern string? LastFaultCode { [MethodImpl(MethodImplOptions.InternalCall)] get; }
     public extern DateTimeOffset? LastFaultAtUtc { [MethodImpl(MethodImplOptions.InternalCall)] get; }
+    public extern bool RecoveredPartialSegment { [MethodImpl(MethodImplOptions.InternalCall)] get; }
 }
 
 public sealed class CoreLogInitializationException : Exception

@@ -132,6 +132,25 @@ internal sealed class FileOutputOwner : IDisposable
         ActiveFile = OpenActive(AbsolutePath, FileMode.CreateNew);
     }
 
+    internal void RecoverPartialSegment(int maximumRetainedFiles)
+    {
+        RequireOwnership();
+        FileGroupInventory current = Inventory ?? throw new InvalidOperationException("Recovery requires a managed inventory.");
+        if (JsonlRecordBoundary.Inspect(this).Status != JsonlBoundaryStatus.Partial)
+        { throw new InvalidOperationException("Recovery requires a partial final JSONL record."); }
+        FileGroupInventory next = current.AfterPartialRecovery(AbsolutePath, maximumRetainedFiles);
+        string damagedPath = Path.Combine(Path.GetDirectoryName(AbsolutePath)!, next.Segments[^2].FileName);
+        if (File.Exists(damagedPath) || Directory.Exists(damagedPath))
+        { throw new CoreLogInitializationException("file", "FileRecoveryCollision"); }
+        // Preserve the entire segment, including any intact earlier records, under
+        // the same lease. A failed transition never makes old bytes appendable.
+        ActiveFile.Dispose();
+        File.Move(AbsolutePath, damagedPath, overwrite: false);
+        next.PublishReplacement(AbsolutePath);
+        Inventory = next;
+        ActiveFile = OpenActive(AbsolutePath, FileMode.CreateNew);
+    }
+
     internal void RequireOwnership()
     {
         if (!lease.CanWrite || !ActiveFile.CanWrite) { throw new InvalidOperationException("File ownership is not active."); }

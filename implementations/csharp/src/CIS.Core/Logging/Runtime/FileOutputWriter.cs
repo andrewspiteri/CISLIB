@@ -8,6 +8,7 @@ internal sealed class FileOutputWriter(string absolutePath, LogOutputFormat form
 {
     private FileOutputOwner? owner;
     private long activeBytes;
+    internal bool RecoveredPartialSegment { get; private set; }
     internal void Initialize()
     {
         if (maximumRetainedFiles is < LoggingOptions.MinimumFileRetainedFiles or > LoggingOptions.MaximumFileRetainedFiles)
@@ -17,11 +18,13 @@ internal sealed class FileOutputWriter(string absolutePath, LogOutputFormat form
         {
             long length = acquired.ActiveFile.Length;
             if (length > maximumFileBytes) { throw new CoreLogInitializationException("file", "FileSizeLimitExceeded"); }
+            bool partial = false;
             if (format == LogOutputFormat.JsonLines)
             {
                 JsonlRecordBoundary boundary = JsonlRecordBoundary.Inspect(acquired);
-                if (boundary.Status is JsonlBoundaryStatus.Partial or JsonlBoundaryStatus.Invalid)
+                if (boundary.Status == JsonlBoundaryStatus.Invalid)
                 { throw new CoreLogInitializationException("file", "FileRecordBoundaryInvalid"); }
+                partial = boundary.Status == JsonlBoundaryStatus.Partial;
             }
             else if (length != 0)
             {
@@ -32,6 +35,12 @@ internal sealed class FileOutputWriter(string absolutePath, LogOutputFormat form
             // selected bound needs explicit archival or a new group before retry.
             if (acquired.Inventory!.Segments.Count - 1 > maximumRetainedFiles)
             { throw new CoreLogInitializationException("file", "FileRetentionLimitExceeded"); }
+            if (partial)
+            {
+                acquired.RecoverPartialSegment(maximumRetainedFiles);
+                length = 0;
+                RecoveredPartialSegment = true;
+            }
             acquired.ActiveFile.Position = length;
             activeBytes = length;
             owner = acquired;

@@ -14,6 +14,7 @@ public sealed class CoreLogRuntime
     private readonly OutputQueues? queuedOutputs;
     private readonly ConsoleOutputWriter? consoleWriter;
     private readonly FileOutputWriter? fileWriter;
+    private readonly bool recoveredPartialSegment;
     private readonly EventMetadata metadata;
     private readonly TimeProvider timeProvider;
     private readonly int maximumEntryBytes;
@@ -39,6 +40,7 @@ public sealed class CoreLogRuntime
         this.queuedOutputs = queuedOutputs;
         this.consoleWriter = consoleWriter;
         this.fileWriter = fileWriter;
+        recoveredPartialSegment = fileWriter?.RecoveredPartialSegment == true;
         this.metadata = metadata;
         this.timeProvider = timeProvider ?? TimeProvider.System;
         maximumEntryBytes = maximumBytes;
@@ -177,7 +179,7 @@ public sealed class CoreLogRuntime
             RuntimeAccounting counts = CaptureAccounting();
             var values = new List<LogOutputDiagnostics>(2);
             if (counts.Console is OutputAccounting console) { values.Add(new LogOutputDiagnostics("console", console)); }
-            if (counts.File is OutputAccounting file) { values.Add(new LogOutputDiagnostics("file", file)); }
+            if (counts.File is OutputAccounting file) { values.Add(new LogOutputDiagnostics("file", file, recoveredPartialSegment)); }
             CoreLogState state = !counts.AdmissionClosed ? CoreLogState.Running :
                 values.All(value => value.State == LogOutputState.Stopped) ? CoreLogState.Stopped : CoreLogState.Stopping;
             return new CoreLogDiagnostics(state, counts.AdmissionClosed, DateTimeOffset.UtcNow, shutdownStartedAtUtc,

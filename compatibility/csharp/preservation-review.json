@@ -612,7 +612,8 @@
         "Abandoned": "long",
         "Pending": "long",
         "LastFaultCode": "string?",
-        "LastFaultAtUtc": "DateTimeOffset?"
+        "LastFaultAtUtc": "DateTimeOffset?",
+        "RecoveredPartialSegment": "bool"
       }
     },
     {
@@ -1269,5 +1270,10 @@
     "currentReferenceSurface": "implementations/csharp/verification/contracts/startup/surface.json",
     "currentRuntimeDraft": "implementations/csharp/verification/contracts/startup/runtime-surface.json",
     "publicationLedgerEmpty": true
+  },
+  "wp05S07T02Amendment": {
+    "scope": "Unpublished current reference/proposal, not a published historical baseline rewrite",
+    "addedProperty": "CIS.Logging.LogOutputDiagnostics.RecoveredPartialSegment: bool; getter only",
+    "semantics": "True for successful partial recovery by this runtime at startup; retained after stop, false for console and later intact startup, distinct from delivery-fault counters."
   }
 }

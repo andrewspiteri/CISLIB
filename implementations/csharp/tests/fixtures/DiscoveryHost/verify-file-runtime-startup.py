@@ -2,8 +2,8 @@
 import argparse, base64, copy, hashlib, json, os, subprocess, tempfile, unicodedata
 from pathlib import Path
 
-MODES = ['jsonl','restart','file-display-loss','human','mixed-file-human','mixed-console-human','file-only','console-only','disabled','truncated-file','truncated-both','frozen','held-console','existing-owner','file-full','rollback-missing','rollback-format','rollback-partial','rollback-over-limit','rollback-parent','rollback-meta-directory','rollback-retained','rollback-console-readonly','rollback-console-throw','rollback-launch-console','rollback-launch-file','physical-console']
-CODES = {'existing-owner':'FileOwnershipUnavailable','rollback-missing':'FileInventoryMissing','rollback-format':'FileInventoryIncompatible','rollback-partial':'FileRecordBoundaryInvalid','rollback-over-limit':'FileSizeLimitExceeded','rollback-parent':'FileInitializationFailed','rollback-meta-directory':'FileInventoryInitializationFailed','rollback-retained':'FileInventoryIncompatible','rollback-console-readonly':'ConsoleStreamNotWritable','rollback-console-throw':'ConsoleInitializationFailed','rollback-launch-console':'WorkerInitializationFailed','rollback-launch-file':'WorkerInitializationFailed'}
+MODES = ['jsonl','restart','file-display-loss','human','mixed-file-human','mixed-console-human','file-only','console-only','disabled','truncated-file','truncated-both','frozen','held-console','existing-owner','file-full','rollback-missing','rollback-format','rollback-invalid-json','rollback-over-limit','rollback-parent','rollback-meta-directory','rollback-retained','rollback-console-readonly','rollback-console-throw','rollback-launch-console','rollback-launch-file','physical-console']
+CODES = {'existing-owner':'FileOwnershipUnavailable','rollback-missing':'FileInventoryMissing','rollback-format':'FileInventoryIncompatible','rollback-invalid-json':'FileRecordBoundaryInvalid','rollback-over-limit':'FileSizeLimitExceeded','rollback-parent':'FileInitializationFailed','rollback-meta-directory':'FileInventoryInitializationFailed','rollback-retained':'FileInventoryIncompatible','rollback-console-readonly':'ConsoleStreamNotWritable','rollback-console-throw':'ConsoleInitializationFailed','rollback-launch-console':'WorkerInitializationFailed','rollback-launch-file':'WorkerInitializationFailed'}
 sha = lambda p: hashlib.sha256(Path(p).read_bytes()).hexdigest()
 digest = lambda raw: hashlib.sha256(raw).hexdigest()
 decode = lambda raw: raw.decode('utf-8',errors='strict')
@@ -49,7 +49,7 @@ def check(mode,a,stderr):
         assert a['queues']==[dict(state='Stopped',accepted=0,pending=0)]*workers,'unpublished queue retained work'
         if mode=='existing-owner':records(fb,False,['file.prior','file.after.failure'],['prior record','existing writer survives'])
         elif mode in ('rollback-missing','rollback-format','rollback-retained'):assert fb==b'{"prior":true}\n','pre-existing bytes differ'
-        elif mode=='rollback-partial':assert fb==b'{"prior":true','partial bytes differ'
+        elif mode=='rollback-invalid-json':assert fb==b'{"prior":\n','invalid JSON bytes differ'
         elif mode=='rollback-over-limit':assert fb==b'x'*131072+b'\n','oversize preimage differs'
         else:assert fb==b'','failed append'
         return
