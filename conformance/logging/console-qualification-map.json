@@ -1,0 +1,141 @@
+{
+  "schemaVersion": 1,
+  "story": "WP05-S04",
+  "task": "WP05-S04-T04",
+  "scope": "All four S04 criteria at actual internal Core composition, including physical stdout/stderr. Independent file callback qualification does not imply physical file startup, public runtime factory, bounded lifecycle, provider or release.",
+  "authority": "Original source descriptions retained. User-selected static EnvironmentOptions constructor and module preparation replace the original snapshot/publication mechanics; Microsoft-only shipping dependencies and truncation policy remain selected.",
+  "criteria": [
+    {
+      "id": "WP05-S04-AC01",
+      "sourceDescription": "Default JSONL CLI diagnostics appear on stderr while stdout remains a valid command result; explicit stdout selection is respected without format guessing.",
+      "appliedMeaning": "A CLI opts into JSONL through CORE_LOG_CONSOLE_FORMAT. Without a stream override the concrete output writes stderr and stdout contains one complete JSON command result. Explicit stdout and both Human details use the same compiled consumer without sniffing. Large physical records exercise both pipe readers.",
+      "caseIds": [
+        "CONSUMER-CONSOLE-JSONL-STDERR",
+        "CONSUMER-CONSOLE-JSONL-STDOUT",
+        "CONSUMER-CONSOLE-NORMAL-STDERR",
+        "CONSUMER-CONSOLE-NORMAL-STDOUT",
+        "CONSUMER-CONSOLE-VERBOSE-STDERR",
+        "CONSUMER-CONSOLE-VERBOSE-STDOUT",
+        "CONSUMER-BOTH-JSONL-STDERR",
+        "CONSUMER-BOTH-JSONL-STDOUT",
+        "CONSUMER-BOTH-NORMAL-STDERR",
+        "CONSUMER-BOTH-NORMAL-STDOUT",
+        "CONSUMER-BOTH-VERBOSE-STDERR",
+        "CONSUMER-BOTH-VERBOSE-STDOUT",
+        "CONSUMER-PRESSURE-JSONL-STDERR",
+        "CONSUMER-PRESSURE-JSONL-STDOUT"
+      ],
+      "priorEvidence": [
+        "planning/logging/evidence/wp05-s04-t01/receipt.json"
+      ],
+      "bindings": [
+        "INT-CONSOLE-CONSUMERS-SHARED",
+        "INT-CONSOLE-CONSUMERS-CONTROLS"
+      ],
+      "evidence": "planning/logging/evidence/wp05-s04-t04/receipt.json"
+    },
+    {
+      "id": "WP05-S04-AC02",
+      "sourceDescription": "No ordinary records appear when all outputs are disabled, and logger early-exit outcomes remain those defined in section 10.",
+      "appliedMeaning": "Global NONE with a configured file path still enables no queues. Debug/Information/Error lazy writes return Filtered with no factory/clock calls or ordinary stream/file bytes; the same logger returns Stopped after internal admission closure. Existing complete argument/decision ordering qualifications remain supporting evidence.",
+      "caseIds": [
+        "CONSUMER-DISABLED-JSONL-STDERR",
+        "CONSUMER-DISABLED-JSONL-STDOUT",
+        "CONSUMER-DISABLED-NORMAL-STDERR",
+        "CONSUMER-DISABLED-NORMAL-STDOUT",
+        "CONSUMER-DISABLED-VERBOSE-STDERR",
+        "CONSUMER-DISABLED-VERBOSE-STDOUT"
+      ],
+      "priorEvidence": [
+        "planning/logging/evidence/wp04-s05-t02/receipt.json",
+        "planning/logging/evidence/wp04-s05-t04/receipt.json"
+      ],
+      "bindings": [
+        "INT-CONSOLE-CONSUMERS-SHARED",
+        "INT-CONSOLE-CONSUMERS-CONTROLS"
+      ],
+      "evidence": "planning/logging/evidence/wp05-s04-t04/receipt.json"
+    },
+    {
+      "id": "WP05-S04-AC03",
+      "sourceDescription": "Runtime cleanup does not dispose borrowed standard streams, and one blocked console writer does not block an independently enabled output worker.",
+      "appliedMeaning": "Held/failing actual Stream callbacks preserve the borrowed controlled stream and leave the file queue able to complete two real JSONL records before console release. Faulting console cleanup abandons its queued record and preserves subsequent healthy file admission. T02/T03 separately retain actual standard-stream lifetime and failed-start ownership qualification.",
+      "caseIds": [
+        "CONSUMER-BLOCK-JSONL-STDERR",
+        "CONSUMER-BLOCK-JSONL-STDOUT",
+        "CONSUMER-BLOCK-NORMAL-STDERR",
+        "CONSUMER-BLOCK-NORMAL-STDOUT",
+        "CONSUMER-BLOCK-VERBOSE-STDERR",
+        "CONSUMER-BLOCK-VERBOSE-STDOUT",
+        "CONSUMER-FAIL-JSONL-STDERR",
+        "CONSUMER-FAIL-JSONL-STDOUT",
+        "CONSUMER-FAIL-NORMAL-STDERR",
+        "CONSUMER-FAIL-NORMAL-STDOUT",
+        "CONSUMER-FAIL-VERBOSE-STDERR",
+        "CONSUMER-FAIL-VERBOSE-STDOUT"
+      ],
+      "priorEvidence": [
+        "planning/logging/evidence/wp05-s04-t02/receipt.json",
+        "planning/logging/evidence/wp05-s04-t03/receipt.json"
+      ],
+      "bindings": [
+        "INT-CONSOLE-CONSUMERS-SHARED",
+        "INT-CONSOLE-CONSUMERS-CONTROLS"
+      ],
+      "evidence": "planning/logging/evidence/wp05-s04-t04/receipt.json"
+    },
+    {
+      "id": "WP05-S04-AC04",
+      "sourceDescription": "The same compiled test consumer switches among configured formats/streams through environment settings and preserves event identity.",
+      "appliedMeaning": "Fresh processes execute the actual readonly static constructor, prepare its mutable module options, then create actual internal console/queue composition. Literal selected options, scalar event identity, stable configured application/build/deployment facts and generated process/instance facts are verified in JSONL and displayed Human fields. Normal Human deliberately displays its selected five fields; verbose and JSONL retain the applicable identity set. Binary hashes must be identical across all configurations.",
+      "caseIds": [
+        "CONSUMER-CONSOLE-JSONL-STDERR",
+        "CONSUMER-CONSOLE-JSONL-STDOUT",
+        "CONSUMER-CONSOLE-NORMAL-STDERR",
+        "CONSUMER-CONSOLE-NORMAL-STDOUT",
+        "CONSUMER-CONSOLE-VERBOSE-STDERR",
+        "CONSUMER-CONSOLE-VERBOSE-STDOUT",
+        "CONSUMER-BOTH-JSONL-STDERR",
+        "CONSUMER-BOTH-JSONL-STDOUT",
+        "CONSUMER-BOTH-NORMAL-STDERR",
+        "CONSUMER-BOTH-NORMAL-STDOUT",
+        "CONSUMER-BOTH-VERBOSE-STDERR",
+        "CONSUMER-BOTH-VERBOSE-STDOUT",
+        "CONSUMER-FILE-JSONL-STDERR",
+        "CONSUMER-FILE-JSONL-STDOUT",
+        "CONSUMER-FILE-NORMAL-STDERR",
+        "CONSUMER-FILE-NORMAL-STDOUT",
+        "CONSUMER-FILE-VERBOSE-STDERR",
+        "CONSUMER-FILE-VERBOSE-STDOUT",
+        "CONSUMER-DISABLED-JSONL-STDERR",
+        "CONSUMER-DISABLED-JSONL-STDOUT",
+        "CONSUMER-DISABLED-NORMAL-STDERR",
+        "CONSUMER-DISABLED-NORMAL-STDOUT",
+        "CONSUMER-DISABLED-VERBOSE-STDERR",
+        "CONSUMER-DISABLED-VERBOSE-STDOUT",
+        "CONSUMER-BLOCK-JSONL-STDERR",
+        "CONSUMER-BLOCK-JSONL-STDOUT",
+        "CONSUMER-BLOCK-NORMAL-STDERR",
+        "CONSUMER-BLOCK-NORMAL-STDOUT",
+        "CONSUMER-BLOCK-VERBOSE-STDERR",
+        "CONSUMER-BLOCK-VERBOSE-STDOUT",
+        "CONSUMER-FAIL-JSONL-STDERR",
+        "CONSUMER-FAIL-JSONL-STDOUT",
+        "CONSUMER-FAIL-NORMAL-STDERR",
+        "CONSUMER-FAIL-NORMAL-STDOUT",
+        "CONSUMER-FAIL-VERBOSE-STDERR",
+        "CONSUMER-FAIL-VERBOSE-STDOUT",
+        "CONSUMER-PRESSURE-JSONL-STDERR",
+        "CONSUMER-PRESSURE-JSONL-STDOUT"
+      ],
+      "priorEvidence": [
+        "planning/logging/evidence/wp05-s04-t01/receipt.json"
+      ],
+      "bindings": [
+        "INT-CONSOLE-CONSUMERS-SHARED",
+        "INT-CONSOLE-CONSUMERS-CONTROLS"
+      ],
+      "evidence": "planning/logging/evidence/wp05-s04-t04/receipt.json"
+    }
+  ]
+}

@@ -13,6 +13,7 @@ internal static class Program
     {
         if (args.Length == 3 && args[0] == "console-composition") { return ConsoleCompositionFixture.Run(args[1], args[2]); }
         if (args.Length == 3 && args[0] == "console-ownership") { return ConsoleOwnershipFixture.Run(args[1], args[2]); }
+        if (args.Length == 3 && args[0] == "console-consumer") { return ConsoleConsumerFixture.Run(args[1], args[2]); }
         if (args.Length == 3 && args[0] == "console-startup") { return ConsoleStartupFixture.Run(args[1], args[2]); }
         if (args.Length == 3 && args[0] == "diagnostics") { return DiagnosticsFixture.Run(args[1], args[2]); }
         if (args.Length == 3 && args[0] == "output-states") { return OutputStateFixture.Run(args[1], args[2]); }

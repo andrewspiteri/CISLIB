@@ -89,3 +89,5 @@ WP05-S04-T01 adds [configured console composition](console-composition.md), with
 WP05-S04-T02 qualifies [borrowed console ownership and serialized writes](console-ownership.md): runtime closure/failure preserves the selected stream and each runtime/output has one awaited record write. Startup rollback, complete consumers and public bounded lifecycle remain later tasks.
 
 WP05-S04-T03 implements [safe console startup and joined idle-worker rollback](console-startup.md). No runtime is published until the borrowed stream is writable; failures preserve borrowed/pre-existing resources and join only the attempt's new workers. Physical file ownership and public bounded lifecycle remain later tasks.
+
+WP05-S04-T04 qualifies [environment-driven console consumers](console-consumers.md) and maps all four S04 criteria at the actual internal runtime/physical console seam. Real all-disabled outcomes, concurrent pipe drainage, held/failing console isolation and preserved event identity use the same compiled consumer; physical file/public bounded lifecycle/provider/release remain later work.
