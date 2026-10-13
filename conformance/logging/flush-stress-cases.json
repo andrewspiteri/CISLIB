@@ -1,0 +1,120 @@
+{
+  "schema": "cis.logging.flush-stress-cases/v1",
+  "task": "WP05-S08-T04",
+  "state": "Development qualification; release-family Planned rows unchanged",
+  "sourcePlan": "planning/logging/sources/core-library-implementation-plan-v1.md",
+  "story": "WP05-S08",
+  "criteria": [
+    {
+      "id": "WP05-S08-AC01",
+      "text": "Events admitted after a flush boundary do not extend its target; a full event queue cannot drop its flush request or prevent a finite timeout result.",
+      "cases": [
+        "saturation",
+        "failed-flush",
+        "concurrent"
+      ]
+    },
+    {
+      "id": "WP05-S08-AC02",
+      "text": "Cancelled waits throw OperationCanceledException without erasing shared coordination; repeated cancelled/timed-out calls do not accumulate unbounded worker controls or retained waiters.",
+      "cases": [
+        "repeat-write",
+        "repeat-flush",
+        "repeat-progress",
+        "cohort",
+        "failed-flush",
+        "deadline-race"
+      ]
+    },
+    {
+      "id": "WP05-S08-AC03",
+      "text": "Results accurately distinguish Completed/TimedOut, Succeeded, LossObserved, terminal counts, pending gauges, and initial global-invalid/rejection observations; successful drain can coexist with earlier observed rejection.",
+      "cases": [
+        "repeat-progress",
+        "saturation",
+        "cohort",
+        "failed-flush",
+        "concurrent",
+        "deadline-race"
+      ]
+    },
+    {
+      "id": "WP05-S08-AC04",
+      "text": "UTC clock changes do not alter the elapsed deadline; writer flush remains serialized with writes and is documented as userspace flushing, not fsync or collector acknowledgment.",
+      "cases": [
+        "repeat-flush",
+        "saturation",
+        "cohort",
+        "failed-flush",
+        "concurrent",
+        "deadline-race"
+      ]
+    }
+  ],
+  "cases": [
+    {
+      "id": "repeat-write",
+      "criteria": [
+        "WP05-S08-AC02"
+      ]
+    },
+    {
+      "id": "repeat-flush",
+      "criteria": [
+        "WP05-S08-AC02",
+        "WP05-S08-AC04"
+      ]
+    },
+    {
+      "id": "repeat-progress",
+      "criteria": [
+        "WP05-S08-AC02",
+        "WP05-S08-AC03"
+      ]
+    },
+    {
+      "id": "saturation",
+      "criteria": [
+        "WP05-S08-AC01",
+        "WP05-S08-AC03",
+        "WP05-S08-AC04"
+      ]
+    },
+    {
+      "id": "cohort",
+      "criteria": [
+        "WP05-S08-AC02",
+        "WP05-S08-AC03",
+        "WP05-S08-AC04"
+      ]
+    },
+    {
+      "id": "failed-flush",
+      "criteria": [
+        "WP05-S08-AC01",
+        "WP05-S08-AC02",
+        "WP05-S08-AC03",
+        "WP05-S08-AC04"
+      ]
+    },
+    {
+      "id": "concurrent",
+      "criteria": [
+        "WP05-S08-AC01",
+        "WP05-S08-AC03",
+        "WP05-S08-AC04"
+      ]
+    },
+    {
+      "id": "deadline-race",
+      "criteria": [
+        "WP05-S08-AC02",
+        "WP05-S08-AC03",
+        "WP05-S08-AC04"
+      ]
+    }
+  ],
+  "portable": "Fixed accepted targets, original facts, finite monotonic waits, caller-only cancellation, serialized writer operations and bounded shared coordination are portable semantic expectations.",
+  "csharpQualification": "Pinned .NET 10.0.12 private Task continuation/backing-slot inspection, managed deadline-owner weak references and reflection on internal Core observers are nonshipping implementation qualification, not future-language or public memory-layout promises.",
+  "nextStory": "WP05-S09 owns idle file-buffer interval scheduling; it is not an S08 criterion."
+}

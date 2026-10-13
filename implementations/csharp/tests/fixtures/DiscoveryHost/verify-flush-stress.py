@@ -1,0 +1,246 @@
+import argparse,base64,copy,hashlib,importlib.util,json,os,subprocess,tempfile
+from datetime import datetime
+from pathlib import Path
+spec=importlib.util.spec_from_file_location('flush_base',Path(__file__).with_name('verify-flush-results.py'));base=importlib.util.module_from_spec(spec);spec.loader.exec_module(base)
+load=base.load;sha=base.sha;digest=base.digest;decoded=base.decoded;number=base.number;require=base.require
+MODES=('repeat-write','repeat-flush','repeat-progress','saturation','cohort','failed-flush','concurrent','deadline-race')
+MAX=2**63-1
+def timers(t,created=None,maximum=None,fires=None):
+ require(t['created']==t['disposed'] and t['active']==t['callbacks']==t['pendingJoins']==0 and t['dueTicks']==[],'timer ownership')
+ if created is not None:require(t['created']==created,'timer creation count')
+ if maximum is not None:require(t['maximumActive']==maximum,'live timer bound')
+ if fires is not None:require(t['fires']==fires,'actual callback count')
+def result(r,tuples=None,invalid=None,rejections=None,reason='covered dispositions'):
+ outputs=r['outputs']
+ for label in ('captured','observed'):
+  try:t=datetime.fromisoformat(r[label]);require(t.utcoffset().total_seconds()==0,'UTC labels')
+  except (ValueError,AttributeError):raise AssertionError('UTC labels')
+ for o in outputs:
+  counts=tuple(number(o[k]) for k in ('boundary','written','failed','abandoned','pending'))
+  require(counts[0]==sum(counts[1:]),'boundary identity')
+  require(o['flushSucceeded'] is (o['flush']=='Succeeded'),'writer flush flag')
+ if tuples is not None:require([(o['name'],*[number(o[k]) for k in ('boundary','written','failed','abandoned','pending')],o['flush']) for o in outputs]==tuples,reason)
+ if invalid is not None:require((number(r['invalid']),number(r['truncated']))==(invalid,0),'initial global facts')
+ if rejections is not None:require([tuple(number(o[k]) for k in ('filtered','full','unavailable')) for o in outputs]==rejections,'initial rejection facts')
+ completed=all(number(o['pending'])==0 and o['flush'] in ('Succeeded','Failed') for o in outputs)
+ succeeded=all(number(o['pending'])==number(o['failed'])==number(o['abandoned'])==0 and o['flush']=='Succeeded' for o in outputs)
+ loss=number(r['invalid'])>0 or number(r['truncated'])>0 or any(number(o['failed'])>0 or number(o['abandoned'])>0 or number(o['full'])>0 or number(o['unavailable'])>0 or o['flush']=='Failed' for o in outputs)
+ require((r['completion'],r['succeeded'],r['loss'])==('Completed' if completed else 'TimedOut',succeeded,loss),'summary flags')
+def writer(w,pid,names,tickets=None,exact_order=None,statuses=None):
+ require(w['maximumIo']==1,'writer serialization')
+ rows=base.records(decoded(w['bytes']),pid)
+ # The common reader checks info payloads; concurrent/saturation status checks are handled below.
+ require([r['event_name'] for r in rows]==names,'actual record order')
+ require(w['writes']==len(names),'actual write attempts')
+ order=w['order']
+ if exact_order is not None:require(order==exact_order,'serialized order')
+ else:
+  written=0;flushed=[]
+  for item in order:
+   action,value=item.split('.');ticket=int(value)
+   if action=='write':
+    written+=1;require(ticket==(tickets[written-1] if tickets else written),'serialized tickets')
+   else:require(action=='flush' and ticket==(tickets[written-1] if tickets and written else written),'serialized flush');flushed.append(ticket)
+  require(written==len(names),'serialized writes')
+  if tickets:require(set(flushed)==set(tickets),'flushed targets')
+ return rows
+def raw_writer(w,pid,names,expected_order=None,expected_status=None):
+ # Preserve independent strict UTF-8/object/LF/PID checking for mixed severities.
+ require(w['maximumIo']==1,'writer serialization')
+ raw=decoded(w['bytes']);require(not raw.startswith(b'\xef\xbb\xbf') and (not raw or raw.endswith(b'\n')) and b'\r' not in raw,'record framing')
+ rows=[load(line) for line in raw.splitlines()]
+ require(all(r['attributes']['producer_pid']==pid for r in rows),'wire PID')
+ require(all(r['message']=='Ω 🙂' for r in rows),'actual event payload')
+ require([r['event_name'] for r in rows]==names,'actual record order')
+ if expected_status is not None:require([r['status'] for r in rows]==expected_status,'wire severity')
+ require(w['writes']==len(rows),'actual write attempts')
+ if expected_order is not None:require(w['order']==expected_order,'serialized order')
+ return rows
+def diag(a,expected):
+ ds=a['diagnostics'];require([d['name'] for d in ds]==[x[0] for x in expected],'diagnostic outputs')
+ for d,e in zip(ds,expected):
+  actual=(d['name'],*[number(d[k]) for k in ('accepted','written','failed','abandoned','pending','full','unavailable','filtered')],d['fault'])
+  require(actual==e,'final diagnostic facts')
+def check(mode,a,pid=None):
+ require(a['mode']==mode and a['runtime']=='.NET 10.0.12','actual runtime/mode')
+ if pid is not None:require(a['pid']==pid and pid>0,'actual child PID')
+ if mode.startswith('repeat-'):
+  progress=mode=='repeat-progress';flush=mode=='repeat-flush';target=MAX if progress else 3 if flush else 4
+  repeat=a['repeated'];require((repeat['iterations'],repeat['cancelled'],repeat['timedOut'])==(5000,2500,2500),'repeat outcomes')
+  require(repeat['peakAttached']==1,'live caller attachments');require(1<=repeat['peakSlots']<=4,'bounded backing slots')
+  require((a['weakSamples'],a['collectedSamples'])==(10,10),'deadline owner collection')
+  require(a['before']['controls']==a['afterDetach']['controls']==(0 if progress else 4),'bounded controls')
+  require(a['afterDetach']['attached']==0,'retained callers')
+  require(a['finalControls']==0,'released controls')
+  require(a['progressCleared'] is True,'progress cleared')
+  rejection=[(0,0,1)] if progress else [(0,1,0)]
+  tup=[('console',target,MAX-1 if progress else 0,0,0,1 if progress else target,'Failed' if progress else 'Pending')]
+  for key in ('first','last'):result(repeat[key],tup,0 if progress else 1,rejection)
+  result(a['final'],[('console',target,target,0,0,0,'Failed' if progress else 'Succeeded')],0 if progress else 1,rejection)
+  if progress:
+   require(0<=a['progressSlots']<=4,'progress storage')
+   writer(a['writer'],a['pid'],['first'],exact_order=['write.'+str(MAX)])
+  else:
+   names=['record.'+str(i) for i in range(target)]
+   order=(['flush.0'] if flush else [])+[part for i in range(1,target+1) for part in ('write.'+str(i),'flush.'+str(i))]
+   writer(a['writer'],a['pid'],names,exact_order=order)
+  timers(a['timers'],5002 if flush else 5001,1,2500)
+  diag(a,[('console',target,target,0,0,0,0 if progress else 1,1 if progress else 0,0,'AdmissionExhausted' if progress else None)])
+ elif mode=='saturation':
+  require(a['immutableAfterIo'] is True,'owned observation')
+  require(a['utcCorrectionsPreservedDue'] is True and a['dueBeforeTimeout']==['50000000','50000000'],'monotonic due')
+  result(a['early'],[('console',1,0,0,0,1,'Pending'),('file',1,1,0,0,0,'Pending')],0,[(0,0,0),(0,0,0)],'fixed early boundary')
+  result(a['late'],[('console',4,0,0,0,4,'Pending'),('file',1,1,0,0,0,'Pending')],1,[(0,61,0),(64,0,0)])
+  result(a['final'],[('console',4,4,0,0,0,'Succeeded'),('file',1,1,0,0,0,'Succeeded')],1,[(0,61,0),(64,0,0)])
+  require((a['heldConsole']['controls'],a['heldConsole']['attached'],a['heldConsole']['buffered'],a['heldFile']['controls'])==(2,2,3,1),'saturated controls')
+  require((a['detachedConsole']['controls'],a['detachedConsole']['attached'])==(2,0),'retained callers')
+  require((a['detachedFile']['controls'],a['detachedFile']['attached'])==(1,0),'retained file control')
+  accepted=sorted((number(r['outputs'][0]['ticket']),r['name']) for r in a['writes'] if r['outputs'][0]['status']=='Accepted')
+  require([x[0] for x in accepted]==[1,2,3,4] and len(a['writes'])==65,'admission tickets')
+  require(all(r['outputs'][1]['status']==('Accepted' if r['name']=='first' else 'Filtered') for r in a['writes']),'independent threshold')
+  names=[x[1] for x in accepted]
+  raw_writer(a['console'],a['pid'],names,['write.1','flush.1','write.2','write.3','write.4','flush.4'],['error','info','info','info'])
+  raw_writer(a['file'],a['pid'],['first'],['write.1','flush.1'],['error'])
+  timers(a['timers'],3,2,6)
+  diag(a,[('console',4,4,0,0,0,61,0,0,None),('file',1,1,0,0,0,0,0,64,None)])
+ elif mode in ('cohort','failed-flush'):
+  failure=mode=='failed-flush';b=1 if failure else 4;w=1 if failure else 0;p=0 if failure else 4
+  require(a['immutableAfterIo'] is True,'owned observation')
+  require((a['cancelled'],len(a['timeouts']),len(a['results']))==((32,16,16) if failure else (40,16,8)),'cohort outcomes')
+  for r in a['timeouts']:result(r,[('console',b,w,0,0,p,'Pending'),('file',b,w,0,0,p,'Pending')],0 if failure else 1,[(0,0 if failure else 1,0)]*2)
+  for r in a['results']:result(r,[('console',b,b,0,0,0,'Failed' if failure else 'Succeeded'),('file',b,b,0,0,0,'Succeeded')],0 if failure else 1,[(0,0 if failure else 1,0)]*2)
+  phases=a['phases'];controls=1 if failure else 4
+  require(len(phases)==(3 if failure else 4),'cohort phases')
+  require((phases[0]['console']['controls'],phases[0]['file']['controls'],phases[0]['console']['attached'],phases[0]['file']['attached'],phases[0]['timers'])==(controls,controls,64,0,64),'initial cohort')
+  require(phases[0]['console']['slots']==64,'cohort backing capacity')
+  require((phases[1]['console']['attached'],phases[1]['file']['attached'],phases[1]['timers'])==(16,0,16),'cohort detachment')
+  require(phases[1]['console']['controls']==phases[1]['file']['controls']==controls,'detached controls retained')
+  require(phases[1]['console']['slots']==64,'cohort backing capacity')
+  require((phases[2]['console']['controls'],phases[2]['file']['controls'],phases[2]['console']['attached'],phases[2]['file']['attached'],phases[2]['timers'])==(0,controls,0,16,16),'file caller phase')
+  require(phases[2]['file']['slots']==16,'file backing capacity')
+  if not failure:
+   require((phases[3]['file']['attached'],phases[3]['timers'])==(8,8),'file detachment')
+   require(phases[2]['dueTicks']==['50000000']*16 and phases[3]['dueTicks']==['50000000']*8,'monotonic due')
+   names=['record.'+str(i) for i in range(4)];order=[part for i in range(1,5) for part in ('write.'+str(i),'flush.'+str(i))]
+   writer(a['console'],a['pid'],names,exact_order=order);writer(a['file'],a['pid'],names,exact_order=order)
+   timers(a['timers'],64,64,48)
+   diag(a,[('console',4,4,0,0,0,1,0,0,None),('file',4,4,0,0,0,1,0,0,None)])
+  else:
+   require([number(x['ticket']) for x in a['laterAccepted']]==[2,3,4],'later wire mapping')
+   names=['record.0']+[x['name'] for x in a['laterAccepted']]
+   writer(a['console'],a['pid'],['record.0'],exact_order=['write.1']);require(a['console']['flushes']==1,'failed flush attempts')
+   writer(a['file'],a['pid'],names,exact_order=['write.1','flush.1','write.2','write.3','write.4'])
+   timers(a['timers'],64,64,16)
+   diag(a,[('console',4,1,0,3,0,61,0,0,'FlushFailed'),('file',4,4,0,0,0,61,0,0,None)])
+ elif mode=='concurrent':
+  require(len(a['writes'])==257 and len(a['observations'])==64,'concurrent cohort')
+  maps={name:sorted((number(r['outputs'][i]['ticket']),r['name']) for r in a['writes'] if r['outputs'][i]['status']=='Accepted') for i,name in enumerate(('console','file'))}
+  for name,count in (('console',257),('file',129)):require([x[0] for x in maps[name]]==list(range(1,count+1)),'admission tickets')
+  targets={'console':set(),'file':set()};seen=set()
+  for row in a['observations']:
+   require(row['caller'] not in seen,'unique caller');seen.add(row['caller']);initial=row['initial'];final=row['final']
+   result(initial,invalid=0,rejections=None);result(final,invalid=0,rejections=None)
+   for i,name in enumerate(('console','file')):
+    b=number(initial['outputs'][i]['boundary']);targets[name].add(b)
+    require(1<=b<=(257 if name=='console' else 129),'captured target range')
+    require(tuple(number(initial['outputs'][i][k]) for k in ('written','failed','abandoned','pending'))==(0,0,0,b) and initial['outputs'][i]['flush']=='Pending','initial pending target')
+    o=final['outputs'][i];require((o['name'],*[number(o[k]) for k in ('boundary','written','failed','abandoned','pending')],o['flush'])==(name,b,b,0,0,0,'Succeeded'),'fixed concurrent boundary')
+    require(tuple(number(o[k]) for k in ('filtered','full','unavailable'))==tuple(number(initial['outputs'][i][k]) for k in ('filtered','full','unavailable')),'original concurrent facts')
+   require(number(initial['outputs'][0]['boundary'])==number(initial['outputs'][1]['boundary'])+number(initial['outputs'][1]['filtered']),'atomic fanout facts')
+   require(initial['caller']==row['caller'] and final['captured']==initial['captured'],'original boundary label')
+  for name,buffered in (('console',256),('file',128)):
+   held=a['held'+name.title()];require([number(x) for x in held['targets']]==sorted(targets[name]) and held['controls']==len(targets[name])<=64,'distinct target controls')
+   require(held['attached']==(64 if name=='console' else 0) and held['slots']<=256 and held['buffered']==buffered,'concurrent live storage')
+   names=[x[1] for x in maps[name]];statuses=['error' if x=='first' else 'warn' if int(x.rsplit('.',1)[1])%2==0 else 'info' for x in names]
+   raw_writer(a[name],a['pid'],names,expected_status=statuses)
+   order=a[name]['order'];written=0;flushed=[]
+   for item in order:
+    action,value=item.split('.');ticket=int(value)
+    if action=='write':written+=1;require(ticket==written,'serialized tickets')
+    else:require(action=='flush' and ticket==written,'serialized flush');flushed.append(ticket)
+   require(set(flushed)==targets[name] and len(flushed)==len(targets[name]),'actual fixed flush targets')
+  timers(a['timers'],64,64,0)
+  diag(a,[('console',257,257,0,0,0,0,0,0,None),('file',129,129,0,0,0,0,0,128,None)])
+ elif mode=='deadline-race':
+  require(len(a['observations'])==32,'race cohort')
+  for i,row in enumerate(a['observations']):
+   require(row['iteration']==i and row['cancelled'] is (i%2==0),'race outcomes')
+   require(row['during']['callbacks']==row['during']['pendingJoins']==1 and row['during']['active']==0,'active callback join')
+   require(row['notificationHeldBeforeCompletion'] is True,'blocked linked notification')
+   require(row['sourceReadableDuringJoin'] is True and row['sourceDisposedAfterJoin'] is True,'owned source lifetime')
+   if i%2==0:require(row['result'] is None,'cancelled result')
+   else:result(row['result'],[('console',1,0,0,0,1,'Pending')],0,[(0,0,0)],'frozen deadline observation')
+   timers(row['timers'],1,1,1)
+   writer(row['writer'],a['pid'],['race.'+str(i)],exact_order=['write.1','flush.1'])
+   diag(row,[('console',1,1,0,0,0,0,0,0,None)])
+ else:raise AssertionError('unknown case')
+
+def corruption_controls(cases):
+ samples={c['id']:c['report'] for c in cases};controls=[]
+ edits=[
+ ('completion','repeat-write','summary flags',lambda a:a['repeated']['first'].update(completion='Completed')),
+ ('pending','repeat-write','boundary identity',lambda a:a['repeated']['first']['outputs'][0].update(pending='3')),
+ ('controls','repeat-write','bounded controls',lambda a:a['afterDetach'].update(controls=5)),
+ ('retained','repeat-write','retained callers',lambda a:a['afterDetach'].update(attached=1)),
+ ('slots','repeat-write','bounded backing slots',lambda a:a['repeated'].update(peakSlots=100)),
+ ('owners','repeat-write','deadline owner collection',lambda a:a.update(collectedSamples=4)),
+ ('timers','repeat-write','timer ownership',lambda a:a['timers'].update(active=1)),
+ ('global','repeat-write','initial global facts',lambda a:a['repeated']['first'].update(invalid='2')),
+ ('progress','repeat-progress','progress storage',lambda a:a.update(progressSlots=100)),
+ ('signal','repeat-progress','progress cleared',lambda a:a.update(progressCleared=False)),
+ ('boundary','saturation','fixed early boundary',lambda a:a['early']['outputs'][0].update(boundary='4',pending='4')),
+ ('reject','saturation','initial rejection facts',lambda a:a['late']['outputs'][0].update(full='0')),
+ ('file-control','saturation','retained file control',lambda a:a['detachedFile'].update(controls=0)),
+ ('framing','saturation','record framing',lambda a:a['console'].update(bytes=base64.b64encode(decoded(a['console']['bytes'])[:-1]).decode('ascii'))),
+ ('order','saturation','serialized order',lambda a:a['console']['order'].__setitem__(1,'flush.4')),
+ ('overlap','cohort','writer serialization',lambda a:a['console'].update(maximumIo=2)),
+ ('cohort-detach','cohort','cohort detachment',lambda a:a['phases'][1]['console'].update(attached=64)),
+ ('cohort-controls','cohort','detached controls retained',lambda a:a['phases'][1]['file'].update(controls=0)),
+ ('file-attached','cohort','file caller phase',lambda a:a['phases'][2]['file'].update(attached=0)),
+ ('file-detach','cohort','file detachment',lambda a:a['phases'][3].update(timers=16)),
+ ('loss','failed-flush','summary flags',lambda a:a['timeouts'][0].update(loss=True)),
+ ('later-abandon','failed-flush','covered dispositions',lambda a:a['results'][0]['outputs'][0].update(boundary='4',abandoned='3')),
+ ('later-wire','failed-flush','later wire mapping',lambda a:a['laterAccepted'].pop()),
+ ('cancel-count','failed-flush','cohort outcomes',lambda a:a.update(cancelled=31)),
+ ('concurrent-target','concurrent','fixed concurrent boundary',lambda a:[a['observations'][0]['final']['outputs'][0].update(boundary=str(number(a['observations'][0]['final']['outputs'][0]['boundary'])+1),written=str(number(a['observations'][0]['final']['outputs'][0]['written'])+1))]),
+ ('ticket','concurrent','admission tickets',lambda a:next(r for r in a['writes'] if r['name']=='first')['outputs'][0].update(ticket='2')),
+ ('records','concurrent','actual record order',lambda a:a['console'].update(bytes='')),
+ ('UTC-due','saturation','monotonic due',lambda a:a.update(dueBeforeTimeout=['100000000','100000000'])),
+ ('file-budget','cohort','monotonic due',lambda a:a['phases'][3]['dueTicks'].__setitem__(0,'100000000')),
+ ('callback','deadline-race','active callback join',lambda a:a['observations'][0]['during'].update(callbacks=0)),
+ ('notification','deadline-race','blocked linked notification',lambda a:a['observations'][1].update(notificationHeldBeforeCompletion=False)),
+ ('source','deadline-race','owned source lifetime',lambda a:a['observations'][0].update(sourceReadableDuringJoin=False)),
+ ('freeze','deadline-race','frozen deadline observation',lambda a:a['observations'][1]['result'].update(outputs=[dict(a['observations'][1]['result']['outputs'][0],written='1',pending='0',flush='Succeeded',flushSucceeded=True)])),
+ ('pid','repeat-write','actual child PID',lambda a:a.update(pid=a['pid']+1))]
+ for identity,mode,reason,edit in edits:
+  bad=copy.deepcopy(samples[mode]);edit(bad)
+  try:check(mode,bad,samples[mode]['pid'])
+  except AssertionError as error:require(str(error)==reason,'unexpected corruption reason '+identity+': '+str(error));controls.append(dict(id=identity,rejected=True,reason=reason))
+  else:raise AssertionError('corruption accepted '+identity)
+ return controls
+def main():
+ p=argparse.ArgumentParser()
+ for key in ('dotnet','host','output','family'):p.add_argument('--'+key,required=True)
+ a=p.parse_args();require((os.name=='nt')==(a.family=='windows'),'native OS')
+ repo=Path(__file__).resolve().parents[5];mapping=load((repo/'conformance/logging/flush-stress-cases.json').read_bytes())
+ require({c['id'] for c in mapping['cases']}==set(MODES),'shared case membership')
+ host=Path(a.host).resolve();out=Path(a.output).resolve();out.mkdir(parents=True,exist_ok=True);cases=[]
+ with tempfile.TemporaryDirectory(prefix='cislib-flush-stress-') as temp:
+  for mode in MODES:
+   work=Path(temp)/mode;work.mkdir()
+   command=[a.dotnet,'exec','--fx-version','10.0.12','--roll-forward','Disable',str(host),'flush-stress',mode,str(work)]
+   process=subprocess.Popen(command,cwd=work,stdout=subprocess.PIPE,stderr=subprocess.PIPE);stdout=stderr=b''
+   try:
+    try:stdout,stderr=process.communicate(timeout=60)
+    except BaseException:process.kill();stdout,stderr=process.communicate(timeout=15);raise
+   finally:
+    (out/(mode+'.stdout.bin')).write_bytes(stdout);(out/(mode+'.stderr.bin')).write_bytes(stderr)
+   require(process.returncode==0 and stderr==b'','child failure '+mode)
+   report=load(stdout);check(mode,report,process.pid)
+   require((report['os'],report['coreSha256'],report['fixtureSha256'])==(a.family,sha(host.parent/'CIS.Core.dll'),sha(host)),'actual runtime assemblies')
+   cases.append(dict(id=mode,pid=process.pid,command=command,exitCode=0,report=report,stdoutSha256=digest(stdout),stderrSha256=digest(stderr)))
+ controls=corruption_controls(cases)
+ report=dict(schema='cis.logging.flush-stress-native/v1',task='WP05-S08-T04',family=a.family,runtime='.NET 10.0.12',children=len(cases),coreSha256=sha(host.parent/'CIS.Core.dll'),fixtureSha256=sha(host),verifierSha256=sha(__file__),baseVerifierSha256=sha(Path(__file__).with_name('verify-flush-results.py')),caseMappingSha256=sha(repo/'conformance/logging/flush-stress-cases.json'),cases=cases,controls=controls)
+ (out/'report.json').write_text(json.dumps(report,indent=2)+'\n',encoding='utf-8',newline='\n')
+ print(json.dumps(dict(family=a.family,children=len(cases),controls=len(controls),repeatedCalls=15000,callbackRaces=32,passed=True)))
+if __name__=='__main__':main()

@@ -11,6 +11,7 @@ internal static class Program
 {
     private static int Main(string[] args)
     {
+        if (args.Length == 3 && args[0] == "flush-stress") { return FlushStressFixture.Run(args[1], args[2]); }
         if (args.Length == 3 && args[0] == "flush-results") { return FlushResultFixture.Run(args[1], args[2]); }
         if (args.Length == 3 && args[0] == "flush-coordination") { return FlushCoordinationFixture.Run(args[1], args[2]); }
         if (args.Length == 3 && args[0] == "flush-boundary") { return FlushBoundaryFixture.Run(args[1], args[2]); }
