@@ -1,0 +1,141 @@
+"""Independent reader of actual Core timer/coordinator child reports; no logging simulator."""
+import argparse,copy,hashlib,importlib.util,json,os,subprocess,tempfile
+from pathlib import Path
+spec=importlib.util.spec_from_file_location('flush_results_base',Path(__file__).with_name('verify-flush-results.py'))
+base=importlib.util.module_from_spec(spec);spec.loader.exec_module(base)
+load=base.load;decoded=base.decoded;number=base.number
+MODES=('blocked-write','blocked-flush','continuous','duplicate-start','closed-start','detach-before-arm','detach-system-before-arm','arm-false','arm-disposed')
+digest=lambda raw:hashlib.sha256(raw).hexdigest()
+sha=lambda p:digest(Path(p).read_bytes())
+def require(value,reason):
+ if not value:raise AssertionError(reason)
+def check(mode,a,pid=None):
+ require(a['mode']==mode and a['runtime']=='.NET 10.0.12','actual runtime/mode')
+ if pid is not None:require(a['pid']==pid and pid>0,'actual child PID')
+ require(a['workerCompleted'] is True,'worker joined')
+ require(a['finalControls']==0,'control cleanup')
+ t=a['timers'];w=a['writer']
+ require(t['active']==t['activePeriodic']==0 and t['created']==t['disposed'],'timer cleanup')
+ require(t['deadlineFires']==0,'caller deadlines did not expire')
+ require(w['maximumIo']<=1,'serialized writer')
+ if t['periodicFires']>0:require(t['periodicSuppressed'] is True,'periodic context flow')
+ require((t['systemCreated'],t['systemFalseChanges'])==((1,1) if mode=='detach-system-before-arm' else (0,0)),'actual system disposal signal')
+ blocked=mode.startswith('blocked-');continuous=mode=='continuous'
+ n=4 if blocked else 128 if continuous else 0
+ if blocked:
+  require(a['controlsIdentical'] is True,'retained control identity')
+  expected=['1','2','3','4']
+  for key in ('beforePulses','afterPulses'):
+   g=a[key];require(g['controls']==4 and g['buffered']==3 and g['attached']==0 and g['slots']==0,'bounded pulse controls')
+   require(g['targets']==expected,'fixed pulse targets')
+  held=a['heldWriter']
+  require(held['order']==(['write.1'] if mode=='blocked-flush' else []),'held writer order')
+  require([row['event_name'] for row in base.records(decoded(held['bytes']),a['pid'])]==(['record.1'] if mode=='blocked-flush' else []),'held record bytes')
+  require((held['writes'],held['flushes'],held['maximumIo'])==(1,1 if mode=='blocked-flush' else 0,1),'held writer stayed blocked')
+  require(a['afterDetach']['controls']==4 and a['afterDetach']['targets']==expected and a['afterDetach']['buffered']==3,'bounded retained controls')
+  require(a['afterDetach']['attached']==1,'remaining live caller')
+  require(a['afterDetach']['slots']<=4,'bounded continuation storage')
+  c=a['repeated']
+  require((c['ticks'],c['cancelled'])==(3000,500),'actual repeated callers')
+  require(c['peakAttached']==2 and c['peakSlots']<=4,'bounded caller storage')
+  require(c['createdBeforeTicks']==c['createdAfterTicks']==1,'no per-tick timer allocation')
+  require(c['workerIdBefore']==c['workerIdAfter'] and c['workerIdBefore']>0,'same worker completion')
+  require(t['periodicFires']==3004,'periodic requests')
+  require((t['created'],t['disposed'],t['maximumActive'])==(502,502,3),'caller timer counts')
+ elif continuous:
+  require(a['boundaries']==[str(i) for i in range(1,129)],'continuous fixed boundaries')
+  require(a['pulseCreations']==0,'no per-tick timer allocation')
+  require((t['created'],t['disposed'],t['periodicFires'],t['maximumActive'])==(129,129,128,2),'continuous timer counts')
+ else:
+  require(a['startError']==('InvalidOperationException' if mode in ('duplicate-start','arm-false') else 'ObjectDisposedException' if mode=='arm-disposed' else None),'timer start classification')
+  duplicate=mode=='duplicate-start'
+  require((t['created'],t['disposed'],t['periodicFires'])==(2 if duplicate else 1,2 if duplicate else 1,1 if duplicate else 0),'startup timer work')
+  h=a['heldTimers']
+  require((h['created'],h['disposed'],h['active'],h['activePeriodic'])==((2,1,1,1) if duplicate else (1,1,0,0)),'original or detached timer ownership')
+  require((w['writes'],w['flushes'])==(0,1 if duplicate else 0),'startup writer calls')
+  require(w['order']==(['flush.0'] if duplicate else []),'startup writer order')
+ if blocked or continuous:
+  result=a['result'];outputs=result['outputs']
+  require(result['completion']=='Completed' and result['succeeded'] is True and result['loss'] is blocked,'actual final result')
+  require(number(result['invalid'])==number(result['truncated'])==0 and len(outputs)==1,'initial global observations')
+  o=outputs[0]
+  require(o['name']=='file' and tuple(number(o[k]) for k in ('boundary','written','failed','abandoned','pending'))==(n,n,0,0,0),'fixed final coverage')
+  require(o['flush']=='Succeeded' and o['flushSucceeded'] is True and tuple(number(o[k]) for k in ('filtered','full','unavailable'))==(0,1 if blocked else 0,0),'writer flush result')
+  require((w['writes'],w['flushes'],w['maximumIo'])==(n,n,1),'actual writer calls')
+  require(w['order']==[item for i in range(1,n+1) for item in ('write.'+str(i),'flush.'+str(i))],'serialized record/flush order')
+ rows=base.records(decoded(w['bytes']),a['pid'])
+ require([row['event_name'] for row in rows]==['record.'+str(i) for i in range(1,n+1)],'actual record order')
+ d=a['diagnostics']
+ require(len(d)==1 and d[0]['name']=='file','diagnostic destination')
+ require(tuple(number(d[0][k]) for k in ('accepted','written','failed','abandoned','pending','full','unavailable','filtered'))==(n,n,0,0,0,1 if blocked else 0,0,0) and d[0]['fault'] is None,'actual event accounting')
+
+def corruption_controls(cases):
+ samples={c['id']:c['report'] for c in cases}
+ edits=[
+ ('joined','blocked-write','worker joined',lambda a:a.update(workerCompleted=False)),
+ ('identity','blocked-write','retained control identity',lambda a:a.update(controlsIdentical=False)),
+ ('system','detach-system-before-arm','actual system disposal signal',lambda a:a['timers'].update(systemFalseChanges=0)),
+ ('owned','arm-disposed','timer start classification',lambda a:a.update(startError=None)),
+ ('held-order','blocked-flush','held writer order',lambda a:a['heldWriter']['order'].__setitem__(0,'flush.1')),
+ ('held-bytes','blocked-flush','held record bytes',lambda a:a['heldWriter'].update(bytes='')),
+ ('cleanup','blocked-write','control cleanup',lambda a:a.update(finalControls=1)),
+ ('timer','blocked-write','timer cleanup',lambda a:a['timers'].update(active=1)),
+ ('deadline','blocked-write','caller deadlines did not expire',lambda a:a['timers'].update(deadlineFires=1)),
+ ('overlap','blocked-write','serialized writer',lambda a:a['writer'].update(maximumIo=2)),
+ ('flow','blocked-flush','periodic context flow',lambda a:a['timers'].update(periodicSuppressed=False)),
+ ('controls','blocked-write','bounded pulse controls',lambda a:a['afterPulses'].update(controls=5)),
+ ('boundary','blocked-write','fixed pulse targets',lambda a:a['beforePulses']['targets'].__setitem__(3,'5')),
+ ('earlyio','blocked-write','held writer stayed blocked',lambda a:a['heldWriter'].update(flushes=1)),
+ ('attached','blocked-write','remaining live caller',lambda a:a['afterDetach'].update(attached=2)),
+ ('slots','blocked-write','bounded continuation storage',lambda a:a['afterDetach'].update(slots=500)),
+ ('calls','blocked-write','actual repeated callers',lambda a:a['repeated'].update(cancelled=499)),
+ ('allocations','blocked-write','no per-tick timer allocation',lambda a:a['repeated'].update(createdAfterTicks=2)),
+ ('worker','blocked-write','same worker completion',lambda a:a['repeated'].update(workerIdAfter=0)),
+ ('fires','blocked-flush','periodic requests',lambda a:a['timers'].update(periodicFires=3005)),
+ ('counts','blocked-write','caller timer counts',lambda a:a['timers'].update(created=503,disposed=503)),
+ ('coverage','blocked-flush','fixed final coverage',lambda a:a['result']['outputs'][0].update(pending='1')),
+ ('order','blocked-write','serialized record/flush order',lambda a:a['writer']['order'].__setitem__(1,'flush.4')),
+ ('records','continuous','actual record order',lambda a:a['writer'].update(bytes='')),
+ ('continuous','continuous','continuous fixed boundaries',lambda a:a['boundaries'].__setitem__(127,'127')),
+ ('duplicate','duplicate-start','original or detached timer ownership',lambda a:a['heldTimers'].update(active=0)),
+ ('closed','closed-start','startup timer work',lambda a:a['timers'].update(periodicFires=1)),
+ ('detach','detach-before-arm','timer start classification',lambda a:a.update(startError='InvalidOperationException')),
+ ('arm','arm-false','timer start classification',lambda a:a.update(startError=None)),
+ ('pid','blocked-write','actual child PID',lambda a:a.update(pid=a['pid']+1))]
+ controls=[]
+ for identity,mode,reason,edit in edits:
+  bad=copy.deepcopy(samples[mode]);edit(bad)
+  try:check(mode,bad,samples[mode]['pid'])
+  except AssertionError as error:
+   require(str(error)==reason,'unexpected corruption '+identity+': '+str(error))
+   controls.append(dict(id=identity,rejected=True,reason=reason))
+  else:raise AssertionError('corruption accepted '+identity)
+ return controls
+
+def main():
+ p=argparse.ArgumentParser()
+ for key in ('dotnet','host','output','family'):p.add_argument('--'+key,required=True)
+ a=p.parse_args();require((os.name=='nt')==(a.family=='windows'),'native OS')
+ repo=Path(__file__).resolve().parents[5];mapping=load((repo/'conformance/logging/file-timer-coordination-cases.json').read_bytes())
+ require([c['id'] for c in mapping['cases']]==list(MODES),'shared case membership')
+ host=Path(a.host).resolve();out=Path(a.output).resolve();out.mkdir(parents=True,exist_ok=True);cases=[]
+ with tempfile.TemporaryDirectory(prefix='cislib-file-timer-coordination-') as temp:
+  for mode in MODES:
+   work=Path(temp)/mode;work.mkdir()
+   env={k:v for k,v in os.environ.items() if not k.startswith('CORE_')}
+   command=[a.dotnet,'exec','--fx-version','10.0.12','--roll-forward','Disable',str(host),'file-timer-coordination',mode,str(work)]
+   process=subprocess.Popen(command,cwd=work,env=env,stdout=subprocess.PIPE,stderr=subprocess.PIPE);stdout=stderr=b''
+   try:
+    try:stdout,stderr=process.communicate(timeout=60)
+    except BaseException:process.kill();stdout,stderr=process.communicate(timeout=15);raise
+   finally:
+    (out/(mode+'.stdout.bin')).write_bytes(stdout);(out/(mode+'.stderr.bin')).write_bytes(stderr)
+   require(process.returncode==0 and stderr==b'','child failure '+mode)
+   report=load(stdout);check(mode,report,process.pid)
+   require((report['os'],report['coreSha256'],report['fixtureSha256'])==(a.family,sha(host.parent/'CIS.Core.dll'),sha(host)),'actual assemblies')
+   cases.append(dict(id=mode,pid=process.pid,command=command,exitCode=0,report=report,stdoutSha256=digest(stdout),stderrSha256=digest(stderr)))
+ controls=corruption_controls(cases)
+ report=dict(schema='cis.logging.file-timer-coordination-native/v1',task='WP05-S09-T02',family=a.family,runtime='.NET 10.0.12',children=len(cases),coreSha256=sha(host.parent/'CIS.Core.dll'),fixtureSha256=sha(host),verifierSha256=sha(__file__),baseVerifierSha256=sha(Path(__file__).with_name('verify-flush-results.py')),caseMappingSha256=sha(repo/'conformance/logging/file-timer-coordination-cases.json'),cases=cases,controls=controls)
+ (out/'report.json').write_text(json.dumps(report,indent=2)+'\n',encoding='utf-8',newline='\n')
+ print(json.dumps(dict(family=a.family,children=len(cases),controls=len(controls),passed=True)))
+if __name__=='__main__':main()

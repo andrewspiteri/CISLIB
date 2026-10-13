@@ -105,7 +105,12 @@ internal sealed class OutputEventQueue : ILogOutputAdmission
                 if (activate) { fileFlushTimer = acquired; }
             }
             if (!activate) { acquired.Dispose(); return; }
-            if (!acquired.Change(interval, interval)) { throw new InvalidOperationException("The file flush timer could not be armed."); }
+            if (!acquired.Change(interval, interval))
+            {
+                // Terminal cleanup may have detached/disposed this timer before its initial arm.
+                lock (admissionGate) { if (!ReferenceEquals(fileFlushTimer, acquired)) { return; } }
+                throw new InvalidOperationException("The file flush timer could not be armed.");
+            }
         }
         catch
         {

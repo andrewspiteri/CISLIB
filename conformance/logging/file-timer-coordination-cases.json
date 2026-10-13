@@ -1,0 +1,40 @@
+{
+  "schema": "cis.logging.file-timer-coordination-cases/v1",
+  "task": "WP05-S09-T02",
+  "state": "Development qualification; release-family Planned rows unchanged",
+  "sourceRequirement": "Integrate timer requests with the bounded serialized flush coordinator rather than launching independent overlapping I/O tasks.",
+  "cases": [
+    {
+      "id": "blocked-write"
+    },
+    {
+      "id": "blocked-flush"
+    },
+    {
+      "id": "continuous"
+    },
+    {
+      "id": "duplicate-start"
+    },
+    {
+      "id": "closed-start"
+    },
+    {
+      "id": "detach-before-arm"
+    },
+    {
+      "id": "detach-system-before-arm"
+    },
+    {
+      "id": "arm-false"
+    },
+    {
+      "id": "arm-disposed"
+    }
+  ],
+  "scope": "Actual file queue, periodic requests, public explicit callers, four distinct held controls, full event slots, 3000 repeated ticks and 500 cancelled callers per blocked mode, continuous fixed-boundary coalescing and internal timer-start lifecycle races.",
+  "remainingStoryTasks": [
+    "WP05-S09-T03 failure, immediate cancellation and shared-stop coordination",
+    "WP05-S09-T04 complete controlled-time story qualification"
+  ]
+}
