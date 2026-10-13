@@ -93,7 +93,8 @@ public sealed class CoreLogRuntime
         if (selected.QueueCapacity is < LoggingOptions.MinimumQueueCapacity or > LoggingOptions.MaximumQueueCapacity
             || selected.FileMaxBytes is < LoggingOptions.MinimumFileMaxBytes or > LoggingOptions.MaximumFileMaxBytes
             || selected.FileRetainedFiles is < LoggingOptions.MinimumFileRetainedFiles or > LoggingOptions.MaximumFileRetainedFiles
-            || selected.FileEnabled && selected.FileMaxBytes < selected.MaxEntryBytes)
+            || selected.FileEnabled && (selected.FileMaxBytes < selected.MaxEntryBytes
+                || selected.FlushIntervalMilliseconds is < LoggingOptions.MinimumFlushIntervalMilliseconds or > LoggingOptions.MaximumFlushIntervalMilliseconds))
         { throw new ArgumentOutOfRangeException(nameof(options)); }
         if (!Enum.IsDefined(selected.ConsoleFormat) || !Enum.IsDefined(selected.ConsoleStream) || !Enum.IsDefined(selected.FileFormat) || !Enum.IsDefined(selected.HumanDetail))
         { throw new ArgumentException("Use declared output presentation values.", nameof(options)); }
@@ -138,7 +139,8 @@ public sealed class CoreLogRuntime
             HumanDetail = options.HumanDetail,
             FileFormat = options.FileFormat,
             FileMaxBytes = options.FileMaxBytes,
-            FileRetainedFiles = options.FileRetainedFiles
+            FileRetainedFiles = options.FileRetainedFiles,
+            FlushIntervalMilliseconds = options.FlushIntervalMilliseconds
         };
     }
 
@@ -154,7 +156,13 @@ public sealed class CoreLogRuntime
         {
             writer?.Initialize();
             fileWriter?.Initialize();
-            return new CoreLogRuntime(metadata, selected, queues.Console, queues.File, timeProvider, gate, queues, writer, fileWriter);
+            var runtime = new CoreLogRuntime(metadata, selected, queues.Console, queues.File, timeProvider, gate, queues, writer, fileWriter);
+            if (fileWriter is not null)
+            {
+                try { queues.File!.StartFileFlushTimer(runtime.timeProvider, selected.FlushInterval); }
+                catch { throw new CoreLogInitializationException("file", "FileFlushTimerInitializationFailed"); }
+            }
+            return runtime;
         }
         catch { queues.Complete(); queues.Completion.GetAwaiter().GetResult(); fileWriter?.Dispose(); throw; }
     }

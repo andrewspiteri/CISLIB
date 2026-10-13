@@ -14,6 +14,7 @@ internal sealed class OutputEventQueue : ILogOutputAdmission
     private readonly SortedDictionary<long, OutputFlushRegistration> flushRequests = [];
     private TaskCompletionSource wake = NewWake();
     private OutputFlushRegistration? flushing;
+    private ITimer? fileFlushTimer;
     private bool workerExiting;
     private long lastAcceptedSequence;
     private long acceptedCount;
@@ -79,6 +80,44 @@ internal sealed class OutputEventQueue : ILogOutputAdmission
                 }
             }
             return new OutputFlushBoundary(boundary, filteredCount, queueFullCount, unavailableCount, registration);
+        }
+    }
+    // Configured file composition owns one timer; primitive kernel fixtures opt in explicitly.
+    // The callback requests existing fixed-boundary work, never performs or awaits output I/O.
+    internal void StartFileFlushTimer(TimeProvider clock, TimeSpan interval)
+    {
+        ArgumentNullException.ThrowIfNull(clock);
+        if (interval < TimeSpan.FromMilliseconds(LoggingOptions.MinimumFlushIntervalMilliseconds)
+            || interval > TimeSpan.FromMilliseconds(LoggingOptions.MaximumFlushIntervalMilliseconds))
+        { throw new ArgumentOutOfRangeException(nameof(interval)); }
+        ITimer Create() => clock.CreateTimer(static state => ((OutputEventQueue)state!).RequestFileFlush(), this,
+            Timeout.InfiniteTimeSpan, Timeout.InfiniteTimeSpan) ?? throw new InvalidOperationException("Timer creation returned null.");
+        ITimer acquired;
+        if (ExecutionContext.IsFlowSuppressed()) { acquired = Create(); }
+        else { using (ExecutionContext.SuppressFlow()) { acquired = Create(); } }
+        try
+        {
+            bool activate;
+            lock (admissionGate)
+            {
+                if (fileFlushTimer is not null) { throw new InvalidOperationException("A file flush timer is already owned."); }
+                activate = !admissionClosed && !workerExiting && !workerFinished && flush is not null;
+                if (activate) { fileFlushTimer = acquired; }
+            }
+            if (!activate) { acquired.Dispose(); return; }
+            if (!acquired.Change(interval, interval)) { throw new InvalidOperationException("The file flush timer could not be armed."); }
+        }
+        catch
+        {
+            lock (admissionGate) { if (ReferenceEquals(fileFlushTimer, acquired)) { fileFlushTimer = null; } }
+            acquired.Dispose(); throw;
+        }
+    }
+    private void RequestFileFlush()
+    {
+        lock (admissionGate)
+        {
+            if (!admissionClosed && !workerExiting && !workerFinished) { RegisterFlushBoundary(); }
         }
     }
     internal int BufferedCount { get { lock (admissionGate) { return channel.Reader.Count; } } }
@@ -257,15 +296,21 @@ internal sealed class OutputEventQueue : ILogOutputAdmission
         {
             // No pending writer call remains. Owned cleanup precedes terminal state/Completion,
             // outside the gate, and never receives a borrowed console stream.
-            try { ownedResource?.Dispose(); }
+            ITimer? timer;
+            lock (admissionGate) { workerExiting = true; timer = fileFlushTimer; fileFlushTimer = null; }
+            try { if (timer is not null) { await timer.DisposeAsync().ConfigureAwait(false); } }
             finally
             {
-                lock (admissionGate)
+                try { ownedResource?.Dispose(); }
+                finally
                 {
-                    admissionClosed = true; channel.Writer.TryComplete();
-                    workerExiting = true;
-                    workerFinished = true;
-                    state = stopRequested || !faulted ? LogOutputState.Stopped : LogOutputState.Faulted;
+                    lock (admissionGate)
+                    {
+                        admissionClosed = true; channel.Writer.TryComplete();
+                        workerExiting = true;
+                        workerFinished = true;
+                        state = stopRequested || !faulted ? LogOutputState.Stopped : LogOutputState.Faulted;
+                    }
                 }
             }
         }

@@ -1,0 +1,1457 @@
+{
+  "schema": "cis.logging.flush-coordination-native/v1",
+  "task": "WP05-S08-T02",
+  "family": "windows",
+  "runtime": ".NET 10.0.12",
+  "children": 9,
+  "coreSha256": "27eafeb9c8ad4378402badacc06a5335d3572b09549e696fc11f79cd35140f29",
+  "fixtureSha256": "f7ced298b6b8eae8695cb068d12e88603558164e174cad5c7c22cdcf587bcc94",
+  "verifierSha256": "4ffb61792ae5316489560e707202154527229e81b40cb8c78f108fc7ddf770e1",
+  "cases": [
+    {
+      "id": "write-cancel",
+      "pid": 166608,
+      "command": [
+        "dotnet",
+        "exec",
+        "--fx-version",
+        "10.0.12",
+        "--roll-forward",
+        "Disable",
+        "C:\\miscwork\\portfolio\\cislib\\.artifacts\\csharp\\tasks\\wp05-s09-t01\\native-host\\CIS.Core.DiscoveryFixture.dll",
+        "flush-coordination",
+        "write-cancel",
+        "C:\\Users\\andrs\\AppData\\Local\\Temp\\cislib-flush-coordination-nxhkkbcr\\write-cancel"
+      ],
+      "exitCode": 0,
+      "report": {
+        "mode": "write-cancel",
+        "pid": 166608,
+        "runtime": ".NET 10.0.12",
+        "os": "windows",
+        "coreSha256": "27eafeb9c8ad4378402badacc06a5335d3572b09549e696fc11f79cd35140f29",
+        "fixtureSha256": "f7ced298b6b8eae8695cb068d12e88603558164e174cad5c7c22cdcf587bcc94",
+        "capacity": 3,
+        "iterations": 10000,
+        "cancelled": 10000,
+        "succeeded": 1,
+        "failed": 0,
+        "deadlineFires": 0,
+        "continuationSlotsPeak": 4,
+        "continuationSlotsAfterDetach": 4,
+        "attachedPeak": 1,
+        "retainedAfterDetach": 0,
+        "controlsPeak": 4,
+        "fileControlsPeak": 0,
+        "finalControls": 0,
+        "shared": true,
+        "completedTokenCancelled": false,
+        "phases": [
+          {
+            "consoleControls": 4,
+            "fileControls": 0,
+            "consoleAttached": 0,
+            "consoleSlots": 4,
+            "fileAttached": 0
+          }
+        ],
+        "race": [],
+        "writeResults": [
+          "Accepted",
+          "Accepted",
+          "Accepted",
+          "Accepted",
+          "Rejected",
+          "InvalidEvent",
+          "Rejected",
+          "Rejected",
+          "Rejected"
+        ],
+        "snapshots": [
+          {
+            "capturedAtUtc": "2026-10-13T19:01:38.8510996+00:00",
+            "invalid": "0",
+            "truncated": "0",
+            "console": {
+              "boundary": "1",
+              "filtered": "0",
+              "queueFull": "0",
+              "unavailable": "0"
+            },
+            "file": null
+          },
+          {
+            "capturedAtUtc": "2026-10-13T19:01:38.8533922+00:00",
+            "invalid": "0",
+            "truncated": "0",
+            "console": {
+              "boundary": "2",
+              "filtered": "0",
+              "queueFull": "0",
+              "unavailable": "0"
+            },
+            "file": null
+          },
+          {
+            "capturedAtUtc": "2026-10-13T19:01:38.8538814+00:00",
+            "invalid": "0",
+            "truncated": "0",
+            "console": {
+              "boundary": "3",
+              "filtered": "0",
+              "queueFull": "0",
+              "unavailable": "0"
+            },
+            "file": null
+          },
+          {
+            "capturedAtUtc": "2026-10-13T19:01:38.8541833+00:00",
+            "invalid": "0",
+            "truncated": "0",
+            "console": {
+              "boundary": "4",
+              "filtered": "0",
+              "queueFull": "0",
+              "unavailable": "0"
+            },
+            "file": null
+          },
+          {
+            "capturedAtUtc": "2026-10-13T19:01:38.8550215+00:00",
+            "invalid": "1",
+            "truncated": "0",
+            "console": {
+              "boundary": "4",
+              "filtered": "0",
+              "queueFull": "1",
+              "unavailable": "0"
+            },
+            "file": null
+          },
+          {
+            "capturedAtUtc": "2026-10-13T19:01:38.8554607+00:00",
+            "invalid": "1",
+            "truncated": "0",
+            "console": {
+              "boundary": "4",
+              "filtered": "0",
+              "queueFull": "4",
+              "unavailable": "0"
+            },
+            "file": null
+          }
+        ],
+        "writers": {
+          "console": {
+            "order": [
+              "write.1",
+              "flush.1",
+              "write.2",
+              "flush.2",
+              "write.3",
+              "flush.3",
+              "write.4",
+              "flush.4"
+            ],
+            "maximum": 1,
+            "attempts": 4,
+            "flushes": 4,
+            "bytes": "eyJzY2hlbWFfdmVyc2lvbiI6MSwidGltZXN0YW1wIjoiMjAyNi0xMC0xM1QxNzoxODoxOS4wMDAwMDAwWiIsInN0YXR1cyI6ImluZm8iLCJldmVudF9uYW1lIjoiY29vcmQuMCIsIm1lc3NhZ2UiOiLOqSBcdUQ4M0RcdURFNDIiLCJzZXJ2aWNlIjoiQ29uc29sZS5BcHAiLCJlbnYiOiJ0ZXN0IiwidmVyc2lvbiI6IjEuMi4zIiwiY29tcG9uZW50IjoiRmx1c2hDb29yZGluYXRpb24iLCJyZXNvdXJjZSI6eyJidWlsZF92ZXJzaW9uIjoiYnVpbGQtMSIsImVudmlyb25tZW50X2tpbmQiOiJjb25zb2xlIiwiaW5pdGlhbGl6ZWRfYXQiOiIyMDI2LTEwLTEzVDEwOjAwOjAwLjAwMDAwMDBaIiwiaW5zdGFuY2VfaWQiOiIxMTExMTExMS0xMTExLTExMTEtMTExMS0xMTExMTExMTExMTEiLCJvc19mYW1pbHkiOiJ1bmtub3duIn0sImF0dHJpYnV0ZXMiOnsicHJvZHVjZXJfcGlkIjoxNjY2MDh9fQp7InNjaGVtYV92ZXJzaW9uIjoxLCJ0aW1lc3RhbXAiOiIyMDI2LTEwLTEzVDE3OjE4OjE5LjAwMDAwMDBaIiwic3RhdHVzIjoiaW5mbyIsImV2ZW50X25hbWUiOiJjb29yZC4xIiwibWVzc2FnZSI6Is6pIFx1RDgzRFx1REU0MiIsInNlcnZpY2UiOiJDb25zb2xlLkFwcCIsImVudiI6InRlc3QiLCJ2ZXJzaW9uIjoiMS4yLjMiLCJjb21wb25lbnQiOiJGbHVzaENvb3JkaW5hdGlvbiIsInJlc291cmNlIjp7ImJ1aWxkX3ZlcnNpb24iOiJidWlsZC0xIiwiZW52aXJvbm1lbnRfa2luZCI6ImNvbnNvbGUiLCJpbml0aWFsaXplZF9hdCI6IjIwMjYtMTAtMTNUMTA6MDA6MDAuMDAwMDAwMFoiLCJpbnN0YW5jZV9pZCI6IjExMTExMTExLTExMTEtMTExMS0xMTExLTExMTExMTExMTExMSIsIm9zX2ZhbWlseSI6InVua25vd24ifSwiYXR0cmlidXRlcyI6eyJwcm9kdWNlcl9waWQiOjE2NjYwOH19Cnsic2NoZW1hX3ZlcnNpb24iOjEsInRpbWVzdGFtcCI6IjIwMjYtMTAtMTNUMTc6MTg6MTkuMDAwMDAwMFoiLCJzdGF0dXMiOiJpbmZvIiwiZXZlbnRfbmFtZSI6ImNvb3JkLjIiLCJtZXNzYWdlIjoizqkgXHVEODNEXHVERTQyIiwic2VydmljZSI6IkNvbnNvbGUuQXBwIiwiZW52IjoidGVzdCIsInZlcnNpb24iOiIxLjIuMyIsImNvbXBvbmVudCI6IkZsdXNoQ29vcmRpbmF0aW9uIiwicmVzb3VyY2UiOnsiYnVpbGRfdmVyc2lvbiI6ImJ1aWxkLTEiLCJlbnZpcm9ubWVudF9raW5kIjoiY29uc29sZSIsImluaXRpYWxpemVkX2F0IjoiMjAyNi0xMC0xM1QxMDowMDowMC4wMDAwMDAwWiIsImluc3RhbmNlX2lkIjoiMTExMTExMTEtMTExMS0xMTExLTExMTEtMTExMTExMTExMTExIiwib3NfZmFtaWx5IjoidW5rbm93biJ9LCJhdHRyaWJ1dGVzIjp7InByb2R1Y2VyX3BpZCI6MTY2NjA4fX0KeyJzY2hlbWFfdmVyc2lvbiI6MSwidGltZXN0YW1wIjoiMjAyNi0xMC0xM1QxNzoxODoxOS4wMDAwMDAwWiIsInN0YXR1cyI6ImluZm8iLCJldmVudF9uYW1lIjoiY29vcmQuMyIsIm1lc3NhZ2UiOiLOqSBcdUQ4M0RcdURFNDIiLCJzZXJ2aWNlIjoiQ29uc29sZS5BcHAiLCJlbnYiOiJ0ZXN0IiwidmVyc2lvbiI6IjEuMi4zIiwiY29tcG9uZW50IjoiRmx1c2hDb29yZGluYXRpb24iLCJyZXNvdXJjZSI6eyJidWlsZF92ZXJzaW9uIjoiYnVpbGQtMSIsImVudmlyb25tZW50X2tpbmQiOiJjb25zb2xlIiwiaW5pdGlhbGl6ZWRfYXQiOiIyMDI2LTEwLTEzVDEwOjAwOjAwLjAwMDAwMDBaIiwiaW5zdGFuY2VfaWQiOiIxMTExMTExMS0xMTExLTExMTEtMTExMS0xMTExMTExMTExMTEiLCJvc19mYW1pbHkiOiJ1bmtub3duIn0sImF0dHJpYnV0ZXMiOnsicHJvZHVjZXJfcGlkIjoxNjY2MDh9fQo="
+          },
+          "file": null
+        },
+        "finalInvalid": "1",
+        "finalTruncated": "0",
+        "outputs": [
+          {
+            "name": "console",
+            "state": "Stopped",
+            "accepted": "4",
+            "written": "4",
+            "failed": "0",
+            "abandoned": "0",
+            "pending": "0",
+            "filtered": "0",
+            "queueFull": "4",
+            "unavailable": "0",
+            "fault": null
+          }
+        ],
+        "physicalFiles": 0
+      },
+      "stdoutSha256": "95b9c948db4c6ba55a4c94189490c0a3125507954e35e1fbaee9406de0a4bef4",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "id": "write-deadline",
+      "pid": 129628,
+      "command": [
+        "dotnet",
+        "exec",
+        "--fx-version",
+        "10.0.12",
+        "--roll-forward",
+        "Disable",
+        "C:\\miscwork\\portfolio\\cislib\\.artifacts\\csharp\\tasks\\wp05-s09-t01\\native-host\\CIS.Core.DiscoveryFixture.dll",
+        "flush-coordination",
+        "write-deadline",
+        "C:\\Users\\andrs\\AppData\\Local\\Temp\\cislib-flush-coordination-nxhkkbcr\\write-deadline"
+      ],
+      "exitCode": 0,
+      "report": {
+        "mode": "write-deadline",
+        "pid": 129628,
+        "runtime": ".NET 10.0.12",
+        "os": "windows",
+        "coreSha256": "27eafeb9c8ad4378402badacc06a5335d3572b09549e696fc11f79cd35140f29",
+        "fixtureSha256": "f7ced298b6b8eae8695cb068d12e88603558164e174cad5c7c22cdcf587bcc94",
+        "capacity": 3,
+        "iterations": 10000,
+        "cancelled": 10000,
+        "succeeded": 1,
+        "failed": 0,
+        "deadlineFires": 10000,
+        "continuationSlotsPeak": 4,
+        "continuationSlotsAfterDetach": 4,
+        "attachedPeak": 1,
+        "retainedAfterDetach": 0,
+        "controlsPeak": 4,
+        "fileControlsPeak": 0,
+        "finalControls": 0,
+        "shared": true,
+        "completedTokenCancelled": false,
+        "phases": [
+          {
+            "consoleControls": 4,
+            "fileControls": 0,
+            "consoleAttached": 0,
+            "consoleSlots": 4,
+            "fileAttached": 0
+          }
+        ],
+        "race": [],
+        "writeResults": [
+          "Accepted",
+          "Accepted",
+          "Accepted",
+          "Accepted",
+          "Rejected",
+          "InvalidEvent",
+          "Rejected",
+          "Rejected",
+          "Rejected"
+        ],
+        "snapshots": [
+          {
+            "capturedAtUtc": "2026-10-13T19:01:39.2112816+00:00",
+            "invalid": "0",
+            "truncated": "0",
+            "console": {
+              "boundary": "1",
+              "filtered": "0",
+              "queueFull": "0",
+              "unavailable": "0"
+            },
+            "file": null
+          },
+          {
+            "capturedAtUtc": "2026-10-13T19:01:39.2138623+00:00",
+            "invalid": "0",
+            "truncated": "0",
+            "console": {
+              "boundary": "2",
+              "filtered": "0",
+              "queueFull": "0",
+              "unavailable": "0"
+            },
+            "file": null
+          },
+          {
+            "capturedAtUtc": "2026-10-13T19:01:39.2144310+00:00",
+            "invalid": "0",
+            "truncated": "0",
+            "console": {
+              "boundary": "3",
+              "filtered": "0",
+              "queueFull": "0",
+              "unavailable": "0"
+            },
+            "file": null
+          },
+          {
+            "capturedAtUtc": "2026-10-13T19:01:39.2148897+00:00",
+            "invalid": "0",
+            "truncated": "0",
+            "console": {
+              "boundary": "4",
+              "filtered": "0",
+              "queueFull": "0",
+              "unavailable": "0"
+            },
+            "file": null
+          },
+          {
+            "capturedAtUtc": "2026-10-13T19:01:39.2157197+00:00",
+            "invalid": "1",
+            "truncated": "0",
+            "console": {
+              "boundary": "4",
+              "filtered": "0",
+              "queueFull": "1",
+              "unavailable": "0"
+            },
+            "file": null
+          },
+          {
+            "capturedAtUtc": "2026-10-13T19:01:39.2159290+00:00",
+            "invalid": "1",
+            "truncated": "0",
+            "console": {
+              "boundary": "4",
+              "filtered": "0",
+              "queueFull": "4",
+              "unavailable": "0"
+            },
+            "file": null
+          }
+        ],
+        "writers": {
+          "console": {
+            "order": [
+              "write.1",
+              "flush.1",
+              "write.2",
+              "flush.2",
+              "write.3",
+              "flush.3",
+              "write.4",
+              "flush.4"
+            ],
+            "maximum": 1,
+            "attempts": 4,
+            "flushes": 4,
+            "bytes": "eyJzY2hlbWFfdmVyc2lvbiI6MSwidGltZXN0YW1wIjoiMjAyNi0xMC0xM1QxNzoxODoxOS4wMDAwMDAwWiIsInN0YXR1cyI6ImluZm8iLCJldmVudF9uYW1lIjoiY29vcmQuMCIsIm1lc3NhZ2UiOiLOqSBcdUQ4M0RcdURFNDIiLCJzZXJ2aWNlIjoiQ29uc29sZS5BcHAiLCJlbnYiOiJ0ZXN0IiwidmVyc2lvbiI6IjEuMi4zIiwiY29tcG9uZW50IjoiRmx1c2hDb29yZGluYXRpb24iLCJyZXNvdXJjZSI6eyJidWlsZF92ZXJzaW9uIjoiYnVpbGQtMSIsImVudmlyb25tZW50X2tpbmQiOiJjb25zb2xlIiwiaW5pdGlhbGl6ZWRfYXQiOiIyMDI2LTEwLTEzVDEwOjAwOjAwLjAwMDAwMDBaIiwiaW5zdGFuY2VfaWQiOiIxMTExMTExMS0xMTExLTExMTEtMTExMS0xMTExMTExMTExMTEiLCJvc19mYW1pbHkiOiJ1bmtub3duIn0sImF0dHJpYnV0ZXMiOnsicHJvZHVjZXJfcGlkIjoxMjk2Mjh9fQp7InNjaGVtYV92ZXJzaW9uIjoxLCJ0aW1lc3RhbXAiOiIyMDI2LTEwLTEzVDE3OjE4OjE5LjAwMDAwMDBaIiwic3RhdHVzIjoiaW5mbyIsImV2ZW50X25hbWUiOiJjb29yZC4xIiwibWVzc2FnZSI6Is6pIFx1RDgzRFx1REU0MiIsInNlcnZpY2UiOiJDb25zb2xlLkFwcCIsImVudiI6InRlc3QiLCJ2ZXJzaW9uIjoiMS4yLjMiLCJjb21wb25lbnQiOiJGbHVzaENvb3JkaW5hdGlvbiIsInJlc291cmNlIjp7ImJ1aWxkX3ZlcnNpb24iOiJidWlsZC0xIiwiZW52aXJvbm1lbnRfa2luZCI6ImNvbnNvbGUiLCJpbml0aWFsaXplZF9hdCI6IjIwMjYtMTAtMTNUMTA6MDA6MDAuMDAwMDAwMFoiLCJpbnN0YW5jZV9pZCI6IjExMTExMTExLTExMTEtMTExMS0xMTExLTExMTExMTExMTExMSIsIm9zX2ZhbWlseSI6InVua25vd24ifSwiYXR0cmlidXRlcyI6eyJwcm9kdWNlcl9waWQiOjEyOTYyOH19Cnsic2NoZW1hX3ZlcnNpb24iOjEsInRpbWVzdGFtcCI6IjIwMjYtMTAtMTNUMTc6MTg6MTkuMDAwMDAwMFoiLCJzdGF0dXMiOiJpbmZvIiwiZXZlbnRfbmFtZSI6ImNvb3JkLjIiLCJtZXNzYWdlIjoizqkgXHVEODNEXHVERTQyIiwic2VydmljZSI6IkNvbnNvbGUuQXBwIiwiZW52IjoidGVzdCIsInZlcnNpb24iOiIxLjIuMyIsImNvbXBvbmVudCI6IkZsdXNoQ29vcmRpbmF0aW9uIiwicmVzb3VyY2UiOnsiYnVpbGRfdmVyc2lvbiI6ImJ1aWxkLTEiLCJlbnZpcm9ubWVudF9raW5kIjoiY29uc29sZSIsImluaXRpYWxpemVkX2F0IjoiMjAyNi0xMC0xM1QxMDowMDowMC4wMDAwMDAwWiIsImluc3RhbmNlX2lkIjoiMTExMTExMTEtMTExMS0xMTExLTExMTEtMTExMTExMTExMTExIiwib3NfZmFtaWx5IjoidW5rbm93biJ9LCJhdHRyaWJ1dGVzIjp7InByb2R1Y2VyX3BpZCI6MTI5NjI4fX0KeyJzY2hlbWFfdmVyc2lvbiI6MSwidGltZXN0YW1wIjoiMjAyNi0xMC0xM1QxNzoxODoxOS4wMDAwMDAwWiIsInN0YXR1cyI6ImluZm8iLCJldmVudF9uYW1lIjoiY29vcmQuMyIsIm1lc3NhZ2UiOiLOqSBcdUQ4M0RcdURFNDIiLCJzZXJ2aWNlIjoiQ29uc29sZS5BcHAiLCJlbnYiOiJ0ZXN0IiwidmVyc2lvbiI6IjEuMi4zIiwiY29tcG9uZW50IjoiRmx1c2hDb29yZGluYXRpb24iLCJyZXNvdXJjZSI6eyJidWlsZF92ZXJzaW9uIjoiYnVpbGQtMSIsImVudmlyb25tZW50X2tpbmQiOiJjb25zb2xlIiwiaW5pdGlhbGl6ZWRfYXQiOiIyMDI2LTEwLTEzVDEwOjAwOjAwLjAwMDAwMDBaIiwiaW5zdGFuY2VfaWQiOiIxMTExMTExMS0xMTExLTExMTEtMTExMS0xMTExMTExMTExMTEiLCJvc19mYW1pbHkiOiJ1bmtub3duIn0sImF0dHJpYnV0ZXMiOnsicHJvZHVjZXJfcGlkIjoxMjk2Mjh9fQo="
+          },
+          "file": null
+        },
+        "finalInvalid": "1",
+        "finalTruncated": "0",
+        "outputs": [
+          {
+            "name": "console",
+            "state": "Stopped",
+            "accepted": "4",
+            "written": "4",
+            "failed": "0",
+            "abandoned": "0",
+            "pending": "0",
+            "filtered": "0",
+            "queueFull": "4",
+            "unavailable": "0",
+            "fault": null
+          }
+        ],
+        "physicalFiles": 0
+      },
+      "stdoutSha256": "4334128082769c9da010f874ef7c29b42ec5a8259366ef1fd74e1bcc6b0a39ee",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "id": "flush-cancel",
+      "pid": 149244,
+      "command": [
+        "dotnet",
+        "exec",
+        "--fx-version",
+        "10.0.12",
+        "--roll-forward",
+        "Disable",
+        "C:\\miscwork\\portfolio\\cislib\\.artifacts\\csharp\\tasks\\wp05-s09-t01\\native-host\\CIS.Core.DiscoveryFixture.dll",
+        "flush-coordination",
+        "flush-cancel",
+        "C:\\Users\\andrs\\AppData\\Local\\Temp\\cislib-flush-coordination-nxhkkbcr\\flush-cancel"
+      ],
+      "exitCode": 0,
+      "report": {
+        "mode": "flush-cancel",
+        "pid": 149244,
+        "runtime": ".NET 10.0.12",
+        "os": "windows",
+        "coreSha256": "27eafeb9c8ad4378402badacc06a5335d3572b09549e696fc11f79cd35140f29",
+        "fixtureSha256": "f7ced298b6b8eae8695cb068d12e88603558164e174cad5c7c22cdcf587bcc94",
+        "capacity": 3,
+        "iterations": 10000,
+        "cancelled": 10000,
+        "succeeded": 1,
+        "failed": 0,
+        "deadlineFires": 0,
+        "continuationSlotsPeak": 4,
+        "continuationSlotsAfterDetach": 4,
+        "attachedPeak": 1,
+        "retainedAfterDetach": 0,
+        "controlsPeak": 4,
+        "fileControlsPeak": 0,
+        "finalControls": 0,
+        "shared": true,
+        "completedTokenCancelled": false,
+        "phases": [
+          {
+            "consoleControls": 4,
+            "fileControls": 0,
+            "consoleAttached": 0,
+            "consoleSlots": 4,
+            "fileAttached": 0
+          }
+        ],
+        "race": [],
+        "writeResults": [
+          "Accepted",
+          "Accepted",
+          "Accepted",
+          "Rejected",
+          "InvalidEvent",
+          "Rejected",
+          "Rejected",
+          "Rejected"
+        ],
+        "snapshots": [
+          {
+            "capturedAtUtc": "2026-10-13T19:01:39.4831728+00:00",
+            "invalid": "0",
+            "truncated": "0",
+            "console": {
+              "boundary": "0",
+              "filtered": "0",
+              "queueFull": "0",
+              "unavailable": "0"
+            },
+            "file": null
+          },
+          {
+            "capturedAtUtc": "2026-10-13T19:01:39.5376868+00:00",
+            "invalid": "0",
+            "truncated": "0",
+            "console": {
+              "boundary": "1",
+              "filtered": "0",
+              "queueFull": "0",
+              "unavailable": "0"
+            },
+            "file": null
+          },
+          {
+            "capturedAtUtc": "2026-10-13T19:01:39.5382199+00:00",
+            "invalid": "0",
+            "truncated": "0",
+            "console": {
+              "boundary": "2",
+              "filtered": "0",
+              "queueFull": "0",
+              "unavailable": "0"
+            },
+            "file": null
+          },
+          {
+            "capturedAtUtc": "2026-10-13T19:01:39.5385383+00:00",
+            "invalid": "0",
+            "truncated": "0",
+            "console": {
+              "boundary": "3",
+              "filtered": "0",
+              "queueFull": "0",
+              "unavailable": "0"
+            },
+            "file": null
+          },
+          {
+            "capturedAtUtc": "2026-10-13T19:01:39.5391944+00:00",
+            "invalid": "1",
+            "truncated": "0",
+            "console": {
+              "boundary": "3",
+              "filtered": "0",
+              "queueFull": "1",
+              "unavailable": "0"
+            },
+            "file": null
+          },
+          {
+            "capturedAtUtc": "2026-10-13T19:01:39.5393825+00:00",
+            "invalid": "1",
+            "truncated": "0",
+            "console": {
+              "boundary": "3",
+              "filtered": "0",
+              "queueFull": "4",
+              "unavailable": "0"
+            },
+            "file": null
+          }
+        ],
+        "writers": {
+          "console": {
+            "order": [
+              "flush.0",
+              "write.1",
+              "flush.1",
+              "write.2",
+              "flush.2",
+              "write.3",
+              "flush.3"
+            ],
+            "maximum": 1,
+            "attempts": 3,
+            "flushes": 4,
+            "bytes": "eyJzY2hlbWFfdmVyc2lvbiI6MSwidGltZXN0YW1wIjoiMjAyNi0xMC0xM1QxNzoxODoxOS4wMDAwMDAwWiIsInN0YXR1cyI6ImluZm8iLCJldmVudF9uYW1lIjoiY29vcmQuMCIsIm1lc3NhZ2UiOiLOqSBcdUQ4M0RcdURFNDIiLCJzZXJ2aWNlIjoiQ29uc29sZS5BcHAiLCJlbnYiOiJ0ZXN0IiwidmVyc2lvbiI6IjEuMi4zIiwiY29tcG9uZW50IjoiRmx1c2hDb29yZGluYXRpb24iLCJyZXNvdXJjZSI6eyJidWlsZF92ZXJzaW9uIjoiYnVpbGQtMSIsImVudmlyb25tZW50X2tpbmQiOiJjb25zb2xlIiwiaW5pdGlhbGl6ZWRfYXQiOiIyMDI2LTEwLTEzVDEwOjAwOjAwLjAwMDAwMDBaIiwiaW5zdGFuY2VfaWQiOiIxMTExMTExMS0xMTExLTExMTEtMTExMS0xMTExMTExMTExMTEiLCJvc19mYW1pbHkiOiJ1bmtub3duIn0sImF0dHJpYnV0ZXMiOnsicHJvZHVjZXJfcGlkIjoxNDkyNDR9fQp7InNjaGVtYV92ZXJzaW9uIjoxLCJ0aW1lc3RhbXAiOiIyMDI2LTEwLTEzVDE3OjE4OjE5LjAwMDAwMDBaIiwic3RhdHVzIjoiaW5mbyIsImV2ZW50X25hbWUiOiJjb29yZC4xIiwibWVzc2FnZSI6Is6pIFx1RDgzRFx1REU0MiIsInNlcnZpY2UiOiJDb25zb2xlLkFwcCIsImVudiI6InRlc3QiLCJ2ZXJzaW9uIjoiMS4yLjMiLCJjb21wb25lbnQiOiJGbHVzaENvb3JkaW5hdGlvbiIsInJlc291cmNlIjp7ImJ1aWxkX3ZlcnNpb24iOiJidWlsZC0xIiwiZW52aXJvbm1lbnRfa2luZCI6ImNvbnNvbGUiLCJpbml0aWFsaXplZF9hdCI6IjIwMjYtMTAtMTNUMTA6MDA6MDAuMDAwMDAwMFoiLCJpbnN0YW5jZV9pZCI6IjExMTExMTExLTExMTEtMTExMS0xMTExLTExMTExMTExMTExMSIsIm9zX2ZhbWlseSI6InVua25vd24ifSwiYXR0cmlidXRlcyI6eyJwcm9kdWNlcl9waWQiOjE0OTI0NH19Cnsic2NoZW1hX3ZlcnNpb24iOjEsInRpbWVzdGFtcCI6IjIwMjYtMTAtMTNUMTc6MTg6MTkuMDAwMDAwMFoiLCJzdGF0dXMiOiJpbmZvIiwiZXZlbnRfbmFtZSI6ImNvb3JkLjIiLCJtZXNzYWdlIjoizqkgXHVEODNEXHVERTQyIiwic2VydmljZSI6IkNvbnNvbGUuQXBwIiwiZW52IjoidGVzdCIsInZlcnNpb24iOiIxLjIuMyIsImNvbXBvbmVudCI6IkZsdXNoQ29vcmRpbmF0aW9uIiwicmVzb3VyY2UiOnsiYnVpbGRfdmVyc2lvbiI6ImJ1aWxkLTEiLCJlbnZpcm9ubWVudF9raW5kIjoiY29uc29sZSIsImluaXRpYWxpemVkX2F0IjoiMjAyNi0xMC0xM1QxMDowMDowMC4wMDAwMDAwWiIsImluc3RhbmNlX2lkIjoiMTExMTExMTEtMTExMS0xMTExLTExMTEtMTExMTExMTExMTExIiwib3NfZmFtaWx5IjoidW5rbm93biJ9LCJhdHRyaWJ1dGVzIjp7InByb2R1Y2VyX3BpZCI6MTQ5MjQ0fX0K"
+          },
+          "file": null
+        },
+        "finalInvalid": "1",
+        "finalTruncated": "0",
+        "outputs": [
+          {
+            "name": "console",
+            "state": "Stopped",
+            "accepted": "3",
+            "written": "3",
+            "failed": "0",
+            "abandoned": "0",
+            "pending": "0",
+            "filtered": "0",
+            "queueFull": "4",
+            "unavailable": "0",
+            "fault": null
+          }
+        ],
+        "physicalFiles": 0
+      },
+      "stdoutSha256": "54e4581d29fadf42f7253c2d24818db34372fd3a4727504ad20798516a58cede",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "id": "flush-deadline",
+      "pid": 91544,
+      "command": [
+        "dotnet",
+        "exec",
+        "--fx-version",
+        "10.0.12",
+        "--roll-forward",
+        "Disable",
+        "C:\\miscwork\\portfolio\\cislib\\.artifacts\\csharp\\tasks\\wp05-s09-t01\\native-host\\CIS.Core.DiscoveryFixture.dll",
+        "flush-coordination",
+        "flush-deadline",
+        "C:\\Users\\andrs\\AppData\\Local\\Temp\\cislib-flush-coordination-nxhkkbcr\\flush-deadline"
+      ],
+      "exitCode": 0,
+      "report": {
+        "mode": "flush-deadline",
+        "pid": 91544,
+        "runtime": ".NET 10.0.12",
+        "os": "windows",
+        "coreSha256": "27eafeb9c8ad4378402badacc06a5335d3572b09549e696fc11f79cd35140f29",
+        "fixtureSha256": "f7ced298b6b8eae8695cb068d12e88603558164e174cad5c7c22cdcf587bcc94",
+        "capacity": 3,
+        "iterations": 10000,
+        "cancelled": 10000,
+        "succeeded": 1,
+        "failed": 0,
+        "deadlineFires": 10000,
+        "continuationSlotsPeak": 4,
+        "continuationSlotsAfterDetach": 4,
+        "attachedPeak": 1,
+        "retainedAfterDetach": 0,
+        "controlsPeak": 4,
+        "fileControlsPeak": 0,
+        "finalControls": 0,
+        "shared": true,
+        "completedTokenCancelled": false,
+        "phases": [
+          {
+            "consoleControls": 4,
+            "fileControls": 0,
+            "consoleAttached": 0,
+            "consoleSlots": 4,
+            "fileAttached": 0
+          }
+        ],
+        "race": [],
+        "writeResults": [
+          "Accepted",
+          "Accepted",
+          "Accepted",
+          "Rejected",
+          "InvalidEvent",
+          "Rejected",
+          "Rejected",
+          "Rejected"
+        ],
+        "snapshots": [
+          {
+            "capturedAtUtc": "2026-10-13T19:01:39.7954066+00:00",
+            "invalid": "0",
+            "truncated": "0",
+            "console": {
+              "boundary": "0",
+              "filtered": "0",
+              "queueFull": "0",
+              "unavailable": "0"
+            },
+            "file": null
+          },
+          {
+            "capturedAtUtc": "2026-10-13T19:01:39.8499844+00:00",
+            "invalid": "0",
+            "truncated": "0",
+            "console": {
+              "boundary": "1",
+              "filtered": "0",
+              "queueFull": "0",
+              "unavailable": "0"
+            },
+            "file": null
+          },
+          {
+            "capturedAtUtc": "2026-10-13T19:01:39.8506116+00:00",
+            "invalid": "0",
+            "truncated": "0",
+            "console": {
+              "boundary": "2",
+              "filtered": "0",
+              "queueFull": "0",
+              "unavailable": "0"
+            },
+            "file": null
+          },
+          {
+            "capturedAtUtc": "2026-10-13T19:01:39.8509204+00:00",
+            "invalid": "0",
+            "truncated": "0",
+            "console": {
+              "boundary": "3",
+              "filtered": "0",
+              "queueFull": "0",
+              "unavailable": "0"
+            },
+            "file": null
+          },
+          {
+            "capturedAtUtc": "2026-10-13T19:01:39.8518735+00:00",
+            "invalid": "1",
+            "truncated": "0",
+            "console": {
+              "boundary": "3",
+              "filtered": "0",
+              "queueFull": "1",
+              "unavailable": "0"
+            },
+            "file": null
+          },
+          {
+            "capturedAtUtc": "2026-10-13T19:01:39.8521793+00:00",
+            "invalid": "1",
+            "truncated": "0",
+            "console": {
+              "boundary": "3",
+              "filtered": "0",
+              "queueFull": "4",
+              "unavailable": "0"
+            },
+            "file": null
+          }
+        ],
+        "writers": {
+          "console": {
+            "order": [
+              "flush.0",
+              "write.1",
+              "flush.1",
+              "write.2",
+              "flush.2",
+              "write.3",
+              "flush.3"
+            ],
+            "maximum": 1,
+            "attempts": 3,
+            "flushes": 4,
+            "bytes": "eyJzY2hlbWFfdmVyc2lvbiI6MSwidGltZXN0YW1wIjoiMjAyNi0xMC0xM1QxNzoxODoxOS4wMDAwMDAwWiIsInN0YXR1cyI6ImluZm8iLCJldmVudF9uYW1lIjoiY29vcmQuMCIsIm1lc3NhZ2UiOiLOqSBcdUQ4M0RcdURFNDIiLCJzZXJ2aWNlIjoiQ29uc29sZS5BcHAiLCJlbnYiOiJ0ZXN0IiwidmVyc2lvbiI6IjEuMi4zIiwiY29tcG9uZW50IjoiRmx1c2hDb29yZGluYXRpb24iLCJyZXNvdXJjZSI6eyJidWlsZF92ZXJzaW9uIjoiYnVpbGQtMSIsImVudmlyb25tZW50X2tpbmQiOiJjb25zb2xlIiwiaW5pdGlhbGl6ZWRfYXQiOiIyMDI2LTEwLTEzVDEwOjAwOjAwLjAwMDAwMDBaIiwiaW5zdGFuY2VfaWQiOiIxMTExMTExMS0xMTExLTExMTEtMTExMS0xMTExMTExMTExMTEiLCJvc19mYW1pbHkiOiJ1bmtub3duIn0sImF0dHJpYnV0ZXMiOnsicHJvZHVjZXJfcGlkIjo5MTU0NH19Cnsic2NoZW1hX3ZlcnNpb24iOjEsInRpbWVzdGFtcCI6IjIwMjYtMTAtMTNUMTc6MTg6MTkuMDAwMDAwMFoiLCJzdGF0dXMiOiJpbmZvIiwiZXZlbnRfbmFtZSI6ImNvb3JkLjEiLCJtZXNzYWdlIjoizqkgXHVEODNEXHVERTQyIiwic2VydmljZSI6IkNvbnNvbGUuQXBwIiwiZW52IjoidGVzdCIsInZlcnNpb24iOiIxLjIuMyIsImNvbXBvbmVudCI6IkZsdXNoQ29vcmRpbmF0aW9uIiwicmVzb3VyY2UiOnsiYnVpbGRfdmVyc2lvbiI6ImJ1aWxkLTEiLCJlbnZpcm9ubWVudF9raW5kIjoiY29uc29sZSIsImluaXRpYWxpemVkX2F0IjoiMjAyNi0xMC0xM1QxMDowMDowMC4wMDAwMDAwWiIsImluc3RhbmNlX2lkIjoiMTExMTExMTEtMTExMS0xMTExLTExMTEtMTExMTExMTExMTExIiwib3NfZmFtaWx5IjoidW5rbm93biJ9LCJhdHRyaWJ1dGVzIjp7InByb2R1Y2VyX3BpZCI6OTE1NDR9fQp7InNjaGVtYV92ZXJzaW9uIjoxLCJ0aW1lc3RhbXAiOiIyMDI2LTEwLTEzVDE3OjE4OjE5LjAwMDAwMDBaIiwic3RhdHVzIjoiaW5mbyIsImV2ZW50X25hbWUiOiJjb29yZC4yIiwibWVzc2FnZSI6Is6pIFx1RDgzRFx1REU0MiIsInNlcnZpY2UiOiJDb25zb2xlLkFwcCIsImVudiI6InRlc3QiLCJ2ZXJzaW9uIjoiMS4yLjMiLCJjb21wb25lbnQiOiJGbHVzaENvb3JkaW5hdGlvbiIsInJlc291cmNlIjp7ImJ1aWxkX3ZlcnNpb24iOiJidWlsZC0xIiwiZW52aXJvbm1lbnRfa2luZCI6ImNvbnNvbGUiLCJpbml0aWFsaXplZF9hdCI6IjIwMjYtMTAtMTNUMTA6MDA6MDAuMDAwMDAwMFoiLCJpbnN0YW5jZV9pZCI6IjExMTExMTExLTExMTEtMTExMS0xMTExLTExMTExMTExMTExMSIsIm9zX2ZhbWlseSI6InVua25vd24ifSwiYXR0cmlidXRlcyI6eyJwcm9kdWNlcl9waWQiOjkxNTQ0fX0K"
+          },
+          "file": null
+        },
+        "finalInvalid": "1",
+        "finalTruncated": "0",
+        "outputs": [
+          {
+            "name": "console",
+            "state": "Stopped",
+            "accepted": "3",
+            "written": "3",
+            "failed": "0",
+            "abandoned": "0",
+            "pending": "0",
+            "filtered": "0",
+            "queueFull": "4",
+            "unavailable": "0",
+            "fault": null
+          }
+        ],
+        "physicalFiles": 0
+      },
+      "stdoutSha256": "6742936ebf1dac8a83a1c87d9a20597721cc84d5238cd38d6d5d389cf65e9584",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "id": "cohort",
+      "pid": 58552,
+      "command": [
+        "dotnet",
+        "exec",
+        "--fx-version",
+        "10.0.12",
+        "--roll-forward",
+        "Disable",
+        "C:\\miscwork\\portfolio\\cislib\\.artifacts\\csharp\\tasks\\wp05-s09-t01\\native-host\\CIS.Core.DiscoveryFixture.dll",
+        "flush-coordination",
+        "cohort",
+        "C:\\Users\\andrs\\AppData\\Local\\Temp\\cislib-flush-coordination-nxhkkbcr\\cohort"
+      ],
+      "exitCode": 0,
+      "report": {
+        "mode": "cohort",
+        "pid": 58552,
+        "runtime": ".NET 10.0.12",
+        "os": "windows",
+        "coreSha256": "27eafeb9c8ad4378402badacc06a5335d3572b09549e696fc11f79cd35140f29",
+        "fixtureSha256": "f7ced298b6b8eae8695cb068d12e88603558164e174cad5c7c22cdcf587bcc94",
+        "capacity": 2,
+        "iterations": 0,
+        "cancelled": 48,
+        "succeeded": 16,
+        "failed": 0,
+        "deadlineFires": 16,
+        "continuationSlotsPeak": 64,
+        "continuationSlotsAfterDetach": 0,
+        "attachedPeak": 64,
+        "retainedAfterDetach": 0,
+        "controlsPeak": 3,
+        "fileControlsPeak": 3,
+        "finalControls": 0,
+        "shared": true,
+        "completedTokenCancelled": false,
+        "phases": [
+          {
+            "consoleControls": 3,
+            "fileControls": 3,
+            "consoleAttached": 64,
+            "consoleSlots": 64,
+            "fileAttached": 0
+          },
+          {
+            "consoleControls": 3,
+            "fileControls": 3,
+            "consoleAttached": 16,
+            "consoleSlots": 64,
+            "fileAttached": 0
+          }
+        ],
+        "race": [],
+        "writeResults": [
+          "Accepted",
+          "Accepted",
+          "Accepted"
+        ],
+        "snapshots": [
+          {
+            "capturedAtUtc": "2026-10-13T19:01:40.1932962+00:00",
+            "invalid": "0",
+            "truncated": "0",
+            "console": {
+              "boundary": "1",
+              "filtered": "0",
+              "queueFull": "0",
+              "unavailable": "0"
+            },
+            "file": {
+              "boundary": "1",
+              "filtered": "0",
+              "queueFull": "0",
+              "unavailable": "0"
+            }
+          },
+          {
+            "capturedAtUtc": "2026-10-13T19:01:40.1970384+00:00",
+            "invalid": "0",
+            "truncated": "0",
+            "console": {
+              "boundary": "2",
+              "filtered": "0",
+              "queueFull": "0",
+              "unavailable": "0"
+            },
+            "file": {
+              "boundary": "2",
+              "filtered": "0",
+              "queueFull": "0",
+              "unavailable": "0"
+            }
+          },
+          {
+            "capturedAtUtc": "2026-10-13T19:01:40.1980504+00:00",
+            "invalid": "0",
+            "truncated": "0",
+            "console": {
+              "boundary": "3",
+              "filtered": "0",
+              "queueFull": "0",
+              "unavailable": "0"
+            },
+            "file": {
+              "boundary": "3",
+              "filtered": "0",
+              "queueFull": "0",
+              "unavailable": "0"
+            }
+          }
+        ],
+        "writers": {
+          "console": {
+            "order": [
+              "write.1",
+              "flush.1",
+              "write.2",
+              "flush.2",
+              "write.3",
+              "flush.3"
+            ],
+            "maximum": 1,
+            "attempts": 3,
+            "flushes": 3,
+            "bytes": "eyJzY2hlbWFfdmVyc2lvbiI6MSwidGltZXN0YW1wIjoiMjAyNi0xMC0xM1QxNzoxODoxOS4wMDAwMDAwWiIsInN0YXR1cyI6ImluZm8iLCJldmVudF9uYW1lIjoiY29vcmQuMCIsIm1lc3NhZ2UiOiLOqSBcdUQ4M0RcdURFNDIiLCJzZXJ2aWNlIjoiQ29uc29sZS5BcHAiLCJlbnYiOiJ0ZXN0IiwidmVyc2lvbiI6IjEuMi4zIiwiY29tcG9uZW50IjoiRmx1c2hDb29yZGluYXRpb24iLCJyZXNvdXJjZSI6eyJidWlsZF92ZXJzaW9uIjoiYnVpbGQtMSIsImVudmlyb25tZW50X2tpbmQiOiJjb25zb2xlIiwiaW5pdGlhbGl6ZWRfYXQiOiIyMDI2LTEwLTEzVDEwOjAwOjAwLjAwMDAwMDBaIiwiaW5zdGFuY2VfaWQiOiIxMTExMTExMS0xMTExLTExMTEtMTExMS0xMTExMTExMTExMTEiLCJvc19mYW1pbHkiOiJ1bmtub3duIn0sImF0dHJpYnV0ZXMiOnsicHJvZHVjZXJfcGlkIjo1ODU1Mn19Cnsic2NoZW1hX3ZlcnNpb24iOjEsInRpbWVzdGFtcCI6IjIwMjYtMTAtMTNUMTc6MTg6MTkuMDAwMDAwMFoiLCJzdGF0dXMiOiJpbmZvIiwiZXZlbnRfbmFtZSI6ImNvb3JkLjEiLCJtZXNzYWdlIjoizqkgXHVEODNEXHVERTQyIiwic2VydmljZSI6IkNvbnNvbGUuQXBwIiwiZW52IjoidGVzdCIsInZlcnNpb24iOiIxLjIuMyIsImNvbXBvbmVudCI6IkZsdXNoQ29vcmRpbmF0aW9uIiwicmVzb3VyY2UiOnsiYnVpbGRfdmVyc2lvbiI6ImJ1aWxkLTEiLCJlbnZpcm9ubWVudF9raW5kIjoiY29uc29sZSIsImluaXRpYWxpemVkX2F0IjoiMjAyNi0xMC0xM1QxMDowMDowMC4wMDAwMDAwWiIsImluc3RhbmNlX2lkIjoiMTExMTExMTEtMTExMS0xMTExLTExMTEtMTExMTExMTExMTExIiwib3NfZmFtaWx5IjoidW5rbm93biJ9LCJhdHRyaWJ1dGVzIjp7InByb2R1Y2VyX3BpZCI6NTg1NTJ9fQp7InNjaGVtYV92ZXJzaW9uIjoxLCJ0aW1lc3RhbXAiOiIyMDI2LTEwLTEzVDE3OjE4OjE5LjAwMDAwMDBaIiwic3RhdHVzIjoiaW5mbyIsImV2ZW50X25hbWUiOiJjb29yZC4yIiwibWVzc2FnZSI6Is6pIFx1RDgzRFx1REU0MiIsInNlcnZpY2UiOiJDb25zb2xlLkFwcCIsImVudiI6InRlc3QiLCJ2ZXJzaW9uIjoiMS4yLjMiLCJjb21wb25lbnQiOiJGbHVzaENvb3JkaW5hdGlvbiIsInJlc291cmNlIjp7ImJ1aWxkX3ZlcnNpb24iOiJidWlsZC0xIiwiZW52aXJvbm1lbnRfa2luZCI6ImNvbnNvbGUiLCJpbml0aWFsaXplZF9hdCI6IjIwMjYtMTAtMTNUMTA6MDA6MDAuMDAwMDAwMFoiLCJpbnN0YW5jZV9pZCI6IjExMTExMTExLTExMTEtMTExMS0xMTExLTExMTExMTExMTExMSIsIm9zX2ZhbWlseSI6InVua25vd24ifSwiYXR0cmlidXRlcyI6eyJwcm9kdWNlcl9waWQiOjU4NTUyfX0K"
+          },
+          "file": {
+            "order": [
+              "write.1",
+              "flush.1",
+              "write.2",
+              "flush.2",
+              "write.3",
+              "flush.3"
+            ],
+            "maximum": 1,
+            "attempts": 3,
+            "flushes": 3,
+            "bytes": "eyJzY2hlbWFfdmVyc2lvbiI6MSwidGltZXN0YW1wIjoiMjAyNi0xMC0xM1QxNzoxODoxOS4wMDAwMDAwWiIsInN0YXR1cyI6ImluZm8iLCJldmVudF9uYW1lIjoiY29vcmQuMCIsIm1lc3NhZ2UiOiLOqSBcdUQ4M0RcdURFNDIiLCJzZXJ2aWNlIjoiQ29uc29sZS5BcHAiLCJlbnYiOiJ0ZXN0IiwidmVyc2lvbiI6IjEuMi4zIiwiY29tcG9uZW50IjoiRmx1c2hDb29yZGluYXRpb24iLCJyZXNvdXJjZSI6eyJidWlsZF92ZXJzaW9uIjoiYnVpbGQtMSIsImVudmlyb25tZW50X2tpbmQiOiJjb25zb2xlIiwiaW5pdGlhbGl6ZWRfYXQiOiIyMDI2LTEwLTEzVDEwOjAwOjAwLjAwMDAwMDBaIiwiaW5zdGFuY2VfaWQiOiIxMTExMTExMS0xMTExLTExMTEtMTExMS0xMTExMTExMTExMTEiLCJvc19mYW1pbHkiOiJ1bmtub3duIn0sImF0dHJpYnV0ZXMiOnsicHJvZHVjZXJfcGlkIjo1ODU1Mn19Cnsic2NoZW1hX3ZlcnNpb24iOjEsInRpbWVzdGFtcCI6IjIwMjYtMTAtMTNUMTc6MTg6MTkuMDAwMDAwMFoiLCJzdGF0dXMiOiJpbmZvIiwiZXZlbnRfbmFtZSI6ImNvb3JkLjEiLCJtZXNzYWdlIjoizqkgXHVEODNEXHVERTQyIiwic2VydmljZSI6IkNvbnNvbGUuQXBwIiwiZW52IjoidGVzdCIsInZlcnNpb24iOiIxLjIuMyIsImNvbXBvbmVudCI6IkZsdXNoQ29vcmRpbmF0aW9uIiwicmVzb3VyY2UiOnsiYnVpbGRfdmVyc2lvbiI6ImJ1aWxkLTEiLCJlbnZpcm9ubWVudF9raW5kIjoiY29uc29sZSIsImluaXRpYWxpemVkX2F0IjoiMjAyNi0xMC0xM1QxMDowMDowMC4wMDAwMDAwWiIsImluc3RhbmNlX2lkIjoiMTExMTExMTEtMTExMS0xMTExLTExMTEtMTExMTExMTExMTExIiwib3NfZmFtaWx5IjoidW5rbm93biJ9LCJhdHRyaWJ1dGVzIjp7InByb2R1Y2VyX3BpZCI6NTg1NTJ9fQp7InNjaGVtYV92ZXJzaW9uIjoxLCJ0aW1lc3RhbXAiOiIyMDI2LTEwLTEzVDE3OjE4OjE5LjAwMDAwMDBaIiwic3RhdHVzIjoiaW5mbyIsImV2ZW50X25hbWUiOiJjb29yZC4yIiwibWVzc2FnZSI6Is6pIFx1RDgzRFx1REU0MiIsInNlcnZpY2UiOiJDb25zb2xlLkFwcCIsImVudiI6InRlc3QiLCJ2ZXJzaW9uIjoiMS4yLjMiLCJjb21wb25lbnQiOiJGbHVzaENvb3JkaW5hdGlvbiIsInJlc291cmNlIjp7ImJ1aWxkX3ZlcnNpb24iOiJidWlsZC0xIiwiZW52aXJvbm1lbnRfa2luZCI6ImNvbnNvbGUiLCJpbml0aWFsaXplZF9hdCI6IjIwMjYtMTAtMTNUMTA6MDA6MDAuMDAwMDAwMFoiLCJpbnN0YW5jZV9pZCI6IjExMTExMTExLTExMTEtMTExMS0xMTExLTExMTExMTExMTExMSIsIm9zX2ZhbWlseSI6InVua25vd24ifSwiYXR0cmlidXRlcyI6eyJwcm9kdWNlcl9waWQiOjU4NTUyfX0K"
+          }
+        },
+        "finalInvalid": "0",
+        "finalTruncated": "0",
+        "outputs": [
+          {
+            "name": "console",
+            "state": "Stopped",
+            "accepted": "3",
+            "written": "3",
+            "failed": "0",
+            "abandoned": "0",
+            "pending": "0",
+            "filtered": "0",
+            "queueFull": "0",
+            "unavailable": "0",
+            "fault": null
+          },
+          {
+            "name": "file",
+            "state": "Stopped",
+            "accepted": "3",
+            "written": "3",
+            "failed": "0",
+            "abandoned": "0",
+            "pending": "0",
+            "filtered": "0",
+            "queueFull": "0",
+            "unavailable": "0",
+            "fault": null
+          }
+        ],
+        "physicalFiles": 0
+      },
+      "stdoutSha256": "c690f0e81f02f626a42cad5c0645bb513be37ba8bf1ad92f4bffefee26690eee",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "id": "dual",
+      "pid": 102156,
+      "command": [
+        "dotnet",
+        "exec",
+        "--fx-version",
+        "10.0.12",
+        "--roll-forward",
+        "Disable",
+        "C:\\miscwork\\portfolio\\cislib\\.artifacts\\csharp\\tasks\\wp05-s09-t01\\native-host\\CIS.Core.DiscoveryFixture.dll",
+        "flush-coordination",
+        "dual",
+        "C:\\Users\\andrs\\AppData\\Local\\Temp\\cislib-flush-coordination-nxhkkbcr\\dual"
+      ],
+      "exitCode": 0,
+      "report": {
+        "mode": "dual",
+        "pid": 102156,
+        "runtime": ".NET 10.0.12",
+        "os": "windows",
+        "coreSha256": "27eafeb9c8ad4378402badacc06a5335d3572b09549e696fc11f79cd35140f29",
+        "fixtureSha256": "f7ced298b6b8eae8695cb068d12e88603558164e174cad5c7c22cdcf587bcc94",
+        "capacity": 2,
+        "iterations": 0,
+        "cancelled": 1,
+        "succeeded": 1,
+        "failed": 0,
+        "deadlineFires": 0,
+        "continuationSlotsPeak": 1,
+        "continuationSlotsAfterDetach": 0,
+        "attachedPeak": 1,
+        "retainedAfterDetach": 0,
+        "controlsPeak": 2,
+        "fileControlsPeak": 1,
+        "finalControls": 0,
+        "shared": true,
+        "completedTokenCancelled": false,
+        "phases": [
+          {
+            "consoleControls": 2,
+            "fileControls": 1,
+            "consoleAttached": 1,
+            "consoleSlots": 1,
+            "fileAttached": 0
+          },
+          {
+            "consoleControls": 0,
+            "fileControls": 1,
+            "consoleAttached": 0,
+            "consoleSlots": 0,
+            "fileAttached": 1
+          },
+          {
+            "consoleControls": 0,
+            "fileControls": 1,
+            "consoleAttached": 0,
+            "consoleSlots": 0,
+            "fileAttached": 0
+          }
+        ],
+        "race": [],
+        "writeResults": [
+          "Accepted",
+          "Accepted",
+          "Filtered",
+          "InvalidEvent"
+        ],
+        "snapshots": [
+          {
+            "capturedAtUtc": "2026-10-13T19:01:40.4128838+00:00",
+            "invalid": "0",
+            "truncated": "0",
+            "console": {
+              "boundary": "1",
+              "filtered": "0",
+              "queueFull": "0",
+              "unavailable": "0"
+            },
+            "file": {
+              "boundary": "0",
+              "filtered": "1",
+              "queueFull": "0",
+              "unavailable": "0"
+            }
+          },
+          {
+            "capturedAtUtc": "2026-10-13T19:01:40.4194379+00:00",
+            "invalid": "0",
+            "truncated": "0",
+            "console": {
+              "boundary": "2",
+              "filtered": "0",
+              "queueFull": "0",
+              "unavailable": "0"
+            },
+            "file": {
+              "boundary": "1",
+              "filtered": "1",
+              "queueFull": "0",
+              "unavailable": "0"
+            }
+          },
+          {
+            "capturedAtUtc": "2026-10-13T19:01:40.4322809+00:00",
+            "invalid": "1",
+            "truncated": "0",
+            "console": {
+              "boundary": "2",
+              "filtered": "1",
+              "queueFull": "0",
+              "unavailable": "0"
+            },
+            "file": {
+              "boundary": "1",
+              "filtered": "2",
+              "queueFull": "0",
+              "unavailable": "0"
+            }
+          }
+        ],
+        "writers": {
+          "console": {
+            "order": [
+              "write.1",
+              "flush.1",
+              "write.2",
+              "flush.2",
+              "flush.2"
+            ],
+            "maximum": 1,
+            "attempts": 2,
+            "flushes": 3,
+            "bytes": "eyJzY2hlbWFfdmVyc2lvbiI6MSwidGltZXN0YW1wIjoiMjAyNi0xMC0xM1QxNzoxODoxOS4wMDAwMDAwWiIsInN0YXR1cyI6ImluZm8iLCJldmVudF9uYW1lIjoiY29vcmQuMCIsIm1lc3NhZ2UiOiLOqSBcdUQ4M0RcdURFNDIiLCJzZXJ2aWNlIjoiQ29uc29sZS5BcHAiLCJlbnYiOiJ0ZXN0IiwidmVyc2lvbiI6IjEuMi4zIiwiY29tcG9uZW50IjoiRmx1c2hDb29yZGluYXRpb24iLCJyZXNvdXJjZSI6eyJidWlsZF92ZXJzaW9uIjoiYnVpbGQtMSIsImVudmlyb25tZW50X2tpbmQiOiJjb25zb2xlIiwiaW5pdGlhbGl6ZWRfYXQiOiIyMDI2LTEwLTEzVDEwOjAwOjAwLjAwMDAwMDBaIiwiaW5zdGFuY2VfaWQiOiIxMTExMTExMS0xMTExLTExMTEtMTExMS0xMTExMTExMTExMTEiLCJvc19mYW1pbHkiOiJ1bmtub3duIn0sImF0dHJpYnV0ZXMiOnsicHJvZHVjZXJfcGlkIjoxMDIxNTZ9fQp7InNjaGVtYV92ZXJzaW9uIjoxLCJ0aW1lc3RhbXAiOiIyMDI2LTEwLTEzVDE3OjE4OjE5LjAwMDAwMDBaIiwic3RhdHVzIjoiZXJyb3IiLCJldmVudF9uYW1lIjoiY29vcmQuMSIsIm1lc3NhZ2UiOiLOqSBcdUQ4M0RcdURFNDIiLCJzZXJ2aWNlIjoiQ29uc29sZS5BcHAiLCJlbnYiOiJ0ZXN0IiwidmVyc2lvbiI6IjEuMi4zIiwiY29tcG9uZW50IjoiRmx1c2hDb29yZGluYXRpb24iLCJyZXNvdXJjZSI6eyJidWlsZF92ZXJzaW9uIjoiYnVpbGQtMSIsImVudmlyb25tZW50X2tpbmQiOiJjb25zb2xlIiwiaW5pdGlhbGl6ZWRfYXQiOiIyMDI2LTEwLTEzVDEwOjAwOjAwLjAwMDAwMDBaIiwiaW5zdGFuY2VfaWQiOiIxMTExMTExMS0xMTExLTExMTEtMTExMS0xMTExMTExMTExMTEiLCJvc19mYW1pbHkiOiJ1bmtub3duIn0sImF0dHJpYnV0ZXMiOnsicHJvZHVjZXJfcGlkIjoxMDIxNTZ9fQo="
+          },
+          "file": {
+            "order": [
+              "flush.0",
+              "write.1",
+              "flush.1"
+            ],
+            "maximum": 1,
+            "attempts": 1,
+            "flushes": 2,
+            "bytes": "eyJzY2hlbWFfdmVyc2lvbiI6MSwidGltZXN0YW1wIjoiMjAyNi0xMC0xM1QxNzoxODoxOS4wMDAwMDAwWiIsInN0YXR1cyI6ImVycm9yIiwiZXZlbnRfbmFtZSI6ImNvb3JkLjEiLCJtZXNzYWdlIjoizqkgXHVEODNEXHVERTQyIiwic2VydmljZSI6IkNvbnNvbGUuQXBwIiwiZW52IjoidGVzdCIsInZlcnNpb24iOiIxLjIuMyIsImNvbXBvbmVudCI6IkZsdXNoQ29vcmRpbmF0aW9uIiwicmVzb3VyY2UiOnsiYnVpbGRfdmVyc2lvbiI6ImJ1aWxkLTEiLCJlbnZpcm9ubWVudF9raW5kIjoiY29uc29sZSIsImluaXRpYWxpemVkX2F0IjoiMjAyNi0xMC0xM1QxMDowMDowMC4wMDAwMDAwWiIsImluc3RhbmNlX2lkIjoiMTExMTExMTEtMTExMS0xMTExLTExMTEtMTExMTExMTExMTExIiwib3NfZmFtaWx5IjoidW5rbm93biJ9LCJhdHRyaWJ1dGVzIjp7InByb2R1Y2VyX3BpZCI6MTAyMTU2fX0K"
+          }
+        },
+        "finalInvalid": "1",
+        "finalTruncated": "0",
+        "outputs": [
+          {
+            "name": "console",
+            "state": "Stopped",
+            "accepted": "2",
+            "written": "2",
+            "failed": "0",
+            "abandoned": "0",
+            "pending": "0",
+            "filtered": "1",
+            "queueFull": "0",
+            "unavailable": "0",
+            "fault": null
+          },
+          {
+            "name": "file",
+            "state": "Stopped",
+            "accepted": "1",
+            "written": "1",
+            "failed": "0",
+            "abandoned": "0",
+            "pending": "0",
+            "filtered": "2",
+            "queueFull": "0",
+            "unavailable": "0",
+            "fault": null
+          }
+        ],
+        "physicalFiles": 0
+      },
+      "stdoutSha256": "6847813328c67c9e1aca26de654966558dace764c6270f70a7510cdbdfafaeb4",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "id": "pre-cancel",
+      "pid": 130808,
+      "command": [
+        "dotnet",
+        "exec",
+        "--fx-version",
+        "10.0.12",
+        "--roll-forward",
+        "Disable",
+        "C:\\miscwork\\portfolio\\cislib\\.artifacts\\csharp\\tasks\\wp05-s09-t01\\native-host\\CIS.Core.DiscoveryFixture.dll",
+        "flush-coordination",
+        "pre-cancel",
+        "C:\\Users\\andrs\\AppData\\Local\\Temp\\cislib-flush-coordination-nxhkkbcr\\pre-cancel"
+      ],
+      "exitCode": 0,
+      "report": {
+        "mode": "pre-cancel",
+        "pid": 130808,
+        "runtime": ".NET 10.0.12",
+        "os": "windows",
+        "coreSha256": "27eafeb9c8ad4378402badacc06a5335d3572b09549e696fc11f79cd35140f29",
+        "fixtureSha256": "f7ced298b6b8eae8695cb068d12e88603558164e174cad5c7c22cdcf587bcc94",
+        "capacity": 3,
+        "iterations": 0,
+        "cancelled": 2,
+        "succeeded": 1,
+        "failed": 0,
+        "deadlineFires": 0,
+        "continuationSlotsPeak": 0,
+        "continuationSlotsAfterDetach": 0,
+        "attachedPeak": 0,
+        "retainedAfterDetach": 0,
+        "controlsPeak": 1,
+        "fileControlsPeak": 0,
+        "finalControls": 0,
+        "shared": true,
+        "completedTokenCancelled": true,
+        "phases": [
+          {
+            "consoleControls": 1,
+            "fileControls": 0,
+            "consoleAttached": 0,
+            "consoleSlots": 0,
+            "fileAttached": 0
+          }
+        ],
+        "race": [],
+        "writeResults": [
+          "Accepted"
+        ],
+        "snapshots": [
+          {
+            "capturedAtUtc": "2026-10-13T19:01:40.6281575+00:00",
+            "invalid": "0",
+            "truncated": "0",
+            "console": {
+              "boundary": "1",
+              "filtered": "0",
+              "queueFull": "0",
+              "unavailable": "0"
+            },
+            "file": null
+          }
+        ],
+        "writers": {
+          "console": {
+            "order": [
+              "write.1",
+              "flush.1"
+            ],
+            "maximum": 1,
+            "attempts": 1,
+            "flushes": 1,
+            "bytes": "eyJzY2hlbWFfdmVyc2lvbiI6MSwidGltZXN0YW1wIjoiMjAyNi0xMC0xM1QxNzoxODoxOS4wMDAwMDAwWiIsInN0YXR1cyI6ImluZm8iLCJldmVudF9uYW1lIjoiY29vcmQuMCIsIm1lc3NhZ2UiOiLOqSBcdUQ4M0RcdURFNDIiLCJzZXJ2aWNlIjoiQ29uc29sZS5BcHAiLCJlbnYiOiJ0ZXN0IiwidmVyc2lvbiI6IjEuMi4zIiwiY29tcG9uZW50IjoiRmx1c2hDb29yZGluYXRpb24iLCJyZXNvdXJjZSI6eyJidWlsZF92ZXJzaW9uIjoiYnVpbGQtMSIsImVudmlyb25tZW50X2tpbmQiOiJjb25zb2xlIiwiaW5pdGlhbGl6ZWRfYXQiOiIyMDI2LTEwLTEzVDEwOjAwOjAwLjAwMDAwMDBaIiwiaW5zdGFuY2VfaWQiOiIxMTExMTExMS0xMTExLTExMTEtMTExMS0xMTExMTExMTExMTEiLCJvc19mYW1pbHkiOiJ1bmtub3duIn0sImF0dHJpYnV0ZXMiOnsicHJvZHVjZXJfcGlkIjoxMzA4MDh9fQo="
+          },
+          "file": null
+        },
+        "finalInvalid": "0",
+        "finalTruncated": "0",
+        "outputs": [
+          {
+            "name": "console",
+            "state": "Stopped",
+            "accepted": "1",
+            "written": "1",
+            "failed": "0",
+            "abandoned": "0",
+            "pending": "0",
+            "filtered": "0",
+            "queueFull": "0",
+            "unavailable": "0",
+            "fault": null
+          }
+        ],
+        "physicalFiles": 0
+      },
+      "stdoutSha256": "3d3d427d410bac7336f20b6a6567fd464be28fcfa8137b2d2ad7a759199a9c70",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "id": "fault",
+      "pid": 68828,
+      "command": [
+        "dotnet",
+        "exec",
+        "--fx-version",
+        "10.0.12",
+        "--roll-forward",
+        "Disable",
+        "C:\\miscwork\\portfolio\\cislib\\.artifacts\\csharp\\tasks\\wp05-s09-t01\\native-host\\CIS.Core.DiscoveryFixture.dll",
+        "flush-coordination",
+        "fault",
+        "C:\\Users\\andrs\\AppData\\Local\\Temp\\cislib-flush-coordination-nxhkkbcr\\fault"
+      ],
+      "exitCode": 0,
+      "report": {
+        "mode": "fault",
+        "pid": 68828,
+        "runtime": ".NET 10.0.12",
+        "os": "windows",
+        "coreSha256": "27eafeb9c8ad4378402badacc06a5335d3572b09549e696fc11f79cd35140f29",
+        "fixtureSha256": "f7ced298b6b8eae8695cb068d12e88603558164e174cad5c7c22cdcf587bcc94",
+        "capacity": 2,
+        "iterations": 0,
+        "cancelled": 0,
+        "succeeded": 0,
+        "failed": 1,
+        "deadlineFires": 0,
+        "continuationSlotsPeak": 1,
+        "continuationSlotsAfterDetach": 0,
+        "attachedPeak": 1,
+        "retainedAfterDetach": 0,
+        "controlsPeak": 2,
+        "fileControlsPeak": 0,
+        "finalControls": 0,
+        "shared": true,
+        "completedTokenCancelled": false,
+        "phases": [],
+        "race": [],
+        "writeResults": [
+          "Accepted",
+          "Accepted"
+        ],
+        "snapshots": [
+          {
+            "capturedAtUtc": "2026-10-13T19:01:40.8431399+00:00",
+            "invalid": "0",
+            "truncated": "0",
+            "console": {
+              "boundary": "1",
+              "filtered": "0",
+              "queueFull": "0",
+              "unavailable": "0"
+            },
+            "file": null
+          },
+          {
+            "capturedAtUtc": "2026-10-13T19:01:40.8455245+00:00",
+            "invalid": "0",
+            "truncated": "0",
+            "console": {
+              "boundary": "2",
+              "filtered": "0",
+              "queueFull": "0",
+              "unavailable": "0"
+            },
+            "file": null
+          }
+        ],
+        "writers": {
+          "console": {
+            "order": [],
+            "maximum": 1,
+            "attempts": 1,
+            "flushes": 0,
+            "bytes": ""
+          },
+          "file": null
+        },
+        "finalInvalid": "0",
+        "finalTruncated": "0",
+        "outputs": [
+          {
+            "name": "console",
+            "state": "Stopped",
+            "accepted": "2",
+            "written": "0",
+            "failed": "1",
+            "abandoned": "1",
+            "pending": "0",
+            "filtered": "0",
+            "queueFull": "0",
+            "unavailable": "0",
+            "fault": "WriteFailed"
+          }
+        ],
+        "physicalFiles": 0
+      },
+      "stdoutSha256": "0de2e543efbd16c2311b77dc170a5985aeb5304d68746372f9ce79ea0b2e471d",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "id": "complete-race",
+      "pid": 41696,
+      "command": [
+        "dotnet",
+        "exec",
+        "--fx-version",
+        "10.0.12",
+        "--roll-forward",
+        "Disable",
+        "C:\\miscwork\\portfolio\\cislib\\.artifacts\\csharp\\tasks\\wp05-s09-t01\\native-host\\CIS.Core.DiscoveryFixture.dll",
+        "flush-coordination",
+        "complete-race",
+        "C:\\Users\\andrs\\AppData\\Local\\Temp\\cislib-flush-coordination-nxhkkbcr\\complete-race"
+      ],
+      "exitCode": 0,
+      "report": {
+        "mode": "complete-race",
+        "pid": 41696,
+        "runtime": ".NET 10.0.12",
+        "os": "windows",
+        "coreSha256": "27eafeb9c8ad4378402badacc06a5335d3572b09549e696fc11f79cd35140f29",
+        "fixtureSha256": "f7ced298b6b8eae8695cb068d12e88603558164e174cad5c7c22cdcf587bcc94",
+        "capacity": 3,
+        "iterations": 0,
+        "cancelled": 16,
+        "succeeded": 0,
+        "failed": 0,
+        "deadlineFires": 0,
+        "continuationSlotsPeak": 16,
+        "continuationSlotsAfterDetach": 0,
+        "attachedPeak": 16,
+        "retainedAfterDetach": 0,
+        "controlsPeak": 1,
+        "fileControlsPeak": 0,
+        "finalControls": 0,
+        "shared": true,
+        "completedTokenCancelled": false,
+        "phases": [],
+        "race": [
+          "cancelled",
+          "cancelled",
+          "cancelled",
+          "cancelled",
+          "cancelled",
+          "cancelled",
+          "cancelled",
+          "cancelled",
+          "cancelled",
+          "cancelled",
+          "cancelled",
+          "cancelled",
+          "cancelled",
+          "cancelled",
+          "cancelled",
+          "cancelled"
+        ],
+        "writeResults": [
+          "Accepted"
+        ],
+        "snapshots": [
+          {
+            "capturedAtUtc": "2026-10-13T19:01:41.0400053+00:00",
+            "invalid": "0",
+            "truncated": "0",
+            "console": {
+              "boundary": "1",
+              "filtered": "0",
+              "queueFull": "0",
+              "unavailable": "0"
+            },
+            "file": null
+          }
+        ],
+        "writers": {
+          "console": {
+            "order": [
+              "write.1",
+              "flush.1"
+            ],
+            "maximum": 1,
+            "attempts": 1,
+            "flushes": 1,
+            "bytes": "eyJzY2hlbWFfdmVyc2lvbiI6MSwidGltZXN0YW1wIjoiMjAyNi0xMC0xM1QxNzoxODoxOS4wMDAwMDAwWiIsInN0YXR1cyI6ImluZm8iLCJldmVudF9uYW1lIjoiY29vcmQuMCIsIm1lc3NhZ2UiOiLOqSBcdUQ4M0RcdURFNDIiLCJzZXJ2aWNlIjoiQ29uc29sZS5BcHAiLCJlbnYiOiJ0ZXN0IiwidmVyc2lvbiI6IjEuMi4zIiwiY29tcG9uZW50IjoiRmx1c2hDb29yZGluYXRpb24iLCJyZXNvdXJjZSI6eyJidWlsZF92ZXJzaW9uIjoiYnVpbGQtMSIsImVudmlyb25tZW50X2tpbmQiOiJjb25zb2xlIiwiaW5pdGlhbGl6ZWRfYXQiOiIyMDI2LTEwLTEzVDEwOjAwOjAwLjAwMDAwMDBaIiwiaW5zdGFuY2VfaWQiOiIxMTExMTExMS0xMTExLTExMTEtMTExMS0xMTExMTExMTExMTEiLCJvc19mYW1pbHkiOiJ1bmtub3duIn0sImF0dHJpYnV0ZXMiOnsicHJvZHVjZXJfcGlkIjo0MTY5Nn19Cg=="
+          },
+          "file": null
+        },
+        "finalInvalid": "0",
+        "finalTruncated": "0",
+        "outputs": [
+          {
+            "name": "console",
+            "state": "Stopped",
+            "accepted": "1",
+            "written": "1",
+            "failed": "0",
+            "abandoned": "0",
+            "pending": "0",
+            "filtered": "0",
+            "queueFull": "0",
+            "unavailable": "0",
+            "fault": null
+          }
+        ],
+        "physicalFiles": 0
+      },
+      "stdoutSha256": "fd92a9edb4a269104cba687e085aaa607f655f85fd1a94ede2fb44954e1df555",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ],
+  "controls": [
+    {
+      "id": "retained",
+      "rejected": true,
+      "reason": "detached caller references"
+    },
+    {
+      "id": "controls",
+      "rejected": true,
+      "reason": "bounded console controls"
+    },
+    {
+      "id": "storage",
+      "rejected": true,
+      "reason": "bounded continuation storage"
+    },
+    {
+      "id": "iterations",
+      "rejected": true,
+      "reason": "all repeated callers"
+    },
+    {
+      "id": "shared",
+      "rejected": true,
+      "reason": "coalesced caller targets"
+    },
+    {
+      "id": "deadline",
+      "rejected": true,
+      "reason": "actual deadline callbacks"
+    },
+    {
+      "id": "cancelled",
+      "rejected": true,
+      "reason": "caller cancellation count"
+    },
+    {
+      "id": "initial",
+      "rejected": true,
+      "reason": "original caller rejection facts"
+    },
+    {
+      "id": "order",
+      "rejected": true,
+      "reason": "fixed target writer order"
+    },
+    {
+      "id": "file-controls",
+      "rejected": true,
+      "reason": "bounded file controls"
+    },
+    {
+      "id": "transition",
+      "rejected": true,
+      "reason": "live caller transition phases"
+    },
+    {
+      "id": "result",
+      "rejected": true,
+      "reason": "actual caller writer result"
+    },
+    {
+      "id": "pre-cancel",
+      "rejected": true,
+      "reason": "cancelled completed caller"
+    },
+    {
+      "id": "accounting",
+      "rejected": true,
+      "reason": "literal final output accounting"
+    },
+    {
+      "id": "wire",
+      "rejected": true,
+      "reason": "complete record boundary"
+    },
+    {
+      "id": "child",
+      "rejected": true,
+      "reason": "actual child PID"
+    }
+  ]
+}

@@ -1,0 +1,49 @@
+{
+  "schema": "cis.logging.file-interval-cases/v1",
+  "task": "WP05-S09-T01",
+  "state": "Development qualification; release-family Planned rows unchanged",
+  "sourcePlan": "planning/logging/sources/core-library-implementation-plan-v1.md",
+  "sourceRequirement": "Schedule regular file-buffer flushes from CORE_LOG_FLUSH_INTERVAL_MS using the internal TimeProvider seam, including periods with no new events.",
+  "cases": [
+    {
+      "id": "idle-min"
+    },
+    {
+      "id": "idle-default"
+    },
+    {
+      "id": "idle-max"
+    },
+    {
+      "id": "configured"
+    },
+    {
+      "id": "console-only"
+    },
+    {
+      "id": "file-none"
+    },
+    {
+      "id": "create-failure"
+    },
+    {
+      "id": "arm-failure"
+    },
+    {
+      "id": "below"
+    },
+    {
+      "id": "above"
+    },
+    {
+      "id": "env"
+    }
+  ],
+  "scope": "One owned periodic timer in actual configured file composition, frozen interval, idle requests through actual Core queue coordinator, disabled-file absence, range validation and safe acquisition rollback. Primitive queue fixtures opt into that same queue method.",
+  "remainingStoryTasks": [
+    "WP05-S09-T02 bounded/serialized timer integration qualification",
+    "WP05-S09-T03 full timer failure and shared-stop lifecycle coordination",
+    "WP05-S09-T04 full controlled-time story acceptance"
+  ],
+  "portability": "Idle interval scheduling and userspace semantics are portable expectations; C# TimeProvider/ITimer and internal fixture composition are implementation-specific."
+}

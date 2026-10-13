@@ -46,7 +46,13 @@ public sealed class LoggingOptions
     /// <summary>The QueueCapacity setting.</summary>
     public int QueueCapacity { get; set; } = 1024;
 
-    /// <summary>The FlushIntervalMilliseconds setting.</summary>
+    /// <summary>Target interval in milliseconds for scheduling file-buffer flushes, including idle periods.</summary>
+    /// <remarks>
+    /// Defaults to 1,000 ms; Prepare requires 10–60,000 ms.
+    /// CORE_LOG_FLUSH_INTERVAL_MS populates this value in EnvironmentOptions.Logging.
+    /// Configured runtime creation checks this range only when file output is enabled.
+    /// Used by enabled file output as a scheduling target, not a completion or durability guarantee.
+    /// </remarks>
     public int FlushIntervalMilliseconds { get; set; } = 1000;
 
     /// <summary>The ShutdownTimeoutMilliseconds setting.</summary>

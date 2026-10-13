@@ -1,0 +1,362 @@
+{
+  "schema": "cis.compatibility-samples/v1",
+  "scope": "Nonshipping reference-only compiler shape controls, not a published package, runtime or historical compatibility pass.",
+  "status": "Passed",
+  "exitCode": 0,
+  "source": [
+    {
+      "path": "implementations/csharp/verification/compatibility/samples/catalog.json",
+      "sha256": "b003dd01ef052b14033a726ea8347ea35d177ede380c826f9fbcc1f23ac9353e"
+    },
+    {
+      "path": "implementations/csharp/verification/compatibility/samples/Consumer.csproj.template",
+      "sha256": "1a5e02b046d37e8a9727fdf7f0d92744afbd7a18257f819e1c9058477e55598a"
+    },
+    {
+      "path": "implementations/csharp/verification/compatibility/samples/source/construction-names.cs",
+      "sha256": "fd2ec6d7da9cc6739d7c3f02c038dcab92c9a9216990f80ddf8d9dda81f9c3d3"
+    },
+    {
+      "path": "implementations/csharp/verification/compatibility/samples/source/custom-scopes.cs",
+      "sha256": "aeeed0ef146e3c47cf4c301423261fe9de018b076539d835ce43c0ab83af13c3"
+    },
+    {
+      "path": "implementations/csharp/verification/compatibility/samples/source/lazy-lifecycle.cs",
+      "sha256": "8e1990c1b47ca28f69cd35743d3c73d343be392e4ccff5008a63e1484bcd0f46"
+    },
+    {
+      "path": "implementations/csharp/verification/compatibility/samples/source/logging-extensions.cs",
+      "sha256": "3d275450586cf0b39ad031c34601f202f5c401b1b20d4a9bb40ed69891491a78"
+    },
+    {
+      "path": "implementations/csharp/verification/compatibility/samples/source/null-calls.cs",
+      "sha256": "1625657d27acb084eb8dee91f48ae0fed017b626240e9387df307470140b0bbc"
+    },
+    {
+      "path": "implementations/csharp/verification/compatibility/samples/source/numeric-values.cs",
+      "sha256": "715ab7443b7385a9da1a1abc0a795a9bb4a0319d40f92d43e57629c746595bbb"
+    }
+  ],
+  "mutations": [
+    {
+      "id": "API-REMOVE-LAZY",
+      "source": "RuntimeSurface.cs",
+      "originalSha256": "0422819d1e14b7ed79bf0af2ae42da5c4355d2aad5464cf837db997b9131c1e0",
+      "changedSha256": "2e46d0287afefbacc68c365688168a784fae9491067e5723efc243f2c7f33cab",
+      "consumerId": "lazy-lifecycle",
+      "expectedDiagnostic": "CS1061"
+    },
+    {
+      "id": "API-RENAME-DATA",
+      "source": "RuntimeSurface.cs",
+      "originalSha256": "0422819d1e14b7ed79bf0af2ae42da5c4355d2aad5464cf837db997b9131c1e0",
+      "changedSha256": "b736c33682c013f676bfd3b0e66ddaf4a3daaefecd93022f957444eb1a49e291",
+      "consumerId": "construction-names",
+      "expectedDiagnostic": "CS1739"
+    },
+    {
+      "id": "API-REQUIRED-CTOR",
+      "source": "EventSurface.cs",
+      "originalSha256": "250451d56855467d66d51e4b13716bcacd6fe368206648f43891bde92343818d",
+      "changedSha256": "c0401957b454bf5e2f74ce561fa31cdfef413e82422c7275d3d59b70c4fef67c",
+      "consumerId": "construction-names",
+      "expectedDiagnostic": "CS7036"
+    },
+    {
+      "id": "API-REQUIRED-PROPERTY",
+      "source": "EventSurface.cs",
+      "originalSha256": "250451d56855467d66d51e4b13716bcacd6fe368206648f43891bde92343818d",
+      "changedSha256": "23aeb0a4c006c3a042b63fc91ac369fbae0d5d74bc60bd4e721bf30ec728722e",
+      "consumerId": "construction-names",
+      "expectedDiagnostic": "CS9035"
+    },
+    {
+      "id": "API-OBSOLETE-WARNING",
+      "source": "RuntimeSurface.cs",
+      "originalSha256": "0422819d1e14b7ed79bf0af2ae42da5c4355d2aad5464cf837db997b9131c1e0",
+      "changedSha256": "26b4d3e0b22f138c45e57d9db491fe0c7bca30def8ca5ea82794ac9498806de3",
+      "consumerId": "construction-names",
+      "expectedDiagnostic": "CS0618"
+    },
+    {
+      "id": "API-NULL-OVERLOAD",
+      "source": "RuntimeSurface.cs",
+      "originalSha256": "0422819d1e14b7ed79bf0af2ae42da5c4355d2aad5464cf837db997b9131c1e0",
+      "changedSha256": "ecff2973a3a949cb523c5e2d0af8181a4f00445fdde5e69363280ae72bea1808",
+      "consumerId": "null-calls",
+      "expectedDiagnostic": "CS0121"
+    },
+    {
+      "id": "API-MESSAGE-TYPE",
+      "source": "EventSurface.cs",
+      "originalSha256": "250451d56855467d66d51e4b13716bcacd6fe368206648f43891bde92343818d",
+      "changedSha256": "3cc9cfc5a4032baa5d437ce61f9ca66ad3894ed2b974293ead18f64e3cbbd6c4",
+      "consumerId": "construction-names",
+      "expectedDiagnostic": "CS0029"
+    },
+    {
+      "id": "API-NARROW-INTEGER",
+      "source": "EventSurface.cs",
+      "originalSha256": "250451d56855467d66d51e4b13716bcacd6fe368206648f43891bde92343818d",
+      "changedSha256": "5c5025723addb78960d972acd6bf836740fcc95a3cc51c64842f47aacd004043",
+      "consumerId": "numeric-values",
+      "expectedDiagnostic": "CS1503"
+    }
+  ],
+  "controls": [
+    {
+      "id": "construction-names",
+      "actualExitCode": 0,
+      "expectedDiagnostic": "",
+      "matched": true,
+      "log": {
+        "path": "construction-names/compiler.log",
+        "sha256": "1d4cf071605a04cb00ca56007464e3471f609ce98dd003c36eb581c4e180c385",
+        "schema": "dotnet.compiler-log/v1"
+      }
+    },
+    {
+      "id": "null-calls",
+      "actualExitCode": 0,
+      "expectedDiagnostic": "",
+      "matched": true,
+      "log": {
+        "path": "null-calls/compiler.log",
+        "sha256": "4631af430a9f49b63749f00d6b362e4786f296fe7405151b8c95ebc75d0c7946",
+        "schema": "dotnet.compiler-log/v1"
+      }
+    },
+    {
+      "id": "numeric-values",
+      "actualExitCode": 0,
+      "expectedDiagnostic": "",
+      "matched": true,
+      "log": {
+        "path": "numeric-values/compiler.log",
+        "sha256": "b015f63c231b8d49a7e66aaf1d58bdc8722e716e3bc5e94c451733d753ee41c4",
+        "schema": "dotnet.compiler-log/v1"
+      }
+    },
+    {
+      "id": "lazy-lifecycle",
+      "actualExitCode": 0,
+      "expectedDiagnostic": "",
+      "matched": true,
+      "log": {
+        "path": "lazy-lifecycle/compiler.log",
+        "sha256": "e10ed45ca13e3504b58a327c43e3cc221483d9ae40d23a14c04d2cbdb274a02d",
+        "schema": "dotnet.compiler-log/v1"
+      }
+    },
+    {
+      "id": "logging-extensions",
+      "actualExitCode": 0,
+      "expectedDiagnostic": "",
+      "matched": true,
+      "log": {
+        "path": "logging-extensions/compiler.log",
+        "sha256": "c296c330a6124e9a6c4a37ad5bb74375f59b13704ca9020c324c003d2695b33a",
+        "schema": "dotnet.compiler-log/v1"
+      }
+    },
+    {
+      "id": "custom-scopes",
+      "actualExitCode": 0,
+      "expectedDiagnostic": "",
+      "matched": true,
+      "log": {
+        "path": "custom-scopes/compiler.log",
+        "sha256": "80e49a42997b3414e50f075db67d3862348e4ad5cc8855b724fa5d97effbd5bf",
+        "schema": "dotnet.compiler-log/v1"
+      }
+    },
+    {
+      "id": "API-REMOVE-LAZY-reference",
+      "actualExitCode": 0,
+      "expectedDiagnostic": "",
+      "matched": true,
+      "log": {
+        "path": "API-REMOVE-LAZY-reference/compiler.log",
+        "sha256": "14e64925f11e2e03c76b4c061682f0e3db65e3fe004630ce587f5659eb22909d",
+        "schema": "dotnet.compiler-log/v1"
+      }
+    },
+    {
+      "id": "API-REMOVE-LAZY",
+      "actualExitCode": 1,
+      "expectedDiagnostic": "CS1061",
+      "matched": true,
+      "log": {
+        "path": "API-REMOVE-LAZY/compiler.log",
+        "sha256": "b0335b8803b3066b9df298db43686bf221efddedac001215f5fe6153f2dec1ad",
+        "schema": "dotnet.compiler-log/v1"
+      }
+    },
+    {
+      "id": "API-RENAME-DATA-reference",
+      "actualExitCode": 0,
+      "expectedDiagnostic": "",
+      "matched": true,
+      "log": {
+        "path": "API-RENAME-DATA-reference/compiler.log",
+        "sha256": "1a76eaa9f614e189199eaeedb3efdc31e117d0b2720d88291b0a9984f78cd795",
+        "schema": "dotnet.compiler-log/v1"
+      }
+    },
+    {
+      "id": "API-RENAME-DATA",
+      "actualExitCode": 1,
+      "expectedDiagnostic": "CS1739",
+      "matched": true,
+      "log": {
+        "path": "API-RENAME-DATA/compiler.log",
+        "sha256": "9284630b2dad20c13fd641066d1f7dd45f2739ab209144c1c06108a9d00aa428",
+        "schema": "dotnet.compiler-log/v1"
+      }
+    },
+    {
+      "id": "API-REQUIRED-CTOR-reference",
+      "actualExitCode": 0,
+      "expectedDiagnostic": "",
+      "matched": true,
+      "log": {
+        "path": "API-REQUIRED-CTOR-reference/compiler.log",
+        "sha256": "e58d0d4fc50d4681a616767e4380836f91768adcc16de2a1a5eb759ebcb7e682",
+        "schema": "dotnet.compiler-log/v1"
+      }
+    },
+    {
+      "id": "API-REQUIRED-CTOR",
+      "actualExitCode": 1,
+      "expectedDiagnostic": "CS7036",
+      "matched": true,
+      "log": {
+        "path": "API-REQUIRED-CTOR/compiler.log",
+        "sha256": "fd9f5d5099b8f5e5747f442f907b262974824de7bd3527e8d6c93911249ebebf",
+        "schema": "dotnet.compiler-log/v1"
+      }
+    },
+    {
+      "id": "API-REQUIRED-PROPERTY-reference",
+      "actualExitCode": 0,
+      "expectedDiagnostic": "",
+      "matched": true,
+      "log": {
+        "path": "API-REQUIRED-PROPERTY-reference/compiler.log",
+        "sha256": "9d30457c160062361b862e73c1c1a31be21fc6805944f8da337a8491ab0a46dd",
+        "schema": "dotnet.compiler-log/v1"
+      }
+    },
+    {
+      "id": "API-REQUIRED-PROPERTY",
+      "actualExitCode": 1,
+      "expectedDiagnostic": "CS9035",
+      "matched": true,
+      "log": {
+        "path": "API-REQUIRED-PROPERTY/compiler.log",
+        "sha256": "0802b772a5b45bfcebeb0b714cb3edc739deceee46c8927b9b755d96be2187a0",
+        "schema": "dotnet.compiler-log/v1"
+      }
+    },
+    {
+      "id": "API-OBSOLETE-WARNING-reference",
+      "actualExitCode": 0,
+      "expectedDiagnostic": "",
+      "matched": true,
+      "log": {
+        "path": "API-OBSOLETE-WARNING-reference/compiler.log",
+        "sha256": "2f4a961e6f70215730731df0fce1d6a6b75c7239f650e3647d4f6bb57d266ebc",
+        "schema": "dotnet.compiler-log/v1"
+      }
+    },
+    {
+      "id": "API-OBSOLETE-WARNING",
+      "actualExitCode": 1,
+      "expectedDiagnostic": "CS0618",
+      "matched": true,
+      "log": {
+        "path": "API-OBSOLETE-WARNING/compiler.log",
+        "sha256": "97fcca5c684c55f803ddea893d819db49356dbb09b1e99ba5065e979cababacc",
+        "schema": "dotnet.compiler-log/v1"
+      }
+    },
+    {
+      "id": "API-NULL-OVERLOAD-reference",
+      "actualExitCode": 0,
+      "expectedDiagnostic": "",
+      "matched": true,
+      "log": {
+        "path": "API-NULL-OVERLOAD-reference/compiler.log",
+        "sha256": "73a45d9d9bc94f8ec8bb96722e45eb11b9fd50c8b21a302a82e23a51370cc95b",
+        "schema": "dotnet.compiler-log/v1"
+      }
+    },
+    {
+      "id": "API-NULL-OVERLOAD",
+      "actualExitCode": 1,
+      "expectedDiagnostic": "CS0121",
+      "matched": true,
+      "log": {
+        "path": "API-NULL-OVERLOAD/compiler.log",
+        "sha256": "338eee67e64d6378a74045d07ac4c4d8256b456e6a722604ece57e35a5ea53f0",
+        "schema": "dotnet.compiler-log/v1"
+      }
+    },
+    {
+      "id": "API-MESSAGE-TYPE-reference",
+      "actualExitCode": 0,
+      "expectedDiagnostic": "",
+      "matched": true,
+      "log": {
+        "path": "API-MESSAGE-TYPE-reference/compiler.log",
+        "sha256": "a7801b5547e129f24ed8cdd4c1ee173118e48549615af73c6c8de978dc176395",
+        "schema": "dotnet.compiler-log/v1"
+      }
+    },
+    {
+      "id": "API-MESSAGE-TYPE",
+      "actualExitCode": 1,
+      "expectedDiagnostic": "CS0029",
+      "matched": true,
+      "log": {
+        "path": "API-MESSAGE-TYPE/compiler.log",
+        "sha256": "68d5829480030a98afaa55f9b339cd3795167bab06c353e2c8ccd804b3f0ed1b",
+        "schema": "dotnet.compiler-log/v1"
+      }
+    },
+    {
+      "id": "API-NARROW-INTEGER-reference",
+      "actualExitCode": 0,
+      "expectedDiagnostic": "",
+      "matched": true,
+      "log": {
+        "path": "API-NARROW-INTEGER-reference/compiler.log",
+        "sha256": "5842e09fc5b874d722d4bd4e96f4436d6951dc30f744c43eb93f18bafb832ee1",
+        "schema": "dotnet.compiler-log/v1"
+      }
+    },
+    {
+      "id": "API-NARROW-INTEGER",
+      "actualExitCode": 1,
+      "expectedDiagnostic": "CS1503",
+      "matched": true,
+      "log": {
+        "path": "API-NARROW-INTEGER/compiler.log",
+        "sha256": "6e6b798b4be8ba0d284d69456d75f2803fc720196ec53b9581a6b7b23ef0a0f8",
+        "schema": "dotnet.compiler-log/v1"
+      }
+    }
+  ],
+  "detail": null,
+  "baselineReference": {
+    "path": "baseline/CIS.Core.ContractSpecification.dll",
+    "sha256": "c9451111a648e57e6bde1d44f2fc4f04fb97bc7c0aac3a486d03cf207f2a51fe",
+    "schema": "dotnet.reference-assembly/v1"
+  },
+  "approvedCompileReference": {
+    "package": "Microsoft.Extensions.Logging.Abstractions",
+    "version": "10.0.12",
+    "asset": "lib/net10.0/Microsoft.Extensions.Logging.Abstractions.dll",
+    "sha256": "7c242f8ca612fa1acc61f78efd5f8c89e01bd0bd47dc4ecc65e0e6e24f1a1668"
+  }
+}

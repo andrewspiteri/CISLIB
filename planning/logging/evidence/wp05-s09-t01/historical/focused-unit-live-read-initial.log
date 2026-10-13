@@ -1,0 +1,23 @@
+  CIS.Core -> C:\miscwork\portfolio\cislib\implementations\csharp\src\CIS.Core\bin\Debug\net10.0\CIS.Core.dll
+  CIS.Core.TestSupport -> C:\miscwork\portfolio\cislib\implementations\csharp\tests\CIS.Core.TestSupport\bin\Debug\net10.0\CIS.Core.TestSupport.dll
+  CIS.Core.UnitTests -> C:\miscwork\portfolio\cislib\implementations\csharp\tests\CIS.Core.UnitTests\bin\Debug\net10.0\CIS.Core.UnitTests.dll
+Test run for C:\miscwork\portfolio\cislib\implementations\csharp\tests\CIS.Core.UnitTests\bin\Debug\net10.0\CIS.Core.UnitTests.dll (.NETCoreApp,Version=v10.0)
+A total of 1 test files matched the specified pattern.
+  Failed ActualQueueSchedulesFileFlushDuringIdleTimeOrSafelyRollsBack ("configured") [99 ms]
+  Error Message:
+   Test method CIS.Tests.UnitTests.FileIntervalTests.ActualQueueSchedulesFileFlushDuringIdleTimeOrSafelyRollsBack threw exception:
+System.IO.IOException: The process cannot access the file 'C:\Users\andrs\AppData\Local\Temp\cislib-tests\562223bea6c84805ae989a63ae8b4a14\owned\events.jsonl' because it is being used by another process.
+  Stack Trace:
+     at Microsoft.Win32.SafeHandles.SafeFileHandle.CreateFile(String fullPath, FileMode mode, FileAccess access, FileShare share, FileOptions options)
+   at Microsoft.Win32.SafeHandles.SafeFileHandle.Open(String fullPath, FileMode mode, FileAccess access, FileShare share, FileOptions options, Int64 preallocationSize, Nullable`1 unixCreateMode)
+   at System.IO.File.OpenHandle(String path, FileMode mode, FileAccess access, FileShare share, FileOptions options, Int64 preallocationSize)
+   at System.IO.File.ReadAllBytes(String path)
+   at CIS.Tests.DiscoveryFixture.FileIntervalFixture.ConfiguredAsync(String mode, String root) in C:\miscwork\portfolio\cislib\implementations\csharp\tests\fixtures\DiscoveryHost\FileIntervalFixture.cs:line 138
+   at CIS.Tests.DiscoveryFixture.FileIntervalFixture.ConfiguredAsync(String mode, String root) in C:\miscwork\portfolio\cislib\implementations\csharp\tests\fixtures\DiscoveryHost\FileIntervalFixture.cs:line 155
+   at CIS.Tests.DiscoveryFixture.FileIntervalFixture.ExecuteAsync(String mode, String root) in C:\miscwork\portfolio\cislib\implementations\csharp\tests\fixtures\DiscoveryHost\FileIntervalFixture.cs:line 18
+   at CIS.Tests.UnitTests.FileIntervalTests.ActualQueueSchedulesFileFlushDuringIdleTimeOrSafelyRollsBack(String mode) in C:\miscwork\portfolio\cislib\implementations\csharp\tests\CIS.Core.UnitTests\FileIntervalTests.cs:line 16
+   at Microsoft.VisualStudio.TestPlatform.MSTest.TestAdapter.Execution.TestMethodInfo.ExecuteInternalAsync(Object[] arguments, CancellationTokenSource timeoutTokenSource, TestInvocationState invocationState)
+
+Results File: C:\miscwork\portfolio\cislib\.artifacts\csharp\tasks\wp05-s09-t01\focused\unit.trx
+
+Failed!  - Failed:     1, Passed:     9, Skipped:     0, Total:    10, Duration: 138 ms - CIS.Core.UnitTests.dll (net10.0)
