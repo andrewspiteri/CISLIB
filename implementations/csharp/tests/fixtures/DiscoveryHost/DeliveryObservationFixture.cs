@@ -59,7 +59,7 @@ internal static class DeliveryObservationFixture
         public override void Write(byte[] buffer, int offset, int count) => throw new NotSupportedException("Use the controlled async write.");
         protected override void Dispose(bool disposing) { if (disposing) { bytes.Dispose(); Cancellation.Dispose(); } base.Dispose(disposing); }
     }
-    internal static async Task<JsonObject> ExecuteAsync(JsonObject row)
+    internal static async Task<JsonObject> ExecuteAsync(JsonObject row, bool captureDiagnostics = false)
     {
         bool consoleEnabled = row["consoleEnabled"]!.GetValue<bool>(), fileEnabled = row["fileEnabled"]!.GetValue<bool>();
         using var console = new ControlledStream(row["consoleMode"]!.GetValue<string>());
@@ -70,7 +70,9 @@ internal static class DeliveryObservationFixture
         OutputQueues queues = runtime.QueuedOutputs!; CoreLogger logger = runtime.CreateLogger("Delivery");
         var outputs = new[] { (Name: "console", Queue: queues.Console, Stream: console), (Name: "file", Queue: queues.File, Stream: file) }.Where(item => item.Queue is not null).ToArray();
         var points = new List<(string Phase, RuntimeAccounting Value)>(); var results = new JsonArray(); int originalErrors = 0;
-        void Capture(string phase) => points.Add((phase, runtime.CaptureAccounting()));
+        var diagnostics = captureDiagnostics ? new List<(string Phase, CoreLogDiagnostics Value)>() : null;
+        DateTimeOffset beforeDiagnostics = DateTimeOffset.UtcNow;
+        void Capture(string phase) { points.Add((phase, runtime.CaptureAccounting())); diagnostics?.Add((phase, runtime.GetDiagnostics())); }
         void Result(string call, LogWriteResult value) => results.Add(new JsonObject { ["call"] = call, ["outcome"] = value.Outcome.ToString(), ["truncated"] = value.IsTruncated, ["error"] = value.ErrorCode, ["outputs"] = new JsonArray(value.Outputs.Select(item => (JsonNode)new JsonObject { ["name"] = item.OutputName, ["status"] = item.Status.ToString(), ["ticket"] = item.AcceptedSequence }).ToArray()) });
         LogEventData Data(string message) => new() { EventName = "delivery.event", Message = message };
         async Task Observe(OutputEventQueue queue, ControlledStream stream)
@@ -104,7 +106,14 @@ internal static class DeliveryObservationFixture
             {
                 wires[item.Name] = new JsonObject { ["stream"] = Convert.ToBase64String(item.Stream.Bytes), ["attempted"] = new JsonArray(item.Stream.Attempted.Select(record => (JsonNode)new JsonObject { ["ticket"] = record.Ticket, ["before"] = Convert.ToBase64String(record.Before), ["after"] = Convert.ToBase64String(record.After) }).ToArray()), ["confirmed"] = new JsonArray(item.Stream.Confirmed.Select(value => (JsonNode)JsonValue.Create(value)!).ToArray()) };
             }
-            return new JsonObject { ["caseId"] = row["id"]!.DeepClone(), ["checkpoints"] = new JsonArray(points.Select(point => (JsonNode)new JsonObject { ["phase"] = point.Phase, ["observation"] = Project(point.Value) }).ToArray()), ["results"] = results, ["held"] = held, ["cancellationRequested"] = cancelled, ["wires"] = wires, ["originalErrors"] = originalErrors };
+            var actual = new JsonObject { ["caseId"] = row["id"]!.DeepClone(), ["checkpoints"] = new JsonArray(points.Select(point => (JsonNode)new JsonObject { ["phase"] = point.Phase, ["observation"] = Project(point.Value) }).ToArray()), ["results"] = results, ["held"] = held, ["cancellationRequested"] = cancelled, ["wires"] = wires, ["originalErrors"] = originalErrors };
+            if (diagnostics is not null)
+            {
+                actual["diagnostics"] = new JsonArray(diagnostics.Select(point => (JsonNode)DiagnosticsProjection.Project(point.Phase, point.Value)).ToArray());
+                actual["diagnosticsBeforeUtc"] = beforeDiagnostics.ToString("O", CultureInfo.InvariantCulture);
+                actual["diagnosticsAfterUtc"] = DateTimeOffset.UtcNow.ToString("O", CultureInfo.InvariantCulture);
+            }
+            return actual;
         }
         finally
         {

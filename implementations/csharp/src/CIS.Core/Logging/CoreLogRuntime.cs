@@ -16,6 +16,7 @@ public sealed class CoreLogRuntime
     private readonly int maximumEntryBytes;
     private readonly Output[] outputs;
     private bool admissionClosed;
+    private DateTimeOffset? shutdownStartedAtUtc;
     private long invalidEventCount;
     private long truncatedEventCount;
 
@@ -81,6 +82,24 @@ public sealed class CoreLogRuntime
             // independently, so its atomic read chooses the observation point while the rest is stable.
             return new RuntimeAccounting(admissionClosed, InvalidEventCount, TruncatedEventCount,
                 queuedOutputs.Console?.CaptureAccounting(), queuedOutputs.File?.CaptureAccounting());
+        }
+    }
+
+    /// <summary>Returns an owned immutable live observation without routing a log or performing output I/O.</summary>
+    /// <remarks>Available after faults and admission closure. This does not register a fixed flush target.</remarks>
+    /// <exception cref="InvalidOperationException">The runtime uses the internal admission-control seam without actual output queues.</exception>
+    public CoreLogDiagnostics GetDiagnostics()
+    {
+        lock (admissionGate)
+        {
+            RuntimeAccounting counts = CaptureAccounting();
+            var values = new List<LogOutputDiagnostics>(2);
+            if (counts.Console is OutputAccounting console) { values.Add(new LogOutputDiagnostics("console", console)); }
+            if (counts.File is OutputAccounting file) { values.Add(new LogOutputDiagnostics("file", file)); }
+            CoreLogState state = !counts.AdmissionClosed ? CoreLogState.Running :
+                values.All(value => value.State == LogOutputState.Stopped) ? CoreLogState.Stopped : CoreLogState.Stopping;
+            return new CoreLogDiagnostics(state, counts.AdmissionClosed, DateTimeOffset.UtcNow, shutdownStartedAtUtc,
+                counts.InvalidEventCount, counts.TruncatedEventCount, values);
         }
     }
 
@@ -152,7 +171,7 @@ public sealed class CoreLogRuntime
 
     internal void CloseAdmission()
     {
-        lock (admissionGate) { admissionClosed = true; queuedOutputs?.Complete(); }
+        lock (admissionGate) { shutdownStartedAtUtc ??= DateTimeOffset.UtcNow; admissionClosed = true; queuedOutputs?.Complete(); }
     }
 
     private LogWriteResult Invalid(string code)

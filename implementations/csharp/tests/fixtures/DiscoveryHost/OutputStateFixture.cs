@@ -39,7 +39,7 @@ internal static class OutputStateFixture
         }
         public void Dispose() => Stream.Dispose();
     }
-    internal static async Task<JsonObject> ExecuteAsync(JsonObject row)
+    internal static async Task<JsonObject> ExecuteAsync(JsonObject row, bool captureDiagnostics = false)
     {
         using var console = new Writer(row["consoleMode"]!.GetValue<string>());
         using var file = new Writer(row["fileMode"]!.GetValue<string>());
@@ -51,7 +51,9 @@ internal static class OutputStateFixture
         var outputs = new[] { (Name: "console", Queue: queues.Console, Writer: console), (Name: "file", Queue: queues.File, Writer: file) }.Where(item => item.Queue is not null).ToArray();
         var checkpoints = new List<(string Phase, RuntimeAccounting Counts)>();
         DateTimeOffset before = DateTimeOffset.UtcNow; int errors = 0;
-        void Capture(string phase) => checkpoints.Add((phase, runtime.CaptureAccounting()));
+        var diagnostics = captureDiagnostics ? new List<(string Phase, CoreLogDiagnostics Value)>() : null;
+        DateTimeOffset beforeDiagnostics = DateTimeOffset.UtcNow;
+        void Capture(string phase) { checkpoints.Add((phase, runtime.CaptureAccounting())); diagnostics?.Add((phase, runtime.GetDiagnostics())); }
         async Task Join(OutputEventQueue queue, Writer writer)
         {
             try { await queue.Completion.WaitAsync(Limit); if (writer.Fails) { throw new InvalidDataException("Writer did not preserve terminal failure."); } }
@@ -82,7 +84,7 @@ internal static class OutputStateFixture
                     ["privateExceptionAccesses"] = item.Writer.Error is HostileIOException hostile ? hostile.Accesses : 0
                 };
             }
-            return new JsonObject
+            var actual = new JsonObject
             {
                 ["caseId"] = row["id"]!.DeepClone(),
                 ["beforeUtc"] = before.ToString("O", CultureInfo.InvariantCulture),
@@ -92,6 +94,13 @@ internal static class OutputStateFixture
                 ["wires"] = wires,
                 ["originalErrors"] = errors
             };
+            if (diagnostics is not null)
+            {
+                actual["diagnostics"] = new JsonArray(diagnostics.Select(point => (JsonNode)DiagnosticsProjection.Project(point.Phase, point.Value)).ToArray());
+                actual["diagnosticsBeforeUtc"] = beforeDiagnostics.ToString("O", CultureInfo.InvariantCulture);
+                actual["diagnosticsAfterUtc"] = DateTimeOffset.UtcNow.ToString("O", CultureInfo.InvariantCulture);
+            }
+            return actual;
         }
         finally
         {

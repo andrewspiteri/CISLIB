@@ -1,0 +1,4991 @@
+{
+  "schema": "cis.logging.diagnostics/v1",
+  "scope": "WP05-S03-T04 actual public immutable diagnostics over the real controlled stream/queue cases. Bounded public shutdown and its LastStopResult member remain WP05-S10.",
+  "cases": [
+    {
+      "id": "DIAGNOSTICS-DELIVERY-CONSOLE-PARTIAL-SUCCESS",
+      "profile": "delivery",
+      "sourceCatalog": "delivery-observation-cases.json",
+      "sourceCaseId": "DELIVERY-CONSOLE-PARTIAL-SUCCESS",
+      "expected": [
+        {
+          "phase": "initial",
+          "state": "Running",
+          "closed": false,
+          "invalid": "0",
+          "truncated": "0",
+          "outputs": [
+            {
+              "name": "console",
+              "state": "Running",
+              "sequence": "0",
+              "filtered": "0",
+              "attempts": "0",
+              "accepted": "0",
+              "queueFull": "0",
+              "unavailable": "0",
+              "written": "0",
+              "failed": "0",
+              "abandoned": "0",
+              "pending": "0",
+              "fault": null
+            }
+          ]
+        },
+        {
+          "phase": "held",
+          "state": "Running",
+          "closed": false,
+          "invalid": "1",
+          "truncated": "1",
+          "outputs": [
+            {
+              "name": "console",
+              "state": "Running",
+              "sequence": "3",
+              "filtered": "1",
+              "attempts": "4",
+              "accepted": "3",
+              "queueFull": "1",
+              "unavailable": "0",
+              "written": "0",
+              "failed": "0",
+              "abandoned": "0",
+              "pending": "3",
+              "fault": null
+            }
+          ]
+        },
+        {
+          "phase": "cancellation-requested",
+          "state": "Running",
+          "closed": false,
+          "invalid": "1",
+          "truncated": "1",
+          "outputs": [
+            {
+              "name": "console",
+              "state": "Running",
+              "sequence": "3",
+              "filtered": "1",
+              "attempts": "4",
+              "accepted": "3",
+              "queueFull": "1",
+              "unavailable": "0",
+              "written": "0",
+              "failed": "0",
+              "abandoned": "0",
+              "pending": "3",
+              "fault": null
+            }
+          ]
+        },
+        {
+          "phase": "closed",
+          "state": "Stopping",
+          "closed": true,
+          "invalid": "1",
+          "truncated": "1",
+          "outputs": [
+            {
+              "name": "console",
+              "state": "Stopping",
+              "sequence": "3",
+              "filtered": "1",
+              "attempts": "4",
+              "accepted": "3",
+              "queueFull": "1",
+              "unavailable": "0",
+              "written": "0",
+              "failed": "0",
+              "abandoned": "0",
+              "pending": "3",
+              "fault": null
+            }
+          ]
+        },
+        {
+          "phase": "first-terminal",
+          "state": "Stopped",
+          "closed": true,
+          "invalid": "1",
+          "truncated": "1",
+          "outputs": [
+            {
+              "name": "console",
+              "state": "Stopped",
+              "sequence": "3",
+              "filtered": "1",
+              "attempts": "4",
+              "accepted": "3",
+              "queueFull": "1",
+              "unavailable": "0",
+              "written": "3",
+              "failed": "0",
+              "abandoned": "0",
+              "pending": "0",
+              "fault": null
+            }
+          ]
+        },
+        {
+          "phase": "final",
+          "state": "Stopped",
+          "closed": true,
+          "invalid": "1",
+          "truncated": "1",
+          "outputs": [
+            {
+              "name": "console",
+              "state": "Stopped",
+              "sequence": "3",
+              "filtered": "1",
+              "attempts": "4",
+              "accepted": "3",
+              "queueFull": "1",
+              "unavailable": "0",
+              "written": "3",
+              "failed": "0",
+              "abandoned": "0",
+              "pending": "0",
+              "fault": null
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "DIAGNOSTICS-DELIVERY-FILE-PARTIAL-SUCCESS",
+      "profile": "delivery",
+      "sourceCatalog": "delivery-observation-cases.json",
+      "sourceCaseId": "DELIVERY-FILE-PARTIAL-SUCCESS",
+      "expected": [
+        {
+          "phase": "initial",
+          "state": "Running",
+          "closed": false,
+          "invalid": "0",
+          "truncated": "0",
+          "outputs": [
+            {
+              "name": "file",
+              "state": "Running",
+              "sequence": "0",
+              "filtered": "0",
+              "attempts": "0",
+              "accepted": "0",
+              "queueFull": "0",
+              "unavailable": "0",
+              "written": "0",
+              "failed": "0",
+              "abandoned": "0",
+              "pending": "0",
+              "fault": null
+            }
+          ]
+        },
+        {
+          "phase": "held",
+          "state": "Running",
+          "closed": false,
+          "invalid": "1",
+          "truncated": "1",
+          "outputs": [
+            {
+              "name": "file",
+              "state": "Running",
+              "sequence": "3",
+              "filtered": "1",
+              "attempts": "4",
+              "accepted": "3",
+              "queueFull": "1",
+              "unavailable": "0",
+              "written": "0",
+              "failed": "0",
+              "abandoned": "0",
+              "pending": "3",
+              "fault": null
+            }
+          ]
+        },
+        {
+          "phase": "cancellation-requested",
+          "state": "Running",
+          "closed": false,
+          "invalid": "1",
+          "truncated": "1",
+          "outputs": [
+            {
+              "name": "file",
+              "state": "Running",
+              "sequence": "3",
+              "filtered": "1",
+              "attempts": "4",
+              "accepted": "3",
+              "queueFull": "1",
+              "unavailable": "0",
+              "written": "0",
+              "failed": "0",
+              "abandoned": "0",
+              "pending": "3",
+              "fault": null
+            }
+          ]
+        },
+        {
+          "phase": "closed",
+          "state": "Stopping",
+          "closed": true,
+          "invalid": "1",
+          "truncated": "1",
+          "outputs": [
+            {
+              "name": "file",
+              "state": "Stopping",
+              "sequence": "3",
+              "filtered": "1",
+              "attempts": "4",
+              "accepted": "3",
+              "queueFull": "1",
+              "unavailable": "0",
+              "written": "0",
+              "failed": "0",
+              "abandoned": "0",
+              "pending": "3",
+              "fault": null
+            }
+          ]
+        },
+        {
+          "phase": "first-terminal",
+          "state": "Stopped",
+          "closed": true,
+          "invalid": "1",
+          "truncated": "1",
+          "outputs": [
+            {
+              "name": "file",
+              "state": "Stopped",
+              "sequence": "3",
+              "filtered": "1",
+              "attempts": "4",
+              "accepted": "3",
+              "queueFull": "1",
+              "unavailable": "0",
+              "written": "3",
+              "failed": "0",
+              "abandoned": "0",
+              "pending": "0",
+              "fault": null
+            }
+          ]
+        },
+        {
+          "phase": "final",
+          "state": "Stopped",
+          "closed": true,
+          "invalid": "1",
+          "truncated": "1",
+          "outputs": [
+            {
+              "name": "file",
+              "state": "Stopped",
+              "sequence": "3",
+              "filtered": "1",
+              "attempts": "4",
+              "accepted": "3",
+              "queueFull": "1",
+              "unavailable": "0",
+              "written": "3",
+              "failed": "0",
+              "abandoned": "0",
+              "pending": "0",
+              "fault": null
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "DIAGNOSTICS-DELIVERY-BOTH-PARTIAL-SUCCESS",
+      "profile": "delivery",
+      "sourceCatalog": "delivery-observation-cases.json",
+      "sourceCaseId": "DELIVERY-BOTH-PARTIAL-SUCCESS",
+      "expected": [
+        {
+          "phase": "initial",
+          "state": "Running",
+          "closed": false,
+          "invalid": "0",
+          "truncated": "0",
+          "outputs": [
+            {
+              "name": "console",
+              "state": "Running",
+              "sequence": "0",
+              "filtered": "0",
+              "attempts": "0",
+              "accepted": "0",
+              "queueFull": "0",
+              "unavailable": "0",
+              "written": "0",
+              "failed": "0",
+              "abandoned": "0",
+              "pending": "0",
+              "fault": null
+            },
+            {
+              "name": "file",
+              "state": "Running",
+              "sequence": "0",
+              "filtered": "0",
+              "attempts": "0",
+              "accepted": "0",
+              "queueFull": "0",
+              "unavailable": "0",
+              "written": "0",
+              "failed": "0",
+              "abandoned": "0",
+              "pending": "0",
+              "fault": null
+            }
+          ]
+        },
+        {
+          "phase": "held",
+          "state": "Running",
+          "closed": false,
+          "invalid": "1",
+          "truncated": "1",
+          "outputs": [
+            {
+              "name": "console",
+              "state": "Running",
+              "sequence": "3",
+              "filtered": "1",
+              "attempts": "4",
+              "accepted": "3",
+              "queueFull": "1",
+              "unavailable": "0",
+              "written": "0",
+              "failed": "0",
+              "abandoned": "0",
+              "pending": "3",
+              "fault": null
+            },
+            {
+              "name": "file",
+              "state": "Running",
+              "sequence": "3",
+              "filtered": "1",
+              "attempts": "4",
+              "accepted": "3",
+              "queueFull": "1",
+              "unavailable": "0",
+              "written": "0",
+              "failed": "0",
+              "abandoned": "0",
+              "pending": "3",
+              "fault": null
+            }
+          ]
+        },
+        {
+          "phase": "cancellation-requested",
+          "state": "Running",
+          "closed": false,
+          "invalid": "1",
+          "truncated": "1",
+          "outputs": [
+            {
+              "name": "console",
+              "state": "Running",
+              "sequence": "3",
+              "filtered": "1",
+              "attempts": "4",
+              "accepted": "3",
+              "queueFull": "1",
+              "unavailable": "0",
+              "written": "0",
+              "failed": "0",
+              "abandoned": "0",
+              "pending": "3",
+              "fault": null
+            },
+            {
+              "name": "file",
+              "state": "Running",
+              "sequence": "3",
+              "filtered": "1",
+              "attempts": "4",
+              "accepted": "3",
+              "queueFull": "1",
+              "unavailable": "0",
+              "written": "0",
+              "failed": "0",
+              "abandoned": "0",
+              "pending": "3",
+              "fault": null
+            }
+          ]
+        },
+        {
+          "phase": "closed",
+          "state": "Stopping",
+          "closed": true,
+          "invalid": "1",
+          "truncated": "1",
+          "outputs": [
+            {
+              "name": "console",
+              "state": "Stopping",
+              "sequence": "3",
+              "filtered": "1",
+              "attempts": "4",
+              "accepted": "3",
+              "queueFull": "1",
+              "unavailable": "0",
+              "written": "0",
+              "failed": "0",
+              "abandoned": "0",
+              "pending": "3",
+              "fault": null
+            },
+            {
+              "name": "file",
+              "state": "Stopping",
+              "sequence": "3",
+              "filtered": "1",
+              "attempts": "4",
+              "accepted": "3",
+              "queueFull": "1",
+              "unavailable": "0",
+              "written": "0",
+              "failed": "0",
+              "abandoned": "0",
+              "pending": "3",
+              "fault": null
+            }
+          ]
+        },
+        {
+          "phase": "first-terminal",
+          "state": "Stopping",
+          "closed": true,
+          "invalid": "1",
+          "truncated": "1",
+          "outputs": [
+            {
+              "name": "console",
+              "state": "Stopped",
+              "sequence": "3",
+              "filtered": "1",
+              "attempts": "4",
+              "accepted": "3",
+              "queueFull": "1",
+              "unavailable": "0",
+              "written": "3",
+              "failed": "0",
+              "abandoned": "0",
+              "pending": "0",
+              "fault": null
+            },
+            {
+              "name": "file",
+              "state": "Stopping",
+              "sequence": "3",
+              "filtered": "1",
+              "attempts": "4",
+              "accepted": "3",
+              "queueFull": "1",
+              "unavailable": "0",
+              "written": "0",
+              "failed": "0",
+              "abandoned": "0",
+              "pending": "3",
+              "fault": null
+            }
+          ]
+        },
+        {
+          "phase": "final",
+          "state": "Stopped",
+          "closed": true,
+          "invalid": "1",
+          "truncated": "1",
+          "outputs": [
+            {
+              "name": "console",
+              "state": "Stopped",
+              "sequence": "3",
+              "filtered": "1",
+              "attempts": "4",
+              "accepted": "3",
+              "queueFull": "1",
+              "unavailable": "0",
+              "written": "3",
+              "failed": "0",
+              "abandoned": "0",
+              "pending": "0",
+              "fault": null
+            },
+            {
+              "name": "file",
+              "state": "Stopped",
+              "sequence": "3",
+              "filtered": "1",
+              "attempts": "4",
+              "accepted": "3",
+              "queueFull": "1",
+              "unavailable": "0",
+              "written": "3",
+              "failed": "0",
+              "abandoned": "0",
+              "pending": "0",
+              "fault": null
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "DIAGNOSTICS-DELIVERY-CONSOLE-PARTIAL-FAILURE",
+      "profile": "delivery",
+      "sourceCatalog": "delivery-observation-cases.json",
+      "sourceCaseId": "DELIVERY-CONSOLE-PARTIAL-FAILURE",
+      "expected": [
+        {
+          "phase": "initial",
+          "state": "Running",
+          "closed": false,
+          "invalid": "0",
+          "truncated": "0",
+          "outputs": [
+            {
+              "name": "console",
+              "state": "Running",
+              "sequence": "0",
+              "filtered": "0",
+              "attempts": "0",
+              "accepted": "0",
+              "queueFull": "0",
+              "unavailable": "0",
+              "written": "0",
+              "failed": "0",
+              "abandoned": "0",
+              "pending": "0",
+              "fault": null
+            },
+            {
+              "name": "file",
+              "state": "Running",
+              "sequence": "0",
+              "filtered": "0",
+              "attempts": "0",
+              "accepted": "0",
+              "queueFull": "0",
+              "unavailable": "0",
+              "written": "0",
+              "failed": "0",
+              "abandoned": "0",
+              "pending": "0",
+              "fault": null
+            }
+          ]
+        },
+        {
+          "phase": "held",
+          "state": "Running",
+          "closed": false,
+          "invalid": "1",
+          "truncated": "1",
+          "outputs": [
+            {
+              "name": "console",
+              "state": "Running",
+              "sequence": "3",
+              "filtered": "1",
+              "attempts": "4",
+              "accepted": "3",
+              "queueFull": "1",
+              "unavailable": "0",
+              "written": "0",
+              "failed": "0",
+              "abandoned": "0",
+              "pending": "3",
+              "fault": null
+            },
+            {
+              "name": "file",
+              "state": "Running",
+              "sequence": "3",
+              "filtered": "1",
+              "attempts": "4",
+              "accepted": "3",
+              "queueFull": "1",
+              "unavailable": "0",
+              "written": "0",
+              "failed": "0",
+              "abandoned": "0",
+              "pending": "3",
+              "fault": null
+            }
+          ]
+        },
+        {
+          "phase": "cancellation-requested",
+          "state": "Running",
+          "closed": false,
+          "invalid": "1",
+          "truncated": "1",
+          "outputs": [
+            {
+              "name": "console",
+              "state": "Running",
+              "sequence": "3",
+              "filtered": "1",
+              "attempts": "4",
+              "accepted": "3",
+              "queueFull": "1",
+              "unavailable": "0",
+              "written": "0",
+              "failed": "0",
+              "abandoned": "0",
+              "pending": "3",
+              "fault": null
+            },
+            {
+              "name": "file",
+              "state": "Running",
+              "sequence": "3",
+              "filtered": "1",
+              "attempts": "4",
+              "accepted": "3",
+              "queueFull": "1",
+              "unavailable": "0",
+              "written": "0",
+              "failed": "0",
+              "abandoned": "0",
+              "pending": "3",
+              "fault": null
+            }
+          ]
+        },
+        {
+          "phase": "closed",
+          "state": "Stopping",
+          "closed": true,
+          "invalid": "1",
+          "truncated": "1",
+          "outputs": [
+            {
+              "name": "console",
+              "state": "Stopping",
+              "sequence": "3",
+              "filtered": "1",
+              "attempts": "4",
+              "accepted": "3",
+              "queueFull": "1",
+              "unavailable": "0",
+              "written": "0",
+              "failed": "0",
+              "abandoned": "0",
+              "pending": "3",
+              "fault": null
+            },
+            {
+              "name": "file",
+              "state": "Stopping",
+              "sequence": "3",
+              "filtered": "1",
+              "attempts": "4",
+              "accepted": "3",
+              "queueFull": "1",
+              "unavailable": "0",
+              "written": "0",
+              "failed": "0",
+              "abandoned": "0",
+              "pending": "3",
+              "fault": null
+            }
+          ]
+        },
+        {
+          "phase": "first-terminal",
+          "state": "Stopping",
+          "closed": true,
+          "invalid": "1",
+          "truncated": "1",
+          "outputs": [
+            {
+              "name": "console",
+              "state": "Stopped",
+              "sequence": "3",
+              "filtered": "1",
+              "attempts": "4",
+              "accepted": "3",
+              "queueFull": "1",
+              "unavailable": "0",
+              "written": "0",
+              "failed": "1",
+              "abandoned": "2",
+              "pending": "0",
+              "fault": "WriteFailed"
+            },
+            {
+              "name": "file",
+              "state": "Stopping",
+              "sequence": "3",
+              "filtered": "1",
+              "attempts": "4",
+              "accepted": "3",
+              "queueFull": "1",
+              "unavailable": "0",
+              "written": "0",
+              "failed": "0",
+              "abandoned": "0",
+              "pending": "3",
+              "fault": null
+            }
+          ]
+        },
+        {
+          "phase": "final",
+          "state": "Stopped",
+          "closed": true,
+          "invalid": "1",
+          "truncated": "1",
+          "outputs": [
+            {
+              "name": "console",
+              "state": "Stopped",
+              "sequence": "3",
+              "filtered": "1",
+              "attempts": "4",
+              "accepted": "3",
+              "queueFull": "1",
+              "unavailable": "0",
+              "written": "0",
+              "failed": "1",
+              "abandoned": "2",
+              "pending": "0",
+              "fault": "WriteFailed"
+            },
+            {
+              "name": "file",
+              "state": "Stopped",
+              "sequence": "3",
+              "filtered": "1",
+              "attempts": "4",
+              "accepted": "3",
+              "queueFull": "1",
+              "unavailable": "0",
+              "written": "3",
+              "failed": "0",
+              "abandoned": "0",
+              "pending": "0",
+              "fault": null
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "DIAGNOSTICS-DELIVERY-FILE-PARTIAL-FAILURE",
+      "profile": "delivery",
+      "sourceCatalog": "delivery-observation-cases.json",
+      "sourceCaseId": "DELIVERY-FILE-PARTIAL-FAILURE",
+      "expected": [
+        {
+          "phase": "initial",
+          "state": "Running",
+          "closed": false,
+          "invalid": "0",
+          "truncated": "0",
+          "outputs": [
+            {
+              "name": "console",
+              "state": "Running",
+              "sequence": "0",
+              "filtered": "0",
+              "attempts": "0",
+              "accepted": "0",
+              "queueFull": "0",
+              "unavailable": "0",
+              "written": "0",
+              "failed": "0",
+              "abandoned": "0",
+              "pending": "0",
+              "fault": null
+            },
+            {
+              "name": "file",
+              "state": "Running",
+              "sequence": "0",
+              "filtered": "0",
+              "attempts": "0",
+              "accepted": "0",
+              "queueFull": "0",
+              "unavailable": "0",
+              "written": "0",
+              "failed": "0",
+              "abandoned": "0",
+              "pending": "0",
+              "fault": null
+            }
+          ]
+        },
+        {
+          "phase": "held",
+          "state": "Running",
+          "closed": false,
+          "invalid": "1",
+          "truncated": "1",
+          "outputs": [
+            {
+              "name": "console",
+              "state": "Running",
+              "sequence": "3",
+              "filtered": "1",
+              "attempts": "4",
+              "accepted": "3",
+              "queueFull": "1",
+              "unavailable": "0",
+              "written": "0",
+              "failed": "0",
+              "abandoned": "0",
+              "pending": "3",
+              "fault": null
+            },
+            {
+              "name": "file",
+              "state": "Running",
+              "sequence": "3",
+              "filtered": "1",
+              "attempts": "4",
+              "accepted": "3",
+              "queueFull": "1",
+              "unavailable": "0",
+              "written": "0",
+              "failed": "0",
+              "abandoned": "0",
+              "pending": "3",
+              "fault": null
+            }
+          ]
+        },
+        {
+          "phase": "cancellation-requested",
+          "state": "Running",
+          "closed": false,
+          "invalid": "1",
+          "truncated": "1",
+          "outputs": [
+            {
+              "name": "console",
+              "state": "Running",
+              "sequence": "3",
+              "filtered": "1",
+              "attempts": "4",
+              "accepted": "3",
+              "queueFull": "1",
+              "unavailable": "0",
+              "written": "0",
+              "failed": "0",
+              "abandoned": "0",
+              "pending": "3",
+              "fault": null
+            },
+            {
+              "name": "file",
+              "state": "Running",
+              "sequence": "3",
+              "filtered": "1",
+              "attempts": "4",
+              "accepted": "3",
+              "queueFull": "1",
+              "unavailable": "0",
+              "written": "0",
+              "failed": "0",
+              "abandoned": "0",
+              "pending": "3",
+              "fault": null
+            }
+          ]
+        },
+        {
+          "phase": "closed",
+          "state": "Stopping",
+          "closed": true,
+          "invalid": "1",
+          "truncated": "1",
+          "outputs": [
+            {
+              "name": "console",
+              "state": "Stopping",
+              "sequence": "3",
+              "filtered": "1",
+              "attempts": "4",
+              "accepted": "3",
+              "queueFull": "1",
+              "unavailable": "0",
+              "written": "0",
+              "failed": "0",
+              "abandoned": "0",
+              "pending": "3",
+              "fault": null
+            },
+            {
+              "name": "file",
+              "state": "Stopping",
+              "sequence": "3",
+              "filtered": "1",
+              "attempts": "4",
+              "accepted": "3",
+              "queueFull": "1",
+              "unavailable": "0",
+              "written": "0",
+              "failed": "0",
+              "abandoned": "0",
+              "pending": "3",
+              "fault": null
+            }
+          ]
+        },
+        {
+          "phase": "first-terminal",
+          "state": "Stopping",
+          "closed": true,
+          "invalid": "1",
+          "truncated": "1",
+          "outputs": [
+            {
+              "name": "console",
+              "state": "Stopping",
+              "sequence": "3",
+              "filtered": "1",
+              "attempts": "4",
+              "accepted": "3",
+              "queueFull": "1",
+              "unavailable": "0",
+              "written": "0",
+              "failed": "0",
+              "abandoned": "0",
+              "pending": "3",
+              "fault": null
+            },
+            {
+              "name": "file",
+              "state": "Stopped",
+              "sequence": "3",
+              "filtered": "1",
+              "attempts": "4",
+              "accepted": "3",
+              "queueFull": "1",
+              "unavailable": "0",
+              "written": "0",
+              "failed": "1",
+              "abandoned": "2",
+              "pending": "0",
+              "fault": "WriteFailed"
+            }
+          ]
+        },
+        {
+          "phase": "final",
+          "state": "Stopped",
+          "closed": true,
+          "invalid": "1",
+          "truncated": "1",
+          "outputs": [
+            {
+              "name": "console",
+              "state": "Stopped",
+              "sequence": "3",
+              "filtered": "1",
+              "attempts": "4",
+              "accepted": "3",
+              "queueFull": "1",
+              "unavailable": "0",
+              "written": "3",
+              "failed": "0",
+              "abandoned": "0",
+              "pending": "0",
+              "fault": null
+            },
+            {
+              "name": "file",
+              "state": "Stopped",
+              "sequence": "3",
+              "filtered": "1",
+              "attempts": "4",
+              "accepted": "3",
+              "queueFull": "1",
+              "unavailable": "0",
+              "written": "0",
+              "failed": "1",
+              "abandoned": "2",
+              "pending": "0",
+              "fault": "WriteFailed"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "DIAGNOSTICS-DELIVERY-FILE-COMPLETE-FAILURE",
+      "profile": "delivery",
+      "sourceCatalog": "delivery-observation-cases.json",
+      "sourceCaseId": "DELIVERY-FILE-COMPLETE-FAILURE",
+      "expected": [
+        {
+          "phase": "initial",
+          "state": "Running",
+          "closed": false,
+          "invalid": "0",
+          "truncated": "0",
+          "outputs": [
+            {
+              "name": "file",
+              "state": "Running",
+              "sequence": "0",
+              "filtered": "0",
+              "attempts": "0",
+              "accepted": "0",
+              "queueFull": "0",
+              "unavailable": "0",
+              "written": "0",
+              "failed": "0",
+              "abandoned": "0",
+              "pending": "0",
+              "fault": null
+            }
+          ]
+        },
+        {
+          "phase": "held",
+          "state": "Running",
+          "closed": false,
+          "invalid": "1",
+          "truncated": "1",
+          "outputs": [
+            {
+              "name": "file",
+              "state": "Running",
+              "sequence": "3",
+              "filtered": "1",
+              "attempts": "4",
+              "accepted": "3",
+              "queueFull": "1",
+              "unavailable": "0",
+              "written": "0",
+              "failed": "0",
+              "abandoned": "0",
+              "pending": "3",
+              "fault": null
+            }
+          ]
+        },
+        {
+          "phase": "cancellation-requested",
+          "state": "Running",
+          "closed": false,
+          "invalid": "1",
+          "truncated": "1",
+          "outputs": [
+            {
+              "name": "file",
+              "state": "Running",
+              "sequence": "3",
+              "filtered": "1",
+              "attempts": "4",
+              "accepted": "3",
+              "queueFull": "1",
+              "unavailable": "0",
+              "written": "0",
+              "failed": "0",
+              "abandoned": "0",
+              "pending": "3",
+              "fault": null
+            }
+          ]
+        },
+        {
+          "phase": "closed",
+          "state": "Stopping",
+          "closed": true,
+          "invalid": "1",
+          "truncated": "1",
+          "outputs": [
+            {
+              "name": "file",
+              "state": "Stopping",
+              "sequence": "3",
+              "filtered": "1",
+              "attempts": "4",
+              "accepted": "3",
+              "queueFull": "1",
+              "unavailable": "0",
+              "written": "0",
+              "failed": "0",
+              "abandoned": "0",
+              "pending": "3",
+              "fault": null
+            }
+          ]
+        },
+        {
+          "phase": "first-terminal",
+          "state": "Stopped",
+          "closed": true,
+          "invalid": "1",
+          "truncated": "1",
+          "outputs": [
+            {
+              "name": "file",
+              "state": "Stopped",
+              "sequence": "3",
+              "filtered": "1",
+              "attempts": "4",
+              "accepted": "3",
+              "queueFull": "1",
+              "unavailable": "0",
+              "written": "0",
+              "failed": "1",
+              "abandoned": "2",
+              "pending": "0",
+              "fault": "WriteFailed"
+            }
+          ]
+        },
+        {
+          "phase": "final",
+          "state": "Stopped",
+          "closed": true,
+          "invalid": "1",
+          "truncated": "1",
+          "outputs": [
+            {
+              "name": "file",
+              "state": "Stopped",
+              "sequence": "3",
+              "filtered": "1",
+              "attempts": "4",
+              "accepted": "3",
+              "queueFull": "1",
+              "unavailable": "0",
+              "written": "0",
+              "failed": "1",
+              "abandoned": "2",
+              "pending": "0",
+              "fault": "WriteFailed"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "DIAGNOSTICS-DELIVERY-CONSOLE-ZERO-FAILURE",
+      "profile": "delivery",
+      "sourceCatalog": "delivery-observation-cases.json",
+      "sourceCaseId": "DELIVERY-CONSOLE-ZERO-FAILURE",
+      "expected": [
+        {
+          "phase": "initial",
+          "state": "Running",
+          "closed": false,
+          "invalid": "0",
+          "truncated": "0",
+          "outputs": [
+            {
+              "name": "console",
+              "state": "Running",
+              "sequence": "0",
+              "filtered": "0",
+              "attempts": "0",
+              "accepted": "0",
+              "queueFull": "0",
+              "unavailable": "0",
+              "written": "0",
+              "failed": "0",
+              "abandoned": "0",
+              "pending": "0",
+              "fault": null
+            }
+          ]
+        },
+        {
+          "phase": "held",
+          "state": "Running",
+          "closed": false,
+          "invalid": "1",
+          "truncated": "1",
+          "outputs": [
+            {
+              "name": "console",
+              "state": "Running",
+              "sequence": "3",
+              "filtered": "1",
+              "attempts": "4",
+              "accepted": "3",
+              "queueFull": "1",
+              "unavailable": "0",
+              "written": "0",
+              "failed": "0",
+              "abandoned": "0",
+              "pending": "3",
+              "fault": null
+            }
+          ]
+        },
+        {
+          "phase": "cancellation-requested",
+          "state": "Running",
+          "closed": false,
+          "invalid": "1",
+          "truncated": "1",
+          "outputs": [
+            {
+              "name": "console",
+              "state": "Running",
+              "sequence": "3",
+              "filtered": "1",
+              "attempts": "4",
+              "accepted": "3",
+              "queueFull": "1",
+              "unavailable": "0",
+              "written": "0",
+              "failed": "0",
+              "abandoned": "0",
+              "pending": "3",
+              "fault": null
+            }
+          ]
+        },
+        {
+          "phase": "closed",
+          "state": "Stopping",
+          "closed": true,
+          "invalid": "1",
+          "truncated": "1",
+          "outputs": [
+            {
+              "name": "console",
+              "state": "Stopping",
+              "sequence": "3",
+              "filtered": "1",
+              "attempts": "4",
+              "accepted": "3",
+              "queueFull": "1",
+              "unavailable": "0",
+              "written": "0",
+              "failed": "0",
+              "abandoned": "0",
+              "pending": "3",
+              "fault": null
+            }
+          ]
+        },
+        {
+          "phase": "first-terminal",
+          "state": "Stopped",
+          "closed": true,
+          "invalid": "1",
+          "truncated": "1",
+          "outputs": [
+            {
+              "name": "console",
+              "state": "Stopped",
+              "sequence": "3",
+              "filtered": "1",
+              "attempts": "4",
+              "accepted": "3",
+              "queueFull": "1",
+              "unavailable": "0",
+              "written": "0",
+              "failed": "1",
+              "abandoned": "2",
+              "pending": "0",
+              "fault": "WriteFailed"
+            }
+          ]
+        },
+        {
+          "phase": "final",
+          "state": "Stopped",
+          "closed": true,
+          "invalid": "1",
+          "truncated": "1",
+          "outputs": [
+            {
+              "name": "console",
+              "state": "Stopped",
+              "sequence": "3",
+              "filtered": "1",
+              "attempts": "4",
+              "accepted": "3",
+              "queueFull": "1",
+              "unavailable": "0",
+              "written": "0",
+              "failed": "1",
+              "abandoned": "2",
+              "pending": "0",
+              "fault": "WriteFailed"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "DIAGNOSTICS-DELIVERY-CONSOLE-PARTIAL-CANCEL",
+      "profile": "delivery",
+      "sourceCatalog": "delivery-observation-cases.json",
+      "sourceCaseId": "DELIVERY-CONSOLE-PARTIAL-CANCEL",
+      "expected": [
+        {
+          "phase": "initial",
+          "state": "Running",
+          "closed": false,
+          "invalid": "0",
+          "truncated": "0",
+          "outputs": [
+            {
+              "name": "console",
+              "state": "Running",
+              "sequence": "0",
+              "filtered": "0",
+              "attempts": "0",
+              "accepted": "0",
+              "queueFull": "0",
+              "unavailable": "0",
+              "written": "0",
+              "failed": "0",
+              "abandoned": "0",
+              "pending": "0",
+              "fault": null
+            },
+            {
+              "name": "file",
+              "state": "Running",
+              "sequence": "0",
+              "filtered": "0",
+              "attempts": "0",
+              "accepted": "0",
+              "queueFull": "0",
+              "unavailable": "0",
+              "written": "0",
+              "failed": "0",
+              "abandoned": "0",
+              "pending": "0",
+              "fault": null
+            }
+          ]
+        },
+        {
+          "phase": "held",
+          "state": "Running",
+          "closed": false,
+          "invalid": "1",
+          "truncated": "1",
+          "outputs": [
+            {
+              "name": "console",
+              "state": "Running",
+              "sequence": "3",
+              "filtered": "1",
+              "attempts": "4",
+              "accepted": "3",
+              "queueFull": "1",
+              "unavailable": "0",
+              "written": "0",
+              "failed": "0",
+              "abandoned": "0",
+              "pending": "3",
+              "fault": null
+            },
+            {
+              "name": "file",
+              "state": "Running",
+              "sequence": "3",
+              "filtered": "1",
+              "attempts": "4",
+              "accepted": "3",
+              "queueFull": "1",
+              "unavailable": "0",
+              "written": "0",
+              "failed": "0",
+              "abandoned": "0",
+              "pending": "3",
+              "fault": null
+            }
+          ]
+        },
+        {
+          "phase": "cancellation-requested",
+          "state": "Running",
+          "closed": false,
+          "invalid": "1",
+          "truncated": "1",
+          "outputs": [
+            {
+              "name": "console",
+              "state": "Running",
+              "sequence": "3",
+              "filtered": "1",
+              "attempts": "4",
+              "accepted": "3",
+              "queueFull": "1",
+              "unavailable": "0",
+              "written": "0",
+              "failed": "0",
+              "abandoned": "0",
+              "pending": "3",
+              "fault": null
+            },
+            {
+              "name": "file",
+              "state": "Running",
+              "sequence": "3",
+              "filtered": "1",
+              "attempts": "4",
+              "accepted": "3",
+              "queueFull": "1",
+              "unavailable": "0",
+              "written": "0",
+              "failed": "0",
+              "abandoned": "0",
+              "pending": "3",
+              "fault": null
+            }
+          ]
+        },
+        {
+          "phase": "closed",
+          "state": "Stopping",
+          "closed": true,
+          "invalid": "1",
+          "truncated": "1",
+          "outputs": [
+            {
+              "name": "console",
+              "state": "Stopping",
+              "sequence": "3",
+              "filtered": "1",
+              "attempts": "4",
+              "accepted": "3",
+              "queueFull": "1",
+              "unavailable": "0",
+              "written": "0",
+              "failed": "0",
+              "abandoned": "0",
+              "pending": "3",
+              "fault": null
+            },
+            {
+              "name": "file",
+              "state": "Stopping",
+              "sequence": "3",
+              "filtered": "1",
+              "attempts": "4",
+              "accepted": "3",
+              "queueFull": "1",
+              "unavailable": "0",
+              "written": "0",
+              "failed": "0",
+              "abandoned": "0",
+              "pending": "3",
+              "fault": null
+            }
+          ]
+        },
+        {
+          "phase": "first-terminal",
+          "state": "Stopping",
+          "closed": true,
+          "invalid": "1",
+          "truncated": "1",
+          "outputs": [
+            {
+              "name": "console",
+              "state": "Stopped",
+              "sequence": "3",
+              "filtered": "1",
+              "attempts": "4",
+              "accepted": "3",
+              "queueFull": "1",
+              "unavailable": "0",
+              "written": "0",
+              "failed": "1",
+              "abandoned": "2",
+              "pending": "0",
+              "fault": "WriteFailed"
+            },
+            {
+              "name": "file",
+              "state": "Stopping",
+              "sequence": "3",
+              "filtered": "1",
+              "attempts": "4",
+              "accepted": "3",
+              "queueFull": "1",
+              "unavailable": "0",
+              "written": "0",
+              "failed": "0",
+              "abandoned": "0",
+              "pending": "3",
+              "fault": null
+            }
+          ]
+        },
+        {
+          "phase": "final",
+          "state": "Stopped",
+          "closed": true,
+          "invalid": "1",
+          "truncated": "1",
+          "outputs": [
+            {
+              "name": "console",
+              "state": "Stopped",
+              "sequence": "3",
+              "filtered": "1",
+              "attempts": "4",
+              "accepted": "3",
+              "queueFull": "1",
+              "unavailable": "0",
+              "written": "0",
+              "failed": "1",
+              "abandoned": "2",
+              "pending": "0",
+              "fault": "WriteFailed"
+            },
+            {
+              "name": "file",
+              "state": "Stopped",
+              "sequence": "3",
+              "filtered": "1",
+              "attempts": "4",
+              "accepted": "3",
+              "queueFull": "1",
+              "unavailable": "0",
+              "written": "3",
+              "failed": "0",
+              "abandoned": "0",
+              "pending": "0",
+              "fault": null
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "DIAGNOSTICS-DELIVERY-FILE-PARTIAL-CANCEL",
+      "profile": "delivery",
+      "sourceCatalog": "delivery-observation-cases.json",
+      "sourceCaseId": "DELIVERY-FILE-PARTIAL-CANCEL",
+      "expected": [
+        {
+          "phase": "initial",
+          "state": "Running",
+          "closed": false,
+          "invalid": "0",
+          "truncated": "0",
+          "outputs": [
+            {
+              "name": "console",
+              "state": "Running",
+              "sequence": "0",
+              "filtered": "0",
+              "attempts": "0",
+              "accepted": "0",
+              "queueFull": "0",
+              "unavailable": "0",
+              "written": "0",
+              "failed": "0",
+              "abandoned": "0",
+              "pending": "0",
+              "fault": null
+            },
+            {
+              "name": "file",
+              "state": "Running",
+              "sequence": "0",
+              "filtered": "0",
+              "attempts": "0",
+              "accepted": "0",
+              "queueFull": "0",
+              "unavailable": "0",
+              "written": "0",
+              "failed": "0",
+              "abandoned": "0",
+              "pending": "0",
+              "fault": null
+            }
+          ]
+        },
+        {
+          "phase": "held",
+          "state": "Running",
+          "closed": false,
+          "invalid": "1",
+          "truncated": "1",
+          "outputs": [
+            {
+              "name": "console",
+              "state": "Running",
+              "sequence": "3",
+              "filtered": "1",
+              "attempts": "4",
+              "accepted": "3",
+              "queueFull": "1",
+              "unavailable": "0",
+              "written": "0",
+              "failed": "0",
+              "abandoned": "0",
+              "pending": "3",
+              "fault": null
+            },
+            {
+              "name": "file",
+              "state": "Running",
+              "sequence": "3",
+              "filtered": "1",
+              "attempts": "4",
+              "accepted": "3",
+              "queueFull": "1",
+              "unavailable": "0",
+              "written": "0",
+              "failed": "0",
+              "abandoned": "0",
+              "pending": "3",
+              "fault": null
+            }
+          ]
+        },
+        {
+          "phase": "cancellation-requested",
+          "state": "Running",
+          "closed": false,
+          "invalid": "1",
+          "truncated": "1",
+          "outputs": [
+            {
+              "name": "console",
+              "state": "Running",
+              "sequence": "3",
+              "filtered": "1",
+              "attempts": "4",
+              "accepted": "3",
+              "queueFull": "1",
+              "unavailable": "0",
+              "written": "0",
+              "failed": "0",
+              "abandoned": "0",
+              "pending": "3",
+              "fault": null
+            },
+            {
+              "name": "file",
+              "state": "Running",
+              "sequence": "3",
+              "filtered": "1",
+              "attempts": "4",
+              "accepted": "3",
+              "queueFull": "1",
+              "unavailable": "0",
+              "written": "0",
+              "failed": "0",
+              "abandoned": "0",
+              "pending": "3",
+              "fault": null
+            }
+          ]
+        },
+        {
+          "phase": "closed",
+          "state": "Stopping",
+          "closed": true,
+          "invalid": "1",
+          "truncated": "1",
+          "outputs": [
+            {
+              "name": "console",
+              "state": "Stopping",
+              "sequence": "3",
+              "filtered": "1",
+              "attempts": "4",
+              "accepted": "3",
+              "queueFull": "1",
+              "unavailable": "0",
+              "written": "0",
+              "failed": "0",
+              "abandoned": "0",
+              "pending": "3",
+              "fault": null
+            },
+            {
+              "name": "file",
+              "state": "Stopping",
+              "sequence": "3",
+              "filtered": "1",
+              "attempts": "4",
+              "accepted": "3",
+              "queueFull": "1",
+              "unavailable": "0",
+              "written": "0",
+              "failed": "0",
+              "abandoned": "0",
+              "pending": "3",
+              "fault": null
+            }
+          ]
+        },
+        {
+          "phase": "first-terminal",
+          "state": "Stopping",
+          "closed": true,
+          "invalid": "1",
+          "truncated": "1",
+          "outputs": [
+            {
+              "name": "console",
+              "state": "Stopping",
+              "sequence": "3",
+              "filtered": "1",
+              "attempts": "4",
+              "accepted": "3",
+              "queueFull": "1",
+              "unavailable": "0",
+              "written": "0",
+              "failed": "0",
+              "abandoned": "0",
+              "pending": "3",
+              "fault": null
+            },
+            {
+              "name": "file",
+              "state": "Stopped",
+              "sequence": "3",
+              "filtered": "1",
+              "attempts": "4",
+              "accepted": "3",
+              "queueFull": "1",
+              "unavailable": "0",
+              "written": "0",
+              "failed": "1",
+              "abandoned": "2",
+              "pending": "0",
+              "fault": "WriteFailed"
+            }
+          ]
+        },
+        {
+          "phase": "final",
+          "state": "Stopped",
+          "closed": true,
+          "invalid": "1",
+          "truncated": "1",
+          "outputs": [
+            {
+              "name": "console",
+              "state": "Stopped",
+              "sequence": "3",
+              "filtered": "1",
+              "attempts": "4",
+              "accepted": "3",
+              "queueFull": "1",
+              "unavailable": "0",
+              "written": "3",
+              "failed": "0",
+              "abandoned": "0",
+              "pending": "0",
+              "fault": null
+            },
+            {
+              "name": "file",
+              "state": "Stopped",
+              "sequence": "3",
+              "filtered": "1",
+              "attempts": "4",
+              "accepted": "3",
+              "queueFull": "1",
+              "unavailable": "0",
+              "written": "0",
+              "failed": "1",
+              "abandoned": "2",
+              "pending": "0",
+              "fault": "WriteFailed"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "DIAGNOSTICS-DELIVERY-CONSOLE-CANCEL-THEN-SUCCESS",
+      "profile": "delivery",
+      "sourceCatalog": "delivery-observation-cases.json",
+      "sourceCaseId": "DELIVERY-CONSOLE-CANCEL-THEN-SUCCESS",
+      "expected": [
+        {
+          "phase": "initial",
+          "state": "Running",
+          "closed": false,
+          "invalid": "0",
+          "truncated": "0",
+          "outputs": [
+            {
+              "name": "console",
+              "state": "Running",
+              "sequence": "0",
+              "filtered": "0",
+              "attempts": "0",
+              "accepted": "0",
+              "queueFull": "0",
+              "unavailable": "0",
+              "written": "0",
+              "failed": "0",
+              "abandoned": "0",
+              "pending": "0",
+              "fault": null
+            },
+            {
+              "name": "file",
+              "state": "Running",
+              "sequence": "0",
+              "filtered": "0",
+              "attempts": "0",
+              "accepted": "0",
+              "queueFull": "0",
+              "unavailable": "0",
+              "written": "0",
+              "failed": "0",
+              "abandoned": "0",
+              "pending": "0",
+              "fault": null
+            }
+          ]
+        },
+        {
+          "phase": "held",
+          "state": "Running",
+          "closed": false,
+          "invalid": "1",
+          "truncated": "1",
+          "outputs": [
+            {
+              "name": "console",
+              "state": "Running",
+              "sequence": "3",
+              "filtered": "1",
+              "attempts": "4",
+              "accepted": "3",
+              "queueFull": "1",
+              "unavailable": "0",
+              "written": "0",
+              "failed": "0",
+              "abandoned": "0",
+              "pending": "3",
+              "fault": null
+            },
+            {
+              "name": "file",
+              "state": "Running",
+              "sequence": "3",
+              "filtered": "1",
+              "attempts": "4",
+              "accepted": "3",
+              "queueFull": "1",
+              "unavailable": "0",
+              "written": "0",
+              "failed": "0",
+              "abandoned": "0",
+              "pending": "3",
+              "fault": null
+            }
+          ]
+        },
+        {
+          "phase": "cancellation-requested",
+          "state": "Running",
+          "closed": false,
+          "invalid": "1",
+          "truncated": "1",
+          "outputs": [
+            {
+              "name": "console",
+              "state": "Running",
+              "sequence": "3",
+              "filtered": "1",
+              "attempts": "4",
+              "accepted": "3",
+              "queueFull": "1",
+              "unavailable": "0",
+              "written": "0",
+              "failed": "0",
+              "abandoned": "0",
+              "pending": "3",
+              "fault": null
+            },
+            {
+              "name": "file",
+              "state": "Running",
+              "sequence": "3",
+              "filtered": "1",
+              "attempts": "4",
+              "accepted": "3",
+              "queueFull": "1",
+              "unavailable": "0",
+              "written": "0",
+              "failed": "0",
+              "abandoned": "0",
+              "pending": "3",
+              "fault": null
+            }
+          ]
+        },
+        {
+          "phase": "closed",
+          "state": "Stopping",
+          "closed": true,
+          "invalid": "1",
+          "truncated": "1",
+          "outputs": [
+            {
+              "name": "console",
+              "state": "Stopping",
+              "sequence": "3",
+              "filtered": "1",
+              "attempts": "4",
+              "accepted": "3",
+              "queueFull": "1",
+              "unavailable": "0",
+              "written": "0",
+              "failed": "0",
+              "abandoned": "0",
+              "pending": "3",
+              "fault": null
+            },
+            {
+              "name": "file",
+              "state": "Stopping",
+              "sequence": "3",
+              "filtered": "1",
+              "attempts": "4",
+              "accepted": "3",
+              "queueFull": "1",
+              "unavailable": "0",
+              "written": "0",
+              "failed": "0",
+              "abandoned": "0",
+              "pending": "3",
+              "fault": null
+            }
+          ]
+        },
+        {
+          "phase": "first-terminal",
+          "state": "Stopping",
+          "closed": true,
+          "invalid": "1",
+          "truncated": "1",
+          "outputs": [
+            {
+              "name": "console",
+              "state": "Stopped",
+              "sequence": "3",
+              "filtered": "1",
+              "attempts": "4",
+              "accepted": "3",
+              "queueFull": "1",
+              "unavailable": "0",
+              "written": "3",
+              "failed": "0",
+              "abandoned": "0",
+              "pending": "0",
+              "fault": null
+            },
+            {
+              "name": "file",
+              "state": "Stopping",
+              "sequence": "3",
+              "filtered": "1",
+              "attempts": "4",
+              "accepted": "3",
+              "queueFull": "1",
+              "unavailable": "0",
+              "written": "0",
+              "failed": "0",
+              "abandoned": "0",
+              "pending": "3",
+              "fault": null
+            }
+          ]
+        },
+        {
+          "phase": "final",
+          "state": "Stopped",
+          "closed": true,
+          "invalid": "1",
+          "truncated": "1",
+          "outputs": [
+            {
+              "name": "console",
+              "state": "Stopped",
+              "sequence": "3",
+              "filtered": "1",
+              "attempts": "4",
+              "accepted": "3",
+              "queueFull": "1",
+              "unavailable": "0",
+              "written": "3",
+              "failed": "0",
+              "abandoned": "0",
+              "pending": "0",
+              "fault": null
+            },
+            {
+              "name": "file",
+              "state": "Stopped",
+              "sequence": "3",
+              "filtered": "1",
+              "attempts": "4",
+              "accepted": "3",
+              "queueFull": "1",
+              "unavailable": "0",
+              "written": "3",
+              "failed": "0",
+              "abandoned": "0",
+              "pending": "0",
+              "fault": null
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "DIAGNOSTICS-DELIVERY-DISABLED",
+      "profile": "delivery",
+      "sourceCatalog": "delivery-observation-cases.json",
+      "sourceCaseId": "DELIVERY-DISABLED",
+      "expected": [
+        {
+          "phase": "initial",
+          "state": "Running",
+          "closed": false,
+          "invalid": "0",
+          "truncated": "0",
+          "outputs": []
+        },
+        {
+          "phase": "held",
+          "state": "Running",
+          "closed": false,
+          "invalid": "0",
+          "truncated": "0",
+          "outputs": []
+        },
+        {
+          "phase": "cancellation-requested",
+          "state": "Running",
+          "closed": false,
+          "invalid": "0",
+          "truncated": "0",
+          "outputs": []
+        },
+        {
+          "phase": "closed",
+          "state": "Stopped",
+          "closed": true,
+          "invalid": "0",
+          "truncated": "0",
+          "outputs": []
+        },
+        {
+          "phase": "first-terminal",
+          "state": "Stopped",
+          "closed": true,
+          "invalid": "0",
+          "truncated": "0",
+          "outputs": []
+        },
+        {
+          "phase": "final",
+          "state": "Stopped",
+          "closed": true,
+          "invalid": "0",
+          "truncated": "0",
+          "outputs": []
+        }
+      ]
+    },
+    {
+      "id": "DIAGNOSTICS-STATE-HEALTHY-CONSOLE",
+      "profile": "states",
+      "sourceCatalog": "output-state-cases.json",
+      "sourceCaseId": "STATE-HEALTHY-CONSOLE",
+      "expected": [
+        {
+          "phase": "initial",
+          "state": "Running",
+          "closed": false,
+          "invalid": "0",
+          "truncated": "0",
+          "outputs": [
+            {
+              "name": "console",
+              "state": "Running",
+              "sequence": "0",
+              "filtered": "0",
+              "attempts": "0",
+              "accepted": "0",
+              "queueFull": "0",
+              "unavailable": "0",
+              "written": "0",
+              "failed": "0",
+              "abandoned": "0",
+              "pending": "0",
+              "fault": null
+            }
+          ]
+        },
+        {
+          "phase": "held",
+          "state": "Running",
+          "closed": false,
+          "invalid": "0",
+          "truncated": "0",
+          "outputs": [
+            {
+              "name": "console",
+              "state": "Running",
+              "sequence": "3",
+              "filtered": "0",
+              "attempts": "3",
+              "accepted": "3",
+              "queueFull": "0",
+              "unavailable": "0",
+              "written": "0",
+              "failed": "0",
+              "abandoned": "0",
+              "pending": "3",
+              "fault": null
+            }
+          ]
+        },
+        {
+          "phase": "stop-requested",
+          "state": "Stopping",
+          "closed": true,
+          "invalid": "0",
+          "truncated": "0",
+          "outputs": [
+            {
+              "name": "console",
+              "state": "Stopping",
+              "sequence": "3",
+              "filtered": "0",
+              "attempts": "3",
+              "accepted": "3",
+              "queueFull": "0",
+              "unavailable": "0",
+              "written": "0",
+              "failed": "0",
+              "abandoned": "0",
+              "pending": "3",
+              "fault": null
+            }
+          ]
+        },
+        {
+          "phase": "first-terminal",
+          "state": "Stopped",
+          "closed": true,
+          "invalid": "0",
+          "truncated": "0",
+          "outputs": [
+            {
+              "name": "console",
+              "state": "Stopped",
+              "sequence": "3",
+              "filtered": "0",
+              "attempts": "3",
+              "accepted": "3",
+              "queueFull": "0",
+              "unavailable": "0",
+              "written": "3",
+              "failed": "0",
+              "abandoned": "0",
+              "pending": "0",
+              "fault": null
+            }
+          ]
+        },
+        {
+          "phase": "after-admission",
+          "state": "Stopped",
+          "closed": true,
+          "invalid": "0",
+          "truncated": "0",
+          "outputs": [
+            {
+              "name": "console",
+              "state": "Stopped",
+              "sequence": "3",
+              "filtered": "0",
+              "attempts": "3",
+              "accepted": "3",
+              "queueFull": "0",
+              "unavailable": "0",
+              "written": "3",
+              "failed": "0",
+              "abandoned": "0",
+              "pending": "0",
+              "fault": null
+            }
+          ]
+        },
+        {
+          "phase": "closing",
+          "state": "Stopped",
+          "closed": true,
+          "invalid": "0",
+          "truncated": "0",
+          "outputs": [
+            {
+              "name": "console",
+              "state": "Stopped",
+              "sequence": "3",
+              "filtered": "0",
+              "attempts": "3",
+              "accepted": "3",
+              "queueFull": "0",
+              "unavailable": "0",
+              "written": "3",
+              "failed": "0",
+              "abandoned": "0",
+              "pending": "0",
+              "fault": null
+            }
+          ]
+        },
+        {
+          "phase": "final",
+          "state": "Stopped",
+          "closed": true,
+          "invalid": "0",
+          "truncated": "0",
+          "outputs": [
+            {
+              "name": "console",
+              "state": "Stopped",
+              "sequence": "3",
+              "filtered": "0",
+              "attempts": "3",
+              "accepted": "3",
+              "queueFull": "0",
+              "unavailable": "0",
+              "written": "3",
+              "failed": "0",
+              "abandoned": "0",
+              "pending": "0",
+              "fault": null
+            }
+          ]
+        },
+        {
+          "phase": "repeated-close",
+          "state": "Stopped",
+          "closed": true,
+          "invalid": "0",
+          "truncated": "0",
+          "outputs": [
+            {
+              "name": "console",
+              "state": "Stopped",
+              "sequence": "3",
+              "filtered": "0",
+              "attempts": "3",
+              "accepted": "3",
+              "queueFull": "0",
+              "unavailable": "0",
+              "written": "3",
+              "failed": "0",
+              "abandoned": "0",
+              "pending": "0",
+              "fault": null
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "DIAGNOSTICS-STATE-HEALTHY-FILE",
+      "profile": "states",
+      "sourceCatalog": "output-state-cases.json",
+      "sourceCaseId": "STATE-HEALTHY-FILE",
+      "expected": [
+        {
+          "phase": "initial",
+          "state": "Running",
+          "closed": false,
+          "invalid": "0",
+          "truncated": "0",
+          "outputs": [
+            {
+              "name": "file",
+              "state": "Running",
+              "sequence": "0",
+              "filtered": "0",
+              "attempts": "0",
+              "accepted": "0",
+              "queueFull": "0",
+              "unavailable": "0",
+              "written": "0",
+              "failed": "0",
+              "abandoned": "0",
+              "pending": "0",
+              "fault": null
+            }
+          ]
+        },
+        {
+          "phase": "held",
+          "state": "Running",
+          "closed": false,
+          "invalid": "0",
+          "truncated": "0",
+          "outputs": [
+            {
+              "name": "file",
+              "state": "Running",
+              "sequence": "3",
+              "filtered": "0",
+              "attempts": "3",
+              "accepted": "3",
+              "queueFull": "0",
+              "unavailable": "0",
+              "written": "0",
+              "failed": "0",
+              "abandoned": "0",
+              "pending": "3",
+              "fault": null
+            }
+          ]
+        },
+        {
+          "phase": "stop-requested",
+          "state": "Stopping",
+          "closed": true,
+          "invalid": "0",
+          "truncated": "0",
+          "outputs": [
+            {
+              "name": "file",
+              "state": "Stopping",
+              "sequence": "3",
+              "filtered": "0",
+              "attempts": "3",
+              "accepted": "3",
+              "queueFull": "0",
+              "unavailable": "0",
+              "written": "0",
+              "failed": "0",
+              "abandoned": "0",
+              "pending": "3",
+              "fault": null
+            }
+          ]
+        },
+        {
+          "phase": "first-terminal",
+          "state": "Stopped",
+          "closed": true,
+          "invalid": "0",
+          "truncated": "0",
+          "outputs": [
+            {
+              "name": "file",
+              "state": "Stopped",
+              "sequence": "3",
+              "filtered": "0",
+              "attempts": "3",
+              "accepted": "3",
+              "queueFull": "0",
+              "unavailable": "0",
+              "written": "3",
+              "failed": "0",
+              "abandoned": "0",
+              "pending": "0",
+              "fault": null
+            }
+          ]
+        },
+        {
+          "phase": "after-admission",
+          "state": "Stopped",
+          "closed": true,
+          "invalid": "0",
+          "truncated": "0",
+          "outputs": [
+            {
+              "name": "file",
+              "state": "Stopped",
+              "sequence": "3",
+              "filtered": "0",
+              "attempts": "3",
+              "accepted": "3",
+              "queueFull": "0",
+              "unavailable": "0",
+              "written": "3",
+              "failed": "0",
+              "abandoned": "0",
+              "pending": "0",
+              "fault": null
+            }
+          ]
+        },
+        {
+          "phase": "closing",
+          "state": "Stopped",
+          "closed": true,
+          "invalid": "0",
+          "truncated": "0",
+          "outputs": [
+            {
+              "name": "file",
+              "state": "Stopped",
+              "sequence": "3",
+              "filtered": "0",
+              "attempts": "3",
+              "accepted": "3",
+              "queueFull": "0",
+              "unavailable": "0",
+              "written": "3",
+              "failed": "0",
+              "abandoned": "0",
+              "pending": "0",
+              "fault": null
+            }
+          ]
+        },
+        {
+          "phase": "final",
+          "state": "Stopped",
+          "closed": true,
+          "invalid": "0",
+          "truncated": "0",
+          "outputs": [
+            {
+              "name": "file",
+              "state": "Stopped",
+              "sequence": "3",
+              "filtered": "0",
+              "attempts": "3",
+              "accepted": "3",
+              "queueFull": "0",
+              "unavailable": "0",
+              "written": "3",
+              "failed": "0",
+              "abandoned": "0",
+              "pending": "0",
+              "fault": null
+            }
+          ]
+        },
+        {
+          "phase": "repeated-close",
+          "state": "Stopped",
+          "closed": true,
+          "invalid": "0",
+          "truncated": "0",
+          "outputs": [
+            {
+              "name": "file",
+              "state": "Stopped",
+              "sequence": "3",
+              "filtered": "0",
+              "attempts": "3",
+              "accepted": "3",
+              "queueFull": "0",
+              "unavailable": "0",
+              "written": "3",
+              "failed": "0",
+              "abandoned": "0",
+              "pending": "0",
+              "fault": null
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "DIAGNOSTICS-STATE-HEALTHY-BOTH",
+      "profile": "states",
+      "sourceCatalog": "output-state-cases.json",
+      "sourceCaseId": "STATE-HEALTHY-BOTH",
+      "expected": [
+        {
+          "phase": "initial",
+          "state": "Running",
+          "closed": false,
+          "invalid": "0",
+          "truncated": "0",
+          "outputs": [
+            {
+              "name": "console",
+              "state": "Running",
+              "sequence": "0",
+              "filtered": "0",
+              "attempts": "0",
+              "accepted": "0",
+              "queueFull": "0",
+              "unavailable": "0",
+              "written": "0",
+              "failed": "0",
+              "abandoned": "0",
+              "pending": "0",
+              "fault": null
+            },
+            {
+              "name": "file",
+              "state": "Running",
+              "sequence": "0",
+              "filtered": "0",
+              "attempts": "0",
+              "accepted": "0",
+              "queueFull": "0",
+              "unavailable": "0",
+              "written": "0",
+              "failed": "0",
+              "abandoned": "0",
+              "pending": "0",
+              "fault": null
+            }
+          ]
+        },
+        {
+          "phase": "held",
+          "state": "Running",
+          "closed": false,
+          "invalid": "0",
+          "truncated": "0",
+          "outputs": [
+            {
+              "name": "console",
+              "state": "Running",
+              "sequence": "3",
+              "filtered": "0",
+              "attempts": "3",
+              "accepted": "3",
+              "queueFull": "0",
+              "unavailable": "0",
+              "written": "0",
+              "failed": "0",
+              "abandoned": "0",
+              "pending": "3",
+              "fault": null
+            },
+            {
+              "name": "file",
+              "state": "Running",
+              "sequence": "3",
+              "filtered": "0",
+              "attempts": "3",
+              "accepted": "3",
+              "queueFull": "0",
+              "unavailable": "0",
+              "written": "0",
+              "failed": "0",
+              "abandoned": "0",
+              "pending": "3",
+              "fault": null
+            }
+          ]
+        },
+        {
+          "phase": "stop-requested",
+          "state": "Stopping",
+          "closed": true,
+          "invalid": "0",
+          "truncated": "0",
+          "outputs": [
+            {
+              "name": "console",
+              "state": "Stopping",
+              "sequence": "3",
+              "filtered": "0",
+              "attempts": "3",
+              "accepted": "3",
+              "queueFull": "0",
+              "unavailable": "0",
+              "written": "0",
+              "failed": "0",
+              "abandoned": "0",
+              "pending": "3",
+              "fault": null
+            },
+            {
+              "name": "file",
+              "state": "Stopping",
+              "sequence": "3",
+              "filtered": "0",
+              "attempts": "3",
+              "accepted": "3",
+              "queueFull": "0",
+              "unavailable": "0",
+              "written": "0",
+              "failed": "0",
+              "abandoned": "0",
+              "pending": "3",
+              "fault": null
+            }
+          ]
+        },
+        {
+          "phase": "first-terminal",
+          "state": "Stopping",
+          "closed": true,
+          "invalid": "0",
+          "truncated": "0",
+          "outputs": [
+            {
+              "name": "console",
+              "state": "Stopped",
+              "sequence": "3",
+              "filtered": "0",
+              "attempts": "3",
+              "accepted": "3",
+              "queueFull": "0",
+              "unavailable": "0",
+              "written": "3",
+              "failed": "0",
+              "abandoned": "0",
+              "pending": "0",
+              "fault": null
+            },
+            {
+              "name": "file",
+              "state": "Stopping",
+              "sequence": "3",
+              "filtered": "0",
+              "attempts": "3",
+              "accepted": "3",
+              "queueFull": "0",
+              "unavailable": "0",
+              "written": "0",
+              "failed": "0",
+              "abandoned": "0",
+              "pending": "3",
+              "fault": null
+            }
+          ]
+        },
+        {
+          "phase": "after-admission",
+          "state": "Stopping",
+          "closed": true,
+          "invalid": "0",
+          "truncated": "0",
+          "outputs": [
+            {
+              "name": "console",
+              "state": "Stopped",
+              "sequence": "3",
+              "filtered": "0",
+              "attempts": "3",
+              "accepted": "3",
+              "queueFull": "0",
+              "unavailable": "0",
+              "written": "3",
+              "failed": "0",
+              "abandoned": "0",
+              "pending": "0",
+              "fault": null
+            },
+            {
+              "name": "file",
+              "state": "Stopping",
+              "sequence": "3",
+              "filtered": "0",
+              "attempts": "3",
+              "accepted": "3",
+              "queueFull": "0",
+              "unavailable": "0",
+              "written": "0",
+              "failed": "0",
+              "abandoned": "0",
+              "pending": "3",
+              "fault": null
+            }
+          ]
+        },
+        {
+          "phase": "closing",
+          "state": "Stopping",
+          "closed": true,
+          "invalid": "0",
+          "truncated": "0",
+          "outputs": [
+            {
+              "name": "console",
+              "state": "Stopped",
+              "sequence": "3",
+              "filtered": "0",
+              "attempts": "3",
+              "accepted": "3",
+              "queueFull": "0",
+              "unavailable": "0",
+              "written": "3",
+              "failed": "0",
+              "abandoned": "0",
+              "pending": "0",
+              "fault": null
+            },
+            {
+              "name": "file",
+              "state": "Stopping",
+              "sequence": "3",
+              "filtered": "0",
+              "attempts": "3",
+              "accepted": "3",
+              "queueFull": "0",
+              "unavailable": "0",
+              "written": "0",
+              "failed": "0",
+              "abandoned": "0",
+              "pending": "3",
+              "fault": null
+            }
+          ]
+        },
+        {
+          "phase": "final",
+          "state": "Stopped",
+          "closed": true,
+          "invalid": "0",
+          "truncated": "0",
+          "outputs": [
+            {
+              "name": "console",
+              "state": "Stopped",
+              "sequence": "3",
+              "filtered": "0",
+              "attempts": "3",
+              "accepted": "3",
+              "queueFull": "0",
+              "unavailable": "0",
+              "written": "3",
+              "failed": "0",
+              "abandoned": "0",
+              "pending": "0",
+              "fault": null
+            },
+            {
+              "name": "file",
+              "state": "Stopped",
+              "sequence": "3",
+              "filtered": "0",
+              "attempts": "3",
+              "accepted": "3",
+              "queueFull": "0",
+              "unavailable": "0",
+              "written": "3",
+              "failed": "0",
+              "abandoned": "0",
+              "pending": "0",
+              "fault": null
+            }
+          ]
+        },
+        {
+          "phase": "repeated-close",
+          "state": "Stopped",
+          "closed": true,
+          "invalid": "0",
+          "truncated": "0",
+          "outputs": [
+            {
+              "name": "console",
+              "state": "Stopped",
+              "sequence": "3",
+              "filtered": "0",
+              "attempts": "3",
+              "accepted": "3",
+              "queueFull": "0",
+              "unavailable": "0",
+              "written": "3",
+              "failed": "0",
+              "abandoned": "0",
+              "pending": "0",
+              "fault": null
+            },
+            {
+              "name": "file",
+              "state": "Stopped",
+              "sequence": "3",
+              "filtered": "0",
+              "attempts": "3",
+              "accepted": "3",
+              "queueFull": "0",
+              "unavailable": "0",
+              "written": "3",
+              "failed": "0",
+              "abandoned": "0",
+              "pending": "0",
+              "fault": null
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "DIAGNOSTICS-STATE-DISABLED",
+      "profile": "states",
+      "sourceCatalog": "output-state-cases.json",
+      "sourceCaseId": "STATE-DISABLED",
+      "expected": [
+        {
+          "phase": "initial",
+          "state": "Running",
+          "closed": false,
+          "invalid": "0",
+          "truncated": "0",
+          "outputs": []
+        },
+        {
+          "phase": "held",
+          "state": "Running",
+          "closed": false,
+          "invalid": "0",
+          "truncated": "0",
+          "outputs": []
+        },
+        {
+          "phase": "stop-requested",
+          "state": "Stopped",
+          "closed": true,
+          "invalid": "0",
+          "truncated": "0",
+          "outputs": []
+        },
+        {
+          "phase": "first-terminal",
+          "state": "Stopped",
+          "closed": true,
+          "invalid": "0",
+          "truncated": "0",
+          "outputs": []
+        },
+        {
+          "phase": "after-admission",
+          "state": "Stopped",
+          "closed": true,
+          "invalid": "0",
+          "truncated": "0",
+          "outputs": []
+        },
+        {
+          "phase": "closing",
+          "state": "Stopped",
+          "closed": true,
+          "invalid": "0",
+          "truncated": "0",
+          "outputs": []
+        },
+        {
+          "phase": "final",
+          "state": "Stopped",
+          "closed": true,
+          "invalid": "0",
+          "truncated": "0",
+          "outputs": []
+        },
+        {
+          "phase": "repeated-close",
+          "state": "Stopped",
+          "closed": true,
+          "invalid": "0",
+          "truncated": "0",
+          "outputs": []
+        }
+      ]
+    },
+    {
+      "id": "DIAGNOSTICS-STATE-FAIL-CONSOLE",
+      "profile": "states",
+      "sourceCatalog": "output-state-cases.json",
+      "sourceCaseId": "STATE-FAIL-CONSOLE",
+      "expected": [
+        {
+          "phase": "initial",
+          "state": "Running",
+          "closed": false,
+          "invalid": "0",
+          "truncated": "0",
+          "outputs": [
+            {
+              "name": "console",
+              "state": "Running",
+              "sequence": "0",
+              "filtered": "0",
+              "attempts": "0",
+              "accepted": "0",
+              "queueFull": "0",
+              "unavailable": "0",
+              "written": "0",
+              "failed": "0",
+              "abandoned": "0",
+              "pending": "0",
+              "fault": null
+            }
+          ]
+        },
+        {
+          "phase": "held",
+          "state": "Running",
+          "closed": false,
+          "invalid": "0",
+          "truncated": "0",
+          "outputs": [
+            {
+              "name": "console",
+              "state": "Running",
+              "sequence": "3",
+              "filtered": "0",
+              "attempts": "3",
+              "accepted": "3",
+              "queueFull": "0",
+              "unavailable": "0",
+              "written": "0",
+              "failed": "0",
+              "abandoned": "0",
+              "pending": "3",
+              "fault": null
+            }
+          ]
+        },
+        {
+          "phase": "first-terminal",
+          "state": "Running",
+          "closed": false,
+          "invalid": "0",
+          "truncated": "0",
+          "outputs": [
+            {
+              "name": "console",
+              "state": "Faulted",
+              "sequence": "3",
+              "filtered": "0",
+              "attempts": "3",
+              "accepted": "3",
+              "queueFull": "0",
+              "unavailable": "0",
+              "written": "0",
+              "failed": "1",
+              "abandoned": "2",
+              "pending": "0",
+              "fault": "WriteFailed"
+            }
+          ]
+        },
+        {
+          "phase": "after-admission",
+          "state": "Running",
+          "closed": false,
+          "invalid": "0",
+          "truncated": "0",
+          "outputs": [
+            {
+              "name": "console",
+              "state": "Faulted",
+              "sequence": "3",
+              "filtered": "0",
+              "attempts": "4",
+              "accepted": "3",
+              "queueFull": "0",
+              "unavailable": "1",
+              "written": "0",
+              "failed": "1",
+              "abandoned": "2",
+              "pending": "0",
+              "fault": "WriteFailed"
+            }
+          ]
+        },
+        {
+          "phase": "closing",
+          "state": "Stopped",
+          "closed": true,
+          "invalid": "0",
+          "truncated": "0",
+          "outputs": [
+            {
+              "name": "console",
+              "state": "Stopped",
+              "sequence": "3",
+              "filtered": "0",
+              "attempts": "4",
+              "accepted": "3",
+              "queueFull": "0",
+              "unavailable": "1",
+              "written": "0",
+              "failed": "1",
+              "abandoned": "2",
+              "pending": "0",
+              "fault": "WriteFailed"
+            }
+          ]
+        },
+        {
+          "phase": "final",
+          "state": "Stopped",
+          "closed": true,
+          "invalid": "0",
+          "truncated": "0",
+          "outputs": [
+            {
+              "name": "console",
+              "state": "Stopped",
+              "sequence": "3",
+              "filtered": "0",
+              "attempts": "4",
+              "accepted": "3",
+              "queueFull": "0",
+              "unavailable": "1",
+              "written": "0",
+              "failed": "1",
+              "abandoned": "2",
+              "pending": "0",
+              "fault": "WriteFailed"
+            }
+          ]
+        },
+        {
+          "phase": "repeated-close",
+          "state": "Stopped",
+          "closed": true,
+          "invalid": "0",
+          "truncated": "0",
+          "outputs": [
+            {
+              "name": "console",
+              "state": "Stopped",
+              "sequence": "3",
+              "filtered": "0",
+              "attempts": "4",
+              "accepted": "3",
+              "queueFull": "0",
+              "unavailable": "1",
+              "written": "0",
+              "failed": "1",
+              "abandoned": "2",
+              "pending": "0",
+              "fault": "WriteFailed"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "DIAGNOSTICS-STATE-FAIL-FILE",
+      "profile": "states",
+      "sourceCatalog": "output-state-cases.json",
+      "sourceCaseId": "STATE-FAIL-FILE",
+      "expected": [
+        {
+          "phase": "initial",
+          "state": "Running",
+          "closed": false,
+          "invalid": "0",
+          "truncated": "0",
+          "outputs": [
+            {
+              "name": "file",
+              "state": "Running",
+              "sequence": "0",
+              "filtered": "0",
+              "attempts": "0",
+              "accepted": "0",
+              "queueFull": "0",
+              "unavailable": "0",
+              "written": "0",
+              "failed": "0",
+              "abandoned": "0",
+              "pending": "0",
+              "fault": null
+            }
+          ]
+        },
+        {
+          "phase": "held",
+          "state": "Running",
+          "closed": false,
+          "invalid": "0",
+          "truncated": "0",
+          "outputs": [
+            {
+              "name": "file",
+              "state": "Running",
+              "sequence": "3",
+              "filtered": "0",
+              "attempts": "3",
+              "accepted": "3",
+              "queueFull": "0",
+              "unavailable": "0",
+              "written": "0",
+              "failed": "0",
+              "abandoned": "0",
+              "pending": "3",
+              "fault": null
+            }
+          ]
+        },
+        {
+          "phase": "first-terminal",
+          "state": "Running",
+          "closed": false,
+          "invalid": "0",
+          "truncated": "0",
+          "outputs": [
+            {
+              "name": "file",
+              "state": "Faulted",
+              "sequence": "3",
+              "filtered": "0",
+              "attempts": "3",
+              "accepted": "3",
+              "queueFull": "0",
+              "unavailable": "0",
+              "written": "0",
+              "failed": "1",
+              "abandoned": "2",
+              "pending": "0",
+              "fault": "WriteFailed"
+            }
+          ]
+        },
+        {
+          "phase": "after-admission",
+          "state": "Running",
+          "closed": false,
+          "invalid": "0",
+          "truncated": "0",
+          "outputs": [
+            {
+              "name": "file",
+              "state": "Faulted",
+              "sequence": "3",
+              "filtered": "0",
+              "attempts": "4",
+              "accepted": "3",
+              "queueFull": "0",
+              "unavailable": "1",
+              "written": "0",
+              "failed": "1",
+              "abandoned": "2",
+              "pending": "0",
+              "fault": "WriteFailed"
+            }
+          ]
+        },
+        {
+          "phase": "closing",
+          "state": "Stopped",
+          "closed": true,
+          "invalid": "0",
+          "truncated": "0",
+          "outputs": [
+            {
+              "name": "file",
+              "state": "Stopped",
+              "sequence": "3",
+              "filtered": "0",
+              "attempts": "4",
+              "accepted": "3",
+              "queueFull": "0",
+              "unavailable": "1",
+              "written": "0",
+              "failed": "1",
+              "abandoned": "2",
+              "pending": "0",
+              "fault": "WriteFailed"
+            }
+          ]
+        },
+        {
+          "phase": "final",
+          "state": "Stopped",
+          "closed": true,
+          "invalid": "0",
+          "truncated": "0",
+          "outputs": [
+            {
+              "name": "file",
+              "state": "Stopped",
+              "sequence": "3",
+              "filtered": "0",
+              "attempts": "4",
+              "accepted": "3",
+              "queueFull": "0",
+              "unavailable": "1",
+              "written": "0",
+              "failed": "1",
+              "abandoned": "2",
+              "pending": "0",
+              "fault": "WriteFailed"
+            }
+          ]
+        },
+        {
+          "phase": "repeated-close",
+          "state": "Stopped",
+          "closed": true,
+          "invalid": "0",
+          "truncated": "0",
+          "outputs": [
+            {
+              "name": "file",
+              "state": "Stopped",
+              "sequence": "3",
+              "filtered": "0",
+              "attempts": "4",
+              "accepted": "3",
+              "queueFull": "0",
+              "unavailable": "1",
+              "written": "0",
+              "failed": "1",
+              "abandoned": "2",
+              "pending": "0",
+              "fault": "WriteFailed"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "DIAGNOSTICS-STATE-ISOLATE-CONSOLE",
+      "profile": "states",
+      "sourceCatalog": "output-state-cases.json",
+      "sourceCaseId": "STATE-ISOLATE-CONSOLE",
+      "expected": [
+        {
+          "phase": "initial",
+          "state": "Running",
+          "closed": false,
+          "invalid": "0",
+          "truncated": "0",
+          "outputs": [
+            {
+              "name": "console",
+              "state": "Running",
+              "sequence": "0",
+              "filtered": "0",
+              "attempts": "0",
+              "accepted": "0",
+              "queueFull": "0",
+              "unavailable": "0",
+              "written": "0",
+              "failed": "0",
+              "abandoned": "0",
+              "pending": "0",
+              "fault": null
+            },
+            {
+              "name": "file",
+              "state": "Running",
+              "sequence": "0",
+              "filtered": "0",
+              "attempts": "0",
+              "accepted": "0",
+              "queueFull": "0",
+              "unavailable": "0",
+              "written": "0",
+              "failed": "0",
+              "abandoned": "0",
+              "pending": "0",
+              "fault": null
+            }
+          ]
+        },
+        {
+          "phase": "held",
+          "state": "Running",
+          "closed": false,
+          "invalid": "0",
+          "truncated": "0",
+          "outputs": [
+            {
+              "name": "console",
+              "state": "Running",
+              "sequence": "3",
+              "filtered": "0",
+              "attempts": "3",
+              "accepted": "3",
+              "queueFull": "0",
+              "unavailable": "0",
+              "written": "0",
+              "failed": "0",
+              "abandoned": "0",
+              "pending": "3",
+              "fault": null
+            },
+            {
+              "name": "file",
+              "state": "Running",
+              "sequence": "3",
+              "filtered": "0",
+              "attempts": "3",
+              "accepted": "3",
+              "queueFull": "0",
+              "unavailable": "0",
+              "written": "0",
+              "failed": "0",
+              "abandoned": "0",
+              "pending": "3",
+              "fault": null
+            }
+          ]
+        },
+        {
+          "phase": "first-terminal",
+          "state": "Running",
+          "closed": false,
+          "invalid": "0",
+          "truncated": "0",
+          "outputs": [
+            {
+              "name": "console",
+              "state": "Faulted",
+              "sequence": "3",
+              "filtered": "0",
+              "attempts": "3",
+              "accepted": "3",
+              "queueFull": "0",
+              "unavailable": "0",
+              "written": "0",
+              "failed": "1",
+              "abandoned": "2",
+              "pending": "0",
+              "fault": "WriteFailed"
+            },
+            {
+              "name": "file",
+              "state": "Running",
+              "sequence": "3",
+              "filtered": "0",
+              "attempts": "3",
+              "accepted": "3",
+              "queueFull": "0",
+              "unavailable": "0",
+              "written": "0",
+              "failed": "0",
+              "abandoned": "0",
+              "pending": "3",
+              "fault": null
+            }
+          ]
+        },
+        {
+          "phase": "after-admission",
+          "state": "Running",
+          "closed": false,
+          "invalid": "0",
+          "truncated": "0",
+          "outputs": [
+            {
+              "name": "console",
+              "state": "Faulted",
+              "sequence": "3",
+              "filtered": "0",
+              "attempts": "4",
+              "accepted": "3",
+              "queueFull": "0",
+              "unavailable": "1",
+              "written": "0",
+              "failed": "1",
+              "abandoned": "2",
+              "pending": "0",
+              "fault": "WriteFailed"
+            },
+            {
+              "name": "file",
+              "state": "Running",
+              "sequence": "4",
+              "filtered": "0",
+              "attempts": "4",
+              "accepted": "4",
+              "queueFull": "0",
+              "unavailable": "0",
+              "written": "0",
+              "failed": "0",
+              "abandoned": "0",
+              "pending": "4",
+              "fault": null
+            }
+          ]
+        },
+        {
+          "phase": "closing",
+          "state": "Stopping",
+          "closed": true,
+          "invalid": "0",
+          "truncated": "0",
+          "outputs": [
+            {
+              "name": "console",
+              "state": "Stopped",
+              "sequence": "3",
+              "filtered": "0",
+              "attempts": "4",
+              "accepted": "3",
+              "queueFull": "0",
+              "unavailable": "1",
+              "written": "0",
+              "failed": "1",
+              "abandoned": "2",
+              "pending": "0",
+              "fault": "WriteFailed"
+            },
+            {
+              "name": "file",
+              "state": "Stopping",
+              "sequence": "4",
+              "filtered": "0",
+              "attempts": "4",
+              "accepted": "4",
+              "queueFull": "0",
+              "unavailable": "0",
+              "written": "0",
+              "failed": "0",
+              "abandoned": "0",
+              "pending": "4",
+              "fault": null
+            }
+          ]
+        },
+        {
+          "phase": "final",
+          "state": "Stopped",
+          "closed": true,
+          "invalid": "0",
+          "truncated": "0",
+          "outputs": [
+            {
+              "name": "console",
+              "state": "Stopped",
+              "sequence": "3",
+              "filtered": "0",
+              "attempts": "4",
+              "accepted": "3",
+              "queueFull": "0",
+              "unavailable": "1",
+              "written": "0",
+              "failed": "1",
+              "abandoned": "2",
+              "pending": "0",
+              "fault": "WriteFailed"
+            },
+            {
+              "name": "file",
+              "state": "Stopped",
+              "sequence": "4",
+              "filtered": "0",
+              "attempts": "4",
+              "accepted": "4",
+              "queueFull": "0",
+              "unavailable": "0",
+              "written": "4",
+              "failed": "0",
+              "abandoned": "0",
+              "pending": "0",
+              "fault": null
+            }
+          ]
+        },
+        {
+          "phase": "repeated-close",
+          "state": "Stopped",
+          "closed": true,
+          "invalid": "0",
+          "truncated": "0",
+          "outputs": [
+            {
+              "name": "console",
+              "state": "Stopped",
+              "sequence": "3",
+              "filtered": "0",
+              "attempts": "4",
+              "accepted": "3",
+              "queueFull": "0",
+              "unavailable": "1",
+              "written": "0",
+              "failed": "1",
+              "abandoned": "2",
+              "pending": "0",
+              "fault": "WriteFailed"
+            },
+            {
+              "name": "file",
+              "state": "Stopped",
+              "sequence": "4",
+              "filtered": "0",
+              "attempts": "4",
+              "accepted": "4",
+              "queueFull": "0",
+              "unavailable": "0",
+              "written": "4",
+              "failed": "0",
+              "abandoned": "0",
+              "pending": "0",
+              "fault": null
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "DIAGNOSTICS-STATE-ISOLATE-FILE",
+      "profile": "states",
+      "sourceCatalog": "output-state-cases.json",
+      "sourceCaseId": "STATE-ISOLATE-FILE",
+      "expected": [
+        {
+          "phase": "initial",
+          "state": "Running",
+          "closed": false,
+          "invalid": "0",
+          "truncated": "0",
+          "outputs": [
+            {
+              "name": "console",
+              "state": "Running",
+              "sequence": "0",
+              "filtered": "0",
+              "attempts": "0",
+              "accepted": "0",
+              "queueFull": "0",
+              "unavailable": "0",
+              "written": "0",
+              "failed": "0",
+              "abandoned": "0",
+              "pending": "0",
+              "fault": null
+            },
+            {
+              "name": "file",
+              "state": "Running",
+              "sequence": "0",
+              "filtered": "0",
+              "attempts": "0",
+              "accepted": "0",
+              "queueFull": "0",
+              "unavailable": "0",
+              "written": "0",
+              "failed": "0",
+              "abandoned": "0",
+              "pending": "0",
+              "fault": null
+            }
+          ]
+        },
+        {
+          "phase": "held",
+          "state": "Running",
+          "closed": false,
+          "invalid": "0",
+          "truncated": "0",
+          "outputs": [
+            {
+              "name": "console",
+              "state": "Running",
+              "sequence": "3",
+              "filtered": "0",
+              "attempts": "3",
+              "accepted": "3",
+              "queueFull": "0",
+              "unavailable": "0",
+              "written": "0",
+              "failed": "0",
+              "abandoned": "0",
+              "pending": "3",
+              "fault": null
+            },
+            {
+              "name": "file",
+              "state": "Running",
+              "sequence": "3",
+              "filtered": "0",
+              "attempts": "3",
+              "accepted": "3",
+              "queueFull": "0",
+              "unavailable": "0",
+              "written": "0",
+              "failed": "0",
+              "abandoned": "0",
+              "pending": "3",
+              "fault": null
+            }
+          ]
+        },
+        {
+          "phase": "first-terminal",
+          "state": "Running",
+          "closed": false,
+          "invalid": "0",
+          "truncated": "0",
+          "outputs": [
+            {
+              "name": "console",
+              "state": "Running",
+              "sequence": "3",
+              "filtered": "0",
+              "attempts": "3",
+              "accepted": "3",
+              "queueFull": "0",
+              "unavailable": "0",
+              "written": "0",
+              "failed": "0",
+              "abandoned": "0",
+              "pending": "3",
+              "fault": null
+            },
+            {
+              "name": "file",
+              "state": "Faulted",
+              "sequence": "3",
+              "filtered": "0",
+              "attempts": "3",
+              "accepted": "3",
+              "queueFull": "0",
+              "unavailable": "0",
+              "written": "0",
+              "failed": "1",
+              "abandoned": "2",
+              "pending": "0",
+              "fault": "WriteFailed"
+            }
+          ]
+        },
+        {
+          "phase": "after-admission",
+          "state": "Running",
+          "closed": false,
+          "invalid": "0",
+          "truncated": "0",
+          "outputs": [
+            {
+              "name": "console",
+              "state": "Running",
+              "sequence": "4",
+              "filtered": "0",
+              "attempts": "4",
+              "accepted": "4",
+              "queueFull": "0",
+              "unavailable": "0",
+              "written": "0",
+              "failed": "0",
+              "abandoned": "0",
+              "pending": "4",
+              "fault": null
+            },
+            {
+              "name": "file",
+              "state": "Faulted",
+              "sequence": "3",
+              "filtered": "0",
+              "attempts": "4",
+              "accepted": "3",
+              "queueFull": "0",
+              "unavailable": "1",
+              "written": "0",
+              "failed": "1",
+              "abandoned": "2",
+              "pending": "0",
+              "fault": "WriteFailed"
+            }
+          ]
+        },
+        {
+          "phase": "closing",
+          "state": "Stopping",
+          "closed": true,
+          "invalid": "0",
+          "truncated": "0",
+          "outputs": [
+            {
+              "name": "console",
+              "state": "Stopping",
+              "sequence": "4",
+              "filtered": "0",
+              "attempts": "4",
+              "accepted": "4",
+              "queueFull": "0",
+              "unavailable": "0",
+              "written": "0",
+              "failed": "0",
+              "abandoned": "0",
+              "pending": "4",
+              "fault": null
+            },
+            {
+              "name": "file",
+              "state": "Stopped",
+              "sequence": "3",
+              "filtered": "0",
+              "attempts": "4",
+              "accepted": "3",
+              "queueFull": "0",
+              "unavailable": "1",
+              "written": "0",
+              "failed": "1",
+              "abandoned": "2",
+              "pending": "0",
+              "fault": "WriteFailed"
+            }
+          ]
+        },
+        {
+          "phase": "final",
+          "state": "Stopped",
+          "closed": true,
+          "invalid": "0",
+          "truncated": "0",
+          "outputs": [
+            {
+              "name": "console",
+              "state": "Stopped",
+              "sequence": "4",
+              "filtered": "0",
+              "attempts": "4",
+              "accepted": "4",
+              "queueFull": "0",
+              "unavailable": "0",
+              "written": "4",
+              "failed": "0",
+              "abandoned": "0",
+              "pending": "0",
+              "fault": null
+            },
+            {
+              "name": "file",
+              "state": "Stopped",
+              "sequence": "3",
+              "filtered": "0",
+              "attempts": "4",
+              "accepted": "3",
+              "queueFull": "0",
+              "unavailable": "1",
+              "written": "0",
+              "failed": "1",
+              "abandoned": "2",
+              "pending": "0",
+              "fault": "WriteFailed"
+            }
+          ]
+        },
+        {
+          "phase": "repeated-close",
+          "state": "Stopped",
+          "closed": true,
+          "invalid": "0",
+          "truncated": "0",
+          "outputs": [
+            {
+              "name": "console",
+              "state": "Stopped",
+              "sequence": "4",
+              "filtered": "0",
+              "attempts": "4",
+              "accepted": "4",
+              "queueFull": "0",
+              "unavailable": "0",
+              "written": "4",
+              "failed": "0",
+              "abandoned": "0",
+              "pending": "0",
+              "fault": null
+            },
+            {
+              "name": "file",
+              "state": "Stopped",
+              "sequence": "3",
+              "filtered": "0",
+              "attempts": "4",
+              "accepted": "3",
+              "queueFull": "0",
+              "unavailable": "1",
+              "written": "0",
+              "failed": "1",
+              "abandoned": "2",
+              "pending": "0",
+              "fault": "WriteFailed"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "DIAGNOSTICS-STATE-FAIL-BOTH-CONSOLE-FIRST",
+      "profile": "states",
+      "sourceCatalog": "output-state-cases.json",
+      "sourceCaseId": "STATE-FAIL-BOTH-CONSOLE-FIRST",
+      "expected": [
+        {
+          "phase": "initial",
+          "state": "Running",
+          "closed": false,
+          "invalid": "0",
+          "truncated": "0",
+          "outputs": [
+            {
+              "name": "console",
+              "state": "Running",
+              "sequence": "0",
+              "filtered": "0",
+              "attempts": "0",
+              "accepted": "0",
+              "queueFull": "0",
+              "unavailable": "0",
+              "written": "0",
+              "failed": "0",
+              "abandoned": "0",
+              "pending": "0",
+              "fault": null
+            },
+            {
+              "name": "file",
+              "state": "Running",
+              "sequence": "0",
+              "filtered": "0",
+              "attempts": "0",
+              "accepted": "0",
+              "queueFull": "0",
+              "unavailable": "0",
+              "written": "0",
+              "failed": "0",
+              "abandoned": "0",
+              "pending": "0",
+              "fault": null
+            }
+          ]
+        },
+        {
+          "phase": "held",
+          "state": "Running",
+          "closed": false,
+          "invalid": "0",
+          "truncated": "0",
+          "outputs": [
+            {
+              "name": "console",
+              "state": "Running",
+              "sequence": "3",
+              "filtered": "0",
+              "attempts": "3",
+              "accepted": "3",
+              "queueFull": "0",
+              "unavailable": "0",
+              "written": "0",
+              "failed": "0",
+              "abandoned": "0",
+              "pending": "3",
+              "fault": null
+            },
+            {
+              "name": "file",
+              "state": "Running",
+              "sequence": "3",
+              "filtered": "0",
+              "attempts": "3",
+              "accepted": "3",
+              "queueFull": "0",
+              "unavailable": "0",
+              "written": "0",
+              "failed": "0",
+              "abandoned": "0",
+              "pending": "3",
+              "fault": null
+            }
+          ]
+        },
+        {
+          "phase": "first-terminal",
+          "state": "Running",
+          "closed": false,
+          "invalid": "0",
+          "truncated": "0",
+          "outputs": [
+            {
+              "name": "console",
+              "state": "Faulted",
+              "sequence": "3",
+              "filtered": "0",
+              "attempts": "3",
+              "accepted": "3",
+              "queueFull": "0",
+              "unavailable": "0",
+              "written": "0",
+              "failed": "1",
+              "abandoned": "2",
+              "pending": "0",
+              "fault": "WriteFailed"
+            },
+            {
+              "name": "file",
+              "state": "Running",
+              "sequence": "3",
+              "filtered": "0",
+              "attempts": "3",
+              "accepted": "3",
+              "queueFull": "0",
+              "unavailable": "0",
+              "written": "0",
+              "failed": "0",
+              "abandoned": "0",
+              "pending": "3",
+              "fault": null
+            }
+          ]
+        },
+        {
+          "phase": "after-admission",
+          "state": "Running",
+          "closed": false,
+          "invalid": "0",
+          "truncated": "0",
+          "outputs": [
+            {
+              "name": "console",
+              "state": "Faulted",
+              "sequence": "3",
+              "filtered": "0",
+              "attempts": "4",
+              "accepted": "3",
+              "queueFull": "0",
+              "unavailable": "1",
+              "written": "0",
+              "failed": "1",
+              "abandoned": "2",
+              "pending": "0",
+              "fault": "WriteFailed"
+            },
+            {
+              "name": "file",
+              "state": "Running",
+              "sequence": "4",
+              "filtered": "0",
+              "attempts": "4",
+              "accepted": "4",
+              "queueFull": "0",
+              "unavailable": "0",
+              "written": "0",
+              "failed": "0",
+              "abandoned": "0",
+              "pending": "4",
+              "fault": null
+            }
+          ]
+        },
+        {
+          "phase": "closing",
+          "state": "Stopping",
+          "closed": true,
+          "invalid": "0",
+          "truncated": "0",
+          "outputs": [
+            {
+              "name": "console",
+              "state": "Stopped",
+              "sequence": "3",
+              "filtered": "0",
+              "attempts": "4",
+              "accepted": "3",
+              "queueFull": "0",
+              "unavailable": "1",
+              "written": "0",
+              "failed": "1",
+              "abandoned": "2",
+              "pending": "0",
+              "fault": "WriteFailed"
+            },
+            {
+              "name": "file",
+              "state": "Stopping",
+              "sequence": "4",
+              "filtered": "0",
+              "attempts": "4",
+              "accepted": "4",
+              "queueFull": "0",
+              "unavailable": "0",
+              "written": "0",
+              "failed": "0",
+              "abandoned": "0",
+              "pending": "4",
+              "fault": null
+            }
+          ]
+        },
+        {
+          "phase": "final",
+          "state": "Stopped",
+          "closed": true,
+          "invalid": "0",
+          "truncated": "0",
+          "outputs": [
+            {
+              "name": "console",
+              "state": "Stopped",
+              "sequence": "3",
+              "filtered": "0",
+              "attempts": "4",
+              "accepted": "3",
+              "queueFull": "0",
+              "unavailable": "1",
+              "written": "0",
+              "failed": "1",
+              "abandoned": "2",
+              "pending": "0",
+              "fault": "WriteFailed"
+            },
+            {
+              "name": "file",
+              "state": "Stopped",
+              "sequence": "4",
+              "filtered": "0",
+              "attempts": "4",
+              "accepted": "4",
+              "queueFull": "0",
+              "unavailable": "0",
+              "written": "0",
+              "failed": "1",
+              "abandoned": "3",
+              "pending": "0",
+              "fault": "WriteFailed"
+            }
+          ]
+        },
+        {
+          "phase": "repeated-close",
+          "state": "Stopped",
+          "closed": true,
+          "invalid": "0",
+          "truncated": "0",
+          "outputs": [
+            {
+              "name": "console",
+              "state": "Stopped",
+              "sequence": "3",
+              "filtered": "0",
+              "attempts": "4",
+              "accepted": "3",
+              "queueFull": "0",
+              "unavailable": "1",
+              "written": "0",
+              "failed": "1",
+              "abandoned": "2",
+              "pending": "0",
+              "fault": "WriteFailed"
+            },
+            {
+              "name": "file",
+              "state": "Stopped",
+              "sequence": "4",
+              "filtered": "0",
+              "attempts": "4",
+              "accepted": "4",
+              "queueFull": "0",
+              "unavailable": "0",
+              "written": "0",
+              "failed": "1",
+              "abandoned": "3",
+              "pending": "0",
+              "fault": "WriteFailed"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "DIAGNOSTICS-STATE-FAIL-BOTH-FILE-FIRST",
+      "profile": "states",
+      "sourceCatalog": "output-state-cases.json",
+      "sourceCaseId": "STATE-FAIL-BOTH-FILE-FIRST",
+      "expected": [
+        {
+          "phase": "initial",
+          "state": "Running",
+          "closed": false,
+          "invalid": "0",
+          "truncated": "0",
+          "outputs": [
+            {
+              "name": "console",
+              "state": "Running",
+              "sequence": "0",
+              "filtered": "0",
+              "attempts": "0",
+              "accepted": "0",
+              "queueFull": "0",
+              "unavailable": "0",
+              "written": "0",
+              "failed": "0",
+              "abandoned": "0",
+              "pending": "0",
+              "fault": null
+            },
+            {
+              "name": "file",
+              "state": "Running",
+              "sequence": "0",
+              "filtered": "0",
+              "attempts": "0",
+              "accepted": "0",
+              "queueFull": "0",
+              "unavailable": "0",
+              "written": "0",
+              "failed": "0",
+              "abandoned": "0",
+              "pending": "0",
+              "fault": null
+            }
+          ]
+        },
+        {
+          "phase": "held",
+          "state": "Running",
+          "closed": false,
+          "invalid": "0",
+          "truncated": "0",
+          "outputs": [
+            {
+              "name": "console",
+              "state": "Running",
+              "sequence": "3",
+              "filtered": "0",
+              "attempts": "3",
+              "accepted": "3",
+              "queueFull": "0",
+              "unavailable": "0",
+              "written": "0",
+              "failed": "0",
+              "abandoned": "0",
+              "pending": "3",
+              "fault": null
+            },
+            {
+              "name": "file",
+              "state": "Running",
+              "sequence": "3",
+              "filtered": "0",
+              "attempts": "3",
+              "accepted": "3",
+              "queueFull": "0",
+              "unavailable": "0",
+              "written": "0",
+              "failed": "0",
+              "abandoned": "0",
+              "pending": "3",
+              "fault": null
+            }
+          ]
+        },
+        {
+          "phase": "first-terminal",
+          "state": "Running",
+          "closed": false,
+          "invalid": "0",
+          "truncated": "0",
+          "outputs": [
+            {
+              "name": "console",
+              "state": "Running",
+              "sequence": "3",
+              "filtered": "0",
+              "attempts": "3",
+              "accepted": "3",
+              "queueFull": "0",
+              "unavailable": "0",
+              "written": "0",
+              "failed": "0",
+              "abandoned": "0",
+              "pending": "3",
+              "fault": null
+            },
+            {
+              "name": "file",
+              "state": "Faulted",
+              "sequence": "3",
+              "filtered": "0",
+              "attempts": "3",
+              "accepted": "3",
+              "queueFull": "0",
+              "unavailable": "0",
+              "written": "0",
+              "failed": "1",
+              "abandoned": "2",
+              "pending": "0",
+              "fault": "WriteFailed"
+            }
+          ]
+        },
+        {
+          "phase": "after-admission",
+          "state": "Running",
+          "closed": false,
+          "invalid": "0",
+          "truncated": "0",
+          "outputs": [
+            {
+              "name": "console",
+              "state": "Running",
+              "sequence": "4",
+              "filtered": "0",
+              "attempts": "4",
+              "accepted": "4",
+              "queueFull": "0",
+              "unavailable": "0",
+              "written": "0",
+              "failed": "0",
+              "abandoned": "0",
+              "pending": "4",
+              "fault": null
+            },
+            {
+              "name": "file",
+              "state": "Faulted",
+              "sequence": "3",
+              "filtered": "0",
+              "attempts": "4",
+              "accepted": "3",
+              "queueFull": "0",
+              "unavailable": "1",
+              "written": "0",
+              "failed": "1",
+              "abandoned": "2",
+              "pending": "0",
+              "fault": "WriteFailed"
+            }
+          ]
+        },
+        {
+          "phase": "closing",
+          "state": "Stopping",
+          "closed": true,
+          "invalid": "0",
+          "truncated": "0",
+          "outputs": [
+            {
+              "name": "console",
+              "state": "Stopping",
+              "sequence": "4",
+              "filtered": "0",
+              "attempts": "4",
+              "accepted": "4",
+              "queueFull": "0",
+              "unavailable": "0",
+              "written": "0",
+              "failed": "0",
+              "abandoned": "0",
+              "pending": "4",
+              "fault": null
+            },
+            {
+              "name": "file",
+              "state": "Stopped",
+              "sequence": "3",
+              "filtered": "0",
+              "attempts": "4",
+              "accepted": "3",
+              "queueFull": "0",
+              "unavailable": "1",
+              "written": "0",
+              "failed": "1",
+              "abandoned": "2",
+              "pending": "0",
+              "fault": "WriteFailed"
+            }
+          ]
+        },
+        {
+          "phase": "final",
+          "state": "Stopped",
+          "closed": true,
+          "invalid": "0",
+          "truncated": "0",
+          "outputs": [
+            {
+              "name": "console",
+              "state": "Stopped",
+              "sequence": "4",
+              "filtered": "0",
+              "attempts": "4",
+              "accepted": "4",
+              "queueFull": "0",
+              "unavailable": "0",
+              "written": "0",
+              "failed": "1",
+              "abandoned": "3",
+              "pending": "0",
+              "fault": "WriteFailed"
+            },
+            {
+              "name": "file",
+              "state": "Stopped",
+              "sequence": "3",
+              "filtered": "0",
+              "attempts": "4",
+              "accepted": "3",
+              "queueFull": "0",
+              "unavailable": "1",
+              "written": "0",
+              "failed": "1",
+              "abandoned": "2",
+              "pending": "0",
+              "fault": "WriteFailed"
+            }
+          ]
+        },
+        {
+          "phase": "repeated-close",
+          "state": "Stopped",
+          "closed": true,
+          "invalid": "0",
+          "truncated": "0",
+          "outputs": [
+            {
+              "name": "console",
+              "state": "Stopped",
+              "sequence": "4",
+              "filtered": "0",
+              "attempts": "4",
+              "accepted": "4",
+              "queueFull": "0",
+              "unavailable": "0",
+              "written": "0",
+              "failed": "1",
+              "abandoned": "3",
+              "pending": "0",
+              "fault": "WriteFailed"
+            },
+            {
+              "name": "file",
+              "state": "Stopped",
+              "sequence": "3",
+              "filtered": "0",
+              "attempts": "4",
+              "accepted": "3",
+              "queueFull": "0",
+              "unavailable": "1",
+              "written": "0",
+              "failed": "1",
+              "abandoned": "2",
+              "pending": "0",
+              "fault": "WriteFailed"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "DIAGNOSTICS-STATE-CLOSE-THEN-FAIL",
+      "profile": "states",
+      "sourceCatalog": "output-state-cases.json",
+      "sourceCaseId": "STATE-CLOSE-THEN-FAIL",
+      "expected": [
+        {
+          "phase": "initial",
+          "state": "Running",
+          "closed": false,
+          "invalid": "0",
+          "truncated": "0",
+          "outputs": [
+            {
+              "name": "console",
+              "state": "Running",
+              "sequence": "0",
+              "filtered": "0",
+              "attempts": "0",
+              "accepted": "0",
+              "queueFull": "0",
+              "unavailable": "0",
+              "written": "0",
+              "failed": "0",
+              "abandoned": "0",
+              "pending": "0",
+              "fault": null
+            },
+            {
+              "name": "file",
+              "state": "Running",
+              "sequence": "0",
+              "filtered": "0",
+              "attempts": "0",
+              "accepted": "0",
+              "queueFull": "0",
+              "unavailable": "0",
+              "written": "0",
+              "failed": "0",
+              "abandoned": "0",
+              "pending": "0",
+              "fault": null
+            }
+          ]
+        },
+        {
+          "phase": "held",
+          "state": "Running",
+          "closed": false,
+          "invalid": "0",
+          "truncated": "0",
+          "outputs": [
+            {
+              "name": "console",
+              "state": "Running",
+              "sequence": "3",
+              "filtered": "0",
+              "attempts": "3",
+              "accepted": "3",
+              "queueFull": "0",
+              "unavailable": "0",
+              "written": "0",
+              "failed": "0",
+              "abandoned": "0",
+              "pending": "3",
+              "fault": null
+            },
+            {
+              "name": "file",
+              "state": "Running",
+              "sequence": "3",
+              "filtered": "0",
+              "attempts": "3",
+              "accepted": "3",
+              "queueFull": "0",
+              "unavailable": "0",
+              "written": "0",
+              "failed": "0",
+              "abandoned": "0",
+              "pending": "3",
+              "fault": null
+            }
+          ]
+        },
+        {
+          "phase": "stop-requested",
+          "state": "Stopping",
+          "closed": true,
+          "invalid": "0",
+          "truncated": "0",
+          "outputs": [
+            {
+              "name": "console",
+              "state": "Stopping",
+              "sequence": "3",
+              "filtered": "0",
+              "attempts": "3",
+              "accepted": "3",
+              "queueFull": "0",
+              "unavailable": "0",
+              "written": "0",
+              "failed": "0",
+              "abandoned": "0",
+              "pending": "3",
+              "fault": null
+            },
+            {
+              "name": "file",
+              "state": "Stopping",
+              "sequence": "3",
+              "filtered": "0",
+              "attempts": "3",
+              "accepted": "3",
+              "queueFull": "0",
+              "unavailable": "0",
+              "written": "0",
+              "failed": "0",
+              "abandoned": "0",
+              "pending": "3",
+              "fault": null
+            }
+          ]
+        },
+        {
+          "phase": "first-terminal",
+          "state": "Stopping",
+          "closed": true,
+          "invalid": "0",
+          "truncated": "0",
+          "outputs": [
+            {
+              "name": "console",
+              "state": "Stopping",
+              "sequence": "3",
+              "filtered": "0",
+              "attempts": "3",
+              "accepted": "3",
+              "queueFull": "0",
+              "unavailable": "0",
+              "written": "0",
+              "failed": "0",
+              "abandoned": "0",
+              "pending": "3",
+              "fault": null
+            },
+            {
+              "name": "file",
+              "state": "Stopped",
+              "sequence": "3",
+              "filtered": "0",
+              "attempts": "3",
+              "accepted": "3",
+              "queueFull": "0",
+              "unavailable": "0",
+              "written": "0",
+              "failed": "1",
+              "abandoned": "2",
+              "pending": "0",
+              "fault": "WriteFailed"
+            }
+          ]
+        },
+        {
+          "phase": "after-admission",
+          "state": "Stopping",
+          "closed": true,
+          "invalid": "0",
+          "truncated": "0",
+          "outputs": [
+            {
+              "name": "console",
+              "state": "Stopping",
+              "sequence": "3",
+              "filtered": "0",
+              "attempts": "3",
+              "accepted": "3",
+              "queueFull": "0",
+              "unavailable": "0",
+              "written": "0",
+              "failed": "0",
+              "abandoned": "0",
+              "pending": "3",
+              "fault": null
+            },
+            {
+              "name": "file",
+              "state": "Stopped",
+              "sequence": "3",
+              "filtered": "0",
+              "attempts": "3",
+              "accepted": "3",
+              "queueFull": "0",
+              "unavailable": "0",
+              "written": "0",
+              "failed": "1",
+              "abandoned": "2",
+              "pending": "0",
+              "fault": "WriteFailed"
+            }
+          ]
+        },
+        {
+          "phase": "closing",
+          "state": "Stopping",
+          "closed": true,
+          "invalid": "0",
+          "truncated": "0",
+          "outputs": [
+            {
+              "name": "console",
+              "state": "Stopping",
+              "sequence": "3",
+              "filtered": "0",
+              "attempts": "3",
+              "accepted": "3",
+              "queueFull": "0",
+              "unavailable": "0",
+              "written": "0",
+              "failed": "0",
+              "abandoned": "0",
+              "pending": "3",
+              "fault": null
+            },
+            {
+              "name": "file",
+              "state": "Stopped",
+              "sequence": "3",
+              "filtered": "0",
+              "attempts": "3",
+              "accepted": "3",
+              "queueFull": "0",
+              "unavailable": "0",
+              "written": "0",
+              "failed": "1",
+              "abandoned": "2",
+              "pending": "0",
+              "fault": "WriteFailed"
+            }
+          ]
+        },
+        {
+          "phase": "final",
+          "state": "Stopped",
+          "closed": true,
+          "invalid": "0",
+          "truncated": "0",
+          "outputs": [
+            {
+              "name": "console",
+              "state": "Stopped",
+              "sequence": "3",
+              "filtered": "0",
+              "attempts": "3",
+              "accepted": "3",
+              "queueFull": "0",
+              "unavailable": "0",
+              "written": "3",
+              "failed": "0",
+              "abandoned": "0",
+              "pending": "0",
+              "fault": null
+            },
+            {
+              "name": "file",
+              "state": "Stopped",
+              "sequence": "3",
+              "filtered": "0",
+              "attempts": "3",
+              "accepted": "3",
+              "queueFull": "0",
+              "unavailable": "0",
+              "written": "0",
+              "failed": "1",
+              "abandoned": "2",
+              "pending": "0",
+              "fault": "WriteFailed"
+            }
+          ]
+        },
+        {
+          "phase": "repeated-close",
+          "state": "Stopped",
+          "closed": true,
+          "invalid": "0",
+          "truncated": "0",
+          "outputs": [
+            {
+              "name": "console",
+              "state": "Stopped",
+              "sequence": "3",
+              "filtered": "0",
+              "attempts": "3",
+              "accepted": "3",
+              "queueFull": "0",
+              "unavailable": "0",
+              "written": "3",
+              "failed": "0",
+              "abandoned": "0",
+              "pending": "0",
+              "fault": null
+            },
+            {
+              "name": "file",
+              "state": "Stopped",
+              "sequence": "3",
+              "filtered": "0",
+              "attempts": "3",
+              "accepted": "3",
+              "queueFull": "0",
+              "unavailable": "0",
+              "written": "0",
+              "failed": "1",
+              "abandoned": "2",
+              "pending": "0",
+              "fault": "WriteFailed"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "DIAGNOSTICS-STATE-CANCEL-FILE",
+      "profile": "states",
+      "sourceCatalog": "output-state-cases.json",
+      "sourceCaseId": "STATE-CANCEL-FILE",
+      "expected": [
+        {
+          "phase": "initial",
+          "state": "Running",
+          "closed": false,
+          "invalid": "0",
+          "truncated": "0",
+          "outputs": [
+            {
+              "name": "console",
+              "state": "Running",
+              "sequence": "0",
+              "filtered": "0",
+              "attempts": "0",
+              "accepted": "0",
+              "queueFull": "0",
+              "unavailable": "0",
+              "written": "0",
+              "failed": "0",
+              "abandoned": "0",
+              "pending": "0",
+              "fault": null
+            },
+            {
+              "name": "file",
+              "state": "Running",
+              "sequence": "0",
+              "filtered": "0",
+              "attempts": "0",
+              "accepted": "0",
+              "queueFull": "0",
+              "unavailable": "0",
+              "written": "0",
+              "failed": "0",
+              "abandoned": "0",
+              "pending": "0",
+              "fault": null
+            }
+          ]
+        },
+        {
+          "phase": "held",
+          "state": "Running",
+          "closed": false,
+          "invalid": "0",
+          "truncated": "0",
+          "outputs": [
+            {
+              "name": "console",
+              "state": "Running",
+              "sequence": "3",
+              "filtered": "0",
+              "attempts": "3",
+              "accepted": "3",
+              "queueFull": "0",
+              "unavailable": "0",
+              "written": "0",
+              "failed": "0",
+              "abandoned": "0",
+              "pending": "3",
+              "fault": null
+            },
+            {
+              "name": "file",
+              "state": "Running",
+              "sequence": "3",
+              "filtered": "0",
+              "attempts": "3",
+              "accepted": "3",
+              "queueFull": "0",
+              "unavailable": "0",
+              "written": "0",
+              "failed": "0",
+              "abandoned": "0",
+              "pending": "3",
+              "fault": null
+            }
+          ]
+        },
+        {
+          "phase": "first-terminal",
+          "state": "Running",
+          "closed": false,
+          "invalid": "0",
+          "truncated": "0",
+          "outputs": [
+            {
+              "name": "console",
+              "state": "Running",
+              "sequence": "3",
+              "filtered": "0",
+              "attempts": "3",
+              "accepted": "3",
+              "queueFull": "0",
+              "unavailable": "0",
+              "written": "0",
+              "failed": "0",
+              "abandoned": "0",
+              "pending": "3",
+              "fault": null
+            },
+            {
+              "name": "file",
+              "state": "Faulted",
+              "sequence": "3",
+              "filtered": "0",
+              "attempts": "3",
+              "accepted": "3",
+              "queueFull": "0",
+              "unavailable": "0",
+              "written": "0",
+              "failed": "1",
+              "abandoned": "2",
+              "pending": "0",
+              "fault": "WriteFailed"
+            }
+          ]
+        },
+        {
+          "phase": "after-admission",
+          "state": "Running",
+          "closed": false,
+          "invalid": "0",
+          "truncated": "0",
+          "outputs": [
+            {
+              "name": "console",
+              "state": "Running",
+              "sequence": "4",
+              "filtered": "0",
+              "attempts": "4",
+              "accepted": "4",
+              "queueFull": "0",
+              "unavailable": "0",
+              "written": "0",
+              "failed": "0",
+              "abandoned": "0",
+              "pending": "4",
+              "fault": null
+            },
+            {
+              "name": "file",
+              "state": "Faulted",
+              "sequence": "3",
+              "filtered": "0",
+              "attempts": "4",
+              "accepted": "3",
+              "queueFull": "0",
+              "unavailable": "1",
+              "written": "0",
+              "failed": "1",
+              "abandoned": "2",
+              "pending": "0",
+              "fault": "WriteFailed"
+            }
+          ]
+        },
+        {
+          "phase": "closing",
+          "state": "Stopping",
+          "closed": true,
+          "invalid": "0",
+          "truncated": "0",
+          "outputs": [
+            {
+              "name": "console",
+              "state": "Stopping",
+              "sequence": "4",
+              "filtered": "0",
+              "attempts": "4",
+              "accepted": "4",
+              "queueFull": "0",
+              "unavailable": "0",
+              "written": "0",
+              "failed": "0",
+              "abandoned": "0",
+              "pending": "4",
+              "fault": null
+            },
+            {
+              "name": "file",
+              "state": "Stopped",
+              "sequence": "3",
+              "filtered": "0",
+              "attempts": "4",
+              "accepted": "3",
+              "queueFull": "0",
+              "unavailable": "1",
+              "written": "0",
+              "failed": "1",
+              "abandoned": "2",
+              "pending": "0",
+              "fault": "WriteFailed"
+            }
+          ]
+        },
+        {
+          "phase": "final",
+          "state": "Stopped",
+          "closed": true,
+          "invalid": "0",
+          "truncated": "0",
+          "outputs": [
+            {
+              "name": "console",
+              "state": "Stopped",
+              "sequence": "4",
+              "filtered": "0",
+              "attempts": "4",
+              "accepted": "4",
+              "queueFull": "0",
+              "unavailable": "0",
+              "written": "4",
+              "failed": "0",
+              "abandoned": "0",
+              "pending": "0",
+              "fault": null
+            },
+            {
+              "name": "file",
+              "state": "Stopped",
+              "sequence": "3",
+              "filtered": "0",
+              "attempts": "4",
+              "accepted": "3",
+              "queueFull": "0",
+              "unavailable": "1",
+              "written": "0",
+              "failed": "1",
+              "abandoned": "2",
+              "pending": "0",
+              "fault": "WriteFailed"
+            }
+          ]
+        },
+        {
+          "phase": "repeated-close",
+          "state": "Stopped",
+          "closed": true,
+          "invalid": "0",
+          "truncated": "0",
+          "outputs": [
+            {
+              "name": "console",
+              "state": "Stopped",
+              "sequence": "4",
+              "filtered": "0",
+              "attempts": "4",
+              "accepted": "4",
+              "queueFull": "0",
+              "unavailable": "0",
+              "written": "4",
+              "failed": "0",
+              "abandoned": "0",
+              "pending": "0",
+              "fault": null
+            },
+            {
+              "name": "file",
+              "state": "Stopped",
+              "sequence": "3",
+              "filtered": "0",
+              "attempts": "4",
+              "accepted": "3",
+              "queueFull": "0",
+              "unavailable": "1",
+              "written": "0",
+              "failed": "1",
+              "abandoned": "2",
+              "pending": "0",
+              "fault": "WriteFailed"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

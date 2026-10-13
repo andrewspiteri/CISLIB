@@ -24,7 +24,7 @@ public sealed class LoggerFoundationArchitectureTests
         }
         CollectionAssert.AreEqual(new[] { "level", "data" }, typeof(CoreLogger).GetMethod("Write")!.GetParameters().Select(item => item.Name).ToArray());
         CollectionAssert.AreEqual(new[] { "level", "factory" }, typeof(CoreLogger).GetMethod("WriteLazy")!.GetParameters().Select(item => item.Name).ToArray());
-        CollectionAssert.AreEqual(new[] { "CreateLogger" }, typeof(CoreLogRuntime).GetMethods(BindingFlags.Public | BindingFlags.Instance | BindingFlags.Static | BindingFlags.DeclaredOnly).Select(method => method.Name).ToArray());
+        CollectionAssert.AreEquivalent(new[] { "CreateLogger", "GetDiagnostics" }, typeof(CoreLogRuntime).GetMethods(BindingFlags.Public | BindingFlags.Instance | BindingFlags.Static | BindingFlags.DeclaredOnly).Select(method => method.Name).ToArray());
         Assert.IsNull(typeof(LogEventData).GetProperty("Level"));
         Assert.IsNull(typeof(LogEventData).GetProperty("Severity"));
     }
