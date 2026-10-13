@@ -1,0 +1,19 @@
+Traceback (most recent call last):
+  File "C:\miscwork\portfolio\cislib\implementations\csharp\tests\fixtures\DiscoveryHost\verify-flush-results.py", line 140, in <module>
+    if __name__=='__main__':main()
+                            ^^^^^^
+  File "C:\miscwork\portfolio\cislib\implementations\csharp\tests\fixtures\DiscoveryHost\verify-flush-results.py", line 129, in main
+    report=load(stdout);check(mode,report,process.pid)
+                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\miscwork\portfolio\cislib\implementations\csharp\tests\fixtures\DiscoveryHost\verify-flush-results.py", line 35, in check
+    require(a['controlsAfterWait']==(0 if mode in ('empty','loss','write-failure','flush-failure','later-failure','exhaustion','filtered','closed') else 1),'retained control')
+  File "C:\miscwork\portfolio\cislib\implementations\csharp\tests\fixtures\DiscoveryHost\verify-flush-results.py", line 6, in require
+    if not value:raise AssertionError(reason)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: retained control
+Traceback (most recent call last):
+  File "C:\miscwork\portfolio\cislib\.artifacts\csharp\tasks\wp05-s08-t03\native-all.py", line 7, in <module>
+    subprocess.run([sys.executable,'-X','utf8',str(Path('implementations/csharp/tests/fixtures/DiscoveryHost')/name),'--dotnet',a.dotnet,'--host',a.host,'--output',str(Path(a.output)/(a.family+'-'+lane)),'--family',a.family],check=True,timeout=200)
+  File "C:\Program Files\Python312\Lib\subprocess.py", line 571, in run
+    raise CalledProcessError(retcode, process.args,
+subprocess.CalledProcessError: Command '['C:\\Program Files\\Python312\\python.exe', '-X', 'utf8', 'implementations\\csharp\\tests\\fixtures\\DiscoveryHost\\verify-flush-results.py', '--dotnet', 'dotnet', '--host', 'C:/miscwork/portfolio/cislib/.artifacts/csharp/tasks/wp05-s08-t03/native-host/CIS.Core.DiscoveryFixture.dll', '--output', '.artifacts\\csharp\\tasks\\wp05-s08-t03\\native\\windows-results', '--family', 'windows']' returned non-zero exit status 1.

@@ -159,6 +159,52 @@ public sealed class CoreLogRuntime
         catch { queues.Complete(); queues.Completion.GetAwaiter().GetResult(); fileWriter?.Dispose(); throw; }
     }
     internal OutputQueues? QueuedOutputs => queuedOutputs;
+    /// <summary>Waits through fixed accepted boundaries and confirms each enabled writer's buffer flush.</summary>
+    /// <param name="timeout">One positive finite overall wait budget; every positive TimeSpan is supported.</param>
+    /// <param name="cancellationToken">Cancels only this caller's wait, preserving shared worker requests.</param>
+    /// <returns>An owned immutable observation, including unresolved work at the deadline.</returns>
+    /// <exception cref="ArgumentOutOfRangeException">The timeout is zero, negative or infinite.</exception>
+    /// <exception cref="OperationCanceledException">The caller token is cancelled, including after boundary registration.</exception>
+    /// <exception cref="InvalidOperationException">The runtime uses an internal admission-control seam without actual output queues.</exception>
+    /// <remarks>UTC labels are system observations; elapsed deadlines use the runtime TimeProvider. Flush does not stop admission or guarantee disk durability.</remarks>
+    public Task<LogFlushResult> FlushAsync(TimeSpan timeout, CancellationToken cancellationToken)
+    {
+        if (timeout.Ticks <= 0) { throw new ArgumentOutOfRangeException(nameof(timeout)); }
+        long started = timeProvider.GetTimestamp();
+        RuntimeFlushBoundary boundary = RegisterFlushBoundary();
+        return ObserveFlushAsync(boundary, started, timeout, cancellationToken);
+    }
+    private async Task<LogFlushResult> ObserveFlushAsync(RuntimeFlushBoundary boundary, long started, TimeSpan timeout, CancellationToken caller)
+    {
+        caller.ThrowIfCancellationRequested();
+        if (boundary.Console is null && boundary.File is null) { return CaptureFlushResult(boundary); }
+        await using var deadline = new FlushDeadline(timeProvider, started, timeout, () => CaptureFlushResult(boundary));
+        using var wait = CancellationTokenSource.CreateLinkedTokenSource(caller, deadline.Token);
+        try
+        {
+            await boundary.WaitForWriterFlushAsync(wait.Token).ConfigureAwait(false);
+            // A terminal unavailable flush can precede the disposition of an already-started write.
+            if (boundary.Console is { } console)
+            { await queuedOutputs!.Console!.WaitForCoveredRecordsAsync("console", console, wait.Token).ConfigureAwait(false); }
+            if (boundary.File is { } file)
+            { await queuedOutputs!.File!.WaitForCoveredRecordsAsync("file", file, wait.Token).ConfigureAwait(false); }
+        }
+        catch (OperationCanceledException) when (wait.IsCancellationRequested)
+        { caller.ThrowIfCancellationRequested(); }
+        caller.ThrowIfCancellationRequested();
+        return deadline.ObserveCompletion();
+    }
+    private LogFlushResult CaptureFlushResult(RuntimeFlushBoundary boundary)
+    {
+        lock (admissionGate)
+        {
+            var observations = new List<LogOutputDrainResult>(2);
+            if (boundary.Console is { } console) { observations.Add(queuedOutputs!.Console!.CaptureDrain("console", console)); }
+            if (boundary.File is { } file) { observations.Add(queuedOutputs!.File!.CaptureDrain("file", file)); }
+            return new LogFlushResult(boundary.BoundaryCapturedAtUtc, DateTimeOffset.UtcNow,
+                boundary.InvalidEventCount, boundary.TruncatedEventCount, observations);
+        }
+    }
     internal RuntimeFlushBoundary RegisterFlushBoundary()
     {
         if (queuedOutputs is null) { throw new InvalidOperationException("Flush boundaries require actual queued output composition."); }

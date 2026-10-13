@@ -22,6 +22,11 @@ internal sealed class OutputEventQueue : ILogOutputAdmission
     private long failedCount;
     private long abandonedCount;
     private bool inFlight;
+    private long inFlightSequence;
+    private long failedSequence;
+    private long firstAbandonedSequence;
+    private long lastAbandonedSequence;
+    private TaskCompletionSource? dispositionChanged;
     private long filteredCount;
     private long unavailableCount;
     private bool admissionClosed;
@@ -88,6 +93,39 @@ internal sealed class OutputEventQueue : ILogOutputAdmission
                 writtenCount, failedCount, abandonedCount, channel.Reader.Count + (inFlight ? 1 : 0), inFlight ? 1 : 0, lastAcceptedSequence, state, lastFaultCode, lastFaultAtUtc);
         }
     }
+    internal LogOutputDrainResult CaptureDrain(string name, OutputFlushBoundary boundary)
+    {
+        lock (admissionGate)
+        {
+            long target = boundary.AcceptedSequenceBoundary;
+            // Successful writes are a prefix; terminal failure is one ticket, abandonment one tail.
+            long written = Math.Min(writtenCount, target);
+            long failed = failedSequence > 0 && failedSequence <= target ? 1 : 0;
+            long abandoned = firstAbandonedSequence > 0 && firstAbandonedSequence <= target
+                ? Math.Min(lastAbandonedSequence, target) - firstAbandonedSequence + 1 : 0;
+            Task<bool> confirmation = boundary.Registration.WriterFlushCompletion;
+            LogWriterFlushStatus status = !confirmation.IsCompletedSuccessfully ? LogWriterFlushStatus.Pending
+                : confirmation.Result ? LogWriterFlushStatus.Succeeded : LogWriterFlushStatus.Failed;
+            return new LogOutputDrainResult(name, target, written, failed, abandoned, target - written - failed - abandoned,
+                status, new LogOutputRejectionSnapshot(boundary.Filtered, boundary.QueueFull, boundary.Unavailable));
+        }
+    }
+    internal async Task WaitForCoveredRecordsAsync(string name, OutputFlushBoundary boundary, CancellationToken token)
+    {
+        while (true)
+        {
+            token.ThrowIfCancellationRequested();
+            Task changed;
+            lock (admissionGate)
+            {
+                if (CaptureDrain(name, boundary).Pending == 0) { return; }
+                changed = (dispositionChanged ??= NewWake()).Task;
+            }
+            await changed.WaitAsync(token).ConfigureAwait(false);
+        }
+    }
+    private void NotifyDispositionChanged()
+    { dispositionChanged?.TrySetResult(); dispositionChanged = null; }
     public bool IsFaulted { get { lock (admissionGate) { return faulted; } } }
     internal bool TryEnqueue(EncodedEvent captured) => TryAdmit(captured, out _) == LogOutputWriteStatus.Accepted;
     public LogOutputWriteStatus TryAdmit(EncodedEvent captured, out long? acceptedSequence) => TryAdmit(captured, null, out acceptedSequence);
@@ -141,7 +179,12 @@ internal sealed class OutputEventQueue : ILogOutputAdmission
         state = stopRequested ? LogOutputState.Stopping : LogOutputState.Faulted;
         lastFaultCode = code; lastFaultAtUtc = DateTimeOffset.UtcNow;
         channel.Writer.TryComplete();
-        while (channel.Reader.TryRead(out _)) { abandonedCount++; }
+        while (channel.Reader.TryRead(out AdmittedEvent abandoned))
+        {
+            if (firstAbandonedSequence == 0) { firstAbandonedSequence = abandoned.AcceptedSequence; }
+            lastAbandonedSequence = abandoned.AcceptedSequence; abandonedCount++;
+        }
+        NotifyDispositionChanged();
         foreach (OutputFlushRegistration registration in flushRequests.Values)
         {
             if (!ReferenceEquals(registration, flushing)) { registration.Resolve(false); }
@@ -169,7 +212,7 @@ internal sealed class OutputEventQueue : ILogOutputAdmission
                         request = flushRequests.First().Value;
                         flushing = request;
                     }
-                    else if (channel.Reader.TryRead(out admitted)) { inFlight = true; }
+                    else if (channel.Reader.TryRead(out admitted)) { inFlight = true; inFlightSequence = admitted.AcceptedSequence; }
                     else if (stopRequested) { workerExiting = true; return; }
                     else
                     {
@@ -194,7 +237,7 @@ internal sealed class OutputEventQueue : ILogOutputAdmission
                 {
                     // Complete record confirmation only; a dequeued/partially emitted write is still pending.
                     await write(admitted).ConfigureAwait(false);
-                    lock (admissionGate) { writtenCount++; inFlight = false; }
+                    lock (admissionGate) { writtenCount++; inFlight = false; NotifyDispositionChanged(); }
                 }
             }
         }
@@ -202,7 +245,7 @@ internal sealed class OutputEventQueue : ILogOutputAdmission
         {
             lock (admissionGate)
             {
-                if (inFlight) { failedCount++; inFlight = false; }
+                if (inFlight) { failedCount++; failedSequence = inFlightSequence; inFlight = false; }
                 bool flushFailed = flushing is not null;
                 flushing?.Resolve(false);
                 flushing = null;

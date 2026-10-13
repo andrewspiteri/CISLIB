@@ -84,6 +84,32 @@ public sealed class RuntimeContractTests
     public void ShippingOutputCatalogCheckRejectsActualMissingOrWrongRecoveryDeclarations(string mutation)
         => Assert.ThrowsExactly<AssertFailedException>(() => VerifyImplementedOutputDiagnostics(mutation));
 
+    [TestMethod]
+    public void ImplementedFlushResultsAndMethodMatchTheUnpublishedCatalog()
+    {
+        using JsonDocument surface = Read("implementations/csharp/verification/contracts/startup/runtime-surface.json");
+        var selected = new System.Text.Json.Nodes.JsonObject();
+        foreach (string name in new[] { "LogFlushResult", "LogOutputDrainResult", "LogOutputRejectionSnapshot" })
+        { selected[name] = System.Text.Json.Nodes.JsonNode.Parse(surface.RootElement.GetProperty("immutableOutputs").GetProperty(name).GetRawText()); }
+        using JsonDocument contracts = JsonDocument.Parse(selected.ToJsonString());
+        using var stream = File.OpenRead(typeof(CIS.Logging.LogFlushResult).Assembly.Location); using var pe = new PEReader(stream);
+        MetadataReader reader = pe.GetMetadataReader();
+        var types = reader.TypeDefinitions.Select(reader.GetTypeDefinition).Where(type => reader.GetString(type.Namespace) == "CIS.Logging" && selected.ContainsKey(reader.GetString(type.Name)))
+            .ToDictionary(type => reader.GetString(type.Namespace) + '.' + reader.GetString(type.Name));
+        VerifyImmutableOutputs(reader, contracts.RootElement, types, new ContractTypeNameProvider());
+        MethodInfo method = typeof(CIS.Logging.CoreLogRuntime).GetMethod("FlushAsync")!;
+        Assert.IsNotNull(method.GetMethodBody()); Assert.IsFalse(method.IsStatic);
+        Assert.AreEqual(typeof(Task<CIS.Logging.LogFlushResult>), method.ReturnType);
+        CollectionAssert.AreEqual(new[] { "timeout", "cancellationToken" }, method.GetParameters().Select(parameter => parameter.Name).ToArray());
+        CollectionAssert.AreEqual(new[] { typeof(TimeSpan), typeof(CancellationToken) }, method.GetParameters().Select(parameter => parameter.ParameterType).ToArray());
+        foreach (Type type in new[] { typeof(CIS.Logging.LogCompletion), typeof(CIS.Logging.LogWriterFlushStatus) })
+        {
+            JsonElement expected = surface.RootElement.GetProperty("enums").GetProperty(type.Name);
+            CollectionAssert.AreEquivalent(expected.EnumerateObject().Select(item => item.Name).ToArray(), Enum.GetNames(type));
+            foreach (JsonProperty item in expected.EnumerateObject()) { Assert.AreEqual(item.Value.GetInt32(), Convert.ToInt32(Enum.Parse(type, item.Name))); }
+        }
+    }
+
     private static void VerifyImplementedOutputDiagnostics(string? mutation)
     {
         using JsonDocument surface = Read("implementations/csharp/verification/contracts/startup/runtime-surface.json");
