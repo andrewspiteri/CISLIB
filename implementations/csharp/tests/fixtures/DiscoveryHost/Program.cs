@@ -11,6 +11,7 @@ internal static class Program
 {
     private static int Main(string[] args)
     {
+        if (args.Length == 3 && args[0] == "file-acquisition") { return FileAcquisitionFixture.Run(args[1], args[2]); }
         if (args.Length == 3 && args[0] == "console-composition") { return ConsoleCompositionFixture.Run(args[1], args[2]); }
         if (args.Length == 3 && args[0] == "console-ownership") { return ConsoleOwnershipFixture.Run(args[1], args[2]); }
         if (args.Length == 3 && args[0] == "console-consumer") { return ConsoleConsumerFixture.Run(args[1], args[2]); }
