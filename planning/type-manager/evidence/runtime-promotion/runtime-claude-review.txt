@@ -1,0 +1,85 @@
+# Type Manager runtime candidate: review findings
+
+This review covers only the supplied text. I accessed no files and ran nothing. Line numbers count from the first line of each supplied file.
+
+Overall, the core flow matches the definition. It covers manifest validation, default-context loading with identity checks, a single enumeration with forced relationship metadata, sealed immutable publication, a shared matcher for precomputed and live queries, and a cancellation check at publication. I found no data race in the published state. Most findings are about diagnostics and behaviour that should be settled before TM10 freezes it.
+
+## Actual defects
+
+### D1. Exception text does not identify the manifest or entry (Medium)
+- **Where:** `TypeManagerInitializationException.cs:9`, `AssemblyInventory.cs:28`, `:44`, `:124`
+- **Requirement:** §4.4 says the error must identify the manifest and the relevant entry.
+- **Problem:** The properties carry this information, but `Message` and `ToString()` do not. A host that crashes unhandled, or logs `ex.Message`, gets text such as "The assembly inventory is invalid: Expected inventory schemaVersion 1." with no file path. A `JsonException` inner exception gives a line and byte position but no file.
+- **Worst case, host mismatch (`:42–45`):** neither the expected nor the observed identity appears anywhere. They are not in the message and not in `AssemblyIdentity` or `ActualAssemblyIdentity`.
+- **Related, schema version (`:39`):** the message omits the version that was found.
+
+### D2. `AssetPath` is sometimes relative and sometimes absolute (Low)
+- **Where:** `AssemblyInventory.cs:71`, `:79`, `:88`
+- **Problem:** `AssetPath` holds the raw relative path for format and path errors, but the resolved full path for missing-file and conflict errors.
+- **Also:** the invalid-identity error at `:79` omits `AssetPath` even though the relative path is already known at that point.
+
+### D3. A version-mismatch bind is reported as a load failure (Medium-low)
+- **Where:** `SelectedAssemblyLoader.cs:28–37`
+- **Requirement:** §8 says an identity conflict must show both the selected and the actual identities.
+- **Problem:** Suppose the trusted platform assembly (TPA) list, from `deps.json`, holds a lower version than the manifest selects, for example because of a stale `deps.json`. `LoadFromAssemblyName` then throws `FileLoadException`, not `FileNotFoundException`. That exception skips the fallback at `:30` and is caught at `:37` as `AssemblyLoadFailure`. `ActualAssemblyIdentity` is never set.
+- **Minor:** using `FileNotFoundException` as control flow also means host-registered `Resolving` and `AssemblyResolve` handlers run before the path fallback.
+
+### D4. `CreateAsync` throws operational failures and cancellation synchronously (Medium, API and behaviour)
+- **Where:** `TypeManager.cs:40–45`, `PreparationInputs.cs:13`, `:21–26`
+- **Problem:** `Capture` runs outside the returned task.
+  - Argument exceptions thrown synchronously follow normal .NET convention.
+  - `TypeManagerInitializationException(UnsupportedDeployment)` and `OperationCanceledException` also escape synchronously, before any `Task` exists.
+- **Consequences:**
+  - A caller that wraps only the `await` misses these exceptions.
+  - §5.3 says "callers awaiting the same creation task receive its result or failure", which does not hold for these failures.
+- **Ordering problem:** the `Location` check runs before the manifest-path and contract checks. An unsupported host with an invalid contract therefore gets an operational error instead of the argument error.
+- **Why decide now:** `TypeManagerInputTests.AlreadyCanceledInputNeverStartsManifestIo` already pins the synchronous cancellation behaviour, and TM10 would freeze it. I recommend moving the `Location` check and the cancellation check into `CreateCoreAsync`.
+
+### D5. A relative `AssemblyManifestPath` resolves against the current working directory (Medium-low)
+- **Where:** `PreparationInputs.cs:33`, doc at `TypeManagerOptions.cs:16`
+- **Problem:** The documentation calls this value an "inventory filename" next to an application-directory default. `Path.GetFullPath(supplied)` actually uses the current working directory. That directory is `System32` for Windows services and often `/` under systemd.
+- **Fix:** Either resolve relative paths against `AppContext.BaseDirectory`, or document that relative paths use the current directory. This is frozen behaviour under TM10, so it should be chosen deliberately.
+
+### D6. `ParamName` names a parameter that does not exist on the public API (Low)
+- **Where:** `PreparationInputs.cs:49`, `:55`
+- **Problem:** An invalid or null precomputed contract passed to `CreateAsync` throws with `ParamName = "contractType"`. `CreateAsync`'s only relevant parameter is `options`.
+
+### D7. Precomputed-query failure blames the contract's assembly (Low)
+- **Where:** `TypeManager.cs:95`
+- **Problem:** `DiscoveryFailure(..., contract.Assembly, ...)` reports the contract's assembly. For a framework contract, `AssetPath` then points into the shared framework. The failing metadata would belong to a candidate.
+- **Severity:** This is hard to reach, because `:67–68` already forces `BaseType` and `GetInterfaces()`. When it does fire, though, the attribution is wrong.
+
+### D8. Windows path aliasing (Low)
+- **Where:** `AssemblyInventory.cs:128–141`, `:58–59`, `:95`
+- **Problem 1:** `"Host.dll."` and `"Host.dll "` pass the normalization check. `GetFullPath` then trims them to `Host.dll`, so non-normalized paths are accepted silently.
+- **Problem 2:** The same identity listed with paths that differ only by case does not deduplicate. The record's `Path` equality is ordinal, so the entry fails with a misleading "same simple assembly name" conflict. It fails safely, but with the wrong message.
+
+### D9. A self-defined `ReferenceAssemblyAttribute` is not detected (Low)
+- **Where:** `SelectedAssemblyLoader.cs:64`
+- **Problem:** The check only follows `MemberReference` to `TypeReference`. If an assembly defines the attribute itself, its constructor is a `MethodDefinition`, so the check skips it. Reference-pack facades such as `System.Runtime.dll` are an example.
+
+### D10. A UTF-8 BOM is likely rejected (Low, please verify)
+- **Where:** `AssemblyInventory.cs:33`
+- **Problem:** `JsonDocument.Parse(byte[])` does not skip a BOM, as far as I know. Manifests written by Windows PowerShell 5 (`-Encoding utf8`) would then fail as invalid JSON.
+- **Action:** Accept the BOM or document rejecting it, before the schema is frozen.
+
+## Design and performance notes (not violations)
+
+- **`TypeManager.cs:122`:** Cache hits also take the lock, so every query is serialized. This is correct. §6.5 only requires the lock for first-time computation, so a lock-free read fast path would be a reasonable change once measured.
+- **`TypeManagerPreparationReport.cs:6`, `TypeManagerInitializationException.cs:6`:** Both have internal-only constructors. `ITypeManager` fakes, such as Configuration's tests, cannot build a report. The consumer fixture's `PreparationReport => throw new NotSupportedException()` shows this. A public constructor can be added later without breaking anything, so this only needs to be recorded in the baseline.
+- **`TypeManager.cs:70`:** The duplicate-identity check is effectively unreachable, because the assembly-qualified name includes the assembly. It is harmless.
+
+## Untested roadmap work (gaps, not defects)
+
+- **Build integration and inventory generation (§4.2):** None was supplied. It is the stated first milestone and blocks any completeness claim.
+- **TM02 primary load path:** `LoadFromAssemblyName` succeeding for a deployed dependency that was not yet loaded is not exercised by the supplied tests.
+  - Unit tests reuse the already-loaded test host.
+  - The process fixtures copy assets to a non-application output directory, so they take the `FileNotFoundException` fallback to path loading.
+  - The consumer's two assemblies are both preloaded.
+- **D3's `FileLoadException` path:** No test covers it.
+- **Cancellation at the publication boundary (`TypeManager.cs:103`):** It is never triggered mid-flight.
+- **"Exactly one enumeration per assembly, none on later queries" (§9 gate):** The deleted-files test proves there is no file I/O. It does not count `GetTypes` calls.
+- **Report classification:** No test asserts that `LoadedAssemblyIdentities` is non-empty in isolation. The consumer checks only the sum.
+- **Unsupported host:** The `UnsupportedDeployment` branch for an empty `Location` is untested.
+- **Release-level suites:** Mutation testing, archived backward-compatibility fixtures, memory measurement, the ASP.NET sample host, and Linux path case-sensitivity cases are all absent from the supplied material.
+- **Test naming nit:** `TypeManagerManifestTests.MalformedOrDuplicateJsonIsNeverAccepted` has no duplicate case. Duplicates are covered by a separate test.

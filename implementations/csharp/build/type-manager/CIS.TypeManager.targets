@@ -1,0 +1,74 @@
+<Project>
+  <!-- Source integration for the inventory proof. Package delivery remains TM-032. -->
+  <PropertyGroup>
+    <UseCurrentRuntimeIdentifier Condition="'$(CisTypeManagerEnabled)' == 'true' and '$(RuntimeIdentifier)' == '' and '$(UseCurrentRuntimeIdentifier)' == ''">true</UseCurrentRuntimeIdentifier>
+    <_CisTypeManagerToolProject>$(MSBuildThisFileDirectory)../../eng/CIS.TypeManager.Build/CIS.TypeManager.Build.csproj</_CisTypeManagerToolProject>
+    <_CisTypeManagerToolAssembly>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)../../eng/CIS.TypeManager.Build/bin/$(Configuration)/net10.0/CIS.TypeManager.Build.dll'))</_CisTypeManagerToolAssembly>
+  </PropertyGroup>
+  <ItemGroup Condition="'$(CisTypeManagerEnabled)' == 'true' and '$(DesignTimeBuild)' != 'true'">
+    <ProjectReference Include="$(_CisTypeManagerToolProject)" ReferenceOutputAssembly="false" Private="false"
+                      OutputItemType="_CisTypeManagerToolOutput" PrivateAssets="all"
+                      GlobalPropertiesToRemove="RuntimeIdentifier;SelfContained;PublishSingleFile;PublishTrimmed;PublishAot;OutputPath;OutDir;_CommandLineDefinedOutputPath;CisTypeManagerEnabled" />
+    <Content Include="@(CisTypeManagerAssembly)" Link="%(Filename)%(Extension)"
+             CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
+  </ItemGroup>
+  <UsingTask TaskName="CIS.TypeManagement.Build.WriteTypeInventory" AssemblyFile="$(_CisTypeManagerToolAssembly)"
+             TaskFactory="TaskHostFactory" Runtime="NET" />
+
+  <Target Name="CisLocateTypeManagerTool">
+    <!-- Publishing without building may not have resolved project references in this invocation. -->
+    <MSBuild Projects="$(_CisTypeManagerToolProject)" Targets="GetTargetPath"
+             Properties="Configuration=$(Configuration)"
+             RemoveProperties="RuntimeIdentifier;SelfContained;PublishSingleFile;PublishTrimmed;PublishAot;OutputPath;OutDir;_CommandLineDefinedOutputPath;CisTypeManagerEnabled"
+             Condition="'@(_CisTypeManagerToolOutput)' == ''">
+      <Output TaskParameter="TargetOutputs" ItemName="_CisTypeManagerToolOutput" />
+    </MSBuild>
+    <Error Condition="'@(_CisTypeManagerToolOutput->'%(FullPath)')' != '$(_CisTypeManagerToolAssembly)'"
+           Text="CISTM005: The source build helper output path differs from its registered task path. Custom helper output layouts are unsupported." />
+    <Error Condition="!Exists('$(_CisTypeManagerToolAssembly)')"
+           Text="CISTM005: The Type Manager build helper is missing. Build the host before publishing with --no-build." />
+  </Target>
+
+  <Target Name="CisValidateTypeManagerProfile" BeforeTargets="PrepareForBuild;ComputeFilesToPublish"
+          Condition="'$(CisTypeManagerEnabled)' == 'true' and '$(DesignTimeBuild)' != 'true'">
+    <Error Condition="'$(OutputType)' != 'Exe' and '$(OutputType)' != 'WinExe'"
+           Text="CISTM002: Enable Type Manager inventory only in an executable host." />
+    <Error Condition="'$(TargetFramework)' != 'net10.0' or '$(SelfContained)' == 'true' or '$(PublishSelfContained)' == 'true' or '$(PublishSingleFile)' == 'true' or '$(PublishTrimmed)' == 'true' or '$(PublishAot)' == 'true' or '$(CopyLocalLockFileAssemblies)' == 'false'"
+           Text="CISTM003: Type Manager requires an untrimmed, framework-dependent net10.0 build or folder publish with package runtime assemblies copied locally." />
+    <Error Condition="'$(RuntimeIdentifier)' != 'win-x64' and '$(RuntimeIdentifier)' != 'linux-x64'"
+           Text="CISTM004: Type Manager requires an SDK-selected win-x64 or linux-x64 deployment. Set RuntimeIdentifier explicitly for cross-platform publishing." />
+    <Message Importance="High" Text="Type Manager inventory selects $(RuntimeIdentifier) runtime assets. Specify RuntimeIdentifier explicitly when publishing for another platform." />
+  </Target>
+
+  <Target Name="CisWriteBuildTypeInventory" AfterTargets="CopyFilesToOutputDirectory" DependsOnTargets="CisValidateTypeManagerProfile;CisLocateTypeManagerTool"
+          Condition="'$(CisTypeManagerEnabled)' == 'true' and '$(DesignTimeBuild)' != 'true'">
+    <ItemGroup>
+      <_CisBuildAsset Include="@(ReferenceCopyLocalPaths)">
+        <RelativePath>%(ReferenceCopyLocalPaths.DestinationSubDirectory)%(ReferenceCopyLocalPaths.Filename)%(ReferenceCopyLocalPaths.Extension)</RelativePath>
+      </_CisBuildAsset>
+      <_CisBuildAsset Include="@(CisTypeManagerAssembly)">
+        <RelativePath>%(Filename)%(Extension)</RelativePath>
+        <CisExplicitSelection>true</CisExplicitSelection>
+      </_CisBuildAsset>
+    </ItemGroup>
+    <WriteTypeInventory OutputDirectory="$(TargetDir)" HostFileName="$(TargetFileName)" Assets="@(_CisBuildAsset)">
+      <Output TaskParameter="ManifestPath" ItemName="FileWrites" />
+    </WriteTypeInventory>
+  </Target>
+
+  <Target Name="CisWritePublishTypeInventory" AfterTargets="Publish" DependsOnTargets="CisValidateTypeManagerProfile;CisLocateTypeManagerTool"
+          Condition="'$(CisTypeManagerEnabled)' == 'true' and '$(DesignTimeBuild)' != 'true'">
+    <ItemGroup>
+      <_CisPublishAsset Include="@(_ResolvedCopyLocalPublishAssets)">
+        <RelativePath>%(_ResolvedCopyLocalPublishAssets.DestinationSubDirectory)%(_ResolvedCopyLocalPublishAssets.Filename)%(_ResolvedCopyLocalPublishAssets.Extension)</RelativePath>
+      </_CisPublishAsset>
+      <_CisPublishAsset Include="@(CisTypeManagerAssembly)">
+        <RelativePath>%(Filename)%(Extension)</RelativePath>
+        <CisExplicitSelection>true</CisExplicitSelection>
+      </_CisPublishAsset>
+    </ItemGroup>
+    <WriteTypeInventory OutputDirectory="$([MSBuild]::NormalizeDirectory('$(MSBuildProjectDirectory)', '$(PublishDir)'))" HostFileName="$(TargetFileName)" Assets="@(_CisPublishAsset)">
+      <Output TaskParameter="ManifestPath" ItemName="FileWrites" />
+    </WriteTypeInventory>
+  </Target>
+</Project>

@@ -1,0 +1,16 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <AssemblyName>CIS.TypeManager.Fixture.Host</AssemblyName>
+    <AssemblyName Condition="'$(TypeManagerFixtureHostName)' != ''">$(TypeManagerFixtureHostName)</AssemblyName>
+    <IsTestProject>false</IsTestProject>
+    <CisTypeManagerEnabled>true</CisTypeManagerEnabled>
+  </PropertyGroup>
+  <ItemGroup>
+    <CisTypeManagerAssembly Include="$(ExtraDiscoveryAsset)" Condition="'$(ExtraDiscoveryAsset)' != ''" />
+    <ProjectReference Include="../Unused/Unused.csproj" Condition="'$(ExcludeUnusedFixture)' != 'true'" />
+    <ProjectReference Include="../../../../src/CIS.Core/CIS.Core.csproj" />
+    <Content Include="content-only.txt" Link="content-only.dll" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
+  </ItemGroup>
+  <Import Project="../../../../build/type-manager/CIS.TypeManager.targets" />
+</Project>

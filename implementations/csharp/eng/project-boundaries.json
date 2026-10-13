@@ -9,6 +9,61 @@
   },
   "projects": [
     {
+      "path": "eng/CIS.TypeManager.Build/CIS.TypeManager.Build.csproj",
+      "role": "build-tool",
+      "projectReferences": [],
+      "packageReferences": [],
+      "sdkAssemblyReferences": [
+        "Microsoft.Build.Framework",
+        "Microsoft.Build.Utilities.Core"
+      ]
+    },
+    {
+      "path": "tests/fixtures/TypeManager/Contracts/Contracts.csproj",
+      "role": "test-support",
+      "projectReferences": [],
+      "packageReferences": []
+    },
+    {
+      "path": "tests/fixtures/TypeManager/Transitive/Transitive.csproj",
+      "role": "test-support",
+      "projectReferences": [
+        "tests/fixtures/TypeManager/Contracts/Contracts.csproj"
+      ],
+      "packageReferences": []
+    },
+    {
+      "path": "tests/fixtures/TypeManager/Unused/Unused.csproj",
+      "role": "test-support",
+      "projectReferences": [
+        "tests/fixtures/TypeManager/Transitive/Transitive.csproj"
+      ],
+      "restoredProjectReferences": [
+        "tests/fixtures/TypeManager/Transitive/Transitive.csproj",
+        "tests/fixtures/TypeManager/Contracts/Contracts.csproj"
+      ],
+      "packageReferences": []
+    },
+    {
+      "path": "tests/fixtures/TypeManager/Host/Host.csproj",
+      "role": "process-fixture",
+      "projectReferences": [
+        "src/CIS.Core/CIS.Core.csproj",
+        "tests/fixtures/TypeManager/Unused/Unused.csproj",
+        "eng/CIS.TypeManager.Build/CIS.TypeManager.Build.csproj"
+      ],
+      "buildOnlyProjectReferences": [
+        "eng/CIS.TypeManager.Build/CIS.TypeManager.Build.csproj"
+      ],
+      "restoredProjectReferences": [
+        "src/CIS.Core/CIS.Core.csproj",
+        "tests/fixtures/TypeManager/Unused/Unused.csproj",
+        "tests/fixtures/TypeManager/Transitive/Transitive.csproj",
+        "tests/fixtures/TypeManager/Contracts/Contracts.csproj"
+      ],
+      "packageReferences": []
+    },
+    {
       "path": "src/CIS.Core/CIS.Core.csproj",
       "role": "shipping",
       "projectReferences": [],
@@ -110,6 +165,49 @@
       "projectReferences": [
         "src/CIS.Core/CIS.Core.csproj"
       ],
+      "packageReferences": []
+    },
+    {
+      "projectReferences": [],
+      "path": "tests/fixtures/TypeManager/Runtime/MissingBase/MissingBase.csproj",
+      "role": "test-support",
+      "packageReferences": []
+    },
+    {
+      "projectReferences": [
+        "tests/fixtures/TypeManager/Runtime/MissingBase/MissingBase.csproj"
+      ],
+      "path": "tests/fixtures/TypeManager/Runtime/Broken/Broken.csproj",
+      "role": "test-support",
+      "packageReferences": []
+    },
+    {
+      "projectReferences": [],
+      "path": "tests/fixtures/TypeManager/Runtime/Conflict/Conflict.csproj",
+      "role": "test-support",
+      "packageReferences": []
+    },
+    {
+      "projectReferences": [],
+      "path": "tests/fixtures/TypeManager/Runtime/Forwarded/Forwarded.csproj",
+      "role": "test-support",
+      "packageReferences": []
+    },
+    {
+      "projectReferences": [
+        "tests/fixtures/TypeManager/Runtime/Forwarded/Forwarded.csproj"
+      ],
+      "path": "tests/fixtures/TypeManager/Runtime/Forwarder/Forwarder.csproj",
+      "role": "test-support",
+      "packageReferences": []
+    },
+    {
+      "projectReferences": [
+        "src/CIS.Core/CIS.Core.csproj",
+        "tests/fixtures/TypeManager/Runtime/Conflict/Conflict.csproj"
+      ],
+      "path": "tests/fixtures/TypeManager/Runtime/Host/Host.csproj",
+      "role": "process-fixture",
       "packageReferences": []
     }
   ],

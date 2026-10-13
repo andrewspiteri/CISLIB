@@ -1,0 +1,68 @@
+# Follow-up review: S1, S2, V1, V2, V3
+
+**Verdict: PASS.** No mandatory findings remain for these fixes. One V3 item couldn't be checked against the pasted material; it's listed below as unverified, not as a defect.
+
+## S1: fixed
+- `CopyLocalLockFileAssemblies == 'false'` is now part of the CISTM003 condition in `CisValidateTypeManagerProfile`.
+- MSBuild string comparison is case-insensitive, so `False` and other casings are also caught.
+- The target runs `BeforeTargets="PrepareForBuild"`, so it fails before any copy or inventory step.
+- The `package-copy-disabled` case asserts the specific `CISTM003: Type Manager requires` text.
+- The README states the rejection.
+
+## S2: fixed, and the test discriminates
+- `NormalizeDirectory('$(MSBuildProjectDirectory)', '$(PublishDir)')` handles both path forms:
+  - An absolute `-o` value passes through unchanged.
+  - A relative `PublishDir` is anchored to the project directory.
+- The `default-publish-no-build` case is a real discriminator. The harness runs from `implementations/csharp`, not the project directory. If the task resolved against the CLI's working directory, the manifest would land under `implementations/csharp/bin/...` and `Check-Inventory` would fail on the missing file.
+- A mismatch between the `-getProperty` evaluation and the publish-time `PublishDir` would also fail, not pass falsely, because the expected location is cleared first.
+- `published-process` confirms the folder actually runs.
+
+## V1: fixed
+Every `Check-Inventory` call is now preceded by deletion of the expected manifest:
+
+| Step | Deletion before it |
+|---|---|
+| `build` | `Clear-Inventory` |
+| `publish-no-build` | `Clear-Inventory` |
+| `default-publish-no-build` | `Clear-Inventory` |
+| `after-design-time` | design-time `Remove-Item` plus an absence assertion |
+| `custom-host-output` | `Clear-Inventory` |
+| `remove-reference` | `Clear-Inventory` |
+| `restore-reference` | `Clear-Inventory` in the `finally` block |
+| `explicit-duplicate` | `Clear-Inventory` |
+| `final-build` | `Clear-Inventory` |
+| `rebuild` | clean step plus an absence assertion |
+
+Other parts of the fix:
+- `renamed-host` clears its own manifest, and `Get-Content` under `$ErrorActionPreference = 'Stop'` fails if the file is missing.
+- `Check-Inventory` fails with a clear message when the manifest is missing.
+- The stale `results.json` is removed at startup.
+- The incremental check now requires the `Type Manager inventory:` message at `-v:normal`. Each log is freshly overwritten, so that message must come from the current invocation.
+- Your negative control (generator disabled plus a seeded old manifest, failing at `publish-no-build`) is the right evidence that stale files can no longer pass.
+
+## V2: fixed
+- The `invalid-managed-asset` case runs a text file through the wrapper path:
+  - `PEReader.HasMetadata` throws `BadImageFormatException`.
+  - The loop wrapper rethrows it with the message `...invalid executable metadata: InvalidManagedAsset.dll`.
+  - The expected string includes that filename, so a missing or locked file (an `IOException` with a different message) cannot satisfy it.
+- `reference-assembly` matches the exact generator text. The reference check runs before the simple-name conflict check, so the same-named copy of `Contracts` reports the intended error rather than a conflict.
+- `identity-conflict` now carries the `CISTM001:` prefix.
+- The bare `CISTM002`, `CISTM003` and `CISTM004` matches in the validate-only cases are acceptable, because each code has exactly one source message.
+
+## V3: narrowed correctly in the README; status line not visible
+- The README now scopes Web SDK evidence to CLI publication with an explicit `-o`. It explicitly excludes the `PublishUrl` copy stage of a FileSystem profile and Visual Studio.
+- No support for `PublishUrl` is claimed. That makes it a **deferred unsupported profile, not a defect**.
+- **Unverified:** neither `verify-inventory-matrix.py` (its `publishScope` output) nor the TM-007 line in `planning/type-manager/implementation-status.md` was included. I accept your description, but I can't confirm the wording.
+
+## Optional, not blocking
+1. **The wrapper hides the inner message.** `BadImageFormatException` from "has no executable metadata" (a native PE selected explicitly) and from "is not an assembly" (a netmodule) both surface only as "invalid executable metadata". Consider appending `error.Message`, for example `...: {relativePath} ({error.Message})`. The current test string would still match as a prefix.
+2. **README wording.** "Folder publish writes its own manifest" and "both folder-publish modes" could be read as covering FileSystem profiles generally. "CLI folder publish to `PublishDir`" would match the narrowed scope in the later paragraph.
+3. **Case-sensitive matching.** `Select-String -CaseSensitive` would harden the now-specific matches. It's low value, because the strings are already distinctive.
+4. **Stale files in `-o` directories.** These directories keep stale non-manifest files between runs. That can't cause a false pass, because the selected set comes from the freshly regenerated manifest. Removing the whole directory would still be cleaner evidence hygiene.
+
+## Still open by design
+None of these block this slice:
+- `PublishUrl` / Visual Studio FileSystem profiles
+- Visual Studio / `MSBuild.exe` task hosting
+- `--artifacts-path`, which fails safely with CISTM005
+- Package delivery (TM-032); the package prototype is not adopted

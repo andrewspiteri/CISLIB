@@ -1,0 +1,53 @@
+# Type Manager closure review
+
+**Runtime review: PASS.** F1 through F5 are correctly fixed, and no mandatory runtime defect remains.
+
+**Verification closure: one mandatory finding (V1).** The compatibility script corrupts its own evidence. Two Low runtime items (R1, R2) are recommended before the API/diagnostic baseline is frozen. They are not blocking.
+
+## Fix validation
+
+| Fix | Result | Notes |
+|---|---|---|
+| F1 | Correct | Pass 1 performs no loads. `PEReader` and `GetAssemblyName` are metadata-only. It covers every selection plus any non-dynamic Default occupant. Pass 2 re-finds and revalidates each entry, so a later occupant introduced by an earlier load's callbacks or module initializer is still caught. `TypeManagerInitializationException` from `ValidateIdentity` bypasses the IO/BIF filter as intended. Ordinal identity ordering places `BrokenFixture` before `ConflictFixture`, so the regression actually tests "valid-earlier, defective-later". Cancel-during-load still works because the load happens only in pass 2. |
+| F2 | Correct | Selected is the manifest `hostIdentity`. Observed is the runtime `hostAssembly.FullName`. The exception is not swallowed by the outer `catch` filter. |
+| F3 | Correct | `TryAdd` and return the stored entry. A re-entrant insert cannot disturb the outer loop, which enumerates the immutable `Types`, not the dictionary. A manager under preparation is unreachable from callbacks. |
+| F4 | Correct for loader paths | Covers `FindLoaded`, `FindRuntimeBindingConflict` and post-bind `IsDynamic` rejection. One adjacent snapshot was missed; see R1. |
+| F5 | Correct | `GetFullPath` `ArgumentException` is rethrown with `ParamName == "options"` and the inner exception kept. On .NET 10, `GetFullPath` does not raise `NotSupportedException` or `PathTooLongException` here. |
+| Host marker | Correct | `Single(...)` makes TM02 evidence non-vacuous. |
+| Process script | Correct | Covers the empty root, `--expect-core-sha256`, UTF-8 decoding, and the replay hash comparison against the original complete run. |
+
+## Mandatory (verification)
+
+### V1 — Medium: `Replay-Consumer` overwrites `$Name`; the frozen-binary log and report names are wrong
+`eng/check-type-manager-compatibility.ps1`, `Replay-Consumer`
+
+PowerShell variable names are case-insensitive, and a `foreach` variable persists in the enclosing scope. `foreach ($name in @('CIS.Core.dll', …))` therefore reassigns the parameter `$Name`. After the loop, `$Name` is `'Microsoft.Extensions.DependencyInjection.Abstractions.dll'`. This has three effects:
+
+- Both replays log to `Microsoft.Extensions.DependencyInjection.Abstractions.dll.log`. The `source-consumer` run overwrites the `frozen-binary` log.
+- Both `results` entries are recorded with `name = 'Microsoft.Extensions…dll'` instead of `frozen-binary` / `source-consumer`.
+- The checks still pass, because each run reads its log immediately. That is why the run reported success while its recorded evidence is misattributed and incomplete.
+
+Fix: rename the loop variable (for example `foreach ($fileName in …)`), then rerun the compatibility replay to regenerate the report.
+
+## Recommended runtime (Low, before baseline freeze)
+
+### R1 — Report misclassifies a newly loaded assembly as reused when a dynamic assembly shares its identity
+`TypeManager.cs`, the `initiallyLoaded` snapshot
+
+The snapshot includes dynamic assemblies, while F4 excludes them from reuse. In the `dynamic-name-collision` scenario, the `AssemblyBuilder` is given v1's exact full name. The real v1 is then newly loaded and cataloged, but its identity appears in `ReusedAssemblyIdentities` and not in `LoadedAssemblyIdentities`. That contradicts the property docs and the F4 rule. Under TM10 it would become documented behaviour.
+
+Fix: `.Where(assembly => !assembly.IsDynamic)` in the snapshot. In the `dynamic-name-collision` fixture, also assert that the v1 identity is in `LoadedAssemblyIdentities` and absent from `ReusedAssemblyIdentities`.
+
+### R2 — A bind result from another load context is accepted
+`SelectedAssemblyLoader.Load`, pass 2
+
+For app-local assets that are not in the TPA, `LoadFromAssemblyName` raises `Default.Resolving` and `AppDomain.AssemblyResolve` before the `FileNotFoundException` fallback. A host handler may return a non-dynamic assembly from a custom or collectible ALC with the matching identity. That assembly passes `IsDynamic` and `ValidateIdentity` and gets cataloged. This contradicts the default-context invariant that `ValidateContract` enforces for queries.
+
+Fix: extend the dynamic rejection to `loaded.IsDynamic || AssemblyLoadContext.GetLoadContext(loaded) != AssemblyLoadContext.Default`, using the same `AssemblyLoadFailure` mapping.
+
+## Not verifiable from the supplied text
+- The `TypeManagerInputTests.AlreadyCanceled…` rename or rescoping. That test was not supplied.
+
+## After changes
+- V1 alone is a script change: rerun only the compatibility replay.
+- If R1 or R2 is applied, Core bytes change. Rerun both OS matrices and the compatibility replay, and refresh the recorded SHA-256. No public signatures change.

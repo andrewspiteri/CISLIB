@@ -1,0 +1,74 @@
+# Type Manager follow-up review
+
+**Yes, one runtime correctness change is still required:** F1, validating all selected files before loading any of them. A few small runtime fixes (F3–F5) and one diagnostic-semantics decision (F2) should land before the first API baseline is frozen. Everything else is verification hardening or roadmap work. None of the D1–D10 fixes has regressed in the supplied text.
+
+## Mandatory
+
+### F1 — Medium: selected files are validated one at a time, interleaved with loading
+`implementations/csharp/src/CIS.Core/TypeManagement/SelectedAssemblyLoader.cs`, `Load`
+
+The loop does `ValidateExecutable` → file identity → load for entry *N*, then moves to *N+1*. Definition §5.2 steps 2–3 require the selected identities to be validated, and the complete asset map established, before any newly selected asset is loaded.
+
+The problem: a defect in a later entry that can be found cheaply (reference assembly, non-PE file, file identity mismatch, conflict with an already-loaded version) is only discovered after earlier entries have been loaded into `Default`. Those loads cannot be undone, and they fire `AssemblyLoad` handlers and possibly module initializers (§7, R9). This is avoidable work in a preparation that was always going to fail.
+
+Fix: split the loop into two passes. TPA binding conflicts can still only be detected at bind time, which is acceptable.
+
+```csharp
+// Pass 1: no loading. Validate every selected file and any existing Default-context occupant.
+foreach (var selected in inventory.Assemblies)
+{
+    cancellationToken.ThrowIfCancellationRequested();
+    ValidateExecutable(selected.Path);
+    ValidateIdentity(inventory, selected, AssemblyName.GetAssemblyName(selected.Path).FullName);
+    var existing = FindLoaded(selected);   // exclude IsDynamic, see F4
+    if (existing is not null) { ValidateIdentity(inventory, selected, existing.FullName); }
+}
+// Pass 2: reuse or load, then re-check the actual identity as today.
+```
+
+Keep the same exception mapping in both passes. The cancel-during-load fixture still works, because pass 2 still checks cancellation per entry. Add a unit or process test where entry 1 is valid and not yet loaded, entry 2 is a reference assembly, and entry 1 is still absent from `Default` after the failure.
+
+### F2 — Low, must be decided before the baseline freeze: host-mismatch diagnostics invert the identity properties
+`AssemblyInventory.cs` (the host mismatch throw) and `TypeManagerManifestTests.Utf8BomIsAccepted…`
+
+Everywhere else, `AssemblyIdentity` is the manifest's selection and `ActualAssemblyIdentity` is the observed runtime or file identity. That matches the XML docs ("selected" / "conflicting observed"). The host-mismatch path does the opposite: `AssemblyIdentity = hostAssembly.FullName` (supplied at runtime) and `ActualAssemblyIdentity = <manifest hostAssembly>`.
+
+As a result, the message reads "Selected identity: <runtime host>. Observed identity: <manifest value>". Under TM10, whatever ships first becomes documented behaviour. Swap the two values and update the test while the API is still unpublished.
+
+## Recommended runtime fixes (Low, small)
+
+**F3 — Same-thread re-entrancy can make `Dictionary.Add` throw.** `TypeManager.cs`, `GetOrComputeImplementations`. The `Monitor` lock is re-entrant. `IsAssignableFrom` with variant closed contracts can trigger a type or assembly load, which raises `AssemblyLoad` / `Resolving` callbacks on the same thread while the lock is held. If such a callback queries the same contract, the inner call adds the entry, and the outer `implementations.Add` then throws an `ArgumentException` that looks like an argument error. Use `TryAdd` and return the stored value. This is also the one place where §6.5's "no user callback within that lock" is only best effort; that limit is worth one comment.
+
+**F4 — Reuse lookup does not exclude dynamic assemblies.** `SelectedAssemblyLoader.Load` and `FindRuntimeBindingConflict` search `AssemblyLoadContext.Default.Assemblies` by simple name. An `AssemblyBuilder` assembly with a matching simple name (and, in the worst case, a matching identity) could be reused and cataloged, which contradicts §5.2 ("dynamic assemblies … outside the supported inventory"). Add `!assembly.IsDynamic` to both predicates.
+
+**F5 — Bad manifest path text escapes with the wrong parameter name.** `PreparationInputs.Capture`. `Path.GetFullPath(suppliedPath, AppContext.BaseDirectory)` throws `ArgumentException` with `ParamName == "path"` (for example, an embedded `\0`). Every other option error was normalized to `"options"`. Catch it and rethrow as `ArgumentException(..., nameof(options), inner)`.
+
+## Verification and reproducibility (not runtime defects)
+
+| Severity | Path | Finding |
+|---|---|---|
+| Medium | `tests/fixtures/TypeManager/Host/Program.cs` | `if (marker is not null)` makes the TM02 evidence vacuous. If the contracts assembly drops out of the generated inventory, the fixture still prints success with `containerConstructed = true`. The harness for this fixture was not supplied. Unless it separately asserts the marker and the Unused identity, make the expectation mandatory (or an explicit mode argument). |
+| Low | `verify-runtime-processes.py` | "Identical Core bytes on Windows and Ubuntu" is recorded (`coreSha256`) but not enforced. Add `--expect-core-sha256` and fail on a mismatch. Also, `text=True` decodes with the locale code page on Windows, so non-ASCII log output can crash `run`; pass `encoding="utf-8", errors="replace"`. `--output-root` is not required to be empty, so stale `deployments/`, `generated/obj` or `versions/` content can persist between runs; require an empty root or clear it. |
+| Low | `eng/check-type-manager-compatibility.ps1` | `Replay-Consumer` copies every `*.dll` beside `$CoreAssembly`, so the replay inputs depend on whatever is in that directory. Copy only `CIS.Core.dll` (the manifest only selects it anyway). `*> $log` with `$ErrorActionPreference='Stop'` breaks under Windows PowerShell 5.1 native stderr handling; add `#Requires -Version 7`. |
+| Low | `TypeManagerInputTests.AlreadyCanceled…` | This does not prove that no manifest I/O started, because `ReadAllBytesAsync` with a cancelled token also yields OCE. The guard at the top of `CreateCoreAsync` is correct, but the test name overstates what it shows. |
+| Info | `TypeManager.cs`, `DiscoveryFailure` | `AssetPath` uses `assembly.Location`, while load failures use the selected path. These differ when a same-identity assembly was reused from elsewhere. That is defensible, but document it alongside the raw-relative-path note. |
+| Info | `SelectedAssemblyLoader.Load` | Identity-based reuse means the reference-assembly check covers the *selected file*, not necessarily the file actually cataloged (an already-loaded or TPA copy with the same identity). This is consistent with §5.2's reuse rule; record it as accepted behaviour rather than change it. |
+
+## Roadmap (not new defects)
+
+- **Performance:** each selected entry rescans `Default.Assemblies` with a `GetName()` allocation, so the cost grows with selected × loaded assemblies. `ValidateContract` runs again on every cached query, though checking the cache first is safe because only valid keys are stored. `FindRuntimeBindingConflict` opens every TPA file; it could filter by file name first, and it only runs on failure. These belong in the §9 measurement work.
+- **Post-publication metadata exceptions** from a query propagate raw and are not cached. That is consistent with the table in §6.4, which does not cover it.
+- **Other gaps:** runtime detection of unsupported profiles beyond an empty `Location` (owned by the build integration in D10), plus the package, mutation, DI sample and memory measurements. These are outstanding milestones, not regressions.
+
+## Checked and found correct
+
+- **Argument handling:** synchronous argument validation and input copy, and an already-cancelled token producing a cancelled task.
+- **Cancellation and publication:** OCE is never wrapped in a preparation exception, and the final cancellation check comes after the report is built.
+- **Manifest parsing:** duplicate-property and invalid-UTF-8 detection across unknown members, the BOM slice, and canonical identity enforcement.
+- **Path rules:** OS path comparer and dedupe/conflict rules, and traversal or alias rejection.
+- **Binding conflicts:** TPA binding-conflict classification, and the `MethodDefinition` / `MemberReference` reference-attribute decoding.
+- **Discovery:** `ReflectionTypeLoadException` loader details retained, duplicate-AQN detection, forwarded types excluded, and no instantiation or type initializer forced.
+- **Catalog and queries:** immutable wrappers, lock-free reads of the fixed dictionaries, and ordinal deterministic ordering.
+- **Report:** classification uses the pre-load snapshot.
+
+After applying F1 and F3–F5, Core's bytes change. Rerun both platform matrices and the compatibility replay, and refresh the recorded hashes. No public signature changes, so the frozen API reference stays valid; the F2 fix changes documented diagnostic behaviour only.

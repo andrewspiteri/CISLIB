@@ -24,7 +24,7 @@ function Invoke-Evaluation {
         $arguments += @('-t:ResolveReferences', '-getItem:ReferencePath')
     }
     else {
-        $arguments += @('-getItem:ProjectReference,PackageReference,FrameworkReference,Reference', '-getProperty:TargetFramework,IsPackable,IsTestProject,AssemblyName,PackageId,RootNamespace,OutputType')
+        $arguments += @('-getItem:ProjectReference,PackageReference,FrameworkReference,Reference', '-getProperty:TargetFramework,IsPackable,IsTestProject,AssemblyName,PackageId,RootNamespace,OutputType,MSBuildBinPath,NETCoreSdkVersion')
     }
     $result = & dotnet @arguments
     if ($LASTEXITCODE -ne 0) { throw "Project evaluation failed: $Path" }
@@ -39,12 +39,13 @@ function Check-RestoredGraph {
     if ($null -eq $target) { throw "Missing restored target for $($Project.path): $($projectPolicy.targetFramework)" }
     $resolved = @{}
     $resolvedProjects = @()
+    $expectedRestoredProjects = if ($Project.ContainsKey('restoredProjectReferences')) { $Project.restoredProjectReferences } else { $Project.projectReferences }
     foreach ($identity in $target.Keys) {
         $entry = $target[$identity]
         $id, $version = $identity.Split('/', 2)
         if ($entry.type -eq 'project') {
             $projectAsset = [IO.Path]::GetFullPath((Join-Path (Split-Path $assets.project.restore.projectPath -Parent) $assets.libraries[$identity].msbuildProject))
-            if (-not ($Project.projectReferences | Where-Object { [IO.Path]::GetFullPath((Join-Path $LanguageRoot $_)) -eq $projectAsset })) {
+            if (-not ($expectedRestoredProjects | Where-Object { [IO.Path]::GetFullPath((Join-Path $LanguageRoot $_)) -eq $projectAsset })) {
                 throw "Unapproved restored project dependency for $($Project.path): $id"
             }
             $resolvedProjects += $projectAsset
@@ -59,7 +60,7 @@ function Check-RestoredGraph {
     foreach ($id in $Project.packageReferences) {
         if (-not $resolved.ContainsKey($id)) { throw "Required restored package is missing: $id" }
     }
-    foreach ($reference in $Project.projectReferences) {
+    foreach ($reference in $expectedRestoredProjects) {
         if ([IO.Path]::GetFullPath((Join-Path $LanguageRoot $reference)) -notin $resolvedProjects) {
             throw "Required restored project is missing: $reference"
         }
@@ -97,9 +98,16 @@ try {
         if ($project.role -eq 'process-fixture' -and ($evaluation.Properties.IsTestProject -ne 'false' -or $evaluation.Properties.OutputType -ne 'Exe')) { throw "Process fixture must be a non-test executable: $($project.path)" }
         $actualReferences = @()
         foreach ($reference in $evaluation.Items.ProjectReference) {
-            $referencePath = [IO.Path]::GetFullPath((Join-Path (Split-Path $path -Parent) $reference.Identity))
+            $referencePath = [IO.Path]::GetFullPath($reference.Identity, (Split-Path $path -Parent))
             $allowedReferences = @($project.projectReferences | ForEach-Object { [IO.Path]::GetFullPath((Join-Path $LanguageRoot $_)) })
             if ($referencePath -notin $allowedReferences) { throw "Forbidden project reference from $($project.path): $($reference.Identity)" }
+            $buildOnlyReferences = @()
+            if ($project.ContainsKey('buildOnlyProjectReferences')) {
+                $buildOnlyReferences = @($project.buildOnlyProjectReferences | ForEach-Object { [IO.Path]::GetFullPath((Join-Path $LanguageRoot $_)) })
+            }
+            if ($referencePath -in $buildOnlyReferences -and ($reference.ReferenceOutputAssembly -ne 'false' -or $reference.Private -ne 'false')) {
+                throw "Build-only project must not become a runtime reference: $($reference.Identity)"
+            }
             $actualReferences += $referencePath
         }
         if ($actualReferences.Count -ne $project.projectReferences.Count) { throw "Project reference inventory mismatch: $($project.path)" }
@@ -109,6 +117,16 @@ try {
             }
         }
         foreach ($reference in $evaluation.Items.Reference) {
+            if ($project.role -eq 'build-tool') {
+                $pinnedSdk = (Get-Content -Raw -LiteralPath (Join-Path $LanguageRoot 'global.json') | ConvertFrom-Json).sdk.version
+                $expectedPath = [IO.Path]::GetFullPath((Join-Path $evaluation.Properties.MSBuildBinPath ($reference.Identity + '.dll')))
+                if ($reference.Identity -notin $project.sdkAssemblyReferences -or $reference.Private -ne 'false' -or
+                    $evaluation.Properties.NETCoreSdkVersion -ne $pinnedSdk -or
+                    [IO.Path]::GetFullPath($reference.HintPath) -ne $expectedPath -or -not (Test-Path -LiteralPath $expectedPath)) {
+                    throw "Unapproved pinned-SDK build-tool reference: $($reference.Identity)"
+                }
+                continue
+            }
             $approvedReference = @($developmentPolicy.buildAssemblyReferences | Where-Object name -eq $reference.Identity)
             if ($project.role -ne 'test' -or $approvedReference.Count -ne 1) { throw "Manual assembly references are forbidden: $($project.path)" }
             $packageId = $approvedReference[0].packageId
@@ -121,6 +139,9 @@ try {
                     [IO.Path]::GetFullPath($reference.DefiningProjectFullPath).StartsWith($packageRoot, [StringComparison]::OrdinalIgnoreCase)) { $approvedOrigin = $true }
             }
             if (-not $approvedOrigin) { throw "Unapproved origin for test-tool assembly reference: $($reference.Identity)" }
+        }
+        if ($project.role -eq 'build-tool' -and $evaluation.Items.Reference.Count -ne $project.sdkAssemblyReferences.Count) {
+            throw "Build-tool SDK reference inventory mismatch: $($project.path)"
         }
         $actualPackages = @()
         foreach ($reference in $evaluation.Items.PackageReference) {

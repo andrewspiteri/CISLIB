@@ -1,0 +1,116 @@
+# Review: Type Manager source build inventory and verification slice
+
+**Verdict: not PASS.** The source targets and generator are close. The prior R1–R6 issues are resolved or correctly re-scoped: the early-import requirement is documented, the RID is printed, the task runs out of process with a path check, the matrix pre-deletes manifests, and the cross-RID and rejection cases are added.
+
+What remains:
+- one silent-incompleteness source defect (S1),
+- one untested path-resolution hazard (S2),
+- verification gaps that can produce false passes or overstate evidence (V1–V3).
+
+No commands were run and no files were changed. Line references are to the pasted files.
+
+## Required: current source defects
+
+### S1. Host builds can silently omit package assemblies
+**File:** `build/type-manager/CIS.TypeManager.targets`, `CisValidateTypeManagerProfile`
+
+**Trigger:** the host sets `<CopyLocalLockFileAssemblies>false</CopyLocalLockFileAssemblies>`.
+
+**What happens:**
+- Package runtime assets are not added to `ReferenceCopyLocalPaths` and are not copied to `bin/`.
+- The build manifest omits them, with no error.
+- `dotnet run` still works, because the host resolves packages from the NuGet cache through `deps.json`.
+- Type Manager therefore publishes an incomplete catalog. This contradicts the "complete catalog" contract.
+- Publish is unaffected, so build and publish inventories silently disagree.
+
+**Minimal fix:** add the following to the CISTM003 condition, together with one rejection case in `verify-type-manager-inventory.ps1`:
+
+```
+or '$(CopyLocalLockFileAssemblies)' == 'false'
+```
+
+### S2. A relative `PublishDir` depends on the task host's working directory
+**File:** `CIS.TypeManager.targets`, `CisWritePublishTypeInventory`; `WriteTypeInventory.cs:41`
+
+**Trigger:** a plain `dotnet publish` with no `-o`, or a `.pubxml` that sets a relative `PublishDir`. The default `PublishDir` is relative (`bin\Release\net10.0\<rid>\publish\`). `Path.GetFullPath(OutputDirectory)` then resolves it against the current directory of the `TaskHostFactory` process.
+
+**Status:** MSBuild normally passes the project directory to the task host, so this probably works today. It is not guaranteed, though, and neither script exercises it: every publish in both scripts uses `-o`, which supplies an absolute path. Build mode is unaffected because `$(TargetDir)` is already absolute.
+
+**Minimal fix:**
+- Pass `OutputDirectory="$([MSBuild]::NormalizeDirectory('$(MSBuildProjectDirectory)', '$(PublishDir)'))"`.
+- Add one `dotnet publish --no-build` case without `-o`. Delete the manifest first, then assert it exists at the evaluated `PublishDir`.
+
+## Required: verification false positives and overstated evidence
+
+### V1. The PowerShell inventory script can pass on stale manifests
+**File:** `eng/verify-type-manager-inventory.ps1`
+
+The matrix fix for prior R4 was not applied to this script. The default output root, `.artifacts/type-manager/inventory`, is reused across runs by design. The generator also deliberately leaves unchanged bytes and mtime alone, so stale files are indistinguishable from fresh ones.
+
+| Check | Stale source |
+|---|---|
+| `build` (first `Check-Inventory`) | The manifest in `bin/` from the README's pre-build or an older checkout |
+| `publish-no-build` | `$OutputRoot/publish/*.types.json` from a prior run |
+| `custom-host-output` | `$OutputRoot/custom-host-output/*.types.json` from a prior run |
+| `renamed-host` | `CIS.TypeManager.RenamedHost.types.json` left in `bin/` if a prior run aborted before IncrementalClean |
+
+If either generating target stops firing for that mode, the deterministic compile makes the identity checks pass anyway.
+
+**Minimal fix:**
+- Before each of those steps, remove the expected manifest. For `-o` targets, remove the whole directory.
+- Make `Check-Inventory` fail with a clear message when the manifest is missing.
+
+The `design-time` step already does this correctly and is the pattern to copy.
+
+### V2. Rejection checks accept any failure that mentions a common phrase
+**File:** `verify-type-manager-inventory.ps1`, `Invoke-DotNet` callers for `invalid-managed-asset` and `reference-assembly`
+
+**Trigger:**
+- `'reference assembly'` is matched case-insensitively against the whole log.
+- `'CISTM001'` matches every generator failure, including a missing file.
+
+Either case can pass on an unrelated error, such as a locked file or a missing tool. That is a false negative masquerading as a pass.
+
+**Minimal fix:** match the exact generator text:
+- `CISTM001: Selected runtime asset is a reference assembly`
+- `CISTM001: Selected managed asset has no executable metadata`
+
+Apply the same approach to `Conflicting assembly selection`, which is already specific but should carry the code prefix.
+
+### V3. The Web SDK folder-profile evidence doesn't cover a real Folder profile
+**Files:** `verify-inventory-matrix.py` (`--host-sdk web`); the TM-007 line in `planning/type-manager/implementation-status.md`
+
+**Trigger:** the generated `Folder.pubxml` has no `PublishUrl`, and every publish also passes `-o`. Together these force `PublishDir` to the asserted directory.
+
+A VS- or Web-SDK-shaped FileSystem profile sets `PublishUrl`. Depending on the Web SDK version, files are then staged in an intermediate directory and copied to `PublishUrl` inside the `Publish` dependency chain. In that layout, an `AfterTargets="Publish"` manifest written to `$(PublishDir)` would miss the deployed folder. With `DeleteExistingFiles=false`, the folder would instead keep a stale manifest.
+
+I haven't confirmed which behaviour SDK 10.0.401 uses. That uncertainty is the point: the current case can't detect the difference.
+
+**Minimal fix:**
+1. Add a web case with `PublishUrl` set to an absolute directory, `DeleteExistingFiles=false`, and no `-o`.
+2. Pre-seed a stale manifest in that directory.
+3. Assert that the deployed manifest is the fresh one.
+
+If the case fails, emit the manifest before the copy step. Until the case exists, describe the evidence as "Web SDK with an explicit `-o` publish directory", not "canonical Folder profile".
+
+## Optional and conditional
+- **Solution builds (conditional on `CisLib.slnx`):** if an enabled host is built from a solution that doesn't contain `CIS.TypeManager.Build.csproj`, `ShouldUnsetParentConfigurationAndPlatform` builds the tool as Debug. CISTM005 then fails Release builds. The failure is safe, not a wrong result. Keep the tool in every such solution, or add a solution-build case.
+- **`--artifacts-path` / `UseArtifactsOutput`:** these flow to the tool and trip CISTM005. Again this fails safely. Either add both to `GlobalPropertiesToRemove` and `RemoveProperties`, or list them as unsupported in the README.
+- **Publish path metadata:** prefer `%(_ResolvedCopyLocalPublishAssets.DestinationSubPath)`, which the SDK's own copy step uses, over rebuilding the path from `DestinationSubDirectory`. NuGet-delivered satellites are still unexercised. Adding one fixture satellite to `CIS.TypeManager.RidFixture` would close that gap.
+- **Explicit duplicates:** an identical `CisTypeManagerAssembly` duplicate passes `build` but should hit NETSDK1152 on publish. Either document that or reject it with CISTM.
+- **Incremental check:** the `incremental` check can't tell "target ran, content unchanged" apart from "target never ran". Asserting the normal-importance `Type Manager inventory:` message under `-v:n` would separate them.
+
+## Prototype adoption blockers (not current defects)
+These apply to `evidence/package-sdk-restore-proof/verify-package-sdk-restore.py`. They are consistent with its "not adopted" status, and the status and README text already avoid claiming packaging is solved.
+
+- **Restore during build:**
+  - The restore inside the build runs after evaluation has already imported `nuget.g.props` and `nuget.g.targets`, so package `build/` imports reflect the first, RID-less graph.
+  - It violates `--no-restore` and `RestoreLockedMode`, and needs network access in offline builds.
+  - It also interacts with `packages.lock.json` RID sections.
+- **Concurrency:** it rewrites `project.assets.json` mid-build. Under `-m`, that can race with other nodes evaluating or reading the same project, including static-graph restore and VS nomination.
+- **Untested combinations:** incremental behaviour, a `-r` change between builds, and packages with RID-specific native assets are untested in this mode, as the README already states.
+
+Package delivery (TM-032) therefore remains open. Nothing in this slice should be cited as packaged-consumer evidence.
+
+## Summary
+Fix S1 and S2 in source. Make V1–V3 non-falsifiable in the scripts or narrow their claims. Once those are done, this bounded source slice would merit PASS. Runtime Core correctness and packaging were out of scope.

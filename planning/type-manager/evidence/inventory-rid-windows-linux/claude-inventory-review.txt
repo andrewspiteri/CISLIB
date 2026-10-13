@@ -1,0 +1,136 @@
+# Review: Type Manager automatic assembly inventory slice
+
+Scope: `WriteTypeInventory.cs`, the candidate `CIS.TypeManager.targets`, `verify-inventory-matrix.py`, and the v1.0 definition. I didn't open `CIS.TypeManager.Build.csproj` or `Directory.Build.props`, so findings that depend on them are marked as conditional. Line numbers count from the first line of each file as pasted.
+
+## Required findings
+
+### R1. The default RID only works because of where the fixture imports the targets
+**Location:** `.artifacts/type-manager/candidates/CIS.TypeManager.targets:4`
+
+`UseCurrentRuntimeIdentifier` only matters if it is set before the SDK's RID inference runs. That inference lives in `Microsoft.NET.Sdk.BeforeCommon.targets`. The fixture works because it imports the targets in the middle of the project body (`verify-inventory-matrix.py:127`), which is before `Sdk.targets`. No other delivery location works:
+
+- **Directory.Build.targets or NuGet `build/*.targets`:** these are imported via `Microsoft.Common.targets`, after inference has already run. The RID stays empty, so every plain `dotnet build` fails with CISTM004.
+- **Directory.Build.props or NuGet `build/*.props`:** these are evaluated before the project body. `CisTypeManagerEnabled=true`, which the host sets in its body, is not yet visible, so the condition is false.
+
+So "enable once in the host" plus "automatic default RID" cannot survive TM-032 as designed. The lifecycle script is about to be adapted to RID-qualified paths that depend on this mechanism. Before promotion, decide one of these:
+- deliver via a `.props` file that keys off something visible at props time, or
+- drop the implicit default and require an explicit RID.
+
+### R2. The implicit RID silently ties build and publish output to the build machine's OS
+**Location:** `CIS.TypeManager.targets:4`, `:22-23`
+
+Today `dotnet publish` without `-r` produces a portable framework-dependent layout. With this change, the same command on a Windows CI agent produces win-x64 output:
+- flattened win-x64 runtime assets,
+- a win-x64 `deps.json`,
+- a manifest that selects the win-x64 variant.
+
+Deploy that folder to a Linux container and the host loads Windows-specific managed assets. Nothing fails at build time. The fixture's own `RidAsset` would report `win-x64` on Linux.
+
+The CISTM004 message tells users to set the RID for cross-platform publishing, but nothing enforces it. This conflicts with §9 ("Do not silently set host publishing properties"), and D10 doesn't record replacing the portable layout.
+
+Two fixes are needed:
+- Record the decision in the definition.
+- At least for publish, require an explicit `RuntimeIdentifier`, failing with CISTM004 when it was only inferred. Keep current-RID inference for build/run only, if you keep it at all.
+
+### R3. Hard-coded, in-process build task can be missing, stale, or unloadable
+**Location:** `CIS.TypeManager.targets:5-6`, `:9-10`, `:14`
+
+The task assembly path is hard-coded to `bin/$(Configuration)/net10.0/`, and `UsingTask` loads it in-process. Four concrete failures:
+
+- **`dotnet build host.csproj -o out`:** this sets global `OutputPath`/`_CommandLineDefinedOutputPath`. Those properties flow through the tool `ProjectReference` because `GlobalPropertiesToRemove` doesn't list them. The tool is built into `out/`, which also pollutes the host output, while `UsingTask` loads `bin/...`. You get MSB4062 if that file is missing. Worse, if an older copy exists from a previous build, the old generator runs silently. Artifacts-output layouts set in `Directory.Build.props` hit the same problem (conditional, since I haven't seen that file).
+- **Node reuse on Windows:** the in-process task DLL stays locked by the reused MSBuild node, and the node caches the old task code. After editing `WriteTypeInventory.cs`, the next build either fails copying the tool (MSB3027/MSB3021) or runs the previous code.
+- **.NET Framework MSBuild:** Visual Studio builds, `msbuild.exe`, and VS folder-publish profiles cannot load a `net10.0` task assembly.
+- **What the matrix exercises:** the matrix builds the tool once and never modifies it, so it never hits the node-reuse or stale-task failures.
+
+Fixes:
+- Use `TaskFactory="TaskHostFactory"`, plus `Runtime="NET"` where the MSBuild version supports it.
+- Take the task path from the reference's actual output (`GetTargetPath`/`MSBuild` task output) instead of a fixed path.
+- Add `OutputPath;OutDir;_CommandLineDefinedOutputPath` to `GlobalPropertiesToRemove`.
+- Either state that this is dotnet-CLI-only in the definition, or support VS.
+
+### R4. The matrix can pass against stale manifests
+**Location:** `verify-inventory-matrix.py:145-165`
+
+The script never deletes the manifest before a step. The generator deliberately skips rewriting unchanged content (`WriteTypeInventory.cs:86`), so a changed timestamp can't prove the target ran either. Three ways this produces a false pass:
+
+- **Reused output root:** the docstring and line 111 explicitly support reusing an output root. If a regression stops `CisWritePublishTypeInventory` from firing (for example, under `--no-build`), the script reads the previous run's manifest from `published/<rid>/<mode>/`. Deterministic compilation produces identical variant bytes, so the hash check still passes.
+- **Build mode:** a manifest left in `bin/` from an earlier run satisfies the build-mode check the same way.
+- **Explicit-RID case within one run:** it resolves to the same `TargetDir` as the default case, so its "build" check reads the manifest the default case already wrote.
+
+Fix: delete `*.types.json`, ideally the whole publish directory, before every build and publish step. Also assert that the manifest exists afterwards.
+
+### R5. Explicit RID behaviour is not actually tested
+**Location:** `verify-inventory-matrix.py:144-146`
+
+`for rid in ["default", native_rid]` makes the "explicit" case identical to the default:
+- same RID,
+- same `obj/` and `bin/`,
+- same expected variant.
+
+So nothing shows that an explicit RID drives selection independently of the build OS. That independence is exactly what CISTM004 tells users to rely on.
+
+Add a cross-RID publish on each OS, for example `publish -r linux-x64` on Windows. Then assert:
+- the manifest selects the linux variant by hash,
+- `libcistm-native.so` is deployed,
+- the manifest still excludes the native.
+
+Don't run the host for this case.
+
+### R6. The matrix doesn't prove the stale-file, unsupported-profile, and classification claims
+**Location:** `verify-inventory-matrix.py:156-183`, `WriteTypeInventory.cs:51`, `:62-67`, `:120-123`
+
+None of the following is exercised. Definition §4.2 requires the first milestone to prove them.
+
+- **Incremental removal of a reference:** the manifest drops the entry and IncrementalClean removes the DLL. The generator is item-driven, so this is probably correct by construction, but nothing proves it.
+- **Unchanged output is not rewritten:** check a byte-identical file with an unchanged mtime.
+- **Unsupported profiles:** CISTM002/003/004 for each of:
+  - a library host,
+  - `--self-contained`,
+  - `PublishSingleFile`,
+  - `PublishTrimmed`,
+  - `PublishAot`,
+  - an unsupported RID,
+  - an unsupported profile combined with `publish --no-build`.
+
+  Each must fail and leave no manifest.
+- **Design-time build:** `-p:DesignTimeBuild=true` must emit no manifest.
+- **`dotnet run`, an ASP.NET Core (`Microsoft.NET.Sdk.Web`) host, and a `.pubxml` folder profile:** §9 requires the console and ASP.NET Core hosts. The Web SDK publish pipeline is the case most likely to differ for `AfterTargets="Publish"`.
+- **An explicit `CisTypeManagerAssembly` item.**
+- **Native classification on Linux:** this check proves nothing. `libcistm-native.so` is excluded by the extension filter (`:62-67`), so deleting the `AssetType` branch (`:51`) would still pass. Add a Linux native asset with a `.dll` name, or a non-PE `.dll`, under `runtimes/linux-x64/native/`.
+- **The reference-assembly rejection path (`:120-123`):** it never runs. The package's `ref/` asset proves only that ref assets aren't *selected*, not that a ref assembly in the runtime set is *rejected*.
+
+Either add these cases or narrow what the slice claims to prove.
+
+## Optional improvements
+
+**Targets file**
+- **Explicit items are silently dropped** (`WriteTypeInventory.cs:51`, `:62-67`, `:111-117`). A `CisTypeManagerAssembly` with an unexpected extension or a culture is skipped without an error. Explicit items should fail instead.
+- **Content population depends on import order** (`CIS.TypeManager.targets:11`). The evaluation-time `Content` copy only sees `CisTypeManagerAssembly` items declared *before* the import. Populate it in a target that runs before `AssignTargetPaths`.
+- **Publish path metadata** (`CIS.TypeManager.targets:44-46`). For publish, prefer `%(DestinationSubPath)`, or better, `ResolvedFileToPublish` with `%(RelativePath)` after `ComputeResolvedFilesToPublishList`. That is the authoritative copy destination, rather than rebuilding the path from `DestinationSubDirectory` on a private item.
+- **Meaningless `FileWrites` output** (`CIS.TypeManager.targets:52`). Adding the publish-directory manifest to `FileWrites` after IncrementalClean has run does nothing. Drop it.
+- **Tool `ProjectReference` hardening** (`CIS.TypeManager.targets:8-10`):
+  - Add `PrivateAssets="all"` and assert that the host `deps.json` has no entries for `CIS.TypeManager.Build` or `Microsoft.Build.*`. This is conditional on how the tool csproj declares those packages.
+  - Add `CisTypeManagerEnabled` to `GlobalPropertiesToRemove`. Otherwise a repo-wide import combined with `-p:CisTypeManagerEnabled=true` makes the tool reference itself, which §4.2 forbids ("no recursion").
+  - Don't make the `ProjectReference` conditional on `DesignTimeBuild`. That makes the IDE restore graph differ from the CLI restore graph.
+- **Inconsistent WinExe handling** (`CIS.TypeManager.targets:20`). `WinExe` is accepted, but `net10.0-windows` is rejected, so the `WinExe` allowance is mostly dead.
+- **Candidate path is location-dependent.** The candidate's `../../eng` path is only valid after promotion to `build/type-manager/`.
+
+**Generator**
+- **Manifest file name** (`WriteTypeInventory.cs:85`). It derives from the host *file* name. If `TargetName` differs from `AssemblyName`, the name no longer matches the `<simple-assembly-name>.types.json` contract. Use the host identity's `Name`.
+- **Cross-OS line endings** (`WriteTypeInventory.cs:83`). Set `NewLine = "\n"`. Otherwise .NET 9+ writes CRLF on Windows plus a trailing LF, and manifests differ byte-for-byte across OSes.
+- **Parameter name** (`WriteTypeInventory.cs:93`). Rename `required` to `isHost`. It only controls the satellite check.
+- **Possible `.exe` failure.** Confirm that no apphost `.exe` from a referenced executable project can appear in `ReferenceCopyLocalPaths`. If one does, `:99` hard-fails the build.
+
+**Matrix script**
+- **Duplicates and manifest fields** (`verify-inventory-matrix.py:167`). The dict comprehension collapses duplicate simple names. Also assert:
+  - `len(manifest["assemblies"])`,
+  - `schemaVersion`,
+  - `hostAssembly`,
+  - ordinal ordering,
+  - `assemblyName` equals the deployed file's identity.
+- **Exception handling** (`verify-inventory-matrix.py:184`). Catch `OSError`, `ValueError`, and `KeyError` too, so a missing manifest records a failure and still writes `results.json` instead of crashing.
+- **Output-path parsing** (`verify-inventory-matrix.py:152-154`). `-getProperty` output is parsed from merged stdout/stderr. Capture stdout only.
+- **Native RID detection** (`verify-inventory-matrix.py:144`). Deriving `native_rid` from `os.name` mislabels arm64 and macOS machines. Use `platform.machine()` or refuse to run on unsupported platforms.
+- **NuGet satellites.** Add a NuGet-delivered satellite (`AssetType=resources`). Only project-reference satellites are covered now.
+
+**No changes were made and no commands were run.**

@@ -1,0 +1,36 @@
+# PASS: no remaining mandatory findings in V1, R1 or R2
+
+## V1: PowerShell parameter collision (fixed)
+
+- **Loop variable:** `Replay-Consumer` now loops with `$fileName`. PowerShell variable names are case-insensitive, so this no longer overwrites the `$Name` parameter. `$inputPath` does not collide with the automatic `$input`. `$report.results += …` changes a property of the script-scope object rather than creating a local, so it accumulates correctly.
+- **Result entries:** There are three, `api`, `frozen-binary` and `source-consumer`, each named from its own call-site argument.
+- **Logs:** Each check writes its own log: `api.log`, `source-build.log`, `frozen-binary.log` and `source-consumer.log`. The frozen-consumer hash check still uses SHA256 (the `Get-FileHash` default), consistent with the baseline manifest.
+- **Regressions:** None.
+
+## R1: Dynamic assemblies in the report snapshot (fixed)
+
+- **Snapshot:** `initiallyLoaded` now excludes dynamic assemblies. A same-identity `AssemblyBuilder` can no longer make a newly loaded selected executable appear in `ReusedAssemblyIdentities`.
+- **Consistency:** `FindLoaded`, `FindRuntimeBindingConflict` and the post-load check all ignore or reject dynamic assemblies, so the report and the loader agree.
+- **Fixture:** It asserts:
+  - the selected assembly is nondynamic;
+  - `RuntimeFixtures.Collision` is present;
+  - the identity appears in Loaded and not in Reused.
+
+  This covers the specific misclassification.
+- **Regressions:** None. The snapshot is still taken after the inventory read and before any selected load.
+
+## R2: Custom resolver returning a foreign-context assembly (fixed)
+
+- **Runtime check:** After loading, `AssemblyLoadContext.GetLoadContext(loaded) != AssemblyLoadContext.Default` is checked for both the reuse path and the fresh-load path. A failure raises `BadImageFormatException`, which becomes `AssemblyLoadFailure` with manifest, asset and identity diagnostics.
+- **Why the fixture can only pass on the intended path:**
+  - Prevalidation cannot short-circuit, because `FindLoaded` only scans Default.
+  - If the handler returned null, the path fallback would succeed, and the fixture would throw "unexpectedly succeeded".
+  - If the runtime itself rejected the cross-context result, the error would escape as a non-`TypeManagerInitializationException`.
+- **Cleanup:** The handler is removed and the context unloaded in `finally` on every path, including the early `return` in the dynamic mode. `Unload()` only starts collection and cannot throw here.
+- **Regressions:** None. Legitimately bound TPA, reused and path-loaded assets all report Default as their context.
+
+## Optional hardening (not blocking)
+
+The `foreign-resolver-result` fixture checks only `FailureKind`. Also asserting `InnerException is BadImageFormatException` would pin the specific cause, but the reasoning above already rules out the other paths.
+
+Module status is unchanged from what you described: complete for these fixes, still incomplete for the package, mutation, DI, performance and whole-roadmap gates. The Linux exact-byte replays remain pending.
