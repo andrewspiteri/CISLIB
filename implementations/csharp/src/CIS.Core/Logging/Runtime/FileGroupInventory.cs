@@ -49,7 +49,7 @@ internal sealed class FileGroupInventory
             }
             if (owner.ActiveFile.Length != 0) { throw new CoreLogInitializationException("file", "FileInventoryMissing"); }
             var created = new FileGroupInventory(Guid.NewGuid(), format, [new(1, Path.GetFileName(owner.AbsolutePath), FileSegmentState.Active)]);
-            PublishNew(path, created);
+            Publish(path, created, overwrite: false);
             return created;
         }
         catch (JsonException) { throw Incompatible(); }
@@ -109,10 +109,28 @@ internal sealed class FileGroupInventory
         => ".cis-log-" + groupId.ToString("N") + "-" + segmentId.ToString("D20", CultureInfo.InvariantCulture)
             + (state == FileSegmentState.Damaged ? ".damaged" : ".closed");
 
-    private static void PublishNew(string path, FileGroupInventory inventory)
+    internal FileGroupInventory AfterRotation(string activePath)
     {
-        // Publish complete metadata without overwriting a collision. Failed private candidates
-        // are preserved; startup rollback never deletes pre-existing/nonempty artifacts.
+        // T02 supplies configured retention. Until then, keep the inventory readable
+        // within its existing hard bound, and never wrap or reuse a segment identity.
+        if (Segments.Count >= LoggingOptions.MaximumFileRetainedFiles + 1 || Active.Id == long.MaxValue)
+        {
+            throw new IOException("File segment inventory capacity is exhausted.");
+        }
+        var next = new FileInventorySegment[Segments.Count + 1];
+        for (int index = 0; index < Segments.Count - 1; index++) { next[index] = Segments[index]; }
+        next[^2] = new(Active.Id, ClosedName(GroupId, Active.Id, FileSegmentState.Closed), FileSegmentState.Closed);
+        next[^1] = new(Active.Id + 1, Path.GetFileName(activePath), FileSegmentState.Active);
+        return new FileGroupInventory(GroupId, Format, next);
+    }
+
+    internal void PublishReplacement(string activePath)
+        => Publish(activePath + ".cis.inventory.json", this, overwrite: true);
+
+    private static void Publish(string path, FileGroupInventory inventory, bool overwrite)
+    {
+        // Publish complete same-directory metadata. Preserve failed private candidates;
+        // a collision or interruption is never repaired by deleting pre-existing data.
         string candidate = path + "." + Guid.NewGuid().ToString("N") + ".tmp";
         using (var file = new FileStream(candidate, FileMode.CreateNew, FileAccess.Write, FileShare.None))
         {
@@ -120,13 +138,18 @@ internal sealed class FileGroupInventory
             {
                 writer.WriteStartObject(); writer.WriteNumber("schema", 1); writer.WriteString("groupId", inventory.GroupId.ToString("N"));
                 writer.WriteString("format", FormatName(inventory.Format)); writer.WriteString("encoding", "utf-8"); writer.WriteBoolean("bom", false); writer.WriteString("newline", "lf");
-                writer.WriteStartArray("segments"); writer.WriteStartObject(); writer.WriteNumber("id", inventory.Active.Id);
-                writer.WriteString("fileName", inventory.Active.FileName); writer.WriteString("state", "active");
-                writer.WriteEndObject(); writer.WriteEndArray(); writer.WriteEndObject(); writer.Flush();
+                writer.WriteStartArray("segments");
+                foreach (FileInventorySegment segment in inventory.Segments)
+                {
+                    writer.WriteStartObject(); writer.WriteNumber("id", segment.Id); writer.WriteString("fileName", segment.FileName);
+                    writer.WriteString("state", segment.State switch { FileSegmentState.Active => "active", FileSegmentState.Closed => "closed", FileSegmentState.Damaged => "damaged", _ => throw new InvalidOperationException("Unknown segment state.") });
+                    writer.WriteEndObject();
+                }
+                writer.WriteEndArray(); writer.WriteEndObject(); writer.Flush();
             }
             file.WriteByte((byte)'\n'); file.Flush(flushToDisk: true);
         }
-        File.Move(candidate, path, overwrite: false);
+        File.Move(candidate, path, overwrite);
     }
 
     private static string FormatName(LogOutputFormat format) => format == LogOutputFormat.JsonLines ? "jsonl" : "human";

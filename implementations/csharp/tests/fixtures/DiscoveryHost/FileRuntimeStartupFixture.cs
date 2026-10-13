@@ -120,13 +120,8 @@ internal static class FileRuntimeStartupFixture
                         ["fileBytes"] = Convert.ToBase64String(ReadShared(path))
                     }; probe.Release.TrySetResult();
                 }
-                if (mode == "file-full")
-                {
-                    try { await created.QueuedOutputs!.File!.Completion.WaitAsync(Limit); } catch (IOException) { }
-                    await Until(() => created.GetDiagnostics().Outputs.Single(output => output.OutputName == "console").Written == 1);
-                }
                 created.CloseAdmission();
-                try { await created.QueuedOutputs!.Completion.WaitAsync(Limit); } catch (IOException) when (mode == "file-full") { }
+                await created.QueuedOutputs!.Completion.WaitAsync(Limit);
                 diagnostics = Diagnostics(created.GetDiagnostics());
                 LogWriteResult stopped = logger.WriteLazy(CoreLogLevel.Information, () => { factories++; return new LogEventData { EventName = "should.not.run", Message = "closed" }; });
                 result["afterClose"] = stopped.Outcome.ToString();
@@ -159,6 +154,7 @@ internal static class FileRuntimeStartupFixture
                 ["ownershipReleased"] = ownershipReleased,
                 ["existingRunning"] = existingRunning,
                 ["held"] = held,
+                ["closedBytes"] = mode == "file-full" ? Convert.ToBase64String(ReadShared(Directory.EnumerateFiles(Path.GetDirectoryName(path)!, "*.closed").Single())) : null,
                 ["fileBytes"] = File.Exists(path) ? Convert.ToBase64String(ReadShared(path)) : "",
                 ["consoleBytes"] = Convert.ToBase64String(probe.ToArray()),
                 ["fileExists"] = File.Exists(path),
@@ -171,7 +167,7 @@ internal static class FileRuntimeStartupFixture
         {
             probe.Release.TrySetResult(); created?.CloseAdmission(); existing?.CloseAdmission();
             foreach (OutputEventQueue queue in queues) { queue.Complete(); }
-            try { await Task.WhenAll(tasks.Concat(new[] { created?.QueuedOutputs?.Completion ?? Task.CompletedTask, existing?.QueuedOutputs?.Completion ?? Task.CompletedTask })).WaitAsync(Limit); } catch (IOException) when (mode == "file-full") { }
+            await Task.WhenAll(tasks.Concat(new[] { created?.QueuedOutputs?.Completion ?? Task.CompletedTask, existing?.QueuedOutputs?.Completion ?? Task.CompletedTask })).WaitAsync(Limit);
             probe.Dispose();
         }
     }

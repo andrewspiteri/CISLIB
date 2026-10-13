@@ -1,0 +1,35 @@
+  CIS.Core.TestSupport -> C:\miscwork\portfolio\cislib\implementations\csharp\tests\CIS.Core.TestSupport\bin\Release\net10.0\CIS.Core.TestSupport.dll
+  CIS.Core -> C:\miscwork\portfolio\cislib\implementations\csharp\src\CIS.Core\bin\Release\net10.0\CIS.Core.dll
+  CIS.Core.UnitTests -> C:\miscwork\portfolio\cislib\implementations\csharp\tests\CIS.Core.UnitTests\bin\Release\net10.0\CIS.Core.UnitTests.dll
+Test run for C:\miscwork\portfolio\cislib\implementations\csharp\tests\CIS.Core.UnitTests\bin\Release\net10.0\CIS.Core.UnitTests.dll (.NETCoreApp,Version=v10.0)
+A total of 1 test files matched the specified pattern.
+  Failed FailedMetadataPublicationPreservesClosedBytesAndLeavesNoAppendableActivePath [104 ms]
+  Error Message:
+   Assertion failed. Expected exception of type IOException (or derived) but caught UnauthorizedAccessException.
+
+expected type:    System.IO.IOException (or derived)
+actual exception: System.UnauthorizedAccessException: Access to the path is denied.
+                     at System.IO.FileSystem.MoveFile(String sourceFullPath, String destFullPath, Boolean overwrite)
+                     at CIS.Logging.Runtime.FileGroupInventory.Publish(String path, FileGroupInventory inventory, Boolean overwrite) in C:\miscwork\portfolio\cislib\implementations\csharp\src\CIS.Core\Logging\Runtime\FileGroupInventory.cs:line 152
+                     at CIS.Logging.Runtime.FileGroupInventory.PublishReplacement(String activePath) in C:\miscwork\portfolio\cislib\implementations\csharp\src\CIS.Core\Logging\Runtime\FileGroupInventory.cs:line 128
+                     at CIS.Logging.Runtime.FileOutputOwner.Rotate() in C:\miscwork\portfolio\cislib\implementations\csharp\src\CIS.Core\Logging\Runtime\FileOutputOwner.cs:line 112
+                     at CIS.Logging.Runtime.FileOutputWriter.WriteAsync(AdmittedEvent admitted) in C:\miscwork\portfolio\cislib\implementations\csharp\src\CIS.Core\Logging\Runtime\FileOutputWriter.cs:line 39
+                     at Microsoft.VisualStudio.TestTools.UnitTesting.Assert.IsThrowsAsyncFailingAsync[TException](Func`1 action, Boolean isStrictType)
+
+Assert.ThrowsAsync<IOException>(() => Write(writer, Record(LogOutputFormat.JsonLines, "next")))
+  Stack Trace:
+     at Microsoft.VisualStudio.TestTools.UnitTesting.Assert.ThrowsExceptionAsync[TException](Func`1 action, Boolean isStrictType, String message, String actionExpression, String assertMethodName)
+   at CIS.Tests.UnitTests.FileRotationTests.FailedMetadataPublicationPreservesClosedBytesAndLeavesNoAppendableActivePath() in C:\miscwork\portfolio\cislib\implementations\csharp\tests\CIS.Core.UnitTests\FileRotationTests.cs:line 95
+   at Microsoft.VisualStudio.TestPlatform.MSTest.TestAdapter.Execution.TestMethodInfo.ExecuteInternalAsync(Object[] arguments, CancellationTokenSource timeoutTokenSource, TestInvocationState invocationState)
+  Failed ConfiguredOutputsWriteOrRollbackWithoutLeakingResources ("file-full") [76 ms]
+  Error Message:
+   Test method CIS.Tests.UnitTests.FileRuntimeStartupTests.ConfiguredOutputsWriteOrRollbackWithoutLeakingResources threw exception:
+System.NullReferenceException: Object reference not set to an instance of an object.
+  Stack Trace:
+     at CIS.Tests.DiscoveryFixture.FileRuntimeStartupExpectations.Validate(String mode, JsonObject actual, Byte[] physicalConsole) in C:\miscwork\portfolio\cislib\implementations\csharp\tests\fixtures\DiscoveryHost\FileRuntimeStartupExpectations.cs:line 73
+   at CIS.Tests.UnitTests.FileRuntimeStartupTests.ConfiguredOutputsWriteOrRollbackWithoutLeakingResources(String mode) in C:\miscwork\portfolio\cislib\implementations\csharp\tests\CIS.Core.UnitTests\FileRuntimeStartupTests.cs:line 18
+   at Microsoft.VisualStudio.TestPlatform.MSTest.TestAdapter.Execution.TestMethodInfo.ExecuteInternalAsync(Object[] arguments, CancellationTokenSource timeoutTokenSource, TestInvocationState invocationState)
+
+Results File: C:\miscwork\portfolio\cislib\.artifacts\csharp\tasks\wp05-s06-t01\focused\rotation-unit.trx
+
+Failed!  - Failed:     2, Passed:    49, Skipped:     0, Total:    51, Duration: 178 ms - CIS.Core.UnitTests.dll (net10.0)

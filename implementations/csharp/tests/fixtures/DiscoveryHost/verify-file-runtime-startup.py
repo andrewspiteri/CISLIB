@@ -60,12 +60,13 @@ def check(mode,a,stderr):
     assert a['factories']==(0 if mode=='disabled' else 1),'factory count differs'
     wanted=[]
     for name in names:
-        failed=mode=='file-full' and name=='file';wanted.append(dict(name=name,state='Stopped',accepted=1,written=int(not failed),failed=int(failed),abandoned=0,pending=0,fault='WriteFailed' if failed else None))
+        wanted.append(dict(name=name,state='Stopped',accepted=1,written=1,failed=0,abandoned=0,pending=0,fault=None))
     assert a['diagnostics']==dict(state='Stopped',truncated=int(truncated),outputs=wanted),'output diagnostics differ'
     if mode=='restart':records(fb,False,['file.prior','file.event'],['prior record',message])
-    elif file and mode!='file-full':records(fb,mode in ('human','mixed-file-human','file-display-loss'),['file.event'],[message],truncated,32768 if mode=='file-display-loss' else 16384)
-    elif mode=='file-full':assert len(fb)==65536,'full file changed size';records(fb,False,['file.prior'],['a'*100000],True,65536)
+    elif file:records(fb,mode in ('human','mixed-file-human','file-display-loss'),['file.event'],[message],truncated,32768 if mode=='file-display-loss' else 16384)
     else:assert fb==b'' and a['fileExists'] is False and a['inventoryExists'] is False,'disabled file I/O'
+    if mode=='file-full':
+        closed=base64.b64decode(a['closedBytes'],validate=True);assert len(closed)==65536,'closed full segment changed size';records(closed,False,['file.prior'],['a'*100000],True,65536)
     if console and mode!='physical-console':records(cb,mode in ('human','mixed-console-human'),['file.event'],[message],truncated and mode!='file-display-loss',32768 if mode=='file-display-loss' else 16384)
     else:assert cb==b'','controlled console changed'
     if mode=='physical-console':

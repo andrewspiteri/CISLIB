@@ -7,6 +7,7 @@ namespace CIS.Logging.Runtime;
 internal sealed class FileOutputWriter(string absolutePath, LogOutputFormat format, HumanOutputDetail detail, int maximumEntryBytes, long maximumFileBytes) : IDisposable
 {
     private FileOutputOwner? owner;
+    private long activeBytes;
     internal void Initialize()
     {
         FileOutputOwner acquired = FileOutputOwner.Initialize(absolutePath, format);
@@ -20,6 +21,7 @@ internal sealed class FileOutputWriter(string absolutePath, LogOutputFormat form
                 if (acquired.ActiveFile.ReadByte() != (byte)'\n') { throw new CoreLogInitializationException("file", "FileRecordBoundaryInvalid"); }
             }
             acquired.ActiveFile.Position = length;
+            activeBytes = length;
             owner = acquired;
         }
         catch (CoreLogInitializationException) { acquired.Dispose(); throw; }
@@ -30,9 +32,15 @@ internal sealed class FileOutputWriter(string absolutePath, LogOutputFormat form
     {
         FileOutputOwner active = owner ?? throw new InvalidOperationException("File output is not initialized.");
         ReadOnlyMemory<byte> line = admitted.PreparedLine ?? throw new InvalidOperationException("File records require prepared output bytes.");
-        // S06 replaces this terminal growth guard with complete-record rotation/retention.
-        if (line.Length > maximumFileBytes - active.ActiveFile.Length) { throw new IOException("File segment rotation is required."); }
+        // The prepared record includes every encoded byte and its LF. Never split it.
+        if (line.Length > maximumFileBytes) { throw new IOException("File record exceeds the segment byte limit."); }
+        if (line.Length > maximumFileBytes - activeBytes)
+        {
+            active.Rotate();
+            activeBytes = 0;
+        }
         await active.ActiveFile.WriteAsync(line).ConfigureAwait(false);
+        activeBytes += line.Length;
     }
     public void Dispose() => Interlocked.Exchange(ref owner, null)?.Dispose();
 }

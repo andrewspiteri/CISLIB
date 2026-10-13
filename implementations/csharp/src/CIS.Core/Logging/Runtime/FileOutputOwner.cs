@@ -5,7 +5,7 @@ internal sealed class FileOutputOwner : IDisposable
 {
     private readonly FileStream lease;
     internal string AbsolutePath { get; }
-    internal FileStream ActiveFile { get; }
+    internal FileStream ActiveFile { get; private set; }
     internal FileGroupInventory? Inventory { get; private set; }
     internal bool ActiveWasCreated { get; }
 
@@ -96,6 +96,23 @@ internal sealed class FileOutputOwner : IDisposable
             return owner;
         }
         catch { owner.Dispose(); throw; }
+    }
+
+    internal void Rotate()
+    {
+        RequireOwnership();
+        FileGroupInventory current = Inventory ?? throw new InvalidOperationException("Rotation requires a managed inventory.");
+        FileGroupInventory next = current.AfterRotation(AbsolutePath);
+        string closedPath = Path.Combine(Path.GetDirectoryName(AbsolutePath)!, next.Segments[^2].FileName);
+        // The lease remains held throughout. No incoming record is written until the new
+        // identity is published. Failure after rename leaves no active path to append to;
+        // startup fails closed until S07 supplies interrupted-rotation reconciliation.
+        // Any rotation exception makes this writer unusable; its worker faults terminally.
+        ActiveFile.Dispose();
+        File.Move(AbsolutePath, closedPath, overwrite: false);
+        next.PublishReplacement(AbsolutePath);
+        Inventory = next;
+        ActiveFile = OpenActive(AbsolutePath, FileMode.CreateNew);
     }
 
     internal void RequireOwnership()

@@ -11,6 +11,8 @@ internal static class Program
 {
     private static int Main(string[] args)
     {
+        if (args.Length == 3 && args[0] == "file-rotation") { return FileRotationFixture.Run(args[1], args[2]); }
+
         if (args.Length == 3 && args[0] == "file-runtime-group") { return FileGroupConsumerFixture.Run(args[1], args[2]); }
         if (args.Length == 3 && args[0] == "file-runtime-startup") { return FileRuntimeStartupFixture.Run(args[1], args[2]); }
         if (args.Length == 3 && args[0] == "file-inventory") { return FileInventoryFixture.Run(args[1], args[2]); }

@@ -62,15 +62,15 @@ internal static class FileRuntimeStartupExpectations
         Require(diagnostics["outputs"]!.AsArray().Count == names.Length, "Diagnostic outputs differ.");
         for (int n = 0; n < names.Length; n++)
         {
-            JsonObject outcome = result["outputs"]![n]!.AsObject(), counts = diagnostics["outputs"]![n]!.AsObject(); bool failed = mode == "file-full" && names[n] == "file";
+            JsonObject outcome = result["outputs"]![n]!.AsObject(), counts = diagnostics["outputs"]![n]!.AsObject();
             Require(outcome["name"]!.GetValue<string>() == names[n] && outcome["status"]!.GetValue<string>() == "Accepted" && outcome["ticket"]!.GetValue<long>() == 1, "Output ticket differs.");
-            Require(counts["name"]!.GetValue<string>() == names[n] && counts["state"]!.GetValue<string>() == "Stopped" && counts["accepted"]!.GetValue<long>() == 1 && counts["written"]!.GetValue<long>() == (failed ? 0 : 1) && counts["failed"]!.GetValue<long>() == (failed ? 1 : 0) && counts["abandoned"]!.GetValue<long>() == 0 && counts["pending"]!.GetValue<long>() == 0 && (failed ? counts["fault"]!.GetValue<string>() == "WriteFailed" : counts["fault"] is null), "Output disposition differs.");
+            Require(counts["name"]!.GetValue<string>() == names[n] && counts["state"]!.GetValue<string>() == "Stopped" && counts["accepted"]!.GetValue<long>() == 1 && counts["written"]!.GetValue<long>() == 1 && counts["failed"]!.GetValue<long>() == 0 && counts["abandoned"]!.GetValue<long>() == 0 && counts["pending"]!.GetValue<long>() == 0 && counts["fault"] is null, "Output disposition differs.");
         }
         string message = mode == "file-display-loss" ? new string('\u200d', 8192) : truncated ? new string('z', 30000) : "owned \u03a9 \U0001f642";
         if (mode == "restart") { CheckRecords(fileBytes, false, ["file.prior", "file.event"], ["prior record", message]); }
-        else if (file && mode != "file-full") { CheckRecords(fileBytes, mode is "human" or "mixed-file-human" or "file-display-loss", ["file.event"], [message], truncated, mode == "file-display-loss" ? 32768 : 16384); }
-        else if (mode == "file-full") { Require(fileBytes.Length == 65536, "Full file changed size."); CheckRecords(fileBytes, false, ["file.prior"], [new string('a', 100000)], true, 65536); }
+        else if (file) { CheckRecords(fileBytes, mode is "human" or "mixed-file-human" or "file-display-loss", ["file.event"], [message], truncated, mode == "file-display-loss" ? 32768 : 16384); }
         else { Require(fileBytes.Length == 0 && !actual["fileExists"]!.GetValue<bool>() && !actual["inventoryExists"]!.GetValue<bool>(), "Disabled file performed I/O."); }
+        if (mode == "file-full") { byte[] closed = Convert.FromBase64String(actual["closedBytes"]!.GetValue<string>()); Require(closed.Length == 65536, "Closed full segment changed size."); CheckRecords(closed, false, ["file.prior"], [new string('a', 100000)], true, 65536); }
         if (console && mode != "physical-console") { CheckRecords(consoleBytes, mode is "human" or "mixed-console-human", ["file.event"], [message], truncated && mode != "file-display-loss", mode == "file-display-loss" ? 32768 : 16384); }
         else { Require(consoleBytes.Length == 0, "Unselected controlled stream emitted bytes."); }
         if (mode == "physical-console" && physicalConsole is not null)
