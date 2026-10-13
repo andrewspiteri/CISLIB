@@ -11,6 +11,7 @@ internal static class Program
 {
     private static int Main(string[] args)
     {
+        if (args.Length == 3 && args[0] == "file-rotation-policy") { return FileRotationPolicyFixture.Run(args[1], args[2]); }
         if (args.Length == 3 && args[0] == "file-failure") { return FileFailureFixture.Run(args[1], args[2]); }
 
         if (args.Length == 4 && args[0] == "file-retention") { return FileRetentionFixture.Run(args[1], args[2], args[3]); }

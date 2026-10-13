@@ -1,0 +1,14 @@
+Traceback (most recent call last):
+  File "/mnt/c/miscwork/portfolio/cislib/implementations/csharp/tests/fixtures/DiscoveryHost/verify-file-rotation-policy.py", line 107, in <module>
+    if __name__=='__main__':main()
+                            ^^^^^^
+  File "/mnt/c/miscwork/portfolio/cislib/implementations/csharp/tests/fixtures/DiscoveryHost/verify-file-rotation-policy.py", line 79, in main
+    a=next_report();p.wait(timeout=30);reader.join(timeout=10);errors.join(timeout=10);require(not reader.is_alive() and not errors.is_alive() and p.returncode==0 and b''.join(stderr)==b'','child failure/drain');require((a['pid'],a['runtime'],a['os'],a['coreSha256'],a['fixtureSha256'])==(p.pid,'.NET 10.0.12',args.family,core,fixture),'actual process/runtime/assembly');check(mode,a);require(a['path']==str(work/'logs'/ACTIVE),'captured path')
+      ^^^^^^^^^^^^^
+  File "/mnt/c/miscwork/portfolio/cislib/implementations/csharp/tests/fixtures/DiscoveryHost/verify-file-rotation-policy.py", line 74, in next_report
+    raw=lines.get(timeout=30);require(raw!=b'','unexpected child exit');value=json.loads(raw.decode('utf-8',errors='strict'));reports.append(value);return value
+                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/mnt/c/miscwork/portfolio/cislib/implementations/csharp/tests/fixtures/DiscoveryHost/verify-file-rotation-policy.py", line 8, in require
+    if not value:raise AssertionError(reason)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: unexpected child exit

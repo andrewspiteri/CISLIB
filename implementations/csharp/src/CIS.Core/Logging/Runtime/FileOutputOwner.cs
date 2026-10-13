@@ -104,6 +104,10 @@ internal sealed class FileOutputOwner : IDisposable
         FileGroupInventory current = Inventory ?? throw new InvalidOperationException("Rotation requires a managed inventory.");
         FileGroupInventory next = current.AfterRotation(AbsolutePath, maximumRetainedFiles);
         string directory = Path.GetDirectoryName(AbsolutePath)!;
+        string closedPath = Path.Combine(directory, next.Segments[^2].FileName);
+        // Reject a known reserved-name collision before retiring any listed evidence.
+        // The non-overwriting move below still protects against later external races.
+        if (File.Exists(closedPath) || Directory.Exists(closedPath)) { throw new IOException("Reserved closed segment already exists."); }
         // Remove only exact oldest inventory members, while holding the group lease,
         // before the old active file becomes an additional retained segment.
         int removed = current.Segments.Count + 1 - next.Segments.Count;
@@ -117,7 +121,6 @@ internal sealed class FileOutputOwner : IDisposable
             // preserves other outputs and releases this owner's handles without retry.
             throw FileOutputWriteException.RetentionDeleteFailed();
         }
-        string closedPath = Path.Combine(directory, next.Segments[^2].FileName);
         // The lease remains held throughout. No incoming record is written until the new
         // identity is published. Failure after rename leaves no active path to append to;
         // startup fails closed until S07 supplies interrupted-rotation reconciliation.

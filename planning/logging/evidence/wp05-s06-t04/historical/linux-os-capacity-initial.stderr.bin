@@ -1,0 +1,12 @@
+Unhandled exception. System.ArgumentOutOfRangeException: Specified file length was too large for the file system. (Parameter 'value')
+   at System.IO.RandomAccess.WriteAtOffset(SafeFileHandle handle, ReadOnlySpan`1 buffer, Int64 fileOffset)
+   at Microsoft.Win32.SafeHandles.SafeFileHandle.ThreadPoolValueTaskSource.ExecuteInternal()
+--- End of stack trace from previous location ---
+   at Microsoft.Win32.SafeHandles.SafeFileHandle.ThreadPoolValueTaskSource.GetResult(Int16 token)
+   at CIS.Logging.Runtime.FileOutputWriter.WriteAsync(AdmittedEvent admitted) in C:\miscwork\portfolio\cislib\implementations\csharp\src\CIS.Core\Logging\Runtime\FileOutputWriter.cs:line 52
+   at CIS.Logging.Runtime.OutputEventQueue.ProcessAsync() in C:\miscwork\portfolio\cislib\implementations\csharp\src\CIS.Core\Logging\Runtime\OutputEventQueue.cs:line 135
+   at CIS.Tests.DiscoveryFixture.FileRotationPolicyFixture.<>c__DisplayClass5_2.<<ExecuteAsync>b__3>d.MoveNext() in C:\miscwork\portfolio\cislib\implementations\csharp\tests\fixtures\DiscoveryHost\FileRotationPolicyFixture.cs:line 36
+--- End of stack trace from previous location ---
+   at CIS.Tests.DiscoveryFixture.FileRotationPolicyFixture.ExecuteAsync(String mode, String root) in C:\miscwork\portfolio\cislib\implementations\csharp\tests\fixtures\DiscoveryHost\FileRotationPolicyFixture.cs:line 100
+   at CIS.Tests.DiscoveryFixture.FileRotationPolicyFixture.Run(String mode, String root) in C:\miscwork\portfolio\cislib\implementations\csharp\tests\fixtures\DiscoveryHost\FileRotationPolicyFixture.cs:line 16
+   at CIS.Tests.DiscoveryFixture.Program.Main(String[] args) in C:\miscwork\portfolio\cislib\implementations\csharp\tests\fixtures\DiscoveryHost\Program.cs:line 14

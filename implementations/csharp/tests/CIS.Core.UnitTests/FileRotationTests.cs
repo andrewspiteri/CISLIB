@@ -80,7 +80,7 @@ public sealed class FileRotationTests
         JsonObject inventory = ReadInventory(path); string closed = Path.Combine(root.Path, ".cis-log-" + inventory["groupId"]!.GetValue<string>() + "-00000000000000000001.closed");
         byte[] collision = Encoding.UTF8.GetBytes("unrelated collision\n"), metadata = File.ReadAllBytes(path + ".cis.inventory.json"); File.WriteAllBytes(closed, collision);
         await Assert.ThrowsAsync<IOException>(() => Write(writer, next));
-        CollectionAssert.AreEqual(seed, File.ReadAllBytes(path)); CollectionAssert.AreEqual(collision, File.ReadAllBytes(closed)); CollectionAssert.AreEqual(metadata, File.ReadAllBytes(path + ".cis.inventory.json"));
+        CollectionAssert.AreEqual(seed, ReadShared(path)); CollectionAssert.AreEqual(collision, File.ReadAllBytes(closed)); CollectionAssert.AreEqual(metadata, File.ReadAllBytes(path + ".cis.inventory.json"));
         Assert.Throws<IOException>(() => { using var lease = new FileStream(path + ".cis.lock", FileMode.Open, FileAccess.ReadWrite, FileShare.None); });
     }
 

@@ -1,0 +1,138 @@
+{
+  "schema": "cis.logging.file-rotation-qualification-map/v1",
+  "story": "WP05-S06",
+  "task": "WP05-S06-T04",
+  "scope": "Actual queued internal runtimes and native temporary files on Windows and Ubuntu24.04; controlled callback storage failures separate from Linux process file-size-limit rejection. Later interrupted update/damaged-record recovery remains S07.",
+  "criteria": [
+    {
+      "id": "WP05-S06-AC01",
+      "original": "No record is split between segments; exact-limit and one-byte-over cases rotate correctly using encoded bytes, including line termination.",
+      "nativeLanes": {
+        "rotation": [
+          "jsonl-exact",
+          "jsonl-over",
+          "human-exact",
+          "human-over"
+        ]
+      },
+      "platforms": [
+        "windows",
+        "linux"
+      ],
+      "supplemental": [
+        "collision-jsonl-file",
+        "collision-human-file",
+        "collision-jsonl-directory",
+        "collision-human-directory",
+        "metadata-jsonl-directory",
+        "metadata-human-directory",
+        "write-jsonl-failure",
+        "write-human-failure"
+      ],
+      "limits": "Internal runtime seam; no public lifecycle/activated example, interruption recovery or release claim. Human-too-large qualification uses trusted internal16-byte segment; valid configured limits already bound entries."
+    },
+    {
+      "id": "WP05-S06-AC02",
+      "original": "Normal operation retains at most the configured number of closed segments plus active, and deterministic ordering survives a restart.",
+      "nativeLanes": {
+        "retention": [
+          "jsonl-1-start",
+          "jsonl-1-resume",
+          "jsonl-3-start",
+          "jsonl-3-resume",
+          "human-1-start",
+          "human-1-resume",
+          "human-3-start",
+          "human-3-resume"
+        ]
+      },
+      "platforms": [
+        "windows",
+        "linux"
+      ],
+      "supplemental": [
+        "collision-jsonl-file",
+        "collision-human-file",
+        "collision-jsonl-directory",
+        "collision-human-directory",
+        "metadata-jsonl-directory",
+        "metadata-human-directory",
+        "write-jsonl-failure",
+        "write-human-failure"
+      ],
+      "limits": "Internal runtime seam; no public lifecycle/activated example, interruption recovery or release claim. Human-too-large qualification uses trusted internal16-byte segment; valid configured limits already bound entries."
+    },
+    {
+      "id": "WP05-S06-AC03",
+      "original": "A failed required deletion prevents creation of additional segments that would violate retention; other outputs continue and the fault remains observable.",
+      "nativeLanes": {
+        "failure": [
+          "delete-jsonl-directory",
+          "delete-human-directory",
+          "delete-jsonl-permission",
+          "delete-human-permission"
+        ]
+      },
+      "platforms": [
+        "windows",
+        "linux"
+      ],
+      "supplemental": [
+        "collision-jsonl-file",
+        "collision-human-file",
+        "collision-jsonl-directory",
+        "collision-human-directory",
+        "metadata-jsonl-directory",
+        "metadata-human-directory",
+        "write-jsonl-failure",
+        "write-human-failure"
+      ],
+      "limits": "Internal runtime seam; no public lifecycle/activated example, interruption recovery or release claim. Human-too-large qualification uses trusted internal16-byte segment; valid configured limits already bound entries."
+    },
+    {
+      "id": "WP05-S06-AC04",
+      "original": "Retention never deletes another instance's files, unrelated files, or archives outside the exact rotation group; a too-large human record does not create repeated empty segments.",
+      "nativeLanes": {
+        "failure": [
+          "delete-jsonl-directory",
+          "delete-human-directory",
+          "render-empty",
+          "render-active",
+          "delete-jsonl-permission",
+          "delete-human-permission"
+        ],
+        "retention": [
+          "jsonl-1-start",
+          "jsonl-1-resume",
+          "jsonl-3-start",
+          "jsonl-3-resume",
+          "human-1-start",
+          "human-1-resume",
+          "human-3-start",
+          "human-3-resume"
+        ]
+      },
+      "platforms": [
+        "windows",
+        "linux"
+      ],
+      "supplemental": [
+        "collision-jsonl-file",
+        "collision-human-file",
+        "collision-jsonl-directory",
+        "collision-human-directory",
+        "metadata-jsonl-directory",
+        "metadata-human-directory",
+        "write-jsonl-failure",
+        "write-human-failure"
+      ],
+      "limits": "Internal runtime seam; no public lifecycle/activated example, interruption recovery or release claim. Human-too-large qualification uses trusted internal16-byte segment; valid configured limits already bound entries."
+    }
+  ],
+  "platformSupplemental": {
+    "linux": [
+      "write-jsonl-os-limit"
+    ],
+    "windows": []
+  }
+}
