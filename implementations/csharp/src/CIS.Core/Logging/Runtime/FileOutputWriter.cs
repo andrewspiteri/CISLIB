@@ -4,12 +4,14 @@ using CIS.Logging.Rendering;
 namespace CIS.Logging.Runtime;
 
 // Only the sequential file worker writes. Its terminal path releases this owned resource.
-internal sealed class FileOutputWriter(string absolutePath, LogOutputFormat format, HumanOutputDetail detail, int maximumEntryBytes, long maximumFileBytes) : IDisposable
+internal sealed class FileOutputWriter(string absolutePath, LogOutputFormat format, HumanOutputDetail detail, int maximumEntryBytes, long maximumFileBytes, int maximumRetainedFiles) : IDisposable
 {
     private FileOutputOwner? owner;
     private long activeBytes;
     internal void Initialize()
     {
+        if (maximumRetainedFiles is < LoggingOptions.MinimumFileRetainedFiles or > LoggingOptions.MaximumFileRetainedFiles)
+        { throw new ArgumentOutOfRangeException(nameof(maximumRetainedFiles)); }
         FileOutputOwner acquired = FileOutputOwner.Initialize(absolutePath, format);
         try
         {
@@ -20,6 +22,10 @@ internal sealed class FileOutputWriter(string absolutePath, LogOutputFormat form
                 acquired.ActiveFile.Position = length - 1;
                 if (acquired.ActiveFile.ReadByte() != (byte)'\n') { throw new CoreLogInitializationException("file", "FileRecordBoundaryInvalid"); }
             }
+            // Failed startup preserves every pre-existing retained segment. A lower
+            // selected bound needs explicit archival or a new group before retry.
+            if (acquired.Inventory!.Segments.Count - 1 > maximumRetainedFiles)
+            { throw new CoreLogInitializationException("file", "FileRetentionLimitExceeded"); }
             acquired.ActiveFile.Position = length;
             activeBytes = length;
             owner = acquired;
@@ -36,7 +42,7 @@ internal sealed class FileOutputWriter(string absolutePath, LogOutputFormat form
         if (line.Length > maximumFileBytes) { throw new IOException("File record exceeds the segment byte limit."); }
         if (line.Length > maximumFileBytes - activeBytes)
         {
-            active.Rotate();
+            active.Rotate(maximumRetainedFiles);
             activeBytes = 0;
         }
         await active.ActiveFile.WriteAsync(line).ConfigureAwait(false);

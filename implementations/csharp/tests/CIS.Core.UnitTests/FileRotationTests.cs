@@ -24,7 +24,7 @@ public sealed class FileRotationTests
         byte[] first = Record(format, "first"), second = Record(format, "\u03a9\U0001f642e\u0301");
         Assert.IsTrue(second.Length > Encoding.UTF8.GetString(second).Length);
         long limit = first.Length + second.Length + room;
-        using var writer = new FileOutputWriter(path, format, HumanOutputDetail.Verbose, 16384, limit); writer.Initialize();
+        using var writer = new FileOutputWriter(path, format, HumanOutputDetail.Verbose, 16384, limit, 10); writer.Initialize();
         await Write(writer, first); await Write(writer, second);
         JsonObject inventory = ReadInventory(path); JsonArray segments = inventory["segments"]!.AsArray();
         Assert.AreEqual(room < 0 ? 2 : 1, segments.Count);
@@ -54,7 +54,7 @@ public sealed class FileRotationTests
         using var root = new TemporaryDirectory(); string path = Path.Combine(root.Path, "active.log"); byte[] seed = Record(format, "seed"), next = Record(format, "next");
         using (FileOutputOwner.Initialize(path, format)) { }
         File.WriteAllBytes(path, seed); string id = ReadInventory(path)["groupId"]!.GetValue<string>();
-        using var writer = new FileOutputWriter(path, format, HumanOutputDetail.Normal, 16384, seed.Length); writer.Initialize(); await Write(writer, next);
+        using var writer = new FileOutputWriter(path, format, HumanOutputDetail.Normal, 16384, seed.Length, 10); writer.Initialize(); await Write(writer, next);
         JsonObject inventory = ReadInventory(path); Assert.AreEqual(id, inventory["groupId"]!.GetValue<string>());
         CollectionAssert.AreEqual(seed, File.ReadAllBytes(ClosedPath(path, inventory))); CollectionAssert.AreEqual(next, ReadShared(path));
     }
@@ -65,7 +65,7 @@ public sealed class FileRotationTests
     public async Task RecordLargerThanAnEmptySegmentNeverCreatesEmptyRotations(LogOutputFormat format)
     {
         using var root = new TemporaryDirectory(); string path = Path.Combine(root.Path, "active.log");
-        using var writer = new FileOutputWriter(path, format, HumanOutputDetail.Normal, 16384, 16); writer.Initialize();
+        using var writer = new FileOutputWriter(path, format, HumanOutputDetail.Normal, 16384, 16, 10); writer.Initialize();
         byte[] metadata = File.ReadAllBytes(path + ".cis.inventory.json"), record = Record(format, new string('x', 30));
         for (int attempt = 0; attempt < 2; attempt++) { await Assert.ThrowsAsync<IOException>(() => Write(writer, record)); }
         Assert.AreEqual(0L, new FileInfo(path).Length); Assert.AreEqual(0, Directory.EnumerateFiles(root.Path, "*.closed").Count());
@@ -76,7 +76,7 @@ public sealed class FileRotationTests
     public async Task ClosedNameCollisionPreservesBothFilesAndInventory()
     {
         using var root = new TemporaryDirectory(); string path = Path.Combine(root.Path, "active.log"); byte[] seed = Record(LogOutputFormat.JsonLines, "first"), next = Record(LogOutputFormat.JsonLines, "next");
-        using var writer = new FileOutputWriter(path, LogOutputFormat.JsonLines, HumanOutputDetail.Normal, 16384, seed.Length); writer.Initialize(); await Write(writer, seed);
+        using var writer = new FileOutputWriter(path, LogOutputFormat.JsonLines, HumanOutputDetail.Normal, 16384, seed.Length, 10); writer.Initialize(); await Write(writer, seed);
         JsonObject inventory = ReadInventory(path); string closed = Path.Combine(root.Path, ".cis-log-" + inventory["groupId"]!.GetValue<string>() + "-00000000000000000001.closed");
         byte[] collision = Encoding.UTF8.GetBytes("unrelated collision\n"), metadata = File.ReadAllBytes(path + ".cis.inventory.json"); File.WriteAllBytes(closed, collision);
         await Assert.ThrowsAsync<IOException>(() => Write(writer, next));
@@ -88,7 +88,7 @@ public sealed class FileRotationTests
     public async Task FailedMetadataPublicationPreservesClosedBytesAndLeavesNoAppendableActivePath()
     {
         using var root = new TemporaryDirectory(); string path = Path.Combine(root.Path, "active.log"); byte[] seed = Record(LogOutputFormat.JsonLines, "first");
-        using (var writer = new FileOutputWriter(path, LogOutputFormat.JsonLines, HumanOutputDetail.Normal, 16384, seed.Length))
+        using (var writer = new FileOutputWriter(path, LogOutputFormat.JsonLines, HumanOutputDetail.Normal, 16384, seed.Length, 10))
         {
             writer.Initialize(); await Write(writer, seed); string metadata = path + ".cis.inventory.json";
             File.Delete(metadata); Directory.CreateDirectory(metadata); File.WriteAllText(Path.Combine(metadata, "keep.txt"), "keep");
@@ -101,33 +101,48 @@ public sealed class FileRotationTests
     }
 
     [TestMethod]
-    public async Task ExhaustedSegmentIdentityFailsBeforeRenamingActiveData()
+    [DataRow(false)]
+    [DataRow(true)]
+    public async Task ExhaustedSegmentIdentityFailsBeforeRetiringOrRenamingData(bool retainedAtBound)
     {
         using var root = new TemporaryDirectory(); string path = Path.Combine(root.Path, "active.log"); byte[] seed = Record(LogOutputFormat.JsonLines, "first");
         using (FileOutputOwner.Initialize(path, LogOutputFormat.JsonLines)) { }
-        JsonObject inventory = ReadInventory(path); inventory["segments"]![0]!["id"] = long.MaxValue; File.WriteAllText(path + ".cis.inventory.json", inventory.ToJsonString()); File.WriteAllBytes(path, seed);
-        byte[] metadata = File.ReadAllBytes(path + ".cis.inventory.json"); using var writer = new FileOutputWriter(path, LogOutputFormat.JsonLines, HumanOutputDetail.Normal, 16384, seed.Length); writer.Initialize();
+        JsonObject inventory = ReadInventory(path); JsonArray segments = inventory["segments"]!.AsArray(); segments[^1]!["id"] = long.MaxValue;
+        string closed = Path.Combine(root.Path, ".cis-log-" + inventory["groupId"]!.GetValue<string>() + "-00000000000000000001.closed");
+        if (retainedAtBound) { File.WriteAllBytes(closed, seed); segments.Insert(0, new JsonObject { ["id"] = 1, ["fileName"] = Path.GetFileName(closed), ["state"] = "closed" }); }
+        File.WriteAllText(path + ".cis.inventory.json", inventory.ToJsonString()); File.WriteAllBytes(path, seed);
+        byte[] metadata = File.ReadAllBytes(path + ".cis.inventory.json"); using var writer = new FileOutputWriter(path, LogOutputFormat.JsonLines, HumanOutputDetail.Normal, 16384, seed.Length, 1); writer.Initialize();
         await Assert.ThrowsAsync<IOException>(() => Write(writer, Record(LogOutputFormat.JsonLines, "next")));
-        CollectionAssert.AreEqual(seed, ReadShared(path)); CollectionAssert.AreEqual(metadata, File.ReadAllBytes(path + ".cis.inventory.json")); Assert.AreEqual(0, Directory.EnumerateFiles(root.Path, "*.closed").Count());
+        CollectionAssert.AreEqual(seed, ReadShared(path)); CollectionAssert.AreEqual(metadata, File.ReadAllBytes(path + ".cis.inventory.json")); Assert.AreEqual(retainedAtBound ? 1 : 0, Directory.EnumerateFiles(root.Path, "*.closed").Count());
+        if (retainedAtBound) { CollectionAssert.AreEqual(seed, File.ReadAllBytes(closed)); }
     }
 
     [TestMethod]
-    public async Task FullInventoryFailsBeforeCreatingAnUnreadableNextIdentity()
+    [DataRow(999)]
+    [DataRow(1000)]
+    public async Task MaximumInventoryRotatesWithinTheReadableBound(int closedCount)
     {
         using var root = new TemporaryDirectory(); string path = Path.Combine(root.Path, "active.log"); byte[] seed = Record(LogOutputFormat.JsonLines, "first"), retained = Encoding.UTF8.GetBytes("{\"retained\":true}\n");
         using (FileOutputOwner.Initialize(path, LogOutputFormat.JsonLines)) { }
         JsonObject inventory = ReadInventory(path); string group = inventory["groupId"]!.GetValue<string>(); JsonArray segments = inventory["segments"]!.AsArray(); segments.Clear();
-        for (int id = 1; id <= 1000; id++)
+        for (int id = 1; id <= closedCount; id++)
         {
             string name = ".cis-log-" + group + "-" + id.ToString("D20", System.Globalization.CultureInfo.InvariantCulture) + ".closed";
             File.WriteAllBytes(Path.Combine(root.Path, name), retained); segments.Add(new JsonObject { ["id"] = id, ["fileName"] = name, ["state"] = "closed" });
         }
-        segments.Add(new JsonObject { ["id"] = 1001, ["fileName"] = "active.log", ["state"] = "active" }); File.WriteAllText(path + ".cis.inventory.json", inventory.ToJsonString()); File.WriteAllBytes(path, seed);
-        byte[] metadata = File.ReadAllBytes(path + ".cis.inventory.json"); using var writer = new FileOutputWriter(path, LogOutputFormat.JsonLines, HumanOutputDetail.Normal, 16384, seed.Length); writer.Initialize();
-        await Assert.ThrowsAsync<IOException>(() => Write(writer, Record(LogOutputFormat.JsonLines, "next")));
-        CollectionAssert.AreEqual(seed, ReadShared(path)); CollectionAssert.AreEqual(metadata, File.ReadAllBytes(path + ".cis.inventory.json"));
-        string[] files = Directory.EnumerateFiles(root.Path, "*.closed").ToArray(); Assert.AreEqual(1000, files.Length); foreach (string closed in files) { CollectionAssert.AreEqual(retained, File.ReadAllBytes(closed)); }
-        Assert.AreEqual(0, Directory.EnumerateFiles(root.Path, "*.tmp").Count());
+        segments.Add(new JsonObject { ["id"] = closedCount + 1, ["fileName"] = "active.log", ["state"] = "active" }); File.WriteAllText(path + ".cis.inventory.json", inventory.ToJsonString()); File.WriteAllBytes(path, seed);
+        byte[] next = Record(LogOutputFormat.JsonLines, "next");
+        using (var writer = new FileOutputWriter(path, LogOutputFormat.JsonLines, HumanOutputDetail.Normal, 16384, seed.Length, 1000)) { writer.Initialize(); await Write(writer, next); }
+        JsonArray updated = ReadInventory(path)["segments"]!.AsArray(); Assert.AreEqual(1001, updated.Count); Assert.AreEqual((long)closedCount + 2, updated[^1]!["id"]!.GetValue<long>());
+        Assert.AreEqual(closedCount == 1000 ? 2L : 1L, updated[0]!["id"]!.GetValue<long>());
+        CollectionAssert.AreEqual(next, File.ReadAllBytes(path));
+        for (int index = 0; index < updated.Count - 1; index++)
+        {
+            string closed = Path.Combine(root.Path, updated[index]!["fileName"]!.GetValue<string>());
+            CollectionAssert.AreEqual(index == updated.Count - 2 ? seed : retained, File.ReadAllBytes(closed));
+        }
+        Assert.AreEqual(1000, Directory.EnumerateFiles(root.Path, "*.closed").Count()); Assert.AreEqual(0, Directory.EnumerateFiles(root.Path, "*.tmp").Count());
+        using var restarted = FileOutputOwner.Initialize(path, LogOutputFormat.JsonLines); Assert.AreEqual(1001, restarted.Inventory!.Segments.Count);
     }
 
     private static Task Write(FileOutputWriter writer, byte[] bytes) => writer.WriteAsync(new AdmittedEvent(new EncodedEvent(bytes, false), 1, bytes)).AsTask();

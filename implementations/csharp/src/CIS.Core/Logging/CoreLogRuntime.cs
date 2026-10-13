@@ -97,7 +97,7 @@ public sealed class CoreLogRuntime
         if (selected.FileEnabled && !Path.IsPathFullyQualified(selected.FilePath!))
         { throw new ArgumentException("File output requires an already captured absolute path.", nameof(options)); }
         ConsoleOutputWriter? console = AcquireConsoleWriter(selected, acquireConsole);
-        FileOutputWriter? file = selected.FileEnabled ? new(selected.FilePath!, selected.FileFormat, selected.HumanDetail, selected.MaxEntryBytes, selected.FileMaxBytes) : null;
+        FileOutputWriter? file = selected.FileEnabled ? new(selected.FilePath!, selected.FileFormat, selected.HumanDetail, selected.MaxEntryBytes, selected.FileMaxBytes, selected.FileRetainedFiles) : null;
         return ComposeQueued(metadata, selected, console is null ? null : console.WriteAsync, file is null ? null : file.WriteAsync, timeProvider, console, launchWorker, file);
     }
 

@@ -109,16 +109,16 @@ internal sealed class FileGroupInventory
         => ".cis-log-" + groupId.ToString("N") + "-" + segmentId.ToString("D20", CultureInfo.InvariantCulture)
             + (state == FileSegmentState.Damaged ? ".damaged" : ".closed");
 
-    internal FileGroupInventory AfterRotation(string activePath)
+    internal FileGroupInventory AfterRotation(string activePath, int maximumRetainedFiles)
     {
-        // T02 supplies configured retention. Until then, keep the inventory readable
-        // within its existing hard bound, and never wrap or reuse a segment identity.
-        if (Segments.Count >= LoggingOptions.MaximumFileRetainedFiles + 1 || Active.Id == long.MaxValue)
-        {
-            throw new IOException("File segment inventory capacity is exhausted.");
-        }
-        var next = new FileInventorySegment[Segments.Count + 1];
-        for (int index = 0; index < Segments.Count - 1; index++) { next[index] = Segments[index]; }
+        if (maximumRetainedFiles is < LoggingOptions.MinimumFileRetainedFiles or > LoggingOptions.MaximumFileRetainedFiles)
+        { throw new ArgumentOutOfRangeException(nameof(maximumRetainedFiles)); }
+        // Keep the newest listed closed/damaged identities plus this closing active file.
+        // Segment IDs, rather than timestamps or directory order, survive restarts.
+        if (Active.Id == long.MaxValue) { throw new IOException("File segment identity is exhausted."); }
+        int removed = Math.Max(0, Segments.Count - maximumRetainedFiles);
+        var next = new FileInventorySegment[Segments.Count + 1 - removed];
+        for (int index = removed; index < Segments.Count - 1; index++) { next[index - removed] = Segments[index]; }
         next[^2] = new(Active.Id, ClosedName(GroupId, Active.Id, FileSegmentState.Closed), FileSegmentState.Closed);
         next[^1] = new(Active.Id + 1, Path.GetFileName(activePath), FileSegmentState.Active);
         return new FileGroupInventory(GroupId, Format, next);
