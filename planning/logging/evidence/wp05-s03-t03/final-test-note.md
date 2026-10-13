@@ -1,0 +1,3 @@
+# Final enum assertion refinement
+
+The earlier all-3999 Developer pass preceded strengthening the enum control from an ordered numeric set to four literal name-to-number assertions plus exact membership count. Shipping sources, host, catalog, comparers and all other tests remain unchanged. Final Developer verification is rerun after this qualification-only change; the final source manifest will replace the earlier pin and superseded selected Developer reports. Final native binary hashes must still equal the earlier fully executed 168 children because the changed unit-only source is not part of Core or DiscoveryHost. Claude follow-up reviews the precise refinement and final evidence.

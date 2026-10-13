@@ -20,6 +20,11 @@ internal sealed class OutputEventQueue : ILogOutputAdmission
     private long unavailableCount;
     private bool admissionClosed;
     private bool faulted;
+    private bool stopRequested;
+    private bool workerFinished;
+    private LogOutputState state;
+    private string? lastFaultCode;
+    private DateTimeOffset? lastFaultAtUtc;
     internal OutputEventQueue(int capacity, Func<AdmittedEvent, ValueTask> write, object? sharedAdmissionGate = null)
     {
         ArgumentNullException.ThrowIfNull(write);
@@ -47,7 +52,7 @@ internal sealed class OutputEventQueue : ILogOutputAdmission
         lock (admissionGate)
         {
             return new OutputAccounting(filteredCount, acceptedCount, queueFullCount, unavailableCount,
-                writtenCount, failedCount, abandonedCount, channel.Reader.Count + (inFlight ? 1 : 0), inFlight ? 1 : 0, lastAcceptedSequence);
+                writtenCount, failedCount, abandonedCount, channel.Reader.Count + (inFlight ? 1 : 0), inFlight ? 1 : 0, lastAcceptedSequence, state, lastFaultCode, lastFaultAtUtc);
         }
     }
     public bool IsFaulted { get { lock (admissionGate) { return faulted; } } }
@@ -66,7 +71,7 @@ internal sealed class OutputEventQueue : ILogOutputAdmission
             if (lastAcceptedSequence == long.MaxValue || acceptedCount == long.MaxValue)
             {
                 // No wrap, negative/duplicate ticket or invented acceptance. Exhaustion is terminal.
-                faulted = true; admissionClosed = true; channel.Writer.TryComplete(); RecordUnavailable();
+                Fault("AdmissionExhausted"); RecordUnavailable();
                 return LogOutputWriteStatus.Faulted;
             }
             long next = lastAcceptedSequence + 1;
@@ -84,7 +89,24 @@ internal sealed class OutputEventQueue : ILogOutputAdmission
     public void RecordFiltered() { lock (admissionGate) { if (filteredCount != long.MaxValue) { filteredCount++; } } }
     public void RecordUnavailable() { lock (admissionGate) { if (unavailableCount != long.MaxValue) { unavailableCount++; } } }
     // Primitive queue closure, not the public runtime's flush/deadline/shutdown protocol.
-    internal void Complete() { lock (admissionGate) { admissionClosed = true; channel.Writer.TryComplete(); } }
+    internal void Complete()
+    {
+        lock (admissionGate)
+        {
+            stopRequested = true; admissionClosed = true;
+            state = workerFinished ? LogOutputState.Stopped : LogOutputState.Stopping;
+            channel.Writer.TryComplete();
+        }
+    }
+    // Caller holds the shared gate. Publish closure, safe metadata and all unstarted loss together.
+    private void Fault(string code)
+    {
+        faulted = true; admissionClosed = true;
+        state = stopRequested ? LogOutputState.Stopping : LogOutputState.Faulted;
+        lastFaultCode = code; lastFaultAtUtc = DateTimeOffset.UtcNow;
+        channel.Writer.TryComplete();
+        while (channel.Reader.TryRead(out _)) { abandonedCount++; }
+    }
     private async Task ProcessAsync()
     {
         try
@@ -113,7 +135,7 @@ internal sealed class OutputEventQueue : ILogOutputAdmission
             lock (admissionGate)
             {
                 if (inFlight) { failedCount++; inFlight = false; }
-                faulted = true; admissionClosed = true; channel.Writer.TryComplete();
+                Fault("WriteFailed");
             }
             throw;
         }
@@ -121,9 +143,9 @@ internal sealed class OutputEventQueue : ILogOutputAdmission
         {
             lock (admissionGate)
             {
-                Complete();
-                // Not-started accepted work is abandoned, never promoted to confirmed writes.
-                while (channel.Reader.TryRead(out _)) { abandonedCount++; }
+                admissionClosed = true; channel.Writer.TryComplete();
+                workerFinished = true;
+                state = stopRequested || !faulted ? LogOutputState.Stopped : LogOutputState.Faulted;
             }
         }
     }

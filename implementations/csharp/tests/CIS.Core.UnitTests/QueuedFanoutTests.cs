@@ -95,11 +95,11 @@ public sealed class QueuedFanoutTests
             Assert.AreEqual(LogWriteOutcome.PartiallyAccepted, exhausted.Outcome); Assert.AreEqual(3L, exhausted.Outputs[0].AcceptedSequence); Assert.AreEqual(LogOutputWriteStatus.Faulted, exhausted.Outputs[1].Status); Assert.IsNull(exhausted.Outputs[1].AcceptedSequence);
             Assert.AreEqual(long.MaxValue, file.LastAcceptedSequence); Assert.IsTrue(file.IsFaulted); Assert.AreEqual(1L, file.UnavailableCount);
             Assert.AreEqual(new OutputAccounting(Filtered: 0, Accepted: 2, QueueFull: 0, Unavailable: 1,
-                Written: 0, Failed: 0, Abandoned: 0, Pending: 2, InFlight: 1, AcceptedSequence: long.MaxValue), file.CaptureAccounting());
+                Written: 0, Failed: 0, Abandoned: 1, Pending: 1, InFlight: 1, AcceptedSequence: long.MaxValue), Counts(file.CaptureAccounting()));
             runtime.CloseAdmission(); release.TrySetResult(); await runtime.QueuedOutputs.Completion.WaitAsync(TimeSpan.FromSeconds(10));
             CollectionAssert.AreEqual(new long[] { 1, 2, 3 }, consoleWrites); CollectionAssert.AreEqual(new[] { long.MaxValue - 1 }, fileWrites); Assert.AreEqual(0, file.BufferedCount);
             Assert.AreEqual(new OutputAccounting(Filtered: 0, Accepted: 2, QueueFull: 0, Unavailable: 1,
-                Written: 1, Failed: 0, Abandoned: 1, Pending: 0, InFlight: 0, AcceptedSequence: long.MaxValue), file.CaptureAccounting());
+                Written: 1, Failed: 0, Abandoned: 1, Pending: 0, InFlight: 0, AcceptedSequence: long.MaxValue), Counts(file.CaptureAccounting()));
         }
         finally { release.TrySetResult(); runtime.CloseAdmission(); await runtime.QueuedOutputs.Completion.WaitAsync(TimeSpan.FromSeconds(10)); }
     }
@@ -181,5 +181,6 @@ public sealed class QueuedFanoutTests
     { JsonArray rows = Catalog()["cases"]!.AsArray(); Assert.AreEqual(12, rows.Count); Assert.AreEqual(rows.Count, rows.Select(row => row!["id"]!.GetValue<string>()).Distinct(StringComparer.Ordinal).Count()); CollectionAssert.AreEquivalent(new[] { "basic", "union", "saturation", "independent", "late-close", "late-fault", "early-fault", "mutate", "multi" }, rows.Select(row => row!["mode"]!.GetValue<string>()).Distinct().ToArray()); }
     private static EncodedEvent Event(int label) => new(Encoding.UTF8.GetBytes("{\"input\":" + label + "}\n"), false);
     private static JsonObject Row(string id) => Catalog()["cases"]!.AsArray().Single(row => row!["id"]!.GetValue<string>() == id)!.AsObject();
+    private static OutputAccounting Counts(OutputAccounting value) => value with { State = LogOutputState.Running, LastFaultCode = null, LastFaultAtUtc = null };
     private static JsonObject Catalog() => JsonNode.Parse(File.ReadAllText(Path.Combine(Path.GetDirectoryName(ConfigurationFixtureAdapter.FindFixture())!, "queued-fanout-cases.json")))!.AsObject();
 }

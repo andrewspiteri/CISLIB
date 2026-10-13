@@ -1,0 +1,2265 @@
+{
+  "schema": "cis.logging.output-states/v1",
+  "scope": "WP05-S03-T03 actual internal queue lifecycle; public diagnostics and physical output/shutdown protocols remain pending.",
+  "cases": [
+    {
+      "id": "STATE-HEALTHY-CONSOLE",
+      "consoleMode": "success",
+      "fileMode": "disabled",
+      "closeBeforeRelease": true,
+      "releaseFirst": "console",
+      "expected": {
+        "checkpoints": [
+          {
+            "phase": "initial",
+            "closed": false,
+            "outputs": {
+              "console": {
+                "state": "Running",
+                "fault": null,
+                "accepted": "0",
+                "written": "0",
+                "failed": "0",
+                "abandoned": "0",
+                "pending": "0",
+                "inFlight": "0",
+                "unavailable": "0"
+              }
+            }
+          },
+          {
+            "phase": "held",
+            "closed": false,
+            "outputs": {
+              "console": {
+                "state": "Running",
+                "fault": null,
+                "accepted": "3",
+                "written": "0",
+                "failed": "0",
+                "abandoned": "0",
+                "pending": "3",
+                "inFlight": "1",
+                "unavailable": "0"
+              }
+            }
+          },
+          {
+            "phase": "stop-requested",
+            "closed": true,
+            "outputs": {
+              "console": {
+                "state": "Stopping",
+                "fault": null,
+                "accepted": "3",
+                "written": "0",
+                "failed": "0",
+                "abandoned": "0",
+                "pending": "3",
+                "inFlight": "1",
+                "unavailable": "0"
+              }
+            }
+          },
+          {
+            "phase": "first-terminal",
+            "closed": true,
+            "outputs": {
+              "console": {
+                "state": "Stopped",
+                "fault": null,
+                "accepted": "3",
+                "written": "3",
+                "failed": "0",
+                "abandoned": "0",
+                "pending": "0",
+                "inFlight": "0",
+                "unavailable": "0"
+              }
+            }
+          },
+          {
+            "phase": "after-admission",
+            "closed": true,
+            "outputs": {
+              "console": {
+                "state": "Stopped",
+                "fault": null,
+                "accepted": "3",
+                "written": "3",
+                "failed": "0",
+                "abandoned": "0",
+                "pending": "0",
+                "inFlight": "0",
+                "unavailable": "0"
+              }
+            }
+          },
+          {
+            "phase": "closing",
+            "closed": true,
+            "outputs": {
+              "console": {
+                "state": "Stopped",
+                "fault": null,
+                "accepted": "3",
+                "written": "3",
+                "failed": "0",
+                "abandoned": "0",
+                "pending": "0",
+                "inFlight": "0",
+                "unavailable": "0"
+              }
+            }
+          },
+          {
+            "phase": "final",
+            "closed": true,
+            "outputs": {
+              "console": {
+                "state": "Stopped",
+                "fault": null,
+                "accepted": "3",
+                "written": "3",
+                "failed": "0",
+                "abandoned": "0",
+                "pending": "0",
+                "inFlight": "0",
+                "unavailable": "0"
+              }
+            }
+          },
+          {
+            "phase": "repeated-close",
+            "closed": true,
+            "outputs": {
+              "console": {
+                "state": "Stopped",
+                "fault": null,
+                "accepted": "3",
+                "written": "3",
+                "failed": "0",
+                "abandoned": "0",
+                "pending": "0",
+                "inFlight": "0",
+                "unavailable": "0"
+              }
+            }
+          }
+        ],
+        "result": {
+          "outcome": "Stopped",
+          "outputs": [
+            {
+              "name": "console",
+              "status": "Stopped",
+              "ticket": null
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "STATE-HEALTHY-FILE",
+      "consoleMode": "disabled",
+      "fileMode": "success",
+      "closeBeforeRelease": true,
+      "releaseFirst": "file",
+      "expected": {
+        "checkpoints": [
+          {
+            "phase": "initial",
+            "closed": false,
+            "outputs": {
+              "file": {
+                "state": "Running",
+                "fault": null,
+                "accepted": "0",
+                "written": "0",
+                "failed": "0",
+                "abandoned": "0",
+                "pending": "0",
+                "inFlight": "0",
+                "unavailable": "0"
+              }
+            }
+          },
+          {
+            "phase": "held",
+            "closed": false,
+            "outputs": {
+              "file": {
+                "state": "Running",
+                "fault": null,
+                "accepted": "3",
+                "written": "0",
+                "failed": "0",
+                "abandoned": "0",
+                "pending": "3",
+                "inFlight": "1",
+                "unavailable": "0"
+              }
+            }
+          },
+          {
+            "phase": "stop-requested",
+            "closed": true,
+            "outputs": {
+              "file": {
+                "state": "Stopping",
+                "fault": null,
+                "accepted": "3",
+                "written": "0",
+                "failed": "0",
+                "abandoned": "0",
+                "pending": "3",
+                "inFlight": "1",
+                "unavailable": "0"
+              }
+            }
+          },
+          {
+            "phase": "first-terminal",
+            "closed": true,
+            "outputs": {
+              "file": {
+                "state": "Stopped",
+                "fault": null,
+                "accepted": "3",
+                "written": "3",
+                "failed": "0",
+                "abandoned": "0",
+                "pending": "0",
+                "inFlight": "0",
+                "unavailable": "0"
+              }
+            }
+          },
+          {
+            "phase": "after-admission",
+            "closed": true,
+            "outputs": {
+              "file": {
+                "state": "Stopped",
+                "fault": null,
+                "accepted": "3",
+                "written": "3",
+                "failed": "0",
+                "abandoned": "0",
+                "pending": "0",
+                "inFlight": "0",
+                "unavailable": "0"
+              }
+            }
+          },
+          {
+            "phase": "closing",
+            "closed": true,
+            "outputs": {
+              "file": {
+                "state": "Stopped",
+                "fault": null,
+                "accepted": "3",
+                "written": "3",
+                "failed": "0",
+                "abandoned": "0",
+                "pending": "0",
+                "inFlight": "0",
+                "unavailable": "0"
+              }
+            }
+          },
+          {
+            "phase": "final",
+            "closed": true,
+            "outputs": {
+              "file": {
+                "state": "Stopped",
+                "fault": null,
+                "accepted": "3",
+                "written": "3",
+                "failed": "0",
+                "abandoned": "0",
+                "pending": "0",
+                "inFlight": "0",
+                "unavailable": "0"
+              }
+            }
+          },
+          {
+            "phase": "repeated-close",
+            "closed": true,
+            "outputs": {
+              "file": {
+                "state": "Stopped",
+                "fault": null,
+                "accepted": "3",
+                "written": "3",
+                "failed": "0",
+                "abandoned": "0",
+                "pending": "0",
+                "inFlight": "0",
+                "unavailable": "0"
+              }
+            }
+          }
+        ],
+        "result": {
+          "outcome": "Stopped",
+          "outputs": [
+            {
+              "name": "file",
+              "status": "Stopped",
+              "ticket": null
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "STATE-HEALTHY-BOTH",
+      "consoleMode": "success",
+      "fileMode": "success",
+      "closeBeforeRelease": true,
+      "releaseFirst": "console",
+      "expected": {
+        "checkpoints": [
+          {
+            "phase": "initial",
+            "closed": false,
+            "outputs": {
+              "console": {
+                "state": "Running",
+                "fault": null,
+                "accepted": "0",
+                "written": "0",
+                "failed": "0",
+                "abandoned": "0",
+                "pending": "0",
+                "inFlight": "0",
+                "unavailable": "0"
+              },
+              "file": {
+                "state": "Running",
+                "fault": null,
+                "accepted": "0",
+                "written": "0",
+                "failed": "0",
+                "abandoned": "0",
+                "pending": "0",
+                "inFlight": "0",
+                "unavailable": "0"
+              }
+            }
+          },
+          {
+            "phase": "held",
+            "closed": false,
+            "outputs": {
+              "console": {
+                "state": "Running",
+                "fault": null,
+                "accepted": "3",
+                "written": "0",
+                "failed": "0",
+                "abandoned": "0",
+                "pending": "3",
+                "inFlight": "1",
+                "unavailable": "0"
+              },
+              "file": {
+                "state": "Running",
+                "fault": null,
+                "accepted": "3",
+                "written": "0",
+                "failed": "0",
+                "abandoned": "0",
+                "pending": "3",
+                "inFlight": "1",
+                "unavailable": "0"
+              }
+            }
+          },
+          {
+            "phase": "stop-requested",
+            "closed": true,
+            "outputs": {
+              "console": {
+                "state": "Stopping",
+                "fault": null,
+                "accepted": "3",
+                "written": "0",
+                "failed": "0",
+                "abandoned": "0",
+                "pending": "3",
+                "inFlight": "1",
+                "unavailable": "0"
+              },
+              "file": {
+                "state": "Stopping",
+                "fault": null,
+                "accepted": "3",
+                "written": "0",
+                "failed": "0",
+                "abandoned": "0",
+                "pending": "3",
+                "inFlight": "1",
+                "unavailable": "0"
+              }
+            }
+          },
+          {
+            "phase": "first-terminal",
+            "closed": true,
+            "outputs": {
+              "console": {
+                "state": "Stopped",
+                "fault": null,
+                "accepted": "3",
+                "written": "3",
+                "failed": "0",
+                "abandoned": "0",
+                "pending": "0",
+                "inFlight": "0",
+                "unavailable": "0"
+              },
+              "file": {
+                "state": "Stopping",
+                "fault": null,
+                "accepted": "3",
+                "written": "0",
+                "failed": "0",
+                "abandoned": "0",
+                "pending": "3",
+                "inFlight": "1",
+                "unavailable": "0"
+              }
+            }
+          },
+          {
+            "phase": "after-admission",
+            "closed": true,
+            "outputs": {
+              "console": {
+                "state": "Stopped",
+                "fault": null,
+                "accepted": "3",
+                "written": "3",
+                "failed": "0",
+                "abandoned": "0",
+                "pending": "0",
+                "inFlight": "0",
+                "unavailable": "0"
+              },
+              "file": {
+                "state": "Stopping",
+                "fault": null,
+                "accepted": "3",
+                "written": "0",
+                "failed": "0",
+                "abandoned": "0",
+                "pending": "3",
+                "inFlight": "1",
+                "unavailable": "0"
+              }
+            }
+          },
+          {
+            "phase": "closing",
+            "closed": true,
+            "outputs": {
+              "console": {
+                "state": "Stopped",
+                "fault": null,
+                "accepted": "3",
+                "written": "3",
+                "failed": "0",
+                "abandoned": "0",
+                "pending": "0",
+                "inFlight": "0",
+                "unavailable": "0"
+              },
+              "file": {
+                "state": "Stopping",
+                "fault": null,
+                "accepted": "3",
+                "written": "0",
+                "failed": "0",
+                "abandoned": "0",
+                "pending": "3",
+                "inFlight": "1",
+                "unavailable": "0"
+              }
+            }
+          },
+          {
+            "phase": "final",
+            "closed": true,
+            "outputs": {
+              "console": {
+                "state": "Stopped",
+                "fault": null,
+                "accepted": "3",
+                "written": "3",
+                "failed": "0",
+                "abandoned": "0",
+                "pending": "0",
+                "inFlight": "0",
+                "unavailable": "0"
+              },
+              "file": {
+                "state": "Stopped",
+                "fault": null,
+                "accepted": "3",
+                "written": "3",
+                "failed": "0",
+                "abandoned": "0",
+                "pending": "0",
+                "inFlight": "0",
+                "unavailable": "0"
+              }
+            }
+          },
+          {
+            "phase": "repeated-close",
+            "closed": true,
+            "outputs": {
+              "console": {
+                "state": "Stopped",
+                "fault": null,
+                "accepted": "3",
+                "written": "3",
+                "failed": "0",
+                "abandoned": "0",
+                "pending": "0",
+                "inFlight": "0",
+                "unavailable": "0"
+              },
+              "file": {
+                "state": "Stopped",
+                "fault": null,
+                "accepted": "3",
+                "written": "3",
+                "failed": "0",
+                "abandoned": "0",
+                "pending": "0",
+                "inFlight": "0",
+                "unavailable": "0"
+              }
+            }
+          }
+        ],
+        "result": {
+          "outcome": "Stopped",
+          "outputs": [
+            {
+              "name": "console",
+              "status": "Stopped",
+              "ticket": null
+            },
+            {
+              "name": "file",
+              "status": "Stopped",
+              "ticket": null
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "STATE-DISABLED",
+      "consoleMode": "disabled",
+      "fileMode": "disabled",
+      "closeBeforeRelease": true,
+      "releaseFirst": "console",
+      "expected": {
+        "checkpoints": [
+          {
+            "phase": "initial",
+            "closed": false,
+            "outputs": {}
+          },
+          {
+            "phase": "held",
+            "closed": false,
+            "outputs": {}
+          },
+          {
+            "phase": "stop-requested",
+            "closed": true,
+            "outputs": {}
+          },
+          {
+            "phase": "first-terminal",
+            "closed": true,
+            "outputs": {}
+          },
+          {
+            "phase": "after-admission",
+            "closed": true,
+            "outputs": {}
+          },
+          {
+            "phase": "closing",
+            "closed": true,
+            "outputs": {}
+          },
+          {
+            "phase": "final",
+            "closed": true,
+            "outputs": {}
+          },
+          {
+            "phase": "repeated-close",
+            "closed": true,
+            "outputs": {}
+          }
+        ],
+        "result": {
+          "outcome": "Stopped",
+          "outputs": []
+        }
+      }
+    },
+    {
+      "id": "STATE-FAIL-CONSOLE",
+      "consoleMode": "failure",
+      "fileMode": "disabled",
+      "closeBeforeRelease": false,
+      "releaseFirst": "console",
+      "expected": {
+        "checkpoints": [
+          {
+            "phase": "initial",
+            "closed": false,
+            "outputs": {
+              "console": {
+                "state": "Running",
+                "fault": null,
+                "accepted": "0",
+                "written": "0",
+                "failed": "0",
+                "abandoned": "0",
+                "pending": "0",
+                "inFlight": "0",
+                "unavailable": "0"
+              }
+            }
+          },
+          {
+            "phase": "held",
+            "closed": false,
+            "outputs": {
+              "console": {
+                "state": "Running",
+                "fault": null,
+                "accepted": "3",
+                "written": "0",
+                "failed": "0",
+                "abandoned": "0",
+                "pending": "3",
+                "inFlight": "1",
+                "unavailable": "0"
+              }
+            }
+          },
+          {
+            "phase": "first-terminal",
+            "closed": false,
+            "outputs": {
+              "console": {
+                "state": "Faulted",
+                "fault": "WriteFailed",
+                "accepted": "3",
+                "written": "0",
+                "failed": "1",
+                "abandoned": "2",
+                "pending": "0",
+                "inFlight": "0",
+                "unavailable": "0"
+              }
+            }
+          },
+          {
+            "phase": "after-admission",
+            "closed": false,
+            "outputs": {
+              "console": {
+                "state": "Faulted",
+                "fault": "WriteFailed",
+                "accepted": "3",
+                "written": "0",
+                "failed": "1",
+                "abandoned": "2",
+                "pending": "0",
+                "inFlight": "0",
+                "unavailable": "1"
+              }
+            }
+          },
+          {
+            "phase": "closing",
+            "closed": true,
+            "outputs": {
+              "console": {
+                "state": "Stopped",
+                "fault": "WriteFailed",
+                "accepted": "3",
+                "written": "0",
+                "failed": "1",
+                "abandoned": "2",
+                "pending": "0",
+                "inFlight": "0",
+                "unavailable": "1"
+              }
+            }
+          },
+          {
+            "phase": "final",
+            "closed": true,
+            "outputs": {
+              "console": {
+                "state": "Stopped",
+                "fault": "WriteFailed",
+                "accepted": "3",
+                "written": "0",
+                "failed": "1",
+                "abandoned": "2",
+                "pending": "0",
+                "inFlight": "0",
+                "unavailable": "1"
+              }
+            }
+          },
+          {
+            "phase": "repeated-close",
+            "closed": true,
+            "outputs": {
+              "console": {
+                "state": "Stopped",
+                "fault": "WriteFailed",
+                "accepted": "3",
+                "written": "0",
+                "failed": "1",
+                "abandoned": "2",
+                "pending": "0",
+                "inFlight": "0",
+                "unavailable": "1"
+              }
+            }
+          }
+        ],
+        "result": {
+          "outcome": "Rejected",
+          "outputs": [
+            {
+              "name": "console",
+              "status": "Faulted",
+              "ticket": null
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "STATE-FAIL-FILE",
+      "consoleMode": "disabled",
+      "fileMode": "failure",
+      "closeBeforeRelease": false,
+      "releaseFirst": "file",
+      "expected": {
+        "checkpoints": [
+          {
+            "phase": "initial",
+            "closed": false,
+            "outputs": {
+              "file": {
+                "state": "Running",
+                "fault": null,
+                "accepted": "0",
+                "written": "0",
+                "failed": "0",
+                "abandoned": "0",
+                "pending": "0",
+                "inFlight": "0",
+                "unavailable": "0"
+              }
+            }
+          },
+          {
+            "phase": "held",
+            "closed": false,
+            "outputs": {
+              "file": {
+                "state": "Running",
+                "fault": null,
+                "accepted": "3",
+                "written": "0",
+                "failed": "0",
+                "abandoned": "0",
+                "pending": "3",
+                "inFlight": "1",
+                "unavailable": "0"
+              }
+            }
+          },
+          {
+            "phase": "first-terminal",
+            "closed": false,
+            "outputs": {
+              "file": {
+                "state": "Faulted",
+                "fault": "WriteFailed",
+                "accepted": "3",
+                "written": "0",
+                "failed": "1",
+                "abandoned": "2",
+                "pending": "0",
+                "inFlight": "0",
+                "unavailable": "0"
+              }
+            }
+          },
+          {
+            "phase": "after-admission",
+            "closed": false,
+            "outputs": {
+              "file": {
+                "state": "Faulted",
+                "fault": "WriteFailed",
+                "accepted": "3",
+                "written": "0",
+                "failed": "1",
+                "abandoned": "2",
+                "pending": "0",
+                "inFlight": "0",
+                "unavailable": "1"
+              }
+            }
+          },
+          {
+            "phase": "closing",
+            "closed": true,
+            "outputs": {
+              "file": {
+                "state": "Stopped",
+                "fault": "WriteFailed",
+                "accepted": "3",
+                "written": "0",
+                "failed": "1",
+                "abandoned": "2",
+                "pending": "0",
+                "inFlight": "0",
+                "unavailable": "1"
+              }
+            }
+          },
+          {
+            "phase": "final",
+            "closed": true,
+            "outputs": {
+              "file": {
+                "state": "Stopped",
+                "fault": "WriteFailed",
+                "accepted": "3",
+                "written": "0",
+                "failed": "1",
+                "abandoned": "2",
+                "pending": "0",
+                "inFlight": "0",
+                "unavailable": "1"
+              }
+            }
+          },
+          {
+            "phase": "repeated-close",
+            "closed": true,
+            "outputs": {
+              "file": {
+                "state": "Stopped",
+                "fault": "WriteFailed",
+                "accepted": "3",
+                "written": "0",
+                "failed": "1",
+                "abandoned": "2",
+                "pending": "0",
+                "inFlight": "0",
+                "unavailable": "1"
+              }
+            }
+          }
+        ],
+        "result": {
+          "outcome": "Rejected",
+          "outputs": [
+            {
+              "name": "file",
+              "status": "Faulted",
+              "ticket": null
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "STATE-ISOLATE-CONSOLE",
+      "consoleMode": "failure",
+      "fileMode": "success",
+      "closeBeforeRelease": false,
+      "releaseFirst": "console",
+      "expected": {
+        "checkpoints": [
+          {
+            "phase": "initial",
+            "closed": false,
+            "outputs": {
+              "console": {
+                "state": "Running",
+                "fault": null,
+                "accepted": "0",
+                "written": "0",
+                "failed": "0",
+                "abandoned": "0",
+                "pending": "0",
+                "inFlight": "0",
+                "unavailable": "0"
+              },
+              "file": {
+                "state": "Running",
+                "fault": null,
+                "accepted": "0",
+                "written": "0",
+                "failed": "0",
+                "abandoned": "0",
+                "pending": "0",
+                "inFlight": "0",
+                "unavailable": "0"
+              }
+            }
+          },
+          {
+            "phase": "held",
+            "closed": false,
+            "outputs": {
+              "console": {
+                "state": "Running",
+                "fault": null,
+                "accepted": "3",
+                "written": "0",
+                "failed": "0",
+                "abandoned": "0",
+                "pending": "3",
+                "inFlight": "1",
+                "unavailable": "0"
+              },
+              "file": {
+                "state": "Running",
+                "fault": null,
+                "accepted": "3",
+                "written": "0",
+                "failed": "0",
+                "abandoned": "0",
+                "pending": "3",
+                "inFlight": "1",
+                "unavailable": "0"
+              }
+            }
+          },
+          {
+            "phase": "first-terminal",
+            "closed": false,
+            "outputs": {
+              "console": {
+                "state": "Faulted",
+                "fault": "WriteFailed",
+                "accepted": "3",
+                "written": "0",
+                "failed": "1",
+                "abandoned": "2",
+                "pending": "0",
+                "inFlight": "0",
+                "unavailable": "0"
+              },
+              "file": {
+                "state": "Running",
+                "fault": null,
+                "accepted": "3",
+                "written": "0",
+                "failed": "0",
+                "abandoned": "0",
+                "pending": "3",
+                "inFlight": "1",
+                "unavailable": "0"
+              }
+            }
+          },
+          {
+            "phase": "after-admission",
+            "closed": false,
+            "outputs": {
+              "console": {
+                "state": "Faulted",
+                "fault": "WriteFailed",
+                "accepted": "3",
+                "written": "0",
+                "failed": "1",
+                "abandoned": "2",
+                "pending": "0",
+                "inFlight": "0",
+                "unavailable": "1"
+              },
+              "file": {
+                "state": "Running",
+                "fault": null,
+                "accepted": "4",
+                "written": "0",
+                "failed": "0",
+                "abandoned": "0",
+                "pending": "4",
+                "inFlight": "1",
+                "unavailable": "0"
+              }
+            }
+          },
+          {
+            "phase": "closing",
+            "closed": true,
+            "outputs": {
+              "console": {
+                "state": "Stopped",
+                "fault": "WriteFailed",
+                "accepted": "3",
+                "written": "0",
+                "failed": "1",
+                "abandoned": "2",
+                "pending": "0",
+                "inFlight": "0",
+                "unavailable": "1"
+              },
+              "file": {
+                "state": "Stopping",
+                "fault": null,
+                "accepted": "4",
+                "written": "0",
+                "failed": "0",
+                "abandoned": "0",
+                "pending": "4",
+                "inFlight": "1",
+                "unavailable": "0"
+              }
+            }
+          },
+          {
+            "phase": "final",
+            "closed": true,
+            "outputs": {
+              "console": {
+                "state": "Stopped",
+                "fault": "WriteFailed",
+                "accepted": "3",
+                "written": "0",
+                "failed": "1",
+                "abandoned": "2",
+                "pending": "0",
+                "inFlight": "0",
+                "unavailable": "1"
+              },
+              "file": {
+                "state": "Stopped",
+                "fault": null,
+                "accepted": "4",
+                "written": "4",
+                "failed": "0",
+                "abandoned": "0",
+                "pending": "0",
+                "inFlight": "0",
+                "unavailable": "0"
+              }
+            }
+          },
+          {
+            "phase": "repeated-close",
+            "closed": true,
+            "outputs": {
+              "console": {
+                "state": "Stopped",
+                "fault": "WriteFailed",
+                "accepted": "3",
+                "written": "0",
+                "failed": "1",
+                "abandoned": "2",
+                "pending": "0",
+                "inFlight": "0",
+                "unavailable": "1"
+              },
+              "file": {
+                "state": "Stopped",
+                "fault": null,
+                "accepted": "4",
+                "written": "4",
+                "failed": "0",
+                "abandoned": "0",
+                "pending": "0",
+                "inFlight": "0",
+                "unavailable": "0"
+              }
+            }
+          }
+        ],
+        "result": {
+          "outcome": "PartiallyAccepted",
+          "outputs": [
+            {
+              "name": "console",
+              "status": "Faulted",
+              "ticket": null
+            },
+            {
+              "name": "file",
+              "status": "Accepted",
+              "ticket": 4
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "STATE-ISOLATE-FILE",
+      "consoleMode": "success",
+      "fileMode": "failure",
+      "closeBeforeRelease": false,
+      "releaseFirst": "file",
+      "expected": {
+        "checkpoints": [
+          {
+            "phase": "initial",
+            "closed": false,
+            "outputs": {
+              "console": {
+                "state": "Running",
+                "fault": null,
+                "accepted": "0",
+                "written": "0",
+                "failed": "0",
+                "abandoned": "0",
+                "pending": "0",
+                "inFlight": "0",
+                "unavailable": "0"
+              },
+              "file": {
+                "state": "Running",
+                "fault": null,
+                "accepted": "0",
+                "written": "0",
+                "failed": "0",
+                "abandoned": "0",
+                "pending": "0",
+                "inFlight": "0",
+                "unavailable": "0"
+              }
+            }
+          },
+          {
+            "phase": "held",
+            "closed": false,
+            "outputs": {
+              "console": {
+                "state": "Running",
+                "fault": null,
+                "accepted": "3",
+                "written": "0",
+                "failed": "0",
+                "abandoned": "0",
+                "pending": "3",
+                "inFlight": "1",
+                "unavailable": "0"
+              },
+              "file": {
+                "state": "Running",
+                "fault": null,
+                "accepted": "3",
+                "written": "0",
+                "failed": "0",
+                "abandoned": "0",
+                "pending": "3",
+                "inFlight": "1",
+                "unavailable": "0"
+              }
+            }
+          },
+          {
+            "phase": "first-terminal",
+            "closed": false,
+            "outputs": {
+              "console": {
+                "state": "Running",
+                "fault": null,
+                "accepted": "3",
+                "written": "0",
+                "failed": "0",
+                "abandoned": "0",
+                "pending": "3",
+                "inFlight": "1",
+                "unavailable": "0"
+              },
+              "file": {
+                "state": "Faulted",
+                "fault": "WriteFailed",
+                "accepted": "3",
+                "written": "0",
+                "failed": "1",
+                "abandoned": "2",
+                "pending": "0",
+                "inFlight": "0",
+                "unavailable": "0"
+              }
+            }
+          },
+          {
+            "phase": "after-admission",
+            "closed": false,
+            "outputs": {
+              "console": {
+                "state": "Running",
+                "fault": null,
+                "accepted": "4",
+                "written": "0",
+                "failed": "0",
+                "abandoned": "0",
+                "pending": "4",
+                "inFlight": "1",
+                "unavailable": "0"
+              },
+              "file": {
+                "state": "Faulted",
+                "fault": "WriteFailed",
+                "accepted": "3",
+                "written": "0",
+                "failed": "1",
+                "abandoned": "2",
+                "pending": "0",
+                "inFlight": "0",
+                "unavailable": "1"
+              }
+            }
+          },
+          {
+            "phase": "closing",
+            "closed": true,
+            "outputs": {
+              "console": {
+                "state": "Stopping",
+                "fault": null,
+                "accepted": "4",
+                "written": "0",
+                "failed": "0",
+                "abandoned": "0",
+                "pending": "4",
+                "inFlight": "1",
+                "unavailable": "0"
+              },
+              "file": {
+                "state": "Stopped",
+                "fault": "WriteFailed",
+                "accepted": "3",
+                "written": "0",
+                "failed": "1",
+                "abandoned": "2",
+                "pending": "0",
+                "inFlight": "0",
+                "unavailable": "1"
+              }
+            }
+          },
+          {
+            "phase": "final",
+            "closed": true,
+            "outputs": {
+              "console": {
+                "state": "Stopped",
+                "fault": null,
+                "accepted": "4",
+                "written": "4",
+                "failed": "0",
+                "abandoned": "0",
+                "pending": "0",
+                "inFlight": "0",
+                "unavailable": "0"
+              },
+              "file": {
+                "state": "Stopped",
+                "fault": "WriteFailed",
+                "accepted": "3",
+                "written": "0",
+                "failed": "1",
+                "abandoned": "2",
+                "pending": "0",
+                "inFlight": "0",
+                "unavailable": "1"
+              }
+            }
+          },
+          {
+            "phase": "repeated-close",
+            "closed": true,
+            "outputs": {
+              "console": {
+                "state": "Stopped",
+                "fault": null,
+                "accepted": "4",
+                "written": "4",
+                "failed": "0",
+                "abandoned": "0",
+                "pending": "0",
+                "inFlight": "0",
+                "unavailable": "0"
+              },
+              "file": {
+                "state": "Stopped",
+                "fault": "WriteFailed",
+                "accepted": "3",
+                "written": "0",
+                "failed": "1",
+                "abandoned": "2",
+                "pending": "0",
+                "inFlight": "0",
+                "unavailable": "1"
+              }
+            }
+          }
+        ],
+        "result": {
+          "outcome": "PartiallyAccepted",
+          "outputs": [
+            {
+              "name": "console",
+              "status": "Accepted",
+              "ticket": 4
+            },
+            {
+              "name": "file",
+              "status": "Faulted",
+              "ticket": null
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "STATE-FAIL-BOTH-CONSOLE-FIRST",
+      "consoleMode": "failure",
+      "fileMode": "failure",
+      "closeBeforeRelease": false,
+      "releaseFirst": "console",
+      "expected": {
+        "checkpoints": [
+          {
+            "phase": "initial",
+            "closed": false,
+            "outputs": {
+              "console": {
+                "state": "Running",
+                "fault": null,
+                "accepted": "0",
+                "written": "0",
+                "failed": "0",
+                "abandoned": "0",
+                "pending": "0",
+                "inFlight": "0",
+                "unavailable": "0"
+              },
+              "file": {
+                "state": "Running",
+                "fault": null,
+                "accepted": "0",
+                "written": "0",
+                "failed": "0",
+                "abandoned": "0",
+                "pending": "0",
+                "inFlight": "0",
+                "unavailable": "0"
+              }
+            }
+          },
+          {
+            "phase": "held",
+            "closed": false,
+            "outputs": {
+              "console": {
+                "state": "Running",
+                "fault": null,
+                "accepted": "3",
+                "written": "0",
+                "failed": "0",
+                "abandoned": "0",
+                "pending": "3",
+                "inFlight": "1",
+                "unavailable": "0"
+              },
+              "file": {
+                "state": "Running",
+                "fault": null,
+                "accepted": "3",
+                "written": "0",
+                "failed": "0",
+                "abandoned": "0",
+                "pending": "3",
+                "inFlight": "1",
+                "unavailable": "0"
+              }
+            }
+          },
+          {
+            "phase": "first-terminal",
+            "closed": false,
+            "outputs": {
+              "console": {
+                "state": "Faulted",
+                "fault": "WriteFailed",
+                "accepted": "3",
+                "written": "0",
+                "failed": "1",
+                "abandoned": "2",
+                "pending": "0",
+                "inFlight": "0",
+                "unavailable": "0"
+              },
+              "file": {
+                "state": "Running",
+                "fault": null,
+                "accepted": "3",
+                "written": "0",
+                "failed": "0",
+                "abandoned": "0",
+                "pending": "3",
+                "inFlight": "1",
+                "unavailable": "0"
+              }
+            }
+          },
+          {
+            "phase": "after-admission",
+            "closed": false,
+            "outputs": {
+              "console": {
+                "state": "Faulted",
+                "fault": "WriteFailed",
+                "accepted": "3",
+                "written": "0",
+                "failed": "1",
+                "abandoned": "2",
+                "pending": "0",
+                "inFlight": "0",
+                "unavailable": "1"
+              },
+              "file": {
+                "state": "Running",
+                "fault": null,
+                "accepted": "4",
+                "written": "0",
+                "failed": "0",
+                "abandoned": "0",
+                "pending": "4",
+                "inFlight": "1",
+                "unavailable": "0"
+              }
+            }
+          },
+          {
+            "phase": "closing",
+            "closed": true,
+            "outputs": {
+              "console": {
+                "state": "Stopped",
+                "fault": "WriteFailed",
+                "accepted": "3",
+                "written": "0",
+                "failed": "1",
+                "abandoned": "2",
+                "pending": "0",
+                "inFlight": "0",
+                "unavailable": "1"
+              },
+              "file": {
+                "state": "Stopping",
+                "fault": null,
+                "accepted": "4",
+                "written": "0",
+                "failed": "0",
+                "abandoned": "0",
+                "pending": "4",
+                "inFlight": "1",
+                "unavailable": "0"
+              }
+            }
+          },
+          {
+            "phase": "final",
+            "closed": true,
+            "outputs": {
+              "console": {
+                "state": "Stopped",
+                "fault": "WriteFailed",
+                "accepted": "3",
+                "written": "0",
+                "failed": "1",
+                "abandoned": "2",
+                "pending": "0",
+                "inFlight": "0",
+                "unavailable": "1"
+              },
+              "file": {
+                "state": "Stopped",
+                "fault": "WriteFailed",
+                "accepted": "4",
+                "written": "0",
+                "failed": "1",
+                "abandoned": "3",
+                "pending": "0",
+                "inFlight": "0",
+                "unavailable": "0"
+              }
+            }
+          },
+          {
+            "phase": "repeated-close",
+            "closed": true,
+            "outputs": {
+              "console": {
+                "state": "Stopped",
+                "fault": "WriteFailed",
+                "accepted": "3",
+                "written": "0",
+                "failed": "1",
+                "abandoned": "2",
+                "pending": "0",
+                "inFlight": "0",
+                "unavailable": "1"
+              },
+              "file": {
+                "state": "Stopped",
+                "fault": "WriteFailed",
+                "accepted": "4",
+                "written": "0",
+                "failed": "1",
+                "abandoned": "3",
+                "pending": "0",
+                "inFlight": "0",
+                "unavailable": "0"
+              }
+            }
+          }
+        ],
+        "result": {
+          "outcome": "PartiallyAccepted",
+          "outputs": [
+            {
+              "name": "console",
+              "status": "Faulted",
+              "ticket": null
+            },
+            {
+              "name": "file",
+              "status": "Accepted",
+              "ticket": 4
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "STATE-FAIL-BOTH-FILE-FIRST",
+      "consoleMode": "failure",
+      "fileMode": "failure",
+      "closeBeforeRelease": false,
+      "releaseFirst": "file",
+      "expected": {
+        "checkpoints": [
+          {
+            "phase": "initial",
+            "closed": false,
+            "outputs": {
+              "console": {
+                "state": "Running",
+                "fault": null,
+                "accepted": "0",
+                "written": "0",
+                "failed": "0",
+                "abandoned": "0",
+                "pending": "0",
+                "inFlight": "0",
+                "unavailable": "0"
+              },
+              "file": {
+                "state": "Running",
+                "fault": null,
+                "accepted": "0",
+                "written": "0",
+                "failed": "0",
+                "abandoned": "0",
+                "pending": "0",
+                "inFlight": "0",
+                "unavailable": "0"
+              }
+            }
+          },
+          {
+            "phase": "held",
+            "closed": false,
+            "outputs": {
+              "console": {
+                "state": "Running",
+                "fault": null,
+                "accepted": "3",
+                "written": "0",
+                "failed": "0",
+                "abandoned": "0",
+                "pending": "3",
+                "inFlight": "1",
+                "unavailable": "0"
+              },
+              "file": {
+                "state": "Running",
+                "fault": null,
+                "accepted": "3",
+                "written": "0",
+                "failed": "0",
+                "abandoned": "0",
+                "pending": "3",
+                "inFlight": "1",
+                "unavailable": "0"
+              }
+            }
+          },
+          {
+            "phase": "first-terminal",
+            "closed": false,
+            "outputs": {
+              "console": {
+                "state": "Running",
+                "fault": null,
+                "accepted": "3",
+                "written": "0",
+                "failed": "0",
+                "abandoned": "0",
+                "pending": "3",
+                "inFlight": "1",
+                "unavailable": "0"
+              },
+              "file": {
+                "state": "Faulted",
+                "fault": "WriteFailed",
+                "accepted": "3",
+                "written": "0",
+                "failed": "1",
+                "abandoned": "2",
+                "pending": "0",
+                "inFlight": "0",
+                "unavailable": "0"
+              }
+            }
+          },
+          {
+            "phase": "after-admission",
+            "closed": false,
+            "outputs": {
+              "console": {
+                "state": "Running",
+                "fault": null,
+                "accepted": "4",
+                "written": "0",
+                "failed": "0",
+                "abandoned": "0",
+                "pending": "4",
+                "inFlight": "1",
+                "unavailable": "0"
+              },
+              "file": {
+                "state": "Faulted",
+                "fault": "WriteFailed",
+                "accepted": "3",
+                "written": "0",
+                "failed": "1",
+                "abandoned": "2",
+                "pending": "0",
+                "inFlight": "0",
+                "unavailable": "1"
+              }
+            }
+          },
+          {
+            "phase": "closing",
+            "closed": true,
+            "outputs": {
+              "console": {
+                "state": "Stopping",
+                "fault": null,
+                "accepted": "4",
+                "written": "0",
+                "failed": "0",
+                "abandoned": "0",
+                "pending": "4",
+                "inFlight": "1",
+                "unavailable": "0"
+              },
+              "file": {
+                "state": "Stopped",
+                "fault": "WriteFailed",
+                "accepted": "3",
+                "written": "0",
+                "failed": "1",
+                "abandoned": "2",
+                "pending": "0",
+                "inFlight": "0",
+                "unavailable": "1"
+              }
+            }
+          },
+          {
+            "phase": "final",
+            "closed": true,
+            "outputs": {
+              "console": {
+                "state": "Stopped",
+                "fault": "WriteFailed",
+                "accepted": "4",
+                "written": "0",
+                "failed": "1",
+                "abandoned": "3",
+                "pending": "0",
+                "inFlight": "0",
+                "unavailable": "0"
+              },
+              "file": {
+                "state": "Stopped",
+                "fault": "WriteFailed",
+                "accepted": "3",
+                "written": "0",
+                "failed": "1",
+                "abandoned": "2",
+                "pending": "0",
+                "inFlight": "0",
+                "unavailable": "1"
+              }
+            }
+          },
+          {
+            "phase": "repeated-close",
+            "closed": true,
+            "outputs": {
+              "console": {
+                "state": "Stopped",
+                "fault": "WriteFailed",
+                "accepted": "4",
+                "written": "0",
+                "failed": "1",
+                "abandoned": "3",
+                "pending": "0",
+                "inFlight": "0",
+                "unavailable": "0"
+              },
+              "file": {
+                "state": "Stopped",
+                "fault": "WriteFailed",
+                "accepted": "3",
+                "written": "0",
+                "failed": "1",
+                "abandoned": "2",
+                "pending": "0",
+                "inFlight": "0",
+                "unavailable": "1"
+              }
+            }
+          }
+        ],
+        "result": {
+          "outcome": "PartiallyAccepted",
+          "outputs": [
+            {
+              "name": "console",
+              "status": "Accepted",
+              "ticket": 4
+            },
+            {
+              "name": "file",
+              "status": "Faulted",
+              "ticket": null
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "STATE-CLOSE-THEN-FAIL",
+      "consoleMode": "success",
+      "fileMode": "failure",
+      "closeBeforeRelease": true,
+      "releaseFirst": "file",
+      "expected": {
+        "checkpoints": [
+          {
+            "phase": "initial",
+            "closed": false,
+            "outputs": {
+              "console": {
+                "state": "Running",
+                "fault": null,
+                "accepted": "0",
+                "written": "0",
+                "failed": "0",
+                "abandoned": "0",
+                "pending": "0",
+                "inFlight": "0",
+                "unavailable": "0"
+              },
+              "file": {
+                "state": "Running",
+                "fault": null,
+                "accepted": "0",
+                "written": "0",
+                "failed": "0",
+                "abandoned": "0",
+                "pending": "0",
+                "inFlight": "0",
+                "unavailable": "0"
+              }
+            }
+          },
+          {
+            "phase": "held",
+            "closed": false,
+            "outputs": {
+              "console": {
+                "state": "Running",
+                "fault": null,
+                "accepted": "3",
+                "written": "0",
+                "failed": "0",
+                "abandoned": "0",
+                "pending": "3",
+                "inFlight": "1",
+                "unavailable": "0"
+              },
+              "file": {
+                "state": "Running",
+                "fault": null,
+                "accepted": "3",
+                "written": "0",
+                "failed": "0",
+                "abandoned": "0",
+                "pending": "3",
+                "inFlight": "1",
+                "unavailable": "0"
+              }
+            }
+          },
+          {
+            "phase": "stop-requested",
+            "closed": true,
+            "outputs": {
+              "console": {
+                "state": "Stopping",
+                "fault": null,
+                "accepted": "3",
+                "written": "0",
+                "failed": "0",
+                "abandoned": "0",
+                "pending": "3",
+                "inFlight": "1",
+                "unavailable": "0"
+              },
+              "file": {
+                "state": "Stopping",
+                "fault": null,
+                "accepted": "3",
+                "written": "0",
+                "failed": "0",
+                "abandoned": "0",
+                "pending": "3",
+                "inFlight": "1",
+                "unavailable": "0"
+              }
+            }
+          },
+          {
+            "phase": "first-terminal",
+            "closed": true,
+            "outputs": {
+              "console": {
+                "state": "Stopping",
+                "fault": null,
+                "accepted": "3",
+                "written": "0",
+                "failed": "0",
+                "abandoned": "0",
+                "pending": "3",
+                "inFlight": "1",
+                "unavailable": "0"
+              },
+              "file": {
+                "state": "Stopped",
+                "fault": "WriteFailed",
+                "accepted": "3",
+                "written": "0",
+                "failed": "1",
+                "abandoned": "2",
+                "pending": "0",
+                "inFlight": "0",
+                "unavailable": "0"
+              }
+            }
+          },
+          {
+            "phase": "after-admission",
+            "closed": true,
+            "outputs": {
+              "console": {
+                "state": "Stopping",
+                "fault": null,
+                "accepted": "3",
+                "written": "0",
+                "failed": "0",
+                "abandoned": "0",
+                "pending": "3",
+                "inFlight": "1",
+                "unavailable": "0"
+              },
+              "file": {
+                "state": "Stopped",
+                "fault": "WriteFailed",
+                "accepted": "3",
+                "written": "0",
+                "failed": "1",
+                "abandoned": "2",
+                "pending": "0",
+                "inFlight": "0",
+                "unavailable": "0"
+              }
+            }
+          },
+          {
+            "phase": "closing",
+            "closed": true,
+            "outputs": {
+              "console": {
+                "state": "Stopping",
+                "fault": null,
+                "accepted": "3",
+                "written": "0",
+                "failed": "0",
+                "abandoned": "0",
+                "pending": "3",
+                "inFlight": "1",
+                "unavailable": "0"
+              },
+              "file": {
+                "state": "Stopped",
+                "fault": "WriteFailed",
+                "accepted": "3",
+                "written": "0",
+                "failed": "1",
+                "abandoned": "2",
+                "pending": "0",
+                "inFlight": "0",
+                "unavailable": "0"
+              }
+            }
+          },
+          {
+            "phase": "final",
+            "closed": true,
+            "outputs": {
+              "console": {
+                "state": "Stopped",
+                "fault": null,
+                "accepted": "3",
+                "written": "3",
+                "failed": "0",
+                "abandoned": "0",
+                "pending": "0",
+                "inFlight": "0",
+                "unavailable": "0"
+              },
+              "file": {
+                "state": "Stopped",
+                "fault": "WriteFailed",
+                "accepted": "3",
+                "written": "0",
+                "failed": "1",
+                "abandoned": "2",
+                "pending": "0",
+                "inFlight": "0",
+                "unavailable": "0"
+              }
+            }
+          },
+          {
+            "phase": "repeated-close",
+            "closed": true,
+            "outputs": {
+              "console": {
+                "state": "Stopped",
+                "fault": null,
+                "accepted": "3",
+                "written": "3",
+                "failed": "0",
+                "abandoned": "0",
+                "pending": "0",
+                "inFlight": "0",
+                "unavailable": "0"
+              },
+              "file": {
+                "state": "Stopped",
+                "fault": "WriteFailed",
+                "accepted": "3",
+                "written": "0",
+                "failed": "1",
+                "abandoned": "2",
+                "pending": "0",
+                "inFlight": "0",
+                "unavailable": "0"
+              }
+            }
+          }
+        ],
+        "result": {
+          "outcome": "Stopped",
+          "outputs": [
+            {
+              "name": "console",
+              "status": "Stopped",
+              "ticket": null
+            },
+            {
+              "name": "file",
+              "status": "Stopped",
+              "ticket": null
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "STATE-CANCEL-FILE",
+      "consoleMode": "success",
+      "fileMode": "cancel",
+      "closeBeforeRelease": false,
+      "releaseFirst": "file",
+      "expected": {
+        "checkpoints": [
+          {
+            "phase": "initial",
+            "closed": false,
+            "outputs": {
+              "console": {
+                "state": "Running",
+                "fault": null,
+                "accepted": "0",
+                "written": "0",
+                "failed": "0",
+                "abandoned": "0",
+                "pending": "0",
+                "inFlight": "0",
+                "unavailable": "0"
+              },
+              "file": {
+                "state": "Running",
+                "fault": null,
+                "accepted": "0",
+                "written": "0",
+                "failed": "0",
+                "abandoned": "0",
+                "pending": "0",
+                "inFlight": "0",
+                "unavailable": "0"
+              }
+            }
+          },
+          {
+            "phase": "held",
+            "closed": false,
+            "outputs": {
+              "console": {
+                "state": "Running",
+                "fault": null,
+                "accepted": "3",
+                "written": "0",
+                "failed": "0",
+                "abandoned": "0",
+                "pending": "3",
+                "inFlight": "1",
+                "unavailable": "0"
+              },
+              "file": {
+                "state": "Running",
+                "fault": null,
+                "accepted": "3",
+                "written": "0",
+                "failed": "0",
+                "abandoned": "0",
+                "pending": "3",
+                "inFlight": "1",
+                "unavailable": "0"
+              }
+            }
+          },
+          {
+            "phase": "first-terminal",
+            "closed": false,
+            "outputs": {
+              "console": {
+                "state": "Running",
+                "fault": null,
+                "accepted": "3",
+                "written": "0",
+                "failed": "0",
+                "abandoned": "0",
+                "pending": "3",
+                "inFlight": "1",
+                "unavailable": "0"
+              },
+              "file": {
+                "state": "Faulted",
+                "fault": "WriteFailed",
+                "accepted": "3",
+                "written": "0",
+                "failed": "1",
+                "abandoned": "2",
+                "pending": "0",
+                "inFlight": "0",
+                "unavailable": "0"
+              }
+            }
+          },
+          {
+            "phase": "after-admission",
+            "closed": false,
+            "outputs": {
+              "console": {
+                "state": "Running",
+                "fault": null,
+                "accepted": "4",
+                "written": "0",
+                "failed": "0",
+                "abandoned": "0",
+                "pending": "4",
+                "inFlight": "1",
+                "unavailable": "0"
+              },
+              "file": {
+                "state": "Faulted",
+                "fault": "WriteFailed",
+                "accepted": "3",
+                "written": "0",
+                "failed": "1",
+                "abandoned": "2",
+                "pending": "0",
+                "inFlight": "0",
+                "unavailable": "1"
+              }
+            }
+          },
+          {
+            "phase": "closing",
+            "closed": true,
+            "outputs": {
+              "console": {
+                "state": "Stopping",
+                "fault": null,
+                "accepted": "4",
+                "written": "0",
+                "failed": "0",
+                "abandoned": "0",
+                "pending": "4",
+                "inFlight": "1",
+                "unavailable": "0"
+              },
+              "file": {
+                "state": "Stopped",
+                "fault": "WriteFailed",
+                "accepted": "3",
+                "written": "0",
+                "failed": "1",
+                "abandoned": "2",
+                "pending": "0",
+                "inFlight": "0",
+                "unavailable": "1"
+              }
+            }
+          },
+          {
+            "phase": "final",
+            "closed": true,
+            "outputs": {
+              "console": {
+                "state": "Stopped",
+                "fault": null,
+                "accepted": "4",
+                "written": "4",
+                "failed": "0",
+                "abandoned": "0",
+                "pending": "0",
+                "inFlight": "0",
+                "unavailable": "0"
+              },
+              "file": {
+                "state": "Stopped",
+                "fault": "WriteFailed",
+                "accepted": "3",
+                "written": "0",
+                "failed": "1",
+                "abandoned": "2",
+                "pending": "0",
+                "inFlight": "0",
+                "unavailable": "1"
+              }
+            }
+          },
+          {
+            "phase": "repeated-close",
+            "closed": true,
+            "outputs": {
+              "console": {
+                "state": "Stopped",
+                "fault": null,
+                "accepted": "4",
+                "written": "4",
+                "failed": "0",
+                "abandoned": "0",
+                "pending": "0",
+                "inFlight": "0",
+                "unavailable": "0"
+              },
+              "file": {
+                "state": "Stopped",
+                "fault": "WriteFailed",
+                "accepted": "3",
+                "written": "0",
+                "failed": "1",
+                "abandoned": "2",
+                "pending": "0",
+                "inFlight": "0",
+                "unavailable": "1"
+              }
+            }
+          }
+        ],
+        "result": {
+          "outcome": "PartiallyAccepted",
+          "outputs": [
+            {
+              "name": "console",
+              "status": "Accepted",
+              "ticket": 4
+            },
+            {
+              "name": "file",
+              "status": "Faulted",
+              "ticket": null
+            }
+          ]
+        }
+      }
+    }
+  ]
+}
