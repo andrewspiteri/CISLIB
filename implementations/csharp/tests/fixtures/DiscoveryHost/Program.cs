@@ -11,6 +11,7 @@ internal static class Program
 {
     private static int Main(string[] args)
     {
+        if (args.Length == 4 && args[0] == "file-restart") { return FileRestartFixture.Run(args[1], args[2], args[3]); }
         if (args.Length == 3 && args[0] == "file-transition") { return FileTransitionFixture.Run(args[1], args[2]); }
         if (args.Length == 3 && args[0] == "jsonl-boundary") { return JsonlBoundaryFixture.Run(args[1], args[2]); }
         if (args.Length == 3 && args[0] == "file-rotation-policy") { return FileRotationPolicyFixture.Run(args[1], args[2]); }

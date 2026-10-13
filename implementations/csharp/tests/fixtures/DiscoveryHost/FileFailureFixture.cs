@@ -10,7 +10,7 @@ namespace CIS.Tests.DiscoveryFixture;
 
 internal static class FileFailureFixture
 {
-    internal static readonly string[] Modes = ["delete-jsonl-directory", "delete-human-directory", "render-empty", "render-active"];
+    internal static readonly string[] Modes = ["delete-jsonl-directory", "delete-human-directory", "render-empty", "render-active", "delete-jsonl-damaged-directory"];
     private static readonly TimeSpan Limit = TimeSpan.FromSeconds(15);
     private sealed class Clock : TimeProvider { public override DateTimeOffset GetUtcNow() => new(2026, 10, 13, 10, 11, 12, TimeSpan.Zero); }
     private sealed class Borrowed : MemoryStream
@@ -21,15 +21,15 @@ internal static class FileFailureFixture
     internal static int Run(string mode, string root) { Console.WriteLine(ExecuteAsync(mode, root, externalRelease: mode.EndsWith("permission", StringComparison.Ordinal)).GetAwaiter().GetResult().ToJsonString()); return 0; }
     internal static async Task<JsonObject> ExecuteAsync(string mode, string root, bool externalRelease = false)
     {
-        bool render = mode.StartsWith("render", StringComparison.Ordinal), human = render || mode.StartsWith("delete-human", StringComparison.Ordinal), empty = mode == "render-empty";
-        if (!Modes.Contains(mode, StringComparer.Ordinal) && mode is not ("delete-jsonl-permission" or "delete-human-permission")) { throw new ArgumentException("Unknown file failure mode.", nameof(mode)); }
+        bool render = mode.StartsWith("render", StringComparison.Ordinal), human = render || mode.StartsWith("delete-human", StringComparison.Ordinal), empty = mode == "render-empty", damaged = mode.Contains("-damaged-", StringComparison.Ordinal);
+        if (!Modes.Contains(mode, StringComparer.Ordinal) && mode is not ("delete-jsonl-permission" or "delete-human-permission" or "delete-jsonl-damaged-permission")) { throw new ArgumentException("Unknown file failure mode.", nameof(mode)); }
         string path = Path.Combine(root, "logs", "\u03a9-\U0001f642.log"); LogOutputFormat format = human ? LogOutputFormat.Human : LogOutputFormat.JsonLines;
         using (FileOutputOwner.Initialize(path, format)) { }
         JsonObject inventory = JsonNode.Parse(File.ReadAllBytes(path + ".cis.inventory.json"))!.AsObject(); string group = inventory["groupId"]!.GetValue<string>(), directory = Path.GetDirectoryName(path)!;
-        string victim = Path.Combine(directory, ".cis-log-" + group + "-00000000000000000001.closed");
+        string victim = Path.Combine(directory, ".cis-log-" + group + "-00000000000000000001." + (damaged ? "damaged" : "closed"));
         if (!empty)
         {
-            inventory["segments"]![0]!["id"] = 2; inventory["segments"]!.AsArray().Insert(0, new JsonObject { ["id"] = 1, ["fileName"] = Path.GetFileName(victim), ["state"] = "closed" });
+            inventory["segments"]![0]!["id"] = 2; inventory["segments"]!.AsArray().Insert(0, new JsonObject { ["id"] = 1, ["fileName"] = Path.GetFileName(victim), ["state"] = damaged ? "damaged" : "closed" });
             File.WriteAllText(path + ".cis.inventory.json", inventory.ToJsonString()); File.WriteAllText(victim, human ? "retained=true\n" : "{\"retained\":true}\n", new UTF8Encoding(false));
             string seed = render ? "seed=\"prior\"\n" : human ? "seed=\"" + new string('a', 65528) + "\"\n" : "{\"seed\":\"" + new string('a', 65524) + "\"}\n";
             File.WriteAllText(path, seed, new UTF8Encoding(false));

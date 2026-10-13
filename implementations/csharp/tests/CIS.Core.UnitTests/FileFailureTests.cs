@@ -13,11 +13,21 @@ public sealed class FileFailureTests
 {
     [TestMethod]
     [DataRow("delete-jsonl-directory")]
+    [DataRow("delete-jsonl-damaged-directory")]
     [DataRow("delete-human-directory")]
     [DataRow("render-empty")]
     [DataRow("render-active")]
     public async Task FilePolicyFailureStopsGrowthAndPreservesHealthyConsole(string mode)
-    { using var root = new TemporaryDirectory(); FileFailureExpectations.Validate(mode, await FileFailureFixture.ExecuteAsync(mode, root.Path)); }
+    {
+        using var root = new TemporaryDirectory(); JsonObject actual = await FileFailureFixture.ExecuteAsync(mode, root.Path); FileFailureExpectations.Validate(mode, actual);
+        if (mode.Contains("-damaged-", StringComparison.Ordinal))
+        {
+            string metadata = actual["before"]!.AsObject().Single(entry => entry.Key.EndsWith(".cis.inventory.json", StringComparison.Ordinal)).Value!.GetValue<string>();
+            JsonObject inventory = JsonNode.Parse(Convert.FromBase64String(metadata))!.AsObject(); JsonNode oldest = inventory["segments"]![0]!;
+            Assert.AreEqual(1L, oldest["id"]!.GetValue<long>()); Assert.AreEqual("damaged", oldest["state"]!.GetValue<string>());
+            Assert.AreEqual(".cis-log-" + inventory["groupId"]!.GetValue<string>() + "-00000000000000000001.damaged", oldest["fileName"]!.GetValue<string>());
+        }
+    }
 
     [TestMethod]
     [DataRow("code")]

@@ -1,0 +1,132 @@
+{
+  "schema": "cis.logging.file-recovery-qualification-map/v1",
+  "story": "WP05-S07",
+  "task": "WP05-S07-T04",
+  "scope": "Actual internal configured runtimes and owned native processes; physical checkpoints are staged by the fixture with fixture reproductions of retirement/rename/create, actual Core intent/inventory publication and matching runtime retention settings, then the held producer is forcibly terminated. No observation inside an uninstrumented production Rotate call, power-loss durability or exactly-once ingestion claim. Collector example is read-only and requires a stopped group.",
+  "criteria": [
+    {
+      "id": "WP05-S07-AC01",
+      "original": "Startup never appends a fresh JSON object directly after a partial record; the damaged segment survives with a unique recorded identity.",
+      "nativeLanes": {
+        "restart": [
+          "intact",
+          "partial-json",
+          "partial-utf8",
+          "recovery-intent",
+          "recovery-renamed",
+          "recovery-published",
+          "recovery-created",
+          "collision-file",
+          "collision-directory"
+        ]
+      },
+      "platforms": [
+        "windows",
+        "linux"
+      ],
+      "limits": "Actual internal configured runtimes and owned native processes; physical checkpoints are staged by the fixture with fixture reproductions of retirement/rename/create, actual Core intent/inventory publication and matching runtime retention settings, then the held producer is forcibly terminated. No observation inside an uninstrumented production Rotate call, power-loss durability or exactly-once ingestion claim. Collector example is read-only and requires a stopped group."
+    },
+    {
+      "id": "WP05-S07-AC02",
+      "original": "New active output consists of complete parseable JSONL records, while damaged segments are distinguishable from normal collector input.",
+      "nativeLanes": {
+        "restart": [
+          "intact",
+          "partial-json",
+          "partial-utf8",
+          "rotation-intent",
+          "rotation-renamed",
+          "rotation-published",
+          "rotation-created",
+          "recovery-intent",
+          "recovery-renamed",
+          "recovery-published",
+          "recovery-created",
+          "collision-file",
+          "collision-directory",
+          "unproven-gap",
+          "ambiguous-both"
+        ]
+      },
+      "platforms": [
+        "windows",
+        "linux"
+      ],
+      "limits": "Actual internal configured runtimes and owned native processes; physical checkpoints are staged by the fixture with fixture reproductions of retirement/rename/create, actual Core intent/inventory publication and matching runtime retention settings, then the held producer is forcibly terminated. No observation inside an uninstrumented production Rotate call, power-loss durability or exactly-once ingestion claim. Collector example is read-only and requires a stopped group."
+    },
+    {
+      "id": "WP05-S07-AC03",
+      "original": "Damaged segments count toward the same retention limit, and required retention failure prevents additional segment growth.",
+      "nativeLanes": {
+        "restart": [
+          "rotation-intent",
+          "rotation-renamed",
+          "rotation-published",
+          "rotation-created",
+          "recovery-intent",
+          "recovery-renamed",
+          "recovery-published",
+          "recovery-created"
+        ],
+        "failure": [
+          "delete-jsonl-damaged-directory",
+          "delete-jsonl-damaged-permission"
+        ],
+        "boundary": [
+          "retention-full"
+        ]
+      },
+      "platforms": [
+        "windows",
+        "linux"
+      ],
+      "limits": "Actual internal configured runtimes and owned native processes; physical checkpoints are staged by the fixture with fixture reproductions of retirement/rename/create, actual Core intent/inventory publication and matching runtime retention settings, then the held producer is forcibly terminated. No observation inside an uninstrumented production Rotate call, power-loss durability or exactly-once ingestion claim. Collector example is read-only and requires a stopped group.",
+      "additionalExecutedTests": [
+        "CIS.Tests.UnitTests.FileTransitionTests.NormalRotationRetiresDamagedAndClosedMembersByPersistentId"
+      ]
+    },
+    {
+      "id": "WP05-S07-AC04",
+      "original": "Interruption fixtures either recover to the documented consistent state or fail clearly without changing unrelated/pre-existing evidence; no crash-durable or exactly-once ingestion guarantee is claimed.",
+      "nativeLanes": {
+        "restart": [
+          "rotation-intent",
+          "rotation-renamed",
+          "rotation-published",
+          "rotation-created",
+          "recovery-intent",
+          "recovery-renamed",
+          "recovery-published",
+          "recovery-created",
+          "collision-file",
+          "collision-directory",
+          "unproven-gap",
+          "ambiguous-both"
+        ],
+        "failure": [
+          "delete-jsonl-damaged-directory",
+          "delete-jsonl-damaged-permission"
+        ]
+      },
+      "platforms": [
+        "windows",
+        "linux"
+      ],
+      "limits": "Actual internal configured runtimes and owned native processes; physical checkpoints are staged by the fixture with fixture reproductions of retirement/rename/create, actual Core intent/inventory publication and matching runtime retention settings, then the held producer is forcibly terminated. No observation inside an uninstrumented production Rotate call, power-loss durability or exactly-once ingestion claim. Collector example is read-only and requires a stopped group."
+    }
+  ],
+  "lanes": {
+    "restart": {
+      "verifier": "implementations/csharp/tests/fixtures/DiscoveryHost/verify-file-restart.py",
+      "reportSchema": "cis.logging.file-restart-native/v1"
+    },
+    "failure": {
+      "verifier": "implementations/csharp/tests/fixtures/DiscoveryHost/verify-file-failure.py",
+      "reportSchema": "cis.logging.file-policy-failures-native/v1"
+    },
+    "boundary": {
+      "verifier": "implementations/csharp/tests/fixtures/DiscoveryHost/verify-jsonl-boundary.py",
+      "reportSchema": "cis.logging.jsonl-recovery-native/v1"
+    }
+  }
+}

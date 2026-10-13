@@ -2,7 +2,7 @@
 import argparse,base64,copy,datetime,hashlib,json,os,queue,re,stat,subprocess,tempfile,threading
 from pathlib import Path
 
-MODES=['delete-jsonl-directory','delete-human-directory','render-empty','render-active','delete-jsonl-permission','delete-human-permission']
+MODES=['delete-jsonl-directory','delete-human-directory','render-empty','render-active','delete-jsonl-permission','delete-human-permission','delete-jsonl-damaged-directory','delete-jsonl-damaged-permission']
 ACTIVE='\u03a9-\U0001f642.log';sha=lambda p:hashlib.sha256(Path(p).read_bytes()).hexdigest();digest=lambda b:hashlib.sha256(b).hexdigest()
 def require(value,reason):
     if not value:raise AssertionError(reason)
@@ -44,7 +44,7 @@ def check(mode,a):
     raw=base64.b64decode(a['consoleBytes'],validate=True);require(raw.endswith(b'\n') and not raw.startswith(b'\xef\xbb\xbf'),'console framing');lines=raw.splitlines(keepends=True);require(len(lines)==4,'console record count')
     for index,line in enumerate(lines):require(len(line)<=16384 and b'\r' not in line,'console cap/control');record(json.loads(line),index,a['pid'])
     directory='logs/';metadata=base64.b64decode(a['before'][directory+ACTIVE+'.cis.inventory.json'],validate=True);inventory=json.loads(metadata);group=inventory['groupId'];require(re.fullmatch('[0-9a-f]{32}',group) and group!='0'*32,'group identity')
-    segments=[dict(id=1,fileName=ACTIVE,state='active')] if mode=='render-empty' else [dict(id=1,fileName='.cis-log-'+group+'-00000000000000000001.closed',state='closed'),dict(id=2,fileName=ACTIVE,state='active')]
+    segments=[dict(id=1,fileName=ACTIVE,state='active')] if mode=='render-empty' else [dict(id=1,fileName='.cis-log-'+group+'-00000000000000000001.'+('damaged' if '-damaged-' in mode else 'closed'),state='damaged' if '-damaged-' in mode else 'closed'),dict(id=2,fileName=ACTIVE,state='active')]
     require(inventory==dict(schema=1,groupId=group,format='human' if render or mode.startswith('delete-human') else 'jsonl',encoding='utf-8',bom=False,newline='lf',segments=segments),'unchanged literal inventory')
     active=base64.b64decode(a['before'][directory+ACTIVE],validate=True)
     if mode=='render-empty':require(active==b'','empty active preserved')
@@ -124,6 +124,6 @@ def main():
             try:check('delete-jsonl-directory',bad)
             except AssertionError as error:require(str(error)==reason,'control reached wrong assertion');controls.append(dict(id=key,rejected=True,reason=str(error)))
             else:raise AssertionError('corruption accepted: '+key)
-    report=dict(schema='cis.logging.file-policy-failures-native/v1',task='WP05-S06-T03',family=args.family,runtime='.NET 10.0.12',children=6,coreSha256=core,fixtureSha256=fixture,verifierSha256=sha(__file__),cases=cases,permissions=permissions,controls=controls)
-    (out/'report.json').write_text(json.dumps(report,indent=2)+'\n',encoding='utf-8',newline='\n');print(json.dumps(dict(family=args.family,children=6,permissions=2,controls=6,passed=True)))
+    report=dict(schema='cis.logging.file-policy-failures-native/v1',task='WP05-S06-T03',additionalTaskCases={'WP05-S07-T04':['delete-jsonl-damaged-directory','delete-jsonl-damaged-permission']},family=args.family,runtime='.NET 10.0.12',children=8,coreSha256=core,fixtureSha256=fixture,verifierSha256=sha(__file__),cases=cases,permissions=permissions,controls=controls)
+    (out/'report.json').write_text(json.dumps(report,indent=2)+'\n',encoding='utf-8',newline='\n');print(json.dumps(dict(family=args.family,children=8,permissions=3,controls=6,passed=True)))
 if __name__=='__main__':main()
