@@ -7,6 +7,14 @@ namespace CIS.Logging.Runtime;
 // Rendering precedes admission; the single awaited output worker serializes record writes.
 internal sealed class ConsoleOutputWriter(Stream stream, LogOutputFormat format, HumanOutputDetail detail, int maximumBytes)
 {
+    // Initialization runs before runtime publication, while the newly owned workers are idle.
+    internal void Initialize()
+    {
+        bool writable;
+        try { writable = stream.CanWrite; }
+        catch { throw new CoreLogInitializationException("console", "ConsoleInitializationFailed"); }
+        if (!writable) { throw new CoreLogInitializationException("console", "ConsoleStreamNotWritable"); }
+    }
     internal RenderedEvent Prepare(EncodedEvent captured) => EventRenderer.Render(captured, format, detail, maximumBytes);
     internal ValueTask WriteAsync(AdmittedEvent admitted)
     {

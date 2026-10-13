@@ -115,3 +115,7 @@ The original task mentions the former immutable environment snapshot. The user-s
 ## WP05-S04-T02 existing ownership and serialization mechanism
 
 [Borrowed console qualification](../../docs/modules/logging/console-ownership.md) retains the existing concrete writer and one sequential output worker. Both already implement the task behavior; explicit source comments and real lifetime/order probes qualify it rather than adding redundant ownership or synchronization types. The chosen static environment/module options and truncation amendments remain intact. Startup rollback, full S04 consumers and final lifecycle/release obligations remain required. This is a maintainer implementation choice within the supplied task, not a new user direction.
+
+## WP05-S04-T03 safe errors and idle rollback
+
+[Console startup](../../docs/modules/logging/console-startup.md) implements the preserved initialization-exception contract at the actual internal composition entry. The concrete startup acquires queues before its final stream-readiness check and joins unpublished idle workers on failure. A trusted internal Task.Run-compatible launcher makes partial acquisition failures reproducible without a public scheduler or startup framework. Fixed safe categories and this ordering are maintainer implementation choices within the task. Invalid arguments remain argument errors, and physical file ownership/public bounded lifecycle/full S04 consumers remain required later work.

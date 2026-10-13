@@ -47,7 +47,8 @@ public sealed class ConsoleCompositionTests
     [TestMethod]
     public void EnabledConsoleRequiresAnActualSelectedStream()
     {
-        Assert.ThrowsExactly<InvalidOperationException>(() => CoreLogRuntime.CreateConsoleQueued(ConsoleCompositionFixture.Metadata(), new LoggingOptions(), acquireConsole: _ => null!));
+        CoreLogInitializationException error = Assert.ThrowsExactly<CoreLogInitializationException>(() => CoreLogRuntime.CreateConsoleQueued(ConsoleCompositionFixture.Metadata(), new LoggingOptions(), acquireConsole: _ => null!));
+        Assert.AreEqual("console", error.OutputName); Assert.AreEqual("ConsoleInitializationFailed", error.ErrorCode); Assert.IsNull(error.InnerException);
     }
     private static readonly AsyncLocal<string?> Creator = new();
     private sealed class HeldStream(bool fail) : MemoryStream

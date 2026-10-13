@@ -25,7 +25,7 @@ internal sealed class OutputEventQueue : ILogOutputAdmission
     private LogOutputState state;
     private string? lastFaultCode;
     private DateTimeOffset? lastFaultAtUtc;
-    internal OutputEventQueue(int capacity, Func<AdmittedEvent, ValueTask> write, object? sharedAdmissionGate = null)
+    internal OutputEventQueue(int capacity, Func<AdmittedEvent, ValueTask> write, object? sharedAdmissionGate = null, Func<Func<Task>, Task>? launchWorker = null)
     {
         ArgumentNullException.ThrowIfNull(write);
         if (capacity is < LoggingOptions.MinimumQueueCapacity or > LoggingOptions.MaximumQueueCapacity) { throw new ArgumentOutOfRangeException(nameof(capacity)); }
@@ -39,8 +39,12 @@ internal sealed class OutputEventQueue : ILogOutputAdmission
             AllowSynchronousContinuations = false
         });
         // Captured events already contain their context. A worker must not retain its creator's flow.
-        if (ExecutionContext.IsFlowSuppressed()) { Completion = Task.Run(ProcessAsync); }
-        else { using (ExecutionContext.SuppressFlow()) { Completion = Task.Run(ProcessAsync); } }
+        // Trusted composition launchers schedule this actual worker or throw before acquiring a task.
+        // Production always uses Task.Run; the internal seam permits deterministic acquisition failure.
+        Task Launch() => (launchWorker is null ? Task.Run(ProcessAsync) : launchWorker(ProcessAsync))
+            ?? throw new InvalidOperationException("Worker launch must return its scheduled task.");
+        if (ExecutionContext.IsFlowSuppressed()) { Completion = Launch(); }
+        else { using (ExecutionContext.SuppressFlow()) { Completion = Launch(); } }
     }
     internal Task Completion { get; }
     internal int BufferedCount { get { lock (admissionGate) { return channel.Reader.Count; } } }

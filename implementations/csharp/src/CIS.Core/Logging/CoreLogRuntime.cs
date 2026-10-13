@@ -66,7 +66,7 @@ public sealed class CoreLogRuntime
     // Console settings are frozen before selecting the stream or starting any output worker.
     internal static CoreLogRuntime CreateConsoleQueued(EventMetadata metadata, LoggingOptions options,
         Func<AdmittedEvent, ValueTask>? fileWrite = null, TimeProvider? timeProvider = null,
-        Func<ConsoleOutputStream, Stream>? acquireConsole = null)
+        Func<ConsoleOutputStream, Stream>? acquireConsole = null, Func<Func<Task>, Task>? launchWorker = null)
     {
         ArgumentNullException.ThrowIfNull(metadata);
         LoggingOptions selected = CaptureQueueOptions(options);
@@ -78,13 +78,18 @@ public sealed class CoreLogRuntime
         ConsoleOutputWriter? writer = null;
         if (selected.ConsoleEnabled)
         {
-            Stream stream = acquireConsole is null ?
-                selected.ConsoleStream == ConsoleOutputStream.StandardError ? Console.OpenStandardError() : Console.OpenStandardOutput() :
-                acquireConsole(selected.ConsoleStream);
-            if (stream is null) { throw new InvalidOperationException("Console selection must return a stream."); }
-            writer = new ConsoleOutputWriter(stream, selected.ConsoleFormat, selected.HumanDetail, selected.MaxEntryBytes);
+            try
+            {
+                Stream stream = acquireConsole is null ?
+                    selected.ConsoleStream == ConsoleOutputStream.StandardError ? Console.OpenStandardError() : Console.OpenStandardOutput() :
+                    acquireConsole(selected.ConsoleStream);
+                if (stream is null) { throw new CoreLogInitializationException("console", "ConsoleInitializationFailed"); }
+                writer = new ConsoleOutputWriter(stream, selected.ConsoleFormat, selected.HumanDetail, selected.MaxEntryBytes);
+            }
+            catch (CoreLogInitializationException) { throw; }
+            catch { throw new CoreLogInitializationException("console", "ConsoleInitializationFailed"); }
         }
-        return ComposeQueued(metadata, selected, writer is null ? null : writer.WriteAsync, fileWrite, timeProvider, writer);
+        return ComposeQueued(metadata, selected, writer is null ? null : writer.WriteAsync, fileWrite, timeProvider, writer, launchWorker);
     }
 
     private static LoggingOptions CaptureQueueOptions(LoggingOptions options)
@@ -105,13 +110,17 @@ public sealed class CoreLogRuntime
 
     private static CoreLogRuntime ComposeQueued(EventMetadata metadata, LoggingOptions selected,
         Func<AdmittedEvent, ValueTask>? consoleWrite, Func<AdmittedEvent, ValueTask>? fileWrite,
-        TimeProvider? timeProvider, ConsoleOutputWriter? writer = null)
+        TimeProvider? timeProvider, ConsoleOutputWriter? writer = null, Func<Func<Task>, Task>? launchWorker = null)
     {
         ValidateSettings(selected.EffectiveConsoleLevel, selected.EffectiveFileLevel, selected.MaxEntryBytes);
         var gate = new object();
-        var queues = new OutputQueues(selected.QueueCapacity, selected.ConsoleEnabled, selected.FileEnabled, consoleWrite, fileWrite, gate);
-        try { return new CoreLogRuntime(metadata, selected, queues.Console, queues.File, timeProvider, gate, queues, writer); }
-        catch { queues.Complete(); throw; }
+        var queues = new OutputQueues(selected.QueueCapacity, selected.ConsoleEnabled, selected.FileEnabled, consoleWrite, fileWrite, gate, launchWorker);
+        try
+        {
+            writer?.Initialize();
+            return new CoreLogRuntime(metadata, selected, queues.Console, queues.File, timeProvider, gate, queues, writer);
+        }
+        catch { queues.Complete(); queues.Completion.GetAwaiter().GetResult(); throw; }
     }
     internal OutputQueues? QueuedOutputs => queuedOutputs;
     internal RuntimeAccounting CaptureAccounting()
