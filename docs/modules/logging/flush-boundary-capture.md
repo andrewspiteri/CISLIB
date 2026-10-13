@@ -10,7 +10,7 @@ OutputQueues owns an in-memory event queue and sequential worker for each enable
 
 Flush controls live separately from the bounded event channel. A saturated channel cannot reject or discard a registered flush. Outstanding requests for the same accepted sequence share one control while keeping their own initial scalar observations. The worker finishes the covered writes and checks the earliest ready flush before starting a later record. It consumes a single coalesced wake signal rather than allocating an event-channel marker or a signal per producer.
 
-This minimum ordering/coalescing foundation makes T01 registration concrete. T02 still owns caller-wait attachment/detachment, full coordination-bound qualification and lifecycle integration; T01 does not claim completion of that task.
+This minimum ordering/coalescing foundation makes T01 registration concrete. [T02 coordination](flush-coordination.md) adds detachable caller-lifetime waits and explicit control/storage qualification. Public deadlines/results and full acceptance remain T03/T04; the T01 receipt records its earlier foundation scope.
 
 ## Completion and faults
 
@@ -26,4 +26,4 @@ Fifteen focused unit cases and seven child-process integration modes exercise em
 
 The independent native reader runs all seven modes on Windows and Ubuntu with exact .NET 10.0.12 and final frozen Core/fixture hashes. It validates literal initial/final counters, record bytes, actual producer PID, whole-record framing, truncation, fixed-target writer order, physical membership and released controls. Twelve scalar/byte corruption controls require their specific rejection reason. Previous physical startup/rotation/retention/recovery/group lanes are rerun because the worker loop changed. The task receipt contains the executed totals and source/evidence bindings.
 
-Public FlushAsync, caller cancellation/detachment, positive finite timeout validation, monotonic deadline behavior, immutable public results and the full S08 acceptance criteria remain T02–T04. No public placeholder, new package or general I/O framework is introduced. The 41 Planned release rows and supplied source plans remain unchanged.
+Public FlushAsync, timeout/cancellation result mapping, positive finite timeout validation, monotonic deadline behavior, immutable public results and the full S08 acceptance criteria remain T03/T04. T02 now implements the internal detachable lifetime wait. No public placeholder, new package or general I/O framework is introduced. The 41 Planned release rows and supplied source plans remain unchanged.

@@ -1,0 +1,27 @@
+# Flush coordination and caller detachment
+
+WP05-S08-T02 completes the internal caller-wait path over T01's registered boundaries. The existing output worker continues to serialize actual record writes and userspace flushes. Each outstanding accepted sequence has one shared registration; cancelling a caller never erases that registration or cancels its I/O.
+
+## Waiting without retained callers
+
+RuntimeFlushBoundary.WaitForWriterFlushAsync accepts one caller-lifetime token, which can be cancelled by the caller or by its deadline owner. It waits for the captured console registration, then the captured file registration, preserving both initial scalar observations. A failed console flush does not skip the file wait. Disabled outputs require no attachment. Already-cancelled tokens throw with the original token, including empty outputs or an already-resolved registration.
+
+Each registration uses Task.WaitAsync(token). The .NET reference implementation removes the underlying continuation and disposes the wait's cancellation registration when it settles. See the [Microsoft runtime source](https://github.com/dotnet/runtime/blob/v10.0.0/src/libraries/System.Private.CoreLib/src/System/Threading/Tasks/Task.cs#L2601-L2679). The fixture verifies the actual behavior on the pinned .NET 10.0.12 runtime; the linked source is reference context, not a substitute for that execution.
+
+A runtime caller attaches to at most one output at a time. It creates no permanent per-caller aggregation task over two blocked writer tasks. Same-boundary callers share worker controls while keeping their own cancellation lifetime and initial rejection/global facts. An outstanding registration is removed only after actual writer settlement or terminal unavailability. A later call after an earlier flush has fully settled can request another serialized userspace flush at the same sequence; there is no unbounded cache of past boundaries.
+
+T02 supplies the detachable internal lifetime wait. T03 owns the public positive finite timeout validation, one overall monotonic deadline, distinction between timeout and caller cancellation, and immutable truthful results. In T02 tests, deadline expiry comes from an actual CancellationTokenSource(TimeSpan, TimeProvider) timer callback; it cancels the internal lifetime token and therefore throws OperationCanceledException internally. These tests do not claim a public TimedOut result or monotonic deadline implementation.
+
+## Measured bounds
+
+The native fixture holds either the first record write or an empty-boundary flush while filling a three-entry queue. Four distinct shared controls cover the accepted targets, including the currently executing operation. It makes 10,000 registrations/waits at the final target, cancelling them individually or firing actual one-shot deadline callbacks. Each cancelled caller detaches, the control count remains four, and releasing I/O completes the registered work in target order. Earlier same-target snapshots retain queue-full counts 1 and 4 independently.
+
+A 64-caller two-output cohort registers independently at one target. After 32 caller cancellations and 16 deadline expiries, only the 16 surviving caller attachments remain. The file output has no attachment until a caller finishes waiting for console, and both outputs retain only three target controls. A separate asymmetric-output case observes the actual console-to-file attachment transition and subsequent cancellation without erasing the file flush. Pre-cancelled calls, actual writer failure, reuse after cancellation, and completion/cancellation races are covered separately.
+
+Test-only reflection reads the pinned runtime's Task continuation storage while the underlying writer task remains pending. It fails if that inspection is unavailable. The check counts nonnull retained continuations and the allocated backing slots: repeated single-caller cancellation leaves zero caller references and four empty slots, with no growth across 10,000 calls. The live 64-caller cohort uses 64 slots even after 48 callers detach; surviving attachments are counted separately. The cohort retained-reference summary is derived only after an exact sixteen-survivor guard; the phase gauges are the underlying evidence. These helpers inspect held/pending writer tasks and do not promise a general concurrent Task memory inspector. Private runtime storage is a qualification observation, not a public Core memory-layout promise.
+
+## Verification scope
+
+Sixteen focused unit cases and nine actual child-process cases assert literal target/caller/control/order facts. The independent native reader additionally validates final counter/rejection totals, exact attachment phases and bounded storage, actual emitted UTF-8 JSONL bytes and producer PIDs, real writer call counts, and sixteen exact-reason corruption controls. The task receipt binds current source, review and final frozen assembly bytes. The seven T01 native boundary modes are rerun as the relevant registration/physical-flush regressions; full Developer verification retains existing queue and file-lifecycle tests.
+
+The shipping change is confined to two short internal wait methods. No public API, package, worker-loop change, general timer framework or retained caller list is added. S08 remains in progress until T03/T04 public behavior and full acceptance qualification are complete. Source plans, historical evidence and all 41 Planned release rows remain unchanged.
