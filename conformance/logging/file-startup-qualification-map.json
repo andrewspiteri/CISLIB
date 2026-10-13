@@ -1,0 +1,88 @@
+{
+  "schema": "cis.logging.file-startup-qualification-map/v1",
+  "story": "WP05-S05",
+  "task": "WP05-S05-T04",
+  "scope": "Actual internal configured runtimes/native files on Windows and Ubuntu24.04; no public factory, bounded lifecycle, rotation, recovery, durability or release qualification.",
+  "criteria": [
+    {
+      "id": "WP05-S05-AC01",
+      "original": "A second process targeting the same group fails initialization clearly; processes with distinct paths do not interleave or corrupt each other's output.",
+      "nativeCases": [
+        "jsonl-holder-a",
+        "jsonl-blocked",
+        "jsonl-alias-blocked",
+        "jsonl-holder-b",
+        "jsonl-restart",
+        "human-holder-a",
+        "human-blocked",
+        "human-holder-b",
+        "killed-owner",
+        "killed-restart"
+      ],
+      "platforms": [
+        "windows",
+        "linux"
+      ],
+      "supplemental": "T03 native27modes reexecuted with current assemblies; T01/T02 foundation cases execute in final Developer suite."
+    },
+    {
+      "id": "WP05-S05-AC02",
+      "original": "Existing nonempty data with missing/incompatible format inventory remains unchanged and fails clearly; a newly created empty group records its format before use.",
+      "nativeCases": [
+        "jsonl-format-seed",
+        "human-format-seed",
+        "jsonl-format-rejected",
+        "human-format-rejected",
+        "jsonl-missing-0",
+        "jsonl-missing-1",
+        "human-missing-0",
+        "human-missing-1",
+        "jsonl-empty-switch-rejected",
+        "human-empty-switch-rejected",
+        "jsonl-empty-matching",
+        "human-empty-matching"
+      ],
+      "platforms": [
+        "windows",
+        "linux"
+      ],
+      "supplemental": "T03 native27modes reexecuted with current assemblies; T01/T02 foundation cases execute in final Developer suite."
+    },
+    {
+      "id": "WP05-S05-AC03",
+      "original": "Later working-directory changes cannot redirect the writer, and files/directories are untouched until runtime output initialization begins.",
+      "nativeCases": [
+        "relative-unicode-capture"
+      ],
+      "platforms": [
+        "windows",
+        "linux"
+      ],
+      "supplemental": "T03 native27modes reexecuted with current assemblies; T01/T02 foundation cases execute in final Developer suite."
+    },
+    {
+      "id": "WP05-S05-AC04",
+      "original": "Failed enabled-file startup fails runtime creation, releases newly acquired resources, preserves pre-existing active/retained segments and borrowed streams, and never redirects silently to another directory.",
+      "nativeCases": [
+        "permission-directory-denied",
+        "permission-directory-restored",
+        "permission-active-denied",
+        "permission-active-restored",
+        "permission-inventory-denied",
+        "permission-inventory-restored",
+        "permission-lease-denied",
+        "permission-lease-restored",
+        "jsonl-blocked",
+        "human-blocked"
+      ],
+      "platforms": [
+        "windows",
+        "linux"
+      ],
+      "supplemental": "T03 native27modes reexecuted with current assemblies; T01/T02 foundation cases execute in final Developer suite."
+    }
+  ],
+  "primaryVerifier": "implementations/csharp/tests/fixtures/DiscoveryHost/verify-file-group-consumers.py",
+  "supplementalVerifier": "implementations/csharp/tests/fixtures/DiscoveryHost/verify-file-runtime-startup.py",
+  "plannedReleaseCasesUnchanged": 41
+}
