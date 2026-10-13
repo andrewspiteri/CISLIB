@@ -1,0 +1,55 @@
+{
+  "verdict": "PASS",
+  "requiredFindings": [],
+  "optionalFindings": [
+    {
+      "id": "O1",
+      "path": "implementations/csharp/src/CIS.Core/Logging/Runtime/OutputEventQueue.cs",
+      "line": 329,
+      "problem": "If a custom ITimer.DisposeAsync throws, the exception escapes the worker's finally block. It replaces the original write/flush exception rethrown at line 322. On a clean Stopped close it also faults Completion while the output state says Stopped, and diagnostics don't record it. This conflicts with the S03-T03 decision to keep the original worker completion exceptions. The System timer doesn't throw, and the only custom TimeProviders today are internal, so this risk is latent.",
+      "suggestedFix": "Catch the timer-disposal exception in the finally block, still dispose ownedResource, and rethrow it only when there is no original worker exception (or combine both in an AggregateException). Alternatively, record the decision that disposal exceptions replace the original, and have S10 resolve it."
+    },
+    {
+      "id": "O2",
+      "path": "implementations/csharp/src/CIS.Core/Logging/Runtime/OutputEventQueue.cs",
+      "line": 116,
+      "problem": "Suppose Change throws (for example ObjectDisposedException from a custom timer) after Complete/Fault has already detached the timer and started its disposal task. The catch path still calls acquired.Dispose() synchronously, at the same time as the shared DisposeAsync, and then throws a startup error even though closure won. Only primitive opt-in callers can hit this: configured composition starts the timer before the runtime is published.",
+      "suggestedFix": "In the catch block, check ownership under the gate, e.g. `bool owned; lock (admissionGate) { owned = ReferenceEquals(fileFlushTimer, acquired); if (owned) { fileFlushTimer = null; } } if (owned) { acquired.Dispose(); } throw;`. This leaves a detached timer to the single shared disposal task."
+    },
+    {
+      "id": "O3",
+      "path": "implementations/csharp/tests/fixtures/DiscoveryHost/FileTimerLifecycleFixture.cs",
+      "line": 326,
+      "problem": "DisposalOutsideGate uses Monitor.IsEntered, which only checks the current thread. The disposal always runs on a pool thread, so the check can't detect the outer gate still being held, and it can't fail if the `lock (admissionGate) { }` barrier is removed. PublishedAtDisposal calls CaptureAccounting, which locks the gate itself, so that check passes without the barrier too. Source review is what actually proves the outer-gate barrier, plus a nondeterministic hint from FileIntervalFixture.cs:52-55.",
+      "suggestedFix": "Either rename and document the report field as a current-thread check (the doc already treats these booleans as fixture assertions plus source proof), or strengthen it. For example, in the closing/admission cases, call CloseAdmission/Write inside an outer `lock (gate)`, set a volatile `closerInside = false` as the last statement inside that lock, and have the clock's DisposeAsync require `!closerInside`."
+    },
+    {
+      "id": "O4",
+      "path": "implementations/csharp/tests/fixtures/DiscoveryHost/FileTimerLifecycleFixture.cs",
+      "line": 118,
+      "problem": "In admission-fault, a caller thread triggers the fault through Write → Admit → TryAdmit → Fault → CancelFileFlushScheduling while holding the outer gate. But CallerFact isn't set around that Write. So 'withoutCaller' for this case never checks whether the caller's ExecutionContext is suppressed, even though the doc claims this for admission failure too.",
+      "suggestedFix": "Set `CallerFact.Value = \"caller-private\"` around the seeded Write (try/finally reset), as the closing cases do at lines 111-112."
+    },
+    {
+      "id": "O5",
+      "path": "implementations/csharp/tests/fixtures/DiscoveryHost/verify-file-timer-lifecycle.py",
+      "line": 23,
+      "problem": "The fixture writes held-phase diagnostics (held.diagnostics, line 140 of the fixture), but neither the native reader nor the C# matcher checks them. So fault visibility and Stopping/Faulted state while I/O is still held aren't checked independently; only the final Stopped diagnostics are. PublishedAtDisposal accepts either Stopping or Faulted.",
+      "suggestedFix": "In check(), validate h['diagnostics'] for the non-physical modes. Expected values: close-write file accepted 1 / written 0 / pending 1 / state Stopping / no fault; close-flush 1/1/0 Stopping; flush-failure* file 3/1/abandoned 2/pending 0/unavailable 0 Faulted FlushFailed; admission-fault file 3/1/abandoned 2/pending 0/unavailable 1 Faulted AdmissionExhausted, with a UTC faultAt. Add one corruption control, e.g. held file state set to Stopped."
+    },
+    {
+      "id": "O6",
+      "path": "docs/modules/logging/file-timer-lifecycle.md",
+      "line": 21,
+      "problem": "'Three physical accepted events' (and 'three physical accepts' on line 22) refers to the controlled MemoryStream writer cases. Elsewhere in the doc 'physical' means the concrete FileOutputWriter close-callback case.",
+      "suggestedFix": "Say 'Three actually accepted (unseeded) events' / 'after three actual accepts'."
+    },
+    {
+      "id": "O7",
+      "path": "planning/logging/plan-amendments.md",
+      "line": 207,
+      "problem": "Earlier amendment entries start by recording the previous task's commit (e.g. 'WP05-S09-T01 is committed as c33ff528.'). The T03 entry leaves out 'WP05-S09-T02 is committed as 49911f9d.' Also, implementation-status.md:206 still lists T03 as the next task.",
+      "suggestedFix": "Add the T02 commit prefix to the T03 amendment. When the logging-only commit is prepared, add the T03 status row and update the next-task line, without touching the concurrent TypeManager files."
+    }
+  ]
+}

@@ -11,6 +11,7 @@ internal static class Program
 {
     private static int Main(string[] args)
     {
+        if (args.Length == 3 && args[0] == "file-timer-lifecycle") { return FileTimerLifecycleFixture.Run(args[1], args[2]); }
         if (args.Length == 3 && args[0] == "file-timer-coordination") { return FileTimerCoordinationFixture.Run(args[1], args[2]); }
         if (args.Length == 3 && args[0] == "file-interval") { return FileIntervalFixture.Run(args[1], args[2]); }
         if (args.Length == 3 && args[0] == "flush-stress") { return FlushStressFixture.Run(args[1], args[2]); }

@@ -15,6 +15,7 @@ internal sealed class OutputEventQueue : ILogOutputAdmission
     private TaskCompletionSource wake = NewWake();
     private OutputFlushRegistration? flushing;
     private ITimer? fileFlushTimer;
+    private Task? fileFlushTimerDisposal;
     private bool workerExiting;
     private long lastAcceptedSequence;
     private long acceptedCount;
@@ -95,6 +96,7 @@ internal sealed class OutputEventQueue : ILogOutputAdmission
         ITimer acquired;
         if (ExecutionContext.IsFlowSuppressed()) { acquired = Create(); }
         else { using (ExecutionContext.SuppressFlow()) { acquired = Create(); } }
+        bool assigned = false;
         try
         {
             bool activate;
@@ -102,7 +104,7 @@ internal sealed class OutputEventQueue : ILogOutputAdmission
             {
                 if (fileFlushTimer is not null) { throw new InvalidOperationException("A file flush timer is already owned."); }
                 activate = !admissionClosed && !workerExiting && !workerFinished && flush is not null;
-                if (activate) { fileFlushTimer = acquired; }
+                if (activate) { fileFlushTimer = acquired; assigned = true; }
             }
             if (!activate) { acquired.Dispose(); return; }
             if (!acquired.Change(interval, interval))
@@ -114,8 +116,36 @@ internal sealed class OutputEventQueue : ILogOutputAdmission
         }
         catch
         {
-            lock (admissionGate) { if (ReferenceEquals(fileFlushTimer, acquired)) { fileFlushTimer = null; } }
-            acquired.Dispose(); throw;
+            bool dispose;
+            lock (admissionGate)
+            {
+                dispose = !assigned || ReferenceEquals(fileFlushTimer, acquired);
+                if (ReferenceEquals(fileFlushTimer, acquired)) { fileFlushTimer = null; }
+            }
+            // An assigned/detached timer belongs to the shared disposal task; a local extra still needs cleanup.
+            if (dispose) { acquired.Dispose(); }
+            throw;
+        }
+    }
+    // One cleanup operation per acquired timer. Its gate barrier also respects an outer
+    // shared admission lock: custom timer code runs only after closure/fault publication.
+    private Task CancelFileFlushScheduling()
+    {
+        lock (admissionGate)
+        {
+            if (fileFlushTimerDisposal is not null) { return fileFlushTimerDisposal; }
+            ITimer? owned = fileFlushTimer;
+            if (owned is null) { return Task.CompletedTask; }
+            fileFlushTimer = null;
+            async Task DisposeAsync()
+            {
+                lock (admissionGate) { }
+                await owned.DisposeAsync().ConfigureAwait(false);
+            }
+            Task Launch() => Task.Run(DisposeAsync);
+            if (ExecutionContext.IsFlowSuppressed()) { fileFlushTimerDisposal = Launch(); }
+            else { using (ExecutionContext.SuppressFlow()) { fileFlushTimerDisposal = Launch(); } }
+            return fileFlushTimerDisposal;
         }
     }
     private void RequestFileFlush()
@@ -214,12 +244,14 @@ internal sealed class OutputEventQueue : ILogOutputAdmission
             state = workerFinished ? LogOutputState.Stopped : LogOutputState.Stopping;
             channel.Writer.TryComplete();
             wake.TrySetResult();
+            _ = CancelFileFlushScheduling();
         }
     }
     // Caller holds the shared gate. Publish closure, safe metadata and all unstarted loss together.
     private void Fault(string code)
     {
         faulted = true; admissionClosed = true;
+        _ = CancelFileFlushScheduling();
         state = stopRequested ? LogOutputState.Stopping : LogOutputState.Faulted;
         lastFaultCode = code; lastFaultAtUtc = DateTimeOffset.UtcNow;
         channel.Writer.TryComplete();
@@ -301,9 +333,8 @@ internal sealed class OutputEventQueue : ILogOutputAdmission
         {
             // No pending writer call remains. Owned cleanup precedes terminal state/Completion,
             // outside the gate, and never receives a borrowed console stream.
-            ITimer? timer;
-            lock (admissionGate) { workerExiting = true; timer = fileFlushTimer; fileFlushTimer = null; }
-            try { if (timer is not null) { await timer.DisposeAsync().ConfigureAwait(false); } }
+            lock (admissionGate) { workerExiting = true; }
+            try { await CancelFileFlushScheduling().ConfigureAwait(false); }
             finally
             {
                 try { ownedResource?.Dispose(); }
