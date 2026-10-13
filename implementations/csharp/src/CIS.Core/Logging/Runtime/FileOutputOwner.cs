@@ -6,15 +6,20 @@ internal sealed class FileOutputOwner : IDisposable
     private readonly FileStream lease;
     internal string AbsolutePath { get; }
     internal FileStream ActiveFile { get; }
+    internal FileGroupInventory? Inventory { get; private set; }
+    internal bool ActiveWasCreated { get; }
 
-    private FileOutputOwner(string absolutePath, FileStream lease, FileStream activeFile)
+    private FileOutputOwner(string absolutePath, FileStream lease, FileStream activeFile, bool activeWasCreated)
     {
         AbsolutePath = absolutePath;
         this.lease = lease;
         ActiveFile = activeFile;
+        ActiveWasCreated = activeWasCreated;
     }
 
-    internal static FileOutputOwner Initialize(string capturedAbsolutePath)
+    internal static FileOutputOwner Initialize(string capturedAbsolutePath) => InitializeCore(capturedAbsolutePath, rejectLostActive: false);
+
+    private static FileOutputOwner InitializeCore(string capturedAbsolutePath, bool rejectLostActive)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(capturedAbsolutePath);
         if (!Path.IsPathFullyQualified(capturedAbsolutePath))
@@ -41,9 +46,14 @@ internal sealed class FileOutputOwner : IDisposable
             {
                 throw new CoreLogInitializationException("file", "FileOwnershipUnavailable");
             }
-            active = new FileStream(capturedAbsolutePath, FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.Read,
-                bufferSize: 4096, FileOptions.Asynchronous | FileOptions.SequentialScan);
-            var owner = new FileOutputOwner(capturedAbsolutePath, lease, active);
+            bool activeWasCreated = false;
+            try { active = OpenActive(capturedAbsolutePath, FileMode.Open); }
+            catch (FileNotFoundException)
+            {
+                if (rejectLostActive && HasExistingInventory(capturedAbsolutePath)) { throw new CoreLogInitializationException("file", "FileInventoryIncompatible"); }
+                active = OpenActive(capturedAbsolutePath, FileMode.CreateNew); activeWasCreated = true;
+            }
+            var owner = new FileOutputOwner(capturedAbsolutePath, lease, active, activeWasCreated);
             lease = null;
             active = null;
             return owner;
@@ -57,6 +67,40 @@ internal sealed class FileOutputOwner : IDisposable
             try { active?.Dispose(); }
             finally { lease?.Dispose(); }
         }
+    }
+
+    private static bool HasExistingInventory(string path)
+    {
+        try
+        {
+            using var existing = new FileStream(path + ".cis.inventory.json", FileMode.Open, FileAccess.Read, FileShare.Read);
+            return true;
+        }
+        catch (FileNotFoundException) { return false; }
+        catch (Exception error) when (error is IOException or UnauthorizedAccessException or System.Security.SecurityException)
+        {
+            throw new CoreLogInitializationException("file", "FileInventoryInitializationFailed");
+        }
+    }
+
+    private static FileStream OpenActive(string path, FileMode mode)
+        => new(path, mode, FileAccess.ReadWrite, FileShare.Read, bufferSize: 4096, FileOptions.Asynchronous | FileOptions.SequentialScan);
+
+    internal static FileOutputOwner Initialize(string capturedAbsolutePath, LogOutputFormat format)
+    {
+        if (!Enum.IsDefined(format)) { throw new ArgumentOutOfRangeException(nameof(format)); }
+        FileOutputOwner owner = InitializeCore(capturedAbsolutePath, rejectLostActive: true);
+        try
+        {
+            owner.Inventory = FileGroupInventory.OpenOrCreate(owner, format);
+            return owner;
+        }
+        catch { owner.Dispose(); throw; }
+    }
+
+    internal void RequireOwnership()
+    {
+        if (!lease.CanWrite || !ActiveFile.CanWrite) { throw new InvalidOperationException("File ownership is not active."); }
     }
 
     private static bool ExcludesSecondHandle(string leasePath)
