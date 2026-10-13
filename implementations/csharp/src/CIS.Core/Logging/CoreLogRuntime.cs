@@ -1,4 +1,5 @@
 using CIS.Logging.Events;
+using CIS.Logging.Rendering;
 using CIS.Logging.Runtime;
 using CIS.Logging.Scopes;
 using CIS.Text;
@@ -6,11 +7,12 @@ using CIS.Text;
 namespace CIS.Logging;
 
 /// <summary>Owns logger context and independent output admission.</summary>
-/// <remarks>Physical output composition and public creation/shutdown are implemented in later roadmap tasks.</remarks>
+/// <remarks>Public creation and bounded shutdown are implemented in later roadmap tasks.</remarks>
 public sealed class CoreLogRuntime
 {
     private readonly object admissionGate;
     private readonly OutputQueues? queuedOutputs;
+    private readonly ConsoleOutputWriter? consoleWriter;
     private readonly EventMetadata metadata;
     private readonly TimeProvider timeProvider;
     private readonly int maximumEntryBytes;
@@ -22,7 +24,7 @@ public sealed class CoreLogRuntime
 
     // The direct internal admission seam remains available for existing focused qualification.
     internal CoreLogRuntime(EventMetadata metadata, LoggingOptions options, ILogOutputAdmission? console,
-        ILogOutputAdmission? file, TimeProvider? timeProvider = null, object? sharedAdmissionGate = null, OutputQueues? queuedOutputs = null)
+        ILogOutputAdmission? file, TimeProvider? timeProvider = null, object? sharedAdmissionGate = null, OutputQueues? queuedOutputs = null, ConsoleOutputWriter? consoleWriter = null)
     {
         ArgumentNullException.ThrowIfNull(metadata);
         ArgumentNullException.ThrowIfNull(options);
@@ -34,6 +36,7 @@ public sealed class CoreLogRuntime
         ValidateSettings(consoleLevel, fileLevel, maximumBytes);
         admissionGate = sharedAdmissionGate ?? new object();
         this.queuedOutputs = queuedOutputs;
+        this.consoleWriter = consoleWriter;
         this.metadata = metadata;
         this.timeProvider = timeProvider ?? TimeProvider.System;
         maximumEntryBytes = maximumBytes;
@@ -57,19 +60,57 @@ public sealed class CoreLogRuntime
         Func<AdmittedEvent, ValueTask>? consoleWrite, Func<AdmittedEvent, ValueTask>? fileWrite, TimeProvider? timeProvider = null)
     {
         ArgumentNullException.ThrowIfNull(metadata);
+        return ComposeQueued(metadata, CaptureQueueOptions(options), consoleWrite, fileWrite, timeProvider);
+    }
+
+    // Console settings are frozen before selecting the stream or starting any output worker.
+    internal static CoreLogRuntime CreateConsoleQueued(EventMetadata metadata, LoggingOptions options,
+        Func<AdmittedEvent, ValueTask>? fileWrite = null, TimeProvider? timeProvider = null,
+        Func<ConsoleOutputStream, Stream>? acquireConsole = null)
+    {
+        ArgumentNullException.ThrowIfNull(metadata);
+        LoggingOptions selected = CaptureQueueOptions(options);
+        ValidateSettings(selected.EffectiveConsoleLevel, selected.EffectiveFileLevel, selected.MaxEntryBytes);
+        if (selected.QueueCapacity is < LoggingOptions.MinimumQueueCapacity or > LoggingOptions.MaximumQueueCapacity)
+        { throw new ArgumentOutOfRangeException(nameof(options), "Use the configured queue-capacity range."); }
+        if (!Enum.IsDefined(selected.ConsoleFormat) || !Enum.IsDefined(selected.HumanDetail) || !Enum.IsDefined(selected.ConsoleStream))
+        { throw new ArgumentException("Use declared console presentation and stream values.", nameof(options)); }
+        ConsoleOutputWriter? writer = null;
+        if (selected.ConsoleEnabled)
+        {
+            Stream stream = acquireConsole is null ?
+                selected.ConsoleStream == ConsoleOutputStream.StandardError ? Console.OpenStandardError() : Console.OpenStandardOutput() :
+                acquireConsole(selected.ConsoleStream);
+            if (stream is null) { throw new InvalidOperationException("Console selection must return a stream."); }
+            writer = new ConsoleOutputWriter(stream, selected.ConsoleFormat, selected.HumanDetail, selected.MaxEntryBytes);
+        }
+        return ComposeQueued(metadata, selected, writer is null ? null : writer.WriteAsync, fileWrite, timeProvider, writer);
+    }
+
+    private static LoggingOptions CaptureQueueOptions(LoggingOptions options)
+    {
         ArgumentNullException.ThrowIfNull(options);
-        var selected = new LoggingOptions
+        return new LoggingOptions
         {
             ConsoleLevel = options.EffectiveConsoleLevel,
             FileLevel = options.EffectiveFileLevel,
             FilePath = options.FilePath,
             MaxEntryBytes = options.MaxEntryBytes,
-            QueueCapacity = options.QueueCapacity
+            QueueCapacity = options.QueueCapacity,
+            ConsoleFormat = options.ConsoleFormat,
+            ConsoleStream = options.ConsoleStream,
+            HumanDetail = options.HumanDetail
         };
+    }
+
+    private static CoreLogRuntime ComposeQueued(EventMetadata metadata, LoggingOptions selected,
+        Func<AdmittedEvent, ValueTask>? consoleWrite, Func<AdmittedEvent, ValueTask>? fileWrite,
+        TimeProvider? timeProvider, ConsoleOutputWriter? writer = null)
+    {
         ValidateSettings(selected.EffectiveConsoleLevel, selected.EffectiveFileLevel, selected.MaxEntryBytes);
         var gate = new object();
         var queues = new OutputQueues(selected.QueueCapacity, selected.ConsoleEnabled, selected.FileEnabled, consoleWrite, fileWrite, gate);
-        try { return new CoreLogRuntime(metadata, selected, queues.Console, queues.File, timeProvider, gate, queues); }
+        try { return new CoreLogRuntime(metadata, selected, queues.Console, queues.File, timeProvider, gate, queues, writer); }
         catch { queues.Complete(); throw; }
     }
     internal OutputQueues? QueuedOutputs => queuedOutputs;
@@ -132,6 +173,7 @@ public sealed class CoreLogRuntime
     internal LogWriteResult Write(string component, CoreLogLevel level, LogEventData? data, Func<LogEventData>? factory)
     {
         ValidateLevel(level);
+        bool renderConsole;
         lock (admissionGate)
         {
             if (admissionClosed) { return Stopped(isTruncated: false); }
@@ -140,6 +182,7 @@ public sealed class CoreLogRuntime
             {
                 return FinishWithoutCapture(level, LogWriteOutcome.Rejected);
             }
+            renderConsole = consoleWriter is not null && outputs.Any(output => output.Name == "console" && Interested(output, level) && !output.Admission.IsFaulted);
         }
         // No gate is held around caller factories, clock, scopes or payload callbacks.
         if (factory is not null) { data = factory(); }
@@ -158,14 +201,20 @@ public sealed class CoreLogRuntime
             return Invalid(CaptureError(eventName, message, template, operationId));
         }
         EncodedEvent captured;
-        try { captured = EventEncoder.Encode(facts, maximumEntryBytes); }
+        RenderedEvent? preparedConsole = null;
+        // Other owned encoding/rendering consistency errors are Core defects, not invalid caller content.
+        try
+        {
+            captured = EventEncoder.Encode(facts, maximumEntryBytes);
+            if (renderConsole) { preparedConsole = consoleWriter!.Prepare(captured); }
+        }
         catch (EventEnvelopeTooLargeException) { return Invalid("EnvelopeTooLarge"); }
-        // Owned encoding consistency errors are Core defects, not invalid caller content.
+        bool isTruncated = captured.IsTruncated || preparedConsole?.IsTruncated == true;
         lock (admissionGate)
         {
-            if (captured.IsTruncated) { IncrementLossCounter(ref truncatedEventCount); }
-            if (admissionClosed) { return Stopped(captured.IsTruncated); }
-            return Admit(level, captured);
+            if (isTruncated) { IncrementLossCounter(ref truncatedEventCount); }
+            if (admissionClosed) { return Stopped(isTruncated); }
+            return Admit(level, captured, preparedConsole?.Line, isTruncated);
         }
     }
 
@@ -216,7 +265,7 @@ public sealed class CoreLogRuntime
         return new LogWriteResult(outcome, observations);
     }
 
-    private LogWriteResult Admit(CoreLogLevel level, EncodedEvent captured)
+    private LogWriteResult Admit(CoreLogLevel level, EncodedEvent captured, ReadOnlyMemory<byte>? consoleLine, bool isTruncated)
     {
         var observations = new List<LogOutputWriteResult>(outputs.Length);
         int accepted = 0;
@@ -238,6 +287,8 @@ public sealed class CoreLogRuntime
                     output.Admission.RecordUnavailable();
                     status = LogOutputWriteStatus.Faulted;
                 }
+                else if (output.Name == "console" && consoleLine is { } preparedLine)
+                { status = queuedOutputs!.Console!.TryAdmit(captured, preparedLine, out sequence); }
                 else { status = output.Admission.TryAdmit(captured, out sequence); }
                 if (status == LogOutputWriteStatus.Accepted) { accepted++; }
             }
@@ -254,7 +305,7 @@ public sealed class CoreLogRuntime
         LogWriteOutcome outcome = LogWriteOutcome.Rejected;
         if (accepted == interested) { outcome = LogWriteOutcome.Accepted; }
         else if (accepted > 0) { outcome = LogWriteOutcome.PartiallyAccepted; }
-        return new LogWriteResult(outcome, observations, isTruncated: captured.IsTruncated);
+        return new LogWriteResult(outcome, observations, isTruncated: isTruncated);
     }
 
     private static string CaptureError(string? name, string? message, string? template, string? operationId)

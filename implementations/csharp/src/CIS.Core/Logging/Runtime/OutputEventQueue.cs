@@ -57,7 +57,8 @@ internal sealed class OutputEventQueue : ILogOutputAdmission
     }
     public bool IsFaulted { get { lock (admissionGate) { return faulted; } } }
     internal bool TryEnqueue(EncodedEvent captured) => TryAdmit(captured, out _) == LogOutputWriteStatus.Accepted;
-    public LogOutputWriteStatus TryAdmit(EncodedEvent captured, out long? acceptedSequence)
+    public LogOutputWriteStatus TryAdmit(EncodedEvent captured, out long? acceptedSequence) => TryAdmit(captured, null, out acceptedSequence);
+    internal LogOutputWriteStatus TryAdmit(EncodedEvent captured, ReadOnlyMemory<byte>? preparedLine, out long? acceptedSequence)
     {
         ArgumentNullException.ThrowIfNull(captured);
         lock (admissionGate)
@@ -75,7 +76,7 @@ internal sealed class OutputEventQueue : ILogOutputAdmission
                 return LogOutputWriteStatus.Faulted;
             }
             long next = lastAcceptedSequence + 1;
-            if (!channel.Writer.TryWrite(new AdmittedEvent(captured, next)))
+            if (!channel.Writer.TryWrite(new AdmittedEvent(captured, next, preparedLine)))
             {
                 if (queueFullCount != long.MaxValue) { queueFullCount++; }
                 return LogOutputWriteStatus.QueueFull;

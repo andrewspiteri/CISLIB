@@ -1,0 +1,7 @@
+# WP05-S04-T01 read-only review corrections
+
+Initial native Claude review returned FAIL with one required finding: three documented loss branches lacked direct tests. Four real controls now cover console queue-full with healthy file capture, late closure and late fault through a held clock, and logging to the healthy file after console fault. They assert the exact admission outcomes/tickets, flags, once-only global counters and unmodified JSONL, using real queues/Streams and bounded release/join cleanup. No shipping test hook or placeholder was added.
+
+Optional findings were addressed with explicit late-fault accounting and whole-event protected-envelope consequences; per-line C# BOM checks and a seventh BOM corruption control in both comparers; clear original-byte Python versus physical C# reader scope; opt-in strict UTF-8 for new consumers so existing helper callers retain their decoding; complete source/comment wording and readable inventory spacing. Actual Written observations are polled on the diagnostic boundary after callback readiness, removing a potential test race. The final receipt must exist before commit.
+
+The original full Developer 4168-test run and first148 native children per platform predate these changes and are retained as pre-review-fix summaries/source manifests/native summaries. Focused corrected54unit/41integration pass. Final corrected Developer and native runs, fresh CIS and staged byte audits must separately qualify the commit.

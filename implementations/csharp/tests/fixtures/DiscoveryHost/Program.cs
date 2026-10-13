@@ -11,6 +11,7 @@ internal static class Program
 {
     private static int Main(string[] args)
     {
+        if (args.Length == 3 && args[0] == "console-composition") { return ConsoleCompositionFixture.Run(args[1], args[2]); }
         if (args.Length == 3 && args[0] == "diagnostics") { return DiagnosticsFixture.Run(args[1], args[2]); }
         if (args.Length == 3 && args[0] == "output-states") { return OutputStateFixture.Run(args[1], args[2]); }
         if (args.Length == 3 && args[0] == "delivery-observation") { return DeliveryObservationFixture.Run(args[1], args[2]); }

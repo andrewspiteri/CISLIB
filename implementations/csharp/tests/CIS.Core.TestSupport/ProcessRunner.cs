@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using System.Text;
 
 namespace CIS.TestSupport;
 
@@ -12,7 +13,8 @@ public static class ProcessRunner
         IEnumerable<string> arguments,
         string workingDirectory,
         TimeSpan timeout,
-        IReadOnlyDictionary<string, string?>? environment = null)
+        IReadOnlyDictionary<string, string?>? environment = null,
+        Encoding? outputEncoding = null)
     {
         if (timeout <= TimeSpan.Zero || timeout.TotalMilliseconds > uint.MaxValue - 1)
         {
@@ -25,6 +27,8 @@ public static class ProcessRunner
             UseShellExecute = false,
             RedirectStandardOutput = true,
             RedirectStandardError = true,
+            StandardOutputEncoding = outputEncoding,
+            StandardErrorEncoding = outputEncoding,
             CreateNoWindow = true
         };
         foreach (string argument in arguments)
