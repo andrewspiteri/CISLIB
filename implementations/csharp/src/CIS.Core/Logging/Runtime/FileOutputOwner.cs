@@ -107,7 +107,16 @@ internal sealed class FileOutputOwner : IDisposable
         // Remove only exact oldest inventory members, while holding the group lease,
         // before the old active file becomes an additional retained segment.
         int removed = current.Segments.Count + 1 - next.Segments.Count;
-        for (int index = 0; index < removed; index++) { File.Delete(Path.Combine(directory, current.Segments[index].FileName)); }
+        try
+        {
+            for (int index = 0; index < removed; index++) { File.Delete(Path.Combine(directory, current.Segments[index].FileName)); }
+        }
+        catch (Exception error) when (error is IOException or UnauthorizedAccessException or System.Security.SecurityException)
+        {
+            // No new retained segment has been created. The sequential worker faults,
+            // preserves other outputs and releases this owner's handles without retry.
+            throw FileOutputWriteException.RetentionDeleteFailed();
+        }
         string closedPath = Path.Combine(directory, next.Segments[^2].FileName);
         // The lease remains held throughout. No incoming record is written until the new
         // identity is published. Failure after rename leaves no active path to append to;

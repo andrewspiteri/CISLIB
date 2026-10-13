@@ -137,12 +137,12 @@ internal sealed class OutputEventQueue : ILogOutputAdmission
                 }
             }
         }
-        catch
+        catch (Exception error)
         {
             lock (admissionGate)
             {
                 if (inFlight) { failedCount++; inFlight = false; }
-                Fault("WriteFailed");
+                Fault(error is FileOutputWriteException fileError ? fileError.FaultCode : "WriteFailed");
             }
             throw;
         }

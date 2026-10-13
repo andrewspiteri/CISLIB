@@ -39,7 +39,11 @@ internal sealed class FileOutputWriter(string absolutePath, LogOutputFormat form
         FileOutputOwner active = owner ?? throw new InvalidOperationException("File output is not initialized.");
         ReadOnlyMemory<byte> line = admitted.PreparedLine ?? throw new InvalidOperationException("File records require prepared output bytes.");
         // The prepared record includes every encoded byte and its LF. Never split it.
-        if (line.Length > maximumFileBytes) { throw new IOException("File record exceeds the segment byte limit."); }
+        if (line.Length > maximumFileBytes)
+        {
+            if (format == LogOutputFormat.Human) { throw FileOutputWriteException.RenderTooLarge(); }
+            throw new IOException("File record exceeds the segment byte limit.");
+        }
         if (line.Length > maximumFileBytes - activeBytes)
         {
             active.Rotate(maximumRetainedFiles);

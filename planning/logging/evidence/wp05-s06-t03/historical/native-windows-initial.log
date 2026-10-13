@@ -1,0 +1,14 @@
+Traceback (most recent call last):
+  File "C:\miscwork\portfolio\cislib\implementations\csharp\tests\fixtures\DiscoveryHost\verify-file-failure.py", line 115, in <module>
+    if __name__=='__main__':main()
+                            ^^^^^^
+  File "C:\miscwork\portfolio\cislib\implementations\csharp\tests\fixtures\DiscoveryHost\verify-file-failure.py", line 87, in main
+    a=next_report();p.wait(timeout=30);reader.join(timeout=10);errors.join(timeout=10);require(not reader.is_alive() and not errors.is_alive() and p.returncode==0 and b''.join(stderr)==b'','child failure/drain')
+      ^^^^^^^^^^^^^
+  File "C:\miscwork\portfolio\cislib\implementations\csharp\tests\fixtures\DiscoveryHost\verify-file-failure.py", line 74, in next_report
+    raw=lines.get(timeout=30);require(raw!=b'','unexpected child exit');value=json.loads(raw.decode('utf-8',errors='strict'));reports.append(value);return value
+                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\miscwork\portfolio\cislib\implementations\csharp\tests\fixtures\DiscoveryHost\verify-file-failure.py", line 8, in require
+    if not value:raise AssertionError(reason)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: unexpected child exit

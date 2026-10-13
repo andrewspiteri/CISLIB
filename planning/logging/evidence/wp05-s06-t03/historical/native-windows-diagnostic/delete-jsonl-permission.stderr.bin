@@ -1,0 +1,15 @@
+Unhandled exception. System.UnauthorizedAccessException: Access to the path 'C:\Users\andrs\AppData\Local\Temp\cislib-file-failure-t2rn002q\delete-jsonl-permission\logs\.cis-log-08b2558e6e504be589dab0eea674962d-00000000000000000001.closed' is denied.
+   at Microsoft.Win32.SafeHandles.SafeFileHandle.CreateFile(String fullPath, FileMode mode, FileAccess access, FileShare share, FileOptions options)
+   at Microsoft.Win32.SafeHandles.SafeFileHandle.Open(String fullPath, FileMode mode, FileAccess access, FileShare share, FileOptions options, Int64 preallocationSize, Nullable`1 unixCreateMode)
+   at System.IO.Strategies.OSFileStreamStrategy..ctor(String path, FileMode mode, FileAccess access, FileShare share, FileOptions options, Int64 preallocationSize, Nullable`1 unixCreateMode)
+   at System.IO.Strategies.FileStreamHelpers.ChooseStrategyCore(String path, FileMode mode, FileAccess access, FileShare share, FileOptions options, Int64 preallocationSize, Nullable`1 unixCreateMode)
+   at System.IO.FileStream..ctor(String path, FileMode mode, FileAccess access, FileShare share)
+   at CIS.Tests.DiscoveryFixture.FileFailureFixture.Read(String path) in C:\miscwork\portfolio\cislib\implementations\csharp\tests\fixtures\DiscoveryHost\FileFailureFixture.cs:line 97
+   at CIS.Tests.DiscoveryFixture.FileFailureFixture.<>c__DisplayClass5_0.<ExecuteAsync>b__8(String name) in C:\miscwork\portfolio\cislib\implementations\csharp\tests\fixtures\DiscoveryHost\FileFailureFixture.cs:line 63
+   at System.Linq.Enumerable.ListSelectIterator`2.MoveNext()
+   at System.Text.Json.Nodes.JsonObject..ctor(IEnumerable`1 properties, Nullable`1 options)
+   at CIS.Tests.DiscoveryFixture.FileFailureFixture.<>c__DisplayClass5_0.<ExecuteAsync>g__Snapshot|4(<>c__DisplayClass5_4&) in C:\miscwork\portfolio\cislib\implementations\csharp\tests\fixtures\DiscoveryHost\FileFailureFixture.cs:line 63
+   at CIS.Tests.DiscoveryFixture.FileFailureFixture.ExecuteAsync(String mode, String root, Boolean externalRelease) in C:\miscwork\portfolio\cislib\implementations\csharp\tests\fixtures\DiscoveryHost\FileFailureFixture.cs:line 80
+   at CIS.Tests.DiscoveryFixture.FileFailureFixture.ExecuteAsync(String mode, String root, Boolean externalRelease) in C:\miscwork\portfolio\cislib\implementations\csharp\tests\fixtures\DiscoveryHost\FileFailureFixture.cs:line 91
+   at CIS.Tests.DiscoveryFixture.FileFailureFixture.Run(String mode, String root) in C:\miscwork\portfolio\cislib\implementations\csharp\tests\fixtures\DiscoveryHost\FileFailureFixture.cs:line 21
+   at CIS.Tests.DiscoveryFixture.Program.Main(String[] args) in C:\miscwork\portfolio\cislib\implementations\csharp\tests\fixtures\DiscoveryHost\Program.cs:line 14
