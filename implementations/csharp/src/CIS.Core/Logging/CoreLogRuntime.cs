@@ -61,10 +61,11 @@ public sealed class CoreLogRuntime
 
     // Actual capture -> ticketed Channels -> sequential trusted writers; physical output ownership comes later.
     internal static CoreLogRuntime CreateQueued(EventMetadata metadata, LoggingOptions options,
-        Func<AdmittedEvent, ValueTask>? consoleWrite, Func<AdmittedEvent, ValueTask>? fileWrite, TimeProvider? timeProvider = null)
+        Func<AdmittedEvent, ValueTask>? consoleWrite, Func<AdmittedEvent, ValueTask>? fileWrite, TimeProvider? timeProvider = null,
+        Func<ValueTask>? consoleFlush = null, Func<ValueTask>? fileFlush = null)
     {
         ArgumentNullException.ThrowIfNull(metadata);
-        return ComposeQueued(metadata, CaptureQueueOptions(options), consoleWrite, fileWrite, timeProvider);
+        return ComposeQueued(metadata, CaptureQueueOptions(options), consoleWrite, fileWrite, timeProvider, consoleFlush: consoleFlush, fileFlush: fileFlush);
     }
 
     // Console settings are frozen before selecting the stream or starting any output worker.
@@ -143,11 +144,12 @@ public sealed class CoreLogRuntime
 
     private static CoreLogRuntime ComposeQueued(EventMetadata metadata, LoggingOptions selected,
         Func<AdmittedEvent, ValueTask>? consoleWrite, Func<AdmittedEvent, ValueTask>? fileWrite,
-        TimeProvider? timeProvider, ConsoleOutputWriter? writer = null, Func<Func<Task>, Task>? launchWorker = null, FileOutputWriter? fileWriter = null)
+        TimeProvider? timeProvider, ConsoleOutputWriter? writer = null, Func<Func<Task>, Task>? launchWorker = null, FileOutputWriter? fileWriter = null, Func<ValueTask>? consoleFlush = null, Func<ValueTask>? fileFlush = null)
     {
         ValidateSettings(selected.EffectiveConsoleLevel, selected.EffectiveFileLevel, selected.MaxEntryBytes);
         var gate = new object();
-        var queues = new OutputQueues(selected.QueueCapacity, selected.ConsoleEnabled, selected.FileEnabled, consoleWrite, fileWrite, gate, launchWorker, fileWriter);
+        var queues = new OutputQueues(selected.QueueCapacity, selected.ConsoleEnabled, selected.FileEnabled, consoleWrite, fileWrite, gate, launchWorker, fileWriter,
+            writer is null ? consoleFlush : writer.FlushAsync, fileWriter is null ? fileFlush : fileWriter.FlushAsync);
         try
         {
             writer?.Initialize();
@@ -157,6 +159,18 @@ public sealed class CoreLogRuntime
         catch { queues.Complete(); queues.Completion.GetAwaiter().GetResult(); fileWriter?.Dispose(); throw; }
     }
     internal OutputQueues? QueuedOutputs => queuedOutputs;
+    internal RuntimeFlushBoundary RegisterFlushBoundary()
+    {
+        if (queuedOutputs is null) { throw new InvalidOperationException("Flush boundaries require actual queued output composition."); }
+        lock (admissionGate)
+        {
+            // Pure system UTC sampling here does not invoke caller factories, payloads or the event clock.
+            DateTimeOffset capturedAt = DateTimeOffset.UtcNow;
+            OutputFlushBoundary? console = queuedOutputs.Console?.RegisterFlushBoundary();
+            OutputFlushBoundary? file = queuedOutputs.File?.RegisterFlushBoundary();
+            return new RuntimeFlushBoundary(capturedAt, InvalidEventCount, TruncatedEventCount, console, file);
+        }
+    }
     internal RuntimeAccounting CaptureAccounting()
     {
         if (queuedOutputs is null) { throw new InvalidOperationException("Accounting requires actual queued output composition."); }

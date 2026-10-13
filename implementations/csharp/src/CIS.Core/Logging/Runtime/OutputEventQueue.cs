@@ -10,6 +10,11 @@ internal sealed class OutputEventQueue : ILogOutputAdmission
     private readonly Channel<AdmittedEvent> channel;
     private readonly Func<AdmittedEvent, ValueTask> write;
     private readonly IDisposable? ownedResource;
+    private readonly Func<ValueTask>? flush;
+    private readonly SortedDictionary<long, OutputFlushRegistration> flushRequests = [];
+    private TaskCompletionSource wake = NewWake();
+    private OutputFlushRegistration? flushing;
+    private bool workerExiting;
     private long lastAcceptedSequence;
     private long acceptedCount;
     private long queueFullCount;
@@ -26,13 +31,14 @@ internal sealed class OutputEventQueue : ILogOutputAdmission
     private LogOutputState state;
     private string? lastFaultCode;
     private DateTimeOffset? lastFaultAtUtc;
-    internal OutputEventQueue(int capacity, Func<AdmittedEvent, ValueTask> write, object? sharedAdmissionGate = null, Func<Func<Task>, Task>? launchWorker = null, IDisposable? ownedResource = null)
+    internal OutputEventQueue(int capacity, Func<AdmittedEvent, ValueTask> write, object? sharedAdmissionGate = null, Func<Func<Task>, Task>? launchWorker = null, IDisposable? ownedResource = null, Func<ValueTask>? flush = null)
     {
         ArgumentNullException.ThrowIfNull(write);
         if (capacity is < LoggingOptions.MinimumQueueCapacity or > LoggingOptions.MaximumQueueCapacity) { throw new ArgumentOutOfRangeException(nameof(capacity)); }
         admissionGate = sharedAdmissionGate ?? new object();
         this.write = write;
         this.ownedResource = ownedResource;
+        this.flush = flush;
         channel = Channel.CreateBounded<AdmittedEvent>(new BoundedChannelOptions(capacity)
         {
             FullMode = BoundedChannelFullMode.Wait,
@@ -48,7 +54,28 @@ internal sealed class OutputEventQueue : ILogOutputAdmission
         if (ExecutionContext.IsFlowSuppressed()) { Completion = Launch(); }
         else { using (ExecutionContext.SuppressFlow()) { Completion = Launch(); } }
     }
+    private static TaskCompletionSource NewWake() => new(TaskCreationOptions.RunContinuationsAsynchronously);
     internal Task Completion { get; }
+    internal int RegisteredFlushCount { get { lock (admissionGate) { return flushRequests.Count; } } }
+    internal OutputFlushBoundary RegisterFlushBoundary()
+    {
+        lock (admissionGate)
+        {
+            long boundary = lastAcceptedSequence;
+            if (!flushRequests.TryGetValue(boundary, out OutputFlushRegistration? registration))
+            {
+                registration = new OutputFlushRegistration(boundary);
+                if (faulted || workerExiting || workerFinished || flush is null) { registration.Resolve(false); }
+                else
+                {
+                    // Coordination is separate from bounded event slots and cannot overflow with them.
+                    flushRequests.Add(boundary, registration);
+                    wake.TrySetResult();
+                }
+            }
+            return new OutputFlushBoundary(boundary, filteredCount, queueFullCount, unavailableCount, registration);
+        }
+    }
     internal int BufferedCount { get { lock (admissionGate) { return channel.Reader.Count; } } }
     internal long LastAcceptedSequence { get { lock (admissionGate) { return lastAcceptedSequence; } } }
     internal long FilteredCount { get { lock (admissionGate) { return filteredCount; } } }
@@ -89,6 +116,7 @@ internal sealed class OutputEventQueue : ILogOutputAdmission
             }
             lastAcceptedSequence = next;
             acceptedCount++;
+            wake.TrySetResult();
             acceptedSequence = next;
             return LogOutputWriteStatus.Accepted;
         }
@@ -103,6 +131,7 @@ internal sealed class OutputEventQueue : ILogOutputAdmission
             stopRequested = true; admissionClosed = true;
             state = workerFinished ? LogOutputState.Stopped : LogOutputState.Stopping;
             channel.Writer.TryComplete();
+            wake.TrySetResult();
         }
     }
     // Caller holds the shared gate. Publish closure, safe metadata and all unstarted loss together.
@@ -113,25 +142,57 @@ internal sealed class OutputEventQueue : ILogOutputAdmission
         lastFaultCode = code; lastFaultAtUtc = DateTimeOffset.UtcNow;
         channel.Writer.TryComplete();
         while (channel.Reader.TryRead(out _)) { abandonedCount++; }
+        foreach (OutputFlushRegistration registration in flushRequests.Values)
+        {
+            if (!ReferenceEquals(registration, flushing)) { registration.Resolve(false); }
+        }
+        OutputFlushRegistration? active = flushing;
+        flushRequests.Clear();
+        // An already-started flush remains unresolved until its actual I/O settles, even if admission faults.
+        if (active is not null) { flushRequests.Add(active.AcceptedSequenceBoundary, active); }
+        wake.TrySetResult();
     }
     private async Task ProcessAsync()
     {
         try
         {
-            while (await channel.Reader.WaitToReadAsync().ConfigureAwait(false))
+            while (true)
             {
-                while (true)
+                AdmittedEvent admitted = default;
+                OutputFlushRegistration? request = null;
+                Task? wait = null;
+                lock (admissionGate)
                 {
-                    AdmittedEvent admitted;
+                    if (faulted) { workerExiting = true; return; }
+                    if (flushRequests.Count > 0 && flushRequests.First().Key <= writtenCount)
+                    {
+                        request = flushRequests.First().Value;
+                        flushing = request;
+                    }
+                    else if (channel.Reader.TryRead(out admitted)) { inFlight = true; }
+                    else if (stopRequested) { workerExiting = true; return; }
+                    else
+                    {
+                        // Reset only while no work is visible under the admission gate: no lost wakeup.
+                        if (wake.Task.IsCompleted) { wake = NewWake(); }
+                        wait = wake.Task;
+                    }
+                }
+                if (wait is not null) { await wait.ConfigureAwait(false); continue; }
+                if (request is not null)
+                {
+                    // Flush at this fixed boundary before starting a later record. All I/O is outside the gate.
+                    await flush!().ConfigureAwait(false);
                     lock (admissionGate)
                     {
-                        if (faulted) { return; }
-                        if (!channel.Reader.TryRead(out admitted)) { break; }
-                        inFlight = true;
+                        flushRequests.Remove(request.AcceptedSequenceBoundary);
+                        flushing = null;
+                        request.Resolve(true);
                     }
-                    // Taking work under the gate observes its published ticket. I/O is outside it.
-                    // The trusted callback confirms the complete record only by successful completion.
-                    // Unresolved/partially emitted bytes remain pending; a terminal exception is failed.
+                }
+                else
+                {
+                    // Complete record confirmation only; a dequeued/partially emitted write is still pending.
                     await write(admitted).ConfigureAwait(false);
                     lock (admissionGate) { writtenCount++; inFlight = false; }
                 }
@@ -142,7 +203,10 @@ internal sealed class OutputEventQueue : ILogOutputAdmission
             lock (admissionGate)
             {
                 if (inFlight) { failedCount++; inFlight = false; }
-                Fault(error is FileOutputWriteException fileError ? fileError.FaultCode : "WriteFailed");
+                bool flushFailed = flushing is not null;
+                flushing?.Resolve(false);
+                flushing = null;
+                Fault(flushFailed ? "FlushFailed" : error is FileOutputWriteException fileError ? fileError.FaultCode : "WriteFailed");
             }
             throw;
         }
@@ -156,6 +220,7 @@ internal sealed class OutputEventQueue : ILogOutputAdmission
                 lock (admissionGate)
                 {
                     admissionClosed = true; channel.Writer.TryComplete();
+                    workerExiting = true;
                     workerFinished = true;
                     state = stopRequested || !faulted ? LogOutputState.Stopped : LogOutputState.Faulted;
                 }

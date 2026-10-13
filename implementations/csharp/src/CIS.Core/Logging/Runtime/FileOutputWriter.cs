@@ -50,6 +50,7 @@ internal sealed class FileOutputWriter(string absolutePath, LogOutputFormat form
         catch { acquired.Dispose(); throw new CoreLogInitializationException("file", "FileInitializationFailed"); }
     }
     internal RenderedEvent Prepare(EncodedEvent captured) => EventRenderer.Render(captured, format, detail, maximumEntryBytes);
+    internal ValueTask FlushAsync() => new((owner ?? throw new InvalidOperationException("File output is not initialized.")).ActiveFile.FlushAsync());
     internal async ValueTask WriteAsync(AdmittedEvent admitted)
     {
         FileOutputOwner active = owner ?? throw new InvalidOperationException("File output is not initialized.");

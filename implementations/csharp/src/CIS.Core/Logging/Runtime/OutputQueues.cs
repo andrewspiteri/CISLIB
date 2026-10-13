@@ -5,16 +5,18 @@ internal sealed class OutputQueues
 {
     private readonly object admissionGate;
     internal OutputQueues(int capacity, bool consoleEnabled, bool fileEnabled,
-        Func<AdmittedEvent, ValueTask>? consoleWrite, Func<AdmittedEvent, ValueTask>? fileWrite, object? sharedAdmissionGate = null, Func<Func<Task>, Task>? launchWorker = null, IDisposable? fileResource = null)
+        Func<AdmittedEvent, ValueTask>? consoleWrite, Func<AdmittedEvent, ValueTask>? fileWrite, object? sharedAdmissionGate = null, Func<Func<Task>, Task>? launchWorker = null, IDisposable? fileResource = null, Func<ValueTask>? consoleFlush = null, Func<ValueTask>? fileFlush = null)
     {
         admissionGate = sharedAdmissionGate ?? new object();
         if (capacity is < LoggingOptions.MinimumQueueCapacity or > LoggingOptions.MaximumQueueCapacity) { throw new ArgumentOutOfRangeException(nameof(capacity)); }
         if (consoleEnabled != (consoleWrite is not null)) { throw new ArgumentException("Writer presence must match enabled console output.", nameof(consoleWrite)); }
         if (fileEnabled != (fileWrite is not null)) { throw new ArgumentException("Writer presence must match enabled file output.", nameof(fileWrite)); }
+        if (!consoleEnabled && consoleFlush is not null) { throw new ArgumentException("Disabled console output cannot have a flush callback.", nameof(consoleFlush)); }
+        if (!fileEnabled && fileFlush is not null) { throw new ArgumentException("Disabled file output cannot have a flush callback.", nameof(fileFlush)); }
         try
         {
-            if (consoleWrite is not null) { Console = Create("console", consoleWrite, null); }
-            if (fileWrite is not null) { File = Create("file", fileWrite, fileResource); }
+            if (consoleWrite is not null) { Console = Create("console", consoleWrite, null, consoleFlush); }
+            if (fileWrite is not null) { File = Create("file", fileWrite, fileResource, fileFlush); }
             Completion = Task.WhenAll(Console?.Completion ?? Task.CompletedTask, File?.Completion ?? Task.CompletedTask);
         }
         catch
@@ -22,9 +24,9 @@ internal sealed class OutputQueues
             // Unpublished queues are empty. Close/join only this attempt's idle workers, outside the gate.
             Complete(); Console?.Completion.GetAwaiter().GetResult(); File?.Completion.GetAwaiter().GetResult(); throw;
         }
-        OutputEventQueue Create(string name, Func<AdmittedEvent, ValueTask> write, IDisposable? ownedResource)
+        OutputEventQueue Create(string name, Func<AdmittedEvent, ValueTask> write, IDisposable? ownedResource, Func<ValueTask>? flush)
         {
-            try { return new OutputEventQueue(capacity, write, admissionGate, launchWorker, ownedResource); }
+            try { return new OutputEventQueue(capacity, write, admissionGate, launchWorker, ownedResource, flush); }
             catch { throw new CoreLogInitializationException(name, "WorkerInitializationFailed"); }
         }
     }

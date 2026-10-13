@@ -16,6 +16,7 @@ internal sealed class ConsoleOutputWriter(Stream stream, LogOutputFormat format,
         if (!writable) { throw new CoreLogInitializationException("console", "ConsoleStreamNotWritable"); }
     }
     internal RenderedEvent Prepare(EncodedEvent captured) => EventRenderer.Render(captured, format, detail, maximumBytes);
+    internal ValueTask FlushAsync() => new(stream.FlushAsync());
     internal ValueTask WriteAsync(AdmittedEvent admitted)
     {
         ReadOnlyMemory<byte> line = admitted.PreparedLine ?? throw new InvalidOperationException("Console records require prepared output bytes.");
