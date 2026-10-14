@@ -1,0 +1,746 @@
+{
+  "schema": "cis.logging.task-receipt/v1",
+  "taskId": "WP05-S10-T02",
+  "date": "2026-10-14",
+  "status": "Implemented, verified and reviewed; logging-owned commit pending final index audit",
+  "baseCommit": "40985354ecaaa4a9d483b3f2dc6d0205320eabec",
+  "scope": "Deadline abandonment, honest pending IO, asynchronous configured writer cancellation and no new post-deadline flush. No new public API, deadline, worker, retry, replacement writer or runtime dependency.",
+  "developer": {
+    "runId": "d8148408f9504de7badd6652eac3bdcc",
+    "stages": 14,
+    "tests": {
+      "unit": 3268,
+      "integration": 1284,
+      "architecture": 463
+    },
+    "totalTests": 5015,
+    "failed": 0,
+    "skipped": 0,
+    "rawTrxChecked": true,
+    "scope": "Combined verification includes separately owned Type Manager inputs; logging commit uses explicit owned paths."
+  },
+  "native": {
+    "runtime": ".NET 10.0.12",
+    "coreSha256": "37a7629bbf18619d0d3d8cff00dfe5d5ab0b161c14ff6bcefbe1020e910acc51",
+    "fixtureSha256": "61bd5491c7ba83f58667110f62c51915abefe1f8a0920f41467c3ca18e9d2942",
+    "children": 48,
+    "newT02Children": 16,
+    "regressionChildren": 32,
+    "controls": 102,
+    "lanes": [
+      {
+        "platform": "windows",
+        "lane": "drain",
+        "children": 8,
+        "controls": 21,
+        "verifierSha256": "f199d3ac103c5721d08e8b19d47eef78a02c8df93415561fbe9d674f08b639ff",
+        "reportSha256": "025584fc6ef7fde58655b0b8b68af9a52141ddf8b3b83dc123c4cafcc236cc5a",
+        "rawBytesAndIdentityVerified": true
+      },
+      {
+        "platform": "windows",
+        "lane": "start",
+        "children": 16,
+        "controls": 30,
+        "verifierSha256": "977e8bf802d256a990aaa1d3d230062284840e9dfb5dce1f03f3beac7f77b3ff",
+        "reportSha256": "b9d84bc0deff9447ca80383585bf1d821fc65c41d544545abbf9e5b122cc167f",
+        "rawBytesAndIdentityVerified": true
+      },
+      {
+        "platform": "linux",
+        "lane": "drain",
+        "children": 8,
+        "controls": 21,
+        "verifierSha256": "f199d3ac103c5721d08e8b19d47eef78a02c8df93415561fbe9d674f08b639ff",
+        "reportSha256": "1c06ae03014deadbc45c8008972db5a11718f0cecf324749a2df391edddce905",
+        "rawBytesAndIdentityVerified": true
+      },
+      {
+        "platform": "linux",
+        "lane": "start",
+        "children": 16,
+        "controls": 30,
+        "verifierSha256": "977e8bf802d256a990aaa1d3d230062284840e9dfb5dce1f03f3beac7f77b3ff",
+        "reportSha256": "0a21279944d6245c244a13dfc574d0cbbc45342ab4f9c2dde9c1e3c308779377",
+        "rawBytesAndIdentityVerified": true
+      }
+    ],
+    "sourceBinding": "Exact final Developer DLLs; final case catalog and all raw native observations rechecked."
+  },
+  "sourceQualification": {
+    "criticalPins": 809,
+    "compiledInputMismatches": 0,
+    "metadataOnlyChange": {
+      "path": "conformance/logging/stop-drain-cases.json",
+      "developerSha256": "1557814f29ae5cfffe649c38de38596f374ac75494028dd52e95aa09d27f5f01",
+      "finalSha256": "744ec0d4d7785da1051d2d6602838960e755cca5ff59fc1843ce5e6ac4f2e9f7",
+      "scope": "Only case-catalog progress state changed after Developer; case definitions and all compiled inputs unchanged. Native readers will rerun against this final catalog."
+    },
+    "plannedReleaseRowsUnchanged": 41,
+    "originalSourceFilesUnchanged": 3
+  },
+  "claude": {
+    "authorization": "Direct human approval of 24 logging-only files,198300 bytes, to Anthropic for read-only review",
+    "initialVerdict": "CHANGES_REQUIRED",
+    "initialRequiredFindings": [
+      {
+        "id": "T02-R1",
+        "path": "implementations/csharp/src/CIS.Core/Logging/Runtime/OutputEventQueue.cs",
+        "issue": "After the stop deadline, the worker can still start new flush I/O with the already-cancelled output token. AbandonUnstarted only removes registrations whose target >= firstAbandonedSequence. A registration at the in-flight sequence k stays registered. That is the final stop boundary when no queued tail exists, or an earlier periodic/FlushAsync boundary. When the uncooperative write k later completes, ProcessAsync finds First().Key <= writtenCount and calls flush!(ioCancellation.Token) with a cancelled token. The configured writers forward that token: ConsoleOutputWriter -> stream.FlushAsync(token), FileOutputWriter -> FileStream.FlushAsync(token). Real Stream, MemoryStream and FileStream implementations return an immediately cancelled task for a pre-cancelled token. The queue then faults with live LastFaultCode \"FlushFailed\" for a flush that never ran. Legacy delegates ignore the token, so they would start genuinely new post-deadline flush I/O. This is new I/O after the deadline, not cancellation of in-flight I/O. It also creates a misleading fault and is newly introduced by T02 token plumbing. The fixture misses it: HeldStream.FlushAsync never checks the token up front, and no mode combines a single in-flight configured write with a remaining reachable registration. T01's blocked case uses legacy writers.",
+        "fix": "Once stop-deadline cancellation is requested, do not start a new flush. Resolve every unstarted registration as unavailable (Failed) without I/O. For example, AbandonUnstarted sets a queue-level 'deadlineExpired' flag under the gate. ProcessAsync checks that flag before selecting a flush request: it resolves the request false, removes it and continues or exits. It does not call flush. Keep the already-started 'flushing' registration unresolved until its actual I/O settles, as now. Add a stop-drain mode with one configured write held uncooperatively and no queued tail, and a stream that honors a pre-cancelled token. Assert frozen pending=1/flush Pending, then after release: flushes==0, the registration resolves Failed, no FlushFailed fault and no registered controls. Update stop-drain.md's 'Earlier reachable flush boundaries retain their existing worker coordination' sentence to match."
+      },
+      {
+        "id": "T02-R2",
+        "path": "implementations/csharp/src/CIS.Core/Logging/CoreLogRuntime.cs",
+        "issue": "Public StopAsync XML documentation does not describe the new T02 public behavior. At the original deadline, accepted records that have not started are discarded (Abandoned). Cancellation of in-flight writer I/O is requested. A result can be Completion=Completed with Succeeded=false and LossObserved=true when every covered record was abandoned. The current remarks only say a timed-out observation can retain pending I/O. AGENTS.md requires documented public behavior.",
+        "fix": "Extend the StopAsync <remarks>. At expiry, unstarted accepted records are abandoned and reported as Abandoned. In-flight write/flush cancellation is requested but not guaranteed. No retry or replacement writer runs. Completed means terminal dispositions, not success."
+      },
+      {
+        "id": "T02-R3",
+        "path": "planning/logging/shutdown-implementation-notes.md",
+        "issue": "This file is linked from stop-drain.md as 'shutdown progress' and is now stale. 'Required following work' still says T02 must implement abandonment and that 'Existing writer delegates do not yet accept a cancellation token'. The carried review finding about resolving the original final flush registration is still listed as open. This contradicts the implemented T02 state, against the AGENTS.md rule to distinguish implemented behavior from evidence.",
+        "fix": "Update the T02 paragraphs to state what is implemented, with the scoped test counts (8 unit + 7 child). State that full Developer/native qualification and review are pending, not passed. Keep the T03/T04/T05 obligations explicit, and add the new cleanup-error source (see carriedForward) to T04."
+      }
+    ],
+    "followupVerdict": "PASS",
+    "requiredFindingsRemaining": 0,
+    "followupScope": "Nine updated paths within the approved24; no additional code paths sent",
+    "resolutions": {
+      "required": {
+        "R1": "Queue expiry flag prevents every later flush; new configured single-write case checks zero flush calls and no misleading fault",
+        "R2": "Public StopAsync remarks describe abandonment, requested cancellation and terminal dispositions",
+        "R3": "Current T02 progress and remaining T03-T05 obligations updated"
+      },
+      "optional": {
+        "O1": "Retain legacy internal writer seams; no broad delegate refactor is needed for T02",
+        "O2": "Retain the small existing abandonment-loop duplication",
+        "O3": "Document dequeue as the start reservation; diagnostic refinements remain T04",
+        "O4": "Clarify lifetime cancellation versus output-cancellation lock order"
+      },
+      "remaining": "T04 includes stream cancellation callback exceptions and callback joins in cleanup/error coordination",
+      "followup": {
+        "verdict": "PASS",
+        "requiredFindingsRemaining": 0,
+        "optionalDecisions": [
+          "Retain current regression, which also rejects the misleading live FlushFailed; direct attempted-flush instrumentation remains an optional T05 strengthening",
+          "Post-expiry FlushAsync behavior remains T03/T04",
+          "Final notes will distinguish historical T01 evidence and record the locally adjusted T01 reader"
+        ]
+      }
+    },
+    "localReaderScope": "T01 Python expectation change is outside the external24-file review; its two lines are locally inspected and executed on both platforms."
+  },
+  "release": {
+    "validationExitCode": 2,
+    "published": false
+  },
+  "remaining": [
+    "T03 later caller cancellation and DisposeAsync joins the original operation",
+    "T04 primary/cleanup error preservation, cancellation callbacks, cleanup diagnostics and eventual safe release",
+    "T05 broader physical/process races and abrupt termination",
+    "Public creation and full S10/release acceptance remain required"
+  ],
+  "limitations": [
+    "Controlled streams/worker launch do not claim a real OS file write was forced to block.",
+    "Completed describes terminal dispositions; all-abandoned is unsuccessful and reports loss.",
+    "Cancellation cannot prove an OS write stopped.",
+    "Throwing or blocking cancellation callbacks join existing T04 cleanup/error obligations."
+  ],
+  "files": [
+    {
+      "path": "canonical-files.json",
+      "sha256": "bea71fa2942206defdee5ff97dea87ddbdfe27925d37398a1362ff8b773ce0bc"
+    },
+    {
+      "path": "claude-followup-manifest.json",
+      "sha256": "d48548c36127ef37bfc2854c6ef5f34b10002e1f28e637229b7d2df40ad57b31"
+    },
+    {
+      "path": "claude-followup-prompt.txt",
+      "sha256": "10772693ad6e95c8353a2baf00953768224e7687c1bf7e175ebb0a6dbee87c08"
+    },
+    {
+      "path": "claude-followup.exit-code",
+      "sha256": "13bf7b3039c63bf5a50491fa3cfd8eb4e699d1ba1436315aef9cbe5711530354"
+    },
+    {
+      "path": "claude-followup.json",
+      "sha256": "a760b76e17482c7eaf2b917d93b9312e969f5c6401140212f4b2c334723c5a87"
+    },
+    {
+      "path": "claude-followup.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "claude-manifest.json",
+      "sha256": "73fec63957c59582cf509851393d6e9a139db764b06801a46536ce409823543b"
+    },
+    {
+      "path": "claude-prompt.txt",
+      "sha256": "eab3a64dcba47660f8d182d414593cb7c97816052a37ef70afc0d385cd348986"
+    },
+    {
+      "path": "claude-review.exit-code",
+      "sha256": "13bf7b3039c63bf5a50491fa3cfd8eb4e699d1ba1436315aef9cbe5711530354"
+    },
+    {
+      "path": "claude-review.json",
+      "sha256": "64a7ff078c90288c95d2bb3c55f24cc6bfbd2169881d6ad8f86770ebf2ce50f0"
+    },
+    {
+      "path": "claude-review.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "critical-source-inputs.json",
+      "sha256": "cd65d636d98bfce9a5fef8c4b1217db4d09802d95c1e2211fad795c7e0d018a2"
+    },
+    {
+      "path": "Developer/families/architecture/execution.json",
+      "sha256": "1b1467c93ce51a5df034bd2256ca36ec701502bfae68a29d4ca55dac35d56709"
+    },
+    {
+      "path": "Developer/families/architecture/report.trx",
+      "sha256": "593418b3b2d858f1c5187b9c5de59825b0919c7afde07c016ca219152aace093"
+    },
+    {
+      "path": "Developer/families/integration/execution.json",
+      "sha256": "346f685c5c51d21028dbc96606526188d9643974a4f19a59ab93c1e65fdb5a7d"
+    },
+    {
+      "path": "Developer/families/integration/report.trx",
+      "sha256": "86e7f7d32d10bdd7c799dc320c609d05fc621b6bc81ccf1cfd53313a6d8cba7b"
+    },
+    {
+      "path": "Developer/families/unit/execution.json",
+      "sha256": "f7d151e661c7800b6767e05474f6d238f7931040f1c6ff75db776efad80050b0"
+    },
+    {
+      "path": "Developer/families/unit/report.trx",
+      "sha256": "a8ca13427d8ca7ed53aa4cc97ad2fbecce7fc7fbd47293f0ef08e0dcb57a8d9c"
+    },
+    {
+      "path": "Developer/source-inputs.json",
+      "sha256": "a0435f2b1ebbf7977bb5fc79151e7dc73032c9f9184d4c34b36b010a57fa3913"
+    },
+    {
+      "path": "Developer/summary.json",
+      "sha256": "cf1187e2a7cf582a71b4e6ba446bfbee0284be3fd58e24c95014ef546952b01e"
+    },
+    {
+      "path": "developer-audit.json",
+      "sha256": "b817b517457ddc50fc1876de1fcabb45e4fac60ecc79d12b204ac036b206ab7d"
+    },
+    {
+      "path": "focused-integration/stop-drain.trx",
+      "sha256": "62b1b28b61f031fb646668ce61cbf4d19438813c19f4544e7172f4353acc350e"
+    },
+    {
+      "path": "focused-unit/stop-drain.trx",
+      "sha256": "f20582b51e941f4b2d99109014c184fe9fb9662fa9c987880cc391467c89e4d5"
+    },
+    {
+      "path": "graph/graph-before.txt",
+      "sha256": "2e25c724685cb425366fb563f77d8425efd3ab64e0956ad4da82dc1a99c9eb5c"
+    },
+    {
+      "path": "graph/graph-build-after.txt",
+      "sha256": "8e481ab546256bbf273cd3e4a15a95681a37d72feb0bd70ca7abee50ca9c61b4"
+    },
+    {
+      "path": "graph/graph-build-final.txt",
+      "sha256": "3ff66c4ad546ff917a549d59c516ff69a0841773458bd82b36f7f4e0f108bbfb"
+    },
+    {
+      "path": "graph/graph-deadline-root-final.txt",
+      "sha256": "deef2270ee1678802aa9e6dac485f5d9bc2a920afaeda501359f7ee9c4c5f3c2"
+    },
+    {
+      "path": "graph/graph-roots-before.txt",
+      "sha256": "d86289aaa7ce7a569f36906abba0741cf9db5b782ae7fbcb1e606d665f1d152c"
+    },
+    {
+      "path": "graph/graph-status-after.txt",
+      "sha256": "0efb482ff4074ec0b6544e1e0df5840fe7c0b3915e2874e975bdffc04f33ec02"
+    },
+    {
+      "path": "graph/graph-status-final.txt",
+      "sha256": "e648aa090b690657aac0edb012fa920add94d1f6c69b6415321f1bd8212112fc"
+    },
+    {
+      "path": "graph/graph-worker-related-before.txt",
+      "sha256": "f15057e673b70bea4959af321287b88a9c44fa9831258e00f937e769421f5f79"
+    },
+    {
+      "path": "graph/graph-worker-related-final.txt",
+      "sha256": "aaed059b78e3e9720804f50cc74f8bc63ae351fbe408b9565c4b8deb1c45dfc0"
+    },
+    {
+      "path": "graph/graph-worker-root-before.txt",
+      "sha256": "e653eb4faf4253ab44d0ef55d5ad662cf3c6175669fd362d8a31a8d660b2a2e3"
+    },
+    {
+      "path": "graph/graph-worker-tests-before.txt",
+      "sha256": "1619559c4b2c9b414e2e40ef2e58df1590570debeea4ba53dc5fae52d3047896"
+    },
+    {
+      "path": "graph/graph-worker-tests-final.txt",
+      "sha256": "c8157f2c931bdd09698d49deb42bdb3c184323973a11198f513eaa8f571bc812"
+    },
+    {
+      "path": "historical-before-review/Developer/summary.json",
+      "sha256": "55c8dead18e021bc5e9b748dab1ab1b188139abbb84162b4c226bd673c913997"
+    },
+    {
+      "path": "historical-before-review/developer-audit.json",
+      "sha256": "e1aceb2b68cf5f643c9fb56f5b9aa209d8ead4f357a41a7e164ce4409af64ae9"
+    },
+    {
+      "path": "historical-before-review/native-audit.json",
+      "sha256": "477bfa2f7812dd4df18a64233dbefe5700128111c5ef78afdfecaa3aca70faa7"
+    },
+    {
+      "path": "index-audit.json",
+      "sha256": "f7b48dad93bd21732db2bf164ba6c7f45067392d9e328ce5f1d9c02984c58449"
+    },
+    {
+      "path": "initial-format-failure/logs/format.log",
+      "sha256": "9fd8f9c915bfc506588b5839861f2fe2d7e8461ada70ff22834b9a1da6a18e0d"
+    },
+    {
+      "path": "initial-format-failure/summary.json",
+      "sha256": "5b4d7223852c3579295bf1124f1cfd6dced749f4b10a438de5c07391d83e3860"
+    },
+    {
+      "path": "metadata-change.json",
+      "sha256": "363b043e12c6a9a55eda5e860db93bcc649c5b83f87cc1d3c62884a996e0b260"
+    },
+    {
+      "path": "native/linux-drain/blocked-callback.stderr.bin",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "native/linux-drain/blocked-callback.stdout.bin",
+      "sha256": "a9d7bba6e602a8bfa845e0ac47a7e89bd42bb9c9f05909a1ff1e6ec66d47c04b"
+    },
+    {
+      "path": "native/linux-drain/blocked-flush.stderr.bin",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "native/linux-drain/blocked-flush.stdout.bin",
+      "sha256": "f54fedd2c890d4fb8e6f15524f837e63d540f99d614c79f0ac20320732706ae0"
+    },
+    {
+      "path": "native/linux-drain/blocked-write.stderr.bin",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "native/linux-drain/blocked-write.stdout.bin",
+      "sha256": "3fc6cac670885e00c00b50d68e16648d8db59c2af571f7b20586a5f50989a340"
+    },
+    {
+      "path": "native/linux-drain/cancel-flush.stderr.bin",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "native/linux-drain/cancel-flush.stdout.bin",
+      "sha256": "86812252efc14bd85b4d8c4dbd570de0f5d17e06dbf275d07767c26cbf65b02f"
+    },
+    {
+      "path": "native/linux-drain/cancel-write.stderr.bin",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "native/linux-drain/cancel-write.stdout.bin",
+      "sha256": "ded2423d42f6b07e8e398aa43c4577a58589c2cb8b7862f78f57519e99f4b351"
+    },
+    {
+      "path": "native/linux-drain/normal-dual.stderr.bin",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "native/linux-drain/normal-dual.stdout.bin",
+      "sha256": "cfa6d4cdc9e0cb2375d93aeef9fe8db79eda77bc2024875a70a3e1ffc4a79379"
+    },
+    {
+      "path": "native/linux-drain/queued-only.stderr.bin",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "native/linux-drain/queued-only.stdout.bin",
+      "sha256": "73fa1f7465282069c38359bbe672b2f9ec3837a99a10cec1e43f18fd0546572d"
+    },
+    {
+      "path": "native/linux-drain/report.json",
+      "sha256": "1c06ae03014deadbc45c8008972db5a11718f0cecf324749a2df391edddce905"
+    },
+    {
+      "path": "native/linux-drain/single-write.stderr.bin",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "native/linux-drain/single-write.stdout.bin",
+      "sha256": "8e8e14fb9263a1826e45f35ad42dc9cd8ed34b9db83f8dc9def280dcf1a73505"
+    },
+    {
+      "path": "native/linux-start/blocked-flush.stderr.bin",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "native/linux-start/blocked-flush.stdout.bin",
+      "sha256": "786830d26cc5353961d16c6c6e2587637ba89909093ef45588072b2a02cae75c"
+    },
+    {
+      "path": "native/linux-start/blocked-write.stderr.bin",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "native/linux-start/blocked-write.stdout.bin",
+      "sha256": "dce7b05db644635b93d6c3c8efa4de646fc7666753bb1b9d6558867f440e3885"
+    },
+    {
+      "path": "native/linux-start/clock-correction.stderr.bin",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "native/linux-start/clock-correction.stdout.bin",
+      "sha256": "57ac77cecd4c3ab16ad71b61a31519b86378c56191e72ad36ead740dbfff1074"
+    },
+    {
+      "path": "native/linux-start/closed-writes.stderr.bin",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "native/linux-start/closed-writes.stdout.bin",
+      "sha256": "d26c575fc4b8361b7382acb9e1d5b2be78be0770ec2455b7e9db8006d4cf839d"
+    },
+    {
+      "path": "native/linux-start/configured-above.stderr.bin",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "native/linux-start/configured-above.stdout.bin",
+      "sha256": "fd004cf8b340df16d85344bda90b945b78dea209aa0bac3e174faa539359c1e6"
+    },
+    {
+      "path": "native/linux-start/configured-below.stderr.bin",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "native/linux-start/configured-below.stdout.bin",
+      "sha256": "401e6df751a2258cbd03fa098752d23c4de32d0d0e919b000bdbe5bcb5d27029"
+    },
+    {
+      "path": "native/linux-start/configured-default.stderr.bin",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "native/linux-start/configured-default.stdout.bin",
+      "sha256": "8d06e6b42274c011afadb3f3a33ec684394d521dc8f560128627e8686bd02092"
+    },
+    {
+      "path": "native/linux-start/configured-max.stderr.bin",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "native/linux-start/configured-max.stdout.bin",
+      "sha256": "28bb8f8819c6bdcf38a02f6839421c34fc81e56b20df6ca3fe3dbbd30a86616a"
+    },
+    {
+      "path": "native/linux-start/configured-min.stderr.bin",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "native/linux-start/configured-min.stdout.bin",
+      "sha256": "48892bea0d13026df4481a82ef8a5911527b8d0f1296beccfcc05eb1e0a89e9d"
+    },
+    {
+      "path": "native/linux-start/dual.stderr.bin",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "native/linux-start/dual.stdout.bin",
+      "sha256": "81a88bf2c7066069ab07bd15641442ad58749dac33a4fc304702c66ac84253d2"
+    },
+    {
+      "path": "native/linux-start/empty.stderr.bin",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "native/linux-start/empty.stdout.bin",
+      "sha256": "b049d8e1def6c1ecba122c61e93a592ff8957d6cf3f66925d7efea26a5bfdb02"
+    },
+    {
+      "path": "native/linux-start/env.stderr.bin",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "native/linux-start/env.stdout.bin",
+      "sha256": "34978285681f64e1a625a29bd05d2c778cfda3668e099241e943ec58a7f56c75"
+    },
+    {
+      "path": "native/linux-start/late-facts.stderr.bin",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "native/linux-start/late-facts.stdout.bin",
+      "sha256": "810423474bb722ab947d090b831e593ccb733c4d3cccc1ae14fc2a30a2a0213d"
+    },
+    {
+      "path": "native/linux-start/normal.stderr.bin",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "native/linux-start/normal.stdout.bin",
+      "sha256": "db71c3cb077c9faa5f16b124f1a45fd583181837f6c6da530b53ee00064a7b07"
+    },
+    {
+      "path": "native/linux-start/pre-cancelled.stderr.bin",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "native/linux-start/pre-cancelled.stdout.bin",
+      "sha256": "336ba96ecb80a782449b5f89ea4a88737da043f700475f2fbd8eb816cbfb6d9b"
+    },
+    {
+      "path": "native/linux-start/report.json",
+      "sha256": "0a21279944d6245c244a13dfc574d0cbbc45342ab4f9c2dde9c1e3c308779377"
+    },
+    {
+      "path": "native/linux-start/shared.stderr.bin",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "native/linux-start/shared.stdout.bin",
+      "sha256": "2df1ba341f4b6bb35e1c6eb7ca80e0fc69ebc98642bc43fd5624ea507004f20d"
+    },
+    {
+      "path": "native/windows-drain/blocked-callback.stderr.bin",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "native/windows-drain/blocked-callback.stdout.bin",
+      "sha256": "49837eb3f572a60f19aaa28c6ae97aa678195cc88074b4445942a5a7ba9f9e6c"
+    },
+    {
+      "path": "native/windows-drain/blocked-flush.stderr.bin",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "native/windows-drain/blocked-flush.stdout.bin",
+      "sha256": "93328b95dd3fc879ea83f3cac62d60f148b60762a42df990ee335ea2646e322e"
+    },
+    {
+      "path": "native/windows-drain/blocked-write.stderr.bin",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "native/windows-drain/blocked-write.stdout.bin",
+      "sha256": "dc2e4f78e58040ddbf759d916862b892d2cdb9c2b79ab9fc25d5454ac78d8c94"
+    },
+    {
+      "path": "native/windows-drain/cancel-flush.stderr.bin",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "native/windows-drain/cancel-flush.stdout.bin",
+      "sha256": "1ca1686591ef108bdd246fde2cc62c55c962ddc4e02c734448002c3b19ab6f71"
+    },
+    {
+      "path": "native/windows-drain/cancel-write.stderr.bin",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "native/windows-drain/cancel-write.stdout.bin",
+      "sha256": "c6a46447af80e248b1b7a5bd260a99978f1057b3177619a74cbf41cf5de7b07c"
+    },
+    {
+      "path": "native/windows-drain/normal-dual.stderr.bin",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "native/windows-drain/normal-dual.stdout.bin",
+      "sha256": "c3e7f74a5708c59fe062db05166dafe9294286ba2adf15489fc4478b60be5ead"
+    },
+    {
+      "path": "native/windows-drain/queued-only.stderr.bin",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "native/windows-drain/queued-only.stdout.bin",
+      "sha256": "853662a1ba1c42e19b9bebdd96b7d2e28fa3967ec639bf836162448641087dc3"
+    },
+    {
+      "path": "native/windows-drain/report.json",
+      "sha256": "025584fc6ef7fde58655b0b8b68af9a52141ddf8b3b83dc123c4cafcc236cc5a"
+    },
+    {
+      "path": "native/windows-drain/single-write.stderr.bin",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "native/windows-drain/single-write.stdout.bin",
+      "sha256": "4dc7eecac800677763b8e75d0fca041cc635454df4dc4b40bdc509f71a5fe952"
+    },
+    {
+      "path": "native/windows-start/blocked-flush.stderr.bin",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "native/windows-start/blocked-flush.stdout.bin",
+      "sha256": "7a6f726cab2e37844409c14858b405c702e368fbbb526bbfe0e88c3f5f57374b"
+    },
+    {
+      "path": "native/windows-start/blocked-write.stderr.bin",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "native/windows-start/blocked-write.stdout.bin",
+      "sha256": "1c02e57412a08e5120d2924d919543c699852ab5473e9adba34c12a273ed0456"
+    },
+    {
+      "path": "native/windows-start/clock-correction.stderr.bin",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "native/windows-start/clock-correction.stdout.bin",
+      "sha256": "31f435b494110d6618308be743067bd69acfe6950f63087769ff9d1382fe683c"
+    },
+    {
+      "path": "native/windows-start/closed-writes.stderr.bin",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "native/windows-start/closed-writes.stdout.bin",
+      "sha256": "484a4bc3d3d75e01754b50c1a47473d3d04f22bb3100fce13c749e4f9a3309c6"
+    },
+    {
+      "path": "native/windows-start/configured-above.stderr.bin",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "native/windows-start/configured-above.stdout.bin",
+      "sha256": "b5fc26a0c33bc086628ea47c6c19d2cacd659fe3ea38f5e8eaa50594f97e2efc"
+    },
+    {
+      "path": "native/windows-start/configured-below.stderr.bin",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "native/windows-start/configured-below.stdout.bin",
+      "sha256": "4b5fb4d965e02c76a80f113c5a68f098bb623b4e7009dcdf8f6252331fc310c8"
+    },
+    {
+      "path": "native/windows-start/configured-default.stderr.bin",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "native/windows-start/configured-default.stdout.bin",
+      "sha256": "4d1d83088c64293bae14c4ef5d30ae314cc0da8b527bae5d57b23b47fb22a55b"
+    },
+    {
+      "path": "native/windows-start/configured-max.stderr.bin",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "native/windows-start/configured-max.stdout.bin",
+      "sha256": "293af8b2632fb8fcab67232ff5a86958f178f2c66cb9e5311d88d8408961d708"
+    },
+    {
+      "path": "native/windows-start/configured-min.stderr.bin",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "native/windows-start/configured-min.stdout.bin",
+      "sha256": "4f8e4c5ab393a1b1013aca2ddc98b5e0e5b7220470d175e3b47443d6256bbf8e"
+    },
+    {
+      "path": "native/windows-start/dual.stderr.bin",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "native/windows-start/dual.stdout.bin",
+      "sha256": "09e5237d879936c67d28e33551a82f32ab2cab5bfa2ffd70e8adfdd7e36a2bc4"
+    },
+    {
+      "path": "native/windows-start/empty.stderr.bin",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "native/windows-start/empty.stdout.bin",
+      "sha256": "e5b3e51113b66daf77720cefb0536067f12531a3dd0ae5d05802ad497b52b0bb"
+    },
+    {
+      "path": "native/windows-start/env.stderr.bin",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "native/windows-start/env.stdout.bin",
+      "sha256": "1a78ccaf07cf899d17f2a46aa11caca6b6972d66db39d9058c9b79bbaa37be38"
+    },
+    {
+      "path": "native/windows-start/late-facts.stderr.bin",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "native/windows-start/late-facts.stdout.bin",
+      "sha256": "0a30d8de37ca3ea574a145b62c53c1918729cf0fd9359d559a64fca000c29266"
+    },
+    {
+      "path": "native/windows-start/normal.stderr.bin",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "native/windows-start/normal.stdout.bin",
+      "sha256": "ef54f7f0c80ce2a246ae091503fbbbfbc117996f04367b1253020b988f0abf0c"
+    },
+    {
+      "path": "native/windows-start/pre-cancelled.stderr.bin",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "native/windows-start/pre-cancelled.stdout.bin",
+      "sha256": "47dbd19577e196f0206ce0be757773049ae48457658851cbe6deae106cb54510"
+    },
+    {
+      "path": "native/windows-start/report.json",
+      "sha256": "b9d84bc0deff9447ca80383585bf1d821fc65c41d544545abbf9e5b122cc167f"
+    },
+    {
+      "path": "native/windows-start/shared.stderr.bin",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "native/windows-start/shared.stdout.bin",
+      "sha256": "53d2479ae6c935db1ca4040ca68ea708680d4f4578e491cd5553a1ad8a145745"
+    },
+    {
+      "path": "native-audit.json",
+      "sha256": "1218171d4bbea3bec901e74099dc992ae37b0fa5795ab341cdbcd22bc191c952"
+    },
+    {
+      "path": "release-validation.json",
+      "sha256": "95a2a05c9d70f1af365c94c9a90dc805056a29ef3ba3177154d4faef96146f83"
+    },
+    {
+      "path": "release-validation.log",
+      "sha256": "95a2a05c9d70f1af365c94c9a90dc805056a29ef3ba3177154d4faef96146f83"
+    },
+    {
+      "path": "review-resolutions.json",
+      "sha256": "0dbb98ded7c5489e0a079a0bde4d386552adbae44092415fd2413d3d3823d512"
+    },
+    {
+      "path": "stop-drain-cases-at-developer.json",
+      "sha256": "1557814f29ae5cfffe649c38de38596f374ac75494028dd52e95aa09d27f5f01"
+    }
+  ],
+  "cisGraph": {
+    "buildId": "sha256:c056ae6c1af7160e7218d8a4e7038cb8dc4b320c0e42f59e0a9554987524cee0",
+    "status": "status=warnings;exitCode=0;freshness=fresh;nodes=9813;edges=38753;errors=0;warnings=143;information=0;strict=false",
+    "freshAtCapture": true,
+    "limitations": "Extraction warnings retained; no verified-by binding for the shipping worker. Initial pre-edit bounded queries became stale during editing; final context rebuilt. Graph is context, separate from execution evidence."
+  },
+  "focusedReportScope": "focused-integration/stop-drain.trx is the earlier pre-review 23-case child checkpoint; final corrected 1284-case Developer integration and final native corpus are authoritative. Focused units include the corrected single-write case."
+}

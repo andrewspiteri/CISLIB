@@ -16,10 +16,12 @@ internal sealed class ConsoleOutputWriter(Stream stream, LogOutputFormat format,
         if (!writable) { throw new CoreLogInitializationException("console", "ConsoleStreamNotWritable"); }
     }
     internal RenderedEvent Prepare(EncodedEvent captured) => EventRenderer.Render(captured, format, detail, maximumBytes);
-    internal ValueTask FlushAsync() => new(stream.FlushAsync());
-    internal ValueTask WriteAsync(AdmittedEvent admitted)
+    internal ValueTask FlushAsync() => FlushAsync(CancellationToken.None);
+    internal ValueTask FlushAsync(CancellationToken cancellationToken) => new(stream.FlushAsync(cancellationToken));
+    internal ValueTask WriteAsync(AdmittedEvent admitted) => WriteAsync(admitted, CancellationToken.None);
+    internal ValueTask WriteAsync(AdmittedEvent admitted, CancellationToken cancellationToken)
     {
         ReadOnlyMemory<byte> line = admitted.PreparedLine ?? throw new InvalidOperationException("Console records require prepared output bytes.");
-        return stream.WriteAsync(line);
+        return stream.WriteAsync(line, cancellationToken);
     }
 }

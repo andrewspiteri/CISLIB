@@ -50,9 +50,12 @@ internal sealed class FileOutputWriter(string absolutePath, LogOutputFormat form
         catch { acquired.Dispose(); throw new CoreLogInitializationException("file", "FileInitializationFailed"); }
     }
     internal RenderedEvent Prepare(EncodedEvent captured) => EventRenderer.Render(captured, format, detail, maximumEntryBytes);
-    internal ValueTask FlushAsync() => new((owner ?? throw new InvalidOperationException("File output is not initialized.")).ActiveFile.FlushAsync());
-    internal async ValueTask WriteAsync(AdmittedEvent admitted)
+    internal ValueTask FlushAsync() => FlushAsync(CancellationToken.None);
+    internal ValueTask FlushAsync(CancellationToken cancellationToken) => new((owner ?? throw new InvalidOperationException("File output is not initialized.")).ActiveFile.FlushAsync(cancellationToken));
+    internal ValueTask WriteAsync(AdmittedEvent admitted) => WriteAsync(admitted, CancellationToken.None);
+    internal async ValueTask WriteAsync(AdmittedEvent admitted, CancellationToken cancellationToken)
     {
+        cancellationToken.ThrowIfCancellationRequested();
         FileOutputOwner active = owner ?? throw new InvalidOperationException("File output is not initialized.");
         ReadOnlyMemory<byte> line = admitted.PreparedLine ?? throw new InvalidOperationException("File records require prepared output bytes.");
         // The prepared record includes every encoded byte and its LF. Never split it.
@@ -66,7 +69,7 @@ internal sealed class FileOutputWriter(string absolutePath, LogOutputFormat form
             active.Rotate(maximumRetainedFiles);
             activeBytes = 0;
         }
-        await active.ActiveFile.WriteAsync(line).ConfigureAwait(false);
+        await active.ActiveFile.WriteAsync(line, cancellationToken).ConfigureAwait(false);
         activeBytes += line.Length;
     }
     public void Dispose() => Interlocked.Exchange(ref owner, null)?.Dispose();

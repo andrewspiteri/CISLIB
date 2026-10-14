@@ -8,9 +8,12 @@ internal sealed class OutputEventQueue : ILogOutputAdmission
 {
     private readonly object admissionGate;
     private readonly Channel<AdmittedEvent> channel;
-    private readonly Func<AdmittedEvent, ValueTask> write;
+    private readonly Func<AdmittedEvent, CancellationToken, ValueTask> write;
+    private readonly CancellationTokenSource? ioCancellation;
+    private Task? ioCancellationCompletion;
+    private bool ioCancellationClosed;
     private readonly IDisposable? ownedResource;
-    private readonly Func<ValueTask>? flush;
+    private readonly Func<CancellationToken, ValueTask>? flush;
     private readonly SortedDictionary<long, OutputFlushRegistration> flushRequests = [];
     private TaskCompletionSource wake = NewWake();
     private OutputFlushRegistration? flushing;
@@ -34,18 +37,21 @@ internal sealed class OutputEventQueue : ILogOutputAdmission
     private bool admissionClosed;
     private bool faulted;
     private bool stopRequested;
+    private bool stopDeadlineExpired;
     private bool workerFinished;
     private LogOutputState state;
     private string? lastFaultCode;
     private DateTimeOffset? lastFaultAtUtc;
-    internal OutputEventQueue(int capacity, Func<AdmittedEvent, ValueTask> write, object? sharedAdmissionGate = null, Func<Func<Task>, Task>? launchWorker = null, IDisposable? ownedResource = null, Func<ValueTask>? flush = null)
+    internal OutputEventQueue(int capacity, Func<AdmittedEvent, ValueTask> write, object? sharedAdmissionGate = null, Func<Func<Task>, Task>? launchWorker = null, IDisposable? ownedResource = null, Func<ValueTask>? flush = null,
+        Func<AdmittedEvent, CancellationToken, ValueTask>? cancellableWrite = null, Func<CancellationToken, ValueTask>? cancellableFlush = null)
     {
         ArgumentNullException.ThrowIfNull(write);
         if (capacity is < LoggingOptions.MinimumQueueCapacity or > LoggingOptions.MaximumQueueCapacity) { throw new ArgumentOutOfRangeException(nameof(capacity)); }
         admissionGate = sharedAdmissionGate ?? new object();
-        this.write = write;
+        this.write = cancellableWrite ?? ((admitted, _) => write(admitted));
         this.ownedResource = ownedResource;
-        this.flush = flush;
+        this.flush = cancellableFlush ?? (flush is null ? null : _ => flush());
+        if (cancellableWrite is not null || cancellableFlush is not null) { ioCancellation = new CancellationTokenSource(); }
         channel = Channel.CreateBounded<AdmittedEvent>(new BoundedChannelOptions(capacity)
         {
             FullMode = BoundedChannelFullMode.Wait,
@@ -58,8 +64,12 @@ internal sealed class OutputEventQueue : ILogOutputAdmission
         // Production always uses Task.Run; the internal seam permits deterministic acquisition failure.
         Task Launch() => (launchWorker is null ? Task.Run(ProcessAsync) : launchWorker(ProcessAsync))
             ?? throw new InvalidOperationException("Worker launch must return its scheduled task.");
-        if (ExecutionContext.IsFlowSuppressed()) { Completion = Launch(); }
-        else { using (ExecutionContext.SuppressFlow()) { Completion = Launch(); } }
+        try
+        {
+            if (ExecutionContext.IsFlowSuppressed()) { Completion = Launch(); }
+            else { using (ExecutionContext.SuppressFlow()) { Completion = Launch(); } }
+        }
+        catch { ioCancellation?.Dispose(); throw; }
     }
     private static TaskCompletionSource NewWake() => new(TaskCreationOptions.RunContinuationsAsynchronously);
     internal Task Completion { get; }
@@ -247,6 +257,54 @@ internal sealed class OutputEventQueue : ILogOutputAdmission
             _ = CancelFileFlushScheduling();
         }
     }
+    // Called under the shared runtime gate before the immutable deadline observation.
+    internal void AbandonUnstarted()
+    {
+        lock (admissionGate)
+        {
+            stopDeadlineExpired = true;
+            while (channel.Reader.TryRead(out AdmittedEvent abandoned))
+            {
+                if (firstAbandonedSequence == 0) { firstAbandonedSequence = abandoned.AcceptedSequence; }
+                lastAbandonedSequence = abandoned.AcceptedSequence; abandonedCount++;
+            }
+            // A boundary covering abandoned tickets can never reach writtenCount.
+            // Preserve already-started flush I/O until its actual completion.
+            foreach (long target in flushRequests.Keys.ToArray())
+            {
+                OutputFlushRegistration registration = flushRequests[target];
+                if (firstAbandonedSequence > 0 && target >= firstAbandonedSequence && !ReferenceEquals(registration, flushing))
+                { registration.Resolve(false); flushRequests.Remove(target); }
+            }
+            NotifyDispositionChanged();
+            wake.TrySetResult();
+        }
+    }
+    internal void RequestIoCancellation()
+    {
+        if (ioCancellation is null) { return; }
+        TaskCompletionSource completion;
+        lock (admissionGate)
+        {
+            if (ioCancellationClosed || ioCancellationCompletion is not null) { return; }
+            completion = NewWake(); ioCancellationCompletion = completion.Task;
+        }
+        // Stream cancellation callbacks may block or throw. They run asynchronously,
+        // outside admission synchronization, and cannot extend the stop deadline.
+        _ = CancelAsync();
+        async Task CancelAsync()
+        {
+            try { await ioCancellation.CancelAsync().ConfigureAwait(false); completion.TrySetResult(); }
+            catch (Exception error) { completion.TrySetException(error); }
+        }
+    }
+    private async Task CloseIoCancellationAsync()
+    {
+        Task? pending;
+        lock (admissionGate) { ioCancellationClosed = true; pending = ioCancellationCompletion; }
+        try { if (pending is not null) { await pending.ConfigureAwait(false); } }
+        finally { ioCancellation?.Dispose(); }
+    }
     // Caller holds the shared gate. Publish closure, safe metadata and all unstarted loss together.
     private void Fault(string code)
     {
@@ -283,6 +341,12 @@ internal sealed class OutputEventQueue : ILogOutputAdmission
                 lock (admissionGate)
                 {
                     if (faulted) { workerExiting = true; return; }
+                    if (stopDeadlineExpired)
+                    {
+                        // Expiry cancels active I/O; it never starts a later flush.
+                        foreach (OutputFlushRegistration registration in flushRequests.Values) { registration.Resolve(false); }
+                        flushRequests.Clear();
+                    }
                     if (flushRequests.Count > 0 && flushRequests.First().Key <= writtenCount)
                     {
                         request = flushRequests.First().Value;
@@ -301,7 +365,7 @@ internal sealed class OutputEventQueue : ILogOutputAdmission
                 if (request is not null)
                 {
                     // Flush at this fixed boundary before starting a later record. All I/O is outside the gate.
-                    await flush!().ConfigureAwait(false);
+                    await flush!(ioCancellation?.Token ?? CancellationToken.None).ConfigureAwait(false);
                     lock (admissionGate)
                     {
                         flushRequests.Remove(request.AcceptedSequenceBoundary);
@@ -312,7 +376,7 @@ internal sealed class OutputEventQueue : ILogOutputAdmission
                 else
                 {
                     // Complete record confirmation only; a dequeued/partially emitted write is still pending.
-                    await write(admitted).ConfigureAwait(false);
+                    await write(admitted, ioCancellation?.Token ?? CancellationToken.None).ConfigureAwait(false);
                     lock (admissionGate) { writtenCount++; inFlight = false; NotifyDispositionChanged(); }
                 }
             }
@@ -334,7 +398,11 @@ internal sealed class OutputEventQueue : ILogOutputAdmission
             // No pending writer call remains. Owned cleanup precedes terminal state/Completion,
             // outside the gate, and never receives a borrowed console stream.
             lock (admissionGate) { workerExiting = true; }
-            try { await CancelFileFlushScheduling().ConfigureAwait(false); }
+            try
+            {
+                try { await CloseIoCancellationAsync().ConfigureAwait(false); }
+                finally { await CancelFileFlushScheduling().ConfigureAwait(false); }
+            }
             finally
             {
                 try { ownedResource?.Dispose(); }

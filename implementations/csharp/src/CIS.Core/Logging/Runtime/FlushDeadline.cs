@@ -9,6 +9,7 @@ internal sealed class FlushDeadline : IAsyncDisposable
     private readonly object gate = new();
     private readonly TimeProvider clock;
     private readonly Func<LogFlushResult> observe;
+    private readonly Func<LogFlushResult>? observeDeadline;
     private readonly CancellationTokenSource lifetime = new();
     private readonly ITimer timer;
     private long remainingTicks;
@@ -17,9 +18,9 @@ internal sealed class FlushDeadline : IAsyncDisposable
     private LogFlushResult? observation;
     private ExceptionDispatchInfo? error;
 
-    internal FlushDeadline(TimeProvider clock, long started, TimeSpan timeout, Func<LogFlushResult> observe)
+    internal FlushDeadline(TimeProvider clock, long started, TimeSpan timeout, Func<LogFlushResult> observe, Func<LogFlushResult>? observeDeadline = null)
     {
-        this.clock = clock; this.observe = observe; remainingTicks = timeout.Ticks; checkpoint = started;
+        this.clock = clock; this.observe = observe; this.observeDeadline = observeDeadline; remainingTicks = timeout.Ticks; checkpoint = started;
         timer = clock.CreateTimer(static state => ((FlushDeadline)state!).Tick(), this, Timeout.InfiniteTimeSpan, Timeout.InfiniteTimeSpan);
         Tick();
     }
@@ -41,7 +42,7 @@ internal sealed class FlushDeadline : IAsyncDisposable
             try
             {
                 UpdateRemaining();
-                if (remainingTicks == 0) { observation = observe(); expire = true; }
+                if (remainingTicks == 0) { observation = (observeDeadline ?? observe)(); expire = true; }
                 else
                 {
                     // Timer resolution may overshoot sub-millisecond budgets; never expire early.
@@ -52,7 +53,8 @@ internal sealed class FlushDeadline : IAsyncDisposable
             catch (Exception failure) when (failure is not (OutOfMemoryException or StackOverflowException))
             { error = ExceptionDispatchInfo.Capture(failure); expire = true; }
         }
-        // Cancellation may execute task plumbing; it runs outside both synchronization gates.
+        // Lifetime cancellation runs outside both gates. A stop observer may already have
+        // requested asynchronous output cancellation under deadline -> admission lock order.
         if (expire) { lifetime.Cancel(); }
     }
     internal LogFlushResult ObserveCompletion()

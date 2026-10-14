@@ -5,7 +5,9 @@ internal sealed class OutputQueues
 {
     private readonly object admissionGate;
     internal OutputQueues(int capacity, bool consoleEnabled, bool fileEnabled,
-        Func<AdmittedEvent, ValueTask>? consoleWrite, Func<AdmittedEvent, ValueTask>? fileWrite, object? sharedAdmissionGate = null, Func<Func<Task>, Task>? launchWorker = null, IDisposable? fileResource = null, Func<ValueTask>? consoleFlush = null, Func<ValueTask>? fileFlush = null)
+        Func<AdmittedEvent, ValueTask>? consoleWrite, Func<AdmittedEvent, ValueTask>? fileWrite, object? sharedAdmissionGate = null, Func<Func<Task>, Task>? launchWorker = null, IDisposable? fileResource = null, Func<ValueTask>? consoleFlush = null, Func<ValueTask>? fileFlush = null,
+        Func<AdmittedEvent, CancellationToken, ValueTask>? consoleCancellableWrite = null, Func<AdmittedEvent, CancellationToken, ValueTask>? fileCancellableWrite = null,
+        Func<CancellationToken, ValueTask>? consoleCancellableFlush = null, Func<CancellationToken, ValueTask>? fileCancellableFlush = null)
     {
         admissionGate = sharedAdmissionGate ?? new object();
         if (capacity is < LoggingOptions.MinimumQueueCapacity or > LoggingOptions.MaximumQueueCapacity) { throw new ArgumentOutOfRangeException(nameof(capacity)); }
@@ -15,8 +17,8 @@ internal sealed class OutputQueues
         if (!fileEnabled && fileFlush is not null) { throw new ArgumentException("Disabled file output cannot have a flush callback.", nameof(fileFlush)); }
         try
         {
-            if (consoleWrite is not null) { Console = Create("console", consoleWrite, null, consoleFlush); }
-            if (fileWrite is not null) { File = Create("file", fileWrite, fileResource, fileFlush); }
+            if (consoleWrite is not null) { Console = Create("console", consoleWrite, null, consoleFlush, consoleCancellableWrite, consoleCancellableFlush); }
+            if (fileWrite is not null) { File = Create("file", fileWrite, fileResource, fileFlush, fileCancellableWrite, fileCancellableFlush); }
             Completion = Task.WhenAll(Console?.Completion ?? Task.CompletedTask, File?.Completion ?? Task.CompletedTask);
         }
         catch
@@ -24,9 +26,9 @@ internal sealed class OutputQueues
             // Unpublished queues are empty. Close/join only this attempt's idle workers, outside the gate.
             Complete(); Console?.Completion.GetAwaiter().GetResult(); File?.Completion.GetAwaiter().GetResult(); throw;
         }
-        OutputEventQueue Create(string name, Func<AdmittedEvent, ValueTask> write, IDisposable? ownedResource, Func<ValueTask>? flush)
+        OutputEventQueue Create(string name, Func<AdmittedEvent, ValueTask> write, IDisposable? ownedResource, Func<ValueTask>? flush, Func<AdmittedEvent, CancellationToken, ValueTask>? cancellableWrite, Func<CancellationToken, ValueTask>? cancellableFlush)
         {
-            try { return new OutputEventQueue(capacity, write, admissionGate, launchWorker, ownedResource, flush); }
+            try { return new OutputEventQueue(capacity, write, admissionGate, launchWorker, ownedResource, flush, cancellableWrite, cancellableFlush); }
             catch { throw new CoreLogInitializationException(name, "WorkerInitializationFailed"); }
         }
     }
@@ -34,4 +36,6 @@ internal sealed class OutputQueues
     internal OutputEventQueue? File { get; }
     internal Task Completion { get; }
     internal void Complete() { lock (admissionGate) { Console?.Complete(); File?.Complete(); } }
+    internal void AbandonUnstarted() { lock (admissionGate) { Console?.AbandonUnstarted(); File?.AbandonUnstarted(); } }
+    internal void RequestIoCancellation() { Console?.RequestIoCancellation(); File?.RequestIoCancellation(); }
 }

@@ -1,0 +1,23 @@
+{
+  "required": {
+    "R1": "Queue expiry flag prevents every later flush; new configured single-write case checks zero flush calls and no misleading fault",
+    "R2": "Public StopAsync remarks describe abandonment, requested cancellation and terminal dispositions",
+    "R3": "Current T02 progress and remaining T03-T05 obligations updated"
+  },
+  "optional": {
+    "O1": "Retain legacy internal writer seams; no broad delegate refactor is needed for T02",
+    "O2": "Retain the small existing abandonment-loop duplication",
+    "O3": "Document dequeue as the start reservation; diagnostic refinements remain T04",
+    "O4": "Clarify lifetime cancellation versus output-cancellation lock order"
+  },
+  "remaining": "T04 includes stream cancellation callback exceptions and callback joins in cleanup/error coordination",
+  "followup": {
+    "verdict": "PASS",
+    "requiredFindingsRemaining": 0,
+    "optionalDecisions": [
+      "Retain current regression, which also rejects the misleading live FlushFailed; direct attempted-flush instrumentation remains an optional T05 strengthening",
+      "Post-expiry FlushAsync behavior remains T03/T04",
+      "Final notes will distinguish historical T01 evidence and record the locally adjusted T01 reader"
+    ]
+  }
+}

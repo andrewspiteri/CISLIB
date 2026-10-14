@@ -1,0 +1,40 @@
+{
+  "schema": "cis.logging.stop-drain-cases/v1",
+  "task": "WP05-S10-T02",
+  "state": "Implemented; final verification and read-only Claude review pending",
+  "scope": "T02 deadline abandonment and actual cancellation requests only; T03-T05 and full S10/release remain required.",
+  "cases": [
+    {
+      "id": "normal-dual",
+      "description": "Three records drain and flush to borrowed console and owned physical file; periodic scheduling closes."
+    },
+    {
+      "id": "queued-only",
+      "description": "A held worker starts no writes; three accepted entries are abandoned and the original final flush resolves unavailable."
+    },
+    {
+      "id": "blocked-write",
+      "description": "One uncooperative write stays pending, two unstarted entries are abandoned and cancellation is requested."
+    },
+    {
+      "id": "single-write",
+      "description": "One uncooperative configured write with no queued tail; the deadline observation stays pending, and after late completion no new flush starts or false FlushFailed fault appears."
+    },
+    {
+      "id": "cancel-write",
+      "description": "The same frozen pending observation survives a cooperative cancellation subsequently becoming a live write failure."
+    },
+    {
+      "id": "blocked-flush",
+      "description": "A written record and unresolved uncooperative final flush remain distinct; cancellation is requested."
+    },
+    {
+      "id": "cancel-flush",
+      "description": "A cooperative final flush cancels after the pending observation; no already-written record becomes failed."
+    },
+    {
+      "id": "blocked-callback",
+      "description": "A blocking cancellation callback can read diagnostics outside admission synchronization without extending the deadline."
+    }
+  ]
+}

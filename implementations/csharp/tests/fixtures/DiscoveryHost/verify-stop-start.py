@@ -57,8 +57,8 @@ def check(mode, a, pid=None):
     for key, names in [('writer', [] if empty else ['one', 'both'] if dual else ['one']), ('file', ['both'] if dual else [])]:
         w = a[key]
         n = len(names)
-        require((w['writes'], w['flushes'], w['maximumIo']) == (n, 1 if n else 0, 1 if n else 0), 'actual sequential I/O')
-        require(w['order'] == ['write.' + str(i + 1) for i in range(n)] + (['flush.' + str(n)] if n else []), 'actual I/O order')
+        require((w['writes'], w['flushes'], w['maximumIo']) == (n, 1 if n and (success or flush) else 0, 1 if n else 0), 'actual sequential I/O')
+        require(w['order'] == ['write.' + str(i + 1) for i in range(n)] + (['flush.' + str(n)] if n and (success or flush) else []), 'actual I/O order')
         raw = decoded(w['bytes'])
         require(not raw.startswith(b'\xef\xbb\xbf') and b'\r' not in raw and (not raw or raw.endswith(b'\n')), 'record framing')
         lines = raw.splitlines()

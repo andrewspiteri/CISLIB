@@ -157,7 +157,9 @@ public sealed class CoreLogRuntime
         ValidateSettings(selected.EffectiveConsoleLevel, selected.EffectiveFileLevel, selected.MaxEntryBytes);
         var gate = new object();
         var queues = new OutputQueues(selected.QueueCapacity, selected.ConsoleEnabled, selected.FileEnabled, consoleWrite, fileWrite, gate, launchWorker, fileWriter,
-            writer is null ? consoleFlush : writer.FlushAsync, fileWriter is null ? fileFlush : fileWriter.FlushAsync);
+            writer is null ? consoleFlush : writer.FlushAsync, fileWriter is null ? fileFlush : fileWriter.FlushAsync,
+            writer is null ? null : writer.WriteAsync, fileWriter is null ? null : fileWriter.WriteAsync,
+            writer is null ? null : writer.FlushAsync, fileWriter is null ? null : fileWriter.FlushAsync);
         try
         {
             writer?.Initialize();
@@ -184,7 +186,7 @@ public sealed class CoreLogRuntime
     /// <returns>The same owned immutable observation retained for all joining callers.</returns>
     /// <exception cref="OperationCanceledException">The caller cancels its own wait.</exception>
     /// <exception cref="InvalidOperationException">The runtime uses a trusted admission-test seam without actual output queues.</exception>
-    /// <remarks>The configured overall timeout is frozen at creation. UTC is an observation label; elapsed time is monotonic. A timed-out observation can retain pending I/O; its later completion does not change the cached result.</remarks>
+    /// <remarks>The configured overall timeout is frozen at creation. UTC is an observation label; elapsed time is monotonic. At expiry, unstarted accepted records are abandoned. Cancellation of active writes/flushes is requested but is not guaranteed, and no new flush, retry or replacement writer starts. Completed means terminal dispositions, not successful delivery or resource release. A timed-out observation can retain pending I/O; its later completion does not change the cached result.</remarks>
     public Task<LogStopResult> StopAsync(CancellationToken cancellationToken)
     {
         if (queuedOutputs is null) { throw new InvalidOperationException("Stop requires actual queued output composition."); }
@@ -230,7 +232,7 @@ public sealed class CoreLogRuntime
         {
             if (boundary.Console is null && boundary.File is null)
             { PublishStop(CaptureFlushResult(boundary), completion); return; }
-            await using var deadline = new FlushDeadline(timeProvider, started, shutdownTimeout, () => CaptureFlushResult(boundary));
+            await using var deadline = new FlushDeadline(timeProvider, started, shutdownTimeout, () => CaptureFlushResult(boundary), () => CaptureStopDeadline(boundary));
             try
             {
                 await boundary.WaitForWriterFlushAsync(deadline.Token).ConfigureAwait(false);
@@ -239,7 +241,7 @@ public sealed class CoreLogRuntime
                 if (boundary.File is { } file)
                 { await queuedOutputs!.File!.WaitForCoveredRecordsAsync("file", file, deadline.Token).ConfigureAwait(false); }
                 try { await queuedOutputs!.Completion.WaitAsync(deadline.Token).ConfigureAwait(false); }
-                catch (Exception) when (queuedOutputs!.Completion.IsFaulted && (queuedOutputs.Console?.IsFaulted == true || queuedOutputs.File?.IsFaulted == true))
+                catch (Exception) when ((queuedOutputs!.Completion.IsFaulted || queuedOutputs.Completion.IsCanceled) && (queuedOutputs.Console?.IsFaulted == true || queuedOutputs.File?.IsFaulted == true))
                 { /* Terminal writer faults remain safe output results, not business-call I/O exceptions. */ }
             }
             catch (OperationCanceledException) when (deadline.Token.IsCancellationRequested) { }
@@ -249,6 +251,18 @@ public sealed class CoreLogRuntime
         catch (Exception error) { completion.TrySetException(error); }
     }
 
+    private LogFlushResult CaptureStopDeadline(RuntimeFlushBoundary boundary)
+    {
+        LogFlushResult observation;
+        lock (admissionGate)
+        {
+            queuedOutputs!.AbandonUnstarted();
+            observation = CaptureFlushResult(boundary);
+        }
+        // Freeze actual pending work before cooperative cancellation can settle it.
+        queuedOutputs.RequestIoCancellation();
+        return observation;
+    }
     private void PublishStop(LogFlushResult observation, TaskCompletionSource<LogStopResult> completion)
     {
         var result = new LogStopResult(observation);
