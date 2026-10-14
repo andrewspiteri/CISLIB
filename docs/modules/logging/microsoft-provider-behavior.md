@@ -13,3 +13,5 @@ State enumeration is synchronous cooperative caller code. The formatter can itse
 Fourteen fixture modes and argument-guard cases qualify these decisions. Public physical consumers cover filters, stopped/disposed calls, template ordering, float widening, duplicates/root shapes, unsupported input, capture callbacks and formatter exceptions. No-output, queue-full and writer-fault cases use actual internal Core queues with controlled callbacks, explicit barriers and memory bytes; they do not claim an induced operating-system failure. Independent native readers bind child PID, exact assemblies, raw output bytes and corruption controls. Execution and review results belong in the task receipt.
 
 T05 complete story acceptance, S02 host/external scopes and lifetime integration, examples/skills and release qualification remain pending. No public API, dependency or worker was added in T04.
+
+Actual LoggerFactory host filter configuration is exercised in [host filtering](microsoft-host-filtering.md). Host suppression precedes Core and cannot appear in its filtered/loss counters; formatter exception aggregation remains later story qualification.

@@ -1,0 +1,10 @@
+{
+  "verdict": "PASS",
+  "requiredFindings": [],
+  "optionalFindings": [
+    "docs/architecture/csharp-dependency-policy.md calls the DiscoveryHost closure an 'exact six-package closure', but check-dependencies.ps1 enforces only membership in the allowlist plus the required direct package. A closure with fewer transitive packages would still pass. Either reword it to say the closure is limited to these six approved identities, or enforce the count for that fixture.",
+    "development-dependencies.json still declares scope 'development-only-test-projects' even though it now includes fixture-only roles consumed by a process-fixture. Consider wording the scope to cover the named development fixture.",
+    "The fixture branch rejects unlisted IDs but has no version-mismatch control, such as a listed fixture package injected at Microsoft.Extensions.Logging/10.0.11. The code path checks the version, so a fifth DataRow would only add direct evidence; it is not required.",
+    "The csharp-dependency-policy.md table row 'Five test families | Core and CIS.Core.TestSupport' predates this task and omits the IntegrationTests edge to the DiscoveryHost fixture. You could fix the wording when this area is next touched."
+  ]
+}

@@ -27,6 +27,7 @@ public sealed class DependencyBoundaryTests
     [TestMethod]
     [DataRow("CIS.Core.TestSupport")]
     [DataRow("Unapproved.Host.Infrastructure")]
+    [DataRow("Microsoft.Extensions.Logging")]
     public async Task CompiledCheckerRejectsForeignAssemblyReferences(string dependencyName)
     {
         using var directory = new TemporaryDirectory();
@@ -47,6 +48,7 @@ public sealed class DependencyBoundaryTests
     [DataRow("ProjectReference", "../../../tests/CIS.Core.TestSupport/CIS.Core.TestSupport.csproj", "Forbidden project reference")]
     [DataRow("FrameworkReference", "Microsoft.AspNetCore.App", "Forbidden framework reference")]
     [DataRow("PackageReference", "Unapproved.Logger", "Unapproved explicit package")]
+    [DataRow("PackageReference", "Microsoft.Extensions.Logging", "Unapproved explicit package")]
     public async Task EvaluatedCoreProjectRejectsForbiddenDependencies(string element, string dependency, string expectedRule)
     {
         using var fixture = new ProjectFixture(LanguageRoot);

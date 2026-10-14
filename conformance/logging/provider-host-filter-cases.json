@@ -1,0 +1,35 @@
+{
+  "schema": "cis.logging.provider-host-filter-cases/v1",
+  "task": "WP06-S02-T03",
+  "cases": [
+    {
+      "id": "broad",
+      "requirement": "Trace host preserves Debug file and Warning console; Trace/None skip formatter and state copying."
+    },
+    {
+      "id": "provider-rule",
+      "requirement": "Provider Debug overrides Warning minimum and general Critical category rule."
+    },
+    {
+      "id": "category-rule",
+      "requirement": "Matching provider category Debug overrides provider-wide Warning."
+    },
+    {
+      "id": "narrow-host",
+      "requirement": "Warning host suppresses Debug despite direct Core Debug delivery."
+    },
+    {
+      "id": "narrow-category",
+      "requirement": "Narrow provider category suppresses Debug despite provider-wide Debug and direct Core delivery."
+    },
+    {
+      "id": "trace-file",
+      "requirement": "Trace host and Trace file preserve all six levels; console remains Warning."
+    },
+    {
+      "id": "core-off",
+      "requirement": "Permissive host with all Core destinations None performs no formatter/state work or I/O."
+    }
+  ],
+  "qualification": "Actual Microsoft LoggerFactory, public Core creation, stderr JSONL and physical file. Full story ownership/shutdown/concurrency and release remain later tasks."
+}

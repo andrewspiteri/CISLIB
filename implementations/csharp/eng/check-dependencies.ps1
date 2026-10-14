@@ -15,7 +15,11 @@ $developmentPolicy = Get-Content -Raw -LiteralPath (Join-Path $LanguageRoot 'eng
 $runtimeAllowed = @{}
 foreach ($package in $runtimePolicy.packages) { $runtimeAllowed[$package.id] = $package.version }
 $developmentAllowed = @{}
-foreach ($package in $developmentPolicy.packages) { $developmentAllowed[$package.id] = $package.version }
+$testDevelopmentAllowed = @{}
+foreach ($package in $developmentPolicy.packages) {
+    $developmentAllowed[$package.id] = $package.version
+    if ($package.role -notlike '*-fixture') { $testDevelopmentAllowed[$package.id] = $package.version }
+}
 
 function Invoke-Evaluation {
     param([string] $Path, [switch] $ResolveReferences)
@@ -53,7 +57,10 @@ function Check-RestoredGraph {
         }
         if ($entry.type -ne 'package') { throw "Unexpected restored dependency type: $identity" }
         $allowed = $Project.role -in @('shipping', 'test', 'example', 'process-fixture') -and $runtimeAllowed.ContainsKey($id) -and $runtimeAllowed[$id] -eq $version
-        if ($Project.role -eq 'test') { $allowed = $allowed -or ($developmentAllowed.ContainsKey($id) -and $developmentAllowed[$id] -eq $version) }
+        if ($Project.role -eq 'test') { $allowed = $allowed -or ($testDevelopmentAllowed.ContainsKey($id) -and $testDevelopmentAllowed[$id] -eq $version) }
+        if ($Project.role -eq 'process-fixture' -and $Project.ContainsKey('developmentPackageReferences') -and $id -in $Project.developmentPackageReferences) {
+            $allowed = $allowed -or ($developmentAllowed.ContainsKey($id) -and $developmentAllowed[$id] -eq $version)
+        }
         if (-not $allowed) { throw "Unapproved $($Project.role) package dependency: $identity" }
         $resolved[$id] = $version
     }
@@ -151,6 +158,9 @@ try {
         foreach ($reference in $evaluation.Items.PackageReference) {
             if ($reference.Identity -notin $project.packageReferences) { throw "Unapproved explicit package from $($project.path): $($reference.Identity)" }
             if ($project.role -eq 'test' -and $reference.PrivateAssets -ne 'all') { throw "Test package must have PrivateAssets=all: $($reference.Identity)" }
+            if ($project.role -eq 'process-fixture' -and $project.ContainsKey('developmentPackageReferences') -and $reference.Identity -in $project.developmentPackageReferences -and $reference['PrivateAssets'] -ne 'all') {
+                throw "Fixture development package must have PrivateAssets=all: $($reference.Identity)"
+            }
             $actualPackages += $reference.Identity
         }
         if ($actualPackages.Count -ne $project.packageReferences.Count) { throw "Package reference inventory mismatch: $($project.path)" }

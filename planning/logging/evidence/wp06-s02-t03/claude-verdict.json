@@ -1,0 +1,31 @@
+{
+  "verdict": "CHANGES_REQUIRED",
+  "requiredFindings": [
+    {
+      "id": "R1",
+      "file": "implementations/csharp/eng/check-dependencies.ps1",
+      "reason": "The four fixture-only packages were added to development-dependencies.json, and Check-RestoredGraph lets every 'test' role project accept any developmentAllowed identity. So all five test projects now silently accept Microsoft.Extensions.Logging, DependencyInjection, Options and Primitives in their restored graphs. The inventory 'role' values (direct-fixture/transitive-fixture) are never consulted. The fixture's PrivateAssets=all is therefore the only thing keeping the factory closure out of CIS.Core.IntegrationTests. That PrivateAssets rule ('Fixture development package must have PrivateAssets=all') and the developmentPackageReferences scoping have no negative control. The new architecture controls only cover Core. This contradicts the 'narrowly scoped, four explicit development-only extras' boundary and leaves the new rule paths unexecuted.",
+      "fix": "In Check-RestoredGraph, allow developmentAllowed packages for the 'test' role only when their inventory role is not a '*-fixture' role. Allow fixture-role packages only through a process-fixture's developmentPackageReferences. Add focused negative fixtures in DependencyBoundaryTests. (a) Remove PrivateAssets from the DiscoveryFixture Microsoft.Extensions.Logging reference and expect 'Fixture development package must have PrivateAssets=all'. (b) Inject Microsoft.Extensions.Logging/10.0.12 into a test project's or another process-fixture's (e.g. TypeManager Host) copied assets and expect 'Unapproved test/process-fixture package dependency'. (c) Inject a non-listed development package such as MSTest.TestFramework into the DiscoveryFixture assets and expect rejection."
+    }
+  ],
+  "optionalFindings": [
+    {
+      "id": "O1",
+      "file": "docs/architecture/csharp-dependency-policy.md",
+      "reason": "The opening inventory sentence still says the development inventory records 'all 12 resolved test-tool packages'. The file now holds 16 entries, including the four fixture packages.",
+      "fix": "State 12 test-tool packages plus 4 fixture-only packages, or reference the new section."
+    },
+    {
+      "id": "O2",
+      "file": "implementations/csharp/tests/fixtures/DiscoveryHost/ProviderHostFilterExpectations.cs",
+      "reason": "The C# integration Validate omits checks that the native Python verifier performs. These are the consoleLevel/fileLevel thresholds, the live output accounting (accepted/full/unavailable/fault) and the attribute-set exactness. The two verification routes therefore disagree on what a pass means.",
+      "fix": "Mirror the threshold, live-accounting and exact-attribute assertions in Validate. Alternatively, document that the native report is the authoritative evidence for those facts."
+    },
+    {
+      "id": "O3",
+      "file": "docs/modules/logging/microsoft-host-filtering.md",
+      "reason": "The standalone C# snippet is guidance only. It is not compiled against the pinned packages. The fixture mirrors it but is not the same text.",
+      "fix": "Optionally add a compile-only consumer or note that the snippet mirrors ProviderHostFilterFixture 'broad'. Leave it unactivated as a skill/API example until package verification."
+    }
+  ]
+}

@@ -1,0 +1,41 @@
+  Determining projects to restore...
+  Restored C:\miscwork\portfolio\cislib\implementations\csharp\tests\CIS.Core.TestSupport\CIS.Core.TestSupport.csproj (in 119 ms).
+  Restored C:\miscwork\portfolio\cislib\implementations\csharp\eng\CIS.TypeManager.Build\CIS.TypeManager.Build.csproj (in 119 ms).
+  Restored C:\miscwork\portfolio\cislib\implementations\csharp\src\CIS.Core\CIS.Core.csproj (in 279 ms).
+  Restored C:\miscwork\portfolio\cislib\implementations\csharp\tests\CIS.Core.ArchitectureTests\CIS.Core.ArchitectureTests.csproj (in 292 ms).
+  CIS.TypeManager.Build -> C:\miscwork\portfolio\cislib\implementations\csharp\eng\CIS.TypeManager.Build\bin\Release\net10.0\CIS.TypeManager.Build.dll
+  CIS.Core.TestSupport -> C:\miscwork\portfolio\cislib\implementations\csharp\tests\CIS.Core.TestSupport\bin\Release\net10.0\CIS.Core.TestSupport.dll
+  CIS.Core -> C:\miscwork\portfolio\cislib\implementations\csharp\src\CIS.Core\bin\Release\net10.0\CIS.Core.dll
+  CIS.Core.ArchitectureTests -> C:\miscwork\portfolio\cislib\implementations\csharp\tests\CIS.Core.ArchitectureTests\bin\Release\net10.0\CIS.Core.ArchitectureTests.dll
+Test run for C:\miscwork\portfolio\cislib\implementations\csharp\tests\CIS.Core.ArchitectureTests\bin\Release\net10.0\CIS.Core.ArchitectureTests.dll (.NETCoreApp,Version=v10.0)
+A total of 1 test files matched the specified pattern.
+  Failed FactoryClosureIsLimitedToTheNamedPrivateFixture ("test-package","Unapproved test package dependency") [2 s]
+  Error Message:
+   Assertion failed. Expected values to be equal.
+Exception: C:\miscwork\portfolio\cislib\implementations\csharp\eng\check-dependencies.ps1:166
+Line |
+ 166 |  . es.Count) { throw "Package reference inventory mismatch: $($project.p .
+     |                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+     | Package reference inventory mismatch: tests/CIS.Core.UnitTests/CIS.Core.UnitTests.csproj
+
+
+expected: 0
+actual:   1
+
+Assert.AreEqual(0, positive.ExitCode)
+  Stack Trace:
+     at CIS.Tests.ArchitectureTests.ProviderHostDependencyBoundaryTests.FactoryClosureIsLimitedToTheNamedPrivateFixture(String mode, String expected) in C:\miscwork\portfolio\cislib\implementations\csharp\tests\CIS.Core.ArchitectureTests\ProviderHostDependencyBoundaryTests.cs:line 47
+   at Microsoft.VisualStudio.TestPlatform.MSTest.TestAdapter.Execution.TestMethodInfo.ExecuteInternalAsync(Object[] arguments, CancellationTokenSource timeoutTokenSource, TestInvocationState invocationState)
+  Failed FactoryClosureIsLimitedToTheNamedPrivateFixture ("private-assets","Fixture development package must have PrivateAssets=all") [4 s]
+  Error Message:
+   Assertion failed. Expected string to contain the specified substring.
+
+expected substring: "Fixture development package must have PrivateAssets=all"
+actual:             "ParentContainsErrorRecordException: C:\\miscwork\\portfolio\\cislib\\implementations\\csharp\\eng\\check-dependencies.ps1:161\r\nLine |\r\n 161 |  .         if ($project.role -eq 'process-fixture' -and $project.Contain .\r\n     |                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\r\n     | The property 'PrivateAssets' cannot be found on this object. Verify that the property exists.\r\n"
+comparison:         Ordinal
+  Stack Trace:
+     at CIS.Tests.ArchitectureTests.ProviderHostDependencyBoundaryTests.FactoryClosureIsLimitedToTheNamedPrivateFixture(String mode, String expected) in C:\miscwork\portfolio\cislib\implementations\csharp\tests\CIS.Core.ArchitectureTests\ProviderHostDependencyBoundaryTests.cs:line 61
+   at Microsoft.VisualStudio.TestPlatform.MSTest.TestAdapter.Execution.TestMethodInfo.ExecuteInternalAsync(Object[] arguments, CancellationTokenSource timeoutTokenSource, TestInvocationState invocationState)
+Results File: C:\miscwork\portfolio\cislib\.artifacts\csharp\tasks\wp06-s02-t03\focused-boundaries\report.trx
+
+Failed!  - Failed:     2, Passed:     2, Skipped:     0, Total:     4, Duration: 4 s - CIS.Core.ArchitectureTests.dll (net10.0)

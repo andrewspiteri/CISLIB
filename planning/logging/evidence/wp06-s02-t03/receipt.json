@@ -1,0 +1,573 @@
+{
+  "schema": "cis.logging.task-receipt/v1",
+  "taskId": "WP06-S02-T03",
+  "date": "2026-10-14",
+  "status": "Implemented, verified and reviewed; commit identity belongs in Git history",
+  "baseCommit": "6f455e25bdc3078677777b36e4c53ec3c869e22d",
+  "scope": "Document/exercise actual Microsoft LoggerFactory host filtering; independent Core destinations and callback work. Development-only factory closure explicitly isolated. No shipping source/API/dependency/worker/helper added.",
+  "developer": {
+    "runId": "9c4386df8826440cbb4a0c8dece02ddf",
+    "tests": {
+      "unit": 3370,
+      "integration": 1389,
+      "architecture": 471
+    },
+    "totalTests": 5230,
+    "stages": 14,
+    "criticalPins": 881,
+    "currentSourceMismatches": 0,
+    "coreSha256": "84cdc0d53dd159ab83788d4211e9bf837c39e929b4fc9d7ef34979903fd4ae37",
+    "fixtureSha256": "c8c0f60c6f0d8d6bec296704af9f1a3c082d629c85153aba5836847c0a163956",
+    "factorySha256": "05b76234f2a5eb945b268ced706cb4d81446778ea6bd6910298b5e9111170b4a",
+    "rawTrxChecked": true
+  },
+  "native": {
+    "children": 14,
+    "controls": 18,
+    "platforms": [
+      "windows",
+      "linux"
+    ],
+    "runtime": ".NET 10.0.12",
+    "rollForward": "Disable",
+    "frozenAfterTerminalDeveloper": true,
+    "rawBytesAndIdentityVerified": true
+  },
+  "claude": {
+    "initialVerdict": "CHANGES_REQUIRED",
+    "requiredFinding": "R1",
+    "resolution": "Role-specific test inventory excludes fixture-only packages; named process fixture permits explicit IDs/versions and requires PrivateAssets=all. Four positive/negative pairs pass. Missing-property guard fixed through negative execution. Optional inventory/validator/snippet notes addressed.",
+    "followupVerdict": "PASS",
+    "requiredFindingsRemaining": 0,
+    "initialFiles": 23,
+    "initialBytes": 202321,
+    "followupFiles": 9,
+    "followupBytes": 56669,
+    "finalSnapshotMatchesCombinedReviews": true,
+    "authorization": "Standing user instruction to continue logging-only read-only reviews without asking; T03-specific approval also received."
+  },
+  "historical": "Initial 5226-test green checkpoint predates the required dependency correction and is not completion evidence. First four boundary probes had 2 failures, retained and corrected; final probes all pass.",
+  "dependencies": {
+    "corePackages": [
+      "Microsoft.Extensions.DependencyInjection.Abstractions/10.0.12",
+      "Microsoft.Extensions.Logging.Abstractions/10.0.12"
+    ],
+    "fixturePackages": [
+      "Microsoft.Extensions.DependencyInjection.Abstractions/10.0.12",
+      "Microsoft.Extensions.DependencyInjection/10.0.12",
+      "Microsoft.Extensions.Logging.Abstractions/10.0.12",
+      "Microsoft.Extensions.Logging/10.0.12",
+      "Microsoft.Extensions.Options/10.0.12",
+      "Microsoft.Extensions.Primitives/10.0.12"
+    ],
+    "factoryPrivateAssets": "all",
+    "policy": "Four additional exact Microsoft/MIT packages permitted only by the process fixture manifest. Core runtime closure remains unchanged.",
+    "restoredNuspecProvenance": [
+      {
+        "id": "Microsoft.Extensions.DependencyInjection.Abstractions",
+        "version": "10.0.12",
+        "authors": "Microsoft",
+        "license": "MIT",
+        "nuspecSha256": "8766714f4945465f519ba4c6ebcdea8e6e3234871178f009779d7b1b5a54c59c",
+        "packageSha512": "9/qymSh7hVDMGTGwrLz8MRp5zRyXy9adGDOs4HwRdnLil3oZGYuWeZjbmHgCQ9BL1qBroVfgUK3U/nb61617Cw=="
+      },
+      {
+        "id": "Microsoft.Extensions.DependencyInjection",
+        "version": "10.0.12",
+        "authors": "Microsoft",
+        "license": "MIT",
+        "nuspecSha256": "672bbde8d6a1d90b3d603f49d80f18fd56c8be929b74d049457b87266e2869b1",
+        "packageSha512": "lXyK2O5GoYvfxW8eCFcD16JFbcoSTM1sJkAM0UHS1jZyl9NYMW64Tqm6OQFT0IDBjZi+xHt95/Zg+nxZhGFhZg=="
+      },
+      {
+        "id": "Microsoft.Extensions.Logging.Abstractions",
+        "version": "10.0.12",
+        "authors": "Microsoft",
+        "license": "MIT",
+        "nuspecSha256": "7f698a1b620cfa4b035eff9c2f863e3c304e9d0f879c676ab949282617af840a",
+        "packageSha512": "+24lC4plfbEDNfLAdTV/SWKS7dW+16X4HdydO3R++134kSNTzcbYA4KpR1Hdh6uWisB8Za3AzwyOn+K+NxWIug=="
+      },
+      {
+        "id": "Microsoft.Extensions.Logging",
+        "version": "10.0.12",
+        "authors": "Microsoft",
+        "license": "MIT",
+        "nuspecSha256": "04e581792606a6cad28ace707a13faf7c7f9a6a88773534257bd4fb510efe31f",
+        "packageSha512": "6I46fTPfgYkrjRYfRXbho9WOvOelTnNjWuZws/hzGHDASH1LEJeA4VKK9k3wJvido8o7jJSB5WkMTonX7HM1bA=="
+      },
+      {
+        "id": "Microsoft.Extensions.Options",
+        "version": "10.0.12",
+        "authors": "Microsoft",
+        "license": "MIT",
+        "nuspecSha256": "f0577cbeecfe4f5d45df9313727e94370257b72b9b6477492feb0f2a02b70a39",
+        "packageSha512": "TDYD33TSRpXKZWlmTXNlj5kCihxatmv2Ec1u6C+bMYLphCS7PoSLE9Pjd/nunDoE7yETk+LLKjVJX78HYtWjpA=="
+      },
+      {
+        "id": "Microsoft.Extensions.Primitives",
+        "version": "10.0.12",
+        "authors": "Microsoft",
+        "license": "MIT",
+        "nuspecSha256": "154b9a2c247fd24c663b15a305428e0bdec23de00b36a4066daa12e052b9bcfd",
+        "packageSha512": "dYfCLR52UA+3DL7C4I/pvSaRPkNqxrUAQmbFL2u0zvYKKzqgrFCJl08Df+F1aYc8leu9JvpC9bsURUdpExcBXQ=="
+      }
+    ]
+  },
+  "release": {
+    "exitCode": 2,
+    "originalSourceFilesUnchanged": true,
+    "plannedCasesUnchanged": 41
+  },
+  "cisGraph": {
+    "freshAtCapture": true,
+    "status": "status=warnings;exitCode=0;freshness=fresh;nodes=10691;edges=42264;errors=0;warnings=143;information=0;strict=false",
+    "buildId": "sha256:b39de2ef6c3b64065eb5aa62a063fada07490d7607c3ceedc3388b3dafe7af76",
+    "root": "cislib::symbol::cis-core/csharp/method/CIS.Logging.MicrosoftLogger.CoreLoggerProvider.CreateLogger%28string%29",
+    "limitations": "Bounded call context is partial; tests-for has zero verified-by traversals. Compiler diagnostics/extraction warnings retained; no inferred coverage is claimed."
+  },
+  "remaining": [
+    "WP06-S02-T04 nonowning provider lifetime",
+    "WP06-S02-T05 full async scope/filter/ownership/shutdown qualification",
+    "Examples/instructions/skills and full release/compatibility qualification"
+  ],
+  "limitations": [
+    "Combined Developer includes separately committed Type Manager work; only explicit logging paths staged.",
+    "Guidance snippet mirrors broad factory fixture, not an activated package/skill example.",
+    "Checker permits only explicitly approved fixture packages; independent actual locked restore audit proves current complete six-package closure.",
+    "Host suppression is outside Core filtered/loss counters; argument evaluation precedes logging."
+  ],
+  "files": [
+    {
+      "path": "baseline.json",
+      "sha256": "a010758bfbffd29132748509a21ee9fcc2b642566b4745bbe5345e3df970119a"
+    },
+    {
+      "path": "canonical-files.json",
+      "sha256": "8febb9bbf35fa16ccc9a925b30de2a0f7da3a4a1fbe6e37f4189433aeabfa063"
+    },
+    {
+      "path": "claude-fix-manifest.json",
+      "sha256": "13a81c48fbab18432b2160d1ed9d1806093b84106dc66a95562c8bb266324ca5"
+    },
+    {
+      "path": "claude-fix-prompt.txt",
+      "sha256": "1b143fa7f75ba02f186d364c687a373876367f0a59cac0f87a312a477a8fb077"
+    },
+    {
+      "path": "claude-fix-review.exit-code",
+      "sha256": "13bf7b3039c63bf5a50491fa3cfd8eb4e699d1ba1436315aef9cbe5711530354"
+    },
+    {
+      "path": "claude-fix-review.json",
+      "sha256": "f9b3431b4e3569e642cd3bd459a5a4fedaf3c8566dd57ceea79f12aa20071075"
+    },
+    {
+      "path": "claude-fix-review.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "claude-fix-verdict.json",
+      "sha256": "54bde9220036c9f94848001295288220d3581e3a48885cf12b8d625a7479da57"
+    },
+    {
+      "path": "claude-manifest.json",
+      "sha256": "445cca5a12937f22fb1a5a705dae5e9a09ff5836641b0299ad5d9da4098ba439"
+    },
+    {
+      "path": "claude-prompt.txt",
+      "sha256": "ee1b5bf340c30ef0dd7cfa275bd7c93718101ae9a45003f42acc3e6135a10e5d"
+    },
+    {
+      "path": "claude-review.exit-code",
+      "sha256": "13bf7b3039c63bf5a50491fa3cfd8eb4e699d1ba1436315aef9cbe5711530354"
+    },
+    {
+      "path": "claude-review.json",
+      "sha256": "33193dd82478438514510f298f4b0b67d344a72969969941b729367edea9b58b"
+    },
+    {
+      "path": "claude-review.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "claude-verdict.json",
+      "sha256": "893b0d7455cdcab9bd8575df147dfde97983470db626da6672c45f6d1a7ca154"
+    },
+    {
+      "path": "critical-source-inputs.json",
+      "sha256": "dd23088867af2a3e0a428b6051baa4e156b3009250cd822c1f45e62cd51a1c93"
+    },
+    {
+      "path": "dependency-audit.json",
+      "sha256": "6a0ddd249d03814a3d90118d4128f7fe525a9b963d934db60106838cc400f496"
+    },
+    {
+      "path": "Developer/families/architecture/discovery.json",
+      "sha256": "68a6da11d47807939a0ad1c142c246d4efa5d972e62160ce7c182fc434bf3a1f"
+    },
+    {
+      "path": "Developer/families/architecture/execution.json",
+      "sha256": "490f30136de78cdf16af7d372578559bf8029981bb94e735ae2fc360cbc575c8"
+    },
+    {
+      "path": "Developer/families/architecture/report.trx",
+      "sha256": "52173cb6882a9e284a3a1cf4c642d764c89244a353636619f2e274c5ea3564ce"
+    },
+    {
+      "path": "Developer/families/integration/discovery.json",
+      "sha256": "f36ac663b6ba6fa0536805be1574bf2e77648a2af533be57a93a2d7668d97ffa"
+    },
+    {
+      "path": "Developer/families/integration/execution.json",
+      "sha256": "a49c3ce41a2876aa50aa3e6e8cf45bd8a12befd16be19a6af0a296cd13a3e28f"
+    },
+    {
+      "path": "Developer/families/integration/report.trx",
+      "sha256": "55745d54cb46570517c7ea7a494528d0654fb685b3c98315da3dbc902faccbab"
+    },
+    {
+      "path": "Developer/families/unit/discovery.json",
+      "sha256": "da53ef124b5db28e336383562dcbc1f37d5cebb7fb9207bde53d34b296b07f12"
+    },
+    {
+      "path": "Developer/families/unit/execution.json",
+      "sha256": "06dfa56cacd4ccc91631efc3e4d4a78468fa8cc20cc40542f662adc632b3e8c9"
+    },
+    {
+      "path": "Developer/families/unit/report.trx",
+      "sha256": "bde5eb2e6251f719cd722f4a2408cd98e98c231fd85734a0f4ac30f5f2c66111"
+    },
+    {
+      "path": "Developer/logs/package-boundaries.log",
+      "sha256": "7d22c03cff7674a465d3542da25faaaf48eca765719d626088078c6200359c94"
+    },
+    {
+      "path": "Developer/logs/project-boundaries.log",
+      "sha256": "352deb96b6456fd93c2601dccaac568e277d24cc4cdadcf5f9d946f4bc10d400"
+    },
+    {
+      "path": "Developer/source-inputs.json",
+      "sha256": "91ebfdca5ecda1d6301dcf54b0e1196e0f91327c208cfcc9b365a27e3bd9f860"
+    },
+    {
+      "path": "Developer/summary.json",
+      "sha256": "d06bd425cd3a943e274f632640c0775f666104498f9e777b6d4d6dec4eaeb43d"
+    },
+    {
+      "path": "developer-audit.json",
+      "sha256": "71713b7c5872b17d704dc0a163667dc5cace7b9353fd001e611818787c7301d6"
+    },
+    {
+      "path": "developer-final.exit-code",
+      "sha256": "5feceb66ffc86f38d952786c6d696c79c2dbc239dd4e91b46729d73a27fb57e9"
+    },
+    {
+      "path": "developer-final.log",
+      "sha256": "50c8a1f6079a3c53befa654b3052a47590746553bfcca7962c608e99be27a92f"
+    },
+    {
+      "path": "focused-boundaries/report.trx",
+      "sha256": "bd6e446338f53b961d4dea5d6198ddffc857ed32608a0ecf5efd02a79446050b"
+    },
+    {
+      "path": "focused-boundaries.log",
+      "sha256": "3ca62bdccea0bf91185f3d49e095488097864bc4ae4dd6c1dec851bf1fc29eb0"
+    },
+    {
+      "path": "focused-integration/report.trx",
+      "sha256": "4e829f88bd765d090691afe89ea9260d479ad123d90a53a8d4aa130b6e3be197"
+    },
+    {
+      "path": "focused-integration.log",
+      "sha256": "feb0e56437713d8fe68bb19a72d80b246e41c04ffd0dfe7c517f1f7e3a4fcce4"
+    },
+    {
+      "path": "format-review-fix.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "format.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "graph/graph-before.txt",
+      "sha256": "56083cd6dcf9338dbb441add2412b48258dbd6b2620395ebe45ef2af1a39d2f1"
+    },
+    {
+      "path": "graph/graph-build-final.txt",
+      "sha256": "8ff6bb5d226d498ef8d1d2f15fd8d1fb33b348c89ecc2c513d337731eab8f1a1"
+    },
+    {
+      "path": "graph/graph-provider-related-before.txt",
+      "sha256": "5553f67a9ffb372f3c7135fbdb64b6481402a626a3f717389fdd8e7356fe7fd0"
+    },
+    {
+      "path": "graph/graph-provider-related-final.txt",
+      "sha256": "77abb30049dd4648f02e378792e1fefa1323c935edc2f3b638a1db1d0131ba48"
+    },
+    {
+      "path": "graph/graph-provider-tests-before.txt",
+      "sha256": "d957b2f7c94b055f09520efdaf95b83a5c5fa35d0c307db42a11ba8c848b233b"
+    },
+    {
+      "path": "graph/graph-provider-tests-final.txt",
+      "sha256": "d9c9141595175c4e5cdb72a0b057c9674dd13f3fcff7a5e10efd5b8cce16e589"
+    },
+    {
+      "path": "graph/graph-status-final.txt",
+      "sha256": "ba61f885786cbddfc583829d78082d7c020f77a4ffc33a94db6cdf7972f1d2c0"
+    },
+    {
+      "path": "historical-before-review-fix/Developer/families/architecture/discovery.json",
+      "sha256": "5affd670f2c8ccdc227548aeeba21a0324934e7551a5d66ef1a2b4b676bf832f"
+    },
+    {
+      "path": "historical-before-review-fix/Developer/families/architecture/execution.json",
+      "sha256": "d37e61af5b7f6d19d9a346f3e42348499101bfc01714db6bb9296af6972f494b"
+    },
+    {
+      "path": "historical-before-review-fix/Developer/families/architecture/report.trx",
+      "sha256": "368e099bd54aefcb3605021cee3653a7a6ce1ee317d1970b2b03aa199297e08c"
+    },
+    {
+      "path": "historical-before-review-fix/Developer/families/integration/discovery.json",
+      "sha256": "f36ac663b6ba6fa0536805be1574bf2e77648a2af533be57a93a2d7668d97ffa"
+    },
+    {
+      "path": "historical-before-review-fix/Developer/families/integration/execution.json",
+      "sha256": "a49c3ce41a2876aa50aa3e6e8cf45bd8a12befd16be19a6af0a296cd13a3e28f"
+    },
+    {
+      "path": "historical-before-review-fix/Developer/families/integration/report.trx",
+      "sha256": "1e9c4172a88932c55631d5299038edacd9f4e8ec8ab03e6ac88fb3d0896f396a"
+    },
+    {
+      "path": "historical-before-review-fix/Developer/families/unit/discovery.json",
+      "sha256": "da53ef124b5db28e336383562dcbc1f37d5cebb7fb9207bde53d34b296b07f12"
+    },
+    {
+      "path": "historical-before-review-fix/Developer/families/unit/execution.json",
+      "sha256": "06dfa56cacd4ccc91631efc3e4d4a78468fa8cc20cc40542f662adc632b3e8c9"
+    },
+    {
+      "path": "historical-before-review-fix/Developer/families/unit/report.trx",
+      "sha256": "5d44960adae1f891c58e8de1f51a87f3bf991b13eb8c706940631f85aabd6afe"
+    },
+    {
+      "path": "historical-before-review-fix/Developer/source-inputs.json",
+      "sha256": "498965b557ee1b4ee21f71a71e19287e5ef31b205be46d5406ae033b0b37628b"
+    },
+    {
+      "path": "historical-before-review-fix/Developer/summary.json",
+      "sha256": "e3bb45cdc214b3432a7143c59db20476d1c99cf38fb15b83c3ac16c4c4ebacbe"
+    },
+    {
+      "path": "historical-before-review-fix/developer.log",
+      "sha256": "c644d6d898e8796339100ec5ee97e10650c4d7bcb9eadee078d3313978a1aeb1"
+    },
+    {
+      "path": "historical-first-boundary-probe/focused-boundaries.log",
+      "sha256": "b1f3c0f7633d17d418d3d15e917168feb4e7e069c61f465fb1434785f2983cf7"
+    },
+    {
+      "path": "historical-first-boundary-probe/report.trx",
+      "sha256": "8b598a01c0726c4a3c6bd2f2a361284e561045329e5378b5cee93a93e4a77322"
+    },
+    {
+      "path": "native/linux/broad.file.bin",
+      "sha256": "cdc529d9ee41683cfcbba8db7b866a5e82e621c57eb36fbda6bb9d077612c0d3"
+    },
+    {
+      "path": "native/linux/broad.stderr.bin",
+      "sha256": "8fd82f5d03620a146d700e3106aee88e14126f7d213ed1d1069b4ac6fad86cf3"
+    },
+    {
+      "path": "native/linux/broad.stdout.bin",
+      "sha256": "c48b6b9be4f25c8ec3c71094dc2d57d990d01a0b3888afea17ba8c6d411be5ac"
+    },
+    {
+      "path": "native/linux/category-rule.file.bin",
+      "sha256": "9da205cdb4e4cf329d36de37ade1959109ac60689fec21c8c6a97ac8494bfb82"
+    },
+    {
+      "path": "native/linux/category-rule.stderr.bin",
+      "sha256": "93fa32b9a26deffd53a51282abeb6c5647803e0ff17beca0a9df2b5741e70f7d"
+    },
+    {
+      "path": "native/linux/category-rule.stdout.bin",
+      "sha256": "7fe05d3fe192505555ed1fbc0d956b3aed1aa097c8f0da8027f2d45324e10da2"
+    },
+    {
+      "path": "native/linux/core-off.file.bin",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "native/linux/core-off.stderr.bin",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "native/linux/core-off.stdout.bin",
+      "sha256": "b0f78a5ca1d1ca8ad2262b6f6f22ce33dc02c3b9ad00b754da22db84ce62b8a3"
+    },
+    {
+      "path": "native/linux/narrow-category.file.bin",
+      "sha256": "eb63966b7828d04f8ac1e026509f78e1650aace45348721c3254dc4e5912f4a2"
+    },
+    {
+      "path": "native/linux/narrow-category.stderr.bin",
+      "sha256": "f9870a49cd2fcdb11f812ca1d022b2c787be74526bdbf1cb8c64f27eb074a501"
+    },
+    {
+      "path": "native/linux/narrow-category.stdout.bin",
+      "sha256": "de138c7bd7f19d8f26f5cb99df97327364f1f4376f56b05f66957fa60280dddc"
+    },
+    {
+      "path": "native/linux/narrow-host.file.bin",
+      "sha256": "e956a730ba23635a7917dded392ee2375f3e1bb4721e47ba48577d2dbd3079eb"
+    },
+    {
+      "path": "native/linux/narrow-host.stderr.bin",
+      "sha256": "79dd7b0d48a34cf7d43b292b87ee9f986eb383fac822890ad14482383bc3d3be"
+    },
+    {
+      "path": "native/linux/narrow-host.stdout.bin",
+      "sha256": "432ed48354204ebc95e9e2e11278486e439bfbf41f70d20b4f2e238522584249"
+    },
+    {
+      "path": "native/linux/provider-rule.file.bin",
+      "sha256": "521ac3c13a7dbb4e36e2b8d37309250c90540f1029c67d04c49761f63ac0c977"
+    },
+    {
+      "path": "native/linux/provider-rule.stderr.bin",
+      "sha256": "a074c5a0ecb703cef389faf5e648a403f9656eccd3c517ca93bce2cceec3bcfb"
+    },
+    {
+      "path": "native/linux/provider-rule.stdout.bin",
+      "sha256": "da39c2c5631e64c5ad63a919b46a63fc4686ddeb318e352699ef79904e9835d9"
+    },
+    {
+      "path": "native/linux/report.json",
+      "sha256": "0d7e819d6d34153e112375757c20c262e80c26883cf593265d86a4f2b34ccc53"
+    },
+    {
+      "path": "native/linux/trace-file.file.bin",
+      "sha256": "7c8e07cb57f9b5f2c148251627166e2fa26ebf2c350a234683dc1a90e8cddfd5"
+    },
+    {
+      "path": "native/linux/trace-file.stderr.bin",
+      "sha256": "a8a2702598289f1df55da118b1b44ba9e4ddf6cb62d775e0289b3e5e954f95d0"
+    },
+    {
+      "path": "native/linux/trace-file.stdout.bin",
+      "sha256": "4f48b878c8eb1824388ffd3daa6c7f3c50cdc8ca7ae2db394ca451bf80aecc84"
+    },
+    {
+      "path": "native/windows/broad.file.bin",
+      "sha256": "8e97712917e48ab05fdc31fcdb7ac43b22a7c3d06f867635f21576bf461afbf0"
+    },
+    {
+      "path": "native/windows/broad.stderr.bin",
+      "sha256": "21f25bc7734057699eac040ab0073f0b17878c22d3847872a31deb42fbcb5937"
+    },
+    {
+      "path": "native/windows/broad.stdout.bin",
+      "sha256": "b5d83dadf701aa1778072da61be013537778d6cd9bde922c874d453cd851de7c"
+    },
+    {
+      "path": "native/windows/category-rule.file.bin",
+      "sha256": "20157b53612b3a606ecfee68256fe674f63aaa59700f0e85359fe9dae8f2ecbf"
+    },
+    {
+      "path": "native/windows/category-rule.stderr.bin",
+      "sha256": "589fde224e57b6489dbb17fec7726327231b3b5b3cef63c7b7365ab36dc12c5c"
+    },
+    {
+      "path": "native/windows/category-rule.stdout.bin",
+      "sha256": "d78aa606dcd9022c3c6e45d912e928f2495656fd27235bb19c720563a19cf3a5"
+    },
+    {
+      "path": "native/windows/core-off.file.bin",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "native/windows/core-off.stderr.bin",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "native/windows/core-off.stdout.bin",
+      "sha256": "0b622c421ef5f2e11c05ab73753077d6650e75c6465a71b415b9657d14d290ed"
+    },
+    {
+      "path": "native/windows/narrow-category.file.bin",
+      "sha256": "becccbc1cebbc6d95d4e0774d9bf3c2b90f737a7cfac1113cb07efa9cc712bdf"
+    },
+    {
+      "path": "native/windows/narrow-category.stderr.bin",
+      "sha256": "e87a50edd4189a7bad3ba5c41430206843f6da03a5263a4bc84f1779ba5df910"
+    },
+    {
+      "path": "native/windows/narrow-category.stdout.bin",
+      "sha256": "cdf441cae265bd9f824f2c2efb13471682a98cbf2f7e0e9f3ec76a9d5f9a4afc"
+    },
+    {
+      "path": "native/windows/narrow-host.file.bin",
+      "sha256": "fa9d78f6e2a4fea4bdf7d7fcaeb959867e6e3349732e876d6954fea55dc4d0aa"
+    },
+    {
+      "path": "native/windows/narrow-host.stderr.bin",
+      "sha256": "1b7ab526703082fef116269e31370240c71c4ef0d4445be3f3b265f8567c0383"
+    },
+    {
+      "path": "native/windows/narrow-host.stdout.bin",
+      "sha256": "6e002871347d59a0f46924d7d597c589344c913687055968958e371e822f37ae"
+    },
+    {
+      "path": "native/windows/provider-rule.file.bin",
+      "sha256": "3421e24faa1250db6d7c44dc2b9baaea3791ccabdf6f8b54b49b9c284a6ddd11"
+    },
+    {
+      "path": "native/windows/provider-rule.stderr.bin",
+      "sha256": "4e2be3c3fdc91d9cbe4c5a2b38f5da157097075d959090dbe1637618831e5315"
+    },
+    {
+      "path": "native/windows/provider-rule.stdout.bin",
+      "sha256": "4542e662afaa3d9ee72fadd95c213cffe1bf37b18844e102f7b4b0f3f2394ba6"
+    },
+    {
+      "path": "native/windows/report.json",
+      "sha256": "a926b3a137965fab47c53064969005128319ef91893334af4244a5d381551774"
+    },
+    {
+      "path": "native/windows/trace-file.file.bin",
+      "sha256": "e8ab628424c576948cbd3ab2926b2ac94b8e8cd1ad76038077f49928ea0c8a1f"
+    },
+    {
+      "path": "native/windows/trace-file.stderr.bin",
+      "sha256": "afa7d21fa2b942d93d8d0faf6c1fe325dd08c5274c0f5272e9b4a3c6d9d95ae0"
+    },
+    {
+      "path": "native/windows/trace-file.stdout.bin",
+      "sha256": "342b8ef3238e6dbaa0f36e60b7b9d32ee1f423c3391a0172d09207548683c093"
+    },
+    {
+      "path": "native-audit.json",
+      "sha256": "3a2348922cf9b9f938333c52920198dc5ed60c8af6b7943091f59920fe364adb"
+    },
+    {
+      "path": "release-validation.json",
+      "sha256": "95a2a05c9d70f1af365c94c9a90dc805056a29ef3ba3177154d4faef96146f83"
+    },
+    {
+      "path": "release.exit-code",
+      "sha256": "d4735e3a265e16eee03f59718b9b5d03019c07d8b6c51f90da3a666eec13ab35"
+    },
+    {
+      "path": "release.log",
+      "sha256": "03aa42df1682194b2f04eae026d19b66b1151f793bb49c2ad6aa26cc78e50b79"
+    },
+    {
+      "path": "review-notes.json",
+      "sha256": "a0c93e77187d86eb893e3e36b2a738db5be0284b2a4061b7cb28cd08c319dcc4"
+    }
+  ]
+}
