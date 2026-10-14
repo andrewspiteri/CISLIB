@@ -1,0 +1,26 @@
+{
+  "verdict": "PASS",
+  "requiredFindings": [],
+  "optionalFindings": [
+    {
+      "file": "docs/modules/logging/microsoft-provider-scopes.md",
+      "reason": "This file was edited in this change, but the penultimate paragraph still says 'T03 host filtering, T04 full ownership and T05 ... remain required'. T03 is committed (12d2ea0d), and the new final paragraph says T04 qualifies ownership. The two adjacent paragraphs now contradict each other on task status.",
+      "fix": "Reword that sentence so only T05 complete factory/host shutdown, examples, instructions/skills and release qualification remain required. The following paragraph can keep pointing to provider ownership."
+    },
+    {
+      "file": "docs/modules/logging/microsoft-provider-ownership.md",
+      "reason": "The final paragraph records test-development history ('The initial fixture incorrectly expected absent direct attributes; it was corrected...'). The scopes guide's own convention is that execution and review results belong in the task receipt, not the module guide.",
+      "fix": "Move the fixture-correction note to the T04 task receipt or the plan amendment. Keep the guide limited to behavior and qualification scope."
+    },
+    {
+      "file": "implementations/csharp/tests/fixtures/DiscoveryHost/ProviderOwnershipExpectations.cs",
+      "reason": "The C# validator is weaker than the Python native checker. It does not assert that rows lack a top-level 'truncated' field. It does not check resource.runtime_description, os_family or service. Report-level truncated==\"0\" mostly covers truncation, but the managed and native lanes are not symmetric.",
+      "fix": "Add Require(row[\"truncated\"] is null, ...). Also check runtime_description == \".NET 10.0.12\", os_family == report os, and service == \"CIS.Core.DiscoveryFixture\", matching verify-provider-ownership.py."
+    },
+    {
+      "file": "implementations/csharp/tests/fixtures/DiscoveryHost/ProviderOwnershipFixture.cs",
+      "reason": "In the in-flight case, the success path awaits `work` twice: once in try and again in finally. This is harmless. On a failure path, though, the finally's `await work.WaitAsync(Guard)` can replace the original Require/timeout exception with the worker's exception, which obscures the first failure.",
+      "fix": "Remove the try-block await and rely on the finally. Alternatively, in finally, observe `work` without rethrowing when an exception is already propagating, for example with a catch-and-rethrow-original pattern."
+    }
+  ]
+}

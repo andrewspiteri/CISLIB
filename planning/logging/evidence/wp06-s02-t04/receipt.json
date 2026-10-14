@@ -1,0 +1,373 @@
+{
+  "schema": "cis.logging.task-receipt/v1",
+  "taskId": "WP06-S02-T04",
+  "date": "2026-10-14",
+  "status": "Implemented, verified and reviewed; commit identity belongs in Git history",
+  "baseCommit": "12d2ea0d0889049ade97d4261fac64a73395edd4",
+  "scope": "Existing nonowning provider disposal/source clearing retained; qualify shared-runtime/lease/caller-handle/reference release and in-flight completion. No shipping source/API/dependency/helper/worker added.",
+  "developer": {
+    "runId": "3f65ec5aba754f1b9c0e70dd0e803a9a",
+    "tests": {
+      "unit": 3370,
+      "integration": 1393,
+      "architecture": 471
+    },
+    "totalTests": 5234,
+    "stages": 14,
+    "criticalPins": 886,
+    "currentSourceMismatches": 0,
+    "coreSha256": "6a139d59c1ee8e4884e94081de8471ee3abbc742f05f86a897c6a7dd7aea3bcb",
+    "fixtureSha256": "a457203110d098fd58d39d53e4349fb87ab59894857c5235dd8bd4371e77af77",
+    "factorySha256": "05b76234f2a5eb945b268ced706cb4d81446778ea6bd6910298b5e9111170b4a",
+    "rawTrxChecked": true
+  },
+  "native": {
+    "children": 8,
+    "controls": 26,
+    "platforms": [
+      "windows",
+      "linux"
+    ],
+    "runtime": ".NET 10.0.12",
+    "rollForward": "Disable",
+    "frozenAfterTerminalDeveloper": true,
+    "rawBytesAndIdentityVerified": true
+  },
+  "claude": {
+    "initialVerdict": "PASS",
+    "documentationVerdict": "PASS",
+    "requiredFindingsRemaining": 0,
+    "initialFiles": 15,
+    "initialBytes": 164575,
+    "docFiles": 2,
+    "docBytes": 8579,
+    "finalSnapshotMatchesCombinedReviews": true,
+    "authorization": "Standing user instruction for logging-only read-only reviews without asking."
+  },
+  "historical": "Initial four focused tests failed only an expected absent attributes field; schema requires an empty object. The assertion was corrected, raw failed report/log and old expectation hash retained; shipping behavior unchanged.",
+  "release": {
+    "exitCode": 2,
+    "originalSourceFilesUnchanged": true,
+    "plannedCasesUnchanged": 41
+  },
+  "cisGraph": {
+    "freshAtCapture": true,
+    "status": "status=warnings;exitCode=0;freshness=fresh;nodes=10736;edges=42445;errors=0;warnings=143;information=0;strict=false",
+    "buildId": "sha256:954bdb2098ba7e0f3686abe4e2300f898fda5464d5ff8ba197c85c6b8b75172e",
+    "root": "cislib::symbol::cis-core/csharp/method/CIS.Logging.MicrosoftLogger.CoreLoggerProvider.Dispose%28%29",
+    "limitations": "Bounded calls/tests-for have zero traversals; no inferred test coverage is claimed. All compiler/extraction warnings retained."
+  },
+  "remaining": [
+    "WP06-S02-T05 complete actual factory/host asynchronous scope/filter/ownership/shutdown qualification",
+    "Examples/instructions/skills and full release/compatibility qualification"
+  ],
+  "limitations": [
+    "Combined Developer contains independently committed Type Manager work; only explicit logging paths staged.",
+    "GC probe is pinned managed qualification and does not promise collection timing.",
+    "Native reader is authoritative for strict no-truncation/automatic resource identity assertions; managed validator has narrower additional wire assertions.",
+    "In-flight test finally joins released worker; double-await may replace an earlier test failure detail, without shipping effect.",
+    "Documentation changed after source inventory; all compiled inputs stayed unchanged and final docs received separate Claude PASS."
+  ],
+  "files": [
+    {
+      "path": "baseline.json",
+      "sha256": "078eb6788d683220c21f410e12cb9e0924c613c928a1ed3b0b1a09f2b7d485bc"
+    },
+    {
+      "path": "canonical-files.json",
+      "sha256": "4cba27b49bc601864744e5125e40946863c50651a8066519d5323559f8beb8ef"
+    },
+    {
+      "path": "claude-doc-manifest.json",
+      "sha256": "649ea0bacafd6349ee2b1a144b4682a8d8bfd9eb7f108bf820aae4a7a6c7e86b"
+    },
+    {
+      "path": "claude-doc-prompt.txt",
+      "sha256": "faefcfed0092bdc35912d9a7efbdf4a9b1e5a78532469322ae337a4fd6270003"
+    },
+    {
+      "path": "claude-doc-review.exit-code",
+      "sha256": "13bf7b3039c63bf5a50491fa3cfd8eb4e699d1ba1436315aef9cbe5711530354"
+    },
+    {
+      "path": "claude-doc-review.json",
+      "sha256": "9e82b77ea8c95fa0b4854b7e67ea7bfe5263041f3169b763a8d9f14ac2b298ff"
+    },
+    {
+      "path": "claude-doc-review.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "claude-doc-verdict.json",
+      "sha256": "f6b33510dedfb93db6faa86640c058f72d3fc4896fe913c61fb6b41ccd974397"
+    },
+    {
+      "path": "claude-manifest.json",
+      "sha256": "16fc0efbb957610724e9fc174155cb6b690245af469ec7549177043d19be2652"
+    },
+    {
+      "path": "claude-prompt.txt",
+      "sha256": "216f9bb078d2dd8c4755ccea69ee2b4503a18ba246fe66676abe33ef149af6e7"
+    },
+    {
+      "path": "claude-review.exit-code",
+      "sha256": "13bf7b3039c63bf5a50491fa3cfd8eb4e699d1ba1436315aef9cbe5711530354"
+    },
+    {
+      "path": "claude-review.json",
+      "sha256": "b17251ac6e5b754af80a4ec88641826e5ba38e2919b255d22a64ec8bf5137cc8"
+    },
+    {
+      "path": "claude-review.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "claude-verdict.json",
+      "sha256": "00bf18f6be9eedca86b6267515f26f71f1bc1b23abca524b7a85395d5cac330e"
+    },
+    {
+      "path": "critical-source-inputs.json",
+      "sha256": "91ee5a27a4fdabacf2fa39883b68b5fe579d2cd2c8fd0a5ead0c0b8fe67359cb"
+    },
+    {
+      "path": "Developer/families/architecture/discovery.json",
+      "sha256": "68a6da11d47807939a0ad1c142c246d4efa5d972e62160ce7c182fc434bf3a1f"
+    },
+    {
+      "path": "Developer/families/architecture/execution.json",
+      "sha256": "490f30136de78cdf16af7d372578559bf8029981bb94e735ae2fc360cbc575c8"
+    },
+    {
+      "path": "Developer/families/architecture/report.trx",
+      "sha256": "2ba4474746aaa3a0ab27fa9500ecce1d37259707c375b7d578d903a93c68b747"
+    },
+    {
+      "path": "Developer/families/integration/discovery.json",
+      "sha256": "60ba7ec9f5c89c193712bc9d4dae5701772afae8474a610a4d0f3cf8e02482f3"
+    },
+    {
+      "path": "Developer/families/integration/execution.json",
+      "sha256": "7f423044293771af9d393ab61b3b83d32dbd94596243ecd5ef402ac47d2ee8dd"
+    },
+    {
+      "path": "Developer/families/integration/report.trx",
+      "sha256": "e56e82955b437d5cbae42ff1518b031b5cd139961c3fb6dff7e02447fe3a2ca0"
+    },
+    {
+      "path": "Developer/families/unit/discovery.json",
+      "sha256": "da53ef124b5db28e336383562dcbc1f37d5cebb7fb9207bde53d34b296b07f12"
+    },
+    {
+      "path": "Developer/families/unit/execution.json",
+      "sha256": "06dfa56cacd4ccc91631efc3e4d4a78468fa8cc20cc40542f662adc632b3e8c9"
+    },
+    {
+      "path": "Developer/families/unit/report.trx",
+      "sha256": "509d9ddbe5ab3fb8fefaa30e7b7e49eb3bb23ad37dede8e3b3576180c88f0eef"
+    },
+    {
+      "path": "Developer/logs/package-boundaries.log",
+      "sha256": "98deec98ff289a4b5eeaadc4365263d39bb97c0b912f683e3f269155a511d702"
+    },
+    {
+      "path": "Developer/logs/project-boundaries.log",
+      "sha256": "352deb96b6456fd93c2601dccaac568e277d24cc4cdadcf5f9d946f4bc10d400"
+    },
+    {
+      "path": "Developer/source-inputs.json",
+      "sha256": "e47cd69efbad4921bd9f97e95131693c0339261a534b89a6ef65094674538a14"
+    },
+    {
+      "path": "Developer/summary.json",
+      "sha256": "8c3a1806a9647ffabe748ee7465f3ed4e4025bae77976793c73c4f0a643fef2f"
+    },
+    {
+      "path": "developer-audit.json",
+      "sha256": "f3cbf3bdd55688f52aa61efdc476ec3b0ccc53c19ebddc0f12099e9551fbce79"
+    },
+    {
+      "path": "developer-final.exit-code",
+      "sha256": "5feceb66ffc86f38d952786c6d696c79c2dbc239dd4e91b46729d73a27fb57e9"
+    },
+    {
+      "path": "developer-final.log",
+      "sha256": "d44566c353452332d09856e6030ab2b12c8e3fe5c7bcceed47d8551362e504bd"
+    },
+    {
+      "path": "focused-integration/report.trx",
+      "sha256": "d531017efc488dde3e5ac75126d170f0ffb5f0799e5f0a264fec30ded8879af4"
+    },
+    {
+      "path": "focused-integration.log",
+      "sha256": "cf5c5f1ab454e316d1d7e702e5980360435bde5474854c68f2555ffee3b8664a"
+    },
+    {
+      "path": "format.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "graph/graph-before.txt",
+      "sha256": "ba61f885786cbddfc583829d78082d7c020f77a4ffc33a94db6cdf7972f1d2c0"
+    },
+    {
+      "path": "graph/graph-build-final.txt",
+      "sha256": "e8d62db1524c0b8456192f73fc31dd873908d0b618fe0452dd79763a91613308"
+    },
+    {
+      "path": "graph/graph-provider-related-before.txt",
+      "sha256": "2065c267fa86500841676147df64a05c5035db89151262bffb0c267482b2913c"
+    },
+    {
+      "path": "graph/graph-provider-related-final.txt",
+      "sha256": "813bf9a597d7e6e0d58e3c576a1cc5ab9d1715d23421277a12a00dd43f5ae904"
+    },
+    {
+      "path": "graph/graph-provider-tests-before.txt",
+      "sha256": "cbd1478fae11d09111a21842d36d34bbac774fde6d7f2e0dd176f119dce3d9c9"
+    },
+    {
+      "path": "graph/graph-provider-tests-final.txt",
+      "sha256": "aa0eab64cc89d3dfdfc8df3ef33ceffc0819bd06d29cd125e16ba6359d38e52a"
+    },
+    {
+      "path": "graph/graph-status-final.txt",
+      "sha256": "cd38ec063c77390e5b0f49e73f70516f72f290bdc2e00bd49a858c0b7daf5057"
+    },
+    {
+      "path": "historical-first-focused/focused-integration.log",
+      "sha256": "298baef7d17a1363c433a3af532c28d71a861a9e8f7e2034fd345fd6389da3bd"
+    },
+    {
+      "path": "historical-first-focused/report.trx",
+      "sha256": "8cf57d751916456b9aaa75469b9cf6e0f885c46facddf7679dbffd4cf3eb99c4"
+    },
+    {
+      "path": "historical-first-focused/source-hash.json",
+      "sha256": "64069fd871f25b764f862b08a8e10ad93240aa1f6d2e5c68869fc39db9735eac"
+    },
+    {
+      "path": "native/linux/in-flight.file.bin",
+      "sha256": "8cc29be961038cc56655ba1c98fe5038f67737c33b51e2d74d61e9344aec487c"
+    },
+    {
+      "path": "native/linux/in-flight.stderr.bin",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "native/linux/in-flight.stdout.bin",
+      "sha256": "52c78fb367546663acf516790bac52cc88cfd251cfb409586f14eb40fa475fb0"
+    },
+    {
+      "path": "native/linux/report.json",
+      "sha256": "0a30fb457430aadbd740a6c384dbe751f4a92f235281f1a33a923cae48ac04bf"
+    },
+    {
+      "path": "native/linux/resources.file.bin",
+      "sha256": "4f4a6a07f9a4c4f3867b80aaf4ccc7ea83d8d54a11bdc08f9bdc5bc0e0645c31"
+    },
+    {
+      "path": "native/linux/resources.stderr.bin",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "native/linux/resources.stdout.bin",
+      "sha256": "27ce9434b1861e1823b838b52d8645f4fec84961668f34d32939df9b61b517b9"
+    },
+    {
+      "path": "native/linux/scope-handles.file.bin",
+      "sha256": "ff1c7bef2979a0bf1d3938947f342ca87e062130d90e127a8654828ff0f64b09"
+    },
+    {
+      "path": "native/linux/scope-handles.stderr.bin",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "native/linux/scope-handles.stdout.bin",
+      "sha256": "cfa61431ec33ed197c5d6475811e549dc082a0f8c263bcd96b10a20844349b95"
+    },
+    {
+      "path": "native/linux/shared.file.bin",
+      "sha256": "1fd2c017beb8096447d60c7fa7a99e872f41a7796ac986bdc74e7ddc1b52641f"
+    },
+    {
+      "path": "native/linux/shared.stderr.bin",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "native/linux/shared.stdout.bin",
+      "sha256": "fa75be3c2375db7bcfaa867dfa5c39431b719a9c5f8aa9d05837702ba777b3f9"
+    },
+    {
+      "path": "native/windows/in-flight.file.bin",
+      "sha256": "ebb6b84a382f8b5ff88d9178a358f503c1c84b0e728ca797f91639dc81fe9f4f"
+    },
+    {
+      "path": "native/windows/in-flight.stderr.bin",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "native/windows/in-flight.stdout.bin",
+      "sha256": "430686a25176109bda710b1a2939b5a092e4cfd0f859f42eca0a81c16c2ad5eb"
+    },
+    {
+      "path": "native/windows/report.json",
+      "sha256": "621f4aef153ba428ec7df1c040c2a5a80f0c7d1389fdb13b2b8bd886d4c5d60b"
+    },
+    {
+      "path": "native/windows/resources.file.bin",
+      "sha256": "262a74bcb47aafcd7a26bb385caa7649d3fea4919915cdfdb4d3d8ccaf7e76a5"
+    },
+    {
+      "path": "native/windows/resources.stderr.bin",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "native/windows/resources.stdout.bin",
+      "sha256": "cc6cca2779119ced04783547414b4f3c8655f3fd258c3fa1e7645a840adfc76c"
+    },
+    {
+      "path": "native/windows/scope-handles.file.bin",
+      "sha256": "2b736e743c9b4a32ddde4c1b4127334159b78edd3bdfd90ab879f21256e0d4ec"
+    },
+    {
+      "path": "native/windows/scope-handles.stderr.bin",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "native/windows/scope-handles.stdout.bin",
+      "sha256": "c0dbab6004d9f59338422f7d7187a14666b51d3fb8dad7367f6b6bbbe0348b31"
+    },
+    {
+      "path": "native/windows/shared.file.bin",
+      "sha256": "417d0317424886843611a5b9b46ba26ed8a45369632e45b07477eadda7faa8bc"
+    },
+    {
+      "path": "native/windows/shared.stderr.bin",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "native/windows/shared.stdout.bin",
+      "sha256": "21965b422b85835e89a7adf7641648c1c87834c990154cd2302f70060724622c"
+    },
+    {
+      "path": "native-audit.json",
+      "sha256": "67422b3008a5cd88a26ccbb7b27426e26234832eb818214988f3ee35b546c484"
+    },
+    {
+      "path": "release-validation.json",
+      "sha256": "95a2a05c9d70f1af365c94c9a90dc805056a29ef3ba3177154d4faef96146f83"
+    },
+    {
+      "path": "release.exit-code",
+      "sha256": "d4735e3a265e16eee03f59718b9b5d03019c07d8b6c51f90da3a666eec13ab35"
+    },
+    {
+      "path": "release.log",
+      "sha256": "03aa42df1682194b2f04eae026d19b66b1151f793bb49c2ad6aa26cc78e50b79"
+    },
+    {
+      "path": "review-notes.json",
+      "sha256": "6fa20b06b464445c593b8f183771a0bba2adb55fd865b40f6426d6dab0209746"
+    }
+  ]
+}

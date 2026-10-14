@@ -214,3 +214,8 @@ WP05-S09-T03 is committed as fb93c06c. [Periodic qualification](../../docs/modul
 ## WP06-S02-T03 host filtering
 
 The existing Microsoft provider and Core thresholds are unchanged. The actual `LoggerFactory` test fixture owns an explicit development-only Microsoft logging implementation closure at 10.0.12; Core retains its two approved runtime packages. A provider-wide Trace host rule is the documented default for permitting all Core destination levels, with narrower provider/category rules explained and deliberately exercised. Host-suppressed events are outside Core diagnostics; argument evaluation still precedes logger callbacks. This task adds no filter rewriting, helper API, shipping dependency or host framework. Full concurrent scopes, ownership/shutdown and release remain required.
+
+
+## WP06-S02-T04 nonowning provider qualification
+
+The original nonowning provider default and atomic external-source clearing are already implemented by the preceding provider/scope tasks. Four public physical runtime cases now qualify caller scope-handle survival, shared consumers and lease retention, managed borrowed-source reference release and a barrier-held formatter completing after provider disposal. No shipping source/API/dependency, owning option, cache or lifecycle abstraction is added. GC operations exist only in pinned managed qualification fixtures; complete factory/host shutdown and concurrent story acceptance remain T05, and release requirements remain unchanged.

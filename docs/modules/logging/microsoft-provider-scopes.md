@@ -14,4 +14,6 @@ Each scope uses the existing 1024-node/depth-8 projection and truncation provena
 
 Thirteen fixture modes and lifecycle guards cover owned copies, host copy timing, both layer sources, real Microsoft formatted scope state, two coordinated asynchronous flows for each source, node/depth/combined-frame bounds, invalid owned scopes, gracefully omitted incompatible host scopes (bare string, Dictionary<string,string> and a real Microsoft HttpMethod value carried by LoggerExternalScopeProvider), filtered traversal, Activity mutation and source replacement/nonownership. Process variants use public runtime creation and real JSONL bytes with post-stop exclusive lease probes. Independent native readers bind PID, exact assemblies, records and fixed-reason corruption controls. Execution and review results belong in the task receipt. No new package, worker or public placeholder is introduced; SetScopeProvider is the previously planned interface method.
 
-T03 host filtering, T04 full ownership and T05 complete factory/host shutdown story remain required, followed by examples, instructions/skills and release qualification.
+T05 complete factory/host shutdown and concurrent story qualification remain required, followed by examples, instructions/skills and release qualification.
+
+[Provider ownership](microsoft-provider-ownership.md) qualifies source-reference release, caller handle survival, shared-runtime consumers and in-flight disposal. Complete actual factory/host lifetime remains T05.

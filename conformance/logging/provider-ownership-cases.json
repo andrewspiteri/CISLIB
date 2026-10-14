@@ -1,0 +1,23 @@
+{
+  "schema": "cis.logging.provider-ownership-cases/v1",
+  "task": "WP06-S02-T04",
+  "cases": [
+    {
+      "id": "shared",
+      "requirement": "Disposed provider leaves direct scoped logging, a second provider, host handles and physical file lease live until application Core stop."
+    },
+    {
+      "id": "resources",
+      "requirement": "Provider retains borrowed source until disposal, then releases its reference without disposing source; pinned managed GC probe, no collection schedule promise."
+    },
+    {
+      "id": "scope-handles",
+      "requirement": "Disposed provider does not pop caller frames; direct Core sees nested IDs and retains LIFO/idempotent creator disposal."
+    },
+    {
+      "id": "in-flight",
+      "requirement": "Barrier-held formatter finishes with entry-captured host scope after provider disposal; later disposed calls skip callback work."
+    }
+  ],
+  "qualification": "Public Core runtime, physical file and independent native reports; T05 factory/host/concurrency/full story and release remain required."
+}

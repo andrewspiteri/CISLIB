@@ -1,0 +1,9 @@
+{
+  "verdict": "PASS",
+  "requiredFindings": [],
+  "optionalFindings": [
+    "microsoft-provider-ownership.md, paragraph 2: 'DisposeAsync joins Core's existing bounded shutdown' does not name its receiver. The previous sentence mentions disposing the runtime, but 'runtime.DisposeAsync' or 'CoreLogRuntime.DisposeAsync' would rule out reading it as a provider method. The provider exposes only idempotent Dispose.",
+    "microsoft-provider-ownership.md, paragraph 3: 'A disposed provider returns false from its category loggers' IsEnabled' attributes the return value to the provider rather than the loggers. Suggest: 'Category loggers created by a disposed provider return false from IsEnabled; ...'.",
+    "microsoft-provider-scopes.md, closing two paragraphs: the T05 pending statement comes before the Provider ownership cross-reference, and both say factory/host lifetime remains T05. Consider putting the ownership link first and keeping a single T05/examples/release pending sentence as the closing line. This is not stale wording; it only reduces repetition."
+  ]
+}
