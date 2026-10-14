@@ -1,0 +1,56 @@
+Read-only final delta review; no tools/edits. Prior two follow-ups returned PASS. Deterministic equality failed closed on Linux. Investigation found OS line endings in SDK-generated C# and default Win32 XML manifest; all emitted method-body hashes were identical. We fixed the new, still-uncommitted consumer template to disable implicit usings, generated AssemblyInfo/TargetFramework attributes, default Win32 manifest and PDB, and to enable deterministic output with a mapped source root. Program explicitly imports its namespaces and declares AssemblyVersion 1.0.0.0 and net10 TargetFramework. This also eliminates generated Git revision metadata. Original API baseline never changed. Only the newly authored pre-release behavior baseline was frozen again. Runner still requires exact original-API source rebuild DLL hash on BOTH OSs; final native runs ongoing. Inspect these small deltas for blockers, returning concise PASS or concrete defect. No production runtime source or logging source is included.
+
+TEMPLATE:
+
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <OutputType>Exe</OutputType>
+    <AssemblyName>CIS.TypeManager.BehaviorConsumer</AssemblyName>
+    <AssemblyVersion>1.0.0.0</AssemblyVersion>
+    <ImplicitUsings>disable</ImplicitUsings>
+    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+    <GenerateTargetFrameworkAttribute>false</GenerateTargetFrameworkAttribute>
+    <Nullable>enable</Nullable>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <IsPackable>false</IsPackable>
+    <Deterministic>true</Deterministic>
+    <DebugType>none</DebugType>
+    <NoWin32Manifest>true</NoWin32Manifest>
+    <PathMap>$(MSBuildProjectDirectory)=/_/</PathMap>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="CIS.Core" HintPath="@@CORE@@" Private="true" />
+    <Reference Include="CIS.TypeManager.BehaviorExtra" HintPath="@@EXTRA@@" Private="true" />
+  </ItemGroup>
+</Project>
+
+
+PROGRAM HEADER:
+
+using System;
+using System.Collections.Generic;
+using System.Globalization;
+using System.IO;
+using System.Linq;
+using System.Reflection;
+using System.Text.Json;
+using System.Threading;
+using System.Threading.Tasks;
+using CIS.TypeManagement;
+using CompatibilityFixtures;
+
+[assembly: AssemblyVersion("1.0.0.0")]
+[assembly: System.Runtime.Versioning.TargetFramework(".NETCoreApp,Version=v10.0", FrameworkDisplayName = ".NET 10.0")]
+
+CultureInfo.CurrentCulture = CultureInfo.GetCultureInfo("en-US");
+CultureInfo.CurrentUICulture = CultureInfo.CurrentCulture;
+var host = typeof(Program).Assembly;
+const string extraName = "CIS.TypeManager.BehaviorExtra";
+const string extraIdentity = extraName + ", Version=1.0.0.0, Culture=neutral, PublicKeyToken=null";
+bool extraInitiallyUnloaded = !AppDomain.CurrentDomain.GetAssemblies().Any(assembly => assembly.GetName().Name == extraName);
+string mode = args[0];
+string manifest = args[1];
+var defaults = new TypeManagerOptions(host);
+var values = new[] { "InvalidInventory", "AssemblyLoadFailure", "AssemblyIdentityConflict", "TypeDiscoveryFailure", "UnsupportedDeployment" }
+    .ToDictionary(name => name, name => Convert.ToInt32(Enum.Parse<TypeManagerFailureKind>(name), CultureInfo.InvariantCulture));

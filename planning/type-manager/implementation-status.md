@@ -65,12 +65,26 @@ silently marked complete by a prototype or an uncommitted test result.
 | TM-023–TM-024 | Separate Web example constructs its builder/container after preparation, registers the exact manager instance and proves reuse across root, scopes and actual HTTP requests. Configuration boundary documented without adding a public Configuration contract or object lifetime implementation. |
 | TM-025 | Source and exact-package examples pass 66 fresh-process/layout checks on each supported OS, including Debug/Release, folder publish, publish without building, three broken-deployment cases per layout, later-load fixed membership and HTTP scoped lifetime. The 26-project solution and 11 targeted framework-policy checks pass on Windows. Formal milestone and final release-candidate consolidation remain open. |
 | TM-026–TM-028 | Initial A01–A30 mapping is recorded in `acceptance-evidence.md`, with executed checks and explicit gaps. Meaningful mutation and complete architecture qualification remain; initial build/dependency controls exist. |
-| TM-029 | Initial API/source/unchanged-binary replay passes; full behaviour/schema compatibility bundle and negative qualification controls remain. |
+| TM-029 | Development behavior/schema compatibility checkpoint passes 86 checks per OS: original API/binary/source replay, 22 frozen behavior fixtures, exact original-API consumer reproduction and targeted API/binary/source/behavior negatives. Three provenance guards reject mismatched inputs. Final exact-package replay remains; no released historical baseline is claimed. |
 | TM-030–TM-031 | Performance/memory measurements and final maintainability/six-family gate remain. |
 | TM-032 | Implemented optional SDK assets in the same CIS.Core package: first restore sees RID selection, the runtime reference matches the SDK version, and no build target performs a second restore. Windows and Ubuntu each pass 35 checks against identical package/verifier bytes; 34 architecture/dependency cases pass and closure review returned PASS. The final Linux JSON report is retained; its temporary detailed logs were unavailable afterward, as recorded in the checkpoint. Final release qualification remains open. The earlier second-restore experiment is not adopted. |
 | TM-033–TM-036 | Final documentation, exact-artifact verification bundle, clean package consumer smoke tests and handoff remain. |
 
 ## Executed evidence and limits
+
+The [behavior/schema compatibility checkpoint](evidence/compatibility-behavior/README.md)
+adds an unpublished, authored behavior baseline while preserving all six original
+API-baseline files. Windows and Ubuntu each pass 86 checks against the same frozen
+`d70fcf…` Core candidate. Both reproduce the frozen behavior consumer byte for byte
+from source against the original API reference. Targeted source mutants have
+positive twins and must produce their specified regression; they do not complete
+the full mutation family or replace final release qualification.
+
+Combined Developer run `ce9cc2bf66cd49fdac044aed2e5c70dc` subsequently passed all
+14 stages and 4,998 tests (3,259 unit, 1,276 integration, 463 architecture), with
+no failures/skips and zero build warnings/errors. Its retained evidence is under
+the compatibility checkpoint's `developer/` directory. That working-tree build
+includes coordinated logging changes and remains distinct from frozen Core replay.
 
 The [package lifecycle checkpoint](evidence/package-lifecycle/README.md) adds 22
 checks per OS to the existing 35 package cases using the unchanged development

@@ -272,3 +272,24 @@ boundary checks include a targeted mutant proving the example-only framework rol
 guard matters. This is an integration checkpoint, not full mutation qualification
 or the final six-family release bundle. The source build includes the coordinated
 logging working tree; no logging changes belong to the example commit.
+
+## Frozen behavior and schema compatibility — 14 October 2026
+
+`evidence/compatibility-behavior/` retains 86 passing checks on each supported OS
+against the same frozen runtime-acceptance Core. The original six-file API baseline
+is unchanged. A new unpublished baseline supplies 22 authored snapshots and raw
+schema fixtures. Native source rebuilds against the original API reference must
+reproduce its frozen consumer DLL byte for byte. Candidate-source rebuilds and
+an unmodified standalone TypeManagement module each pass the same 22 cases.
+
+Nine source mutants produce ten specified behavior regressions; a separate public
+property rename is rejected by API, unchanged binary and source checks after the
+matching module positives pass. Three provenance controls reject mismatched Core,
+baseline and source-record inputs before compatibility execution. Reports record
+the exact dependency/tool/runtime-policy/input hashes and observed outputs.
+
+Read-only reviews strengthened bindable-unselected lookup, baseline inventories,
+negative controls and reproducibility. The test consumer uses explicit fixed
+metadata and omits generated source/default Win32 manifest bytes that vary by OS
+or Git revision. This qualification is separate from the package candidate and
+the combined Developer run; final package replay and the six-family gate remain.

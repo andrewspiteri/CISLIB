@@ -1,0 +1,1229 @@
+Read-only Type Manager compatibility review. No tools or edits. Original v1-development six baseline files remain unchanged. A new v1-behavior-development baseline is newly authored, unpublished, not historical release behavior; its consumer compiles against the original API reference. Expectations are authored from the contract, not recorded from candidate output. Candidate Core is frozen d70fcfdc41b6d15829227f1cee60130ddad3f7f82cc11c7a2fcbf8d5f700fb09. Runner checks initial API/old unchanged binary/old source,19new behavior-schema cases for frozen and rebuilt source consumer,19positive standalone module controls,4behavior mutants and removed-property API/binary/source controls. Module controls copy only TypeManagement source, matched to trusted candidate producer source hashes; they are not shipping DLLs. Runtime execution is pinned10.0.12 and API tool host8.0.31. Tests are running. Assess concrete verifier/probe defects and insufficient controls. No logging source included.
+FILE: implementations/csharp/eng/verify-type-manager-behavior.py
+"""Check unpublished frozen consumers, schema fixtures and compatibility controls.
+
+The original API/consumer baseline is never regenerated. Controls compile only
+the TypeManagement module in private projects; these are not shipping assemblies.
+"""
+import argparse
+import hashlib
+import json
+import os
+from pathlib import Path
+import platform
+import shutil
+import subprocess
+from xml.sax.saxutils import escape
+
+
+def digest(path):
+    return hashlib.sha256(Path(path).read_bytes()).hexdigest()
+
+
+def read(path):
+    return json.loads(Path(path).read_text(encoding='utf-8-sig'))
+
+
+def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--repo-root', type=Path, required=True)
+    parser.add_argument('--candidate-core', type=Path, required=True)
+    parser.add_argument('--candidate-report', type=Path, required=True)
+    parser.add_argument('--api-tool', type=Path, required=True)
+    parser.add_argument('--output-root', type=Path, required=True)
+    parser.add_argument('--dotnet', default='dotnet')
+    parser.add_argument('--api-dotnet', help='Optional separate dotnet host containing the pinned .NET 8 tool runtime')
+    args = parser.parse_args()
+    root = args.output_root.resolve()
+    if root.exists() and any(root.iterdir()):
+        parser.error('Use an empty output root')
+    root.mkdir(parents=True, exist_ok=True)
+    (root / 'logs').mkdir()
+    (root / 'cwd').mkdir()
+    language = args.repo_root.resolve() / 'implementations/csharp'
+    baseline = language / 'verification/contracts/type-manager/v1-behavior-development'
+    original = language / 'verification/contracts/type-manager/v1-development'
+    core = args.candidate_core.resolve()
+    api_tool = args.api_tool.resolve()
+    runtime_policy = read(language / 'eng/toolchain.json')
+    report = dict(complete=False, scope='Unpublished development compatibility, not released historical behavior',
+                  platform=platform.platform(), verifierSha256=digest(__file__), coreSha256=digest(core),
+                  candidateReportSha256=digest(args.candidate_report), apiToolSha256=digest(api_tool),
+                  runtimePolicySha256=digest(language / 'eng/toolchain.json'),
+                  consumerRuntime=runtime_policy['targetRuntime'], apiRuntime=runtime_policy['toolHostRuntime'], results=[])
+    allowed = {'PATH', 'SYSTEMROOT', 'WINDIR', 'COMSPEC', 'TEMP', 'TMP', 'TMPDIR', 'HOME', 'USERPROFILE',
+               'APPDATA', 'LOCALAPPDATA', 'PROGRAMFILES', 'PROGRAMFILES(X86)', 'PROGRAMW6432',
+               'DOTNET_ROOT', 'DOTNET_ROOT_X64', 'NUMBER_OF_PROCESSORS', 'PROCESSOR_ARCHITECTURE'}
+    environment = {key: value for key, value in os.environ.items() if key.upper() in allowed}
+    environment.update(DOTNET_CLI_HOME=str(root / 'dotnet-home'), NUGET_PACKAGES=str(root / 'packages'),
+                       NUGET_HTTP_CACHE_PATH=str(root / 'http-cache'), DOTNET_CLI_TELEMETRY_OPTOUT='1',
+                       DOTNET_NOLOGO='1', MSBUILDDISABLENODEREUSE='1', DOTNET_GENERATE_ASPNET_CERTIFICATE='false',
+                       DOTNET_ADD_GLOBAL_TOOLS_TO_PATH='false', DOTNET_CLI_WORKLOAD_UPDATE_NOTIFY_DISABLE='true')
+
+    def save():
+        (root / 'results.json').write_text(json.dumps(report, indent=2) + '\n', encoding='utf-8')
+
+    def passed(name, **details):
+        report['results'].append(dict(case=name, passed=True, **details))
+        save()
+
+    def run(name, *arguments, error=None):
+        prefix = [args.dotnet]
+        if str(arguments[0]) == str(api_tool):
+            prefix = [args.api_dotnet or args.dotnet, 'exec', '--fx-version', runtime_policy['toolHostRuntime']]
+        elif str(arguments[0]).endswith('.dll'):
+            prefix += ['exec', '--fx-version', runtime_policy['targetRuntime']]
+        process = subprocess.run([*prefix, *map(str, arguments)], cwd=root / 'cwd', env=environment,
+                                 text=True, encoding='utf-8', errors='replace', capture_output=True, timeout=180)
+        output = process.stdout + process.stderr
+        (root / 'logs' / (name + '.log')).write_text(output, encoding='utf-8')
+        if error is not None:
+            if process.returncode == 0 or not all(text in output for text in error):
+                raise RuntimeError(name + ' did not fail for the specified compatibility defect')
+        elif process.returncode:
+            raise RuntimeError(name + ' failed; inspect its log')
+        return process.stdout
+
+    def verify_baseline(directory):
+        hashes = read(directory / 'baseline-hashes.json')
+        for item in hashes['files']:
+            path = (directory / item['path']).resolve()
+            if not path.is_relative_to(directory) or digest(path) != item['sha256']:
+                raise RuntimeError('Frozen baseline changed: ' + item['path'])
+        return {item['path']: item['sha256'] for item in hashes['files']}
+
+    def runtime(directory, candidate):
+        directory.mkdir(parents=True, exist_ok=True)
+        shutil.copyfile(candidate, directory / 'CIS.Core.dll')
+        for name in ['Microsoft.Extensions.Logging.Abstractions.dll', 'Microsoft.Extensions.DependencyInjection.Abstractions.dll']:
+            shutil.copyfile(core.parent / name, directory / name)
+        if digest(directory / 'CIS.Core.dll') != digest(candidate):
+            raise RuntimeError('Candidate copy differs')
+
+    def source_consumer(name, source, candidate, historical=False, error=None):
+        directory = root / name
+        directory.mkdir()
+        shutil.copyfile(source / 'Program.cs', directory / 'Program.cs')
+        template = (source / 'Consumer.csproj.template').read_text(encoding='utf-8-sig')
+        token = '../reference/CIS.Core.dll' if historical else '@@CORE@@'
+        if template.count(token) != 1:
+            raise RuntimeError('Unexpected consumer reference template')
+        project = directory / 'Consumer.csproj'
+        project.write_text(template.replace(token, escape(str(candidate))), encoding='utf-8')
+        run(name + '-build', 'build', project, '-c', 'Release', '-m:1', '--nologo', error=error)
+        return directory / 'bin/Release/net10.0'
+
+    def original_consumer(name, directory, candidate):
+        runtime(directory, candidate)
+        consumer = directory / 'CIS.TypeManager.ContractConsumer.dll'
+        manifest = directory / 'consumer.types.json'
+        identities = [('CIS.TypeManager.ContractConsumer', consumer.name), ('CIS.Core', 'CIS.Core.dll')]
+        manifest.write_text(json.dumps(dict(schemaVersion=1,
+            hostAssembly='CIS.TypeManager.ContractConsumer, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null',
+            assemblies=[dict(assemblyName=identity + ', Version=1.0.0.0, Culture=neutral, PublicKeyToken=null', relativePath=filename)
+                        for identity, filename in identities])), encoding='utf-8')
+        observed = json.loads(run(name, consumer, manifest))
+        if observed.get('contractConsumer') != 'passed' or observed.get('selectedAssemblyCount') != 2:
+            raise RuntimeError('Original consumer did not pass')
+        passed(name, consumerSha256=digest(consumer), observed=observed)
+
+    def behavior(name, binaries, candidate, cases, negative=False):
+        for case in cases:
+            case_name = name + '-' + case['id']
+            directory = root / 'runs' / case_name
+            directory.mkdir(parents=True)
+            for filename in ['CIS.TypeManager.BehaviorConsumer.dll', 'CIS.TypeManager.BehaviorConsumer.deps.json', 'CIS.TypeManager.BehaviorConsumer.runtimeconfig.json']:
+                shutil.copyfile(binaries / filename, directory / filename)
+            runtime(directory, candidate)
+            filename = 'CIS.TypeManager.BehaviorConsumer.types.json' if case['mode'] == 'default' else 'input.types.json'
+            manifest = directory / filename
+            if case['input'] is not None:
+                shutil.copyfile(baseline / 'cases' / case['input'], manifest)
+            consumer = directory / 'CIS.TypeManager.BehaviorConsumer.dll'
+            observed = json.loads(run(case_name, consumer, case['mode'], manifest))
+            (directory / 'observed.json').write_text(json.dumps(observed, ensure_ascii=False, indent=2) + '\n', encoding='utf-8')
+            equal = observed == case['expected']
+            if equal == negative:
+                raise RuntimeError(case_name + (' missed its deliberate regression' if negative else ' differs from the frozen behavior expectation'))
+            passed(case_name, consumerSha256=digest(consumer), candidateSha256=digest(candidate),
+                   observedSha256=digest(directory / 'observed.json'), regressionDetected=negative)
+
+    def module(name, changes):
+        directory = root / 'controls' / name
+        directory.mkdir(parents=True)
+        for path in sorted((language / 'src/CIS.Core/TypeManagement').glob('*.cs')):
+            text = path.read_text(encoding='utf-8-sig')
+            for filename, before, after in changes:
+                if path.name == filename or filename == '*':
+                    if filename != '*' and text.count(before) != 1:
+                        raise RuntimeError('Mutation anchor is not unique: ' + filename)
+                    text = text.replace(before, after)
+            (directory / path.name).write_text(text, encoding='utf-8')
+        (directory / 'Core.csproj').write_text('<Project Sdk="Microsoft.NET.Sdk"><PropertyGroup><TargetFramework>net10.0</TargetFramework><AssemblyName>CIS.Core</AssemblyName><AssemblyVersion>1.0.0.0</AssemblyVersion><ImplicitUsings>enable</ImplicitUsings><Nullable>enable</Nullable><TreatWarningsAsErrors>true</TreatWarningsAsErrors></PropertyGroup></Project>', encoding='utf-8')
+        run(name + '-build', 'build', directory / 'Core.csproj', '-c', 'Release', '-m:1', '--nologo')
+        return directory / 'bin/Release/net10.0/CIS.Core.dll'
+
+    save()
+    try:
+        report['originalBaseline'] = verify_baseline(original)
+        report['behaviorBaseline'] = verify_baseline(baseline)
+        producer = read(args.candidate_report)
+        if not producer.get('complete') or producer.get('coreSha256') != digest(core):
+            raise RuntimeError('Candidate provenance does not identify this completed runtime candidate')
+        report['moduleSourceInputs'] = {}
+        for path in sorted((language / 'src/CIS.Core/TypeManagement').glob('*.cs')):
+            relative = 'TypeManagement/' + path.name
+            if producer['coreSourceInputs'].get(relative) != digest(path):
+                raise RuntimeError('Control source differs from recorded candidate source: ' + relative)
+            report['moduleSourceInputs'][relative] = digest(path)
+        shutil.copyfile(language / 'global.json', root / 'global.json')
+        for filename in ['Directory.Build.props', 'Directory.Build.targets', 'Directory.Packages.props']:
+            (root / filename).write_text('<Project />', encoding='utf-8')
+        (root / 'Directory.Build.rsp').write_text('', encoding='utf-8')
+        (root / 'NuGet.Config').write_text('<configuration><packageSources><clear/></packageSources><fallbackPackageFolders><clear/></fallbackPackageFolders><auditSources><clear/></auditSources></configuration>', encoding='utf-8')
+        report['sdk'] = run('sdk', '--version').strip()
+        if report['sdk'] != read(root / 'global.json')['sdk']['version']:
+            raise RuntimeError('Wrong SDK')
+        report['apiToolVersion'] = run('api-tool-version', api_tool, '--version').strip()
+        if not report['apiToolVersion'].startswith('10.0.401+'):
+            raise RuntimeError('Wrong API compatibility tool')
+        api_arguments = [api_tool, '-l', original / 'reference/CIS.Core.dll', '-r', core,
+                         '--enable-rule-cannot-change-parameter-name', '--enable-rule-attributes-must-match']
+        run('api', *api_arguments)
+        passed('api')
+        frozen = root / 'historical-frozen'
+        shutil.copytree(original / 'compiled', frozen)
+        original_consumer('historical-frozen', frozen, core)
+        if digest(frozen / 'CIS.TypeManager.ContractConsumer.dll') != report['originalBaseline']['compiled/CIS.TypeManager.ContractConsumer.dll']:
+            raise RuntimeError('Historical consumer changed')
+        historical_source = source_consumer('historical-source', original / 'source', core, historical=True)
+        original_consumer('historical-source', historical_source, core)
+        cases = read(baseline / 'cases.json')['cases']
+        if len(cases) != 19 or len({case['id'] for case in cases}) != 19:
+            raise RuntimeError('Unexpected behavior case inventory')
+        behavior('frozen', baseline / 'compiled', core, cases)
+        source_output = source_consumer('behavior-source', baseline / 'source', core)
+        behavior('source', source_output, core, cases)
+        positive = module('positive', [])
+        behavior('module-positive', baseline / 'compiled', positive, cases)
+        mutations = [
+            ('failure-value', [('TypeManagerFailureKind.cs', 'InvalidInventory = 1', 'InvalidInventory = 99')], 'schema-1'),
+            ('accept-new-schema', [('AssemblyInventory.cs', 'if (number != 1)', 'if (number != 1 && number != 2)')], 'schema-new'),
+            ('public-only', [('TypeManager.cs', 'candidate.IsClass && !candidate.IsAbstract', 'candidate.IsClass && candidate.IsPublic && !candidate.IsAbstract')], 'schema-1'),
+            ('mutable-query', [('TypeManager.cs', 'result = Array.AsReadOnly(matches.ToArray());', 'result = matches.ToArray();')], 'schema-1')]
+        for name, changes, case_id in mutations:
+            mutant = module(name, changes)
+            behavior(name, baseline / 'compiled', mutant, [case for case in cases if case['id'] == case_id], negative=True)
+        broken = module('renamed-public-property', [('*', 'AssemblyManifestPath', 'RenamedManifestPath')])
+        run('api-negative', api_tool, '-l', original / 'reference/CIS.Core.dll', '-r', broken,
+            '--enable-rule-cannot-change-parameter-name', '--enable-rule-attributes-must-match', error=['AssemblyManifestPath'])
+        passed('api-negative')
+        runtime(frozen, broken)
+        run('binary-negative', frozen / 'CIS.TypeManager.ContractConsumer.dll', frozen / 'consumer.types.json',
+            error=['MissingMethodException', 'AssemblyManifestPath'])
+        passed('binary-negative')
+        source_consumer('source-negative', original / 'source', broken, historical=True, error=['CS0117', 'AssemblyManifestPath'])
+        passed('source-negative')
+        # Recheck frozen inputs and candidate bytes after every build/control.
+        if report['behaviorBaseline'] != verify_baseline(baseline) or report['originalBaseline'] != verify_baseline(original) or report['coreSha256'] != digest(core):
+            raise RuntimeError('Qualification modified a frozen input')
+        report['complete'] = True
+    except Exception as error:
+        report['error'] = str(error)
+        raise
+    finally:
+        save()
+    print(json.dumps(report, indent=2))
+
+
+if __name__ == '__main__':
+    main()
+
+FILE: implementations/csharp/verification/contracts/type-manager/v1-behavior-development/source/Program.cs
+using System.Globalization;
+using System.Reflection;
+using System.Text.Json;
+using CIS.TypeManagement;
+using CompatibilityFixtures;
+
+CultureInfo.CurrentCulture = CultureInfo.GetCultureInfo("en-US");
+var host = typeof(Program).Assembly;
+string mode = args[0];
+string manifest = args[1];
+var defaults = new TypeManagerOptions(host);
+var values = new[] { "InvalidInventory", "AssemblyLoadFailure", "AssemblyIdentityConflict", "TypeDiscoveryFailure", "UnsupportedDeployment" }
+    .ToDictionary(name => name, name => Convert.ToInt32(Enum.Parse<TypeManagerFailureKind>(name), CultureInfo.InvariantCulture));
+var snapshot = new Dictionary<string, object?>
+{
+    ["hostIdentity"] = host.FullName,
+    ["defaults"] = new { hostPreserved = ReferenceEquals(host, defaults.HostAssembly), manifestNull = defaults.AssemblyManifestPath is null, preparedCount = defaults.PrecomputedContracts.Count },
+    ["failureValues"] = values
+};
+
+if (mode == "arguments")
+{
+    snapshot["outcome"] = new
+    {
+        status = "arguments",
+        nullOptions = Capture(() => TypeManager.CreateAsync(null!)),
+        nullHost = Capture(() => TypeManager.CreateAsync(new TypeManagerOptions(null!))),
+        blankPath = Capture(() => TypeManager.CreateAsync(new TypeManagerOptions(host) { AssemblyManifestPath = " " })),
+        nullContracts = Capture(() => TypeManager.CreateAsync(new TypeManagerOptions(host) { PrecomputedContracts = null! })),
+        nullContract = Capture(() => TypeManager.CreateAsync(new TypeManagerOptions(host) { PrecomputedContracts = [null!] })),
+        valueContract = Capture(() => TypeManager.CreateAsync(new TypeManagerOptions(host) { PrecomputedContracts = [typeof(int)] })),
+        openContract = Capture(() => TypeManager.CreateAsync(new TypeManagerOptions(host) { PrecomputedContracts = [typeof(List<>)] })),
+        nullManager = Capture(() => TypeManagerExtensions.GetImplementations<IMarker>(null!))
+    };
+}
+else
+{
+    var options = mode == "default" ? defaults : new TypeManagerOptions(host)
+    {
+        AssemblyManifestPath = mode == "relative" ? Path.GetFileName(manifest) : manifest,
+        PrecomputedContracts = mode == "prepared" ? [typeof(IMarker), typeof(IMarker)] : []
+    };
+    bool returned = false;
+    Task<ITypeManager>? pending = null;
+    try
+    {
+        pending = TypeManager.CreateAsync(options, mode == "cancel" ? new CancellationToken(canceled: true) : CancellationToken.None);
+        returned = true;
+        var manager = await pending;
+        var matches = manager.GetImplementations<IMarker>();
+        var empty = manager.GetImplementations<IUnimplemented>();
+        var report = manager.PreparationReport;
+        int before = AppDomain.CurrentDomain.GetAssemblies().Length;
+        bool miss = !manager.TryGetType("Missing.Type, Missing.Assembly", out var missing) && missing is null;
+        bool noLoads = before == AppDomain.CurrentDomain.GetAssemblies().Length;
+        string identity = typeof(ZCandidate).AssemblyQualifiedName!;
+        snapshot["outcome"] = new
+        {
+            status = "success", factoryReturned = returned, selectedCount = manager.Assemblies.Count,
+            preparedCount = report.PreparedContractCount,
+            markers = Names(matches), baseMatches = Names(manager.GetImplementations<MarkerBase>()),
+            selfMatches = Names(manager.GetImplementations<ZCandidate>()),
+            varianceMatches = Names(manager.GetImplementations<IProducer<object>>()), emptyCount = empty.Count,
+            cached = ReferenceEquals(matches, manager.GetImplementations(typeof(IMarker))) && ReferenceEquals(empty, manager.GetImplementations<IUnimplemented>()),
+            exact = manager.TryGetType(identity, out var found) && found == typeof(ZCandidate),
+            ordinalMisses = !manager.TryGetType(identity.ToUpperInvariant(), out _) && !manager.TryGetType(" " + identity, out _),
+            unknownMiss = miss, lookupDoesNotLoad = noLoads,
+            catalogKinds = manager.Types.Contains(typeof(GenericCandidate<>)) && manager.Types.Contains(typeof(MarkerBase)) && manager.Types.Contains(typeof(IMarker)),
+            ordered = Ordered(manager.Types) && Ordered(manager.GetDefinedTypes(host)),
+            collectionsProtected = Protected(manager.Assemblies) && Protected(manager.Types) && Protected(manager.GetDefinedTypes(host)) && Protected(matches) && Protected(empty),
+            reportProtected = Protected(report.SelectedAssemblyIdentities) && Protected(report.LoadedAssemblyIdentities) && Protected(report.ReusedAssemblyIdentities),
+            reportConsistent = report.SelectedAssemblyCount == 1 && report.TypeCount == manager.Types.Count && report.SelectedAssemblyIdentities.Single() == host.FullName && report.ReusedAssemblyIdentities.Single() == host.FullName && report.LoadedAssemblyIdentities.Count == 0 && report.Elapsed >= TimeSpan.Zero,
+            activationCount = Counters.Activated,
+            queryErrors = new
+            {
+                nullType = Capture(() => manager.GetImplementations(null!)),
+                valueType = Capture(() => manager.GetImplementations(typeof(int))),
+                nullAssembly = Capture(() => manager.GetDefinedTypes(null!)),
+                outsideAssembly = Capture(() => manager.GetDefinedTypes(typeof(TypeManager).Assembly)),
+                nullName = Capture(() => manager.TryGetType(null!, out _)),
+                blankName = Capture(() => manager.TryGetType(" ", out _))
+            }
+        };
+    }
+    catch (TypeManagerInitializationException error)
+    {
+        snapshot["outcome"] = new
+        {
+            status = "failure", factoryReturned = returned, faultedTask = pending?.IsFaulted == true,
+            kind = error.FailureKind.ToString(), value = (int)error.FailureKind,
+            causePresent = error.InnerException is not null,
+            manifestMatches = error.ManifestPath == Path.GetFullPath(manifest),
+            diagnosticContainsManifest = error.Message.Contains(manifest, StringComparison.Ordinal),
+            assetPresent = error.AssetPath is not null, selectedIdentityPresent = error.AssemblyIdentity is not null,
+            actualIdentityPresent = error.ActualAssemblyIdentity is not null,
+            loaderCount = error.LoaderExceptions.Count, loadersProtected = Protected(error.LoaderExceptions)
+        };
+    }
+    catch (OperationCanceledException)
+    {
+        snapshot["outcome"] = new { status = "cancelled", factoryReturned = returned, cancelledTask = pending?.IsCanceled == true };
+    }
+}
+Console.WriteLine(JsonSerializer.Serialize(snapshot));
+
+static string Capture(Action action)
+{
+    try { action(); return "no synchronous error"; }
+    catch (ArgumentException error) { return error.GetType().Name + ":" + error.ParamName; }
+}
+
+static string[] Names(IEnumerable<Type> types) => types.Select(type => type.FullName!).ToArray();
+static bool Ordered(IEnumerable<Type> types) => types.Select(type => type.AssemblyQualifiedName).SequenceEqual(types.Select(type => type.AssemblyQualifiedName).OrderBy(name => name, StringComparer.Ordinal));
+static bool Protected<T>(IReadOnlyList<T> values)
+{
+    if (values is not IList<T> list) { return false; }
+    try { list.Clear(); return false; }
+    catch (NotSupportedException) { }
+    if (list.Count > 0)
+    {
+        try { list[0] = values[0]; return false; }
+        catch (NotSupportedException) { }
+    }
+    return true;
+}
+
+namespace CompatibilityFixtures
+{
+    internal static class Counters { internal static int Activated; }
+    internal interface IMarker;
+    internal interface IUnimplemented;
+    internal abstract class MarkerBase : IMarker;
+    internal sealed class ZCandidate : MarkerBase
+    {
+        private ZCandidate() { Counters.Activated++; throw new InvalidOperationException("Unexpected activation."); }
+    }
+    internal sealed class ÉCandidate : IMarker
+    {
+        private ÉCandidate() { Counters.Activated++; throw new InvalidOperationException("Unexpected activation."); }
+    }
+    internal sealed class GenericCandidate<T> : IMarker;
+    internal interface IProducer<out T>;
+    internal sealed class StringProducer : IProducer<string>;
+}
+
+FILE: implementations/csharp/verification/contracts/type-manager/v1-behavior-development/source/Consumer.csproj.template
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <OutputType>Exe</OutputType>
+    <AssemblyName>CIS.TypeManager.BehaviorConsumer</AssemblyName>
+    <AssemblyVersion>1.0.0.0</AssemblyVersion>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+  <ItemGroup><Reference Include="CIS.Core" HintPath="@@CORE@@" Private="true" /></ItemGroup>
+</Project>
+
+FILE: implementations/csharp/verification/contracts/type-manager/v1-behavior-development/cases.json
+{
+  "schemaVersion": 1,
+  "scope": "Authored initial pre-release expectations; not observations copied from a candidate",
+  "cases": [
+    {
+      "id": "schema-1",
+      "input": "schema-1.json.bin",
+      "mode": "manifest",
+      "expected": {
+        "hostIdentity": "CIS.TypeManager.BehaviorConsumer, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null",
+        "defaults": {
+          "hostPreserved": true,
+          "manifestNull": true,
+          "preparedCount": 0
+        },
+        "failureValues": {
+          "InvalidInventory": 1,
+          "AssemblyLoadFailure": 2,
+          "AssemblyIdentityConflict": 3,
+          "TypeDiscoveryFailure": 4,
+          "UnsupportedDeployment": 5
+        },
+        "outcome": {
+          "status": "success",
+          "factoryReturned": true,
+          "selectedCount": 1,
+          "preparedCount": 0,
+          "markers": [
+            "CompatibilityFixtures.ZCandidate",
+            "CompatibilityFixtures.ÉCandidate"
+          ],
+          "baseMatches": [
+            "CompatibilityFixtures.ZCandidate"
+          ],
+          "selfMatches": [
+            "CompatibilityFixtures.ZCandidate"
+          ],
+          "varianceMatches": [
+            "CompatibilityFixtures.StringProducer"
+          ],
+          "emptyCount": 0,
+          "cached": true,
+          "exact": true,
+          "ordinalMisses": true,
+          "unknownMiss": true,
+          "lookupDoesNotLoad": true,
+          "catalogKinds": true,
+          "ordered": true,
+          "collectionsProtected": true,
+          "reportProtected": true,
+          "reportConsistent": true,
+          "activationCount": 0,
+          "queryErrors": {
+            "nullType": "ArgumentNullException:contractType",
+            "valueType": "ArgumentException:contractType",
+            "nullAssembly": "ArgumentNullException:assembly",
+            "outsideAssembly": "ArgumentException:assembly",
+            "nullName": "ArgumentNullException:assemblyQualifiedTypeName",
+            "blankName": "ArgumentException:assemblyQualifiedTypeName"
+          }
+        }
+      }
+    },
+    {
+      "id": "default-path",
+      "input": "default-path.json.bin",
+      "mode": "default",
+      "expected": {
+        "hostIdentity": "CIS.TypeManager.BehaviorConsumer, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null",
+        "defaults": {
+          "hostPreserved": true,
+          "manifestNull": true,
+          "preparedCount": 0
+        },
+        "failureValues": {
+          "InvalidInventory": 1,
+          "AssemblyLoadFailure": 2,
+          "AssemblyIdentityConflict": 3,
+          "TypeDiscoveryFailure": 4,
+          "UnsupportedDeployment": 5
+        },
+        "outcome": {
+          "status": "success",
+          "factoryReturned": true,
+          "selectedCount": 1,
+          "preparedCount": 0,
+          "markers": [
+            "CompatibilityFixtures.ZCandidate",
+            "CompatibilityFixtures.ÉCandidate"
+          ],
+          "baseMatches": [
+            "CompatibilityFixtures.ZCandidate"
+          ],
+          "selfMatches": [
+            "CompatibilityFixtures.ZCandidate"
+          ],
+          "varianceMatches": [
+            "CompatibilityFixtures.StringProducer"
+          ],
+          "emptyCount": 0,
+          "cached": true,
+          "exact": true,
+          "ordinalMisses": true,
+          "unknownMiss": true,
+          "lookupDoesNotLoad": true,
+          "catalogKinds": true,
+          "ordered": true,
+          "collectionsProtected": true,
+          "reportProtected": true,
+          "reportConsistent": true,
+          "activationCount": 0,
+          "queryErrors": {
+            "nullType": "ArgumentNullException:contractType",
+            "valueType": "ArgumentException:contractType",
+            "nullAssembly": "ArgumentNullException:assembly",
+            "outsideAssembly": "ArgumentException:assembly",
+            "nullName": "ArgumentNullException:assemblyQualifiedTypeName",
+            "blankName": "ArgumentException:assemblyQualifiedTypeName"
+          }
+        }
+      }
+    },
+    {
+      "id": "relative-path",
+      "input": "relative-path.json.bin",
+      "mode": "relative",
+      "expected": {
+        "hostIdentity": "CIS.TypeManager.BehaviorConsumer, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null",
+        "defaults": {
+          "hostPreserved": true,
+          "manifestNull": true,
+          "preparedCount": 0
+        },
+        "failureValues": {
+          "InvalidInventory": 1,
+          "AssemblyLoadFailure": 2,
+          "AssemblyIdentityConflict": 3,
+          "TypeDiscoveryFailure": 4,
+          "UnsupportedDeployment": 5
+        },
+        "outcome": {
+          "status": "success",
+          "factoryReturned": true,
+          "selectedCount": 1,
+          "preparedCount": 0,
+          "markers": [
+            "CompatibilityFixtures.ZCandidate",
+            "CompatibilityFixtures.ÉCandidate"
+          ],
+          "baseMatches": [
+            "CompatibilityFixtures.ZCandidate"
+          ],
+          "selfMatches": [
+            "CompatibilityFixtures.ZCandidate"
+          ],
+          "varianceMatches": [
+            "CompatibilityFixtures.StringProducer"
+          ],
+          "emptyCount": 0,
+          "cached": true,
+          "exact": true,
+          "ordinalMisses": true,
+          "unknownMiss": true,
+          "lookupDoesNotLoad": true,
+          "catalogKinds": true,
+          "ordered": true,
+          "collectionsProtected": true,
+          "reportProtected": true,
+          "reportConsistent": true,
+          "activationCount": 0,
+          "queryErrors": {
+            "nullType": "ArgumentNullException:contractType",
+            "valueType": "ArgumentException:contractType",
+            "nullAssembly": "ArgumentNullException:assembly",
+            "outsideAssembly": "ArgumentException:assembly",
+            "nullName": "ArgumentNullException:assemblyQualifiedTypeName",
+            "blankName": "ArgumentException:assemblyQualifiedTypeName"
+          }
+        }
+      }
+    },
+    {
+      "id": "precomputed-deduplicated",
+      "input": "precomputed-deduplicated.json.bin",
+      "mode": "prepared",
+      "expected": {
+        "hostIdentity": "CIS.TypeManager.BehaviorConsumer, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null",
+        "defaults": {
+          "hostPreserved": true,
+          "manifestNull": true,
+          "preparedCount": 0
+        },
+        "failureValues": {
+          "InvalidInventory": 1,
+          "AssemblyLoadFailure": 2,
+          "AssemblyIdentityConflict": 3,
+          "TypeDiscoveryFailure": 4,
+          "UnsupportedDeployment": 5
+        },
+        "outcome": {
+          "status": "success",
+          "factoryReturned": true,
+          "selectedCount": 1,
+          "preparedCount": 1,
+          "markers": [
+            "CompatibilityFixtures.ZCandidate",
+            "CompatibilityFixtures.ÉCandidate"
+          ],
+          "baseMatches": [
+            "CompatibilityFixtures.ZCandidate"
+          ],
+          "selfMatches": [
+            "CompatibilityFixtures.ZCandidate"
+          ],
+          "varianceMatches": [
+            "CompatibilityFixtures.StringProducer"
+          ],
+          "emptyCount": 0,
+          "cached": true,
+          "exact": true,
+          "ordinalMisses": true,
+          "unknownMiss": true,
+          "lookupDoesNotLoad": true,
+          "catalogKinds": true,
+          "ordered": true,
+          "collectionsProtected": true,
+          "reportProtected": true,
+          "reportConsistent": true,
+          "activationCount": 0,
+          "queryErrors": {
+            "nullType": "ArgumentNullException:contractType",
+            "valueType": "ArgumentException:contractType",
+            "nullAssembly": "ArgumentNullException:assembly",
+            "outsideAssembly": "ArgumentException:assembly",
+            "nullName": "ArgumentNullException:assemblyQualifiedTypeName",
+            "blankName": "ArgumentException:assemblyQualifiedTypeName"
+          }
+        }
+      }
+    },
+    {
+      "id": "additive-fields",
+      "input": "additive-fields.json.bin",
+      "mode": "manifest",
+      "expected": {
+        "hostIdentity": "CIS.TypeManager.BehaviorConsumer, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null",
+        "defaults": {
+          "hostPreserved": true,
+          "manifestNull": true,
+          "preparedCount": 0
+        },
+        "failureValues": {
+          "InvalidInventory": 1,
+          "AssemblyLoadFailure": 2,
+          "AssemblyIdentityConflict": 3,
+          "TypeDiscoveryFailure": 4,
+          "UnsupportedDeployment": 5
+        },
+        "outcome": {
+          "status": "success",
+          "factoryReturned": true,
+          "selectedCount": 1,
+          "preparedCount": 0,
+          "markers": [
+            "CompatibilityFixtures.ZCandidate",
+            "CompatibilityFixtures.ÉCandidate"
+          ],
+          "baseMatches": [
+            "CompatibilityFixtures.ZCandidate"
+          ],
+          "selfMatches": [
+            "CompatibilityFixtures.ZCandidate"
+          ],
+          "varianceMatches": [
+            "CompatibilityFixtures.StringProducer"
+          ],
+          "emptyCount": 0,
+          "cached": true,
+          "exact": true,
+          "ordinalMisses": true,
+          "unknownMiss": true,
+          "lookupDoesNotLoad": true,
+          "catalogKinds": true,
+          "ordered": true,
+          "collectionsProtected": true,
+          "reportProtected": true,
+          "reportConsistent": true,
+          "activationCount": 0,
+          "queryErrors": {
+            "nullType": "ArgumentNullException:contractType",
+            "valueType": "ArgumentException:contractType",
+            "nullAssembly": "ArgumentNullException:assembly",
+            "outsideAssembly": "ArgumentException:assembly",
+            "nullName": "ArgumentNullException:assemblyQualifiedTypeName",
+            "blankName": "ArgumentException:assemblyQualifiedTypeName"
+          }
+        }
+      }
+    },
+    {
+      "id": "utf8-bom",
+      "input": "utf8-bom.json.bin",
+      "mode": "manifest",
+      "expected": {
+        "hostIdentity": "CIS.TypeManager.BehaviorConsumer, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null",
+        "defaults": {
+          "hostPreserved": true,
+          "manifestNull": true,
+          "preparedCount": 0
+        },
+        "failureValues": {
+          "InvalidInventory": 1,
+          "AssemblyLoadFailure": 2,
+          "AssemblyIdentityConflict": 3,
+          "TypeDiscoveryFailure": 4,
+          "UnsupportedDeployment": 5
+        },
+        "outcome": {
+          "status": "success",
+          "factoryReturned": true,
+          "selectedCount": 1,
+          "preparedCount": 0,
+          "markers": [
+            "CompatibilityFixtures.ZCandidate",
+            "CompatibilityFixtures.ÉCandidate"
+          ],
+          "baseMatches": [
+            "CompatibilityFixtures.ZCandidate"
+          ],
+          "selfMatches": [
+            "CompatibilityFixtures.ZCandidate"
+          ],
+          "varianceMatches": [
+            "CompatibilityFixtures.StringProducer"
+          ],
+          "emptyCount": 0,
+          "cached": true,
+          "exact": true,
+          "ordinalMisses": true,
+          "unknownMiss": true,
+          "lookupDoesNotLoad": true,
+          "catalogKinds": true,
+          "ordered": true,
+          "collectionsProtected": true,
+          "reportProtected": true,
+          "reportConsistent": true,
+          "activationCount": 0,
+          "queryErrors": {
+            "nullType": "ArgumentNullException:contractType",
+            "valueType": "ArgumentException:contractType",
+            "nullAssembly": "ArgumentNullException:assembly",
+            "outsideAssembly": "ArgumentException:assembly",
+            "nullName": "ArgumentNullException:assemblyQualifiedTypeName",
+            "blankName": "ArgumentException:assemblyQualifiedTypeName"
+          }
+        }
+      }
+    },
+    {
+      "id": "duplicate-identical-entry",
+      "input": "duplicate-identical-entry.json.bin",
+      "mode": "manifest",
+      "expected": {
+        "hostIdentity": "CIS.TypeManager.BehaviorConsumer, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null",
+        "defaults": {
+          "hostPreserved": true,
+          "manifestNull": true,
+          "preparedCount": 0
+        },
+        "failureValues": {
+          "InvalidInventory": 1,
+          "AssemblyLoadFailure": 2,
+          "AssemblyIdentityConflict": 3,
+          "TypeDiscoveryFailure": 4,
+          "UnsupportedDeployment": 5
+        },
+        "outcome": {
+          "status": "success",
+          "factoryReturned": true,
+          "selectedCount": 1,
+          "preparedCount": 0,
+          "markers": [
+            "CompatibilityFixtures.ZCandidate",
+            "CompatibilityFixtures.ÉCandidate"
+          ],
+          "baseMatches": [
+            "CompatibilityFixtures.ZCandidate"
+          ],
+          "selfMatches": [
+            "CompatibilityFixtures.ZCandidate"
+          ],
+          "varianceMatches": [
+            "CompatibilityFixtures.StringProducer"
+          ],
+          "emptyCount": 0,
+          "cached": true,
+          "exact": true,
+          "ordinalMisses": true,
+          "unknownMiss": true,
+          "lookupDoesNotLoad": true,
+          "catalogKinds": true,
+          "ordered": true,
+          "collectionsProtected": true,
+          "reportProtected": true,
+          "reportConsistent": true,
+          "activationCount": 0,
+          "queryErrors": {
+            "nullType": "ArgumentNullException:contractType",
+            "valueType": "ArgumentException:contractType",
+            "nullAssembly": "ArgumentNullException:assembly",
+            "outsideAssembly": "ArgumentException:assembly",
+            "nullName": "ArgumentNullException:assemblyQualifiedTypeName",
+            "blankName": "ArgumentException:assemblyQualifiedTypeName"
+          }
+        }
+      }
+    },
+    {
+      "id": "arguments",
+      "input": "arguments.json.bin",
+      "mode": "arguments",
+      "expected": {
+        "hostIdentity": "CIS.TypeManager.BehaviorConsumer, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null",
+        "defaults": {
+          "hostPreserved": true,
+          "manifestNull": true,
+          "preparedCount": 0
+        },
+        "failureValues": {
+          "InvalidInventory": 1,
+          "AssemblyLoadFailure": 2,
+          "AssemblyIdentityConflict": 3,
+          "TypeDiscoveryFailure": 4,
+          "UnsupportedDeployment": 5
+        },
+        "outcome": {
+          "status": "arguments",
+          "nullOptions": "ArgumentNullException:options",
+          "nullHost": "ArgumentNullException:options",
+          "blankPath": "ArgumentException:options",
+          "nullContracts": "ArgumentNullException:options",
+          "nullContract": "ArgumentNullException:options",
+          "valueContract": "ArgumentException:options",
+          "openContract": "ArgumentException:options",
+          "nullManager": "ArgumentNullException:manager"
+        }
+      }
+    },
+    {
+      "id": "cancel-before-read",
+      "input": "cancel-before-read.json.bin",
+      "mode": "cancel",
+      "expected": {
+        "hostIdentity": "CIS.TypeManager.BehaviorConsumer, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null",
+        "defaults": {
+          "hostPreserved": true,
+          "manifestNull": true,
+          "preparedCount": 0
+        },
+        "failureValues": {
+          "InvalidInventory": 1,
+          "AssemblyLoadFailure": 2,
+          "AssemblyIdentityConflict": 3,
+          "TypeDiscoveryFailure": 4,
+          "UnsupportedDeployment": 5
+        },
+        "outcome": {
+          "status": "cancelled",
+          "factoryReturned": true,
+          "cancelledTask": true
+        }
+      }
+    },
+    {
+      "id": "missing-manifest",
+      "input": null,
+      "mode": "manifest",
+      "expected": {
+        "hostIdentity": "CIS.TypeManager.BehaviorConsumer, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null",
+        "defaults": {
+          "hostPreserved": true,
+          "manifestNull": true,
+          "preparedCount": 0
+        },
+        "failureValues": {
+          "InvalidInventory": 1,
+          "AssemblyLoadFailure": 2,
+          "AssemblyIdentityConflict": 3,
+          "TypeDiscoveryFailure": 4,
+          "UnsupportedDeployment": 5
+        },
+        "outcome": {
+          "status": "failure",
+          "factoryReturned": true,
+          "faultedTask": true,
+          "kind": "InvalidInventory",
+          "value": 1,
+          "causePresent": true,
+          "manifestMatches": true,
+          "diagnosticContainsManifest": true,
+          "assetPresent": false,
+          "selectedIdentityPresent": false,
+          "actualIdentityPresent": false,
+          "loaderCount": 0,
+          "loadersProtected": true
+        }
+      }
+    },
+    {
+      "id": "schema-new",
+      "input": "schema-new.json.bin",
+      "mode": "manifest",
+      "expected": {
+        "hostIdentity": "CIS.TypeManager.BehaviorConsumer, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null",
+        "defaults": {
+          "hostPreserved": true,
+          "manifestNull": true,
+          "preparedCount": 0
+        },
+        "failureValues": {
+          "InvalidInventory": 1,
+          "AssemblyLoadFailure": 2,
+          "AssemblyIdentityConflict": 3,
+          "TypeDiscoveryFailure": 4,
+          "UnsupportedDeployment": 5
+        },
+        "outcome": {
+          "status": "failure",
+          "factoryReturned": true,
+          "faultedTask": true,
+          "kind": "InvalidInventory",
+          "value": 1,
+          "causePresent": true,
+          "manifestMatches": true,
+          "diagnosticContainsManifest": true,
+          "assetPresent": false,
+          "selectedIdentityPresent": false,
+          "actualIdentityPresent": false,
+          "loaderCount": 0,
+          "loadersProtected": true
+        }
+      }
+    },
+    {
+      "id": "schema-string",
+      "input": "schema-string.json.bin",
+      "mode": "manifest",
+      "expected": {
+        "hostIdentity": "CIS.TypeManager.BehaviorConsumer, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null",
+        "defaults": {
+          "hostPreserved": true,
+          "manifestNull": true,
+          "preparedCount": 0
+        },
+        "failureValues": {
+          "InvalidInventory": 1,
+          "AssemblyLoadFailure": 2,
+          "AssemblyIdentityConflict": 3,
+          "TypeDiscoveryFailure": 4,
+          "UnsupportedDeployment": 5
+        },
+        "outcome": {
+          "status": "failure",
+          "factoryReturned": true,
+          "faultedTask": true,
+          "kind": "InvalidInventory",
+          "value": 1,
+          "causePresent": true,
+          "manifestMatches": true,
+          "diagnosticContainsManifest": true,
+          "assetPresent": false,
+          "selectedIdentityPresent": false,
+          "actualIdentityPresent": false,
+          "loaderCount": 0,
+          "loadersProtected": true
+        }
+      }
+    },
+    {
+      "id": "duplicate-root-property",
+      "input": "duplicate-root-property.json.bin",
+      "mode": "manifest",
+      "expected": {
+        "hostIdentity": "CIS.TypeManager.BehaviorConsumer, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null",
+        "defaults": {
+          "hostPreserved": true,
+          "manifestNull": true,
+          "preparedCount": 0
+        },
+        "failureValues": {
+          "InvalidInventory": 1,
+          "AssemblyLoadFailure": 2,
+          "AssemblyIdentityConflict": 3,
+          "TypeDiscoveryFailure": 4,
+          "UnsupportedDeployment": 5
+        },
+        "outcome": {
+          "status": "failure",
+          "factoryReturned": true,
+          "faultedTask": true,
+          "kind": "InvalidInventory",
+          "value": 1,
+          "causePresent": true,
+          "manifestMatches": true,
+          "diagnosticContainsManifest": true,
+          "assetPresent": false,
+          "selectedIdentityPresent": false,
+          "actualIdentityPresent": false,
+          "loaderCount": 0,
+          "loadersProtected": true
+        }
+      }
+    },
+    {
+      "id": "duplicate-entry-property",
+      "input": "duplicate-entry-property.json.bin",
+      "mode": "manifest",
+      "expected": {
+        "hostIdentity": "CIS.TypeManager.BehaviorConsumer, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null",
+        "defaults": {
+          "hostPreserved": true,
+          "manifestNull": true,
+          "preparedCount": 0
+        },
+        "failureValues": {
+          "InvalidInventory": 1,
+          "AssemblyLoadFailure": 2,
+          "AssemblyIdentityConflict": 3,
+          "TypeDiscoveryFailure": 4,
+          "UnsupportedDeployment": 5
+        },
+        "outcome": {
+          "status": "failure",
+          "factoryReturned": true,
+          "faultedTask": true,
+          "kind": "InvalidInventory",
+          "value": 1,
+          "causePresent": true,
+          "manifestMatches": true,
+          "diagnosticContainsManifest": true,
+          "assetPresent": false,
+          "selectedIdentityPresent": false,
+          "actualIdentityPresent": false,
+          "loaderCount": 0,
+          "loadersProtected": true
+        }
+      }
+    },
+    {
+      "id": "malformed",
+      "input": "malformed.json.bin",
+      "mode": "manifest",
+      "expected": {
+        "hostIdentity": "CIS.TypeManager.BehaviorConsumer, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null",
+        "defaults": {
+          "hostPreserved": true,
+          "manifestNull": true,
+          "preparedCount": 0
+        },
+        "failureValues": {
+          "InvalidInventory": 1,
+          "AssemblyLoadFailure": 2,
+          "AssemblyIdentityConflict": 3,
+          "TypeDiscoveryFailure": 4,
+          "UnsupportedDeployment": 5
+        },
+        "outcome": {
+          "status": "failure",
+          "factoryReturned": true,
+          "faultedTask": true,
+          "kind": "InvalidInventory",
+          "value": 1,
+          "causePresent": true,
+          "manifestMatches": true,
+          "diagnosticContainsManifest": true,
+          "assetPresent": false,
+          "selectedIdentityPresent": false,
+          "actualIdentityPresent": false,
+          "loaderCount": 0,
+          "loadersProtected": true
+        }
+      }
+    },
+    {
+      "id": "missing-asset",
+      "input": "missing-asset.json.bin",
+      "mode": "manifest",
+      "expected": {
+        "hostIdentity": "CIS.TypeManager.BehaviorConsumer, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null",
+        "defaults": {
+          "hostPreserved": true,
+          "manifestNull": true,
+          "preparedCount": 0
+        },
+        "failureValues": {
+          "InvalidInventory": 1,
+          "AssemblyLoadFailure": 2,
+          "AssemblyIdentityConflict": 3,
+          "TypeDiscoveryFailure": 4,
+          "UnsupportedDeployment": 5
+        },
+        "outcome": {
+          "status": "failure",
+          "factoryReturned": true,
+          "faultedTask": true,
+          "kind": "InvalidInventory",
+          "value": 1,
+          "causePresent": true,
+          "manifestMatches": true,
+          "diagnosticContainsManifest": true,
+          "assetPresent": true,
+          "selectedIdentityPresent": true,
+          "actualIdentityPresent": false,
+          "loaderCount": 0,
+          "loadersProtected": true
+        }
+      }
+    },
+    {
+      "id": "path-traversal",
+      "input": "path-traversal.json.bin",
+      "mode": "manifest",
+      "expected": {
+        "hostIdentity": "CIS.TypeManager.BehaviorConsumer, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null",
+        "defaults": {
+          "hostPreserved": true,
+          "manifestNull": true,
+          "preparedCount": 0
+        },
+        "failureValues": {
+          "InvalidInventory": 1,
+          "AssemblyLoadFailure": 2,
+          "AssemblyIdentityConflict": 3,
+          "TypeDiscoveryFailure": 4,
+          "UnsupportedDeployment": 5
+        },
+        "outcome": {
+          "status": "failure",
+          "factoryReturned": true,
+          "faultedTask": true,
+          "kind": "InvalidInventory",
+          "value": 1,
+          "causePresent": true,
+          "manifestMatches": true,
+          "diagnosticContainsManifest": true,
+          "assetPresent": true,
+          "selectedIdentityPresent": true,
+          "actualIdentityPresent": false,
+          "loaderCount": 0,
+          "loadersProtected": true
+        }
+      }
+    },
+    {
+      "id": "host-mismatch",
+      "input": "host-mismatch.json.bin",
+      "mode": "manifest",
+      "expected": {
+        "hostIdentity": "CIS.TypeManager.BehaviorConsumer, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null",
+        "defaults": {
+          "hostPreserved": true,
+          "manifestNull": true,
+          "preparedCount": 0
+        },
+        "failureValues": {
+          "InvalidInventory": 1,
+          "AssemblyLoadFailure": 2,
+          "AssemblyIdentityConflict": 3,
+          "TypeDiscoveryFailure": 4,
+          "UnsupportedDeployment": 5
+        },
+        "outcome": {
+          "status": "failure",
+          "factoryReturned": true,
+          "faultedTask": true,
+          "kind": "InvalidInventory",
+          "value": 1,
+          "causePresent": true,
+          "manifestMatches": true,
+          "diagnosticContainsManifest": true,
+          "assetPresent": false,
+          "selectedIdentityPresent": true,
+          "actualIdentityPresent": true,
+          "loaderCount": 0,
+          "loadersProtected": true
+        }
+      }
+    },
+    {
+      "id": "invalid-utf8-additive",
+      "input": "invalid-utf8-additive.json.bin",
+      "mode": "manifest",
+      "expected": {
+        "hostIdentity": "CIS.TypeManager.BehaviorConsumer, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null",
+        "defaults": {
+          "hostPreserved": true,
+          "manifestNull": true,
+          "preparedCount": 0
+        },
+        "failureValues": {
+          "InvalidInventory": 1,
+          "AssemblyLoadFailure": 2,
+          "AssemblyIdentityConflict": 3,
+          "TypeDiscoveryFailure": 4,
+          "UnsupportedDeployment": 5
+        },
+        "outcome": {
+          "status": "failure",
+          "factoryReturned": true,
+          "faultedTask": true,
+          "kind": "InvalidInventory",
+          "value": 1,
+          "causePresent": true,
+          "manifestMatches": true,
+          "diagnosticContainsManifest": true,
+          "assetPresent": false,
+          "selectedIdentityPresent": false,
+          "actualIdentityPresent": false,
+          "loaderCount": 0,
+          "loadersProtected": true
+        }
+      }
+    }
+  ]
+}
+

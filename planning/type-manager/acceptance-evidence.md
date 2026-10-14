@@ -28,6 +28,8 @@ is development evidence, not a release claim; remaining checks are explicit belo
   [query ordering](evidence/query-ordering/README.md).
 - Compatibility: `implementations/csharp/eng/check-type-manager-compatibility.ps1`
   and `implementations/csharp/verification/contracts/type-manager/v1-development/`.
+- Frozen behavior/schema fixtures and controlled regressions:
+  [compatibility checkpoint](evidence/compatibility-behavior/README.md).
 
 The runtime closure uses one frozen Core DLL on both OSs. The combined Developer
 checkpoint uses a later Core DLL containing concurrent logging changes. Inventory
@@ -62,12 +64,12 @@ not be merged into an implied exact-artifact release result.
 | A22 Fixed membership | A real later assembly load leaves the catalog, definitions, exact lookup, cached and uncached query membership, and preparation report unchanged. Architecture prohibits load subscriptions. | Final artifact replay. |
 | A23 Fresh processes | Ordinary host and 15 runtime child cases use fresh processes; replay verifies Core and every fixture hash. Two generator rejection cases run separately. Runnable examples cover 66 checks per OS with fresh child processes, private feed/cache, exact package Core/helper hashes and actual HTTP requests. | Consolidated release replay. |
 | A24 Dependencies | Core retains its approved runtime closure. Package/helper separation, exact asset checks and altered-artifact controls pass. The Web framework exception is restricted to its registered example; shipping/test-support policy widening is rejected, and removing only the role guard makes the forbidden Core reference pass. The full 26-project checker passes. | Final release artifact and dependency bundle. |
-| A25 Compatibility | ApiCompat, frozen binary consumer and historical source rebuild/run pass; baseline bytes are checked. | Full behaviour/schema compatibility and meaningful negative controls; no released historical baseline exists yet. |
+| A25 Compatibility | Both OSs pass 86 checks including original API/binary/source replay, 22 frozen behavior cases, byte-identical original-API consumer rebuild, nine behavior mutants and a public-property API/binary/source regression with positive twins. Three provenance guards reject mismatches. | Final exact-package replay; no released historical baseline exists yet. |
 | A26 Diagnostics | Catalog/report reconciliation, contextual manifest/loading/discovery errors and dynamic-load classification regression execute. | Complete acceptance matrix reconciliation against final artifact. |
 | A27 Performance | No speedup or latency guarantee is claimed. | Reproducible startup/query/allocation/memory measurements with machine/runtime/catalog metadata. |
 | A28 Release evidence | Focused native results, hashes, reviews and combined Developer checkpoint are preserved. | All six verification families, exact-artifact bundle and clean package-consumer qualification. |
 | A29 Scope/readability | Runtime is nine focused Core files with no new runtime dependency; architecture guards and read-only runtime review pass. | Final maintainability review and coordinated owned-file commits. |
-| A30 Manifest compatibility | Schema-1 reader accepts additive fields/BOM, rejects duplicate keys/unsupported schema, and generator output is consumed by ordinary host. | Frozen schema behaviour fixtures and explicit compatibility replay as part of the final package bundle. |
+| A30 Manifest compatibility | Frozen raw fixtures replay schema-1 additive fields/BOM, malformed/invalid UTF-8, duplicate properties, unsupported versions, paths and selected assets on both OSs. Targeted schema, duplicate-property and traversal mutants are rejected. Generator output is consumed by the ordinary host. | Final exact-package bundle replay. |
 
 This map is an initial TM-026 traceability deliverable. A row's existing test does
 not imply its remaining qualification, task commit or milestone gate has passed.
