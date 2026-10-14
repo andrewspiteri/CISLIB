@@ -1,0 +1,308 @@
+{
+  "schema": "cis.logging.task-receipt/v1",
+  "taskId": "WP06-S03-T03",
+  "date": "2026-10-15",
+  "baseCommit": "f28998c86dc4868f342c65b019c066fa65031205",
+  "status": "Implemented and verified for T03 wiring scope; Claude findings addressed, follow-up review pending before commit.",
+  "scope": "Original T03 explicitly defers complete full matrix execution to WP07. Embedded Microsoft adapter is a slice of CIS.Core under the user packaging amendment.",
+  "coverage": {
+    "unit": {
+      "tests": 65,
+      "trxSha256": "02ec5ca4467f240857544504283ad067ae94f3067872b760c7f471d8c0008eaa",
+      "coberturaSha256": "62b5bd19fa206095cbe0414861f391f5e8ab7409c6977b8e68c7f2ae90a3a76e",
+      "files": {
+        "CoreLoggerProvider.cs": {
+          "linesCovered": 35,
+          "linesTotal": 35,
+          "branchesCovered": 16,
+          "branchesTotal": 16
+        },
+        "ProviderScopeCapture.cs": {
+          "linesCovered": 16,
+          "linesTotal": 16,
+          "branchesCovered": 6,
+          "branchesTotal": 6
+        },
+        "ProviderStateCapture.cs": {
+          "linesCovered": 88,
+          "linesTotal": 90,
+          "branchesCovered": 69,
+          "branchesTotal": 78
+        }
+      },
+      "linesCovered": 139,
+      "linesTotal": 141,
+      "branchesCovered": 91,
+      "branchesTotal": 100,
+      "scope": "Exact adapter source paths, duplicate source lines deduplicated within this report. Lanes are not combined."
+    },
+    "integration": {
+      "tests": 79,
+      "trxSha256": "61ad9bdb516187d16be63cfa93ac0283ed7edd2d6c1ba29a4dbff465e0f1831b",
+      "coberturaSha256": "ef83730a8abe497984e70b4f8b6b10b9ae1d813626decdfa22fb862083ebeed6",
+      "files": {
+        "CoreLoggerProvider.cs": {
+          "linesCovered": 35,
+          "linesTotal": 35,
+          "branchesCovered": 14,
+          "branchesTotal": 16
+        },
+        "ProviderScopeCapture.cs": {
+          "linesCovered": 16,
+          "linesTotal": 16,
+          "branchesCovered": 6,
+          "branchesTotal": 6
+        },
+        "ProviderStateCapture.cs": {
+          "linesCovered": 88,
+          "linesTotal": 90,
+          "branchesCovered": 69,
+          "branchesTotal": 78
+        }
+      },
+      "linesCovered": 139,
+      "linesTotal": 141,
+      "branchesCovered": 89,
+      "branchesTotal": 100,
+      "scope": "Exact adapter source paths, duplicate source lines deduplicated within this report. Lanes are not combined."
+    }
+  },
+  "mutation": {
+    "current": {
+      "status": "FailedThreshold",
+      "nativeExit": 2,
+      "runnerExit": 1,
+      "counts": {
+        "Ignored": 37,
+        "Killed": 78,
+        "Survived": 46,
+        "CompileError": 23,
+        "NoCoverage": 6
+      },
+      "testableDenominator": 130,
+      "killed": 78,
+      "scorePercent": 60.0,
+      "breakThreshold": 90,
+      "nativeReportSha256": "88e11919682b12ec244ad8e63dc1dc55c845622ba5d4caa3de3dd29dbc11e192",
+      "nativeReportRetainedLocally": ".artifacts\\csharp\\tasks\\wp06-s03-t03\\mutation-current\\mutation\\reports\\mutation-report.json",
+      "noncompilingAndIgnoredReceiveNoKillCredit": true,
+      "childMutantInjectionClaimed": false
+    },
+    "final": {
+      "status": "FailedThreshold",
+      "nativeExit": 2,
+      "runnerExit": 1,
+      "counts": {
+        "Ignored": 37,
+        "Killed": 72,
+        "Survived": 51,
+        "CompileError": 23,
+        "NoCoverage": 7
+      },
+      "testableDenominator": 130,
+      "killed": 72,
+      "scorePercent": 55.38461538461539,
+      "breakThreshold": 90,
+      "nativeReportSha256": "99e8911e6b5be549cdb8b817bbfbffdf1618f09f51ca176248a37a98ea522591",
+      "nativeReportRetainedLocally": ".artifacts\\csharp\\tasks\\wp06-s03-t03\\mutation-final\\mutation\\reports\\mutation-report.json",
+      "noncompilingAndIgnoredReceiveNoKillCredit": true,
+      "childMutantInjectionClaimed": false,
+      "snapshotInputsCheckedUnchanged": 785,
+      "unmutatedRebuildExit": 0
+    },
+    "qualified": {
+      "status": "FailedThreshold",
+      "nativeExit": 2,
+      "runnerExit": 1,
+      "counts": {
+        "Ignored": 37,
+        "Killed": 71,
+        "Survived": 51,
+        "CompileError": 23,
+        "NoCoverage": 8
+      },
+      "testableDenominator": 130,
+      "killed": 71,
+      "scorePercent": 54.61538461538461,
+      "breakThreshold": 90,
+      "nativeReportSha256": "50c751aad2f3e7daa1ab88cc589fb21650e6e9a759fd6ed2823a85c1b35b9b8b",
+      "nativeReportRetainedLocally": ".artifacts/csharp/tasks/wp06-s03-t03/mutation-qualified/mutation/reports/mutation-report.json",
+      "snapshotInputsCheckedUnchanged": 785,
+      "unmutatedRebuildExit": 0,
+      "verificationInputs": [
+        {
+          "sha256": "b98e82d80b7e47ab13636693d170f237cc5b9ca7f9e832e7cbba9c460a56ad34",
+          "path": "implementations/csharp/eng/verify-microsoft-logging.ps1"
+        },
+        {
+          "sha256": "b55d4261bc303a947bc34f2048d7506cd6bca943d868c230cd3b7ca1f1753d3d",
+          "path": "implementations/csharp/eng/toolchain.json"
+        },
+        {
+          "sha256": "31ed461a48daf068a474746912a58372d588363a6bd60fee6f29aa9f74b354f2",
+          "path": "implementations/csharp/verification/shipping-projects.json"
+        },
+        {
+          "sha256": "89cc64fb86799fbd0fd80a972cbbc7321688f378fdc95df9eadfd02ad0a18152",
+          "path": "implementations/csharp/verification/mutation/microsoft-logging-config.json"
+        },
+        {
+          "sha256": "eda4066d98a36e2990b832272d8564a7fccae306e95c8d664b5c82b3c8a350cb",
+          "path": "implementations/csharp/verification/coverage/microsoft-logging.runsettings"
+        }
+      ],
+      "reportGuardPassed": true,
+      "childMutantInjectionClaimed": false,
+      "noncompilingAndIgnoredReceiveNoKillCredit": true
+    }
+  },
+  "shippingSourcesUnchanged": true,
+  "protectedInputs": 66,
+  "releaseQualification": "Pending WP07; failed mutation score is not a passing gate.",
+  "fullNativeMutationReports": "Retained in ignored local task artifacts; adapter-only exact extracts are tracked, with full-report hashes. Whole Core report contains other module implementation and is excluded from Claude transfer.",
+  "developer": {
+    "runId": "9ebc74de004840ef9f861245c81b0f07",
+    "tests": {
+      "unit": 3370,
+      "integration": 1400,
+      "architecture": 483
+    },
+    "totalTests": 5253,
+    "stages": 14,
+    "rawTrxChecked": true,
+    "noncompiledVerificationRefinementsAfterInventory": [
+      {
+        "path": "docs/modules/logging/microsoft-logging-verification.md",
+        "developerCapturedSha256": "425e181d306d4a5e25092f44d82dec927df7ccec6a488919b25995a8d670ddad",
+        "currentSha256": "5f55494d250bba20927b35ad44870c65c579ee991e0e94b4b8f700d36a8c9efe"
+      },
+      {
+        "path": "implementations/csharp/eng/verify-microsoft-logging.ps1",
+        "developerCapturedSha256": "4130ee00da37ef38bf33df761de8c424bc66a9f788bfe54a843a01e13360caf0",
+        "currentSha256": "b98e82d80b7e47ab13636693d170f237cc5b9ca7f9e832e7cbba9c460a56ad34"
+      },
+      {
+        "path": "implementations/csharp/verification/shipping-projects.json",
+        "developerCapturedSha256": "2bbc0f3c8440b52ceb8ad89b4b06935285f5e7ef7b7578a55bf773319a4437b5",
+        "currentSha256": "31ed461a48daf068a474746912a58372d588363a6bd60fee6f29aa9f74b354f2"
+      },
+      {
+        "path": "planning/logging/implementation-status.md",
+        "developerCapturedSha256": "948b785e08a4d94958493b65b94b81bc0702dc0c7b5aedb3857ad265ee386339",
+        "currentSha256": "bef0b490757c0469ab82f23ca0f1b09676652ee88ccb7e5955c75a8f59680f05"
+      },
+      {
+        "path": "planning/logging/plan-amendments.md",
+        "developerCapturedSha256": "31f8b5e39da8e77f85223d70c01ac950151ab6f4506a55c6bb69640e0d9a9123",
+        "currentSha256": "159ee25754bf50e051f0d6cde729da4ed2d00db28f2bbf82d9398aa063c4b29c"
+      }
+    ],
+    "shippingCompiledInputsUnchanged": true,
+    "qualification": "Developer fast profile only; dedicated revised adapter runner observed separately."
+  },
+  "qualifiedCoverage": {
+    "unit": {
+      "coberturaSha256": "29c1442659f290000bb22d919a999fe9564195b5ec0259366403b9b5ca0ec91e",
+      "trxSha256": "366e9d2c378b6b44cda8cab242eb1a40f1a9154f43f632d4817fed46b1ea9f9e",
+      "thresholdEvaluation": "Deferred to WP07; these are separate lane observations, not release qualification.",
+      "files": [
+        {
+          "branchesTotal": 16.0,
+          "path": "implementations/csharp/src/CIS.Core/Logging/MicrosoftLogger/CoreLoggerProvider.cs",
+          "branchesCovered": 16.0,
+          "linesTotal": 35,
+          "linesCovered": 35
+        },
+        {
+          "branchesTotal": 6.0,
+          "path": "implementations/csharp/src/CIS.Core/Logging/MicrosoftLogger/ProviderScopeCapture.cs",
+          "branchesCovered": 6.0,
+          "linesTotal": 16,
+          "linesCovered": 16
+        },
+        {
+          "branchesTotal": 78.0,
+          "path": "implementations/csharp/src/CIS.Core/Logging/MicrosoftLogger/ProviderStateCapture.cs",
+          "branchesCovered": 69.0,
+          "linesTotal": 90,
+          "linesCovered": 88
+        }
+      ]
+    },
+    "integration": {
+      "coberturaSha256": "0856e8cb4f4cacd50cd5e11b9c287e8da6d5b662586771ca1592cfa6c4ba546b",
+      "trxSha256": "60c85fd8424b1448a58dd7bf954f17ed171582cb5e1631aa3f04c6e0951c4f62",
+      "thresholdEvaluation": "Deferred to WP07; these are separate lane observations, not release qualification.",
+      "files": [
+        {
+          "branchesTotal": 16.0,
+          "path": "implementations/csharp/src/CIS.Core/Logging/MicrosoftLogger/CoreLoggerProvider.cs",
+          "branchesCovered": 14.0,
+          "linesTotal": 35,
+          "linesCovered": 35
+        },
+        {
+          "branchesTotal": 6.0,
+          "path": "implementations/csharp/src/CIS.Core/Logging/MicrosoftLogger/ProviderScopeCapture.cs",
+          "branchesCovered": 6.0,
+          "linesTotal": 16,
+          "linesCovered": 16
+        },
+        {
+          "branchesTotal": 78.0,
+          "path": "implementations/csharp/src/CIS.Core/Logging/MicrosoftLogger/ProviderStateCapture.cs",
+          "branchesCovered": 69.0,
+          "linesTotal": 90,
+          "linesCovered": 88
+        }
+      ]
+    }
+  },
+  "guards": [
+    {
+      "passed": true,
+      "id": "mutation-positive"
+    },
+    {
+      "id": "mutation-missing",
+      "passed": true,
+      "rejection": "Native mutant files differ from the adapter matrix."
+    },
+    {
+      "id": "mutation-empty",
+      "passed": true,
+      "rejection": "Adapter source has zero mutants: C:\\miscwork\\portfolio\\cislib\\.artifacts\\csharp\\tasks\\wp06-s03-t03\\mutation-final\\source\\implementations\\csharp\\src\\CIS.Core\\Logging\\MicrosoftLogger\\CoreLoggerProvider.cs"
+    },
+    {
+      "id": "mutation-zero",
+      "passed": true,
+      "rejection": "Adapter mutation denominator is zero."
+    },
+    {
+      "id": "mutation-extra",
+      "passed": true,
+      "rejection": "Native mutant files differ from the adapter matrix."
+    },
+    {
+      "passed": true,
+      "id": "coverage-positive"
+    },
+    {
+      "id": "coverage-missing",
+      "passed": true,
+      "rejection": "Adapter source absent from coverage: implementations/csharp/src/CIS.Core/Logging/MicrosoftLogger/ProviderScopeCapture.cs"
+    },
+    {
+      "id": "coverage-unexecuted",
+      "passed": true,
+      "rejection": "Adapter source has no measured execution: implementations/csharp/src/CIS.Core/Logging/MicrosoftLogger/ProviderScopeCapture.cs"
+    }
+  ],
+  "releaseExit": 2,
+  "releasePlannedRowsUnchanged": 41,
+  "protectedInputsDefinition": "66 paths and original SHA256 values in baseline.json: supplied source plans, execution/dependency inventories and shipping Logging C#.",
+  "runnerRevisionHistory": "Initial/current and pre-review final mutation runners identified by retained snapshot hashes in their verification-inputs.json. Revised runner identified by qualified coverage/mutation verification-inputs.json; executed both modes. Initial coverage runner hash was not captured and is not retrospectively assigned.",
+  "repeatability": "Scores and NoCoverage selections differ across unchanged shipping sources. Cause and source-bound dispositions/gaps require WP07 investigation; no averaging or kill reclassification.",
+  "coveragePolicy": "Coverage mode records observations, without evaluating release thresholds. Integration branch89/100 is below declared90%; WP07 remains required.",
+  "review": "Initial CHANGES_REQUIRED retained. R1-R5 addressed; final verdict pending."
+}

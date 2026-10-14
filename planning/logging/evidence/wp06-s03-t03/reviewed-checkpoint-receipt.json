@@ -1,0 +1,118 @@
+{
+  "schema": "cis.logging.task-receipt/v1",
+  "taskId": "WP06-S03-T03",
+  "date": "2026-10-15",
+  "baseCommit": "f28998c86dc4868f342c65b019c066fa65031205",
+  "status": "Wiring implemented; native adapter observations retained; final Developer verification and Claude review in progress.",
+  "scope": "Original T03 explicitly defers complete full matrix execution to WP07. Embedded Microsoft adapter is a slice of CIS.Core under the user packaging amendment.",
+  "coverage": {
+    "unit": {
+      "tests": 65,
+      "trxSha256": "02ec5ca4467f240857544504283ad067ae94f3067872b760c7f471d8c0008eaa",
+      "coberturaSha256": "62b5bd19fa206095cbe0414861f391f5e8ab7409c6977b8e68c7f2ae90a3a76e",
+      "files": {
+        "CoreLoggerProvider.cs": {
+          "linesCovered": 35,
+          "linesTotal": 35,
+          "branchesCovered": 16,
+          "branchesTotal": 16
+        },
+        "ProviderScopeCapture.cs": {
+          "linesCovered": 16,
+          "linesTotal": 16,
+          "branchesCovered": 6,
+          "branchesTotal": 6
+        },
+        "ProviderStateCapture.cs": {
+          "linesCovered": 88,
+          "linesTotal": 90,
+          "branchesCovered": 69,
+          "branchesTotal": 78
+        }
+      },
+      "linesCovered": 139,
+      "linesTotal": 141,
+      "branchesCovered": 91,
+      "branchesTotal": 100,
+      "scope": "Exact adapter source paths, duplicate source lines deduplicated within this report. Lanes are not combined."
+    },
+    "integration": {
+      "tests": 79,
+      "trxSha256": "61ad9bdb516187d16be63cfa93ac0283ed7edd2d6c1ba29a4dbff465e0f1831b",
+      "coberturaSha256": "ef83730a8abe497984e70b4f8b6b10b9ae1d813626decdfa22fb862083ebeed6",
+      "files": {
+        "CoreLoggerProvider.cs": {
+          "linesCovered": 35,
+          "linesTotal": 35,
+          "branchesCovered": 14,
+          "branchesTotal": 16
+        },
+        "ProviderScopeCapture.cs": {
+          "linesCovered": 16,
+          "linesTotal": 16,
+          "branchesCovered": 6,
+          "branchesTotal": 6
+        },
+        "ProviderStateCapture.cs": {
+          "linesCovered": 88,
+          "linesTotal": 90,
+          "branchesCovered": 69,
+          "branchesTotal": 78
+        }
+      },
+      "linesCovered": 139,
+      "linesTotal": 141,
+      "branchesCovered": 89,
+      "branchesTotal": 100,
+      "scope": "Exact adapter source paths, duplicate source lines deduplicated within this report. Lanes are not combined."
+    }
+  },
+  "mutation": {
+    "current": {
+      "status": "FailedThreshold",
+      "nativeExit": 2,
+      "runnerExit": 1,
+      "counts": {
+        "Ignored": 37,
+        "Killed": 78,
+        "Survived": 46,
+        "CompileError": 23,
+        "NoCoverage": 6
+      },
+      "testableDenominator": 130,
+      "killed": 78,
+      "scorePercent": 60.0,
+      "breakThreshold": 90,
+      "nativeReportSha256": "88e11919682b12ec244ad8e63dc1dc55c845622ba5d4caa3de3dd29dbc11e192",
+      "nativeReportRetainedLocally": ".artifacts\\csharp\\tasks\\wp06-s03-t03\\mutation-current\\mutation\\reports\\mutation-report.json",
+      "noncompilingAndIgnoredReceiveNoKillCredit": true,
+      "childMutantInjectionClaimed": false
+    },
+    "final": {
+      "status": "FailedThreshold",
+      "nativeExit": 2,
+      "runnerExit": 1,
+      "counts": {
+        "Ignored": 37,
+        "Killed": 72,
+        "Survived": 51,
+        "CompileError": 23,
+        "NoCoverage": 7
+      },
+      "testableDenominator": 130,
+      "killed": 72,
+      "scorePercent": 55.38461538461539,
+      "breakThreshold": 90,
+      "nativeReportSha256": "99e8911e6b5be549cdb8b817bbfbffdf1618f09f51ca176248a37a98ea522591",
+      "nativeReportRetainedLocally": ".artifacts\\csharp\\tasks\\wp06-s03-t03\\mutation-final\\mutation\\reports\\mutation-report.json",
+      "noncompilingAndIgnoredReceiveNoKillCredit": true,
+      "childMutantInjectionClaimed": false,
+      "snapshotInputsCheckedUnchanged": 785,
+      "unmutatedRebuildExit": 0
+    }
+  },
+  "shippingSourcesUnchanged": true,
+  "protectedInputs": 66,
+  "releaseQualification": "Pending WP07; failed mutation score is not a passing gate.",
+  "fullNativeMutationReports": "Retained in ignored local task artifacts; adapter-only exact extracts are tracked, with full-report hashes. Whole Core report contains other module implementation and is excluded from Claude transfer."
+}

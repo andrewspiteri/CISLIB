@@ -1,0 +1,80 @@
+[
+  {
+    "workingDirectory": "C:\\miscwork\\portfolio\\cislib\\implementations\\csharp",
+    "argv": [
+      "build",
+      "tests/CIS.Core.UnitTests/CIS.Core.UnitTests.csproj",
+      "-c",
+      "Release",
+      "--no-restore"
+    ],
+    "name": "build-Unit",
+    "exitCode": 0,
+    "executable": "dotnet",
+    "log": "logs/build-Unit.log"
+  },
+  {
+    "workingDirectory": "C:\\miscwork\\portfolio\\cislib\\implementations\\csharp",
+    "argv": [
+      "test",
+      "tests/CIS.Core.UnitTests/CIS.Core.UnitTests.csproj",
+      "-c",
+      "Release",
+      "--no-build",
+      "--no-restore",
+      "--filter",
+      "FullyQualifiedName~CIS.Tests.UnitTests.Provider",
+      "--settings",
+      "verification/coverage/microsoft-logging.runsettings",
+      "--collect",
+      "Code Coverage;Format=cobertura",
+      "--results-directory",
+      "C:\\miscwork\\portfolio\\cislib\\.artifacts\\csharp\\tasks\\wp06-s03-t03\\coverage-qualified\\unit",
+      "--logger",
+      "trx;LogFileName=report.trx"
+    ],
+    "name": "coverage-Unit",
+    "exitCode": 0,
+    "executable": "dotnet",
+    "log": "logs/coverage-Unit.log"
+  },
+  {
+    "workingDirectory": "C:\\miscwork\\portfolio\\cislib\\implementations\\csharp",
+    "argv": [
+      "build",
+      "tests/CIS.Core.IntegrationTests/CIS.Core.IntegrationTests.csproj",
+      "-c",
+      "Release",
+      "--no-restore"
+    ],
+    "name": "build-Integration",
+    "exitCode": 0,
+    "executable": "dotnet",
+    "log": "logs/build-Integration.log"
+  },
+  {
+    "workingDirectory": "C:\\miscwork\\portfolio\\cislib\\implementations\\csharp",
+    "argv": [
+      "test",
+      "tests/CIS.Core.IntegrationTests/CIS.Core.IntegrationTests.csproj",
+      "-c",
+      "Release",
+      "--no-build",
+      "--no-restore",
+      "--filter",
+      "FullyQualifiedName~CIS.Tests.IntegrationTests.Provider",
+      "--settings",
+      "verification/coverage/microsoft-logging.runsettings",
+      "--collect",
+      "Code Coverage;Format=cobertura",
+      "--results-directory",
+      "C:\\miscwork\\portfolio\\cislib\\.artifacts\\csharp\\tasks\\wp06-s03-t03\\coverage-qualified\\integration",
+      "--logger",
+      "trx;LogFileName=report.trx"
+    ],
+    "name": "coverage-Integration",
+    "exitCode": 0,
+    "executable": "dotnet",
+    "log": "logs/coverage-Integration.log"
+  }
+]

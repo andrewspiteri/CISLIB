@@ -36,13 +36,23 @@
       "harness": "eng/verify-toolchain.ps1",
       "reportSchema": "stryker.mutation/v3",
       "developerEnabled": false,
-      "developerReason": "Explicit separate parser qualification command; not part of the fast developer profile.",
+      "developerReason": "Explicit parser toolchain and dedicated embedded Microsoft adapter qualification commands; full matrix remains separate from the fast developer profile.",
       "pendingReason": "Full shipping scope and complete logging cases remain pending.",
       "slots": {
         "discovery": "families/mutation/discovery.json",
         "execution": "families/mutation/execution.json",
         "nativeReport": "families/mutation/mutation-report.json"
-      }
+      },
+      "moduleHarnesses": [
+        {
+          "id": "logging-microsoft",
+          "matrix": "verification/shipping-projects.json",
+          "harness": "eng/verify-microsoft-logging.ps1",
+          "mode": "Mutation",
+          "config": "verification/mutation/microsoft-logging-config.json",
+          "scope": "Dedicated adapter slice in CIS.Core; full shipping release execution/dispositions WP07."
+        }
+      ]
     },
     {
       "id": "architecture",

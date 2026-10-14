@@ -1,0 +1,98 @@
+[
+  {
+    "workingDirectory": "C:\\miscwork\\portfolio\\cislib\\.artifacts\\csharp\\tasks\\wp06-s03-t03\\mutation-qualified\\source\\implementations\\csharp",
+    "executable": "dotnet",
+    "argv": [
+      "tool",
+      "restore",
+      "--configfile",
+      "eng/Tools.NuGet.config"
+    ],
+    "exitCode": 0,
+    "log": "logs/tool-restore.log",
+    "name": "tool-restore"
+  },
+  {
+    "workingDirectory": "C:\\miscwork\\portfolio\\cislib\\.artifacts\\csharp\\tasks\\wp06-s03-t03\\mutation-qualified\\source\\implementations\\csharp",
+    "executable": "dotnet",
+    "argv": [
+      "restore",
+      "tests/CIS.Core.UnitTests/CIS.Core.UnitTests.csproj",
+      "--locked-mode",
+      "--configfile",
+      "NuGet.config"
+    ],
+    "exitCode": 0,
+    "log": "logs/restore-unit.log",
+    "name": "restore-unit"
+  },
+  {
+    "workingDirectory": "C:\\miscwork\\portfolio\\cislib\\.artifacts\\csharp\\tasks\\wp06-s03-t03\\mutation-qualified\\source\\implementations\\csharp",
+    "executable": "dotnet",
+    "argv": [
+      "build",
+      "tests/CIS.Core.UnitTests/CIS.Core.UnitTests.csproj",
+      "-c",
+      "Release",
+      "--no-restore"
+    ],
+    "exitCode": 0,
+    "log": "logs/build-unit.log",
+    "name": "build-unit"
+  },
+  {
+    "workingDirectory": "C:\\miscwork\\portfolio\\cislib\\.artifacts\\csharp\\tasks\\wp06-s03-t03\\mutation-qualified\\source\\implementations\\csharp",
+    "executable": "dotnet",
+    "argv": [
+      "test",
+      "tests/CIS.Core.UnitTests/CIS.Core.UnitTests.csproj",
+      "-c",
+      "Release",
+      "--no-build",
+      "--no-restore",
+      "--filter",
+      "FullyQualifiedName~CIS.Tests.UnitTests.Provider",
+      "--logger",
+      "trx;LogFileName=baseline.trx",
+      "--results-directory",
+      "C:\\miscwork\\portfolio\\cislib\\.artifacts\\csharp\\tasks\\wp06-s03-t03\\mutation-qualified\\baseline"
+    ],
+    "exitCode": 0,
+    "log": "logs/baseline-unit.log",
+    "name": "baseline-unit"
+  },
+  {
+    "workingDirectory": "C:\\miscwork\\portfolio\\cislib\\.artifacts\\csharp\\tasks\\wp06-s03-t03\\mutation-qualified\\source\\implementations\\csharp\\src\\CIS.Core",
+    "executable": "dotnet",
+    "argv": [
+      "exec",
+      "--fx-version",
+      "8.0.31",
+      "--roll-forward",
+      "Disable",
+      "C:\\Users\\andrs\\.nuget\\packages\\dotnet-stryker\\4.16.0\\tools\\net8.0\\any\\Stryker.CLI.dll",
+      "--config-file",
+      "../../verification/mutation/microsoft-logging-config.json",
+      "--output",
+      "C:\\miscwork\\portfolio\\cislib\\.artifacts\\csharp\\tasks\\wp06-s03-t03\\mutation-qualified\\mutation"
+    ],
+    "exitCode": 2,
+    "log": "logs/mutation.log",
+    "name": "mutation"
+  },
+  {
+    "workingDirectory": "C:\\miscwork\\portfolio\\cislib\\.artifacts\\csharp\\tasks\\wp06-s03-t03\\mutation-qualified\\source\\implementations\\csharp",
+    "executable": "dotnet",
+    "argv": [
+      "build",
+      "tests/CIS.Core.UnitTests/CIS.Core.UnitTests.csproj",
+      "-c",
+      "Release",
+      "--no-restore",
+      "--no-incremental"
+    ],
+    "exitCode": 0,
+    "log": "logs/unmutated-rebuild.log",
+    "name": "unmutated-rebuild"
+  }
+]

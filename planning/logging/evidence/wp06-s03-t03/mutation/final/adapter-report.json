@@ -1,0 +1,5351 @@
+{
+  "schema": "cis.logging.adapter-mutation-extract/v1",
+  "derivedAdapterOnly": true,
+  "nativeReportSha256": "99e8911e6b5be549cdb8b817bbfbffdf1618f09f51ca176248a37a98ea522591",
+  "nativeReportLocalPath": ".artifacts\\csharp\\tasks\\wp06-s03-t03\\mutation-final\\mutation\\reports\\mutation-report.json",
+  "nativeSchemaVersion": "2",
+  "files": {
+    "C:\\miscwork\\portfolio\\cislib\\.artifacts\\csharp\\tasks\\wp06-s03-t03\\mutation-final\\source\\implementations\\csharp\\src\\CIS.Core\\Logging\\MicrosoftLogger\\CoreLoggerProvider.cs": {
+      "language": "cs",
+      "source": "using Microsoft.Extensions.Logging;\n\nnamespace CIS.Logging.MicrosoftLogger;\n\n/// <summary>Creates Microsoft category loggers that borrow an application-owned core runtime.</summary>\n/// <remarks>Disposal disables this provider's future calls and never stops or disposes the shared runtime.\n/// A call already running when disposal occurs may finish. Category names follow the core component rules.\n/// Supplied rendered messages and exceptions enter core capture. Null or empty EventId.Name becomes\n/// log.message; EventId.Id supplies the integer attribute event_id, including zero and negative values.\n/// Structured state preserves {OriginalFormat} without parsing. Core checks interest before invoking\n/// formatter or copying state; full queues remain interested. Formatter exceptions propagate unchanged;\n/// invalid retained payload increments core diagnostics without output admission. Oversized valid payload\n/// is truncated. Disposed, stopped, filtered and all-faulted calls skip both callbacks after argument guards.\n/// Healthy outputs admit independently. Provider-created scopes are copied at BeginScope; borrowed host\n/// scopes are copied during accepted capture, after Activity and clock snapshots. Combined scope depth is 32.</remarks>\npublic sealed class CoreLoggerProvider : ILoggerProvider, ISupportExternalScope\n{\n    private readonly CoreLogRuntime runtime;\n    private int disposed;\n    private readonly object scopeProviderGate = new();\n    private IExternalScopeProvider? externalScopes;\n\n    /// <summary>Creates a nonowning provider over an existing runtime.</summary>\n    /// <exception cref=\"ArgumentNullException\">Runtime is null.</exception>\n    public CoreLoggerProvider(CoreLogRuntime runtime)\n    {\n        ArgumentNullException.ThrowIfNull(runtime);\n        this.runtime = runtime;\n    }\n\n    /// <summary>Creates a category logger using the core's validated component name.</summary>\n    /// <exception cref=\"ObjectDisposedException\">This provider has been disposed.</exception>\n    /// <exception cref=\"ArgumentNullException\">Category name is null.</exception>\n    /// <exception cref=\"ArgumentException\">The name does not satisfy the core component rules.</exception>\n    public ILogger CreateLogger(string categoryName)\n    {\n        ObjectDisposedException.ThrowIf(IsDisposed, this);\n        return new CategoryLogger(this, runtime.CreateLogger(categoryName));\n    }\n\n    private bool IsDisposed => Volatile.Read(ref disposed) != 0;\n\n    /// <summary>Idempotently disables this provider; the application retains runtime ownership.</summary>\n    public void Dispose()\n    {\n        lock (scopeProviderGate) { Interlocked.Exchange(ref disposed, 1); Volatile.Write(ref externalScopes, null); }\n    }\n\n    /// <summary>Borrows the host scope source; accepted events copy its active scopes inline.</summary>\n    /// <remarks>Existing core/provider scopes are the outer layer, host scopes the inner layer, and event attributes replace matching retained keys.\n    /// Host scope lifetime belongs to the host. Provider disposal releases this reference and never disposes host handles.</remarks>\n    /// <exception cref=\"ArgumentNullException\">Scope provider is null.</exception>\n    /// <exception cref=\"ObjectDisposedException\">This provider is disposed.</exception>\n    public void SetScopeProvider(IExternalScopeProvider scopeProvider)\n    {\n        ArgumentNullException.ThrowIfNull(scopeProvider);\n        lock (scopeProviderGate) { ObjectDisposedException.ThrowIf(IsDisposed, this); Volatile.Write(ref externalScopes, scopeProvider); }\n    }\n\n    private static CoreLogLevel Level(LogLevel logLevel)\n    {\n        if (!Enum.IsDefined(logLevel)) { throw new ArgumentOutOfRangeException(nameof(logLevel)); }\n        // The selected v1 Core and Microsoft severity numbers are identical (Trace through None).\n        return (CoreLogLevel)logLevel;\n    }\n\n    private sealed class CategoryLogger(CoreLoggerProvider provider, CoreLogger core) : ILogger\n    {\n        public bool IsEnabled(LogLevel logLevel)\n        {\n            CoreLogLevel level = Level(logLevel);\n            return !provider.IsDisposed && core.IsEnabled(level);\n        }\n\n        public IDisposable? BeginScope<TState>(TState state) where TState : notnull\n        {\n            ArgumentNullException.ThrowIfNull(state);\n            ObjectDisposedException.ThrowIf(provider.IsDisposed, provider);\n            if (provider.runtime.IsAdmissionClosed) { throw new InvalidOperationException(\"Cannot begin a scope after runtime admission closes.\"); }\n            return provider.runtime.Scopes.BeginCopiedScope(() => ProviderScopeCapture.Copy(state));\n        }\n\n        public void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception? exception,\n            Func<TState, Exception?, string> formatter)\n        {\n            ArgumentNullException.ThrowIfNull(formatter);\n            CoreLogLevel level = Level(logLevel);\n            if (provider.IsDisposed) { return; }\n            IExternalScopeProvider? scopes = Volatile.Read(ref provider.externalScopes);\n            _ = core.WriteLazy(level, () => new LogEventData\n            {\n                EventName = string.IsNullOrEmpty(eventId.Name) ? \"log.message\" : eventId.Name,\n                Message = formatter(state, exception),\n                Exception = exception,\n                CaptureState = () => ProviderStateCapture.Capture(state, eventId.Id),\n                CaptureScopes = scopes is null ? null : depth => ProviderScopeCapture.Capture(scopes, depth)\n            });\n        }\n    }\n}\n",
+      "mutants": [
+        {
+          "id": "1792",
+          "mutatorName": "Block removal mutation",
+          "replacement": "{}",
+          "location": {
+            "start": {
+              "line": 26,
+              "column": 5
+            },
+            "end": {
+              "line": 29,
+              "column": 6
+            }
+          },
+          "status": "Ignored",
+          "statusReason": "Removed by block already covered filter",
+          "static": true,
+          "coveredBy": [],
+          "killedBy": []
+        },
+        {
+          "id": "1793",
+          "mutatorName": "Statement mutation",
+          "replacement": ";",
+          "location": {
+            "start": {
+              "line": 27,
+              "column": 9
+            },
+            "end": {
+              "line": 27,
+              "column": 52
+            }
+          },
+          "status": "Killed",
+          "static": true,
+          "coveredBy": [],
+          "killedBy": [
+            "133e177c-768a-895d-9b89-156df23f008f"
+          ]
+        },
+        {
+          "id": "1794",
+          "mutatorName": "Block removal mutation",
+          "replacement": "{}",
+          "location": {
+            "start": {
+              "line": 36,
+              "column": 5
+            },
+            "end": {
+              "line": 39,
+              "column": 6
+            }
+          },
+          "status": "Ignored",
+          "statusReason": "Removed by block already covered filter",
+          "static": true,
+          "coveredBy": [],
+          "killedBy": []
+        },
+        {
+          "id": "1795",
+          "mutatorName": "Statement mutation",
+          "replacement": ";",
+          "location": {
+            "start": {
+              "line": 37,
+              "column": 9
+            },
+            "end": {
+              "line": 37,
+              "column": 59
+            }
+          },
+          "status": "Killed",
+          "static": true,
+          "coveredBy": [],
+          "killedBy": [
+            "133e177c-768a-895d-9b89-156df23f008f"
+          ]
+        },
+        {
+          "id": "1796",
+          "mutatorName": "Equality mutation",
+          "replacement": "Volatile.Read(ref disposed) == 0",
+          "location": {
+            "start": {
+              "line": 41,
+              "column": 32
+            },
+            "end": {
+              "line": 41,
+              "column": 64
+            }
+          },
+          "status": "Killed",
+          "static": true,
+          "coveredBy": [],
+          "killedBy": [
+            "18e2118f-de47-84b0-8ace-3c0b52dd67da",
+            "1a880719-f3c7-8065-b67b-8b106bdca21e",
+            "163c977a-e9f3-825f-b3ed-0abf1e12f63d",
+            "1f6b9766-e441-8257-a6d8-9523fc1bf113",
+            "1c5d00ec-8898-8a11-bc81-388eb5b08cc9",
+            "1c7e22c8-a535-80b4-ba22-cd5d3cf18628",
+            "1b8d75fd-fe57-8f6f-95a9-b807e1bc0453",
+            "1d82bade-5312-8152-abbc-7c456edf08d0",
+            "11e5146d-66c5-8eb8-811a-4785569bb107",
+            "1da549d5-0ce1-851b-b365-469327812fe6",
+            "184c2926-fcb2-8b1b-900e-68c28374d89a",
+            "153723d7-76e0-803b-96b9-465a60813a5e",
+            "1981300c-71ff-8689-b1bd-4259bd956aae",
+            "1e68819f-277b-8f97-b05f-2cc13f1e22c9",
+            "170921e9-cd91-8910-a0af-f8d205fe4b5d",
+            "1245a01b-059b-8c34-91cf-cffc0d1f232e",
+            "10f7ca08-19bf-8ec9-ae8a-ec9431e6373b",
+            "147536c9-a623-8f01-881b-5c256f987e34",
+            "1ac55021-a709-84f8-b1eb-cfd532d26c04",
+            "111eb873-0a0e-8833-b3ab-1d2afbc7d693",
+            "1de1ea64-6ecb-87c6-92b1-41315a442bda",
+            "121974f7-dc49-8c30-b60a-02964ca2f38c",
+            "113d8a2a-d6ef-8892-9446-f67a88f7c108",
+            "137266e7-ff88-8563-9e9a-3cc9dbf8f6b8",
+            "1e299a27-5fcd-8d31-b464-d0052992df81",
+            "197639a5-d2ec-8a67-9b1b-aeed70cd5773",
+            "100d8a3b-873e-807c-9448-13e864dcba27",
+            "174f362f-dab2-8c7b-a85d-a8eabdc0e3c6",
+            "10188a71-dc98-8292-ac84-6352a4244455",
+            "1d53723a-1a23-8fc4-abf1-89f92621c0a8",
+            "11e421b1-3d08-8a8a-a55d-934948ac7b18",
+            "166802a2-73f3-8d2e-b6b7-8f34c5150d56",
+            "12865f0d-0440-8775-a60d-5c54a9567f7e",
+            "1e18032f-6a5a-8b5f-b5f5-9e24fc490d66",
+            "1961b0a0-d9e7-89ae-9e9f-e2f817bd7b6d",
+            "1c6bab38-c003-842a-969d-ccfa547925bc",
+            "133e177c-768a-895d-9b89-156df23f008f",
+            "1d7a1dd3-f886-82fb-b928-578c084a5f17",
+            "1d6eeee5-1f4d-8c47-9238-0a45ef3bfedb",
+            "1fc6fb42-d891-8671-a2f4-e18e51048a8d",
+            "1850d046-d5b6-8aa9-b8a6-e501fd09def4",
+            "1d3207bd-9b5b-8682-8952-713893739283",
+            "1fb9faf9-9d4b-8c9b-8349-1c2b8aa817e2",
+            "148252be-2aff-8f5a-b272-5ca52a85b7e1",
+            "1707088b-73e3-8a9a-b4ef-ac88553de477",
+            "1bc1f5a9-22c5-8001-8c3e-8e32c4efb548",
+            "13c3915e-2af2-8aaa-ada8-14f45eca91c9",
+            "1483b6a8-63b3-853b-a964-9acb419d65dc",
+            "15c8847b-46cb-8cea-8a97-4b1113a31497",
+            "1eba3729-f10e-837e-8128-2fb4d9a24a1f",
+            "1c7c1d4d-736a-88ea-b2a3-ebab44756fe7",
+            "1dfd9d30-38cd-8747-bc9c-03624f331fba",
+            "17504661-27ec-8146-b001-47a5f1b7edf1",
+            "1b1f9a05-c927-8eba-9dfd-4fbc06a355f1",
+            "1852c3d1-4764-82ae-a3ee-97f5059400e3",
+            "15045437-9af1-8ad4-930a-e2b1a54d9b63",
+            "1e3dfceb-0ca0-892e-8c2b-3592e670c262",
+            "157c671a-4c3e-841b-bc5b-9bdb869177ce",
+            "180c1538-6521-8d6c-a415-2bb65c9b952c",
+            "19d1c2bf-cb78-895d-b3f0-a3e0f4828cca",
+            "1f3d4df4-6d38-8ddd-a5cc-1b9cdd07728a",
+            "1bb0c5c6-8efa-8fbd-8ad5-0559970deff1",
+            "147a0f33-1172-88b7-9537-d7ac93df8312",
+            "188f12ae-2295-838a-80c8-f9b467646342",
+            "10261997-5254-8c49-b564-d42a54fa53d9"
+          ]
+        },
+        {
+          "id": "1797",
+          "mutatorName": "Block removal mutation",
+          "replacement": "{}",
+          "location": {
+            "start": {
+              "line": 45,
+              "column": 5
+            },
+            "end": {
+              "line": 47,
+              "column": 6
+            }
+          },
+          "status": "Ignored",
+          "statusReason": "Removed by block already covered filter",
+          "static": true,
+          "coveredBy": [],
+          "killedBy": []
+        },
+        {
+          "id": "1798",
+          "mutatorName": "Block removal mutation",
+          "replacement": "{}",
+          "location": {
+            "start": {
+              "line": 46,
+              "column": 34
+            },
+            "end": {
+              "line": 46,
+              "column": 118
+            }
+          },
+          "status": "Ignored",
+          "statusReason": "Removed by block already covered filter",
+          "static": true,
+          "coveredBy": [],
+          "killedBy": []
+        },
+        {
+          "id": "1799",
+          "mutatorName": "Statement mutation",
+          "replacement": ";",
+          "location": {
+            "start": {
+              "line": 46,
+              "column": 36
+            },
+            "end": {
+              "line": 46,
+              "column": 74
+            }
+          },
+          "status": "Killed",
+          "static": true,
+          "coveredBy": [],
+          "killedBy": [
+            "1ac55021-a709-84f8-b1eb-cfd532d26c04",
+            "1d82bade-5312-8152-abbc-7c456edf08d0",
+            "133e177c-768a-895d-9b89-156df23f008f",
+            "1d7a1dd3-f886-82fb-b928-578c084a5f17"
+          ]
+        },
+        {
+          "id": "1800",
+          "mutatorName": "Statement mutation",
+          "replacement": ";",
+          "location": {
+            "start": {
+              "line": 46,
+              "column": 75
+            },
+            "end": {
+              "line": 46,
+              "column": 116
+            }
+          },
+          "status": "Killed",
+          "static": true,
+          "coveredBy": [],
+          "killedBy": [
+            "1d7a1dd3-f886-82fb-b928-578c084a5f17"
+          ]
+        },
+        {
+          "id": "1801",
+          "mutatorName": "Block removal mutation",
+          "replacement": "{}",
+          "location": {
+            "start": {
+              "line": 55,
+              "column": 5
+            },
+            "end": {
+              "line": 58,
+              "column": 6
+            }
+          },
+          "status": "Ignored",
+          "statusReason": "Removed by block already covered filter",
+          "static": true,
+          "coveredBy": [],
+          "killedBy": []
+        },
+        {
+          "id": "1802",
+          "mutatorName": "Statement mutation",
+          "replacement": ";",
+          "location": {
+            "start": {
+              "line": 56,
+              "column": 9
+            },
+            "end": {
+              "line": 56,
+              "column": 58
+            }
+          },
+          "status": "Killed",
+          "static": true,
+          "coveredBy": [],
+          "killedBy": [
+            "1d7a1dd3-f886-82fb-b928-578c084a5f17"
+          ]
+        },
+        {
+          "id": "1803",
+          "mutatorName": "Block removal mutation",
+          "replacement": "{}",
+          "location": {
+            "start": {
+              "line": 57,
+              "column": 34
+            },
+            "end": {
+              "line": 57,
+              "column": 139
+            }
+          },
+          "status": "Ignored",
+          "statusReason": "Removed by block already covered filter",
+          "static": true,
+          "coveredBy": [],
+          "killedBy": []
+        },
+        {
+          "id": "1804",
+          "mutatorName": "Statement mutation",
+          "replacement": ";",
+          "location": {
+            "start": {
+              "line": 57,
+              "column": 36
+            },
+            "end": {
+              "line": 57,
+              "column": 86
+            }
+          },
+          "status": "Killed",
+          "static": true,
+          "coveredBy": [],
+          "killedBy": [
+            "1d7a1dd3-f886-82fb-b928-578c084a5f17"
+          ]
+        },
+        {
+          "id": "1805",
+          "mutatorName": "Statement mutation",
+          "replacement": ";",
+          "location": {
+            "start": {
+              "line": 57,
+              "column": 87
+            },
+            "end": {
+              "line": 57,
+              "column": 137
+            }
+          },
+          "status": "Killed",
+          "static": true,
+          "coveredBy": [],
+          "killedBy": [
+            "10188a71-dc98-8292-ac84-6352a4244455",
+            "1d53723a-1a23-8fc4-abf1-89f92621c0a8",
+            "12865f0d-0440-8775-a60d-5c54a9567f7e",
+            "1c6bab38-c003-842a-969d-ccfa547925bc",
+            "1961b0a0-d9e7-89ae-9e9f-e2f817bd7b6d",
+            "1c7c1d4d-736a-88ea-b2a3-ebab44756fe7",
+            "1eba3729-f10e-837e-8128-2fb4d9a24a1f",
+            "17504661-27ec-8146-b001-47a5f1b7edf1",
+            "19d1c2bf-cb78-895d-b3f0-a3e0f4828cca",
+            "180c1538-6521-8d6c-a415-2bb65c9b952c",
+            "15c8847b-46cb-8cea-8a97-4b1113a31497",
+            "1483b6a8-63b3-853b-a964-9acb419d65dc",
+            "1b1f9a05-c927-8eba-9dfd-4fbc06a355f1",
+            "15045437-9af1-8ad4-930a-e2b1a54d9b63"
+          ]
+        },
+        {
+          "id": "1806",
+          "mutatorName": "Block removal mutation",
+          "replacement": "{}",
+          "location": {
+            "start": {
+              "line": 61,
+              "column": 5
+            },
+            "end": {
+              "line": 65,
+              "column": 6
+            }
+          },
+          "status": "Ignored",
+          "statusReason": "Removed by block already covered filter",
+          "static": true,
+          "coveredBy": [],
+          "killedBy": []
+        },
+        {
+          "id": "1807",
+          "mutatorName": "LogicalNotExpression to un-LogicalNotExpression mutation",
+          "replacement": "Enum.IsDefined(logLevel)",
+          "location": {
+            "start": {
+              "line": 62,
+              "column": 13
+            },
+            "end": {
+              "line": 62,
+              "column": 38
+            }
+          },
+          "status": "Killed",
+          "static": true,
+          "coveredBy": [],
+          "killedBy": [
+            "111eb873-0a0e-8833-b3ab-1d2afbc7d693",
+            "10f7ca08-19bf-8ec9-ae8a-ec9431e6373b",
+            "11e5146d-66c5-8eb8-811a-4785569bb107",
+            "18e2118f-de47-84b0-8ace-3c0b52dd67da",
+            "1da549d5-0ce1-851b-b365-469327812fe6",
+            "1c7e22c8-a535-80b4-ba22-cd5d3cf18628",
+            "1b8d75fd-fe57-8f6f-95a9-b807e1bc0453",
+            "1245a01b-059b-8c34-91cf-cffc0d1f232e",
+            "1a880719-f3c7-8065-b67b-8b106bdca21e",
+            "1c5d00ec-8898-8a11-bc81-388eb5b08cc9",
+            "184c2926-fcb2-8b1b-900e-68c28374d89a",
+            "1d82bade-5312-8152-abbc-7c456edf08d0",
+            "163c977a-e9f3-825f-b3ed-0abf1e12f63d",
+            "1f6b9766-e441-8257-a6d8-9523fc1bf113",
+            "170921e9-cd91-8910-a0af-f8d205fe4b5d",
+            "1ac55021-a709-84f8-b1eb-cfd532d26c04",
+            "113d8a2a-d6ef-8892-9446-f67a88f7c108",
+            "147a0f33-1172-88b7-9537-d7ac93df8312",
+            "1bb0c5c6-8efa-8fbd-8ad5-0559970deff1",
+            "1de1ea64-6ecb-87c6-92b1-41315a442bda",
+            "137266e7-ff88-8563-9e9a-3cc9dbf8f6b8",
+            "1e68819f-277b-8f97-b05f-2cc13f1e22c9",
+            "153723d7-76e0-803b-96b9-465a60813a5e",
+            "121974f7-dc49-8c30-b60a-02964ca2f38c",
+            "1f3d4df4-6d38-8ddd-a5cc-1b9cdd07728a",
+            "10261997-5254-8c49-b564-d42a54fa53d9",
+            "147536c9-a623-8f01-881b-5c256f987e34",
+            "12865f0d-0440-8775-a60d-5c54a9567f7e",
+            "1c6bab38-c003-842a-969d-ccfa547925bc",
+            "197639a5-d2ec-8a67-9b1b-aeed70cd5773",
+            "188f12ae-2295-838a-80c8-f9b467646342",
+            "10188a71-dc98-8292-ac84-6352a4244455",
+            "1961b0a0-d9e7-89ae-9e9f-e2f817bd7b6d",
+            "1e299a27-5fcd-8d31-b464-d0052992df81",
+            "1d53723a-1a23-8fc4-abf1-89f92621c0a8",
+            "1e18032f-6a5a-8b5f-b5f5-9e24fc490d66",
+            "166802a2-73f3-8d2e-b6b7-8f34c5150d56",
+            "100d8a3b-873e-807c-9448-13e864dcba27",
+            "174f362f-dab2-8c7b-a85d-a8eabdc0e3c6",
+            "11e421b1-3d08-8a8a-a55d-934948ac7b18",
+            "1fc6fb42-d891-8671-a2f4-e18e51048a8d",
+            "1850d046-d5b6-8aa9-b8a6-e501fd09def4",
+            "1d3207bd-9b5b-8682-8952-713893739283",
+            "148252be-2aff-8f5a-b272-5ca52a85b7e1",
+            "1bc1f5a9-22c5-8001-8c3e-8e32c4efb548",
+            "1d6eeee5-1f4d-8c47-9238-0a45ef3bfedb",
+            "1fb9faf9-9d4b-8c9b-8349-1c2b8aa817e2",
+            "1707088b-73e3-8a9a-b4ef-ac88553de477",
+            "13c3915e-2af2-8aaa-ada8-14f45eca91c9",
+            "19d1c2bf-cb78-895d-b3f0-a3e0f4828cca",
+            "1b1f9a05-c927-8eba-9dfd-4fbc06a355f1",
+            "1e3dfceb-0ca0-892e-8c2b-3592e670c262",
+            "180c1538-6521-8d6c-a415-2bb65c9b952c",
+            "15c8847b-46cb-8cea-8a97-4b1113a31497",
+            "1483b6a8-63b3-853b-a964-9acb419d65dc",
+            "1c7c1d4d-736a-88ea-b2a3-ebab44756fe7",
+            "1eba3729-f10e-837e-8128-2fb4d9a24a1f",
+            "17504661-27ec-8146-b001-47a5f1b7edf1",
+            "157c671a-4c3e-841b-bc5b-9bdb869177ce",
+            "1dfd9d30-38cd-8747-bc9c-03624f331fba",
+            "15045437-9af1-8ad4-930a-e2b1a54d9b63",
+            "1852c3d1-4764-82ae-a3ee-97f5059400e3"
+          ]
+        },
+        {
+          "id": "1808",
+          "mutatorName": "Block removal mutation",
+          "replacement": "{}",
+          "location": {
+            "start": {
+              "line": 62,
+              "column": 40
+            },
+            "end": {
+              "line": 62,
+              "column": 100
+            }
+          },
+          "status": "Ignored",
+          "statusReason": "Removed by block already covered filter",
+          "static": true,
+          "coveredBy": [],
+          "killedBy": []
+        },
+        {
+          "id": "1809",
+          "mutatorName": "Statement mutation",
+          "replacement": ";",
+          "location": {
+            "start": {
+              "line": 62,
+              "column": 42
+            },
+            "end": {
+              "line": 62,
+              "column": 98
+            }
+          },
+          "status": "Killed",
+          "static": true,
+          "coveredBy": [],
+          "killedBy": [
+            "1b8d75fd-fe57-8f6f-95a9-b807e1bc0453"
+          ]
+        },
+        {
+          "id": "1810",
+          "mutatorName": "Block removal mutation",
+          "replacement": "{}",
+          "location": {
+            "start": {
+              "line": 70,
+              "column": 9
+            },
+            "end": {
+              "line": 73,
+              "column": 10
+            }
+          },
+          "status": "Ignored",
+          "statusReason": "Removed by block already covered filter",
+          "static": true,
+          "coveredBy": [],
+          "killedBy": []
+        },
+        {
+          "id": "1811",
+          "mutatorName": "Logical mutation",
+          "replacement": "!provider.IsDisposed || core.IsEnabled(level)",
+          "location": {
+            "start": {
+              "line": 72,
+              "column": 20
+            },
+            "end": {
+              "line": 72,
+              "column": 65
+            }
+          },
+          "status": "Killed",
+          "static": true,
+          "coveredBy": [],
+          "killedBy": [
+            "1a880719-f3c7-8065-b67b-8b106bdca21e",
+            "1ac55021-a709-84f8-b1eb-cfd532d26c04",
+            "113d8a2a-d6ef-8892-9446-f67a88f7c108",
+            "1c7e22c8-a535-80b4-ba22-cd5d3cf18628",
+            "1de1ea64-6ecb-87c6-92b1-41315a442bda",
+            "1da549d5-0ce1-851b-b365-469327812fe6",
+            "1d82bade-5312-8152-abbc-7c456edf08d0",
+            "18e2118f-de47-84b0-8ace-3c0b52dd67da",
+            "1bb0c5c6-8efa-8fbd-8ad5-0559970deff1"
+          ]
+        },
+        {
+          "id": "1812",
+          "mutatorName": "LogicalNotExpression to un-LogicalNotExpression mutation",
+          "replacement": "provider.IsDisposed",
+          "location": {
+            "start": {
+              "line": 72,
+              "column": 20
+            },
+            "end": {
+              "line": 72,
+              "column": 40
+            }
+          },
+          "status": "Killed",
+          "static": true,
+          "coveredBy": [],
+          "killedBy": [
+            "10f7ca08-19bf-8ec9-ae8a-ec9431e6373b",
+            "1c5d00ec-8898-8a11-bc81-388eb5b08cc9",
+            "184c2926-fcb2-8b1b-900e-68c28374d89a",
+            "1c7e22c8-a535-80b4-ba22-cd5d3cf18628",
+            "11e5146d-66c5-8eb8-811a-4785569bb107",
+            "147536c9-a623-8f01-881b-5c256f987e34",
+            "163c977a-e9f3-825f-b3ed-0abf1e12f63d",
+            "1d82bade-5312-8152-abbc-7c456edf08d0",
+            "1f6b9766-e441-8257-a6d8-9523fc1bf113",
+            "170921e9-cd91-8910-a0af-f8d205fe4b5d",
+            "1245a01b-059b-8c34-91cf-cffc0d1f232e",
+            "1ac55021-a709-84f8-b1eb-cfd532d26c04",
+            "18e2118f-de47-84b0-8ace-3c0b52dd67da",
+            "111eb873-0a0e-8833-b3ab-1d2afbc7d693",
+            "1bb0c5c6-8efa-8fbd-8ad5-0559970deff1",
+            "147a0f33-1172-88b7-9537-d7ac93df8312",
+            "10261997-5254-8c49-b564-d42a54fa53d9",
+            "188f12ae-2295-838a-80c8-f9b467646342",
+            "1f3d4df4-6d38-8ddd-a5cc-1b9cdd07728a"
+          ]
+        },
+        {
+          "id": "1813",
+          "mutatorName": "Block removal mutation",
+          "replacement": "{}",
+          "location": {
+            "start": {
+              "line": 76,
+              "column": 9
+            },
+            "end": {
+              "line": 81,
+              "column": 10
+            }
+          },
+          "status": "Ignored",
+          "statusReason": "Removed by block already covered filter",
+          "static": true,
+          "coveredBy": [],
+          "killedBy": []
+        },
+        {
+          "id": "1814",
+          "mutatorName": "Statement mutation",
+          "replacement": ";",
+          "location": {
+            "start": {
+              "line": 77,
+              "column": 13
+            },
+            "end": {
+              "line": 77,
+              "column": 54
+            }
+          },
+          "status": "Survived",
+          "static": true,
+          "coveredBy": [],
+          "killedBy": []
+        },
+        {
+          "id": "1815",
+          "mutatorName": "Statement mutation",
+          "replacement": ";",
+          "location": {
+            "start": {
+              "line": 78,
+              "column": 13
+            },
+            "end": {
+              "line": 78,
+              "column": 76
+            }
+          },
+          "status": "Survived",
+          "static": true,
+          "coveredBy": [],
+          "killedBy": []
+        },
+        {
+          "id": "1816",
+          "mutatorName": "Negate expression",
+          "replacement": "!(provider.runtime.IsAdmissionClosed)",
+          "location": {
+            "start": {
+              "line": 79,
+              "column": 17
+            },
+            "end": {
+              "line": 79,
+              "column": 51
+            }
+          },
+          "status": "Killed",
+          "static": true,
+          "coveredBy": [],
+          "killedBy": [
+            "100d8a3b-873e-807c-9448-13e864dcba27",
+            "166802a2-73f3-8d2e-b6b7-8f34c5150d56",
+            "197639a5-d2ec-8a67-9b1b-aeed70cd5773",
+            "12865f0d-0440-8775-a60d-5c54a9567f7e",
+            "1e299a27-5fcd-8d31-b464-d0052992df81",
+            "1e18032f-6a5a-8b5f-b5f5-9e24fc490d66",
+            "121974f7-dc49-8c30-b60a-02964ca2f38c",
+            "11e421b1-3d08-8a8a-a55d-934948ac7b18",
+            "174f362f-dab2-8c7b-a85d-a8eabdc0e3c6",
+            "133e177c-768a-895d-9b89-156df23f008f",
+            "1d7a1dd3-f886-82fb-b928-578c084a5f17",
+            "1d3207bd-9b5b-8682-8952-713893739283",
+            "19d1c2bf-cb78-895d-b3f0-a3e0f4828cca",
+            "1e3dfceb-0ca0-892e-8c2b-3592e670c262",
+            "15c8847b-46cb-8cea-8a97-4b1113a31497",
+            "1dfd9d30-38cd-8747-bc9c-03624f331fba",
+            "1b1f9a05-c927-8eba-9dfd-4fbc06a355f1",
+            "1eba3729-f10e-837e-8128-2fb4d9a24a1f"
+          ]
+        },
+        {
+          "id": "1817",
+          "mutatorName": "Block removal mutation",
+          "replacement": "{}",
+          "location": {
+            "start": {
+              "line": 79,
+              "column": 53
+            },
+            "end": {
+              "line": 79,
+              "column": 149
+            }
+          },
+          "status": "Ignored",
+          "statusReason": "Removed by block already covered filter",
+          "static": false,
+          "coveredBy": [
+            "157c671a-4c3e-841b-bc5b-9bdb869177ce"
+          ],
+          "killedBy": []
+        },
+        {
+          "id": "1818",
+          "mutatorName": "Statement mutation",
+          "replacement": ";",
+          "location": {
+            "start": {
+              "line": 79,
+              "column": 55
+            },
+            "end": {
+              "line": 79,
+              "column": 147
+            }
+          },
+          "status": "Survived",
+          "static": false,
+          "coveredBy": [
+            "157c671a-4c3e-841b-bc5b-9bdb869177ce"
+          ],
+          "killedBy": []
+        },
+        {
+          "id": "1819",
+          "mutatorName": "String mutation",
+          "replacement": "\"\"",
+          "location": {
+            "start": {
+              "line": 79,
+              "column": 91
+            },
+            "end": {
+              "line": 79,
+              "column": 145
+            }
+          },
+          "status": "Survived",
+          "static": false,
+          "coveredBy": [
+            "157c671a-4c3e-841b-bc5b-9bdb869177ce"
+          ],
+          "killedBy": []
+        },
+        {
+          "id": "1820",
+          "mutatorName": "Block removal mutation",
+          "replacement": "{}",
+          "location": {
+            "start": {
+              "line": 85,
+              "column": 9
+            },
+            "end": {
+              "line": 98,
+              "column": 10
+            }
+          },
+          "status": "Ignored",
+          "statusReason": "Removed by block already covered filter",
+          "static": true,
+          "coveredBy": [],
+          "killedBy": []
+        },
+        {
+          "id": "1821",
+          "mutatorName": "Statement mutation",
+          "replacement": ";",
+          "location": {
+            "start": {
+              "line": 86,
+              "column": 13
+            },
+            "end": {
+              "line": 86,
+              "column": 58
+            }
+          },
+          "status": "Killed",
+          "static": true,
+          "coveredBy": [],
+          "killedBy": [
+            "1b8d75fd-fe57-8f6f-95a9-b807e1bc0453",
+            "1981300c-71ff-8689-b1bd-4259bd956aae",
+            "133e177c-768a-895d-9b89-156df23f008f"
+          ]
+        },
+        {
+          "id": "1822",
+          "mutatorName": "Negate expression",
+          "replacement": "!(provider.IsDisposed)",
+          "location": {
+            "start": {
+              "line": 88,
+              "column": 17
+            },
+            "end": {
+              "line": 88,
+              "column": 36
+            }
+          },
+          "status": "Killed",
+          "static": true,
+          "coveredBy": [],
+          "killedBy": [
+            "1c5d00ec-8898-8a11-bc81-388eb5b08cc9",
+            "147536c9-a623-8f01-881b-5c256f987e34",
+            "121974f7-dc49-8c30-b60a-02964ca2f38c",
+            "153723d7-76e0-803b-96b9-465a60813a5e",
+            "1245a01b-059b-8c34-91cf-cffc0d1f232e",
+            "10f7ca08-19bf-8ec9-ae8a-ec9431e6373b",
+            "1f6b9766-e441-8257-a6d8-9523fc1bf113",
+            "184c2926-fcb2-8b1b-900e-68c28374d89a",
+            "170921e9-cd91-8910-a0af-f8d205fe4b5d",
+            "1e68819f-277b-8f97-b05f-2cc13f1e22c9",
+            "1ac55021-a709-84f8-b1eb-cfd532d26c04",
+            "163c977a-e9f3-825f-b3ed-0abf1e12f63d",
+            "1da549d5-0ce1-851b-b365-469327812fe6",
+            "1d82bade-5312-8152-abbc-7c456edf08d0",
+            "137266e7-ff88-8563-9e9a-3cc9dbf8f6b8",
+            "197639a5-d2ec-8a67-9b1b-aeed70cd5773",
+            "1e299a27-5fcd-8d31-b464-d0052992df81",
+            "166802a2-73f3-8d2e-b6b7-8f34c5150d56",
+            "1961b0a0-d9e7-89ae-9e9f-e2f817bd7b6d",
+            "10188a71-dc98-8292-ac84-6352a4244455",
+            "174f362f-dab2-8c7b-a85d-a8eabdc0e3c6",
+            "1d53723a-1a23-8fc4-abf1-89f92621c0a8",
+            "1e18032f-6a5a-8b5f-b5f5-9e24fc490d66",
+            "100d8a3b-873e-807c-9448-13e864dcba27",
+            "12865f0d-0440-8775-a60d-5c54a9567f7e",
+            "1c6bab38-c003-842a-969d-ccfa547925bc",
+            "1bb0c5c6-8efa-8fbd-8ad5-0559970deff1",
+            "10261997-5254-8c49-b564-d42a54fa53d9",
+            "1f3d4df4-6d38-8ddd-a5cc-1b9cdd07728a",
+            "188f12ae-2295-838a-80c8-f9b467646342",
+            "147a0f33-1172-88b7-9537-d7ac93df8312",
+            "11e421b1-3d08-8a8a-a55d-934948ac7b18",
+            "1fc6fb42-d891-8671-a2f4-e18e51048a8d",
+            "1850d046-d5b6-8aa9-b8a6-e501fd09def4",
+            "1d6eeee5-1f4d-8c47-9238-0a45ef3bfedb",
+            "1d3207bd-9b5b-8682-8952-713893739283",
+            "1fb9faf9-9d4b-8c9b-8349-1c2b8aa817e2",
+            "148252be-2aff-8f5a-b272-5ca52a85b7e1",
+            "1bc1f5a9-22c5-8001-8c3e-8e32c4efb548",
+            "13c3915e-2af2-8aaa-ada8-14f45eca91c9",
+            "1c7c1d4d-736a-88ea-b2a3-ebab44756fe7",
+            "17504661-27ec-8146-b001-47a5f1b7edf1",
+            "1e3dfceb-0ca0-892e-8c2b-3592e670c262",
+            "15c8847b-46cb-8cea-8a97-4b1113a31497",
+            "19d1c2bf-cb78-895d-b3f0-a3e0f4828cca",
+            "1eba3729-f10e-837e-8128-2fb4d9a24a1f",
+            "1483b6a8-63b3-853b-a964-9acb419d65dc",
+            "180c1538-6521-8d6c-a415-2bb65c9b952c",
+            "1dfd9d30-38cd-8747-bc9c-03624f331fba",
+            "1852c3d1-4764-82ae-a3ee-97f5059400e3",
+            "15045437-9af1-8ad4-930a-e2b1a54d9b63",
+            "1b1f9a05-c927-8eba-9dfd-4fbc06a355f1"
+          ]
+        },
+        {
+          "id": "1823",
+          "mutatorName": "Block removal mutation",
+          "replacement": "{}",
+          "location": {
+            "start": {
+              "line": 88,
+              "column": 38
+            },
+            "end": {
+              "line": 88,
+              "column": 49
+            }
+          },
+          "status": "Ignored",
+          "statusReason": "Removed by block already covered filter",
+          "static": false,
+          "coveredBy": [
+            "1981300c-71ff-8689-b1bd-4259bd956aae",
+            "1da549d5-0ce1-851b-b365-469327812fe6"
+          ],
+          "killedBy": []
+        },
+        {
+          "id": "1824",
+          "mutatorName": "Statement mutation",
+          "replacement": ";",
+          "location": {
+            "start": {
+              "line": 88,
+              "column": 40
+            },
+            "end": {
+              "line": 88,
+              "column": 47
+            }
+          },
+          "status": "Survived",
+          "static": false,
+          "coveredBy": [
+            "1981300c-71ff-8689-b1bd-4259bd956aae",
+            "1da549d5-0ce1-851b-b365-469327812fe6"
+          ],
+          "killedBy": []
+        },
+        {
+          "id": "1825",
+          "mutatorName": "Object initializer mutation",
+          "replacement": "new LogEventData\n{}",
+          "location": {
+            "start": {
+              "line": 90,
+              "column": 45
+            },
+            "end": {
+              "line": 97,
+              "column": 14
+            }
+          },
+          "status": "Killed",
+          "static": true,
+          "coveredBy": [],
+          "killedBy": [
+            "121974f7-dc49-8c30-b60a-02964ca2f38c",
+            "1e68819f-277b-8f97-b05f-2cc13f1e22c9",
+            "137266e7-ff88-8563-9e9a-3cc9dbf8f6b8",
+            "147536c9-a623-8f01-881b-5c256f987e34",
+            "1c5d00ec-8898-8a11-bc81-388eb5b08cc9",
+            "1245a01b-059b-8c34-91cf-cffc0d1f232e",
+            "163c977a-e9f3-825f-b3ed-0abf1e12f63d",
+            "170921e9-cd91-8910-a0af-f8d205fe4b5d",
+            "10f7ca08-19bf-8ec9-ae8a-ec9431e6373b",
+            "1f6b9766-e441-8257-a6d8-9523fc1bf113",
+            "153723d7-76e0-803b-96b9-465a60813a5e",
+            "184c2926-fcb2-8b1b-900e-68c28374d89a",
+            "1ac55021-a709-84f8-b1eb-cfd532d26c04",
+            "1d53723a-1a23-8fc4-abf1-89f92621c0a8",
+            "10261997-5254-8c49-b564-d42a54fa53d9",
+            "1f3d4df4-6d38-8ddd-a5cc-1b9cdd07728a",
+            "188f12ae-2295-838a-80c8-f9b467646342",
+            "10188a71-dc98-8292-ac84-6352a4244455",
+            "147a0f33-1172-88b7-9537-d7ac93df8312",
+            "12865f0d-0440-8775-a60d-5c54a9567f7e",
+            "1bb0c5c6-8efa-8fbd-8ad5-0559970deff1",
+            "100d8a3b-873e-807c-9448-13e864dcba27",
+            "1e18032f-6a5a-8b5f-b5f5-9e24fc490d66",
+            "197639a5-d2ec-8a67-9b1b-aeed70cd5773",
+            "1c6bab38-c003-842a-969d-ccfa547925bc",
+            "1961b0a0-d9e7-89ae-9e9f-e2f817bd7b6d",
+            "166802a2-73f3-8d2e-b6b7-8f34c5150d56",
+            "174f362f-dab2-8c7b-a85d-a8eabdc0e3c6",
+            "11e421b1-3d08-8a8a-a55d-934948ac7b18",
+            "1e299a27-5fcd-8d31-b464-d0052992df81",
+            "1850d046-d5b6-8aa9-b8a6-e501fd09def4",
+            "1fc6fb42-d891-8671-a2f4-e18e51048a8d",
+            "1d3207bd-9b5b-8682-8952-713893739283",
+            "1d6eeee5-1f4d-8c47-9238-0a45ef3bfedb",
+            "148252be-2aff-8f5a-b272-5ca52a85b7e1",
+            "1fb9faf9-9d4b-8c9b-8349-1c2b8aa817e2",
+            "1bc1f5a9-22c5-8001-8c3e-8e32c4efb548",
+            "13c3915e-2af2-8aaa-ada8-14f45eca91c9",
+            "1c7c1d4d-736a-88ea-b2a3-ebab44756fe7",
+            "17504661-27ec-8146-b001-47a5f1b7edf1",
+            "15c8847b-46cb-8cea-8a97-4b1113a31497",
+            "1eba3729-f10e-837e-8128-2fb4d9a24a1f",
+            "180c1538-6521-8d6c-a415-2bb65c9b952c",
+            "1483b6a8-63b3-853b-a964-9acb419d65dc",
+            "1e3dfceb-0ca0-892e-8c2b-3592e670c262",
+            "1dfd9d30-38cd-8747-bc9c-03624f331fba",
+            "19d1c2bf-cb78-895d-b3f0-a3e0f4828cca",
+            "15045437-9af1-8ad4-930a-e2b1a54d9b63",
+            "1b1f9a05-c927-8eba-9dfd-4fbc06a355f1",
+            "1852c3d1-4764-82ae-a3ee-97f5059400e3"
+          ]
+        },
+        {
+          "id": "1826",
+          "mutatorName": "Conditional (true) mutation",
+          "replacement": "(true?\"log.message\" :eventId.Name)",
+          "location": {
+            "start": {
+              "line": 92,
+              "column": 29
+            },
+            "end": {
+              "line": 92,
+              "column": 94
+            }
+          },
+          "status": "Killed",
+          "static": true,
+          "coveredBy": [],
+          "killedBy": [
+            "111eb873-0a0e-8833-b3ab-1d2afbc7d693",
+            "147536c9-a623-8f01-881b-5c256f987e34",
+            "170921e9-cd91-8910-a0af-f8d205fe4b5d",
+            "163c977a-e9f3-825f-b3ed-0abf1e12f63d",
+            "1ac55021-a709-84f8-b1eb-cfd532d26c04",
+            "1e68819f-277b-8f97-b05f-2cc13f1e22c9",
+            "11e5146d-66c5-8eb8-811a-4785569bb107",
+            "10f7ca08-19bf-8ec9-ae8a-ec9431e6373b",
+            "121974f7-dc49-8c30-b60a-02964ca2f38c",
+            "10261997-5254-8c49-b564-d42a54fa53d9",
+            "1f3d4df4-6d38-8ddd-a5cc-1b9cdd07728a",
+            "147a0f33-1172-88b7-9537-d7ac93df8312",
+            "1bb0c5c6-8efa-8fbd-8ad5-0559970deff1",
+            "188f12ae-2295-838a-80c8-f9b467646342",
+            "1c6bab38-c003-842a-969d-ccfa547925bc",
+            "1d6eeee5-1f4d-8c47-9238-0a45ef3bfedb",
+            "148252be-2aff-8f5a-b272-5ca52a85b7e1",
+            "15045437-9af1-8ad4-930a-e2b1a54d9b63",
+            "1852c3d1-4764-82ae-a3ee-97f5059400e3",
+            "17504661-27ec-8146-b001-47a5f1b7edf1",
+            "19d1c2bf-cb78-895d-b3f0-a3e0f4828cca",
+            "1eba3729-f10e-837e-8128-2fb4d9a24a1f"
+          ]
+        },
+        {
+          "id": "1827",
+          "mutatorName": "Conditional (false) mutation",
+          "replacement": "(false?\"log.message\" :eventId.Name)",
+          "location": {
+            "start": {
+              "line": 92,
+              "column": 29
+            },
+            "end": {
+              "line": 92,
+              "column": 94
+            }
+          },
+          "status": "Killed",
+          "static": true,
+          "coveredBy": [],
+          "killedBy": [
+            "153723d7-76e0-803b-96b9-465a60813a5e",
+            "147a0f33-1172-88b7-9537-d7ac93df8312"
+          ]
+        },
+        {
+          "id": "1828",
+          "mutatorName": "String mutation",
+          "replacement": "(eventId.Name!=null)",
+          "location": {
+            "start": {
+              "line": 92,
+              "column": 29
+            },
+            "end": {
+              "line": 92,
+              "column": 63
+            }
+          },
+          "status": "Killed",
+          "static": true,
+          "coveredBy": [],
+          "killedBy": [
+            "147536c9-a623-8f01-881b-5c256f987e34",
+            "10f7ca08-19bf-8ec9-ae8a-ec9431e6373b",
+            "11e5146d-66c5-8eb8-811a-4785569bb107",
+            "170921e9-cd91-8910-a0af-f8d205fe4b5d",
+            "1e68819f-277b-8f97-b05f-2cc13f1e22c9",
+            "111eb873-0a0e-8833-b3ab-1d2afbc7d693",
+            "1ac55021-a709-84f8-b1eb-cfd532d26c04",
+            "153723d7-76e0-803b-96b9-465a60813a5e",
+            "163c977a-e9f3-825f-b3ed-0abf1e12f63d",
+            "147a0f33-1172-88b7-9537-d7ac93df8312",
+            "121974f7-dc49-8c30-b60a-02964ca2f38c",
+            "1bb0c5c6-8efa-8fbd-8ad5-0559970deff1",
+            "10261997-5254-8c49-b564-d42a54fa53d9",
+            "1f3d4df4-6d38-8ddd-a5cc-1b9cdd07728a",
+            "188f12ae-2295-838a-80c8-f9b467646342",
+            "1c6bab38-c003-842a-969d-ccfa547925bc",
+            "1d6eeee5-1f4d-8c47-9238-0a45ef3bfedb",
+            "148252be-2aff-8f5a-b272-5ca52a85b7e1",
+            "15045437-9af1-8ad4-930a-e2b1a54d9b63",
+            "1eba3729-f10e-837e-8128-2fb4d9a24a1f",
+            "17504661-27ec-8146-b001-47a5f1b7edf1",
+            "1852c3d1-4764-82ae-a3ee-97f5059400e3",
+            "19d1c2bf-cb78-895d-b3f0-a3e0f4828cca"
+          ]
+        },
+        {
+          "id": "1829",
+          "mutatorName": "String mutation",
+          "replacement": "(eventId.Name!=\"\")",
+          "location": {
+            "start": {
+              "line": 92,
+              "column": 29
+            },
+            "end": {
+              "line": 92,
+              "column": 63
+            }
+          },
+          "status": "Killed",
+          "static": true,
+          "coveredBy": [],
+          "killedBy": [
+            "163c977a-e9f3-825f-b3ed-0abf1e12f63d",
+            "1e68819f-277b-8f97-b05f-2cc13f1e22c9",
+            "11e5146d-66c5-8eb8-811a-4785569bb107",
+            "170921e9-cd91-8910-a0af-f8d205fe4b5d",
+            "147536c9-a623-8f01-881b-5c256f987e34",
+            "111eb873-0a0e-8833-b3ab-1d2afbc7d693",
+            "1ac55021-a709-84f8-b1eb-cfd532d26c04",
+            "10f7ca08-19bf-8ec9-ae8a-ec9431e6373b",
+            "121974f7-dc49-8c30-b60a-02964ca2f38c",
+            "147a0f33-1172-88b7-9537-d7ac93df8312",
+            "1bb0c5c6-8efa-8fbd-8ad5-0559970deff1",
+            "10261997-5254-8c49-b564-d42a54fa53d9",
+            "1f3d4df4-6d38-8ddd-a5cc-1b9cdd07728a",
+            "1c6bab38-c003-842a-969d-ccfa547925bc",
+            "188f12ae-2295-838a-80c8-f9b467646342",
+            "1852c3d1-4764-82ae-a3ee-97f5059400e3",
+            "19d1c2bf-cb78-895d-b3f0-a3e0f4828cca",
+            "17504661-27ec-8146-b001-47a5f1b7edf1",
+            "1eba3729-f10e-837e-8128-2fb4d9a24a1f",
+            "1d6eeee5-1f4d-8c47-9238-0a45ef3bfedb",
+            "148252be-2aff-8f5a-b272-5ca52a85b7e1",
+            "15045437-9af1-8ad4-930a-e2b1a54d9b63"
+          ]
+        },
+        {
+          "id": "1830",
+          "mutatorName": "String mutation",
+          "replacement": "\"\"",
+          "location": {
+            "start": {
+              "line": 92,
+              "column": 66
+            },
+            "end": {
+              "line": 92,
+              "column": 79
+            }
+          },
+          "status": "Survived",
+          "static": false,
+          "coveredBy": [
+            "1981300c-71ff-8689-b1bd-4259bd956aae",
+            "1da549d5-0ce1-851b-b365-469327812fe6",
+            "166802a2-73f3-8d2e-b6b7-8f34c5150d56",
+            "188f12ae-2295-838a-80c8-f9b467646342"
+          ],
+          "killedBy": []
+        },
+        {
+          "id": "1831",
+          "mutatorName": "Conditional (true) mutation",
+          "replacement": "(true?null :depth => ProviderScopeCapture.Capture(scopes, depth)\n)",
+          "location": {
+            "start": {
+              "line": 96,
+              "column": 33
+            },
+            "end": {
+              "line": 96,
+              "column": 109
+            }
+          },
+          "status": "Killed",
+          "static": true,
+          "coveredBy": [],
+          "killedBy": [
+            "1d53723a-1a23-8fc4-abf1-89f92621c0a8",
+            "1c6bab38-c003-842a-969d-ccfa547925bc",
+            "12865f0d-0440-8775-a60d-5c54a9567f7e",
+            "10188a71-dc98-8292-ac84-6352a4244455",
+            "1961b0a0-d9e7-89ae-9e9f-e2f817bd7b6d",
+            "1c7c1d4d-736a-88ea-b2a3-ebab44756fe7",
+            "1eba3729-f10e-837e-8128-2fb4d9a24a1f",
+            "19d1c2bf-cb78-895d-b3f0-a3e0f4828cca",
+            "17504661-27ec-8146-b001-47a5f1b7edf1",
+            "1483b6a8-63b3-853b-a964-9acb419d65dc",
+            "15c8847b-46cb-8cea-8a97-4b1113a31497",
+            "180c1538-6521-8d6c-a415-2bb65c9b952c",
+            "15045437-9af1-8ad4-930a-e2b1a54d9b63",
+            "1b1f9a05-c927-8eba-9dfd-4fbc06a355f1"
+          ]
+        },
+        {
+          "id": "1832",
+          "mutatorName": "Conditional (false) mutation",
+          "replacement": "(false?null :depth => ProviderScopeCapture.Capture(scopes, depth)\n)",
+          "location": {
+            "start": {
+              "line": 96,
+              "column": 33
+            },
+            "end": {
+              "line": 96,
+              "column": 109
+            }
+          },
+          "status": "Killed",
+          "static": true,
+          "coveredBy": [],
+          "killedBy": [
+            "1e68819f-277b-8f97-b05f-2cc13f1e22c9",
+            "184c2926-fcb2-8b1b-900e-68c28374d89a",
+            "121974f7-dc49-8c30-b60a-02964ca2f38c",
+            "10f7ca08-19bf-8ec9-ae8a-ec9431e6373b",
+            "1f6b9766-e441-8257-a6d8-9523fc1bf113",
+            "163c977a-e9f3-825f-b3ed-0abf1e12f63d",
+            "147536c9-a623-8f01-881b-5c256f987e34",
+            "1c5d00ec-8898-8a11-bc81-388eb5b08cc9",
+            "170921e9-cd91-8910-a0af-f8d205fe4b5d",
+            "153723d7-76e0-803b-96b9-465a60813a5e",
+            "1245a01b-059b-8c34-91cf-cffc0d1f232e",
+            "1f3d4df4-6d38-8ddd-a5cc-1b9cdd07728a",
+            "1ac55021-a709-84f8-b1eb-cfd532d26c04",
+            "147a0f33-1172-88b7-9537-d7ac93df8312",
+            "1bb0c5c6-8efa-8fbd-8ad5-0559970deff1",
+            "10261997-5254-8c49-b564-d42a54fa53d9",
+            "188f12ae-2295-838a-80c8-f9b467646342",
+            "1e18032f-6a5a-8b5f-b5f5-9e24fc490d66",
+            "1e299a27-5fcd-8d31-b464-d0052992df81",
+            "174f362f-dab2-8c7b-a85d-a8eabdc0e3c6",
+            "11e421b1-3d08-8a8a-a55d-934948ac7b18",
+            "100d8a3b-873e-807c-9448-13e864dcba27",
+            "197639a5-d2ec-8a67-9b1b-aeed70cd5773",
+            "166802a2-73f3-8d2e-b6b7-8f34c5150d56",
+            "1fc6fb42-d891-8671-a2f4-e18e51048a8d",
+            "1d6eeee5-1f4d-8c47-9238-0a45ef3bfedb",
+            "1d3207bd-9b5b-8682-8952-713893739283",
+            "1850d046-d5b6-8aa9-b8a6-e501fd09def4",
+            "148252be-2aff-8f5a-b272-5ca52a85b7e1",
+            "1bc1f5a9-22c5-8001-8c3e-8e32c4efb548",
+            "1dfd9d30-38cd-8747-bc9c-03624f331fba",
+            "1b1f9a05-c927-8eba-9dfd-4fbc06a355f1",
+            "1852c3d1-4764-82ae-a3ee-97f5059400e3",
+            "1e3dfceb-0ca0-892e-8c2b-3592e670c262",
+            "13c3915e-2af2-8aaa-ada8-14f45eca91c9"
+          ]
+        },
+        {
+          "id": "1833",
+          "mutatorName": "Equality mutation",
+          "replacement": "scopes is not null",
+          "location": {
+            "start": {
+              "line": 96,
+              "column": 33
+            },
+            "end": {
+              "line": 96,
+              "column": 47
+            }
+          },
+          "status": "Killed",
+          "static": true,
+          "coveredBy": [],
+          "killedBy": [
+            "1c5d00ec-8898-8a11-bc81-388eb5b08cc9",
+            "121974f7-dc49-8c30-b60a-02964ca2f38c",
+            "1e68819f-277b-8f97-b05f-2cc13f1e22c9",
+            "147536c9-a623-8f01-881b-5c256f987e34",
+            "1f6b9766-e441-8257-a6d8-9523fc1bf113",
+            "1245a01b-059b-8c34-91cf-cffc0d1f232e",
+            "153723d7-76e0-803b-96b9-465a60813a5e",
+            "163c977a-e9f3-825f-b3ed-0abf1e12f63d",
+            "10f7ca08-19bf-8ec9-ae8a-ec9431e6373b",
+            "170921e9-cd91-8910-a0af-f8d205fe4b5d",
+            "184c2926-fcb2-8b1b-900e-68c28374d89a",
+            "1ac55021-a709-84f8-b1eb-cfd532d26c04",
+            "1bb0c5c6-8efa-8fbd-8ad5-0559970deff1",
+            "147a0f33-1172-88b7-9537-d7ac93df8312",
+            "1f3d4df4-6d38-8ddd-a5cc-1b9cdd07728a",
+            "188f12ae-2295-838a-80c8-f9b467646342",
+            "10261997-5254-8c49-b564-d42a54fa53d9",
+            "174f362f-dab2-8c7b-a85d-a8eabdc0e3c6",
+            "1c6bab38-c003-842a-969d-ccfa547925bc",
+            "100d8a3b-873e-807c-9448-13e864dcba27",
+            "12865f0d-0440-8775-a60d-5c54a9567f7e",
+            "1961b0a0-d9e7-89ae-9e9f-e2f817bd7b6d",
+            "166802a2-73f3-8d2e-b6b7-8f34c5150d56",
+            "1e18032f-6a5a-8b5f-b5f5-9e24fc490d66",
+            "1e299a27-5fcd-8d31-b464-d0052992df81",
+            "197639a5-d2ec-8a67-9b1b-aeed70cd5773",
+            "10188a71-dc98-8292-ac84-6352a4244455",
+            "1d53723a-1a23-8fc4-abf1-89f92621c0a8",
+            "11e421b1-3d08-8a8a-a55d-934948ac7b18",
+            "1850d046-d5b6-8aa9-b8a6-e501fd09def4",
+            "1d6eeee5-1f4d-8c47-9238-0a45ef3bfedb",
+            "1d3207bd-9b5b-8682-8952-713893739283",
+            "1fc6fb42-d891-8671-a2f4-e18e51048a8d",
+            "148252be-2aff-8f5a-b272-5ca52a85b7e1",
+            "1bc1f5a9-22c5-8001-8c3e-8e32c4efb548",
+            "13c3915e-2af2-8aaa-ada8-14f45eca91c9",
+            "1c7c1d4d-736a-88ea-b2a3-ebab44756fe7",
+            "17504661-27ec-8146-b001-47a5f1b7edf1",
+            "1b1f9a05-c927-8eba-9dfd-4fbc06a355f1",
+            "1e3dfceb-0ca0-892e-8c2b-3592e670c262",
+            "1852c3d1-4764-82ae-a3ee-97f5059400e3",
+            "19d1c2bf-cb78-895d-b3f0-a3e0f4828cca",
+            "1dfd9d30-38cd-8747-bc9c-03624f331fba",
+            "1eba3729-f10e-837e-8128-2fb4d9a24a1f",
+            "1483b6a8-63b3-853b-a964-9acb419d65dc",
+            "15c8847b-46cb-8cea-8a97-4b1113a31497",
+            "180c1538-6521-8d6c-a415-2bb65c9b952c",
+            "15045437-9af1-8ad4-930a-e2b1a54d9b63"
+          ]
+        }
+      ]
+    },
+    "C:\\miscwork\\portfolio\\cislib\\.artifacts\\csharp\\tasks\\wp06-s03-t03\\mutation-final\\source\\implementations\\csharp\\src\\CIS.Core\\Logging\\MicrosoftLogger\\ProviderScopeCapture.cs": {
+      "language": "cs",
+      "source": "using CIS.Logging.Scopes;\nusing Microsoft.Extensions.Logging;\n\nnamespace CIS.Logging.MicrosoftLogger;\n\n// Host scopes are borrowed; only bounded immutable Core payloads leave this callback.\ninternal static class ProviderScopeCapture\n{\n    internal static CapturedOperationContext Copy(object? state) => state switch\n    {\n        OperationContextData typed => CapturedOperationContext.Capture(typed),\n        IEnumerable<KeyValuePair<string, object?>> fields => ProviderStateCapture.CaptureScope(fields),\n        _ => throw new ArgumentException(\"Use OperationContextData or structured string/object fields for scopes.\", nameof(state))\n    };\n\n    internal static CapturedScopeContext Capture(IExternalScopeProvider scopes, int maximumDepth)\n    {\n        OperationScopeFrame? head = null; int depth = 0;\n        scopes.ForEachScope((state, _) =>\n        {\n            if (++depth > maximumDepth) { throw new InvalidOperationException(\"The maximum combined scope depth is 32.\"); }\n            CapturedOperationContext context;\n            try { context = Copy(state); }\n            catch (ArgumentException) { context = CapturedOperationContext.Omitted; }\n            head = new OperationScopeFrame(context, head);\n        }, 0);\n        return CapturedScopeContext.FromHead(head);\n    }\n}\n",
+      "mutants": [
+        {
+          "id": "1834",
+          "mutatorName": "String mutation",
+          "replacement": "\"\"",
+          "location": {
+            "start": {
+              "line": 13,
+              "column": 42
+            },
+            "end": {
+              "line": 13,
+              "column": 115
+            }
+          },
+          "status": "Survived",
+          "static": true,
+          "coveredBy": [],
+          "killedBy": []
+        },
+        {
+          "id": "1835",
+          "mutatorName": "Block removal mutation",
+          "replacement": "{}",
+          "location": {
+            "start": {
+              "line": 17,
+              "column": 5
+            },
+            "end": {
+              "line": 28,
+              "column": 6
+            }
+          },
+          "status": "Ignored",
+          "statusReason": "Removed by block already covered filter",
+          "static": true,
+          "coveredBy": [],
+          "killedBy": []
+        },
+        {
+          "id": "1836",
+          "mutatorName": "Statement mutation",
+          "replacement": ";",
+          "location": {
+            "start": {
+              "line": 19,
+              "column": 9
+            },
+            "end": {
+              "line": 26,
+              "column": 15
+            }
+          },
+          "status": "Killed",
+          "static": true,
+          "coveredBy": [],
+          "killedBy": [
+            "10188a71-dc98-8292-ac84-6352a4244455",
+            "1c6bab38-c003-842a-969d-ccfa547925bc",
+            "1961b0a0-d9e7-89ae-9e9f-e2f817bd7b6d",
+            "1d53723a-1a23-8fc4-abf1-89f92621c0a8",
+            "12865f0d-0440-8775-a60d-5c54a9567f7e",
+            "1c7c1d4d-736a-88ea-b2a3-ebab44756fe7",
+            "1eba3729-f10e-837e-8128-2fb4d9a24a1f",
+            "19d1c2bf-cb78-895d-b3f0-a3e0f4828cca",
+            "17504661-27ec-8146-b001-47a5f1b7edf1",
+            "1483b6a8-63b3-853b-a964-9acb419d65dc",
+            "180c1538-6521-8d6c-a415-2bb65c9b952c",
+            "15c8847b-46cb-8cea-8a97-4b1113a31497",
+            "1b1f9a05-c927-8eba-9dfd-4fbc06a355f1",
+            "15045437-9af1-8ad4-930a-e2b1a54d9b63"
+          ]
+        },
+        {
+          "id": "1837",
+          "mutatorName": "Block removal mutation",
+          "replacement": "{}",
+          "location": {
+            "start": {
+              "line": 20,
+              "column": 9
+            },
+            "end": {
+              "line": 26,
+              "column": 10
+            }
+          },
+          "status": "Ignored",
+          "statusReason": "Removed by block already covered filter",
+          "static": true,
+          "coveredBy": [],
+          "killedBy": []
+        },
+        {
+          "id": "1838",
+          "mutatorName": "Equality mutation",
+          "replacement": "++depth < maximumDepth",
+          "location": {
+            "start": {
+              "line": 21,
+              "column": 17
+            },
+            "end": {
+              "line": 21,
+              "column": 39
+            }
+          },
+          "status": "Killed",
+          "static": true,
+          "coveredBy": [],
+          "killedBy": [
+            "1d53723a-1a23-8fc4-abf1-89f92621c0a8",
+            "12865f0d-0440-8775-a60d-5c54a9567f7e",
+            "10188a71-dc98-8292-ac84-6352a4244455",
+            "1961b0a0-d9e7-89ae-9e9f-e2f817bd7b6d",
+            "17504661-27ec-8146-b001-47a5f1b7edf1",
+            "1483b6a8-63b3-853b-a964-9acb419d65dc",
+            "15045437-9af1-8ad4-930a-e2b1a54d9b63",
+            "1c7c1d4d-736a-88ea-b2a3-ebab44756fe7",
+            "180c1538-6521-8d6c-a415-2bb65c9b952c",
+            "15c8847b-46cb-8cea-8a97-4b1113a31497",
+            "1eba3729-f10e-837e-8128-2fb4d9a24a1f",
+            "1b1f9a05-c927-8eba-9dfd-4fbc06a355f1"
+          ]
+        },
+        {
+          "id": "1839",
+          "mutatorName": "Equality mutation",
+          "replacement": "++depth >= maximumDepth",
+          "location": {
+            "start": {
+              "line": 21,
+              "column": 17
+            },
+            "end": {
+              "line": 21,
+              "column": 39
+            }
+          },
+          "status": "Survived",
+          "static": true,
+          "coveredBy": [],
+          "killedBy": []
+        },
+        {
+          "id": "1840",
+          "mutatorName": "Negate expression",
+          "replacement": "!(++depth > maximumDepth)",
+          "location": {
+            "start": {
+              "line": 21,
+              "column": 17
+            },
+            "end": {
+              "line": 21,
+              "column": 39
+            }
+          },
+          "status": "Killed",
+          "static": true,
+          "coveredBy": [],
+          "killedBy": [
+            "1d53723a-1a23-8fc4-abf1-89f92621c0a8",
+            "12865f0d-0440-8775-a60d-5c54a9567f7e",
+            "1961b0a0-d9e7-89ae-9e9f-e2f817bd7b6d",
+            "10188a71-dc98-8292-ac84-6352a4244455",
+            "1c7c1d4d-736a-88ea-b2a3-ebab44756fe7",
+            "1b1f9a05-c927-8eba-9dfd-4fbc06a355f1",
+            "1483b6a8-63b3-853b-a964-9acb419d65dc",
+            "15c8847b-46cb-8cea-8a97-4b1113a31497",
+            "1eba3729-f10e-837e-8128-2fb4d9a24a1f",
+            "17504661-27ec-8146-b001-47a5f1b7edf1",
+            "180c1538-6521-8d6c-a415-2bb65c9b952c",
+            "15045437-9af1-8ad4-930a-e2b1a54d9b63"
+          ]
+        },
+        {
+          "id": "1841",
+          "mutatorName": "PreIncrementExpression to PreDecrementExpression mutation",
+          "replacement": "--depth",
+          "location": {
+            "start": {
+              "line": 21,
+              "column": 17
+            },
+            "end": {
+              "line": 21,
+              "column": 24
+            }
+          },
+          "status": "Survived",
+          "static": true,
+          "coveredBy": [],
+          "killedBy": []
+        },
+        {
+          "id": "1842",
+          "mutatorName": "Block removal mutation",
+          "replacement": "{}",
+          "location": {
+            "start": {
+              "line": 21,
+              "column": 41
+            },
+            "end": {
+              "line": 21,
+              "column": 124
+            }
+          },
+          "status": "Ignored",
+          "statusReason": "Removed by block already covered filter",
+          "static": false,
+          "coveredBy": [
+            "1e3dfceb-0ca0-892e-8c2b-3592e670c262",
+            "180c1538-6521-8d6c-a415-2bb65c9b952c"
+          ],
+          "killedBy": []
+        },
+        {
+          "id": "1843",
+          "mutatorName": "Statement mutation",
+          "replacement": ";",
+          "location": {
+            "start": {
+              "line": 21,
+              "column": 43
+            },
+            "end": {
+              "line": 21,
+              "column": 122
+            }
+          },
+          "status": "Survived",
+          "static": false,
+          "coveredBy": [
+            "1e3dfceb-0ca0-892e-8c2b-3592e670c262",
+            "180c1538-6521-8d6c-a415-2bb65c9b952c"
+          ],
+          "killedBy": []
+        },
+        {
+          "id": "1844",
+          "mutatorName": "String mutation",
+          "replacement": "\"\"",
+          "location": {
+            "start": {
+              "line": 21,
+              "column": 79
+            },
+            "end": {
+              "line": 21,
+              "column": 120
+            }
+          },
+          "status": "Survived",
+          "static": false,
+          "coveredBy": [
+            "1e3dfceb-0ca0-892e-8c2b-3592e670c262",
+            "180c1538-6521-8d6c-a415-2bb65c9b952c"
+          ],
+          "killedBy": []
+        },
+        {
+          "id": "1845",
+          "mutatorName": "Block removal mutation",
+          "replacement": "{}",
+          "location": {
+            "start": {
+              "line": 23,
+              "column": 17
+            },
+            "end": {
+              "line": 23,
+              "column": 43
+            }
+          },
+          "status": "CompileError",
+          "statusReason": "Mutant caused compile errors",
+          "static": false,
+          "coveredBy": [],
+          "killedBy": []
+        },
+        {
+          "id": "1846",
+          "mutatorName": "Block removal mutation",
+          "replacement": "{}",
+          "location": {
+            "start": {
+              "line": 24,
+              "column": 39
+            },
+            "end": {
+              "line": 24,
+              "column": 86
+            }
+          },
+          "status": "CompileError",
+          "statusReason": "Mutant caused compile errors",
+          "static": false,
+          "coveredBy": [],
+          "killedBy": []
+        }
+      ]
+    },
+    "C:\\miscwork\\portfolio\\cislib\\.artifacts\\csharp\\tasks\\wp06-s03-t03\\mutation-final\\source\\implementations\\csharp\\src\\CIS.Core\\Logging\\MicrosoftLogger\\ProviderStateCapture.cs": {
+      "language": "cs",
+      "source": "using System.Collections;\nusing System.Globalization;\nusing CIS.Logging.Scopes;\nusing CIS.Logging.Values;\n\nnamespace CIS.Logging.MicrosoftLogger;\n\n// A single bounded synchronous copy; no template parsing or arbitrary object serialization.\ninternal sealed class ProviderStateCapture\n{\n    private int remaining;\n    private ProviderStateCapture(bool includeEventId) => remaining = LogValueProjection.MaximumNodes - (includeEventId ? 2 : 1);\n    private readonly HashSet<object> ancestors = new(ReferenceEqualityComparer.Instance);\n\n    internal static (string? Template, LogValue Attributes) Capture<TState>(TState state, int eventId)\n    {\n        var captured = CaptureRoot(state, eventId, includeEventId: true);\n        return (captured.Template, captured.Attributes);\n    }\n\n    internal static CapturedOperationContext CaptureScope(IEnumerable<KeyValuePair<string, object?>> state)\n    {\n        var captured = CaptureRoot(state, 0, includeEventId: false);\n        return CapturedOperationContext.FromAttributes(captured.Attributes, captured.OperationId);\n    }\n\n    private static (string? Template, LogValue Attributes, string? OperationId) CaptureRoot<TState>(TState state, int eventId, bool includeEventId)\n    {\n        var capture = new ProviderStateCapture(includeEventId);\n        var attributes = new Dictionary<string, LogValue>(StringComparer.Ordinal);\n        if (includeEventId) { attributes[\"event_id\"] = LogValue.Integer(eventId); }\n        if (state is not IEnumerable<KeyValuePair<string, object?>> fields)\n        { return (null, LogValue.OwnedMap(attributes, truncated: false), null); }\n        string? template = null, operationId = null; bool truncated = false; int visited = 0;\n        capture.Enter(fields);\n        try\n        {\n            foreach ((string key, object? value) in fields)\n            {\n                if (++visited > LogValueProjection.MaximumNodes) { truncated = true; break; }\n                if (key == \"{OriginalFormat}\")\n                {\n                    if (value is not null and not string) { throw new ArgumentException(\"OriginalFormat must be a string or null.\"); }\n                    template = (string?)value; continue;\n                }\n                if (!includeEventId && key == \"operation_id\")\n                {\n                    if (value is string identifier)\n                    {\n                        operationId = CapturedOperationContext.NormalizeOperationId(identifier, \"state\");\n                        attributes.Remove(key); continue;\n                    }\n                    operationId = null;\n                }\n                if (includeEventId && key == \"event_id\") { continue; }\n                // Keep scanning bounded root metadata after the value budget is spent.\n                if (capture.remaining == 0) { truncated = true; continue; }\n                ValidateKey(key);\n                LogValue? retained = capture.Value(value, depth: 2);\n                if (retained is null) { truncated = true; continue; }\n                attributes[key] = retained;\n            }\n        }\n        finally { capture.ancestors.Remove(fields); }\n        return (template, LogValue.OwnedMap(attributes, truncated), operationId);\n    }\n\n    private LogValue? Value(object? value, int depth)\n    {\n        if (remaining == 0 || depth > LogValueProjection.MaximumDepth) { return null; }\n        if (value is LogValue existing && existing.NodeCount <= remaining && depth - 1 + existing.Depth <= LogValueProjection.MaximumDepth)\n        { remaining -= existing.NodeCount; return existing; }\n        remaining--;\n        return value switch\n        {\n            null => LogValue.Null(),\n            LogValue owned when owned.Kind == LogValueKind.Array => Array(owned.ArrayItems, depth, owned.IsTruncated),\n            LogValue owned when owned.Kind == LogValueKind.Map => Map(owned.MapProperties.Select(p => new KeyValuePair<string, object?>(p.Key, p.Value)), depth, owned.IsTruncated),\n            bool scalar => LogValue.Boolean(scalar),\n            string scalar => LogValue.String(scalar),\n            char scalar => LogValue.String(new string(scalar, 1)),\n            sbyte scalar => LogValue.Integer(scalar),\n            byte scalar => LogValue.Integer(scalar),\n            short scalar => LogValue.Integer(scalar),\n            ushort scalar => LogValue.Integer(scalar),\n            int scalar => LogValue.Integer(scalar),\n            uint scalar => LogValue.Integer(scalar),\n            long scalar => LogValue.Integer(scalar),\n            ulong scalar when scalar <= 9_007_199_254_740_991 => LogValue.Integer((long)scalar),\n            float scalar => LogValue.Number(scalar),\n            double scalar => LogValue.Number(scalar),\n            decimal scalar => Decimal(scalar),\n            Guid scalar => LogValue.Uuid(scalar),\n            DateTimeOffset scalar => LogValue.Timestamp(scalar),\n            DateTime scalar when scalar.Kind == DateTimeKind.Utc => LogValue.Timestamp(new DateTimeOffset(scalar)),\n            IEnumerable<KeyValuePair<string, object?>> properties => Map(properties, depth),\n            IDictionary properties => Map(Entries(properties), depth, owner: properties),\n            IEnumerable items => Array(items, depth),\n            _ => throw new ArgumentException(\"Use supported scalar, collection or explicit LogValue inputs.\")\n        };\n    }\n\n    private LogValue Array(IEnumerable items, int depth, bool truncated = false)\n    {\n        Enter(items);\n        try\n        {\n            var owned = new List<LogValue>();\n            foreach (object? item in items)\n            {\n                LogValue? retained = Value(item, depth + 1);\n                if (retained is null) { truncated = true; break; }\n                owned.Add(retained);\n            }\n            return LogValue.OwnedArray(owned, truncated);\n        }\n        finally { ancestors.Remove(items); }\n    }\n\n    private LogValue Map(IEnumerable<KeyValuePair<string, object?>> properties, int depth, bool truncated = false, object? owner = null)\n    {\n        owner ??= properties; Enter(owner);\n        try\n        {\n            var owned = new Dictionary<string, LogValue>(StringComparer.Ordinal);\n            foreach ((string key, object? value) in properties)\n            {\n                ValidateKey(key);\n                LogValue? retained = Value(value, depth + 1);\n                if (retained is null) { truncated = true; break; }\n                owned[key] = retained;\n            }\n            return LogValue.OwnedMap(owned, truncated);\n        }\n        finally { ancestors.Remove(owner); }\n    }\n\n    private static IEnumerable<KeyValuePair<string, object?>> Entries(IDictionary properties)\n    {\n        foreach (DictionaryEntry entry in properties)\n        { yield return new(entry.Key as string ?? throw new ArgumentException(\"Map keys must be strings.\"), entry.Value); }\n    }\n\n    private void Enter(object collection)\n    {\n        if (!ancestors.Add(collection)) { throw new ArgumentException(\"Cyclic state is unsupported.\"); }\n    }\n    private static void ValidateKey(string key)\n    {\n        if (key is null || !LogValueText.IsValidKey(key)) { throw new ArgumentException(\"Use valid ordinal attribute keys.\"); }\n    }\n    private static LogValue Decimal(decimal value)\n    {\n        string text = value.ToString(CultureInfo.InvariantCulture);\n        return LogValue.DecimalString(text.Contains('.', StringComparison.Ordinal) ? text : text + \".0\");\n    }\n}\n",
+      "mutants": [
+        {
+          "id": "1847",
+          "mutatorName": "Arithmetic mutation",
+          "replacement": "LogValueProjection.MaximumNodes + (includeEventId ? 2 : 1)",
+          "location": {
+            "start": {
+              "line": 12,
+              "column": 70
+            },
+            "end": {
+              "line": 12,
+              "column": 128
+            }
+          },
+          "status": "Killed",
+          "static": true,
+          "coveredBy": [],
+          "killedBy": [
+            "148252be-2aff-8f5a-b272-5ca52a85b7e1"
+          ]
+        },
+        {
+          "id": "1848",
+          "mutatorName": "Conditional (true) mutation",
+          "replacement": "(true?2 :1)",
+          "location": {
+            "start": {
+              "line": 12,
+              "column": 105
+            },
+            "end": {
+              "line": 12,
+              "column": 127
+            }
+          },
+          "status": "Killed",
+          "static": true,
+          "coveredBy": [],
+          "killedBy": [
+            "11e421b1-3d08-8a8a-a55d-934948ac7b18",
+            "1b1f9a05-c927-8eba-9dfd-4fbc06a355f1"
+          ]
+        },
+        {
+          "id": "1849",
+          "mutatorName": "Conditional (false) mutation",
+          "replacement": "(false?2 :1)",
+          "location": {
+            "start": {
+              "line": 12,
+              "column": 105
+            },
+            "end": {
+              "line": 12,
+              "column": 127
+            }
+          },
+          "status": "Killed",
+          "static": true,
+          "coveredBy": [],
+          "killedBy": [
+            "148252be-2aff-8f5a-b272-5ca52a85b7e1"
+          ]
+        },
+        {
+          "id": "1850",
+          "mutatorName": "Block removal mutation",
+          "replacement": "{}",
+          "location": {
+            "start": {
+              "line": 16,
+              "column": 5
+            },
+            "end": {
+              "line": 19,
+              "column": 6
+            }
+          },
+          "status": "Ignored",
+          "statusReason": "Removed by block already covered filter",
+          "static": true,
+          "coveredBy": [],
+          "killedBy": []
+        },
+        {
+          "id": "1851",
+          "mutatorName": "Boolean mutation",
+          "replacement": "false",
+          "location": {
+            "start": {
+              "line": 17,
+              "column": 68
+            },
+            "end": {
+              "line": 17,
+              "column": 72
+            }
+          },
+          "status": "Killed",
+          "static": true,
+          "coveredBy": [],
+          "killedBy": [
+            "10f7ca08-19bf-8ec9-ae8a-ec9431e6373b",
+            "184c2926-fcb2-8b1b-900e-68c28374d89a",
+            "1f6b9766-e441-8257-a6d8-9523fc1bf113",
+            "111eb873-0a0e-8833-b3ab-1d2afbc7d693",
+            "170921e9-cd91-8910-a0af-f8d205fe4b5d",
+            "1c5d00ec-8898-8a11-bc81-388eb5b08cc9",
+            "11e5146d-66c5-8eb8-811a-4785569bb107",
+            "1245a01b-059b-8c34-91cf-cffc0d1f232e",
+            "163c977a-e9f3-825f-b3ed-0abf1e12f63d",
+            "1f3d4df4-6d38-8ddd-a5cc-1b9cdd07728a",
+            "147a0f33-1172-88b7-9537-d7ac93df8312",
+            "188f12ae-2295-838a-80c8-f9b467646342",
+            "1bb0c5c6-8efa-8fbd-8ad5-0559970deff1",
+            "10261997-5254-8c49-b564-d42a54fa53d9",
+            "100d8a3b-873e-807c-9448-13e864dcba27",
+            "1c6bab38-c003-842a-969d-ccfa547925bc",
+            "1d53723a-1a23-8fc4-abf1-89f92621c0a8",
+            "10188a71-dc98-8292-ac84-6352a4244455",
+            "166802a2-73f3-8d2e-b6b7-8f34c5150d56",
+            "1e18032f-6a5a-8b5f-b5f5-9e24fc490d66",
+            "1961b0a0-d9e7-89ae-9e9f-e2f817bd7b6d",
+            "197639a5-d2ec-8a67-9b1b-aeed70cd5773",
+            "174f362f-dab2-8c7b-a85d-a8eabdc0e3c6",
+            "1e299a27-5fcd-8d31-b464-d0052992df81",
+            "12865f0d-0440-8775-a60d-5c54a9567f7e",
+            "11e421b1-3d08-8a8a-a55d-934948ac7b18",
+            "1d3207bd-9b5b-8682-8952-713893739283",
+            "1fc6fb42-d891-8671-a2f4-e18e51048a8d",
+            "1d6eeee5-1f4d-8c47-9238-0a45ef3bfedb",
+            "148252be-2aff-8f5a-b272-5ca52a85b7e1",
+            "1850d046-d5b6-8aa9-b8a6-e501fd09def4",
+            "1c7c1d4d-736a-88ea-b2a3-ebab44756fe7",
+            "15045437-9af1-8ad4-930a-e2b1a54d9b63",
+            "17504661-27ec-8146-b001-47a5f1b7edf1",
+            "1eba3729-f10e-837e-8128-2fb4d9a24a1f",
+            "1dfd9d30-38cd-8747-bc9c-03624f331fba",
+            "180c1538-6521-8d6c-a415-2bb65c9b952c",
+            "1e3dfceb-0ca0-892e-8c2b-3592e670c262",
+            "15c8847b-46cb-8cea-8a97-4b1113a31497",
+            "19d1c2bf-cb78-895d-b3f0-a3e0f4828cca",
+            "1483b6a8-63b3-853b-a964-9acb419d65dc",
+            "1b1f9a05-c927-8eba-9dfd-4fbc06a355f1",
+            "1bc1f5a9-22c5-8001-8c3e-8e32c4efb548",
+            "1852c3d1-4764-82ae-a3ee-97f5059400e3",
+            "13c3915e-2af2-8aaa-ada8-14f45eca91c9"
+          ]
+        },
+        {
+          "id": "1852",
+          "mutatorName": "Block removal mutation",
+          "replacement": "{}",
+          "location": {
+            "start": {
+              "line": 22,
+              "column": 5
+            },
+            "end": {
+              "line": 25,
+              "column": 6
+            }
+          },
+          "status": "Ignored",
+          "statusReason": "Removed by block already covered filter",
+          "static": true,
+          "coveredBy": [],
+          "killedBy": []
+        },
+        {
+          "id": "1853",
+          "mutatorName": "Boolean mutation",
+          "replacement": "true",
+          "location": {
+            "start": {
+              "line": 23,
+              "column": 62
+            },
+            "end": {
+              "line": 23,
+              "column": 67
+            }
+          },
+          "status": "Killed",
+          "static": true,
+          "coveredBy": [],
+          "killedBy": [
+            "174f362f-dab2-8c7b-a85d-a8eabdc0e3c6",
+            "1961b0a0-d9e7-89ae-9e9f-e2f817bd7b6d",
+            "1d53723a-1a23-8fc4-abf1-89f92621c0a8",
+            "12865f0d-0440-8775-a60d-5c54a9567f7e",
+            "1e299a27-5fcd-8d31-b464-d0052992df81",
+            "1e18032f-6a5a-8b5f-b5f5-9e24fc490d66",
+            "197639a5-d2ec-8a67-9b1b-aeed70cd5773",
+            "10188a71-dc98-8292-ac84-6352a4244455",
+            "166802a2-73f3-8d2e-b6b7-8f34c5150d56",
+            "11e421b1-3d08-8a8a-a55d-934948ac7b18",
+            "1b1f9a05-c927-8eba-9dfd-4fbc06a355f1"
+          ]
+        },
+        {
+          "id": "1854",
+          "mutatorName": "Block removal mutation",
+          "replacement": "{}",
+          "location": {
+            "start": {
+              "line": 28,
+              "column": 5
+            },
+            "end": {
+              "line": 66,
+              "column": 6
+            }
+          },
+          "status": "CompileError",
+          "statusReason": "Mutant caused compile errors",
+          "static": false,
+          "coveredBy": [],
+          "killedBy": []
+        },
+        {
+          "id": "1855",
+          "mutatorName": "Negate expression",
+          "replacement": "!(includeEventId)",
+          "location": {
+            "start": {
+              "line": 31,
+              "column": 13
+            },
+            "end": {
+              "line": 31,
+              "column": 27
+            }
+          },
+          "status": "Killed",
+          "static": true,
+          "coveredBy": [],
+          "killedBy": [
+            "184c2926-fcb2-8b1b-900e-68c28374d89a",
+            "111eb873-0a0e-8833-b3ab-1d2afbc7d693",
+            "1c5d00ec-8898-8a11-bc81-388eb5b08cc9",
+            "10f7ca08-19bf-8ec9-ae8a-ec9431e6373b",
+            "163c977a-e9f3-825f-b3ed-0abf1e12f63d",
+            "1f6b9766-e441-8257-a6d8-9523fc1bf113",
+            "1245a01b-059b-8c34-91cf-cffc0d1f232e",
+            "170921e9-cd91-8910-a0af-f8d205fe4b5d",
+            "11e5146d-66c5-8eb8-811a-4785569bb107",
+            "147a0f33-1172-88b7-9537-d7ac93df8312",
+            "10261997-5254-8c49-b564-d42a54fa53d9",
+            "1bb0c5c6-8efa-8fbd-8ad5-0559970deff1",
+            "188f12ae-2295-838a-80c8-f9b467646342",
+            "1f3d4df4-6d38-8ddd-a5cc-1b9cdd07728a",
+            "1c6bab38-c003-842a-969d-ccfa547925bc",
+            "197639a5-d2ec-8a67-9b1b-aeed70cd5773",
+            "12865f0d-0440-8775-a60d-5c54a9567f7e",
+            "1961b0a0-d9e7-89ae-9e9f-e2f817bd7b6d",
+            "100d8a3b-873e-807c-9448-13e864dcba27",
+            "1e18032f-6a5a-8b5f-b5f5-9e24fc490d66",
+            "166802a2-73f3-8d2e-b6b7-8f34c5150d56",
+            "10188a71-dc98-8292-ac84-6352a4244455",
+            "1d53723a-1a23-8fc4-abf1-89f92621c0a8",
+            "174f362f-dab2-8c7b-a85d-a8eabdc0e3c6",
+            "1e299a27-5fcd-8d31-b464-d0052992df81",
+            "17504661-27ec-8146-b001-47a5f1b7edf1",
+            "180c1538-6521-8d6c-a415-2bb65c9b952c",
+            "1eba3729-f10e-837e-8128-2fb4d9a24a1f",
+            "1e3dfceb-0ca0-892e-8c2b-3592e670c262",
+            "1c7c1d4d-736a-88ea-b2a3-ebab44756fe7",
+            "19d1c2bf-cb78-895d-b3f0-a3e0f4828cca",
+            "1dfd9d30-38cd-8747-bc9c-03624f331fba",
+            "11e421b1-3d08-8a8a-a55d-934948ac7b18",
+            "15c8847b-46cb-8cea-8a97-4b1113a31497",
+            "1483b6a8-63b3-853b-a964-9acb419d65dc",
+            "1b1f9a05-c927-8eba-9dfd-4fbc06a355f1",
+            "1852c3d1-4764-82ae-a3ee-97f5059400e3",
+            "15045437-9af1-8ad4-930a-e2b1a54d9b63",
+            "1850d046-d5b6-8aa9-b8a6-e501fd09def4",
+            "1d3207bd-9b5b-8682-8952-713893739283",
+            "13c3915e-2af2-8aaa-ada8-14f45eca91c9",
+            "148252be-2aff-8f5a-b272-5ca52a85b7e1",
+            "1bc1f5a9-22c5-8001-8c3e-8e32c4efb548",
+            "1fc6fb42-d891-8671-a2f4-e18e51048a8d",
+            "1d6eeee5-1f4d-8c47-9238-0a45ef3bfedb"
+          ]
+        },
+        {
+          "id": "1856",
+          "mutatorName": "Block removal mutation",
+          "replacement": "{}",
+          "location": {
+            "start": {
+              "line": 31,
+              "column": 29
+            },
+            "end": {
+              "line": 31,
+              "column": 84
+            }
+          },
+          "status": "CompileError",
+          "statusReason": "Mutant caused compile errors",
+          "static": false,
+          "coveredBy": [],
+          "killedBy": []
+        },
+        {
+          "id": "1857",
+          "mutatorName": "String mutation",
+          "replacement": "\"\"",
+          "location": {
+            "start": {
+              "line": 31,
+              "column": 42
+            },
+            "end": {
+              "line": 31,
+              "column": 52
+            }
+          },
+          "status": "Killed",
+          "static": true,
+          "coveredBy": [],
+          "killedBy": [
+            "1e68819f-277b-8f97-b05f-2cc13f1e22c9",
+            "163c977a-e9f3-825f-b3ed-0abf1e12f63d",
+            "121974f7-dc49-8c30-b60a-02964ca2f38c",
+            "147536c9-a623-8f01-881b-5c256f987e34",
+            "1f6b9766-e441-8257-a6d8-9523fc1bf113",
+            "10f7ca08-19bf-8ec9-ae8a-ec9431e6373b",
+            "170921e9-cd91-8910-a0af-f8d205fe4b5d",
+            "153723d7-76e0-803b-96b9-465a60813a5e",
+            "1c5d00ec-8898-8a11-bc81-388eb5b08cc9",
+            "1245a01b-059b-8c34-91cf-cffc0d1f232e",
+            "184c2926-fcb2-8b1b-900e-68c28374d89a",
+            "1ac55021-a709-84f8-b1eb-cfd532d26c04",
+            "10261997-5254-8c49-b564-d42a54fa53d9",
+            "1f3d4df4-6d38-8ddd-a5cc-1b9cdd07728a",
+            "1bb0c5c6-8efa-8fbd-8ad5-0559970deff1",
+            "147a0f33-1172-88b7-9537-d7ac93df8312",
+            "188f12ae-2295-838a-80c8-f9b467646342",
+            "197639a5-d2ec-8a67-9b1b-aeed70cd5773",
+            "166802a2-73f3-8d2e-b6b7-8f34c5150d56",
+            "174f362f-dab2-8c7b-a85d-a8eabdc0e3c6",
+            "100d8a3b-873e-807c-9448-13e864dcba27",
+            "1e18032f-6a5a-8b5f-b5f5-9e24fc490d66",
+            "1c6bab38-c003-842a-969d-ccfa547925bc",
+            "1961b0a0-d9e7-89ae-9e9f-e2f817bd7b6d",
+            "1d53723a-1a23-8fc4-abf1-89f92621c0a8",
+            "1e299a27-5fcd-8d31-b464-d0052992df81",
+            "12865f0d-0440-8775-a60d-5c54a9567f7e",
+            "10188a71-dc98-8292-ac84-6352a4244455",
+            "1850d046-d5b6-8aa9-b8a6-e501fd09def4",
+            "1d3207bd-9b5b-8682-8952-713893739283",
+            "1d6eeee5-1f4d-8c47-9238-0a45ef3bfedb",
+            "1fc6fb42-d891-8671-a2f4-e18e51048a8d",
+            "1bc1f5a9-22c5-8001-8c3e-8e32c4efb548",
+            "148252be-2aff-8f5a-b272-5ca52a85b7e1",
+            "17504661-27ec-8146-b001-47a5f1b7edf1",
+            "15c8847b-46cb-8cea-8a97-4b1113a31497",
+            "1e3dfceb-0ca0-892e-8c2b-3592e670c262",
+            "180c1538-6521-8d6c-a415-2bb65c9b952c",
+            "1dfd9d30-38cd-8747-bc9c-03624f331fba",
+            "13c3915e-2af2-8aaa-ada8-14f45eca91c9",
+            "1eba3729-f10e-837e-8128-2fb4d9a24a1f",
+            "1c7c1d4d-736a-88ea-b2a3-ebab44756fe7",
+            "1483b6a8-63b3-853b-a964-9acb419d65dc",
+            "19d1c2bf-cb78-895d-b3f0-a3e0f4828cca",
+            "1b1f9a05-c927-8eba-9dfd-4fbc06a355f1",
+            "15045437-9af1-8ad4-930a-e2b1a54d9b63",
+            "1852c3d1-4764-82ae-a3ee-97f5059400e3"
+          ]
+        },
+        {
+          "id": "1858",
+          "mutatorName": "Equality mutation",
+          "replacement": "state is IEnumerable<KeyValuePair<string, object?>> fields",
+          "location": {
+            "start": {
+              "line": 32,
+              "column": 13
+            },
+            "end": {
+              "line": 32,
+              "column": 75
+            }
+          },
+          "status": "CompileError",
+          "statusReason": "Mutant caused compile errors",
+          "static": false,
+          "coveredBy": [],
+          "killedBy": []
+        },
+        {
+          "id": "1859",
+          "mutatorName": "Block removal mutation",
+          "replacement": "{}",
+          "location": {
+            "start": {
+              "line": 33,
+              "column": 9
+            },
+            "end": {
+              "line": 33,
+              "column": 82
+            }
+          },
+          "status": "CompileError",
+          "statusReason": "Mutant caused compile errors",
+          "static": false,
+          "coveredBy": [],
+          "killedBy": []
+        },
+        {
+          "id": "1860",
+          "mutatorName": "Boolean mutation",
+          "replacement": "true",
+          "location": {
+            "start": {
+              "line": 33,
+              "column": 66
+            },
+            "end": {
+              "line": 33,
+              "column": 71
+            }
+          },
+          "status": "Killed",
+          "static": true,
+          "coveredBy": [],
+          "killedBy": [
+            "1e68819f-277b-8f97-b05f-2cc13f1e22c9",
+            "147536c9-a623-8f01-881b-5c256f987e34",
+            "1245a01b-059b-8c34-91cf-cffc0d1f232e",
+            "1ac55021-a709-84f8-b1eb-cfd532d26c04",
+            "121974f7-dc49-8c30-b60a-02964ca2f38c",
+            "1f3d4df4-6d38-8ddd-a5cc-1b9cdd07728a",
+            "147a0f33-1172-88b7-9537-d7ac93df8312",
+            "1bb0c5c6-8efa-8fbd-8ad5-0559970deff1",
+            "10261997-5254-8c49-b564-d42a54fa53d9"
+          ]
+        },
+        {
+          "id": "1861",
+          "mutatorName": "Boolean mutation",
+          "replacement": "true",
+          "location": {
+            "start": {
+              "line": 34,
+              "column": 71
+            },
+            "end": {
+              "line": 34,
+              "column": 76
+            }
+          },
+          "status": "Killed",
+          "static": true,
+          "coveredBy": [],
+          "killedBy": [
+            "153723d7-76e0-803b-96b9-465a60813a5e",
+            "10f7ca08-19bf-8ec9-ae8a-ec9431e6373b",
+            "18e2118f-de47-84b0-8ace-3c0b52dd67da",
+            "184c2926-fcb2-8b1b-900e-68c28374d89a",
+            "11e5146d-66c5-8eb8-811a-4785569bb107",
+            "1f6b9766-e441-8257-a6d8-9523fc1bf113",
+            "170921e9-cd91-8910-a0af-f8d205fe4b5d",
+            "111eb873-0a0e-8833-b3ab-1d2afbc7d693",
+            "163c977a-e9f3-825f-b3ed-0abf1e12f63d",
+            "188f12ae-2295-838a-80c8-f9b467646342",
+            "10188a71-dc98-8292-ac84-6352a4244455",
+            "166802a2-73f3-8d2e-b6b7-8f34c5150d56",
+            "100d8a3b-873e-807c-9448-13e864dcba27",
+            "12865f0d-0440-8775-a60d-5c54a9567f7e",
+            "197639a5-d2ec-8a67-9b1b-aeed70cd5773",
+            "1e299a27-5fcd-8d31-b464-d0052992df81",
+            "1e18032f-6a5a-8b5f-b5f5-9e24fc490d66",
+            "1d53723a-1a23-8fc4-abf1-89f92621c0a8",
+            "1c6bab38-c003-842a-969d-ccfa547925bc",
+            "174f362f-dab2-8c7b-a85d-a8eabdc0e3c6",
+            "1d6eeee5-1f4d-8c47-9238-0a45ef3bfedb",
+            "1d3207bd-9b5b-8682-8952-713893739283",
+            "1fc6fb42-d891-8671-a2f4-e18e51048a8d",
+            "1850d046-d5b6-8aa9-b8a6-e501fd09def4",
+            "1bc1f5a9-22c5-8001-8c3e-8e32c4efb548",
+            "1eba3729-f10e-837e-8128-2fb4d9a24a1f",
+            "1dfd9d30-38cd-8747-bc9c-03624f331fba",
+            "1852c3d1-4764-82ae-a3ee-97f5059400e3",
+            "15045437-9af1-8ad4-930a-e2b1a54d9b63",
+            "19d1c2bf-cb78-895d-b3f0-a3e0f4828cca",
+            "17504661-27ec-8146-b001-47a5f1b7edf1",
+            "180c1538-6521-8d6c-a415-2bb65c9b952c",
+            "1c7c1d4d-736a-88ea-b2a3-ebab44756fe7",
+            "1483b6a8-63b3-853b-a964-9acb419d65dc",
+            "15c8847b-46cb-8cea-8a97-4b1113a31497",
+            "1e3dfceb-0ca0-892e-8c2b-3592e670c262"
+          ]
+        },
+        {
+          "id": "1862",
+          "mutatorName": "Statement mutation",
+          "replacement": ";",
+          "location": {
+            "start": {
+              "line": 35,
+              "column": 9
+            },
+            "end": {
+              "line": 35,
+              "column": 31
+            }
+          },
+          "status": "CompileError",
+          "statusReason": "Mutant caused compile errors",
+          "static": false,
+          "coveredBy": [],
+          "killedBy": []
+        },
+        {
+          "id": "1863",
+          "mutatorName": "Block removal mutation",
+          "replacement": "{}",
+          "location": {
+            "start": {
+              "line": 37,
+              "column": 9
+            },
+            "end": {
+              "line": 63,
+              "column": 10
+            }
+          },
+          "status": "CompileError",
+          "statusReason": "Mutant caused compile errors",
+          "static": false,
+          "coveredBy": [],
+          "killedBy": []
+        },
+        {
+          "id": "1864",
+          "mutatorName": "Block removal mutation",
+          "replacement": "{}",
+          "location": {
+            "start": {
+              "line": 39,
+              "column": 13
+            },
+            "end": {
+              "line": 62,
+              "column": 14
+            }
+          },
+          "status": "CompileError",
+          "statusReason": "Mutant caused compile errors",
+          "static": false,
+          "coveredBy": [],
+          "killedBy": []
+        },
+        {
+          "id": "1865",
+          "mutatorName": "Equality mutation",
+          "replacement": "++visited < LogValueProjection.MaximumNodes",
+          "location": {
+            "start": {
+              "line": 40,
+              "column": 21
+            },
+            "end": {
+              "line": 40,
+              "column": 64
+            }
+          },
+          "status": "Killed",
+          "static": true,
+          "coveredBy": [],
+          "killedBy": [
+            "184c2926-fcb2-8b1b-900e-68c28374d89a",
+            "163c977a-e9f3-825f-b3ed-0abf1e12f63d",
+            "11e5146d-66c5-8eb8-811a-4785569bb107",
+            "111eb873-0a0e-8833-b3ab-1d2afbc7d693",
+            "18e2118f-de47-84b0-8ace-3c0b52dd67da",
+            "10f7ca08-19bf-8ec9-ae8a-ec9431e6373b",
+            "170921e9-cd91-8910-a0af-f8d205fe4b5d",
+            "1f6b9766-e441-8257-a6d8-9523fc1bf113",
+            "153723d7-76e0-803b-96b9-465a60813a5e",
+            "1c5d00ec-8898-8a11-bc81-388eb5b08cc9",
+            "188f12ae-2295-838a-80c8-f9b467646342",
+            "1e18032f-6a5a-8b5f-b5f5-9e24fc490d66",
+            "1d53723a-1a23-8fc4-abf1-89f92621c0a8",
+            "197639a5-d2ec-8a67-9b1b-aeed70cd5773",
+            "174f362f-dab2-8c7b-a85d-a8eabdc0e3c6",
+            "12865f0d-0440-8775-a60d-5c54a9567f7e",
+            "1e299a27-5fcd-8d31-b464-d0052992df81",
+            "100d8a3b-873e-807c-9448-13e864dcba27",
+            "11e421b1-3d08-8a8a-a55d-934948ac7b18",
+            "1961b0a0-d9e7-89ae-9e9f-e2f817bd7b6d",
+            "10188a71-dc98-8292-ac84-6352a4244455",
+            "166802a2-73f3-8d2e-b6b7-8f34c5150d56",
+            "1fb9faf9-9d4b-8c9b-8349-1c2b8aa817e2",
+            "1d3207bd-9b5b-8682-8952-713893739283",
+            "148252be-2aff-8f5a-b272-5ca52a85b7e1",
+            "1850d046-d5b6-8aa9-b8a6-e501fd09def4",
+            "1d6eeee5-1f4d-8c47-9238-0a45ef3bfedb",
+            "1fc6fb42-d891-8671-a2f4-e18e51048a8d",
+            "1e3dfceb-0ca0-892e-8c2b-3592e670c262",
+            "1dfd9d30-38cd-8747-bc9c-03624f331fba",
+            "15c8847b-46cb-8cea-8a97-4b1113a31497",
+            "1b1f9a05-c927-8eba-9dfd-4fbc06a355f1",
+            "1c7c1d4d-736a-88ea-b2a3-ebab44756fe7",
+            "1483b6a8-63b3-853b-a964-9acb419d65dc",
+            "13c3915e-2af2-8aaa-ada8-14f45eca91c9",
+            "1bc1f5a9-22c5-8001-8c3e-8e32c4efb548",
+            "1eba3729-f10e-837e-8128-2fb4d9a24a1f"
+          ]
+        },
+        {
+          "id": "1866",
+          "mutatorName": "Equality mutation",
+          "replacement": "++visited >= LogValueProjection.MaximumNodes",
+          "location": {
+            "start": {
+              "line": 40,
+              "column": 21
+            },
+            "end": {
+              "line": 40,
+              "column": 64
+            }
+          },
+          "status": "Killed",
+          "static": true,
+          "coveredBy": [],
+          "killedBy": [
+            "11e421b1-3d08-8a8a-a55d-934948ac7b18",
+            "1b1f9a05-c927-8eba-9dfd-4fbc06a355f1"
+          ]
+        },
+        {
+          "id": "1867",
+          "mutatorName": "Negate expression",
+          "replacement": "!(++visited > LogValueProjection.MaximumNodes)",
+          "location": {
+            "start": {
+              "line": 40,
+              "column": 21
+            },
+            "end": {
+              "line": 40,
+              "column": 64
+            }
+          },
+          "status": "Killed",
+          "static": true,
+          "coveredBy": [],
+          "killedBy": [
+            "10f7ca08-19bf-8ec9-ae8a-ec9431e6373b",
+            "1f6b9766-e441-8257-a6d8-9523fc1bf113",
+            "163c977a-e9f3-825f-b3ed-0abf1e12f63d",
+            "170921e9-cd91-8910-a0af-f8d205fe4b5d",
+            "11e5146d-66c5-8eb8-811a-4785569bb107",
+            "153723d7-76e0-803b-96b9-465a60813a5e",
+            "184c2926-fcb2-8b1b-900e-68c28374d89a",
+            "1c5d00ec-8898-8a11-bc81-388eb5b08cc9",
+            "18e2118f-de47-84b0-8ace-3c0b52dd67da",
+            "111eb873-0a0e-8833-b3ab-1d2afbc7d693",
+            "188f12ae-2295-838a-80c8-f9b467646342",
+            "166802a2-73f3-8d2e-b6b7-8f34c5150d56",
+            "1961b0a0-d9e7-89ae-9e9f-e2f817bd7b6d",
+            "10188a71-dc98-8292-ac84-6352a4244455",
+            "1d53723a-1a23-8fc4-abf1-89f92621c0a8",
+            "174f362f-dab2-8c7b-a85d-a8eabdc0e3c6",
+            "12865f0d-0440-8775-a60d-5c54a9567f7e",
+            "197639a5-d2ec-8a67-9b1b-aeed70cd5773",
+            "100d8a3b-873e-807c-9448-13e864dcba27",
+            "11e421b1-3d08-8a8a-a55d-934948ac7b18",
+            "1e18032f-6a5a-8b5f-b5f5-9e24fc490d66",
+            "1e299a27-5fcd-8d31-b464-d0052992df81",
+            "148252be-2aff-8f5a-b272-5ca52a85b7e1",
+            "1d6eeee5-1f4d-8c47-9238-0a45ef3bfedb",
+            "1fb9faf9-9d4b-8c9b-8349-1c2b8aa817e2",
+            "1d3207bd-9b5b-8682-8952-713893739283",
+            "1850d046-d5b6-8aa9-b8a6-e501fd09def4",
+            "1fc6fb42-d891-8671-a2f4-e18e51048a8d",
+            "15c8847b-46cb-8cea-8a97-4b1113a31497",
+            "1eba3729-f10e-837e-8128-2fb4d9a24a1f",
+            "1e3dfceb-0ca0-892e-8c2b-3592e670c262",
+            "1c7c1d4d-736a-88ea-b2a3-ebab44756fe7",
+            "1dfd9d30-38cd-8747-bc9c-03624f331fba",
+            "1483b6a8-63b3-853b-a964-9acb419d65dc",
+            "1b1f9a05-c927-8eba-9dfd-4fbc06a355f1",
+            "1bc1f5a9-22c5-8001-8c3e-8e32c4efb548",
+            "13c3915e-2af2-8aaa-ada8-14f45eca91c9"
+          ]
+        },
+        {
+          "id": "1868",
+          "mutatorName": "PreIncrementExpression to PreDecrementExpression mutation",
+          "replacement": "--visited",
+          "location": {
+            "start": {
+              "line": 40,
+              "column": 21
+            },
+            "end": {
+              "line": 40,
+              "column": 30
+            }
+          },
+          "status": "Killed",
+          "static": true,
+          "coveredBy": [],
+          "killedBy": [
+            "11e421b1-3d08-8a8a-a55d-934948ac7b18",
+            "1b1f9a05-c927-8eba-9dfd-4fbc06a355f1"
+          ]
+        },
+        {
+          "id": "1869",
+          "mutatorName": "Block removal mutation",
+          "replacement": "{}",
+          "location": {
+            "start": {
+              "line": 40,
+              "column": 66
+            },
+            "end": {
+              "line": 40,
+              "column": 94
+            }
+          },
+          "status": "CompileError",
+          "statusReason": "Mutant caused compile errors",
+          "static": false,
+          "coveredBy": [],
+          "killedBy": []
+        },
+        {
+          "id": "1870",
+          "mutatorName": "Boolean mutation",
+          "replacement": "false",
+          "location": {
+            "start": {
+              "line": 40,
+              "column": 80
+            },
+            "end": {
+              "line": 40,
+              "column": 84
+            }
+          },
+          "status": "Killed",
+          "static": false,
+          "coveredBy": [
+            "1c5d00ec-8898-8a11-bc81-388eb5b08cc9",
+            "148252be-2aff-8f5a-b272-5ca52a85b7e1"
+          ],
+          "killedBy": [
+            "148252be-2aff-8f5a-b272-5ca52a85b7e1"
+          ]
+        },
+        {
+          "id": "1871",
+          "mutatorName": "Statement mutation",
+          "replacement": ";",
+          "location": {
+            "start": {
+              "line": 40,
+              "column": 86
+            },
+            "end": {
+              "line": 40,
+              "column": 92
+            }
+          },
+          "status": "Survived",
+          "static": false,
+          "coveredBy": [
+            "1c5d00ec-8898-8a11-bc81-388eb5b08cc9",
+            "148252be-2aff-8f5a-b272-5ca52a85b7e1"
+          ],
+          "killedBy": []
+        },
+        {
+          "id": "1872",
+          "mutatorName": "Equality mutation",
+          "replacement": "key != \"{OriginalFormat}\"",
+          "location": {
+            "start": {
+              "line": 41,
+              "column": 21
+            },
+            "end": {
+              "line": 41,
+              "column": 46
+            }
+          },
+          "status": "Killed",
+          "static": true,
+          "coveredBy": [],
+          "killedBy": [
+            "163c977a-e9f3-825f-b3ed-0abf1e12f63d",
+            "10f7ca08-19bf-8ec9-ae8a-ec9431e6373b",
+            "1f6b9766-e441-8257-a6d8-9523fc1bf113",
+            "153723d7-76e0-803b-96b9-465a60813a5e",
+            "184c2926-fcb2-8b1b-900e-68c28374d89a",
+            "1c5d00ec-8898-8a11-bc81-388eb5b08cc9",
+            "170921e9-cd91-8910-a0af-f8d205fe4b5d",
+            "188f12ae-2295-838a-80c8-f9b467646342",
+            "100d8a3b-873e-807c-9448-13e864dcba27",
+            "11e421b1-3d08-8a8a-a55d-934948ac7b18",
+            "174f362f-dab2-8c7b-a85d-a8eabdc0e3c6",
+            "1961b0a0-d9e7-89ae-9e9f-e2f817bd7b6d",
+            "1d53723a-1a23-8fc4-abf1-89f92621c0a8",
+            "166802a2-73f3-8d2e-b6b7-8f34c5150d56",
+            "1e299a27-5fcd-8d31-b464-d0052992df81",
+            "10188a71-dc98-8292-ac84-6352a4244455",
+            "1e18032f-6a5a-8b5f-b5f5-9e24fc490d66",
+            "197639a5-d2ec-8a67-9b1b-aeed70cd5773",
+            "12865f0d-0440-8775-a60d-5c54a9567f7e",
+            "1d3207bd-9b5b-8682-8952-713893739283",
+            "1fc6fb42-d891-8671-a2f4-e18e51048a8d",
+            "1d6eeee5-1f4d-8c47-9238-0a45ef3bfedb",
+            "1850d046-d5b6-8aa9-b8a6-e501fd09def4",
+            "148252be-2aff-8f5a-b272-5ca52a85b7e1",
+            "1fb9faf9-9d4b-8c9b-8349-1c2b8aa817e2",
+            "1b1f9a05-c927-8eba-9dfd-4fbc06a355f1",
+            "1e3dfceb-0ca0-892e-8c2b-3592e670c262",
+            "1bc1f5a9-22c5-8001-8c3e-8e32c4efb548",
+            "13c3915e-2af2-8aaa-ada8-14f45eca91c9",
+            "1eba3729-f10e-837e-8128-2fb4d9a24a1f",
+            "1dfd9d30-38cd-8747-bc9c-03624f331fba",
+            "1c7c1d4d-736a-88ea-b2a3-ebab44756fe7",
+            "1483b6a8-63b3-853b-a964-9acb419d65dc",
+            "15c8847b-46cb-8cea-8a97-4b1113a31497"
+          ]
+        },
+        {
+          "id": "1873",
+          "mutatorName": "String mutation",
+          "replacement": "\"\"",
+          "location": {
+            "start": {
+              "line": 41,
+              "column": 28
+            },
+            "end": {
+              "line": 41,
+              "column": 46
+            }
+          },
+          "status": "Killed",
+          "static": true,
+          "coveredBy": [],
+          "killedBy": [
+            "1c5d00ec-8898-8a11-bc81-388eb5b08cc9",
+            "1f6b9766-e441-8257-a6d8-9523fc1bf113",
+            "188f12ae-2295-838a-80c8-f9b467646342",
+            "1fb9faf9-9d4b-8c9b-8349-1c2b8aa817e2",
+            "1d3207bd-9b5b-8682-8952-713893739283",
+            "1d6eeee5-1f4d-8c47-9238-0a45ef3bfedb",
+            "1fc6fb42-d891-8671-a2f4-e18e51048a8d",
+            "148252be-2aff-8f5a-b272-5ca52a85b7e1",
+            "1dfd9d30-38cd-8747-bc9c-03624f331fba",
+            "13c3915e-2af2-8aaa-ada8-14f45eca91c9"
+          ]
+        },
+        {
+          "id": "1874",
+          "mutatorName": "Block removal mutation",
+          "replacement": "{}",
+          "location": {
+            "start": {
+              "line": 42,
+              "column": 17
+            },
+            "end": {
+              "line": 45,
+              "column": 18
+            }
+          },
+          "status": "CompileError",
+          "statusReason": "Mutant caused compile errors",
+          "static": false,
+          "coveredBy": [],
+          "killedBy": []
+        },
+        {
+          "id": "1875",
+          "mutatorName": "Equality mutation",
+          "replacement": "value is not not null and not string",
+          "location": {
+            "start": {
+              "line": 43,
+              "column": 25
+            },
+            "end": {
+              "line": 43,
+              "column": 57
+            }
+          },
+          "status": "Killed",
+          "static": false,
+          "coveredBy": [
+            "1981300c-71ff-8689-b1bd-4259bd956aae",
+            "121974f7-dc49-8c30-b60a-02964ca2f38c",
+            "166802a2-73f3-8d2e-b6b7-8f34c5150d56",
+            "188f12ae-2295-838a-80c8-f9b467646342",
+            "12865f0d-0440-8775-a60d-5c54a9567f7e",
+            "1c7c1d4d-736a-88ea-b2a3-ebab44756fe7",
+            "1483b6a8-63b3-853b-a964-9acb419d65dc",
+            "17504661-27ec-8146-b001-47a5f1b7edf1",
+            "1bb0c5c6-8efa-8fbd-8ad5-0559970deff1",
+            "1c5d00ec-8898-8a11-bc81-388eb5b08cc9"
+          ],
+          "killedBy": [
+            "188f12ae-2295-838a-80c8-f9b467646342",
+            "1c5d00ec-8898-8a11-bc81-388eb5b08cc9"
+          ]
+        },
+        {
+          "id": "1876",
+          "mutatorName": "Logical mutation",
+          "replacement": "not null or not string",
+          "location": {
+            "start": {
+              "line": 43,
+              "column": 34
+            },
+            "end": {
+              "line": 43,
+              "column": 57
+            }
+          },
+          "status": "Killed",
+          "static": false,
+          "coveredBy": [
+            "1981300c-71ff-8689-b1bd-4259bd956aae",
+            "121974f7-dc49-8c30-b60a-02964ca2f38c",
+            "166802a2-73f3-8d2e-b6b7-8f34c5150d56",
+            "188f12ae-2295-838a-80c8-f9b467646342",
+            "12865f0d-0440-8775-a60d-5c54a9567f7e",
+            "1c7c1d4d-736a-88ea-b2a3-ebab44756fe7",
+            "1483b6a8-63b3-853b-a964-9acb419d65dc",
+            "17504661-27ec-8146-b001-47a5f1b7edf1",
+            "1bb0c5c6-8efa-8fbd-8ad5-0559970deff1",
+            "1c5d00ec-8898-8a11-bc81-388eb5b08cc9"
+          ],
+          "killedBy": [
+            "188f12ae-2295-838a-80c8-f9b467646342",
+            "1c5d00ec-8898-8a11-bc81-388eb5b08cc9"
+          ]
+        },
+        {
+          "id": "1877",
+          "mutatorName": "Block removal mutation",
+          "replacement": "{}",
+          "location": {
+            "start": {
+              "line": 43,
+              "column": 59
+            },
+            "end": {
+              "line": 43,
+              "column": 135
+            }
+          },
+          "status": "CompileError",
+          "statusReason": "Mutant caused compile errors",
+          "static": false,
+          "coveredBy": [],
+          "killedBy": []
+        },
+        {
+          "id": "1878",
+          "mutatorName": "Statement mutation",
+          "replacement": ";",
+          "location": {
+            "start": {
+              "line": 43,
+              "column": 61
+            },
+            "end": {
+              "line": 43,
+              "column": 133
+            }
+          },
+          "status": "Survived",
+          "static": false,
+          "coveredBy": [
+            "17504661-27ec-8146-b001-47a5f1b7edf1"
+          ],
+          "killedBy": []
+        },
+        {
+          "id": "1879",
+          "mutatorName": "String mutation",
+          "replacement": "\"\"",
+          "location": {
+            "start": {
+              "line": 43,
+              "column": 89
+            },
+            "end": {
+              "line": 43,
+              "column": 131
+            }
+          },
+          "status": "Survived",
+          "static": false,
+          "coveredBy": [
+            "17504661-27ec-8146-b001-47a5f1b7edf1"
+          ],
+          "killedBy": []
+        },
+        {
+          "id": "1880",
+          "mutatorName": "Statement mutation",
+          "replacement": ";",
+          "location": {
+            "start": {
+              "line": 44,
+              "column": 48
+            },
+            "end": {
+              "line": 44,
+              "column": 57
+            }
+          },
+          "status": "Killed",
+          "static": false,
+          "coveredBy": [
+            "1981300c-71ff-8689-b1bd-4259bd956aae",
+            "121974f7-dc49-8c30-b60a-02964ca2f38c",
+            "166802a2-73f3-8d2e-b6b7-8f34c5150d56",
+            "188f12ae-2295-838a-80c8-f9b467646342",
+            "12865f0d-0440-8775-a60d-5c54a9567f7e",
+            "1c7c1d4d-736a-88ea-b2a3-ebab44756fe7",
+            "1483b6a8-63b3-853b-a964-9acb419d65dc",
+            "1bb0c5c6-8efa-8fbd-8ad5-0559970deff1",
+            "1c5d00ec-8898-8a11-bc81-388eb5b08cc9"
+          ],
+          "killedBy": [
+            "188f12ae-2295-838a-80c8-f9b467646342"
+          ]
+        },
+        {
+          "id": "1881",
+          "mutatorName": "Logical mutation",
+          "replacement": "!includeEventId || key == \"operation_id\"",
+          "location": {
+            "start": {
+              "line": 46,
+              "column": 21
+            },
+            "end": {
+              "line": 46,
+              "column": 61
+            }
+          },
+          "status": "Killed",
+          "static": true,
+          "coveredBy": [],
+          "killedBy": [
+            "166802a2-73f3-8d2e-b6b7-8f34c5150d56",
+            "12865f0d-0440-8775-a60d-5c54a9567f7e",
+            "1e18032f-6a5a-8b5f-b5f5-9e24fc490d66",
+            "1961b0a0-d9e7-89ae-9e9f-e2f817bd7b6d",
+            "1d53723a-1a23-8fc4-abf1-89f92621c0a8",
+            "10188a71-dc98-8292-ac84-6352a4244455",
+            "197639a5-d2ec-8a67-9b1b-aeed70cd5773",
+            "174f362f-dab2-8c7b-a85d-a8eabdc0e3c6",
+            "1e299a27-5fcd-8d31-b464-d0052992df81",
+            "11e421b1-3d08-8a8a-a55d-934948ac7b18",
+            "1483b6a8-63b3-853b-a964-9acb419d65dc",
+            "1dfd9d30-38cd-8747-bc9c-03624f331fba",
+            "1e3dfceb-0ca0-892e-8c2b-3592e670c262",
+            "1c7c1d4d-736a-88ea-b2a3-ebab44756fe7"
+          ]
+        },
+        {
+          "id": "1882",
+          "mutatorName": "Negate expression",
+          "replacement": "!(!includeEventId && key == \"operation_id\")",
+          "location": {
+            "start": {
+              "line": 46,
+              "column": 21
+            },
+            "end": {
+              "line": 46,
+              "column": 61
+            }
+          },
+          "status": "Killed",
+          "static": true,
+          "coveredBy": [],
+          "killedBy": [
+            "174f362f-dab2-8c7b-a85d-a8eabdc0e3c6",
+            "1e299a27-5fcd-8d31-b464-d0052992df81",
+            "1961b0a0-d9e7-89ae-9e9f-e2f817bd7b6d",
+            "11e421b1-3d08-8a8a-a55d-934948ac7b18",
+            "10188a71-dc98-8292-ac84-6352a4244455",
+            "12865f0d-0440-8775-a60d-5c54a9567f7e",
+            "197639a5-d2ec-8a67-9b1b-aeed70cd5773",
+            "166802a2-73f3-8d2e-b6b7-8f34c5150d56",
+            "188f12ae-2295-838a-80c8-f9b467646342",
+            "1d53723a-1a23-8fc4-abf1-89f92621c0a8",
+            "1e18032f-6a5a-8b5f-b5f5-9e24fc490d66",
+            "1d6eeee5-1f4d-8c47-9238-0a45ef3bfedb",
+            "1d3207bd-9b5b-8682-8952-713893739283",
+            "1fc6fb42-d891-8671-a2f4-e18e51048a8d",
+            "15c8847b-46cb-8cea-8a97-4b1113a31497",
+            "1483b6a8-63b3-853b-a964-9acb419d65dc",
+            "1c7c1d4d-736a-88ea-b2a3-ebab44756fe7",
+            "1e3dfceb-0ca0-892e-8c2b-3592e670c262",
+            "1dfd9d30-38cd-8747-bc9c-03624f331fba",
+            "1bc1f5a9-22c5-8001-8c3e-8e32c4efb548"
+          ]
+        },
+        {
+          "id": "1883",
+          "mutatorName": "LogicalNotExpression to un-LogicalNotExpression mutation",
+          "replacement": "includeEventId",
+          "location": {
+            "start": {
+              "line": 46,
+              "column": 21
+            },
+            "end": {
+              "line": 46,
+              "column": 36
+            }
+          },
+          "status": "Killed",
+          "static": true,
+          "coveredBy": [],
+          "killedBy": [
+            "1961b0a0-d9e7-89ae-9e9f-e2f817bd7b6d",
+            "1e18032f-6a5a-8b5f-b5f5-9e24fc490d66",
+            "10188a71-dc98-8292-ac84-6352a4244455",
+            "1e299a27-5fcd-8d31-b464-d0052992df81",
+            "1d53723a-1a23-8fc4-abf1-89f92621c0a8",
+            "166802a2-73f3-8d2e-b6b7-8f34c5150d56",
+            "174f362f-dab2-8c7b-a85d-a8eabdc0e3c6",
+            "12865f0d-0440-8775-a60d-5c54a9567f7e",
+            "197639a5-d2ec-8a67-9b1b-aeed70cd5773",
+            "11e421b1-3d08-8a8a-a55d-934948ac7b18"
+          ]
+        },
+        {
+          "id": "1884",
+          "mutatorName": "Equality mutation",
+          "replacement": "key != \"operation_id\"",
+          "location": {
+            "start": {
+              "line": 46,
+              "column": 40
+            },
+            "end": {
+              "line": 46,
+              "column": 61
+            }
+          },
+          "status": "Killed",
+          "static": true,
+          "coveredBy": [],
+          "killedBy": [
+            "1e299a27-5fcd-8d31-b464-d0052992df81",
+            "10188a71-dc98-8292-ac84-6352a4244455",
+            "1e18032f-6a5a-8b5f-b5f5-9e24fc490d66",
+            "174f362f-dab2-8c7b-a85d-a8eabdc0e3c6",
+            "1961b0a0-d9e7-89ae-9e9f-e2f817bd7b6d",
+            "12865f0d-0440-8775-a60d-5c54a9567f7e",
+            "166802a2-73f3-8d2e-b6b7-8f34c5150d56",
+            "1d53723a-1a23-8fc4-abf1-89f92621c0a8",
+            "197639a5-d2ec-8a67-9b1b-aeed70cd5773",
+            "11e421b1-3d08-8a8a-a55d-934948ac7b18",
+            "1483b6a8-63b3-853b-a964-9acb419d65dc",
+            "1dfd9d30-38cd-8747-bc9c-03624f331fba",
+            "1c7c1d4d-736a-88ea-b2a3-ebab44756fe7",
+            "1e3dfceb-0ca0-892e-8c2b-3592e670c262"
+          ]
+        },
+        {
+          "id": "1885",
+          "mutatorName": "String mutation",
+          "replacement": "\"\"",
+          "location": {
+            "start": {
+              "line": 46,
+              "column": 47
+            },
+            "end": {
+              "line": 46,
+              "column": 61
+            }
+          },
+          "status": "Killed",
+          "static": true,
+          "coveredBy": [],
+          "killedBy": [
+            "1e18032f-6a5a-8b5f-b5f5-9e24fc490d66",
+            "10188a71-dc98-8292-ac84-6352a4244455",
+            "1961b0a0-d9e7-89ae-9e9f-e2f817bd7b6d",
+            "166802a2-73f3-8d2e-b6b7-8f34c5150d56",
+            "12865f0d-0440-8775-a60d-5c54a9567f7e",
+            "174f362f-dab2-8c7b-a85d-a8eabdc0e3c6",
+            "1d53723a-1a23-8fc4-abf1-89f92621c0a8",
+            "1e299a27-5fcd-8d31-b464-d0052992df81",
+            "197639a5-d2ec-8a67-9b1b-aeed70cd5773",
+            "11e421b1-3d08-8a8a-a55d-934948ac7b18"
+          ]
+        },
+        {
+          "id": "1886",
+          "mutatorName": "Block removal mutation",
+          "replacement": "{}",
+          "location": {
+            "start": {
+              "line": 47,
+              "column": 17
+            },
+            "end": {
+              "line": 54,
+              "column": 18
+            }
+          },
+          "status": "CompileError",
+          "statusReason": "Mutant caused compile errors",
+          "static": false,
+          "coveredBy": [],
+          "killedBy": []
+        },
+        {
+          "id": "1887",
+          "mutatorName": "Equality mutation",
+          "replacement": "value is not string identifier",
+          "location": {
+            "start": {
+              "line": 48,
+              "column": 25
+            },
+            "end": {
+              "line": 48,
+              "column": 51
+            }
+          },
+          "status": "CompileError",
+          "statusReason": "Mutant caused compile errors",
+          "static": false,
+          "coveredBy": [],
+          "killedBy": []
+        },
+        {
+          "id": "1888",
+          "mutatorName": "Block removal mutation",
+          "replacement": "{}",
+          "location": {
+            "start": {
+              "line": 49,
+              "column": 21
+            },
+            "end": {
+              "line": 52,
+              "column": 22
+            }
+          },
+          "status": "CompileError",
+          "statusReason": "Mutant caused compile errors",
+          "static": false,
+          "coveredBy": [],
+          "killedBy": []
+        },
+        {
+          "id": "1889",
+          "mutatorName": "String mutation",
+          "replacement": "\"\"",
+          "location": {
+            "start": {
+              "line": 50,
+              "column": 97
+            },
+            "end": {
+              "line": 50,
+              "column": 104
+            }
+          },
+          "status": "Survived",
+          "static": false,
+          "coveredBy": [
+            "121974f7-dc49-8c30-b60a-02964ca2f38c",
+            "1961b0a0-d9e7-89ae-9e9f-e2f817bd7b6d",
+            "10188a71-dc98-8292-ac84-6352a4244455",
+            "1c6bab38-c003-842a-969d-ccfa547925bc",
+            "1d53723a-1a23-8fc4-abf1-89f92621c0a8",
+            "1e3dfceb-0ca0-892e-8c2b-3592e670c262",
+            "1d7a1dd3-f886-82fb-b928-578c084a5f17",
+            "1c5d00ec-8898-8a11-bc81-388eb5b08cc9"
+          ],
+          "killedBy": []
+        },
+        {
+          "id": "1890",
+          "mutatorName": "Statement mutation",
+          "replacement": ";",
+          "location": {
+            "start": {
+              "line": 51,
+              "column": 25
+            },
+            "end": {
+              "line": 51,
+              "column": 48
+            }
+          },
+          "status": "Survived",
+          "static": false,
+          "coveredBy": [
+            "121974f7-dc49-8c30-b60a-02964ca2f38c",
+            "1961b0a0-d9e7-89ae-9e9f-e2f817bd7b6d",
+            "10188a71-dc98-8292-ac84-6352a4244455",
+            "1c6bab38-c003-842a-969d-ccfa547925bc",
+            "1d53723a-1a23-8fc4-abf1-89f92621c0a8",
+            "1e3dfceb-0ca0-892e-8c2b-3592e670c262",
+            "1d7a1dd3-f886-82fb-b928-578c084a5f17",
+            "1c5d00ec-8898-8a11-bc81-388eb5b08cc9"
+          ],
+          "killedBy": []
+        },
+        {
+          "id": "1891",
+          "mutatorName": "Statement mutation",
+          "replacement": ";",
+          "location": {
+            "start": {
+              "line": 51,
+              "column": 49
+            },
+            "end": {
+              "line": 51,
+              "column": 58
+            }
+          },
+          "status": "Killed",
+          "static": false,
+          "coveredBy": [
+            "121974f7-dc49-8c30-b60a-02964ca2f38c",
+            "1961b0a0-d9e7-89ae-9e9f-e2f817bd7b6d",
+            "10188a71-dc98-8292-ac84-6352a4244455",
+            "1c6bab38-c003-842a-969d-ccfa547925bc",
+            "1d53723a-1a23-8fc4-abf1-89f92621c0a8",
+            "1e3dfceb-0ca0-892e-8c2b-3592e670c262",
+            "1d7a1dd3-f886-82fb-b928-578c084a5f17",
+            "1c5d00ec-8898-8a11-bc81-388eb5b08cc9"
+          ],
+          "killedBy": [
+            "1961b0a0-d9e7-89ae-9e9f-e2f817bd7b6d",
+            "10188a71-dc98-8292-ac84-6352a4244455",
+            "1d53723a-1a23-8fc4-abf1-89f92621c0a8"
+          ]
+        },
+        {
+          "id": "1892",
+          "mutatorName": "Logical mutation",
+          "replacement": "includeEventId || key == \"event_id\"",
+          "location": {
+            "start": {
+              "line": 55,
+              "column": 21
+            },
+            "end": {
+              "line": 55,
+              "column": 56
+            }
+          },
+          "status": "Killed",
+          "static": true,
+          "coveredBy": [],
+          "killedBy": [
+            "1f6b9766-e441-8257-a6d8-9523fc1bf113",
+            "184c2926-fcb2-8b1b-900e-68c28374d89a",
+            "10f7ca08-19bf-8ec9-ae8a-ec9431e6373b",
+            "1c5d00ec-8898-8a11-bc81-388eb5b08cc9",
+            "188f12ae-2295-838a-80c8-f9b467646342",
+            "1e299a27-5fcd-8d31-b464-d0052992df81",
+            "1d53723a-1a23-8fc4-abf1-89f92621c0a8",
+            "197639a5-d2ec-8a67-9b1b-aeed70cd5773",
+            "11e421b1-3d08-8a8a-a55d-934948ac7b18",
+            "12865f0d-0440-8775-a60d-5c54a9567f7e",
+            "1fb9faf9-9d4b-8c9b-8349-1c2b8aa817e2",
+            "148252be-2aff-8f5a-b272-5ca52a85b7e1",
+            "1d6eeee5-1f4d-8c47-9238-0a45ef3bfedb",
+            "1fc6fb42-d891-8671-a2f4-e18e51048a8d",
+            "1d3207bd-9b5b-8682-8952-713893739283",
+            "1850d046-d5b6-8aa9-b8a6-e501fd09def4",
+            "1bc1f5a9-22c5-8001-8c3e-8e32c4efb548",
+            "15c8847b-46cb-8cea-8a97-4b1113a31497"
+          ]
+        },
+        {
+          "id": "1893",
+          "mutatorName": "Negate expression",
+          "replacement": "!(includeEventId && key == \"event_id\")",
+          "location": {
+            "start": {
+              "line": 55,
+              "column": 21
+            },
+            "end": {
+              "line": 55,
+              "column": 56
+            }
+          },
+          "status": "Killed",
+          "static": true,
+          "coveredBy": [],
+          "killedBy": [
+            "184c2926-fcb2-8b1b-900e-68c28374d89a",
+            "1f6b9766-e441-8257-a6d8-9523fc1bf113",
+            "10f7ca08-19bf-8ec9-ae8a-ec9431e6373b",
+            "1c5d00ec-8898-8a11-bc81-388eb5b08cc9",
+            "188f12ae-2295-838a-80c8-f9b467646342",
+            "11e421b1-3d08-8a8a-a55d-934948ac7b18",
+            "174f362f-dab2-8c7b-a85d-a8eabdc0e3c6",
+            "166802a2-73f3-8d2e-b6b7-8f34c5150d56",
+            "1e18032f-6a5a-8b5f-b5f5-9e24fc490d66",
+            "10188a71-dc98-8292-ac84-6352a4244455",
+            "197639a5-d2ec-8a67-9b1b-aeed70cd5773",
+            "1961b0a0-d9e7-89ae-9e9f-e2f817bd7b6d",
+            "1d53723a-1a23-8fc4-abf1-89f92621c0a8",
+            "100d8a3b-873e-807c-9448-13e864dcba27",
+            "1e299a27-5fcd-8d31-b464-d0052992df81",
+            "12865f0d-0440-8775-a60d-5c54a9567f7e",
+            "1fb9faf9-9d4b-8c9b-8349-1c2b8aa817e2",
+            "1d3207bd-9b5b-8682-8952-713893739283",
+            "148252be-2aff-8f5a-b272-5ca52a85b7e1",
+            "1d6eeee5-1f4d-8c47-9238-0a45ef3bfedb",
+            "1850d046-d5b6-8aa9-b8a6-e501fd09def4",
+            "1fc6fb42-d891-8671-a2f4-e18e51048a8d",
+            "1eba3729-f10e-837e-8128-2fb4d9a24a1f",
+            "17504661-27ec-8146-b001-47a5f1b7edf1",
+            "1b1f9a05-c927-8eba-9dfd-4fbc06a355f1",
+            "15c8847b-46cb-8cea-8a97-4b1113a31497",
+            "1c7c1d4d-736a-88ea-b2a3-ebab44756fe7",
+            "1dfd9d30-38cd-8747-bc9c-03624f331fba",
+            "1e3dfceb-0ca0-892e-8c2b-3592e670c262",
+            "1483b6a8-63b3-853b-a964-9acb419d65dc",
+            "1bc1f5a9-22c5-8001-8c3e-8e32c4efb548"
+          ]
+        },
+        {
+          "id": "1894",
+          "mutatorName": "Equality mutation",
+          "replacement": "key != \"event_id\"",
+          "location": {
+            "start": {
+              "line": 55,
+              "column": 39
+            },
+            "end": {
+              "line": 55,
+              "column": 56
+            }
+          },
+          "status": "Killed",
+          "static": true,
+          "coveredBy": [],
+          "killedBy": [
+            "1f6b9766-e441-8257-a6d8-9523fc1bf113",
+            "10f7ca08-19bf-8ec9-ae8a-ec9431e6373b",
+            "1c5d00ec-8898-8a11-bc81-388eb5b08cc9",
+            "184c2926-fcb2-8b1b-900e-68c28374d89a",
+            "1d53723a-1a23-8fc4-abf1-89f92621c0a8",
+            "197639a5-d2ec-8a67-9b1b-aeed70cd5773",
+            "12865f0d-0440-8775-a60d-5c54a9567f7e",
+            "1e299a27-5fcd-8d31-b464-d0052992df81",
+            "188f12ae-2295-838a-80c8-f9b467646342",
+            "1fb9faf9-9d4b-8c9b-8349-1c2b8aa817e2",
+            "1d3207bd-9b5b-8682-8952-713893739283",
+            "1d6eeee5-1f4d-8c47-9238-0a45ef3bfedb",
+            "1850d046-d5b6-8aa9-b8a6-e501fd09def4",
+            "1fc6fb42-d891-8671-a2f4-e18e51048a8d",
+            "148252be-2aff-8f5a-b272-5ca52a85b7e1",
+            "15c8847b-46cb-8cea-8a97-4b1113a31497",
+            "1bc1f5a9-22c5-8001-8c3e-8e32c4efb548",
+            "11e421b1-3d08-8a8a-a55d-934948ac7b18"
+          ]
+        },
+        {
+          "id": "1895",
+          "mutatorName": "String mutation",
+          "replacement": "\"\"",
+          "location": {
+            "start": {
+              "line": 55,
+              "column": 46
+            },
+            "end": {
+              "line": 55,
+              "column": 56
+            }
+          },
+          "status": "Killed",
+          "static": true,
+          "coveredBy": [],
+          "killedBy": [
+            "1d3207bd-9b5b-8682-8952-713893739283"
+          ]
+        },
+        {
+          "id": "1896",
+          "mutatorName": "Block removal mutation",
+          "replacement": "{}",
+          "location": {
+            "start": {
+              "line": 55,
+              "column": 58
+            },
+            "end": {
+              "line": 55,
+              "column": 71
+            }
+          },
+          "status": "CompileError",
+          "statusReason": "Mutant caused compile errors",
+          "static": false,
+          "coveredBy": [],
+          "killedBy": []
+        },
+        {
+          "id": "1897",
+          "mutatorName": "Statement mutation",
+          "replacement": ";",
+          "location": {
+            "start": {
+              "line": 55,
+              "column": 60
+            },
+            "end": {
+              "line": 55,
+              "column": 69
+            }
+          },
+          "status": "Survived",
+          "static": false,
+          "coveredBy": [
+            "1c7c1d4d-736a-88ea-b2a3-ebab44756fe7"
+          ],
+          "killedBy": []
+        },
+        {
+          "id": "1898",
+          "mutatorName": "Equality mutation",
+          "replacement": "capture.remaining != 0",
+          "location": {
+            "start": {
+              "line": 57,
+              "column": 21
+            },
+            "end": {
+              "line": 57,
+              "column": 43
+            }
+          },
+          "status": "Killed",
+          "static": true,
+          "coveredBy": [],
+          "killedBy": [
+            "18e2118f-de47-84b0-8ace-3c0b52dd67da",
+            "111eb873-0a0e-8833-b3ab-1d2afbc7d693",
+            "184c2926-fcb2-8b1b-900e-68c28374d89a",
+            "170921e9-cd91-8910-a0af-f8d205fe4b5d",
+            "163c977a-e9f3-825f-b3ed-0abf1e12f63d",
+            "10f7ca08-19bf-8ec9-ae8a-ec9431e6373b",
+            "1c5d00ec-8898-8a11-bc81-388eb5b08cc9",
+            "1f6b9766-e441-8257-a6d8-9523fc1bf113",
+            "153723d7-76e0-803b-96b9-465a60813a5e",
+            "11e5146d-66c5-8eb8-811a-4785569bb107",
+            "188f12ae-2295-838a-80c8-f9b467646342",
+            "12865f0d-0440-8775-a60d-5c54a9567f7e",
+            "174f362f-dab2-8c7b-a85d-a8eabdc0e3c6",
+            "1d53723a-1a23-8fc4-abf1-89f92621c0a8",
+            "166802a2-73f3-8d2e-b6b7-8f34c5150d56",
+            "197639a5-d2ec-8a67-9b1b-aeed70cd5773",
+            "1e18032f-6a5a-8b5f-b5f5-9e24fc490d66",
+            "1e299a27-5fcd-8d31-b464-d0052992df81",
+            "100d8a3b-873e-807c-9448-13e864dcba27",
+            "10188a71-dc98-8292-ac84-6352a4244455",
+            "1961b0a0-d9e7-89ae-9e9f-e2f817bd7b6d",
+            "11e421b1-3d08-8a8a-a55d-934948ac7b18",
+            "1fc6fb42-d891-8671-a2f4-e18e51048a8d",
+            "1fb9faf9-9d4b-8c9b-8349-1c2b8aa817e2",
+            "1d3207bd-9b5b-8682-8952-713893739283",
+            "148252be-2aff-8f5a-b272-5ca52a85b7e1",
+            "1850d046-d5b6-8aa9-b8a6-e501fd09def4",
+            "1d6eeee5-1f4d-8c47-9238-0a45ef3bfedb",
+            "1bc1f5a9-22c5-8001-8c3e-8e32c4efb548",
+            "15c8847b-46cb-8cea-8a97-4b1113a31497",
+            "1b1f9a05-c927-8eba-9dfd-4fbc06a355f1",
+            "1e3dfceb-0ca0-892e-8c2b-3592e670c262",
+            "1eba3729-f10e-837e-8128-2fb4d9a24a1f",
+            "1483b6a8-63b3-853b-a964-9acb419d65dc",
+            "1dfd9d30-38cd-8747-bc9c-03624f331fba",
+            "1c7c1d4d-736a-88ea-b2a3-ebab44756fe7"
+          ]
+        },
+        {
+          "id": "1899",
+          "mutatorName": "Block removal mutation",
+          "replacement": "{}",
+          "location": {
+            "start": {
+              "line": 57,
+              "column": 45
+            },
+            "end": {
+              "line": 57,
+              "column": 76
+            }
+          },
+          "status": "CompileError",
+          "statusReason": "Mutant caused compile errors",
+          "static": false,
+          "coveredBy": [],
+          "killedBy": []
+        },
+        {
+          "id": "1900",
+          "mutatorName": "Boolean mutation",
+          "replacement": "false",
+          "location": {
+            "start": {
+              "line": 57,
+              "column": 59
+            },
+            "end": {
+              "line": 57,
+              "column": 63
+            }
+          },
+          "status": "Survived",
+          "static": false,
+          "coveredBy": [
+            "1c5d00ec-8898-8a11-bc81-388eb5b08cc9",
+            "148252be-2aff-8f5a-b272-5ca52a85b7e1"
+          ],
+          "killedBy": []
+        },
+        {
+          "id": "1901",
+          "mutatorName": "Statement mutation",
+          "replacement": ";",
+          "location": {
+            "start": {
+              "line": 57,
+              "column": 65
+            },
+            "end": {
+              "line": 57,
+              "column": 74
+            }
+          },
+          "status": "Survived",
+          "static": false,
+          "coveredBy": [
+            "1c5d00ec-8898-8a11-bc81-388eb5b08cc9",
+            "148252be-2aff-8f5a-b272-5ca52a85b7e1"
+          ],
+          "killedBy": []
+        },
+        {
+          "id": "1902",
+          "mutatorName": "Statement mutation",
+          "replacement": ";",
+          "location": {
+            "start": {
+              "line": 58,
+              "column": 17
+            },
+            "end": {
+              "line": 58,
+              "column": 34
+            }
+          },
+          "status": "Survived",
+          "static": true,
+          "coveredBy": [],
+          "killedBy": []
+        },
+        {
+          "id": "1903",
+          "mutatorName": "Equality mutation",
+          "replacement": "retained is not null",
+          "location": {
+            "start": {
+              "line": 60,
+              "column": 21
+            },
+            "end": {
+              "line": 60,
+              "column": 37
+            }
+          },
+          "status": "Killed",
+          "static": true,
+          "coveredBy": [],
+          "killedBy": [
+            "18e2118f-de47-84b0-8ace-3c0b52dd67da",
+            "163c977a-e9f3-825f-b3ed-0abf1e12f63d",
+            "1c5d00ec-8898-8a11-bc81-388eb5b08cc9",
+            "11e5146d-66c5-8eb8-811a-4785569bb107",
+            "153723d7-76e0-803b-96b9-465a60813a5e",
+            "10f7ca08-19bf-8ec9-ae8a-ec9431e6373b",
+            "170921e9-cd91-8910-a0af-f8d205fe4b5d",
+            "184c2926-fcb2-8b1b-900e-68c28374d89a",
+            "1f6b9766-e441-8257-a6d8-9523fc1bf113",
+            "111eb873-0a0e-8833-b3ab-1d2afbc7d693",
+            "188f12ae-2295-838a-80c8-f9b467646342",
+            "166802a2-73f3-8d2e-b6b7-8f34c5150d56",
+            "1d53723a-1a23-8fc4-abf1-89f92621c0a8",
+            "12865f0d-0440-8775-a60d-5c54a9567f7e",
+            "1e18032f-6a5a-8b5f-b5f5-9e24fc490d66",
+            "197639a5-d2ec-8a67-9b1b-aeed70cd5773",
+            "1e299a27-5fcd-8d31-b464-d0052992df81",
+            "174f362f-dab2-8c7b-a85d-a8eabdc0e3c6",
+            "1961b0a0-d9e7-89ae-9e9f-e2f817bd7b6d",
+            "100d8a3b-873e-807c-9448-13e864dcba27",
+            "10188a71-dc98-8292-ac84-6352a4244455",
+            "11e421b1-3d08-8a8a-a55d-934948ac7b18",
+            "1d6eeee5-1f4d-8c47-9238-0a45ef3bfedb",
+            "1fc6fb42-d891-8671-a2f4-e18e51048a8d",
+            "1d3207bd-9b5b-8682-8952-713893739283",
+            "1850d046-d5b6-8aa9-b8a6-e501fd09def4",
+            "148252be-2aff-8f5a-b272-5ca52a85b7e1",
+            "1bc1f5a9-22c5-8001-8c3e-8e32c4efb548",
+            "15c8847b-46cb-8cea-8a97-4b1113a31497",
+            "1b1f9a05-c927-8eba-9dfd-4fbc06a355f1",
+            "1e3dfceb-0ca0-892e-8c2b-3592e670c262",
+            "1dfd9d30-38cd-8747-bc9c-03624f331fba",
+            "1c7c1d4d-736a-88ea-b2a3-ebab44756fe7",
+            "1483b6a8-63b3-853b-a964-9acb419d65dc"
+          ]
+        },
+        {
+          "id": "1904",
+          "mutatorName": "Block removal mutation",
+          "replacement": "{}",
+          "location": {
+            "start": {
+              "line": 60,
+              "column": 39
+            },
+            "end": {
+              "line": 60,
+              "column": 70
+            }
+          },
+          "status": "CompileError",
+          "statusReason": "Mutant caused compile errors",
+          "static": false,
+          "coveredBy": [],
+          "killedBy": []
+        },
+        {
+          "id": "1905",
+          "mutatorName": "Boolean mutation",
+          "replacement": "false",
+          "location": {
+            "start": {
+              "line": 60,
+              "column": 53
+            },
+            "end": {
+              "line": 60,
+              "column": 57
+            }
+          },
+          "status": "NoCoverage",
+          "statusReason": "Not covered by any test.",
+          "static": false,
+          "coveredBy": [],
+          "killedBy": []
+        },
+        {
+          "id": "1906",
+          "mutatorName": "Statement mutation",
+          "replacement": ";",
+          "location": {
+            "start": {
+              "line": 60,
+              "column": 59
+            },
+            "end": {
+              "line": 60,
+              "column": 68
+            }
+          },
+          "status": "NoCoverage",
+          "statusReason": "Not covered by any test.",
+          "static": false,
+          "coveredBy": [],
+          "killedBy": []
+        },
+        {
+          "id": "1907",
+          "mutatorName": "Block removal mutation",
+          "replacement": "{}",
+          "location": {
+            "start": {
+              "line": 64,
+              "column": 17
+            },
+            "end": {
+              "line": 64,
+              "column": 54
+            }
+          },
+          "status": "CompileError",
+          "statusReason": "Mutant caused compile errors",
+          "static": false,
+          "coveredBy": [],
+          "killedBy": []
+        },
+        {
+          "id": "1908",
+          "mutatorName": "Statement mutation",
+          "replacement": ";",
+          "location": {
+            "start": {
+              "line": 64,
+              "column": 19
+            },
+            "end": {
+              "line": 64,
+              "column": 52
+            }
+          },
+          "status": "Survived",
+          "static": true,
+          "coveredBy": [],
+          "killedBy": []
+        },
+        {
+          "id": "1909",
+          "mutatorName": "Block removal mutation",
+          "replacement": "{}",
+          "location": {
+            "start": {
+              "line": 69,
+              "column": 5
+            },
+            "end": {
+              "line": 101,
+              "column": 6
+            }
+          },
+          "status": "Ignored",
+          "statusReason": "Removed by block already covered filter",
+          "static": true,
+          "coveredBy": [],
+          "killedBy": []
+        },
+        {
+          "id": "1910",
+          "mutatorName": "Logical mutation",
+          "replacement": "remaining == 0 && depth > LogValueProjection.MaximumDepth",
+          "location": {
+            "start": {
+              "line": 70,
+              "column": 13
+            },
+            "end": {
+              "line": 70,
+              "column": 70
+            }
+          },
+          "status": "Killed",
+          "static": true,
+          "coveredBy": [],
+          "killedBy": [
+            "1c5d00ec-8898-8a11-bc81-388eb5b08cc9",
+            "148252be-2aff-8f5a-b272-5ca52a85b7e1"
+          ]
+        },
+        {
+          "id": "1911",
+          "mutatorName": "Negate expression",
+          "replacement": "!(remaining == 0 || depth > LogValueProjection.MaximumDepth)",
+          "location": {
+            "start": {
+              "line": 70,
+              "column": 13
+            },
+            "end": {
+              "line": 70,
+              "column": 70
+            }
+          },
+          "status": "Killed",
+          "static": true,
+          "coveredBy": [],
+          "killedBy": [
+            "153723d7-76e0-803b-96b9-465a60813a5e",
+            "163c977a-e9f3-825f-b3ed-0abf1e12f63d",
+            "184c2926-fcb2-8b1b-900e-68c28374d89a",
+            "11e5146d-66c5-8eb8-811a-4785569bb107",
+            "170921e9-cd91-8910-a0af-f8d205fe4b5d",
+            "1f6b9766-e441-8257-a6d8-9523fc1bf113",
+            "10f7ca08-19bf-8ec9-ae8a-ec9431e6373b",
+            "1c5d00ec-8898-8a11-bc81-388eb5b08cc9",
+            "111eb873-0a0e-8833-b3ab-1d2afbc7d693",
+            "18e2118f-de47-84b0-8ace-3c0b52dd67da",
+            "188f12ae-2295-838a-80c8-f9b467646342",
+            "166802a2-73f3-8d2e-b6b7-8f34c5150d56",
+            "1e18032f-6a5a-8b5f-b5f5-9e24fc490d66",
+            "100d8a3b-873e-807c-9448-13e864dcba27",
+            "12865f0d-0440-8775-a60d-5c54a9567f7e",
+            "10188a71-dc98-8292-ac84-6352a4244455",
+            "1d53723a-1a23-8fc4-abf1-89f92621c0a8",
+            "197639a5-d2ec-8a67-9b1b-aeed70cd5773",
+            "174f362f-dab2-8c7b-a85d-a8eabdc0e3c6",
+            "1e299a27-5fcd-8d31-b464-d0052992df81",
+            "11e421b1-3d08-8a8a-a55d-934948ac7b18",
+            "1961b0a0-d9e7-89ae-9e9f-e2f817bd7b6d",
+            "1850d046-d5b6-8aa9-b8a6-e501fd09def4",
+            "1d6eeee5-1f4d-8c47-9238-0a45ef3bfedb",
+            "1fc6fb42-d891-8671-a2f4-e18e51048a8d",
+            "1fb9faf9-9d4b-8c9b-8349-1c2b8aa817e2",
+            "1d3207bd-9b5b-8682-8952-713893739283",
+            "148252be-2aff-8f5a-b272-5ca52a85b7e1",
+            "1bc1f5a9-22c5-8001-8c3e-8e32c4efb548",
+            "15c8847b-46cb-8cea-8a97-4b1113a31497",
+            "1dfd9d30-38cd-8747-bc9c-03624f331fba",
+            "1e3dfceb-0ca0-892e-8c2b-3592e670c262",
+            "1483b6a8-63b3-853b-a964-9acb419d65dc",
+            "1c7c1d4d-736a-88ea-b2a3-ebab44756fe7",
+            "1eba3729-f10e-837e-8128-2fb4d9a24a1f",
+            "1b1f9a05-c927-8eba-9dfd-4fbc06a355f1"
+          ]
+        },
+        {
+          "id": "1912",
+          "mutatorName": "Equality mutation",
+          "replacement": "remaining != 0",
+          "location": {
+            "start": {
+              "line": 70,
+              "column": 13
+            },
+            "end": {
+              "line": 70,
+              "column": 27
+            }
+          },
+          "status": "Killed",
+          "static": true,
+          "coveredBy": [],
+          "killedBy": [
+            "163c977a-e9f3-825f-b3ed-0abf1e12f63d",
+            "184c2926-fcb2-8b1b-900e-68c28374d89a",
+            "111eb873-0a0e-8833-b3ab-1d2afbc7d693",
+            "1c5d00ec-8898-8a11-bc81-388eb5b08cc9",
+            "11e5146d-66c5-8eb8-811a-4785569bb107",
+            "153723d7-76e0-803b-96b9-465a60813a5e",
+            "1f6b9766-e441-8257-a6d8-9523fc1bf113",
+            "10f7ca08-19bf-8ec9-ae8a-ec9431e6373b",
+            "170921e9-cd91-8910-a0af-f8d205fe4b5d",
+            "18e2118f-de47-84b0-8ace-3c0b52dd67da",
+            "188f12ae-2295-838a-80c8-f9b467646342",
+            "166802a2-73f3-8d2e-b6b7-8f34c5150d56",
+            "1d53723a-1a23-8fc4-abf1-89f92621c0a8",
+            "12865f0d-0440-8775-a60d-5c54a9567f7e",
+            "1e299a27-5fcd-8d31-b464-d0052992df81",
+            "100d8a3b-873e-807c-9448-13e864dcba27",
+            "1e18032f-6a5a-8b5f-b5f5-9e24fc490d66",
+            "10188a71-dc98-8292-ac84-6352a4244455",
+            "197639a5-d2ec-8a67-9b1b-aeed70cd5773",
+            "174f362f-dab2-8c7b-a85d-a8eabdc0e3c6",
+            "1961b0a0-d9e7-89ae-9e9f-e2f817bd7b6d",
+            "11e421b1-3d08-8a8a-a55d-934948ac7b18",
+            "1d6eeee5-1f4d-8c47-9238-0a45ef3bfedb",
+            "148252be-2aff-8f5a-b272-5ca52a85b7e1",
+            "1fc6fb42-d891-8671-a2f4-e18e51048a8d",
+            "1d3207bd-9b5b-8682-8952-713893739283",
+            "1850d046-d5b6-8aa9-b8a6-e501fd09def4",
+            "1fb9faf9-9d4b-8c9b-8349-1c2b8aa817e2",
+            "1bc1f5a9-22c5-8001-8c3e-8e32c4efb548",
+            "15c8847b-46cb-8cea-8a97-4b1113a31497",
+            "1c7c1d4d-736a-88ea-b2a3-ebab44756fe7",
+            "1eba3729-f10e-837e-8128-2fb4d9a24a1f",
+            "1e3dfceb-0ca0-892e-8c2b-3592e670c262",
+            "1483b6a8-63b3-853b-a964-9acb419d65dc",
+            "1dfd9d30-38cd-8747-bc9c-03624f331fba",
+            "1b1f9a05-c927-8eba-9dfd-4fbc06a355f1"
+          ]
+        },
+        {
+          "id": "1913",
+          "mutatorName": "Equality mutation",
+          "replacement": "depth < LogValueProjection.MaximumDepth",
+          "location": {
+            "start": {
+              "line": 70,
+              "column": 31
+            },
+            "end": {
+              "line": 70,
+              "column": 70
+            }
+          },
+          "status": "Killed",
+          "static": true,
+          "coveredBy": [],
+          "killedBy": [
+            "163c977a-e9f3-825f-b3ed-0abf1e12f63d",
+            "170921e9-cd91-8910-a0af-f8d205fe4b5d",
+            "153723d7-76e0-803b-96b9-465a60813a5e",
+            "184c2926-fcb2-8b1b-900e-68c28374d89a",
+            "11e5146d-66c5-8eb8-811a-4785569bb107",
+            "1c5d00ec-8898-8a11-bc81-388eb5b08cc9",
+            "10f7ca08-19bf-8ec9-ae8a-ec9431e6373b",
+            "1f6b9766-e441-8257-a6d8-9523fc1bf113",
+            "18e2118f-de47-84b0-8ace-3c0b52dd67da",
+            "111eb873-0a0e-8833-b3ab-1d2afbc7d693",
+            "188f12ae-2295-838a-80c8-f9b467646342",
+            "1e299a27-5fcd-8d31-b464-d0052992df81",
+            "1961b0a0-d9e7-89ae-9e9f-e2f817bd7b6d",
+            "100d8a3b-873e-807c-9448-13e864dcba27",
+            "11e421b1-3d08-8a8a-a55d-934948ac7b18",
+            "166802a2-73f3-8d2e-b6b7-8f34c5150d56",
+            "1d53723a-1a23-8fc4-abf1-89f92621c0a8",
+            "1e18032f-6a5a-8b5f-b5f5-9e24fc490d66",
+            "197639a5-d2ec-8a67-9b1b-aeed70cd5773",
+            "174f362f-dab2-8c7b-a85d-a8eabdc0e3c6",
+            "12865f0d-0440-8775-a60d-5c54a9567f7e",
+            "10188a71-dc98-8292-ac84-6352a4244455",
+            "1d6eeee5-1f4d-8c47-9238-0a45ef3bfedb",
+            "1fb9faf9-9d4b-8c9b-8349-1c2b8aa817e2",
+            "1fc6fb42-d891-8671-a2f4-e18e51048a8d",
+            "1850d046-d5b6-8aa9-b8a6-e501fd09def4",
+            "1d3207bd-9b5b-8682-8952-713893739283",
+            "148252be-2aff-8f5a-b272-5ca52a85b7e1",
+            "1bc1f5a9-22c5-8001-8c3e-8e32c4efb548",
+            "15c8847b-46cb-8cea-8a97-4b1113a31497",
+            "1c7c1d4d-736a-88ea-b2a3-ebab44756fe7",
+            "1eba3729-f10e-837e-8128-2fb4d9a24a1f",
+            "1e3dfceb-0ca0-892e-8c2b-3592e670c262",
+            "1dfd9d30-38cd-8747-bc9c-03624f331fba",
+            "1483b6a8-63b3-853b-a964-9acb419d65dc",
+            "1b1f9a05-c927-8eba-9dfd-4fbc06a355f1"
+          ]
+        },
+        {
+          "id": "1914",
+          "mutatorName": "Equality mutation",
+          "replacement": "depth >= LogValueProjection.MaximumDepth",
+          "location": {
+            "start": {
+              "line": 70,
+              "column": 31
+            },
+            "end": {
+              "line": 70,
+              "column": 70
+            }
+          },
+          "status": "Killed",
+          "static": true,
+          "coveredBy": [],
+          "killedBy": [
+            "148252be-2aff-8f5a-b272-5ca52a85b7e1",
+            "1b1f9a05-c927-8eba-9dfd-4fbc06a355f1"
+          ]
+        },
+        {
+          "id": "1915",
+          "mutatorName": "Block removal mutation",
+          "replacement": "{}",
+          "location": {
+            "start": {
+              "line": 70,
+              "column": 72
+            },
+            "end": {
+              "line": 70,
+              "column": 88
+            }
+          },
+          "status": "Survived",
+          "static": false,
+          "coveredBy": [
+            "1bb0c5c6-8efa-8fbd-8ad5-0559970deff1",
+            "1c5d00ec-8898-8a11-bc81-388eb5b08cc9",
+            "1b1f9a05-c927-8eba-9dfd-4fbc06a355f1"
+          ],
+          "killedBy": []
+        },
+        {
+          "id": "1916",
+          "mutatorName": "Logical mutation",
+          "replacement": "value is LogValue existing && existing.NodeCount <= remaining || depth - 1 + existing.Depth <= LogValueProjection.MaximumDepth",
+          "location": {
+            "start": {
+              "line": 71,
+              "column": 13
+            },
+            "end": {
+              "line": 71,
+              "column": 139
+            }
+          },
+          "status": "CompileError",
+          "statusReason": "Mutant caused compile errors",
+          "static": false,
+          "coveredBy": [],
+          "killedBy": []
+        },
+        {
+          "id": "1917",
+          "mutatorName": "Negate expression",
+          "replacement": "!(value is LogValue existing && existing.NodeCount <= remaining && depth - 1 + existing.Depth <= LogValueProjection.MaximumDepth)",
+          "location": {
+            "start": {
+              "line": 71,
+              "column": 13
+            },
+            "end": {
+              "line": 71,
+              "column": 139
+            }
+          },
+          "status": "CompileError",
+          "statusReason": "Mutant caused compile errors",
+          "static": false,
+          "coveredBy": [],
+          "killedBy": []
+        },
+        {
+          "id": "1918",
+          "mutatorName": "Logical mutation",
+          "replacement": "value is LogValue existing || existing.NodeCount <= remaining",
+          "location": {
+            "start": {
+              "line": 71,
+              "column": 13
+            },
+            "end": {
+              "line": 71,
+              "column": 74
+            }
+          },
+          "status": "CompileError",
+          "statusReason": "Mutant caused compile errors",
+          "static": false,
+          "coveredBy": [],
+          "killedBy": []
+        },
+        {
+          "id": "1919",
+          "mutatorName": "Equality mutation",
+          "replacement": "value is not LogValue existing",
+          "location": {
+            "start": {
+              "line": 71,
+              "column": 13
+            },
+            "end": {
+              "line": 71,
+              "column": 39
+            }
+          },
+          "status": "CompileError",
+          "statusReason": "Mutant caused compile errors",
+          "static": false,
+          "coveredBy": [],
+          "killedBy": []
+        },
+        {
+          "id": "1920",
+          "mutatorName": "Equality mutation",
+          "replacement": "existing.NodeCount > remaining",
+          "location": {
+            "start": {
+              "line": 71,
+              "column": 43
+            },
+            "end": {
+              "line": 71,
+              "column": 74
+            }
+          },
+          "status": "Survived",
+          "static": false,
+          "coveredBy": [
+            "121974f7-dc49-8c30-b60a-02964ca2f38c",
+            "1961b0a0-d9e7-89ae-9e9f-e2f817bd7b6d",
+            "19d1c2bf-cb78-895d-b3f0-a3e0f4828cca",
+            "12865f0d-0440-8775-a60d-5c54a9567f7e"
+          ],
+          "killedBy": []
+        },
+        {
+          "id": "1921",
+          "mutatorName": "Equality mutation",
+          "replacement": "existing.NodeCount < remaining",
+          "location": {
+            "start": {
+              "line": 71,
+              "column": 43
+            },
+            "end": {
+              "line": 71,
+              "column": 74
+            }
+          },
+          "status": "Survived",
+          "static": false,
+          "coveredBy": [
+            "121974f7-dc49-8c30-b60a-02964ca2f38c",
+            "1961b0a0-d9e7-89ae-9e9f-e2f817bd7b6d",
+            "19d1c2bf-cb78-895d-b3f0-a3e0f4828cca",
+            "12865f0d-0440-8775-a60d-5c54a9567f7e"
+          ],
+          "killedBy": []
+        },
+        {
+          "id": "1922",
+          "mutatorName": "Equality mutation",
+          "replacement": "depth - 1 + existing.Depth > LogValueProjection.MaximumDepth",
+          "location": {
+            "start": {
+              "line": 71,
+              "column": 78
+            },
+            "end": {
+              "line": 71,
+              "column": 139
+            }
+          },
+          "status": "Survived",
+          "static": false,
+          "coveredBy": [
+            "121974f7-dc49-8c30-b60a-02964ca2f38c",
+            "1961b0a0-d9e7-89ae-9e9f-e2f817bd7b6d",
+            "19d1c2bf-cb78-895d-b3f0-a3e0f4828cca",
+            "12865f0d-0440-8775-a60d-5c54a9567f7e"
+          ],
+          "killedBy": []
+        },
+        {
+          "id": "1923",
+          "mutatorName": "Equality mutation",
+          "replacement": "depth - 1 + existing.Depth < LogValueProjection.MaximumDepth",
+          "location": {
+            "start": {
+              "line": 71,
+              "column": 78
+            },
+            "end": {
+              "line": 71,
+              "column": 139
+            }
+          },
+          "status": "Survived",
+          "static": false,
+          "coveredBy": [
+            "121974f7-dc49-8c30-b60a-02964ca2f38c",
+            "1961b0a0-d9e7-89ae-9e9f-e2f817bd7b6d",
+            "19d1c2bf-cb78-895d-b3f0-a3e0f4828cca",
+            "12865f0d-0440-8775-a60d-5c54a9567f7e"
+          ],
+          "killedBy": []
+        },
+        {
+          "id": "1924",
+          "mutatorName": "Arithmetic mutation",
+          "replacement": "depth - 1 - existing.Depth",
+          "location": {
+            "start": {
+              "line": 71,
+              "column": 78
+            },
+            "end": {
+              "line": 71,
+              "column": 104
+            }
+          },
+          "status": "Survived",
+          "static": false,
+          "coveredBy": [
+            "121974f7-dc49-8c30-b60a-02964ca2f38c",
+            "1961b0a0-d9e7-89ae-9e9f-e2f817bd7b6d",
+            "19d1c2bf-cb78-895d-b3f0-a3e0f4828cca",
+            "12865f0d-0440-8775-a60d-5c54a9567f7e"
+          ],
+          "killedBy": []
+        },
+        {
+          "id": "1925",
+          "mutatorName": "Arithmetic mutation",
+          "replacement": "depth + 1",
+          "location": {
+            "start": {
+              "line": 71,
+              "column": 78
+            },
+            "end": {
+              "line": 71,
+              "column": 87
+            }
+          },
+          "status": "Survived",
+          "static": false,
+          "coveredBy": [
+            "121974f7-dc49-8c30-b60a-02964ca2f38c",
+            "1961b0a0-d9e7-89ae-9e9f-e2f817bd7b6d",
+            "19d1c2bf-cb78-895d-b3f0-a3e0f4828cca",
+            "12865f0d-0440-8775-a60d-5c54a9567f7e"
+          ],
+          "killedBy": []
+        },
+        {
+          "id": "1926",
+          "mutatorName": "Block removal mutation",
+          "replacement": "{}",
+          "location": {
+            "start": {
+              "line": 72,
+              "column": 9
+            },
+            "end": {
+              "line": 72,
+              "column": 62
+            }
+          },
+          "status": "Ignored",
+          "statusReason": "Removed by block already covered filter",
+          "static": false,
+          "coveredBy": [
+            "121974f7-dc49-8c30-b60a-02964ca2f38c",
+            "1961b0a0-d9e7-89ae-9e9f-e2f817bd7b6d",
+            "19d1c2bf-cb78-895d-b3f0-a3e0f4828cca",
+            "12865f0d-0440-8775-a60d-5c54a9567f7e"
+          ],
+          "killedBy": []
+        },
+        {
+          "id": "1927",
+          "mutatorName": "SubtractAssignmentExpression to AddAssignmentExpression mutation",
+          "replacement": "remaining += existing.NodeCount",
+          "location": {
+            "start": {
+              "line": 72,
+              "column": 11
+            },
+            "end": {
+              "line": 72,
+              "column": 42
+            }
+          },
+          "status": "Survived",
+          "static": false,
+          "coveredBy": [
+            "121974f7-dc49-8c30-b60a-02964ca2f38c",
+            "1961b0a0-d9e7-89ae-9e9f-e2f817bd7b6d",
+            "19d1c2bf-cb78-895d-b3f0-a3e0f4828cca",
+            "12865f0d-0440-8775-a60d-5c54a9567f7e"
+          ],
+          "killedBy": []
+        },
+        {
+          "id": "1928",
+          "mutatorName": "Statement mutation",
+          "replacement": ";",
+          "location": {
+            "start": {
+              "line": 73,
+              "column": 9
+            },
+            "end": {
+              "line": 73,
+              "column": 21
+            }
+          },
+          "status": "Killed",
+          "static": true,
+          "coveredBy": [],
+          "killedBy": [
+            "1c5d00ec-8898-8a11-bc81-388eb5b08cc9",
+            "148252be-2aff-8f5a-b272-5ca52a85b7e1"
+          ]
+        },
+        {
+          "id": "1929",
+          "mutatorName": "PostDecrementExpression to PostIncrementExpression mutation",
+          "replacement": "remaining++",
+          "location": {
+            "start": {
+              "line": 73,
+              "column": 9
+            },
+            "end": {
+              "line": 73,
+              "column": 20
+            }
+          },
+          "status": "Killed",
+          "static": true,
+          "coveredBy": [],
+          "killedBy": [
+            "1c5d00ec-8898-8a11-bc81-388eb5b08cc9",
+            "148252be-2aff-8f5a-b272-5ca52a85b7e1"
+          ]
+        },
+        {
+          "id": "1930",
+          "mutatorName": "Equality mutation",
+          "replacement": "owned.Kind != LogValueKind.Array",
+          "location": {
+            "start": {
+              "line": 77,
+              "column": 33
+            },
+            "end": {
+              "line": 77,
+              "column": 65
+            }
+          },
+          "status": "NoCoverage",
+          "statusReason": "Not covered by any test.",
+          "static": false,
+          "coveredBy": [],
+          "killedBy": []
+        },
+        {
+          "id": "1931",
+          "mutatorName": "Equality mutation",
+          "replacement": "owned.Kind != LogValueKind.Map",
+          "location": {
+            "start": {
+              "line": 78,
+              "column": 33
+            },
+            "end": {
+              "line": 78,
+              "column": 63
+            }
+          },
+          "status": "NoCoverage",
+          "statusReason": "Not covered by any test.",
+          "static": false,
+          "coveredBy": [],
+          "killedBy": []
+        },
+        {
+          "id": "1932",
+          "mutatorName": "Equality mutation",
+          "replacement": "scalar > 9_007_199_254_740_991",
+          "location": {
+            "start": {
+              "line": 89,
+              "column": 31
+            },
+            "end": {
+              "line": 89,
+              "column": 62
+            }
+          },
+          "status": "Survived",
+          "static": false,
+          "coveredBy": [
+            "19d1c2bf-cb78-895d-b3f0-a3e0f4828cca",
+            "1d6eeee5-1f4d-8c47-9238-0a45ef3bfedb"
+          ],
+          "killedBy": []
+        },
+        {
+          "id": "1933",
+          "mutatorName": "Equality mutation",
+          "replacement": "scalar < 9_007_199_254_740_991",
+          "location": {
+            "start": {
+              "line": 89,
+              "column": 31
+            },
+            "end": {
+              "line": 89,
+              "column": 62
+            }
+          },
+          "status": "Survived",
+          "static": false,
+          "coveredBy": [
+            "19d1c2bf-cb78-895d-b3f0-a3e0f4828cca",
+            "1d6eeee5-1f4d-8c47-9238-0a45ef3bfedb"
+          ],
+          "killedBy": []
+        },
+        {
+          "id": "1934",
+          "mutatorName": "Equality mutation",
+          "replacement": "scalar.Kind != DateTimeKind.Utc",
+          "location": {
+            "start": {
+              "line": 95,
+              "column": 34
+            },
+            "end": {
+              "line": 95,
+              "column": 65
+            }
+          },
+          "status": "Survived",
+          "static": false,
+          "coveredBy": [
+            "1981300c-71ff-8689-b1bd-4259bd956aae",
+            "12865f0d-0440-8775-a60d-5c54a9567f7e",
+            "1483b6a8-63b3-853b-a964-9acb419d65dc"
+          ],
+          "killedBy": []
+        },
+        {
+          "id": "1935",
+          "mutatorName": "String mutation",
+          "replacement": "\"\"",
+          "location": {
+            "start": {
+              "line": 99,
+              "column": 46
+            },
+            "end": {
+              "line": 99,
+              "column": 109
+            }
+          },
+          "status": "Survived",
+          "static": false,
+          "coveredBy": [
+            "1981300c-71ff-8689-b1bd-4259bd956aae",
+            "1b8d75fd-fe57-8f6f-95a9-b807e1bc0453",
+            "10261997-5254-8c49-b564-d42a54fa53d9",
+            "19d1c2bf-cb78-895d-b3f0-a3e0f4828cca",
+            "1c7c1d4d-736a-88ea-b2a3-ebab44756fe7",
+            "1d6eeee5-1f4d-8c47-9238-0a45ef3bfedb",
+            "1483b6a8-63b3-853b-a964-9acb419d65dc",
+            "1707088b-73e3-8a9a-b4ef-ac88553de477"
+          ],
+          "killedBy": []
+        },
+        {
+          "id": "1936",
+          "mutatorName": "Block removal mutation",
+          "replacement": "{}",
+          "location": {
+            "start": {
+              "line": 104,
+              "column": 5
+            },
+            "end": {
+              "line": 118,
+              "column": 6
+            }
+          },
+          "status": "Ignored",
+          "statusReason": "Removed by block already covered filter",
+          "static": true,
+          "coveredBy": [],
+          "killedBy": []
+        },
+        {
+          "id": "1937",
+          "mutatorName": "Statement mutation",
+          "replacement": ";",
+          "location": {
+            "start": {
+              "line": 105,
+              "column": 9
+            },
+            "end": {
+              "line": 105,
+              "column": 22
+            }
+          },
+          "status": "Killed",
+          "static": true,
+          "coveredBy": [],
+          "killedBy": [
+            "1fb9faf9-9d4b-8c9b-8349-1c2b8aa817e2"
+          ]
+        },
+        {
+          "id": "1938",
+          "mutatorName": "Block removal mutation",
+          "replacement": "{}",
+          "location": {
+            "start": {
+              "line": 107,
+              "column": 9
+            },
+            "end": {
+              "line": 116,
+              "column": 10
+            }
+          },
+          "status": "Ignored",
+          "statusReason": "Removed by block already covered filter",
+          "static": true,
+          "coveredBy": [],
+          "killedBy": []
+        },
+        {
+          "id": "1939",
+          "mutatorName": "Block removal mutation",
+          "replacement": "{}",
+          "location": {
+            "start": {
+              "line": 110,
+              "column": 13
+            },
+            "end": {
+              "line": 114,
+              "column": 14
+            }
+          },
+          "status": "Ignored",
+          "statusReason": "Removed by block already covered filter",
+          "static": true,
+          "coveredBy": [],
+          "killedBy": []
+        },
+        {
+          "id": "1940",
+          "mutatorName": "Arithmetic mutation",
+          "replacement": "depth - 1",
+          "location": {
+            "start": {
+              "line": 111,
+              "column": 50
+            },
+            "end": {
+              "line": 111,
+              "column": 59
+            }
+          },
+          "status": "Survived",
+          "static": true,
+          "coveredBy": [],
+          "killedBy": []
+        },
+        {
+          "id": "1941",
+          "mutatorName": "Equality mutation",
+          "replacement": "retained is not null",
+          "location": {
+            "start": {
+              "line": 112,
+              "column": 21
+            },
+            "end": {
+              "line": 112,
+              "column": 37
+            }
+          },
+          "status": "Killed",
+          "static": true,
+          "coveredBy": [],
+          "killedBy": [
+            "1c5d00ec-8898-8a11-bc81-388eb5b08cc9",
+            "188f12ae-2295-838a-80c8-f9b467646342",
+            "1850d046-d5b6-8aa9-b8a6-e501fd09def4",
+            "148252be-2aff-8f5a-b272-5ca52a85b7e1",
+            "1b1f9a05-c927-8eba-9dfd-4fbc06a355f1",
+            "1e3dfceb-0ca0-892e-8c2b-3592e670c262"
+          ]
+        },
+        {
+          "id": "1942",
+          "mutatorName": "Block removal mutation",
+          "replacement": "{}",
+          "location": {
+            "start": {
+              "line": 112,
+              "column": 39
+            },
+            "end": {
+              "line": 112,
+              "column": 67
+            }
+          },
+          "status": "Ignored",
+          "statusReason": "Removed by block already covered filter",
+          "static": false,
+          "coveredBy": [
+            "1bb0c5c6-8efa-8fbd-8ad5-0559970deff1",
+            "1c5d00ec-8898-8a11-bc81-388eb5b08cc9",
+            "1b1f9a05-c927-8eba-9dfd-4fbc06a355f1"
+          ],
+          "killedBy": []
+        },
+        {
+          "id": "1943",
+          "mutatorName": "Boolean mutation",
+          "replacement": "false",
+          "location": {
+            "start": {
+              "line": 112,
+              "column": 53
+            },
+            "end": {
+              "line": 112,
+              "column": 57
+            }
+          },
+          "status": "Survived",
+          "static": false,
+          "coveredBy": [
+            "1bb0c5c6-8efa-8fbd-8ad5-0559970deff1",
+            "1c5d00ec-8898-8a11-bc81-388eb5b08cc9",
+            "1b1f9a05-c927-8eba-9dfd-4fbc06a355f1"
+          ],
+          "killedBy": []
+        },
+        {
+          "id": "1944",
+          "mutatorName": "Statement mutation",
+          "replacement": ";",
+          "location": {
+            "start": {
+              "line": 112,
+              "column": 59
+            },
+            "end": {
+              "line": 112,
+              "column": 65
+            }
+          },
+          "status": "Killed",
+          "static": false,
+          "coveredBy": [
+            "1bb0c5c6-8efa-8fbd-8ad5-0559970deff1",
+            "1c5d00ec-8898-8a11-bc81-388eb5b08cc9",
+            "1b1f9a05-c927-8eba-9dfd-4fbc06a355f1"
+          ],
+          "killedBy": [
+            "1c5d00ec-8898-8a11-bc81-388eb5b08cc9",
+            "1b1f9a05-c927-8eba-9dfd-4fbc06a355f1"
+          ]
+        },
+        {
+          "id": "1945",
+          "mutatorName": "Statement mutation",
+          "replacement": ";",
+          "location": {
+            "start": {
+              "line": 113,
+              "column": 17
+            },
+            "end": {
+              "line": 113,
+              "column": 37
+            }
+          },
+          "status": "Killed",
+          "static": true,
+          "coveredBy": [],
+          "killedBy": [
+            "1c5d00ec-8898-8a11-bc81-388eb5b08cc9",
+            "188f12ae-2295-838a-80c8-f9b467646342",
+            "148252be-2aff-8f5a-b272-5ca52a85b7e1",
+            "1850d046-d5b6-8aa9-b8a6-e501fd09def4",
+            "1b1f9a05-c927-8eba-9dfd-4fbc06a355f1",
+            "1e3dfceb-0ca0-892e-8c2b-3592e670c262"
+          ]
+        },
+        {
+          "id": "1946",
+          "mutatorName": "Block removal mutation",
+          "replacement": "{}",
+          "location": {
+            "start": {
+              "line": 117,
+              "column": 17
+            },
+            "end": {
+              "line": 117,
+              "column": 45
+            }
+          },
+          "status": "Ignored",
+          "statusReason": "Removed by block already covered filter",
+          "static": false,
+          "coveredBy": [
+            "1da549d5-0ce1-851b-b365-469327812fe6",
+            "121974f7-dc49-8c30-b60a-02964ca2f38c",
+            "10188a71-dc98-8292-ac84-6352a4244455",
+            "19d1c2bf-cb78-895d-b3f0-a3e0f4828cca",
+            "1d3207bd-9b5b-8682-8952-713893739283",
+            "1bb0c5c6-8efa-8fbd-8ad5-0559970deff1",
+            "1c5d00ec-8898-8a11-bc81-388eb5b08cc9",
+            "1b1f9a05-c927-8eba-9dfd-4fbc06a355f1"
+          ],
+          "killedBy": []
+        },
+        {
+          "id": "1947",
+          "mutatorName": "Statement mutation",
+          "replacement": ";",
+          "location": {
+            "start": {
+              "line": 117,
+              "column": 19
+            },
+            "end": {
+              "line": 117,
+              "column": 43
+            }
+          },
+          "status": "Survived",
+          "static": false,
+          "coveredBy": [
+            "1da549d5-0ce1-851b-b365-469327812fe6",
+            "121974f7-dc49-8c30-b60a-02964ca2f38c",
+            "10188a71-dc98-8292-ac84-6352a4244455",
+            "19d1c2bf-cb78-895d-b3f0-a3e0f4828cca",
+            "1d3207bd-9b5b-8682-8952-713893739283",
+            "1bb0c5c6-8efa-8fbd-8ad5-0559970deff1",
+            "1c5d00ec-8898-8a11-bc81-388eb5b08cc9",
+            "1b1f9a05-c927-8eba-9dfd-4fbc06a355f1"
+          ],
+          "killedBy": []
+        },
+        {
+          "id": "1948",
+          "mutatorName": "Block removal mutation",
+          "replacement": "{}",
+          "location": {
+            "start": {
+              "line": 121,
+              "column": 5
+            },
+            "end": {
+              "line": 136,
+              "column": 6
+            }
+          },
+          "status": "Ignored",
+          "statusReason": "Removed by block already covered filter",
+          "static": false,
+          "coveredBy": [
+            "1981300c-71ff-8689-b1bd-4259bd956aae",
+            "19d1c2bf-cb78-895d-b3f0-a3e0f4828cca",
+            "1d3207bd-9b5b-8682-8952-713893739283"
+          ],
+          "killedBy": []
+        },
+        {
+          "id": "1949",
+          "mutatorName": "CoalesceAssignmentExpression to SimpleAssignmentExpression mutation",
+          "replacement": "owner = properties",
+          "location": {
+            "start": {
+              "line": 122,
+              "column": 9
+            },
+            "end": {
+              "line": 122,
+              "column": 29
+            }
+          },
+          "status": "Survived",
+          "static": false,
+          "coveredBy": [
+            "1981300c-71ff-8689-b1bd-4259bd956aae",
+            "19d1c2bf-cb78-895d-b3f0-a3e0f4828cca",
+            "1d3207bd-9b5b-8682-8952-713893739283"
+          ],
+          "killedBy": []
+        },
+        {
+          "id": "1950",
+          "mutatorName": "Statement mutation",
+          "replacement": ";",
+          "location": {
+            "start": {
+              "line": 122,
+              "column": 31
+            },
+            "end": {
+              "line": 122,
+              "column": 44
+            }
+          },
+          "status": "Survived",
+          "static": false,
+          "coveredBy": [
+            "1981300c-71ff-8689-b1bd-4259bd956aae",
+            "19d1c2bf-cb78-895d-b3f0-a3e0f4828cca",
+            "1d3207bd-9b5b-8682-8952-713893739283"
+          ],
+          "killedBy": []
+        },
+        {
+          "id": "1951",
+          "mutatorName": "Block removal mutation",
+          "replacement": "{}",
+          "location": {
+            "start": {
+              "line": 124,
+              "column": 9
+            },
+            "end": {
+              "line": 134,
+              "column": 10
+            }
+          },
+          "status": "Ignored",
+          "statusReason": "Removed by block already covered filter",
+          "static": false,
+          "coveredBy": [
+            "1981300c-71ff-8689-b1bd-4259bd956aae",
+            "19d1c2bf-cb78-895d-b3f0-a3e0f4828cca",
+            "1d3207bd-9b5b-8682-8952-713893739283"
+          ],
+          "killedBy": []
+        },
+        {
+          "id": "1952",
+          "mutatorName": "Block removal mutation",
+          "replacement": "{}",
+          "location": {
+            "start": {
+              "line": 127,
+              "column": 13
+            },
+            "end": {
+              "line": 132,
+              "column": 14
+            }
+          },
+          "status": "Ignored",
+          "statusReason": "Removed by block already covered filter",
+          "static": false,
+          "coveredBy": [
+            "1981300c-71ff-8689-b1bd-4259bd956aae",
+            "19d1c2bf-cb78-895d-b3f0-a3e0f4828cca",
+            "1d3207bd-9b5b-8682-8952-713893739283"
+          ],
+          "killedBy": []
+        },
+        {
+          "id": "1953",
+          "mutatorName": "Statement mutation",
+          "replacement": ";",
+          "location": {
+            "start": {
+              "line": 128,
+              "column": 17
+            },
+            "end": {
+              "line": 128,
+              "column": 34
+            }
+          },
+          "status": "Survived",
+          "static": false,
+          "coveredBy": [
+            "1981300c-71ff-8689-b1bd-4259bd956aae",
+            "19d1c2bf-cb78-895d-b3f0-a3e0f4828cca",
+            "1d3207bd-9b5b-8682-8952-713893739283"
+          ],
+          "killedBy": []
+        },
+        {
+          "id": "1954",
+          "mutatorName": "Arithmetic mutation",
+          "replacement": "depth - 1",
+          "location": {
+            "start": {
+              "line": 129,
+              "column": 51
+            },
+            "end": {
+              "line": 129,
+              "column": 60
+            }
+          },
+          "status": "Survived",
+          "static": false,
+          "coveredBy": [
+            "1981300c-71ff-8689-b1bd-4259bd956aae",
+            "19d1c2bf-cb78-895d-b3f0-a3e0f4828cca",
+            "1d3207bd-9b5b-8682-8952-713893739283"
+          ],
+          "killedBy": []
+        },
+        {
+          "id": "1955",
+          "mutatorName": "Equality mutation",
+          "replacement": "retained is not null",
+          "location": {
+            "start": {
+              "line": 130,
+              "column": 21
+            },
+            "end": {
+              "line": 130,
+              "column": 37
+            }
+          },
+          "status": "Survived",
+          "static": false,
+          "coveredBy": [
+            "1981300c-71ff-8689-b1bd-4259bd956aae",
+            "19d1c2bf-cb78-895d-b3f0-a3e0f4828cca"
+          ],
+          "killedBy": []
+        },
+        {
+          "id": "1956",
+          "mutatorName": "Block removal mutation",
+          "replacement": "{}",
+          "location": {
+            "start": {
+              "line": 130,
+              "column": 39
+            },
+            "end": {
+              "line": 130,
+              "column": 67
+            }
+          },
+          "status": "Ignored",
+          "statusReason": "Removed by block already covered filter",
+          "static": false,
+          "coveredBy": [],
+          "killedBy": []
+        },
+        {
+          "id": "1957",
+          "mutatorName": "Boolean mutation",
+          "replacement": "false",
+          "location": {
+            "start": {
+              "line": 130,
+              "column": 53
+            },
+            "end": {
+              "line": 130,
+              "column": 57
+            }
+          },
+          "status": "NoCoverage",
+          "statusReason": "Not covered by any test.",
+          "static": false,
+          "coveredBy": [],
+          "killedBy": []
+        },
+        {
+          "id": "1958",
+          "mutatorName": "Statement mutation",
+          "replacement": ";",
+          "location": {
+            "start": {
+              "line": 130,
+              "column": 59
+            },
+            "end": {
+              "line": 130,
+              "column": 65
+            }
+          },
+          "status": "NoCoverage",
+          "statusReason": "Not covered by any test.",
+          "static": false,
+          "coveredBy": [],
+          "killedBy": []
+        },
+        {
+          "id": "1959",
+          "mutatorName": "Block removal mutation",
+          "replacement": "{}",
+          "location": {
+            "start": {
+              "line": 135,
+              "column": 17
+            },
+            "end": {
+              "line": 135,
+              "column": 45
+            }
+          },
+          "status": "Ignored",
+          "statusReason": "Removed by block already covered filter",
+          "static": false,
+          "coveredBy": [
+            "1981300c-71ff-8689-b1bd-4259bd956aae",
+            "19d1c2bf-cb78-895d-b3f0-a3e0f4828cca",
+            "1d3207bd-9b5b-8682-8952-713893739283"
+          ],
+          "killedBy": []
+        },
+        {
+          "id": "1960",
+          "mutatorName": "Statement mutation",
+          "replacement": ";",
+          "location": {
+            "start": {
+              "line": 135,
+              "column": 19
+            },
+            "end": {
+              "line": 135,
+              "column": 43
+            }
+          },
+          "status": "Survived",
+          "static": false,
+          "coveredBy": [
+            "1981300c-71ff-8689-b1bd-4259bd956aae",
+            "19d1c2bf-cb78-895d-b3f0-a3e0f4828cca",
+            "1d3207bd-9b5b-8682-8952-713893739283"
+          ],
+          "killedBy": []
+        },
+        {
+          "id": "1961",
+          "mutatorName": "Block removal mutation",
+          "replacement": "{}",
+          "location": {
+            "start": {
+              "line": 139,
+              "column": 5
+            },
+            "end": {
+              "line": 142,
+              "column": 6
+            }
+          },
+          "status": "Ignored",
+          "statusReason": "Removed by block already covered filter",
+          "static": false,
+          "coveredBy": [
+            "19d1c2bf-cb78-895d-b3f0-a3e0f4828cca",
+            "1d3207bd-9b5b-8682-8952-713893739283"
+          ],
+          "killedBy": []
+        },
+        {
+          "id": "1962",
+          "mutatorName": "Block removal mutation",
+          "replacement": "{}",
+          "location": {
+            "start": {
+              "line": 141,
+              "column": 9
+            },
+            "end": {
+              "line": 141,
+              "column": 124
+            }
+          },
+          "status": "Ignored",
+          "statusReason": "Removed by block already covered filter",
+          "static": false,
+          "coveredBy": [
+            "19d1c2bf-cb78-895d-b3f0-a3e0f4828cca",
+            "1d3207bd-9b5b-8682-8952-713893739283"
+          ],
+          "killedBy": []
+        },
+        {
+          "id": "1963",
+          "mutatorName": "Statement mutation",
+          "replacement": ";",
+          "location": {
+            "start": {
+              "line": 141,
+              "column": 11
+            },
+            "end": {
+              "line": 141,
+              "column": 122
+            }
+          },
+          "status": "Survived",
+          "static": false,
+          "coveredBy": [
+            "19d1c2bf-cb78-895d-b3f0-a3e0f4828cca",
+            "1d3207bd-9b5b-8682-8952-713893739283"
+          ],
+          "killedBy": []
+        },
+        {
+          "id": "1964",
+          "mutatorName": "String mutation",
+          "replacement": "\"\"",
+          "location": {
+            "start": {
+              "line": 141,
+              "column": 79
+            },
+            "end": {
+              "line": 141,
+              "column": 106
+            }
+          },
+          "status": "NoCoverage",
+          "statusReason": "Not covered by any test.",
+          "static": false,
+          "coveredBy": [],
+          "killedBy": []
+        },
+        {
+          "id": "1965",
+          "mutatorName": "Block removal mutation",
+          "replacement": "{}",
+          "location": {
+            "start": {
+              "line": 145,
+              "column": 5
+            },
+            "end": {
+              "line": 147,
+              "column": 6
+            }
+          },
+          "status": "Ignored",
+          "statusReason": "Removed by block already covered filter",
+          "static": true,
+          "coveredBy": [],
+          "killedBy": []
+        },
+        {
+          "id": "1966",
+          "mutatorName": "LogicalNotExpression to un-LogicalNotExpression mutation",
+          "replacement": "ancestors.Add(collection)",
+          "location": {
+            "start": {
+              "line": 146,
+              "column": 13
+            },
+            "end": {
+              "line": 146,
+              "column": 39
+            }
+          },
+          "status": "Killed",
+          "static": true,
+          "coveredBy": [],
+          "killedBy": [
+            "163c977a-e9f3-825f-b3ed-0abf1e12f63d",
+            "10f7ca08-19bf-8ec9-ae8a-ec9431e6373b",
+            "170921e9-cd91-8910-a0af-f8d205fe4b5d",
+            "1c5d00ec-8898-8a11-bc81-388eb5b08cc9",
+            "153723d7-76e0-803b-96b9-465a60813a5e",
+            "1f6b9766-e441-8257-a6d8-9523fc1bf113",
+            "184c2926-fcb2-8b1b-900e-68c28374d89a",
+            "188f12ae-2295-838a-80c8-f9b467646342",
+            "11e421b1-3d08-8a8a-a55d-934948ac7b18",
+            "1e18032f-6a5a-8b5f-b5f5-9e24fc490d66",
+            "174f362f-dab2-8c7b-a85d-a8eabdc0e3c6",
+            "100d8a3b-873e-807c-9448-13e864dcba27",
+            "197639a5-d2ec-8a67-9b1b-aeed70cd5773",
+            "1e299a27-5fcd-8d31-b464-d0052992df81",
+            "166802a2-73f3-8d2e-b6b7-8f34c5150d56",
+            "10188a71-dc98-8292-ac84-6352a4244455",
+            "1961b0a0-d9e7-89ae-9e9f-e2f817bd7b6d",
+            "1c6bab38-c003-842a-969d-ccfa547925bc",
+            "1d53723a-1a23-8fc4-abf1-89f92621c0a8",
+            "12865f0d-0440-8775-a60d-5c54a9567f7e",
+            "1850d046-d5b6-8aa9-b8a6-e501fd09def4",
+            "1fc6fb42-d891-8671-a2f4-e18e51048a8d",
+            "1d3207bd-9b5b-8682-8952-713893739283",
+            "1d6eeee5-1f4d-8c47-9238-0a45ef3bfedb",
+            "148252be-2aff-8f5a-b272-5ca52a85b7e1",
+            "1bc1f5a9-22c5-8001-8c3e-8e32c4efb548",
+            "1b1f9a05-c927-8eba-9dfd-4fbc06a355f1",
+            "1e3dfceb-0ca0-892e-8c2b-3592e670c262",
+            "1dfd9d30-38cd-8747-bc9c-03624f331fba",
+            "13c3915e-2af2-8aaa-ada8-14f45eca91c9",
+            "17504661-27ec-8146-b001-47a5f1b7edf1",
+            "180c1538-6521-8d6c-a415-2bb65c9b952c",
+            "15c8847b-46cb-8cea-8a97-4b1113a31497",
+            "1eba3729-f10e-837e-8128-2fb4d9a24a1f",
+            "19d1c2bf-cb78-895d-b3f0-a3e0f4828cca",
+            "1c7c1d4d-736a-88ea-b2a3-ebab44756fe7",
+            "1483b6a8-63b3-853b-a964-9acb419d65dc",
+            "1852c3d1-4764-82ae-a3ee-97f5059400e3",
+            "15045437-9af1-8ad4-930a-e2b1a54d9b63"
+          ]
+        },
+        {
+          "id": "1967",
+          "mutatorName": "Block removal mutation",
+          "replacement": "{}",
+          "location": {
+            "start": {
+              "line": 146,
+              "column": 41
+            },
+            "end": {
+              "line": 146,
+              "column": 105
+            }
+          },
+          "status": "Ignored",
+          "statusReason": "Removed by block already covered filter",
+          "static": false,
+          "coveredBy": [
+            "1d3207bd-9b5b-8682-8952-713893739283"
+          ],
+          "killedBy": []
+        },
+        {
+          "id": "1968",
+          "mutatorName": "Statement mutation",
+          "replacement": ";",
+          "location": {
+            "start": {
+              "line": 146,
+              "column": 43
+            },
+            "end": {
+              "line": 146,
+              "column": 103
+            }
+          },
+          "status": "Survived",
+          "static": false,
+          "coveredBy": [
+            "1d3207bd-9b5b-8682-8952-713893739283"
+          ],
+          "killedBy": []
+        },
+        {
+          "id": "1969",
+          "mutatorName": "String mutation",
+          "replacement": "\"\"",
+          "location": {
+            "start": {
+              "line": 146,
+              "column": 71
+            },
+            "end": {
+              "line": 146,
+              "column": 101
+            }
+          },
+          "status": "Survived",
+          "static": false,
+          "coveredBy": [
+            "1d3207bd-9b5b-8682-8952-713893739283"
+          ],
+          "killedBy": []
+        },
+        {
+          "id": "1970",
+          "mutatorName": "Block removal mutation",
+          "replacement": "{}",
+          "location": {
+            "start": {
+              "line": 149,
+              "column": 5
+            },
+            "end": {
+              "line": 151,
+              "column": 6
+            }
+          },
+          "status": "Ignored",
+          "statusReason": "Removed by block already covered filter",
+          "static": true,
+          "coveredBy": [],
+          "killedBy": []
+        },
+        {
+          "id": "1971",
+          "mutatorName": "Logical mutation",
+          "replacement": "key is null && !LogValueText.IsValidKey(key)",
+          "location": {
+            "start": {
+              "line": 150,
+              "column": 13
+            },
+            "end": {
+              "line": 150,
+              "column": 57
+            }
+          },
+          "status": "Survived",
+          "static": true,
+          "coveredBy": [],
+          "killedBy": []
+        },
+        {
+          "id": "1972",
+          "mutatorName": "Negate expression",
+          "replacement": "!(key is null || !LogValueText.IsValidKey(key))",
+          "location": {
+            "start": {
+              "line": 150,
+              "column": 13
+            },
+            "end": {
+              "line": 150,
+              "column": 57
+            }
+          },
+          "status": "Killed",
+          "static": true,
+          "coveredBy": [],
+          "killedBy": [
+            "10f7ca08-19bf-8ec9-ae8a-ec9431e6373b",
+            "1c5d00ec-8898-8a11-bc81-388eb5b08cc9",
+            "153723d7-76e0-803b-96b9-465a60813a5e",
+            "184c2926-fcb2-8b1b-900e-68c28374d89a",
+            "163c977a-e9f3-825f-b3ed-0abf1e12f63d",
+            "1f6b9766-e441-8257-a6d8-9523fc1bf113",
+            "170921e9-cd91-8910-a0af-f8d205fe4b5d",
+            "166802a2-73f3-8d2e-b6b7-8f34c5150d56",
+            "1e18032f-6a5a-8b5f-b5f5-9e24fc490d66",
+            "197639a5-d2ec-8a67-9b1b-aeed70cd5773",
+            "11e421b1-3d08-8a8a-a55d-934948ac7b18",
+            "100d8a3b-873e-807c-9448-13e864dcba27",
+            "1e299a27-5fcd-8d31-b464-d0052992df81",
+            "174f362f-dab2-8c7b-a85d-a8eabdc0e3c6",
+            "188f12ae-2295-838a-80c8-f9b467646342",
+            "10188a71-dc98-8292-ac84-6352a4244455",
+            "12865f0d-0440-8775-a60d-5c54a9567f7e",
+            "1d53723a-1a23-8fc4-abf1-89f92621c0a8",
+            "1961b0a0-d9e7-89ae-9e9f-e2f817bd7b6d",
+            "1850d046-d5b6-8aa9-b8a6-e501fd09def4",
+            "1d6eeee5-1f4d-8c47-9238-0a45ef3bfedb",
+            "1d3207bd-9b5b-8682-8952-713893739283",
+            "1fc6fb42-d891-8671-a2f4-e18e51048a8d",
+            "148252be-2aff-8f5a-b272-5ca52a85b7e1",
+            "1e3dfceb-0ca0-892e-8c2b-3592e670c262",
+            "1b1f9a05-c927-8eba-9dfd-4fbc06a355f1",
+            "1dfd9d30-38cd-8747-bc9c-03624f331fba",
+            "1bc1f5a9-22c5-8001-8c3e-8e32c4efb548",
+            "15c8847b-46cb-8cea-8a97-4b1113a31497",
+            "1c7c1d4d-736a-88ea-b2a3-ebab44756fe7",
+            "1483b6a8-63b3-853b-a964-9acb419d65dc"
+          ]
+        },
+        {
+          "id": "1973",
+          "mutatorName": "Equality mutation",
+          "replacement": "key is not null",
+          "location": {
+            "start": {
+              "line": 150,
+              "column": 13
+            },
+            "end": {
+              "line": 150,
+              "column": 24
+            }
+          },
+          "status": "Killed",
+          "static": true,
+          "coveredBy": [],
+          "killedBy": [
+            "1f6b9766-e441-8257-a6d8-9523fc1bf113",
+            "153723d7-76e0-803b-96b9-465a60813a5e",
+            "184c2926-fcb2-8b1b-900e-68c28374d89a",
+            "170921e9-cd91-8910-a0af-f8d205fe4b5d",
+            "10f7ca08-19bf-8ec9-ae8a-ec9431e6373b",
+            "163c977a-e9f3-825f-b3ed-0abf1e12f63d",
+            "1c5d00ec-8898-8a11-bc81-388eb5b08cc9",
+            "100d8a3b-873e-807c-9448-13e864dcba27",
+            "188f12ae-2295-838a-80c8-f9b467646342",
+            "1e18032f-6a5a-8b5f-b5f5-9e24fc490d66",
+            "11e421b1-3d08-8a8a-a55d-934948ac7b18",
+            "174f362f-dab2-8c7b-a85d-a8eabdc0e3c6",
+            "197639a5-d2ec-8a67-9b1b-aeed70cd5773",
+            "1e299a27-5fcd-8d31-b464-d0052992df81",
+            "166802a2-73f3-8d2e-b6b7-8f34c5150d56",
+            "10188a71-dc98-8292-ac84-6352a4244455",
+            "1d53723a-1a23-8fc4-abf1-89f92621c0a8",
+            "12865f0d-0440-8775-a60d-5c54a9567f7e",
+            "1961b0a0-d9e7-89ae-9e9f-e2f817bd7b6d",
+            "1fc6fb42-d891-8671-a2f4-e18e51048a8d",
+            "1d3207bd-9b5b-8682-8952-713893739283",
+            "1d6eeee5-1f4d-8c47-9238-0a45ef3bfedb",
+            "1850d046-d5b6-8aa9-b8a6-e501fd09def4",
+            "148252be-2aff-8f5a-b272-5ca52a85b7e1",
+            "1e3dfceb-0ca0-892e-8c2b-3592e670c262",
+            "1bc1f5a9-22c5-8001-8c3e-8e32c4efb548",
+            "1b1f9a05-c927-8eba-9dfd-4fbc06a355f1",
+            "1dfd9d30-38cd-8747-bc9c-03624f331fba",
+            "1c7c1d4d-736a-88ea-b2a3-ebab44756fe7",
+            "1483b6a8-63b3-853b-a964-9acb419d65dc",
+            "15c8847b-46cb-8cea-8a97-4b1113a31497"
+          ]
+        },
+        {
+          "id": "1974",
+          "mutatorName": "LogicalNotExpression to un-LogicalNotExpression mutation",
+          "replacement": "LogValueText.IsValidKey(key)",
+          "location": {
+            "start": {
+              "line": 150,
+              "column": 28
+            },
+            "end": {
+              "line": 150,
+              "column": 57
+            }
+          },
+          "status": "Killed",
+          "static": true,
+          "coveredBy": [],
+          "killedBy": [
+            "184c2926-fcb2-8b1b-900e-68c28374d89a",
+            "163c977a-e9f3-825f-b3ed-0abf1e12f63d",
+            "153723d7-76e0-803b-96b9-465a60813a5e",
+            "10f7ca08-19bf-8ec9-ae8a-ec9431e6373b",
+            "1c5d00ec-8898-8a11-bc81-388eb5b08cc9",
+            "170921e9-cd91-8910-a0af-f8d205fe4b5d",
+            "1f6b9766-e441-8257-a6d8-9523fc1bf113",
+            "166802a2-73f3-8d2e-b6b7-8f34c5150d56",
+            "174f362f-dab2-8c7b-a85d-a8eabdc0e3c6",
+            "100d8a3b-873e-807c-9448-13e864dcba27",
+            "1e18032f-6a5a-8b5f-b5f5-9e24fc490d66",
+            "11e421b1-3d08-8a8a-a55d-934948ac7b18",
+            "1e299a27-5fcd-8d31-b464-d0052992df81",
+            "197639a5-d2ec-8a67-9b1b-aeed70cd5773",
+            "1d53723a-1a23-8fc4-abf1-89f92621c0a8",
+            "10188a71-dc98-8292-ac84-6352a4244455",
+            "1961b0a0-d9e7-89ae-9e9f-e2f817bd7b6d",
+            "188f12ae-2295-838a-80c8-f9b467646342",
+            "12865f0d-0440-8775-a60d-5c54a9567f7e",
+            "1850d046-d5b6-8aa9-b8a6-e501fd09def4",
+            "1fc6fb42-d891-8671-a2f4-e18e51048a8d",
+            "1d6eeee5-1f4d-8c47-9238-0a45ef3bfedb",
+            "1d3207bd-9b5b-8682-8952-713893739283",
+            "148252be-2aff-8f5a-b272-5ca52a85b7e1",
+            "1b1f9a05-c927-8eba-9dfd-4fbc06a355f1",
+            "1e3dfceb-0ca0-892e-8c2b-3592e670c262",
+            "1dfd9d30-38cd-8747-bc9c-03624f331fba",
+            "1bc1f5a9-22c5-8001-8c3e-8e32c4efb548",
+            "15c8847b-46cb-8cea-8a97-4b1113a31497",
+            "1c7c1d4d-736a-88ea-b2a3-ebab44756fe7",
+            "1483b6a8-63b3-853b-a964-9acb419d65dc"
+          ]
+        },
+        {
+          "id": "1975",
+          "mutatorName": "Block removal mutation",
+          "replacement": "{}",
+          "location": {
+            "start": {
+              "line": 150,
+              "column": 59
+            },
+            "end": {
+              "line": 150,
+              "column": 128
+            }
+          },
+          "status": "Ignored",
+          "statusReason": "Removed by block already covered filter",
+          "static": false,
+          "coveredBy": [
+            "1eba3729-f10e-837e-8128-2fb4d9a24a1f"
+          ],
+          "killedBy": []
+        },
+        {
+          "id": "1976",
+          "mutatorName": "Statement mutation",
+          "replacement": ";",
+          "location": {
+            "start": {
+              "line": 150,
+              "column": 61
+            },
+            "end": {
+              "line": 150,
+              "column": 126
+            }
+          },
+          "status": "Survived",
+          "static": false,
+          "coveredBy": [
+            "1eba3729-f10e-837e-8128-2fb4d9a24a1f"
+          ],
+          "killedBy": []
+        },
+        {
+          "id": "1977",
+          "mutatorName": "String mutation",
+          "replacement": "\"\"",
+          "location": {
+            "start": {
+              "line": 150,
+              "column": 89
+            },
+            "end": {
+              "line": 150,
+              "column": 124
+            }
+          },
+          "status": "Survived",
+          "static": false,
+          "coveredBy": [
+            "1eba3729-f10e-837e-8128-2fb4d9a24a1f"
+          ],
+          "killedBy": []
+        },
+        {
+          "id": "1978",
+          "mutatorName": "Block removal mutation",
+          "replacement": "{}",
+          "location": {
+            "start": {
+              "line": 153,
+              "column": 5
+            },
+            "end": {
+              "line": 156,
+              "column": 6
+            }
+          },
+          "status": "Ignored",
+          "statusReason": "Removed by block already covered filter",
+          "static": false,
+          "coveredBy": [
+            "121974f7-dc49-8c30-b60a-02964ca2f38c",
+            "19d1c2bf-cb78-895d-b3f0-a3e0f4828cca"
+          ],
+          "killedBy": []
+        },
+        {
+          "id": "1979",
+          "mutatorName": "Conditional (true) mutation",
+          "replacement": "(true?text :text + \".0\")",
+          "location": {
+            "start": {
+              "line": 155,
+              "column": 39
+            },
+            "end": {
+              "line": 155,
+              "column": 104
+            }
+          },
+          "status": "Survived",
+          "static": false,
+          "coveredBy": [
+            "121974f7-dc49-8c30-b60a-02964ca2f38c",
+            "19d1c2bf-cb78-895d-b3f0-a3e0f4828cca"
+          ],
+          "killedBy": []
+        },
+        {
+          "id": "1980",
+          "mutatorName": "Conditional (false) mutation",
+          "replacement": "(false?text :text + \".0\")",
+          "location": {
+            "start": {
+              "line": 155,
+              "column": 39
+            },
+            "end": {
+              "line": 155,
+              "column": 104
+            }
+          },
+          "status": "Survived",
+          "static": false,
+          "coveredBy": [
+            "121974f7-dc49-8c30-b60a-02964ca2f38c",
+            "19d1c2bf-cb78-895d-b3f0-a3e0f4828cca"
+          ],
+          "killedBy": []
+        },
+        {
+          "id": "1981",
+          "mutatorName": "String mutation",
+          "replacement": "\"\"",
+          "location": {
+            "start": {
+              "line": 155,
+              "column": 100
+            },
+            "end": {
+              "line": 155,
+              "column": 104
+            }
+          },
+          "status": "Survived",
+          "static": false,
+          "coveredBy": [
+            "19d1c2bf-cb78-895d-b3f0-a3e0f4828cca"
+          ],
+          "killedBy": []
+        }
+      ]
+    }
+  },
+  "thresholds": {
+    "high": 100,
+    "low": 90
+  },
+  "scope": "Exact native adapter file objects; other Core files and testFiles omitted. Not a complete native report."
+}

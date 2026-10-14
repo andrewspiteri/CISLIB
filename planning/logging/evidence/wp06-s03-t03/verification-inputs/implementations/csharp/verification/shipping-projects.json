@@ -1,0 +1,54 @@
+{
+  "schema": "cis.csharp.shipping-verification-matrix/v1",
+  "scope": "Explicit module wiring; task observations are not full release matrix qualification.",
+  "shippingProjects": [
+    {
+      "project": "src/CIS.Core/CIS.Core.csproj",
+      "packageId": "CIS.Core",
+      "assembly": "CIS.Core.dll",
+      "targetFramework": "net10.0",
+      "moduleSlices": [
+        {
+          "id": "logging-microsoft",
+          "namespace": "CIS.Logging.MicrosoftLogger",
+          "sources": [
+            "src/CIS.Core/Logging/MicrosoftLogger/CoreLoggerProvider.cs",
+            "src/CIS.Core/Logging/MicrosoftLogger/ProviderScopeCapture.cs",
+            "src/CIS.Core/Logging/MicrosoftLogger/ProviderStateCapture.cs"
+          ],
+          "coverage": {
+            "runner": "eng/verify-microsoft-logging.ps1",
+            "mode": "Coverage",
+            "settings": "verification/coverage/microsoft-logging.runsettings",
+            "testProjects": [
+              {
+                "project": "tests/CIS.Core.UnitTests/CIS.Core.UnitTests.csproj",
+                "filter": "FullyQualifiedName~CIS.Tests.UnitTests.Provider"
+              },
+              {
+                "project": "tests/CIS.Core.IntegrationTests/CIS.Core.IntegrationTests.csproj",
+                "filter": "FullyQualifiedName~CIS.Tests.IntegrationTests.Provider"
+              }
+            ],
+            "scope": "Actual Core module line/branch observations from separate unit and integration native reports; child coverage must be present, not inferred.",
+            "observationReport": "adapter-coverage.json in each lane results directory"
+          },
+          "mutation": {
+            "runner": "eng/verify-microsoft-logging.ps1",
+            "mode": "Mutation",
+            "config": "verification/mutation/microsoft-logging-config.json",
+            "project": "src/CIS.Core/CIS.Core.csproj",
+            "scope": "All adapter source files at Complete level in isolated copy, unit tests in-process. Child integration mutant injection is not claimed.",
+            "tool": "dotnet-stryker",
+            "version": "4.16.0",
+            "toolHostRuntime": "8.0.31",
+            "targetRuntime": "10.0.12",
+            "observationReport": "adapter-mutation.json in output root"
+          },
+          "releaseExecution": "Pending WP07 full shipping matrix, thresholds/exclusion review and both recorded lanes."
+        }
+      ]
+    }
+  ],
+  "otherModuleScope": "This addition inventories the Microsoft adapter slice only. Separately maintained module matrices, including Type Manager, remain authoritative for their own scope; this is not a replacement complete shipping inventory."
+}
