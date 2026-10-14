@@ -70,7 +70,8 @@ public sealed class CoreLoggerProvider : ILoggerProvider
             {
                 EventName = string.IsNullOrEmpty(eventId.Name) ? "log.message" : eventId.Name,
                 Message = formatter(state, exception),
-                Exception = exception
+                Exception = exception,
+                Attributes = new Dictionary<string, LogValue> { ["event_id"] = LogValue.Integer(eventId.Id) }
             });
         }
     }

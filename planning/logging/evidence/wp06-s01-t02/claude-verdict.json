@@ -1,0 +1,68 @@
+{
+  "task": "WP06-S01-T02",
+  "verdict": "PASS",
+  "basis": "Static read-only review of the supplied file contents only. No tools, execution, repository reads or edits were used. Pass/fail counts and native evidence were not observed and are not inferred.",
+  "requiredFindings": [],
+  "optionalFindings": [
+    {
+      "id": "O1",
+      "area": "documented public behavior",
+      "location": "implementations/csharp/src/CIS.Core/Logging/MicrosoftLogger/CoreLoggerProvider.cs (class <remarks>)",
+      "finding": "The XML remarks still describe the T01 foundation: rendered messages, event names and exceptions. They do not mention the new provider-owned attributes.event_id. microsoft-provider-mapping.md documents it, but the public type documentation is now incomplete.",
+      "suggestion": "Add one sentence: EventId.Id is always retained as the integer attribute event_id, including 0, negative values and the Int32 limits. Null or empty EventId.Name becomes log.message."
+    },
+    {
+      "id": "O2",
+      "area": "formatter fidelity",
+      "location": "ProviderMappingFixture.cs Pair(...) formatter lambda",
+      "finding": "The doc claims the formatter receives the original state and exception. The fixture verifies exception identity only when an error is supplied. It never checks that the state argument is the supplied object. It also never checks that `received` is null in the no-exception pairs. The rendered-vs-'unrendered input' message check proves the returned string is forwarded. It does not prove state passthrough.",
+      "suggestion": "Inside the lambda, require ReferenceEquals(state, suppliedState), and require received is null when error is null. Both are cheap and keep the documented claim backed by an executed assertion before T03 relies on state."
+    },
+    {
+      "id": "O3",
+      "area": "lazy execution coverage",
+      "location": "ProviderMappingFixture.cs levels mode",
+      "finding": "Laziness is shown only for LogLevel.None. No case logs below a configured threshold, for example console/file at Information and a Debug call, to show the formatter is not invoked for an uninterested defined level through the provider. Core WriteLazy qualification likely covers this already. Still, the provider-path claim 'inside existing lazy capture' is evidenced only by the None path and by formatterCalls == pairs, which shows at most once per call.",
+      "suggestion": "Either add a filtered-level control, or state explicitly in the receipt that below-threshold laziness is inherited from the WP05 WriteLazy qualification and is re-qualified in T04."
+    },
+    {
+      "id": "O4",
+      "area": "verifier hygiene",
+      "location": "verify-provider-mapping.py module docstring",
+      "finding": "The docstring says 'Microsoft provider foundation reader', which is copied from T01. The report schema and task correctly say provider-mapping/WP06-S01-T02.",
+      "suggestion": "Rename it to 'provider mapping reader' so evidence artifacts are unambiguous."
+    },
+    {
+      "id": "O5",
+      "area": "vacuous physical field",
+      "location": "ProviderMappingFixture.cs report[\"borrowedConsoleOpen\"]; verify-provider-mapping.py physical lifetime check",
+      "finding": "In physical mode, `bytes` is an unused MemoryStream, so borrowedConsoleOpen is trivially true. The Python check treats it as part of 'physical lifetime'. Likewise, leaseReleased is the constant `physical`. Its real backing is the FileShare.None open succeeding, which throws otherwise. That is sound but implicit.",
+      "suggestion": "Optionally report borrowedConsoleOpen as null or omit it for physical runs, and note in the doc/receipt that lease release is proven by the exclusive open."
+    },
+    {
+      "id": "O6",
+      "area": "equivalence construction",
+      "location": "ProviderMappingFixture.cs Pair(...) direct LogEventData",
+      "finding": "The direct-core counterpart rebuilds the expected mapping with the provider's own expression (`string.IsNullOrEmpty(id.Name) ? \"log.message\" : id.Name`, LogValue.Integer(id.Id)). The pairwise DeepEquals is therefore partly tautological for name and ID. This is acceptable because both the C# expectations and the Python reader independently hardcode the expected names and IDs per row.",
+      "suggestion": "No change needed. Keep the independent hardcoded expectation arrays as the authoritative mapping check."
+    }
+  ],
+  "verifiedByReading": [
+    "Level mapping: undefined levels throw before the disposal check. Trace..Critical cast to identical Core numbers. None reaches WriteLazy, where Core's early interest check skips the factory. The fixture's None formatter throws if invoked and noneFormatterCalls must be 0.",
+    "event_id: LogValue.Integer(int widened to long) is always within the \u00b12^53-1 safe range, so 0, \u00b11, Int32.MinValue and Int32.MaxValue cannot throw. EventWireFormat writes Integer via WriteNumberValue(long). The Python check enforces type(...) is int, and the event-id-type control rejects the string '0'.",
+    "Attribute construction happens inside the lazy factory: one Dictionary per interested call, nothing allocated for None/disabled before the interest check. Explicit attributes override matching scope keys in EventProjection.Merge, so the provider's event_id already wins over any scope 'event_id'.",
+    "Exception handling: the original exception is passed to both the formatter and LogEventData.Exception. Projection is the shared Core path. The payload case checks exactly {type, message}; there is no stack trace because the exception is never thrown, and Data is excluded with a dedicated control.",
+    "Message: the formatter's return value is forwarded unchanged, including '{x}', non-BMP and \u03a9 text. No parser, template, reflection, worker, cache or new dependency is introduced.",
+    "Mapping checks: each pair is one provider write and one direct-core write. The row count and output boundary/written are enforced at pairs*2. Timestamps are the only field removed before deep equality, in both C# and Python.",
+    "Corruption controls: 22 entries enumerated. Each targets a distinct reason string, and each edit fails at its intended check rather than an earlier one. For example, direct-equivalence mutates env, which no per-row check inspects, and message mutates row 0 so it fails before equivalence.",
+    "Python repo root: parents[5] from implementations/csharp/tests/fixtures/DiscoveryHost resolves to the repository root. Physical file bytes are re-read after child exit and compared to the reported bytes."
+  ],
+  "carriedForward": [
+    "Execution evidence: full Developer profile and native Windows + Ubuntu runs of verify-provider-mapping.py, plus the task receipt in planning/logging/evidence/wp06-s01-t02/ and implementation-status.md. Per the stated status these are pending; the commit should follow them. The receipt and status contents were not supplied, so their wording is not reviewed here.",
+    "T03: {OriginalFormat}/structured state mapping. Keep the provider-owned numeric event_id precedence over any state key named event_id. Exercise state passthrough identity (see O2) and message_template behavior.",
+    "T04: complete rejection/filter behavior through the provider. This covers formatter returning null, malformed UTF-16 messages, invalid or over-long EventId.Name (whitespace-only names currently pass Core validation), below-threshold laziness (O3), and how Core ArgumentExceptions surface through Microsoft's LoggerFactory aggregation.",
+    "T05: story qualification of the provider mappings.",
+    "S02: external/host scope-provider adaptation (BeginScope currently accepts only OperationContextData), event_id precedence against scope attributes under real host scopes, and the final provider surface.",
+    "Later: examples, instructions/skills and release qualification. Nothing in this task establishes provider-v1 or release completeness."
+  ]
+}
