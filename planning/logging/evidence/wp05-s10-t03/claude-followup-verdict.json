@@ -1,0 +1,43 @@
+{
+  "verdict": "PASS",
+  "requiredFindings": [],
+  "optionalFindings": [
+    {
+      "id": "python-bool-int-equality",
+      "location": "verify-stop-join.py check(), 'pre-cancelled initiation' dict comparison",
+      "finding": "The whole-dict equality check is loose about types because Python treats True == 1 and 1 == True. A report with admissionClosed: 1 or deadlineCreated: true would still pass. Most other boolean checks in this verifier use `is True`, so this check is weaker than its neighbours. The C# writer always emits real bools and an int today, so this is only a hardening gap.",
+      "suggestion": "Also check the types, for example `all(type(started[k]) is bool for k in ('admissionClosed', 'shutdownStarted')) and type(started['deadlineCreated']) is int`. Optionally add a control such as ('pre-type', 'pre-cancelled', ..., deadlineCreated=True)."
+    },
+    {
+      "id": "stopped-write-side-effect-unstated",
+      "location": "StopJoinFixture.cs pre-cancelled branch; stop-dispose.md",
+      "finding": "The extra 'after-cancelled-start' write returns Stopped through the early admissionClosed path. That path records no admission, filtered or invalid accounting, so the later live check (accepted == 1) and the records check (['one']) still hold. Both validators depend on that, but neither the docs nor a comment says so.",
+      "suggestion": "Optionally add a short comment saying the Stopped write records no admission accounting. That explains why the live and record expectations do not change for this mode."
+    }
+  ],
+  "resolvedFindings": [
+    {
+      "id": "pre-cancelled-start-not-proven",
+      "evidence": "The cancelled StopAsync is awaited to cancellation. GetDiagnostics() and a logger Write then run before the next StopAsync(CancellationToken.None). Each observation can only come from a shutdown that has already started. AdmissionClosed and ShutdownStartedAtUtc are set under the gate before the IsCancellationRequested shortcut. State is Stopping because the console worker is still held on the first write. Write returns Stopped from the early admissionClosed path. clock.Created == 1 holds because RunStopAsync is invoked inline and constructs FlushDeadline before its first await. All five values are therefore deterministic at the moment of observation. The fixture requires them, StopJoinExpectations validates them, verify-stop-join.py validates them independently, and other modes must report null. Five corruption controls flip each field and are rejected with the exact reason 'pre-cancelled initiation'."
+    },
+    {
+      "id": "task-identity-relies-on-waitasync-shortcut",
+      "evidence": "StopAsync now returns `shared` directly when !cancellationToken.CanBeCanceled. DisposeAsync wraps that task in a ValueTask, and ValueTask(Task).AsTask() returns the underlying Task. The ReferenceEquals checks and the docs' 'share task identity' no longer depend on the WaitAsync implementation detail."
+    },
+    {
+      "id": "unused-root-parameter",
+      "evidence": "Explicitly discarded with a comment explaining why."
+    }
+  ],
+  "carriedForward": [
+    "T04: stop-setup error policy. stopTask is published before RegisterFlushBoundary/queuedOutputs.Complete(), so a throw there leaves joiners waiting forever.",
+    "T04: seam/public-factory consistency, including DisposeAsync throwing InvalidOperationException on the internal admission seam.",
+    "T04: public creation/factory. No placeholder is expected in T03.",
+    "T04: primary-error/cleanup-error coordination. A faulted stopTask leaves lastStopResult null and makes DisposeAsync throw.",
+    "T04: explicit semantics for FlushAsync after stop and for internal CloseAdmission before StopAsync.",
+    "T04: eventual resource-release observation after a TimedOut disposal.",
+    "T05: full physical/process race qualification. The eight controlled barrier cases do not substitute for it.",
+    "Pre-commit: the final focused, Developer-profile and native Windows/Linux verify-stop-join.py results must be recorded in planning/logging/evidence/wp05-s10-t03/. The stop-join-cases.json 'state' wording must match what that receipt actually contains."
+  ],
+  "reviewLimits": "Read-only review of the five supplied files only. No tools, filesystem access, execution or edits were used, as instructed. Not inspected: FileTimerCoordinationFixture.Clock (whether Created counts only deadline timers, and its type), HeldStream, FlushDeadline's constructor, OutputQueues, stop-join-cases.json, the evidence receipt, and the unit and integration tests. The claims that FlushDeadline is constructed synchronously before the first await, that clock.Created is an int, and that ValueTask(Task).AsTask() preserves identity rest on the supplied code and on knowledge of .NET 8\u201310. They were not re-verified against 10.0.12. No verification results are claimed."
+}

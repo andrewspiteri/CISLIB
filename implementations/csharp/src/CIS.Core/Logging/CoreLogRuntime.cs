@@ -7,7 +7,7 @@ using CIS.Text;
 namespace CIS.Logging;
 
 /// <summary>Owns logger context, independent output admission and one shared bounded stop operation.</summary>
-public sealed class CoreLogRuntime
+public sealed class CoreLogRuntime : IAsyncDisposable
 {
     private readonly object admissionGate;
     private readonly OutputQueues? queuedOutputs;
@@ -222,9 +222,14 @@ public sealed class CoreLogRuntime
             }
         }
         // WaitAsync can prefer an already-completed task; an already-cancelled caller must still cancel.
-        return cancellationToken.IsCancellationRequested
-            ? Task.FromCanceled<LogStopResult>(cancellationToken) : shared!.WaitAsync(cancellationToken);
+        if (cancellationToken.IsCancellationRequested) { return Task.FromCanceled<LogStopResult>(cancellationToken); }
+        return cancellationToken.CanBeCanceled ? shared!.WaitAsync(cancellationToken) : shared!;
     }
+
+    /// <summary>Starts or joins the original bounded stop operation without a new drain window.</summary>
+    /// <returns>A wait on the same shared operation; unsuccessful draining remains visible in LastStopResult.</returns>
+    /// <remarks>Repeated disposal is harmless. At the original deadline this wait may complete while actual I/O and owned cleanup remain pending; no resource is disposed beneath active I/O. Inspect GetDiagnostics().LastStopResult for the immutable drain outcome.</remarks>
+    public ValueTask DisposeAsync() => new(StopAsync(CancellationToken.None));
 
     private async Task RunStopAsync(RuntimeFlushBoundary boundary, long started, TaskCompletionSource<LogStopResult> completion)
     {

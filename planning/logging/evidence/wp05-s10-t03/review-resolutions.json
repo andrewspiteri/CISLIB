@@ -1,0 +1,31 @@
+{
+  "task": "WP05-S10-T03",
+  "requiredResolved": [
+    "pre-cancelled-start-not-proven"
+  ],
+  "optionalResolved": [
+    "task-identity-relies-on-waitasync-shortcut",
+    "unused-root-parameter",
+    "python-bool-int-equality (pre-cancelled fields)"
+  ],
+  "carriedToT04": [
+    "stop-setup-failure-hangs-joiners",
+    "seam/public-factory consistency",
+    "primary/cleanup-failure preservation",
+    "eventual safe resource release and later diagnostics",
+    "post-stop FlushAsync and internal CloseAdmission semantics"
+  ],
+  "carriedToT05": [
+    "full physical/process shutdown race and abrupt-termination qualification"
+  ],
+  "notExpanded": [
+    {
+      "finding": "residual-bool-int-equality",
+      "reason": "Final review explicitly marks remaining fields nonblocking: the actual C# fixture emits distinct JSON token types; broader release-validator hardening is separate from this logging task."
+    },
+    {
+      "finding": "shared-reason-text",
+      "reason": "The new type corruption reaches only the type guard; changing the identical reason adds no task behavior."
+    }
+  ]
+}

@@ -107,7 +107,7 @@ internal static class StopDrainFixture
             ["unavailable"] = Number(o.Rejections.Unavailable)
         }).ToArray())
     };
-    private sealed class HeldStream(bool holdWrite, bool holdFlush, bool cooperative, bool holdCallback) : MemoryStream
+    internal sealed class HeldStream(bool holdWrite, bool holdFlush, bool cooperative, bool holdCallback) : MemoryStream
     {
         internal readonly TaskCompletionSource FirstWrite = Signal(), FirstFlush = Signal(), CallbackEntered = Signal();
         private readonly TaskCompletionSource release = Signal(), releaseCallback = Signal();

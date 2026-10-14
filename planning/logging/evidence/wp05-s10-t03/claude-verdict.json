@@ -1,0 +1,60 @@
+{
+  "verdict": "CHANGES_REQUIRED",
+  "requiredFindings": [
+    {
+      "id": "pre-cancelled-start-not-proven",
+      "location": "implementations/csharp/tests/fixtures/DiscoveryHost/StopJoinFixture.cs (pre-cancelled branch), StopJoinExpectations.cs, verify-stop-join.py",
+      "finding": "The implementation is correct by inspection. StopAsync creates stopTask, registers the boundary, closes admission and calls queuedOutputs.Complete() before it takes the IsCancellationRequested shortcut. The pre-cancelled case does not prove this, though. Right after the cancelled call, the fixture calls runtime.StopAsync(CancellationToken.None). That call would start shutdown itself if the pre-cancelled caller had returned early without starting it. Every reported field (result, sameTask, sameResult, timers, live, finalState) would be the same either way. The scope requirement 'pre-cancelled first callers still starting shutdown', and the matching sentence in stop-dispose.md, therefore have no distinguishing evidence.",
+      "requiredChange": "Between the pre-cancelled StopAsync and any other stop or dispose call, record observations that only a started shutdown can produce. Examples: GetDiagnostics().AdmissionClosed == true, ShutdownStartedAtUtc != null, State == Stopping, a logger Write returning Stopped, and the original deadline timer already created (clock.Created == 1). Report these values. Validate them in StopJoinExpectations and in verify-stop-join.py. Add a corruption control (e.g. 'pre-start', mode pre-cancelled) that flips the field and must be rejected."
+    }
+  ],
+  "optionalFindings": [
+    {
+      "id": "stop-setup-failure-hangs-joiners",
+      "location": "CoreLogRuntime.StopAsync, inside lock(admissionGate)",
+      "finding": "stopTask = completion.Task is published before RegisterFlushBoundary() and queuedOutputs.Complete(). Complete() reaches CancelFileFlushScheduling, which calls Task.Run. If either step throws, the first caller sees the exception but RunStopAsync never runs. The published task then never completes, so every later StopAsync(None) and DisposeAsync waits forever and LastStopResult stays null. The trigger is unlikely (allocation or scheduling failure), but the outcome breaks the bounded-stop guarantee.",
+      "suggestion": "Either publish stopTask only after the setup steps succeed, or catch the failure and call completion.TrySetException(error) before rethrowing. Leave the full error policy to T04."
+    },
+    {
+      "id": "dispose-throws-on-seam",
+      "location": "CoreLogRuntime.DisposeAsync",
+      "finding": "On the internal admission seam (queuedOutputs is null), DisposeAsync throws InvalidOperationException synchronously from StopAsync. The DisposeAsync XML docs do not mention this. It is internal-only today because there are 0 public constructors.",
+      "suggestion": "Add an <exception> entry or a remark, or make the public-creation work in T04 guarantee that a seam runtime can never be disposed through the public surface."
+    },
+    {
+      "id": "task-identity-relies-on-waitasync-shortcut",
+      "location": "StopAsync return / StopJoinFixture ReferenceEquals(disposal, shared)",
+      "finding": "Disposal task identity comes from Task<T>.WaitAsync(CancellationToken.None) returning `this` for an uncancellable infinite wait, which is a BCL implementation detail. Behavior is correct regardless. The test and stop-dispose.md ('share task identity') treat the identity as an observation, but it could be read as a contract.",
+      "suggestion": "Either return `shared` directly when !cancellationToken.CanBeCanceled, or state in the docs that identity is a pinned-runtime observation and not a public guarantee."
+    },
+    {
+      "id": "case-catalog-state-wording",
+      "location": "conformance/logging/stop-join-cases.json 'state'",
+      "finding": "'final qualification and review are recorded in the task receipt' is not true yet: final Developer/native checks are pending and this review has requested changes.",
+      "suggestion": "Before committing, make sure planning/logging/evidence/wp05-s10-t03/ actually contains the final native reports and the review outcome, or reword the state until it does."
+    },
+    {
+      "id": "unused-root-parameter",
+      "location": "StopJoinFixture.Run(string mode, string root)",
+      "finding": "`root` is accepted but unused, and ExecuteAsync takes no root. This is harmless and keeps CLI parity.",
+      "suggestion": "Discard it explicitly or add a comment, to match the surrounding fixtures' intent."
+    }
+  ],
+  "verifiedBehavior": [
+    "Double-checked stopTask publication under admissionGate. Only the winner creates the TCS, registers the boundary, closes admission, completes the queues and launches RunStopAsync, with ExecutionContext flow suppressed. A loser's preliminary timestamp is discarded.",
+    "An already-cancelled caller gets Task.FromCanceled(token), so its token is preserved even after the shared task completed. A later caller's cancellation affects only WaitAsync. The output I/O token (ioCancellation) is cancelled only by RequestIoCancellation inside CaptureStopDeadline. CancelAsync transitions synchronously, so outputCancelledAtReturn is deterministic.",
+    "DisposeAsync adds no state, timer or window. The deadline is created once from the winner's `started` with the creation-frozen shutdownTimeout. The fixture's 9 ms + 1 ms split and timers.created == 1 support this.",
+    "PublishStop assigns lastStopResult under the gate before TrySetResult, so code that awaits disposal and then calls GetDiagnostics().LastStopResult sees the frozen result, including TimedOut / Pending.",
+    "At TimedOut, disposal returns while the worker still owns I/O and cleanup. Nothing is disposed under active I/O, and the borrowed console stream stays undisposed (stream.disposed == 0).",
+    "Architecture test pins IAsyncDisposable, the ValueTask return and the parameterless signature. Docs do not claim T04/T05 completion."
+  ],
+  "carriedForward": [
+    "T04: public creation/factory. No placeholder expected here.",
+    "T04: explicit final semantics for FlushAsync after stop and for internal CloseAdmission before StopAsync. A boundary registered after Complete() may resolve Failed when the worker is exiting.",
+    "T04: primary-error / cleanup-error coordination. A faulted stopTask currently makes DisposeAsync throw, and lastStopResult stays null on the exception path.",
+    "T04: eventual resource-release observation after a TimedOut disposal.",
+    "T05: full physical/process race qualification. The eight controlled barrier cases explicitly do not substitute for it.",
+    "Pending: final Developer profile and native Windows/Linux verify-stop-join.py runs, recorded in planning/logging/evidence/wp05-s10-t03/."
+  ],
+  "reviewLimits": "Read-only review of the supplied text only, as instructed: no tools, filesystem, execution or edits. planning/logging/shutdown-implementation-notes.md, the evidence receipt, StopDrainExpectations/StopStartExpectations and the BCL source were not inspected. BCL behavior (WaitAsync shortcut, CancelAsync synchronous transition) is stated from knowledge of .NET 8\u201310 and was not re-verified against 10.0.12."
+}

@@ -25,10 +25,13 @@ public sealed class LoggerFoundationArchitectureTests
         }
         CollectionAssert.AreEqual(new[] { "level", "data" }, typeof(CoreLogger).GetMethod("Write")!.GetParameters().Select(item => item.Name).ToArray());
         CollectionAssert.AreEqual(new[] { "level", "factory" }, typeof(CoreLogger).GetMethod("WriteLazy")!.GetParameters().Select(item => item.Name).ToArray());
-        CollectionAssert.AreEquivalent(new[] { "CreateLogger", "GetDiagnostics", "FlushAsync", "StopAsync" }, runtimeMethods.Select(method => method.Name).ToArray());
+        CollectionAssert.AreEquivalent(new[] { "CreateLogger", "GetDiagnostics", "FlushAsync", "StopAsync", "DisposeAsync" }, runtimeMethods.Select(method => method.Name).ToArray());
         CollectionAssert.AreEqual(new[] { "cancellationToken" }, typeof(CoreLogRuntime).GetMethod("StopAsync")!.GetParameters().Select(item => item.Name).ToArray());
         Assert.AreEqual(typeof(CancellationToken), typeof(CoreLogRuntime).GetMethod("StopAsync")!.GetParameters()[0].ParameterType);
         Assert.AreEqual(typeof(Task<LogStopResult>), typeof(CoreLogRuntime).GetMethod("StopAsync")!.ReturnType);
+        Assert.IsTrue(typeof(IAsyncDisposable).IsAssignableFrom(typeof(CoreLogRuntime)));
+        Assert.AreEqual(typeof(ValueTask), typeof(CoreLogRuntime).GetMethod("DisposeAsync")!.ReturnType);
+        Assert.AreEqual(0, typeof(CoreLogRuntime).GetMethod("DisposeAsync")!.GetParameters().Length);
         Assert.IsNull(typeof(LogEventData).GetProperty("Level"));
         Assert.IsNull(typeof(LogEventData).GetProperty("Severity"));
     }
