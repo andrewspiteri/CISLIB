@@ -64,7 +64,8 @@ silently marked complete by a prototype or an uncommitted test result.
 | TM-022 | Minimal plain-.NET console example builds/runs from documented commands, discovers the initially unused inherited/nonpublic candidate, and reaches its application boundary only after preparation. |
 | TM-023–TM-024 | Separate Web example constructs its builder/container after preparation, registers the exact manager instance and proves reuse across root, scopes and actual HTTP requests. Configuration boundary documented without adding a public Configuration contract or object lifetime implementation. |
 | TM-025 | Source and exact-package examples pass 66 fresh-process/layout checks on each supported OS, including Debug/Release, folder publish, publish without building, three broken-deployment cases per layout, later-load fixed membership and HTTP scoped lifetime. The 26-project solution and 11 targeted framework-policy checks pass on Windows. Formal milestone and final release-candidate consolidation remain open. |
-| TM-026–TM-028 | Initial A01–A30 mapping is recorded in `acceptance-evidence.md`, with executed checks and explicit gaps. Meaningful mutation and complete architecture qualification remain; initial build/dependency controls exist. |
+| TM-026 | A01–A30 mapping is recorded in `acceptance-evidence.md`, with executed checks and explicit gaps. The previously empty business project now has ten startup/consumer stories, all passing against the same frozen Core on Windows and native Ubuntu. Full acceptance/profile reconciliation and final artifact replay remain. |
+| TM-027–TM-028 | Meaningful mutation and complete architecture qualification remain; initial build/dependency and targeted mutation controls exist. |
 | TM-029 | Development behavior/schema compatibility checkpoint passes 86 checks per OS: original API/binary/source replay, 22 frozen behavior fixtures, exact original-API consumer reproduction and targeted API/binary/source/behavior negatives. Three provenance guards reject mismatched inputs. Final exact-package replay remains; no released historical baseline is claimed. |
 | TM-030 | Development performance observations are recorded for 334/4,366-type catalogs: 56 fresh processes per OS, 48 measured per OS, exact deployment replay, same-work deferred control, allocations and whole-process retained-memory deltas. Five artifact/timeout controls pass; unchanged-source enumeration evidence is linked separately. Final clean-package replay remains. |
 | TM-031 | Final maintainability review and the six-family gate remain. |
@@ -72,6 +73,13 @@ silently marked complete by a prototype or an uncommitted test result.
 | TM-033–TM-036 | Final documentation, exact-artifact verification bundle, clean package consumer smoke tests and handoff remain. |
 
 ## Executed evidence and limits
+
+The [business stories checkpoint](evidence/business-stories/README.md) adds ten
+native cases per OS for preparation before application startup, application-owned
+activation, failures, pre-cancellation, prepared-catalog reuse and independent
+repair. The scoped verifier checks observed runtime/Core identity and two provenance
+controls. These reuse an already-loaded host; the earlier fresh-process and actual
+DI/HTTP evidence remains separate. No combined working-tree build is claimed here.
 
 The [performance checkpoint](evidence/performance/README.md) retains native
 Windows/Ubuntu observations, 20 raw query batches per metric/process, runtime/JIT

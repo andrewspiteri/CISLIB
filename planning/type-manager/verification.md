@@ -1,5 +1,12 @@
 # First Type Manager slice: verification
 
+Latest business-family addition, 14 October 2026:
+[ten business startup stories](evidence/business-stories/README.md) pass on Windows
+and native Ubuntu against the same frozen Core. Runtime/Core identities are observed
+in each native case, both original TRX reports are validated, and two provenance
+controls reject incorrect inputs before building. The suite supplements earlier
+fresh-process/DI checks; the full six-family gate remains open.
+
 Latest additions, 14 October 2026: [package lifecycle](evidence/package-lifecycle/README.md)
 passes 57 checks per OS against the unchanged development package; [query ordering](evidence/query-ordering/README.md)
 passes 80 focused native cases per OS against its separately identified frozen

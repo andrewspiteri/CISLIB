@@ -32,6 +32,8 @@ is development evidence, not a release claim; remaining checks are explicit belo
   [compatibility checkpoint](evidence/compatibility-behavior/README.md).
 - Process-fresh preparation, query batches, allocation and memory observations:
   [performance checkpoint](evidence/performance/README.md).
+- Ten native startup/consumer business cases per OS, with exact named scenario mapping:
+  [business stories](evidence/business-stories/README.md).
 
 The runtime closure uses one frozen Core DLL on both OSs. The combined Developer
 checkpoint uses a later Core DLL containing concurrent logging changes. Inventory
@@ -73,5 +75,10 @@ not be merged into an implied exact-artifact release result.
 | A29 Scope/readability | Runtime is nine focused Core files with no new runtime dependency; architecture guards and read-only runtime review pass. | Final maintainability review and coordinated owned-file commits. |
 | A30 Manifest compatibility | Frozen raw fixtures replay schema-1 additive fields/BOM, malformed/invalid UTF-8, duplicate properties, unsupported versions, paths and selected assets on both OSs. Targeted schema, duplicate-property and traversal mutants are rejected. Generator output is consumed by the ordinary host. | Final exact-package bundle replay. |
 
-This map is an initial TM-026 traceability deliverable. A row's existing test does
+The business checkpoint supplements A05, A08–A10, A13–A15 and A17–A22/A26 with
+ten named consumer stories and passing native results per OS. Its README identifies
+the exact methods and their limits; it does not replace initially unused-library,
+mid-load cancellation or real DI/HTTP process evidence.
+
+This map is an evolving TM-026 traceability deliverable. A row's existing test does
 not imply its remaining qualification, task commit or milestone gate has passed.

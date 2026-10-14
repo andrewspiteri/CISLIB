@@ -1,0 +1,625 @@
+{
+  "scope": "Development business stories against a frozen Core; not fresh-process discovery or final package qualification",
+  "coreSha256": "d70fcfdc41b6d15829227f1cee60130ddad3f7f82cc11c7a2fcbf8d5f700fb09",
+  "candidateReportSha256": "ce0f08017666e3942d8493b5bb3391abc2403bd7303209afebe5df083f5edaa2",
+  "verifierSha256": "95cf0a2df240579f02df0e3fd8116e2117c8e9c02260933a00c316038143644d",
+  "sourceInputs": [
+    {
+      "sha256": "86746c523b75c3e560cab3938c5c6c7c65c33dc9fbe298a554f90c724f2ef30e",
+      "path": "global.json"
+    },
+    {
+      "sha256": "fe0ec1ac2f0c4b213217a5758bad02699a8304bdcf864a4cce9e7db4ae0d8dae",
+      "path": "Directory.Build.props"
+    },
+    {
+      "sha256": "c2d2501f282f41da37c867458baa3c5e4405d4f46ecba868983ae713b105bb26",
+      "path": "Directory.Packages.props"
+    },
+    {
+      "sha256": "b55d4261bc303a947bc34f2048d7506cd6bca943d868c230cd3b7ca1f1753d3d",
+      "path": "eng/toolchain.json"
+    },
+    {
+      "sha256": "74be8b283ef995113fae8c59e21bc1ff531b1c1b09995aa7e234fe4c00ab9252",
+      "path": "eng/Evidence.psm1"
+    },
+    {
+      "sha256": "14595bd1171c05776cffc8389b90a9e5f61b448b977f6dc534255b161c6d8516",
+      "path": "tests/TestAssembly.cs"
+    },
+    {
+      "sha256": "dd8fdfb858e696a14f3e5c94dd44c2c61e7d0da45b2b7c2e3d71e10f413ab071",
+      "path": "tests/CIS.Core.BusinessCases/TypeManagerStartupStories.cs"
+    },
+    {
+      "sha256": "d70fcfdc41b6d15829227f1cee60130ddad3f7f82cc11c7a2fcbf8d5f700fb09",
+      "path": "candidate/CIS.Core.dll"
+    },
+    {
+      "sha256": "7c242f8ca612fa1acc61f78efd5f8c89e01bd0bd47dc4ecc65e0e6e24f1a1668",
+      "path": "candidate/Microsoft.Extensions.Logging.Abstractions.dll"
+    },
+    {
+      "sha256": "da04edc338d5aa0f38a1f5fa5ff3ee7e36affe9c961daf3ea724a428bd746bc6",
+      "path": "candidate/Microsoft.Extensions.DependencyInjection.Abstractions.dll"
+    }
+  ],
+  "moduleSourceInputs": {
+    "TypeManagement/AssemblyInventory.cs": "5c1e1e37e2bc4df8105822e78bd43eccbf794a3aefb772ca68794f19d3bf64ac",
+    "TypeManagement/ITypeManager.cs": "a0d7da061212a24ed8053d7fe28d57a575bd1e05a4bf1069980ecab06933b6ae",
+    "TypeManagement/PreparationInputs.cs": "f97bfcc5ac35c1fe822582052cb410fe37d6fd4714e4f49358f23d918ac9e500",
+    "TypeManagement/SelectedAssemblyLoader.cs": "032dd7ce1d564fa41035ec4bfc9768a97a09b2d7cd47bb42e05882374795158a",
+    "TypeManagement/TypeManager.cs": "bdc7a127e9e4e012709c2a7144f41a54e45a546b8b65cabdfdf71598b23a2368",
+    "TypeManagement/TypeManagerFailureKind.cs": "d95aea678fb2d64f0d52a7db4fd36d06dc57f2dbe3734b492463c6bc41e3c4da",
+    "TypeManagement/TypeManagerInitializationException.cs": "dd32c20600fc0eb7ae6bcaf04eabe32c576a420dba9124c1acc7c6dbda6c360a",
+    "TypeManagement/TypeManagerOptions.cs": "5e1027abea845e63e26dfe29c6b239584299fd15a4a58884e8144715b50bcee4",
+    "TypeManagement/TypeManagerPreparationReport.cs": "c40cdfad0084bdc65fec491d4a8215f9ff716bc29307ea4278b1337622f4fe26"
+  },
+  "sdk": "10.0.401",
+  "pinnedRuntime": "10.0.12",
+  "nativeCasesPerOs": 10,
+  "failed": 0,
+  "skipped": 0,
+  "observedRuntime": {
+    "windows": [
+      {
+        "testName": "ConcurrentConsumersReusePreparedCatalogWhileApplicationOwnsObjectLifetime",
+        "identity": {
+          "runtime": ".NET 10.0.12",
+          "os": "windows",
+          "architecture": "X64",
+          "coreSha256": "d70fcfdc41b6d15829227f1cee60130ddad3f7f82cc11c7a2fcbf8d5f700fb09"
+        }
+      },
+      {
+        "testName": "FailedPreparationNeverInvokesApplicationFactory (\"missing assembly\",InvalidInventory)",
+        "identity": {
+          "runtime": ".NET 10.0.12",
+          "os": "windows",
+          "architecture": "X64",
+          "coreSha256": "d70fcfdc41b6d15829227f1cee60130ddad3f7f82cc11c7a2fcbf8d5f700fb09"
+        }
+      },
+      {
+        "testName": "RunningApplicationKeepsSnapshotWhileNextStartupValidatesChangedInventory",
+        "identity": {
+          "runtime": ".NET 10.0.12",
+          "os": "windows",
+          "architecture": "X64",
+          "coreSha256": "d70fcfdc41b6d15829227f1cee60130ddad3f7f82cc11c7a2fcbf8d5f700fb09"
+        }
+      },
+      {
+        "testName": "FailedStartupCanBeRepairedWithIndependentPreparation",
+        "identity": {
+          "runtime": ".NET 10.0.12",
+          "os": "windows",
+          "architecture": "X64",
+          "coreSha256": "d70fcfdc41b6d15829227f1cee60130ddad3f7f82cc11c7a2fcbf8d5f700fb09"
+        }
+      },
+      {
+        "testName": "FailedPreparationNeverInvokesApplicationFactory (\"missing inventory\",InvalidInventory)",
+        "identity": {
+          "runtime": ".NET 10.0.12",
+          "os": "windows",
+          "architecture": "X64",
+          "coreSha256": "d70fcfdc41b6d15829227f1cee60130ddad3f7f82cc11c7a2fcbf8d5f700fb09"
+        }
+      },
+      {
+        "testName": "PreparationHandsUsableCatalogToApplicationBeforeItCreatesServices (True)",
+        "identity": {
+          "runtime": ".NET 10.0.12",
+          "os": "windows",
+          "architecture": "X64",
+          "coreSha256": "d70fcfdc41b6d15829227f1cee60130ddad3f7f82cc11c7a2fcbf8d5f700fb09"
+        }
+      },
+      {
+        "testName": "FailedPreparationNeverInvokesApplicationFactory (\"corrupt assembly\",AssemblyLoadFailure)",
+        "identity": {
+          "runtime": ".NET 10.0.12",
+          "os": "windows",
+          "architecture": "X64",
+          "coreSha256": "d70fcfdc41b6d15829227f1cee60130ddad3f7f82cc11c7a2fcbf8d5f700fb09"
+        }
+      },
+      {
+        "testName": "FailedPreparationNeverInvokesApplicationFactory (\"invalid inventory\",InvalidInventory)",
+        "identity": {
+          "runtime": ".NET 10.0.12",
+          "os": "windows",
+          "architecture": "X64",
+          "coreSha256": "d70fcfdc41b6d15829227f1cee60130ddad3f7f82cc11c7a2fcbf8d5f700fb09"
+        }
+      },
+      {
+        "testName": "PreparationHandsUsableCatalogToApplicationBeforeItCreatesServices (False)",
+        "identity": {
+          "runtime": ".NET 10.0.12",
+          "os": "windows",
+          "architecture": "X64",
+          "coreSha256": "d70fcfdc41b6d15829227f1cee60130ddad3f7f82cc11c7a2fcbf8d5f700fb09"
+        }
+      },
+      {
+        "testName": "PreCanceledPreparationNeverInvokesApplicationFactory",
+        "identity": {
+          "runtime": ".NET 10.0.12",
+          "os": "windows",
+          "architecture": "X64",
+          "coreSha256": "d70fcfdc41b6d15829227f1cee60130ddad3f7f82cc11c7a2fcbf8d5f700fb09"
+        }
+      }
+    ],
+    "linux": [
+      {
+        "testName": "FailedStartupCanBeRepairedWithIndependentPreparation",
+        "identity": {
+          "runtime": ".NET 10.0.12",
+          "os": "linux",
+          "architecture": "X64",
+          "coreSha256": "d70fcfdc41b6d15829227f1cee60130ddad3f7f82cc11c7a2fcbf8d5f700fb09"
+        }
+      },
+      {
+        "testName": "PreCanceledPreparationNeverInvokesApplicationFactory",
+        "identity": {
+          "runtime": ".NET 10.0.12",
+          "os": "linux",
+          "architecture": "X64",
+          "coreSha256": "d70fcfdc41b6d15829227f1cee60130ddad3f7f82cc11c7a2fcbf8d5f700fb09"
+        }
+      },
+      {
+        "testName": "PreparationHandsUsableCatalogToApplicationBeforeItCreatesServices (False)",
+        "identity": {
+          "runtime": ".NET 10.0.12",
+          "os": "linux",
+          "architecture": "X64",
+          "coreSha256": "d70fcfdc41b6d15829227f1cee60130ddad3f7f82cc11c7a2fcbf8d5f700fb09"
+        }
+      },
+      {
+        "testName": "FailedPreparationNeverInvokesApplicationFactory (\"missing assembly\",InvalidInventory)",
+        "identity": {
+          "runtime": ".NET 10.0.12",
+          "os": "linux",
+          "architecture": "X64",
+          "coreSha256": "d70fcfdc41b6d15829227f1cee60130ddad3f7f82cc11c7a2fcbf8d5f700fb09"
+        }
+      },
+      {
+        "testName": "RunningApplicationKeepsSnapshotWhileNextStartupValidatesChangedInventory",
+        "identity": {
+          "runtime": ".NET 10.0.12",
+          "os": "linux",
+          "architecture": "X64",
+          "coreSha256": "d70fcfdc41b6d15829227f1cee60130ddad3f7f82cc11c7a2fcbf8d5f700fb09"
+        }
+      },
+      {
+        "testName": "FailedPreparationNeverInvokesApplicationFactory (\"missing inventory\",InvalidInventory)",
+        "identity": {
+          "runtime": ".NET 10.0.12",
+          "os": "linux",
+          "architecture": "X64",
+          "coreSha256": "d70fcfdc41b6d15829227f1cee60130ddad3f7f82cc11c7a2fcbf8d5f700fb09"
+        }
+      },
+      {
+        "testName": "PreparationHandsUsableCatalogToApplicationBeforeItCreatesServices (True)",
+        "identity": {
+          "runtime": ".NET 10.0.12",
+          "os": "linux",
+          "architecture": "X64",
+          "coreSha256": "d70fcfdc41b6d15829227f1cee60130ddad3f7f82cc11c7a2fcbf8d5f700fb09"
+        }
+      },
+      {
+        "testName": "FailedPreparationNeverInvokesApplicationFactory (\"corrupt assembly\",AssemblyLoadFailure)",
+        "identity": {
+          "runtime": ".NET 10.0.12",
+          "os": "linux",
+          "architecture": "X64",
+          "coreSha256": "d70fcfdc41b6d15829227f1cee60130ddad3f7f82cc11c7a2fcbf8d5f700fb09"
+        }
+      },
+      {
+        "testName": "ConcurrentConsumersReusePreparedCatalogWhileApplicationOwnsObjectLifetime",
+        "identity": {
+          "runtime": ".NET 10.0.12",
+          "os": "linux",
+          "architecture": "X64",
+          "coreSha256": "d70fcfdc41b6d15829227f1cee60130ddad3f7f82cc11c7a2fcbf8d5f700fb09"
+        }
+      },
+      {
+        "testName": "FailedPreparationNeverInvokesApplicationFactory (\"invalid inventory\",InvalidInventory)",
+        "identity": {
+          "runtime": ".NET 10.0.12",
+          "os": "linux",
+          "architecture": "X64",
+          "coreSha256": "d70fcfdc41b6d15829227f1cee60130ddad3f7f82cc11c7a2fcbf8d5f700fb09"
+        }
+      }
+    ]
+  },
+  "binaryFiles": {
+    "CIS.Core.BusinessCases.deps.json": "96a70a30a9514c1d3bc02cce23db124d311698ea476d63e0f3ca7be71a561456",
+    "CIS.Core.BusinessCases.dll": "bddde2511d1cefb76f14eb91d76ac30d2319acea83a887514099d8cf8ea4317b",
+    "CIS.Core.BusinessCases.pdb": "7c08468685173d7d6e5963288fdcfbb6dfe7d46c9d616784e80ccff5b5fd52fa",
+    "CIS.Core.BusinessCases.runtimeconfig.json": "130aa09981db7c7fc40163508b2cf4a155d36cdda034c8805131d0b0cd951b91",
+    "CIS.Core.dll": "d70fcfdc41b6d15829227f1cee60130ddad3f7f82cc11c7a2fcbf8d5f700fb09",
+    "Microsoft.ApplicationInsights.dll": "bf9a4b88c7f94267e1cc7ed0700c575d3eb3266ff25bcb76e4f40f1b0fba022d",
+    "Microsoft.Extensions.DependencyInjection.Abstractions.dll": "da04edc338d5aa0f38a1f5fa5ff3ee7e36affe9c961daf3ea724a428bd746bc6",
+    "Microsoft.Extensions.Logging.Abstractions.dll": "7c242f8ca612fa1acc61f78efd5f8c89e01bd0bd47dc4ecc65e0e6e24f1a1668",
+    "Microsoft.Testing.Extensions.MSBuild.dll": "828e7dc4e0206da2a9a58df26651acc2f28b7169509c5c26dcff3c991513fe09",
+    "Microsoft.Testing.Extensions.Telemetry.dll": "c4f35fc45c100733d6f00f9aba87fe6c96481d3c43c416d32a4722fddd6e79e1",
+    "Microsoft.Testing.Extensions.TrxReport.Abstractions.dll": "f57bc3dcd63c0dcd08db8d5e729836d156351a2d18041a5b7978a424e5b37142",
+    "Microsoft.Testing.Platform.dll": "a3319a6bb4bdfb1df2e531765c5a48c2b48de1fe7cf4dcd932c9b82f114107da",
+    "Microsoft.TestPlatform.CommunicationUtilities.dll": "24c3b9f2710340c328db8bc9c37797d15e2cf32e4fca37f60f6f01bd35b6e0ff",
+    "Microsoft.TestPlatform.CoreUtilities.dll": "ca8cd4a0c394af3cc03c8e83b0377ecf14e6a8c68e4b0b50f732b1370950d7df",
+    "Microsoft.TestPlatform.CrossPlatEngine.dll": "9cde8a3ed9b3d2bc95f6c351af59ac943ee3495d3c1312950eedf6176a489b5a",
+    "Microsoft.TestPlatform.PlatformAbstractions.dll": "8bc7faec348a71336af3bfbeecad564ad0f97a8216835ed90cd2ceff621a3697",
+    "Microsoft.TestPlatform.Utilities.dll": "29d176ae1f87dac87c8064dddf30a5e2439e4f48e28417e8604d71cc9d920ce8",
+    "Microsoft.VisualStudio.CodeCoverage.Shim.dll": "8d4e1668a9f141d80a2615b946e43a2d64fe3528a1f54c79624a6c217019a646",
+    "Microsoft.VisualStudio.TestPlatform.Common.dll": "c38efb5cfcceb4cdf0f1fb04eea0b1d17310c6eda839dd3ae31e658e91cc7de6",
+    "Microsoft.VisualStudio.TestPlatform.ObjectModel.dll": "ff730c68bebe827f74e2bdcfb571400ab328c00be11c7fe3a1fe01143b483bc6",
+    "MSTest.TestAdapter.dll": "18de8760190a607e903da92c548e976628a9da1cabde1dbec32a773f0f08e99a",
+    "MSTest.TestFramework.dll": "1ef03e88502ea03be38088bd1e23bfe7fbce516d1e74225acb84b6640cd8b73b",
+    "MSTest.TestFramework.Extensions.dll": "39b4014cd714c704a35e3d690dbddbee209b9b4925db8da2e870686ceb0ec5d1",
+    "MSTest.TestFramework.Extensions.xml": "2230d28380744cbbc1ad7dce96fd20c3ee35aa0e5074dbd1404a0786eb06d92f",
+    "MSTestAdapter.PlatformServices.dll": "74559c1c0fa199dc1ce53324a95b67b3084ca906df9ddac52fdb29bb2043c943",
+    "testhost.dll": "ad339a6279013d6af52dde6bcb8b90a19a395a54c6fcf085ff5a42435c60c4c5",
+    "testhost.exe": "9620b96c776dc786824ea167dc1a4991c8e0e2dc093dc63f78cb44c0bd4c8cc0",
+    "cs/Microsoft.Testing.Extensions.MSBuild.resources.dll": "89eb97d173b9a1e449567ba443502542df77743f158c8fee41f6f2bdc3629638",
+    "cs/Microsoft.Testing.Extensions.Telemetry.resources.dll": "31b09f9bc213163bfa28978ac925e08bf75d0ae3c332c4b9941c21a5edb1bec3",
+    "cs/Microsoft.Testing.Platform.resources.dll": "ee849dcddda6b96cbb84f0cb0d00f2faefb9b9f3ae48dd1156b51ae98f604380",
+    "cs/Microsoft.TestPlatform.CommunicationUtilities.resources.dll": "7a2f0d7b97536a3853064193ec92ce9f1200ae669b82a84281de44471dafb21c",
+    "cs/Microsoft.TestPlatform.CoreUtilities.resources.dll": "5f5501b18f65687cebd354196f563c520b4575e58eca474f3b3d1bd3247b9b46",
+    "cs/Microsoft.TestPlatform.CrossPlatEngine.resources.dll": "15f05b004d8f9a90650efa62f29f1ac576b91a3f21ae65beb80a6fb318fbeab2",
+    "cs/Microsoft.VisualStudio.TestPlatform.Common.resources.dll": "6b2deb5bd9ac08a364bd64bb503104725c2bdc562fa5a19d99463b9dfedc0544",
+    "cs/Microsoft.VisualStudio.TestPlatform.ObjectModel.resources.dll": "a24d277e98d3dc7986741ff0c72e628aca9814556d6d64b5e3992bacf07c6f17",
+    "cs/MSTest.TestFramework.resources.dll": "02cff0820a90831f4f4c4cad6541b68fa2973136b6721762e77104d9d7752179",
+    "de/Microsoft.Testing.Extensions.MSBuild.resources.dll": "fcd8e6dda5bd53595685f1b4393a5e377b3a8ec5614f4db7ae3fd8f3970b01ad",
+    "de/Microsoft.Testing.Extensions.Telemetry.resources.dll": "305f8f8953f1a382113f974c188790bab193509aff87b515dfcd1d8064b093a8",
+    "de/Microsoft.Testing.Platform.resources.dll": "54dc9bd2a5fe2cb080613014f938c0bf5f6a6a01ab3d009a513878bb7e863eca",
+    "de/Microsoft.TestPlatform.CommunicationUtilities.resources.dll": "45572aefbfd158340f1ea4ed40d2d2f9300ebddf024060cdda3bebb35854b2e2",
+    "de/Microsoft.TestPlatform.CoreUtilities.resources.dll": "cf94a0635173d6d868a90161757cb9484e559fedfde6e7ea50dd935e1d9b6666",
+    "de/Microsoft.TestPlatform.CrossPlatEngine.resources.dll": "417e53c758220679b7c850d893ec5754b168e8b95f2e9547eab9233a27799b85",
+    "de/Microsoft.VisualStudio.TestPlatform.Common.resources.dll": "f44082da024f2dbb37936b1a8f8c5683564716089b6389b892cc90088acb48ff",
+    "de/Microsoft.VisualStudio.TestPlatform.ObjectModel.resources.dll": "edfdf3cb64553da8e229463948aa7b962e96e4037d510fb7fad4f26da9e7c8b5",
+    "de/MSTest.TestFramework.resources.dll": "11a8fdaac95ae6ea9ed14d703f6692557eaa494ebdedc0695b7eab3ef8ebc3c5",
+    "es/Microsoft.Testing.Extensions.MSBuild.resources.dll": "8a0534058fc1262117ddbcf3d38e0a4597770f966ce40113556359c0a428c379",
+    "es/Microsoft.Testing.Extensions.Telemetry.resources.dll": "be2c60c3513efed1807fde9e2d89c07a80f5efc52b2c8273498250323ec063a3",
+    "es/Microsoft.Testing.Platform.resources.dll": "2fc212a30af72cccb225128537955c28678b726c2209b81c43bc95f8fd036c34",
+    "es/Microsoft.TestPlatform.CommunicationUtilities.resources.dll": "91ffbfdbe6b9d134565fd001c8b432ed0570e4f1b64e56b812dac5a1f931c7c0",
+    "es/Microsoft.TestPlatform.CoreUtilities.resources.dll": "6de8b0fd082756f612d4c8b3b06e3558e2321bcb910d5a70769050f308b96641",
+    "es/Microsoft.TestPlatform.CrossPlatEngine.resources.dll": "b4ff391fe91eae0d4eba06bc9c09b4ef3fb583fdbcee0b8a49ef7d5d358a6af8",
+    "es/Microsoft.VisualStudio.TestPlatform.Common.resources.dll": "7afd57a2f8e63f9d0a7c39d6c467aa45a791e29815f806b5751fb5ab375cacca",
+    "es/Microsoft.VisualStudio.TestPlatform.ObjectModel.resources.dll": "eb966be23882a9e11459d283241a67e7c0265f271e98603f13cabaadd8f7ee64",
+    "es/MSTest.TestFramework.resources.dll": "0eaa5443cf2f9e8629d1030e77d8d430b5831bd2acd0dd106ddbe5f14721352f",
+    "fr/Microsoft.Testing.Extensions.MSBuild.resources.dll": "03501f48b593ae0cfd4db74fd200049c0d43295b2697d00032aed88feb635292",
+    "fr/Microsoft.Testing.Extensions.Telemetry.resources.dll": "624a77a903f4456f742d2ae9be2f24443de123715f46bb71345aa26e2109e08a",
+    "fr/Microsoft.Testing.Platform.resources.dll": "2574ae39d02056c9a56ca80a6f0b20619ae66f9bdea2dc1d9c78acec036d01ed",
+    "fr/Microsoft.TestPlatform.CommunicationUtilities.resources.dll": "6d4123a175657dec7e6a82f787be5adbe459656bdfb874cb622fe9ea39daf7e3",
+    "fr/Microsoft.TestPlatform.CoreUtilities.resources.dll": "bec57046f616616913fd1416f013635a41a06c1c4d8ad67a8ee31f6098a3444b",
+    "fr/Microsoft.TestPlatform.CrossPlatEngine.resources.dll": "522befbf13ace67d8d17f6b77715cf01c59e21688b84be3c8373065f6e485de5",
+    "fr/Microsoft.VisualStudio.TestPlatform.Common.resources.dll": "67ab307dd61f2bbb841051e7f68318b5b75c510040f50bf6f3174287c1af3d33",
+    "fr/Microsoft.VisualStudio.TestPlatform.ObjectModel.resources.dll": "07614b2d790a3b6ad93b41961566b84e4ad56cc86f5bf39658c06a13f2613db4",
+    "fr/MSTest.TestFramework.resources.dll": "7a798cbd852c24d47c099af0ae581b2744470b7b3f74da37aa111c5b2c05b34f",
+    "it/Microsoft.Testing.Extensions.MSBuild.resources.dll": "2f41fe8e1163b94573c80b732be76f263bdb66099fa0c0f8e94ead03a550eb49",
+    "it/Microsoft.Testing.Extensions.Telemetry.resources.dll": "0ce2b9749100e058295b59f6cc12cb4b3c89da536ccbec88c3f3b3d43b1532e2",
+    "it/Microsoft.Testing.Platform.resources.dll": "821cb47f17a40d440f52a3c6cb258db90385cf420c5224484ced81b92f79b795",
+    "it/Microsoft.TestPlatform.CommunicationUtilities.resources.dll": "3a9b5440682910f99a4d3b51b3ac32f4d0c0f9cfeb959a9e26de085d45ad7cac",
+    "it/Microsoft.TestPlatform.CoreUtilities.resources.dll": "2af9b70d68f3ab2bbaa609e5e556811c7f68869ce2c3cc6d7209b3d6722e0968",
+    "it/Microsoft.TestPlatform.CrossPlatEngine.resources.dll": "63abe8199bd651d7c9418148c9cec7d09877a13a2b95927bc62f476f1fb796ec",
+    "it/Microsoft.VisualStudio.TestPlatform.Common.resources.dll": "fa43b5a74e50b89b243dcb10d9ac32a6a2db3ff1cdc4b884c01223f2f78c96c7",
+    "it/Microsoft.VisualStudio.TestPlatform.ObjectModel.resources.dll": "5202a294a2b02c741ba292ba802f12b9473836a81ce61cb42f462eead6dc4dfa",
+    "it/MSTest.TestFramework.resources.dll": "509f22718faf2831fa8aa1d9053b26198d6fe412d2f979f8ff785da13d5b0ca0",
+    "ja/Microsoft.Testing.Extensions.MSBuild.resources.dll": "cb70d4bfd21a2919440f67e86e712872dff435d870ca123b3f9684c0f63be856",
+    "ja/Microsoft.Testing.Extensions.Telemetry.resources.dll": "2f1909e5e06cd214dc617d75330ca67e2a3c7245fdd8f3b446cc51b049d35f7f",
+    "ja/Microsoft.Testing.Platform.resources.dll": "dcece76d6c872cd65e597f7eefddebca4de8688e996263fed2d69d735452f0f0",
+    "ja/Microsoft.TestPlatform.CommunicationUtilities.resources.dll": "eff24e7eeef7e342289b5953b470225ff6eec51db64f3fbe1f62c44ed80da824",
+    "ja/Microsoft.TestPlatform.CoreUtilities.resources.dll": "63d61001cdf7c501e253adeace734b32023cf617c04785937525fc0f202c3e21",
+    "ja/Microsoft.TestPlatform.CrossPlatEngine.resources.dll": "7b52b294fe2a7aed68b8b772cf63bce00e994e3a82d275419ee97eeb76543e36",
+    "ja/Microsoft.VisualStudio.TestPlatform.Common.resources.dll": "3ad8c259cf7b1b82b1402100f2b5b1530e4d4cefae3a91e1ab4783a803c4dcf1",
+    "ja/Microsoft.VisualStudio.TestPlatform.ObjectModel.resources.dll": "d2a679cc9cf0b0e5c865bd937ec90e45ecb434289c6b017992f417e34bae646c",
+    "ja/MSTest.TestFramework.resources.dll": "0711c6d66bc284555afad8142b5a87065855aa1ce7a541ec18e83bda87e9b938",
+    "ko/Microsoft.Testing.Extensions.MSBuild.resources.dll": "c028ce9285c9e4e65cd13f8eec21cc5b8fa144dba0f9514e3b6fc09c9476b185",
+    "ko/Microsoft.Testing.Extensions.Telemetry.resources.dll": "8be28bc62fa915a6f884520b105f9749ec1eaaaae13097291820a35b2e21f769",
+    "ko/Microsoft.Testing.Platform.resources.dll": "b825a9994bb95d7b1a37ea76f71adb33cca9a63c6e7a158021abdad944c889ed",
+    "ko/Microsoft.TestPlatform.CommunicationUtilities.resources.dll": "9c4d8a39201e8071fabfc83391ee90d4947b8df91d06f173eb50ac70b53cbd55",
+    "ko/Microsoft.TestPlatform.CoreUtilities.resources.dll": "e7528a92a6ec0e1684537dd550cdb016ecc8df62a55c85294e608358e28a560d",
+    "ko/Microsoft.TestPlatform.CrossPlatEngine.resources.dll": "e25583d01cb6e19de1c8daf050cfc5df71b3e6792bafda95a68529ce24e18005",
+    "ko/Microsoft.VisualStudio.TestPlatform.Common.resources.dll": "3850eb61e6d5cb46e3daa9666c099e2a1e11dc5223d792eb4c7f4a143e0302a9",
+    "ko/Microsoft.VisualStudio.TestPlatform.ObjectModel.resources.dll": "dc7b27e609e842eeea5da50ea172f288479b652ea779072e5dbbde045418819d",
+    "ko/MSTest.TestFramework.resources.dll": "61079b0f0d5a5778df6d4ecd30fff69c286cc921ba4643313ab1a5157afa95d9",
+    "pl/Microsoft.Testing.Extensions.MSBuild.resources.dll": "1b356a67f1a6d3522658c0e19253c26336cb09f9b5f8b7fc174d0bae6d5a906f",
+    "pl/Microsoft.Testing.Extensions.Telemetry.resources.dll": "5f526e320e2ed6cea9e7436b3710da6fbcbed038a8b2f6567db47f2bfe965d25",
+    "pl/Microsoft.Testing.Platform.resources.dll": "9c565afdafa7f30bfb19ceb59375da9c9a9bf083362a65a961055029c2811b2d",
+    "pl/Microsoft.TestPlatform.CommunicationUtilities.resources.dll": "8cee907bab9068f30a6c0740b49ce3d4c9be887b7c5f6a8240954afe46e233a3",
+    "pl/Microsoft.TestPlatform.CoreUtilities.resources.dll": "cb997c46356be42b346682b3a1b6825cb6f70a30c92403048f7dbdf25065f6ab",
+    "pl/Microsoft.TestPlatform.CrossPlatEngine.resources.dll": "1e084c594a6f9d405bd817d7e21b1d7e50d472d5d09a853e99b9732da5b6a7be",
+    "pl/Microsoft.VisualStudio.TestPlatform.Common.resources.dll": "687771c2ad91e5b705e5bb9f15d4d485c60ff93c56de869886b1f6d2831606c3",
+    "pl/Microsoft.VisualStudio.TestPlatform.ObjectModel.resources.dll": "48f6bb8c551179da07d5e136a0c781dd6433f23312f3ce9241dcec29d8412f3e",
+    "pl/MSTest.TestFramework.resources.dll": "bac69939d2f501abe4f55da6f410f179233359f4268b0551712d92433530fa3b",
+    "pt-BR/Microsoft.Testing.Extensions.MSBuild.resources.dll": "0fc5ebb3313d8151cae638e302e3feab7913f28c51aedcafcb0cb9a32d3fffc0",
+    "pt-BR/Microsoft.Testing.Extensions.Telemetry.resources.dll": "52d86a70478e014a9df2b9a87742881f15569f2cf422b755280239ae3cf698cc",
+    "pt-BR/Microsoft.Testing.Platform.resources.dll": "cf2cc21f90f599f74db14ff684479378fee4b0ace77dbc2ecd03022586235366",
+    "pt-BR/Microsoft.TestPlatform.CommunicationUtilities.resources.dll": "436dc88d1317cdedf7f82795a42af0929c8310b6228b4ff8eb1a82432821a3c5",
+    "pt-BR/Microsoft.TestPlatform.CoreUtilities.resources.dll": "2bb0340569343f0c3288f35a5cfa947d9495de55d04e93f2c380b75b45d681a9",
+    "pt-BR/Microsoft.TestPlatform.CrossPlatEngine.resources.dll": "d1865dd55afbd39ea0902a49e243f7c85e4a587134d31737b7fd764157fa74fb",
+    "pt-BR/Microsoft.VisualStudio.TestPlatform.Common.resources.dll": "e0e34b02d8496f5466f85a1580e9113118eee9d1c0a71dad1e372d87465f157f",
+    "pt-BR/Microsoft.VisualStudio.TestPlatform.ObjectModel.resources.dll": "3944adc8b9c09a7007aaea3c86ee7666ddf3e7328b16edcc72f7e6dcc1ff1de8",
+    "pt-BR/MSTest.TestFramework.resources.dll": "ceff285efbcffa70e4eedff45c6fb2dc5831d377508f561e312366d510244a87",
+    "ru/Microsoft.Testing.Extensions.MSBuild.resources.dll": "f9327680fe76b9a1ce3464890416d0d62114454b0ab16bcd17b9fdf2a76e70c5",
+    "ru/Microsoft.Testing.Extensions.Telemetry.resources.dll": "f355955e1651665f500e6f1112e3cfba9dce61e86cb646b78ecdcefac9d3b652",
+    "ru/Microsoft.Testing.Platform.resources.dll": "8cc183c808a547514a93a9938999aca13d7f126a9ba6469ff5f98d294be956e0",
+    "ru/Microsoft.TestPlatform.CommunicationUtilities.resources.dll": "f3fcd583ff53d3f2145a7a4418a8145db1f1f088908fb92cbab848b815e91dc2",
+    "ru/Microsoft.TestPlatform.CoreUtilities.resources.dll": "089d9052b2fa1ef63f2bd1f0f0f8161fe6d1d02721fc39d4b48c333d26826306",
+    "ru/Microsoft.TestPlatform.CrossPlatEngine.resources.dll": "945c4a1304189209c1cada1b8279608df188595b09bd012e28473ab329080aa1",
+    "ru/Microsoft.VisualStudio.TestPlatform.Common.resources.dll": "0a616270492b4d944980509c794e819825c9217a050520994aa5ed9583702b7c",
+    "ru/Microsoft.VisualStudio.TestPlatform.ObjectModel.resources.dll": "515c96257715a3ccd56af8acd9460e72e57dda825ff16824d2912271beca0749",
+    "ru/MSTest.TestFramework.resources.dll": "66ad16b1031f63e2cdc85bb585a60be20b49151a5c7734550cccadf33d9d7352",
+    "tr/Microsoft.Testing.Extensions.MSBuild.resources.dll": "b6ee86b4703400b80c6865cda1582333465184126e0ed66780cae92f642b452c",
+    "tr/Microsoft.Testing.Extensions.Telemetry.resources.dll": "60863acb3fc748fd994454f69a0323454850e4b0f252bfba898ea4d5a7245131",
+    "tr/Microsoft.Testing.Platform.resources.dll": "575a0f0d5db2eb2ebcf405457cdc41e44852febcb8f862c814d15c54962b3dfc",
+    "tr/Microsoft.TestPlatform.CommunicationUtilities.resources.dll": "ecc813c1626c6d2a7ff4166a9ba1b390022069c7b6894ad387c9e8870f831099",
+    "tr/Microsoft.TestPlatform.CoreUtilities.resources.dll": "1fee9a7a6af5ef00d7fdd4f3bf265645c7984224352e95347c2f082f64d8ade2",
+    "tr/Microsoft.TestPlatform.CrossPlatEngine.resources.dll": "aa9ab1c2a40b4eb91b1535121310d9ef379f3ac89efa5a15513a8af3eb1e2cc8",
+    "tr/Microsoft.VisualStudio.TestPlatform.Common.resources.dll": "29fad6dbd21edfe8d8bfc9878bdd18d330c5a258ae8d13e695d0cd9854f64bba",
+    "tr/Microsoft.VisualStudio.TestPlatform.ObjectModel.resources.dll": "5b39c999ccf72eb01ba387c8a0d72814d68a7120e623accbd2da544ee04ba5dc",
+    "tr/MSTest.TestFramework.resources.dll": "b432abcc62b24a6194675ade0f6f40c3f1903d75b018ff45c7c28605488b856d",
+    "zh-Hans/Microsoft.Testing.Extensions.MSBuild.resources.dll": "86180329b340727d69b7969f0a6117750c369a3239fd611696f41cc0ea25a1f9",
+    "zh-Hans/Microsoft.Testing.Extensions.Telemetry.resources.dll": "b81555fd20abcec4b5a66fe11115080eb89cd11a8a0b9858cf9b4bc0503c0479",
+    "zh-Hans/Microsoft.Testing.Platform.resources.dll": "a6323cb66a3b0bf33d3cd3a8ef567126b49b7c777b7352230e52236d5fae4c99",
+    "zh-Hans/Microsoft.TestPlatform.CommunicationUtilities.resources.dll": "64c3d59ac2ff9780732c1eb5bad7c18bd2ac03c722a9fed5511de8f25d316f23",
+    "zh-Hans/Microsoft.TestPlatform.CoreUtilities.resources.dll": "db896ac2579f5d5773f940bd278852c689799a3e0acc51bb30e46eef99fc76fb",
+    "zh-Hans/Microsoft.TestPlatform.CrossPlatEngine.resources.dll": "abc3c11d9779f4f19a3feedce14c138c3143d189ba1055e034c48a90187075c5",
+    "zh-Hans/Microsoft.VisualStudio.TestPlatform.Common.resources.dll": "1f034335ddc71adce1aa1df8c7254b97c77bddbaf5d862bab75b520fdd293d45",
+    "zh-Hans/Microsoft.VisualStudio.TestPlatform.ObjectModel.resources.dll": "3f370c15663359c40bcee2a7d15cd386f01980be753f7ab1505783649d70dcaf",
+    "zh-Hans/MSTest.TestFramework.resources.dll": "74c25b78848516a9a535e43e3501a0bc72f1b31c76648d29125ac0a19a19c615",
+    "zh-Hant/Microsoft.Testing.Extensions.MSBuild.resources.dll": "e4fbe648379c0788eab6a3e1e1655ee108683ed8511923d3050cfa0a3bcd276b",
+    "zh-Hant/Microsoft.Testing.Extensions.Telemetry.resources.dll": "68f0fac1b1f5a7815be0e27e8093f008643f2c46dabdea9eca8be3485075c406",
+    "zh-Hant/Microsoft.Testing.Platform.resources.dll": "ac2d2abbad624cd80ae79f7505c64e914850bcd68cc361b699d485327f0c68f8",
+    "zh-Hant/Microsoft.TestPlatform.CommunicationUtilities.resources.dll": "a159e3fd80ab34839b62b2cdf0a3f7ae4b188dc7155769379e94e1333b84ce0f",
+    "zh-Hant/Microsoft.TestPlatform.CoreUtilities.resources.dll": "fe732572a93c216282c0ef0a8762246735c8885873e03ffe9fd287d202f0d806",
+    "zh-Hant/Microsoft.TestPlatform.CrossPlatEngine.resources.dll": "2c3d9a8e06973943d45dcd5cbb9c18dec563f42e2ac0c16ebd7d98fa91f6ca70",
+    "zh-Hant/Microsoft.VisualStudio.TestPlatform.Common.resources.dll": "d2b8fd8f98eda57c047e1cef1cb43d8cb0d066cc052cb172d696973c8b92cc06",
+    "zh-Hant/Microsoft.VisualStudio.TestPlatform.ObjectModel.resources.dll": "335d5fa4c5575ceb8f4ffb58fda53c1813a0c725a17f68219d012d390ddf978f",
+    "zh-Hant/MSTest.TestFramework.resources.dll": "7b311dbd1cbd938808f53f09c7a72a3c6d0ac9c7cff953a22bd254b00965430e"
+  },
+  "controls": [
+    {
+      "case": "wrong-core-pin",
+      "passed": true,
+      "reason": "Candidate Core differs from the independent pin.",
+      "beforeBuild": true
+    },
+    {
+      "case": "wrong-module-source",
+      "passed": true,
+      "reason": "Candidate module provenance differs: TypeManagement/TypeManager.cs",
+      "beforeBuild": true
+    }
+  ],
+  "sourceCommitBeforeChange": "1bef3f75",
+  "sharedTree": "Logging-owned edits retained; isolated frozen-Core build only",
+  "graph": {
+    "freshness": "fresh",
+    "scope": "Partial navigation evidence; merged symbols remain warnings",
+    "nodes": 9582,
+    "edges": 38092,
+    "warnings": 143,
+    "errors": 0,
+    "buildId": "sha256:925662bd68d34c675d6ea8078b62182b35c712f44f72a3d9457446d568d7cbaa"
+  },
+  "review": {
+    "verdict": "PASS",
+    "scope": "Read-only Type Manager source and verification code; logging implementation excluded",
+    "addressed": [
+      "Validate actual runtime/OS/X64/loaded Core from each native case instead of copying the policy pin",
+      "Validate named method set and row counts",
+      "Validate both deployed dependency hashes",
+      "Clarify reuse/prepared-read/pre-canceled scope and preserve logging-owned edits",
+      "Use explicit damage switch and recursive source inventory"
+    ],
+    "optionalDisposition": [
+      "All generated inputs, NuGet lock and logs are hashed by this checkpoint, beyond the scoped runner report",
+      "Lowercase pin is documented and mismatches fail closed",
+      "Target framework drift fails the pinned output checks; net10.0 remains the only scope",
+      "No clean-cache, lazy-first-race, initial-load or combined-current-tree build claim added"
+    ],
+    "followupExecution": "Final Ubuntu 10/10 passed after review dispatch; both native identities and output hashes independently checked"
+  },
+  "retainedFiles": {
+    "deployment/CIS.Core.BusinessCases.deps.json": "96a70a30a9514c1d3bc02cce23db124d311698ea476d63e0f3ca7be71a561456",
+    "deployment/CIS.Core.BusinessCases.dll": "bddde2511d1cefb76f14eb91d76ac30d2319acea83a887514099d8cf8ea4317b",
+    "deployment/CIS.Core.BusinessCases.pdb": "7c08468685173d7d6e5963288fdcfbb6dfe7d46c9d616784e80ccff5b5fd52fa",
+    "deployment/CIS.Core.BusinessCases.runtimeconfig.json": "130aa09981db7c7fc40163508b2cf4a155d36cdda034c8805131d0b0cd951b91",
+    "deployment/CIS.Core.dll": "d70fcfdc41b6d15829227f1cee60130ddad3f7f82cc11c7a2fcbf8d5f700fb09",
+    "deployment/cs/Microsoft.Testing.Extensions.MSBuild.resources.dll": "89eb97d173b9a1e449567ba443502542df77743f158c8fee41f6f2bdc3629638",
+    "deployment/cs/Microsoft.Testing.Extensions.Telemetry.resources.dll": "31b09f9bc213163bfa28978ac925e08bf75d0ae3c332c4b9941c21a5edb1bec3",
+    "deployment/cs/Microsoft.Testing.Platform.resources.dll": "ee849dcddda6b96cbb84f0cb0d00f2faefb9b9f3ae48dd1156b51ae98f604380",
+    "deployment/cs/Microsoft.TestPlatform.CommunicationUtilities.resources.dll": "7a2f0d7b97536a3853064193ec92ce9f1200ae669b82a84281de44471dafb21c",
+    "deployment/cs/Microsoft.TestPlatform.CoreUtilities.resources.dll": "5f5501b18f65687cebd354196f563c520b4575e58eca474f3b3d1bd3247b9b46",
+    "deployment/cs/Microsoft.TestPlatform.CrossPlatEngine.resources.dll": "15f05b004d8f9a90650efa62f29f1ac576b91a3f21ae65beb80a6fb318fbeab2",
+    "deployment/cs/Microsoft.VisualStudio.TestPlatform.Common.resources.dll": "6b2deb5bd9ac08a364bd64bb503104725c2bdc562fa5a19d99463b9dfedc0544",
+    "deployment/cs/Microsoft.VisualStudio.TestPlatform.ObjectModel.resources.dll": "a24d277e98d3dc7986741ff0c72e628aca9814556d6d64b5e3992bacf07c6f17",
+    "deployment/cs/MSTest.TestFramework.resources.dll": "02cff0820a90831f4f4c4cad6541b68fa2973136b6721762e77104d9d7752179",
+    "deployment/de/Microsoft.Testing.Extensions.MSBuild.resources.dll": "fcd8e6dda5bd53595685f1b4393a5e377b3a8ec5614f4db7ae3fd8f3970b01ad",
+    "deployment/de/Microsoft.Testing.Extensions.Telemetry.resources.dll": "305f8f8953f1a382113f974c188790bab193509aff87b515dfcd1d8064b093a8",
+    "deployment/de/Microsoft.Testing.Platform.resources.dll": "54dc9bd2a5fe2cb080613014f938c0bf5f6a6a01ab3d009a513878bb7e863eca",
+    "deployment/de/Microsoft.TestPlatform.CommunicationUtilities.resources.dll": "45572aefbfd158340f1ea4ed40d2d2f9300ebddf024060cdda3bebb35854b2e2",
+    "deployment/de/Microsoft.TestPlatform.CoreUtilities.resources.dll": "cf94a0635173d6d868a90161757cb9484e559fedfde6e7ea50dd935e1d9b6666",
+    "deployment/de/Microsoft.TestPlatform.CrossPlatEngine.resources.dll": "417e53c758220679b7c850d893ec5754b168e8b95f2e9547eab9233a27799b85",
+    "deployment/de/Microsoft.VisualStudio.TestPlatform.Common.resources.dll": "f44082da024f2dbb37936b1a8f8c5683564716089b6389b892cc90088acb48ff",
+    "deployment/de/Microsoft.VisualStudio.TestPlatform.ObjectModel.resources.dll": "edfdf3cb64553da8e229463948aa7b962e96e4037d510fb7fad4f26da9e7c8b5",
+    "deployment/de/MSTest.TestFramework.resources.dll": "11a8fdaac95ae6ea9ed14d703f6692557eaa494ebdedc0695b7eab3ef8ebc3c5",
+    "deployment/es/Microsoft.Testing.Extensions.MSBuild.resources.dll": "8a0534058fc1262117ddbcf3d38e0a4597770f966ce40113556359c0a428c379",
+    "deployment/es/Microsoft.Testing.Extensions.Telemetry.resources.dll": "be2c60c3513efed1807fde9e2d89c07a80f5efc52b2c8273498250323ec063a3",
+    "deployment/es/Microsoft.Testing.Platform.resources.dll": "2fc212a30af72cccb225128537955c28678b726c2209b81c43bc95f8fd036c34",
+    "deployment/es/Microsoft.TestPlatform.CommunicationUtilities.resources.dll": "91ffbfdbe6b9d134565fd001c8b432ed0570e4f1b64e56b812dac5a1f931c7c0",
+    "deployment/es/Microsoft.TestPlatform.CoreUtilities.resources.dll": "6de8b0fd082756f612d4c8b3b06e3558e2321bcb910d5a70769050f308b96641",
+    "deployment/es/Microsoft.TestPlatform.CrossPlatEngine.resources.dll": "b4ff391fe91eae0d4eba06bc9c09b4ef3fb583fdbcee0b8a49ef7d5d358a6af8",
+    "deployment/es/Microsoft.VisualStudio.TestPlatform.Common.resources.dll": "7afd57a2f8e63f9d0a7c39d6c467aa45a791e29815f806b5751fb5ab375cacca",
+    "deployment/es/Microsoft.VisualStudio.TestPlatform.ObjectModel.resources.dll": "eb966be23882a9e11459d283241a67e7c0265f271e98603f13cabaadd8f7ee64",
+    "deployment/es/MSTest.TestFramework.resources.dll": "0eaa5443cf2f9e8629d1030e77d8d430b5831bd2acd0dd106ddbe5f14721352f",
+    "deployment/fr/Microsoft.Testing.Extensions.MSBuild.resources.dll": "03501f48b593ae0cfd4db74fd200049c0d43295b2697d00032aed88feb635292",
+    "deployment/fr/Microsoft.Testing.Extensions.Telemetry.resources.dll": "624a77a903f4456f742d2ae9be2f24443de123715f46bb71345aa26e2109e08a",
+    "deployment/fr/Microsoft.Testing.Platform.resources.dll": "2574ae39d02056c9a56ca80a6f0b20619ae66f9bdea2dc1d9c78acec036d01ed",
+    "deployment/fr/Microsoft.TestPlatform.CommunicationUtilities.resources.dll": "6d4123a175657dec7e6a82f787be5adbe459656bdfb874cb622fe9ea39daf7e3",
+    "deployment/fr/Microsoft.TestPlatform.CoreUtilities.resources.dll": "bec57046f616616913fd1416f013635a41a06c1c4d8ad67a8ee31f6098a3444b",
+    "deployment/fr/Microsoft.TestPlatform.CrossPlatEngine.resources.dll": "522befbf13ace67d8d17f6b77715cf01c59e21688b84be3c8373065f6e485de5",
+    "deployment/fr/Microsoft.VisualStudio.TestPlatform.Common.resources.dll": "67ab307dd61f2bbb841051e7f68318b5b75c510040f50bf6f3174287c1af3d33",
+    "deployment/fr/Microsoft.VisualStudio.TestPlatform.ObjectModel.resources.dll": "07614b2d790a3b6ad93b41961566b84e4ad56cc86f5bf39658c06a13f2613db4",
+    "deployment/fr/MSTest.TestFramework.resources.dll": "7a798cbd852c24d47c099af0ae581b2744470b7b3f74da37aa111c5b2c05b34f",
+    "deployment/it/Microsoft.Testing.Extensions.MSBuild.resources.dll": "2f41fe8e1163b94573c80b732be76f263bdb66099fa0c0f8e94ead03a550eb49",
+    "deployment/it/Microsoft.Testing.Extensions.Telemetry.resources.dll": "0ce2b9749100e058295b59f6cc12cb4b3c89da536ccbec88c3f3b3d43b1532e2",
+    "deployment/it/Microsoft.Testing.Platform.resources.dll": "821cb47f17a40d440f52a3c6cb258db90385cf420c5224484ced81b92f79b795",
+    "deployment/it/Microsoft.TestPlatform.CommunicationUtilities.resources.dll": "3a9b5440682910f99a4d3b51b3ac32f4d0c0f9cfeb959a9e26de085d45ad7cac",
+    "deployment/it/Microsoft.TestPlatform.CoreUtilities.resources.dll": "2af9b70d68f3ab2bbaa609e5e556811c7f68869ce2c3cc6d7209b3d6722e0968",
+    "deployment/it/Microsoft.TestPlatform.CrossPlatEngine.resources.dll": "63abe8199bd651d7c9418148c9cec7d09877a13a2b95927bc62f476f1fb796ec",
+    "deployment/it/Microsoft.VisualStudio.TestPlatform.Common.resources.dll": "fa43b5a74e50b89b243dcb10d9ac32a6a2db3ff1cdc4b884c01223f2f78c96c7",
+    "deployment/it/Microsoft.VisualStudio.TestPlatform.ObjectModel.resources.dll": "5202a294a2b02c741ba292ba802f12b9473836a81ce61cb42f462eead6dc4dfa",
+    "deployment/it/MSTest.TestFramework.resources.dll": "509f22718faf2831fa8aa1d9053b26198d6fe412d2f979f8ff785da13d5b0ca0",
+    "deployment/ja/Microsoft.Testing.Extensions.MSBuild.resources.dll": "cb70d4bfd21a2919440f67e86e712872dff435d870ca123b3f9684c0f63be856",
+    "deployment/ja/Microsoft.Testing.Extensions.Telemetry.resources.dll": "2f1909e5e06cd214dc617d75330ca67e2a3c7245fdd8f3b446cc51b049d35f7f",
+    "deployment/ja/Microsoft.Testing.Platform.resources.dll": "dcece76d6c872cd65e597f7eefddebca4de8688e996263fed2d69d735452f0f0",
+    "deployment/ja/Microsoft.TestPlatform.CommunicationUtilities.resources.dll": "eff24e7eeef7e342289b5953b470225ff6eec51db64f3fbe1f62c44ed80da824",
+    "deployment/ja/Microsoft.TestPlatform.CoreUtilities.resources.dll": "63d61001cdf7c501e253adeace734b32023cf617c04785937525fc0f202c3e21",
+    "deployment/ja/Microsoft.TestPlatform.CrossPlatEngine.resources.dll": "7b52b294fe2a7aed68b8b772cf63bce00e994e3a82d275419ee97eeb76543e36",
+    "deployment/ja/Microsoft.VisualStudio.TestPlatform.Common.resources.dll": "3ad8c259cf7b1b82b1402100f2b5b1530e4d4cefae3a91e1ab4783a803c4dcf1",
+    "deployment/ja/Microsoft.VisualStudio.TestPlatform.ObjectModel.resources.dll": "d2a679cc9cf0b0e5c865bd937ec90e45ecb434289c6b017992f417e34bae646c",
+    "deployment/ja/MSTest.TestFramework.resources.dll": "0711c6d66bc284555afad8142b5a87065855aa1ce7a541ec18e83bda87e9b938",
+    "deployment/ko/Microsoft.Testing.Extensions.MSBuild.resources.dll": "c028ce9285c9e4e65cd13f8eec21cc5b8fa144dba0f9514e3b6fc09c9476b185",
+    "deployment/ko/Microsoft.Testing.Extensions.Telemetry.resources.dll": "8be28bc62fa915a6f884520b105f9749ec1eaaaae13097291820a35b2e21f769",
+    "deployment/ko/Microsoft.Testing.Platform.resources.dll": "b825a9994bb95d7b1a37ea76f71adb33cca9a63c6e7a158021abdad944c889ed",
+    "deployment/ko/Microsoft.TestPlatform.CommunicationUtilities.resources.dll": "9c4d8a39201e8071fabfc83391ee90d4947b8df91d06f173eb50ac70b53cbd55",
+    "deployment/ko/Microsoft.TestPlatform.CoreUtilities.resources.dll": "e7528a92a6ec0e1684537dd550cdb016ecc8df62a55c85294e608358e28a560d",
+    "deployment/ko/Microsoft.TestPlatform.CrossPlatEngine.resources.dll": "e25583d01cb6e19de1c8daf050cfc5df71b3e6792bafda95a68529ce24e18005",
+    "deployment/ko/Microsoft.VisualStudio.TestPlatform.Common.resources.dll": "3850eb61e6d5cb46e3daa9666c099e2a1e11dc5223d792eb4c7f4a143e0302a9",
+    "deployment/ko/Microsoft.VisualStudio.TestPlatform.ObjectModel.resources.dll": "dc7b27e609e842eeea5da50ea172f288479b652ea779072e5dbbde045418819d",
+    "deployment/ko/MSTest.TestFramework.resources.dll": "61079b0f0d5a5778df6d4ecd30fff69c286cc921ba4643313ab1a5157afa95d9",
+    "deployment/Microsoft.ApplicationInsights.dll": "bf9a4b88c7f94267e1cc7ed0700c575d3eb3266ff25bcb76e4f40f1b0fba022d",
+    "deployment/Microsoft.Extensions.DependencyInjection.Abstractions.dll": "da04edc338d5aa0f38a1f5fa5ff3ee7e36affe9c961daf3ea724a428bd746bc6",
+    "deployment/Microsoft.Extensions.Logging.Abstractions.dll": "7c242f8ca612fa1acc61f78efd5f8c89e01bd0bd47dc4ecc65e0e6e24f1a1668",
+    "deployment/Microsoft.Testing.Extensions.MSBuild.dll": "828e7dc4e0206da2a9a58df26651acc2f28b7169509c5c26dcff3c991513fe09",
+    "deployment/Microsoft.Testing.Extensions.Telemetry.dll": "c4f35fc45c100733d6f00f9aba87fe6c96481d3c43c416d32a4722fddd6e79e1",
+    "deployment/Microsoft.Testing.Extensions.TrxReport.Abstractions.dll": "f57bc3dcd63c0dcd08db8d5e729836d156351a2d18041a5b7978a424e5b37142",
+    "deployment/Microsoft.Testing.Platform.dll": "a3319a6bb4bdfb1df2e531765c5a48c2b48de1fe7cf4dcd932c9b82f114107da",
+    "deployment/Microsoft.TestPlatform.CommunicationUtilities.dll": "24c3b9f2710340c328db8bc9c37797d15e2cf32e4fca37f60f6f01bd35b6e0ff",
+    "deployment/Microsoft.TestPlatform.CoreUtilities.dll": "ca8cd4a0c394af3cc03c8e83b0377ecf14e6a8c68e4b0b50f732b1370950d7df",
+    "deployment/Microsoft.TestPlatform.CrossPlatEngine.dll": "9cde8a3ed9b3d2bc95f6c351af59ac943ee3495d3c1312950eedf6176a489b5a",
+    "deployment/Microsoft.TestPlatform.PlatformAbstractions.dll": "8bc7faec348a71336af3bfbeecad564ad0f97a8216835ed90cd2ceff621a3697",
+    "deployment/Microsoft.TestPlatform.Utilities.dll": "29d176ae1f87dac87c8064dddf30a5e2439e4f48e28417e8604d71cc9d920ce8",
+    "deployment/Microsoft.VisualStudio.CodeCoverage.Shim.dll": "8d4e1668a9f141d80a2615b946e43a2d64fe3528a1f54c79624a6c217019a646",
+    "deployment/Microsoft.VisualStudio.TestPlatform.Common.dll": "c38efb5cfcceb4cdf0f1fb04eea0b1d17310c6eda839dd3ae31e658e91cc7de6",
+    "deployment/Microsoft.VisualStudio.TestPlatform.ObjectModel.dll": "ff730c68bebe827f74e2bdcfb571400ab328c00be11c7fe3a1fe01143b483bc6",
+    "deployment/MSTest.TestAdapter.dll": "18de8760190a607e903da92c548e976628a9da1cabde1dbec32a773f0f08e99a",
+    "deployment/MSTest.TestFramework.dll": "1ef03e88502ea03be38088bd1e23bfe7fbce516d1e74225acb84b6640cd8b73b",
+    "deployment/MSTest.TestFramework.Extensions.dll": "39b4014cd714c704a35e3d690dbddbee209b9b4925db8da2e870686ceb0ec5d1",
+    "deployment/MSTest.TestFramework.Extensions.xml": "2230d28380744cbbc1ad7dce96fd20c3ee35aa0e5074dbd1404a0786eb06d92f",
+    "deployment/MSTestAdapter.PlatformServices.dll": "74559c1c0fa199dc1ce53324a95b67b3084ca906df9ddac52fdb29bb2043c943",
+    "deployment/pl/Microsoft.Testing.Extensions.MSBuild.resources.dll": "1b356a67f1a6d3522658c0e19253c26336cb09f9b5f8b7fc174d0bae6d5a906f",
+    "deployment/pl/Microsoft.Testing.Extensions.Telemetry.resources.dll": "5f526e320e2ed6cea9e7436b3710da6fbcbed038a8b2f6567db47f2bfe965d25",
+    "deployment/pl/Microsoft.Testing.Platform.resources.dll": "9c565afdafa7f30bfb19ceb59375da9c9a9bf083362a65a961055029c2811b2d",
+    "deployment/pl/Microsoft.TestPlatform.CommunicationUtilities.resources.dll": "8cee907bab9068f30a6c0740b49ce3d4c9be887b7c5f6a8240954afe46e233a3",
+    "deployment/pl/Microsoft.TestPlatform.CoreUtilities.resources.dll": "cb997c46356be42b346682b3a1b6825cb6f70a30c92403048f7dbdf25065f6ab",
+    "deployment/pl/Microsoft.TestPlatform.CrossPlatEngine.resources.dll": "1e084c594a6f9d405bd817d7e21b1d7e50d472d5d09a853e99b9732da5b6a7be",
+    "deployment/pl/Microsoft.VisualStudio.TestPlatform.Common.resources.dll": "687771c2ad91e5b705e5bb9f15d4d485c60ff93c56de869886b1f6d2831606c3",
+    "deployment/pl/Microsoft.VisualStudio.TestPlatform.ObjectModel.resources.dll": "48f6bb8c551179da07d5e136a0c781dd6433f23312f3ce9241dcec29d8412f3e",
+    "deployment/pl/MSTest.TestFramework.resources.dll": "bac69939d2f501abe4f55da6f410f179233359f4268b0551712d92433530fa3b",
+    "deployment/pt-BR/Microsoft.Testing.Extensions.MSBuild.resources.dll": "0fc5ebb3313d8151cae638e302e3feab7913f28c51aedcafcb0cb9a32d3fffc0",
+    "deployment/pt-BR/Microsoft.Testing.Extensions.Telemetry.resources.dll": "52d86a70478e014a9df2b9a87742881f15569f2cf422b755280239ae3cf698cc",
+    "deployment/pt-BR/Microsoft.Testing.Platform.resources.dll": "cf2cc21f90f599f74db14ff684479378fee4b0ace77dbc2ecd03022586235366",
+    "deployment/pt-BR/Microsoft.TestPlatform.CommunicationUtilities.resources.dll": "436dc88d1317cdedf7f82795a42af0929c8310b6228b4ff8eb1a82432821a3c5",
+    "deployment/pt-BR/Microsoft.TestPlatform.CoreUtilities.resources.dll": "2bb0340569343f0c3288f35a5cfa947d9495de55d04e93f2c380b75b45d681a9",
+    "deployment/pt-BR/Microsoft.TestPlatform.CrossPlatEngine.resources.dll": "d1865dd55afbd39ea0902a49e243f7c85e4a587134d31737b7fd764157fa74fb",
+    "deployment/pt-BR/Microsoft.VisualStudio.TestPlatform.Common.resources.dll": "e0e34b02d8496f5466f85a1580e9113118eee9d1c0a71dad1e372d87465f157f",
+    "deployment/pt-BR/Microsoft.VisualStudio.TestPlatform.ObjectModel.resources.dll": "3944adc8b9c09a7007aaea3c86ee7666ddf3e7328b16edcc72f7e6dcc1ff1de8",
+    "deployment/pt-BR/MSTest.TestFramework.resources.dll": "ceff285efbcffa70e4eedff45c6fb2dc5831d377508f561e312366d510244a87",
+    "deployment/ru/Microsoft.Testing.Extensions.MSBuild.resources.dll": "f9327680fe76b9a1ce3464890416d0d62114454b0ab16bcd17b9fdf2a76e70c5",
+    "deployment/ru/Microsoft.Testing.Extensions.Telemetry.resources.dll": "f355955e1651665f500e6f1112e3cfba9dce61e86cb646b78ecdcefac9d3b652",
+    "deployment/ru/Microsoft.Testing.Platform.resources.dll": "8cc183c808a547514a93a9938999aca13d7f126a9ba6469ff5f98d294be956e0",
+    "deployment/ru/Microsoft.TestPlatform.CommunicationUtilities.resources.dll": "f3fcd583ff53d3f2145a7a4418a8145db1f1f088908fb92cbab848b815e91dc2",
+    "deployment/ru/Microsoft.TestPlatform.CoreUtilities.resources.dll": "089d9052b2fa1ef63f2bd1f0f0f8161fe6d1d02721fc39d4b48c333d26826306",
+    "deployment/ru/Microsoft.TestPlatform.CrossPlatEngine.resources.dll": "945c4a1304189209c1cada1b8279608df188595b09bd012e28473ab329080aa1",
+    "deployment/ru/Microsoft.VisualStudio.TestPlatform.Common.resources.dll": "0a616270492b4d944980509c794e819825c9217a050520994aa5ed9583702b7c",
+    "deployment/ru/Microsoft.VisualStudio.TestPlatform.ObjectModel.resources.dll": "515c96257715a3ccd56af8acd9460e72e57dda825ff16824d2912271beca0749",
+    "deployment/ru/MSTest.TestFramework.resources.dll": "66ad16b1031f63e2cdc85bb585a60be20b49151a5c7734550cccadf33d9d7352",
+    "deployment/testhost.dll": "ad339a6279013d6af52dde6bcb8b90a19a395a54c6fcf085ff5a42435c60c4c5",
+    "deployment/testhost.exe": "9620b96c776dc786824ea167dc1a4991c8e0e2dc093dc63f78cb44c0bd4c8cc0",
+    "deployment/tr/Microsoft.Testing.Extensions.MSBuild.resources.dll": "b6ee86b4703400b80c6865cda1582333465184126e0ed66780cae92f642b452c",
+    "deployment/tr/Microsoft.Testing.Extensions.Telemetry.resources.dll": "60863acb3fc748fd994454f69a0323454850e4b0f252bfba898ea4d5a7245131",
+    "deployment/tr/Microsoft.Testing.Platform.resources.dll": "575a0f0d5db2eb2ebcf405457cdc41e44852febcb8f862c814d15c54962b3dfc",
+    "deployment/tr/Microsoft.TestPlatform.CommunicationUtilities.resources.dll": "ecc813c1626c6d2a7ff4166a9ba1b390022069c7b6894ad387c9e8870f831099",
+    "deployment/tr/Microsoft.TestPlatform.CoreUtilities.resources.dll": "1fee9a7a6af5ef00d7fdd4f3bf265645c7984224352e95347c2f082f64d8ade2",
+    "deployment/tr/Microsoft.TestPlatform.CrossPlatEngine.resources.dll": "aa9ab1c2a40b4eb91b1535121310d9ef379f3ac89efa5a15513a8af3eb1e2cc8",
+    "deployment/tr/Microsoft.VisualStudio.TestPlatform.Common.resources.dll": "29fad6dbd21edfe8d8bfc9878bdd18d330c5a258ae8d13e695d0cd9854f64bba",
+    "deployment/tr/Microsoft.VisualStudio.TestPlatform.ObjectModel.resources.dll": "5b39c999ccf72eb01ba387c8a0d72814d68a7120e623accbd2da544ee04ba5dc",
+    "deployment/tr/MSTest.TestFramework.resources.dll": "b432abcc62b24a6194675ade0f6f40c3f1903d75b018ff45c7c28605488b856d",
+    "deployment/zh-Hans/Microsoft.Testing.Extensions.MSBuild.resources.dll": "86180329b340727d69b7969f0a6117750c369a3239fd611696f41cc0ea25a1f9",
+    "deployment/zh-Hans/Microsoft.Testing.Extensions.Telemetry.resources.dll": "b81555fd20abcec4b5a66fe11115080eb89cd11a8a0b9858cf9b4bc0503c0479",
+    "deployment/zh-Hans/Microsoft.Testing.Platform.resources.dll": "a6323cb66a3b0bf33d3cd3a8ef567126b49b7c777b7352230e52236d5fae4c99",
+    "deployment/zh-Hans/Microsoft.TestPlatform.CommunicationUtilities.resources.dll": "64c3d59ac2ff9780732c1eb5bad7c18bd2ac03c722a9fed5511de8f25d316f23",
+    "deployment/zh-Hans/Microsoft.TestPlatform.CoreUtilities.resources.dll": "db896ac2579f5d5773f940bd278852c689799a3e0acc51bb30e46eef99fc76fb",
+    "deployment/zh-Hans/Microsoft.TestPlatform.CrossPlatEngine.resources.dll": "abc3c11d9779f4f19a3feedce14c138c3143d189ba1055e034c48a90187075c5",
+    "deployment/zh-Hans/Microsoft.VisualStudio.TestPlatform.Common.resources.dll": "1f034335ddc71adce1aa1df8c7254b97c77bddbaf5d862bab75b520fdd293d45",
+    "deployment/zh-Hans/Microsoft.VisualStudio.TestPlatform.ObjectModel.resources.dll": "3f370c15663359c40bcee2a7d15cd386f01980be753f7ab1505783649d70dcaf",
+    "deployment/zh-Hans/MSTest.TestFramework.resources.dll": "74c25b78848516a9a535e43e3501a0bc72f1b31c76648d29125ac0a19a19c615",
+    "deployment/zh-Hant/Microsoft.Testing.Extensions.MSBuild.resources.dll": "e4fbe648379c0788eab6a3e1e1655ee108683ed8511923d3050cfa0a3bcd276b",
+    "deployment/zh-Hant/Microsoft.Testing.Extensions.Telemetry.resources.dll": "68f0fac1b1f5a7815be0e27e8093f008643f2c46dabdea9eca8be3485075c406",
+    "deployment/zh-Hant/Microsoft.Testing.Platform.resources.dll": "ac2d2abbad624cd80ae79f7505c64e914850bcd68cc361b699d485327f0c68f8",
+    "deployment/zh-Hant/Microsoft.TestPlatform.CommunicationUtilities.resources.dll": "a159e3fd80ab34839b62b2cdf0a3f7ae4b188dc7155769379e94e1333b84ce0f",
+    "deployment/zh-Hant/Microsoft.TestPlatform.CoreUtilities.resources.dll": "fe732572a93c216282c0ef0a8762246735c8885873e03ffe9fd287d202f0d806",
+    "deployment/zh-Hant/Microsoft.TestPlatform.CrossPlatEngine.resources.dll": "2c3d9a8e06973943d45dcd5cbb9c18dec563f42e2ac0c16ebd7d98fa91f6ca70",
+    "deployment/zh-Hant/Microsoft.VisualStudio.TestPlatform.Common.resources.dll": "d2b8fd8f98eda57c047e1cef1cb43d8cb0d066cc052cb172d696973c8b92cc06",
+    "deployment/zh-Hant/Microsoft.VisualStudio.TestPlatform.ObjectModel.resources.dll": "335d5fa4c5575ceb8f4ffb58fda53c1813a0c725a17f68219d012d390ddf978f",
+    "deployment/zh-Hant/MSTest.TestFramework.resources.dll": "7b311dbd1cbd938808f53f09c7a72a3c6d0ac9c7cff953a22bd254b00965430e",
+    "graph-build.txt": "2d927494a001d3cf731b38db0ad403c2a7ccc61e709c9278096d5eeb5a7ee12f",
+    "graph-status.txt": "97cb6a44a0e0e3dd05df1347fbc384f131a652cf212b0f6514fbf72ecc46670b",
+    "guards/wrong-core-pin/results.json": "bdcb40b05645aa7b86987ef80382a453ddd6fa47853c7dcee6d07b5a93973b1e",
+    "guards/wrong-module-source/results.json": "1d81c43fbdb10c2c8bd87f0a1b595b13a93607e84dcd84bab4e16c44a6805466",
+    "inputs/BusinessTests.csproj": "711fc96add0503ba01e80cfb9f8b6832a88b6bed3dc401b8ec9f60e115a4332f",
+    "inputs/candidate-report.json": "ce0f08017666e3942d8493b5bb3391abc2403bd7303209afebe5df083f5edaa2",
+    "inputs/Directory.Build.props": "fe0ec1ac2f0c4b213217a5758bad02699a8304bdcf864a4cce9e7db4ae0d8dae",
+    "inputs/Directory.Build.targets": "5c10e0dca89d53fa828e2b8ad817f7ddeccb7775bef36c1e75dba0d87a103ee6",
+    "inputs/Directory.Packages.props": "c2d2501f282f41da37c867458baa3c5e4405d4f46ecba868983ae713b105bb26",
+    "inputs/Evidence.psm1": "74be8b283ef995113fae8c59e21bc1ff531b1c1b09995aa7e234fe4c00ab9252",
+    "inputs/global.json": "86746c523b75c3e560cab3938c5c6c7c65c33dc9fbe298a554f90c724f2ef30e",
+    "inputs/NuGet.config": "88a07bdb9252fc13decb7364cc551964338f140d0112ee627819e0cc7901dc0c",
+    "inputs/packages.lock.json": "4f8f61d311884f78a615f5fa437e4819ac512b2df19d707f47e94574561cf01a",
+    "inputs/TestAssembly.cs": "14595bd1171c05776cffc8389b90a9e5f61b448b977f6dc534255b161c6d8516",
+    "inputs/toolchain.json": "b55d4261bc303a947bc34f2048d7506cd6bca943d868c230cd3b7ca1f1753d3d",
+    "inputs/TypeManagerStartupStories.cs": "dd8fdfb858e696a14f3e5c94dd44c2c61e7d0da45b2b7c2e3d71e10f413ab071",
+    "inputs/verify-type-manager-business.ps1": "95cf0a2df240579f02df0e3fd8116e2117c8e9c02260933a00c316038143644d",
+    "linux/business.trx": "ae2a4fe785f443a2a99b61ced877c271669903adb9ccb12229c030d7039d932c",
+    "linux/execution.log": "0e5408a9f3582775e9285f87fd69caacf350b9e62ac2df345be80b8c615dcebb",
+    "linux/native.json": "250d82a54f4d80f59666325fb55536a7be5383720640d0e104f6d461e9f757ab",
+    "README.md": "5efa9cbb5cc9100454a49f26891ffd3a12124fcb8ae62c49fded67d44210fb22",
+    "review/review-final-prompt.txt": "6595bcf269d51040b12e05977098ffb047bc41c23df77284bbc08356e2b099ff",
+    "review/review-final-result.json": "4ed2a396744ed55dffe6cb8ffabe53527f345520659f790226efe62fffcc109b",
+    "review/review-prompt.txt": "b8dd2163c76b6502c22c45b0b1309fb897ad191a8adb3765529f559ae1f8e21c",
+    "review/review-result.json": "7ba88340a2404c4facf77c2732b114e92b2d20e49ea8edb150e4fca541a808df",
+    "superseded/linux-command-quoting.log": "b6e2880b74b0f22b81188736941a97f7db790e6be1a6f1c9e6fcf82a7de4bce1",
+    "superseded/windows-draft/execution.log": "7f1becc3b34a252610dbc9a5a2c1a16bcb36e6c787e086e53ef0e05e3942ff7b",
+    "superseded/windows-draft/results.json": "750153da545c087490e8195d045111740536d4bcf7097b4ae28060e6107ed5bb",
+    "superseded/windows-qualified/execution.log": "91ab6f2b8eac54231fcd30acefb16cf2a8479fd0ad5d0f3bcfedc11290da70b3",
+    "superseded/windows-qualified/results.json": "508a49cf1e40f5b3ae141fedb3803f074203824f98cdd4d32d57bddcf2e44b26",
+    "superseded/windows-reviewed/execution.log": "0f163330da676e18050bb77788718387cb44f0e64c1e1e5f776aa89408b7a7dc",
+    "superseded/windows-reviewed/results.json": "c08b6abef5e0e26516524190a03e025b1b49e5da1ba7bfdddf63a6d2f71deda1",
+    "support/format-final.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "support/guard-results.json": "cb668f597f7c62d0cd14fa42e1837b14058971868869453527a69c7d092debdf",
+    "support/wrong-core-pin.log": "6291036ba9777a4c06c191ab905792cebdf6f108e6522f28a6add8ab43bd9701",
+    "support/wrong-module-source.log": "44575c9c081c75a42590df88aa3f6109d3dd300f1fa5b7f1d2e25f182f198ddb",
+    "support/wrong-source-producer.json": "1012b545ada7165079b723a59a8e4e4f9bf66cdf88ac18e3f23c8e0edd09b858",
+    "windows/business.trx": "3038e677fe58c9cd5cff89f55ac87938460f4d52889f9fe919f02fb771a68b82",
+    "windows/execution.log": "8e34b73fbc212873e4fdc579e9e650a4bd92c642bf104eb05ad2d1cdee6439bf",
+    "windows/results.json": "d9309dbc3846a040a7d79271fc0975dc0c7872ac99fbde32ad9a3a14612bbe33"
+  }
+}

@@ -1,0 +1,370 @@
+Read-only review of Type Manager business-family addition. Do not use tools or modify files. Report concrete blockers and optional improvements separately. User authorizes this review; no logging implementation is included. Context: same CIS.Core assembly; .NET SDK10.0.401/runtime10.0.12. These ten in-process MSTest stories supplement existing fresh-process unused-library, actual DI/HTTP, cancellation and failure fixtures; they do not claim to replace them or close the entire roadmap. The scoped verifier uses an independently pinned frozen Core and trusted producer report; project package cache is reused with network sources cleared. Check correctness, misleading evidence, reproducibility and maintainability. Original first run caught a wrong test expectation: missing selected asset is InvalidInventory (inventory parser checks existence); corrupt image is AssemblyLoadFailure. That expectation is corrected and corrupt-image story added. Production code is unchanged.
+
+FILE: implementations/csharp/tests/CIS.Core.BusinessCases/TypeManagerStartupStories.cs
+
+using System.Reflection;
+using System.Runtime.InteropServices;
+using System.Text.Json;
+using CIS.TypeManagement;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+
+namespace CIS.Tests.BusinessCases;
+
+[TestClass]
+[DoNotParallelize]
+public sealed class TypeManagerStartupStories
+{
+    private string directory = null!;
+    private string manifest = null!;
+    private static Assembly Host => typeof(TypeManagerStartupStories).Assembly;
+
+    public TestContext TestContext { get; set; } = null!;
+
+    [TestInitialize]
+    public void Initialize()
+    {
+        directory = Path.Combine(Path.GetTempPath(), "cis-type-manager-stories", Guid.NewGuid().ToString("N"));
+        Directory.CreateDirectory(directory);
+        File.Copy(Host.Location, Path.Combine(directory, "Host.dll"));
+        manifest = Path.Combine(directory, "host.types.json");
+        WriteInventory();
+        Activation.Count = 0;
+        TestContext.WriteLine(JsonSerializer.Serialize(new
+        {
+            runtime = RuntimeInformation.FrameworkDescription,
+            os = OperatingSystem.IsWindows() ? "windows" : "linux",
+            architecture = RuntimeInformation.ProcessArchitecture.ToString()
+        }));
+    }
+
+    [TestCleanup]
+    public void Cleanup() => Directory.Delete(directory, recursive: true);
+
+    [TestMethod]
+    [DataRow(false)]
+    [DataRow(true)]
+    public async Task PreparationHandsUsableCatalogToApplicationBeforeItCreatesServices(bool precompute)
+    {
+        var events = new List<string>();
+        var options = Options(precompute);
+        var application = await StartAsync(options, manager =>
+        {
+            events.Add("application factory");
+            Assert.AreEqual(0, Activation.Count, "Discovery must leave application construction to its owner.");
+            var matches = manager.GetImplementations<ISettings>();
+            CollectionAssert.AreEqual(new[] { typeof(MailSettings) }, matches.ToArray());
+            Assert.AreSame(matches, manager.GetImplementations(typeof(ISettings)));
+            Assert.IsTrue(manager.TryGetType(matches[0].AssemblyQualifiedName!, out var found));
+            Assert.AreSame(typeof(MailSettings), found);
+            var settings = MailSettings.Create("smtp.example.test");
+            events.Add("application activation");
+            return new Application(manager, settings);
+        }, events);
+
+        CollectionAssert.AreEqual(new[] { "preparing", "prepared", "application factory", "application activation" }, events);
+        Assert.AreEqual(1, Activation.Count);
+        Assert.AreEqual("smtp.example.test", application.Settings.Endpoint);
+        Assert.AreEqual(precompute ? 1 : 0, application.Manager.PreparationReport.PreparedContractCount);
+        Assert.AreEqual(1, application.Manager.PreparationReport.SelectedAssemblyCount);
+        Assert.AreEqual(0, application.Manager.PreparationReport.LoadedAssemblyIdentities.Count);
+        CollectionAssert.AreEqual(new[] { Host.FullName }, application.Manager.PreparationReport.ReusedAssemblyIdentities.ToArray());
+        Assert.AreEqual(application.Manager.Types.Count, application.Manager.PreparationReport.TypeCount);
+        CollectionAssert.AreEquivalent(application.Manager.Types.ToArray(), application.Manager.GetDefinedTypes(Host).ToArray());
+    }
+
+    [TestMethod]
+    [DataRow("invalid inventory", TypeManagerFailureKind.InvalidInventory)]
+    [DataRow("missing inventory", TypeManagerFailureKind.InvalidInventory)]
+    [DataRow("missing assembly", TypeManagerFailureKind.InvalidInventory)]
+    [DataRow("corrupt assembly", TypeManagerFailureKind.AssemblyLoadFailure)]
+    public async Task FailedPreparationNeverInvokesApplicationFactory(string damage, TypeManagerFailureKind expectedKind)
+    {
+        if (damage == "invalid inventory") { File.WriteAllText(manifest, "{"); }
+        else if (damage == "missing inventory") { File.Delete(manifest); }
+        else if (damage == "corrupt assembly") { File.WriteAllText(Path.Combine(directory, "Host.dll"), "not a managed assembly"); }
+        else { File.Delete(Path.Combine(directory, "Host.dll")); }
+        var events = new List<string>();
+        int factoryCalls = 0;
+        var error = await Assert.ThrowsExactlyAsync<TypeManagerInitializationException>(() => StartAsync(Options(), _ => ++factoryCalls, events));
+
+        Assert.AreEqual(expectedKind, error.FailureKind);
+        Assert.AreEqual(manifest, error.ManifestPath);
+        Assert.IsNotNull(error.InnerException);
+        if (damage is "missing assembly" or "corrupt assembly")
+        {
+            Assert.AreEqual(Path.Combine(directory, "Host.dll"), error.AssetPath);
+            Assert.AreEqual(Host.FullName, error.AssemblyIdentity);
+        }
+        Assert.AreEqual(0, factoryCalls);
+        Assert.AreEqual(0, Activation.Count);
+        CollectionAssert.AreEqual(new[] { "preparing" }, events);
+    }
+
+    [TestMethod]
+    public async Task CanceledPreparationNeverInvokesApplicationFactory()
+    {
+        using var cancellation = new CancellationTokenSource();
+        cancellation.Cancel();
+        var events = new List<string>();
+        int factoryCalls = 0;
+        var startup = StartAsync(Options(), _ => ++factoryCalls, events, cancellation.Token);
+        await Assert.ThrowsAsync<OperationCanceledException>(() => startup);
+        Assert.IsTrue(startup.IsCanceled);
+        Assert.AreEqual(0, factoryCalls);
+        Assert.AreEqual(0, Activation.Count);
+        CollectionAssert.AreEqual(new[] { "preparing" }, events);
+    }
+
+    [TestMethod]
+    public async Task ConcurrentConsumersReuseCatalogWhileApplicationOwnsObjectLifetime()
+    {
+        var manager = await TypeManager.CreateAsync(Options(precompute: true));
+        var prepared = manager.GetImplementations<ISettings>();
+        var report = manager.PreparationReport;
+        var consumers = await Task.WhenAll(Enumerable.Range(0, 16).Select(_ => Task.Run(() =>
+        {
+            Assert.AreSame(prepared, manager.GetImplementations<ISettings>());
+            Assert.AreSame(report, manager.PreparationReport);
+            return new Application(manager, MailSettings.Create("request.example.test"));
+        })));
+        Assert.AreEqual(16, Activation.Count);
+        Assert.AreEqual(16, consumers.Select(item => item.Settings).Distinct().Count());
+        foreach (var consumer in consumers) { Assert.AreSame(manager, consumer.Manager); }
+        Assert.Throws<NotSupportedException>(() => ((IList<Type>)prepared)[0] = typeof(SettingsBase));
+        CollectionAssert.AreEqual(new[] { typeof(MailSettings) }, manager.GetImplementations<ISettings>().ToArray());
+        Assert.AreEqual(1, report.PreparedContractCount);
+    }
+
+    [TestMethod]
+    public async Task RunningApplicationKeepsSnapshotWhileNextStartupValidatesChangedInventory()
+    {
+        var manager = await TypeManager.CreateAsync(Options());
+        var types = manager.Types;
+        var report = manager.PreparationReport;
+        File.WriteAllText(manifest, "{");
+        File.Delete(Path.Combine(directory, "Host.dll"));
+
+        // The first query is deliberately after the deployment files change.
+        CollectionAssert.AreEqual(new[] { typeof(MailSettings) }, manager.GetImplementations<ISettings>().ToArray());
+        Assert.AreSame(types, manager.Types);
+        Assert.AreSame(report, manager.PreparationReport);
+        Assert.IsTrue(manager.TryGetType(typeof(MailSettings).AssemblyQualifiedName!, out var found));
+        Assert.AreSame(typeof(MailSettings), found);
+        var error = await Assert.ThrowsExactlyAsync<TypeManagerInitializationException>(() => TypeManager.CreateAsync(Options()));
+        Assert.AreEqual(TypeManagerFailureKind.InvalidInventory, error.FailureKind);
+        Assert.AreEqual(0, Activation.Count);
+    }
+
+    [TestMethod]
+    public async Task FailedStartupCanBeRepairedWithIndependentPreparation()
+    {
+        File.WriteAllText(manifest, "{");
+        var failed = TypeManager.CreateAsync(Options());
+        await Assert.ThrowsExactlyAsync<TypeManagerInitializationException>(() => failed);
+        WriteInventory();
+        var events = new List<string>();
+        var repaired = await StartAsync(Options(), manager => new Application(manager, MailSettings.Create("repaired.example.test")), events);
+
+        Assert.IsTrue(failed.IsFaulted, "A new preparation must not mutate the original failed task.");
+        CollectionAssert.AreEqual(new[] { "preparing", "prepared" }, events);
+        Assert.AreEqual("repaired.example.test", repaired.Settings.Endpoint);
+        Assert.AreEqual(1, Activation.Count);
+        CollectionAssert.AreEqual(new[] { typeof(MailSettings) }, repaired.Manager.GetImplementations<ISettings>().ToArray());
+        using var exclusive = new FileStream(manifest, FileMode.Open, FileAccess.ReadWrite, FileShare.None);
+        Assert.IsTrue(exclusive.CanWrite);
+    }
+
+    // This is the application's ordering policy, not an extra Type Manager API.
+    private static async Task<T> StartAsync<T>(TypeManagerOptions options, Func<ITypeManager, T> factory,
+        List<string> events, CancellationToken cancellationToken = default)
+    {
+        events.Add("preparing");
+        var manager = await TypeManager.CreateAsync(options, cancellationToken);
+        events.Add("prepared");
+        return factory(manager);
+    }
+
+    private TypeManagerOptions Options(bool precompute = false) => new(Host)
+    {
+        AssemblyManifestPath = manifest,
+        PrecomputedContracts = precompute ? [typeof(ISettings)] : []
+    };
+
+    private void WriteInventory() => File.WriteAllText(manifest, JsonSerializer.Serialize(new
+    {
+        schemaVersion = 1,
+        hostAssembly = Host.FullName,
+        assemblies = new[] { new { assemblyName = Host.FullName, relativePath = "Host.dll" } }
+    }));
+
+    private sealed record Application(ITypeManager Manager, MailSettings Settings);
+    private interface ISettings;
+    private abstract class SettingsBase : ISettings;
+    private sealed class OpenSettings<T> : SettingsBase;
+    private readonly record struct ValueSettings : ISettings;
+    private sealed class MailSettings : SettingsBase
+    {
+        private MailSettings(string endpoint)
+        {
+            Endpoint = endpoint;
+            Interlocked.Increment(ref Activation.Count);
+        }
+        public string Endpoint { get; }
+        internal static MailSettings Create(string endpoint) => new(endpoint);
+    }
+    private static class Activation
+    {
+        internal static int Count;
+    }
+}
+
+
+FILE: implementations/csharp/eng/verify-type-manager-business.ps1
+
+#Requires -Version 7
+param(
+    [Parameter(Mandatory)][string] $CoreAssembly,
+    [Parameter(Mandatory)][string] $CandidateReport,
+    [Parameter(Mandatory)][string] $ExpectedCoreSha256,
+    [Parameter(Mandatory)][string] $OutputRoot
+)
+
+$ErrorActionPreference = 'Stop'
+Set-StrictMode -Version Latest
+$language = Split-Path $PSScriptRoot -Parent
+$CoreAssembly = [IO.Path]::GetFullPath($CoreAssembly)
+$CandidateReport = [IO.Path]::GetFullPath($CandidateReport)
+$OutputRoot = [IO.Path]::GetFullPath($OutputRoot)
+if ((Test-Path -LiteralPath $OutputRoot) -and @(Get-ChildItem -LiteralPath $OutputRoot -Force).Count) { throw 'Use an empty output directory.' }
+New-Item -ItemType Directory -Force -Path $OutputRoot, (Join-Path $OutputRoot 'candidate') | Out-Null
+function Hash([string] $Path) { (Get-FileHash -LiteralPath $Path -Algorithm SHA256).Hash.ToLowerInvariant() }
+$report = [ordered]@{
+    complete = $false
+    scope = 'Development business stories against a frozen Core; not fresh-process discovery or final package qualification'
+    verifierSha256 = Hash $PSCommandPath
+    coreSha256 = Hash $CoreAssembly
+    candidateReportSha256 = Hash $CandidateReport
+    inputs = @()
+}
+try {
+    if ($report.coreSha256 -cne $ExpectedCoreSha256) { throw 'Candidate Core differs from the independent pin.' }
+    $producer = Get-Content -Raw -LiteralPath $CandidateReport | ConvertFrom-Json -AsHashtable
+    if (-not $producer.complete -or $producer.coreSha256 -cne $ExpectedCoreSha256) { throw 'Candidate producer does not match Core.' }
+    $module = Join-Path $language 'src/CIS.Core/TypeManagement'
+    $moduleInputs = [ordered]@{}
+    foreach ($source in Get-ChildItem -LiteralPath $module -Filter '*.cs' -File) {
+        $key = "TypeManagement/$($source.Name)"
+        $moduleInputs[$key] = Hash $source.FullName
+        if ($moduleInputs[$key] -cne $producer.coreSourceInputs[$key]) { throw "Candidate module provenance differs: $key" }
+    }
+    if ($moduleInputs.Count -ne @($producer.coreSourceInputs.Keys | Where-Object { $_.StartsWith('TypeManagement/') }).Count) { throw 'Candidate module source set differs.' }
+    $report.moduleSourceInputs = $moduleInputs
+    foreach ($file in @('global.json', 'Directory.Build.props', 'Directory.Packages.props', 'eng/toolchain.json', 'eng/Evidence.psm1',
+        'tests/TestAssembly.cs', 'tests/CIS.Core.BusinessCases/TypeManagerStartupStories.cs')) {
+        $source = Join-Path $language $file
+        $target = Join-Path $OutputRoot (Split-Path $file -Leaf)
+        Copy-Item -LiteralPath $source -Destination $target
+        $report.inputs += @{ path = $file; sha256 = Hash $target }
+    }
+    Copy-Item -LiteralPath $CandidateReport -Destination (Join-Path $OutputRoot 'candidate-report.json')
+    foreach ($name in @('CIS.Core.dll', 'Microsoft.Extensions.Logging.Abstractions.dll', 'Microsoft.Extensions.DependencyInjection.Abstractions.dll')) {
+        $source = Join-Path (Split-Path $CoreAssembly -Parent) $name
+        $hash = Hash $source
+        if ($hash -cne $producer.fixtureFiles["Host/bin/Release/net10.0/$name"]) { throw "Candidate dependency differs from producer: $name" }
+        Copy-Item -LiteralPath $source -Destination (Join-Path $OutputRoot "candidate/$name")
+        $report.inputs += @{ path = "candidate/$name"; sha256 = $hash }
+    }
+    $policy = Get-Content -Raw -LiteralPath (Join-Path $OutputRoot 'toolchain.json') | ConvertFrom-Json
+    @'
+<configuration><packageSources><clear /></packageSources><fallbackPackageFolders><clear /></fallbackPackageFolders><auditSources><clear /></auditSources></configuration>
+'@ | Set-Content -Encoding utf8 (Join-Path $OutputRoot 'NuGet.config')
+    '<Project />' | Set-Content -Encoding utf8 (Join-Path $OutputRoot 'Directory.Build.targets')
+    @"
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <AssemblyName>CIS.Core.BusinessCases</AssemblyName>
+    <IsTestProject>true</IsTestProject>
+    <RuntimeFrameworkVersion>$($policy.targetRuntime)</RuntimeFrameworkVersion>
+    <RollForward>Disable</RollForward>
+    <UseVSTest>true</UseVSTest>
+    <EnableMSTestRunner>false</EnableMSTestRunner>
+    <NuGetAudit>false</NuGetAudit>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="CIS.Core" HintPath="candidate/CIS.Core.dll" />
+    <Reference Include="Microsoft.Extensions.Logging.Abstractions" HintPath="candidate/Microsoft.Extensions.Logging.Abstractions.dll" />
+    <Reference Include="Microsoft.Extensions.DependencyInjection.Abstractions" HintPath="candidate/Microsoft.Extensions.DependencyInjection.Abstractions.dll" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" />
+    <PackageReference Include="MSTest.TestFramework" />
+    <PackageReference Include="MSTest.TestAdapter" />
+  </ItemGroup>
+</Project>
+"@ | Set-Content -Encoding utf8 (Join-Path $OutputRoot 'BusinessTests.csproj')
+    Push-Location $OutputRoot
+    try {
+        $report.sdk = (& dotnet --version).Trim()
+        if ($LASTEXITCODE -ne 0 -or $report.sdk -cne $policy.sdk) { throw 'SDK differs from the toolchain pin.' }
+        & dotnet test BusinessTests.csproj -c Release -m:1 --results-directory results --logger 'trx;LogFileName=business.trx' *> execution.log
+        if ($LASTEXITCODE -ne 0) { throw 'Business stories failed; inspect execution.log.' }
+        Import-Module ./Evidence.psm1 -Force
+        $native = Read-NativeTrx ./results/business.trx
+        if ($native.total -ne 10 -or $native.passed -ne 10 -or $native.failed -ne 0 -or $native.skipped -ne 0) { throw 'Unexpected business case count or outcome.' }
+        $report.native = $native
+        $report.runtime = $policy.targetRuntime
+        $report.binaryFiles = [ordered]@{}
+        foreach ($file in Get-ChildItem bin/Release/net10.0 -Recurse -File) {
+            $relative = [IO.Path]::GetRelativePath((Join-Path $OutputRoot 'bin/Release/net10.0'), $file.FullName).Replace('\', '/')
+            $report.binaryFiles[$relative] = Hash $file.FullName
+        }
+        if ($report.binaryFiles['CIS.Core.dll'] -cne $ExpectedCoreSha256) { throw 'Executed Core differs from the independent pin.' }
+        $report.complete = $true
+    }
+    finally { Pop-Location }
+}
+catch { $report.error = $_.Exception.Message; throw }
+finally { $report | ConvertTo-Json -Depth 12 | Set-Content -Encoding utf8 (Join-Path $OutputRoot 'results.json') }
+Write-Output "Type Manager business stories passed: 10. Report: $OutputRoot/results.json"
+
+
+FILE: implementations/csharp/src/CIS.Core/TypeManagement/TypeManagerFailureKind.cs
+
+namespace CIS.TypeManagement;
+
+/// <summary>Stable categories of operational Type Manager preparation failures.</summary>
+public enum TypeManagerFailureKind
+{
+    /// <summary>The required deployment inventory is missing, malformed or inconsistent.</summary>
+    InvalidInventory = 1,
+    /// <summary>A selected managed assembly could not be loaded.</summary>
+    AssemblyLoadFailure = 2,
+    /// <summary>The selected assembly identity conflicts with the actual runtime identity.</summary>
+    AssemblyIdentityConflict = 3,
+    /// <summary>Complete type or relationship discovery could not be performed.</summary>
+    TypeDiscoveryFailure = 4,
+    /// <summary>The deployment uses an unsupported runtime or loading model.</summary>
+    UnsupportedDeployment = 5
+}
+
+
+FILE: implementations/csharp/src/CIS.Core/TypeManagement/TypeManagerOptions.cs
+
+using System.Reflection;
+
+namespace CIS.TypeManagement;
+
+/// <summary>Input values captured and validated when preparation starts.</summary>
+public sealed class TypeManagerOptions
+{
+    /// <summary>Creates options for the application's explicitly selected host assembly.</summary>
+    public TypeManagerOptions(Assembly hostAssembly)
+    {
+        HostAssembly = hostAssembly;
+    }
+
+    /// <summary>Gets the host assembly. Preparation requires an ordinary default-context runtime assembly.</summary>
+    public Assembly HostAssembly { get; }
+    /// <summary>Gets an optional inventory path. Relative paths resolve from the application directory; the default is the host name plus .types.json there.</summary>
+    public string? AssemblyManifestPath { get; init; }
+    /// <summary>Gets closed class or interface queries to prepare before returning the manager.</summary>
+    public IReadOnlyList<Type> PrecomputedContracts { get; init; } = Array.Empty<Type>();
+}
