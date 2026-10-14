@@ -22,6 +22,10 @@ is development evidence, not a release claim; remaining checks are explicit belo
 - Exact-package consumer and boundary checks: [package delivery](evidence/package-delivery/README.md).
 - Runnable console/Web examples, real scoped HTTP consumers and broken deployments:
   [host integration](evidence/host-integration/README.md).
+- Exact-package reference/rename/clean/design-time lifecycle:
+  [package lifecycle](evidence/package-lifecycle/README.md).
+- Explicit culture and reversed-valid-inventory query comparisons:
+  [query ordering](evidence/query-ordering/README.md).
 - Compatibility: `implementations/csharp/eng/check-type-manager-compatibility.ps1`
   and `implementations/csharp/verification/contracts/type-manager/v1-development/`.
 
@@ -37,11 +41,11 @@ not be merged into an implied exact-artifact release result.
 | A01 Initially unused library | Runnable console/Web examples in source and exact-package modes find both direct and inherited/nonpublic implementations in an initially unloaded library, display defining identities and reconcile newly loaded reporting. | Final release bundle replay. |
 | A02 Automatic inventory | Source lifecycle and matrix include project/transitive assets; explicit inclusion and duplicate/conflict cases execute. Actual Core package SDK integration discovers project/transitive and RID-selected package assets. | Final consolidated release bundle. |
 | A03 Build/publish selection | Console and Web SDK matrices exercise build and CLI folder publish with explicit `-o`, including native/resource/reference/RID selection on both OSs. Runnable console/Web DI examples also pass Debug/Release, publish and no-build publication in source and package modes. | Consolidate the complete matrix against the final exact helper/package; qualify PublishUrl copying separately. |
-| A04 Lifecycle | Source lifecycle covers reference removal/readdition, unchanged manifest, rename, clean/rebuild and publish without build. Package checks cover forced manifest regeneration, unchanged incremental output, first parallel restore/build, parallel no-restore and forced offline locked restore. | Packaged reference-change/rename/clean cases and final consolidated lifecycle bundle. Concurrent different-RID operations against one intermediate directory remain unsupported. |
+| A04 Lifecycle | Source and exact-package lifecycle cover reference removal/readdition, unchanged manifests, rename, clean/rebuild and publish without build. Package removal is tested with stale DLLs/satellites present during generation. Separate design-time controls, parallel builds and forced offline locked restore pass on both OSs. | Final consolidated release lifecycle bundle. Concurrent different-RID operations against one intermediate directory remain unsupported. |
 | A05 Invalid inventory | Manifest tests reject missing, malformed, duplicate-key, host-mismatch, invalid UTF-8 and unsupported-schema inputs with original failure context. | Exact candidate/release bundle replay. |
 | A06 Unsupported inputs/profiles | Input/path tests, runtime children for dynamic/foreign-context/reference/corrupt selections, and inventory unsupported-profile checks. | Consolidated supported-profile matrix for final delivery. |
 | A07 Deduplication/conflicts | Manifest deduplication and path-case tests; explicit duplicate/conflict lifecycle; file, loaded and runtime-binding identity child cases. Two manifest version selections are rejected in both orders before either is loaded. | Final traceable release bundle. |
-| A08 Matching | `MatchingIncludesInheritedPrivateClassesAndClrVarianceButExcludesOpenAndAbstractTypes` tests inherited interface/base and self matching; ordinary host tests inherited discovery. | Final artifact replay. |
+| A08 Matching | `MatchingIncludesInheritedPrivateClassesAndClrVarianceButExcludesOpenAndAbstractTypes` tests inherited interface/base and self matching. The new ordering cases compare prepared/lazy results under en-US/tr-TR/sv-SE and reversed valid inventories, with independent ordinal expectations. | Final artifact replay. |
 | A09 Candidate filters | Catalog tests retain all definition kinds and select concrete closed classes without public/default-constructor requirements. | Final artifact replay. |
 | A10 No activation | `FullCatalogKeepsAllDefinedKindsWithoutActivatingApplicationCode` asserts zero constructor, attribute and initializer counters; architecture inspects forbidden activation calls. | Explicitly retain runtime-controlled module-initializer distinction in final documentation. |
 | A11 Identity | `forwarding-and-collisions` child and exact lookup tests distinguish actual runtime Types from different assemblies; version-conflict children verify version diagnostics. | Final artifact replay. |

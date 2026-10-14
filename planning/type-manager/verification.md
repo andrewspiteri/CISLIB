@@ -1,5 +1,10 @@
 # First Type Manager slice: verification
 
+Latest additions, 14 October 2026: [package lifecycle](evidence/package-lifecycle/README.md)
+passes 57 checks per OS against the unchanged development package; [query ordering](evidence/query-ordering/README.md)
+passes 80 focused native cases per OS against its separately identified frozen
+Core candidate. Earlier sections below remain dated historical checkpoints.
+
 Executed on Windows x64, 13 October 2026, using .NET SDK 10.0.401 and runtime
 10.0.12. This is an implementation-start checkpoint, not a completed Type Manager
 milestone or release qualification.

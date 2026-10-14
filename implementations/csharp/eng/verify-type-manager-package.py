@@ -39,11 +39,16 @@ def main():
               'verifierSha256': digest(__file__), 'results': []}
     report_path = root / 'results.json'
     report_path.write_text(json.dumps(report, indent=2), encoding='utf-8')
-    environment = dict(os.environ, NUGET_PACKAGES=str(root / 'packages'),
+    allowed_environment = {'PATH', 'SYSTEMROOT', 'WINDIR', 'COMSPEC', 'TEMP', 'TMP', 'TMPDIR',
+                           'HOME', 'USERPROFILE', 'APPDATA', 'LOCALAPPDATA', 'PROGRAMFILES',
+                           'PROGRAMFILES(X86)', 'PROGRAMW6432', 'DOTNET_ROOT', 'DOTNET_ROOT_X64',
+                           'NUMBER_OF_PROCESSORS', 'PROCESSOR_ARCHITECTURE'}
+    environment = {key: value for key, value in os.environ.items() if key.upper() in allowed_environment}
+    environment.update(NUGET_PACKAGES=str(root / 'packages'),
                        NUGET_HTTP_CACHE_PATH=str(root / 'http-cache'), DOTNET_CLI_HOME=str(root / 'dotnet-home'),
                        DOTNET_CLI_TELEMETRY_OPTOUT='1', MSBUILDDISABLENODEREUSE='1',
                        DOTNET_GENERATE_ASPNET_CERTIFICATE='false', DOTNET_ADD_GLOBAL_TOOLS_TO_PATH='false',
-                       DOTNET_CLI_WORKLOAD_UPDATE_NOTIFY_DISABLE='true')
+                       DOTNET_CLI_WORKLOAD_UPDATE_NOTIFY_DISABLE='true', DOTNET_NOLOGO='1')
 
     def write(relative, content):
         path = root / relative
@@ -52,7 +57,7 @@ def main():
 
     def run(name, *arguments, expected_error=None):
         result = subprocess.run([args.dotnet, *arguments], cwd=root, env=environment,
-                                text=True, capture_output=True)
+                                text=True, encoding='utf-8', errors='replace', capture_output=True, timeout=240)
         log = result.stdout + result.stderr
         write('logs/' + name + '.log', log)
         if expected_error:
@@ -77,27 +82,40 @@ def main():
     report.update(packageVersion=version, coreSha256=core_hash, helperSha256=helper_hash,
                   ridPackageSha256=digest(args.rid_package))
     shutil.copyfile(language / 'global.json', root / 'global.json')
+    write('Directory.Build.targets', '<Project />')
+    write('Directory.Packages.props', '<Project />')
+    write('Directory.Solution.props', '<Project />')
+    write('Directory.Solution.targets', '<Project />')
+    write('Directory.Build.rsp', '')
     write('Directory.Build.props', '<Project><PropertyGroup><TargetFramework>net10.0</TargetFramework><ImplicitUsings>enable</ImplicitUsings><Nullable>enable</Nullable><RestorePackagesWithLockFile>true</RestorePackagesWithLockFile></PropertyGroup></Project>')
     write('BeforeExisting.targets', '<Project><PropertyGroup><ExistingHookSeen>true</ExistingHookSeen></PropertyGroup></Project>')
     props_path = root / 'Directory.Build.props'
     props = ET.parse(props_path).getroot()
     ET.SubElement(ET.SubElement(props, 'PropertyGroup'), 'BeforeMicrosoftNETSdkTargets').text = str(root / 'BeforeExisting.targets')
+    ET.SubElement(ET.SubElement(props, 'PropertyGroup'), 'RestoreConfigFile').text = str(root / 'NuGet.Config')
     props_path.write_bytes(ET.tostring(props, encoding='utf-8'))
+    report['fixtureInputs'] = {}
     for fixture in ['Contracts', 'Transitive', 'Unused']:
         for path in (language / 'tests/fixtures/TypeManager' / fixture).iterdir():
             if path.is_file() and path.suffix in ['.cs', '.csproj', '.resx']:
                 write('fixtures/' + fixture + '/' + path.name, path.read_text(encoding='utf-8'))
+                report['fixtureInputs'][fixture + '/' + path.name] = digest(path)
     unused = root / 'fixtures/Unused/Unused.csproj'
     unused.write_text(unused.read_text(encoding='utf-8').replace('</Project>', f'<ItemGroup><PackageReference Include="CIS.Core" Version="[{version}]" /></ItemGroup></Project>'), encoding='utf-8')
     feed = root / 'feed'
     feed.mkdir()
     shutil.copyfile(args.package, feed / ('CIS.Core.' + version + '.nupkg'))
     shutil.copyfile(args.rid_package, feed / 'CIS.TypeManager.RidFixture.1.0.0.nupkg')
-    for name in ['microsoft.extensions.logging.abstractions', 'microsoft.extensions.dependencyinjection.abstractions']:
-        source = args.dependency_cache / name / '10.0.12' / (name + '.10.0.12.nupkg')
+    policy = language / 'eng/runtime-dependencies.json'
+    report['runtimeDependencyPolicySha256'] = digest(policy)
+    report['dependencyPackages'] = {}
+    for dependency in json.loads(policy.read_text(encoding='utf-8-sig'))['packages']:
+        name, dependency_version = dependency['id'].lower(), dependency['version']
+        source = args.dependency_cache / name / dependency_version / (name + '.' + dependency_version + '.nupkg')
         shutil.copyfile(source, feed / source.name)
+        report['dependencyPackages'][source.name] = digest(source)
     write('NuGet.Config', '<configuration><packageSources><clear/><add key="local" value=' +
-          xml.quoteattr(str(feed)) + '/></packageSources></configuration>')
+          xml.quoteattr(str(feed)) + '/></packageSources><fallbackPackageFolders><clear/></fallbackPackageFolders><auditSources><clear/></auditSources></configuration>')
 
     program = '''using CIS.TypeManagement;
 using CIS.TypeManagement.Fixtures.Contracts;
@@ -108,14 +126,20 @@ if (AppDomain.CurrentDomain.GetAssemblies().Any(a => a.GetName().Name == "CIS.Ty
 }
 var manager = await TypeManager.CreateAsync(new TypeManagerOptions(typeof(Program).Assembly)
     { PrecomputedContracts = [typeof(IDiscoveryMarker)] });
-var implementation = manager.GetImplementations<IDiscoveryMarker>().Single();
-if (implementation.FullName != "CIS.TypeManagement.Fixtures.Unused.DiscoveredSettings")
+var withoutUnused = args.Contains("--without-unused");
+var implementation = manager.GetImplementations<IDiscoveryMarker>().SingleOrDefault();
+if (implementation?.FullName != (withoutUnused ? null : "CIS.TypeManagement.Fixtures.Unused.DiscoveredSettings"))
 {
     throw new InvalidOperationException("Incorrect discovered implementation.");
 }
+if (withoutUnused && AppDomain.CurrentDomain.GetAssemblies().Any(a => a.GetName().Name is
+    "CIS.TypeManager.Fixture.Unused" or "CIS.TypeManager.Fixture.Transitive"))
+{
+    throw new InvalidOperationException("A removed dependency was loaded from stale output.");
+}
 var variant = manager.Types.Single(t => t.FullName == "InventoryFixture.Variant");
 Console.WriteLine(JsonSerializer.Serialize(new { selected = manager.Assemblies.Count,
-    implementation = implementation.FullName, variant = (string)variant.GetProperty("Value")!.GetValue(null)! }));
+    implementation = implementation?.FullName, variant = (string)variant.GetProperty("Value")!.GetValue(null)! }));
 '''
 
     def host(name, sdk='Microsoft.NET.Sdk', central=False, ordinary=False, duplicate=False):
@@ -126,6 +150,7 @@ Console.WriteLine(JsonSerializer.Serialize(new { selected = manager.Assemblies.C
   {sdk_reference}
   <PropertyGroup><OutputType>Exe</OutputType><AssemblyName>TypeManagerPackageHost</AssemblyName><UseAppHost>false</UseAppHost><CisTypeManagerEnabled>true</CisTypeManagerEnabled></PropertyGroup>
   <ItemGroup><ProjectReference Include="../fixtures/Unused/Unused.csproj" />
+    <ProjectReference Include="../fixtures/Contracts/Contracts.csproj" />
     <PackageReference Include="CIS.TypeManager.RidFixture"{fixture_version} />{core_reference}
   </ItemGroup>
 </Project>''')
@@ -137,13 +162,13 @@ Console.WriteLine(JsonSerializer.Serialize(new { selected = manager.Assemblies.C
         return run(name + '-property-' + key, 'msbuild', name + '/Host.csproj', '-p:Configuration=Release',
                    '-getProperty:' + key, '-nologo', *extra)
 
-    def validate(name, mode, directory, rid, execute=True):
-        manifest_path = directory / 'TypeManagerPackageHost.types.json'
+    def validate(name, mode, directory, rid, execute=True, without_unused=False, host_name='TypeManagerPackageHost', record=True):
+        manifest_path = directory / (host_name + '.types.json')
         if not manifest_path.is_file():
             raise RuntimeError(name + '/' + mode + ' did not produce a current manifest')
         manifest = json.loads(manifest_path.read_text(encoding='utf-8-sig'))
         entries = {item['assemblyName'].split(',')[0]: item for item in manifest['assemblies']}
-        expected = {'TypeManagerPackageHost', 'CIS.Core', 'Microsoft.Extensions.Logging.Abstractions',
+        expected = {host_name, 'CIS.Core', 'Microsoft.Extensions.Logging.Abstractions',
                     'Microsoft.Extensions.DependencyInjection.Abstractions', 'CIS.TypeManager.Fixture.Contracts',
                     'CIS.TypeManager.Fixture.Transitive', 'CIS.TypeManager.Fixture.Unused', 'CIS.TypeManager.RidAsset'}
         # ASP.NET supplies these from its shared framework, outside the deployed
@@ -151,9 +176,11 @@ Console.WriteLine(JsonSerializer.Serialize(new { selected = manager.Assemblies.C
         if name == 'web':
             expected -= {'Microsoft.Extensions.Logging.Abstractions',
                          'Microsoft.Extensions.DependencyInjection.Abstractions'}
+        if without_unused:
+            expected -= {'CIS.TypeManager.Fixture.Unused', 'CIS.TypeManager.Fixture.Transitive'}
         if set(entries) != expected or len(manifest['assemblies']) != len(expected) or manifest['schemaVersion'] != 1:
             raise RuntimeError('Incorrect package consumer inventory: ' + str(entries))
-        if manifest['hostAssembly'] != entries['TypeManagerPackageHost']['assemblyName']:
+        if manifest['hostAssembly'] != entries[host_name]['assemblyName']:
             raise RuntimeError('Incorrect manifest host identity')
         if digest(directory / 'CIS.Core.dll') != core_hash:
             raise RuntimeError('Consumer is not using the exact packed Core DLL')
@@ -163,20 +190,142 @@ Console.WriteLine(JsonSerializer.Serialize(new { selected = manager.Assemblies.C
             raise RuntimeError('Wrong RID-selected managed asset')
         if not (directory / 'cistm-native.dll').is_file():
             raise RuntimeError('Native exclusion fixture was not deployed')
-        if not (directory / 'fr/CIS.TypeManager.Fixture.Unused.resources.dll').is_file():
+        if not without_unused and not (directory / 'fr/CIS.TypeManager.Fixture.Unused.resources.dll').is_file():
             raise RuntimeError('Satellite exclusion fixture was not deployed')
-        deps = json.loads((directory / 'TypeManagerPackageHost.deps.json').read_text(encoding='utf-8'))
+        deps = json.loads((directory / (host_name + '.deps.json')).read_text(encoding='utf-8'))
         if any('CIS.TypeManager.Build' in key or 'Microsoft.Build' in key for key in deps['libraries']):
             raise RuntimeError('Build tooling leaked into runtime dependencies')
         if (directory / 'CIS.TypeManager.Build.dll').exists():
             raise RuntimeError('Build helper leaked into deployment')
         runtime = None
         if execute:
-            runtime = json.loads(run(name + '-' + mode + '-run', str(directory / 'TypeManagerPackageHost.dll')))
-            if runtime != {'selected': len(expected), 'implementation': 'CIS.TypeManagement.Fixtures.Unused.DiscoveredSettings', 'variant': rid}:
+            extra = ['--without-unused'] if without_unused else []
+            runtime = json.loads(run(name + '-' + mode + '-run', str(directory / (host_name + '.dll')), *extra))
+            implementation = None if without_unused else 'CIS.TypeManagement.Fixtures.Unused.DiscoveredSettings'
+            if runtime != {'selected': len(expected), 'implementation': implementation, 'variant': rid}:
                 raise RuntimeError('Unexpected prepared runtime catalog')
         shutil.copyfile(manifest_path, root / (name + '-' + mode + '.types.json'))
-        passed(name + '-' + mode, selected=sorted(entries), rid=rid, runtime=runtime)
+        assets = json.loads((root / name / 'obj/project.assets.json').read_text(encoding='utf-8-sig'))
+        if {Path(path).resolve() for path in assets['packageFolders']} != {root / 'packages'} or \
+                {Path(path).resolve() for path in assets['project']['restore']['sources']} != {feed}:
+            raise RuntimeError('Consumer restore escaped its private package cache or feed')
+        if record:
+            passed(name + '-' + mode, selected=sorted(entries), rid=rid, runtime=runtime,
+                   manifestSha256=digest(manifest_path))
+
+    def lifecycle(name):
+        project = root / name / 'Host.csproj'
+        original = project.read_bytes()
+        directory = Path(property_value(name, 'TargetDir'))
+        manifest = directory / 'TypeManagerPackageHost.types.json'
+        initial_manifest = manifest.read_bytes()
+        stale = {filename: (directory / filename).read_bytes() for filename in
+                 ['CIS.TypeManager.Fixture.Unused.dll', 'CIS.TypeManager.Fixture.Transitive.dll',
+                  'fr/CIS.TypeManager.Fixture.Unused.resources.dll']}
+        parsed = ET.fromstring(original)
+        removed = 0
+        for group in parsed.findall('ItemGroup'):
+            for reference in list(group):
+                if reference.tag == 'ProjectReference' and reference.get('Include') == '../fixtures/Unused/Unused.csproj':
+                    group.remove(reference)
+                    removed += 1
+        if removed != 1:
+            raise RuntimeError('The lifecycle control must remove exactly one project reference')
+        # A test-only hook guarantees stale files exist immediately before the
+        # real generator, regardless of SDK incremental-clean ordering.
+        inject = ET.SubElement(parsed, 'Target', Name='PlantLifecycleStaleAssets',
+                               BeforeTargets='CisWriteBuildTypeInventory;CisWritePublishTypeInventory',
+                               Condition="'$(LifecycleStaleAssets)' == 'true'")
+        for filename, content in stale.items():
+            seed = root / 'stale-seeds' / name / filename
+            seed.parent.mkdir(parents=True, exist_ok=True)
+            seed.write_bytes(content)
+            destination = '$(LifecycleDestination)/' + filename
+            ET.SubElement(inject, 'Copy', SourceFiles=str(seed), DestinationFiles=destination)
+            ET.SubElement(inject, 'Error', Condition="!Exists('" + destination + "')", Text='Stale fixture was not planted')
+        ET.SubElement(inject, 'Message', Importance='High', Text='LIFECYCLE_STALE_FILES_PRESENT')
+        try:
+            project.write_bytes(ET.tostring(parsed, encoding='utf-8'))
+            output = run(name + '-remove-reference', 'build', str(project), '-c', 'Release', '-m:1', '--nologo',
+                         '-p:LifecycleStaleAssets=true', '-p:LifecycleDestination=' + str(directory))
+            if 'LIFECYCLE_STALE_FILES_PRESENT' not in output:
+                raise RuntimeError('The build stale-output generation probe did not execute')
+            # Stale DLLs must not regain membership through a directory scan.
+            for filename, content in stale.items():
+                (directory / filename).parent.mkdir(parents=True, exist_ok=True)
+                (directory / filename).write_bytes(content)
+            validate(name, 'removed-reference-build', directory, native_rid, without_unused=True)
+            current_manifest = manifest.read_bytes()
+            manifest.write_bytes(initial_manifest)
+            try:
+                try:
+                    validate(name, 'stale-manifest-negative-control', directory, native_rid, without_unused=True, record=False)
+                except RuntimeError as error:
+                    if not str(error).startswith('Incorrect package consumer inventory:'):
+                        raise
+                else:
+                    raise RuntimeError('The selection assertion accepted the old manifest after reference removal')
+            finally:
+                manifest.write_bytes(current_manifest)
+            passed(name + '-selection-assertion-rejects-stale-manifest')
+            published = (root / name / property_value(name, 'PublishDir').replace('\\', '/')).resolve()
+            output = run(name + '-removed-reference-publish', 'publish', str(project), '-c', 'Release', '--no-build', '--no-restore', '-m:1', '--nologo',
+                         '-p:LifecycleStaleAssets=true', '-p:LifecycleDestination=' + str(published))
+            if 'LIFECYCLE_STALE_FILES_PRESENT' not in output:
+                raise RuntimeError('The publish stale-output generation probe did not execute')
+            for filename, content in stale.items():
+                (published / filename).parent.mkdir(parents=True, exist_ok=True)
+                (published / filename).write_bytes(content)
+            validate(name, 'removed-reference-publish', published, native_rid, without_unused=True)
+            project.write_bytes(original)
+            run(name + '-readd-reference', 'build', str(project), '-c', 'Release', '-m:1', '--nologo')
+            validate(name, 'readded-reference-build', directory, native_rid)
+
+            renamed = 'TypeManagerRenamedHost'
+            parsed = ET.fromstring(original)
+            parsed.find('PropertyGroup/AssemblyName').text = renamed
+            project.write_bytes(ET.tostring(parsed, encoding='utf-8'))
+            run(name + '-rename-host', 'build', str(project), '-c', 'Release', '-m:1', '--nologo')
+            validate(name, 'renamed-host-build', directory, native_rid, host_name=renamed)
+            run(name + '-renamed-host-publish', 'publish', str(project), '-c', 'Release', '--no-build', '--no-restore', '-m:1', '--nologo')
+            validate(name, 'renamed-host-publish', published, native_rid, host_name=renamed)
+            renamed_manifest = directory / (renamed + '.types.json')
+            writes = list((root / name / 'obj').rglob('*.FileListAbsolute.txt'))
+            if not any(str(renamed_manifest) in path.read_text(encoding='utf-8-sig') for path in writes):
+                raise RuntimeError('The generated manifest is not registered for clean')
+            run(name + '-clean', 'clean', str(project), '-c', 'Release', '-m:1', '--nologo')
+            if renamed_manifest.exists() or manifest.exists():
+                raise RuntimeError('Clean left a generated build manifest behind')
+            passed(name + '-clean-removes-registered-manifest',
+                   obsoletePublishedManifestRetained=(published / manifest.name).exists())
+        finally:
+            project.write_bytes(original)
+        if manifest.exists():
+            raise RuntimeError('Rebuild must start without its output manifest')
+        run(name + '-rebuild-after-clean', 'build', str(project), '-c', 'Release', '-m:1', '--nologo')
+        validate(name, 'rebuild-after-clean', directory, native_rid)
+
+        helper = root / 'packages/cis.core' / version.lower() / 'tools/net10.0/CIS.TypeManager.Build.dll'
+        helper_bytes = helper.read_bytes()
+        before = (digest(manifest), manifest.stat().st_mtime_ns)
+        helper.unlink()
+        try:
+            run(name + '-design-time', 'msbuild', str(project),
+                '-t:Compile', '-p:Configuration=Release', '-p:DesignTimeBuild=true',
+                '-p:SkipCompilerExecution=true', '-p:ProvideCommandLineArgs=true', '-p:BuildingProject=false', '-nologo')
+            if before != (digest(manifest), manifest.stat().st_mtime_ns):
+                raise RuntimeError('Design-time compile changed the manifest')
+            passed(name + '-design-time-evaluation-and-compile-without-helper')
+            for target in ['CisWriteBuildTypeInventory', 'CisWritePublishTypeInventory']:
+                run(name + '-design-time-' + target, 'msbuild', str(project), '-t:' + target,
+                    '-p:Configuration=Release', '-p:DesignTimeBuild=true', '-nologo')
+                if before != (digest(manifest), manifest.stat().st_mtime_ns):
+                    raise RuntimeError('Explicit design-time inventory target changed the manifest')
+                run(name + '-missing-helper-control-' + target, 'msbuild', str(project), '-t:' + target,
+                    '-p:Configuration=Release', '-nologo', expected_error='CISTM005: The Type Manager build helper is missing')
+                passed(name + '-design-time-skip-and-missing-helper-control-' + target)
+        finally:
+            helper.write_bytes(helper_bytes)
 
     try:
         report['sdk'] = run('sdk-version', '--version')
@@ -185,7 +334,7 @@ Console.WriteLine(JsonSerializer.Serialize(new { selected = manager.Assemblies.C
         host('console')
         host('web', 'Microsoft.NET.Sdk.Web')
         write('Consumers.slnx', '<Solution><Folder Name="/console/"><Project Path="console/Host.csproj" /></Folder><Folder Name="/web/"><Project Path="web/Host.csproj" /></Folder><Folder Name="/fixtures/"><Project Path="fixtures/Contracts/Contracts.csproj" /><Project Path="fixtures/Transitive/Transitive.csproj" /><Project Path="fixtures/Unused/Unused.csproj" /></Folder></Solution>')
-        run('parallel-clean-restore-build', 'build', 'Consumers.slnx', '-c', 'Release', '-p:CisTypeManagerEnabled=true', '-m:2', '--nologo')
+        run('parallel-clean-restore-build', 'build', 'Consumers.slnx', '-c', 'Release', '-m:2', '--nologo')
         for name in ['console', 'web']:
             if property_value(name, 'NETCoreSdkRuntimeIdentifier') != native_rid:
                 raise RuntimeError('SDK native RID differs from the qualification lane')
@@ -245,6 +394,9 @@ Console.WriteLine(JsonSerializer.Serialize(new { selected = manager.Assemblies.C
         finally:
             offline_feed.rename(feed)
         passed('offline-no-restore-and-locked-restore')
+
+        for name in ['console', 'web']:
+            lifecycle(name)
 
         host('central', central=True)
         run('central-build', 'build', 'central/Host.csproj', '-c', 'Release', '-m:1', '--nologo')

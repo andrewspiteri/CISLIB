@@ -51,7 +51,7 @@ silently marked complete by a prototype or an uncommitted test result.
 | TM-003 | Real inventory and loader fixtures present; fresh-process ordinary unused discovery and failures exercised. |
 | TM-004–TM-005 | Source SDK selection and manifest generation implemented; native/RID matrices pass on Windows/Linux. Actual Core package delivery is implemented; its separate checkpoint is recorded below. |
 | TM-006 | Strict reader and captured inputs promoted into Core; focused unit and process checks pass. |
-| TM-007 | Reviewed Windows source lifecycle has 32 passing checks, including fresh default-directory publish and disabled package-copy rejection. Package setup has a separate consumer matrix. Web SDK evidence covers CLI publication, not Visual Studio/PublishUrl copying. Complete supported-profile qualification remains open. |
+| TM-007 | Reviewed Windows source lifecycle has 32 passing checks. The exact-package verifier now passes 57 checks per OS, including reference removal/readdition with stale assets, rename, clean/rebuild and independent design-time controls for console/Web SDK hosts. CLI folder publication is covered; Visual Studio/PublishUrl copying is not claimed. Final release consolidation remains open. |
 | TM-008 | M1 gate remains open pending complete supported-profile inventory qualification and setup reconciliation; reviewed source-mode checkpoint evidence is retained. |
 | TM-009–TM-010 | Selected maps/default-context loading implemented; identity/reuse/failure cases pass on both platforms. |
 | TM-011 | Complete definition/relationship enumeration implemented; forwarding/nonpublic/open-definition and side-effect tests pass. Test-only source instrumentation records per-selection counts and rejects double/query enumeration mutants. |
@@ -59,7 +59,7 @@ silently marked complete by a prototype or an uncommitted test result.
 | TM-013 | Pre-work, real mid-load and post-success cancellation cases pass. A separate source-instrumented probe verifies deterministic final-publication cancellation and its negative control. |
 | TM-014 | Expanded loader/publication acceptance is executed, including both conflict orders and a deterministic final-publication source probe. Final milestone reconciliation remains open; instrumentation is separate from the unmodified candidate. |
 | TM-015–TM-019 | Protected identity maps, assignability matcher, exact lookup, cache/concurrency and precomputed queries implemented with focused tests. |
-| TM-020 | Generic equivalence, concurrent awaiters, immutable membership after later loading, and protected collection replacement assertions pass. Enumeration counters and three targeted mutants pass in a separate test-only source build. Final milestone review remains open. |
+| TM-020 | Generic equivalence, concurrent awaiters, immutable membership and protected collection replacement pass. Three culture/reversed-valid-inventory cases now exercise prepared/lazy results, explicit global/per-assembly ordering, identity and concurrent cached reads; the expanded 80-case native suite passes on both OSs. Enumeration counters and three targeted mutants have separate source-instrumented evidence. Final milestone review remains open. |
 | TM-021 | Preparation report implemented and reconciled in tests. Runnable hosts display counts, elapsed time and identities; broken-deployment examples preserve the original error and selected file path before startup. |
 | TM-022 | Minimal plain-.NET console example builds/runs from documented commands, discovers the initially unused inherited/nonpublic candidate, and reaches its application boundary only after preparation. |
 | TM-023–TM-024 | Separate Web example constructs its builder/container after preparation, registers the exact manager instance and proves reuse across root, scopes and actual HTTP requests. Configuration boundary documented without adding a public Configuration contract or object lifetime implementation. |
@@ -71,6 +71,20 @@ silently marked complete by a prototype or an uncommitted test result.
 | TM-033–TM-036 | Final documentation, exact-artifact verification bundle, clean package consumer smoke tests and handoff remain. |
 
 ## Executed evidence and limits
+
+The [package lifecycle checkpoint](evidence/package-lifecycle/README.md) adds 22
+checks per OS to the existing 35 package cases using the unchanged development
+package. [Query ordering](evidence/query-ordering/README.md) adds three runtime
+cases against the separate frozen `d70fcf…` Core candidate; its 80 native cases
+pass on both OSs. Neither result silently replaces the final release bundle.
+
+The logging thread subsequently corrected test-host patch selection and retained
+a passing combined Developer run `61dd60f6ea324dd1aecfa57297057b22`: 3,256 unit,
+1,276 integration and 463 architecture results, no failures/skips. Its local
+evidence is `.artifacts/csharp/tasks/wp05-s10-t01/runtime-drift/corrected-developer/`.
+That run predates the three new ordering cases. The earlier failed combined run
+remains retained unchanged under host integration; no production Type Manager
+fix was needed for that failure.
 
 The [host integration checkpoint](evidence/host-integration/README.md) records the
 console/Web examples against the unchanged package SHA-256
