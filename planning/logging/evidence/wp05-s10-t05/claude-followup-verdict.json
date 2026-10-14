@@ -1,0 +1,33 @@
+{
+  "verdict": "PASS",
+  "scope": "Read-only review of the supplied T05 follow-up text only. No tools, execution, edits or persistence were used. The unit-test source (StopLifecycleTests.cs), the DiscoveryHost Program.cs dispatch, the test .csproj changes, implementation-status.md, verify-flush-results.py, FlushStressSupport, Clock and OutputQueues/CoreLogRuntime internals were not supplied, so they are not covered by this verdict.",
+  "requiredFindings": [],
+  "requiredResolution": {
+    "R1": "Resolved. HeldFile captures the output-owned token passed to the first in-flight write (ioToken, published via the Entered TCS happens-before). KernelAsync records CancellationRequested and the callback count immediately after the 64 caller waits observe OperationCanceledException (synchronous after caller.Cancel(), so a linked caller token would already have fired) and again at +9 ms. It requires false/0 in-process. The later writer.Cancellations == 1 shows the token is cancellable and that the property and callback observations are live, not vacuous on CancellationToken.None. Validate and the Python check both require two-element false/0 arrays. The output-token and output-cancel controls each reject with their exact reasons in the cancelled-joiners check order. The control count recomputes to 32 edits + 3 console + 5 restart = 40.",
+    "R2": "Resolved. The path 'logs \\u03a9/active.log' is ASCII-escaped U+03A9 and matches the C# PathFor literal 'logs \u03a9'."
+  },
+  "optionalFindings": [
+    {
+      "id": "N1",
+      "area": "held-flush token observation",
+      "detail": "In held-flush, the held operation is FlushAsync, which discards its token (`_ = token`). The recorded token state and callback come from the first write's token. If the runtime passes the same output-owned token to write and flush, the evidence holds. Otherwise the shutdown-qualification.md sentence about 'the actual output-owned CancellationToken' overstates the held-flush case. Either capture the flush token as well (state and identity/equality with ioToken), or narrow the doc to the in-flight write token. The caller-cancellation proof itself lives in cancelled-joiners, which is a held-write path, so this does not affect R1."
+    },
+    {
+      "id": "N2",
+      "area": "positive post-deadline token state",
+      "detail": "Only the callback count is recorded after the deadline. Recording ioToken.IsCancellationRequested == true at the deadline would pair the false/false pre-deadline observations with a positive observation of the same property."
+    },
+    {
+      "id": "N3",
+      "area": "control coverage",
+      "detail": "'producer source accounting' (producerStopped + producerAccepted == 512, producerAccepted == receipts - 1) and 'capture race closure' have no exact-reason corruption control. Python also does not type-check producerStopped/producerAccepted as int. Not required, because the 40 controls are not claimed as exhaustive."
+    }
+  ],
+  "carriedForward": [
+    "The corrected-source full Developer run and the native Windows/Ubuntu qualification are still being rerun. The 128-child/308-control and 5089-test/14-stage results are historical pre-R1 evidence and are not completion evidence for this source.",
+    "The task receipt must record the actual corrected execution, source/assembly hashes and this review status. The planned denominators (4 unit cases, 11 process cases, 14 native children per platform, 40 controls) are not a passing report.",
+    "O7: the crash checkpoint reader does not drain stderr while waiting for the checkpoint line. This is accepted only for the current exact fixture, which is silent before its checkpoint and bounded by parent timeouts. It is not general arbitrary-child stderr handling.",
+    "O5 limits stand. The kernel and crash modes bypass FileOutputWriter rendering, size and rotation, and JSONL startup inspection. Public successful consumers do not inject OS failures. There is no forced native OS blocking, crash-durability or exactly-once claim.",
+    "Scope is task qualification only. There are no runtime, public API or dependency changes. The provider, examples, guidance/skills, six-family release verification and publication remain open."
+  ]
+}

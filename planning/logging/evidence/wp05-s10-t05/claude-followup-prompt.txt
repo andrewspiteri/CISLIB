@@ -1,0 +1,772 @@
+Read-only T05 follow-up; no tools/MCP/execution/edits/persistence. Ongoing human authorization. Required R1 fixed with actual output CancellationToken.IsCancellationRequested plus callback counts observed immediately after caller cancellations and again at9ms; both false/zero for all kernel modes. Two separate exact-reason controls reject corrupted token state/callback count (40total controls). R2 native path now explicit ASCII Unicode escape, actual source UTF-8. Before R1, the corrected-path frozen host passed128Windows/Ubuntu children with308controls, and full Developer5089tests/14stages passed; those are historical, not corrected-source completion. Corrected full/native qualification is being rerun. O1 reports producerAccepted/producerStopped with accounting and describes concurrent start without guaranteed interleaving; held capture-vs-closure remains deterministic. O2 cleanup guarded by WaitAsync20s and preserves a primary assertion/error. O3 integration now independently reads actual reopened active/damaged bytes and membership. O4 tests/Directory.Build.targets and generated runtimeconfig pin10.0.12/Disable, confirmed; pin/toolchain files provided. O5 explicitly states owner-stream kernel bypasses FileOutputWriter rendering/size/rotation, and public successful physical consumers do not inject OS failures. O6 denominators derived from executed case/restart records. O7 remaining checkpoint-reader failure hygiene is not claimed as comprehensive arbitrary-child stderr handling; current exact fixture is silent before its checkpoint and bounded by parent timeouts. Scope task qualification, no runtime/API/dependency changes or durability/forced-native-blocking claim. Return JSON verdict PASS or CHANGES_REQUIRED, requiredFindings, optionalFindings, carriedForward.
+
+--- FILE implementations/csharp/tests/fixtures/DiscoveryHost/StopLifecycleFixture.cs ---
+using System.Collections.Concurrent;
+using System.Text.Json.Nodes;
+using CIS.Logging;
+using CIS.Logging.Runtime;
+using static CIS.Tests.DiscoveryFixture.FlushStressSupport;
+
+namespace CIS.Tests.DiscoveryFixture;
+
+internal static class StopLifecycleFixture
+{
+    internal static readonly string[] Modes = ["normal", "normal-dual", "producer-stop-race", "pre-cancelled", "cancelled-joiners", "held-write", "held-flush", "late-failure", "kill-queued", "kill-partial", "kill-after-stop"];
+    internal static readonly string[] KernelModes = ["cancelled-joiners", "held-write", "held-flush", "late-failure"];
+    internal static string PathFor(string root) => Path.Combine(root, "logs Ω", "active.log");
+    internal static int Run(string mode, string root)
+    {
+        if (mode.StartsWith("kill-", StringComparison.Ordinal)) { CrashAsync(mode, root).GetAwaiter().GetResult(); return 1; }
+        JsonObject report = mode == "restart" ? RestartAsync(root).GetAwaiter().GetResult()
+            : KernelModes.Contains(mode, StringComparer.Ordinal) ? KernelAsync(mode, root).GetAwaiter().GetResult() : PublicAsync(mode, root).GetAwaiter().GetResult();
+        if (mode == "normal-dual") { Console.Write("application-after-stop\n"); Console.Out.Flush(); Console.Error.WriteLine(report.ToJsonString()); }
+        else { Console.WriteLine(report.ToJsonString()); }
+        return 0;
+    }
+    private static LoggingOptions Options(string root) => new()
+    {
+        ConsoleLevel = CoreLogLevel.None,
+        FileLevel = CoreLogLevel.Information,
+        FilePath = PathFor(root),
+        FileFormat = LogOutputFormat.JsonLines,
+        QueueCapacity = 2048,
+        FileMaxBytes = 1048576,
+        MaxEntryBytes = 16384,
+        ShutdownTimeoutMilliseconds = 5000
+    };
+    private static CoreLogRuntime PublicCreate(string root, bool dual = false)
+    {
+        LoggingOptions source = Options(root), target = EnvironmentOptions.Logging;
+        target.ConsoleFormat = LogOutputFormat.JsonLines; target.ConsoleStream = ConsoleOutputStream.StandardOutput;
+        target.ConsoleLevel = dual ? CoreLogLevel.Information : source.ConsoleLevel; target.FileLevel = source.FileLevel; target.FilePath = source.FilePath;
+        target.FileFormat = source.FileFormat; target.QueueCapacity = source.QueueCapacity; target.FileMaxBytes = source.FileMaxBytes;
+        target.MaxEntryBytes = source.MaxEntryBytes; target.ShutdownTimeoutMilliseconds = source.ShutdownTimeoutMilliseconds;
+        return CoreLogRuntime.Create();
+    }
+    internal static byte[] ReadLive(string path)
+    {
+        using var input = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite | FileShare.Delete);
+        using var bytes = new MemoryStream(); input.CopyTo(bytes); return bytes.ToArray();
+    }
+    internal static bool LeaseAvailable(string path)
+    {
+        try { using var lease = new FileStream(path + ".cis.lock", FileMode.Open, FileAccess.ReadWrite, FileShare.None); return true; }
+        catch (IOException) { return false; }
+    }
+    private static async Task<byte[]> SeedAsync(string root)
+    {
+        var runtime = CoreLogRuntime.CreateConfiguredQueued(ConsoleCompositionFixture.Metadata(), Options(root));
+        try
+        {
+            Accepted(runtime.CreateLogger("Seed").Write(CoreLogLevel.Information, Data("seed")));
+            Require((await runtime.StopAsync(CancellationToken.None).WaitAsync(Guard)).Succeeded);
+            await runtime.QueuedOutputs!.Completion.WaitAsync(Guard); Require(LeaseAvailable(PathFor(root)));
+            return ReadLive(PathFor(root));
+        }
+        finally { await runtime.DisposeAsync(); }
+    }
+    private static void CheckStopped(CoreLogRuntime runtime)
+    {
+        var logger = runtime.CreateLogger("AfterStop"); int calls = 0;
+        Require(logger.Write(CoreLogLevel.None, Data("none")).Outcome == LogWriteOutcome.Stopped);
+        Require(logger.Write(CoreLogLevel.Information, Data("later")).Outcome == LogWriteOutcome.Stopped);
+        foreach (CoreLogLevel level in new[] { CoreLogLevel.None, CoreLogLevel.Information })
+        { Require(logger.WriteLazy(level, () => { calls++; throw new InvalidOperationException("Stopped lazy factory invoked."); }).Outcome == LogWriteOutcome.Stopped); }
+        Require(calls == 0);
+    }
+    private static async Task<JsonObject> PublicAsync(string mode, string root)
+    {
+        Require(mode is "normal" or "normal-dual" or "producer-stop-race" or "pre-cancelled");
+        byte[] seed = await SeedAsync(root); var runtime = PublicCreate(root, mode == "normal-dual"); var logger = runtime.CreateLogger("PublicLifecycle");
+        var observations = new ConcurrentBag<(string Name, LogWriteResult Result)>(); var operations = new ConcurrentBag<Task<LogStopResult>>();
+        TaskCompletionSource captureEntered = Signal(), releaseCapture = Signal(); int cancelled = 0; bool capturingStopped = false; Exception? primaryFailure = null;
+        try
+        {
+            void Write(string name) => observations.Add((name, logger.Write(CoreLogLevel.Information, Data(name))));
+            if (mode == "producer-stop-race")
+            {
+                Write("initial");
+                Task<LogWriteResult> capturing = Task.Run(() => logger.WriteLazy(CoreLogLevel.Information, () =>
+                { captureEntered.TrySetResult(); Require(releaseCapture.Task.Wait(Guard)); return Data("capturing"); }));
+                await captureEntered.Task.WaitAsync(Guard);
+                var start = Signal(); TaskCompletionSource[] ready = Enumerable.Range(0, 24).Select(_ => Signal()).ToArray();
+                Task[] producers = Enumerable.Range(0, 8).Select(async p =>
+                { ready[p].TrySetResult(); await start.Task; for (int i = 0; i < 64; i++) { Write($"p{p}.{i}"); } }).ToArray();
+                Task[] stoppers = Enumerable.Range(0, 16).Select(async s =>
+                {
+                    ready[8 + s].TrySetResult(); await start.Task;
+                    Task<LogStopResult> operation = s % 2 == 0 ? runtime.StopAsync(CancellationToken.None) : (Task<LogStopResult>)runtime.DisposeAsync().AsTask();
+                    operations.Add(operation); await operation.WaitAsync(Guard);
+                }).ToArray();
+                await Task.WhenAll(ready.Select(x => x.Task)).WaitAsync(Guard); start.TrySetResult();
+                await UntilAsync(() => runtime.GetDiagnostics().AdmissionClosed); releaseCapture.TrySetResult();
+                LogWriteResult raced = await capturing.WaitAsync(Guard); capturingStopped = raced.Outcome == LogWriteOutcome.Stopped;
+                Require(capturingStopped); observations.Add(("capturing", raced));
+                await Task.WhenAll(producers.Concat(stoppers)).WaitAsync(Guard);
+            }
+            else
+            {
+                for (int i = 0; i < (mode is "normal" or "normal-dual" ? 120 : 40); i++) { Write("n" + i); }
+                if (mode == "pre-cancelled")
+                {
+                    using var caller = new CancellationTokenSource(); caller.Cancel();
+                    try { await runtime.StopAsync(caller.Token); throw new InvalidOperationException("Cancelled first waiter succeeded."); }
+                    catch (OperationCanceledException error) { Require(error.CancellationToken == caller.Token); cancelled = 1; }
+                    // No later stop/dispose can conceal a failure of cancelled initiation.
+                    Require(runtime.GetDiagnostics().AdmissionClosed && runtime.GetDiagnostics().ShutdownStartedAtUtc is not null); CheckStopped(runtime);
+                }
+            }
+            Task<LogStopResult> shared = runtime.StopAsync(CancellationToken.None); LogStopResult result = await shared.WaitAsync(Guard);
+            Require(operations.All(x => ReferenceEquals(x, shared))); string frozen = StopJoinFixture.Json(result).ToJsonString();
+            Task[] joins = Enumerable.Range(0, 64).Select(_ => runtime.DisposeAsync().AsTask()).ToArray(); Require(joins.All(x => ReferenceEquals(x, shared)));
+            await Task.WhenAll(joins).WaitAsync(Guard); CheckStopped(runtime);
+            Require(ReferenceEquals(result, runtime.GetDiagnostics().LastStopResult) && frozen == StopJoinFixture.Json(result).ToJsonString());
+            Require(LeaseAvailable(PathFor(root)) && result.Succeeded && !result.LossObserved);
+            var accepted = observations.Where(x => x.Result.Outcome == LogWriteOutcome.Accepted).OrderBy(x => x.Result.Outputs.Single(o => o.OutputName == "file").AcceptedSequence).ToArray();
+            Require(observations.All(x => x.Result.Outcome is LogWriteOutcome.Accepted or LogWriteOutcome.Stopped));
+            JsonObject report = Common(mode); report["kind"] = "public"; report["seed"] = Convert.ToBase64String(seed); report["bytes"] = Convert.ToBase64String(ReadLive(PathFor(root)));
+            report["receipts"] = new JsonArray(accepted.Select(x => (JsonNode)new JsonObject { ["ticket"] = Number(x.Result.Outputs.Single(o => o.OutputName == "file").AcceptedSequence!.Value), ["event"] = x.Name }).ToArray());
+            report["producerStopped"] = observations.Count(x => x.Name.StartsWith("p", StringComparison.Ordinal) && x.Result.Outcome == LogWriteOutcome.Stopped);
+            report["producerAccepted"] = observations.Count(x => x.Name.StartsWith("p", StringComparison.Ordinal) && x.Result.Outcome == LogWriteOutcome.Accepted);
+            report["attempts"] = observations.Count; report["stopped"] = observations.Count - accepted.Length; report["capturingStopped"] = capturingStopped;
+            report["cancelled"] = cancelled; report["racingStoppers"] = operations.Count; report["result"] = StopJoinFixture.Json(result);
+            report["sameTask"] = true; report["immutable"] = true; report["joiners"] = joins.Length; report["leaseReleased"] = true; report["stoppedChecks"] = true; return report;
+        }
+        catch (Exception error) { primaryFailure = error; throw; }
+        finally
+        {
+            releaseCapture.TrySetResult();
+            try { await runtime.DisposeAsync().AsTask().WaitAsync(Guard); } catch (Exception) when (primaryFailure is not null) { }
+        }
+    }
+    internal static async Task<JsonObject> KernelAsync(string mode, string root)
+    {
+        Require(KernelModes.Contains(mode, StringComparer.Ordinal)); byte[] seed = await SeedAsync(root);
+        bool flushing = mode == "held-flush"; var clock = new Clock(); var gate = new object();
+        var writer = new HeldFile(PathFor(root), flushing, mode == "late-failure", prefix: !flushing);
+        var options = Options(root); options.QueueCapacity = 8; options.ShutdownTimeoutMilliseconds = 10;
+        var queues = new OutputQueues(8, false, true, null, item => writer.WriteAsync(item, CancellationToken.None), gate, fileResource: writer,
+            fileFlush: () => writer.FlushAsync(CancellationToken.None), fileCancellableWrite: writer.WriteAsync, fileCancellableFlush: writer.FlushAsync);
+        var runtime = new CoreLogRuntime(ConsoleCompositionFixture.Metadata(), options, null, queues.File, clock, gate, queues);
+        Exception? primaryFailure = null;
+        try
+        {
+            var logger = runtime.CreateLogger("HeldLifecycle"); int admitted = flushing ? 3 : 6;
+            for (int i = 0; i < admitted; i++)
+            {
+                Accepted(logger.Write(CoreLogLevel.Information, Data("held." + i)));
+                if (i == 0 && !flushing) { await writer.Entered.Task.WaitAsync(Guard); }
+            }
+            Task<LogStopResult> shared = runtime.StopAsync(CancellationToken.None); await writer.Entered.Task.WaitAsync(Guard);
+            int cancelled = 0;
+            if (mode == "cancelled-joiners")
+            {
+                using var caller = new CancellationTokenSource(); Task<LogStopResult>[] waits = Enumerable.Range(0, 64).Select(_ => runtime.StopAsync(caller.Token)).ToArray(); caller.Cancel();
+                foreach (Task<LogStopResult> wait in waits)
+                {
+                    try { await wait; throw new InvalidOperationException("Caller waiter did not cancel."); }
+                    catch (OperationCanceledException error) { Require(error.CancellationToken == caller.Token); cancelled++; }
+                }
+            }
+            int afterCallerCancellation = writer.Cancellations; bool requestedAfterCallers = writer.CancellationRequested; Require(afterCallerCancellation == 0 && !requestedAfterCallers);
+            Task[] joins = Enumerable.Range(0, 64).Select(_ => runtime.DisposeAsync().AsTask()).ToArray(); Require(joins.All(x => ReferenceEquals(x, shared)));
+            clock.Advance(TimeSpan.FromMilliseconds(9)); int beforeDeadline = writer.Cancellations; bool requestedBeforeDeadline = writer.CancellationRequested; Require(!requestedBeforeDeadline && beforeDeadline == 0 && !shared.IsCompleted && writer.Disposals == 0 && !LeaseAvailable(PathFor(root)));
+            clock.Advance(TimeSpan.FromMilliseconds(1)); LogStopResult result = await shared.WaitAsync(Guard); await Task.WhenAll(joins).WaitAsync(Guard);
+            await UntilAsync(() => writer.Cancellations == 1); string frozen = StopJoinFixture.Json(result).ToJsonString(); CheckStopped(runtime);
+            bool held = writer.InFlight && writer.Disposals == 0 && !queues.Completion.IsCompleted && !LeaseAvailable(PathFor(root)); Require(held);
+            byte[] pending = ReadLive(PathFor(root)); writer.Release.TrySetResult();
+            try { await queues.Completion.WaitAsync(Guard); } catch (IOException) when (mode == "late-failure") { }
+            Require(writer.Disposals == 1 && !writer.UnsafeDispose && LeaseAvailable(PathFor(root)));
+            Require(ReferenceEquals(result, runtime.GetDiagnostics().LastStopResult) && frozen == StopJoinFixture.Json(result).ToJsonString());
+            await UntilAsync(() => clock.Active == 0); Require(clock.Created == 1);
+            JsonObject report = Common(mode); report["kind"] = "kernel"; report["seed"] = Convert.ToBase64String(seed); report["pendingBytes"] = Convert.ToBase64String(pending); report["bytes"] = Convert.ToBase64String(ReadLive(PathFor(root)));
+            report["line"] = Convert.ToBase64String(writer.FirstLine!); report["result"] = StopJoinFixture.Json(result); report["live"] = Diagnostics(runtime);
+            report["outputCancellationsBeforeDeadline"] = new JsonArray(afterCallerCancellation, beforeDeadline);
+            report["outputCancellationRequestedBeforeDeadline"] = new JsonArray(requestedAfterCallers, requestedBeforeDeadline);
+            report["writer"] = writer.Report(); report["timers"] = clock.Report(); report["cancelled"] = cancelled; report["heldLease"] = held;
+            report["sameTask"] = true; report["immutable"] = true; report["joiners"] = joins.Length; report["leaseReleased"] = true; report["stoppedChecks"] = true; return report;
+        }
+        catch (Exception error) { primaryFailure = error; throw; }
+        finally
+        {
+            writer.Release.TrySetResult(); queues.Complete();
+            try
+            {
+                try { await queues.Completion.WaitAsync(Guard); } catch (IOException) when (mode == "late-failure") { }
+                await runtime.DisposeAsync().AsTask().WaitAsync(Guard);
+            }
+            catch (Exception) when (primaryFailure is not null) { }
+        }
+    }
+    private static async Task CrashAsync(string mode, string root)
+    {
+        Require(mode is "kill-queued" or "kill-partial" or "kill-after-stop"); byte[] seed = await SeedAsync(root);
+        var gate = new object(); var clock = new Clock(); var writer = new HeldFile(PathFor(root), false, false, mode != "kill-queued");
+        var options = Options(root); options.QueueCapacity = 8; options.ShutdownTimeoutMilliseconds = 10;
+        var queues = new OutputQueues(8, false, true, null, item => writer.WriteAsync(item, CancellationToken.None), gate, fileResource: writer,
+            fileFlush: () => writer.FlushAsync(CancellationToken.None), fileCancellableWrite: writer.WriteAsync, fileCancellableFlush: writer.FlushAsync);
+        var runtime = new CoreLogRuntime(ConsoleCompositionFixture.Metadata(), options, null, queues.File, clock, gate, queues);
+        for (int i = 0; i < 6; i++)
+        { Accepted(runtime.CreateLogger("CrashBoundary").Write(CoreLogLevel.Information, Data("held." + i))); if (i == 0) { await writer.Entered.Task.WaitAsync(Guard); } }
+        LogStopResult? result = null;
+        if (mode == "kill-after-stop")
+        { Task<LogStopResult> shared = runtime.StopAsync(CancellationToken.None); clock.Advance(TimeSpan.FromMilliseconds(10)); result = await shared.WaitAsync(Guard); await UntilAsync(() => writer.Cancellations == 1); CheckStopped(runtime); }
+        Require(writer.InFlight && writer.Disposals == 0 && !LeaseAvailable(PathFor(root)));
+        JsonObject report = Common(mode); report["kind"] = "checkpoint"; report["seed"] = Convert.ToBase64String(seed); report["bytes"] = Convert.ToBase64String(ReadLive(PathFor(root))); report["line"] = Convert.ToBase64String(writer.FirstLine!);
+        report["live"] = Diagnostics(runtime); report["writer"] = writer.Report(); report["heldLease"] = true; report["result"] = result is null ? null : StopJoinFixture.Json(result);
+        Console.WriteLine(report.ToJsonString()); Console.Out.Flush();
+        // The parent kills this exact child after validating the checkpoint. No graceful finally is executed.
+        await Signal().Task.WaitAsync(TimeSpan.FromSeconds(60));
+    }
+    private static async Task<JsonObject> RestartAsync(string root)
+    {
+        byte[] before = ReadLive(PathFor(root)); var runtime = PublicCreate(root);
+        try
+        {
+            bool recovered = runtime.GetDiagnostics().Outputs.Single().RecoveredPartialSegment;
+            Accepted(runtime.CreateLogger("Restart").Write(CoreLogLevel.Information, Data("restarted")));
+            LogStopResult result = await runtime.StopAsync(CancellationToken.None).WaitAsync(Guard); Require(result.Succeeded && LeaseAvailable(PathFor(root)));
+            string[] damaged = Directory.GetFiles(Path.GetDirectoryName(PathFor(root))!).Where(p => Path.GetFileName(p).Contains(".damaged", StringComparison.Ordinal)).ToArray();
+            Require(damaged.Length == (recovered ? 1 : 0));
+            JsonObject report = Common("restart"); report["kind"] = "restart"; report["beforeBytes"] = Convert.ToBase64String(before); report["bytes"] = Convert.ToBase64String(ReadLive(PathFor(root)));
+            report["damagedBytes"] = damaged.Length == 0 ? null : Convert.ToBase64String(File.ReadAllBytes(damaged[0])); report["recovered"] = recovered; report["leaseReleased"] = true; report["result"] = StopJoinFixture.Json(result); return report;
+        }
+        finally { await runtime.DisposeAsync(); }
+    }
+    private sealed class HeldFile : IDisposable
+    {
+        private readonly FileOutputOwner owner; private readonly bool holdFlush, fail, prefix; private CancellationTokenRegistration cancellation; private CancellationToken ioToken;
+        internal bool CancellationRequested => ioToken.IsCancellationRequested;
+        internal readonly TaskCompletionSource Entered = Signal(), Release = Signal(); internal byte[]? FirstLine;
+        internal int Writes, Flushes, Cancellations, Disposals; internal volatile bool InFlight; internal bool UnsafeDispose;
+        internal HeldFile(string path, bool holdFlush, bool fail, bool prefix)
+        { owner = FileOutputOwner.Initialize(path, LogOutputFormat.JsonLines); owner.ActiveFile.Position = owner.ActiveFile.Length; this.holdFlush = holdFlush; this.fail = fail; this.prefix = prefix; }
+        internal async ValueTask WriteAsync(AdmittedEvent item, CancellationToken token)
+        {
+            InFlight = true;
+            try
+            {
+                if (++Writes == 1)
+                {
+                    FirstLine = item.Event.JsonLine.ToArray(); ioToken = token; cancellation = token.Register(() => Interlocked.Increment(ref Cancellations));
+                    if (!holdFlush)
+                    {
+                        if (prefix) { await owner.ActiveFile.WriteAsync(FirstLine.AsMemory(0, 32), CancellationToken.None); }
+                        Entered.TrySetResult(); await Release.Task; if (fail) { throw new IOException("private controlled late IO failure"); }
+                        await owner.ActiveFile.WriteAsync(FirstLine.AsMemory(prefix ? 32 : 0), CancellationToken.None); return;
+                    }
+                }
+                await owner.ActiveFile.WriteAsync(item.Event.JsonLine, CancellationToken.None);
+            }
+            finally { InFlight = false; }
+        }
+        internal async ValueTask FlushAsync(CancellationToken token)
+        {
+            _ = token; InFlight = true;
+            try { Flushes++; if (holdFlush) { Entered.TrySetResult(); await Release.Task; } await owner.ActiveFile.FlushAsync(CancellationToken.None); }
+            finally { InFlight = false; }
+        }
+        internal JsonObject Report() => new() { ["writes"] = Writes, ["flushes"] = Flushes, ["cancellations"] = Cancellations, ["disposals"] = Disposals, ["unsafeDispose"] = UnsafeDispose, ["inFlight"] = InFlight };
+        public void Dispose() { Disposals++; UnsafeDispose |= InFlight; cancellation.Dispose(); owner.Dispose(); }
+    }
+}
+
+--- FILE implementations/csharp/tests/fixtures/DiscoveryHost/StopLifecycleExpectations.cs ---
+using System.Globalization;
+using System.Text;
+using System.Text.Json.Nodes;
+
+namespace CIS.Tests.DiscoveryFixture;
+
+internal static class StopLifecycleExpectations
+{
+    internal static readonly string[] Modes = ["normal", "normal-dual", "producer-stop-race", "pre-cancelled", "cancelled-joiners", "held-write", "held-flush", "late-failure", "kill-queued", "kill-partial", "kill-after-stop"];
+    private static void Require(bool value) { if (!value) { throw new InvalidDataException("Lifecycle expectation failed."); } }
+    private static long N(JsonNode? value) => long.Parse(value!.GetValue<string>(), CultureInfo.InvariantCulture);
+    private static byte[] Bytes(JsonObject a, string key) => Convert.FromBase64String(a[key]!.GetValue<string>());
+    private static JsonObject[] Records(byte[] bytes, int? pid)
+    {
+        Require(bytes.Length > 0 && bytes[^1] == (byte)'\n' && !bytes.AsSpan().StartsWith(new byte[] { 239, 187, 191 }));
+        string[] lines = new UTF8Encoding(false, true).GetString(bytes).Split('\n', StringSplitOptions.RemoveEmptyEntries);
+        JsonObject[] records = lines.Select(s => JsonNode.Parse(s)!.AsObject()).ToArray();
+        Require(records.All(x => x["message"]!.GetValue<string>() == "Ω 🙂" && (pid is null || x["attributes"]!["producer_pid"]!.GetValue<int>() == pid)));
+        Require(bytes.SplitRecordsAreBounded()); return records;
+    }
+    private static bool SplitRecordsAreBounded(this byte[] bytes) => Encoding.UTF8.GetString(bytes).Split('\n', StringSplitOptions.RemoveEmptyEntries).All(s => Encoding.UTF8.GetByteCount(s) + 1 <= 16384);
+    private static void Identity(string mode, JsonObject a) => Require(a["mode"]!.GetValue<string>() == mode && a["runtime"]!.GetValue<string>() == ".NET 10.0.12" && a["pid"]!.GetValue<int>() > 0);
+    internal static void Validate(string mode, JsonObject a)
+    {
+        Identity(mode, a); int pid = a["pid"]!.GetValue<int>(); byte[] seed = Bytes(a, "seed"); Require(Records(seed, pid).Single()["event_name"]!.GetValue<string>() == "seed");
+        Require(a["sameTask"]!.GetValue<bool>() && a["immutable"]!.GetValue<bool>() && a["joiners"]!.GetValue<int>() == 64 && a["leaseReleased"]!.GetValue<bool>() && a["stoppedChecks"]!.GetValue<bool>());
+        JsonObject result = a["result"]!.AsObject(); bool dual = mode == "normal-dual"; Require(result["outputs"]!.AsArray().Count == (dual ? 2 : 1)); JsonNode output = result["outputs"]!.AsArray()[^1]!; Require(output["name"]!.GetValue<string>() == "file");
+        byte[] bytes = Bytes(a, "bytes"); Require(bytes.AsSpan().StartsWith(seed));
+        if (a["kind"]!.GetValue<string>() == "public")
+        {
+            JsonArray receipts = a["receipts"]!.AsArray(); Require(receipts.Count > 0 && receipts.Select((x, i) => N(x!["ticket"]) == i + 1).All(x => x));
+            Require(result["completion"]!.GetValue<string>() == "Completed" && result["succeeded"]!.GetValue<bool>() && !result["loss"]!.GetValue<bool>());
+            Require(N(output["boundary"]) == receipts.Count && N(output["written"]) == receipts.Count && N(output["failed"]) == 0 && N(output["abandoned"]) == 0 && N(output["pending"]) == 0 && output["flush"]!.GetValue<string>() == "Succeeded");
+            if (dual)
+            {
+                JsonNode console = result["outputs"]![0]!; Require(console["name"]!.GetValue<string>() == "console" && N(console["boundary"]) == receipts.Count && N(console["written"]) == receipts.Count && N(console["failed"]) == 0 && N(console["abandoned"]) == 0 && N(console["pending"]) == 0 && console["flush"]!.GetValue<string>() == "Succeeded");
+            }
+            JsonObject[] rows = Records(bytes, pid); Require(rows.Length == receipts.Count + 1);
+            Require(rows.Skip(1).Select(x => x["event_name"]!.GetValue<string>()).SequenceEqual(receipts.Select(x => x!["event"]!.GetValue<string>())));
+            Require(a["attempts"]!.GetValue<int>() == receipts.Count + a["stopped"]!.GetValue<int>());
+            Require(a["attempts"]!.GetValue<int>() == (mode is "normal" or "normal-dual" ? 120 : mode == "pre-cancelled" ? 40 : 514));
+            Require(a["cancelled"]!.GetValue<int>() == (mode == "pre-cancelled" ? 1 : 0) && a["racingStoppers"]!.GetValue<int>() == (mode == "producer-stop-race" ? 16 : 0));
+            Require(a["capturingStopped"]!.GetValue<bool>() == (mode == "producer-stop-race"));
+            if (mode == "producer-stop-race") { Require(a["producerStopped"]!.GetValue<int>() + a["producerAccepted"]!.GetValue<int>() == 512 && a["producerAccepted"]!.GetValue<int>() == receipts.Count - 1); Require(a["stopped"]!.GetValue<int>() >= 1 && rows.All(x => x["event_name"]!.GetValue<string>() != "capturing")); }
+            else { Require(a["stopped"]!.GetValue<int>() == 0); }
+            return;
+        }
+        Require(a["kind"]!.GetValue<string>() == "kernel" && a["heldLease"]!.GetValue<bool>()); bool flushing = mode == "held-flush", failure = mode == "late-failure";
+        Require(result["completion"]!.GetValue<string>() == "TimedOut" && !result["succeeded"]!.GetValue<bool>() && result["loss"]!.GetValue<bool>() == !flushing);
+        Require(N(output["boundary"]) == (flushing ? 3 : 6) && N(output["written"]) == (flushing ? 3 : 0) && N(output["failed"]) == 0 && N(output["abandoned"]) == (flushing ? 0 : 5) && N(output["pending"]) == (flushing ? 0 : 1) && output["flush"]!.GetValue<string>() == (flushing ? "Pending" : "Failed"));
+        JsonNode live = a["live"]![0]!; Require(a["live"]!.AsArray().Count == 1 && N(live["accepted"]) == (flushing ? 3 : 6) && N(live["written"]) == (flushing ? 3 : failure ? 0 : 1) && N(live["failed"]) == (failure ? 1 : 0) && N(live["abandoned"]) == (flushing ? 0 : 5) && N(live["pending"]) == 0);
+        Require(live["fault"]?.GetValue<string>() == (failure ? "WriteFailed" : null));
+        JsonNode writer = a["writer"]!; Require(writer["writes"]!.GetValue<int>() == (flushing ? 3 : 1) && writer["flushes"]!.GetValue<int>() == (flushing ? 1 : 0) && writer["cancellations"]!.GetValue<int>() == 1 && writer["disposals"]!.GetValue<int>() == 1 && !writer["unsafeDispose"]!.GetValue<bool>() && !writer["inFlight"]!.GetValue<bool>());
+        Require(a["cancelled"]!.GetValue<int>() == (mode == "cancelled-joiners" ? 64 : 0));
+        Require(a["outputCancellationRequestedBeforeDeadline"]!.AsArray().Count == 2 && a["outputCancellationRequestedBeforeDeadline"]!.AsArray().All(x => !x!.GetValue<bool>()));
+        Require(a["outputCancellationsBeforeDeadline"]!.AsArray().Count == 2 && a["outputCancellationsBeforeDeadline"]!.AsArray().All(x => x!.GetValue<int>() == 0));
+        JsonNode timers = a["timers"]!; Require(timers["created"]!.GetValue<int>() == 1 && timers["disposed"]!.GetValue<int>() == 1 && timers["fires"]!.GetValue<int>() == 1 && timers["active"]!.GetValue<int>() == 0);
+        byte[] pending = Bytes(a, "pendingBytes"), line = Bytes(a, "line"); Require(Records(line, pid).Single()["event_name"]!.GetValue<string>() == "held.0");
+        if (flushing) { Require(pending.SequenceEqual(bytes) && Records(bytes, pid).Select(x => x["event_name"]!.GetValue<string>()).SequenceEqual(new[] { "seed", "held.0", "held.1", "held.2" })); }
+        else { Require(pending.SequenceEqual(seed.Concat(line.Take(32)))); Require(bytes.SequenceEqual(failure ? pending : seed.Concat(line).ToArray())); }
+    }
+    internal static void PhysicalConsole(JsonObject report, string stdout)
+    {
+        const string marker = "application-after-stop\n"; Require(stdout.EndsWith(marker, StringComparison.Ordinal));
+        byte[] actual = new UTF8Encoding(false, true).GetBytes(stdout[..^marker.Length]); byte[] seed = Bytes(report, "seed"), file = Bytes(report, "bytes");
+        Require(actual.SequenceEqual(file.Skip(seed.Length))); _ = Records(actual, report["pid"]!.GetValue<int>());
+    }
+    internal static void Checkpoint(string mode, JsonObject a)
+    {
+        Identity(mode, a); Require(mode.StartsWith("kill-", StringComparison.Ordinal) && a["kind"]!.GetValue<string>() == "checkpoint" && a["heldLease"]!.GetValue<bool>());
+        byte[] seed = Bytes(a, "seed"), line = Bytes(a, "line"); Require(Records(seed, a["pid"]!.GetValue<int>()).Single()["event_name"]!.GetValue<string>() == "seed");
+        Require(Records(line, a["pid"]!.GetValue<int>()).Single()["event_name"]!.GetValue<string>() == "held.0");
+        Require(Bytes(a, "bytes").SequenceEqual(mode == "kill-queued" ? seed : seed.Concat(line.Take(32)).ToArray()));
+        JsonNode writer = a["writer"]!; Require(writer["writes"]!.GetValue<int>() == 1 && writer["flushes"]!.GetValue<int>() == 0 && writer["disposals"]!.GetValue<int>() == 0 && !writer["unsafeDispose"]!.GetValue<bool>() && writer["inFlight"]!.GetValue<bool>());
+        Require(writer["cancellations"]!.GetValue<int>() == (mode == "kill-after-stop" ? 1 : 0));
+        JsonNode live = a["live"]![0]!; Require(N(live["accepted"]) == 6 && N(live["written"]) == 0 && N(live["failed"]) == 0 && N(live["abandoned"]) == (mode == "kill-after-stop" ? 5 : 0) && N(live["pending"]) == (mode == "kill-after-stop" ? 1 : 6));
+        if (mode == "kill-after-stop")
+        { JsonNode stop = a["result"]!; Require(stop["completion"]!.GetValue<string>() == "TimedOut" && !stop["succeeded"]!.GetValue<bool>() && stop["loss"]!.GetValue<bool>() && N(stop["outputs"]![0]!["pending"]) == 1 && N(stop["outputs"]![0]!["abandoned"]) == 5); }
+        else { Require(a["result"] is null); }
+    }
+    internal static void Restart(string mode, JsonObject checkpoint, JsonObject restarted)
+    {
+        Identity("restart", restarted); Require(restarted["pid"]!.GetValue<int>() != checkpoint["pid"]!.GetValue<int>());
+        byte[] before = Bytes(checkpoint, "bytes"), bytes = Bytes(restarted, "bytes"); bool partial = mode != "kill-queued";
+        Require(Bytes(restarted, "beforeBytes").SequenceEqual(before) && restarted["recovered"]!.GetValue<bool>() == partial && restarted["leaseReleased"]!.GetValue<bool>());
+        Require(restarted["result"]!["succeeded"]!.GetValue<bool>() && restarted["result"]!["completion"]!.GetValue<string>() == "Completed" && !restarted["result"]!["loss"]!.GetValue<bool>());
+        Require(restarted["result"]!["outputs"]!.AsArray().Count == 1); JsonNode output = restarted["result"]!["outputs"]![0]!;
+        Require(output["name"]!.GetValue<string>() == "file" && N(output["boundary"]) == 1 && N(output["written"]) == 1 && N(output["failed"]) == 0 && N(output["abandoned"]) == 0 && N(output["pending"]) == 0 && output["flush"]!.GetValue<string>() == "Succeeded");
+        if (partial) { Require(Bytes(restarted, "damagedBytes").SequenceEqual(before)); }
+        else { Require(restarted["damagedBytes"] is null && bytes.AsSpan().StartsWith(before)); }
+        JsonObject[] rows = Records(bytes, null); Require(rows.Length == (partial ? 1 : 2));
+        Require(rows[^1]["event_name"]!.GetValue<string>() == "restarted" && rows[^1]["attributes"]!["producer_pid"]!.GetValue<int>() == restarted["pid"]!.GetValue<int>());
+        Require(rows.All(x => !x["event_name"]!.GetValue<string>().StartsWith("held.", StringComparison.Ordinal)));
+    }
+}
+
+--- FILE implementations/csharp/tests/CIS.Core.IntegrationTests/StopLifecycleProcessTests.cs ---
+using System.Diagnostics;
+using System.Security.Cryptography;
+using System.Text;
+using System.Text.Json.Nodes;
+using CIS.Tests.DiscoveryFixture;
+using CIS.TestSupport;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+
+namespace CIS.Tests.IntegrationTests;
+
+[TestClass]
+public sealed class StopLifecycleProcessTests
+{
+    public static IEnumerable<object[]> Modes => StopLifecycleExpectations.Modes.Select(mode => new object[] { mode });
+    private static readonly TimeSpan Guard = TimeSpan.FromSeconds(60);
+    [TestMethod]
+    [DynamicData(nameof(Modes))]
+    public async Task ShutdownAndCrashBoundariesUseActualChildren(string mode)
+    {
+        using var root = new TemporaryDirectory(); string host = Path.Combine(AppContext.BaseDirectory, "discovery-fixture", "CIS.Core.DiscoveryFixture.dll");
+        using Process child = Start(host, mode, root.Path); Task<string> stderr = child.StandardError.ReadToEndAsync();
+        try
+        {
+            if (!mode.StartsWith("kill-", StringComparison.Ordinal))
+            {
+                string stdout = await child.StandardOutput.ReadToEndAsync().WaitAsync(Guard); await child.WaitForExitAsync().WaitAsync(Guard);
+                string error = await stderr.WaitAsync(Guard); Assert.AreEqual(0, child.ExitCode, error);
+                if (mode != "normal-dual") { Assert.AreEqual("", error); }
+                JsonObject report = JsonNode.Parse(mode == "normal-dual" ? error : stdout)!.AsObject();
+                if (mode == "normal-dual") { StopLifecycleExpectations.PhysicalConsole(report, stdout); }
+                Identity(host, child.Id, report); StopLifecycleExpectations.Validate(mode, report); return;
+            }
+            string? line = await child.StandardOutput.ReadLineAsync().WaitAsync(Guard); Assert.IsNotNull(line);
+            JsonObject checkpoint = JsonNode.Parse(line)!.AsObject(); Identity(host, child.Id, checkpoint); StopLifecycleExpectations.Checkpoint(mode, checkpoint);
+            Assert.IsFalse(child.HasExited); child.Kill(); await child.WaitForExitAsync().WaitAsync(Guard); Assert.AreNotEqual(0, child.ExitCode);
+            Assert.AreEqual("", await stderr.WaitAsync(Guard)); Assert.AreEqual("", await child.StandardOutput.ReadToEndAsync().WaitAsync(Guard));
+            string path = Path.Combine(root.Path, "logs Ω", "active.log"); Assert.IsTrue(File.ReadAllBytes(path).SequenceEqual(Convert.FromBase64String(checkpoint["bytes"]!.GetValue<string>())));
+            using Process restart = Start(host, "restart", root.Path); Task<string> restartError = restart.StandardError.ReadToEndAsync();
+            try
+            {
+                string stdout = await restart.StandardOutput.ReadToEndAsync().WaitAsync(Guard); await restart.WaitForExitAsync().WaitAsync(Guard);
+                Assert.AreEqual(0, restart.ExitCode, await restartError.WaitAsync(Guard)); Assert.AreEqual("", await restartError.WaitAsync(Guard));
+                JsonObject report = JsonNode.Parse(stdout)!.AsObject(); Identity(host, restart.Id, report); StopLifecycleExpectations.Restart(mode, checkpoint, report);
+                Assert.IsTrue(File.ReadAllBytes(path).SequenceEqual(Convert.FromBase64String(report["bytes"]!.GetValue<string>())));
+                string[] damaged = Directory.GetFiles(Path.GetDirectoryName(path)!).Where(p => Path.GetFileName(p).Contains(".damaged", StringComparison.Ordinal)).ToArray();
+                Assert.AreEqual(mode == "kill-queued" ? 0 : 1, damaged.Length);
+                if (damaged.Length == 1) { Assert.IsTrue(File.ReadAllBytes(damaged[0]).SequenceEqual(Convert.FromBase64String(report["damagedBytes"]!.GetValue<string>()))); }
+            }
+            finally { if (!restart.HasExited) { restart.Kill(); await restart.WaitForExitAsync().WaitAsync(Guard); } }
+        }
+        finally { if (!child.HasExited) { child.Kill(); await child.WaitForExitAsync().WaitAsync(Guard); } }
+    }
+    private static Process Start(string host, string mode, string root)
+    {
+        var start = new ProcessStartInfo("dotnet")
+        {
+            WorkingDirectory = root,
+            UseShellExecute = false,
+            CreateNoWindow = true,
+            RedirectStandardOutput = true,
+            RedirectStandardError = true,
+            StandardOutputEncoding = new UTF8Encoding(false, true),
+            StandardErrorEncoding = new UTF8Encoding(false, true)
+        };
+        foreach (string argument in new[] { "exec", "--fx-version", "10.0.12", "--roll-forward", "Disable", host, "stop-lifecycle", mode, root }) { start.ArgumentList.Add(argument); }
+        foreach (string key in start.Environment.Keys.Where(key => key.StartsWith("CORE_", StringComparison.Ordinal)).ToArray()) { start.Environment.Remove(key); }
+        return Process.Start(start) ?? throw new InvalidOperationException("Fixture child could not start.");
+    }
+    private static void Identity(string host, int pid, JsonObject report)
+    {
+        Assert.AreEqual(pid, report["pid"]!.GetValue<int>()); Assert.AreEqual(OperatingSystem.IsWindows() ? "windows" : "linux", report["os"]!.GetValue<string>());
+        Assert.AreEqual(Hash(host), report["fixtureSha256"]!.GetValue<string>()); Assert.AreEqual(Hash(Path.Combine(Path.GetDirectoryName(host)!, "CIS.Core.dll")), report["coreSha256"]!.GetValue<string>());
+    }
+    private static string Hash(string path) => Convert.ToHexStringLower(SHA256.HashData(File.ReadAllBytes(path)));
+}
+
+--- FILE implementations/csharp/tests/fixtures/DiscoveryHost/verify-stop-lifecycle.py ---
+"""Independent native lifecycle, actual kill/restart and raw-byte checks."""
+import argparse, base64, copy, importlib.util, json, os, queue, subprocess, tempfile, threading
+from datetime import datetime
+from pathlib import Path
+spec = importlib.util.spec_from_file_location('lifecycle_base', Path(__file__).with_name('verify-flush-results.py'))
+base = importlib.util.module_from_spec(spec); spec.loader.exec_module(base)
+require, load, sha, digest, decoded, number = base.require, base.load, base.sha, base.digest, base.decoded, base.number
+MODES = ('normal', 'normal-dual', 'producer-stop-race', 'pre-cancelled', 'cancelled-joiners', 'held-write', 'held-flush', 'late-failure', 'kill-queued', 'kill-partial', 'kill-after-stop')
+
+
+def identity(mode, a, pid=None):
+    require(a['mode'] == mode and type(a['pid']) is int and a['pid'] > 0 and (pid is None or a['pid'] == pid), 'actual child PID')
+    require(a['runtime'] == '.NET 10.0.12', 'actual runtime')
+
+
+def records(blob, pids):
+    data = decoded(blob); require(data and data[-1:] == b'\n' and not data.startswith(b'\xef\xbb\xbf'), 'whole physical records')
+    rows = []
+    for line in data.splitlines():
+        require(len(line) + 1 <= 16384, 'bounded physical records'); a = load(line)
+        require(type(a['attributes']['producer_pid']) is int and a['attributes']['producer_pid'] in pids, 'record producer PID')
+        rows.extend(base.records(line + b'\n', a['attributes']['producer_pid']))
+    return rows
+
+
+def stop_shape(a, dual=False):
+    require(set(a) == {'completion', 'succeeded', 'loss', 'captured', 'observed', 'outputs'} and type(a['succeeded']) is bool and type(a['loss']) is bool, 'stop shape')
+    require(all(datetime.fromisoformat(a[k]).utcoffset().total_seconds() == 0 for k in ('captured', 'observed')), 'UTC labels')
+    require([o['name'] for o in a['outputs']] == (['console', 'file'] if dual else ['file']), 'file output')
+    return a['outputs'][-1]
+
+
+def check(mode, a, pid=None, physical_console=None):
+    identity(mode, a, pid); seed = decoded(a['seed']); require([x['event_name'] for x in records(a['seed'], {a['pid']})] == ['seed'], 'physical seed')
+    require(all(a[k] is True for k in ('sameTask', 'immutable', 'leaseReleased', 'stoppedChecks')) and type(a['joiners']) is int and a['joiners'] == 64, 'shared operation')
+    result = a['result']; dual = mode == 'normal-dual'; output = stop_shape(result, dual); require(decoded(a['bytes']).startswith(seed), 'preexisting bytes')
+    if a['kind'] == 'public':
+        receipts = a['receipts']; require(receipts and [number(x['ticket']) for x in receipts] == list(range(1, len(receipts) + 1)), 'accepted ticket order')
+        require((result['completion'], result['succeeded'], result['loss']) == ('Completed', True, False), 'public stop summary')
+        require(tuple(number(output[k]) for k in ('boundary', 'written', 'failed', 'abandoned', 'pending')) == (len(receipts), len(receipts), 0, 0, 0) and output['flush'] == 'Succeeded', 'public dispositions')
+        require([x['event_name'] for x in records(a['bytes'], {a['pid']})] == ['seed'] + [x['event'] for x in receipts], 'physical receipt order')
+        attempts = 120 if mode in ('normal', 'normal-dual') else 40 if mode == 'pre-cancelled' else 514
+        require(type(a['attempts']) is int and a['attempts'] == attempts == len(receipts) + a['stopped'], 'producer accounting')
+        require((a['cancelled'], a['racingStoppers'], a['capturingStopped']) == (1 if mode == 'pre-cancelled' else 0, 16 if mode == 'producer-stop-race' else 0, mode == 'producer-stop-race'), 'public mode proof')
+        if mode == 'producer-stop-race': require(a['producerStopped'] + a['producerAccepted'] == 512 and a['producerAccepted'] == len(receipts) - 1, 'producer source accounting')
+        require(a['stopped'] >= 1 and all(x['event'] != 'capturing' for x in receipts) if mode == 'producer-stop-race' else a['stopped'] == 0, 'capture race closure')
+        if dual:
+            console = result['outputs'][0]
+            require(tuple(number(console[k]) for k in ('boundary', 'written', 'failed', 'abandoned', 'pending')) == (len(receipts), len(receipts), 0, 0, 0) and console['flush'] == 'Succeeded', 'console dispositions')
+            marker = b'application-after-stop\n'; require(physical_console is not None and physical_console.endswith(marker), 'application stdout after stop')
+            require(physical_console[:-len(marker)] == decoded(a['bytes'])[len(seed):], 'actual console and file bytes')
+        return
+    require(a['kind'] == 'kernel' and a['heldLease'] is True, 'held ownership'); flushing = mode == 'held-flush'; failure = mode == 'late-failure'
+    require((result['completion'], result['succeeded'], result['loss']) == ('TimedOut', False, not flushing), 'deadline summary')
+    require(tuple(number(output[k]) for k in ('boundary', 'written', 'failed', 'abandoned', 'pending')) == (3 if flushing else 6, 3 if flushing else 0, 0, 0 if flushing else 5, 0 if flushing else 1), 'deadline dispositions')
+    require(output['flush'] == ('Pending' if flushing else 'Failed'), 'deadline flush')
+    require(len(a['live']) == 1 and a['live'][0]['name'] == 'file', 'live output'); live = a['live'][0]
+    require(tuple(number(live[k]) for k in ('accepted', 'written', 'failed', 'abandoned', 'pending')) == (3 if flushing else 6, 3 if flushing else 0 if failure else 1, 1 if failure else 0, 0 if flushing else 5, 0) and live['fault'] == ('WriteFailed' if failure else None), 'eventual dispositions')
+    w = a['writer']; require((w['writes'], w['flushes'], w['cancellations'], w['disposals'], w['unsafeDispose'], w['inFlight']) == (3 if flushing else 1, 1 if flushing else 0, 1, 1, False, False), 'physical cleanup')
+    require(a['cancelled'] == (64 if mode == 'cancelled-joiners' else 0), 'caller cancellation only')
+    require(type(a['outputCancellationsBeforeDeadline']) is list and len(a['outputCancellationsBeforeDeadline']) == 2 and all(type(n) is int and n == 0 for n in a['outputCancellationsBeforeDeadline']), 'caller-only output cancellation')
+    require(type(a['outputCancellationRequestedBeforeDeadline']) is list and len(a['outputCancellationRequestedBeforeDeadline']) == 2 and all(n is False for n in a['outputCancellationRequestedBeforeDeadline']), 'caller-only output token')
+    timer = a['timers']; require((timer['created'], timer['disposed'], timer['fires'], timer['active'], timer['maximumActive']) == (1, 1, 1, 0, 1), 'single deadline')
+    line = decoded(a['line']); require([x['event_name'] for x in records(a['line'], {a['pid']})] == ['held.0'], 'actual first line')
+    if flushing:
+        require(decoded(a['pendingBytes']) == decoded(a['bytes']) and [x['event_name'] for x in records(a['bytes'], {a['pid']})] == ['seed', 'held.0', 'held.1', 'held.2'], 'held flush bytes')
+    else:
+        require(decoded(a['pendingBytes']) == seed + line[:32], 'pending physical prefix')
+        require(decoded(a['bytes']) == seed + line[:32] if failure else decoded(a['bytes']) == seed + line, 'eventual physical bytes')
+
+
+def checkpoint(mode, a, pid=None):
+    identity(mode, a, pid); require(mode.startswith('kill-') and a['kind'] == 'checkpoint' and a['heldLease'] is True, 'crash ownership')
+    seed, line = decoded(a['seed']), decoded(a['line'])
+    require([x['event_name'] for x in records(a['seed'], {a['pid']})] == ['seed'] and [x['event_name'] for x in records(a['line'], {a['pid']})] == ['held.0'], 'crash source records')
+    require(decoded(a['bytes']) == (seed if mode == 'kill-queued' else seed + line[:32]), 'physical crash boundary')
+    w = a['writer']; require((w['writes'], w['flushes'], w['disposals'], w['unsafeDispose'], w['inFlight'], w['cancellations']) == (1, 0, 0, False, True, 1 if mode == 'kill-after-stop' else 0), 'crash writer state')
+    require(len(a['live']) == 1 and a['live'][0]['name'] == 'file', 'crash live output'); live = a['live'][0]
+    require(tuple(number(live[k]) for k in ('accepted', 'written', 'failed', 'abandoned', 'pending')) == (6, 0, 0, 5 if mode == 'kill-after-stop' else 0, 1 if mode == 'kill-after-stop' else 6), 'crash dispositions')
+    if mode == 'kill-after-stop':
+        o = stop_shape(a['result']); require((a['result']['completion'], a['result']['succeeded'], a['result']['loss']) == ('TimedOut', False, True) and tuple(number(o[k]) for k in ('boundary', 'written', 'failed', 'abandoned', 'pending')) == (6, 0, 0, 5, 1) and o['flush'] == 'Failed', 'crash stop result')
+    else: require(a['result'] is None, 'crash stop result')
+
+
+def restart(mode, before, after, pid=None):
+    identity('restart', after, pid); require(after['pid'] != before['pid'], 'fresh restart PID'); partial = mode != 'kill-queued'
+    require(after['kind'] == 'restart' and decoded(after['beforeBytes']) == decoded(before['bytes']), 'reopened physical bytes')
+    require(after['recovered'] is partial and after['leaseReleased'] is True, 'restart recovery')
+    o = stop_shape(after['result']); require((after['result']['completion'], after['result']['succeeded'], after['result']['loss']) == ('Completed', True, False) and tuple(number(o[k]) for k in ('boundary', 'written', 'failed', 'abandoned', 'pending')) == (1, 1, 0, 0, 0) and o['flush'] == 'Succeeded', 'restart stop result')
+    require(decoded(after['damagedBytes']) == decoded(before['bytes']) if partial else after['damagedBytes'] is None and decoded(after['bytes']).startswith(decoded(before['bytes'])), 'damaged preservation')
+    rows = records(after['bytes'], {before['pid'], after['pid']}); require(len(rows) == (1 if partial else 2) and rows[-1]['event_name'] == 'restarted' and rows[-1]['attributes']['producer_pid'] == after['pid'] and all(not x['event_name'].startswith('held.') for x in rows), 'restart record')
+
+
+def corruption_controls(cases):
+    samples = {c['id']: c.get('report', c.get('checkpoint')) for c in cases}
+    edits = [
+        ('pid', 'normal', 'actual child PID', lambda a: a.update(pid=a['pid'] + 1)),
+        ('runtime', 'normal', 'actual runtime', lambda a: a.update(runtime='.NET 10.0.13')),
+        ('shape', 'normal', 'stop shape', lambda a: a['result'].update(extra=True)),
+        ('summary', 'normal', 'public stop summary', lambda a: a['result'].update(succeeded=False)),
+        ('boundary', 'normal', 'public dispositions', lambda a: a['result']['outputs'][0].update(boundary='119')),
+        ('ticket', 'normal', 'accepted ticket order', lambda a: a['receipts'][0].update(ticket='2')),
+        ('receipt', 'normal', 'physical receipt order', lambda a: a['receipts'][0].update(event='other')),
+        ('race', 'producer-stop-race', 'public mode proof', lambda a: a.update(capturingStopped=False)),
+        ('producer', 'producer-stop-race', 'producer accounting', lambda a: a.update(attempts=513)),
+        ('stoppers', 'producer-stop-race', 'public mode proof', lambda a: a.update(racingStoppers=15)),
+        ('pre-cancelled', 'pre-cancelled', 'public mode proof', lambda a: a.update(cancelled=0)),
+        ('pending', 'held-write', 'deadline dispositions', lambda a: a['result']['outputs'][0].update(pending='0')),
+        ('abandoned', 'held-write', 'deadline dispositions', lambda a: a['result']['outputs'][0].update(abandoned='4')),
+        ('flush', 'held-write', 'deadline flush', lambda a: a['result']['outputs'][0].update(flush='Succeeded')),
+        ('held', 'held-write', 'held ownership', lambda a: a.update(heldLease=False)),
+        ('immutable', 'held-write', 'shared operation', lambda a: a.update(immutable=False)),
+        ('joiners', 'held-write', 'shared operation', lambda a: a.update(joiners=63)),
+        ('timer', 'held-write', 'single deadline', lambda a: a['timers'].update(created=2)),
+        ('io', 'held-write', 'physical cleanup', lambda a: a['writer'].update(writes=2)),
+        ('dispose', 'held-write', 'physical cleanup', lambda a: a['writer'].update(unsafeDispose=True)),
+        ('output-token', 'cancelled-joiners', 'caller-only output token', lambda a: a['outputCancellationRequestedBeforeDeadline'].__setitem__(0, True)),
+        ('output-cancel', 'cancelled-joiners', 'caller-only output cancellation', lambda a: a['outputCancellationsBeforeDeadline'].__setitem__(0, 1)),
+        ('cancel', 'cancelled-joiners', 'caller cancellation only', lambda a: a.update(cancelled=63)),
+        ('late', 'late-failure', 'eventual dispositions', lambda a: a['live'][0].update(failed='0')),
+        ('partial', 'late-failure', 'eventual physical bytes', lambda a: a.update(bytes=a['seed'])),
+        ('flush-pending', 'held-flush', 'deadline dispositions', lambda a: a['result']['outputs'][0].update(pending='1')),
+        ('crash-owner', 'kill-queued', 'crash ownership', lambda a: a.update(heldLease=False)),
+        ('crash-dispose', 'kill-queued', 'crash writer state', lambda a: a['writer'].update(disposals=1)),
+        ('crash-pending', 'kill-queued', 'crash dispositions', lambda a: a['live'][0].update(pending='5')),
+        ('crash-bytes', 'kill-partial', 'physical crash boundary', lambda a: a.update(bytes=a['seed'])),
+        ('crash-result', 'kill-queued', 'crash stop result', lambda a: a.update(result={})),
+        ('crash-stop', 'kill-after-stop', 'crash stop result', lambda a: a['result']['outputs'][0].update(flush='Succeeded')),
+    ]
+    result = []
+    def reject(identity, reason, run):
+        try: run()
+        except AssertionError as error:
+            require(str(error) == reason, 'unexpected corruption ' + identity + ': ' + str(error)); result.append(dict(id=identity, rejected=True, reason=reason))
+        else: raise AssertionError('corruption accepted ' + identity)
+    for name, mode, reason, edit in edits:
+        bad = copy.deepcopy(samples[mode]); edit(bad)
+        reject(name, reason, lambda: (checkpoint if mode.startswith('kill-') else check)(mode, bad, samples[mode]['pid']))
+    dual = next(c for c in cases if c['id'] == 'normal-dual'); actual = decoded(dual['physicalConsoleBase64'])
+    bad = copy.deepcopy(dual['report']); bad['result']['outputs'][0]['written'] = '119'
+    reject('console-dispositions', 'console dispositions', lambda: check('normal-dual', bad, dual['pid'], actual))
+    reject('console-marker', 'application stdout after stop', lambda: check('normal-dual', dual['report'], dual['pid'], actual[:-len(b'application-after-stop\n')]))
+    reject('console-bytes', 'actual console and file bytes', lambda: check('normal-dual', dual['report'], dual['pid'], b'\n'.join(actual.split(b'\n')[1:])))
+    killed = next(c for c in cases if c['id'] == 'kill-partial'); before, good = killed['checkpoint'], killed['restart']['report']
+    for name, reason, edit in [
+        ('restart-pid', 'fresh restart PID', lambda a: a.update(pid=before['pid'])),
+        ('restart-before', 'reopened physical bytes', lambda a: a.update(beforeBytes='')),
+        ('restart-recovery', 'restart recovery', lambda a: a.update(recovered=False)),
+        ('restart-damaged', 'damaged preservation', lambda a: a.update(damagedBytes='')),
+        ('restart-stop', 'restart stop result', lambda a: a['result']['outputs'][0].update(pending='1')),
+    ]:
+        bad = copy.deepcopy(good); edit(bad); reject(name, reason, lambda: restart('kill-partial', before, bad))
+    return result
+
+
+def main():
+    parser = argparse.ArgumentParser()
+    for key in ('dotnet', 'host', 'output', 'family'): parser.add_argument('--' + key, required=True)
+    args = parser.parse_args(); require(args.family in ('windows', 'linux') and (os.name == 'nt') == (args.family == 'windows'), 'native OS')
+    repo = Path(__file__).resolve().parents[5]; require([c['id'] for c in load((repo / 'conformance/logging/stop-lifecycle-cases.json').read_bytes())['cases']] == list(MODES), 'shared case membership')
+    host, out = Path(args.host).resolve(), Path(args.output).resolve(); out.mkdir(parents=True, exist_ok=True); cases = []
+    def command(mode, work): return [args.dotnet, 'exec', '--fx-version', '10.0.12', '--roll-forward', 'Disable', str(host), 'stop-lifecycle', mode, str(work)]
+    env = {k: v for k, v in os.environ.items() if not k.startswith('CORE_')}
+    def save(key, stdout, stderr):
+        (out / (key + '.stdout.bin')).write_bytes(stdout); (out / (key + '.stderr.bin')).write_bytes(stderr)
+    def pin(a, pid):
+        identity(a['mode'], a, pid); require((a['os'], a['coreSha256'], a['fixtureSha256']) == (args.family, sha(host.parent / 'CIS.Core.dll'), sha(host)), 'actual assemblies')
+    with tempfile.TemporaryDirectory(prefix='cislib-stop-lifecycle-') as temp:
+        for mode in MODES:
+            work = Path(temp) / mode; work.mkdir(); cmd = command(mode, work); process = subprocess.Popen(cmd, cwd=work, env=env, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            try:
+                if not mode.startswith('kill-'):
+                    stdout, stderr = process.communicate(timeout=60); save(mode, stdout, stderr); require(process.returncode == 0 and (mode == 'normal-dual' or stderr == b''), 'child failure ' + mode)
+                    a = load(stderr if mode == 'normal-dual' else stdout); pin(a, process.pid); check(mode, a, process.pid, stdout if mode == 'normal-dual' else None)
+                    cases.append(dict(id=mode, pid=process.pid, exitCode=0, command=cmd, report=a, physicalConsoleBase64=base64.b64encode(stdout).decode() if mode == 'normal-dual' else None, stdoutSha256=digest(stdout), stderrSha256=digest(stderr))); continue
+                received = queue.Queue()
+                reader = threading.Thread(target=lambda: received.put(process.stdout.readline()), daemon=True); reader.start()
+                line = received.get(timeout=30); reader.join(timeout=5); require(not reader.is_alive() and process.poll() is None, 'live crash checkpoint')
+                a = load(line); pin(a, process.pid); checkpoint(mode, a, process.pid); process.kill(); tail, stderr = process.communicate(timeout=15); stdout = line + tail; save(mode, stdout, stderr)
+                require(process.returncode != 0 and tail == b'' and stderr == b'', 'external kill')
+                path = work / 'logs \u03a9/active.log'; physical = path.read_bytes(); require(physical == decoded(a['bytes']), 'killed physical bytes'); (out / (mode + '.before-restart.bin')).write_bytes(physical)
+                restart_cmd = command('restart', work); second = subprocess.Popen(restart_cmd, cwd=work, env=env, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+                try: restart_out, restart_err = second.communicate(timeout=60)
+                finally:
+                    if second.poll() is None: second.kill(); second.communicate(timeout=15)
+                save(mode + '.restart', restart_out, restart_err); require(second.returncode == 0 and restart_err == b'', 'restart child failure')
+                b = load(restart_out); pin(b, second.pid); restart(mode, a, b, second.pid); active = path.read_bytes(); require(active == decoded(b['bytes']), 'restart actual active bytes'); (out / (mode + '.active.bin')).write_bytes(active)
+                damaged = [p for p in path.parent.iterdir() if '.damaged' in p.name]; require(len(damaged) == (0 if mode == 'kill-queued' else 1), 'restart damaged membership')
+                if damaged:
+                    data = damaged[0].read_bytes(); require(data == physical == decoded(b['damagedBytes']), 'restart actual damaged bytes'); (out / (mode + '.damaged.bin')).write_bytes(data)
+                cases.append(dict(id=mode, pid=process.pid, exitCode=process.returncode, command=cmd, checkpoint=a, killIssued=True, stdoutSha256=digest(stdout), stderrSha256=digest(stderr), beforeRestartSha256=digest(physical), activeSha256=digest(active), restart=dict(pid=second.pid, exitCode=0, command=restart_cmd, report=b, stdoutSha256=digest(restart_out), stderrSha256=digest(restart_err))))
+            finally:
+                if process.poll() is None: process.kill(); process.communicate(timeout=15)
+    report = dict(schema='cis.logging.stop-lifecycle-native/v1', task='WP05-S10-T05', family=args.family, cases=cases, children=len(cases) + sum('restart' in c for c in cases), coreSha256=sha(host.parent / 'CIS.Core.dll'), fixtureSha256=sha(host), verifierSha256=sha(__file__), baseVerifierSha256=sha(Path(__file__).with_name('verify-flush-results.py')), caseMappingSha256=sha(repo / 'conformance/logging/stop-lifecycle-cases.json'), controls=corruption_controls(cases))
+    (out / 'report.json').write_text(json.dumps(report, indent=2) + '\n', encoding='utf-8', newline='\n'); print(json.dumps(dict(family=args.family, cases=len(cases), children=report['children'], controls=len(report['controls']), passed=True)))
+
+
+if __name__ == '__main__': main()
+--- FILE conformance/logging/stop-lifecycle-cases.json ---
+{
+  "schema": "cis.logging.task-cases/v1",
+  "taskId": "WP05-S10-T05",
+  "state": "Implemented; qualification and read-only review status are recorded in the task receipt.",
+  "scope": "Public factory physical files, barriers over actual file ownership/kernel IO, and real child kill/restart. Controlled barriers do not claim forced native OS blocking or crash durability.",
+  "cases": [
+    {
+      "id": "normal"
+    },
+    {
+      "id": "normal-dual"
+    },
+    {
+      "id": "producer-stop-race"
+    },
+    {
+      "id": "pre-cancelled"
+    },
+    {
+      "id": "cancelled-joiners"
+    },
+    {
+      "id": "held-write"
+    },
+    {
+      "id": "held-flush"
+    },
+    {
+      "id": "late-failure"
+    },
+    {
+      "id": "kill-queued"
+    },
+    {
+      "id": "kill-partial"
+    },
+    {
+      "id": "kill-after-stop"
+    }
+  ]
+}
+
+--- FILE docs/modules/logging/shutdown-qualification.md ---
+# Shutdown lifecycle qualification
+
+WP05-S10-T05 adds real consumer processes and explicit barriers over actual Core queues and file ownership. The shipping runtime is unchanged. Development fixtures use the exact compiled Core assembly; package/release qualification remains separate.
+
+Four public-factory modes cover normal file drain, physical console/file drain, producer/stopper races and already-cancelled initiation. The dual case independently captures actual stdout, compares its records with the file and observes application stdout after disposal. The race holds a lazy factory after initial interest and before final admission while eight producers and sixteen stop/dispose callers share a concurrent-start gate. Producer accepted/stopped counts are recorded; no particular producer/stopper interleaving is required. The held factory guarantees the capture-versus-closure race separately. Its held capture must return Stopped, and accepted tickets must match physical file order. All modes preserve a pre-existing seed record.
+
+Four kernel modes combine real FileOutputOwner handles, an exclusive group lease and actual unbuffered FileStream writes with controllable writer barriers. They cover noncooperating writes/flushes, sixty-four cancelled caller waits and a late write failure. The original 9 ms/1 ms deadline split, sixty-four disposal joiners and one real Core deadline callback prove no new drain window. Five queued entries become abandoned while one write remains pending. Their flush confirmation is Failed/unavailable already; this does not mean the active write has settled. A held flush instead has all three records written, zero pending records and a Pending flush confirmation. The actual output-owned CancellationToken.IsCancellationRequested and callback count must remain false/zero after caller cancellations and again at 9 ms, then is observed only at the original deadline while the writer remains held. No timer or cancellation request is asserted to force an OS operation to stop.
+
+These barriers control the asynchronous writer around actual physical files; they do not claim a native FileStream operation was forced to block inside the OS. The kernel modes write through the real owner directly and bypass FileOutputWriter rendering/size/rotation and JSONL startup-boundary inspection. Successful public-factory consumers separately qualify the supported physical composition; they do not inject or observe an OS failure. Together these keep real physical ownership/drain evidence separate from the controlled noncooperating-writer boundary. Owned handles remain held until actual writer completion, then close once. The seed bytes remain intact; cached stop observations stay unchanged while later live diagnostics reflect success or failure.
+
+Three crash modes let a parent kill one exact child after its validated checkpoint: six accepted records held before any new physical byte; a physical 32-byte record prefix with five queued entries; and the same partial write after a bounded deadline. No graceful cleanup is invoked. A second real public-factory child reopens the group. Clean files preserve the seed and append a restart record. Partial files preserve the entire prior active segment as damaged and append to a fresh active segment. Child PIDs, exact assemblies, kill exits and physical before/active/damaged bytes are retained independently. The absent buffered records are asserted only for this controlled schedule. Acceptance, writing and flushing provide no exactly-once or crash-durable guarantee.
+
+| Original criterion | Executed case boundary |
+| --- | --- |
+| WP05-S10-AC01 | Held lazy capture versus final admission, eight racing producers/sixteen stoppers, stopped None/direct/lazy calls and the original shared operation. |
+| WP05-S10-AC02 | Public pre-cancelled initiation observes closure before a later join; sixty-four cancelled waits retain their own tokens and leave the shared deadline unchanged. |
+| WP05-S10-AC03 | Five abandoned/unstarted entries versus one unresolved physical write; separately held writer flush; observed cancellation without assuming completion. |
+| WP05-S10-AC04 | Sixty-four disposal joins, one original deadline, unsuccessful cached observations and preserved seed/file evidence. |
+| WP05-S10-AC05 | Late completion/failure cannot rewrite results; actual group ownership is retained until I/O settles; real kill/restart checks preserve physical evidence without durability claims. |
+
+Four unit cases and eleven process cases execute these boundaries. The native reader runs fourteen children per platform (including three restart children) and forty exact-reason corruption controls. Actual execution, source identity and review status belong in the task receipt; these planned denominators alone are not a passing report. Earlier lifecycle tasks remain independent regression evidence. The provider, examples, guidance/skills, six-family release verification and publication remain required.
+
+--- FILE implementations/csharp/tests/Directory.Build.targets ---
+<Project>
+  <PropertyGroup Condition="'$(IsTestProject)' == 'true'">
+    <UseVSTest>true</UseVSTest>
+    <EnableMSTestRunner>false</EnableMSTestRunner>
+    <!-- Match eng/toolchain.json; a newer installed patch must not silently change qualification. -->
+    <RuntimeFrameworkVersion>10.0.12</RuntimeFrameworkVersion>
+    <RollForward>Disable</RollForward>
+  </PropertyGroup>
+  <ItemGroup Condition="'$(IsTestProject)' == 'true'">
+    <PackageReference Include="Microsoft.NET.Test.Sdk" PrivateAssets="all" />
+    <PackageReference Include="MSTest.TestFramework" PrivateAssets="all" />
+    <PackageReference Include="MSTest.TestAdapter" PrivateAssets="all" />
+    <Compile Include="$(MSBuildThisFileDirectory)TestAssembly.cs" Link="TestAssembly.cs" />
+  </ItemGroup>
+</Project>
+
+--- FILE implementations/csharp/eng/toolchain.json ---
+{
+  "schemaVersion": 1,
+  "sdk": "10.0.401",
+  "targetFramework": "net10.0",
+  "targetRuntime": "10.0.12",
+  "toolHostRuntime": "8.0.31",
+  "runner": "VSTest",
+  "testSdk": "18.10.1",
+  "mstest": "4.5.1",
+  "coverage": {
+    "package": "Microsoft.CodeCoverage",
+    "version": "18.10.1",
+    "collector": "datacollector://Microsoft/CodeCoverage/2.0",
+    "format": "cobertura",
+    "minimumLineRate": 0.95,
+    "minimumBranchRate": 0.9
+  },
+  "tools": [
+    {
+      "id": "dotnet-stryker",
+      "version": "4.16.0",
+      "command": "dotnet-stryker",
+      "entryPoint": "Stryker.CLI.dll",
+      "maintainer": "Stryker Mutator",
+      "license": "Apache-2.0",
+      "provenance": "https://www.nuget.org/packages/dotnet-stryker/4.16.0",
+      "purpose": "Isolated development-only mutation testing",
+      "shippingAllowed": false
+    },
+    {
+      "id": "Microsoft.DotNet.ApiCompat.Tool",
+      "version": "10.0.401",
+      "command": "apicompat",
+      "entryPoint": "Microsoft.DotNet.ApiCompat.Tool.dll",
+      "maintainer": "Microsoft",
+      "license": "MIT",
+      "provenance": "https://www.nuget.org/packages/Microsoft.DotNet.ApiCompat.Tool/10.0.401",
+      "purpose": "Development-only API compatibility qualification",
+      "shippingAllowed": false
+    }
+  ]
+}
