@@ -24,4 +24,5 @@ public sealed class LogEventData
     public Exception? Exception { get; set; }
     // Adapter capture runs inside core validation after Activity/clock capture, before admission.
     internal Func<(string? Template, LogValue Attributes)>? CaptureState { get; init; }
+    internal Func<int, Scopes.CapturedScopeContext>? CaptureScopes { get; init; }
 }

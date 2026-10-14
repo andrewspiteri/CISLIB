@@ -11,11 +11,14 @@ namespace CIS.Logging.MicrosoftLogger;
 /// formatter or copying state; full queues remain interested. Formatter exceptions propagate unchanged;
 /// invalid retained payload increments core diagnostics without output admission. Oversized valid payload
 /// is truncated. Disposed, stopped, filtered and all-faulted calls skip both callbacks after argument guards.
-/// Healthy outputs admit independently; host scopes remain integration work.</remarks>
-public sealed class CoreLoggerProvider : ILoggerProvider
+/// Healthy outputs admit independently. Provider-created scopes are copied at BeginScope; borrowed host
+/// scopes are copied during accepted capture, after Activity and clock snapshots. Combined scope depth is 32.</remarks>
+public sealed class CoreLoggerProvider : ILoggerProvider, ISupportExternalScope
 {
     private readonly CoreLogRuntime runtime;
     private int disposed;
+    private readonly object scopeProviderGate = new();
+    private IExternalScopeProvider? externalScopes;
 
     /// <summary>Creates a nonowning provider over an existing runtime.</summary>
     /// <exception cref="ArgumentNullException">Runtime is null.</exception>
@@ -38,7 +41,21 @@ public sealed class CoreLoggerProvider : ILoggerProvider
     private bool IsDisposed => Volatile.Read(ref disposed) != 0;
 
     /// <summary>Idempotently disables this provider; the application retains runtime ownership.</summary>
-    public void Dispose() => Interlocked.Exchange(ref disposed, 1);
+    public void Dispose()
+    {
+        lock (scopeProviderGate) { Interlocked.Exchange(ref disposed, 1); Volatile.Write(ref externalScopes, null); }
+    }
+
+    /// <summary>Borrows the host scope source; accepted events copy its active scopes inline.</summary>
+    /// <remarks>Existing core/provider scopes are the outer layer, host scopes the inner layer, and event attributes replace matching retained keys.
+    /// Host scope lifetime belongs to the host. Provider disposal releases this reference and never disposes host handles.</remarks>
+    /// <exception cref="ArgumentNullException">Scope provider is null.</exception>
+    /// <exception cref="ObjectDisposedException">This provider is disposed.</exception>
+    public void SetScopeProvider(IExternalScopeProvider scopeProvider)
+    {
+        ArgumentNullException.ThrowIfNull(scopeProvider);
+        lock (scopeProviderGate) { ObjectDisposedException.ThrowIf(IsDisposed, this); Volatile.Write(ref externalScopes, scopeProvider); }
+    }
 
     private static CoreLogLevel Level(LogLevel logLevel)
     {
@@ -59,10 +76,8 @@ public sealed class CoreLoggerProvider : ILoggerProvider
         {
             ArgumentNullException.ThrowIfNull(state);
             ObjectDisposedException.ThrowIf(provider.IsDisposed, provider);
-            if (state is not OperationContextData context)
-            { throw new ArgumentException("Use OperationContextData for the provider foundation's typed core scope.", nameof(state)); }
-            if (provider.runtime.GetDiagnostics().AdmissionClosed) { throw new InvalidOperationException("Cannot begin a scope after runtime admission closes."); }
-            return provider.runtime.Scopes.BeginScope(context);
+            if (provider.runtime.IsAdmissionClosed) { throw new InvalidOperationException("Cannot begin a scope after runtime admission closes."); }
+            return provider.runtime.Scopes.BeginCopiedScope(() => ProviderScopeCapture.Copy(state));
         }
 
         public void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception? exception,
@@ -71,12 +86,14 @@ public sealed class CoreLoggerProvider : ILoggerProvider
             ArgumentNullException.ThrowIfNull(formatter);
             CoreLogLevel level = Level(logLevel);
             if (provider.IsDisposed) { return; }
+            IExternalScopeProvider? scopes = Volatile.Read(ref provider.externalScopes);
             _ = core.WriteLazy(level, () => new LogEventData
             {
                 EventName = string.IsNullOrEmpty(eventId.Name) ? "log.message" : eventId.Name,
                 Message = formatter(state, exception),
                 Exception = exception,
-                CaptureState = () => ProviderStateCapture.Capture(state, eventId.Id)
+                CaptureState = () => ProviderStateCapture.Capture(state, eventId.Id),
+                CaptureScopes = scopes is null ? null : depth => ProviderScopeCapture.Capture(scopes, depth)
             });
         }
     }

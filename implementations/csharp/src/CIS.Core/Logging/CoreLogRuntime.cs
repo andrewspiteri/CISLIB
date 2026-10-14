@@ -414,6 +414,8 @@ public sealed class CoreLogRuntime : IAsyncDisposable
         return new CoreLogger(this, component);
     }
 
+    internal bool IsAdmissionClosed { get { lock (admissionGate) { return admissionClosed; } } }
+
     internal bool IsEnabled(CoreLogLevel level)
     {
         ValidateLevel(level);

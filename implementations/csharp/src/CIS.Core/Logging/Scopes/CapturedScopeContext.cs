@@ -20,6 +20,12 @@ internal sealed class CapturedScopeContext
     internal int ScopeDepth { get; }
     internal bool IsTruncated => Attributes.IsTruncated;
 
+    internal CapturedScopeContext Overlay(CapturedScopeContext inner)
+    {
+        if (ScopeDepth + inner.ScopeDepth > OperationScopeStore.MaximumDepth) { throw new InvalidOperationException("The maximum combined scope depth is 32."); }
+        return new(inner.OperationId ?? OperationId, Events.EventProjection.Merge(Attributes, inner.Attributes), ScopeDepth + inner.ScopeDepth);
+    }
+
     internal static CapturedScopeContext FromHead(OperationScopeFrame? head)
     {
         if (head is null) { return Empty; }

@@ -1,0 +1,75 @@
+{
+  "task": "WP06-S02-T01",
+  "verdict": "CHANGES_REQUIRED",
+  "reviewBasis": "Read-only review of the supplied file contents only. No tools, MCP, execution or persistence were used. planning/decisions.md and planning/logging/plan-amendments.md were not supplied, so explicit prior decisions are not visible here. Pass counts are the author's report and are not verified by this review.",
+  "requiredFindings": [
+    {
+      "id": "R1",
+      "area": "host scope interop / loss amplification",
+      "location": "ProviderScopeCapture.Copy and Capture; EventProjection.Capture catch path in CoreLogRuntime.Write",
+      "finding": "A borrowed host scope can be unsupported at the state level or at the value level. Either way, the whole event becomes InvalidEvent with no output. The host stack is shared by every component that calls ILogger.BeginScope through the factory, so one non-allowlisted scope silently drops every Core record emitted inside it, including records from unrelated code. Realistic triggers include: plain string scopes (logger.BeginScope(\"text\") binds TState=string); Dictionary<string,string> scopes, because KeyValuePair is invariant so they do not match IEnumerable<KVP<string,object?>>; Microsoft.Extensions.Http's request-pipeline scope, which passes an HttpMethod value (verify against the pinned package version); and ActivityTrackingOptions Baggage, which is IEnumerable<KVP<string,string?>> and enumerates as struct items that hit the unsupported-object throw. Throwing for owned scopes is appropriate because the caller sees the error. For borrowed host scopes, the caller cannot correct the input and the observable result is lost application logs.",
+      "requiredAction": "Choose one of two resolutions. (a) Degrade per frame or per value: omit the unsupported host frame or value, mark the scope attributes truncated (or add a dedicated fixed code), and still admit the event. Keep InvalidEvent only for violations that cannot be bounded, such as combined depth or cooperative callback exceptions if that is the chosen policy. (b) Record an explicit decision in planning/decisions.md that host-scope incompatibility drops the event. In either case, add conformance cases for a bare string host scope, Dictionary<string,string>, and a Microsoft-maintained scope carrying a non-allowlisted value, and update microsoft-provider-scopes.md to state the outcome."
+    }
+  ],
+  "optionalFindings": [
+    {
+      "id": "O1",
+      "area": "test determinism",
+      "location": "ProviderScopeFixture.ExecuteAsync, async-owned/async-external",
+      "finding": "The `formatters++` counter is a captured int incremented non-atomically by two concurrently running Task.Run flows. The expectation of exactly 3 formatter calls can therefore fail intermittently through a lost update.",
+      "suggestion": "Use Interlocked.Increment(ref formatters)."
+    },
+    {
+      "id": "O2",
+      "area": "plain implementation / hot path",
+      "location": "CategoryLogger.BeginScope",
+      "finding": "The admission check calls provider.runtime.GetDiagnostics(). On every scope creation, that takes the admission lock, allocates the diagnostics lists and samples UtcNow. It also throws 'Accounting requires actual queued output composition' for a runtime built through the internal non-queued seam. Only public creation paths are queued, so this is not externally reachable, but the check is heavier than needed.",
+      "suggestion": "Add an internal CoreLogRuntime.IsAdmissionClosed read under admissionGate and use it here."
+    },
+    {
+      "id": "O3",
+      "area": "precedence under bounds",
+      "location": "EventProjection.Merge (now reachable with host scopes)",
+      "finding": "Merge iterates scope attributes before event attributes and stops admitting new keys once the budget is spent. A large scope therefore displaces event attributes, which contradicts the documented 'event attributes win last' rule. The bounds case asserts this outcome (event_id absent). The doc acknowledges that event_id can be omitted but presents layer precedence without that qualification.",
+      "suggestion": "Either reserve budget for event attributes first, or qualify the precedence statement in the docs. This could be carried into the T02 final precedence cases."
+    },
+    {
+      "id": "O4",
+      "area": "cooperative reentrancy",
+      "location": "ProviderScopeCapture.Capture / ProviderStateCapture",
+      "finding": "Owned scope creation has a reentrancy guard, but host-scope capture does not. A host scope enumerator, or a value enumerator inside one, that logs through the same provider recurses into host capture again, which can cause unbounded recursion or stack overflow. The docs call callbacks cooperative, so this is a documentation gap rather than a defect.",
+      "suggestion": "Either state explicitly that logging from scope enumeration is unsupported, or add a [ThreadStatic] capture-in-progress flag that treats reentrant capture as invalid."
+    },
+    {
+      "id": "O5",
+      "area": "unit-test portability",
+      "location": "ProviderScopeExpectations.Validate",
+      "finding": "The in-process unit tests require runtime == '.NET 10.0.12'. That fits the pinned child-process route but fails the in-process unit route on any other patched runtime.",
+      "suggestion": "Pin the runtime only for process and native evidence, or confirm the test host is pinned to the same version."
+    },
+    {
+      "id": "O6",
+      "area": "test coverage of factory integration",
+      "location": "ProviderScopeFixture",
+      "finding": "Every external-scope case calls SetScopeProvider manually with LoggerExternalScopeProvider. No case runs the provider under a real LoggerFactory, which calls SetScopeProvider itself, routes BeginScope to the shared scope provider instead of the provider's own BeginScope, and adds ActivityTrackingOptions frames. Under standard factory hosting, the provider-owned BeginScope path is effectively unused.",
+      "suggestion": "Track this explicitly under T05 and say in the doc that owned-scope behavior applies to direct CreateLogger use."
+    }
+  ],
+  "verifiedPositives": [
+    "SetScopeProvider and Dispose share scopeProviderGate, so a provider cannot be registered after disposal. Callbacks run outside the lock. Null registration throws before the disposed guard, as documented.",
+    "Each Log call reads the host source once. Provider disposal never pushes, pops or disposes host handles, and the replacement case checks this.",
+    "Activity IDs and the event clock are captured before host callbacks run. The correlation case mutates Activity.Current inside ForEachScope and checks the frozen trace and span.",
+    "Host frames are built oldest-first, so the newest host frame wins. Core scopes are the outer layer, host scopes the inner layer, and event attributes are merged last. A typed host OperationId overrides the Core OperationId.",
+    "The combined depth limit of 32 is enforced twice: by the per-callback remaining-depth check and again by Overlay. Owned BeginScope rejects the 33rd scope before invoking the copier, and admission closure is checked before copying.",
+    "Host state is copied at Log time into immutable LogValue graphs, and the external case shows that later mutations do not reach queued facts. ProviderStateCapture.CaptureScope reuses the allowlist, the 1024-node and depth-8 bounds, cycle detection and truncation provenance without the event_id reservation, and excludes OriginalFormat.",
+    "No new package, worker or public placeholder is added. The new public surface is only the ISupportExternalScope implementation, and the architecture test pins it."
+  ],
+  "carriedForward": [
+    "T02: typed mapping of a raw structured operation_id scope attribute, and the final operation_id and precedence cases (see O3).",
+    "T03: host filtering.",
+    "T04: full ownership story.",
+    "T05: complete LoggerFactory and host integration and shutdown, including factory-driven SetScopeProvider and ActivityTrackingOptions frames (see O6).",
+    "Full Developer verification and the final Windows and Ubuntu native proofs are pending, so no pass counts are inferred.",
+    "Examples, instructions and skills, and release qualification remain required; the release profile must keep failing until that evidence exists."
+  ]
+}

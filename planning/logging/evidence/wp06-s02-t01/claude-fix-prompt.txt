@@ -1,0 +1,1138 @@
+Read-only WP06-S02-T01 follow-up; no tools/MCP/edits/execution/persistence. Prior CHANGES_REQUIRED R1: incompatible borrowedhost scopes invalidated otherwisevalid events. Chosen resolution(a): per-frame bounded Copy ArgumentException => immutable empty frame withtruncationprovenance; admit valid event, no partialframe/serializer/arbitraryToString. OwnedBeginScope stillthrows; external-provider exceptions outsideCopy, nonArgument copyexceptions and combineddepth errors remainInvalid. O1 formatter counter nowInterlocked; O2 lightweight internalruntimeIsAdmissionClosed avoidsdiagnosticsallocs; O3docs qualifyretained-keypriority/boundedkeyomission; O4recursive loggingfromenumeration explicitlyunsupported; O5selectedtesthost runtimepinnedbyexistingtestpolicy; O6direct CreateLogger scopebehavior versusmanualSetScopeProvider qualifiedhere, realLoggerFactory/ActivityTrackingOptions remainsT05. New host-incompatible mode uses realMicrosoftLoggerExternalScopeProvider withbarestring,Dictionary<string,string>,BCL HttpMethod.Get instructuredscope; no installedHttpClientFactory pipeline claim/dependency added. 14unit13freshphysicalprocesscases and initialWindows13native25fixedreasoncontrols pass. Initial5191 Developer checkpoint retained historical; final5193 fullDeveloper/exactAssemblynative pending. Previous unchangedsource context remains atinitialreview snapshot, updatedfiles below. Exactnewplanningdecision excerptprovided, notallhistoricaldecisions. Review correction/omissioncounter/provenance/bounds/lifetime, nofalseproof. ReturnJSON verdict PASS or CHANGES_REQUIRED, requiredFindings, optionalFindings and carriedForward.
+
+--- FILE implementations/csharp/src/CIS.Core/Logging/MicrosoftLogger/ProviderScopeCapture.cs ---
+using CIS.Logging.Scopes;
+using Microsoft.Extensions.Logging;
+
+namespace CIS.Logging.MicrosoftLogger;
+
+// Host scopes are borrowed; only bounded immutable Core payloads leave this callback.
+internal static class ProviderScopeCapture
+{
+    internal static CapturedOperationContext Copy(object? state) => state switch
+    {
+        OperationContextData typed => CapturedOperationContext.Capture(typed),
+        IEnumerable<KeyValuePair<string, object?>> fields => CapturedOperationContext.FromAttributes(ProviderStateCapture.CaptureScope(fields)),
+        _ => throw new ArgumentException("Use OperationContextData or structured string/object fields for scopes.", nameof(state))
+    };
+
+    internal static CapturedScopeContext Capture(IExternalScopeProvider scopes, int maximumDepth)
+    {
+        OperationScopeFrame? head = null; int depth = 0;
+        scopes.ForEachScope((state, _) =>
+        {
+            if (++depth > maximumDepth) { throw new InvalidOperationException("The maximum combined scope depth is 32."); }
+            CapturedOperationContext context;
+            try { context = Copy(state); }
+            catch (ArgumentException) { context = CapturedOperationContext.Omitted; }
+            head = new OperationScopeFrame(context, head);
+        }, 0);
+        return CapturedScopeContext.FromHead(head);
+    }
+}
+
+--- FILE implementations/csharp/src/CIS.Core/Logging/Scopes/CapturedOperationContext.cs ---
+using CIS.Text;
+
+namespace CIS.Logging.Scopes;
+
+// An owned immutable payload; it contains no caller DTO or dictionary.
+internal sealed class CapturedOperationContext
+{
+    internal static readonly CapturedOperationContext Omitted = new(null, LogValue.OwnedMap(new Dictionary<string, LogValue>(), truncated: true));
+    private static readonly LogValue EmptyAttributes = LogValue.Map(new Dictionary<string, LogValue>());
+
+    private CapturedOperationContext(string? operationId, LogValue attributes)
+    {
+        OperationId = operationId;
+        Attributes = attributes;
+    }
+
+    internal string? OperationId { get; }
+    internal LogValue Attributes { get; }
+    internal bool IsTruncated => Attributes.IsTruncated;
+
+    internal static CapturedOperationContext FromAttributes(LogValue attributes) => new(null, attributes);
+
+    internal static CapturedOperationContext Capture(OperationContextData context)
+    {
+        ArgumentNullException.ThrowIfNull(context);
+        string? operationId = context.OperationId?.Trim();
+        IReadOnlyDictionary<string, LogValue>? attributes = context.Attributes;
+        if (string.IsNullOrEmpty(operationId))
+        {
+            operationId = null;
+        }
+        else if (!UnicodeScalarText.IsValid(operationId, 255, allowControls: false))
+        {
+            throw new ArgumentException("Use an operation identifier of at most 255 valid Unicode scalars without controls.", nameof(context));
+        }
+        return new(operationId, attributes is null ? EmptyAttributes : LogValue.Map(attributes));
+    }
+}
+
+--- FILE implementations/csharp/src/CIS.Core/Logging/CoreLogRuntime.cs ---
+using CIS.Logging.Events;
+using CIS.Logging.Rendering;
+using CIS.Logging.Runtime;
+using CIS.Logging.Scopes;
+using CIS.Text;
+
+namespace CIS.Logging;
+
+/// <summary>Owns logger context, independent output admission and one shared bounded stop operation.</summary>
+public sealed class CoreLogRuntime : IAsyncDisposable
+{
+    private readonly object admissionGate;
+    private readonly OutputQueues? queuedOutputs;
+    private readonly ConsoleOutputWriter? consoleWriter;
+    private readonly FileOutputWriter? fileWriter;
+    private readonly bool recoveredPartialSegment;
+    private readonly EventMetadata metadata;
+    private readonly TimeProvider timeProvider;
+    private readonly int maximumEntryBytes;
+    private readonly TimeSpan shutdownTimeout;
+    private Task<LogStopResult>? stopTask;
+    private LogStopResult? lastStopResult;
+    private readonly Output[] outputs;
+    private bool admissionClosed;
+    private DateTimeOffset? shutdownStartedAtUtc;
+    private long invalidEventCount;
+    private long truncatedEventCount;
+
+    // The direct internal admission seam remains available for existing focused qualification.
+    internal CoreLogRuntime(EventMetadata metadata, LoggingOptions options, ILogOutputAdmission? console,
+        ILogOutputAdmission? file, TimeProvider? timeProvider = null, object? sharedAdmissionGate = null, OutputQueues? queuedOutputs = null, ConsoleOutputWriter? consoleWriter = null, FileOutputWriter? fileWriter = null)
+    {
+        ArgumentNullException.ThrowIfNull(metadata);
+        ArgumentNullException.ThrowIfNull(options);
+        CoreLogLevel consoleLevel = options.EffectiveConsoleLevel;
+        CoreLogLevel fileLevel = options.EffectiveFileLevel;
+        bool consoleEnabled = consoleLevel != CoreLogLevel.None;
+        bool fileEnabled = !string.IsNullOrWhiteSpace(options.FilePath) && fileLevel != CoreLogLevel.None;
+        int maximumBytes = options.MaxEntryBytes;
+        ValidateSettings(consoleLevel, fileLevel, maximumBytes);
+        ValidateShutdownTimeout(options.ShutdownTimeoutMilliseconds);
+        admissionGate = sharedAdmissionGate ?? new object();
+        this.queuedOutputs = queuedOutputs;
+        this.consoleWriter = consoleWriter;
+        this.fileWriter = fileWriter;
+        recoveredPartialSegment = fileWriter?.RecoveredPartialSegment == true;
+        this.metadata = metadata;
+        this.timeProvider = timeProvider ?? TimeProvider.System;
+        maximumEntryBytes = maximumBytes;
+        shutdownTimeout = options.ShutdownTimeout;
+        var configured = new List<Output>(2);
+        Add("console", consoleEnabled, consoleLevel, console);
+        Add("file", fileEnabled, fileLevel, file);
+        outputs = configured.ToArray();
+
+        void Add(string name, bool enabled, CoreLogLevel threshold, ILogOutputAdmission? admission)
+        {
+            if (enabled != (admission is not null))
+            {
+                throw new ArgumentException("Output composition must match enabled settings.", name);
+            }
+            if (admission is not null) { configured.Add(new Output(name, threshold, admission)); }
+        }
+    }
+
+    /// <summary>Creates an application-owned runtime using the prepared static environment settings and automatically captured facts.</summary>
+    /// <remarks>Configure EnvironmentOptions.Logging before creation; preparation normalizes its FilePath in place. Concurrent mutation of those settings is unsupported. Each runtime owns only its own workers and file group. DisposeAsync joins its bounded shutdown.</remarks>
+    /// <exception cref="CIS.Configuration.CoreConfigurationException">Module settings or captured metadata are invalid.</exception>
+    /// <exception cref="TypeInitializationException">Static environment initialization failed.</exception>
+    /// <exception cref="CoreLogInitializationException">An enabled output cannot initialize.</exception>
+    public static CoreLogRuntime Create()
+    {
+        LoggingOptions options = EnvironmentOptions.Logging;
+        options.Prepare(Directory.GetCurrentDirectory());
+        return CreateConfiguredQueued(new EventMetadata(), options);
+    }
+
+    // Actual capture -> ticketed Channels -> sequential trusted writers; physical output ownership comes later.
+    internal static CoreLogRuntime CreateQueued(EventMetadata metadata, LoggingOptions options,
+        Func<AdmittedEvent, ValueTask>? consoleWrite, Func<AdmittedEvent, ValueTask>? fileWrite, TimeProvider? timeProvider = null,
+        Func<ValueTask>? consoleFlush = null, Func<ValueTask>? fileFlush = null)
+    {
+        ArgumentNullException.ThrowIfNull(metadata);
+        return ComposeQueued(metadata, CaptureQueueOptions(options), consoleWrite, fileWrite, timeProvider, consoleFlush: consoleFlush, fileFlush: fileFlush);
+    }
+
+    // Console settings are frozen before selecting the stream or starting any output worker.
+    internal static CoreLogRuntime CreateConsoleQueued(EventMetadata metadata, LoggingOptions options,
+        Func<AdmittedEvent, ValueTask>? fileWrite = null, TimeProvider? timeProvider = null,
+        Func<ConsoleOutputStream, Stream>? acquireConsole = null, Func<Func<Task>, Task>? launchWorker = null)
+    {
+        ArgumentNullException.ThrowIfNull(metadata);
+        LoggingOptions selected = CaptureQueueOptions(options);
+        ValidateSettings(selected.EffectiveConsoleLevel, selected.EffectiveFileLevel, selected.MaxEntryBytes);
+        if (selected.QueueCapacity is < LoggingOptions.MinimumQueueCapacity or > LoggingOptions.MaximumQueueCapacity)
+        { throw new ArgumentOutOfRangeException(nameof(options), "Use the configured queue-capacity range."); }
+        if (!Enum.IsDefined(selected.ConsoleFormat) || !Enum.IsDefined(selected.HumanDetail) || !Enum.IsDefined(selected.ConsoleStream))
+        { throw new ArgumentException("Use declared console presentation and stream values.", nameof(options)); }
+        ConsoleOutputWriter? writer = AcquireConsoleWriter(selected, acquireConsole);
+        return ComposeQueued(metadata, selected, writer is null ? null : writer.WriteAsync, fileWrite, timeProvider, writer, launchWorker);
+    }
+
+    internal static CoreLogRuntime CreateConfiguredQueued(EventMetadata metadata, LoggingOptions options, TimeProvider? timeProvider = null,
+        Func<ConsoleOutputStream, Stream>? acquireConsole = null, Func<Func<Task>, Task>? launchWorker = null)
+    {
+        ArgumentNullException.ThrowIfNull(metadata);
+        LoggingOptions selected = CaptureQueueOptions(options);
+        ValidateSettings(selected.EffectiveConsoleLevel, selected.EffectiveFileLevel, selected.MaxEntryBytes);
+        if (selected.QueueCapacity is < LoggingOptions.MinimumQueueCapacity or > LoggingOptions.MaximumQueueCapacity
+            || selected.FileMaxBytes is < LoggingOptions.MinimumFileMaxBytes or > LoggingOptions.MaximumFileMaxBytes
+            || selected.FileRetainedFiles is < LoggingOptions.MinimumFileRetainedFiles or > LoggingOptions.MaximumFileRetainedFiles
+            || selected.FileEnabled && (selected.FileMaxBytes < selected.MaxEntryBytes
+                || selected.FlushIntervalMilliseconds is < LoggingOptions.MinimumFlushIntervalMilliseconds or > LoggingOptions.MaximumFlushIntervalMilliseconds))
+        { throw new ArgumentOutOfRangeException(nameof(options)); }
+        if (!Enum.IsDefined(selected.ConsoleFormat) || !Enum.IsDefined(selected.ConsoleStream) || !Enum.IsDefined(selected.FileFormat) || !Enum.IsDefined(selected.HumanDetail))
+        { throw new ArgumentException("Use declared output presentation values.", nameof(options)); }
+        if (selected.FileEnabled && !Path.IsPathFullyQualified(selected.FilePath!))
+        { throw new ArgumentException("File output requires an already captured absolute path.", nameof(options)); }
+        ConsoleOutputWriter? console = AcquireConsoleWriter(selected, acquireConsole);
+        FileOutputWriter? file = selected.FileEnabled ? new(selected.FilePath!, selected.FileFormat, selected.HumanDetail, selected.MaxEntryBytes, selected.FileMaxBytes, selected.FileRetainedFiles) : null;
+        return ComposeQueued(metadata, selected, console is null ? null : console.WriteAsync, file is null ? null : file.WriteAsync, timeProvider, console, launchWorker, file);
+    }
+
+    private static ConsoleOutputWriter? AcquireConsoleWriter(LoggingOptions selected, Func<ConsoleOutputStream, Stream>? acquireConsole)
+    {
+        ConsoleOutputWriter? writer = null;
+        if (selected.ConsoleEnabled)
+        {
+            try
+            {
+                Stream stream = acquireConsole is null ?
+                    selected.ConsoleStream == ConsoleOutputStream.StandardError ? Console.OpenStandardError() : Console.OpenStandardOutput() :
+                    acquireConsole(selected.ConsoleStream);
+                if (stream is null) { throw new CoreLogInitializationException("console", "ConsoleInitializationFailed"); }
+                writer = new ConsoleOutputWriter(stream, selected.ConsoleFormat, selected.HumanDetail, selected.MaxEntryBytes);
+            }
+            catch (CoreLogInitializationException) { throw; }
+            catch { throw new CoreLogInitializationException("console", "ConsoleInitializationFailed"); }
+        }
+        return writer;
+    }
+
+    private static LoggingOptions CaptureQueueOptions(LoggingOptions options)
+    {
+        ArgumentNullException.ThrowIfNull(options);
+        ValidateShutdownTimeout(options.ShutdownTimeoutMilliseconds);
+        return new LoggingOptions
+        {
+            ConsoleLevel = options.EffectiveConsoleLevel,
+            FileLevel = options.EffectiveFileLevel,
+            FilePath = options.FilePath,
+            MaxEntryBytes = options.MaxEntryBytes,
+            QueueCapacity = options.QueueCapacity,
+            ConsoleFormat = options.ConsoleFormat,
+            ConsoleStream = options.ConsoleStream,
+            HumanDetail = options.HumanDetail,
+            FileFormat = options.FileFormat,
+            FileMaxBytes = options.FileMaxBytes,
+            FileRetainedFiles = options.FileRetainedFiles,
+            FlushIntervalMilliseconds = options.FlushIntervalMilliseconds,
+            ShutdownTimeoutMilliseconds = options.ShutdownTimeoutMilliseconds
+        };
+    }
+
+    private static CoreLogRuntime ComposeQueued(EventMetadata metadata, LoggingOptions selected,
+        Func<AdmittedEvent, ValueTask>? consoleWrite, Func<AdmittedEvent, ValueTask>? fileWrite,
+        TimeProvider? timeProvider, ConsoleOutputWriter? writer = null, Func<Func<Task>, Task>? launchWorker = null, FileOutputWriter? fileWriter = null, Func<ValueTask>? consoleFlush = null, Func<ValueTask>? fileFlush = null)
+    {
+        ValidateSettings(selected.EffectiveConsoleLevel, selected.EffectiveFileLevel, selected.MaxEntryBytes);
+        var gate = new object();
+        var queues = new OutputQueues(selected.QueueCapacity, selected.ConsoleEnabled, selected.FileEnabled, consoleWrite, fileWrite, gate, launchWorker, fileWriter,
+            writer is null ? consoleFlush : writer.FlushAsync, fileWriter is null ? fileFlush : fileWriter.FlushAsync,
+            writer is null ? null : writer.WriteAsync, fileWriter is null ? null : fileWriter.WriteAsync,
+            writer is null ? null : writer.FlushAsync, fileWriter is null ? null : fileWriter.FlushAsync);
+        try
+        {
+            writer?.Initialize();
+            fileWriter?.Initialize();
+            var runtime = new CoreLogRuntime(metadata, selected, queues.Console, queues.File, timeProvider, gate, queues, writer, fileWriter);
+            if (fileWriter is not null)
+            {
+                try { queues.File!.StartFileFlushTimer(runtime.timeProvider, selected.FlushInterval); }
+                catch { throw new CoreLogInitializationException("file", "FileFlushTimerInitializationFailed"); }
+            }
+            return runtime;
+        }
+        catch
+        {
+            queues.Complete();
+            // Observe terminal cleanup failures without masking the safe initialization category.
+            try { queues.Completion.GetAwaiter().GetResult(); } catch { }
+            try { fileWriter?.Dispose(); } catch { }
+            throw;
+        }
+    }
+    internal OutputQueues? QueuedOutputs => queuedOutputs;
+    private static void ValidateShutdownTimeout(int milliseconds)
+    {
+        if (milliseconds is < LoggingOptions.MinimumShutdownTimeoutMilliseconds or > LoggingOptions.MaximumShutdownTimeoutMilliseconds)
+        { throw new ArgumentOutOfRangeException(nameof(milliseconds), "Use the configured shutdown-timeout range."); }
+    }
+
+    /// <summary>Starts or joins one shared bounded stop operation through its original accepted boundaries.</summary>
+    /// <param name="cancellationToken">Cancels only this caller's wait; even an already-cancelled first caller starts shutdown.</param>
+    /// <returns>The same owned immutable observation retained for all joining callers.</returns>
+    /// <exception cref="OperationCanceledException">The caller cancels its own wait.</exception>
+    /// <remarks>The configured overall timeout is frozen at creation. UTC is an observation label; elapsed time is monotonic. At expiry, unstarted accepted records are abandoned. Cancellation of active writes/flushes is requested but is not guaranteed, and no new flush, retry or replacement writer starts. Completed means terminal dispositions, not successful delivery or resource release. A timed-out observation can retain pending I/O; its later completion does not change the cached result.</remarks>
+    public Task<LogStopResult> StopAsync(CancellationToken cancellationToken)
+    {
+        if (queuedOutputs is null) { throw new InvalidOperationException("Stop requires actual queued output composition."); }
+        Task<LogStopResult>? shared;
+        lock (admissionGate) { shared = stopTask; }
+        if (shared is null)
+        {
+            // Caller clock code is never invoked under admission synchronization.
+            // Preliminary concurrent samples are harmless; only the winning caller owns the deadline.
+            long started = timeProvider.GetTimestamp();
+            RuntimeFlushBoundary boundary = default;
+            TaskCompletionSource<LogStopResult>? completion = null;
+            lock (admissionGate)
+            {
+                if (stopTask is null)
+                {
+                    completion = new(TaskCreationOptions.RunContinuationsAsynchronously);
+                    stopTask = completion.Task;
+                    try
+                    {
+                        // Register final controls before a closing idle worker is allowed to exit.
+                        boundary = RegisterFlushBoundary();
+                        shutdownStartedAtUtc ??= boundary.BoundaryCapturedAtUtc;
+                        admissionClosed = true;
+                        queuedOutputs.Complete();
+                    }
+                    catch (Exception error)
+                    {
+                        // A failed setup must not leave the already-published task pending forever.
+                        completion.TrySetException(error);
+                        throw;
+                    }
+                }
+                shared = stopTask;
+            }
+            if (completion is not null)
+            {
+                // Start deadline acquisition directly, without a delayed ThreadPool launch.
+                // Only continuations/timers outlive this call; they do not retain the caller's flow.
+                if (ExecutionContext.IsFlowSuppressed()) { _ = RunStopAsync(boundary, started, completion); }
+                else { using (ExecutionContext.SuppressFlow()) { _ = RunStopAsync(boundary, started, completion); } }
+            }
+        }
+        // WaitAsync can prefer an already-completed task; an already-cancelled caller must still cancel.
+        if (cancellationToken.IsCancellationRequested) { return Task.FromCanceled<LogStopResult>(cancellationToken); }
+        return cancellationToken.CanBeCanceled ? shared!.WaitAsync(cancellationToken) : shared!;
+    }
+
+    /// <summary>Starts or joins the original bounded stop operation without a new drain window.</summary>
+    /// <returns>A wait on the same shared operation; unsuccessful draining remains visible in LastStopResult.</returns>
+    /// <remarks>Repeated disposal is harmless. At the original deadline this wait may complete while actual I/O and owned cleanup remain pending; no resource is disposed beneath active I/O. Inspect GetDiagnostics().LastStopResult for the immutable drain outcome.</remarks>
+    public ValueTask DisposeAsync() => new(StopAsync(CancellationToken.None));
+
+    private async Task RunStopAsync(RuntimeFlushBoundary boundary, long started, TaskCompletionSource<LogStopResult> completion)
+    {
+        try
+        {
+            if (boundary.Console is null && boundary.File is null)
+            { PublishStop(CaptureFlushResult(boundary), completion); return; }
+            await using var deadline = new FlushDeadline(timeProvider, started, shutdownTimeout, () => CaptureFlushResult(boundary), () => CaptureStopDeadline(boundary));
+            try
+            {
+                await boundary.WaitForWriterFlushAsync(deadline.Token).ConfigureAwait(false);
+                if (boundary.Console is { } console)
+                { await queuedOutputs!.Console!.WaitForCoveredRecordsAsync("console", console, deadline.Token).ConfigureAwait(false); }
+                if (boundary.File is { } file)
+                { await queuedOutputs!.File!.WaitForCoveredRecordsAsync("file", file, deadline.Token).ConfigureAwait(false); }
+                try { await queuedOutputs!.Completion.WaitAsync(deadline.Token).ConfigureAwait(false); }
+                catch (Exception) when ((queuedOutputs!.Completion.IsFaulted || queuedOutputs.Completion.IsCanceled) && (queuedOutputs.Console?.IsFaulted == true || queuedOutputs.File?.IsFaulted == true))
+                { /* Terminal writer faults remain safe output results, not business-call I/O exceptions. */ }
+            }
+            catch (OperationCanceledException) when (deadline.Token.IsCancellationRequested) { }
+            // Publish the frozen result before asynchronous deadline-timer cleanup can wait on a callback join.
+            PublishStop(deadline.ObserveCompletion(), completion);
+        }
+        catch (Exception error)
+        {
+            if (completion.Task.IsCompletedSuccessfully)
+            {
+                // Publication precedes deadline-timer cleanup; later failure belongs to live diagnostics.
+                queuedOutputs!.RecordCleanupFault("ShutdownTimerCleanupFailed");
+            }
+            else { completion.TrySetException(error); }
+        }
+    }
+
+    private LogFlushResult CaptureStopDeadline(RuntimeFlushBoundary boundary)
+    {
+        LogFlushResult observation;
+        lock (admissionGate)
+        {
+            queuedOutputs!.AbandonUnstarted();
+            observation = CaptureFlushResult(boundary);
+        }
+        // Freeze actual pending work before cooperative cancellation can settle it.
+        queuedOutputs.RequestIoCancellation();
+        return observation;
+    }
+    private void PublishStop(LogFlushResult observation, TaskCompletionSource<LogStopResult> completion)
+    {
+        var result = new LogStopResult(observation);
+        lock (admissionGate) { lastStopResult = result; }
+        completion.TrySetResult(result);
+    }
+
+
+    /// <summary>Waits through fixed accepted boundaries and confirms each enabled writer's buffer flush.</summary>
+    /// <param name="timeout">One positive finite overall wait budget; every positive TimeSpan is supported.</param>
+    /// <param name="cancellationToken">Cancels only this caller's wait, preserving shared worker requests.</param>
+    /// <returns>An owned immutable observation, including unresolved work at the deadline.</returns>
+    /// <exception cref="ArgumentOutOfRangeException">The timeout is zero, negative or infinite.</exception>
+    /// <exception cref="OperationCanceledException">The caller token is cancelled, including after boundary registration.</exception>
+    /// <remarks>UTC labels are system observations; elapsed deadlines use the runtime TimeProvider. Flush does not stop admission or guarantee disk durability. After closure it cannot reopen a writer; a terminal writer returns an unavailable/failed flush even if the original stop flushed successfully. Inspect LastStopResult for that original shutdown outcome.</remarks>
+    public Task<LogFlushResult> FlushAsync(TimeSpan timeout, CancellationToken cancellationToken)
+    {
+        if (timeout.Ticks <= 0) { throw new ArgumentOutOfRangeException(nameof(timeout)); }
+        long started = timeProvider.GetTimestamp();
+        RuntimeFlushBoundary boundary = RegisterFlushBoundary();
+        return ObserveFlushAsync(boundary, started, timeout, cancellationToken);
+    }
+    private async Task<LogFlushResult> ObserveFlushAsync(RuntimeFlushBoundary boundary, long started, TimeSpan timeout, CancellationToken caller)
+    {
+        caller.ThrowIfCancellationRequested();
+        if (boundary.Console is null && boundary.File is null) { return CaptureFlushResult(boundary); }
+        await using var deadline = new FlushDeadline(timeProvider, started, timeout, () => CaptureFlushResult(boundary));
+        using var wait = CancellationTokenSource.CreateLinkedTokenSource(caller, deadline.Token);
+        try
+        {
+            await boundary.WaitForWriterFlushAsync(wait.Token).ConfigureAwait(false);
+            // A terminal unavailable flush can precede the disposition of an already-started write.
+            if (boundary.Console is { } console)
+            { await queuedOutputs!.Console!.WaitForCoveredRecordsAsync("console", console, wait.Token).ConfigureAwait(false); }
+            if (boundary.File is { } file)
+            { await queuedOutputs!.File!.WaitForCoveredRecordsAsync("file", file, wait.Token).ConfigureAwait(false); }
+        }
+        catch (OperationCanceledException) when (wait.IsCancellationRequested)
+        { caller.ThrowIfCancellationRequested(); }
+        caller.ThrowIfCancellationRequested();
+        return deadline.ObserveCompletion();
+    }
+    private LogFlushResult CaptureFlushResult(RuntimeFlushBoundary boundary)
+    {
+        lock (admissionGate)
+        {
+            var observations = new List<LogOutputDrainResult>(2);
+            if (boundary.Console is { } console) { observations.Add(queuedOutputs!.Console!.CaptureDrain("console", console)); }
+            if (boundary.File is { } file) { observations.Add(queuedOutputs!.File!.CaptureDrain("file", file)); }
+            return new LogFlushResult(boundary.BoundaryCapturedAtUtc, DateTimeOffset.UtcNow,
+                boundary.InvalidEventCount, boundary.TruncatedEventCount, observations);
+        }
+    }
+    internal RuntimeFlushBoundary RegisterFlushBoundary()
+    {
+        if (queuedOutputs is null) { throw new InvalidOperationException("Flush boundaries require actual queued output composition."); }
+        lock (admissionGate)
+        {
+            // Pure system UTC sampling here does not invoke caller factories, payloads or the event clock.
+            DateTimeOffset capturedAt = DateTimeOffset.UtcNow;
+            OutputFlushBoundary? console = queuedOutputs.Console?.RegisterFlushBoundary();
+            OutputFlushBoundary? file = queuedOutputs.File?.RegisterFlushBoundary();
+            return new RuntimeFlushBoundary(capturedAt, InvalidEventCount, TruncatedEventCount, console, file);
+        }
+    }
+    internal RuntimeAccounting CaptureAccounting()
+    {
+        if (queuedOutputs is null) { throw new InvalidOperationException("Accounting requires actual queued output composition."); }
+        lock (admissionGate)
+        {
+            // Output/disposition/truncation/closure changes share this gate. Invalid increments
+            // independently, so its atomic read chooses the observation point while the rest is stable.
+            return new RuntimeAccounting(admissionClosed, InvalidEventCount, TruncatedEventCount,
+                queuedOutputs.Console?.CaptureAccounting(), queuedOutputs.File?.CaptureAccounting());
+        }
+    }
+
+    /// <summary>Returns an owned immutable live observation without routing a log or performing output I/O.</summary>
+    /// <remarks>Available after faults and admission closure. This does not register a fixed flush target.</remarks>
+    public CoreLogDiagnostics GetDiagnostics()
+    {
+        lock (admissionGate)
+        {
+            RuntimeAccounting counts = CaptureAccounting();
+            var values = new List<LogOutputDiagnostics>(2);
+            if (counts.Console is OutputAccounting console) { values.Add(new LogOutputDiagnostics("console", console)); }
+            if (counts.File is OutputAccounting file) { values.Add(new LogOutputDiagnostics("file", file, recoveredPartialSegment)); }
+            CoreLogState state = !counts.AdmissionClosed ? CoreLogState.Running :
+                values.All(value => value.State == LogOutputState.Stopped) ? CoreLogState.Stopped : CoreLogState.Stopping;
+            return new CoreLogDiagnostics(state, counts.AdmissionClosed, DateTimeOffset.UtcNow, shutdownStartedAtUtc,
+                counts.InvalidEventCount, counts.TruncatedEventCount, values, lastStopResult);
+        }
+    }
+
+    internal OperationScopeStore Scopes { get; } = new();
+    internal long InvalidEventCount => Interlocked.Read(ref invalidEventCount);
+    internal long TruncatedEventCount => Interlocked.Read(ref truncatedEventCount);
+
+    /// <summary>Creates a logger borrowing this runtime, including after admission closes.</summary>
+    /// <exception cref="ArgumentNullException">Component is null.</exception>
+    /// <exception cref="ArgumentException">Component is blank, malformed, contains controls or exceeds 255 scalars.</exception>
+    public CoreLogger CreateLogger(string component)
+    {
+        ArgumentNullException.ThrowIfNull(component);
+        if (string.IsNullOrWhiteSpace(component) || !UnicodeScalarText.IsValid(component, 255, allowControls: false))
+        {
+            throw new ArgumentException("Use a component of 1-255 valid Unicode scalars without controls.", nameof(component));
+        }
+        return new CoreLogger(this, component);
+    }
+
+    internal bool IsAdmissionClosed { get { lock (admissionGate) { return admissionClosed; } } }
+
+    internal bool IsEnabled(CoreLogLevel level)
+    {
+        ValidateLevel(level);
+        lock (admissionGate)
+        {
+            return !admissionClosed && outputs.Any(output => Interested(output, level) && !output.Admission.IsFaulted);
+        }
+    }
+
+    internal LogWriteResult Write(string component, CoreLogLevel level, LogEventData? data, Func<LogEventData>? factory)
+    {
+        ValidateLevel(level);
+        bool renderConsole, renderFile;
+        lock (admissionGate)
+        {
+            if (admissionClosed) { return Stopped(isTruncated: false); }
+            if (!outputs.Any(output => Interested(output, level))) { return FinishWithoutCapture(level, LogWriteOutcome.Filtered); }
+            if (!outputs.Any(output => Interested(output, level) && !output.Admission.IsFaulted))
+            {
+                return FinishWithoutCapture(level, LogWriteOutcome.Rejected);
+            }
+            renderConsole = consoleWriter is not null && outputs.Any(output => output.Name == "console" && Interested(output, level) && !output.Admission.IsFaulted);
+            renderFile = fileWriter is not null && outputs.Any(output => output.Name == "file" && Interested(output, level) && !output.Admission.IsFaulted);
+        }
+        // No gate is held around caller factories, clock, scopes or payload callbacks.
+        if (factory is not null) { data = factory(); }
+        if (data is null) { return Invalid("InvalidFactoryResult"); }
+        string? eventName = data.EventName;
+        string? message = data.Message;
+        string? template = data.MessageTemplate;
+        string? operationId = data.OperationId;
+        CapturedEventFacts facts;
+        try
+        {
+            facts = EventProjection.Capture(metadata, Scopes.Capture(), component, level, data, timeProvider)!;
+        }
+        catch (Exception error) when (error is not (OutOfMemoryException or StackOverflowException))
+        {
+            return Invalid(CaptureError(eventName, message, template, operationId));
+        }
+        EncodedEvent captured;
+        RenderedEvent? preparedConsole = null, preparedFile = null;
+        // Other owned encoding/rendering consistency errors are Core defects, not invalid caller content.
+        try
+        {
+            captured = EventEncoder.Encode(facts, maximumEntryBytes);
+            if (renderConsole) { preparedConsole = consoleWriter!.Prepare(captured); }
+            if (renderFile) { preparedFile = fileWriter!.Prepare(captured); }
+        }
+        catch (EventEnvelopeTooLargeException) { return Invalid("EnvelopeTooLarge"); }
+        bool isTruncated = captured.IsTruncated || preparedConsole?.IsTruncated == true || preparedFile?.IsTruncated == true;
+        lock (admissionGate)
+        {
+            if (isTruncated) { IncrementLossCounter(ref truncatedEventCount); }
+            if (admissionClosed) { return Stopped(isTruncated); }
+            return Admit(level, captured, preparedConsole?.Line, preparedFile?.Line, isTruncated);
+        }
+    }
+
+    // Primitive internal qualification closure: no final flush or bounded shutdown is promised.
+    // Supported applications use StopAsync/DisposeAsync; a later flush cannot reopen an exited worker.
+    internal void CloseAdmission()
+    {
+        lock (admissionGate) { shutdownStartedAtUtc ??= DateTimeOffset.UtcNow; admissionClosed = true; queuedOutputs?.Complete(); }
+    }
+
+    private LogWriteResult Invalid(string code)
+    {
+        IncrementLossCounter(ref invalidEventCount);
+        return new LogWriteResult(LogWriteOutcome.InvalidEvent, [], code);
+    }
+
+    // Loss counters retain a nonnegative lower bound once Int64 can no longer represent the total.
+    private static void IncrementLossCounter(ref long counter)
+    {
+        long current = Interlocked.Read(ref counter);
+        while (current != long.MaxValue)
+        {
+            long observed = Interlocked.CompareExchange(ref counter, current + 1, current);
+            if (observed == current) { return; }
+            current = observed;
+        }
+    }
+
+    private LogWriteResult Stopped(bool isTruncated) => new(LogWriteOutcome.Stopped,
+        outputs.Select(output => new LogOutputWriteResult(output.Name, LogOutputWriteStatus.Stopped, null)), isTruncated: isTruncated);
+
+    private LogWriteResult FinishWithoutCapture(CoreLogLevel level, LogWriteOutcome outcome)
+    {
+        var observations = new List<LogOutputWriteResult>(outputs.Length);
+        foreach (Output output in outputs)
+        {
+            LogOutputWriteStatus status;
+            if (Interested(output, level))
+            {
+                output.Admission.RecordUnavailable();
+                status = LogOutputWriteStatus.Faulted;
+            }
+            else
+            {
+                output.Admission.RecordFiltered();
+                status = LogOutputWriteStatus.Filtered;
+            }
+            observations.Add(new LogOutputWriteResult(output.Name, status, null));
+        }
+        return new LogWriteResult(outcome, observations);
+    }
+
+    private LogWriteResult Admit(CoreLogLevel level, EncodedEvent captured, ReadOnlyMemory<byte>? consoleLine, ReadOnlyMemory<byte>? fileLine, bool isTruncated)
+    {
+        var observations = new List<LogOutputWriteResult>(outputs.Length);
+        int accepted = 0;
+        int interested = 0;
+        foreach (Output output in outputs)
+        {
+            long? sequence = null;
+            LogOutputWriteStatus status;
+            if (!Interested(output, level))
+            {
+                output.Admission.RecordFiltered();
+                status = LogOutputWriteStatus.Filtered;
+            }
+            else
+            {
+                interested++;
+                if (output.Admission.IsFaulted)
+                {
+                    output.Admission.RecordUnavailable();
+                    status = LogOutputWriteStatus.Faulted;
+                }
+                else if (output.Name == "console" && consoleLine is { } preparedLine)
+                { status = queuedOutputs!.Console!.TryAdmit(captured, preparedLine, out sequence); }
+                else if (output.Name == "file" && fileLine is { } preparedFileLine)
+                { status = queuedOutputs!.File!.TryAdmit(captured, preparedFileLine, out sequence); }
+                else { status = output.Admission.TryAdmit(captured, out sequence); }
+                if (status == LogOutputWriteStatus.Accepted) { accepted++; }
+            }
+            if (Interested(output, level) && status is not (LogOutputWriteStatus.Accepted or LogOutputWriteStatus.QueueFull or LogOutputWriteStatus.Faulted))
+            {
+                throw new InvalidOperationException("Output admission returned an invalid status.");
+            }
+            if (status == LogOutputWriteStatus.Accepted ? sequence is null or <= 0 : sequence is not null)
+            {
+                throw new InvalidOperationException("Output admission returned an invalid ticket.");
+            }
+            observations.Add(new LogOutputWriteResult(output.Name, status, sequence));
+        }
+        LogWriteOutcome outcome = LogWriteOutcome.Rejected;
+        if (accepted == interested) { outcome = LogWriteOutcome.Accepted; }
+        else if (accepted > 0) { outcome = LogWriteOutcome.PartiallyAccepted; }
+        return new LogWriteResult(outcome, observations, isTruncated: isTruncated);
+    }
+
+    private static string CaptureError(string? name, string? message, string? template, string? operationId)
+    {
+        foreach (string? text in new[] { name, message, template, operationId })
+        {
+            if (text is not null && !UnicodeScalarText.IsValid(text, int.MaxValue, allowControls: true)) { return "InvalidUnicode"; }
+        }
+        if (string.IsNullOrEmpty(name) || !UnicodeScalarText.IsValid(name, 255, allowControls: false)) { return "InvalidEventName"; }
+        if (message is null) { return "InvalidMessage"; }
+        string? operation = operationId?.Trim();
+        if (!string.IsNullOrEmpty(operation) && !UnicodeScalarText.IsValid(operation, 255, allowControls: false)) { return "InvalidOperationId"; }
+        // Arbitrary cooperative callback/unsupported payload failures expose only this fixed code.
+        return "UnsupportedValue";
+    }
+
+    private static bool Interested(Output output, CoreLogLevel level) => level != CoreLogLevel.None && level >= output.Threshold;
+    private static void ValidateSettings(CoreLogLevel console, CoreLogLevel file, int maximumBytes)
+    {
+        ValidateLevel(console); ValidateLevel(file);
+        if (maximumBytes is < LoggingOptions.MinimumMaxEntryBytes or > LoggingOptions.MaximumMaxEntryBytes) { throw new ArgumentOutOfRangeException("options"); }
+    }
+    private static void ValidateLevel(CoreLogLevel level)
+    {
+        if (!Enum.IsDefined(level)) { throw new ArgumentOutOfRangeException(nameof(level), "Use a declared logging level."); }
+    }
+    private sealed record Output(string Name, CoreLogLevel Threshold, ILogOutputAdmission Admission);
+}
+
+--- FILE implementations/csharp/src/CIS.Core/Logging/MicrosoftLogger/CoreLoggerProvider.cs ---
+using Microsoft.Extensions.Logging;
+
+namespace CIS.Logging.MicrosoftLogger;
+
+/// <summary>Creates Microsoft category loggers that borrow an application-owned core runtime.</summary>
+/// <remarks>Disposal disables this provider's future calls and never stops or disposes the shared runtime.
+/// A call already running when disposal occurs may finish. Category names follow the core component rules.
+/// Supplied rendered messages and exceptions enter core capture. Null or empty EventId.Name becomes
+/// log.message; EventId.Id supplies the integer attribute event_id, including zero and negative values.
+/// Structured state preserves {OriginalFormat} without parsing. Core checks interest before invoking
+/// formatter or copying state; full queues remain interested. Formatter exceptions propagate unchanged;
+/// invalid retained payload increments core diagnostics without output admission. Oversized valid payload
+/// is truncated. Disposed, stopped, filtered and all-faulted calls skip both callbacks after argument guards.
+/// Healthy outputs admit independently. Provider-created scopes are copied at BeginScope; borrowed host
+/// scopes are copied during accepted capture, after Activity and clock snapshots. Combined scope depth is 32.</remarks>
+public sealed class CoreLoggerProvider : ILoggerProvider, ISupportExternalScope
+{
+    private readonly CoreLogRuntime runtime;
+    private int disposed;
+    private readonly object scopeProviderGate = new();
+    private IExternalScopeProvider? externalScopes;
+
+    /// <summary>Creates a nonowning provider over an existing runtime.</summary>
+    /// <exception cref="ArgumentNullException">Runtime is null.</exception>
+    public CoreLoggerProvider(CoreLogRuntime runtime)
+    {
+        ArgumentNullException.ThrowIfNull(runtime);
+        this.runtime = runtime;
+    }
+
+    /// <summary>Creates a category logger using the core's validated component name.</summary>
+    /// <exception cref="ObjectDisposedException">This provider has been disposed.</exception>
+    /// <exception cref="ArgumentNullException">Category name is null.</exception>
+    /// <exception cref="ArgumentException">The name does not satisfy the core component rules.</exception>
+    public ILogger CreateLogger(string categoryName)
+    {
+        ObjectDisposedException.ThrowIf(IsDisposed, this);
+        return new CategoryLogger(this, runtime.CreateLogger(categoryName));
+    }
+
+    private bool IsDisposed => Volatile.Read(ref disposed) != 0;
+
+    /// <summary>Idempotently disables this provider; the application retains runtime ownership.</summary>
+    public void Dispose()
+    {
+        lock (scopeProviderGate) { Interlocked.Exchange(ref disposed, 1); Volatile.Write(ref externalScopes, null); }
+    }
+
+    /// <summary>Borrows the host scope source; accepted events copy its active scopes inline.</summary>
+    /// <remarks>Existing core/provider scopes are the outer layer, host scopes the inner layer, and event attributes replace matching retained keys.
+    /// Host scope lifetime belongs to the host. Provider disposal releases this reference and never disposes host handles.</remarks>
+    /// <exception cref="ArgumentNullException">Scope provider is null.</exception>
+    /// <exception cref="ObjectDisposedException">This provider is disposed.</exception>
+    public void SetScopeProvider(IExternalScopeProvider scopeProvider)
+    {
+        ArgumentNullException.ThrowIfNull(scopeProvider);
+        lock (scopeProviderGate) { ObjectDisposedException.ThrowIf(IsDisposed, this); Volatile.Write(ref externalScopes, scopeProvider); }
+    }
+
+    private static CoreLogLevel Level(LogLevel logLevel)
+    {
+        if (!Enum.IsDefined(logLevel)) { throw new ArgumentOutOfRangeException(nameof(logLevel)); }
+        // The selected v1 Core and Microsoft severity numbers are identical (Trace through None).
+        return (CoreLogLevel)logLevel;
+    }
+
+    private sealed class CategoryLogger(CoreLoggerProvider provider, CoreLogger core) : ILogger
+    {
+        public bool IsEnabled(LogLevel logLevel)
+        {
+            CoreLogLevel level = Level(logLevel);
+            return !provider.IsDisposed && core.IsEnabled(level);
+        }
+
+        public IDisposable? BeginScope<TState>(TState state) where TState : notnull
+        {
+            ArgumentNullException.ThrowIfNull(state);
+            ObjectDisposedException.ThrowIf(provider.IsDisposed, provider);
+            if (provider.runtime.IsAdmissionClosed) { throw new InvalidOperationException("Cannot begin a scope after runtime admission closes."); }
+            return provider.runtime.Scopes.BeginCopiedScope(() => ProviderScopeCapture.Copy(state));
+        }
+
+        public void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception? exception,
+            Func<TState, Exception?, string> formatter)
+        {
+            ArgumentNullException.ThrowIfNull(formatter);
+            CoreLogLevel level = Level(logLevel);
+            if (provider.IsDisposed) { return; }
+            IExternalScopeProvider? scopes = Volatile.Read(ref provider.externalScopes);
+            _ = core.WriteLazy(level, () => new LogEventData
+            {
+                EventName = string.IsNullOrEmpty(eventId.Name) ? "log.message" : eventId.Name,
+                Message = formatter(state, exception),
+                Exception = exception,
+                CaptureState = () => ProviderStateCapture.Capture(state, eventId.Id),
+                CaptureScopes = scopes is null ? null : depth => ProviderScopeCapture.Capture(scopes, depth)
+            });
+        }
+    }
+}
+
+--- FILE implementations/csharp/tests/fixtures/DiscoveryHost/ProviderScopeFixture.cs ---
+using System.Diagnostics;
+using System.Text.Json.Nodes;
+using CIS.Logging;
+using CIS.Logging.MicrosoftLogger;
+using Microsoft.Extensions.Logging;
+using static CIS.Tests.DiscoveryFixture.FlushStressSupport;
+
+namespace CIS.Tests.DiscoveryFixture;
+
+internal static class ProviderScopeFixture
+{
+    internal static readonly string[] Modes = ["owned", "external", "hybrid", "extensions", "async-owned", "async-external", "bounds", "invalid", "host-incompatible", "depth", "filtered", "correlation", "replacement"];
+    private sealed class ObservedScopes(Action? onCapture = null, bool fail = false) : IExternalScopeProvider
+    {
+        internal readonly LoggerExternalScopeProvider Inner = new(); internal int Calls;
+        public void ForEachScope<TState>(Action<object?, TState> callback, TState state)
+        { Calls++; onCapture?.Invoke(); if (fail) { throw new InvalidOperationException("Filtered host scopes captured."); } Inner.ForEachScope(callback, state); }
+        public IDisposable Push(object? state) => Inner.Push(state);
+    }
+    private sealed class Fields : IEnumerable<KeyValuePair<string, object?>>
+    {
+        internal int Visits;
+        public IEnumerator<KeyValuePair<string, object?>> GetEnumerator()
+        { for (int i = 0; i < 2000; i++) { Visits++; Require(Visits <= 1030); yield return new("k" + i.ToString("D4", System.Globalization.CultureInfo.InvariantCulture), i); } }
+        System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator() => GetEnumerator();
+    }
+    internal static int Run(string mode, string root)
+    { Console.WriteLine(ExecuteAsync(mode, root).GetAwaiter().GetResult().ToJsonString()); return 0; }
+    internal static async Task<JsonObject> ExecuteAsync(string mode, string? root = null)
+    {
+        Require(Modes.Contains(mode, StringComparer.Ordinal)); using var bytes = new MemoryStream(); bool physical = root is not null;
+        string? path = physical ? Path.Combine(root!, "logs Ω", "active.log") : null; CoreLogRuntime runtime;
+        var options = new LoggingOptions { ConsoleLevel = mode == "filtered" ? CoreLogLevel.Warning : CoreLogLevel.Information, FileLevel = CoreLogLevel.None, ConsoleFormat = LogOutputFormat.JsonLines, QueueCapacity = 64, MaxEntryBytes = 16384, ShutdownTimeoutMilliseconds = 5000 };
+        if (physical)
+        {
+            LoggingOptions global = EnvironmentOptions.Logging; global.ConsoleLevel = CoreLogLevel.None; global.FileLevel = options.ConsoleLevel;
+            global.FilePath = path; global.FileFormat = LogOutputFormat.JsonLines; global.QueueCapacity = 64; global.MaxEntryBytes = 16384; global.ShutdownTimeoutMilliseconds = 5000; runtime = CoreLogRuntime.Create();
+        }
+        else { runtime = CoreLogRuntime.CreateConsoleQueued(ConsoleCompositionFixture.Metadata(), options, acquireConsole: _ => bytes); }
+        using var provider = new CoreLoggerProvider(runtime); ILogger logger = provider.CreateLogger("Provider.Scope"); var host = new LoggerExternalScopeProvider(); int formatters = 0, ownedErrors = 0; var fields = new Fields(); string? trace = null, span = null;
+        void Log(string name = "entry", Dictionary<string, object?>? attributes = null) => logger.Log(LogLevel.Information, new EventId(17, name), attributes ?? new(), null, (_, _) => { Interlocked.Increment(ref formatters); return "rendered"; });
+        var observed = new ObservedScopes(fail: mode == "filtered");
+        try
+        {
+            switch (mode)
+            {
+                case "owned":
+                    object?[] array = [1, true]; var input = new Dictionary<string, object?> { ["owner"] = "original", ["items"] = array };
+                    using (logger.BeginScope(input)) { input["owner"] = "changed"; array[0] = 999; Log(); input.Clear(); }
+                    break;
+                case "external":
+                    provider.SetScopeProvider(host); var attrs = new Dictionary<string, LogValue> { ["owner"] = LogValue.String("before") }; var context = new OperationContextData { OperationId = "before", Attributes = attrs };
+                    using (host.Push(context)) { context.OperationId = "host.operation"; attrs["owner"] = LogValue.String("at-capture"); Log(); attrs.Clear(); context.OperationId = "after"; }
+                    break;
+                case "hybrid":
+                    provider.SetScopeProvider(host);
+                    using (logger.BeginScope(new OperationContextData { OperationId = "core.operation", Attributes = new Dictionary<string, LogValue> { ["common"] = LogValue.String("core"), ["core"] = LogValue.Boolean(true) } }))
+                    using (host.Push(new OperationContextData { OperationId = "host.operation", Attributes = new Dictionary<string, LogValue> { ["common"] = LogValue.String("host"), ["host"] = LogValue.Boolean(true) } }))
+                    {
+                        Log("host"); Log("event", new() { ["common"] = "event" });
+                        Accepted(runtime.CreateLogger("Direct").Write(CoreLogLevel.Information, new LogEventData { EventName = "direct", Message = "rendered" }));
+                    }
+                    break;
+                case "extensions": using (logger.BeginScope("Batch {Owner}", "Ω")) { Log(); } break;
+                case "async-owned":
+                case "async-external":
+                    if (mode == "async-external") { provider.SetScopeProvider(host); }
+                    var ready = Signal(); var go = Signal(); int arrivals = 0;
+                    await Task.WhenAll(Enumerable.Range(1, 2).Select(i => Task.Run(async () =>
+                    {
+                        var context = new OperationContextData { OperationId = "operation." + i, Attributes = new Dictionary<string, LogValue> { ["owner"] = LogValue.Integer(i) } };
+                        using (mode == "async-owned" ? logger.BeginScope(context)! : host.Push(context))
+                        { if (Interlocked.Increment(ref arrivals) == 2) { ready.TrySetResult(); } await go.Task.WaitAsync(Guard); await Task.Yield(); Log("operation." + i); }
+                    })).Append(Task.Run(async () => { await ready.Task.WaitAsync(Guard); go.TrySetResult(); }))).WaitAsync(Guard);
+                    Log("after"); break;
+                case "bounds":
+                    using (logger.BeginScope(fields)) { Log("fields"); }
+                    object deep = 1; for (int i = 0; i < 9; i++) { deep = new object[] { deep }; }
+                    provider.SetScopeProvider(host); using (host.Push(new Dictionary<string, object?> { ["deep"] = deep })) { Log("depth"); }
+                    break;
+                case "invalid":
+                    try { logger.BeginScope(new Dictionary<string, object?> { ["bad"] = new object() }); } catch (ArgumentException) { ownedErrors++; }
+                    provider.SetScopeProvider(host);
+                    foreach (object bad in new object[] { new object(), new Dictionary<string, object?> { ["bad"] = "\ud800" }, new OperationContextData { OperationId = "bad\0id" } })
+                    { using (host.Push(bad)) { Log("invalid"); } }
+                    Log("after"); break;
+                case "host-incompatible":
+                    provider.SetScopeProvider(host);
+                    using (host.Push("plain host text")) { Log("string-host"); }
+                    using (host.Push(new Dictionary<string, string> { ["owner"] = "typed-string-map" })) { Log("string-map-host"); }
+                    using (host.Push(new Dictionary<string, object?> { ["HttpMethod"] = System.Net.Http.HttpMethod.Get })) { Log("microsoft-value-host"); }
+                    Log("after"); break;
+                case "depth":
+                    var owned = new List<IDisposable>(); var external = new List<IDisposable>();
+                    try
+                    {
+                        for (int i = 0; i < 32; i++) { owned.Add(logger.BeginScope(new OperationContextData())!); }
+                        try { logger.BeginScope(new OperationContextData()); } catch (InvalidOperationException) { ownedErrors++; }
+                        provider.SetScopeProvider(host); using (host.Push(new OperationContextData())) { Log("combined-invalid"); }
+                        foreach (IDisposable handle in owned.AsEnumerable().Reverse()) { handle.Dispose(); }
+                        owned.Clear();
+                        for (int i = 0; i < 33; i++) { external.Add(host.Push(new OperationContextData())); }
+                        Log("host-invalid"); foreach (IDisposable handle in external.AsEnumerable().Reverse()) { handle.Dispose(); }
+                        external.Clear(); Log("after");
+                    }
+                    finally { foreach (IDisposable handle in external.AsEnumerable().Reverse()) { handle.Dispose(); } foreach (IDisposable handle in owned.AsEnumerable().Reverse()) { handle.Dispose(); } }
+                    break;
+                case "filtered": provider.SetScopeProvider(observed); Log(); logger.Log(LogLevel.None, default, "none", null, (_, _) => { Interlocked.Increment(ref formatters); return "none"; }); break;
+                case "correlation":
+                    using (var original = new Activity("original").SetIdFormat(ActivityIdFormat.W3C).SetParentId("00-11111111111111111111111111111111-2222222222222222-01").Start())
+                    using (var changed = new Activity("changed").SetIdFormat(ActivityIdFormat.W3C).SetParentId("00-33333333333333333333333333333333-4444444444444444-01").Start())
+                    {
+                        Activity.Current = original; trace = original.TraceId.ToHexString(); span = original.SpanId.ToHexString();
+                        var changing = new ObservedScopes(() => Activity.Current = changed); provider.SetScopeProvider(changing);
+                        using (changing.Push(new Dictionary<string, object?> { ["trace_id"] = "fake" })) { Log(); }
+                        Require(changing.Calls == 1); Activity.Current = original;
+                    }
+                    break;
+                case "replacement":
+                    using (host.Push(new Dictionary<string, object?> { ["owner"] = "first" }))
+                    {
+                        provider.SetScopeProvider(host); Log("first"); var second = new LoggerExternalScopeProvider();
+                        using (second.Push(new Dictionary<string, object?> { ["owner"] = "second" })) { provider.SetScopeProvider(second); Log("second"); }
+                        provider.Dispose(); Require(!runtime.GetDiagnostics().AdmissionClosed); int stillActive = 0; host.ForEachScope((_, _) => stillActive++, 0); Require(stillActive == 1);
+                        Accepted(runtime.CreateLogger("Direct").Write(CoreLogLevel.Information, new LogEventData { EventName = "direct", Message = "rendered" }));
+                    }
+                    break;
+            }
+            LogStopResult stop = await runtime.StopAsync(CancellationToken.None).WaitAsync(Guard); Require(stop.Succeeded); await runtime.QueuedOutputs!.Completion.WaitAsync(Guard);
+            byte[] written = physical ? File.ReadAllBytes(path!) : bytes.ToArray(); bool leaseReleased = false;
+            if (physical) { using var lease = new FileStream(path + ".cis.lock", FileMode.Open, FileAccess.ReadWrite, FileShare.None); leaseReleased = true; }
+            JsonObject report = Common(mode); report["physical"] = physical; report["bytes"] = Convert.ToBase64String(written); report["leaseReleased"] = leaseReleased;
+            report["formatterCalls"] = formatters; report["ownedErrors"] = ownedErrors; report["fieldVisits"] = fields.Visits; report["filteredHostCalls"] = observed.Calls;
+            report["trace"] = trace; report["span"] = span; report["invalid"] = Number(runtime.GetDiagnostics().InvalidEventCount); report["truncated"] = Number(runtime.GetDiagnostics().TruncatedEventCount); report["result"] = StopJoinFixture.Json(stop); return report;
+        }
+        finally { await runtime.DisposeAsync().AsTask().WaitAsync(Guard); }
+    }
+}
+
+--- FILE implementations/csharp/tests/fixtures/DiscoveryHost/ProviderScopeExpectations.cs ---
+using System.Text;
+using System.Text.Json.Nodes;
+
+namespace CIS.Tests.DiscoveryFixture;
+
+internal static class ProviderScopeExpectations
+{
+    internal static readonly string[] Modes = ["owned", "external", "hybrid", "extensions", "async-owned", "async-external", "bounds", "invalid", "host-incompatible", "depth", "filtered", "correlation", "replacement"];
+    private static void Require(bool value) { if (!value) { throw new InvalidDataException("Provider scope expectation failed."); } }
+    internal static void Validate(string mode, JsonObject a)
+    {
+        Require(Modes.Contains(mode, StringComparer.Ordinal) && a["mode"]!.GetValue<string>() == mode && a["runtime"]!.GetValue<string>() == ".NET 10.0.12");
+        Require(a["leaseReleased"]!.GetValue<bool>() == a["physical"]!.GetValue<bool>() && a["filteredHostCalls"]!.GetValue<int>() == 0);
+        int count = mode is "invalid" or "host-incompatible" ? 4 : mode is "hybrid" or "async-owned" or "async-external" or "replacement" ? 3 : mode == "bounds" ? 2 : mode == "filtered" ? 0 : 1;
+        int calls = mode is "async-owned" or "async-external" or "depth" ? 3 : mode is "hybrid" or "bounds" or "replacement" ? 2 : mode is "invalid" or "host-incompatible" ? 4 : mode == "filtered" ? 0 : 1;
+        Require(a["formatterCalls"]!.GetValue<int>() == calls && a["ownedErrors"]!.GetValue<int>() == (mode is "invalid" or "depth" ? 1 : 0) && a["fieldVisits"]!.GetValue<int>() == (mode == "bounds" ? 1025 : 0));
+        Require(a["invalid"]!.GetValue<string>() == (mode == "depth" ? "2" : "0") && a["truncated"]!.GetValue<string>() == (mode == "bounds" ? "2" : mode is "invalid" or "host-incompatible" ? "3" : "0"));
+        Require(a["result"]!["completion"]!.GetValue<string>() == "Completed" && a["result"]!["succeeded"]!.GetValue<bool>() && a["result"]!["loss"]!.GetValue<bool>() == (mode is "bounds" or "invalid" or "host-incompatible" or "depth"));
+        JsonNode output = a["result"]!["outputs"]![0]!; Require(output["boundary"]!.GetValue<string>() == count.ToString(System.Globalization.CultureInfo.InvariantCulture) && output["written"]!.GetValue<string>() == count.ToString(System.Globalization.CultureInfo.InvariantCulture) && output["failed"]!.GetValue<string>() == "0" && output["abandoned"]!.GetValue<string>() == "0" && output["pending"]!.GetValue<string>() == "0" && output["flush"]!.GetValue<string>() == "Succeeded");
+        byte[] bytes = Convert.FromBase64String(a["bytes"]!.GetValue<string>()); Require(count == 0 ? bytes.Length == 0 : bytes[^1] == (byte)'\n' && !bytes.AsSpan().StartsWith(new byte[] { 239, 187, 191 }));
+        string[] lines = new UTF8Encoding(false, true).GetString(bytes).Split('\n', StringSplitOptions.RemoveEmptyEntries); Require(lines.Length == count && lines.All(line => Encoding.UTF8.GetByteCount(line) + 1 <= 16384));
+        JsonObject[] rows = lines.Select(line => JsonNode.Parse(line)!.AsObject()).ToArray();
+        foreach (JsonObject row in rows) { Require(row["status"]!.GetValue<string>() == "info" && row["message"]!.GetValue<string>() == "rendered"); }
+        void Attributes(int index, string json) => Require(JsonNode.DeepEquals(rows[index]["attributes"], JsonNode.Parse(json)));
+        if (mode == "owned") { Attributes(0, "{\"owner\":\"original\",\"items\":[1,true],\"event_id\":17}"); }
+        if (mode == "external") { Attributes(0, "{\"owner\":\"at-capture\",\"event_id\":17}"); Require(rows[0]["operation_id"]!.GetValue<string>() == "host.operation"); }
+        if (mode == "hybrid")
+        {
+            Attributes(0, "{\"common\":\"host\",\"core\":true,\"host\":true,\"event_id\":17}"); Attributes(1, "{\"common\":\"event\",\"core\":true,\"host\":true,\"event_id\":17}"); Attributes(2, "{\"common\":\"core\",\"core\":true}");
+            Require(rows[0]["operation_id"]!.GetValue<string>() == "host.operation" && rows[1]["operation_id"]!.GetValue<string>() == "host.operation" && rows[2]["operation_id"]!.GetValue<string>() == "core.operation");
+        }
+        if (mode == "extensions") { Attributes(0, "{\"Owner\":\"Ω\",\"event_id\":17}"); }
+        if (mode is "async-owned" or "async-external")
+        {
+            Require(rows.Select(row => row["event_name"]!.GetValue<string>()).Order(StringComparer.Ordinal).SequenceEqual(new[] { "after", "operation.1", "operation.2" }));
+            foreach (JsonObject row in rows.Where(row => row["event_name"]!.GetValue<string>() != "after"))
+            { int owner = row["attributes"]!["owner"]!.GetValue<int>(); Require(owner is 1 or 2 && row["operation_id"]!.GetValue<string>() == "operation." + owner && row["event_name"]!.GetValue<string>() == "operation." + owner); }
+            Attributes(2, "{\"event_id\":17}"); Require(rows[2]["operation_id"] is null);
+        }
+        if (mode == "bounds")
+        {
+            JsonObject fields = rows[0]["attributes"]!.AsObject(); Require(fields.Count == 1023 && fields["k1022"]!.GetValue<int>() == 1022 && fields["event_id"] is null && rows.All(row => row["truncated"]!.GetValue<bool>()));
+            JsonNode deep = new JsonArray(); for (int i = 0; i < 6; i++) { deep = new JsonArray(deep); }
+            Require(JsonNode.DeepEquals(rows[1]["attributes"]!["deep"], deep) && rows[1]["attributes"]!["event_id"]!.GetValue<int>() == 17);
+        }
+        if (mode == "depth") { Attributes(0, "{\"event_id\":17}"); Require(rows[0]["event_name"]!.GetValue<string>() == "after"); }
+        if (mode is "invalid" or "host-incompatible")
+        {
+            for (int i = 0; i < 4; i++) { Attributes(i, "{\"event_id\":17}"); Require(i < 3 ? rows[i]["truncated"]!.GetValue<bool>() : rows[i]["truncated"] is null); }
+            Require(rows[3]["event_name"]!.GetValue<string>() == "after");
+        }
+        if (mode == "correlation") { Attributes(0, "{\"trace_id\":\"fake\",\"event_id\":17}"); Require(rows[0]["trace_id"]!.GetValue<string>() == a["trace"]!.GetValue<string>() && rows[0]["span_id"]!.GetValue<string>() == a["span"]!.GetValue<string>()); }
+        if (mode == "replacement") { Attributes(0, "{\"owner\":\"first\",\"event_id\":17}"); Attributes(1, "{\"owner\":\"second\",\"event_id\":17}"); Attributes(2, "{}"); }
+    }
+}
+
+--- FILE implementations/csharp/tests/fixtures/DiscoveryHost/verify-provider-scope.py ---
+"""Independent actual-Core owned/borrowed-host scope reader."""
+import argparse,base64,copy,importlib.util,json,os,subprocess,tempfile
+from pathlib import Path
+spec=importlib.util.spec_from_file_location('scope_base',Path(__file__).with_name('verify-flush-results.py'));base=importlib.util.module_from_spec(spec);spec.loader.exec_module(base)
+require,load,sha,digest,decoded,number=base.require,base.load,base.sha,base.digest,base.decoded,base.number
+MODES=('owned','external','hybrid','extensions','async-owned','async-external','bounds','invalid','host-incompatible','depth','filtered','correlation','replacement')
+
+
+def same(actual,expected):
+    if type(actual) is not type(expected):return False
+    if isinstance(expected,dict):return actual.keys()==expected.keys() and all(same(actual[k],v) for k,v in expected.items())
+    if isinstance(expected,list):return len(actual)==len(expected) and all(same(a,b) for a,b in zip(actual,expected))
+    return actual==expected
+
+
+def check(mode,a,pid=None):
+    require(a['mode']==mode and mode in MODES,'mode');require(a['runtime']=='.NET 10.0.12','actual runtime')
+    require(type(a['pid']) is int and a['pid']>0 and (pid is None or a['pid']==pid),'actual child PID')
+    require(a['physical'] is True and a['leaseReleased'] is True,'physical lifetime')
+    count=4 if mode in ('invalid','host-incompatible') else 3 if mode in ('hybrid','async-owned','async-external','replacement') else 2 if mode=='bounds' else 0 if mode=='filtered' else 1
+    calls=3 if mode in ('async-owned','async-external','depth') else 2 if mode in ('hybrid','bounds','replacement') else 4 if mode in ('invalid','host-incompatible') else 0 if mode=='filtered' else 1
+    require(type(a['formatterCalls']) is int and a['formatterCalls']==calls,'formatter calls')
+    require(type(a['ownedErrors']) is int and a['ownedErrors']==(1 if mode in ('invalid','depth') else 0),'owned scope errors')
+    require(type(a['fieldVisits']) is int and a['fieldVisits']==(1025 if mode=='bounds' else 0),'bounded scope visits')
+    require(type(a['filteredHostCalls']) is int and a['filteredHostCalls']==0,'filtered host capture')
+    require(a['invalid']==('2' if mode=='depth' else '0'),'invalid accounting');require(a['truncated']==('2' if mode=='bounds' else '3' if mode in ('invalid','host-incompatible') else '0'),'truncation accounting')
+    result=a['result'];require(set(result)=={'completion','succeeded','loss','captured','observed','outputs'},'result shape')
+    require(result['completion']=='Completed' and result['succeeded'] is True and result['loss'] is (mode in ('bounds','invalid','host-incompatible','depth')),'stop summary')
+    require(len(result['outputs'])==1 and result['outputs'][0]['name']=='file','file output');out=result['outputs'][0]
+    require(tuple(number(out[k]) for k in ('boundary','written','failed','abandoned','pending'))==(count,count,0,0,0) and out['flush']=='Succeeded','core delivery')
+    data=decoded(a['bytes']);require(data[-1:]==b'\n' and not data.startswith(b'\xef\xbb\xbf') if count else data==b'','actual framing');lines=data.splitlines();require(len(lines)==count and all(len(line)+1<=16384 for line in lines),'bounded records');rows=[load(line) for line in lines]
+    names=['host','event','direct'] if mode=='hybrid' else ['fields','depth'] if mode=='bounds' else ['first','second','direct'] if mode=='replacement' else ['invalid']*3+['after'] if mode=='invalid' else ['string-host','string-map-host','microsoft-value-host','after'] if mode=='host-incompatible' else ['after'] if mode=='depth' else ['entry'] if count==1 else []
+    if mode in ('async-owned','async-external'):require(sorted(row['event_name'] for row in rows)==['after','operation.1','operation.2'] and rows[2]['event_name']=='after','async completion order')
+    else:require([row['event_name'] for row in rows]==names,'event names')
+    for row in rows:
+        require(type(row['schema_version']) is int and row['schema_version']==1 and row['status']=='info' and row['component']==('Direct' if row['event_name']=='direct' else 'Provider.Scope') and row['message']=='rendered','core wire mapping')
+        require(row['service']=='CIS.Core.DiscoveryFixture' and row['resource']['process_id']==a['pid'] and row['resource']['runtime_description']=='.NET 10.0.12' and row['resource']['os_family']==a['os'],'automatic core facts')
+        require(row.get('truncated') is True if mode=='bounds' or (mode in ('invalid','host-incompatible') and row['event_name']!='after') else 'truncated' not in row,'truncation marker')
+    if mode=='owned':require(same(rows[0]['attributes'],{'owner':'original','items':[1,True],'event_id':17}),'owned snapshot')
+    if mode=='external':require(same(rows[0]['attributes'],{'owner':'at-capture','event_id':17}) and rows[0]['operation_id']=='host.operation','host capture snapshot')
+    if mode=='hybrid':
+        require(same(rows[0]['attributes'],{'common':'host','core':True,'host':True,'event_id':17}) and rows[0]['operation_id']=='host.operation','host overlay')
+        require(same(rows[1]['attributes'],{'common':'event','core':True,'host':True,'event_id':17}) and rows[1]['operation_id']=='host.operation','event overlay')
+        require(same(rows[2]['attributes'],{'common':'core','core':True}) and rows[2]['operation_id']=='core.operation','direct core scope')
+    if mode=='extensions':require(same(rows[0]['attributes'],{'Owner':'\u03a9','event_id':17}) and 'message_template' not in rows[0],'Microsoft scope fields')
+    if mode in ('async-owned','async-external'):
+        for row in rows[:2]:
+            owner=row['attributes']['owner'];require(type(owner) is int and owner in (1,2) and same(row['attributes'],{'owner':owner,'event_id':17}) and row['operation_id']==row['event_name']=='operation.'+str(owner),'isolated async scopes')
+        require(same(rows[2]['attributes'],{'event_id':17}) and 'operation_id' not in rows[2],'popped async scopes')
+    if mode=='bounds':
+        require(same(rows[0]['attributes'],{'k'+str(i).zfill(4):i for i in range(1023)}),'bounded owned prefix')
+        deep=[]
+        for _ in range(6):deep=[deep]
+        require(same(rows[1]['attributes'],{'deep':deep,'event_id':17}),'bounded host depth')
+    if mode=='depth':require(same(rows[0]['attributes'],{'event_id':17}),'no partial invalid scope')
+    if mode in ('invalid','host-incompatible'):require(all(same(row['attributes'],{'event_id':17}) for row in rows),'incompatible frame omitted')
+    if mode=='correlation':require(rows[0]['trace_id']==a['trace']=='11111111111111111111111111111111' and rows[0]['span_id']==a['span'] and len(a['span'])==16 and a['span']!='0'*16 and same(rows[0]['attributes'],{'trace_id':'fake','event_id':17}),'frozen Activity')
+    if mode=='replacement':require(same(rows[0]['attributes'],{'owner':'first','event_id':17}) and same(rows[1]['attributes'],{'owner':'second','event_id':17}) and same(rows[2]['attributes'],{}),'replacement and ownership')
+
+
+def corruption_controls(cases):
+    good={x['id']:x['report'] for x in cases}
+    def wire(a,edit,index=0):
+        rows=[load(line) for line in decoded(a['bytes']).splitlines()];edit(rows[index]);a['bytes']=base64.b64encode(b''.join(json.dumps(row,separators=(',',':')).encode()+b'\n' for row in rows)).decode()
+    edits=[('pid','owned','actual child PID',lambda a:a.update(pid=a['pid']+1)),('lease','external','physical lifetime',lambda a:a.update(leaseReleased=False)),('formatter','filtered','formatter calls',lambda a:a.update(formatterCalls=1)),('owner-error','invalid','owned scope errors',lambda a:a.update(ownedErrors=0)),('copy-work','bounds','bounded scope visits',lambda a:a.update(fieldVisits=2000)),('host-work','filtered','filtered host capture',lambda a:a.update(filteredHostCalls=1)),('invalid','depth','invalid accounting',lambda a:a.update(invalid='1')),('loss','bounds','truncation accounting',lambda a:a.update(truncated='0')),('stop','owned','core delivery',lambda a:a['result']['outputs'][0].update(boundary='0')),('facts','owned','automatic core facts',lambda a:wire(a,lambda row:row.update(service='fake'))),('schema-type','owned','core wire mapping',lambda a:wire(a,lambda row:row.update(schema_version=True))),('owned','owned','owned snapshot',lambda a:wire(a,lambda row:row['attributes'].update(owner='changed'))),('host-copy','external','host capture snapshot',lambda a:wire(a,lambda row:row['attributes'].update(owner='after'))),('host-precedence','hybrid','host overlay',lambda a:wire(a,lambda row:row['attributes'].update(common='core'))),('event-precedence','hybrid','event overlay',lambda a:wire(a,lambda row:row['attributes'].update(common='host'),1)),('direct-context','hybrid','direct core scope',lambda a:wire(a,lambda row:row['attributes'].update(host=True),2)),('extension','extensions','Microsoft scope fields',lambda a:wire(a,lambda row:row['attributes'].update(Owner='wrong'))),('async','async-external','isolated async scopes',lambda a:wire(a,lambda row:row.update(operation_id='other'))),('popped','async-owned','popped async scopes',lambda a:wire(a,lambda row:row.update(operation_id='leak'),2)),('prefix-type','bounds','bounded owned prefix',lambda a:wire(a,lambda row:row['attributes'].update(k0000=False))),('nested-depth','bounds','bounded host depth',lambda a:wire(a,lambda row:row['attributes'].update(deep=[]),1)),('trace','correlation','frozen Activity',lambda a:wire(a,lambda row:row.update(trace_id='33333333333333333333333333333333'))),('incompatible-fields','host-incompatible','incompatible frame omitted',lambda a:wire(a,lambda row:row['attributes'].update(HttpMethod='GET'))),('incompatible-marker','host-incompatible','truncation marker',lambda a:wire(a,lambda row:row.pop('truncated'))),('replacement','replacement','replacement and ownership',lambda a:wire(a,lambda row:row['attributes'].update(owner='first'),1))]
+    controls=[]
+    for identity,mode,reason,edit in edits:
+        bad=copy.deepcopy(good[mode]);edit(bad)
+        try:check(mode,bad,good[mode]['pid'])
+        except AssertionError as error:require(str(error)==reason,'unexpected corruption '+identity+': '+str(error));controls.append(dict(id=identity,rejected=True,reason=reason))
+        else:raise AssertionError('corruption accepted '+identity)
+    return controls
+
+def main():
+    parser=argparse.ArgumentParser()
+    for key in ('dotnet','host','output','family'):parser.add_argument('--'+key,required=True)
+    args=parser.parse_args();require(args.family in ('windows','linux') and (os.name=='nt')==(args.family=='windows'),'native OS')
+    repo=Path(__file__).resolve().parents[5];mapping=repo/'conformance/logging/provider-scope-cases.json';require([x['id'] for x in load(mapping.read_bytes())['cases']]==list(MODES),'shared case membership')
+    host,out=Path(args.host).resolve(),Path(args.output).resolve();out.mkdir(parents=True,exist_ok=True);cases=[]
+    with tempfile.TemporaryDirectory(prefix='cislib-provider-scope-') as temp:
+        for mode in MODES:
+            work=Path(temp)/mode;work.mkdir();env={k:v for k,v in os.environ.items() if not k.startswith('CORE_')}
+            command=[args.dotnet,'exec','--fx-version','10.0.12','--roll-forward','Disable',str(host),'provider-scope',mode,str(work)]
+            process=subprocess.Popen(command,cwd=work,env=env,stdout=subprocess.PIPE,stderr=subprocess.PIPE)
+            try:stdout,stderr=process.communicate(timeout=60)
+            except BaseException:process.kill();process.communicate(timeout=15);raise
+            (out/(mode+'.stdout.bin')).write_bytes(stdout);(out/(mode+'.stderr.bin')).write_bytes(stderr);require(process.returncode==0 and stderr==b'','child failure '+mode)
+            a=load(stdout);check(mode,a,process.pid);require((a['os'],a['coreSha256'],a['fixtureSha256'])==(args.family,sha(host.parent/'CIS.Core.dll'),sha(host)),'actual assemblies')
+            data=(work/'logs \u03a9'/'active.log').read_bytes();require(data==decoded(a['bytes']),'actual file bytes');(out/(mode+'.file.bin')).write_bytes(data)
+            cases.append(dict(id=mode,pid=process.pid,exitCode=0,command=command,report=a,stdoutSha256=digest(stdout),stderrSha256=digest(stderr),fileSha256=digest(data)))
+    report=dict(schema='cis.logging.provider-scope-native/v1',task='WP06-S02-T01',family=args.family,children=len(cases),coreSha256=sha(host.parent/'CIS.Core.dll'),fixtureSha256=sha(host),verifierSha256=sha(__file__),baseVerifierSha256=sha(Path(__file__).with_name('verify-flush-results.py')),caseMappingSha256=sha(mapping),cases=cases,controls=corruption_controls(cases))
+    (out/'report.json').write_text(json.dumps(report,indent=2)+'\n',encoding='utf-8',newline='\n');print(json.dumps(dict(platform=args.family,children=len(cases),controls=len(report['controls']),passed=True)))
+
+
+if __name__=='__main__':main()
+--- FILE conformance/logging/provider-scope-cases.json ---
+{
+  "schema": "cis.logging.task-cases/v1",
+  "taskId": "WP06-S02-T01",
+  "scope": "Provider-created and borrowed host scopes with existing bounded Core values; structured operation_id mapping and complete factory/host story remain later tasks.",
+  "cases": [
+    {
+      "id": "owned"
+    },
+    {
+      "id": "external"
+    },
+    {
+      "id": "hybrid"
+    },
+    {
+      "id": "extensions"
+    },
+    {
+      "id": "async-owned"
+    },
+    {
+      "id": "async-external"
+    },
+    {
+      "id": "bounds"
+    },
+    {
+      "id": "invalid"
+    },
+    {
+      "id": "host-incompatible"
+    },
+    {
+      "id": "depth"
+    },
+    {
+      "id": "filtered"
+    },
+    {
+      "id": "correlation"
+    },
+    {
+      "id": "replacement"
+    }
+  ]
+}
+
+--- FILE docs/modules/logging/microsoft-provider-scopes.md ---
+# Microsoft provider scope capture
+
+CoreLoggerProvider implements ISupportExternalScope in the existing CIS.Core assembly. SetScopeProvider borrows an IExternalScopeProvider; it never pushes or disposes host handles. These owned-scope rules describe direct CreateLogger calls; real LoggerFactory-driven scope routing is qualified in T05. Replacing that source applies to later calls. Each Log call freezes one source reference, so an in-flight call can finish using its original source. Registration and provider disposal share a small lock; callbacks run outside it. Null registration throws ArgumentNullException before the disposed guard. Registration after provider disposal throws ObjectDisposedException. Disposal releases the source reference and leaves runtime and host scope lifetime with their owners.
+
+The provider's own BeginScope keeps Core's existing runtime-owned AsyncLocal store. It accepts OperationContextData or IEnumerable<KeyValuePair<string, object?>> state, including Microsoft's formatted BeginScope extension state. It copies at scope creation before returning the handle. Typed operation IDs retain Core validation/trim rules. Structured scopes use the existing scalar/nested collection allowlist and bounded value copier without the event_id reservation. The exact OriginalFormat metadata is excluded; no scope message parser or arbitrary ToString fallback is added. Bare strings and unsupported objects are rejected. A raw structured operation_id remains an ordinary attribute at this stage; T02 maps it into typed operation identity.
+
+Owned scope handles retain Core's creator-disposes rule, depth 32, LIFO errors and repeated valid disposal. Scope capture preserves the existing reentrancy guard. A closed runtime rejects creation before content copying. Provider disposal does not pop caller-owned handles; their creator still disposes them. Existing .NET inherited-child-flow detection limits remain documented in [operation scopes](operation-scopes.md).
+
+Host scopes are copied synchronously only for an event passing Core's closure/interest/fault gates. The IExternalScopeProvider contract invokes callbacks inline in creation order. The adapter accepts the same typed/structured state and constructs at most the remaining number of immutable Core frames. Mutable host state is observed at Log time, not at host Push time; later mutations cannot change queued facts. A borrowed frame whose copy reports an ArgumentException (including unsupported root/value or invalid text/identifier) is omitted as a whole, with truncation provenance. This preserves the otherwise valid event and increments TruncatedEventCount; no arbitrary ToString fallback or partial frame is retained. Exceptions from the external provider itself, non-argument copy callback failures, and excess combined frame depth still follow Core InvalidEvent accounting once, with no admission. The formatter still runs before scope capture and retains its existing exception behavior. Activity IDs and the event clock are frozen before host callbacks, protecting correlation from ambient changes inside those callbacks.
+
+The two stores have a defined layer order: captured Core/provider-created scopes first, borrowed host scopes second, event attributes last for matching retained keys. Bounds can omit new event keys after the scope fills the aggregate budget; T02 retains final precedence qualification. Within each store later scopes win. A nonblank typed host OperationId replaces the captured Core OperationId. Direct Core logging consumes only its own runtime scopes. The stores do not provide a combined chronological stack across arbitrary interleaving; factory/external host scopes stay in the host's own creation order. T02 qualifies recognized operation_id and the final supported precedence cases.
+
+Each scope uses the existing 1024-node/depth-8 projection and truncation provenance; combined Core plus host scope depth cannot exceed 32. Excess host frame depth invalidates the event. Ordinary aggregate/entry truncation can omit attributes, including event_id; this is not a protected envelope field. Caller enumerators and the borrowed provider remain cooperative code: the adapter bounds copied frames/value traversal, not the execution time or internal traversal of arbitrary provider callbacks. Logging recursively from scope enumeration is unsupported.
+
+Thirteen fixture modes and lifecycle guards cover owned copies, host copy timing, both layer sources, real Microsoft formatted scope state, two coordinated asynchronous flows for each source, node/depth/combined-frame bounds, invalid owned scopes, gracefully omitted incompatible host scopes (bare string, Dictionary<string,string> and a real Microsoft HttpMethod value carried by LoggerExternalScopeProvider), filtered traversal, Activity mutation and source replacement/nonownership. Process variants use public runtime creation and real JSONL bytes with post-stop exclusive lease probes. Independent native readers bind PID, exact assemblies, records and fixed-reason corruption controls. Execution and review results belong in the task receipt. No new package, worker or public placeholder is introduced; SetScopeProvider is the previously planned interface method.
+
+T02 string operation_id mapping, T03 host filtering, T04 full ownership and T05 complete factory/host shutdown story remain required, followed by examples, instructions/skills and release qualification.
+
+--- FILE .artifacts/csharp/tasks/wp06-s02-t01/decision-excerpt.md ---
+## WP06-S02-T01 borrowed host scope compatibility
+
+Selected during implementation after read-only review identified host-scope loss amplification. This is a maintainer choice within the roadmap, not an additional user-quoted policy. Owned provider scopes remain strict: malformed or unsupported input throws to the creating caller. Borrowed host frames that raise ArgumentException during bounded copying are omitted as whole frames and mark the event truncated; the otherwise valid event remains eligible for admission. No arbitrary ToString or serializer is introduced. External-provider failures outside copy, non-argument copy failures, excess combined frame depth and invalid event state retain Core InvalidEvent behavior. Complete LoggerFactory/ActivityTrackingOptions integration remains WP06-S02-T05; the current HttpMethod case uses the real Microsoft external scope provider and BCL value, not a claim about an installed HttpClientFactory pipeline.

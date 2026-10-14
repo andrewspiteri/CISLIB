@@ -38,10 +38,12 @@ internal static class EventProjection
         IReadOnlyDictionary<string, LogValue>? sourceAttributes = data.Attributes;
         Exception? sourceException = data.Exception;
         Func<(string? Template, LogValue Attributes)>? sourceState = data.CaptureState;
+        Func<int, CapturedScopeContext>? sourceScopes = data.CaptureScopes;
         ValidateName(eventName, nameof(data));
         // Own Activity IDs before clock/payload callbacks can replace the ambient context.
         (string? traceId, string? spanId) = CaptureActivity();
         DateTimeOffset timestampUtc = (timeProvider ?? TimeProvider.System).GetUtcNow().ToUniversalTime();
+        if (sourceScopes is not null) { scope = scope.Overlay(sourceScopes(OperationScopeStore.MaximumDepth - scope.ScopeDepth)); }
         (string? Template, LogValue Attributes)? adapted = sourceState?.Invoke();
         template = adapted?.Template ?? template;
         string capturedMessage = CaptureText(message, out bool messageClipped);
@@ -103,7 +105,7 @@ internal static class EventProjection
         return UnicodeScalarText.Prefix(value, MaximumPayloadScalars, out truncated);
     }
 
-    private static LogValue Merge(LogValue scope, LogValue explicitAttributes)
+    internal static LogValue Merge(LogValue scope, LogValue explicitAttributes)
     {
         var winners = new Dictionary<string, LogValue>(StringComparer.Ordinal);
         bool truncated = scope.IsTruncated || explicitAttributes.IsTruncated;

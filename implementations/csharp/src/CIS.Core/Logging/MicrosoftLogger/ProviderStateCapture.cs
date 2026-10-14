@@ -7,13 +7,21 @@ namespace CIS.Logging.MicrosoftLogger;
 // A single bounded synchronous copy; no template parsing or arbitrary object serialization.
 internal sealed class ProviderStateCapture
 {
-    private int remaining = LogValueProjection.MaximumNodes - 2; // Root plus provider-owned event_id.
+    private int remaining;
+    private ProviderStateCapture(bool includeEventId) => remaining = LogValueProjection.MaximumNodes - (includeEventId ? 2 : 1);
     private readonly HashSet<object> ancestors = new(ReferenceEqualityComparer.Instance);
 
     internal static (string? Template, LogValue Attributes) Capture<TState>(TState state, int eventId)
+        => Capture(state, eventId, includeEventId: true);
+
+    internal static LogValue CaptureScope(IEnumerable<KeyValuePair<string, object?>> state)
+        => Capture(state, 0, includeEventId: false).Attributes;
+
+    private static (string? Template, LogValue Attributes) Capture<TState>(TState state, int eventId, bool includeEventId)
     {
-        var capture = new ProviderStateCapture();
-        var attributes = new Dictionary<string, LogValue>(StringComparer.Ordinal) { ["event_id"] = LogValue.Integer(eventId) };
+        var capture = new ProviderStateCapture(includeEventId);
+        var attributes = new Dictionary<string, LogValue>(StringComparer.Ordinal);
+        if (includeEventId) { attributes["event_id"] = LogValue.Integer(eventId); }
         if (state is not IEnumerable<KeyValuePair<string, object?>> fields)
         { return (null, LogValue.OwnedMap(attributes, truncated: false)); }
         string? template = null; bool truncated = false; int visited = 0;
@@ -28,7 +36,7 @@ internal sealed class ProviderStateCapture
                     if (value is not null and not string) { throw new ArgumentException("OriginalFormat must be a string or null."); }
                     template = (string?)value; continue;
                 }
-                if (key == "event_id") { continue; }
+                if (includeEventId && key == "event_id") { continue; }
                 // Keep scanning bounded root metadata after the value budget is spent.
                 if (capture.remaining == 0) { truncated = true; continue; }
                 ValidateKey(key);

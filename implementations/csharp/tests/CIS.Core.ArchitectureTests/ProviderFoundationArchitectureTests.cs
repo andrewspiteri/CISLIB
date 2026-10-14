@@ -14,11 +14,11 @@ public sealed class ProviderFoundationArchitectureTests
     {
         Type type = typeof(CoreLoggerProvider); Assert.IsTrue(type.IsSealed);
         Assert.AreSame(typeof(CoreLogRuntime).Assembly, type.Assembly); Assert.AreEqual("CIS.Logging.MicrosoftLogger", type.Namespace);
-        Assert.IsTrue(typeof(ILoggerProvider).IsAssignableFrom(type));
+        Assert.IsTrue(typeof(ILoggerProvider).IsAssignableFrom(type)); Assert.IsTrue(typeof(ISupportExternalScope).IsAssignableFrom(type));
         ConstructorInfo[] constructors = type.GetConstructors(); Assert.AreEqual(1, constructors.Length);
         Assert.AreEqual(typeof(CoreLogRuntime), constructors[0].GetParameters().Single().ParameterType); Assert.AreEqual("runtime", constructors[0].GetParameters().Single().Name);
         MethodInfo[] methods = type.GetMethods(BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly);
-        CollectionAssert.AreEquivalent(new[] { "CreateLogger", "Dispose" }, methods.Select(x => x.Name).ToArray());
+        CollectionAssert.AreEquivalent(new[] { "CreateLogger", "SetScopeProvider", "Dispose" }, methods.Select(x => x.Name).ToArray());
         Assert.AreEqual(typeof(ILogger), type.GetMethod("CreateLogger")!.ReturnType); Assert.AreEqual("categoryName", type.GetMethod("CreateLogger")!.GetParameters().Single().Name);
         foreach (MethodBase method in methods.Cast<MethodBase>().Concat(constructors)) { Assert.IsNotNull(method.GetMethodBody()); Assert.IsFalse(method.MethodImplementationFlags.HasFlag(MethodImplAttributes.InternalCall)); }
     }

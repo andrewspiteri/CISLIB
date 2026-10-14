@@ -5,6 +5,7 @@ namespace CIS.Logging.Scopes;
 // An owned immutable payload; it contains no caller DTO or dictionary.
 internal sealed class CapturedOperationContext
 {
+    internal static readonly CapturedOperationContext Omitted = new(null, LogValue.OwnedMap(new Dictionary<string, LogValue>(), truncated: true));
     private static readonly LogValue EmptyAttributes = LogValue.Map(new Dictionary<string, LogValue>());
 
     private CapturedOperationContext(string? operationId, LogValue attributes)
@@ -16,6 +17,8 @@ internal sealed class CapturedOperationContext
     internal string? OperationId { get; }
     internal LogValue Attributes { get; }
     internal bool IsTruncated => Attributes.IsTruncated;
+
+    internal static CapturedOperationContext FromAttributes(LogValue attributes) => new(null, attributes);
 
     internal static CapturedOperationContext Capture(OperationContextData context)
     {

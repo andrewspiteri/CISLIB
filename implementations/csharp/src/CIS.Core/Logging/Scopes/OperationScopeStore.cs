@@ -14,12 +14,17 @@ internal sealed class OperationScopeStore
     internal IDisposable BeginScope(OperationContextData context)
     {
         ArgumentNullException.ThrowIfNull(context);
+        return BeginCopiedScope(() => CapturedOperationContext.Capture(context));
+    }
+
+    internal IDisposable BeginCopiedScope(Func<CapturedOperationContext> capture)
+    {
         OperationScopeFrame? parent = current.Value;
         if (parent?.Depth >= MaximumDepth)
         {
             throw new InvalidOperationException("The maximum operation scope depth is 32.");
         }
-        CapturedOperationContext captured = CapturedOperationContext.Capture(context);
+        CapturedOperationContext captured = capture();
         // A cooperative map enumerator may re-enter scope creation. Never overwrite its newer head.
         if (!ReferenceEquals(current.Value, parent))
         {

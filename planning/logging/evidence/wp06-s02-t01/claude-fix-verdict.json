@@ -1,0 +1,53 @@
+{
+  "verdict": "PASS",
+  "basis": "Static read-only review of the supplied excerpts only. No tools, execution, file reads or persistence were used. Unchanged source, including LogValue, ProviderStateCapture, EventProjection, OperationScopeStore and the unit tests, is taken from the initial review snapshot and was not re-inspected here. Test and native results are reported as claimed by the author, not independently observed.",
+  "priorFindingResolution": {
+    "R1": "Resolved. ProviderScopeCapture.Capture catches ArgumentException inside each ForEachScope callback, so one incompatible borrowed frame becomes CapturedOperationContext.Omitted and enumeration continues. The combined-depth InvalidOperationException is raised before the try and still invalidates the event. Provider-thrown exceptions outside the callback, and non-Argument copy failures, propagate to CoreLogRuntime.Write's capture catch and are counted as InvalidEvent once. Owned BeginScope still calls Copy directly and throws to the creator. Partial frames cannot be retained: both copy paths build fresh owned values and assign `head` only after Copy returns or is replaced by Omitted.",
+    "O1": "Accepted as described. The fixture formatter counter uses Interlocked.Increment.",
+    "O2": "Accepted. IsAdmissionClosed reads one bool under the gate and allocates nothing. The BeginScope check-then-create race is benign and matches the documented 'rejects creation before content copying' wording.",
+    "O3": "Accepted. The docs now state that event keys can be omitted after scopes fill the aggregate budget and that event_id is not protected.",
+    "O4": "Accepted. Recursive logging from scope enumeration is documented as unsupported.",
+    "O5": "Accepted. Both the C# expectations and the Python reader pin '.NET 10.0.12', and the child runs with --fx-version 10.0.12 --roll-forward Disable.",
+    "O6": "Accepted. The docs limit owned-scope rules to direct CreateLogger use and defer LoggerFactory and ActivityTrackingOptions routing to T05."
+  },
+  "reviewNotes": {
+    "correction": "Owned and borrowed scopes now behave differently, and the docs and decision excerpt record that difference. The decision excerpt is correctly framed as a maintainer choice within the roadmap, not a quoted user policy.",
+    "omissionCounter": "Each omitted frame carries IsTruncated=true. Write's single per-event IncrementLossCounter(ref truncatedEventCount) counts an event once, however many frames are omitted. host-incompatible and invalid expect truncated=3 across three affected events, plus an unmarked 'after' event. This is consistent with the event-level counter semantics. The counter still increments if admission closes between capture and admit (Stopped), which matches existing truncation accounting.",
+    "provenance": "The provenance is the event-level 'truncated' marker plus TruncatedEventCount. The wire format does not distinguish an omitted incompatible frame from size truncation (see optional finding 1).",
+    "bounds": "The depth check runs before Copy and before frame construction, so at most the remaining number of frames is ever built. Omitted frames count toward combined depth. The Fields enumerator proves the per-frame traversal bound (1025 visits, 1023 retained keys). The 'deep' case proves the depth-8 value bound.",
+    "lifetime": "Borrowed host state is read only inside the synchronous ForEachScope callback during Write. Incompatible objects such as HttpMethod are rejected without retention, so the queued facts hold only owned LogValue data. Provider disposal clears the source reference under the shared lock. The replacement mode proves host handles are not disposed.",
+    "noFalseProof": "The 25 corruption controls match the 25 entries in the edits list. They include incompatible-fields and incompatible-marker, which would detect a ToString/serializer fallback and a missing truncation marker. The docs and decision excerpt explicitly disclaim any installed HttpClientFactory pipeline. The docs defer execution and review results to the task receipt instead of asserting them."
+  },
+  "requiredFindings": [],
+  "optionalFindings": [
+    {
+      "id": "O7",
+      "area": "provenance",
+      "detail": "Graceful frame omission and ordinary size truncation share one marker and one counter. If operators need to tell schema incompatibility apart from budget pressure, a later task could add a fixed reason code or a separate diagnostics counter. If not, state explicitly in the docs that the two cases are indistinguishable."
+    },
+    {
+      "id": "O8",
+      "area": "exception classification",
+      "detail": "The catch covers every ArgumentException subtype, including ones raised by cooperative host enumerators or custom IReadOnlyDictionary implementations inside Copy. A genuine host bug of that type is therefore reported as truncation rather than InvalidEvent. The docs' 'copy reports an ArgumentException' wording covers this, but a one-line note that caller-enumerator ArgumentExceptions are included would remove ambiguity."
+    },
+    {
+      "id": "O9",
+      "area": "shared static",
+      "detail": "CapturedOperationContext.Omitted shares one OwnedMap over a mutable Dictionary instance across all events. This is safe if LogValue never exposes or mutates its owned map, which is not visible in this excerpt. Consider confirming that, or backing the map with an empty read-only or frozen dictionary."
+    },
+    {
+      "id": "O10",
+      "area": "evidence coverage",
+      "detail": "Unit tests aligned with the new behavior were not supplied. Confirm that the 14 unit cases include three things. First, an external provider that throws outside the callback, which must be counted as InvalidEvent. Second, a non-Argument exception from a host enumerator, which must be counted as InvalidEvent. Third, an omitted frame combined with an earlier valid host OperationId, which must keep the earlier ID because Omitted has a null OperationId."
+    }
+  ],
+  "carriedForward": [
+    "Final 5193 full Developer run and exact-assembly Windows/Linux native runs are pending. Do not claim completion or commit as verified until they pass against the reviewed binaries, with coreSha256 and fixtureSha256 recorded in the receipt. The 5191 checkpoint remains historical only.",
+    "The Linux native run of verify-provider-scope.py has not been reported.",
+    "T02: structured operation_id mapping and final precedence qualification, including event_id loss under scope budget pressure.",
+    "T03: host filtering. T04: full ownership. T05: real LoggerFactory, ActivityTrackingOptions and complete host shutdown story.",
+    "Examples, instructions/skills and release qualification remain outstanding. The release profile must continue to fail until that evidence exists.",
+    "Refresh the CIS graph context after the code and documentation changes are finalized.",
+    "This review did not re-inspect unchanged source from the initial snapshot. Any edits to LogValue, ProviderStateCapture, EventProjection or OperationScopeStore since then require re-review."
+  ]
+}
