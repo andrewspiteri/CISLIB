@@ -1,0 +1,34 @@
+{
+  "schema": "cis.logging.provider-host-story-cases/v1",
+  "task": "WP06-S02-T05",
+  "cases": [
+    {
+      "id": "async-owned",
+      "requirement": "Two coordinated async operations use direct provider copied scopes and nested/event overrides without leakage."
+    },
+    {
+      "id": "async-external",
+      "requirement": "Two coordinated async operations use actual typed factory external scopes copied at Log time without leakage."
+    },
+    {
+      "id": "factory-precedence",
+      "requirement": "Actual factory external scopes layer over owned Core scopes; explicit event ID and Activity/identity protections hold."
+    },
+    {
+      "id": "factory-lifetime",
+      "requirement": "Factory AddProvider disposal calls provider disposal, preserving other shared consumers and caller frames."
+    },
+    {
+      "id": "shutdown",
+      "requirement": "Application finishes worker, stops Core, observes actual drain and joins idempotent disposal before factory cleanup."
+    },
+    {
+      "id": "shutdown-loss",
+      "requirement": "Application observes successful admitted drain with earlier invalid-payload loss and flags it for attention."
+    },
+    {
+      "id": "factory-formatter",
+      "requirement": "Actual factory aggregates original formatter exception, without Core invalid accounting or admission; later logging remains usable."
+    }
+  ]
+}

@@ -13,6 +13,7 @@ internal static class Program
     {
         if (args.Length == 3 && args[0] == "provider-behavior") { return ProviderBehaviorFixture.Run(args[1], args[2]); }
         if (args.Length == 3 && args[0] == "provider-scope") { return ProviderScopeFixture.Run(args[1], args[2]); }
+        if (args.Length == 3 && args[0] == "provider-host-story") { return ProviderHostStoryFixture.Run(args[1], args[2]); }
         if (args.Length == 3 && args[0] == "provider-ownership") { return ProviderOwnershipFixture.Run(args[1], args[2]); }
         if (args.Length == 3 && args[0] == "provider-host-filter") { return ProviderHostFilterFixture.Run(args[1], args[2]); }
         if (args.Length == 3 && args[0] == "provider-operation") { return ProviderOperationFixture.Run(args[1], args[2]); }

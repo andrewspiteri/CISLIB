@@ -1,0 +1,30 @@
+{
+  "verdict": "PASS",
+  "requiredFindings": [],
+  "optionalFindings": [
+    {
+      "id": "OPT-1",
+      "file": "conformance/logging/provider-host-story-acceptance.json",
+      "reason": "The case catalog has seven cases, but the acceptance map binds only six. `factory-formatter` appears under no criterion, and the map's `qualification` text doesn't say why. The docs and amendment call it supplemental, but an auditor checking catalog-to-map coverage from the map alone sees an unexplained unbound case.",
+      "fix": "Extend the `qualification` sentence, or add a note, saying `factory-formatter` is a supplemental case that closes the T04-deferred factory aggregation boundary and is not an original S02 criterion binding. This matches how earlier maps disclosed supplemental cases."
+    },
+    {
+      "id": "OPT-2",
+      "file": "implementations/csharp/tests/fixtures/DiscoveryHost/ProviderHostStoryFixture.cs",
+      "reason": "The comment `ILoggerFactory.AddProvider owns provider disposal` credits the interface. The interface does not specify disposal. The behavior comes from the concrete `LoggerFactory`, whose `AddProvider` registers with `ShouldDispose = true`. The host-qualification doc already words this correctly.",
+      "fix": "Reword the comment to: `LoggerFactory.AddProvider marks this registration for factory disposal; the provider still borrows Core.`"
+    },
+    {
+      "id": "OPT-3",
+      "file": "implementations/csharp/tests/fixtures/DiscoveryHost/ProviderHostStoryExpectations.cs",
+      "reason": "The C# reader and the Python native reader check slightly different things. Python asserts `outputs[0].name == 'file'` and exact attribute maps, using `same()` with no extra keys. C# checks only the output count and selected attribute keys. The Python lane passes either way, but an extra leaked scope attribute could pass the C# lane alone.",
+      "fix": "In C#, assert the output name is `file`. For the concurrent, precedence and lifetime rows, compare attribute objects exactly with `JsonNode.DeepEquals` against literal expectations, as `ProviderOperationExpectations` already does."
+    },
+    {
+      "id": "OPT-4",
+      "file": "implementations/csharp/tests/fixtures/DiscoveryHost/ProviderHostStoryFixture.cs",
+      "reason": "The async and shutdown blocks await `Task.WhenAll(operations)` (or `work`) again in `finally`. If the `try` body fails, for example on a `Guard` timeout or a failed `Require`, a faulted worker's exception rethrown in `finally` replaces the original failure. Correctness is unaffected; only the diagnostic for a future failure gets worse.",
+      "fix": "Optional: in `finally`, observe the worker without rethrowing when an exception is already propagating, for example by wrapping the await in a try/catch that only rethrows when the `try` block completed normally."
+    }
+  ]
+}

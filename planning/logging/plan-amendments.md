@@ -219,3 +219,8 @@ The existing Microsoft provider and Core thresholds are unchanged. The actual `L
 ## WP06-S02-T04 nonowning provider qualification
 
 The original nonowning provider default and atomic external-source clearing are already implemented by the preceding provider/scope tasks. Four public physical runtime cases now qualify caller scope-handle survival, shared consumers and lease retention, managed borrowed-source reference release and a barrier-held formatter completing after provider disposal. No shipping source/API/dependency, owning option, cache or lifecycle abstraction is added. GC operations exist only in pinned managed qualification fixtures; complete factory/host shutdown and concurrent story acceptance remain T05, and release requirements remain unchanged.
+
+
+## WP06-S02-T05 application host story qualification
+
+Actual LoggerFactory/ILogger<T> plus the existing public process host qualify every original S02 criterion. The application coordinates two async flows, explicit work completion and shared bounded stop/disposal. No Generic Host framework-specific lifetime is claimed or required by the original illustrative application host. Factory AddProvider owns provider disposal while the provider remains nonowning of Core. Complete exact-assembly filter/operation/ownership regression lanes complement seven new factory/flow/shutdown/formatter cases. No shipping API/source/dependency or lifecycle abstraction is introduced; examples/skills, dependency packaging verification and full release remain later tasks.

@@ -1,0 +1,97 @@
+{
+  "schema": "cis.logging.story-acceptance/v1",
+  "storyId": "WP06-S02",
+  "taskId": "WP06-S02-T05",
+  "source": "planning/logging/sources/core-library-backlog-v1.json",
+  "qualification": "Case bindings only; actual test/native evidence belongs in the task receipt. Public application-owned process host and actual LoggerFactory; no Generic Host-specific lifetime claim.",
+  "criteria": [
+    {
+      "id": "WP06-S02-AC01",
+      "originalDescription": "Two asynchronous operations keep distinct operation attributes through both provider-created and externally supplied scopes.",
+      "caseBindings": [
+        {
+          "catalog": "conformance/logging/provider-host-story-cases.json",
+          "cases": [
+            "async-owned",
+            "async-external"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "WP06-S02-AC02",
+      "originalDescription": "Event-specific and nested scope precedence matches the core contract; free-form state cannot overwrite automatic identity or Activity trace/span IDs.",
+      "caseBindings": [
+        {
+          "catalog": "conformance/logging/provider-host-story-cases.json",
+          "cases": [
+            "factory-precedence",
+            "async-owned",
+            "async-external"
+          ]
+        },
+        {
+          "catalog": "conformance/logging/provider-operation-cases.json",
+          "cases": [
+            "nested-owned",
+            "nested-host",
+            "event",
+            "protected"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "WP06-S02-AC03",
+      "originalDescription": "With the documented host configuration, Debug events reach the file while the console emits only Warning and above; unwanted formatter work remains skipped.",
+      "caseBindings": [
+        {
+          "catalog": "conformance/logging/provider-host-filter-cases.json",
+          "cases": [
+            "broad",
+            "provider-rule",
+            "category-rule",
+            "narrow-host",
+            "narrow-category",
+            "trace-file",
+            "core-off"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "WP06-S02-AC04",
+      "originalDescription": "Disposing the default provider leaves direct core logging and other runtime consumers usable until the application explicitly stops the runtime.",
+      "caseBindings": [
+        {
+          "catalog": "conformance/logging/provider-host-story-cases.json",
+          "cases": [
+            "factory-lifetime"
+          ]
+        },
+        {
+          "catalog": "conformance/logging/provider-ownership-cases.json",
+          "cases": [
+            "shared",
+            "resources",
+            "scope-handles",
+            "in-flight"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "WP06-S02-AC05",
+      "originalDescription": "Host shutdown finishes application work, stops the runtime, and observes the actual drain result; repeated stop/disposal follows the core's idempotent lifecycle rules.",
+      "caseBindings": [
+        {
+          "catalog": "conformance/logging/provider-host-story-cases.json",
+          "cases": [
+            "shutdown",
+            "shutdown-loss"
+          ]
+        }
+      ]
+    }
+  ]
+}
