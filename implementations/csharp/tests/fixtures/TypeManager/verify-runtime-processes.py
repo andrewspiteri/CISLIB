@@ -31,10 +31,21 @@ def main():
     logs.mkdir(exist_ok=True)
     # Replace the report before work begins, so an interrupted run cannot look successful.
     report = {"scope": "Actual Core development source; fresh processes, not package qualification",
-              "complete": False, "results": []}
+              "complete": False, "verifierSha256": hashlib.sha256(Path(__file__).read_bytes()).hexdigest(),
+              "sourceProvenanceScope": "Core C# sources and five named project/config files; not all transitive MSBuild inputs",
+              "results": []}
 
     def save():
         (root / "results.json").write_text(json.dumps(report, indent=2) + "\n", encoding="utf-8")
+
+    def core_inputs():
+        source = language / "src/CIS.Core"
+        files = {str(path.relative_to(source)).replace("\\", "/"): hashlib.sha256(path.read_bytes()).hexdigest()
+                 for path in sorted(source.rglob("*.cs"))
+                 if not set(path.relative_to(source).parts).intersection({"bin", "obj"})}
+        projects = {name: hashlib.sha256((language / name).read_bytes()).hexdigest()
+                    for name in ["src/CIS.Core/CIS.Core.csproj", "global.json", "Directory.Build.props", "Directory.Packages.props", "NuGet.config"]}
+        return files, projects
 
     def run(name, *arguments, expected_error=None):
         process = subprocess.run([args.dotnet, *map(str, arguments)], cwd=language,
@@ -51,13 +62,21 @@ def main():
     report["sdk"] = run("sdk", "--version").strip()
     report["mode"] = "frozen-managed-binary-replay" if args.replay_root else "build-and-run"
     if args.replay_root:
+        source_report = json.loads((args.replay_root / "results.json").read_text(encoding="utf-8-sig"))
+        if not source_report.get("complete"):
+            raise RuntimeError("Cannot replay an incomplete producer report")
+        for key in ["coreSourceInputs", "coreProjectInputs", "sourceGitHead"]:
+            report[key] = source_report[key]
         for name in ["Broken", "Forwarder", "Forwarded", "Host", "versions", "helper"]:
             shutil.copytree(args.replay_root.resolve() / name, root / name, dirs_exist_ok=True)
     else:
+        report["coreSourceInputs"], report["coreProjectInputs"] = core_inputs()
+        git_head = subprocess.run(["git", "rev-parse", "HEAD"], cwd=language, text=True, capture_output=True)
+        report["sourceGitHead"] = git_head.stdout.strip() if git_head.returncode == 0 else None
         for name in ["Broken", "Forwarder", "Host"]:
             output = root / name / "bin/Release/net10.0"
             run("build-" + name, "build", fixtures / name / (name + ".csproj"),
-                "-c", "Release", "-m:1", "--nologo", "-o", output)
+                "-c", "Release", "-m:1", "--no-incremental", "--nologo", "-o", output)
         forwarder = root / "Forwarder/bin/Release/net10.0"
         forwarded = root / "Forwarded/bin/Release/net10.0"
         forwarded.mkdir(parents=True, exist_ok=True)
@@ -88,6 +107,8 @@ def main():
     ''', encoding="utf-8")
             run("build-" + variant, "build", directory / "Fixture.csproj", "-c", "Release", "-m:1",
                 "--nologo", "-o", root / "versions" / variant)
+        if core_inputs() != (report["coreSourceInputs"], report["coreProjectInputs"]):
+            raise RuntimeError("Core source inputs changed during the producer build")
     host = root / "Host/bin/Release/net10.0/CIS.TypeManager.RuntimeHost.dll"
     core = host.parent / "CIS.Core.dll"
     report["coreSha256"] = hashlib.sha256(core.read_bytes()).hexdigest()
@@ -102,15 +123,17 @@ def main():
         original = json.loads((args.replay_root / "results.json").read_text(encoding="utf-8-sig"))
         if not original.get("complete") or report["coreSha256"] != original["coreSha256"]:
             raise RuntimeError("Replay source is incomplete or its Core bytes have changed")
+        if report["verifierSha256"] != original.get("verifierSha256"):
+            raise RuntimeError("Replay verifier differs from the completed build report")
         if report["fixtureFiles"] != original.get("fixtureFiles"):
             raise RuntimeError("Replay fixture bytes do not match the completed build report")
-    modes = ["partial-types", "validation-before-load", "dynamic-name-collision", "foreign-resolver-result", "file-identity-conflict", "loaded-identity-conflict", "tpa-selected-newer-version",
+    modes = ["outside-catalog-late-load", "manifest-version-conflict", "manifest-version-conflict-reversed", "partial-types", "validation-before-load", "dynamic-name-collision", "foreign-resolver-result", "file-identity-conflict", "loaded-identity-conflict", "tpa-selected-newer-version",
              "reference-reuse", "self-defined-reference-reuse", "invalid-executable", "locationless-host", "forwarding-and-collisions"]
     for mode in modes:
         observed = json.loads(run(mode, host, mode, root, root / "deployments" / mode))
         if observed.get("success") is not True or observed.get("mode") != mode:
             raise RuntimeError(f"Invalid result for {mode}: {observed}")
-        if observed["containerConstructed"] != (mode in ["forwarding-and-collisions", "dynamic-name-collision"]):
+        if observed["containerConstructed"] != (mode in ["forwarding-and-collisions", "dynamic-name-collision", "outside-catalog-late-load"]):
             raise RuntimeError(f"Incorrect container boundary for {mode}")
         report["results"].append(observed)
         save()

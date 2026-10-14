@@ -80,12 +80,14 @@ public sealed class TypeManagerCatalogTests
         Assert.Throws<ArgumentException>(() => manager.TryGetType(" ", out _));
         Assert.Throws<ArgumentNullException>(() => manager.GetDefinedTypes(null!));
         Assert.Throws<ArgumentException>(() => manager.GetDefinedTypes(typeof(object).Assembly));
-        Assert.Throws<NotSupportedException>(() => ((IList<Assembly>)manager.Assemblies).Clear());
-        Assert.Throws<NotSupportedException>(() => ((IList<Type>)manager.Types).Clear());
-        Assert.Throws<NotSupportedException>(() => ((IList<Type>)manager.GetDefinedTypes(Host)).Clear());
-        Assert.Throws<NotSupportedException>(() => ((IList<Type>)manager.GetImplementations<IMarker>()).Clear());
-        Assert.Throws<NotSupportedException>(() => ((IList<Type>)manager.GetImplementations<IEquatable<DateTime>>()).Clear());
-        Assert.Throws<NotSupportedException>(() => ((IList<string>)manager.PreparationReport.SelectedAssemblyIdentities).Clear());
+        AssertProtected(manager.Assemblies);
+        AssertProtected(manager.Types);
+        AssertProtected(manager.GetDefinedTypes(Host));
+        AssertProtected(manager.GetImplementations<IMarker>());
+        AssertProtected(manager.GetImplementations<IEquatable<DateTime>>());
+        AssertProtected(manager.PreparationReport.SelectedAssemblyIdentities);
+        AssertProtected(manager.PreparationReport.LoadedAssemblyIdentities);
+        AssertProtected(manager.PreparationReport.ReusedAssemblyIdentities);
     }
 
     [TestMethod]
@@ -123,6 +125,84 @@ public sealed class TypeManagerCatalogTests
         AssertOrder(first.Types);
         AssertOrder(first.GetDefinedTypes(Host));
         AssertOrder(first.GetImplementations<object>());
+    }
+
+    [TestMethod]
+    [DataRow(false)]
+    [DataRow(true)]
+    public async Task GenericAndNongenericQueriesAgreeForPreparedAndLazyContracts(bool precompute)
+    {
+        Type[] contracts = [typeof(IMarker), typeof(MarkerBase), typeof(PrivateCandidate),
+            typeof(IProducer<object>), typeof(IConsumer<string>), typeof(IEquatable<DateTime>)];
+        var manager = await TypeManager.CreateAsync(new TypeManagerOptions(Host)
+        {
+            AssemblyManifestPath = manifest,
+            PrecomputedContracts = precompute ? contracts : []
+        });
+        AssertEquivalent<IMarker>(manager);
+        AssertEquivalent<MarkerBase>(manager);
+        AssertEquivalent<PrivateCandidate>(manager);
+        AssertEquivalent<IProducer<object>>(manager);
+        AssertEquivalent<IConsumer<string>>(manager);
+        AssertEquivalent<IEquatable<DateTime>>(manager);
+        Assert.AreEqual(precompute ? contracts.Length : 0, manager.PreparationReport.PreparedContractCount);
+    }
+
+    [TestMethod]
+    public async Task ConcurrentAwaitersShareOneManagerAndCancellationAfterSuccessCannotRevokeIt()
+    {
+        using var cancellation = new CancellationTokenSource();
+        var preparation = TypeManager.CreateAsync(new TypeManagerOptions(Host) { AssemblyManifestPath = manifest }, cancellation.Token);
+        var observers = Enumerable.Range(0, 16).Select(_ => Task.Run(async () => await preparation)).ToArray();
+        var managers = await Task.WhenAll(observers);
+        var manager = managers[0];
+        foreach (var observed in managers) { Assert.AreSame(manager, observed); }
+        var types = manager.Types.ToArray();
+        var report = manager.PreparationReport;
+        cancellation.Cancel();
+        Assert.IsTrue(preparation.IsCompletedSuccessfully);
+        Assert.AreSame(manager, await preparation);
+        CollectionAssert.AreEqual(types, manager.Types.ToArray());
+        Assert.AreSame(report, manager.PreparationReport);
+        Assert.AreSame(typeof(PrivateCandidate), manager.GetImplementations<IMarker>().Single());
+        // Reading the inventory must not leave an application-owned file handle.
+        using var exclusive = new FileStream(manifest, FileMode.Open, FileAccess.ReadWrite, FileShare.None);
+        Assert.IsTrue(exclusive.CanWrite);
+    }
+
+    [TestMethod]
+    public async Task ConcurrentAwaitersShareOneFailureWhileSeparateCreationsRemainIndependent()
+    {
+        File.WriteAllText(manifest, "{");
+        var preparation = Create();
+        var observers = Enumerable.Range(0, 16).Select(_ => Task.Run(async () =>
+            await Assert.ThrowsExactlyAsync<TypeManagerInitializationException>(() => preparation))).ToArray();
+        var errors = await Task.WhenAll(observers);
+        foreach (var error in errors) { Assert.AreSame(errors[0], error); }
+        Assert.IsTrue(preparation.IsFaulted);
+        Assert.AreEqual(TypeManagerFailureKind.InvalidInventory, errors[0].FailureKind);
+        var other = Create();
+        Assert.AreNotSame(preparation, other);
+        var otherError = await Assert.ThrowsExactlyAsync<TypeManagerInitializationException>(() => other);
+        Assert.AreNotSame(errors[0], otherError);
+        using var exclusive = new FileStream(manifest, FileMode.Open, FileAccess.ReadWrite, FileShare.None);
+        Assert.IsTrue(exclusive.CanWrite);
+    }
+
+    private static void AssertEquivalent<T>(ITypeManager manager) => CollectionAssert.AreEqual(
+        manager.GetImplementations(typeof(T)).ToArray(), manager.GetImplementations<T>().ToArray());
+
+    [TestMethod]
+    public void CollectionProtectionCheckRejectsMutableFixedSizeArrays()
+    {
+        Assert.ThrowsExactly<AssertFailedException>(() => AssertProtected<int>(new[] { 1 }));
+    }
+
+    private static void AssertProtected<T>(IReadOnlyList<T> values)
+    {
+        var list = (IList<T>)values;
+        Assert.Throws<NotSupportedException>(() => list.Clear());
+        if (list.Count > 0) { Assert.Throws<NotSupportedException>(() => list[0] = values[0]); }
     }
 
     private Task<ITypeManager> Create() => TypeManager.CreateAsync(new TypeManagerOptions(Host) { AssemblyManifestPath = manifest });

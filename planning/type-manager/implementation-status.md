@@ -57,9 +57,9 @@ silently marked complete by a prototype or an uncommitted test result.
 | TM-011 | Complete definition/relationship enumeration implemented; forwarding/nonpublic/open-definition and side-effect tests pass. Explicit enumeration instrumentation remains. |
 | TM-012 | All five failure kinds exercised with contextual diagnostics, including a locationless host; the full loader/publication gate still has outstanding cases. |
 | TM-013 | Task/publication boundary implemented; pre-work and real mid-load cancellation pass. Deterministic final-publication cancellation evidence remains. |
-| TM-014 | M2 gate remains open for the remaining loader/publication cases. |
+| TM-014 | Expanded loader/publication acceptance is executed, including both conflict orders and a deterministic final-publication source probe. Final milestone reconciliation remains open; instrumentation is separate from the unmodified candidate. |
 | TM-015–TM-019 | Protected identity maps, assignability matcher, exact lookup, cache/concurrency and precomputed queries implemented with focused tests. |
-| TM-020 | M3 gate awaits the remaining acceptance assertions and gate review. |
+| TM-020 | Generic equivalence, concurrent awaiters, immutable membership after later loading, and protected collection replacement assertions pass. Enumeration counters and three targeted mutants pass in a separate test-only source build. Final milestone review remains open. |
 | TM-021 | Preparation report implemented and reconciled in tests, including newly loaded library classification. |
 | TM-022 | Real pre-container fixture works; final minimal user-facing console example remains. |
 | TM-023–TM-025 | DI/ASP.NET consumer example, Configuration boundary documentation and supported-host gate remain. Web SDK inventory is distinct from a DI runtime example. |
@@ -71,8 +71,18 @@ silently marked complete by a prototype or an uncommitted test result.
 
 ## Executed evidence and limits
 
+The expanded [runtime acceptance checkpoint](evidence/runtime-acceptance/README.md)
+uses Core SHA-256 `d70fcfdc41b6d15829227f1cee60130ddad3f7f82cc11c7a2fcbf8d5f700fb09`:
+77 native cases (68 unit plus 9 runtime architecture) and 17 process checks pass
+on both Windows and Ubuntu. A separate source-instrumented build passes five
+checks per platform, including three targeted mutant rejections. Two provenance
+controls reject mismatched Core bytes and source records before instrumentation.
+The producer forces recompilation. Its source hashes cover C# files and five
+named project/config files, not the complete transitive MSBuild input closure.
+No production Type Manager code changed for this acceptance checkpoint.
+
 See `verification.md` and `evidence/runtime-closure/` for exact reports and commands.
-Frozen runtime candidate Core SHA-256 is `53619d263b200fa3d53bb5d9455dfa599110ce83ad30b83448b480bd542e1cb3`. Its result: 63 Core unit cases plus 9 runtime architecture
+The earlier frozen runtime candidate Core SHA-256 is `53619d263b200fa3d53bb5d9455dfa599110ce83ad30b83448b480bd542e1cb3`. Its result: 63 Core unit cases plus 9 runtime architecture
 cases (72 total) pass on both Windows and Ubuntu. Twelve runtime process cases
 and two generator rejection cases (14 total) pass on each platform with verified
 identical fixture/Core bytes. ApiCompat, original binary replay and historical-

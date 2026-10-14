@@ -1,3 +1,6 @@
 namespace RuntimeFixtures;
 
-public sealed class Collision;
+public sealed class Collision : IDisposable
+{
+    public void Dispose() { }
+}

@@ -214,3 +214,31 @@ build is expected to fail until native restore runs. Concurrent different-RID wo
 against one project/intermediate directory is unsupported. Static-graph restore,
 Visual Studio task hosting and its separate PublishUrl stage are not qualified.
 These results do not complete all six verification families or authorize release.
+
+## Expanded runtime acceptance — 14 October 2026
+
+`evidence/runtime-acceptance/` retains 77 native cases and 17 process checks on
+each platform against the same unmodified Core bytes. New assertions cover
+generic/non-generic equivalence, shared successful and failed awaiters, cancellation
+after success, report element replacement, both manifest conflict orders, deployed
+lookup misses, and fixed membership after an actual later assembly load.
+
+A separate test-only source copy wraps the sole `GetTypes` call and injects a
+callback immediately before the final cancellation check. Five checks per OS
+record one enumeration per selection per preparation, no enumeration during
+concurrent queries, and cancellation without publication at that boundary. Three
+deliberate faults (double enumeration, query enumeration and a removed final
+cancellation check) are rejected for their expected diagnostic. Two additional
+controls reject mismatched candidate bytes and source records before building.
+These targeted controls do not constitute the complete mutation family.
+
+The unmodified producer uses `--no-incremental`. Its completed report records the
+Core hash, all Core C# file hashes, and five named project/config hashes. The
+instrumentation verifier compares that subset before copying and checks copied
+bytes. This is accidental-mismatch protection using a trusted producer report;
+it is neither a full transitive build-input attestation nor proof that the
+instrumented binaries equal the unmodified DLL. Linux replays the exact Windows
+managed outputs and the same workspace source bytes through `/mnt/c`, avoiding
+checkout line-ending differences. Native reports, command logs and review
+findings/corrections are retained. The candidate includes the coordinated logging
+working-tree snapshot; this is not a clean release build or portable release bundle.

@@ -1,0 +1,223 @@
+{
+  "complete": true,
+  "scope": "Test-only source instrumentation, not a shipping binary",
+  "candidateCoreSha256": "d70fcfdc41b6d15829227f1cee60130ddad3f7f82cc11c7a2fcbf8d5f700fb09",
+  "factorySourceSha256": "bdc7a127e9e4e012709c2a7144f41a54e45a546b8b65cabdfdf71598b23a2368",
+  "candidateReportSha256": "ce0f08017666e3942d8493b5bb3391abc2403bd7303209afebe5df083f5edaa2",
+  "verifierSha256": "eeef4b2542e07052ff3942ae3f277c39d22a6ab6888e898b879cdd71f98dcb8c",
+  "templateInputs": {
+    "ProbeLibrary.cs": "ba89c8dd64fbd6498e9196e3b54447690e52de7be1b0fb865e210db1143d4bcd",
+    "Program.cs": "1697dfc220d7286d2b5de3f39c60467557fabdc204dd477fa9950b678fe981e1",
+    "TypeManagerTestProbe.cs": "0a31594eed1044f97ad0fe6278ed2b7a359842e1b974a48f25ca867cb5143446"
+  },
+  "results": [
+    {
+      "case": "instrumented-enumeration",
+      "passed": true,
+      "observed": {
+        "mode": "enumeration",
+        "success": true,
+        "publicationVisits": 2,
+        "canceled": false,
+        "published": true,
+        "manifestReopenedExclusively": true,
+        "repeatedEnumerations": {
+          "CIS.Core, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null": 2,
+          "CIS.TypeManager.InstrumentationHost, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null": 2,
+          "CIS.TypeManager.ProbeLibrary, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null": 2
+        },
+        "enumerations": [
+          {
+            "assembly": "CIS.Core, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null",
+            "calls": 1
+          },
+          {
+            "assembly": "CIS.TypeManager.InstrumentationHost, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null",
+            "calls": 1
+          },
+          {
+            "assembly": "CIS.TypeManager.ProbeLibrary, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null",
+            "calls": 1
+          }
+        ]
+      }
+    },
+    {
+      "case": "instrumented-publication-cancellation",
+      "passed": true,
+      "observed": {
+        "mode": "publication-cancellation",
+        "success": true,
+        "publicationVisits": 1,
+        "canceled": true,
+        "published": false,
+        "manifestReopenedExclusively": true,
+        "repeatedEnumerations": null,
+        "enumerations": [
+          {
+            "assembly": "CIS.Core, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null",
+            "calls": 1
+          },
+          {
+            "assembly": "CIS.TypeManager.InstrumentationHost, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null",
+            "calls": 1
+          },
+          {
+            "assembly": "CIS.TypeManager.ProbeLibrary, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null",
+            "calls": 1
+          }
+        ]
+      }
+    },
+    {
+      "case": "enumerate-twice-enumeration",
+      "passed": true,
+      "rejectedFor": "ENUMERATION_COUNT:"
+    },
+    {
+      "case": "query-enumeration-enumeration",
+      "passed": true,
+      "rejectedFor": "QUERY_ENUMERATION:"
+    },
+    {
+      "case": "skip-final-cancellation-publication-cancellation",
+      "passed": true,
+      "rejectedFor": "PUBLICATION_CANCELLATION:"
+    }
+  ],
+  "sourceProvenanceScope": "Core C# sources and five named project/config files; not all transitive MSBuild inputs; producer report is trusted",
+  "sourceGitHead": "7fdbea45f7e45e93044ddbd91165e88660edd192",
+  "sdk": "10.0.401",
+  "sourceInputs": {
+    "Environment/EnvironmentKind.cs": "7ab76b25987f4ab48d380646bc0251a3af30cf333a9a7b59eeb17bbbaa8de04a",
+    "Environment/EnvironmentOptions.cs": "47e39efbe61a5016f39f58a068dfe2318e5bc875d6ac813504049582bb816bbc",
+    "Environment/EnvironmentOverrides.cs": "89fb65a1efb1fa5f6f2be35703ca9100a3c72f1ba30eec3c9bcd1a3e9590cf8a",
+    "Environment/Resolution/ConfigurationIssue.cs": "69aaa25c4fc1464562ff8244ed8aed31f32a4c515e95a879052be057acc4c1eb",
+    "Environment/Resolution/ConfigurationIssueCodes.cs": "9e66a8e9c9486afa599ad34b3ace7dc043f8466600fcd60312f101ca30f8260d",
+    "Environment/Resolution/CoreConfigurationException.cs": "d7eab634c0a679a97effa52239846f1a1e50c1c6c5996f5711354d11830b4d0d",
+    "Logging/Configuration/LoggingFilePath.cs": "40ffa9331c2d1c56536fa974b0082d32b3982e36608fd671df1707f62efe7bd8",
+    "Logging/Configuration/SeverityTokenParser.cs": "71ba6dc96e467100b74e28ad6d1cbbc011a2adf88ce39bda8ec8fda215b5584f",
+    "Logging/CoreLogDiagnostics.cs": "0169b58e4f9ca36d1cdbdf594d2da468c309165011f545d004f834ce48ba4306",
+    "Logging/CoreLogger.cs": "3725f93252f5bd1e7601e59c40dc41122e1ee2949cd4d75dfca54ad28d7387b7",
+    "Logging/CoreLogInitializationException.cs": "52e3096c04627c53651374768a8e6ba66cc3d9f9ef59127a01a0ba89296f8089",
+    "Logging/CoreLogLevel.cs": "f00846ed540faf9ae4241b899813cec8d9a7124e5ddc697dc0740d574b8d4d53",
+    "Logging/CoreLogRuntime.cs": "4a4f90ed6e354dd5bccff2d75c487409921d5407ca1be2daa19fbe4146044de2",
+    "Logging/CoreLogState.cs": "a43312db03f4f3302c5ad8b8c9e09119da04d2889fff82bcb06735a7cecaf94c",
+    "Logging/EventMetadata.cs": "f4c6f5ebd072af2b508cc8bec8cbe565b95b8a3dd8fd38fb821ee63d89cbedd8",
+    "Logging/Events/CapturedEventFacts.cs": "a788fff0060beca4a24d43c3acbd9df50c5522072ebf5dc0ec9e88170a59b8a3",
+    "Logging/Events/EncodedEvent.cs": "a15135e15bd5a7914186bf6e350ef24f4abc47c6a05c505a01232bc957edab62",
+    "Logging/Events/EventByteProjection.cs": "74089f23131925f6954dd74021c384615b390d6dae86a9ddea0aedc79192420d",
+    "Logging/Events/EventEncoder.cs": "b6d0474273bc1b1178b75a47bc72728bef6b2a60f27c2c1e08b97f68927a0e05",
+    "Logging/Events/EventProjection.cs": "b8a8d6e07cbad7aef8737b316ac1df0ede74123c10ed1c3afb8bb882b244c360",
+    "Logging/Events/EventWireFormat.cs": "459577a0f003382b9d9b9adf8db1d5455eb1a78e939753fa656468b27fba353a",
+    "Logging/Events/JsonTextBytes.cs": "36c3dbd7a533efa418e2b0d12d3e1e613ac9dd0c4faf29d1c41cfc11155dbb0b",
+    "Logging/Exceptions/CapturedException.cs": "c7a1afb38d64c279ea7a28f1f459290c9b07dd60a6fca3d98fec2a0f9c1ae5e4",
+    "Logging/Exceptions/ExceptionProjection.cs": "286b1b67537ea14fbd7352265b8dcd8391d8846cc32f56d30d1147c28e861afd",
+    "Logging/LogEventData.cs": "0571c9c72636c6660b13ce223dbe84aefc9d7b0cb5f9b0fae4e2a6a14519fcd3",
+    "Logging/LogFlushResult.cs": "df343f3695224f61c8c6e7b5b4f3d6481db2decef46a8bf9c0d00633bef2ad37",
+    "Logging/LoggingOptions.cs": "0b2eb552068b851c79a8827f909b831cbbd79bd5dcad5975a1623b0b9941575e",
+    "Logging/LoggingOutputEnums.cs": "de3834c4136325f560653029470309411a10d086427bf64f45f93804e5a0e2dc",
+    "Logging/LogOutputDiagnostics.cs": "cec5b2495ad6016d463eda2801bb215098af23a815cb593eb1d9b2143bae1bfc",
+    "Logging/LogOutputState.cs": "785f6ccabf7c4d9e9e19827615e5bfb5de1f5783d78c8c473c11cfede5680119",
+    "Logging/LogOutputWriteResult.cs": "c7ef3f8991f78318184a29a9b79bca9f33aff08028492f86b039642c5e2e4063",
+    "Logging/LogStopResult.cs": "950807f38715fa5df5cb884eb74333ad55f841f7e27617cb4ab92d33f1acf7b9",
+    "Logging/LogValue.cs": "9aeaf7726a52b571d8d172c374d080b0dce831c1c5ead5fe63b566ec1d7a5001",
+    "Logging/LogValueKind.cs": "4b7cd9cc98e86801c45db36b1997df247f43ae0a9e4b688ed8b644fb2d4b4699",
+    "Logging/LogWriteOutcome.cs": "d623816ab338b390711f5611f959cc0dd15070fe65202f1358ef081e833545c7",
+    "Logging/LogWriteResult.cs": "383d14cfc92d166158ed48daf9b5bc5d7a96f4986ba3828cfc6ef4d5ff934b68",
+    "Logging/OperationContextData.cs": "d66670917376217ccdcc27a07792d55637aad2cd69bec1665a5ae6f354921db8",
+    "Logging/Rendering/EventRenderer.cs": "09fe595a8c8e5cdc67215e92fa18943229c0d2f1fd12225034f1349cc0f6a3ee",
+    "Logging/Rendering/HumanRenderer.cs": "869e3d2a3b01b0a06e302a6f066e1d2121b20982d1d1e54f552c9ef148fd8450",
+    "Logging/Rendering/HumanText.cs": "b910cdbac62fcc6ff56db742dde1b570c5c06ad73214a768c471e0d4c5260026",
+    "Logging/Rendering/RenderedEvent.cs": "8ce8d6ef6c8869c41290858eaab4d66ddc6cc8201f6bd4a29b0c0710e16afe03",
+    "Logging/Rendering/RenderedHumanEvent.cs": "3c3ca9ba309bad15eff6e5c6ba2d328e022aa0c62f5f6050eb8942e839c2a873",
+    "Logging/Runtime/AdmittedEvent.cs": "35352744efbfaa57fb416df136835f235d141a58489bab10fc260a7f15c18cb0",
+    "Logging/Runtime/ConsoleOutputWriter.cs": "dc285460d4ab0929eeca18d3c7e57ab3b6892abb67d02423265c97c3a796d609",
+    "Logging/Runtime/FileGroupInventory.cs": "0c68b768d5f38a44489a41f60c9985db5d2dc56bdd8fcd6ffb6140f1bc02fc5d",
+    "Logging/Runtime/FileGroupTransition.cs": "44aa175ad87c20641b97272b49c00cee276ef3dc3c5ea257bec930a49431e8d9",
+    "Logging/Runtime/FileOutputOwner.cs": "bf25941873e24fb094bac353784b79d60d85d7964d705b97f6cecb73b64a532d",
+    "Logging/Runtime/FileOutputWriteException.cs": "f62315ef1af2d3a85e3b2d2dc6b087b1c3fc1d8122be0f4a5af4de8901b94d8b",
+    "Logging/Runtime/FileOutputWriter.cs": "d3d2e4fb1f68b8b9ee6d81367b3fbee93a855df2f715b83d6e91c9beb99d5c39",
+    "Logging/Runtime/FlushBoundary.cs": "7c9b217696f18f18151567f3a72f946fb1682949047abee5ec6055809773c25c",
+    "Logging/Runtime/FlushDeadline.cs": "b0e0d0987ca190c7931f94f391f7dca3646c2ee7401140ab33226cadd44a68d7",
+    "Logging/Runtime/ILogOutputAdmission.cs": "52d4278d6d316c87eb0ae4b428dc86c714445e571d661edeeeddf11ba920d6af",
+    "Logging/Runtime/JsonlRecordBoundary.cs": "feac487e389c4827354edc90249f6072fe400a241d5ea0b3acce43bfc2471021",
+    "Logging/Runtime/OutputAccounting.cs": "23342ef26ec1e8371483a4cf6d7604fef4b457b957b6e2fd074c11325ce34dec",
+    "Logging/Runtime/OutputEventQueue.cs": "5fd0b70abcf8702a3256574b8cb006f348614c9497c5fe9d0246d7af964ba451",
+    "Logging/Runtime/OutputQueues.cs": "34a1a635a817e2e853628236e238e34523ff92b6ec08661ea953d0d96e739a80",
+    "Logging/Runtime/RuntimeAccounting.cs": "39befe2f7faa929bc09d6cc08db6bc8bc597e260bd33632b5228bbc3d2696fa1",
+    "Logging/Scopes/CapturedOperationContext.cs": "245c134b049cf1e6b04c4717c0a6c2adfa56189a6725b2093b9dfda448168ad9",
+    "Logging/Scopes/CapturedScopeContext.cs": "8797fc01b125ed50a021bb502f71141a56de02675320abbd2c0ae62f825e2dce",
+    "Logging/Scopes/OperationScopeFrame.cs": "7c3f20896086fd4c90b76a95e76b2dcb15ea7bf7e3a10707336eadf929e9e2aa",
+    "Logging/Scopes/OperationScopeStore.cs": "82d2113e2d437e402b47627d4626ecf8ae3fddbfefe68bb1f3cad73ffef01d0f",
+    "Logging/Values/LogValueProjection.cs": "9916f9fc3329875b299dc0aac250eafe98742c6dfde20fc0be2013f5c6602374",
+    "Logging/Values/LogValueScalar.cs": "4cca812b3dc9698d881be4597bcdd2ddd2cf13f13d7b88f773135f8d54da2bea",
+    "Logging/Values/LogValueText.cs": "afab019389f20ce6503ed9e40932c5fb1abe8c8389a3f76edba7abfa087b01f2",
+    "Text/UnicodeScalarText.cs": "797e4f18cba035d086195d279551d52b16dfd500d47da22b90bd75e455423ac7",
+    "TypeManagement/AssemblyInventory.cs": "5c1e1e37e2bc4df8105822e78bd43eccbf794a3aefb772ca68794f19d3bf64ac",
+    "TypeManagement/ITypeManager.cs": "a0d7da061212a24ed8053d7fe28d57a575bd1e05a4bf1069980ecab06933b6ae",
+    "TypeManagement/PreparationInputs.cs": "f97bfcc5ac35c1fe822582052cb410fe37d6fd4714e4f49358f23d918ac9e500",
+    "TypeManagement/SelectedAssemblyLoader.cs": "032dd7ce1d564fa41035ec4bfc9768a97a09b2d7cd47bb42e05882374795158a",
+    "TypeManagement/TypeManager.cs": "bdc7a127e9e4e012709c2a7144f41a54e45a546b8b65cabdfdf71598b23a2368",
+    "TypeManagement/TypeManagerFailureKind.cs": "d95aea678fb2d64f0d52a7db4fd36d06dc57f2dbe3734b492463c6bc41e3c4da",
+    "TypeManagement/TypeManagerInitializationException.cs": "dd32c20600fc0eb7ae6bcaf04eabe32c576a420dba9124c1acc7c6dbda6c360a",
+    "TypeManagement/TypeManagerOptions.cs": "5e1027abea845e63e26dfe29c6b239584299fd15a4a58884e8144715b50bcee4",
+    "TypeManagement/TypeManagerPreparationReport.cs": "c40cdfad0084bdc65fec491d4a8215f9ff716bc29307ea4278b1337622f4fe26"
+  },
+  "instrumentedFactoryHashes": {
+    "instrumented": "2934e22ee217a4e358333269d8c3dfca79b02b4c4cf6ac89622f36e1184a0bc7",
+    "enumerate-twice": "cc3e82791fb4fe50c17cbdd5ba20532f25290f7fe5635d04d8c15d077d41993c",
+    "query-enumeration": "dbb122b69c12e5579e69b82e826fe05523ae29041b9e46396221750949e4a926",
+    "skip-final-cancellation": "776c4268790b6db71e18512aa1f0bbcbfafcaae57bbf3121b3e399fb82a10111"
+  },
+  "binaryFiles": {
+    "enumerate-twice/CIS.Core.dll": "ba6b44bc9b843db6a1797ee4d298be8d6338616483de654ae262781e28e3e504",
+    "enumerate-twice/CIS.Core.pdb": "47489415fabd21944371de5b175fbe9f7175d99fb917981bd3dcd8a36586cf26",
+    "enumerate-twice/CIS.Core.xml": "af77dd6b5dec42253d4d41d0924fc2969395a1e36f570429b0d986a1ac8c8308",
+    "enumerate-twice/CIS.TypeManager.InstrumentationHost.deps.json": "27b94e1f21700452f05b7a6ac3228d68e311b5183631e884b5d59c8383f2c745",
+    "enumerate-twice/CIS.TypeManager.InstrumentationHost.dll": "88464ce00202541caeb83d08bae3aed8d676f21bfcd135c5c089165bdadacedd",
+    "enumerate-twice/CIS.TypeManager.InstrumentationHost.exe": "0cd9839c7f2e1e64b6b1ad9e1b6d3d0ab03481e53427b7466412dbb8ebf06f86",
+    "enumerate-twice/CIS.TypeManager.InstrumentationHost.pdb": "c3e4bcaf60de8fe67bf17bb6f44a14a7a8bb043b8aa1cb6db0017ea9eb0ab010",
+    "enumerate-twice/CIS.TypeManager.InstrumentationHost.runtimeconfig.json": "c230a317a54dd960bcbeb5f347f52e18dc665a26f7efda2159fced9a5ac7e097",
+    "enumerate-twice/CIS.TypeManager.ProbeLibrary.dll": "752a98f6f98937b1e01c4619a61cd9c54fa58a153dc9024e5811e5b853fe2a94",
+    "enumerate-twice/CIS.TypeManager.ProbeLibrary.pdb": "8a7f90d727a1dabc4b06a0108d483974b027eb1bab80b51f0b239b1564ae32a0",
+    "enumerate-twice/Microsoft.Extensions.DependencyInjection.Abstractions.dll": "da04edc338d5aa0f38a1f5fa5ff3ee7e36affe9c961daf3ea724a428bd746bc6",
+    "enumerate-twice/Microsoft.Extensions.Logging.Abstractions.dll": "7c242f8ca612fa1acc61f78efd5f8c89e01bd0bd47dc4ecc65e0e6e24f1a1668",
+    "instrumented/CIS.Core.dll": "8fbf533998c0148d9d41ee8ebd80bc6c9dd2cdc72f787237497fc03595b19264",
+    "instrumented/CIS.Core.pdb": "9fe5f42ec061334cd6d629f5589b68dfc30f7de6647b9fbf7cec67d72fad499e",
+    "instrumented/CIS.Core.xml": "af77dd6b5dec42253d4d41d0924fc2969395a1e36f570429b0d986a1ac8c8308",
+    "instrumented/CIS.TypeManager.InstrumentationHost.deps.json": "27b94e1f21700452f05b7a6ac3228d68e311b5183631e884b5d59c8383f2c745",
+    "instrumented/CIS.TypeManager.InstrumentationHost.dll": "567c52facae4b67e28ce770ac2d2707efd0cb4788a265d37a5bcb8a4ba301805",
+    "instrumented/CIS.TypeManager.InstrumentationHost.exe": "0cd9839c7f2e1e64b6b1ad9e1b6d3d0ab03481e53427b7466412dbb8ebf06f86",
+    "instrumented/CIS.TypeManager.InstrumentationHost.pdb": "7938a504750733a59a35083d7cfc3c2e3e77d2c2ed970d259b50889e72980493",
+    "instrumented/CIS.TypeManager.InstrumentationHost.runtimeconfig.json": "c230a317a54dd960bcbeb5f347f52e18dc665a26f7efda2159fced9a5ac7e097",
+    "instrumented/CIS.TypeManager.ProbeLibrary.dll": "2211d6c8ab32019fdbd14cfd4cfd57d3f4d8cb2351061c93ed1d3816bcf7e9ed",
+    "instrumented/CIS.TypeManager.ProbeLibrary.pdb": "19055d01ad053acbdd32e7de2f80fc6169ee745bc7f02361e583ce0a30971e94",
+    "instrumented/Microsoft.Extensions.DependencyInjection.Abstractions.dll": "da04edc338d5aa0f38a1f5fa5ff3ee7e36affe9c961daf3ea724a428bd746bc6",
+    "instrumented/Microsoft.Extensions.Logging.Abstractions.dll": "7c242f8ca612fa1acc61f78efd5f8c89e01bd0bd47dc4ecc65e0e6e24f1a1668",
+    "query-enumeration/CIS.Core.dll": "66d12258380910649d9caf90b9dfa76ff3198d1751fe1ef701fe3c4ec75f1ec6",
+    "query-enumeration/CIS.Core.pdb": "638684ef3ed4a7d9872f1a02934621d0a417699c8d5cf2ac5fb0be709b70f86c",
+    "query-enumeration/CIS.Core.xml": "af77dd6b5dec42253d4d41d0924fc2969395a1e36f570429b0d986a1ac8c8308",
+    "query-enumeration/CIS.TypeManager.InstrumentationHost.deps.json": "27b94e1f21700452f05b7a6ac3228d68e311b5183631e884b5d59c8383f2c745",
+    "query-enumeration/CIS.TypeManager.InstrumentationHost.dll": "cfd43786faa59b7da6b6837da43e7dfdb1122359faaf0d94b25a06f00058520d",
+    "query-enumeration/CIS.TypeManager.InstrumentationHost.exe": "0cd9839c7f2e1e64b6b1ad9e1b6d3d0ab03481e53427b7466412dbb8ebf06f86",
+    "query-enumeration/CIS.TypeManager.InstrumentationHost.pdb": "ea2c57362518943069fccb01c242504e1ca7e6fa2238c82358eef679912c9636",
+    "query-enumeration/CIS.TypeManager.InstrumentationHost.runtimeconfig.json": "c230a317a54dd960bcbeb5f347f52e18dc665a26f7efda2159fced9a5ac7e097",
+    "query-enumeration/CIS.TypeManager.ProbeLibrary.dll": "32e764c683d9d11ccb3494c7ccb3324e06752640b3a718f97b8ebe29dbea8568",
+    "query-enumeration/CIS.TypeManager.ProbeLibrary.pdb": "1dbafc30a0510872e4d277cbe8410097aa815a288ded27c212b818cb3c68cdff",
+    "query-enumeration/Microsoft.Extensions.DependencyInjection.Abstractions.dll": "da04edc338d5aa0f38a1f5fa5ff3ee7e36affe9c961daf3ea724a428bd746bc6",
+    "query-enumeration/Microsoft.Extensions.Logging.Abstractions.dll": "7c242f8ca612fa1acc61f78efd5f8c89e01bd0bd47dc4ecc65e0e6e24f1a1668",
+    "skip-final-cancellation/CIS.Core.dll": "5aed458af7e1325448fb99aed6c30170de32aff959cdfbb38150abd1f99666fb",
+    "skip-final-cancellation/CIS.Core.pdb": "3f5a59415eb8305821462b8c111715efaaaf6c0685d635149894c05504a7427d",
+    "skip-final-cancellation/CIS.Core.xml": "af77dd6b5dec42253d4d41d0924fc2969395a1e36f570429b0d986a1ac8c8308",
+    "skip-final-cancellation/CIS.TypeManager.InstrumentationHost.deps.json": "27b94e1f21700452f05b7a6ac3228d68e311b5183631e884b5d59c8383f2c745",
+    "skip-final-cancellation/CIS.TypeManager.InstrumentationHost.dll": "7522efdd9e4ec0af710722cfaee4b8a0dedbf65efb3ab5578410d377cca9a395",
+    "skip-final-cancellation/CIS.TypeManager.InstrumentationHost.exe": "0cd9839c7f2e1e64b6b1ad9e1b6d3d0ab03481e53427b7466412dbb8ebf06f86",
+    "skip-final-cancellation/CIS.TypeManager.InstrumentationHost.pdb": "2ec6a9c897f07bf8751660bb436a696151677c9371af6971eec058bf98407e7a",
+    "skip-final-cancellation/CIS.TypeManager.InstrumentationHost.runtimeconfig.json": "c230a317a54dd960bcbeb5f347f52e18dc665a26f7efda2159fced9a5ac7e097",
+    "skip-final-cancellation/CIS.TypeManager.ProbeLibrary.dll": "d5a8d9c658cf201e859f05451013735434a42a2c7286ad8232dad5ad8086a3ee",
+    "skip-final-cancellation/CIS.TypeManager.ProbeLibrary.pdb": "526e3047e647e23d5520e693dadaa0b958088aedf6e91d7aaf5a1342969752cf",
+    "skip-final-cancellation/Microsoft.Extensions.DependencyInjection.Abstractions.dll": "da04edc338d5aa0f38a1f5fa5ff3ee7e36affe9c961daf3ea724a428bd746bc6",
+    "skip-final-cancellation/Microsoft.Extensions.Logging.Abstractions.dll": "7c242f8ca612fa1acc61f78efd5f8c89e01bd0bd47dc4ecc65e0e6e24f1a1668"
+  }
+}

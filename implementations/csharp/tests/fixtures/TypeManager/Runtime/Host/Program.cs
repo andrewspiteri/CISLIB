@@ -18,6 +18,17 @@ AssemblyLoadContext? foreignContext = null;
 Func<AssemblyLoadContext, AssemblyName, Assembly?>? foreignResolver = null;
 switch (mode)
 {
+    case "outside-catalog-late-load":
+        if (AssemblyLoadContext.Default.Assemblies.Any(assembly => assembly.GetName().Name == "CIS.TypeManager.ConflictFixture")) { throw new InvalidOperationException("Outside-catalog fixture was preloaded."); }
+        if (!File.Exists(Path.Combine(AppContext.BaseDirectory, "CIS.TypeManager.ConflictFixture.dll"))) { throw new InvalidOperationException("Outside-catalog fixture was not deployed."); }
+        break;
+    case "manifest-version-conflict":
+    case "manifest-version-conflict-reversed":
+        CopySelection(Path.Combine(fixtures, "versions/v1/CIS.TypeManager.ConflictFixture.dll"), "v1/CIS.TypeManager.ConflictFixture.dll");
+        CopySelection(Path.Combine(fixtures, "versions/v2/CIS.TypeManager.ConflictFixture.dll"), "v2/CIS.TypeManager.ConflictFixture.dll");
+        if (mode.EndsWith("-reversed", StringComparison.Ordinal)) { selected.Reverse(); }
+        expected = TypeManagerFailureKind.InvalidInventory;
+        break;
     case "partial-types":
         CopySelection(Path.Combine(fixtures, "Broken/bin/Release/net10.0/CIS.TypeManager.BrokenFixture.dll"));
         expected = TypeManagerFailureKind.TypeDiscoveryFailure;
@@ -97,6 +108,46 @@ try
 {
     var manager = await TypeManager.CreateAsync(new TypeManagerOptions(host) { AssemblyManifestPath = manifest });
     if (expected is not null) { throw new InvalidOperationException("Preparation unexpectedly succeeded."); }
+    CheckProtectedReport(manager.PreparationReport);
+    if (mode == "outside-catalog-late-load")
+    {
+        string identity = "RuntimeFixtures.Collision, " + AssemblyName.GetAssemblyName(Path.Combine(AppContext.BaseDirectory, "CIS.TypeManager.ConflictFixture.dll")).FullName;
+        var assemblies = manager.Assemblies.ToArray();
+        var types = manager.Types.ToArray();
+        var definitions = assemblies.ToDictionary(assembly => assembly, assembly => manager.GetDefinedTypes(assembly).ToArray());
+        var cached = manager.GetImplementations<object>().ToArray();
+        var report = manager.PreparationReport;
+        var selectedReport = report.SelectedAssemblyIdentities.ToArray();
+        var loadedReport = report.LoadedAssemblyIdentities.ToArray();
+        var reusedReport = report.ReusedAssemblyIdentities.ToArray();
+        var reportFacts = (report.TypeCount, report.SelectedAssemblyCount, report.PreparedContractCount, report.Elapsed);
+        if (manager.TryGetType(identity, out var absent) || absent is not null ||
+            AssemblyLoadContext.Default.Assemblies.Any(assembly => assembly.GetName().Name == "CIS.TypeManager.ConflictFixture"))
+        {
+            throw new InvalidOperationException("Exact lookup loaded or returned a deployed noncataloged type.");
+        }
+        var outside = Assembly.Load("CIS.TypeManager.ConflictFixture");
+        var lateType = outside.GetType("RuntimeFixtures.Collision", throwOnError: true)!;
+        if (!typeof(IDisposable).IsAssignableFrom(lateType)) { throw new InvalidOperationException("Late-load marker fixture is invalid."); }
+        if (!manager.Assemblies.SequenceEqual(assemblies) || !manager.Types.SequenceEqual(types) ||
+            !manager.GetImplementations<object>().SequenceEqual(cached) || manager.GetImplementations<IDisposable>().Contains(lateType) ||
+            manager.GetImplementations(lateType).Count != 0 || manager.TryGetType(identity, out _) ||
+            !ReferenceEquals(report, manager.PreparationReport) || !report.SelectedAssemblyIdentities.SequenceEqual(selectedReport) ||
+            !report.LoadedAssemblyIdentities.SequenceEqual(loadedReport) || !report.ReusedAssemblyIdentities.SequenceEqual(reusedReport) ||
+            reportFacts != (report.TypeCount, report.SelectedAssemblyCount, report.PreparedContractCount, report.Elapsed))
+        {
+            throw new InvalidOperationException("A later runtime load changed the fixed catalog or its cached/uncached queries.");
+        }
+        foreach (var assembly in assemblies)
+        {
+            if (!manager.GetDefinedTypes(assembly).SequenceEqual(definitions[assembly])) { throw new InvalidOperationException("Later load changed selected definitions."); }
+        }
+        try { manager.GetDefinedTypes(outside); throw new InvalidOperationException("Outside-catalog assembly was accepted."); }
+        catch (ArgumentException) { }
+        containerConstructed = true;
+        Console.WriteLine(JsonSerializer.Serialize(new { mode, success = true, containerConstructed, selected = assemblies.Length, outsideCatalogRemainsExcluded = true }));
+        return;
+    }
     if (mode == "dynamic-name-collision")
     {
         var actual = manager.Assemblies.Single(assembly => assembly.GetName().Name == "CIS.TypeManager.ConflictFixture");
@@ -123,6 +174,14 @@ try
 }
 catch (TypeManagerInitializationException error) when (expected is not null)
 {
+    if (mode.StartsWith("manifest-version-conflict", StringComparison.Ordinal))
+    {
+        if (AssemblyLoadContext.Default.Assemblies.Any(assembly => assembly.GetName().Name == "CIS.TypeManager.ConflictFixture") ||
+            !error.Message.Contains("Conflicting selections", StringComparison.Ordinal))
+        {
+            throw new InvalidOperationException("Conflicting manifest order did not fail before loading either version.", error);
+        }
+    }
     if (mode == "validation-before-load" && AssemblyLoadContext.Default.Assemblies.Any(assembly => assembly.GetName().Name == "CIS.TypeManager.BrokenFixture"))
     {
         throw new InvalidOperationException("Preparation loaded an earlier assembly before validating every selection.", error);
@@ -136,6 +195,7 @@ catch (TypeManagerInitializationException error) when (expected is not null)
     {
         throw new InvalidOperationException("Partial reflection failure lost loader details.", error);
     }
+    using var exclusive = new FileStream(manifest, FileMode.Open, FileAccess.ReadWrite, FileShare.None);
     if (expected == TypeManagerFailureKind.AssemblyIdentityConflict && string.IsNullOrWhiteSpace(error.ActualAssemblyIdentity))
     {
         throw new InvalidOperationException("Identity conflict lost the actual identity.", error);
@@ -152,12 +212,29 @@ finally
     if (foreignContext?.IsCollectible == true) { foreignContext.Unload(); }
 }
 
-Selection CopySelection(string path)
+Selection CopySelection(string path, string? relativePath = null)
 {
-    string name = Path.GetFileName(path);
+    string name = relativePath ?? Path.GetFileName(path);
     var selection = new Selection(AssemblyName.GetAssemblyName(path).FullName, name);
+    Directory.CreateDirectory(Path.GetDirectoryName(Path.Combine(output, name))!);
     File.Copy(path, Path.Combine(output, name), true);
     selected.Add(selection);
     return selection;
+}
+
+static void CheckProtectedReport(TypeManagerPreparationReport report)
+{
+    foreach (var collection in new[] { report.SelectedAssemblyIdentities, report.LoadedAssemblyIdentities, report.ReusedAssemblyIdentities })
+    {
+        var original = collection.ToArray();
+        try { ((IList<string>)collection).Add("mutation"); throw new InvalidOperationException("Preparation report allowed mutation."); }
+        catch (NotSupportedException) { }
+        if (collection.Count > 0)
+        {
+            try { ((IList<string>)collection)[0] = collection[0]; throw new InvalidOperationException("Preparation report allowed element replacement."); }
+            catch (NotSupportedException) { }
+        }
+        if (!collection.SequenceEqual(original)) { throw new InvalidOperationException("Preparation report changed after rejected mutation."); }
+    }
 }
 internal sealed record Selection(string assemblyName, string relativePath);
