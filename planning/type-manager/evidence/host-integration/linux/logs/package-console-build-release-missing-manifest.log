@@ -1,0 +1,15 @@
+PREPARING
+PREPARATION_FAILED: InvalidInventory
+CIS.TypeManagement.TypeManagerInitializationException: The required assembly inventory could not be read. Manifest: '/mnt/c/miscwork/portfolio/cislib/.artifacts/type-manager/examples/linux-final/broken/package-console-build-release-missing-manifest/CIS.TypeManager.Examples.Console.types.json'.
+ ---> System.IO.FileNotFoundException: Could not find file '/mnt/c/miscwork/portfolio/cislib/.artifacts/type-manager/examples/linux-final/broken/package-console-build-release-missing-manifest/CIS.TypeManager.Examples.Console.types.json'.
+File name: '/mnt/c/miscwork/portfolio/cislib/.artifacts/type-manager/examples/linux-final/broken/package-console-build-release-missing-manifest/CIS.TypeManager.Examples.Console.types.json'
+   at Interop.ThrowExceptionForIoErrno(ErrorInfo errorInfo, String path, Boolean isDirError)
+   at Microsoft.Win32.SafeHandles.SafeFileHandle.Open(String path, OpenFlags flags, Int32 mode, Boolean failForSymlink, Boolean& wasSymlink, Func`4 createOpenException)
+   at Microsoft.Win32.SafeHandles.SafeFileHandle.Open(String fullPath, FileMode mode, FileAccess access, FileShare share, FileOptions options, Int64 preallocationSize, UnixFileMode openPermissions, Int64& fileLength, UnixFileMode& filePermissions, Boolean failForSymlink, Boolean& wasSymlink, Func`4 createOpenException)
+   at System.IO.File.OpenHandle(String path, FileMode mode, FileAccess access, FileShare share, FileOptions options, Int64 preallocationSize)
+   at System.IO.File.ReadAllBytesAsync(String path, CancellationToken cancellationToken)
+   at CIS.TypeManagement.AssemblyInventory.ReadAsync(String manifestPath, Assembly hostAssembly, CancellationToken cancellationToken)
+   --- End of inner exception stack trace ---
+   at CIS.TypeManagement.AssemblyInventory.ReadAsync(String manifestPath, Assembly hostAssembly, CancellationToken cancellationToken)
+   at CIS.TypeManagement.TypeManager.CreateCoreAsync(PreparationInputs inputs, Int64 started, CancellationToken cancellationToken)
+   at Program.<Main>$(String[] args) in /mnt/c/miscwork/portfolio/cislib/.artifacts/type-manager/examples/linux-final/package/implementations/csharp/examples/type-manager/Console/Program.cs:line 14

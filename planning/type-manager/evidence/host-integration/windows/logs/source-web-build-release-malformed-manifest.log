@@ -1,0 +1,15 @@
+PREPARING
+PREPARATION_FAILED: InvalidInventory
+CIS.TypeManagement.TypeManagerInitializationException: The assembly inventory is invalid: Expected depth to be zero at the end of the JSON payload. There is an open JSON object or array that should be closed. LineNumber: 0 | BytePositionInLine: 1. Manifest: 'C:\miscwork\portfolio\cislib\.artifacts\type-manager\examples\windows-final\broken\source-web-build-release-malformed-manifest\CIS.TypeManager.Examples.Web.types.json'.
+ ---> System.Text.Json.JsonReaderException: Expected depth to be zero at the end of the JSON payload. There is an open JSON object or array that should be closed. LineNumber: 0 | BytePositionInLine: 1.
+   at System.Text.Json.ThrowHelper.ThrowJsonReaderException(Utf8JsonReader& json, ExceptionResource resource, Byte nextByte, ReadOnlySpan`1 bytes)
+   at System.Text.Json.Utf8JsonReader.ReadSingleSegment()
+   at System.Text.Json.Utf8JsonReader.Read()
+   at System.Text.Json.JsonDocument.Parse(ReadOnlySpan`1 utf8JsonSpan, JsonReaderOptions readerOptions, MetadataDb& database, StackRowStack& stack)
+   at System.Text.Json.JsonDocument.Parse(ReadOnlyMemory`1 utf8Json, JsonReaderOptions readerOptions, Byte[] extraRentedArrayPoolBytes, PooledByteBufferWriter extraPooledByteBufferWriter, Boolean allowDuplicateProperties)
+   at System.Text.Json.JsonDocument.Parse(ReadOnlyMemory`1 utf8Json, JsonDocumentOptions options)
+   at CIS.TypeManagement.AssemblyInventory.ReadAsync(String manifestPath, Assembly hostAssembly, CancellationToken cancellationToken) in C:\miscwork\portfolio\cislib\.artifacts\type-manager\examples\windows-final\source\implementations\csharp\src\CIS.Core\TypeManagement\AssemblyInventory.cs:line 35
+   --- End of inner exception stack trace ---
+   at CIS.TypeManagement.AssemblyInventory.ReadAsync(String manifestPath, Assembly hostAssembly, CancellationToken cancellationToken) in C:\miscwork\portfolio\cislib\.artifacts\type-manager\examples\windows-final\source\implementations\csharp\src\CIS.Core\TypeManagement\AssemblyInventory.cs:line 141
+   at CIS.TypeManagement.TypeManager.CreateCoreAsync(PreparationInputs inputs, Int64 started, CancellationToken cancellationToken) in C:\miscwork\portfolio\cislib\.artifacts\type-manager\examples\windows-final\source\implementations\csharp\src\CIS.Core\TypeManagement\TypeManager.cs:line 58
+   at Program.<Main>$(String[] args) in C:\miscwork\portfolio\cislib\.artifacts\type-manager\examples\windows-final\source\implementations\csharp\examples\type-manager\Web\Program.cs:line 15

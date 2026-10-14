@@ -1,0 +1,73 @@
+{
+  "results": [
+    {
+      "passed": true,
+      "case": "Contracts",
+      "expectedError": ""
+    },
+    {
+      "passed": true,
+      "case": "Unused",
+      "expectedError": ""
+    },
+    {
+      "passed": true,
+      "case": "Console",
+      "expectedError": ""
+    },
+    {
+      "passed": true,
+      "case": "Web",
+      "expectedError": ""
+    },
+    {
+      "passed": true,
+      "case": "ExampleLate",
+      "expectedError": ""
+    },
+    {
+      "passed": true,
+      "case": "reject-framework-CIS.Core",
+      "expectedError": "Forbidden framework reference from src/CIS.Core/CIS.Core.csproj: Microsoft.AspNetCore.App"
+    },
+    {
+      "passed": true,
+      "case": "reject-framework-Console",
+      "expectedError": "Forbidden framework reference from examples/type-manager/Console/Console.csproj: Microsoft.AspNetCore.App"
+    },
+    {
+      "passed": true,
+      "case": "reject-unregistered-web-framework",
+      "expectedError": "Forbidden framework reference from examples/type-manager/Web/Web.csproj: Microsoft.AspNetCore.App"
+    },
+    {
+      "passed": true,
+      "case": "reject-policy-CIS.Core",
+      "expectedError": "Forbidden framework reference from src/CIS.Core/CIS.Core.csproj: Microsoft.AspNetCore.App"
+    },
+    {
+      "observed": "Removing only the role guard accepts the forbidden shipping framework, which the control rejects with the real checker.",
+      "passed": true,
+      "case": "role-gate-mutant-detected"
+    }
+  ],
+  "inputScope": "Checked project metadata, copied policy and named language configuration; not full transitive build provenance",
+  "inputs": {
+    "examples/type-manager/Console/Console.csproj": "54315e04e062e5f13bede0f844ea2078d46b78dccfe4cb91e2b7f8edfba755f8",
+    "eng/CIS.TypeManager.Build/CIS.TypeManager.Build.csproj": "6c13e696a04e65a83decc5b92402a277227900c47991ab0fec5d19b4c8663e88",
+    "Directory.Build.props": "fe0ec1ac2f0c4b213217a5758bad02699a8304bdcf864a4cce9e7db4ae0d8dae",
+    "Directory.Packages.props": "c2d2501f282f41da37c867458baa3c5e4405d4f46ecba868983ae713b105bb26",
+    "examples/type-manager/Contracts/Contracts.csproj": "2594fd815290863a1775d15dd546235dd05737e5326ad527a3a81a749015e016",
+    "examples/type-manager/Web/Web.csproj": "4ca9632f3097052acb1dadcd3088852e9f60e6525755c864f40e1d1bb307079e",
+    "examples/type-manager/Unused/Unused.csproj": "a593f73d15b42d0df413c6ed306ffdfe63e50a23b0315671838ebc142aee2a28",
+    "eng/project-boundaries.json": "cb9e4b7053fa9e01abfdaaef7a11bf4a2b5a524caf8a5459b5c82c042e51ad61",
+    "eng/development-dependencies.json": "f4e1cab4d0fc98642d5a818e7f6aaf1c1318da2b4bd268e205f9214bea5f590c",
+    "tests/fixtures/TypeManager/ExampleLate/ExampleLate.csproj": "4ebdf27c2b8abaaa851339980a1db93a74d82c6a4a7170a3cd0c18ec96253e87",
+    "global.json": "86746c523b75c3e560cab3938c5c6c7c65c33dc9fbe298a554f90c724f2ef30e",
+    "src/CIS.Core/CIS.Core.csproj": "aab94f4f979b8b647dffd12fcaf5b5baef74ebf6be9299c9eef46d69de2cdbbb",
+    "eng/runtime-dependencies.json": "1e7a7d87169b5d81999239dabbf7821b71d973becf25928ecd6e4a02bcba264f"
+  },
+  "verifierSha256": "c7dd7b5765dea7540ce7a1736ea4d1ce895e0f2831792585f3d041a9b2ece28a",
+  "complete": false,
+  "checkerSha256": "ae208358a2043203585eb1b89e05bb6d800fa6d0286a68ae655ac3a4e639e3d9"
+}

@@ -54,15 +54,16 @@ silently marked complete by a prototype or an uncommitted test result.
 | TM-007 | Reviewed Windows source lifecycle has 32 passing checks, including fresh default-directory publish and disabled package-copy rejection. Package setup has a separate consumer matrix. Web SDK evidence covers CLI publication, not Visual Studio/PublishUrl copying. Complete supported-profile qualification remains open. |
 | TM-008 | M1 gate remains open pending complete supported-profile inventory qualification and setup reconciliation; reviewed source-mode checkpoint evidence is retained. |
 | TM-009–TM-010 | Selected maps/default-context loading implemented; identity/reuse/failure cases pass on both platforms. |
-| TM-011 | Complete definition/relationship enumeration implemented; forwarding/nonpublic/open-definition and side-effect tests pass. Explicit enumeration instrumentation remains. |
-| TM-012 | All five failure kinds exercised with contextual diagnostics, including a locationless host; the full loader/publication gate still has outstanding cases. |
-| TM-013 | Task/publication boundary implemented; pre-work and real mid-load cancellation pass. Deterministic final-publication cancellation evidence remains. |
+| TM-011 | Complete definition/relationship enumeration implemented; forwarding/nonpublic/open-definition and side-effect tests pass. Test-only source instrumentation records per-selection counts and rejects double/query enumeration mutants. |
+| TM-012 | All five failure kinds exercised with contextual diagnostics, including a locationless host. Final artifact replay and milestone reconciliation remain. |
+| TM-013 | Pre-work, real mid-load and post-success cancellation cases pass. A separate source-instrumented probe verifies deterministic final-publication cancellation and its negative control. |
 | TM-014 | Expanded loader/publication acceptance is executed, including both conflict orders and a deterministic final-publication source probe. Final milestone reconciliation remains open; instrumentation is separate from the unmodified candidate. |
 | TM-015–TM-019 | Protected identity maps, assignability matcher, exact lookup, cache/concurrency and precomputed queries implemented with focused tests. |
 | TM-020 | Generic equivalence, concurrent awaiters, immutable membership after later loading, and protected collection replacement assertions pass. Enumeration counters and three targeted mutants pass in a separate test-only source build. Final milestone review remains open. |
-| TM-021 | Preparation report implemented and reconciled in tests, including newly loaded library classification. |
-| TM-022 | Real pre-container fixture works; final minimal user-facing console example remains. |
-| TM-023–TM-025 | DI/ASP.NET consumer example, Configuration boundary documentation and supported-host gate remain. Web SDK inventory is distinct from a DI runtime example. |
+| TM-021 | Preparation report implemented and reconciled in tests. Runnable hosts display counts, elapsed time and identities; broken-deployment examples preserve the original error and selected file path before startup. |
+| TM-022 | Minimal plain-.NET console example builds/runs from documented commands, discovers the initially unused inherited/nonpublic candidate, and reaches its application boundary only after preparation. |
+| TM-023–TM-024 | Separate Web example constructs its builder/container after preparation, registers the exact manager instance and proves reuse across root, scopes and actual HTTP requests. Configuration boundary documented without adding a public Configuration contract or object lifetime implementation. |
+| TM-025 | Source and exact-package examples pass 66 fresh-process/layout checks on each supported OS, including Debug/Release, folder publish, publish without building, three broken-deployment cases per layout, later-load fixed membership and HTTP scoped lifetime. The 26-project solution and 11 targeted framework-policy checks pass on Windows. Formal milestone and final release-candidate consolidation remain open. |
 | TM-026–TM-028 | Initial A01–A30 mapping is recorded in `acceptance-evidence.md`, with executed checks and explicit gaps. Meaningful mutation and complete architecture qualification remain; initial build/dependency controls exist. |
 | TM-029 | Initial API/source/unchanged-binary replay passes; full behaviour/schema compatibility bundle and negative qualification controls remain. |
 | TM-030–TM-031 | Performance/memory measurements and final maintainability/six-family gate remain. |
@@ -70,6 +71,15 @@ silently marked complete by a prototype or an uncommitted test result.
 | TM-033–TM-036 | Final documentation, exact-artifact verification bundle, clean package consumer smoke tests and handoff remain. |
 
 ## Executed evidence and limits
+
+The [host integration checkpoint](evidence/host-integration/README.md) records the
+console/Web examples against the unchanged package SHA-256
+`d3249a77c8ee4c504e87b9c3f52b3be691430bcca47a7bc70468757dc9452ea9`
+and separate native source builds. Package consumers use Core
+`abb66e6159e3fd111f341e32c4a61cec12c2bcde738510be9229e5fe76155025`;
+they must not be conflated with the runtime-acceptance candidate below. Only the
+registered Web example is allowed the implicit ASP.NET shared framework. Core's
+runtime package inventory and production source are unchanged by this checkpoint.
 
 The expanded [runtime acceptance checkpoint](evidence/runtime-acceptance/README.md)
 uses Core SHA-256 `d70fcfdc41b6d15829227f1cee60130ddad3f7f82cc11c7a2fcbf8d5f700fb09`:

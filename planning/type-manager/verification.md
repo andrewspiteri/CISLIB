@@ -242,3 +242,28 @@ managed outputs and the same workspace source bytes through `/mnt/c`, avoiding
 checkout line-ending differences. Native reports, command logs and review
 findings/corrections are retained. The candidate includes the coordinated logging
 working-tree snapshot; this is not a clean release build or portable release bundle.
+
+## Runnable host integration — 14 October 2026
+
+`evidence/host-integration/` retains 66 passing checks on Windows and 66 on native
+Ubuntu against identical example/verifier inputs and the same exact development
+package. Source builds are recorded separately. Each lane exercises console and
+Web hosts in Debug/Release build, Release folder publish and publish without
+building. Every layout checks initial unused-library discovery, inherited/nonpublic
+matching, fixed membership after a real later load, and three broken deployments.
+Failures require exit 1, the specific file path and original failure detail on
+stderr before any builder/container/application boundary. Each lane's Web Release
+build also serves two HTTP requests with proven scoped consumer identity and exact
+prepared-manager/query-cache reuse.
+
+No global opt-in property masks the example project files: the verifier runs their
+documented local setup. Child processes use controlled environment settings and
+actual restored assets must identify only the private feed/cache. Core DLL hashes
+are checked in package consumer output; helper hashes are checked in the private
+package cache, and tooling is forbidden in deployment. The root solution's locked
+restore, formatting, build and checker across all 26 registered projects pass in
+an isolated Windows snapshot, with zero build warnings/errors. Eleven separate
+boundary checks include a targeted mutant proving the example-only framework role
+guard matters. This is an integration checkpoint, not full mutation qualification
+or the final six-family release bundle. The source build includes the coordinated
+logging working tree; no logging changes belong to the example commit.

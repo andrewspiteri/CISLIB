@@ -111,8 +111,12 @@ try {
             $actualReferences += $referencePath
         }
         if ($actualReferences.Count -ne $project.projectReferences.Count) { throw "Project reference inventory mismatch: $($project.path)" }
+        $approvedFrameworks = @($projectPolicy.implicitFramework)
+        if ($project.role -eq 'example' -and $project.ContainsKey('additionalImplicitFrameworkReferences')) {
+            $approvedFrameworks += @($project.additionalImplicitFrameworkReferences)
+        }
         foreach ($reference in $evaluation.Items.FrameworkReference) {
-            if ($reference.Identity -ne $projectPolicy.implicitFramework -or $reference['IsImplicitlyDefined'] -ne 'true') {
+            if ($reference.Identity -notin $approvedFrameworks -or $reference['IsImplicitlyDefined'] -ne 'true') {
                 throw "Forbidden framework reference from $($project.path): $($reference.Identity)"
             }
         }
