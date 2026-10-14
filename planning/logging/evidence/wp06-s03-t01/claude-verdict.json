@@ -1,0 +1,49 @@
+{
+  "verdict": "CHANGES_REQUIRED",
+  "requiredFindings": [
+    {
+      "id": "R1-readme-stale-contradictions",
+      "file": "README.md",
+      "reason": "The new summary paragraph says the bounded runtime and Microsoft logger integration are implemented and qualified, and that both ship in CIS.Core. Later paragraphs in the same file still say the opposite: 'runtime/output integration remains planned' (WP02-S02 paragraph), 'logger/runtime/output integration remains next on the roadmap' (event qualification paragraph) and 'public output creation and lifecycle remain subsequent work' (logger foundation paragraph). This README is now packed as the CIS.Core package README, and the task says it 'accurately describes the implemented logging/provider story'. That claim is false while these lines contradict the summary.",
+      "fix": "Remove the three stale trailing status sentences or rewrite them in past tense as historical checkpoints. Keep the single current-status paragraph as the source of truth. Do not add any new completion claims."
+    }
+  ],
+  "optionalFindings": [
+    {
+      "id": "O1-dependency-policy-stale-no-types",
+      "file": "docs/architecture/csharp-dependency-policy.md",
+      "reason": "'Remaining qualification' still says 'There are no logging implementation types to validate yet.' That is now false, and it sits in a file this task edits. The statement that type/namespace rules are pending WP07-S02 remains correct.",
+      "fix": "Replace the sentence with something like 'Logging and MicrosoftLogger types now exist; their type/namespace direction checks remain WP07-S02 work.'"
+    },
+    {
+      "id": "O2-dependency-table-core-project-edge",
+      "file": "docs/architecture/csharp-dependency-policy.md",
+      "reason": "The table row says CIS.Core has 'No other project'. The csproj and project-boundaries.json declare a build-only ProjectReference (ReferenceOutputAssembly=false, PrivateAssets=all). This is pre-existing, but the doc is being presented as the package boundary record.",
+      "fix": "Change the row to 'No runtime project reference; one manifest-registered build-only tool reference.' Keep the wording minimal."
+    },
+    {
+      "id": "O3-scope-json-typo",
+      "file": "planning/logging/microsoft-packaging-scope.json",
+      "reason": "WP06-S03-T01 currentDirection reads 'closure at10.0.12' (missing space).",
+      "fix": "Change it to 'closure at 10.0.12'."
+    },
+    {
+      "id": "O4-scope-json-task-status",
+      "file": "planning/logging/microsoft-packaging-scope.json",
+      "reason": "Per-task status is only implied by the free-text 'remaining' field. Each task should state its own status explicitly, so that recording the T01 scope cannot be read as completing all five task directions.",
+      "fix": "Optionally add a 'status' value per task (for example T01 'Selected/recorded', T02\u2013T05 'Pending'), or state in 'remaining' that T01 is the only task addressed. Do not add a new schema framework."
+    },
+    {
+      "id": "O5-packed-readme-relative-links",
+      "file": "README.md",
+      "reason": "The root README is now the package README. Its repository-relative links (docs/..., planning/..., eng/...) will not resolve when viewed from the package or a NuGet feed. It also leads with contributor build instructions rather than consumer information. No publication occurs now, so this is not blocking.",
+      "fix": "Record this as a pre-release item, either a dedicated package README or absolute links, to be resolved with the other publication choices before the first release. No change is needed for T01."
+    },
+    {
+      "id": "O6-pack-evidence-before-commit",
+      "file": "planning/logging/plan-amendments.md",
+      "reason": "The S03 entry states T01 'inspects an actual development pack'. That claim is only valid if the Developer verification (check-dependencies with -AssemblyPath/-PackagePath) actually ran against this edited csproj and README.",
+      "fix": "Run pwsh -File eng/verify.ps1 -Profile Developer on the final tree before committing, and cite that run in the commit/status record. If it was not run, soften the wording to 'is checked by the existing Developer verification'."
+    }
+  ]
+}

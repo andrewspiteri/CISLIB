@@ -6,7 +6,7 @@ Implemented for WP01-S02 on 10 October 2026, applying the user's single `CIS.Cor
 
 | Project role | Allowed local dependencies | Packaging |
 | --- | --- | --- |
-| `CIS.Core` | No other project. Approved Microsoft runtime packages plus the implicit `Microsoft.NETCore.App` framework. | The only shipping package. |
+| `CIS.Core` | No runtime project reference; one manifest-registered build-only tool reference. Approved Microsoft runtime packages plus the implicit `Microsoft.NETCore.App` framework. | The only shipping package. |
 | Five test families | Core and `CIS.Core.TestSupport`. | Nonpackable; test packages have `PrivateAssets=all`. |
 | `CIS.Core.TestSupport` | No project or NuGet dependency. | Nonpackable. |
 | `CIS.DependencyChecker` | TestSupport for metadata inspection. | Development executable; nonpackable and absent from Core's graph. |
@@ -34,7 +34,7 @@ The architecture suite proves rejection of a direct and imported Core-to-tests r
 
 ## Remaining qualification
 
-Type/namespace directions, resolved metadata ownership and public API collection/static-field rules are declared responsibilities and will be inspected as real Core types exist, completed under WP07-S02. There are no logging implementation types to validate yet. The populated discovery integration family executes; no claims are made for empty compatibility/business-case or full mutation suites. Historical compatibility, coverage/mutation and Linux qualification remain pending; release verification must remain nonzero until required evidence exists.
+Type/namespace directions, resolved metadata ownership and public API collection/static-field rules are declared responsibilities and will be inspected as real Core types exist, completed under WP07-S02. Logging and MicrosoftLogger types now exist; their type/namespace direction checks remain WP07-S02 work. The populated discovery integration family executes; no claims are made for empty compatibility/business-case or full mutation suites. Historical compatibility, coverage/mutation and Linux qualification remain pending; release verification must remain nonzero until required evidence exists.
 
 WP03-S01-T04 registers a nonpackable `process-fixture` executable depending only on Core. Its restored closure may contain only the exact approved Microsoft runtime packages, with no direct package references. Integration tests build/copy that host through an explicit development project reference. Core grants friend access to this named fixture without introducing a shipping assembly reference or public discovery surface.
 
@@ -43,3 +43,7 @@ WP03-S01-T04 registers a nonpackable `process-fixture` executable depending only
 WP06-S02-T03 adds `Microsoft.Extensions.Logging` 10.0.12 only to the nonpackable DiscoveryHost fixture, with `PrivateAssets=all`. Its exact six-package closure includes the two approved Core packages plus development-only `Microsoft.Extensions.Logging`, `Microsoft.Extensions.DependencyInjection`, `Microsoft.Extensions.Options` and `Microsoft.Extensions.Primitives`, all Microsoft-maintained/MIT at 10.0.12. Exact source mappings, central pin and development inventory are recorded. The process-fixture manifest explicitly permits only these additional development package identities; this does not broaden Core or other process-fixture dependencies. Integration tests copy the compiled fixture and its dependencies for isolated child execution. New negative controls reject the factory package and AssemblyRef in Core.
 
 Fixture-only inventory roles are excluded from all test-role restored graphs. Four evaluated negative cases first pass the isolated positive boundary, then remove fixture PrivateAssets, inject factory into a test graph, inject it into an unlisted process-fixture graph, or inject an unlisted test package into the named host fixture. These checks complement the Core explicit-package/compiled-AssemblyRef controls.
+
+## Embedded Microsoft logging package
+
+[Microsoft logging packaging](../modules/logging/microsoft-logging-packaging.md) and the [S03 scope record](../../planning/logging/microsoft-packaging-scope.json) make the single-Core topology explicit. Repository lock files pin the tested resolved closure; nuspec `10.0.12` remains an inclusive minimum for application restore. The factory implementation is still fixture/application-owned. Original standalone bridge optionality is superseded by the user decision; all behavioral/dependency/compatibility/release assurance stays required.

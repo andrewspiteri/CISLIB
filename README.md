@@ -2,7 +2,7 @@
 
 CisLib is a reusable, multi-module core library with shared contracts, examples, instructions and agent skills. Logging is the first module, and C# is the first implementation. Additional languages will have their own implementations and build tools while sharing the applicable module contracts and conformance cases.
 
-The repository currently contains tested configuration resolution/validation and the actual [C# EnvironmentOptions startup API](docs/modules/logging/environment-options.md), alongside [typed C# log values](docs/modules/logging/log-values.md), the internal [exception capture foundation](docs/modules/logging/exception-projection.md) and [bounded JSONL event encoding](docs/modules/logging/event-encoding.md), test projects and executable dependency checks. Shared startup/event/runtime contracts remain unpublished. The logging runtime and Microsoft logger integration are planned; the example host identifies that state explicitly.
+The repository currently contains tested configuration resolution/validation and the actual [C# EnvironmentOptions startup API](docs/modules/logging/environment-options.md), alongside [typed C# log values](docs/modules/logging/log-values.md), the internal [exception capture foundation](docs/modules/logging/exception-projection.md) and [bounded JSONL event encoding](docs/modules/logging/event-encoding.md), test projects and executable dependency checks. Shared startup/event/runtime contracts remain unpublished. The bounded logging runtime and Microsoft logger integration are implemented and qualified through their runtime/provider stories. Both ship in `CIS.Core`, using the `CIS.Logging` and `CIS.Logging.MicrosoftLogger` namespaces; [Microsoft logging packaging](docs/modules/logging/microsoft-logging-packaging.md) explains the approved dependencies. ConsoleHuman is still an example scaffold; runnable package examples, instructions/skills and complete release qualification remain pending.
 
 ## Start with C#
 
@@ -59,12 +59,12 @@ Core may use explicitly approved Microsoft-maintained NuGet packages. Third-part
 
 CisLib has its own repository and release process. CIS will consume versioned guidance and reference bundles; the Core runtime does not depend on CIS. The user-created [CISLIB GitHub repository](https://github.com/andrewspiteri/CISLIB) is configured as `origin`. The initial foundation checkpoint is committed as `ea8e9cf`. No push, publication licence or public package release has been created by this setup.
 
-WP02-S02 [event/value contracts](docs/modules/logging/event-contract.md) and shared fixtures are defined and checked by development-only C# validation; owned event capture and bounded JSONL encoding are now implemented internally; runtime/output integration remains planned.
+WP02-S02 [event/value contracts](docs/modules/logging/event-contract.md) and shared fixtures are defined and checked by development-only C# validation; owned event capture and bounded JSONL encoding are now implemented internally.
 
 See [event UTC time and W3C correlation](docs/modules/logging/event-correlation.md) for the current owned-facts capture phase and its native bindings.
 
 See [EnvironmentOptions](docs/modules/logging/environment-options.md) for automatic readonly static facts and override behavior.
 
-[Complete event qualification](docs/modules/logging/event-qualification.md) now covers the internal capture-to-JSONL path; logger/runtime/output integration remains next on the roadmap.
+[Complete event qualification](docs/modules/logging/event-qualification.md) now covers the internal capture-to-JSONL path.
 
-The [runtime-bound logger foundation](docs/modules/logging/logger-foundation.md) now implements logger methods and immutable admission results against an internal output interface; public output creation and lifecycle remain subsequent work.
+The [runtime-bound logger foundation](docs/modules/logging/logger-foundation.md) now implements logger methods and immutable admission results against an internal output interface.

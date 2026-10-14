@@ -1,0 +1,81 @@
+{
+  "schema": "cis.logging.microsoft-packaging-scope/v1",
+  "storyId": "WP06-S03",
+  "source": "planning/logging/sources/core-library-backlog-v1.json",
+  "authority": "Explicit user decision: one CIS.Core package/assembly, CIS namespaces, Microsoft-maintained NuGets permitted; third-party runtime dependencies isolated. Recorded in decisions.md and plan-amendments.md.",
+  "state": "Selected unpublished scope amendment; not execution, publication or approval of a product record.",
+  "package": {
+    "project": "implementations/csharp/src/CIS.Core/CIS.Core.csproj",
+    "packageId": "CIS.Core",
+    "assembly": "CIS.Core",
+    "rootNamespace": "CIS",
+    "adapterNamespace": "CIS.Logging.MicrosoftLogger",
+    "targetFramework": "net10.0",
+    "runtimeInventory": "implementations/csharp/eng/runtime-dependencies.json",
+    "centralVersions": "implementations/csharp/Directory.Packages.props",
+    "lockFile": "implementations/csharp/src/CIS.Core/packages.lock.json",
+    "packedDirectDependencyVersion": "10.0.12",
+    "consumerConstraint": "Inclusive minimum; repository resolved closure remains exactly qualified by lock file/allowlist."
+  },
+  "tasks": [
+    {
+      "id": "WP06-S03-T01",
+      "originalDescription": "Package Core.MicrosoftLogging separately and pin its approved Microsoft logging abstraction dependency closure using the framework and versions selected in WP-01.",
+      "currentDirection": "Use existing single CIS.Core project/package; retain net10.0 and exact repository restored Microsoft abstraction closure at 10.0.12. No separate bridge package.",
+      "scopeStatus": "RecordedScope; execution belongs in T01 receipt"
+    },
+    {
+      "id": "WP06-S03-T02",
+      "originalDescription": "Inspect the bridge restore graph, compiled references, and package contents; add rejection controls for an unapproved transitive dependency and dependency leakage into Core.",
+      "currentDirection": "Inspect CIS.Core restored/compiled/packed graph with adapter included; reject unapproved runtime additions and fixture/factory leakage.",
+      "scopeStatus": "Pending"
+    },
+    {
+      "id": "WP06-S03-T03",
+      "originalDescription": "Wire bridge unit/integration coverage and a separate Stryker mutation invocation into the shipping-project verification matrix; complete full matrix execution in WP-07.",
+      "currentDirection": "Core shipping assembly coverage/mutation must explicitly include CIS.Logging.MicrosoftLogger code; no separate bridge shipping assembly/mutation project.",
+      "scopeStatus": "Pending"
+    },
+    {
+      "id": "WP06-S03-T04",
+      "originalDescription": "Add bridge API/source/binary contract fixtures to the compatibility inventory, including old bridge plus candidate core and full bridge/core upgrade scenarios for historical releases.",
+      "currentDirection": "Retain adapter API/source/binary consumers in cumulative CIS.Core compatibility inventory and same-package replacement scenarios; no fictional historical publication.",
+      "scopeStatus": "Pending"
+    },
+    {
+      "id": "WP06-S03-T05",
+      "originalDescription": "Include bridge API documentation, packages, dependency inventory, reports, and hashes in the first-release verification bundle manifest.",
+      "currentDirection": "Include adapter APIs/docs, exact CIS.Core candidate, approved runtime inventory and complete provider reports/hashes in single-Core release bundle.",
+      "scopeStatus": "Pending"
+    }
+  ],
+  "criteria": [
+    {
+      "id": "WP06-S03-AC01",
+      "originalDescription": "An application restoring only Core acquires no bridge, logging abstraction package, or bridge transitive dependency.",
+      "currentDirection": "Core-only consumers receive embedded adapter and abstraction dependencies; absence of Microsoft factory and third-party runtime leakage remains required. Original separate-package/zero-abstractions optionality is superseded."
+    },
+    {
+      "id": "WP06-S03-AC02",
+      "originalDescription": "The bridge's resolved and packed dependency closure matches the explicit allowlist; its negative controls reject prohibited changes.",
+      "currentDirection": "Actual restored closure and packed direct dependencies match approved inventory; rejection controls preserve assurance."
+    },
+    {
+      "id": "WP06-S03-AC03",
+      "originalDescription": "WP-07 discovers the bridge as a separate shipping assembly for coverage and mutation, with no reliance on the Core-only report as bridge evidence.",
+      "currentDirection": "Core coverage/mutation reports explicitly cover adapter implementation; separate shipping assembly requirement superseded."
+    },
+    {
+      "id": "WP06-S03-AC04",
+      "originalDescription": "Compatibility manifests include bridge consumers and both package-replacement upgrade paths; no first-release result is mislabeled as an existing historical-release replay.",
+      "currentDirection": "Compatibility retains provider consumers for CIS.Core package replacement paths; only actual historical releases may be called historical replay."
+    },
+    {
+      "id": "WP06-S03-AC05",
+      "originalDescription": "The verification bundle inventory includes the exact bridge candidate and all applicable validation material; consumer optionality does not omit bridge verification.",
+      "currentDirection": "Exact CIS.Core candidate and all adapter validation material included; embedded integration must not be omitted from release assurance."
+    }
+  ],
+  "remaining": "T02-T05 dedicated dependency controls, coverage/mutation, cumulative provider compatibility and release bundle integration; later WP07/WP08/WP09 full qualification and publication.",
+  "publicationFollowups": "Resolve package README consumer presentation and repository-relative links before first publication, alongside licence and destination choices. No change to packaging identity or runtime dependency policy."
+}

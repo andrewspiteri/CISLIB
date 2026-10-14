@@ -1,0 +1,391 @@
+{
+  "schema": "cis.logging.task-receipt/v1",
+  "taskId": "WP06-S03-T01",
+  "date": "2026-10-15",
+  "status": "Implemented, verified and reviewed under explicit user packaging amendment; commit identity belongs in Git history",
+  "baseCommit": "928bb32db0ede745dcb9ec612360de1a3038d4e4",
+  "scope": "Make existing embedded CIS.Core/net10.0 Microsoft logging package and locked repository closure explicit. Correct package-facing description/README, preserve nuspec minimum semantics. No new shipping API/source/package/dependency/range/helper.",
+  "developer": {
+    "runId": "5ea8da79425c4591972341d4f054503d",
+    "tests": {
+      "unit": 3370,
+      "integration": 1400,
+      "architecture": 471
+    },
+    "totalTests": 5241,
+    "stages": 14,
+    "criticalPins": 897,
+    "currentSourceMismatches": 0,
+    "coreSha256": "bb177fd1e9300ad6c09341a2bdab1da7924eff2bfd454812a602acda3c336be0",
+    "rawTrxChecked": true
+  },
+  "package": {
+    "packageId": "CIS.Core",
+    "version": "0.1.0-dev.1",
+    "targetFramework": "net10.0",
+    "packageSha256": "d402fe6e4bac02eb7fcf138bc4b664e6aded5091933217f0c4fb6df06353451f",
+    "packedCoreSha256": "bb177fd1e9300ad6c09341a2bdab1da7924eff2bfd454812a602acda3c336be0",
+    "packedXmlSha256": "b4d6194427fa05a5cfdad97b26d753590b160eb1d04f38ff4a092e42ae787363",
+    "packedReadmeSha256": "9088d16e79cf008af02e0457c081f66ec1772d4e4cde0a4ea2374e2de87c4e71",
+    "description": "CisLib multi-module core library with bounded logging and Microsoft ILogger integration.",
+    "packedDirectDependencies": [
+      {
+        "id": "Microsoft.Extensions.Logging.Abstractions",
+        "version": "10.0.12",
+        "exclude": "Build,Analyzers"
+      }
+    ],
+    "resolvedRuntimeClosure": [
+      "Microsoft.Extensions.DependencyInjection.Abstractions/10.0.12",
+      "Microsoft.Extensions.Logging.Abstractions/10.0.12"
+    ],
+    "lockedContentHashesMatch": true,
+    "embeddedProvider": "CIS.Logging.MicrosoftLogger.CoreLoggerProvider",
+    "libAssemblies": [
+      "CIS.Core.dll"
+    ],
+    "closedAssetsCheckedByDeveloperGate": true,
+    "allEntries": [
+      {
+        "path": "_rels/.rels",
+        "sha256": "9346355a2327dd131488e01b8826b927cd13cd55e0bea817b030fd1230dd8107"
+      },
+      {
+        "path": "CIS.Core.nuspec",
+        "sha256": "424967a88b693c7cf5b7b9bf331cc9e05046d8231aa6b22d80e96f4c5c4660d3"
+      },
+      {
+        "path": "README.md",
+        "sha256": "9088d16e79cf008af02e0457c081f66ec1772d4e4cde0a4ea2374e2de87c4e71"
+      },
+      {
+        "path": "Sdk/BeforeSdk.targets",
+        "sha256": "95fcf432bb390dfea85b74bda5454a868f1e2ffb4510107ff19fb0bd151e74ce"
+      },
+      {
+        "path": "Sdk/PackageVersion.props",
+        "sha256": "234d2b3583602656dc5ac1b8ff902c0e3d49c498a9208ffc90866f46d5d56ba8"
+      },
+      {
+        "path": "Sdk/Sdk.props",
+        "sha256": "a630c68160a8f0a4b380d23a499b76f3acb9e2dda088de1b271ef3baed387482"
+      },
+      {
+        "path": "Sdk/Sdk.targets",
+        "sha256": "77ff9b64c156afbee43b54ecee78148e49ca8330d929170206566f30bf3bac23"
+      },
+      {
+        "path": "buildSupport/CIS.TypeManager.targets",
+        "sha256": "4fd5ffa236f95a67d3325922a11c8496e8c6ad06fd8805a92a25328924668501"
+      },
+      {
+        "path": "buildTransitive/CIS.Core.targets",
+        "sha256": "ceefd40c6d397d04445aa14fff83bb359b88089eea0b2aa5a68a030c1e325b34"
+      },
+      {
+        "path": "lib/net10.0/CIS.Core.dll",
+        "sha256": "bb177fd1e9300ad6c09341a2bdab1da7924eff2bfd454812a602acda3c336be0"
+      },
+      {
+        "path": "lib/net10.0/CIS.Core.xml",
+        "sha256": "b4d6194427fa05a5cfdad97b26d753590b160eb1d04f38ff4a092e42ae787363"
+      },
+      {
+        "path": "tools/net10.0/CIS.TypeManager.Build.dll",
+        "sha256": "1d38a9bd4bf9dd8ac227ab7b58dfd2850fe8ea2a42d2c8ae0f73e94bdf9edde3"
+      },
+      {
+        "path": "[Content_Types].xml",
+        "sha256": "051b7fb4db009c3bed175e8a59db9233a6908b5c9d757122192155c3a39e518e"
+      },
+      {
+        "path": "package/services/metadata/core-properties/nuget.psmdcp",
+        "sha256": "f32a75f2c222f0672c8580c2a59e4c2b9b3103518b66f03aa0157804ef7466e0"
+      }
+    ]
+  },
+  "scopeAudit": {
+    "originalTasksAndCriteriaPreserved": true,
+    "selectedSingleCoreAuthorityRecorded": true,
+    "T02throughT05RemainPending": true,
+    "consumerConstraintUnchanged": true,
+    "loggingShippingSourcesUnchanged": true,
+    "actualPackageReadmeAndDescriptionMatchFinalSources": true
+  },
+  "claude": {
+    "initialVerdict": "CHANGES_REQUIRED",
+    "requiredFinding": "R1 stale package README contradictory status",
+    "resolution": "Removed three stale trailing deferral phrases; top current status retained. Dependency table now accurately permits only manifest-registered build-only tool edges and acknowledges existing logging/provider types. Scope record preserves source descriptions, marks T02-T05 Pending and records package README feed/audience followup.",
+    "followupVerdict": "PASS",
+    "requiredFindingsRemaining": 0,
+    "initialFiles": 11,
+    "initialBytes": 104952,
+    "followupFiles": 4,
+    "followupBytes": 24296,
+    "finalSnapshotMatchesCombinedReviews": true,
+    "authorization": "Standing user instruction for logging-only read-only reviews without asking."
+  },
+  "historical": "Initial 5241-test/14-stage green run preceded required README correction; retained historical only. Final corrected tree was verified and packed anew; actual packed sources/metadata inspected.",
+  "release": {
+    "exitCode": 2,
+    "originalSourceFilesUnchanged": true,
+    "plannedCasesUnchanged": 41
+  },
+  "cisGraph": {
+    "freshAtCapture": true,
+    "status": "status=warnings;exitCode=0;freshness=fresh;nodes=10776;edges=42602;errors=0;warnings=143;information=0;strict=false",
+    "buildId": "sha256:ea6cdffada68422694698a415107ab9cec7aa8b95087f61a5635d0f5ef724449",
+    "root": "cislib::symbol::cis-core/csharp/method/CIS.Logging.MicrosoftLogger.CoreLoggerProvider.CreateLogger%28string%29",
+    "limitations": "Bounded call context partial; tests-for has zero verified-by traversals. Compiler/extraction warnings retained; no inferred coverage claimed."
+  },
+  "remaining": [
+    "WP06-S03-T02 dedicated dependency/compiled/package rejection qualification",
+    "T03 explicit adapter coverage/mutation, T04 cumulative compatibility, T05 complete release-bundle inventory",
+    "WP08/WP09 consumer package README/feed links, examples/skills, licence/destination/full release/publication"
+  ],
+  "limitations": [
+    "Original separate bridge package/zero-abstractions optionality superseded by explicit user decision, not relabeled as executed.",
+    "Exact locked repository closure is qualified; application nuspec dependency remains an inclusive minimum. Other resolved versions are not qualified by this receipt.",
+    "Whole-Core package/developer suite include independently committed Type Manager code/build assets; no Type Manager implementation transmitted to Claude, and no Type Manager source files edited/staged.",
+    "Retained candidate is an unpublished development nupkg, not a release/historical publication.",
+    "No new tests for this metadata/documentation-only change; existing meaningful developer gates and actual package inspection executed."
+  ],
+  "files": [
+    {
+      "path": "baseline.json",
+      "sha256": "0d7c982fce4b40799fcd2b67d48be686b632047cda3b0f26f72dd3faef1d6c61"
+    },
+    {
+      "path": "candidate/CIS.Core.0.1.0-dev.1.nupkg",
+      "sha256": "d402fe6e4bac02eb7fcf138bc4b664e6aded5091933217f0c4fb6df06353451f"
+    },
+    {
+      "path": "canonical-files.json",
+      "sha256": "4eccb698233a7f6eed52dd33437212adbe90052c15258b636e83cc406b5cede8"
+    },
+    {
+      "path": "claude-fix-manifest.json",
+      "sha256": "032ca0645803112516c227cd4dcac15c4d35d46e977e3ffa89c5e5b878a1f9c0"
+    },
+    {
+      "path": "claude-fix-prompt.txt",
+      "sha256": "1f6ccffda01476cb51ba4d6e8816c5dc09a9ee74ee2d5a473f2393c557144275"
+    },
+    {
+      "path": "claude-fix-review.exit-code",
+      "sha256": "13bf7b3039c63bf5a50491fa3cfd8eb4e699d1ba1436315aef9cbe5711530354"
+    },
+    {
+      "path": "claude-fix-review.json",
+      "sha256": "23291000b9f206714c5157fd956f8fbfdcac4d7fd5838854a23cfbd80c95df46"
+    },
+    {
+      "path": "claude-fix-review.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "claude-fix-verdict.json",
+      "sha256": "161edd2f6518c23c141489661f14d3ee5194d178dc023d2faf0554091e92044c"
+    },
+    {
+      "path": "claude-manifest.json",
+      "sha256": "5594dae356cd03cfdcd9c199985e012d9034528ea96025ddb9ba8b280a87f413"
+    },
+    {
+      "path": "claude-prompt.txt",
+      "sha256": "71e087f7939261cbe6cc1643f3568034ce4722dd073a841bde5e7fee887422e4"
+    },
+    {
+      "path": "claude-review.exit-code",
+      "sha256": "13bf7b3039c63bf5a50491fa3cfd8eb4e699d1ba1436315aef9cbe5711530354"
+    },
+    {
+      "path": "claude-review.json",
+      "sha256": "c1c3b7a3514c4aff9cc9c11a551ccc4dd58b96d01861253143c1dbd80c349201"
+    },
+    {
+      "path": "claude-review.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "claude-verdict.json",
+      "sha256": "7c8be871c7edda803697deb43d0fe660bccf72c4463e45867a5532041c50d3a7"
+    },
+    {
+      "path": "critical-source-inputs.json",
+      "sha256": "755985808e3183cbe0bd2604762857489211f9fb6bb71b74dd6bcc0eb9d19891"
+    },
+    {
+      "path": "Developer/families/architecture/discovery.json",
+      "sha256": "68a6da11d47807939a0ad1c142c246d4efa5d972e62160ce7c182fc434bf3a1f"
+    },
+    {
+      "path": "Developer/families/architecture/execution.json",
+      "sha256": "490f30136de78cdf16af7d372578559bf8029981bb94e735ae2fc360cbc575c8"
+    },
+    {
+      "path": "Developer/families/architecture/report.trx",
+      "sha256": "d61eba32ac4887e6b554f3f9664b4ced2791f320c8f9ace6ff21ce01823546a0"
+    },
+    {
+      "path": "Developer/families/integration/discovery.json",
+      "sha256": "54d9bb51034103b8fe71248a16bafddcd65751f409630f8e30812a9840d31fb4"
+    },
+    {
+      "path": "Developer/families/integration/execution.json",
+      "sha256": "ba6e54104eb94bc52b7461abc1742a384dd20e661ba6ba5e3b37fa78a1626b0b"
+    },
+    {
+      "path": "Developer/families/integration/report.trx",
+      "sha256": "8f2992b0caf6b47b6d4a47d4e03c869b16e30b2989472f1643ef4add18507c25"
+    },
+    {
+      "path": "Developer/families/unit/discovery.json",
+      "sha256": "da53ef124b5db28e336383562dcbc1f37d5cebb7fb9207bde53d34b296b07f12"
+    },
+    {
+      "path": "Developer/families/unit/execution.json",
+      "sha256": "06dfa56cacd4ccc91631efc3e4d4a78468fa8cc20cc40542f662adc632b3e8c9"
+    },
+    {
+      "path": "Developer/families/unit/report.trx",
+      "sha256": "fbca03367210b8815b8224ba46414d16d84703dfc231b7dbea261f26d0e9cf5e"
+    },
+    {
+      "path": "Developer/logs/package-boundaries.log",
+      "sha256": "4616fd010dfcc172f30bae3a2c98226c4539b1736e8ddbe3bf47e43ce7126813"
+    },
+    {
+      "path": "Developer/logs/project-boundaries.log",
+      "sha256": "352deb96b6456fd93c2601dccaac568e277d24cc4cdadcf5f9d946f4bc10d400"
+    },
+    {
+      "path": "Developer/source-inputs.json",
+      "sha256": "1b7e857940607cf9f89ffd5ce3a2edbecc74abc065f3723e1eacf6573909b18f"
+    },
+    {
+      "path": "Developer/summary.json",
+      "sha256": "ed741ccc1c0e380f412f28ce84cbf274d554f4423cafc92bf030e8a91aa2f7bc"
+    },
+    {
+      "path": "developer-audit.json",
+      "sha256": "1a3556b2f4b7e59489e62071931868a8757a572520edf27049da1b8e8519c8d9"
+    },
+    {
+      "path": "developer-final.exit-code",
+      "sha256": "5feceb66ffc86f38d952786c6d696c79c2dbc239dd4e91b46729d73a27fb57e9"
+    },
+    {
+      "path": "developer-final.log",
+      "sha256": "2be63e13cd6a8c8860d87248f51d9af36fd9fba0079948ee3519f132ff80c35d"
+    },
+    {
+      "path": "graph/graph-before.txt",
+      "sha256": "3cf5d43b26478f99bd0302d6b7169b66d5f280fbf1df9f13dab9137ded499929"
+    },
+    {
+      "path": "graph/graph-build-final.txt",
+      "sha256": "ad291b2fb937cc12e75f7114825d3464bc455a692327aea5502b2d268e5f4756"
+    },
+    {
+      "path": "graph/graph-provider-related-before.txt",
+      "sha256": "ac776b66902e1c212c403407a9e580c690e8377552113c90b7f9f8ce36029162"
+    },
+    {
+      "path": "graph/graph-provider-related-final.txt",
+      "sha256": "4cf0127009d8264161459b51efaee1d599c70b424b1a44d6d152cd82a5e96ba8"
+    },
+    {
+      "path": "graph/graph-provider-tests-before.txt",
+      "sha256": "85ed5f363e89ea681d153c6fed269a0f2d6c283cecd05b573aebb777b80ac401"
+    },
+    {
+      "path": "graph/graph-provider-tests-final.txt",
+      "sha256": "2e427b7a06604be3c9a0b8097eeaf1332ff297a6e82e0814d96a5df32d5e2f3d"
+    },
+    {
+      "path": "graph/graph-status-final.txt",
+      "sha256": "9607d12712d9ce018460ee4cb8dbb2a0f7472af4b123836170d1c3bba7ccb879"
+    },
+    {
+      "path": "historical-before-readme-fix/Developer/families/architecture/discovery.json",
+      "sha256": "68a6da11d47807939a0ad1c142c246d4efa5d972e62160ce7c182fc434bf3a1f"
+    },
+    {
+      "path": "historical-before-readme-fix/Developer/families/architecture/execution.json",
+      "sha256": "490f30136de78cdf16af7d372578559bf8029981bb94e735ae2fc360cbc575c8"
+    },
+    {
+      "path": "historical-before-readme-fix/Developer/families/architecture/report.trx",
+      "sha256": "18feda98a78d1cd7ad2cd63baf8bbf7d8dfc9476175907615989ea925fa2075e"
+    },
+    {
+      "path": "historical-before-readme-fix/Developer/families/integration/discovery.json",
+      "sha256": "54d9bb51034103b8fe71248a16bafddcd65751f409630f8e30812a9840d31fb4"
+    },
+    {
+      "path": "historical-before-readme-fix/Developer/families/integration/execution.json",
+      "sha256": "ba6e54104eb94bc52b7461abc1742a384dd20e661ba6ba5e3b37fa78a1626b0b"
+    },
+    {
+      "path": "historical-before-readme-fix/Developer/families/integration/report.trx",
+      "sha256": "0a94db3dcaa096ced6d8cc937098df0e18968c43befbb1adc4ba364e9e22902f"
+    },
+    {
+      "path": "historical-before-readme-fix/Developer/families/unit/discovery.json",
+      "sha256": "da53ef124b5db28e336383562dcbc1f37d5cebb7fb9207bde53d34b296b07f12"
+    },
+    {
+      "path": "historical-before-readme-fix/Developer/families/unit/execution.json",
+      "sha256": "06dfa56cacd4ccc91631efc3e4d4a78468fa8cc20cc40542f662adc632b3e8c9"
+    },
+    {
+      "path": "historical-before-readme-fix/Developer/families/unit/report.trx",
+      "sha256": "03c98b60fa6ab7f5fcab213dc808026cbd0d8049f4b310860083bebe4fc10aed"
+    },
+    {
+      "path": "historical-before-readme-fix/Developer/source-inputs.json",
+      "sha256": "6650925d4f760e0686e02ea2474f2ddd15d2e9b6897618da4ef4c293e3408f82"
+    },
+    {
+      "path": "historical-before-readme-fix/Developer/summary.json",
+      "sha256": "3c1feb070599eea618225369c116dbe3738dd28790b34cd5e0197485829bf088"
+    },
+    {
+      "path": "historical-before-readme-fix/developer.log",
+      "sha256": "e108272df5a1aae9a18926082e987fb121c85516abc4a9499fc7a698801fd608"
+    },
+    {
+      "path": "inspect-assembly.ps1",
+      "sha256": "7b5f9b048ee926a238ecebc3885cd126410faa97ae8a95eb1bcded02c8bb2176"
+    },
+    {
+      "path": "package-audit.json",
+      "sha256": "9d45098ef91fdad84aec5f123656a6ed405af08386a5e9b7b248b4b50ab17b17"
+    },
+    {
+      "path": "packed-assembly-types.json",
+      "sha256": "b78f98a37f3a657882b8f1469271c2890d0b329ccf0008d6403ea2e5940113b4"
+    },
+    {
+      "path": "release-validation.json",
+      "sha256": "95a2a05c9d70f1af365c94c9a90dc805056a29ef3ba3177154d4faef96146f83"
+    },
+    {
+      "path": "release.exit-code",
+      "sha256": "d4735e3a265e16eee03f59718b9b5d03019c07d8b6c51f90da3a666eec13ab35"
+    },
+    {
+      "path": "release.log",
+      "sha256": "03aa42df1682194b2f04eae026d19b66b1151f793bb49c2ad6aa26cc78e50b79"
+    },
+    {
+      "path": "review-notes.json",
+      "sha256": "8ef70e364c3053e9df8695a1843720a0383e786785c3427effbf0f9133d6d6ad"
+    },
+    {
+      "path": "scope-audit.json",
+      "sha256": "babb0121a8d01dec18cfbfaad97745dcc9f3d74184259d1a5524f718f6253393"
+    }
+  ]
+}
