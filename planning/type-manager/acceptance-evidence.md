@@ -30,6 +30,8 @@ is development evidence, not a release claim; remaining checks are explicit belo
   and `implementations/csharp/verification/contracts/type-manager/v1-development/`.
 - Frozen behavior/schema fixtures and controlled regressions:
   [compatibility checkpoint](evidence/compatibility-behavior/README.md).
+- Process-fresh preparation, query batches, allocation and memory observations:
+  [performance checkpoint](evidence/performance/README.md).
 
 The runtime closure uses one frozen Core DLL on both OSs. The combined Developer
 checkpoint uses a later Core DLL containing concurrent logging changes. Inventory
@@ -66,7 +68,7 @@ not be merged into an implied exact-artifact release result.
 | A24 Dependencies | Core retains its approved runtime closure. Package/helper separation, exact asset checks and altered-artifact controls pass. The Web framework exception is restricted to its registered example; shipping/test-support policy widening is rejected, and removing only the role guard makes the forbidden Core reference pass. The full 26-project checker passes. | Final release artifact and dependency bundle. |
 | A25 Compatibility | Both OSs pass 86 checks including original API/binary/source replay, 22 frozen behavior cases, byte-identical original-API consumer rebuild, nine behavior mutants and a public-property API/binary/source regression with positive twins. Three provenance guards reject mismatches. | Final exact-package replay; no released historical baseline exists yet. |
 | A26 Diagnostics | Catalog/report reconciliation, contextual manifest/loading/discovery errors and dynamic-load classification regression execute. | Complete acceptance matrix reconciliation against final artifact. |
-| A27 Performance | No speedup or latency guarantee is claimed. | Reproducible startup/query/allocation/memory measurements with machine/runtime/catalog metadata. |
+| A27 Performance | 56 fresh processes per OS cover 334/4,366-type catalogs and eager/deferred placement of identical discovery work. Raw batches, allocation scopes, whole-process memory deltas, JIT activity and exact artifacts are retained. Five harness controls pass. Separate same-source instrumentation demonstrates no query rescans. | Final exact-package replay. No cold-cache, steady-tier, isolated-manager-size, speedup or absolute latency claim is made. |
 | A28 Release evidence | Focused native results, hashes, reviews and combined Developer checkpoint are preserved. | All six verification families, exact-artifact bundle and clean package-consumer qualification. |
 | A29 Scope/readability | Runtime is nine focused Core files with no new runtime dependency; architecture guards and read-only runtime review pass. | Final maintainability review and coordinated owned-file commits. |
 | A30 Manifest compatibility | Frozen raw fixtures replay schema-1 additive fields/BOM, malformed/invalid UTF-8, duplicate properties, unsupported versions, paths and selected assets on both OSs. Targeted schema, duplicate-property and traversal mutants are rejected. Generator output is consumed by the ordinary host. | Final exact-package bundle replay. |

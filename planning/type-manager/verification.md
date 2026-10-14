@@ -293,3 +293,23 @@ negative controls and reproducibility. The test consumer uses explicit fixed
 metadata and omits generated source/default Win32 manifest bytes that vary by OS
 or Git revision. This qualification is separate from the package candidate and
 the combined Developer run; final package replay and the six-family gate remain.
+
+## Performance observations — 14 October 2026
+
+`evidence/performance/` retains 56 fresh Windows and 56 fresh native Ubuntu
+processes against identical deployed managed bytes. Each lane has 48 measured
+observations in four balanced catalog/mode groups after two retained warmup rounds.
+The 334/4,366-type inventories include Core and both approved runtime dependencies.
+Bootstrap/first-use regions execute identical preparation at different points.
+Preparation, first queries, 20 warmed cached-query batches, allocations and retained
+process memory are recorded with exact runtime, SDK, CPU/OS and JIT metadata.
+
+Read-only reviews corrected warmup, counter scope, memory semantics, timeout logs
+and deployment provenance. Three mismatched-input controls reject before measuring;
+two controlled timeout representations preserve the original error and partial log.
+An independent audit recomputes group summaries and batch aggregates. The separate
+enumeration-counter evidence matches this candidate's producer/source hashes; the
+timed DLL is not instrumented. Observations do not promise a steady JIT tier, cold
+OS file cache, isolated manager memory, application latency or a speedup. Native
+lanes run serially on one workstation, with Linux consuming `/mnt/c` under WSL.
+Full release qualification and final clean-package replay remain separate.

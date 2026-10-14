@@ -66,11 +66,20 @@ silently marked complete by a prototype or an uncommitted test result.
 | TM-025 | Source and exact-package examples pass 66 fresh-process/layout checks on each supported OS, including Debug/Release, folder publish, publish without building, three broken-deployment cases per layout, later-load fixed membership and HTTP scoped lifetime. The 26-project solution and 11 targeted framework-policy checks pass on Windows. Formal milestone and final release-candidate consolidation remain open. |
 | TM-026–TM-028 | Initial A01–A30 mapping is recorded in `acceptance-evidence.md`, with executed checks and explicit gaps. Meaningful mutation and complete architecture qualification remain; initial build/dependency controls exist. |
 | TM-029 | Development behavior/schema compatibility checkpoint passes 86 checks per OS: original API/binary/source replay, 22 frozen behavior fixtures, exact original-API consumer reproduction and targeted API/binary/source/behavior negatives. Three provenance guards reject mismatched inputs. Final exact-package replay remains; no released historical baseline is claimed. |
-| TM-030–TM-031 | Performance/memory measurements and final maintainability/six-family gate remain. |
+| TM-030 | Development performance observations are recorded for 334/4,366-type catalogs: 56 fresh processes per OS, 48 measured per OS, exact deployment replay, same-work deferred control, allocations and whole-process retained-memory deltas. Five artifact/timeout controls pass; unchanged-source enumeration evidence is linked separately. Final clean-package replay remains. |
+| TM-031 | Final maintainability review and the six-family gate remain. |
 | TM-032 | Implemented optional SDK assets in the same CIS.Core package: first restore sees RID selection, the runtime reference matches the SDK version, and no build target performs a second restore. Windows and Ubuntu each pass 35 checks against identical package/verifier bytes; 34 architecture/dependency cases pass and closure review returned PASS. The final Linux JSON report is retained; its temporary detailed logs were unavailable afterward, as recorded in the checkpoint. Final release qualification remains open. The earlier second-restore experiment is not adopted. |
 | TM-033–TM-036 | Final documentation, exact-artifact verification bundle, clean package consumer smoke tests and handoff remain. |
 
 ## Executed evidence and limits
+
+The [performance checkpoint](evidence/performance/README.md) retains native
+Windows/Ubuntu observations, 20 raw query batches per metric/process, runtime/JIT
+metadata, exact runnable deployments and [numeric results](evidence/performance/observations.md).
+Both modes execute the same discovery work, placed at bootstrap or first use.
+No speedup, steady JIT tier, cold disk cache, isolated manager size or timing
+threshold is claimed. It uses the frozen `d70fcf…` Core, separate from the later
+combined Developer build and future final package. No production code changed.
 
 The [behavior/schema compatibility checkpoint](evidence/compatibility-behavior/README.md)
 adds an unpublished, authored behavior baseline while preserving all six original

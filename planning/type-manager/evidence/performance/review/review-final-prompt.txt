@@ -1,0 +1,330 @@
+Read-only final closure review. No tools/edits. Prior follow-up returned PASS with nonblocking suggestions. Final delta: sleep 250 ms after BOTH warmup passes, and process-wide JitInfo method-count/compilation-time snapshots before/after the batch phase. Windows final 56 processes (48 measured) complete validly; each measured process recorded one overlapping compiled method, so we explicitly do NOT claim final-tier or steady-state timings or identify the compiled method. Native Ubuntu final is running identical managed bytes. FirstPrepared/FirstUncached allocation scope is calling-thread; current verified TypeManager synchronous query code uses a lock and ordinary loop, no Task/Parallel dispatch. Producer deploy/harness/fixture-source/runtime-policy hashes remain required. Review the exact final host and methodology for any blocker; do not broaden scope into unrelated performance frameworks or production changes. No logging implementation source included.
+
+HOST:
+
+using System.Diagnostics;
+using System.Reflection;
+using System.Runtime;
+using System.Runtime.InteropServices;
+using System.Text.Json;
+using CIS.TypeManagement;
+using PerformanceFixtures;
+
+string mode = args[0];
+int libraryCount = int.Parse(args[1], System.Globalization.CultureInfo.InvariantCulture);
+int classesPerLibrary = int.Parse(args[2], System.Globalization.CultureInfo.InvariantCulture);
+int iterations = int.Parse(args[3], System.Globalization.CultureInfo.InvariantCulture);
+if (mode is not ("eager" or "deferred") || iterations < 1) { throw new ArgumentException("Invalid measurement configuration."); }
+var process = Process.GetCurrentProcess();
+var host = Assembly.GetExecutingAssembly();
+var options = new TypeManagerOptions(host)
+{
+    PrecomputedContracts = [typeof(IPrepared)]
+};
+// Touch the measurement APIs before taking a baseline, not the manager factory.
+_ = Stopwatch.GetTimestamp();
+_ = GC.GetTotalAllocatedBytes(precise: true);
+_ = GC.GetAllocatedBytesForCurrentThread();
+_ = Cost.Since(Stopwatch.GetTimestamp(), GC.GetTotalAllocatedBytes(precise: true));
+_ = Query(() => Array.Empty<Type>(), 1);
+_ = Jit();
+var baseline = Memory();
+bool librariesInitiallyUnloaded = !AppDomain.CurrentDomain.GetAssemblies().Any(assembly => assembly.GetName().Name!.StartsWith("Perf.", StringComparison.Ordinal));
+ITypeManager? manager = null;
+Cost preparation = default;
+
+long startupAllocated = GC.GetTotalAllocatedBytes(precise: true);
+long startupStarted = Stopwatch.GetTimestamp();
+if (mode == "eager") { manager = await Prepare(); }
+var bootstrapBoundary = Cost.Since(startupStarted, startupAllocated);
+bool preparedAtBoundary = manager is not null;
+
+long firstUseAllocated = GC.GetTotalAllocatedBytes(precise: true);
+long firstUseStarted = Stopwatch.GetTimestamp();
+manager ??= await Prepare();
+long preparedAllocated = GC.GetAllocatedBytesForCurrentThread();
+long preparedStarted = Stopwatch.GetTimestamp();
+var prepared = manager.GetImplementations(typeof(IPrepared));
+var firstPrepared = new QueryCost(Stopwatch.GetElapsedTime(preparedStarted).TotalMilliseconds,
+    GC.GetAllocatedBytesForCurrentThread() - preparedAllocated, 1, prepared.Count);
+var firstUse = Cost.Since(firstUseStarted, firstUseAllocated);
+var afterPreparedLookup = Memory();
+
+Func<IReadOnlyList<Type>> preparedQuery = () => manager.GetImplementations(typeof(IPrepared));
+Func<IReadOnlyList<Type>> lazyQuery = () => manager.GetImplementations(typeof(ILazy));
+Func<IReadOnlyList<Type>> referenceQuery = () => prepared;
+var firstUncached = Query(lazyQuery, 1);
+var lazy = manager.GetImplementations(typeof(ILazy));
+string exactName = prepared[0].AssemblyQualifiedName!;
+Func<bool> exactQuery = () => manager.TryGetType(exactName, out var found) && found == prepared[0];
+// Warm the same delegates and loop bodies that the recorded batches use.
+for (int pass = 0; pass < 2; pass++)
+{
+    _ = Query(preparedQuery, iterations);
+    _ = Query(lazyQuery, iterations);
+    _ = Query(referenceQuery, iterations);
+    _ = Lookup(exactQuery, iterations);
+    Thread.Sleep(250);
+}
+const int batchCount = 20;
+var preparedBatches = new List<QueryCost>(batchCount);
+var lazyBatches = new List<QueryCost>(batchCount);
+var controlBatches = new List<QueryCost>(batchCount);
+var lookupBatches = new List<QueryCost>(batchCount);
+var jitBeforeBatches = Jit();
+for (int batch = 0; batch < batchCount; batch++)
+{
+    for (int offset = 0; offset < 4; offset++)
+    {
+        switch ((batch + offset) % 4)
+        {
+            case 0: preparedBatches.Add(Query(preparedQuery, iterations)); break;
+            case 1: lazyBatches.Add(Query(lazyQuery, iterations)); break;
+            case 2: controlBatches.Add(Query(referenceQuery, iterations)); break;
+            case 3: lookupBatches.Add(Lookup(exactQuery, iterations)); break;
+        }
+    }
+}
+var jitAfterBatches = Jit();
+var preparedCached = SumCosts(preparedBatches);
+var lazyCached = SumCosts(lazyBatches);
+var loopControl = SumCosts(controlBatches);
+var exactLookup = SumCosts(lookupBatches, sumResults: true);
+var afterQueries = Memory();
+
+int expectedPrepared = libraryCount * ((classesPerLibrary + 1) / 2);
+int expectedLazy = libraryCount * ((classesPerLibrary + 2) / 3);
+bool valid = librariesInitiallyUnloaded && preparedAtBoundary == (mode == "eager") &&
+    manager.Assemblies.Count == libraryCount + 2 && manager.PreparationReport.LoadedAssemblyIdentities.Count == libraryCount &&
+    manager.PreparationReport.ReusedAssemblyIdentities.Count == 2 && manager.PreparationReport.PreparedContractCount == 1 &&
+    prepared.Count == expectedPrepared && lazy.Count == expectedLazy && firstUncached.ResultCount == expectedLazy &&
+    preparedBatches.All(batch => batch.ResultCount == expectedPrepared) && lazyBatches.All(batch => batch.ResultCount == expectedLazy) &&
+    lookupBatches.All(batch => batch.ResultCount == iterations) && Counters.Activated == 0 &&
+    ReferenceEquals(prepared, manager.GetImplementations<IPrepared>()) && ReferenceEquals(lazy, manager.GetImplementations<ILazy>()) &&
+    manager.Assemblies.Where(assembly => assembly.GetName().Name!.StartsWith("Perf.", StringComparison.Ordinal))
+        .All(assembly => manager.GetDefinedTypes(assembly).Count == classesPerLibrary) &&
+    manager.Types.Count == manager.Assemblies.Sum(assembly => manager.GetDefinedTypes(assembly).Count);
+if (!valid) { throw new InvalidOperationException("The measurement fixture failed its correctness checks."); }
+
+Console.WriteLine(JsonSerializer.Serialize(new
+{
+    schemaVersion = 1,
+    valid,
+    processId = Environment.ProcessId,
+    mode,
+    iterations,
+    librariesInitiallyUnloaded,
+    preparedAtBoundary,
+    libraryCount,
+    classesPerLibrary,
+    selectedAssemblyCount = manager.Assemblies.Count,
+    catalogTypeCount = manager.Types.Count,
+    preparedMatchCount = prepared.Count,
+    lazyMatchCount = lazy.Count,
+    bootstrapBoundary,
+    firstUse,
+    firstPrepared,
+    preparation,
+    preparationReportMilliseconds = manager.PreparationReport.Elapsed.TotalMilliseconds,
+    firstUncached,
+    preparedCached,
+    lazyCached,
+    loopControl,
+    exactLookup,
+    batches = new { preparedBatches, lazyBatches, controlBatches, lookupBatches },
+    batchCount,
+    jitBeforeBatches,
+    jitAfterBatches,
+    baseline,
+    afterPreparedLookup,
+    afterQueries,
+    retainedManagedBytes = afterQueries.ManagedBytes - baseline.ManagedBytes,
+    retainedPrivateBytes = afterQueries.PrivateBytes - baseline.PrivateBytes,
+    retainedWorkingSetBytes = afterQueries.WorkingSetBytes - baseline.WorkingSetBytes,
+    memoryScope = "Whole-process changes after the baseline, including runtime, loaded images, reflection, query and measurement state; not manager-only retained size",
+    privateBytesSource = OperatingSystem.IsWindows() ? "Process.PrivateMemorySize64: Windows private bytes" : "Process.PrivateMemorySize64: Linux VmData virtual data mappings",
+    environment = new
+    {
+        processorCount = Environment.ProcessorCount,
+        os = RuntimeInformation.OSDescription,
+        osArchitecture = RuntimeInformation.OSArchitecture.ToString(),
+        processArchitecture = RuntimeInformation.ProcessArchitecture.ToString(),
+        framework = RuntimeInformation.FrameworkDescription,
+        runtime = Environment.Version.ToString(),
+        serverGc = GCSettings.IsServerGC,
+        gcLatencyMode = GCSettings.LatencyMode.ToString(),
+        stopwatchFrequency = Stopwatch.Frequency,
+        tieredCompilation = Environment.GetEnvironmentVariable("DOTNET_TieredCompilation"),
+        tieredPgo = Environment.GetEnvironmentVariable("DOTNET_TieredPGO")
+    }
+}));
+GC.KeepAlive(manager);
+
+async Task<ITypeManager> Prepare()
+{
+    long allocated = GC.GetTotalAllocatedBytes(precise: true);
+    long started = Stopwatch.GetTimestamp();
+    var result = await TypeManager.CreateAsync(options);
+    preparation = Cost.Since(started, allocated);
+    return result;
+}
+
+MemorySample Memory()
+{
+    GC.Collect();
+    GC.WaitForPendingFinalizers();
+    GC.Collect();
+    long managed = GC.GetTotalMemory(forceFullCollection: true);
+    process.Refresh();
+    return new MemorySample(managed, process.PrivateMemorySize64, process.WorkingSet64);
+}
+
+static QueryCost Query(Func<IReadOnlyList<Type>> query, int count)
+{
+    IReadOnlyList<Type>? result = null;
+    long allocated = GC.GetAllocatedBytesForCurrentThread();
+    long started = Stopwatch.GetTimestamp();
+    for (int index = 0; index < count; index++) { result = query(); }
+    double elapsed = Stopwatch.GetElapsedTime(started).TotalMilliseconds;
+    long bytes = GC.GetAllocatedBytesForCurrentThread() - allocated;
+    GC.KeepAlive(result);
+    return new QueryCost(elapsed, bytes, count, result!.Count);
+}
+
+static QueryCost Lookup(Func<bool> lookup, int count)
+{
+    int found = 0;
+    long allocated = GC.GetAllocatedBytesForCurrentThread();
+    long started = Stopwatch.GetTimestamp();
+    for (int index = 0; index < count; index++)
+    {
+        if (lookup()) { found++; }
+    }
+    double elapsed = Stopwatch.GetElapsedTime(started).TotalMilliseconds;
+    return new QueryCost(elapsed, GC.GetAllocatedBytesForCurrentThread() - allocated, count, found);
+}
+
+static QueryCost SumCosts(IReadOnlyList<QueryCost> batches, bool sumResults = false) => new(
+    batches.Sum(batch => batch.Milliseconds), batches.Sum(batch => batch.AllocatedBytes),
+    batches.Sum(batch => batch.Operations), sumResults ? batches.Sum(batch => batch.ResultCount) : batches[0].ResultCount);
+
+static JitSample Jit() => new(JitInfo.GetCompiledMethodCount(currentThread: false),
+    JitInfo.GetCompilationTime(currentThread: false).TotalMilliseconds);
+
+internal readonly record struct JitSample(long CompiledMethods, double CompilationMilliseconds);
+
+internal readonly record struct Cost(double Milliseconds, long AllocatedBytes)
+{
+    public string AllocationScope => "Process-wide managed allocation, including background/runtime work";
+    internal static Cost Since(long started, long allocated) => new(Stopwatch.GetElapsedTime(started).TotalMilliseconds, GC.GetTotalAllocatedBytes(precise: true) - allocated);
+}
+
+internal readonly record struct QueryCost(double Milliseconds, long AllocatedBytes, int Operations, int ResultCount)
+{
+    public string AllocationScope => "Calling-thread managed allocation during synchronous query loop";
+}
+internal readonly record struct MemorySample(long ManagedBytes, long PrivateBytes, long WorkingSetBytes);
+
+
+METHODOLOGY:
+
+# Type Manager development performance observations
+
+This measures the unmodified frozen Core candidate
+`d70fcfdc41b6d15829227f1cee60130ddad3f7f82cc11c7a2fcbf8d5f700fb09`.
+It is development evidence for TM-030, not an application latency guarantee or
+final exact-package release qualification. No absolute timing threshold is a gate.
+
+## Workload and comparison
+
+The small synthetic catalog has two initially unloaded libraries with 32 classes
+each. The large catalog has eight with 512 classes each. Each selection also
+contains the measurement host and its three-type contract assembly. Every second
+class implements the prepared interface; every third implements the lazy interface.
+Classes are nonpublic and have private constructors with a counted side effect.
+Correctness checks require the exact match counts, complete per-library catalogs,
+loaded/reused report counts, cached object identity, exact lookup success and zero
+constructor activations before a sample can be accepted. These sizes demonstrate
+two workloads; they do not represent every application's type relationships.
+
+Both modes execute the identical factory, options, manifest and first prepared
+query. Eager mode prepares before the synthetic bootstrap boundary. Deferred mode
+crosses that boundary without a manager and performs the same preparation at first
+use. No application/DI work is simulated between those points. Compare the
+bootstrap and first-use regions separately and their sum: this control relocates
+work; it is not a different discovery implementation or proof of a speedup.
+
+The `preparation` interval wraps the first factory call in each fresh process. Core
+loading, option creation and measurement-helper initialization precede the baseline
+in both modes. `bootstrapBoundary` therefore is not total process startup.
+`firstPrepared` records the first public query for the already-precomputed contract;
+`firstUncached` records the first query for the other contract and can include its
+delegate's first JIT. `processWallMilliseconds` includes runtime/process startup,
+forced collections, warmup waits, all measurements, checks, serialization and exit;
+it must not be presented as preparation latency.
+
+## Sampling and counters
+
+Each platform runs two retained warmup rounds followed by 12 measured fresh
+processes per catalog/mode group: 56 processes total, 48 used in summaries. Mode
+order alternates every round and catalog order every two rounds. The summaries
+retain minimum, median and maximum across processes. No batches are treated as
+independent process samples and no confidence interval is inferred from 12 points.
+
+Inside each process, the repeated queries use the same delegates and measurement
+helpers for two warmup passes, each followed by a 250 ms quiet interval. Twenty batches of 10,000 calls
+then rotate the order of prepared-cache queries, lazy-cache queries, exact lookup
+and a reference-only loop control. Every batch is retained. SDK-default tiered
+compilation and PGO are explicitly enabled; these are warmed cached-query batches,
+not proof of a stable final JIT tier. The loop control is reported without
+subtracting it. Cached calls are not repeated catalog matching or enumeration.
+Process-wide JIT method-count and compilation-time snapshots bracket the batch
+phase, making overlapping compilation visible without attributing it to a specific
+query or method. The current query implementation uses synchronous loops and a
+lock; the thread-local allocation metric does not cover hypothetical future workers.
+
+Preparation/bootstrap/first-use allocation counters are process-wide managed
+allocations and include background/runtime work across async continuations. Query
+counters cover the calling thread during the synchronous measured loop. The scope
+is encoded in each metric. They are not interchangeable measures of total process
+allocation; runtime/native allocations are outside both counters.
+
+Managed memory is sampled after forced full collections at baseline, after the
+first prepared query, and after all queries. The final delta is a whole-process
+observation containing runtime/reflection caches, loaded metadata, cached query
+results and retained measurement state. It is not an isolated manager object size.
+Negative deltas, if observed, are retained. Working set and private-memory API
+values are supplemental process observations. Windows private bytes and Linux
+`VmData` have different meanings; the latter is virtual data mappings, not private
+committed memory. The distinction is recorded in each sample and follows the
+[.NET Linux process implementation](https://github.com/dotnet/runtime/blob/v10.0.0/src/libraries/System.Diagnostics.Process/src/System/Diagnostics/ProcessManager.Linux.cs).
+
+## Reproduction and limits
+
+Build fixtures with `implementations/csharp/eng/measure-type-manager.py prepare`,
+passing repository/output paths, the frozen Core, its completed runtime producer
+report and the independently selected Core SHA-256. Run with the `run` operation,
+the fixture root and the independently recorded SHA-256 of its producer report.
+`checkpoint.json` records those identities and exact commands. Both operations
+require empty output directories. Linux uses its native SDK `dotnet` via `--dotnet`.
+
+The producer checks Core/module source provenance and the two runtime dependencies
+against the earlier producer record. Replay checks every deployment byte, the exact
+file set, fixture source and runtime policy before running, and rechecks deployment
+bytes afterward. Each child must report the pinned runtime and x64 OS/process.
+Builds use private caches and cleared package sources. The same Windows-built
+managed deployment is replayed on native Ubuntu under WSL, not rebuilt for Linux.
+
+Both lanes use this workstation; they are not independent hardware samples. CPU
+affinity, power state, background host load and the operating system's file cache
+are uncontrolled. Process-fresh does not mean disk-cache-cold. Preparation does not
+pre-execute arbitrary application JIT, static constructors, serializers or resources.
+Do not infer cross-machine thresholds, future application latency or a promised
+percentage improvement from these observations.
+
+The separate [runtime instrumentation checkpoint](../runtime-acceptance/README.md)
+qualifies exactly one enumeration per selected assembly/preparation and no query
+rescans, with deliberate double/query-enumeration regressions. Its producer/module
+hashes match this Core provenance. Those counters belong to a test-only source copy
+and its own fixtures; they are not counters inside the timed DLL or these catalogs.
+The existing unmodified-runtime architecture checks complement that evidence.
