@@ -1,38 +1,54 @@
 """Independent actual-Core Microsoft provider mapping reader."""
-import argparse,base64,copy,importlib.util,json,os,subprocess,tempfile
+import argparse,base64,copy,importlib.util,json,os,re,subprocess,tempfile
+from datetime import datetime
 from pathlib import Path
 spec=importlib.util.spec_from_file_location('provider_base',Path(__file__).with_name('verify-flush-results.py'));base=importlib.util.module_from_spec(spec);spec.loader.exec_module(base)
 require,load,sha,digest,decoded,number=base.require,base.load,base.sha,base.digest,base.decoded,base.number
-MODES=('levels','names','ids','payload')
+MODES=('levels','names','ids','payload','structured')
+
+
+def same(actual,expected):
+    if type(actual) is not type(expected):return False
+    if isinstance(expected,dict):return actual.keys()==expected.keys() and all(same(actual[k],v) for k,v in expected.items())
+    if isinstance(expected,list):return len(actual)==len(expected) and all(same(a,b) for a,b in zip(actual,expected))
+    return actual==expected
 
 
 def check(mode,a,pid=None):
     require(a['mode']==mode and mode in MODES,'mode');require(a['runtime']=='.NET 10.0.12','actual runtime')
     require(type(a['pid']) is int and a['pid']>0 and (pid is None or a['pid']==pid),'actual child PID')
     require(a['physical'] is True and a['leaseReleased'] is True and a['borrowedConsoleOpen'] is True,'physical lifetime');require(a['invalid']=='0','core invalid count')
-    pairs={'levels':6,'names':3,'ids':5,'payload':1}[mode]
+    pairs={'levels':6,'names':3,'ids':5,'payload':1,'structured':1}[mode]
     require(type(a['formatterCalls']) is int and a['formatterCalls']==pairs,'supplied formatter calls')
     require(type(a['noneFormatterCalls']) is int and a['noneFormatterCalls']==0,'None formatter not called')
-    require(a['formatterExceptionReceived'] is (mode=='payload'),'formatter exception identity')
+    require(a['formatterExceptionReceived'] is (mode in ('payload','structured')),'formatter exception identity')
     result=a['result'];require(set(result)=={'completion','succeeded','loss','captured','observed','outputs'},'result shape');require((result['completion'],result['succeeded'],result['loss'])==('Completed',True,False),'stop summary')
     require(len(result['outputs'])==1 and result['outputs'][0]['name']=='file','file output');out=result['outputs'][0]
     require(tuple(number(out[k]) for k in ('boundary','written','failed','abandoned','pending'))==(pairs*2,pairs*2,0,0,0) and out['flush']=='Succeeded','core delivery')
     data=decoded(a['bytes']);require(data[-1:]==b'\n' and not data.startswith(b'\xef\xbb\xbf'),'actual framing');lines=data.splitlines();require(len(lines)==pairs*2 and all(len(line)+1<=16384 for line in lines),'actual bounded records')
     rows=[load(line) for line in lines]
-    statuses=['trace','debug','info','warn','error','critical'] if mode=='levels' else ['error' if mode=='payload' else 'info']*pairs
-    ids={'levels':[17]*6,'names':[9,-4,0],'ids':[0,1,-1,-2147483648,2147483647],'payload':[42]}[mode]
-    categories=['Map.First','Map.Second','Map.Empty'] if mode=='names' else ['Map.'+{'levels':'Levels','ids':'Ids','payload':'Payload'}[mode]]*pairs
-    names={'levels':['level']*6,'names':['named.event','log.message','log.message'],'ids':['id']*5,'payload':['payload']}[mode]
-    messages={'levels':['level '+str(i) for i in range(6)],'names':['named','absent','empty'],'ids':['0','1','-1','-2147483648','2147483647'],'payload':['rendered {x} \u03a9 \U0001f642']}[mode]
+    statuses=['trace','debug','info','warn','error','critical'] if mode=='levels' else ['error' if mode in ('payload','structured') else 'info']*pairs
+    ids={'levels':[17]*6,'names':[9,-4,0],'ids':[0,1,-1,-2147483648,2147483647],'payload':[42],'structured':[42]}[mode]
+    categories=['Map.First','Map.Second','Map.Empty'] if mode=='names' else ['Map.'+{'levels':'Levels','ids':'Ids','payload':'Payload','structured':'Structured'}[mode]]*pairs
+    names={'levels':['level']*6,'names':['named.event','log.message','log.message'],'ids':['id']*5,'payload':['payload'],'structured':['structured']}[mode]
+    messages={'levels':['level '+str(i) for i in range(6)],'names':['named','absent','empty'],'ids':['0','1','-1','-2147483648','2147483647'],'payload':['rendered {x} \u03a9 \U0001f642'],'structured':['Work 3 \u03a9']}[mode]
     for i in range(pairs):
         for row in rows[i*2:i*2+2]:
             require(row['status']==statuses[i],'mapped severity');require(row['component']==categories[i],'category component');require(row['event_name']==names[i],'mapped event name');require(row['message']==messages[i],'supplied rendered message')
-            require(set(row['attributes'])=={'event_id'} and type(row['attributes']['event_id']) is int and row['attributes']['event_id']==ids[i],'numeric event ID')
+            require((mode=='structured' or set(row['attributes'])=={'event_id'}) and type(row['attributes']['event_id']) is int and row['attributes']['event_id']==ids[i],'numeric event ID')
+            stamp=row.get('timestamp');require(isinstance(stamp,str) and re.fullmatch(r'\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{7}Z',stamp) is not None,'valid capture timestamp')
+            try:datetime.fromisoformat(stamp.replace('Z','+00:00'))
+            except ValueError:raise AssertionError('valid capture timestamp') from None
+            if mode=='structured':
+                attrs={'event_id':42,'Count':3,'User':'\u03a9','Money':'1.20','At':'2026-10-14T10:00:00.0000000Z','Items':[1,None,True],'Uuid':'11111111-2222-3333-4444-555555555555','Number':0.10000000149011612,'Large':'9223372036854775807'}
+                require(same(row['attributes'],attrs),'equivalent structured values')
+                require(row.get('message_template')=='Work {Count} {User}','equivalent structured template')
+                require(row.get('trace_id')=='11111111111111111111111111111111' and isinstance(row.get('span_id'),str) and re.fullmatch('[0-9a-f]{16}',row['span_id']) is not None and row['span_id']!='0'*16,'equivalent correlation')
             require(row['schema_version']==1 and row['service']=='CIS.Core.DiscoveryFixture' and row['resource']['process_id']==a['pid'] and row['resource']['runtime_description']=='.NET 10.0.12' and row['resource']['os_family']==a['os'],'automatic core facts')
-            if mode=='payload':
+            if mode in ('payload','structured'):
                 error=row['exception'];require(error['type']=='System.InvalidOperationException','exception type');require(error['message']=='controlled mapping failure','exception message');require(set(error)=={'type','message'},'exception excludes Data')
             else:require('exception' not in row,'no fabricated exception')
-        require({k:v for k,v in rows[i*2].items() if k!='timestamp'}=={k:v for k,v in rows[i*2+1].items() if k!='timestamp'},'equivalent core record')
+        require(same({k:v for k,v in rows[i*2].items() if k!='timestamp'},{k:v for k,v in rows[i*2+1].items() if k!='timestamp'}),'equivalent core record')
 
 
 def corruption_controls(cases):
@@ -61,6 +77,12 @@ def corruption_controls(cases):
       ('exception-type','payload','exception type',lambda a:record_change(a,lambda row:row['exception'].update(type='wrong'))),
       ('exception-message','payload','exception message',lambda a:record_change(a,lambda row:row['exception'].update(message='wrong'))),
       ('exception-data','payload','exception excludes Data',lambda a:record_change(a,lambda row:row['exception'].update(Data={'private_data':'must not be projected'}))),
+      ('timestamp','structured','valid capture timestamp',lambda a:record_change(a,lambda row:row.update(timestamp='ignored-invalid-time'))),
+      ('date','structured','valid capture timestamp',lambda a:record_change(a,lambda row:row.update(timestamp='2026-02-30T00:00:00.0000000Z'))),
+      ('structured-number-type','structured','equivalent structured values',lambda a:record_change(a,lambda row:row['attributes'].update(Count=3.0))),
+      ('structured-bool','structured','equivalent structured values',lambda a:record_change(a,lambda row:row['attributes']['Items'].__setitem__(2,1))),
+      ('structured-template','structured','equivalent structured template',lambda a:record_change(a,lambda row:row.pop('message_template'))),
+      ('structured-trace','structured','equivalent correlation',lambda a:record_change(a,lambda row:row.update(trace_id='0'*32))),
       ('direct-equivalence','payload','equivalent core record',lambda a:record_change(a,lambda row:row.update(env='changed'),1))
     ]
     controls=[]

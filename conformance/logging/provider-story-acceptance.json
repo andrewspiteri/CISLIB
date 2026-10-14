@@ -1,0 +1,110 @@
+{
+  "schema": "cis.logging.story-acceptance/v1",
+  "storyId": "WP06-S01",
+  "taskId": "WP06-S01-T05",
+  "source": "planning/logging/sources/core-library-backlog-v1.json",
+  "qualification": "Case/test bindings only; executed evidence belongs in task receipt.",
+  "criteria": [
+    {
+      "id": "WP06-S01-AC01",
+      "originalDescription": "A standard ILogger event yields the same schema, automatic identity, value encodings, and exception projection as an equivalent direct core event.",
+      "caseBindings": [
+        {
+          "catalog": "conformance/logging/provider-mapping-cases.json",
+          "cases": [
+            "levels",
+            "payload",
+            "structured"
+          ]
+        },
+        {
+          "catalog": "conformance/logging/provider-state-cases.json",
+          "cases": [
+            "scalars",
+            "collections"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "WP06-S01-AC02",
+      "originalDescription": "A named EventId preserves its name; an unnamed EventId yields log.message and retains the supplied numeric event identifier in its documented attribute.",
+      "caseBindings": [
+        {
+          "catalog": "conformance/logging/provider-mapping-cases.json",
+          "cases": [
+            "names",
+            "ids"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "WP06-S01-AC03",
+      "originalDescription": "Filtered events do not call the formatter or traverse structured state; accepted events preserve the supplied rendered message and available original template.",
+      "caseBindings": [
+        {
+          "catalog": "conformance/logging/provider-state-cases.json",
+          "cases": [
+            "extensions",
+            "filtered"
+          ]
+        },
+        {
+          "catalog": "conformance/logging/provider-behavior-cases.json",
+          "cases": [
+            "filtered",
+            "stopped",
+            "disposed",
+            "all-faulted",
+            "partial-fault",
+            "full",
+            "template-tail"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "WP06-S01-AC04",
+      "originalDescription": "Unsupported or oversized state follows core rejection/accounting rules, with no partial event admitted to an output.",
+      "caseBindings": [
+        {
+          "catalog": "conformance/logging/provider-state-cases.json",
+          "cases": [
+            "unsupported",
+            "bounds",
+            "template-size"
+          ]
+        },
+        {
+          "catalog": "conformance/logging/provider-behavior-cases.json",
+          "cases": [
+            "rejection",
+            "capture-failure",
+            "formatter-failure"
+          ]
+        }
+      ],
+      "amendment": "User-directed truncation for oversized valid payload; unsupported retained state is invalid with zero admission. Per-output partial acceptance under queue/fault conditions remains the existing Core contract."
+    },
+    {
+      "id": "WP06-S01-AC05",
+      "originalDescription": "The new bridge references the core; the core's public API and compiled dependency graph remain independent of Microsoft.Extensions types.",
+      "caseBindings": [],
+      "amendment": "User selects one CIS.Core package/assembly with provider in CIS.Logging.MicrosoftLogger and explicitly approved Microsoft-maintained NuGets; direct CIS.Logging API remains independent of Microsoft types outside the adapter namespace.",
+      "architectureTests": [
+        "ProviderFoundationArchitectureTests.ProviderHasConcreteMethodsInTheSingleCoreAssembly",
+        "ProviderFoundationArchitectureTests.DirectCoreLoggingSurfaceDoesNotExposeMicrosoftTypes",
+        "DependencyBoundaryTests.ReleaseCorePassesTheEvaluatedCompiledReferencePolicy"
+      ]
+    }
+  ],
+  "comparisonNormalization": {
+    "name": "validated-capture-timestamp-only",
+    "rule": "Each record timestamp must first be valid seven-fraction UTC text/calendar time; exclude only timestamp for equivalent direct/provider record comparison. All remaining fields/types compare strictly."
+  },
+  "remaining": [
+    "WP06-S02 host/external scopes/generic logger factory lifetime integration",
+    "Examples/instructions/skills and full release qualification/publication"
+  ]
+}

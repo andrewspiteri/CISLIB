@@ -1,0 +1,71 @@
+{
+  "task": "WP06-S01-T05",
+  "verdict": "CHANGES_REQUIRED",
+  "requiredFindings": [
+    {
+      "id": "R1",
+      "file": "docs/modules/logging/microsoft-provider-qualification.md",
+      "location": "paragraph 1: 'names their executed case bindings'",
+      "issue": "The doc says the case bindings are executed. The acceptance map says it holds 'Case/test bindings only; executed evidence belongs in task receipt', and the doc's own later paragraph says execution counts belong in the receipt. The full Developer/final native run has not happened yet. This breaks the AGENTS.md rule to keep definitions separate from executed evidence.",
+      "fix": "Change the wording to 'names their case and architecture-test bindings', or similar, with no execution claim."
+    }
+  ],
+  "optionalFindings": [
+    {
+      "id": "O1",
+      "file": "ProviderMappingExpectations.cs",
+      "issue": "The C# unit and process families compare records with JsonNode.DeepEquals. For JSON numbers this compares values, not representations, so 3 and 3.0 count as equal. Only the Python native reader rejects int/float drift; bool/int drift is caught in both. The doc correctly limits the type-strict claim to native readers. The C# families still give weaker 'strict whole-object equivalence' than the request wording suggests.",
+      "suggestion": "Either accept and state this, or add a recursive JsonValueKind plus raw-text comparison (or compare the raw line bytes after removing the timestamp) for the provider/direct pair and the structured literal."
+    },
+    {
+      "id": "O2",
+      "file": "ProviderMappingExpectations.cs",
+      "issue": "The C# validator never checks the literal automatic identity fields (schema_version, service, resource). Only provider/direct equality covers them, and only the Python reader checks their literal values. The AC01 doc line 'automatic identity checks guard both records' applies only to the native family.",
+      "suggestion": "Add literal schema_version and service assertions to the C# validator, or make the doc wording specific to the native family."
+    },
+    {
+      "id": "O3",
+      "file": "verify-provider-mapping.py corruption_controls",
+      "issue": "The timestamp and date controls only change row 0 (the provider record). Row 1 (the direct record) runs the same validation loop, so this is covered, but the normalization exclusion would hide exactly a row-1 timestamp. 'direct-equivalence' is the only row-1 control, and it runs in payload mode, not structured.",
+      "suggestion": "Add one structured row-1 control, such as an invalid direct timestamp or a changed direct span_id, so the structured pair shows its normalization is not vacuous."
+    },
+    {
+      "id": "O4",
+      "file": "verify-provider-mapping.py",
+      "issue": "'automatic core facts' uses schema_version==1, which also accepts True. Other fields in this reader use type-strict checks.",
+      "suggestion": "Use type(row['schema_version']) is int, matching the other strict checks."
+    },
+    {
+      "id": "O5",
+      "file": "conformance/logging/provider-mapping-cases.json; verify-provider-mapping.py report",
+      "issue": "The catalog scope still says 'full structured state ... remain following tasks', but it now contains the T05 structured case and T03 has already done structured state. The native report still sets task='WP06-S01-T02' even though it now carries T05 structured evidence.",
+      "suggestion": "Add a note that the scope is the T02 historical scope plus the T05 structured equivalence case. Optionally record the per-case addedBy in the native report, and keep task as T02 if that is the historical baseline."
+    },
+    {
+      "id": "O6",
+      "file": "conformance/logging/provider-story-acceptance.json",
+      "issue": "AC03 covers accepted-template preservation and None-level formatter suppression. The mapping 'structured' case checks message_template, and 'levels' checks noneFormatterCalls==0, but neither is bound to AC03. The doc's AC03 line lists None.",
+      "suggestion": "Bind provider-mapping 'levels' and 'structured' to AC03, or confirm that provider-state 'filtered' covers LogLevel.None."
+    },
+    {
+      "id": "O7",
+      "file": "ProviderFoundationArchitectureTests.DirectCoreLoggingSurfaceDoesNotExposeMicrosoftTypes",
+      "issue": "This test is now an AC05 qualification test, but it skips BaseType, public fields, events and generic constraints. The doc says it 'checks the remaining CIS.Logging surface'.",
+      "suggestion": "Add BaseType chain, public field and event types, and generic parameter constraints to the scanned signature set, or narrow the doc claim."
+    },
+    {
+      "id": "O8",
+      "file": "ProviderMappingTests.cs / ProviderMappingProcessTests.cs",
+      "issue": "The unit tests take their modes from ProviderMappingFixture.Modes and the process tests from ProviderMappingExpectations.Modes. These are separate arrays, and no C# check ties either one to the shared catalog. Only the Python reader enforces catalog membership.",
+      "suggestion": "Add one assertion that both arrays equal the catalog case ids."
+    }
+  ],
+  "carriedForward": [
+    "Not verified (no tool access): how EventEncoder writes LogValue.Number values that are whole numbers. If Number(3.0) is written as '3', the native int/float distinction cannot detect a provider int-to-Number mapping bug.",
+    "Not verified: whether the provider-state and provider-behavior catalogs contain every case id bound in the acceptance map (scalars, collections, extensions, filtered, unsupported, bounds, template-size), and whether the three listed architecture test names exist exactly.",
+    "Not verified: the diff to verify-provider-behavior.py, implementation-status.md, Common(), ConsoleCompositionFixture.Metadata(), and the untracked type-manager/Web/Properties/ directory, which looks out of scope for T05 and should be checked before committing.",
+    "The native timestamp validation relies on datetime.fromisoformat accepting seven fractional digits, which needs Python 3.11 or later. An older interpreter fails closed, but the requirement should be declared.",
+    "Confirmed from the pasted source: snapshot copying happens synchronously inside Log/Write (CaptureState is invoked in EventProjection.Capture and encoded before admission). The items/input/expected mutations run before StopAsync, so they would expose deferred reads. Shared Activity span and trace ids are compared, not normalized away. No shipping source, API or dependency change appears.",
+    "Pending, with no pass counts inferred: the full 5166 Developer run, the final native proof on Windows and Linux, and the Claude review route. Still open: WP06-S02 (generic LoggerFactory/ILogger<T>, host/external scopes, final provider surface, host lifecycle), then examples, skills, instructions and release qualification."
+  ]
+}
