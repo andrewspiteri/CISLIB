@@ -1,6 +1,15 @@
 # First Type Manager slice: verification
 
-Latest mutation addition, 14 October 2026:
+Latest mutation diagnostic, 14 October 2026:
+[individual compiler-error replay](evidence/mutation-replay/README.md) reconstructs
+all 483 original mutations and independently replays the 238 native compile-error
+variants: 60 compiler rejections, 95 repeated test kills and 83 survivors. Three
+disjoint Windows batches pass all controls and restore their original 90-case
+baselines and binary inventories. The independent audit reconciles 306 native
+runs, including intentional mutant failures. This does not change the native
+mutation score, approve exclusions or qualify the release gate.
+
+Previous mutation addition, 14 October 2026:
 [full-module discovery and query regressions](evidence/mutation-query/README.md)
 records a failing 54.79% mutation score against the unchanged 90% gate. Three
 previously surviving public-argument mutants are now killed and independently

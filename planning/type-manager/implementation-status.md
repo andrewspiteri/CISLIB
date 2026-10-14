@@ -65,7 +65,7 @@ silently marked complete by a prototype or an uncommitted test result.
 | TM-023–TM-024 | Separate Web example constructs its builder/container after preparation, registers the exact manager instance and proves reuse across root, scopes and actual HTTP requests. Configuration boundary documented without adding a public Configuration contract or object lifetime implementation. |
 | TM-025 | Source and exact-package examples pass 66 fresh-process/layout checks on each supported OS, including Debug/Release, folder publish, publish without building, three broken-deployment cases per layout, later-load fixed membership and HTTP scoped lifetime. The 26-project solution and 11 targeted framework-policy checks pass on Windows. Formal milestone and final release-candidate consolidation remain open. |
 | TM-026 | A01–A30 mapping is recorded in `acceptance-evidence.md`, with executed checks and explicit gaps. The previously empty business project now has ten startup/consumer stories, all passing against the same frozen Core on Windows and native Ubuntu. Full acceptance/profile reconciliation and final artifact replay remain. |
-| TM-027 | Full nine-file Stryker discovery now runs: 103 killed, 45 survived, 40 uncovered, 238 compile errors and 57 native-filter exclusions. The unchanged 90% gate fails at 54.79%. Three public-query guard regressions are newly killed and independently confirmed with standalone mutant DLLs. All remaining mutants/exclusions, build-helper scope and final artifact qualification remain open. |
+| TM-027 | Full nine-file Stryker discovery reports 103 killed, 45 survived, 40 uncovered, 238 compile errors and 57 native-filter exclusions. The unchanged 90% gate fails at 54.79%. Three public-query guard regressions are newly killed and independently confirmed. Individual replay of all 238 compile-error variants now finds 60 persistent compiler rejections, 95 repeated test kills and 83 survivors, with audited source/configuration controls and restored baselines. This diagnostic does not rewrite the native score or approve exclusions. Survivor/disposition work, build-helper scope and final artifact qualification remain open. |
 | TM-028 | Complete architecture qualification remains; initial build/dependency and targeted mutation controls exist. |
 | TM-029 | Development behavior/schema compatibility checkpoint passes 86 checks per OS: original API/binary/source replay, 22 frozen behavior fixtures, exact original-API consumer reproduction and targeted API/binary/source/behavior negatives. Three provenance guards reject mismatched inputs. Final exact-package replay remains; no released historical baseline is claimed. |
 | TM-030 | Development performance observations are recorded for 334/4,366-type catalogs: 56 fresh processes per OS, 48 measured per OS, exact deployment replay, same-work deferred control, allocations and whole-process retained-memory deltas. Five artifact/timeout controls pass; unchanged-source enumeration evidence is linked separately. Final clean-package replay remains. |
@@ -74,6 +74,14 @@ silently marked complete by a prototype or an uncommitted test result.
 | TM-033–TM-036 | Final documentation, exact-artifact verification bundle, clean package consumer smoke tests and handoff remain. |
 
 ## Executed evidence and limits
+
+The [individual mutation replay checkpoint](evidence/mutation-replay/README.md)
+reconstructs all 483 native mutations using the pinned Stryker mutators and replays
+the 238 compile-error variants in three disjoint Windows batches. Their 27
+normalized controls and initial/final 90-case baselines pass; strict/relaxed control
+binaries match. Of those 238 variants, 178 compile independently, exposing 83
+survivors for follow-up. Native reports and the original score remain unchanged.
+The reviewed harness adds no production code or runtime dependency.
 
 The [mutation/query checkpoint](evidence/mutation-query/README.md) retains two
 failing full-module Stryker reports and the complete unresolved-mutant inventory.
