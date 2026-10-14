@@ -1,0 +1,57 @@
+  CIS.Core.TestSupport -> C:\miscwork\portfolio\cislib\implementations\csharp\tests\CIS.Core.TestSupport\bin\Release\net10.0\CIS.Core.TestSupport.dll
+  CIS.TypeManager.Build -> C:\miscwork\portfolio\cislib\implementations\csharp\eng\CIS.TypeManager.Build\bin\Release\net10.0\CIS.TypeManager.Build.dll
+  CIS.Core -> C:\miscwork\portfolio\cislib\implementations\csharp\src\CIS.Core\bin\Release\net10.0\CIS.Core.dll
+  CIS.Core.UnitTests -> C:\miscwork\portfolio\cislib\implementations\csharp\tests\CIS.Core.UnitTests\bin\Release\net10.0\CIS.Core.UnitTests.dll
+Test run for C:\miscwork\portfolio\cislib\implementations\csharp\tests\CIS.Core.UnitTests\bin\Release\net10.0\CIS.Core.UnitTests.dll (.NETCoreApp,Version=v10.0)
+A total of 1 test files matched the specified pattern.
+  Failed ProviderInterestAndRejectionFollowCore ("no-outputs") [27 ms]
+  Error Message:
+   Test method CIS.Tests.UnitTests.ProviderBehaviorTests.ProviderInterestAndRejectionFollowCore threw exception:
+System.ArgumentException: Writer presence must match enabled console output. (Parameter 'consoleWrite')
+  Stack Trace:
+     at CIS.Logging.Runtime.OutputQueues..ctor(Int32 capacity, Boolean consoleEnabled, Boolean fileEnabled, Func`2 consoleWrite, Func`2 fileWrite, Object sharedAdmissionGate, Func`2 launchWorker, IDisposable fileResource, Func`1 consoleFlush, Func`1 fileFlush, Func`3 consoleCancellableWrite, Func`3 fileCancellableWrite, Func`2 consoleCancellableFlush, Func`2 fileCancellableFlush) in C:\miscwork\portfolio\cislib\implementations\csharp\src\CIS.Core\Logging\Runtime\OutputQueues.cs:line 14
+   at CIS.Logging.CoreLogRuntime.ComposeQueued(EventMetadata metadata, LoggingOptions selected, Func`2 consoleWrite, Func`2 fileWrite, TimeProvider timeProvider, ConsoleOutputWriter writer, Func`2 launchWorker, FileOutputWriter fileWriter, Func`1 consoleFlush, Func`1 fileFlush) in C:\miscwork\portfolio\cislib\implementations\csharp\src\CIS.Core\Logging\CoreLogRuntime.cs:line 171
+   at CIS.Logging.CoreLogRuntime.CreateQueued(EventMetadata metadata, LoggingOptions options, Func`2 consoleWrite, Func`2 fileWrite, TimeProvider timeProvider, Func`1 consoleFlush, Func`1 fileFlush) in C:\miscwork\portfolio\cislib\implementations\csharp\src\CIS.Core\Logging\CoreLogRuntime.cs:line 84
+   at CIS.Tests.DiscoveryFixture.ProviderBehaviorFixture.ExecuteAsync(String mode, String root) in C:\miscwork\portfolio\cislib\implementations\csharp\tests\fixtures\DiscoveryHost\ProviderBehaviorFixture.cs:line 48
+   at CIS.Tests.UnitTests.ProviderBehaviorTests.ProviderInterestAndRejectionFollowCore(String mode) in C:\miscwork\portfolio\cislib\implementations\csharp\tests\CIS.Core.UnitTests\ProviderBehaviorTests.cs:line 13
+   at Microsoft.VisualStudio.TestPlatform.MSTest.TestAdapter.Execution.TestMethodInfo.ExecuteInternalAsync(Object[] arguments, CancellationTokenSource timeoutTokenSource, TestInvocationState invocationState)
+
+  Failed ProviderInterestAndRejectionFollowCore ("full") [74 ms]
+  Error Message:
+   Test method CIS.Tests.UnitTests.ProviderBehaviorTests.ProviderInterestAndRejectionFollowCore threw exception:
+System.IO.InvalidDataException: Provider behavior expectation failed.
+  Stack Trace:
+     at CIS.Tests.DiscoveryFixture.ProviderBehaviorExpectations.Require(Boolean value) in C:\miscwork\portfolio\cislib\implementations\csharp\tests\fixtures\DiscoveryHost\ProviderBehaviorExpectations.cs:line 9
+   at CIS.Tests.DiscoveryFixture.ProviderBehaviorExpectations.Validate(String mode, JsonObject a) in C:\miscwork\portfolio\cislib\implementations\csharp\tests\fixtures\DiscoveryHost\ProviderBehaviorExpectations.cs:line 31
+   at CIS.Tests.UnitTests.ProviderBehaviorTests.ProviderInterestAndRejectionFollowCore(String mode) in C:\miscwork\portfolio\cislib\implementations\csharp\tests\CIS.Core.UnitTests\ProviderBehaviorTests.cs:line 13
+   at Microsoft.VisualStudio.TestPlatform.MSTest.TestAdapter.Execution.TestMethodInfo.ExecuteInternalAsync(Object[] arguments, CancellationTokenSource timeoutTokenSource, TestInvocationState invocationState)
+
+  Failed ProviderInterestAndRejectionFollowCore ("partial-fault") [72 ms]
+  Error Message:
+   Test method CIS.Tests.UnitTests.ProviderBehaviorTests.ProviderInterestAndRejectionFollowCore threw exception:
+System.IO.IOException: Controlled writer failure.
+  Stack Trace:
+     at CIS.Tests.DiscoveryFixture.ProviderBehaviorFixture.<>c__DisplayClass5_0.<<ExecuteAsync>b__0>d.MoveNext() in C:\miscwork\portfolio\cislib\implementations\csharp\tests\fixtures\DiscoveryHost\ProviderBehaviorFixture.cs:line 51
+--- End of stack trace from previous location ---
+   at CIS.Logging.Runtime.OutputEventQueue.ProcessAsync() in C:\miscwork\portfolio\cislib\implementations\csharp\src\CIS.Core\Logging\Runtime\OutputEventQueue.cs:line 399
+   at CIS.Logging.Runtime.OutputEventQueue.ProcessAsync() in C:\miscwork\portfolio\cislib\implementations\csharp\src\CIS.Core\Logging\Runtime\OutputEventQueue.cs:line 442
+   at CIS.Tests.DiscoveryFixture.ProviderBehaviorFixture.ExecuteAsync(String mode, String root) in C:\miscwork\portfolio\cislib\implementations\csharp\tests\fixtures\DiscoveryHost\ProviderBehaviorFixture.cs:line 108
+   at CIS.Tests.UnitTests.ProviderBehaviorTests.ProviderInterestAndRejectionFollowCore(String mode) in C:\miscwork\portfolio\cislib\implementations\csharp\tests\CIS.Core.UnitTests\ProviderBehaviorTests.cs:line 13
+   at Microsoft.VisualStudio.TestPlatform.MSTest.TestAdapter.Execution.TestMethodInfo.ExecuteInternalAsync(Object[] arguments, CancellationTokenSource timeoutTokenSource, TestInvocationState invocationState)
+
+  Failed ProviderInterestAndRejectionFollowCore ("all-faulted") [72 ms]
+  Error Message:
+   Test method CIS.Tests.UnitTests.ProviderBehaviorTests.ProviderInterestAndRejectionFollowCore threw exception:
+System.IO.IOException: Controlled writer failure.
+  Stack Trace:
+     at CIS.Tests.DiscoveryFixture.ProviderBehaviorFixture.<>c__DisplayClass5_0.<<ExecuteAsync>b__0>d.MoveNext() in C:\miscwork\portfolio\cislib\implementations\csharp\tests\fixtures\DiscoveryHost\ProviderBehaviorFixture.cs:line 51
+--- End of stack trace from previous location ---
+   at CIS.Logging.Runtime.OutputEventQueue.ProcessAsync() in C:\miscwork\portfolio\cislib\implementations\csharp\src\CIS.Core\Logging\Runtime\OutputEventQueue.cs:line 399
+   at CIS.Logging.Runtime.OutputEventQueue.ProcessAsync() in C:\miscwork\portfolio\cislib\implementations\csharp\src\CIS.Core\Logging\Runtime\OutputEventQueue.cs:line 442
+   at CIS.Tests.DiscoveryFixture.ProviderBehaviorFixture.ExecuteAsync(String mode, String root) in C:\miscwork\portfolio\cislib\implementations\csharp\tests\fixtures\DiscoveryHost\ProviderBehaviorFixture.cs:line 108
+   at CIS.Tests.UnitTests.ProviderBehaviorTests.ProviderInterestAndRejectionFollowCore(String mode) in C:\miscwork\portfolio\cislib\implementations\csharp\tests\CIS.Core.UnitTests\ProviderBehaviorTests.cs:line 13
+   at Microsoft.VisualStudio.TestPlatform.MSTest.TestAdapter.Execution.TestMethodInfo.ExecuteInternalAsync(Object[] arguments, CancellationTokenSource timeoutTokenSource, TestInvocationState invocationState)
+
+Results File: C:\miscwork\portfolio\cislib\.artifacts\csharp\tasks\wp06-s01-t04\focused-unit\report.trx
+
+Failed!  - Failed:     4, Passed:    10, Skipped:     0, Total:    14, Duration: 114 ms - CIS.Core.UnitTests.dll (net10.0)

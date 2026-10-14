@@ -7,7 +7,11 @@ namespace CIS.Logging.MicrosoftLogger;
 /// A call already running when disposal occurs may finish. Category names follow the core component rules.
 /// Supplied rendered messages and exceptions enter core capture. Null or empty EventId.Name becomes
 /// log.message; EventId.Id supplies the integer attribute event_id, including zero and negative values.
-/// Structured state preserves {OriginalFormat} without parsing; host scopes remain integration work.</remarks>
+/// Structured state preserves {OriginalFormat} without parsing. Core checks interest before invoking
+/// formatter or copying state; full queues remain interested. Formatter exceptions propagate unchanged;
+/// invalid retained payload increments core diagnostics without output admission. Oversized valid payload
+/// is truncated. Disposed, stopped, filtered and all-faulted calls skip both callbacks after argument guards.
+/// Healthy outputs admit independently; host scopes remain integration work.</remarks>
 public sealed class CoreLoggerProvider : ILoggerProvider
 {
     private readonly CoreLogRuntime runtime;

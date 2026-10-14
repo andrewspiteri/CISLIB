@@ -23,15 +23,17 @@ internal sealed class ProviderStateCapture
             foreach ((string key, object? value) in fields)
             {
                 if (++visited > LogValueProjection.MaximumNodes) { truncated = true; break; }
-                ValidateKey(key);
                 if (key == "{OriginalFormat}")
                 {
                     if (value is not null and not string) { throw new ArgumentException("OriginalFormat must be a string or null."); }
                     template = (string?)value; continue;
                 }
                 if (key == "event_id") { continue; }
+                // Keep scanning bounded root metadata after the value budget is spent.
+                if (capture.remaining == 0) { truncated = true; continue; }
+                ValidateKey(key);
                 LogValue? retained = capture.Value(value, depth: 2);
-                if (retained is null) { truncated = true; break; }
+                if (retained is null) { truncated = true; continue; }
                 attributes[key] = retained;
             }
         }

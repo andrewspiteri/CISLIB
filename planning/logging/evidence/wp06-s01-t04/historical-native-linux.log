@@ -1,0 +1,20 @@
+Traceback (most recent call last):
+  File "/mnt/c/miscwork/portfolio/cislib/implementations/csharp/tests/fixtures/DiscoveryHost/verify-provider-behavior.py", line 90, in <module>
+    if __name__=='__main__':main()
+                            ^^^^^^
+  File "/mnt/c/miscwork/portfolio/cislib/implementations/csharp/tests/fixtures/DiscoveryHost/verify-provider-behavior.py", line 86, in main
+    report=dict(schema='cis.logging.provider-behavior-native/v1',task='WP06-S01-T04',family=args.family,children=len(cases),coreSha256=sha(host.parent/'CIS.Core.dll'),fixtureSha256=sha(host),verifierSha256=sha(__file__),baseVerifierSha256=sha(Path(__file__).with_name('verify-flush-results.py')),caseMappingSha256=sha(mapping),cases=cases,controls=corruption_controls(cases))
+                                                                                                                                                                                                                                                                                                                                                            ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/mnt/c/miscwork/portfolio/cislib/implementations/csharp/tests/fixtures/DiscoveryHost/verify-provider-behavior.py", line 64, in corruption_controls
+    try:check(mode,bad,good[mode]['pid'])
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/mnt/c/miscwork/portfolio/cislib/implementations/csharp/tests/fixtures/DiscoveryHost/verify-provider-behavior.py", line 47, in check
+    require([row['event_name'] for row in written]==['framework','skipped-tail'] and [row['message_template'] for row in written]==['Items {Items} Count {Count}','bounded {Items}'],'template after budget')
+                                                                                      ~~~^^^^^^^^^^^^^^^^^^^^
+KeyError: 'message_template'
+Traceback (most recent call last):
+  File "C:\miscwork\portfolio\cislib\.artifacts\csharp\tasks\wp06-s01-t04\run-native.py", line 9, in <module>
+    subprocess.run(cmd,check=True,timeout=180)
+  File "C:\Program Files\Python312\Lib\subprocess.py", line 571, in run
+    raise CalledProcessError(retcode, process.args,
+subprocess.CalledProcessError: Command '['wsl', '-d', 'Ubuntu-24.04', '--cd', '/mnt/c/miscwork/portfolio/cislib', '--exec', 'python3', '/mnt/c/miscwork/portfolio/cislib/implementations/csharp/tests/fixtures/DiscoveryHost/verify-provider-behavior.py', '--dotnet', '/mnt/c/miscwork/portfolio/cislib/.artifacts/csharp/tasks/wp03-s01-t04/linux-runtime/dotnet', '--host', '/mnt/c/miscwork/portfolio/cislib/.artifacts/csharp/tasks/wp06-s01-t04/native-host/CIS.Core.DiscoveryFixture.dll', '--output', '/mnt/c/miscwork/portfolio/cislib/.artifacts/csharp/tasks/wp06-s01-t04/native-final/linux-behavior', '--family', 'linux']' returned non-zero exit status 1.

@@ -1,0 +1,60 @@
+{
+  "task": "WP06-S01-T04",
+  "verdict": "PASS",
+  "requiredFindings": [],
+  "optionalFindings": [
+    {
+      "id": "O1",
+      "area": "doc accuracy / host boundary",
+      "location": "docs/modules/logging/microsoft-provider-behavior.md (formatter paragraph); CoreLoggerProvider.cs remarks",
+      "finding": "The claim that the formatter exception 'propagates unchanged' is true for the ILogger returned by CoreLoggerProvider.CreateLogger, which is what the fixture exercises. It is not true through a Microsoft LoggerFactory-composed logger. Microsoft's Logger aggregates provider exceptions into an AggregateException.",
+      "suggestion": "Qualify the sentence as 'from the provider's category logger'. Defer the factory-composed behavior to S02 host integration."
+    },
+    {
+      "id": "O2",
+      "area": "bounded template handling consistency",
+      "location": "ProviderStateCapture.Map",
+      "finding": "Nested maps call ValidateKey before Value(...) returns null for budget or depth exhaustion. The first excess nested key is therefore still validated, and an invalid key there invalidates the whole event. At the root, keys beyond the budget are skipped without validation. This matches LogValueProjection.Map's 'observed children remain errors' rule. However, the behavior doc says keys/values beyond the retained budget are 'omitted, not validated', without limiting that to the root.",
+      "suggestion": "Either scope the doc sentence to root metadata, or check remaining/depth before ValidateKey in nested Map. Only do the second if aligning with root behavior is intended."
+    },
+    {
+      "id": "O3",
+      "area": "capture ordering",
+      "location": "EventProjection.Capture (sourceState invoked before CaptureText(message))",
+      "finding": "A null or malformed-Unicode message is already known before CaptureState runs, but state is still enumerated before rejection. The rejection mode encodes this: stateCalls=3 includes the two message-rejection calls. The result is correct and fixed-category, but it does wasted, cooperative caller work on an event that is already doomed.",
+      "suggestion": "No change required for T04. If revisited, validate message text before invoking CaptureState, and update the expected stateCalls."
+    },
+    {
+      "id": "O4",
+      "area": "doc completeness",
+      "location": "microsoft-provider-behavior.md",
+      "finding": "LogLevel.None calls increment each output's filtered counter. This is existing Core FinishWithoutCapture behavior, and the 'filtered' mode expects filtered=2. The doc lists None under IsEnabled=false but does not say that Log(None) counts as filtered.",
+      "suggestion": "Add one clause stating that Log(None) records filtered counts."
+    },
+    {
+      "id": "O5",
+      "area": "allocation",
+      "location": "CategoryLogger.Log",
+      "finding": "The WriteLazy factory closure, and the nested CaptureState closure capturing state/eventId, are allocated before Core's interest gate. This is correct, but it allocates on filtered calls.",
+      "suggestion": "Optional performance note only. No behavior change is needed in T04."
+    }
+  ],
+  "verifiedSemantics": [
+    "Formatter null guard precedes level validation, which precedes the disposed no-op. IsEnabled validates the level before the disposed check. The argument-guard tests match.",
+    "The interest/closure/fault gates in CoreLogRuntime.Write run before the factory, so filtered, stopped, disposed and all-faulted calls skip both the formatter and state copy.",
+    "A full queue remains interested; the third call counts QueueFull without a ticket. Partial fault admits file independently and records console Unavailable.",
+    "Formatter exceptions escape runtime.Write outside the capture catch, with no invalid count. The fixture asserts reference identity.",
+    "The Capture change is minimal. OriginalFormat is recognized before the budget check. Once remaining==0, ordinary root keys are skipped without ValidateKey or Value. The 1024-entry visited guard, 1024-node budget (1022 after root and event_id) and depth 8 are unchanged. The Items prefix of 1021 matches the arithmetic.",
+    "The scalar allowlist has no ToString fallback. Boxed enum, nint/nuint, Int128, BigInteger, TimeSpan, Uri, IPAddress and Local DateTime all fall to the throw arm. string precedes IEnumerable. Single widens implicitly to Double.",
+    "Invalid name, message, template, state or root values count InvalidEvent once with no admission. The rejection arithmetic is 12+1+3+2+1=19 for both formatter calls and invalid count. A malformed adapted template maps to UnsupportedValue because data.MessageTemplate is null in CaptureError, as documented.",
+    "Disposal is nonowning; the disposed mode asserts AdmissionClosed is false.",
+    "The fixture and conformance JSON distinguish controlled internal queued modes (no-outputs, all-faulted, partial-fault, full) from public physical file consumers. No native OS-failure claim is made."
+  ],
+  "evidenceLimits": "This review is static only. No build, test or verifier was executed, and the reported 16 unit / 14 process passes are not independently confirmed. Full Developer/native final qualification remains pending, and no pass counts are inferred.",
+  "carriedForward": [
+    "WP06-S01-T05 complete provider story acceptance",
+    "S02 host/external scopes, final provider surface, LoggerFactory composition (including O1 aggregate-exception behavior) and host lifetime integration",
+    "Examples, instructions/skills, and release qualification against exact verified packages",
+    "Full Developer/native verification run and task receipt with executed reports and corruption-control results"
+  ]
+}

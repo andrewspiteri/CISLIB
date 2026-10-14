@@ -1,0 +1,29 @@
+{
+  "verdict": "PASS",
+  "scope": "Documentation-only follow-up for WP06-S01-T04 (docs/modules/logging/microsoft-provider-behavior.md). Review is limited to the supplied text. Source and tests are taken as unchanged from the previously reviewed snapshot on the user's statement, and that was not independently checked. No tools, files, execution or persistence were used.",
+  "priorOptionalFindingDisposition": {
+    "O1": "Resolved. Paragraph 3 says the formatter exception propagates unchanged from the provider's category logger, without invalid-event accounting. It also says Microsoft LoggerFactory composition can aggregate provider exceptions, and defers that boundary to S02 qualification. This correctly avoids promising unwrapped exceptions through the factory logger.",
+    "O2": "Resolved. Paragraph 4 now separates the two cases. Root-level ordinary keys and values beyond the retained budget are omitted without validation. Nested maps still validate the first observed excess key under the existing Core policy.",
+    "O4": "Resolved. Paragraph 2 explicitly includes Log(None) among filtered calls that update existing output filtered counts. This is consistent with paragraph 1, where level validation precedes the None/interest gates and None is treated as a valid but uninterested level."
+  },
+  "requiredFindings": [],
+  "optionalFindings": [
+    {
+      "id": "O5",
+      "location": "Paragraph 3, formatter exception sentence",
+      "finding": "The text states there is no invalid-event accounting on a formatter throw. It does not explicitly say that no capture, admission, filtered or unavailable count occurs for that call.",
+      "suggestion": "Optionally append: 'no capture is admitted and no output counter changes.' This applies only if the reviewed fixture already asserts that; otherwise leave the text as is."
+    },
+    {
+      "id": "O6",
+      "location": "Paragraph 3, 'Capture callback failures use the existing fixed UnsupportedValue category'",
+      "finding": "Readers may not connect this sentence to the earlier InvalidEvent sentence, which also covers cooperative state enumeration failure. They could read 'category' as a separate counter rather than the fault/diagnostic category under that same single InvalidEvent.",
+      "suggestion": "Optionally say 'the InvalidEvent carries the existing fixed UnsupportedValue category'."
+    }
+  ],
+  "notes": [
+    "No new public API, dependency or behavior claim was introduced by the three clarifications.",
+    "The remaining-work paragraph still correctly leaves T05, S02, examples/skills and release qualification pending. It does not overstate completion evidence.",
+    "Per AGENTS.md, execution and review results belong in the task receipt. This verdict is a review result, not executed test evidence."
+  ]
+}
