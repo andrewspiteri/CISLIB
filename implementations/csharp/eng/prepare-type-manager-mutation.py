@@ -62,6 +62,8 @@ def main():
                     'tests/CIS.Core.UnitTests/TypeManagerManifestTests.cs',
                     'tests/CIS.Core.UnitTests/TypeManagerCatalogTests.cs',
                     'tests/CIS.Core.UnitTests/TypeManagerOrderingTests.cs',
+                    'tests/CIS.Core.UnitTests/TypeManagerFailureContractTests.cs',
+                    'tests/CIS.Core.UnitTests/TypeManagerFreshAssemblyTests.cs',
                     'tests/CIS.Core.ArchitectureTests/TypeManagerRuntimeArchitectureTests.cs',
                     'tests/CIS.Core.BusinessCases/TypeManagerStartupStories.cs'):
         matches = sorted(language.glob(pattern))
@@ -95,7 +97,7 @@ def main():
                   candidateCoreSha256=args.expected_core_sha256, candidateReportSha256=args.expected_candidate_report_sha256,
                   preparerSha256=digest(Path(__file__)), inputs=inputs,
                   generatedFiles={p.relative_to(source).as_posix(): digest(p) for p in sorted(source.rglob('*')) if p.is_file()},
-                  expectedBaselineCases=90,
+                  expectedBaselineCases=100,
                   baselineCommand='dotnet test Tests/Tests.csproj -c Release -m:1 --logger trx',
                   mutationCommand='dotnet exec --fx-version ' + policy['toolHostRuntime'] + ' --roll-forward Disable <Stryker.CLI.dll> --config-file stryker-config.json --output <report-directory>',
                   workingDirectory=str(source))

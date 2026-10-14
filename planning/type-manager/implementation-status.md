@@ -1,5 +1,7 @@
 # Type Manager implementation status
 
+Latest loader/diagnostic checkpoint, 14 October 2026: [ten new regression cases](evidence/loader-regressions/README.md) pass against frozen Core on Windows/Ubuntu (90 cases per OS). Final-source mutation controls restore their 100-case baselines. The initial reviewed 100-case native mutation run improves to 57.98%, still below the unchanged 90% gate; its exact test revision is retained separately. Production source is unchanged and no milestone or release gate is closed.
+
 14 October 2026. In progress, in the same CIS.Core assembly and solution as logging.
 The supplied completion pack remains unchanged design input under `sources/`;
 it does not approve publication or establish implementation evidence.

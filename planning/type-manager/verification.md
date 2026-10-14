@@ -1,5 +1,7 @@
 # First Type Manager slice: verification
 
+Latest loader/diagnostic checkpoint, 14 October 2026: [ten new regression cases](evidence/loader-regressions/README.md) pass against frozen Core on Windows/Ubuntu (90 cases per OS). Final-source mutation controls restore their 100-case baselines. The initial reviewed 100-case native mutation run improves to 57.98%, still below the unchanged 90% gate; its exact test revision is retained separately. Production source is unchanged and no milestone or release gate is closed.
+
 Latest mutation diagnostic, 14 October 2026:
 [individual compiler-error replay](evidence/mutation-replay/README.md) reconstructs
 all 483 original mutations and independently replays the 238 native compile-error

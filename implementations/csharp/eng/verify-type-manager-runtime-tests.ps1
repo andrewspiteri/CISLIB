@@ -17,6 +17,8 @@ foreach ($file in @('global.json', 'Directory.Build.props', 'Directory.Packages.
     'tests/CIS.Core.UnitTests/TypeManagerInputTests.cs',
     'tests/CIS.Core.UnitTests/TypeManagerCatalogTests.cs',
     'tests/CIS.Core.UnitTests/TypeManagerOrderingTests.cs',
+    'tests/CIS.Core.UnitTests/TypeManagerFailureContractTests.cs',
+    'tests/CIS.Core.UnitTests/TypeManagerFreshAssemblyTests.cs',
     'tests/CIS.Core.ArchitectureTests/TypeManagerRuntimeArchitectureTests.cs')) {
     $source = Join-Path $languageRoot $file
     $sourceHash = (Get-FileHash $source).Hash.ToLowerInvariant()
@@ -67,9 +69,9 @@ try {
     if ($LASTEXITCODE -ne 0) { throw "Type Manager tests failed; inspect $OutputRoot/execution.log" }
     Import-Module (Join-Path $OutputRoot 'Evidence.psm1') -Force
     $native = Read-NativeTrx (Join-Path $OutputRoot 'results/runtime-tests.trx')
-    if ($native.total -ne 80 -or $native.passed -ne 80 -or $native.failed -ne 0 -or $native.skipped -ne 0) { throw 'Unexpected Type Manager test count or outcome.' }
-    @{ coreSha256 = (Get-FileHash candidate/CIS.Core.dll).Hash.ToLowerInvariant(); sdk = $sdk; runtimePin = $runtimePolicy.targetRuntime; trxSha256 = (Get-FileHash results/runtime-tests.trx).Hash.ToLowerInvariant(); total = $native.total; passed = $native.passed; failed = $native.failed; skipped = $native.skipped; scope = '71 Core unit cases plus 9 runtime architecture cases against frozen candidate' } |
+    if ($native.total -ne 90 -or $native.passed -ne 90 -or $native.failed -ne 0 -or $native.skipped -ne 0) { throw 'Unexpected Type Manager test count or outcome.' }
+    @{ coreSha256 = (Get-FileHash candidate/CIS.Core.dll).Hash.ToLowerInvariant(); sdk = $sdk; runtimePin = $runtimePolicy.targetRuntime; trxSha256 = (Get-FileHash results/runtime-tests.trx).Hash.ToLowerInvariant(); total = $native.total; passed = $native.passed; failed = $native.failed; skipped = $native.skipped; scope = '81 Core unit cases plus 9 runtime architecture cases against frozen candidate' } |
         ConvertTo-Json | Set-Content -Encoding utf8 results.json
 }
 finally { Pop-Location }
-Write-Output "Type Manager frozen-candidate tests passed: 80. Report: $OutputRoot/results.json"
+Write-Output "Type Manager frozen-candidate tests passed: 90. Report: $OutputRoot/results.json"
