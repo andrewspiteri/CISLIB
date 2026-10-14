@@ -28,6 +28,7 @@ public sealed class DependencyBoundaryTests
     [DataRow("CIS.Core.TestSupport")]
     [DataRow("Unapproved.Host.Infrastructure")]
     [DataRow("Microsoft.Extensions.Logging")]
+    [DataRow("NLog")]
     public async Task CompiledCheckerRejectsForeignAssemblyReferences(string dependencyName)
     {
         using var directory = new TemporaryDirectory();

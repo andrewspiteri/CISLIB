@@ -1,0 +1,426 @@
+{
+  "schema": "cis.logging.task-receipt/v1",
+  "taskId": "WP06-S03-T02",
+  "date": "2026-10-15",
+  "status": "Implemented, verified and reviewed under explicit user packaging amendment; commit identity belongs in Git history",
+  "baseCommit": "e51a3443bd1a86308dca1fafec7df45833fa1e58",
+  "scope": "Existing checker retained; twelve architecture additions qualify copied/synthetic restored/packed leakage, version/constraint drift and real managed PE reference. No shipping/gate/dependency change.",
+  "developer": {
+    "runId": "c935649175d84c1582579168794e3640",
+    "tests": {
+      "unit": 3370,
+      "integration": 1400,
+      "architecture": 483
+    },
+    "totalTests": 5253,
+    "stages": 14,
+    "criticalPins": 900,
+    "currentSourceMismatches": 0,
+    "coreSha256": "2cfd2201bc1349754b7cb5d66d1275d310a3f8a77350c6ef0063d84e26209bad",
+    "rawTrxChecked": true
+  },
+  "package": {
+    "packageId": "CIS.Core",
+    "version": "0.1.0-dev.1",
+    "targetFramework": "net10.0",
+    "packageSha256": "101f5b2b389382a683e0e03fc8fe6ec845d6748b0c433b15c6856c7cedefa6cd",
+    "packedCoreSha256": "2cfd2201bc1349754b7cb5d66d1275d310a3f8a77350c6ef0063d84e26209bad",
+    "packedXmlSha256": "b4d6194427fa05a5cfdad97b26d753590b160eb1d04f38ff4a092e42ae787363",
+    "packedReadmeSha256": "9088d16e79cf008af02e0457c081f66ec1772d4e4cde0a4ea2374e2de87c4e71",
+    "description": "CisLib multi-module core library with bounded logging and Microsoft ILogger integration.",
+    "packedDirectDependencies": [
+      {
+        "id": "Microsoft.Extensions.Logging.Abstractions",
+        "version": "10.0.12",
+        "exclude": "Build,Analyzers"
+      }
+    ],
+    "resolvedRuntimeClosure": [
+      "Microsoft.Extensions.DependencyInjection.Abstractions/10.0.12",
+      "Microsoft.Extensions.Logging.Abstractions/10.0.12"
+    ],
+    "lockedContentHashesMatch": true,
+    "embeddedProvider": "CIS.Logging.MicrosoftLogger.CoreLoggerProvider",
+    "libAssemblies": [
+      "CIS.Core.dll"
+    ],
+    "closedAssetsCheckedByDeveloperGate": true,
+    "allEntries": [
+      {
+        "path": "_rels/.rels",
+        "sha256": "9346355a2327dd131488e01b8826b927cd13cd55e0bea817b030fd1230dd8107"
+      },
+      {
+        "path": "CIS.Core.nuspec",
+        "sha256": "455bab1bff2eedcf0dec01892f64c6b19672bab37359c1e9fc1b54fd7249d453"
+      },
+      {
+        "path": "README.md",
+        "sha256": "9088d16e79cf008af02e0457c081f66ec1772d4e4cde0a4ea2374e2de87c4e71"
+      },
+      {
+        "path": "Sdk/BeforeSdk.targets",
+        "sha256": "95fcf432bb390dfea85b74bda5454a868f1e2ffb4510107ff19fb0bd151e74ce"
+      },
+      {
+        "path": "Sdk/PackageVersion.props",
+        "sha256": "234d2b3583602656dc5ac1b8ff902c0e3d49c498a9208ffc90866f46d5d56ba8"
+      },
+      {
+        "path": "Sdk/Sdk.props",
+        "sha256": "a630c68160a8f0a4b380d23a499b76f3acb9e2dda088de1b271ef3baed387482"
+      },
+      {
+        "path": "Sdk/Sdk.targets",
+        "sha256": "77ff9b64c156afbee43b54ecee78148e49ca8330d929170206566f30bf3bac23"
+      },
+      {
+        "path": "buildSupport/CIS.TypeManager.targets",
+        "sha256": "4fd5ffa236f95a67d3325922a11c8496e8c6ad06fd8805a92a25328924668501"
+      },
+      {
+        "path": "buildTransitive/CIS.Core.targets",
+        "sha256": "ceefd40c6d397d04445aa14fff83bb359b88089eea0b2aa5a68a030c1e325b34"
+      },
+      {
+        "path": "lib/net10.0/CIS.Core.dll",
+        "sha256": "2cfd2201bc1349754b7cb5d66d1275d310a3f8a77350c6ef0063d84e26209bad"
+      },
+      {
+        "path": "lib/net10.0/CIS.Core.xml",
+        "sha256": "b4d6194427fa05a5cfdad97b26d753590b160eb1d04f38ff4a092e42ae787363"
+      },
+      {
+        "path": "tools/net10.0/CIS.TypeManager.Build.dll",
+        "sha256": "a497e0e276298b1ff9b02e9f0fb7dec279178f26045a5152e2c045893dcce593"
+      },
+      {
+        "path": "[Content_Types].xml",
+        "sha256": "051b7fb4db009c3bed175e8a59db9233a6908b5c9d757122192155c3a39e518e"
+      },
+      {
+        "path": "package/services/metadata/core-properties/nuget.psmdcp",
+        "sha256": "f32a75f2c222f0672c8580c2a59e4c2b9b3103518b66f03aa0157804ef7466e0"
+      }
+    ]
+  },
+  "focused": {
+    "platform": "Windows x64",
+    "passed": 15,
+    "failed": 0,
+    "skipped": 0,
+    "positiveBeforeMutationRows": 11,
+    "compiledRows": 4,
+    "rawReport": "focused-boundaries/report.trx",
+    "stalePositive": {
+      "failed": 6,
+      "passed": 9,
+      "reason": "Prior candidate versus current-commit built helper mismatch; consistency gate not bypassed.",
+      "report": "historical-stale-positive/report.trx",
+      "recovery": "Current source dotnet pack then same focused tests --no-build; all15 passed.",
+      "argv": [
+        "dotnet",
+        "test",
+        "implementations/csharp/tests/CIS.Core.ArchitectureTests/CIS.Core.ArchitectureTests.csproj",
+        "-c",
+        "Release",
+        "--filter",
+        "FullyQualifiedName~MicrosoftLoggingPackageBoundaryTests|FullyQualifiedName~CompiledCheckerRejectsForeignAssemblyReferences",
+        "--logger",
+        "trx;LogFileName=report.trx",
+        "--results-directory",
+        ".artifacts/csharp/tasks/wp06-s03-t02/focused-boundaries",
+        "--nologo"
+      ],
+      "snapshot": "historical-stale-positive/snapshot.json"
+    },
+    "argv": [
+      "dotnet",
+      "test",
+      "implementations/csharp/tests/CIS.Core.ArchitectureTests/CIS.Core.ArchitectureTests.csproj",
+      "-c",
+      "Release",
+      "--no-build",
+      "--no-restore",
+      "--filter",
+      "FullyQualifiedName~MicrosoftLoggingPackageBoundaryTests|FullyQualifiedName~CompiledCheckerRejectsForeignAssemblyReferences",
+      "--logger",
+      "trx;LogFileName=report.trx",
+      "--results-directory",
+      ".artifacts/csharp/tasks/wp06-s03-t02/focused-boundaries",
+      "--nologo"
+    ],
+    "workingDirectory": "C:\\miscwork\\portfolio\\cislib",
+    "packageLink": "Freshly repacked live .artifacts candidate preceded focused success; that consumed package hash was not separately frozen. Final candidate is linked to final Developer pack-before-architecture execution, with actual positive package equality checks in every copied-package row."
+  },
+  "review": {
+    "initialVerdict": "CHANGES_REQUIRED",
+    "requiredFinding": "R1 retain concrete execution receipt before final review",
+    "resolution": "Receipt and exact focused/final reports, stale positive raw failures and actual candidate now retained before follow-up.",
+    "followup": "PASS",
+    "requiredFindingsRemaining": 0,
+    "notes": {
+      "task": "WP06-S03-T02",
+      "initial": "CHANGES_REQUIRED",
+      "requiredFinding": "R1 retain actual execution receipt before final review",
+      "resolution": "Final raw Developer5253/14 stages, exact package metadata, focused15 passed and historical6 stale positives retained before followup.",
+      "followup": "PASS",
+      "requiredFindingsRemaining": 0,
+      "commandCorrection": "Final receipt stores focus/historical argv arrays with filter/logger as single arguments and results directory, avoiding PowerShell separator ambiguity.",
+      "packageLink": "Focused tests copied live freshly repacked .artifacts package before final full verification; its exact consumed nupkg hash was not separately frozen. Final full architecture execution followed final pack and is linked to the retained final candidate by the unchanged package equality gate and checkpoint.",
+      "scope": "Actual asset/group/id/version/compiled checks; no modified-package frameworkReferences/include/exclude declaration guarantee. Twelve catalog rows qualified; metadata refinement hashes match final reviewed docs. No TypeManager source edits/staging/cleanup. No new shipping code/dependency/gate/framework.",
+      "remaining": "T03-T05 and full recorded-platform/release qualification. Preexisting mojibake unchanged."
+    }
+  },
+  "release": {
+    "exitCode": 2,
+    "plannedCasesUnchanged": 41
+  },
+  "remaining": [
+    "T03 adapter coverage/mutation",
+    "T04 cumulative provider compatibility",
+    "T05 release bundle and later full platform/release/publication"
+  ],
+  "limitations": [
+    "Windows development qualification; not a full recorded-platform release claim.",
+    "Synthetic copied graph and forbidden asset controls do not download or load unapproved packages.",
+    "Package asset/group/id/version/compiled checks claimed; frameworkReferences/include/exclude declaration mutations outside dedicated controls.",
+    "Two noncompiled/nonpacked documentation records changed after inventory and retain their captured/refined hashes; final followup reviews them.",
+    "Combined developer/package include separately committed Type Manager work, whose source files are excluded from edits/staging/Claude implementation payload."
+  ],
+  "files": [
+    {
+      "path": "baseline.json",
+      "sha256": "324d3954fab0b2ac9462791d30f6d23ad847ace932461cef978f009aab0ab3dc"
+    },
+    {
+      "path": "boundary-audit.json",
+      "sha256": "00fc78a9386b2bd2b0a93f7870c3c09297f321b01ad19dff7da6226bdbcdb4c0"
+    },
+    {
+      "path": "candidate/CIS.Core.0.1.0-dev.1.nupkg",
+      "sha256": "101f5b2b389382a683e0e03fc8fe6ec845d6748b0c433b15c6856c7cedefa6cd"
+    },
+    {
+      "path": "canonical-files.json",
+      "sha256": "eba51abec5f212be45c3e4e60dc88262ac20d2cd9ee1ba5b9304174cc3b56c2f"
+    },
+    {
+      "path": "claude-fix-manifest.json",
+      "sha256": "9863c101949f8d4741781ce9d44b56540119707c1b8dd8c5c69ba2e2c37547d8"
+    },
+    {
+      "path": "claude-fix-prompt.txt",
+      "sha256": "5614f0e80683995589bef2bc6c4893d2345d0bab0cda091c5bfee626c7a3f996"
+    },
+    {
+      "path": "claude-fix-review.exit-code",
+      "sha256": "13bf7b3039c63bf5a50491fa3cfd8eb4e699d1ba1436315aef9cbe5711530354"
+    },
+    {
+      "path": "claude-fix-review.json",
+      "sha256": "dfa48d9941ef7645bc5d65b3d98e33d5c726f60085e8027316fdeb15683f0714"
+    },
+    {
+      "path": "claude-fix-review.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "claude-fix-verdict.json",
+      "sha256": "d6ab7eed2724184f82a67f6ff1089c31a358fc96809a3bdfec22e55ea5e7931f"
+    },
+    {
+      "path": "claude-manifest.json",
+      "sha256": "0e39c32f9ef213b3f8287d51bf54759259d9d4299d3d806d8a387359ddbf31a7"
+    },
+    {
+      "path": "claude-prompt.txt",
+      "sha256": "272cdc453fb52346ada0af35fdd122579929e9dfee0038e3bbbe93f7797a2d35"
+    },
+    {
+      "path": "claude-review.exit-code",
+      "sha256": "13bf7b3039c63bf5a50491fa3cfd8eb4e699d1ba1436315aef9cbe5711530354"
+    },
+    {
+      "path": "claude-review.json",
+      "sha256": "ceb62d8e229730cbc162a18bccd0eefc00cd109a6548fd4ab356284eaa60266c"
+    },
+    {
+      "path": "claude-review.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "claude-verdict.json",
+      "sha256": "4d6a9b4af7ae6415a1217d6cd39de794061849a07a5cbe759045f86dbe7e6a33"
+    },
+    {
+      "path": "critical-source-inputs.json",
+      "sha256": "c93f3a161766a906f56f55fca6545c7e5bf034362da7cc8a0e61053d66634dcb"
+    },
+    {
+      "path": "Developer/families/architecture/discovery.json",
+      "sha256": "f37c04e6d3a3e6c0f179e2b06913b5af829e63093b86dc302e5f2f4756894cd1"
+    },
+    {
+      "path": "Developer/families/architecture/execution.json",
+      "sha256": "2d78a3264701dd6727c1e958b92b5ec872c7ea3521db5520c560868f945e85b3"
+    },
+    {
+      "path": "Developer/families/architecture/report.trx",
+      "sha256": "67d96e2a7bdfaa59f3500b0acab10e1032d38c4b9054404d35b2bac404ec31ea"
+    },
+    {
+      "path": "Developer/families/integration/discovery.json",
+      "sha256": "54d9bb51034103b8fe71248a16bafddcd65751f409630f8e30812a9840d31fb4"
+    },
+    {
+      "path": "Developer/families/integration/execution.json",
+      "sha256": "ba6e54104eb94bc52b7461abc1742a384dd20e661ba6ba5e3b37fa78a1626b0b"
+    },
+    {
+      "path": "Developer/families/integration/report.trx",
+      "sha256": "87ca269813acc9c628e09fc565cb6164da8aefab1a40cc29f7edc4bba0a62e8a"
+    },
+    {
+      "path": "Developer/families/unit/discovery.json",
+      "sha256": "da53ef124b5db28e336383562dcbc1f37d5cebb7fb9207bde53d34b296b07f12"
+    },
+    {
+      "path": "Developer/families/unit/execution.json",
+      "sha256": "06dfa56cacd4ccc91631efc3e4d4a78468fa8cc20cc40542f662adc632b3e8c9"
+    },
+    {
+      "path": "Developer/families/unit/report.trx",
+      "sha256": "f2ee595fbee046bc781284d6adfb5a09b9280119cfd2b604bdd96dc87e57f7aa"
+    },
+    {
+      "path": "Developer/logs/package-boundaries.log",
+      "sha256": "4b133a4874fed8239dd33cdd3254ad3cf11e1b1aa862eda624535480e08fbf20"
+    },
+    {
+      "path": "Developer/logs/project-boundaries.log",
+      "sha256": "352deb96b6456fd93c2601dccaac568e277d24cc4cdadcf5f9d946f4bc10d400"
+    },
+    {
+      "path": "Developer/source-inputs.json",
+      "sha256": "02bb00e4d83c1f8b86988d722ba15883c294a9482200423d906b9f102a1487b4"
+    },
+    {
+      "path": "Developer/summary.json",
+      "sha256": "8ec02ec659842a47189d1daea67c76b81d6d8d0ca8d6f3b96671ca09692513f1"
+    },
+    {
+      "path": "developer-audit.json",
+      "sha256": "6b435f0062786249ed1350ccdaf8518609f97280c3208db0a7e4e2c366f9cc12"
+    },
+    {
+      "path": "developer-final.exit-code",
+      "sha256": "5feceb66ffc86f38d952786c6d696c79c2dbc239dd4e91b46729d73a27fb57e9"
+    },
+    {
+      "path": "developer-final.log",
+      "sha256": "1bf09845ae7fd8ee59e31c1ba92fe91b333f4a08eb674597c917953d9968af42"
+    },
+    {
+      "path": "focused-boundaries/report.trx",
+      "sha256": "7cdc12e1d212d2c339e7c0e7948ef1b011582b3828ef58fcbfcf72de5803c9a3"
+    },
+    {
+      "path": "focused-boundaries.log",
+      "sha256": "7bf930d5b9985e6ade5e5e09e178d900c65bbd5174463454eb7d5c450acea2b8"
+    },
+    {
+      "path": "focused-pack.log",
+      "sha256": "4336b429d9128f26e23345c626c4d29a9a665c73179e356869925f78d9ef8ee5"
+    },
+    {
+      "path": "format.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "graph/graph-before.txt",
+      "sha256": "9607d12712d9ce018460ee4cb8dbb2a0f7472af4b123836170d1c3bba7ccb879"
+    },
+    {
+      "path": "graph/graph-build-final.txt",
+      "sha256": "9fa19d73643da14a52e000f221c1c2652a0b7522dfcc73220e22bdeeaff8b2aa"
+    },
+    {
+      "path": "graph/graph-provider-related-final.txt",
+      "sha256": "03dd584ef467e26e49eb6222b993ece326b865ef48d7671dac457c324cf1b480"
+    },
+    {
+      "path": "graph/graph-provider-tests-final.txt",
+      "sha256": "42464f6bbfb766a43e75d4f73bfc22ddc677982eec41f5ccacdf1a655e5d9f3a"
+    },
+    {
+      "path": "graph/graph-status-final.txt",
+      "sha256": "81424761235726a194e303b5bd497c3b12e8045049332e65fb182fde6fb65920"
+    },
+    {
+      "path": "historical-stale-positive/focused-boundaries.log",
+      "sha256": "1c8fb88d7369b97d3126e600ef36315a7a05ab4756f84595b599b9ca25d37c1f"
+    },
+    {
+      "path": "historical-stale-positive/report.trx",
+      "sha256": "9913101367fa709df8185c59489207387c95f694f19ccd98ce1e67cccf6502bc"
+    },
+    {
+      "path": "historical-stale-positive/snapshot.json",
+      "sha256": "aec9878a0a2de94c10590c4d0fdf462760a54e8da4e41f9c3738cde124b17bd2"
+    },
+    {
+      "path": "inspect-assembly.ps1",
+      "sha256": "94d6206ee9e9b3c91c606c7c4b2c4d24d2f6d111d03004b904ff34624a416b36"
+    },
+    {
+      "path": "package-audit.json",
+      "sha256": "59cf184b0d5ee5a82fc8056c9e18f4dea5c10064d5ab77e7193c9f33c3d207f7"
+    },
+    {
+      "path": "packed-assembly-types.json",
+      "sha256": "76bbab3ccec4c757dd1a5279186f72016dcd001dbcba92460efaffa15bd6ad8d"
+    },
+    {
+      "path": "post-inventory-doc-refinement.json",
+      "sha256": "2b13a0562880b24b12131d4f970c75441ba58d1560225ad4a367a7110d77c3b8"
+    },
+    {
+      "path": "release-validation.json",
+      "sha256": "95a2a05c9d70f1af365c94c9a90dc805056a29ef3ba3177154d4faef96146f83"
+    },
+    {
+      "path": "release.exit-code",
+      "sha256": "d4735e3a265e16eee03f59718b9b5d03019c07d8b6c51f90da3a666eec13ab35"
+    },
+    {
+      "path": "release.log",
+      "sha256": "03aa42df1682194b2f04eae026d19b66b1151f793bb49c2ad6aa26cc78e50b79"
+    },
+    {
+      "path": "review-notes.json",
+      "sha256": "a68e0ec9203fc5f4d14237eee292de625f3ff2b27b4e4d9fd37f0b9b5cf44b2f"
+    },
+    {
+      "path": "reviewed-receipt.json",
+      "sha256": "e2e081f6e118cf61e70132d2173225dca611e161c3748bdb78e23ff7c5313e2e"
+    }
+  ],
+  "boundary": {
+    "catalogCases": 12,
+    "allCasesActualRawTrx": true,
+    "positiveBeforeMutationRows": 11,
+    "compiledRealPeRowsNew": 1,
+    "existingCompiledRowsAlsoExecuted": 3,
+    "originalScopePreserved": true,
+    "checkerAndShippingSourcesUnchanged": true,
+    "unapprovedPackagesDownloaded": false
+  },
+  "cisGraph": {
+    "freshAtCapture": true,
+    "status": "status=warnings;exitCode=0;freshness=fresh;nodes=10787;edges=42676;errors=0;warnings=143;information=0;strict=false",
+    "buildId": "sha256:501649490826dc462256b312b4b51e0a6fdce8820accb9a94699f9669aae122f",
+    "root": "cislib::symbol::cis-core/csharp/method/CIS.Logging.MicrosoftLogger.CoreLoggerProvider.CreateLogger%28string%29",
+    "limitations": "Bounded call context partial; tests-for has zero verified-by traversals. Compiler/extraction warnings retained, no inferred coverage claimed."
+  }
+}

@@ -1,0 +1,1403 @@
+Read-only WP06-S03-T02 dependency/package boundary review. Explicit user architecture: single CIS.Core embedded CIS.Logging.MicrosoftLogger; Microsoft abstraction runtime closure exactly qualified by locked repo inventory, factory implementation fixture/app only, third-party integrations separate. Existing checker preserved. Added twelve architecture cases: 5 copied restored graph mutations (third-party, factory, fullDI, wrong/missing approved transitive), 6 copied nupkg mutations (forbidden DLLnames, nuspec extra/replaced/version/exact-range constraint drift), and 1 actual managed PE NLog AssemblyRef case in existing compiled matrix. First11 prove real unchanged positive before mutation. 15 focused cases including existing compiled rows passed after repacking current source. Initial6 package positives correctly failed stale oldcandidate/newhelper consistency; retained historical and actualcurrentpack rebuilt, no gate weakened. No unapproved package downloaded/loaded; packed DLLpath controls intentionally badbytes because assetname should reject first. Compiled refs are real PE fixtures. Task requires actual restored/compiled/package inspection plus rejection controls; no new shipping code/dependency/API/helper or verificationframework. Full Developer builds/packs before tests; Windowsdevelopment qualification, full platform/release later. Review code/coverage/passing-positive validity, actual negative reasons, no false closure or completedotherTask claims. Output JSON {"verdict":"PASS or CHANGES_REQUIRED","requiredFindings":[],"optionalFindings":[]}; actionable findings id/file/reason/fix. No tools or edits; files below are source data.
+
+--- FILE conformance/logging/microsoft-package-boundary-cases.json SHA256 977caa9971402ab0fe07c73d8d9f8e5b07f506a4fd9aaf37d711f6f7926ffd25 ---
+{
+  "schema": "cis.logging.microsoft-package-boundary-cases/v1",
+  "task": "WP06-S03-T02",
+  "qualification": "Actual checker with copied/synthetic negative fixtures. First 11 cases assert a passing actual unmodified input; compiled PE row uses existing metadata fixture support. Executed results in receipt.",
+  "cases": [
+    {
+      "id": "restore-third-party",
+      "method": "CopiedRestoreGraphRejectsTransitiveLeakage",
+      "mutation": "NLog/5.3.0",
+      "expectedRule": "Unapproved shipping package dependency"
+    },
+    {
+      "id": "restore-factory",
+      "method": "CopiedRestoreGraphRejectsTransitiveLeakage",
+      "mutation": "Microsoft.Extensions.Logging/10.0.12",
+      "expectedRule": "Unapproved shipping package dependency"
+    },
+    {
+      "id": "restore-full-di",
+      "method": "CopiedRestoreGraphRejectsTransitiveLeakage",
+      "mutation": "Microsoft.Extensions.DependencyInjection/10.0.12",
+      "expectedRule": "Unapproved shipping package dependency"
+    },
+    {
+      "id": "restore-transitive-version",
+      "method": "CopiedRestoreGraphRejectsTransitiveLeakage",
+      "mutation": "Microsoft.Extensions.DependencyInjection.Abstractions/10.0.11",
+      "expectedRule": "Unapproved shipping package dependency"
+    },
+    {
+      "id": "restore-missing-transitive",
+      "method": "CopiedRestoreGraphRejectsTransitiveLeakage",
+      "mutation": "missing-transitive",
+      "expectedRule": "Core runtime closure differs from the approved inventory"
+    },
+    {
+      "id": "packed-factory-dll",
+      "method": "CopiedPackageRejectsFactoryAndThirdPartyLeakage",
+      "mutation": "factory-dll",
+      "expectedRule": "Unexpected packed asset"
+    },
+    {
+      "id": "packed-third-party-dll",
+      "method": "CopiedPackageRejectsFactoryAndThirdPartyLeakage",
+      "mutation": "third-party-dll",
+      "expectedRule": "Unexpected packed asset"
+    },
+    {
+      "id": "packed-factory-dependency",
+      "method": "CopiedPackageRejectsFactoryAndThirdPartyLeakage",
+      "mutation": "factory-dependency",
+      "expectedRule": "Unapproved packed dependency"
+    },
+    {
+      "id": "packed-extra-dependency",
+      "method": "CopiedPackageRejectsFactoryAndThirdPartyLeakage",
+      "mutation": "extra-dependency",
+      "expectedRule": "Packed direct dependency inventory mismatch"
+    },
+    {
+      "id": "packed-minimum-version",
+      "method": "CopiedPackageRejectsFactoryAndThirdPartyLeakage",
+      "mutation": "dependency-version",
+      "expectedRule": "Unapproved packed dependency"
+    },
+    {
+      "id": "packed-exact-constraint",
+      "method": "CopiedPackageRejectsFactoryAndThirdPartyLeakage",
+      "mutation": "dependency-exact-range",
+      "expectedRule": "Unapproved packed dependency"
+    },
+    {
+      "id": "compiled-third-party-reference",
+      "method": "CompiledCheckerRejectsForeignAssemblyReferences",
+      "mutation": "NLog",
+      "expectedRule": "Unapproved compiled assembly reference"
+    }
+  ]
+}
+
+
+--- FILE docs/modules/logging/microsoft-logging-boundaries.md SHA256 5dc961258effd6b44dee31b605edbab908509abd495b64585a60fc7370cde5c0 ---
+# Microsoft logging dependency boundaries
+
+WP06-S03-T02 qualifies the existing single `CIS.Core` boundary. Its approved net10.0 runtime graph remains Microsoft.Extensions.Logging.Abstractions and Microsoft.Extensions.DependencyInjection.Abstractions at 10.0.12. The Microsoft factory implementation is supplied by applications and appears only in the named development fixture; third-party runtimes belong in separate optional integrations. [Packaging policy](microsoft-logging-packaging.md) explains the user amendment and nuspec minimum semantics.
+
+The existing checker evaluates project/framework/package items, actual restored graphs, compiled AssemblyRefs and the whole generated package. The new tests use copies of real Core restore/package outputs; each begins with a passing unmodified control before one mutation. No unapproved package is downloaded or loaded. Restored-graph additions change an existing abstraction dependency edge and target package entry, without adding a direct project PackageReference. These are synthetic graph mutations, not claims that NuGet successfully restored an unapproved dependency.
+
+| Boundary | Rejection controls |
+| --- | --- |
+| Copied restored closure | NLog; Microsoft factory implementation; full dependency-injection implementation; wrong approved transitive version; missing approved transitive member |
+| Copied packed assets | Bundled factory DLL or NLog DLL, outside the closed allowed asset list |
+| Copied nuspec | Replacing/adding a runtime dependency, changing its minimum version, or silently tightening it to an exact-only constraint |
+| Compiled metadata | Existing factory/test/foreign AssemblyRef controls plus a new NLog AssemblyRef control |
+
+The packed DLL-name controls use deliberately invalid content because the closed asset-list check must reject the path before assembly inspection. Compiled-reference controls instead use real managed PE fixtures and the actual metadata checker. Existing source/imported-project/direct-package/framework and bundled-test controls remain part of full verification. This adds twelve architecture cases, with fifteen focused checks when the existing compiled rows are included, and no shipping API/dependency/framework/helper.
+
+The initial focused package positives detected an old nupkg paired with a freshly built current-commit helper. They failed on the existing whole-package helper byte consistency check. Repacking the actual current tree restored all positives; the gate was preserved. Full Developer verification builds/packs before architecture execution. This protects the combined Core package and does not modify the Type Manager implementation or excuse an unrelated positive failure as a valid rejection.
+
+Task evidence records actual restored/compiled/package inspection and raw test results. This development qualification runs on Windows; full recorded-platform release verification remains later work. Coverage/mutation, cumulative provider compatibility, release-bundle integration and package-consumer examples remain T03-T05/WP07-WP09. The original separate bridge package requirement remains superseded by the user's decision, and the full release gate must stay nonzero.
+
+
+--- FILE docs/modules/logging/microsoft-logging-packaging.md SHA256 337f06b176950599c5c8fe6c82bd79a930d45a31170a749464b1bda88b1dc306 ---
+# Microsoft logging packaging
+
+Logging and its Microsoft adapter ship in the single `CIS.Core` project, assembly and package. The library's root namespace is `CIS`; logging uses `CIS.Logging`, and the adapter uses `CIS.Logging.MicrosoftLogger`. The implementation folders mirror those namespaces under `implementations/csharp/src/CIS.Core/Logging`. There is no separate `Core.MicrosoftLogging` or `CIS.Core.MicrosoftLogging` package. This applies the user's repository/package decision recorded before implementation; the original supplied plan is preserved as source material.
+
+The initial development target remains one portable `net10.0` library asset. The package's current development version is `0.1.0-dev.1`; assembly identity/version and platform qualification remain governed by the existing policies. Neither this task nor a development pack publishes a release or creates a historical supported baseline.
+
+| Dependency role | Package | Verified repository version |
+| --- | --- | --- |
+| Direct runtime | Microsoft.Extensions.Logging.Abstractions | 10.0.12 |
+| Transitive runtime | Microsoft.Extensions.DependencyInjection.Abstractions | 10.0.12 |
+| Host/factory implementation | Supplied by the consuming application; Microsoft.Extensions.Logging is used only by the development fixture here | 10.0.12 in that fixture |
+
+The source of approved runtime identities/versions is [runtime-dependencies.json](../../../implementations/csharp/eng/runtime-dependencies.json). Central package management selects 10.0.12, the checked Core lock file records both exact resolved versions/content hashes, and verification restores in locked mode. The dependency checker evaluates actual project items, resolved target graphs, compiled AssemblyRefs and the generated package. Core's actual restored closure must equal the approved two-package inventory. The Microsoft factory implementation and its additional fixture dependencies remain development-only; third-party logging integrations, if added, require separate optional packages.
+
+A NuGet dependency written as `10.0.12` is an inclusive minimum, not an exact `[10.0.12]` restriction. The current nuspec keeps that minimum-version syntax. Repository verification pins the actual restored closure at 10.0.12 with its lock files and allowlist; it does not claim every application's dependency graph is locked by Core's nuspec. Applications can resolve higher versions through their own dependencies; those graphs need their own qualification. No new upper bound or change to the existing consumer constraint is introduced. See [NuGet version ranges](https://learn.microsoft.com/en-us/nuget/concepts/package-versioning#version-ranges).
+
+An application restoring only `CIS.Core` therefore receives the logging implementation, Microsoft adapter and approved abstraction dependency closure. It does not acquire a separate bridge assembly/package or Microsoft's factory implementation through Core. Using a factory remains an application choice; see [host filtering](microsoft-host-filtering.md) and [host qualification](microsoft-host-qualification.md).
+
+[The S03 scope record](../../../planning/logging/microsoft-packaging-scope.json) retains each original task/criterion and its direction under the user's amendment. T01 records the existing package topology and version policy and produces a checked development pack. [T02 boundary qualification](microsoft-logging-boundaries.md) covers dedicated dependency/asset rejection controls; T03 explicitly includes adapter code in Core coverage/mutation; T04 retains provider consumers in Core compatibility; T05 accounts for all provider material in the eventual single-Core release bundle. Source obligations for behavior, compatibility and release assurance remain. The original separate-package optionality and separate shipping-assembly requirements are superseded, and are not claimed as passing original separate-package scenarios.
+
+The packaged README and description now describe the implemented logging/provider stories. The ConsoleHuman example remains a scaffold until WP08. Full release gates, candidate-package examples, licence/publishing choices and publication remain pending.
+
+Before first publication, the package README must use consumer-focused presentation and links that resolve on a feed, either through a dedicated package README or release-specific absolute URLs. The current root README is an unpublished development package input; resolving this presentation item belongs with WP08/WP09 publication preparation.
+
+
+--- FILE implementations/csharp/tests/CIS.Core.ArchitectureTests/DependencyBoundaryTests.cs SHA256 f40aa0f41b8d39bf3148bf278115600e4b22f81ce1f67bc0667e22394232cf0c ---
+using System.IO.Compression;
+using System.Reflection;
+using System.Reflection.Metadata;
+using System.Reflection.Metadata.Ecma335;
+using System.Reflection.PortableExecutable;
+using System.Text.Json.Nodes;
+using System.Xml.Linq;
+using CIS.TestSupport;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+
+namespace CIS.Tests.ArchitectureTests;
+
+[TestClass]
+public sealed class DependencyBoundaryTests
+{
+    private static readonly string RepositoryRoot = FindRepositoryRoot();
+    private static readonly string LanguageRoot = Path.Combine(RepositoryRoot, "implementations", "csharp");
+
+    [TestMethod]
+    public async Task ReleaseCorePassesTheEvaluatedCompiledReferencePolicy()
+    {
+        string core = Path.Combine(LanguageRoot, "src", "CIS.Core", "bin", "Release", "net10.0", "CIS.Core.dll");
+        ProcessResult result = await RunProjectCheck(LanguageRoot, "-AssemblyPath", core);
+        Assert.AreEqual(0, result.ExitCode, result.StandardOutput + result.StandardError);
+    }
+
+    [TestMethod]
+    [DataRow("CIS.Core.TestSupport")]
+    [DataRow("Unapproved.Host.Infrastructure")]
+    [DataRow("Microsoft.Extensions.Logging")]
+    [DataRow("NLog")]
+    public async Task CompiledCheckerRejectsForeignAssemblyReferences(string dependencyName)
+    {
+        using var directory = new TemporaryDirectory();
+        string fixture = Path.Combine(directory.Path, "CIS.Core.dll");
+        WriteAssemblyFixture(fixture, dependencyName);
+        string allowlist = Path.Combine(directory.Path, "allowed.json");
+        File.WriteAllText(allowlist, "[\"System.Runtime\"]");
+        string checker = Path.Combine(LanguageRoot, "eng", "CIS.DependencyChecker", "bin", "Release", "net10.0", "CIS.DependencyChecker.dll");
+
+        ProcessResult result = await ProcessRunner.RunAsync("dotnet", [checker, fixture, allowlist], LanguageRoot, TimeSpan.FromSeconds(30));
+
+        Assert.AreEqual(1, result.ExitCode);
+        StringAssert.Contains(result.StandardError, "Unapproved compiled assembly reference");
+        StringAssert.Contains(result.StandardError, dependencyName);
+    }
+
+    [TestMethod]
+    [DataRow("ProjectReference", "../../../tests/CIS.Core.TestSupport/CIS.Core.TestSupport.csproj", "Forbidden project reference")]
+    [DataRow("FrameworkReference", "Microsoft.AspNetCore.App", "Forbidden framework reference")]
+    [DataRow("PackageReference", "Unapproved.Logger", "Unapproved explicit package")]
+    [DataRow("PackageReference", "Microsoft.Extensions.Logging", "Unapproved explicit package")]
+    public async Task EvaluatedCoreProjectRejectsForbiddenDependencies(string element, string dependency, string expectedRule)
+    {
+        using var fixture = new ProjectFixture(LanguageRoot);
+        string coreProject = Path.Combine(fixture.Path, "src", "CIS.Core", "CIS.Core.csproj");
+        XDocument project = XDocument.Load(coreProject);
+        project.Root!.Add(new XElement("ItemGroup", new XElement(element, new XAttribute("Include", dependency))));
+        project.Save(coreProject);
+
+        ProcessResult result = await RunProjectCheck(fixture.Path);
+
+        AssertRejected(result, expectedRule);
+    }
+
+    [TestMethod]
+    public async Task ImportedProjectReferenceCannotBypassTheBoundary()
+    {
+        using var fixture = new ProjectFixture(LanguageRoot);
+        string propsPath = Path.Combine(fixture.Path, "Directory.Build.props");
+        XDocument props = XDocument.Load(propsPath);
+        props.Root!.Add(new XElement("ItemGroup", new XElement("ProjectReference", new XAttribute("Include", "../../tests/CIS.Core.TestSupport/CIS.Core.TestSupport.csproj"))));
+        props.Save(propsPath);
+
+        AssertRejected(await RunProjectCheck(fixture.Path), "Forbidden project reference");
+    }
+
+    [TestMethod]
+    [DataRow("Unapproved.Logger/1.0.0")]
+    [DataRow("Microsoft.Extensions.Logging.Abstractions/10.0.999")]
+    public async Task RestoredGraphRejectsUnapprovedIdentityOrVersion(string identity)
+    {
+        using var directory = new TemporaryDirectory();
+        string assetsPath = Path.Combine(LanguageRoot, "src", "CIS.Core", "obj", "project.assets.json");
+        JsonObject assets = JsonNode.Parse(File.ReadAllText(assetsPath))!.AsObject();
+        assets["targets"]!["net10.0"]!.AsObject()[identity] = new JsonObject { ["type"] = "package" };
+        string modified = Path.Combine(directory.Path, "project.assets.json");
+        File.WriteAllText(modified, assets.ToJsonString());
+
+        AssertRejected(await RunProjectCheck(LanguageRoot, "-AssetsPath", modified), "Unapproved shipping package dependency");
+    }
+
+    [TestMethod]
+    public async Task PackageRejectsBundledTestAssembly()
+    {
+        using var directory = new TemporaryDirectory();
+        string packagePath = Path.Combine(directory.Path, "fixture.nupkg");
+        string core = Path.Combine(LanguageRoot, "src", "CIS.Core", "bin", "Release", "net10.0", "CIS.Core.dll");
+        string packageVersion = System.Diagnostics.FileVersionInfo.GetVersionInfo(core).ProductVersion!.Split('+', 2)[0];
+        File.Copy(Path.Combine(RepositoryRoot, ".artifacts", "csharp", "packages", $"CIS.Core.{packageVersion}.nupkg"), packagePath);
+        using (ZipArchive archive = ZipFile.Open(packagePath, ZipArchiveMode.Update))
+        {
+            using var writer = new StreamWriter(archive.CreateEntry("lib/net10.0/CIS.Core.TestSupport.dll").Open());
+            writer.Write("explicitly forbidden synthetic asset");
+        }
+
+        AssertRejected(await RunProjectCheck(LanguageRoot, "-PackagePath", packagePath), "Unexpected packed asset");
+    }
+
+    private static Task<ProcessResult> RunProjectCheck(string root, params string[] extraArguments)
+    {
+        string script = Path.Combine(LanguageRoot, "eng", "check-dependencies.ps1");
+        string[] arguments = ["-NoProfile", "-File", script, "-LanguageRoot", root, "-ProjectPath", "src/CIS.Core/CIS.Core.csproj", .. extraArguments];
+        return ProcessRunner.RunAsync("pwsh", arguments, root, TimeSpan.FromSeconds(60));
+    }
+
+    private static void AssertRejected(ProcessResult result, string expectedRule)
+    {
+        Assert.AreNotEqual(0, result.ExitCode, result.StandardOutput + result.StandardError);
+        StringAssert.Contains(result.StandardError, expectedRule);
+    }
+
+    private static void WriteAssemblyFixture(string path, string dependencyName)
+    {
+        // A real managed PE fixture with an intentionally forbidden AssemblyRef; no shipping source is modified.
+        var metadata = new MetadataBuilder();
+        metadata.AddModule(0, metadata.GetOrAddString("CIS.Core.dll"), metadata.GetOrAddGuid(Guid.NewGuid()), default, default);
+        metadata.AddAssembly(metadata.GetOrAddString("CIS.Core"), new Version(1, 0, 0, 0), default, default, (AssemblyFlags)0, AssemblyHashAlgorithm.None);
+        metadata.AddAssemblyReference(metadata.GetOrAddString(dependencyName), new Version(1, 0, 0, 0), default, default, (AssemblyFlags)0, default);
+        metadata.AddTypeDefinition(TypeAttributes.NotPublic, default, metadata.GetOrAddString("<Module>"), default, MetadataTokens.FieldDefinitionHandle(1), MetadataTokens.MethodDefinitionHandle(1));
+        var builder = new ManagedPEBuilder(new PEHeaderBuilder(imageCharacteristics: Characteristics.ExecutableImage | Characteristics.Dll), new MetadataRootBuilder(metadata), new BlobBuilder());
+        var image = new BlobBuilder();
+        builder.Serialize(image);
+        File.WriteAllBytes(path, image.ToArray());
+    }
+
+    private static string FindRepositoryRoot()
+    {
+        DirectoryInfo? directory = new(AppContext.BaseDirectory);
+        while (directory is not null)
+        {
+            if (File.Exists(Path.Combine(directory.FullName, "implementations", "csharp", "CisLib.slnx")))
+            {
+                return directory.FullName;
+            }
+
+            directory = directory.Parent;
+        }
+
+        throw new DirectoryNotFoundException("Run the architecture tests from the CisLib checkout.");
+    }
+}
+
+
+--- FILE implementations/csharp/tests/CIS.Core.ArchitectureTests/MicrosoftLoggingPackageBoundaryTests.cs SHA256 563539901948d3dc8d8e79b4c60d32085414899b8bab5e00bee3e95c47a758fb ---
+using System.Diagnostics;
+using System.IO.Compression;
+using System.Text.Json.Nodes;
+using System.Xml.Linq;
+using CIS.TestSupport;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+
+namespace CIS.Tests.ArchitectureTests;
+
+[TestClass]
+public sealed class MicrosoftLoggingPackageBoundaryTests
+{
+    private static readonly string RepositoryRoot = FindRoot();
+    private static readonly string LanguageRoot = Path.Combine(RepositoryRoot, "implementations", "csharp");
+
+    [TestMethod]
+    [DataRow("NLog/5.3.0", "Unapproved shipping package dependency")]
+    [DataRow("Microsoft.Extensions.Logging/10.0.12", "Unapproved shipping package dependency")]
+    [DataRow("Microsoft.Extensions.DependencyInjection/10.0.12", "Unapproved shipping package dependency")]
+    [DataRow("Microsoft.Extensions.DependencyInjection.Abstractions/10.0.11", "Unapproved shipping package dependency")]
+    [DataRow("missing-transitive", "Core runtime closure differs from the approved inventory")]
+    public async Task CopiedRestoreGraphRejectsTransitiveLeakage(string mutation, string reason)
+    {
+        using var root = new TemporaryDirectory();
+        string path = Path.Combine(root.Path, "project.assets.json");
+        JsonObject assets = JsonNode.Parse(File.ReadAllText(Path.Combine(LanguageRoot, "src", "CIS.Core", "obj", "project.assets.json")))!.AsObject();
+        File.WriteAllText(path, assets.ToJsonString());
+        AssertPassed(await Check("-AssetsPath", path));
+        JsonObject target = assets["targets"]!["net10.0"]!.AsObject();
+        string approved = "Microsoft.Extensions.DependencyInjection.Abstractions/10.0.12";
+        if (mutation == "missing-transitive") { target.Remove(approved); }
+        else
+        {
+            string[] parts = mutation.Split('/', 2);
+            if (parts[0] == "Microsoft.Extensions.DependencyInjection.Abstractions") { target.Remove(approved); }
+            // Change an existing dependency edge, without adding a direct PackageReference.
+            target["Microsoft.Extensions.Logging.Abstractions/10.0.12"]!["dependencies"]![parts[0]] = parts[1];
+            target[mutation] = new JsonObject { ["type"] = "package" };
+        }
+        File.WriteAllText(path, assets.ToJsonString());
+        AssertRejected(await Check("-AssetsPath", path), reason);
+    }
+
+    [TestMethod]
+    [DataRow("factory-dll", "Unexpected packed asset")]
+    [DataRow("third-party-dll", "Unexpected packed asset")]
+    [DataRow("factory-dependency", "Unapproved packed dependency")]
+    [DataRow("extra-dependency", "Packed direct dependency inventory mismatch")]
+    [DataRow("dependency-version", "Unapproved packed dependency")]
+    [DataRow("dependency-exact-range", "Unapproved packed dependency")]
+    public async Task CopiedPackageRejectsFactoryAndThirdPartyLeakage(string mutation, string reason)
+    {
+        using var root = new TemporaryDirectory();
+        string core = Path.Combine(LanguageRoot, "src", "CIS.Core", "bin", "Release", "net10.0", "CIS.Core.dll");
+        string version = FileVersionInfo.GetVersionInfo(core).ProductVersion!.Split('+', 2)[0];
+        string path = Path.Combine(root.Path, "candidate.nupkg");
+        File.Copy(Path.Combine(RepositoryRoot, ".artifacts", "csharp", "packages", $"CIS.Core.{version}.nupkg"), path);
+        AssertPassed(await Check("-PackagePath", path));
+        using (ZipArchive archive = ZipFile.Open(path, ZipArchiveMode.Update))
+        {
+            if (mutation is "factory-dll" or "third-party-dll")
+            {
+                string name = mutation == "factory-dll" ? "Microsoft.Extensions.Logging.dll" : "NLog.dll";
+                using var writer = new StreamWriter(archive.CreateEntry("lib/net10.0/" + name).Open());
+                writer.Write("Intentional forbidden-asset control; not a runnable assembly.");
+            }
+            else
+            {
+                ZipArchiveEntry entry = archive.GetEntry("CIS.Core.nuspec")!;
+                XDocument manifest;
+                using (Stream stream = entry.Open()) { manifest = XDocument.Load(stream); }
+                XElement dependency = manifest.Descendants().Single(x => x.Name.LocalName == "dependency");
+                if (mutation == "factory-dependency") { dependency.SetAttributeValue("id", "Microsoft.Extensions.Logging"); }
+                if (mutation == "extra-dependency") { dependency.Parent!.Add(new XElement(dependency.Name, new XAttribute("id", "NLog"), new XAttribute("version", "5.3.0"))); }
+                if (mutation == "dependency-version") { dependency.SetAttributeValue("version", "10.0.11"); }
+                if (mutation == "dependency-exact-range") { dependency.SetAttributeValue("version", "[10.0.12]"); }
+                entry.Delete();
+                using Stream output = archive.CreateEntry("CIS.Core.nuspec").Open(); manifest.Save(output);
+            }
+        }
+        AssertRejected(await Check("-PackagePath", path), reason);
+    }
+
+    private static Task<ProcessResult> Check(params string[] extra) => ProcessRunner.RunAsync("pwsh",
+        ["-NoProfile", "-File", Path.Combine(LanguageRoot, "eng", "check-dependencies.ps1"), "-ProjectPath", "src/CIS.Core/CIS.Core.csproj", .. extra],
+        LanguageRoot, TimeSpan.FromSeconds(60));
+    private static void AssertPassed(ProcessResult result) => Assert.AreEqual(0, result.ExitCode, result.StandardOutput + result.StandardError);
+    private static void AssertRejected(ProcessResult result, string reason)
+    {
+        Assert.AreNotEqual(0, result.ExitCode, result.StandardOutput + result.StandardError);
+        StringAssert.Contains(result.StandardError, reason);
+    }
+    private static string FindRoot()
+    {
+        DirectoryInfo? directory = new(AppContext.BaseDirectory);
+        while (directory is not null)
+        {
+            if (File.Exists(Path.Combine(directory.FullName, "implementations", "csharp", "CisLib.slnx"))) { return directory.FullName; }
+            directory = directory.Parent;
+        }
+        throw new DirectoryNotFoundException("CISLIB checkout required.");
+    }
+}
+
+
+--- FILE planning/logging/microsoft-packaging-scope.json SHA256 64594a9d66d4978616e035f5d25663b1265b5b5e6aa803c6f2f36e2669808a7d ---
+{
+  "schema": "cis.logging.microsoft-packaging-scope/v1",
+  "storyId": "WP06-S03",
+  "source": "planning/logging/sources/core-library-backlog-v1.json",
+  "authority": "Explicit user decision: one CIS.Core package/assembly, CIS namespaces, Microsoft-maintained NuGets permitted; third-party runtime dependencies isolated. Recorded in decisions.md and plan-amendments.md.",
+  "state": "Selected unpublished scope amendment; not execution, publication or approval of a product record.",
+  "package": {
+    "project": "implementations/csharp/src/CIS.Core/CIS.Core.csproj",
+    "packageId": "CIS.Core",
+    "assembly": "CIS.Core",
+    "rootNamespace": "CIS",
+    "adapterNamespace": "CIS.Logging.MicrosoftLogger",
+    "targetFramework": "net10.0",
+    "runtimeInventory": "implementations/csharp/eng/runtime-dependencies.json",
+    "centralVersions": "implementations/csharp/Directory.Packages.props",
+    "lockFile": "implementations/csharp/src/CIS.Core/packages.lock.json",
+    "packedDirectDependencyVersion": "10.0.12",
+    "consumerConstraint": "Inclusive minimum; repository resolved closure remains exactly qualified by lock file/allowlist."
+  },
+  "tasks": [
+    {
+      "id": "WP06-S03-T01",
+      "originalDescription": "Package Core.MicrosoftLogging separately and pin its approved Microsoft logging abstraction dependency closure using the framework and versions selected in WP-01.",
+      "currentDirection": "Use existing single CIS.Core project/package; retain net10.0 and exact repository restored Microsoft abstraction closure at 10.0.12. No separate bridge package.",
+      "scopeStatus": "RecordedScope; execution belongs in T01 receipt"
+    },
+    {
+      "id": "WP06-S03-T02",
+      "originalDescription": "Inspect the bridge restore graph, compiled references, and package contents; add rejection controls for an unapproved transitive dependency and dependency leakage into Core.",
+      "currentDirection": "Inspect CIS.Core restored/compiled/packed graph with adapter included; reject unapproved runtime additions and fixture/factory leakage.",
+      "scopeStatus": "RecordedControls; execution belongs in T02 receipt"
+    },
+    {
+      "id": "WP06-S03-T03",
+      "originalDescription": "Wire bridge unit/integration coverage and a separate Stryker mutation invocation into the shipping-project verification matrix; complete full matrix execution in WP-07.",
+      "currentDirection": "Core shipping assembly coverage/mutation must explicitly include CIS.Logging.MicrosoftLogger code; no separate bridge shipping assembly/mutation project.",
+      "scopeStatus": "Pending"
+    },
+    {
+      "id": "WP06-S03-T04",
+      "originalDescription": "Add bridge API/source/binary contract fixtures to the compatibility inventory, including old bridge plus candidate core and full bridge/core upgrade scenarios for historical releases.",
+      "currentDirection": "Retain adapter API/source/binary consumers in cumulative CIS.Core compatibility inventory and same-package replacement scenarios; no fictional historical publication.",
+      "scopeStatus": "Pending"
+    },
+    {
+      "id": "WP06-S03-T05",
+      "originalDescription": "Include bridge API documentation, packages, dependency inventory, reports, and hashes in the first-release verification bundle manifest.",
+      "currentDirection": "Include adapter APIs/docs, exact CIS.Core candidate, approved runtime inventory and complete provider reports/hashes in single-Core release bundle.",
+      "scopeStatus": "Pending"
+    }
+  ],
+  "criteria": [
+    {
+      "id": "WP06-S03-AC01",
+      "originalDescription": "An application restoring only Core acquires no bridge, logging abstraction package, or bridge transitive dependency.",
+      "currentDirection": "Core-only consumers receive embedded adapter and abstraction dependencies; absence of Microsoft factory and third-party runtime leakage remains required. Original separate-package/zero-abstractions optionality is superseded."
+    },
+    {
+      "id": "WP06-S03-AC02",
+      "originalDescription": "The bridge's resolved and packed dependency closure matches the explicit allowlist; its negative controls reject prohibited changes.",
+      "currentDirection": "Actual restored closure and packed direct dependencies match approved inventory; rejection controls preserve assurance."
+    },
+    {
+      "id": "WP06-S03-AC03",
+      "originalDescription": "WP-07 discovers the bridge as a separate shipping assembly for coverage and mutation, with no reliance on the Core-only report as bridge evidence.",
+      "currentDirection": "Core coverage/mutation reports explicitly cover adapter implementation; separate shipping assembly requirement superseded."
+    },
+    {
+      "id": "WP06-S03-AC04",
+      "originalDescription": "Compatibility manifests include bridge consumers and both package-replacement upgrade paths; no first-release result is mislabeled as an existing historical-release replay.",
+      "currentDirection": "Compatibility retains provider consumers for CIS.Core package replacement paths; only actual historical releases may be called historical replay."
+    },
+    {
+      "id": "WP06-S03-AC05",
+      "originalDescription": "The verification bundle inventory includes the exact bridge candidate and all applicable validation material; consumer optionality does not omit bridge verification.",
+      "currentDirection": "Exact CIS.Core candidate and all adapter validation material included; embedded integration must not be omitted from release assurance."
+    }
+  ],
+  "remaining": "T02-T05 dedicated dependency controls, coverage/mutation, cumulative provider compatibility and release bundle integration; later WP07/WP08/WP09 full qualification and publication.",
+  "publicationFollowups": "Resolve package README consumer presentation and repository-relative links before first publication, alongside licence and destination choices. No change to packaging identity or runtime dependency policy."
+}
+
+
+--- FILE planning/logging/plan-amendments.md SHA256 707222879bff610720268515ed7c13b092e8e42f0be23e3247336022aad043a2 ---
+# Amendments to the supplied logging plans
+
+Effective 10 October 2026. The user's architecture and dependency decisions override the corresponding design choices in the source guide/plan/backlog. Original files and their hashes remain unchanged; this record preserves their provenance without executing conflicting instructions.
+
+| Source area | Current direction |
+| --- | --- |
+| Repository foundation and language portability | CisLib has a separate repository. C# is first; shared contracts/conformance apply to future languages with declared runtime capabilities. The source TypeScript follow-on is a candidate, not the only possible future implementation. |
+| REQ-005; guide section 3; WP01-S02 package-reference/bridge boundaries | Core may explicitly reference approved Microsoft-maintained packages. Verify the full resolved runtime closure and packed dependency groups. Third-party runtime dependencies stay in separate optional integration packages. Zero PackageReference items is superseded. |
+| Guide sections 5/10; WP01-S01/WP01-S02/WP06 standalone bridge identities | One Core project/package contains the multi-module implementation. Logging and MicrosoftLogger are folders/namespaces inside Core. Microsoft integration remains required planned functionality; its separate package/project requirement is superseded. |
+| WP06/WP07/WP08 separate bridge checks and candidate identities | Preserve provider mapping, filter, scope and ownership observations. Qualify them against the Core candidate and include the provider code in Core's architecture, coverage/mutation and compatibility scope. Independent bridge package restoration and a separate bridge assembly are no longer applicable. |
+| Public library naming | Project, assembly and package ID are `CIS.Core`; the root namespace is `CIS`. Module namespaces begin `CIS.Logging`, not `CIS.Core.Logging`. |
+| First consuming application | A simple ConsoleHuman example host is the initial consumer. It owns the runtime once implemented. A source project reference is explicit development scaffolding; release examples must consume exact tested packages. |
+| CIS integration backlog | CisLib produces versioned library/reference artifacts; CIS owns their import, managed installation and routing. A library release and a CIS release remain separately identified. |
+
+The source behavioral contracts, bounded lifecycle requirements and verification families remain the proposed implementation baseline. No logging story is marked Done by initialization. The public facade spelling is amended below. Indefinite compatibility policy, licence and release policy still need their publication disposition.
+
+## Severity aliases selected during WP01-S03
+
+The user expanded the accepted configuration tokens on 10 October 2026. In addition to the seven full severity names, accept `TRC` (Trace), `DBG` (Debug), `INF`/`INFO` (Information), `WRN`/`WARN` (Warning), `ERR` (Error) and `CRT`/`CRIT` (Critical), case-insensitively after trimming. This supersedes the source guide's full-name-only token list. Blank values remain absent; unrecognized and numeric tokens remain invalid. Serialization status mappings are unchanged. Preserve this parser and its tests for WP03-S02; the public logging API is still pending.
+
+## Startup facade name selected during WP02-S01
+
+The user explicitly selected **`EnvironmentOptions`** before publication, replacing the source guide/plan's **`EnviormentsOptions`** spelling. Use `CIS.EnvironmentOptions` for the proposed C# facade. This supersedes the original naming passages in REQ-002, WP01-S01, WP02-S01, WP03-S04 and subsequent consumer examples; the preserved source files and historical evidence remain unchanged. No misspelled compatibility alias is required because neither name has been published.
+
+WP02-S01 specifies the surface and portable expectations using a nonshipping reference-only assembly and compiled consumer fixtures. Runtime metadata/configuration resolution and static publication remain WP03 implementation work. Selected type/property/code details are implementation choices recorded in [the startup contract](../../docs/modules/logging/startup-contract.md), rather than additional directions attributed to the user.
+
+## Entry-size limit and truncation selected during WP02-S02
+
+The user explicitly requested a maximum entry size with an environment override exposed through EnvironmentOptions, suggesting 64 KiB as the default, and then specified that oversized entries must be truncated rather than rejected. This supersedes guide section 9's fixed 64 KiB cap/ordinary oversize rejection, WP02-S02-AC03's runtime rejection direction and later capture/admission oversize cases. An already serialized record above the selected cap remains invalid output in contract fixtures; the runtime must turn oversized input into a valid bounded record.
+
+Selected before publication: CORE_LOG_MAX_ENTRY_BYTES, LoggingSetup.MaxEntryBytes and LoggingOptions.MaxEntryBytes; default 65536 bytes, valid range 16384Ã¢â‚¬â€œ16777216. Names/range are maintainer choices, not user-quoted values. Preserve protected identity/correlation and types, clip payload at scalar boundaries, omit excess children/whole explicit numeric strings and emit top-level truncated:true. Count the whole actual encoded entry including escapes and LF; all output formats are bounded. The minimum leaves room for the protected envelope. Malformed data and unsupported types remain invalid; an unrepresentable protected envelope produces a specific error, never an oversized record. Scope/node/depth and text bounds use bounded projection with truncation provenance. Scope misuse remains an error. [Event guidance](../../docs/modules/logging/event-contract.md) specifies deterministic priority and pending runtime evidence.
+
+An enabled file output requires FileMaxBytes >= MaxEntryBytes, so an admitted bounded entry can fit a complete segment; a smaller segment setting reports OutOfRange. This cross-option rule is a prepublication implementation choice prompted by the configurable entry cap. Disabled outputs still validate each selected option individually.
+
+## Runtime observations selected during WP02-S03
+
+The [runtime contract](../../docs/modules/logging/runtime-contract.md) defines logger/runtime/provider signatures, result observations and ownership without adding shipping placeholders. The guide's outcome/status/completion enum numbers, decision order, accepted-only tickets, bounded coordination and shared shutdown deadline remain intact.
+
+Prepublication maintainer choices include result/diagnostic type names, safe error codes, BoundaryCapturedAtUtc, writer-flush/runtime/output-state enums and a nonowning-only CoreLoggerProvider constructor in CIS.Logging.MicrosoftLogger. To expose the user-selected truncation policy, LogWriteResult.IsTruncated and global TruncatedEventCount report valid captures with omitted payload. LossObserved includes that captured count; successful draining may therefore coexist with reported payload loss. These property names and accounting details were selected for implementation, not quoted as further user instructions. Counter fixture transport uses exact decimal strings, without changing event JSON.
+
+WP02-S03 qualification executes pure admission/result specification checks and reference-only compiler consumers. Lifecycle/provider/worker expectations remain pending runtime execution. No disk durability, collector acknowledgement, automatic recovery or cross-output order is promised.
+
+## Scope ownership selected during WP04-S03-T03
+
+On 11 October 2026 the user selected: "Keep BeginScope and the creator-disposes rule; document the detection limits." Keep the original guide section10 and WP04-S03-AC03/AC04 direction: scopes are disposed LIFO by their creator, repeated valid disposal is harmless, invalid order leaves the head unchanged, normal child contexts inherit values, and transferring handles to another concurrent flow is prohibited.
+
+This withdraws only the later unpublished WP02-S03 draft's universal cross-flow exception promise. Native Windows/Ubuntu investigations and read-only Claude review showed that inherited frames, ExecutionContext identity, AsyncLocal tokens and Task.CurrentId cannot prove an arbitrary async-flow owner. There is no published baseline to change; original supplied sources, reference signatures and historical evidence remain preserved.
+
+The current implementation's precise detectable guards reject a non-head ancestor, or an absent frame before the handle has completed any pop, without changing the current head. The completion flag records any pop, including prohibited misuse; it is not ownership evidence. Other prohibited handle misuse has unspecified behavior. Restored stale contexts and unawaited children can retain an old frame after the creator has popped; an async helper cannot install its own scope in its caller by returning a handle. The callback alternative is not selected; Microsoft scope integration still needs its required IDisposable surface. Public runtime/provider integration and complete shared-story qualification remain later tasks.
+
+## User-directed passive environment store
+
+The revised EnvironmentOptions-Codex-Simplification (1).md supersedes the earlier initializer simplification and the unpublished startup discovery/publication mechanics selected in WP03-S01 through WP03-S04. EnvironmentOptions only stores values with public setters and literal defaults. Caller startup supplies initial facts and decides when consumers start. EnvironmentOverrides applies known variables explicitly; LoggingOptions prepares its own settings and EventMetadata owns logging's captured facts. There is no initialization/readiness/locking/retry/snapshot framework, no automatic getter loading and no future general startup pipeline in this task.
+
+The publication ledger is empty. Remove EnvironmentSetup, EnvironmentSnapshot, LoggingSetup and lifecycle members; update current reference consumers without a compatibility bridge. Existing variable meanings, bounds, severity aliases, BuildVersion/service-version distinction and lexical path behavior remain. Error owner keys and exact issue positions are draft implementation choices; current fixtures disclose their migration. Preserve historical source plans and execution receipts. All six release families and pending runtime/provider/package qualifications remain required. This is separately authorized correction work while the broader logging roadmap is paused.
+
+## User-requested explicit default population
+
+The user asked to close the missing heuristics/default-population gap after the passive-store correction. EnvironmentDefaults.Apply(applicationAssembly) now supplies common assembly, host, runtime/process, UUID and UTC facts through one explicit call. The store remains passive. Caller startup applies defaults, then explicit assignments, then known environment overrides before starting consumers. Environment name/kind, build/commit identifiers and logging values remain caller-controlled. Repeated helper calls reapply defaults rather than using lifecycle/readiness/publication state. This follow-up does not resume the paused logging roadmap, publish an API or introduce a general startup pipeline. The current guide and separate environment-defaults implementation record describe exact behavior and executed evidence.
+
+## User-selected readonly static environment construction
+
+The latest direct user request makes obvious runtime/identity facts readonly and populates defaults followed by overrides in the constructor, with common identity strings interned. The user explicitly selected keeping the static container with a static constructor. This supersedes the passive-store attachment and explicit EnvironmentDefaults.Apply candidate where they conflict. First access discovers entry-assembly and current runtime/process facts and applies existing alias/canonical variables. Fifteen properties are getter-only; EnvironmentKind, CommitId and BuildId remain ordinary caller policy, and the getter-only Logging reference contains mutable module-owned options. Four bounded validated identity strings are interned after override selection. No explicit initializer, reset/readiness state, snapshot transport, runtime startup or new dependency is introduced. CLR static failure semantics are documented and exercised. Controlled test transports preserve useful metadata/validation vectors without mutating readonly production facts. The nine migrated mechanic bindings are recorded explicitly; all 41 Planned release cases remain unchanged. The broader logging roadmap remains paused and the changes remain uncommitted.
+
+## Logging roadmap resumed (12 October 2026)
+
+The user resumed logging implementation after commit `248f2f74`. The former pause/uncommitted descriptions above are historical checkpoints. Next is WP04-S04-T04 actual bounded JSONL encoding, under the existing configurable/truncate policy; keep this step limited to capture/encoding rather than adding runtime/output machinery. T05 still owns complete S04 qualification.
+
+## WP04-S05-T04 outcome-table qualification
+
+The [logger outcome qualification](../../docs/modules/logging/logger-outcome-qualification.md) adds the full ordered two-output table against actual Core, using explicit non-I/O controls with independently declared thresholds/capacities and owned tickets. Required expectation fields, complete case-to-criterion mapping and independent original-byte corruption checks are qualification choices within the authorized task. Claude final review passed after its actionable portability/coverage findings were corrected. Shipping API/dependencies/code and original source plans remain unchanged. All four S05 task implementations finish at the admission seam; the original AC04 normal I/O failure isolation part and full story acceptance remain pending real WP05 output integration. A Faulted status from a double does not qualify I/O isolation. The next roadmap task is WP05-S01-T01.
+
+## WP05-S01-T01 existing JSONL representation reuse
+
+The [JSONL reuse qualification](../../docs/modules/logging/jsonl-output-reuse.md) confirms that the actual logger already captures/encodes before admission and shares one owned EncodedEvent whose JsonLine includes the final LF. No duplicate formatter, wrapper or new shipping API/dependency is needed. Original-byte and whole-structure checks qualify Unicode/control/newline safety, typed metadata and cap application; the six-byte escaped payload cases explicitly reject an ignored cap. Claude corrected comparator gaps, then final followup passed. These are task qualification choices, not new user policy or full output/story/release completion. T02 human output, T03 presentation separation and T04 combined story qualification remain next; real workers/I/O/lifecycle/provider and S05 I/O isolation remain pending.
+
+## WP05-S01-T02 human display projection
+
+The [human renderer](../../docs/modules/logging/human-output.md) implements normal required fields and verbose available context/typed attributes/exception detail from the runtime-owned JSONL bytes. Human's stronger visible format/control escaping may expand bytes; its explicit loss flag reports additional omission separately from capture. Protected fields precede payload, the message clips at complete scalar/escape boundaries, and oversized typed display fields are omitted whole with a visible marker. These are maintainer implementation choices within the existing configurable-cap/truncate amendment; JSONL's projection/order remains unchanged. Required full runtime render-loss diagnostics, presentation integration and worker/I/O/lifecycle/provider/release obligations are not claimed by this internal renderer task. Current qualification uses real Core, controlled metadata/time and actual captured activity IDs, original-byte native comparators and nonlayout information assertions.
+
+## WP05-S01-T03 independent presentation choices
+
+The [explicit selector](../../docs/modules/logging/presentation-separation.md) keeps thresholds, output enablement/path and streams outside rendering. JSONL is a reused readonly owned view; human is the existing bounded renderer. A readonly value containing memory/loss, explicit enum validation and an error when captured JSONL exceeds the selected cap are task implementation choices. There is no new message-template language or terminal/debugger heuristic. Actual logger/admission controls qualify 64 combinations of four output profiles, both formats/detail/streams and all seven level values, with unchanged caller/ambient captured facts and exact reuse. This is internal presentation qualification, not runtime format/destination/stream composition, delivery, render-loss counters, worker/lifecycle/provider or release evidence. Original plans/contracts and historical evidence remain preserved; T04 full story mapping is still required.
+
+## WP05-S01-T04 combined rendering fixtures
+
+The [combined rendering qualification](../../docs/modules/logging/rendering-qualification.md) completes the four S01 criteria at the real internal capture/admission/rendering seam. The fixture renders original owned objects; full literal JSON expectations and exact human field/type assertions qualify every explicit format/detail view. Current supplemental catalogs cover presentation independence and protected metadata/keys/activity/scalar boundaries. Comparers normalize no fields and accept object/display order and insignificant spacing while rejecting changed facts or unsafe bytes. This does not close runtime format/stream/render-loss composition, worker/I/O/lifecycle/provider, S05 normal I/O isolation or release obligations, which must recheck these invariants when integrated. Original source plans and historical evidence remain preserved.
+
+T04 comparer review follows the existing v1 contract: both Integer and Number project as JSON numbers, and wire values cannot prove their constructor kind. C# semantic numeric comparison stays unchanged; Python now accepts equivalent numeric notation while preserving distinct Boolean/string kinds. Positive integer-with-.0 and exponent-notation controls plus a Boolean-to-number corruption control qualify that policy. Safe ASCII spaces after display `=` are accepted consistently. This adds no lexical-number wire contract, shipping code or field normalization.
+
+## WP05-S02-T01 implementation boundary
+
+The [queue foundation](../../docs/modules/logging/output-queues.md) uses actual bounded Channels, one awaited worker per enabled output, trusted internal writer callbacks and suppressed creator context. Primitive closure and observable callback faults avoid retained work; they do not complete public stop/flush deadlines or S03 failure/abandonment accounting. Shared controlled MemoryStream cases are actual queue/writer probes, without claiming physical destination composition, runtime tickets/outcomes, full S02, normal destination I/O isolation or release. These are scoped implementation choices under the original task; public contracts, dependencies, original plans and historical checkpoints remain unchanged.
+
+## WP05-S02-T02 internal composition boundary
+
+The [actual runtime fanout](../../docs/modules/logging/queued-fanout.md) uses a readonly event/ticket slot and one shared admission/dequeue/closure gate, with capture and writer callbacks outside it. An internal creation entry freezes only the values this composition consumes; it is not a public placeholder or new startup framework. Positive successful tickets advance only on admission; Int64 exhaustion terminally rejects without wrapping. Existing filtered/unavailable hooks are recorded, while complete S03 diagnostics/failure/abandonment accounting and public physical-output/lifecycle/provider/release remain pending. Controlled MemoryStream/IOException cases are actual runtime/queue probes, without a persistence or full-story claim. These are scoped implementation choices under the original T02 task; supplied sources and historical checkpoints remain preserved.
+
+## WP05-S02-T03 incoming overflow qualification
+
+The [incoming overflow cases](../../docs/modules/logging/queue-overflow.md) qualify the existing real Channel admission and Core result composition rather than adding another shipping mechanism. Literal per-output outcomes, accepted caller/byte preservation and controlled one-sided recovery/fault/filter cases distinguish admission from delivery and retain only per-destination order. Reusing the existing fixture and an explicit native catalog profile are scoped verification choices; complete S03 output counters/diagnostics, T04 bookkeeping, physical outputs/lifecycle/provider and release remain pending. Original supplied plans and historical evidence remain unchanged.
+
+## WP05-S02-T04 bounded cohort qualification
+
+The [seeded producer cohorts](../../docs/modules/logging/queue-bursts.md) qualify all four S02 criteria at the existing internal Core/Channel/memory-writer seam. Literal cohort counts and independently checked caller/ticket bytes avoid fixing scheduling-dependent winners. Sampled held-writer queue maxima, atomic callback maxima and canonical single-worker inspection distinguish accepted worker bounds from caller/pre-admission memory and later flush-control obligations. Explicit shared transport ticket checks and reused native transport validation are verification choices, with no shipping/API/dependency change. S03 accounting/diagnostics, physical output/lifecycle/provider and release remain pending; original plans and historical records are unchanged.
+
+## WP05-S03-T04 diagnostic dependency ordering
+
+The original guide requires GetDiagnostics to return immutable counter/status observations. Its later unpublished reference catalog adds LastStopResult typed as LogStopResult, which depends on the real bounded shared stop operation. T04 implements the seven real runtime facts, all fourteen selected output facts and ownership/counter/state qualification. LastStopResult and its concrete dependent stop result remain required for WP05-S10 before v1 publication. This is a maintainer implementation-order decision under the existing roadmap, not a new user direction or a withdrawal of the final selected member. Primitive admission closure supplies real first-closure time and actual worker draining; no bounded stop result is fabricated. Preserved source/reference files and all 41 Planned release rows remain unchanged.
+
+## WP05-S04-T01 immutable creation inputs after environment simplification
+
+The original task mentions the former immutable environment snapshot. The user-selected static container and module-owned options supersede that transport. Actual console composition instead copies the concrete consumed options at creation, before selector/worker work. It does not add a new public startup/snapshot framework. [Console composition](../../docs/modules/logging/console-composition.md) integrates real format/detail/stream and before-admission render-loss accounting while keeping original capture bytes and final lifecycle/public creation obligations intact. These are maintainer implementation choices within the authorized roadmap, not new user directions or a release qualification.
+
+## WP05-S04-T02 existing ownership and serialization mechanism
+
+[Borrowed console qualification](../../docs/modules/logging/console-ownership.md) retains the existing concrete writer and one sequential output worker. Both already implement the task behavior; explicit source comments and real lifetime/order probes qualify it rather than adding redundant ownership or synchronization types. The chosen static environment/module options and truncation amendments remain intact. Startup rollback, full S04 consumers and final lifecycle/release obligations remain required. This is a maintainer implementation choice within the supplied task, not a new user direction.
+
+## WP05-S04-T03 safe errors and idle rollback
+
+[Console startup](../../docs/modules/logging/console-startup.md) implements the preserved initialization-exception contract at the actual internal composition entry. The concrete startup acquires queues before its final stream-readiness check and joins unpublished idle workers on failure. A trusted internal Task.Run-compatible launcher makes partial acquisition failures reproducible without a public scheduler or startup framework. Fixed safe categories and this ordering are maintainer implementation choices within the task. Invalid arguments remain argument errors, and physical file ownership/public bounded lifecycle/full S04 consumers remain required later work.
+
+## WP05-S04-T04 static-container consumer qualification
+
+The [same compiled console consumer](../../docs/modules/logging/console-consumers.md) reads real environment variables through the selected static EnvironmentOptions constructor, then prepares module settings before internal runtime composition. This replaces the original snapshot wording without reintroducing superseded publication APIs. Literal actual-stream and controlled worker cases plus source-preserving criterion mapping qualify the task; default Human and explicit JSONL CLI selection remain distinct configuration facts. Public runtime/physical file/bounded lifecycle/provider/release remain later work. These are implementation/qualification choices within the authorized roadmap, not new user policy.
+
+## WP05-S05-T01 physical acquisition boundary
+
+The owner consumes the prepared absolute path and acquires physical handles only at initialization. A persistent empty `.cis.lock` companion identifies the configured path group; an actual second-handle probe checks exclusivity before active-file creation. The active file permits readers and is opened without truncation or append. Nonempty companion collisions and unavailable ownership fail clearly with fixed safe codes. Existing artifacts are preserved and acquired handles are released. Group aliases that require different companion paths are outside this ownership protocol. Format inventory and permission/format/full startup qualification remain the following S05 tasks; this foundation does not activate public runtime examples or approve a release.
+
+## WP05-S05-T02 inventory foundation
+
+The format-aware internal owner acquires the path lease before inventory I/O, creates metadata only for a new empty group, and otherwise validates immutable group/segment identity and group-wide format/UTF-8/no-BOM/LF facts without rewriting existing bytes. Internal metadata bounds are 2 MiB/depth12/1001entries. Exact `.cis-log-<groupN>-<idD20>.closed|damaged` names fence referenced members to the same directory and provide the later rotation basis. Missing active members fail clearly; startup never deletes pre-existing/nonempty artifacts. No append, worker/public-runtime composition, rotation, recovery or release qualification is claimed.
+
+## WP05-S05-T03 actual startup composition
+
+The [file/console composition](../../docs/modules/logging/file-startup.md) freezes only concrete consumed settings, starts unpublished idle workers, validates borrowed console readiness and acquires format-aware physical file ownership before returning the internal runtime. File resources close outside admission before worker completion; failed startup joins only its own workers and preserves pre-existing artifacts/borrowed streams. Unbuffered managed writes make completion observable without durability claims. Existing oversize/non-LF boundaries fail safely until S06 rotation and S07 selected recovery replace the explicit guards. These are scoped implementation choices, not new public startup abstractions, release approval or a withdrawal of later roadmap requirements.
+
+## WP05-S05-T04 physical runtime qualification
+
+The [startup qualification](../../docs/modules/logging/file-startup-qualification.md) uses real live process-owned configured runtimes, literal producer PID/order checks, captured relative/Unicode paths, immutable format inventory failures and actual OS-denied permissions. Narrow deny rules/modes affect only fresh native temporary paths and are restored in finally; exclusive probes before child exit qualify acquired-handle release; later retry qualifies restored-path reuse. This is verification within the authorized task, without shipping API/dependency changes or a new startup framework. All four S05 criteria are mapped at the internal physical-runtime seam; public lifecycle, rotation/recovery and release requirements remain separate.
+
+## WP05-S06-T01 complete-record size rotation
+
+[Size rotation](../../docs/modules/logging/file-rotation.md) replaces the temporary post-start file capacity fault with actual whole-record rotation under the existing path-group lease. Initial physical length and successful prepared-byte writes supply the count; LF is included. Minimal closed/new-active inventory publication is necessary for this task and uses the existing persistent group and increasing segment IDs. It occurs before fresh-active creation, so failed publication leaves no appendable active path. This is an implementation-order choice within the authorized roadmap, without a new dependency/public API/framework. Configured retention/restart qualification remains T02; exact deletion/failure policy remains T03/T04; interrupted rotation recovery remains S07. Existing startup guards, source plans, historical evidence and all41Planned release rows remain unchanged.
+
+## WP05-S06-T02 configured retention and restart order
+
+[Configured retention](../../docs/modules/logging/file-retention.md) uses persistent inventory IDs to retain the newest exact listed closed/damaged members, deleting required oldest members under the same lease before further growth. The frozen selected bound reaches the actual writer; no new dependency/API/I/O framework is introduced. Existing startup inventory above a newly selected lower bound fails safely without pruning, preserving the original rollback rule. Maximum readable inventory now rotates by retirement rather than an artificial capacity fault. Sparse IDs, timestamps and fresh producer instances do not reset group identity/order. T03 owns complete deletion-failure/isolation and Human oversized categories; T04 owns broader filesystem cases; S07 owns interrupted updates and damaged-record recovery. Source plans, historical evidence and all 41 Planned release cases remain unchanged.
+
+## WP05-S06-T03 terminal file-policy faults
+
+[File-policy failures](../../docs/modules/logging/file-policy-failures.md) reuse the existing worker terminal path with fixed internal RetentionDeleteFailed and RenderTooLarge categories. Required exact oldest-member deletion faults before further segment growth; healthy console remains usable and ownership releases before child exit. The Human guard is defensive under valid FileMaxBytes/MaxEntryBytes selection and is qualified using actual prepared bytes with a smaller trusted internal segment, without changing public ranges or ordinary input truncation. Only verified native temporary paths receive operational deletion-denial permissions, and those changes restore in finally. No new I/O abstraction, dependency/API or retries are added. Broader filesystem/collision/story qualification remains T04, and interrupted updates/damaged-record recovery remain S07. Source plans, historical evidence and all 41 Planned release cases remain unchanged.
+
+## WP05-S06-T04 physical failure qualification
+
+[Rotation/retention qualification](../../docs/modules/logging/file-rotation-qualification.md) rejects an occupied exact next closed name before retirement, preserving listed evidence for predictable collisions while retaining the non-overwriting move for later races. Existing worker callbacks supply a controlled post-first-physical-write IOException; Linux additionally uses an owned process-only file-size limit for an actual OS-rejected write. These are scoped implementation/qualification choices, not a full-volume, durability or public-lifecycle claim. Failed metadata publication preserves its existing private candidate and closed bytes; reconciliation remains S07. The original four criteria are mapped without changing source plans, historical receipts or the 41 Planned release cases. No shipping I/O framework, dependency, public API or retries are added.
+
+## WP05-S07-T01 inspection before recovery
+
+[Managed boundary inspection](../../docs/modules/logging/jsonl-boundary-inspection.md) checks the owned active JSONL tail only after inventory format/encoding validation, restores position and preserves physical bytes. Actual no-BOM/strict UTF-8/object/LF facts distinguish Empty/Complete/Partial/Invalid. The final-record bound is the absolute supported 16 MiB including LF, rather than a lower newly selected entry cap; earlier records/full event schemas are not revalidated. Empty/Complete may append through the existing worker; Partial/Invalid keep the safe unchanged startup failure until T02 recovery. Human checks, startup size/retention priority, ownership and ordinary caller truncation remain unchanged. This is a scoped implementation choice within T01, without a new public API, dependency, IO framework or full S07 acceptance claim. T02/T03/T04, public bounded lifecycle/provider and release remain required. Source plans, historical receipts and all 41 Planned release rows remain unchanged.
+
+## WP05-S07-T02 partial-segment recovery
+
+[Partial recovery](../../docs/modules/logging/jsonl-partial-recovery.md) reuses the held group lease, persistent segment IDs, complete inventory publication and non-overwriting physical rename. Whole partial segments become distinctly damaged; fresh active uses the next ID. Predictable damaged-name collision, ID exhaustion and full/lower retained bound fail unchanged before growth; startup does not delete pre-existing evidence. A concrete readonly RecoveredPartialSegment output diagnostic freezes successful recovery without inventing current delivery faults or counters. This additive unpublished API fact fulfils the original safe-diagnostics requirement without a new diagnostic/event framework. Current rollback-partial fixtures are renamed rollback-invalid-json and seed malformed terminated JSON because partial startup now recovers. Historical receipts/source plans and all 41 Planned release rows are preserved. T03/T04 interruption/retention/collector qualification and public bounded lifecycle/provider/release remain later work.
+
+T02 review resolves current API-catalog drift by adding the implemented recovery Boolean to the unpublished reference surface and preservation proposal; a compiled shipping/catalog architecture comparison and two negative controls guard it. Historical published baselines/source plans are unchanged. Size priority, visible preflight versus late/inaccessible collision categories, bounded direct-owner reinspection and unexecuted post-rename interruption coverage are documented explicitly.
+
+
+## WP05-S07-T03 bounded pending transitions
+
+[Interrupted transitions](../../docs/modules/logging/file-transition-recovery.md) add one private bounded same-directory intent, using existing group inventory serialization and exact persistent identities. Required runtime retirement remains before intent publication, preserving actual deletion-denial semantics and no startup pruning. That unprovable gap fails unchanged; known subsequent stages validate complete original byte hashes and surviving membership before resuming rename/publication/create/cleanup under the lease. Fixed FileTransitionIncompatible/FileTransitionInitializationFailed categories are concrete internal choices to reconcile with the later unpublished error catalog. No public API, dependency, IO framework, retry, directory scan for repair or crash-durability guarantee is added. Original source plans/historical evidence and all 41 Planned release rows remain preserved; T04 full restart/collector qualification and public lifecycle/provider/release remain required.
+
+## WP05-S07-T04 native restart and offline collector scope
+
+[Restart qualification](../../docs/modules/logging/file-recovery-qualification.md) uses actual Core records, fixture pre-state/delete/rename/create operations and actual Core ownership/intent/retirement-selection/inventory publication to stage checkpoints before observed owned-process termination. Staging and restarted runtime retention settings match. It does not claim interruption inside an uninstrumented production rotation call or power-loss durability. The read-only Python collector selector illustrates the current private inventory for stopped groups, selecting only complete inventoried closed/active JSONL; it is not a Python Core implementation or activated public runtime/collector SDK. Damaged-oldest deletion-denial cases reuse existing native permission controls. These are scoped qualification choices under the original task, without shipping changes, dependencies or an I/O framework. Source plans, historical receipts and all 41 Planned release rows remain preserved; public lifecycle/provider and release remain later work.
+
+
+## WP05-S08-T01 registered boundary foundation
+
+[Boundary capture](../../docs/modules/logging/flush-boundary-capture.md) adds internal scalar snapshots and separate nondroppable output controls under the existing admission gate. Minimum real worker ordering and same-target coalescing are implemented now so registration cannot be overtaken by later events; complete caller-wait detachment/bounds and public finite-time results remain T02/T03, with full stress qualification T04. System UTC labels and the final atomic global-invalid read are explicit observation policies; no event-clock/caller I/O runs under the gate. Writer completion means actual userspace flush status and does not substitute for public whole-boundary terminal/pending accounting. Generic internal writer seams without flush callbacks report unavailable confirmation. No public API/dependency/framework is added; source plans, historical evidence and all 41 Planned release rows remain preserved.
+
+
+## WP05-S08-T02 caller lifetime coordination
+
+[Caller coordination](../../docs/modules/logging/flush-coordination.md) adds two internal waits over the existing per-output registrations. A single caller-lifetime token detaches each BCL task wait; sequential output observation avoids a retained per-caller aggregate over blocked tasks. Real one-shot TimeProvider deadline callbacks exercise this same internal detachment path; public timeout/cancellation distinctions and one overall monotonic deadline remain T03. Existing worker controls/ordering are unchanged and explicitly qualified at their full accepted-target bounds. Test-only reflection on pinned .NET continuation references and backing-slot capacity proves detachment and bounded storage, without exposing private runtime layout as a public promise. A fully settled sequence can receive a later serialized flush; no history cache is added. No dependency/public API/framework is introduced; source plans, historical receipts and 41 Planned release rows remain unchanged.
+
+## WP05-S08-T03 public flush observations
+
+[Public flush results](../../docs/modules/logging/flush-results.md) implement the actual method and immutable selected result shapes without publishing placeholder creation/shutdown methods. Every positive TimeSpan uses one monotonic overall budget, with one active-caller timer rearmed in bounded slices. Initial counters remain frozen; a deadline callback freezes terminal/pending/flush facts before detaching its wait. System UTC labels retain T01 policy. A successful prefix, exact failed ticket and abandoned tail provide bounded scalar projection through each fixed target, excluding later admissions/faults and preserving an unresolved in-flight hole after admission exhaustion. A lazy progress signal covers that hole without caller history. Actual timer callback disposal is awaited. These are implementation choices within T03, without a new runtime dependency, retry or general I/O framework. Broad T04 stress and full S08 criteria, public lifecycle, idle file scheduling, provider and release remain required. Original source plans, historical receipts and all 41 Planned release rows remain unchanged.
+
+## WP05-S08-T04 flush stress qualification
+
+WP05-S08-T03 is committed as 0d55b4ea. The [stress qualification](../../docs/modules/logging/flush-stress-qualification.md) and source-preserving acceptance map cover the four original S08 criteria through actual public callers, bounded output controls, blocked callbacks, full queues and concurrent producer/caller cohorts. Reflection/private continuation probes are explicitly nonshipping .NET 10.0.12 qualifications; seeded near-exhaustion history is distinguished from actual wire records. These task-level tests add no shipping abstraction or public API. The expiry/cancellation/disposal race executes the earlier T03 source-inspected window. Idle file scheduling belongs to the following S09 story, as written in the original source plan; this task does not add it or rewrite historical evidence/release requirements.
+
+## WP05-S09-T01 file interval scheduling
+
+WP05-S08-T04 is committed as 8b8aab71 and S08 is qualified. [File interval scheduling](../../docs/modules/logging/file-flush-interval.md) captures the existing environment-driven interval and owns one suppressed-context TimeProvider timer in configured physical file composition. Callback registration through existing controls is the minimum actual scheduling path; complete bounded integration, shared-stop/fault coordination and full S09 acceptance remain T02–T04. FileFlushTimerInitializationFailed is a fixed safe maintainer-selected startup category. Primitive kernel fixtures opt into the same real queue method; physical configured creation starts it automatically. Basic terminal disposal and startup rollback prevent leaked acquired resources without introducing a public lifecycle placeholder, abstraction framework or dependency. Source plans, historical evidence and release requirements are preserved.
+
+
+## WP05-S09-T02 serialized periodic requests
+
+WP05-S09-T01 is committed as c33ff528. Timer requests use the existing nondroppable fixed-boundary controls and single awaited worker; T02 qualifies blocked writes/flushes, repeated periodic ticks, cancelled public callers and continuous explicit/timer coalescing against actual Core state and bytes. Primitive duplicate/closed/detached-before-arm and owned-false startup paths complete the earlier deferred qualification. A detached timer returning false on its first arm is now a harmless closed-runtime outcome; owned false/disposal signals remain initialization failures. An actual disarmed .NET 10.0.12 TimeProvider.System timer is wrapped and its false return after disposal is required. The initial review assumed an ObjectDisposedException from that provider; actual execution tests that claim directly. No generic exception-swallowing behavior is added. No additional worker, scheduler framework, public placeholder or dependency is introduced. Immediate timer cancellation/failure/shared-stop coordination and full S09 acceptance remain T03/T04. Original source plans, historical receipts and release-family obligations remain unchanged.
+
+## WP05-S09-T03 timer lifetime foundation
+
+WP05-S09-T02 is committed as 49911f9d. [Timer lifetime](../../docs/modules/logging/file-timer-lifecycle.md) cancels scheduling on atomic closure/fault and shares one asynchronous disposal task with terminal worker cleanup. The original task refers to a shared public stop operation defined only by the dependent S10 story; this task qualifies the timer portion through existing actual closure and the single shared queue completion, keeping public StopAsync/DisposeAsync/deadline/result integration required in S10. No public lifecycle substitute, per-tick task, extra output worker, retry or dependency is introduced. Actual flush faults retain the existing safe diagnostics and isolate file from console. Barrier-driven kernel cases and a concrete physical callback/lease case qualify real I/O and callback join obligations; the ticket-exhaustion trigger is explicitly seeded rather than emitted history. Custom internal timer-disposal exceptions retain the existing cleanup propagation limitation; primary-failure preservation and cleanup-fault observations remain explicit S10 obligations. Detached throwing-arm cleanup now leaves the assigned timer to its single shared disposal owner while still propagating the internal startup error; unpublished extra timers still receive local disposal. Full S09 acceptance remains T04, bounded shutdown S10, and all original release obligations remain unchanged.
+
+## WP05-S09-T04 complete periodic acceptance
+
+WP05-S09-T03 is committed as fb93c06c. [Periodic qualification](../../docs/modules/logging/file-timer-qualification.md) preserves all four original S09 criteria and maps them to current-assembly controlled-time execution, with disabled/range/startup cases explicitly supplemental. Two new terminal cases make 64 inactive restart attempts on each actually stopped/faulted queue without changing its worker/shared completion/disposal task, output bytes or periodic work. Existing nonshipping clock accessibility becomes internal solely for reuse; no shipping Core source, API, dependency or framework is added. Original interval scheduling-target/no-durability language and kernel/physical/reflection/seeded-case limits remain explicit. The dependent S10 public bounded operation and custom-disposal failure/primary-exception obligations remain required; this task does not qualify a substitute. Release requirements and all historical evidence remain unchanged.
+
+
+## WP06-S02-T03 host filtering
+
+The existing Microsoft provider and Core thresholds are unchanged. The actual `LoggerFactory` test fixture owns an explicit development-only Microsoft logging implementation closure at 10.0.12; Core retains its two approved runtime packages. A provider-wide Trace host rule is the documented default for permitting all Core destination levels, with narrower provider/category rules explained and deliberately exercised. Host-suppressed events are outside Core diagnostics; argument evaluation still precedes logger callbacks. This task adds no filter rewriting, helper API, shipping dependency or host framework. Full concurrent scopes, ownership/shutdown and release remain required.
+
+
+## WP06-S02-T04 nonowning provider qualification
+
+The original nonowning provider default and atomic external-source clearing are already implemented by the preceding provider/scope tasks. Four public physical runtime cases now qualify caller scope-handle survival, shared consumers and lease retention, managed borrowed-source reference release and a barrier-held formatter completing after provider disposal. No shipping source/API/dependency, owning option, cache or lifecycle abstraction is added. GC operations exist only in pinned managed qualification fixtures; complete factory/host shutdown and concurrent story acceptance remain T05, and release requirements remain unchanged.
+
+
+## WP06-S02-T05 application host story qualification
+
+Actual LoggerFactory/ILogger<T> plus the existing public process host qualify every original S02 criterion. The application coordinates two async flows, explicit work completion and shared bounded stop/disposal. No Generic Host framework-specific lifetime is claimed or required by the original illustrative application host. Factory AddProvider owns provider disposal while the provider remains nonowning of Core. Complete exact-assembly filter/operation/ownership regression lanes complement seven new factory/flow/shutdown/formatter cases. No shipping API/source/dependency or lifecycle abstraction is introduced; examples/skills, dependency packaging verification and full release remain later tasks.
+
+
+## WP06-S03 single-Core packaging scope
+
+The earlier explicit user decision supersedes S03 standalone bridge packaging and zero-abstraction Core consumer optionality. [Scope record](microsoft-packaging-scope.json) preserves all five original tasks/criteria alongside their current direction: embedded adapter with approved two-package runtime closure; real dependency/asset rejection controls; explicit adapter coverage/mutation in Core; cumulative provider consumers for one Core package; complete adapter material in the Core release bundle. T01 retains the net10.0/10.0.12 locked repository baseline and existing nuspec inclusive-minimum consumer semantics, updates current package description/README and inspects an actual development pack. No dependency range, shipping API or package is added. The old optional-package scenarios are superseded, not relabeled as executed. T02-T05 and full release/publication remain required.
+
+
+## WP06-S03-T02 embedded dependency/asset controls
+
+The existing evaluated/restored/compiled/packed checker is retained. Twelve new architecture cases qualify copied transitive graph additions, wrong/missing approved closure members, factory/third-party packed DLLs, nuspec additions/replacements/version/constraint drift and a real managed NLog AssemblyRef. The first eleven rows prove an unchanged positive before mutation; no unapproved dependency is downloaded or loaded. A stale pre-commit candidate versus newly built helper correctly failed positive package consistency, then repacking restored success. No Type Manager implementation, shipping API/source/dependency or gate exception is added. This is Windows development qualification; complete platform/release assurance and T03-T05 remain required.
+
+
+--- FILE implementations/csharp/eng/check-dependencies.ps1 SHA256 aa17f20d533a5ee34bca9c6314d67185791743da94abc4db984e657c4b0530f4 ---
+param(
+    [string] $LanguageRoot = (Split-Path $PSScriptRoot -Parent),
+    [string] $ProjectPath,
+    [string] $AssetsPath,
+    [string] $AssemblyPath,
+    [string] $PackagePath
+)
+
+$ErrorActionPreference = 'Stop'
+Set-StrictMode -Version Latest
+$LanguageRoot = [IO.Path]::GetFullPath($LanguageRoot)
+$projectPolicy = Get-Content -Raw -LiteralPath (Join-Path $LanguageRoot 'eng/project-boundaries.json') | ConvertFrom-Json -AsHashtable
+$runtimePolicy = Get-Content -Raw -LiteralPath (Join-Path $LanguageRoot 'eng/runtime-dependencies.json') | ConvertFrom-Json -AsHashtable
+$developmentPolicy = Get-Content -Raw -LiteralPath (Join-Path $LanguageRoot 'eng/development-dependencies.json') | ConvertFrom-Json -AsHashtable
+$runtimeAllowed = @{}
+foreach ($package in $runtimePolicy.packages) { $runtimeAllowed[$package.id] = $package.version }
+$developmentAllowed = @{}
+$testDevelopmentAllowed = @{}
+foreach ($package in $developmentPolicy.packages) {
+    $developmentAllowed[$package.id] = $package.version
+    if ($package.role -notlike '*-fixture') { $testDevelopmentAllowed[$package.id] = $package.version }
+}
+
+function Invoke-Evaluation {
+    param([string] $Path, [switch] $ResolveReferences)
+    $arguments = @('msbuild', $Path)
+    if ($ResolveReferences) {
+        $arguments += @('-t:ResolveReferences', '-p:BuildProjectReferences=false', '-getItem:ReferencePath')
+    }
+    else {
+        $arguments += @('-getItem:ProjectReference,PackageReference,FrameworkReference,Reference', '-getProperty:TargetFramework,IsPackable,IsTestProject,AssemblyName,PackageId,RootNamespace,OutputType,MSBuildBinPath,NETCoreSdkVersion')
+    }
+    $result = & dotnet @arguments
+    if ($LASTEXITCODE -ne 0) { throw "Project evaluation failed: $Path" }
+    return ($result -join "`n") | ConvertFrom-Json -AsHashtable
+}
+
+function Check-RestoredGraph {
+    param([hashtable] $Project, [string] $Path)
+    if (-not (Test-Path -LiteralPath $Path)) { throw "Restore assets are missing: $Path" }
+    $assets = Get-Content -Raw -LiteralPath $Path | ConvertFrom-Json -AsHashtable
+    $target = $assets.targets[$projectPolicy.targetFramework]
+    if ($null -eq $target) { throw "Missing restored target for $($Project.path): $($projectPolicy.targetFramework)" }
+    $resolved = @{}
+    $resolvedProjects = @()
+    $expectedRestoredProjects = if ($Project.ContainsKey('restoredProjectReferences')) { $Project.restoredProjectReferences } else { $Project.projectReferences }
+    foreach ($identity in $target.Keys) {
+        $entry = $target[$identity]
+        $id, $version = $identity.Split('/', 2)
+        if ($entry.type -eq 'project') {
+            $projectAsset = [IO.Path]::GetFullPath((Join-Path (Split-Path $assets.project.restore.projectPath -Parent) $assets.libraries[$identity].msbuildProject))
+            if (-not ($expectedRestoredProjects | Where-Object { [IO.Path]::GetFullPath((Join-Path $LanguageRoot $_)) -eq $projectAsset })) {
+                throw "Unapproved restored project dependency for $($Project.path): $id"
+            }
+            $resolvedProjects += $projectAsset
+            continue
+        }
+        if ($entry.type -ne 'package') { throw "Unexpected restored dependency type: $identity" }
+        $allowed = $Project.role -in @('shipping', 'test', 'example', 'process-fixture') -and $runtimeAllowed.ContainsKey($id) -and $runtimeAllowed[$id] -eq $version
+        if ($Project.role -eq 'test') { $allowed = $allowed -or ($testDevelopmentAllowed.ContainsKey($id) -and $testDevelopmentAllowed[$id] -eq $version) }
+        if ($Project.role -eq 'process-fixture' -and $Project.ContainsKey('developmentPackageReferences') -and $id -in $Project.developmentPackageReferences) {
+            $allowed = $allowed -or ($developmentAllowed.ContainsKey($id) -and $developmentAllowed[$id] -eq $version)
+        }
+        if (-not $allowed) { throw "Unapproved $($Project.role) package dependency: $identity" }
+        $resolved[$id] = $version
+    }
+    foreach ($id in $Project.packageReferences) {
+        if (-not $resolved.ContainsKey($id)) { throw "Required restored package is missing: $id" }
+    }
+    foreach ($reference in $expectedRestoredProjects) {
+        if ([IO.Path]::GetFullPath((Join-Path $LanguageRoot $reference)) -notin $resolvedProjects) {
+            throw "Required restored project is missing: $reference"
+        }
+    }
+    if ($Project.role -eq 'shipping' -and $resolved.Count -ne $runtimeAllowed.Count) { throw 'Core runtime closure differs from the approved inventory.' }
+}
+
+$projects = @($projectPolicy.projects)
+if ($ProjectPath) {
+    # Focused fixture checks use one registered project. Normal verification always checks the whole manifest.
+    $projects = @($projects | Where-Object path -eq $ProjectPath)
+    if ($projects.Count -ne 1) { throw "Unknown project requested: $ProjectPath" }
+}
+else {
+    $knownPaths = @($projects | ForEach-Object { [IO.Path]::GetFullPath((Join-Path $LanguageRoot $_.path)) })
+    $unknown = @(Get-ChildItem -LiteralPath $LanguageRoot -Recurse -Filter '*.csproj' -File |
+        Where-Object { $_.FullName -notmatch '[\\/](bin|obj|\.vs)[\\/]' -and $_.FullName -notin $knownPaths })
+    if ($unknown.Count -ne 0) { throw "Unregistered C# project: $($unknown[0].FullName)" }
+}
+
+Push-Location $LanguageRoot
+try {
+    foreach ($project in $projects) {
+        $path = Join-Path $LanguageRoot $project.path
+        $evaluation = Invoke-Evaluation -Path $path
+        if ($evaluation.Properties.TargetFramework -ne $projectPolicy.targetFramework) { throw "Unexpected target framework: $($project.path)" }
+        $expectedPackable = if ($project.role -eq 'shipping') { 'true' } else { 'false' }
+        if ($evaluation.Properties.IsPackable -ne $expectedPackable) { throw "Unexpected packability: $($project.path)" }
+        if ($project.role -eq 'shipping') {
+            foreach ($identityProperty in @('AssemblyName', 'PackageId', 'RootNamespace')) {
+                if ($evaluation.Properties[$identityProperty] -ne $projectPolicy.shippingIdentity[$identityProperty]) { throw "Unexpected shipping identity $identityProperty for $($project.path)" }
+            }
+        }
+        if ($project.role -eq 'test' -and $evaluation.Properties.IsTestProject -ne 'true') { throw "Test project is not enabled: $($project.path)" }
+        if ($project.role -eq 'process-fixture' -and ($evaluation.Properties.IsTestProject -ne 'false' -or $evaluation.Properties.OutputType -ne 'Exe')) { throw "Process fixture must be a non-test executable: $($project.path)" }
+        $actualReferences = @()
+        foreach ($reference in $evaluation.Items.ProjectReference) {
+            $referencePath = [IO.Path]::GetFullPath($reference.Identity, (Split-Path $path -Parent))
+            $allowedReferences = @($project.projectReferences | ForEach-Object { [IO.Path]::GetFullPath((Join-Path $LanguageRoot $_)) })
+            if ($referencePath -notin $allowedReferences) { throw "Forbidden project reference from $($project.path): $($reference.Identity)" }
+            $buildOnlyReferences = @()
+            if ($project.ContainsKey('buildOnlyProjectReferences')) {
+                $buildOnlyReferences = @($project.buildOnlyProjectReferences | ForEach-Object { [IO.Path]::GetFullPath((Join-Path $LanguageRoot $_)) })
+            }
+            if ($referencePath -in $buildOnlyReferences -and ($reference.ReferenceOutputAssembly -ne 'false' -or $reference.Private -ne 'false' -or $reference.PrivateAssets -ne 'all')) {
+                throw "Build-only project must not become a runtime reference: $($reference.Identity)"
+            }
+            $actualReferences += $referencePath
+        }
+        if ($actualReferences.Count -ne $project.projectReferences.Count) { throw "Project reference inventory mismatch: $($project.path)" }
+        $approvedFrameworks = @($projectPolicy.implicitFramework)
+        if ($project.role -eq 'example' -and $project.ContainsKey('additionalImplicitFrameworkReferences')) {
+            $approvedFrameworks += @($project.additionalImplicitFrameworkReferences)
+        }
+        foreach ($reference in $evaluation.Items.FrameworkReference) {
+            if ($reference.Identity -notin $approvedFrameworks -or $reference['IsImplicitlyDefined'] -ne 'true') {
+                throw "Forbidden framework reference from $($project.path): $($reference.Identity)"
+            }
+        }
+        foreach ($reference in $evaluation.Items.Reference) {
+            if ($project.role -eq 'build-tool') {
+                $pinnedSdk = (Get-Content -Raw -LiteralPath (Join-Path $LanguageRoot 'global.json') | ConvertFrom-Json).sdk.version
+                $expectedPath = [IO.Path]::GetFullPath((Join-Path $evaluation.Properties.MSBuildBinPath ($reference.Identity + '.dll')))
+                if ($reference.Identity -notin $project.sdkAssemblyReferences -or $reference.Private -ne 'false' -or
+                    $evaluation.Properties.NETCoreSdkVersion -ne $pinnedSdk -or
+                    [IO.Path]::GetFullPath($reference.HintPath) -ne $expectedPath -or -not (Test-Path -LiteralPath $expectedPath)) {
+                    throw "Unapproved pinned-SDK build-tool reference: $($reference.Identity)"
+                }
+                continue
+            }
+            $approvedReference = @($developmentPolicy.buildAssemblyReferences | Where-Object name -eq $reference.Identity)
+            if ($project.role -ne 'test' -or $approvedReference.Count -ne 1) { throw "Manual assembly references are forbidden: $($project.path)" }
+            $packageId = $approvedReference[0].packageId
+            $packageVersion = $developmentAllowed[$packageId]
+            $assets = Get-Content -Raw -LiteralPath (Join-Path (Split-Path $path -Parent) 'obj/project.assets.json') | ConvertFrom-Json -AsHashtable
+            $approvedOrigin = $false
+            foreach ($folder in $assets.packageFolders.Keys) {
+                $packageRoot = [IO.Path]::GetFullPath((Join-Path $folder ($packageId.ToLowerInvariant() + '/' + $packageVersion))) + [IO.Path]::DirectorySeparatorChar
+                if ([IO.Path]::GetFullPath($reference.HintPath).StartsWith($packageRoot, [StringComparison]::OrdinalIgnoreCase) -and
+                    [IO.Path]::GetFullPath($reference.DefiningProjectFullPath).StartsWith($packageRoot, [StringComparison]::OrdinalIgnoreCase)) { $approvedOrigin = $true }
+            }
+            if (-not $approvedOrigin) { throw "Unapproved origin for test-tool assembly reference: $($reference.Identity)" }
+        }
+        if ($project.role -eq 'build-tool' -and $evaluation.Items.Reference.Count -ne $project.sdkAssemblyReferences.Count) {
+            throw "Build-tool SDK reference inventory mismatch: $($project.path)"
+        }
+        $actualPackages = @()
+        foreach ($reference in $evaluation.Items.PackageReference) {
+            if ($reference.Identity -notin $project.packageReferences) { throw "Unapproved explicit package from $($project.path): $($reference.Identity)" }
+            if ($project.role -eq 'test' -and $reference.PrivateAssets -ne 'all') { throw "Test package must have PrivateAssets=all: $($reference.Identity)" }
+            if ($project.role -eq 'process-fixture' -and $project.ContainsKey('developmentPackageReferences') -and $reference.Identity -in $project.developmentPackageReferences -and $reference['PrivateAssets'] -ne 'all') {
+                throw "Fixture development package must have PrivateAssets=all: $($reference.Identity)"
+            }
+            $actualPackages += $reference.Identity
+        }
+        if ($actualPackages.Count -ne $project.packageReferences.Count) { throw "Package reference inventory mismatch: $($project.path)" }
+        $restoredPath = if ($AssetsPath -and $project.role -eq 'shipping') { $AssetsPath } else { Join-Path (Split-Path $path -Parent) 'obj/project.assets.json' }
+        Check-RestoredGraph -Project $project -Path $restoredPath
+    }
+
+    if ($AssemblyPath -or $PackagePath) {
+        $corePath = Join-Path $LanguageRoot $runtimePolicy.shipping_project
+        $references = (Invoke-Evaluation -Path $corePath -ResolveReferences).Items.ReferencePath
+        $allowedNames = @()
+        foreach ($reference in $references) {
+            $frameworkName = $reference['FrameworkReferenceName']
+            if ($frameworkName -eq $projectPolicy.implicitFramework) {
+                $allowedNames += [IO.Path]::GetFileNameWithoutExtension($reference.Identity)
+            }
+            elseif ($runtimeAllowed.ContainsKey($reference.NuGetPackageId) -and $runtimeAllowed[$reference.NuGetPackageId] -eq $reference.NuGetPackageVersion) {
+                $allowedNames += [IO.Path]::GetFileNameWithoutExtension($reference.Identity)
+            }
+            else { throw "Unapproved resolved compiler reference: $($reference.Identity)" }
+        }
+        $reportDirectory = Join-Path (Split-Path (Split-Path $LanguageRoot -Parent) -Parent) '.artifacts/csharp/dependencies'
+        New-Item -ItemType Directory -Path $reportDirectory -Force | Out-Null
+        $allowlistPath = Join-Path $reportDirectory ('reference-names-' + [Guid]::NewGuid().ToString('N') + '.json')
+        @($allowedNames | Sort-Object -Unique) | ConvertTo-Json | Set-Content -LiteralPath $allowlistPath
+        $checkerPath = Join-Path (Split-Path $PSScriptRoot -Parent) 'eng/CIS.DependencyChecker/bin/Release/net10.0/CIS.DependencyChecker.dll'
+        if (-not (Test-Path -LiteralPath $checkerPath)) { throw 'Build the Release dependency checker before inspecting compiled references.' }
+        if ($AssemblyPath) {
+            & dotnet $checkerPath $AssemblyPath $allowlistPath
+            if ($LASTEXITCODE -ne 0) { throw 'Compiled assembly boundary check failed.' }
+        }
+    }
+
+    if ($PackagePath) {
+        $archive = [IO.Compression.ZipFile]::OpenRead($PackagePath)
+        try {
+            $allowedEntries = @('lib/net10.0/CIS.Core.dll', 'lib/net10.0/CIS.Core.xml', 'README.md', 'CIS.Core.nuspec', '[Content_Types].xml', '_rels/.rels')
+            $typeManagerAssets = @{
+                'buildSupport/CIS.TypeManager.targets' = 'build/type-manager/CIS.TypeManager.targets'
+                'Sdk/Sdk.props' = 'build/type-manager/sdk/Sdk.props'
+                'Sdk/Sdk.targets' = 'build/type-manager/sdk/Sdk.targets'
+                'Sdk/BeforeSdk.targets' = 'build/type-manager/sdk/BeforeSdk.targets'
+                'buildTransitive/CIS.Core.targets' = 'build/type-manager/package/CIS.Core.targets'
+            }
+            $allowedEntries += @($typeManagerAssets.Keys) + @('Sdk/PackageVersion.props', 'tools/net10.0/CIS.TypeManager.Build.dll')
+            foreach ($entry in $archive.Entries) {
+                if ($entry.FullName -notin $allowedEntries -and $entry.FullName -notmatch '^package/services/metadata/core-properties/[^/]+\.psmdcp$') {
+                    throw "Unexpected packed asset: $($entry.FullName)"
+                }
+            }
+            if (@($archive.Entries | Where-Object FullName -eq 'lib/net10.0/CIS.Core.dll').Count -ne 1) { throw 'Core DLL target asset is missing.' }
+            foreach ($required in @($typeManagerAssets.Keys) + @('Sdk/PackageVersion.props', 'tools/net10.0/CIS.TypeManager.Build.dll')) {
+                if (@($archive.Entries | Where-Object FullName -eq $required).Count -ne 1) { throw "Type Manager package asset is missing or duplicated: $required" }
+            }
+            foreach ($name in $typeManagerAssets.Keys) {
+                $input = $archive.GetEntry($name).Open()
+                try { $hash = [Convert]::ToHexString([Security.Cryptography.SHA256]::HashData($input)) } finally { $input.Dispose() }
+                if ($hash -ne (Get-FileHash -LiteralPath (Join-Path $LanguageRoot $typeManagerAssets[$name])).Hash) {
+                    throw "Packed Type Manager build asset differs from source: $name"
+                }
+            }
+            $toolPath = (& dotnet msbuild eng/CIS.TypeManager.Build/CIS.TypeManager.Build.csproj -p:Configuration=Release -getProperty:TargetPath -nologo).Trim()
+            if ($LASTEXITCODE -ne 0 -or -not (Test-Path -LiteralPath $toolPath)) { throw 'Build the Release Type Manager helper before inspecting its package.' }
+            $input = $archive.GetEntry('tools/net10.0/CIS.TypeManager.Build.dll').Open()
+            try { $hash = [Convert]::ToHexString([Security.Cryptography.SHA256]::HashData($input)) } finally { $input.Dispose() }
+            if ($hash -ne (Get-FileHash -LiteralPath $toolPath).Hash) { throw 'Packed Type Manager helper differs from the checked Release tool.' }
+            $nuspecEntry = $archive.GetEntry('CIS.Core.nuspec')
+            if ($null -eq $nuspecEntry) { throw 'Core package manifest is missing.' }
+            $reader = [IO.StreamReader]::new($nuspecEntry.Open())
+            try { [xml] $nuspec = $reader.ReadToEnd() } finally { $reader.Dispose() }
+            $reader = [IO.StreamReader]::new($archive.GetEntry('Sdk/PackageVersion.props').Open())
+            try { [xml] $versionProps = $reader.ReadToEnd() } finally { $reader.Dispose() }
+            if ($versionProps.Project.PropertyGroup._CisCoreSdkPackageVersion -ne $nuspec.SelectSingleNode("//*[local-name()='metadata']/*[local-name()='version']").InnerText) {
+                throw 'Type Manager SDK and runtime package versions differ.'
+            }
+            $groups = @($nuspec.SelectNodes("//*[local-name()='dependencies']/*[local-name()='group']"))
+            if ($groups.Count -ne 1 -or $groups[0].targetFramework -ne 'net10.0') { throw 'Unexpected package dependency groups.' }
+            $directPackages = @($runtimePolicy.packages | Where-Object role -eq 'direct')
+            $dependencies = @($groups[0].SelectNodes("*[local-name()='dependency']"))
+            if ($dependencies.Count -ne $directPackages.Count) { throw 'Packed direct dependency inventory mismatch.' }
+            foreach ($dependency in $dependencies) {
+                $expected = @($directPackages | Where-Object id -eq $dependency.id)
+                if ($expected.Count -ne 1 -or $dependency.version -ne $expected[0].version) { throw "Unapproved packed dependency: $($dependency.id)/$($dependency.version)" }
+            }
+            $packedPath = Join-Path $reportDirectory ('CIS.Core-' + [Guid]::NewGuid().ToString('N') + '.dll')
+            $input = $archive.GetEntry('lib/net10.0/CIS.Core.dll').Open()
+            $output = [IO.File]::Create($packedPath)
+            try { $input.CopyTo($output) } finally { $input.Dispose(); $output.Dispose() }
+            & dotnet $checkerPath $packedPath $allowlistPath
+            if ($LASTEXITCODE -ne 0) { throw 'Packed compiled assembly boundary check failed.' }
+            if ($AssemblyPath -and (Get-FileHash -LiteralPath $AssemblyPath).Hash -ne (Get-FileHash -LiteralPath $packedPath).Hash) { throw 'Packed Core DLL differs from the checked Release assembly.' }
+        }
+        finally { $archive.Dispose() }
+    }
+    Write-Output "Dependency boundaries passed for $($projects.Count) evaluated projects; Core runtime inventory: $($runtimeAllowed.Count) approved packages."
+}
+finally { Pop-Location }
+
+
+--- FILE implementations/csharp/eng/runtime-dependencies.json SHA256 1e7a7d87169b5d81999239dabbf7821b71d973becf25928ecd6e4a02bcba264f ---
+{
+  "schema_version": 1,
+  "target_framework": "net10.0",
+  "shipping_project": "src/CIS.Core/CIS.Core.csproj",
+  "policy": "Explicitly approved Microsoft-maintained runtime NuGets allowed; third-party runtime dependencies isolated in separate optional integrations.",
+  "packages": [
+    {
+      "id": "Microsoft.Extensions.Logging.Abstractions",
+      "version": "10.0.12",
+      "role": "direct",
+      "maintainer": "Microsoft",
+      "provenance": "https://www.nuget.org/packages/Microsoft.Extensions.Logging.Abstractions/10.0.12"
+    },
+    {
+      "id": "Microsoft.Extensions.DependencyInjection.Abstractions",
+      "version": "10.0.12",
+      "role": "transitive",
+      "maintainer": "Microsoft",
+      "provenance": "https://www.nuget.org/packages/Microsoft.Extensions.DependencyInjection.Abstractions/10.0.12"
+    }
+  ]
+}
+
+
+--- FILE implementations/csharp/eng/project-boundaries.json SHA256 db3b0b3371f59ab8179d57b5c39622b48e65cc603e13afc7dd086e5f9aad8d67 ---
+{
+  "schemaVersion": 1,
+  "targetFramework": "net10.0",
+  "implicitFramework": "Microsoft.NETCore.App",
+  "shippingIdentity": {
+    "AssemblyName": "CIS.Core",
+    "PackageId": "CIS.Core",
+    "RootNamespace": "CIS"
+  },
+  "projects": [
+    {
+      "path": "eng/CIS.TypeManager.Build/CIS.TypeManager.Build.csproj",
+      "role": "build-tool",
+      "projectReferences": [],
+      "packageReferences": [],
+      "sdkAssemblyReferences": [
+        "Microsoft.Build.Framework",
+        "Microsoft.Build.Utilities.Core"
+      ]
+    },
+    {
+      "path": "tests/fixtures/TypeManager/Contracts/Contracts.csproj",
+      "role": "test-support",
+      "projectReferences": [],
+      "packageReferences": []
+    },
+    {
+      "path": "tests/fixtures/TypeManager/Transitive/Transitive.csproj",
+      "role": "test-support",
+      "projectReferences": [
+        "tests/fixtures/TypeManager/Contracts/Contracts.csproj"
+      ],
+      "packageReferences": []
+    },
+    {
+      "path": "tests/fixtures/TypeManager/Unused/Unused.csproj",
+      "role": "test-support",
+      "projectReferences": [
+        "tests/fixtures/TypeManager/Transitive/Transitive.csproj"
+      ],
+      "restoredProjectReferences": [
+        "tests/fixtures/TypeManager/Transitive/Transitive.csproj",
+        "tests/fixtures/TypeManager/Contracts/Contracts.csproj"
+      ],
+      "packageReferences": []
+    },
+    {
+      "path": "tests/fixtures/TypeManager/Host/Host.csproj",
+      "role": "process-fixture",
+      "projectReferences": [
+        "src/CIS.Core/CIS.Core.csproj",
+        "tests/fixtures/TypeManager/Unused/Unused.csproj",
+        "eng/CIS.TypeManager.Build/CIS.TypeManager.Build.csproj"
+      ],
+      "buildOnlyProjectReferences": [
+        "eng/CIS.TypeManager.Build/CIS.TypeManager.Build.csproj"
+      ],
+      "restoredProjectReferences": [
+        "src/CIS.Core/CIS.Core.csproj",
+        "tests/fixtures/TypeManager/Unused/Unused.csproj",
+        "tests/fixtures/TypeManager/Transitive/Transitive.csproj",
+        "tests/fixtures/TypeManager/Contracts/Contracts.csproj"
+      ],
+      "packageReferences": []
+    },
+    {
+      "path": "src/CIS.Core/CIS.Core.csproj",
+      "role": "shipping",
+      "projectReferences": [
+        "eng/CIS.TypeManager.Build/CIS.TypeManager.Build.csproj"
+      ],
+      "buildOnlyProjectReferences": [
+        "eng/CIS.TypeManager.Build/CIS.TypeManager.Build.csproj"
+      ],
+      "restoredProjectReferences": [],
+      "packageReferences": [
+        "Microsoft.Extensions.Logging.Abstractions"
+      ]
+    },
+    {
+      "path": "tests/CIS.Core.UnitTests/CIS.Core.UnitTests.csproj",
+      "role": "test",
+      "projectReferences": [
+        "src/CIS.Core/CIS.Core.csproj",
+        "tests/CIS.Core.TestSupport/CIS.Core.TestSupport.csproj"
+      ],
+      "packageReferences": [
+        "Microsoft.NET.Test.Sdk",
+        "MSTest.TestFramework",
+        "MSTest.TestAdapter"
+      ]
+    },
+    {
+      "path": "tests/CIS.Core.IntegrationTests/CIS.Core.IntegrationTests.csproj",
+      "role": "test",
+      "projectReferences": [
+        "src/CIS.Core/CIS.Core.csproj",
+        "tests/CIS.Core.TestSupport/CIS.Core.TestSupport.csproj",
+        "tests/fixtures/DiscoveryHost/CIS.Core.DiscoveryFixture.csproj"
+      ],
+      "packageReferences": [
+        "Microsoft.NET.Test.Sdk",
+        "MSTest.TestFramework",
+        "MSTest.TestAdapter"
+      ]
+    },
+    {
+      "path": "tests/CIS.Core.ArchitectureTests/CIS.Core.ArchitectureTests.csproj",
+      "role": "test",
+      "projectReferences": [
+        "src/CIS.Core/CIS.Core.csproj",
+        "tests/CIS.Core.TestSupport/CIS.Core.TestSupport.csproj"
+      ],
+      "packageReferences": [
+        "Microsoft.NET.Test.Sdk",
+        "MSTest.TestFramework",
+        "MSTest.TestAdapter"
+      ]
+    },
+    {
+      "path": "tests/CIS.Core.CompatibilityTests/CIS.Core.CompatibilityTests.csproj",
+      "role": "test",
+      "projectReferences": [
+        "src/CIS.Core/CIS.Core.csproj",
+        "tests/CIS.Core.TestSupport/CIS.Core.TestSupport.csproj"
+      ],
+      "packageReferences": [
+        "Microsoft.NET.Test.Sdk",
+        "MSTest.TestFramework",
+        "MSTest.TestAdapter"
+      ]
+    },
+    {
+      "path": "tests/CIS.Core.BusinessCases/CIS.Core.BusinessCases.csproj",
+      "role": "test",
+      "projectReferences": [
+        "src/CIS.Core/CIS.Core.csproj",
+        "tests/CIS.Core.TestSupport/CIS.Core.TestSupport.csproj"
+      ],
+      "packageReferences": [
+        "Microsoft.NET.Test.Sdk",
+        "MSTest.TestFramework",
+        "MSTest.TestAdapter"
+      ]
+    },
+    {
+      "path": "tests/CIS.Core.TestSupport/CIS.Core.TestSupport.csproj",
+      "role": "test-support",
+      "projectReferences": [],
+      "packageReferences": []
+    },
+    {
+      "path": "eng/CIS.DependencyChecker/CIS.DependencyChecker.csproj",
+      "role": "verification-tool",
+      "projectReferences": [
+        "tests/CIS.Core.TestSupport/CIS.Core.TestSupport.csproj"
+      ],
+      "packageReferences": []
+    },
+    {
+      "path": "examples/logging/ConsoleHuman/ConsoleHuman.csproj",
+      "role": "example",
+      "projectReferences": [
+        "src/CIS.Core/CIS.Core.csproj"
+      ],
+      "packageReferences": []
+    },
+    {
+      "path": "examples/type-manager/Contracts/Contracts.csproj",
+      "role": "example",
+      "projectReferences": [],
+      "packageReferences": []
+    },
+    {
+      "path": "examples/type-manager/Unused/Unused.csproj",
+      "role": "example",
+      "projectReferences": [
+        "examples/type-manager/Contracts/Contracts.csproj"
+      ],
+      "packageReferences": []
+    },
+    {
+      "path": "examples/type-manager/Console/Console.csproj",
+      "role": "example",
+      "projectReferences": [
+        "src/CIS.Core/CIS.Core.csproj",
+        "examples/type-manager/Contracts/Contracts.csproj",
+        "examples/type-manager/Unused/Unused.csproj",
+        "eng/CIS.TypeManager.Build/CIS.TypeManager.Build.csproj"
+      ],
+      "buildOnlyProjectReferences": [
+        "eng/CIS.TypeManager.Build/CIS.TypeManager.Build.csproj"
+      ],
+      "restoredProjectReferences": [
+        "src/CIS.Core/CIS.Core.csproj",
+        "examples/type-manager/Contracts/Contracts.csproj",
+        "examples/type-manager/Unused/Unused.csproj"
+      ],
+      "packageReferences": []
+    },
+    {
+      "path": "examples/type-manager/Web/Web.csproj",
+      "role": "example",
+      "projectReferences": [
+        "src/CIS.Core/CIS.Core.csproj",
+        "examples/type-manager/Contracts/Contracts.csproj",
+        "examples/type-manager/Unused/Unused.csproj",
+        "eng/CIS.TypeManager.Build/CIS.TypeManager.Build.csproj"
+      ],
+      "buildOnlyProjectReferences": [
+        "eng/CIS.TypeManager.Build/CIS.TypeManager.Build.csproj"
+      ],
+      "restoredProjectReferences": [
+        "src/CIS.Core/CIS.Core.csproj",
+        "examples/type-manager/Contracts/Contracts.csproj",
+        "examples/type-manager/Unused/Unused.csproj"
+      ],
+      "additionalImplicitFrameworkReferences": [
+        "Microsoft.AspNetCore.App"
+      ],
+      "packageReferences": []
+    },
+    {
+      "path": "tests/fixtures/TypeManager/ExampleLate/ExampleLate.csproj",
+      "role": "test-support",
+      "projectReferences": [
+        "examples/type-manager/Contracts/Contracts.csproj"
+      ],
+      "packageReferences": []
+    },
+    {
+      "path": "tests/fixtures/DiscoveryHost/CIS.Core.DiscoveryFixture.csproj",
+      "role": "process-fixture",
+      "projectReferences": [
+        "src/CIS.Core/CIS.Core.csproj"
+      ],
+      "packageReferences": [
+        "Microsoft.Extensions.Logging"
+      ],
+      "developmentPackageReferences": [
+        "Microsoft.Extensions.Logging",
+        "Microsoft.Extensions.DependencyInjection",
+        "Microsoft.Extensions.Options",
+        "Microsoft.Extensions.Primitives"
+      ]
+    },
+    {
+      "projectReferences": [],
+      "path": "tests/fixtures/TypeManager/Runtime/MissingBase/MissingBase.csproj",
+      "role": "test-support",
+      "packageReferences": []
+    },
+    {
+      "projectReferences": [
+        "tests/fixtures/TypeManager/Runtime/MissingBase/MissingBase.csproj"
+      ],
+      "path": "tests/fixtures/TypeManager/Runtime/Broken/Broken.csproj",
+      "role": "test-support",
+      "packageReferences": []
+    },
+    {
+      "projectReferences": [],
+      "path": "tests/fixtures/TypeManager/Runtime/Conflict/Conflict.csproj",
+      "role": "test-support",
+      "packageReferences": []
+    },
+    {
+      "projectReferences": [],
+      "path": "tests/fixtures/TypeManager/Runtime/Forwarded/Forwarded.csproj",
+      "role": "test-support",
+      "packageReferences": []
+    },
+    {
+      "projectReferences": [
+        "tests/fixtures/TypeManager/Runtime/Forwarded/Forwarded.csproj"
+      ],
+      "path": "tests/fixtures/TypeManager/Runtime/Forwarder/Forwarder.csproj",
+      "role": "test-support",
+      "packageReferences": []
+    },
+    {
+      "projectReferences": [
+        "src/CIS.Core/CIS.Core.csproj",
+        "tests/fixtures/TypeManager/Runtime/Conflict/Conflict.csproj"
+      ],
+      "path": "tests/fixtures/TypeManager/Runtime/Host/Host.csproj",
+      "role": "process-fixture",
+      "packageReferences": []
+    }
+  ],
+  "moduleRules": [
+    "Environment resolution and event contracts do not depend on output implementations.",
+    "Logging consumes immutable environment state; outputs consume captured events.",
+    "MicrosoftLogger is inside Core and maps into the same pipeline.",
+    "Third-party runtime integrations may depend on Core; Core must never depend on them."
+  ],
+  "moduleRuleQualification": "Type/namespace rules will be exercised against real types in WP07-S02; project/package/assembly rules execute now."
+}
+
+
+--- FILE implementations/csharp/eng/CIS.DependencyChecker/Program.cs SHA256 a9399a18038596185064747d89b21ed84d51906464fd71c87075bb519a1eb266 ---
+using System.Text.Json;
+using CIS.TestSupport;
+
+if (args.Length != 2)
+{
+    Console.Error.WriteLine("Usage: CIS.DependencyChecker <assembly-path> <allowed-reference-names.json>");
+    return 2;
+}
+
+try
+{
+    if (System.Reflection.AssemblyName.GetAssemblyName(args[0]).Name != "CIS.Core")
+    {
+        Console.Error.WriteLine("Unexpected compiled shipping assembly identity.");
+        return 1;
+    }
+
+    string[] allowed = JsonSerializer.Deserialize<string[]>(File.ReadAllText(args[1]))
+        ?? throw new InvalidDataException("The reference allowlist is missing.");
+    IReadOnlyList<string> unexpected = AssemblyReferences.FindUnexpected(args[0], allowed);
+    if (unexpected.Count != 0)
+    {
+        Console.Error.WriteLine($"Unapproved compiled assembly reference: {string.Join(", ", unexpected)}");
+        return 1;
+    }
+
+    Console.WriteLine(JsonSerializer.Serialize(new { Assembly = args[0], References = AssemblyReferences.Read(args[0]) }));
+    return 0;
+}
+catch (Exception exception) when (exception is IOException or BadImageFormatException or JsonException)
+{
+    Console.Error.WriteLine(exception.Message);
+    return 1;
+}
+
+
+--- FILE implementations/csharp/tests/CIS.Core.ArchitectureTests/ProjectFixture.cs SHA256 c4c49b5331fc473d59dabb3299d39f93879e28ac47101b0fcfa2357eff9922a1 ---
+using CIS.TestSupport;
+
+namespace CIS.Tests.ArchitectureTests;
+
+internal sealed class ProjectFixture : IDisposable
+{
+    private readonly TemporaryDirectory directory = new();
+
+    public ProjectFixture(string languageRoot)
+    {
+        string[] paths = [
+            "global.json", "Directory.Build.props", "Directory.Packages.props",
+            "src/CIS.Core/CIS.Core.csproj", "eng/project-boundaries.json",
+            "eng/runtime-dependencies.json", "eng/development-dependencies.json",
+            "build/type-manager/package/CIS.TypeManager.Pack.targets"
+        ];
+        foreach (string relative in paths)
+        {
+            string destination = System.IO.Path.Combine(Path, relative);
+            Directory.CreateDirectory(System.IO.Path.GetDirectoryName(destination)!);
+            File.Copy(System.IO.Path.Combine(languageRoot, relative), destination);
+        }
+    }
+
+    public string Path => directory.Path;
+
+    public void Dispose() => directory.Dispose();
+}
+
+
+--- FILE implementations/csharp/src/CIS.Core/CIS.Core.csproj SHA256 416207e780e40af1915377aeb37431ce6d5bf0e3c6fd10791e87e06a964c8ee0 ---
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <AssemblyName>CIS.Core</AssemblyName>
+    <RootNamespace>CIS</RootNamespace>
+    <IsPackable>true</IsPackable>
+    <PackageId>CIS.Core</PackageId>
+    <Version>0.1.0-dev.1</Version>
+    <AssemblyVersion>1.0.0.0</AssemblyVersion>
+    <FileVersion>0.1.0.1</FileVersion>
+    <SignAssembly>false</SignAssembly>
+    <PublicSign>false</PublicSign>
+    <DelaySign>false</DelaySign>
+    <Description>CisLib multi-module core library with bounded logging and Microsoft ILogger integration.</Description>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <EnablePackageValidation>true</EnablePackageValidation>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+  </PropertyGroup>
+  <ItemGroup>
+    <InternalsVisibleTo Include="CIS.Core.UnitTests" />
+    <InternalsVisibleTo Include="CIS.Core.ArchitectureTests" />
+    <InternalsVisibleTo Include="CIS.Core.DiscoveryFixture" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" />
+    <ProjectReference Include="../../eng/CIS.TypeManager.Build/CIS.TypeManager.Build.csproj"
+                      ReferenceOutputAssembly="false" Private="false" PrivateAssets="all"
+                      GlobalPropertiesToRemove="RuntimeIdentifier;SelfContained;PublishSingleFile;PublishTrimmed;PublishAot;OutputPath;OutDir;_CommandLineDefinedOutputPath;CisTypeManagerEnabled" />
+    <None Include="../../../../README.md" Pack="true" PackagePath="README.md" />
+  </ItemGroup>
+  <Import Project="../../build/type-manager/package/CIS.TypeManager.Pack.targets" />
+</Project>
+

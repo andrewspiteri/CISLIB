@@ -1,0 +1,79 @@
+{
+  "schema": "cis.logging.microsoft-package-boundary-cases/v1",
+  "task": "WP06-S03-T02",
+  "qualification": "Actual checker with copied/synthetic negative fixtures. First 11 cases assert a passing actual unmodified input; compiled PE row uses existing metadata fixture support. Executed results in receipt.",
+  "cases": [
+    {
+      "id": "restore-third-party",
+      "method": "CopiedRestoreGraphRejectsTransitiveLeakage",
+      "mutation": "NLog/5.3.0",
+      "expectedRule": "Unapproved shipping package dependency"
+    },
+    {
+      "id": "restore-factory",
+      "method": "CopiedRestoreGraphRejectsTransitiveLeakage",
+      "mutation": "Microsoft.Extensions.Logging/10.0.12",
+      "expectedRule": "Unapproved shipping package dependency"
+    },
+    {
+      "id": "restore-full-di",
+      "method": "CopiedRestoreGraphRejectsTransitiveLeakage",
+      "mutation": "Microsoft.Extensions.DependencyInjection/10.0.12",
+      "expectedRule": "Unapproved shipping package dependency"
+    },
+    {
+      "id": "restore-transitive-version",
+      "method": "CopiedRestoreGraphRejectsTransitiveLeakage",
+      "mutation": "Microsoft.Extensions.DependencyInjection.Abstractions/10.0.11",
+      "expectedRule": "Unapproved shipping package dependency"
+    },
+    {
+      "id": "restore-missing-transitive",
+      "method": "CopiedRestoreGraphRejectsTransitiveLeakage",
+      "mutation": "missing-transitive",
+      "expectedRule": "Core runtime closure differs from the approved inventory"
+    },
+    {
+      "id": "packed-factory-dll",
+      "method": "CopiedPackageRejectsFactoryAndThirdPartyLeakage",
+      "mutation": "factory-dll",
+      "expectedRule": "Unexpected packed asset"
+    },
+    {
+      "id": "packed-third-party-dll",
+      "method": "CopiedPackageRejectsFactoryAndThirdPartyLeakage",
+      "mutation": "third-party-dll",
+      "expectedRule": "Unexpected packed asset"
+    },
+    {
+      "id": "packed-factory-dependency",
+      "method": "CopiedPackageRejectsFactoryAndThirdPartyLeakage",
+      "mutation": "factory-dependency",
+      "expectedRule": "Unapproved packed dependency"
+    },
+    {
+      "id": "packed-extra-dependency",
+      "method": "CopiedPackageRejectsFactoryAndThirdPartyLeakage",
+      "mutation": "extra-dependency",
+      "expectedRule": "Packed direct dependency inventory mismatch"
+    },
+    {
+      "id": "packed-minimum-version",
+      "method": "CopiedPackageRejectsFactoryAndThirdPartyLeakage",
+      "mutation": "dependency-version",
+      "expectedRule": "Unapproved packed dependency"
+    },
+    {
+      "id": "packed-exact-constraint",
+      "method": "CopiedPackageRejectsFactoryAndThirdPartyLeakage",
+      "mutation": "dependency-exact-range",
+      "expectedRule": "Unapproved packed dependency"
+    },
+    {
+      "id": "compiled-third-party-reference",
+      "method": "CompiledCheckerRejectsForeignAssemblyReferences",
+      "mutation": "NLog",
+      "expectedRule": "Unapproved compiled assembly reference"
+    }
+  ]
+}

@@ -1,0 +1,998 @@
+Read-only final WP06-S03-T02 follow-up. Initial required R1 missing retained execution receipt is resolved: actual5253-test/14-stage final run and inspected candidate are now retained under planning/logging/evidence/wp06-s03-t02, including focused15 passed, historical6 failed stale positives and exact commands/package/platform. No completion status/commit claimed until followupPASS. Docs narrowed to actual inspected asset/dependency/id/version/reference fields, explicitly exclude frameworkReferences/include/exclude mutation guarantee. Scope remainingT03-T05 corrected. TypeManager launchsettings are foreign user-thread files, will neverstage/delete; do not request cleanup. Preexistingmojibake leftunchanged. No shipping or checker edit. Review actual receipt/raw proof and corrected docs. Output JSON {"verdict":"PASS or CHANGES_REQUIRED","requiredFindings":[],"optionalFindings":[]}; no tools/edits.
+
+--- FILE docs/modules/logging/microsoft-logging-boundaries.md SHA256 ad77d6b7ba62484c6d36f205e6d1483dab80ababc2eae9948efd2571d2d96a27 ---
+# Microsoft logging dependency boundaries
+
+WP06-S03-T02 qualifies the existing single `CIS.Core` boundary. Its approved net10.0 runtime graph remains Microsoft.Extensions.Logging.Abstractions and Microsoft.Extensions.DependencyInjection.Abstractions at 10.0.12. The Microsoft factory implementation is supplied by applications and appears only in the named development fixture; third-party runtimes belong in separate optional integrations. [Packaging policy](microsoft-logging-packaging.md) explains the user amendment and nuspec minimum semantics.
+
+The existing checker evaluates project/framework/package items, actual restored graphs, compiled AssemblyRefs and the package asset list, dependency groups/IDs/versions and packed DLL references. The new tests use copies of real Core restore/package outputs; each begins with a passing unmodified control before one mutation. No unapproved package is downloaded or loaded. Restored-graph additions change an existing abstraction dependency edge and target package entry, without adding a direct project PackageReference. These are synthetic graph mutations, not claims that NuGet successfully restored an unapproved dependency.
+
+| Boundary | Rejection controls |
+| --- | --- |
+| Copied restored closure | NLog; Microsoft factory implementation; full dependency-injection implementation; wrong approved transitive version; missing approved transitive member |
+| Copied packed assets | Bundled factory DLL or NLog DLL, outside the closed allowed asset list |
+| Copied nuspec | Replacing/adding a runtime dependency, changing its minimum version, or silently tightening it to an exact-only constraint |
+| Compiled metadata | Existing factory/test/foreign AssemblyRef controls plus a new NLog AssemblyRef control |
+
+The packed DLL-name controls use deliberately invalid content because the closed asset-list check must reject the path before assembly inspection. Compiled-reference controls instead use real managed PE fixtures and the actual metadata checker. Existing source/imported-project/direct-package/framework and bundled-test controls remain part of full verification. This adds twelve architecture cases, with fifteen focused checks when the existing compiled rows are included, and no shipping API/dependency/framework/helper.
+
+The initial focused package positives detected an old nupkg paired with a freshly built current-commit helper. They failed on the existing whole-package helper byte consistency check. Repacking the actual current tree restored all positives; the gate was preserved. Full Developer verification builds/packs before architecture execution. This protects the combined Core package and does not modify the Type Manager implementation or excuse an unrelated positive failure as a valid rejection.
+
+Task evidence records actual restored/compiled/package inspection and raw test results. This development qualification runs on Windows; full recorded-platform release verification remains later work. Coverage/mutation, cumulative provider compatibility, release-bundle integration and package-consumer examples remain T03-T05/WP07-WP09. The original separate bridge package requirement remains superseded by the user's decision, and the full release gate must stay nonzero.
+
+Package inspection checks the canonical dependency version spelling, not just semantic range equivalence. Nuspec frameworkReferences and dependency include/exclude attributes are outside these dedicated mutation controls; evaluated source framework directions, the actual restored closure and compiled references are checked separately. No broader modified-package declaration guarantee is claimed by these cases.
+
+
+--- FILE planning/logging/microsoft-packaging-scope.json SHA256 66efe283ebdf1a8a852edfc994d2ee7a29f154ecdd7612c15d1c5feda761c952 ---
+{
+  "schema": "cis.logging.microsoft-packaging-scope/v1",
+  "storyId": "WP06-S03",
+  "source": "planning/logging/sources/core-library-backlog-v1.json",
+  "authority": "Explicit user decision: one CIS.Core package/assembly, CIS namespaces, Microsoft-maintained NuGets permitted; third-party runtime dependencies isolated. Recorded in decisions.md and plan-amendments.md.",
+  "state": "Selected unpublished scope amendment; not execution, publication or approval of a product record.",
+  "package": {
+    "project": "implementations/csharp/src/CIS.Core/CIS.Core.csproj",
+    "packageId": "CIS.Core",
+    "assembly": "CIS.Core",
+    "rootNamespace": "CIS",
+    "adapterNamespace": "CIS.Logging.MicrosoftLogger",
+    "targetFramework": "net10.0",
+    "runtimeInventory": "implementations/csharp/eng/runtime-dependencies.json",
+    "centralVersions": "implementations/csharp/Directory.Packages.props",
+    "lockFile": "implementations/csharp/src/CIS.Core/packages.lock.json",
+    "packedDirectDependencyVersion": "10.0.12",
+    "consumerConstraint": "Inclusive minimum; repository resolved closure remains exactly qualified by lock file/allowlist."
+  },
+  "tasks": [
+    {
+      "id": "WP06-S03-T01",
+      "originalDescription": "Package Core.MicrosoftLogging separately and pin its approved Microsoft logging abstraction dependency closure using the framework and versions selected in WP-01.",
+      "currentDirection": "Use existing single CIS.Core project/package; retain net10.0 and exact repository restored Microsoft abstraction closure at 10.0.12. No separate bridge package.",
+      "scopeStatus": "RecordedScope; execution belongs in T01 receipt"
+    },
+    {
+      "id": "WP06-S03-T02",
+      "originalDescription": "Inspect the bridge restore graph, compiled references, and package contents; add rejection controls for an unapproved transitive dependency and dependency leakage into Core.",
+      "currentDirection": "Inspect CIS.Core restored/compiled/packed graph with adapter included; reject unapproved runtime additions and fixture/factory leakage.",
+      "scopeStatus": "RecordedControls; execution belongs in T02 receipt"
+    },
+    {
+      "id": "WP06-S03-T03",
+      "originalDescription": "Wire bridge unit/integration coverage and a separate Stryker mutation invocation into the shipping-project verification matrix; complete full matrix execution in WP-07.",
+      "currentDirection": "Core shipping assembly coverage/mutation must explicitly include CIS.Logging.MicrosoftLogger code; no separate bridge shipping assembly/mutation project.",
+      "scopeStatus": "Pending"
+    },
+    {
+      "id": "WP06-S03-T04",
+      "originalDescription": "Add bridge API/source/binary contract fixtures to the compatibility inventory, including old bridge plus candidate core and full bridge/core upgrade scenarios for historical releases.",
+      "currentDirection": "Retain adapter API/source/binary consumers in cumulative CIS.Core compatibility inventory and same-package replacement scenarios; no fictional historical publication.",
+      "scopeStatus": "Pending"
+    },
+    {
+      "id": "WP06-S03-T05",
+      "originalDescription": "Include bridge API documentation, packages, dependency inventory, reports, and hashes in the first-release verification bundle manifest.",
+      "currentDirection": "Include adapter APIs/docs, exact CIS.Core candidate, approved runtime inventory and complete provider reports/hashes in single-Core release bundle.",
+      "scopeStatus": "Pending"
+    }
+  ],
+  "criteria": [
+    {
+      "id": "WP06-S03-AC01",
+      "originalDescription": "An application restoring only Core acquires no bridge, logging abstraction package, or bridge transitive dependency.",
+      "currentDirection": "Core-only consumers receive embedded adapter and abstraction dependencies; absence of Microsoft factory and third-party runtime leakage remains required. Original separate-package/zero-abstractions optionality is superseded."
+    },
+    {
+      "id": "WP06-S03-AC02",
+      "originalDescription": "The bridge's resolved and packed dependency closure matches the explicit allowlist; its negative controls reject prohibited changes.",
+      "currentDirection": "Actual restored closure and packed direct dependencies match approved inventory; rejection controls preserve assurance."
+    },
+    {
+      "id": "WP06-S03-AC03",
+      "originalDescription": "WP-07 discovers the bridge as a separate shipping assembly for coverage and mutation, with no reliance on the Core-only report as bridge evidence.",
+      "currentDirection": "Core coverage/mutation reports explicitly cover adapter implementation; separate shipping assembly requirement superseded."
+    },
+    {
+      "id": "WP06-S03-AC04",
+      "originalDescription": "Compatibility manifests include bridge consumers and both package-replacement upgrade paths; no first-release result is mislabeled as an existing historical-release replay.",
+      "currentDirection": "Compatibility retains provider consumers for CIS.Core package replacement paths; only actual historical releases may be called historical replay."
+    },
+    {
+      "id": "WP06-S03-AC05",
+      "originalDescription": "The verification bundle inventory includes the exact bridge candidate and all applicable validation material; consumer optionality does not omit bridge verification.",
+      "currentDirection": "Exact CIS.Core candidate and all adapter validation material included; embedded integration must not be omitted from release assurance."
+    }
+  ],
+  "remaining": "T03-T05 explicit adapter coverage/mutation, cumulative provider compatibility and release bundle integration; later WP07/WP08/WP09 complete qualification and publication. T02 execution evidence belongs in its receipt.",
+  "publicationFollowups": "Resolve package README consumer presentation and repository-relative links before first publication, alongside licence and destination choices. No change to packaging identity or runtime dependency policy."
+}
+
+
+--- FILE planning/logging/evidence/wp06-s03-t02/receipt.json SHA256 e2e081f6e118cf61e70132d2173225dca611e161c3748bdb78e23ff7c5313e2e ---
+{
+  "schema": "cis.logging.task-receipt/v1",
+  "taskId": "WP06-S03-T02",
+  "date": "2026-10-15",
+  "status": "Final Developer/package verified; read-only Claude follow-up and commit pending",
+  "baseCommit": "e51a3443bd1a86308dca1fafec7df45833fa1e58",
+  "scope": "Existing checker retained; twelve architecture additions qualify copied/synthetic restored/packed leakage, version/constraint drift and real managed PE reference. No shipping/gate/dependency change.",
+  "developer": {
+    "runId": "c935649175d84c1582579168794e3640",
+    "tests": {
+      "unit": 3370,
+      "integration": 1400,
+      "architecture": 483
+    },
+    "totalTests": 5253,
+    "stages": 14,
+    "criticalPins": 900,
+    "currentSourceMismatches": 0,
+    "coreSha256": "2cfd2201bc1349754b7cb5d66d1275d310a3f8a77350c6ef0063d84e26209bad",
+    "rawTrxChecked": true
+  },
+  "package": {
+    "packageId": "CIS.Core",
+    "version": "0.1.0-dev.1",
+    "targetFramework": "net10.0",
+    "packageSha256": "101f5b2b389382a683e0e03fc8fe6ec845d6748b0c433b15c6856c7cedefa6cd",
+    "packedCoreSha256": "2cfd2201bc1349754b7cb5d66d1275d310a3f8a77350c6ef0063d84e26209bad",
+    "packedXmlSha256": "b4d6194427fa05a5cfdad97b26d753590b160eb1d04f38ff4a092e42ae787363",
+    "packedReadmeSha256": "9088d16e79cf008af02e0457c081f66ec1772d4e4cde0a4ea2374e2de87c4e71",
+    "description": "CisLib multi-module core library with bounded logging and Microsoft ILogger integration.",
+    "packedDirectDependencies": [
+      {
+        "id": "Microsoft.Extensions.Logging.Abstractions",
+        "version": "10.0.12",
+        "exclude": "Build,Analyzers"
+      }
+    ],
+    "resolvedRuntimeClosure": [
+      "Microsoft.Extensions.DependencyInjection.Abstractions/10.0.12",
+      "Microsoft.Extensions.Logging.Abstractions/10.0.12"
+    ],
+    "lockedContentHashesMatch": true,
+    "embeddedProvider": "CIS.Logging.MicrosoftLogger.CoreLoggerProvider",
+    "libAssemblies": [
+      "CIS.Core.dll"
+    ],
+    "closedAssetsCheckedByDeveloperGate": true,
+    "allEntries": [
+      {
+        "path": "_rels/.rels",
+        "sha256": "9346355a2327dd131488e01b8826b927cd13cd55e0bea817b030fd1230dd8107"
+      },
+      {
+        "path": "CIS.Core.nuspec",
+        "sha256": "455bab1bff2eedcf0dec01892f64c6b19672bab37359c1e9fc1b54fd7249d453"
+      },
+      {
+        "path": "README.md",
+        "sha256": "9088d16e79cf008af02e0457c081f66ec1772d4e4cde0a4ea2374e2de87c4e71"
+      },
+      {
+        "path": "Sdk/BeforeSdk.targets",
+        "sha256": "95fcf432bb390dfea85b74bda5454a868f1e2ffb4510107ff19fb0bd151e74ce"
+      },
+      {
+        "path": "Sdk/PackageVersion.props",
+        "sha256": "234d2b3583602656dc5ac1b8ff902c0e3d49c498a9208ffc90866f46d5d56ba8"
+      },
+      {
+        "path": "Sdk/Sdk.props",
+        "sha256": "a630c68160a8f0a4b380d23a499b76f3acb9e2dda088de1b271ef3baed387482"
+      },
+      {
+        "path": "Sdk/Sdk.targets",
+        "sha256": "77ff9b64c156afbee43b54ecee78148e49ca8330d929170206566f30bf3bac23"
+      },
+      {
+        "path": "buildSupport/CIS.TypeManager.targets",
+        "sha256": "4fd5ffa236f95a67d3325922a11c8496e8c6ad06fd8805a92a25328924668501"
+      },
+      {
+        "path": "buildTransitive/CIS.Core.targets",
+        "sha256": "ceefd40c6d397d04445aa14fff83bb359b88089eea0b2aa5a68a030c1e325b34"
+      },
+      {
+        "path": "lib/net10.0/CIS.Core.dll",
+        "sha256": "2cfd2201bc1349754b7cb5d66d1275d310a3f8a77350c6ef0063d84e26209bad"
+      },
+      {
+        "path": "lib/net10.0/CIS.Core.xml",
+        "sha256": "b4d6194427fa05a5cfdad97b26d753590b160eb1d04f38ff4a092e42ae787363"
+      },
+      {
+        "path": "tools/net10.0/CIS.TypeManager.Build.dll",
+        "sha256": "a497e0e276298b1ff9b02e9f0fb7dec279178f26045a5152e2c045893dcce593"
+      },
+      {
+        "path": "[Content_Types].xml",
+        "sha256": "051b7fb4db009c3bed175e8a59db9233a6908b5c9d757122192155c3a39e518e"
+      },
+      {
+        "path": "package/services/metadata/core-properties/nuget.psmdcp",
+        "sha256": "f32a75f2c222f0672c8580c2a59e4c2b9b3103518b66f03aa0157804ef7466e0"
+      }
+    ]
+  },
+  "focused": {
+    "command": "dotnet test implementations/csharp/tests/CIS.Core.ArchitectureTests/CIS.Core.ArchitectureTests.csproj -c Release --no-build --no-restore --filter FullyQualifiedName~MicrosoftLoggingPackageBoundaryTests|FullyQualifiedName~CompiledCheckerRejectsForeignAssemblyReferences --logger trx;LogFileName=report.trx",
+    "platform": "Windows x64",
+    "passed": 15,
+    "failed": 0,
+    "skipped": 0,
+    "positiveBeforeMutationRows": 11,
+    "compiledRows": 4,
+    "rawReport": "focused-boundaries/report.trx",
+    "stalePositive": {
+      "failed": 6,
+      "passed": 9,
+      "reason": "Prior candidate versus current-commit built helper mismatch; consistency gate not bypassed.",
+      "report": "historical-stale-positive/report.trx",
+      "recovery": "Current source dotnet pack then same focused tests --no-build; all15 passed."
+    }
+  },
+  "review": {
+    "initialVerdict": "CHANGES_REQUIRED",
+    "requiredFinding": "R1 retain concrete execution receipt before final review",
+    "resolution": "Receipt and exact focused/final reports, stale positive raw failures and actual candidate now retained before follow-up.",
+    "followup": "Pending"
+  },
+  "release": {
+    "exitCode": 2,
+    "plannedCasesUnchanged": 41
+  },
+  "remaining": [
+    "T03 adapter coverage/mutation",
+    "T04 cumulative provider compatibility",
+    "T05 release bundle and later full platform/release/publication"
+  ],
+  "limitations": [
+    "Windows development qualification; not a full recorded-platform release claim.",
+    "Synthetic copied graph and forbidden asset controls do not download or load unapproved packages.",
+    "Package asset/group/id/version/compiled checks claimed; frameworkReferences/include/exclude declaration mutations outside dedicated controls.",
+    "Two noncompiled/nonpacked documentation records changed after inventory and retain their captured/refined hashes; final followup reviews them.",
+    "Combined developer/package include separately committed Type Manager work, whose source files are excluded from edits/staging/Claude implementation payload."
+  ],
+  "files": [
+    {
+      "path": "baseline.json",
+      "sha256": "324d3954fab0b2ac9462791d30f6d23ad847ace932461cef978f009aab0ab3dc"
+    },
+    {
+      "path": "candidate/CIS.Core.0.1.0-dev.1.nupkg",
+      "sha256": "101f5b2b389382a683e0e03fc8fe6ec845d6748b0c433b15c6856c7cedefa6cd"
+    },
+    {
+      "path": "claude-manifest.json",
+      "sha256": "0e39c32f9ef213b3f8287d51bf54759259d9d4299d3d806d8a387359ddbf31a7"
+    },
+    {
+      "path": "claude-prompt.txt",
+      "sha256": "272cdc453fb52346ada0af35fdd122579929e9dfee0038e3bbbe93f7797a2d35"
+    },
+    {
+      "path": "claude-review.exit-code",
+      "sha256": "13bf7b3039c63bf5a50491fa3cfd8eb4e699d1ba1436315aef9cbe5711530354"
+    },
+    {
+      "path": "claude-review.json",
+      "sha256": "ceb62d8e229730cbc162a18bccd0eefc00cd109a6548fd4ab356284eaa60266c"
+    },
+    {
+      "path": "claude-review.stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "claude-verdict.json",
+      "sha256": "4d6a9b4af7ae6415a1217d6cd39de794061849a07a5cbe759045f86dbe7e6a33"
+    },
+    {
+      "path": "critical-source-inputs.json",
+      "sha256": "c93f3a161766a906f56f55fca6545c7e5bf034362da7cc8a0e61053d66634dcb"
+    },
+    {
+      "path": "Developer/families/architecture/discovery.json",
+      "sha256": "f37c04e6d3a3e6c0f179e2b06913b5af829e63093b86dc302e5f2f4756894cd1"
+    },
+    {
+      "path": "Developer/families/architecture/execution.json",
+      "sha256": "2d78a3264701dd6727c1e958b92b5ec872c7ea3521db5520c560868f945e85b3"
+    },
+    {
+      "path": "Developer/families/architecture/report.trx",
+      "sha256": "67d96e2a7bdfaa59f3500b0acab10e1032d38c4b9054404d35b2bac404ec31ea"
+    },
+    {
+      "path": "Developer/families/integration/discovery.json",
+      "sha256": "54d9bb51034103b8fe71248a16bafddcd65751f409630f8e30812a9840d31fb4"
+    },
+    {
+      "path": "Developer/families/integration/execution.json",
+      "sha256": "ba6e54104eb94bc52b7461abc1742a384dd20e661ba6ba5e3b37fa78a1626b0b"
+    },
+    {
+      "path": "Developer/families/integration/report.trx",
+      "sha256": "87ca269813acc9c628e09fc565cb6164da8aefab1a40cc29f7edc4bba0a62e8a"
+    },
+    {
+      "path": "Developer/families/unit/discovery.json",
+      "sha256": "da53ef124b5db28e336383562dcbc1f37d5cebb7fb9207bde53d34b296b07f12"
+    },
+    {
+      "path": "Developer/families/unit/execution.json",
+      "sha256": "06dfa56cacd4ccc91631efc3e4d4a78468fa8cc20cc40542f662adc632b3e8c9"
+    },
+    {
+      "path": "Developer/families/unit/report.trx",
+      "sha256": "f2ee595fbee046bc781284d6adfb5a09b9280119cfd2b604bdd96dc87e57f7aa"
+    },
+    {
+      "path": "Developer/logs/package-boundaries.log",
+      "sha256": "4b133a4874fed8239dd33cdd3254ad3cf11e1b1aa862eda624535480e08fbf20"
+    },
+    {
+      "path": "Developer/logs/project-boundaries.log",
+      "sha256": "352deb96b6456fd93c2601dccaac568e277d24cc4cdadcf5f9d946f4bc10d400"
+    },
+    {
+      "path": "Developer/source-inputs.json",
+      "sha256": "02bb00e4d83c1f8b86988d722ba15883c294a9482200423d906b9f102a1487b4"
+    },
+    {
+      "path": "Developer/summary.json",
+      "sha256": "8ec02ec659842a47189d1daea67c76b81d6d8d0ca8d6f3b96671ca09692513f1"
+    },
+    {
+      "path": "developer-audit.json",
+      "sha256": "6b435f0062786249ed1350ccdaf8518609f97280c3208db0a7e4e2c366f9cc12"
+    },
+    {
+      "path": "developer-final.exit-code",
+      "sha256": "5feceb66ffc86f38d952786c6d696c79c2dbc239dd4e91b46729d73a27fb57e9"
+    },
+    {
+      "path": "developer-final.log",
+      "sha256": "1bf09845ae7fd8ee59e31c1ba92fe91b333f4a08eb674597c917953d9968af42"
+    },
+    {
+      "path": "focused-boundaries/report.trx",
+      "sha256": "7cdc12e1d212d2c339e7c0e7948ef1b011582b3828ef58fcbfcf72de5803c9a3"
+    },
+    {
+      "path": "focused-boundaries.log",
+      "sha256": "7bf930d5b9985e6ade5e5e09e178d900c65bbd5174463454eb7d5c450acea2b8"
+    },
+    {
+      "path": "focused-pack.log",
+      "sha256": "4336b429d9128f26e23345c626c4d29a9a665c73179e356869925f78d9ef8ee5"
+    },
+    {
+      "path": "format.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "historical-stale-positive/focused-boundaries.log",
+      "sha256": "1c8fb88d7369b97d3126e600ef36315a7a05ab4756f84595b599b9ca25d37c1f"
+    },
+    {
+      "path": "historical-stale-positive/report.trx",
+      "sha256": "9913101367fa709df8185c59489207387c95f694f19ccd98ce1e67cccf6502bc"
+    },
+    {
+      "path": "historical-stale-positive/snapshot.json",
+      "sha256": "aec9878a0a2de94c10590c4d0fdf462760a54e8da4e41f9c3738cde124b17bd2"
+    },
+    {
+      "path": "package-audit.json",
+      "sha256": "59cf184b0d5ee5a82fc8056c9e18f4dea5c10064d5ab77e7193c9f33c3d207f7"
+    },
+    {
+      "path": "packed-assembly-types.json",
+      "sha256": "76bbab3ccec4c757dd1a5279186f72016dcd001dbcba92460efaffa15bd6ad8d"
+    },
+    {
+      "path": "post-inventory-doc-refinement.json",
+      "sha256": "2b13a0562880b24b12131d4f970c75441ba58d1560225ad4a367a7110d77c3b8"
+    },
+    {
+      "path": "release.exit-code",
+      "sha256": "d4735e3a265e16eee03f59718b9b5d03019c07d8b6c51f90da3a666eec13ab35"
+    },
+    {
+      "path": "release.log",
+      "sha256": "03aa42df1682194b2f04eae026d19b66b1151f793bb49c2ad6aa26cc78e50b79"
+    }
+  ]
+}
+
+
+--- FILE planning/logging/evidence/wp06-s03-t02/focused-boundaries.log SHA256 7bf930d5b9985e6ade5e5e09e178d900c65bbd5174463454eb7d5c450acea2b8 ---
+Test run for C:\miscwork\portfolio\cislib\implementations\csharp\tests\CIS.Core.ArchitectureTests\bin\Release\net10.0\CIS.Core.ArchitectureTests.dll (.NETCoreApp,Version=v10.0)
+A total of 1 test files matched the specified pattern.
+WARNING: Overwriting results file: C:\miscwork\portfolio\cislib\.artifacts\csharp\tasks\wp06-s03-t02\focused-boundaries\report.trx
+Results File: C:\miscwork\portfolio\cislib\.artifacts\csharp\tasks\wp06-s03-t02\focused-boundaries\report.trx
+
+Passed!  - Failed:     0, Passed:    15, Skipped:     0, Total:    15, Duration: 16 s - CIS.Core.ArchitectureTests.dll (net10.0)
+
+
+--- FILE planning/logging/evidence/wp06-s03-t02/focused-boundaries/report.trx SHA256 7cdc12e1d212d2c339e7c0e7948ef1b011582b3828ef58fcbfcf72de5803c9a3 ---
+<?xml version="1.0" encoding="utf-8"?>
+<TestRun id="91b50d21-ba8c-42f6-a1b0-463e785cc714" name="andrs@ARCTURUS 2026-10-15 00:43:54" runUser="ARCTURUS\andrs" xmlns="http://microsoft.com/schemas/VisualStudio/TeamTest/2010">
+  <Times creation="2026-10-15T00:43:54.9166065+02:00" queuing="2026-10-15T00:43:54.9166070+02:00" start="2026-10-15T00:43:51.2492629+02:00" finish="2026-10-15T00:44:08.5652683+02:00" />
+  <TestSettings name="default" id="005cfa48-b607-4aeb-b451-95f8586b7865">
+    <Deployment runDeploymentRoot="andrs_ARCTURUS_2026-10-15_00_43_54" />
+  </TestSettings>
+  <Results>
+    <UnitTestResult executionId="55ae6b2b-5407-4b42-bcf0-e7f088ab4dac" testId="16e64ae8-025e-8d4d-91fe-c4b66fae9d8d" testName="CopiedPackageRejectsFactoryAndThirdPartyLeakage (&quot;extra-dependency&quot;,&quot;Packed direct dependency inventory mismatch&quot;)" computerName="ARCTURUS" duration="00:00:16.6971767" startTime="2026-10-15T00:43:51.7767024+02:00" endTime="2026-10-15T00:44:08.5003567+02:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="55ae6b2b-5407-4b42-bcf0-e7f088ab4dac" />
+    <UnitTestResult executionId="b248eb6b-31fc-4542-b748-09f1532bbd0e" testId="1a8bdf9d-cb73-86d2-8384-4c557d60f44d" testName="CopiedRestoreGraphRejectsTransitiveLeakage (&quot;Microsoft.Extensions.Logging/10.0.12&quot;,&quot;Unapproved shipping package dependency&quot;)" computerName="ARCTURUS" duration="00:00:08.1464749" startTime="2026-10-15T00:43:51.7766721+02:00" endTime="2026-10-15T00:43:59.9479330+02:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="b248eb6b-31fc-4542-b748-09f1532bbd0e" />
+    <UnitTestResult executionId="3b0ec026-0766-4350-bcee-166f707aa611" testId="1a55d45f-e63d-8ebb-bb13-e60860580da3" testName="CopiedPackageRejectsFactoryAndThirdPartyLeakage (&quot;factory-dependency&quot;,&quot;Unapproved packed dependency&quot;)" computerName="ARCTURUS" duration="00:00:16.5294590" startTime="2026-10-15T00:43:51.7767217+02:00" endTime="2026-10-15T00:44:08.3308278+02:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="3b0ec026-0766-4350-bcee-166f707aa611" />
+    <UnitTestResult executionId="eaab75b5-d812-4c69-89f9-6c72f665ac4a" testId="124f2a42-5c59-8238-8e72-baa359899601" testName="CopiedRestoreGraphRejectsTransitiveLeakage (&quot;NLog/5.3.0&quot;,&quot;Unapproved shipping package dependency&quot;)" computerName="ARCTURUS" duration="00:00:11.6701473" startTime="2026-10-15T00:43:51.7766444+02:00" endTime="2026-10-15T00:44:03.4715966+02:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="eaab75b5-d812-4c69-89f9-6c72f665ac4a" />
+    <UnitTestResult executionId="71b70d4c-0890-4533-b986-14818aaecb11" testId="12b1d0e8-d1f2-8202-8bdf-a55fa046f45a" testName="CompiledCheckerRejectsForeignAssemblyReferences (&quot;CIS.Core.TestSupport&quot;)" computerName="ARCTURUS" duration="00:00:00.6051979" startTime="2026-10-15T00:43:51.7850571+02:00" endTime="2026-10-15T00:43:52.4066317+02:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="71b70d4c-0890-4533-b986-14818aaecb11" />
+    <UnitTestResult executionId="c650abe3-53c5-4a9f-9c1c-aa835fd11ec7" testId="1ccb22bc-4845-890a-9d2d-b0ba5e219a99" testName="CompiledCheckerRejectsForeignAssemblyReferences (&quot;Unapproved.Host.Infrastructure&quot;)" computerName="ARCTURUS" duration="00:00:03.0691880" startTime="2026-10-15T00:43:51.7766873+02:00" endTime="2026-10-15T00:43:54.8733093+02:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="c650abe3-53c5-4a9f-9c1c-aa835fd11ec7" />
+    <UnitTestResult executionId="27bc803c-fe5d-496e-a523-60af1dafd93a" testId="15a8c417-5d2b-8340-9bd8-aa665b1bca5e" testName="CopiedRestoreGraphRejectsTransitiveLeakage (&quot;Microsoft.Extensions.DependencyInjection.Abstractions/10.0.11&quot;,&quot;Unapproved shipping package dependency&quot;)" computerName="ARCTURUS" duration="00:00:08.4401316" startTime="2026-10-15T00:43:51.7849706+02:00" endTime="2026-10-15T00:44:00.2415202+02:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="27bc803c-fe5d-496e-a523-60af1dafd93a" />
+    <UnitTestResult executionId="28242eed-ae09-4996-b5ca-60a75d8a2b7c" testId="17d084a1-4301-8866-940b-165759502c16" testName="CopiedPackageRejectsFactoryAndThirdPartyLeakage (&quot;third-party-dll&quot;,&quot;Unexpected packed asset&quot;)" computerName="ARCTURUS" duration="00:00:15.1820085" startTime="2026-10-15T00:43:51.7849314+02:00" endTime="2026-10-15T00:44:06.9833871+02:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="28242eed-ae09-4996-b5ca-60a75d8a2b7c" />
+    <UnitTestResult executionId="65aabfcd-71d8-4ca6-afdb-cd3ea7159999" testId="19dc33cd-22ba-8ab1-8608-88d8a599c57d" testName="CopiedPackageRejectsFactoryAndThirdPartyLeakage (&quot;dependency-version&quot;,&quot;Unapproved packed dependency&quot;)" computerName="ARCTURUS" duration="00:00:16.5885058" startTime="2026-10-15T00:43:51.7766405+02:00" endTime="2026-10-15T00:44:08.3898601+02:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="65aabfcd-71d8-4ca6-afdb-cd3ea7159999" />
+    <UnitTestResult executionId="9d27cdd4-f5c2-4728-af62-bd3201096888" testId="1523e64e-076b-856f-8f99-742152fe185d" testName="CompiledCheckerRejectsForeignAssemblyReferences (&quot;NLog&quot;)" computerName="ARCTURUS" duration="00:00:00.5872904" startTime="2026-10-15T00:43:51.7767102+02:00" endTime="2026-10-15T00:43:52.3996706+02:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="9d27cdd4-f5c2-4728-af62-bd3201096888" />
+    <UnitTestResult executionId="f568b314-05f6-4313-8378-c0af890b3c09" testId="1b0b7dc7-5960-8471-960a-a5b1360b1600" testName="CopiedPackageRejectsFactoryAndThirdPartyLeakage (&quot;factory-dll&quot;,&quot;Unexpected packed asset&quot;)" computerName="ARCTURUS" duration="00:00:15.5015575" startTime="2026-10-15T00:43:51.7850642+02:00" endTime="2026-10-15T00:44:07.3029943+02:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="f568b314-05f6-4313-8378-c0af890b3c09" />
+    <UnitTestResult executionId="741560e2-717a-4d5f-a597-412a9c2d6e81" testId="19e3fc2e-ac6b-8a2f-9f1e-7b0b618dbb75" testName="CopiedRestoreGraphRejectsTransitiveLeakage (&quot;missing-transitive&quot;,&quot;Core runtime closure differs from the approved inventory&quot;)" computerName="ARCTURUS" duration="00:00:08.0621718" startTime="2026-10-15T00:43:51.7767213+02:00" endTime="2026-10-15T00:43:59.8635758+02:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="741560e2-717a-4d5f-a597-412a9c2d6e81" />
+    <UnitTestResult executionId="eda0a982-bf66-488b-a3eb-efb9b2181934" testId="1ca47c42-1ea1-81f9-8e81-c5208391fc41" testName="CopiedPackageRejectsFactoryAndThirdPartyLeakage (&quot;dependency-exact-range&quot;,&quot;Unapproved packed dependency&quot;)" computerName="ARCTURUS" duration="00:00:16.5870901" startTime="2026-10-15T00:43:51.7766730+02:00" endTime="2026-10-15T00:44:08.3885021+02:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="eda0a982-bf66-488b-a3eb-efb9b2181934" />
+    <UnitTestResult executionId="38261db8-b6a5-4445-983a-fc55386eb3cc" testId="1f694e47-7043-888e-97da-e04ecc38b27d" testName="CopiedRestoreGraphRejectsTransitiveLeakage (&quot;Microsoft.Extensions.DependencyInjection/10.0.12&quot;,&quot;Unapproved shipping package dependency&quot;)" computerName="ARCTURUS" duration="00:00:08.0916497" startTime="2026-10-15T00:43:51.7849606+02:00" endTime="2026-10-15T00:43:59.8931122+02:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="38261db8-b6a5-4445-983a-fc55386eb3cc" />
+    <UnitTestResult executionId="db7d27d0-b2f3-4008-a586-339d85179704" testId="1e393596-bcce-8794-bc00-2a055078f5df" testName="CompiledCheckerRejectsForeignAssemblyReferences (&quot;Microsoft.Extensions.Logging&quot;)" computerName="ARCTURUS" duration="00:00:00.6166523" startTime="2026-10-15T00:43:51.7849781+02:00" endTime="2026-10-15T00:43:52.4180547+02:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="db7d27d0-b2f3-4008-a586-339d85179704" />
+  </Results>
+  <TestDefinitions>
+    <UnitTest name="CopiedPackageRejectsFactoryAndThirdPartyLeakage (&quot;extra-dependency&quot;,&quot;Packed direct dependency inventory mismatch&quot;)" storage="c:\miscwork\portfolio\cislib\implementations\csharp\tests\cis.core.architecturetests\bin\release\net10.0\cis.core.architecturetests.dll" id="16e64ae8-025e-8d4d-91fe-c4b66fae9d8d">
+      <Execution id="55ae6b2b-5407-4b42-bcf0-e7f088ab4dac" />
+      <TestMethod codeBase="C:\miscwork\portfolio\cislib\implementations\csharp\tests\CIS.Core.ArchitectureTests\bin\Release\net10.0\CIS.Core.ArchitectureTests.dll" adapterTypeName="executor://mstestadapter/v4" className="CIS.Tests.ArchitectureTests.MicrosoftLoggingPackageBoundaryTests" name="CopiedPackageRejectsFactoryAndThirdPartyLeakage" />
+    </UnitTest>
+    <UnitTest name="CopiedPackageRejectsFactoryAndThirdPartyLeakage (&quot;dependency-version&quot;,&quot;Unapproved packed dependency&quot;)" storage="c:\miscwork\portfolio\cislib\implementations\csharp\tests\cis.core.architecturetests\bin\release\net10.0\cis.core.architecturetests.dll" id="19dc33cd-22ba-8ab1-8608-88d8a599c57d">
+      <Execution id="65aabfcd-71d8-4ca6-afdb-cd3ea7159999" />
+      <TestMethod codeBase="C:\miscwork\portfolio\cislib\implementations\csharp\tests\CIS.Core.ArchitectureTests\bin\Release\net10.0\CIS.Core.ArchitectureTests.dll" adapterTypeName="executor://mstestadapter/v4" className="CIS.Tests.ArchitectureTests.MicrosoftLoggingPackageBoundaryTests" name="CopiedPackageRejectsFactoryAndThirdPartyLeakage" />
+    </UnitTest>
+    <UnitTest name="CompiledCheckerRejectsForeignAssemblyReferences (&quot;Microsoft.Extensions.Logging&quot;)" storage="c:\miscwork\portfolio\cislib\implementations\csharp\tests\cis.core.architecturetests\bin\release\net10.0\cis.core.architecturetests.dll" id="1e393596-bcce-8794-bc00-2a055078f5df">
+      <Execution id="db7d27d0-b2f3-4008-a586-339d85179704" />
+      <TestMethod codeBase="C:\miscwork\portfolio\cislib\implementations\csharp\tests\CIS.Core.ArchitectureTests\bin\Release\net10.0\CIS.Core.ArchitectureTests.dll" adapterTypeName="executor://mstestadapter/v4" className="CIS.Tests.ArchitectureTests.DependencyBoundaryTests" name="CompiledCheckerRejectsForeignAssemblyReferences" />
+    </UnitTest>
+    <UnitTest name="CopiedPackageRejectsFactoryAndThirdPartyLeakage (&quot;third-party-dll&quot;,&quot;Unexpected packed asset&quot;)" storage="c:\miscwork\portfolio\cislib\implementations\csharp\tests\cis.core.architecturetests\bin\release\net10.0\cis.core.architecturetests.dll" id="17d084a1-4301-8866-940b-165759502c16">
+      <Execution id="28242eed-ae09-4996-b5ca-60a75d8a2b7c" />
+      <TestMethod codeBase="C:\miscwork\portfolio\cislib\implementations\csharp\tests\CIS.Core.ArchitectureTests\bin\Release\net10.0\CIS.Core.ArchitectureTests.dll" adapterTypeName="executor://mstestadapter/v4" className="CIS.Tests.ArchitectureTests.MicrosoftLoggingPackageBoundaryTests" name="CopiedPackageRejectsFactoryAndThirdPartyLeakage" />
+    </UnitTest>
+    <UnitTest name="CopiedRestoreGraphRejectsTransitiveLeakage (&quot;Microsoft.Extensions.DependencyInjection/10.0.12&quot;,&quot;Unapproved shipping package dependency&quot;)" storage="c:\miscwork\portfolio\cislib\implementations\csharp\tests\cis.core.architecturetests\bin\release\net10.0\cis.core.architecturetests.dll" id="1f694e47-7043-888e-97da-e04ecc38b27d">
+      <Execution id="38261db8-b6a5-4445-983a-fc55386eb3cc" />
+      <TestMethod codeBase="C:\miscwork\portfolio\cislib\implementations\csharp\tests\CIS.Core.ArchitectureTests\bin\Release\net10.0\CIS.Core.ArchitectureTests.dll" adapterTypeName="executor://mstestadapter/v4" className="CIS.Tests.ArchitectureTests.MicrosoftLoggingPackageBoundaryTests" name="CopiedRestoreGraphRejectsTransitiveLeakage" />
+    </UnitTest>
+    <UnitTest name="CompiledCheckerRejectsForeignAssemblyReferences (&quot;NLog&quot;)" storage="c:\miscwork\portfolio\cislib\implementations\csharp\tests\cis.core.architecturetests\bin\release\net10.0\cis.core.architecturetests.dll" id="1523e64e-076b-856f-8f99-742152fe185d">
+      <Execution id="9d27cdd4-f5c2-4728-af62-bd3201096888" />
+      <TestMethod codeBase="C:\miscwork\portfolio\cislib\implementations\csharp\tests\CIS.Core.ArchitectureTests\bin\Release\net10.0\CIS.Core.ArchitectureTests.dll" adapterTypeName="executor://mstestadapter/v4" className="CIS.Tests.ArchitectureTests.DependencyBoundaryTests" name="CompiledCheckerRejectsForeignAssemblyReferences" />
+    </UnitTest>
+    <UnitTest name="CopiedRestoreGraphRejectsTransitiveLeakage (&quot;Microsoft.Extensions.Logging/10.0.12&quot;,&quot;Unapproved shipping package dependency&quot;)" storage="c:\miscwork\portfolio\cislib\implementations\csharp\tests\cis.core.architecturetests\bin\release\net10.0\cis.core.architecturetests.dll" id="1a8bdf9d-cb73-86d2-8384-4c557d60f44d">
+      <Execution id="b248eb6b-31fc-4542-b748-09f1532bbd0e" />
+      <TestMethod codeBase="C:\miscwork\portfolio\cislib\implementations\csharp\tests\CIS.Core.ArchitectureTests\bin\Release\net10.0\CIS.Core.ArchitectureTests.dll" adapterTypeName="executor://mstestadapter/v4" className="CIS.Tests.ArchitectureTests.MicrosoftLoggingPackageBoundaryTests" name="CopiedRestoreGraphRejectsTransitiveLeakage" />
+    </UnitTest>
+    <UnitTest name="CopiedRestoreGraphRejectsTransitiveLeakage (&quot;Microsoft.Extensions.DependencyInjection.Abstractions/10.0.11&quot;,&quot;Unapproved shipping package dependency&quot;)" storage="c:\miscwork\portfolio\cislib\implementations\csharp\tests\cis.core.architecturetests\bin\release\net10.0\cis.core.architecturetests.dll" id="15a8c417-5d2b-8340-9bd8-aa665b1bca5e">
+      <Execution id="27bc803c-fe5d-496e-a523-60af1dafd93a" />
+      <TestMethod codeBase="C:\miscwork\portfolio\cislib\implementations\csharp\tests\CIS.Core.ArchitectureTests\bin\Release\net10.0\CIS.Core.ArchitectureTests.dll" adapterTypeName="executor://mstestadapter/v4" className="CIS.Tests.ArchitectureTests.MicrosoftLoggingPackageBoundaryTests" name="CopiedRestoreGraphRejectsTransitiveLeakage" />
+    </UnitTest>
+    <UnitTest name="CompiledCheckerRejectsForeignAssemblyReferences (&quot;Unapproved.Host.Infrastructure&quot;)" storage="c:\miscwork\portfolio\cislib\implementations\csharp\tests\cis.core.architecturetests\bin\release\net10.0\cis.core.architecturetests.dll" id="1ccb22bc-4845-890a-9d2d-b0ba5e219a99">
+      <Execution id="c650abe3-53c5-4a9f-9c1c-aa835fd11ec7" />
+      <TestMethod codeBase="C:\miscwork\portfolio\cislib\implementations\csharp\tests\CIS.Core.ArchitectureTests\bin\Release\net10.0\CIS.Core.ArchitectureTests.dll" adapterTypeName="executor://mstestadapter/v4" className="CIS.Tests.ArchitectureTests.DependencyBoundaryTests" name="CompiledCheckerRejectsForeignAssemblyReferences" />
+    </UnitTest>
+    <UnitTest name="CompiledCheckerRejectsForeignAssemblyReferences (&quot;CIS.Core.TestSupport&quot;)" storage="c:\miscwork\portfolio\cislib\implementations\csharp\tests\cis.core.architecturetests\bin\release\net10.0\cis.core.architecturetests.dll" id="12b1d0e8-d1f2-8202-8bdf-a55fa046f45a">
+      <Execution id="71b70d4c-0890-4533-b986-14818aaecb11" />
+      <TestMethod codeBase="C:\miscwork\portfolio\cislib\implementations\csharp\tests\CIS.Core.ArchitectureTests\bin\Release\net10.0\CIS.Core.ArchitectureTests.dll" adapterTypeName="executor://mstestadapter/v4" className="CIS.Tests.ArchitectureTests.DependencyBoundaryTests" name="CompiledCheckerRejectsForeignAssemblyReferences" />
+    </UnitTest>
+    <UnitTest name="CopiedPackageRejectsFactoryAndThirdPartyLeakage (&quot;factory-dependency&quot;,&quot;Unapproved packed dependency&quot;)" storage="c:\miscwork\portfolio\cislib\implementations\csharp\tests\cis.core.architecturetests\bin\release\net10.0\cis.core.architecturetests.dll" id="1a55d45f-e63d-8ebb-bb13-e60860580da3">
+      <Execution id="3b0ec026-0766-4350-bcee-166f707aa611" />
+      <TestMethod codeBase="C:\miscwork\portfolio\cislib\implementations\csharp\tests\CIS.Core.ArchitectureTests\bin\Release\net10.0\CIS.Core.ArchitectureTests.dll" adapterTypeName="executor://mstestadapter/v4" className="CIS.Tests.ArchitectureTests.MicrosoftLoggingPackageBoundaryTests" name="CopiedPackageRejectsFactoryAndThirdPartyLeakage" />
+    </UnitTest>
+    <UnitTest name="CopiedRestoreGraphRejectsTransitiveLeakage (&quot;NLog/5.3.0&quot;,&quot;Unapproved shipping package dependency&quot;)" storage="c:\miscwork\portfolio\cislib\implementations\csharp\tests\cis.core.architecturetests\bin\release\net10.0\cis.core.architecturetests.dll" id="124f2a42-5c59-8238-8e72-baa359899601">
+      <Execution id="eaab75b5-d812-4c69-89f9-6c72f665ac4a" />
+      <TestMethod codeBase="C:\miscwork\portfolio\cislib\implementations\csharp\tests\CIS.Core.ArchitectureTests\bin\Release\net10.0\CIS.Core.ArchitectureTests.dll" adapterTypeName="executor://mstestadapter/v4" className="CIS.Tests.ArchitectureTests.MicrosoftLoggingPackageBoundaryTests" name="CopiedRestoreGraphRejectsTransitiveLeakage" />
+    </UnitTest>
+    <UnitTest name="CopiedPackageRejectsFactoryAndThirdPartyLeakage (&quot;factory-dll&quot;,&quot;Unexpected packed asset&quot;)" storage="c:\miscwork\portfolio\cislib\implementations\csharp\tests\cis.core.architecturetests\bin\release\net10.0\cis.core.architecturetests.dll" id="1b0b7dc7-5960-8471-960a-a5b1360b1600">
+      <Execution id="f568b314-05f6-4313-8378-c0af890b3c09" />
+      <TestMethod codeBase="C:\miscwork\portfolio\cislib\implementations\csharp\tests\CIS.Core.ArchitectureTests\bin\Release\net10.0\CIS.Core.ArchitectureTests.dll" adapterTypeName="executor://mstestadapter/v4" className="CIS.Tests.ArchitectureTests.MicrosoftLoggingPackageBoundaryTests" name="CopiedPackageRejectsFactoryAndThirdPartyLeakage" />
+    </UnitTest>
+    <UnitTest name="CopiedPackageRejectsFactoryAndThirdPartyLeakage (&quot;dependency-exact-range&quot;,&quot;Unapproved packed dependency&quot;)" storage="c:\miscwork\portfolio\cislib\implementations\csharp\tests\cis.core.architecturetests\bin\release\net10.0\cis.core.architecturetests.dll" id="1ca47c42-1ea1-81f9-8e81-c5208391fc41">
+      <Execution id="eda0a982-bf66-488b-a3eb-efb9b2181934" />
+      <TestMethod codeBase="C:\miscwork\portfolio\cislib\implementations\csharp\tests\CIS.Core.ArchitectureTests\bin\Release\net10.0\CIS.Core.ArchitectureTests.dll" adapterTypeName="executor://mstestadapter/v4" className="CIS.Tests.ArchitectureTests.MicrosoftLoggingPackageBoundaryTests" name="CopiedPackageRejectsFactoryAndThirdPartyLeakage" />
+    </UnitTest>
+    <UnitTest name="CopiedRestoreGraphRejectsTransitiveLeakage (&quot;missing-transitive&quot;,&quot;Core runtime closure differs from the approved inventory&quot;)" storage="c:\miscwork\portfolio\cislib\implementations\csharp\tests\cis.core.architecturetests\bin\release\net10.0\cis.core.architecturetests.dll" id="19e3fc2e-ac6b-8a2f-9f1e-7b0b618dbb75">
+      <Execution id="741560e2-717a-4d5f-a597-412a9c2d6e81" />
+      <TestMethod codeBase="C:\miscwork\portfolio\cislib\implementations\csharp\tests\CIS.Core.ArchitectureTests\bin\Release\net10.0\CIS.Core.ArchitectureTests.dll" adapterTypeName="executor://mstestadapter/v4" className="CIS.Tests.ArchitectureTests.MicrosoftLoggingPackageBoundaryTests" name="CopiedRestoreGraphRejectsTransitiveLeakage" />
+    </UnitTest>
+  </TestDefinitions>
+  <TestEntries>
+    <TestEntry testId="16e64ae8-025e-8d4d-91fe-c4b66fae9d8d" executionId="55ae6b2b-5407-4b42-bcf0-e7f088ab4dac" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="1a8bdf9d-cb73-86d2-8384-4c557d60f44d" executionId="b248eb6b-31fc-4542-b748-09f1532bbd0e" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="1a55d45f-e63d-8ebb-bb13-e60860580da3" executionId="3b0ec026-0766-4350-bcee-166f707aa611" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="124f2a42-5c59-8238-8e72-baa359899601" executionId="eaab75b5-d812-4c69-89f9-6c72f665ac4a" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="12b1d0e8-d1f2-8202-8bdf-a55fa046f45a" executionId="71b70d4c-0890-4533-b986-14818aaecb11" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="1ccb22bc-4845-890a-9d2d-b0ba5e219a99" executionId="c650abe3-53c5-4a9f-9c1c-aa835fd11ec7" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="15a8c417-5d2b-8340-9bd8-aa665b1bca5e" executionId="27bc803c-fe5d-496e-a523-60af1dafd93a" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="17d084a1-4301-8866-940b-165759502c16" executionId="28242eed-ae09-4996-b5ca-60a75d8a2b7c" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="19dc33cd-22ba-8ab1-8608-88d8a599c57d" executionId="65aabfcd-71d8-4ca6-afdb-cd3ea7159999" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="1523e64e-076b-856f-8f99-742152fe185d" executionId="9d27cdd4-f5c2-4728-af62-bd3201096888" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="1b0b7dc7-5960-8471-960a-a5b1360b1600" executionId="f568b314-05f6-4313-8378-c0af890b3c09" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="19e3fc2e-ac6b-8a2f-9f1e-7b0b618dbb75" executionId="741560e2-717a-4d5f-a597-412a9c2d6e81" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="1ca47c42-1ea1-81f9-8e81-c5208391fc41" executionId="eda0a982-bf66-488b-a3eb-efb9b2181934" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="1f694e47-7043-888e-97da-e04ecc38b27d" executionId="38261db8-b6a5-4445-983a-fc55386eb3cc" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="1e393596-bcce-8794-bc00-2a055078f5df" executionId="db7d27d0-b2f3-4008-a586-339d85179704" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+  </TestEntries>
+  <TestLists>
+    <TestList name="Results Not in a List" id="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestList name="All Loaded Results" id="19431567-8539-422a-85d7-44ee4e166bda" />
+  </TestLists>
+  <ResultSummary outcome="Completed">
+    <Counters total="15" executed="15" passed="15" failed="0" error="0" timeout="0" aborted="0" inconclusive="0" passedButRunAborted="0" notRunnable="0" notExecuted="0" disconnected="0" warning="0" completed="0" inProgress="0" pending="0" />
+    <Output>
+      <StdOut>Test Parallelization enabled for C:\miscwork\portfolio\cislib\implementations\csharp\tests\CIS.Core.ArchitectureTests\bin\Release\net10.0\CIS.Core.ArchitectureTests.dll (Workers: 20, Scope: MethodLevel)&#xD;
+</StdOut>
+    </Output>
+  </ResultSummary>
+</TestRun>
+
+--- FILE planning/logging/evidence/wp06-s03-t02/historical-stale-positive/focused-boundaries.log SHA256 1c8fb88d7369b97d3126e600ef36315a7a05ab4756f84595b599b9ca25d37c1f ---
+  Determining projects to restore...
+  Restored C:\miscwork\portfolio\cislib\implementations\csharp\tests\CIS.Core.TestSupport\CIS.Core.TestSupport.csproj (in 110 ms).
+  Restored C:\miscwork\portfolio\cislib\implementations\csharp\eng\CIS.TypeManager.Build\CIS.TypeManager.Build.csproj (in 110 ms).
+  Restored C:\miscwork\portfolio\cislib\implementations\csharp\src\CIS.Core\CIS.Core.csproj (in 678 ms).
+  Restored C:\miscwork\portfolio\cislib\implementations\csharp\tests\CIS.Core.ArchitectureTests\CIS.Core.ArchitectureTests.csproj (in 719 ms).
+  CIS.Core.TestSupport -> C:\miscwork\portfolio\cislib\implementations\csharp\tests\CIS.Core.TestSupport\bin\Release\net10.0\CIS.Core.TestSupport.dll
+  CIS.TypeManager.Build -> C:\miscwork\portfolio\cislib\implementations\csharp\eng\CIS.TypeManager.Build\bin\Release\net10.0\CIS.TypeManager.Build.dll
+  CIS.Core -> C:\miscwork\portfolio\cislib\implementations\csharp\src\CIS.Core\bin\Release\net10.0\CIS.Core.dll
+  CIS.Core.ArchitectureTests -> C:\miscwork\portfolio\cislib\implementations\csharp\tests\CIS.Core.ArchitectureTests\bin\Release\net10.0\CIS.Core.ArchitectureTests.dll
+Test run for C:\miscwork\portfolio\cislib\implementations\csharp\tests\CIS.Core.ArchitectureTests\bin\Release\net10.0\CIS.Core.ArchitectureTests.dll (.NETCoreApp,Version=v10.0)
+A total of 1 test files matched the specified pattern.
+  Failed CopiedPackageRejectsFactoryAndThirdPartyLeakage ("third-party-dll","Unexpected packed asset") [9 s]
+  Error Message:
+   Assertion failed. Expected values to be equal.
+Exception: C:\miscwork\portfolio\cislib\implementations\csharp\eng\check-dependencies.ps1:229
+Line |
+ 229 |  . th).Hash) { throw 'Packed Type Manager helper differs from the checke .
+     |                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+     | Packed Type Manager helper differs from the checked Release tool.
+
+
+expected: 0
+actual:   1
+
+Assert.AreEqual(0, result.ExitCode)
+  Stack Trace:
+     at CIS.Tests.ArchitectureTests.MicrosoftLoggingPackageBoundaryTests.AssertPassed(ProcessResult result) in C:\miscwork\portfolio\cislib\implementations\csharp\tests\CIS.Core.ArchitectureTests\MicrosoftLoggingPackageBoundaryTests.cs:line 87
+   at CIS.Tests.ArchitectureTests.MicrosoftLoggingPackageBoundaryTests.CopiedPackageRejectsFactoryAndThirdPartyLeakage(String mutation, String reason) in C:\miscwork\portfolio\cislib\implementations\csharp\tests\CIS.Core.ArchitectureTests\MicrosoftLoggingPackageBoundaryTests.cs:line 58
+   at Microsoft.VisualStudio.TestPlatform.MSTest.TestAdapter.Execution.TestMethodInfo.ExecuteInternalAsync(Object[] arguments, CancellationTokenSource timeoutTokenSource, TestInvocationState invocationState)
+  Failed CopiedPackageRejectsFactoryAndThirdPartyLeakage ("dependency-version","Unapproved packed dependency") [9 s]
+  Error Message:
+   Assertion failed. Expected values to be equal.
+Exception: C:\miscwork\portfolio\cislib\implementations\csharp\eng\check-dependencies.ps1:229
+Line |
+ 229 |  . th).Hash) { throw 'Packed Type Manager helper differs from the checke .
+     |                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+     | Packed Type Manager helper differs from the checked Release tool.
+
+
+expected: 0
+actual:   1
+
+Assert.AreEqual(0, result.ExitCode)
+  Stack Trace:
+     at CIS.Tests.ArchitectureTests.MicrosoftLoggingPackageBoundaryTests.AssertPassed(ProcessResult result) in C:\miscwork\portfolio\cislib\implementations\csharp\tests\CIS.Core.ArchitectureTests\MicrosoftLoggingPackageBoundaryTests.cs:line 87
+   at CIS.Tests.ArchitectureTests.MicrosoftLoggingPackageBoundaryTests.CopiedPackageRejectsFactoryAndThirdPartyLeakage(String mutation, String reason) in C:\miscwork\portfolio\cislib\implementations\csharp\tests\CIS.Core.ArchitectureTests\MicrosoftLoggingPackageBoundaryTests.cs:line 58
+   at Microsoft.VisualStudio.TestPlatform.MSTest.TestAdapter.Execution.TestMethodInfo.ExecuteInternalAsync(Object[] arguments, CancellationTokenSource timeoutTokenSource, TestInvocationState invocationState)
+  Failed CopiedPackageRejectsFactoryAndThirdPartyLeakage ("extra-dependency","Packed direct dependency inventory mismatch") [9 s]
+  Error Message:
+   Assertion failed. Expected values to be equal.
+Exception: C:\miscwork\portfolio\cislib\implementations\csharp\eng\check-dependencies.ps1:229
+Line |
+ 229 |  . th).Hash) { throw 'Packed Type Manager helper differs from the checke .
+     |                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+     | Packed Type Manager helper differs from the checked Release tool.
+
+
+expected: 0
+actual:   1
+
+Assert.AreEqual(0, result.ExitCode)
+  Stack Trace:
+     at CIS.Tests.ArchitectureTests.MicrosoftLoggingPackageBoundaryTests.AssertPassed(ProcessResult result) in C:\miscwork\portfolio\cislib\implementations\csharp\tests\CIS.Core.ArchitectureTests\MicrosoftLoggingPackageBoundaryTests.cs:line 87
+   at CIS.Tests.ArchitectureTests.MicrosoftLoggingPackageBoundaryTests.CopiedPackageRejectsFactoryAndThirdPartyLeakage(String mutation, String reason) in C:\miscwork\portfolio\cislib\implementations\csharp\tests\CIS.Core.ArchitectureTests\MicrosoftLoggingPackageBoundaryTests.cs:line 58
+   at Microsoft.VisualStudio.TestPlatform.MSTest.TestAdapter.Execution.TestMethodInfo.ExecuteInternalAsync(Object[] arguments, CancellationTokenSource timeoutTokenSource, TestInvocationState invocationState)
+  Failed CopiedPackageRejectsFactoryAndThirdPartyLeakage ("factory-dependency","Unapproved packed dependency") [9 s]
+  Error Message:
+   Assertion failed. Expected values to be equal.
+Exception: C:\miscwork\portfolio\cislib\implementations\csharp\eng\check-dependencies.ps1:229
+Line |
+ 229 |  . th).Hash) { throw 'Packed Type Manager helper differs from the checke .
+     |                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+     | Packed Type Manager helper differs from the checked Release tool.
+
+
+expected: 0
+actual:   1
+
+Assert.AreEqual(0, result.ExitCode)
+  Stack Trace:
+     at CIS.Tests.ArchitectureTests.MicrosoftLoggingPackageBoundaryTests.AssertPassed(ProcessResult result) in C:\miscwork\portfolio\cislib\implementations\csharp\tests\CIS.Core.ArchitectureTests\MicrosoftLoggingPackageBoundaryTests.cs:line 87
+   at CIS.Tests.ArchitectureTests.MicrosoftLoggingPackageBoundaryTests.CopiedPackageRejectsFactoryAndThirdPartyLeakage(String mutation, String reason) in C:\miscwork\portfolio\cislib\implementations\csharp\tests\CIS.Core.ArchitectureTests\MicrosoftLoggingPackageBoundaryTests.cs:line 58
+   at Microsoft.VisualStudio.TestPlatform.MSTest.TestAdapter.Execution.TestMethodInfo.ExecuteInternalAsync(Object[] arguments, CancellationTokenSource timeoutTokenSource, TestInvocationState invocationState)
+  Failed CopiedPackageRejectsFactoryAndThirdPartyLeakage ("dependency-exact-range","Unapproved packed dependency") [9 s]
+  Error Message:
+   Assertion failed. Expected values to be equal.
+Exception: C:\miscwork\portfolio\cislib\implementations\csharp\eng\check-dependencies.ps1:229
+Line |
+ 229 |  . th).Hash) { throw 'Packed Type Manager helper differs from the checke .
+     |                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+     | Packed Type Manager helper differs from the checked Release tool.
+
+
+expected: 0
+actual:   1
+
+Assert.AreEqual(0, result.ExitCode)
+  Stack Trace:
+     at CIS.Tests.ArchitectureTests.MicrosoftLoggingPackageBoundaryTests.AssertPassed(ProcessResult result) in C:\miscwork\portfolio\cislib\implementations\csharp\tests\CIS.Core.ArchitectureTests\MicrosoftLoggingPackageBoundaryTests.cs:line 87
+   at CIS.Tests.ArchitectureTests.MicrosoftLoggingPackageBoundaryTests.CopiedPackageRejectsFactoryAndThirdPartyLeakage(String mutation, String reason) in C:\miscwork\portfolio\cislib\implementations\csharp\tests\CIS.Core.ArchitectureTests\MicrosoftLoggingPackageBoundaryTests.cs:line 58
+   at Microsoft.VisualStudio.TestPlatform.MSTest.TestAdapter.Execution.TestMethodInfo.ExecuteInternalAsync(Object[] arguments, CancellationTokenSource timeoutTokenSource, TestInvocationState invocationState)
+  Failed CopiedPackageRejectsFactoryAndThirdPartyLeakage ("factory-dll","Unexpected packed asset") [9 s]
+  Error Message:
+   Assertion failed. Expected values to be equal.
+Exception: C:\miscwork\portfolio\cislib\implementations\csharp\eng\check-dependencies.ps1:229
+Line |
+ 229 |  . th).Hash) { throw 'Packed Type Manager helper differs from the checke .
+     |                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+     | Packed Type Manager helper differs from the checked Release tool.
+
+
+expected: 0
+actual:   1
+
+Assert.AreEqual(0, result.ExitCode)
+  Stack Trace:
+     at CIS.Tests.ArchitectureTests.MicrosoftLoggingPackageBoundaryTests.AssertPassed(ProcessResult result) in C:\miscwork\portfolio\cislib\implementations\csharp\tests\CIS.Core.ArchitectureTests\MicrosoftLoggingPackageBoundaryTests.cs:line 87
+   at CIS.Tests.ArchitectureTests.MicrosoftLoggingPackageBoundaryTests.CopiedPackageRejectsFactoryAndThirdPartyLeakage(String mutation, String reason) in C:\miscwork\portfolio\cislib\implementations\csharp\tests\CIS.Core.ArchitectureTests\MicrosoftLoggingPackageBoundaryTests.cs:line 58
+   at Microsoft.VisualStudio.TestPlatform.MSTest.TestAdapter.Execution.TestMethodInfo.ExecuteInternalAsync(Object[] arguments, CancellationTokenSource timeoutTokenSource, TestInvocationState invocationState)
+Results File: C:\miscwork\portfolio\cislib\.artifacts\csharp\tasks\wp06-s03-t02\focused-boundaries\report.trx
+
+Failed!  - Failed:     6, Passed:     9, Skipped:     0, Total:    15, Duration: 10 s - CIS.Core.ArchitectureTests.dll (net10.0)
+
+
+--- FILE planning/logging/evidence/wp06-s03-t02/historical-stale-positive/report.trx SHA256 9913101367fa709df8185c59489207387c95f694f19ccd98ce1e67cccf6502bc ---
+<?xml version="1.0" encoding="utf-8"?>
+<TestRun id="7eaaaa56-dea6-4c94-a204-823060bab94d" name="andrs@ARCTURUS 2026-10-15 00:42:36" runUser="ARCTURUS\andrs" xmlns="http://microsoft.com/schemas/VisualStudio/TeamTest/2010">
+  <Times creation="2026-10-15T00:42:36.0219578+02:00" queuing="2026-10-15T00:42:36.0219586+02:00" start="2026-10-15T00:42:32.2171031+02:00" finish="2026-10-15T00:42:43.3615854+02:00" />
+  <TestSettings name="default" id="0e71438c-fb4b-4f46-91df-6d20871e6d3f">
+    <Deployment runDeploymentRoot="andrs_ARCTURUS_2026-10-15_00_42_36" />
+  </TestSettings>
+  <Results>
+    <UnitTestResult executionId="380e6d32-78fe-43c8-99ca-1823b6858321" testId="16e64ae8-025e-8d4d-91fe-c4b66fae9d8d" testName="CopiedPackageRejectsFactoryAndThirdPartyLeakage (&quot;extra-dependency&quot;,&quot;Packed direct dependency inventory mismatch&quot;)" computerName="ARCTURUS" duration="00:00:09.2907402" startTime="2026-10-15T00:42:32.7541400+02:00" endTime="2026-10-15T00:42:42.0741940+02:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Failed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="380e6d32-78fe-43c8-99ca-1823b6858321">
+      <Output>
+        <ErrorInfo>
+          <Message>Assertion failed. Expected values to be equal.&#xD;
+Exception: C:\miscwork\portfolio\cislib\implementations\csharp\eng\check-dependencies.ps1:229&#xD;
+Line |&#xD;
+ 229 |  . th).Hash) { throw 'Packed Type Manager helper differs from the checke .&#xD;
+     |                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~&#xD;
+     | Packed Type Manager helper differs from the checked Release tool.&#xD;
+&#xD;
+&#xD;
+expected: 0&#xD;
+actual:   1&#xD;
+&#xD;
+Assert.AreEqual(0, result.ExitCode)</Message>
+          <StackTrace>   at CIS.Tests.ArchitectureTests.MicrosoftLoggingPackageBoundaryTests.AssertPassed(ProcessResult result) in C:\miscwork\portfolio\cislib\implementations\csharp\tests\CIS.Core.ArchitectureTests\MicrosoftLoggingPackageBoundaryTests.cs:line 87&#xD;
+   at CIS.Tests.ArchitectureTests.MicrosoftLoggingPackageBoundaryTests.CopiedPackageRejectsFactoryAndThirdPartyLeakage(String mutation, String reason) in C:\miscwork\portfolio\cislib\implementations\csharp\tests\CIS.Core.ArchitectureTests\MicrosoftLoggingPackageBoundaryTests.cs:line 58&#xD;
+   at Microsoft.VisualStudio.TestPlatform.MSTest.TestAdapter.Execution.TestMethodInfo.ExecuteInternalAsync(Object[] arguments, CancellationTokenSource timeoutTokenSource, TestInvocationState invocationState)</StackTrace>
+        </ErrorInfo>
+      </Output>
+    </UnitTestResult>
+    <UnitTestResult executionId="61013703-0c49-44e8-9134-3d44a69d73e8" testId="1523e64e-076b-856f-8f99-742152fe185d" testName="CompiledCheckerRejectsForeignAssemblyReferences (&quot;NLog&quot;)" computerName="ARCTURUS" duration="00:00:00.7598039" startTime="2026-10-15T00:42:32.7630953+02:00" endTime="2026-10-15T00:42:33.5434503+02:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="61013703-0c49-44e8-9134-3d44a69d73e8" />
+    <UnitTestResult executionId="c246f383-5c62-4124-bca9-643492b5dbde" testId="1a55d45f-e63d-8ebb-bb13-e60860580da3" testName="CopiedPackageRejectsFactoryAndThirdPartyLeakage (&quot;factory-dependency&quot;,&quot;Unapproved packed dependency&quot;)" computerName="ARCTURUS" duration="00:00:09.3600243" startTime="2026-10-15T00:42:32.7627016+02:00" endTime="2026-10-15T00:42:42.1435508+02:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Failed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="c246f383-5c62-4124-bca9-643492b5dbde">
+      <Output>
+        <ErrorInfo>
+          <Message>Assertion failed. Expected values to be equal.&#xD;
+Exception: C:\miscwork\portfolio\cislib\implementations\csharp\eng\check-dependencies.ps1:229&#xD;
+Line |&#xD;
+ 229 |  . th).Hash) { throw 'Packed Type Manager helper differs from the checke .&#xD;
+     |                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~&#xD;
+     | Packed Type Manager helper differs from the checked Release tool.&#xD;
+&#xD;
+&#xD;
+expected: 0&#xD;
+actual:   1&#xD;
+&#xD;
+Assert.AreEqual(0, result.ExitCode)</Message>
+          <StackTrace>   at CIS.Tests.ArchitectureTests.MicrosoftLoggingPackageBoundaryTests.AssertPassed(ProcessResult result) in C:\miscwork\portfolio\cislib\implementations\csharp\tests\CIS.Core.ArchitectureTests\MicrosoftLoggingPackageBoundaryTests.cs:line 87&#xD;
+   at CIS.Tests.ArchitectureTests.MicrosoftLoggingPackageBoundaryTests.CopiedPackageRejectsFactoryAndThirdPartyLeakage(String mutation, String reason) in C:\miscwork\portfolio\cislib\implementations\csharp\tests\CIS.Core.ArchitectureTests\MicrosoftLoggingPackageBoundaryTests.cs:line 58&#xD;
+   at Microsoft.VisualStudio.TestPlatform.MSTest.TestAdapter.Execution.TestMethodInfo.ExecuteInternalAsync(Object[] arguments, CancellationTokenSource timeoutTokenSource, TestInvocationState invocationState)</StackTrace>
+        </ErrorInfo>
+      </Output>
+    </UnitTestResult>
+    <UnitTestResult executionId="c7d3f94e-eba8-4671-b6b1-f19bf98698c2" testId="17d084a1-4301-8866-940b-165759502c16" testName="CopiedPackageRejectsFactoryAndThirdPartyLeakage (&quot;third-party-dll&quot;,&quot;Unexpected packed asset&quot;)" computerName="ARCTURUS" duration="00:00:09.1295570" startTime="2026-10-15T00:42:32.7541320+02:00" endTime="2026-10-15T00:42:41.9129775+02:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Failed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="c7d3f94e-eba8-4671-b6b1-f19bf98698c2">
+      <Output>
+        <ErrorInfo>
+          <Message>Assertion failed. Expected values to be equal.&#xD;
+Exception: C:\miscwork\portfolio\cislib\implementations\csharp\eng\check-dependencies.ps1:229&#xD;
+Line |&#xD;
+ 229 |  . th).Hash) { throw 'Packed Type Manager helper differs from the checke .&#xD;
+     |                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~&#xD;
+     | Packed Type Manager helper differs from the checked Release tool.&#xD;
+&#xD;
+&#xD;
+expected: 0&#xD;
+actual:   1&#xD;
+&#xD;
+Assert.AreEqual(0, result.ExitCode)</Message>
+          <StackTrace>   at CIS.Tests.ArchitectureTests.MicrosoftLoggingPackageBoundaryTests.AssertPassed(ProcessResult result) in C:\miscwork\portfolio\cislib\implementations\csharp\tests\CIS.Core.ArchitectureTests\MicrosoftLoggingPackageBoundaryTests.cs:line 87&#xD;
+   at CIS.Tests.ArchitectureTests.MicrosoftLoggingPackageBoundaryTests.CopiedPackageRejectsFactoryAndThirdPartyLeakage(String mutation, String reason) in C:\miscwork\portfolio\cislib\implementations\csharp\tests\CIS.Core.ArchitectureTests\MicrosoftLoggingPackageBoundaryTests.cs:line 58&#xD;
+   at Microsoft.VisualStudio.TestPlatform.MSTest.TestAdapter.Execution.TestMethodInfo.ExecuteInternalAsync(Object[] arguments, CancellationTokenSource timeoutTokenSource, TestInvocationState invocationState)</StackTrace>
+        </ErrorInfo>
+      </Output>
+    </UnitTestResult>
+    <UnitTestResult executionId="51bdd3de-12c3-49dd-8770-d218fd86edaa" testId="124f2a42-5c59-8238-8e72-baa359899601" testName="CopiedRestoreGraphRejectsTransitiveLeakage (&quot;NLog/5.3.0&quot;,&quot;Unapproved shipping package dependency&quot;)" computerName="ARCTURUS" duration="00:00:08.2412921" startTime="2026-10-15T00:42:32.7541348+02:00" endTime="2026-10-15T00:42:41.0249456+02:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="51bdd3de-12c3-49dd-8770-d218fd86edaa" />
+    <UnitTestResult executionId="ad8a553c-4969-483c-b778-eff68f5aebda" testId="19dc33cd-22ba-8ab1-8608-88d8a599c57d" testName="CopiedPackageRejectsFactoryAndThirdPartyLeakage (&quot;dependency-version&quot;,&quot;Unapproved packed dependency&quot;)" computerName="ARCTURUS" duration="00:00:09.2774215" startTime="2026-10-15T00:42:32.7631383+02:00" endTime="2026-10-15T00:42:42.0608666+02:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Failed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="ad8a553c-4969-483c-b778-eff68f5aebda">
+      <Output>
+        <ErrorInfo>
+          <Message>Assertion failed. Expected values to be equal.&#xD;
+Exception: C:\miscwork\portfolio\cislib\implementations\csharp\eng\check-dependencies.ps1:229&#xD;
+Line |&#xD;
+ 229 |  . th).Hash) { throw 'Packed Type Manager helper differs from the checke .&#xD;
+     |                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~&#xD;
+     | Packed Type Manager helper differs from the checked Release tool.&#xD;
+&#xD;
+&#xD;
+expected: 0&#xD;
+actual:   1&#xD;
+&#xD;
+Assert.AreEqual(0, result.ExitCode)</Message>
+          <StackTrace>   at CIS.Tests.ArchitectureTests.MicrosoftLoggingPackageBoundaryTests.AssertPassed(ProcessResult result) in C:\miscwork\portfolio\cislib\implementations\csharp\tests\CIS.Core.ArchitectureTests\MicrosoftLoggingPackageBoundaryTests.cs:line 87&#xD;
+   at CIS.Tests.ArchitectureTests.MicrosoftLoggingPackageBoundaryTests.CopiedPackageRejectsFactoryAndThirdPartyLeakage(String mutation, String reason) in C:\miscwork\portfolio\cislib\implementations\csharp\tests\CIS.Core.ArchitectureTests\MicrosoftLoggingPackageBoundaryTests.cs:line 58&#xD;
+   at Microsoft.VisualStudio.TestPlatform.MSTest.TestAdapter.Execution.TestMethodInfo.ExecuteInternalAsync(Object[] arguments, CancellationTokenSource timeoutTokenSource, TestInvocationState invocationState)</StackTrace>
+        </ErrorInfo>
+      </Output>
+    </UnitTestResult>
+    <UnitTestResult executionId="03b38d1c-3bc8-4b5e-80ec-de343412a8e4" testId="1ccb22bc-4845-890a-9d2d-b0ba5e219a99" testName="CompiledCheckerRejectsForeignAssemblyReferences (&quot;Unapproved.Host.Infrastructure&quot;)" computerName="ARCTURUS" duration="00:00:00.7300727" startTime="2026-10-15T00:42:32.7541802+02:00" endTime="2026-10-15T00:42:33.5243403+02:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="03b38d1c-3bc8-4b5e-80ec-de343412a8e4" />
+    <UnitTestResult executionId="27af3460-b127-49de-93ca-0b60cca00d24" testId="19e3fc2e-ac6b-8a2f-9f1e-7b0b618dbb75" testName="CopiedRestoreGraphRejectsTransitiveLeakage (&quot;missing-transitive&quot;,&quot;Core runtime closure differs from the approved inventory&quot;)" computerName="ARCTURUS" duration="00:00:08.3835315" startTime="2026-10-15T00:42:32.7626867+02:00" endTime="2026-10-15T00:42:41.1670703+02:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="27af3460-b127-49de-93ca-0b60cca00d24" />
+    <UnitTestResult executionId="a8d63119-5408-47e6-a154-9a1a75ff4eed" testId="1f694e47-7043-888e-97da-e04ecc38b27d" testName="CopiedRestoreGraphRejectsTransitiveLeakage (&quot;Microsoft.Extensions.DependencyInjection/10.0.12&quot;,&quot;Unapproved shipping package dependency&quot;)" computerName="ARCTURUS" duration="00:00:08.1989307" startTime="2026-10-15T00:42:32.7631056+02:00" endTime="2026-10-15T00:42:40.9824498+02:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="a8d63119-5408-47e6-a154-9a1a75ff4eed" />
+    <UnitTestResult executionId="932940eb-6246-476b-b286-31beb8a3a7a6" testId="1b0b7dc7-5960-8471-960a-a5b1360b1600" testName="CopiedPackageRejectsFactoryAndThirdPartyLeakage (&quot;factory-dll&quot;,&quot;Unexpected packed asset&quot;)" computerName="ARCTURUS" duration="00:00:09.5192431" startTime="2026-10-15T00:42:32.7541992+02:00" endTime="2026-10-15T00:42:42.3027327+02:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Failed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="932940eb-6246-476b-b286-31beb8a3a7a6">
+      <Output>
+        <ErrorInfo>
+          <Message>Assertion failed. Expected values to be equal.&#xD;
+Exception: C:\miscwork\portfolio\cislib\implementations\csharp\eng\check-dependencies.ps1:229&#xD;
+Line |&#xD;
+ 229 |  . th).Hash) { throw 'Packed Type Manager helper differs from the checke .&#xD;
+     |                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~&#xD;
+     | Packed Type Manager helper differs from the checked Release tool.&#xD;
+&#xD;
+&#xD;
+expected: 0&#xD;
+actual:   1&#xD;
+&#xD;
+Assert.AreEqual(0, result.ExitCode)</Message>
+          <StackTrace>   at CIS.Tests.ArchitectureTests.MicrosoftLoggingPackageBoundaryTests.AssertPassed(ProcessResult result) in C:\miscwork\portfolio\cislib\implementations\csharp\tests\CIS.Core.ArchitectureTests\MicrosoftLoggingPackageBoundaryTests.cs:line 87&#xD;
+   at CIS.Tests.ArchitectureTests.MicrosoftLoggingPackageBoundaryTests.CopiedPackageRejectsFactoryAndThirdPartyLeakage(String mutation, String reason) in C:\miscwork\portfolio\cislib\implementations\csharp\tests\CIS.Core.ArchitectureTests\MicrosoftLoggingPackageBoundaryTests.cs:line 58&#xD;
+   at Microsoft.VisualStudio.TestPlatform.MSTest.TestAdapter.Execution.TestMethodInfo.ExecuteInternalAsync(Object[] arguments, CancellationTokenSource timeoutTokenSource, TestInvocationState invocationState)</StackTrace>
+        </ErrorInfo>
+      </Output>
+    </UnitTestResult>
+    <UnitTestResult executionId="a088ecb2-8173-41fc-b1b8-0be099d7c3a3" testId="1e393596-bcce-8794-bc00-2a055078f5df" testName="CompiledCheckerRejectsForeignAssemblyReferences (&quot;Microsoft.Extensions.Logging&quot;)" computerName="ARCTURUS" duration="00:00:03.1875389" startTime="2026-10-15T00:42:32.7541606+02:00" endTime="2026-10-15T00:42:35.9740078+02:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="a088ecb2-8173-41fc-b1b8-0be099d7c3a3" />
+    <UnitTestResult executionId="783c7633-ac65-4367-9ebf-b834d001a449" testId="15a8c417-5d2b-8340-9bd8-aa665b1bca5e" testName="CopiedRestoreGraphRejectsTransitiveLeakage (&quot;Microsoft.Extensions.DependencyInjection.Abstractions/10.0.11&quot;,&quot;Unapproved shipping package dependency&quot;)" computerName="ARCTURUS" duration="00:00:10.4755612" startTime="2026-10-15T00:42:32.7541922+02:00" endTime="2026-10-15T00:42:43.2622906+02:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="783c7633-ac65-4367-9ebf-b834d001a449" />
+    <UnitTestResult executionId="355c5558-fbb2-4c0b-9ee5-54801729647c" testId="1a8bdf9d-cb73-86d2-8384-4c557d60f44d" testName="CopiedRestoreGraphRejectsTransitiveLeakage (&quot;Microsoft.Extensions.Logging/10.0.12&quot;,&quot;Unapproved shipping package dependency&quot;)" computerName="ARCTURUS" duration="00:00:08.5570091" startTime="2026-10-15T00:42:32.7631239+02:00" endTime="2026-10-15T00:42:41.3404955+02:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="355c5558-fbb2-4c0b-9ee5-54801729647c" />
+    <UnitTestResult executionId="06213841-92e0-49f5-ae87-fc4933e3840d" testId="12b1d0e8-d1f2-8202-8bdf-a55fa046f45a" testName="CompiledCheckerRejectsForeignAssemblyReferences (&quot;CIS.Core.TestSupport&quot;)" computerName="ARCTURUS" duration="00:00:00.7352393" startTime="2026-10-15T00:42:32.7541658+02:00" endTime="2026-10-15T00:42:33.5243406+02:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="06213841-92e0-49f5-ae87-fc4933e3840d" />
+    <UnitTestResult executionId="5a760d95-3b21-47f9-ba9f-495c6249753d" testId="1ca47c42-1ea1-81f9-8e81-c5208391fc41" testName="CopiedPackageRejectsFactoryAndThirdPartyLeakage (&quot;dependency-exact-range&quot;,&quot;Unapproved packed dependency&quot;)" computerName="ARCTURUS" duration="00:00:09.4568358" startTime="2026-10-15T00:42:32.7541844+02:00" endTime="2026-10-15T00:42:42.2404247+02:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Failed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="5a760d95-3b21-47f9-ba9f-495c6249753d">
+      <Output>
+        <ErrorInfo>
+          <Message>Assertion failed. Expected values to be equal.&#xD;
+Exception: C:\miscwork\portfolio\cislib\implementations\csharp\eng\check-dependencies.ps1:229&#xD;
+Line |&#xD;
+ 229 |  . th).Hash) { throw 'Packed Type Manager helper differs from the checke .&#xD;
+     |                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~&#xD;
+     | Packed Type Manager helper differs from the checked Release tool.&#xD;
+&#xD;
+&#xD;
+expected: 0&#xD;
+actual:   1&#xD;
+&#xD;
+Assert.AreEqual(0, result.ExitCode)</Message>
+          <StackTrace>   at CIS.Tests.ArchitectureTests.MicrosoftLoggingPackageBoundaryTests.AssertPassed(ProcessResult result) in C:\miscwork\portfolio\cislib\implementations\csharp\tests\CIS.Core.ArchitectureTests\MicrosoftLoggingPackageBoundaryTests.cs:line 87&#xD;
+   at CIS.Tests.ArchitectureTests.MicrosoftLoggingPackageBoundaryTests.CopiedPackageRejectsFactoryAndThirdPartyLeakage(String mutation, String reason) in C:\miscwork\portfolio\cislib\implementations\csharp\tests\CIS.Core.ArchitectureTests\MicrosoftLoggingPackageBoundaryTests.cs:line 58&#xD;
+   at Microsoft.VisualStudio.TestPlatform.MSTest.TestAdapter.Execution.TestMethodInfo.ExecuteInternalAsync(Object[] arguments, CancellationTokenSource timeoutTokenSource, TestInvocationState invocationState)</StackTrace>
+        </ErrorInfo>
+      </Output>
+    </UnitTestResult>
+  </Results>
+  <TestDefinitions>
+    <UnitTest name="CopiedPackageRejectsFactoryAndThirdPartyLeakage (&quot;extra-dependency&quot;,&quot;Packed direct dependency inventory mismatch&quot;)" storage="c:\miscwork\portfolio\cislib\implementations\csharp\tests\cis.core.architecturetests\bin\release\net10.0\cis.core.architecturetests.dll" id="16e64ae8-025e-8d4d-91fe-c4b66fae9d8d">
+      <Execution id="380e6d32-78fe-43c8-99ca-1823b6858321" />
+      <TestMethod codeBase="C:\miscwork\portfolio\cislib\implementations\csharp\tests\CIS.Core.ArchitectureTests\bin\Release\net10.0\CIS.Core.ArchitectureTests.dll" adapterTypeName="executor://mstestadapter/v4" className="CIS.Tests.ArchitectureTests.MicrosoftLoggingPackageBoundaryTests" name="CopiedPackageRejectsFactoryAndThirdPartyLeakage" />
+    </UnitTest>
+    <UnitTest name="CopiedPackageRejectsFactoryAndThirdPartyLeakage (&quot;dependency-version&quot;,&quot;Unapproved packed dependency&quot;)" storage="c:\miscwork\portfolio\cislib\implementations\csharp\tests\cis.core.architecturetests\bin\release\net10.0\cis.core.architecturetests.dll" id="19dc33cd-22ba-8ab1-8608-88d8a599c57d">
+      <Execution id="ad8a553c-4969-483c-b778-eff68f5aebda" />
+      <TestMethod codeBase="C:\miscwork\portfolio\cislib\implementations\csharp\tests\CIS.Core.ArchitectureTests\bin\Release\net10.0\CIS.Core.ArchitectureTests.dll" adapterTypeName="executor://mstestadapter/v4" className="CIS.Tests.ArchitectureTests.MicrosoftLoggingPackageBoundaryTests" name="CopiedPackageRejectsFactoryAndThirdPartyLeakage" />
+    </UnitTest>
+    <UnitTest name="CompiledCheckerRejectsForeignAssemblyReferences (&quot;Microsoft.Extensions.Logging&quot;)" storage="c:\miscwork\portfolio\cislib\implementations\csharp\tests\cis.core.architecturetests\bin\release\net10.0\cis.core.architecturetests.dll" id="1e393596-bcce-8794-bc00-2a055078f5df">
+      <Execution id="a088ecb2-8173-41fc-b1b8-0be099d7c3a3" />
+      <TestMethod codeBase="C:\miscwork\portfolio\cislib\implementations\csharp\tests\CIS.Core.ArchitectureTests\bin\Release\net10.0\CIS.Core.ArchitectureTests.dll" adapterTypeName="executor://mstestadapter/v4" className="CIS.Tests.ArchitectureTests.DependencyBoundaryTests" name="CompiledCheckerRejectsForeignAssemblyReferences" />
+    </UnitTest>
+    <UnitTest name="CopiedPackageRejectsFactoryAndThirdPartyLeakage (&quot;third-party-dll&quot;,&quot;Unexpected packed asset&quot;)" storage="c:\miscwork\portfolio\cislib\implementations\csharp\tests\cis.core.architecturetests\bin\release\net10.0\cis.core.architecturetests.dll" id="17d084a1-4301-8866-940b-165759502c16">
+      <Execution id="c7d3f94e-eba8-4671-b6b1-f19bf98698c2" />
+      <TestMethod codeBase="C:\miscwork\portfolio\cislib\implementations\csharp\tests\CIS.Core.ArchitectureTests\bin\Release\net10.0\CIS.Core.ArchitectureTests.dll" adapterTypeName="executor://mstestadapter/v4" className="CIS.Tests.ArchitectureTests.MicrosoftLoggingPackageBoundaryTests" name="CopiedPackageRejectsFactoryAndThirdPartyLeakage" />
+    </UnitTest>
+    <UnitTest name="CopiedRestoreGraphRejectsTransitiveLeakage (&quot;Microsoft.Extensions.DependencyInjection/10.0.12&quot;,&quot;Unapproved shipping package dependency&quot;)" storage="c:\miscwork\portfolio\cislib\implementations\csharp\tests\cis.core.architecturetests\bin\release\net10.0\cis.core.architecturetests.dll" id="1f694e47-7043-888e-97da-e04ecc38b27d">
+      <Execution id="a8d63119-5408-47e6-a154-9a1a75ff4eed" />
+      <TestMethod codeBase="C:\miscwork\portfolio\cislib\implementations\csharp\tests\CIS.Core.ArchitectureTests\bin\Release\net10.0\CIS.Core.ArchitectureTests.dll" adapterTypeName="executor://mstestadapter/v4" className="CIS.Tests.ArchitectureTests.MicrosoftLoggingPackageBoundaryTests" name="CopiedRestoreGraphRejectsTransitiveLeakage" />
+    </UnitTest>
+    <UnitTest name="CompiledCheckerRejectsForeignAssemblyReferences (&quot;NLog&quot;)" storage="c:\miscwork\portfolio\cislib\implementations\csharp\tests\cis.core.architecturetests\bin\release\net10.0\cis.core.architecturetests.dll" id="1523e64e-076b-856f-8f99-742152fe185d">
+      <Execution id="61013703-0c49-44e8-9134-3d44a69d73e8" />
+      <TestMethod codeBase="C:\miscwork\portfolio\cislib\implementations\csharp\tests\CIS.Core.ArchitectureTests\bin\Release\net10.0\CIS.Core.ArchitectureTests.dll" adapterTypeName="executor://mstestadapter/v4" className="CIS.Tests.ArchitectureTests.DependencyBoundaryTests" name="CompiledCheckerRejectsForeignAssemblyReferences" />
+    </UnitTest>
+    <UnitTest name="CopiedRestoreGraphRejectsTransitiveLeakage (&quot;Microsoft.Extensions.Logging/10.0.12&quot;,&quot;Unapproved shipping package dependency&quot;)" storage="c:\miscwork\portfolio\cislib\implementations\csharp\tests\cis.core.architecturetests\bin\release\net10.0\cis.core.architecturetests.dll" id="1a8bdf9d-cb73-86d2-8384-4c557d60f44d">
+      <Execution id="355c5558-fbb2-4c0b-9ee5-54801729647c" />
+      <TestMethod codeBase="C:\miscwork\portfolio\cislib\implementations\csharp\tests\CIS.Core.ArchitectureTests\bin\Release\net10.0\CIS.Core.ArchitectureTests.dll" adapterTypeName="executor://mstestadapter/v4" className="CIS.Tests.ArchitectureTests.MicrosoftLoggingPackageBoundaryTests" name="CopiedRestoreGraphRejectsTransitiveLeakage" />
+    </UnitTest>
+    <UnitTest name="CopiedRestoreGraphRejectsTransitiveLeakage (&quot;Microsoft.Extensions.DependencyInjection.Abstractions/10.0.11&quot;,&quot;Unapproved shipping package dependency&quot;)" storage="c:\miscwork\portfolio\cislib\implementations\csharp\tests\cis.core.architecturetests\bin\release\net10.0\cis.core.architecturetests.dll" id="15a8c417-5d2b-8340-9bd8-aa665b1bca5e">
+      <Execution id="783c7633-ac65-4367-9ebf-b834d001a449" />
+      <TestMethod codeBase="C:\miscwork\portfolio\cislib\implementations\csharp\tests\CIS.Core.ArchitectureTests\bin\Release\net10.0\CIS.Core.ArchitectureTests.dll" adapterTypeName="executor://mstestadapter/v4" className="CIS.Tests.ArchitectureTests.MicrosoftLoggingPackageBoundaryTests" name="CopiedRestoreGraphRejectsTransitiveLeakage" />
+    </UnitTest>
+    <UnitTest name="CompiledCheckerRejectsForeignAssemblyReferences (&quot;Unapproved.Host.Infrastructure&quot;)" storage="c:\miscwork\portfolio\cislib\implementations\csharp\tests\cis.core.architecturetests\bin\release\net10.0\cis.core.architecturetests.dll" id="1ccb22bc-4845-890a-9d2d-b0ba5e219a99">
+      <Execution id="03b38d1c-3bc8-4b5e-80ec-de343412a8e4" />
+      <TestMethod codeBase="C:\miscwork\portfolio\cislib\implementations\csharp\tests\CIS.Core.ArchitectureTests\bin\Release\net10.0\CIS.Core.ArchitectureTests.dll" adapterTypeName="executor://mstestadapter/v4" className="CIS.Tests.ArchitectureTests.DependencyBoundaryTests" name="CompiledCheckerRejectsForeignAssemblyReferences" />
+    </UnitTest>
+    <UnitTest name="CompiledCheckerRejectsForeignAssemblyReferences (&quot;CIS.Core.TestSupport&quot;)" storage="c:\miscwork\portfolio\cislib\implementations\csharp\tests\cis.core.architecturetests\bin\release\net10.0\cis.core.architecturetests.dll" id="12b1d0e8-d1f2-8202-8bdf-a55fa046f45a">
+      <Execution id="06213841-92e0-49f5-ae87-fc4933e3840d" />
+      <TestMethod codeBase="C:\miscwork\portfolio\cislib\implementations\csharp\tests\CIS.Core.ArchitectureTests\bin\Release\net10.0\CIS.Core.ArchitectureTests.dll" adapterTypeName="executor://mstestadapter/v4" className="CIS.Tests.ArchitectureTests.DependencyBoundaryTests" name="CompiledCheckerRejectsForeignAssemblyReferences" />
+    </UnitTest>
+    <UnitTest name="CopiedPackageRejectsFactoryAndThirdPartyLeakage (&quot;factory-dependency&quot;,&quot;Unapproved packed dependency&quot;)" storage="c:\miscwork\portfolio\cislib\implementations\csharp\tests\cis.core.architecturetests\bin\release\net10.0\cis.core.architecturetests.dll" id="1a55d45f-e63d-8ebb-bb13-e60860580da3">
+      <Execution id="c246f383-5c62-4124-bca9-643492b5dbde" />
+      <TestMethod codeBase="C:\miscwork\portfolio\cislib\implementations\csharp\tests\CIS.Core.ArchitectureTests\bin\Release\net10.0\CIS.Core.ArchitectureTests.dll" adapterTypeName="executor://mstestadapter/v4" className="CIS.Tests.ArchitectureTests.MicrosoftLoggingPackageBoundaryTests" name="CopiedPackageRejectsFactoryAndThirdPartyLeakage" />
+    </UnitTest>
+    <UnitTest name="CopiedRestoreGraphRejectsTransitiveLeakage (&quot;NLog/5.3.0&quot;,&quot;Unapproved shipping package dependency&quot;)" storage="c:\miscwork\portfolio\cislib\implementations\csharp\tests\cis.core.architecturetests\bin\release\net10.0\cis.core.architecturetests.dll" id="124f2a42-5c59-8238-8e72-baa359899601">
+      <Execution id="51bdd3de-12c3-49dd-8770-d218fd86edaa" />
+      <TestMethod codeBase="C:\miscwork\portfolio\cislib\implementations\csharp\tests\CIS.Core.ArchitectureTests\bin\Release\net10.0\CIS.Core.ArchitectureTests.dll" adapterTypeName="executor://mstestadapter/v4" className="CIS.Tests.ArchitectureTests.MicrosoftLoggingPackageBoundaryTests" name="CopiedRestoreGraphRejectsTransitiveLeakage" />
+    </UnitTest>
+    <UnitTest name="CopiedPackageRejectsFactoryAndThirdPartyLeakage (&quot;factory-dll&quot;,&quot;Unexpected packed asset&quot;)" storage="c:\miscwork\portfolio\cislib\implementations\csharp\tests\cis.core.architecturetests\bin\release\net10.0\cis.core.architecturetests.dll" id="1b0b7dc7-5960-8471-960a-a5b1360b1600">
+      <Execution id="932940eb-6246-476b-b286-31beb8a3a7a6" />
+      <TestMethod codeBase="C:\miscwork\portfolio\cislib\implementations\csharp\tests\CIS.Core.ArchitectureTests\bin\Release\net10.0\CIS.Core.ArchitectureTests.dll" adapterTypeName="executor://mstestadapter/v4" className="CIS.Tests.ArchitectureTests.MicrosoftLoggingPackageBoundaryTests" name="CopiedPackageRejectsFactoryAndThirdPartyLeakage" />
+    </UnitTest>
+    <UnitTest name="CopiedPackageRejectsFactoryAndThirdPartyLeakage (&quot;dependency-exact-range&quot;,&quot;Unapproved packed dependency&quot;)" storage="c:\miscwork\portfolio\cislib\implementations\csharp\tests\cis.core.architecturetests\bin\release\net10.0\cis.core.architecturetests.dll" id="1ca47c42-1ea1-81f9-8e81-c5208391fc41">
+      <Execution id="5a760d95-3b21-47f9-ba9f-495c6249753d" />
+      <TestMethod codeBase="C:\miscwork\portfolio\cislib\implementations\csharp\tests\CIS.Core.ArchitectureTests\bin\Release\net10.0\CIS.Core.ArchitectureTests.dll" adapterTypeName="executor://mstestadapter/v4" className="CIS.Tests.ArchitectureTests.MicrosoftLoggingPackageBoundaryTests" name="CopiedPackageRejectsFactoryAndThirdPartyLeakage" />
+    </UnitTest>
+    <UnitTest name="CopiedRestoreGraphRejectsTransitiveLeakage (&quot;missing-transitive&quot;,&quot;Core runtime closure differs from the approved inventory&quot;)" storage="c:\miscwork\portfolio\cislib\implementations\csharp\tests\cis.core.architecturetests\bin\release\net10.0\cis.core.architecturetests.dll" id="19e3fc2e-ac6b-8a2f-9f1e-7b0b618dbb75">
+      <Execution id="27af3460-b127-49de-93ca-0b60cca00d24" />
+      <TestMethod codeBase="C:\miscwork\portfolio\cislib\implementations\csharp\tests\CIS.Core.ArchitectureTests\bin\Release\net10.0\CIS.Core.ArchitectureTests.dll" adapterTypeName="executor://mstestadapter/v4" className="CIS.Tests.ArchitectureTests.MicrosoftLoggingPackageBoundaryTests" name="CopiedRestoreGraphRejectsTransitiveLeakage" />
+    </UnitTest>
+  </TestDefinitions>
+  <TestEntries>
+    <TestEntry testId="16e64ae8-025e-8d4d-91fe-c4b66fae9d8d" executionId="380e6d32-78fe-43c8-99ca-1823b6858321" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="1523e64e-076b-856f-8f99-742152fe185d" executionId="61013703-0c49-44e8-9134-3d44a69d73e8" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="1a55d45f-e63d-8ebb-bb13-e60860580da3" executionId="c246f383-5c62-4124-bca9-643492b5dbde" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="17d084a1-4301-8866-940b-165759502c16" executionId="c7d3f94e-eba8-4671-b6b1-f19bf98698c2" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="124f2a42-5c59-8238-8e72-baa359899601" executionId="51bdd3de-12c3-49dd-8770-d218fd86edaa" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="19dc33cd-22ba-8ab1-8608-88d8a599c57d" executionId="ad8a553c-4969-483c-b778-eff68f5aebda" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="1ccb22bc-4845-890a-9d2d-b0ba5e219a99" executionId="03b38d1c-3bc8-4b5e-80ec-de343412a8e4" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="19e3fc2e-ac6b-8a2f-9f1e-7b0b618dbb75" executionId="27af3460-b127-49de-93ca-0b60cca00d24" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="1f694e47-7043-888e-97da-e04ecc38b27d" executionId="a8d63119-5408-47e6-a154-9a1a75ff4eed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="1b0b7dc7-5960-8471-960a-a5b1360b1600" executionId="932940eb-6246-476b-b286-31beb8a3a7a6" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="1e393596-bcce-8794-bc00-2a055078f5df" executionId="a088ecb2-8173-41fc-b1b8-0be099d7c3a3" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="15a8c417-5d2b-8340-9bd8-aa665b1bca5e" executionId="783c7633-ac65-4367-9ebf-b834d001a449" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="1a8bdf9d-cb73-86d2-8384-4c557d60f44d" executionId="355c5558-fbb2-4c0b-9ee5-54801729647c" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="12b1d0e8-d1f2-8202-8bdf-a55fa046f45a" executionId="06213841-92e0-49f5-ae87-fc4933e3840d" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="1ca47c42-1ea1-81f9-8e81-c5208391fc41" executionId="5a760d95-3b21-47f9-ba9f-495c6249753d" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+  </TestEntries>
+  <TestLists>
+    <TestList name="Results Not in a List" id="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestList name="All Loaded Results" id="19431567-8539-422a-85d7-44ee4e166bda" />
+  </TestLists>
+  <ResultSummary outcome="Failed">
+    <Counters total="15" executed="15" passed="9" failed="6" error="0" timeout="0" aborted="0" inconclusive="0" passedButRunAborted="0" notRunnable="0" notExecuted="0" disconnected="0" warning="0" completed="0" inProgress="0" pending="0" />
+    <Output>
+      <StdOut>Test Parallelization enabled for C:\miscwork\portfolio\cislib\implementations\csharp\tests\CIS.Core.ArchitectureTests\bin\Release\net10.0\CIS.Core.ArchitectureTests.dll (Workers: 20, Scope: MethodLevel)&#xD;
+</StdOut>
+    </Output>
+  </ResultSummary>
+</TestRun>
+
+--- FILE planning/logging/evidence/wp06-s03-t02/package-audit.json SHA256 59cf184b0d5ee5a82fc8056c9e18f4dea5c10064d5ab77e7193c9f33c3d207f7 ---
+{
+  "packageId": "CIS.Core",
+  "version": "0.1.0-dev.1",
+  "targetFramework": "net10.0",
+  "packageSha256": "101f5b2b389382a683e0e03fc8fe6ec845d6748b0c433b15c6856c7cedefa6cd",
+  "packedCoreSha256": "2cfd2201bc1349754b7cb5d66d1275d310a3f8a77350c6ef0063d84e26209bad",
+  "packedXmlSha256": "b4d6194427fa05a5cfdad97b26d753590b160eb1d04f38ff4a092e42ae787363",
+  "packedReadmeSha256": "9088d16e79cf008af02e0457c081f66ec1772d4e4cde0a4ea2374e2de87c4e71",
+  "description": "CisLib multi-module core library with bounded logging and Microsoft ILogger integration.",
+  "packedDirectDependencies": [
+    {
+      "id": "Microsoft.Extensions.Logging.Abstractions",
+      "version": "10.0.12",
+      "exclude": "Build,Analyzers"
+    }
+  ],
+  "resolvedRuntimeClosure": [
+    "Microsoft.Extensions.DependencyInjection.Abstractions/10.0.12",
+    "Microsoft.Extensions.Logging.Abstractions/10.0.12"
+  ],
+  "lockedContentHashesMatch": true,
+  "embeddedProvider": "CIS.Logging.MicrosoftLogger.CoreLoggerProvider",
+  "libAssemblies": [
+    "CIS.Core.dll"
+  ],
+  "closedAssetsCheckedByDeveloperGate": true,
+  "allEntries": [
+    {
+      "path": "_rels/.rels",
+      "sha256": "9346355a2327dd131488e01b8826b927cd13cd55e0bea817b030fd1230dd8107"
+    },
+    {
+      "path": "CIS.Core.nuspec",
+      "sha256": "455bab1bff2eedcf0dec01892f64c6b19672bab37359c1e9fc1b54fd7249d453"
+    },
+    {
+      "path": "README.md",
+      "sha256": "9088d16e79cf008af02e0457c081f66ec1772d4e4cde0a4ea2374e2de87c4e71"
+    },
+    {
+      "path": "Sdk/BeforeSdk.targets",
+      "sha256": "95fcf432bb390dfea85b74bda5454a868f1e2ffb4510107ff19fb0bd151e74ce"
+    },
+    {
+      "path": "Sdk/PackageVersion.props",
+      "sha256": "234d2b3583602656dc5ac1b8ff902c0e3d49c498a9208ffc90866f46d5d56ba8"
+    },
+    {
+      "path": "Sdk/Sdk.props",
+      "sha256": "a630c68160a8f0a4b380d23a499b76f3acb9e2dda088de1b271ef3baed387482"
+    },
+    {
+      "path": "Sdk/Sdk.targets",
+      "sha256": "77ff9b64c156afbee43b54ecee78148e49ca8330d929170206566f30bf3bac23"
+    },
+    {
+      "path": "buildSupport/CIS.TypeManager.targets",
+      "sha256": "4fd5ffa236f95a67d3325922a11c8496e8c6ad06fd8805a92a25328924668501"
+    },
+    {
+      "path": "buildTransitive/CIS.Core.targets",
+      "sha256": "ceefd40c6d397d04445aa14fff83bb359b88089eea0b2aa5a68a030c1e325b34"
+    },
+    {
+      "path": "lib/net10.0/CIS.Core.dll",
+      "sha256": "2cfd2201bc1349754b7cb5d66d1275d310a3f8a77350c6ef0063d84e26209bad"
+    },
+    {
+      "path": "lib/net10.0/CIS.Core.xml",
+      "sha256": "b4d6194427fa05a5cfdad97b26d753590b160eb1d04f38ff4a092e42ae787363"
+    },
+    {
+      "path": "tools/net10.0/CIS.TypeManager.Build.dll",
+      "sha256": "a497e0e276298b1ff9b02e9f0fb7dec279178f26045a5152e2c045893dcce593"
+    },
+    {
+      "path": "[Content_Types].xml",
+      "sha256": "051b7fb4db009c3bed175e8a59db9233a6908b5c9d757122192155c3a39e518e"
+    },
+    {
+      "path": "package/services/metadata/core-properties/nuget.psmdcp",
+      "sha256": "f32a75f2c222f0672c8580c2a59e4c2b9b3103518b66f03aa0157804ef7466e0"
+    }
+  ]
+}
+
+
+--- FILE planning/logging/evidence/wp06-s03-t02/developer-audit.json SHA256 6b435f0062786249ed1350ccdaf8518609f97280c3208db0a7e4e2c366f9cc12 ---
+{
+  "runId": "c935649175d84c1582579168794e3640",
+  "tests": {
+    "unit": 3370,
+    "integration": 1400,
+    "architecture": 483
+  },
+  "totalTests": 5253,
+  "stages": 14,
+  "criticalPins": 900,
+  "currentSourceMismatches": 0,
+  "coreSha256": "2cfd2201bc1349754b7cb5d66d1275d310a3f8a77350c6ef0063d84e26209bad",
+  "rawTrxChecked": true
+}
+
