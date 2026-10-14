@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Globalization;
+using CIS.Logging.Scopes;
 using CIS.Logging.Values;
 
 namespace CIS.Logging.MicrosoftLogger;
@@ -12,19 +13,25 @@ internal sealed class ProviderStateCapture
     private readonly HashSet<object> ancestors = new(ReferenceEqualityComparer.Instance);
 
     internal static (string? Template, LogValue Attributes) Capture<TState>(TState state, int eventId)
-        => Capture(state, eventId, includeEventId: true);
+    {
+        var captured = CaptureRoot(state, eventId, includeEventId: true);
+        return (captured.Template, captured.Attributes);
+    }
 
-    internal static LogValue CaptureScope(IEnumerable<KeyValuePair<string, object?>> state)
-        => Capture(state, 0, includeEventId: false).Attributes;
+    internal static CapturedOperationContext CaptureScope(IEnumerable<KeyValuePair<string, object?>> state)
+    {
+        var captured = CaptureRoot(state, 0, includeEventId: false);
+        return CapturedOperationContext.FromAttributes(captured.Attributes, captured.OperationId);
+    }
 
-    private static (string? Template, LogValue Attributes) Capture<TState>(TState state, int eventId, bool includeEventId)
+    private static (string? Template, LogValue Attributes, string? OperationId) CaptureRoot<TState>(TState state, int eventId, bool includeEventId)
     {
         var capture = new ProviderStateCapture(includeEventId);
         var attributes = new Dictionary<string, LogValue>(StringComparer.Ordinal);
         if (includeEventId) { attributes["event_id"] = LogValue.Integer(eventId); }
         if (state is not IEnumerable<KeyValuePair<string, object?>> fields)
-        { return (null, LogValue.OwnedMap(attributes, truncated: false)); }
-        string? template = null; bool truncated = false; int visited = 0;
+        { return (null, LogValue.OwnedMap(attributes, truncated: false), null); }
+        string? template = null, operationId = null; bool truncated = false; int visited = 0;
         capture.Enter(fields);
         try
         {
@@ -36,6 +43,15 @@ internal sealed class ProviderStateCapture
                     if (value is not null and not string) { throw new ArgumentException("OriginalFormat must be a string or null."); }
                     template = (string?)value; continue;
                 }
+                if (!includeEventId && key == "operation_id")
+                {
+                    if (value is string identifier)
+                    {
+                        operationId = CapturedOperationContext.NormalizeOperationId(identifier, "state");
+                        attributes.Remove(key); continue;
+                    }
+                    operationId = null;
+                }
                 if (includeEventId && key == "event_id") { continue; }
                 // Keep scanning bounded root metadata after the value budget is spent.
                 if (capture.remaining == 0) { truncated = true; continue; }
@@ -46,7 +62,7 @@ internal sealed class ProviderStateCapture
             }
         }
         finally { capture.ancestors.Remove(fields); }
-        return (template, LogValue.OwnedMap(attributes, truncated));
+        return (template, LogValue.OwnedMap(attributes, truncated), operationId);
     }
 
     private LogValue? Value(object? value, int depth)

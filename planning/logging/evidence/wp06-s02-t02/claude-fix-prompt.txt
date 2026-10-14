@@ -1,0 +1,242 @@
+Read-only WP06-S02-T02 follow-up, no tools/MCP/edits/execution/persistence. InitialPASS optionalO1 flaggedsharedCoreParamName change. FullDeveloper actually failed9existingOperationScopeFoundation tests, allrequirecontextParamName. Normalize helper nowtakesparameterName: typedCapture passesnameof(context), structuredscope passesstate. Oldtyped behaviorpreserved; optionalO6single stringpatternblock used. Focused47 tests (35 existingfoundation+12newoperationcases) pass afterfix. InitialfailedDeveloper retainedhistorical; finalfull5217 andnative willfollow. O2/O3docs state replacedduplicatesconsume boundedwork andattribute removalis perframe; O4visitedprefix/unvisitedtail corrected; O5grammarduplicatequalification corrected. No othercode/test changes sinceinitial reviewed snapshot. ReturnJSON verdict PASS or CHANGES_REQUIRED, requiredFindings, optionalFindings.
+
+--- FILE implementations/csharp/src/CIS.Core/Logging/Scopes/CapturedOperationContext.cs ---
+using CIS.Text;
+
+namespace CIS.Logging.Scopes;
+
+// An owned immutable payload; it contains no caller DTO or dictionary.
+internal sealed class CapturedOperationContext
+{
+    internal static readonly CapturedOperationContext Omitted = new(null, LogValue.OwnedMap(new Dictionary<string, LogValue>(), truncated: true));
+    private static readonly LogValue EmptyAttributes = LogValue.Map(new Dictionary<string, LogValue>());
+
+    private CapturedOperationContext(string? operationId, LogValue attributes)
+    {
+        OperationId = operationId;
+        Attributes = attributes;
+    }
+
+    internal string? OperationId { get; }
+    internal LogValue Attributes { get; }
+    internal bool IsTruncated => Attributes.IsTruncated;
+
+    internal static CapturedOperationContext FromAttributes(LogValue attributes, string? operationId = null) => new(operationId, attributes);
+
+    internal static CapturedOperationContext Capture(OperationContextData context)
+    {
+        ArgumentNullException.ThrowIfNull(context);
+        string? operationId = NormalizeOperationId(context.OperationId, nameof(context));
+        IReadOnlyDictionary<string, LogValue>? attributes = context.Attributes;
+        return new(operationId, attributes is null ? EmptyAttributes : LogValue.Map(attributes));
+    }
+    internal static string? NormalizeOperationId(string? value, string parameterName)
+    {
+        string? operationId = value?.Trim();
+        if (string.IsNullOrEmpty(operationId))
+        {
+            operationId = null;
+        }
+        else if (!UnicodeScalarText.IsValid(operationId, 255, allowControls: false))
+        {
+            throw new ArgumentException("Use an operation identifier of at most 255 valid Unicode scalars without controls.", parameterName);
+        }
+        return operationId;
+    }
+
+}
+
+--- FILE implementations/csharp/src/CIS.Core/Logging/MicrosoftLogger/ProviderStateCapture.cs ---
+using System.Collections;
+using System.Globalization;
+using CIS.Logging.Scopes;
+using CIS.Logging.Values;
+
+namespace CIS.Logging.MicrosoftLogger;
+
+// A single bounded synchronous copy; no template parsing or arbitrary object serialization.
+internal sealed class ProviderStateCapture
+{
+    private int remaining;
+    private ProviderStateCapture(bool includeEventId) => remaining = LogValueProjection.MaximumNodes - (includeEventId ? 2 : 1);
+    private readonly HashSet<object> ancestors = new(ReferenceEqualityComparer.Instance);
+
+    internal static (string? Template, LogValue Attributes) Capture<TState>(TState state, int eventId)
+    {
+        var captured = CaptureRoot(state, eventId, includeEventId: true);
+        return (captured.Template, captured.Attributes);
+    }
+
+    internal static CapturedOperationContext CaptureScope(IEnumerable<KeyValuePair<string, object?>> state)
+    {
+        var captured = CaptureRoot(state, 0, includeEventId: false);
+        return CapturedOperationContext.FromAttributes(captured.Attributes, captured.OperationId);
+    }
+
+    private static (string? Template, LogValue Attributes, string? OperationId) CaptureRoot<TState>(TState state, int eventId, bool includeEventId)
+    {
+        var capture = new ProviderStateCapture(includeEventId);
+        var attributes = new Dictionary<string, LogValue>(StringComparer.Ordinal);
+        if (includeEventId) { attributes["event_id"] = LogValue.Integer(eventId); }
+        if (state is not IEnumerable<KeyValuePair<string, object?>> fields)
+        { return (null, LogValue.OwnedMap(attributes, truncated: false), null); }
+        string? template = null, operationId = null; bool truncated = false; int visited = 0;
+        capture.Enter(fields);
+        try
+        {
+            foreach ((string key, object? value) in fields)
+            {
+                if (++visited > LogValueProjection.MaximumNodes) { truncated = true; break; }
+                if (key == "{OriginalFormat}")
+                {
+                    if (value is not null and not string) { throw new ArgumentException("OriginalFormat must be a string or null."); }
+                    template = (string?)value; continue;
+                }
+                if (!includeEventId && key == "operation_id")
+                {
+                    if (value is string identifier)
+                    {
+                        operationId = CapturedOperationContext.NormalizeOperationId(identifier, "state");
+                        attributes.Remove(key); continue;
+                    }
+                    operationId = null;
+                }
+                if (includeEventId && key == "event_id") { continue; }
+                // Keep scanning bounded root metadata after the value budget is spent.
+                if (capture.remaining == 0) { truncated = true; continue; }
+                ValidateKey(key);
+                LogValue? retained = capture.Value(value, depth: 2);
+                if (retained is null) { truncated = true; continue; }
+                attributes[key] = retained;
+            }
+        }
+        finally { capture.ancestors.Remove(fields); }
+        return (template, LogValue.OwnedMap(attributes, truncated), operationId);
+    }
+
+    private LogValue? Value(object? value, int depth)
+    {
+        if (remaining == 0 || depth > LogValueProjection.MaximumDepth) { return null; }
+        if (value is LogValue existing && existing.NodeCount <= remaining && depth - 1 + existing.Depth <= LogValueProjection.MaximumDepth)
+        { remaining -= existing.NodeCount; return existing; }
+        remaining--;
+        return value switch
+        {
+            null => LogValue.Null(),
+            LogValue owned when owned.Kind == LogValueKind.Array => Array(owned.ArrayItems, depth, owned.IsTruncated),
+            LogValue owned when owned.Kind == LogValueKind.Map => Map(owned.MapProperties.Select(p => new KeyValuePair<string, object?>(p.Key, p.Value)), depth, owned.IsTruncated),
+            bool scalar => LogValue.Boolean(scalar),
+            string scalar => LogValue.String(scalar),
+            char scalar => LogValue.String(new string(scalar, 1)),
+            sbyte scalar => LogValue.Integer(scalar),
+            byte scalar => LogValue.Integer(scalar),
+            short scalar => LogValue.Integer(scalar),
+            ushort scalar => LogValue.Integer(scalar),
+            int scalar => LogValue.Integer(scalar),
+            uint scalar => LogValue.Integer(scalar),
+            long scalar => LogValue.Integer(scalar),
+            ulong scalar when scalar <= 9_007_199_254_740_991 => LogValue.Integer((long)scalar),
+            float scalar => LogValue.Number(scalar),
+            double scalar => LogValue.Number(scalar),
+            decimal scalar => Decimal(scalar),
+            Guid scalar => LogValue.Uuid(scalar),
+            DateTimeOffset scalar => LogValue.Timestamp(scalar),
+            DateTime scalar when scalar.Kind == DateTimeKind.Utc => LogValue.Timestamp(new DateTimeOffset(scalar)),
+            IEnumerable<KeyValuePair<string, object?>> properties => Map(properties, depth),
+            IDictionary properties => Map(Entries(properties), depth, owner: properties),
+            IEnumerable items => Array(items, depth),
+            _ => throw new ArgumentException("Use supported scalar, collection or explicit LogValue inputs.")
+        };
+    }
+
+    private LogValue Array(IEnumerable items, int depth, bool truncated = false)
+    {
+        Enter(items);
+        try
+        {
+            var owned = new List<LogValue>();
+            foreach (object? item in items)
+            {
+                LogValue? retained = Value(item, depth + 1);
+                if (retained is null) { truncated = true; break; }
+                owned.Add(retained);
+            }
+            return LogValue.OwnedArray(owned, truncated);
+        }
+        finally { ancestors.Remove(items); }
+    }
+
+    private LogValue Map(IEnumerable<KeyValuePair<string, object?>> properties, int depth, bool truncated = false, object? owner = null)
+    {
+        owner ??= properties; Enter(owner);
+        try
+        {
+            var owned = new Dictionary<string, LogValue>(StringComparer.Ordinal);
+            foreach ((string key, object? value) in properties)
+            {
+                ValidateKey(key);
+                LogValue? retained = Value(value, depth + 1);
+                if (retained is null) { truncated = true; break; }
+                owned[key] = retained;
+            }
+            return LogValue.OwnedMap(owned, truncated);
+        }
+        finally { ancestors.Remove(owner); }
+    }
+
+    private static IEnumerable<KeyValuePair<string, object?>> Entries(IDictionary properties)
+    {
+        foreach (DictionaryEntry entry in properties)
+        { yield return new(entry.Key as string ?? throw new ArgumentException("Map keys must be strings."), entry.Value); }
+    }
+
+    private void Enter(object collection)
+    {
+        if (!ancestors.Add(collection)) { throw new ArgumentException("Cyclic state is unsupported."); }
+    }
+    private static void ValidateKey(string key)
+    {
+        if (key is null || !LogValueText.IsValidKey(key)) { throw new ArgumentException("Use valid ordinal attribute keys."); }
+    }
+    private static LogValue Decimal(decimal value)
+    {
+        string text = value.ToString(CultureInfo.InvariantCulture);
+        return LogValue.DecimalString(text.Contains('.', StringComparison.Ordinal) ? text : text + ".0");
+    }
+}
+
+--- FILE docs/modules/logging/microsoft-provider-operation.md ---
+# Microsoft scope operation identity
+
+The exact ordinal operation_id key in a structured provider-created or borrowed host scope maps to typed operation identity when its value is a CLR string. Core trims it, treats blank as absent and validates at most 255 Unicode scalars without controls. Recognized strings are excluded from ordinary attributes. Supported non-string values, including null and explicit LogValue.String objects, remain ordinary attributes; differently cased keys are also ordinary data. There is no ToString conversion. OperationContextData keeps its explicit typed OperationId property and unchanged attribute semantics.
+
+The scope root is scanned once under the existing 1024-entry work guard. Recognized string IDs are metadata, so they can be read after the ordinary value budget is full if they occur within that guard. IDs in the unvisited tail beyond the 1024-entry guard are omitted with truncation provenance. Duplicate operation_id entries use the last visited metadata state: a later non-string clears that frame's typed ID and is subject to the ordinary value budget; a later recognized string removes an earlier ordinary attribute. Blank string metadata clears the frame ID so the outer nonblank ID remains eligible. Removal applies within that frame only; an outer non-string operation_id attribute can remain alongside an inner typed ID. Superseded duplicates still consume bounded copy work rather than refunding the budget.
+
+Within each store, inner attributes replace matching outer keys and the innermost nonblank typed operation ID wins. The existing Core/provider store is the outer layer and the borrowed host store the inner layer; the stores do not supply combined chronological ordering across arbitrary interleaving. Event attributes replace matching retained scope keys. Direct Core LogEventData.OperationId overrides scope identity when nonblank; blank falls back to the captured scope. An ILogger event-state field named operation_id remains an ordinary attribute and cannot replace typed root operation identity. The guide's recognized-string rule is scoped to scope state.
+
+This keeps Core's bounded merge policy: when scopes fill the aggregate attribute budget, new event keys can be omitted, including ordinary event_id. Existing matching keys can still be replaced. Typed operation_id is part of the protected envelope; ordinary aggregate omission does not remove a captured valid typed ID. No budget-priority rewrite is introduced. Invalid owned IDs throw before frame creation. A borrowed frame with an invalid ID is omitted with truncation, preserving an earlier valid scope ID; callback failures outside copying or non-argument failures retain InvalidEvent behavior.
+
+Names resembling service, env, version, component, resource, trace_id or span_id remain nested attributes. Neither scope nor event free-form state modifies automatic application/process identity or the W3C Activity-derived root pair. Those IDs remain frozen before cooperative host callbacks. The [scope capture guidance](microsoft-provider-scopes.md) records copied input timing, creator/LIFO ownership and borrowed-frame policy.
+
+Twelve fixture modes cover copied/trimmed owned and host IDs, nested/blank scope and event precedence, duplicate/case/non-string inputs, explicit Core overrides, automatic identity and real Activity correlation, metadata after a full node budget, omitted metadata beyond the scan guard, invalid/255-scalar IDs, an omitted host frame after valid identity, and external-provider/non-argument enumerator failures. Public physical process consumers use actual JSONL and exclusive post-stop lease probes; native readers compare literal typed records and reject field/identity/counter corruptions for fixed reasons. Definitions do not substitute for executed evidence; results belong in the task receipt.
+
+T03 host filtering, T04 complete ownership and T05 real factory/host shutdown qualification remain required, followed by examples/instructions/skills and release qualification. No shipping API, package, worker or general parser is added.
+
+--- FILE docs/modules/logging/microsoft-provider-scopes.md ---
+# Microsoft provider scope capture
+
+CoreLoggerProvider implements ISupportExternalScope in the existing CIS.Core assembly. SetScopeProvider borrows an IExternalScopeProvider; it never pushes or disposes host handles. These owned-scope rules describe direct CreateLogger calls; real LoggerFactory-driven scope routing is qualified in T05. Replacing that source applies to later calls. Each Log call freezes one source reference, so an in-flight call can finish using its original source. Registration and provider disposal share a small lock; callbacks run outside it. Null registration throws ArgumentNullException before the disposed guard. Registration after provider disposal throws ObjectDisposedException. Disposal releases the source reference and leaves runtime and host scope lifetime with their owners.
+
+The provider's own BeginScope keeps Core's existing runtime-owned AsyncLocal store. It accepts OperationContextData or IEnumerable<KeyValuePair<string, object?>> state, including Microsoft's formatted BeginScope extension state. It copies at scope creation before returning the handle. Typed operation IDs retain Core validation/trim rules. Structured scopes use the existing scalar/nested collection allowlist and bounded value copier without the event_id reservation. The exact OriginalFormat metadata is excluded; no scope message parser or arbitrary ToString fallback is added. Bare strings and unsupported objects are rejected. The exact structured operation_id key maps CLR string values into typed identity; [operation mapping](microsoft-provider-operation.md) specifies blank, duplicate, non-string and bounded behavior.
+
+Owned scope handles retain Core's creator-disposes rule, depth 32, LIFO errors and repeated valid disposal. Scope capture preserves the existing reentrancy guard. A closed runtime rejects creation before content copying. Provider disposal does not pop caller-owned handles; their creator still disposes them. Existing .NET inherited-child-flow detection limits remain documented in [operation scopes](operation-scopes.md).
+
+Host scopes are copied synchronously only for an event passing Core's closure/interest/fault gates. The IExternalScopeProvider contract invokes callbacks inline in creation order. The adapter accepts the same typed/structured state and constructs at most the remaining number of immutable Core frames. Mutable host state is observed at Log time, not at host Push time; later mutations cannot change queued facts. A borrowed frame whose copy reports an ArgumentException (including unsupported root/value or invalid text/identifier) is omitted as a whole, with truncation provenance. This preserves the otherwise valid event and increments TruncatedEventCount; no arbitrary ToString fallback or partial frame is retained. Exceptions from the external provider itself, non-argument copy callback failures, and excess combined frame depth still follow Core InvalidEvent accounting once, with no admission. The formatter still runs before scope capture and retains its existing exception behavior. Activity IDs and the event clock are frozen before host callbacks, protecting correlation from ambient changes inside those callbacks.
+
+The two stores have a defined layer order: captured Core/provider-created scopes first, borrowed host scopes second, event attributes last for matching retained keys. Bounds can omit new event keys after the scope fills the aggregate budget. Within each store later scopes win. A nonblank typed host OperationId replaces the captured Core OperationId. Direct Core logging consumes only its own runtime scopes. The stores do not provide a combined chronological stack across arbitrary interleaving; factory/external host scopes stay in the host's own creation order. The operation mapping guidance qualifies recognized operation_id and this bounded precedence.
+
+Each scope uses the existing 1024-node/depth-8 projection and truncation provenance; combined Core plus host scope depth cannot exceed 32. Excess host frame depth invalidates the event. Ordinary aggregate/entry truncation can omit attributes, including event_id; this is not a protected envelope field. Caller enumerators and the borrowed provider remain cooperative code: the adapter bounds copied frames/value traversal, not the execution time or internal traversal of arbitrary provider callbacks. Logging recursively from scope enumeration is unsupported.
+
+Thirteen fixture modes and lifecycle guards cover owned copies, host copy timing, both layer sources, real Microsoft formatted scope state, two coordinated asynchronous flows for each source, node/depth/combined-frame bounds, invalid owned scopes, gracefully omitted incompatible host scopes (bare string, Dictionary<string,string> and a real Microsoft HttpMethod value carried by LoggerExternalScopeProvider), filtered traversal, Activity mutation and source replacement/nonownership. Process variants use public runtime creation and real JSONL bytes with post-stop exclusive lease probes. Independent native readers bind PID, exact assemblies, records and fixed-reason corruption controls. Execution and review results belong in the task receipt. No new package, worker or public placeholder is introduced; SetScopeProvider is the previously planned interface method.
+
+T03 host filtering, T04 full ownership and T05 complete factory/host shutdown story remain required, followed by examples, instructions/skills and release qualification.

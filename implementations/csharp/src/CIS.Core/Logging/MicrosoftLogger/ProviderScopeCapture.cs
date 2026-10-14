@@ -9,7 +9,7 @@ internal static class ProviderScopeCapture
     internal static CapturedOperationContext Copy(object? state) => state switch
     {
         OperationContextData typed => CapturedOperationContext.Capture(typed),
-        IEnumerable<KeyValuePair<string, object?>> fields => CapturedOperationContext.FromAttributes(ProviderStateCapture.CaptureScope(fields)),
+        IEnumerable<KeyValuePair<string, object?>> fields => ProviderStateCapture.CaptureScope(fields),
         _ => throw new ArgumentException("Use OperationContextData or structured string/object fields for scopes.", nameof(state))
     };
 

@@ -1,0 +1,64 @@
+{
+  "task": "WP06-S02-T02",
+  "verdict": "PASS",
+  "requiredFindings": [],
+  "optionalFindings": [
+    {
+      "id": "O1",
+      "area": "shared Core normalizer impact",
+      "location": "CapturedOperationContext.NormalizeOperationId",
+      "finding": "The extracted normalizer throws ArgumentException with ParamName \"value\". Capture(OperationContextData) now reports that name through every OperationContextData scope path, and provider BeginScope reports it for structured scopes. Neither caller has a parameter called \"value\". If the prior Capture used nameof(context), or a public BeginScope documents or tests ParamName, this is an observable change that the passing 12+12 subset would not catch.",
+      "suggestion": "Before committing, confirm ParamName against the previous implementation in the full 5217 Developer run. Either keep the old name (pass a paramName argument) or record the change as intentional."
+    },
+    {
+      "id": "O2",
+      "area": "bounds",
+      "location": "ProviderStateCapture.CaptureRoot (operation_id branch, attributes.Remove)",
+      "finding": "Take a frame with an earlier non-string operation_id and a later recognized string. The later string removes the ordinary attribute but does not refund its node budget. A frame can therefore mark later ordinary keys truncated with one budget node unused. Provenance stays conservative (over-reports truncation, never under-reports), so this is not a correctness defect.",
+      "suggestion": "Either refund the retained node count on removal or add one sentence to microsoft-provider-operation.md saying that superseded duplicates still consume the frame budget."
+    },
+    {
+      "id": "O3",
+      "area": "task semantics / docs",
+      "location": "microsoft-provider-operation.md; fixture coverage",
+      "finding": "Cross-frame residue is neither documented nor tested. An outer frame with non-string operation_id:7 keeps an ordinary attribute 'operation_id' in the merged scope attributes, even when an inner frame supplies a recognized string ID. The behavior follows from the stated rules, but a reader could assume the recognized ID removes it everywhere.",
+      "suggestion": "State that removal is per frame only. Optionally add one assertion inside an existing mode (for example nested-owned or duplicates) rather than a new mode."
+    },
+    {
+      "id": "O4",
+      "area": "doc wording",
+      "location": "microsoft-provider-operation.md paragraph 2",
+      "finding": "'IDs beyond the unvisited prefix are omitted' inverts the meaning. The omitted IDs are those in the unvisited tail, beyond the 1024-entry visited prefix.",
+      "suggestion": "Change to 'IDs in the unvisited tail beyond the 1024-entry guard are omitted with truncation provenance.'"
+    },
+    {
+      "id": "O5",
+      "area": "doc wording",
+      "location": "microsoft-provider-scopes.md layer paragraph",
+      "finding": "'...aggregate budget; The operation mapping guidance...' has a capital letter after a semicolon. The same paragraph also says twice that operation mapping qualifies precedence.",
+      "suggestion": "Merge the two sentences into one."
+    },
+    {
+      "id": "O6",
+      "area": "readability",
+      "location": "ProviderStateCapture.CaptureRoot",
+      "finding": "The code tests 'value is string' twice in a row. A single pattern block would read more directly with identical behavior: if (value is string identifier) { operationId = Normalize(identifier); attributes.Remove(key); continue; } operationId = null;",
+      "suggestion": "Optional simplification."
+    }
+  ],
+  "verifiedByReading": [
+    "Recognition requires the exact ordinal key 'operation_id' and a CLR string value. Null, int and LogValue.String values fall through to ordinary attributes. 'Operation_Id' stays ordinary. There is no ToString call.",
+    "Duplicate entries follow last-visited metadata state. The five expected duplicates rows match the code: [one,7]\u21927 kept as attribute and frame ID cleared; [7,two]\u2192'two' with attribute removed; [three,' ']\u2192cleared, parent wins; case-variant key ordinary; null\u2192attribute and parent wins.",
+    "Bounds: the scope budget is 1023. In 'retained', the ID at visited #1024 is still recognized, and the scope map itself is not truncated. Merge then drops event_id at the 1023-key cap and replaces 'common', giving 1023 keys and a truncated row. In 'late', k0000\u2013k1022 are kept, the k1023 visit sets truncated, and the loop breaks before the ID.",
+    "Precedence: FromHead and Overlay use 'inner ?? outer', so a blank or omitted frame (Omitted.OperationId is null) preserves the outer ID. Host replaces Core. A nonblank direct LogEventData.OperationId overrides scope; blank falls back. An ILogger event-state operation_id stays an attribute because the event path never intercepts the key.",
+    "Error routing: invalid owned IDs throw out of BeginCopiedScope before frame creation. Invalid borrowed IDs are caught as ArgumentException and become Omitted with truncation. The ThrowingHost InvalidOperationException and the ThrowingFields IOException both reach InvalidEvent, giving invalid=2. Formatter calls=3 because formatting precedes scope capture.",
+    "Protected envelope: service, env, version, component, resource, trace_id and span_id from scope or event state only enter attributes. Activity IDs are captured in EventProjection before the sourceScopes callback.",
+    "The Python verifier has 25 corruption controls. Tracing check() order, each control fails at its declared reason. The truncation-marker conditional parses as intended."
+  ],
+  "carriedForward": [
+    "Full Developer suite (5217) and final native Windows/Linux provider-operation reports are still pending. Do not record completion in implementation-status.md or the task receipt until they pass. O1 specifically depends on the full run.",
+    "planning/logging/implementation-status.md and the Web/Properties/ untracked directory were not supplied and were not reviewed. Confirm Web/Properties/ belongs to this task scope (likely launchSettings, unrelated) before staging.",
+    "T03 host filtering, T04 complete ownership, T05 real LoggerFactory/ActivityTrackingOptions/host shutdown qualification, then examples/instructions/skills and release qualification remain required.",
+    "Refresh derived CIS graph context after commit, per AGENTS.md."
+  ]
+}

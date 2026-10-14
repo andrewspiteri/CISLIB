@@ -18,21 +18,27 @@ internal sealed class CapturedOperationContext
     internal LogValue Attributes { get; }
     internal bool IsTruncated => Attributes.IsTruncated;
 
-    internal static CapturedOperationContext FromAttributes(LogValue attributes) => new(null, attributes);
+    internal static CapturedOperationContext FromAttributes(LogValue attributes, string? operationId = null) => new(operationId, attributes);
 
     internal static CapturedOperationContext Capture(OperationContextData context)
     {
         ArgumentNullException.ThrowIfNull(context);
-        string? operationId = context.OperationId?.Trim();
+        string? operationId = NormalizeOperationId(context.OperationId, nameof(context));
         IReadOnlyDictionary<string, LogValue>? attributes = context.Attributes;
+        return new(operationId, attributes is null ? EmptyAttributes : LogValue.Map(attributes));
+    }
+    internal static string? NormalizeOperationId(string? value, string parameterName)
+    {
+        string? operationId = value?.Trim();
         if (string.IsNullOrEmpty(operationId))
         {
             operationId = null;
         }
         else if (!UnicodeScalarText.IsValid(operationId, 255, allowControls: false))
         {
-            throw new ArgumentException("Use an operation identifier of at most 255 valid Unicode scalars without controls.", nameof(context));
+            throw new ArgumentException("Use an operation identifier of at most 255 valid Unicode scalars without controls.", parameterName);
         }
-        return new(operationId, attributes is null ? EmptyAttributes : LogValue.Map(attributes));
+        return operationId;
     }
+
 }
