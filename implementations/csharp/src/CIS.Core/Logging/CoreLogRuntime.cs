@@ -6,8 +6,7 @@ using CIS.Text;
 
 namespace CIS.Logging;
 
-/// <summary>Owns logger context and independent output admission.</summary>
-/// <remarks>Public creation and bounded shutdown are implemented in later roadmap tasks.</remarks>
+/// <summary>Owns logger context, independent output admission and one shared bounded stop operation.</summary>
 public sealed class CoreLogRuntime
 {
     private readonly object admissionGate;
@@ -18,6 +17,9 @@ public sealed class CoreLogRuntime
     private readonly EventMetadata metadata;
     private readonly TimeProvider timeProvider;
     private readonly int maximumEntryBytes;
+    private readonly TimeSpan shutdownTimeout;
+    private Task<LogStopResult>? stopTask;
+    private LogStopResult? lastStopResult;
     private readonly Output[] outputs;
     private bool admissionClosed;
     private DateTimeOffset? shutdownStartedAtUtc;
@@ -36,6 +38,7 @@ public sealed class CoreLogRuntime
         bool fileEnabled = !string.IsNullOrWhiteSpace(options.FilePath) && fileLevel != CoreLogLevel.None;
         int maximumBytes = options.MaxEntryBytes;
         ValidateSettings(consoleLevel, fileLevel, maximumBytes);
+        ValidateShutdownTimeout(options.ShutdownTimeoutMilliseconds);
         admissionGate = sharedAdmissionGate ?? new object();
         this.queuedOutputs = queuedOutputs;
         this.consoleWriter = consoleWriter;
@@ -44,6 +47,7 @@ public sealed class CoreLogRuntime
         this.metadata = metadata;
         this.timeProvider = timeProvider ?? TimeProvider.System;
         maximumEntryBytes = maximumBytes;
+        shutdownTimeout = options.ShutdownTimeout;
         var configured = new List<Output>(2);
         Add("console", consoleEnabled, consoleLevel, console);
         Add("file", fileEnabled, fileLevel, file);
@@ -127,6 +131,7 @@ public sealed class CoreLogRuntime
     private static LoggingOptions CaptureQueueOptions(LoggingOptions options)
     {
         ArgumentNullException.ThrowIfNull(options);
+        ValidateShutdownTimeout(options.ShutdownTimeoutMilliseconds);
         return new LoggingOptions
         {
             ConsoleLevel = options.EffectiveConsoleLevel,
@@ -140,7 +145,8 @@ public sealed class CoreLogRuntime
             FileFormat = options.FileFormat,
             FileMaxBytes = options.FileMaxBytes,
             FileRetainedFiles = options.FileRetainedFiles,
-            FlushIntervalMilliseconds = options.FlushIntervalMilliseconds
+            FlushIntervalMilliseconds = options.FlushIntervalMilliseconds,
+            ShutdownTimeoutMilliseconds = options.ShutdownTimeoutMilliseconds
         };
     }
 
@@ -167,6 +173,90 @@ public sealed class CoreLogRuntime
         catch { queues.Complete(); queues.Completion.GetAwaiter().GetResult(); fileWriter?.Dispose(); throw; }
     }
     internal OutputQueues? QueuedOutputs => queuedOutputs;
+    private static void ValidateShutdownTimeout(int milliseconds)
+    {
+        if (milliseconds is < LoggingOptions.MinimumShutdownTimeoutMilliseconds or > LoggingOptions.MaximumShutdownTimeoutMilliseconds)
+        { throw new ArgumentOutOfRangeException(nameof(milliseconds), "Use the configured shutdown-timeout range."); }
+    }
+
+    /// <summary>Starts or joins one shared bounded stop operation through its original accepted boundaries.</summary>
+    /// <param name="cancellationToken">Cancels only this caller's wait; even an already-cancelled first caller starts shutdown.</param>
+    /// <returns>The same owned immutable observation retained for all joining callers.</returns>
+    /// <exception cref="OperationCanceledException">The caller cancels its own wait.</exception>
+    /// <exception cref="InvalidOperationException">The runtime uses a trusted admission-test seam without actual output queues.</exception>
+    /// <remarks>The configured overall timeout is frozen at creation. UTC is an observation label; elapsed time is monotonic. A timed-out observation can retain pending I/O; its later completion does not change the cached result.</remarks>
+    public Task<LogStopResult> StopAsync(CancellationToken cancellationToken)
+    {
+        if (queuedOutputs is null) { throw new InvalidOperationException("Stop requires actual queued output composition."); }
+        Task<LogStopResult>? shared;
+        lock (admissionGate) { shared = stopTask; }
+        if (shared is null)
+        {
+            // Caller clock code is never invoked under admission synchronization.
+            // Preliminary concurrent samples are harmless; only the winning caller owns the deadline.
+            long started = timeProvider.GetTimestamp();
+            RuntimeFlushBoundary boundary = default;
+            TaskCompletionSource<LogStopResult>? completion = null;
+            lock (admissionGate)
+            {
+                if (stopTask is null)
+                {
+                    completion = new(TaskCreationOptions.RunContinuationsAsynchronously);
+                    stopTask = completion.Task;
+                    // Register final controls before a closing idle worker is allowed to exit.
+                    boundary = RegisterFlushBoundary();
+                    shutdownStartedAtUtc ??= boundary.BoundaryCapturedAtUtc;
+                    admissionClosed = true;
+                    queuedOutputs.Complete();
+                }
+                shared = stopTask;
+            }
+            if (completion is not null)
+            {
+                // Start deadline acquisition directly, without a delayed ThreadPool launch.
+                // Only continuations/timers outlive this call; they do not retain the caller's flow.
+                if (ExecutionContext.IsFlowSuppressed()) { _ = RunStopAsync(boundary, started, completion); }
+                else { using (ExecutionContext.SuppressFlow()) { _ = RunStopAsync(boundary, started, completion); } }
+            }
+        }
+        // WaitAsync can prefer an already-completed task; an already-cancelled caller must still cancel.
+        return cancellationToken.IsCancellationRequested
+            ? Task.FromCanceled<LogStopResult>(cancellationToken) : shared!.WaitAsync(cancellationToken);
+    }
+
+    private async Task RunStopAsync(RuntimeFlushBoundary boundary, long started, TaskCompletionSource<LogStopResult> completion)
+    {
+        try
+        {
+            if (boundary.Console is null && boundary.File is null)
+            { PublishStop(CaptureFlushResult(boundary), completion); return; }
+            await using var deadline = new FlushDeadline(timeProvider, started, shutdownTimeout, () => CaptureFlushResult(boundary));
+            try
+            {
+                await boundary.WaitForWriterFlushAsync(deadline.Token).ConfigureAwait(false);
+                if (boundary.Console is { } console)
+                { await queuedOutputs!.Console!.WaitForCoveredRecordsAsync("console", console, deadline.Token).ConfigureAwait(false); }
+                if (boundary.File is { } file)
+                { await queuedOutputs!.File!.WaitForCoveredRecordsAsync("file", file, deadline.Token).ConfigureAwait(false); }
+                try { await queuedOutputs!.Completion.WaitAsync(deadline.Token).ConfigureAwait(false); }
+                catch (Exception) when (queuedOutputs!.Completion.IsFaulted && (queuedOutputs.Console?.IsFaulted == true || queuedOutputs.File?.IsFaulted == true))
+                { /* Terminal writer faults remain safe output results, not business-call I/O exceptions. */ }
+            }
+            catch (OperationCanceledException) when (deadline.Token.IsCancellationRequested) { }
+            // Publish the frozen result before asynchronous deadline-timer cleanup can wait on a callback join.
+            PublishStop(deadline.ObserveCompletion(), completion);
+        }
+        catch (Exception error) { completion.TrySetException(error); }
+    }
+
+    private void PublishStop(LogFlushResult observation, TaskCompletionSource<LogStopResult> completion)
+    {
+        var result = new LogStopResult(observation);
+        lock (admissionGate) { lastStopResult = result; }
+        completion.TrySetResult(result);
+    }
+
+
     /// <summary>Waits through fixed accepted boundaries and confirms each enabled writer's buffer flush.</summary>
     /// <param name="timeout">One positive finite overall wait budget; every positive TimeSpan is supported.</param>
     /// <param name="cancellationToken">Cancels only this caller's wait, preserving shared worker requests.</param>
@@ -251,7 +341,7 @@ public sealed class CoreLogRuntime
             CoreLogState state = !counts.AdmissionClosed ? CoreLogState.Running :
                 values.All(value => value.State == LogOutputState.Stopped) ? CoreLogState.Stopped : CoreLogState.Stopping;
             return new CoreLogDiagnostics(state, counts.AdmissionClosed, DateTimeOffset.UtcNow, shutdownStartedAtUtc,
-                counts.InvalidEventCount, counts.TruncatedEventCount, values);
+                counts.InvalidEventCount, counts.TruncatedEventCount, values, lastStopResult);
         }
     }
 

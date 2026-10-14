@@ -1,0 +1,88 @@
+{
+  "schema": "cis.logging.stop-start-cases/v1",
+  "task": "WP05-S10-T01",
+  "state": "T01 implemented and qualified by actual Windows/Ubuntu execution and approved read-only Claude PASS; evidence/index audit before task commit.",
+  "scope": "First actual shared bounded stop and fixed observations; full S10 deadline-abandonment/I-O cancellation/disposal/custom-cleanup/abrupt-process obligations remain required.",
+  "cases": [
+    {
+      "id": "empty",
+      "state": "Executed Windows/Ubuntu; T01 source review PASS",
+      "expected": "No enabled outputs: close once and return actual empty successful immutable result."
+    },
+    {
+      "id": "normal",
+      "state": "Executed Windows/Ubuntu; T01 source review PASS",
+      "expected": "One accepted record: capture boundary1, serialize final flush, join actual worker cleanup, return written1/succeeded."
+    },
+    {
+      "id": "dual",
+      "state": "Executed Windows/Ubuntu; T01 source review PASS",
+      "expected": "Capture distinct per-output targets together under admission coordination; disabled outputs remain omitted."
+    },
+    {
+      "id": "configured-default",
+      "state": "Executed Windows/Ubuntu; T01 source review PASS",
+      "expected": "Freeze5000ms default at creation; caller mutation afterwards cannot change it."
+    },
+    {
+      "id": "configured-min",
+      "state": "Executed Windows/Ubuntu; T01 source review PASS",
+      "expected": "Freeze inclusive1ms configured budget and qualify exact controlled expiry."
+    },
+    {
+      "id": "configured-max",
+      "state": "Executed Windows/Ubuntu; T01 source review PASS",
+      "expected": "Freeze inclusive300000ms configured budget and qualify no reset by later caller."
+    },
+    {
+      "id": "configured-below",
+      "state": "Executed Windows/Ubuntu; T01 source review PASS",
+      "expected": "Reject0ms before any enabled output acquisition/worker."
+    },
+    {
+      "id": "configured-above",
+      "state": "Executed Windows/Ubuntu; T01 source review PASS",
+      "expected": "Reject300001ms before any enabled output acquisition/worker."
+    },
+    {
+      "id": "env",
+      "state": "Executed Windows/Ubuntu; T01 source review PASS",
+      "expected": "A fresh process supplies CORE_LOG_SHUTDOWN_TIMEOUT_MS; actual prepared/runtime value uses it."
+    },
+    {
+      "id": "shared",
+      "state": "Executed Windows/Ubuntu; T01 source review PASS",
+      "expected": "Concurrent stoppers share one actual task, original boundaries/deadline/result; no extra operation."
+    },
+    {
+      "id": "pre-cancelled",
+      "state": "Executed Windows/Ubuntu; T01 source review PASS",
+      "expected": "Already-cancelled first caller still closes admission and starts operation; original token cancels only its wait."
+    },
+    {
+      "id": "blocked-write",
+      "state": "Executed Windows/Ubuntu; T01 source review PASS",
+      "expected": "One started write remains held at deadline: report pending1 without disposal/replacement; later completion cannot mutate result."
+    },
+    {
+      "id": "blocked-flush",
+      "state": "Executed Windows/Ubuntu; T01 source review PASS",
+      "expected": "Record written but final flush remains held: writer-flush Pending at deadline without premature disposal."
+    },
+    {
+      "id": "clock-correction",
+      "state": "Executed Windows/Ubuntu; T01 source review PASS",
+      "expected": "UTC correction changes labels only; monotonic configured deadline remains unchanged."
+    },
+    {
+      "id": "late-facts",
+      "state": "Executed Windows/Ubuntu; T01 source review PASS",
+      "expected": "Initial loss/rejection/capture facts remain frozen; later invalid inputs do not replace them."
+    },
+    {
+      "id": "closed-writes",
+      "state": "Executed Windows/Ubuntu; T01 source review PASS",
+      "expected": "After first closure, valid Information and None writes return Stopped without lazy factory/content traversal."
+    }
+  ]
+}

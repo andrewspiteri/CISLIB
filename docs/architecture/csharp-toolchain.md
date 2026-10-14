@@ -8,6 +8,7 @@ WP01-S03 qualifies the tools against a genuine internal configuration behavior. 
 | --- | --- |
 | SDK / application target | `10.0.401`, scoped `global.json`, roll-forward disabled, `net10.0` |
 | Application runtime qualification | `Microsoft.NETCore.App 10.0.12`; explicit host check disables roll-forward |
+| Test host runtime | `Microsoft.NETCore.App 10.0.12`; test-only `RuntimeFrameworkVersion` and `RollForward=Disable` prevent silent patch substitution |
 | MSTest framework and adapter | `4.5.1`; centrally pinned, private test references |
 | Test SDK / VSTest and Microsoft collector packages | `18.10.1`; locked dependency closure |
 | Coverage | Microsoft's `Code Coverage` collector URI, native Cobertura, Core module only |
@@ -46,3 +47,9 @@ This smoke retains NuGet/tool bytes locally. SDK/runtime installer distributions
 Tool behavior and configuration references: [Microsoft coverage configuration](https://github.com/microsoft/codecoverage/blob/main/docs/configuration.md), [Microsoft APICompat CLI](https://learn.microsoft.com/en-us/dotnet/fundamentals/apicompat/global-tool), and [Stryker.NET configuration](https://stryker-mutator.io/docs/stryker-net/configuration/).
 
 The current native exclusions are six `or`-to-`and` mutations that create impossible/unreachable constant patterns and one whole-method block candidate removed by Stryker's block-already-covered filter. Their IDs, replacements, reasons and source/tool identity are recorded in [smoke dispositions](../../implementations/csharp/verification/mutation/smoke-dispositions.json). Replay verifies that review and produces a separate report-hash-bound `mutation-dispositions.json`; the original native report is unchanged. The mutation tool bundles VSTest translation/object-model 18.7.0, distinct from the test projects' pinned 18.10.1 packages.
+
+## Test-host patch selection correction (14 October 2026)
+
+Installing .NET 10.0.13 exposed a gap: generated test configurations requested 10.0.0 and allowed patch updates, although qualification fixtures explicitly require the selected 10.0.12 runtime. The combined Developer run failed 62 such cases. An isolated comparison used identical compiled test/Core DLLs: default selection passed seven and failed nine coordination cases; changing only the test runtime configuration to exact 10.0.12 with roll-forward disabled passed all sixteen.
+
+The existing tests/Directory.Build.targets now applies RuntimeFrameworkVersion=10.0.12 and RollForward=Disable only to IsTestProject projects. The real architecture test host and its generated runtime configuration are checked against eng/toolchain.json. This does not pin shipping Core or application examples, change the selected runtime version, weaken fixture expectations, or relabel the failed run. Requalification evidence remains separate from earlier checkpoints.

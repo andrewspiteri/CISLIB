@@ -1,0 +1,43 @@
+# Shared shutdown implementation notes
+
+State: WP05-S10-T01 is implemented and verified; final evidence/index audit and logging-owned commit are being completed. Actual StopAsync, LogStopResult, LastStopResult and frozen shutdown-timeout settings exist. Focused checks pass: 11 stop unit cases, two diagnostic-shape cases, 13 architecture cases and 16 Windows integration children. The native verifier passes 16 children and 30 exact-reason corruption controls on each Windows/Ubuntu platform. Combined Developer checkpoints passed 4995 cases after the test-host runtime correction and 4998 cases after three later Type Manager ordering tests. The final source checkpoint b29aba19809d45868e5391d21b2f9abb also passed all 4998 cases and 14 stages; its frozen host passes the 16 native cases and 30 controls on each platform. The user explicitly approved the fixed 21-file logging-only Claude bundle; executed read-only review returned PASS with no required code changes. These are development results, not release qualification. All following S10 tasks and story criteria remain required.
+
+## Actual T01 implementation
+
+CoreLogRuntime publishes one shared stop task. Under its existing admission gate, the first caller captures original accepted targets, rejection snapshots and initial invalid/truncated counts; registers the final nondroppable flush controls before idle workers can exit; closes runtime admission; and completes the output queues. Later uncancelled callers receive the same task, without new boundaries, clocks, timers or drain windows.
+
+The runtime validates and copies ShutdownTimeoutMilliseconds before acquiring outputs. Its default is 5000 ms, inclusive range 1 through 300000. Tests mutate caller options before the first stop and again afterwards; the original budget remains fixed. A fresh-process environment case supplies CORE_LOG_SHUTDOWN_TIMEOUT_MS=250 through actual EnvironmentOptions initialization. No new configuration container or resolver is added.
+
+The first caller samples the trusted monotonic clock outside admission synchronization. Preliminary concurrent samples are possible, but only the winning caller starts an operation and one deadline. Existing FlushDeadline consumes elapsed capture/setup time and supplies the fixed expiry observation. UTC labels do not control elapsed time. The shared asynchronous operation starts directly with ExecutionContext flow suppressed, without an extra ThreadPool startup window. No caller factory, payload traversal, clock callback or custom timer disposal runs beneath the admission gate.
+
+Within the original deadline, the operation awaits actual registered writer flushes, covered-record dispositions and the existing shared worker completion. Normal writer faults become safe failed output results. Its sealed getter-only LogStopResult owns the same fixed-boundary calculation as LogFlushResult; LastStopResult is null until publication and retains that original result afterwards. A deadline can report unresolved work as Pending. Later I/O and live diagnostics cannot change the cached observation.
+
+## Qualification and source scope
+
+conformance/logging/stop-start-cases.json binds 16 cases: empty and normal operation; independently filtered dual outputs; default/minimum/maximum and rejected timeout values; environment override; 32 concurrent initial callers and 64 later joiners; already-cancelled initiation; blocked write/flush; UTC corrections; initial versus later invalid counts; and stopped lazy writes. A blocked T01 case contains one already-started record, preserving the separate T02 obligation for queued abandonment.
+
+StopStartProcessTests executes these children against actual Core. StopStartExpectations validates the C# observations. verify-stop-start.py independently checks actual child PID/runtime/OS and DLL hashes, exact counters, UTC labels, sequential writer order, complete bounded UTF-8 records, live versus fixed facts, original task/result identities and the single deadline. Its 30 deliberate report corruptions per platform must fail for the expected reason. No fake logger or generated passing report substitutes for execution.
+
+The first combined Developer attempt exposed an obsolete three-method runtime-surface assertion after StopAsync was added. LoggerFoundationArchitectureTests now requires all four implemented methods, real method bodies, the exact StopAsync parameter/return type and readonly LogStopResult facts. The diagnostic IL guard continues to prohibit logging, output I/O, caller/environment reads and task creation. Focused architecture checks pass without weaker allowlists.
+
+Current focused reports and exact host/source identities are retained under .artifacts/csharp/tasks/wp05-s10-t01. Earlier four-case and expanded Debug-host reports remain historical; they do not attest the final source. Type Manager owns concurrent module and shared build changes; logging commits will use explicit owned paths and exclude those changes. Combined verification and graph refresh are coordinated before source freeze.
+
+## Required following work
+
+T02 must implement deadline abandonment of unstarted queued entries and cancellation requests for in-flight I/O. Existing writer delegates do not yet accept a cancellation token. A cancellation request cannot prove an OS write stopped, and no replacement writer or retry loop is permitted.
+
+T01 already covers an initially cancelled first caller. T03 completes later-caller wait cancellation and IAsyncDisposable integration: an already-cancelled first caller still starts shutdown, and DisposeAsync joins the original operation/deadline. T04 completes eventual safe resource release, immutable cached results versus later diagnostics and inherited custom timer-disposal failures. Preserve a primary write/flush failure if cleanup also fails; do not retry a throwing inactive synchronous Dispose. Never dispose owned handles beneath unresolved I/O; borrowed console stays open.
+
+T05 retains the full producer/stopper/disposal races, blocked native-like I/O, late completion, physical file ownership and abrupt-termination loss boundaries. Public creation remains required in this lifecycle phase; draft Create() reads the static container. Full S10 and release obligations remain unchanged.
+
+## Review and later-task findings
+
+Earlier automatic approval review rejected the transfer, and no command ran from those rejected attempts. The user subsequently approved the specific logging-only 21-file, 170309-byte source/design bundle. Claude executed with tools, MCP servers and session persistence disabled and returned PASS. The approved snapshot hashes matched all current logging files. Its only required T01 correction was updating checkpoint documentation after verification/review; this record and the case catalog now do so.
+
+Carry the concrete review findings into the required tasks: T02 abandonment must resolve the original final flush registration even when writtenCount cannot reach its accepted boundary; T04 must preserve primary write/flush faults when resource/timer cleanup also fails and record deadline-timer cleanup errors after result publication. T03/T04 must make post-stop flush behavior and any internal CloseAdmission use explicit. None of those requirements is considered complete here.
+
+Concurrent mutation of caller-owned options remains unsupported; preparation must finish before consumers start. Keep the existing simple copied-settings model. Completion describes covered records and writer flushing, so cleanup can still be pending when those dispositions have settled. The result does not promise resource release or disk durability.
+
+## Test-host runtime selection correction
+
+A newly installed .NET 10.0.13 runtime exposed an existing test configuration gap: generated test hosts requested 10.0.0 and allowed silent patch substitution while these qualification fixtures require 10.0.12. The failed run remains preserved. Identical compiled DLLs produced seven passes/nine failures under default selection and sixteen passes under exact 10.0.12. The existing test-only Directory.Build.targets now pins RuntimeFrameworkVersion=10.0.12 and RollForward=Disable for IsTestProject, and the architecture guard checks actual execution and generated configuration against toolchain.json. All five test families are pinned; ordinary application/runtime policy and Core runtime dependencies are unchanged. Corrected full Developer verification passed 4995 cases, with the later combined checkpoint passing 4998. This supporting fix was locally reviewed and executed independently; it is outside the approved 21-file Claude payload.

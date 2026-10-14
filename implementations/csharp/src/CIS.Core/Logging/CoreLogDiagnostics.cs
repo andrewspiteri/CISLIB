@@ -5,11 +5,11 @@ namespace CIS.Logging;
 public sealed class CoreLogDiagnostics
 {
     internal CoreLogDiagnostics(CoreLogState state, bool admissionClosed, DateTimeOffset observedAtUtc,
-        DateTimeOffset? shutdownStartedAtUtc, long invalidEventCount, long truncatedEventCount, IEnumerable<LogOutputDiagnostics> outputs)
+        DateTimeOffset? shutdownStartedAtUtc, long invalidEventCount, long truncatedEventCount, IEnumerable<LogOutputDiagnostics> outputs, LogStopResult? lastStopResult = null)
     {
         State = state; AdmissionClosed = admissionClosed; ObservedAtUtc = observedAtUtc;
         ShutdownStartedAtUtc = shutdownStartedAtUtc; InvalidEventCount = invalidEventCount; TruncatedEventCount = truncatedEventCount;
-        Outputs = Array.AsReadOnly(outputs.ToArray());
+        Outputs = Array.AsReadOnly(outputs.ToArray()); LastStopResult = lastStopResult;
     }
     /// <summary>The runtime admission/draining state, independent of individual output faults.</summary>
     public CoreLogState State { get; }
@@ -25,4 +25,6 @@ public sealed class CoreLogDiagnostics
     public long TruncatedEventCount { get; }
     /// <summary>Owned console-then-file observations; disabled outputs are omitted.</summary>
     public IReadOnlyList<LogOutputDiagnostics> Outputs { get; }
+    /// <summary>The original cached stop observation, or null until the shared operation publishes one.</summary>
+    public LogStopResult? LastStopResult { get; }
 }

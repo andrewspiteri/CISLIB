@@ -35,7 +35,7 @@ public sealed class DiagnosticsTests
         Assert.ThrowsExactly<InvalidDataException>(() => DiagnosticsExpectations.Validate(row, actual));
     }
     [TestMethod]
-    [DataRow("runtime", "State,AdmissionClosed,ObservedAtUtc,ShutdownStartedAtUtc,InvalidEventCount,TruncatedEventCount,Outputs")]
+    [DataRow("runtime", "State,AdmissionClosed,ObservedAtUtc,ShutdownStartedAtUtc,InvalidEventCount,TruncatedEventCount,Outputs,LastStopResult")]
     [DataRow("output", "OutputName,State,AcceptedSequence,Filtered,AdmissionAttempts,Accepted,QueueFull,Unavailable,Written,Failed,Abandoned,Pending,LastFaultCode,LastFaultAtUtc,RecoveredPartialSegment")]
     public void PublicDiagnosticContainersHaveOnlySealedGetterOnlyFacts(string typeName, string fields)
     {

@@ -17,14 +17,18 @@ public sealed class LoggerFoundationArchitectureTests
         Assert.AreEqual(0, typeof(CoreLogRuntime).GetConstructors().Length);
         var methods = typeof(CoreLogger).GetMethods(BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly);
         CollectionAssert.AreEquivalent(new[] { "IsEnabled", "Write", "WriteLazy" }, methods.Select(method => method.Name).ToArray());
-        foreach (MethodInfo method in methods.Append(typeof(CoreLogRuntime).GetMethod("CreateLogger")!))
+        var runtimeMethods = typeof(CoreLogRuntime).GetMethods(BindingFlags.Public | BindingFlags.Instance | BindingFlags.Static | BindingFlags.DeclaredOnly);
+        foreach (MethodInfo method in methods.Concat(runtimeMethods))
         {
             Assert.IsNotNull(method.GetMethodBody());
             Assert.IsFalse(method.MethodImplementationFlags.HasFlag(MethodImplAttributes.InternalCall));
         }
         CollectionAssert.AreEqual(new[] { "level", "data" }, typeof(CoreLogger).GetMethod("Write")!.GetParameters().Select(item => item.Name).ToArray());
         CollectionAssert.AreEqual(new[] { "level", "factory" }, typeof(CoreLogger).GetMethod("WriteLazy")!.GetParameters().Select(item => item.Name).ToArray());
-        CollectionAssert.AreEquivalent(new[] { "CreateLogger", "GetDiagnostics", "FlushAsync" }, typeof(CoreLogRuntime).GetMethods(BindingFlags.Public | BindingFlags.Instance | BindingFlags.Static | BindingFlags.DeclaredOnly).Select(method => method.Name).ToArray());
+        CollectionAssert.AreEquivalent(new[] { "CreateLogger", "GetDiagnostics", "FlushAsync", "StopAsync" }, runtimeMethods.Select(method => method.Name).ToArray());
+        CollectionAssert.AreEqual(new[] { "cancellationToken" }, typeof(CoreLogRuntime).GetMethod("StopAsync")!.GetParameters().Select(item => item.Name).ToArray());
+        Assert.AreEqual(typeof(CancellationToken), typeof(CoreLogRuntime).GetMethod("StopAsync")!.GetParameters()[0].ParameterType);
+        Assert.AreEqual(typeof(Task<LogStopResult>), typeof(CoreLogRuntime).GetMethod("StopAsync")!.ReturnType);
         Assert.IsNull(typeof(LogEventData).GetProperty("Level"));
         Assert.IsNull(typeof(LogEventData).GetProperty("Severity"));
     }
@@ -32,12 +36,14 @@ public sealed class LoggerFoundationArchitectureTests
     [TestMethod]
     public void ResultMembersAreReadonlyAndEnumNumbersMatchThePreservedContract()
     {
-        foreach (Type type in new[] { typeof(LogWriteResult), typeof(LogOutputWriteResult) })
+        foreach (Type type in new[] { typeof(LogWriteResult), typeof(LogOutputWriteResult), typeof(LogStopResult) })
         {
             Assert.IsTrue(type.IsSealed);
             Assert.AreEqual(0, type.GetConstructors().Length);
             foreach (PropertyInfo property in type.GetProperties()) { Assert.IsNull(property.GetSetMethod(nonPublic: true)); }
         }
+        CollectionAssert.AreEquivalent(new[] { "Completion", "Succeeded", "LossObserved", "BoundaryCapturedAtUtc", "ObservedAtUtc", "InvalidEventCount", "TruncatedEventCount", "Outputs" },
+            typeof(LogStopResult).GetProperties().Select(property => property.Name).ToArray());
         string root = EventContractTestsRoot();
         using JsonDocument contract = JsonDocument.Parse(File.ReadAllText(Path.Combine(root, "contracts/logging/v1/runtime-contract.json")));
         foreach ((Type type, string section) in new[] { (typeof(LogWriteOutcome), "outcomes"), (typeof(LogOutputWriteStatus), "outputStatuses") })

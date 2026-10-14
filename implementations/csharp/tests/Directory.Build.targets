@@ -2,6 +2,9 @@
   <PropertyGroup Condition="'$(IsTestProject)' == 'true'">
     <UseVSTest>true</UseVSTest>
     <EnableMSTestRunner>false</EnableMSTestRunner>
+    <!-- Match eng/toolchain.json; a newer installed patch must not silently change qualification. -->
+    <RuntimeFrameworkVersion>10.0.12</RuntimeFrameworkVersion>
+    <RollForward>Disable</RollForward>
   </PropertyGroup>
   <ItemGroup Condition="'$(IsTestProject)' == 'true'">
     <PackageReference Include="Microsoft.NET.Test.Sdk" PrivateAssets="all" />
