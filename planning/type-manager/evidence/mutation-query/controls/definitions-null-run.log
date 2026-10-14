@@ -1,0 +1,20 @@
+VSTest version 18.7.0 (x64)
+
+Starting test execution, please wait...
+A total of 1 test files matched the specified pattern.
+  Failed ExactLookupDoesNotNormalizeOrLoadAndCollectionsRejectMutation [81 ms]
+  Error Message:
+   Assertion failed. Expected strings to be equal.
+Strings have different lengths (expected: 8, actual: 3) and differ at 1 location(s). First difference at index 0.
+
+expected:   "assembly"
+actual:     "key"
+difference: -^
+
+Assert.AreEqual("assembly", Assert.ThrowsExactly<ArgumentNullException>(() => manager.GetDefinedTypes(null!)).ParamName)
+  Stack Trace:
+     at CIS.Tests.UnitTests.TypeManagerCatalogTests.ExactLookupDoesNotNormalizeOrLoadAndCollectionsRejectMutation() in C:\miscwork\portfolio\cislib\.artifacts\type-manager\mutation-query\stryker-source\Tests\TypeManagerCatalogTests.cs:line 81
+   at Microsoft.VisualStudio.TestPlatform.MSTest.TestAdapter.Execution.TestMethodInfo.ExecuteInternalAsync(Object[] arguments, CancellationTokenSource timeoutTokenSource, TestInvocationState invocationState)
+Results File: C:\miscwork\portfolio\cislib\.artifacts\type-manager\mutation-query\controls\definitions-null\results\andrs_ARCTURUS_2026-10-14_08_17_27_net10.0.trx
+
+Failed!  - Failed:     1, Passed:    89, Skipped:     0, Total:    90, Duration: 2 s - CIS.Core.UnitTests.dll (net10.0)

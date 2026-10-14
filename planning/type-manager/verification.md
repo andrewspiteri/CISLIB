@@ -1,5 +1,12 @@
 # First Type Manager slice: verification
 
+Latest mutation addition, 14 October 2026:
+[full-module discovery and query regressions](evidence/mutation-query/README.md)
+records a failing 54.79% mutation score against the unchanged 90% gate. Three
+previously surviving public-argument mutants are now killed and independently
+confirmed; 80 focused cases pass on Windows/Ubuntu and 90 source-module cases pass
+after a fresh unmutated rebuild. Native exclusions remain unresolved.
+
 Latest business-family addition, 14 October 2026:
 [ten business startup stories](evidence/business-stories/README.md) pass on Windows
 and native Ubuntu against the same frozen Core. Runtime/Core identities are observed

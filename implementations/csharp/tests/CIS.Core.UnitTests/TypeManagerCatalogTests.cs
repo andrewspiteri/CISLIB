@@ -78,7 +78,8 @@ public sealed class TypeManagerCatalogTests
         Assert.AreEqual(assemblyCount, AppDomain.CurrentDomain.GetAssemblies().Length);
         Assert.Throws<ArgumentNullException>(() => manager.TryGetType(null!, out _));
         Assert.Throws<ArgumentException>(() => manager.TryGetType(" ", out _));
-        Assert.Throws<ArgumentNullException>(() => manager.GetDefinedTypes(null!));
+        Assert.AreEqual("assembly", Assert.ThrowsExactly<ArgumentNullException>(() => manager.GetDefinedTypes(null!)).ParamName);
+        Assert.AreEqual("contractType", Assert.ThrowsExactly<ArgumentNullException>(() => manager.GetImplementations(null!)).ParamName);
         Assert.Throws<ArgumentException>(() => manager.GetDefinedTypes(typeof(object).Assembly));
         AssertProtected(manager.Assemblies);
         AssertProtected(manager.Types);

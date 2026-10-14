@@ -65,7 +65,8 @@ silently marked complete by a prototype or an uncommitted test result.
 | TM-023–TM-024 | Separate Web example constructs its builder/container after preparation, registers the exact manager instance and proves reuse across root, scopes and actual HTTP requests. Configuration boundary documented without adding a public Configuration contract or object lifetime implementation. |
 | TM-025 | Source and exact-package examples pass 66 fresh-process/layout checks on each supported OS, including Debug/Release, folder publish, publish without building, three broken-deployment cases per layout, later-load fixed membership and HTTP scoped lifetime. The 26-project solution and 11 targeted framework-policy checks pass on Windows. Formal milestone and final release-candidate consolidation remain open. |
 | TM-026 | A01–A30 mapping is recorded in `acceptance-evidence.md`, with executed checks and explicit gaps. The previously empty business project now has ten startup/consumer stories, all passing against the same frozen Core on Windows and native Ubuntu. Full acceptance/profile reconciliation and final artifact replay remain. |
-| TM-027–TM-028 | Meaningful mutation and complete architecture qualification remain; initial build/dependency and targeted mutation controls exist. |
+| TM-027 | Full nine-file Stryker discovery now runs: 103 killed, 45 survived, 40 uncovered, 238 compile errors and 57 native-filter exclusions. The unchanged 90% gate fails at 54.79%. Three public-query guard regressions are newly killed and independently confirmed with standalone mutant DLLs. All remaining mutants/exclusions, build-helper scope and final artifact qualification remain open. |
+| TM-028 | Complete architecture qualification remains; initial build/dependency and targeted mutation controls exist. |
 | TM-029 | Development behavior/schema compatibility checkpoint passes 86 checks per OS: original API/binary/source replay, 22 frozen behavior fixtures, exact original-API consumer reproduction and targeted API/binary/source/behavior negatives. Three provenance guards reject mismatched inputs. Final exact-package replay remains; no released historical baseline is claimed. |
 | TM-030 | Development performance observations are recorded for 334/4,366-type catalogs: 56 fresh processes per OS, 48 measured per OS, exact deployment replay, same-work deferred control, allocations and whole-process retained-memory deltas. Five artifact/timeout controls pass; unchanged-source enumeration evidence is linked separately. Final clean-package replay remains. |
 | TM-031 | Final maintainability review and the six-family gate remain. |
@@ -73,6 +74,13 @@ silently marked complete by a prototype or an uncommitted test result.
 | TM-033–TM-036 | Final documentation, exact-artifact verification bundle, clean package consumer smoke tests and handoff remain. |
 
 ## Executed evidence and limits
+
+The [mutation/query checkpoint](evidence/mutation-query/README.md) retains two
+failing full-module Stryker reports and the complete unresolved-mutant inventory.
+Published-query argument tests now detect three previously surviving guard removals.
+The strengthened 80-case frozen-Core suite passes on both OSs; the separate source
+module passes 90 cases after a fresh unmutated rebuild. Neither native exclusions
+nor targeted kills are used to claim that the full mutation family passes.
 
 The [business stories checkpoint](evidence/business-stories/README.md) adds ten
 native cases per OS for preparation before application startup, application-owned

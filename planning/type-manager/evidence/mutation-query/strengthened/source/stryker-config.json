@@ -1,0 +1,15 @@
+{
+  "stryker-config": {
+    "project": "Core.csproj",
+    "test-projects": ["Tests/Tests.csproj"],
+    "test-runner": "vstest",
+    "target-framework": "net10.0",
+    "configuration": "Release",
+    "mutate": ["**/TypeManagement/*.cs"],
+    "mutation-level": "Complete",
+    "reporters": ["json", "html", "progress", "cleartext"],
+    "concurrency": 1,
+    "additional-timeout": 10000,
+    "thresholds": {"high": 100, "low": 90, "break": 90}
+  }
+}

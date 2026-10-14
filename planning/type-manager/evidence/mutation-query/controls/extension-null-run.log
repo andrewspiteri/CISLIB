@@ -1,0 +1,23 @@
+VSTest version 18.7.0 (x64)
+
+Starting test execution, please wait...
+A total of 1 test files matched the specified pattern.
+  Failed NullArgumentsFailSynchronouslyBeforeReadingAnyInventory [3 ms]
+  Error Message:
+   Assertion failed. Expected exception of exact type ArgumentNullException but caught NullReferenceException.
+
+expected type:    System.ArgumentNullException
+actual exception: System.NullReferenceException: Object reference not set to an instance of an object.
+                     at CIS.TypeManagement.TypeManagerExtensions.GetImplementations[TContract](ITypeManager manager)
+                     at CIS.Tests.UnitTests.TypeManagerInputTests.<>c.<NullArgumentsFailSynchronouslyBeforeReadingAnyInventory>b__2_4() in C:\miscwork\portfolio\cislib\.artifacts\type-manager\mutation-query\stryker-source\Tests\TypeManagerInputTests.cs:line 22
+                     at Microsoft.VisualStudio.TestTools.UnitTesting.Assert.<>c__DisplayClass590_0`1.<ThrowsExactly>b__0()
+                     at Microsoft.VisualStudio.TestTools.UnitTesting.Assert.IsThrowsFailing[TException](Action action, Boolean isStrictType)
+
+Assert.ThrowsExactly<ArgumentNullException>(() => TypeManagerExtensions.GetImplementations<object>(null!))
+  Stack Trace:
+     at CIS.Tests.UnitTests.TypeManagerInputTests.NullArgumentsFailSynchronouslyBeforeReadingAnyInventory() in C:\miscwork\portfolio\cislib\.artifacts\type-manager\mutation-query\stryker-source\Tests\TypeManagerInputTests.cs:line 22
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+Results File: C:\miscwork\portfolio\cislib\.artifacts\type-manager\mutation-query\controls\extension-null\results\andrs_ARCTURUS_2026-10-14_08_17_21_net10.0.trx
+
+Failed!  - Failed:     1, Passed:    89, Skipped:     0, Total:    90, Duration: 2 s - CIS.Core.UnitTests.dll (net10.0)

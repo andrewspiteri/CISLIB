@@ -34,6 +34,8 @@ is development evidence, not a release claim; remaining checks are explicit belo
   [performance checkpoint](evidence/performance/README.md).
 - Ten native startup/consumer business cases per OS, with exact named scenario mapping:
   [business stories](evidence/business-stories/README.md).
+- Full-module failing mutation discovery, published-query argument regressions and
+  the unresolved native mutant inventory: [mutation/query](evidence/mutation-query/README.md).
 
 The runtime closure uses one frozen Core DLL on both OSs. The combined Developer
 checkpoint uses a later Core DLL containing concurrent logging changes. Inventory
@@ -74,6 +76,11 @@ not be merged into an implied exact-artifact release result.
 | A28 Release evidence | Focused native results, hashes, reviews and combined Developer checkpoint are preserved. | All six verification families, exact-artifact bundle and clean package-consumer qualification. |
 | A29 Scope/readability | Runtime is nine focused Core files with no new runtime dependency; architecture guards and read-only runtime review pass. | Final maintainability review and coordinated owned-file commits. |
 | A30 Manifest compatibility | Frozen raw fixtures replay schema-1 additive fields/BOM, malformed/invalid UTF-8, duplicate properties, unsupported versions, paths and selected assets on both OSs. Targeted schema, duplicate-property and traversal mutants are rejected. Generator output is consumed by the ordinary host. | Final exact-package bundle replay. |
+
+The mutation/query checkpoint strengthens A13 with actual published-manager
+rejection of unsupported, foreign and dynamic types plus public null-parameter
+diagnostics. Three standalone guard removals fail the expected tests. The full
+mutation gate still fails and remains a blocker for A28/final qualification.
 
 The business checkpoint supplements A05, A08–A10, A13–A15 and A17–A22/A26 with
 ten named consumer stories and passing native results per OS. Its README identifies

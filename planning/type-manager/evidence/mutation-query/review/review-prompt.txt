@@ -1,0 +1,608 @@
+Read-only review; no tools or edits. Type Manager mutation discovery is failing, not being declared qualified. Initial full-nine-file Stryker4.16.0 run:483 total,100 killed,48 survived,40 no coverage,238 compile error,57 ignored. Conservative100/188=53.19%, existing90% threshold unchanged. No blanket exclusions or equivalence dispositions adopted. Query validation mutants186(extension null guard),397(GetDefinedTypes null guard parameter),403(public query ValidateContract call) exposed holes. Strengthened current unit tests exercise published query rejection incl9 shapes/foreign/dynamic, extension null manager and public ParamName; 80 frozen-Core cases pass,90 isolated module+business cases pass. Full Stryker rerun in progress. Source-module compile does not claim shipping Core; archived producer pins link unchanged9sources. New preparer only produces private projects; prepared true / qualified false, no mutation success claim. Review test validity, source/provenance safety and reproduction helper; identify blockers separately from optional changes. No logging implementation shared. Current pinned runtime is10.0.12; existing scoped test verifier now sets RuntimeFrameworkVersion and RollForward Disable from toolchain.json.
+
+FILE: implementations/csharp/tests/CIS.Core.UnitTests/TypeManagerInputTests.cs
+
+using System.Reflection;
+using System.Reflection.Emit;
+using System.Runtime.Loader;
+using System.Text.Json;
+using CIS.TypeManagement;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+
+namespace CIS.Tests.UnitTests;
+
+[TestClass]
+public sealed class TypeManagerInputTests
+{
+    private static Assembly Host => typeof(TypeManagerInputTests).Assembly;
+
+    [TestMethod]
+    public void NullArgumentsFailSynchronouslyBeforeReadingAnyInventory()
+    {
+        Assert.Throws<ArgumentNullException>(() => TypeManager.CreateAsync(null!));
+        Assert.Throws<ArgumentNullException>(() => TypeManager.CreateAsync(new TypeManagerOptions(null!)));
+        Assert.Throws<ArgumentNullException>(() => TypeManager.CreateAsync(new TypeManagerOptions(Host) { PrecomputedContracts = null! }));
+        Assert.Throws<ArgumentNullException>(() => TypeManager.CreateAsync(new TypeManagerOptions(Host) { PrecomputedContracts = [null!] }));
+        var extensionError = Assert.ThrowsExactly<ArgumentNullException>(() => TypeManagerExtensions.GetImplementations<object>(null!));
+        Assert.AreEqual("manager", extensionError.ParamName);
+    }
+
+    [TestMethod]
+    [DataRow("")]
+    [DataRow(" ")]
+    [DataRow("\t\r\n")]
+    public void BlankAlternatePathIsAnArgumentError(string path)
+    {
+        Assert.Throws<ArgumentException>(() => TypeManager.CreateAsync(new TypeManagerOptions(Host) { AssemblyManifestPath = path }));
+    }
+
+    [TestMethod]
+    public void InvalidPathTextNamesThePublicOptionsParameter()
+    {
+        var error = Assert.Throws<ArgumentException>(() => TypeManager.CreateAsync(new TypeManagerOptions(Host) { AssemblyManifestPath = "bad\0path" }));
+        Assert.AreEqual("options", error.ParamName);
+        Assert.IsInstanceOfType<ArgumentException>(error.InnerException);
+    }
+
+    [TestMethod]
+    public void InputsAreOwnedAndDefaultPathUsesTheSuppliedHostName()
+    {
+        var list = new List<Type> { typeof(IDisposable), typeof(IDisposable) };
+        var input = PreparationInputs.Capture(new TypeManagerOptions(Host) { PrecomputedContracts = list });
+        list.Clear();
+        list.Add(typeof(int));
+        CollectionAssert.AreEqual(new[] { typeof(IDisposable) }, input.Contracts);
+        Assert.AreEqual(Path.Combine(AppContext.BaseDirectory, Host.GetName().Name + ".types.json"), input.ManifestPath);
+    }
+
+    [TestMethod]
+    [DataRow("value")]
+    [DataRow("nullable")]
+    [DataRow("open-generic")]
+    [DataRow("type-parameter")]
+    [DataRow("array")]
+    [DataRow("pointer")]
+    [DataRow("byref")]
+    [DataRow("function-pointer")]
+    [DataRow("delegated")]
+    public async Task UnsupportedTypeShapesAreRejectedBeforePreparationAndByPublishedQueries(string shape)
+    {
+        Type type = shape switch
+        {
+            "value" => typeof(int),
+            "nullable" => typeof(int?),
+            "open-generic" => typeof(List<>),
+            "type-parameter" => typeof(List<>).GetGenericArguments()[0],
+            "array" => typeof(int[]),
+            "pointer" => typeof(int).MakePointerType(),
+            "byref" => typeof(int).MakeByRefType(),
+            "function-pointer" => typeof(FunctionPointerHolder).GetField(nameof(FunctionPointerHolder.Pointer))!.FieldType,
+            "delegated" => new TypeDelegator(typeof(IDisposable)),
+            _ => throw new ArgumentException(shape, nameof(shape))
+        };
+        Assert.Throws<ArgumentException>(() => PreparationInputs.ValidateContract(type));
+        Assert.Throws<ArgumentException>(() => TypeManager.CreateAsync(new TypeManagerOptions(Host) { PrecomputedContracts = [type] }));
+        var manager = await CreateManager();
+        var queryError = Assert.ThrowsExactly<ArgumentException>(() => manager.GetImplementations(type));
+        Assert.AreEqual("contractType", queryError.ParamName);
+        Assert.IsNotNull(manager.GetImplementations<object>());
+    }
+
+    [TestMethod]
+    public async Task ForeignContextIsRejectedInsideClosedGenericContractsAndForTheHost()
+    {
+        var context = new AssemblyLoadContext("type-manager-input-test", isCollectible: true);
+        try
+        {
+            var foreignAssembly = context.LoadFromAssemblyPath(Host.Location);
+            var foreignType = foreignAssembly.GetType(typeof(TypeManagerInputTests).FullName!)!;
+            Assert.Throws<ArgumentException>(() => PreparationInputs.ValidateContract(foreignType));
+            Assert.Throws<ArgumentException>(() => PreparationInputs.ValidateContract(typeof(IEnumerable<>).MakeGenericType(foreignType)));
+            Assert.Throws<ArgumentException>(() => TypeManager.CreateAsync(new TypeManagerOptions(foreignAssembly)));
+            var manager = await CreateManager();
+            Assert.ThrowsExactly<ArgumentException>(() => manager.GetImplementations(foreignType));
+            Assert.ThrowsExactly<ArgumentException>(() => manager.GetImplementations(typeof(IEnumerable<>).MakeGenericType(foreignType)));
+        }
+        finally { context.Unload(); }
+    }
+
+    [TestMethod]
+    public async Task DynamicTypesAndTheirHostAssemblyAreRejected()
+    {
+        var assembly = AssemblyBuilder.DefineDynamicAssembly(new AssemblyName("DynamicInput_" + Guid.NewGuid().ToString("N")), AssemblyBuilderAccess.Run);
+        var dynamicType = assembly.DefineDynamicModule("Main").DefineType("DynamicType", TypeAttributes.Public).CreateType()!;
+        Assert.Throws<ArgumentException>(() => PreparationInputs.ValidateContract(dynamicType));
+        Assert.Throws<ArgumentException>(() => TypeManager.CreateAsync(new TypeManagerOptions(assembly)));
+        var manager = await CreateManager();
+        Assert.ThrowsExactly<ArgumentException>(() => manager.GetImplementations(dynamicType));
+    }
+
+    [TestMethod]
+    public void ClosedContractsWithValueOrArrayArgumentsRemainSupported()
+    {
+        PreparationInputs.ValidateContract(typeof(IEnumerable<int>));
+        PreparationInputs.ValidateContract(typeof(IEnumerable<string[]>));
+        PreparationInputs.ValidateContract(typeof(Dictionary<string, List<int>>));
+    }
+
+    private static async Task<ITypeManager> CreateManager()
+    {
+        string directory = Path.Combine(Path.GetTempPath(), "cis-type-manager-query-arguments", Guid.NewGuid().ToString("N"));
+        Directory.CreateDirectory(directory);
+        try
+        {
+            File.Copy(Host.Location, Path.Combine(directory, "Host.dll"));
+            string manifest = Path.Combine(directory, "host.types.json");
+            await File.WriteAllTextAsync(manifest, JsonSerializer.Serialize(new
+            {
+                schemaVersion = 1,
+                hostAssembly = Host.FullName,
+                assemblies = new[] { new { assemblyName = Host.FullName, relativePath = "Host.dll" } }
+            }));
+            return await TypeManager.CreateAsync(new TypeManagerOptions(Host) { AssemblyManifestPath = manifest });
+        }
+        finally { Directory.Delete(directory, recursive: true); }
+    }
+
+    [TestMethod]
+    public async Task AlreadyCanceledInputReturnsACanceledTask()
+    {
+        using var cancellation = new CancellationTokenSource();
+        cancellation.Cancel();
+        var preparation = TypeManager.CreateAsync(new TypeManagerOptions(Host), cancellation.Token);
+        await Assert.ThrowsAsync<OperationCanceledException>(() => preparation);
+        Assert.IsTrue(preparation.IsCanceled);
+    }
+
+    [TestMethod]
+    public void RelativeManifestPathsUseTheApplicationDirectoryAndOptionErrorsNameOptions()
+    {
+        var input = PreparationInputs.Capture(new TypeManagerOptions(Host) { AssemblyManifestPath = "relative.types.json" });
+        Assert.AreEqual(Path.Combine(AppContext.BaseDirectory, "relative.types.json"), input.ManifestPath);
+        var invalid = Assert.Throws<ArgumentException>(() => TypeManager.CreateAsync(new TypeManagerOptions(Host) { PrecomputedContracts = [typeof(int)] }));
+        Assert.AreEqual("options", invalid.ParamName);
+    }
+
+    private unsafe sealed class FunctionPointerHolder
+    {
+        public delegate*<void> Pointer = null;
+    }
+}
+
+
+FILE: implementations/csharp/tests/CIS.Core.UnitTests/TypeManagerCatalogTests.cs
+
+using System.Reflection;
+using System.Text.Json;
+using CIS.TypeManagement;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+
+namespace CIS.Tests.UnitTests;
+
+[TestClass]
+[DoNotParallelize]
+public sealed class TypeManagerCatalogTests
+{
+    private string directory = null!;
+    private string manifest = null!;
+    private static Assembly Host => typeof(TypeManagerCatalogTests).Assembly;
+
+    [TestInitialize]
+    public void Initialize()
+    {
+        directory = Path.Combine(Path.GetTempPath(), "cis-type-manager-tests", Guid.NewGuid().ToString("N"));
+        Directory.CreateDirectory(directory);
+        File.Copy(Host.Location, Path.Combine(directory, "Host.dll"));
+        manifest = Path.Combine(directory, "host.types.json");
+        File.WriteAllText(manifest, JsonSerializer.Serialize(new
+        {
+            schemaVersion = 1,
+            hostAssembly = Host.FullName,
+            assemblies = new[] { new { assemblyName = Host.FullName, relativePath = "Host.dll" } }
+        }));
+        DiscoveryCounters.Constructors = 0;
+        DiscoveryCounters.Attributes = 0;
+        DiscoveryCounters.Initializers = 0;
+    }
+
+    [TestCleanup]
+    public void Cleanup() => Directory.Delete(directory, recursive: true);
+
+    [TestMethod]
+    public async Task FullCatalogKeepsAllDefinedKindsWithoutActivatingApplicationCode()
+    {
+        var manager = await Create();
+        foreach (var type in new[] { typeof(IMarker), typeof(RecordStruct), typeof(MarkerBase), typeof(GenericCandidate<>), typeof(PrivateCandidate), typeof(StaticCandidate) })
+        {
+            Assert.Contains(type, manager.Types);
+            Assert.IsTrue(manager.TryGetType(type.AssemblyQualifiedName!, out var observed));
+            Assert.AreSame(type, observed);
+        }
+        Assert.AreSame(Host, manager.Assemblies.Single());
+        CollectionAssert.AreEqual(manager.Types.ToArray(), manager.GetDefinedTypes(Host).ToArray());
+        Assert.AreEqual(0, DiscoveryCounters.Constructors);
+        Assert.AreEqual(0, DiscoveryCounters.Attributes);
+        Assert.AreEqual(0, DiscoveryCounters.Initializers);
+    }
+
+    [TestMethod]
+    public async Task MatchingIncludesInheritedPrivateClassesAndClrVarianceButExcludesOpenAndAbstractTypes()
+    {
+        var manager = await Create();
+        CollectionAssert.AreEqual(new[] { typeof(PrivateCandidate) }, manager.GetImplementations<IMarker>().ToArray());
+        CollectionAssert.AreEqual(new[] { typeof(PrivateCandidate) }, manager.GetImplementations<MarkerBase>().ToArray());
+        CollectionAssert.AreEqual(new[] { typeof(PrivateCandidate) }, manager.GetImplementations<PrivateCandidate>().ToArray());
+        CollectionAssert.AreEqual(new[] { typeof(StringProducer) }, manager.GetImplementations<IProducer<object>>().ToArray());
+        CollectionAssert.AreEqual(new[] { typeof(ObjectConsumer) }, manager.GetImplementations<IConsumer<string>>().ToArray());
+        Assert.HasCount(0, manager.GetImplementations<IEquatable<DateTime>>());
+        Assert.IsFalse(manager.Assemblies.Contains(typeof(object).Assembly));
+    }
+
+    [TestMethod]
+    public async Task ExactLookupDoesNotNormalizeOrLoadAndCollectionsRejectMutation()
+    {
+        var manager = await Create();
+        string identity = typeof(PrivateCandidate).AssemblyQualifiedName!;
+        int assemblyCount = AppDomain.CurrentDomain.GetAssemblies().Length;
+        foreach (string miss in new[] { " " + identity, identity + " ", identity.ToUpperInvariant(), typeof(PrivateCandidate).FullName!, "Unknown.Type, Missing.Assembly" })
+        {
+            Assert.IsFalse(manager.TryGetType(miss, out var type));
+            Assert.IsNull(type);
+        }
+        Assert.AreEqual(assemblyCount, AppDomain.CurrentDomain.GetAssemblies().Length);
+        Assert.Throws<ArgumentNullException>(() => manager.TryGetType(null!, out _));
+        Assert.Throws<ArgumentException>(() => manager.TryGetType(" ", out _));
+        Assert.AreEqual("assembly", Assert.ThrowsExactly<ArgumentNullException>(() => manager.GetDefinedTypes(null!)).ParamName);
+        Assert.AreEqual("contractType", Assert.ThrowsExactly<ArgumentNullException>(() => manager.GetImplementations(null!)).ParamName);
+        Assert.Throws<ArgumentException>(() => manager.GetDefinedTypes(typeof(object).Assembly));
+        AssertProtected(manager.Assemblies);
+        AssertProtected(manager.Types);
+        AssertProtected(manager.GetDefinedTypes(Host));
+        AssertProtected(manager.GetImplementations<IMarker>());
+        AssertProtected(manager.GetImplementations<IEquatable<DateTime>>());
+        AssertProtected(manager.PreparationReport.SelectedAssemblyIdentities);
+        AssertProtected(manager.PreparationReport.LoadedAssemblyIdentities);
+        AssertProtected(manager.PreparationReport.ReusedAssemblyIdentities);
+    }
+
+    [TestMethod]
+    public async Task PreparedContractsUseCapturedInputAndConcurrentQueriesStayStableWithoutFiles()
+    {
+        var requested = new List<Type> { typeof(IMarker), typeof(IMarker) };
+        var pending = TypeManager.CreateAsync(new TypeManagerOptions(Host) { AssemblyManifestPath = manifest, PrecomputedContracts = requested });
+        requested.Clear();
+        requested.Add(typeof(int));
+        var manager = await pending;
+        Assert.AreSame(manager, await pending);
+        Assert.AreEqual(1, manager.PreparationReport.PreparedContractCount);
+        Assert.AreEqual(1, manager.PreparationReport.SelectedAssemblyCount);
+        Assert.AreEqual(manager.Types.Count, manager.PreparationReport.TypeCount);
+        Assert.HasCount(1, manager.PreparationReport.ReusedAssemblyIdentities);
+        Assert.HasCount(0, manager.PreparationReport.LoadedAssemblyIdentities);
+        Assert.IsGreaterThanOrEqualTo(TimeSpan.Zero, manager.PreparationReport.Elapsed);
+        File.Delete(manifest);
+        File.Delete(Path.Combine(directory, "Host.dll"));
+        await Task.WhenAll(Enumerable.Range(0, 128).Select(_ => Task.Run(() =>
+        {
+            Assert.AreSame(typeof(PrivateCandidate), manager.GetImplementations<IMarker>().Single());
+            Assert.HasCount(0, manager.GetImplementations<IEquatable<DateTime>>());
+            Assert.AreSame(typeof(StringProducer), manager.GetImplementations<IProducer<object>>().Single());
+        })));
+    }
+
+    [TestMethod]
+    public async Task IndependentManagersAndEveryResultUseStableOrdinalOrdering()
+    {
+        var first = await Create();
+        var second = await Create();
+        Assert.AreNotSame(first, second);
+        CollectionAssert.AreEqual(first.Types.ToArray(), second.Types.ToArray());
+        AssertOrder(first.Types);
+        AssertOrder(first.GetDefinedTypes(Host));
+        AssertOrder(first.GetImplementations<object>());
+    }
+
+    [TestMethod]
+    [DataRow(false)]
+    [DataRow(true)]
+    public async Task GenericAndNongenericQueriesAgreeForPreparedAndLazyContracts(bool precompute)
+    {
+        Type[] contracts = [typeof(IMarker), typeof(MarkerBase), typeof(PrivateCandidate),
+            typeof(IProducer<object>), typeof(IConsumer<string>), typeof(IEquatable<DateTime>)];
+        var manager = await TypeManager.CreateAsync(new TypeManagerOptions(Host)
+        {
+            AssemblyManifestPath = manifest,
+            PrecomputedContracts = precompute ? contracts : []
+        });
+        AssertEquivalent<IMarker>(manager);
+        AssertEquivalent<MarkerBase>(manager);
+        AssertEquivalent<PrivateCandidate>(manager);
+        AssertEquivalent<IProducer<object>>(manager);
+        AssertEquivalent<IConsumer<string>>(manager);
+        AssertEquivalent<IEquatable<DateTime>>(manager);
+        Assert.AreEqual(precompute ? contracts.Length : 0, manager.PreparationReport.PreparedContractCount);
+    }
+
+    [TestMethod]
+    public async Task ConcurrentAwaitersShareOneManagerAndCancellationAfterSuccessCannotRevokeIt()
+    {
+        using var cancellation = new CancellationTokenSource();
+        var preparation = TypeManager.CreateAsync(new TypeManagerOptions(Host) { AssemblyManifestPath = manifest }, cancellation.Token);
+        var observers = Enumerable.Range(0, 16).Select(_ => Task.Run(async () => await preparation)).ToArray();
+        var managers = await Task.WhenAll(observers);
+        var manager = managers[0];
+        foreach (var observed in managers) { Assert.AreSame(manager, observed); }
+        var types = manager.Types.ToArray();
+        var report = manager.PreparationReport;
+        cancellation.Cancel();
+        Assert.IsTrue(preparation.IsCompletedSuccessfully);
+        Assert.AreSame(manager, await preparation);
+        CollectionAssert.AreEqual(types, manager.Types.ToArray());
+        Assert.AreSame(report, manager.PreparationReport);
+        Assert.AreSame(typeof(PrivateCandidate), manager.GetImplementations<IMarker>().Single());
+        // Reading the inventory must not leave an application-owned file handle.
+        using var exclusive = new FileStream(manifest, FileMode.Open, FileAccess.ReadWrite, FileShare.None);
+        Assert.IsTrue(exclusive.CanWrite);
+    }
+
+    [TestMethod]
+    public async Task ConcurrentAwaitersShareOneFailureWhileSeparateCreationsRemainIndependent()
+    {
+        File.WriteAllText(manifest, "{");
+        var preparation = Create();
+        var observers = Enumerable.Range(0, 16).Select(_ => Task.Run(async () =>
+            await Assert.ThrowsExactlyAsync<TypeManagerInitializationException>(() => preparation))).ToArray();
+        var errors = await Task.WhenAll(observers);
+        foreach (var error in errors) { Assert.AreSame(errors[0], error); }
+        Assert.IsTrue(preparation.IsFaulted);
+        Assert.AreEqual(TypeManagerFailureKind.InvalidInventory, errors[0].FailureKind);
+        var other = Create();
+        Assert.AreNotSame(preparation, other);
+        var otherError = await Assert.ThrowsExactlyAsync<TypeManagerInitializationException>(() => other);
+        Assert.AreNotSame(errors[0], otherError);
+        using var exclusive = new FileStream(manifest, FileMode.Open, FileAccess.ReadWrite, FileShare.None);
+        Assert.IsTrue(exclusive.CanWrite);
+    }
+
+    private static void AssertEquivalent<T>(ITypeManager manager) => CollectionAssert.AreEqual(
+        manager.GetImplementations(typeof(T)).ToArray(), manager.GetImplementations<T>().ToArray());
+
+    [TestMethod]
+    public void CollectionProtectionCheckRejectsMutableFixedSizeArrays()
+    {
+        Assert.ThrowsExactly<AssertFailedException>(() => AssertProtected<int>(new[] { 1 }));
+    }
+
+    private static void AssertProtected<T>(IReadOnlyList<T> values)
+    {
+        var list = (IList<T>)values;
+        Assert.Throws<NotSupportedException>(() => list.Clear());
+        if (list.Count > 0) { Assert.Throws<NotSupportedException>(() => list[0] = values[0]); }
+    }
+
+    private Task<ITypeManager> Create() => TypeManager.CreateAsync(new TypeManagerOptions(Host) { AssemblyManifestPath = manifest });
+    private static void AssertOrder(IReadOnlyList<Type> types) => CollectionAssert.AreEqual(
+        types.OrderBy(type => type.AssemblyQualifiedName, StringComparer.Ordinal).ToArray(), types.ToArray());
+
+    private interface IMarker;
+    private interface IProducer<out T>;
+    private interface IConsumer<in T>;
+    private abstract class MarkerBase : IMarker;
+    private sealed class StringProducer : IProducer<string>;
+    private sealed class ObjectConsumer : IConsumer<object>;
+    private sealed class GenericCandidate<T> : IMarker;
+    private readonly record struct RecordStruct(int Value) : IMarker;
+    private static class StaticCandidate;
+    [Poison]
+    private sealed class PrivateCandidate : MarkerBase
+    {
+        static PrivateCandidate() => DiscoveryCounters.Initializers++;
+        private PrivateCandidate()
+        {
+            DiscoveryCounters.Constructors++;
+            throw new InvalidOperationException("Do not construct discovered instances.");
+        }
+    }
+    [AttributeUsage(AttributeTargets.Class)]
+    private sealed class PoisonAttribute : Attribute
+    {
+        public PoisonAttribute()
+        {
+            DiscoveryCounters.Attributes++;
+            throw new InvalidOperationException("Do not construct application attributes.");
+        }
+    }
+    private static class DiscoveryCounters
+    {
+        internal static int Constructors;
+        internal static int Attributes;
+        internal static int Initializers;
+    }
+}
+
+
+FILE: implementations/csharp/eng/prepare-type-manager-mutation.py
+
+"""Prepare an isolated source-module mutation project; never mutate shipping Core.
+
+Run the emitted baseline command, then Stryker with the emitted configuration.
+Preparation alone is not a passing mutation result or a release qualification.
+"""
+import argparse
+import hashlib
+import json
+from pathlib import Path
+import shutil
+
+
+def digest(path):
+    return hashlib.sha256(path.read_bytes()).hexdigest()
+
+
+def main():
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('--repo-root', type=Path, required=True)
+    parser.add_argument('--output-root', type=Path, required=True)
+    parser.add_argument('--candidate-core', type=Path, required=True)
+    parser.add_argument('--candidate-report', type=Path, required=True)
+    parser.add_argument('--expected-core-sha256', required=True)
+    args = parser.parse_args()
+    root = args.output_root.resolve()
+    if root.exists() and any(root.iterdir()):
+        parser.error('Use an empty output directory')
+    language = args.repo_root.resolve() / 'implementations/csharp'
+    producer = json.loads(args.candidate_report.read_text(encoding='utf-8-sig'))
+    if (digest(args.candidate_core) != args.expected_core_sha256 or
+            producer.get('complete') is not True or producer.get('coreSha256') != args.expected_core_sha256):
+        raise ValueError('Completed producer/Core differs from the independent pin')
+    module = language / 'src/CIS.Core/TypeManagement'
+    sources = {p.relative_to(language / 'src/CIS.Core').as_posix(): digest(p) for p in module.rglob('*.cs')}
+    expected = {key: value for key, value in producer['coreSourceInputs'].items() if key.startswith('TypeManagement/')}
+    if not sources or sources != expected:
+        raise ValueError('Module source set/hashes differ from the candidate producer')
+    root.mkdir(parents=True, exist_ok=True)
+    source = root / 'source'
+    inputs = {}
+
+    def copy(path, relative):
+        expected_hash = digest(path)
+        target = source / relative
+        target.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copyfile(path, target)
+        if digest(target) != expected_hash:
+            raise ValueError('Input changed while copying: ' + str(path))
+        inputs[relative] = expected_hash
+
+    for relative, expected_hash in sources.items():
+        copy(language / 'src/CIS.Core' / relative, 'Core/' + relative)
+        if inputs['Core/' + relative] != expected_hash:
+            raise ValueError('Module changed after provenance validation')
+    for pattern in ('tests/CIS.Core.UnitTests/TypeManager*Tests.cs',
+                    'tests/CIS.Core.ArchitectureTests/TypeManagerRuntimeArchitectureTests.cs',
+                    'tests/CIS.Core.BusinessCases/TypeManagerStartupStories.cs'):
+        matches = sorted(language.glob(pattern))
+        if not matches:
+            raise ValueError('Missing canonical test input: ' + pattern)
+        for path in matches:
+            copy(path, 'Tests/' + path.name)
+    for name in ('global.json', 'Directory.Build.props', 'Directory.Packages.props'):
+        copy(language / name, name)
+    copy(language / 'eng/toolchain.json', 'toolchain.json')
+    copy(language / 'verification/mutation/type-manager-config.json', 'stryker-config.json')
+    policy = json.loads((source / 'toolchain.json').read_text(encoding='utf-8-sig'))
+    if policy['targetFramework'] != 'net10.0':
+        raise ValueError('This mutation project supports net10.0 only')
+    references = []
+    for name in ('Microsoft.Extensions.Logging.Abstractions', 'Microsoft.Extensions.DependencyInjection.Abstractions'):
+        path = args.candidate_core.parent / (name + '.dll')
+        expected_hash = producer['fixtureFiles']['Host/bin/Release/net10.0/' + path.name]
+        if digest(path) != expected_hash:
+            raise ValueError('Dependency differs from producer: ' + path.name)
+        copy(path, 'references/' + path.name)
+        if inputs['references/' + path.name] != expected_hash:
+            raise ValueError('Dependency changed while copying: ' + path.name)
+        references.append(f'<Reference Include="{name}" HintPath="../references/{path.name}" />')
+    (source / 'Directory.Build.targets').write_text('<Project />', encoding='utf-8')
+    (source / 'NuGet.config').write_text('<configuration><packageSources><clear/></packageSources><fallbackPackageFolders><clear/></fallbackPackageFolders><auditSources><clear/></auditSources></configuration>', encoding='utf-8')
+    (source / 'Core/Core.csproj').write_text('<Project Sdk="Microsoft.NET.Sdk"><PropertyGroup><AssemblyName>CIS.Core</AssemblyName><AssemblyVersion>1.0.0.0</AssemblyVersion><NuGetAudit>false</NuGetAudit></PropertyGroup><ItemGroup><InternalsVisibleTo Include="CIS.Core.UnitTests" /></ItemGroup></Project>', encoding='utf-8')
+    (source / 'Tests/Tests.csproj').write_text('<Project Sdk="Microsoft.NET.Sdk"><PropertyGroup><AssemblyName>CIS.Core.UnitTests</AssemblyName><IsTestProject>true</IsTestProject><AllowUnsafeBlocks>true</AllowUnsafeBlocks><RuntimeFrameworkVersion>' + policy['targetRuntime'] + '</RuntimeFrameworkVersion><RollForward>Disable</RollForward><EnableMSTestRunner>false</EnableMSTestRunner><NuGetAudit>false</NuGetAudit></PropertyGroup><ItemGroup><ProjectReference Include="../Core/Core.csproj" />' + ''.join(references) + '<PackageReference Include="Microsoft.NET.Test.Sdk"/><PackageReference Include="MSTest.TestFramework"/><PackageReference Include="MSTest.TestAdapter"/></ItemGroup></Project>', encoding='utf-8')
+    (source / 'Tests/AssemblyInfo.cs').write_text('[assembly: Microsoft.VisualStudio.TestTools.UnitTesting.DoNotParallelize]', encoding='utf-8')
+    report = dict(prepared=True, qualified=False, scope='Isolated source-module mutation; not shipping Core',
+                  candidateCoreSha256=args.expected_core_sha256, candidateReportSha256=digest(args.candidate_report),
+                  preparerSha256=digest(Path(__file__)), inputs=inputs,
+                  generatedFiles={p.relative_to(source).as_posix(): digest(p) for p in sorted(source.rglob('*')) if p.is_file()},
+                  baselineCommand='dotnet test Tests/Tests.csproj -c Release -m:1 --logger trx',
+                  mutationCommand='dotnet exec --fx-version ' + policy['toolHostRuntime'] + ' --roll-forward Disable <Stryker.CLI.dll> --config-file stryker-config.json --output <report-directory>',
+                  workingDirectory=str(source))
+    (root / 'preparation.json').write_text(json.dumps(report, indent=2) + '\n', encoding='utf-8', newline='\n')
+    print(json.dumps(report, indent=2))
+
+
+if __name__ == '__main__':
+    main()
+
+
+FILE: implementations/csharp/eng/verify-type-manager-runtime-tests.ps1
+
+#Requires -Version 7
+param(
+    [Parameter(Mandatory)][string] $CoreAssembly,
+    [Parameter(Mandatory)][string] $OutputRoot
+)
+
+$ErrorActionPreference = 'Stop'
+Set-StrictMode -Version Latest
+$languageRoot = Split-Path $PSScriptRoot -Parent
+$CoreAssembly = [IO.Path]::GetFullPath($CoreAssembly)
+$OutputRoot = [IO.Path]::GetFullPath($OutputRoot)
+if ((Test-Path -LiteralPath $OutputRoot) -and @(Get-ChildItem -LiteralPath $OutputRoot -Force).Count -ne 0) { throw 'Use an empty output directory.' }
+New-Item -ItemType Directory -Force -Path $OutputRoot, (Join-Path $OutputRoot 'candidate') | Out-Null
+$inputs = @()
+foreach ($file in @('global.json', 'Directory.Build.props', 'Directory.Packages.props', 'NuGet.config', 'eng/Evidence.psm1', 'eng/toolchain.json',
+    'tests/CIS.Core.UnitTests/TypeManagerManifestTests.cs',
+    'tests/CIS.Core.UnitTests/TypeManagerInputTests.cs',
+    'tests/CIS.Core.UnitTests/TypeManagerCatalogTests.cs',
+    'tests/CIS.Core.UnitTests/TypeManagerOrderingTests.cs',
+    'tests/CIS.Core.ArchitectureTests/TypeManagerRuntimeArchitectureTests.cs')) {
+    $source = Join-Path $languageRoot $file
+    Copy-Item -LiteralPath $source -Destination (Join-Path $OutputRoot (Split-Path $file -Leaf))
+    $inputs += @{ path = $file; sha256 = (Get-FileHash $source).Hash.ToLowerInvariant() }
+}
+foreach ($name in @('CIS.Core.dll', 'Microsoft.Extensions.Logging.Abstractions.dll', 'Microsoft.Extensions.DependencyInjection.Abstractions.dll')) {
+    $source = Join-Path (Split-Path $CoreAssembly -Parent) $name
+    Copy-Item -LiteralPath $source -Destination (Join-Path $OutputRoot "candidate/$name")
+    $inputs += @{ path = "candidate/$name"; sha256 = (Get-FileHash $source).Hash.ToLowerInvariant() }
+}
+$inputs | ConvertTo-Json -Depth 5 | Set-Content -Encoding utf8 (Join-Path $OutputRoot 'inputs.json')
+$runtimePolicy = Get-Content -Raw (Join-Path $OutputRoot 'toolchain.json') | ConvertFrom-Json
+@"
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <AssemblyName>CIS.Core.UnitTests</AssemblyName>
+    <IsTestProject>true</IsTestProject>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <RuntimeFrameworkVersion>$($runtimePolicy.targetRuntime)</RuntimeFrameworkVersion>
+    <RollForward>Disable</RollForward>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="CIS.Core" HintPath="candidate/CIS.Core.dll" />
+    <Reference Include="Microsoft.Extensions.Logging.Abstractions" HintPath="candidate/Microsoft.Extensions.Logging.Abstractions.dll" />
+    <Reference Include="Microsoft.Extensions.DependencyInjection.Abstractions" HintPath="candidate/Microsoft.Extensions.DependencyInjection.Abstractions.dll" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" />
+    <PackageReference Include="MSTest.TestFramework" />
+    <PackageReference Include="MSTest.TestAdapter" />
+  </ItemGroup>
+</Project>
+"@ | Set-Content -Encoding utf8 (Join-Path $OutputRoot 'RuntimeTests.csproj')
+'[assembly: Microsoft.VisualStudio.TestTools.UnitTesting.DoNotParallelize]' | Set-Content -Encoding utf8 (Join-Path $OutputRoot 'AssemblyInfo.cs')
+Push-Location $OutputRoot
+try {
+    & dotnet test RuntimeTests.csproj -c Release -m:1 --results-directory results --logger 'trx;LogFileName=runtime-tests.trx' *> execution.log
+    if ($LASTEXITCODE -ne 0) { throw "Type Manager tests failed; inspect $OutputRoot/execution.log" }
+    Import-Module (Join-Path $OutputRoot 'Evidence.psm1') -Force
+    $native = Read-NativeTrx (Join-Path $OutputRoot 'results/runtime-tests.trx')
+    if ($native.total -ne 80 -or $native.passed -ne 80 -or $native.failed -ne 0 -or $native.skipped -ne 0) { throw 'Unexpected Type Manager test count or outcome.' }
+    @{ coreSha256 = (Get-FileHash candidate/CIS.Core.dll).Hash.ToLowerInvariant(); total = 80; passed = 80; failed = 0; skipped = 0; scope = '71 Core unit cases plus 9 runtime architecture cases against frozen candidate' } |
+        ConvertTo-Json | Set-Content -Encoding utf8 results.json
+}
+finally { Pop-Location }
+Write-Output "Type Manager frozen-candidate tests passed: 80. Report: $OutputRoot/results.json"
+
+
+FILE: implementations/csharp/verification/mutation/type-manager-config.json
+
+{
+  "stryker-config": {
+    "project": "Core.csproj",
+    "test-projects": ["Tests/Tests.csproj"],
+    "test-runner": "vstest",
+    "target-framework": "net10.0",
+    "configuration": "Release",
+    "mutate": ["**/TypeManagement/*.cs"],
+    "mutation-level": "Complete",
+    "reporters": ["json", "html", "progress", "cleartext"],
+    "concurrency": 1,
+    "additional-timeout": 10000,
+    "thresholds": {"high": 100, "low": 90, "break": 90}
+  }
+}

@@ -1,0 +1,190 @@
+
+   _____ _              _               _   _ ______ _______  
+  / ____| |            | |             | \ | |  ____|__   __| 
+ | (___ | |_ _ __ _   _| | _____ _ __  |  \| | |__     | |    
+  \___ \| __| '__| | | | |/ / _ \ '__| | . ` |  __|    | |    
+  ____) | |_| |  | |_| |   <  __/ |    | |\  | |____   | |    
+ |_____/ \__|_|   \__, |_|\_\___|_| (_)|_| \_|______|  |_|    
+                   __/ |                                      
+                  |___/                                       
+
+
+Version: 4.16.0
+
+A new version of Stryker.NET (5.0.0) is available. Please consider upgrading 
+using `dotnet tool update -g dotnet-stryker`
+
+[08:09:16 INF] Stryker will use a max of 1 parallel testsessions.
+[08:09:16 WRN] Stryker is running in single threaded mode due to concurrency being set to 1.
+[08:09:16 INF] Analysis starting.
+[08:09:16 INF] Analyzing 1 test project(s).
+[08:09:22 INF] Found project C:\miscwork\portfolio\cislib\.artifacts\type-manager\mutation-query\stryker-source\Core\Core.csproj to mutate.
+[08:09:22 INF] Analysis complete.
+[08:09:22 INF] Building test project C:\miscwork\portfolio\cislib\.artifacts\type-manager\mutation-query\stryker-source\Tests\Tests.csproj (1/1)
+[08:09:24 INF] Building project Tests.csproj using dotnet build Tests.csproj -c Release --property:Platform=AnyCPU (directory C:\miscwork\portfolio\cislib\.artifacts\type-manager\mutation-query\stryker-source\Tests.)
+[08:09:30 INF] Number of tests found: 90 for project C:\miscwork\portfolio\cislib\.artifacts\type-manager\mutation-query\stryker-source\Core\Core.csproj. Initial test run started.
+[08:09:39 WRN] An unidentified mutation in C:\miscwork\portfolio\cislib\.artifacts\type-manager\mutation-query\stryker-source\Core\TypeManagement\PreparationInputs.cs resulted in a compile error (at 36:44) with id: CS0165, message: Use of unassigned local variable 'path' (Source code: path)
+[08:09:39 INF] Safe Mode! Stryker will remove all mutations in Capture and mark them as 'compile error'.
+[08:09:39 WRN] An unidentified mutation in C:\miscwork\portfolio\cislib\.artifacts\type-manager\mutation-query\stryker-source\Core\TypeManagement\SelectedAssemblyLoader.cs resulted in a compile error (at 46:28) with id: CS0165, message: Use of unassigned local variable 'loaded' (Source code: loaded)
+[08:09:39 INF] Safe Mode! Stryker will remove all mutations in Load and mark them as 'compile error'.
+[08:09:39 WRN] An unidentified mutation in C:\miscwork\portfolio\cislib\.artifacts\type-manager\mutation-query\stryker-source\Core\TypeManagement\SelectedAssemblyLoader.cs resulted in a compile error (at 145:48) with id: CS0165, message: Use of unassigned local variable 'typeNamespace' (Source code: typeNamespace)
+[08:09:39 INF] Safe Mode! Stryker will remove all mutations in ValidateExecutable and mark them as 'compile error'.
+[08:09:39 WRN] An unidentified mutation in C:\miscwork\portfolio\cislib\.artifacts\type-manager\mutation-query\stryker-source\Core\TypeManagement\SelectedAssemblyLoader.cs resulted in a compile error (at 146:47) with id: CS0165, message: Use of unassigned local variable 'typeName' (Source code: typeName)
+[08:09:39 INF] Safe Mode! Stryker will remove all mutations in ValidateExecutable and mark them as 'compile error'.
+[08:09:40 WRN] An unidentified mutation in C:\miscwork\portfolio\cislib\.artifacts\type-manager\mutation-query\stryker-source\Core\TypeManagement\AssemblyInventory.cs resulted in a compile error (at 29:40) with id: CS0165, message: Use of unassigned local variable 'bytes' (Source code: bytes)
+[08:09:40 INF] Safe Mode! Stryker will remove all mutations in ReadAsync and mark them as 'compile error'.
+[08:09:40 WRN] An unidentified mutation in C:\miscwork\portfolio\cislib\.artifacts\type-manager\mutation-query\stryker-source\Core\TypeManagement\AssemblyInventory.cs resulted in a compile error (at 39:17) with id: CS0165, message: Use of unassigned local variable 'number' (Source code: number)
+[08:09:40 INF] Safe Mode! Stryker will remove all mutations in ReadAsync and mark them as 'compile error'.
+[08:09:40 WRN] An unidentified mutation in C:\miscwork\portfolio\cislib\.artifacts\type-manager\mutation-query\stryker-source\Core\TypeManagement\AssemblyInventory.cs resulted in a compile error (at 74:51) with id: CS0165, message: Use of unassigned local variable 'name' (Source code: name)
+[08:09:40 INF] Safe Mode! Stryker will remove all mutations in ReadAsync and mark them as 'compile error'.
+[08:09:40 WRN] An unidentified mutation in C:\miscwork\portfolio\cislib\.artifacts\type-manager\mutation-query\stryker-source\Core\TypeManagement\AssemblyInventory.cs resulted in a compile error (at 18:50) with id: CS0161, message: 'AssemblyInventory.ReadAsync(string, Assembly, CancellationToken)': not all code paths return a value (Source code: internal static async Task<AssemblyInventory> ReadAsync(string manifestPath, Assembly hostAssembly,
+        CancellationToken cancellationToken)
+{    {
+        byte[] bytes;
+        try
+{        bytes = await File.ReadAllBytesAsync(manifestPath, cancellationToken).ConfigureAwait((StrykerBiwSMo73XXiNXOH.MutantControl.IsActive(3)?true:false));
+}        catch (Exception error) when ((StrykerBiwSMo73XXiNXOH.MutantControl.IsActive(4)?error is not IOException or UnauthorizedAccessException:error is IOException or UnauthorizedAccessException))
+{        if(StrykerBiwSMo73XXiNXOH.MutantControl.IsActive(7)){;}else{throw Invalid(manifestPath, (StrykerBiwSMo73XXiNXOH.MutantControl.IsActive(8)?"":"The required assembly inventory could not be read."), error);}
+}
+        try
+{        {
+            ReadOnlyMemory<byte> json = bytes;
+            if ((StrykerBiwSMo73XXiNXOH.MutantControl.IsActive(10)?!(bytes.AsSpan().StartsWith(new byte[] { 0xef, 0xbb, 0xbf })):bytes.AsSpan().StartsWith((StrykerBiwSMo73XXiNXOH.MutantControl.IsActive(11)?new byte[] {}:new byte[] { 0xef, 0xbb, 0xbf })))) {json = json[3..];
+}            using var document = JsonDocument.Parse(json);
+            if(StrykerBiwSMo73XXiNXOH.MutantControl.IsActive(13)){;}else{ValidateUniqueProperties(document.RootElement, cancellationToken);}
+            var root = document.RootElement;
+            if(StrykerBiwSMo73XXiNXOH.MutantControl.IsActive(14)){;}else{RequireKind(root, JsonValueKind.Object, (StrykerBiwSMo73XXiNXOH.MutantControl.IsActive(15)?"":"inventory"));}
+            if (!root.TryGetProperty((StrykerBiwSMo73XXiNXOH.MutantControl.IsActive(17)?"":"schemaVersion"), out var version))
+{            if(StrykerBiwSMo73XXiNXOH.MutantControl.IsActive(19)){;}else{throw new FormatException((StrykerBiwSMo73XXiNXOH.MutantControl.IsActive(20)?"":"Required inventory schemaVersion is missing."));}
+}            if ((StrykerBiwSMo73XXiNXOH.MutantControl.IsActive(23)?version.ValueKind == JsonValueKind.Number :version.ValueKind != JsonValueKind.Number ) || !version.TryGetInt32(out var number))
+{            if(StrykerBiwSMo73XXiNXOH.MutantControl.IsActive(26)){;}else{throw new FormatException((StrykerBiwSMo73XXiNXOH.MutantControl.IsActive(27)?$"":$"Expected integer inventory schemaVersion 1; observed {version.ValueKind}."));}
+}            if (number != 1)
+{            if(StrykerBiwSMo73XXiNXOH.MutantControl.IsActive(30)){;}else{throw new FormatException((StrykerBiwSMo73XXiNXOH.MutantControl.IsActive(31)?$"":$"Unsupported inventory schemaVersion {number}; expected 1."));}
+}            string hostIdentity = ReadString(root, (StrykerBiwSMo73XXiNXOH.MutantControl.IsActive(32)?"":"hostAssembly"));
+            if ((StrykerBiwSMo73XXiNXOH.MutantControl.IsActive(33)?string.Equals(hostIdentity, hostAssembly.FullName, StringComparison.Ordinal):!string.Equals(hostIdentity, hostAssembly.FullName, StringComparison.Ordinal)))
+{            if(StrykerBiwSMo73XXiNXOH.MutantControl.IsActive(35)){;}else{throw new TypeManagerInitializationException(TypeManagerFailureKind.InvalidInventory,
+                    (StrykerBiwSMo73XXiNXOH.MutantControl.IsActive(36)?"":                    "The inventory hostAssembly does not match the supplied host assembly."),
+                    new FormatException((StrykerBiwSMo73XXiNXOH.MutantControl.IsActive(37)?"":"Host identity mismatch.")), manifestPath: manifestPath,
+                    assemblyIdentity: hostIdentity, actualAssemblyIdentity: hostAssembly.FullName);}
+}            if (!root.TryGetProperty((StrykerBiwSMo73XXiNXOH.MutantControl.IsActive(39)?"":"assemblies"), out var entries))
+{            if(StrykerBiwSMo73XXiNXOH.MutantControl.IsActive(41)){;}else{throw new FormatException((StrykerBiwSMo73XXiNXOH.MutantControl.IsActive(42)?"":"Required assemblies list is missing."));}
+}            if(StrykerBiwSMo73XXiNXOH.MutantControl.IsActive(43)){;}else{RequireKind(entries, JsonValueKind.Array, (StrykerBiwSMo73XXiNXOH.MutantControl.IsActive(44)?"":"assemblies"));}
+            if ((StrykerBiwSMo73XXiNXOH.MutantControl.IsActive(45)?entries.GetArrayLength() != 0:entries.GetArrayLength() == 0))
+{            if(StrykerBiwSMo73XXiNXOH.MutantControl.IsActive(47)){;}else{throw new FormatException((StrykerBiwSMo73XXiNXOH.MutantControl.IsActive(48)?"":"The assemblies list must not be empty."));}
+}
+            string directory = Path.GetDirectoryName(manifestPath)!;
+            var byName = new Dictionary<string, SelectedAssembly>(StringComparer.OrdinalIgnoreCase);
+            var byPath = new Dictionary<string, SelectedAssembly>((StrykerBiwSMo73XXiNXOH.MutantControl.IsActive(50)?(false?StringComparer.OrdinalIgnoreCase :StringComparer.Ordinal):(StrykerBiwSMo73XXiNXOH.MutantControl.IsActive(49)?(true?StringComparer.OrdinalIgnoreCase :StringComparer.Ordinal):OperatingSystem.IsWindows()
+                ? StringComparer.OrdinalIgnoreCase : StringComparer.Ordinal)));
+            bool containsHost = (StrykerBiwSMo73XXiNXOH.MutantControl.IsActive(51)?true:false);
+            foreach (var entry in entries.EnumerateArray())
+{            {
+                if(StrykerBiwSMo73XXiNXOH.MutantControl.IsActive(53)){;}else{cancellationToken.ThrowIfCancellationRequested();}
+                string? identity = null;
+                string? assetPath = null;
+                try
+{                {
+                    if(StrykerBiwSMo73XXiNXOH.MutantControl.IsActive(55)){;}else{RequireKind(entry, JsonValueKind.Object, (StrykerBiwSMo73XXiNXOH.MutantControl.IsActive(56)?"":"assembly entry"));}
+                    identity = ReadString(entry, (StrykerBiwSMo73XXiNXOH.MutantControl.IsActive(57)?"":"assemblyName"));
+                    string relativePath = ReadString(entry, (StrykerBiwSMo73XXiNXOH.MutantControl.IsActive(58)?"":"relativePath"));
+                    assetPath = relativePath;
+                    AssemblyName name;
+                    try
+{                    name = new AssemblyName(identity);
+}                    catch (Exception error) when ((StrykerBiwSMo73XXiNXOH.MutantControl.IsActive(60)?error is not ArgumentException or FileLoadException:error is ArgumentException or FileLoadException))
+{                    if(StrykerBiwSMo73XXiNXOH.MutantControl.IsActive(63)){;}else{throw Invalid(manifestPath, (StrykerBiwSMo73XXiNXOH.MutantControl.IsActive(64)?"":"Invalid selected assembly identity."), error, assetPath: assetPath, assemblyIdentity: identity);}
+}                    if (string.IsNullOrWhiteSpace(name.Name) || (StrykerBiwSMo73XXiNXOH.MutantControl.IsActive(73)?name.Version is not null:name.Version is null ) ||
+                        (StrykerBiwSMo73XXiNXOH.MutantControl.IsActive(74)?                        name.CultureName is not null:                        name.CultureName is null ) || (StrykerBiwSMo73XXiNXOH.MutantControl.IsActive(75)?name.GetPublicKeyToken() is not null:name.GetPublicKeyToken() is null ) ||
+                        (StrykerBiwSMo73XXiNXOH.MutantControl.IsActive(76)?string.Equals(name.FullName, identity, StringComparison.Ordinal):                        !string.Equals(name.FullName, identity, StringComparison.Ordinal)))
+{                    if(StrykerBiwSMo73XXiNXOH.MutantControl.IsActive(78)){;}else{throw new FormatException((StrykerBiwSMo73XXiNXOH.MutantControl.IsActive(79)?$"":$"Expected a complete canonical assembly identity: {identity}"));}
+}                    string path = ResolvePath(directory, relativePath);
+                    assetPath = path;
+                    if ((StrykerBiwSMo73XXiNXOH.MutantControl.IsActive(80)?File.Exists(path):!File.Exists(path)))
+{                    if(StrykerBiwSMo73XXiNXOH.MutantControl.IsActive(82)){;}else{throw Invalid(manifestPath, (StrykerBiwSMo73XXiNXOH.MutantControl.IsActive(83)?"":"A required selected assembly file is missing or inaccessible."),
+                            new FileNotFoundException((StrykerBiwSMo73XXiNXOH.MutantControl.IsActive(84)?"":"Required selected assembly was not found."), path), path, identity);}
+}                    var selected = new SelectedAssembly(identity, name.Name, path);
+                    if (byName.TryGetValue(name.Name, out var previous))
+{                    {
+                        if ((StrykerBiwSMo73XXiNXOH.MutantControl.IsActive(88)?!(string.Equals(previous.Identity, identity, StringComparison.Ordinal) && byPath.Comparer.Equals(previous.Path, path)):(StrykerBiwSMo73XXiNXOH.MutantControl.IsActive(87)?string.Equals(previous.Identity, identity, StringComparison.Ordinal) || byPath.Comparer.Equals(previous.Path, path):string.Equals(previous.Identity, identity, StringComparison.Ordinal) && byPath.Comparer.Equals(previous.Path, path))))
+{                        if(StrykerBiwSMo73XXiNXOH.MutantControl.IsActive(90)){;}else{continue;}
+}                        if(StrykerBiwSMo73XXiNXOH.MutantControl.IsActive(91)){;}else{throw Invalid(manifestPath, (StrykerBiwSMo73XXiNXOH.MutantControl.IsActive(92)?"":"Conflicting selections have the same simple assembly name."),
+                            new FormatException((StrykerBiwSMo73XXiNXOH.MutantControl.IsActive(93)?$"":$"Conflicting selections: {previous.Identity} and {identity}.")), path, identity);}
+                    }
+}                    if ((StrykerBiwSMo73XXiNXOH.MutantControl.IsActive(95)?!(byPath.TryGetValue(path, out previous) && previous != selected):(StrykerBiwSMo73XXiNXOH.MutantControl.IsActive(94)?byPath.TryGetValue(path, out previous) || previous != selected:byPath.TryGetValue(path, out previous) && (StrykerBiwSMo73XXiNXOH.MutantControl.IsActive(96)?previous == selected:previous != selected))))
+{                    if(StrykerBiwSMo73XXiNXOH.MutantControl.IsActive(98)){;}else{throw Invalid(manifestPath, (StrykerBiwSMo73XXiNXOH.MutantControl.IsActive(99)?"":"Conflicting identities select the same assembly file."),
+                            new FormatException((StrykerBiwSMo73XXiNXOH.MutantControl.IsActive(100)?$"":$"Conflicting selections: {previous.Identity} and {identity}.")), path, identity);}
+}                    byName[name.Name] = selected;
+                    byPath[path] = selected;
+                    if(StrykerBiwSMo73XXiNXOH.MutantControl.IsActive(102)){                    containsHost ^= string.Equals(identity, hostIdentity, StringComparison.Ordinal);
+}else{if(StrykerBiwSMo73XXiNXOH.MutantControl.IsActive(101)){                    containsHost &= string.Equals(identity, hostIdentity, StringComparison.Ordinal);
+}else{containsHost |= string.Equals(identity, hostIdentity, StringComparison.Ordinal);}}
+                }
+}                catch (Exception error) when ((StrykerBiwSMo73XXiNXOH.MutantControl.IsActive(103)?error is not FormatException or ArgumentException or InvalidOperationException:error is FormatException or ArgumentException or InvalidOperationException))
+{                if(StrykerBiwSMo73XXiNXOH.MutantControl.IsActive(107)){;}else{throw Invalid(manifestPath, (StrykerBiwSMo73XXiNXOH.MutantControl.IsActive(108)?"":"The selected inventory entry is invalid: " ) + error.Message,
+                        error, assetPath, identity);}
+}            }
+}            if ((StrykerBiwSMo73XXiNXOH.MutantControl.IsActive(109)?containsHost:!containsHost))
+{            if(StrykerBiwSMo73XXiNXOH.MutantControl.IsActive(111)){;}else{throw new FormatException((StrykerBiwSMo73XXiNXOH.MutantControl.IsActive(112)?"":"The assemblies list must contain the host assembly."));}
+}            var selectedAssemblies = (StrykerBiwSMo73XXiNXOH.MutantControl.IsActive(113)?byName.Values.OrderByDescending(item => item.Identity, StringComparer.Ordinal).ToArray():byName.Values.OrderBy(item => item.Identity, StringComparer.Ordinal).ToArray());
+            return new AssemblyInventory(manifestPath, Array.AsReadOnly(selectedAssemblies));
+        }
+}        catch (Exception error) when ((StrykerBiwSMo73XXiNXOH.MutantControl.IsActive(114)?error is not JsonException or FormatException or ArgumentException or InvalidOperationException:(StrykerBiwSMo73XXiNXOH.MutantControl.IsActive(116)?error is JsonException or FormatException and ArgumentException or InvalidOperationException:error is JsonException or FormatException or ArgumentException or InvalidOperationException)))
+{        if(StrykerBiwSMo73XXiNXOH.MutantControl.IsActive(119)){;}else{throw Invalid(manifestPath, (StrykerBiwSMo73XXiNXOH.MutantControl.IsActive(120)?"":"The assembly inventory is invalid: " ) + error.Message, error);}
+}    }
+})
+[08:09:40 INF] Safe Mode! Stryker will remove all mutations in ReadAsync and mark them as 'compile error'.
+[08:09:40 INF] 483 mutants created
+[08:09:40 INF] Capture mutant coverage using 'CoverageBasedTest' mode.
+Hint: by passing "--open-report or -o" the report will open automatically and 
+update the report in real-time.
+[08:09:44 INF] 238   mutants got status CompileError. Reason: Mutant caused compile errors
+[08:09:44 INF] 40    mutants got status NoCoverage.   Reason: Not covered by any test.
+[08:09:44 INF] 57    mutants got status Ignored.      Reason: Removed by block already covered filter
+[08:09:44 INF] 335   total mutants are skipped for the above mentioned reasons
+[08:09:44 INF] 148   total mutants will be tested
+
+Killed:   103
+Survived:  45
+Timeout:    0
+Errors:    0
+
+
+All mutants have been tested, and your mutation score has been calculated
+╭─────────────────────────────────────────────────────┬──┬───┬────┬─────┬───┬──╮
+│ File                                                │  │ # │ #  │  #  │ # │  │
+│                                                     │  │ … │ t… │ su… │ … │  │
+│                                                     │  │   │    │     │ … │  │
+├─────────────────────────────────────────────────────┼──┼───┼────┼─────┼───┼──┤
+│ C:\miscwork\portfolio\cislib\.artifacts\type-manage │  │ 1 │  0 │ 380 │ 4 │  │
+│ r\mutation-query\stryker-source                     │  │ 0 │    │     │ 0 │  │
+│                                                     │  │ 3 │    │     │   │  │
+│ TypeManagement\AssemblyInventory.cs                 │  │ 3 │  0 │ 153 │ 2 │  │
+│                                                     │  │ 2 │    │     │   │  │
+│ TypeManagement\ITypeManager.cs                      │  │ 1 │  0 │   1 │ 0 │  │
+│ TypeManagement\PreparationInputs.cs                 │  │ 2 │  0 │  41 │ 1 │  │
+│                                                     │  │ 7 │    │     │   │  │
+│ TypeManagement\SelectedAssemblyLoader.cs            │  │ 2 │  0 │  97 │ 1 │  │
+│                                                     │  │   │    │     │ 6 │  │
+│ TypeManagement\TypeManager.cs                       │  │ 3 │  0 │  57 │ 2 │  │
+│                                                     │  │ 2 │    │     │ 1 │  │
+│ TypeManagement\TypeManagerFailureKind.cs            │  │ 0 │  0 │   0 │ 0 │  │
+│ TypeManagement\TypeManagerInitializationException.c │  │ 7 │  0 │  30 │ 0 │  │
+│ s                                                   │  │   │    │     │   │  │
+│ TypeManagement\TypeManagerOptions.cs                │  │ 1 │  0 │   0 │ 0 │  │
+│ TypeManagement\TypeManagerPreparationReport.cs      │  │ 1 │  0 │   1 │ 0 │  │
+╰─────────────────────────────────────────────────────┴──┴───┴────┴─────┴───┴──╯
+
+Your json report has been generated at:
+file://C:/miscwork/portfolio/cislib/.artifacts/type-manager/mutation-query/stryk
+er-source/../stryker/reports/mutation-report.json
+
+Your html report has been generated at:
+file://C:/miscwork/portfolio/cislib/.artifacts/type-manager/mutation-query/stryk
+er-source/../stryker/reports/mutation-report.html
+You can open it in your browser of choice.
+[08:14:17 INF] Time Elapsed 00:05:00.6915789
+[08:14:17 INF] The final mutation score is 54.79 %
+[08:14:17 WRN] Final mutation score is below threshold break. Crashing...
+
+The mutation score is lower than the configured break threshold of 90%.
+ Looks like you've got some work to do 😇

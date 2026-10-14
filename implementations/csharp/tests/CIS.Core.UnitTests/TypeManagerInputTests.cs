@@ -1,6 +1,7 @@
 using System.Reflection;
 using System.Reflection.Emit;
 using System.Runtime.Loader;
+using System.Text.Json;
 using CIS.TypeManagement;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -18,6 +19,8 @@ public sealed class TypeManagerInputTests
         Assert.Throws<ArgumentNullException>(() => TypeManager.CreateAsync(new TypeManagerOptions(null!)));
         Assert.Throws<ArgumentNullException>(() => TypeManager.CreateAsync(new TypeManagerOptions(Host) { PrecomputedContracts = null! }));
         Assert.Throws<ArgumentNullException>(() => TypeManager.CreateAsync(new TypeManagerOptions(Host) { PrecomputedContracts = [null!] }));
+        var extensionError = Assert.ThrowsExactly<ArgumentNullException>(() => TypeManagerExtensions.GetImplementations<object>(null!));
+        Assert.AreEqual("manager", extensionError.ParamName);
     }
 
     [TestMethod]
@@ -58,7 +61,7 @@ public sealed class TypeManagerInputTests
     [DataRow("byref")]
     [DataRow("function-pointer")]
     [DataRow("delegated")]
-    public void UnsupportedTypeShapesAreRejectedBeforePreparation(string shape)
+    public async Task UnsupportedTypeShapesAreRejectedBeforePreparationAndByPublishedQueries(string shape)
     {
         Type type = shape switch
         {
@@ -75,10 +78,14 @@ public sealed class TypeManagerInputTests
         };
         Assert.Throws<ArgumentException>(() => PreparationInputs.ValidateContract(type));
         Assert.Throws<ArgumentException>(() => TypeManager.CreateAsync(new TypeManagerOptions(Host) { PrecomputedContracts = [type] }));
+        var manager = await CreateManager();
+        var queryError = Assert.ThrowsExactly<ArgumentException>(() => manager.GetImplementations(type));
+        Assert.AreEqual("contractType", queryError.ParamName);
+        Assert.IsNotNull(manager.GetImplementations<object>());
     }
 
     [TestMethod]
-    public void ForeignContextIsRejectedInsideClosedGenericContractsAndForTheHost()
+    public async Task ForeignContextIsRejectedInsideClosedGenericContractsAndForTheHost()
     {
         var context = new AssemblyLoadContext("type-manager-input-test", isCollectible: true);
         try
@@ -88,17 +95,22 @@ public sealed class TypeManagerInputTests
             Assert.Throws<ArgumentException>(() => PreparationInputs.ValidateContract(foreignType));
             Assert.Throws<ArgumentException>(() => PreparationInputs.ValidateContract(typeof(IEnumerable<>).MakeGenericType(foreignType)));
             Assert.Throws<ArgumentException>(() => TypeManager.CreateAsync(new TypeManagerOptions(foreignAssembly)));
+            var manager = await CreateManager();
+            Assert.ThrowsExactly<ArgumentException>(() => manager.GetImplementations(foreignType));
+            Assert.ThrowsExactly<ArgumentException>(() => manager.GetImplementations(typeof(IEnumerable<>).MakeGenericType(foreignType)));
         }
         finally { context.Unload(); }
     }
 
     [TestMethod]
-    public void DynamicTypesAndTheirHostAssemblyAreRejected()
+    public async Task DynamicTypesAndTheirHostAssemblyAreRejected()
     {
         var assembly = AssemblyBuilder.DefineDynamicAssembly(new AssemblyName("DynamicInput_" + Guid.NewGuid().ToString("N")), AssemblyBuilderAccess.Run);
         var dynamicType = assembly.DefineDynamicModule("Main").DefineType("DynamicType", TypeAttributes.Public).CreateType()!;
         Assert.Throws<ArgumentException>(() => PreparationInputs.ValidateContract(dynamicType));
         Assert.Throws<ArgumentException>(() => TypeManager.CreateAsync(new TypeManagerOptions(assembly)));
+        var manager = await CreateManager();
+        Assert.ThrowsExactly<ArgumentException>(() => manager.GetImplementations(dynamicType));
     }
 
     [TestMethod]
@@ -107,6 +119,25 @@ public sealed class TypeManagerInputTests
         PreparationInputs.ValidateContract(typeof(IEnumerable<int>));
         PreparationInputs.ValidateContract(typeof(IEnumerable<string[]>));
         PreparationInputs.ValidateContract(typeof(Dictionary<string, List<int>>));
+    }
+
+    private static async Task<ITypeManager> CreateManager()
+    {
+        string directory = Path.Combine(Path.GetTempPath(), "cis-type-manager-query-arguments", Guid.NewGuid().ToString("N"));
+        Directory.CreateDirectory(directory);
+        try
+        {
+            File.Copy(Host.Location, Path.Combine(directory, "Host.dll"));
+            string manifest = Path.Combine(directory, "host.types.json");
+            await File.WriteAllTextAsync(manifest, JsonSerializer.Serialize(new
+            {
+                schemaVersion = 1,
+                hostAssembly = Host.FullName,
+                assemblies = new[] { new { assemblyName = Host.FullName, relativePath = "Host.dll" } }
+            }));
+            return await TypeManager.CreateAsync(new TypeManagerOptions(Host) { AssemblyManifestPath = manifest });
+        }
+        finally { Directory.Delete(directory, recursive: true); }
     }
 
     [TestMethod]
