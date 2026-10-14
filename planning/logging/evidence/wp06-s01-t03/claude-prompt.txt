@@ -1,0 +1,3057 @@
+Read-only WP06-S01-T03 logging review. No tools/MCP/execution/edits/persistence. Task: preserve OriginalFormat as message_template and normalize supported structured state through existing Core values, with no parser/reflection/arbitrary ToString/framework/dependency/worker. CoreLogger.WriteLazy's formatter factory remains outside capture catch; the provider's private LogEventData CaptureState delegate executes inside EventProjection after frozen Activity/clock capture, so normalizer failures count as Core InvalidEvent without partial admission. Callback returns owned template/LogValue map and never reaches queues. Scalar allowlist and safe integer/decimal/timestamp representations, bounded nested maps/arrays, explicit immutable values, observed cycle rejection and duplicate-last-wins are documented. Numeric event_id input wins over state/scope and is ordinary aggregate payload, not a new protected envelope field. Root work guard bounds metadata-only state too; omitted tails/templates are marked truncated. Nine unit/nine actual public physical cases pass; initial independent Windows ninechildren/34 exact-reason controls pass. New actual Activities have different trace/span IDs; fixture changes Current during enumeration and requires the original IDs. Full Developer and final exact-assembly Windows/Ubuntu lanes are running, do not infer pass counts. Full rejection/filter/story qualification(T04/T05), host/external scopes/final provider surface(S02), examples/skills/release remain required. Review actual requirements, copying/provenance/node-depth accounting, standard Microsoft formatting/state semantics, factory exception preservation, Core public independence and no hidden no-op/stub behavior. Return JSON task, verdict PASS or CHANGES_REQUIRED, requiredFindings, optionalFindings and carriedForward.
+
+--- FILE implementations/csharp/src/CIS.Core/Logging/LogEventData.cs ---
+namespace CIS.Logging;
+
+/// <summary>Caller-owned named event input, copied during capture.</summary>
+/// <remarks>Do not mutate this input or its collections concurrently with capture.
+/// Immutable LogValue children may be shared. Event severity is supplied by the logging method.</remarks>
+public sealed class LogEventData
+{
+    /// <summary>The required event name, with at most 255 valid Unicode scalars and no controls.</summary>
+    public string EventName { get; set; } = string.Empty;
+
+    /// <summary>The supplied message; an empty message is valid.</summary>
+    public string Message { get; set; } = string.Empty;
+
+    /// <summary>The optional supplied template; null is absent and empty is retained.</summary>
+    public string? MessageTemplate { get; set; }
+
+    /// <summary>The optional event identifier, overriding the captured scope when nonblank.</summary>
+    public string? OperationId { get; set; }
+
+    /// <summary>The optional typed attributes, overriding matching ordinal scope keys.</summary>
+    public IReadOnlyDictionary<string, LogValue>? Attributes { get; set; }
+
+    /// <summary>The optional exception, projected without retaining the caller exception or its Data.</summary>
+    public Exception? Exception { get; set; }
+    // Adapter capture runs inside core validation after Activity/clock capture, before admission.
+    internal Func<(string? Template, LogValue Attributes)>? CaptureState { get; init; }
+}
+
+--- FILE implementations/csharp/src/CIS.Core/Logging/Events/EventProjection.cs ---
+using System.Diagnostics;
+using CIS.Logging.Exceptions;
+using CIS.Logging.Scopes;
+using CIS.Logging.Values;
+using CIS.Text;
+
+namespace CIS.Logging.Events;
+
+internal static class EventProjection
+{
+    internal const int MaximumPayloadScalars = 8192;
+
+    internal static CapturedEventFacts? Capture(EventMetadata metadata, CapturedScopeContext scope,
+        string component, CoreLogLevel severity, LogEventData data, TimeProvider? timeProvider = null)
+    {
+        string? status = severity switch
+        {
+            CoreLogLevel.Trace => "trace",
+            CoreLogLevel.Debug => "debug",
+            CoreLogLevel.Information => "info",
+            CoreLogLevel.Warning => "warn",
+            CoreLogLevel.Error => "error",
+            CoreLogLevel.Critical => "critical",
+            CoreLogLevel.None => null,
+            _ => throw new ArgumentOutOfRangeException(nameof(severity), "Use a declared logging severity.")
+        };
+        if (status is null) { return null; }
+        ArgumentNullException.ThrowIfNull(metadata);
+        ArgumentNullException.ThrowIfNull(scope);
+        ArgumentNullException.ThrowIfNull(data);
+        ValidateName(component, nameof(component));
+
+        // Read named input references before invoking cooperative collection/exception accessors.
+        string eventName = data.EventName;
+        string message = data.Message;
+        string? template = data.MessageTemplate;
+        string? operationId = data.OperationId?.Trim();
+        IReadOnlyDictionary<string, LogValue>? sourceAttributes = data.Attributes;
+        Exception? sourceException = data.Exception;
+        Func<(string? Template, LogValue Attributes)>? sourceState = data.CaptureState;
+        ValidateName(eventName, nameof(data));
+        // Own Activity IDs before clock/payload callbacks can replace the ambient context.
+        (string? traceId, string? spanId) = CaptureActivity();
+        DateTimeOffset timestampUtc = (timeProvider ?? TimeProvider.System).GetUtcNow().ToUniversalTime();
+        (string? Template, LogValue Attributes)? adapted = sourceState?.Invoke();
+        template = adapted?.Template ?? template;
+        string capturedMessage = CaptureText(message, out bool messageClipped);
+        bool templateClipped = false;
+        string? capturedTemplate = template is null ? null : CaptureText(template, out templateClipped);
+        if (string.IsNullOrEmpty(operationId)) { operationId = scope.OperationId; }
+        else if (!UnicodeScalarText.IsValid(operationId, 255, allowControls: false))
+        {
+            throw new ArgumentException("Use an operation identifier of at most 255 valid Unicode scalars without controls.", nameof(data));
+        }
+        LogValue explicitAttributes = adapted?.Attributes ?? LogValue.Map(sourceAttributes ?? new Dictionary<string, LogValue>());
+        LogValue attributes = Merge(scope.Attributes, explicitAttributes);
+        CapturedException? exception = ExceptionProjection.Capture(sourceException);
+        return new CapturedEventFacts(timestampUtc, traceId, spanId, status, eventName, capturedMessage, capturedTemplate, operationId,
+            metadata.ApplicationName, metadata.EnvironmentName, metadata.ServiceVersion, component,
+            Resource(metadata), attributes, exception,
+            messageClipped || templateClipped || attributes.IsTruncated || exception?.HasTruncatedContent == true);
+    }
+
+    private static (string? TraceId, string? SpanId) CaptureActivity()
+    {
+        Activity? activity = Activity.Current;
+        if (activity?.IdFormat != ActivityIdFormat.W3C) { return (null, null); }
+        string traceId = activity.TraceId.ToHexString();
+        string spanId = activity.SpanId.ToHexString();
+        return IsValidHexId(traceId, 32) && IsValidHexId(spanId, 16) ? (traceId, spanId) : (null, null);
+    }
+
+    private static bool IsValidHexId(string value, int length)
+    {
+        if (value.Length != length) { return false; }
+        bool nonzero = false;
+        foreach (char character in value)
+        {
+            if (!(character is >= '0' and <= '9' or >= 'a' and <= 'f')) { return false; }
+            nonzero |= character != '0';
+        }
+        return nonzero;
+    }
+
+    private static void ValidateName(string value, string parameter)
+    {
+        ArgumentNullException.ThrowIfNull(value, parameter);
+        if (value.Length == 0 || !UnicodeScalarText.IsValid(value, 255, allowControls: false))
+        {
+            throw new ArgumentException("Use a name of 1-255 valid Unicode scalars without controls.", parameter);
+        }
+    }
+
+    private static string CaptureText(string value, out bool truncated)
+    {
+        ArgumentNullException.ThrowIfNull(value, "data");
+        // Unlike bounded exception accessors, the named message/template is a supplied string.
+        // Malformed input remains invalid even in the suffix that the scalar limit would omit.
+        if (!LogValueText.IsValidUnicode(value))
+        {
+            throw new ArgumentException("Use valid Unicode scalar text.", "data");
+        }
+        return UnicodeScalarText.Prefix(value, MaximumPayloadScalars, out truncated);
+    }
+
+    private static LogValue Merge(LogValue scope, LogValue explicitAttributes)
+    {
+        var winners = new Dictionary<string, LogValue>(StringComparer.Ordinal);
+        bool truncated = scope.IsTruncated || explicitAttributes.IsTruncated;
+        foreach (LogValue map in new[] { scope, explicitAttributes })
+        {
+            foreach ((string key, LogValue value) in map.MapProperties)
+            {
+                if (winners.ContainsKey(key) || winners.Count < LogValueProjection.MaximumNodes - 1) { winners[key] = value; }
+                else { truncated = true; }
+            }
+        }
+        return new LogValueProjection().Map(winners, depth: 1, truncated);
+    }
+
+    private static LogValue Resource(EventMetadata metadata)
+    {
+        var resource = new Dictionary<string, LogValue>(StringComparer.Ordinal)
+        {
+            ["build_version"] = LogValue.String(metadata.BuildVersion),
+            ["instance_id"] = LogValue.String(metadata.InstanceId),
+            ["initialized_at"] = LogValue.Timestamp(metadata.InitializedAtUtc),
+            ["environment_kind"] = LogValue.String(metadata.EnvironmentKind switch
+            {
+                EnvironmentKind.Unknown => "unknown",
+                EnvironmentKind.Console => "console",
+                EnvironmentKind.Service => "service",
+                EnvironmentKind.Web => "web",
+                EnvironmentKind.Function => "function",
+                _ => throw new InvalidOperationException("Invalid owned environment kind.")
+            }),
+            ["os_family"] = LogValue.String(metadata.OperatingSystem)
+        };
+        if (metadata.ProcessStartedAtUtc is { } started) { resource["process_started_at"] = LogValue.Timestamp(started); }
+        Add("host_name", metadata.HostName);
+        Add("os_description", metadata.OperatingSystemDescription);
+        Add("os_architecture", metadata.OSArchitecture);
+        Add("process_architecture", metadata.ProcessArchitecture);
+        Add("runtime_description", metadata.RuntimeDescription);
+        if (metadata.ProcessId is { } processId) { resource["process_id"] = LogValue.Integer(processId); }
+        Add("commit_id", metadata.CommitId);
+        Add("build_id", metadata.BuildId);
+        return LogValue.Map(resource);
+
+        void Add(string key, string? value) { if (value is not null) { resource[key] = LogValue.String(value); } }
+    }
+}
+
+--- FILE implementations/csharp/src/CIS.Core/Logging/MicrosoftLogger/CoreLoggerProvider.cs ---
+using Microsoft.Extensions.Logging;
+
+namespace CIS.Logging.MicrosoftLogger;
+
+/// <summary>Creates Microsoft category loggers that borrow an application-owned core runtime.</summary>
+/// <remarks>Disposal disables this provider's future calls and never stops or disposes the shared runtime.
+/// A call already running when disposal occurs may finish. Category names follow the core component rules.
+/// Supplied rendered messages and exceptions enter core capture. Null or empty EventId.Name becomes
+/// log.message; EventId.Id supplies the integer attribute event_id, including zero and negative values.
+/// Structured state preserves {OriginalFormat} without parsing; host scopes remain integration work.</remarks>
+public sealed class CoreLoggerProvider : ILoggerProvider
+{
+    private readonly CoreLogRuntime runtime;
+    private int disposed;
+
+    /// <summary>Creates a nonowning provider over an existing runtime.</summary>
+    /// <exception cref="ArgumentNullException">Runtime is null.</exception>
+    public CoreLoggerProvider(CoreLogRuntime runtime)
+    {
+        ArgumentNullException.ThrowIfNull(runtime);
+        this.runtime = runtime;
+    }
+
+    /// <summary>Creates a category logger using the core's validated component name.</summary>
+    /// <exception cref="ObjectDisposedException">This provider has been disposed.</exception>
+    /// <exception cref="ArgumentNullException">Category name is null.</exception>
+    /// <exception cref="ArgumentException">The name does not satisfy the core component rules.</exception>
+    public ILogger CreateLogger(string categoryName)
+    {
+        ObjectDisposedException.ThrowIf(IsDisposed, this);
+        return new CategoryLogger(this, runtime.CreateLogger(categoryName));
+    }
+
+    private bool IsDisposed => Volatile.Read(ref disposed) != 0;
+
+    /// <summary>Idempotently disables this provider; the application retains runtime ownership.</summary>
+    public void Dispose() => Interlocked.Exchange(ref disposed, 1);
+
+    private static CoreLogLevel Level(LogLevel logLevel)
+    {
+        if (!Enum.IsDefined(logLevel)) { throw new ArgumentOutOfRangeException(nameof(logLevel)); }
+        // The selected v1 Core and Microsoft severity numbers are identical (Trace through None).
+        return (CoreLogLevel)logLevel;
+    }
+
+    private sealed class CategoryLogger(CoreLoggerProvider provider, CoreLogger core) : ILogger
+    {
+        public bool IsEnabled(LogLevel logLevel)
+        {
+            CoreLogLevel level = Level(logLevel);
+            return !provider.IsDisposed && core.IsEnabled(level);
+        }
+
+        public IDisposable? BeginScope<TState>(TState state) where TState : notnull
+        {
+            ArgumentNullException.ThrowIfNull(state);
+            ObjectDisposedException.ThrowIf(provider.IsDisposed, provider);
+            if (state is not OperationContextData context)
+            { throw new ArgumentException("Use OperationContextData for the provider foundation's typed core scope.", nameof(state)); }
+            if (provider.runtime.GetDiagnostics().AdmissionClosed) { throw new InvalidOperationException("Cannot begin a scope after runtime admission closes."); }
+            return provider.runtime.Scopes.BeginScope(context);
+        }
+
+        public void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception? exception,
+            Func<TState, Exception?, string> formatter)
+        {
+            ArgumentNullException.ThrowIfNull(formatter);
+            CoreLogLevel level = Level(logLevel);
+            if (provider.IsDisposed) { return; }
+            _ = core.WriteLazy(level, () => new LogEventData
+            {
+                EventName = string.IsNullOrEmpty(eventId.Name) ? "log.message" : eventId.Name,
+                Message = formatter(state, exception),
+                Exception = exception,
+                CaptureState = () => ProviderStateCapture.Capture(state, eventId.Id)
+            });
+        }
+    }
+}
+
+--- FILE implementations/csharp/src/CIS.Core/Logging/MicrosoftLogger/ProviderStateCapture.cs ---
+using System.Collections;
+using System.Globalization;
+using CIS.Logging.Values;
+
+namespace CIS.Logging.MicrosoftLogger;
+
+// A single bounded synchronous copy; no template parsing or arbitrary object serialization.
+internal sealed class ProviderStateCapture
+{
+    private int remaining = LogValueProjection.MaximumNodes - 2; // Root plus provider-owned event_id.
+    private readonly HashSet<object> ancestors = new(ReferenceEqualityComparer.Instance);
+
+    internal static (string? Template, LogValue Attributes) Capture<TState>(TState state, int eventId)
+    {
+        var capture = new ProviderStateCapture();
+        var attributes = new Dictionary<string, LogValue>(StringComparer.Ordinal) { ["event_id"] = LogValue.Integer(eventId) };
+        if (state is not IEnumerable<KeyValuePair<string, object?>> fields)
+        { return (null, LogValue.OwnedMap(attributes, truncated: false)); }
+        string? template = null; bool truncated = false; int visited = 0;
+        capture.Enter(fields);
+        try
+        {
+            foreach ((string key, object? value) in fields)
+            {
+                if (++visited > LogValueProjection.MaximumNodes) { truncated = true; break; }
+                ValidateKey(key);
+                if (key == "{OriginalFormat}")
+                {
+                    if (value is not null and not string) { throw new ArgumentException("OriginalFormat must be a string or null."); }
+                    template = (string?)value; continue;
+                }
+                if (key == "event_id") { continue; }
+                LogValue? retained = capture.Value(value, depth: 2);
+                if (retained is null) { truncated = true; break; }
+                attributes[key] = retained;
+            }
+        }
+        finally { capture.ancestors.Remove(fields); }
+        return (template, LogValue.OwnedMap(attributes, truncated));
+    }
+
+    private LogValue? Value(object? value, int depth)
+    {
+        if (remaining == 0 || depth > LogValueProjection.MaximumDepth) { return null; }
+        if (value is LogValue existing && existing.NodeCount <= remaining && depth - 1 + existing.Depth <= LogValueProjection.MaximumDepth)
+        { remaining -= existing.NodeCount; return existing; }
+        remaining--;
+        return value switch
+        {
+            null => LogValue.Null(),
+            LogValue owned when owned.Kind == LogValueKind.Array => Array(owned.ArrayItems, depth, owned.IsTruncated),
+            LogValue owned when owned.Kind == LogValueKind.Map => Map(owned.MapProperties.Select(p => new KeyValuePair<string, object?>(p.Key, p.Value)), depth, owned.IsTruncated),
+            bool scalar => LogValue.Boolean(scalar),
+            string scalar => LogValue.String(scalar),
+            char scalar => LogValue.String(new string(scalar, 1)),
+            sbyte scalar => LogValue.Integer(scalar),
+            byte scalar => LogValue.Integer(scalar),
+            short scalar => LogValue.Integer(scalar),
+            ushort scalar => LogValue.Integer(scalar),
+            int scalar => LogValue.Integer(scalar),
+            uint scalar => LogValue.Integer(scalar),
+            long scalar => LogValue.Integer(scalar),
+            ulong scalar when scalar <= 9_007_199_254_740_991 => LogValue.Integer((long)scalar),
+            float scalar => LogValue.Number(scalar),
+            double scalar => LogValue.Number(scalar),
+            decimal scalar => Decimal(scalar),
+            Guid scalar => LogValue.Uuid(scalar),
+            DateTimeOffset scalar => LogValue.Timestamp(scalar),
+            DateTime scalar when scalar.Kind == DateTimeKind.Utc => LogValue.Timestamp(new DateTimeOffset(scalar)),
+            IEnumerable<KeyValuePair<string, object?>> properties => Map(properties, depth),
+            IDictionary properties => Map(Entries(properties), depth, owner: properties),
+            IEnumerable items => Array(items, depth),
+            _ => throw new ArgumentException("Use supported scalar, collection or explicit LogValue inputs.")
+        };
+    }
+
+    private LogValue Array(IEnumerable items, int depth, bool truncated = false)
+    {
+        Enter(items);
+        try
+        {
+            var owned = new List<LogValue>();
+            foreach (object? item in items)
+            {
+                LogValue? retained = Value(item, depth + 1);
+                if (retained is null) { truncated = true; break; }
+                owned.Add(retained);
+            }
+            return LogValue.OwnedArray(owned, truncated);
+        }
+        finally { ancestors.Remove(items); }
+    }
+
+    private LogValue Map(IEnumerable<KeyValuePair<string, object?>> properties, int depth, bool truncated = false, object? owner = null)
+    {
+        owner ??= properties; Enter(owner);
+        try
+        {
+            var owned = new Dictionary<string, LogValue>(StringComparer.Ordinal);
+            foreach ((string key, object? value) in properties)
+            {
+                ValidateKey(key);
+                LogValue? retained = Value(value, depth + 1);
+                if (retained is null) { truncated = true; break; }
+                owned[key] = retained;
+            }
+            return LogValue.OwnedMap(owned, truncated);
+        }
+        finally { ancestors.Remove(owner); }
+    }
+
+    private static IEnumerable<KeyValuePair<string, object?>> Entries(IDictionary properties)
+    {
+        foreach (DictionaryEntry entry in properties)
+        { yield return new(entry.Key as string ?? throw new ArgumentException("Map keys must be strings."), entry.Value); }
+    }
+
+    private void Enter(object collection)
+    {
+        if (!ancestors.Add(collection)) { throw new ArgumentException("Cyclic state is unsupported."); }
+    }
+    private static void ValidateKey(string key)
+    {
+        if (key is null || !LogValueText.IsValidKey(key)) { throw new ArgumentException("Use valid ordinal attribute keys."); }
+    }
+    private static LogValue Decimal(decimal value)
+    {
+        string text = value.ToString(CultureInfo.InvariantCulture);
+        return LogValue.DecimalString(text.Contains('.', StringComparison.Ordinal) ? text : text + ".0");
+    }
+}
+
+--- FILE implementations/csharp/tests/fixtures/DiscoveryHost/ProviderStateFixture.cs ---
+using System.Collections;
+using System.Diagnostics;
+using System.Text.Json.Nodes;
+using CIS.Logging;
+using CIS.Logging.MicrosoftLogger;
+using Microsoft.Extensions.Logging;
+using static CIS.Tests.DiscoveryFixture.FlushStressSupport;
+
+namespace CIS.Tests.DiscoveryFixture;
+
+internal static class ProviderStateFixture
+{
+    internal static readonly string[] Modes = ["extensions", "scalars", "collections", "precedence", "unsupported", "bounds", "filtered", "correlation", "template-size"];
+    private sealed class Bomb
+    {
+        internal int Calls;
+        public override string ToString() { Calls++; throw new InvalidOperationException("Arbitrary ToString ran."); }
+    }
+    private sealed class Counting : IEnumerable
+    {
+        internal int Visits;
+        public IEnumerator GetEnumerator()
+        {
+            for (int i = 0; i < 2000; i++)
+            { Visits++; Require(Visits <= 1100); yield return i; }
+        }
+    }
+    private sealed class Fields(Action? onEnumeration = null, bool fail = false) : IEnumerable<KeyValuePair<string, object?>>
+    {
+        internal int Calls;
+        public IEnumerator<KeyValuePair<string, object?>> GetEnumerator()
+        { Calls++; onEnumeration?.Invoke(); if (fail) { throw new InvalidOperationException("Filtered state traversed."); } return new[] { new KeyValuePair<string, object?>("trace_id", "fake") }.AsEnumerable().GetEnumerator(); }
+        IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+    }
+    internal static int Run(string mode, string root)
+    { Console.WriteLine(ExecuteAsync(mode, root).GetAwaiter().GetResult().ToJsonString()); return 0; }
+    internal static async Task<JsonObject> ExecuteAsync(string mode, string? root = null)
+    {
+        Require(Modes.Contains(mode, StringComparer.Ordinal)); using var bytes = new MemoryStream(); bool physical = root is not null;
+        string? path = physical ? Path.Combine(root!, "logs Ω", "active.log") : null;
+        CoreLogLevel threshold = mode == "filtered" ? CoreLogLevel.Warning : CoreLogLevel.Information;
+        CoreLogRuntime runtime;
+        if (physical)
+        {
+            LoggingOptions options = EnvironmentOptions.Logging; options.ConsoleLevel = CoreLogLevel.None; options.FileLevel = threshold;
+            options.FilePath = path; options.FileFormat = LogOutputFormat.JsonLines; options.QueueCapacity = 64; options.MaxEntryBytes = 16384; options.ShutdownTimeoutMilliseconds = 5000;
+            runtime = CoreLogRuntime.Create();
+        }
+        else
+        {
+            var options = new LoggingOptions { ConsoleLevel = threshold, FileLevel = CoreLogLevel.None, ConsoleFormat = LogOutputFormat.JsonLines, QueueCapacity = 64, MaxEntryBytes = 16384 };
+            runtime = CoreLogRuntime.CreateConsoleQueued(ConsoleCompositionFixture.Metadata(), options, acquireConsole: _ => bytes);
+        }
+        using var provider = new CoreLoggerProvider(runtime); ILogger logger = provider.CreateLogger("Provider.State");
+        int calls = 0, identities = 0, stateCalls = 0; var bomb = new Bomb(); var counted = new Counting(); string? trace = null, span = null;
+        try
+        {
+            void Log(string name, object state, string message = "supplied rendered")
+            {
+                logger.Log(LogLevel.Information, new EventId(17, name), state, null, (received, error) =>
+                { calls++; Require(ReferenceEquals(received, state) && error is null); identities++; return message; });
+            }
+            switch (mode)
+            {
+                case "extensions": logger.LogInformation(new EventId(17, "orders"), "Orders {Count} {User}", 3, "Ω"); break;
+                case "scalars":
+                    Log("scalars", new Dictionary<string, object?>
+                    {
+                        ["nil"] = null,
+                        ["bool"] = true,
+                        ["text"] = "Ω 🙂",
+                        ["char"] = 'x',
+                        ["sbyte"] = (sbyte)-8,
+                        ["byte"] = (byte)8,
+                        ["short"] = (short)-16,
+                        ["ushort"] = (ushort)16,
+                        ["int"] = -32,
+                        ["uint"] = uint.MaxValue,
+                        ["long"] = 9_007_199_254_740_991L,
+                        ["ulong"] = 9_007_199_254_740_991UL,
+                        ["float"] = 1.5f,
+                        ["double"] = 2.5,
+                        ["decimal"] = 1.20m,
+                        ["wholeDecimal"] = 2m,
+                        ["uuid"] = Guid.Parse("11111111-2222-3333-4444-555555555555"),
+                        ["offset"] = new DateTimeOffset(2026, 10, 14, 12, 0, 0, TimeSpan.FromHours(2)),
+                        ["utc"] = new DateTime(2026, 10, 14, 10, 0, 0, DateTimeKind.Utc),
+                        ["explicit"] = LogValue.IntegerString("9223372036854775807"),
+                        ["{OriginalFormat}"] = "raw {template}"
+                    }); break;
+                case "collections":
+                    object?[] array = [1, null, true]; var nested = new Dictionary<string, object?> { ["array"] = array, ["typed"] = new Dictionary<string, int> { ["i"] = 7 } };
+                    var source = new Dictionary<string, object?> { ["nested"] = nested, ["owned"] = LogValue.Array([LogValue.String("original")]) };
+                    Log("collections", source); array[0] = 999; nested.Clear(); source.Clear(); break;
+                case "precedence":
+                    using (logger.BeginScope(new OperationContextData { OperationId = "operation.original", Attributes = new Dictionary<string, LogValue> { ["event_id"] = LogValue.Integer(999), ["common"] = LogValue.String("outer") } }))
+                    {
+                        Log("precedence", new KeyValuePair<string, object?>[] { new("common", "event"), new("choice", 1), new("choice", 2), new("event_id", bomb), new("service", "fake"), new("{OriginalFormat}", "scope {choice}") });
+                    }
+                    break;
+                case "unsupported":
+                    object?[] cycle = new object?[1]; cycle[0] = cycle; var mapCycle = new Hashtable(); mapCycle["self"] = mapCycle;
+                    object[] unsupported = [bomb, double.NaN, double.PositiveInfinity, long.MaxValue, ulong.MaxValue, new DateTime(2026, 10, 14), CoreLogLevel.Error, cycle, mapCycle];
+                    foreach (object value in unsupported) { Log("invalid", new Dictionary<string, object?> { ["bad"] = value }); }
+                    Log("invalid", new Dictionary<string, object?> { ["bad\0key"] = 1 });
+                    Log("invalid", new Dictionary<string, object?> { ["bad"] = "\ud800" });
+                    Log("invalid", new Dictionary<string, object?> { ["{OriginalFormat}"] = 7 }); break;
+                case "bounds":
+                    Log("array-bound", new Dictionary<string, object?> { ["array"] = counted, ["{OriginalFormat}"] = "large {array}" });
+                    object deep = 1; for (int i = 0; i < 9; i++) { deep = new object[] { deep }; }
+                    Log("depth-bound", new Dictionary<string, object?> { ["deep"] = deep });
+                    Log("field-bound", Enumerable.Range(0, 2000).Select(i => new KeyValuePair<string, object?>("k" + i.ToString("D4", System.Globalization.CultureInfo.InvariantCulture), i))); break;
+                case "filtered":
+                    var skipped = new Fields(fail: true);
+                    logger.Log(LogLevel.Information, new EventId(17, "filtered"), skipped, null, (_, _) => { calls++; throw new InvalidOperationException("Filtered formatter ran."); });
+                    logger.Log(LogLevel.None, new EventId(17, "none"), skipped, null, (_, _) => { calls++; throw new InvalidOperationException("None formatter ran."); });
+                    stateCalls = skipped.Calls; break;
+                case "correlation":
+                    using (var original = new Activity("original").SetIdFormat(ActivityIdFormat.W3C).SetParentId("00-11111111111111111111111111111111-2222222222222222-01").Start())
+                    using (var changed = new Activity("changed").SetIdFormat(ActivityIdFormat.W3C).SetParentId("00-33333333333333333333333333333333-4444444444444444-01").Start())
+                    {
+                        Require(original.TraceId != changed.TraceId && original.SpanId != changed.SpanId);
+                        Activity.Current = original; trace = original.TraceId.ToHexString(); span = original.SpanId.ToHexString();
+                        var changing = new Fields(() => Activity.Current = changed); Log("correlation", changing); stateCalls = changing.Calls; Activity.Current = original;
+                    }
+                    break;
+                case "template-size": Log("template-size", new Dictionary<string, object?> { ["{OriginalFormat}"] = new string('x', 9000) }); break;
+            }
+            LogStopResult stop = await runtime.StopAsync(CancellationToken.None).WaitAsync(Guard); Require(stop.Succeeded);
+            await runtime.QueuedOutputs!.Completion.WaitAsync(Guard); byte[] written = physical ? File.ReadAllBytes(path!) : bytes.ToArray(); bool leaseReleased = false;
+            if (physical) { using var lease = new FileStream(path + ".cis.lock", FileMode.Open, FileAccess.ReadWrite, FileShare.None); leaseReleased = true; }
+            JsonObject report = Common(mode); report["physical"] = physical; report["bytes"] = Convert.ToBase64String(written);
+            report["formatterCalls"] = calls; report["stateIdentityChecks"] = identities; report["stateEnumerationCalls"] = stateCalls; report["arbitraryToStringCalls"] = bomb.Calls;
+            report["arrayEnumerated"] = counted.Visits; report["expectedTrace"] = trace; report["expectedSpan"] = span;
+            report["invalid"] = Number(runtime.GetDiagnostics().InvalidEventCount); report["truncated"] = Number(runtime.GetDiagnostics().TruncatedEventCount); report["result"] = StopJoinFixture.Json(stop);
+            report["borrowedConsoleOpen"] = physical ? null : JsonValue.Create(bytes.CanWrite); report["leaseReleased"] = leaseReleased; return report;
+        }
+        finally { await runtime.DisposeAsync().AsTask().WaitAsync(Guard); }
+    }
+}
+
+--- FILE implementations/csharp/tests/fixtures/DiscoveryHost/ProviderStateExpectations.cs ---
+using System.Globalization;
+using System.Text;
+using System.Text.Json.Nodes;
+
+namespace CIS.Tests.DiscoveryFixture;
+
+internal static class ProviderStateExpectations
+{
+    internal static readonly string[] Modes = ["extensions", "scalars", "collections", "precedence", "unsupported", "bounds", "filtered", "correlation", "template-size"];
+    private static void Require(bool condition) { if (!condition) { throw new InvalidDataException("Provider state expectation failed."); } }
+    private static (int Nodes, int Depth) Shape(JsonNode? value)
+    {
+        IEnumerable<JsonNode?> children = value is JsonObject map ? map.Select(p => p.Value) : value is JsonArray array ? array : [];
+        int nodes = 1, depth = 1; foreach (JsonNode? child in children) { var shape = Shape(child); nodes += shape.Nodes; depth = Math.Max(depth, shape.Depth + 1); }
+        return (nodes, depth);
+    }
+    internal static void Validate(string mode, JsonObject a)
+    {
+        Require(Modes.Contains(mode, StringComparer.Ordinal) && a["mode"]!.GetValue<string>() == mode && a["runtime"]!.GetValue<string>() == ".NET 10.0.12");
+        bool physical = a["physical"]!.GetValue<bool>(); Require(a["leaseReleased"]!.GetValue<bool>() == physical && (physical ? a["borrowedConsoleOpen"] is null : a["borrowedConsoleOpen"]!.GetValue<bool>()));
+        int count = mode is "unsupported" or "filtered" ? 0 : mode == "bounds" ? 3 : 1;
+        int calls = mode is "extensions" or "filtered" ? 0 : mode == "unsupported" ? 12 : mode == "bounds" ? 3 : 1;
+        Require(a["formatterCalls"]!.GetValue<int>() == calls && a["stateIdentityChecks"]!.GetValue<int>() == calls && a["arbitraryToStringCalls"]!.GetValue<int>() == 0);
+        Require(a["stateEnumerationCalls"]!.GetValue<int>() == (mode == "correlation" ? 1 : 0) && a["arrayEnumerated"]!.GetValue<int>() == (mode == "bounds" ? 1022 : 0));
+        Require(a["invalid"]!.GetValue<string>() == (mode == "unsupported" ? "12" : "0") && a["truncated"]!.GetValue<string>() == (mode == "bounds" ? "3" : mode == "template-size" ? "1" : "0"));
+        Require(a["result"]!["completion"]!.GetValue<string>() == "Completed" && a["result"]!["succeeded"]!.GetValue<bool>() && a["result"]!["loss"]!.GetValue<bool>() == (mode is "unsupported" or "bounds" or "template-size"));
+        JsonArray outputs = a["result"]!["outputs"]!.AsArray(); Require(outputs.Count == 1); JsonNode output = outputs[0]!;
+        Require(output["name"]!.GetValue<string>() == (physical ? "file" : "console") && long.Parse(output["boundary"]!.GetValue<string>(), CultureInfo.InvariantCulture) == count && long.Parse(output["written"]!.GetValue<string>(), CultureInfo.InvariantCulture) == count && output["failed"]!.GetValue<string>() == "0" && output["abandoned"]!.GetValue<string>() == "0" && output["pending"]!.GetValue<string>() == "0" && output["flush"]!.GetValue<string>() == "Succeeded");
+        byte[] bytes = Convert.FromBase64String(a["bytes"]!.GetValue<string>());
+        if (count == 0) { Require(bytes.Length == 0); return; }
+        Require(bytes[^1] == (byte)'\n' && !bytes.AsSpan().StartsWith(new byte[] { 239, 187, 191 }));
+        string[] lines = new UTF8Encoding(false, true).GetString(bytes).Split('\n', StringSplitOptions.RemoveEmptyEntries); Require(lines.Length == count && lines.All(s => Encoding.UTF8.GetByteCount(s) + 1 <= 16384));
+        JsonObject[] rows = lines.Select(s => JsonNode.Parse(s)!.AsObject()).ToArray();
+        foreach (JsonObject row in rows)
+        {
+            Require(row["status"]!.GetValue<string>() == "info" && row["component"]!.GetValue<string>() == "Provider.State" && row["attributes"]!["event_id"]!.GetValue<int>() == 17);
+            var shape = Shape(row["attributes"]); Require(shape.Nodes <= 1024 && shape.Depth <= 8);
+            Require(row["truncated"] is null ? mode is not ("bounds" or "template-size") : row["truncated"]!.GetValue<bool>() && mode is "bounds" or "template-size");
+        }
+        JsonObject first = rows[0]; JsonObject attributes = first["attributes"]!.AsObject();
+        if (mode == "extensions")
+        { Require(first["event_name"]!.GetValue<string>() == "orders" && first["message"]!.GetValue<string>() == "Orders 3 Ω" && first["message_template"]!.GetValue<string>() == "Orders {Count} {User}"); Require(attributes.Count == 3 && attributes["Count"]!.GetValue<int>() == 3 && attributes["User"]!.GetValue<string>() == "Ω"); }
+        else { Require(rows.All(row => row["message"]!.GetValue<string>() == "supplied rendered")); }
+        if (mode == "scalars")
+        {
+            JsonObject expected = JsonNode.Parse("{\"event_id\":17,\"nil\":null,\"bool\":true,\"text\":\"Ω 🙂\",\"char\":\"x\",\"sbyte\":-8,\"byte\":8,\"short\":-16,\"ushort\":16,\"int\":-32,\"uint\":4294967295,\"long\":9007199254740991,\"ulong\":9007199254740991,\"float\":1.5,\"double\":2.5,\"decimal\":\"1.20\",\"wholeDecimal\":\"2.0\",\"uuid\":\"11111111-2222-3333-4444-555555555555\",\"offset\":\"2026-10-14T10:00:00.0000000Z\",\"utc\":\"2026-10-14T10:00:00.0000000Z\",\"explicit\":\"9223372036854775807\"}")!.AsObject();
+            Require(JsonNode.DeepEquals(attributes, expected) && first["message_template"]!.GetValue<string>() == "raw {template}");
+        }
+        if (mode == "collections")
+        { Require(JsonNode.DeepEquals(attributes, JsonNode.Parse("{\"event_id\":17,\"nested\":{\"array\":[1,null,true],\"typed\":{\"i\":7}},\"owned\":[\"original\"]}")) && first["message_template"] is null); }
+        if (mode == "precedence")
+        { Require(attributes.Count == 4 && attributes["common"]!.GetValue<string>() == "event" && attributes["choice"]!.GetValue<int>() == 2 && attributes["service"]!.GetValue<string>() == "fake" && first["service"]!.GetValue<string>() != "fake" && first["operation_id"]!.GetValue<string>() == "operation.original" && first["message_template"]!.GetValue<string>() == "scope {choice}"); }
+        if (mode == "bounds")
+        {
+            Require(rows.Select(row => row["event_name"]!.GetValue<string>()).SequenceEqual(new[] { "array-bound", "depth-bound", "field-bound" }));
+            Require(attributes["array"]!.AsArray().Count == 1021 && attributes["array"]![1020]!.GetValue<int>() == 1020 && Shape(attributes).Nodes == 1024 && first["message_template"]!.GetValue<string>() == "large {array}");
+            Require(Shape(rows[1]["attributes"]).Depth == 8 && Shape(rows[1]["attributes"]).Nodes == 9);
+            Require(rows[2]["attributes"]!.AsObject().Count == 1023 && rows[2]["attributes"]!["k1021"]!.GetValue<int>() == 1021 && rows[2]["attributes"]!["k1022"] is null);
+        }
+        if (mode == "correlation")
+        { Require(first["trace_id"]!.GetValue<string>() == a["expectedTrace"]!.GetValue<string>() && first["span_id"]!.GetValue<string>() == a["expectedSpan"]!.GetValue<string>() && attributes["trace_id"]!.GetValue<string>() == "fake" && attributes.Count == 2); }
+        if (mode == "template-size") { Require(first["message_template"]!.GetValue<string>() == new string('x', 8192) && attributes.Count == 1); }
+    }
+}
+
+--- FILE implementations/csharp/tests/fixtures/DiscoveryHost/Program.cs ---
+using System.Diagnostics;
+using System.Reflection;
+using System.Runtime.InteropServices;
+using System.Security.Cryptography;
+using System.Text.Json;
+using CIS.Configuration;
+
+namespace CIS.Tests.DiscoveryFixture;
+
+internal static class Program
+{
+    private static int Main(string[] args)
+    {
+        if (args.Length == 3 && args[0] == "provider-state") { return ProviderStateFixture.Run(args[1], args[2]); }
+        if (args.Length == 3 && args[0] == "provider-mapping") { return ProviderMappingFixture.Run(args[1], args[2]); }
+        if (args.Length == 3 && args[0] == "provider-foundation") { return ProviderFoundationFixture.Run(args[1], args[2]); }
+        if (args.Length == 3 && args[0] == "stop-lifecycle") { return StopLifecycleFixture.Run(args[1], args[2]); }
+        if (args.Length == 3 && args[0] == "runtime-create") { return RuntimeCreateFixture.Run(args[1], args[2]); }
+        if (args.Length == 3 && args[0] == "stop-cleanup") { return StopCleanupFixture.Run(args[1], args[2]); }
+        if (args.Length == 3 && args[0] == "stop-join") { return StopJoinFixture.Run(args[1], args[2]); }
+        if (args.Length == 3 && args[0] == "stop-drain") { return StopDrainFixture.Run(args[1], args[2]); }
+        if (args.Length == 3 && args[0] == "stop-start") { return StopStartFixture.Run(args[1], args[2]); }
+        if (args.Length == 3 && args[0] == "file-timer-qualification") { return FileTimerQualificationFixture.Run(args[1], args[2]); }
+        if (args.Length == 3 && args[0] == "file-timer-lifecycle") { return FileTimerLifecycleFixture.Run(args[1], args[2]); }
+        if (args.Length == 3 && args[0] == "file-timer-coordination") { return FileTimerCoordinationFixture.Run(args[1], args[2]); }
+        if (args.Length == 3 && args[0] == "file-interval") { return FileIntervalFixture.Run(args[1], args[2]); }
+        if (args.Length == 3 && args[0] == "flush-stress") { return FlushStressFixture.Run(args[1], args[2]); }
+        if (args.Length == 3 && args[0] == "flush-results") { return FlushResultFixture.Run(args[1], args[2]); }
+        if (args.Length == 3 && args[0] == "flush-coordination") { return FlushCoordinationFixture.Run(args[1], args[2]); }
+        if (args.Length == 3 && args[0] == "flush-boundary") { return FlushBoundaryFixture.Run(args[1], args[2]); }
+        if (args.Length == 4 && args[0] == "file-restart") { return FileRestartFixture.Run(args[1], args[2], args[3]); }
+        if (args.Length == 3 && args[0] == "file-transition") { return FileTransitionFixture.Run(args[1], args[2]); }
+        if (args.Length == 3 && args[0] == "jsonl-boundary") { return JsonlBoundaryFixture.Run(args[1], args[2]); }
+        if (args.Length == 3 && args[0] == "file-rotation-policy") { return FileRotationPolicyFixture.Run(args[1], args[2]); }
+        if (args.Length == 3 && args[0] == "file-failure") { return FileFailureFixture.Run(args[1], args[2]); }
+
+        if (args.Length == 4 && args[0] == "file-retention") { return FileRetentionFixture.Run(args[1], args[2], args[3]); }
+
+        if (args.Length == 3 && args[0] == "file-rotation") { return FileRotationFixture.Run(args[1], args[2]); }
+
+        if (args.Length == 3 && args[0] == "file-runtime-group") { return FileGroupConsumerFixture.Run(args[1], args[2]); }
+        if (args.Length == 3 && args[0] == "file-runtime-startup") { return FileRuntimeStartupFixture.Run(args[1], args[2]); }
+        if (args.Length == 3 && args[0] == "file-inventory") { return FileInventoryFixture.Run(args[1], args[2]); }
+        if (args.Length == 3 && args[0] == "file-acquisition") { return FileAcquisitionFixture.Run(args[1], args[2]); }
+        if (args.Length == 3 && args[0] == "console-composition") { return ConsoleCompositionFixture.Run(args[1], args[2]); }
+        if (args.Length == 3 && args[0] == "console-ownership") { return ConsoleOwnershipFixture.Run(args[1], args[2]); }
+        if (args.Length == 3 && args[0] == "console-consumer") { return ConsoleConsumerFixture.Run(args[1], args[2]); }
+        if (args.Length == 3 && args[0] == "console-startup") { return ConsoleStartupFixture.Run(args[1], args[2]); }
+        if (args.Length == 3 && args[0] == "diagnostics") { return DiagnosticsFixture.Run(args[1], args[2]); }
+        if (args.Length == 3 && args[0] == "output-states") { return OutputStateFixture.Run(args[1], args[2]); }
+        if (args.Length == 3 && args[0] == "delivery-observation") { return DeliveryObservationFixture.Run(args[1], args[2]); }
+        if (args.Length == 3 && args[0] == "output-accounting") { return OutputAccountingFixture.Run(args[1], args[2]); }
+        if (args.Length == 3 && args[0] == "queued-fanout") { return QueuedFanoutFixture.Run(args[1], args[2]); }
+        if (args.Length == 3 && args[0] == "output-queue")
+        {
+            return OutputQueueFixture.Run(args[1], args[2]);
+        }
+        if (args.Length == 3 && args[0] == "rendering-story")
+        {
+            return RenderingStoryFixture.Run(args[1], args[2]);
+        }
+        if (args.Length == 3 && args[0] == "presentation")
+        {
+            return PresentationFixture.Run(args[1], args[2]);
+        }
+        if (args.Length == 3 && args[0] == "human-rendering")
+        {
+            return HumanRenderingFixture.Run(args[1], args[2]);
+        }
+        if (args.Length == 3 && args[0] == "jsonl-reuse")
+        {
+            return JsonlReuseProcessFixture.Run(args[1], args[2]);
+        }
+        if (args.Length == 3 && args[0] == "logger-outcome")
+        {
+            return LoggerOutcomeProcessFixture.Run(args[1], args[2]);
+        }
+        if (args.Length == 3 && args[0] == "logger-capture")
+        {
+            return LoggerCaptureProcessFixture.Run(args[1], args[2]);
+        }
+        if (args.Length == 3 && args[0] == "logger-decision")
+        {
+            return LoggerDecisionProcessFixture.Run(args[1], args[2]);
+        }
+        if (args.Length == 3 && args[0] == "logger-foundation")
+        {
+            return LoggerFoundationProcessFixture.Run(args[1], args[2]);
+        }
+        if (args.Length == 3 && args[0] == "event-qualification")
+        {
+            return EventQualificationProcessFixture.RunAsync(args[1], args[2]).GetAwaiter().GetResult();
+        }
+        if (args.Length == 3 && args[0] == "event-encoding")
+        {
+            return EventEncodingProcessFixture.Run(args[1], args[2]);
+        }
+        if (args.Length == 2 && args[0] == "constructor-options")
+        {
+            return ConstructorOptionsProcessFixture.Run(args[1]);
+        }
+        if (args.Length == 3 && args[0] == "event-correlation")
+        {
+            return EventCorrelationProcessFixture.Run(args[1], args[2]);
+        }
+        if (args.Length == 3 && args[0] == "event-precedence")
+        {
+            return EventPrecedenceProcessFixture.Run(args[1], args[2]);
+        }
+        if (args.Length == 3 && args[0] == "event-projection")
+        {
+            return EventProjectionProcessFixture.Run(args[1], args[2]);
+        }
+        if (args.Length == 3 && args[0] == "scope-qualification")
+        {
+            return OperationScopeQualificationProcessFixture.RunAsync(args[1], args[2]).GetAwaiter().GetResult();
+        }
+        if (args.Length == 2 && args[0] == "scope-disposal")
+        {
+            return OperationScopeDisposalProcessFixture.RunAsync(args[1]).GetAwaiter().GetResult();
+        }
+
+        if (args.Length == 2 && args[0] == "scope-merge")
+        {
+            return OperationScopeMergeProcessFixture.Run(args[1]);
+        }
+
+        if (args.Length == 2 && args[0] == "scope-foundation")
+        {
+            return OperationScopeProcessFixture.RunAsync(args[1]).GetAwaiter().GetResult();
+        }
+
+        if (args.Length == 3 && args[0] == "exception-qualification")
+        {
+            return ExceptionQualificationProcessFixture.Run(args[1], args[2]);
+        }
+
+        if (args.Length == 2 && args[0] == "exception-content")
+        {
+            return ExceptionProjectionProcessFixture.Content(args[1]);
+        }
+
+        if (args.Length == 2 && args[0] == "exception-boundary")
+        {
+            return ExceptionProjectionProcessFixture.Boundary(args[1]);
+        }
+
+        if (args.Length == 2 && args[0] == "exception-projection")
+        {
+            return ExceptionProjectionProcessFixture.Run(args[1]);
+        }
+
+        if (args.Length == 3 && args[0] == "log-qualification")
+        {
+            return LogValueProcessFixture.Run(args[1], args[2], qualification: true);
+        }
+
+        if (args.Length == 3 && args[0] == "log-collection")
+        {
+            return LogValueProcessFixture.Run(args[1], args[2], collections: true);
+        }
+
+        if (args.Length == 3 && args[0] == "log-value")
+        {
+            return LogValueProcessFixture.Run(args[1], args[2]);
+        }
+
+        if (args.Length == 4 && args[0] == "configuration-validation")
+        {
+            return ConfigurationValidationProcessFixture.Run(args[1], args[2], args[3]);
+        }
+
+        if (args.Length == 4 && args[0] == "configuration-path")
+        {
+            return ConfigurationPathProcessFixture.Run(args[1], args[2], args[3]);
+        }
+
+        if (args.Length == 3 && args[0] == "configuration")
+        {
+            return ConfigurationProcessFixture.Run(args[1], args[2]);
+        }
+
+        if (args.Length != 1 || args[0] is not ("native" or "assembly-version" or "unavailable"))
+        {
+            Console.Error.WriteLine("Expected native, assembly-version or unavailable.");
+            return 2;
+        }
+
+        string scenario = args[0];
+        DateTimeOffset beforeInitializationUtc = DateTimeOffset.UtcNow;
+        Assembly application = Assembly.GetEntryAssembly()!;
+        CIS.Logging.EventMetadata snapshot;
+        if (scenario == "native")
+        {
+            snapshot = new CIS.Logging.EventMetadata();
+        }
+        else
+        {
+            // Historical fallback/unavailable projection bindings use controlled test inputs.
+            // Native constructor discovery is the separate native mode; no readonly fact is reassigned.
+            using Process suppliedProcess = Process.GetCurrentProcess();
+            ConfigurationFixtureAdapter.Facts = new FixtureEnvironmentValues
+            {
+                ApplicationName = application.GetName().Name!,
+                HostName = System.Environment.MachineName,
+                OperatingSystem = OperatingSystem.IsWindows() ? "windows" : OperatingSystem.IsLinux() ? "linux" : OperatingSystem.IsMacOS() ? "macos" : "unknown",
+                OperatingSystemDescription = RuntimeInformation.OSDescription,
+                OSArchitecture = RuntimeInformation.OSArchitecture.ToString().ToLowerInvariant(),
+                ProcessArchitecture = RuntimeInformation.ProcessArchitecture.ToString().ToLowerInvariant(),
+                RuntimeDescription = RuntimeInformation.FrameworkDescription,
+                ProcessId = System.Environment.ProcessId,
+                ProcessStartedAtUtc = new DateTimeOffset(suppliedProcess.StartTime.ToUniversalTime()),
+                InstanceId = Guid.NewGuid().ToString("D"),
+                InitializedAtUtc = DateTimeOffset.UtcNow
+            };
+            FixtureEnvironmentValues facts = ConfigurationFixtureAdapter.Facts;
+            facts.BuildVersion = scenario == "assembly-version" ? application.GetName().Version!.ToString() : "unknown";
+            if (scenario == "unavailable")
+            {
+                facts.ProcessStartedAtUtc = null;
+                facts.HostName = null;
+                facts.OperatingSystemDescription = null;
+                facts.OSArchitecture = null;
+                facts.ProcessArchitecture = null;
+                facts.RuntimeDescription = null;
+                facts.ProcessId = null;
+            }
+            facts.ServiceVersion = facts.BuildVersion;
+            ConfigurationFixtureAdapter.ApplyOverrides(System.Environment.GetEnvironmentVariable);
+            snapshot = facts.CaptureMetadata();
+        }
+        DateTimeOffset afterInitializationUtc = DateTimeOffset.UtcNow;
+        Assembly entry = Assembly.GetEntryAssembly()!;
+        Assembly core = typeof(EnvironmentOptions).Assembly;
+        using Process process = Process.GetCurrentProcess();
+        var result = new
+        {
+            Scenario = scenario,
+            FactBinding = scenario == "native" ? "static-constructor" : "controlled-internal-projection",
+            Application = new { snapshot.ApplicationName, snapshot.BuildVersion, snapshot.CommitId, snapshot.BuildId },
+            Versions = new { snapshot.BuildVersion, snapshot.ServiceVersion },
+            Runtime = new { snapshot.ProcessStartedAtUtc, snapshot.HostName, snapshot.OperatingSystem, snapshot.OperatingSystemDescription, snapshot.OSArchitecture, snapshot.ProcessArchitecture, snapshot.RuntimeDescription, snapshot.ProcessId },
+            Initialization = new { snapshot.InstanceId, snapshot.InitializedAtUtc },
+            Observed = new
+            {
+                EntryName = entry.GetName().Name,
+                EntryInformationalVersion = entry.GetCustomAttribute<AssemblyInformationalVersionAttribute>()!.InformationalVersion,
+                EntryAssemblyVersion = entry.GetName().Version!.ToString(),
+                EntryFileVersion = entry.GetCustomAttribute<AssemblyFileVersionAttribute>()!.Version,
+                EntryPath = entry.Location,
+                EntrySha256 = Hash(entry.Location),
+                CoreName = core.GetName().Name,
+                CoreInformationalVersion = core.GetCustomAttribute<AssemblyInformationalVersionAttribute>()!.InformationalVersion,
+                CoreAssemblyVersion = core.GetName().Version!.ToString(),
+                CorePath = core.Location,
+                CoreSha256 = Hash(core.Location),
+                HostName = System.Environment.MachineName,
+                ProcessId = System.Environment.ProcessId,
+                ProcessStartedAtUtc = new DateTimeOffset(process.StartTime.ToUniversalTime()),
+                OSArchitecture = RuntimeInformation.OSArchitecture.ToString().ToLowerInvariant(),
+                ProcessArchitecture = RuntimeInformation.ProcessArchitecture.ToString().ToLowerInvariant(),
+                OSDescription = RuntimeInformation.OSDescription,
+                RuntimeDescription = RuntimeInformation.FrameworkDescription,
+                OperatingSystem = OperatingSystem.IsWindows() ? "windows" : OperatingSystem.IsLinux() ? "linux" : OperatingSystem.IsMacOS() ? "macos" : "unknown",
+                BeforeInitializationUtc = beforeInitializationUtc,
+                AfterInitializationUtc = afterInitializationUtc
+            }
+        };
+        Console.WriteLine(JsonSerializer.Serialize(result));
+        return 0;
+    }
+
+    private static string Hash(string path) => Convert.ToHexStringLower(SHA256.HashData(File.ReadAllBytes(path)));
+
+}
+
+--- FILE implementations/csharp/tests/fixtures/DiscoveryHost/verify-provider-state.py ---
+"""Independent actual-Core Microsoft structured state reader."""
+import argparse,base64,copy,importlib.util,json,os,subprocess,tempfile
+from pathlib import Path
+spec=importlib.util.spec_from_file_location('provider_base',Path(__file__).with_name('verify-flush-results.py'));base=importlib.util.module_from_spec(spec);spec.loader.exec_module(base)
+require,load,sha,digest,decoded,number=base.require,base.load,base.sha,base.digest,base.decoded,base.number
+MODES=('extensions','scalars','collections','precedence','unsupported','bounds','filtered','correlation','template-size')
+
+
+def same(actual,expected):
+    if type(actual) is not type(expected):return False
+    if isinstance(expected,dict):return actual.keys()==expected.keys() and all(same(actual[k],v) for k,v in expected.items())
+    if isinstance(expected,list):return len(actual)==len(expected) and all(same(a,b) for a,b in zip(actual,expected))
+    return actual==expected
+
+
+def shape(value):
+    children=list(value.values()) if isinstance(value,dict) else value if isinstance(value,list) else []
+    parts=[shape(v) for v in children];return 1+sum(p[0] for p in parts),1+max((p[1] for p in parts),default=0)
+
+
+def check(mode,a,pid=None):
+    require(a['mode']==mode and mode in MODES,'mode');require(a['runtime']=='.NET 10.0.12','actual runtime')
+    require(type(a['pid']) is int and a['pid']>0 and (pid is None or a['pid']==pid),'actual child PID')
+    require(a['physical'] is True and a['leaseReleased'] is True and a['borrowedConsoleOpen'] is None,'physical lifetime')
+    count=0 if mode in ('unsupported','filtered') else 3 if mode=='bounds' else 1
+    calls=0 if mode in ('extensions','filtered') else 12 if mode=='unsupported' else 3 if mode=='bounds' else 1
+    require(type(a['formatterCalls']) is int and a['formatterCalls']==calls,'formatter calls');require(type(a['stateIdentityChecks']) is int and a['stateIdentityChecks']==calls,'original state and null exception')
+    require(type(a['arbitraryToStringCalls']) is int and a['arbitraryToStringCalls']==0,'no arbitrary ToString')
+    require(type(a['stateEnumerationCalls']) is int and a['stateEnumerationCalls']==(1 if mode=='correlation' else 0),'state enumeration')
+    require(type(a['arrayEnumerated']) is int and a['arrayEnumerated']==(1022 if mode=='bounds' else 0),'bounded traversal')
+    require(a['invalid']==('12' if mode=='unsupported' else '0'),'invalid accounting');require(a['truncated']==('3' if mode=='bounds' else '1' if mode=='template-size' else '0'),'truncation accounting')
+    result=a['result'];require(set(result)=={'completion','succeeded','loss','captured','observed','outputs'},'result shape');require((result['completion'],result['succeeded'],result['loss'])==('Completed',True,mode in ('unsupported','bounds','template-size')),'stop summary')
+    require(len(result['outputs'])==1 and result['outputs'][0]['name']=='file','file output');out=result['outputs'][0]
+    require(tuple(number(out[k]) for k in ('boundary','written','failed','abandoned','pending'))==(count,count,0,0,0) and out['flush']=='Succeeded','core delivery')
+    data=decoded(a['bytes']);require(data[-1:]==b'\n' and not data.startswith(b'\xef\xbb\xbf') if count else data==b'','actual framing');lines=data.splitlines();require(len(lines)==count and all(len(line)+1<=16384 for line in lines),'actual bounded records')
+    rows=[load(line) for line in lines]
+    names=['array-bound','depth-bound','field-bound'] if mode=='bounds' else ['orders' if mode=='extensions' else mode] if count else []
+    require([row['event_name'] for row in rows]==names,'event names')
+    for row in rows:
+        require(row['schema_version']==1 and row['status']=='info' and row['component']=='Provider.State' and row['service']=='CIS.Core.DiscoveryFixture' and row['resource']['process_id']==a['pid'] and row['resource']['runtime_description']=='.NET 10.0.12' and row['resource']['os_family']==a['os'],'automatic core facts')
+        require(type(row['attributes']['event_id']) is int and row['attributes']['event_id']==17,'provider numeric ID')
+        nodes,depth=shape(row['attributes']);require(nodes<=1024 and depth<=8,'attribute shape')
+        require(row.get('truncated') is True if mode in ('bounds','template-size') else 'truncated' not in row,'truncation marker')
+    if not count:return
+    first=rows[0];attrs=first['attributes']
+    if mode=='extensions':
+        require(first['message']=='Orders 3 \u03a9' and first['message_template']=='Orders {Count} {User}','framework template/message')
+        require(same(attrs,{'event_id':17,'Count':3,'User':'\u03a9'}),'framework fields')
+    else:require(all(row['message']=='supplied rendered' for row in rows),'supplied rendered message')
+    if mode=='scalars':
+        expected={'event_id':17,'nil':None,'bool':True,'text':'\u03a9 \U0001f642','char':'x','sbyte':-8,'byte':8,'short':-16,'ushort':16,'int':-32,'uint':4294967295,'long':9007199254740991,'ulong':9007199254740991,'float':1.5,'double':2.5,'decimal':'1.20','wholeDecimal':'2.0','uuid':'11111111-2222-3333-4444-555555555555','offset':'2026-10-14T10:00:00.0000000Z','utc':'2026-10-14T10:00:00.0000000Z','explicit':'9223372036854775807'}
+        require(same(attrs,expected),'scalar normalization');require(first['message_template']=='raw {template}','original format')
+    if mode=='collections':require(same(attrs,{'event_id':17,'nested':{'array':[1,None,True],'typed':{'i':7}},'owned':['original']}) and 'message_template' not in first,'copied collections')
+    if mode=='precedence':require(same(attrs,{'event_id':17,'common':'event','choice':2,'service':'fake'}) and first['operation_id']=='operation.original' and first['message_template']=='scope {choice}','event/scope precedence')
+    if mode=='bounds':
+        require(same(attrs,{'event_id':17,'array':list(range(1021))}) and shape(attrs)[0]==1024 and first['message_template']=='large {array}','array bound')
+        deep=[]
+        for _ in range(6):deep=[deep]
+        require(same(rows[1]['attributes'],{'event_id':17,'deep':deep}) and shape(rows[1]['attributes'])==(9,8),'depth bound')
+        require(same(rows[2]['attributes'],dict(event_id=17,**{'k'+str(i).zfill(4):i for i in range(1022)})),'field bound')
+    if mode=='correlation':require(first['trace_id']==a['expectedTrace']=='11111111111111111111111111111111' and first['span_id']==a['expectedSpan'] and len(a['expectedSpan'])==16 and a['expectedSpan']!='0'*16 and same(attrs,{'event_id':17,'trace_id':'fake'}),'frozen Activity')
+    if mode=='template-size':require(first['message_template']=='x'*8192 and same(attrs,{'event_id':17}),'template bound')
+
+
+def corruption_controls(cases):
+    good={x['id']:x['report'] for x in cases}
+    def record_change(a,edit,index=0):
+        rows=[load(line) for line in decoded(a['bytes']).splitlines()];edit(rows[index]);a['bytes']=base64.b64encode(b''.join(json.dumps(r,ensure_ascii=False,separators=(',',':')).encode()+b'\n' for r in rows)).decode()
+    edits=[
+      ('pid','extensions','actual child PID',lambda a:a.update(pid=a['pid']+1)),
+      ('runtime','extensions','actual runtime',lambda a:a.update(runtime='.NET 10.0.13')),
+      ('lease','extensions','physical lifetime',lambda a:a.update(leaseReleased=False)),
+      ('formatter','scalars','formatter calls',lambda a:a.update(formatterCalls=0)),
+      ('identity','scalars','original state and null exception',lambda a:a.update(stateIdentityChecks=0)),
+      ('ToString','unsupported','no arbitrary ToString',lambda a:a.update(arbitraryToStringCalls=1)),
+      ('filtered-traversal','filtered','state enumeration',lambda a:a.update(stateEnumerationCalls=1)),
+      ('bounded-traversal','bounds','bounded traversal',lambda a:a.update(arrayEnumerated=2000)),
+      ('invalid','unsupported','invalid accounting',lambda a:a.update(invalid='0')),
+      ('truncated','bounds','truncation accounting',lambda a:a.update(truncated='0')),
+      ('shape','extensions','result shape',lambda a:a['result'].update(extra=True)),
+      ('summary','unsupported','stop summary',lambda a:a['result'].update(loss=False)),
+      ('ticket','extensions','core delivery',lambda a:a['result']['outputs'][0].update(boundary='0')),
+      ('framing','extensions','actual framing',lambda a:a.update(bytes=base64.b64encode(decoded(a['bytes'])[:-1]).decode())),
+      ('event-name','extensions','event names',lambda a:record_change(a,lambda row:row.update(event_name='wrong'))),
+      ('identity-facts','extensions','automatic core facts',lambda a:record_change(a,lambda row:row.update(service='fake'))),
+      ('provider-id','precedence','provider numeric ID',lambda a:record_change(a,lambda row:row['attributes'].update(event_id=999))),
+      ('marker','bounds','truncation marker',lambda a:record_change(a,lambda row:row.pop('truncated'))),
+      ('framework-template','extensions','framework template/message',lambda a:record_change(a,lambda row:row.update(message_template='wrong'))),
+      ('framework-fields','extensions','framework fields',lambda a:record_change(a,lambda row:row['attributes'].update(Count='3'))),
+      ('rendered','scalars','supplied rendered message',lambda a:record_change(a,lambda row:row.update(message='wrong'))),
+      ('scalar-type','scalars','scalar normalization',lambda a:record_change(a,lambda row:row['attributes'].update(bool=1))),
+      ('decimal','scalars','scalar normalization',lambda a:record_change(a,lambda row:row['attributes'].update(decimal=1.2))),
+      ('format','scalars','original format',lambda a:record_change(a,lambda row:row.update(message_template='wrong'))),
+      ('copied-array','collections','copied collections',lambda a:record_change(a,lambda row:row['attributes']['nested']['array'].__setitem__(0,999))),
+      ('nested-bool-type','collections','copied collections',lambda a:record_change(a,lambda row:row['attributes']['nested']['array'].__setitem__(2,1))),
+      ('precedence','precedence','event/scope precedence',lambda a:record_change(a,lambda row:row['attributes'].update(common='outer'))),
+      ('duplicates','precedence','event/scope precedence',lambda a:record_change(a,lambda row:row['attributes'].update(choice=1))),
+      ('array-count','bounds','array bound',lambda a:record_change(a,lambda row:row['attributes']['array'].pop())),
+      ('depth-value','bounds','depth bound',lambda a:record_change(a,lambda row:row['attributes'].update(deep=[]),1)),
+      ('field-prefix','bounds','field bound',lambda a:record_change(a,lambda row:row['attributes'].pop('k1021'),2)),
+      ('trace','correlation','frozen Activity',lambda a:record_change(a,lambda row:row.update(trace_id='33333333333333333333333333333333'))),
+      ('span','correlation','frozen Activity',lambda a:record_change(a,lambda row:row.update(span_id='0'*16))),
+      ('template-size','template-size','template bound',lambda a:record_change(a,lambda row:row.update(message_template='x'*8191)))
+    ]
+    controls=[]
+    for identity,mode,reason,edit in edits:
+        bad=copy.deepcopy(good[mode]);edit(bad)
+        try:check(mode,bad,good[mode]['pid'])
+        except AssertionError as error:
+            require(str(error)==reason,'unexpected corruption '+identity+': '+str(error));controls.append(dict(id=identity,rejected=True,reason=reason))
+        else:raise AssertionError('corruption accepted '+identity)
+    return controls
+
+
+def main():
+    parser=argparse.ArgumentParser()
+    for key in ('dotnet','host','output','family'):parser.add_argument('--'+key,required=True)
+    args=parser.parse_args();require(args.family in ('windows','linux') and (os.name=='nt')==(args.family=='windows'),'native OS')
+    repo=Path(__file__).resolve().parents[5];mapping=repo/'conformance/logging/provider-state-cases.json';require([x['id'] for x in load(mapping.read_bytes())['cases']]==list(MODES),'shared case membership')
+    host,out=Path(args.host).resolve(),Path(args.output).resolve();out.mkdir(parents=True,exist_ok=True);cases=[]
+    with tempfile.TemporaryDirectory(prefix='cislib-provider-state-') as temp:
+        for mode in MODES:
+            work=Path(temp)/mode;work.mkdir();env={k:v for k,v in os.environ.items() if not k.startswith('CORE_')}
+            command=[args.dotnet,'exec','--fx-version','10.0.12','--roll-forward','Disable',str(host),'provider-state',mode,str(work)]
+            process=subprocess.Popen(command,cwd=work,env=env,stdout=subprocess.PIPE,stderr=subprocess.PIPE)
+            try:stdout,stderr=process.communicate(timeout=60)
+            except BaseException:process.kill();process.communicate(timeout=15);raise
+            (out/(mode+'.stdout.bin')).write_bytes(stdout);(out/(mode+'.stderr.bin')).write_bytes(stderr);require(process.returncode==0 and stderr==b'','child failure '+mode)
+            a=load(stdout);check(mode,a,process.pid);require((a['os'],a['coreSha256'],a['fixtureSha256'])==(args.family,sha(host.parent/'CIS.Core.dll'),sha(host)),'actual assemblies')
+            data=(work/'logs \u03a9'/'active.log').read_bytes();require(data==decoded(a['bytes']),'actual file bytes');(out/(mode+'.file.bin')).write_bytes(data)
+            cases.append(dict(id=mode,pid=process.pid,exitCode=0,command=command,report=a,stdoutSha256=digest(stdout),stderrSha256=digest(stderr),fileSha256=digest(data)))
+    report=dict(schema='cis.logging.provider-state-native/v1',task='WP06-S01-T03',family=args.family,children=len(cases),coreSha256=sha(host.parent/'CIS.Core.dll'),fixtureSha256=sha(host),verifierSha256=sha(__file__),baseVerifierSha256=sha(Path(__file__).with_name('verify-flush-results.py')),caseMappingSha256=sha(mapping),cases=cases,controls=corruption_controls(cases))
+    (out/'report.json').write_text(json.dumps(report,indent=2)+'\n',encoding='utf-8',newline='\n');print(json.dumps(dict(platform=args.family,children=len(cases),controls=len(report['controls']),passed=True)))
+
+
+if __name__=='__main__':main()
+--- FILE implementations/csharp/tests/CIS.Core.UnitTests/ProviderStateTests.cs ---
+using CIS.Tests.DiscoveryFixture;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+
+namespace CIS.Tests.UnitTests;
+
+[TestClass]
+public sealed class ProviderStateTests
+{
+    public static IEnumerable<object[]> Modes => ProviderStateFixture.Modes.Select(mode => new object[] { mode });
+    [TestMethod]
+    [DynamicData(nameof(Modes))]
+    public async Task ProviderCapturesStructuredStateThroughCore(string mode)
+    { ProviderStateExpectations.Validate(mode, await ProviderStateFixture.ExecuteAsync(mode)); }
+}
+
+--- FILE implementations/csharp/tests/CIS.Core.UnitTests/CIS.Core.UnitTests.csproj ---
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <RootNamespace>CIS.Tests.UnitTests</RootNamespace>
+    <IsTestProject>true</IsTestProject>
+    <IsPackable>false</IsPackable>
+    <!-- Exercise function-pointer Type rejection without enabling unsafe code in Core. -->
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="../fixtures/DiscoveryHost/ProviderStateExpectations.cs" Link="Discovery/ProviderStateExpectations.cs" />
+    <Compile Include="../fixtures/DiscoveryHost/ProviderStateFixture.cs" Link="Discovery/ProviderStateFixture.cs" />
+    <Compile Include="../fixtures/DiscoveryHost/ProviderMappingExpectations.cs" Link="Discovery/ProviderMappingExpectations.cs" />
+    <Compile Include="../fixtures/DiscoveryHost/ProviderMappingFixture.cs" Link="Discovery/ProviderMappingFixture.cs" />
+    <Compile Include="../fixtures/DiscoveryHost/ProviderFoundationFixture.cs" Link="Discovery/ProviderFoundationFixture.cs" />
+    <Compile Include="../fixtures/DiscoveryHost/ProviderFoundationExpectations.cs" Link="Discovery/ProviderFoundationExpectations.cs" />
+    <Compile Include="../fixtures/DiscoveryHost/StopLifecycleFixture.cs" Link="Discovery/StopLifecycleFixture.cs" />
+    <Compile Include="../fixtures/DiscoveryHost/StopLifecycleExpectations.cs" Link="Discovery/StopLifecycleExpectations.cs" />
+    <Compile Include="../fixtures/DiscoveryHost/StopCleanupExpectations.cs" Link="Discovery/StopCleanupExpectations.cs" />
+    <Compile Include="../fixtures/DiscoveryHost/StopCleanupFixture.cs" Link="Discovery/StopCleanupFixture.cs" />
+    <Compile Include="../fixtures/DiscoveryHost/StopJoinFixture.cs" Link="StopJoinFixture.cs" />
+    <Compile Include="../fixtures/DiscoveryHost/StopJoinExpectations.cs" Link="StopJoinExpectations.cs" />
+    <Compile Include="../fixtures/DiscoveryHost/StopDrainFixture.cs" Link="StopDrainFixture.cs" />
+    <Compile Include="../fixtures/DiscoveryHost/StopDrainExpectations.cs" Link="StopDrainExpectations.cs" />
+    <Compile Include="../fixtures/DiscoveryHost/FileTimerQualificationFixture.cs" Link="FileTimerQualificationFixture.cs" />
+    <Compile Include="../fixtures/DiscoveryHost/FileTimerQualificationExpectations.cs" Link="FileTimerQualificationExpectations.cs" />
+    <Compile Include="../fixtures/DiscoveryHost/FileTimerLifecycleExpectations.cs" Link="FileTimerLifecycleExpectations.cs" />
+    <Compile Include="../fixtures/DiscoveryHost/FileTimerLifecycleFixture.cs" Link="FileTimerLifecycleFixture.cs" />
+    <Compile Include="../fixtures/DiscoveryHost/FileTimerCoordinationExpectations.cs" Link="FileTimerCoordinationExpectations.cs" />
+    <Compile Include="../fixtures/DiscoveryHost/FileTimerCoordinationFixture.cs" Link="FileTimerCoordinationFixture.cs" />
+    <Compile Include="../fixtures/DiscoveryHost/FileIntervalExpectations.cs" Link="FileIntervalExpectations.cs" />
+    <Compile Include="../fixtures/DiscoveryHost/FileIntervalFixture.cs" Link="FileIntervalFixture.cs" />
+    <Compile Include="../fixtures/DiscoveryHost/FlushStressExpectations.cs" Link="FlushStressExpectations.cs" />
+    <Compile Include="../fixtures/DiscoveryHost/FlushStressFixture.cs" Link="FlushStressFixture.cs" />
+    <Compile Include="../fixtures/DiscoveryHost/FlushStressSupport.cs" Link="FlushStressSupport.cs" />
+    <Compile Include="../fixtures/DiscoveryHost/FlushResultExpectations.cs" Link="FlushResultExpectations.cs" />
+    <Compile Include="../fixtures/DiscoveryHost/FlushResultFixture.cs" Link="FlushResultFixture.cs" />
+    <ProjectReference Include="../../src/CIS.Core/CIS.Core.csproj" />
+    <Compile Include="../fixtures/DiscoveryHost/FlushBoundaryFixture.cs" Link="FlushBoundaryFixture.cs" />
+    <Compile Include="../fixtures/DiscoveryHost/FlushBoundaryExpectations.cs" Link="FlushBoundaryExpectations.cs" />
+    <Compile Include="../fixtures/DiscoveryHost/ConfigurationReadExpectations.cs" Link="ConfigurationReadExpectations.cs" />
+    <ProjectReference Include="../CIS.Core.TestSupport/CIS.Core.TestSupport.csproj" />
+    <Compile Include="../fixtures/DiscoveryHost/ConfigurationFixtureAdapter.cs" Link="ConfigurationFixtureAdapter.cs" />
+    <Compile Include="../fixtures/DiscoveryHost/ConfigurationValidationAdapter.cs" Link="ConfigurationValidationAdapter.cs" />
+    <Compile Include="../fixtures/DiscoveryHost/LogValueFixtureAdapter.cs" Link="LogValueFixtureAdapter.cs" />
+    <Compile Include="../fixtures/DiscoveryHost/LogValueQualificationFixtureAdapter.cs" Link="LogValueQualificationFixtureAdapter.cs" />
+    <Compile Include="../fixtures/DiscoveryHost/LogValueObservedInputs.cs" Link="LogValueObservedInputs.cs" />
+    <Compile Include="../fixtures/DiscoveryHost/LogValueCollectionFixtureAdapter.cs" Link="LogValueCollectionFixtureAdapter.cs" />
+    <Compile Include="../fixtures/DiscoveryHost/ExceptionBoundarySources.cs" Link="ExceptionBoundarySources.cs" />
+    <Compile Include="../fixtures/DiscoveryHost/ExceptionBoundaryFixture.cs" Link="ExceptionBoundaryFixture.cs" />
+    <Compile Include="../fixtures/DiscoveryHost/ExceptionBoundaryExpectations.cs" Link="ExceptionBoundaryExpectations.cs" />
+    <Compile Include="../fixtures/DiscoveryHost/ExceptionContentSources.cs" Link="ExceptionContentSources.cs" />
+    <Compile Include="../fixtures/DiscoveryHost/ExceptionContentProbe.cs" Link="ExceptionContentProbe.cs" />
+    <Compile Include="../fixtures/DiscoveryHost/ExceptionContentExpectations.cs" Link="ExceptionContentExpectations.cs" />
+    <Compile Include="../fixtures/DiscoveryHost/ExceptionContentFixture.cs" Link="ExceptionContentFixture.cs" />
+    <Compile Include="../fixtures/DiscoveryHost/ExceptionRetentionFixture.cs" Link="ExceptionRetentionFixture.cs" />
+    <Compile Include="../fixtures/DiscoveryHost/ExceptionQualificationSources.cs" Link="ExceptionQualificationSources.cs" />
+    <Compile Include="../fixtures/DiscoveryHost/ExceptionQualificationExpectations.cs" Link="ExceptionQualificationExpectations.cs" />
+    <Compile Include="../fixtures/DiscoveryHost/ExceptionQualificationFixture.cs" Link="ExceptionQualificationFixture.cs" />
+    <Compile Include="../fixtures/DiscoveryHost/OperationScopeQualificationFixture.cs" Link="OperationScopeQualificationFixture.cs" />
+    <Compile Include="../fixtures/DiscoveryHost/OperationScopeQualificationExpectations.cs" Link="OperationScopeQualificationExpectations.cs" />
+    <Compile Include="../fixtures/DiscoveryHost/EventProjectionFixtureSources.cs" Link="EventProjectionFixtureSources.cs" />
+    <Compile Include="../fixtures/DiscoveryHost/EventProjectionFixture.cs" Link="EventProjectionFixture.cs" />
+    <Compile Include="../fixtures/DiscoveryHost/EventPrecedenceFixture.cs" Link="EventPrecedenceFixture.cs" />
+    <Compile Include="../fixtures/DiscoveryHost/EventProjectionExpectations.cs" Link="EventProjectionExpectations.cs" />
+    <Compile Include="../fixtures/DiscoveryHost/EventCorrelationFixture.cs" Link="EventCorrelationFixture.cs" />
+    <Compile Include="../fixtures/DiscoveryHost/EventCorrelationExpectations.cs" Link="EventCorrelationExpectations.cs" />
+    <Compile Include="../fixtures/DiscoveryHost/EventEncodingFixture.cs" Link="EventEncodingFixture.cs" />
+    <Compile Include="../fixtures/DiscoveryHost/EventEncodingExpectations.cs" Link="EventEncodingExpectations.cs" />
+    <Compile Include="../fixtures/DiscoveryHost/EventQualificationExpectations.cs" Link="EventQualificationExpectations.cs" />
+    <Compile Include="../fixtures/DiscoveryHost/EventQualificationFixture.cs" Link="EventQualificationFixture.cs" />
+    <Compile Include="../fixtures/DiscoveryHost/EventQualificationConcurrency.cs" Link="EventQualificationConcurrency.cs" />
+    <Compile Include="../fixtures/DiscoveryHost/LoggerFoundationExpectations.cs" Link="LoggerFoundationExpectations.cs" />
+    <Compile Include="../fixtures/DiscoveryHost/LoggerFoundationFixture.cs" Link="LoggerFoundationFixture.cs" />
+    <Compile Include="../fixtures/DiscoveryHost/LoggerDecisionSources.cs" Link="LoggerDecisionSources.cs" />
+    <Compile Include="../fixtures/DiscoveryHost/LoggerDecisionFixture.cs" Link="LoggerDecisionFixture.cs" />
+    <Compile Include="../fixtures/DiscoveryHost/LoggerDecisionExpectations.cs" Link="LoggerDecisionExpectations.cs" />
+    <Compile Include="../fixtures/DiscoveryHost/LoggerCaptureSources.cs" Link="LoggerCaptureSources.cs" />
+    <Compile Include="../fixtures/DiscoveryHost/LoggerCaptureFixture.cs" Link="LoggerCaptureFixture.cs" />
+    <Compile Include="../fixtures/DiscoveryHost/LoggerCaptureExpectations.cs" Link="LoggerCaptureExpectations.cs" />
+    <Compile Include="../fixtures/DiscoveryHost/LoggerOutcomeSources.cs" Link="LoggerOutcomeSources.cs" />
+    <Compile Include="../fixtures/DiscoveryHost/LoggerOutcomeFixture.cs" Link="LoggerOutcomeFixture.cs" />
+    <Compile Include="../fixtures/DiscoveryHost/LoggerOutcomeExpectations.cs" Link="LoggerOutcomeExpectations.cs" />
+    <Compile Include="../fixtures/DiscoveryHost/JsonlReuseFixture.cs" Link="JsonlReuseFixture.cs" />
+    <Compile Include="../fixtures/DiscoveryHost/JsonlReuseExpectations.cs" Link="JsonlReuseExpectations.cs" />
+    <Compile Include="../fixtures/DiscoveryHost/HumanRenderingExpectations.cs" Link="HumanRenderingExpectations.cs" />
+    <Compile Include="../fixtures/DiscoveryHost/HumanRenderingFixture.cs" Link="HumanRenderingFixture.cs" />
+    <Compile Include="../fixtures/DiscoveryHost/PresentationExpectations.cs" Link="PresentationExpectations.cs" />
+    <Compile Include="../fixtures/DiscoveryHost/RenderingStoryExpectations.cs" Link="RenderingStoryExpectations.cs" />
+    <Compile Include="../fixtures/DiscoveryHost/OutputQueueExpectations.cs" Link="OutputQueueExpectations.cs" />
+    <Compile Include="../fixtures/DiscoveryHost/QueuedFanoutExpectations.cs" Link="QueuedFanoutExpectations.cs" />
+    <Compile Include="../fixtures/DiscoveryHost/QueueBurstExpectations.cs" Link="QueueBurstExpectations.cs" />
+    <Compile Include="../fixtures/DiscoveryHost/QueuedFanoutFixture.cs" Link="QueuedFanoutFixture.cs" />
+    <Compile Include="../fixtures/DiscoveryHost/OutputQueueFixture.cs" Link="OutputQueueFixture.cs" />
+    <Compile Include="../fixtures/DiscoveryHost/RenderingStoryFixture.cs" Link="RenderingStoryFixture.cs" />
+    <Compile Include="../fixtures/DiscoveryHost/PresentationFixture.cs" Link="PresentationFixture.cs" />
+    <Compile Include="../fixtures/DiscoveryHost/OutputAccountingFixture.cs" Link="OutputAccountingFixture.cs" />
+    <Compile Include="../fixtures/DiscoveryHost/OutputAccountingExpectations.cs" Link="OutputAccountingExpectations.cs" />
+    <Compile Include="../fixtures/DiscoveryHost/DeliveryObservationFixture.cs" Link="DeliveryObservationFixture.cs" />
+    <Compile Include="../fixtures/DiscoveryHost/DeliveryObservationExpectations.cs" Link="DeliveryObservationExpectations.cs" />
+    <Compile Include="../fixtures/DiscoveryHost/OutputStateFixture.cs" Link="OutputStateFixture.cs" />
+    <Compile Include="../fixtures/DiscoveryHost/OutputStateExpectations.cs" Link="OutputStateExpectations.cs" />
+    <Compile Include="../fixtures/DiscoveryHost/DiagnosticsFixture.cs" Link="DiagnosticsFixture.cs" />
+    <Compile Include="../fixtures/DiscoveryHost/DiagnosticsExpectations.cs" Link="DiagnosticsExpectations.cs" />
+    <Compile Include="../fixtures/DiscoveryHost/DiagnosticsProjection.cs" Link="DiagnosticsProjection.cs" />
+    <Compile Include="../fixtures/DiscoveryHost/ConsoleCompositionExpectations.cs" Link="ConsoleCompositionExpectations.cs" />
+    <Compile Include="../fixtures/DiscoveryHost/ConsoleOwnershipExpectations.cs" Link="ConsoleOwnershipExpectations.cs" />
+    <Compile Include="../fixtures/DiscoveryHost/ConsoleStartupExpectations.cs" Link="ConsoleStartupExpectations.cs" />
+    <Compile Include="../fixtures/DiscoveryHost/FileRuntimeStartupExpectations.cs" Link="FileRuntimeStartupExpectations.cs" />
+    <Compile Include="../fixtures/DiscoveryHost/FileRuntimeStartupFixture.cs" Link="FileRuntimeStartupFixture.cs" />
+    <Compile Include="../fixtures/DiscoveryHost/ConsoleStartupFixture.cs" Link="ConsoleStartupFixture.cs" />
+    <Compile Include="../fixtures/DiscoveryHost/ConsoleOwnershipFixture.cs" Link="ConsoleOwnershipFixture.cs" />
+    <Compile Include="../fixtures/DiscoveryHost/ConsoleCompositionFixture.cs" Link="ConsoleCompositionFixture.cs" />
+    <Compile Include="../fixtures/DiscoveryHost/FileFailureFixture.cs" Link="FileFailureFixture.cs" />
+    <Compile Include="../fixtures/DiscoveryHost/FileFailureExpectations.cs" Link="FileFailureExpectations.cs" />
+    <Compile Include="../fixtures/DiscoveryHost/FileRotationPolicyFixture.cs" Link="FileRotationPolicyFixture.cs" />
+    <Compile Include="../fixtures/DiscoveryHost/FileRotationPolicyExpectations.cs" Link="FileRotationPolicyExpectations.cs" />
+    <Compile Include="../fixtures/DiscoveryHost/FlushCoordinationExpectations.cs" Link="FlushCoordinationExpectations.cs" />
+    <Compile Include="../fixtures/DiscoveryHost/FlushCoordinationFixture.cs" Link="FlushCoordinationFixture.cs" />
+  </ItemGroup>
+</Project>
+
+--- FILE implementations/csharp/tests/CIS.Core.IntegrationTests/ProviderStateProcessTests.cs ---
+using System.Security.Cryptography;
+using System.Text;
+using System.Text.Json.Nodes;
+using CIS.Tests.DiscoveryFixture;
+using CIS.TestSupport;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+
+namespace CIS.Tests.IntegrationTests;
+
+[TestClass]
+public sealed class ProviderStateProcessTests
+{
+    public static IEnumerable<object[]> Modes => ProviderStateExpectations.Modes.Select(mode => new object[] { mode });
+    [TestMethod]
+    [DynamicData(nameof(Modes))]
+    public async Task StructuredStateUsesActualPhysicalCoreCapture(string mode)
+    {
+        using var root = new TemporaryDirectory();
+        var environment = System.Environment.GetEnvironmentVariables().Keys.Cast<string>()
+            .Where(key => key.StartsWith("CORE_", StringComparison.Ordinal)).ToDictionary(key => key, _ => (string?)null, StringComparer.Ordinal);
+        string host = Path.Combine(AppContext.BaseDirectory, "discovery-fixture", "CIS.Core.DiscoveryFixture.dll");
+        ProcessResult child = await ProcessRunner.RunAsync("dotnet", ["exec", "--fx-version", "10.0.12", "--roll-forward", "Disable", host, "provider-state", mode, root.Path],
+            root.Path, TimeSpan.FromSeconds(60), environment, new UTF8Encoding(false, true));
+        Assert.AreEqual(0, child.ExitCode, child.StandardError); Assert.AreEqual("", child.StandardError);
+        JsonObject report = JsonNode.Parse(child.StandardOutput)!.AsObject();
+        Assert.AreEqual(Hash(host), report["fixtureSha256"]!.GetValue<string>());
+        Assert.AreEqual(Hash(Path.Combine(Path.GetDirectoryName(host)!, "CIS.Core.dll")), report["coreSha256"]!.GetValue<string>());
+        Assert.AreEqual(OperatingSystem.IsWindows() ? "windows" : "linux", report["os"]!.GetValue<string>());
+        ProviderStateExpectations.Validate(mode, report);
+    }
+    private static string Hash(string path) => Convert.ToHexStringLower(SHA256.HashData(File.ReadAllBytes(path)));
+}
+
+--- FILE implementations/csharp/tests/CIS.Core.IntegrationTests/CIS.Core.IntegrationTests.csproj ---
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <RootNamespace>CIS.Tests.IntegrationTests</RootNamespace>
+    <IsTestProject>true</IsTestProject>
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="../fixtures/DiscoveryHost/ProviderStateExpectations.cs" Link="Discovery/ProviderStateExpectations.cs" />
+    <Compile Include="../fixtures/DiscoveryHost/ProviderMappingExpectations.cs" Link="Discovery/ProviderMappingExpectations.cs" />
+    <Compile Include="../fixtures/DiscoveryHost/ProviderFoundationExpectations.cs" Link="Discovery/ProviderFoundationExpectations.cs" />
+    <Compile Include="../fixtures/DiscoveryHost/StopLifecycleExpectations.cs" Link="Discovery/StopLifecycleExpectations.cs" />
+    <Compile Include="../fixtures/DiscoveryHost/RuntimeCreateExpectations.cs" Link="Discovery/RuntimeCreateExpectations.cs" />
+    <Compile Include="../fixtures/DiscoveryHost/StopCleanupExpectations.cs" Link="Discovery/StopCleanupExpectations.cs" />
+    <Compile Include="../fixtures/DiscoveryHost/StopJoinExpectations.cs" Link="StopJoinExpectations.cs" />
+    <Compile Include="../fixtures/DiscoveryHost/StopDrainExpectations.cs" Link="StopDrainExpectations.cs" />
+    <Compile Include="../fixtures/DiscoveryHost/StopStartExpectations.cs" Link="StopStartExpectations.cs" />
+    <Compile Include="../fixtures/DiscoveryHost/FileTimerQualificationExpectations.cs" Link="FileTimerQualificationExpectations.cs" />
+    <Compile Include="../fixtures/DiscoveryHost/FileTimerLifecycleExpectations.cs" Link="FileTimerLifecycleExpectations.cs" />
+    <Compile Include="../fixtures/DiscoveryHost/FileTimerCoordinationExpectations.cs" Link="FileTimerCoordinationExpectations.cs" />
+    <Compile Include="../fixtures/DiscoveryHost/FileIntervalExpectations.cs" Link="FileIntervalExpectations.cs" />
+    <Compile Include="../fixtures/DiscoveryHost/FlushStressExpectations.cs" Link="FlushStressExpectations.cs" />
+    <Compile Include="../fixtures/DiscoveryHost/FlushResultExpectations.cs" Link="FlushResultExpectations.cs" />
+    <ProjectReference Include="../../src/CIS.Core/CIS.Core.csproj" />
+    <Compile Include="../fixtures/DiscoveryHost/ConfigurationReadExpectations.cs" Link="ConfigurationReadExpectations.cs" />
+    <ProjectReference Include="../CIS.Core.TestSupport/CIS.Core.TestSupport.csproj" />
+    <ProjectReference Include="../fixtures/DiscoveryHost/CIS.Core.DiscoveryFixture.csproj" />
+    <Compile Include="../fixtures/DiscoveryHost/ExceptionBoundaryExpectations.cs" Link="ExceptionBoundaryExpectations.cs" />
+    <Compile Include="../fixtures/DiscoveryHost/ExceptionBoundarySources.cs" Link="ExceptionBoundarySources.cs" />
+    <Compile Include="../fixtures/DiscoveryHost/ExceptionContentSources.cs" Link="ExceptionContentSources.cs" />
+    <Compile Include="../fixtures/DiscoveryHost/ExceptionContentProbe.cs" Link="ExceptionContentProbe.cs" />
+    <Compile Include="../fixtures/DiscoveryHost/ExceptionContentExpectations.cs" Link="ExceptionContentExpectations.cs" />
+    <Compile Include="../fixtures/DiscoveryHost/OperationScopeQualificationExpectations.cs" Link="OperationScopeQualificationExpectations.cs" />
+    <Compile Include="../fixtures/DiscoveryHost/EventProjectionExpectations.cs" Link="EventProjectionExpectations.cs" />
+    <Compile Include="../fixtures/DiscoveryHost/EventCorrelationExpectations.cs" Link="EventCorrelationExpectations.cs" />
+    <Compile Include="../fixtures/DiscoveryHost/EventEncodingExpectations.cs" Link="EventEncodingExpectations.cs" />
+    <Compile Include="../fixtures/DiscoveryHost/EventQualificationExpectations.cs" Link="EventQualificationExpectations.cs" />
+    <Compile Include="../CIS.Core.ArchitectureTests/Contracts/EventRecordValidator.cs" Link="Contracts/EventRecordValidator.cs" />
+    <Compile Include="../CIS.Core.ArchitectureTests/Contracts/FixtureSchemaValidator.cs" Link="Contracts/FixtureSchemaValidator.cs" />
+    <Compile Include="../fixtures/DiscoveryHost/LoggerFoundationExpectations.cs" Link="LoggerFoundationExpectations.cs" />
+    <Compile Include="../fixtures/DiscoveryHost/LoggerDecisionExpectations.cs" Link="LoggerDecisionExpectations.cs" />
+    <Compile Include="../fixtures/DiscoveryHost/LoggerCaptureExpectations.cs" Link="LoggerCaptureExpectations.cs" />
+    <Compile Include="../fixtures/DiscoveryHost/LoggerOutcomeExpectations.cs" Link="LoggerOutcomeExpectations.cs" />
+    <Compile Include="../fixtures/DiscoveryHost/JsonlReuseExpectations.cs" Link="JsonlReuseExpectations.cs" />
+    <Compile Include="../fixtures/DiscoveryHost/HumanRenderingExpectations.cs" Link="HumanRenderingExpectations.cs" />
+    <Compile Include="../fixtures/DiscoveryHost/PresentationExpectations.cs" Link="PresentationExpectations.cs" />
+    <Compile Include="../fixtures/DiscoveryHost/RenderingStoryExpectations.cs" Link="RenderingStoryExpectations.cs" />
+    <Compile Include="../fixtures/DiscoveryHost/OutputQueueExpectations.cs" Link="OutputQueueExpectations.cs" />
+    <Compile Include="../fixtures/DiscoveryHost/QueuedFanoutExpectations.cs" Link="QueuedFanoutExpectations.cs" />
+    <Compile Include="../fixtures/DiscoveryHost/QueueBurstExpectations.cs" Link="QueueBurstExpectations.cs" />
+    <Compile Include="../fixtures/DiscoveryHost/OutputAccountingExpectations.cs" Link="OutputAccountingExpectations.cs" />
+    <Compile Include="../fixtures/DiscoveryHost/DeliveryObservationExpectations.cs" Link="DeliveryObservationExpectations.cs" />
+    <Compile Include="../fixtures/DiscoveryHost/OutputStateExpectations.cs" Link="OutputStateExpectations.cs" />
+    <Compile Include="../fixtures/DiscoveryHost/DiagnosticsExpectations.cs" Link="DiagnosticsExpectations.cs" />
+    <Compile Include="../fixtures/DiscoveryHost/ConsoleCompositionExpectations.cs" Link="ConsoleCompositionExpectations.cs" />
+    <Compile Include="../fixtures/DiscoveryHost/ConsoleOwnershipExpectations.cs" Link="ConsoleOwnershipExpectations.cs" />
+    <Compile Include="../fixtures/DiscoveryHost/ConsoleStartupExpectations.cs" Link="ConsoleStartupExpectations.cs" />
+    <Compile Include="../fixtures/DiscoveryHost/FileRuntimeStartupExpectations.cs" Link="FileRuntimeStartupExpectations.cs" />
+    <Compile Include="../fixtures/DiscoveryHost/FileGroupConsumerExpectations.cs" Link="FileGroupConsumerExpectations.cs" />
+    <Compile Include="../fixtures/DiscoveryHost/ConsoleConsumerExpectations.cs" Link="ConsoleConsumerExpectations.cs" />
+    <Compile Include="../fixtures/DiscoveryHost/FileFailureExpectations.cs" Link="FileFailureExpectations.cs" />
+    <Compile Include="../fixtures/DiscoveryHost/FileRotationPolicyExpectations.cs" Link="FileRotationPolicyExpectations.cs" />
+    <Compile Include="../fixtures/DiscoveryHost/JsonlBoundaryExpectations.cs" Link="JsonlBoundaryExpectations.cs" />
+    <Compile Include="../fixtures/DiscoveryHost/FlushBoundaryExpectations.cs" Link="FlushBoundaryExpectations.cs" />
+    <Compile Include="../fixtures/DiscoveryHost/FlushCoordinationExpectations.cs" Link="FlushCoordinationExpectations.cs" />
+  </ItemGroup>
+  <Target Name="CopyDiscoveryFixture" AfterTargets="Build">
+    <ItemGroup>
+      <DiscoveryFixtureFiles Include="../fixtures/DiscoveryHost/bin/$(Configuration)/$(TargetFramework)/*" />
+    </ItemGroup>
+    <Copy SourceFiles="@(DiscoveryFixtureFiles)" DestinationFolder="$(TargetDir)discovery-fixture" />
+  </Target>
+</Project>
+
+--- FILE conformance/logging/provider-state-cases.json ---
+{
+  "schema": "cis.logging.task-cases/v1",
+  "taskId": "WP06-S01-T03",
+  "state": "Implemented; execution/review status belongs in the task receipt.",
+  "scope": "Bounded structured-state and template capture inside Core validation; comprehensive rejection/host-scope/story qualification remains later tasks.",
+  "cases": [
+    {
+      "id": "extensions"
+    },
+    {
+      "id": "scalars"
+    },
+    {
+      "id": "collections"
+    },
+    {
+      "id": "precedence"
+    },
+    {
+      "id": "unsupported"
+    },
+    {
+      "id": "bounds"
+    },
+    {
+      "id": "filtered"
+    },
+    {
+      "id": "correlation"
+    },
+    {
+      "id": "template-size"
+    }
+  ]
+}
+
+--- FILE docs/modules/logging/microsoft-provider-state.md ---
+# Microsoft structured state
+
+The provider keeps the supplied formatter as the only message formatter. It passes the original state and exception to that formatter after Core's interest check. State implementing IEnumerable<KeyValuePair<string, object?>> is copied as ordinal attributes. Other state remains formatter input only. The exact {OriginalFormat} key supplies message_template when its value is a string; null means absent. It is excluded from attributes. Core clips template text at its existing scalar and aggregate entry bounds; the provider does not parse it.
+
+Normalization runs synchronously inside Core capture after Activity IDs and the event clock have been captured. The internal LogEventData capture callback returns an owned template/map and never reaches an output queue. Caller collection/normalization failures become Core InvalidEvent accounting, without partial admission. Supplied formatter exceptions still propagate unchanged outside that capture catch. This private seam adds no public member, worker, dependency or general serialization framework.
+
+Supported values are null, Boolean, string/char, CLR integral values within the portable safe-integer range, finite Single/Double, Decimal, Guid, DateTimeOffset, UTC DateTime, and explicit immutable LogValue values. Integral magnitudes never change a number to a string; use LogValue.IntegerString explicitly for larger integers. Decimal uses invariant decimal-string form, including .0 for whole values. Timestamps are converted to UTC through the existing value factory; non-UTC DateTime is rejected instead of guessing an offset. Enums, arbitrary objects and nonfinite numbers are rejected. No arbitrary ToString or reflection serialization is used.
+
+Nested arrays/enumerables and maps are copied recursively. Maps accept string-key IDictionary or IEnumerable<KeyValuePair<string, object?>> forms. Keys keep their ordinal casing and follow Core's Unicode/control/length rules. Last visited duplicate keys win. The provider supplies event_id before copying and ignores any state value for that key, so state or typed scope cannot replace its numeric input. Ordinary attribute projection still follows Core's aggregate truncation rules; numeric ID is not a new protected envelope field.
+
+One bounded copy budget includes the attributes root and provider event_id: at most 1024 nodes and depth 8. Copying stops at the first excess child and carries truncation into Core's merged event. Replaced duplicate values count toward copy work; root state enumeration also has a 1024-entry guard so repeated metadata/ignored keys cannot cause an unbounded secondary copy. Unvisited tails, including templates beyond that prefix, are omitted with truncation. Collections remain cooperative caller code; this does not impose an execution deadline on arbitrary enumerator callbacks. Cycles observed in the retained traversal are invalid. No caller map/array remains mutable in queued facts; already immutable LogValue subtrees can be shared.
+
+Nine cases exercise actual Microsoft extension formatting, every supported scalar family, copied nested collections, duplicate/event/scope precedence, unsupported/cyclic input, node/depth/traversal bounds, skipped formatter/state traversal, Activity mutation during enumeration and template clipping. Physical variants use public runtime creation, real JSONL bytes and an exclusive lease probe after stop. The physical borrowedConsoleOpen field is null because that variant does not select a console. Executed reports and independent native-reader controls belong in the task receipt.
+
+T04/T05 still qualify the complete rejection/filter surface and story. S02 retains host/external scopes, final provider surface and host lifetime integration; examples, instructions/skills and release remain required. Original plans and historical receipts are preserved.
+
+--- FILE implementations/csharp/tests/fixtures/DiscoveryHost/verify-provider-mapping.py ---
+"""Independent actual-Core Microsoft provider mapping reader."""
+import argparse,base64,copy,importlib.util,json,os,subprocess,tempfile
+from pathlib import Path
+spec=importlib.util.spec_from_file_location('provider_base',Path(__file__).with_name('verify-flush-results.py'));base=importlib.util.module_from_spec(spec);spec.loader.exec_module(base)
+require,load,sha,digest,decoded,number=base.require,base.load,base.sha,base.digest,base.decoded,base.number
+MODES=('levels','names','ids','payload')
+
+
+def check(mode,a,pid=None):
+    require(a['mode']==mode and mode in MODES,'mode');require(a['runtime']=='.NET 10.0.12','actual runtime')
+    require(type(a['pid']) is int and a['pid']>0 and (pid is None or a['pid']==pid),'actual child PID')
+    require(a['physical'] is True and a['leaseReleased'] is True and a['borrowedConsoleOpen'] is True,'physical lifetime');require(a['invalid']=='0','core invalid count')
+    pairs={'levels':6,'names':3,'ids':5,'payload':1}[mode]
+    require(type(a['formatterCalls']) is int and a['formatterCalls']==pairs,'supplied formatter calls')
+    require(type(a['noneFormatterCalls']) is int and a['noneFormatterCalls']==0,'None formatter not called')
+    require(a['formatterExceptionReceived'] is (mode=='payload'),'formatter exception identity')
+    result=a['result'];require(set(result)=={'completion','succeeded','loss','captured','observed','outputs'},'result shape');require((result['completion'],result['succeeded'],result['loss'])==('Completed',True,False),'stop summary')
+    require(len(result['outputs'])==1 and result['outputs'][0]['name']=='file','file output');out=result['outputs'][0]
+    require(tuple(number(out[k]) for k in ('boundary','written','failed','abandoned','pending'))==(pairs*2,pairs*2,0,0,0) and out['flush']=='Succeeded','core delivery')
+    data=decoded(a['bytes']);require(data[-1:]==b'\n' and not data.startswith(b'\xef\xbb\xbf'),'actual framing');lines=data.splitlines();require(len(lines)==pairs*2 and all(len(line)+1<=16384 for line in lines),'actual bounded records')
+    rows=[load(line) for line in lines]
+    statuses=['trace','debug','info','warn','error','critical'] if mode=='levels' else ['error' if mode=='payload' else 'info']*pairs
+    ids={'levels':[17]*6,'names':[9,-4,0],'ids':[0,1,-1,-2147483648,2147483647],'payload':[42]}[mode]
+    categories=['Map.First','Map.Second','Map.Empty'] if mode=='names' else ['Map.'+{'levels':'Levels','ids':'Ids','payload':'Payload'}[mode]]*pairs
+    names={'levels':['level']*6,'names':['named.event','log.message','log.message'],'ids':['id']*5,'payload':['payload']}[mode]
+    messages={'levels':['level '+str(i) for i in range(6)],'names':['named','absent','empty'],'ids':['0','1','-1','-2147483648','2147483647'],'payload':['rendered {x} \u03a9 \U0001f642']}[mode]
+    for i in range(pairs):
+        for row in rows[i*2:i*2+2]:
+            require(row['status']==statuses[i],'mapped severity');require(row['component']==categories[i],'category component');require(row['event_name']==names[i],'mapped event name');require(row['message']==messages[i],'supplied rendered message')
+            require(set(row['attributes'])=={'event_id'} and type(row['attributes']['event_id']) is int and row['attributes']['event_id']==ids[i],'numeric event ID')
+            require(row['schema_version']==1 and row['service']=='CIS.Core.DiscoveryFixture' and row['resource']['process_id']==a['pid'] and row['resource']['runtime_description']=='.NET 10.0.12' and row['resource']['os_family']==a['os'],'automatic core facts')
+            if mode=='payload':
+                error=row['exception'];require(error['type']=='System.InvalidOperationException','exception type');require(error['message']=='controlled mapping failure','exception message');require(set(error)=={'type','message'},'exception excludes Data')
+            else:require('exception' not in row,'no fabricated exception')
+        require({k:v for k,v in rows[i*2].items() if k!='timestamp'}=={k:v for k,v in rows[i*2+1].items() if k!='timestamp'},'equivalent core record')
+
+
+def corruption_controls(cases):
+    good={x['id']:x['report'] for x in cases}
+    def record_change(a,edit,index=0):
+        rows=[load(line) for line in decoded(a['bytes']).splitlines()];edit(rows[index]);a['bytes']=base64.b64encode(b''.join(json.dumps(r,ensure_ascii=False).encode()+b'\n' for r in rows)).decode()
+    edits=[
+      ('pid','levels','actual child PID',lambda a:a.update(pid=a['pid']+1)),
+      ('runtime','levels','actual runtime',lambda a:a.update(runtime='.NET 10.0.13')),
+      ('lease','levels','physical lifetime',lambda a:a.update(leaseReleased=False)),
+      ('invalid','levels','core invalid count',lambda a:a.update(invalid='1')),
+      ('formatter','levels','supplied formatter calls',lambda a:a.update(formatterCalls=0)),
+      ('none','levels','None formatter not called',lambda a:a.update(noneFormatterCalls=1)),
+      ('exception-identity','payload','formatter exception identity',lambda a:a.update(formatterExceptionReceived=False)),
+      ('shape','levels','result shape',lambda a:a['result'].update(extra=True)),
+      ('summary','levels','stop summary',lambda a:a['result'].update(succeeded=False)),
+      ('ticket','levels','core delivery',lambda a:a['result']['outputs'][0].update(boundary='0')),
+      ('framing','levels','actual framing',lambda a:a.update(bytes=base64.b64encode(decoded(a['bytes'])[:-1]).decode())),
+      ('severity','levels','mapped severity',lambda a:record_change(a,lambda row:row.update(status='info'))),
+      ('category','names','category component',lambda a:record_change(a,lambda row:row.update(component='wrong'))),
+      ('name','names','mapped event name',lambda a:record_change(a,lambda row:row.update(event_name='wrong'))),
+      ('message','payload','supplied rendered message',lambda a:record_change(a,lambda row:row.update(message='unrendered input'))),
+      ('event-id-value','ids','numeric event ID',lambda a:record_change(a,lambda row:row['attributes'].update(event_id=99))),
+      ('event-id-type','ids','numeric event ID',lambda a:record_change(a,lambda row:row['attributes'].update(event_id='0'))),
+      ('facts','levels','automatic core facts',lambda a:record_change(a,lambda row:row['resource'].update(process_id=0))),
+      ('exception-type','payload','exception type',lambda a:record_change(a,lambda row:row['exception'].update(type='wrong'))),
+      ('exception-message','payload','exception message',lambda a:record_change(a,lambda row:row['exception'].update(message='wrong'))),
+      ('exception-data','payload','exception excludes Data',lambda a:record_change(a,lambda row:row['exception'].update(Data={'private_data':'must not be projected'}))),
+      ('direct-equivalence','payload','equivalent core record',lambda a:record_change(a,lambda row:row.update(env='changed'),1))
+    ]
+    controls=[]
+    for identity,mode,reason,edit in edits:
+        bad=copy.deepcopy(good[mode]);edit(bad)
+        try:check(mode,bad,good[mode]['pid'])
+        except AssertionError as error:
+            require(str(error)==reason,'unexpected corruption '+identity+': '+str(error));controls.append(dict(id=identity,rejected=True,reason=reason))
+        else:raise AssertionError('corruption accepted '+identity)
+    return controls
+
+
+def main():
+    parser=argparse.ArgumentParser()
+    for key in ('dotnet','host','output','family'):parser.add_argument('--'+key,required=True)
+    args=parser.parse_args();require(args.family in ('windows','linux') and (os.name=='nt')==(args.family=='windows'),'native OS')
+    repo=Path(__file__).resolve().parents[5];mapping=repo/'conformance/logging/provider-mapping-cases.json';require([x['id'] for x in load(mapping.read_bytes())['cases']]==list(MODES),'shared case membership')
+    host,out=Path(args.host).resolve(),Path(args.output).resolve();out.mkdir(parents=True,exist_ok=True);cases=[]
+    with tempfile.TemporaryDirectory(prefix='cislib-provider-mapping-') as temp:
+        for mode in MODES:
+            work=Path(temp)/mode;work.mkdir();env={k:v for k,v in os.environ.items() if not k.startswith('CORE_')}
+            command=[args.dotnet,'exec','--fx-version','10.0.12','--roll-forward','Disable',str(host),'provider-mapping',mode,str(work)]
+            process=subprocess.Popen(command,cwd=work,env=env,stdout=subprocess.PIPE,stderr=subprocess.PIPE)
+            try:stdout,stderr=process.communicate(timeout=60)
+            except BaseException:process.kill();process.communicate(timeout=15);raise
+            (out/(mode+'.stdout.bin')).write_bytes(stdout);(out/(mode+'.stderr.bin')).write_bytes(stderr);require(process.returncode==0 and stderr==b'','child failure '+mode)
+            a=load(stdout);check(mode,a,process.pid);require((a['os'],a['coreSha256'],a['fixtureSha256'])==(args.family,sha(host.parent/'CIS.Core.dll'),sha(host)),'actual assemblies')
+            data=(work/'logs \u03a9'/'active.log').read_bytes();require(data==decoded(a['bytes']),'actual file bytes');(out/(mode+'.file.bin')).write_bytes(data)
+            cases.append(dict(id=mode,pid=process.pid,exitCode=0,command=command,report=a,stdoutSha256=digest(stdout),stderrSha256=digest(stderr),fileSha256=digest(data)))
+    report=dict(schema='cis.logging.provider-mapping-native/v1',task='WP06-S01-T02',family=args.family,children=len(cases),coreSha256=sha(host.parent/'CIS.Core.dll'),fixtureSha256=sha(host),verifierSha256=sha(__file__),baseVerifierSha256=sha(Path(__file__).with_name('verify-flush-results.py')),caseMappingSha256=sha(mapping),cases=cases,controls=corruption_controls(cases))
+    (out/'report.json').write_text(json.dumps(report,indent=2)+'\n',encoding='utf-8',newline='\n');print(json.dumps(dict(platform=args.family,children=len(cases),controls=len(report['controls']),passed=True)))
+
+
+if __name__=='__main__':main()
+--- FILE implementations/csharp/src/CIS.Core/Logging/CoreLogger.cs ---
+namespace CIS.Logging;
+
+/// <summary>A component logger borrowing its runtime; it has no independent lifecycle.</summary>
+/// <remarks>Methods support concurrent calls. Method severity alone controls filtering and capture.</remarks>
+public sealed class CoreLogger
+{
+    private readonly CoreLogRuntime runtime;
+    private readonly string component;
+
+    internal CoreLogger(CoreLogRuntime runtime, string component)
+    {
+        this.runtime = runtime;
+        this.component = component;
+    }
+
+    /// <summary>Checks running output interest without reserving queue capacity.</summary>
+    /// <exception cref="ArgumentOutOfRangeException">The level is undefined.</exception>
+    public bool IsEnabled(CoreLogLevel level) => runtime.IsEnabled(level);
+
+    /// <summary>Captures once when interested, then attempts independent nonblocking admission.</summary>
+    /// <exception cref="ArgumentNullException">Data is null.</exception>
+    /// <exception cref="ArgumentOutOfRangeException">The level is undefined.</exception>
+    public LogWriteResult Write(CoreLogLevel level, LogEventData data)
+    {
+        ArgumentNullException.ThrowIfNull(data);
+        return runtime.Write(component, level, data, null);
+    }
+
+    /// <summary>Invokes the factory at most once after early interest checks.</summary>
+    /// <remarks>A caller factory exception propagates unchanged. Null factory results are InvalidEvent.</remarks>
+    /// <exception cref="ArgumentNullException">The factory is null.</exception>
+    /// <exception cref="ArgumentOutOfRangeException">The level is undefined.</exception>
+    public LogWriteResult WriteLazy(CoreLogLevel level, Func<LogEventData> factory)
+    {
+        ArgumentNullException.ThrowIfNull(factory);
+        return runtime.Write(component, level, null, factory);
+    }
+}
+
+--- FILE implementations/csharp/src/CIS.Core/Logging/CoreLogRuntime.cs ---
+using CIS.Logging.Events;
+using CIS.Logging.Rendering;
+using CIS.Logging.Runtime;
+using CIS.Logging.Scopes;
+using CIS.Text;
+
+namespace CIS.Logging;
+
+/// <summary>Owns logger context, independent output admission and one shared bounded stop operation.</summary>
+public sealed class CoreLogRuntime : IAsyncDisposable
+{
+    private readonly object admissionGate;
+    private readonly OutputQueues? queuedOutputs;
+    private readonly ConsoleOutputWriter? consoleWriter;
+    private readonly FileOutputWriter? fileWriter;
+    private readonly bool recoveredPartialSegment;
+    private readonly EventMetadata metadata;
+    private readonly TimeProvider timeProvider;
+    private readonly int maximumEntryBytes;
+    private readonly TimeSpan shutdownTimeout;
+    private Task<LogStopResult>? stopTask;
+    private LogStopResult? lastStopResult;
+    private readonly Output[] outputs;
+    private bool admissionClosed;
+    private DateTimeOffset? shutdownStartedAtUtc;
+    private long invalidEventCount;
+    private long truncatedEventCount;
+
+    // The direct internal admission seam remains available for existing focused qualification.
+    internal CoreLogRuntime(EventMetadata metadata, LoggingOptions options, ILogOutputAdmission? console,
+        ILogOutputAdmission? file, TimeProvider? timeProvider = null, object? sharedAdmissionGate = null, OutputQueues? queuedOutputs = null, ConsoleOutputWriter? consoleWriter = null, FileOutputWriter? fileWriter = null)
+    {
+        ArgumentNullException.ThrowIfNull(metadata);
+        ArgumentNullException.ThrowIfNull(options);
+        CoreLogLevel consoleLevel = options.EffectiveConsoleLevel;
+        CoreLogLevel fileLevel = options.EffectiveFileLevel;
+        bool consoleEnabled = consoleLevel != CoreLogLevel.None;
+        bool fileEnabled = !string.IsNullOrWhiteSpace(options.FilePath) && fileLevel != CoreLogLevel.None;
+        int maximumBytes = options.MaxEntryBytes;
+        ValidateSettings(consoleLevel, fileLevel, maximumBytes);
+        ValidateShutdownTimeout(options.ShutdownTimeoutMilliseconds);
+        admissionGate = sharedAdmissionGate ?? new object();
+        this.queuedOutputs = queuedOutputs;
+        this.consoleWriter = consoleWriter;
+        this.fileWriter = fileWriter;
+        recoveredPartialSegment = fileWriter?.RecoveredPartialSegment == true;
+        this.metadata = metadata;
+        this.timeProvider = timeProvider ?? TimeProvider.System;
+        maximumEntryBytes = maximumBytes;
+        shutdownTimeout = options.ShutdownTimeout;
+        var configured = new List<Output>(2);
+        Add("console", consoleEnabled, consoleLevel, console);
+        Add("file", fileEnabled, fileLevel, file);
+        outputs = configured.ToArray();
+
+        void Add(string name, bool enabled, CoreLogLevel threshold, ILogOutputAdmission? admission)
+        {
+            if (enabled != (admission is not null))
+            {
+                throw new ArgumentException("Output composition must match enabled settings.", name);
+            }
+            if (admission is not null) { configured.Add(new Output(name, threshold, admission)); }
+        }
+    }
+
+    /// <summary>Creates an application-owned runtime using the prepared static environment settings and automatically captured facts.</summary>
+    /// <remarks>Configure EnvironmentOptions.Logging before creation; preparation normalizes its FilePath in place. Concurrent mutation of those settings is unsupported. Each runtime owns only its own workers and file group. DisposeAsync joins its bounded shutdown.</remarks>
+    /// <exception cref="CIS.Configuration.CoreConfigurationException">Module settings or captured metadata are invalid.</exception>
+    /// <exception cref="TypeInitializationException">Static environment initialization failed.</exception>
+    /// <exception cref="CoreLogInitializationException">An enabled output cannot initialize.</exception>
+    public static CoreLogRuntime Create()
+    {
+        LoggingOptions options = EnvironmentOptions.Logging;
+        options.Prepare(Directory.GetCurrentDirectory());
+        return CreateConfiguredQueued(new EventMetadata(), options);
+    }
+
+    // Actual capture -> ticketed Channels -> sequential trusted writers; physical output ownership comes later.
+    internal static CoreLogRuntime CreateQueued(EventMetadata metadata, LoggingOptions options,
+        Func<AdmittedEvent, ValueTask>? consoleWrite, Func<AdmittedEvent, ValueTask>? fileWrite, TimeProvider? timeProvider = null,
+        Func<ValueTask>? consoleFlush = null, Func<ValueTask>? fileFlush = null)
+    {
+        ArgumentNullException.ThrowIfNull(metadata);
+        return ComposeQueued(metadata, CaptureQueueOptions(options), consoleWrite, fileWrite, timeProvider, consoleFlush: consoleFlush, fileFlush: fileFlush);
+    }
+
+    // Console settings are frozen before selecting the stream or starting any output worker.
+    internal static CoreLogRuntime CreateConsoleQueued(EventMetadata metadata, LoggingOptions options,
+        Func<AdmittedEvent, ValueTask>? fileWrite = null, TimeProvider? timeProvider = null,
+        Func<ConsoleOutputStream, Stream>? acquireConsole = null, Func<Func<Task>, Task>? launchWorker = null)
+    {
+        ArgumentNullException.ThrowIfNull(metadata);
+        LoggingOptions selected = CaptureQueueOptions(options);
+        ValidateSettings(selected.EffectiveConsoleLevel, selected.EffectiveFileLevel, selected.MaxEntryBytes);
+        if (selected.QueueCapacity is < LoggingOptions.MinimumQueueCapacity or > LoggingOptions.MaximumQueueCapacity)
+        { throw new ArgumentOutOfRangeException(nameof(options), "Use the configured queue-capacity range."); }
+        if (!Enum.IsDefined(selected.ConsoleFormat) || !Enum.IsDefined(selected.HumanDetail) || !Enum.IsDefined(selected.ConsoleStream))
+        { throw new ArgumentException("Use declared console presentation and stream values.", nameof(options)); }
+        ConsoleOutputWriter? writer = AcquireConsoleWriter(selected, acquireConsole);
+        return ComposeQueued(metadata, selected, writer is null ? null : writer.WriteAsync, fileWrite, timeProvider, writer, launchWorker);
+    }
+
+    internal static CoreLogRuntime CreateConfiguredQueued(EventMetadata metadata, LoggingOptions options, TimeProvider? timeProvider = null,
+        Func<ConsoleOutputStream, Stream>? acquireConsole = null, Func<Func<Task>, Task>? launchWorker = null)
+    {
+        ArgumentNullException.ThrowIfNull(metadata);
+        LoggingOptions selected = CaptureQueueOptions(options);
+        ValidateSettings(selected.EffectiveConsoleLevel, selected.EffectiveFileLevel, selected.MaxEntryBytes);
+        if (selected.QueueCapacity is < LoggingOptions.MinimumQueueCapacity or > LoggingOptions.MaximumQueueCapacity
+            || selected.FileMaxBytes is < LoggingOptions.MinimumFileMaxBytes or > LoggingOptions.MaximumFileMaxBytes
+            || selected.FileRetainedFiles is < LoggingOptions.MinimumFileRetainedFiles or > LoggingOptions.MaximumFileRetainedFiles
+            || selected.FileEnabled && (selected.FileMaxBytes < selected.MaxEntryBytes
+                || selected.FlushIntervalMilliseconds is < LoggingOptions.MinimumFlushIntervalMilliseconds or > LoggingOptions.MaximumFlushIntervalMilliseconds))
+        { throw new ArgumentOutOfRangeException(nameof(options)); }
+        if (!Enum.IsDefined(selected.ConsoleFormat) || !Enum.IsDefined(selected.ConsoleStream) || !Enum.IsDefined(selected.FileFormat) || !Enum.IsDefined(selected.HumanDetail))
+        { throw new ArgumentException("Use declared output presentation values.", nameof(options)); }
+        if (selected.FileEnabled && !Path.IsPathFullyQualified(selected.FilePath!))
+        { throw new ArgumentException("File output requires an already captured absolute path.", nameof(options)); }
+        ConsoleOutputWriter? console = AcquireConsoleWriter(selected, acquireConsole);
+        FileOutputWriter? file = selected.FileEnabled ? new(selected.FilePath!, selected.FileFormat, selected.HumanDetail, selected.MaxEntryBytes, selected.FileMaxBytes, selected.FileRetainedFiles) : null;
+        return ComposeQueued(metadata, selected, console is null ? null : console.WriteAsync, file is null ? null : file.WriteAsync, timeProvider, console, launchWorker, file);
+    }
+
+    private static ConsoleOutputWriter? AcquireConsoleWriter(LoggingOptions selected, Func<ConsoleOutputStream, Stream>? acquireConsole)
+    {
+        ConsoleOutputWriter? writer = null;
+        if (selected.ConsoleEnabled)
+        {
+            try
+            {
+                Stream stream = acquireConsole is null ?
+                    selected.ConsoleStream == ConsoleOutputStream.StandardError ? Console.OpenStandardError() : Console.OpenStandardOutput() :
+                    acquireConsole(selected.ConsoleStream);
+                if (stream is null) { throw new CoreLogInitializationException("console", "ConsoleInitializationFailed"); }
+                writer = new ConsoleOutputWriter(stream, selected.ConsoleFormat, selected.HumanDetail, selected.MaxEntryBytes);
+            }
+            catch (CoreLogInitializationException) { throw; }
+            catch { throw new CoreLogInitializationException("console", "ConsoleInitializationFailed"); }
+        }
+        return writer;
+    }
+
+    private static LoggingOptions CaptureQueueOptions(LoggingOptions options)
+    {
+        ArgumentNullException.ThrowIfNull(options);
+        ValidateShutdownTimeout(options.ShutdownTimeoutMilliseconds);
+        return new LoggingOptions
+        {
+            ConsoleLevel = options.EffectiveConsoleLevel,
+            FileLevel = options.EffectiveFileLevel,
+            FilePath = options.FilePath,
+            MaxEntryBytes = options.MaxEntryBytes,
+            QueueCapacity = options.QueueCapacity,
+            ConsoleFormat = options.ConsoleFormat,
+            ConsoleStream = options.ConsoleStream,
+            HumanDetail = options.HumanDetail,
+            FileFormat = options.FileFormat,
+            FileMaxBytes = options.FileMaxBytes,
+            FileRetainedFiles = options.FileRetainedFiles,
+            FlushIntervalMilliseconds = options.FlushIntervalMilliseconds,
+            ShutdownTimeoutMilliseconds = options.ShutdownTimeoutMilliseconds
+        };
+    }
+
+    private static CoreLogRuntime ComposeQueued(EventMetadata metadata, LoggingOptions selected,
+        Func<AdmittedEvent, ValueTask>? consoleWrite, Func<AdmittedEvent, ValueTask>? fileWrite,
+        TimeProvider? timeProvider, ConsoleOutputWriter? writer = null, Func<Func<Task>, Task>? launchWorker = null, FileOutputWriter? fileWriter = null, Func<ValueTask>? consoleFlush = null, Func<ValueTask>? fileFlush = null)
+    {
+        ValidateSettings(selected.EffectiveConsoleLevel, selected.EffectiveFileLevel, selected.MaxEntryBytes);
+        var gate = new object();
+        var queues = new OutputQueues(selected.QueueCapacity, selected.ConsoleEnabled, selected.FileEnabled, consoleWrite, fileWrite, gate, launchWorker, fileWriter,
+            writer is null ? consoleFlush : writer.FlushAsync, fileWriter is null ? fileFlush : fileWriter.FlushAsync,
+            writer is null ? null : writer.WriteAsync, fileWriter is null ? null : fileWriter.WriteAsync,
+            writer is null ? null : writer.FlushAsync, fileWriter is null ? null : fileWriter.FlushAsync);
+        try
+        {
+            writer?.Initialize();
+            fileWriter?.Initialize();
+            var runtime = new CoreLogRuntime(metadata, selected, queues.Console, queues.File, timeProvider, gate, queues, writer, fileWriter);
+            if (fileWriter is not null)
+            {
+                try { queues.File!.StartFileFlushTimer(runtime.timeProvider, selected.FlushInterval); }
+                catch { throw new CoreLogInitializationException("file", "FileFlushTimerInitializationFailed"); }
+            }
+            return runtime;
+        }
+        catch
+        {
+            queues.Complete();
+            // Observe terminal cleanup failures without masking the safe initialization category.
+            try { queues.Completion.GetAwaiter().GetResult(); } catch { }
+            try { fileWriter?.Dispose(); } catch { }
+            throw;
+        }
+    }
+    internal OutputQueues? QueuedOutputs => queuedOutputs;
+    private static void ValidateShutdownTimeout(int milliseconds)
+    {
+        if (milliseconds is < LoggingOptions.MinimumShutdownTimeoutMilliseconds or > LoggingOptions.MaximumShutdownTimeoutMilliseconds)
+        { throw new ArgumentOutOfRangeException(nameof(milliseconds), "Use the configured shutdown-timeout range."); }
+    }
+
+    /// <summary>Starts or joins one shared bounded stop operation through its original accepted boundaries.</summary>
+    /// <param name="cancellationToken">Cancels only this caller's wait; even an already-cancelled first caller starts shutdown.</param>
+    /// <returns>The same owned immutable observation retained for all joining callers.</returns>
+    /// <exception cref="OperationCanceledException">The caller cancels its own wait.</exception>
+    /// <remarks>The configured overall timeout is frozen at creation. UTC is an observation label; elapsed time is monotonic. At expiry, unstarted accepted records are abandoned. Cancellation of active writes/flushes is requested but is not guaranteed, and no new flush, retry or replacement writer starts. Completed means terminal dispositions, not successful delivery or resource release. A timed-out observation can retain pending I/O; its later completion does not change the cached result.</remarks>
+    public Task<LogStopResult> StopAsync(CancellationToken cancellationToken)
+    {
+        if (queuedOutputs is null) { throw new InvalidOperationException("Stop requires actual queued output composition."); }
+        Task<LogStopResult>? shared;
+        lock (admissionGate) { shared = stopTask; }
+        if (shared is null)
+        {
+            // Caller clock code is never invoked under admission synchronization.
+            // Preliminary concurrent samples are harmless; only the winning caller owns the deadline.
+            long started = timeProvider.GetTimestamp();
+            RuntimeFlushBoundary boundary = default;
+            TaskCompletionSource<LogStopResult>? completion = null;
+            lock (admissionGate)
+            {
+                if (stopTask is null)
+                {
+                    completion = new(TaskCreationOptions.RunContinuationsAsynchronously);
+                    stopTask = completion.Task;
+                    try
+                    {
+                        // Register final controls before a closing idle worker is allowed to exit.
+                        boundary = RegisterFlushBoundary();
+                        shutdownStartedAtUtc ??= boundary.BoundaryCapturedAtUtc;
+                        admissionClosed = true;
+                        queuedOutputs.Complete();
+                    }
+                    catch (Exception error)
+                    {
+                        // A failed setup must not leave the already-published task pending forever.
+                        completion.TrySetException(error);
+                        throw;
+                    }
+                }
+                shared = stopTask;
+            }
+            if (completion is not null)
+            {
+                // Start deadline acquisition directly, without a delayed ThreadPool launch.
+                // Only continuations/timers outlive this call; they do not retain the caller's flow.
+                if (ExecutionContext.IsFlowSuppressed()) { _ = RunStopAsync(boundary, started, completion); }
+                else { using (ExecutionContext.SuppressFlow()) { _ = RunStopAsync(boundary, started, completion); } }
+            }
+        }
+        // WaitAsync can prefer an already-completed task; an already-cancelled caller must still cancel.
+        if (cancellationToken.IsCancellationRequested) { return Task.FromCanceled<LogStopResult>(cancellationToken); }
+        return cancellationToken.CanBeCanceled ? shared!.WaitAsync(cancellationToken) : shared!;
+    }
+
+    /// <summary>Starts or joins the original bounded stop operation without a new drain window.</summary>
+    /// <returns>A wait on the same shared operation; unsuccessful draining remains visible in LastStopResult.</returns>
+    /// <remarks>Repeated disposal is harmless. At the original deadline this wait may complete while actual I/O and owned cleanup remain pending; no resource is disposed beneath active I/O. Inspect GetDiagnostics().LastStopResult for the immutable drain outcome.</remarks>
+    public ValueTask DisposeAsync() => new(StopAsync(CancellationToken.None));
+
+    private async Task RunStopAsync(RuntimeFlushBoundary boundary, long started, TaskCompletionSource<LogStopResult> completion)
+    {
+        try
+        {
+            if (boundary.Console is null && boundary.File is null)
+            { PublishStop(CaptureFlushResult(boundary), completion); return; }
+            await using var deadline = new FlushDeadline(timeProvider, started, shutdownTimeout, () => CaptureFlushResult(boundary), () => CaptureStopDeadline(boundary));
+            try
+            {
+                await boundary.WaitForWriterFlushAsync(deadline.Token).ConfigureAwait(false);
+                if (boundary.Console is { } console)
+                { await queuedOutputs!.Console!.WaitForCoveredRecordsAsync("console", console, deadline.Token).ConfigureAwait(false); }
+                if (boundary.File is { } file)
+                { await queuedOutputs!.File!.WaitForCoveredRecordsAsync("file", file, deadline.Token).ConfigureAwait(false); }
+                try { await queuedOutputs!.Completion.WaitAsync(deadline.Token).ConfigureAwait(false); }
+                catch (Exception) when ((queuedOutputs!.Completion.IsFaulted || queuedOutputs.Completion.IsCanceled) && (queuedOutputs.Console?.IsFaulted == true || queuedOutputs.File?.IsFaulted == true))
+                { /* Terminal writer faults remain safe output results, not business-call I/O exceptions. */ }
+            }
+            catch (OperationCanceledException) when (deadline.Token.IsCancellationRequested) { }
+            // Publish the frozen result before asynchronous deadline-timer cleanup can wait on a callback join.
+            PublishStop(deadline.ObserveCompletion(), completion);
+        }
+        catch (Exception error)
+        {
+            if (completion.Task.IsCompletedSuccessfully)
+            {
+                // Publication precedes deadline-timer cleanup; later failure belongs to live diagnostics.
+                queuedOutputs!.RecordCleanupFault("ShutdownTimerCleanupFailed");
+            }
+            else { completion.TrySetException(error); }
+        }
+    }
+
+    private LogFlushResult CaptureStopDeadline(RuntimeFlushBoundary boundary)
+    {
+        LogFlushResult observation;
+        lock (admissionGate)
+        {
+            queuedOutputs!.AbandonUnstarted();
+            observation = CaptureFlushResult(boundary);
+        }
+        // Freeze actual pending work before cooperative cancellation can settle it.
+        queuedOutputs.RequestIoCancellation();
+        return observation;
+    }
+    private void PublishStop(LogFlushResult observation, TaskCompletionSource<LogStopResult> completion)
+    {
+        var result = new LogStopResult(observation);
+        lock (admissionGate) { lastStopResult = result; }
+        completion.TrySetResult(result);
+    }
+
+
+    /// <summary>Waits through fixed accepted boundaries and confirms each enabled writer's buffer flush.</summary>
+    /// <param name="timeout">One positive finite overall wait budget; every positive TimeSpan is supported.</param>
+    /// <param name="cancellationToken">Cancels only this caller's wait, preserving shared worker requests.</param>
+    /// <returns>An owned immutable observation, including unresolved work at the deadline.</returns>
+    /// <exception cref="ArgumentOutOfRangeException">The timeout is zero, negative or infinite.</exception>
+    /// <exception cref="OperationCanceledException">The caller token is cancelled, including after boundary registration.</exception>
+    /// <remarks>UTC labels are system observations; elapsed deadlines use the runtime TimeProvider. Flush does not stop admission or guarantee disk durability. After closure it cannot reopen a writer; a terminal writer returns an unavailable/failed flush even if the original stop flushed successfully. Inspect LastStopResult for that original shutdown outcome.</remarks>
+    public Task<LogFlushResult> FlushAsync(TimeSpan timeout, CancellationToken cancellationToken)
+    {
+        if (timeout.Ticks <= 0) { throw new ArgumentOutOfRangeException(nameof(timeout)); }
+        long started = timeProvider.GetTimestamp();
+        RuntimeFlushBoundary boundary = RegisterFlushBoundary();
+        return ObserveFlushAsync(boundary, started, timeout, cancellationToken);
+    }
+    private async Task<LogFlushResult> ObserveFlushAsync(RuntimeFlushBoundary boundary, long started, TimeSpan timeout, CancellationToken caller)
+    {
+        caller.ThrowIfCancellationRequested();
+        if (boundary.Console is null && boundary.File is null) { return CaptureFlushResult(boundary); }
+        await using var deadline = new FlushDeadline(timeProvider, started, timeout, () => CaptureFlushResult(boundary));
+        using var wait = CancellationTokenSource.CreateLinkedTokenSource(caller, deadline.Token);
+        try
+        {
+            await boundary.WaitForWriterFlushAsync(wait.Token).ConfigureAwait(false);
+            // A terminal unavailable flush can precede the disposition of an already-started write.
+            if (boundary.Console is { } console)
+            { await queuedOutputs!.Console!.WaitForCoveredRecordsAsync("console", console, wait.Token).ConfigureAwait(false); }
+            if (boundary.File is { } file)
+            { await queuedOutputs!.File!.WaitForCoveredRecordsAsync("file", file, wait.Token).ConfigureAwait(false); }
+        }
+        catch (OperationCanceledException) when (wait.IsCancellationRequested)
+        { caller.ThrowIfCancellationRequested(); }
+        caller.ThrowIfCancellationRequested();
+        return deadline.ObserveCompletion();
+    }
+    private LogFlushResult CaptureFlushResult(RuntimeFlushBoundary boundary)
+    {
+        lock (admissionGate)
+        {
+            var observations = new List<LogOutputDrainResult>(2);
+            if (boundary.Console is { } console) { observations.Add(queuedOutputs!.Console!.CaptureDrain("console", console)); }
+            if (boundary.File is { } file) { observations.Add(queuedOutputs!.File!.CaptureDrain("file", file)); }
+            return new LogFlushResult(boundary.BoundaryCapturedAtUtc, DateTimeOffset.UtcNow,
+                boundary.InvalidEventCount, boundary.TruncatedEventCount, observations);
+        }
+    }
+    internal RuntimeFlushBoundary RegisterFlushBoundary()
+    {
+        if (queuedOutputs is null) { throw new InvalidOperationException("Flush boundaries require actual queued output composition."); }
+        lock (admissionGate)
+        {
+            // Pure system UTC sampling here does not invoke caller factories, payloads or the event clock.
+            DateTimeOffset capturedAt = DateTimeOffset.UtcNow;
+            OutputFlushBoundary? console = queuedOutputs.Console?.RegisterFlushBoundary();
+            OutputFlushBoundary? file = queuedOutputs.File?.RegisterFlushBoundary();
+            return new RuntimeFlushBoundary(capturedAt, InvalidEventCount, TruncatedEventCount, console, file);
+        }
+    }
+    internal RuntimeAccounting CaptureAccounting()
+    {
+        if (queuedOutputs is null) { throw new InvalidOperationException("Accounting requires actual queued output composition."); }
+        lock (admissionGate)
+        {
+            // Output/disposition/truncation/closure changes share this gate. Invalid increments
+            // independently, so its atomic read chooses the observation point while the rest is stable.
+            return new RuntimeAccounting(admissionClosed, InvalidEventCount, TruncatedEventCount,
+                queuedOutputs.Console?.CaptureAccounting(), queuedOutputs.File?.CaptureAccounting());
+        }
+    }
+
+    /// <summary>Returns an owned immutable live observation without routing a log or performing output I/O.</summary>
+    /// <remarks>Available after faults and admission closure. This does not register a fixed flush target.</remarks>
+    public CoreLogDiagnostics GetDiagnostics()
+    {
+        lock (admissionGate)
+        {
+            RuntimeAccounting counts = CaptureAccounting();
+            var values = new List<LogOutputDiagnostics>(2);
+            if (counts.Console is OutputAccounting console) { values.Add(new LogOutputDiagnostics("console", console)); }
+            if (counts.File is OutputAccounting file) { values.Add(new LogOutputDiagnostics("file", file, recoveredPartialSegment)); }
+            CoreLogState state = !counts.AdmissionClosed ? CoreLogState.Running :
+                values.All(value => value.State == LogOutputState.Stopped) ? CoreLogState.Stopped : CoreLogState.Stopping;
+            return new CoreLogDiagnostics(state, counts.AdmissionClosed, DateTimeOffset.UtcNow, shutdownStartedAtUtc,
+                counts.InvalidEventCount, counts.TruncatedEventCount, values, lastStopResult);
+        }
+    }
+
+    internal OperationScopeStore Scopes { get; } = new();
+    internal long InvalidEventCount => Interlocked.Read(ref invalidEventCount);
+    internal long TruncatedEventCount => Interlocked.Read(ref truncatedEventCount);
+
+    /// <summary>Creates a logger borrowing this runtime, including after admission closes.</summary>
+    /// <exception cref="ArgumentNullException">Component is null.</exception>
+    /// <exception cref="ArgumentException">Component is blank, malformed, contains controls or exceeds 255 scalars.</exception>
+    public CoreLogger CreateLogger(string component)
+    {
+        ArgumentNullException.ThrowIfNull(component);
+        if (string.IsNullOrWhiteSpace(component) || !UnicodeScalarText.IsValid(component, 255, allowControls: false))
+        {
+            throw new ArgumentException("Use a component of 1-255 valid Unicode scalars without controls.", nameof(component));
+        }
+        return new CoreLogger(this, component);
+    }
+
+    internal bool IsEnabled(CoreLogLevel level)
+    {
+        ValidateLevel(level);
+        lock (admissionGate)
+        {
+            return !admissionClosed && outputs.Any(output => Interested(output, level) && !output.Admission.IsFaulted);
+        }
+    }
+
+    internal LogWriteResult Write(string component, CoreLogLevel level, LogEventData? data, Func<LogEventData>? factory)
+    {
+        ValidateLevel(level);
+        bool renderConsole, renderFile;
+        lock (admissionGate)
+        {
+            if (admissionClosed) { return Stopped(isTruncated: false); }
+            if (!outputs.Any(output => Interested(output, level))) { return FinishWithoutCapture(level, LogWriteOutcome.Filtered); }
+            if (!outputs.Any(output => Interested(output, level) && !output.Admission.IsFaulted))
+            {
+                return FinishWithoutCapture(level, LogWriteOutcome.Rejected);
+            }
+            renderConsole = consoleWriter is not null && outputs.Any(output => output.Name == "console" && Interested(output, level) && !output.Admission.IsFaulted);
+            renderFile = fileWriter is not null && outputs.Any(output => output.Name == "file" && Interested(output, level) && !output.Admission.IsFaulted);
+        }
+        // No gate is held around caller factories, clock, scopes or payload callbacks.
+        if (factory is not null) { data = factory(); }
+        if (data is null) { return Invalid("InvalidFactoryResult"); }
+        string? eventName = data.EventName;
+        string? message = data.Message;
+        string? template = data.MessageTemplate;
+        string? operationId = data.OperationId;
+        CapturedEventFacts facts;
+        try
+        {
+            facts = EventProjection.Capture(metadata, Scopes.Capture(), component, level, data, timeProvider)!;
+        }
+        catch (Exception error) when (error is not (OutOfMemoryException or StackOverflowException))
+        {
+            return Invalid(CaptureError(eventName, message, template, operationId));
+        }
+        EncodedEvent captured;
+        RenderedEvent? preparedConsole = null, preparedFile = null;
+        // Other owned encoding/rendering consistency errors are Core defects, not invalid caller content.
+        try
+        {
+            captured = EventEncoder.Encode(facts, maximumEntryBytes);
+            if (renderConsole) { preparedConsole = consoleWriter!.Prepare(captured); }
+            if (renderFile) { preparedFile = fileWriter!.Prepare(captured); }
+        }
+        catch (EventEnvelopeTooLargeException) { return Invalid("EnvelopeTooLarge"); }
+        bool isTruncated = captured.IsTruncated || preparedConsole?.IsTruncated == true || preparedFile?.IsTruncated == true;
+        lock (admissionGate)
+        {
+            if (isTruncated) { IncrementLossCounter(ref truncatedEventCount); }
+            if (admissionClosed) { return Stopped(isTruncated); }
+            return Admit(level, captured, preparedConsole?.Line, preparedFile?.Line, isTruncated);
+        }
+    }
+
+    // Primitive internal qualification closure: no final flush or bounded shutdown is promised.
+    // Supported applications use StopAsync/DisposeAsync; a later flush cannot reopen an exited worker.
+    internal void CloseAdmission()
+    {
+        lock (admissionGate) { shutdownStartedAtUtc ??= DateTimeOffset.UtcNow; admissionClosed = true; queuedOutputs?.Complete(); }
+    }
+
+    private LogWriteResult Invalid(string code)
+    {
+        IncrementLossCounter(ref invalidEventCount);
+        return new LogWriteResult(LogWriteOutcome.InvalidEvent, [], code);
+    }
+
+    // Loss counters retain a nonnegative lower bound once Int64 can no longer represent the total.
+    private static void IncrementLossCounter(ref long counter)
+    {
+        long current = Interlocked.Read(ref counter);
+        while (current != long.MaxValue)
+        {
+            long observed = Interlocked.CompareExchange(ref counter, current + 1, current);
+            if (observed == current) { return; }
+            current = observed;
+        }
+    }
+
+    private LogWriteResult Stopped(bool isTruncated) => new(LogWriteOutcome.Stopped,
+        outputs.Select(output => new LogOutputWriteResult(output.Name, LogOutputWriteStatus.Stopped, null)), isTruncated: isTruncated);
+
+    private LogWriteResult FinishWithoutCapture(CoreLogLevel level, LogWriteOutcome outcome)
+    {
+        var observations = new List<LogOutputWriteResult>(outputs.Length);
+        foreach (Output output in outputs)
+        {
+            LogOutputWriteStatus status;
+            if (Interested(output, level))
+            {
+                output.Admission.RecordUnavailable();
+                status = LogOutputWriteStatus.Faulted;
+            }
+            else
+            {
+                output.Admission.RecordFiltered();
+                status = LogOutputWriteStatus.Filtered;
+            }
+            observations.Add(new LogOutputWriteResult(output.Name, status, null));
+        }
+        return new LogWriteResult(outcome, observations);
+    }
+
+    private LogWriteResult Admit(CoreLogLevel level, EncodedEvent captured, ReadOnlyMemory<byte>? consoleLine, ReadOnlyMemory<byte>? fileLine, bool isTruncated)
+    {
+        var observations = new List<LogOutputWriteResult>(outputs.Length);
+        int accepted = 0;
+        int interested = 0;
+        foreach (Output output in outputs)
+        {
+            long? sequence = null;
+            LogOutputWriteStatus status;
+            if (!Interested(output, level))
+            {
+                output.Admission.RecordFiltered();
+                status = LogOutputWriteStatus.Filtered;
+            }
+            else
+            {
+                interested++;
+                if (output.Admission.IsFaulted)
+                {
+                    output.Admission.RecordUnavailable();
+                    status = LogOutputWriteStatus.Faulted;
+                }
+                else if (output.Name == "console" && consoleLine is { } preparedLine)
+                { status = queuedOutputs!.Console!.TryAdmit(captured, preparedLine, out sequence); }
+                else if (output.Name == "file" && fileLine is { } preparedFileLine)
+                { status = queuedOutputs!.File!.TryAdmit(captured, preparedFileLine, out sequence); }
+                else { status = output.Admission.TryAdmit(captured, out sequence); }
+                if (status == LogOutputWriteStatus.Accepted) { accepted++; }
+            }
+            if (Interested(output, level) && status is not (LogOutputWriteStatus.Accepted or LogOutputWriteStatus.QueueFull or LogOutputWriteStatus.Faulted))
+            {
+                throw new InvalidOperationException("Output admission returned an invalid status.");
+            }
+            if (status == LogOutputWriteStatus.Accepted ? sequence is null or <= 0 : sequence is not null)
+            {
+                throw new InvalidOperationException("Output admission returned an invalid ticket.");
+            }
+            observations.Add(new LogOutputWriteResult(output.Name, status, sequence));
+        }
+        LogWriteOutcome outcome = LogWriteOutcome.Rejected;
+        if (accepted == interested) { outcome = LogWriteOutcome.Accepted; }
+        else if (accepted > 0) { outcome = LogWriteOutcome.PartiallyAccepted; }
+        return new LogWriteResult(outcome, observations, isTruncated: isTruncated);
+    }
+
+    private static string CaptureError(string? name, string? message, string? template, string? operationId)
+    {
+        foreach (string? text in new[] { name, message, template, operationId })
+        {
+            if (text is not null && !UnicodeScalarText.IsValid(text, int.MaxValue, allowControls: true)) { return "InvalidUnicode"; }
+        }
+        if (string.IsNullOrEmpty(name) || !UnicodeScalarText.IsValid(name, 255, allowControls: false)) { return "InvalidEventName"; }
+        if (message is null) { return "InvalidMessage"; }
+        string? operation = operationId?.Trim();
+        if (!string.IsNullOrEmpty(operation) && !UnicodeScalarText.IsValid(operation, 255, allowControls: false)) { return "InvalidOperationId"; }
+        // Arbitrary cooperative callback/unsupported payload failures expose only this fixed code.
+        return "UnsupportedValue";
+    }
+
+    private static bool Interested(Output output, CoreLogLevel level) => level != CoreLogLevel.None && level >= output.Threshold;
+    private static void ValidateSettings(CoreLogLevel console, CoreLogLevel file, int maximumBytes)
+    {
+        ValidateLevel(console); ValidateLevel(file);
+        if (maximumBytes is < LoggingOptions.MinimumMaxEntryBytes or > LoggingOptions.MaximumMaxEntryBytes) { throw new ArgumentOutOfRangeException("options"); }
+    }
+    private static void ValidateLevel(CoreLogLevel level)
+    {
+        if (!Enum.IsDefined(level)) { throw new ArgumentOutOfRangeException(nameof(level), "Use a declared logging level."); }
+    }
+    private sealed record Output(string Name, CoreLogLevel Threshold, ILogOutputAdmission Admission);
+}
+
+--- FILE implementations/csharp/src/CIS.Core/Logging/LogValue.cs ---
+using System.Collections.ObjectModel;
+using System.Globalization;
+using CIS.Logging.Values;
+
+namespace CIS.Logging;
+
+/// <summary>An immutable, explicitly typed scalar or owned collection of attribute values.</summary>
+/// <remarks>Collection inputs are copied; already immutable child values may be shared.
+/// Every collection root is node 1 at depth 1; retained shapes have at most 1024 nodes and depth 8.
+/// Oversized collections keep a bounded projection and carry truncation provenance.
+/// UUID/time factories accept typed scalars; arbitrary objects have no conversion path.
+/// Event capture/rendering applies the separately configured aggregate entry limit.</remarks>
+public sealed class LogValue
+{
+    private const long MaximumSafeInteger = 9_007_199_254_740_991;
+    private readonly LogValueScalar scalar;
+    private readonly ReadOnlyCollection<LogValue>? array;
+    private readonly ReadOnlyDictionary<string, LogValue>? map;
+
+    private LogValue(LogValueKind kind, LogValueScalar scalar = default,
+        ReadOnlyCollection<LogValue>? array = null, ReadOnlyDictionary<string, LogValue>? map = null, bool isTruncated = false)
+    {
+        Kind = kind;
+        this.scalar = scalar;
+        this.array = array;
+        this.map = map;
+        var shape = (Nodes: 1, Depth: 1, Truncated: false);
+        if (array is not null)
+        {
+            shape = Measure(array);
+        }
+        else if (map is not null)
+        {
+            shape = Measure(map.Values);
+        }
+        NodeCount = shape.Nodes;
+        Depth = shape.Depth;
+        IsTruncated = isTruncated || shape.Truncated;
+    }
+
+    /// <summary>Gets the constructor-selected representation; magnitude never changes it.</summary>
+    public LogValueKind Kind { get; }
+
+    /// <summary>Gets whether this value or a retained descendant has omitted content.</summary>
+    /// <remarks>Collection projection propagates prior and newly observed truncation.
+    /// Aggregate entry-byte projection remains an event capture/rendering responsibility.</remarks>
+    public bool IsTruncated { get; }
+
+    internal int NodeCount { get; }
+    internal int Depth { get; }
+    internal LogValueScalar Scalar => scalar;
+    internal IReadOnlyList<LogValue> ArrayItems => array ?? throw new InvalidOperationException("Value is not an array.");
+    internal IReadOnlyDictionary<string, LogValue> MapProperties => map ?? throw new InvalidOperationException("Value is not a map.");
+
+    /// <summary>Creates an explicit null value.</summary>
+    public static LogValue Null() => new(LogValueKind.Null);
+
+    /// <summary>Creates a Boolean value.</summary>
+    public static LogValue Boolean(bool value) => new(LogValueKind.Boolean, new(value));
+
+    /// <summary>Creates a string, preserving valid Unicode text and control characters.</summary>
+    /// <exception cref="ArgumentNullException">value is null.</exception>
+    /// <exception cref="ArgumentException">value contains malformed UTF-16.</exception>
+    public static LogValue String(string value)
+    {
+        ArgumentNullException.ThrowIfNull(value);
+        if (!LogValueText.IsValidUnicode(value))
+        {
+            throw new ArgumentException("Use valid Unicode scalar text.", nameof(value));
+        }
+        return new(LogValueKind.String, new(value));
+    }
+
+    /// <summary>Creates a finite floating-point number, including integer-valued doubles.</summary>
+    /// <exception cref="ArgumentOutOfRangeException">value is NaN or infinite.</exception>
+    public static LogValue Number(double value)
+    {
+        if (!double.IsFinite(value))
+        {
+            throw new ArgumentOutOfRangeException(nameof(value), "Use a finite floating-point number.");
+        }
+        return new(LogValueKind.Number, new(value));
+    }
+
+    /// <summary>Creates an integer within inclusive -9007199254740991 through 9007199254740991.</summary>
+    /// <exception cref="ArgumentOutOfRangeException">value is outside the portable safe range.</exception>
+    public static LogValue Integer(long value)
+    {
+        if (value < -MaximumSafeInteger || value > MaximumSafeInteger)
+        {
+            throw new ArgumentOutOfRangeException(nameof(value), "Use an integer within inclusive -9007199254740991 through 9007199254740991, or explicitly select IntegerString.");
+        }
+        return new(LogValueKind.Integer, new(value));
+    }
+
+    /// <summary>Creates a canonical base-10 integer string without limiting its magnitude.</summary>
+    /// <remarks>No exponent, leading plus/zeros, whitespace or negative zero is accepted.</remarks>
+    /// <exception cref="ArgumentNullException">value is null.</exception>
+    /// <exception cref="ArgumentException">value is not a canonical integer representation.</exception>
+    public static LogValue IntegerString(string value)
+    {
+        ArgumentNullException.ThrowIfNull(value);
+        if (!LogValueText.IsInteger(value))
+        {
+            throw new ArgumentException("Use canonical signed base-10 integer text, without leading zeros, exponent or negative zero.", nameof(value));
+        }
+        return new(LogValueKind.IntegerString, new(value));
+    }
+
+    /// <summary>Creates invariant non-exponent decimal text, preserving fractional precision.</summary>
+    /// <remarks>A fractional part is required; trailing zeros and negative decimal zero are preserved.</remarks>
+    /// <exception cref="ArgumentNullException">value is null.</exception>
+    /// <exception cref="ArgumentException">value is not an invariant decimal representation.</exception>
+    public static LogValue DecimalString(string value)
+    {
+        ArgumentNullException.ThrowIfNull(value);
+        if (!LogValueText.IsDecimal(value))
+        {
+            throw new ArgumentException("Use invariant decimal text with a fractional part and no exponent or leading zeros.", nameof(value));
+        }
+        return new(LogValueKind.DecimalString, new(value));
+    }
+
+    /// <summary>Creates a lowercase UUID string in hyphenated 8-4-4-4-12 form.</summary>
+    /// <remarks>All Guid values, including Guid.Empty, are valid attribute scalars.</remarks>
+    public static LogValue Uuid(Guid value) => new(LogValueKind.Uuid, new(value.ToString("D")));
+
+    /// <summary>Creates a UTC timestamp with exactly seven fractional digits.</summary>
+    /// <remarks>The supplied offset is converted to the same UTC instant; formatting is invariant.</remarks>
+    public static LogValue Timestamp(DateTimeOffset value) => new(LogValueKind.Timestamp,
+        new(value.UtcDateTime.ToString("yyyy-MM-dd'T'HH:mm:ss.fffffff'Z'", CultureInfo.InvariantCulture)));
+
+    /// <summary>Creates a bounded owned array, preserving input order.</summary>
+    /// <remarks>The root counts as node/depth 1. At most 1024 nodes and depth 8 are retained.
+    /// Copying stops after the first excess child; observed invalid children remain errors.</remarks>
+    /// <exception cref="ArgumentNullException">items is null.</exception>
+    /// <exception cref="ArgumentException">items contains a null reference instead of LogValue.Null().</exception>
+    public static LogValue Array(IEnumerable<LogValue> items)
+    {
+        ArgumentNullException.ThrowIfNull(items);
+        return new LogValueProjection().Array(items, depth: 1);
+    }
+
+    /// <summary>Creates a bounded owned ordinal map, preserving key text.</summary>
+    /// <remarks>The root counts as node/depth 1. At most 1024 nodes and depth 8 are retained.
+    /// Structural projection keeps the enumeration prefix and stops at the first excess child.
+    /// Retained keys compare ordinally; observed invalid keys/children remain errors.</remarks>
+    /// <exception cref="ArgumentNullException">properties is null.</exception>
+    /// <exception cref="ArgumentException">A key is empty, malformed, contains controls, exceeds 255 scalars,
+    /// occurs twice, or a value is a null reference instead of LogValue.Null().</exception>
+    public static LogValue Map(IReadOnlyDictionary<string, LogValue> properties)
+    {
+        ArgumentNullException.ThrowIfNull(properties);
+        return new LogValueProjection().Map(properties, depth: 1);
+    }
+
+    internal static LogValue OwnedArray(List<LogValue> items, bool truncated) =>
+        new(LogValueKind.Array, array: items.AsReadOnly(), isTruncated: truncated);
+
+    internal static LogValue OwnedMap(Dictionary<string, LogValue> properties, bool truncated) =>
+        new(LogValueKind.Map, map: new(properties), isTruncated: truncated);
+
+    private static (int Nodes, int Depth, bool Truncated) Measure(IEnumerable<LogValue> children)
+    {
+        int nodes = 1;
+        int depth = 1;
+        bool truncated = false;
+        foreach (LogValue child in children)
+        {
+            nodes += child.NodeCount;
+            depth = Math.Max(depth, child.Depth + 1);
+            truncated |= child.IsTruncated;
+        }
+        return (nodes, depth, truncated);
+    }
+}
+
+--- FILE implementations/csharp/src/CIS.Core/Logging/Values/LogValueProjection.cs ---
+namespace CIS.Logging.Values;
+
+// One budget per root. Reused immutable subtrees still count once per containment occurrence.
+internal sealed class LogValueProjection
+{
+    internal const int MaximumNodes = 1024;
+    internal const int MaximumDepth = 8;
+    private int remainingNodes = MaximumNodes - 1;
+
+    internal LogValue Array(IEnumerable<LogValue> items, int depth, bool truncated = false)
+    {
+        var owned = new List<LogValue>();
+        foreach (LogValue item in items)
+        {
+            if (item is null)
+            {
+                throw new ArgumentException("Use LogValue.Null() for explicit null array elements.", nameof(items));
+            }
+            LogValue? retained = Project(item, depth + 1);
+            if (retained is null)
+            {
+                truncated = true;
+                break;
+            }
+            owned.Add(retained);
+        }
+        return LogValue.OwnedArray(owned, truncated);
+    }
+
+    internal LogValue Map(IReadOnlyDictionary<string, LogValue> properties, int depth, bool truncated = false)
+    {
+        var owned = new Dictionary<string, LogValue>(StringComparer.Ordinal);
+        foreach ((string key, LogValue value) in properties)
+        {
+            if (key is null || !LogValueText.IsValidKey(key) || value is null || owned.ContainsKey(key))
+            {
+                throw new ArgumentException("Use unique ordinal keys of 1–255 valid Unicode scalars without controls, and explicit LogValue values.", nameof(properties));
+            }
+            LogValue? retained = Project(value, depth + 1);
+            if (retained is null)
+            {
+                truncated = true;
+                break;
+            }
+            owned.Add(key, retained);
+        }
+        return LogValue.OwnedMap(owned, truncated);
+    }
+
+    private LogValue? Project(LogValue value, int depth)
+    {
+        if (remainingNodes == 0 || depth > MaximumDepth)
+        {
+            return null;
+        }
+        if (value.NodeCount <= remainingNodes && depth - 1 + value.Depth <= MaximumDepth)
+        {
+            remainingNodes -= value.NodeCount;
+            return value;
+        }
+        remainingNodes--;
+        return value.Kind switch
+        {
+            LogValueKind.Array => Array(value.ArrayItems, depth, value.IsTruncated),
+            LogValueKind.Map => Map(value.MapProperties, depth, value.IsTruncated),
+            _ => throw new InvalidOperationException("A supported scalar cannot exceed a positive shape budget.")
+        };
+    }
+}
+
+--- FILE implementations/csharp/src/CIS.Core/Logging/Values/LogValueText.cs ---
+using CIS.Text;
+
+namespace CIS.Logging.Values;
+
+internal static class LogValueText
+{
+    public static bool IsValidUnicode(string value) => UnicodeScalarText.IsValid(value, int.MaxValue, allowControls: true);
+
+    public static bool IsValidKey(string value) => value.Length > 0 && UnicodeScalarText.IsValid(value, 255, allowControls: false);
+
+    public static bool IsInteger(string value)
+    {
+        int start = value.StartsWith('-') ? 1 : 0;
+        if (start == value.Length)
+        {
+            return false;
+        }
+        if (value[start] == '0')
+        {
+            return start == 0 && value.Length == 1;
+        }
+        return value[start] is >= '1' and <= '9' && Digits(value.AsSpan(start + 1));
+    }
+
+    public static bool IsDecimal(string value)
+    {
+        int start = value.StartsWith('-') ? 1 : 0;
+        int point = value.IndexOf('.');
+        if (point <= start || point == value.Length - 1)
+        {
+            return false;
+        }
+        ReadOnlySpan<char> whole = value.AsSpan(start, point - start);
+        bool validWhole = whole.Length == 1 && whole[0] == '0' ||
+            whole[0] is >= '1' and <= '9' && Digits(whole[1..]);
+        return validWhole && Digits(value.AsSpan(point + 1));
+    }
+
+    private static bool Digits(ReadOnlySpan<char> value)
+    {
+        foreach (char character in value)
+        {
+            if (character is < '0' or > '9')
+            {
+                return false;
+            }
+        }
+        return true;
+    }
+}
+
+--- FILE implementations/csharp/src/CIS.Core/Logging/Events/EventWireFormat.cs ---
+using System.Globalization;
+using System.Text.Json;
+using CIS.Logging.Exceptions;
+
+namespace CIS.Logging.Events;
+
+// One v1 JSON format; measurement includes delimiters, the actual string encoder and final LF.
+internal static class EventWireFormat
+{
+    internal static int PropertySize(string name, int valueBytes) => name.Length + 4 + valueBytes;
+    internal static string Timestamp(DateTimeOffset value) => value.UtcDateTime.ToString("yyyy-MM-dd'T'HH:mm:ss.fffffff'Z'", CultureInfo.InvariantCulture);
+
+    internal static int Size(CapturedEventFacts facts, int limit)
+    {
+        int size = 2 + PropertySize("schema_version", 1)
+            + PropertySize("timestamp", JsonTextBytes.Size(Timestamp(facts.TimestampUtc), limit))
+            + PropertySize("status", JsonTextBytes.Size(facts.Status, limit))
+            + PropertySize("event_name", JsonTextBytes.Size(facts.EventName, limit))
+            + PropertySize("message", JsonTextBytes.Size(facts.Message, limit))
+            + PropertySize("service", JsonTextBytes.Size(facts.Service, limit))
+            + PropertySize("env", JsonTextBytes.Size(facts.Environment, limit))
+            + PropertySize("version", JsonTextBytes.Size(facts.Version, limit))
+            + PropertySize("component", JsonTextBytes.Size(facts.Component, limit));
+        if (size > limit) { return limit + 1; }
+        size += PropertySize("resource", ValueSize(facts.Resource, limit));
+        if (size > limit) { return limit + 1; }
+        size += PropertySize("attributes", ValueSize(facts.Attributes, limit));
+        if (facts.OperationId is { } operation) { size += PropertySize("operation_id", JsonTextBytes.Size(operation, limit)); }
+        if (facts.TraceId is { } trace) { size += PropertySize("trace_id", JsonTextBytes.Size(trace, limit)); }
+        if (facts.SpanId is { } span) { size += PropertySize("span_id", JsonTextBytes.Size(span, limit)); }
+        if (size > limit) { return limit + 1; }
+        if (facts.Exception is { } error) { size += PropertySize("exception", ExceptionSize(error, limit)); }
+        if (facts.MessageTemplate is { } template) { size += PropertySize("message_template", JsonTextBytes.Size(template, limit)); }
+        if (facts.IsTruncated) { size += PropertySize("truncated", 4); }
+        // Each property includes its leading comma; remove the first comma and add LF (net zero).
+        return size > limit ? limit + 1 : size;
+    }
+
+    internal static int ValueSize(LogValue value, int limit)
+    {
+        switch (value.Kind)
+        {
+            case LogValueKind.Null: return 4;
+            case LogValueKind.Boolean: return value.Scalar.Boolean ? 4 : 5;
+            case LogValueKind.Integer: return value.Scalar.Integer.ToString(CultureInfo.InvariantCulture).Length;
+            case LogValueKind.Number: return value.Scalar.Number.ToString("R", CultureInfo.InvariantCulture).Length;
+            case LogValueKind.String:
+            case LogValueKind.IntegerString:
+            case LogValueKind.DecimalString:
+            case LogValueKind.Uuid:
+            case LogValueKind.Timestamp: return JsonTextBytes.Size(value.Scalar.Text!, limit);
+            case LogValueKind.Array:
+                int arraySize = 2;
+                foreach (LogValue item in value.ArrayItems)
+                {
+                    arraySize += (arraySize == 2 ? 0 : 1) + ValueSize(item, limit);
+                    if (arraySize > limit) { return limit + 1; }
+                }
+                return arraySize;
+            case LogValueKind.Map:
+                int mapSize = 2;
+                foreach ((string key, LogValue item) in value.MapProperties)
+                {
+                    mapSize += (mapSize == 2 ? 0 : 1) + JsonTextBytes.Size(key, limit) + 1 + ValueSize(item, limit);
+                    if (mapSize > limit) { return limit + 1; }
+                }
+                return mapSize;
+            default: throw new InvalidOperationException("Unsupported owned log value.");
+        }
+    }
+
+    internal static int ExceptionSize(CapturedException error, int limit)
+    {
+        int size = 1 + PropertySize("type", JsonTextBytes.Size(error.Type, limit))
+            + PropertySize("message", JsonTextBytes.Size(error.Message, limit));
+        if (error.StackTrace is { } stack) { size += PropertySize("stack_trace", JsonTextBytes.Size(stack, limit)); }
+        if (size > limit) { return limit + 1; }
+        if (error.InnerExceptions.Count > 0)
+        {
+            size += PropertySize("inner_exceptions", 2);
+            for (int i = 0; i < error.InnerExceptions.Count; i++)
+            {
+                size += (i == 0 ? 0 : 1) + ExceptionSize(error.InnerExceptions[i], limit);
+                if (size > limit) { return limit + 1; }
+            }
+        }
+        if (error.IsTruncated) { size += PropertySize("truncated", 4); }
+        return size > limit ? limit + 1 : size;
+    }
+
+    internal static void Write(Utf8JsonWriter writer, CapturedEventFacts facts)
+    {
+        writer.WriteStartObject();
+        writer.WriteNumber("schema_version", facts.SchemaVersion);
+        Text(writer, "timestamp", Timestamp(facts.TimestampUtc));
+        Text(writer, "status", facts.Status);
+        Text(writer, "event_name", facts.EventName);
+        Text(writer, "message", facts.Message);
+        Text(writer, "service", facts.Service);
+        Text(writer, "env", facts.Environment);
+        Text(writer, "version", facts.Version);
+        Text(writer, "component", facts.Component);
+        writer.WritePropertyName("resource"); WriteValue(writer, facts.Resource);
+        writer.WritePropertyName("attributes"); WriteValue(writer, facts.Attributes);
+        if (facts.OperationId is { } operation) { Text(writer, "operation_id", operation); }
+        if (facts.TraceId is { } trace) { Text(writer, "trace_id", trace); }
+        if (facts.SpanId is { } span) { Text(writer, "span_id", span); }
+        if (facts.Exception is { } error) { writer.WritePropertyName("exception"); WriteException(writer, error); }
+        if (facts.MessageTemplate is { } template) { Text(writer, "message_template", template); }
+        if (facts.IsTruncated) { writer.WriteBoolean("truncated", true); }
+        writer.WriteEndObject();
+    }
+
+    internal static void WriteValue(Utf8JsonWriter writer, LogValue value)
+    {
+        switch (value.Kind)
+        {
+            case LogValueKind.Null: writer.WriteNullValue(); break;
+            case LogValueKind.Boolean: writer.WriteBooleanValue(value.Scalar.Boolean); break;
+            case LogValueKind.Integer: writer.WriteNumberValue(value.Scalar.Integer); break;
+            case LogValueKind.Number: writer.WriteNumberValue(value.Scalar.Number); break;
+            case LogValueKind.Array:
+                writer.WriteStartArray();
+                foreach (LogValue child in value.ArrayItems) { WriteValue(writer, child); }
+                writer.WriteEndArray(); break;
+            case LogValueKind.Map:
+                writer.WriteStartObject();
+                foreach ((string key, LogValue child) in value.MapProperties.OrderBy(pair => pair.Key, StringComparer.Ordinal))
+                {
+                    writer.WritePropertyName(JsonEncodedText.Encode(key, JsonTextBytes.Encoder)); WriteValue(writer, child);
+                }
+                writer.WriteEndObject(); break;
+            default: writer.WriteStringValue(JsonEncodedText.Encode(value.Scalar.Text!, JsonTextBytes.Encoder)); break;
+        }
+    }
+
+    private static void WriteException(Utf8JsonWriter writer, CapturedException error)
+    {
+        writer.WriteStartObject();
+        Text(writer, "type", error.Type); Text(writer, "message", error.Message);
+        if (error.StackTrace is { } stack) { Text(writer, "stack_trace", stack); }
+        if (error.InnerExceptions.Count > 0)
+        {
+            writer.WriteStartArray("inner_exceptions");
+            foreach (CapturedException child in error.InnerExceptions) { WriteException(writer, child); }
+            writer.WriteEndArray();
+        }
+        if (error.IsTruncated) { writer.WriteBoolean("truncated", true); }
+        writer.WriteEndObject();
+    }
+
+    private static void Text(Utf8JsonWriter writer, string name, string value)
+    {
+        writer.WritePropertyName(name); writer.WriteStringValue(JsonEncodedText.Encode(value, JsonTextBytes.Encoder));
+    }
+}
+
+--- FILE implementations/csharp/src/CIS.Core/Logging/Events/EventByteProjection.cs ---
+using CIS.Logging.Exceptions;
+
+namespace CIS.Logging.Events;
+
+// Allocates a byte budget to owned payloads in the documented priority order.
+internal static class EventByteProjection
+{
+    private static bool Descriptive(string key) => key is "os_description" or "runtime_description";
+
+    internal static CapturedEventFacts Fit(CapturedEventFacts source, int maximum)
+    {
+        var resource = source.Resource.MapProperties.Where(pair => !Descriptive(pair.Key)).ToDictionary(pair => pair.Key, pair => pair.Value, StringComparer.Ordinal);
+        CapturedEventFacts envelope = Copy(source, string.Empty, LogValue.Map(resource), LogValue.Map(new Dictionary<string, LogValue>()), null, null);
+        int remaining = maximum - EventWireFormat.Size(envelope, maximum);
+        if (remaining < 0) { throw new EventEnvelopeTooLargeException(); }
+        string message = JsonTextBytes.Prefix(source.Message, remaining, out _);
+        remaining -= JsonTextBytes.Size(message, maximum) - 2;
+        LogValue attributes = Value(source.Attributes, remaining + 2, out int attributeSize)!;
+        remaining -= attributeSize - 2;
+        CapturedException? error = null;
+        if (source.Exception is { } original)
+        {
+            int overhead = EventWireFormat.PropertySize("exception", 0);
+            error = Exception(original, remaining - overhead, out int errorSize);
+            if (error is not null) { remaining -= overhead + errorSize; }
+        }
+        string? template = null;
+        if (source.MessageTemplate is { } originalTemplate)
+        {
+            int overhead = EventWireFormat.PropertySize("message_template", 2);
+            if (remaining >= overhead)
+            {
+                string prefix = JsonTextBytes.Prefix(originalTemplate, remaining - overhead, out _);
+                if (prefix.Length != 0 || originalTemplate.Length == 0)
+                {
+                    template = prefix; remaining -= overhead + JsonTextBytes.Size(prefix, maximum) - 2;
+                }
+            }
+        }
+        foreach ((string key, LogValue description) in source.Resource.MapProperties.Where(pair => Descriptive(pair.Key)).OrderBy(pair => pair.Key, StringComparer.Ordinal))
+        {
+            int overhead = EventWireFormat.PropertySize(key, 0);
+            LogValue? retained = Value(description, remaining - overhead, out int size);
+            if (retained is not null) { resource[key] = retained; remaining -= overhead + size; }
+        }
+        return Copy(source, message, LogValue.Map(resource), attributes, error, template);
+    }
+
+    private static CapturedEventFacts Copy(CapturedEventFacts source, string message, LogValue resource,
+        LogValue attributes, CapturedException? error, string? template) => new(source.TimestampUtc, source.TraceId, source.SpanId,
+            source.Status, source.EventName, message, template, source.OperationId, source.Service, source.Environment,
+            source.Version, source.Component, resource, attributes, error, isTruncated: true);
+
+    private static LogValue? Value(LogValue source, int available, out int size)
+    {
+        size = 0;
+        if (available < 1) { return null; }
+        int fullSize = EventWireFormat.ValueSize(source, available);
+        if (fullSize <= available) { size = fullSize; return source; }
+        if (available < 2) { return null; }
+        if (source.Kind == LogValueKind.String)
+        {
+            string prefix = JsonTextBytes.Prefix(source.Scalar.Text!, available - 2, out _);
+            if (prefix.Length == 0 && source.Scalar.Text!.Length != 0) { return null; }
+            size = JsonTextBytes.Size(prefix, available);
+            return LogValue.String(prefix);
+        }
+        if (source.Kind == LogValueKind.Array)
+        {
+            size = 2;
+            var children = new List<LogValue>();
+            foreach (LogValue child in source.ArrayItems)
+            {
+                int comma = children.Count == 0 ? 0 : 1;
+                LogValue? retained = Value(child, available - size - comma, out int childSize);
+                if (retained is not null) { children.Add(retained); size += comma + childSize; }
+            }
+            return LogValue.OwnedArray(children, truncated: true);
+        }
+        if (source.Kind == LogValueKind.Map)
+        {
+            size = 2;
+            var children = new Dictionary<string, LogValue>(StringComparer.Ordinal);
+            foreach ((string key, LogValue child) in source.MapProperties.OrderBy(pair => pair.Key, StringComparer.Ordinal))
+            {
+                int overhead = (children.Count == 0 ? 0 : 1) + JsonTextBytes.Size(key, available) + 1;
+                LogValue? retained = Value(child, available - size - overhead, out int childSize);
+                if (retained is not null) { children[key] = retained; size += overhead + childSize; }
+            }
+            return LogValue.OwnedMap(children, truncated: true);
+        }
+        // Explicit numeric strings, UUIDs, timestamps and other scalars are indivisible.
+        return null;
+    }
+
+    private static CapturedException? Exception(CapturedException source, int available, out int size)
+    {
+        size = 0;
+        if (available <= 0) { return null; }
+        int fullSize = EventWireFormat.ExceptionSize(source, available);
+        if (fullSize <= available) { size = fullSize; return source; }
+        size = 1 + EventWireFormat.PropertySize("type", JsonTextBytes.Size(source.Type, available))
+            + EventWireFormat.PropertySize("message", 2) + EventWireFormat.PropertySize("truncated", 4);
+        if (size > available) { size = 0; return null; }
+        string message = JsonTextBytes.Prefix(source.Message, available - size, out _);
+        size += JsonTextBytes.Size(message, available) - 2;
+        string? stack = null;
+        if (source.StackTrace is { } originalStack)
+        {
+            int overhead = EventWireFormat.PropertySize("stack_trace", 2);
+            if (available - size >= overhead)
+            {
+                stack = JsonTextBytes.Prefix(originalStack, available - size - overhead, out _);
+                size += overhead + JsonTextBytes.Size(stack, available) - 2;
+            }
+        }
+        var children = new List<CapturedException>();
+        int arrayOverhead = EventWireFormat.PropertySize("inner_exceptions", 2);
+        foreach (CapturedException child in source.InnerExceptions)
+        {
+            int overhead = children.Count == 0 ? arrayOverhead : 1;
+            CapturedException? retained = Exception(child, available - size - overhead, out int childSize);
+            if (retained is not null) { children.Add(retained); size += overhead + childSize; }
+        }
+        return new CapturedException(source.Type, message, stack, children, isTruncated: true);
+    }
+}
+
+--- FILE implementations/csharp/src/CIS.Core/Logging/Scopes/CapturedScopeContext.cs ---
+using CIS.Logging.Values;
+
+namespace CIS.Logging.Scopes;
+
+// An immutable merged view, independent of store/flow/frame lifetime.
+internal sealed class CapturedScopeContext
+{
+    private static readonly CapturedScopeContext Empty = new(null,
+        LogValue.Map(new Dictionary<string, LogValue>()), scopeDepth: 0);
+
+    private CapturedScopeContext(string? operationId, LogValue attributes, int scopeDepth)
+    {
+        OperationId = operationId;
+        Attributes = attributes;
+        ScopeDepth = scopeDepth;
+    }
+
+    internal string? OperationId { get; }
+    internal LogValue Attributes { get; }
+    internal int ScopeDepth { get; }
+    internal bool IsTruncated => Attributes.IsTruncated;
+
+    internal static CapturedScopeContext FromHead(OperationScopeFrame? head)
+    {
+        if (head is null) { return Empty; }
+        if (head.Parent is null) { return new(head.Context.OperationId, head.Context.Attributes, scopeDepth: 1); }
+
+        // BeginScope bounds this immutable chain at 32; read it once, then merge oldest first.
+        var frames = new OperationScopeFrame[head.Depth];
+        int position = frames.Length;
+        for (OperationScopeFrame? frame = head; frame is not null; frame = frame.Parent)
+        {
+            frames[--position] = frame;
+        }
+        var winners = new Dictionary<string, LogValue>(StringComparer.Ordinal);
+        string? operationId = null;
+        bool truncated = false;
+        foreach (OperationScopeFrame frame in frames)
+        {
+            CapturedOperationContext context = frame.Context;
+            operationId = context.OperationId ?? operationId;
+            truncated |= context.IsTruncated;
+            foreach ((string key, LogValue value) in context.Attributes.MapProperties)
+            {
+                // The root consumes one node; no bounded result can retain more distinct keys.
+                // Still visit later scopes so a last-position duplicate replaces its earlier value.
+                if (winners.ContainsKey(key) || winners.Count < LogValueProjection.MaximumNodes - 1)
+                {
+                    winners[key] = value;
+                }
+                else
+                {
+                    truncated = true;
+                }
+            }
+        }
+        LogValue attributes = new LogValueProjection().Map(winners, depth: 1, truncated);
+        return new(operationId, attributes, head.Depth);
+    }
+}
+
+--- FILE implementations/csharp/tests/fixtures/DiscoveryHost/FlushStressSupport.cs ---
+using System.Collections;
+using System.Globalization;
+using System.Reflection;
+using System.Runtime.InteropServices;
+using System.Security.Cryptography;
+using System.Text.Json.Nodes;
+using CIS.Logging;
+using CIS.Logging.Runtime;
+
+namespace CIS.Tests.DiscoveryFixture;
+
+internal static class FlushStressSupport
+{
+    internal static readonly TimeSpan Guard = TimeSpan.FromSeconds(20);
+    internal static TaskCompletionSource Signal() => new(TaskCreationOptions.RunContinuationsAsynchronously);
+    internal static void Require([System.Diagnostics.CodeAnalysis.DoesNotReturnIf(false)] bool value) { if (!value) { throw new InvalidOperationException("Flush stress invariant failed."); } }
+    internal static async Task UntilAsync(Func<bool> predicate)
+    {
+        using var guard = new CancellationTokenSource(Guard);
+        while (!predicate()) { await Task.Delay(1, guard.Token); }
+    }
+    internal static string Number(long n) => n.ToString(CultureInfo.InvariantCulture);
+    internal static void Accepted(LogWriteResult result) => Require(result.Outcome == LogWriteOutcome.Accepted);
+    internal static LogEventData Data(string name) => FlushResultFixture.Data(name);
+    internal static JsonObject Result(LogFlushResult result) => FlushResultFixture.Serialize(result);
+    internal static JsonObject Common(string mode) => new()
+    {
+        ["mode"] = mode,
+        ["pid"] = Environment.ProcessId,
+        ["runtime"] = RuntimeInformation.FrameworkDescription,
+        ["os"] = OperatingSystem.IsWindows() ? "windows" : "linux",
+        ["coreSha256"] = Hash(typeof(CoreLogRuntime).Assembly.Location),
+        ["fixtureSha256"] = Hash(typeof(FlushStressSupport).Assembly.Location)
+    };
+    private static string Hash(string path) => Convert.ToHexStringLower(SHA256.HashData(File.ReadAllBytes(path)));
+    internal static OutputFlushRegistration[] Registrations(OutputEventQueue queue)
+    {
+        object gate = Field(queue, "admissionGate")!;
+        lock (gate) { return ((IDictionary)Field(queue, "flushRequests")!).Values.Cast<OutputFlushRegistration>().ToArray(); }
+    }
+    internal static Task? Progress(OutputEventQueue queue)
+    {
+        object gate = Field(queue, "admissionGate")!;
+        lock (gate) { return (Field(queue, "dispositionChanged") as TaskCompletionSource)?.Task; }
+    }
+    internal static object? Field(object instance, string name) => (instance.GetType().GetField(name, BindingFlags.Instance | BindingFlags.NonPublic)
+        ?? throw new InvalidOperationException("Pinned inspection field unavailable: " + name)).GetValue(instance);
+    internal static JsonObject QueueGauge(OutputEventQueue queue)
+    {
+        OutputFlushRegistration[] controls = Registrations(queue);
+        return new JsonObject
+        {
+            ["controls"] = controls.Length,
+            ["attached"] = controls.Sum(c => FlushCoordinationFixture.Continuations(c.WriterFlushCompletion)),
+            ["slots"] = controls.Sum(c => FlushCoordinationFixture.ContinuationSlots(c.WriterFlushCompletion)),
+            ["buffered"] = queue.BufferedCount,
+            ["targets"] = new JsonArray(controls.Select(c => (JsonNode)JsonValue.Create(Number(c.AcceptedSequenceBoundary))!).ToArray())
+        };
+    }
+    internal static JsonArray Diagnostics(CoreLogRuntime runtime) => new(runtime.GetDiagnostics().Outputs.Select(output => (JsonNode)new JsonObject
+    {
+        ["name"] = output.OutputName,
+        ["accepted"] = Number(output.Accepted),
+        ["written"] = Number(output.Written),
+        ["failed"] = Number(output.Failed),
+        ["abandoned"] = Number(output.Abandoned),
+        ["pending"] = Number(output.Pending),
+        ["full"] = Number(output.QueueFull),
+        ["unavailable"] = Number(output.Unavailable),
+        ["filtered"] = Number(output.Filtered),
+        ["fault"] = output.LastFaultCode
+    }).ToArray());
+    internal sealed class Writer(bool holdFirstWrite = true, bool holdFirstFlush = false, bool holdSecondWrite = false, bool failFirstFlush = false) : IDisposable
+    {
+        internal readonly TaskCompletionSource FirstWrite = Signal(), SecondWrite = Signal(), FirstFlush = Signal(),
+            ReleaseFirst = Signal(), ReleaseSecond = Signal(), ReleaseFlush = Signal();
+        internal readonly MemoryStream Bytes = new();
+        internal readonly List<string> Order = [];
+        private int active;
+        private long written;
+        internal int Maximum, Writes, Flushes;
+        internal async ValueTask WriteAsync(AdmittedEvent item)
+        {
+            OutputQueueFixture.RecordMaximum(ref Maximum, Interlocked.Increment(ref active));
+            try
+            {
+                int attempt = ++Writes;
+                if (attempt == 1) { FirstWrite.TrySetResult(); if (holdFirstWrite) { await ReleaseFirst.Task; } }
+                if (attempt == 2) { SecondWrite.TrySetResult(); if (holdSecondWrite) { await ReleaseSecond.Task; } }
+                await Bytes.WriteAsync(item.Event.JsonLine); written = item.AcceptedSequence;
+                Order.Add("write." + Number(written));
+            }
+            finally { Interlocked.Decrement(ref active); }
+        }
+        internal async ValueTask FlushAsync()
+        {
+            OutputQueueFixture.RecordMaximum(ref Maximum, Interlocked.Increment(ref active));
+            try
+            {
+                if (++Flushes == 1)
+                {
+                    FirstFlush.TrySetResult(); if (holdFirstFlush) { await ReleaseFlush.Task; }
+                    if (failFirstFlush) { throw new IOException("private controlled flush failure"); }
+                }
+                await Bytes.FlushAsync(); Order.Add("flush." + Number(written));
+            }
+            finally { Interlocked.Decrement(ref active); }
+        }
+        internal JsonObject Report() => new()
+        {
+            ["maximumIo"] = Maximum,
+            ["writes"] = Writes,
+            ["flushes"] = Flushes,
+            ["bytes"] = Convert.ToBase64String(Bytes.ToArray()),
+            ["order"] = new JsonArray(Order.Select(x => (JsonNode)JsonValue.Create(x)!).ToArray())
+        };
+        internal void ReleaseAll() { ReleaseFirst.TrySetResult(); ReleaseSecond.TrySetResult(); ReleaseFlush.TrySetResult(); }
+        public void Dispose() { ReleaseAll(); Bytes.Dispose(); }
+    }
+    // Nonshipping deterministic clock: real Core timer callbacks, one-shot arms and asynchronous callback joins.
+    internal sealed class Clock : TimeProvider
+    {
+        [ThreadStatic] internal static string? CallerKey;
+        private readonly object gate = new();
+        private readonly List<Timer> timers = [];
+        private long ticks;
+        private DateTimeOffset utc = new(2026, 10, 13, 19, 20, 21, TimeSpan.Zero);
+        internal int Created, Disposed, Fires, MaximumActive, ActiveCallbacks, PendingJoins;
+        internal bool SampleOwners;
+        private int sampledCalls;
+        internal readonly List<WeakReference> Samples = [];
+        internal readonly List<JsonObject> Captures = [];
+        internal readonly TaskCompletionSource DisposalStarted = Signal();
+        public override long TimestampFrequency => TimeSpan.TicksPerSecond;
+        public override long GetTimestamp() { lock (gate) { return ticks; } }
+        public override DateTimeOffset GetUtcNow() { lock (gate) { return utc; } }
+        internal void ShiftUtc(int years) { lock (gate) { utc = utc.AddYears(years); } }
+        internal int Active { get { lock (gate) { return timers.Count; } } }
+        internal object Owner { get { lock (gate) { return timers.Single().State!; } } }
+        internal long[] Due { get { lock (gate) { return timers.Select(t => t.Due).Order().ToArray(); } } }
+        public override ITimer CreateTimer(TimerCallback callback, object? state, TimeSpan dueTime, TimeSpan period)
+        {
+            var timer = new Timer(this, callback, state);
+            if (CallerKey is { } key)
+            {
+                var observe = (Func<LogFlushResult>)Field(state!, "observe")!;
+                JsonObject initial = Result(observe()); initial["caller"] = key;
+                lock (gate) { Captures.Add(initial); }
+            }
+            lock (gate)
+            {
+                timers.Add(timer); Created++; MaximumActive = Math.Max(MaximumActive, timers.Count);
+                if (SampleOwners && sampledCalls++ % 1000 is 0 or 1) { Samples.Add(new WeakReference(state)); }
+            }
+            timer.Change(dueTime, period); return timer;
+        }
+        internal void Advance(TimeSpan elapsed, bool early = false)
+        {
+            (Timer timer, object? state)[] ready;
+            lock (gate)
+            {
+                ticks += elapsed.Ticks;
+                ready = timers.Where(t => early || t.Due <= ticks).Select(t => (t, t.State)).ToArray();
+                foreach ((Timer timer, _) in ready) { timer.Due = long.MaxValue; timer.Running++; ActiveCallbacks++; Fires++; }
+            }
+            foreach ((Timer timer, object? state) in ready)
+            {
+                try { timer.Callback(state); }
+                finally
+                {
+                    lock (gate)
+                    {
+                        timer.Running--; ActiveCallbacks--;
+                        if (timer.Disposed && timer.Running == 0) { timer.Join.TrySetResult(); }
+                    }
+                }
+            }
+        }
+        internal JsonObject Report() { lock (gate) { return new JsonObject { ["created"] = Created, ["disposed"] = Disposed, ["fires"] = Fires, ["active"] = timers.Count, ["maximumActive"] = MaximumActive, ["callbacks"] = ActiveCallbacks, ["pendingJoins"] = PendingJoins, ["dueTicks"] = new JsonArray(timers.Select(t => t.Due).Order().Select(d => (JsonNode)JsonValue.Create(Number(d))!).ToArray()) }; } }
+        private sealed class Timer(Clock clock, TimerCallback callback, object? state) : ITimer
+        {
+            internal readonly TimerCallback Callback = callback;
+            internal object? State = state;
+            internal long Due = long.MaxValue;
+            internal int Running;
+            internal bool Disposed;
+            internal readonly TaskCompletionSource Join = Signal();
+            public bool Change(TimeSpan dueTime, TimeSpan period)
+            {
+                Require(period == Timeout.InfiniteTimeSpan);
+                lock (clock.gate)
+                {
+                    if (Disposed) { return false; }
+                    Due = dueTime == Timeout.InfiniteTimeSpan ? long.MaxValue : clock.ticks + dueTime.Ticks; return true;
+                }
+            }
+            private void BeginDispose()
+            {
+                if (Disposed) { return; }
+                Disposed = true; clock.timers.Remove(this); clock.Disposed++; State = null;
+                if (Running == 0) { Join.TrySetResult(); }
+            }
+            public void Dispose() { lock (clock.gate) { BeginDispose(); } }
+            public async ValueTask DisposeAsync()
+            {
+                bool pending;
+                lock (clock.gate)
+                {
+                    BeginDispose(); pending = !Join.Task.IsCompleted;
+                    if (pending) { clock.PendingJoins++; }
+                    clock.DisposalStarted.TrySetResult();
+                }
+                try { await Join.Task.ConfigureAwait(false); }
+                finally { if (pending) { lock (clock.gate) { clock.PendingJoins--; } } }
+            }
+        }
+    }
+    internal static async Task Cleanup(CoreLogRuntime runtime, params Writer[] writers)
+    {
+        foreach (Writer writer in writers) { writer.ReleaseAll(); }
+        runtime.CloseAdmission();
+        try { await runtime.QueuedOutputs!.Completion.WaitAsync(Guard); } catch (IOException) { }
+    }
+}
+
+--- FILE implementations/csharp/tests/fixtures/DiscoveryHost/ConsoleCompositionFixture.cs ---
+using System.Diagnostics;
+using System.Globalization;
+using System.Runtime.InteropServices;
+using System.Security.Cryptography;
+using System.Text.Json.Nodes;
+using CIS.Logging;
+
+namespace CIS.Tests.DiscoveryFixture;
+
+internal static class ConsoleCompositionFixture
+{
+    private sealed class Clock : TimeProvider
+    {
+        internal int Calls;
+        public override DateTimeOffset GetUtcNow() { Calls++; return new(2026, 10, 13, 10, 11, 12, TimeSpan.Zero); }
+    }
+    internal static EventMetadata Metadata() => new("Console.App", "build-1", "1.2.3", "test", EnvironmentKind.Console,
+        "11111111-1111-1111-1111-111111111111", null, new(2026, 10, 13, 10, 0, 0, TimeSpan.Zero),
+        "unknown", null, null, null, null, null, null, null, null);
+    internal static async Task<JsonObject> ExecuteAsync(JsonObject row)
+    {
+        string profile = row["profile"]!.GetValue<string>(); bool physical = row["physical"]!.GetValue<bool>(); int selectionCalls = 0;
+        using var stderr = new MemoryStream(); using var stdout = new MemoryStream(); using var file = new MemoryStream(); var clock = new Clock();
+        var options = new LoggingOptions
+        {
+            ConsoleLevel = profile == "both" ? CoreLogLevel.Warning : profile is "file" or "disabled" ? CoreLogLevel.None : CoreLogLevel.Information,
+            FilePath = profile is "both" or "file" ? "controlled.jsonl" : null,
+            FileLevel = CoreLogLevel.Debug,
+            MaxEntryBytes = row["maxEntryBytes"]!.GetValue<int>(),
+            QueueCapacity = 16
+        };
+        if (row["format"]!.GetValue<int>() == 1) { options.ConsoleFormat = LogOutputFormat.JsonLines; }
+        if (row["detail"]!.GetValue<int>() == 1) { options.HumanDetail = HumanOutputDetail.Verbose; }
+        if (row["stream"]!.GetValue<int>() == 1) { options.ConsoleStream = ConsoleOutputStream.StandardOutput; }
+        Stream Select(ConsoleOutputStream selected)
+        {
+            selectionCalls++; options.ConsoleFormat = (LogOutputFormat)999; options.HumanDetail = (HumanOutputDetail)999; options.ConsoleStream = (ConsoleOutputStream)999;
+            options.ConsoleLevel = CoreLogLevel.None; options.FileLevel = CoreLogLevel.None; options.FilePath = null; options.QueueCapacity = 0; options.MaxEntryBytes = 1;
+            return selected == ConsoleOutputStream.StandardError ? stderr : stdout;
+        }
+        bool fileEnabled = options.FileEnabled;
+        var runtime = CoreLogRuntime.CreateConsoleQueued(Metadata(), options,
+            fileEnabled ? item => file.WriteAsync(item.Event.JsonLine) : null, clock, physical ? null : Select);
+        options.ConsoleLevel = CoreLogLevel.None; options.FileLevel = CoreLogLevel.None; options.FilePath = null;
+        options.ConsoleFormat = (LogOutputFormat)999; options.HumanDetail = (HumanOutputDetail)999; options.ConsoleStream = (ConsoleOutputStream)999;
+        options.QueueCapacity = 0; options.MaxEntryBytes = 1;
+        Activity? previous = Activity.Current; Activity.Current = null;
+        try
+        {
+            var results = new JsonArray(); CoreLogger logger = runtime.CreateLogger("Console");
+            int[] levels = row["mode"]!.GetValue<string>() == "cap" ? [3] : [1, 2, 3, 4];
+            foreach (int level in levels)
+            {
+                bool cap = row["mode"]!.GetValue<string>() == "cap";
+                var data = new LogEventData
+                {
+                    EventName = "console.event",
+                    Message = cap ? new string('\u200d', 8192) : Message(level),
+                    MessageTemplate = "cmd {count}",
+                    OperationId = "op-1",
+                    Attributes = cap ?
+                    new Dictionary<string, LogValue> { ["payload"] = LogValue.String(new string('\u200d', 8192)) } :
+                    new Dictionary<string, LogValue> { ["count"] = LogValue.Integer(2), ["text"] = LogValue.String("value") }
+                };
+                LogWriteResult value = logger.Write((CoreLogLevel)level, data);
+                results.Add(Result(level, value));
+                data.Message = "CIS_MUTATED_AFTER_CAPTURE"; data.Attributes = null;
+            }
+            runtime.CloseAdmission(); await runtime.QueuedOutputs!.Completion.WaitAsync(TimeSpan.FromSeconds(10)); CoreLogDiagnostics final = runtime.GetDiagnostics();
+            return new JsonObject
+            {
+                ["caseId"] = row["id"]!.DeepClone(),
+                ["results"] = results,
+                ["selectionCalls"] = selectionCalls,
+                ["clockCalls"] = clock.Calls,
+                ["stderr"] = Convert.ToBase64String(stderr.ToArray()),
+                ["stdout"] = Convert.ToBase64String(stdout.ToArray()),
+                ["file"] = Convert.ToBase64String(file.ToArray()),
+                ["invalid"] = final.InvalidEventCount.ToString(CultureInfo.InvariantCulture),
+                ["truncated"] = final.TruncatedEventCount.ToString(CultureInfo.InvariantCulture),
+                ["state"] = final.State.ToString(),
+                ["outputs"] = new JsonArray(final.Outputs.Select(output => (JsonNode)new JsonObject
+                {
+                    ["name"] = output.OutputName,
+                    ["accepted"] = output.Accepted.ToString(CultureInfo.InvariantCulture),
+                    ["written"] = output.Written.ToString(CultureInfo.InvariantCulture),
+                    ["filtered"] = output.Filtered.ToString(CultureInfo.InvariantCulture),
+                    ["pending"] = output.Pending.ToString(CultureInfo.InvariantCulture),
+                    ["failed"] = output.Failed.ToString(CultureInfo.InvariantCulture),
+                    ["abandoned"] = output.Abandoned.ToString(CultureInfo.InvariantCulture)
+                }).ToArray())
+            };
+        }
+        finally { Activity.Current = previous; runtime.CloseAdmission(); await runtime.QueuedOutputs!.Completion.WaitAsync(TimeSpan.FromSeconds(10)); }
+    }
+    internal static string Message(int level) => "message-" + level + " caf\u00e9 \U0001F642\nnext \u202e";
+    private static JsonObject Result(int level, LogWriteResult value) => new()
+    {
+        ["level"] = level,
+        ["outcome"] = value.Outcome.ToString(),
+        ["truncated"] = value.IsTruncated,
+        ["outputs"] = new JsonArray(value.Outputs.Select(output => (JsonNode)new JsonObject
+        {
+            ["name"] = output.OutputName,
+            ["status"] = output.Status.ToString(),
+            ["ticket"] = output.AcceptedSequence?.ToString(CultureInfo.InvariantCulture)
+        }).ToArray())
+    };
+    internal static int Run(string path, string id)
+    {
+        JsonObject catalog = JsonNode.Parse(File.ReadAllText(path))!.AsObject(), row = catalog["cases"]!.AsArray().Single(value => value!["id"]!.GetValue<string>() == id)!.AsObject();
+        JsonObject actual = ExecuteAsync(row).GetAwaiter().GetResult(); ConsoleCompositionExpectations.Validate(catalog, row, actual);
+        actual["observed"] = new JsonObject
+        {
+            ["runtimeDescription"] = RuntimeInformation.FrameworkDescription,
+            ["operatingSystem"] = OperatingSystem.IsWindows() ? "windows" : "linux",
+            ["fixtureSha256"] = Hash(typeof(ConsoleCompositionFixture).Assembly.Location),
+            ["coreSha256"] = Hash(typeof(CoreLogRuntime).Assembly.Location),
+            ["inputsSha256"] = Hash(path)
+        };
+        Console.WriteLine(actual.ToJsonString()); return 0;
+    }
+    private static string Hash(string path) => Convert.ToHexStringLower(SHA256.HashData(File.ReadAllBytes(path)));
+}

@@ -1,0 +1,137 @@
+{
+  "task": "WP06-S01-T03",
+  "kind": "Read-only inspection by the implementing agent; not an independent Claude review",
+  "requiredFindings": [],
+  "scope": "Concrete bounded state/template implementation and actual tests/native reader inspected. Formatter stays outside the capture catch, Activity/clock capture precedes cooperative state access, owned map provenance reaches merged capture, and unsupported state increments Core invalid accounting without partial admission.",
+  "limitations": [
+    "External Claude review remains required unless human explicitly selects the local alternative.",
+    "Full provider rejection/filter/story and host integration remain later tasks."
+  ],
+  "files": [
+    {
+      "path": "implementations/csharp/src/CIS.Core/Logging/LogEventData.cs",
+      "bytes": 1446,
+      "sha256": "8939571483109047086888df3be9bc61e11faba671b777c8336195e85cb71ee4"
+    },
+    {
+      "path": "implementations/csharp/src/CIS.Core/Logging/Events/EventProjection.cs",
+      "bytes": 7545,
+      "sha256": "daebc7440d83376b7ee1735e28ead2f3744ae3a169a7cbec054d7a9b342ebb97"
+    },
+    {
+      "path": "implementations/csharp/src/CIS.Core/Logging/MicrosoftLogger/CoreLoggerProvider.cs",
+      "bytes": 3947,
+      "sha256": "58d4e6547ca8a50f023d0439050211ef182add64fe81800f09232aa08807b0b9"
+    },
+    {
+      "path": "implementations/csharp/src/CIS.Core/Logging/MicrosoftLogger/ProviderStateCapture.cs",
+      "bytes": 6132,
+      "sha256": "2b7a7fac37bba6bb7519873ab48719b645613fd604585d45fb4f0c3e4ebcbd39"
+    },
+    {
+      "path": "implementations/csharp/tests/fixtures/DiscoveryHost/ProviderStateFixture.cs",
+      "bytes": 10228,
+      "sha256": "3ef38da4a03ce0ffb42cbdd1331ec2f8fc34ba2ef7eec592abd170c24176392e"
+    },
+    {
+      "path": "implementations/csharp/tests/fixtures/DiscoveryHost/ProviderStateExpectations.cs",
+      "bytes": 7051,
+      "sha256": "dc2aac33227cd9d88f5f0f865da2249b6d2d93a8d45e8d8967683171b707a487"
+    },
+    {
+      "path": "implementations/csharp/tests/fixtures/DiscoveryHost/Program.cs",
+      "bytes": 14882,
+      "sha256": "1a63e50dfbb36d96db80326780ef613c325b6a867fbccdc14f78ad53c375df64"
+    },
+    {
+      "path": "implementations/csharp/tests/fixtures/DiscoveryHost/verify-provider-state.py",
+      "bytes": 13820,
+      "sha256": "84e1ea8e619a5d2106159a9b2340ef2b6729a0ca2732458db137948f82b041d2"
+    },
+    {
+      "path": "implementations/csharp/tests/CIS.Core.UnitTests/ProviderStateTests.cs",
+      "bytes": 514,
+      "sha256": "42d8aca66d92812af09e7403ca7d1bef6398007a90b15e12542572c813084e1f"
+    },
+    {
+      "path": "implementations/csharp/tests/CIS.Core.UnitTests/CIS.Core.UnitTests.csproj",
+      "bytes": 13031,
+      "sha256": "7ece24a020bf82458b49d9e72b1d2103a896d1d34ffe45a4ae40a7bef8336a1b"
+    },
+    {
+      "path": "implementations/csharp/tests/CIS.Core.IntegrationTests/ProviderStateProcessTests.cs",
+      "bytes": 1916,
+      "sha256": "0b7b0dc01c1aa0bbf98496f33dffe89ca94656d28f925b991569c7ebcf14658e"
+    },
+    {
+      "path": "implementations/csharp/tests/CIS.Core.IntegrationTests/CIS.Core.IntegrationTests.csproj",
+      "bytes": 7356,
+      "sha256": "f6d44361ffea4bbda569396ed518c85a9842b7507ac7122f7be8b7481cefbf3f"
+    },
+    {
+      "path": "conformance/logging/provider-state-cases.json",
+      "bytes": 668,
+      "sha256": "be4ca91984f594412713d7c7097fc6021075a7811d6a778741d57793d1a915ee"
+    },
+    {
+      "path": "docs/modules/logging/microsoft-provider-state.md",
+      "bytes": 3870,
+      "sha256": "14acb9e2083cdc362ce2cbb3b436cfd9ea6a98ce81cef50342df9c0742f9969f"
+    },
+    {
+      "path": "implementations/csharp/tests/fixtures/DiscoveryHost/verify-provider-mapping.py",
+      "bytes": 9777,
+      "sha256": "74278a0260570f753bdd374d623bfd0301e8263a5ad42f7117e9161079c4ea0f"
+    },
+    {
+      "path": "implementations/csharp/src/CIS.Core/Logging/CoreLogger.cs",
+      "bytes": 1808,
+      "sha256": "3725f93252f5bd1e7601e59c40dc41122e1ee2949cd4d75dfca54ad28d7387b7"
+    },
+    {
+      "path": "implementations/csharp/src/CIS.Core/Logging/CoreLogRuntime.cs",
+      "bytes": 35292,
+      "sha256": "6949bd95832036508c5ac0dc4299bcc6ae44ef0a2e05d8cf65eb3bb94d737029"
+    },
+    {
+      "path": "implementations/csharp/src/CIS.Core/Logging/LogValue.cs",
+      "bytes": 8924,
+      "sha256": "9aeaf7726a52b571d8d172c374d080b0dce831c1c5ead5fe63b566ec1d7a5001"
+    },
+    {
+      "path": "implementations/csharp/src/CIS.Core/Logging/Values/LogValueProjection.cs",
+      "bytes": 2531,
+      "sha256": "9916f9fc3329875b299dc0aac250eafe98742c6dfde20fc0be2013f5c6602374"
+    },
+    {
+      "path": "implementations/csharp/src/CIS.Core/Logging/Values/LogValueText.cs",
+      "bytes": 1500,
+      "sha256": "afab019389f20ce6503ed9e40932c5fb1abe8c8389a3f76edba7abfa087b01f2"
+    },
+    {
+      "path": "implementations/csharp/src/CIS.Core/Logging/Events/EventWireFormat.cs",
+      "bytes": 8345,
+      "sha256": "459577a0f003382b9d9b9adf8db1d5455eb1a78e939753fa656468b27fba353a"
+    },
+    {
+      "path": "implementations/csharp/src/CIS.Core/Logging/Events/EventByteProjection.cs",
+      "bytes": 6816,
+      "sha256": "74089f23131925f6954dd74021c384615b390d6dae86a9ddea0aedc79192420d"
+    },
+    {
+      "path": "implementations/csharp/src/CIS.Core/Logging/Scopes/CapturedScopeContext.cs",
+      "bytes": 2417,
+      "sha256": "8797fc01b125ed50a021bb502f71141a56de02675320abbd2c0ae62f825e2dce"
+    },
+    {
+      "path": "implementations/csharp/tests/fixtures/DiscoveryHost/FlushStressSupport.cs",
+      "bytes": 11750,
+      "sha256": "35dd32d11b43343d4d410b11d7b9c8ab02f86f161fe0267ace6cf07d5946e8db"
+    },
+    {
+      "path": "implementations/csharp/tests/fixtures/DiscoveryHost/ConsoleCompositionFixture.cs",
+      "bytes": 7560,
+      "sha256": "f28629923cccc82e8befd9fc5f0186957bd140c87c0ed13a163cf6a1b30502d8"
+    }
+  ]
+}

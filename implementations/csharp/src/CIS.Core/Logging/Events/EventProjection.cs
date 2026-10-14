@@ -37,10 +37,13 @@ internal static class EventProjection
         string? operationId = data.OperationId?.Trim();
         IReadOnlyDictionary<string, LogValue>? sourceAttributes = data.Attributes;
         Exception? sourceException = data.Exception;
+        Func<(string? Template, LogValue Attributes)>? sourceState = data.CaptureState;
         ValidateName(eventName, nameof(data));
         // Own Activity IDs before clock/payload callbacks can replace the ambient context.
         (string? traceId, string? spanId) = CaptureActivity();
         DateTimeOffset timestampUtc = (timeProvider ?? TimeProvider.System).GetUtcNow().ToUniversalTime();
+        (string? Template, LogValue Attributes)? adapted = sourceState?.Invoke();
+        template = adapted?.Template ?? template;
         string capturedMessage = CaptureText(message, out bool messageClipped);
         bool templateClipped = false;
         string? capturedTemplate = template is null ? null : CaptureText(template, out templateClipped);
@@ -49,7 +52,7 @@ internal static class EventProjection
         {
             throw new ArgumentException("Use an operation identifier of at most 255 valid Unicode scalars without controls.", nameof(data));
         }
-        LogValue explicitAttributes = LogValue.Map(sourceAttributes ?? new Dictionary<string, LogValue>());
+        LogValue explicitAttributes = adapted?.Attributes ?? LogValue.Map(sourceAttributes ?? new Dictionary<string, LogValue>());
         LogValue attributes = Merge(scope.Attributes, explicitAttributes);
         CapturedException? exception = ExceptionProjection.Capture(sourceException);
         return new CapturedEventFacts(timestampUtc, traceId, spanId, status, eventName, capturedMessage, capturedTemplate, operationId,

@@ -1,4 +1,4 @@
-"""Independent actual-Core Microsoft provider foundation reader."""
+"""Independent actual-Core Microsoft provider mapping reader."""
 import argparse,base64,copy,importlib.util,json,os,subprocess,tempfile
 from pathlib import Path
 spec=importlib.util.spec_from_file_location('provider_base',Path(__file__).with_name('verify-flush-results.py'));base=importlib.util.module_from_spec(spec);spec.loader.exec_module(base)

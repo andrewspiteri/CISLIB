@@ -5,8 +5,9 @@ namespace CIS.Logging.MicrosoftLogger;
 /// <summary>Creates Microsoft category loggers that borrow an application-owned core runtime.</summary>
 /// <remarks>Disposal disables this provider's future calls and never stops or disposes the shared runtime.
 /// A call already running when disposal occurs may finish. Category names follow the core component rules.
-/// The initial foundation forwards rendered messages, event names and exceptions; structured state and host
-/// scope-provider adaptation are completed in the following integration tasks.</remarks>
+/// Supplied rendered messages and exceptions enter core capture. Null or empty EventId.Name becomes
+/// log.message; EventId.Id supplies the integer attribute event_id, including zero and negative values.
+/// Structured state preserves {OriginalFormat} without parsing; host scopes remain integration work.</remarks>
 public sealed class CoreLoggerProvider : ILoggerProvider
 {
     private readonly CoreLogRuntime runtime;
@@ -71,7 +72,7 @@ public sealed class CoreLoggerProvider : ILoggerProvider
                 EventName = string.IsNullOrEmpty(eventId.Name) ? "log.message" : eventId.Name,
                 Message = formatter(state, exception),
                 Exception = exception,
-                Attributes = new Dictionary<string, LogValue> { ["event_id"] = LogValue.Integer(eventId.Id) }
+                CaptureState = () => ProviderStateCapture.Capture(state, eventId.Id)
             });
         }
     }

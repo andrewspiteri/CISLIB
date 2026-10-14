@@ -1,0 +1,83 @@
+{
+  "task": "WP06-S01-T03",
+  "verdict": "PASS",
+  "scopeNote": "Static read-only review of the supplied source, tests, verifier, case file and docs. No tools were run. Pass counts for the full Developer lane and the final exact-assembly Windows/Ubuntu lanes are not inferred. This verdict covers the code and evidence design only, not those pending runs.",
+  "requiredFindings": [],
+  "optionalFindings": [
+    {
+      "id": "O1-original-format-after-budget-exhaustion",
+      "area": "Microsoft state semantics / template preservation",
+      "location": "ProviderStateCapture.Capture root loop (retained is null -> break)",
+      "finding": "Microsoft FormattedLogValues, LoggerMessage.Define and source-generated LogValues always put {OriginalFormat} last. The bounds case passes because the exhausting field is the last argument. If an earlier argument exhausts the copy budget and any later argument remains, the next Value() returns null, the loop breaks, and the template is lost. One example is \"{Items} {Count}\" with a large Items. This is documented as a 'template beyond prefix' omission and is bounded, so it is not a defect against the stated contract.",
+      "suggestion": "After the budget is exhausted, keep enumerating the root under the existing 1024-entry visited guard. Only recognize {OriginalFormat} and skip every other value without copying or validating it. Keep the truncation mark. Add a case shaped like the real Microsoft argument order: a large first argument, a scalar second argument and the template last."
+    },
+    {
+      "id": "O2-common-arguments-reject-whole-event",
+      "area": "Microsoft state semantics (decision confirmation)",
+      "location": "ProviderStateCapture.Value default arm; docs/modules/logging/microsoft-provider-state.md",
+      "finding": "Several common Microsoft argument types make the whole event InvalidEvent: enums, TimeSpan, local/unspecified DateTime (for example DateTime.Now), Uri, IPAddress, Int128/nint/BigInteger and custom objects. The formatter-rendered message is lost along with the state. This matches the explicit 'reject, no partial admission' decision and is documented. However, it differs from standard Microsoft provider behavior, where any argument still produces a log.",
+      "suggestion": "Keep the current behavior unless you decide otherwise. Record it as an explicit decision for T04/T05 rejection qualification. Make it visible in S02 and the examples so users know DateTime.Now and enums drop the event."
+    },
+    {
+      "id": "O3-float-widening",
+      "area": "Scalar representation",
+      "location": "ProviderStateCapture.Value: float scalar => LogValue.Number(scalar)",
+      "finding": "Implicit widening from float to double exposes binary noise. For example, 0.1f is written as 0.10000000149011612, while Microsoft's formatter renders it as 0.1. The 1.5f test value is exactly representable, so it masks this.",
+      "suggestion": "Normalize floats through the shortest round-trip form of the known scalar, for example double.Parse(scalar.ToString(\"R\", Invariant), Invariant). Calling ToString on a known allowlisted scalar is not arbitrary ToString. Add a 0.1f case to both the C# and Python expectations. Alternatively, document the widening."
+    },
+    {
+      "id": "O4-doc-integral-overclaim",
+      "area": "Documentation accuracy",
+      "location": "microsoft-provider-state.md 'CLR integral values within the portable safe-integer range'",
+      "finding": "nint, nuint, Int128, UInt128 and BigInteger are rejected at every magnitude. Only sbyte, byte, short, ushort, int, uint, long and ulong are accepted.",
+      "suggestion": "List the eight accepted integral types explicitly."
+    },
+    {
+      "id": "O5-adapted-template-invalid-code",
+      "area": "Diagnostics consistency",
+      "location": "CoreLogRuntime.Write -> CaptureError(..., template from data.MessageTemplate)",
+      "finding": "Malformed UTF-16 in an adapted {OriginalFormat} is reported as UnsupportedValue instead of InvalidUnicode, because CaptureError only sees data.MessageTemplate, which is null on the provider path. The code is discarded by ILogger.Log, so it is not observable through the provider. It is only visible in internal consistency checks.",
+      "suggestion": "Accept the current behavior, or document that provider state failures use a single fixed code."
+    },
+    {
+      "id": "O6-root-vs-nested-map-forms",
+      "area": "State semantics consistency",
+      "location": "ProviderStateCapture.Capture root type test",
+      "finding": "A nested string-keyed IDictionary (for example Dictionary<string,int>) is copied. The same type passed as the root TState is formatter-only, because only IEnumerable<KeyValuePair<string,object?>> is recognized at the root. The doc describes the root rule correctly, but the asymmetry may surprise users.",
+      "suggestion": "Either document the asymmetry explicitly or leave the root rule as is. Do not widen the root rule without a concrete requirement."
+    },
+    {
+      "id": "O7-coverage-gaps-for-T04",
+      "area": "Tests",
+      "finding": "The following cases are not exercised: a non-string IDictionary key; duplicate keys inside nested IEnumerable<KVP>; malformed Unicode in {OriginalFormat}; a duplicate {OriginalFormat}; a large scope combined with state where Merge can drop event_id under aggregate truncation (documented as ordinary payload); and double enumeration of single-use IEnumerable arguments (the formatter enumerates them, then capture enumerates them again).",
+      "suggestion": "Fold these into the T04 rejection/filter qualification rather than expanding T03."
+    },
+    {
+      "id": "O8-unrelated-untracked-path",
+      "area": "Change scope",
+      "location": "implementations/csharp/examples/type-manager/Web/Properties/ (untracked)",
+      "finding": "This path is outside T03 scope. It is probably IDE-generated launch settings.",
+      "suggestion": "Leave it out of the T03 commit unless it is intentional."
+    }
+  ],
+  "verifiedClaims": [
+    "The formatter runs inside the WriteLazy factory, which CoreLogRuntime.Write calls outside the capture try/catch. Formatter exceptions propagate unchanged, and filtered or None levels never call the formatter or enumerate state.",
+    "CaptureState is invoked inside EventProjection.Capture after CaptureActivity() and the clock read, all within the Write catch. Collection, normalizer and template failures become InvalidEvent before encoding or admission, so there is no partial admission.",
+    "The callback output (template plus an OwnedMap of copied or immutable LogValues) is merged into CapturedEventFacts. The delegate and the caller collections are not retained in queued facts.",
+    "Node and depth accounting matches LogValueProjection. The root and event_id are reserved (MaximumNodes - 2). A collection node is charged before its children. Immutable LogValues are reused only when NodeCount and Depth fit, and are otherwise re-projected with their IsTruncated provenance. Truncation propagates through OwnedMap/Measure, Merge and the event flag. The expected shapes (1021-item array, 7-level depth with 9 nodes, 1022 fields) are consistent with the code.",
+    "The root entry guard bounds metadata-only and ignored-key enumeration. Nested maps and arrays charge budget per visited value, so duplicate replacement work is bounded.",
+    "Cycle detection uses reference-equality ancestors with removal in finally. It covers arrays, KVP maps and IDictionary owners. The documented limit (observed within retained depth only) is accurate.",
+    "No parser, reflection, arbitrary ToString, worker or new dependency is introduced. ProviderStateCapture is internal. LogEventData gains only an internal init member, so the public surface and Core's independence from Microsoft types are unchanged.",
+    "The provider event_id is inserted before the state copy, the state event_id value is skipped without being touched (Bomb.Calls == 0), and explicit attributes win over scope in Merge. It remains ordinary aggregate payload, as documented.",
+    "The correlation fixture changes Activity.Current during state enumeration and requires the original trace and span IDs. Because the two Activities have distinct parent IDs, the control is meaningful.",
+    "There are 34 Python corruption controls, each tied to an exact reason string. The verifier pins the child PID, the runtime, the Core and fixture SHA-256 hashes, its own hash, the base verifier hash and the shared case-membership hash."
+  ],
+  "carriedForward": [
+    "Full Developer lane and final exact-assembly Windows/Ubuntu lanes are still running; record actual results in the T03 receipt before committing.",
+    "CoreLoggerProvider.Log now routes all events through state capture, so the CIS.Core.dll hash has changed. Re-execute the T01/T02 provider foundation and mapping evidence against the final assembly. The verify-provider-mapping.py diff was not visible, so confirm that its edits only follow from the new capture path.",
+    "BeginScope still throws for any state that is not OperationContextData. Microsoft host frameworks call BeginScope with arbitrary states, so this must be resolved in S02 (host/external scopes, final provider surface, host lifetime).",
+    "T04/T05: full rejection/filter/story qualification, including O2's decision record and O7's gaps.",
+    "Examples, instructions/skills and release evidence remain required. The release profile must continue to fail until that evidence exists.",
+    "Per AGENTS.md, run the read-only Claude review route on the final diff before commit and report it honestly."
+  ]
+}

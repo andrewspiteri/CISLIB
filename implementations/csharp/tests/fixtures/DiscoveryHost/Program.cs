@@ -11,6 +11,7 @@ internal static class Program
 {
     private static int Main(string[] args)
     {
+        if (args.Length == 3 && args[0] == "provider-state") { return ProviderStateFixture.Run(args[1], args[2]); }
         if (args.Length == 3 && args[0] == "provider-mapping") { return ProviderMappingFixture.Run(args[1], args[2]); }
         if (args.Length == 3 && args[0] == "provider-foundation") { return ProviderFoundationFixture.Run(args[1], args[2]); }
         if (args.Length == 3 && args[0] == "stop-lifecycle") { return StopLifecycleFixture.Run(args[1], args[2]); }
