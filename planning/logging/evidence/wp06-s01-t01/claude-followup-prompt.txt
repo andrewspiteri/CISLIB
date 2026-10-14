@@ -1,0 +1,314 @@
+Read-only follow-up to your WP06-S01-T01 review. No tools/MCP/execution/edits/persistence. Required R1 exception evidence is corrected in the existing forward mode: a controlled InvalidOperationException with Data logs at Error, formatter verifies reference identity, C# matcher and independent Python reader verify type/message and exclusion of Data; four added exact-reason controls corrupt identity/type/message/Data. This also addresses O4's second severity. Shipping provider/core remain exactly the original reviewed code. Other optional scope guard/lifetime qualification (O1/O2/O3) stays in planned scope integration S02; filtered-path allocation O5 in existing T04/T05. Full mapping, external scopes, unpublished full provider surface and release remain later tasks. Initial review and corrected files follow. Return JSON task, verdict PASS or CHANGES_REQUIRED, requiredFindings, optionalFindings and carriedForward. Evaluate code/evidence design; do not assert tests executed based on supplied counts.
+{
+  "task": "WP06-S01-T01",
+  "verdict": "CHANGES_REQUIRED",
+  "summary": "The provider is a concrete, sealed ILoggerProvider in CIS.Core under CIS.Logging.MicrosoftLogger. It adds no new dependency, worker, cache or lifecycle framework. Category loggers forward through CoreLogger.WriteLazy -> CoreLogRuntime.Write, so core interest, capture, admission and closure decide every outcome. Disposal is nonowning and idempotent. Unsupported scope forms throw explicitly instead of being dropped, and there are no extern/placeholder bodies or simulated outputs. One stated T01 behavior, exception forwarding, has no executed evidence. That is the only required change.",
+  "requiredFindings": [
+    {
+      "id": "R1",
+      "area": "evidence / task-scope fidelity",
+      "location": "ProviderFoundationFixture.cs (all modes pass exception: null); ProviderFoundationExpectations.cs; verify-provider-foundation.py; docs/modules/logging/microsoft-provider-foundation.md",
+      "finding": "The task statement and the doc both say exceptions are forwarded into core capture. No unit, physical or native-reader case passes a non-null exception to ILogger.Log or LogError, and none checks the projected exception fields in the written record. The code path (LogEventData.Exception = exception) looks correct, but the claim has no executed evidence. The formatter's receipt of the same exception instance is also unverified.",
+      "requiredChange": "Add a case, or extend 'forward', that logs with a controlled exception. It should assert (a) the formatter receives the same exception instance and (b) the JSONL record contains the core exception projection (type/message per the existing exception contract) without the exception's Data. Add a matching native-reader check and a corruption control. Alternatively, remove the exception-forwarding claim from the T01 scope and doc and carry it forward explicitly."
+    }
+  ],
+  "optionalFindings": [
+    {
+      "id": "O1",
+      "area": "scope closure guard",
+      "location": "CoreLoggerProvider.CategoryLogger.BeginScope",
+      "finding": "The admission-closed check calls provider.runtime.GetDiagnostics(). That builds a full diagnostics snapshot (lock, accounting, list allocation) on every scope begin. It also places the closure rule in the provider instead of the runtime, and the rule is tied to queued composition: GetDiagnostics throws for a non-queued runtime. The pending public runtime.BeginScope will need the same guard.",
+      "suggestion": "Add one internal CoreLogRuntime method that checks admissionClosed under admissionGate and delegates to Scopes.BeginScope. Have the provider call it, so the future public runtime.BeginScope shares a single guard."
+    },
+    {
+      "id": "O2",
+      "area": "test coverage: scope lifetime",
+      "location": "ProviderFoundationFixture 'typed-scope'",
+      "finding": "The case proves capture-time copying but not that disposing the returned handle pops the frame.",
+      "suggestion": "After the using block, log a second record and assert it has no operation_id or scope_attribute."
+    },
+    {
+      "id": "O3",
+      "area": "test coverage: disposed/stopped scope paths",
+      "location": "ProviderFoundationTests.RequiredArgumentsAndDisposedCreationAreConcrete; 'nonowning'/'stopped' modes",
+      "finding": "Neither BeginScope throwing ObjectDisposedException after provider disposal nor BeginScope throwing InvalidOperationException after runtime stop is exercised.",
+      "suggestion": "Assert both exact exception types, and assert the runtime scope store head is unchanged afterwards."
+    },
+    {
+      "id": "O4",
+      "area": "test coverage: severity forwarding",
+      "location": "fixture/expectations (all emitted records are Information)",
+      "finding": "Severity forwarding is claimed but only Information reaches a record. Full mapping belongs to T02, but one non-Information emitted level (e.g. Error -> record status) would show the cast is not just coincidentally correct for one value.",
+      "suggestion": "Emit one Warning or Error record in an existing mode and check its status field."
+    },
+    {
+      "id": "O5",
+      "area": "allocation on filtered path",
+      "location": "CategoryLogger.Log",
+      "finding": "The WriteLazy closure (capturing state, eventId, exception and formatter, and boxing value-type state) is allocated on every call, including filtered and stopped ones. This is not a correctness issue.",
+      "suggestion": "Leave for T04/T05 performance qualification, or record it as a known cost."
+    }
+  ],
+  "carriedForward": [
+    "Host scope hazard (S02-T01/T02): the provider does not implement ISupportExternalScope. LoggerFactory will call this logger's BeginScope directly, so framework-originated scopes (e.g. ASP.NET Core HostingLogScope, string or dictionary scopes) will surface as AggregateException from the factory's Logger.BeginScope. This is acceptable only because T01 is unpublished and the throw is an explicit, documented design choice. It must be resolved before any host registration example or release.",
+    "Category names that fail core component rules (over 255 scalars, e.g. long generic type names, or controls) make CreateLogger throw out of LoggerFactory.CreateLogger. Qualify or define the mapping in T04/T05.",
+    "Numeric EventId and complete level mapping qualification (T02); template/structured state (T03); complete rejection/filter behavior, including Log(None) incrementing per-output Filtered counters, null formatter results becoming InvalidEvent, and whitespace or invalid EventId.Name (T04); complete mapping story (T05).",
+    "The unpublished verification/contracts/startup/ProviderSurface.cs and ProviderConsumer.cs still declare ISupportExternalScope/SetScopeProvider. The shipped type intentionally omits them. Confirm no compile check binds ProviderConsumer to the real CIS.Core until S02 adds the members.",
+    "Full nonowning and concurrent host qualification (S02-T04/T05), including dispose racing in-flight calls.",
+    "Final Developer/Windows/Ubuntu verification runs and the task receipt are still pending. This review accepts none of the reported pass counts as executed evidence."
+  ]
+}
+
+--- FILE implementations/csharp/tests/fixtures/DiscoveryHost/ProviderFoundationFixture.cs ---
+using System.Text.Json.Nodes;
+using CIS.Logging;
+using CIS.Logging.MicrosoftLogger;
+using Microsoft.Extensions.Logging;
+using static CIS.Tests.DiscoveryFixture.FlushStressSupport;
+
+namespace CIS.Tests.DiscoveryFixture;
+
+internal static class ProviderFoundationFixture
+{
+    internal static readonly string[] Modes = ["forward", "extensions", "categories", "filtered", "nonowning", "stopped", "typed-scope", "formatter-error"];
+    internal static int Run(string mode, string root)
+    { Console.WriteLine(ExecuteAsync(mode, root).GetAwaiter().GetResult().ToJsonString()); return 0; }
+    private static byte[] ReadLive(string path)
+    {
+        using var input = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite | FileShare.Delete);
+        using var bytes = new MemoryStream(); input.CopyTo(bytes); return bytes.ToArray();
+    }
+    internal static async Task<JsonObject> ExecuteAsync(string mode, string? root = null)
+    {
+        Require(Modes.Contains(mode, StringComparer.Ordinal)); using var bytes = new MemoryStream(); bool physical = root is not null;
+        string? path = physical ? Path.Combine(root!, "logs Ω", "active.log") : null;
+        CoreLogLevel threshold = mode == "filtered" ? CoreLogLevel.Warning : CoreLogLevel.Information;
+        CoreLogRuntime runtime;
+        if (physical)
+        {
+            LoggingOptions options = EnvironmentOptions.Logging; options.ConsoleLevel = CoreLogLevel.None; options.FileLevel = threshold;
+            options.FilePath = path; options.FileFormat = LogOutputFormat.JsonLines; options.QueueCapacity = 16; options.MaxEntryBytes = 16384; options.ShutdownTimeoutMilliseconds = 5000;
+            runtime = CoreLogRuntime.Create();
+        }
+        else
+        {
+            var options = new LoggingOptions { ConsoleLevel = threshold, FileLevel = CoreLogLevel.None, ConsoleFormat = LogOutputFormat.JsonLines, QueueCapacity = 16, MaxEntryBytes = 16384 };
+            runtime = CoreLogRuntime.CreateConsoleQueued(ConsoleCompositionFixture.Metadata(), options, acquireConsole: _ => bytes);
+        }
+        using var provider = new CoreLoggerProvider(runtime); ILogger logger = provider.CreateLogger("Provider.Foundation"); int calls = 0; bool ownsRuntime = false, errorPreserved = false, scopeCopied = false, exceptionReceived = false;
+        try
+        {
+            void Log(string category, string name, string message)
+            { provider.CreateLogger(category).Log(LogLevel.Information, new EventId(7, name), message, null, (state, _) => { calls++; return state; }); }
+            switch (mode)
+            {
+                case "forward":
+                    Require(logger.IsEnabled(LogLevel.Error));
+                    var forwarded = new InvalidOperationException("controlled provider failure"); forwarded.Data["private_data"] = "must not be projected";
+                    logger.Log(LogLevel.Error, new EventId(7, "forward"), "Ω 🙂", forwarded, (state, error) =>
+                    { calls++; exceptionReceived = ReferenceEquals(error, forwarded); Require(exceptionReceived); return state; }); break;
+                case "extensions":
+                    logger.LogInformation("Orders {Count}", 3); break;
+                case "categories":
+                    Log("Orders.First", "first", "one"); Log("Orders.Second", "second", "two"); break;
+                case "filtered":
+                    Require(!logger.IsEnabled(LogLevel.Information) && !logger.IsEnabled(LogLevel.None));
+                    logger.Log(LogLevel.Information, new EventId(1, "filtered"), "input", null, (_, _) => { calls++; throw new InvalidOperationException("Filtered formatter ran."); });
+                    logger.Log(LogLevel.None, new EventId(1, "none"), "input", null, (_, _) => { calls++; throw new InvalidOperationException("None formatter ran."); }); break;
+                case "nonowning":
+                    provider.Dispose(); provider.Dispose(); Require(!logger.IsEnabled(LogLevel.Information));
+                    logger.Log(LogLevel.Information, new EventId(1, "disposed"), "input", null, (_, _) => { calls++; throw new InvalidOperationException("Disposed formatter ran."); });
+                    Require(!runtime.GetDiagnostics().AdmissionClosed);
+                    Accepted(runtime.CreateLogger("Direct").Write(CoreLogLevel.Information, new LogEventData { EventName = "direct", Message = "direct remains live" }));
+                    using (var second = new CoreLoggerProvider(runtime))
+                    { second.CreateLogger("Other.Provider").Log(LogLevel.Information, new EventId(1, "other"), "other remains live", null, (state, _) => { calls++; return state; }); }
+                    ownsRuntime = !runtime.GetDiagnostics().AdmissionClosed; Require(ownsRuntime); break;
+                case "stopped":
+                    await runtime.StopAsync(CancellationToken.None).WaitAsync(Guard); Require(!logger.IsEnabled(LogLevel.Information));
+                    logger.Log(LogLevel.Information, new EventId(1, "stopped"), "input", null, (_, _) => { calls++; throw new InvalidOperationException("Stopped formatter ran."); });
+                    logger.Log(LogLevel.None, new EventId(1, "none"), "input", null, (_, _) => { calls++; throw new InvalidOperationException("Stopped None formatter ran."); }); break;
+                case "typed-scope":
+                    var attributes = new Dictionary<string, LogValue> { ["scope_attribute"] = LogValue.String("original") };
+                    var context = new OperationContextData { OperationId = "operation.original", Attributes = attributes };
+                    using (logger.BeginScope(context))
+                    {
+                        context.OperationId = "operation.changed"; attributes["scope_attribute"] = LogValue.String("changed");
+                        Log("Provider.Foundation", "scoped", "scope message");
+                    }
+                    scopeCopied = true; break;
+                case "formatter-error":
+                    var expected = new InvalidOperationException("private formatter failure");
+                    try { logger.Log(LogLevel.Information, new EventId(1, "never"), "input", null, (_, _) => { calls++; throw expected; }); }
+                    catch (InvalidOperationException actual) { errorPreserved = ReferenceEquals(actual, expected); }
+                    Require(errorPreserved); break;
+            }
+            LogStopResult stop = await runtime.StopAsync(CancellationToken.None).WaitAsync(Guard); Require(stop.Succeeded && !stop.LossObserved);
+            await runtime.QueuedOutputs!.Completion.WaitAsync(Guard); Require(runtime.GetDiagnostics().InvalidEventCount == 0);
+            byte[] written = physical ? ReadLive(path!) : bytes.ToArray();
+            if (physical) { using var lease = new FileStream(path + ".cis.lock", FileMode.Open, FileAccess.ReadWrite, FileShare.None); }
+            JsonObject report = Common(mode); report["physical"] = physical; report["bytes"] = Convert.ToBase64String(written); report["formatterCalls"] = calls;
+            report["invalid"] = Number(runtime.GetDiagnostics().InvalidEventCount); report["result"] = StopJoinFixture.Json(stop);
+            report["sharedRuntimeLiveAfterProviderDispose"] = ownsRuntime; report["formatterErrorPreserved"] = errorPreserved; report["scopeCopied"] = scopeCopied;
+            report["formatterExceptionReceived"] = exceptionReceived; report["borrowedConsoleOpen"] = bytes.CanWrite; report["leaseReleased"] = physical; return report;
+        }
+        finally { await runtime.DisposeAsync().AsTask().WaitAsync(Guard); }
+    }
+}
+
+--- FILE implementations/csharp/tests/fixtures/DiscoveryHost/ProviderFoundationExpectations.cs ---
+using System.Globalization;
+using System.Text;
+using System.Text.Json.Nodes;
+
+namespace CIS.Tests.DiscoveryFixture;
+
+internal static class ProviderFoundationExpectations
+{
+    internal static readonly string[] Modes = ["forward", "extensions", "categories", "filtered", "nonowning", "stopped", "typed-scope", "formatter-error"];
+    private static void Require(bool condition) { if (!condition) { throw new InvalidDataException("Provider foundation expectation failed."); } }
+    internal static void Validate(string mode, JsonObject a)
+    {
+        Require(Modes.Contains(mode, StringComparer.Ordinal) && a["mode"]!.GetValue<string>() == mode && a["runtime"]!.GetValue<string>() == ".NET 10.0.12");
+        bool physical = a["physical"]!.GetValue<bool>(); Require(a["borrowedConsoleOpen"]!.GetValue<bool>() && a["leaseReleased"]!.GetValue<bool>() == physical && a["invalid"]!.GetValue<string>() == "0");
+        Require(a["sharedRuntimeLiveAfterProviderDispose"]!.GetValue<bool>() == (mode == "nonowning") && a["formatterErrorPreserved"]!.GetValue<bool>() == (mode == "formatter-error") && a["scopeCopied"]!.GetValue<bool>() == (mode == "typed-scope"));
+        Require(a["formatterExceptionReceived"]!.GetValue<bool>() == (mode == "forward"));
+        int count = mode is "filtered" or "stopped" or "formatter-error" ? 0 : mode is "categories" or "nonowning" ? 2 : 1;
+        Require(a["formatterCalls"]!.GetValue<int>() == (mode is "forward" or "nonowning" or "typed-scope" or "formatter-error" ? 1 : mode == "categories" ? 2 : 0));
+        Require(a["result"]!["completion"]!.GetValue<string>() == "Completed" && a["result"]!["succeeded"]!.GetValue<bool>() && !a["result"]!["loss"]!.GetValue<bool>());
+        JsonArray outputs = a["result"]!["outputs"]!.AsArray(); Require(outputs.Count == 1); JsonNode output = outputs[0]!;
+        Require(output["name"]!.GetValue<string>() == (physical ? "file" : "console") && long.Parse(output["boundary"]!.GetValue<string>(), CultureInfo.InvariantCulture) == count && long.Parse(output["written"]!.GetValue<string>(), CultureInfo.InvariantCulture) == count && output["failed"]!.GetValue<string>() == "0" && output["abandoned"]!.GetValue<string>() == "0" && output["pending"]!.GetValue<string>() == "0" && output["flush"]!.GetValue<string>() == "Succeeded");
+        byte[] bytes = Convert.FromBase64String(a["bytes"]!.GetValue<string>());
+        if (count == 0) { Require(bytes.Length == 0); return; }
+        Require(bytes[^1] == (byte)'\n' && !bytes.AsSpan().StartsWith(new byte[] { 239, 187, 191 }));
+        JsonObject[] rows = new UTF8Encoding(false, true).GetString(bytes).Split('\n', StringSplitOptions.RemoveEmptyEntries).Select(s => JsonNode.Parse(s)!.AsObject()).ToArray(); Require(rows.Length == count);
+        string[] names = mode switch { "categories" => ["first", "second"], "nonowning" => ["direct", "other"], "extensions" => ["log.message"], "typed-scope" => ["scoped"], _ => ["forward"] };
+        string[] components = mode switch { "categories" => ["Orders.First", "Orders.Second"], "nonowning" => ["Direct", "Other.Provider"], _ => ["Provider.Foundation"] };
+        Require(rows.Select(x => x["event_name"]!.GetValue<string>()).SequenceEqual(names));
+        Require(rows.Select(x => x["component"]!.GetValue<string>()).SequenceEqual(components));
+        if (mode == "extensions") { Require(rows[0]["message"]!.GetValue<string>() == "Orders 3"); }
+        if (mode == "forward")
+        {
+            Require(rows[0]["message"]!.GetValue<string>() == "Ω 🙂" && rows[0]["status"]!.GetValue<string>() == "error");
+            JsonObject error = rows[0]["exception"]!.AsObject();
+            Require(error["type"]!.GetValue<string>() == "System.InvalidOperationException" && error["message"]!.GetValue<string>() == "controlled provider failure");
+            Require(error.All(x => x.Key is "type" or "message" or "stack_trace" or "inner_exceptions" or "truncated"));
+            Require(!rows[0].ToJsonString().Contains("private_data", StringComparison.Ordinal) && !rows[0].ToJsonString().Contains("must not be projected", StringComparison.Ordinal));
+        }
+        if (mode == "typed-scope") { Require(rows[0]["operation_id"]!.GetValue<string>() == "operation.original" && rows[0]["attributes"]!["scope_attribute"]!.GetValue<string>() == "original"); }
+    }
+}
+
+--- FILE implementations/csharp/tests/fixtures/DiscoveryHost/verify-provider-foundation.py ---
+"""Independent actual-Core Microsoft provider foundation reader."""
+import argparse,base64,copy,importlib.util,json,os,subprocess,tempfile
+from pathlib import Path
+spec=importlib.util.spec_from_file_location('provider_base',Path(__file__).with_name('verify-flush-results.py'));base=importlib.util.module_from_spec(spec);spec.loader.exec_module(base)
+require,load,sha,digest,decoded,number=base.require,base.load,base.sha,base.digest,base.decoded,base.number
+MODES=('forward','extensions','categories','filtered','nonowning','stopped','typed-scope','formatter-error')
+
+
+def check(mode,a,pid=None):
+    require(a['mode']==mode and mode in MODES,'mode');require(a['runtime']=='.NET 10.0.12','actual runtime')
+    require(type(a['pid']) is int and a['pid']>0 and (pid is None or a['pid']==pid),'actual child PID')
+    require(a['physical'] is True and a['leaseReleased'] is True and a['borrowedConsoleOpen'] is True,'physical lifetime')
+    require(a['invalid']=='0','core invalid count')
+    require((a['sharedRuntimeLiveAfterProviderDispose'],a['formatterErrorPreserved'],a['scopeCopied'])==(mode=='nonowning',mode=='formatter-error',mode=='typed-scope'),'provider ownership/error/scope facts')
+    require(a['formatterExceptionReceived'] is (mode=='forward'),'formatter exception identity')
+    count=0 if mode in ('filtered','stopped','formatter-error') else 2 if mode in ('categories','nonowning') else 1
+    calls=1 if mode in ('forward','nonowning','typed-scope','formatter-error') else 2 if mode=='categories' else 0
+    require(type(a['formatterCalls']) is int and a['formatterCalls']==calls,'deferred formatter calls')
+    result=a['result'];require(set(result)=={'completion','succeeded','loss','captured','observed','outputs'},'result shape')
+    require((result['completion'],result['succeeded'],result['loss'])==('Completed',True,False),'stop summary')
+    require(len(result['outputs'])==1 and result['outputs'][0]['name']=='file','file output');out=result['outputs'][0]
+    require(tuple(number(out[k]) for k in ('boundary','written','failed','abandoned','pending'))==(count,count,0,0,0) and out['flush']=='Succeeded','core delivery')
+    data=decoded(a['bytes']);require(data[-1:]==b'\n' and not data.startswith(b'\xef\xbb\xbf') if count else data==b'','actual framing')
+    lines=data.splitlines();require(len(lines)==count and all(len(line)+1<=16384 for line in lines),'actual bounded records')
+    rows=[load(line) for line in lines]
+    names=['first','second'] if mode=='categories' else ['direct','other'] if mode=='nonowning' else ['log.message'] if mode=='extensions' else ['scoped'] if mode=='typed-scope' else ['forward'] if count else []
+    components=['Orders.First','Orders.Second'] if mode=='categories' else ['Direct','Other.Provider'] if mode=='nonowning' else ['Provider.Foundation'] if count else []
+    require([x['event_name'] for x in rows]==names,'event names');require([x['component'] for x in rows]==components,'category components')
+    require(all(x['schema_version']==1 and x['status']==('error' if mode=='forward' else 'info') and x['service']=='CIS.Core.DiscoveryFixture' and x['resource']['process_id']==a['pid'] and x['resource']['runtime_description']=='.NET 10.0.12' and x['resource']['os_family']==a['os'] for x in rows),'automatic core facts')
+    if mode=='forward':
+        require(rows[0]['message']=='\u03a9 \U0001f642','rendered message')
+        error=rows[0]['exception'];require(error['type']=='System.InvalidOperationException','exception type');require(error['message']=='controlled provider failure','exception message')
+        require(set(error)<= {'type','message','stack_trace','inner_exceptions','truncated'} and 'private_data' not in json.dumps(rows[0]) and 'must not be projected' not in json.dumps(rows[0]),'exception excludes Data')
+    if mode=='extensions':require(rows[0]['message']=='Orders 3','framework formatter')
+    if mode=='typed-scope':require(rows[0]['operation_id']=='operation.original' and rows[0]['attributes']['scope_attribute']=='original','copied typed scope')
+
+
+def corruption_controls(cases):
+    good={x['id']:x['report'] for x in cases}
+    def record_change(a,edit):
+        rows=[load(line) for line in decoded(a['bytes']).splitlines()];edit(rows[0]);a['bytes']=base64.b64encode(b''.join(json.dumps(r,ensure_ascii=False).encode()+b'\n' for r in rows)).decode()
+    edits=[
+      ('pid','forward','actual child PID',lambda a:a.update(pid=a['pid']+1)),
+      ('exception-identity','forward','formatter exception identity',lambda a:a.update(formatterExceptionReceived=False)),
+      ('exception-type','forward','exception type',lambda a:record_change(a,lambda r:r['exception'].update(type='wrong'))),
+      ('exception-message','forward','exception message',lambda a:record_change(a,lambda r:r['exception'].update(message='wrong'))),
+      ('exception-data','forward','exception excludes Data',lambda a:record_change(a,lambda r:r['exception'].update(Data={'private_data':'must not be projected'}))),
+      ('runtime','forward','actual runtime',lambda a:a.update(runtime='.NET 10.0.13')),
+      ('lease','forward','physical lifetime',lambda a:a.update(leaseReleased=False)),
+      ('invalid','forward','core invalid count',lambda a:a.update(invalid='1')),
+      ('owner','nonowning','provider ownership/error/scope facts',lambda a:a.update(sharedRuntimeLiveAfterProviderDispose=False)),
+      ('formatter-error','formatter-error','provider ownership/error/scope facts',lambda a:a.update(formatterErrorPreserved=False)),
+      ('scope-copy','typed-scope','provider ownership/error/scope facts',lambda a:a.update(scopeCopied=False)),
+      ('filtered','filtered','deferred formatter calls',lambda a:a.update(formatterCalls=1)),
+      ('stopped','stopped','deferred formatter calls',lambda a:a.update(formatterCalls=1)),
+      ('shape','forward','result shape',lambda a:a['result'].update(extra=True)),
+      ('summary','forward','stop summary',lambda a:a['result'].update(succeeded=False)),
+      ('ticket','forward','core delivery',lambda a:a['result']['outputs'][0].update(boundary='0')),
+      ('framing','forward','actual framing',lambda a:a.update(bytes=base64.b64encode(decoded(a['bytes'])[:-1]).decode())),
+      ('names','forward','event names',lambda a:record_change(a,lambda r:r.update(event_name='other'))),
+      ('category','categories','category components',lambda a:record_change(a,lambda r:r.update(component='wrong'))),
+      ('facts','forward','automatic core facts',lambda a:record_change(a,lambda r:r['resource'].update(process_id=0))),
+      ('message','forward','rendered message',lambda a:record_change(a,lambda r:r.update(message='wrong'))),
+      ('extension','extensions','framework formatter',lambda a:record_change(a,lambda r:r.update(message='Orders {Count}'))),
+      ('scope-value','typed-scope','copied typed scope',lambda a:record_change(a,lambda r:r['attributes'].update(scope_attribute='changed'))),
+      ('operation-id','typed-scope','copied typed scope',lambda a:record_change(a,lambda r:r.update(operation_id='changed')))
+    ]
+    controls=[]
+    for identity,mode,reason,edit in edits:
+        bad=copy.deepcopy(good[mode]);edit(bad)
+        try:check(mode,bad,good[mode]['pid'])
+        except AssertionError as error:
+            require(str(error)==reason,'unexpected corruption '+identity+': '+str(error));controls.append(dict(id=identity,rejected=True,reason=reason))
+        else:raise AssertionError('corruption accepted '+identity)
+    return controls
+
+
+def main():
+    parser=argparse.ArgumentParser()
+    for key in ('dotnet','host','output','family'):parser.add_argument('--'+key,required=True)
+    args=parser.parse_args();require(args.family in ('windows','linux') and (os.name=='nt')==(args.family=='windows'),'native OS')
+    repo=Path(__file__).resolve().parents[5];mapping=repo/'conformance/logging/provider-foundation-cases.json';require([x['id'] for x in load(mapping.read_bytes())['cases']]==list(MODES),'shared case membership')
+    host,out=Path(args.host).resolve(),Path(args.output).resolve();out.mkdir(parents=True,exist_ok=True);cases=[]
+    with tempfile.TemporaryDirectory(prefix='cislib-provider-foundation-') as temp:
+        for mode in MODES:
+            work=Path(temp)/mode;work.mkdir();env={k:v for k,v in os.environ.items() if not k.startswith('CORE_')}
+            command=[args.dotnet,'exec','--fx-version','10.0.12','--roll-forward','Disable',str(host),'provider-foundation',mode,str(work)]
+            process=subprocess.Popen(command,cwd=work,env=env,stdout=subprocess.PIPE,stderr=subprocess.PIPE)
+            try:stdout,stderr=process.communicate(timeout=60)
+            except BaseException:process.kill();process.communicate(timeout=15);raise
+            (out/(mode+'.stdout.bin')).write_bytes(stdout);(out/(mode+'.stderr.bin')).write_bytes(stderr);require(process.returncode==0 and stderr==b'','child failure '+mode)
+            a=load(stdout);check(mode,a,process.pid);require((a['os'],a['coreSha256'],a['fixtureSha256'])==(args.family,sha(host.parent/'CIS.Core.dll'),sha(host)),'actual assemblies')
+            data=(work/'logs \u03a9'/'active.log').read_bytes();require(data==decoded(a['bytes']),'actual file bytes');(out/(mode+'.file.bin')).write_bytes(data)
+            cases.append(dict(id=mode,pid=process.pid,exitCode=0,command=command,report=a,stdoutSha256=digest(stdout),stderrSha256=digest(stderr),fileSha256=digest(data)))
+    report=dict(schema='cis.logging.provider-foundation-native/v1',task='WP06-S01-T01',family=args.family,children=len(cases),coreSha256=sha(host.parent/'CIS.Core.dll'),fixtureSha256=sha(host),verifierSha256=sha(__file__),baseVerifierSha256=sha(Path(__file__).with_name('verify-flush-results.py')),caseMappingSha256=sha(mapping),cases=cases,controls=corruption_controls(cases))
+    (out/'report.json').write_text(json.dumps(report,indent=2)+'\n',encoding='utf-8',newline='\n');print(json.dumps(dict(platform=args.family,children=len(cases),controls=len(report['controls']),passed=True)))
+
+
+if __name__=='__main__':main()
+--- FILE docs/modules/logging/microsoft-provider-foundation.md ---
+# Microsoft provider foundation
+
+CoreLoggerProvider lives in CIS.Logging.MicrosoftLogger inside the existing CIS.Core assembly/package. It implements ILoggerProvider and creates private category loggers that call the existing CoreLogger.WriteLazy path. It adds no runtime dependency or logging worker. Constructor runtime and category names are validated; category names use the existing core component rules (1-255 valid Unicode scalars, nonblank, no controls).
+
+The first foundation forwards the supplied rendered message, optional named event (log.message when absent/empty), severity and exception into actual core capture/admission. A controlled Error record verifies the formatter receives the exact exception instance, core captures its type/message, and Exception.Data is excluded. Standard Microsoft LogInformation formatting is exercised without a template parser. The current severity numbers match the pinned Core/Microsoft enums and are validated before conversion. Core handles disabled/filtered/stopped/faulted interest before the lazy formatter and owns output decisions. Caller formatter exceptions retain their original identity. Numeric EventId, template and structured state mapping remain WP06-S01-T02/T03; their absence here is not a final v1 mapping claim. T04/T05 retain complete rejection/filter and story qualification.
+
+Each provider borrows its runtime. Dispose is idempotent, disables future logger calls and rejects further category creation, while direct core logging and another provider remain usable. An already-running call may finish; disposal does not try to interrupt caller formatting. There is no owning-mode constructor, category cache, shared runtime shutdown or retry.
+
+The initial category logger supports OperationContextData in ILogger.BeginScope through the existing runtime-owned bounded scope store. It copies caller input and enforces the core closure guard; caller handles remain creator-owned and follow core LIFO/detection-limit rules. Other Microsoft scope forms currently raise ArgumentException rather than being silently lost. Host/external scope adaptation is WP06-S02-T01/T02. The unpublished final reference surface still proposes ISupportExternalScope/SetScopeProvider and the public runtime BeginScope; those members remain integration work, with no shipping no-op member added for them in T01.
+
+Nine unit cases, eight physical consumer cases and two compiled architecture checks qualify this foundation. Consumer cases use the real public runtime factory, actual file ownership, automatic identity, framework logging extensions and copied typed scopes. The independent native reader validates the child PID/runtime/assemblies, actual file bytes, exact category/event/message observations and twenty-four deliberately corrupted reports. Executed checkpoints and review status belong in the task receipt; this document does not substitute for a run.
+
+The provider's public Microsoft types are isolated under its namespace inside Core. Direct CIS.Logging public types retain their Microsoft-independent signatures. The existing approved Microsoft.Extensions.Logging.Abstractions dependency and complete allowlist stay unchanged. Full provider mapping/external scopes, complete v1 surface, examples, guidance/skills and release remain required.

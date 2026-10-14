@@ -1,0 +1,849 @@
+{
+  "schema": "cis.logging.stop-join-native/v1",
+  "task": "WP05-S10-T03",
+  "family": "windows",
+  "children": 8,
+  "coreSha256": "67c4899ac7f8a943c2fc642e5c35173fc12f104830cefde8e304fcb132522081",
+  "fixtureSha256": "db9de3e54875c88628974eeba9e4147cc00ce8a2a546c8a25afd50042bc28031",
+  "verifierSha256": "c06ad6c145b8433a9eee41b27fd33dd5d78a4dc9dbd5d5961e496e71219e7664",
+  "baseVerifierSha256": "d26e47188fd752810f2b8c090f1b0f6c5c12fc2ea21dd68b07f212074b94a9bc",
+  "caseMappingSha256": "2057616c7610e202c553bf9a2b9b7bebf9c16a1ea244e2f16f22cd31f149272b",
+  "cases": [
+    {
+      "id": "empty",
+      "pid": 60452,
+      "exitCode": 0,
+      "command": [
+        "dotnet",
+        "exec",
+        "--fx-version",
+        "10.0.12",
+        "--roll-forward",
+        "Disable",
+        "C:\\miscwork\\portfolio\\cislib\\.artifacts\\csharp\\tasks\\wp06-s01-t01\\native-host\\CIS.Core.DiscoveryFixture.dll",
+        "stop-join",
+        "empty",
+        "C:\\Users\\andrs\\AppData\\Local\\Temp\\cislib-stop-join-e10pfr3z\\empty"
+      ],
+      "report": {
+        "mode": "empty",
+        "pid": 60452,
+        "runtime": ".NET 10.0.12",
+        "os": "windows",
+        "coreSha256": "67c4899ac7f8a943c2fc642e5c35173fc12f104830cefde8e304fcb132522081",
+        "fixtureSha256": "db9de3e54875c88628974eeba9e4147cc00ce8a2a546c8a25afd50042bc28031",
+        "result": {
+          "completion": "Completed",
+          "succeeded": true,
+          "loss": false,
+          "captured": "2026-10-14T16:22:55.9750059+00:00",
+          "observed": "2026-10-14T16:22:55.9771097+00:00",
+          "outputs": []
+        },
+        "stream": {
+          "writes": 0,
+          "written": 0,
+          "flushes": 0,
+          "flushed": 0,
+          "callbacks": 0,
+          "disposed": 0,
+          "callbackGateFree": false,
+          "bytes": ""
+        },
+        "live": [],
+        "timers": {
+          "created": 0,
+          "disposed": 0,
+          "periodicFires": 0,
+          "deadlineFires": 0,
+          "active": 0,
+          "activePeriodic": 0,
+          "maximumActive": 0,
+          "periodicSuppressed": true,
+          "systemCreated": 0,
+          "systemFalseChanges": 0
+        },
+        "preCancelledStart": null,
+        "cancelledWaiters": 1,
+        "tokenIdentity": true,
+        "disposeJoiners": 64,
+        "sameTask": true,
+        "sameResult": true,
+        "immutable": true,
+        "outputCancelledBeforeDeadline": false,
+        "outputCancelledAtReturn": false,
+        "pendingAtReturn": false,
+        "finalState": "Stopped"
+      },
+      "stdoutSha256": "94d723d14e1b016443147772f9b031f879289d2d05b89f5c446896444a0869aa",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "id": "dispose-first",
+      "pid": 106804,
+      "exitCode": 0,
+      "command": [
+        "dotnet",
+        "exec",
+        "--fx-version",
+        "10.0.12",
+        "--roll-forward",
+        "Disable",
+        "C:\\miscwork\\portfolio\\cislib\\.artifacts\\csharp\\tasks\\wp06-s01-t01\\native-host\\CIS.Core.DiscoveryFixture.dll",
+        "stop-join",
+        "dispose-first",
+        "C:\\Users\\andrs\\AppData\\Local\\Temp\\cislib-stop-join-e10pfr3z\\dispose-first"
+      ],
+      "report": {
+        "mode": "dispose-first",
+        "pid": 106804,
+        "runtime": ".NET 10.0.12",
+        "os": "windows",
+        "coreSha256": "67c4899ac7f8a943c2fc642e5c35173fc12f104830cefde8e304fcb132522081",
+        "fixtureSha256": "db9de3e54875c88628974eeba9e4147cc00ce8a2a546c8a25afd50042bc28031",
+        "result": {
+          "completion": "Completed",
+          "succeeded": true,
+          "loss": false,
+          "captured": "2026-10-14T16:22:56.1599663+00:00",
+          "observed": "2026-10-14T16:22:56.1778724+00:00",
+          "outputs": [
+            {
+              "name": "console",
+              "boundary": "1",
+              "written": "1",
+              "failed": "0",
+              "abandoned": "0",
+              "pending": "0",
+              "flush": "Succeeded"
+            }
+          ]
+        },
+        "stream": {
+          "writes": 1,
+          "written": 1,
+          "flushes": 1,
+          "flushed": 1,
+          "callbacks": 0,
+          "disposed": 0,
+          "callbackGateFree": false,
+          "bytes": "eyJzY2hlbWFfdmVyc2lvbiI6MSwidGltZXN0YW1wIjoiMjAyNi0xMC0xM1QxMjowMDowMC4wMDAwMDAwWiIsInN0YXR1cyI6ImluZm8iLCJldmVudF9uYW1lIjoib25lIiwibWVzc2FnZSI6Is6pIFx1RDgzRFx1REU0MiIsInNlcnZpY2UiOiJDb25zb2xlLkFwcCIsImVudiI6InRlc3QiLCJ2ZXJzaW9uIjoiMS4yLjMiLCJjb21wb25lbnQiOiJKb2luIiwicmVzb3VyY2UiOnsiYnVpbGRfdmVyc2lvbiI6ImJ1aWxkLTEiLCJlbnZpcm9ubWVudF9raW5kIjoiY29uc29sZSIsImluaXRpYWxpemVkX2F0IjoiMjAyNi0xMC0xM1QxMDowMDowMC4wMDAwMDAwWiIsImluc3RhbmNlX2lkIjoiMTExMTExMTEtMTExMS0xMTExLTExMTEtMTExMTExMTExMTExIiwib3NfZmFtaWx5IjoidW5rbm93biJ9LCJhdHRyaWJ1dGVzIjp7InByb2R1Y2VyX3BpZCI6MTA2ODA0fX0K"
+        },
+        "live": [
+          {
+            "name": "console",
+            "accepted": "1",
+            "written": "1",
+            "failed": "0",
+            "abandoned": "0",
+            "pending": "0",
+            "full": "0",
+            "unavailable": "0",
+            "filtered": "0",
+            "fault": null
+          }
+        ],
+        "timers": {
+          "created": 1,
+          "disposed": 1,
+          "periodicFires": 0,
+          "deadlineFires": 0,
+          "active": 0,
+          "activePeriodic": 0,
+          "maximumActive": 1,
+          "periodicSuppressed": true,
+          "systemCreated": 0,
+          "systemFalseChanges": 0
+        },
+        "preCancelledStart": null,
+        "cancelledWaiters": 0,
+        "tokenIdentity": true,
+        "disposeJoiners": 64,
+        "sameTask": true,
+        "sameResult": true,
+        "immutable": true,
+        "outputCancelledBeforeDeadline": false,
+        "outputCancelledAtReturn": false,
+        "pendingAtReturn": false,
+        "finalState": "Stopped"
+      },
+      "stdoutSha256": "83002664c36553feee4ebbf281046f26e3e9b6a7ec9341f943a3a9433e17b462",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "id": "stop-first",
+      "pid": 85472,
+      "exitCode": 0,
+      "command": [
+        "dotnet",
+        "exec",
+        "--fx-version",
+        "10.0.12",
+        "--roll-forward",
+        "Disable",
+        "C:\\miscwork\\portfolio\\cislib\\.artifacts\\csharp\\tasks\\wp06-s01-t01\\native-host\\CIS.Core.DiscoveryFixture.dll",
+        "stop-join",
+        "stop-first",
+        "C:\\Users\\andrs\\AppData\\Local\\Temp\\cislib-stop-join-e10pfr3z\\stop-first"
+      ],
+      "report": {
+        "mode": "stop-first",
+        "pid": 85472,
+        "runtime": ".NET 10.0.12",
+        "os": "windows",
+        "coreSha256": "67c4899ac7f8a943c2fc642e5c35173fc12f104830cefde8e304fcb132522081",
+        "fixtureSha256": "db9de3e54875c88628974eeba9e4147cc00ce8a2a546c8a25afd50042bc28031",
+        "result": {
+          "completion": "Completed",
+          "succeeded": true,
+          "loss": false,
+          "captured": "2026-10-14T16:22:56.3357066+00:00",
+          "observed": "2026-10-14T16:22:56.3516024+00:00",
+          "outputs": [
+            {
+              "name": "console",
+              "boundary": "1",
+              "written": "1",
+              "failed": "0",
+              "abandoned": "0",
+              "pending": "0",
+              "flush": "Succeeded"
+            }
+          ]
+        },
+        "stream": {
+          "writes": 1,
+          "written": 1,
+          "flushes": 1,
+          "flushed": 1,
+          "callbacks": 0,
+          "disposed": 0,
+          "callbackGateFree": false,
+          "bytes": "eyJzY2hlbWFfdmVyc2lvbiI6MSwidGltZXN0YW1wIjoiMjAyNi0xMC0xM1QxMjowMDowMC4wMDAwMDAwWiIsInN0YXR1cyI6ImluZm8iLCJldmVudF9uYW1lIjoib25lIiwibWVzc2FnZSI6Is6pIFx1RDgzRFx1REU0MiIsInNlcnZpY2UiOiJDb25zb2xlLkFwcCIsImVudiI6InRlc3QiLCJ2ZXJzaW9uIjoiMS4yLjMiLCJjb21wb25lbnQiOiJKb2luIiwicmVzb3VyY2UiOnsiYnVpbGRfdmVyc2lvbiI6ImJ1aWxkLTEiLCJlbnZpcm9ubWVudF9raW5kIjoiY29uc29sZSIsImluaXRpYWxpemVkX2F0IjoiMjAyNi0xMC0xM1QxMDowMDowMC4wMDAwMDAwWiIsImluc3RhbmNlX2lkIjoiMTExMTExMTEtMTExMS0xMTExLTExMTEtMTExMTExMTExMTExIiwib3NfZmFtaWx5IjoidW5rbm93biJ9LCJhdHRyaWJ1dGVzIjp7InByb2R1Y2VyX3BpZCI6ODU0NzJ9fQo="
+        },
+        "live": [
+          {
+            "name": "console",
+            "accepted": "1",
+            "written": "1",
+            "failed": "0",
+            "abandoned": "0",
+            "pending": "0",
+            "full": "0",
+            "unavailable": "0",
+            "filtered": "0",
+            "fault": null
+          }
+        ],
+        "timers": {
+          "created": 1,
+          "disposed": 1,
+          "periodicFires": 0,
+          "deadlineFires": 0,
+          "active": 0,
+          "activePeriodic": 0,
+          "maximumActive": 1,
+          "periodicSuppressed": true,
+          "systemCreated": 0,
+          "systemFalseChanges": 0
+        },
+        "preCancelledStart": null,
+        "cancelledWaiters": 0,
+        "tokenIdentity": true,
+        "disposeJoiners": 64,
+        "sameTask": true,
+        "sameResult": true,
+        "immutable": true,
+        "outputCancelledBeforeDeadline": false,
+        "outputCancelledAtReturn": false,
+        "pendingAtReturn": false,
+        "finalState": "Stopped"
+      },
+      "stdoutSha256": "cd3169d74166577becb69acf78206732df5dcd96b383d8b269691dc4a693c99f",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "id": "pre-cancelled",
+      "pid": 164536,
+      "exitCode": 0,
+      "command": [
+        "dotnet",
+        "exec",
+        "--fx-version",
+        "10.0.12",
+        "--roll-forward",
+        "Disable",
+        "C:\\miscwork\\portfolio\\cislib\\.artifacts\\csharp\\tasks\\wp06-s01-t01\\native-host\\CIS.Core.DiscoveryFixture.dll",
+        "stop-join",
+        "pre-cancelled",
+        "C:\\Users\\andrs\\AppData\\Local\\Temp\\cislib-stop-join-e10pfr3z\\pre-cancelled"
+      ],
+      "report": {
+        "mode": "pre-cancelled",
+        "pid": 164536,
+        "runtime": ".NET 10.0.12",
+        "os": "windows",
+        "coreSha256": "67c4899ac7f8a943c2fc642e5c35173fc12f104830cefde8e304fcb132522081",
+        "fixtureSha256": "db9de3e54875c88628974eeba9e4147cc00ce8a2a546c8a25afd50042bc28031",
+        "result": {
+          "completion": "Completed",
+          "succeeded": true,
+          "loss": false,
+          "captured": "2026-10-14T16:22:56.5119936+00:00",
+          "observed": "2026-10-14T16:22:56.5352781+00:00",
+          "outputs": [
+            {
+              "name": "console",
+              "boundary": "1",
+              "written": "1",
+              "failed": "0",
+              "abandoned": "0",
+              "pending": "0",
+              "flush": "Succeeded"
+            }
+          ]
+        },
+        "stream": {
+          "writes": 1,
+          "written": 1,
+          "flushes": 1,
+          "flushed": 1,
+          "callbacks": 0,
+          "disposed": 0,
+          "callbackGateFree": false,
+          "bytes": "eyJzY2hlbWFfdmVyc2lvbiI6MSwidGltZXN0YW1wIjoiMjAyNi0xMC0xM1QxMjowMDowMC4wMDAwMDAwWiIsInN0YXR1cyI6ImluZm8iLCJldmVudF9uYW1lIjoib25lIiwibWVzc2FnZSI6Is6pIFx1RDgzRFx1REU0MiIsInNlcnZpY2UiOiJDb25zb2xlLkFwcCIsImVudiI6InRlc3QiLCJ2ZXJzaW9uIjoiMS4yLjMiLCJjb21wb25lbnQiOiJKb2luIiwicmVzb3VyY2UiOnsiYnVpbGRfdmVyc2lvbiI6ImJ1aWxkLTEiLCJlbnZpcm9ubWVudF9raW5kIjoiY29uc29sZSIsImluaXRpYWxpemVkX2F0IjoiMjAyNi0xMC0xM1QxMDowMDowMC4wMDAwMDAwWiIsImluc3RhbmNlX2lkIjoiMTExMTExMTEtMTExMS0xMTExLTExMTEtMTExMTExMTExMTExIiwib3NfZmFtaWx5IjoidW5rbm93biJ9LCJhdHRyaWJ1dGVzIjp7InByb2R1Y2VyX3BpZCI6MTY0NTM2fX0K"
+        },
+        "live": [
+          {
+            "name": "console",
+            "accepted": "1",
+            "written": "1",
+            "failed": "0",
+            "abandoned": "0",
+            "pending": "0",
+            "full": "0",
+            "unavailable": "0",
+            "filtered": "0",
+            "fault": null
+          }
+        ],
+        "timers": {
+          "created": 1,
+          "disposed": 1,
+          "periodicFires": 0,
+          "deadlineFires": 0,
+          "active": 0,
+          "activePeriodic": 0,
+          "maximumActive": 1,
+          "periodicSuppressed": true,
+          "systemCreated": 0,
+          "systemFalseChanges": 0
+        },
+        "preCancelledStart": {
+          "admissionClosed": true,
+          "shutdownStarted": true,
+          "state": "Stopping",
+          "writeOutcome": "Stopped",
+          "deadlineCreated": 1
+        },
+        "cancelledWaiters": 1,
+        "tokenIdentity": true,
+        "disposeJoiners": 64,
+        "sameTask": true,
+        "sameResult": true,
+        "immutable": true,
+        "outputCancelledBeforeDeadline": false,
+        "outputCancelledAtReturn": false,
+        "pendingAtReturn": false,
+        "finalState": "Stopped"
+      },
+      "stdoutSha256": "1e6356fc6ded80ff5d1f4314697397562f9fe77032573cc60a8175b78a424ad7",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "id": "cancel-later",
+      "pid": 66416,
+      "exitCode": 0,
+      "command": [
+        "dotnet",
+        "exec",
+        "--fx-version",
+        "10.0.12",
+        "--roll-forward",
+        "Disable",
+        "C:\\miscwork\\portfolio\\cislib\\.artifacts\\csharp\\tasks\\wp06-s01-t01\\native-host\\CIS.Core.DiscoveryFixture.dll",
+        "stop-join",
+        "cancel-later",
+        "C:\\Users\\andrs\\AppData\\Local\\Temp\\cislib-stop-join-e10pfr3z\\cancel-later"
+      ],
+      "report": {
+        "mode": "cancel-later",
+        "pid": 66416,
+        "runtime": ".NET 10.0.12",
+        "os": "windows",
+        "coreSha256": "67c4899ac7f8a943c2fc642e5c35173fc12f104830cefde8e304fcb132522081",
+        "fixtureSha256": "db9de3e54875c88628974eeba9e4147cc00ce8a2a546c8a25afd50042bc28031",
+        "result": {
+          "completion": "Completed",
+          "succeeded": true,
+          "loss": false,
+          "captured": "2026-10-14T16:22:56.7076132+00:00",
+          "observed": "2026-10-14T16:22:56.7282161+00:00",
+          "outputs": [
+            {
+              "name": "console",
+              "boundary": "1",
+              "written": "1",
+              "failed": "0",
+              "abandoned": "0",
+              "pending": "0",
+              "flush": "Succeeded"
+            }
+          ]
+        },
+        "stream": {
+          "writes": 1,
+          "written": 1,
+          "flushes": 1,
+          "flushed": 1,
+          "callbacks": 0,
+          "disposed": 0,
+          "callbackGateFree": false,
+          "bytes": "eyJzY2hlbWFfdmVyc2lvbiI6MSwidGltZXN0YW1wIjoiMjAyNi0xMC0xM1QxMjowMDowMC4wMDAwMDAwWiIsInN0YXR1cyI6ImluZm8iLCJldmVudF9uYW1lIjoib25lIiwibWVzc2FnZSI6Is6pIFx1RDgzRFx1REU0MiIsInNlcnZpY2UiOiJDb25zb2xlLkFwcCIsImVudiI6InRlc3QiLCJ2ZXJzaW9uIjoiMS4yLjMiLCJjb21wb25lbnQiOiJKb2luIiwicmVzb3VyY2UiOnsiYnVpbGRfdmVyc2lvbiI6ImJ1aWxkLTEiLCJlbnZpcm9ubWVudF9raW5kIjoiY29uc29sZSIsImluaXRpYWxpemVkX2F0IjoiMjAyNi0xMC0xM1QxMDowMDowMC4wMDAwMDAwWiIsImluc3RhbmNlX2lkIjoiMTExMTExMTEtMTExMS0xMTExLTExMTEtMTExMTExMTExMTExIiwib3NfZmFtaWx5IjoidW5rbm93biJ9LCJhdHRyaWJ1dGVzIjp7InByb2R1Y2VyX3BpZCI6NjY0MTZ9fQo="
+        },
+        "live": [
+          {
+            "name": "console",
+            "accepted": "1",
+            "written": "1",
+            "failed": "0",
+            "abandoned": "0",
+            "pending": "0",
+            "full": "0",
+            "unavailable": "0",
+            "filtered": "0",
+            "fault": null
+          }
+        ],
+        "timers": {
+          "created": 1,
+          "disposed": 1,
+          "periodicFires": 0,
+          "deadlineFires": 0,
+          "active": 0,
+          "activePeriodic": 0,
+          "maximumActive": 1,
+          "periodicSuppressed": true,
+          "systemCreated": 0,
+          "systemFalseChanges": 0
+        },
+        "preCancelledStart": null,
+        "cancelledWaiters": 1,
+        "tokenIdentity": true,
+        "disposeJoiners": 64,
+        "sameTask": true,
+        "sameResult": true,
+        "immutable": true,
+        "outputCancelledBeforeDeadline": false,
+        "outputCancelledAtReturn": false,
+        "pendingAtReturn": false,
+        "finalState": "Stopped"
+      },
+      "stdoutSha256": "e61314a976748ea72467cf8a5097d95922268ca2d8ec809f9b24a7da864beadd",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "id": "cancelled-joins",
+      "pid": 65392,
+      "exitCode": 0,
+      "command": [
+        "dotnet",
+        "exec",
+        "--fx-version",
+        "10.0.12",
+        "--roll-forward",
+        "Disable",
+        "C:\\miscwork\\portfolio\\cislib\\.artifacts\\csharp\\tasks\\wp06-s01-t01\\native-host\\CIS.Core.DiscoveryFixture.dll",
+        "stop-join",
+        "cancelled-joins",
+        "C:\\Users\\andrs\\AppData\\Local\\Temp\\cislib-stop-join-e10pfr3z\\cancelled-joins"
+      ],
+      "report": {
+        "mode": "cancelled-joins",
+        "pid": 65392,
+        "runtime": ".NET 10.0.12",
+        "os": "windows",
+        "coreSha256": "67c4899ac7f8a943c2fc642e5c35173fc12f104830cefde8e304fcb132522081",
+        "fixtureSha256": "db9de3e54875c88628974eeba9e4147cc00ce8a2a546c8a25afd50042bc28031",
+        "result": {
+          "completion": "Completed",
+          "succeeded": true,
+          "loss": false,
+          "captured": "2026-10-14T16:22:56.9165348+00:00",
+          "observed": "2026-10-14T16:22:56.9390334+00:00",
+          "outputs": [
+            {
+              "name": "console",
+              "boundary": "1",
+              "written": "1",
+              "failed": "0",
+              "abandoned": "0",
+              "pending": "0",
+              "flush": "Succeeded"
+            }
+          ]
+        },
+        "stream": {
+          "writes": 1,
+          "written": 1,
+          "flushes": 1,
+          "flushed": 1,
+          "callbacks": 0,
+          "disposed": 0,
+          "callbackGateFree": false,
+          "bytes": "eyJzY2hlbWFfdmVyc2lvbiI6MSwidGltZXN0YW1wIjoiMjAyNi0xMC0xM1QxMjowMDowMC4wMDAwMDAwWiIsInN0YXR1cyI6ImluZm8iLCJldmVudF9uYW1lIjoib25lIiwibWVzc2FnZSI6Is6pIFx1RDgzRFx1REU0MiIsInNlcnZpY2UiOiJDb25zb2xlLkFwcCIsImVudiI6InRlc3QiLCJ2ZXJzaW9uIjoiMS4yLjMiLCJjb21wb25lbnQiOiJKb2luIiwicmVzb3VyY2UiOnsiYnVpbGRfdmVyc2lvbiI6ImJ1aWxkLTEiLCJlbnZpcm9ubWVudF9raW5kIjoiY29uc29sZSIsImluaXRpYWxpemVkX2F0IjoiMjAyNi0xMC0xM1QxMDowMDowMC4wMDAwMDAwWiIsImluc3RhbmNlX2lkIjoiMTExMTExMTEtMTExMS0xMTExLTExMTEtMTExMTExMTExMTExIiwib3NfZmFtaWx5IjoidW5rbm93biJ9LCJhdHRyaWJ1dGVzIjp7InByb2R1Y2VyX3BpZCI6NjUzOTJ9fQo="
+        },
+        "live": [
+          {
+            "name": "console",
+            "accepted": "1",
+            "written": "1",
+            "failed": "0",
+            "abandoned": "0",
+            "pending": "0",
+            "full": "0",
+            "unavailable": "0",
+            "filtered": "0",
+            "fault": null
+          }
+        ],
+        "timers": {
+          "created": 1,
+          "disposed": 1,
+          "periodicFires": 0,
+          "deadlineFires": 0,
+          "active": 0,
+          "activePeriodic": 0,
+          "maximumActive": 1,
+          "periodicSuppressed": true,
+          "systemCreated": 0,
+          "systemFalseChanges": 0
+        },
+        "preCancelledStart": null,
+        "cancelledWaiters": 64,
+        "tokenIdentity": true,
+        "disposeJoiners": 64,
+        "sameTask": true,
+        "sameResult": true,
+        "immutable": true,
+        "outputCancelledBeforeDeadline": false,
+        "outputCancelledAtReturn": false,
+        "pendingAtReturn": false,
+        "finalState": "Stopped"
+      },
+      "stdoutSha256": "52748833c6ad20865f93017a002af9eedaab25ff8a3b2538fa6f9bb782c2b2ff",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "id": "deadline-joins",
+      "pid": 69556,
+      "exitCode": 0,
+      "command": [
+        "dotnet",
+        "exec",
+        "--fx-version",
+        "10.0.12",
+        "--roll-forward",
+        "Disable",
+        "C:\\miscwork\\portfolio\\cislib\\.artifacts\\csharp\\tasks\\wp06-s01-t01\\native-host\\CIS.Core.DiscoveryFixture.dll",
+        "stop-join",
+        "deadline-joins",
+        "C:\\Users\\andrs\\AppData\\Local\\Temp\\cislib-stop-join-e10pfr3z\\deadline-joins"
+      ],
+      "report": {
+        "mode": "deadline-joins",
+        "pid": 69556,
+        "runtime": ".NET 10.0.12",
+        "os": "windows",
+        "coreSha256": "67c4899ac7f8a943c2fc642e5c35173fc12f104830cefde8e304fcb132522081",
+        "fixtureSha256": "db9de3e54875c88628974eeba9e4147cc00ce8a2a546c8a25afd50042bc28031",
+        "result": {
+          "completion": "TimedOut",
+          "succeeded": false,
+          "loss": false,
+          "captured": "2026-10-14T16:22:57.1129615+00:00",
+          "observed": "2026-10-14T16:22:57.1368008+00:00",
+          "outputs": [
+            {
+              "name": "console",
+              "boundary": "1",
+              "written": "0",
+              "failed": "0",
+              "abandoned": "0",
+              "pending": "1",
+              "flush": "Pending"
+            }
+          ]
+        },
+        "stream": {
+          "writes": 1,
+          "written": 1,
+          "flushes": 0,
+          "flushed": 0,
+          "callbacks": 1,
+          "disposed": 0,
+          "callbackGateFree": false,
+          "bytes": "eyJzY2hlbWFfdmVyc2lvbiI6MSwidGltZXN0YW1wIjoiMjAyNi0xMC0xM1QxMjowMDowMC4wMDAwMDAwWiIsInN0YXR1cyI6ImluZm8iLCJldmVudF9uYW1lIjoib25lIiwibWVzc2FnZSI6Is6pIFx1RDgzRFx1REU0MiIsInNlcnZpY2UiOiJDb25zb2xlLkFwcCIsImVudiI6InRlc3QiLCJ2ZXJzaW9uIjoiMS4yLjMiLCJjb21wb25lbnQiOiJKb2luIiwicmVzb3VyY2UiOnsiYnVpbGRfdmVyc2lvbiI6ImJ1aWxkLTEiLCJlbnZpcm9ubWVudF9raW5kIjoiY29uc29sZSIsImluaXRpYWxpemVkX2F0IjoiMjAyNi0xMC0xM1QxMDowMDowMC4wMDAwMDAwWiIsImluc3RhbmNlX2lkIjoiMTExMTExMTEtMTExMS0xMTExLTExMTEtMTExMTExMTExMTExIiwib3NfZmFtaWx5IjoidW5rbm93biJ9LCJhdHRyaWJ1dGVzIjp7InByb2R1Y2VyX3BpZCI6Njk1NTZ9fQo="
+        },
+        "live": [
+          {
+            "name": "console",
+            "accepted": "1",
+            "written": "1",
+            "failed": "0",
+            "abandoned": "0",
+            "pending": "0",
+            "full": "0",
+            "unavailable": "0",
+            "filtered": "0",
+            "fault": null
+          }
+        ],
+        "timers": {
+          "created": 1,
+          "disposed": 1,
+          "periodicFires": 0,
+          "deadlineFires": 1,
+          "active": 0,
+          "activePeriodic": 0,
+          "maximumActive": 1,
+          "periodicSuppressed": true,
+          "systemCreated": 0,
+          "systemFalseChanges": 0
+        },
+        "preCancelledStart": null,
+        "cancelledWaiters": 64,
+        "tokenIdentity": true,
+        "disposeJoiners": 64,
+        "sameTask": true,
+        "sameResult": true,
+        "immutable": true,
+        "outputCancelledBeforeDeadline": false,
+        "outputCancelledAtReturn": true,
+        "pendingAtReturn": true,
+        "finalState": "Stopped"
+      },
+      "stdoutSha256": "48b809d4f2773644721f6f3058a5ffc41cf6569e0d68fac7f6ce8ac961f7fe4c",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "id": "after-completion-cancel",
+      "pid": 53388,
+      "exitCode": 0,
+      "command": [
+        "dotnet",
+        "exec",
+        "--fx-version",
+        "10.0.12",
+        "--roll-forward",
+        "Disable",
+        "C:\\miscwork\\portfolio\\cislib\\.artifacts\\csharp\\tasks\\wp06-s01-t01\\native-host\\CIS.Core.DiscoveryFixture.dll",
+        "stop-join",
+        "after-completion-cancel",
+        "C:\\Users\\andrs\\AppData\\Local\\Temp\\cislib-stop-join-e10pfr3z\\after-completion-cancel"
+      ],
+      "report": {
+        "mode": "after-completion-cancel",
+        "pid": 53388,
+        "runtime": ".NET 10.0.12",
+        "os": "windows",
+        "coreSha256": "67c4899ac7f8a943c2fc642e5c35173fc12f104830cefde8e304fcb132522081",
+        "fixtureSha256": "db9de3e54875c88628974eeba9e4147cc00ce8a2a546c8a25afd50042bc28031",
+        "result": {
+          "completion": "Completed",
+          "succeeded": true,
+          "loss": false,
+          "captured": "2026-10-14T16:22:57.3188617+00:00",
+          "observed": "2026-10-14T16:22:57.3369379+00:00",
+          "outputs": [
+            {
+              "name": "console",
+              "boundary": "1",
+              "written": "1",
+              "failed": "0",
+              "abandoned": "0",
+              "pending": "0",
+              "flush": "Succeeded"
+            }
+          ]
+        },
+        "stream": {
+          "writes": 1,
+          "written": 1,
+          "flushes": 1,
+          "flushed": 1,
+          "callbacks": 0,
+          "disposed": 0,
+          "callbackGateFree": false,
+          "bytes": "eyJzY2hlbWFfdmVyc2lvbiI6MSwidGltZXN0YW1wIjoiMjAyNi0xMC0xM1QxMjowMDowMC4wMDAwMDAwWiIsInN0YXR1cyI6ImluZm8iLCJldmVudF9uYW1lIjoib25lIiwibWVzc2FnZSI6Is6pIFx1RDgzRFx1REU0MiIsInNlcnZpY2UiOiJDb25zb2xlLkFwcCIsImVudiI6InRlc3QiLCJ2ZXJzaW9uIjoiMS4yLjMiLCJjb21wb25lbnQiOiJKb2luIiwicmVzb3VyY2UiOnsiYnVpbGRfdmVyc2lvbiI6ImJ1aWxkLTEiLCJlbnZpcm9ubWVudF9raW5kIjoiY29uc29sZSIsImluaXRpYWxpemVkX2F0IjoiMjAyNi0xMC0xM1QxMDowMDowMC4wMDAwMDAwWiIsImluc3RhbmNlX2lkIjoiMTExMTExMTEtMTExMS0xMTExLTExMTEtMTExMTExMTExMTExIiwib3NfZmFtaWx5IjoidW5rbm93biJ9LCJhdHRyaWJ1dGVzIjp7InByb2R1Y2VyX3BpZCI6NTMzODh9fQo="
+        },
+        "live": [
+          {
+            "name": "console",
+            "accepted": "1",
+            "written": "1",
+            "failed": "0",
+            "abandoned": "0",
+            "pending": "0",
+            "full": "0",
+            "unavailable": "0",
+            "filtered": "0",
+            "fault": null
+          }
+        ],
+        "timers": {
+          "created": 1,
+          "disposed": 1,
+          "periodicFires": 0,
+          "deadlineFires": 0,
+          "active": 0,
+          "activePeriodic": 0,
+          "maximumActive": 1,
+          "periodicSuppressed": true,
+          "systemCreated": 0,
+          "systemFalseChanges": 0
+        },
+        "preCancelledStart": null,
+        "cancelledWaiters": 1,
+        "tokenIdentity": true,
+        "disposeJoiners": 64,
+        "sameTask": true,
+        "sameResult": true,
+        "immutable": true,
+        "outputCancelledBeforeDeadline": false,
+        "outputCancelledAtReturn": false,
+        "pendingAtReturn": false,
+        "finalState": "Stopped"
+      },
+      "stdoutSha256": "767ad4a845140eaf7565345b69c78f25741f76f79cf2f2c6c2f7e72140679346",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ],
+  "controls": [
+    {
+      "id": "pre-admission",
+      "rejected": true,
+      "reason": "pre-cancelled initiation"
+    },
+    {
+      "id": "pre-start",
+      "rejected": true,
+      "reason": "pre-cancelled initiation"
+    },
+    {
+      "id": "pre-state",
+      "rejected": true,
+      "reason": "pre-cancelled initiation"
+    },
+    {
+      "id": "pre-write",
+      "rejected": true,
+      "reason": "pre-cancelled initiation"
+    },
+    {
+      "id": "pre-timer",
+      "rejected": true,
+      "reason": "pre-cancelled initiation"
+    },
+    {
+      "id": "pre-type",
+      "rejected": true,
+      "reason": "pre-cancelled initiation"
+    },
+    {
+      "id": "pid",
+      "rejected": true,
+      "reason": "actual child PID"
+    },
+    {
+      "id": "runtime",
+      "rejected": true,
+      "reason": "actual runtime"
+    },
+    {
+      "id": "shape",
+      "rejected": true,
+      "reason": "result shape"
+    },
+    {
+      "id": "summary",
+      "rejected": true,
+      "reason": "summary flags"
+    },
+    {
+      "id": "pending",
+      "rejected": true,
+      "reason": "covered dispositions"
+    },
+    {
+      "id": "flush",
+      "rejected": true,
+      "reason": "writer flush"
+    },
+    {
+      "id": "token",
+      "rejected": true,
+      "reason": "caller token identity"
+    },
+    {
+      "id": "caller",
+      "rejected": true,
+      "reason": "actual joining callers"
+    },
+    {
+      "id": "dispose",
+      "rejected": true,
+      "reason": "actual joining callers"
+    },
+    {
+      "id": "identity",
+      "rejected": true,
+      "reason": "original operation identity"
+    },
+    {
+      "id": "cancel",
+      "rejected": true,
+      "reason": "caller-only cancellation"
+    },
+    {
+      "id": "late",
+      "rejected": true,
+      "reason": "bounded wait and late completion"
+    },
+    {
+      "id": "borrowed",
+      "rejected": true,
+      "reason": "borrowed stream lifetime"
+    },
+    {
+      "id": "calls",
+      "rejected": true,
+      "reason": "actual writer calls"
+    },
+    {
+      "id": "records",
+      "rejected": true,
+      "reason": "actual records"
+    },
+    {
+      "id": "live",
+      "rejected": true,
+      "reason": "eventual live disposition"
+    },
+    {
+      "id": "timer",
+      "rejected": true,
+      "reason": "original deadline only"
+    }
+  ]
+}

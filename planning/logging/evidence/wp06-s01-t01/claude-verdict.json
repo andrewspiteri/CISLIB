@@ -1,0 +1,59 @@
+{
+  "task": "WP06-S01-T01",
+  "verdict": "CHANGES_REQUIRED",
+  "summary": "The provider is a concrete, sealed ILoggerProvider in CIS.Core under CIS.Logging.MicrosoftLogger. It adds no new dependency, worker, cache or lifecycle framework. Category loggers forward through CoreLogger.WriteLazy -> CoreLogRuntime.Write, so core interest, capture, admission and closure decide every outcome. Disposal is nonowning and idempotent. Unsupported scope forms throw explicitly instead of being dropped, and there are no extern/placeholder bodies or simulated outputs. One stated T01 behavior, exception forwarding, has no executed evidence. That is the only required change.",
+  "requiredFindings": [
+    {
+      "id": "R1",
+      "area": "evidence / task-scope fidelity",
+      "location": "ProviderFoundationFixture.cs (all modes pass exception: null); ProviderFoundationExpectations.cs; verify-provider-foundation.py; docs/modules/logging/microsoft-provider-foundation.md",
+      "finding": "The task statement and the doc both say exceptions are forwarded into core capture. No unit, physical or native-reader case passes a non-null exception to ILogger.Log or LogError, and none checks the projected exception fields in the written record. The code path (LogEventData.Exception = exception) looks correct, but the claim has no executed evidence. The formatter's receipt of the same exception instance is also unverified.",
+      "requiredChange": "Add a case, or extend 'forward', that logs with a controlled exception. It should assert (a) the formatter receives the same exception instance and (b) the JSONL record contains the core exception projection (type/message per the existing exception contract) without the exception's Data. Add a matching native-reader check and a corruption control. Alternatively, remove the exception-forwarding claim from the T01 scope and doc and carry it forward explicitly."
+    }
+  ],
+  "optionalFindings": [
+    {
+      "id": "O1",
+      "area": "scope closure guard",
+      "location": "CoreLoggerProvider.CategoryLogger.BeginScope",
+      "finding": "The admission-closed check calls provider.runtime.GetDiagnostics(). That builds a full diagnostics snapshot (lock, accounting, list allocation) on every scope begin. It also places the closure rule in the provider instead of the runtime, and the rule is tied to queued composition: GetDiagnostics throws for a non-queued runtime. The pending public runtime.BeginScope will need the same guard.",
+      "suggestion": "Add one internal CoreLogRuntime method that checks admissionClosed under admissionGate and delegates to Scopes.BeginScope. Have the provider call it, so the future public runtime.BeginScope shares a single guard."
+    },
+    {
+      "id": "O2",
+      "area": "test coverage: scope lifetime",
+      "location": "ProviderFoundationFixture 'typed-scope'",
+      "finding": "The case proves capture-time copying but not that disposing the returned handle pops the frame.",
+      "suggestion": "After the using block, log a second record and assert it has no operation_id or scope_attribute."
+    },
+    {
+      "id": "O3",
+      "area": "test coverage: disposed/stopped scope paths",
+      "location": "ProviderFoundationTests.RequiredArgumentsAndDisposedCreationAreConcrete; 'nonowning'/'stopped' modes",
+      "finding": "Neither BeginScope throwing ObjectDisposedException after provider disposal nor BeginScope throwing InvalidOperationException after runtime stop is exercised.",
+      "suggestion": "Assert both exact exception types, and assert the runtime scope store head is unchanged afterwards."
+    },
+    {
+      "id": "O4",
+      "area": "test coverage: severity forwarding",
+      "location": "fixture/expectations (all emitted records are Information)",
+      "finding": "Severity forwarding is claimed but only Information reaches a record. Full mapping belongs to T02, but one non-Information emitted level (e.g. Error -> record status) would show the cast is not just coincidentally correct for one value.",
+      "suggestion": "Emit one Warning or Error record in an existing mode and check its status field."
+    },
+    {
+      "id": "O5",
+      "area": "allocation on filtered path",
+      "location": "CategoryLogger.Log",
+      "finding": "The WriteLazy closure (capturing state, eventId, exception and formatter, and boxing value-type state) is allocated on every call, including filtered and stopped ones. This is not a correctness issue.",
+      "suggestion": "Leave for T04/T05 performance qualification, or record it as a known cost."
+    }
+  ],
+  "carriedForward": [
+    "Host scope hazard (S02-T01/T02): the provider does not implement ISupportExternalScope. LoggerFactory will call this logger's BeginScope directly, so framework-originated scopes (e.g. ASP.NET Core HostingLogScope, string or dictionary scopes) will surface as AggregateException from the factory's Logger.BeginScope. This is acceptable only because T01 is unpublished and the throw is an explicit, documented design choice. It must be resolved before any host registration example or release.",
+    "Category names that fail core component rules (over 255 scalars, e.g. long generic type names, or controls) make CreateLogger throw out of LoggerFactory.CreateLogger. Qualify or define the mapping in T04/T05.",
+    "Numeric EventId and complete level mapping qualification (T02); template/structured state (T03); complete rejection/filter behavior, including Log(None) incrementing per-output Filtered counters, null formatter results becoming InvalidEvent, and whitespace or invalid EventId.Name (T04); complete mapping story (T05).",
+    "The unpublished verification/contracts/startup/ProviderSurface.cs and ProviderConsumer.cs still declare ISupportExternalScope/SetScopeProvider. The shipped type intentionally omits them. Confirm no compile check binds ProviderConsumer to the real CIS.Core until S02 adds the members.",
+    "Full nonowning and concurrent host qualification (S02-T04/T05), including dispose racing in-flight calls.",
+    "Final Developer/Windows/Ubuntu verification runs and the task receipt are still pending. This review accepts none of the reported pass counts as executed evidence."
+  ]
+}
