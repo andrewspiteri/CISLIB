@@ -1,0 +1,31 @@
+<Project>
+  <ItemGroup>
+    <_CisExplicitCoreReference Include="@(PackageReference->WithMetadataValue('Identity', 'CIS.Core'))" />
+    <_CisCentralCoreVersion Include="@(PackageVersion->WithMetadataValue('Identity', 'CIS.Core'))" />
+    <!-- The SDK and runtime are two assets of this same, exact package version. -->
+    <PackageReference Include="CIS.Core" Condition="'@(_CisExplicitCoreReference)' == ''">
+      <Version Condition="'$(ManagePackageVersionsCentrally)' != 'true'">[$(_CisCoreSdkPackageVersion)]</Version>
+    </PackageReference>
+    <PackageVersion Include="CIS.Core" Version="[$(_CisCoreSdkPackageVersion)]"
+                    Condition="'$(ManagePackageVersionsCentrally)' == 'true' and '@(_CisCentralCoreVersion)' == ''" />
+    <!-- A plain central version is a NuGet minimum; normalize a matching one
+         to an exact range so transitive dependencies cannot lift the runtime. -->
+    <PackageVersion Update="CIS.Core" Version="[$(_CisCoreSdkPackageVersion)]"
+                    Condition="'$(ManagePackageVersionsCentrally)' == 'true' and '@(_CisCentralCoreVersion->'%(Version)')' == '$(_CisCoreSdkPackageVersion)'" />
+  </ItemGroup>
+  <PropertyGroup>
+    <_CisTypeManagerPackagedTool>true</_CisTypeManagerPackagedTool>
+    <_CisTypeManagerToolAssembly>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)../tools/net10.0/CIS.TypeManager.Build.dll'))</_CisTypeManagerToolAssembly>
+  </PropertyGroup>
+  <Import Project="../buildSupport/CIS.TypeManager.targets" />
+  <Target Name="CisValidateSdkRuntimeReference" BeforeTargets="CollectPackageReferences;BuildOnlySettings;PrepareForBuild">
+    <Error Condition="'$(CisTypeManagerEnabled)' == 'true' and '$(_CisBeforeSdkImported)' != 'true'"
+           Text="CISTM009: The CIS.Core early SDK hook was replaced. Set BeforeMicrosoftNETSdkTargets in Directory.Build.props before the CIS.Core Sdk import." />
+    <Error Condition="'$(CisTypeManagerEnabled)' == 'true' and '$(NETCoreSdkVersion)' != '10.0.401'"
+           Text="CISTM009: This Type Manager package requires the qualified .NET SDK 10.0.401. Pin it in global.json." />
+    <Error Condition="'@(_CisExplicitCoreReference)' != ''"
+           Text="CISTM006: The CIS.Core SDK supplies the matching runtime PackageReference. Remove the separate CIS.Core PackageReference." />
+    <Error Condition="'$(ManagePackageVersionsCentrally)' == 'true' and '@(_CisCentralCoreVersion)' != '' and '@(_CisCentralCoreVersion->'%(Version)')' != '$(_CisCoreSdkPackageVersion)' and '@(_CisCentralCoreVersion->'%(Version)')' != '[$(_CisCoreSdkPackageVersion)]'"
+           Text="CISTM006: The central CIS.Core package version must match the selected CIS.Core SDK version exactly." />
+  </Target>
+</Project>

@@ -21,7 +21,7 @@ function Invoke-Evaluation {
     param([string] $Path, [switch] $ResolveReferences)
     $arguments = @('msbuild', $Path)
     if ($ResolveReferences) {
-        $arguments += @('-t:ResolveReferences', '-getItem:ReferencePath')
+        $arguments += @('-t:ResolveReferences', '-p:BuildProjectReferences=false', '-getItem:ReferencePath')
     }
     else {
         $arguments += @('-getItem:ProjectReference,PackageReference,FrameworkReference,Reference', '-getProperty:TargetFramework,IsPackable,IsTestProject,AssemblyName,PackageId,RootNamespace,OutputType,MSBuildBinPath,NETCoreSdkVersion')
@@ -105,7 +105,7 @@ try {
             if ($project.ContainsKey('buildOnlyProjectReferences')) {
                 $buildOnlyReferences = @($project.buildOnlyProjectReferences | ForEach-Object { [IO.Path]::GetFullPath((Join-Path $LanguageRoot $_)) })
             }
-            if ($referencePath -in $buildOnlyReferences -and ($reference.ReferenceOutputAssembly -ne 'false' -or $reference.Private -ne 'false')) {
+            if ($referencePath -in $buildOnlyReferences -and ($reference.ReferenceOutputAssembly -ne 'false' -or $reference.Private -ne 'false' -or $reference.PrivateAssets -ne 'all')) {
                 throw "Build-only project must not become a runtime reference: $($reference.Identity)"
             }
             $actualReferences += $referencePath
@@ -184,16 +184,44 @@ try {
         $archive = [IO.Compression.ZipFile]::OpenRead($PackagePath)
         try {
             $allowedEntries = @('lib/net10.0/CIS.Core.dll', 'lib/net10.0/CIS.Core.xml', 'README.md', 'CIS.Core.nuspec', '[Content_Types].xml', '_rels/.rels')
+            $typeManagerAssets = @{
+                'buildSupport/CIS.TypeManager.targets' = 'build/type-manager/CIS.TypeManager.targets'
+                'Sdk/Sdk.props' = 'build/type-manager/sdk/Sdk.props'
+                'Sdk/Sdk.targets' = 'build/type-manager/sdk/Sdk.targets'
+                'Sdk/BeforeSdk.targets' = 'build/type-manager/sdk/BeforeSdk.targets'
+                'buildTransitive/CIS.Core.targets' = 'build/type-manager/package/CIS.Core.targets'
+            }
+            $allowedEntries += @($typeManagerAssets.Keys) + @('Sdk/PackageVersion.props', 'tools/net10.0/CIS.TypeManager.Build.dll')
             foreach ($entry in $archive.Entries) {
                 if ($entry.FullName -notin $allowedEntries -and $entry.FullName -notmatch '^package/services/metadata/core-properties/[^/]+\.psmdcp$') {
                     throw "Unexpected packed asset: $($entry.FullName)"
                 }
             }
             if (@($archive.Entries | Where-Object FullName -eq 'lib/net10.0/CIS.Core.dll').Count -ne 1) { throw 'Core DLL target asset is missing.' }
+            foreach ($required in @($typeManagerAssets.Keys) + @('Sdk/PackageVersion.props', 'tools/net10.0/CIS.TypeManager.Build.dll')) {
+                if (@($archive.Entries | Where-Object FullName -eq $required).Count -ne 1) { throw "Type Manager package asset is missing or duplicated: $required" }
+            }
+            foreach ($name in $typeManagerAssets.Keys) {
+                $input = $archive.GetEntry($name).Open()
+                try { $hash = [Convert]::ToHexString([Security.Cryptography.SHA256]::HashData($input)) } finally { $input.Dispose() }
+                if ($hash -ne (Get-FileHash -LiteralPath (Join-Path $LanguageRoot $typeManagerAssets[$name])).Hash) {
+                    throw "Packed Type Manager build asset differs from source: $name"
+                }
+            }
+            $toolPath = (& dotnet msbuild eng/CIS.TypeManager.Build/CIS.TypeManager.Build.csproj -p:Configuration=Release -getProperty:TargetPath -nologo).Trim()
+            if ($LASTEXITCODE -ne 0 -or -not (Test-Path -LiteralPath $toolPath)) { throw 'Build the Release Type Manager helper before inspecting its package.' }
+            $input = $archive.GetEntry('tools/net10.0/CIS.TypeManager.Build.dll').Open()
+            try { $hash = [Convert]::ToHexString([Security.Cryptography.SHA256]::HashData($input)) } finally { $input.Dispose() }
+            if ($hash -ne (Get-FileHash -LiteralPath $toolPath).Hash) { throw 'Packed Type Manager helper differs from the checked Release tool.' }
             $nuspecEntry = $archive.GetEntry('CIS.Core.nuspec')
             if ($null -eq $nuspecEntry) { throw 'Core package manifest is missing.' }
             $reader = [IO.StreamReader]::new($nuspecEntry.Open())
             try { [xml] $nuspec = $reader.ReadToEnd() } finally { $reader.Dispose() }
+            $reader = [IO.StreamReader]::new($archive.GetEntry('Sdk/PackageVersion.props').Open())
+            try { [xml] $versionProps = $reader.ReadToEnd() } finally { $reader.Dispose() }
+            if ($versionProps.Project.PropertyGroup._CisCoreSdkPackageVersion -ne $nuspec.SelectSingleNode("//*[local-name()='metadata']/*[local-name()='version']").InnerText) {
+                throw 'Type Manager SDK and runtime package versions differ.'
+            }
             $groups = @($nuspec.SelectNodes("//*[local-name()='dependencies']/*[local-name()='group']"))
             if ($groups.Count -ne 1 -or $groups[0].targetFramework -ne 'net10.0') { throw 'Unexpected package dependency groups.' }
             $directPackages = @($runtimePolicy.packages | Where-Object role -eq 'direct')

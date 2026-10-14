@@ -1,3 +1,4 @@
+using System.IO.Compression;
 using System.Xml.Linq;
 using CIS.TestSupport;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -39,6 +40,7 @@ public sealed class TypeManagerBoundaryTests
     [TestMethod]
     [DataRow("ReferenceOutputAssembly")]
     [DataRow("Private")]
+    [DataRow("PrivateAssets")]
     public async Task BuildToolCannotBecomeAHostRuntimeReference(string attribute)
     {
         using var fixture = new ProjectFixture(LanguageRoot);
@@ -52,6 +54,79 @@ public sealed class TypeManagerBoundaryTests
 
         Assert.AreNotEqual(0, result.ExitCode);
         StringAssert.Contains(result.StandardError, "Build-only project must not become a runtime reference");
+    }
+
+    [TestMethod]
+    [DataRow("ReferenceOutputAssembly")]
+    [DataRow("Private")]
+    [DataRow("PrivateAssets")]
+    public async Task PackageBuildToolCannotBecomeACoreRuntimeReference(string attribute)
+    {
+        using var fixture = new ProjectFixture(LanguageRoot);
+        const string core = "src/CIS.Core/CIS.Core.csproj";
+        var project = XDocument.Load(Path.Combine(fixture.Path, core));
+        project.Descendants("ProjectReference").Single().SetAttributeValue(attribute, "true");
+        project.Save(Path.Combine(fixture.Path, core));
+
+        ProcessResult result = await RunCheck(fixture.Path, core);
+
+        Assert.AreNotEqual(0, result.ExitCode);
+        StringAssert.Contains(result.StandardError, "Build-only project must not become a runtime reference");
+    }
+
+    [TestMethod]
+    [DataRow("unchanged", "")]
+    [DataRow("missing-sdk", "Type Manager package asset is missing or duplicated")]
+    [DataRow("changed-target", "Packed Type Manager build asset differs from source")]
+    [DataRow("changed-helper", "Packed Type Manager helper differs from the checked Release tool")]
+    [DataRow("changed-core", "Packed Core DLL differs from the checked Release assembly")]
+    [DataRow("changed-version", "Type Manager SDK and runtime package versions differ")]
+    public async Task PackageRejectsMissingOrChangedTypeManagerBuildAssets(string change, string expected)
+    {
+        using var directory = new TemporaryDirectory();
+        string core = Path.Combine(LanguageRoot, "src", "CIS.Core", "bin", "Release", "net10.0", "CIS.Core.dll");
+        string version = System.Diagnostics.FileVersionInfo.GetVersionInfo(core).ProductVersion!.Split('+', 2)[0];
+        string package = Path.Combine(directory.Path, "candidate.nupkg");
+        File.Copy(Path.Combine(LanguageRoot, "..", "..", ".artifacts", "csharp", "packages", $"CIS.Core.{version}.nupkg"), package);
+        if (change != "unchanged")
+        {
+            using var archive = ZipFile.Open(package, ZipArchiveMode.Update);
+            string entry = change switch
+            {
+                "missing-sdk" => "Sdk/Sdk.props",
+                "changed-target" => "buildSupport/CIS.TypeManager.targets",
+                "changed-helper" => "tools/net10.0/CIS.TypeManager.Build.dll",
+                "changed-core" => "lib/net10.0/CIS.Core.dll",
+                _ => "Sdk/PackageVersion.props"
+            };
+            archive.GetEntry(entry)!.Delete();
+            if (change == "changed-core")
+            {
+                // A trailing byte preserves valid PE metadata while changing the
+                // artifact hash, so the exact-byte check must catch this case.
+                using var output = archive.CreateEntry(entry).Open();
+                output.Write(File.ReadAllBytes(core));
+                output.WriteByte(0);
+            }
+            else if (change != "missing-sdk")
+            {
+                using var writer = new StreamWriter(archive.CreateEntry(entry).Open());
+                writer.Write(change == "changed-version"
+                    ? "<Project><PropertyGroup><_CisCoreSdkPackageVersion>99.0.0</_CisCoreSdkPackageVersion></PropertyGroup></Project>"
+                    : "deliberately changed package asset");
+            }
+        }
+        string script = Path.Combine(LanguageRoot, "eng", "check-dependencies.ps1");
+        ProcessResult result = await ProcessRunner.RunAsync("pwsh", ["-NoProfile", "-File", script,
+            "-ProjectPath", "src/CIS.Core/CIS.Core.csproj", "-PackagePath", package, "-AssemblyPath", core], LanguageRoot, TimeSpan.FromSeconds(60));
+
+        if (change == "unchanged")
+        {
+            Assert.AreEqual(0, result.ExitCode, result.StandardOutput + result.StandardError);
+            return;
+        }
+        Assert.AreNotEqual(0, result.ExitCode);
+        StringAssert.Contains(result.StandardError, expected);
     }
 
     private static Task<ProcessResult> RunCheck(string root, string project)

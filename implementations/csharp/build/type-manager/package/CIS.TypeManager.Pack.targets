@@ -1,0 +1,29 @@
+<Project>
+  <ItemGroup>
+    <None Include="$(MSBuildThisFileDirectory)../CIS.TypeManager.targets" Pack="true" PackagePath="buildSupport/CIS.TypeManager.targets" />
+    <None Include="$(MSBuildThisFileDirectory)../sdk/Sdk.props" Pack="true" PackagePath="Sdk/Sdk.props" />
+    <None Include="$(MSBuildThisFileDirectory)../sdk/Sdk.targets" Pack="true" PackagePath="Sdk/Sdk.targets" />
+    <None Include="$(MSBuildThisFileDirectory)../sdk/BeforeSdk.targets" Pack="true" PackagePath="Sdk/BeforeSdk.targets" />
+    <None Include="$(MSBuildThisFileDirectory)CIS.Core.targets" Pack="true" PackagePath="buildTransitive/CIS.Core.targets" />
+  </ItemGroup>
+  <Target Name="CisCollectTypeManagerPackageAssets" BeforeTargets="_GetPackageFiles">
+    <MSBuild Projects="$(MSBuildThisFileDirectory)../../../eng/CIS.TypeManager.Build/CIS.TypeManager.Build.csproj"
+             Targets="GetTargetPath" Properties="Configuration=$(Configuration)"
+             RemoveProperties="RuntimeIdentifier;SelfContained;PublishSingleFile;PublishTrimmed;PublishAot;OutputPath;OutDir;_CommandLineDefinedOutputPath;CisTypeManagerEnabled">
+      <Output TaskParameter="TargetOutputs" ItemName="_CisPackBuildTool" />
+    </MSBuild>
+    <Error Condition="'@(_CisPackBuildTool)' == '' or !Exists('%(_CisPackBuildTool.Identity)')"
+           Text="CISTM008: Build CIS.Core and its inventory helper before packing with --no-build." />
+    <PropertyGroup>
+      <_CisPackageVersionProps>$(IntermediateOutputPath)cis-type-manager/PackageVersion.props</_CisPackageVersionProps>
+    </PropertyGroup>
+    <WriteLinesToFile File="$(_CisPackageVersionProps)"
+                      Lines="&lt;Project&gt;&lt;PropertyGroup&gt;&lt;_CisCoreSdkPackageVersion&gt;$(PackageVersion)&lt;/_CisCoreSdkPackageVersion&gt;&lt;/PropertyGroup&gt;&lt;/Project&gt;"
+                      Overwrite="true" WriteOnlyWhenDifferent="true" Encoding="UTF-8" />
+    <ItemGroup>
+      <None Include="@(_CisPackBuildTool)" Pack="true" PackagePath="tools/net10.0/" />
+      <None Include="$(_CisPackageVersionProps)" Pack="true" PackagePath="Sdk/PackageVersion.props" />
+      <FileWrites Include="$(_CisPackageVersionProps)" />
+    </ItemGroup>
+  </Target>
+</Project>

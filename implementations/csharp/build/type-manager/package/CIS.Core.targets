@@ -1,0 +1,6 @@
+<Project>
+  <Target Name="CisRequireTypeManagerSdkImport" BeforeTargets="BuildOnlySettings;PrepareForBuild;ComputeFilesToPublish"
+          Condition="'$(CisTypeManagerEnabled)' == 'true' and ('$(OutputType)' == 'Exe' or '$(OutputType)' == 'WinExe') and '$(_CisTypeManagerSdkImported)' != 'true' and '$(DesignTimeBuild)' != 'true'">
+    <Error Text="CISTM007: Packaged Type Manager requires a versioned CIS.Core Sdk reference so first restore sees the selected runtime. Replace the CIS.Core PackageReference with an Sdk element and keep CisTypeManagerEnabled=true." />
+  </Target>
+</Project>

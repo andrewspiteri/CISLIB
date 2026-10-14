@@ -20,6 +20,10 @@
     <InternalsVisibleTo Include="CIS.Core.ArchitectureTests" />
     <InternalsVisibleTo Include="CIS.Core.DiscoveryFixture" />
     <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" />
+    <ProjectReference Include="../../eng/CIS.TypeManager.Build/CIS.TypeManager.Build.csproj"
+                      ReferenceOutputAssembly="false" Private="false" PrivateAssets="all"
+                      GlobalPropertiesToRemove="RuntimeIdentifier;SelfContained;PublishSingleFile;PublishTrimmed;PublishAot;OutputPath;OutDir;_CommandLineDefinedOutputPath;CisTypeManagerEnabled" />
     <None Include="../../../../README.md" Pack="true" PackagePath="README.md" />
   </ItemGroup>
+  <Import Project="../../build/type-manager/package/CIS.TypeManager.Pack.targets" />
 </Project>

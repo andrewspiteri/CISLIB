@@ -1,12 +1,12 @@
 <Project>
-  <!-- Source integration for the inventory proof. Package delivery remains TM-032. -->
+  <!-- Shared generation targets for source hosts and the package SDK import. -->
   <PropertyGroup>
     <UseCurrentRuntimeIdentifier Condition="'$(CisTypeManagerEnabled)' == 'true' and '$(RuntimeIdentifier)' == '' and '$(UseCurrentRuntimeIdentifier)' == ''">true</UseCurrentRuntimeIdentifier>
-    <_CisTypeManagerToolProject>$(MSBuildThisFileDirectory)../../eng/CIS.TypeManager.Build/CIS.TypeManager.Build.csproj</_CisTypeManagerToolProject>
-    <_CisTypeManagerToolAssembly>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)../../eng/CIS.TypeManager.Build/bin/$(Configuration)/net10.0/CIS.TypeManager.Build.dll'))</_CisTypeManagerToolAssembly>
+    <_CisTypeManagerToolProject Condition="'$(_CisTypeManagerPackagedTool)' != 'true'">$(MSBuildThisFileDirectory)../../eng/CIS.TypeManager.Build/CIS.TypeManager.Build.csproj</_CisTypeManagerToolProject>
+    <_CisTypeManagerToolAssembly Condition="'$(_CisTypeManagerPackagedTool)' != 'true'">$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)../../eng/CIS.TypeManager.Build/bin/$(Configuration)/net10.0/CIS.TypeManager.Build.dll'))</_CisTypeManagerToolAssembly>
   </PropertyGroup>
   <ItemGroup Condition="'$(CisTypeManagerEnabled)' == 'true' and '$(DesignTimeBuild)' != 'true'">
-    <ProjectReference Include="$(_CisTypeManagerToolProject)" ReferenceOutputAssembly="false" Private="false"
+    <ProjectReference Include="$(_CisTypeManagerToolProject)" Condition="'$(_CisTypeManagerPackagedTool)' != 'true'" ReferenceOutputAssembly="false" Private="false"
                       OutputItemType="_CisTypeManagerToolOutput" PrivateAssets="all"
                       GlobalPropertiesToRemove="RuntimeIdentifier;SelfContained;PublishSingleFile;PublishTrimmed;PublishAot;OutputPath;OutDir;_CommandLineDefinedOutputPath;CisTypeManagerEnabled" />
     <Content Include="@(CisTypeManagerAssembly)" Link="%(Filename)%(Extension)"
@@ -20,16 +20,17 @@
     <MSBuild Projects="$(_CisTypeManagerToolProject)" Targets="GetTargetPath"
              Properties="Configuration=$(Configuration)"
              RemoveProperties="RuntimeIdentifier;SelfContained;PublishSingleFile;PublishTrimmed;PublishAot;OutputPath;OutDir;_CommandLineDefinedOutputPath;CisTypeManagerEnabled"
-             Condition="'@(_CisTypeManagerToolOutput)' == ''">
+             Condition="'$(_CisTypeManagerPackagedTool)' != 'true' and '@(_CisTypeManagerToolOutput)' == ''">
       <Output TaskParameter="TargetOutputs" ItemName="_CisTypeManagerToolOutput" />
     </MSBuild>
-    <Error Condition="'@(_CisTypeManagerToolOutput->'%(FullPath)')' != '$(_CisTypeManagerToolAssembly)'"
+    <Error Condition="'$(_CisTypeManagerPackagedTool)' != 'true' and '@(_CisTypeManagerToolOutput->'%(FullPath)')' != '$(_CisTypeManagerToolAssembly)'"
            Text="CISTM005: The source build helper output path differs from its registered task path. Custom helper output layouts are unsupported." />
     <Error Condition="!Exists('$(_CisTypeManagerToolAssembly)')"
-           Text="CISTM005: The Type Manager build helper is missing. Build the host before publishing with --no-build." />
+           Text="CISTM005: The Type Manager build helper is missing. Restore the package or build the source host before publishing with --no-build." />
   </Target>
 
-  <Target Name="CisValidateTypeManagerProfile" BeforeTargets="PrepareForBuild;ComputeFilesToPublish"
+  <!-- BuildOnlySettings also runs before reference resolution when publishing without a build. -->
+  <Target Name="CisValidateTypeManagerProfile" BeforeTargets="BuildOnlySettings;PrepareForBuild;ComputeFilesToPublish"
           Condition="'$(CisTypeManagerEnabled)' == 'true' and '$(DesignTimeBuild)' != 'true'">
     <Error Condition="'$(OutputType)' != 'Exe' and '$(OutputType)' != 'WinExe'"
            Text="CISTM002: Enable Type Manager inventory only in an executable host." />

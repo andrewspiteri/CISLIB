@@ -1,0 +1,8 @@
+<Project>
+  <!-- This import is visible to first restore, unlike NuGet build props. -->
+  <Import Project="$(_CisPreviousBeforeSdkTargets)" Condition="'$(_CisPreviousBeforeSdkTargets)' != ''" />
+  <PropertyGroup>
+    <_CisBeforeSdkImported>true</_CisBeforeSdkImported>
+    <UseCurrentRuntimeIdentifier Condition="'$(CisTypeManagerEnabled)' == 'true' and '$(RuntimeIdentifier)' == '' and '$(UseCurrentRuntimeIdentifier)' == ''">true</UseCurrentRuntimeIdentifier>
+  </PropertyGroup>
+</Project>

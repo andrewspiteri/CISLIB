@@ -161,12 +161,12 @@ actual combined Core hash, stages, counters and native report hashes. It describ
 an uncommitted development checkpoint, not the frozen 53619d runtime candidate,
 a portable evidence bundle or package release qualification.
 
-An isolated build-only package experiment also passed clean build, publish
+An earlier isolated build-only package experiment also passed clean build, publish
 --no-build, host execution and late-flag rejection on Windows and Ubuntu.
 `evidence/package-sdk-restore-proof/` retains the prototype: an SDK-owned second
-restore supplies the inferred RID. Canonical targets remain unchanged. No-restore,
-offline, incremental and concurrent graph behaviour, native/RID package selection
-and an actual CIS.Core package consumer still need qualification before adoption.
+restore supplies the inferred RID. That design is not adopted. The subsequent
+package implementation uses an optional MSBuild SDK in the same CIS.Core package
+to make RID inference visible during first restore, without nested restore.
 
 ## Inventory review corrections — 14 October 2026
 
@@ -181,3 +181,36 @@ the precise unsupported-profile limits. These results postdate the combined run.
 
 Git attributes preserve Type Manager input/evidence and compatibility baseline
 bytes. All six frozen baseline hashes survived an indexed checkout unchanged.
+
+## Package delivery and review corrections — 14 October 2026
+
+The actual CIS.Core package now includes its optional SDK import, inventory targets
+and build-only helper. The SDK participates in first restore and supplies an exact
+matching runtime reference, including central package management. No build target
+performs a second restore. Source integration remains available.
+
+`evidence/package-delivery/` retains per-platform exact-package reports, native
+architecture results, manifests, available command logs and read-only reviews.
+Both platforms pass 35 checks against identical package/verifier hashes. The final
+Linux JSON stdout survived, but its temporary detailed logs did not; an earlier
+same-package workspace run is retained separately, with the limitation documented.
+The producer
+solution built with zero warnings/errors. There are 34 passing architecture and
+dependency cases, including an unchanged package and deliberate changes to SDK,
+helper and valid Core DLL bytes. A separate check confirms dependency inspection
+leaves all 42 helper source/build files unchanged. Source build and no-build
+publication still pass after the shared validation timing correction.
+
+The consumer matrix covers console and Web hosts, fresh parallel restore/build,
+forced manifest regeneration, unchanged incremental output, default folder publish
+without building, cross-RID selection, parallel no-restore, forced offline locked
+restore, central version matching/mismatch, host-only SDK guards, replaced hooks,
+SDK pinning, disabled integration and five deployment settings through actual build
+and publish commands. Core and helper hashes are checked at the consumer. The final
+review returned PASS after the stated corrections and negative controls.
+
+Cross-RID restore replaces a project's assets graph; a later native no-restore
+build is expected to fail until native restore runs. Concurrent different-RID work
+against one project/intermediate directory is unsupported. Static-graph restore,
+Visual Studio task hosting and its separate PublishUrl stage are not qualified.
+These results do not complete all six verification families or authorize release.

@@ -23,8 +23,9 @@ can preserve the submitted relative path; validated paths are absolute.
 The source build integration uses pinned SDK selections to write automatic build
 and folder-publish inventories. It supports native/explicit win-x64 and linux-x64
 framework-dependent, untrimmed output, excludes native/reference/resource assets,
-and fails unsupported deployment modes. Its metadata-only helper remains a
-nonshipping build tool with SDK references and no NuGet dependencies.
+and fails unsupported deployment modes. Its metadata-only helper has SDK
+references and no NuGet dependencies. Package delivery includes it as build
+tooling; it is excluded from application runtime dependencies and deployment.
 
 Real process fixtures cover broken base dependencies, wrong file/loaded/runtime
 binding versions, both reference-attribute metadata forms, corrupt executables,
@@ -48,9 +49,9 @@ silently marked complete by a prototype or an uncommitted test result.
 | TM-001 | Repository boundaries inspected: one CIS.Core net10.0 assembly, SDK 10.0.401, CIS.TypeManagement namespace, existing approved Microsoft runtime closure preserved. |
 | TM-002 | Public runtime contracts and frozen initial reference/source/compiled-consumer baseline present; API/source/binary checks pass against actual Core. Targeted runtime review closure is retained; this is an unpublished development baseline. |
 | TM-003 | Real inventory and loader fixtures present; fresh-process ordinary unused discovery and failures exercised. |
-| TM-004–TM-005 | Source SDK selection and manifest generation implemented; native/RID matrices pass on Windows/Linux. Package delivery remains open. |
+| TM-004–TM-005 | Source SDK selection and manifest generation implemented; native/RID matrices pass on Windows/Linux. Actual Core package delivery is implemented; its separate checkpoint is recorded below. |
 | TM-006 | Strict reader and captured inputs promoted into Core; focused unit and process checks pass. |
-| TM-007 | Reviewed Windows lifecycle has 32 passing checks, including fresh default-directory publish and disabled package-copy rejection. Earlier both-platform inventory matrices pass; Web SDK evidence uses CLI `-o`, not Visual Studio/PublishUrl copying. Packaging setup remains open. |
+| TM-007 | Reviewed Windows source lifecycle has 32 passing checks, including fresh default-directory publish and disabled package-copy rejection. Package setup has a separate consumer matrix. Web SDK evidence covers CLI publication, not Visual Studio/PublishUrl copying. Complete supported-profile qualification remains open. |
 | TM-008 | M1 gate remains open pending complete supported-profile inventory qualification and setup reconciliation; reviewed source-mode checkpoint evidence is retained. |
 | TM-009–TM-010 | Selected maps/default-context loading implemented; identity/reuse/failure cases pass on both platforms. |
 | TM-011 | Complete definition/relationship enumeration implemented; forwarding/nonpublic/open-definition and side-effect tests pass. Explicit enumeration instrumentation remains. |
@@ -65,13 +66,13 @@ silently marked complete by a prototype or an uncommitted test result.
 | TM-026–TM-028 | Initial A01–A30 mapping is recorded in `acceptance-evidence.md`, with executed checks and explicit gaps. Meaningful mutation and complete architecture qualification remain; initial build/dependency controls exist. |
 | TM-029 | Initial API/source/unchanged-binary replay passes; full behaviour/schema compatibility bundle and negative qualification controls remain. |
 | TM-030–TM-031 | Performance/memory measurements and final maintainability/six-family gate remain. |
-| TM-032 | Package integration incomplete: clean restore cannot get an inferred RID from package props. An isolated SDK-owned second-restore experiment passes on Windows/Linux; no-restore/offline/incremental/concurrent graph behaviour and actual Core packaging still require qualification before adoption. |
+| TM-032 | Implemented optional SDK assets in the same CIS.Core package: first restore sees RID selection, the runtime reference matches the SDK version, and no build target performs a second restore. Windows and Ubuntu each pass 35 checks against identical package/verifier bytes; 34 architecture/dependency cases pass and closure review returned PASS. The final Linux JSON report is retained; its temporary detailed logs were unavailable afterward, as recorded in the checkpoint. Final release qualification remains open. The earlier second-restore experiment is not adopted. |
 | TM-033–TM-036 | Final documentation, exact-artifact verification bundle, clean package consumer smoke tests and handoff remain. |
 
 ## Executed evidence and limits
 
 See `verification.md` and `evidence/runtime-closure/` for exact reports and commands.
-Current Core SHA-256 is `53619d263b200fa3d53bb5d9455dfa599110ce83ad30b83448b480bd542e1cb3`. Current frozen-candidate result: 63 Core unit cases plus 9 runtime architecture
+Frozen runtime candidate Core SHA-256 is `53619d263b200fa3d53bb5d9455dfa599110ce83ad30b83448b480bd542e1cb3`. Its result: 63 Core unit cases plus 9 runtime architecture
 cases (72 total) pass on both Windows and Ubuntu. Twelve runtime process cases
 and two generator rejection cases (14 total) pass on each platform with verified
 identical fixture/Core bytes. ApiCompat, original binary replay and historical-
