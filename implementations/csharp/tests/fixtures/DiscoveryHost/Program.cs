@@ -11,6 +11,8 @@ internal static class Program
 {
     private static int Main(string[] args)
     {
+        if (args.Length == 3 && args[0] == "runtime-create") { return RuntimeCreateFixture.Run(args[1], args[2]); }
+        if (args.Length == 3 && args[0] == "stop-cleanup") { return StopCleanupFixture.Run(args[1], args[2]); }
         if (args.Length == 3 && args[0] == "stop-join") { return StopJoinFixture.Run(args[1], args[2]); }
         if (args.Length == 3 && args[0] == "stop-drain") { return StopDrainFixture.Run(args[1], args[2]); }
         if (args.Length == 3 && args[0] == "stop-start") { return StopStartFixture.Run(args[1], args[2]); }

@@ -92,7 +92,7 @@ internal static class StopJoinFixture
             catch (OperationCanceledException error) { tokenIdentity &= error.CancellationToken == token; Require(tokenIdentity); cancelled++; }
         }
     }
-    private static JsonObject Json(LogStopResult result) => new()
+    internal static JsonObject Json(LogStopResult result) => new()
     {
         ["completion"] = result.Completion.ToString(),
         ["succeeded"] = result.Succeeded,

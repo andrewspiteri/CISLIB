@@ -63,6 +63,18 @@ public sealed class CoreLogRuntime : IAsyncDisposable
         }
     }
 
+    /// <summary>Creates an application-owned runtime using the prepared static environment settings and automatically captured facts.</summary>
+    /// <remarks>Configure EnvironmentOptions.Logging before creation; preparation normalizes its FilePath in place. Concurrent mutation of those settings is unsupported. Each runtime owns only its own workers and file group. DisposeAsync joins its bounded shutdown.</remarks>
+    /// <exception cref="CIS.Configuration.CoreConfigurationException">Module settings or captured metadata are invalid.</exception>
+    /// <exception cref="TypeInitializationException">Static environment initialization failed.</exception>
+    /// <exception cref="CoreLogInitializationException">An enabled output cannot initialize.</exception>
+    public static CoreLogRuntime Create()
+    {
+        LoggingOptions options = EnvironmentOptions.Logging;
+        options.Prepare(Directory.GetCurrentDirectory());
+        return CreateConfiguredQueued(new EventMetadata(), options);
+    }
+
     // Actual capture -> ticketed Channels -> sequential trusted writers; physical output ownership comes later.
     internal static CoreLogRuntime CreateQueued(EventMetadata metadata, LoggingOptions options,
         Func<AdmittedEvent, ValueTask>? consoleWrite, Func<AdmittedEvent, ValueTask>? fileWrite, TimeProvider? timeProvider = null,
@@ -172,7 +184,14 @@ public sealed class CoreLogRuntime : IAsyncDisposable
             }
             return runtime;
         }
-        catch { queues.Complete(); queues.Completion.GetAwaiter().GetResult(); fileWriter?.Dispose(); throw; }
+        catch
+        {
+            queues.Complete();
+            // Observe terminal cleanup failures without masking the safe initialization category.
+            try { queues.Completion.GetAwaiter().GetResult(); } catch { }
+            try { fileWriter?.Dispose(); } catch { }
+            throw;
+        }
     }
     internal OutputQueues? QueuedOutputs => queuedOutputs;
     private static void ValidateShutdownTimeout(int milliseconds)
@@ -185,7 +204,6 @@ public sealed class CoreLogRuntime : IAsyncDisposable
     /// <param name="cancellationToken">Cancels only this caller's wait; even an already-cancelled first caller starts shutdown.</param>
     /// <returns>The same owned immutable observation retained for all joining callers.</returns>
     /// <exception cref="OperationCanceledException">The caller cancels its own wait.</exception>
-    /// <exception cref="InvalidOperationException">The runtime uses a trusted admission-test seam without actual output queues.</exception>
     /// <remarks>The configured overall timeout is frozen at creation. UTC is an observation label; elapsed time is monotonic. At expiry, unstarted accepted records are abandoned. Cancellation of active writes/flushes is requested but is not guaranteed, and no new flush, retry or replacement writer starts. Completed means terminal dispositions, not successful delivery or resource release. A timed-out observation can retain pending I/O; its later completion does not change the cached result.</remarks>
     public Task<LogStopResult> StopAsync(CancellationToken cancellationToken)
     {
@@ -205,11 +223,20 @@ public sealed class CoreLogRuntime : IAsyncDisposable
                 {
                     completion = new(TaskCreationOptions.RunContinuationsAsynchronously);
                     stopTask = completion.Task;
-                    // Register final controls before a closing idle worker is allowed to exit.
-                    boundary = RegisterFlushBoundary();
-                    shutdownStartedAtUtc ??= boundary.BoundaryCapturedAtUtc;
-                    admissionClosed = true;
-                    queuedOutputs.Complete();
+                    try
+                    {
+                        // Register final controls before a closing idle worker is allowed to exit.
+                        boundary = RegisterFlushBoundary();
+                        shutdownStartedAtUtc ??= boundary.BoundaryCapturedAtUtc;
+                        admissionClosed = true;
+                        queuedOutputs.Complete();
+                    }
+                    catch (Exception error)
+                    {
+                        // A failed setup must not leave the already-published task pending forever.
+                        completion.TrySetException(error);
+                        throw;
+                    }
                 }
                 shared = stopTask;
             }
@@ -253,7 +280,15 @@ public sealed class CoreLogRuntime : IAsyncDisposable
             // Publish the frozen result before asynchronous deadline-timer cleanup can wait on a callback join.
             PublishStop(deadline.ObserveCompletion(), completion);
         }
-        catch (Exception error) { completion.TrySetException(error); }
+        catch (Exception error)
+        {
+            if (completion.Task.IsCompletedSuccessfully)
+            {
+                // Publication precedes deadline-timer cleanup; later failure belongs to live diagnostics.
+                queuedOutputs!.RecordCleanupFault("ShutdownTimerCleanupFailed");
+            }
+            else { completion.TrySetException(error); }
+        }
     }
 
     private LogFlushResult CaptureStopDeadline(RuntimeFlushBoundary boundary)
@@ -282,8 +317,7 @@ public sealed class CoreLogRuntime : IAsyncDisposable
     /// <returns>An owned immutable observation, including unresolved work at the deadline.</returns>
     /// <exception cref="ArgumentOutOfRangeException">The timeout is zero, negative or infinite.</exception>
     /// <exception cref="OperationCanceledException">The caller token is cancelled, including after boundary registration.</exception>
-    /// <exception cref="InvalidOperationException">The runtime uses an internal admission-control seam without actual output queues.</exception>
-    /// <remarks>UTC labels are system observations; elapsed deadlines use the runtime TimeProvider. Flush does not stop admission or guarantee disk durability.</remarks>
+    /// <remarks>UTC labels are system observations; elapsed deadlines use the runtime TimeProvider. Flush does not stop admission or guarantee disk durability. After closure it cannot reopen a writer; a terminal writer returns an unavailable/failed flush even if the original stop flushed successfully. Inspect LastStopResult for that original shutdown outcome.</remarks>
     public Task<LogFlushResult> FlushAsync(TimeSpan timeout, CancellationToken cancellationToken)
     {
         if (timeout.Ticks <= 0) { throw new ArgumentOutOfRangeException(nameof(timeout)); }
@@ -348,7 +382,6 @@ public sealed class CoreLogRuntime : IAsyncDisposable
 
     /// <summary>Returns an owned immutable live observation without routing a log or performing output I/O.</summary>
     /// <remarks>Available after faults and admission closure. This does not register a fixed flush target.</remarks>
-    /// <exception cref="InvalidOperationException">The runtime uses the internal admission-control seam without actual output queues.</exception>
     public CoreLogDiagnostics GetDiagnostics()
     {
         lock (admissionGate)
@@ -440,6 +473,8 @@ public sealed class CoreLogRuntime : IAsyncDisposable
         }
     }
 
+    // Primitive internal qualification closure: no final flush or bounded shutdown is promised.
+    // Supported applications use StopAsync/DisposeAsync; a later flush cannot reopen an exited worker.
     internal void CloseAdmission()
     {
         lock (admissionGate) { shutdownStartedAtUtc ??= DateTimeOffset.UtcNow; admissionClosed = true; queuedOutputs?.Complete(); }

@@ -1,0 +1,732 @@
+Final narrow read-only T04 review, no tools/MCP/execution/edits/persistence. O1/O2 fixes passed the earlier33-file follow-up. Only these four paths changed since that PASS: F3 now captures the actual original file flush registration before expiry and requires its task completed successfully with false (and zero inactive registrations) while ownership and actual write remain held; F4 states RecordCleanupFault's closure/worker-exit precondition; F1 documents synchronous startup rollback is unbounded; the unit test has formatting/import ordering changes only. F2 will be recorded precisely in the receipt: the startup unit launcher wrapper throws after the actual worker completes, proving Completion-error/category coordination and physical lease release, not a worker-finally resource-error injection. Other thirteen actual worker cleanup modes cover that separate path. F5 keeps internal-only custom FlushAsync timer-disposal exception behavior, public uses System clock. Final full Developer/native qualification is being rerun; no final pass yet. Return JSON verdict PASS/CHANGES_REQUIRED with requiredFindings, optionalFindings and carriedForward; focus on the changed assertions/precondition/docs.
+
+--- FILE implementations/csharp/tests/fixtures/DiscoveryHost/StopCleanupFixture.cs ---
+using System.Text.Json.Nodes;
+using CIS.Logging;
+using CIS.Logging.Runtime;
+using static CIS.Tests.DiscoveryFixture.FlushStressSupport;
+
+namespace CIS.Tests.DiscoveryFixture;
+
+internal static class StopCleanupFixture
+{
+    internal static readonly string[] Modes = ["normal", "write-resource-failure", "flush-resource-failure", "write-timer-resource-failure", "resource-failure", "timer-failure", "callback-write-failure", "callback-held", "ownership-held", "deadline-cleanup-failure", "deadline-cleanup-held", "post-stop-flush", "primitive-close"];
+    internal static int Run(string mode, string root)
+    {
+        _ = root;
+        Console.WriteLine(ExecuteAsync(mode).GetAwaiter().GetResult().ToJsonString()); return 0;
+    }
+    internal static async Task<JsonObject> ExecuteAsync(string mode)
+    {
+        Require(Modes.Contains(mode, StringComparer.Ordinal));
+        bool primaryWrite = mode is "write-resource-failure" or "write-timer-resource-failure" or "callback-write-failure";
+        bool primaryFlush = mode == "flush-resource-failure";
+        bool earlyFault = primaryFlush || primaryWrite && mode != "callback-write-failure";
+        bool deadline = mode is "callback-write-failure" or "callback-held" or "ownership-held" or "deadline-cleanup-failure" or "deadline-cleanup-held";
+        var gate = new object(); var clock = new Clock(mode); using var console = new MemoryStream();
+        using var writer = new Writer(primaryWrite, primaryFlush, mode); var owner = new Owner(writer, gate, mode);
+        var options = new LoggingOptions { ConsoleLevel = CoreLogLevel.Information, FileLevel = CoreLogLevel.Information, FilePath = Path.Combine(Path.GetTempPath(), "unused-kernel.jsonl"), QueueCapacity = 3, MaxEntryBytes = 16384, ShutdownTimeoutMilliseconds = 10 };
+        var queues = new OutputQueues(3, true, true, item => console.WriteAsync(item.Event.JsonLine), item => writer.WriteAsync(item.Event.JsonLine, CancellationToken.None), gate,
+            fileResource: owner, consoleFlush: () => new ValueTask(console.FlushAsync()), fileFlush: () => new ValueTask(writer.FlushAsync(CancellationToken.None)),
+            fileCancellableWrite: (item, token) => writer.WriteAsync(item.Event.JsonLine, token), fileCancellableFlush: token => new ValueTask(writer.FlushAsync(token)));
+        var runtime = new CoreLogRuntime(ConsoleCompositionFixture.Metadata(), options, queues.Console, queues.File, clock, gate, queues);
+        queues.File!.StartFileFlushTimer(clock, TimeSpan.FromMilliseconds(1000));
+        OutputFlushRegistration? originalFileFlush = null;
+        int postFlushes = 0; bool postFlushSucceeded = true, inactiveFlushResolved = false, lateFlushCompleted = false; Task<LogFlushResult>? lateFlush = null; bool heldOwned = false, heldCallback = false; Task<LogStopResult>? stop = null;
+        try
+        {
+            Accepted(runtime.CreateLogger("Cleanup").Write(CoreLogLevel.Information, Data("one")));
+            await writer.WriteEntered.Task.WaitAsync(Guard);
+            if (earlyFault)
+            {
+                writer.WriteRelease.TrySetResult();
+                if (primaryFlush)
+                {
+                    await UntilAsync(() => queues.File.CaptureAccounting().Written == 1);
+                    _ = queues.File.RegisterFlushBoundary(); await writer.FlushEntered.Task.WaitAsync(Guard); writer.FlushRelease.TrySetResult();
+                }
+                await Settled(queues.File.Completion);
+                LogWriteResult healthy = runtime.CreateLogger("Cleanup").Write(CoreLogLevel.Information, Data("healthy"));
+                Require(healthy.Outcome == LogWriteOutcome.PartiallyAccepted);
+            }
+            if (mode == "primitive-close")
+            {
+                runtime.CloseAdmission(); writer.WriteRelease.TrySetResult(); await Settled(queues.Completion);
+            }
+            stop = runtime.StopAsync(CancellationToken.None);
+            if (deadline)
+            {
+                Require(owner.Calls == 0 && writer.InFlight);
+                await queues.Console!.Completion.WaitAsync(Guard);
+                if (mode == "deadline-cleanup-held") { originalFileFlush = Registrations(queues.File).Single(); Require(!originalFileFlush.WriterFlushCompletion.IsCompleted); }
+                clock.Base.Advance(TimeSpan.FromMilliseconds(10));
+            }
+            else { writer.WriteRelease.TrySetResult(); writer.FlushRelease.TrySetResult(); }
+            LogStopResult result = await stop.WaitAsync(Guard); string frozen = StopJoinFixture.Json(result).ToJsonString();
+            if (deadline)
+            {
+                heldOwned = owner.Calls == 0 && !queues.File.Completion.IsCompleted; Require(heldOwned);
+                if (mode == "deadline-cleanup-held")
+                {
+                    await clock.DeadlineDisposeEntered.Task.WaitAsync(Guard); clock.DeadlineDisposeRelease.TrySetResult();
+                    await UntilAsync(() => runtime.GetDiagnostics().Outputs.All(o => o.LastFaultCode == "ShutdownTimerCleanupFailed"));
+                    inactiveFlushResolved = originalFileFlush!.WriterFlushCompletion.IsCompletedSuccessfully && !originalFileFlush.WriterFlushCompletion.Result && queues.File.RegisteredFlushCount == 0; Require(inactiveFlushResolved);
+                    Require(owner.Calls == 0 && writer.InFlight);
+                    lateFlush = runtime.FlushAsync(TimeSpan.FromMilliseconds(100), CancellationToken.None);
+                }
+                if (mode is "callback-write-failure" or "callback-held") { await writer.CallbackEntered.Task.WaitAsync(Guard); }
+                writer.WriteRelease.TrySetResult(); writer.FlushRelease.TrySetResult();
+                if (mode == "callback-held")
+                {
+                    await writer.WriteFinished.Task.WaitAsync(Guard);
+                    heldCallback = !queues.File.Completion.IsCompleted && owner.Calls == 0 && writer.CallbackInFlight; Require(heldCallback);
+                    writer.CallbackRelease.TrySetResult();
+                }
+            }
+            await Settled(queues.Completion);
+            if (lateFlush is not null)
+            {
+                LogFlushResult later = await lateFlush.WaitAsync(Guard); postFlushes++; postFlushSucceeded = later.Succeeded;
+                lateFlushCompleted = later.Completion == LogCompletion.Completed && later.Outputs.All(o => o.WriterFlushStatus == LogWriterFlushStatus.Failed);
+                Require(lateFlushCompleted && !postFlushSucceeded);
+            }
+            if (mode == "deadline-cleanup-failure")
+            {
+                await clock.DeadlineDisposeEntered.Task.WaitAsync(Guard);
+                Require(runtime.GetDiagnostics().Outputs.All(o => o.LastFaultCode is null));
+                clock.DeadlineDisposeRelease.TrySetResult();
+                await UntilAsync(() => runtime.GetDiagnostics().Outputs.All(o => o.LastFaultCode == "ShutdownTimerCleanupFailed"));
+            }
+            if (mode == "post-stop-flush")
+            {
+                for (int i = 0; i < 4; i++)
+                {
+                    LogFlushResult later = await runtime.FlushAsync(TimeSpan.FromMilliseconds(100), CancellationToken.None).WaitAsync(Guard);
+                    postFlushes++; postFlushSucceeded &= later.Succeeded;
+                }
+                Require(!postFlushSucceeded);
+            }
+            Task[] joins = Enumerable.Range(0, 64).Select(_ => runtime.DisposeAsync().AsTask()).ToArray();
+            Require(joins.All(task => ReferenceEquals(task, stop))); await Task.WhenAll(joins).WaitAsync(Guard);
+            Require(ReferenceEquals(result, runtime.GetDiagnostics().LastStopResult) && frozen == StopJoinFixture.Json(result).ToJsonString());
+            await UntilAsync(() => clock.Base.Active == 0 && clock.DeadlineDisposals == (mode == "post-stop-flush" ? 5 : mode == "deadline-cleanup-held" ? 2 : 1));
+            Exception[] errors = queues.File.Completion.Exception?.Flatten().InnerExceptions.ToArray() ?? [];
+            Exception? primary = primaryWrite ? writer.WriteError : primaryFlush ? writer.FlushError : null;
+            Exception[] expectedCleanup = new[] { owner.Throw ? owner.Error : null, clock.ThrowPeriodic ? clock.TimerError : null, mode == "callback-write-failure" ? writer.CallbackError : null }.OfType<Exception>().ToArray();
+            Require(primary is null || errors.Contains(primary) && ReferenceEquals(errors[0], primary)); Require(expectedCleanup.All(errors.Contains));
+            Require(owner.Calls == 1 && owner.GateFree && !owner.ActiveIo && !owner.ActiveCallback);
+            JsonObject report = Common(mode); report["result"] = StopJoinFixture.Json(result); report["live"] = Diagnostics(runtime);
+            report["file"] = writer.Report(); report["consoleBytes"] = Convert.ToBase64String(console.ToArray()); report["owner"] = owner.Report();
+            report["timers"] = clock.Base.Report(); report["timerDisposeCalls"] = clock.PeriodicDisposals; report["deadlineDisposeCalls"] = clock.DeadlineDisposals;
+            report["primaryPreserved"] = primary is null ? null : errors.Contains(primary); report["primaryFirst"] = primary is null ? null : ReferenceEquals(errors[0], primary); report["borrowedConsoleOpen"] = console.CanWrite; report["cleanupPreserved"] = expectedCleanup.All(errors.Contains);
+            report["inactiveFlushResolved"] = inactiveFlushResolved; report["lateFlushCompleted"] = lateFlushCompleted; report["workerErrors"] = errors.Length; report["heldOwned"] = heldOwned; report["heldCallback"] = heldCallback;
+            report["sameTask"] = true; report["immutable"] = true; report["disposeJoiners"] = joins.Length; report["postFlushes"] = postFlushes; report["postFlushSucceeded"] = postFlushSucceeded;
+            Require(!report.ToJsonString().Contains("private-failure-details", StringComparison.Ordinal)); return report;
+        }
+        finally
+        {
+            writer.ReleaseAll(); clock.DeadlineDisposeRelease.TrySetResult(); queues.Complete(); await Settled(queues.Completion);
+        }
+    }
+    private static async Task Settled(Task task)
+    {
+        try { await task.WaitAsync(Guard); }
+        catch (Exception) when (task.IsFaulted || task.IsCanceled) { }
+    }
+    private sealed class Writer(bool failWrite, bool failFlush, string mode) : IDisposable
+    {
+        private readonly MemoryStream bytes = new(); private CancellationTokenRegistration registration;
+        internal readonly TaskCompletionSource WriteEntered = Signal(), WriteRelease = Signal(), WriteFinished = Signal(), FlushEntered = Signal(), FlushRelease = Signal(), CallbackEntered = Signal(), CallbackRelease = Signal();
+        internal readonly IOException WriteError = new("private-failure-details"), FlushError = new("private-failure-details"), CallbackError = new("private-failure-details");
+        internal volatile bool InFlight, CallbackInFlight;
+        private int writes, written, flushes, flushed, closed;
+        internal async ValueTask WriteAsync(ReadOnlyMemory<byte> data, CancellationToken token)
+        {
+            Interlocked.Increment(ref writes); InFlight = true;
+            if (mode is "callback-held" or "callback-write-failure")
+            {
+                registration = token.Register(() =>
+                {
+                    CallbackInFlight = true; CallbackEntered.TrySetResult();
+                    try { if (mode == "callback-held") { Require(CallbackRelease.Task.Wait(Guard)); } else { throw CallbackError; } }
+                    finally { CallbackInFlight = false; }
+                });
+            }
+            WriteEntered.TrySetResult();
+            try { await WriteRelease.Task; if (failWrite) { throw WriteError; } await bytes.WriteAsync(data, CancellationToken.None); Interlocked.Increment(ref written); }
+            finally { InFlight = false; WriteFinished.TrySetResult(); }
+        }
+        internal async Task FlushAsync(CancellationToken token)
+        {
+            _ = token; Interlocked.Increment(ref flushes); InFlight = true; FlushEntered.TrySetResult();
+            try { await FlushRelease.Task; if (failFlush) { throw FlushError; } await bytes.FlushAsync(); Interlocked.Increment(ref flushed); }
+            finally { InFlight = false; }
+        }
+        internal void CloseOwned() { Interlocked.Increment(ref closed); bytes.Dispose(); }
+        internal void ReleaseAll() { WriteRelease.TrySetResult(); FlushRelease.TrySetResult(); CallbackRelease.TrySetResult(); }
+        internal JsonObject Report() => new() { ["writes"] = writes, ["written"] = written, ["flushes"] = flushes, ["flushed"] = flushed, ["closed"] = closed, ["bytes"] = Convert.ToBase64String(bytes.ToArray()) };
+        public void Dispose() { registration.Dispose(); bytes.Dispose(); }
+    }
+    private sealed class Owner(Writer writer, object gate, string mode) : IDisposable
+    {
+        internal int Calls; internal bool GateFree = true, ActiveIo, ActiveCallback;
+        internal bool Throw => mode is "write-resource-failure" or "flush-resource-failure" or "write-timer-resource-failure" or "resource-failure";
+        internal readonly IOException Error = new("private-failure-details");
+        public void Dispose()
+        {
+            Calls++; GateFree &= !Monitor.IsEntered(gate); ActiveIo |= writer.InFlight; ActiveCallback |= writer.CallbackInFlight;
+            writer.CloseOwned(); if (Throw) { throw Error; }
+        }
+        internal JsonObject Report() => new() { ["calls"] = Calls, ["gateFree"] = GateFree, ["activeIo"] = ActiveIo, ["activeCallback"] = ActiveCallback };
+    }
+    private sealed class Clock(string mode) : TimeProvider
+    {
+        internal readonly FileTimerCoordinationFixture.Clock Base = new();
+        internal readonly IOException TimerError = new("private-failure-details"), DeadlineError = new("private-failure-details");
+        internal readonly TaskCompletionSource DeadlineDisposeEntered = Signal(), DeadlineDisposeRelease = Signal();
+        internal int PeriodicDisposals, DeadlineDisposals;
+        internal bool ThrowPeriodic => mode is "write-timer-resource-failure" or "timer-failure";
+        internal bool HoldDeadline => mode is "deadline-cleanup-failure" or "deadline-cleanup-held";
+        public override long TimestampFrequency => Base.TimestampFrequency;
+        public override long GetTimestamp() => Base.GetTimestamp();
+        public override DateTimeOffset GetUtcNow() => Base.GetUtcNow();
+        public override ITimer CreateTimer(TimerCallback callback, object? state, TimeSpan dueTime, TimeSpan period) => new Timer(this, Base.CreateTimer(callback, state, dueTime, period));
+        private sealed class Timer(Clock clock, ITimer inner) : ITimer
+        {
+            private bool periodic;
+            public bool Change(TimeSpan dueTime, TimeSpan period) { periodic = period > TimeSpan.Zero; return inner.Change(dueTime, period); }
+            public void Dispose() => inner.Dispose();
+            public async ValueTask DisposeAsync()
+            {
+                await inner.DisposeAsync();
+                if (periodic) { Interlocked.Increment(ref clock.PeriodicDisposals); if (clock.ThrowPeriodic) { throw clock.TimerError; } }
+                else
+                {
+                    int attempt = Interlocked.Increment(ref clock.DeadlineDisposals);
+                    if (clock.HoldDeadline && attempt == 1)
+                    {
+                        clock.DeadlineDisposeEntered.TrySetResult(); await clock.DeadlineDisposeRelease.Task; throw clock.DeadlineError;
+                    }
+                }
+            }
+        }
+    }
+}
+
+--- FILE implementations/csharp/tests/CIS.Core.UnitTests/StopCleanupTests.cs ---
+using CIS.Logging;
+using CIS.Tests.DiscoveryFixture;
+using CIS.TestSupport;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+
+namespace CIS.Tests.UnitTests;
+
+[TestClass]
+public sealed class StopCleanupTests
+{
+    public static IEnumerable<object[]> Modes => StopCleanupFixture.Modes.Select(mode => new object[] { mode });
+    [TestMethod]
+    [DynamicData(nameof(Modes))]
+    public async Task CleanupWaitsForRealIoAndPreservesErrors(string mode)
+    {
+        var report = await StopCleanupFixture.ExecuteAsync(mode);
+        StopCleanupExpectations.Validate(mode, report);
+    }
+
+    [TestMethod]
+    [DataRow(false)]
+    [DataRow(true)]
+    public void StartupKeepsItsSafeFailureWhenWorkerCleanupThrows(bool timerFailure)
+    {
+        using var root = new TemporaryDirectory(); using var console = new MemoryStream();
+        var options = new LoggingOptions
+        {
+            ConsoleLevel = CoreLogLevel.Information,
+            FileLevel = CoreLogLevel.Information,
+            FilePath = Path.Combine(root.Path, "active.jsonl"),
+            MaxEntryBytes = 16384
+        };
+        int launched = 0, settled = 0;
+        Task Launch(Func<Task> worker)
+        {
+            if (Interlocked.Increment(ref launched) == 2 && !timerFailure) { throw new IOException("launch-private"); }
+            return Task.Run(async () => { await worker(); Interlocked.Increment(ref settled); throw new IOException("cleanup-private"); });
+        }
+        CoreLogInitializationException error = Assert.ThrowsExactly<CoreLogInitializationException>(() =>
+        {
+            if (timerFailure) { _ = CoreLogRuntime.CreateConfiguredQueued(ConsoleCompositionFixture.Metadata(), options, new FailingTimerClock(), _ => console, Launch); }
+            else { _ = CoreLogRuntime.CreateConsoleQueued(ConsoleCompositionFixture.Metadata(), options, _ => ValueTask.CompletedTask, acquireConsole: _ => console, launchWorker: Launch); }
+        });
+        Assert.AreEqual("file", error.OutputName);
+        Assert.AreEqual(timerFailure ? "FileFlushTimerInitializationFailed" : "WorkerInitializationFailed", error.ErrorCode);
+        Assert.AreEqual(timerFailure ? 2 : 1, settled); Assert.IsTrue(console.CanWrite);
+        if (timerFailure)
+        {
+            using var lease = new FileStream(options.FilePath + ".cis.lock", FileMode.Open, FileAccess.ReadWrite, FileShare.None);
+            Assert.AreEqual(0L, new FileInfo(options.FilePath).Length);
+        }
+    }
+    private sealed class FailingTimerClock : TimeProvider
+    {
+        public override ITimer CreateTimer(TimerCallback callback, object? state, TimeSpan dueTime, TimeSpan period) => throw new IOException("timer-private");
+    }
+}
+
+--- FILE implementations/csharp/src/CIS.Core/Logging/Runtime/OutputEventQueue.cs ---
+using System.Runtime.ExceptionServices;
+using System.Threading.Channels;
+using CIS.Logging.Events;
+
+namespace CIS.Logging.Runtime;
+
+// One queue and one awaited writer operation. Only trusted internal composition supplies the writer.
+internal sealed class OutputEventQueue : ILogOutputAdmission
+{
+    private readonly object admissionGate;
+    private readonly Channel<AdmittedEvent> channel;
+    private readonly Func<AdmittedEvent, CancellationToken, ValueTask> write;
+    private readonly CancellationTokenSource? ioCancellation;
+    private Task? ioCancellationCompletion;
+    private bool ioCancellationClosed;
+    private readonly IDisposable? ownedResource;
+    private readonly Func<CancellationToken, ValueTask>? flush;
+    private readonly SortedDictionary<long, OutputFlushRegistration> flushRequests = [];
+    private TaskCompletionSource wake = NewWake();
+    private OutputFlushRegistration? flushing;
+    private ITimer? fileFlushTimer;
+    private Task? fileFlushTimerDisposal;
+    private bool workerExiting;
+    private long lastAcceptedSequence;
+    private long acceptedCount;
+    private long queueFullCount;
+    private long writtenCount;
+    private long failedCount;
+    private long abandonedCount;
+    private bool inFlight;
+    private long inFlightSequence;
+    private long failedSequence;
+    private long firstAbandonedSequence;
+    private long lastAbandonedSequence;
+    private TaskCompletionSource? dispositionChanged;
+    private long filteredCount;
+    private long unavailableCount;
+    private bool admissionClosed;
+    private bool faulted;
+    private bool stopRequested;
+    private bool stopDeadlineExpired;
+    private bool workerFinished;
+    private LogOutputState state;
+    private string? lastFaultCode;
+    private DateTimeOffset? lastFaultAtUtc;
+    internal OutputEventQueue(int capacity, Func<AdmittedEvent, ValueTask> write, object? sharedAdmissionGate = null, Func<Func<Task>, Task>? launchWorker = null, IDisposable? ownedResource = null, Func<ValueTask>? flush = null,
+        Func<AdmittedEvent, CancellationToken, ValueTask>? cancellableWrite = null, Func<CancellationToken, ValueTask>? cancellableFlush = null)
+    {
+        ArgumentNullException.ThrowIfNull(write);
+        if (capacity is < LoggingOptions.MinimumQueueCapacity or > LoggingOptions.MaximumQueueCapacity) { throw new ArgumentOutOfRangeException(nameof(capacity)); }
+        admissionGate = sharedAdmissionGate ?? new object();
+        this.write = cancellableWrite ?? ((admitted, _) => write(admitted));
+        this.ownedResource = ownedResource;
+        this.flush = cancellableFlush ?? (flush is null ? null : _ => flush());
+        if (cancellableWrite is not null || cancellableFlush is not null) { ioCancellation = new CancellationTokenSource(); }
+        channel = Channel.CreateBounded<AdmittedEvent>(new BoundedChannelOptions(capacity)
+        {
+            FullMode = BoundedChannelFullMode.Wait,
+            SingleReader = true,
+            SingleWriter = false,
+            AllowSynchronousContinuations = false
+        });
+        // Captured events already contain their context. A worker must not retain its creator's flow.
+        // Trusted composition launchers schedule this actual worker or throw before acquiring a task.
+        // Production always uses Task.Run; the internal seam permits deterministic acquisition failure.
+        Task Launch() => (launchWorker is null ? Task.Run(ProcessAsync) : launchWorker(ProcessAsync))
+            ?? throw new InvalidOperationException("Worker launch must return its scheduled task.");
+        try
+        {
+            if (ExecutionContext.IsFlowSuppressed()) { Completion = Launch(); }
+            else { using (ExecutionContext.SuppressFlow()) { Completion = Launch(); } }
+        }
+        catch { ioCancellation?.Dispose(); throw; }
+    }
+    private static TaskCompletionSource NewWake() => new(TaskCreationOptions.RunContinuationsAsynchronously);
+    internal Task Completion { get; }
+    internal int RegisteredFlushCount { get { lock (admissionGate) { return flushRequests.Count; } } }
+    internal OutputFlushBoundary RegisterFlushBoundary()
+    {
+        lock (admissionGate)
+        {
+            long boundary = lastAcceptedSequence;
+            if (!flushRequests.TryGetValue(boundary, out OutputFlushRegistration? registration))
+            {
+                registration = new OutputFlushRegistration(boundary);
+                if (faulted || workerExiting || workerFinished || flush is null) { registration.Resolve(false); }
+                else
+                {
+                    // Coordination is separate from bounded event slots and cannot overflow with them.
+                    flushRequests.Add(boundary, registration);
+                    wake.TrySetResult();
+                }
+            }
+            return new OutputFlushBoundary(boundary, filteredCount, queueFullCount, unavailableCount, registration);
+        }
+    }
+    // Configured file composition owns one timer; primitive kernel fixtures opt in explicitly.
+    // The callback requests existing fixed-boundary work, never performs or awaits output I/O.
+    internal void StartFileFlushTimer(TimeProvider clock, TimeSpan interval)
+    {
+        ArgumentNullException.ThrowIfNull(clock);
+        if (interval < TimeSpan.FromMilliseconds(LoggingOptions.MinimumFlushIntervalMilliseconds)
+            || interval > TimeSpan.FromMilliseconds(LoggingOptions.MaximumFlushIntervalMilliseconds))
+        { throw new ArgumentOutOfRangeException(nameof(interval)); }
+        ITimer Create() => clock.CreateTimer(static state => ((OutputEventQueue)state!).RequestFileFlush(), this,
+            Timeout.InfiniteTimeSpan, Timeout.InfiniteTimeSpan) ?? throw new InvalidOperationException("Timer creation returned null.");
+        ITimer acquired;
+        if (ExecutionContext.IsFlowSuppressed()) { acquired = Create(); }
+        else { using (ExecutionContext.SuppressFlow()) { acquired = Create(); } }
+        bool assigned = false;
+        try
+        {
+            bool activate;
+            lock (admissionGate)
+            {
+                if (fileFlushTimer is not null) { throw new InvalidOperationException("A file flush timer is already owned."); }
+                activate = !admissionClosed && !workerExiting && !workerFinished && flush is not null;
+                if (activate) { fileFlushTimer = acquired; assigned = true; }
+            }
+            if (!activate) { acquired.Dispose(); return; }
+            if (!acquired.Change(interval, interval))
+            {
+                // Terminal cleanup may have detached/disposed this timer before its initial arm.
+                lock (admissionGate) { if (!ReferenceEquals(fileFlushTimer, acquired)) { return; } }
+                throw new InvalidOperationException("The file flush timer could not be armed.");
+            }
+        }
+        catch
+        {
+            bool dispose;
+            lock (admissionGate)
+            {
+                dispose = !assigned || ReferenceEquals(fileFlushTimer, acquired);
+                if (ReferenceEquals(fileFlushTimer, acquired)) { fileFlushTimer = null; }
+            }
+            // An assigned/detached timer belongs to the shared disposal task; a local extra still needs cleanup.
+            if (dispose) { acquired.Dispose(); }
+            throw;
+        }
+    }
+    // One cleanup operation per acquired timer. Its gate barrier also respects an outer
+    // shared admission lock: custom timer code runs only after closure/fault publication.
+    private Task CancelFileFlushScheduling()
+    {
+        lock (admissionGate)
+        {
+            if (fileFlushTimerDisposal is not null) { return fileFlushTimerDisposal; }
+            ITimer? owned = fileFlushTimer;
+            if (owned is null) { return Task.CompletedTask; }
+            fileFlushTimer = null;
+            async Task DisposeAsync()
+            {
+                lock (admissionGate) { }
+                await owned.DisposeAsync().ConfigureAwait(false);
+            }
+            Task Launch() => Task.Run(DisposeAsync);
+            if (ExecutionContext.IsFlowSuppressed()) { fileFlushTimerDisposal = Launch(); }
+            else { using (ExecutionContext.SuppressFlow()) { fileFlushTimerDisposal = Launch(); } }
+            return fileFlushTimerDisposal;
+        }
+    }
+    private void RequestFileFlush()
+    {
+        lock (admissionGate)
+        {
+            if (!admissionClosed && !workerExiting && !workerFinished) { RegisterFlushBoundary(); }
+        }
+    }
+    internal int BufferedCount { get { lock (admissionGate) { return channel.Reader.Count; } } }
+    internal long LastAcceptedSequence { get { lock (admissionGate) { return lastAcceptedSequence; } } }
+    internal long FilteredCount { get { lock (admissionGate) { return filteredCount; } } }
+    internal long UnavailableCount { get { lock (admissionGate) { return unavailableCount; } } }
+    internal OutputAccounting CaptureAccounting()
+    {
+        lock (admissionGate)
+        {
+            return new OutputAccounting(filteredCount, acceptedCount, queueFullCount, unavailableCount,
+                writtenCount, failedCount, abandonedCount, channel.Reader.Count + (inFlight ? 1 : 0), inFlight ? 1 : 0, lastAcceptedSequence, state, lastFaultCode, lastFaultAtUtc);
+        }
+    }
+    internal LogOutputDrainResult CaptureDrain(string name, OutputFlushBoundary boundary)
+    {
+        lock (admissionGate)
+        {
+            long target = boundary.AcceptedSequenceBoundary;
+            // Successful writes are a prefix; terminal failure is one ticket, abandonment one tail.
+            long written = Math.Min(writtenCount, target);
+            long failed = failedSequence > 0 && failedSequence <= target ? 1 : 0;
+            long abandoned = firstAbandonedSequence > 0 && firstAbandonedSequence <= target
+                ? Math.Min(lastAbandonedSequence, target) - firstAbandonedSequence + 1 : 0;
+            Task<bool> confirmation = boundary.Registration.WriterFlushCompletion;
+            LogWriterFlushStatus status = !confirmation.IsCompletedSuccessfully ? LogWriterFlushStatus.Pending
+                : confirmation.Result ? LogWriterFlushStatus.Succeeded : LogWriterFlushStatus.Failed;
+            return new LogOutputDrainResult(name, target, written, failed, abandoned, target - written - failed - abandoned,
+                status, new LogOutputRejectionSnapshot(boundary.Filtered, boundary.QueueFull, boundary.Unavailable));
+        }
+    }
+    internal async Task WaitForCoveredRecordsAsync(string name, OutputFlushBoundary boundary, CancellationToken token)
+    {
+        while (true)
+        {
+            token.ThrowIfCancellationRequested();
+            Task changed;
+            lock (admissionGate)
+            {
+                if (CaptureDrain(name, boundary).Pending == 0) { return; }
+                changed = (dispositionChanged ??= NewWake()).Task;
+            }
+            await changed.WaitAsync(token).ConfigureAwait(false);
+        }
+    }
+    private void NotifyDispositionChanged()
+    { dispositionChanged?.TrySetResult(); dispositionChanged = null; }
+    public bool IsFaulted { get { lock (admissionGate) { return faulted; } } }
+    internal bool TryEnqueue(EncodedEvent captured) => TryAdmit(captured, out _) == LogOutputWriteStatus.Accepted;
+    public LogOutputWriteStatus TryAdmit(EncodedEvent captured, out long? acceptedSequence) => TryAdmit(captured, null, out acceptedSequence);
+    internal LogOutputWriteStatus TryAdmit(EncodedEvent captured, ReadOnlyMemory<byte>? preparedLine, out long? acceptedSequence)
+    {
+        ArgumentNullException.ThrowIfNull(captured);
+        lock (admissionGate)
+        {
+            acceptedSequence = null;
+            if (admissionClosed)
+            {
+                if (faulted) { RecordUnavailable(); return LogOutputWriteStatus.Faulted; }
+                return LogOutputWriteStatus.Stopped;
+            }
+            if (lastAcceptedSequence == long.MaxValue || acceptedCount == long.MaxValue)
+            {
+                // No wrap, negative/duplicate ticket or invented acceptance. Exhaustion is terminal.
+                Fault("AdmissionExhausted"); RecordUnavailable();
+                return LogOutputWriteStatus.Faulted;
+            }
+            long next = lastAcceptedSequence + 1;
+            if (!channel.Writer.TryWrite(new AdmittedEvent(captured, next, preparedLine)))
+            {
+                if (queueFullCount != long.MaxValue) { queueFullCount++; }
+                return LogOutputWriteStatus.QueueFull;
+            }
+            lastAcceptedSequence = next;
+            acceptedCount++;
+            wake.TrySetResult();
+            acceptedSequence = next;
+            return LogOutputWriteStatus.Accepted;
+        }
+    }
+    public void RecordFiltered() { lock (admissionGate) { if (filteredCount != long.MaxValue) { filteredCount++; } } }
+    public void RecordUnavailable() { lock (admissionGate) { if (unavailableCount != long.MaxValue) { unavailableCount++; } } }
+    // Primitive queue closure, not the public runtime's flush/deadline/shutdown protocol.
+    internal void Complete()
+    {
+        lock (admissionGate)
+        {
+            stopRequested = true; admissionClosed = true;
+            state = workerFinished ? LogOutputState.Stopped : LogOutputState.Stopping;
+            channel.Writer.TryComplete();
+            wake.TrySetResult();
+            _ = CancelFileFlushScheduling();
+        }
+    }
+    // Called under the shared runtime gate before the immutable deadline observation.
+    internal void AbandonUnstarted()
+    {
+        lock (admissionGate)
+        {
+            stopDeadlineExpired = true;
+            while (channel.Reader.TryRead(out AdmittedEvent abandoned))
+            {
+                if (firstAbandonedSequence == 0) { firstAbandonedSequence = abandoned.AcceptedSequence; }
+                lastAbandonedSequence = abandoned.AcceptedSequence; abandonedCount++;
+            }
+            // A boundary covering abandoned tickets can never reach writtenCount.
+            // Preserve already-started flush I/O until its actual completion.
+            foreach (long target in flushRequests.Keys.ToArray())
+            {
+                OutputFlushRegistration registration = flushRequests[target];
+                if (firstAbandonedSequence > 0 && target >= firstAbandonedSequence && !ReferenceEquals(registration, flushing))
+                { registration.Resolve(false); flushRequests.Remove(target); }
+            }
+            NotifyDispositionChanged();
+            wake.TrySetResult();
+        }
+    }
+    internal void RequestIoCancellation()
+    {
+        if (ioCancellation is null) { return; }
+        TaskCompletionSource completion;
+        lock (admissionGate)
+        {
+            if (ioCancellationClosed || ioCancellationCompletion is not null) { return; }
+            completion = NewWake(); ioCancellationCompletion = completion.Task;
+        }
+        // Stream cancellation callbacks may block or throw. They run asynchronously,
+        // outside admission synchronization, and cannot extend the stop deadline.
+        _ = CancelAsync();
+        async Task CancelAsync()
+        {
+            try { await ioCancellation.CancelAsync().ConfigureAwait(false); completion.TrySetResult(); }
+            catch (Exception error) { completion.TrySetException(error); }
+        }
+    }
+    private async Task CloseIoCancellationAsync()
+    {
+        Task? pending;
+        lock (admissionGate) { ioCancellationClosed = true; pending = ioCancellationCompletion; }
+        try { if (pending is not null) { await pending.ConfigureAwait(false); } }
+        finally { ioCancellation?.Dispose(); }
+    }
+    // Caller holds the shared gate. Publish closure, safe metadata and all unstarted loss together.
+    private void Fault(string code)
+    {
+        faulted = true; admissionClosed = true;
+        _ = CancelFileFlushScheduling();
+        state = stopRequested ? LogOutputState.Stopping : LogOutputState.Faulted;
+        lastFaultCode = code; lastFaultAtUtc = DateTimeOffset.UtcNow;
+        channel.Writer.TryComplete();
+        while (channel.Reader.TryRead(out AdmittedEvent abandoned))
+        {
+            if (firstAbandonedSequence == 0) { firstAbandonedSequence = abandoned.AcceptedSequence; }
+            lastAbandonedSequence = abandoned.AcceptedSequence; abandonedCount++;
+        }
+        NotifyDispositionChanged();
+        foreach (OutputFlushRegistration registration in flushRequests.Values)
+        {
+            if (!ReferenceEquals(registration, flushing)) { registration.Resolve(false); }
+        }
+        OutputFlushRegistration? active = flushing;
+        flushRequests.Clear();
+        // An already-started flush remains unresolved until its actual I/O settles, even if admission faults.
+        if (active is not null) { flushRequests.Add(active.AcceptedSequenceBoundary, active); }
+        wake.TrySetResult();
+    }
+    // Called only after queue closure or worker exit; cleanup does not reclassify delivered records or restart output work.
+    internal void RecordCleanupFault(string code)
+    {
+        lock (admissionGate)
+        {
+            faulted = true; admissionClosed = true;
+            lastFaultCode = code; lastFaultAtUtc = DateTimeOffset.UtcNow;
+            state = workerFinished && stopRequested ? LogOutputState.Stopped : stopRequested ? LogOutputState.Stopping : LogOutputState.Faulted;
+            foreach (OutputFlushRegistration registration in flushRequests.Values)
+            {
+                if (!ReferenceEquals(registration, flushing)) { registration.Resolve(false); }
+            }
+            flushRequests.Clear();
+            // Actual flush I/O keeps its own registration until it settles.
+            if (flushing is not null) { flushRequests.Add(flushing.AcceptedSequenceBoundary, flushing); }
+            wake.TrySetResult();
+        }
+    }
+    private async Task ProcessAsync()
+    {
+        Exception? primaryFailure = null;
+        try
+        {
+            while (true)
+            {
+                AdmittedEvent admitted = default;
+                OutputFlushRegistration? request = null;
+                Task? wait = null;
+                lock (admissionGate)
+                {
+                    if (faulted) { workerExiting = true; return; }
+                    if (stopDeadlineExpired)
+                    {
+                        // Expiry cancels active I/O; it never starts a later flush.
+                        foreach (OutputFlushRegistration registration in flushRequests.Values) { registration.Resolve(false); }
+                        flushRequests.Clear();
+                    }
+                    if (flushRequests.Count > 0 && flushRequests.First().Key <= writtenCount)
+                    {
+                        request = flushRequests.First().Value;
+                        flushing = request;
+                    }
+                    else if (channel.Reader.TryRead(out admitted)) { inFlight = true; inFlightSequence = admitted.AcceptedSequence; }
+                    else if (stopRequested) { workerExiting = true; return; }
+                    else
+                    {
+                        // Reset only while no work is visible under the admission gate: no lost wakeup.
+                        if (wake.Task.IsCompleted) { wake = NewWake(); }
+                        wait = wake.Task;
+                    }
+                }
+                if (wait is not null) { await wait.ConfigureAwait(false); continue; }
+                if (request is not null)
+                {
+                    // Flush at this fixed boundary before starting a later record. All I/O is outside the gate.
+                    await flush!(ioCancellation?.Token ?? CancellationToken.None).ConfigureAwait(false);
+                    lock (admissionGate)
+                    {
+                        flushRequests.Remove(request.AcceptedSequenceBoundary);
+                        flushing = null;
+                        request.Resolve(true);
+                    }
+                }
+                else
+                {
+                    // Complete record confirmation only; a dequeued/partially emitted write is still pending.
+                    await write(admitted, ioCancellation?.Token ?? CancellationToken.None).ConfigureAwait(false);
+                    lock (admissionGate) { writtenCount++; inFlight = false; NotifyDispositionChanged(); }
+                }
+            }
+        }
+        catch (Exception error)
+        {
+            primaryFailure = error;
+            lock (admissionGate)
+            {
+                if (inFlight) { failedCount++; failedSequence = inFlightSequence; inFlight = false; }
+                bool flushFailed = flushing is not null;
+                flushing?.Resolve(false);
+                flushing = null;
+                Fault(flushFailed ? "FlushFailed" : error is FileOutputWriteException fileError ? fileError.FaultCode : "WriteFailed");
+            }
+            throw;
+        }
+        finally
+        {
+            // No pending writer call remains. Owned cleanup precedes terminal state/Completion,
+            // outside the gate, and never receives a borrowed console stream.
+            lock (admissionGate) { workerExiting = true; }
+            List<Exception>? cleanupFailures = null;
+            try { await CloseIoCancellationAsync().ConfigureAwait(false); }
+            catch (Exception error) { RecordCleanupFault("CancellationCallbacksFailed"); (cleanupFailures ??= []).Add(error); }
+            try { await CancelFileFlushScheduling().ConfigureAwait(false); }
+            catch (Exception error) { RecordCleanupFault("FileFlushTimerCleanupFailed"); (cleanupFailures ??= []).Add(error); }
+            try { ownedResource?.Dispose(); }
+            catch (Exception error) { RecordCleanupFault("OutputCleanupFailed"); (cleanupFailures ??= []).Add(error); }
+            lock (admissionGate)
+            {
+                admissionClosed = true; channel.Writer.TryComplete();
+                workerExiting = true; workerFinished = true;
+                state = stopRequested || !faulted ? LogOutputState.Stopped : LogOutputState.Faulted;
+            }
+            if (cleanupFailures is not null)
+            {
+                // Preserve the exact original I/O failure as well as every failed cleanup step.
+                if (primaryFailure is not null) { cleanupFailures.Insert(0, primaryFailure); }
+                if (cleanupFailures.Count == 1) { ExceptionDispatchInfo.Capture(cleanupFailures[0]).Throw(); }
+                throw new AggregateException("Output cleanup failed.", cleanupFailures);
+            }
+        }
+    }
+}
+
+--- FILE docs/modules/logging/lifecycle-cleanup.md ---
+# Runtime creation and eventual cleanup
+
+CoreLogRuntime.Create() reads the existing static EnvironmentOptions facts and module settings, prepares the selected logging path against the current directory and normalizes EnvironmentOptions.Logging.FilePath in place, and creates the real configured queues and destinations. Configure EnvironmentOptions.Logging before creation; concurrent mutation remains unsupported. Creation validates options and metadata before output acquisition. Failed startup synchronously joins its own acquired workers and cleanup; the shutdown timeout does not bound that rollback. The application owns the runtime. Public creation always supplies actual queues, including the disabled-output case; admission-only qualification seams remain internal.
+
+StopAsync and DisposeAsync keep the original shared operation and deadline. An unresolved write or flush retains its owned resource until that I/O settles. Output-owned cancellation callbacks join before owned resources close. Closure or fault starts periodic-timer disposal once. The worker joins cancellation callbacks and that shared timer-disposal task, then attempts owned-resource cleanup once, outside admission synchronization. A throwing inactive Dispose is not retried. Borrowed console streams remain open. Successful physical file disposal closes the active handle and group lease; pre-existing records are preserved.
+
+If I/O and cleanup both fail, the internal worker completion retains the original I/O exception first and all cleanup failures. A lone cleanup-step exception keeps its original type; a throwing cancellation callback retains the AggregateException supplied by CancellationTokenSource.CancelAsync. Public stop converts terminal output failures into its existing safe delivery result. LastFaultCode and LastFaultAtUtc report the latest fixed safe category, including CancellationCallbacksFailed, FileFlushTimerCleanupFailed, OutputCleanupFailed and ShutdownTimerCleanupFailed, without exception payloads. Cleanup can supersede an earlier delivery category; a shutdown-timer category applies to every enabled output. Original stop results and delivery counts remain the delivery record. A cleanup fault does not reclassify a delivered record. Stop Succeeded concerns records and writer flushing; resource cleanup is a separate observation. A late deadline-timer disposal fault updates live diagnostics after publication and never changes the cached LastStopResult. No new public diagnostic fields or cleanup framework are added.
+
+FlushAsync does not reopen a closed writer. After successful stop, a new flush may report unavailable/Failed and LossObserved for its own failed confirmation; that does not rewrite the earlier successful stop acknowledgement. The internal CloseAdmission helper is primitive qualification closure without a final flush/deadline. Applications use StopAsync or DisposeAsync. A stop setup failure settles its already-published task; the catastrophic allocation/scheduling trigger is source-inspected, rather than falsely claimed as a controlled native execution.
+
+Thirteen controlled kernel cases cover owned disposal after held I/O, primary write/flush plus cleanup errors, timer/resource-only errors, throwing/held cancellation callbacks, late timer cleanup before or after held I/O settles, repeated disposal, closed flushing and primitive closure. Two distinguishing unit cases also retain safe startup categories through terminal worker-cleanup errors and verify physical ownership release. Five fresh-process public creation cases use actual file ownership, disabled outputs, invalid settings/metadata and contention. These tests do not substitute for T05's complete physical/process races and abrupt termination, or full release qualification. Exact executed evidence and review status are recorded in the task receipt. FlushAsync keeps its existing exception behavior for a throwing custom deadline-timer disposer; token-source cleanup runs in finally. The public factory uses the system clock.

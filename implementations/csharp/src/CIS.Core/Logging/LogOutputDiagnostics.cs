@@ -40,7 +40,7 @@ public sealed class LogOutputDiagnostics
     public long Abandoned { get; }
     /// <summary>Accepted unresolved records, including in-flight work.</summary>
     public long Pending { get; }
-    /// <summary>The last fixed safe fault category, retained after stop; no exception payload.</summary>
+    /// <summary>The latest fixed safe fault category, retained after stop; no exception payload. Cleanup can supersede a delivery category, and a shutdown-timer cleanup fault applies to every enabled output. Stop results and delivery counts retain their original meaning.</summary>
     public string? LastFaultCode { get; }
     /// <summary>The system UTC time of the last fault publication, retained after stop.</summary>
     public DateTimeOffset? LastFaultAtUtc { get; }

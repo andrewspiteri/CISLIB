@@ -24,7 +24,9 @@ internal sealed class OutputQueues
         catch
         {
             // Unpublished queues are empty. Close/join only this attempt's idle workers, outside the gate.
-            Complete(); Console?.Completion.GetAwaiter().GetResult(); File?.Completion.GetAwaiter().GetResult(); throw;
+            Complete();
+            try { Task.WhenAll(Console?.Completion ?? Task.CompletedTask, File?.Completion ?? Task.CompletedTask).GetAwaiter().GetResult(); } catch { }
+            throw;
         }
         OutputEventQueue Create(string name, Func<AdmittedEvent, ValueTask> write, IDisposable? ownedResource, Func<ValueTask>? flush, Func<AdmittedEvent, CancellationToken, ValueTask>? cancellableWrite, Func<CancellationToken, ValueTask>? cancellableFlush)
         {
@@ -38,4 +40,5 @@ internal sealed class OutputQueues
     internal void Complete() { lock (admissionGate) { Console?.Complete(); File?.Complete(); } }
     internal void AbandonUnstarted() { lock (admissionGate) { Console?.AbandonUnstarted(); File?.AbandonUnstarted(); } }
     internal void RequestIoCancellation() { Console?.RequestIoCancellation(); File?.RequestIoCancellation(); }
+    internal void RecordCleanupFault(string code) { Console?.RecordCleanupFault(code); File?.RecordCleanupFault(code); }
 }

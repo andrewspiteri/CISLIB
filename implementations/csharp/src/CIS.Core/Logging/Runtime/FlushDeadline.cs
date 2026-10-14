@@ -70,7 +70,7 @@ internal sealed class FlushDeadline : IAsyncDisposable
     {
         lock (gate) { disposed = true; }
         // Join an active callback before disposing the token source it may still cancel.
-        await timer.DisposeAsync().ConfigureAwait(false);
-        lifetime.Dispose();
+        try { await timer.DisposeAsync().ConfigureAwait(false); }
+        finally { lifetime.Dispose(); }
     }
 }

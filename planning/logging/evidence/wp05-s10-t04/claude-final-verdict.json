@@ -1,0 +1,36 @@
+{
+  "verdict": "PASS",
+  "scope": "Four changed paths only (StopCleanupFixture.cs, StopCleanupTests.cs, OutputEventQueue.cs, lifecycle-cleanup.md), reviewed from the supplied text. No tools, execution, edits or persistence.",
+  "requiredFindings": [],
+  "optionalFindings": [
+    {
+      "id": "R1",
+      "path": "implementations/csharp/tests/fixtures/DiscoveryHost/StopCleanupFixture.cs",
+      "area": "F3 deadline-cleanup-held attribution",
+      "detail": "The fixture asserts the original file registration is pending before the 10ms advance. It asserts resolved(false) only after DeadlineDisposeRelease and the ShutdownTimerCleanupFailed category. I traced the code and found that nothing else can resolve it in between. The in-flight record is sequence 1 and the channel is empty, so AbandonUnstarted leaves firstAbandonedSequence at 0 and skips the registration. The worker is still inside the held write, so its stopDeadlineExpired branch is unreachable. RecordCleanupFault is therefore the only resolver, and flushing is null, so it resolves the registration and clears it. The assertion is sound today. One more Require(!originalFileFlush.WriterFlushCompletion.IsCompleted) after `await stop` and before DeadlineDisposeRelease would pin that attribution directly. Then a future AbandonUnstarted or expiry change that resolves the registration earlier would fail this mode instead of still passing.",
+      "severity": "optional"
+    },
+    {
+      "id": "R2",
+      "path": "implementations/csharp/src/CIS.Core/Logging/Runtime/OutputEventQueue.cs",
+      "area": "F4 RecordCleanupFault precondition",
+      "detail": "The comment 'Called only after queue closure or worker exit' is accurate for the current callers. RecordCleanupFault sets faulted but does not drain or abandon channel contents. A call after primitive Complete(), but before the worker drains, would make the worker return on `faulted` and leave unstarted records stranded as Pending. Current callers never hit this. Worker-finally runs only after drain or Fault, and the shutdown-timer category runs after stop has drained or AbandonUnstarted has run. Consider stating the stronger invariant: no unstarted records remain, because they were written, abandoned at the deadline or abandoned by Fault. That keeps future callers from relying on closure alone.",
+      "severity": "optional"
+    },
+    {
+      "id": "R3",
+      "path": "docs/modules/logging/lifecycle-cleanup.md",
+      "area": "F1 wording",
+      "detail": "The statement that synchronous startup rollback is not bounded by the shutdown timeout is correct and sufficient. Optionally add that a hung launched worker or owned-resource close would therefore block Create(), so callers understand the consequence as well as the rule.",
+      "severity": "optional"
+    }
+  ],
+  "carriedForward": [
+    "Final full Developer/native qualification has not passed yet. This review is not a substitute for it.",
+    "FlushStressSupport.Registrations and Guard/UntilAsync were not supplied. F3's Single() also relies on StopAsync registering the file boundary synchronously before Console.Completion is awaited. If that ordering fails, the test fails deterministically rather than passing falsely.",
+    "F2 receipt wording should match what you described. The startup launcher wrapper throws after the actual worker completes, which proves Completion-error/category coordination and physical lease release. It is not a worker-finally resource-error injection. Worker-finally cleanup is covered by the thirteen kernel modes.",
+    "F5: FlushAsync's exception behavior for a throwing deadline-timer disposer stays internal-only. The public factory uses the system clock. The doc states this.",
+    "The unit-test using order (CIS.Logging, CIS.Tests.DiscoveryFixture, CIS.TestSupport) matches Roslyn's token comparer. The analyzer outcome is confirmed only by the pending build.",
+    "T05 physical/process races, abrupt termination and release qualification remain out of scope, as the doc states."
+  ]
+}

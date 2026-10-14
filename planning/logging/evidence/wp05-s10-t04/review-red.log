@@ -1,0 +1,46 @@
+  CIS.Core.TestSupport -> C:\miscwork\portfolio\cislib\implementations\csharp\tests\CIS.Core.TestSupport\bin\Release\net10.0\CIS.Core.TestSupport.dll
+  CIS.TypeManager.Build -> C:\miscwork\portfolio\cislib\implementations\csharp\eng\CIS.TypeManager.Build\bin\Release\net10.0\CIS.TypeManager.Build.dll
+  CIS.Core -> C:\miscwork\portfolio\cislib\implementations\csharp\src\CIS.Core\bin\Release\net10.0\CIS.Core.dll
+  CIS.Core.UnitTests -> C:\miscwork\portfolio\cislib\implementations\csharp\tests\CIS.Core.UnitTests\bin\Release\net10.0\CIS.Core.UnitTests.dll
+Test run for C:\miscwork\portfolio\cislib\implementations\csharp\tests\CIS.Core.UnitTests\bin\Release\net10.0\CIS.Core.UnitTests.dll (.NETCoreApp,Version=v10.0)
+A total of 1 test files matched the specified pattern.
+  Failed StartupKeepsItsSafeFailureWhenWorkerCleanupThrows (False) [40 ms]
+  Error Message:
+   Assertion failed. Expected exception of exact type CoreLogInitializationException but caught IOException.
+
+expected type:    CIS.Logging.CoreLogInitializationException
+actual exception: System.IO.IOException: cleanup-private
+                     at CIS.Tests.UnitTests.StopCleanupTests.<>c__DisplayClass3_1.<<StartupKeepsItsSafeFailureWhenWorkerCleanupThrows>b__2>d.MoveNext() in C:\miscwork\portfolio\cislib\implementations\csharp\tests\CIS.Core.UnitTests\StopCleanupTests.cs:line 32
+                  --- End of stack trace from previous location ---
+                     at CIS.Logging.Runtime.OutputQueues..ctor(Int32 capacity, Boolean consoleEnabled, Boolean fileEnabled, Func`2 consoleWrite, Func`2 fileWrite, Object sharedAdmissionGate, Func`2 launchWorker, IDisposable fileResource, Func`1 consoleFlush, Func`1 fileFlush, Func`3 consoleCancellableWrite, Func`3 fileCancellableWrite, Func`2 consoleCancellableFlush, Func`2 fileCancellableFlush) in C:\miscwork\portfolio\cislib\implementations\csharp\src\CIS.Core\Logging\Runtime\OutputQueues.cs:line 27
+                     at CIS.Logging.CoreLogRuntime.ComposeQueued(EventMetadata metadata, LoggingOptions selected, Func`2 consoleWrite, Func`2 fileWrite, TimeProvider timeProvider, ConsoleOutputWriter writer, Func`2 launchWorker, FileOutputWriter fileWriter, Func`1 consoleFlush, Func`1 fileFlush) in C:\miscwork\portfolio\cislib\implementations\csharp\src\CIS.Core\Logging\CoreLogRuntime.cs:line 171
+                     at CIS.Logging.CoreLogRuntime.CreateConsoleQueued(EventMetadata metadata, LoggingOptions options, Func`2 fileWrite, TimeProvider timeProvider, Func`2 acquireConsole, Func`2 launchWorker) in C:\miscwork\portfolio\cislib\implementations\csharp\src\CIS.Core\Logging\CoreLogRuntime.cs:line 100
+                     at CIS.Tests.UnitTests.StopCleanupTests.<>c__DisplayClass3_0.<StartupKeepsItsSafeFailureWhenWorkerCleanupThrows>b__1() in C:\miscwork\portfolio\cislib\implementations\csharp\tests\CIS.Core.UnitTests\StopCleanupTests.cs:line 37
+                     at Microsoft.VisualStudio.TestTools.UnitTesting.Assert.IsThrowsFailing[TException](Action action, Boolean isStrictType)
+
+Assert.ThrowsExactly<CoreLogInitializationException>(<action>)
+  Stack Trace:
+     at CIS.Tests.UnitTests.StopCleanupTests.StartupKeepsItsSafeFailureWhenWorkerCleanupThrows(Boolean timerFailure) in C:\miscwork\portfolio\cislib\implementations\csharp\tests\CIS.Core.UnitTests\StopCleanupTests.cs:line 34
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.MethodBaseInvoker.InvokeDirectByRefWithFewArgs(Object obj, Span`1 copyOfArgs, BindingFlags invokeAttr)
+  Failed StartupKeepsItsSafeFailureWhenWorkerCleanupThrows (True) [46 ms]
+  Error Message:
+   Assertion failed. Expected exception of exact type CoreLogInitializationException but caught IOException.
+
+expected type:    CIS.Logging.CoreLogInitializationException
+actual exception: System.IO.IOException: cleanup-private
+                     at CIS.Tests.UnitTests.StopCleanupTests.<>c__DisplayClass3_1.<<StartupKeepsItsSafeFailureWhenWorkerCleanupThrows>b__2>d.MoveNext() in C:\miscwork\portfolio\cislib\implementations\csharp\tests\CIS.Core.UnitTests\StopCleanupTests.cs:line 32
+                  --- End of stack trace from previous location ---
+                     at CIS.Logging.CoreLogRuntime.ComposeQueued(EventMetadata metadata, LoggingOptions selected, Func`2 consoleWrite, Func`2 fileWrite, TimeProvider timeProvider, ConsoleOutputWriter writer, Func`2 launchWorker, FileOutputWriter fileWriter, Func`1 consoleFlush, Func`1 fileFlush) in C:\miscwork\portfolio\cislib\implementations\csharp\src\CIS.Core\Logging\CoreLogRuntime.cs:line 187
+                     at CIS.Logging.CoreLogRuntime.CreateConfiguredQueued(EventMetadata metadata, LoggingOptions options, TimeProvider timeProvider, Func`2 acquireConsole, Func`2 launchWorker) in C:\miscwork\portfolio\cislib\implementations\csharp\src\CIS.Core\Logging\CoreLogRuntime.cs:line 121
+                     at CIS.Tests.UnitTests.StopCleanupTests.<>c__DisplayClass3_0.<StartupKeepsItsSafeFailureWhenWorkerCleanupThrows>b__1() in C:\miscwork\portfolio\cislib\implementations\csharp\tests\CIS.Core.UnitTests\StopCleanupTests.cs:line 36
+                     at Microsoft.VisualStudio.TestTools.UnitTesting.Assert.IsThrowsFailing[TException](Action action, Boolean isStrictType)
+
+Assert.ThrowsExactly<CoreLogInitializationException>(<action>)
+  Stack Trace:
+     at CIS.Tests.UnitTests.StopCleanupTests.StartupKeepsItsSafeFailureWhenWorkerCleanupThrows(Boolean timerFailure) in C:\miscwork\portfolio\cislib\implementations\csharp\tests\CIS.Core.UnitTests\StopCleanupTests.cs:line 34
+   at InvokeStub_StopCleanupTests.StartupKeepsItsSafeFailureWhenWorkerCleanupThrows(Object, Span`1)
+   at System.Reflection.MethodBaseInvoker.InvokeWithOneArg(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)
+Results File: C:\miscwork\portfolio\cislib\.artifacts\csharp\tasks\wp05-s10-t04\review-red\startup-review.trx
+
+Failed!  - Failed:     2, Passed:     0, Skipped:     0, Total:     2, Duration: 75 ms - CIS.Core.UnitTests.dll (net10.0)

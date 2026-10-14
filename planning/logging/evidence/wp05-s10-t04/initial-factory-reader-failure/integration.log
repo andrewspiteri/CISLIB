@@ -1,0 +1,46 @@
+  CIS.Core.TestSupport -> C:\miscwork\portfolio\cislib\implementations\csharp\tests\CIS.Core.TestSupport\bin\Release\net10.0\CIS.Core.TestSupport.dll
+  CIS.TypeManager.Build -> C:\miscwork\portfolio\cislib\implementations\csharp\eng\CIS.TypeManager.Build\bin\Release\net10.0\CIS.TypeManager.Build.dll
+  CIS.Core -> C:\miscwork\portfolio\cislib\implementations\csharp\src\CIS.Core\bin\Release\net10.0\CIS.Core.dll
+  CIS.Core.DiscoveryFixture -> C:\miscwork\portfolio\cislib\implementations\csharp\tests\fixtures\DiscoveryHost\bin\Release\net10.0\CIS.Core.DiscoveryFixture.dll
+  CIS.Core.IntegrationTests -> C:\miscwork\portfolio\cislib\implementations\csharp\tests\CIS.Core.IntegrationTests\bin\Release\net10.0\CIS.Core.IntegrationTests.dll
+Test run for C:\miscwork\portfolio\cislib\implementations\csharp\tests\CIS.Core.IntegrationTests\bin\Release\net10.0\CIS.Core.IntegrationTests.dll (.NETCoreApp,Version=v10.0)
+A total of 1 test files matched the specified pattern.
+  Failed ActualSharedStopRunsInAnExactRuntimeChild ("file") [6 s]
+  Error Message:
+   Test method CIS.Tests.IntegrationTests.RuntimeCreateProcessTests.ActualSharedStopRunsInAnExactRuntimeChild threw exception:
+System.Text.DecoderFallbackException: Unable to translate bytes [EA] at index 165 from specified code page to Unicode.
+  Stack Trace:
+     at System.Text.DecoderExceptionFallbackBuffer.Throw(Byte[] bytesUnknown, Int32 index)
+   at System.Text.DecoderExceptionFallbackBuffer.Fallback(Byte[] bytesUnknown, Int32 index)
+   at System.Text.Encoding.GetCharsWithFallback(ReadOnlySpan`1 bytes, Int32 originalBytesLength, Span`1 chars, Int32 originalCharsLength, DecoderNLS decoder, Boolean throwForDestinationOverflow)
+   at System.Text.UTF8Encoding.GetCharsWithFallback(ReadOnlySpan`1 bytes, Int32 originalBytesLength, Span`1 chars, Int32 originalCharsLength, DecoderNLS decoder, Boolean throwForDestinationOverflow)
+   at System.Text.Encoding.GetCharsWithFallback(Byte* pOriginalBytes, Int32 originalByteCount, Char* pOriginalChars, Int32 originalCharCount, Int32 bytesConsumedSoFar, Int32 charsWrittenSoFar, DecoderNLS decoder)
+   at System.Text.Encoding.GetChars(Byte* pBytes, Int32 byteCount, Char* pChars, Int32 charCount, DecoderNLS decoder)
+   at System.Text.DecoderNLS.GetChars(Byte[] bytes, Int32 byteIndex, Int32 byteCount, Char[] chars, Int32 charIndex, Boolean flush)
+   at System.IO.StreamReader.ReadBufferAsync(CancellationToken cancellationToken)
+   at System.IO.StreamReader.ReadToEndAsyncInternal(CancellationToken cancellationToken)
+   at CIS.TestSupport.ProcessRunner.RunAsync(String executable, IEnumerable`1 arguments, String workingDirectory, TimeSpan timeout, IReadOnlyDictionary`2 environment, Encoding outputEncoding) in C:\miscwork\portfolio\cislib\implementations\csharp\tests\CIS.Core.TestSupport\ProcessRunner.cs:line 56
+   at CIS.Tests.IntegrationTests.RuntimeCreateProcessTests.ActualSharedStopRunsInAnExactRuntimeChild(String mode) in C:\miscwork\portfolio\cislib\implementations\csharp\tests\CIS.Core.IntegrationTests\RuntimeCreateProcessTests.cs:line 22
+   at Microsoft.VisualStudio.TestPlatform.MSTest.TestAdapter.Execution.TestMethodInfo.ExecuteInternalAsync(Object[] arguments, CancellationTokenSource timeoutTokenSource, TestInvocationState invocationState)
+
+  Failed ActualSharedStopRunsInAnExactRuntimeChild ("contended") [6 s]
+  Error Message:
+   Test method CIS.Tests.IntegrationTests.RuntimeCreateProcessTests.ActualSharedStopRunsInAnExactRuntimeChild threw exception:
+System.Text.DecoderFallbackException: Unable to translate bytes [EA] at index 165 from specified code page to Unicode.
+  Stack Trace:
+     at System.Text.DecoderExceptionFallbackBuffer.Throw(Byte[] bytesUnknown, Int32 index)
+   at System.Text.DecoderExceptionFallbackBuffer.Fallback(Byte[] bytesUnknown, Int32 index)
+   at System.Text.Encoding.GetCharsWithFallback(ReadOnlySpan`1 bytes, Int32 originalBytesLength, Span`1 chars, Int32 originalCharsLength, DecoderNLS decoder, Boolean throwForDestinationOverflow)
+   at System.Text.UTF8Encoding.GetCharsWithFallback(ReadOnlySpan`1 bytes, Int32 originalBytesLength, Span`1 chars, Int32 originalCharsLength, DecoderNLS decoder, Boolean throwForDestinationOverflow)
+   at System.Text.Encoding.GetCharsWithFallback(Byte* pOriginalBytes, Int32 originalByteCount, Char* pOriginalChars, Int32 originalCharCount, Int32 bytesConsumedSoFar, Int32 charsWrittenSoFar, DecoderNLS decoder)
+   at System.Text.Encoding.GetChars(Byte* pBytes, Int32 byteCount, Char* pChars, Int32 charCount, DecoderNLS decoder)
+   at System.Text.DecoderNLS.GetChars(Byte[] bytes, Int32 byteIndex, Int32 byteCount, Char[] chars, Int32 charIndex, Boolean flush)
+   at System.IO.StreamReader.ReadBufferAsync(CancellationToken cancellationToken)
+   at System.IO.StreamReader.ReadToEndAsyncInternal(CancellationToken cancellationToken)
+   at CIS.TestSupport.ProcessRunner.RunAsync(String executable, IEnumerable`1 arguments, String workingDirectory, TimeSpan timeout, IReadOnlyDictionary`2 environment, Encoding outputEncoding) in C:\miscwork\portfolio\cislib\implementations\csharp\tests\CIS.Core.TestSupport\ProcessRunner.cs:line 56
+   at CIS.Tests.IntegrationTests.RuntimeCreateProcessTests.ActualSharedStopRunsInAnExactRuntimeChild(String mode) in C:\miscwork\portfolio\cislib\implementations\csharp\tests\CIS.Core.IntegrationTests\RuntimeCreateProcessTests.cs:line 22
+   at Microsoft.VisualStudio.TestPlatform.MSTest.TestAdapter.Execution.TestMethodInfo.ExecuteInternalAsync(Object[] arguments, CancellationTokenSource timeoutTokenSource, TestInvocationState invocationState)
+
+Results File: C:\miscwork\portfolio\cislib\.artifacts\csharp\tasks\wp05-s10-t04\focused-integration\stop-cleanup-create.trx
+
+Failed!  - Failed:     2, Passed:    15, Skipped:     0, Total:    17, Duration: 6 s - CIS.Core.IntegrationTests.dll (net10.0)

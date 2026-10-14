@@ -1,3 +1,4 @@
+using System.Runtime.ExceptionServices;
 using System.Threading.Channels;
 using CIS.Logging.Events;
 
@@ -329,8 +330,27 @@ internal sealed class OutputEventQueue : ILogOutputAdmission
         if (active is not null) { flushRequests.Add(active.AcceptedSequenceBoundary, active); }
         wake.TrySetResult();
     }
+    // Called only after queue closure or worker exit; cleanup does not reclassify delivered records or restart output work.
+    internal void RecordCleanupFault(string code)
+    {
+        lock (admissionGate)
+        {
+            faulted = true; admissionClosed = true;
+            lastFaultCode = code; lastFaultAtUtc = DateTimeOffset.UtcNow;
+            state = workerFinished && stopRequested ? LogOutputState.Stopped : stopRequested ? LogOutputState.Stopping : LogOutputState.Faulted;
+            foreach (OutputFlushRegistration registration in flushRequests.Values)
+            {
+                if (!ReferenceEquals(registration, flushing)) { registration.Resolve(false); }
+            }
+            flushRequests.Clear();
+            // Actual flush I/O keeps its own registration until it settles.
+            if (flushing is not null) { flushRequests.Add(flushing.AcceptedSequenceBoundary, flushing); }
+            wake.TrySetResult();
+        }
+    }
     private async Task ProcessAsync()
     {
+        Exception? primaryFailure = null;
         try
         {
             while (true)
@@ -383,6 +403,7 @@ internal sealed class OutputEventQueue : ILogOutputAdmission
         }
         catch (Exception error)
         {
+            primaryFailure = error;
             lock (admissionGate)
             {
                 if (inFlight) { failedCount++; failedSequence = inFlightSequence; inFlight = false; }
@@ -398,24 +419,25 @@ internal sealed class OutputEventQueue : ILogOutputAdmission
             // No pending writer call remains. Owned cleanup precedes terminal state/Completion,
             // outside the gate, and never receives a borrowed console stream.
             lock (admissionGate) { workerExiting = true; }
-            try
+            List<Exception>? cleanupFailures = null;
+            try { await CloseIoCancellationAsync().ConfigureAwait(false); }
+            catch (Exception error) { RecordCleanupFault("CancellationCallbacksFailed"); (cleanupFailures ??= []).Add(error); }
+            try { await CancelFileFlushScheduling().ConfigureAwait(false); }
+            catch (Exception error) { RecordCleanupFault("FileFlushTimerCleanupFailed"); (cleanupFailures ??= []).Add(error); }
+            try { ownedResource?.Dispose(); }
+            catch (Exception error) { RecordCleanupFault("OutputCleanupFailed"); (cleanupFailures ??= []).Add(error); }
+            lock (admissionGate)
             {
-                try { await CloseIoCancellationAsync().ConfigureAwait(false); }
-                finally { await CancelFileFlushScheduling().ConfigureAwait(false); }
+                admissionClosed = true; channel.Writer.TryComplete();
+                workerExiting = true; workerFinished = true;
+                state = stopRequested || !faulted ? LogOutputState.Stopped : LogOutputState.Faulted;
             }
-            finally
+            if (cleanupFailures is not null)
             {
-                try { ownedResource?.Dispose(); }
-                finally
-                {
-                    lock (admissionGate)
-                    {
-                        admissionClosed = true; channel.Writer.TryComplete();
-                        workerExiting = true;
-                        workerFinished = true;
-                        state = stopRequested || !faulted ? LogOutputState.Stopped : LogOutputState.Faulted;
-                    }
-                }
+                // Preserve the exact original I/O failure as well as every failed cleanup step.
+                if (primaryFailure is not null) { cleanupFailures.Insert(0, primaryFailure); }
+                if (cleanupFailures.Count == 1) { ExceptionDispatchInfo.Capture(cleanupFailures[0]).Throw(); }
+                throw new AggregateException("Output cleanup failed.", cleanupFailures);
             }
         }
     }
