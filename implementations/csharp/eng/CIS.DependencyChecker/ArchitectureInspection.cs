@@ -73,7 +73,12 @@ internal static class ArchitectureInspection
                     packages.Add(new { id, version, contentHash = lockedEntry!["contentHash"], lockType = lockedEntry["type"], assets = entry });
                 }
                 Require(effectiveLock.Count(item => item.Value!["type"]!.GetValue<string>() != "Project") == packages.Count, $"Locked package inventory mismatch: {relative} {targetName}");
-                JsonObject context = await Evaluate(languageRoot, path, framework, rid, role is "shipping" or "build-tool");
+                JsonObject context = await Evaluate(languageRoot, path, framework, rid);
+                if (role is "shipping" or "build-tool")
+                {
+                    JsonObject resolved = await Evaluate(languageRoot, path, framework, rid, resolve: true);
+                    context["Items"]!["ReferencePath"] = resolved["Items"]!["ReferencePath"]!.DeepClone();
+                }
                 targets.Add(new(targetName, context["Properties"]!, context["Items"]!, packages, effectiveLock,
                     graph.Where(item => item.Value!["type"]!.GetValue<string>() == "project").Select(item => item.Key).ToArray(), graph));
             }
@@ -116,7 +121,7 @@ internal static class ArchitectureInspection
             }
         }
         Require(assemblyFacts.Count > 0, "No compiled shipping assembly was inspected.");
-        string[] inputNames = ["Directory.Build.props", "Directory.Packages.props", "global.json", "NuGet.config", "eng/project-boundaries.json", "eng/runtime-dependencies.json", "eng/development-dependencies.json", "eng/toolchain.json"];
+        string[] inputNames = ["Directory.Build.props", "Directory.Packages.props", "global.json", "NuGet.config", "eng/project-boundaries.json", "eng/runtime-dependencies.json", "eng/development-dependencies.json", "eng/toolchain.json", ".config/dotnet-tools.json"];
         var report = new
         {
             schema = "cis.architecture-inspection/v1",
@@ -130,9 +135,11 @@ internal static class ArchitectureInspection
             packageDependencyGroups = dependencyGroups,
             assemblies = assemblyFacts,
             levels = new[] { "evaluated-project-framework-references", "all-locked-target-graphs", "package-groups-and-assets", "compiled-references-and-public-api", "internal-type-namespace-uses" },
-            scope = "Observed static architecture facts and locked-input consistency. Complete allowlist, ownership, separation and comprehensive negative qualification remain WP07-S02-T02/T03/T04. Not a full release qualification."
+            scope = "Observed static architecture facts and locked-input consistency. Exact amended dependency allowlists execute here. Ownership, separation and comprehensive negative qualification remain WP07-S02-T03/T04. Not a full release qualification."
         };
-        File.WriteAllText(reportPath, JsonSerializer.Serialize(report, new JsonSerializerOptions { WriteIndented = true }));
+        JsonObject observed = JsonSerializer.SerializeToNode(report)!.AsObject();
+        observed["allowlists"] = ArchitecturePolicy.Assert(languageRoot, observed);
+        File.WriteAllText(reportPath, observed.ToJsonString(new JsonSerializerOptions { WriteIndented = true }));
         Console.WriteLine($"Architecture inspection completed: {projects.Count} projects, {projects.Sum(project => project.targets.Count)} target graphs, {assemblyFacts.Count} packaged assemblies. Report: {reportPath}");
     }
 
@@ -146,7 +153,7 @@ internal static class ArchitectureInspection
     private static Task<JsonObject> Evaluate(string root, string path, string framework = "", string rid = "", bool resolve = false)
     {
         var arguments = new List<string> { "msbuild", path, "-nologo", "-verbosity:quiet", "-p:Configuration=Release", "-p:BuildProjectReferences=false",
-            "-getProperty:TargetFramework,TargetFrameworks,TargetPath,AssemblyName,PackageId,IsPackable,RuntimeIdentifier,RuntimeIdentifiers,ProjectAssetsFile,NuGetLockFilePath,NETCoreSdkVersion,MSBuildBinPath",
+            "-getProperty:TargetFramework,TargetFrameworks,TargetPath,AssemblyName,PackageId,RootNamespace,IsPackable,RuntimeIdentifier,RuntimeIdentifiers,ProjectAssetsFile,NuGetLockFilePath,NETCoreSdkVersion,MSBuildBinPath",
             "-getItem:ProjectReference,PackageReference,FrameworkReference,Reference,ReferencePath" };
         if (framework.Length > 0) { arguments.Add("-p:TargetFramework=" + framework); }
         if (rid.Length > 0) { arguments.Add("-p:RuntimeIdentifier=" + rid); }

@@ -1,0 +1,60 @@
+{
+  "schema": "cis.architecture-task-verification/v1",
+  "task": "WP07-S02-T02",
+  "baselineCommit": "f24a68aaea0961188acc5276f0348199f7c94e9e",
+  "state": "VerifiedClaudePass",
+  "verification": [
+    {
+      "lane": "windows",
+      "exitCode": 0,
+      "stagesPassed": 16,
+      "passed": {
+        "unit": 3415,
+        "integration": 1439,
+        "business": 24,
+        "architecture": 553
+      },
+      "total": 5431.0
+    },
+    {
+      "lane": "ubuntu",
+      "exitCode": 0,
+      "stagesPassed": 16,
+      "passed": {
+        "unit": 3415,
+        "integration": 1439,
+        "business": 24,
+        "architecture": 553
+      },
+      "total": 5431.0
+    }
+  ],
+  "postSuiteChange": "One exact SDK download source mapping; both native locked restores and full architecture reinspections exit 0. No cold-cache claim.",
+  "shippingImplementationChanged": false,
+  "releaseQualified": false,
+  "releaseNegativeControlExitCode": 2,
+  "graph": "Build exits 0 with partial diagnostics; status exits 4 with SQLite readonly database error.",
+  "claude": {
+    "status": "Completed",
+    "transferred": true,
+    "verdict": "PASS",
+    "blockingFindings": 0,
+    "changesRequiredForAcceptance": false,
+    "toolsUsed": false,
+    "delegationUsed": false,
+    "payload": {
+      "files": 19,
+      "promptBytes": 128941,
+      "sha256": "084f9fe4a497cb65085262a0abc9733379e4c6fd7ba075b997427f6a9b150ba0",
+      "destination": "Anthropic Claude",
+      "purpose": "Read-only WP07-S02-T02 review; excludes Type Manager implementation, credentials and binaries; tools/MCP/delegation disabled",
+      "status": "Sent to Anthropic Claude after the user explicitly approved this exact 19-file, 128941-byte bundle; read-only CLI exited 0 and returned PASS with no changes required for T02 acceptance."
+    },
+    "review": "claude-review.json",
+    "disposition": "claude-disposition.md"
+  },
+  "commit": "Verified task checkpoint; this receipt is committed with the changes",
+  "pushed": false,
+  "inputAudit": "input-audit.json",
+  "retainedEvidence": "evidence-index.json"
+}

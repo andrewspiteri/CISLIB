@@ -1,0 +1,5 @@
+# Claude review disposition
+
+The user explicitly approved the prepared 19-file, 128,941-byte WP07-S02-T02 bundle for Anthropic Claude. Its SHA-256 is `084f9fe4a497cb65085262a0abc9733379e4c6fd7ba075b997427f6a9b150ba0`. The read-only CLI exited 0 and returned PASS, with no blocker or required acceptance change. Tools, MCP and delegation were disabled. The retained review and input manifest identify exactly what was reviewed; this static review is separate from executed verification.
+
+No implementation change followed the review. Its optional observations concern binding policy re-reads to hashed assets, broader malformed-input diagnostics, policy self-consistency, additional nuspec/source-mapping facts and an older summary table. These are not acceptance defects according to the reviewer and are not silently claimed as implemented. T02 relies on stable inputs in the isolated verification copies. T03 ownership/separation and T04 comprehensive negative qualification remain pending; no additional scope or release waiver is adopted here.

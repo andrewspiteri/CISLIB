@@ -219,7 +219,11 @@
       "additionalImplicitFrameworkReferences": [
         "Microsoft.AspNetCore.App"
       ],
-      "packageReferences": []
+      "packageReferences": [],
+      "frameworkProvidedRuntimePackages": [
+        "Microsoft.Extensions.Logging.Abstractions",
+        "Microsoft.Extensions.DependencyInjection.Abstractions"
+      ]
     },
     {
       "path": "tests/fixtures/TypeManager/ExampleLate/ExampleLate.csproj",
@@ -304,5 +308,15 @@
     "MicrosoftLogger is inside Core and maps into the same pipeline.",
     "Third-party runtime integrations may depend on Core; Core must never depend on them."
   ],
-  "moduleRuleQualification": "Type/namespace rules will be exercised against real types in WP07-S02; project/package/assembly rules execute now."
+  "moduleRuleQualification": "Type/namespace rules will be exercised against real types in WP07-S02; project/package/assembly rules execute now.",
+  "packagedAssemblies": [
+    {
+      "path": "lib/net10.0/CIS.Core.dll",
+      "project": "src/CIS.Core/CIS.Core.csproj"
+    },
+    {
+      "path": "tools/net10.0/CIS.TypeManager.Build.dll",
+      "project": "eng/CIS.TypeManager.Build/CIS.TypeManager.Build.csproj"
+    }
+  ]
 }

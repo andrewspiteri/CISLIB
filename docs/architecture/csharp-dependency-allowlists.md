@@ -1,0 +1,19 @@
+# C# dependency allowlists
+
+WP07-S02-T02 applies the versioned repository policies to every observed project/framework/RID context before architecture inspection can publish a successful report. The C# validator is part of the normal Developer architecture-inspection stage; it is not a separate optional mode. The earlier project/package checks remain active.
+
+The user-approved amendment is authoritative: one CIS.Core package/assembly contains MicrosoftLogger and may use the exact approved Microsoft-maintained runtime closure. It is not the original plan's package-free Core plus separate bridge. The runtime closure remains Microsoft.Extensions.Logging.Abstractions and Microsoft.Extensions.DependencyInjection.Abstractions at 10.0.12. Third-party integrations require a separate optional package; this task creates none.
+
+The validator checks:
+
+- Exact evaluated project references, framework references, package roots and build-only metadata in each framework/RID context. PrivateAssets does not authorize an otherwise unapproved package.
+- Exact restored package identities/versions and restored project paths for each target, alongside the inspector's independent lock/hash/target consistency checks. Tests and the provider fixture have explicit development-only closures; examples inherit only their registered Core closure.
+- One net10.0 package dependency group with exactly the approved direct dependency and version. Only the two explicitly registered package DLLs may originate from their registered Release projects: Core and the existing Type Manager build helper.
+- Compiler reference origins in the pinned .NET reference pack, exact restored approved runtime assets or the registered SDK tool references. AssemblyName metadata is read without loading inspected code; compiled reference name, version, culture, token and flags must match. Static external type uses must name an approved compiler assembly or the owning assembly.
+- Exact dotnet tool IDs, versions and commands, plus approved implicit SDK framework/RID restore downloads. Tool packages cannot enter the runtime graph.
+
+The pinned SDK's observed host restore metadata includes Microsoft.WindowsDesktop.App.Runtime.win-x64 10.0.12. It is explicitly recorded as an implicit development restore download, alongside the existing SDK download policy. This does not add a Core PackageReference, framework reference, target, shipping DLL or runtime dependency. The exact WindowsDesktop identity is also mapped to the existing NuGet source. The selected runtime/package dependency pins remain unchanged. The Web example explicitly records the two runtime packages supplied and pruned by its Microsoft.AspNetCore.App shared framework, so its restored package closure must be empty. Core still requires both NuGet members. A dedicated rejection control covers that framework-provided example closure.
+
+Failures use specific ARCH-* diagnostics and prevent publishing inspection.json. Successful reports include a cis.architecture-allowlists/v1 observation and hash the tool manifest with the other inspection inputs. The versioned policy files remain trusted review inputs; changing a policy is a reviewed repository change, not candidate self-approval.
+
+Twenty-four C# cases start from the actual native inspection and verify the positive result, twenty isolated observed-fact violations and three tool-manifest changes. These directly qualify policy branches; they do not replace T04's comprehensive isolated source/package/binary negative fixtures. T03 configuration/caller ownership and contract/output separation, cumulative compatibility and full release qualification remain pending. Static metadata cannot infer reflection strings or dynamically selected dependencies.
