@@ -9,8 +9,10 @@ if (Test-Path -LiteralPath $OutputRoot) { throw 'Use a new output directory; nat
 New-Item -ItemType Directory -Path $OutputRoot | Out-Null
 $commands = [Collections.Generic.List[object]]::new()
 $results = [Collections.Generic.List[string]]::new()
-$inputPaths = @((Join-Path $languageRoot 'Directory.Build.props'), (Join-Path $languageRoot 'Directory.Packages.props'), (Join-Path $languageRoot 'global.json'), (Join-Path $languageRoot 'NuGet.config'), $PSCommandPath, (Join-Path $PSScriptRoot 'summarize-shipping-coverage.py'), (Join-Path $PSScriptRoot 'toolchain.json'),
+$inputPaths = @((Join-Path $languageRoot 'Directory.Build.props'), (Join-Path $languageRoot 'Directory.Packages.props'), (Join-Path $languageRoot 'global.json'), (Join-Path $languageRoot 'NuGet.config'), $PSCommandPath, (Join-Path $PSScriptRoot 'CIS.DependencyChecker/ShippingCoverage.cs'), (Join-Path $PSScriptRoot 'toolchain.json'),
     (Join-Path $languageRoot 'verification/coverage/shipping.json'), (Join-Path $languageRoot $policy.settings))
+$inputPaths += Get-ChildItem (Join-Path $PSScriptRoot 'CIS.DependencyChecker') -File |
+    Where-Object Extension -In @('.cs', '.csproj', '.json') | ForEach-Object FullName
 foreach ($assembly in $policy.assemblies) {
     $inputPaths += Join-Path $languageRoot $assembly.project
     $inputPaths += Get-ChildItem (Join-Path $languageRoot $assembly.sourceRoot) -Recurse -File -Filter '*.cs' |
@@ -91,7 +93,7 @@ try {
     foreach ($input in $inputs) {
         if ((Get-FileHash -LiteralPath (Join-Path $languageRoot $input.path) -Algorithm SHA256).Hash.ToLowerInvariant() -ne $input.sha256) { throw "Coverage input changed: $($input.path)" }
     }
-    & python (Join-Path $PSScriptRoot 'summarize-shipping-coverage.py') --language-root $languageRoot --results @results --output (Join-Path $OutputRoot 'coverage.json')
+    & dotnet run --project (Join-Path $PSScriptRoot 'CIS.DependencyChecker/CIS.DependencyChecker.csproj') -c Release -p:RestoreLockedMode=true --no-launch-profile -- shipping-coverage $languageRoot (Join-Path $OutputRoot 'coverage.json') @results
     exit $LASTEXITCODE
 }
 finally {
