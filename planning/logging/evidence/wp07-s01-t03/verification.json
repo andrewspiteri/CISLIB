@@ -1,0 +1,75 @@
+{
+  "task": "WP07-S01-T03",
+  "baseCommit": "90929646abf6632ddaedfe7001fe73d8dc9de4a0",
+  "scope": "Seven deterministic concurrency areas via46 exact methods/217 mapped executions per lane; 2 new case bindings / 3 new executions.",
+  "developer": {
+    "runId": "6f8a7eb2450446ebaa296debae322e4f",
+    "startedUtc": "2026-10-15T02:44:05.2511025Z",
+    "finishedUtc": "2026-10-15T02:50:41.0098887Z",
+    "exitCode": 0,
+    "stagesPassed": 15,
+    "totalTests": 5302
+  },
+  "lanes": {
+    "windows-x64": 217,
+    "linux-ubuntu2404-x64": 217
+  },
+  "audit": "audit.json",
+  "auditGenerator": {
+    "path": "task/freeze-evidence.py",
+    "sha256": "8b405bb952d994b0c9bb640d5f1f7667914a812ec5e92774c38b1785855d9e05"
+  },
+  "inputs": [
+    {
+      "path": "implementations/csharp/tests/CIS.Core.UnitTests/ConcurrencyQualificationTests.cs",
+      "sha256": "64656e994a06175432be017abf211a4c41711f28261c8ceda00764114ab41250",
+      "runStartSha256": "64656e994a06175432be017abf211a4c41711f28261c8ceda00764114ab41250",
+      "equal": true
+    },
+    {
+      "path": "conformance/logging/case-inventory.json",
+      "sha256": "187605429744f7dc8367ca96a2caab1e20978d966534e7798122805d8eb31c42",
+      "runStartSha256": "187605429744f7dc8367ca96a2caab1e20978d966534e7798122805d8eb31c42",
+      "equal": true
+    },
+    {
+      "path": "conformance/logging/requirement-case-map.json",
+      "sha256": "32ba44c10ed1850d5f074d207c4893e41d43321b03177eac48035710db811530",
+      "runStartSha256": "32ba44c10ed1850d5f074d207c4893e41d43321b03177eac48035710db811530",
+      "equal": true
+    },
+    {
+      "path": "conformance/logging/concurrency-qualification.json",
+      "sha256": "084f876bf292c98c0ee1425e0c2d7eb8e406292e3b87d8b405301e31924d24f7",
+      "runStartSha256": "ba302f3a4167505fe51b05838b81c9c9b4825efc4ed74cf160f6adce9a3c250e",
+      "equal": false
+    },
+    {
+      "path": "docs/modules/logging/concurrency-qualification.md",
+      "sha256": "5e9aebf0ec4cb292072990b191da868e131d367d8b90cf49a7bebe062b324234",
+      "runStartSha256": "5e9aebf0ec4cb292072990b191da868e131d367d8b90cf49a7bebe062b324234",
+      "equal": true
+    }
+  ],
+  "release": {
+    "exitCode": 2,
+    "summary": {
+      "path": "pending/Release/summary.json",
+      "sha256": "79f1e36bb1a29a383165703138b18042b3fc6243a56fc6ead758de35d100713f",
+      "bytes": 9290
+    },
+    "remainingPlannedCaseGroups": 27,
+    "missingReleaseGates": 8,
+    "missingFamilyArea": true
+  },
+  "review": {
+    "initialFindings": "task/claude-findings.json",
+    "followupFindings": "task/claude-final-findings.json",
+    "state": "PASS",
+    "findings": "task/claude-integrity-findings.json",
+    "promptSha256": "4bd8678d8fdd4bc46a97eda972dd454567af1f51587cbaa40f56bcd530d36bdb",
+    "rawResultSha256": "c405cfd5c257e650c4ad19e8773da7617ff36256936b247408475867a2d3c3c4"
+  },
+  "sourceInventoryDelta": "Only the three reviewed documentation attribution fixes in concurrency-qualification.json differ; exact original map retained at task/qualification-at-run-start.json. All listed modified/bound test sources and77shipping sources match run start; no blanket assertion about unlisted executable inputs.",
+  "limits": "Controlled callback/clock and source-reference technical tests; private storage probes pinned.NET10.0.12 and seeded near-exhaustion distinguished from actual emitted history. Candidate/physical public boundary evidence is previousWP07-S01-T02. No new shipping API/dependency/framework, full coverage/mutation/architecture/cumulative compatibility/platform-release or ingestion claim."
+}

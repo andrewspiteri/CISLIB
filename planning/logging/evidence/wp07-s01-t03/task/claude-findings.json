@@ -1,0 +1,32 @@
+{
+  "verdict": "CHANGES_REQUIRED",
+  "findings": [
+    {
+      "severity": "medium",
+      "path": "conformance/logging/concurrency-qualification.json",
+      "line": 91,
+      "issue": "The `already-cancelled` area lists `ConcurrencyQualificationTests.InvalidOnlyConcurrentCallsKeepZeroTargetsAndFreezeLossAtEachBoundary` as supporting evidence. That method uses no cancelled or cancellable token: every FlushAsync and StopAsync call passes `CancellationToken.None`. The qualification map therefore attributes behavior to a method that does not exercise it. The area is still covered by `PublicPendingGauge...` and the existing FlushCoordination, StopStart and StopJoin methods, so this is over-attribution, not a coverage gap.",
+      "requiredFix": "Remove the InvalidOnly method from the `already-cancelled` supportingMethods. Then regenerate the evidence, because the file hash is recorded as a run-start input in verification.json and audit.json."
+    },
+    {
+      "severity": "low",
+      "path": "conformance/logging/concurrency-qualification.json",
+      "line": 73,
+      "issue": "The `stop-races` area lists the InvalidOnly method, which has no race with stop. StopAsync runs only after all 64 callers and both flushes have settled, and its observable contract cites ready/release barriers held across admission closure, which this method does not do. `PublicPendingGauge...` is the new method that actually holds a captured producer across closure.",
+      "requiredFix": "Drop the InvalidOnly method from `stop-races`, or narrow the area's observableContract wording so it does not imply a race. Do this in the same regeneration as the fix above."
+    },
+    {
+      "severity": "low",
+      "path": "conformance/logging/concurrency-qualification.json",
+      "line": 0,
+      "issue": "The binding `CIS.Tests.IntegrationTests.FlushBoundaryProcessTests.RegisteredBoundaryFixtureRunsActualCoreInASeparateExactRuntime` (7 executions) counts toward the 46/217 totals, but no area's supportingMethods references it. Every other binding is reachable from at least one area.",
+      "requiredFix": "Add it to `blocked-io`, alongside the unit FlushBoundaryTests it hosts. Alternatively, record why it is bound without area attribution. The totals stay 46/217."
+    }
+  ],
+  "limits": [
+    "Review based only on the supplied file contents. I did not inspect Core source, the case inventory beyond the patch, the existing test files referenced by bindings, or TRX/native artifacts, and I re-ran no tests.",
+    "Existing Core contracts were inferred from the new tests and the supplied fixtures. These include zero-boundary flushes invoking the writer flush callback, pre-cancelled FlushAsync registering a target before observing the token, in-flight writes counting as Pending, and factory results returned after admission closure yielding Stopped.",
+    "Recomputed and matched: 46 bindings, 217 executions per lane, 27 MissingRequiredCase issues and 8 MissingReleaseGate issues. Hash values themselves were not verified.",
+    "Line numbers are counted from the supplied JSON text. The unmapped-binding finding has no single line (0)."
+  ]
+}

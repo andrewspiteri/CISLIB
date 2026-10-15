@@ -1,0 +1,33 @@
+{
+  "verdict": "CHANGES_REQUIRED",
+  "findings": [
+    {
+      "severity": "low",
+      "path": "planning/logging/evidence/wp07-s01-t03/verification.json",
+      "line": 4,
+      "issue": "The receipt `scope` says the task adds 'three new observable cases'. The qualification map's `newCases` lists only two: UT-CONCURRENCY-ZERO-LOSS and UT-CONCURRENCY-PUBLIC-GAUGES. Those are also the only case IDs on the two new ConcurrencyQualificationTests bindings. The other bound case IDs (UT-ACCOUNTING-*, IT-ACCOUNTING-ROWS) are on pre-existing methods. The generator hardcodes this scope string at `task/freeze-evidence.py` (receipt literal), so it is not derived or checked against `mapx['newCases']`.",
+      "requiredFix": "Choose one fix. If a third case was really added in case-inventory.json or requirement-case-map.json, add it to `newCases` and its binding. Otherwise change the scope text to 'two new observable cases'. Better still, derive the count from `len(mapx['newCases'])` and assert it against the case-inventory delta. Then regenerate."
+    },
+    {
+      "severity": "low",
+      "path": "planning/logging/evidence/wp07-s01-t03/task/freeze-evidence.py",
+      "line": 0,
+      "issue": "The receipt's `sourceInventoryDelta` says 'All executable inputs match the run start'. The generator checks run-start equality (against `source-inputs.json`) only for the 5 `current_paths`, and ConcurrencyQualificationTests.cs is the only executable source among them. The pre-existing bound test sources are compared only to `baseline.json` (FlushBoundaryTests.cs, StopStartTests.cs, the *ProcessTests.cs files, etc.). That baseline is the base-commit state, not the Windows run-start inventory. The Ubuntu lane binds the current built DLLs to the staged payload. But nothing binds current test sources to the Windows developer run's recorded inputs, so the blanket statement is broader than what is asserted.",
+      "requiredFix": "Option 1: assert `digest(r/p)==run_inputs[p]` for every `run_inputs` path except the one permitted map path, and record the count. Option 2: narrow the sentence to the inputs actually compared. Then regenerate."
+    },
+    {
+      "severity": "low",
+      "path": "planning/logging/evidence/wp07-s01-t03/task/freeze-evidence.py",
+      "line": 6,
+      "issue": "The fresh-root guard only checks `not (e/'native').exists()`. Stale `task/`, `pending/` or `prior-runs/` content from an earlier freeze could survive. `prior-runs` is a particular risk because it is copied only when `t/focused*` exists. Only `native/` is enumerated and hashed into `nativeArtifacts`, so leftover files in the other subtrees would sit in the evidence root unhashed and undetected.",
+      "requiredFix": "Assert that the evidence root holds no generated subtrees or files (native, task, pending, prior-runs, audit.json, verification.json) before copying. Alternatively, hash every file under `e` except audit and verification into the audit."
+    }
+  ],
+  "limits": [
+    "Review is limited to the supplied file contents and the prior findings. I used no tools: I did not inspect Core or test sources, case-inventory.json, requirement-case-map.json, baseline.json, source-inputs.json, TRX/native artifacts or the Release summary. I verified no hash values.",
+    "Confirmed from the supplied texts: the current map differs from the retained run-start map only by the three described edits. InvalidOnly was removed from stop-races and already-cancelled, and FlushBoundaryProcessTests was appended to blocked-io. Every one of the 46 bindings is reachable from at least one area, and the bindings recompute to 217 executions per lane (unit 122, integration 95). The current and run-start SHAs in audit.json and verification.json agree with the supplied file headers, and both artifacts carry `equal:false` for the map only.",
+    "I did not re-validate these remaining attributions, because they need test source: InvalidOnly in pending-gauges, PublicPendingGauge in invalid-loss, and the pre-existing FlushResult/StopStart methods in invalid-loss.",
+    "binding.minimumExecutions is enforced as an exact count, not a minimum. This is stricter than the name implies but not a defect.",
+    "Updating `review.state` after generation makes verification.json differ from pure generator output. The planned checksum seal should record that this post-generation edit was the only one."
+  ]
+}

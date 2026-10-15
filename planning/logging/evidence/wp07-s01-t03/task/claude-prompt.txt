@@ -1,0 +1,3231 @@
+Read-only review of WP07-S01-T03. Return only JSON {verdict:PASS|CHANGES_REQUIRED,findings:[{severity,path,line,issue,requiredFix}],limits:[]}; no tools/plans/writes/approval requests. User wants simple scoped work, one roadmap task committed after verification, and authorizes logging-only Claude review without repeated approval. Complete deterministic concurrency coverage for blocked I/O, bounded flush, UTC clock corrections, stop races, pre-cancelled waits, pending gauges and invalid loss. Existing actual Core fixtures already exercise these; task reconciles exact 46 methods/217 executions per Windows and native Ubuntu lane and adds 3 observable cases in one Unit file. New:64 concurrent direct-invalid/lazy-null calls with zero admissions produce64global losses/32factory calls and no output bytes; early held flush captures0invalid/noLoss, later target0flush and stop succeed withLoss64, with1and2outputs. New pending public gauge1,3,2,3,0, immutable earlier snapshot, held factory loses admission to stop and None factory never runs. An already-cancelled flush preserves one nondroppable target but has no attached caller or timer; initial incorrect no-target expectation was corrected to the existing contract.
+No shipping code/API/dependency or framework changes:77sources, actual publication ledger, original plans and independent Type Manager work preserved. Controlled writer/clock seams, private managed continuation/storage probes and seeded near-exhaustion are explicitly technical qualification; earlierT02 provides actual public candidate/physical boundaries. No full coverage/architecture/mutation/cumulative compatibility/platform release/ingestion promise. Both focused lanes have exact217 required executions, source/assembly/codebase/payload hashes and method/outcome bindings. Full Windows Developer5302tests/15stages passes;Release exit2/pending27groups derived by generator. Source equality to run-start inventory enforced. Native payload/staged two test DLLs hashed in actual native script, codebase checked, archive SHA verified. Fresh-root extraction and evidence generation refuse merge; generator copies itself/hash. No current-vs-prior qualifying data mix. No arbitrary sleep as proof; readiness/barrier signals establish phases, finite waits detect hangs, existing polls observe explicit state. Review metadata is necessarily Pending this response; after verdict actual result recorded and checksum sealed before commit. Please flag concrete correctness or task qualification gaps, not optional refactor or unfinished future gates.
+
+FILE implementations/csharp/tests/CIS.Core.UnitTests/ConcurrencyQualificationTests.cs SHA256 64656e994a06175432be017abf211a4c41711f28261c8ceda00764114ab41250
+using CIS.Logging;
+using CIS.Tests.DiscoveryFixture;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+using static CIS.Tests.DiscoveryFixture.FlushStressSupport;
+
+namespace CIS.Tests.UnitTests;
+
+[TestClass]
+public sealed class ConcurrencyQualificationTests
+{
+    [TestMethod]
+    [DataRow(false)]
+    [DataRow(true)]
+    public async Task InvalidOnlyConcurrentCallsKeepZeroTargetsAndFreezeLossAtEachBoundary(bool dual)
+    {
+        var clock = new Clock(); using var console = new Writer(holdFirstWrite: false, holdFirstFlush: true); using var file = new Writer(holdFirstWrite: false, holdFirstFlush: true);
+        CoreLogRuntime runtime = CoreLogRuntime.CreateQueued(ConsoleCompositionFixture.Metadata(),
+            new LoggingOptions { ConsoleLevel = CoreLogLevel.Information, FileLevel = dual ? CoreLogLevel.Warning : CoreLogLevel.None, FilePath = dual ? "controlled" : null, QueueCapacity = 2 },
+            console.WriteAsync, dual ? file.WriteAsync : null, clock, console.FlushAsync, dual ? file.FlushAsync : null);
+        try
+        {
+            CoreLogger logger = runtime.CreateLogger("InvalidOnly");
+            Task<LogFlushResult> original = runtime.FlushAsync(TimeSpan.FromSeconds(5), CancellationToken.None);
+            await console.FirstFlush.Task.WaitAsync(Guard);
+            if (dual) { await file.FirstFlush.Task.WaitAsync(Guard); }
+            Assert.IsFalse(original.IsCompleted);
+            var go = Signal(); int factories = 0;
+            Task<LogWriteResult>[] callers = Enumerable.Range(0, 64).Select(index => Task.Run(async () =>
+            {
+                await go.Task;
+                return index % 2 == 0 ? logger.Write(CoreLogLevel.Error, new() { EventName = "", Message = "invalid" })
+                    : logger.WriteLazy(CoreLogLevel.Error, () => { Interlocked.Increment(ref factories); return null!; });
+            })).ToArray();
+            go.TrySetResult(); LogWriteResult[] outcomes = await Task.WhenAll(callers).WaitAsync(Guard);
+            Assert.IsTrue(outcomes.All(r => r.Outcome == LogWriteOutcome.InvalidEvent && r.Outputs.Count == 0));
+            Assert.AreEqual(32, factories); Assert.AreEqual(64L, runtime.GetDiagnostics().InvalidEventCount);
+            Assert.IsTrue(runtime.GetDiagnostics().Outputs.All(o => o.Accepted == 0 && o.AdmissionAttempts == 0 && o.Pending == 0));
+            Task<LogFlushResult> afterLoss = runtime.FlushAsync(TimeSpan.FromSeconds(5), CancellationToken.None);
+            Assert.IsFalse(afterLoss.IsCompleted);
+            Assert.AreEqual(1, runtime.QueuedOutputs!.Console!.RegisteredFlushCount);
+            if (dual) { Assert.AreEqual(1, runtime.QueuedOutputs.File!.RegisteredFlushCount); }
+            console.ReleaseAll(); file.ReleaseAll();
+            LogFlushResult early = await original.WaitAsync(Guard), late = await afterLoss.WaitAsync(Guard);
+            Assert.IsTrue(early.Succeeded && !early.LossObserved); Assert.AreEqual(0L, early.InvalidEventCount);
+            Assert.IsTrue(late.Succeeded && late.LossObserved); Assert.AreEqual(64L, late.InvalidEventCount);
+            Assert.AreEqual(dual ? 2 : 1, late.Outputs.Count);
+            Assert.IsTrue(early.Outputs.Concat(late.Outputs).All(o => o.AcceptedSequenceBoundary == 0 && o.Written == 0 && o.Failed == 0 && o.Abandoned == 0 && o.Pending == 0));
+            LogStopResult stop = await runtime.StopAsync(CancellationToken.None).WaitAsync(Guard);
+            Assert.IsTrue(stop.Succeeded && stop.LossObserved); Assert.AreEqual(64L, stop.InvalidEventCount);
+            Assert.IsTrue(stop.Outputs.All(o => o.AcceptedSequenceBoundary == 0));
+            Assert.AreEqual(0, console.Writes); Assert.AreEqual(0, file.Writes); Assert.AreEqual(0L, console.Bytes.Length); Assert.AreEqual(0L, file.Bytes.Length);
+            Assert.AreEqual(0L, early.InvalidEventCount); Assert.IsFalse(early.LossObserved);
+        }
+        finally { console.ReleaseAll(); file.ReleaseAll(); await runtime.DisposeAsync().AsTask().WaitAsync(Guard); }
+    }
+
+    [TestMethod]
+    public async Task PublicPendingGaugeFallsRefillsAndSettlesWhileACapturedProducerLosesToStop()
+    {
+        var clock = new Clock(); using var writer = new Writer(holdSecondWrite: true);
+        CoreLogRuntime runtime = CoreLogRuntime.CreateQueued(ConsoleCompositionFixture.Metadata(),
+            new LoggingOptions { ConsoleLevel = CoreLogLevel.Information, FileLevel = CoreLogLevel.None, QueueCapacity = 2 }, writer.WriteAsync, null, clock, writer.FlushAsync);
+        var captureEntered = Signal(); var releaseCapture = Signal(); Task<LogWriteResult>? captured = null;
+        try
+        {
+            CoreLogger logger = runtime.CreateLogger("PendingGauge"); var pending = new List<long>();
+            void Observe(long expected)
+            {
+                LogOutputDiagnostics output = runtime.GetDiagnostics().Outputs.Single();
+                Assert.AreEqual(expected, output.Pending); Assert.AreEqual(output.Accepted, output.Written + output.Failed + output.Abandoned + output.Pending); pending.Add(output.Pending);
+            }
+            Accepted(logger.Write(CoreLogLevel.Information, Data("first"))); await writer.FirstWrite.Task.WaitAsync(Guard); Observe(1);
+            Accepted(logger.Write(CoreLogLevel.Information, Data("second"))); Accepted(logger.Write(CoreLogLevel.Information, Data("third"))); Observe(3);
+            LogOutputDiagnostics frozen = runtime.GetDiagnostics().Outputs.Single();
+            Assert.AreEqual(LogWriteOutcome.Rejected, logger.Write(CoreLogLevel.Information, Data("full")).Outcome);
+            using (var cancelled = new CancellationTokenSource())
+            {
+                cancelled.Cancel();
+                try { await runtime.FlushAsync(TimeSpan.FromSeconds(5), cancelled.Token); Assert.Fail("Expected cancellation."); }
+                catch (OperationCanceledException error) { Assert.AreEqual(cancelled.Token, error.CancellationToken); }
+                Assert.AreEqual(1, runtime.QueuedOutputs!.Console!.RegisteredFlushCount);
+                Assert.AreEqual(0, QueueGauge(runtime.QueuedOutputs.Console)["attached"]!.GetValue<int>()); Assert.AreEqual(0, clock.Created);
+            }
+            writer.ReleaseFirst.TrySetResult(); await writer.SecondWrite.Task.WaitAsync(Guard); Observe(2);
+            Accepted(logger.Write(CoreLogLevel.Information, Data("refill"))); Observe(3);
+            captured = Task.Run(() => logger.WriteLazy(CoreLogLevel.Information, () =>
+            { captureEntered.TrySetResult(); Require(releaseCapture.Task.Wait(Guard)); return Data("late-capture"); }));
+            await captureEntered.Task.WaitAsync(Guard);
+            Task<LogStopResult> shared = runtime.StopAsync(CancellationToken.None); Assert.IsTrue(runtime.GetDiagnostics().AdmissionClosed);
+            releaseCapture.TrySetResult(); Assert.AreEqual(LogWriteOutcome.Stopped, (await captured.WaitAsync(Guard)).Outcome);
+            int stoppedFactories = 0;
+            Assert.AreEqual(LogWriteOutcome.Stopped, logger.WriteLazy(CoreLogLevel.None, () => { stoppedFactories++; return Data("never"); }).Outcome); Assert.AreEqual(0, stoppedFactories);
+            writer.ReleaseAll(); LogStopResult stop = await shared.WaitAsync(Guard); Observe(0);
+            Assert.IsTrue(stop.Succeeded && stop.LossObserved); Assert.AreEqual(0L, stop.InvalidEventCount);
+            Assert.AreEqual(4L, stop.Outputs.Single().Written); Assert.AreEqual(4L, stop.Outputs.Single().AcceptedSequenceBoundary);
+            Assert.AreEqual(1L, stop.Outputs.Single().Rejections.QueueFull); Assert.AreEqual(0L, stop.Outputs.Single().Rejections.Unavailable);
+            Assert.AreEqual(3L, frozen.Pending); Assert.AreEqual(0L, frozen.Written);
+            CollectionAssert.AreEqual(new long[] { 1, 3, 2, 3, 0 }, pending);
+            Assert.AreSame(shared, runtime.StopAsync(CancellationToken.None)); Assert.AreSame(stop, runtime.GetDiagnostics().LastStopResult);
+            Assert.AreEqual(1, writer.Maximum); Assert.AreEqual(4, writer.Writes);
+        }
+        finally
+        {
+            releaseCapture.TrySetResult(); writer.ReleaseAll();
+            if (captured is not null) { await captured.WaitAsync(Guard); }
+            await runtime.DisposeAsync().AsTask().WaitAsync(Guard);
+        }
+    }
+}
+
+END FILE
+
+FILE conformance/logging/concurrency-qualification.json SHA256 ba302f3a4167505fe51b05838b81c9c9b4825efc4ed74cf160f6adce9a3c250e
+{
+  "schemaVersion": 1,
+  "task": "WP07-S01-T03",
+  "sourcePlan": "planning/logging/sources/core-library-implementation-plan-v1.md",
+  "scope": "Complete the seven deterministic concurrency areas through current actual-Core technical cases; public candidate/physical I/O evidence in WP07-S01-T02 is complementary.",
+  "areas": [
+    {
+      "id": "blocked-io",
+      "observableContract": "Actual write/flush entered signals hold real Core workers; no completion/resource release is claimed before release or actual terminal I/O.",
+      "supportingMethods": [
+        "CIS.Tests.UnitTests.FlushBoundaryTests.InitialFactsAndNondroppableTargetsRemainFixedThroughActualWriterWork",
+        "CIS.Tests.UnitTests.FlushBoundaryTests.AdmissionDoublesCannotInventRegisteredQueueFacts",
+        "CIS.Tests.UnitTests.FlushBoundaryTests.DisabledOutputsHaveNoTargetOrCallbackAndDoNotReadTheEventClock",
+        "CIS.Tests.UnitTests.FlushBoundaryTests.AnUnspecifiedTrustedFlushCallbackDoesNotInventBufferConfirmation",
+        "CIS.Tests.UnitTests.FlushBoundaryTests.ABlockedZeroBoundaryFlushPrecedesLaterWritesAndRunsOutsideAdmission",
+        "CIS.Tests.UnitTests.FlushBoundaryTests.FlushFailureDoesNotInventAnEventWriteFailure",
+        "CIS.Tests.UnitTests.FlushBoundaryTests.RegistrationDuringOwnedCleanupIsUnavailableAndCannotBeStranded",
+        "CIS.Tests.UnitTests.FlushBoundaryTests.AnAlreadyStartedFlushSettlesByItsActualIoAfterAdmissionExhaustion",
+        "CIS.Tests.UnitTests.FlushCoordinationTests.ActualBlockedWritersRetainOnlyTargetsAndLiveCallerAttachments",
+        "CIS.Tests.UnitTests.FlushCoordinationTests.EmptyOutputsStillHonorTheCallerLifetime",
+        "CIS.Tests.UnitTests.FlushCoordinationTests.AFailedFirstOutputStillWaitsForTheIndependentFileFlush",
+        "CIS.Tests.UnitTests.FlushCoordinationTests.CancellationOnTheFileWaitDoesNotRetainTheEarlierConsoleCaller",
+        "CIS.Tests.UnitTests.FlushCoordinationTests.AlreadyCancelledLifetimeWinsEvenForAnAlreadyResolvedWriter",
+        "CIS.Tests.UnitTests.FlushCoordinationTests.ACallerCanWaitAgainAfterItsOwnCancellation",
+        "CIS.Tests.UnitTests.StopDrainTests.ActualQueuedDrainDistinguishesAbandonmentFromUnresolvedIo",
+        "CIS.Tests.UnitTests.StopDrainTests.FileQueueCancellationKeepsOwnedResourceUntilItsActualWriteSettles",
+        "CIS.Tests.UnitTests.StopLifecycleTests.PhysicalOwnershipWaitsForLateIo",
+        "CIS.Tests.IntegrationTests.StopDrainProcessTests.ActualSharedStopRunsInAnExactRuntimeChild",
+        "CIS.Tests.IntegrationTests.StopLifecycleProcessTests.ShutdownAndCrashBoundariesUseActualChildren"
+      ]
+    },
+    {
+      "id": "bounded-flush",
+      "observableContract": "Nondroppable fixed accepted targets remain capacity-bounded;5000 sequential cancelled/expired callers detach, cohorts coalesce, timer/continuation/storage bounds are measured.",
+      "supportingMethods": [
+        "CIS.Tests.UnitTests.FlushCoordinationTests.ActualBlockedWritersRetainOnlyTargetsAndLiveCallerAttachments",
+        "CIS.Tests.UnitTests.FlushCoordinationTests.EmptyOutputsStillHonorTheCallerLifetime",
+        "CIS.Tests.UnitTests.FlushCoordinationTests.AFailedFirstOutputStillWaitsForTheIndependentFileFlush",
+        "CIS.Tests.UnitTests.FlushCoordinationTests.CancellationOnTheFileWaitDoesNotRetainTheEarlierConsoleCaller",
+        "CIS.Tests.UnitTests.FlushCoordinationTests.AlreadyCancelledLifetimeWinsEvenForAnAlreadyResolvedWriter",
+        "CIS.Tests.UnitTests.FlushCoordinationTests.ACallerCanWaitAgainAfterItsOwnCancellation",
+        "CIS.Tests.UnitTests.FlushStressTests.PublicFlushStressUsesActualQueuesWritersTimersAndMeasuredStorage",
+        "CIS.Tests.IntegrationTests.FlushCoordinationProcessTests.ActualCallerDetachmentRunsInAnExactRuntimeChild",
+        "CIS.Tests.IntegrationTests.FlushStressProcessTests.ActualPublicFlushStressRunsInAnExactRuntimeChild"
+      ]
+    },
+    {
+      "id": "wall-clock",
+      "observableContract": "UTC jumps forward/backward do not spend monotonic budgets; callbacks fired at unchanged monotonic time cannot expire waiters early; original stop budget survives repeated callers/options changes.",
+      "supportingMethods": [
+        "CIS.Tests.UnitTests.FlushResultTests.ActualPublicFlushReturnsTruthfulOwnedResults",
+        "CIS.Tests.UnitTests.FlushResultTests.InvalidBudgetWinsOverCancellationAndDoesNotRegister",
+        "CIS.Tests.UnitTests.FlushResultTests.PositiveSubMillisecondBudgetNeverExpiresEarly",
+        "CIS.Tests.UnitTests.FlushResultTests.CallerCancellationJoinsAnActuallyActiveTimerCallbackBeforeDisposingItsSource",
+        "CIS.Tests.UnitTests.FlushResultTests.PublicResultsHaveNoMutationOrConstructionSurface",
+        "CIS.Tests.UnitTests.FlushStressTests.PublicFlushStressUsesActualQueuesWritersTimersAndMeasuredStorage",
+        "CIS.Tests.UnitTests.StopStartTests.EmptyStopClosesOnceAndAlreadyCancelledCallerStillInitiates",
+        "CIS.Tests.UnitTests.StopStartTests.OneOriginalDeadlineSurvivesRepeatedCallersAndOptionOrUtcChanges",
+        "CIS.Tests.UnitTests.StopStartTests.AWrittenRecordWithBlockedFinalFlushRemainsTimedOutWithoutRewritingResult",
+        "CIS.Tests.UnitTests.StopStartTests.NormalDualStopFlushesOriginalIndependentTargetsAndSharesOwnedResult",
+        "CIS.Tests.UnitTests.StopStartTests.TerminalFlushFailureReturnsActualFailedStopResult",
+        "CIS.Tests.UnitTests.StopStartTests.InvalidShutdownTimeoutIsRejectedBeforeOutputAcquisition",
+        "CIS.Tests.UnitTests.StopStartTests.CancelledWaitDetachesFromLiveSharedStopAndPreservesInitialFacts",
+        "CIS.Tests.IntegrationTests.FlushResultProcessTests.ActualPublicFlushRunsInAnExactRuntimeChild",
+        "CIS.Tests.IntegrationTests.FlushStressProcessTests.ActualPublicFlushStressRunsInAnExactRuntimeChild",
+        "CIS.Tests.IntegrationTests.StopStartProcessTests.ActualSharedStopRunsInAnExactRuntimeChild"
+      ]
+    },
+    {
+      "id": "stop-races",
+      "observableContract": "Ready/release barriers hold capture and producer/stop cohorts across admission closure; shared tasks/results and late-I/O ownership are checked.",
+      "supportingMethods": [
+        "CIS.Tests.UnitTests.ConcurrencyQualificationTests.InvalidOnlyConcurrentCallsKeepZeroTargetsAndFreezeLossAtEachBoundary",
+        "CIS.Tests.UnitTests.ConcurrencyQualificationTests.PublicPendingGaugeFallsRefillsAndSettlesWhileACapturedProducerLosesToStop",
+        "CIS.Tests.UnitTests.StopStartTests.EmptyStopClosesOnceAndAlreadyCancelledCallerStillInitiates",
+        "CIS.Tests.UnitTests.StopStartTests.OneOriginalDeadlineSurvivesRepeatedCallersAndOptionOrUtcChanges",
+        "CIS.Tests.UnitTests.StopStartTests.AWrittenRecordWithBlockedFinalFlushRemainsTimedOutWithoutRewritingResult",
+        "CIS.Tests.UnitTests.StopStartTests.NormalDualStopFlushesOriginalIndependentTargetsAndSharesOwnedResult",
+        "CIS.Tests.UnitTests.StopStartTests.TerminalFlushFailureReturnsActualFailedStopResult",
+        "CIS.Tests.UnitTests.StopStartTests.InvalidShutdownTimeoutIsRejectedBeforeOutputAcquisition",
+        "CIS.Tests.UnitTests.StopStartTests.CancelledWaitDetachesFromLiveSharedStopAndPreservesInitialFacts",
+        "CIS.Tests.UnitTests.StopJoinTests.CallerCancellationAndDisposalJoinTheOriginalBoundedOperation",
+        "CIS.Tests.IntegrationTests.StopJoinProcessTests.ActualSharedStopRunsInAnExactRuntimeChild",
+        "CIS.Tests.IntegrationTests.StopLifecycleProcessTests.ShutdownAndCrashBoundariesUseActualChildren"
+      ]
+    },
+    {
+      "id": "already-cancelled",
+      "observableContract": "Caller token identity/cancellation precedes waiting; shared stop still starts, original controls survive and caller references/timers detach; resolved writer success/failure does not defeat pre-cancelled wait.",
+      "supportingMethods": [
+        "CIS.Tests.UnitTests.ConcurrencyQualificationTests.InvalidOnlyConcurrentCallsKeepZeroTargetsAndFreezeLossAtEachBoundary",
+        "CIS.Tests.UnitTests.ConcurrencyQualificationTests.PublicPendingGaugeFallsRefillsAndSettlesWhileACapturedProducerLosesToStop",
+        "CIS.Tests.UnitTests.FlushCoordinationTests.ActualBlockedWritersRetainOnlyTargetsAndLiveCallerAttachments",
+        "CIS.Tests.UnitTests.FlushCoordinationTests.EmptyOutputsStillHonorTheCallerLifetime",
+        "CIS.Tests.UnitTests.FlushCoordinationTests.AFailedFirstOutputStillWaitsForTheIndependentFileFlush",
+        "CIS.Tests.UnitTests.FlushCoordinationTests.CancellationOnTheFileWaitDoesNotRetainTheEarlierConsoleCaller",
+        "CIS.Tests.UnitTests.FlushCoordinationTests.AlreadyCancelledLifetimeWinsEvenForAnAlreadyResolvedWriter",
+        "CIS.Tests.UnitTests.FlushCoordinationTests.ACallerCanWaitAgainAfterItsOwnCancellation",
+        "CIS.Tests.UnitTests.StopStartTests.EmptyStopClosesOnceAndAlreadyCancelledCallerStillInitiates",
+        "CIS.Tests.UnitTests.StopStartTests.OneOriginalDeadlineSurvivesRepeatedCallersAndOptionOrUtcChanges",
+        "CIS.Tests.UnitTests.StopStartTests.AWrittenRecordWithBlockedFinalFlushRemainsTimedOutWithoutRewritingResult",
+        "CIS.Tests.UnitTests.StopStartTests.NormalDualStopFlushesOriginalIndependentTargetsAndSharesOwnedResult",
+        "CIS.Tests.UnitTests.StopStartTests.TerminalFlushFailureReturnsActualFailedStopResult",
+        "CIS.Tests.UnitTests.StopStartTests.InvalidShutdownTimeoutIsRejectedBeforeOutputAcquisition",
+        "CIS.Tests.UnitTests.StopStartTests.CancelledWaitDetachesFromLiveSharedStopAndPreservesInitialFacts",
+        "CIS.Tests.UnitTests.StopJoinTests.CallerCancellationAndDisposalJoinTheOriginalBoundedOperation",
+        "CIS.Tests.IntegrationTests.FlushCoordinationProcessTests.ActualCallerDetachmentRunsInAnExactRuntimeChild",
+        "CIS.Tests.IntegrationTests.StopJoinProcessTests.ActualSharedStopRunsInAnExactRuntimeChild"
+      ]
+    },
+    {
+      "id": "pending-gauges",
+      "observableContract": "Public pending values are observed1,3,2,3,0 through blocked write/refill/stop; frozen observations remain unchanged; accepted dispositions partition consistently, including late I/O.",
+      "supportingMethods": [
+        "CIS.Tests.UnitTests.ConcurrencyQualificationTests.InvalidOnlyConcurrentCallsKeepZeroTargetsAndFreezeLossAtEachBoundary",
+        "CIS.Tests.UnitTests.ConcurrencyQualificationTests.PublicPendingGaugeFallsRefillsAndSettlesWhileACapturedProducerLosesToStop",
+        "CIS.Tests.UnitTests.StopDrainTests.ActualQueuedDrainDistinguishesAbandonmentFromUnresolvedIo",
+        "CIS.Tests.UnitTests.StopDrainTests.FileQueueCancellationKeepsOwnedResourceUntilItsActualWriteSettles",
+        "CIS.Tests.UnitTests.OutputAccountingTests.ActualWorkersKeepCumulativeCountsAndUnresolvedGauges",
+        "CIS.Tests.UnitTests.OutputAccountingTests.AccountingMatcherRejectsInventedLostOrMutatedCounts",
+        "CIS.Tests.UnitTests.OutputAccountingTests.RejectionCountersAndAggregatesSaturateWithoutWrapping",
+        "CIS.Tests.UnitTests.OutputAccountingTests.ConcurrentAdmissionsPreserveOneConsistentAcceptedPartition",
+        "CIS.Tests.IntegrationTests.StopDrainProcessTests.ActualSharedStopRunsInAnExactRuntimeChild",
+        "CIS.Tests.IntegrationTests.OutputAccountingProcessTests.AccountingCheckpointsRunInExactRuntimeChildren"
+      ]
+    },
+    {
+      "id": "invalid-loss",
+      "observableContract": "64 concurrent invalid direct/lazy calls with zero admitted records are counted once per call independent of outputs. Earlier flush has no loss; later flush/stop succeed at target0 but report loss. Existing saturation/late-fact tests preserve initial boundaries and exclude later invalid events.",
+      "supportingMethods": [
+        "CIS.Tests.UnitTests.ConcurrencyQualificationTests.InvalidOnlyConcurrentCallsKeepZeroTargetsAndFreezeLossAtEachBoundary",
+        "CIS.Tests.UnitTests.ConcurrencyQualificationTests.PublicPendingGaugeFallsRefillsAndSettlesWhileACapturedProducerLosesToStop",
+        "CIS.Tests.UnitTests.FlushResultTests.ActualPublicFlushReturnsTruthfulOwnedResults",
+        "CIS.Tests.UnitTests.FlushResultTests.InvalidBudgetWinsOverCancellationAndDoesNotRegister",
+        "CIS.Tests.UnitTests.FlushResultTests.PositiveSubMillisecondBudgetNeverExpiresEarly",
+        "CIS.Tests.UnitTests.FlushResultTests.CallerCancellationJoinsAnActuallyActiveTimerCallbackBeforeDisposingItsSource",
+        "CIS.Tests.UnitTests.FlushResultTests.PublicResultsHaveNoMutationOrConstructionSurface",
+        "CIS.Tests.UnitTests.FlushStressTests.PublicFlushStressUsesActualQueuesWritersTimersAndMeasuredStorage",
+        "CIS.Tests.UnitTests.StopStartTests.EmptyStopClosesOnceAndAlreadyCancelledCallerStillInitiates",
+        "CIS.Tests.UnitTests.StopStartTests.OneOriginalDeadlineSurvivesRepeatedCallersAndOptionOrUtcChanges",
+        "CIS.Tests.UnitTests.StopStartTests.AWrittenRecordWithBlockedFinalFlushRemainsTimedOutWithoutRewritingResult",
+        "CIS.Tests.UnitTests.StopStartTests.NormalDualStopFlushesOriginalIndependentTargetsAndSharesOwnedResult",
+        "CIS.Tests.UnitTests.StopStartTests.TerminalFlushFailureReturnsActualFailedStopResult",
+        "CIS.Tests.UnitTests.StopStartTests.InvalidShutdownTimeoutIsRejectedBeforeOutputAcquisition",
+        "CIS.Tests.UnitTests.StopStartTests.CancelledWaitDetachesFromLiveSharedStopAndPreservesInitialFacts",
+        "CIS.Tests.IntegrationTests.FlushResultProcessTests.ActualPublicFlushRunsInAnExactRuntimeChild",
+        "CIS.Tests.IntegrationTests.FlushStressProcessTests.ActualPublicFlushStressRunsInAnExactRuntimeChild",
+        "CIS.Tests.IntegrationTests.StopStartProcessTests.ActualSharedStopRunsInAnExactRuntimeChild"
+      ]
+    }
+  ],
+  "bindings": [
+    {
+      "family": "unit",
+      "class": "ConcurrencyQualificationTests",
+      "method": "CIS.Tests.UnitTests.ConcurrencyQualificationTests.InvalidOnlyConcurrentCallsKeepZeroTargetsAndFreezeLossAtEachBoundary",
+      "source": "implementations/csharp/tests/CIS.Core.UnitTests/ConcurrencyQualificationTests.cs",
+      "minimumExecutions": 2,
+      "caseIds": [
+        "UT-CONCURRENCY-ZERO-LOSS"
+      ]
+    },
+    {
+      "family": "unit",
+      "class": "ConcurrencyQualificationTests",
+      "method": "CIS.Tests.UnitTests.ConcurrencyQualificationTests.PublicPendingGaugeFallsRefillsAndSettlesWhileACapturedProducerLosesToStop",
+      "source": "implementations/csharp/tests/CIS.Core.UnitTests/ConcurrencyQualificationTests.cs",
+      "minimumExecutions": 1,
+      "caseIds": [
+        "UT-CONCURRENCY-PUBLIC-GAUGES"
+      ]
+    },
+    {
+      "family": "unit",
+      "class": "FlushBoundaryTests",
+      "method": "CIS.Tests.UnitTests.FlushBoundaryTests.InitialFactsAndNondroppableTargetsRemainFixedThroughActualWriterWork",
+      "source": "implementations/csharp/tests/CIS.Core.UnitTests/FlushBoundaryTests.cs",
+      "minimumExecutions": 7,
+      "caseIds": []
+    },
+    {
+      "family": "unit",
+      "class": "FlushBoundaryTests",
+      "method": "CIS.Tests.UnitTests.FlushBoundaryTests.AdmissionDoublesCannotInventRegisteredQueueFacts",
+      "source": "implementations/csharp/tests/CIS.Core.UnitTests/FlushBoundaryTests.cs",
+      "minimumExecutions": 1,
+      "caseIds": []
+    },
+    {
+      "family": "unit",
+      "class": "FlushBoundaryTests",
+      "method": "CIS.Tests.UnitTests.FlushBoundaryTests.DisabledOutputsHaveNoTargetOrCallbackAndDoNotReadTheEventClock",
+      "source": "implementations/csharp/tests/CIS.Core.UnitTests/FlushBoundaryTests.cs",
+      "minimumExecutions": 1,
+      "caseIds": []
+    },
+    {
+      "family": "unit",
+      "class": "FlushBoundaryTests",
+      "method": "CIS.Tests.UnitTests.FlushBoundaryTests.AnUnspecifiedTrustedFlushCallbackDoesNotInventBufferConfirmation",
+      "source": "implementations/csharp/tests/CIS.Core.UnitTests/FlushBoundaryTests.cs",
+      "minimumExecutions": 1,
+      "caseIds": []
+    },
+    {
+      "family": "unit",
+      "class": "FlushBoundaryTests",
+      "method": "CIS.Tests.UnitTests.FlushBoundaryTests.ABlockedZeroBoundaryFlushPrecedesLaterWritesAndRunsOutsideAdmission",
+      "source": "implementations/csharp/tests/CIS.Core.UnitTests/FlushBoundaryTests.cs",
+      "minimumExecutions": 1,
+      "caseIds": []
+    },
+    {
+      "family": "unit",
+      "class": "FlushBoundaryTests",
+      "method": "CIS.Tests.UnitTests.FlushBoundaryTests.FlushFailureDoesNotInventAnEventWriteFailure",
+      "source": "implementations/csharp/tests/CIS.Core.UnitTests/FlushBoundaryTests.cs",
+      "minimumExecutions": 1,
+      "caseIds": []
+    },
+    {
+      "family": "unit",
+      "class": "FlushBoundaryTests",
+      "method": "CIS.Tests.UnitTests.FlushBoundaryTests.RegistrationDuringOwnedCleanupIsUnavailableAndCannotBeStranded",
+      "source": "implementations/csharp/tests/CIS.Core.UnitTests/FlushBoundaryTests.cs",
+      "minimumExecutions": 1,
+      "caseIds": []
+    },
+    {
+      "family": "unit",
+      "class": "FlushBoundaryTests",
+      "method": "CIS.Tests.UnitTests.FlushBoundaryTests.AnAlreadyStartedFlushSettlesByItsActualIoAfterAdmissionExhaustion",
+      "source": "implementations/csharp/tests/CIS.Core.UnitTests/FlushBoundaryTests.cs",
+      "minimumExecutions": 2,
+      "caseIds": []
+    },
+    {
+      "family": "unit",
+      "class": "FlushCoordinationTests",
+      "method": "CIS.Tests.UnitTests.FlushCoordinationTests.ActualBlockedWritersRetainOnlyTargetsAndLiveCallerAttachments",
+      "source": "implementations/csharp/tests/CIS.Core.UnitTests/FlushCoordinationTests.cs",
+      "minimumExecutions": 9,
+      "caseIds": []
+    },
+    {
+      "family": "unit",
+      "class": "FlushCoordinationTests",
+      "method": "CIS.Tests.UnitTests.FlushCoordinationTests.EmptyOutputsStillHonorTheCallerLifetime",
+      "source": "implementations/csharp/tests/CIS.Core.UnitTests/FlushCoordinationTests.cs",
+      "minimumExecutions": 2,
+      "caseIds": []
+    },
+    {
+      "family": "unit",
+      "class": "FlushCoordinationTests",
+      "method": "CIS.Tests.UnitTests.FlushCoordinationTests.AFailedFirstOutputStillWaitsForTheIndependentFileFlush",
+      "source": "implementations/csharp/tests/CIS.Core.UnitTests/FlushCoordinationTests.cs",
+      "minimumExecutions": 1,
+      "caseIds": []
+    },
+    {
+      "family": "unit",
+      "class": "FlushCoordinationTests",
+      "method": "CIS.Tests.UnitTests.FlushCoordinationTests.CancellationOnTheFileWaitDoesNotRetainTheEarlierConsoleCaller",
+      "source": "implementations/csharp/tests/CIS.Core.UnitTests/FlushCoordinationTests.cs",
+      "minimumExecutions": 1,
+      "caseIds": []
+    },
+    {
+      "family": "unit",
+      "class": "FlushCoordinationTests",
+      "method": "CIS.Tests.UnitTests.FlushCoordinationTests.AlreadyCancelledLifetimeWinsEvenForAnAlreadyResolvedWriter",
+      "source": "implementations/csharp/tests/CIS.Core.UnitTests/FlushCoordinationTests.cs",
+      "minimumExecutions": 2,
+      "caseIds": []
+    },
+    {
+      "family": "unit",
+      "class": "FlushCoordinationTests",
+      "method": "CIS.Tests.UnitTests.FlushCoordinationTests.ACallerCanWaitAgainAfterItsOwnCancellation",
+      "source": "implementations/csharp/tests/CIS.Core.UnitTests/FlushCoordinationTests.cs",
+      "minimumExecutions": 1,
+      "caseIds": []
+    },
+    {
+      "family": "unit",
+      "class": "FlushResultTests",
+      "method": "CIS.Tests.UnitTests.FlushResultTests.ActualPublicFlushReturnsTruthfulOwnedResults",
+      "source": "implementations/csharp/tests/CIS.Core.UnitTests/FlushResultTests.cs",
+      "minimumExecutions": 17,
+      "caseIds": []
+    },
+    {
+      "family": "unit",
+      "class": "FlushResultTests",
+      "method": "CIS.Tests.UnitTests.FlushResultTests.InvalidBudgetWinsOverCancellationAndDoesNotRegister",
+      "source": "implementations/csharp/tests/CIS.Core.UnitTests/FlushResultTests.cs",
+      "minimumExecutions": 4,
+      "caseIds": []
+    },
+    {
+      "family": "unit",
+      "class": "FlushResultTests",
+      "method": "CIS.Tests.UnitTests.FlushResultTests.PositiveSubMillisecondBudgetNeverExpiresEarly",
+      "source": "implementations/csharp/tests/CIS.Core.UnitTests/FlushResultTests.cs",
+      "minimumExecutions": 1,
+      "caseIds": []
+    },
+    {
+      "family": "unit",
+      "class": "FlushResultTests",
+      "method": "CIS.Tests.UnitTests.FlushResultTests.CallerCancellationJoinsAnActuallyActiveTimerCallbackBeforeDisposingItsSource",
+      "source": "implementations/csharp/tests/CIS.Core.UnitTests/FlushResultTests.cs",
+      "minimumExecutions": 1,
+      "caseIds": []
+    },
+    {
+      "family": "unit",
+      "class": "FlushResultTests",
+      "method": "CIS.Tests.UnitTests.FlushResultTests.PublicResultsHaveNoMutationOrConstructionSurface",
+      "source": "implementations/csharp/tests/CIS.Core.UnitTests/FlushResultTests.cs",
+      "minimumExecutions": 1,
+      "caseIds": []
+    },
+    {
+      "family": "unit",
+      "class": "FlushStressTests",
+      "method": "CIS.Tests.UnitTests.FlushStressTests.PublicFlushStressUsesActualQueuesWritersTimersAndMeasuredStorage",
+      "source": "implementations/csharp/tests/CIS.Core.UnitTests/FlushStressTests.cs",
+      "minimumExecutions": 8,
+      "caseIds": []
+    },
+    {
+      "family": "unit",
+      "class": "StopStartTests",
+      "method": "CIS.Tests.UnitTests.StopStartTests.EmptyStopClosesOnceAndAlreadyCancelledCallerStillInitiates",
+      "source": "implementations/csharp/tests/CIS.Core.UnitTests/StopStartTests.cs",
+      "minimumExecutions": 2,
+      "caseIds": []
+    },
+    {
+      "family": "unit",
+      "class": "StopStartTests",
+      "method": "CIS.Tests.UnitTests.StopStartTests.OneOriginalDeadlineSurvivesRepeatedCallersAndOptionOrUtcChanges",
+      "source": "implementations/csharp/tests/CIS.Core.UnitTests/StopStartTests.cs",
+      "minimumExecutions": 3,
+      "caseIds": []
+    },
+    {
+      "family": "unit",
+      "class": "StopStartTests",
+      "method": "CIS.Tests.UnitTests.StopStartTests.AWrittenRecordWithBlockedFinalFlushRemainsTimedOutWithoutRewritingResult",
+      "source": "implementations/csharp/tests/CIS.Core.UnitTests/StopStartTests.cs",
+      "minimumExecutions": 1,
+      "caseIds": []
+    },
+    {
+      "family": "unit",
+      "class": "StopStartTests",
+      "method": "CIS.Tests.UnitTests.StopStartTests.NormalDualStopFlushesOriginalIndependentTargetsAndSharesOwnedResult",
+      "source": "implementations/csharp/tests/CIS.Core.UnitTests/StopStartTests.cs",
+      "minimumExecutions": 1,
+      "caseIds": []
+    },
+    {
+      "family": "unit",
+      "class": "StopStartTests",
+      "method": "CIS.Tests.UnitTests.StopStartTests.TerminalFlushFailureReturnsActualFailedStopResult",
+      "source": "implementations/csharp/tests/CIS.Core.UnitTests/StopStartTests.cs",
+      "minimumExecutions": 1,
+      "caseIds": []
+    },
+    {
+      "family": "unit",
+      "class": "StopStartTests",
+      "method": "CIS.Tests.UnitTests.StopStartTests.InvalidShutdownTimeoutIsRejectedBeforeOutputAcquisition",
+      "source": "implementations/csharp/tests/CIS.Core.UnitTests/StopStartTests.cs",
+      "minimumExecutions": 2,
+      "caseIds": []
+    },
+    {
+      "family": "unit",
+      "class": "StopStartTests",
+      "method": "CIS.Tests.UnitTests.StopStartTests.CancelledWaitDetachesFromLiveSharedStopAndPreservesInitialFacts",
+      "source": "implementations/csharp/tests/CIS.Core.UnitTests/StopStartTests.cs",
+      "minimumExecutions": 1,
+      "caseIds": []
+    },
+    {
+      "family": "unit",
+      "class": "StopJoinTests",
+      "method": "CIS.Tests.UnitTests.StopJoinTests.CallerCancellationAndDisposalJoinTheOriginalBoundedOperation",
+      "source": "implementations/csharp/tests/CIS.Core.UnitTests/StopJoinTests.cs",
+      "minimumExecutions": 8,
+      "caseIds": []
+    },
+    {
+      "family": "unit",
+      "class": "StopDrainTests",
+      "method": "CIS.Tests.UnitTests.StopDrainTests.ActualQueuedDrainDistinguishesAbandonmentFromUnresolvedIo",
+      "source": "implementations/csharp/tests/CIS.Core.UnitTests/StopDrainTests.cs",
+      "minimumExecutions": 8,
+      "caseIds": []
+    },
+    {
+      "family": "unit",
+      "class": "StopDrainTests",
+      "method": "CIS.Tests.UnitTests.StopDrainTests.FileQueueCancellationKeepsOwnedResourceUntilItsActualWriteSettles",
+      "source": "implementations/csharp/tests/CIS.Core.UnitTests/StopDrainTests.cs",
+      "minimumExecutions": 1,
+      "caseIds": []
+    },
+    {
+      "family": "unit",
+      "class": "StopLifecycleTests",
+      "method": "CIS.Tests.UnitTests.StopLifecycleTests.PhysicalOwnershipWaitsForLateIo",
+      "source": "implementations/csharp/tests/CIS.Core.UnitTests/StopLifecycleTests.cs",
+      "minimumExecutions": 4,
+      "caseIds": []
+    },
+    {
+      "family": "unit",
+      "class": "OutputAccountingTests",
+      "method": "CIS.Tests.UnitTests.OutputAccountingTests.ActualWorkersKeepCumulativeCountsAndUnresolvedGauges",
+      "source": "implementations/csharp/tests/CIS.Core.UnitTests/OutputAccountingTests.cs",
+      "minimumExecutions": 11,
+      "caseIds": [
+        "UT-ACCOUNTING-ROWS"
+      ]
+    },
+    {
+      "family": "unit",
+      "class": "OutputAccountingTests",
+      "method": "CIS.Tests.UnitTests.OutputAccountingTests.AccountingMatcherRejectsInventedLostOrMutatedCounts",
+      "source": "implementations/csharp/tests/CIS.Core.UnitTests/OutputAccountingTests.cs",
+      "minimumExecutions": 9,
+      "caseIds": [
+        "UT-ACCOUNTING-CORRUPTION"
+      ]
+    },
+    {
+      "family": "unit",
+      "class": "OutputAccountingTests",
+      "method": "CIS.Tests.UnitTests.OutputAccountingTests.RejectionCountersAndAggregatesSaturateWithoutWrapping",
+      "source": "implementations/csharp/tests/CIS.Core.UnitTests/OutputAccountingTests.cs",
+      "minimumExecutions": 3,
+      "caseIds": [
+        "UT-ACCOUNTING-SATURATION"
+      ]
+    },
+    {
+      "family": "unit",
+      "class": "OutputAccountingTests",
+      "method": "CIS.Tests.UnitTests.OutputAccountingTests.ConcurrentAdmissionsPreserveOneConsistentAcceptedPartition",
+      "source": "implementations/csharp/tests/CIS.Core.UnitTests/OutputAccountingTests.cs",
+      "minimumExecutions": 1,
+      "caseIds": [
+        "UT-ACCOUNTING-CONCURRENT"
+      ]
+    },
+    {
+      "family": "integration",
+      "class": "FlushBoundaryProcessTests",
+      "method": "CIS.Tests.IntegrationTests.FlushBoundaryProcessTests.RegisteredBoundaryFixtureRunsActualCoreInASeparateExactRuntime",
+      "source": "implementations/csharp/tests/CIS.Core.IntegrationTests/FlushBoundaryProcessTests.cs",
+      "minimumExecutions": 7,
+      "caseIds": []
+    },
+    {
+      "family": "integration",
+      "class": "FlushCoordinationProcessTests",
+      "method": "CIS.Tests.IntegrationTests.FlushCoordinationProcessTests.ActualCallerDetachmentRunsInAnExactRuntimeChild",
+      "source": "implementations/csharp/tests/CIS.Core.IntegrationTests/FlushCoordinationProcessTests.cs",
+      "minimumExecutions": 9,
+      "caseIds": []
+    },
+    {
+      "family": "integration",
+      "class": "FlushResultProcessTests",
+      "method": "CIS.Tests.IntegrationTests.FlushResultProcessTests.ActualPublicFlushRunsInAnExactRuntimeChild",
+      "source": "implementations/csharp/tests/CIS.Core.IntegrationTests/FlushResultProcessTests.cs",
+      "minimumExecutions": 17,
+      "caseIds": []
+    },
+    {
+      "family": "integration",
+      "class": "FlushStressProcessTests",
+      "method": "CIS.Tests.IntegrationTests.FlushStressProcessTests.ActualPublicFlushStressRunsInAnExactRuntimeChild",
+      "source": "implementations/csharp/tests/CIS.Core.IntegrationTests/FlushStressProcessTests.cs",
+      "minimumExecutions": 8,
+      "caseIds": []
+    },
+    {
+      "family": "integration",
+      "class": "StopStartProcessTests",
+      "method": "CIS.Tests.IntegrationTests.StopStartProcessTests.ActualSharedStopRunsInAnExactRuntimeChild",
+      "source": "implementations/csharp/tests/CIS.Core.IntegrationTests/StopStartProcessTests.cs",
+      "minimumExecutions": 16,
+      "caseIds": []
+    },
+    {
+      "family": "integration",
+      "class": "StopJoinProcessTests",
+      "method": "CIS.Tests.IntegrationTests.StopJoinProcessTests.ActualSharedStopRunsInAnExactRuntimeChild",
+      "source": "implementations/csharp/tests/CIS.Core.IntegrationTests/StopJoinProcessTests.cs",
+      "minimumExecutions": 8,
+      "caseIds": []
+    },
+    {
+      "family": "integration",
+      "class": "StopDrainProcessTests",
+      "method": "CIS.Tests.IntegrationTests.StopDrainProcessTests.ActualSharedStopRunsInAnExactRuntimeChild",
+      "source": "implementations/csharp/tests/CIS.Core.IntegrationTests/StopDrainProcessTests.cs",
+      "minimumExecutions": 8,
+      "caseIds": []
+    },
+    {
+      "family": "integration",
+      "class": "StopLifecycleProcessTests",
+      "method": "CIS.Tests.IntegrationTests.StopLifecycleProcessTests.ShutdownAndCrashBoundariesUseActualChildren",
+      "source": "implementations/csharp/tests/CIS.Core.IntegrationTests/StopLifecycleProcessTests.cs",
+      "minimumExecutions": 11,
+      "caseIds": []
+    },
+    {
+      "family": "integration",
+      "class": "OutputAccountingProcessTests",
+      "method": "CIS.Tests.IntegrationTests.OutputAccountingProcessTests.AccountingCheckpointsRunInExactRuntimeChildren",
+      "source": "implementations/csharp/tests/CIS.Core.IntegrationTests/OutputAccountingProcessTests.cs",
+      "minimumExecutions": 11,
+      "caseIds": [
+        "IT-ACCOUNTING-ROWS"
+      ]
+    }
+  ],
+  "newCases": [
+    "UT-CONCURRENCY-ZERO-LOSS",
+    "UT-CONCURRENCY-PUBLIC-GAUGES"
+  ],
+  "limits": [
+    "Controlled callbacks/clocks are nonshipping seams; time guards detect hangs and do not establish scheduling performance.",
+    "Some resource probes inspect pinned .NET10.0.12 continuation/private storage and deliberately seeded near-exhaustion state. These are technical qualification, not public API promises or emitted event histories.",
+    "No arbitrary sleep is used as proof of an interleaving; readiness/entered signals establish phases. Existing polling observes an explicit state with a finite guard.",
+    "Complete coverage/discovery/architecture/mutation/cumulative compatibility and full release support remain pending; no hosted ingestion/durability claim."
+  ],
+  "evidence": "planning/logging/evidence/wp07-s01-t03/verification.json"
+}
+
+END FILE
+
+FILE docs/modules/logging/concurrency-qualification.md SHA256 5e9aebf0ec4cb292072990b191da868e131d367d8b90cf49a7bebe062b324234
+# Deterministic concurrency qualification
+
+WP07-S01-T03 maps all seven original concurrency areas to [exact executable methods](../../../conformance/logging/concurrency-qualification.json): blocked I/O, bounded flush coordination, wall-clock corrections, stop races, already-cancelled waits, pending gauges and invalid-event loss. This builds on the actual queue/flush/stop fixtures implemented with their behaviors and the public candidate/physical cases from WP07-S01-T02.
+
+Three new observations close two gaps. With no admitted events,64 barrier-released invalid direct/lazy calls produce64 global invalid losses,32 factory calls and no output admissions or bytes. An earlier held flush retains invalid0/no loss; a later flush and stop have target0 and succeed while reporting the64 losses. The cases run with one and two enabled outputs. A public-gauge case observes Pending1,3,2,3,0 across first-write release, refill and shared stop. A factory held across closure returns Stopped; None does not invoke a stopped factory. The frozen diagnostic snapshot remains unchanged and the final accepted partition is exact.
+
+Cancellation detaches only its caller. Even an already-cancelled FlushAsync registers a nondroppable target before checking that caller token; the test checks the retained target has no live caller attachment and creates no caller timer. Existing stress cases prove bounded target storage and detach5000 sequential cancelled/expired callers, as well as concurrent cohorts. Controlled monotonic clocks, writer/callback entered signals and explicit releases prove ordering; finite guards detect hangs rather than prove that a race happened.
+
+The qualification includes existing source-reference child processes and controlled internal compositions; the earlier candidate-package OS/file/pipe tests remain complementary public-boundary evidence. Private continuation/storage probes are pinned managed-runtime tests; seeded exhaustion does not represent emitted history. No new production API, dependency, scheduler or general test framework is introduced. Coverage, discovery/applicability, architecture, mutation, cumulative compatibility and complete release/platform qualification remain separate roadmap obligations. [Retained evidence](../../../planning/logging/evidence/wp07-s01-t03/verification.json) records the executed lanes, exact sources/reports, and review outcome.
+
+END FILE
+
+FILE planning/logging/evidence/wp07-s01-t03/verification.json SHA256 c7455bdd478c8b1847f2d659b2e52679527495fc507d2e6e8dd76fbe9dca5cec
+{
+  "task": "WP07-S01-T03",
+  "baseCommit": "90929646abf6632ddaedfe7001fe73d8dc9de4a0",
+  "scope": "Seven deterministic concurrency areas via46 exact methods/217 mapped executions per lane; three new observable cases.",
+  "developer": {
+    "runId": "6f8a7eb2450446ebaa296debae322e4f",
+    "startedUtc": "2026-10-15T02:44:05.2511025Z",
+    "finishedUtc": "2026-10-15T02:50:41.0098887Z",
+    "exitCode": 0,
+    "stagesPassed": 15,
+    "totalTests": 5302
+  },
+  "lanes": {
+    "windows-x64": 217,
+    "linux-ubuntu2404-x64": 217
+  },
+  "audit": "audit.json",
+  "auditGenerator": {
+    "path": "task/freeze-evidence.py",
+    "sha256": "9eae777bdad5756e79ad9d5afe2908a063b3842ce199db2f72f53461498435e0"
+  },
+  "inputs": [
+    {
+      "path": "implementations/csharp/tests/CIS.Core.UnitTests/ConcurrencyQualificationTests.cs",
+      "sha256": "64656e994a06175432be017abf211a4c41711f28261c8ceda00764114ab41250",
+      "runStartSha256": "64656e994a06175432be017abf211a4c41711f28261c8ceda00764114ab41250",
+      "equal": true
+    },
+    {
+      "path": "conformance/logging/case-inventory.json",
+      "sha256": "187605429744f7dc8367ca96a2caab1e20978d966534e7798122805d8eb31c42",
+      "runStartSha256": "187605429744f7dc8367ca96a2caab1e20978d966534e7798122805d8eb31c42",
+      "equal": true
+    },
+    {
+      "path": "conformance/logging/requirement-case-map.json",
+      "sha256": "32ba44c10ed1850d5f074d207c4893e41d43321b03177eac48035710db811530",
+      "runStartSha256": "32ba44c10ed1850d5f074d207c4893e41d43321b03177eac48035710db811530",
+      "equal": true
+    },
+    {
+      "path": "conformance/logging/concurrency-qualification.json",
+      "sha256": "ba302f3a4167505fe51b05838b81c9c9b4825efc4ed74cf160f6adce9a3c250e",
+      "runStartSha256": "ba302f3a4167505fe51b05838b81c9c9b4825efc4ed74cf160f6adce9a3c250e",
+      "equal": true
+    },
+    {
+      "path": "docs/modules/logging/concurrency-qualification.md",
+      "sha256": "5e9aebf0ec4cb292072990b191da868e131d367d8b90cf49a7bebe062b324234",
+      "runStartSha256": "5e9aebf0ec4cb292072990b191da868e131d367d8b90cf49a7bebe062b324234",
+      "equal": true
+    }
+  ],
+  "release": {
+    "exitCode": 2,
+    "summary": {
+      "path": "pending/Release/summary.json",
+      "sha256": "79f1e36bb1a29a383165703138b18042b3fc6243a56fc6ead758de35d100713f",
+      "bytes": 9290
+    },
+    "remainingPlannedCaseGroups": 27,
+    "missingReleaseGates": 8,
+    "missingFamilyArea": true
+  },
+  "review": {
+    "state": "Pending read-only review; update actual verdict after response"
+  },
+  "limits": "Controlled callback/clock and source-reference technical tests; private storage probes pinned.NET10.0.12 and seeded near-exhaustion distinguished from actual emitted history. Candidate/physical public boundary evidence is previousWP07-S01-T02. No new shipping API/dependency/framework, full coverage/mutation/architecture/cumulative compatibility/platform-release or ingestion claim."
+}
+
+END FILE
+
+FILE planning/logging/evidence/wp07-s01-t03/audit.json SHA256 dbf769f522c054a6cd8edb6e70b0ad707887d80be07d980b201335c9d20f3db9
+{
+  "task": "WP07-S01-T03",
+  "developerRunId": "6f8a7eb2450446ebaa296debae322e4f",
+  "startedUtc": "2026-10-15T02:44:05.2511025Z",
+  "finishedUtc": "2026-10-15T02:50:41.0098887Z",
+  "stagesPassed": 15,
+  "familyCounts": {
+    "unit": {
+      "total": "3376",
+      "executed": "3376",
+      "passed": "3376",
+      "failed": "0",
+      "error": "0",
+      "timeout": "0",
+      "aborted": "0",
+      "inconclusive": "0",
+      "passedButRunAborted": "0",
+      "notRunnable": "0",
+      "notExecuted": "0",
+      "disconnected": "0",
+      "warning": "0",
+      "completed": "0",
+      "inProgress": "0",
+      "pending": "0"
+    },
+    "integration": {
+      "total": "1419",
+      "executed": "1419",
+      "passed": "1419",
+      "failed": "0",
+      "error": "0",
+      "timeout": "0",
+      "aborted": "0",
+      "inconclusive": "0",
+      "passedButRunAborted": "0",
+      "notRunnable": "0",
+      "notExecuted": "0",
+      "disconnected": "0",
+      "warning": "0",
+      "completed": "0",
+      "inProgress": "0",
+      "pending": "0"
+    },
+    "architecture": {
+      "total": "483",
+      "executed": "483",
+      "passed": "483",
+      "failed": "0",
+      "error": "0",
+      "timeout": "0",
+      "aborted": "0",
+      "inconclusive": "0",
+      "passedButRunAborted": "0",
+      "notRunnable": "0",
+      "notExecuted": "0",
+      "disconnected": "0",
+      "warning": "0",
+      "completed": "0",
+      "inProgress": "0",
+      "pending": "0"
+    },
+    "business": {
+      "total": "24",
+      "executed": "24",
+      "passed": "24",
+      "failed": "0",
+      "error": "0",
+      "timeout": "0",
+      "aborted": "0",
+      "inconclusive": "0",
+      "passedButRunAborted": "0",
+      "notRunnable": "0",
+      "notExecuted": "0",
+      "disconnected": "0",
+      "warning": "0",
+      "completed": "0",
+      "inProgress": "0",
+      "pending": "0"
+    }
+  },
+  "lanes": {
+    "windows-x64": {
+      "bindings": [
+        {
+          "method": "CIS.Tests.UnitTests.ConcurrencyQualificationTests.InvalidOnlyConcurrentCallsKeepZeroTargetsAndFreezeLossAtEachBoundary",
+          "family": "unit",
+          "executed": 2,
+          "outcome": "Passed",
+          "caseIds": [
+            "UT-CONCURRENCY-ZERO-LOSS"
+          ]
+        },
+        {
+          "method": "CIS.Tests.UnitTests.ConcurrencyQualificationTests.PublicPendingGaugeFallsRefillsAndSettlesWhileACapturedProducerLosesToStop",
+          "family": "unit",
+          "executed": 1,
+          "outcome": "Passed",
+          "caseIds": [
+            "UT-CONCURRENCY-PUBLIC-GAUGES"
+          ]
+        },
+        {
+          "method": "CIS.Tests.UnitTests.FlushBoundaryTests.InitialFactsAndNondroppableTargetsRemainFixedThroughActualWriterWork",
+          "family": "unit",
+          "executed": 7,
+          "outcome": "Passed",
+          "caseIds": []
+        },
+        {
+          "method": "CIS.Tests.UnitTests.FlushBoundaryTests.AdmissionDoublesCannotInventRegisteredQueueFacts",
+          "family": "unit",
+          "executed": 1,
+          "outcome": "Passed",
+          "caseIds": []
+        },
+        {
+          "method": "CIS.Tests.UnitTests.FlushBoundaryTests.DisabledOutputsHaveNoTargetOrCallbackAndDoNotReadTheEventClock",
+          "family": "unit",
+          "executed": 1,
+          "outcome": "Passed",
+          "caseIds": []
+        },
+        {
+          "method": "CIS.Tests.UnitTests.FlushBoundaryTests.AnUnspecifiedTrustedFlushCallbackDoesNotInventBufferConfirmation",
+          "family": "unit",
+          "executed": 1,
+          "outcome": "Passed",
+          "caseIds": []
+        },
+        {
+          "method": "CIS.Tests.UnitTests.FlushBoundaryTests.ABlockedZeroBoundaryFlushPrecedesLaterWritesAndRunsOutsideAdmission",
+          "family": "unit",
+          "executed": 1,
+          "outcome": "Passed",
+          "caseIds": []
+        },
+        {
+          "method": "CIS.Tests.UnitTests.FlushBoundaryTests.FlushFailureDoesNotInventAnEventWriteFailure",
+          "family": "unit",
+          "executed": 1,
+          "outcome": "Passed",
+          "caseIds": []
+        },
+        {
+          "method": "CIS.Tests.UnitTests.FlushBoundaryTests.RegistrationDuringOwnedCleanupIsUnavailableAndCannotBeStranded",
+          "family": "unit",
+          "executed": 1,
+          "outcome": "Passed",
+          "caseIds": []
+        },
+        {
+          "method": "CIS.Tests.UnitTests.FlushBoundaryTests.AnAlreadyStartedFlushSettlesByItsActualIoAfterAdmissionExhaustion",
+          "family": "unit",
+          "executed": 2,
+          "outcome": "Passed",
+          "caseIds": []
+        },
+        {
+          "method": "CIS.Tests.UnitTests.FlushCoordinationTests.ActualBlockedWritersRetainOnlyTargetsAndLiveCallerAttachments",
+          "family": "unit",
+          "executed": 9,
+          "outcome": "Passed",
+          "caseIds": []
+        },
+        {
+          "method": "CIS.Tests.UnitTests.FlushCoordinationTests.EmptyOutputsStillHonorTheCallerLifetime",
+          "family": "unit",
+          "executed": 2,
+          "outcome": "Passed",
+          "caseIds": []
+        },
+        {
+          "method": "CIS.Tests.UnitTests.FlushCoordinationTests.AFailedFirstOutputStillWaitsForTheIndependentFileFlush",
+          "family": "unit",
+          "executed": 1,
+          "outcome": "Passed",
+          "caseIds": []
+        },
+        {
+          "method": "CIS.Tests.UnitTests.FlushCoordinationTests.CancellationOnTheFileWaitDoesNotRetainTheEarlierConsoleCaller",
+          "family": "unit",
+          "executed": 1,
+          "outcome": "Passed",
+          "caseIds": []
+        },
+        {
+          "method": "CIS.Tests.UnitTests.FlushCoordinationTests.AlreadyCancelledLifetimeWinsEvenForAnAlreadyResolvedWriter",
+          "family": "unit",
+          "executed": 2,
+          "outcome": "Passed",
+          "caseIds": []
+        },
+        {
+          "method": "CIS.Tests.UnitTests.FlushCoordinationTests.ACallerCanWaitAgainAfterItsOwnCancellation",
+          "family": "unit",
+          "executed": 1,
+          "outcome": "Passed",
+          "caseIds": []
+        },
+        {
+          "method": "CIS.Tests.UnitTests.FlushResultTests.ActualPublicFlushReturnsTruthfulOwnedResults",
+          "family": "unit",
+          "executed": 17,
+          "outcome": "Passed",
+          "caseIds": []
+        },
+        {
+          "method": "CIS.Tests.UnitTests.FlushResultTests.InvalidBudgetWinsOverCancellationAndDoesNotRegister",
+          "family": "unit",
+          "executed": 4,
+          "outcome": "Passed",
+          "caseIds": []
+        },
+        {
+          "method": "CIS.Tests.UnitTests.FlushResultTests.PositiveSubMillisecondBudgetNeverExpiresEarly",
+          "family": "unit",
+          "executed": 1,
+          "outcome": "Passed",
+          "caseIds": []
+        },
+        {
+          "method": "CIS.Tests.UnitTests.FlushResultTests.CallerCancellationJoinsAnActuallyActiveTimerCallbackBeforeDisposingItsSource",
+          "family": "unit",
+          "executed": 1,
+          "outcome": "Passed",
+          "caseIds": []
+        },
+        {
+          "method": "CIS.Tests.UnitTests.FlushResultTests.PublicResultsHaveNoMutationOrConstructionSurface",
+          "family": "unit",
+          "executed": 1,
+          "outcome": "Passed",
+          "caseIds": []
+        },
+        {
+          "method": "CIS.Tests.UnitTests.FlushStressTests.PublicFlushStressUsesActualQueuesWritersTimersAndMeasuredStorage",
+          "family": "unit",
+          "executed": 8,
+          "outcome": "Passed",
+          "caseIds": []
+        },
+        {
+          "method": "CIS.Tests.UnitTests.StopStartTests.EmptyStopClosesOnceAndAlreadyCancelledCallerStillInitiates",
+          "family": "unit",
+          "executed": 2,
+          "outcome": "Passed",
+          "caseIds": []
+        },
+        {
+          "method": "CIS.Tests.UnitTests.StopStartTests.OneOriginalDeadlineSurvivesRepeatedCallersAndOptionOrUtcChanges",
+          "family": "unit",
+          "executed": 3,
+          "outcome": "Passed",
+          "caseIds": []
+        },
+        {
+          "method": "CIS.Tests.UnitTests.StopStartTests.AWrittenRecordWithBlockedFinalFlushRemainsTimedOutWithoutRewritingResult",
+          "family": "unit",
+          "executed": 1,
+          "outcome": "Passed",
+          "caseIds": []
+        },
+        {
+          "method": "CIS.Tests.UnitTests.StopStartTests.NormalDualStopFlushesOriginalIndependentTargetsAndSharesOwnedResult",
+          "family": "unit",
+          "executed": 1,
+          "outcome": "Passed",
+          "caseIds": []
+        },
+        {
+          "method": "CIS.Tests.UnitTests.StopStartTests.TerminalFlushFailureReturnsActualFailedStopResult",
+          "family": "unit",
+          "executed": 1,
+          "outcome": "Passed",
+          "caseIds": []
+        },
+        {
+          "method": "CIS.Tests.UnitTests.StopStartTests.InvalidShutdownTimeoutIsRejectedBeforeOutputAcquisition",
+          "family": "unit",
+          "executed": 2,
+          "outcome": "Passed",
+          "caseIds": []
+        },
+        {
+          "method": "CIS.Tests.UnitTests.StopStartTests.CancelledWaitDetachesFromLiveSharedStopAndPreservesInitialFacts",
+          "family": "unit",
+          "executed": 1,
+          "outcome": "Passed",
+          "caseIds": []
+        },
+        {
+          "method": "CIS.Tests.UnitTests.StopJoinTests.CallerCancellationAndDisposalJoinTheOriginalBoundedOperation",
+          "family": "unit",
+          "executed": 8,
+          "outcome": "Passed",
+          "caseIds": []
+        },
+        {
+          "method": "CIS.Tests.UnitTests.StopDrainTests.ActualQueuedDrainDistinguishesAbandonmentFromUnresolvedIo",
+          "family": "unit",
+          "executed": 8,
+          "outcome": "Passed",
+          "caseIds": []
+        },
+        {
+          "method": "CIS.Tests.UnitTests.StopDrainTests.FileQueueCancellationKeepsOwnedResourceUntilItsActualWriteSettles",
+          "family": "unit",
+          "executed": 1,
+          "outcome": "Passed",
+          "caseIds": []
+        },
+        {
+          "method": "CIS.Tests.UnitTests.StopLifecycleTests.PhysicalOwnershipWaitsForLateIo",
+          "family": "unit",
+          "executed": 4,
+          "outcome": "Passed",
+          "caseIds": []
+        },
+        {
+          "method": "CIS.Tests.UnitTests.OutputAccountingTests.ActualWorkersKeepCumulativeCountsAndUnresolvedGauges",
+          "family": "unit",
+          "executed": 11,
+          "outcome": "Passed",
+          "caseIds": [
+            "UT-ACCOUNTING-ROWS"
+          ]
+        },
+        {
+          "method": "CIS.Tests.UnitTests.OutputAccountingTests.AccountingMatcherRejectsInventedLostOrMutatedCounts",
+          "family": "unit",
+          "executed": 9,
+          "outcome": "Passed",
+          "caseIds": [
+            "UT-ACCOUNTING-CORRUPTION"
+          ]
+        },
+        {
+          "method": "CIS.Tests.UnitTests.OutputAccountingTests.RejectionCountersAndAggregatesSaturateWithoutWrapping",
+          "family": "unit",
+          "executed": 3,
+          "outcome": "Passed",
+          "caseIds": [
+            "UT-ACCOUNTING-SATURATION"
+          ]
+        },
+        {
+          "method": "CIS.Tests.UnitTests.OutputAccountingTests.ConcurrentAdmissionsPreserveOneConsistentAcceptedPartition",
+          "family": "unit",
+          "executed": 1,
+          "outcome": "Passed",
+          "caseIds": [
+            "UT-ACCOUNTING-CONCURRENT"
+          ]
+        },
+        {
+          "method": "CIS.Tests.IntegrationTests.FlushBoundaryProcessTests.RegisteredBoundaryFixtureRunsActualCoreInASeparateExactRuntime",
+          "family": "integration",
+          "executed": 7,
+          "outcome": "Passed",
+          "caseIds": []
+        },
+        {
+          "method": "CIS.Tests.IntegrationTests.FlushCoordinationProcessTests.ActualCallerDetachmentRunsInAnExactRuntimeChild",
+          "family": "integration",
+          "executed": 9,
+          "outcome": "Passed",
+          "caseIds": []
+        },
+        {
+          "method": "CIS.Tests.IntegrationTests.FlushResultProcessTests.ActualPublicFlushRunsInAnExactRuntimeChild",
+          "family": "integration",
+          "executed": 17,
+          "outcome": "Passed",
+          "caseIds": []
+        },
+        {
+          "method": "CIS.Tests.IntegrationTests.FlushStressProcessTests.ActualPublicFlushStressRunsInAnExactRuntimeChild",
+          "family": "integration",
+          "executed": 8,
+          "outcome": "Passed",
+          "caseIds": []
+        },
+        {
+          "method": "CIS.Tests.IntegrationTests.StopStartProcessTests.ActualSharedStopRunsInAnExactRuntimeChild",
+          "family": "integration",
+          "executed": 16,
+          "outcome": "Passed",
+          "caseIds": []
+        },
+        {
+          "method": "CIS.Tests.IntegrationTests.StopJoinProcessTests.ActualSharedStopRunsInAnExactRuntimeChild",
+          "family": "integration",
+          "executed": 8,
+          "outcome": "Passed",
+          "caseIds": []
+        },
+        {
+          "method": "CIS.Tests.IntegrationTests.StopDrainProcessTests.ActualSharedStopRunsInAnExactRuntimeChild",
+          "family": "integration",
+          "executed": 8,
+          "outcome": "Passed",
+          "caseIds": []
+        },
+        {
+          "method": "CIS.Tests.IntegrationTests.StopLifecycleProcessTests.ShutdownAndCrashBoundariesUseActualChildren",
+          "family": "integration",
+          "executed": 11,
+          "outcome": "Passed",
+          "caseIds": []
+        },
+        {
+          "method": "CIS.Tests.IntegrationTests.OutputAccountingProcessTests.AccountingCheckpointsRunInExactRuntimeChildren",
+          "family": "integration",
+          "executed": 11,
+          "outcome": "Passed",
+          "caseIds": [
+            "IT-ACCOUNTING-ROWS"
+          ]
+        }
+      ],
+      "executed": 217,
+      "reports": [
+        {
+          "family": "unit",
+          "path": "native/Developer/families/unit/report.trx",
+          "sha256": "96c30ddae4c288aaa02a508b0933d9f8dc49d915d083e66407696139ac296acb",
+          "bytes": 4728288,
+          "times": {
+            "creation": "2026-10-15T04:47:59.7408402+02:00",
+            "queuing": "2026-10-15T04:47:59.7408407+02:00",
+            "start": "2026-10-15T04:47:59.0440256+02:00",
+            "finish": "2026-10-15T04:48:13.3754802+02:00"
+          }
+        },
+        {
+          "family": "integration",
+          "path": "native/Developer/families/integration/report.trx",
+          "sha256": "646559ff427e14711e9f52e3e0cc2ea7b1aec0d479c585fee9212732717971bf",
+          "bytes": 5270670,
+          "times": {
+            "creation": "2026-10-15T04:48:18.6372839+02:00",
+            "queuing": "2026-10-15T04:48:18.6372846+02:00",
+            "start": "2026-10-15T04:48:17.6653861+02:00",
+            "finish": "2026-10-15T04:49:31.1622717+02:00"
+          }
+        }
+      ]
+    },
+    "linux-ubuntu2404-x64": {
+      "bindings": [
+        {
+          "method": "CIS.Tests.UnitTests.ConcurrencyQualificationTests.InvalidOnlyConcurrentCallsKeepZeroTargetsAndFreezeLossAtEachBoundary",
+          "family": "unit",
+          "executed": 2,
+          "outcome": "Passed",
+          "caseIds": [
+            "UT-CONCURRENCY-ZERO-LOSS"
+          ]
+        },
+        {
+          "method": "CIS.Tests.UnitTests.ConcurrencyQualificationTests.PublicPendingGaugeFallsRefillsAndSettlesWhileACapturedProducerLosesToStop",
+          "family": "unit",
+          "executed": 1,
+          "outcome": "Passed",
+          "caseIds": [
+            "UT-CONCURRENCY-PUBLIC-GAUGES"
+          ]
+        },
+        {
+          "method": "CIS.Tests.UnitTests.FlushBoundaryTests.InitialFactsAndNondroppableTargetsRemainFixedThroughActualWriterWork",
+          "family": "unit",
+          "executed": 7,
+          "outcome": "Passed",
+          "caseIds": []
+        },
+        {
+          "method": "CIS.Tests.UnitTests.FlushBoundaryTests.AdmissionDoublesCannotInventRegisteredQueueFacts",
+          "family": "unit",
+          "executed": 1,
+          "outcome": "Passed",
+          "caseIds": []
+        },
+        {
+          "method": "CIS.Tests.UnitTests.FlushBoundaryTests.DisabledOutputsHaveNoTargetOrCallbackAndDoNotReadTheEventClock",
+          "family": "unit",
+          "executed": 1,
+          "outcome": "Passed",
+          "caseIds": []
+        },
+        {
+          "method": "CIS.Tests.UnitTests.FlushBoundaryTests.AnUnspecifiedTrustedFlushCallbackDoesNotInventBufferConfirmation",
+          "family": "unit",
+          "executed": 1,
+          "outcome": "Passed",
+          "caseIds": []
+        },
+        {
+          "method": "CIS.Tests.UnitTests.FlushBoundaryTests.ABlockedZeroBoundaryFlushPrecedesLaterWritesAndRunsOutsideAdmission",
+          "family": "unit",
+          "executed": 1,
+          "outcome": "Passed",
+          "caseIds": []
+        },
+        {
+          "method": "CIS.Tests.UnitTests.FlushBoundaryTests.FlushFailureDoesNotInventAnEventWriteFailure",
+          "family": "unit",
+          "executed": 1,
+          "outcome": "Passed",
+          "caseIds": []
+        },
+        {
+          "method": "CIS.Tests.UnitTests.FlushBoundaryTests.RegistrationDuringOwnedCleanupIsUnavailableAndCannotBeStranded",
+          "family": "unit",
+          "executed": 1,
+          "outcome": "Passed",
+          "caseIds": []
+        },
+        {
+          "method": "CIS.Tests.UnitTests.FlushBoundaryTests.AnAlreadyStartedFlushSettlesByItsActualIoAfterAdmissionExhaustion",
+          "family": "unit",
+          "executed": 2,
+          "outcome": "Passed",
+          "caseIds": []
+        },
+        {
+          "method": "CIS.Tests.UnitTests.FlushCoordinationTests.ActualBlockedWritersRetainOnlyTargetsAndLiveCallerAttachments",
+          "family": "unit",
+          "executed": 9,
+          "outcome": "Passed",
+          "caseIds": []
+        },
+        {
+          "method": "CIS.Tests.UnitTests.FlushCoordinationTests.EmptyOutputsStillHonorTheCallerLifetime",
+          "family": "unit",
+          "executed": 2,
+          "outcome": "Passed",
+          "caseIds": []
+        },
+        {
+          "method": "CIS.Tests.UnitTests.FlushCoordinationTests.AFailedFirstOutputStillWaitsForTheIndependentFileFlush",
+          "family": "unit",
+          "executed": 1,
+          "outcome": "Passed",
+          "caseIds": []
+        },
+        {
+          "method": "CIS.Tests.UnitTests.FlushCoordinationTests.CancellationOnTheFileWaitDoesNotRetainTheEarlierConsoleCaller",
+          "family": "unit",
+          "executed": 1,
+          "outcome": "Passed",
+          "caseIds": []
+        },
+        {
+          "method": "CIS.Tests.UnitTests.FlushCoordinationTests.AlreadyCancelledLifetimeWinsEvenForAnAlreadyResolvedWriter",
+          "family": "unit",
+          "executed": 2,
+          "outcome": "Passed",
+          "caseIds": []
+        },
+        {
+          "method": "CIS.Tests.UnitTests.FlushCoordinationTests.ACallerCanWaitAgainAfterItsOwnCancellation",
+          "family": "unit",
+          "executed": 1,
+          "outcome": "Passed",
+          "caseIds": []
+        },
+        {
+          "method": "CIS.Tests.UnitTests.FlushResultTests.ActualPublicFlushReturnsTruthfulOwnedResults",
+          "family": "unit",
+          "executed": 17,
+          "outcome": "Passed",
+          "caseIds": []
+        },
+        {
+          "method": "CIS.Tests.UnitTests.FlushResultTests.InvalidBudgetWinsOverCancellationAndDoesNotRegister",
+          "family": "unit",
+          "executed": 4,
+          "outcome": "Passed",
+          "caseIds": []
+        },
+        {
+          "method": "CIS.Tests.UnitTests.FlushResultTests.PositiveSubMillisecondBudgetNeverExpiresEarly",
+          "family": "unit",
+          "executed": 1,
+          "outcome": "Passed",
+          "caseIds": []
+        },
+        {
+          "method": "CIS.Tests.UnitTests.FlushResultTests.CallerCancellationJoinsAnActuallyActiveTimerCallbackBeforeDisposingItsSource",
+          "family": "unit",
+          "executed": 1,
+          "outcome": "Passed",
+          "caseIds": []
+        },
+        {
+          "method": "CIS.Tests.UnitTests.FlushResultTests.PublicResultsHaveNoMutationOrConstructionSurface",
+          "family": "unit",
+          "executed": 1,
+          "outcome": "Passed",
+          "caseIds": []
+        },
+        {
+          "method": "CIS.Tests.UnitTests.FlushStressTests.PublicFlushStressUsesActualQueuesWritersTimersAndMeasuredStorage",
+          "family": "unit",
+          "executed": 8,
+          "outcome": "Passed",
+          "caseIds": []
+        },
+        {
+          "method": "CIS.Tests.UnitTests.StopStartTests.EmptyStopClosesOnceAndAlreadyCancelledCallerStillInitiates",
+          "family": "unit",
+          "executed": 2,
+          "outcome": "Passed",
+          "caseIds": []
+        },
+        {
+          "method": "CIS.Tests.UnitTests.StopStartTests.OneOriginalDeadlineSurvivesRepeatedCallersAndOptionOrUtcChanges",
+          "family": "unit",
+          "executed": 3,
+          "outcome": "Passed",
+          "caseIds": []
+        },
+        {
+          "method": "CIS.Tests.UnitTests.StopStartTests.AWrittenRecordWithBlockedFinalFlushRemainsTimedOutWithoutRewritingResult",
+          "family": "unit",
+          "executed": 1,
+          "outcome": "Passed",
+          "caseIds": []
+        },
+        {
+          "method": "CIS.Tests.UnitTests.StopStartTests.NormalDualStopFlushesOriginalIndependentTargetsAndSharesOwnedResult",
+          "family": "unit",
+          "executed": 1,
+          "outcome": "Passed",
+          "caseIds": []
+        },
+        {
+          "method": "CIS.Tests.UnitTests.StopStartTests.TerminalFlushFailureReturnsActualFailedStopResult",
+          "family": "unit",
+          "executed": 1,
+          "outcome": "Passed",
+          "caseIds": []
+        },
+        {
+          "method": "CIS.Tests.UnitTests.StopStartTests.InvalidShutdownTimeoutIsRejectedBeforeOutputAcquisition",
+          "family": "unit",
+          "executed": 2,
+          "outcome": "Passed",
+          "caseIds": []
+        },
+        {
+          "method": "CIS.Tests.UnitTests.StopStartTests.CancelledWaitDetachesFromLiveSharedStopAndPreservesInitialFacts",
+          "family": "unit",
+          "executed": 1,
+          "outcome": "Passed",
+          "caseIds": []
+        },
+        {
+          "method": "CIS.Tests.UnitTests.StopJoinTests.CallerCancellationAndDisposalJoinTheOriginalBoundedOperation",
+          "family": "unit",
+          "executed": 8,
+          "outcome": "Passed",
+          "caseIds": []
+        },
+        {
+          "method": "CIS.Tests.UnitTests.StopDrainTests.ActualQueuedDrainDistinguishesAbandonmentFromUnresolvedIo",
+          "family": "unit",
+          "executed": 8,
+          "outcome": "Passed",
+          "caseIds": []
+        },
+        {
+          "method": "CIS.Tests.UnitTests.StopDrainTests.FileQueueCancellationKeepsOwnedResourceUntilItsActualWriteSettles",
+          "family": "unit",
+          "executed": 1,
+          "outcome": "Passed",
+          "caseIds": []
+        },
+        {
+          "method": "CIS.Tests.UnitTests.StopLifecycleTests.PhysicalOwnershipWaitsForLateIo",
+          "family": "unit",
+          "executed": 4,
+          "outcome": "Passed",
+          "caseIds": []
+        },
+        {
+          "method": "CIS.Tests.UnitTests.OutputAccountingTests.ActualWorkersKeepCumulativeCountsAndUnresolvedGauges",
+          "family": "unit",
+          "executed": 11,
+          "outcome": "Passed",
+          "caseIds": [
+            "UT-ACCOUNTING-ROWS"
+          ]
+        },
+        {
+          "method": "CIS.Tests.UnitTests.OutputAccountingTests.AccountingMatcherRejectsInventedLostOrMutatedCounts",
+          "family": "unit",
+          "executed": 9,
+          "outcome": "Passed",
+          "caseIds": [
+            "UT-ACCOUNTING-CORRUPTION"
+          ]
+        },
+        {
+          "method": "CIS.Tests.UnitTests.OutputAccountingTests.RejectionCountersAndAggregatesSaturateWithoutWrapping",
+          "family": "unit",
+          "executed": 3,
+          "outcome": "Passed",
+          "caseIds": [
+            "UT-ACCOUNTING-SATURATION"
+          ]
+        },
+        {
+          "method": "CIS.Tests.UnitTests.OutputAccountingTests.ConcurrentAdmissionsPreserveOneConsistentAcceptedPartition",
+          "family": "unit",
+          "executed": 1,
+          "outcome": "Passed",
+          "caseIds": [
+            "UT-ACCOUNTING-CONCURRENT"
+          ]
+        },
+        {
+          "method": "CIS.Tests.IntegrationTests.FlushBoundaryProcessTests.RegisteredBoundaryFixtureRunsActualCoreInASeparateExactRuntime",
+          "family": "integration",
+          "executed": 7,
+          "outcome": "Passed",
+          "caseIds": []
+        },
+        {
+          "method": "CIS.Tests.IntegrationTests.FlushCoordinationProcessTests.ActualCallerDetachmentRunsInAnExactRuntimeChild",
+          "family": "integration",
+          "executed": 9,
+          "outcome": "Passed",
+          "caseIds": []
+        },
+        {
+          "method": "CIS.Tests.IntegrationTests.FlushResultProcessTests.ActualPublicFlushRunsInAnExactRuntimeChild",
+          "family": "integration",
+          "executed": 17,
+          "outcome": "Passed",
+          "caseIds": []
+        },
+        {
+          "method": "CIS.Tests.IntegrationTests.FlushStressProcessTests.ActualPublicFlushStressRunsInAnExactRuntimeChild",
+          "family": "integration",
+          "executed": 8,
+          "outcome": "Passed",
+          "caseIds": []
+        },
+        {
+          "method": "CIS.Tests.IntegrationTests.StopStartProcessTests.ActualSharedStopRunsInAnExactRuntimeChild",
+          "family": "integration",
+          "executed": 16,
+          "outcome": "Passed",
+          "caseIds": []
+        },
+        {
+          "method": "CIS.Tests.IntegrationTests.StopJoinProcessTests.ActualSharedStopRunsInAnExactRuntimeChild",
+          "family": "integration",
+          "executed": 8,
+          "outcome": "Passed",
+          "caseIds": []
+        },
+        {
+          "method": "CIS.Tests.IntegrationTests.StopDrainProcessTests.ActualSharedStopRunsInAnExactRuntimeChild",
+          "family": "integration",
+          "executed": 8,
+          "outcome": "Passed",
+          "caseIds": []
+        },
+        {
+          "method": "CIS.Tests.IntegrationTests.StopLifecycleProcessTests.ShutdownAndCrashBoundariesUseActualChildren",
+          "family": "integration",
+          "executed": 11,
+          "outcome": "Passed",
+          "caseIds": []
+        },
+        {
+          "method": "CIS.Tests.IntegrationTests.OutputAccountingProcessTests.AccountingCheckpointsRunInExactRuntimeChildren",
+          "family": "integration",
+          "executed": 11,
+          "outcome": "Passed",
+          "caseIds": [
+            "IT-ACCOUNTING-ROWS"
+          ]
+        }
+      ],
+      "executed": 217,
+      "reports": [
+        {
+          "family": "unit",
+          "path": "native/Ubuntu/results/unit/report.trx",
+          "sha256": "0e4c0f49b3294ac8c9fa0d3985b20c416d0bd994f1c32be288e88a73aa966028",
+          "bytes": 173455,
+          "times": {
+            "creation": "2026-10-15T04:52:59.2328458+02:00",
+            "queuing": "2026-10-15T04:52:59.2328459+02:00",
+            "start": "2026-10-15T04:52:57.9815918+02:00",
+            "finish": "2026-10-15T04:53:00.8789525+02:00"
+          }
+        },
+        {
+          "family": "integration",
+          "path": "native/Ubuntu/results/integration/report.trx",
+          "sha256": "11d2a8f8162365159254a1db35ec3b9dd2ba16df7fad9098918995e1d337c87c",
+          "bytes": 137664,
+          "times": {
+            "creation": "2026-10-15T04:53:03.9046567+02:00",
+            "queuing": "2026-10-15T04:53:03.9046569+02:00",
+            "start": "2026-10-15T04:53:02.3493895+02:00",
+            "finish": "2026-10-15T04:53:07.2560961+02:00"
+          }
+        }
+      ]
+    }
+  },
+  "payloadSha256": "5967e9d6308b5069066771528ece6352f1b41c2b5a565ffb94e5cc2d7fccc7c2",
+  "stagedAssemblies": {
+    "/tmp/cislib-wp07-s01-t03-66c838e02dfc4ace985badcb00708bbb/implementations/csharp/tests/CIS.Core.UnitTests/bin/Release/net10.0/CIS.Core.UnitTests.dll": "caa36887208bc09609895d5f265398dd7c6de4f0cb1bcdb362150c59120cd072",
+    "/tmp/cislib-wp07-s01-t03-66c838e02dfc4ace985badcb00708bbb/implementations/csharp/tests/CIS.Core.IntegrationTests/bin/Release/net10.0/CIS.Core.IntegrationTests.dll": "a90c1ade111794129e981f99538caa8344b152609ecf2180bceaeb3cc974cf82"
+  },
+  "sourceInputs": [
+    {
+      "path": "implementations/csharp/tests/CIS.Core.UnitTests/ConcurrencyQualificationTests.cs",
+      "sha256": "64656e994a06175432be017abf211a4c41711f28261c8ceda00764114ab41250",
+      "runStartSha256": "64656e994a06175432be017abf211a4c41711f28261c8ceda00764114ab41250",
+      "equal": true
+    },
+    {
+      "path": "conformance/logging/case-inventory.json",
+      "sha256": "187605429744f7dc8367ca96a2caab1e20978d966534e7798122805d8eb31c42",
+      "runStartSha256": "187605429744f7dc8367ca96a2caab1e20978d966534e7798122805d8eb31c42",
+      "equal": true
+    },
+    {
+      "path": "conformance/logging/requirement-case-map.json",
+      "sha256": "32ba44c10ed1850d5f074d207c4893e41d43321b03177eac48035710db811530",
+      "runStartSha256": "32ba44c10ed1850d5f074d207c4893e41d43321b03177eac48035710db811530",
+      "equal": true
+    },
+    {
+      "path": "conformance/logging/concurrency-qualification.json",
+      "sha256": "ba302f3a4167505fe51b05838b81c9c9b4825efc4ed74cf160f6adce9a3c250e",
+      "runStartSha256": "ba302f3a4167505fe51b05838b81c9c9b4825efc4ed74cf160f6adce9a3c250e",
+      "equal": true
+    },
+    {
+      "path": "docs/modules/logging/concurrency-qualification.md",
+      "sha256": "5e9aebf0ec4cb292072990b191da868e131d367d8b90cf49a7bebe062b324234",
+      "runStartSha256": "5e9aebf0ec4cb292072990b191da868e131d367d8b90cf49a7bebe062b324234",
+      "equal": true
+    }
+  ],
+  "nativeArtifacts": [
+    {
+      "path": "native/Developer/families/architecture/discovery.json",
+      "sha256": "f37c04e6d3a3e6c0f179e2b06913b5af829e63093b86dc302e5f2f4756894cd1",
+      "bytes": 47487
+    },
+    {
+      "path": "native/Developer/families/architecture/execution.json",
+      "sha256": "2d78a3264701dd6727c1e958b92b5ec872c7ea3521db5520c560868f945e85b3",
+      "bytes": 163
+    },
+    {
+      "path": "native/Developer/families/architecture/report.trx",
+      "sha256": "73c7e8d8498f953acf1dd57bd9badd8ad5f8ee2d5c64bc3d97ebd3ffaeb26d20",
+      "bytes": 689379
+    },
+    {
+      "path": "native/Developer/families/business/discovery.json",
+      "sha256": "a763a867c8e647c4dfa6efffb02dd11c87d99096b7236f4717ab8e1f225e466b",
+      "bytes": 2986
+    },
+    {
+      "path": "native/Developer/families/business/execution.json",
+      "sha256": "875d448e141a58064cacb3b602fdeccdcdd22ad05845992dd2806511ce175d1c",
+      "bytes": 157
+    },
+    {
+      "path": "native/Developer/families/business/report.trx",
+      "sha256": "c1955d4136f337e8be5af708d19d77a37a3ea37e989f7f25d4eccd45d0446a99",
+      "bytes": 37657
+    },
+    {
+      "path": "native/Developer/families/integration/discovery.json",
+      "sha256": "b2adb384ad9729c40835c30d85f245e9b29caf267d3350162f12116f9ea8cb0b",
+      "bytes": 133727
+    },
+    {
+      "path": "native/Developer/families/integration/execution.json",
+      "sha256": "09f4e1c9c135e52f9ed220ea72cf89b767235ad1aaea7bb4f5045f6d33591ce7",
+      "bytes": 164
+    },
+    {
+      "path": "native/Developer/families/integration/report.trx",
+      "sha256": "646559ff427e14711e9f52e3e0cc2ea7b1aec0d479c585fee9212732717971bf",
+      "bytes": 5270670
+    },
+    {
+      "path": "native/Developer/families/unit/discovery.json",
+      "sha256": "ce9778e98350a513b1a71a7491e5765db3d40bfe6367bae58d65a803c6f04906",
+      "bytes": 334908
+    },
+    {
+      "path": "native/Developer/families/unit/execution.json",
+      "sha256": "3eb94a5a8b75d1ba183984647ace796fa1314cac468b6611043ab21f5b2b7c89",
+      "bytes": 157
+    },
+    {
+      "path": "native/Developer/families/unit/report.trx",
+      "sha256": "96c30ddae4c288aaa02a508b0933d9f8dc49d915d083e66407696139ac296acb",
+      "bytes": 4728288
+    },
+    {
+      "path": "native/Developer/source-inputs.json",
+      "sha256": "f9ce2b44f0ea61ac58fb92f82b31394f4fcd9f43005b12c078c8381dd4216fef",
+      "bytes": 10171648
+    },
+    {
+      "path": "native/Developer/summary.json",
+      "sha256": "8a4400f62c1d01f7ede4a0e2b5dbd7ddae96f557eec152259296604f51929409",
+      "bytes": 8470
+    },
+    {
+      "path": "native/Developer/validation.json",
+      "sha256": "ef4b67392fb7611ed6ad4dfa4f8f5b916535d50cb40ae5e01f6c742ccf21adfb",
+      "bytes": 127
+    },
+    {
+      "path": "native/Ubuntu/dotnet-info.txt",
+      "sha256": "f9163fe646dda49c88f2c27404a5d37b3218425b3257ea85bceb1bcfc730f179",
+      "bytes": 1534
+    },
+    {
+      "path": "native/Ubuntu/os-release.txt",
+      "sha256": "01af466feb100306498c86aa6bad1815e33036019aa34d4362c20f374ea5c829",
+      "bytes": 400
+    },
+    {
+      "path": "native/Ubuntu/payload.sha256",
+      "sha256": "19fe5a734267323ba7a8ed2740772b196f0bf461298c3f438e9f2a1bd6bba140",
+      "bytes": 154
+    },
+    {
+      "path": "native/Ubuntu/results/integration/report.trx",
+      "sha256": "11d2a8f8162365159254a1db35ec3b9dd2ba16df7fad9098918995e1d337c87c",
+      "bytes": 137664
+    },
+    {
+      "path": "native/Ubuntu/results/unit/report.trx",
+      "sha256": "0e4c0f49b3294ac8c9fa0d3985b20c416d0bd994f1c32be288e88a73aa966028",
+      "bytes": 173455
+    },
+    {
+      "path": "native/Ubuntu/test-assemblies.sha256",
+      "sha256": "3fcb1ee214bc2e2d3357c85e711a3f407753988b8e597c567c10ebbb56f00486",
+      "bytes": 444
+    }
+  ],
+  "shippingSourcesUnchanged": 77,
+  "protectedSourcesLedgerAndTypeManagerPreserved": true,
+  "result": "Passed"
+}
+
+END FILE
+
+FILE planning/logging/evidence/wp07-s01-t03/task/freeze-evidence.py SHA256 9eae777bdad5756e79ad9d5afe2908a063b3842ce199db2f72f53461498435e0
+from pathlib import Path
+from datetime import datetime
+import json,hashlib,shutil,xml.etree.ElementTree as E
+r=Path.cwd();t=r/'.artifacts/csharp/tasks/wp07-s01-t03';e=r/'planning/logging/evidence/wp07-s01-t03';report=r/'.artifacts/csharp/verification/Developer';native=t/'native-retained'
+load=lambda p:json.loads(p.read_text(encoding='utf-8-sig'))
+digest=lambda p:hashlib.sha256(p.read_bytes()).hexdigest()
+assert not (e/'native').exists(),'Use a fresh qualifying evidence root'
+summary=load(report/'summary.json');assert summary['finishedUtc'] and summary['exitCode']==0
+assert (t/'developer.exit').read_text(encoding='utf-8-sig').strip()=='0'
+assert (t/'native.exit').read_text(encoding='utf-8-sig').strip()=='0'
+assert len(summary['stages'])==15 and all(s['status']=='Passed' for s in summary['stages'])
+mapx=load(r/'conformance/logging/concurrency-qualification.json');assert len(mapx['areas'])==7 and len(mapx['bindings'])==46
+inputs=load(t/'native-inputs.json');source_hashes={i['path']:i['sha256'] for i in inputs['files']}
+assert (native/'payload.sha256').read_text(encoding='utf-8').split()[0]==inputs['archiveSha256']==digest(t/'native-inputs.tar')
+staged={line.split(maxsplit=1)[1].strip():line.split()[0] for line in (native/'test-assemblies.sha256').read_text(encoding='utf-8').splitlines()}
+ns={'t':'http://microsoft.com/schemas/VisualStudio/TeamTest/2010'};lanes={}
+def read_trx(path):
+ tree=E.parse(path);lookup={}
+ for d in tree.findall('.//t:UnitTest',ns):
+  m=d.find('t:TestMethod',ns)
+  if m is not None:lookup[d.get('id')]=m.get('className').split(',')[0]+'.'+m.get('name')
+ counts={}
+ for row in tree.findall('.//t:UnitTestResult',ns):
+  assert row.get('outcome')=='Passed',(path,row.get('testName'))
+  name=lookup[row.get('testId')];counts[name]=counts.get(name,0)+1
+ return tree,counts
+for lane in ['windows-x64','linux-ubuntu2404-x64']:
+ rows=[];facts=[]
+ for family,project in [('unit','CIS.Core.UnitTests'),('integration','CIS.Core.IntegrationTests')]:
+  path=report/f'families/{family}/report.trx' if lane=='windows-x64' else native/f'results/{family}/report.trx'
+  tree,counts=read_trx(path);times=tree.find('t:Times',ns).attrib
+  if lane=='windows-x64':assert datetime.fromisoformat(summary['startedUtc'])<=datetime.fromisoformat(times['start'])<=datetime.fromisoformat(times['finish'])<=datetime.fromisoformat(summary['finishedUtc'])
+  else:
+   relative=f'implementations/csharp/tests/{project}/bin/Release/net10.0/{project}.dll';codebase=inputs['root']+'/'+relative
+   assert staged[codebase]==source_hashes[relative]==digest(r/relative)
+   for m in tree.findall('.//t:TestMethod',ns):assert m.get('codeBase')==codebase,m.attrib
+  facts.append({'family':family,'path':f'native/Developer/families/{family}/report.trx' if lane=='windows-x64' else f'native/Ubuntu/results/{family}/report.trx','sha256':digest(path),'bytes':path.stat().st_size,'times':times})
+  required=[b for b in mapx['bindings'] if b['family']==family]
+  for binding in required:
+   assert counts.get(binding['method'])==binding['minimumExecutions'],(lane,binding,counts.get(binding['method']))
+   rows.append({'method':binding['method'],'family':family,'executed':counts[binding['method']],'outcome':'Passed','caseIds':binding['caseIds']})
+  if lane!='windows-x64':assert sum(counts.values())==sum(b['minimumExecutions'] for b in required),'Unexpected focused discovery/execution'
+ lanes[lane]={'bindings':rows,'executed':sum(row['executed'] for row in rows),'reports':facts}
+assert all(v['executed']==217 for v in lanes.values())
+base=load(t/'baseline.json')
+for item in base['protected']+base['shippingSources']:assert digest(r/item['path'])==item['sha256'],item['path']
+current_paths=['implementations/csharp/tests/CIS.Core.UnitTests/ConcurrencyQualificationTests.cs','conformance/logging/case-inventory.json','conformance/logging/requirement-case-map.json','conformance/logging/concurrency-qualification.json','docs/modules/logging/concurrency-qualification.md']
+run_inputs={i['path']:i['sha256'] for i in load(report/'source-inputs.json')}
+for path in current_paths:assert digest(r/path)==run_inputs[path],path
+family_counts={}
+for family in ['unit','integration','architecture','business']:
+ tree,_=read_trx(report/f'families/{family}/report.trx');family_counts[family]=tree.find('.//t:Counters',ns).attrib
+release=load(r/'.artifacts/csharp/verification/Release/summary.json');assert release['exitCode']==2
+planned=sum(i['code']=='MissingRequiredCase' for i in release['issues']);assert planned==sum(c['implementation']=='Planned' for c in load(r/'conformance/logging/case-inventory.json')['cases'])==27
+missing_gates=sum(i['code']=='MissingReleaseGate' for i in release['issues']);assert missing_gates==len(load(r/'implementations/csharp/verification/families.json')['releaseGates'])
+def copy(source,relative):
+ target=e/relative;target.parent.mkdir(parents=True,exist_ok=True)
+ if source.resolve()!=target.resolve():shutil.copy2(source,target)
+for name in ['summary.json','validation.json','source-inputs.json']:copy(report/name,Path('native/Developer')/name)
+for family in ['unit','integration','architecture','business']:
+ for name in ['report.trx','discovery.json','execution.json']:copy(report/f'families/{family}/{name}',Path('native/Developer/families')/family/name)
+for source in native.rglob('*'):
+ if source.is_file():copy(source,Path('native/Ubuntu')/source.relative_to(native))
+for name in ['summary.json','validation.json']:copy(r/'.artifacts/csharp/verification/Release'/name,Path('pending/Release')/name)
+for name in ['baseline.json','graph-before.txt','graph-start.txt','graph-find.txt','graph-context.txt','developer.log','developer.exit','native.log','native.exit','native-inputs.json','run-native.sh','run-native.py','retain-native.py','release.log','release.exit']:
+ copy(t/name,Path('task')/name)
+copy(Path(__file__).resolve(),Path('task/freeze-evidence.py'))
+for folder in ['focused','focused-02']:
+ if (t/folder/'report.trx').is_file():copy(t/folder/'report.trx',Path('prior-runs')/folder/'report.trx')
+artifacts=[{'path':p.relative_to(e).as_posix(),'sha256':digest(p),'bytes':p.stat().st_size} for p in sorted((e/'native').rglob('*')) if p.is_file()]
+audit={'task':'WP07-S01-T03','developerRunId':summary['runId'],'startedUtc':summary['startedUtc'],'finishedUtc':summary['finishedUtc'],'stagesPassed':15,'familyCounts':family_counts,'lanes':lanes,'payloadSha256':inputs['archiveSha256'],'stagedAssemblies':staged,'sourceInputs':[{'path':path,'sha256':digest(r/path),'runStartSha256':run_inputs[path],'equal':True} for path in current_paths],'nativeArtifacts':artifacts,'shippingSourcesUnchanged':len(base['shippingSources']),'protectedSourcesLedgerAndTypeManagerPreserved':True,'result':'Passed'}
+(e/'audit.json').write_bytes((json.dumps(audit,indent=2)+'\n').encode())
+release_path=e/'pending/Release/summary.json';receipt={'task':'WP07-S01-T03','baseCommit':base['baseCommit'],'scope':'Seven deterministic concurrency areas via46 exact methods/217 mapped executions per lane; three new observable cases.','developer':{'runId':summary['runId'],'startedUtc':summary['startedUtc'],'finishedUtc':summary['finishedUtc'],'exitCode':0,'stagesPassed':15,'totalTests':sum(int(c['total']) for c in family_counts.values())},'lanes':{lane:v['executed'] for lane,v in lanes.items()},'audit':'audit.json','auditGenerator':{'path':'task/freeze-evidence.py','sha256':digest(Path(__file__))},'inputs':audit['sourceInputs'],'release':{'exitCode':2,'summary':{'path':'pending/Release/summary.json','sha256':digest(release_path),'bytes':release_path.stat().st_size},'remainingPlannedCaseGroups':planned,'missingReleaseGates':missing_gates,'missingFamilyArea':any(i['code']=='MissingFamilyExecution' for i in release['issues'])},'review':{'state':'Pending read-only review; update actual verdict after response'},'limits':'Controlled callback/clock and source-reference technical tests; private storage probes pinned.NET10.0.12 and seeded near-exhaustion distinguished from actual emitted history. Candidate/physical public boundary evidence is previousWP07-S01-T02. No new shipping API/dependency/framework, full coverage/mutation/architecture/cumulative compatibility/platform-release or ingestion claim.'}
+(e/'verification.json').write_bytes((json.dumps(receipt,indent=2)+'\n').encode());print('Frozen',receipt['developer']['totalTests'],'Developer tests;217 mapped executions per lane')
+
+END FILE
+
+FILE implementations/csharp/tests/fixtures/DiscoveryHost/FlushStressFixture.cs SHA256 5fbe5245db6c345f12e2922f2e508f65acfaa337175228ce622b1be5f75bd4cb
+using System.Collections.Concurrent;
+using System.Reflection;
+using System.Text.Json.Nodes;
+using CIS.Logging;
+using CIS.Logging.Runtime;
+using static CIS.Tests.DiscoveryFixture.FlushStressSupport;
+
+namespace CIS.Tests.DiscoveryFixture;
+
+internal static class FlushStressFixture
+{
+    internal static readonly string[] Modes = ["repeat-write", "repeat-flush", "repeat-progress", "saturation", "cohort", "failed-flush", "concurrent", "deadline-race"];
+    internal static int Run(string mode, string root)
+    { Console.WriteLine(ExecuteAsync(mode, root).GetAwaiter().GetResult().ToJsonString()); return 0; }
+    internal static async Task<JsonObject> ExecuteAsync(string mode, string root)
+    {
+        Require(Modes.Contains(mode, StringComparer.Ordinal));
+        Require(System.Runtime.InteropServices.RuntimeInformation.FrameworkDescription == ".NET 10.0.12");
+        return mode switch
+        {
+            "repeat-write" or "repeat-flush" or "repeat-progress" => await RepeatAsync(mode),
+            "concurrent" => await ConcurrentAsync(mode, root),
+            "saturation" => await SaturationAsync(mode, root),
+            "cohort" or "failed-flush" => await CohortAsync(mode, root),
+            "deadline-race" => await DeadlineRaceAsync(mode),
+            _ => throw new ArgumentException("Unknown stress mode.", nameof(mode))
+        };
+    }
+    private static LoggingOptions Options(string root, int capacity = 3, CoreLogLevel file = CoreLogLevel.None) => new()
+    { ConsoleLevel = CoreLogLevel.Information, FileLevel = file, FilePath = file == CoreLogLevel.None ? null : Path.Combine(root, "unused.jsonl"), QueueCapacity = capacity, MaxEntryBytes = 16384 };
+    private static CoreLogRuntime Runtime(Clock clock, LoggingOptions options, Writer console, Writer? file = null)
+        => CoreLogRuntime.CreateQueued(ConsoleCompositionFixture.Metadata(), options, console.WriteAsync, file is null ? null : file.WriteAsync, clock, console.FlushAsync, file is null ? null : file.FlushAsync);
+    private static async Task Cancelled(Task<LogFlushResult> wait, CancellationToken token)
+    {
+        try { await wait.WaitAsync(Guard); throw new InvalidOperationException("Expected cancellation."); }
+        catch (OperationCanceledException error) { Require(error.CancellationToken == token); }
+    }
+    private static void Drain(LogFlushResult result, long target, long written, long pending, string flush, bool loss, long unavailable = 0)
+    {
+        Require(result.Outputs.Count == 1 && result.LossObserved == loss);
+        LogOutputDrainResult output = result.Outputs[0];
+        Require(output.AcceptedSequenceBoundary == target && output.Written == written && output.Failed == 0 && output.Abandoned == 0 && output.Pending == pending &&
+            output.WriterFlushStatus.ToString() == flush && output.Rejections.Unavailable == unavailable);
+        Require(target == output.Written + output.Failed + output.Abandoned + output.Pending);
+    }
+    private static async Task<JsonObject> RepeatAsync(string mode)
+    {
+        bool flush = mode == "repeat-flush", progress = mode == "repeat-progress";
+        var clock = new Clock(); using var writer = new Writer(!flush, flush); using var sharedCaller = new CancellationTokenSource();
+        CoreLogRuntime runtime = Runtime(clock, Options("unused"), writer); CoreLogger logger = runtime.CreateLogger("FlushStress");
+        JsonObject report = Common(mode); OutputEventQueue queue = runtime.QueuedOutputs!.Console!;
+        Task? progressTask = null;
+        try
+        {
+            if (progress)
+            {
+                foreach (string field in new[] { "lastAcceptedSequence", "acceptedCount", "writtenCount" })
+                { typeof(OutputEventQueue).GetField(field, BindingFlags.Instance | BindingFlags.NonPublic)!.SetValue(queue, long.MaxValue - 1); }
+                Accepted(logger.Write(CoreLogLevel.Information, Data("first"))); await writer.FirstWrite.Task.WaitAsync(Guard);
+                using var cancelled = new CancellationTokenSource(); cancelled.Cancel();
+                await Cancelled(runtime.FlushAsync(TimeSpan.FromSeconds(5), cancelled.Token), cancelled.Token);
+                Require(logger.Write(CoreLogLevel.Information, Data("exhausted")).Outcome == LogWriteOutcome.Rejected);
+            }
+            else
+            {
+                if (flush)
+                {
+                    using var cancelled = new CancellationTokenSource();
+                    Task<LogFlushResult> zero = runtime.FlushAsync(TimeSpan.FromSeconds(5), cancelled.Token);
+                    await writer.FirstFlush.Task.WaitAsync(Guard); cancelled.Cancel(); await Cancelled(zero, cancelled.Token);
+                }
+                for (int index = 0; index < (flush ? 3 : 4); index++)
+                {
+                    Accepted(logger.Write(CoreLogLevel.Information, Data("record." + index)));
+                    if (index == 0 && !flush) { await writer.FirstWrite.Task.WaitAsync(Guard); }
+                    using var cancelled = new CancellationTokenSource(); cancelled.Cancel();
+                    await Cancelled(runtime.FlushAsync(TimeSpan.FromSeconds(5), cancelled.Token), cancelled.Token);
+                }
+                Require(logger.Write(CoreLogLevel.Information, Data("overflow")).Outcome == LogWriteOutcome.Rejected);
+                Require(logger.Write(CoreLogLevel.Information, Data("")).Outcome == LogWriteOutcome.InvalidEvent);
+            }
+            JsonObject before = QueueGauge(queue);
+            Require(before["controls"]!.GetValue<int>() == (progress ? 0 : 4));
+            var counters = await RepeatCallersAsync();
+            // The helper frame no longer retains its per-caller deadlines or task locals.
+            for (int attempt = 0; attempt < 3; attempt++) { GC.Collect(2, GCCollectionMode.Forced, true, true); GC.WaitForPendingFinalizers(); }
+            Require(clock.Samples.Count == 10 && clock.Samples.All(sample => !sample.IsAlive));
+            report["weakSamples"] = clock.Samples.Count; report["collectedSamples"] = clock.Samples.Count(sample => !sample.IsAlive);
+            report["before"] = before; report["repeated"] = counters; report["afterDetach"] = QueueGauge(queue);
+            if (progress)
+            {
+                Require(progressTask is not null && !progressTask.IsCompleted && FlushCoordinationFixture.Continuations(progressTask) == 0);
+                report["progressSlots"] = FlushCoordinationFixture.ContinuationSlots(progressTask);
+            }
+            Task<LogFlushResult> final = runtime.FlushAsync(TimeSpan.FromSeconds(5), CancellationToken.None);
+            Require(!final.IsCompleted); writer.ReleaseAll();
+            LogFlushResult settled = await final.WaitAsync(Guard); Require(settled.Completion == LogCompletion.Completed);
+            Drain(settled, progress ? long.MaxValue : flush ? 3 : 4, progress ? long.MaxValue : flush ? 3 : 4, 0,
+                progress ? "Failed" : "Succeeded", true, progress ? 1 : 0);
+            await Cleanup(runtime, writer);
+            report["final"] = Result(settled); report["writer"] = writer.Report(); report["diagnostics"] = Diagnostics(runtime);
+            report["timers"] = clock.Report(); report["finalControls"] = queue.RegisteredFlushCount;
+            report["progressCleared"] = Progress(queue) is null;
+            return report;
+        }
+        finally { await Cleanup(runtime, writer); }
+
+        async Task<JsonObject> RepeatCallersAsync()
+        {
+            int peakAttached = 0, peakSlots = 0, cancelledCount = 0, timedOut = 0;
+            JsonObject? first = null, last = null; int baselineCreated = clock.Created;
+            clock.SampleOwners = true;
+            for (int index = 0; index < 5000; index++)
+            {
+                using var cancellation = new CancellationTokenSource();
+                bool cancel = index % 2 == 0;
+                Task<LogFlushResult> wait = runtime.FlushAsync(TimeSpan.FromSeconds(5), cancel ? cancellation.Token : sharedCaller.Token);
+                Task held = progress ? Progress(queue)! : Registrations(queue).Single(r => r.AcceptedSequenceBoundary == queue.LastAcceptedSequence).WriterFlushCompletion;
+                progressTask ??= progress ? held : null;
+                Require(!held.IsCompleted && FlushCoordinationFixture.Continuations(held) == 1 && clock.Active == 1);
+                peakAttached = Math.Max(peakAttached, FlushCoordinationFixture.Continuations(held));
+                peakSlots = Math.Max(peakSlots, FlushCoordinationFixture.ContinuationSlots(held));
+                if (cancel) { cancellation.Cancel(); await Cancelled(wait, cancellation.Token); cancelledCount++; }
+                else
+                {
+                    clock.Advance(TimeSpan.FromSeconds(5));
+                    LogFlushResult result = await wait.WaitAsync(Guard);
+                    Require(result.Completion == LogCompletion.TimedOut && !result.Succeeded);
+                    Drain(result, progress ? long.MaxValue : flush ? 3 : 4, progress ? long.MaxValue - 1 : 0, progress ? 1 : flush ? 3 : 4,
+                        progress ? "Failed" : "Pending", true, progress ? 1 : 0);
+                    first ??= Result(result); last = Result(result); timedOut++;
+                }
+                Require(FlushCoordinationFixture.Continuations(held) == 0 && FlushCoordinationFixture.ContinuationSlots(held) <= 4 &&
+                    clock.Active == 0 && queue.RegisteredFlushCount == (progress ? 0 : 4));
+            }
+            clock.SampleOwners = false;
+            Require(clock.Created - baselineCreated == 5000 && cancelledCount == 2500 && timedOut == 2500 && !sharedCaller.IsCancellationRequested);
+            return new JsonObject { ["iterations"] = 5000, ["cancelled"] = cancelledCount, ["timedOut"] = timedOut, ["peakAttached"] = peakAttached, ["peakSlots"] = peakSlots, ["first"] = first, ["last"] = last };
+        }
+    }
+    private static async Task<JsonObject> ConcurrentAsync(string mode, string root)
+    {
+        var clock = new Clock(); using var console = new Writer(); using var file = new Writer();
+        CoreLogRuntime runtime = Runtime(clock, Options(root, 256, CoreLogLevel.Warning), console, file);
+        CoreLogger logger = runtime.CreateLogger("FlushStress"); var writes = new ConcurrentBag<JsonObject>();
+        var waits = new ConcurrentBag<(string key, Task<LogFlushResult> wait)>(); var go = Signal();
+        try
+        {
+            LogWriteResult first = logger.Write(CoreLogLevel.Error, Data("first")); Accepted(first); writes.Add(WriteRow("first", first));
+            await console.FirstWrite.Task.WaitAsync(Guard); await file.FirstWrite.Task.WaitAsync(Guard);
+            Task[] producers = Enumerable.Range(0, 16).Select(producer => Task.Run(async () =>
+            {
+                await go.Task;
+                for (int index = 0; index < 16; index++)
+                {
+                    string name = "producer." + producer + "." + index;
+                    LogWriteResult result = logger.Write(index % 2 == 0 ? CoreLogLevel.Warning : CoreLogLevel.Information, Data(name));
+                    Accepted(result); writes.Add(WriteRow(name, result));
+                    if (index % 4 == 3)
+                    {
+                        string key = producer + "." + index; Clock.CallerKey = key;
+                        try { waits.Add((key, runtime.FlushAsync(TimeSpan.FromSeconds(10), CancellationToken.None))); }
+                        finally { Clock.CallerKey = null; }
+                    }
+                }
+            })).ToArray();
+            go.TrySetResult(); await Task.WhenAll(producers).WaitAsync(Guard);
+            JsonObject consoleHeld = QueueGauge(runtime.QueuedOutputs!.Console!), fileHeld = QueueGauge(runtime.QueuedOutputs.File!);
+            Require(writes.Count == 257 && waits.Count == 64 && clock.Captures.Count == 64 && clock.Active == 64 &&
+                consoleHeld["attached"]!.GetValue<int>() == 64 && fileHeld["attached"]!.GetValue<int>() == 0 &&
+                consoleHeld["buffered"]!.GetValue<int>() == 256 && fileHeld["buffered"]!.GetValue<int>() == 128);
+            long[] consoleTargets = clock.Captures.Select(c => long.Parse(c["outputs"]![0]!["boundary"]!.GetValue<string>(), System.Globalization.CultureInfo.InvariantCulture)).Distinct().Order().ToArray();
+            long[] fileTargets = clock.Captures.Select(c => long.Parse(c["outputs"]![1]!["boundary"]!.GetValue<string>(), System.Globalization.CultureInfo.InvariantCulture)).Distinct().Order().ToArray();
+            Require(consoleTargets.Length == runtime.QueuedOutputs.Console!.RegisteredFlushCount && fileTargets.Length == runtime.QueuedOutputs.File!.RegisteredFlushCount);
+            Require(consoleTargets.Length <= 64 && fileTargets.Length <= 64 && consoleHeld["slots"]!.GetValue<int>() <= 256);
+            console.ReleaseAll(); file.ReleaseAll();
+            var observations = new JsonArray();
+            foreach ((string key, Task<LogFlushResult> wait) in waits.OrderBy(w => w.key, StringComparer.Ordinal))
+            {
+                LogFlushResult result = await wait.WaitAsync(Guard); JsonObject initial = clock.Captures.Single(c => c["caller"]!.GetValue<string>() == key);
+                Require(result.Completion == LogCompletion.Completed && result.Succeeded && !result.LossObserved);
+                for (int index = 0; index < 2; index++)
+                {
+                    long boundary = long.Parse(initial["outputs"]![index]!["boundary"]!.GetValue<string>(), System.Globalization.CultureInfo.InvariantCulture);
+                    Require(result.Outputs[index].AcceptedSequenceBoundary == boundary && result.Outputs[index].Written == boundary && result.Outputs[index].Pending == 0 &&
+                        result.Outputs[index].Rejections.Filtered.ToString(System.Globalization.CultureInfo.InvariantCulture) == initial["outputs"]![index]!["filtered"]!.GetValue<string>());
+                }
+                observations.Add(new JsonObject { ["caller"] = key, ["initial"] = initial.DeepClone(), ["final"] = Result(result) });
+            }
+            await Cleanup(runtime, console, file);
+            JsonObject report = Common(mode); report["writes"] = new JsonArray(writes.OrderBy(w => w["name"]!.GetValue<string>(), StringComparer.Ordinal).Select(w => (JsonNode)w).ToArray());
+            report["observations"] = observations; report["heldConsole"] = consoleHeld; report["heldFile"] = fileHeld;
+            report["console"] = console.Report(); report["file"] = file.Report(); report["timers"] = clock.Report(); report["diagnostics"] = Diagnostics(runtime); return report;
+        }
+        finally { go.TrySetResult(); await Cleanup(runtime, console, file); }
+    }
+    private static JsonObject WriteRow(string name, LogWriteResult result) => new()
+    {
+        ["name"] = name,
+        ["outputs"] = new JsonArray(result.Outputs.Select(output => (JsonNode)new JsonObject
+        {
+            ["name"] = output.OutputName,
+            ["status"] = output.Status.ToString(),
+            ["ticket"] = output.AcceptedSequence is { } ticket ? Number(ticket) : null
+        }).ToArray())
+    };
+
+    // Remaining modes use the same actual Core paths and bounded observations.
+    private static async Task<JsonObject> SaturationAsync(string mode, string root)
+    {
+        var clock = new Clock(); using var console = new Writer(holdSecondWrite: true); using var file = new Writer(holdFirstFlush: true);
+        CoreLogRuntime runtime = Runtime(clock, Options(root, 3, CoreLogLevel.Error), console, file); CoreLogger logger = runtime.CreateLogger("FlushStress");
+        var writes = new ConcurrentBag<JsonObject>();
+        try
+        {
+            LogWriteResult first = logger.Write(CoreLogLevel.Error, Data("first")); Accepted(first); writes.Add(WriteRow("first", first));
+            await console.FirstWrite.Task.WaitAsync(Guard); await file.FirstWrite.Task.WaitAsync(Guard);
+            Task<LogFlushResult> early = runtime.FlushAsync(TimeSpan.FromSeconds(5), CancellationToken.None);
+            var go = Signal();
+            Task[] producers = Enumerable.Range(0, 64).Select(index => Task.Run(async () =>
+            { await go.Task; string name = "producer." + index; writes.Add(WriteRow(name, logger.Write(CoreLogLevel.Information, Data(name)))); })).ToArray();
+            go.TrySetResult(); await Task.WhenAll(producers).WaitAsync(Guard);
+            Require(writes.Count(w => w["outputs"]![0]!["status"]!.GetValue<string>() == "Accepted") == 4);
+            Require(logger.Write(CoreLogLevel.Information, Data("")).Outcome == LogWriteOutcome.InvalidEvent);
+            Task<LogFlushResult> late = runtime.FlushAsync(TimeSpan.FromSeconds(5), CancellationToken.None);
+            file.ReleaseFirst.TrySetResult(); await file.FirstFlush.Task.WaitAsync(Guard);
+            clock.ShiftUtc(20); clock.Advance(TimeSpan.Zero, true); Require(!early.IsCompleted && !late.IsCompleted);
+            clock.ShiftUtc(-40); clock.Advance(TimeSpan.Zero, true);
+            Require(clock.Due.SequenceEqual(new[] { TimeSpan.TicksPerSecond * 5, TimeSpan.TicksPerSecond * 5 }));
+            JsonObject heldConsole = QueueGauge(runtime.QueuedOutputs!.Console!), heldFile = QueueGauge(runtime.QueuedOutputs.File!);
+            var dueBeforeTimeout = new JsonArray(clock.Due.Select(d => (JsonNode)JsonValue.Create(Number(d))!).ToArray());
+            Require(heldConsole["controls"]!.GetValue<int>() == 2 && heldFile["controls"]!.GetValue<int>() == 1);
+            clock.Advance(TimeSpan.FromSeconds(5));
+            LogFlushResult firstTimeout = await early.WaitAsync(Guard), fullTimeout = await late.WaitAsync(Guard);
+            Require(firstTimeout.Completion == LogCompletion.TimedOut && !firstTimeout.Succeeded && !firstTimeout.LossObserved &&
+                firstTimeout.Outputs[0].AcceptedSequenceBoundary == 1 && firstTimeout.Outputs[0].Pending == 1 && firstTimeout.InvalidEventCount == 0 &&
+                fullTimeout.Completion == LogCompletion.TimedOut && fullTimeout.LossObserved && fullTimeout.InvalidEventCount == 1 &&
+                fullTimeout.Outputs[0].AcceptedSequenceBoundary == 4 && fullTimeout.Outputs[0].Pending == 4 && fullTimeout.Outputs[0].Rejections.QueueFull == 61);
+            JsonObject detachedConsole = QueueGauge(runtime.QueuedOutputs.Console!), detachedFile = QueueGauge(runtime.QueuedOutputs.File!);
+            Require(detachedConsole["controls"]!.GetValue<int>() == 2 && detachedConsole["attached"]!.GetValue<int>() == 0 &&
+                detachedFile["controls"]!.GetValue<int>() == 1 && detachedFile["attached"]!.GetValue<int>() == 0);
+            string frozen = Result(firstTimeout).ToJsonString() + Result(fullTimeout).ToJsonString();
+            Task<LogFlushResult> joined = runtime.FlushAsync(TimeSpan.FromSeconds(5), CancellationToken.None);
+            console.ReleaseFirst.TrySetResult(); await console.SecondWrite.Task.WaitAsync(Guard);
+            Require(console.Order.SequenceEqual(new[] { "write.1", "flush.1" }) && !joined.IsCompleted);
+            console.ReleaseSecond.TrySetResult(); file.ReleaseFlush.TrySetResult();
+            LogFlushResult final = await joined.WaitAsync(Guard);
+            Require(final.Completion == LogCompletion.Completed && final.Succeeded && final.LossObserved);
+            await Cleanup(runtime, console, file);
+            Require(frozen == Result(firstTimeout).ToJsonString() + Result(fullTimeout).ToJsonString());
+            JsonObject report = Common(mode); report["early"] = Result(firstTimeout); report["late"] = Result(fullTimeout); report["final"] = Result(final);
+            report["writes"] = new JsonArray(writes.OrderBy(w => w["name"]!.GetValue<string>(), StringComparer.Ordinal).Select(w => (JsonNode)w).ToArray());
+            report["heldConsole"] = heldConsole; report["heldFile"] = heldFile; report["detachedConsole"] = detachedConsole; report["detachedFile"] = detachedFile;
+            report["utcCorrectionsPreservedDue"] = true; report["dueBeforeTimeout"] = dueBeforeTimeout; report["immutableAfterIo"] = true;
+            report["console"] = console.Report(); report["file"] = file.Report(); report["timers"] = clock.Report(); report["diagnostics"] = Diagnostics(runtime); return report;
+        }
+        finally { await Cleanup(runtime, console, file); }
+    }
+    private static async Task<JsonObject> CohortAsync(string mode, string root)
+    {
+        bool failure = mode == "failed-flush";
+        var clock = new Clock(); using var console = new Writer(holdFirstFlush: failure, failFirstFlush: failure);
+        using var file = new Writer(holdFirstFlush: failure, holdSecondWrite: failure);
+        CoreLogRuntime runtime = Runtime(clock, Options(root, 3, CoreLogLevel.Information), console, file);
+        CoreLogger logger = runtime.CreateLogger("FlushStress");
+        var sources = Enumerable.Range(0, 64).Select(_ => new CancellationTokenSource()).ToArray();
+        var waits = new List<Task<LogFlushResult>>(); var phases = new JsonArray(); var timeouts = new JsonArray(); var results = new JsonArray(); var laterAccepted = new JsonArray();
+        try
+        {
+            Accepted(logger.Write(CoreLogLevel.Information, Data("record.0"))); await console.FirstWrite.Task.WaitAsync(Guard); await file.FirstWrite.Task.WaitAsync(Guard);
+            if (!failure)
+            {
+                for (int index = 0; index < 4; index++)
+                {
+                    if (index > 0) { Accepted(logger.Write(CoreLogLevel.Information, Data("record." + index))); }
+                    using var pre = new CancellationTokenSource(); pre.Cancel(); await Cancelled(runtime.FlushAsync(TimeSpan.FromSeconds(5), pre.Token), pre.Token);
+                }
+                Require(logger.Write(CoreLogLevel.Information, Data("overflow")).Outcome == LogWriteOutcome.Rejected);
+                Require(logger.Write(CoreLogLevel.Information, Data("")).Outcome == LogWriteOutcome.InvalidEvent);
+            }
+            for (int index = 0; index < 64; index++)
+            { waits.Add(runtime.FlushAsync(TimeSpan.FromSeconds(index is >= 32 and < 48 ? 1 : 5), sources[index].Token)); }
+            phases.Add(Phase("all"));
+            Require(runtime.QueuedOutputs!.Console!.RegisteredFlushCount == (failure ? 1 : 4) && runtime.QueuedOutputs.File!.RegisteredFlushCount == (failure ? 1 : 4));
+            Require(phases[0]!["console"]!["attached"]!.GetValue<int>() == 64 && clock.Active == 64);
+            if (failure)
+            {
+                console.ReleaseFirst.TrySetResult(); file.ReleaseFirst.TrySetResult();
+                await console.FirstFlush.Task.WaitAsync(Guard); await file.FirstFlush.Task.WaitAsync(Guard);
+                var go = Signal();
+                Task<LogWriteResult>[] producers = Enumerable.Range(0, 64).Select(index => Task.Run(async () =>
+                { await go.Task; return logger.Write(CoreLogLevel.Information, Data("later." + index)); })).ToArray();
+                go.TrySetResult(); LogWriteResult[] writes = await Task.WhenAll(producers).WaitAsync(Guard);
+                Require(writes.Count(w => w.Outcome == LogWriteOutcome.Accepted) == 3 && writes.Count(w => w.Outcome == LogWriteOutcome.Rejected) == 61);
+                foreach (var item in writes.Select((w, i) => (w, i)).Where(item => item.w.Outcome == LogWriteOutcome.Accepted).OrderBy(item => item.w.Outputs[1].AcceptedSequence))
+                { laterAccepted.Add(new JsonObject { ["name"] = "later." + item.i, ["ticket"] = Number(item.w.Outputs[1].AcceptedSequence!.Value) }); }
+            }
+            for (int index = 0; index < 32; index++) { sources[index].Cancel(); await Cancelled(waits[index], sources[index].Token); }
+            clock.Advance(TimeSpan.FromSeconds(1));
+            for (int index = 32; index < 48; index++)
+            {
+                LogFlushResult result = await waits[index].WaitAsync(Guard);
+                Require(result.Completion == LogCompletion.TimedOut && !result.Succeeded && result.LossObserved == !failure);
+                Require(result.Outputs.All(o => o.AcceptedSequenceBoundary == (failure ? 1 : 4) && o.Written == (failure ? 1 : 0) &&
+                    o.Pending == (failure ? 0 : 4) && o.WriterFlushStatus == LogWriterFlushStatus.Pending && o.Rejections.QueueFull == (failure ? 0 : 1)));
+                timeouts.Add(Result(result));
+            }
+            phases.Add(Phase("detached"));
+            Require(phases[1]!["console"]!["attached"]!.GetValue<int>() == 16 && clock.Active == 16 &&
+                phases[1]!["console"]!["controls"]!.GetValue<int>() == (failure ? 1 : 4) &&
+                phases[1]!["file"]!["controls"]!.GetValue<int>() == (failure ? 1 : 4));
+            string frozen = timeouts.ToJsonString();
+            if (failure)
+            {
+                console.ReleaseFlush.TrySetResult();
+                try { await runtime.QueuedOutputs.Console!.Completion.WaitAsync(Guard); throw new InvalidOperationException("Expected worker failure."); } catch (IOException) { }
+            }
+            else { console.ReleaseAll(); }
+            await UntilAsync(() => QueueGauge(runtime.QueuedOutputs.File!)["attached"]!.GetValue<int>() == 16);
+            phases.Add(Phase("file"));
+            Require(phases[2]!["file"]!["controls"]!.GetValue<int>() == (failure ? 1 : 4));
+            int fileCancelled = 0;
+            if (!failure)
+            {
+                clock.ShiftUtc(20); clock.Advance(TimeSpan.Zero, true); clock.ShiftUtc(-40);
+                clock.Advance(TimeSpan.FromSeconds(3), true);
+                Require(clock.Due.All(due => due == TimeSpan.TicksPerSecond * 5));
+                for (int index = 48; index < 56; index++) { sources[index].Cancel(); await Cancelled(waits[index], sources[index].Token); fileCancelled++; }
+                phases.Add(Phase("file-detached"));
+                Require(phases[3]!["file"]!["attached"]!.GetValue<int>() == 8 && clock.Active == 8);
+            }
+            if (failure) { file.ReleaseFlush.TrySetResult(); } else { file.ReleaseAll(); }
+            for (int index = failure ? 48 : 56; index < 64; index++)
+            {
+                LogFlushResult result = await waits[index].WaitAsync(Guard);
+                Require(result.Completion == LogCompletion.Completed && result.Succeeded == !failure && result.LossObserved);
+                Require(result.Outputs.All(o => o.AcceptedSequenceBoundary == (failure ? 1 : 4) && o.Written == (failure ? 1 : 4) && o.Failed == 0 && o.Abandoned == 0 && o.Pending == 0));
+                Require(result.Outputs[0].WriterFlushStatus == (failure ? LogWriterFlushStatus.Failed : LogWriterFlushStatus.Succeeded) && result.Outputs[1].WriterFlushStatus == LogWriterFlushStatus.Succeeded);
+                results.Add(Result(result));
+            }
+            if (failure) { await file.SecondWrite.Task.WaitAsync(Guard); Require(runtime.QueuedOutputs.File!.CaptureAccounting().Pending == 3); file.ReleaseSecond.TrySetResult(); }
+            await Cleanup(runtime, console, file);
+            Require(frozen == timeouts.ToJsonString());
+            JsonObject report = Common(mode); report["phases"] = phases; report["timeouts"] = timeouts; report["results"] = results;
+            report["cancelled"] = 32 + fileCancelled; report["immutableAfterIo"] = true; report["laterAccepted"] = laterAccepted;
+            report["console"] = console.Report(); report["file"] = file.Report(); report["timers"] = clock.Report(); report["diagnostics"] = Diagnostics(runtime); return report;
+        }
+        finally { await Cleanup(runtime, console, file); foreach (CancellationTokenSource source in sources) { source.Dispose(); } }
+        JsonObject Phase(string label) => new() { ["label"] = label, ["console"] = QueueGauge(runtime.QueuedOutputs!.Console!), ["file"] = QueueGauge(runtime.QueuedOutputs.File!), ["timers"] = clock.Active, ["dueTicks"] = new JsonArray(clock.Due.Select(d => (JsonNode)JsonValue.Create(Number(d))!).ToArray()) };
+    }
+    private static async Task<JsonObject> DeadlineRaceAsync(string mode)
+    {
+        var observations = new JsonArray();
+        for (int iteration = 0; iteration < 32; iteration++)
+        {
+            bool cancel = iteration % 2 == 0; var clock = new Clock(); using var writer = new Writer(); using var caller = new CancellationTokenSource();
+            CoreLogRuntime runtime = Runtime(clock, Options("unused"), writer); CoreLogger logger = runtime.CreateLogger("FlushStress");
+            using var releaseCancellation = new ManualResetEventSlim(); var enteredCancellation = Signal(); int guardExpired = 0;
+            Task? tick = null; Task<LogFlushResult>? wait = null;
+            try
+            {
+                Accepted(logger.Write(CoreLogLevel.Information, Data("race." + iteration))); await writer.FirstWrite.Task.WaitAsync(Guard);
+                wait = runtime.FlushAsync(TimeSpan.FromSeconds(5), caller.Token);
+                object owner = clock.Owner;
+                var lifetime = (CancellationTokenSource)Field(owner, "lifetime")!;
+                // Installed after the real linked-token registration: LIFO blocks Cancel before caller notification.
+                using CancellationTokenRegistration hook = lifetime.Token.Register(() =>
+                {
+                    enteredCancellation.TrySetResult();
+                    if (!releaseCancellation.Wait(Guard)) { Interlocked.Exchange(ref guardExpired, 1); }
+                });
+                tick = Task.Run(() => clock.Advance(TimeSpan.FromSeconds(5)));
+                await enteredCancellation.Task.WaitAsync(Guard);
+                // Prove the hook is ahead of linked notification before either caller cancellation or I/O is released.
+                await Task.Delay(20);
+                Require(!clock.DisposalStarted.Task.IsCompleted && !wait.IsCompleted);
+                if (cancel) { caller.Cancel(); } else { writer.ReleaseFirst.TrySetResult(); }
+                await clock.DisposalStarted.Task.WaitAsync(Guard);
+                Require(!wait.IsCompleted && clock.ActiveCallbacks == 1 && clock.PendingJoins == 1 && lifetime.IsCancellationRequested);
+                _ = lifetime.Token; // This throws if the owned source was disposed before callback join.
+                try { await wait.WaitAsync(TimeSpan.FromMilliseconds(20)); throw new InvalidOperationException("Callback join returned early."); }
+                catch (TimeoutException) { }
+                JsonObject during = clock.Report();
+                releaseCancellation.Set(); await tick.WaitAsync(Guard);
+                JsonObject? result = null;
+                if (cancel) { await Cancelled(wait, caller.Token); }
+                else
+                {
+                    LogFlushResult timeout = await wait.WaitAsync(Guard);
+                    Require(timeout.Completion == LogCompletion.TimedOut && !timeout.Succeeded && !timeout.LossObserved);
+                    Drain(timeout, 1, 0, 1, "Pending", false); result = Result(timeout);
+                }
+                Require(guardExpired == 0);
+                writer.ReleaseAll(); await Cleanup(runtime, writer);
+                Require(clock.Active == 0 && clock.ActiveCallbacks == 0 && clock.PendingJoins == 0 && clock.Created == 1 && clock.Disposed == 1);
+                bool disposed = false; try { _ = lifetime.Token; } catch (ObjectDisposedException) { disposed = true; }
+                Require(disposed);
+                observations.Add(new JsonObject
+                {
+                    ["iteration"] = iteration,
+                    ["cancelled"] = cancel,
+                    ["during"] = during,
+                    ["result"] = result,
+                    ["timers"] = clock.Report(),
+                    ["notificationHeldBeforeCompletion"] = true,
+                    ["sourceReadableDuringJoin"] = true,
+                    ["sourceDisposedAfterJoin"] = disposed,
+                    ["writer"] = writer.Report(),
+                    ["diagnostics"] = Diagnostics(runtime)
+                });
+            }
+            finally
+            {
+                releaseCancellation.Set(); caller.Cancel(); writer.ReleaseAll();
+                if (tick is not null) { await tick.WaitAsync(Guard); }
+                if (wait is not null) { try { await wait.WaitAsync(Guard); } catch (OperationCanceledException) { } }
+                await Cleanup(runtime, writer);
+            }
+        }
+        JsonObject report = Common(mode); report["observations"] = observations; return report;
+    }
+}
+
+END FILE
+
+FILE implementations/csharp/tests/fixtures/DiscoveryHost/FlushStressSupport.cs SHA256 35dd32d11b43343d4d410b11d7b9c8ab02f86f161fe0267ace6cf07d5946e8db
+using System.Collections;
+using System.Globalization;
+using System.Reflection;
+using System.Runtime.InteropServices;
+using System.Security.Cryptography;
+using System.Text.Json.Nodes;
+using CIS.Logging;
+using CIS.Logging.Runtime;
+
+namespace CIS.Tests.DiscoveryFixture;
+
+internal static class FlushStressSupport
+{
+    internal static readonly TimeSpan Guard = TimeSpan.FromSeconds(20);
+    internal static TaskCompletionSource Signal() => new(TaskCreationOptions.RunContinuationsAsynchronously);
+    internal static void Require([System.Diagnostics.CodeAnalysis.DoesNotReturnIf(false)] bool value) { if (!value) { throw new InvalidOperationException("Flush stress invariant failed."); } }
+    internal static async Task UntilAsync(Func<bool> predicate)
+    {
+        using var guard = new CancellationTokenSource(Guard);
+        while (!predicate()) { await Task.Delay(1, guard.Token); }
+    }
+    internal static string Number(long n) => n.ToString(CultureInfo.InvariantCulture);
+    internal static void Accepted(LogWriteResult result) => Require(result.Outcome == LogWriteOutcome.Accepted);
+    internal static LogEventData Data(string name) => FlushResultFixture.Data(name);
+    internal static JsonObject Result(LogFlushResult result) => FlushResultFixture.Serialize(result);
+    internal static JsonObject Common(string mode) => new()
+    {
+        ["mode"] = mode,
+        ["pid"] = Environment.ProcessId,
+        ["runtime"] = RuntimeInformation.FrameworkDescription,
+        ["os"] = OperatingSystem.IsWindows() ? "windows" : "linux",
+        ["coreSha256"] = Hash(typeof(CoreLogRuntime).Assembly.Location),
+        ["fixtureSha256"] = Hash(typeof(FlushStressSupport).Assembly.Location)
+    };
+    private static string Hash(string path) => Convert.ToHexStringLower(SHA256.HashData(File.ReadAllBytes(path)));
+    internal static OutputFlushRegistration[] Registrations(OutputEventQueue queue)
+    {
+        object gate = Field(queue, "admissionGate")!;
+        lock (gate) { return ((IDictionary)Field(queue, "flushRequests")!).Values.Cast<OutputFlushRegistration>().ToArray(); }
+    }
+    internal static Task? Progress(OutputEventQueue queue)
+    {
+        object gate = Field(queue, "admissionGate")!;
+        lock (gate) { return (Field(queue, "dispositionChanged") as TaskCompletionSource)?.Task; }
+    }
+    internal static object? Field(object instance, string name) => (instance.GetType().GetField(name, BindingFlags.Instance | BindingFlags.NonPublic)
+        ?? throw new InvalidOperationException("Pinned inspection field unavailable: " + name)).GetValue(instance);
+    internal static JsonObject QueueGauge(OutputEventQueue queue)
+    {
+        OutputFlushRegistration[] controls = Registrations(queue);
+        return new JsonObject
+        {
+            ["controls"] = controls.Length,
+            ["attached"] = controls.Sum(c => FlushCoordinationFixture.Continuations(c.WriterFlushCompletion)),
+            ["slots"] = controls.Sum(c => FlushCoordinationFixture.ContinuationSlots(c.WriterFlushCompletion)),
+            ["buffered"] = queue.BufferedCount,
+            ["targets"] = new JsonArray(controls.Select(c => (JsonNode)JsonValue.Create(Number(c.AcceptedSequenceBoundary))!).ToArray())
+        };
+    }
+    internal static JsonArray Diagnostics(CoreLogRuntime runtime) => new(runtime.GetDiagnostics().Outputs.Select(output => (JsonNode)new JsonObject
+    {
+        ["name"] = output.OutputName,
+        ["accepted"] = Number(output.Accepted),
+        ["written"] = Number(output.Written),
+        ["failed"] = Number(output.Failed),
+        ["abandoned"] = Number(output.Abandoned),
+        ["pending"] = Number(output.Pending),
+        ["full"] = Number(output.QueueFull),
+        ["unavailable"] = Number(output.Unavailable),
+        ["filtered"] = Number(output.Filtered),
+        ["fault"] = output.LastFaultCode
+    }).ToArray());
+    internal sealed class Writer(bool holdFirstWrite = true, bool holdFirstFlush = false, bool holdSecondWrite = false, bool failFirstFlush = false) : IDisposable
+    {
+        internal readonly TaskCompletionSource FirstWrite = Signal(), SecondWrite = Signal(), FirstFlush = Signal(),
+            ReleaseFirst = Signal(), ReleaseSecond = Signal(), ReleaseFlush = Signal();
+        internal readonly MemoryStream Bytes = new();
+        internal readonly List<string> Order = [];
+        private int active;
+        private long written;
+        internal int Maximum, Writes, Flushes;
+        internal async ValueTask WriteAsync(AdmittedEvent item)
+        {
+            OutputQueueFixture.RecordMaximum(ref Maximum, Interlocked.Increment(ref active));
+            try
+            {
+                int attempt = ++Writes;
+                if (attempt == 1) { FirstWrite.TrySetResult(); if (holdFirstWrite) { await ReleaseFirst.Task; } }
+                if (attempt == 2) { SecondWrite.TrySetResult(); if (holdSecondWrite) { await ReleaseSecond.Task; } }
+                await Bytes.WriteAsync(item.Event.JsonLine); written = item.AcceptedSequence;
+                Order.Add("write." + Number(written));
+            }
+            finally { Interlocked.Decrement(ref active); }
+        }
+        internal async ValueTask FlushAsync()
+        {
+            OutputQueueFixture.RecordMaximum(ref Maximum, Interlocked.Increment(ref active));
+            try
+            {
+                if (++Flushes == 1)
+                {
+                    FirstFlush.TrySetResult(); if (holdFirstFlush) { await ReleaseFlush.Task; }
+                    if (failFirstFlush) { throw new IOException("private controlled flush failure"); }
+                }
+                await Bytes.FlushAsync(); Order.Add("flush." + Number(written));
+            }
+            finally { Interlocked.Decrement(ref active); }
+        }
+        internal JsonObject Report() => new()
+        {
+            ["maximumIo"] = Maximum,
+            ["writes"] = Writes,
+            ["flushes"] = Flushes,
+            ["bytes"] = Convert.ToBase64String(Bytes.ToArray()),
+            ["order"] = new JsonArray(Order.Select(x => (JsonNode)JsonValue.Create(x)!).ToArray())
+        };
+        internal void ReleaseAll() { ReleaseFirst.TrySetResult(); ReleaseSecond.TrySetResult(); ReleaseFlush.TrySetResult(); }
+        public void Dispose() { ReleaseAll(); Bytes.Dispose(); }
+    }
+    // Nonshipping deterministic clock: real Core timer callbacks, one-shot arms and asynchronous callback joins.
+    internal sealed class Clock : TimeProvider
+    {
+        [ThreadStatic] internal static string? CallerKey;
+        private readonly object gate = new();
+        private readonly List<Timer> timers = [];
+        private long ticks;
+        private DateTimeOffset utc = new(2026, 10, 13, 19, 20, 21, TimeSpan.Zero);
+        internal int Created, Disposed, Fires, MaximumActive, ActiveCallbacks, PendingJoins;
+        internal bool SampleOwners;
+        private int sampledCalls;
+        internal readonly List<WeakReference> Samples = [];
+        internal readonly List<JsonObject> Captures = [];
+        internal readonly TaskCompletionSource DisposalStarted = Signal();
+        public override long TimestampFrequency => TimeSpan.TicksPerSecond;
+        public override long GetTimestamp() { lock (gate) { return ticks; } }
+        public override DateTimeOffset GetUtcNow() { lock (gate) { return utc; } }
+        internal void ShiftUtc(int years) { lock (gate) { utc = utc.AddYears(years); } }
+        internal int Active { get { lock (gate) { return timers.Count; } } }
+        internal object Owner { get { lock (gate) { return timers.Single().State!; } } }
+        internal long[] Due { get { lock (gate) { return timers.Select(t => t.Due).Order().ToArray(); } } }
+        public override ITimer CreateTimer(TimerCallback callback, object? state, TimeSpan dueTime, TimeSpan period)
+        {
+            var timer = new Timer(this, callback, state);
+            if (CallerKey is { } key)
+            {
+                var observe = (Func<LogFlushResult>)Field(state!, "observe")!;
+                JsonObject initial = Result(observe()); initial["caller"] = key;
+                lock (gate) { Captures.Add(initial); }
+            }
+            lock (gate)
+            {
+                timers.Add(timer); Created++; MaximumActive = Math.Max(MaximumActive, timers.Count);
+                if (SampleOwners && sampledCalls++ % 1000 is 0 or 1) { Samples.Add(new WeakReference(state)); }
+            }
+            timer.Change(dueTime, period); return timer;
+        }
+        internal void Advance(TimeSpan elapsed, bool early = false)
+        {
+            (Timer timer, object? state)[] ready;
+            lock (gate)
+            {
+                ticks += elapsed.Ticks;
+                ready = timers.Where(t => early || t.Due <= ticks).Select(t => (t, t.State)).ToArray();
+                foreach ((Timer timer, _) in ready) { timer.Due = long.MaxValue; timer.Running++; ActiveCallbacks++; Fires++; }
+            }
+            foreach ((Timer timer, object? state) in ready)
+            {
+                try { timer.Callback(state); }
+                finally
+                {
+                    lock (gate)
+                    {
+                        timer.Running--; ActiveCallbacks--;
+                        if (timer.Disposed && timer.Running == 0) { timer.Join.TrySetResult(); }
+                    }
+                }
+            }
+        }
+        internal JsonObject Report() { lock (gate) { return new JsonObject { ["created"] = Created, ["disposed"] = Disposed, ["fires"] = Fires, ["active"] = timers.Count, ["maximumActive"] = MaximumActive, ["callbacks"] = ActiveCallbacks, ["pendingJoins"] = PendingJoins, ["dueTicks"] = new JsonArray(timers.Select(t => t.Due).Order().Select(d => (JsonNode)JsonValue.Create(Number(d))!).ToArray()) }; } }
+        private sealed class Timer(Clock clock, TimerCallback callback, object? state) : ITimer
+        {
+            internal readonly TimerCallback Callback = callback;
+            internal object? State = state;
+            internal long Due = long.MaxValue;
+            internal int Running;
+            internal bool Disposed;
+            internal readonly TaskCompletionSource Join = Signal();
+            public bool Change(TimeSpan dueTime, TimeSpan period)
+            {
+                Require(period == Timeout.InfiniteTimeSpan);
+                lock (clock.gate)
+                {
+                    if (Disposed) { return false; }
+                    Due = dueTime == Timeout.InfiniteTimeSpan ? long.MaxValue : clock.ticks + dueTime.Ticks; return true;
+                }
+            }
+            private void BeginDispose()
+            {
+                if (Disposed) { return; }
+                Disposed = true; clock.timers.Remove(this); clock.Disposed++; State = null;
+                if (Running == 0) { Join.TrySetResult(); }
+            }
+            public void Dispose() { lock (clock.gate) { BeginDispose(); } }
+            public async ValueTask DisposeAsync()
+            {
+                bool pending;
+                lock (clock.gate)
+                {
+                    BeginDispose(); pending = !Join.Task.IsCompleted;
+                    if (pending) { clock.PendingJoins++; }
+                    clock.DisposalStarted.TrySetResult();
+                }
+                try { await Join.Task.ConfigureAwait(false); }
+                finally { if (pending) { lock (clock.gate) { clock.PendingJoins--; } } }
+            }
+        }
+    }
+    internal static async Task Cleanup(CoreLogRuntime runtime, params Writer[] writers)
+    {
+        foreach (Writer writer in writers) { writer.ReleaseAll(); }
+        runtime.CloseAdmission();
+        try { await runtime.QueuedOutputs!.Completion.WaitAsync(Guard); } catch (IOException) { }
+    }
+}
+
+END FILE
+
+FILE implementations/csharp/tests/fixtures/DiscoveryHost/StopStartFixture.cs SHA256 ccb42754b2c6b9c9162e0567d96b3e2ba2c8b039b945a745c603445e46b70fe3
+using System.Text.Json.Nodes;
+using CIS.Logging;
+using static CIS.Tests.DiscoveryFixture.FlushStressSupport;
+namespace CIS.Tests.DiscoveryFixture;
+
+internal static class StopStartFixture
+{
+    internal static readonly string[] Modes = ["empty", "normal", "dual", "configured-default", "configured-min", "configured-max", "configured-below", "configured-above", "env", "shared", "pre-cancelled", "blocked-write", "blocked-flush", "clock-correction", "late-facts", "closed-writes"];
+    internal static int Run(string mode, string root)
+    { Console.WriteLine(ExecuteAsync(mode).GetAwaiter().GetResult().ToJsonString()); return 0; }
+    private static JsonObject Result(LogStopResult result) => new()
+    {
+        ["completion"] = result.Completion.ToString(),
+        ["succeeded"] = result.Succeeded,
+        ["loss"] = result.LossObserved,
+        ["captured"] = result.BoundaryCapturedAtUtc.ToString("O", System.Globalization.CultureInfo.InvariantCulture),
+        ["observed"] = result.ObservedAtUtc.ToString("O", System.Globalization.CultureInfo.InvariantCulture),
+        ["invalid"] = Number(result.InvalidEventCount),
+        ["truncated"] = Number(result.TruncatedEventCount),
+        ["outputs"] = new JsonArray(result.Outputs.Select(o => (JsonNode)new JsonObject
+        {
+            ["name"] = o.OutputName,
+            ["boundary"] = Number(o.AcceptedSequenceBoundary),
+            ["written"] = Number(o.Written),
+            ["failed"] = Number(o.Failed),
+            ["abandoned"] = Number(o.Abandoned),
+            ["pending"] = Number(o.Pending),
+            ["flush"] = o.WriterFlushStatus.ToString(),
+            ["filtered"] = Number(o.Rejections.Filtered),
+            ["full"] = Number(o.Rejections.QueueFull),
+            ["unavailable"] = Number(o.Rejections.Unavailable)
+        }).ToArray())
+    };
+    internal static async Task<JsonObject> ExecuteAsync(string mode)
+    {
+        Require(Modes.Contains(mode, StringComparer.Ordinal));
+        bool empty = mode == "empty", dual = mode == "dual", invalid = mode is "configured-below" or "configured-above";
+        bool success = empty || mode is "normal" or "dual" or "closed-writes", flush = mode == "blocked-flush", cancelled = mode == "pre-cancelled";
+        int milliseconds = mode == "configured-min" ? 1 : mode == "configured-max" ? 300000 : mode == "configured-default" ? 5000 : 10;
+        var clock = new Clock(); using var writer = new Writer(holdFirstWrite: !success && !flush, holdFirstFlush: flush);
+        using var file = new Writer(holdFirstWrite: false);
+        var options = mode == "env" ? EnvironmentOptions.Logging : new LoggingOptions
+        {
+            ConsoleLevel = empty ? CoreLogLevel.None : CoreLogLevel.Information,
+            FileLevel = dual ? CoreLogLevel.Warning : CoreLogLevel.None,
+            FilePath = dual ? "controlled" : null,
+            QueueCapacity = 3,
+            MaxEntryBytes = 16384,
+            ShutdownTimeoutMilliseconds = milliseconds
+        };
+        if (mode == "configured-default") { options = new LoggingOptions { ConsoleLevel = CoreLogLevel.Information, FileLevel = CoreLogLevel.None, QueueCapacity = 3, MaxEntryBytes = 16384 }; }
+        if (mode == "env") { Require(options.ShutdownTimeoutMilliseconds == 250); milliseconds = options.ShutdownTimeoutMilliseconds; }
+        if (invalid)
+        {
+            options.ShutdownTimeoutMilliseconds = mode == "configured-below" ? 0 : 300001; int acquired = 0;
+            string? error = null;
+            try { CoreLogRuntime.CreateConfiguredQueued(ConsoleCompositionFixture.Metadata(), options, clock, acquireConsole: _ => { acquired++; return new MemoryStream(); }); }
+            catch (ArgumentOutOfRangeException caught) { error = caught.GetType().Name; }
+            Require(error == "ArgumentOutOfRangeException" && acquired == 0 && clock.Created == 0);
+            JsonObject bad = Common(mode); bad["error"] = error; bad["acquired"] = acquired; bad["timers"] = clock.Report(); return bad;
+        }
+        CoreLogRuntime runtime = CoreLogRuntime.CreateQueued(ConsoleCompositionFixture.Metadata(), options,
+            empty ? null : writer.WriteAsync, dual ? file.WriteAsync : null, clock,
+            consoleFlush: empty ? null : writer.FlushAsync, fileFlush: dual ? file.FlushAsync : null);
+        Task? lazy = null; var lazyEntered = Signal(); var lazyRelease = Signal();
+        try
+        {
+            Require(runtime.GetDiagnostics().LastStopResult is null);
+            CoreLogger logger = runtime.CreateLogger("StopStart");
+            if (mode == "late-facts")
+            {
+                Require(logger.Write(CoreLogLevel.Information, new LogEventData { EventName = "" }).Outcome == LogWriteOutcome.InvalidEvent);
+                lazy = Task.Run(() =>
+                {
+                    LogWriteResult late = logger.WriteLazy(CoreLogLevel.Information, () =>
+                    {
+                        lazyEntered.TrySetResult(); Require(lazyRelease.Task.Wait(Guard));
+                        return new LogEventData { EventName = "" };
+                    });
+                    Require(late.Outcome == LogWriteOutcome.InvalidEvent);
+                });
+                await lazyEntered.Task.WaitAsync(Guard);
+            }
+            if (!empty)
+            {
+                LogWriteResult write = logger.Write(CoreLogLevel.Information, Data("one"));
+                Require(write.Outcome == LogWriteOutcome.Accepted);
+                await writer.FirstWrite.Task.WaitAsync(Guard);
+                if (dual) { Accepted(logger.Write(CoreLogLevel.Warning, Data("both"))); }
+                if (flush) { await UntilAsync(() => runtime.QueuedOutputs!.Console!.CaptureAccounting().Written == 1); }
+            }
+            // Runtime creation freezes the budget before even the first stop caller.
+            options.ShutdownTimeoutMilliseconds = milliseconds == 1 ? 300000 : 1;
+            using var caller = new CancellationTokenSource(); if (cancelled) { caller.Cancel(); }
+            Task<LogStopResult> first;
+            var starters = new List<Task<LogStopResult>>();
+            if (mode == "shared")
+            {
+                await Task.WhenAll(Enumerable.Range(0, 32).Select(_ => Task.Run(() =>
+                {
+                    Task<LogStopResult> call = runtime.StopAsync(CancellationToken.None);
+                    lock (starters) { starters.Add(call); }
+                }))).WaitAsync(Guard);
+                first = starters[0]; Require(starters.All(t => ReferenceEquals(t, first)));
+            }
+            else { first = runtime.StopAsync(cancelled ? caller.Token : CancellationToken.None); }
+            Require(runtime.GetDiagnostics().AdmissionClosed);
+            bool tokenPreserved = false;
+            if (cancelled)
+            {
+                try { await first.WaitAsync(Guard); throw new InvalidOperationException("Cancelled stop succeeded."); }
+                catch (OperationCanceledException error) { Require(error.CancellationToken == caller.Token); tokenPreserved = true; }
+            }
+            Task<LogStopResult> shared = runtime.StopAsync(CancellationToken.None);
+            Require(cancelled || ReferenceEquals(first, shared));
+            Task<LogStopResult>[] joins = Enumerable.Range(0, 64).Select(_ => runtime.StopAsync(CancellationToken.None)).ToArray();
+            Require(joins.All(t => ReferenceEquals(t, shared)) && clock.Created == (empty ? 0 : 1));
+            options.ShutdownTimeoutMilliseconds = milliseconds == 1 ? 300000 : 1;
+            if (flush) { await writer.FirstFlush.Task.WaitAsync(Guard); }
+            if (lazy is not null)
+            {
+                lazyRelease.TrySetResult(); await lazy.WaitAsync(Guard);
+                Require(runtime.GetDiagnostics().InvalidEventCount == 2);
+            }
+            if (!success)
+            {
+                Require(!shared.IsCompleted && runtime.GetDiagnostics().LastStopResult is null);
+                clock.ShiftUtc(-20); clock.Advance(TimeSpan.FromMilliseconds(milliseconds) - TimeSpan.FromTicks(1)); Require(!shared.IsCompleted);
+                clock.ShiftUtc(40); clock.Advance(TimeSpan.FromTicks(1));
+            }
+            LogStopResult result = await shared.WaitAsync(Guard); JsonObject frozen = Result(result);
+            Require(result.Completion == (success ? LogCompletion.Completed : LogCompletion.TimedOut));
+            Require(ReferenceEquals(result, runtime.GetDiagnostics().LastStopResult));
+            Require(result.InvalidEventCount == (mode == "late-facts" ? 1 : 0));
+            int factories = 0;
+            foreach (CoreLogLevel level in new[] { CoreLogLevel.Information, CoreLogLevel.None })
+            { Require(logger.WriteLazy(level, () => { factories++; return Data("late"); }).Outcome == LogWriteOutcome.Stopped); }
+            Require(factories == 0);
+            writer.ReleaseAll(); await runtime.QueuedOutputs!.Completion.WaitAsync(Guard);
+            Require(Result(result).ToJsonString() == frozen.ToJsonString() && ReferenceEquals(result, await runtime.StopAsync(CancellationToken.None)));
+            await UntilAsync(() => clock.Active == 0);
+            JsonObject report = Common(mode); report["result"] = frozen; report["writer"] = writer.Report(); report["file"] = file.Report(); report["timers"] = clock.Report();
+            report["tokenPreserved"] = tokenPreserved; report["joinedCallers"] = joins.Length; report["concurrentStarters"] = starters.Count; report["configuredMilliseconds"] = milliseconds;
+            report["cachedIdentity"] = ReferenceEquals(result, runtime.GetDiagnostics().LastStopResult);
+            report["immutableAfterIo"] = Result(result).ToJsonString() == frozen.ToJsonString();
+            report["lateFactories"] = factories; report["diagnostics"] = Diagnostics(runtime);
+            report["liveInvalid"] = Number(runtime.GetDiagnostics().InvalidEventCount);
+            report["finalState"] = runtime.GetDiagnostics().State.ToString(); report["sharedWorkersJoined"] = runtime.QueuedOutputs.Completion.IsCompletedSuccessfully;
+            return report;
+        }
+        finally { lazyRelease.TrySetResult(); if (lazy is not null) { await lazy.WaitAsync(Guard); } await Cleanup(runtime, writer, file); }
+    }
+}
+
+END FILE
+
+FILE implementations/csharp/tests/fixtures/DiscoveryHost/StopJoinFixture.cs SHA256 0c6236ae67f8ecfef9a14d556d441470f653e2f52f3676aa8178889d92ea2ded
+using System.Text.Json.Nodes;
+using CIS.Logging;
+using static CIS.Tests.DiscoveryFixture.FlushStressSupport;
+
+namespace CIS.Tests.DiscoveryFixture;
+
+internal static class StopJoinFixture
+{
+    internal static readonly string[] Modes = ["empty", "dispose-first", "stop-first", "pre-cancelled", "cancel-later", "cancelled-joins", "deadline-joins", "after-completion-cancel"];
+    internal static int Run(string mode, string root)
+    {
+        _ = root; // This controlled fixture needs no filesystem destination.
+        Console.WriteLine(ExecuteAsync(mode).GetAwaiter().GetResult().ToJsonString()); return 0;
+    }
+    internal static async Task<JsonObject> ExecuteAsync(string mode)
+    {
+        Require(Modes.Contains(mode, StringComparer.Ordinal)); bool empty = mode == "empty", deadline = mode == "deadline-joins";
+        var clock = new FileTimerCoordinationFixture.Clock(); using var stream = new StopDrainFixture.HeldStream(true, false, false, false);
+        var options = new LoggingOptions { ConsoleLevel = empty ? CoreLogLevel.None : CoreLogLevel.Information, ConsoleFormat = LogOutputFormat.JsonLines, FileLevel = CoreLogLevel.None, QueueCapacity = 3, MaxEntryBytes = 16384, ShutdownTimeoutMilliseconds = 10 };
+        CoreLogRuntime runtime = CoreLogRuntime.CreateConfiguredQueued(ConsoleCompositionFixture.Metadata(), options, clock, _ => stream);
+        var callers = new List<CancellationTokenSource>(); int cancelled = 0; bool tokenIdentity = true;
+        JsonObject? preCancelledStart = null;
+        try
+        {
+            if (!empty) { Accepted(runtime.CreateLogger("Join").Write(CoreLogLevel.Information, Data("one"))); await stream.FirstWrite.Task.WaitAsync(Guard); }
+            Task? initialDisposal = mode is "dispose-first" or "empty" ? runtime.DisposeAsync().AsTask() : null;
+            if (mode == "pre-cancelled")
+            {
+                var caller = new CancellationTokenSource(); callers.Add(caller); caller.Cancel();
+                await Cancelled(runtime.StopAsync(caller.Token), caller.Token);
+                // Observe initiation before any uncancelled stop or disposal can start it instead.
+                CoreLogDiagnostics started = runtime.GetDiagnostics();
+                LogWriteOutcome stoppedWrite = runtime.CreateLogger("Join").Write(CoreLogLevel.Information, Data("after-cancelled-start")).Outcome;
+                preCancelledStart = new JsonObject
+                {
+                    ["admissionClosed"] = started.AdmissionClosed,
+                    ["shutdownStarted"] = started.ShutdownStartedAtUtc is not null,
+                    ["state"] = started.State.ToString(),
+                    ["writeOutcome"] = stoppedWrite.ToString(),
+                    ["deadlineCreated"] = clock.Created
+                };
+                Require(started.AdmissionClosed && started.ShutdownStartedAtUtc is not null && started.State == CoreLogState.Stopping && stoppedWrite == LogWriteOutcome.Stopped && clock.Created == 1);
+            }
+            Task<LogStopResult> shared = runtime.StopAsync(CancellationToken.None);
+            if (mode == "cancel-later")
+            {
+                var caller = new CancellationTokenSource(); callers.Add(caller);
+                Task<LogStopResult> wait = runtime.StopAsync(caller.Token); caller.Cancel(); await Cancelled(wait, caller.Token);
+            }
+            if (mode is "cancelled-joins" or "deadline-joins")
+            {
+                for (int i = 0; i < 64; i++)
+                {
+                    var caller = new CancellationTokenSource(); callers.Add(caller); Task<LogStopResult> wait = runtime.StopAsync(caller.Token);
+                    caller.Cancel(); await Cancelled(wait, caller.Token);
+                }
+            }
+            bool outputCancelledBeforeDeadline = stream.Token.IsCancellationRequested;
+            Require(!outputCancelledBeforeDeadline);
+            if (deadline) { clock.Advance(TimeSpan.FromMilliseconds(9)); Require(!shared.IsCompleted); }
+            Task[] disposals = Enumerable.Range(0, 64).Select(_ => runtime.DisposeAsync().AsTask()).ToArray();
+            Require(disposals.All(task => ReferenceEquals(task, shared)) && (initialDisposal is null || ReferenceEquals(initialDisposal, shared)));
+            if (deadline) { clock.Advance(TimeSpan.FromMilliseconds(1)); }
+            else { stream.ReleaseAll(); }
+            LogStopResult result = await shared.WaitAsync(Guard); await Task.WhenAll(disposals).WaitAsync(Guard);
+            bool pendingAtReturn = !runtime.QueuedOutputs!.Completion.IsCompleted;
+            bool outputCancelledAtReturn = stream.Token.IsCancellationRequested;
+            string frozen = Json(result).ToJsonString();
+            if (mode is "after-completion-cancel" or "empty")
+            {
+                var caller = new CancellationTokenSource(); callers.Add(caller); caller.Cancel(); await Cancelled(runtime.StopAsync(caller.Token), caller.Token);
+            }
+            stream.ReleaseAll(); await runtime.QueuedOutputs.Completion.WaitAsync(Guard); await UntilAsync(() => clock.Active == 0);
+            Require(Json(result).ToJsonString() == frozen && ReferenceEquals(result, runtime.GetDiagnostics().LastStopResult));
+            Require(ReferenceEquals(shared, runtime.DisposeAsync().AsTask()) && ReferenceEquals(result, await runtime.StopAsync(CancellationToken.None)));
+            JsonObject report = Common(mode); report["result"] = Json(result); report["stream"] = stream.Report(); report["live"] = Diagnostics(runtime); report["timers"] = clock.Report();
+            report["preCancelledStart"] = preCancelledStart;
+            report["cancelledWaiters"] = cancelled; report["tokenIdentity"] = tokenIdentity; report["disposeJoiners"] = disposals.Length;
+            report["sameTask"] = true; report["sameResult"] = true; report["immutable"] = true;
+            report["outputCancelledBeforeDeadline"] = outputCancelledBeforeDeadline; report["outputCancelledAtReturn"] = outputCancelledAtReturn;
+            report["pendingAtReturn"] = pendingAtReturn; report["finalState"] = runtime.GetDiagnostics().State.ToString();
+            return report;
+        }
+        finally
+        {
+            stream.ReleaseAll(); runtime.QueuedOutputs!.Complete(); await runtime.QueuedOutputs.Completion.WaitAsync(Guard);
+            foreach (CancellationTokenSource caller in callers) { caller.Dispose(); }
+        }
+        async Task Cancelled(Task<LogStopResult> wait, CancellationToken token)
+        {
+            try { await wait; throw new InvalidOperationException("Caller wait was not cancelled."); }
+            catch (OperationCanceledException error) { tokenIdentity &= error.CancellationToken == token; Require(tokenIdentity); cancelled++; }
+        }
+    }
+    internal static JsonObject Json(LogStopResult result) => new()
+    {
+        ["completion"] = result.Completion.ToString(),
+        ["succeeded"] = result.Succeeded,
+        ["loss"] = result.LossObserved,
+        ["captured"] = result.BoundaryCapturedAtUtc.ToString("O", System.Globalization.CultureInfo.InvariantCulture),
+        ["observed"] = result.ObservedAtUtc.ToString("O", System.Globalization.CultureInfo.InvariantCulture),
+        ["outputs"] = new JsonArray(result.Outputs.Select(o => (JsonNode)new JsonObject
+        {
+            ["name"] = o.OutputName,
+            ["boundary"] = Number(o.AcceptedSequenceBoundary),
+            ["written"] = Number(o.Written),
+            ["failed"] = Number(o.Failed),
+            ["abandoned"] = Number(o.Abandoned),
+            ["pending"] = Number(o.Pending),
+            ["flush"] = o.WriterFlushStatus.ToString()
+        }).ToArray())
+    };
+}
+
+END FILE
+
+FILE implementations/csharp/tests/fixtures/DiscoveryHost/OutputAccountingFixture.cs SHA256 0f332f56c641b4012ec346aa5d9209d29fa370317462d9e2d4e1b064d20bb9b6
+using System.Globalization;
+using System.Runtime.InteropServices;
+using System.Security.Cryptography;
+using System.Text.Json.Nodes;
+using CIS.Logging;
+using CIS.Logging.Runtime;
+
+namespace CIS.Tests.DiscoveryFixture;
+
+internal static class OutputAccountingFixture
+{
+    private static readonly TimeSpan Limit = TimeSpan.FromSeconds(10);
+    private sealed class Writer(bool fails)
+    {
+        internal readonly TaskCompletionSource FirstStarted = new(TaskCreationOptions.RunContinuationsAsynchronously);
+        internal readonly TaskCompletionSource SecondStarted = new(TaskCreationOptions.RunContinuationsAsynchronously);
+        internal readonly TaskCompletionSource FirstRelease = new(TaskCreationOptions.RunContinuationsAsynchronously);
+        internal readonly TaskCompletionSource RemainingRelease = new(TaskCreationOptions.RunContinuationsAsynchronously);
+        internal readonly IOException Error = new("controlled terminal writer failure");
+        internal readonly List<long> Attempted = [];
+        internal readonly List<long> Confirmed = [];
+        internal async ValueTask Write(AdmittedEvent item)
+        {
+            Attempted.Add(item.AcceptedSequence);
+            if (Attempted.Count == 1)
+            {
+                FirstStarted.TrySetResult(); await FirstRelease.Task;
+                if (fails) { throw Error; }
+            }
+            else if (Attempted.Count == 2) { SecondStarted.TrySetResult(); await RemainingRelease.Task; }
+            Confirmed.Add(item.AcceptedSequence);
+        }
+        internal void ReleaseAll() { FirstRelease.TrySetResult(); RemainingRelease.TrySetResult(); }
+    }
+    internal static async Task<JsonObject> ExecuteAsync(JsonObject row)
+    {
+        bool consoleEnabled = row["consoleEnabled"]!.GetValue<bool>(), fileEnabled = row["fileEnabled"]!.GetValue<bool>();
+        bool consoleFails = row["consoleFails"]!.GetValue<bool>(), fileFails = row["fileFails"]!.GetValue<bool>();
+        var console = new Writer(consoleFails); var file = new Writer(fileFails);
+        var options = new LoggingOptions
+        {
+            QueueCapacity = 2,
+            ConsoleLevel = consoleEnabled ? Enum.Parse<CoreLogLevel>(row["consoleLevel"]!.GetValue<string>()) : CoreLogLevel.None,
+            FileLevel = fileEnabled ? Enum.Parse<CoreLogLevel>(row["fileLevel"]!.GetValue<string>()) : CoreLogLevel.None,
+            FilePath = fileEnabled ? "control.jsonl" : null
+        };
+        CoreLogRuntime runtime = CoreLogRuntime.CreateQueued(EventQualificationFixture.Metadata().CaptureMetadata(), options,
+            consoleEnabled ? console.Write : null, fileEnabled ? file.Write : null);
+        OutputQueues queues = runtime.QueuedOutputs!; CoreLogger logger = runtime.CreateLogger("Accounting");
+        var outputs = new[] { (Name: "console", Queue: queues.Console, Writer: console, Fails: consoleFails), (Name: "file", Queue: queues.File, Writer: file, Fails: fileFails) }.Where(item => item.Queue is not null).ToArray();
+        var checkpoints = new List<(string Phase, long Invalid, (string Name, OutputAccounting Counts)[] Counts)>();
+        var results = new JsonArray(); int factoryCalls = 0, originalFaults = 0; bool originalFactoryError = false;
+        var factoryError = new InvalidOperationException("original factory exception");
+        void Capture(string phase) => checkpoints.Add((phase, runtime.InvalidEventCount, outputs.Select(item => (item.Name, item.Queue!.CaptureAccounting())).ToArray()));
+        void Result(string name, LogWriteResult result) => results.Add(new JsonObject
+        {
+            ["call"] = name,
+            ["outcome"] = result.Outcome.ToString(),
+            ["outputs"] = new JsonArray(result.Outputs.Select(item => (JsonNode)new JsonObject { ["name"] = item.OutputName, ["status"] = item.Status.ToString(), ["ticket"] = item.AcceptedSequence }).ToArray())
+        });
+        LogEventData Data(string label) => new() { EventName = "accounting.event", Message = label };
+        async Task Observe(OutputEventQueue queue, Writer writer, bool fails)
+        {
+            try { await queue.Completion.WaitAsync(Limit); if (fails) { throw new InvalidDataException("Expected original terminal fault."); } }
+            catch (IOException error) when (fails && ReferenceEquals(error, writer.Error)) { originalFaults++; }
+        }
+        try
+        {
+            Capture("initial"); Result("seed", logger.Write(CoreLogLevel.Warning, Data("seed")));
+            await Task.WhenAll(outputs.Select(item => item.Writer.FirstStarted.Task)).WaitAsync(Limit);
+            Result("none", logger.WriteLazy(CoreLogLevel.None, () => throw new InvalidDataException("None factory ran.")));
+            Result("low", logger.Write(CoreLogLevel.Information, Data("low")));
+            Result("invalid", logger.Write(CoreLogLevel.Warning, new LogEventData { EventName = "", Message = "invalid" }));
+            Result("null-factory", logger.WriteLazy(CoreLogLevel.Warning, () => { factoryCalls++; return null!; }));
+            try { logger.WriteLazy(CoreLogLevel.Warning, () => { factoryCalls++; throw factoryError; }); }
+            catch (InvalidOperationException error) when (ReferenceEquals(error, factoryError)) { originalFactoryError = true; }
+            Result("queued-one", logger.Write(CoreLogLevel.Warning, Data("queued-one")));
+            Result("queued-two", logger.Write(CoreLogLevel.Warning, Data("queued-two")));
+            Result("full", logger.Write(CoreLogLevel.Warning, Data("full"))); Capture("blocked");
+            foreach (var item in outputs) { item.Writer.FirstRelease.TrySetResult(); }
+            foreach (var item in outputs)
+            {
+                if (item.Fails) { await Observe(item.Queue!, item.Writer, true); }
+                else { await item.Writer.SecondStarted.Task.WaitAsync(Limit); }
+            }
+            Capture("progress");
+            Result("next", logger.WriteLazy(CoreLogLevel.Warning, () => { factoryCalls++; return Data("next"); })); Capture("next");
+            runtime.CloseAdmission();
+            Result("stopped", logger.WriteLazy(CoreLogLevel.Warning, () => throw new InvalidDataException("Stopped factory ran."))); Capture("closed");
+            foreach (var item in outputs) { item.Writer.RemainingRelease.TrySetResult(); }
+            foreach (var item in outputs.Where(item => !item.Fails)) { await Observe(item.Queue!, item.Writer, false); }
+            Capture("final");
+            var projected = new JsonArray(checkpoints.Select(point =>
+            {
+                var observations = new JsonObject(); foreach (var item in point.Counts) { observations[item.Name] = Project(item.Counts); }
+                return (JsonNode)new JsonObject { ["phase"] = point.Phase, ["invalid"] = Number(point.Invalid), ["outputs"] = observations };
+            }).ToArray());
+            var writers = new JsonObject(); foreach (var item in outputs)
+            {
+                writers[item.Name] = new JsonObject { ["attempted"] = new JsonArray(item.Writer.Attempted.Select(value => (JsonNode)JsonValue.Create(value)!).ToArray()), ["confirmed"] = new JsonArray(item.Writer.Confirmed.Select(value => (JsonNode)JsonValue.Create(value)!).ToArray()) };
+            }
+            return new JsonObject { ["caseId"] = row["id"]!.DeepClone(), ["checkpoints"] = projected, ["results"] = results, ["writers"] = writers, ["factoryCalls"] = factoryCalls, ["originalFactoryError"] = originalFactoryError, ["originalFaults"] = originalFaults };
+        }
+        finally
+        {
+            console.ReleaseAll(); file.ReleaseAll(); runtime.CloseAdmission();
+            try { await queues.Completion.WaitAsync(Limit); }
+            catch (IOException error) when (ReferenceEquals(error, console.Error) || ReferenceEquals(error, file.Error)) { }
+        }
+    }
+    private static string Number(long value) => value.ToString(CultureInfo.InvariantCulture);
+    private static JsonObject Project(OutputAccounting value) => new()
+    {
+        ["filtered"] = Number(value.Filtered),
+        ["attempts"] = Number(value.AdmissionAttempts),
+        ["accepted"] = Number(value.Accepted),
+        ["queueFull"] = Number(value.QueueFull),
+        ["unavailable"] = Number(value.Unavailable),
+        ["rejected"] = Number(value.Rejected),
+        ["written"] = Number(value.Written),
+        ["failed"] = Number(value.Failed),
+        ["abandoned"] = Number(value.Abandoned),
+        ["pending"] = Number(value.Pending),
+        ["inFlight"] = Number(value.InFlight)
+    };
+    internal static int Run(string path, string id)
+    {
+        JsonObject row = JsonNode.Parse(File.ReadAllText(path))!["cases"]!.AsArray().Single(item => item!["id"]!.GetValue<string>() == id)!.AsObject();
+        JsonObject actual = ExecuteAsync(row).GetAwaiter().GetResult(); OutputAccountingExpectations.Validate(row, actual);
+        actual["observed"] = new JsonObject { ["runtimeDescription"] = RuntimeInformation.FrameworkDescription, ["operatingSystem"] = OperatingSystem.IsWindows() ? "windows" : "linux", ["fixtureSha256"] = Hash(typeof(OutputAccountingFixture).Assembly.Location), ["coreSha256"] = Hash(typeof(CoreLogRuntime).Assembly.Location), ["inputsSha256"] = Hash(path) };
+        Console.WriteLine(actual.ToJsonString()); return 0;
+    }
+    private static string Hash(string path) => Convert.ToHexStringLower(SHA256.HashData(File.ReadAllBytes(path)));
+}
+
+END FILE
+
+FILE planning/logging/evidence/wp07-s01-t03/pending/Release/summary.json SHA256 79f1e36bb1a29a383165703138b18042b3fc6243a56fc6ead758de35d100713f
+{
+  "schema": "cis.verification/v1",
+  "profile": "Release",
+  "lane": "windows-x64",
+  "runId": "200b8384bf594911b087aa2b42c54ede",
+  "startedUtc": "2026-10-15T02:50:07.2646839Z",
+  "finishedUtc": "2026-10-15T02:51:01.3334859Z",
+  "exitCode": 2,
+  "source": {
+    "commit": "90929646abf6632ddaedfe7001fe73d8dc9de4a0",
+    "inputInventory": {
+      "path": "source-inputs.json",
+      "sha256": "f9ce2b44f0ea61ac58fb92f82b31394f4fcd9f43005b12c078c8381dd4216fef",
+      "schema": "cis.source-inputs/v1"
+    }
+  },
+  "families": [
+    {
+      "id": "unit",
+      "status": "NotRun",
+      "reason": "Full shipping scope and complete logging cases remain pending.",
+      "scope": "foundation-only",
+      "discovery": {
+        "path": "families/unit/discovery.json",
+        "sha256": "868d69a244ac0bc9e8f826f7ee92df0a987f05dd0b90fc38c84db37e1baa74ac",
+        "schema": "cis.discovery/v1"
+      },
+      "execution": {
+        "path": "families/unit/execution.json",
+        "sha256": "4978f6a97379fecb01adb75f45a86343c6e43250aeca6e56002e8bc57e08f42d",
+        "schema": "cis.execution/v1"
+      },
+      "report": null
+    },
+    {
+      "id": "integration",
+      "status": "NotRun",
+      "reason": "Discovery/configuration child processes execute; full public startup/logging integration and release qualification remain pending.",
+      "scope": "foundation-only",
+      "discovery": {
+        "path": "families/integration/discovery.json",
+        "sha256": "1e4796ee2040f9f75bb6f036fdc1970f4fdd849650d67f6d3951aa216b70a235",
+        "schema": "cis.discovery/v1"
+      },
+      "execution": {
+        "path": "families/integration/execution.json",
+        "sha256": "467298fcb2e763ef1f70307e1deeff68ea81965f59b5ce9e6aa2804857d91340",
+        "schema": "cis.execution/v1"
+      },
+      "report": null
+    },
+    {
+      "id": "mutation",
+      "status": "NotRun",
+      "reason": "Full shipping scope and complete logging cases remain pending.",
+      "scope": "foundation-only",
+      "discovery": {
+        "path": "families/mutation/discovery.json",
+        "sha256": "6ca1a0272d4e7204515333d8b5af5bb42fd67cd9a4ea53276d3b7c48779a33ed",
+        "schema": "cis.discovery/v1"
+      },
+      "execution": {
+        "path": "families/mutation/execution.json",
+        "sha256": "1ce1167c84d4c7b902f69be5c426a726efc3c75cc90dbf2be31827c603984dbd",
+        "schema": "cis.execution/v1"
+      },
+      "report": null
+    },
+    {
+      "id": "architecture",
+      "status": "NotRun",
+      "reason": "Full shipping scope and complete logging cases remain pending.",
+      "scope": "foundation-only",
+      "discovery": {
+        "path": "families/architecture/discovery.json",
+        "sha256": "ea40203d9fa7ca04740f913a510367de51e8b66b495bc38cb30f30a9f0bf6792",
+        "schema": "cis.discovery/v1"
+      },
+      "execution": {
+        "path": "families/architecture/execution.json",
+        "sha256": "bed76673b4a5cb7e09786766c569d47da950ce7e8c62f966e0595b890be59620",
+        "schema": "cis.execution/v1"
+      },
+      "report": null
+    },
+    {
+      "id": "compatibility",
+      "status": "NotRun",
+      "reason": "Full shipping scope and complete logging cases remain pending.",
+      "scope": "foundation-only",
+      "discovery": {
+        "path": "families/compatibility/discovery.json",
+        "sha256": "f74d37a006bacedeb9b8339951b17a41fa86a969c120b0658b8eeffa94f413be",
+        "schema": "cis.discovery/v1"
+      },
+      "execution": {
+        "path": "families/compatibility/execution.json",
+        "sha256": "4aca84b5c51f80f4a40b4c9faee10c6e88ee3f99af3ff892c489a45f54c57343",
+        "schema": "cis.execution/v1"
+      },
+      "report": null
+    },
+    {
+      "id": "business",
+      "status": "NotRun",
+      "reason": "Fourteen logging functional business cases execute from source-reference/public-runtime or declared controlled seams. Full exact-candidate package and cumulative compatibility business qualification remains required.",
+      "scope": "foundation-only",
+      "discovery": {
+        "path": "families/business/discovery.json",
+        "sha256": "cf031deaf0812902f717a516174296c4cd85037d168b2fd0ca2ac535bd81b7c5",
+        "schema": "cis.discovery/v1"
+      },
+      "execution": {
+        "path": "families/business/execution.json",
+        "sha256": "fccd56a4d8423221c9631ba6a20ce4b14bab57e9f26bacaa0ce91a862cbda159",
+        "schema": "cis.execution/v1"
+      },
+      "report": null
+    }
+  ],
+  "stages": [],
+  "issues": [
+    {
+      "code": "MissingFamilyExecution",
+      "detail": "unit: Full shipping scope and complete logging cases remain pending."
+    },
+    {
+      "code": "MissingFamilyExecution",
+      "detail": "integration: Discovery/configuration child processes execute; full public startup/logging integration and release qualification remain pending."
+    },
+    {
+      "code": "MissingFamilyExecution",
+      "detail": "mutation: Full shipping scope and complete logging cases remain pending."
+    },
+    {
+      "code": "MissingFamilyExecution",
+      "detail": "architecture: Full shipping scope and complete logging cases remain pending."
+    },
+    {
+      "code": "MissingFamilyExecution",
+      "detail": "compatibility: Full shipping scope and complete logging cases remain pending."
+    },
+    {
+      "code": "MissingFamilyExecution",
+      "detail": "business: Fourteen logging functional business cases execute from source-reference/public-runtime or declared controlled seams. Full exact-candidate package and cumulative compatibility business qualification remains required."
+    },
+    {
+      "code": "MissingRequiredCase",
+      "detail": "UT-CONFIG-PRECEDENCE"
+    },
+    {
+      "code": "MissingRequiredCase",
+      "detail": "UT-CONFIG-BOUNDS"
+    },
+    {
+      "code": "MissingRequiredCase",
+      "detail": "UT-IDENTITY"
+    },
+    {
+      "code": "MissingRequiredCase",
+      "detail": "UT-IMMUTABILITY"
+    },
+    {
+      "code": "MissingRequiredCase",
+      "detail": "UT-FILTERING"
+    },
+    {
+      "code": "MissingRequiredCase",
+      "detail": "UT-DEFERRED"
+    },
+    {
+      "code": "MissingRequiredCase",
+      "detail": "UT-SERIALIZATION"
+    },
+    {
+      "code": "MissingRequiredCase",
+      "detail": "UT-CONTEXT"
+    },
+    {
+      "code": "MissingRequiredCase",
+      "detail": "UT-DELIVERY"
+    },
+    {
+      "code": "MissingRequiredCase",
+      "detail": "UT-FILE-POLICY"
+    },
+    {
+      "code": "MissingRequiredCase",
+      "detail": "INT-HUMAN"
+    },
+    {
+      "code": "MissingRequiredCase",
+      "detail": "INT-JSONL-STREAMS"
+    },
+    {
+      "code": "MissingRequiredCase",
+      "detail": "INT-OUTPUTS"
+    },
+    {
+      "code": "MissingRequiredCase",
+      "detail": "INT-IDENTITY-RESTART"
+    },
+    {
+      "code": "MissingRequiredCase",
+      "detail": "INT-FAILURE-ISOLATION"
+    },
+    {
+      "code": "MissingRequiredCase",
+      "detail": "INT-FILE-LIFECYCLE"
+    },
+    {
+      "code": "MissingRequiredCase",
+      "detail": "INT-BURST-STOP"
+    },
+    {
+      "code": "MissingRequiredCase",
+      "detail": "INT-MICROSOFT-LOGGER"
+    },
+    {
+      "code": "MissingRequiredCase",
+      "detail": "MUT-FULL-CORE"
+    },
+    {
+      "code": "MissingRequiredCase",
+      "detail": "ARCH-PUBLIC-TYPES"
+    },
+    {
+      "code": "MissingRequiredCase",
+      "detail": "ARCH-IMMUTABLE-CONFIG"
+    },
+    {
+      "code": "MissingRequiredCase",
+      "detail": "COMPAT-API"
+    },
+    {
+      "code": "MissingRequiredCase",
+      "detail": "COMPAT-SOURCE"
+    },
+    {
+      "code": "MissingRequiredCase",
+      "detail": "COMPAT-BINARY"
+    },
+    {
+      "code": "MissingRequiredCase",
+      "detail": "COMPAT-CONFIG-WIRE-BEHAVIOR"
+    },
+    {
+      "code": "MissingRequiredCase",
+      "detail": "BC-009"
+    },
+    {
+      "code": "MissingRequiredCase",
+      "detail": "BC-010"
+    },
+    {
+      "code": "MissingReleaseGate",
+      "detail": "runtime: Complete logging runtime/provider are not implemented."
+    },
+    {
+      "code": "MissingReleaseGate",
+      "detail": "package-suites: Real candidate-package integration/business/compatibility suites are pending."
+    },
+    {
+      "code": "MissingReleaseGate",
+      "detail": "coverage: Full shipping-code coverage and source/candidate linkage are pending."
+    },
+    {
+      "code": "MissingReleaseGate",
+      "detail": "mutation: Full shipping mutation matrix and release evidence validator are pending."
+    },
+    {
+      "code": "MissingReleaseGate",
+      "detail": "history: Source/binary/configuration/behavior replay and first-release baseline harness are pending."
+    },
+    {
+      "code": "MissingReleaseGate",
+      "detail": "examples: Exact candidate-package reference examples are pending."
+    },
+    {
+      "code": "MissingReleaseGate",
+      "detail": "lanes: Both required release platform lanes are not qualified."
+    },
+    {
+      "code": "MissingReleaseGate",
+      "detail": "bundle: Complete retained verification kit/materialization and licence review are pending."
+    }
+  ]
+}
+
+END FILE
+
+FILE .artifacts/csharp/tasks/wp07-s01-t03/bindings.patch SHA256 5233748058be5b9ae037c626f357fc1c478cfaf305be9b2aa5126a7f37ed3281
+diff --git a/conformance/logging/case-inventory.json b/conformance/logging/case-inventory.json
+index f73e28a6..04b7dee8 100644
+--- a/conformance/logging/case-inventory.json
++++ b/conformance/logging/case-inventory.json
+@@ -8264,6 +8264,40 @@
+         "REQ-007"
+       ],
+       "source": "WP07-S01-T02 real exact-package consumer with isolated feed/cache and actual loaded assembly checks. Prepared physical recovery states and deliberately unread OS pipe are explicit fixture controls; no hosted ingestion or full compatibility/platform release pass."
++    },
++    {
++      "id": "UT-CONCURRENCY-ZERO-LOSS",
++      "family": "unit",
++      "title": "InvalidOnlyConcurrentCallsKeepZeroTargetsAndFreezeLossAtEachBoundary",
++      "implementation": "Implemented",
++      "method": "CIS.Tests.UnitTests.ConcurrencyQualificationTests.InvalidOnlyConcurrentCallsKeepZeroTargetsAndFreezeLossAtEachBoundary",
++      "minimumExecutions": 2,
++      "lanes": [
++        "windows-x64",
++        "linux-ubuntu2404-x64"
++      ],
++      "requirements": [
++        "REQ-004",
++        "REQ-007"
++      ],
++      "source": "WP07-S01-T03 actual public diagnostics/flush/stop over controlled Core queues, barriers and pinned clock/writer support. No physical I/O or full-release claim."
++    },
++    {
++      "id": "UT-CONCURRENCY-PUBLIC-GAUGES",
++      "family": "unit",
++      "title": "PublicPendingGaugeFallsRefillsAndSettlesWhileACapturedProducerLosesToStop",
++      "implementation": "Implemented",
++      "method": "CIS.Tests.UnitTests.ConcurrencyQualificationTests.PublicPendingGaugeFallsRefillsAndSettlesWhileACapturedProducerLosesToStop",
++      "minimumExecutions": 1,
++      "lanes": [
++        "windows-x64",
++        "linux-ubuntu2404-x64"
++      ],
++      "requirements": [
++        "REQ-004",
++        "REQ-007"
++      ],
++      "source": "WP07-S01-T03 actual public diagnostics/flush/stop over controlled Core queues, barriers and pinned clock/writer support. No physical I/O or full-release claim."
+     }
+   ]
+ }
+diff --git a/conformance/logging/requirement-case-map.json b/conformance/logging/requirement-case-map.json
+index f2ef8f21..40028602 100644
+--- a/conformance/logging/requirement-case-map.json
++++ b/conformance/logging/requirement-case-map.json
+@@ -419,7 +419,9 @@
+         "INT-CANDIDATE-RECOVERY",
+         "INT-CANDIDATE-FAULT",
+         "INT-CANDIDATE-PIPE",
+-        "INT-CANDIDATE-CANCEL"
++        "INT-CANDIDATE-CANCEL",
++        "UT-CONCURRENCY-ZERO-LOSS",
++        "UT-CONCURRENCY-PUBLIC-GAUGES"
+       ],
+       "sourceRequirement": {
+         "id": "REQ-004",
+@@ -609,7 +611,9 @@
+         "INT-CANDIDATE-RECOVERY",
+         "INT-CANDIDATE-FAULT",
+         "INT-CANDIDATE-PIPE",
+-        "INT-CANDIDATE-CANCEL"
++        "INT-CANDIDATE-CANCEL",
++        "UT-CONCURRENCY-ZERO-LOSS",
++        "UT-CONCURRENCY-PUBLIC-GAUGES"
+       ],
+       "sourceRequirement": {
+         "id": "REQ-007",
+
+END FILE

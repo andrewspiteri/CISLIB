@@ -1,0 +1,547 @@
+{
+  "schemaVersion": 1,
+  "task": "WP07-S01-T03",
+  "sourcePlan": "planning/logging/sources/core-library-implementation-plan-v1.md",
+  "scope": "Complete the seven deterministic concurrency areas through current actual-Core technical cases; public candidate/physical I/O evidence in WP07-S01-T02 is complementary.",
+  "areas": [
+    {
+      "id": "blocked-io",
+      "observableContract": "Actual write/flush entered signals hold real Core workers; no completion/resource release is claimed before release or actual terminal I/O.",
+      "supportingMethods": [
+        "CIS.Tests.UnitTests.FlushBoundaryTests.InitialFactsAndNondroppableTargetsRemainFixedThroughActualWriterWork",
+        "CIS.Tests.UnitTests.FlushBoundaryTests.AdmissionDoublesCannotInventRegisteredQueueFacts",
+        "CIS.Tests.UnitTests.FlushBoundaryTests.DisabledOutputsHaveNoTargetOrCallbackAndDoNotReadTheEventClock",
+        "CIS.Tests.UnitTests.FlushBoundaryTests.AnUnspecifiedTrustedFlushCallbackDoesNotInventBufferConfirmation",
+        "CIS.Tests.UnitTests.FlushBoundaryTests.ABlockedZeroBoundaryFlushPrecedesLaterWritesAndRunsOutsideAdmission",
+        "CIS.Tests.UnitTests.FlushBoundaryTests.FlushFailureDoesNotInventAnEventWriteFailure",
+        "CIS.Tests.UnitTests.FlushBoundaryTests.RegistrationDuringOwnedCleanupIsUnavailableAndCannotBeStranded",
+        "CIS.Tests.UnitTests.FlushBoundaryTests.AnAlreadyStartedFlushSettlesByItsActualIoAfterAdmissionExhaustion",
+        "CIS.Tests.UnitTests.FlushCoordinationTests.ActualBlockedWritersRetainOnlyTargetsAndLiveCallerAttachments",
+        "CIS.Tests.UnitTests.FlushCoordinationTests.EmptyOutputsStillHonorTheCallerLifetime",
+        "CIS.Tests.UnitTests.FlushCoordinationTests.AFailedFirstOutputStillWaitsForTheIndependentFileFlush",
+        "CIS.Tests.UnitTests.FlushCoordinationTests.CancellationOnTheFileWaitDoesNotRetainTheEarlierConsoleCaller",
+        "CIS.Tests.UnitTests.FlushCoordinationTests.AlreadyCancelledLifetimeWinsEvenForAnAlreadyResolvedWriter",
+        "CIS.Tests.UnitTests.FlushCoordinationTests.ACallerCanWaitAgainAfterItsOwnCancellation",
+        "CIS.Tests.UnitTests.StopDrainTests.ActualQueuedDrainDistinguishesAbandonmentFromUnresolvedIo",
+        "CIS.Tests.UnitTests.StopDrainTests.FileQueueCancellationKeepsOwnedResourceUntilItsActualWriteSettles",
+        "CIS.Tests.UnitTests.StopLifecycleTests.PhysicalOwnershipWaitsForLateIo",
+        "CIS.Tests.IntegrationTests.StopDrainProcessTests.ActualSharedStopRunsInAnExactRuntimeChild",
+        "CIS.Tests.IntegrationTests.StopLifecycleProcessTests.ShutdownAndCrashBoundariesUseActualChildren"
+      ]
+    },
+    {
+      "id": "bounded-flush",
+      "observableContract": "Nondroppable fixed accepted targets remain capacity-bounded;5000 sequential cancelled/expired callers detach, cohorts coalesce, timer/continuation/storage bounds are measured.",
+      "supportingMethods": [
+        "CIS.Tests.UnitTests.FlushCoordinationTests.ActualBlockedWritersRetainOnlyTargetsAndLiveCallerAttachments",
+        "CIS.Tests.UnitTests.FlushCoordinationTests.EmptyOutputsStillHonorTheCallerLifetime",
+        "CIS.Tests.UnitTests.FlushCoordinationTests.AFailedFirstOutputStillWaitsForTheIndependentFileFlush",
+        "CIS.Tests.UnitTests.FlushCoordinationTests.CancellationOnTheFileWaitDoesNotRetainTheEarlierConsoleCaller",
+        "CIS.Tests.UnitTests.FlushCoordinationTests.AlreadyCancelledLifetimeWinsEvenForAnAlreadyResolvedWriter",
+        "CIS.Tests.UnitTests.FlushCoordinationTests.ACallerCanWaitAgainAfterItsOwnCancellation",
+        "CIS.Tests.UnitTests.FlushStressTests.PublicFlushStressUsesActualQueuesWritersTimersAndMeasuredStorage",
+        "CIS.Tests.IntegrationTests.FlushCoordinationProcessTests.ActualCallerDetachmentRunsInAnExactRuntimeChild",
+        "CIS.Tests.IntegrationTests.FlushStressProcessTests.ActualPublicFlushStressRunsInAnExactRuntimeChild"
+      ]
+    },
+    {
+      "id": "wall-clock",
+      "observableContract": "UTC jumps forward/backward do not spend monotonic budgets; callbacks fired at unchanged monotonic time cannot expire waiters early; original stop budget survives repeated callers/options changes.",
+      "supportingMethods": [
+        "CIS.Tests.UnitTests.FlushResultTests.ActualPublicFlushReturnsTruthfulOwnedResults",
+        "CIS.Tests.UnitTests.FlushResultTests.InvalidBudgetWinsOverCancellationAndDoesNotRegister",
+        "CIS.Tests.UnitTests.FlushResultTests.PositiveSubMillisecondBudgetNeverExpiresEarly",
+        "CIS.Tests.UnitTests.FlushResultTests.CallerCancellationJoinsAnActuallyActiveTimerCallbackBeforeDisposingItsSource",
+        "CIS.Tests.UnitTests.FlushResultTests.PublicResultsHaveNoMutationOrConstructionSurface",
+        "CIS.Tests.UnitTests.FlushStressTests.PublicFlushStressUsesActualQueuesWritersTimersAndMeasuredStorage",
+        "CIS.Tests.UnitTests.StopStartTests.EmptyStopClosesOnceAndAlreadyCancelledCallerStillInitiates",
+        "CIS.Tests.UnitTests.StopStartTests.OneOriginalDeadlineSurvivesRepeatedCallersAndOptionOrUtcChanges",
+        "CIS.Tests.UnitTests.StopStartTests.AWrittenRecordWithBlockedFinalFlushRemainsTimedOutWithoutRewritingResult",
+        "CIS.Tests.UnitTests.StopStartTests.NormalDualStopFlushesOriginalIndependentTargetsAndSharesOwnedResult",
+        "CIS.Tests.UnitTests.StopStartTests.TerminalFlushFailureReturnsActualFailedStopResult",
+        "CIS.Tests.UnitTests.StopStartTests.InvalidShutdownTimeoutIsRejectedBeforeOutputAcquisition",
+        "CIS.Tests.UnitTests.StopStartTests.CancelledWaitDetachesFromLiveSharedStopAndPreservesInitialFacts",
+        "CIS.Tests.IntegrationTests.FlushResultProcessTests.ActualPublicFlushRunsInAnExactRuntimeChild",
+        "CIS.Tests.IntegrationTests.FlushStressProcessTests.ActualPublicFlushStressRunsInAnExactRuntimeChild",
+        "CIS.Tests.IntegrationTests.StopStartProcessTests.ActualSharedStopRunsInAnExactRuntimeChild"
+      ]
+    },
+    {
+      "id": "stop-races",
+      "observableContract": "Ready/release barriers hold capture and producer/stop cohorts across admission closure; shared tasks/results and late-I/O ownership are checked.",
+      "supportingMethods": [
+        "CIS.Tests.UnitTests.ConcurrencyQualificationTests.InvalidOnlyConcurrentCallsKeepZeroTargetsAndFreezeLossAtEachBoundary",
+        "CIS.Tests.UnitTests.ConcurrencyQualificationTests.PublicPendingGaugeFallsRefillsAndSettlesWhileACapturedProducerLosesToStop",
+        "CIS.Tests.UnitTests.StopStartTests.EmptyStopClosesOnceAndAlreadyCancelledCallerStillInitiates",
+        "CIS.Tests.UnitTests.StopStartTests.OneOriginalDeadlineSurvivesRepeatedCallersAndOptionOrUtcChanges",
+        "CIS.Tests.UnitTests.StopStartTests.AWrittenRecordWithBlockedFinalFlushRemainsTimedOutWithoutRewritingResult",
+        "CIS.Tests.UnitTests.StopStartTests.NormalDualStopFlushesOriginalIndependentTargetsAndSharesOwnedResult",
+        "CIS.Tests.UnitTests.StopStartTests.TerminalFlushFailureReturnsActualFailedStopResult",
+        "CIS.Tests.UnitTests.StopStartTests.InvalidShutdownTimeoutIsRejectedBeforeOutputAcquisition",
+        "CIS.Tests.UnitTests.StopStartTests.CancelledWaitDetachesFromLiveSharedStopAndPreservesInitialFacts",
+        "CIS.Tests.UnitTests.StopJoinTests.CallerCancellationAndDisposalJoinTheOriginalBoundedOperation",
+        "CIS.Tests.IntegrationTests.StopJoinProcessTests.ActualSharedStopRunsInAnExactRuntimeChild",
+        "CIS.Tests.IntegrationTests.StopLifecycleProcessTests.ShutdownAndCrashBoundariesUseActualChildren"
+      ]
+    },
+    {
+      "id": "already-cancelled",
+      "observableContract": "Caller token identity/cancellation precedes waiting; shared stop still starts, original controls survive and caller references/timers detach; resolved writer success/failure does not defeat pre-cancelled wait.",
+      "supportingMethods": [
+        "CIS.Tests.UnitTests.ConcurrencyQualificationTests.InvalidOnlyConcurrentCallsKeepZeroTargetsAndFreezeLossAtEachBoundary",
+        "CIS.Tests.UnitTests.ConcurrencyQualificationTests.PublicPendingGaugeFallsRefillsAndSettlesWhileACapturedProducerLosesToStop",
+        "CIS.Tests.UnitTests.FlushCoordinationTests.ActualBlockedWritersRetainOnlyTargetsAndLiveCallerAttachments",
+        "CIS.Tests.UnitTests.FlushCoordinationTests.EmptyOutputsStillHonorTheCallerLifetime",
+        "CIS.Tests.UnitTests.FlushCoordinationTests.AFailedFirstOutputStillWaitsForTheIndependentFileFlush",
+        "CIS.Tests.UnitTests.FlushCoordinationTests.CancellationOnTheFileWaitDoesNotRetainTheEarlierConsoleCaller",
+        "CIS.Tests.UnitTests.FlushCoordinationTests.AlreadyCancelledLifetimeWinsEvenForAnAlreadyResolvedWriter",
+        "CIS.Tests.UnitTests.FlushCoordinationTests.ACallerCanWaitAgainAfterItsOwnCancellation",
+        "CIS.Tests.UnitTests.StopStartTests.EmptyStopClosesOnceAndAlreadyCancelledCallerStillInitiates",
+        "CIS.Tests.UnitTests.StopStartTests.OneOriginalDeadlineSurvivesRepeatedCallersAndOptionOrUtcChanges",
+        "CIS.Tests.UnitTests.StopStartTests.AWrittenRecordWithBlockedFinalFlushRemainsTimedOutWithoutRewritingResult",
+        "CIS.Tests.UnitTests.StopStartTests.NormalDualStopFlushesOriginalIndependentTargetsAndSharesOwnedResult",
+        "CIS.Tests.UnitTests.StopStartTests.TerminalFlushFailureReturnsActualFailedStopResult",
+        "CIS.Tests.UnitTests.StopStartTests.InvalidShutdownTimeoutIsRejectedBeforeOutputAcquisition",
+        "CIS.Tests.UnitTests.StopStartTests.CancelledWaitDetachesFromLiveSharedStopAndPreservesInitialFacts",
+        "CIS.Tests.UnitTests.StopJoinTests.CallerCancellationAndDisposalJoinTheOriginalBoundedOperation",
+        "CIS.Tests.IntegrationTests.FlushCoordinationProcessTests.ActualCallerDetachmentRunsInAnExactRuntimeChild",
+        "CIS.Tests.IntegrationTests.StopJoinProcessTests.ActualSharedStopRunsInAnExactRuntimeChild"
+      ]
+    },
+    {
+      "id": "pending-gauges",
+      "observableContract": "Public pending values are observed1,3,2,3,0 through blocked write/refill/stop; frozen observations remain unchanged; accepted dispositions partition consistently, including late I/O.",
+      "supportingMethods": [
+        "CIS.Tests.UnitTests.ConcurrencyQualificationTests.InvalidOnlyConcurrentCallsKeepZeroTargetsAndFreezeLossAtEachBoundary",
+        "CIS.Tests.UnitTests.ConcurrencyQualificationTests.PublicPendingGaugeFallsRefillsAndSettlesWhileACapturedProducerLosesToStop",
+        "CIS.Tests.UnitTests.StopDrainTests.ActualQueuedDrainDistinguishesAbandonmentFromUnresolvedIo",
+        "CIS.Tests.UnitTests.StopDrainTests.FileQueueCancellationKeepsOwnedResourceUntilItsActualWriteSettles",
+        "CIS.Tests.UnitTests.OutputAccountingTests.ActualWorkersKeepCumulativeCountsAndUnresolvedGauges",
+        "CIS.Tests.UnitTests.OutputAccountingTests.AccountingMatcherRejectsInventedLostOrMutatedCounts",
+        "CIS.Tests.UnitTests.OutputAccountingTests.RejectionCountersAndAggregatesSaturateWithoutWrapping",
+        "CIS.Tests.UnitTests.OutputAccountingTests.ConcurrentAdmissionsPreserveOneConsistentAcceptedPartition",
+        "CIS.Tests.IntegrationTests.StopDrainProcessTests.ActualSharedStopRunsInAnExactRuntimeChild",
+        "CIS.Tests.IntegrationTests.OutputAccountingProcessTests.AccountingCheckpointsRunInExactRuntimeChildren"
+      ]
+    },
+    {
+      "id": "invalid-loss",
+      "observableContract": "64 concurrent invalid direct/lazy calls with zero admitted records are counted once per call independent of outputs. Earlier flush has no loss; later flush/stop succeed at target0 but report loss. Existing saturation/late-fact tests preserve initial boundaries and exclude later invalid events.",
+      "supportingMethods": [
+        "CIS.Tests.UnitTests.ConcurrencyQualificationTests.InvalidOnlyConcurrentCallsKeepZeroTargetsAndFreezeLossAtEachBoundary",
+        "CIS.Tests.UnitTests.ConcurrencyQualificationTests.PublicPendingGaugeFallsRefillsAndSettlesWhileACapturedProducerLosesToStop",
+        "CIS.Tests.UnitTests.FlushResultTests.ActualPublicFlushReturnsTruthfulOwnedResults",
+        "CIS.Tests.UnitTests.FlushResultTests.InvalidBudgetWinsOverCancellationAndDoesNotRegister",
+        "CIS.Tests.UnitTests.FlushResultTests.PositiveSubMillisecondBudgetNeverExpiresEarly",
+        "CIS.Tests.UnitTests.FlushResultTests.CallerCancellationJoinsAnActuallyActiveTimerCallbackBeforeDisposingItsSource",
+        "CIS.Tests.UnitTests.FlushResultTests.PublicResultsHaveNoMutationOrConstructionSurface",
+        "CIS.Tests.UnitTests.FlushStressTests.PublicFlushStressUsesActualQueuesWritersTimersAndMeasuredStorage",
+        "CIS.Tests.UnitTests.StopStartTests.EmptyStopClosesOnceAndAlreadyCancelledCallerStillInitiates",
+        "CIS.Tests.UnitTests.StopStartTests.OneOriginalDeadlineSurvivesRepeatedCallersAndOptionOrUtcChanges",
+        "CIS.Tests.UnitTests.StopStartTests.AWrittenRecordWithBlockedFinalFlushRemainsTimedOutWithoutRewritingResult",
+        "CIS.Tests.UnitTests.StopStartTests.NormalDualStopFlushesOriginalIndependentTargetsAndSharesOwnedResult",
+        "CIS.Tests.UnitTests.StopStartTests.TerminalFlushFailureReturnsActualFailedStopResult",
+        "CIS.Tests.UnitTests.StopStartTests.InvalidShutdownTimeoutIsRejectedBeforeOutputAcquisition",
+        "CIS.Tests.UnitTests.StopStartTests.CancelledWaitDetachesFromLiveSharedStopAndPreservesInitialFacts",
+        "CIS.Tests.IntegrationTests.FlushResultProcessTests.ActualPublicFlushRunsInAnExactRuntimeChild",
+        "CIS.Tests.IntegrationTests.FlushStressProcessTests.ActualPublicFlushStressRunsInAnExactRuntimeChild",
+        "CIS.Tests.IntegrationTests.StopStartProcessTests.ActualSharedStopRunsInAnExactRuntimeChild"
+      ]
+    }
+  ],
+  "bindings": [
+    {
+      "family": "unit",
+      "class": "ConcurrencyQualificationTests",
+      "method": "CIS.Tests.UnitTests.ConcurrencyQualificationTests.InvalidOnlyConcurrentCallsKeepZeroTargetsAndFreezeLossAtEachBoundary",
+      "source": "implementations/csharp/tests/CIS.Core.UnitTests/ConcurrencyQualificationTests.cs",
+      "minimumExecutions": 2,
+      "caseIds": [
+        "UT-CONCURRENCY-ZERO-LOSS"
+      ]
+    },
+    {
+      "family": "unit",
+      "class": "ConcurrencyQualificationTests",
+      "method": "CIS.Tests.UnitTests.ConcurrencyQualificationTests.PublicPendingGaugeFallsRefillsAndSettlesWhileACapturedProducerLosesToStop",
+      "source": "implementations/csharp/tests/CIS.Core.UnitTests/ConcurrencyQualificationTests.cs",
+      "minimumExecutions": 1,
+      "caseIds": [
+        "UT-CONCURRENCY-PUBLIC-GAUGES"
+      ]
+    },
+    {
+      "family": "unit",
+      "class": "FlushBoundaryTests",
+      "method": "CIS.Tests.UnitTests.FlushBoundaryTests.InitialFactsAndNondroppableTargetsRemainFixedThroughActualWriterWork",
+      "source": "implementations/csharp/tests/CIS.Core.UnitTests/FlushBoundaryTests.cs",
+      "minimumExecutions": 7,
+      "caseIds": []
+    },
+    {
+      "family": "unit",
+      "class": "FlushBoundaryTests",
+      "method": "CIS.Tests.UnitTests.FlushBoundaryTests.AdmissionDoublesCannotInventRegisteredQueueFacts",
+      "source": "implementations/csharp/tests/CIS.Core.UnitTests/FlushBoundaryTests.cs",
+      "minimumExecutions": 1,
+      "caseIds": []
+    },
+    {
+      "family": "unit",
+      "class": "FlushBoundaryTests",
+      "method": "CIS.Tests.UnitTests.FlushBoundaryTests.DisabledOutputsHaveNoTargetOrCallbackAndDoNotReadTheEventClock",
+      "source": "implementations/csharp/tests/CIS.Core.UnitTests/FlushBoundaryTests.cs",
+      "minimumExecutions": 1,
+      "caseIds": []
+    },
+    {
+      "family": "unit",
+      "class": "FlushBoundaryTests",
+      "method": "CIS.Tests.UnitTests.FlushBoundaryTests.AnUnspecifiedTrustedFlushCallbackDoesNotInventBufferConfirmation",
+      "source": "implementations/csharp/tests/CIS.Core.UnitTests/FlushBoundaryTests.cs",
+      "minimumExecutions": 1,
+      "caseIds": []
+    },
+    {
+      "family": "unit",
+      "class": "FlushBoundaryTests",
+      "method": "CIS.Tests.UnitTests.FlushBoundaryTests.ABlockedZeroBoundaryFlushPrecedesLaterWritesAndRunsOutsideAdmission",
+      "source": "implementations/csharp/tests/CIS.Core.UnitTests/FlushBoundaryTests.cs",
+      "minimumExecutions": 1,
+      "caseIds": []
+    },
+    {
+      "family": "unit",
+      "class": "FlushBoundaryTests",
+      "method": "CIS.Tests.UnitTests.FlushBoundaryTests.FlushFailureDoesNotInventAnEventWriteFailure",
+      "source": "implementations/csharp/tests/CIS.Core.UnitTests/FlushBoundaryTests.cs",
+      "minimumExecutions": 1,
+      "caseIds": []
+    },
+    {
+      "family": "unit",
+      "class": "FlushBoundaryTests",
+      "method": "CIS.Tests.UnitTests.FlushBoundaryTests.RegistrationDuringOwnedCleanupIsUnavailableAndCannotBeStranded",
+      "source": "implementations/csharp/tests/CIS.Core.UnitTests/FlushBoundaryTests.cs",
+      "minimumExecutions": 1,
+      "caseIds": []
+    },
+    {
+      "family": "unit",
+      "class": "FlushBoundaryTests",
+      "method": "CIS.Tests.UnitTests.FlushBoundaryTests.AnAlreadyStartedFlushSettlesByItsActualIoAfterAdmissionExhaustion",
+      "source": "implementations/csharp/tests/CIS.Core.UnitTests/FlushBoundaryTests.cs",
+      "minimumExecutions": 2,
+      "caseIds": []
+    },
+    {
+      "family": "unit",
+      "class": "FlushCoordinationTests",
+      "method": "CIS.Tests.UnitTests.FlushCoordinationTests.ActualBlockedWritersRetainOnlyTargetsAndLiveCallerAttachments",
+      "source": "implementations/csharp/tests/CIS.Core.UnitTests/FlushCoordinationTests.cs",
+      "minimumExecutions": 9,
+      "caseIds": []
+    },
+    {
+      "family": "unit",
+      "class": "FlushCoordinationTests",
+      "method": "CIS.Tests.UnitTests.FlushCoordinationTests.EmptyOutputsStillHonorTheCallerLifetime",
+      "source": "implementations/csharp/tests/CIS.Core.UnitTests/FlushCoordinationTests.cs",
+      "minimumExecutions": 2,
+      "caseIds": []
+    },
+    {
+      "family": "unit",
+      "class": "FlushCoordinationTests",
+      "method": "CIS.Tests.UnitTests.FlushCoordinationTests.AFailedFirstOutputStillWaitsForTheIndependentFileFlush",
+      "source": "implementations/csharp/tests/CIS.Core.UnitTests/FlushCoordinationTests.cs",
+      "minimumExecutions": 1,
+      "caseIds": []
+    },
+    {
+      "family": "unit",
+      "class": "FlushCoordinationTests",
+      "method": "CIS.Tests.UnitTests.FlushCoordinationTests.CancellationOnTheFileWaitDoesNotRetainTheEarlierConsoleCaller",
+      "source": "implementations/csharp/tests/CIS.Core.UnitTests/FlushCoordinationTests.cs",
+      "minimumExecutions": 1,
+      "caseIds": []
+    },
+    {
+      "family": "unit",
+      "class": "FlushCoordinationTests",
+      "method": "CIS.Tests.UnitTests.FlushCoordinationTests.AlreadyCancelledLifetimeWinsEvenForAnAlreadyResolvedWriter",
+      "source": "implementations/csharp/tests/CIS.Core.UnitTests/FlushCoordinationTests.cs",
+      "minimumExecutions": 2,
+      "caseIds": []
+    },
+    {
+      "family": "unit",
+      "class": "FlushCoordinationTests",
+      "method": "CIS.Tests.UnitTests.FlushCoordinationTests.ACallerCanWaitAgainAfterItsOwnCancellation",
+      "source": "implementations/csharp/tests/CIS.Core.UnitTests/FlushCoordinationTests.cs",
+      "minimumExecutions": 1,
+      "caseIds": []
+    },
+    {
+      "family": "unit",
+      "class": "FlushResultTests",
+      "method": "CIS.Tests.UnitTests.FlushResultTests.ActualPublicFlushReturnsTruthfulOwnedResults",
+      "source": "implementations/csharp/tests/CIS.Core.UnitTests/FlushResultTests.cs",
+      "minimumExecutions": 17,
+      "caseIds": []
+    },
+    {
+      "family": "unit",
+      "class": "FlushResultTests",
+      "method": "CIS.Tests.UnitTests.FlushResultTests.InvalidBudgetWinsOverCancellationAndDoesNotRegister",
+      "source": "implementations/csharp/tests/CIS.Core.UnitTests/FlushResultTests.cs",
+      "minimumExecutions": 4,
+      "caseIds": []
+    },
+    {
+      "family": "unit",
+      "class": "FlushResultTests",
+      "method": "CIS.Tests.UnitTests.FlushResultTests.PositiveSubMillisecondBudgetNeverExpiresEarly",
+      "source": "implementations/csharp/tests/CIS.Core.UnitTests/FlushResultTests.cs",
+      "minimumExecutions": 1,
+      "caseIds": []
+    },
+    {
+      "family": "unit",
+      "class": "FlushResultTests",
+      "method": "CIS.Tests.UnitTests.FlushResultTests.CallerCancellationJoinsAnActuallyActiveTimerCallbackBeforeDisposingItsSource",
+      "source": "implementations/csharp/tests/CIS.Core.UnitTests/FlushResultTests.cs",
+      "minimumExecutions": 1,
+      "caseIds": []
+    },
+    {
+      "family": "unit",
+      "class": "FlushResultTests",
+      "method": "CIS.Tests.UnitTests.FlushResultTests.PublicResultsHaveNoMutationOrConstructionSurface",
+      "source": "implementations/csharp/tests/CIS.Core.UnitTests/FlushResultTests.cs",
+      "minimumExecutions": 1,
+      "caseIds": []
+    },
+    {
+      "family": "unit",
+      "class": "FlushStressTests",
+      "method": "CIS.Tests.UnitTests.FlushStressTests.PublicFlushStressUsesActualQueuesWritersTimersAndMeasuredStorage",
+      "source": "implementations/csharp/tests/CIS.Core.UnitTests/FlushStressTests.cs",
+      "minimumExecutions": 8,
+      "caseIds": []
+    },
+    {
+      "family": "unit",
+      "class": "StopStartTests",
+      "method": "CIS.Tests.UnitTests.StopStartTests.EmptyStopClosesOnceAndAlreadyCancelledCallerStillInitiates",
+      "source": "implementations/csharp/tests/CIS.Core.UnitTests/StopStartTests.cs",
+      "minimumExecutions": 2,
+      "caseIds": []
+    },
+    {
+      "family": "unit",
+      "class": "StopStartTests",
+      "method": "CIS.Tests.UnitTests.StopStartTests.OneOriginalDeadlineSurvivesRepeatedCallersAndOptionOrUtcChanges",
+      "source": "implementations/csharp/tests/CIS.Core.UnitTests/StopStartTests.cs",
+      "minimumExecutions": 3,
+      "caseIds": []
+    },
+    {
+      "family": "unit",
+      "class": "StopStartTests",
+      "method": "CIS.Tests.UnitTests.StopStartTests.AWrittenRecordWithBlockedFinalFlushRemainsTimedOutWithoutRewritingResult",
+      "source": "implementations/csharp/tests/CIS.Core.UnitTests/StopStartTests.cs",
+      "minimumExecutions": 1,
+      "caseIds": []
+    },
+    {
+      "family": "unit",
+      "class": "StopStartTests",
+      "method": "CIS.Tests.UnitTests.StopStartTests.NormalDualStopFlushesOriginalIndependentTargetsAndSharesOwnedResult",
+      "source": "implementations/csharp/tests/CIS.Core.UnitTests/StopStartTests.cs",
+      "minimumExecutions": 1,
+      "caseIds": []
+    },
+    {
+      "family": "unit",
+      "class": "StopStartTests",
+      "method": "CIS.Tests.UnitTests.StopStartTests.TerminalFlushFailureReturnsActualFailedStopResult",
+      "source": "implementations/csharp/tests/CIS.Core.UnitTests/StopStartTests.cs",
+      "minimumExecutions": 1,
+      "caseIds": []
+    },
+    {
+      "family": "unit",
+      "class": "StopStartTests",
+      "method": "CIS.Tests.UnitTests.StopStartTests.InvalidShutdownTimeoutIsRejectedBeforeOutputAcquisition",
+      "source": "implementations/csharp/tests/CIS.Core.UnitTests/StopStartTests.cs",
+      "minimumExecutions": 2,
+      "caseIds": []
+    },
+    {
+      "family": "unit",
+      "class": "StopStartTests",
+      "method": "CIS.Tests.UnitTests.StopStartTests.CancelledWaitDetachesFromLiveSharedStopAndPreservesInitialFacts",
+      "source": "implementations/csharp/tests/CIS.Core.UnitTests/StopStartTests.cs",
+      "minimumExecutions": 1,
+      "caseIds": []
+    },
+    {
+      "family": "unit",
+      "class": "StopJoinTests",
+      "method": "CIS.Tests.UnitTests.StopJoinTests.CallerCancellationAndDisposalJoinTheOriginalBoundedOperation",
+      "source": "implementations/csharp/tests/CIS.Core.UnitTests/StopJoinTests.cs",
+      "minimumExecutions": 8,
+      "caseIds": []
+    },
+    {
+      "family": "unit",
+      "class": "StopDrainTests",
+      "method": "CIS.Tests.UnitTests.StopDrainTests.ActualQueuedDrainDistinguishesAbandonmentFromUnresolvedIo",
+      "source": "implementations/csharp/tests/CIS.Core.UnitTests/StopDrainTests.cs",
+      "minimumExecutions": 8,
+      "caseIds": []
+    },
+    {
+      "family": "unit",
+      "class": "StopDrainTests",
+      "method": "CIS.Tests.UnitTests.StopDrainTests.FileQueueCancellationKeepsOwnedResourceUntilItsActualWriteSettles",
+      "source": "implementations/csharp/tests/CIS.Core.UnitTests/StopDrainTests.cs",
+      "minimumExecutions": 1,
+      "caseIds": []
+    },
+    {
+      "family": "unit",
+      "class": "StopLifecycleTests",
+      "method": "CIS.Tests.UnitTests.StopLifecycleTests.PhysicalOwnershipWaitsForLateIo",
+      "source": "implementations/csharp/tests/CIS.Core.UnitTests/StopLifecycleTests.cs",
+      "minimumExecutions": 4,
+      "caseIds": []
+    },
+    {
+      "family": "unit",
+      "class": "OutputAccountingTests",
+      "method": "CIS.Tests.UnitTests.OutputAccountingTests.ActualWorkersKeepCumulativeCountsAndUnresolvedGauges",
+      "source": "implementations/csharp/tests/CIS.Core.UnitTests/OutputAccountingTests.cs",
+      "minimumExecutions": 11,
+      "caseIds": [
+        "UT-ACCOUNTING-ROWS"
+      ]
+    },
+    {
+      "family": "unit",
+      "class": "OutputAccountingTests",
+      "method": "CIS.Tests.UnitTests.OutputAccountingTests.AccountingMatcherRejectsInventedLostOrMutatedCounts",
+      "source": "implementations/csharp/tests/CIS.Core.UnitTests/OutputAccountingTests.cs",
+      "minimumExecutions": 9,
+      "caseIds": [
+        "UT-ACCOUNTING-CORRUPTION"
+      ]
+    },
+    {
+      "family": "unit",
+      "class": "OutputAccountingTests",
+      "method": "CIS.Tests.UnitTests.OutputAccountingTests.RejectionCountersAndAggregatesSaturateWithoutWrapping",
+      "source": "implementations/csharp/tests/CIS.Core.UnitTests/OutputAccountingTests.cs",
+      "minimumExecutions": 3,
+      "caseIds": [
+        "UT-ACCOUNTING-SATURATION"
+      ]
+    },
+    {
+      "family": "unit",
+      "class": "OutputAccountingTests",
+      "method": "CIS.Tests.UnitTests.OutputAccountingTests.ConcurrentAdmissionsPreserveOneConsistentAcceptedPartition",
+      "source": "implementations/csharp/tests/CIS.Core.UnitTests/OutputAccountingTests.cs",
+      "minimumExecutions": 1,
+      "caseIds": [
+        "UT-ACCOUNTING-CONCURRENT"
+      ]
+    },
+    {
+      "family": "integration",
+      "class": "FlushBoundaryProcessTests",
+      "method": "CIS.Tests.IntegrationTests.FlushBoundaryProcessTests.RegisteredBoundaryFixtureRunsActualCoreInASeparateExactRuntime",
+      "source": "implementations/csharp/tests/CIS.Core.IntegrationTests/FlushBoundaryProcessTests.cs",
+      "minimumExecutions": 7,
+      "caseIds": []
+    },
+    {
+      "family": "integration",
+      "class": "FlushCoordinationProcessTests",
+      "method": "CIS.Tests.IntegrationTests.FlushCoordinationProcessTests.ActualCallerDetachmentRunsInAnExactRuntimeChild",
+      "source": "implementations/csharp/tests/CIS.Core.IntegrationTests/FlushCoordinationProcessTests.cs",
+      "minimumExecutions": 9,
+      "caseIds": []
+    },
+    {
+      "family": "integration",
+      "class": "FlushResultProcessTests",
+      "method": "CIS.Tests.IntegrationTests.FlushResultProcessTests.ActualPublicFlushRunsInAnExactRuntimeChild",
+      "source": "implementations/csharp/tests/CIS.Core.IntegrationTests/FlushResultProcessTests.cs",
+      "minimumExecutions": 17,
+      "caseIds": []
+    },
+    {
+      "family": "integration",
+      "class": "FlushStressProcessTests",
+      "method": "CIS.Tests.IntegrationTests.FlushStressProcessTests.ActualPublicFlushStressRunsInAnExactRuntimeChild",
+      "source": "implementations/csharp/tests/CIS.Core.IntegrationTests/FlushStressProcessTests.cs",
+      "minimumExecutions": 8,
+      "caseIds": []
+    },
+    {
+      "family": "integration",
+      "class": "StopStartProcessTests",
+      "method": "CIS.Tests.IntegrationTests.StopStartProcessTests.ActualSharedStopRunsInAnExactRuntimeChild",
+      "source": "implementations/csharp/tests/CIS.Core.IntegrationTests/StopStartProcessTests.cs",
+      "minimumExecutions": 16,
+      "caseIds": []
+    },
+    {
+      "family": "integration",
+      "class": "StopJoinProcessTests",
+      "method": "CIS.Tests.IntegrationTests.StopJoinProcessTests.ActualSharedStopRunsInAnExactRuntimeChild",
+      "source": "implementations/csharp/tests/CIS.Core.IntegrationTests/StopJoinProcessTests.cs",
+      "minimumExecutions": 8,
+      "caseIds": []
+    },
+    {
+      "family": "integration",
+      "class": "StopDrainProcessTests",
+      "method": "CIS.Tests.IntegrationTests.StopDrainProcessTests.ActualSharedStopRunsInAnExactRuntimeChild",
+      "source": "implementations/csharp/tests/CIS.Core.IntegrationTests/StopDrainProcessTests.cs",
+      "minimumExecutions": 8,
+      "caseIds": []
+    },
+    {
+      "family": "integration",
+      "class": "StopLifecycleProcessTests",
+      "method": "CIS.Tests.IntegrationTests.StopLifecycleProcessTests.ShutdownAndCrashBoundariesUseActualChildren",
+      "source": "implementations/csharp/tests/CIS.Core.IntegrationTests/StopLifecycleProcessTests.cs",
+      "minimumExecutions": 11,
+      "caseIds": []
+    },
+    {
+      "family": "integration",
+      "class": "OutputAccountingProcessTests",
+      "method": "CIS.Tests.IntegrationTests.OutputAccountingProcessTests.AccountingCheckpointsRunInExactRuntimeChildren",
+      "source": "implementations/csharp/tests/CIS.Core.IntegrationTests/OutputAccountingProcessTests.cs",
+      "minimumExecutions": 11,
+      "caseIds": [
+        "IT-ACCOUNTING-ROWS"
+      ]
+    }
+  ],
+  "newCases": [
+    "UT-CONCURRENCY-ZERO-LOSS",
+    "UT-CONCURRENCY-PUBLIC-GAUGES"
+  ],
+  "limits": [
+    "Controlled callbacks/clocks are nonshipping seams; time guards detect hangs and do not establish scheduling performance.",
+    "Some resource probes inspect pinned .NET10.0.12 continuation/private storage and deliberately seeded near-exhaustion state. These are technical qualification, not public API promises or emitted event histories.",
+    "No arbitrary sleep is used as proof of an interleaving; readiness/entered signals establish phases. Existing polling observes an explicit state with a finite guard.",
+    "Complete coverage/discovery/architecture/mutation/cumulative compatibility and full release support remain pending; no hosted ingestion/durability claim."
+  ],
+  "evidence": "planning/logging/evidence/wp07-s01-t03/verification.json"
+}
