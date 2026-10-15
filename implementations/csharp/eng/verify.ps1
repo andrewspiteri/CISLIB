@@ -33,7 +33,8 @@ function Publish-Summary {
 function Invoke-Family {
     param([hashtable] $Family, [object] $Entry)
     $directory = Join-Path $reportRoot "families/$($Family.id)"
-    $arguments = @('test', $Family.project, '-c', 'Release', '--no-build', '--no-restore', '--settings', (Join-Path $languageRoot 'verification/developer.runsettings'))
+    $settings = if ($Family.id -eq 'architecture') { 'verification/architecture.runsettings' } else { 'verification/developer.runsettings' }
+    $arguments = @('test', $Family.project, '-c', 'Release', '--no-build', '--no-restore', '--settings', (Join-Path $languageRoot $settings))
     $discoveryNativePath = Join-Path $directory 'discovery-native.json'
     if (Test-Path -LiteralPath $discoveryNativePath) { Remove-Item -LiteralPath $discoveryNativePath }
     $loggerDirectory = Join-Path $PSScriptRoot 'CIS.Discovery.TestLogger/bin/Release/net10.0'

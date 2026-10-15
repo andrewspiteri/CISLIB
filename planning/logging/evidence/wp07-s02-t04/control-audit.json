@@ -1,0 +1,996 @@
+{
+  "schema": "cis.architecture-native-fixture-audit/v1",
+  "expectedNegativeScenarios": 14,
+  "verification": [
+    {
+      "lane": "windows",
+      "runId": "da5e8b51a0e34933ab02b55e7f408853",
+      "sourceCommit": "5e1647eefddad144938b68ad133a9443555ee097",
+      "passed": {
+        "unit": 3415,
+        "integration": 1439,
+        "architecture": 610,
+        "business": 24
+      },
+      "total": 5488.0,
+      "stagesPassed": 16,
+      "projects": 27,
+      "targets": 33,
+      "assemblies": 2,
+      "ownership": {
+        "schema": "cis.architecture-ownership/v1",
+        "violations": 0,
+        "immutableTypes": 20,
+        "checkedContractUses": 846,
+        "mutableSetupProperties": 3,
+        "packageAssets": 14
+      },
+      "newControls": 15,
+      "observations": [
+        {
+          "scenario": "packed-content",
+          "testId": "1f6feb12-7065-8a05-980d-1bf50e8833c2",
+          "executionId": "ef339014-4563-4c71-aef6-e2a6dfd940f6",
+          "nativeOutcome": "Passed",
+          "observation": {
+            "schema": "cis.architecture-fixture/v1",
+            "scenario": "packed-content",
+            "positive": {
+              "schema": "cis.architecture-fixture-positive/v1",
+              "exitCode": 0,
+              "fixtureScope": "Actual Core and packaged build-helper source; trusted registration contains their complete two-project shipping closure. Full repository inventory remains independently checked by the normal Developer profile.",
+              "projects": 2,
+              "targets": 2,
+              "assemblies": 2,
+              "levels": 5,
+              "copiedSourceFiles": 95,
+              "copiedSourceDigest": "7e4f6c471ce984defff3165b11ec4f04279caf862594a8388e92a5a541ced056",
+              "inspectionSha256": "d0e76195398d22c6ae2d94be30e52384d3ae1f3492334a9ac53947821ac4bdb5",
+              "packageSha256": "1cc8a2b638a4e8f8a317de97a2b09290e980107709d84a0f43943523e6cdbc2d",
+              "inspectorSha256": "ad2c76c3eae716bf1e29cbf35c19ee5bb88e4dfd708d4a42cdf20c8b8fa4641b"
+            },
+            "negative": {
+              "exitCode": 1,
+              "diagnostic": "ARCH-PACKED-CONTENT",
+              "expectedContext": "Packed assembly differs from evaluated Release output: CIS.Core",
+              "standardError": "Architecture inspection failed: ARCH-PACKED-CONTENT: Packed assembly differs from evaluated Release output: CIS.Core\r\n",
+              "successfulReportRetained": false,
+              "packageSha256": "4300f320d8c0d4ebed11957c45a8858eba9474abe02143833936bd7d5728ef96"
+            }
+          }
+        },
+        {
+          "scenario": "positive",
+          "testId": "18f11bb5-8a1e-80c0-be09-f2c23feb93e7",
+          "executionId": "5840fe66-6679-4835-8eaf-a3a1f34f04a5",
+          "nativeOutcome": "Passed",
+          "observation": {
+            "schema": "cis.architecture-fixture-positive/v1",
+            "exitCode": 0,
+            "fixtureScope": "Actual Core and packaged build-helper source; trusted registration contains their complete two-project shipping closure. Full repository inventory remains independently checked by the normal Developer profile.",
+            "projects": 2,
+            "targets": 2,
+            "assemblies": 2,
+            "levels": 5,
+            "copiedSourceFiles": 95,
+            "copiedSourceDigest": "7e4f6c471ce984defff3165b11ec4f04279caf862594a8388e92a5a541ced056",
+            "inspectionSha256": "f3bf5018ef8fcf31e6ac4d3323c155c48d8ad7e0469cdfa2b6107cecdbde35bf",
+            "packageSha256": "a035c7f74d55a6eabbb1f7650b0cc57c53369c5a17ca5ed269e13c9d910bae2a",
+            "inspectorSha256": "ad2c76c3eae716bf1e29cbf35c19ee5bb88e4dfd708d4a42cdf20c8b8fa4641b"
+          }
+        },
+        {
+          "scenario": "private-runtime-package",
+          "testId": "1b4a86cc-e0ee-841e-9113-f15553205f9a",
+          "executionId": "ed9c4fc9-4917-4d61-8435-8ddca4a4a165",
+          "nativeOutcome": "Passed",
+          "observation": {
+            "schema": "cis.architecture-fixture/v1",
+            "scenario": "private-runtime-package",
+            "positive": {
+              "schema": "cis.architecture-fixture-positive/v1",
+              "exitCode": 0,
+              "fixtureScope": "Actual Core and packaged build-helper source; trusted registration contains their complete two-project shipping closure. Full repository inventory remains independently checked by the normal Developer profile.",
+              "projects": 2,
+              "targets": 2,
+              "assemblies": 2,
+              "levels": 5,
+              "copiedSourceFiles": 95,
+              "copiedSourceDigest": "7e4f6c471ce984defff3165b11ec4f04279caf862594a8388e92a5a541ced056",
+              "inspectionSha256": "3464717c2f23a5749aeae7992bf1842b2e8170ad9a54b3292cacde4060531870",
+              "packageSha256": "a4651e2bd887ac64c12b40cba6796fefdee474597c73daac66246c9f70a1c6a8",
+              "inspectorSha256": "ad2c76c3eae716bf1e29cbf35c19ee5bb88e4dfd708d4a42cdf20c8b8fa4641b"
+            },
+            "negative": {
+              "exitCode": 1,
+              "diagnostic": "ARCH-PACKAGE-REFERENCE",
+              "expectedContext": "src/CIS.Core/CIS.Core.csproj net10.0",
+              "standardError": "Architecture inspection failed: ARCH-PACKAGE-REFERENCE: src/CIS.Core/CIS.Core.csproj net10.0\r\n",
+              "successfulReportRetained": false,
+              "packageSha256": "537ae98448420788362bad23fa13d99903f9357b72ca0078cde7411ce1039bd1"
+            }
+          }
+        },
+        {
+          "scenario": "lock-content",
+          "testId": "1010c601-fd5f-87a3-b9a8-07e15153b6fb",
+          "executionId": "4d2bebed-caa1-40dd-b2c1-9aac7aac11f0",
+          "nativeOutcome": "Passed",
+          "observation": {
+            "schema": "cis.architecture-fixture/v1",
+            "scenario": "lock-content",
+            "positive": {
+              "schema": "cis.architecture-fixture-positive/v1",
+              "exitCode": 0,
+              "fixtureScope": "Actual Core and packaged build-helper source; trusted registration contains their complete two-project shipping closure. Full repository inventory remains independently checked by the normal Developer profile.",
+              "projects": 2,
+              "targets": 2,
+              "assemblies": 2,
+              "levels": 5,
+              "copiedSourceFiles": 95,
+              "copiedSourceDigest": "7e4f6c471ce984defff3165b11ec4f04279caf862594a8388e92a5a541ced056",
+              "inspectionSha256": "79ee97bc0b9ffa27d41f86785d83de20a49e6a2bd5a262f5a4873e9480c92b23",
+              "packageSha256": "de48de257ed6887cb2de17146cf9d4cd63bebb0365d6ad31d17323e6816985bf",
+              "inspectorSha256": "ad2c76c3eae716bf1e29cbf35c19ee5bb88e4dfd708d4a42cdf20c8b8fa4641b"
+            },
+            "negative": {
+              "exitCode": 1,
+              "diagnostic": "ARCH-LOCK-CONTENT",
+              "expectedContext": "Lock/assets mismatch: src/CIS.Core/CIS.Core.csproj net10.0 Microsoft.Extensions.Logging.Abstractions/10.0.12",
+              "standardError": "Architecture inspection failed: ARCH-LOCK-CONTENT: Lock/assets mismatch: src/CIS.Core/CIS.Core.csproj net10.0 Microsoft.Extensions.Logging.Abstractions/10.0.12\r\n",
+              "successfulReportRetained": false,
+              "packageSha256": "de48de257ed6887cb2de17146cf9d4cd63bebb0365d6ad31d17323e6816985bf"
+            }
+          }
+        },
+        {
+          "scenario": "content-asset",
+          "testId": "166339f7-6fb3-87c2-8953-ebb0b81348e6",
+          "executionId": "cb5b831b-4ef9-469d-a747-44060c3908e8",
+          "nativeOutcome": "Passed",
+          "observation": {
+            "schema": "cis.architecture-fixture/v1",
+            "scenario": "content-asset",
+            "positive": {
+              "schema": "cis.architecture-fixture-positive/v1",
+              "exitCode": 0,
+              "fixtureScope": "Actual Core and packaged build-helper source; trusted registration contains their complete two-project shipping closure. Full repository inventory remains independently checked by the normal Developer profile.",
+              "projects": 2,
+              "targets": 2,
+              "assemblies": 2,
+              "levels": 5,
+              "copiedSourceFiles": 95,
+              "copiedSourceDigest": "7e4f6c471ce984defff3165b11ec4f04279caf862594a8388e92a5a541ced056",
+              "inspectionSha256": "5d344d420c4d13836578cf331cbf5d112275921611248eeaae427e4feb257212",
+              "packageSha256": "547b67ac7a7e77e19b513fdd11b3a6d0ad0d0e0b46d8cdac06a55dd17bc65443",
+              "inspectorSha256": "ad2c76c3eae716bf1e29cbf35c19ee5bb88e4dfd708d4a42cdf20c8b8fa4641b"
+            },
+            "negative": {
+              "exitCode": 1,
+              "diagnostic": "ARCH-PACKAGE-ASSET",
+              "expectedContext": "contentFiles/any/any/attachment.txt",
+              "standardError": "Architecture inspection failed: ARCH-PACKAGE-ASSET: contentFiles/any/any/attachment.txt\r\n",
+              "successfulReportRetained": false,
+              "packageSha256": "86d240bb4f7168eec002c3737f2bb4d5b7e2139592adc85756612515443afb43"
+            }
+          }
+        },
+        {
+          "scenario": "environment-storage",
+          "testId": "1ab30329-a0ca-8109-82a2-069eee61926c",
+          "executionId": "8b74138c-402d-4412-a29e-837ca67f284d",
+          "nativeOutcome": "Passed",
+          "observation": {
+            "schema": "cis.architecture-fixture/v1",
+            "scenario": "environment-storage",
+            "positive": {
+              "schema": "cis.architecture-fixture-positive/v1",
+              "exitCode": 0,
+              "fixtureScope": "Actual Core and packaged build-helper source; trusted registration contains their complete two-project shipping closure. Full repository inventory remains independently checked by the normal Developer profile.",
+              "projects": 2,
+              "targets": 2,
+              "assemblies": 2,
+              "levels": 5,
+              "copiedSourceFiles": 95,
+              "copiedSourceDigest": "7e4f6c471ce984defff3165b11ec4f04279caf862594a8388e92a5a541ced056",
+              "inspectionSha256": "4e5ca1db98763ffc4e3a58a08aefa14dd6d2f3a8ac4d5c6dc06ae2cd50f16c2c",
+              "packageSha256": "5d9231b6ff9ced3e5e5ac5da23292edd81e18f9db23e6d2064785c039c562d84",
+              "inspectorSha256": "ad2c76c3eae716bf1e29cbf35c19ee5bb88e4dfd708d4a42cdf20c8b8fa4641b"
+            },
+            "negative": {
+              "exitCode": 1,
+              "diagnostic": "ARCH-ENVIRONMENT-MUTABLE",
+              "expectedContext": "architectureApplicationName",
+              "standardError": "Architecture inspection failed: ARCH-ENVIRONMENT-MUTABLE: architectureApplicationName\r\n",
+              "successfulReportRetained": false,
+              "packageSha256": "76adccecc8b956236c87ff858f6a506cab30a07b9a40f07ac43532b0cd0089c8"
+            }
+          }
+        },
+        {
+          "scenario": "contract-output",
+          "testId": "1a20a2b1-7868-87e5-b7f9-2b2da2b9ce39",
+          "executionId": "7db14cce-b7ea-4bba-8acc-0018f7c40074",
+          "nativeOutcome": "Passed",
+          "observation": {
+            "schema": "cis.architecture-fixture/v1",
+            "scenario": "contract-output",
+            "positive": {
+              "schema": "cis.architecture-fixture-positive/v1",
+              "exitCode": 0,
+              "fixtureScope": "Actual Core and packaged build-helper source; trusted registration contains their complete two-project shipping closure. Full repository inventory remains independently checked by the normal Developer profile.",
+              "projects": 2,
+              "targets": 2,
+              "assemblies": 2,
+              "levels": 5,
+              "copiedSourceFiles": 95,
+              "copiedSourceDigest": "7e4f6c471ce984defff3165b11ec4f04279caf862594a8388e92a5a541ced056",
+              "inspectionSha256": "2f5afaa6d8c92a2c0277b53b72b00b9ed6772ed6018aaceec6decabccc31ee07",
+              "packageSha256": "d33b5b2427b90132df91b1cd12048abb680181684a80ed8d512e79b9af721b8e",
+              "inspectorSha256": "ad2c76c3eae716bf1e29cbf35c19ee5bb88e4dfd708d4a42cdf20c8b8fa4641b"
+            },
+            "negative": {
+              "exitCode": 1,
+              "diagnostic": "ARCH-CONTRACT-OUTPUT",
+              "expectedContext": "CIS.Logging.EventMetadata:method:ArchitectureBoundaryViolation:",
+              "standardError": "Architecture inspection failed: ARCH-CONTRACT-OUTPUT: CIS.Logging.EventMetadata:method:ArchitectureBoundaryViolation:0x060000eb -> CIS.Logging.CoreLogRuntime\r\n",
+              "successfulReportRetained": false,
+              "packageSha256": "dd8d3348b96a5d0b2a6c598b1880be5bcd0d00915d0f402667f25459d9707c10"
+            }
+          }
+        },
+        {
+          "scenario": "nested-caller-state",
+          "testId": "1b09316c-c753-8cd6-acf1-8853024543f0",
+          "executionId": "f39a100b-b517-4b9a-9023-4e868811d65b",
+          "nativeOutcome": "Passed",
+          "observation": {
+            "schema": "cis.architecture-fixture/v1",
+            "scenario": "nested-caller-state",
+            "positive": {
+              "schema": "cis.architecture-fixture-positive/v1",
+              "exitCode": 0,
+              "fixtureScope": "Actual Core and packaged build-helper source; trusted registration contains their complete two-project shipping closure. Full repository inventory remains independently checked by the normal Developer profile.",
+              "projects": 2,
+              "targets": 2,
+              "assemblies": 2,
+              "levels": 5,
+              "copiedSourceFiles": 95,
+              "copiedSourceDigest": "7e4f6c471ce984defff3165b11ec4f04279caf862594a8388e92a5a541ced056",
+              "inspectionSha256": "c9b599068a420e13a78b3f984813c66c225893e1a67d1ed7145de637ddff69e8",
+              "packageSha256": "b177f8827d4bdbee678f4b88543af5877d127ddeaca0b4db1ab8267089489e29",
+              "inspectorSha256": "ad2c76c3eae716bf1e29cbf35c19ee5bb88e4dfd708d4a42cdf20c8b8fa4641b"
+            },
+            "negative": {
+              "exitCode": 1,
+              "diagnostic": "ARCH-RUNTIME-CALLER-STATE",
+              "expectedContext": "CIS.Logging.CoreLogRuntime+ArchitectureCallerState:Caller",
+              "standardError": "Architecture inspection failed: ARCH-RUNTIME-CALLER-STATE: CIS.Logging.CoreLogRuntime+ArchitectureCallerState:Caller\r\n",
+              "successfulReportRetained": false,
+              "packageSha256": "3b9f775e9e13f3740ac7016cceaf9d63926fa5d913eb41ee3f5dbc61a2fcafb3"
+            }
+          }
+        },
+        {
+          "scenario": "compiled-reference",
+          "testId": "1d742d2b-59e9-8dda-a185-5f0eca0daf46",
+          "executionId": "55800adc-a533-44c8-9183-c12b386757f1",
+          "nativeOutcome": "Passed",
+          "observation": {
+            "schema": "cis.architecture-fixture/v1",
+            "scenario": "compiled-reference",
+            "positive": {
+              "schema": "cis.architecture-fixture-positive/v1",
+              "exitCode": 0,
+              "fixtureScope": "Actual Core and packaged build-helper source; trusted registration contains their complete two-project shipping closure. Full repository inventory remains independently checked by the normal Developer profile.",
+              "projects": 2,
+              "targets": 2,
+              "assemblies": 2,
+              "levels": 5,
+              "copiedSourceFiles": 95,
+              "copiedSourceDigest": "7e4f6c471ce984defff3165b11ec4f04279caf862594a8388e92a5a541ced056",
+              "inspectionSha256": "6750adbc1cc7e272addcc642a25714ea7ecc30267507900e51102235acfb4f60",
+              "packageSha256": "586404e955bf0715e1a9c9bd62cf1a78d95047cd710b227d9ff1ad5205e2c577",
+              "inspectorSha256": "ad2c76c3eae716bf1e29cbf35c19ee5bb88e4dfd708d4a42cdf20c8b8fa4641b"
+            },
+            "negative": {
+              "exitCode": 1,
+              "diagnostic": "ARCH-COMPILED-REFERENCE",
+              "expectedContext": "CIS.Core -> NLog",
+              "standardError": "Architecture inspection failed: ARCH-COMPILED-REFERENCE: CIS.Core -> NLog\r\n",
+              "successfulReportRetained": false,
+              "packageSha256": "4fb5c200ec7da20f05ef48101387d3e49175c3c91392e8d99386ee09c80d7be7"
+            }
+          }
+        },
+        {
+          "scenario": "build-asset",
+          "testId": "13b3f34a-486f-8727-bd61-1b03435207bc",
+          "executionId": "3c7e0898-020f-44c9-91d6-0f22665afc69",
+          "nativeOutcome": "Passed",
+          "observation": {
+            "schema": "cis.architecture-fixture/v1",
+            "scenario": "build-asset",
+            "positive": {
+              "schema": "cis.architecture-fixture-positive/v1",
+              "exitCode": 0,
+              "fixtureScope": "Actual Core and packaged build-helper source; trusted registration contains their complete two-project shipping closure. Full repository inventory remains independently checked by the normal Developer profile.",
+              "projects": 2,
+              "targets": 2,
+              "assemblies": 2,
+              "levels": 5,
+              "copiedSourceFiles": 95,
+              "copiedSourceDigest": "7e4f6c471ce984defff3165b11ec4f04279caf862594a8388e92a5a541ced056",
+              "inspectionSha256": "51e77682d03b23cd5fb06110169a56e84c9ff1856d1bce32f922a12d66f3567a",
+              "packageSha256": "ba72f4386f1bc27a5f2e0bf8c20969755a7d89ed50fd81b30d6c2d30a76d96a3",
+              "inspectorSha256": "ad2c76c3eae716bf1e29cbf35c19ee5bb88e4dfd708d4a42cdf20c8b8fa4641b"
+            },
+            "negative": {
+              "exitCode": 1,
+              "diagnostic": "ARCH-PACKAGE-ASSET",
+              "expectedContext": "buildTransitive/Unexpected.targets",
+              "standardError": "Architecture inspection failed: ARCH-PACKAGE-ASSET: buildTransitive/Unexpected.targets\r\n",
+              "successfulReportRetained": false,
+              "packageSha256": "21638ceb4409880e9313a0304bbf2351fda6e3d83607ff39e2d0c6caf85c885b"
+            }
+          }
+        },
+        {
+          "scenario": "disguised-test-binary",
+          "testId": "1f2c322e-ee38-81d9-8c83-5185f8b04593",
+          "executionId": "a60b2794-28c3-4787-bd73-656730373d12",
+          "nativeOutcome": "Passed",
+          "observation": {
+            "schema": "cis.architecture-fixture/v1",
+            "scenario": "disguised-test-binary",
+            "positive": {
+              "schema": "cis.architecture-fixture-positive/v1",
+              "exitCode": 0,
+              "fixtureScope": "Actual Core and packaged build-helper source; trusted registration contains their complete two-project shipping closure. Full repository inventory remains independently checked by the normal Developer profile.",
+              "projects": 2,
+              "targets": 2,
+              "assemblies": 2,
+              "levels": 5,
+              "copiedSourceFiles": 95,
+              "copiedSourceDigest": "7e4f6c471ce984defff3165b11ec4f04279caf862594a8388e92a5a541ced056",
+              "inspectionSha256": "a0f2aacfad73bd105b1fd9ba177a7ad1980ce7e997151c63e2a1bccf7cf7deec",
+              "packageSha256": "f824662d68a85285268f7af10e8216f7d731da027907ba99971be15d3a6ceb68",
+              "inspectorSha256": "ad2c76c3eae716bf1e29cbf35c19ee5bb88e4dfd708d4a42cdf20c8b8fa4641b"
+            },
+            "negative": {
+              "exitCode": 1,
+              "diagnostic": "ARCH-PACKED-ORIGIN",
+              "expectedContext": "Packed assembly has no unique evaluated project origin: CIS.Core.ArchitectureTests",
+              "standardError": "Architecture inspection failed: ARCH-PACKED-ORIGIN: Packed assembly has no unique evaluated project origin: CIS.Core.ArchitectureTests\r\n",
+              "successfulReportRetained": false,
+              "packageSha256": "48da2a0ad74ad6ba8e9db107e628976c8daad6ff30888e557978e951488b4621"
+            }
+          }
+        },
+        {
+          "scenario": "mutable-inheritance",
+          "testId": "1d54efd1-eaf4-88dc-975b-19a6fbf9971d",
+          "executionId": "9afebeb9-8744-46ff-a58d-0414ebe9ed48",
+          "nativeOutcome": "Passed",
+          "observation": {
+            "schema": "cis.architecture-fixture/v1",
+            "scenario": "mutable-inheritance",
+            "positive": {
+              "schema": "cis.architecture-fixture-positive/v1",
+              "exitCode": 0,
+              "fixtureScope": "Actual Core and packaged build-helper source; trusted registration contains their complete two-project shipping closure. Full repository inventory remains independently checked by the normal Developer profile.",
+              "projects": 2,
+              "targets": 2,
+              "assemblies": 2,
+              "levels": 5,
+              "copiedSourceFiles": 95,
+              "copiedSourceDigest": "7e4f6c471ce984defff3165b11ec4f04279caf862594a8388e92a5a541ced056",
+              "inspectionSha256": "29ad9c736571119dc7f218c1456bfb4b7db55db3ef011afb3efbf7238a1b703c",
+              "packageSha256": "f946d0e6f4e35167d63227880f3f8864cdac816f6a0a1f3c8e6549451e2fa920",
+              "inspectorSha256": "ad2c76c3eae716bf1e29cbf35c19ee5bb88e4dfd708d4a42cdf20c8b8fa4641b"
+            },
+            "negative": {
+              "exitCode": 1,
+              "diagnostic": "ARCH-OWNERSHIP-SHAPE",
+              "expectedContext": "CIS.Logging.EventMetadata",
+              "standardError": "Architecture inspection failed: ARCH-OWNERSHIP-SHAPE: CIS.Logging.EventMetadata\r\n",
+              "successfulReportRetained": false,
+              "packageSha256": "c4155e6ca59fb5d9b89f52efd4e6b24349aa899bb28167b084aca6872d9567b7"
+            }
+          }
+        },
+        {
+          "scenario": "framework",
+          "testId": "1ff67a47-8f27-8143-ab0d-299e6feda2b4",
+          "executionId": "c30ed4ac-9a01-48b6-9fc1-e2e16b3ce4d4",
+          "nativeOutcome": "Passed",
+          "observation": {
+            "schema": "cis.architecture-fixture/v1",
+            "scenario": "framework",
+            "positive": {
+              "schema": "cis.architecture-fixture-positive/v1",
+              "exitCode": 0,
+              "fixtureScope": "Actual Core and packaged build-helper source; trusted registration contains their complete two-project shipping closure. Full repository inventory remains independently checked by the normal Developer profile.",
+              "projects": 2,
+              "targets": 2,
+              "assemblies": 2,
+              "levels": 5,
+              "copiedSourceFiles": 95,
+              "copiedSourceDigest": "7e4f6c471ce984defff3165b11ec4f04279caf862594a8388e92a5a541ced056",
+              "inspectionSha256": "38bac0a3d433003dd1b12b0ee2968a24df1cf892b540dff30cd3c91d666c6533",
+              "packageSha256": "ca54f4d6dc0b0796edc758f1fabcca4a072f44886d6b79e04e327603a76d1b26",
+              "inspectorSha256": "ad2c76c3eae716bf1e29cbf35c19ee5bb88e4dfd708d4a42cdf20c8b8fa4641b"
+            },
+            "negative": {
+              "exitCode": 1,
+              "diagnostic": "ARCH-FRAMEWORK",
+              "expectedContext": "src/CIS.Core/CIS.Core.csproj net10.0",
+              "standardError": "Architecture inspection failed: ARCH-FRAMEWORK: src/CIS.Core/CIS.Core.csproj net10.0\r\n",
+              "successfulReportRetained": false,
+              "packageSha256": "5cc593319e55198f3e1ed908a7693f576401e5c2e80e2080d92e947b96911e22"
+            }
+          }
+        },
+        {
+          "scenario": "duplicate-asset",
+          "testId": "172a5b78-1558-8389-b08e-af66fd95e27f",
+          "executionId": "8fc0692c-3862-498a-a9ea-c6015c887848",
+          "nativeOutcome": "Passed",
+          "observation": {
+            "schema": "cis.architecture-fixture/v1",
+            "scenario": "duplicate-asset",
+            "positive": {
+              "schema": "cis.architecture-fixture-positive/v1",
+              "exitCode": 0,
+              "fixtureScope": "Actual Core and packaged build-helper source; trusted registration contains their complete two-project shipping closure. Full repository inventory remains independently checked by the normal Developer profile.",
+              "projects": 2,
+              "targets": 2,
+              "assemblies": 2,
+              "levels": 5,
+              "copiedSourceFiles": 95,
+              "copiedSourceDigest": "7e4f6c471ce984defff3165b11ec4f04279caf862594a8388e92a5a541ced056",
+              "inspectionSha256": "0ca0b6890f9eb3e090405fa7582e21b901982e658dd8618d621bb36c00c9fa13",
+              "packageSha256": "b27b18a3c61621a46930cb9280e78740be023c5e661b62dd4bde301520d31595",
+              "inspectorSha256": "ad2c76c3eae716bf1e29cbf35c19ee5bb88e4dfd708d4a42cdf20c8b8fa4641b"
+            },
+            "negative": {
+              "exitCode": 1,
+              "diagnostic": "ARCH-PACKAGE-ASSET",
+              "expectedContext": "Duplicate package asset paths.",
+              "standardError": "Architecture inspection failed: ARCH-PACKAGE-ASSET: Duplicate package asset paths.\r\n",
+              "successfulReportRetained": false,
+              "packageSha256": "c8bd073471e25c65674c6f2d6e02362dd1924e9749348573c928a91fb1e2fd0d"
+            }
+          }
+        },
+        {
+          "scenario": "project-inventory",
+          "testId": "1f7d1316-805f-8d09-b957-c8f8c9c8048b",
+          "executionId": "e4844081-6d9a-4902-881c-508f3480fe17",
+          "nativeOutcome": "Passed",
+          "observation": {
+            "schema": "cis.architecture-fixture/v1",
+            "scenario": "project-inventory",
+            "positive": {
+              "schema": "cis.architecture-fixture-positive/v1",
+              "exitCode": 0,
+              "fixtureScope": "Actual Core and packaged build-helper source; trusted registration contains their complete two-project shipping closure. Full repository inventory remains independently checked by the normal Developer profile.",
+              "projects": 2,
+              "targets": 2,
+              "assemblies": 2,
+              "levels": 5,
+              "copiedSourceFiles": 95,
+              "copiedSourceDigest": "7e4f6c471ce984defff3165b11ec4f04279caf862594a8388e92a5a541ced056",
+              "inspectionSha256": "3310704860bc1eb1d4b7688092c9b051db4b5021a4bdd10561e43e8acaab6063",
+              "packageSha256": "5f5123629e76886bbeaa3293cf624694ab9d4b89d0b07a2063b68d7fe53af872",
+              "inspectorSha256": "ad2c76c3eae716bf1e29cbf35c19ee5bb88e4dfd708d4a42cdf20c8b8fa4641b"
+            },
+            "negative": {
+              "exitCode": 1,
+              "diagnostic": "ARCH-PROJECT-INVENTORY",
+              "expectedContext": "Discovered project count differs from the registered inventory.",
+              "standardError": "Architecture inspection failed: ARCH-PROJECT-INVENTORY: Discovered project count differs from the registered inventory.\r\n",
+              "successfulReportRetained": false,
+              "packageSha256": "5f5123629e76886bbeaa3293cf624694ab9d4b89d0b07a2063b68d7fe53af872"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "lane": "ubuntu",
+      "runId": "b60a233e4c37442a9e285d24677fe98a",
+      "sourceCommit": "5e1647eefddad144938b68ad133a9443555ee097",
+      "passed": {
+        "unit": 3415,
+        "integration": 1439,
+        "architecture": 610,
+        "business": 24
+      },
+      "total": 5488.0,
+      "stagesPassed": 16,
+      "projects": 27,
+      "targets": 33,
+      "assemblies": 2,
+      "ownership": {
+        "schema": "cis.architecture-ownership/v1",
+        "violations": 0,
+        "immutableTypes": 20,
+        "checkedContractUses": 846,
+        "mutableSetupProperties": 3,
+        "packageAssets": 14
+      },
+      "newControls": 15,
+      "observations": [
+        {
+          "scenario": "mutable-inheritance",
+          "testId": "1d54efd1-eaf4-88dc-975b-19a6fbf9971d",
+          "executionId": "3c9ae41a-88ec-48ca-ac60-2bb91ecc1db4",
+          "nativeOutcome": "Passed",
+          "observation": {
+            "schema": "cis.architecture-fixture/v1",
+            "scenario": "mutable-inheritance",
+            "positive": {
+              "schema": "cis.architecture-fixture-positive/v1",
+              "exitCode": 0,
+              "fixtureScope": "Actual Core and packaged build-helper source; trusted registration contains their complete two-project shipping closure. Full repository inventory remains independently checked by the normal Developer profile.",
+              "projects": 2,
+              "targets": 2,
+              "assemblies": 2,
+              "levels": 5,
+              "copiedSourceFiles": 95,
+              "copiedSourceDigest": "7e4f6c471ce984defff3165b11ec4f04279caf862594a8388e92a5a541ced056",
+              "inspectionSha256": "0dadc8a940ce457facb3e39a4f6d03f5e7461828bfa633836994a1eb5863c2cd",
+              "packageSha256": "8789d05d7d853b1e46a3141be98ac54806a041b39c727517c606ee051fa614de",
+              "inspectorSha256": "5f4446efc6f36a007d95becc0dc85578e7d7b16ab8ca147e8923c5f64c1ccaeb"
+            },
+            "negative": {
+              "exitCode": 1,
+              "diagnostic": "ARCH-OWNERSHIP-SHAPE",
+              "expectedContext": "CIS.Logging.EventMetadata",
+              "standardError": "Architecture inspection failed: ARCH-OWNERSHIP-SHAPE: CIS.Logging.EventMetadata\n",
+              "successfulReportRetained": false,
+              "packageSha256": "cbbbe36e411d12a5c786a0f2dfde97026cda1a45dafbd37a43daad92173a666e"
+            }
+          }
+        },
+        {
+          "scenario": "framework",
+          "testId": "1ff67a47-8f27-8143-ab0d-299e6feda2b4",
+          "executionId": "498deb59-a0b3-4dcb-9b28-d18ad9e1614f",
+          "nativeOutcome": "Passed",
+          "observation": {
+            "schema": "cis.architecture-fixture/v1",
+            "scenario": "framework",
+            "positive": {
+              "schema": "cis.architecture-fixture-positive/v1",
+              "exitCode": 0,
+              "fixtureScope": "Actual Core and packaged build-helper source; trusted registration contains their complete two-project shipping closure. Full repository inventory remains independently checked by the normal Developer profile.",
+              "projects": 2,
+              "targets": 2,
+              "assemblies": 2,
+              "levels": 5,
+              "copiedSourceFiles": 95,
+              "copiedSourceDigest": "7e4f6c471ce984defff3165b11ec4f04279caf862594a8388e92a5a541ced056",
+              "inspectionSha256": "a91930b7a164f115b5df5f7a45ce46a50d3184ff68a9c3451b1ea03c5fba751b",
+              "packageSha256": "abff667deaf1fdf95d93f4e7d847b38f2009b3930630320ce260bc75af5e6866",
+              "inspectorSha256": "5f4446efc6f36a007d95becc0dc85578e7d7b16ab8ca147e8923c5f64c1ccaeb"
+            },
+            "negative": {
+              "exitCode": 1,
+              "diagnostic": "ARCH-FRAMEWORK",
+              "expectedContext": "src/CIS.Core/CIS.Core.csproj net10.0",
+              "standardError": "Architecture inspection failed: ARCH-FRAMEWORK: src/CIS.Core/CIS.Core.csproj net10.0\n",
+              "successfulReportRetained": false,
+              "packageSha256": "4528140d62399f0d4f23f3a7f7e47f32dc632ca9ca081e034a01fcf54bbeec41"
+            }
+          }
+        },
+        {
+          "scenario": "content-asset",
+          "testId": "166339f7-6fb3-87c2-8953-ebb0b81348e6",
+          "executionId": "5b723b76-9544-4ac2-b435-f93a122bb853",
+          "nativeOutcome": "Passed",
+          "observation": {
+            "schema": "cis.architecture-fixture/v1",
+            "scenario": "content-asset",
+            "positive": {
+              "schema": "cis.architecture-fixture-positive/v1",
+              "exitCode": 0,
+              "fixtureScope": "Actual Core and packaged build-helper source; trusted registration contains their complete two-project shipping closure. Full repository inventory remains independently checked by the normal Developer profile.",
+              "projects": 2,
+              "targets": 2,
+              "assemblies": 2,
+              "levels": 5,
+              "copiedSourceFiles": 95,
+              "copiedSourceDigest": "7e4f6c471ce984defff3165b11ec4f04279caf862594a8388e92a5a541ced056",
+              "inspectionSha256": "7b1e542e0032e12f5011e63c9d27d892bf52c3b70d055207ac3355b089871ae9",
+              "packageSha256": "8f6d14ba1808376280a8f45690b2343ed6597a93d35517e8ad97a950393f03d7",
+              "inspectorSha256": "5f4446efc6f36a007d95becc0dc85578e7d7b16ab8ca147e8923c5f64c1ccaeb"
+            },
+            "negative": {
+              "exitCode": 1,
+              "diagnostic": "ARCH-PACKAGE-ASSET",
+              "expectedContext": "contentFiles/any/any/attachment.txt",
+              "standardError": "Architecture inspection failed: ARCH-PACKAGE-ASSET: contentFiles/any/any/attachment.txt\n",
+              "successfulReportRetained": false,
+              "packageSha256": "103b9693219de2a0659c25dd4445fdcf02097d68e9153915d3b30485c0f510b4"
+            }
+          }
+        },
+        {
+          "scenario": "private-runtime-package",
+          "testId": "1b4a86cc-e0ee-841e-9113-f15553205f9a",
+          "executionId": "23eb9516-c883-4877-9a0f-278cb160ef32",
+          "nativeOutcome": "Passed",
+          "observation": {
+            "schema": "cis.architecture-fixture/v1",
+            "scenario": "private-runtime-package",
+            "positive": {
+              "schema": "cis.architecture-fixture-positive/v1",
+              "exitCode": 0,
+              "fixtureScope": "Actual Core and packaged build-helper source; trusted registration contains their complete two-project shipping closure. Full repository inventory remains independently checked by the normal Developer profile.",
+              "projects": 2,
+              "targets": 2,
+              "assemblies": 2,
+              "levels": 5,
+              "copiedSourceFiles": 95,
+              "copiedSourceDigest": "7e4f6c471ce984defff3165b11ec4f04279caf862594a8388e92a5a541ced056",
+              "inspectionSha256": "7133f12bfa4959837585acad160b61a7ab469e25bfa73a2f99d81c61353ddd7f",
+              "packageSha256": "47b6f53cbbcfbab78954649a71609afd8c3a2587f1ddfebc81c76a18e28a7619",
+              "inspectorSha256": "5f4446efc6f36a007d95becc0dc85578e7d7b16ab8ca147e8923c5f64c1ccaeb"
+            },
+            "negative": {
+              "exitCode": 1,
+              "diagnostic": "ARCH-PACKAGE-REFERENCE",
+              "expectedContext": "src/CIS.Core/CIS.Core.csproj net10.0",
+              "standardError": "Architecture inspection failed: ARCH-PACKAGE-REFERENCE: src/CIS.Core/CIS.Core.csproj net10.0\n",
+              "successfulReportRetained": false,
+              "packageSha256": "a28d1fe6646ccabd6d65158431a5358627cce25cc80f5ac0d226f4996b2500ec"
+            }
+          }
+        },
+        {
+          "scenario": "compiled-reference",
+          "testId": "1d742d2b-59e9-8dda-a185-5f0eca0daf46",
+          "executionId": "1970b225-05f4-42cb-9bf2-5e586fc0b410",
+          "nativeOutcome": "Passed",
+          "observation": {
+            "schema": "cis.architecture-fixture/v1",
+            "scenario": "compiled-reference",
+            "positive": {
+              "schema": "cis.architecture-fixture-positive/v1",
+              "exitCode": 0,
+              "fixtureScope": "Actual Core and packaged build-helper source; trusted registration contains their complete two-project shipping closure. Full repository inventory remains independently checked by the normal Developer profile.",
+              "projects": 2,
+              "targets": 2,
+              "assemblies": 2,
+              "levels": 5,
+              "copiedSourceFiles": 95,
+              "copiedSourceDigest": "7e4f6c471ce984defff3165b11ec4f04279caf862594a8388e92a5a541ced056",
+              "inspectionSha256": "a83bd098a06b359855f910b36a65492e786ad99786ac219792cac2bce4862e50",
+              "packageSha256": "f09950335da0018169afa3250b07071091cadfaaa1c788e715455f0b120403c5",
+              "inspectorSha256": "5f4446efc6f36a007d95becc0dc85578e7d7b16ab8ca147e8923c5f64c1ccaeb"
+            },
+            "negative": {
+              "exitCode": 1,
+              "diagnostic": "ARCH-COMPILED-REFERENCE",
+              "expectedContext": "CIS.Core -> NLog",
+              "standardError": "Architecture inspection failed: ARCH-COMPILED-REFERENCE: CIS.Core -> NLog\n",
+              "successfulReportRetained": false,
+              "packageSha256": "3b29e3df6d598a0ccfefe2069c6e830bdc34b9aeffdb0e73494ec1773441336e"
+            }
+          }
+        },
+        {
+          "scenario": "duplicate-asset",
+          "testId": "172a5b78-1558-8389-b08e-af66fd95e27f",
+          "executionId": "1352718d-108b-4911-91aa-d8dab867c126",
+          "nativeOutcome": "Passed",
+          "observation": {
+            "schema": "cis.architecture-fixture/v1",
+            "scenario": "duplicate-asset",
+            "positive": {
+              "schema": "cis.architecture-fixture-positive/v1",
+              "exitCode": 0,
+              "fixtureScope": "Actual Core and packaged build-helper source; trusted registration contains their complete two-project shipping closure. Full repository inventory remains independently checked by the normal Developer profile.",
+              "projects": 2,
+              "targets": 2,
+              "assemblies": 2,
+              "levels": 5,
+              "copiedSourceFiles": 95,
+              "copiedSourceDigest": "7e4f6c471ce984defff3165b11ec4f04279caf862594a8388e92a5a541ced056",
+              "inspectionSha256": "6d99d3e22277a77898cb4bbd6ed3243f66e42f6535861620f0aa216781bf4cfe",
+              "packageSha256": "15a29bf25eca7c8a376eb8de96aa6d2106a2596bd3ce72df8d333e02d9c84001",
+              "inspectorSha256": "5f4446efc6f36a007d95becc0dc85578e7d7b16ab8ca147e8923c5f64c1ccaeb"
+            },
+            "negative": {
+              "exitCode": 1,
+              "diagnostic": "ARCH-PACKAGE-ASSET",
+              "expectedContext": "Duplicate package asset paths.",
+              "standardError": "Architecture inspection failed: ARCH-PACKAGE-ASSET: Duplicate package asset paths.\n",
+              "successfulReportRetained": false,
+              "packageSha256": "fba006687fb0c9ddefd8bb285a90e3a669d14cb90146368665ae7d320f9a1408"
+            }
+          }
+        },
+        {
+          "scenario": "packed-content",
+          "testId": "1f6feb12-7065-8a05-980d-1bf50e8833c2",
+          "executionId": "25feacb6-3816-4f74-8f17-23d973c6638a",
+          "nativeOutcome": "Passed",
+          "observation": {
+            "schema": "cis.architecture-fixture/v1",
+            "scenario": "packed-content",
+            "positive": {
+              "schema": "cis.architecture-fixture-positive/v1",
+              "exitCode": 0,
+              "fixtureScope": "Actual Core and packaged build-helper source; trusted registration contains their complete two-project shipping closure. Full repository inventory remains independently checked by the normal Developer profile.",
+              "projects": 2,
+              "targets": 2,
+              "assemblies": 2,
+              "levels": 5,
+              "copiedSourceFiles": 95,
+              "copiedSourceDigest": "7e4f6c471ce984defff3165b11ec4f04279caf862594a8388e92a5a541ced056",
+              "inspectionSha256": "a05ff5e82918dffc059e2fe41db97a4648dd0c27a9f2b90ef615e6119f72e2bf",
+              "packageSha256": "ef3b7cefa4e7ace9659de5920ea1d41448e4de9d2173720a4e92d8834cecab8f",
+              "inspectorSha256": "5f4446efc6f36a007d95becc0dc85578e7d7b16ab8ca147e8923c5f64c1ccaeb"
+            },
+            "negative": {
+              "exitCode": 1,
+              "diagnostic": "ARCH-PACKED-CONTENT",
+              "expectedContext": "Packed assembly differs from evaluated Release output: CIS.Core",
+              "standardError": "Architecture inspection failed: ARCH-PACKED-CONTENT: Packed assembly differs from evaluated Release output: CIS.Core\n",
+              "successfulReportRetained": false,
+              "packageSha256": "724bc0346490beb020bc8382d72ef82670f98b822416dc7947eaa64c4d55ddb3"
+            }
+          }
+        },
+        {
+          "scenario": "lock-content",
+          "testId": "1010c601-fd5f-87a3-b9a8-07e15153b6fb",
+          "executionId": "33c9b4ba-3bd6-4568-9e05-051af6119436",
+          "nativeOutcome": "Passed",
+          "observation": {
+            "schema": "cis.architecture-fixture/v1",
+            "scenario": "lock-content",
+            "positive": {
+              "schema": "cis.architecture-fixture-positive/v1",
+              "exitCode": 0,
+              "fixtureScope": "Actual Core and packaged build-helper source; trusted registration contains their complete two-project shipping closure. Full repository inventory remains independently checked by the normal Developer profile.",
+              "projects": 2,
+              "targets": 2,
+              "assemblies": 2,
+              "levels": 5,
+              "copiedSourceFiles": 95,
+              "copiedSourceDigest": "7e4f6c471ce984defff3165b11ec4f04279caf862594a8388e92a5a541ced056",
+              "inspectionSha256": "4c93ce425f88e90bfea4b0b540248038fa1e38276e72574c3cad9a817bb5c5c9",
+              "packageSha256": "921e16e8c923fac0124a55029bf007a5722a91a4f0723be4f22019448649b4ae",
+              "inspectorSha256": "5f4446efc6f36a007d95becc0dc85578e7d7b16ab8ca147e8923c5f64c1ccaeb"
+            },
+            "negative": {
+              "exitCode": 1,
+              "diagnostic": "ARCH-LOCK-CONTENT",
+              "expectedContext": "Lock/assets mismatch: src/CIS.Core/CIS.Core.csproj net10.0 Microsoft.Extensions.Logging.Abstractions/10.0.12",
+              "standardError": "Architecture inspection failed: ARCH-LOCK-CONTENT: Lock/assets mismatch: src/CIS.Core/CIS.Core.csproj net10.0 Microsoft.Extensions.Logging.Abstractions/10.0.12\n",
+              "successfulReportRetained": false,
+              "packageSha256": "921e16e8c923fac0124a55029bf007a5722a91a4f0723be4f22019448649b4ae"
+            }
+          }
+        },
+        {
+          "scenario": "environment-storage",
+          "testId": "1ab30329-a0ca-8109-82a2-069eee61926c",
+          "executionId": "8ed8fecc-c54b-4b13-9980-8b52ae1f6b16",
+          "nativeOutcome": "Passed",
+          "observation": {
+            "schema": "cis.architecture-fixture/v1",
+            "scenario": "environment-storage",
+            "positive": {
+              "schema": "cis.architecture-fixture-positive/v1",
+              "exitCode": 0,
+              "fixtureScope": "Actual Core and packaged build-helper source; trusted registration contains their complete two-project shipping closure. Full repository inventory remains independently checked by the normal Developer profile.",
+              "projects": 2,
+              "targets": 2,
+              "assemblies": 2,
+              "levels": 5,
+              "copiedSourceFiles": 95,
+              "copiedSourceDigest": "7e4f6c471ce984defff3165b11ec4f04279caf862594a8388e92a5a541ced056",
+              "inspectionSha256": "57d0db4a2f58da8ececc2f8279c14f670b6cc25aba37ebbdd8548d3dfdb554e3",
+              "packageSha256": "5732078b5ca936cdac531cd6bad74db988dac873d4fa6959850d1c5dba35d745",
+              "inspectorSha256": "5f4446efc6f36a007d95becc0dc85578e7d7b16ab8ca147e8923c5f64c1ccaeb"
+            },
+            "negative": {
+              "exitCode": 1,
+              "diagnostic": "ARCH-ENVIRONMENT-MUTABLE",
+              "expectedContext": "architectureApplicationName",
+              "standardError": "Architecture inspection failed: ARCH-ENVIRONMENT-MUTABLE: architectureApplicationName\n",
+              "successfulReportRetained": false,
+              "packageSha256": "4864646d543ef9b3097ce13f07cba362c939ade761208d438849e119795282c5"
+            }
+          }
+        },
+        {
+          "scenario": "positive",
+          "testId": "18f11bb5-8a1e-80c0-be09-f2c23feb93e7",
+          "executionId": "7317863e-cc9d-4abc-956b-a22fb18fa20d",
+          "nativeOutcome": "Passed",
+          "observation": {
+            "schema": "cis.architecture-fixture-positive/v1",
+            "exitCode": 0,
+            "fixtureScope": "Actual Core and packaged build-helper source; trusted registration contains their complete two-project shipping closure. Full repository inventory remains independently checked by the normal Developer profile.",
+            "projects": 2,
+            "targets": 2,
+            "assemblies": 2,
+            "levels": 5,
+            "copiedSourceFiles": 95,
+            "copiedSourceDigest": "7e4f6c471ce984defff3165b11ec4f04279caf862594a8388e92a5a541ced056",
+            "inspectionSha256": "6c9ea583a51fa7c87908a6e774a39416be31078f0b3357681da35194af5e567f",
+            "packageSha256": "26c3abadba0c8436685e15151a6a07de166e4b8c3261e5a71d1cabe9c58c2a0e",
+            "inspectorSha256": "5f4446efc6f36a007d95becc0dc85578e7d7b16ab8ca147e8923c5f64c1ccaeb"
+          }
+        },
+        {
+          "scenario": "nested-caller-state",
+          "testId": "1b09316c-c753-8cd6-acf1-8853024543f0",
+          "executionId": "dced15a4-1746-46a5-b75c-d6167a8c30a6",
+          "nativeOutcome": "Passed",
+          "observation": {
+            "schema": "cis.architecture-fixture/v1",
+            "scenario": "nested-caller-state",
+            "positive": {
+              "schema": "cis.architecture-fixture-positive/v1",
+              "exitCode": 0,
+              "fixtureScope": "Actual Core and packaged build-helper source; trusted registration contains their complete two-project shipping closure. Full repository inventory remains independently checked by the normal Developer profile.",
+              "projects": 2,
+              "targets": 2,
+              "assemblies": 2,
+              "levels": 5,
+              "copiedSourceFiles": 95,
+              "copiedSourceDigest": "7e4f6c471ce984defff3165b11ec4f04279caf862594a8388e92a5a541ced056",
+              "inspectionSha256": "fafd6bb3c5cd21abebfaaa3e8a4ce0ce71658d7bd62216954566d66926077436",
+              "packageSha256": "3d6220f5a4b0dcbe690d22fe08870411a05bb46e86556d5122ef25f0696d482b",
+              "inspectorSha256": "5f4446efc6f36a007d95becc0dc85578e7d7b16ab8ca147e8923c5f64c1ccaeb"
+            },
+            "negative": {
+              "exitCode": 1,
+              "diagnostic": "ARCH-RUNTIME-CALLER-STATE",
+              "expectedContext": "CIS.Logging.CoreLogRuntime+ArchitectureCallerState:Caller",
+              "standardError": "Architecture inspection failed: ARCH-RUNTIME-CALLER-STATE: CIS.Logging.CoreLogRuntime+ArchitectureCallerState:Caller\n",
+              "successfulReportRetained": false,
+              "packageSha256": "07cd7e1bdfcbd7f9882c4d54f867d93a7db89fb60e075812f55a5ca1dc8bb85f"
+            }
+          }
+        },
+        {
+          "scenario": "build-asset",
+          "testId": "13b3f34a-486f-8727-bd61-1b03435207bc",
+          "executionId": "f88b2753-0502-40d9-8251-10df7f8581f2",
+          "nativeOutcome": "Passed",
+          "observation": {
+            "schema": "cis.architecture-fixture/v1",
+            "scenario": "build-asset",
+            "positive": {
+              "schema": "cis.architecture-fixture-positive/v1",
+              "exitCode": 0,
+              "fixtureScope": "Actual Core and packaged build-helper source; trusted registration contains their complete two-project shipping closure. Full repository inventory remains independently checked by the normal Developer profile.",
+              "projects": 2,
+              "targets": 2,
+              "assemblies": 2,
+              "levels": 5,
+              "copiedSourceFiles": 95,
+              "copiedSourceDigest": "7e4f6c471ce984defff3165b11ec4f04279caf862594a8388e92a5a541ced056",
+              "inspectionSha256": "accd757152c6b8d78327643727d1c8f514381b733754ba8374839d6f28d2cb9c",
+              "packageSha256": "51ed5eaac1853c05247057a53b95c4c4d606e393af2c1552bc74d89c5ab208eb",
+              "inspectorSha256": "5f4446efc6f36a007d95becc0dc85578e7d7b16ab8ca147e8923c5f64c1ccaeb"
+            },
+            "negative": {
+              "exitCode": 1,
+              "diagnostic": "ARCH-PACKAGE-ASSET",
+              "expectedContext": "buildTransitive/Unexpected.targets",
+              "standardError": "Architecture inspection failed: ARCH-PACKAGE-ASSET: buildTransitive/Unexpected.targets\n",
+              "successfulReportRetained": false,
+              "packageSha256": "fa82c52883d61aa6b68ff6a3ae902c14b52e2bbee6546d00da40eb2853c346f9"
+            }
+          }
+        },
+        {
+          "scenario": "contract-output",
+          "testId": "1a20a2b1-7868-87e5-b7f9-2b2da2b9ce39",
+          "executionId": "ea6a29d9-b4a5-4429-8290-7a0ea7b886f2",
+          "nativeOutcome": "Passed",
+          "observation": {
+            "schema": "cis.architecture-fixture/v1",
+            "scenario": "contract-output",
+            "positive": {
+              "schema": "cis.architecture-fixture-positive/v1",
+              "exitCode": 0,
+              "fixtureScope": "Actual Core and packaged build-helper source; trusted registration contains their complete two-project shipping closure. Full repository inventory remains independently checked by the normal Developer profile.",
+              "projects": 2,
+              "targets": 2,
+              "assemblies": 2,
+              "levels": 5,
+              "copiedSourceFiles": 95,
+              "copiedSourceDigest": "7e4f6c471ce984defff3165b11ec4f04279caf862594a8388e92a5a541ced056",
+              "inspectionSha256": "6b47999883a2f4b831921b80017831034f4a57625a0901f60c41c794b22dd28c",
+              "packageSha256": "4bd564d9e3af286b9960271fd29d63cc9c7cc2d80655cdb213e8839155530d04",
+              "inspectorSha256": "5f4446efc6f36a007d95becc0dc85578e7d7b16ab8ca147e8923c5f64c1ccaeb"
+            },
+            "negative": {
+              "exitCode": 1,
+              "diagnostic": "ARCH-CONTRACT-OUTPUT",
+              "expectedContext": "CIS.Logging.EventMetadata:method:ArchitectureBoundaryViolation:",
+              "standardError": "Architecture inspection failed: ARCH-CONTRACT-OUTPUT: CIS.Logging.EventMetadata:method:ArchitectureBoundaryViolation:0x060000eb -> CIS.Logging.CoreLogRuntime\n",
+              "successfulReportRetained": false,
+              "packageSha256": "5d3729669a85dc64bce6751f53e39715ce8a8794431398b902ce50596ee01ab9"
+            }
+          }
+        },
+        {
+          "scenario": "project-inventory",
+          "testId": "1f7d1316-805f-8d09-b957-c8f8c9c8048b",
+          "executionId": "1ec3715d-0f07-4e8d-b640-85b2640bbee8",
+          "nativeOutcome": "Passed",
+          "observation": {
+            "schema": "cis.architecture-fixture/v1",
+            "scenario": "project-inventory",
+            "positive": {
+              "schema": "cis.architecture-fixture-positive/v1",
+              "exitCode": 0,
+              "fixtureScope": "Actual Core and packaged build-helper source; trusted registration contains their complete two-project shipping closure. Full repository inventory remains independently checked by the normal Developer profile.",
+              "projects": 2,
+              "targets": 2,
+              "assemblies": 2,
+              "levels": 5,
+              "copiedSourceFiles": 95,
+              "copiedSourceDigest": "7e4f6c471ce984defff3165b11ec4f04279caf862594a8388e92a5a541ced056",
+              "inspectionSha256": "4321d0ea3959ef85b272092127a0f23e680e9217be997b09201c0288abb4f50f",
+              "packageSha256": "4daae6f698b8d9e57e61fd828d07dc43843ca3188d2ee2cfee69290061355351",
+              "inspectorSha256": "5f4446efc6f36a007d95becc0dc85578e7d7b16ab8ca147e8923c5f64c1ccaeb"
+            },
+            "negative": {
+              "exitCode": 1,
+              "diagnostic": "ARCH-PROJECT-INVENTORY",
+              "expectedContext": "Discovered project count differs from the registered inventory.",
+              "standardError": "Architecture inspection failed: ARCH-PROJECT-INVENTORY: Discovered project count differs from the registered inventory.\n",
+              "successfulReportRetained": false,
+              "packageSha256": "4daae6f698b8d9e57e61fd828d07dc43843ca3188d2ee2cfee69290061355351"
+            }
+          }
+        },
+        {
+          "scenario": "disguised-test-binary",
+          "testId": "1f2c322e-ee38-81d9-8c83-5185f8b04593",
+          "executionId": "05dc76fb-f78f-4906-aefd-088cd2dd7d64",
+          "nativeOutcome": "Passed",
+          "observation": {
+            "schema": "cis.architecture-fixture/v1",
+            "scenario": "disguised-test-binary",
+            "positive": {
+              "schema": "cis.architecture-fixture-positive/v1",
+              "exitCode": 0,
+              "fixtureScope": "Actual Core and packaged build-helper source; trusted registration contains their complete two-project shipping closure. Full repository inventory remains independently checked by the normal Developer profile.",
+              "projects": 2,
+              "targets": 2,
+              "assemblies": 2,
+              "levels": 5,
+              "copiedSourceFiles": 95,
+              "copiedSourceDigest": "7e4f6c471ce984defff3165b11ec4f04279caf862594a8388e92a5a541ced056",
+              "inspectionSha256": "2df7ba9ce11560446681ddc56ee3a3c8457ec40caf050de4bcfbc99d4c0c0013",
+              "packageSha256": "6eb4ebbb075d43f3868b2cd97bc1b344e22e926bea7ebc25662a90a75644c8ff",
+              "inspectorSha256": "5f4446efc6f36a007d95becc0dc85578e7d7b16ab8ca147e8923c5f64c1ccaeb"
+            },
+            "negative": {
+              "exitCode": 1,
+              "diagnostic": "ARCH-PACKED-ORIGIN",
+              "expectedContext": "Packed assembly has no unique evaluated project origin: CIS.Core.ArchitectureTests",
+              "standardError": "Architecture inspection failed: ARCH-PACKED-ORIGIN: Packed assembly has no unique evaluated project origin: CIS.Core.ArchitectureTests\n",
+              "successfulReportRetained": false,
+              "packageSha256": "cc17b81b2eba404a4a11f35faadd344a9932ee3a845bd279ce4cc1520853bbc3"
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

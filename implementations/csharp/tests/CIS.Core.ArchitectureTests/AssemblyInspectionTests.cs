@@ -107,7 +107,7 @@ public sealed class AssemblyInspectionTests
             [Path.Combine(LanguageRoot, "eng/CIS.DependencyChecker/bin/Release/net10.0/CIS.DependencyChecker.dll"), "architecture", temporary.Path,
                 Path.Combine(temporary.Path, "unused.nupkg"), Path.Combine(temporary.Path, "report")], LanguageRoot, TimeSpan.FromSeconds(30));
         Assert.AreEqual(1, result.ExitCode);
-        StringAssert.Contains(result.StandardError, "Architecture inspection failed: Discovered project count differs");
+        StringAssert.Contains(result.StandardError, "Architecture inspection failed: ARCH-PROJECT-INVENTORY: Discovered project count differs");
         Assert.IsFalse(File.Exists(Path.Combine(temporary.Path, "report/inspection.json")));
     }
 

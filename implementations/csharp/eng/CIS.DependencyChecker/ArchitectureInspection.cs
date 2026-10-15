@@ -25,13 +25,13 @@ internal static class ArchitectureInspection
         string[] discovered = Directory.EnumerateFiles(languageRoot, "*.csproj", SearchOption.AllDirectories)
             .Where(path => !Path.GetRelativePath(languageRoot, path).Split(Path.DirectorySeparatorChar).Any(part => part is "bin" or "obj" or ".vs"))
             .Order(StringComparer.Ordinal).ToArray();
-        Require(discovered.Length == registered.Count, "Discovered project count differs from the registered inventory.");
+        Require(discovered.Length == registered.Count, "ARCH-PROJECT-INVENTORY: Discovered project count differs from the registered inventory.");
         var projects = new List<ProjectFact>();
         foreach (string path in discovered)
         {
             string relative = Path.GetRelativePath(languageRoot, path).Replace('\\', '/');
             JsonObject[] matches = registered.OfType<JsonObject>().Where(item => Text(item, "path") == relative).ToArray();
-            Require(matches.Length == 1, "Unregistered project: " + relative);
+            Require(matches.Length == 1, "ARCH-PROJECT-INVENTORY: Unregistered project: " + relative);
             string role = Text(matches[0], "role");
             JsonObject evaluation = await Evaluate(languageRoot, path);
             JsonObject properties = evaluation["Properties"]!.AsObject();
@@ -69,7 +69,7 @@ internal static class ArchitectureInspection
                     string id = identityParts[0], version = identityParts[1];
                     Require(effectiveLock.TryGetValue(id, out JsonNode? lockedEntry) && lockedEntry is not null &&
                         lockedEntry["resolved"]?.GetValue<string>() == version && lockedEntry["contentHash"]?.GetValue<string>() == assets["libraries"]![identity]!["sha512"]?.GetValue<string>(),
-                        $"Lock/assets mismatch: {relative} {targetName} {identity}");
+                        $"ARCH-LOCK-CONTENT: Lock/assets mismatch: {relative} {targetName} {identity}");
                     packages.Add(new { id, version, contentHash = lockedEntry!["contentHash"], lockType = lockedEntry["type"], assets = entry });
                 }
                 Require(effectiveLock.Count(item => item.Value!["type"]!.GetValue<string>() != "Project") == packages.Count, $"Locked package inventory mismatch: {relative} {targetName}");
@@ -91,7 +91,7 @@ internal static class ArchitectureInspection
         object[] dependencyGroups;
         using (ZipArchive archive = ZipFile.OpenRead(packagePath))
         {
-            Require(archive.Entries.Select(entry => entry.FullName).Distinct(StringComparer.OrdinalIgnoreCase).Count() == archive.Entries.Count, "Duplicate package asset paths.");
+            Require(archive.Entries.Select(entry => entry.FullName).Distinct(StringComparer.OrdinalIgnoreCase).Count() == archive.Entries.Count, "ARCH-PACKAGE-ASSET: Duplicate package asset paths.");
             foreach (ZipArchiveEntry entry in archive.Entries)
             {
                 using Stream stream = entry.Open();
@@ -113,10 +113,10 @@ internal static class ArchitectureInspection
                 AssemblyInspection.Write(binary, inspectionPath);
                 JsonObject compiled = Read(inspectionPath);
                 ProjectFact[] matches = projects.Where(project => Text(project.properties, "AssemblyName") == Text(compiled, "name")).ToArray();
-                Require(matches.Length == 1, "Packed assembly has no unique evaluated project origin: " + Text(compiled, "name"));
+                Require(matches.Length == 1, "ARCH-PACKED-ORIGIN: Packed assembly has no unique evaluated project origin: " + Text(compiled, "name"));
                 ProjectFact origin = matches[0];
                 FileFact built = Reference(Text(origin.properties, "TargetPath"));
-                Require(built.sha256 == Text(compiled, "sha256"), "Packed assembly differs from evaluated Release output: " + Text(compiled, "name"));
+                Require(built.sha256 == Text(compiled, "sha256"), "ARCH-PACKED-CONTENT: Packed assembly differs from evaluated Release output: " + Text(compiled, "name"));
                 assemblyFacts.Add(new { packageEntry = entry.FullName, origin.project, origin.role, targetFramework = Text(origin.properties, "TargetFramework"), builtAssembly = built, inspection = Reference(inspectionPath), facts = compiled });
             }
         }
@@ -135,7 +135,7 @@ internal static class ArchitectureInspection
             packageDependencyGroups = dependencyGroups,
             assemblies = assemblyFacts,
             levels = new[] { "evaluated-project-framework-references", "all-locked-target-graphs", "package-groups-and-assets", "compiled-references-and-public-api", "internal-type-namespace-uses" },
-            scope = "Observed static architecture facts and locked-input consistency. Exact amended dependency allowlists execute here. Ownership, separation and package guards execute here; comprehensive negative qualification remains WP07-S02-T04. Not a full release qualification."
+            scope = "Observed static architecture facts and locked-input consistency. Exact amended dependency allowlists execute here. Ownership, separation and package guards execute here; isolated source/package/binary negative controls execute through the normal checker in WP07-S02-T04. Not a full release qualification."
         };
         JsonObject observed = JsonSerializer.SerializeToNode(report)!.AsObject();
         observed["allowlists"] = ArchitecturePolicy.Assert(languageRoot, observed);
