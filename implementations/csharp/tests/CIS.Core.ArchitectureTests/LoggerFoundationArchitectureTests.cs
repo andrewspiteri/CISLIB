@@ -56,7 +56,7 @@ public sealed class LoggerFoundationArchitectureTests
             Assert.AreEqual(0, type.GetConstructors().Length);
             foreach (PropertyInfo property in type.GetProperties()) { Assert.IsNull(property.GetSetMethod(nonPublic: true)); }
         }
-        CollectionAssert.AreEquivalent(new[] { "Completion", "Succeeded", "LossObserved", "BoundaryCapturedAtUtc", "ObservedAtUtc", "InvalidEventCount", "TruncatedEventCount", "Outputs" },
+        CollectionAssert.AreEquivalent(new[] { "Completion", "Succeeded", "LossObserved", "BoundaryCapturedAtUtc", "ObservedAtUtc", "InvalidEventCount", "TruncatedEventCount", "Outputs", "Incoming" },
             typeof(LogStopResult).GetProperties().Select(property => property.Name).ToArray());
         string root = EventContractTestsRoot();
         using JsonDocument contract = JsonDocument.Parse(File.ReadAllText(Path.Combine(root, "contracts/logging/v1/runtime-contract.json")));

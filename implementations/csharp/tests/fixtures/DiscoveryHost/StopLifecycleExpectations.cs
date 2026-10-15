@@ -29,6 +29,9 @@ internal static class StopLifecycleExpectations
         if (a["kind"]!.GetValue<string>() == "public")
         {
             JsonArray receipts = a["receipts"]!.AsArray(); Require(receipts.Count > 0 && receipts.Select((x, i) => N(x!["ticket"]) == i + 1).All(x => x));
+            JsonNode incoming = a["incoming"]!;
+            Require(N(incoming["accepted"]) == receipts.Count && N(incoming["processed"]) == receipts.Count && N(incoming["failed"]) == 0 &&
+                N(incoming["abandoned"]) == 0 && N(incoming["pending"]) == 0 && N(incoming["queueFull"]) == 0);
             Require(result["completion"]!.GetValue<string>() == "Completed" && result["succeeded"]!.GetValue<bool>() && !result["loss"]!.GetValue<bool>());
             Require(N(output["boundary"]) == receipts.Count && N(output["written"]) == receipts.Count && N(output["failed"]) == 0 && N(output["abandoned"]) == 0 && N(output["pending"]) == 0 && output["flush"]!.GetValue<string>() == "Succeeded");
             if (dual)

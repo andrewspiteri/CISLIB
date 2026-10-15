@@ -89,7 +89,7 @@ public sealed class RuntimeContractTests
     {
         using JsonDocument surface = Read("implementations/csharp/verification/contracts/startup/runtime-surface.json");
         var selected = new System.Text.Json.Nodes.JsonObject();
-        foreach (string name in new[] { "LogFlushResult", "LogOutputDrainResult", "LogOutputRejectionSnapshot" })
+        foreach (string name in new[] { "LogFlushResult", "LogOutputDrainResult", "LogOutputRejectionSnapshot", "LogIncomingSnapshot" })
         { selected[name] = System.Text.Json.Nodes.JsonNode.Parse(surface.RootElement.GetProperty("immutableOutputs").GetProperty(name).GetRawText()); }
         using JsonDocument contracts = JsonDocument.Parse(selected.ToJsonString());
         using var stream = File.OpenRead(typeof(CIS.Logging.LogFlushResult).Assembly.Location); using var pe = new PEReader(stream);
@@ -165,7 +165,7 @@ public sealed class RuntimeContractTests
             {
                 Assert.IsTrue(property.GetAccessors().Setter.IsNil);
                 string expected = contract.Value.GetProperty(reader.GetString(property.Name)).GetString()!;
-                if (expected is "string?" or "LogStopResult?")
+                if (expected is "string?" or "LogStopResult?" or "LogIncomingSnapshot?")
                 {
                     expected = expected[..^1]; // Nullable reference annotations are additionally checked by the compiler consumers.
                 }

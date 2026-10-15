@@ -35,11 +35,12 @@ public sealed class DiagnosticsTests
         Assert.ThrowsExactly<InvalidDataException>(() => DiagnosticsExpectations.Validate(row, actual));
     }
     [TestMethod]
-    [DataRow("runtime", "State,AdmissionClosed,ObservedAtUtc,ShutdownStartedAtUtc,InvalidEventCount,TruncatedEventCount,Outputs,LastStopResult")]
+    [DataRow("runtime", "State,AdmissionClosed,ObservedAtUtc,ShutdownStartedAtUtc,InvalidEventCount,TruncatedEventCount,Outputs,LastStopResult,Incoming")]
+    [DataRow("incoming", "Accepted,Processed,Failed,Abandoned,Pending,QueueFull,RejectedByWriters")]
     [DataRow("output", "OutputName,State,AcceptedSequence,Filtered,AdmissionAttempts,Accepted,QueueFull,Unavailable,Written,Failed,Abandoned,Pending,InFlight,Buffered,LastFaultCode,LastFaultAtUtc,RecoveredPartialSegment")]
     public void PublicDiagnosticContainersHaveOnlySealedGetterOnlyFacts(string typeName, string fields)
     {
-        Type type = typeName == "runtime" ? typeof(CoreLogDiagnostics) : typeof(LogOutputDiagnostics);
+        Type type = typeName switch { "runtime" => typeof(CoreLogDiagnostics), "incoming" => typeof(LogIncomingSnapshot), _ => typeof(LogOutputDiagnostics) };
         Assert.IsTrue(type.IsSealed); Assert.AreEqual(0, type.GetConstructors().Length); Assert.AreEqual(0, type.GetFields(BindingFlags.Instance | BindingFlags.Public).Length);
         PropertyInfo[] properties = type.GetProperties(BindingFlags.Instance | BindingFlags.Public | BindingFlags.DeclaredOnly);
         CollectionAssert.AreEquivalent(fields.Split(','), properties.Select(property => property.Name).ToArray());

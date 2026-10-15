@@ -17,7 +17,7 @@ public sealed class CoreLogger
     /// <exception cref="ArgumentOutOfRangeException">The level is undefined.</exception>
     public bool IsEnabled(CoreLogLevel level) => runtime.IsEnabled(level);
 
-    /// <summary>Captures once when interested, then attempts independent nonblocking admission.</summary>
+    /// <summary>Captures owned event facts once when interested, then attempts nonblocking incoming admission.</summary>
     /// <exception cref="ArgumentNullException">Data is null.</exception>
     /// <exception cref="ArgumentOutOfRangeException">The level is undefined.</exception>
     public LogWriteResult Write(CoreLogLevel level, LogEventData data)

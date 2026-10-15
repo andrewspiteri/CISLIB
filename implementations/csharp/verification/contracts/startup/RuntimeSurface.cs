@@ -63,6 +63,19 @@ public sealed class LogWriteResult
     public extern IReadOnlyList<LogOutputWriteResult> Outputs { [MethodImpl(MethodImplOptions.InternalCall)] get; }
     public extern string? ErrorCode { [MethodImpl(MethodImplOptions.InternalCall)] get; }
     public extern bool IsTruncated { [MethodImpl(MethodImplOptions.InternalCall)] get; }
+    public extern long? IncomingSequence { [MethodImpl(MethodImplOptions.InternalCall)] get; }
+}
+
+public sealed class LogIncomingSnapshot
+{
+    private LogIncomingSnapshot() { }
+    public extern long Accepted { [MethodImpl(MethodImplOptions.InternalCall)] get; }
+    public extern long Processed { [MethodImpl(MethodImplOptions.InternalCall)] get; }
+    public extern long Failed { [MethodImpl(MethodImplOptions.InternalCall)] get; }
+    public extern long Abandoned { [MethodImpl(MethodImplOptions.InternalCall)] get; }
+    public extern long Pending { [MethodImpl(MethodImplOptions.InternalCall)] get; }
+    public extern long QueueFull { [MethodImpl(MethodImplOptions.InternalCall)] get; }
+    public extern long RejectedByWriters { [MethodImpl(MethodImplOptions.InternalCall)] get; }
 }
 
 public sealed class LogOutputWriteResult
@@ -76,6 +89,7 @@ public sealed class LogOutputWriteResult
 public sealed class LogFlushResult
 {
     private LogFlushResult() { }
+    public extern LogIncomingSnapshot? Incoming { [MethodImpl(MethodImplOptions.InternalCall)] get; }
     public extern LogCompletion Completion { [MethodImpl(MethodImplOptions.InternalCall)] get; }
     public extern bool Succeeded { [MethodImpl(MethodImplOptions.InternalCall)] get; }
     public extern bool LossObserved { [MethodImpl(MethodImplOptions.InternalCall)] get; }
@@ -89,6 +103,7 @@ public sealed class LogFlushResult
 public sealed class LogStopResult
 {
     private LogStopResult() { }
+    public extern LogIncomingSnapshot? Incoming { [MethodImpl(MethodImplOptions.InternalCall)] get; }
     public extern LogCompletion Completion { [MethodImpl(MethodImplOptions.InternalCall)] get; }
     public extern bool Succeeded { [MethodImpl(MethodImplOptions.InternalCall)] get; }
     public extern bool LossObserved { [MethodImpl(MethodImplOptions.InternalCall)] get; }
@@ -124,6 +139,7 @@ public sealed class LogOutputRejectionSnapshot
 public sealed class CoreLogDiagnostics
 {
     private CoreLogDiagnostics() { }
+    public extern LogIncomingSnapshot? Incoming { [MethodImpl(MethodImplOptions.InternalCall)] get; }
     public extern CoreLogState State { [MethodImpl(MethodImplOptions.InternalCall)] get; }
     public extern bool AdmissionClosed { [MethodImpl(MethodImplOptions.InternalCall)] get; }
     public extern DateTimeOffset ObservedAtUtc { [MethodImpl(MethodImplOptions.InternalCall)] get; }

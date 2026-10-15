@@ -3,7 +3,7 @@ namespace CIS.Logging;
 /// <summary>The aggregate admission outcome; acceptance is not delivery confirmation.</summary>
 public enum LogWriteOutcome : int
 {
-    /// <summary>Every interested output accepted.</summary>
+    /// <summary>The runtime accepted the captured event into its incoming queue. This is not writer admission or delivery confirmation.</summary>
     Accepted = 0,
     /// <summary>Some interested outputs accepted and others rejected.</summary>
     PartiallyAccepted = 1,

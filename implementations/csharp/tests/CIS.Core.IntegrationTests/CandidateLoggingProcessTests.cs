@@ -222,7 +222,17 @@ public sealed class CandidateLoggingProcessTests
         _ = child.BeginDrain(); JsonObject final = await child.Command("drain"); _ = await child.Finish(); byte[] bytes = child.RawStdout!;
         if (!deadline)
         {
-            SuccessfulStop(final); Assert.IsTrue(final["stop"]!["lossObserved"]!.GetValue<bool>());
+            Assert.AreEqual("stopped", (string?)final["stage"]);
+            Assert.AreEqual("Completed", (string?)final["stop"]!["completion"]);
+            Assert.IsFalse(final["stop"]!["succeeded"]!.GetValue<bool>(), "Writer rejections lost events already accepted by the incoming stage.");
+            Assert.IsTrue(final["stop"]!["lossObserved"]!.GetValue<bool>());
+            Assert.IsTrue(final["sameStopTask"]!.GetValue<bool>()); Assert.AreEqual("Stopped", (string?)final["stoppedOutcome"]);
+            JsonObject incoming = final["stop"]!["incoming"]!.AsObject();
+            Assert.IsTrue(Count(incoming, "rejectedByWriters") > 0);
+            Assert.AreEqual(Count(incoming, "accepted"), Count(incoming, "processed"));
+            Assert.AreEqual(Count(incoming, "processed"), Count(Output(final, "console"), "written") + Count(incoming, "rejectedByWriters"));
+            Assert.AreEqual(0L, Count(Output(final, "console"), "pending"));
+            Assert.AreEqual(Count(Output(final, "console"), "accepted"), Count(Output(final, "console"), "written"));
             Assert.AreEqual(Count(Output(final, "console"), "written"), (long)Records(bytes).Length);
         }
         else

@@ -5,11 +5,12 @@ namespace CIS.Logging;
 public sealed class CoreLogDiagnostics
 {
     internal CoreLogDiagnostics(CoreLogState state, bool admissionClosed, DateTimeOffset observedAtUtc,
-        DateTimeOffset? shutdownStartedAtUtc, long invalidEventCount, long truncatedEventCount, IEnumerable<LogOutputDiagnostics> outputs, LogStopResult? lastStopResult = null)
+        DateTimeOffset? shutdownStartedAtUtc, long invalidEventCount, long truncatedEventCount, IEnumerable<LogOutputDiagnostics> outputs, LogStopResult? lastStopResult = null, LogIncomingSnapshot? incoming = null)
     {
         State = state; AdmissionClosed = admissionClosed; ObservedAtUtc = observedAtUtc;
         ShutdownStartedAtUtc = shutdownStartedAtUtc; InvalidEventCount = invalidEventCount; TruncatedEventCount = truncatedEventCount;
         Outputs = Array.AsReadOnly(outputs.ToArray()); LastStopResult = lastStopResult;
+        Incoming = incoming;
     }
     /// <summary>The runtime admission/draining state, independent of individual output faults.</summary>
     public CoreLogState State { get; }
@@ -27,4 +28,6 @@ public sealed class CoreLogDiagnostics
     public IReadOnlyList<LogOutputDiagnostics> Outputs { get; }
     /// <summary>The original cached stop observation, or null until the shared operation publishes one.</summary>
     public LogStopResult? LastStopResult { get; }
+    /// <summary>Live incoming acceptance and processing accounting, distinct from output delivery.</summary>
+    public LogIncomingSnapshot? Incoming { get; }
 }

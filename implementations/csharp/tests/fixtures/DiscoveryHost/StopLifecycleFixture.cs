@@ -119,10 +119,21 @@ internal static class StopLifecycleFixture
             await Task.WhenAll(joins).WaitAsync(Guard); CheckStopped(runtime);
             Require(ReferenceEquals(result, runtime.GetDiagnostics().LastStopResult) && frozen == StopJoinFixture.Json(result).ToJsonString());
             Require(LeaseAvailable(PathFor(root)) && result.Succeeded && !result.LossObserved);
-            var accepted = observations.Where(x => x.Result.Outcome == LogWriteOutcome.Accepted).OrderBy(x => x.Result.Outputs.Single(o => o.OutputName == "file").AcceptedSequence).ToArray();
+            var accepted = observations.Where(x => x.Result.Outcome == LogWriteOutcome.Accepted).OrderBy(x => x.Result.IncomingSequence).ToArray();
+            Require(accepted.All(x => x.Result.IncomingSequence is > 0 && x.Result.Outputs.Count == 0));
             Require(observations.All(x => x.Result.Outcome is LogWriteOutcome.Accepted or LogWriteOutcome.Stopped));
             JsonObject report = Common(mode); report["kind"] = "public"; report["seed"] = Convert.ToBase64String(seed); report["bytes"] = Convert.ToBase64String(ReadLive(PathFor(root)));
-            report["receipts"] = new JsonArray(accepted.Select(x => (JsonNode)new JsonObject { ["ticket"] = Number(x.Result.Outputs.Single(o => o.OutputName == "file").AcceptedSequence!.Value), ["event"] = x.Name }).ToArray());
+            report["receipts"] = new JsonArray(accepted.Select(x => (JsonNode)new JsonObject { ["ticket"] = Number(x.Result.IncomingSequence!.Value), ["event"] = x.Name }).ToArray());
+            LogIncomingSnapshot incoming = result.Incoming!;
+            report["incoming"] = new JsonObject
+            {
+                ["accepted"] = Number(incoming.Accepted),
+                ["processed"] = Number(incoming.Processed),
+                ["failed"] = Number(incoming.Failed),
+                ["abandoned"] = Number(incoming.Abandoned),
+                ["pending"] = Number(incoming.Pending),
+                ["queueFull"] = Number(incoming.QueueFull)
+            };
             report["producerStopped"] = observations.Count(x => x.Name.StartsWith("p", StringComparison.Ordinal) && x.Result.Outcome == LogWriteOutcome.Stopped);
             report["producerAccepted"] = observations.Count(x => x.Name.StartsWith("p", StringComparison.Ordinal) && x.Result.Outcome == LogWriteOutcome.Accepted);
             report["attempts"] = observations.Count; report["stopped"] = observations.Count - accepted.Length; report["capturingStopped"] = capturingStopped;

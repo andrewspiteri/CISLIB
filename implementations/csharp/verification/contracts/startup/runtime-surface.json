@@ -91,7 +91,8 @@
       "Outcome": "LogWriteOutcome",
       "Outputs": "IReadOnlyList<LogOutputWriteResult>",
       "ErrorCode": "string?",
-      "IsTruncated": "bool"
+      "IsTruncated": "bool",
+      "IncomingSequence": "long?"
     },
     "LogOutputWriteResult": {
       "OutputName": "string",
@@ -106,7 +107,8 @@
       "ObservedAtUtc": "DateTimeOffset",
       "InvalidEventCount": "long",
       "TruncatedEventCount": "long",
-      "Outputs": "IReadOnlyList<LogOutputDrainResult>"
+      "Outputs": "IReadOnlyList<LogOutputDrainResult>",
+      "Incoming": "LogIncomingSnapshot?"
     },
     "LogStopResult": {
       "Completion": "LogCompletion",
@@ -116,7 +118,8 @@
       "ObservedAtUtc": "DateTimeOffset",
       "InvalidEventCount": "long",
       "TruncatedEventCount": "long",
-      "Outputs": "IReadOnlyList<LogOutputDrainResult>"
+      "Outputs": "IReadOnlyList<LogOutputDrainResult>",
+      "Incoming": "LogIncomingSnapshot?"
     },
     "LogOutputDrainResult": {
       "OutputName": "string",
@@ -142,7 +145,8 @@
       "InvalidEventCount": "long",
       "TruncatedEventCount": "long",
       "Outputs": "IReadOnlyList<LogOutputDiagnostics>",
-      "LastStopResult": "LogStopResult?"
+      "LastStopResult": "LogStopResult?",
+      "Incoming": "LogIncomingSnapshot?"
     },
     "LogOutputDiagnostics": {
       "OutputName": "string",
@@ -166,6 +170,15 @@
     "CoreLogInitializationException": {
       "OutputName": "string",
       "ErrorCode": "string"
+    },
+    "LogIncomingSnapshot": {
+      "Accepted": "long",
+      "Processed": "long",
+      "Failed": "long",
+      "Abandoned": "long",
+      "Pending": "long",
+      "QueueFull": "long",
+      "RejectedByWriters": "long"
     }
   },
   "enums": {

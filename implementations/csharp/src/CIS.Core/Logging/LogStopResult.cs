@@ -10,6 +10,7 @@ public sealed class LogStopResult
         BoundaryCapturedAtUtc = observation.BoundaryCapturedAtUtc; ObservedAtUtc = observation.ObservedAtUtc;
         InvalidEventCount = observation.InvalidEventCount; TruncatedEventCount = observation.TruncatedEventCount;
         Outputs = Array.AsReadOnly(observation.Outputs.ToArray());
+        Incoming = observation.Incoming;
     }
     /// <summary>Whether covered record dispositions and writer flushes settled; resource cleanup may still be pending.</summary>
     public LogCompletion Completion { get; }
@@ -27,4 +28,6 @@ public sealed class LogStopResult
     public long TruncatedEventCount { get; }
     /// <summary>Owned console, file, then registered-writer fixed-boundary observations; disabled outputs are omitted.</summary>
     public IReadOnlyList<LogOutputDrainResult> Outputs { get; }
+    /// <summary>The original fixed incoming prefix observation, including abandoned processing.</summary>
+    public LogIncomingSnapshot? Incoming { get; }
 }

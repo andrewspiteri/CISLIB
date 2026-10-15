@@ -112,6 +112,8 @@ The proposed execution boundary is: caller-owned capture and bounded incoming ad
 
 The first D slice implements `ILogWriter`, immutable startup registrations, independent custom output workers and generic flush/stop/diagnostic enumeration. Borrowed/owned cleanup, rollback, fault isolation and late completion have native evidence in the [registered-writer checkpoint](evidence/corrective-registered-writers-2026-10-15.md). The incoming spool, common built-in adapter composition and E extension processing remain open; this is not completion of D.
 
+The next D slice connects public runtime creation to bounded incoming admission and background encoding/rendering. [Current incoming semantics](../docs/modules/logging/incoming-pipeline.md) distinguish acceptance, processing, downstream rejection and delivery, and carry fixed flush/stop boundaries across both stages. Common built-in adapter composition and E extension processing remain open. [Incoming checkpoint evidence](evidence/corrective-incoming-2026-10-16.md) records native Windows/Linux and exact-package checks separately from final release qualification.
+
 Introduce one supported writer registration/contract, with console and file as adapters to it. Keep each writer's ownership, ordering, queue capacity, failures and flush obligations explicit. Preserve file-group acquisition, intent-first retirement/recovery and borrowed console ownership.
 
 Before coding, decide how incoming acceptance relates to eventual writer admission, tickets, truncation and failures. Carry a captured flush/stop boundary across both the incoming processor and all resulting writer work; draining only today's writer queues is insufficient. Preserve one shutdown deadline, caller cancellation semantics, immutable completed observations and late cleanup accounting.
@@ -133,6 +135,8 @@ Before coding, decide how incoming acceptance relates to eventual writer admissi
 | Custom writers | Startup-only versus live registration, ownership/removal and outstanding-work obligations | Separately implemented writer receives correct routed events and participates in flush/stop without special Core branches. |
 
 The user selected bounded memory admission with reject-new overflow and startup-only writer registration. Do not infer durability, exactly-once delivery, a default deduplication key, specific handler APIs or `template_id` from the attachment. Godot remains outside this proposed corrective scope.
+
+**User selections, 16 October:** duplicate suppression is opt-in; the application supplies the matching key and time window. Convenience methods also support message-only calls with an automatic event name. These selections authorize implementation; they do not claim the features already exist. Select and document a stable automatic event name, bounded duplicate state, hook ordering and failure behavior during implementation.
 
 **Traceability:** C06 and the original capabilities identified by the review. Where the current reduced backlog lacks a matching requirement, add a restoration acceptance entry under the existing logging plan instead of claiming an unrelated old task already covers it. WP04-S05, WP05, WP06 and WP08 remain related implementation/consumer anchors.
 

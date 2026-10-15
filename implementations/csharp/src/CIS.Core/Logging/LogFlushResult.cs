@@ -78,16 +78,17 @@ public sealed class LogOutputDrainResult
 /// <remarks>Writer-buffer confirmation does not acknowledge disk durability or collector receipt.</remarks>
 public sealed class LogFlushResult
 {
-    internal LogFlushResult(DateTimeOffset boundaryCapturedAtUtc, DateTimeOffset observedAtUtc, long invalidEventCount, long truncatedEventCount, IEnumerable<LogOutputDrainResult> outputs, bool deadlineExceeded = false)
+    internal LogFlushResult(DateTimeOffset boundaryCapturedAtUtc, DateTimeOffset observedAtUtc, long invalidEventCount, long truncatedEventCount, IEnumerable<LogOutputDrainResult> outputs, bool deadlineExceeded = false, LogIncomingSnapshot? incoming = null)
     {
         BoundaryCapturedAtUtc = boundaryCapturedAtUtc;
         ObservedAtUtc = observedAtUtc;
         InvalidEventCount = invalidEventCount;
         TruncatedEventCount = truncatedEventCount;
         Outputs = Array.AsReadOnly(outputs.ToArray());
-        Completion = !deadlineExceeded && Outputs.All(output => output.Pending == 0 && output.WriterFlushStatus is LogWriterFlushStatus.Succeeded or LogWriterFlushStatus.Failed) ? LogCompletion.Completed : LogCompletion.TimedOut;
-        Succeeded = Completion == LogCompletion.Completed && Outputs.All(output => output.Pending == 0 && output.Failed == 0 && output.Abandoned == 0 && output.WriterFlushSucceeded);
-        LossObserved = invalidEventCount > 0 || truncatedEventCount > 0 || Outputs.Any(output => output.Failed > 0 || output.Abandoned > 0 || output.Rejections.QueueFull > 0 || output.Rejections.Unavailable > 0 || output.WriterFlushStatus == LogWriterFlushStatus.Failed);
+        Incoming = incoming;
+        Completion = !deadlineExceeded && (incoming is null || incoming.Pending == 0) && Outputs.All(output => output.Pending == 0 && output.WriterFlushStatus is LogWriterFlushStatus.Succeeded or LogWriterFlushStatus.Failed) ? LogCompletion.Completed : LogCompletion.TimedOut;
+        Succeeded = Completion == LogCompletion.Completed && (incoming is null || incoming.Failed == 0 && incoming.Abandoned == 0 && incoming.RejectedByWriters == 0) && Outputs.All(output => output.Pending == 0 && output.Failed == 0 && output.Abandoned == 0 && output.WriterFlushSucceeded);
+        LossObserved = invalidEventCount > 0 || truncatedEventCount > 0 || incoming is { Failed: > 0 } or { Abandoned: > 0 } or { QueueFull: > 0 } or { RejectedByWriters: > 0 } || Outputs.Any(output => output.Failed > 0 || output.Abandoned > 0 || output.Rejections.QueueFull > 0 || output.Rejections.Unavailable > 0 || output.WriterFlushStatus == LogWriterFlushStatus.Failed);
     }
 
     /// <summary>Whether all covered dispositions settled within the wait.</summary>
@@ -106,4 +107,6 @@ public sealed class LogFlushResult
     public long TruncatedEventCount { get; }
     /// <summary>Owned console, file, then registered-writer observations; disabled outputs are omitted.</summary>
     public IReadOnlyList<LogOutputDrainResult> Outputs { get; }
+    /// <summary>Fixed incoming prefix accounting, separate from downstream writer delivery.</summary>
+    public LogIncomingSnapshot? Incoming { get; }
 }

@@ -6,7 +6,7 @@ using CIS.Text;
 
 namespace CIS.Logging;
 /// <summary>Owns logger context, independent output admission and one shared bounded stop operation.</summary>
-public sealed class CoreLogRuntime : IAsyncDisposable
+public sealed partial class CoreLogRuntime : IAsyncDisposable
 {
     private readonly object admissionGate;
     private readonly OutputQueues? queuedOutputs;
@@ -79,7 +79,7 @@ public sealed class CoreLogRuntime : IAsyncDisposable
     {
         LoggingOptions options = EnvironmentOptions.Logging;
         options.Prepare(Directory.GetCurrentDirectory());
-        return CreateConfiguredQueued(new EventMetadata(), options);
+        return QueuedRuntimeFactory.CreateConfiguredQueued(new EventMetadata(), options, incomingPipeline: true);
     }
 
     /// <summary>Creates a runtime with additional writers whose registrations are captured at startup.</summary>
@@ -90,14 +90,17 @@ public sealed class CoreLogRuntime : IAsyncDisposable
         ArgumentNullException.ThrowIfNull(writers);
         LoggingOptions options = EnvironmentOptions.Logging;
         options.Prepare(Directory.GetCurrentDirectory());
-        return QueuedRuntimeFactory.CreateConfiguredQueued(new EventMetadata(), options, writers: writers);
+        return QueuedRuntimeFactory.CreateConfiguredQueued(new EventMetadata(), options, writers: writers, incomingPipeline: true);
     }
 
-    /// <summary>Settles after all writer operations and owned cleanup finish, including late cleanup after stop timeout.</summary>
+    /// <summary>Settles after incoming processing, writer operations and owned cleanup finish, including late cleanup after stop timeout.</summary>
     /// <remarks>Unlike StopAsync this task has no timeout and may fault when a writer or cleanup fails.</remarks>
-    public Task Completion => queuedOutputs?.Completion ?? Task.CompletedTask;
+    public Task Completion
+    {
+        get { lock (admissionGate) { return pipelineCompletion ??= incoming is null ? queuedOutputs?.Completion ?? Task.CompletedTask : Task.WhenAll(incoming.Completion, queuedOutputs!.Completion); } }
+    }
 
-    // Trusted fixtures use the same factory as public creation; no alternative production pipeline.
+    // Output-stage qualification seams deliberately bypass incoming admission. Public creation uses both stages.
     internal static CoreLogRuntime CreateQueued(EventMetadata metadata, LoggingOptions options, Func<AdmittedEvent, ValueTask>? consoleWrite, Func<AdmittedEvent, ValueTask>? fileWrite, TimeProvider? timeProvider = null, Func<ValueTask>? consoleFlush = null, Func<ValueTask>? fileFlush = null) => QueuedRuntimeFactory.CreateQueued(metadata, options, consoleWrite, fileWrite, timeProvider, consoleFlush, fileFlush);
     internal static CoreLogRuntime CreateConsoleQueued(EventMetadata metadata, LoggingOptions options, Func<AdmittedEvent, ValueTask>? fileWrite = null, TimeProvider? timeProvider = null, Func<ConsoleOutputStream, Stream>? acquireConsole = null, Func<Func<Task>, Task>? launchWorker = null) => QueuedRuntimeFactory.CreateConsoleQueued(metadata, options, fileWrite, timeProvider, acquireConsole, launchWorker);
     internal static CoreLogRuntime CreateConfiguredQueued(EventMetadata metadata, LoggingOptions options, TimeProvider? timeProvider = null, Func<ConsoleOutputStream, Stream>? acquireConsole = null, Func<Func<Task>, Task>? launchWorker = null) => QueuedRuntimeFactory.CreateConfiguredQueued(metadata, options, timeProvider, acquireConsole, launchWorker);
@@ -118,6 +121,7 @@ public sealed class CoreLogRuntime : IAsyncDisposable
     /// <remarks>The configured overall timeout is frozen at creation. UTC is an observation label; elapsed time is monotonic. At expiry, unstarted accepted records are abandoned. Cancellation of active writes/flushes is requested but is not guaranteed, and no new flush, retry or replacement writer starts. Completed means terminal dispositions, not successful delivery or resource release. A timed-out observation can retain pending I/O; its later completion does not change the cached result.</remarks>
     public Task<LogStopResult> StopAsync(CancellationToken cancellationToken)
     {
+        if (incoming is not null) { return StopIncomingAsync(cancellationToken); }
         if (queuedOutputs is null)
         {
             throw new InvalidOperationException("Stop requires actual queued output composition.");
@@ -280,6 +284,7 @@ public sealed class CoreLogRuntime : IAsyncDisposable
         }
 
         long started = timeProvider.GetTimestamp();
+        if (incoming is not null) { return FlushIncomingAsync(timeout, started, cancellationToken); }
         RuntimeFlushBoundary boundary = RegisterFlushBoundary(started);
         return ObserveFlushAsync(boundary, started, timeout, cancellationToken);
     }
@@ -366,7 +371,9 @@ public sealed class CoreLogRuntime : IAsyncDisposable
                 entry.Name == "file" && recoveredPartialSegment)).ToArray();
 
             CoreLogState state = !counts.AdmissionClosed ? CoreLogState.Running : values.All(value => value.State == LogOutputState.Stopped) ? CoreLogState.Stopped : CoreLogState.Stopping;
-            return new CoreLogDiagnostics(state, counts.AdmissionClosed, DateTimeOffset.UtcNow, shutdownStartedAtUtc, counts.InvalidEventCount, counts.TruncatedEventCount, values, lastStopResult);
+            if (incoming is not null && counts.AdmissionClosed && !Completion.IsCompleted) { state = CoreLogState.Stopping; }
+            return new CoreLogDiagnostics(state, counts.AdmissionClosed, DateTimeOffset.UtcNow, shutdownStartedAtUtc, counts.InvalidEventCount, counts.TruncatedEventCount, values, lastStopResult,
+                incoming is null ? null : new LogIncomingSnapshot(incoming.Capture()));
         }
     }
 
@@ -476,17 +483,26 @@ public sealed class CoreLogRuntime : IAsyncDisposable
             return Invalid(CaptureError(eventName, message, template, operationId));
         }
 
-        EncodedEvent captured;
+        if (incoming is not null)
+        {
+            lock (admissionGate)
+            {
+                if (facts.IsTruncated) { IncrementLossCounter(ref truncatedEventCount); }
+                if (admissionClosed) { return Stopped(facts.IsTruncated); }
+                long? sequence = incoming.TryAdmit(level, facts);
+                return new LogWriteResult(sequence is null ? LogWriteOutcome.Rejected : LogWriteOutcome.Accepted, [],
+                    sequence is null ? "IncomingQueueFull" : null, facts.IsTruncated, sequence);
+            }
+        }
+        try { return PrepareCapturedEvent(facts, level, renderConsole, renderFile, fromIncoming: false)(); }
+        catch (EventEnvelopeTooLargeException) { return Invalid("EnvelopeTooLarge"); }
+    }
+
+    private Func<LogWriteResult> PrepareCapturedEvent(CapturedEventFacts facts, CoreLogLevel level, bool renderConsole, bool renderFile, bool fromIncoming)
+    {
         RenderedEvent? preparedConsole = null, preparedFile = null;
         // Other owned encoding/rendering consistency errors are Core defects, not invalid caller content.
-        try
-        {
-            captured = EventEncoder.Encode(facts, maximumEntryBytes);
-        }
-        catch (EventEnvelopeTooLargeException)
-        {
-            return Invalid("EnvelopeTooLarge");
-        }
+        EncodedEvent captured = EventEncoder.Encode(facts, maximumEntryBytes);
 
         bool consoleRenderFailed = false, fileRenderFailed = false;
         if (renderConsole)
@@ -515,36 +531,40 @@ public sealed class CoreLogRuntime : IAsyncDisposable
 
         long observedAt = timeProvider.GetTimestamp();
         bool isTruncated = captured.IsTruncated || preparedConsole?.IsTruncated == true || preparedFile?.IsTruncated == true;
-        lock (admissionGate)
+        return () =>
         {
-            if (isTruncated)
+            lock (admissionGate)
             {
-                IncrementLossCounter(ref truncatedEventCount);
-            }
+                if (isTruncated && (!fromIncoming || !facts.IsTruncated))
+                {
+                    IncrementLossCounter(ref truncatedEventCount);
+                }
 
-            if (admissionClosed)
-            {
-                return Stopped(isTruncated);
-            }
+                if (admissionClosed && !fromIncoming)
+                {
+                    return Stopped(isTruncated);
+                }
 
-            if (consoleRenderFailed)
-            {
-                queuedOutputs!.Console!.FaultForRendering(observedAt);
-            }
+                if (consoleRenderFailed)
+                {
+                    queuedOutputs!.Console!.FaultForRendering(observedAt);
+                }
 
-            if (fileRenderFailed)
-            {
-                queuedOutputs!.File!.FaultForRendering(observedAt);
-            }
+                if (fileRenderFailed)
+                {
+                    queuedOutputs!.File!.FaultForRendering(observedAt);
+                }
 
-            return Admit(level, captured, preparedConsole?.Line, preparedFile?.Line, isTruncated, observedAt);
-        }
+                return Admit(level, captured, preparedConsole?.Line, preparedFile?.Line, isTruncated, observedAt);
+            }
+        };
     }
 
     // Primitive internal qualification closure: no final flush or bounded shutdown is promised.
     // Supported applications use StopAsync/DisposeAsync; a later flush cannot reopen an exited worker.
     internal void CloseAdmission()
     {
+        if (incoming is not null) { _ = StopAsync(CancellationToken.None); return; }
         lock (admissionGate)
         {
             shutdownStartedAtUtc ??= DateTimeOffset.UtcNow;
