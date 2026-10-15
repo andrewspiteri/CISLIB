@@ -1,0 +1,78 @@
+[
+  {
+    "id": "draft-production",
+    "executable": "pwsh",
+    "workingDirectory": "C:\\miscwork\\portfolio\\cislib",
+    "argv": [
+      "-NoProfile",
+      "-File",
+      "implementations/csharp/eng/write-microsoft-logging-bundle.ps1",
+      "-PackagePath",
+      ".artifacts/csharp/packages/CIS.Core.0.1.0-dev.1.nupkg",
+      "-OutputRoot",
+      ".artifacts/csharp/tasks/wp06-s03-t05/qualified-draft"
+    ],
+    "exitCode": 0,
+    "runnerSha256": "a3e1648e8549f677edc415dbd58a24e46719866f6e4f53899f4a8facbc8fbd6b"
+  },
+  {
+    "id": "draft-audit",
+    "executable": "python",
+    "workingDirectory": "C:\\miscwork\\portfolio\\cislib",
+    "argv": [
+      ".artifacts/csharp/tasks/wp06-s03-t05/audit-draft.py"
+    ],
+    "retainedScript": "commands/audit-draft.py",
+    "scriptSha256": "789a82d695b7ae6095a76938b901780ed53eec21db8a392e5b6d744e12d96211",
+    "exitCode": 0
+  },
+  {
+    "id": "producer-controls",
+    "executable": "python",
+    "workingDirectory": "C:\\miscwork\\portfolio\\cislib",
+    "argv": [
+      ".artifacts/csharp/tasks/wp06-s03-t05/check-bundle-controls.py"
+    ],
+    "retainedScript": "commands/check-bundle-controls.py",
+    "scriptSha256": "2e5220b913088f7169b04ab12cd2315f95f119c7f3b4ae5494218e5c37702b9d",
+    "exitCode": 0
+  },
+  {
+    "id": "reviewed-draft-production",
+    "executable": "pwsh",
+    "workingDirectory": "C:\\miscwork\\portfolio\\cislib",
+    "argv": [
+      "-NoProfile",
+      "-File",
+      "implementations/csharp/eng/write-microsoft-logging-bundle.ps1",
+      "-PackagePath",
+      ".artifacts/csharp/packages/CIS.Core.0.1.0-dev.1.nupkg",
+      "-OutputRoot",
+      ".artifacts/csharp/tasks/wp06-s03-t05/reviewed-final-draft"
+    ],
+    "exitCode": 0,
+    "runnerSha256": "8cf46bf4a10a033401cae900b7c7330f0c2967ff6f4a1f0074ddb90bdd8307df"
+  },
+  {
+    "id": "reviewed-draft-audit",
+    "executable": "python",
+    "workingDirectory": "C:\\miscwork\\portfolio\\cislib",
+    "argv": [
+      ".artifacts/csharp/tasks/wp06-s03-t05/audit-reviewed-final-draft.py"
+    ],
+    "retainedScript": "commands/audit-reviewed-final-draft.py",
+    "scriptSha256": "62a9d23ace853e7ec7273069ded30af25338eae54fece5cbd89d33602144e999",
+    "exitCode": 0
+  },
+  {
+    "id": "reviewed-producer-controls",
+    "executable": "python",
+    "workingDirectory": "C:\\miscwork\\portfolio\\cislib",
+    "argv": [
+      ".artifacts/csharp/tasks/wp06-s03-t05/check-bundle-controls-final.py"
+    ],
+    "retainedScript": "commands/check-bundle-controls-final.py",
+    "scriptSha256": "e5938f3c5716b0a5815cf36fc27cdcff0c67ec4885d10daca4f99d6221c96e8c",
+    "exitCode": 0
+  }
+]

@@ -1,0 +1,1223 @@
+Read-only logging-only WP06-S03-T05 follow-up, no tools/edits. Previous R1-R3 supplied in claude-verdict.json. R1 uses the honest fallback: product.comparedBuildOutput records repository-relative path and SHA of the CURRENT Release output, not a claimed cryptographic binding to the named Developer run. The guide/error text was corrected. An actual copied-package DLL-byte corruption now fails that specific comparison. R2 sourceRoots now explicitly declare path/role. The producer enumerates maintained Git inputs, excluding generated bins/objs via ignore rules. Shared Core tests root includes all provider unit/integration/architecture/process fixtures and shared support without claiming provider ownership of other module tests. Ten explicit unit/integration/architecture/support/DiscoveryHost project and lockfile requirements cover the actual private Microsoft LoggerFactory closure. Shared test source membership/roles and every index hash were independently audited; Tests/full release remains Pending. R3 native qualified T03 JSON is checked against tracked mutation-audit.qualified.nativeReportSha256 before indexing. An actual valid JSON copy with one extra space is rejected by the hash guard. Only qualified native JSON/HTML are indexed; earlier runs remain their original audited hashes/extracts, clearly documented.
+
+Fresh positive draft indexed4973files:516SharedValidationSource plus10explicit project/lock entries,15docs,14prior evidence roots and2native formats. All file hashes/byte counts/products checked. Seven negative controls pass, including new DLL/hash checks. No shipping code, packages, original source, actual ledger or release gates changed; full Developer5253tests/14stages and Releaseexit2 are retained. The current producer, registration and doc refinements are separately executed/audited; no claim the old Developer run compiled these scripts. The preview omits full file entries and hash-links the exact complete generated manifest retained locally. Final review/commit status is appended only after response. Assess fixes without expanding this manifest task into WP07/WP09 full qualification/materialization. Return JSON verdict PASS or CHANGES_REQUIRED, requiredFindings array, optionalNotes array.
+
+--- FILE implementations/csharp/eng/write-microsoft-logging-bundle.ps1 SHA256 8cf46bf4a10a033401cae900b7c7330f0c2967ff6f4a1f0074ddb90bdd8307df ---
+param(
+    [Parameter(Mandatory)][string] $PackagePath,
+    [Parameter(Mandatory)][string] $OutputRoot,
+    [string] $RegistrationPath = (Join-Path (Split-Path $PSScriptRoot -Parent) 'verification/bundle/manifest.json')
+)
+$ErrorActionPreference = 'Stop'
+Set-StrictMode -Version Latest
+$languageRoot = Split-Path $PSScriptRoot -Parent
+$repositoryRoot = Split-Path (Split-Path $languageRoot -Parent) -Parent
+$PackagePath = [IO.Path]::GetFullPath($PackagePath)
+$OutputRoot = [IO.Path]::GetFullPath($OutputRoot)
+if (Test-Path -LiteralPath $OutputRoot) { throw 'Use a new manifest output directory.' }
+$registration = Get-Content -Raw -LiteralPath $RegistrationPath | ConvertFrom-Json
+if ($registration.schema -cne 'cis.csharp.verification-bundle-registration/v1' -or $registration.module.id -cne 'logging-microsoft') { throw 'Unsupported bundle registration.' }
+$requiredAreas = @('Product','Source','Tests','Contracts','History','Examples','Tooling','Evidence','Integrity')
+if (@(Compare-Object $requiredAreas @($registration.requiredReleaseAreas)).Count -ne 0) { throw 'Bundle must preserve all nine release content areas.' }
+$files = [Collections.Generic.Dictionary[string,object]]::new([StringComparer]::Ordinal)
+function Add-File([string] $Path, [string] $Role) {
+    $absolute = [IO.Path]::GetFullPath($Path)
+    if (-not $absolute.StartsWith($repositoryRoot + [IO.Path]::DirectorySeparatorChar, [StringComparison]::OrdinalIgnoreCase)) { throw 'Inventory input is outside the repository.' }
+    if (-not (Test-Path -LiteralPath $absolute -PathType Leaf)) { throw "Missing required inventory input: $absolute" }
+    $relative = [IO.Path]::GetRelativePath($repositoryRoot, $absolute).Replace('\','/')
+    if (-not $files.ContainsKey($relative)) {
+        $files.Add($relative, @{ path = $relative; bytes = (Get-Item -LiteralPath $absolute).Length; sha256 = (Get-FileHash -LiteralPath $absolute -Algorithm SHA256).Hash.ToLowerInvariant(); role = $Role })
+    }
+}
+Add-File $RegistrationPath 'BundleRegistration'
+Add-File $PSCommandPath 'ManifestProducer'
+foreach ($relative in @($registration.module.documentation) + @($registration.module.requiredFiles)) { Add-File (Join-Path $repositoryRoot $relative) 'ModuleDocumentationSourceOrInventory' }
+foreach ($sourceRoot in $registration.module.sourceRoots) {
+    $relative = $sourceRoot.path
+    $root = Join-Path $repositoryRoot $relative
+    if (-not (Test-Path -LiteralPath $root -PathType Container)) { throw "Missing module source root: $relative" }
+    $members = @(& git -C $repositoryRoot ls-files --cached --others --exclude-standard -- $relative)
+    if ($LASTEXITCODE -ne 0) { throw 'Cannot enumerate maintained validation sources.' }
+    $members = @($members | Where-Object { Test-Path -LiteralPath (Join-Path $repositoryRoot $_) -PathType Leaf })
+    if ($members.Count -eq 0) { throw "Empty module source root: $relative" }
+    foreach ($member in $members) { Add-File (Join-Path $repositoryRoot $member) $sourceRoot.role }
+}
+$reportGroups = foreach ($relative in $registration.module.priorEvidenceRoots) {
+    $root = Join-Path $repositoryRoot $relative
+    if (-not (Test-Path -LiteralPath $root -PathType Container)) { throw "Missing required provider evidence root: $relative" }
+    $members = @(Get-ChildItem -LiteralPath $root -Recurse -File)
+    if ($members.Count -eq 0) { throw "Empty provider evidence root: $relative" }
+    foreach ($file in $members) { Add-File $file.FullName 'PriorDevelopmentEvidenceOnly' }
+    @{ root = $relative; files = $members.Count; candidateQualification = 'Not credited to selected candidate; preserve original reports and native gate status.' }
+}
+$mutationAuditPath = Join-Path $repositoryRoot $registration.module.nativeMutation.audit
+Add-File $mutationAuditPath 'PriorDevelopmentEvidenceOnly'
+$mutationAudit = Get-Content -Raw -LiteralPath $mutationAuditPath | ConvertFrom-Json
+$expectedMutationHash = $mutationAudit.($registration.module.nativeMutation.run).nativeReportSha256
+$nativeJson = Join-Path $repositoryRoot $registration.module.nativeMutation.json
+if ((Get-FileHash -LiteralPath $nativeJson -Algorithm SHA256).Hash.ToLowerInvariant() -cne $expectedMutationHash) { throw 'Native mutation JSON differs from tracked run hash.' }
+foreach ($kind in @('json','html')) { Add-File (Join-Path $repositoryRoot $registration.module.nativeMutation.$kind) 'LocalNativeMutationReportNotReleaseRetained' }
+$developerRoot = Join-Path $repositoryRoot '.artifacts/csharp/verification/Developer'
+$summary = Get-Content -Raw -LiteralPath (Join-Path $developerRoot 'summary.json') | ConvertFrom-Json
+if ($summary.exitCode -ne 0) { throw 'Require a terminal passing Developer observation for this inventory checkpoint.' }
+foreach ($name in @('summary.json','source-inputs.json','validation.json')) { Add-File (Join-Path $developerRoot $name) 'CurrentDeveloperProfileOnly' }
+foreach ($family in $summary.families) {
+    foreach ($slot in @('discovery','execution','report')) {
+        if ($family.$slot) { Add-File (Join-Path $developerRoot $family.$slot.path) 'CurrentDeveloperProfileOnly' }
+    }
+}
+$archive = [IO.Compression.ZipFile]::OpenRead($PackagePath)
+try {
+    $duplicates = @($archive.Entries.FullName | Group-Object | Where-Object Count -gt 1)
+    if ($duplicates.Count -ne 0) { throw 'Ambiguous duplicate package entries.' }
+    function Read-Entry([string] $Name) {
+        $entry = $archive.GetEntry($Name)
+        if ($null -eq $entry) { throw "Required package entry missing: $Name" }
+        $stream = $entry.Open(); $memory = [IO.MemoryStream]::new()
+        try { $stream.CopyTo($memory); return ,$memory.ToArray() } finally { $stream.Dispose(); $memory.Dispose() }
+    }
+    function Read-PackageXml([byte[]] $Bytes) {
+        $document = [Xml.XmlDocument]::new(); $stream = [IO.MemoryStream]::new($Bytes, $false)
+        try { $document.Load($stream); return $document } finally { $stream.Dispose() }
+    }
+    $nuspec = Read-PackageXml (Read-Entry 'CIS.Core.nuspec')
+    $id = $nuspec.SelectSingleNode("//*[local-name()='metadata']/*[local-name()='id']").InnerText
+    if ($id -cne 'CIS.Core') { throw 'Selected package identity must be CIS.Core.' }
+    $repository = $nuspec.SelectSingleNode("//*[local-name()='metadata']/*[local-name()='repository']")
+    $packageSourceCommit = if ($repository) { $repository.GetAttribute('commit') } else { $null }
+    $version = $nuspec.SelectSingleNode("//*[local-name()='metadata']/*[local-name()='version']").InnerText
+    $core = Read-Entry 'lib/net10.0/CIS.Core.dll'
+    $xmlBytes = Read-Entry 'lib/net10.0/CIS.Core.xml'
+    $api = Read-PackageXml $xmlBytes
+    foreach ($member in $registration.module.apiMembers) { if ($member -cnotin @($api.doc.members.member.name)) { throw "Provider API documentation missing: $member" } }
+    $hash = [Convert]::ToHexString([Security.Cryptography.SHA256]::HashData($core)).ToLowerInvariant()
+    $built = Join-Path $languageRoot 'src/CIS.Core/bin/Release/net10.0/CIS.Core.dll'
+    $buildHash = (Get-FileHash -LiteralPath $built -Algorithm SHA256).Hash.ToLowerInvariant()
+    if ($hash -cne $buildHash) { throw 'Selected package Core differs from current Release build output.' }
+    $comparedBuildOutput = @{ path = [IO.Path]::GetRelativePath($repositoryRoot, $built).Replace('\','/'); sha256 = $buildHash; qualification = 'Current file comparison only; not cryptographically tied to Developer run.' }
+    New-Item -ItemType Directory -Path (Join-Path $OutputRoot 'products') -Force | Out-Null
+    $retainedPackage = Join-Path $OutputRoot ('products/' + [IO.Path]::GetFileName($PackagePath))
+    Copy-Item -LiteralPath $PackagePath -Destination $retainedPackage
+    [IO.File]::WriteAllBytes((Join-Path $OutputRoot 'products/CIS.Core.dll'), $core)
+    [IO.File]::WriteAllBytes((Join-Path $OutputRoot 'products/CIS.Core.xml'), $xmlBytes)
+    $product = @{ comparedBuildOutput = $comparedBuildOutput; packageSourceCommit = $packageSourceCommit; packageId = $id; packageVersion = $version; sourcePackage = $PackagePath; retainedPackage = 'products/' + [IO.Path]::GetFileName($PackagePath); packageSha256 = (Get-FileHash -LiteralPath $retainedPackage -Algorithm SHA256).Hash.ToLowerInvariant(); assembly = 'products/CIS.Core.dll'; assemblySha256 = $hash; apiDocumentation = 'products/CIS.Core.xml'; apiDocumentationSha256 = [Convert]::ToHexString([Security.Cryptography.SHA256]::HashData($xmlBytes)).ToLowerInvariant(); providerApiMembers = @($registration.module.apiMembers) }
+}
+finally { $archive.Dispose() }
+Push-Location $repositoryRoot
+try {
+    $head = (& git rev-parse HEAD).Trim(); if ($LASTEXITCODE -ne 0) { throw 'Cannot record source commit.' }
+    $tree = (& git rev-parse 'HEAD^{tree}').Trim(); if ($LASTEXITCODE -ne 0) { throw 'Cannot record source tree.' }
+}
+finally { Pop-Location }
+$manifest = @{ schema = 'cis.csharp.verification-bundle-draft/v1'; state = 'IncompleteReleaseDraft'; releaseQualified = $false; module = $registration.module.id; product = $product; source = @{ headCommit = $head; headTree = $tree; qualification = 'Head identity plus individually hashed working inputs; not an exact complete release source snapshot.' }; developer = @{ runId = $summary.runId; sourceCommit = $summary.source.commit; profile = $summary.profile; lane = $summary.lane; scope = 'Developer profile only; full candidate-package suites remain required.' }; reportGroups = @($reportGroups); files = @($files.Values | Sort-Object path); pendingReleaseRequirements = @($registration.pendingReleaseRequirements); releaseAreas = @($requiredAreas | ForEach-Object { @{ area = $_; fullReleaseState = 'Pending' } }); retention = 'File entries reference existing inputs; this command does not materialize a complete bundle. Local-only native reports, all final candidate evidence and durable prerequisites must be retained before release.' }
+$path = Join-Path $OutputRoot 'manifest.json'
+$manifest | ConvertTo-Json -Depth 15 | Set-Content -LiteralPath $path -Encoding utf8
+(Get-FileHash -LiteralPath $path -Algorithm SHA256).Hash.ToLowerInvariant() | Set-Content -LiteralPath (Join-Path $OutputRoot 'manifest.sha256') -Encoding utf8
+Write-Output "Provider bundle draft indexed $($files.Count) files. Release qualification remains pending. Manifest: $path"
+
+
+--- FILE implementations/csharp/verification/bundle/manifest.json SHA256 e6cdf3be2e10d23089df2b7855ea1944e6fde7985260634ba7a09dcbf610478a ---
+{
+  "schema": "cis.csharp.verification-bundle-registration/v1",
+  "taskId": "WP06-S03-T05",
+  "state": "Provider registration for a future first-release bundle; not release qualification.",
+  "shippingIdentity": {
+    "packageId": "CIS.Core",
+    "assembly": "CIS.Core",
+    "targetFramework": "net10.0",
+    "embeddedModules": [
+      "logging-microsoft"
+    ]
+  },
+  "requiredReleaseAreas": [
+    "Product",
+    "Source",
+    "Tests",
+    "Contracts",
+    "History",
+    "Examples",
+    "Tooling",
+    "Evidence",
+    "Integrity"
+  ],
+  "module": {
+    "id": "logging-microsoft",
+    "namespace": "CIS.Logging.MicrosoftLogger",
+    "apiMembers": [
+      "T:CIS.Logging.MicrosoftLogger.CoreLoggerProvider",
+      "M:CIS.Logging.MicrosoftLogger.CoreLoggerProvider.#ctor(CIS.Logging.CoreLogRuntime)",
+      "M:CIS.Logging.MicrosoftLogger.CoreLoggerProvider.CreateLogger(System.String)",
+      "M:CIS.Logging.MicrosoftLogger.CoreLoggerProvider.SetScopeProvider(Microsoft.Extensions.Logging.IExternalScopeProvider)",
+      "M:CIS.Logging.MicrosoftLogger.CoreLoggerProvider.Dispose"
+    ],
+    "documentation": [
+      "docs/modules/logging/microsoft-host-filtering.md",
+      "docs/modules/logging/microsoft-host-qualification.md",
+      "docs/modules/logging/microsoft-logging-boundaries.md",
+      "docs/modules/logging/microsoft-logging-compatibility.md",
+      "docs/modules/logging/microsoft-logging-packaging.md",
+      "docs/modules/logging/microsoft-logging-verification.md",
+      "docs/modules/logging/microsoft-provider-behavior.md",
+      "docs/modules/logging/microsoft-provider-foundation.md",
+      "docs/modules/logging/microsoft-provider-mapping.md",
+      "docs/modules/logging/microsoft-provider-operation.md",
+      "docs/modules/logging/microsoft-provider-ownership.md",
+      "docs/modules/logging/microsoft-provider-qualification.md",
+      "docs/modules/logging/microsoft-provider-scopes.md",
+      "docs/modules/logging/microsoft-provider-state.md",
+      "docs/modules/logging/microsoft-logging-bundle.md"
+    ],
+    "requiredFiles": [
+      "implementations/csharp/src/CIS.Core/Logging/MicrosoftLogger/CoreLoggerProvider.cs",
+      "implementations/csharp/src/CIS.Core/Logging/MicrosoftLogger/ProviderScopeCapture.cs",
+      "implementations/csharp/src/CIS.Core/Logging/MicrosoftLogger/ProviderStateCapture.cs",
+      "implementations/csharp/eng/runtime-dependencies.json",
+      "implementations/csharp/eng/development-dependencies.json",
+      "implementations/csharp/eng/toolchain.json",
+      "implementations/csharp/Directory.Packages.props",
+      "implementations/csharp/src/CIS.Core/packages.lock.json",
+      "implementations/csharp/verification/families.json",
+      "implementations/csharp/verification/shipping-projects.json",
+      "compatibility/csharp/microsoft-logging-fixtures.json",
+      "compatibility/csharp/publications/ledger.json",
+      "implementations/csharp/verification/mutation/microsoft-logging-config.json",
+      "implementations/csharp/verification/coverage/microsoft-logging.runsettings",
+      "implementations/csharp/eng/verify-microsoft-logging.ps1",
+      "implementations/csharp/eng/check-microsoft-logging-compatibility.ps1",
+      "implementations/csharp/tests/CIS.Core.UnitTests/CIS.Core.UnitTests.csproj",
+      "implementations/csharp/tests/CIS.Core.UnitTests/packages.lock.json",
+      "implementations/csharp/tests/CIS.Core.IntegrationTests/CIS.Core.IntegrationTests.csproj",
+      "implementations/csharp/tests/CIS.Core.IntegrationTests/packages.lock.json",
+      "implementations/csharp/tests/CIS.Core.ArchitectureTests/CIS.Core.ArchitectureTests.csproj",
+      "implementations/csharp/tests/CIS.Core.ArchitectureTests/packages.lock.json",
+      "implementations/csharp/tests/CIS.Core.TestSupport/CIS.Core.TestSupport.csproj",
+      "implementations/csharp/tests/CIS.Core.TestSupport/packages.lock.json",
+      "implementations/csharp/tests/fixtures/DiscoveryHost/CIS.Core.DiscoveryFixture.csproj",
+      "implementations/csharp/tests/fixtures/DiscoveryHost/packages.lock.json"
+    ],
+    "sourceRoots": [
+      {
+        "path": "implementations/csharp/verification/compatibility/microsoft-logging",
+        "role": "ModuleFixtureSource"
+      },
+      {
+        "path": "implementations/csharp/tests",
+        "role": "SharedValidationSource"
+      }
+    ],
+    "priorEvidenceRoots": [
+      "planning/logging/evidence/wp06-s01-t01",
+      "planning/logging/evidence/wp06-s01-t02",
+      "planning/logging/evidence/wp06-s01-t03",
+      "planning/logging/evidence/wp06-s01-t04",
+      "planning/logging/evidence/wp06-s01-t05",
+      "planning/logging/evidence/wp06-s02-t01",
+      "planning/logging/evidence/wp06-s02-t02",
+      "planning/logging/evidence/wp06-s02-t03",
+      "planning/logging/evidence/wp06-s02-t04",
+      "planning/logging/evidence/wp06-s02-t05",
+      "planning/logging/evidence/wp06-s03-t01",
+      "planning/logging/evidence/wp06-s03-t02",
+      "planning/logging/evidence/wp06-s03-t03",
+      "planning/logging/evidence/wp06-s03-t04"
+    ],
+    "nativeMutation": {
+      "json": ".artifacts/csharp/tasks/wp06-s03-t03/mutation-qualified/mutation/reports/mutation-report.json",
+      "html": ".artifacts/csharp/tasks/wp06-s03-t03/mutation-qualified/mutation/reports/mutation-report.html",
+      "scope": "Whole Core native report, with adapter mutate scope. May contain other module source; retain locally, exclude from logging-only external review.",
+      "retention": "Local task artifacts; full durable prerequisite/material retention remains required before release.",
+      "audit": "planning/logging/evidence/wp06-s03-t03/mutation-audit.json",
+      "run": "qualified"
+    },
+    "evidenceUse": "Prior recorded development results retain original status and candidate identity. They are inventory material, not credit for a new candidate or a passing release gate."
+  },
+  "pendingReleaseRequirements": [
+    "WP07: all six complete candidate-bound families and both recorded lanes, coverage/mutation thresholds, dispositions/repeatability and cumulative compatibility",
+    "WP07-S06: exact retained toolchains/dependencies, licences/notices and clean materialization",
+    "WP08: runnable candidate-package examples, instructions and skills",
+    "WP09: complete exact source/test/history/example/product bundle, final checksums/index and extracted clean replay; publication separately authorized"
+  ]
+}
+
+
+--- FILE docs/modules/logging/microsoft-logging-bundle.md SHA256 a49808e852fe50967427d4c40147637faa4d94b4facf1f4e58973074b1727b9a ---
+# Microsoft provider release bundle inventory
+
+WP06-S03-T05 adds the provider slice to the [first-release bundle registration](../../../implementations/csharp/verification/bundle/manifest.json). The provider remains part of CIS.Core. Its API XML, package and assembly digests, documentation, source/fixture/harness inputs, approved runtime/development inventories and prior reports must accompany complete release assurance.
+
+After the normal locked Developer verification and pack, run from the repository root with a new output directory:
+
+```powershell
+pwsh -NoProfile -File implementations/csharp/eng/write-microsoft-logging-bundle.ps1 -PackagePath .artifacts/csharp/packages/CIS.Core.0.1.0-dev.1.nupkg -OutputRoot .artifacts/csharp/bundle-draft
+```
+
+The command reads the selected nupkg, requires its CIS.Core identity, the net10.0 DLL/XML and all five documented provider public member IDs, and compares the packed DLL to the current Release build output. The compared path/hash are recorded separately; this is not a cryptographic binding to the Developer run. It copies those exact products and records their SHA256. Package repository commit, Developer source commit and current repository HEAD/tree are separate facts. Individually hashed working inputs are not a complete immutable source snapshot.
+
+Maintained shared Core test/project/lock sources are also indexed with a declared SharedValidationSource role, including the Microsoft factory fixture and its private development dependency closure. This shared test corpus includes other Core module tests without claiming provider ownership of them.
+
+The draft inventories all files under the fourteen existing provider-task evidence roots, with their original receipts, commands, reports, fixtures and checksums. Earlier evidence is explicitly PriorDevelopmentEvidenceOnly and receives no qualification credit for the selected candidate. This preserves the failed mutation observations and the below-policy integration branch result rather than promoting them. Only the qualified T03 run's complete native Stryker JSON/HTML are separately indexed as local-only prerequisites. Its JSON must match the hash in the tracked mutation audit; earlier failed runs remain identified through their audit hashes in the indexed evidence. These native files include whole Core source and are excluded from logging-only remote reviews. They still require durable retention and source-bound validation before release.
+
+Every file reference records its repository-relative path, length, SHA256 and role. A separate manifest.sha256 hashes the generated manifest; it does not place a manifest's own digest inside itself. Indexed historical inputs remain references to existing storage. The command retains the selected product bytes but does not materialize all indexed source/evidence or a complete verification archive.
+
+The output always says IncompleteReleaseDraft and releaseQualified=false. All nine section-18 release areas remain Pending. Full six-family exact-candidate suites, both platform lanes, complete coverage/mutation and compatibility, licences/notices and retained toolchain/dependency materialization remain WP07. Candidate-package examples/instructions/skills remain WP08. Complete source/test/history/example/product assembly, final external index and clean extracted replay remain WP09. Existing release checks continue to refuse the incomplete release, and no publication record is added.
+
+
+--- FILE planning/logging/microsoft-packaging-scope.json SHA256 0380c0a06b1209f0e1b2de32fc7146ac29c68aa5c292b08b537160b3922a3a56 ---
+{
+  "schema": "cis.logging.microsoft-packaging-scope/v1",
+  "storyId": "WP06-S03",
+  "source": "planning/logging/sources/core-library-backlog-v1.json",
+  "authority": "Explicit user decision: one CIS.Core package/assembly, CIS namespaces, Microsoft-maintained NuGets permitted; third-party runtime dependencies isolated. Recorded in decisions.md and plan-amendments.md.",
+  "state": "Selected unpublished scope amendment; not execution, publication or approval of a product record.",
+  "package": {
+    "project": "implementations/csharp/src/CIS.Core/CIS.Core.csproj",
+    "packageId": "CIS.Core",
+    "assembly": "CIS.Core",
+    "rootNamespace": "CIS",
+    "adapterNamespace": "CIS.Logging.MicrosoftLogger",
+    "targetFramework": "net10.0",
+    "runtimeInventory": "implementations/csharp/eng/runtime-dependencies.json",
+    "centralVersions": "implementations/csharp/Directory.Packages.props",
+    "lockFile": "implementations/csharp/src/CIS.Core/packages.lock.json",
+    "packedDirectDependencyVersion": "10.0.12",
+    "consumerConstraint": "Inclusive minimum; repository resolved closure remains exactly qualified by lock file/allowlist."
+  },
+  "tasks": [
+    {
+      "id": "WP06-S03-T01",
+      "originalDescription": "Package Core.MicrosoftLogging separately and pin its approved Microsoft logging abstraction dependency closure using the framework and versions selected in WP-01.",
+      "currentDirection": "Use existing single CIS.Core project/package; retain net10.0 and exact repository restored Microsoft abstraction closure at 10.0.12. No separate bridge package.",
+      "scopeStatus": "RecordedScope; execution belongs in T01 receipt"
+    },
+    {
+      "id": "WP06-S03-T02",
+      "originalDescription": "Inspect the bridge restore graph, compiled references, and package contents; add rejection controls for an unapproved transitive dependency and dependency leakage into Core.",
+      "currentDirection": "Inspect CIS.Core restored/compiled/packed graph with adapter included; reject unapproved runtime additions and fixture/factory leakage.",
+      "scopeStatus": "RecordedControls; execution belongs in T02 receipt"
+    },
+    {
+      "id": "WP06-S03-T03",
+      "originalDescription": "Wire bridge unit/integration coverage and a separate Stryker mutation invocation into the shipping-project verification matrix; complete full matrix execution in WP-07.",
+      "currentDirection": "Core shipping assembly coverage/mutation must explicitly include CIS.Logging.MicrosoftLogger code; no separate bridge shipping assembly/mutation project.",
+      "scopeStatus": "RecordedWiring; task receipt records observed coverage/mutation, complete shipping matrix execution remains WP07"
+    },
+    {
+      "id": "WP06-S03-T04",
+      "originalDescription": "Add bridge API/source/binary contract fixtures to the compatibility inventory, including old bridge plus candidate core and full bridge/core upgrade scenarios for historical releases.",
+      "currentDirection": "Retain adapter API/source/binary consumers in cumulative CIS.Core compatibility inventory and same-package replacement scenarios; no fictional historical publication.",
+      "scopeStatus": "RegisteredFixtures; task receipt records source and newly frozen binary controls, full cumulative package execution remains WP07"
+    },
+    {
+      "id": "WP06-S03-T05",
+      "originalDescription": "Include bridge API documentation, packages, dependency inventory, reports, and hashes in the first-release verification bundle manifest.",
+      "currentDirection": "Include adapter APIs/docs, exact CIS.Core candidate, approved runtime inventory and complete provider reports/hashes in single-Core release bundle.",
+      "scopeStatus": "RegisteredBundleInclusion; task receipt records exact candidate/API/docs/inventory/report checksums. Complete candidate qualification and bundle/replay remain WP07/WP09."
+    }
+  ],
+  "criteria": [
+    {
+      "id": "WP06-S03-AC01",
+      "originalDescription": "An application restoring only Core acquires no bridge, logging abstraction package, or bridge transitive dependency.",
+      "currentDirection": "Core-only consumers receive embedded adapter and abstraction dependencies; absence of Microsoft factory and third-party runtime leakage remains required. Original separate-package/zero-abstractions optionality is superseded."
+    },
+    {
+      "id": "WP06-S03-AC02",
+      "originalDescription": "The bridge's resolved and packed dependency closure matches the explicit allowlist; its negative controls reject prohibited changes.",
+      "currentDirection": "Actual restored closure and packed direct dependencies match approved inventory; rejection controls preserve assurance."
+    },
+    {
+      "id": "WP06-S03-AC03",
+      "originalDescription": "WP-07 discovers the bridge as a separate shipping assembly for coverage and mutation, with no reliance on the Core-only report as bridge evidence.",
+      "currentDirection": "Core coverage/mutation reports explicitly cover adapter implementation; separate shipping assembly requirement superseded."
+    },
+    {
+      "id": "WP06-S03-AC04",
+      "originalDescription": "Compatibility manifests include bridge consumers and both package-replacement upgrade paths; no first-release result is mislabeled as an existing historical-release replay.",
+      "currentDirection": "Compatibility retains provider consumers for CIS.Core package replacement paths; only actual historical releases may be called historical replay."
+    },
+    {
+      "id": "WP06-S03-AC05",
+      "originalDescription": "The verification bundle inventory includes the exact bridge candidate and all applicable validation material; consumer optionality does not omit bridge verification.",
+      "currentDirection": "Exact CIS.Core candidate and all adapter validation material included; embedded integration must not be omitted from release assurance."
+    }
+  ],
+  "remaining": "WP07 complete shipping coverage/mutation/dispositions, cumulative compatibility, retained prerequisites and both lanes; WP08 examples/skills; WP09 complete bundle/replay/publication.",
+  "publicationFollowups": "Resolve package README consumer presentation and repository-relative links before first publication, alongside licence and destination choices. No change to packaging identity or runtime dependency policy."
+}
+
+
+--- FILE planning/logging/plan-amendments.md SHA256 cc4a53ed1c95160a1cd1d808075634f991eeafed9da005598df1c5c4166b0098 ---
+# Amendments to the supplied logging plans
+
+Effective 10 October 2026. The user's architecture and dependency decisions override the corresponding design choices in the source guide/plan/backlog. Original files and their hashes remain unchanged; this record preserves their provenance without executing conflicting instructions.
+
+| Source area | Current direction |
+| --- | --- |
+| Repository foundation and language portability | CisLib has a separate repository. C# is first; shared contracts/conformance apply to future languages with declared runtime capabilities. The source TypeScript follow-on is a candidate, not the only possible future implementation. |
+| REQ-005; guide section 3; WP01-S02 package-reference/bridge boundaries | Core may explicitly reference approved Microsoft-maintained packages. Verify the full resolved runtime closure and packed dependency groups. Third-party runtime dependencies stay in separate optional integration packages. Zero PackageReference items is superseded. |
+| Guide sections 5/10; WP01-S01/WP01-S02/WP06 standalone bridge identities | One Core project/package contains the multi-module implementation. Logging and MicrosoftLogger are folders/namespaces inside Core. Microsoft integration remains required planned functionality; its separate package/project requirement is superseded. |
+| WP06/WP07/WP08 separate bridge checks and candidate identities | Preserve provider mapping, filter, scope and ownership observations. Qualify them against the Core candidate and include the provider code in Core's architecture, coverage/mutation and compatibility scope. Independent bridge package restoration and a separate bridge assembly are no longer applicable. |
+| Public library naming | Project, assembly and package ID are `CIS.Core`; the root namespace is `CIS`. Module namespaces begin `CIS.Logging`, not `CIS.Core.Logging`. |
+| First consuming application | A simple ConsoleHuman example host is the initial consumer. It owns the runtime once implemented. A source project reference is explicit development scaffolding; release examples must consume exact tested packages. |
+| CIS integration backlog | CisLib produces versioned library/reference artifacts; CIS owns their import, managed installation and routing. A library release and a CIS release remain separately identified. |
+
+The source behavioral contracts, bounded lifecycle requirements and verification families remain the proposed implementation baseline. No logging story is marked Done by initialization. The public facade spelling is amended below. Indefinite compatibility policy, licence and release policy still need their publication disposition.
+
+## Severity aliases selected during WP01-S03
+
+The user expanded the accepted configuration tokens on 10 October 2026. In addition to the seven full severity names, accept `TRC` (Trace), `DBG` (Debug), `INF`/`INFO` (Information), `WRN`/`WARN` (Warning), `ERR` (Error) and `CRT`/`CRIT` (Critical), case-insensitively after trimming. This supersedes the source guide's full-name-only token list. Blank values remain absent; unrecognized and numeric tokens remain invalid. Serialization status mappings are unchanged. Preserve this parser and its tests for WP03-S02; the public logging API is still pending.
+
+## Startup facade name selected during WP02-S01
+
+The user explicitly selected **`EnvironmentOptions`** before publication, replacing the source guide/plan's **`EnviormentsOptions`** spelling. Use `CIS.EnvironmentOptions` for the proposed C# facade. This supersedes the original naming passages in REQ-002, WP01-S01, WP02-S01, WP03-S04 and subsequent consumer examples; the preserved source files and historical evidence remain unchanged. No misspelled compatibility alias is required because neither name has been published.
+
+WP02-S01 specifies the surface and portable expectations using a nonshipping reference-only assembly and compiled consumer fixtures. Runtime metadata/configuration resolution and static publication remain WP03 implementation work. Selected type/property/code details are implementation choices recorded in [the startup contract](../../docs/modules/logging/startup-contract.md), rather than additional directions attributed to the user.
+
+## Entry-size limit and truncation selected during WP02-S02
+
+The user explicitly requested a maximum entry size with an environment override exposed through EnvironmentOptions, suggesting 64 KiB as the default, and then specified that oversized entries must be truncated rather than rejected. This supersedes guide section 9's fixed 64 KiB cap/ordinary oversize rejection, WP02-S02-AC03's runtime rejection direction and later capture/admission oversize cases. An already serialized record above the selected cap remains invalid output in contract fixtures; the runtime must turn oversized input into a valid bounded record.
+
+Selected before publication: CORE_LOG_MAX_ENTRY_BYTES, LoggingSetup.MaxEntryBytes and LoggingOptions.MaxEntryBytes; default 65536 bytes, valid range 16384ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Å“16777216. Names/range are maintainer choices, not user-quoted values. Preserve protected identity/correlation and types, clip payload at scalar boundaries, omit excess children/whole explicit numeric strings and emit top-level truncated:true. Count the whole actual encoded entry including escapes and LF; all output formats are bounded. The minimum leaves room for the protected envelope. Malformed data and unsupported types remain invalid; an unrepresentable protected envelope produces a specific error, never an oversized record. Scope/node/depth and text bounds use bounded projection with truncation provenance. Scope misuse remains an error. [Event guidance](../../docs/modules/logging/event-contract.md) specifies deterministic priority and pending runtime evidence.
+
+An enabled file output requires FileMaxBytes >= MaxEntryBytes, so an admitted bounded entry can fit a complete segment; a smaller segment setting reports OutOfRange. This cross-option rule is a prepublication implementation choice prompted by the configurable entry cap. Disabled outputs still validate each selected option individually.
+
+## Runtime observations selected during WP02-S03
+
+The [runtime contract](../../docs/modules/logging/runtime-contract.md) defines logger/runtime/provider signatures, result observations and ownership without adding shipping placeholders. The guide's outcome/status/completion enum numbers, decision order, accepted-only tickets, bounded coordination and shared shutdown deadline remain intact.
+
+Prepublication maintainer choices include result/diagnostic type names, safe error codes, BoundaryCapturedAtUtc, writer-flush/runtime/output-state enums and a nonowning-only CoreLoggerProvider constructor in CIS.Logging.MicrosoftLogger. To expose the user-selected truncation policy, LogWriteResult.IsTruncated and global TruncatedEventCount report valid captures with omitted payload. LossObserved includes that captured count; successful draining may therefore coexist with reported payload loss. These property names and accounting details were selected for implementation, not quoted as further user instructions. Counter fixture transport uses exact decimal strings, without changing event JSON.
+
+WP02-S03 qualification executes pure admission/result specification checks and reference-only compiler consumers. Lifecycle/provider/worker expectations remain pending runtime execution. No disk durability, collector acknowledgement, automatic recovery or cross-output order is promised.
+
+## Scope ownership selected during WP04-S03-T03
+
+On 11 October 2026 the user selected: "Keep BeginScope and the creator-disposes rule; document the detection limits." Keep the original guide section10 and WP04-S03-AC03/AC04 direction: scopes are disposed LIFO by their creator, repeated valid disposal is harmless, invalid order leaves the head unchanged, normal child contexts inherit values, and transferring handles to another concurrent flow is prohibited.
+
+This withdraws only the later unpublished WP02-S03 draft's universal cross-flow exception promise. Native Windows/Ubuntu investigations and read-only Claude review showed that inherited frames, ExecutionContext identity, AsyncLocal tokens and Task.CurrentId cannot prove an arbitrary async-flow owner. There is no published baseline to change; original supplied sources, reference signatures and historical evidence remain preserved.
+
+The current implementation's precise detectable guards reject a non-head ancestor, or an absent frame before the handle has completed any pop, without changing the current head. The completion flag records any pop, including prohibited misuse; it is not ownership evidence. Other prohibited handle misuse has unspecified behavior. Restored stale contexts and unawaited children can retain an old frame after the creator has popped; an async helper cannot install its own scope in its caller by returning a handle. The callback alternative is not selected; Microsoft scope integration still needs its required IDisposable surface. Public runtime/provider integration and complete shared-story qualification remain later tasks.
+
+## User-directed passive environment store
+
+The revised EnvironmentOptions-Codex-Simplification (1).md supersedes the earlier initializer simplification and the unpublished startup discovery/publication mechanics selected in WP03-S01 through WP03-S04. EnvironmentOptions only stores values with public setters and literal defaults. Caller startup supplies initial facts and decides when consumers start. EnvironmentOverrides applies known variables explicitly; LoggingOptions prepares its own settings and EventMetadata owns logging's captured facts. There is no initialization/readiness/locking/retry/snapshot framework, no automatic getter loading and no future general startup pipeline in this task.
+
+The publication ledger is empty. Remove EnvironmentSetup, EnvironmentSnapshot, LoggingSetup and lifecycle members; update current reference consumers without a compatibility bridge. Existing variable meanings, bounds, severity aliases, BuildVersion/service-version distinction and lexical path behavior remain. Error owner keys and exact issue positions are draft implementation choices; current fixtures disclose their migration. Preserve historical source plans and execution receipts. All six release families and pending runtime/provider/package qualifications remain required. This is separately authorized correction work while the broader logging roadmap is paused.
+
+## User-requested explicit default population
+
+The user asked to close the missing heuristics/default-population gap after the passive-store correction. EnvironmentDefaults.Apply(applicationAssembly) now supplies common assembly, host, runtime/process, UUID and UTC facts through one explicit call. The store remains passive. Caller startup applies defaults, then explicit assignments, then known environment overrides before starting consumers. Environment name/kind, build/commit identifiers and logging values remain caller-controlled. Repeated helper calls reapply defaults rather than using lifecycle/readiness/publication state. This follow-up does not resume the paused logging roadmap, publish an API or introduce a general startup pipeline. The current guide and separate environment-defaults implementation record describe exact behavior and executed evidence.
+
+## User-selected readonly static environment construction
+
+The latest direct user request makes obvious runtime/identity facts readonly and populates defaults followed by overrides in the constructor, with common identity strings interned. The user explicitly selected keeping the static container with a static constructor. This supersedes the passive-store attachment and explicit EnvironmentDefaults.Apply candidate where they conflict. First access discovers entry-assembly and current runtime/process facts and applies existing alias/canonical variables. Fifteen properties are getter-only; EnvironmentKind, CommitId and BuildId remain ordinary caller policy, and the getter-only Logging reference contains mutable module-owned options. Four bounded validated identity strings are interned after override selection. No explicit initializer, reset/readiness state, snapshot transport, runtime startup or new dependency is introduced. CLR static failure semantics are documented and exercised. Controlled test transports preserve useful metadata/validation vectors without mutating readonly production facts. The nine migrated mechanic bindings are recorded explicitly; all 41 Planned release cases remain unchanged. The broader logging roadmap remains paused and the changes remain uncommitted.
+
+## Logging roadmap resumed (12 October 2026)
+
+The user resumed logging implementation after commit `248f2f74`. The former pause/uncommitted descriptions above are historical checkpoints. Next is WP04-S04-T04 actual bounded JSONL encoding, under the existing configurable/truncate policy; keep this step limited to capture/encoding rather than adding runtime/output machinery. T05 still owns complete S04 qualification.
+
+## WP04-S05-T04 outcome-table qualification
+
+The [logger outcome qualification](../../docs/modules/logging/logger-outcome-qualification.md) adds the full ordered two-output table against actual Core, using explicit non-I/O controls with independently declared thresholds/capacities and owned tickets. Required expectation fields, complete case-to-criterion mapping and independent original-byte corruption checks are qualification choices within the authorized task. Claude final review passed after its actionable portability/coverage findings were corrected. Shipping API/dependencies/code and original source plans remain unchanged. All four S05 task implementations finish at the admission seam; the original AC04 normal I/O failure isolation part and full story acceptance remain pending real WP05 output integration. A Faulted status from a double does not qualify I/O isolation. The next roadmap task is WP05-S01-T01.
+
+## WP05-S01-T01 existing JSONL representation reuse
+
+The [JSONL reuse qualification](../../docs/modules/logging/jsonl-output-reuse.md) confirms that the actual logger already captures/encodes before admission and shares one owned EncodedEvent whose JsonLine includes the final LF. No duplicate formatter, wrapper or new shipping API/dependency is needed. Original-byte and whole-structure checks qualify Unicode/control/newline safety, typed metadata and cap application; the six-byte escaped payload cases explicitly reject an ignored cap. Claude corrected comparator gaps, then final followup passed. These are task qualification choices, not new user policy or full output/story/release completion. T02 human output, T03 presentation separation and T04 combined story qualification remain next; real workers/I/O/lifecycle/provider and S05 I/O isolation remain pending.
+
+## WP05-S01-T02 human display projection
+
+The [human renderer](../../docs/modules/logging/human-output.md) implements normal required fields and verbose available context/typed attributes/exception detail from the runtime-owned JSONL bytes. Human's stronger visible format/control escaping may expand bytes; its explicit loss flag reports additional omission separately from capture. Protected fields precede payload, the message clips at complete scalar/escape boundaries, and oversized typed display fields are omitted whole with a visible marker. These are maintainer implementation choices within the existing configurable-cap/truncate amendment; JSONL's projection/order remains unchanged. Required full runtime render-loss diagnostics, presentation integration and worker/I/O/lifecycle/provider/release obligations are not claimed by this internal renderer task. Current qualification uses real Core, controlled metadata/time and actual captured activity IDs, original-byte native comparators and nonlayout information assertions.
+
+## WP05-S01-T03 independent presentation choices
+
+The [explicit selector](../../docs/modules/logging/presentation-separation.md) keeps thresholds, output enablement/path and streams outside rendering. JSONL is a reused readonly owned view; human is the existing bounded renderer. A readonly value containing memory/loss, explicit enum validation and an error when captured JSONL exceeds the selected cap are task implementation choices. There is no new message-template language or terminal/debugger heuristic. Actual logger/admission controls qualify 64 combinations of four output profiles, both formats/detail/streams and all seven level values, with unchanged caller/ambient captured facts and exact reuse. This is internal presentation qualification, not runtime format/destination/stream composition, delivery, render-loss counters, worker/lifecycle/provider or release evidence. Original plans/contracts and historical evidence remain preserved; T04 full story mapping is still required.
+
+## WP05-S01-T04 combined rendering fixtures
+
+The [combined rendering qualification](../../docs/modules/logging/rendering-qualification.md) completes the four S01 criteria at the real internal capture/admission/rendering seam. The fixture renders original owned objects; full literal JSON expectations and exact human field/type assertions qualify every explicit format/detail view. Current supplemental catalogs cover presentation independence and protected metadata/keys/activity/scalar boundaries. Comparers normalize no fields and accept object/display order and insignificant spacing while rejecting changed facts or unsafe bytes. This does not close runtime format/stream/render-loss composition, worker/I/O/lifecycle/provider, S05 normal I/O isolation or release obligations, which must recheck these invariants when integrated. Original source plans and historical evidence remain preserved.
+
+T04 comparer review follows the existing v1 contract: both Integer and Number project as JSON numbers, and wire values cannot prove their constructor kind. C# semantic numeric comparison stays unchanged; Python now accepts equivalent numeric notation while preserving distinct Boolean/string kinds. Positive integer-with-.0 and exponent-notation controls plus a Boolean-to-number corruption control qualify that policy. Safe ASCII spaces after display `=` are accepted consistently. This adds no lexical-number wire contract, shipping code or field normalization.
+
+## WP05-S02-T01 implementation boundary
+
+The [queue foundation](../../docs/modules/logging/output-queues.md) uses actual bounded Channels, one awaited worker per enabled output, trusted internal writer callbacks and suppressed creator context. Primitive closure and observable callback faults avoid retained work; they do not complete public stop/flush deadlines or S03 failure/abandonment accounting. Shared controlled MemoryStream cases are actual queue/writer probes, without claiming physical destination composition, runtime tickets/outcomes, full S02, normal destination I/O isolation or release. These are scoped implementation choices under the original task; public contracts, dependencies, original plans and historical checkpoints remain unchanged.
+
+## WP05-S02-T02 internal composition boundary
+
+The [actual runtime fanout](../../docs/modules/logging/queued-fanout.md) uses a readonly event/ticket slot and one shared admission/dequeue/closure gate, with capture and writer callbacks outside it. An internal creation entry freezes only the values this composition consumes; it is not a public placeholder or new startup framework. Positive successful tickets advance only on admission; Int64 exhaustion terminally rejects without wrapping. Existing filtered/unavailable hooks are recorded, while complete S03 diagnostics/failure/abandonment accounting and public physical-output/lifecycle/provider/release remain pending. Controlled MemoryStream/IOException cases are actual runtime/queue probes, without a persistence or full-story claim. These are scoped implementation choices under the original T02 task; supplied sources and historical checkpoints remain preserved.
+
+## WP05-S02-T03 incoming overflow qualification
+
+The [incoming overflow cases](../../docs/modules/logging/queue-overflow.md) qualify the existing real Channel admission and Core result composition rather than adding another shipping mechanism. Literal per-output outcomes, accepted caller/byte preservation and controlled one-sided recovery/fault/filter cases distinguish admission from delivery and retain only per-destination order. Reusing the existing fixture and an explicit native catalog profile are scoped verification choices; complete S03 output counters/diagnostics, T04 bookkeeping, physical outputs/lifecycle/provider and release remain pending. Original supplied plans and historical evidence remain unchanged.
+
+## WP05-S02-T04 bounded cohort qualification
+
+The [seeded producer cohorts](../../docs/modules/logging/queue-bursts.md) qualify all four S02 criteria at the existing internal Core/Channel/memory-writer seam. Literal cohort counts and independently checked caller/ticket bytes avoid fixing scheduling-dependent winners. Sampled held-writer queue maxima, atomic callback maxima and canonical single-worker inspection distinguish accepted worker bounds from caller/pre-admission memory and later flush-control obligations. Explicit shared transport ticket checks and reused native transport validation are verification choices, with no shipping/API/dependency change. S03 accounting/diagnostics, physical output/lifecycle/provider and release remain pending; original plans and historical records are unchanged.
+
+## WP05-S03-T04 diagnostic dependency ordering
+
+The original guide requires GetDiagnostics to return immutable counter/status observations. Its later unpublished reference catalog adds LastStopResult typed as LogStopResult, which depends on the real bounded shared stop operation. T04 implements the seven real runtime facts, all fourteen selected output facts and ownership/counter/state qualification. LastStopResult and its concrete dependent stop result remain required for WP05-S10 before v1 publication. This is a maintainer implementation-order decision under the existing roadmap, not a new user direction or a withdrawal of the final selected member. Primitive admission closure supplies real first-closure time and actual worker draining; no bounded stop result is fabricated. Preserved source/reference files and all 41 Planned release rows remain unchanged.
+
+## WP05-S04-T01 immutable creation inputs after environment simplification
+
+The original task mentions the former immutable environment snapshot. The user-selected static container and module-owned options supersede that transport. Actual console composition instead copies the concrete consumed options at creation, before selector/worker work. It does not add a new public startup/snapshot framework. [Console composition](../../docs/modules/logging/console-composition.md) integrates real format/detail/stream and before-admission render-loss accounting while keeping original capture bytes and final lifecycle/public creation obligations intact. These are maintainer implementation choices within the authorized roadmap, not new user directions or a release qualification.
+
+## WP05-S04-T02 existing ownership and serialization mechanism
+
+[Borrowed console qualification](../../docs/modules/logging/console-ownership.md) retains the existing concrete writer and one sequential output worker. Both already implement the task behavior; explicit source comments and real lifetime/order probes qualify it rather than adding redundant ownership or synchronization types. The chosen static environment/module options and truncation amendments remain intact. Startup rollback, full S04 consumers and final lifecycle/release obligations remain required. This is a maintainer implementation choice within the supplied task, not a new user direction.
+
+## WP05-S04-T03 safe errors and idle rollback
+
+[Console startup](../../docs/modules/logging/console-startup.md) implements the preserved initialization-exception contract at the actual internal composition entry. The concrete startup acquires queues before its final stream-readiness check and joins unpublished idle workers on failure. A trusted internal Task.Run-compatible launcher makes partial acquisition failures reproducible without a public scheduler or startup framework. Fixed safe categories and this ordering are maintainer implementation choices within the task. Invalid arguments remain argument errors, and physical file ownership/public bounded lifecycle/full S04 consumers remain required later work.
+
+## WP05-S04-T04 static-container consumer qualification
+
+The [same compiled console consumer](../../docs/modules/logging/console-consumers.md) reads real environment variables through the selected static EnvironmentOptions constructor, then prepares module settings before internal runtime composition. This replaces the original snapshot wording without reintroducing superseded publication APIs. Literal actual-stream and controlled worker cases plus source-preserving criterion mapping qualify the task; default Human and explicit JSONL CLI selection remain distinct configuration facts. Public runtime/physical file/bounded lifecycle/provider/release remain later work. These are implementation/qualification choices within the authorized roadmap, not new user policy.
+
+## WP05-S05-T01 physical acquisition boundary
+
+The owner consumes the prepared absolute path and acquires physical handles only at initialization. A persistent empty `.cis.lock` companion identifies the configured path group; an actual second-handle probe checks exclusivity before active-file creation. The active file permits readers and is opened without truncation or append. Nonempty companion collisions and unavailable ownership fail clearly with fixed safe codes. Existing artifacts are preserved and acquired handles are released. Group aliases that require different companion paths are outside this ownership protocol. Format inventory and permission/format/full startup qualification remain the following S05 tasks; this foundation does not activate public runtime examples or approve a release.
+
+## WP05-S05-T02 inventory foundation
+
+The format-aware internal owner acquires the path lease before inventory I/O, creates metadata only for a new empty group, and otherwise validates immutable group/segment identity and group-wide format/UTF-8/no-BOM/LF facts without rewriting existing bytes. Internal metadata bounds are 2 MiB/depth12/1001entries. Exact `.cis-log-<groupN>-<idD20>.closed|damaged` names fence referenced members to the same directory and provide the later rotation basis. Missing active members fail clearly; startup never deletes pre-existing/nonempty artifacts. No append, worker/public-runtime composition, rotation, recovery or release qualification is claimed.
+
+## WP05-S05-T03 actual startup composition
+
+The [file/console composition](../../docs/modules/logging/file-startup.md) freezes only concrete consumed settings, starts unpublished idle workers, validates borrowed console readiness and acquires format-aware physical file ownership before returning the internal runtime. File resources close outside admission before worker completion; failed startup joins only its own workers and preserves pre-existing artifacts/borrowed streams. Unbuffered managed writes make completion observable without durability claims. Existing oversize/non-LF boundaries fail safely until S06 rotation and S07 selected recovery replace the explicit guards. These are scoped implementation choices, not new public startup abstractions, release approval or a withdrawal of later roadmap requirements.
+
+## WP05-S05-T04 physical runtime qualification
+
+The [startup qualification](../../docs/modules/logging/file-startup-qualification.md) uses real live process-owned configured runtimes, literal producer PID/order checks, captured relative/Unicode paths, immutable format inventory failures and actual OS-denied permissions. Narrow deny rules/modes affect only fresh native temporary paths and are restored in finally; exclusive probes before child exit qualify acquired-handle release; later retry qualifies restored-path reuse. This is verification within the authorized task, without shipping API/dependency changes or a new startup framework. All four S05 criteria are mapped at the internal physical-runtime seam; public lifecycle, rotation/recovery and release requirements remain separate.
+
+## WP05-S06-T01 complete-record size rotation
+
+[Size rotation](../../docs/modules/logging/file-rotation.md) replaces the temporary post-start file capacity fault with actual whole-record rotation under the existing path-group lease. Initial physical length and successful prepared-byte writes supply the count; LF is included. Minimal closed/new-active inventory publication is necessary for this task and uses the existing persistent group and increasing segment IDs. It occurs before fresh-active creation, so failed publication leaves no appendable active path. This is an implementation-order choice within the authorized roadmap, without a new dependency/public API/framework. Configured retention/restart qualification remains T02; exact deletion/failure policy remains T03/T04; interrupted rotation recovery remains S07. Existing startup guards, source plans, historical evidence and all41Planned release rows remain unchanged.
+
+## WP05-S06-T02 configured retention and restart order
+
+[Configured retention](../../docs/modules/logging/file-retention.md) uses persistent inventory IDs to retain the newest exact listed closed/damaged members, deleting required oldest members under the same lease before further growth. The frozen selected bound reaches the actual writer; no new dependency/API/I/O framework is introduced. Existing startup inventory above a newly selected lower bound fails safely without pruning, preserving the original rollback rule. Maximum readable inventory now rotates by retirement rather than an artificial capacity fault. Sparse IDs, timestamps and fresh producer instances do not reset group identity/order. T03 owns complete deletion-failure/isolation and Human oversized categories; T04 owns broader filesystem cases; S07 owns interrupted updates and damaged-record recovery. Source plans, historical evidence and all 41 Planned release cases remain unchanged.
+
+## WP05-S06-T03 terminal file-policy faults
+
+[File-policy failures](../../docs/modules/logging/file-policy-failures.md) reuse the existing worker terminal path with fixed internal RetentionDeleteFailed and RenderTooLarge categories. Required exact oldest-member deletion faults before further segment growth; healthy console remains usable and ownership releases before child exit. The Human guard is defensive under valid FileMaxBytes/MaxEntryBytes selection and is qualified using actual prepared bytes with a smaller trusted internal segment, without changing public ranges or ordinary input truncation. Only verified native temporary paths receive operational deletion-denial permissions, and those changes restore in finally. No new I/O abstraction, dependency/API or retries are added. Broader filesystem/collision/story qualification remains T04, and interrupted updates/damaged-record recovery remain S07. Source plans, historical evidence and all 41 Planned release cases remain unchanged.
+
+## WP05-S06-T04 physical failure qualification
+
+[Rotation/retention qualification](../../docs/modules/logging/file-rotation-qualification.md) rejects an occupied exact next closed name before retirement, preserving listed evidence for predictable collisions while retaining the non-overwriting move for later races. Existing worker callbacks supply a controlled post-first-physical-write IOException; Linux additionally uses an owned process-only file-size limit for an actual OS-rejected write. These are scoped implementation/qualification choices, not a full-volume, durability or public-lifecycle claim. Failed metadata publication preserves its existing private candidate and closed bytes; reconciliation remains S07. The original four criteria are mapped without changing source plans, historical receipts or the 41 Planned release cases. No shipping I/O framework, dependency, public API or retries are added.
+
+## WP05-S07-T01 inspection before recovery
+
+[Managed boundary inspection](../../docs/modules/logging/jsonl-boundary-inspection.md) checks the owned active JSONL tail only after inventory format/encoding validation, restores position and preserves physical bytes. Actual no-BOM/strict UTF-8/object/LF facts distinguish Empty/Complete/Partial/Invalid. The final-record bound is the absolute supported 16 MiB including LF, rather than a lower newly selected entry cap; earlier records/full event schemas are not revalidated. Empty/Complete may append through the existing worker; Partial/Invalid keep the safe unchanged startup failure until T02 recovery. Human checks, startup size/retention priority, ownership and ordinary caller truncation remain unchanged. This is a scoped implementation choice within T01, without a new public API, dependency, IO framework or full S07 acceptance claim. T02/T03/T04, public bounded lifecycle/provider and release remain required. Source plans, historical receipts and all 41 Planned release rows remain unchanged.
+
+## WP05-S07-T02 partial-segment recovery
+
+[Partial recovery](../../docs/modules/logging/jsonl-partial-recovery.md) reuses the held group lease, persistent segment IDs, complete inventory publication and non-overwriting physical rename. Whole partial segments become distinctly damaged; fresh active uses the next ID. Predictable damaged-name collision, ID exhaustion and full/lower retained bound fail unchanged before growth; startup does not delete pre-existing evidence. A concrete readonly RecoveredPartialSegment output diagnostic freezes successful recovery without inventing current delivery faults or counters. This additive unpublished API fact fulfils the original safe-diagnostics requirement without a new diagnostic/event framework. Current rollback-partial fixtures are renamed rollback-invalid-json and seed malformed terminated JSON because partial startup now recovers. Historical receipts/source plans and all 41 Planned release rows are preserved. T03/T04 interruption/retention/collector qualification and public bounded lifecycle/provider/release remain later work.
+
+T02 review resolves current API-catalog drift by adding the implemented recovery Boolean to the unpublished reference surface and preservation proposal; a compiled shipping/catalog architecture comparison and two negative controls guard it. Historical published baselines/source plans are unchanged. Size priority, visible preflight versus late/inaccessible collision categories, bounded direct-owner reinspection and unexecuted post-rename interruption coverage are documented explicitly.
+
+
+## WP05-S07-T03 bounded pending transitions
+
+[Interrupted transitions](../../docs/modules/logging/file-transition-recovery.md) add one private bounded same-directory intent, using existing group inventory serialization and exact persistent identities. Required runtime retirement remains before intent publication, preserving actual deletion-denial semantics and no startup pruning. That unprovable gap fails unchanged; known subsequent stages validate complete original byte hashes and surviving membership before resuming rename/publication/create/cleanup under the lease. Fixed FileTransitionIncompatible/FileTransitionInitializationFailed categories are concrete internal choices to reconcile with the later unpublished error catalog. No public API, dependency, IO framework, retry, directory scan for repair or crash-durability guarantee is added. Original source plans/historical evidence and all 41 Planned release rows remain preserved; T04 full restart/collector qualification and public lifecycle/provider/release remain required.
+
+## WP05-S07-T04 native restart and offline collector scope
+
+[Restart qualification](../../docs/modules/logging/file-recovery-qualification.md) uses actual Core records, fixture pre-state/delete/rename/create operations and actual Core ownership/intent/retirement-selection/inventory publication to stage checkpoints before observed owned-process termination. Staging and restarted runtime retention settings match. It does not claim interruption inside an uninstrumented production rotation call or power-loss durability. The read-only Python collector selector illustrates the current private inventory for stopped groups, selecting only complete inventoried closed/active JSONL; it is not a Python Core implementation or activated public runtime/collector SDK. Damaged-oldest deletion-denial cases reuse existing native permission controls. These are scoped qualification choices under the original task, without shipping changes, dependencies or an I/O framework. Source plans, historical receipts and all 41 Planned release rows remain preserved; public lifecycle/provider and release remain later work.
+
+
+## WP05-S08-T01 registered boundary foundation
+
+[Boundary capture](../../docs/modules/logging/flush-boundary-capture.md) adds internal scalar snapshots and separate nondroppable output controls under the existing admission gate. Minimum real worker ordering and same-target coalescing are implemented now so registration cannot be overtaken by later events; complete caller-wait detachment/bounds and public finite-time results remain T02/T03, with full stress qualification T04. System UTC labels and the final atomic global-invalid read are explicit observation policies; no event-clock/caller I/O runs under the gate. Writer completion means actual userspace flush status and does not substitute for public whole-boundary terminal/pending accounting. Generic internal writer seams without flush callbacks report unavailable confirmation. No public API/dependency/framework is added; source plans, historical evidence and all 41 Planned release rows remain preserved.
+
+
+## WP05-S08-T02 caller lifetime coordination
+
+[Caller coordination](../../docs/modules/logging/flush-coordination.md) adds two internal waits over the existing per-output registrations. A single caller-lifetime token detaches each BCL task wait; sequential output observation avoids a retained per-caller aggregate over blocked tasks. Real one-shot TimeProvider deadline callbacks exercise this same internal detachment path; public timeout/cancellation distinctions and one overall monotonic deadline remain T03. Existing worker controls/ordering are unchanged and explicitly qualified at their full accepted-target bounds. Test-only reflection on pinned .NET continuation references and backing-slot capacity proves detachment and bounded storage, without exposing private runtime layout as a public promise. A fully settled sequence can receive a later serialized flush; no history cache is added. No dependency/public API/framework is introduced; source plans, historical receipts and 41 Planned release rows remain unchanged.
+
+## WP05-S08-T03 public flush observations
+
+[Public flush results](../../docs/modules/logging/flush-results.md) implement the actual method and immutable selected result shapes without publishing placeholder creation/shutdown methods. Every positive TimeSpan uses one monotonic overall budget, with one active-caller timer rearmed in bounded slices. Initial counters remain frozen; a deadline callback freezes terminal/pending/flush facts before detaching its wait. System UTC labels retain T01 policy. A successful prefix, exact failed ticket and abandoned tail provide bounded scalar projection through each fixed target, excluding later admissions/faults and preserving an unresolved in-flight hole after admission exhaustion. A lazy progress signal covers that hole without caller history. Actual timer callback disposal is awaited. These are implementation choices within T03, without a new runtime dependency, retry or general I/O framework. Broad T04 stress and full S08 criteria, public lifecycle, idle file scheduling, provider and release remain required. Original source plans, historical receipts and all 41 Planned release rows remain unchanged.
+
+## WP05-S08-T04 flush stress qualification
+
+WP05-S08-T03 is committed as 0d55b4ea. The [stress qualification](../../docs/modules/logging/flush-stress-qualification.md) and source-preserving acceptance map cover the four original S08 criteria through actual public callers, bounded output controls, blocked callbacks, full queues and concurrent producer/caller cohorts. Reflection/private continuation probes are explicitly nonshipping .NET 10.0.12 qualifications; seeded near-exhaustion history is distinguished from actual wire records. These task-level tests add no shipping abstraction or public API. The expiry/cancellation/disposal race executes the earlier T03 source-inspected window. Idle file scheduling belongs to the following S09 story, as written in the original source plan; this task does not add it or rewrite historical evidence/release requirements.
+
+## WP05-S09-T01 file interval scheduling
+
+WP05-S08-T04 is committed as 8b8aab71 and S08 is qualified. [File interval scheduling](../../docs/modules/logging/file-flush-interval.md) captures the existing environment-driven interval and owns one suppressed-context TimeProvider timer in configured physical file composition. Callback registration through existing controls is the minimum actual scheduling path; complete bounded integration, shared-stop/fault coordination and full S09 acceptance remain T02â€“T04. FileFlushTimerInitializationFailed is a fixed safe maintainer-selected startup category. Primitive kernel fixtures opt into the same real queue method; physical configured creation starts it automatically. Basic terminal disposal and startup rollback prevent leaked acquired resources without introducing a public lifecycle placeholder, abstraction framework or dependency. Source plans, historical evidence and release requirements are preserved.
+
+
+## WP05-S09-T02 serialized periodic requests
+
+WP05-S09-T01 is committed as c33ff528. Timer requests use the existing nondroppable fixed-boundary controls and single awaited worker; T02 qualifies blocked writes/flushes, repeated periodic ticks, cancelled public callers and continuous explicit/timer coalescing against actual Core state and bytes. Primitive duplicate/closed/detached-before-arm and owned-false startup paths complete the earlier deferred qualification. A detached timer returning false on its first arm is now a harmless closed-runtime outcome; owned false/disposal signals remain initialization failures. An actual disarmed .NET 10.0.12 TimeProvider.System timer is wrapped and its false return after disposal is required. The initial review assumed an ObjectDisposedException from that provider; actual execution tests that claim directly. No generic exception-swallowing behavior is added. No additional worker, scheduler framework, public placeholder or dependency is introduced. Immediate timer cancellation/failure/shared-stop coordination and full S09 acceptance remain T03/T04. Original source plans, historical receipts and release-family obligations remain unchanged.
+
+## WP05-S09-T03 timer lifetime foundation
+
+WP05-S09-T02 is committed as 49911f9d. [Timer lifetime](../../docs/modules/logging/file-timer-lifecycle.md) cancels scheduling on atomic closure/fault and shares one asynchronous disposal task with terminal worker cleanup. The original task refers to a shared public stop operation defined only by the dependent S10 story; this task qualifies the timer portion through existing actual closure and the single shared queue completion, keeping public StopAsync/DisposeAsync/deadline/result integration required in S10. No public lifecycle substitute, per-tick task, extra output worker, retry or dependency is introduced. Actual flush faults retain the existing safe diagnostics and isolate file from console. Barrier-driven kernel cases and a concrete physical callback/lease case qualify real I/O and callback join obligations; the ticket-exhaustion trigger is explicitly seeded rather than emitted history. Custom internal timer-disposal exceptions retain the existing cleanup propagation limitation; primary-failure preservation and cleanup-fault observations remain explicit S10 obligations. Detached throwing-arm cleanup now leaves the assigned timer to its single shared disposal owner while still propagating the internal startup error; unpublished extra timers still receive local disposal. Full S09 acceptance remains T04, bounded shutdown S10, and all original release obligations remain unchanged.
+
+## WP05-S09-T04 complete periodic acceptance
+
+WP05-S09-T03 is committed as fb93c06c. [Periodic qualification](../../docs/modules/logging/file-timer-qualification.md) preserves all four original S09 criteria and maps them to current-assembly controlled-time execution, with disabled/range/startup cases explicitly supplemental. Two new terminal cases make 64 inactive restart attempts on each actually stopped/faulted queue without changing its worker/shared completion/disposal task, output bytes or periodic work. Existing nonshipping clock accessibility becomes internal solely for reuse; no shipping Core source, API, dependency or framework is added. Original interval scheduling-target/no-durability language and kernel/physical/reflection/seeded-case limits remain explicit. The dependent S10 public bounded operation and custom-disposal failure/primary-exception obligations remain required; this task does not qualify a substitute. Release requirements and all historical evidence remain unchanged.
+
+
+## WP06-S02-T03 host filtering
+
+The existing Microsoft provider and Core thresholds are unchanged. The actual `LoggerFactory` test fixture owns an explicit development-only Microsoft logging implementation closure at 10.0.12; Core retains its two approved runtime packages. A provider-wide Trace host rule is the documented default for permitting all Core destination levels, with narrower provider/category rules explained and deliberately exercised. Host-suppressed events are outside Core diagnostics; argument evaluation still precedes logger callbacks. This task adds no filter rewriting, helper API, shipping dependency or host framework. Full concurrent scopes, ownership/shutdown and release remain required.
+
+
+## WP06-S02-T04 nonowning provider qualification
+
+The original nonowning provider default and atomic external-source clearing are already implemented by the preceding provider/scope tasks. Four public physical runtime cases now qualify caller scope-handle survival, shared consumers and lease retention, managed borrowed-source reference release and a barrier-held formatter completing after provider disposal. No shipping source/API/dependency, owning option, cache or lifecycle abstraction is added. GC operations exist only in pinned managed qualification fixtures; complete factory/host shutdown and concurrent story acceptance remain T05, and release requirements remain unchanged.
+
+
+## WP06-S02-T05 application host story qualification
+
+Actual LoggerFactory/ILogger<T> plus the existing public process host qualify every original S02 criterion. The application coordinates two async flows, explicit work completion and shared bounded stop/disposal. No Generic Host framework-specific lifetime is claimed or required by the original illustrative application host. Factory AddProvider owns provider disposal while the provider remains nonowning of Core. Complete exact-assembly filter/operation/ownership regression lanes complement seven new factory/flow/shutdown/formatter cases. No shipping API/source/dependency or lifecycle abstraction is introduced; examples/skills, dependency packaging verification and full release remain later tasks.
+
+
+## WP06-S03 single-Core packaging scope
+
+The earlier explicit user decision supersedes S03 standalone bridge packaging and zero-abstraction Core consumer optionality. [Scope record](microsoft-packaging-scope.json) preserves all five original tasks/criteria alongside their current direction: embedded adapter with approved two-package runtime closure; real dependency/asset rejection controls; explicit adapter coverage/mutation in Core; cumulative provider consumers for one Core package; complete adapter material in the Core release bundle. T01 retains the net10.0/10.0.12 locked repository baseline and existing nuspec inclusive-minimum consumer semantics, updates current package description/README and inspects an actual development pack. No dependency range, shipping API or package is added. The old optional-package scenarios are superseded, not relabeled as executed. T02-T05 and full release/publication remain required.
+
+
+## WP06-S03-T02 embedded dependency/asset controls
+
+The existing evaluated/restored/compiled/packed checker is retained. Twelve new architecture cases qualify copied transitive graph additions, wrong/missing approved closure members, factory/third-party packed DLLs, nuspec additions/replacements/version/constraint drift and a real managed NLog AssemblyRef. The first eleven rows prove an unchanged positive before mutation; no unapproved dependency is downloaded or loaded. A stale pre-commit candidate versus newly built helper correctly failed positive package consistency, then repacking restored success. No Type Manager implementation, shipping API/source/dependency or gate exception is added. This is Windows development qualification; complete platform/release assurance and T03-T05 remain required.
+
+
+## WP06-S03-T03 adapter slice wiring
+
+The explicit shipping-project slice uses the single CIS.Core assembly and all three adapter source files, with separate actual unit/integration coverage and Complete Stryker invocation. Microsoft child-process coverage is observed in raw reports. Stryker injections are tested only in process by provider unit tests; no child kill credit is inferred. The initial 60%, pre-review 55.38% and revised-runner 54.62% scores remain failed 90% mutation gates, with native surviving/no-coverage/noncompiling/ignored statuses retained, not reclassified. T03 wires and observes the slice; complete shipping matrix, gaps/dispositions and recorded-platform execution remain WP07 as the original task directs. Source mutation occurs only in a hash-linked ignored snapshot and failed runs rebuild/check that copy. No shipping source/API/dependency or extra bridge assembly is introduced.
+
+
+## WP06-S03-T04 implemented provider compatibility fixtures
+
+The provider consumer and API/source/compiled-input inventory use the existing single CIS.Core identity. Actual source execution and two separately executed newly frozen binary scenarios qualify these unpublished fixtures at the public runtime/file seam. CoreReplacement and CompleteUpgrade share a payload because the provider is contained in Core; no older bridge identity or publication is invented. Full cumulative package/API/runtime/platform compatibility and first-release negative controls remain WP07, with actual publication archives in WP09. This adds no shipping API/source/dependency and leaves historical reference fixtures, the actual ledger and original Planned release case groups unchanged.
+
+
+## WP06-S03-T05 provider bundle registration
+
+The first-release bundle registration includes the embedded provider in the single CIS.Core candidate, its documented public member XML, module/source/fixture/harness material, approved dependency inventories and complete prior provider-task evidence references with checksums. The draft producer preserves selected product bytes and separately indexes local native mutation reports. Older observations remain prior development evidence without credit for a newly selected candidate. All nine full release content areas stay pending, as do WP07 qualification/retention, WP08 examples and WP09 complete bundle/replay/publication. This task adds no shipping source/API/dependency, release waiver, durable archive claim or publication row.
+
+
+--- FILE planning/logging/evidence/wp06-s03-t05/receipt.json SHA256 00c75bdefab9421cde0e5bdf3f846177e80b0d3fcaa9f801323ba5c2e2782316 ---
+{
+  "schema": "cis.logging.task-receipt/v1",
+  "taskId": "WP06-S03-T05",
+  "date": "2026-10-15",
+  "baseCommit": "cd5e88a1c9e3036f2a3f09be79d6735d1c770031",
+  "status": "Bundle registration/producer review corrections executed; follow-up review checkpoint.",
+  "scope": "Required provider inclusion/checksum inventory in a first-release draft; complete qualification, retention and final bundle/replay remain WP07/WP09.",
+  "developer": {
+    "runId": "b192f318728a4d5998e222fc2507c94c",
+    "tests": {
+      "unit": 3370,
+      "integration": 1400,
+      "architecture": 483
+    },
+    "totalTests": 5253,
+    "stages": 14,
+    "refinementsAfterInventory": [
+      {
+        "path": "implementations/csharp/eng/write-microsoft-logging-bundle.ps1",
+        "developerCapturedSha256": "a3e1648e8549f677edc415dbd58a24e46719866f6e4f53899f4a8facbc8fbd6b",
+        "currentSha256": "8cf46bf4a10a033401cae900b7c7330f0c2967ff6f4a1f0074ddb90bdd8307df",
+        "qualification": "Current standalone producer, complete current index/checksum audit and native producer controls; these files are not compiled C# or shipping changes."
+      },
+      {
+        "path": "implementations/csharp/verification/bundle/manifest.json",
+        "developerCapturedSha256": "e62bae70a0778422dbda6d9166c43cf6476d2f8f49a7174d8027345f1ee9ef36",
+        "currentSha256": "e6cdf3be2e10d23089df2b7855ea1944e6fde7985260634ba7a09dcbf610478a",
+        "qualification": "Current standalone producer, complete current index/checksum audit and native producer controls; these files are not compiled C# or shipping changes."
+      },
+      {
+        "path": "docs/modules/logging/microsoft-logging-bundle.md",
+        "developerCapturedSha256": "551b36905ab76e5e50a56bb74d8b113084dfea114acd490fb843b392637c2fb1",
+        "currentSha256": "a49808e852fe50967427d4c40147637faa4d94b4facf1f4e58973074b1727b9a",
+        "qualification": "Current standalone producer, complete current index/checksum audit and native producer controls; these files are not compiled C# or shipping changes."
+      }
+    ]
+  },
+  "draft": {
+    "indexedFiles": 4973,
+    "indexedBytes": 457745670,
+    "documentation": 15,
+    "priorEvidenceRoots": 14,
+    "nativeMutationFormats": 2,
+    "apiMembers": 5,
+    "packageSha256": "cfca6a8ee51d6b7cfa4bb0ff9a0fb64b237d5d3d3093b69f4e9c22570476bfe6",
+    "coreSha256": "97c0f8bc15d08af5a899b8d1d9f2d292a6995ee14c781b7edea732021447826d",
+    "packageSourceCommit": "cd5e88a1c9e3036f2a3f09be79d6735d1c770031",
+    "developerSourceCommit": "cd5e88a1c9e3036f2a3f09be79d6735d1c770031",
+    "currentHead": "cd5e88a1c9e3036f2a3f09be79d6735d1c770031",
+    "releaseQualified": false,
+    "releaseAreasPending": 9,
+    "allIndexedHashesChecked": true,
+    "productsByteExact": true,
+    "manifestSha256": "e748b0b7987b6a1ca7bd5988b07b8bc722a7395b343709f93dc5f23c02c5e5c9"
+  },
+  "controls": 7,
+  "controlProof": "control-results-reviewed.json",
+  "releaseExit": 2,
+  "releasePlannedRowsUnchanged": 41,
+  "shippingLoggingSourcesUnchanged": true,
+  "publicationLedgerUnchanged": true,
+  "review": "Initial CHANGES_REQUIRED retained. R1-R3 implemented and positive/full-checksum/seven negative controls executed; final follow-up review in progress before commit.",
+  "draftProof": "draft-reviewed/manifest.json",
+  "comparisonQualification": {
+    "sha256": "97c0f8bc15d08af5a899b8d1d9f2d292a6995ee14c781b7edea732021447826d",
+    "path": "implementations/csharp/src/CIS.Core/bin/Release/net10.0/CIS.Core.dll",
+    "qualification": "Current file comparison only; not cryptographically tied to Developer run."
+  },
+  "testSourceInclusion": "Maintained shared Core test corpus, explicit unit/integration/architecture/support/factory-fixture projects and lockfiles; sourceRoots declare their own role. Tests release area remains Pending.",
+  "nativeMutationProvenance": "Only qualified T03 JSON/HTML indexed; JSON checked against mutation-audit qualified.nativeReportSha256. Earlier native run hashes remain in prior indexed audit.",
+  "controlSetupCorrection": "An initial extended-control template failed to apply the intended mutation corruption; it was corrected and all seven actual corruptions were independently observed with required rejection reasons. No native producer failure was reclassified."
+}
+
+
+--- FILE planning/logging/evidence/wp06-s03-t05/claude-verdict.json SHA256 41f818263d832ada7717abfc94c94c3e830cd532197a394b9bd8f4ab9cbc491e ---
+{
+  "verdict": "CHANGES_REQUIRED",
+  "requiredFindings": [
+    {
+      "id": "T05-R1",
+      "severity": "Medium",
+      "file": "implementations/csharp/eng/write-microsoft-logging-bundle.ps1",
+      "line": 80,
+      "problem": "The DLL check compares the packed DLL with whatever is currently in src/CIS.Core/bin/Release/net10.0/CIS.Core.dll. Nothing ties that file to Developer run b192f318\u2026. The build output can be rebuilt or replaced after the Developer run, and the check would still pass. The manifest then puts developer.runId next to the product, and the bundle doc (line 11) says the packed DLL matches 'the observed Developer build'. The provenance is therefore stronger than what the code proves. The compared path and its hash are also not recorded in the manifest.",
+      "requestedFix": "Preferred: if the Developer run records a CIS.Core.dll hash (for example in source-inputs.json or validation.json), compare the package DLL against that recorded hash. Fallback: record the compared build-output path and SHA256 in the manifest as a separate field, such as product.comparedBuildOutput, and reword the doc and manifest to say 'current Release build output' rather than implying it is bound to the run. Either way, add a negative control where the build DLL differs from the package DLL."
+    },
+    {
+      "id": "T05-R2",
+      "severity": "Medium",
+      "file": "implementations/csharp/verification/bundle/manifest.json",
+      "line": 69,
+      "problem": "The registration includes the shipping provider sources, harness scripts, configs and compatibility fixtures, but not the provider test sources that produced the unit/integration/architecture/host-filtering observations. It also omits their test-project lock files, including the fixture's development-only Microsoft logging implementation closure. AC05 requires 'all applicable validation material'. Without these files, the indexed reports have no hashed record of the tests that generated them. In addition, the producer hard-codes the role 'ModuleFixtureSource' for every sourceRoots entry (line 35), so test roots added later would be labelled wrongly.",
+      "requestedFix": "Register the provider test source roots and their project and lock files. These are the MicrosoftLogger unit, integration and architecture test folders, plus the host-filtering LoggerFactory fixture project. Let each sourceRoots entry declare its own role, for example {path, role: ModuleTestSource|ModuleFixtureSource}, and have the producer use that role. Keep the Tests release area Pending."
+    },
+    {
+      "id": "T05-R3",
+      "severity": "Low",
+      "file": "implementations/csharp/eng/write-microsoft-logging-bundle.ps1",
+      "line": 45,
+      "problem": "The native mutation JSON is indexed with whatever bytes are currently on disk. It is not checked against the hash that tracked evidence already recorded for that report (wp06-s03-t03/mutation-audit.json qualified.nativeReportSha256 = 50c751\u2026). A regenerated or altered local report would be indexed silently as the T03 report, and the audit script does not check this either. The doc (microsoft-logging-bundle.md line 13) also says 'Complete native Stryker JSON/HTML are separately indexed', but only the 'qualified' run is indexed. The 'current' and 'final' failed native reports are preserved only as hashes in mutation-audit.json.",
+      "requestedFix": "Add an expected sha256 for the native JSON to the registration's nativeMutation entry, or read it from mutation-audit.json, and fail on mismatch. Add one control for this. In the doc, state that only the qualified T03 run's native JSON/HTML are indexed, and that earlier failed runs are preserved through their recorded audit hashes within the indexed evidence root."
+    }
+  ],
+  "optionalNotes": [
+    "Contracts area: consider registering docs/modules/logging/runtime-contract.md and the provider's entries in the unpublished API reference catalog/preservation proposal. runtime-contract.md defines the nonowning CoreLoggerProvider constructor. The area remains Pending either way.",
+    "The apiMembers check only proves that the five IDs are present. It would not catch a newly added public CoreLoggerProvider member. An exact-set check limited to T:/M:/P: entries under CIS.Logging.MicrosoftLogger.CoreLoggerProvider would catch that drift without tripping on documented internal types.",
+    "The manifest uses unordered hashtables, so key order is non-deterministic in practice. Sort-Object path is culture-aware and case-insensitive. Using [ordered] hashtables and an ordinal sort would make re-generated manifests byte-comparable, which helps the later WP09 replay.",
+    "product.sourcePackage records an absolute machine path (C:\\miscwork\\...). Consider storing it repository-relative when it is inside the repository.",
+    "source.headCommit/headTree omit the working-tree dirty state. A dirty flag or a hash of `git status --porcelain=v1 -z` would make the 'not a complete snapshot' disclaimer concrete. Here the indexed T05 inputs are untracked and uncommitted.",
+    "[IO.Path]::GetFullPath resolves relative -PackagePath/-OutputRoot against the .NET process directory, not the PowerShell location. This is fine for the documented `pwsh -File` invocation from the repository root, but it is fragile when the script is dot-sourced or invoked after Set-Location. Prefer $ExecutionContext.SessionState.Path.GetUnresolvedProviderPathFromPSPath.",
+    "If the script fails after products are copied (for example at git rev-parse), it leaves a partial output directory that has products but no manifest. Consider writing to a temporary sibling directory and renaming it on success.",
+    "Under StrictMode Latest, `$family.$slot` throws if a family object lacks a slot property instead of skipping it. That is acceptable as fail-closed, but the intent is ambiguous given the `if` guard.",
+    "manifest.sha256 holds a bare digest rather than the `<digest>  manifest.json` sha256sum format. Consider using the standard format for later external tooling.",
+    "plan-amendments.md contains pre-existing mojibake in earlier sections (the range dash in WP02-S02 and WP05-S09-T01). This is outside T05 scope, but it is worth a separate cleanup."
+  ]
+}
+
+
+--- FILE planning/logging/evidence/wp06-s03-t05/draft-preview-reviewed.json SHA256 a70ac82eecbaa9f1505179a3868759265bc2e77422b0c427a3e87b95c38cbdaf ---
+{
+  "developer": {
+    "runId": "b192f318728a4d5998e222fc2507c94c",
+    "sourceCommit": "cd5e88a1c9e3036f2a3f09be79d6735d1c770031",
+    "lane": "windows-x64",
+    "scope": "Developer profile only; full candidate-package suites remain required.",
+    "profile": "Developer"
+  },
+  "state": "IncompleteReleaseDraft",
+  "releaseAreas": [
+    {
+      "area": "Product",
+      "fullReleaseState": "Pending"
+    },
+    {
+      "area": "Source",
+      "fullReleaseState": "Pending"
+    },
+    {
+      "area": "Tests",
+      "fullReleaseState": "Pending"
+    },
+    {
+      "area": "Contracts",
+      "fullReleaseState": "Pending"
+    },
+    {
+      "area": "History",
+      "fullReleaseState": "Pending"
+    },
+    {
+      "area": "Examples",
+      "fullReleaseState": "Pending"
+    },
+    {
+      "area": "Tooling",
+      "fullReleaseState": "Pending"
+    },
+    {
+      "area": "Evidence",
+      "fullReleaseState": "Pending"
+    },
+    {
+      "area": "Integrity",
+      "fullReleaseState": "Pending"
+    }
+  ],
+  "pendingReleaseRequirements": [
+    "WP07: all six complete candidate-bound families and both recorded lanes, coverage/mutation thresholds, dispositions/repeatability and cumulative compatibility",
+    "WP07-S06: exact retained toolchains/dependencies, licences/notices and clean materialization",
+    "WP08: runnable candidate-package examples, instructions and skills",
+    "WP09: complete exact source/test/history/example/product bundle, final checksums/index and extracted clean replay; publication separately authorized"
+  ],
+  "releaseQualified": false,
+  "retention": "File entries reference existing inputs; this command does not materialize a complete bundle. Local-only native reports, all final candidate evidence and durable prerequisites must be retained before release.",
+  "product": {
+    "providerApiMembers": [
+      "T:CIS.Logging.MicrosoftLogger.CoreLoggerProvider",
+      "M:CIS.Logging.MicrosoftLogger.CoreLoggerProvider.#ctor(CIS.Logging.CoreLogRuntime)",
+      "M:CIS.Logging.MicrosoftLogger.CoreLoggerProvider.CreateLogger(System.String)",
+      "M:CIS.Logging.MicrosoftLogger.CoreLoggerProvider.SetScopeProvider(Microsoft.Extensions.Logging.IExternalScopeProvider)",
+      "M:CIS.Logging.MicrosoftLogger.CoreLoggerProvider.Dispose"
+    ],
+    "packageVersion": "0.1.0-dev.1",
+    "assemblySha256": "97c0f8bc15d08af5a899b8d1d9f2d292a6995ee14c781b7edea732021447826d",
+    "packageId": "CIS.Core",
+    "assembly": "products/CIS.Core.dll",
+    "packageSourceCommit": "cd5e88a1c9e3036f2a3f09be79d6735d1c770031",
+    "sourcePackage": "C:\\miscwork\\portfolio\\cislib\\.artifacts\\csharp\\packages\\CIS.Core.0.1.0-dev.1.nupkg",
+    "comparedBuildOutput": {
+      "sha256": "97c0f8bc15d08af5a899b8d1d9f2d292a6995ee14c781b7edea732021447826d",
+      "path": "implementations/csharp/src/CIS.Core/bin/Release/net10.0/CIS.Core.dll",
+      "qualification": "Current file comparison only; not cryptographically tied to Developer run."
+    },
+    "retainedPackage": "products/CIS.Core.0.1.0-dev.1.nupkg",
+    "packageSha256": "cfca6a8ee51d6b7cfa4bb0ff9a0fb64b237d5d3d3093b69f4e9c22570476bfe6",
+    "apiDocumentationSha256": "b4d6194427fa05a5cfdad97b26d753590b160eb1d04f38ff4a092e42ae787363",
+    "apiDocumentation": "products/CIS.Core.xml"
+  },
+  "reportGroups": [
+    {
+      "candidateQualification": "Not credited to selected candidate; preserve original reports and native gate status.",
+      "root": "planning/logging/evidence/wp06-s01-t01",
+      "files": 739
+    },
+    {
+      "candidateQualification": "Not credited to selected candidate; preserve original reports and native gate status.",
+      "root": "planning/logging/evidence/wp06-s01-t02",
+      "files": 406
+    },
+    {
+      "candidateQualification": "Not credited to selected candidate; preserve original reports and native gate status.",
+      "root": "planning/logging/evidence/wp06-s01-t03",
+      "files": 879
+    },
+    {
+      "candidateQualification": "Not credited to selected candidate; preserve original reports and native gate status.",
+      "root": "planning/logging/evidence/wp06-s01-t04",
+      "files": 358
+    },
+    {
+      "candidateQualification": "Not credited to selected candidate; preserve original reports and native gate status.",
+      "root": "planning/logging/evidence/wp06-s01-t05",
+      "files": 330
+    },
+    {
+      "candidateQualification": "Not credited to selected candidate; preserve original reports and native gate status.",
+      "root": "planning/logging/evidence/wp06-s02-t01",
+      "files": 440
+    },
+    {
+      "candidateQualification": "Not credited to selected candidate; preserve original reports and native gate status.",
+      "root": "planning/logging/evidence/wp06-s02-t02",
+      "files": 477
+    },
+    {
+      "candidateQualification": "Not credited to selected candidate; preserve original reports and native gate status.",
+      "root": "planning/logging/evidence/wp06-s02-t03",
+      "files": 109
+    },
+    {
+      "candidateQualification": "Not credited to selected candidate; preserve original reports and native gate status.",
+      "root": "planning/logging/evidence/wp06-s02-t04",
+      "files": 76
+    },
+    {
+      "candidateQualification": "Not credited to selected candidate; preserve original reports and native gate status.",
+      "root": "planning/logging/evidence/wp06-s02-t05",
+      "files": 230
+    },
+    {
+      "candidateQualification": "Not credited to selected candidate; preserve original reports and native gate status.",
+      "root": "planning/logging/evidence/wp06-s03-t01",
+      "files": 60
+    },
+    {
+      "candidateQualification": "Not credited to selected candidate; preserve original reports and native gate status.",
+      "root": "planning/logging/evidence/wp06-s03-t02",
+      "files": 55
+    },
+    {
+      "candidateQualification": "Not credited to selected candidate; preserve original reports and native gate status.",
+      "root": "planning/logging/evidence/wp06-s03-t03",
+      "files": 96
+    },
+    {
+      "candidateQualification": "Not credited to selected candidate; preserve original reports and native gate status.",
+      "root": "planning/logging/evidence/wp06-s03-t04",
+      "files": 136
+    }
+  ],
+  "module": "logging-microsoft",
+  "schema": "cis.csharp.verification-bundle-draft/v1",
+  "source": {
+    "headCommit": "cd5e88a1c9e3036f2a3f09be79d6735d1c770031",
+    "headTree": "303da0af947a7128005d1f59b7cf6b07180eebfc",
+    "qualification": "Head identity plus individually hashed working inputs; not an exact complete release source snapshot."
+  },
+  "omittedFileEntries": 4973,
+  "fileRoles": {
+    "LocalNativeMutationReportNotReleaseRetained": 2,
+    "CurrentDeveloperProfileOnly": 18,
+    "ModuleDocumentationSourceOrInventory": 41,
+    "ManifestProducer": 1,
+    "SharedValidationSource": 516,
+    "BundleRegistration": 1,
+    "ModuleFixtureSource": 3,
+    "PriorDevelopmentEvidenceOnly": 4391
+  },
+  "completeManifestSha256": "e748b0b7987b6a1ca7bd5988b07b8bc722a7395b343709f93dc5f23c02c5e5c9",
+  "scope": "Preview only; exact full current manifest retained under draft-reviewed/manifest.json."
+}
+
+
+--- FILE planning/logging/evidence/wp06-s03-t05/draft-audit-reviewed.json SHA256 66caab683991e5fba199f0a89fc075526a367fb3c76da9f2f0581138965f5f03 ---
+{
+  "indexedFiles": 4973,
+  "indexedBytes": 457745670,
+  "documentation": 15,
+  "priorEvidenceRoots": 14,
+  "nativeMutationFormats": 2,
+  "apiMembers": 5,
+  "packageSha256": "cfca6a8ee51d6b7cfa4bb0ff9a0fb64b237d5d3d3093b69f4e9c22570476bfe6",
+  "coreSha256": "97c0f8bc15d08af5a899b8d1d9f2d292a6995ee14c781b7edea732021447826d",
+  "packageSourceCommit": "cd5e88a1c9e3036f2a3f09be79d6735d1c770031",
+  "developerSourceCommit": "cd5e88a1c9e3036f2a3f09be79d6735d1c770031",
+  "currentHead": "cd5e88a1c9e3036f2a3f09be79d6735d1c770031",
+  "releaseQualified": false,
+  "releaseAreasPending": 9,
+  "allIndexedHashesChecked": true,
+  "productsByteExact": true,
+  "manifestSha256": "e748b0b7987b6a1ca7bd5988b07b8bc722a7395b343709f93dc5f23c02c5e5c9"
+}
+
+
+--- FILE planning/logging/evidence/wp06-s03-t05/control-results-reviewed.json SHA256 b454335662531c683a76722e1c6f8364d07dad08432f414365187fb0e26600f5 ---
+{
+  "runnerSha256": "8cf46bf4a10a033401cae900b7c7330f0c2967ff6f4a1f0074ddb90bdd8307df",
+  "scope": "Actual bundle producer on copied registration/package corruptions; required positive is separately retained.",
+  "controls": [
+    {
+      "id": "missing-doc",
+      "matched": true,
+      "exitCode": 1,
+      "expectedDiagnostic": "Missing required inventory input",
+      "argv": [
+        "pwsh",
+        "-NoProfile",
+        "-File",
+        "implementations/csharp/eng/write-microsoft-logging-bundle.ps1",
+        "-PackagePath",
+        "C:\\miscwork\\portfolio\\cislib\\.artifacts\\csharp\\packages\\CIS.Core.0.1.0-dev.1.nupkg",
+        "-RegistrationPath",
+        "C:\\miscwork\\portfolio\\cislib\\.artifacts\\csharp\\tasks\\wp06-s03-t05\\controls-final\\missing-doc.json",
+        "-OutputRoot",
+        "C:\\miscwork\\portfolio\\cislib\\.artifacts\\csharp\\tasks\\wp06-s03-t05\\controls-final\\missing-doc-output"
+      ]
+    },
+    {
+      "id": "empty-evidence",
+      "matched": true,
+      "exitCode": 1,
+      "expectedDiagnostic": "Empty provider evidence root",
+      "argv": [
+        "pwsh",
+        "-NoProfile",
+        "-File",
+        "implementations/csharp/eng/write-microsoft-logging-bundle.ps1",
+        "-PackagePath",
+        "C:\\miscwork\\portfolio\\cislib\\.artifacts\\csharp\\packages\\CIS.Core.0.1.0-dev.1.nupkg",
+        "-RegistrationPath",
+        "C:\\miscwork\\portfolio\\cislib\\.artifacts\\csharp\\tasks\\wp06-s03-t05\\controls-final\\empty-evidence.json",
+        "-OutputRoot",
+        "C:\\miscwork\\portfolio\\cislib\\.artifacts\\csharp\\tasks\\wp06-s03-t05\\controls-final\\empty-evidence-output"
+      ]
+    },
+    {
+      "id": "missing-native",
+      "matched": true,
+      "exitCode": 1,
+      "expectedDiagnostic": "Missing required inventory input",
+      "argv": [
+        "pwsh",
+        "-NoProfile",
+        "-File",
+        "implementations/csharp/eng/write-microsoft-logging-bundle.ps1",
+        "-PackagePath",
+        "C:\\miscwork\\portfolio\\cislib\\.artifacts\\csharp\\packages\\CIS.Core.0.1.0-dev.1.nupkg",
+        "-RegistrationPath",
+        "C:\\miscwork\\portfolio\\cislib\\.artifacts\\csharp\\tasks\\wp06-s03-t05\\controls-final\\missing-native.json",
+        "-OutputRoot",
+        "C:\\miscwork\\portfolio\\cislib\\.artifacts\\csharp\\tasks\\wp06-s03-t05\\controls-final\\missing-native-output"
+      ]
+    },
+    {
+      "id": "wrong-package-id",
+      "matched": true,
+      "exitCode": 1,
+      "expectedDiagnostic": "Selected package identity must be CIS.Core",
+      "argv": [
+        "pwsh",
+        "-NoProfile",
+        "-File",
+        "implementations/csharp/eng/write-microsoft-logging-bundle.ps1",
+        "-PackagePath",
+        "C:\\miscwork\\portfolio\\cislib\\.artifacts\\csharp\\tasks\\wp06-s03-t05\\controls-final\\wrong-package-id.nupkg",
+        "-RegistrationPath",
+        "C:\\miscwork\\portfolio\\cislib\\.artifacts\\csharp\\tasks\\wp06-s03-t05\\controls-final\\wrong-package-id.json",
+        "-OutputRoot",
+        "C:\\miscwork\\portfolio\\cislib\\.artifacts\\csharp\\tasks\\wp06-s03-t05\\controls-final\\wrong-package-id-output"
+      ]
+    },
+    {
+      "id": "missing-provider-api",
+      "matched": true,
+      "exitCode": 1,
+      "expectedDiagnostic": "Provider API documentation missing",
+      "argv": [
+        "pwsh",
+        "-NoProfile",
+        "-File",
+        "implementations/csharp/eng/write-microsoft-logging-bundle.ps1",
+        "-PackagePath",
+        "C:\\miscwork\\portfolio\\cislib\\.artifacts\\csharp\\tasks\\wp06-s03-t05\\controls-final\\missing-provider-api.nupkg",
+        "-RegistrationPath",
+        "C:\\miscwork\\portfolio\\cislib\\.artifacts\\csharp\\tasks\\wp06-s03-t05\\controls-final\\missing-provider-api.json",
+        "-OutputRoot",
+        "C:\\miscwork\\portfolio\\cislib\\.artifacts\\csharp\\tasks\\wp06-s03-t05\\controls-final\\missing-provider-api-output"
+      ]
+    },
+    {
+      "id": "different-build-dll",
+      "matched": true,
+      "exitCode": 1,
+      "expectedDiagnostic": "Selected package Core differs from current Release build output",
+      "argv": [
+        "pwsh",
+        "-NoProfile",
+        "-File",
+        "implementations/csharp/eng/write-microsoft-logging-bundle.ps1",
+        "-PackagePath",
+        "C:\\miscwork\\portfolio\\cislib\\.artifacts\\csharp\\tasks\\wp06-s03-t05\\controls-final\\different-build-dll.nupkg",
+        "-RegistrationPath",
+        "C:\\miscwork\\portfolio\\cislib\\.artifacts\\csharp\\tasks\\wp06-s03-t05\\controls-final\\different-build-dll.json",
+        "-OutputRoot",
+        "C:\\miscwork\\portfolio\\cislib\\.artifacts\\csharp\\tasks\\wp06-s03-t05\\controls-final\\different-build-dll-output"
+      ]
+    },
+    {
+      "id": "changed-mutation-json",
+      "matched": true,
+      "exitCode": 1,
+      "expectedDiagnostic": "Native mutation JSON differs from tracked run hash",
+      "argv": [
+        "pwsh",
+        "-NoProfile",
+        "-File",
+        "implementations/csharp/eng/write-microsoft-logging-bundle.ps1",
+        "-PackagePath",
+        "C:\\miscwork\\portfolio\\cislib\\.artifacts\\csharp\\packages\\CIS.Core.0.1.0-dev.1.nupkg",
+        "-RegistrationPath",
+        "C:\\miscwork\\portfolio\\cislib\\.artifacts\\csharp\\tasks\\wp06-s03-t05\\controls-final\\changed-mutation-json.json",
+        "-OutputRoot",
+        "C:\\miscwork\\portfolio\\cislib\\.artifacts\\csharp\\tasks\\wp06-s03-t05\\controls-final\\changed-mutation-json-output"
+      ]
+    }
+  ]
+}
+
+
+--- FILE planning/logging/evidence/wp06-s03-t05/commands/execution.json SHA256 e2358c936fb0d245c94001b436afa41015d1321feac8940576fe8803f63baced ---
+[
+  {
+    "id": "draft-production",
+    "executable": "pwsh",
+    "workingDirectory": "C:\\miscwork\\portfolio\\cislib",
+    "argv": [
+      "-NoProfile",
+      "-File",
+      "implementations/csharp/eng/write-microsoft-logging-bundle.ps1",
+      "-PackagePath",
+      ".artifacts/csharp/packages/CIS.Core.0.1.0-dev.1.nupkg",
+      "-OutputRoot",
+      ".artifacts/csharp/tasks/wp06-s03-t05/qualified-draft"
+    ],
+    "exitCode": 0,
+    "runnerSha256": "a3e1648e8549f677edc415dbd58a24e46719866f6e4f53899f4a8facbc8fbd6b"
+  },
+  {
+    "id": "draft-audit",
+    "executable": "python",
+    "workingDirectory": "C:\\miscwork\\portfolio\\cislib",
+    "argv": [
+      ".artifacts/csharp/tasks/wp06-s03-t05/audit-draft.py"
+    ],
+    "retainedScript": "commands/audit-draft.py",
+    "scriptSha256": "789a82d695b7ae6095a76938b901780ed53eec21db8a392e5b6d744e12d96211",
+    "exitCode": 0
+  },
+  {
+    "id": "producer-controls",
+    "executable": "python",
+    "workingDirectory": "C:\\miscwork\\portfolio\\cislib",
+    "argv": [
+      ".artifacts/csharp/tasks/wp06-s03-t05/check-bundle-controls.py"
+    ],
+    "retainedScript": "commands/check-bundle-controls.py",
+    "scriptSha256": "2e5220b913088f7169b04ab12cd2315f95f119c7f3b4ae5494218e5c37702b9d",
+    "exitCode": 0
+  },
+  {
+    "id": "reviewed-draft-production",
+    "executable": "pwsh",
+    "workingDirectory": "C:\\miscwork\\portfolio\\cislib",
+    "argv": [
+      "-NoProfile",
+      "-File",
+      "implementations/csharp/eng/write-microsoft-logging-bundle.ps1",
+      "-PackagePath",
+      ".artifacts/csharp/packages/CIS.Core.0.1.0-dev.1.nupkg",
+      "-OutputRoot",
+      ".artifacts/csharp/tasks/wp06-s03-t05/reviewed-final-draft"
+    ],
+    "exitCode": 0,
+    "runnerSha256": "8cf46bf4a10a033401cae900b7c7330f0c2967ff6f4a1f0074ddb90bdd8307df"
+  },
+  {
+    "id": "reviewed-draft-audit",
+    "executable": "python",
+    "workingDirectory": "C:\\miscwork\\portfolio\\cislib",
+    "argv": [
+      ".artifacts/csharp/tasks/wp06-s03-t05/audit-reviewed-final-draft.py"
+    ],
+    "retainedScript": "commands/audit-reviewed-final-draft.py",
+    "scriptSha256": "62a9d23ace853e7ec7273069ded30af25338eae54fece5cbd89d33602144e999",
+    "exitCode": 0
+  },
+  {
+    "id": "reviewed-producer-controls",
+    "executable": "python",
+    "workingDirectory": "C:\\miscwork\\portfolio\\cislib",
+    "argv": [
+      ".artifacts/csharp/tasks/wp06-s03-t05/check-bundle-controls-final.py"
+    ],
+    "retainedScript": "commands/check-bundle-controls-final.py",
+    "scriptSha256": "e5938f3c5716b0a5815cf36fc27cdcff0c67ec4885d10daca4f99d6221c96e8c",
+    "exitCode": 0
+  }
+]
+
+
+--- FILE planning/logging/evidence/wp06-s03-t05/commands/audit-reviewed-final-draft.py SHA256 62a9d23ace853e7ec7273069ded30af25338eae54fece5cbd89d33602144e999 ---
+from pathlib import Path
+import json,hashlib,zipfile
+r=Path.cwd();t=r/'.artifacts/csharp/tasks/wp06-s03-t05';root=t/'reviewed-final-draft'
+read=lambda p:json.loads(p.read_text(encoding='utf-8-sig'));sha=lambda p:hashlib.sha256(p.read_bytes()).hexdigest()
+j=read(root/'manifest.json');spec=read(r/'implementations/csharp/verification/bundle/manifest.json')
+assert j['state']=='IncompleteReleaseDraft' and j['releaseQualified'] is False and len(j['releaseAreas'])==9 and all(a['fullReleaseState']=='Pending' for a in j['releaseAreas'])
+files={f['path']:f for f in j['files']};assert len(files)==len(j['files'])
+for path,f in files.items():assert (r/path).is_file() and sha(r/path)==f['sha256'] and (r/path).stat().st_size==f['bytes'],path
+for path in spec['module']['documentation']+spec['module']['requiredFiles']:assert path in files
+for group in spec['module']['priorEvidenceRoots']:
+ actual={p.relative_to(r).as_posix() for p in (r/group).rglob('*') if p.is_file()};assert actual and all(p in files and files[p]['role']=='PriorDevelopmentEvidenceOnly' for p in actual)
+for name in ['json','html']:assert files[spec['module']['nativeMutation'][name]]['role']=='LocalNativeMutationReportNotReleaseRetained'
+for source in spec['module']['sourceRoots']:
+ members=[p for p in __import__('subprocess').check_output(['git','ls-files','--cached','--others','--exclude-standard','--',source['path']]).decode().splitlines() if (r/p).is_file()]
+ assert members and all(p in files for p in members)
+ assert all(files[p]['role']==source['role'] for p in members if p not in spec['module']['requiredFiles'])
+audit=read(r/spec['module']['nativeMutation']['audit']);assert sha(r/spec['module']['nativeMutation']['json'])==audit[spec['module']['nativeMutation']['run']]['nativeReportSha256']
+product=j['product'];assert sha(root/product['retainedPackage'])==product['packageSha256'] and sha(root/product['assembly'])==product['assemblySha256'] and sha(root/product['apiDocumentation'])==product['apiDocumentationSha256']
+assert sha(root/'manifest.json')==(root/'manifest.sha256').read_text().strip()
+with zipfile.ZipFile(root/product['retainedPackage']) as z:assert z.read('lib/net10.0/CIS.Core.dll')==(root/product['assembly']).read_bytes() and z.read('lib/net10.0/CIS.Core.xml')==(root/product['apiDocumentation']).read_bytes()
+summary=dict(indexedFiles=len(files),indexedBytes=sum(f['bytes'] for f in files.values()),documentation=len(spec['module']['documentation']),priorEvidenceRoots=len(spec['module']['priorEvidenceRoots']),nativeMutationFormats=2,apiMembers=len(product['providerApiMembers']),packageSha256=product['packageSha256'],coreSha256=product['assemblySha256'],packageSourceCommit=product['packageSourceCommit'],developerSourceCommit=j['developer']['sourceCommit'],currentHead=j['source']['headCommit'],releaseQualified=False,releaseAreasPending=9,allIndexedHashesChecked=True,productsByteExact=True,manifestSha256=sha(root/'manifest.json'))
+(t/'reviewed-final-draft-audit.json').write_text(json.dumps(summary,indent=2)+'\n',encoding='utf-8');print(json.dumps(summary))
+
+
+--- FILE planning/logging/evidence/wp06-s03-t05/commands/check-bundle-controls-final.py SHA256 e5938f3c5716b0a5815cf36fc27cdcff0c67ec4885d10daca4f99d6221c96e8c ---
+from pathlib import Path
+import json,subprocess,zipfile,xml.etree.ElementTree as E,hashlib
+r=Path.cwd();t=r/'.artifacts/csharp/tasks/wp06-s03-t05';root=t/'controls-final';root.mkdir(exist_ok=True)
+registration=json.loads((r/'implementations/csharp/verification/bundle/manifest.json').read_text(encoding='utf-8-sig'))
+package=r/'.artifacts/csharp/packages/CIS.Core.0.1.0-dev.1.nupkg'
+results=[]
+for case in ['missing-doc','empty-evidence','missing-native','wrong-package-id','missing-provider-api','different-build-dll','changed-mutation-json']:
+ spec=json.loads(json.dumps(registration));pkg=package
+ if case=='missing-doc':spec['module']['documentation'].append('.artifacts/absent-provider-doc.md');expected='Missing required inventory input'
+ if case=='empty-evidence':
+  empty=root/'empty';empty.mkdir(exist_ok=True);spec['module']['priorEvidenceRoots'].append(empty.relative_to(r).as_posix());expected='Empty provider evidence root'
+ if case=='missing-native':spec['module']['nativeMutation']['html']='.artifacts/absent-native-report.html';expected='Missing required inventory input'
+ if case=='changed-mutation-json':
+  native=r/spec['module']['nativeMutation']['json'];changed=root/'changed-mutation.json';changed.write_bytes(native.read_bytes()+b' ');spec['module']['nativeMutation']['json']=changed.relative_to(r).as_posix();expected='Native mutation JSON differs from tracked run hash'
+ if case in ['wrong-package-id','missing-provider-api','different-build-dll']:
+  pkg=root/(case+'.nupkg')
+  with zipfile.ZipFile(package) as original,zipfile.ZipFile(pkg,'w',zipfile.ZIP_DEFLATED) as target:
+   for entry in original.infolist():
+    data=original.read(entry.filename)
+    if case=='wrong-package-id' and entry.filename=='CIS.Core.nuspec':
+     data=data.replace(b'<id>CIS.Core</id>',b'<id>Other.Core</id>');expected='Selected package identity must be CIS.Core'
+    if case=='missing-provider-api' and entry.filename=='lib/net10.0/CIS.Core.xml':
+     tree=E.fromstring(data);members=tree.find('members');node=next(n for n in members if n.get('name')=='T:CIS.Logging.MicrosoftLogger.CoreLoggerProvider');members.remove(node);data=E.tostring(tree,encoding='utf-8');expected='Provider API documentation missing'
+    if case=='different-build-dll' and entry.filename=='lib/net10.0/CIS.Core.dll':data+=b'\0';expected='Selected package Core differs from current Release build output'
+    target.writestr(entry,data)
+ specfile=root/(case+'.json');specfile.write_text(json.dumps(spec,indent=2)+'\n')
+ args=['pwsh','-NoProfile','-File','implementations/csharp/eng/write-microsoft-logging-bundle.ps1','-PackagePath',str(pkg),'-RegistrationPath',str(specfile),'-OutputRoot',str(root/(case+'-output'))]
+ run=subprocess.run(args,capture_output=True,text=True,timeout=120);text=run.stdout+run.stderr;(root/(case+'.log')).write_text(text,encoding='utf-8');assert run.returncode!=0 and expected in text,(case,run.returncode,text[-2000:])
+ results.append(dict(id=case,matched=True,exitCode=run.returncode,expectedDiagnostic=expected,argv=args))
+(root/'results.json').write_text(json.dumps(dict(runnerSha256=hashlib.sha256((r/'implementations/csharp/eng/write-microsoft-logging-bundle.ps1').read_bytes()).hexdigest(),scope='Actual bundle producer on copied registration/package corruptions; required positive is separately retained.',controls=results),indent=2)+'\n',encoding='utf-8')
+print(json.dumps(dict(controls=len(results),matched=True)))
+
+
+--- FILE planning/logging/evidence/wp06-s03-t05/developer-audit.json SHA256 932fc806095cc7d56f8ec2547951b456a8cee0ecace3f6a16e0a995b46bc6863 ---
+{
+  "runId": "b192f318728a4d5998e222fc2507c94c",
+  "tests": {
+    "unit": 3370,
+    "integration": 1400,
+    "architecture": 483
+  },
+  "totalTests": 5253,
+  "stages": 14,
+  "refinementsAfterInventory": [
+    {
+      "path": "implementations/csharp/eng/write-microsoft-logging-bundle.ps1",
+      "developerCapturedSha256": "a3e1648e8549f677edc415dbd58a24e46719866f6e4f53899f4a8facbc8fbd6b",
+      "currentSha256": "8cf46bf4a10a033401cae900b7c7330f0c2967ff6f4a1f0074ddb90bdd8307df",
+      "qualification": "Current standalone producer, complete current index/checksum audit and native producer controls; these files are not compiled C# or shipping changes."
+    },
+    {
+      "path": "implementations/csharp/verification/bundle/manifest.json",
+      "developerCapturedSha256": "e62bae70a0778422dbda6d9166c43cf6476d2f8f49a7174d8027345f1ee9ef36",
+      "currentSha256": "e6cdf3be2e10d23089df2b7855ea1944e6fde7985260634ba7a09dcbf610478a",
+      "qualification": "Current standalone producer, complete current index/checksum audit and native producer controls; these files are not compiled C# or shipping changes."
+    },
+    {
+      "path": "docs/modules/logging/microsoft-logging-bundle.md",
+      "developerCapturedSha256": "551b36905ab76e5e50a56bb74d8b113084dfea114acd490fb843b392637c2fb1",
+      "currentSha256": "a49808e852fe50967427d4c40147637faa4d94b4facf1f4e58973074b1727b9a",
+      "qualification": "Current standalone producer, complete current index/checksum audit and native producer controls; these files are not compiled C# or shipping changes."
+    }
+  ]
+}

@@ -1,0 +1,1002 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>CIS.Core</name>
+    </assembly>
+    <members>
+        <member name="T:CIS.EnvironmentKind">
+            <summary>The application execution kind selected explicitly at startup.</summary>
+        </member>
+        <member name="F:CIS.EnvironmentKind.Unknown">
+            <summary>Unknown.</summary>
+        </member>
+        <member name="F:CIS.EnvironmentKind.Console">
+            <summary>Console.</summary>
+        </member>
+        <member name="F:CIS.EnvironmentKind.Service">
+            <summary>Service.</summary>
+        </member>
+        <member name="F:CIS.EnvironmentKind.Web">
+            <summary>Web.</summary>
+        </member>
+        <member name="F:CIS.EnvironmentKind.Function">
+            <summary>Function.</summary>
+        </member>
+        <member name="T:CIS.EnvironmentOptions">
+            <summary>Shared application and runtime facts populated automatically on first access.</summary>
+            <remarks>A static constructor applies discovered defaults followed by known environment overrides. It starts no module runtime.</remarks>
+        </member>
+        <member name="P:CIS.EnvironmentOptions.ApplicationName">
+            <summary>The selected application name; interned after overrides.</summary>
+        </member>
+        <member name="P:CIS.EnvironmentOptions.BuildVersion">
+            <summary>The actual application build version; independent of service-version overrides and interned.</summary>
+        </member>
+        <member name="P:CIS.EnvironmentOptions.ServiceVersion">
+            <summary>The selected deployment version; interned after overrides.</summary>
+        </member>
+        <member name="P:CIS.EnvironmentOptions.EnvironmentName">
+            <summary>The selected deployment environment label; interned after overrides.</summary>
+        </member>
+        <member name="P:CIS.EnvironmentOptions.EnvironmentKind">
+            <summary>The application-selected execution kind; defaults to Unknown.</summary>
+        </member>
+        <member name="P:CIS.EnvironmentOptions.InstanceId">
+            <summary>The process-wide application instance UUID, without interning.</summary>
+        </member>
+        <member name="P:CIS.EnvironmentOptions.ProcessStartedAtUtc">
+            <summary>The process start instant in UTC, or null when host inspection is unavailable.</summary>
+        </member>
+        <member name="P:CIS.EnvironmentOptions.InitializedAtUtc">
+            <summary>The UTC instant at which the static container was populated.</summary>
+        </member>
+        <member name="P:CIS.EnvironmentOptions.HostName">
+            <summary>The current host name.</summary>
+        </member>
+        <member name="P:CIS.EnvironmentOptions.OperatingSystem">
+            <summary>The lowercase operating-system family.</summary>
+        </member>
+        <member name="P:CIS.EnvironmentOptions.OperatingSystemDescription">
+            <summary>The observed operating-system description.</summary>
+        </member>
+        <member name="P:CIS.EnvironmentOptions.OSArchitecture">
+            <summary>The lowercase operating-system architecture.</summary>
+        </member>
+        <member name="P:CIS.EnvironmentOptions.ProcessArchitecture">
+            <summary>The lowercase process architecture.</summary>
+        </member>
+        <member name="P:CIS.EnvironmentOptions.RuntimeDescription">
+            <summary>The observed runtime description.</summary>
+        </member>
+        <member name="P:CIS.EnvironmentOptions.ProcessId">
+            <summary>The current positive process identifier.</summary>
+        </member>
+        <member name="P:CIS.EnvironmentOptions.CommitId">
+            <summary>The optional caller-supplied build commit identifier.</summary>
+        </member>
+        <member name="P:CIS.EnvironmentOptions.BuildId">
+            <summary>The optional caller-supplied build identifier.</summary>
+        </member>
+        <member name="P:CIS.EnvironmentOptions.Logging">
+            <summary>Mutable module settings; logging owns their preparation and runtime.</summary>
+        </member>
+        <member name="T:CIS.Configuration.EnvironmentOverrides">
+            <summary>Applies known environment overrides during container construction.</summary>
+            <remarks>Collects safe diagnostics for the constructor. Invalid selected overrides never select lower-priority aliases.</remarks>
+        </member>
+        <member name="T:CIS.Configuration.ConfigurationIssue">
+            <summary>Describes one configuration problem with a stable code and source key.</summary>
+            <remarks>Callers supplying their own issues must provide safe explanations without raw configuration values.</remarks>
+        </member>
+        <member name="M:CIS.Configuration.ConfigurationIssue.#ctor(System.String,System.String,System.String)">
+            <summary>Creates an immutable issue, preserving the supplied strings.</summary>
+            <exception cref="T:System.ArgumentNullException">Any argument is null.</exception>
+        </member>
+        <member name="P:CIS.Configuration.ConfigurationIssue.Code">
+            <summary>Gets the stable diagnostic code.</summary>
+        </member>
+        <member name="P:CIS.Configuration.ConfigurationIssue.Key">
+            <summary>Gets the recognized setting or metadata/setup field responsible for the issue.</summary>
+        </member>
+        <member name="P:CIS.Configuration.ConfigurationIssue.Explanation">
+            <summary>Gets guidance that should exclude raw input values and credentials.</summary>
+        </member>
+        <member name="T:CIS.Configuration.ConfigurationIssueCodes">
+            <summary>Stable codes for configuration validation problems.</summary>
+        </member>
+        <member name="F:CIS.Configuration.ConfigurationIssueCodes.InvalidToken">
+            <summary>Identifies InvalidToken configuration problems.</summary>
+        </member>
+        <member name="F:CIS.Configuration.ConfigurationIssueCodes.OutOfRange">
+            <summary>Identifies OutOfRange configuration problems.</summary>
+        </member>
+        <member name="F:CIS.Configuration.ConfigurationIssueCodes.UnsupportedSchemaVersion">
+            <summary>Identifies UnsupportedSchemaVersion configuration problems.</summary>
+        </member>
+        <member name="F:CIS.Configuration.ConfigurationIssueCodes.InvalidPath">
+            <summary>Identifies InvalidPath configuration problems.</summary>
+        </member>
+        <member name="F:CIS.Configuration.ConfigurationIssueCodes.InvalidIdentity">
+            <summary>Identifies InvalidIdentity configuration problems.</summary>
+        </member>
+        <member name="F:CIS.Configuration.ConfigurationIssueCodes.InvalidEnvironmentKind">
+            <summary>Identifies InvalidEnvironmentKind configuration problems.</summary>
+        </member>
+        <member name="F:CIS.Configuration.ConfigurationIssueCodes.MissingApplicationName">
+            <summary>Identifies MissingApplicationName configuration problems.</summary>
+        </member>
+        <member name="T:CIS.Configuration.CoreConfigurationException">
+            <summary>Reports independent startup configuration problems through an owned immutable collection.</summary>
+        </member>
+        <member name="M:CIS.Configuration.CoreConfigurationException.#ctor(System.Collections.Generic.IEnumerable{CIS.Configuration.ConfigurationIssue})">
+            <summary>Copies the supplied issues in enumeration order.</summary>
+            <param name="issues">Immutable issue values; an empty sequence is permitted.</param>
+            <exception cref="T:System.ArgumentNullException">The sequence is null.</exception>
+            <exception cref="T:System.ArgumentException">The sequence contains a null issue.</exception>
+        </member>
+        <member name="P:CIS.Configuration.CoreConfigurationException.Issues">
+            <summary>Gets the copied issue values in their original order.</summary>
+        </member>
+        <member name="T:CIS.Logging.CoreLogDiagnostics">
+            <summary>An owned immutable observation of runtime state and cumulative delivery accounting.</summary>
+            <remarks>This live observation does not register a flush boundary or acknowledge durability.</remarks>
+        </member>
+        <member name="P:CIS.Logging.CoreLogDiagnostics.State">
+            <summary>The runtime admission/draining state, independent of individual output faults.</summary>
+        </member>
+        <member name="P:CIS.Logging.CoreLogDiagnostics.AdmissionClosed">
+            <summary>Whether further runtime admissions are closed.</summary>
+        </member>
+        <member name="P:CIS.Logging.CoreLogDiagnostics.ObservedAtUtc">
+            <summary>The system UTC time captured with this live observation; not an elapsed deadline.</summary>
+        </member>
+        <member name="P:CIS.Logging.CoreLogDiagnostics.ShutdownStartedAtUtc">
+            <summary>The system UTC time admission first closed for draining; null while still open.</summary>
+        </member>
+        <member name="P:CIS.Logging.CoreLogDiagnostics.InvalidEventCount">
+            <summary>Cumulative invalid captured events, saturating at Int64.MaxValue.</summary>
+        </member>
+        <member name="P:CIS.Logging.CoreLogDiagnostics.TruncatedEventCount">
+            <summary>Cumulative valid captures with omitted payload, saturating at Int64.MaxValue.</summary>
+        </member>
+        <member name="P:CIS.Logging.CoreLogDiagnostics.Outputs">
+            <summary>Owned console-then-file observations; disabled outputs are omitted.</summary>
+        </member>
+        <member name="P:CIS.Logging.CoreLogDiagnostics.LastStopResult">
+            <summary>The original cached stop observation, or null until the shared operation publishes one.</summary>
+        </member>
+        <member name="T:CIS.Logging.CoreLogger">
+            <summary>A component logger borrowing its runtime; it has no independent lifecycle.</summary>
+            <remarks>Methods support concurrent calls. Method severity alone controls filtering and capture.</remarks>
+        </member>
+        <member name="M:CIS.Logging.CoreLogger.IsEnabled(CIS.Logging.CoreLogLevel)">
+            <summary>Checks running output interest without reserving queue capacity.</summary>
+            <exception cref="T:System.ArgumentOutOfRangeException">The level is undefined.</exception>
+        </member>
+        <member name="M:CIS.Logging.CoreLogger.Write(CIS.Logging.CoreLogLevel,CIS.Logging.LogEventData)">
+            <summary>Captures once when interested, then attempts independent nonblocking admission.</summary>
+            <exception cref="T:System.ArgumentNullException">Data is null.</exception>
+            <exception cref="T:System.ArgumentOutOfRangeException">The level is undefined.</exception>
+        </member>
+        <member name="M:CIS.Logging.CoreLogger.WriteLazy(CIS.Logging.CoreLogLevel,System.Func{CIS.Logging.LogEventData})">
+            <summary>Invokes the factory at most once after early interest checks.</summary>
+            <remarks>A caller factory exception propagates unchanged. Null factory results are InvalidEvent.</remarks>
+            <exception cref="T:System.ArgumentNullException">The factory is null.</exception>
+            <exception cref="T:System.ArgumentOutOfRangeException">The level is undefined.</exception>
+        </member>
+        <member name="T:CIS.Logging.CoreLogInitializationException">
+            <summary>A safe output initialization failure; the original exception and payload are not retained.</summary>
+        </member>
+        <member name="P:CIS.Logging.CoreLogInitializationException.OutputName">
+            <summary>The fixed destination name.</summary>
+        </member>
+        <member name="P:CIS.Logging.CoreLogInitializationException.ErrorCode">
+            <summary>The fixed initialization category; never a raw payload or configured path.</summary>
+        </member>
+        <member name="T:CIS.Logging.CoreLogLevel">
+            <summary>The logging severity; None disables interest.</summary>
+        </member>
+        <member name="F:CIS.Logging.CoreLogLevel.Trace">
+            <summary>Trace.</summary>
+        </member>
+        <member name="F:CIS.Logging.CoreLogLevel.Debug">
+            <summary>Debug.</summary>
+        </member>
+        <member name="F:CIS.Logging.CoreLogLevel.Information">
+            <summary>Information.</summary>
+        </member>
+        <member name="F:CIS.Logging.CoreLogLevel.Warning">
+            <summary>Warning.</summary>
+        </member>
+        <member name="F:CIS.Logging.CoreLogLevel.Error">
+            <summary>Error.</summary>
+        </member>
+        <member name="F:CIS.Logging.CoreLogLevel.Critical">
+            <summary>Critical.</summary>
+        </member>
+        <member name="F:CIS.Logging.CoreLogLevel.None">
+            <summary>None.</summary>
+        </member>
+        <member name="T:CIS.Logging.CoreLogRuntime">
+            <summary>Owns logger context, independent output admission and one shared bounded stop operation.</summary>
+        </member>
+        <member name="M:CIS.Logging.CoreLogRuntime.Create">
+            <summary>Creates an application-owned runtime using the prepared static environment settings and automatically captured facts.</summary>
+            <remarks>Configure EnvironmentOptions.Logging before creation; preparation normalizes its FilePath in place. Concurrent mutation of those settings is unsupported. Each runtime owns only its own workers and file group. DisposeAsync joins its bounded shutdown.</remarks>
+            <exception cref="T:CIS.Configuration.CoreConfigurationException">Module settings or captured metadata are invalid.</exception>
+            <exception cref="T:System.TypeInitializationException">Static environment initialization failed.</exception>
+            <exception cref="T:CIS.Logging.CoreLogInitializationException">An enabled output cannot initialize.</exception>
+        </member>
+        <member name="M:CIS.Logging.CoreLogRuntime.StopAsync(System.Threading.CancellationToken)">
+            <summary>Starts or joins one shared bounded stop operation through its original accepted boundaries.</summary>
+            <param name="cancellationToken">Cancels only this caller's wait; even an already-cancelled first caller starts shutdown.</param>
+            <returns>The same owned immutable observation retained for all joining callers.</returns>
+            <exception cref="T:System.OperationCanceledException">The caller cancels its own wait.</exception>
+            <remarks>The configured overall timeout is frozen at creation. UTC is an observation label; elapsed time is monotonic. At expiry, unstarted accepted records are abandoned. Cancellation of active writes/flushes is requested but is not guaranteed, and no new flush, retry or replacement writer starts. Completed means terminal dispositions, not successful delivery or resource release. A timed-out observation can retain pending I/O; its later completion does not change the cached result.</remarks>
+        </member>
+        <member name="M:CIS.Logging.CoreLogRuntime.DisposeAsync">
+            <summary>Starts or joins the original bounded stop operation without a new drain window.</summary>
+            <returns>A wait on the same shared operation; unsuccessful draining remains visible in LastStopResult.</returns>
+            <remarks>Repeated disposal is harmless. At the original deadline this wait may complete while actual I/O and owned cleanup remain pending; no resource is disposed beneath active I/O. Inspect GetDiagnostics().LastStopResult for the immutable drain outcome.</remarks>
+        </member>
+        <member name="M:CIS.Logging.CoreLogRuntime.FlushAsync(System.TimeSpan,System.Threading.CancellationToken)">
+            <summary>Waits through fixed accepted boundaries and confirms each enabled writer's buffer flush.</summary>
+            <param name="timeout">One positive finite overall wait budget; every positive TimeSpan is supported.</param>
+            <param name="cancellationToken">Cancels only this caller's wait, preserving shared worker requests.</param>
+            <returns>An owned immutable observation, including unresolved work at the deadline.</returns>
+            <exception cref="T:System.ArgumentOutOfRangeException">The timeout is zero, negative or infinite.</exception>
+            <exception cref="T:System.OperationCanceledException">The caller token is cancelled, including after boundary registration.</exception>
+            <remarks>UTC labels are system observations; elapsed deadlines use the runtime TimeProvider. Flush does not stop admission or guarantee disk durability. After closure it cannot reopen a writer; a terminal writer returns an unavailable/failed flush even if the original stop flushed successfully. Inspect LastStopResult for that original shutdown outcome.</remarks>
+        </member>
+        <member name="M:CIS.Logging.CoreLogRuntime.GetDiagnostics">
+            <summary>Returns an owned immutable live observation without routing a log or performing output I/O.</summary>
+            <remarks>Available after faults and admission closure. This does not register a fixed flush target.</remarks>
+        </member>
+        <member name="M:CIS.Logging.CoreLogRuntime.CreateLogger(System.String)">
+            <summary>Creates a logger borrowing this runtime, including after admission closes.</summary>
+            <exception cref="T:System.ArgumentNullException">Component is null.</exception>
+            <exception cref="T:System.ArgumentException">Component is blank, malformed, contains controls or exceeds 255 scalars.</exception>
+        </member>
+        <member name="T:CIS.Logging.CoreLogState">
+            <summary>Describes admission and worker draining for a logging runtime.</summary>
+        </member>
+        <member name="F:CIS.Logging.CoreLogState.Running">
+            <summary>Runtime admission is open; individual outputs may be faulted.</summary>
+        </member>
+        <member name="F:CIS.Logging.CoreLogState.Stopping">
+            <summary>Admission is closed and an output worker has not finished.</summary>
+        </member>
+        <member name="F:CIS.Logging.CoreLogState.Stopped">
+            <summary>Admission is closed and all output workers have finished.</summary>
+        </member>
+        <member name="T:CIS.Logging.EventMetadata">
+            <summary>Immutable allowlisted application/process facts, excluding settings, paths and operation context.</summary>
+        </member>
+        <member name="M:CIS.Logging.EventMetadata.#ctor">
+            <summary>Logging captures the automatically populated static facts without retaining module settings.</summary>
+        </member>
+        <member name="P:CIS.Logging.EventMetadata.ApplicationName">
+            <summary>The application identity, independent of collector destinations.</summary>
+        </member>
+        <member name="P:CIS.Logging.EventMetadata.BuildVersion">
+            <summary>The actual application build identity, including prerelease and build text.</summary>
+        </member>
+        <member name="P:CIS.Logging.EventMetadata.ServiceVersion">
+            <summary>The deployment or telemetry release label, independent of BuildVersion.</summary>
+        </member>
+        <member name="P:CIS.Logging.EventMetadata.EnvironmentName">
+            <summary>The application environment label; it does not modify the host environment.</summary>
+        </member>
+        <member name="P:CIS.Logging.EventMetadata.EnvironmentKind">
+            <summary>The explicitly selected application execution kind.</summary>
+        </member>
+        <member name="P:CIS.Logging.EventMetadata.InstanceId">
+            <summary>The application instance UUID generated by the container.</summary>
+        </member>
+        <member name="P:CIS.Logging.EventMetadata.ProcessStartedAtUtc">
+            <summary>The actual process start instant in UTC, or null when unavailable.</summary>
+        </member>
+        <member name="P:CIS.Logging.EventMetadata.InitializedAtUtc">
+            <summary>The container construction instant in UTC.</summary>
+        </member>
+        <member name="P:CIS.Logging.EventMetadata.HostName">
+            <summary>The host name observed by this application, or null when unavailable.</summary>
+        </member>
+        <member name="P:CIS.Logging.EventMetadata.OperatingSystem">
+            <summary>The lowercase operating-system family.</summary>
+        </member>
+        <member name="P:CIS.Logging.EventMetadata.OperatingSystemDescription">
+            <summary>The observed operating-system description, or null when unavailable.</summary>
+        </member>
+        <member name="P:CIS.Logging.EventMetadata.OSArchitecture">
+            <summary>The lowercase operating-system architecture, or null when unavailable.</summary>
+        </member>
+        <member name="P:CIS.Logging.EventMetadata.ProcessArchitecture">
+            <summary>The lowercase process architecture, or null when unavailable.</summary>
+        </member>
+        <member name="P:CIS.Logging.EventMetadata.RuntimeDescription">
+            <summary>The observed runtime description, or null when unavailable.</summary>
+        </member>
+        <member name="P:CIS.Logging.EventMetadata.ProcessId">
+            <summary>The observed positive process identifier, or null when unavailable.</summary>
+        </member>
+        <member name="P:CIS.Logging.EventMetadata.CommitId">
+            <summary>An optional explicit build commit identifier.</summary>
+        </member>
+        <member name="P:CIS.Logging.EventMetadata.BuildId">
+            <summary>An optional explicit build identifier.</summary>
+        </member>
+        <member name="T:CIS.Logging.LogEventData">
+            <summary>Caller-owned named event input, copied during capture.</summary>
+            <remarks>Do not mutate this input or its collections concurrently with capture.
+            Immutable LogValue children may be shared. Event severity is supplied by the logging method.</remarks>
+        </member>
+        <member name="P:CIS.Logging.LogEventData.EventName">
+            <summary>The required event name, with at most 255 valid Unicode scalars and no controls.</summary>
+        </member>
+        <member name="P:CIS.Logging.LogEventData.Message">
+            <summary>The supplied message; an empty message is valid.</summary>
+        </member>
+        <member name="P:CIS.Logging.LogEventData.MessageTemplate">
+            <summary>The optional supplied template; null is absent and empty is retained.</summary>
+        </member>
+        <member name="P:CIS.Logging.LogEventData.OperationId">
+            <summary>The optional event identifier, overriding the captured scope when nonblank.</summary>
+        </member>
+        <member name="P:CIS.Logging.LogEventData.Attributes">
+            <summary>The optional typed attributes, overriding matching ordinal scope keys.</summary>
+        </member>
+        <member name="P:CIS.Logging.LogEventData.Exception">
+            <summary>The optional exception, projected without retaining the caller exception or its Data.</summary>
+        </member>
+        <member name="T:CIS.Logging.LogCompletion">
+            <summary>Whether a captured delivery boundary settled within its caller's wait.</summary>
+        </member>
+        <member name="F:CIS.Logging.LogCompletion.Completed">
+            <summary>Every covered record and writer flush has a terminal disposition.</summary>
+        </member>
+        <member name="F:CIS.Logging.LogCompletion.TimedOut">
+            <summary>Covered work or a writer flush remained unresolved at the deadline.</summary>
+        </member>
+        <member name="T:CIS.Logging.LogWriterFlushStatus">
+            <summary>The writer-buffer flush disposition for one captured output boundary.</summary>
+        </member>
+        <member name="F:CIS.Logging.LogWriterFlushStatus.NotRequested">
+            <summary>No writer flush was requested.</summary>
+        </member>
+        <member name="F:CIS.Logging.LogWriterFlushStatus.Pending">
+            <summary>The requested writer flush has not settled.</summary>
+        </member>
+        <member name="F:CIS.Logging.LogWriterFlushStatus.Succeeded">
+            <summary>The writer confirmed its buffer flush.</summary>
+        </member>
+        <member name="F:CIS.Logging.LogWriterFlushStatus.Failed">
+            <summary>The writer flush failed or confirmation was unavailable.</summary>
+        </member>
+        <member name="T:CIS.Logging.LogOutputRejectionSnapshot">
+            <summary>Owned rejection counts captured when a flush boundary was registered.</summary>
+        </member>
+        <member name="P:CIS.Logging.LogOutputRejectionSnapshot.Filtered">
+            <summary>Events excluded by this output's threshold; filtering is not loss.</summary>
+        </member>
+        <member name="P:CIS.Logging.LogOutputRejectionSnapshot.QueueFull">
+            <summary>Interested admissions rejected because the output queue was full.</summary>
+        </member>
+        <member name="P:CIS.Logging.LogOutputRejectionSnapshot.Unavailable">
+            <summary>Interested admissions rejected because the output was unavailable.</summary>
+        </member>
+        <member name="T:CIS.Logging.LogOutputDrainResult">
+            <summary>An owned immutable observation through one output's fixed accepted boundary.</summary>
+        </member>
+        <member name="P:CIS.Logging.LogOutputDrainResult.OutputName">
+            <summary>The enabled destination, console or file.</summary>
+        </member>
+        <member name="P:CIS.Logging.LogOutputDrainResult.AcceptedSequenceBoundary">
+            <summary>The last accepted sequence included in this observation.</summary>
+        </member>
+        <member name="P:CIS.Logging.LogOutputDrainResult.Written">
+            <summary>Covered complete records confirmed by the writer.</summary>
+        </member>
+        <member name="P:CIS.Logging.LogOutputDrainResult.Failed">
+            <summary>Covered records whose started writes failed.</summary>
+        </member>
+        <member name="P:CIS.Logging.LogOutputDrainResult.Abandoned">
+            <summary>Covered accepted records abandoned before their writes started.</summary>
+        </member>
+        <member name="P:CIS.Logging.LogOutputDrainResult.Pending">
+            <summary>Covered queued or unresolved in-flight records.</summary>
+        </member>
+        <member name="P:CIS.Logging.LogOutputDrainResult.WriterFlushStatus">
+            <summary>The covered writer-buffer flush disposition.</summary>
+        </member>
+        <member name="P:CIS.Logging.LogOutputDrainResult.WriterFlushSucceeded">
+            <summary>Whether the writer confirmed its buffer flush.</summary>
+        </member>
+        <member name="P:CIS.Logging.LogOutputDrainResult.Rejections">
+            <summary>Rejection counts frozen at initial boundary capture.</summary>
+        </member>
+        <member name="T:CIS.Logging.LogFlushResult">
+            <summary>An owned immutable result of waiting for a registered flush boundary.</summary>
+            <remarks>Writer-buffer confirmation does not acknowledge disk durability or collector receipt.</remarks>
+        </member>
+        <member name="P:CIS.Logging.LogFlushResult.Completion">
+            <summary>Whether all covered dispositions settled within the wait.</summary>
+        </member>
+        <member name="P:CIS.Logging.LogFlushResult.Succeeded">
+            <summary>Whether every covered record was written and every writer flush succeeded.</summary>
+        </member>
+        <member name="P:CIS.Logging.LogFlushResult.LossObserved">
+            <summary>Whether initial capture/rejection facts or covered terminal failures confirm loss.</summary>
+        </member>
+        <member name="P:CIS.Logging.LogFlushResult.BoundaryCapturedAtUtc">
+            <summary>The system UTC label captured when the fixed boundaries were registered.</summary>
+        </member>
+        <member name="P:CIS.Logging.LogFlushResult.ObservedAtUtc">
+            <summary>The system UTC label of this final owned observation; not an elapsed deadline.</summary>
+        </member>
+        <member name="P:CIS.Logging.LogFlushResult.InvalidEventCount">
+            <summary>The cumulative invalid-event count at initial capture.</summary>
+        </member>
+        <member name="P:CIS.Logging.LogFlushResult.TruncatedEventCount">
+            <summary>The cumulative truncated-event count at initial capture.</summary>
+        </member>
+        <member name="P:CIS.Logging.LogFlushResult.Outputs">
+            <summary>Owned console-then-file observations; disabled outputs are omitted.</summary>
+        </member>
+        <member name="T:CIS.Logging.LoggingOptions">
+            <summary>Caller-owned logging values and defaults. Setters do not validate or start outputs.</summary>
+        </member>
+        <member name="P:CIS.Logging.LoggingOptions.Level">
+            <summary>The Level setting.</summary>
+        </member>
+        <member name="P:CIS.Logging.LoggingOptions.ConsoleFormat">
+            <summary>The ConsoleFormat setting.</summary>
+        </member>
+        <member name="P:CIS.Logging.LoggingOptions.ConsoleLevel">
+            <summary>The ConsoleLevel setting (null inherits Level).</summary>
+        </member>
+        <member name="P:CIS.Logging.LoggingOptions.ConsoleStream">
+            <summary>The ConsoleStream setting.</summary>
+        </member>
+        <member name="P:CIS.Logging.LoggingOptions.HumanDetail">
+            <summary>The HumanDetail setting.</summary>
+        </member>
+        <member name="P:CIS.Logging.LoggingOptions.FilePath">
+            <summary>The FilePath setting.</summary>
+        </member>
+        <member name="P:CIS.Logging.LoggingOptions.FileFormat">
+            <summary>The FileFormat setting.</summary>
+        </member>
+        <member name="P:CIS.Logging.LoggingOptions.FileLevel">
+            <summary>The FileLevel setting (null inherits Level).</summary>
+        </member>
+        <member name="P:CIS.Logging.LoggingOptions.QueueCapacity">
+            <summary>The QueueCapacity setting.</summary>
+        </member>
+        <member name="P:CIS.Logging.LoggingOptions.FlushIntervalMilliseconds">
+            <summary>Target interval in milliseconds for scheduling file-buffer flushes, including idle periods.</summary>
+            <remarks>
+            Defaults to 1,000 ms; Prepare requires 10–60,000 ms.
+            CORE_LOG_FLUSH_INTERVAL_MS populates this value in EnvironmentOptions.Logging.
+            Configured runtime creation checks this range only when file output is enabled.
+            Used by enabled file output as a scheduling target, not a completion or durability guarantee.
+            </remarks>
+        </member>
+        <member name="P:CIS.Logging.LoggingOptions.ShutdownTimeoutMilliseconds">
+            <summary>The ShutdownTimeoutMilliseconds setting.</summary>
+        </member>
+        <member name="P:CIS.Logging.LoggingOptions.FileMaxBytes">
+            <summary>The FileMaxBytes setting.</summary>
+        </member>
+        <member name="P:CIS.Logging.LoggingOptions.FileRetainedFiles">
+            <summary>The FileRetainedFiles setting.</summary>
+        </member>
+        <member name="P:CIS.Logging.LoggingOptions.SchemaVersion">
+            <summary>The SchemaVersion setting.</summary>
+        </member>
+        <member name="P:CIS.Logging.LoggingOptions.MaxEntryBytes">
+            <summary>The MaxEntryBytes setting.</summary>
+        </member>
+        <member name="P:CIS.Logging.LoggingOptions.EffectiveConsoleLevel">
+            <summary>The console threshold after inheritance.</summary>
+        </member>
+        <member name="P:CIS.Logging.LoggingOptions.EffectiveFileLevel">
+            <summary>The file threshold after inheritance.</summary>
+        </member>
+        <member name="P:CIS.Logging.LoggingOptions.ConsoleEnabled">
+            <summary>Whether the console threshold enables output.</summary>
+        </member>
+        <member name="P:CIS.Logging.LoggingOptions.FileEnabled">
+            <summary>Whether a path and threshold enable file output.</summary>
+        </member>
+        <member name="P:CIS.Logging.LoggingOptions.FlushInterval">
+            <summary>The selected flush interval.</summary>
+        </member>
+        <member name="P:CIS.Logging.LoggingOptions.ShutdownTimeout">
+            <summary>The selected shutdown timeout.</summary>
+        </member>
+        <member name="M:CIS.Logging.LoggingOptions.Prepare(System.String)">
+            <summary>Checks logging settings and normalizes the file path against the application's supplied absolute directory.</summary>
+            <remarks>Call after assignments and overrides, before starting logging. Performs no output creation or probing.</remarks>
+        </member>
+        <member name="T:CIS.Logging.LogOutputFormat">
+            <summary>The output representation.</summary>
+        </member>
+        <member name="F:CIS.Logging.LogOutputFormat.Human">
+            <summary>Human.</summary>
+        </member>
+        <member name="F:CIS.Logging.LogOutputFormat.JsonLines">
+            <summary>JsonLines.</summary>
+        </member>
+        <member name="T:CIS.Logging.ConsoleOutputStream">
+            <summary>The selected standard console stream.</summary>
+        </member>
+        <member name="F:CIS.Logging.ConsoleOutputStream.StandardError">
+            <summary>StandardError.</summary>
+        </member>
+        <member name="F:CIS.Logging.ConsoleOutputStream.StandardOutput">
+            <summary>StandardOutput.</summary>
+        </member>
+        <member name="T:CIS.Logging.HumanOutputDetail">
+            <summary>The human output detail level.</summary>
+        </member>
+        <member name="F:CIS.Logging.HumanOutputDetail.Normal">
+            <summary>Normal.</summary>
+        </member>
+        <member name="F:CIS.Logging.HumanOutputDetail.Verbose">
+            <summary>Verbose.</summary>
+        </member>
+        <member name="T:CIS.Logging.LogOutputDiagnostics">
+            <summary>An owned immutable live observation of one enabled output.</summary>
+        </member>
+        <member name="P:CIS.Logging.LogOutputDiagnostics.RecoveredPartialSegment">
+            <summary>Whether this runtime preserved a partial file segment during successful startup. Retained after stop; false for console.</summary>
+        </member>
+        <member name="P:CIS.Logging.LogOutputDiagnostics.OutputName">
+            <summary>The configured destination name.</summary>
+        </member>
+        <member name="P:CIS.Logging.LogOutputDiagnostics.State">
+            <summary>The output lifecycle state at this observation.</summary>
+        </member>
+        <member name="P:CIS.Logging.LogOutputDiagnostics.AcceptedSequence">
+            <summary>The last successfully admitted ticket; zero when no entry was accepted.</summary>
+        </member>
+        <member name="P:CIS.Logging.LogOutputDiagnostics.Filtered">
+            <summary>Cumulative filtered calls, saturating at Int64.MaxValue.</summary>
+        </member>
+        <member name="P:CIS.Logging.LogOutputDiagnostics.AdmissionAttempts">
+            <summary>Accepted plus interested rejections, saturating at Int64.MaxValue.</summary>
+        </member>
+        <member name="P:CIS.Logging.LogOutputDiagnostics.Accepted">
+            <summary>Cumulative successfully admitted records.</summary>
+        </member>
+        <member name="P:CIS.Logging.LogOutputDiagnostics.QueueFull">
+            <summary>Cumulative incoming queue-full rejections, saturating at Int64.MaxValue.</summary>
+        </member>
+        <member name="P:CIS.Logging.LogOutputDiagnostics.Unavailable">
+            <summary>Cumulative interested faulted-output rejections, saturating at Int64.MaxValue.</summary>
+        </member>
+        <member name="P:CIS.Logging.LogOutputDiagnostics.Written">
+            <summary>Accepted records whose complete write was confirmed.</summary>
+        </member>
+        <member name="P:CIS.Logging.LogOutputDiagnostics.Failed">
+            <summary>Accepted records whose attempted write terminated unsuccessfully.</summary>
+        </member>
+        <member name="P:CIS.Logging.LogOutputDiagnostics.Abandoned">
+            <summary>Accepted records discarded before an attempted write.</summary>
+        </member>
+        <member name="P:CIS.Logging.LogOutputDiagnostics.Pending">
+            <summary>Accepted unresolved records, including in-flight work.</summary>
+        </member>
+        <member name="P:CIS.Logging.LogOutputDiagnostics.LastFaultCode">
+            <summary>The latest fixed safe fault category, retained after stop; no exception payload. Cleanup can supersede a delivery category, and a shutdown-timer cleanup fault applies to every enabled output. Stop results and delivery counts retain their original meaning.</summary>
+        </member>
+        <member name="P:CIS.Logging.LogOutputDiagnostics.LastFaultAtUtc">
+            <summary>The system UTC time of the last fault publication, retained after stop.</summary>
+        </member>
+        <member name="T:CIS.Logging.LogOutputState">
+            <summary>Describes the lifecycle of one enabled logging output.</summary>
+        </member>
+        <member name="F:CIS.Logging.LogOutputState.Running">
+            <summary>Accepting work and processing admitted records.</summary>
+        </member>
+        <member name="F:CIS.Logging.LogOutputState.Faulted">
+            <summary>Terminally faulted; recovery requires a new runtime.</summary>
+        </member>
+        <member name="F:CIS.Logging.LogOutputState.Stopping">
+            <summary>Admission is closed while the worker resolves existing work.</summary>
+        </member>
+        <member name="F:CIS.Logging.LogOutputState.Stopped">
+            <summary>The worker has finished. Retained fault information may still exist.</summary>
+        </member>
+        <member name="T:CIS.Logging.LogOutputWriteResult">
+            <summary>An immutable observation of one output admission, not delivery.</summary>
+        </member>
+        <member name="P:CIS.Logging.LogOutputWriteResult.OutputName">
+            <summary>The enabled output name, console or file.</summary>
+        </member>
+        <member name="P:CIS.Logging.LogOutputWriteResult.Status">
+            <summary>The observed admission status.</summary>
+        </member>
+        <member name="P:CIS.Logging.LogOutputWriteResult.AcceptedSequence">
+            <summary>The output's own positive ticket on successful admission; otherwise null.</summary>
+        </member>
+        <member name="T:CIS.Logging.LogStopResult">
+            <summary>The original owned immutable observation of one shared bounded stop operation.</summary>
+            <remarks>Later live diagnostics may show pending I/O completing; this result does not change or claim disk durability.</remarks>
+        </member>
+        <member name="P:CIS.Logging.LogStopResult.Completion">
+            <summary>Whether covered record dispositions and writer flushes settled; resource cleanup may still be pending.</summary>
+        </member>
+        <member name="P:CIS.Logging.LogStopResult.Succeeded">
+            <summary>Whether all covered records were written and writer flushes succeeded.</summary>
+        </member>
+        <member name="P:CIS.Logging.LogStopResult.LossObserved">
+            <summary>Whether initial capture/rejection facts or covered failures confirm loss.</summary>
+        </member>
+        <member name="P:CIS.Logging.LogStopResult.BoundaryCapturedAtUtc">
+            <summary>The system UTC label of original boundary capture, not an elapsed deadline.</summary>
+        </member>
+        <member name="P:CIS.Logging.LogStopResult.ObservedAtUtc">
+            <summary>The system UTC label of the cached final observation.</summary>
+        </member>
+        <member name="P:CIS.Logging.LogStopResult.InvalidEventCount">
+            <summary>The runtime invalid-event count frozen with the original boundary.</summary>
+        </member>
+        <member name="P:CIS.Logging.LogStopResult.TruncatedEventCount">
+            <summary>The runtime truncation count frozen with the original boundary.</summary>
+        </member>
+        <member name="P:CIS.Logging.LogStopResult.Outputs">
+            <summary>Owned console-then-file fixed-boundary observations; disabled outputs are omitted.</summary>
+        </member>
+        <member name="T:CIS.Logging.LogValue">
+            <summary>An immutable, explicitly typed scalar or owned collection of attribute values.</summary>
+            <remarks>Collection inputs are copied; already immutable child values may be shared.
+            Every collection root is node 1 at depth 1; retained shapes have at most 1024 nodes and depth 8.
+            Oversized collections keep a bounded projection and carry truncation provenance.
+            UUID/time factories accept typed scalars; arbitrary objects have no conversion path.
+            Event capture/rendering applies the separately configured aggregate entry limit.</remarks>
+        </member>
+        <member name="P:CIS.Logging.LogValue.Kind">
+            <summary>Gets the constructor-selected representation; magnitude never changes it.</summary>
+        </member>
+        <member name="P:CIS.Logging.LogValue.IsTruncated">
+            <summary>Gets whether this value or a retained descendant has omitted content.</summary>
+            <remarks>Collection projection propagates prior and newly observed truncation.
+            Aggregate entry-byte projection remains an event capture/rendering responsibility.</remarks>
+        </member>
+        <member name="M:CIS.Logging.LogValue.Null">
+            <summary>Creates an explicit null value.</summary>
+        </member>
+        <member name="M:CIS.Logging.LogValue.Boolean(System.Boolean)">
+            <summary>Creates a Boolean value.</summary>
+        </member>
+        <member name="M:CIS.Logging.LogValue.String(System.String)">
+            <summary>Creates a string, preserving valid Unicode text and control characters.</summary>
+            <exception cref="T:System.ArgumentNullException">value is null.</exception>
+            <exception cref="T:System.ArgumentException">value contains malformed UTF-16.</exception>
+        </member>
+        <member name="M:CIS.Logging.LogValue.Number(System.Double)">
+            <summary>Creates a finite floating-point number, including integer-valued doubles.</summary>
+            <exception cref="T:System.ArgumentOutOfRangeException">value is NaN or infinite.</exception>
+        </member>
+        <member name="M:CIS.Logging.LogValue.Integer(System.Int64)">
+            <summary>Creates an integer within inclusive -9007199254740991 through 9007199254740991.</summary>
+            <exception cref="T:System.ArgumentOutOfRangeException">value is outside the portable safe range.</exception>
+        </member>
+        <member name="M:CIS.Logging.LogValue.IntegerString(System.String)">
+            <summary>Creates a canonical base-10 integer string without limiting its magnitude.</summary>
+            <remarks>No exponent, leading plus/zeros, whitespace or negative zero is accepted.</remarks>
+            <exception cref="T:System.ArgumentNullException">value is null.</exception>
+            <exception cref="T:System.ArgumentException">value is not a canonical integer representation.</exception>
+        </member>
+        <member name="M:CIS.Logging.LogValue.DecimalString(System.String)">
+            <summary>Creates invariant non-exponent decimal text, preserving fractional precision.</summary>
+            <remarks>A fractional part is required; trailing zeros and negative decimal zero are preserved.</remarks>
+            <exception cref="T:System.ArgumentNullException">value is null.</exception>
+            <exception cref="T:System.ArgumentException">value is not an invariant decimal representation.</exception>
+        </member>
+        <member name="M:CIS.Logging.LogValue.Uuid(System.Guid)">
+            <summary>Creates a lowercase UUID string in hyphenated 8-4-4-4-12 form.</summary>
+            <remarks>All Guid values, including Guid.Empty, are valid attribute scalars.</remarks>
+        </member>
+        <member name="M:CIS.Logging.LogValue.Timestamp(System.DateTimeOffset)">
+            <summary>Creates a UTC timestamp with exactly seven fractional digits.</summary>
+            <remarks>The supplied offset is converted to the same UTC instant; formatting is invariant.</remarks>
+        </member>
+        <member name="M:CIS.Logging.LogValue.Array(System.Collections.Generic.IEnumerable{CIS.Logging.LogValue})">
+            <summary>Creates a bounded owned array, preserving input order.</summary>
+            <remarks>The root counts as node/depth 1. At most 1024 nodes and depth 8 are retained.
+            Copying stops after the first excess child; observed invalid children remain errors.</remarks>
+            <exception cref="T:System.ArgumentNullException">items is null.</exception>
+            <exception cref="T:System.ArgumentException">items contains a null reference instead of LogValue.Null().</exception>
+        </member>
+        <member name="M:CIS.Logging.LogValue.Map(System.Collections.Generic.IReadOnlyDictionary{System.String,CIS.Logging.LogValue})">
+            <summary>Creates a bounded owned ordinal map, preserving key text.</summary>
+            <remarks>The root counts as node/depth 1. At most 1024 nodes and depth 8 are retained.
+            Structural projection keeps the enumeration prefix and stops at the first excess child.
+            Retained keys compare ordinally; observed invalid keys/children remain errors.</remarks>
+            <exception cref="T:System.ArgumentNullException">properties is null.</exception>
+            <exception cref="T:System.ArgumentException">A key is empty, malformed, contains controls, exceeds 255 scalars,
+            occurs twice, or a value is a null reference instead of LogValue.Null().</exception>
+        </member>
+        <member name="T:CIS.Logging.LogValueKind">
+            <summary>The explicitly selected portable representation of an attribute value.</summary>
+        </member>
+        <member name="F:CIS.Logging.LogValueKind.Null">
+            <summary>An explicit null value.</summary>
+        </member>
+        <member name="F:CIS.Logging.LogValueKind.Boolean">
+            <summary>A Boolean value.</summary>
+        </member>
+        <member name="F:CIS.Logging.LogValueKind.String">
+            <summary>A Unicode string.</summary>
+        </member>
+        <member name="F:CIS.Logging.LogValueKind.Number">
+            <summary>A finite floating-point JSON number.</summary>
+        </member>
+        <member name="F:CIS.Logging.LogValueKind.Integer">
+            <summary>An integer within the inclusive portable safe range.</summary>
+        </member>
+        <member name="F:CIS.Logging.LogValueKind.IntegerString">
+            <summary>An explicitly selected canonical integer string.</summary>
+        </member>
+        <member name="F:CIS.Logging.LogValueKind.DecimalString">
+            <summary>An explicitly selected invariant decimal string.</summary>
+        </member>
+        <member name="F:CIS.Logging.LogValueKind.Uuid">
+            <summary>An explicitly selected lowercase hyphenated UUID string.</summary>
+        </member>
+        <member name="F:CIS.Logging.LogValueKind.Timestamp">
+            <summary>An explicitly selected invariant UTC timestamp with seven fractional digits.</summary>
+        </member>
+        <member name="F:CIS.Logging.LogValueKind.Array">
+            <summary>An ordered array of supported values.</summary>
+        </member>
+        <member name="F:CIS.Logging.LogValueKind.Map">
+            <summary>A map with ordinal, case-sensitive string keys.</summary>
+        </member>
+        <member name="T:CIS.Logging.LogWriteOutcome">
+            <summary>The aggregate admission outcome; acceptance is not delivery confirmation.</summary>
+        </member>
+        <member name="F:CIS.Logging.LogWriteOutcome.Accepted">
+            <summary>Every interested output accepted.</summary>
+        </member>
+        <member name="F:CIS.Logging.LogWriteOutcome.PartiallyAccepted">
+            <summary>Some interested outputs accepted and others rejected.</summary>
+        </member>
+        <member name="F:CIS.Logging.LogWriteOutcome.Filtered">
+            <summary>No configured output was interested.</summary>
+        </member>
+        <member name="F:CIS.Logging.LogWriteOutcome.Rejected">
+            <summary>No interested output accepted.</summary>
+        </member>
+        <member name="F:CIS.Logging.LogWriteOutcome.Stopped">
+            <summary>Runtime admission is closed.</summary>
+        </member>
+        <member name="F:CIS.Logging.LogWriteOutcome.InvalidEvent">
+            <summary>Event capture failed before output admission.</summary>
+        </member>
+        <member name="T:CIS.Logging.LogOutputWriteStatus">
+            <summary>The admission result for one enabled output.</summary>
+        </member>
+        <member name="F:CIS.Logging.LogOutputWriteStatus.Accepted">
+            <summary>Accepted by this output.</summary>
+        </member>
+        <member name="F:CIS.Logging.LogOutputWriteStatus.Filtered">
+            <summary>Below this output's threshold.</summary>
+        </member>
+        <member name="F:CIS.Logging.LogOutputWriteStatus.QueueFull">
+            <summary>This output rejected the incoming event because its queue was full.</summary>
+        </member>
+        <member name="F:CIS.Logging.LogOutputWriteStatus.Faulted">
+            <summary>This output is faulted.</summary>
+        </member>
+        <member name="F:CIS.Logging.LogOutputWriteStatus.Stopped">
+            <summary>Runtime admission is closed.</summary>
+        </member>
+        <member name="T:CIS.Logging.LogWriteResult">
+            <summary>An owned immutable observation of capture and independent output admission.</summary>
+        </member>
+        <member name="P:CIS.Logging.LogWriteResult.Outcome">
+            <summary>The aggregate outcome.</summary>
+        </member>
+        <member name="P:CIS.Logging.LogWriteResult.Outputs">
+            <summary>Owned observations in console-then-file order; disabled outputs are omitted.</summary>
+        </member>
+        <member name="P:CIS.Logging.LogWriteResult.ErrorCode">
+            <summary>A fixed safe capture error code for InvalidEvent; otherwise null.</summary>
+        </member>
+        <member name="P:CIS.Logging.LogWriteResult.IsTruncated">
+            <summary>Whether a valid captured event lost payload, including when admission later rejected it.</summary>
+        </member>
+        <member name="T:CIS.Logging.MicrosoftLogger.CoreLoggerProvider">
+            <summary>Creates Microsoft category loggers that borrow an application-owned core runtime.</summary>
+            <remarks>Disposal disables this provider's future calls and never stops or disposes the shared runtime.
+            A call already running when disposal occurs may finish. Category names follow the core component rules.
+            Supplied rendered messages and exceptions enter core capture. Null or empty EventId.Name becomes
+            log.message; EventId.Id supplies the integer attribute event_id, including zero and negative values.
+            Structured state preserves {OriginalFormat} without parsing. Core checks interest before invoking
+            formatter or copying state; full queues remain interested. Formatter exceptions propagate unchanged;
+            invalid retained payload increments core diagnostics without output admission. Oversized valid payload
+            is truncated. Disposed, stopped, filtered and all-faulted calls skip both callbacks after argument guards.
+            Healthy outputs admit independently. Provider-created scopes are copied at BeginScope; borrowed host
+            scopes are copied during accepted capture, after Activity and clock snapshots. Combined scope depth is 32.</remarks>
+        </member>
+        <member name="M:CIS.Logging.MicrosoftLogger.CoreLoggerProvider.#ctor(CIS.Logging.CoreLogRuntime)">
+            <summary>Creates a nonowning provider over an existing runtime.</summary>
+            <exception cref="T:System.ArgumentNullException">Runtime is null.</exception>
+        </member>
+        <member name="M:CIS.Logging.MicrosoftLogger.CoreLoggerProvider.CreateLogger(System.String)">
+            <summary>Creates a category logger using the core's validated component name.</summary>
+            <exception cref="T:System.ObjectDisposedException">This provider has been disposed.</exception>
+            <exception cref="T:System.ArgumentNullException">Category name is null.</exception>
+            <exception cref="T:System.ArgumentException">The name does not satisfy the core component rules.</exception>
+        </member>
+        <member name="M:CIS.Logging.MicrosoftLogger.CoreLoggerProvider.Dispose">
+            <summary>Idempotently disables this provider; the application retains runtime ownership.</summary>
+        </member>
+        <member name="M:CIS.Logging.MicrosoftLogger.CoreLoggerProvider.SetScopeProvider(Microsoft.Extensions.Logging.IExternalScopeProvider)">
+            <summary>Borrows the host scope source; accepted events copy its active scopes inline.</summary>
+            <remarks>Existing core/provider scopes are the outer layer, host scopes the inner layer, and event attributes replace matching retained keys.
+            Host scope lifetime belongs to the host. Provider disposal releases this reference and never disposes host handles.</remarks>
+            <exception cref="T:System.ArgumentNullException">Scope provider is null.</exception>
+            <exception cref="T:System.ObjectDisposedException">This provider is disposed.</exception>
+        </member>
+        <member name="T:CIS.Logging.OperationContextData">
+            <summary>Caller-owned operation identity and explicitly typed scope attributes.</summary>
+            <remarks>Scope creation captures both properties and owns a bounded copy of the attribute map.
+            Later caller changes do not change an existing scope. This input does not modify process identity.</remarks>
+        </member>
+        <member name="P:CIS.Logging.OperationContextData.OperationId">
+            <summary>Gets or sets the optional operation identifier, trimmed when the scope is captured.</summary>
+            <remarks>Blank is absent. A retained identifier has at most 255 valid Unicode scalars without controls.</remarks>
+        </member>
+        <member name="P:CIS.Logging.OperationContextData.Attributes">
+            <summary>Gets or sets optional attributes; null means an empty map.</summary>
+            <remarks>Use immutable LogValue instances. Scope creation copies the caller map and preserves truncation.</remarks>
+        </member>
+        <member name="T:CIS.TypeManagement.ITypeManager">
+            <summary>A complete, fixed runtime type catalog prepared for one host.</summary>
+        </member>
+        <member name="P:CIS.TypeManagement.ITypeManager.Assemblies">
+            <summary>Gets selected actual assemblies in ordinal full-identity order.</summary>
+        </member>
+        <member name="P:CIS.TypeManagement.ITypeManager.Types">
+            <summary>Gets all defined types, including nonpublic and open generic definitions, in deterministic order.</summary>
+        </member>
+        <member name="P:CIS.TypeManagement.ITypeManager.PreparationReport">
+            <summary>Gets immutable diagnostics captured during preparation.</summary>
+        </member>
+        <member name="M:CIS.TypeManagement.ITypeManager.GetDefinedTypes(System.Reflection.Assembly)">
+            <summary>Gets cached definitions for an actual assembly in this catalog.</summary>
+            <exception cref="T:System.ArgumentNullException">The assembly is null.</exception>
+            <exception cref="T:System.ArgumentException">The assembly is not in this catalog.</exception>
+        </member>
+        <member name="M:CIS.TypeManagement.ITypeManager.GetImplementations(System.Type)">
+            <summary>Gets closed concrete classes assignable to a closed runtime class or interface contract.</summary>
+            <remarks>Results include nonpublic classes without usable constructors. Queries never create instances or extend catalog membership.</remarks>
+            <exception cref="T:System.ArgumentNullException">The contract is null.</exception>
+            <exception cref="T:System.ArgumentException">The contract is not a supported default-context runtime class or interface.</exception>
+        </member>
+        <member name="M:CIS.TypeManagement.ITypeManager.TryGetType(System.String,System.Type@)">
+            <summary>Looks up an exact, ordinal assembly-qualified name without normalization or runtime loading.</summary>
+            <exception cref="T:System.ArgumentNullException">The name is null.</exception>
+            <exception cref="T:System.ArgumentException">The name is empty or whitespace.</exception>
+        </member>
+        <member name="T:CIS.TypeManagement.TypeManagerExtensions">
+            <summary>Convenience queries that preserve the non-generic matching contract.</summary>
+        </member>
+        <member name="M:CIS.TypeManagement.TypeManagerExtensions.GetImplementations``1(CIS.TypeManagement.ITypeManager)">
+            <summary>Queries the manager using the actual runtime type of <typeparamref name="TContract"/>.</summary>
+            <exception cref="T:System.ArgumentNullException">The manager is null.</exception>
+        </member>
+        <member name="T:CIS.TypeManagement.TypeManager">
+            <summary>Prepares and owns a fixed catalog of the host's selected runtime assemblies and types.</summary>
+        </member>
+        <member name="P:CIS.TypeManagement.TypeManager.Assemblies">
+            <inheritdoc />
+        </member>
+        <member name="P:CIS.TypeManagement.TypeManager.Types">
+            <inheritdoc />
+        </member>
+        <member name="P:CIS.TypeManagement.TypeManager.PreparationReport">
+            <inheritdoc />
+        </member>
+        <member name="M:CIS.TypeManagement.TypeManager.CreateAsync(CIS.TypeManagement.TypeManagerOptions,System.Threading.CancellationToken)">
+            <summary>Captures inputs and asynchronously prepares a complete catalog before returning it.</summary>
+            <remarks>Use in an untrimmed, framework-dependent .NET 10 host before building its service container.</remarks>
+            <exception cref="T:System.ArgumentException">An option or precomputed contract is invalid.</exception>
+            <exception cref="T:System.ArgumentNullException">Options, the host, contracts list, or a contract element is null.</exception>
+            <exception cref="T:System.OperationCanceledException">Cancellation is observed before publication.</exception>
+            <exception cref="T:CIS.TypeManagement.TypeManagerInitializationException">The selected deployment cannot be prepared completely.</exception>
+        </member>
+        <member name="M:CIS.TypeManagement.TypeManager.GetDefinedTypes(System.Reflection.Assembly)">
+            <inheritdoc />
+        </member>
+        <member name="M:CIS.TypeManagement.TypeManager.GetImplementations(System.Type)">
+            <inheritdoc />
+        </member>
+        <member name="M:CIS.TypeManagement.TypeManager.TryGetType(System.String,System.Type@)">
+            <inheritdoc />
+        </member>
+        <member name="T:CIS.TypeManagement.TypeManagerFailureKind">
+            <summary>Stable categories of operational Type Manager preparation failures.</summary>
+        </member>
+        <member name="F:CIS.TypeManagement.TypeManagerFailureKind.InvalidInventory">
+            <summary>The required deployment inventory is missing, malformed or inconsistent.</summary>
+        </member>
+        <member name="F:CIS.TypeManagement.TypeManagerFailureKind.AssemblyLoadFailure">
+            <summary>A selected managed assembly could not be loaded.</summary>
+        </member>
+        <member name="F:CIS.TypeManagement.TypeManagerFailureKind.AssemblyIdentityConflict">
+            <summary>The selected assembly identity conflicts with the actual runtime identity.</summary>
+        </member>
+        <member name="F:CIS.TypeManagement.TypeManagerFailureKind.TypeDiscoveryFailure">
+            <summary>Complete type or relationship discovery could not be performed.</summary>
+        </member>
+        <member name="F:CIS.TypeManagement.TypeManagerFailureKind.UnsupportedDeployment">
+            <summary>The deployment uses an unsupported runtime or loading model.</summary>
+        </member>
+        <member name="T:CIS.TypeManagement.TypeManagerInitializationException">
+            <summary>Operational failure that prevented publication of a complete Type Manager.</summary>
+        </member>
+        <member name="P:CIS.TypeManagement.TypeManagerInitializationException.FailureKind">
+            <summary>Gets the stable operational failure category.</summary>
+        </member>
+        <member name="P:CIS.TypeManagement.TypeManagerInitializationException.ManifestPath">
+            <summary>Gets the inventory location, if known.</summary>
+        </member>
+        <member name="P:CIS.TypeManagement.TypeManagerInitializationException.AssetPath">
+            <summary>Gets the relevant asset location, if known. Invalid paths may retain submitted text; discovery failures identify the actual loaded assembly location.</summary>
+        </member>
+        <member name="P:CIS.TypeManagement.TypeManagerInitializationException.AssemblyIdentity">
+            <summary>Gets the selected full assembly identity, if known.</summary>
+        </member>
+        <member name="P:CIS.TypeManagement.TypeManagerInitializationException.ActualAssemblyIdentity">
+            <summary>Gets the conflicting observed identity, if applicable.</summary>
+        </member>
+        <member name="P:CIS.TypeManagement.TypeManagerInitializationException.LoaderExceptions">
+            <summary>Gets an owned, nonmutating collection of underlying loader failures.</summary>
+        </member>
+        <member name="T:CIS.TypeManagement.TypeManagerOptions">
+            <summary>Input values captured and validated when preparation starts.</summary>
+        </member>
+        <member name="M:CIS.TypeManagement.TypeManagerOptions.#ctor(System.Reflection.Assembly)">
+            <summary>Creates options for the application's explicitly selected host assembly.</summary>
+        </member>
+        <member name="P:CIS.TypeManagement.TypeManagerOptions.HostAssembly">
+            <summary>Gets the host assembly. Preparation requires an ordinary default-context runtime assembly.</summary>
+        </member>
+        <member name="P:CIS.TypeManagement.TypeManagerOptions.AssemblyManifestPath">
+            <summary>Gets an optional inventory path. Relative paths resolve from the application directory; the default is the host name plus .types.json there.</summary>
+        </member>
+        <member name="P:CIS.TypeManagement.TypeManagerOptions.PrecomputedContracts">
+            <summary>Gets closed class or interface queries to prepare before returning the manager.</summary>
+        </member>
+        <member name="T:CIS.TypeManagement.TypeManagerPreparationReport">
+            <summary>Immutable preparation facts; these are not live query-cache counters.</summary>
+        </member>
+        <member name="P:CIS.TypeManagement.TypeManagerPreparationReport.Elapsed">
+            <summary>Gets preparation duration measured with a monotonic clock.</summary>
+        </member>
+        <member name="P:CIS.TypeManagement.TypeManagerPreparationReport.SelectedAssemblyCount">
+            <summary>Gets the number of selected assemblies.</summary>
+        </member>
+        <member name="P:CIS.TypeManagement.TypeManagerPreparationReport.TypeCount">
+            <summary>Gets the number of cataloged type definitions.</summary>
+        </member>
+        <member name="P:CIS.TypeManagement.TypeManagerPreparationReport.PreparedContractCount">
+            <summary>Gets the number of distinct precomputed contracts.</summary>
+        </member>
+        <member name="P:CIS.TypeManagement.TypeManagerPreparationReport.SelectedAssemblyIdentities">
+            <summary>Gets selected full assembly identities in ordinal order.</summary>
+        </member>
+        <member name="P:CIS.TypeManagement.TypeManagerPreparationReport.LoadedAssemblyIdentities">
+            <summary>Gets selected identities absent from the default context before the load phase.</summary>
+        </member>
+        <member name="P:CIS.TypeManagement.TypeManagerPreparationReport.ReusedAssemblyIdentities">
+            <summary>Gets selected identities already present in the default context before the load phase.</summary>
+        </member>
+    </members>
+</doc>

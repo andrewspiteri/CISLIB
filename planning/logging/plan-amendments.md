@@ -244,3 +244,8 @@ The explicit shipping-project slice uses the single CIS.Core assembly and all th
 ## WP06-S03-T04 implemented provider compatibility fixtures
 
 The provider consumer and API/source/compiled-input inventory use the existing single CIS.Core identity. Actual source execution and two separately executed newly frozen binary scenarios qualify these unpublished fixtures at the public runtime/file seam. CoreReplacement and CompleteUpgrade share a payload because the provider is contained in Core; no older bridge identity or publication is invented. Full cumulative package/API/runtime/platform compatibility and first-release negative controls remain WP07, with actual publication archives in WP09. This adds no shipping API/source/dependency and leaves historical reference fixtures, the actual ledger and original Planned release case groups unchanged.
+
+
+## WP06-S03-T05 provider bundle registration
+
+The first-release bundle registration includes the embedded provider in the single CIS.Core candidate, its documented public member XML, module/source/fixture/harness material, approved dependency inventories and complete prior provider-task evidence references with checksums. The draft producer preserves selected product bytes and separately indexes local native mutation reports. Older observations remain prior development evidence without credit for a newly selected candidate. All nine full release content areas stay pending, as do WP07 qualification/retention, WP08 examples and WP09 complete bundle/replay/publication. This task adds no shipping source/API/dependency, release waiver, durable archive claim or publication row.

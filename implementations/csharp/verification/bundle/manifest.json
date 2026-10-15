@@ -1,0 +1,121 @@
+{
+  "schema": "cis.csharp.verification-bundle-registration/v1",
+  "taskId": "WP06-S03-T05",
+  "state": "Provider registration for a future first-release bundle; not release qualification.",
+  "shippingIdentity": {
+    "packageId": "CIS.Core",
+    "assembly": "CIS.Core",
+    "targetFramework": "net10.0",
+    "embeddedModules": [
+      "logging-microsoft"
+    ]
+  },
+  "requiredReleaseAreas": [
+    "Product",
+    "Source",
+    "Tests",
+    "Contracts",
+    "History",
+    "Examples",
+    "Tooling",
+    "Evidence",
+    "Integrity"
+  ],
+  "module": {
+    "id": "logging-microsoft",
+    "namespace": "CIS.Logging.MicrosoftLogger",
+    "apiMembers": [
+      "T:CIS.Logging.MicrosoftLogger.CoreLoggerProvider",
+      "M:CIS.Logging.MicrosoftLogger.CoreLoggerProvider.#ctor(CIS.Logging.CoreLogRuntime)",
+      "M:CIS.Logging.MicrosoftLogger.CoreLoggerProvider.CreateLogger(System.String)",
+      "M:CIS.Logging.MicrosoftLogger.CoreLoggerProvider.SetScopeProvider(Microsoft.Extensions.Logging.IExternalScopeProvider)",
+      "M:CIS.Logging.MicrosoftLogger.CoreLoggerProvider.Dispose"
+    ],
+    "documentation": [
+      "docs/modules/logging/microsoft-host-filtering.md",
+      "docs/modules/logging/microsoft-host-qualification.md",
+      "docs/modules/logging/microsoft-logging-boundaries.md",
+      "docs/modules/logging/microsoft-logging-compatibility.md",
+      "docs/modules/logging/microsoft-logging-packaging.md",
+      "docs/modules/logging/microsoft-logging-verification.md",
+      "docs/modules/logging/microsoft-provider-behavior.md",
+      "docs/modules/logging/microsoft-provider-foundation.md",
+      "docs/modules/logging/microsoft-provider-mapping.md",
+      "docs/modules/logging/microsoft-provider-operation.md",
+      "docs/modules/logging/microsoft-provider-ownership.md",
+      "docs/modules/logging/microsoft-provider-qualification.md",
+      "docs/modules/logging/microsoft-provider-scopes.md",
+      "docs/modules/logging/microsoft-provider-state.md",
+      "docs/modules/logging/microsoft-logging-bundle.md"
+    ],
+    "requiredFiles": [
+      "implementations/csharp/src/CIS.Core/Logging/MicrosoftLogger/CoreLoggerProvider.cs",
+      "implementations/csharp/src/CIS.Core/Logging/MicrosoftLogger/ProviderScopeCapture.cs",
+      "implementations/csharp/src/CIS.Core/Logging/MicrosoftLogger/ProviderStateCapture.cs",
+      "implementations/csharp/eng/runtime-dependencies.json",
+      "implementations/csharp/eng/development-dependencies.json",
+      "implementations/csharp/eng/toolchain.json",
+      "implementations/csharp/Directory.Packages.props",
+      "implementations/csharp/src/CIS.Core/packages.lock.json",
+      "implementations/csharp/verification/families.json",
+      "implementations/csharp/verification/shipping-projects.json",
+      "compatibility/csharp/microsoft-logging-fixtures.json",
+      "compatibility/csharp/publications/ledger.json",
+      "implementations/csharp/verification/mutation/microsoft-logging-config.json",
+      "implementations/csharp/verification/coverage/microsoft-logging.runsettings",
+      "implementations/csharp/eng/verify-microsoft-logging.ps1",
+      "implementations/csharp/eng/check-microsoft-logging-compatibility.ps1",
+      "implementations/csharp/tests/CIS.Core.UnitTests/CIS.Core.UnitTests.csproj",
+      "implementations/csharp/tests/CIS.Core.UnitTests/packages.lock.json",
+      "implementations/csharp/tests/CIS.Core.IntegrationTests/CIS.Core.IntegrationTests.csproj",
+      "implementations/csharp/tests/CIS.Core.IntegrationTests/packages.lock.json",
+      "implementations/csharp/tests/CIS.Core.ArchitectureTests/CIS.Core.ArchitectureTests.csproj",
+      "implementations/csharp/tests/CIS.Core.ArchitectureTests/packages.lock.json",
+      "implementations/csharp/tests/CIS.Core.TestSupport/CIS.Core.TestSupport.csproj",
+      "implementations/csharp/tests/CIS.Core.TestSupport/packages.lock.json",
+      "implementations/csharp/tests/fixtures/DiscoveryHost/CIS.Core.DiscoveryFixture.csproj",
+      "implementations/csharp/tests/fixtures/DiscoveryHost/packages.lock.json"
+    ],
+    "sourceRoots": [
+      {
+        "path": "implementations/csharp/verification/compatibility/microsoft-logging",
+        "role": "ModuleFixtureSource"
+      },
+      {
+        "path": "implementations/csharp/tests",
+        "role": "SharedValidationSource"
+      }
+    ],
+    "priorEvidenceRoots": [
+      "planning/logging/evidence/wp06-s01-t01",
+      "planning/logging/evidence/wp06-s01-t02",
+      "planning/logging/evidence/wp06-s01-t03",
+      "planning/logging/evidence/wp06-s01-t04",
+      "planning/logging/evidence/wp06-s01-t05",
+      "planning/logging/evidence/wp06-s02-t01",
+      "planning/logging/evidence/wp06-s02-t02",
+      "planning/logging/evidence/wp06-s02-t03",
+      "planning/logging/evidence/wp06-s02-t04",
+      "planning/logging/evidence/wp06-s02-t05",
+      "planning/logging/evidence/wp06-s03-t01",
+      "planning/logging/evidence/wp06-s03-t02",
+      "planning/logging/evidence/wp06-s03-t03",
+      "planning/logging/evidence/wp06-s03-t04"
+    ],
+    "nativeMutation": {
+      "json": ".artifacts/csharp/tasks/wp06-s03-t03/mutation-qualified/mutation/reports/mutation-report.json",
+      "html": ".artifacts/csharp/tasks/wp06-s03-t03/mutation-qualified/mutation/reports/mutation-report.html",
+      "scope": "Whole Core native report, with adapter mutate scope. May contain other module source; retain locally, exclude from logging-only external review.",
+      "retention": "Local task artifacts; full durable prerequisite/material retention remains required before release.",
+      "audit": "planning/logging/evidence/wp06-s03-t03/mutation-audit.json",
+      "run": "qualified"
+    },
+    "evidenceUse": "Prior recorded development results retain original status and candidate identity. They are inventory material, not credit for a new candidate or a passing release gate."
+  },
+  "pendingReleaseRequirements": [
+    "WP07: all six complete candidate-bound families and both recorded lanes, coverage/mutation thresholds, dispositions/repeatability and cumulative compatibility",
+    "WP07-S06: exact retained toolchains/dependencies, licences/notices and clean materialization",
+    "WP08: runnable candidate-package examples, instructions and skills",
+    "WP09: complete exact source/test/history/example/product bundle, final checksums/index and extracted clean replay; publication separately authorized"
+  ]
+}

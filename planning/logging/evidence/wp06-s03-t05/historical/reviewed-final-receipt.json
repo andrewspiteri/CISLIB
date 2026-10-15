@@ -1,0 +1,72 @@
+{
+  "schema": "cis.logging.task-receipt/v1",
+  "taskId": "WP06-S03-T05",
+  "date": "2026-10-15",
+  "baseCommit": "cd5e88a1c9e3036f2a3f09be79d6735d1c770031",
+  "status": "Bundle registration/producer review corrections executed; follow-up review checkpoint.",
+  "scope": "Required provider inclusion/checksum inventory in a first-release draft; complete qualification, retention and final bundle/replay remain WP07/WP09.",
+  "developer": {
+    "runId": "b192f318728a4d5998e222fc2507c94c",
+    "tests": {
+      "unit": 3370,
+      "integration": 1400,
+      "architecture": 483
+    },
+    "totalTests": 5253,
+    "stages": 14,
+    "refinementsAfterInventory": [
+      {
+        "path": "implementations/csharp/eng/write-microsoft-logging-bundle.ps1",
+        "developerCapturedSha256": "a3e1648e8549f677edc415dbd58a24e46719866f6e4f53899f4a8facbc8fbd6b",
+        "currentSha256": "8cf46bf4a10a033401cae900b7c7330f0c2967ff6f4a1f0074ddb90bdd8307df",
+        "qualification": "Current standalone producer, complete current index/checksum audit and native producer controls; these files are not compiled C# or shipping changes."
+      },
+      {
+        "path": "implementations/csharp/verification/bundle/manifest.json",
+        "developerCapturedSha256": "e62bae70a0778422dbda6d9166c43cf6476d2f8f49a7174d8027345f1ee9ef36",
+        "currentSha256": "e6cdf3be2e10d23089df2b7855ea1944e6fde7985260634ba7a09dcbf610478a",
+        "qualification": "Current standalone producer, complete current index/checksum audit and native producer controls; these files are not compiled C# or shipping changes."
+      },
+      {
+        "path": "docs/modules/logging/microsoft-logging-bundle.md",
+        "developerCapturedSha256": "551b36905ab76e5e50a56bb74d8b113084dfea114acd490fb843b392637c2fb1",
+        "currentSha256": "a49808e852fe50967427d4c40147637faa4d94b4facf1f4e58973074b1727b9a",
+        "qualification": "Current standalone producer, complete current index/checksum audit and native producer controls; these files are not compiled C# or shipping changes."
+      }
+    ]
+  },
+  "draft": {
+    "indexedFiles": 4973,
+    "indexedBytes": 457745670,
+    "documentation": 15,
+    "priorEvidenceRoots": 14,
+    "nativeMutationFormats": 2,
+    "apiMembers": 5,
+    "packageSha256": "cfca6a8ee51d6b7cfa4bb0ff9a0fb64b237d5d3d3093b69f4e9c22570476bfe6",
+    "coreSha256": "97c0f8bc15d08af5a899b8d1d9f2d292a6995ee14c781b7edea732021447826d",
+    "packageSourceCommit": "cd5e88a1c9e3036f2a3f09be79d6735d1c770031",
+    "developerSourceCommit": "cd5e88a1c9e3036f2a3f09be79d6735d1c770031",
+    "currentHead": "cd5e88a1c9e3036f2a3f09be79d6735d1c770031",
+    "releaseQualified": false,
+    "releaseAreasPending": 9,
+    "allIndexedHashesChecked": true,
+    "productsByteExact": true,
+    "manifestSha256": "e748b0b7987b6a1ca7bd5988b07b8bc722a7395b343709f93dc5f23c02c5e5c9"
+  },
+  "controls": 7,
+  "controlProof": "control-results-reviewed.json",
+  "releaseExit": 2,
+  "releasePlannedRowsUnchanged": 41,
+  "shippingLoggingSourcesUnchanged": true,
+  "publicationLedgerUnchanged": true,
+  "review": "Initial CHANGES_REQUIRED retained. R1-R3 implemented and positive/full-checksum/seven negative controls executed; final follow-up review in progress before commit.",
+  "draftProof": "draft-reviewed/manifest.json",
+  "comparisonQualification": {
+    "sha256": "97c0f8bc15d08af5a899b8d1d9f2d292a6995ee14c781b7edea732021447826d",
+    "path": "implementations/csharp/src/CIS.Core/bin/Release/net10.0/CIS.Core.dll",
+    "qualification": "Current file comparison only; not cryptographically tied to Developer run."
+  },
+  "testSourceInclusion": "Maintained shared Core test corpus, explicit unit/integration/architecture/support/factory-fixture projects and lockfiles; sourceRoots declare their own role. Tests release area remains Pending.",
+  "nativeMutationProvenance": "Only qualified T03 JSON/HTML indexed; JSON checked against mutation-audit qualified.nativeReportSha256. Earlier native run hashes remain in prior indexed audit.",
+  "controlSetupCorrection": "An initial extended-control template failed to apply the intended mutation corruption; it was corrected and all seven actual corruptions were independently observed with required rejection reasons. No native producer failure was reclassified."
+}

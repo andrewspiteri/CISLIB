@@ -1,0 +1,41 @@
+{
+  "verdict": "CHANGES_REQUIRED",
+  "requiredFindings": [
+    {
+      "id": "T05-R1",
+      "severity": "Medium",
+      "file": "implementations/csharp/eng/write-microsoft-logging-bundle.ps1",
+      "line": 80,
+      "problem": "The DLL check compares the packed DLL with whatever is currently in src/CIS.Core/bin/Release/net10.0/CIS.Core.dll. Nothing ties that file to Developer run b192f318\u2026. The build output can be rebuilt or replaced after the Developer run, and the check would still pass. The manifest then puts developer.runId next to the product, and the bundle doc (line 11) says the packed DLL matches 'the observed Developer build'. The provenance is therefore stronger than what the code proves. The compared path and its hash are also not recorded in the manifest.",
+      "requestedFix": "Preferred: if the Developer run records a CIS.Core.dll hash (for example in source-inputs.json or validation.json), compare the package DLL against that recorded hash. Fallback: record the compared build-output path and SHA256 in the manifest as a separate field, such as product.comparedBuildOutput, and reword the doc and manifest to say 'current Release build output' rather than implying it is bound to the run. Either way, add a negative control where the build DLL differs from the package DLL."
+    },
+    {
+      "id": "T05-R2",
+      "severity": "Medium",
+      "file": "implementations/csharp/verification/bundle/manifest.json",
+      "line": 69,
+      "problem": "The registration includes the shipping provider sources, harness scripts, configs and compatibility fixtures, but not the provider test sources that produced the unit/integration/architecture/host-filtering observations. It also omits their test-project lock files, including the fixture's development-only Microsoft logging implementation closure. AC05 requires 'all applicable validation material'. Without these files, the indexed reports have no hashed record of the tests that generated them. In addition, the producer hard-codes the role 'ModuleFixtureSource' for every sourceRoots entry (line 35), so test roots added later would be labelled wrongly.",
+      "requestedFix": "Register the provider test source roots and their project and lock files. These are the MicrosoftLogger unit, integration and architecture test folders, plus the host-filtering LoggerFactory fixture project. Let each sourceRoots entry declare its own role, for example {path, role: ModuleTestSource|ModuleFixtureSource}, and have the producer use that role. Keep the Tests release area Pending."
+    },
+    {
+      "id": "T05-R3",
+      "severity": "Low",
+      "file": "implementations/csharp/eng/write-microsoft-logging-bundle.ps1",
+      "line": 45,
+      "problem": "The native mutation JSON is indexed with whatever bytes are currently on disk. It is not checked against the hash that tracked evidence already recorded for that report (wp06-s03-t03/mutation-audit.json qualified.nativeReportSha256 = 50c751\u2026). A regenerated or altered local report would be indexed silently as the T03 report, and the audit script does not check this either. The doc (microsoft-logging-bundle.md line 13) also says 'Complete native Stryker JSON/HTML are separately indexed', but only the 'qualified' run is indexed. The 'current' and 'final' failed native reports are preserved only as hashes in mutation-audit.json.",
+      "requestedFix": "Add an expected sha256 for the native JSON to the registration's nativeMutation entry, or read it from mutation-audit.json, and fail on mismatch. Add one control for this. In the doc, state that only the qualified T03 run's native JSON/HTML are indexed, and that earlier failed runs are preserved through their recorded audit hashes within the indexed evidence root."
+    }
+  ],
+  "optionalNotes": [
+    "Contracts area: consider registering docs/modules/logging/runtime-contract.md and the provider's entries in the unpublished API reference catalog/preservation proposal. runtime-contract.md defines the nonowning CoreLoggerProvider constructor. The area remains Pending either way.",
+    "The apiMembers check only proves that the five IDs are present. It would not catch a newly added public CoreLoggerProvider member. An exact-set check limited to T:/M:/P: entries under CIS.Logging.MicrosoftLogger.CoreLoggerProvider would catch that drift without tripping on documented internal types.",
+    "The manifest uses unordered hashtables, so key order is non-deterministic in practice. Sort-Object path is culture-aware and case-insensitive. Using [ordered] hashtables and an ordinal sort would make re-generated manifests byte-comparable, which helps the later WP09 replay.",
+    "product.sourcePackage records an absolute machine path (C:\\miscwork\\...). Consider storing it repository-relative when it is inside the repository.",
+    "source.headCommit/headTree omit the working-tree dirty state. A dirty flag or a hash of `git status --porcelain=v1 -z` would make the 'not a complete snapshot' disclaimer concrete. Here the indexed T05 inputs are untracked and uncommitted.",
+    "[IO.Path]::GetFullPath resolves relative -PackagePath/-OutputRoot against the .NET process directory, not the PowerShell location. This is fine for the documented `pwsh -File` invocation from the repository root, but it is fragile when the script is dot-sourced or invoked after Set-Location. Prefer $ExecutionContext.SessionState.Path.GetUnresolvedProviderPathFromPSPath.",
+    "If the script fails after products are copied (for example at git rev-parse), it leaves a partial output directory that has products but no manifest. Consider writing to a temporary sibling directory and renaming it on success.",
+    "Under StrictMode Latest, `$family.$slot` throws if a family object lacks a slot property instead of skipping it. That is acceptable as fail-closed, but the intent is ambiguous given the `if` guard.",
+    "manifest.sha256 holds a bare digest rather than the `<digest>  manifest.json` sha256sum format. Consider using the standard format for later external tooling.",
+    "plan-amendments.md contains pre-existing mojibake in earlier sections (the range dash in WP02-S02 and WP05-S09-T01). This is outside T05 scope, but it is worth a separate cleanup."
+  ]
+}
