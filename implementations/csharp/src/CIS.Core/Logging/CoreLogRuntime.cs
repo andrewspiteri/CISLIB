@@ -414,6 +414,20 @@ public sealed class CoreLogRuntime : IAsyncDisposable
         return new CoreLogger(this, component);
     }
 
+    /// <summary>Copies a bounded operation scope into this runtime's current asynchronous flow.</summary>
+    /// <remarks>The creating flow disposes its handle in LIFO order; valid repeated disposal is harmless.
+    /// Existing handles remain disposable after stop. State is checked before copying; a call already copying may finish during closure.
+    /// Inherited execution contexts cannot reliably identify every prohibited cross-flow disposal.</remarks>
+    /// <exception cref="ArgumentNullException">Context is null.</exception>
+    /// <exception cref="ArgumentException">Context contains invalid identifiers or attributes.</exception>
+    /// <exception cref="InvalidOperationException">Admission is closed or the scope depth is exhausted.</exception>
+    public IDisposable BeginScope(OperationContextData context)
+    {
+        ArgumentNullException.ThrowIfNull(context);
+        if (IsAdmissionClosed) { throw new InvalidOperationException("Cannot begin a scope after runtime admission closes."); }
+        return Scopes.BeginScope(context);
+    }
+
     internal bool IsAdmissionClosed { get { lock (admissionGate) { return admissionClosed; } } }
 
     internal bool IsEnabled(CoreLogLevel level)

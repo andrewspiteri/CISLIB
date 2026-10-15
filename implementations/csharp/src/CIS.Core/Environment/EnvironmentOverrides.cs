@@ -77,7 +77,8 @@ internal static class EnvironmentOverrides
         {
             return parsed;
         }
-        InvalidToken(key, issues);
+        issues.Add(new(ConfigurationIssueCodes.InvalidToken, key,
+            "Use Trace, Debug, Information, Warning, Error, Critical or None (aliases TRC, DBG, INF/INFO, WRN/WARN, ERR, CRT/CRIT)."));
         return value;
     }
 
@@ -94,7 +95,7 @@ internal static class EnvironmentOverrides
             case "jsonl":
                 return LogOutputFormat.JsonLines;
             default:
-                InvalidToken(key, issues);
+                InvalidToken(key, issues, "Use human or jsonl.");
                 return value;
         }
     }
@@ -112,7 +113,7 @@ internal static class EnvironmentOverrides
             case "stdout":
                 return ConsoleOutputStream.StandardOutput;
             default:
-                InvalidToken("CORE_LOG_CONSOLE_STREAM", issues);
+                InvalidToken("CORE_LOG_CONSOLE_STREAM", issues, "Use stderr or stdout.");
                 return value;
         }
     }
@@ -130,7 +131,7 @@ internal static class EnvironmentOverrides
             case "verbose":
                 return HumanOutputDetail.Verbose;
             default:
-                InvalidToken("CORE_LOG_HUMAN_DETAIL", issues);
+                InvalidToken("CORE_LOG_HUMAN_DETAIL", issues, "Use normal or verbose.");
                 return value;
         }
     }
@@ -175,17 +176,21 @@ internal static class EnvironmentOverrides
         }
         if (digits.IsEmpty || digits.ContainsAnyExceptInRange('0', '9'))
         {
-            InvalidToken(key, issues);
+            InvalidToken(key, issues, IntegerRange(key, minimum, maximum));
             return false;
         }
         if (!long.TryParse(token, NumberStyles.AllowLeadingSign, CultureInfo.InvariantCulture, out parsed) || parsed < minimum || parsed > maximum)
         {
-            issues.Add(new(ConfigurationIssueCodes.OutOfRange, key, "The integer is outside the supported range."));
+            issues.Add(new(ConfigurationIssueCodes.OutOfRange, key, IntegerRange(key, minimum, maximum)));
             return false;
         }
         return true;
     }
 
-    private static void InvalidToken(string key, List<ConfigurationIssue> issues)
-        => issues.Add(new(ConfigurationIssueCodes.InvalidToken, key, "Use a supported token or an invariant decimal integer."));
+    private static string IntegerRange(string key, long minimum, long maximum)
+        => key == "CORE_LOG_SCHEMA_VERSION" ? "Only schema version 1 is supported."
+            : string.Create(CultureInfo.InvariantCulture, $"Use an invariant decimal integer from {minimum} through {maximum}.");
+
+    private static void InvalidToken(string key, List<ConfigurationIssue> issues, string explanation)
+        => issues.Add(new(ConfigurationIssueCodes.InvalidToken, key, explanation));
 }

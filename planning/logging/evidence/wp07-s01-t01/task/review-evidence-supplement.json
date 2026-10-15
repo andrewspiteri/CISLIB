@@ -1,0 +1,23 @@
+{
+  "task": "WP07-S01-T01",
+  "codeChangesSinceReview2": false,
+  "fullRunAfterLastFocusedTest": {
+    "focusedTrx": "focused/business-reviewed-02/report.trx",
+    "fullStartedUtc": "2026-10-15T01:20:19.4617506Z",
+    "fullFinishedUtc": "2026-10-15T01:25:39.8960981Z"
+  },
+  "bc011": {
+    "id": "BC-011",
+    "title": "The application restarts and file rotation continues.",
+    "requiredResult": "Instance identity changes, existing owned segments are handled consistently, retention is bounded, and unrelated files survive.",
+    "implementation": "Implemented",
+    "method": "CIS.Tests.BusinessCases.LoggingBusinessStories.GivenRestartedProducerWhenRotatingThenIdentityChangesAndOwnedRetentionPreservesNeighbors",
+    "originalRequiredResult": "Instance identity changes, existing owned segments are handled consistently, retention is bounded, and unrelated files survive.",
+    "boundary": "Physical per-process file writer/retention fixture with injected metadata; full public candidate-runtime restart remains T02. Business assertions verify changed record-level instance IDs, stable group, bounded retained count and neighbor preservation. Cross-restart segment continuity/ordering/recovery is supplied by the linked executed FileRetentionProcessTests.SeparateProducersKeepTheSameGroupAndNewestBoundedSegments and FileRestartProcessTests.SeparateProducerAndRestartProcessesPreserveWholeSegmentsAndSafeFailures, rather than a separate business-level inventory comparison.",
+    "supportingTechnicalMethods": [
+      "CIS.Tests.IntegrationTests.FileRetentionProcessTests.SeparateProducersKeepTheSameGroupAndNewestBoundedSegments",
+      "CIS.Tests.IntegrationTests.FileRestartProcessTests.SeparateProducerAndRestartProcessesPreserveWholeSegmentsAndSafeFailures"
+    ]
+  },
+  "recordingPlan": "After evidence review returns, retain its raw result, update review.final to actual verdict, update task status if PASS and freeze a checksum inventory before commit. No final-review PASS is pre-written."
+}

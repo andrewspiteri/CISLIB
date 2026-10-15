@@ -25,7 +25,11 @@ public sealed class LoggerFoundationArchitectureTests
         }
         CollectionAssert.AreEqual(new[] { "level", "data" }, typeof(CoreLogger).GetMethod("Write")!.GetParameters().Select(item => item.Name).ToArray());
         CollectionAssert.AreEqual(new[] { "level", "factory" }, typeof(CoreLogger).GetMethod("WriteLazy")!.GetParameters().Select(item => item.Name).ToArray());
-        CollectionAssert.AreEquivalent(new[] { "Create", "CreateLogger", "GetDiagnostics", "FlushAsync", "StopAsync", "DisposeAsync" }, runtimeMethods.Select(method => method.Name).ToArray());
+        CollectionAssert.AreEquivalent(new[] { "Create", "CreateLogger", "BeginScope", "GetDiagnostics", "FlushAsync", "StopAsync", "DisposeAsync" }, runtimeMethods.Select(method => method.Name).ToArray());
+        MethodInfo scope = typeof(CoreLogRuntime).GetMethod("BeginScope")!;
+        Assert.AreEqual(typeof(IDisposable), scope.ReturnType);
+        CollectionAssert.AreEqual(new[] { "context" }, scope.GetParameters().Select(item => item.Name).ToArray());
+        Assert.AreEqual(typeof(OperationContextData), scope.GetParameters().Single().ParameterType);
         CollectionAssert.AreEqual(new[] { "cancellationToken" }, typeof(CoreLogRuntime).GetMethod("StopAsync")!.GetParameters().Select(item => item.Name).ToArray());
         Assert.AreEqual(typeof(CancellationToken), typeof(CoreLogRuntime).GetMethod("StopAsync")!.GetParameters()[0].ParameterType);
         Assert.AreEqual(typeof(Task<LogStopResult>), typeof(CoreLogRuntime).GetMethod("StopAsync")!.ReturnType);

@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "scope": "Current required native behavior groups. Explicitly retired unpublished lifecycle/provider mechanics are preserved in environment-passive-store-bindings.json. Planned six-family release gates are unchanged.",
+  "scope": "Current required native behavior groups plus explicit logging business acceptance bindings; original unqualified package/cumulative/release groups remain Planned. User amendments remain authoritative.",
   "cases": [
     {
       "id": "UT-SEVERITY-NAMES",
@@ -819,8 +819,8 @@
       "id": "BC-001",
       "family": "business",
       "title": "A developer selects verbose human output and an operation fails.",
-      "implementation": "Planned",
-      "method": null,
+      "implementation": "Implemented",
+      "method": "CIS.Tests.BusinessCases.LoggingBusinessStories.GivenVerboseHumanWhenOperationFailsThenIdentityExceptionAndContextAreVisible",
       "minimumExecutions": 1,
       "lanes": [
         "windows-x64",
@@ -833,14 +833,16 @@
         "REQ-007"
       ],
       "source": "Supplied guide sections 14-17, as amended; stable inventory refined additively with implementation.",
-      "requiredResult": "Output identifies application/build/environment, explains the event, and includes the permitted exception/context detail."
+      "requiredResult": "Output identifies application/build/environment, explains the event, and includes the permitted exception/context detail.",
+      "qualification": "Source-reference/public-runtime or explicitly controlled technical seam; complete exact-candidate package qualification remains WP07-S01-T02 and both release lanes remain required.",
+      "originalRequiredResult": "Output identifies application/build/environment, explains the event, and includes the permitted exception/context detail."
     },
     {
       "id": "BC-002",
       "family": "business",
       "title": "An agent invokes a CLI command configured for JSONL diagnostics.",
-      "implementation": "Planned",
-      "method": null,
+      "implementation": "Implemented",
+      "method": "CIS.Tests.BusinessCases.LoggingBusinessStories.GivenJsonDiagnosticsWhenCliRunsThenStdoutResultAndStderrRecordsAreSeparate",
       "minimumExecutions": 1,
       "lanes": [
         "windows-x64",
@@ -853,14 +855,16 @@
         "REQ-007"
       ],
       "source": "Supplied guide sections 14-17, as amended; stable inventory refined additively with implementation.",
-      "requiredResult": "Stdout is a valid command result; every stderr log line is independently parseable JSON with stable identity."
+      "requiredResult": "Stdout is a valid command result; every stderr log line is independently parseable JSON with stable identity.",
+      "qualification": "Source-reference/public-runtime or explicitly controlled technical seam; complete exact-candidate package qualification remains WP07-S01-T02 and both release lanes remain required.",
+      "originalRequiredResult": "Stdout is a valid command result; every stderr log line is independently parseable JSON with stable identity."
     },
     {
       "id": "BC-003",
       "family": "business",
       "title": "An operator changes output settings through environment variables.",
-      "implementation": "Planned",
-      "method": null,
+      "implementation": "Implemented",
+      "method": "CIS.Tests.BusinessCases.LoggingBusinessStories.GivenSameBuildWhenEnvironmentSelectsStreamFileAndFormatThenMeaningIsPreserved",
       "minimumExecutions": 1,
       "lanes": [
         "windows-x64",
@@ -872,14 +876,16 @@
         "REQ-007"
       ],
       "source": "Supplied guide sections 14-17, as amended; stable inventory refined additively with implementation.",
-      "requiredResult": "The same application build selects the configured stream/file/format without source changes, preserving event meanings."
+      "requiredResult": "The same application build selects the configured stream/file/format without source changes, preserving event meanings.",
+      "qualification": "Source-reference/public-runtime or explicitly controlled technical seam; complete exact-candidate package qualification remains WP07-S01-T02 and both release lanes remain required.",
+      "originalRequiredResult": "The same application build selects the configured stream/file/format without source changes, preserving event meanings."
     },
     {
       "id": "BC-004",
       "family": "business",
       "title": "Console is Warning and file is Debug.",
-      "implementation": "Planned",
-      "method": null,
+      "implementation": "Implemented",
+      "method": "CIS.Tests.BusinessCases.LoggingBusinessStories.GivenWarningConsoleAndDebugFileWhenWritingThenUnionInterestControlsLazyWork",
       "minimumExecutions": 1,
       "lanes": [
         "windows-x64",
@@ -890,14 +896,16 @@
         "REQ-007"
       ],
       "source": "Supplied guide sections 14-17, as amended; stable inventory refined additively with implementation.",
-      "requiredResult": "Debug events reach the file and are absent from console; expensive work is skipped only when no output is interested."
+      "requiredResult": "Debug events reach the file and are absent from console; expensive work is skipped only when no output is interested.",
+      "qualification": "Source-reference/public-runtime or explicitly controlled technical seam; complete exact-candidate package qualification remains WP07-S01-T02 and both release lanes remain required.",
+      "originalRequiredResult": "Debug events reach the file and are absent from console; expensive work is skipped only when no output is interested."
     },
     {
       "id": "BC-005",
       "family": "business",
       "title": "Two experiments execute concurrently across asynchronous boundaries.",
-      "implementation": "Planned",
-      "method": null,
+      "implementation": "Implemented",
+      "method": "CIS.Tests.BusinessCases.LoggingBusinessStories.GivenConcurrentExperimentsWhenAwaitingThenOperationsStayIsolatedWithSharedIdentity",
       "minimumExecutions": 1,
       "lanes": [
         "windows-x64",
@@ -908,14 +916,16 @@
         "REQ-007"
       ],
       "source": "Supplied guide sections 14-17, as amended; stable inventory refined additively with implementation.",
-      "requiredResult": "Each event retains its own operation/experiment identifiers and the shared process identity."
+      "requiredResult": "Each event retains its own operation/experiment identifiers and the shared process identity.",
+      "qualification": "Source-reference/public-runtime or explicitly controlled technical seam; complete exact-candidate package qualification remains WP07-S01-T02 and both release lanes remain required.",
+      "originalRequiredResult": "Each event retains its own operation/experiment identifiers and the shared process identity."
     },
     {
       "id": "BC-006",
       "family": "business",
       "title": "A recognized setting contains an invalid value.",
-      "implementation": "Planned",
-      "method": null,
+      "implementation": "Implemented",
+      "method": "CIS.Tests.BusinessCases.LoggingBusinessStories.GivenInvalidSettingWhenStartingThenKeyAndAcceptedValuesAreSafeAndActionable",
       "minimumExecutions": 1,
       "lanes": [
         "windows-x64",
@@ -927,14 +937,16 @@
         "REQ-007"
       ],
       "source": "Supplied guide sections 14-17, as amended; stable inventory refined additively with implementation.",
-      "requiredResult": "Startup fails with the setting name and accepted values, without dumping unrelated environment data."
+      "requiredResult": "Startup fails with the setting name and accepted values, without dumping unrelated environment data.",
+      "qualification": "Source-reference/public-runtime or explicitly controlled technical seam; complete exact-candidate package qualification remains WP07-S01-T02 and both release lanes remain required.",
+      "originalRequiredResult": "Startup fails with the setting name and accepted values, without dumping unrelated environment data."
     },
     {
       "id": "BC-007",
       "family": "business",
       "title": "A queue fills or a writer fails.",
-      "implementation": "Planned",
-      "method": null,
+      "implementation": "Implemented",
+      "method": "CIS.Tests.BusinessCases.LoggingBusinessStories.GivenQueuePressureOrWriterFaultWhenLoggingThenBoundsAndIndependentOutputRemainTruthful",
       "minimumExecutions": 1,
       "lanes": [
         "windows-x64",
@@ -945,14 +957,16 @@
         "REQ-007"
       ],
       "source": "Supplied guide sections 14-17, as amended; stable inventory refined additively with implementation.",
-      "requiredResult": "Resource use remains bounded, unaffected outputs continue, and rejection/failure counters are truthful."
+      "requiredResult": "Resource use remains bounded, unaffected outputs continue, and rejection/failure counters are truthful.",
+      "qualification": "Source-reference/public-runtime or explicitly controlled technical seam; complete exact-candidate package qualification remains WP07-S01-T02 and both release lanes remain required.",
+      "originalRequiredResult": "Resource use remains bounded, unaffected outputs continue, and rejection/failure counters are truthful."
     },
     {
       "id": "BC-008",
       "family": "business",
       "title": "An application stops gracefully with queued events.",
-      "implementation": "Planned",
-      "method": null,
+      "implementation": "Implemented",
+      "method": "CIS.Tests.BusinessCases.LoggingBusinessStories.GivenQueuedWorkWhenStoppingThenCompletionOrUnresolvedDeadlineIsExplicit",
       "minimumExecutions": 1,
       "lanes": [
         "windows-x64",
@@ -963,7 +977,9 @@
         "REQ-007"
       ],
       "source": "Supplied guide sections 14-17, as amended; stable inventory refined additively with implementation.",
-      "requiredResult": "Accepted events reach the documented boundary or the stop result explicitly reports unresolved work and deadline/cancellation."
+      "requiredResult": "Accepted events reach the documented boundary or the stop result explicitly reports unresolved work and deadline/cancellation.",
+      "qualification": "Source-reference/public-runtime or explicitly controlled technical seam; complete exact-candidate package qualification remains WP07-S01-T02 and both release lanes remain required.",
+      "originalRequiredResult": "Accepted events reach the documented boundary or the stop result explicitly reports unresolved work and deadline/cancellation."
     },
     {
       "id": "BC-009",
@@ -983,7 +999,10 @@
         "REQ-007"
       ],
       "source": "Supplied guide sections 14-17, as amended; stable inventory refined additively with implementation.",
-      "requiredResult": "It builds under its preserved settings and retains its supported behavior."
+      "requiredResult": "It builds under its preserved settings and retains its supported behavior.",
+      "pendingOwner": "WP07-S04",
+      "currentEvidence": "Zero actual publications. Current provider source/newly frozen binary controls in WP06-S03-T04 are not historical upgrades or full first-release harness qualification.",
+      "originalRequiredResult": "It builds under its preserved settings and retains its supported behavior."
     },
     {
       "id": "BC-010",
@@ -1002,14 +1021,17 @@
         "REQ-007"
       ],
       "source": "Supplied guide sections 14-17, as amended; stable inventory refined additively with implementation.",
-      "requiredResult": "It runs without recompilation and proves that the candidate assembly was loaded."
+      "requiredResult": "It runs without recompilation and proves that the candidate assembly was loaded.",
+      "pendingOwner": "WP07-S04",
+      "currentEvidence": "Zero actual publications. Current provider source/newly frozen binary controls in WP06-S03-T04 are not historical upgrades or full first-release harness qualification.",
+      "originalRequiredResult": "It runs without recompilation and proves that the candidate assembly was loaded."
     },
     {
       "id": "BC-011",
       "family": "business",
       "title": "The application restarts and file rotation continues.",
-      "implementation": "Planned",
-      "method": null,
+      "implementation": "Implemented",
+      "method": "CIS.Tests.BusinessCases.LoggingBusinessStories.GivenRestartedProducerWhenRotatingThenIdentityChangesAndOwnedRetentionPreservesNeighbors",
       "minimumExecutions": 1,
       "lanes": [
         "windows-x64",
@@ -1021,14 +1043,16 @@
         "REQ-007"
       ],
       "source": "Supplied guide sections 14-17, as amended; stable inventory refined additively with implementation.",
-      "requiredResult": "Instance identity changes, existing owned segments are handled consistently, retention is bounded, and unrelated files survive."
+      "requiredResult": "Instance identity changes, existing owned segments are handled consistently, retention is bounded, and unrelated files survive.",
+      "qualification": "Source-reference/public-runtime or explicitly controlled technical seam; complete exact-candidate package qualification remains WP07-S01-T02 and both release lanes remain required.",
+      "originalRequiredResult": "Instance identity changes, existing owned segments are handled consistently, retention is bounded, and unrelated files survive."
     },
     {
       "id": "BC-012",
       "family": "business",
       "title": "A caller mutates a dictionary immediately after logging.",
-      "implementation": "Planned",
-      "method": null,
+      "implementation": "Implemented",
+      "method": "CIS.Tests.BusinessCases.LoggingBusinessStories.GivenCallerMutationsAfterWriteThenCapturedAttributesAndMessageStayOwned",
       "minimumExecutions": 1,
       "lanes": [
         "windows-x64",
@@ -1040,14 +1064,16 @@
         "REQ-007"
       ],
       "source": "Supplied guide sections 14-17, as amended; stable inventory refined additively with implementation.",
-      "requiredResult": "Queued events retain the values captured at the logging call."
+      "requiredResult": "Queued events retain the values captured at the logging call.",
+      "qualification": "Source-reference/public-runtime or explicitly controlled technical seam; complete exact-candidate package qualification remains WP07-S01-T02 and both release lanes remain required.",
+      "originalRequiredResult": "Queued events retain the values captured at the logging call."
     },
     {
       "id": "BC-013",
       "family": "business",
       "title": "An application uses the Microsoft provider and its scopes.",
-      "implementation": "Planned",
-      "method": null,
+      "implementation": "Implemented",
+      "method": "CIS.Tests.BusinessCases.LoggingBusinessStories.GivenMicrosoftScopesWhenLoggingThenMappingCorrelationAndNonowningDisposalHold",
       "minimumExecutions": 1,
       "lanes": [
         "windows-x64",
@@ -1060,14 +1086,16 @@
         "REQ-007"
       ],
       "source": "Supplied guide sections 14-17, as amended; stable inventory refined additively with implementation.",
-      "requiredResult": "Category, event name, structured state, exception, and correlation map into the core contract; provider ownership rules hold."
+      "requiredResult": "Category, event name, structured state, exception, and correlation map into the core contract; provider ownership rules hold.",
+      "qualification": "Source-reference/public-runtime or explicitly controlled technical seam; complete exact-candidate package qualification remains WP07-S01-T02 and both release lanes remain required.",
+      "originalRequiredResult": "Category, event name, structured state, exception, and correlation map into the core contract; provider ownership rules hold."
     },
     {
       "id": "BC-014",
       "family": "business",
       "title": "A collector reads generated structured records.",
-      "implementation": "Planned",
-      "method": null,
+      "implementation": "Implemented",
+      "method": "CIS.Tests.BusinessCases.LoggingBusinessStories.GivenCollectorOrientedJsonThenIdentityAndEscapedRecordsNeedNoHostedService",
       "minimumExecutions": 1,
       "lanes": [
         "windows-x64",
@@ -1080,14 +1108,16 @@
         "REQ-007"
       ],
       "source": "Supplied guide sections 14-17, as amended; stable inventory refined additively with implementation.",
-      "requiredResult": "Records retain the specified service/env/version and metadata fields, with no raw multiline or ANSI contamination. This proves the output contract, not hosted ingestion."
+      "requiredResult": "Records retain the specified service/env/version and metadata fields, with no raw multiline or ANSI contamination. This proves the output contract, not hosted ingestion.",
+      "qualification": "Source-reference/public-runtime or explicitly controlled technical seam; complete exact-candidate package qualification remains WP07-S01-T02 and both release lanes remain required.",
+      "originalRequiredResult": "Records retain the specified service/env/version and metadata fields, with no raw multiline or ANSI contamination. This proves the output contract, not hosted ingestion."
     },
     {
       "id": "BC-015",
       "family": "business",
       "title": "An event contains boundary-size Unicode, a decimal value, and an unsupported object.",
-      "implementation": "Planned",
-      "method": null,
+      "implementation": "Implemented",
+      "method": "CIS.Tests.BusinessCases.LoggingBusinessStories.GivenUnicodeDecimalAndUnsupportedValuesThenValidOversizeTruncatesAndInvalidIsCounted",
       "minimumExecutions": 1,
       "lanes": [
         "windows-x64",
@@ -1099,14 +1129,21 @@
         "REQ-007"
       ],
       "source": "Supplied guide sections 14-17, as amended; stable inventory refined additively with implementation.",
-      "requiredResult": "Supported values retain their explicit representations; unsupported or malformed input is rejected and accounted for. Oversized payload is safely truncated into one valid entry within the configured byte cap, with identity/correlation preserved and truncated:true."
+      "requiredResult": "Supported values retain their explicit representations; unsupported or malformed input is rejected and accounted for. Oversized payload is safely truncated into one valid entry within the configured byte cap, with identity/correlation preserved and truncated:true.",
+      "qualification": "Source-reference/public-runtime or explicitly controlled technical seam; complete exact-candidate package qualification remains WP07-S01-T02 and both release lanes remain required.",
+      "effectiveResult": "Supported values preserve type/encoding. Oversized valid entries are truncated and marked under the user amendment; unsupported values are invalid and counted.",
+      "originalRequiredResult": "Supported values follow the exact type/encoding rules; unsupported/oversized input is explicitly rejected and accounted for.",
+      "supportingTechnicalMethods": [
+        "CIS.Tests.UnitTests.EventEncodingTests.ExactlyAtCapFitsAndOneExtraByteTriggersMarkedTruncationIncludingLf",
+        "CIS.Tests.UnitTests.EventEncodingTests.EscapedByteBoundaryNeverSplitsAScalar"
+      ]
     },
     {
       "id": "BC-016",
       "family": "business",
       "title": "All normal outputs are disabled.",
-      "implementation": "Planned",
-      "method": null,
+      "implementation": "Implemented",
+      "method": "CIS.Tests.BusinessCases.LoggingBusinessStories.GivenDisabledOutputsWhenWritingAndStoppingThenNoFactoriesOrOrdinaryRecordsAppear",
       "minimumExecutions": 1,
       "lanes": [
         "windows-x64",
@@ -1117,7 +1154,9 @@
         "REQ-007"
       ],
       "source": "Supplied guide sections 14-17, as amended; stable inventory refined additively with implementation.",
-      "requiredResult": "Logging calls return filtered/stopped outcomes as specified, do not invoke deferred factories, and produce no ordinary log records."
+      "requiredResult": "Logging calls return filtered/stopped outcomes as specified, do not invoke deferred factories, and produce no ordinary log records.",
+      "qualification": "Source-reference/public-runtime or explicitly controlled technical seam; complete exact-candidate package qualification remains WP07-S01-T02 and both release lanes remain required.",
+      "originalRequiredResult": "Logging calls return filtered/stopped outcomes as specified, do not invoke deferred factories, and produce no ordinary log records."
     },
     {
       "id": "ARCH-STARTUP-CATALOG",
@@ -7979,6 +8018,60 @@
         "REQ-009"
       ],
       "source": "WP05-S04-T04 environment-driven actual console consumers and independent comparer guards; original Planned release rows remain unchanged."
+    },
+    {
+      "id": "UT-PUBLIC-SCOPE-COPY",
+      "family": "unit",
+      "title": "PublicScopesCopyInputsRejectBadLifoAndRestoreAcrossAwait",
+      "implementation": "Implemented",
+      "method": "CIS.Tests.UnitTests.PublicOperationScopeTests.PublicScopesCopyInputsRejectBadLifoAndRestoreAcrossAwait",
+      "minimumExecutions": 1,
+      "lanes": [
+        "windows-x64",
+        "linux-ubuntu2404-x64"
+      ],
+      "requirements": [
+        "REQ-003",
+        "REQ-004",
+        "REQ-008"
+      ],
+      "source": "WP07-S01-T01 closes the agreed public BeginScope surface gap without changing creator-disposes/detection-limit rules."
+    },
+    {
+      "id": "UT-PUBLIC-SCOPE-GUARDS",
+      "family": "unit",
+      "title": "PublicScopeNullGuardPrecedesClosedStateAndValidScopeCannotStartAfterStop",
+      "implementation": "Implemented",
+      "method": "CIS.Tests.UnitTests.PublicOperationScopeTests.PublicScopeNullGuardPrecedesClosedStateAndValidScopeCannotStartAfterStop",
+      "minimumExecutions": 1,
+      "lanes": [
+        "windows-x64",
+        "linux-ubuntu2404-x64"
+      ],
+      "requirements": [
+        "REQ-003",
+        "REQ-004",
+        "REQ-008"
+      ],
+      "source": "WP07-S01-T01 closes the agreed public BeginScope surface gap without changing creator-disposes/detection-limit rules."
+    },
+    {
+      "id": "UT-PUBLIC-SCOPE-STOP",
+      "family": "unit",
+      "title": "CreatorCanDisposeExistingScopeAfterRuntimeStopAndRepeatSafely",
+      "implementation": "Implemented",
+      "method": "CIS.Tests.UnitTests.PublicOperationScopeTests.CreatorCanDisposeExistingScopeAfterRuntimeStopAndRepeatSafely",
+      "minimumExecutions": 1,
+      "lanes": [
+        "windows-x64",
+        "linux-ubuntu2404-x64"
+      ],
+      "requirements": [
+        "REQ-003",
+        "REQ-004",
+        "REQ-008"
+      ],
+      "source": "WP07-S01-T01 closes the agreed public BeginScope surface gap without changing creator-disposes/detection-limit rules."
     }
   ]
 }

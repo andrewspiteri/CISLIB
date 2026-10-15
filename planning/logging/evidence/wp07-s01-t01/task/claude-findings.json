@@ -1,0 +1,62 @@
+{
+  "verdict": "CHANGES_REQUIRED",
+  "findings": [
+    {
+      "severity": "high",
+      "path": "conformance/logging/functional-reconciliation.json",
+      "line": "~end (\"evidence\")",
+      "issue": "The map and docs/modules/logging/functional-reconciliation.md (last paragraph) both cite planning/logging/evidence/wp07-s01-t01/verification.json as retained evidence of actual task results. That file is not among the changed or untracked paths. The only full Developer run so far failed: architecture failed 1/483 and the run stopped before business. The doc also says in the present tense that the fourteen cases 'now run ... under the Developer profile', but no Developer run has executed the business family yet.",
+      "requiredFix": "Do not commit until the corrected full Developer run finishes. Then create verification.json with honest content: the failed initial run (runId dc6c8766\u2026, architecture ImplementedLoggerMethodsHaveRealBodiesAndNamedParameters, business NotRun), the focused 3/3 scope and 14/14 business TRX hashes, and the final full-run summary and TRX hashes. If the final run fails, record that result and do not claim completion."
+    },
+    {
+      "severity": "medium",
+      "path": "implementations/csharp/tests/CIS.Core.BusinessCases/LoggingBusinessStories.cs",
+      "line": "~150 (GivenUnicodeDecimalAndUnsupportedValues\u2026)",
+      "issue": "BC-015 does not assert several parts of its required and effective result. (1) The truncated row is checked only for truncated:true. Its identity and correlation are not checked: event_name, service/env/version, resource.instance_id and operation_id. The oversized write also runs outside any scope, so correlation preservation cannot be observed at all. (2) rows[0] is checked only for the decimal. The Unicode message '\u03a9\ud83d\ude42' is not asserted to keep its representation. (3) 'Malformed input is rejected and accounted for' has no case; only the unsupported object is exercised. (4) The test uses an oversized entry, not a boundary-size entry at or just below the cap.",
+      "requiredFix": "In LoggingBusinessFixture 'bounded', wrap the oversized write in runtime.BeginScope with an OperationId. In the test, assert on the truncated row: event_name, service/env/version, resource.instance_id and operation_id. Assert rows[0] message == \"\\u03a9\\U0001f642\". Add one malformed input (for example a lone surrogate) and expect invalid == 2. Alternatively, narrow BC-015 'boundary' to say malformed and exact-boundary coverage comes from named unit tests."
+    },
+    {
+      "severity": "medium",
+      "path": "implementations/csharp/tests/fixtures/DiscoveryHost/LoggingBusinessFixture.cs",
+      "line": "~22 (Error)",
+      "issue": "For BC-006 the fixture reports only issue key, code and explanation. The actual exception text an application would see (Message and ToString, including the TypeInitializationException wrapper) is never observed. So 'without dumping unrelated environment data' and the doc's 'without echoing the rejected token' are checked only on a projection that the fixture filters. The test also never asserts that 'not-a-level' is absent. This configuration-error report also has no fixture, Core or runtime hashes, but the BC-006 boundary text claims 'loaded assembly hashes'.",
+      "requiredFix": "Add the original exception's Message and ToString() to the Error() report, plus fixtureSha256, coreSha256 and runtime. In the test, assert that neither 'must-not-appear' nor 'not-a-level' appears in those strings, and remove the configurationError exemption from the hash checks."
+    },
+    {
+      "severity": "medium",
+      "path": "implementations/csharp/src/CIS.Core/Environment/EnvironmentOverrides.cs",
+      "line": "~200-215 (InvalidToken / TryInteger OutOfRange)",
+      "issue": "Only level keys now list accepted values. Invalid console/file format, stream and human-detail tokens still get the generic 'Use a supported token or an invariant decimal integer.' Out-of-range integers get no range. BC-006's required result applies to any recognized setting ('setting name and accepted values'), but the case is marked Implemented without qualification and newGapsClosed describes only levels.",
+      "requiredFix": "Either give each setting its own accepted values (human|jsonl, stderr|stdout, normal|verbose, inclusive integer ranges), or qualify BC-006 in the map and inventory as covering level settings only and record the remaining keys as an open gap."
+    },
+    {
+      "severity": "low",
+      "path": "implementations/csharp/tests/CIS.Core.BusinessCases/LoggingBusinessStories.cs",
+      "line": "~128 (GivenRestartedProducerWhenRotating\u2026)",
+      "issue": "BC-011 compares report-level instanceId values, not the resource.instance_id inside the persisted segment records. The writer uses injected metadata, so this does not show that the written events carry the changed instance identity.",
+      "requiredFix": "Read each producer's records from the retained segments. Assert their resource.instance_id matches that producer's report and differs between start and resume. Alternatively, state in the BC-011 boundary that the instance identity is report-level only."
+    },
+    {
+      "severity": "low",
+      "path": "docs/modules/logging/functional-reconciliation.md",
+      "line": "~13 (BC-015 paragraph)",
+      "issue": "The doc says 'the original catalog's rejection wording remains visible alongside this effective result'. However, the preserved requiredResult already contains the amended truncation text ('Oversized payload is safely truncated\u2026'). No field holds the original guide wording for oversized events, so the original-versus-effective distinction is not actually represented.",
+      "requiredFix": "Add an originalResult field with the verbatim section 14 text, or reword the doc to say requiredResult is the existing amended inventory text and effectiveResult restates the user amendment."
+    },
+    {
+      "severity": "low",
+      "path": "implementations/csharp/src/CIS.Core/Logging/Scopes/OperationScopeStore.cs",
+      "line": "3-4",
+      "issue": "The comment 'belongs to one future CoreLogRuntime \u2026 Runtime admission/closure and event capture are separate later integrations' is stale now that CoreLogRuntime owns the store, gates BeginScope on admission and captures scopes in Write.",
+      "requiredFix": "Update it to: one instance per CoreLogRuntime; the runtime checks admission before BeginScope; there is no process-wide slot."
+    }
+  ],
+  "limits": [
+    "Only the supplied file contents were reviewed. The section 14 guide text, CapturedOperationContext, ProviderBehavior, StopLifecycle and FileRetention fixtures, ProcessRunner, ConsoleCompositionFixture, verify.ps1 and the full case-inventory and requirement map were not inspected.",
+    "The corrected full Developer run is still in progress, so no full-suite pass is assumed. The focused TRX files (3/3 scope, 14/14 business) were read as supplied and their hashes were not recomputed.",
+    "Type Manager business tests were not assessed, as instructed.",
+    "Optional, non-blocking: BC-002 asserts identity on a single stderr record, so 'stable identity' across lines is shown only by the report match. The business project's ProjectReference to the fixture could set ReferenceOutputAssembly=false, because only build order and the copied output are needed. UT-PUBLIC-SCOPE-STOP is in the inventory but is not listed under the Immutability or Context areas of the reconciliation map.",
+    "BC-009/010 are correctly kept Planned under WP07-S04, and source/frozen-binary controls are labelled supplemental rather than historical passes. No issue was found there.",
+    "BeginScope: the null-before-closed order, the closed guard, delegation to the per-runtime store, documented LIFO/idempotence/detection limits and the updated architecture expectation look consistent. No correctness defect was found."
+  ]
+}

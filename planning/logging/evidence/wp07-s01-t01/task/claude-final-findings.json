@@ -1,0 +1,35 @@
+{
+  "verdict": "CHANGES_REQUIRED",
+  "findings": [
+    {
+      "severity": "medium",
+      "path": "planning/logging/evidence/wp07-s01-t01/task/reconciliation-audit.json",
+      "line": 1,
+      "issue": "The audit is called an exact native binding audit, but it contains only family counters and aggregate claims (209 supporting methods, 14 logging business cases). It records no run start or finish timestamps, no paths or SHA256 values for the final summary and per-family TRX, discovery or execution files, and no hash of the run-start source inventory. It also does not list which 14 of the 24 executed business tests are the logging stories, or which 209 methods were matched. Only verification.json's prose ('Compiled/test input hashes match the run inventory') connects run 86600d1f to the frozen input hashes. The binding matters here: the focused business-reviewed-02 TRX finished at 01:19:57Z, and verification.json was recorded at 01:26:02Z. A 15-stage Developer run of 3373 unit, 1400 integration, 483 architecture and 24 business tests completing within about 6 minutes of the last focused rerun is possible. But nothing supplied shows that the full run started after the final source edits rather than overlapping them.",
+      "requiredFix": "Extend the audit (or add a sibling receipt referenced from verification.json) with: the run start and finish UTC times; the relative path, byte count and SHA256 of the final summary and of each family TRX, discovery and execution file; the run-start source inventory hash or per-file hashes, showing equality with verification.json inputs (other than the documented map delta); and the itemized list of the 209 supporting methods and 14 logging business test names, each with its TRX outcome. If the run-start inventory does not match the final compiled and test sources, rerun the Developer profile."
+    },
+    {
+      "severity": "low",
+      "path": "planning/logging/evidence/wp07-s01-t01/verification.json",
+      "line": 96,
+      "issue": "review.final is still 'Pending follow-up'. The retained receipt will not record the outcome of this final review, and its own hash is not part of any frozen inventory.",
+      "requiredFix": "After this review, record the final verdict and the findings and resolution reference in review.final before committing. Keep the earlier ChangesRequired result as history."
+    },
+    {
+      "severity": "low",
+      "path": "implementations/csharp/tests/CIS.Core.BusinessCases/LoggingBusinessStories.cs",
+      "line": 133,
+      "issue": "BC-011's result requires that 'existing owned segments are handled consistently'. The test checks that groupId is equal, the instance IDs differ, there are 2 retained segments and the neighbor survives. It never relates the resume run's pre-start inventory (report 'before') to the first run's final inventory, and never checks that segment identities continue or advance across the restart. With retained=1, every surviving record belongs to the second producer, so the restart-continuity part of the claim is not observed at business level. That evidence comes only from the linked unit and integration retention tests.",
+      "requiredFix": "Assert JsonNode.DeepEquals(second.Report['before'], first.Report['inventory']). Also assert that the resume run's retained segment IDs are newer than the first run's, and that the first run's segment files absent from the second inventory were removed while listed ones are unchanged. Alternatively, narrow the BC-011 boundary to say that cross-restart segment continuity is supplied by the linked FileRetention and FileRestart process tests."
+    }
+  ],
+  "limits": [
+    "Only the supplied contents were evaluated. The native/Developer summary, family TRX and discovery files, run inventory, task/reconciliation-at-run-start.json, task/review-resolutions.json in planning, the case-inventory and requirement map, families.json, Program.cs, FileRetentionFixture's prior revision, CapturedOperationContext, CoreLoggerProvider, ProviderBehavior and StopLifecycle fixtures, ProcessRunner and LoggingOptions constants were not inspected. No hashes were recomputed.",
+    "All seven prior findings appear resolved in the supplied sources. BC-015 now covers the scoped oversized row with identity and correlation, exact Unicode and decimal values, a lone surrogate plus an unsupported object giving invalid=2, a strict UTF-8 per-line byte cap, and explicitly linked unit methods. BC-006 checks structured key and explanation and inspects the original Message and ToString, including the wrapper, for leakage, with hashes. Format, stream, detail and range explanations are actionable. originalRequiredResult preserves the guide wording. The scope-store comments are accurate.",
+    "The fixed safe CoreConfigurationException.Message is consistent with the supplied exception source and was not treated as a defect.",
+    "CoreLogRuntime.BeginScope has a null guard before the closed guard, delegates to the per-runtime store, documents its admission race, and matches the architecture expectation. PublicOperationScopeTests' LIFO, repeat-dispose and post-stop paths match the OperationScopeStore.Handle logic. No correctness defect was found.",
+    "The 18-key, no-boolean applicability note matches the keys read by EnvironmentOverrides. BC-006 exercises 8 representative keys that share the parsing branches.",
+    "BC-009/010 Planned under WP07-S04, and the T02\u2013T05, S02, S03, WP08 and WP09 pending gates, were treated as explicitly future and not as defects.",
+    "Type Manager business tests were not assessed."
+  ]
+}

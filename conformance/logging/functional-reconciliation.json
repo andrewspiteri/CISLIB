@@ -1,0 +1,1915 @@
+{
+  "schemaVersion": 1,
+  "task": "WP07-S01-T01",
+  "sourceGuide": "planning/logging/sources/core-library-implementation-guide-v1.md",
+  "sourceSection": "14 Full test suite",
+  "sourcePlan": "planning/logging/sources/core-library-implementation-plan-v1.md",
+  "scope": "Functional reconciliation and missing observable development cases. This is not complete release qualification or a candidate-package/historical/platform pass.",
+  "amendments": [
+    "One shipping CIS.Core assembly embeds Microsoft provider; approved Microsoft packages are allowed, third-party integrations isolated.",
+    "EnvironmentOptions is a static constructor-initialized facts container with user-selected mutable logging settings before runtime capture; superseded immutable-static configuration prose is not adopted.",
+    "Valid oversized entries are truncated and marked, with a configurable default 64 KiB; unsupported values remain invalid and counted.",
+    "Creator disposes scope handles in LIFO order; repeated valid disposal is harmless. Universal inherited-child disposal detection is not promised."
+  ],
+  "unitAreas": [
+    {
+      "area": "Configuration",
+      "originalRequiredCoverage": "Missing/blank/valid/invalid values, whitespace/case policy, bounds, every precedence layer, invalid higher-priority input, booleans including `false`, and one-time relative-path resolution despite later working-directory changes.",
+      "support": [
+        {
+          "source": "implementations/csharp/tests/CIS.Core.UnitTests/ConfigurationNormalizationTests.cs",
+          "method": "CIS.Tests.UnitTests.ConfigurationNormalizationTests.BlankCoreValuesUseTypedSetupForEverySetting",
+          "caseIds": [
+            "UT-CONFIG-NORMALIZE-BLANK-CORE"
+          ]
+        },
+        {
+          "source": "implementations/csharp/tests/CIS.Core.UnitTests/ConfigurationNormalizationTests.cs",
+          "method": "CIS.Tests.UnitTests.ConfigurationNormalizationTests.BlankAliasesAndSetupTextUseDiscoveryOrDefaults",
+          "caseIds": [
+            "UT-CONFIG-NORMALIZE-BLANK-TEXT"
+          ]
+        },
+        {
+          "source": "implementations/csharp/tests/CIS.Core.UnitTests/ConfigurationNormalizationTests.cs",
+          "method": "CIS.Tests.UnitTests.ConfigurationNormalizationTests.TokensMatchOrdinalCaseAcrossCultures",
+          "caseIds": [
+            "UT-CONFIG-NORMALIZE-TOKEN-CULTURES"
+          ]
+        },
+        {
+          "source": "implementations/csharp/tests/CIS.Core.UnitTests/ConfigurationNormalizationTests.cs",
+          "method": "CIS.Tests.UnitTests.ConfigurationNormalizationTests.NonblankMalformedTokensAreNotRepairedOrReplaced",
+          "caseIds": [
+            "UT-CONFIG-NORMALIZE-NONBLANK-INVALID"
+          ]
+        },
+        {
+          "source": "implementations/csharp/tests/CIS.Core.UnitTests/ConfigurationNormalizationTests.cs",
+          "method": "CIS.Tests.UnitTests.ConfigurationNormalizationTests.NonWhitespaceFormatCharactersRemainSelectedText",
+          "caseIds": [
+            "UT-CONFIG-NORMALIZE-NON-WHITESPACE"
+          ]
+        },
+        {
+          "source": "implementations/csharp/tests/CIS.Core.UnitTests/ConfigurationNormalizationTests.cs",
+          "method": "CIS.Tests.UnitTests.ConfigurationNormalizationTests.UnknownNamesAreNeverReadCapturedOrFormatted",
+          "caseIds": [
+            "UT-CONFIG-NORMALIZE-UNKNOWN-NAMES"
+          ]
+        },
+        {
+          "source": "implementations/csharp/tests/CIS.Core.UnitTests/ConfigurationNormalizationTests.cs",
+          "method": "CIS.Tests.UnitTests.ConfigurationNormalizationTests.IdentityLayersPreserveTrimmedCaseAndUnicodeSequences",
+          "caseIds": [
+            "UT-CONFIG-NORMALIZE-IDENTITY-CASE"
+          ]
+        },
+        {
+          "source": "implementations/csharp/tests/CIS.Core.UnitTests/ConfigurationOptionValidationTests.cs",
+          "method": "CIS.Tests.UnitTests.ConfigurationOptionValidationTests.TypedSetupUsesTheSameInclusiveNumericBounds",
+          "caseIds": [
+            "UT-CONFIG-VALIDATE-11"
+          ]
+        },
+        {
+          "source": "implementations/csharp/tests/CIS.Core.UnitTests/ConfigurationOptionValidationTests.cs",
+          "method": "CIS.Tests.UnitTests.ConfigurationOptionValidationTests.SharedCrossOptionVectorsValidateWithoutOutputSideEffects",
+          "caseIds": [
+            "UT-CONFIG-VALIDATE-09"
+          ]
+        },
+        {
+          "source": "implementations/csharp/tests/CIS.Core.UnitTests/ConfigurationOptionValidationTests.cs",
+          "method": "CIS.Tests.UnitTests.ConfigurationOptionValidationTests.EnabledFileSizeRelationshipAvoidsDuplicateRangeErrors",
+          "caseIds": [
+            "UT-CONFIG-VALIDATE-01"
+          ]
+        },
+        {
+          "source": "implementations/csharp/tests/CIS.Core.UnitTests/ConfigurationValidationVectorTests.cs",
+          "method": "CIS.Tests.UnitTests.ConfigurationValidationVectorTests.CompleteValidationMatchesCombinedBoundaryPriorityAndSafeErrorFixtures",
+          "caseIds": [
+            "UT-CONFIG-VALIDATION-01"
+          ]
+        },
+        {
+          "source": "implementations/csharp/tests/CIS.Core.UnitTests/ConfigurationValidationVectorTests.cs",
+          "method": "CIS.Tests.UnitTests.ConfigurationValidationVectorTests.EveryApplicablePerKeyVectorPassesThroughCompleteValidation",
+          "caseIds": [
+            "UT-CONFIG-VALIDATION-02"
+          ]
+        },
+        {
+          "source": "implementations/csharp/tests/CIS.Core.UnitTests/ConfigurationValidationVectorTests.cs",
+          "method": "CIS.Tests.UnitTests.ConfigurationValidationVectorTests.ActualAggregatedIssuesRemainOwnedAndImmutableAcrossLaterValidation",
+          "caseIds": [
+            "UT-CONFIG-VALIDATION-03"
+          ]
+        },
+        {
+          "source": "implementations/csharp/tests/CIS.Core.UnitTests/ConfigurationFilePathTests.cs",
+          "method": "CIS.Tests.UnitTests.ConfigurationFilePathTests.SharedPathVectorsExecuteForTheirNativePlatform",
+          "caseIds": [
+            "UT-CONFIG-PATH-09"
+          ]
+        },
+        {
+          "source": "implementations/csharp/tests/CIS.Core.UnitTests/ConfigurationFilePathTests.cs",
+          "method": "CIS.Tests.UnitTests.ConfigurationFilePathTests.NativeRelativeSyntaxPreservesUnicodeAndDoesNotCreateOutputs",
+          "caseIds": [
+            "UT-CONFIG-PATH-05"
+          ]
+        },
+        {
+          "source": "implementations/csharp/tests/CIS.Core.UnitTests/ConfigurationFilePathTests.cs",
+          "method": "CIS.Tests.UnitTests.ConfigurationFilePathTests.AbsoluteSyntaxIsIndependentOfCapturedBaseAndDoesNotRequireExistence",
+          "caseIds": [
+            "UT-CONFIG-PATH-01"
+          ]
+        },
+        {
+          "source": "implementations/csharp/tests/CIS.Core.UnitTests/ConfigurationFilePathTests.cs",
+          "method": "CIS.Tests.UnitTests.ConfigurationFilePathTests.InvalidSetupPathStillValidatesForDisabledFileOutput",
+          "caseIds": [
+            "UT-CONFIG-PATH-03"
+          ]
+        },
+        {
+          "source": "implementations/csharp/tests/CIS.Core.UnitTests/ConfigurationFilePathTests.cs",
+          "method": "CIS.Tests.UnitTests.ConfigurationFilePathTests.InvalidInjectedDirectoryIsARequiredSourceFailure",
+          "caseIds": [
+            "UT-CONFIG-PATH-02"
+          ]
+        },
+        {
+          "source": "implementations/csharp/tests/CIS.Core.UnitTests/ConfigurationFilePathTests.cs",
+          "method": "CIS.Tests.UnitTests.ConfigurationFilePathTests.RequiredDirectorySourceRunsOnceAndItsFailuresPropagate",
+          "caseIds": [
+            "UT-CONFIG-PATH-08"
+          ]
+        },
+        {
+          "source": "implementations/csharp/tests/CIS.Core.UnitTests/ConfigurationFilePathTests.cs",
+          "method": "CIS.Tests.UnitTests.ConfigurationFilePathTests.LiteralTildesAndUnicodeMarkerCharactersRemainUnchanged",
+          "caseIds": [
+            "UT-CONFIG-PATH-11"
+          ]
+        },
+        {
+          "source": "implementations/csharp/tests/CIS.Core.UnitTests/ConfigurationFilePathTests.cs",
+          "method": "CIS.Tests.UnitTests.ConfigurationFilePathTests.AbsoluteTildePathsPreserveLiteralTextIndependentlyOfTheBase",
+          "caseIds": [
+            "UT-CONFIG-PATH-12"
+          ]
+        },
+        {
+          "source": "implementations/csharp/tests/CIS.Core.UnitTests/ConfigurationFilePathTests.cs",
+          "method": "CIS.Tests.UnitTests.ConfigurationFilePathTests.PrivateUseMarkerExhaustionStillPreservesLiteralCharacters",
+          "caseIds": [
+            "UT-CONFIG-PATH-13"
+          ]
+        },
+        {
+          "source": "implementations/csharp/tests/CIS.Core.UnitTests/EnvironmentOverridesTests.cs",
+          "method": "CIS.Tests.UnitTests.EnvironmentOverridesTests.IntegerGrammarIsIndependentOfCulture",
+          "caseIds": [
+            "UT-ENV-INTEGER-CULTURES"
+          ]
+        },
+        {
+          "source": "implementations/csharp/tests/CIS.Core.UnitTests/EnvironmentOverridesTests.cs",
+          "method": "CIS.Tests.UnitTests.EnvironmentOverridesTests.NonblankCanonicalNeverReadsItsShadowedAlias",
+          "caseIds": [
+            "UT-ENV-CANONICAL-ALIAS-READS"
+          ]
+        },
+        {
+          "source": "implementations/csharp/tests/CIS.Core.UnitTests/EnvironmentOverridesTests.cs",
+          "method": "CIS.Tests.UnitTests.EnvironmentOverridesTests.MissingOrBlankCanonicalUsesEachIdentityAlias",
+          "caseIds": [
+            "UT-ENV-ALIAS-FALLBACK"
+          ]
+        },
+        {
+          "source": "implementations/csharp/tests/CIS.Core.UnitTests/EnvironmentOverridesTests.cs",
+          "method": "CIS.Tests.UnitTests.EnvironmentOverridesTests.ConsumersRejectEveryInteriorIdentityControl",
+          "caseIds": [
+            "UT-ENV-IDENTITY-CONTROLS"
+          ]
+        },
+        {
+          "source": "implementations/csharp/tests/CIS.Core.UnitTests/EnvironmentOverridesTests.cs",
+          "method": "CIS.Tests.UnitTests.EnvironmentOverridesTests.RequiredEnvironmentReadFailuresPropagate",
+          "caseIds": [
+            "UT-ENV-VERSION-READ-FAILURES"
+          ]
+        },
+        {
+          "source": "implementations/csharp/tests/CIS.Core.UnitTests/EnvironmentOverridesTests.cs",
+          "method": "CIS.Tests.UnitTests.EnvironmentOverridesTests.ControlledInvalidMetadataAndLoggingInputsAreRejectedAtTheirConsumers",
+          "caseIds": [
+            "UT-ENV-CONTROLLED-INPUTS"
+          ]
+        }
+      ],
+      "boundary": "Existing actual Core tests and controlled deterministic fixtures; complete concurrency/discovery/coverage reconciliation remains WP07-S01-T03/T04/T05.",
+      "applicability": "The current 18-key configuration catalog declares no boolean environment key; no invented true/false setting is added. Existing derived ConsoleEnabled/FileEnabled false paths are tested through None/no-path cases. A future boolean key must define and test explicit true/false parsing."
+    },
+    {
+      "area": "Identity",
+      "originalRequiredCoverage": "Correct application assembly, informational version preservation, optional unavailable metadata, distinct instance IDs, UTC timestamps, and stable snapshot values.",
+      "support": [
+        {
+          "source": "implementations/csharp/tests/CIS.Core.UnitTests/EnvironmentConstructorTests.cs",
+          "method": "CIS.Tests.UnitTests.EnvironmentConstructorTests.AssemblyInformationPrecedesAssemblyVersionAndIgnoresFileVersion",
+          "caseIds": [
+            "UT-ENV-CTOR-VERSION"
+          ]
+        },
+        {
+          "source": "implementations/csharp/tests/CIS.Core.UnitTests/EnvironmentConstructorTests.cs",
+          "method": "CIS.Tests.UnitTests.EnvironmentConstructorTests.MissingEntryAssemblyHasAnHonestUnknownBuildFallback",
+          "caseIds": [
+            "UT-ENV-CTOR-NOENTRY"
+          ]
+        },
+        {
+          "source": "implementations/csharp/tests/CIS.Core.UnitTests/EnvironmentConstructorTests.cs",
+          "method": "CIS.Tests.UnitTests.EnvironmentConstructorTests.AutomaticFactsMatchTheCurrentProcessAndProduceOwnedMetadata",
+          "caseIds": [
+            "UT-ENV-CTOR-FACTS"
+          ]
+        },
+        {
+          "source": "implementations/csharp/tests/CIS.Core.UnitTests/EnvironmentConstructorTests.cs",
+          "method": "CIS.Tests.UnitTests.EnvironmentConstructorTests.RepeatedAccessRetainsTheSameFactsAndSettingsWithoutRegeneratingIds",
+          "caseIds": [
+            "UT-ENV-CTOR-STABLE"
+          ]
+        },
+        {
+          "source": "implementations/csharp/tests/CIS.Core.UnitTests/EnvironmentConstructorTests.cs",
+          "method": "CIS.Tests.UnitTests.EnvironmentConstructorTests.CommonIdentityValuesAreInternedAndPolicyValuesRemainOrdinaryProperties",
+          "caseIds": [
+            "UT-ENV-CTOR-INTERN"
+          ]
+        },
+        {
+          "source": "implementations/csharp/tests/CIS.Core.UnitTests/StartupMetadataFixtureTests.cs",
+          "method": "CIS.Tests.UnitTests.StartupMetadataFixtureTests.SharedMetadataVectorsExecuteAgainstActualOwnedCoreSnapshots",
+          "caseIds": [
+            "UT-STARTUP-QUALIFICATION-01"
+          ]
+        },
+        {
+          "source": "implementations/csharp/tests/CIS.Core.UnitTests/StartupMetadataFixtureTests.cs",
+          "method": "CIS.Tests.UnitTests.StartupMetadataFixtureTests.MetadataComparatorRejectsSemanticSubstitution",
+          "caseIds": [
+            "UT-STARTUP-QUALIFICATION-02"
+          ]
+        }
+      ],
+      "boundary": "Existing actual Core tests and controlled deterministic fixtures; complete concurrency/discovery/coverage reconciliation remains WP07-S01-T03/T04/T05."
+    },
+    {
+      "area": "Immutability",
+      "originalRequiredCoverage": "Mutation of setup dictionaries, nested attributes, exception data, or scope inputs after a logging call cannot alter captured events.",
+      "support": [
+        {
+          "source": "implementations/csharp/tests/CIS.Core.UnitTests/ConfigurationDiagnosticTests.cs",
+          "method": "CIS.Tests.UnitTests.ConfigurationDiagnosticTests.ExceptionCopiesAndEnumeratesIssueInputOnceInOrder",
+          "caseIds": [
+            "UT-CONFIG-IDENTITY-02"
+          ]
+        },
+        {
+          "source": "implementations/csharp/tests/CIS.Core.UnitTests/ConfigurationDiagnosticTests.cs",
+          "method": "CIS.Tests.UnitTests.ConfigurationDiagnosticTests.IssueRejectsNullArgumentsWithStableParameterNames",
+          "caseIds": [
+            "UT-CONFIG-IDENTITY-05"
+          ]
+        },
+        {
+          "source": "implementations/csharp/tests/CIS.Core.UnitTests/ConfigurationDiagnosticTests.cs",
+          "method": "CIS.Tests.UnitTests.ConfigurationDiagnosticTests.ExceptionRejectsNullSequenceAndNullElements",
+          "caseIds": [
+            "UT-CONFIG-IDENTITY-04"
+          ]
+        },
+        {
+          "source": "implementations/csharp/tests/CIS.Core.UnitTests/ConfigurationDiagnosticTests.cs",
+          "method": "CIS.Tests.UnitTests.ConfigurationDiagnosticTests.DiagnosticsHaveTheActualProposedPublicShapeCodesAndNamedConstructors",
+          "caseIds": [
+            "UT-CONFIG-IDENTITY-01"
+          ]
+        },
+        {
+          "source": "implementations/csharp/tests/CIS.Core.UnitTests/ConfigurationDiagnosticTests.cs",
+          "method": "CIS.Tests.UnitTests.ConfigurationDiagnosticTests.ExceptionFormattingDoesNotAutomaticallyDumpEvenCallerSuppliedUnsafeIssues",
+          "caseIds": [
+            "UT-CONFIG-IDENTITY-03"
+          ]
+        },
+        {
+          "source": "implementations/csharp/tests/CIS.Core.UnitTests/LogValueCollectionTests.cs",
+          "method": "CIS.Tests.UnitTests.LogValueCollectionTests.ActualCollectionFactoriesMatchIndependentRootAndBoundaryVectors",
+          "caseIds": [
+            "UT-LOG-VALUE-T03-01"
+          ]
+        },
+        {
+          "source": "implementations/csharp/tests/CIS.Core.UnitTests/LogValueCollectionTests.cs",
+          "method": "CIS.Tests.UnitTests.LogValueCollectionTests.ObservedInvalidChildrenAndKeysFailEvenAtTheFirstExcessEntry",
+          "caseIds": [
+            "UT-LOG-VALUE-T03-02"
+          ]
+        },
+        {
+          "source": "implementations/csharp/tests/CIS.Core.UnitTests/LogValueCollectionTests.cs",
+          "method": "CIS.Tests.UnitTests.LogValueCollectionTests.BoundaryComparatorRejectsWrongRootCountingAndFalseLossMarkers",
+          "caseIds": [
+            "UT-LOG-VALUE-T03-03"
+          ]
+        },
+        {
+          "source": "implementations/csharp/tests/CIS.Core.UnitTests/LogValueCollectionTests.cs",
+          "method": "CIS.Tests.UnitTests.LogValueCollectionTests.MapStructuralProjectionKeepsABoundedEnumerationPrefixWithOrdinalKeys",
+          "caseIds": [
+            "UT-LOG-VALUE-T03-04"
+          ]
+        },
+        {
+          "source": "implementations/csharp/tests/CIS.Core.UnitTests/LogValueCollectionTests.cs",
+          "method": "CIS.Tests.UnitTests.LogValueCollectionTests.StructuralProjectionNeverChangesRetainedScalarKinds",
+          "caseIds": [
+            "UT-LOG-VALUE-T03-05"
+          ]
+        },
+        {
+          "source": "implementations/csharp/tests/CIS.Core.UnitTests/LogValueCollectionTests.cs",
+          "method": "CIS.Tests.UnitTests.LogValueCollectionTests.PartialDescendantProjectionOwnsShapesAndDoesNotMutateSharedInputs",
+          "caseIds": [
+            "UT-LOG-VALUE-T03-06"
+          ]
+        },
+        {
+          "source": "implementations/csharp/tests/CIS.Core.UnitTests/LogValueCollectionTests.cs",
+          "method": "CIS.Tests.UnitTests.LogValueCollectionTests.PriorTruncationSurvivesReuseWithoutAnyAdditionalOmission",
+          "caseIds": [
+            "UT-LOG-VALUE-T03-07"
+          ]
+        },
+        {
+          "source": "implementations/csharp/tests/CIS.Core.UnitTests/LogValueCollectionTests.cs",
+          "method": "CIS.Tests.UnitTests.LogValueCollectionTests.ParallelRootsUseIndependentBudgetsAndImmutableSharedChildren",
+          "caseIds": [
+            "UT-LOG-VALUE-T03-08"
+          ]
+        },
+        {
+          "source": "implementations/csharp/tests/CIS.Core.UnitTests/ExceptionContentTests.cs",
+          "method": "CIS.Tests.UnitTests.ExceptionContentTests.MarkersDescribeOnlyLocallyClippedContentAndExcludeEveryOtherField",
+          "caseIds": [
+            "UT-EXCEPTION-T03-01"
+          ]
+        },
+        {
+          "source": "implementations/csharp/tests/CIS.Core.UnitTests/ExceptionContentTests.cs",
+          "method": "CIS.Tests.UnitTests.ExceptionContentTests.NativeDataSourceAndHelpLinkMutationDoesNotChangeCapturedContent",
+          "caseIds": [
+            "UT-EXCEPTION-T03-02"
+          ]
+        },
+        {
+          "source": "implementations/csharp/tests/CIS.Core.UnitTests/ExceptionContentTests.cs",
+          "method": "CIS.Tests.UnitTests.ExceptionContentTests.CallerExceptionsCyclicDataPayloadsAndHeadersAreCollectibleWhileCaptureLives",
+          "caseIds": [
+            "UT-EXCEPTION-T03-03"
+          ]
+        },
+        {
+          "source": "implementations/csharp/tests/CIS.Core.UnitTests/ExceptionContentTests.cs",
+          "method": "CIS.Tests.UnitTests.ExceptionContentTests.EveryExcludedGetterTrapIsArmedAndCaptureNeverCallsIt",
+          "caseIds": [
+            "UT-EXCEPTION-T03-04"
+          ]
+        },
+        {
+          "source": "implementations/csharp/tests/CIS.Core.UnitTests/ExceptionContentTests.cs",
+          "method": "CIS.Tests.UnitTests.ExceptionContentTests.ExactContentComparatorRejectsMisplacedMissingAndSpuriousMarkersOrFields",
+          "caseIds": [
+            "UT-EXCEPTION-T03-05"
+          ]
+        },
+        {
+          "source": "implementations/csharp/tests/CIS.Core.UnitTests/PublicOperationScopeTests.cs",
+          "method": "CIS.Tests.UnitTests.PublicOperationScopeTests.PublicScopesCopyInputsRejectBadLifoAndRestoreAcrossAwait",
+          "caseIds": [
+            "UT-PUBLIC-SCOPE-COPY"
+          ]
+        },
+        {
+          "source": "implementations/csharp/tests/CIS.Core.UnitTests/PublicOperationScopeTests.cs",
+          "method": "CIS.Tests.UnitTests.PublicOperationScopeTests.PublicScopeNullGuardPrecedesClosedStateAndValidScopeCannotStartAfterStop",
+          "caseIds": [
+            "UT-PUBLIC-SCOPE-GUARDS"
+          ]
+        },
+        {
+          "source": "implementations/csharp/tests/CIS.Core.UnitTests/PublicOperationScopeTests.cs",
+          "method": "CIS.Tests.UnitTests.PublicOperationScopeTests.CreatorCanDisposeExistingScopeAfterRuntimeStopAndRepeatSafely",
+          "caseIds": [
+            "UT-PUBLIC-SCOPE-STOP"
+          ]
+        }
+      ],
+      "boundary": "Existing actual Core tests and controlled deterministic fixtures; complete concurrency/discovery/coverage reconciliation remains WP07-S01-T03/T04/T05."
+    },
+    {
+      "area": "Filtering",
+      "originalRequiredCoverage": "Every level/threshold combination, `None`, disabled outputs, per-output overrides, and union-based `IsEnabled`.",
+      "support": [
+        {
+          "source": "implementations/csharp/tests/CIS.Core.UnitTests/LoggerFoundationTests.cs",
+          "method": "CIS.Tests.UnitTests.LoggerFoundationTests.SharedFoundationCasesExerciseTheActualLogger",
+          "caseIds": [
+            "UT-LOGGER-FOUNDATION-SHARED"
+          ]
+        },
+        {
+          "source": "implementations/csharp/tests/CIS.Core.UnitTests/LoggerFoundationTests.cs",
+          "method": "CIS.Tests.UnitTests.LoggerFoundationTests.ComponentsRejectBlankControlsAndMalformedUnicode",
+          "caseIds": [
+            "UT-LOGGER-COMPONENTS"
+          ]
+        },
+        {
+          "source": "implementations/csharp/tests/CIS.Core.UnitTests/LoggerFoundationTests.cs",
+          "method": "CIS.Tests.UnitTests.LoggerFoundationTests.ComponentBoundsUseScalarsAndPreserveSuppliedSpelling",
+          "caseIds": [
+            "UT-LOGGER-COMPONENT-BOUNDS"
+          ]
+        },
+        {
+          "source": "implementations/csharp/tests/CIS.Core.UnitTests/LoggerFoundationTests.cs",
+          "method": "CIS.Tests.UnitTests.LoggerFoundationTests.RequiredWriteArgumentPrecedesLevelAndClosure",
+          "caseIds": [
+            "UT-LOGGER-REQUIRED-ARGUMENTS"
+          ]
+        },
+        {
+          "source": "implementations/csharp/tests/CIS.Core.UnitTests/LoggerFoundationTests.cs",
+          "method": "CIS.Tests.UnitTests.LoggerFoundationTests.AllLoggerMethodsRejectUndefinedLevelsAfterClosure",
+          "caseIds": [
+            "UT-LOGGER-LEVEL-ARGUMENTS"
+          ]
+        },
+        {
+          "source": "implementations/csharp/tests/CIS.Core.UnitTests/LoggerFoundationTests.cs",
+          "method": "CIS.Tests.UnitTests.LoggerFoundationTests.NoneSkipsMalformedContentAndFactoryButDoesNotOverrideClosure",
+          "caseIds": [
+            "UT-LOGGER-NONE-CLOSURE"
+          ]
+        },
+        {
+          "source": "implementations/csharp/tests/CIS.Core.UnitTests/LoggerFoundationTests.cs",
+          "method": "CIS.Tests.UnitTests.LoggerFoundationTests.FactoryCanCloseAdmissionFromAnotherThreadWithoutHoldingTheGate",
+          "caseIds": [
+            "UT-LOGGER-CALLBACK-GATE"
+          ]
+        },
+        {
+          "source": "implementations/csharp/tests/CIS.Core.UnitTests/LoggerFoundationTests.cs",
+          "method": "CIS.Tests.UnitTests.LoggerFoundationTests.ResultCollectionsAreOwnedAndCannotChangeWithLaterAdmissions",
+          "caseIds": [
+            "UT-LOGGER-RESULT-OWNERSHIP"
+          ]
+        },
+        {
+          "source": "implementations/csharp/tests/CIS.Core.UnitTests/LoggerFoundationTests.cs",
+          "method": "CIS.Tests.UnitTests.LoggerFoundationTests.OwnedEncoderFailureIsNotCountedAsInvalidCallerContent",
+          "caseIds": [
+            "UT-LOGGER-OWNED-ENCODER-FAULT"
+          ]
+        },
+        {
+          "source": "implementations/csharp/tests/CIS.Core.UnitTests/LoggerFoundationTests.cs",
+          "method": "CIS.Tests.UnitTests.LoggerFoundationTests.ComparatorRejectsCorruptedOriginalBytes",
+          "caseIds": [
+            "UT-LOGGER-RAW-BYTE-CONTROLS"
+          ]
+        },
+        {
+          "source": "implementations/csharp/tests/CIS.Core.UnitTests/LoggerOutcomeTests.cs",
+          "method": "CIS.Tests.UnitTests.LoggerOutcomeTests.CompleteOutcomeTableMatchesRealLoggerInterestAndAdmission",
+          "caseIds": [
+            "UT-LOGGER-OUTCOME"
+          ]
+        },
+        {
+          "source": "implementations/csharp/tests/CIS.Core.UnitTests/LoggerOutcomeTests.cs",
+          "method": "CIS.Tests.UnitTests.LoggerOutcomeTests.CatalogIncludesEachOrderedOutputPairForDirectAndLazyCalls",
+          "caseIds": [
+            "UT-LOGGER-OUTCOME-TABLE"
+          ]
+        },
+        {
+          "source": "implementations/csharp/tests/CIS.Core.UnitTests/LoggerOutcomeTests.cs",
+          "method": "CIS.Tests.UnitTests.LoggerOutcomeTests.ComparatorRejectsAlteredOutcomeAdmissionAndWireObservations",
+          "caseIds": [
+            "UT-LOGGER-OUTCOME-CONTROLS"
+          ]
+        }
+      ],
+      "boundary": "Existing actual Core tests and controlled deterministic fixtures; complete concurrency/discovery/coverage reconciliation remains WP07-S01-T03/T04/T05."
+    },
+    {
+      "area": "Deferred work",
+      "originalRequiredCoverage": "No factory invocation when filtered; at most one invocation when interested; documented factory exception behavior.",
+      "support": [
+        {
+          "source": "implementations/csharp/tests/CIS.Core.UnitTests/LoggerDecisionTests.cs",
+          "method": "CIS.Tests.UnitTests.LoggerDecisionTests.SharedDecisionCasesObserveArgumentsThenStateThenCaptureThenAdmission",
+          "caseIds": [
+            "UT-LOGGER-DECISION-ORDER"
+          ]
+        },
+        {
+          "source": "implementations/csharp/tests/CIS.Core.UnitTests/LoggerDecisionTests.cs",
+          "method": "CIS.Tests.UnitTests.LoggerDecisionTests.IsEnabledValidatesUndefinedLevelsBeforeClosedOrFaultedState",
+          "caseIds": [
+            "UT-LOGGER-ISENABLED-VALIDATION"
+          ]
+        },
+        {
+          "source": "implementations/csharp/tests/CIS.Core.UnitTests/LoggerDecisionTests.cs",
+          "method": "CIS.Tests.UnitTests.LoggerDecisionTests.ComparatorRejectsAlteredExecutionObservations",
+          "caseIds": [
+            "UT-LOGGER-DECISION-CONTROLS"
+          ]
+        },
+        {
+          "source": "implementations/csharp/tests/CIS.Core.UnitTests/LoggerCaptureTests.cs",
+          "method": "CIS.Tests.UnitTests.LoggerCaptureTests.SharedCaptureCasesQualifyLazyRejectionOutcomesAndOutputOwnedTickets",
+          "caseIds": [
+            "UT-LOGGER-CAPTURE"
+          ]
+        },
+        {
+          "source": "implementations/csharp/tests/CIS.Core.UnitTests/LoggerCaptureTests.cs",
+          "method": "CIS.Tests.UnitTests.LoggerCaptureTests.GlobalLossCountersSaturateInsteadOfWrapping",
+          "caseIds": [
+            "UT-LOGGER-COUNTER-SATURATION"
+          ]
+        },
+        {
+          "source": "implementations/csharp/tests/CIS.Core.UnitTests/LoggerCaptureTests.cs",
+          "method": "CIS.Tests.UnitTests.LoggerCaptureTests.ConcurrentWritesCountEachCaptureAndFactoryOnce",
+          "caseIds": [
+            "UT-LOGGER-CONCURRENT-COUNTS"
+          ]
+        },
+        {
+          "source": "implementations/csharp/tests/CIS.Core.UnitTests/LoggerCaptureTests.cs",
+          "method": "CIS.Tests.UnitTests.LoggerCaptureTests.ProtocolInvalidOutputCannotInventOrHideTickets",
+          "caseIds": [
+            "UT-LOGGER-PROTOCOL-TICKETS"
+          ]
+        },
+        {
+          "source": "implementations/csharp/tests/CIS.Core.UnitTests/LoggerCaptureTests.cs",
+          "method": "CIS.Tests.UnitTests.LoggerCaptureTests.ComparatorRejectsFalseCaptureAndTicketObservations",
+          "caseIds": [
+            "UT-LOGGER-CAPTURE-CONTROLS"
+          ]
+        }
+      ],
+      "boundary": "Existing actual Core tests and controlled deterministic fixtures; complete concurrency/discovery/coverage reconciliation remains WP07-S01-T03/T04/T05."
+    },
+    {
+      "area": "Serialization",
+      "originalRequiredCoverage": "Unicode, quotes, control characters, line breaks, nulls, bounds, safe numbers, decimal strings, and valid exception projection.",
+      "support": [
+        {
+          "source": "implementations/csharp/tests/CIS.Core.UnitTests/EventEncodingTests.cs",
+          "method": "CIS.Tests.UnitTests.EventEncodingTests.AllTypedValuesAndOptionalFactsRoundTripAsOneOwnedRecord",
+          "caseIds": [
+            "UT-EVENT-ENCODING-TYPES"
+          ]
+        },
+        {
+          "source": "implementations/csharp/tests/CIS.Core.UnitTests/EventEncodingTests.cs",
+          "method": "CIS.Tests.UnitTests.EventEncodingTests.JsonEscapingRoundTripsControlsAndUnicodeWithoutRawLines",
+          "caseIds": [
+            "UT-EVENT-ENCODING-ESCAPING"
+          ]
+        },
+        {
+          "source": "implementations/csharp/tests/CIS.Core.UnitTests/EventEncodingTests.cs",
+          "method": "CIS.Tests.UnitTests.EventEncodingTests.NumberFormattingPreservesFiniteDoubleAndActualMeasuredBytes",
+          "caseIds": [
+            "UT-EVENT-ENCODING-NUMBERS"
+          ]
+        },
+        {
+          "source": "implementations/csharp/tests/CIS.Core.UnitTests/EventEncodingTests.cs",
+          "method": "CIS.Tests.UnitTests.EventEncodingTests.ExactlyAtCapFitsAndOneExtraByteTriggersMarkedTruncationIncludingLf",
+          "caseIds": [
+            "UT-EVENT-ENCODING-EXACT-CAP"
+          ]
+        },
+        {
+          "source": "implementations/csharp/tests/CIS.Core.UnitTests/EventEncodingTests.cs",
+          "method": "CIS.Tests.UnitTests.EventEncodingTests.EscapedByteBoundaryNeverSplitsAScalar",
+          "caseIds": [
+            "UT-EVENT-ENCODING-SCALARS"
+          ]
+        },
+        {
+          "source": "implementations/csharp/tests/CIS.Core.UnitTests/EventEncodingTests.cs",
+          "method": "CIS.Tests.UnitTests.EventEncodingTests.MessageThenOrdinalAttributesWinBeforeExceptionTemplateAndDescriptions",
+          "caseIds": [
+            "UT-EVENT-ENCODING-PRIORITY"
+          ]
+        },
+        {
+          "source": "implementations/csharp/tests/CIS.Core.UnitTests/EventEncodingTests.cs",
+          "method": "CIS.Tests.UnitTests.EventEncodingTests.SortedMapBudgetIsIndependentOfInsertionOrderAndKeepsArrayOrder",
+          "caseIds": [
+            "UT-EVENT-ENCODING-ORDER"
+          ]
+        },
+        {
+          "source": "implementations/csharp/tests/CIS.Core.UnitTests/EventEncodingTests.cs",
+          "method": "CIS.Tests.UnitTests.EventEncodingTests.IndivisibleStringRepresentationsAreOmittedWholeWhenOnlyQuotesFit",
+          "caseIds": [
+            "UT-EVENT-ENCODING-ATOMIC"
+          ]
+        },
+        {
+          "source": "implementations/csharp/tests/CIS.Core.UnitTests/EventEncodingTests.cs",
+          "method": "CIS.Tests.UnitTests.EventEncodingTests.OmittedAtomicAttributeDoesNotPreventLaterSmallValuesFromFitting",
+          "caseIds": [
+            "UT-EVENT-ENCODING-SKIP"
+          ]
+        },
+        {
+          "source": "implementations/csharp/tests/CIS.Core.UnitTests/EventEncodingTests.cs",
+          "method": "CIS.Tests.UnitTests.EventEncodingTests.NestedCollectionsRetainTheirShapesAndExceptionRetainsLocalMarker",
+          "caseIds": [
+            "UT-EVENT-ENCODING-SHAPES"
+          ]
+        },
+        {
+          "source": "implementations/csharp/tests/CIS.Core.UnitTests/EventEncodingTests.cs",
+          "method": "CIS.Tests.UnitTests.EventEncodingTests.EarlierScalarProjectionLossRemainsMarkedEvenWhenEncodedEntryFits",
+          "caseIds": [
+            "UT-EVENT-ENCODING-PRIOR-LOSS"
+          ]
+        },
+        {
+          "source": "implementations/csharp/tests/CIS.Core.UnitTests/EventEncodingTests.cs",
+          "method": "CIS.Tests.UnitTests.EventEncodingTests.OversizedProtectedEnvelopeHasSpecificFailureAndDoesNotAlterFacts",
+          "caseIds": [
+            "UT-EVENT-ENCODING-ENVELOPE"
+          ]
+        },
+        {
+          "source": "implementations/csharp/tests/CIS.Core.UnitTests/EventEncodingTests.cs",
+          "method": "CIS.Tests.UnitTests.EventEncodingTests.EncoderRejectsInvalidConfiguredLimits",
+          "caseIds": [
+            "UT-EVENT-ENCODING-CONFIG-RANGE"
+          ]
+        },
+        {
+          "source": "implementations/csharp/tests/CIS.Core.UnitTests/EventEncodingTests.cs",
+          "method": "CIS.Tests.UnitTests.EventEncodingTests.EncoderRequiresOwnedFacts",
+          "caseIds": [
+            "UT-EVENT-ENCODING-REQUIRED-FACTS"
+          ]
+        },
+        {
+          "source": "implementations/csharp/tests/CIS.Core.UnitTests/EventEncodingTests.cs",
+          "method": "CIS.Tests.UnitTests.EventEncodingTests.HugeAttachmentDoesNotCreateAFullEscapedSecondaryRepresentation",
+          "caseIds": [
+            "UT-EVENT-ENCODING-ALLOCATION"
+          ]
+        },
+        {
+          "source": "implementations/csharp/tests/CIS.Core.UnitTests/EventEncodingTests.cs",
+          "method": "CIS.Tests.UnitTests.EventEncodingTests.BudgetDoesNotInventEmptyOptionalStringsButKeepsSuppliedEmptyValues",
+          "caseIds": [
+            "UT-EVENT-ENCODING-EMPTY-OPTIONAL"
+          ]
+        },
+        {
+          "source": "implementations/csharp/tests/CIS.Core.UnitTests/ExceptionQualificationTests.cs",
+          "method": "CIS.Tests.UnitTests.ExceptionQualificationTests.EverySharedExceptionRowCapturesOnceAgainstCoreAcrossCultures",
+          "caseIds": [
+            "UT-EXCEPTION-T04-01"
+          ]
+        },
+        {
+          "source": "implementations/csharp/tests/CIS.Core.UnitTests/ExceptionQualificationTests.cs",
+          "method": "CIS.Tests.UnitTests.ExceptionQualificationTests.SharedComparatorRejectsIncorrectTreeLossReadsTypesAndErrors",
+          "caseIds": [
+            "UT-EXCEPTION-T04-02"
+          ]
+        },
+        {
+          "source": "implementations/csharp/tests/CIS.Core.UnitTests/ExceptionQualificationTests.cs",
+          "method": "CIS.Tests.UnitTests.ExceptionQualificationTests.OwnedTextAndShapeExposeStableInputsForLaterAggregateSizing",
+          "caseIds": [
+            "UT-EXCEPTION-T04-03"
+          ]
+        },
+        {
+          "source": "implementations/csharp/tests/CIS.Core.UnitTests/ExceptionQualificationTests.cs",
+          "method": "CIS.Tests.UnitTests.ExceptionQualificationTests.BothNativeFixtureTypesHaveArmedExcludedGetterTraps",
+          "caseIds": [
+            "UT-EXCEPTION-T04-07"
+          ]
+        }
+      ],
+      "boundary": "Existing actual Core tests and controlled deterministic fixtures; complete concurrency/discovery/coverage reconciliation remains WP07-S01-T03/T04/T05."
+    },
+    {
+      "area": "Context",
+      "originalRequiredCoverage": "Nested scopes, event overrides, reserved keys, asynchronous flow, and concurrent isolation.",
+      "support": [
+        {
+          "source": "implementations/csharp/tests/CIS.Core.UnitTests/OperationScopeQualificationTests.cs",
+          "method": "CIS.Tests.UnitTests.OperationScopeQualificationTests.EverySharedScopeScenarioExecutesAgainstCoreWithBarriers",
+          "caseIds": [
+            "UT-SCOPE-T04-01"
+          ]
+        },
+        {
+          "source": "implementations/csharp/tests/CIS.Core.UnitTests/OperationScopeQualificationTests.cs",
+          "method": "CIS.Tests.UnitTests.OperationScopeQualificationTests.CompleteScopeComparatorRejectsChangedIdsValuesOrderTypesAndFields",
+          "caseIds": [
+            "UT-SCOPE-T04-02"
+          ]
+        },
+        {
+          "source": "implementations/csharp/tests/CIS.Core.UnitTests/OperationScopeQualificationTests.cs",
+          "method": "CIS.Tests.UnitTests.OperationScopeQualificationTests.JoinedFixtureReportsEveryWorkerFailureWithoutDuplicatingReadiness",
+          "caseIds": [
+            "UT-SCOPE-T04-05"
+          ]
+        },
+        {
+          "source": "implementations/csharp/tests/CIS.Core.UnitTests/OperationScopeQualificationTests.cs",
+          "method": "CIS.Tests.UnitTests.OperationScopeQualificationTests.JoinedFixturePreservesAnIndependentControllerFailureAfterWorkersComplete",
+          "caseIds": [
+            "UT-SCOPE-T04-06"
+          ]
+        },
+        {
+          "source": "implementations/csharp/tests/CIS.Core.UnitTests/PublicOperationScopeTests.cs",
+          "method": "CIS.Tests.UnitTests.PublicOperationScopeTests.PublicScopesCopyInputsRejectBadLifoAndRestoreAcrossAwait",
+          "caseIds": [
+            "UT-PUBLIC-SCOPE-COPY"
+          ]
+        },
+        {
+          "source": "implementations/csharp/tests/CIS.Core.UnitTests/PublicOperationScopeTests.cs",
+          "method": "CIS.Tests.UnitTests.PublicOperationScopeTests.PublicScopeNullGuardPrecedesClosedStateAndValidScopeCannotStartAfterStop",
+          "caseIds": [
+            "UT-PUBLIC-SCOPE-GUARDS"
+          ]
+        },
+        {
+          "source": "implementations/csharp/tests/CIS.Core.UnitTests/PublicOperationScopeTests.cs",
+          "method": "CIS.Tests.UnitTests.PublicOperationScopeTests.CreatorCanDisposeExistingScopeAfterRuntimeStopAndRepeatSafely",
+          "caseIds": [
+            "UT-PUBLIC-SCOPE-STOP"
+          ]
+        },
+        {
+          "source": "implementations/csharp/tests/CIS.Core.UnitTests/EventPrecedenceTests.cs",
+          "method": "CIS.Tests.UnitTests.EventPrecedenceTests.LiteralSharedPrecedenceUsesActualOwnedCoreFacts",
+          "caseIds": [
+            "UT-EVENT-T02-01"
+          ]
+        },
+        {
+          "source": "implementations/csharp/tests/CIS.Core.UnitTests/EventPrecedenceTests.cs",
+          "method": "CIS.Tests.UnitTests.EventPrecedenceTests.IdentifierScalarBoundsApplyAfterTrimWithoutClippingOrStateMutation",
+          "caseIds": [
+            "UT-EVENT-T02-02"
+          ]
+        },
+        {
+          "source": "implementations/csharp/tests/CIS.Core.UnitTests/EventPrecedenceTests.cs",
+          "method": "CIS.Tests.UnitTests.EventPrecedenceTests.ExplicitWinnerKeepsItsTypedKindAndReplacesTheWholeScopeValue",
+          "caseIds": [
+            "UT-EVENT-T02-03"
+          ]
+        },
+        {
+          "source": "implementations/csharp/tests/CIS.Core.UnitTests/EventPrecedenceTests.cs",
+          "method": "CIS.Tests.UnitTests.EventPrecedenceTests.OriginalPrecedenceVectorsExecuteAgainstActualScopeAndEventFacts",
+          "caseIds": [
+            "UT-EVENT-T02-04"
+          ]
+        },
+        {
+          "source": "implementations/csharp/tests/CIS.Core.UnitTests/EventPrecedenceTests.cs",
+          "method": "CIS.Tests.UnitTests.EventPrecedenceTests.PrecedenceComparatorRejectsWrongWinnersAndFreeFormPromotion",
+          "caseIds": [
+            "UT-EVENT-T02-05"
+          ]
+        },
+        {
+          "source": "implementations/csharp/tests/CIS.Core.UnitTests/EventPrecedenceTests.cs",
+          "method": "CIS.Tests.UnitTests.EventPrecedenceTests.LaterScopesAndEventMutationsCannotChangeEarlierOwnedWinners",
+          "caseIds": [
+            "UT-EVENT-T02-06"
+          ]
+        }
+      ],
+      "boundary": "Existing actual Core tests and controlled deterministic fixtures; complete concurrency/discovery/coverage reconciliation remains WP07-S01-T03/T04/T05."
+    },
+    {
+      "area": "Delivery",
+      "originalRequiredCoverage": "Queue-full rejection, accepted/completed sequencing, writer failure, global invalid-event loss, non-monotonic pending gauges, flush boundaries/control bounds, wall-clock corrections, stopped-plus-None precedence, stop races, cancellation, and idempotent disposal.",
+      "support": [
+        {
+          "source": "implementations/csharp/tests/CIS.Core.UnitTests/DeliveryObservationTests.cs",
+          "method": "CIS.Tests.UnitTests.DeliveryObservationTests.CompletePartialAndUnresolvedStreamsKeepTruthfulBoundaries",
+          "caseIds": [
+            "UT-DELIVERY-ROWS"
+          ]
+        },
+        {
+          "source": "implementations/csharp/tests/CIS.Core.UnitTests/DeliveryObservationTests.cs",
+          "method": "CIS.Tests.UnitTests.DeliveryObservationTests.DeliveryMatcherRejectsPrematureConfirmationAndUntruthfulObservations",
+          "caseIds": [
+            "UT-DELIVERY-CORRUPTION"
+          ]
+        },
+        {
+          "source": "implementations/csharp/tests/CIS.Core.UnitTests/DeliveryObservationTests.cs",
+          "method": "CIS.Tests.UnitTests.DeliveryObservationTests.LiveAccountingRefusesToInventFactsForAdmissionDoubles",
+          "caseIds": [
+            "UT-DELIVERY-REAL-COMPOSITION"
+          ]
+        },
+        {
+          "source": "implementations/csharp/tests/CIS.Core.UnitTests/DeliveryObservationTests.cs",
+          "method": "CIS.Tests.UnitTests.DeliveryObservationTests.SynchronousTerminalWriteFailureIsFailedWithItsOriginalException",
+          "caseIds": [
+            "UT-DELIVERY-SYNC-FAULT"
+          ]
+        },
+        {
+          "source": "implementations/csharp/tests/CIS.Core.UnitTests/DeliveryObservationTests.cs",
+          "method": "CIS.Tests.UnitTests.DeliveryObservationTests.LiveRuntimeBoundariesStayConsistentDuringConcurrentFanoutAndGlobalLoss",
+          "caseIds": [
+            "UT-DELIVERY-CONCURRENT"
+          ]
+        },
+        {
+          "source": "implementations/csharp/tests/CIS.Core.UnitTests/FlushStressTests.cs",
+          "method": "CIS.Tests.UnitTests.FlushStressTests.PublicFlushStressUsesActualQueuesWritersTimersAndMeasuredStorage",
+          "caseIds": []
+        },
+        {
+          "source": "implementations/csharp/tests/CIS.Core.UnitTests/StopJoinTests.cs",
+          "method": "CIS.Tests.UnitTests.StopJoinTests.CallerCancellationAndDisposalJoinTheOriginalBoundedOperation",
+          "caseIds": []
+        },
+        {
+          "source": "implementations/csharp/tests/CIS.Core.UnitTests/StopDrainTests.cs",
+          "method": "CIS.Tests.UnitTests.StopDrainTests.ActualQueuedDrainDistinguishesAbandonmentFromUnresolvedIo",
+          "caseIds": []
+        },
+        {
+          "source": "implementations/csharp/tests/CIS.Core.UnitTests/StopDrainTests.cs",
+          "method": "CIS.Tests.UnitTests.StopDrainTests.FileQueueCancellationKeepsOwnedResourceUntilItsActualWriteSettles",
+          "caseIds": []
+        },
+        {
+          "source": "implementations/csharp/tests/CIS.Core.UnitTests/StopStartTests.cs",
+          "method": "CIS.Tests.UnitTests.StopStartTests.EmptyStopClosesOnceAndAlreadyCancelledCallerStillInitiates",
+          "caseIds": []
+        },
+        {
+          "source": "implementations/csharp/tests/CIS.Core.UnitTests/StopStartTests.cs",
+          "method": "CIS.Tests.UnitTests.StopStartTests.OneOriginalDeadlineSurvivesRepeatedCallersAndOptionOrUtcChanges",
+          "caseIds": []
+        },
+        {
+          "source": "implementations/csharp/tests/CIS.Core.UnitTests/StopStartTests.cs",
+          "method": "CIS.Tests.UnitTests.StopStartTests.AWrittenRecordWithBlockedFinalFlushRemainsTimedOutWithoutRewritingResult",
+          "caseIds": []
+        },
+        {
+          "source": "implementations/csharp/tests/CIS.Core.UnitTests/StopStartTests.cs",
+          "method": "CIS.Tests.UnitTests.StopStartTests.NormalDualStopFlushesOriginalIndependentTargetsAndSharesOwnedResult",
+          "caseIds": []
+        },
+        {
+          "source": "implementations/csharp/tests/CIS.Core.UnitTests/StopStartTests.cs",
+          "method": "CIS.Tests.UnitTests.StopStartTests.TerminalFlushFailureReturnsActualFailedStopResult",
+          "caseIds": []
+        },
+        {
+          "source": "implementations/csharp/tests/CIS.Core.UnitTests/StopStartTests.cs",
+          "method": "CIS.Tests.UnitTests.StopStartTests.InvalidShutdownTimeoutIsRejectedBeforeOutputAcquisition",
+          "caseIds": []
+        },
+        {
+          "source": "implementations/csharp/tests/CIS.Core.UnitTests/StopStartTests.cs",
+          "method": "CIS.Tests.UnitTests.StopStartTests.CancelledWaitDetachesFromLiveSharedStopAndPreservesInitialFacts",
+          "caseIds": []
+        },
+        {
+          "source": "implementations/csharp/tests/CIS.Core.UnitTests/OutputAccountingTests.cs",
+          "method": "CIS.Tests.UnitTests.OutputAccountingTests.ActualWorkersKeepCumulativeCountsAndUnresolvedGauges",
+          "caseIds": [
+            "UT-ACCOUNTING-ROWS"
+          ]
+        },
+        {
+          "source": "implementations/csharp/tests/CIS.Core.UnitTests/OutputAccountingTests.cs",
+          "method": "CIS.Tests.UnitTests.OutputAccountingTests.AccountingMatcherRejectsInventedLostOrMutatedCounts",
+          "caseIds": [
+            "UT-ACCOUNTING-CORRUPTION"
+          ]
+        },
+        {
+          "source": "implementations/csharp/tests/CIS.Core.UnitTests/OutputAccountingTests.cs",
+          "method": "CIS.Tests.UnitTests.OutputAccountingTests.RejectionCountersAndAggregatesSaturateWithoutWrapping",
+          "caseIds": [
+            "UT-ACCOUNTING-SATURATION"
+          ]
+        },
+        {
+          "source": "implementations/csharp/tests/CIS.Core.UnitTests/OutputAccountingTests.cs",
+          "method": "CIS.Tests.UnitTests.OutputAccountingTests.ConcurrentAdmissionsPreserveOneConsistentAcceptedPartition",
+          "caseIds": [
+            "UT-ACCOUNTING-CONCURRENT"
+          ]
+        }
+      ],
+      "boundary": "Existing actual Core tests and controlled deterministic fixtures; complete concurrency/discovery/coverage reconciliation remains WP07-S01-T03/T04/T05."
+    },
+    {
+      "area": "File policy",
+      "originalRequiredCoverage": "Encoded size boundaries, segment naming, retention ownership, format/encoding mismatch, missing inventory, ordering, interrupted-rotation recovery, and preservation of pre-existing files during startup rollback.",
+      "support": [
+        {
+          "source": "implementations/csharp/tests/CIS.Core.UnitTests/FileRetentionTests.cs",
+          "method": "CIS.Tests.UnitTests.FileRetentionTests.NewestSegmentIdsAndBytesSurviveRepeatedRotationAndRestart",
+          "caseIds": []
+        },
+        {
+          "source": "implementations/csharp/tests/CIS.Core.UnitTests/FileRetentionTests.cs",
+          "method": "CIS.Tests.UnitTests.FileRetentionTests.LowerStartupLimitPreservesAllDataAndReleasesAcquiredHandles",
+          "caseIds": []
+        },
+        {
+          "source": "implementations/csharp/tests/CIS.Core.UnitTests/FileRetentionTests.cs",
+          "method": "CIS.Tests.UnitTests.FileRetentionTests.ListedIdentityOrderCountsDamagedSegmentsAndPreservesUnlistedNeighbors",
+          "caseIds": []
+        },
+        {
+          "source": "implementations/csharp/tests/CIS.Core.UnitTests/FileRetentionTests.cs",
+          "method": "CIS.Tests.UnitTests.FileRetentionTests.ConfiguredStartupFailureJoinsWorkersWithoutPruningExistingData",
+          "caseIds": []
+        },
+        {
+          "source": "implementations/csharp/tests/CIS.Core.UnitTests/FileRotationTests.cs",
+          "method": "CIS.Tests.UnitTests.FileRotationTests.EncodedUtf8AndLfDetermineExactSegmentBoundary",
+          "caseIds": []
+        },
+        {
+          "source": "implementations/csharp/tests/CIS.Core.UnitTests/FileRotationTests.cs",
+          "method": "CIS.Tests.UnitTests.FileRotationTests.ExistingFullSegmentRotatesBeforeFirstIncomingRecord",
+          "caseIds": []
+        },
+        {
+          "source": "implementations/csharp/tests/CIS.Core.UnitTests/FileRotationTests.cs",
+          "method": "CIS.Tests.UnitTests.FileRotationTests.RecordLargerThanAnEmptySegmentNeverCreatesEmptyRotations",
+          "caseIds": []
+        },
+        {
+          "source": "implementations/csharp/tests/CIS.Core.UnitTests/FileRotationTests.cs",
+          "method": "CIS.Tests.UnitTests.FileRotationTests.ClosedNameCollisionPreservesBothFilesAndInventory",
+          "caseIds": []
+        },
+        {
+          "source": "implementations/csharp/tests/CIS.Core.UnitTests/FileRotationTests.cs",
+          "method": "CIS.Tests.UnitTests.FileRotationTests.FailedMetadataPublicationPreservesClosedBytesAndLeavesNoAppendableActivePath",
+          "caseIds": []
+        },
+        {
+          "source": "implementations/csharp/tests/CIS.Core.UnitTests/FileRotationTests.cs",
+          "method": "CIS.Tests.UnitTests.FileRotationTests.ExhaustedSegmentIdentityFailsBeforeRetiringOrRenamingData",
+          "caseIds": []
+        },
+        {
+          "source": "implementations/csharp/tests/CIS.Core.UnitTests/FileRotationTests.cs",
+          "method": "CIS.Tests.UnitTests.FileRotationTests.MaximumInventoryRotatesWithinTheReadableBound",
+          "caseIds": []
+        },
+        {
+          "source": "implementations/csharp/tests/CIS.Core.UnitTests/FileInventoryTests.cs",
+          "method": "CIS.Tests.UnitTests.FileInventoryTests.EmptyGroupRecordsItsFormatAndRetainsIdentityAcrossRestart",
+          "caseIds": []
+        },
+        {
+          "source": "implementations/csharp/tests/CIS.Core.UnitTests/FileInventoryTests.cs",
+          "method": "CIS.Tests.UnitTests.FileInventoryTests.NonemptyMissingInventoryFailsWithoutInferringFormatOrChangingBytes",
+          "caseIds": []
+        },
+        {
+          "source": "implementations/csharp/tests/CIS.Core.UnitTests/FileInventoryTests.cs",
+          "method": "CIS.Tests.UnitTests.FileInventoryTests.MalformedOrIncompatibleInventoryPreservesAllBytesAndReleasesOwnership",
+          "caseIds": []
+        },
+        {
+          "source": "implementations/csharp/tests/CIS.Core.UnitTests/FileInventoryTests.cs",
+          "method": "CIS.Tests.UnitTests.FileInventoryTests.CompatibleOwnedClosedAndDamagedMembersAreInspectedWithoutModification",
+          "caseIds": []
+        },
+        {
+          "source": "implementations/csharp/tests/CIS.Core.UnitTests/FileInventoryTests.cs",
+          "method": "CIS.Tests.UnitTests.FileInventoryTests.ExistingEvenEmptyGroupRequiresArchivalBeforeFormatSwitch",
+          "caseIds": []
+        },
+        {
+          "source": "implementations/csharp/tests/CIS.Core.UnitTests/FileInventoryTests.cs",
+          "method": "CIS.Tests.UnitTests.FileInventoryTests.MissingActiveSegmentCannotSilentlyReuseAnExistingIdentity",
+          "caseIds": []
+        },
+        {
+          "source": "implementations/csharp/tests/CIS.Core.UnitTests/FileInventoryTests.cs",
+          "method": "CIS.Tests.UnitTests.FileInventoryTests.InvalidFormatAndDisposedOwnerCannotCreateInventory",
+          "caseIds": []
+        },
+        {
+          "source": "implementations/csharp/tests/CIS.Core.UnitTests/FileInventoryTests.cs",
+          "method": "CIS.Tests.UnitTests.FileInventoryTests.InventoryDirectoryCollisionIsPreservedAndReleasesOwnedHandles",
+          "caseIds": []
+        },
+        {
+          "source": "implementations/csharp/tests/CIS.Core.UnitTests/FileInventoryTests.cs",
+          "method": "CIS.Tests.UnitTests.FileInventoryTests.InventoryCountIsBoundedAtMaximumRetainedSegmentsPlusActive",
+          "caseIds": []
+        },
+        {
+          "source": "implementations/csharp/tests/CIS.Core.UnitTests/FileTransitionTests.cs",
+          "method": "CIS.Tests.UnitTests.FileTransitionTests.KnownTransitionsResumeExactlyOnceWithoutChangingSurvivingEvidence",
+          "caseIds": []
+        },
+        {
+          "source": "implementations/csharp/tests/CIS.Core.UnitTests/FileTransitionTests.cs",
+          "method": "CIS.Tests.UnitTests.FileTransitionTests.AmbiguousOrInvalidTransitionFailsBeforeChangingAnyExistingBytes",
+          "caseIds": []
+        },
+        {
+          "source": "implementations/csharp/tests/CIS.Core.UnitTests/FileTransitionTests.cs",
+          "method": "CIS.Tests.UnitTests.FileTransitionTests.NewlySelectedBoundsFailBeforeCompletingAnInterruptedTransition",
+          "caseIds": []
+        },
+        {
+          "source": "implementations/csharp/tests/CIS.Core.UnitTests/FileTransitionTests.cs",
+          "method": "CIS.Tests.UnitTests.FileTransitionTests.RetirementBeforeIntentCannotBeGuessedAndFailsUnchanged",
+          "caseIds": []
+        },
+        {
+          "source": "implementations/csharp/tests/CIS.Core.UnitTests/FileTransitionTests.cs",
+          "method": "CIS.Tests.UnitTests.FileTransitionTests.NormalRotationRetiresDamagedAndClosedMembersByPersistentId",
+          "caseIds": []
+        },
+        {
+          "source": "implementations/csharp/tests/CIS.Core.UnitTests/FileRecoveryTests.cs",
+          "method": "CIS.Tests.UnitTests.FileRecoveryTests.RecoveryPreservesTheWholePartialSegmentUnderItsPersistentIdentity",
+          "caseIds": []
+        },
+        {
+          "source": "implementations/csharp/tests/CIS.Core.UnitTests/FileRecoveryTests.cs",
+          "method": "CIS.Tests.UnitTests.FileRecoveryTests.IneligibleOwnersCannotRecoverOrChangeExistingBytes",
+          "caseIds": []
+        },
+        {
+          "source": "implementations/csharp/tests/CIS.Core.UnitTests/FileRecoveryTests.cs",
+          "method": "CIS.Tests.UnitTests.FileRecoveryTests.PredictableRecoveryFailuresPreserveAllPreimagesAndReleaseOwnership",
+          "caseIds": []
+        },
+        {
+          "source": "implementations/csharp/tests/CIS.Core.UnitTests/FileRecoveryTests.cs",
+          "method": "CIS.Tests.UnitTests.FileRecoveryTests.SuccessiveRecoveriesUseDistinctIncreasingDamagedIdsWithoutOverwritingEarlierDamage",
+          "caseIds": []
+        },
+        {
+          "source": "implementations/csharp/tests/CIS.Core.UnitTests/FileRecoveryTests.cs",
+          "method": "CIS.Tests.UnitTests.FileRecoveryTests.StartupRecoveryDiagnosticIsOwnedStickyAndDoesNotInventDeliveryFailures",
+          "caseIds": []
+        },
+        {
+          "source": "implementations/csharp/tests/CIS.Core.UnitTests/FileRecoveryTests.cs",
+          "method": "CIS.Tests.UnitTests.FileRecoveryTests.HumanPartialBoundaryStillFailsUnchangedInsteadOfJsonlRecovery",
+          "caseIds": []
+        },
+        {
+          "source": "implementations/csharp/tests/CIS.Core.UnitTests/FileRuntimeStartupTests.cs",
+          "method": "CIS.Tests.UnitTests.FileRuntimeStartupTests.ConfiguredOutputsWriteOrRollbackWithoutLeakingResources",
+          "caseIds": []
+        },
+        {
+          "source": "implementations/csharp/tests/CIS.Core.UnitTests/FileRuntimeStartupTests.cs",
+          "method": "CIS.Tests.UnitTests.FileRuntimeStartupTests.InvalidInputsFailBeforeAnyStreamWorkerOrDirectory",
+          "caseIds": []
+        },
+        {
+          "source": "implementations/csharp/tests/CIS.Core.UnitTests/FileRuntimeStartupTests.cs",
+          "method": "CIS.Tests.UnitTests.FileRuntimeStartupTests.StartupComparerRejectsChangedRollbackFacts",
+          "caseIds": []
+        },
+        {
+          "source": "implementations/csharp/tests/CIS.Core.UnitTests/FileRuntimeStartupTests.cs",
+          "method": "CIS.Tests.UnitTests.FileRuntimeStartupTests.OwnedCleanupCompletesBeforeWorkerCompletionAndRunsOutsideAdmissionGate",
+          "caseIds": []
+        }
+      ],
+      "boundary": "Existing actual Core tests and controlled deterministic fixtures; complete concurrency/discovery/coverage reconciliation remains WP07-S01-T03/T04/T05."
+    }
+  ],
+  "integrationScenarios": [
+    {
+      "scenario": "human normal/verbose output",
+      "support": [
+        {
+          "source": "implementations/csharp/tests/CIS.Core.IntegrationTests/HumanRenderingProcessTests.cs",
+          "method": "CIS.Tests.IntegrationTests.HumanRenderingProcessTests.HumanRenderingRunsInAnIsolatedExactRuntimeChild",
+          "caseIds": [
+            "IT-HUMAN-PROCESS"
+          ]
+        },
+        {
+          "source": "implementations/csharp/tests/CIS.Core.IntegrationTests/ConsoleConsumerProcessTests.cs",
+          "method": "CIS.Tests.IntegrationTests.ConsoleConsumerProcessTests.SameCompiledConsumerUsesEnvironmentAndDrainsBothStreams",
+          "caseIds": [
+            "INT-CONSOLE-CONSUMERS-SHARED"
+          ]
+        },
+        {
+          "source": "implementations/csharp/tests/CIS.Core.IntegrationTests/ConsoleConsumerProcessTests.cs",
+          "method": "CIS.Tests.IntegrationTests.ConsoleConsumerProcessTests.ConsumerComparerRejectsSpecificCorruption",
+          "caseIds": [
+            "INT-CONSOLE-CONSUMERS-CONTROLS"
+          ]
+        }
+      ],
+      "status": "Development source-reference process evidence; candidate-package qualification pending WP07-S01-T02.",
+      "boundary": "Physical console/files where supported; queue pressure, failure and deadlines include controlled streams/callbacks. Concurrent drains and finite deadlines do not establish hosted ingestion."
+    },
+    {
+      "scenario": "JSONL",
+      "support": [
+        {
+          "source": "implementations/csharp/tests/CIS.Core.IntegrationTests/EventEncodingProcessTests.cs",
+          "method": "CIS.Tests.IntegrationTests.EventEncodingProcessTests.JsonEncodingRunsInAnIsolatedExactRuntimeChild",
+          "caseIds": [
+            "INT-EVENT-ENCODING-SHARED"
+          ]
+        },
+        {
+          "source": "implementations/csharp/tests/CIS.Core.IntegrationTests/ConsoleConsumerProcessTests.cs",
+          "method": "CIS.Tests.IntegrationTests.ConsoleConsumerProcessTests.SameCompiledConsumerUsesEnvironmentAndDrainsBothStreams",
+          "caseIds": [
+            "INT-CONSOLE-CONSUMERS-SHARED"
+          ]
+        },
+        {
+          "source": "implementations/csharp/tests/CIS.Core.IntegrationTests/ConsoleConsumerProcessTests.cs",
+          "method": "CIS.Tests.IntegrationTests.ConsoleConsumerProcessTests.ConsumerComparerRejectsSpecificCorruption",
+          "caseIds": [
+            "INT-CONSOLE-CONSUMERS-CONTROLS"
+          ]
+        }
+      ],
+      "status": "Development source-reference process evidence; candidate-package qualification pending WP07-S01-T02.",
+      "boundary": "Physical console/files where supported; queue pressure, failure and deadlines include controlled streams/callbacks. Concurrent drains and finite deadlines do not establish hosted ingestion."
+    },
+    {
+      "scenario": "CLI stdout results with stderr logs",
+      "support": [
+        {
+          "source": "implementations/csharp/tests/CIS.Core.IntegrationTests/ConsoleConsumerProcessTests.cs",
+          "method": "CIS.Tests.IntegrationTests.ConsoleConsumerProcessTests.SameCompiledConsumerUsesEnvironmentAndDrainsBothStreams",
+          "caseIds": [
+            "INT-CONSOLE-CONSUMERS-SHARED"
+          ]
+        },
+        {
+          "source": "implementations/csharp/tests/CIS.Core.IntegrationTests/ConsoleConsumerProcessTests.cs",
+          "method": "CIS.Tests.IntegrationTests.ConsoleConsumerProcessTests.ConsumerComparerRejectsSpecificCorruption",
+          "caseIds": [
+            "INT-CONSOLE-CONSUMERS-CONTROLS"
+          ]
+        }
+      ],
+      "status": "Development source-reference process evidence; candidate-package qualification pending WP07-S01-T02.",
+      "boundary": "Physical console/files where supported; queue pressure, failure and deadlines include controlled streams/callbacks. Concurrent drains and finite deadlines do not establish hosted ingestion."
+    },
+    {
+      "scenario": "simultaneous console/file outputs",
+      "support": [
+        {
+          "source": "implementations/csharp/tests/CIS.Core.IntegrationTests/FileRuntimeStartupProcessTests.cs",
+          "method": "CIS.Tests.IntegrationTests.FileRuntimeStartupProcessTests.ConfiguredFileAndConsoleStartupInFreshConsumer",
+          "caseIds": []
+        }
+      ],
+      "status": "Development source-reference process evidence; candidate-package qualification pending WP07-S01-T02.",
+      "boundary": "Physical console/files where supported; queue pressure, failure and deadlines include controlled streams/callbacks. Concurrent drains and finite deadlines do not establish hosted ingestion."
+    },
+    {
+      "scenario": "application restart identity",
+      "support": [
+        {
+          "source": "implementations/csharp/tests/CIS.Core.IntegrationTests/EnvironmentOptionsProcessTests.cs",
+          "method": "CIS.Tests.IntegrationTests.EnvironmentOptionsProcessTests.ReadonlyConstructorFactsAndLoggingCaptureWorkInFreshApplicationProcesses",
+          "caseIds": [
+            "IT-ENV-STATIC-CONSTRUCTOR"
+          ]
+        },
+        {
+          "source": "implementations/csharp/tests/CIS.Core.IntegrationTests/FileRetentionProcessTests.cs",
+          "method": "CIS.Tests.IntegrationTests.FileRetentionProcessTests.SeparateProducersKeepTheSameGroupAndNewestBoundedSegments",
+          "caseIds": []
+        }
+      ],
+      "status": "Development source-reference process evidence; candidate-package qualification pending WP07-S01-T02.",
+      "boundary": "Physical console/files where supported; queue pressure, failure and deadlines include controlled streams/callbacks. Concurrent drains and finite deadlines do not establish hosted ingestion."
+    },
+    {
+      "scenario": "output initialization failure",
+      "support": [
+        {
+          "source": "implementations/csharp/tests/CIS.Core.IntegrationTests/ConsoleStartupProcessTests.cs",
+          "method": "CIS.Tests.IntegrationTests.ConsoleStartupProcessTests.FailedStartupConsumersJoinWorkersAndKeepApplicationStreams",
+          "caseIds": [
+            "INT-CONSOLE-STARTUP"
+          ]
+        },
+        {
+          "source": "implementations/csharp/tests/CIS.Core.IntegrationTests/FileRuntimeStartupProcessTests.cs",
+          "method": "CIS.Tests.IntegrationTests.FileRuntimeStartupProcessTests.ConfiguredFileAndConsoleStartupInFreshConsumer",
+          "caseIds": []
+        }
+      ],
+      "status": "Development source-reference process evidence; candidate-package qualification pending WP07-S01-T02.",
+      "boundary": "Physical console/files where supported; queue pressure, failure and deadlines include controlled streams/callbacks. Concurrent drains and finite deadlines do not establish hosted ingestion."
+    },
+    {
+      "scenario": "writer failure isolation",
+      "support": [
+        {
+          "source": "implementations/csharp/tests/CIS.Core.IntegrationTests/FileFailureProcessTests.cs",
+          "method": "CIS.Tests.IntegrationTests.FileFailureProcessTests.RealConsumersExposeTerminalPolicyFailureAndHealthyOutput",
+          "caseIds": []
+        },
+        {
+          "source": "implementations/csharp/tests/CIS.Core.IntegrationTests/ConsoleConsumerProcessTests.cs",
+          "method": "CIS.Tests.IntegrationTests.ConsoleConsumerProcessTests.SameCompiledConsumerUsesEnvironmentAndDrainsBothStreams",
+          "caseIds": [
+            "INT-CONSOLE-CONSUMERS-SHARED"
+          ]
+        },
+        {
+          "source": "implementations/csharp/tests/CIS.Core.IntegrationTests/ConsoleConsumerProcessTests.cs",
+          "method": "CIS.Tests.IntegrationTests.ConsoleConsumerProcessTests.ConsumerComparerRejectsSpecificCorruption",
+          "caseIds": [
+            "INT-CONSOLE-CONSUMERS-CONTROLS"
+          ]
+        }
+      ],
+      "status": "Development source-reference process evidence; candidate-package qualification pending WP07-S01-T02.",
+      "boundary": "Physical console/files where supported; queue pressure, failure and deadlines include controlled streams/callbacks. Concurrent drains and finite deadlines do not establish hosted ingestion."
+    },
+    {
+      "scenario": "exclusive file ownership",
+      "support": [
+        {
+          "source": "implementations/csharp/tests/CIS.Core.IntegrationTests/FileAcquisitionProcessTests.cs",
+          "method": "CIS.Tests.IntegrationTests.FileAcquisitionProcessTests.SameGroupIsExclusiveWhileDistinctGroupAndReadersWorkThenOwnershipIsReleased",
+          "caseIds": []
+        },
+        {
+          "source": "implementations/csharp/tests/CIS.Core.IntegrationTests/FileAcquisitionProcessTests.cs",
+          "method": "CIS.Tests.IntegrationTests.FileAcquisitionProcessTests.DisabledUnixFileLockingCannotSilentlyCreateAnUnownedActiveFile",
+          "caseIds": []
+        },
+        {
+          "source": "implementations/csharp/tests/CIS.Core.IntegrationTests/FileAcquisitionProcessTests.cs",
+          "method": "CIS.Tests.IntegrationTests.FileAcquisitionProcessTests.CapturedPathIsAcquiredInItsOriginalDirectoryFromAnotherChildCwd",
+          "caseIds": []
+        },
+        {
+          "source": "implementations/csharp/tests/CIS.Core.IntegrationTests/FileGroupConsumerProcessTests.cs",
+          "method": "CIS.Tests.IntegrationTests.FileGroupConsumerProcessTests.LiveProcessesExcludeSameGroupAndAppendIndependentlyToDistinctGroups",
+          "caseIds": []
+        },
+        {
+          "source": "implementations/csharp/tests/CIS.Core.IntegrationTests/FileGroupConsumerProcessTests.cs",
+          "method": "CIS.Tests.IntegrationTests.FileGroupConsumerProcessTests.KilledRuntimeReleasesOwnershipAndNextProcessAppends",
+          "caseIds": []
+        },
+        {
+          "source": "implementations/csharp/tests/CIS.Core.IntegrationTests/FileGroupConsumerProcessTests.cs",
+          "method": "CIS.Tests.IntegrationTests.FileGroupConsumerProcessTests.RelativeUnicodePathIsPreparedBeforeIoAndSurvivesLaterDirectoryChange",
+          "caseIds": []
+        },
+        {
+          "source": "implementations/csharp/tests/CIS.Core.IntegrationTests/FileGroupConsumerProcessTests.cs",
+          "method": "CIS.Tests.IntegrationTests.FileGroupConsumerProcessTests.FormatSwitchFailsWithoutChangingExistingActiveOrInventory",
+          "caseIds": []
+        },
+        {
+          "source": "implementations/csharp/tests/CIS.Core.IntegrationTests/FileGroupConsumerProcessTests.cs",
+          "method": "CIS.Tests.IntegrationTests.FileGroupConsumerProcessTests.MissingInventoryRejectsExistingBytesAndReleasesThePathLease",
+          "caseIds": []
+        }
+      ],
+      "status": "Development source-reference process evidence; candidate-package qualification pending WP07-S01-T02.",
+      "boundary": "Physical console/files where supported; queue pressure, failure and deadlines include controlled streams/callbacks. Concurrent drains and finite deadlines do not establish hosted ingestion."
+    },
+    {
+      "scenario": "rotation/retention across restart",
+      "support": [
+        {
+          "source": "implementations/csharp/tests/CIS.Core.IntegrationTests/FileRetentionProcessTests.cs",
+          "method": "CIS.Tests.IntegrationTests.FileRetentionProcessTests.SeparateProducersKeepTheSameGroupAndNewestBoundedSegments",
+          "caseIds": []
+        },
+        {
+          "source": "implementations/csharp/tests/CIS.Core.IntegrationTests/FileRestartProcessTests.cs",
+          "method": "CIS.Tests.IntegrationTests.FileRestartProcessTests.SeparateProducerAndRestartProcessesPreserveWholeSegmentsAndSafeFailures",
+          "caseIds": []
+        }
+      ],
+      "status": "Development source-reference process evidence; candidate-package qualification pending WP07-S01-T02.",
+      "boundary": "Physical console/files where supported; queue pressure, failure and deadlines include controlled streams/callbacks. Concurrent drains and finite deadlines do not establish hosted ingestion."
+    },
+    {
+      "scenario": "Unicode paths",
+      "support": [
+        {
+          "source": "implementations/csharp/tests/CIS.Core.IntegrationTests/FileGroupConsumerProcessTests.cs",
+          "method": "CIS.Tests.IntegrationTests.FileGroupConsumerProcessTests.LiveProcessesExcludeSameGroupAndAppendIndependentlyToDistinctGroups",
+          "caseIds": []
+        },
+        {
+          "source": "implementations/csharp/tests/CIS.Core.IntegrationTests/FileGroupConsumerProcessTests.cs",
+          "method": "CIS.Tests.IntegrationTests.FileGroupConsumerProcessTests.KilledRuntimeReleasesOwnershipAndNextProcessAppends",
+          "caseIds": []
+        },
+        {
+          "source": "implementations/csharp/tests/CIS.Core.IntegrationTests/FileGroupConsumerProcessTests.cs",
+          "method": "CIS.Tests.IntegrationTests.FileGroupConsumerProcessTests.RelativeUnicodePathIsPreparedBeforeIoAndSurvivesLaterDirectoryChange",
+          "caseIds": []
+        },
+        {
+          "source": "implementations/csharp/tests/CIS.Core.IntegrationTests/FileGroupConsumerProcessTests.cs",
+          "method": "CIS.Tests.IntegrationTests.FileGroupConsumerProcessTests.FormatSwitchFailsWithoutChangingExistingActiveOrInventory",
+          "caseIds": []
+        },
+        {
+          "source": "implementations/csharp/tests/CIS.Core.IntegrationTests/FileGroupConsumerProcessTests.cs",
+          "method": "CIS.Tests.IntegrationTests.FileGroupConsumerProcessTests.MissingInventoryRejectsExistingBytesAndReleasesThePathLease",
+          "caseIds": []
+        },
+        {
+          "source": "implementations/csharp/tests/CIS.Core.IntegrationTests/ConfigurationPathProcessTests.cs",
+          "method": "CIS.Tests.IntegrationTests.ConfigurationPathProcessTests.ChildCwdChangeCannotRedirectValidatedPathOrCreateOutputs",
+          "caseIds": [
+            "IT-CONFIG-PATH-10"
+          ]
+        }
+      ],
+      "status": "Development source-reference process evidence; candidate-package qualification pending WP07-S01-T02.",
+      "boundary": "Physical console/files where supported; queue pressure, failure and deadlines include controlled streams/callbacks. Concurrent drains and finite deadlines do not establish hosted ingestion."
+    },
+    {
+      "scenario": "burst load beyond capacity",
+      "support": [
+        {
+          "source": "implementations/csharp/tests/CIS.Core.IntegrationTests/ProviderBehaviorProcessTests.cs",
+          "method": "CIS.Tests.IntegrationTests.ProviderBehaviorProcessTests.ProviderInterestAndRejectionUseActualCore",
+          "caseIds": []
+        }
+      ],
+      "status": "Development source-reference process evidence; candidate-package qualification pending WP07-S01-T02.",
+      "boundary": "Physical console/files where supported; queue pressure, failure and deadlines include controlled streams/callbacks. Concurrent drains and finite deadlines do not establish hosted ingestion."
+    },
+    {
+      "scenario": "graceful stop",
+      "support": [
+        {
+          "source": "implementations/csharp/tests/CIS.Core.IntegrationTests/StopDrainProcessTests.cs",
+          "method": "CIS.Tests.IntegrationTests.StopDrainProcessTests.ActualSharedStopRunsInAnExactRuntimeChild",
+          "caseIds": []
+        }
+      ],
+      "status": "Development source-reference process evidence; candidate-package qualification pending WP07-S01-T02.",
+      "boundary": "Physical console/files where supported; queue pressure, failure and deadlines include controlled streams/callbacks. Concurrent drains and finite deadlines do not establish hosted ingestion."
+    },
+    {
+      "scenario": "deadline reporting",
+      "support": [
+        {
+          "source": "implementations/csharp/tests/CIS.Core.IntegrationTests/StopLifecycleProcessTests.cs",
+          "method": "CIS.Tests.IntegrationTests.StopLifecycleProcessTests.ShutdownAndCrashBoundariesUseActualChildren",
+          "caseIds": []
+        },
+        {
+          "source": "implementations/csharp/tests/CIS.Core.IntegrationTests/FlushResultProcessTests.cs",
+          "method": "CIS.Tests.IntegrationTests.FlushResultProcessTests.ActualPublicFlushRunsInAnExactRuntimeChild",
+          "caseIds": []
+        }
+      ],
+      "status": "Development source-reference process evidence; candidate-package qualification pending WP07-S01-T02.",
+      "boundary": "Physical console/files where supported; queue pressure, failure and deadlines include controlled streams/callbacks. Concurrent drains and finite deadlines do not establish hosted ingestion."
+    }
+  ],
+  "architectureInspectionLevels": [
+    {
+      "level": 1,
+      "inspection": "Evaluated project/framework references",
+      "support": [
+        {
+          "source": "implementations/csharp/tests/CIS.Core.ArchitectureTests/DependencyBoundaryTests.cs",
+          "method": "CIS.Tests.ArchitectureTests.DependencyBoundaryTests.ReleaseCorePassesTheEvaluatedCompiledReferencePolicy",
+          "caseIds": [
+            "ARCH-CORE-REFERENCES"
+          ]
+        },
+        {
+          "source": "implementations/csharp/tests/CIS.Core.ArchitectureTests/DependencyBoundaryTests.cs",
+          "method": "CIS.Tests.ArchitectureTests.DependencyBoundaryTests.CompiledCheckerRejectsForeignAssemblyReferences",
+          "caseIds": [
+            "ARCH-FOREIGN-ASSEMBLIES"
+          ]
+        },
+        {
+          "source": "implementations/csharp/tests/CIS.Core.ArchitectureTests/DependencyBoundaryTests.cs",
+          "method": "CIS.Tests.ArchitectureTests.DependencyBoundaryTests.EvaluatedCoreProjectRejectsForbiddenDependencies",
+          "caseIds": [
+            "ARCH-DEPENDENCIES"
+          ]
+        },
+        {
+          "source": "implementations/csharp/tests/CIS.Core.ArchitectureTests/DependencyBoundaryTests.cs",
+          "method": "CIS.Tests.ArchitectureTests.DependencyBoundaryTests.ImportedProjectReferenceCannotBypassTheBoundary",
+          "caseIds": [
+            "ARCH-IMPORTED-REFERENCES"
+          ]
+        },
+        {
+          "source": "implementations/csharp/tests/CIS.Core.ArchitectureTests/DependencyBoundaryTests.cs",
+          "method": "CIS.Tests.ArchitectureTests.DependencyBoundaryTests.RestoredGraphRejectsUnapprovedIdentityOrVersion",
+          "caseIds": [
+            "ARCH-RESTORED-GRAPH"
+          ]
+        },
+        {
+          "source": "implementations/csharp/tests/CIS.Core.ArchitectureTests/DependencyBoundaryTests.cs",
+          "method": "CIS.Tests.ArchitectureTests.DependencyBoundaryTests.PackageRejectsBundledTestAssembly",
+          "caseIds": [
+            "ARCH-PACKED-ASSETS"
+          ]
+        }
+      ]
+    },
+    {
+      "level": 2,
+      "inspection": "Locked restored package graph per target",
+      "support": [
+        {
+          "source": "implementations/csharp/tests/CIS.Core.ArchitectureTests/MicrosoftLoggingPackageBoundaryTests.cs",
+          "method": "CIS.Tests.ArchitectureTests.MicrosoftLoggingPackageBoundaryTests.CopiedRestoreGraphRejectsTransitiveLeakage",
+          "caseIds": []
+        },
+        {
+          "source": "implementations/csharp/tests/CIS.Core.ArchitectureTests/MicrosoftLoggingPackageBoundaryTests.cs",
+          "method": "CIS.Tests.ArchitectureTests.MicrosoftLoggingPackageBoundaryTests.CopiedPackageRejectsFactoryAndThirdPartyLeakage",
+          "caseIds": []
+        }
+      ]
+    },
+    {
+      "level": 3,
+      "inspection": "Produced NuGet dependency groups and assets",
+      "support": [
+        {
+          "source": "implementations/csharp/tests/CIS.Core.ArchitectureTests/MicrosoftLoggingPackageBoundaryTests.cs",
+          "method": "CIS.Tests.ArchitectureTests.MicrosoftLoggingPackageBoundaryTests.CopiedRestoreGraphRejectsTransitiveLeakage",
+          "caseIds": []
+        },
+        {
+          "source": "implementations/csharp/tests/CIS.Core.ArchitectureTests/MicrosoftLoggingPackageBoundaryTests.cs",
+          "method": "CIS.Tests.ArchitectureTests.MicrosoftLoggingPackageBoundaryTests.CopiedPackageRejectsFactoryAndThirdPartyLeakage",
+          "caseIds": []
+        }
+      ]
+    },
+    {
+      "level": 4,
+      "inspection": "Compiled references and public/protected API types",
+      "support": [
+        {
+          "source": "implementations/csharp/tests/CIS.Core.ArchitectureTests/DependencyBoundaryTests.cs",
+          "method": "CIS.Tests.ArchitectureTests.DependencyBoundaryTests.ReleaseCorePassesTheEvaluatedCompiledReferencePolicy",
+          "caseIds": [
+            "ARCH-CORE-REFERENCES"
+          ]
+        },
+        {
+          "source": "implementations/csharp/tests/CIS.Core.ArchitectureTests/DependencyBoundaryTests.cs",
+          "method": "CIS.Tests.ArchitectureTests.DependencyBoundaryTests.CompiledCheckerRejectsForeignAssemblyReferences",
+          "caseIds": [
+            "ARCH-FOREIGN-ASSEMBLIES"
+          ]
+        },
+        {
+          "source": "implementations/csharp/tests/CIS.Core.ArchitectureTests/DependencyBoundaryTests.cs",
+          "method": "CIS.Tests.ArchitectureTests.DependencyBoundaryTests.EvaluatedCoreProjectRejectsForbiddenDependencies",
+          "caseIds": [
+            "ARCH-DEPENDENCIES"
+          ]
+        },
+        {
+          "source": "implementations/csharp/tests/CIS.Core.ArchitectureTests/DependencyBoundaryTests.cs",
+          "method": "CIS.Tests.ArchitectureTests.DependencyBoundaryTests.ImportedProjectReferenceCannotBypassTheBoundary",
+          "caseIds": [
+            "ARCH-IMPORTED-REFERENCES"
+          ]
+        },
+        {
+          "source": "implementations/csharp/tests/CIS.Core.ArchitectureTests/DependencyBoundaryTests.cs",
+          "method": "CIS.Tests.ArchitectureTests.DependencyBoundaryTests.RestoredGraphRejectsUnapprovedIdentityOrVersion",
+          "caseIds": [
+            "ARCH-RESTORED-GRAPH"
+          ]
+        },
+        {
+          "source": "implementations/csharp/tests/CIS.Core.ArchitectureTests/DependencyBoundaryTests.cs",
+          "method": "CIS.Tests.ArchitectureTests.DependencyBoundaryTests.PackageRejectsBundledTestAssembly",
+          "caseIds": [
+            "ARCH-PACKED-ASSETS"
+          ]
+        },
+        {
+          "source": "implementations/csharp/tests/CIS.Core.ArchitectureTests/RuntimeContractTests.cs",
+          "method": "CIS.Tests.ArchitectureTests.RuntimeContractTests.AdmissionFixturesMatchTheSpecifiedDecisionOrder",
+          "caseIds": [
+            "ARCH-ADMISSION-CONTRACT"
+          ]
+        },
+        {
+          "source": "implementations/csharp/tests/CIS.Core.ArchitectureTests/RuntimeContractTests.cs",
+          "method": "CIS.Tests.ArchitectureTests.RuntimeContractTests.DrainProjectionsHaveTruthfulFixedBoundaryResults",
+          "caseIds": [
+            "ARCH-DRAIN-CONTRACT"
+          ]
+        },
+        {
+          "source": "implementations/csharp/tests/CIS.Core.ArchitectureTests/RuntimeContractTests.cs",
+          "method": "CIS.Tests.ArchitectureTests.RuntimeContractTests.LifecycleExpectationsPreserveBoundedOwnershipAndDeadlines",
+          "caseIds": [
+            "ARCH-LIFECYCLE-CONTRACT"
+          ]
+        },
+        {
+          "source": "implementations/csharp/tests/CIS.Core.ArchitectureTests/RuntimeContractTests.cs",
+          "method": "CIS.Tests.ArchitectureTests.RuntimeContractTests.RuntimeSpecificationHasExactMethodsAndImmutableOutputs",
+          "caseIds": [
+            "ARCH-RUNTIME-SURFACE"
+          ]
+        },
+        {
+          "source": "implementations/csharp/tests/CIS.Core.ArchitectureTests/RuntimeContractTests.cs",
+          "method": "CIS.Tests.ArchitectureTests.RuntimeContractTests.ImplementedOutputDiagnosticsMatchTheUnpublishedReferenceCatalog",
+          "caseIds": []
+        },
+        {
+          "source": "implementations/csharp/tests/CIS.Core.ArchitectureTests/RuntimeContractTests.cs",
+          "method": "CIS.Tests.ArchitectureTests.RuntimeContractTests.ShippingOutputCatalogCheckRejectsActualMissingOrWrongRecoveryDeclarations",
+          "caseIds": []
+        },
+        {
+          "source": "implementations/csharp/tests/CIS.Core.ArchitectureTests/RuntimeContractTests.cs",
+          "method": "CIS.Tests.ArchitectureTests.RuntimeContractTests.ImplementedFlushResultsAndMethodMatchTheUnpublishedCatalog",
+          "caseIds": []
+        }
+      ]
+    },
+    {
+      "level": 5,
+      "inspection": "Internal namespace/type dependency rules",
+      "support": [
+        {
+          "source": "implementations/csharp/tests/CIS.Core.ArchitectureTests/ConfigurationAmbientStateTests.cs",
+          "method": "CIS.Tests.ArchitectureTests.ConfigurationAmbientStateTests.ConfigurationHelpersDoNotQueryAmbientPresentationOrDumpOrMutateVariables",
+          "caseIds": [
+            "ARCH-CONFIG-AMBIENT-CALLS"
+          ]
+        },
+        {
+          "source": "implementations/csharp/tests/CIS.Core.ArchitectureTests/ConfigurationAmbientStateTests.cs",
+          "method": "CIS.Tests.ArchitectureTests.ConfigurationAmbientStateTests.CompiledCallGuardRecognizesEveryForbiddenAmbientOperation",
+          "caseIds": [
+            "ARCH-CONFIG-AMBIENT-CONTROL"
+          ]
+        },
+        {
+          "source": "implementations/csharp/tests/CIS.Core.ArchitectureTests/ConfigurationAmbientStateTests.cs",
+          "method": "CIS.Tests.ArchitectureTests.ConfigurationAmbientStateTests.ConfigurationValidationAndStoredGettersHaveNoOutputProbeNetworkOrWorkerCalls",
+          "caseIds": [
+            "AR-CONFIG-VALIDATION-05"
+          ]
+        },
+        {
+          "source": "implementations/csharp/tests/CIS.Core.ArchitectureTests/ConfigurationAmbientStateTests.cs",
+          "method": "CIS.Tests.ArchitectureTests.ConfigurationAmbientStateTests.CompiledInfrastructureGuardRecognizesNeverInvokedNegativeControls",
+          "caseIds": [
+            "AR-CONFIG-VALIDATION-06"
+          ]
+        },
+        {
+          "source": "implementations/csharp/tests/CIS.Core.ArchitectureTests/ConfigurationAmbientStateTests.cs",
+          "method": "CIS.Tests.ArchitectureTests.ConfigurationAmbientStateTests.ContainerFactsAreReadonlyAndGettersHaveNoLifecycleEffects",
+          "caseIds": [
+            "ARCH-ENV-READONLY-STATIC"
+          ]
+        },
+        {
+          "source": "implementations/csharp/tests/CIS.Core.ArchitectureTests/ConfigurationAmbientStateTests.cs",
+          "method": "CIS.Tests.ArchitectureTests.ConfigurationAmbientStateTests.ConstructorReadsFactsThenOverridesWithoutStartingConsumers",
+          "caseIds": [
+            "ARCH-ENV-CTOR-ORDER"
+          ]
+        },
+        {
+          "source": "implementations/csharp/tests/CIS.Core.ArchitectureTests/EventProjectionArchitectureTests.cs",
+          "method": "CIS.Tests.ArchitectureTests.EventProjectionArchitectureTests.CapturedProjectionIsInternalImmutableAndHasNoCallerOrConfigurationFields",
+          "caseIds": [
+            "AT-EVENT-T01-12"
+          ]
+        },
+        {
+          "source": "implementations/csharp/tests/CIS.Core.ArchitectureTests/OperationScopeArchitectureTests.cs",
+          "method": "CIS.Tests.ArchitectureTests.OperationScopeArchitectureTests.ActualContextInputHasTheSpecifiedClosedPublicSurface",
+          "caseIds": [
+            "AR-SCOPE-T01-16"
+          ]
+        },
+        {
+          "source": "implementations/csharp/tests/CIS.Core.ArchitectureTests/OperationScopeArchitectureTests.cs",
+          "method": "CIS.Tests.ArchitectureTests.OperationScopeArchitectureTests.CapturedPayloadAndParentFramesHaveOnlyReadonlyOwnedFields",
+          "caseIds": [
+            "AR-SCOPE-T01-17"
+          ]
+        }
+      ]
+    }
+  ],
+  "businessCases": [
+    {
+      "id": "BC-001",
+      "title": "A developer selects verbose human output and an operation fails.",
+      "requiredResult": "Output identifies application/build/environment, explains the event, and includes the permitted exception/context detail.",
+      "implementation": "Implemented",
+      "method": "CIS.Tests.BusinessCases.LoggingBusinessStories.GivenVerboseHumanWhenOperationFailsThenIdentityExceptionAndContextAreVisible",
+      "originalRequiredResult": "Output identifies application/build/environment, explains the event, and includes the permitted exception/context detail.",
+      "boundary": "Actual public Core runtime in a source-reference process, exact .NET 10.0.12 and loaded assembly hashes."
+    },
+    {
+      "id": "BC-002",
+      "title": "An agent invokes a CLI command configured for JSONL diagnostics.",
+      "requiredResult": "Stdout is a valid command result; every stderr log line is independently parseable JSON with stable identity.",
+      "implementation": "Implemented",
+      "method": "CIS.Tests.BusinessCases.LoggingBusinessStories.GivenJsonDiagnosticsWhenCliRunsThenStdoutResultAndStderrRecordsAreSeparate",
+      "originalRequiredResult": "Stdout is a valid command result; every stderr log line is independently parseable JSON with stable identity.",
+      "boundary": "Actual public Core runtime in a source-reference process, exact .NET 10.0.12 and loaded assembly hashes."
+    },
+    {
+      "id": "BC-003",
+      "title": "An operator changes output settings through environment variables.",
+      "requiredResult": "The same application build selects the configured stream/file/format without source changes, preserving event meanings.",
+      "implementation": "Implemented",
+      "method": "CIS.Tests.BusinessCases.LoggingBusinessStories.GivenSameBuildWhenEnvironmentSelectsStreamFileAndFormatThenMeaningIsPreserved",
+      "originalRequiredResult": "The same application build selects the configured stream/file/format without source changes, preserving event meanings.",
+      "boundary": "Actual public Core runtime in a source-reference process, exact .NET 10.0.12 and loaded assembly hashes."
+    },
+    {
+      "id": "BC-004",
+      "title": "Console is Warning and file is Debug.",
+      "requiredResult": "Debug events reach the file and are absent from console; expensive work is skipped only when no output is interested.",
+      "implementation": "Implemented",
+      "method": "CIS.Tests.BusinessCases.LoggingBusinessStories.GivenWarningConsoleAndDebugFileWhenWritingThenUnionInterestControlsLazyWork",
+      "originalRequiredResult": "Debug events reach the file and are absent from console; expensive work is skipped only when no output is interested.",
+      "boundary": "Actual public Core runtime in a source-reference process, exact .NET 10.0.12 and loaded assembly hashes."
+    },
+    {
+      "id": "BC-005",
+      "title": "Two experiments execute concurrently across asynchronous boundaries.",
+      "requiredResult": "Each event retains its own operation/experiment identifiers and the shared process identity.",
+      "implementation": "Implemented",
+      "method": "CIS.Tests.BusinessCases.LoggingBusinessStories.GivenConcurrentExperimentsWhenAwaitingThenOperationsStayIsolatedWithSharedIdentity",
+      "originalRequiredResult": "Each event retains its own operation/experiment identifiers and the shared process identity.",
+      "boundary": "Actual public Core runtime in a source-reference process, exact .NET 10.0.12 and loaded assembly hashes."
+    },
+    {
+      "id": "BC-006",
+      "title": "A recognized setting contains an invalid value.",
+      "requiredResult": "Startup fails with the setting name and accepted values, without dumping unrelated environment data.",
+      "implementation": "Implemented",
+      "method": "CIS.Tests.BusinessCases.LoggingBusinessStories.GivenInvalidSettingWhenStartingThenKeyAndAcceptedValuesAreSafeAndActionable",
+      "originalRequiredResult": "Startup fails with the setting name and accepted values, without dumping unrelated environment data.",
+      "boundary": "Actual public Core runtime in a source-reference process, exact .NET 10.0.12 and loaded assembly hashes."
+    },
+    {
+      "id": "BC-007",
+      "title": "A queue fills or a writer fails.",
+      "requiredResult": "Resource use remains bounded, unaffected outputs continue, and rejection/failure counters are truthful.",
+      "implementation": "Implemented",
+      "method": "CIS.Tests.BusinessCases.LoggingBusinessStories.GivenQueuePressureOrWriterFaultWhenLoggingThenBoundsAndIndependentOutputRemainTruthful",
+      "originalRequiredResult": "Resource use remains bounded, unaffected outputs continue, and rejection/failure counters are truthful.",
+      "boundary": "Controlled Core output callbacks plus a real configured-file positive; no claim of deterministic OS failure."
+    },
+    {
+      "id": "BC-008",
+      "title": "An application stops gracefully with queued events.",
+      "requiredResult": "Accepted events reach the documented boundary or the stop result explicitly reports unresolved work and deadline/cancellation.",
+      "implementation": "Implemented",
+      "method": "CIS.Tests.BusinessCases.LoggingBusinessStories.GivenQueuedWorkWhenStoppingThenCompletionOrUnresolvedDeadlineIsExplicit",
+      "originalRequiredResult": "Accepted events reach the documented boundary or the stop result explicitly reports unresolved work and deadline/cancellation.",
+      "boundary": "Public normal stop plus controlled held-write deadline; pending is not claimed written."
+    },
+    {
+      "id": "BC-009",
+      "title": "An unchanged older source consumer upgrades its package reference.",
+      "requiredResult": "It builds under its preserved settings and retains its supported behavior.",
+      "implementation": "Planned",
+      "method": null,
+      "originalRequiredResult": "It builds under its preserved settings and retains its supported behavior.",
+      "pendingOwner": "WP07-S04",
+      "currentEvidence": "Zero actual publications. Current provider source/newly frozen binary controls in WP06-S03-T04 are not historical upgrades or full first-release harness qualification."
+    },
+    {
+      "id": "BC-010",
+      "title": "An already-compiled older consumer receives the candidate core asset.",
+      "requiredResult": "It runs without recompilation and proves that the candidate assembly was loaded.",
+      "implementation": "Planned",
+      "method": null,
+      "originalRequiredResult": "It runs without recompilation and proves that the candidate assembly was loaded.",
+      "pendingOwner": "WP07-S04",
+      "currentEvidence": "Zero actual publications. Current provider source/newly frozen binary controls in WP06-S03-T04 are not historical upgrades or full first-release harness qualification."
+    },
+    {
+      "id": "BC-011",
+      "title": "The application restarts and file rotation continues.",
+      "requiredResult": "Instance identity changes, existing owned segments are handled consistently, retention is bounded, and unrelated files survive.",
+      "implementation": "Implemented",
+      "method": "CIS.Tests.BusinessCases.LoggingBusinessStories.GivenRestartedProducerWhenRotatingThenIdentityChangesAndOwnedRetentionPreservesNeighbors",
+      "originalRequiredResult": "Instance identity changes, existing owned segments are handled consistently, retention is bounded, and unrelated files survive.",
+      "boundary": "Physical per-process file writer/retention fixture with injected metadata; full public candidate-runtime restart remains T02. Business assertions verify changed record-level instance IDs, stable group, bounded retained count and neighbor preservation. Cross-restart segment continuity/ordering/recovery is supplied by the linked executed FileRetentionProcessTests.SeparateProducersKeepTheSameGroupAndNewestBoundedSegments and FileRestartProcessTests.SeparateProducerAndRestartProcessesPreserveWholeSegmentsAndSafeFailures, rather than a separate business-level inventory comparison.",
+      "supportingTechnicalMethods": [
+        "CIS.Tests.IntegrationTests.FileRetentionProcessTests.SeparateProducersKeepTheSameGroupAndNewestBoundedSegments",
+        "CIS.Tests.IntegrationTests.FileRestartProcessTests.SeparateProducerAndRestartProcessesPreserveWholeSegmentsAndSafeFailures"
+      ]
+    },
+    {
+      "id": "BC-012",
+      "title": "A caller mutates a dictionary immediately after logging.",
+      "requiredResult": "Queued events retain the values captured at the logging call.",
+      "implementation": "Implemented",
+      "method": "CIS.Tests.BusinessCases.LoggingBusinessStories.GivenCallerMutationsAfterWriteThenCapturedAttributesAndMessageStayOwned",
+      "originalRequiredResult": "Queued events retain the values captured at the logging call.",
+      "boundary": "Actual public Core runtime in a source-reference process, exact .NET 10.0.12 and loaded assembly hashes."
+    },
+    {
+      "id": "BC-013",
+      "title": "An application uses the Microsoft provider and its scopes.",
+      "requiredResult": "Category, event name, structured state, exception, and correlation map into the core contract; provider ownership rules hold.",
+      "implementation": "Implemented",
+      "method": "CIS.Tests.BusinessCases.LoggingBusinessStories.GivenMicrosoftScopesWhenLoggingThenMappingCorrelationAndNonowningDisposalHold",
+      "originalRequiredResult": "Category, event name, structured state, exception, and correlation map into the core contract; provider ownership rules hold.",
+      "boundary": "Actual public Core runtime in a source-reference process, exact .NET 10.0.12 and loaded assembly hashes."
+    },
+    {
+      "id": "BC-014",
+      "title": "A collector reads generated structured records.",
+      "requiredResult": "Records retain the specified service/env/version and metadata fields, with no raw multiline or ANSI contamination. This proves the output contract, not hosted ingestion.",
+      "implementation": "Implemented",
+      "method": "CIS.Tests.BusinessCases.LoggingBusinessStories.GivenCollectorOrientedJsonThenIdentityAndEscapedRecordsNeedNoHostedService",
+      "originalRequiredResult": "Records retain the specified service/env/version and metadata fields, with no raw multiline or ANSI contamination. This proves the output contract, not hosted ingestion.",
+      "boundary": "Actual public Core runtime in a source-reference process, exact .NET 10.0.12 and loaded assembly hashes."
+    },
+    {
+      "id": "BC-015",
+      "title": "An event contains boundary-size Unicode, a decimal value, and an unsupported object.",
+      "requiredResult": "Supported values retain their explicit representations; unsupported or malformed input is rejected and accounted for. Oversized payload is safely truncated into one valid entry within the configured byte cap, with identity/correlation preserved and truncated:true.",
+      "implementation": "Implemented",
+      "method": "CIS.Tests.BusinessCases.LoggingBusinessStories.GivenUnicodeDecimalAndUnsupportedValuesThenValidOversizeTruncatesAndInvalidIsCounted",
+      "effectiveResult": "Supported values preserve type/encoding. Oversized valid entries are truncated and marked under the user amendment; unsupported values are invalid and counted.",
+      "originalRequiredResult": "Supported values follow the exact type/encoding rules; unsupported/oversized input is explicitly rejected and accounted for.",
+      "supportingTechnicalMethods": [
+        "CIS.Tests.UnitTests.EventEncodingTests.ExactlyAtCapFitsAndOneExtraByteTriggersMarkedTruncationIncludingLf",
+        "CIS.Tests.UnitTests.EventEncodingTests.EscapedByteBoundaryNeverSplitsAScalar"
+      ],
+      "boundary": "Actual public Core runtime in a source-reference process, exact .NET 10.0.12 and loaded assembly hashes."
+    },
+    {
+      "id": "BC-016",
+      "title": "All normal outputs are disabled.",
+      "requiredResult": "Logging calls return filtered/stopped outcomes as specified, do not invoke deferred factories, and produce no ordinary log records.",
+      "implementation": "Implemented",
+      "method": "CIS.Tests.BusinessCases.LoggingBusinessStories.GivenDisabledOutputsWhenWritingAndStoppingThenNoFactoriesOrOrdinaryRecordsAppear",
+      "originalRequiredResult": "Logging calls return filtered/stopped outcomes as specified, do not invoke deferred factories, and produce no ordinary log records.",
+      "boundary": "Actual public Core runtime in a source-reference process, exact .NET 10.0.12 and loaded assembly hashes."
+    }
+  ],
+  "remainingFamilies": [
+    {
+      "family": "mutation",
+      "status": "Pending WP07-S03",
+      "existingEvidence": "Prior embedded-adapter slice: 71/130 killed (54.62%), 51 surviving, 8 no-coverage, 23 compile errors, 37 ignored; 90% gate failed. Not current-source full assembly evidence.",
+      "required": "Complete isolated shipping-source/matrix runs, raw reports, meaningful survivor/no-coverage investigation and exact justified exclusions."
+    },
+    {
+      "family": "architecture",
+      "status": "Pending complete WP07-S02",
+      "existingEvidence": "Evaluated/restored/compiled/packed positives and deliberate reference/package contamination rejection controls. Contract/reference-surface tests are not proof of every actual public member.",
+      "required": "Full module dependency/API/ownership/package rules and negative controls under current user amendments."
+    },
+    {
+      "family": "compatibility",
+      "status": "Pending WP07-S04; zero actual publications",
+      "existingEvidence": "Definition/sample/API rejection controls and WP06-S03-T04 current source/newly frozen binary provider fixtures are supplemental.",
+      "required": "Four-layer cumulative API/source/unchanged-binary/configuration-wire-behavior harness with first-release controls; retain original/current runtime distinction and every future historical baseline."
+    },
+    {
+      "family": "business",
+      "status": "14 observable cases implemented; BC-009/010 pending WP07-S04",
+      "required": "Complete exact-candidate package evidence WP07-S01-T02, discovery/lane reconciliation T05, full acceptance against final candidate WP09-S02."
+    }
+  ],
+  "newGapsClosed": [
+    "Public CoreLogRuntime.BeginScope now delegates to the existing copied per-runtime asynchronous scope store.",
+    "Invalid token and numeric diagnostics now list accepted levels/aliases, formats, streams, detail values and inclusive ranges without including supplied values or unrelated environment data."
+  ],
+  "evidence": "planning/logging/evidence/wp07-s01-t01/verification.json",
+  "architectureRules": [
+    {
+      "originalRule": "zero third-party core dependencies",
+      "currentDirection": "Approved Microsoft-maintained closure only; third-party optional integrations separate. Existing restore/package/reference negative controls execute; full rules WP07-S02."
+    },
+    {
+      "originalRule": "no references from core to tests, examples, host integration, persistence, or collector SDKs",
+      "currentDirection": "Evaluated/restored/compiled/package boundary controls execute. Embedded Microsoft adapter is permitted by the user; full internal direction inspection WP07-S02."
+    },
+    {
+      "originalRule": "no mutable static configuration fields",
+      "currentDirection": "Superseded by user-selected static EnvironmentOptions constructor/facts and mutable logging settings before runtime capture. Readonly facts and captured runtime configuration remain required."
+    },
+    {
+      "originalRule": "no exposed caller-owned collections in resolved metadata",
+      "currentDirection": "Existing copy/owned-value and public input mutation tests execute; complete actual API inspection WP07-S02."
+    },
+    {
+      "originalRule": "no output implementation types in environment/event contracts",
+      "currentDirection": "Existing projection/scope/contract architecture checks execute; reference-only surface checks are supplemental to actual assembly qualification WP07-S02."
+    },
+    {
+      "originalRule": "no unexpected content, build-transitive scripts, or test assemblies in the package",
+      "currentDirection": "Existing exact package asset policy with deliberate contamination controls executes; complete candidate inspection remains required."
+    }
+  ],
+  "compatibilityLayers": [
+    {
+      "layer": "API compatibility",
+      "state": "Pending cumulative harness WP07-S04; zero publication history is not a fabricated historical pass."
+    },
+    {
+      "layer": "Unchanged source consumers",
+      "state": "Pending cumulative harness WP07-S04; zero publication history is not a fabricated historical pass."
+    },
+    {
+      "layer": "Unchanged compiled consumers",
+      "state": "Pending cumulative harness WP07-S04; zero publication history is not a fabricated historical pass."
+    },
+    {
+      "layer": "Configuration, wire and behavior compatibility",
+      "state": "Pending cumulative harness WP07-S04; zero publication history is not a fabricated historical pass."
+    }
+  ]
+}

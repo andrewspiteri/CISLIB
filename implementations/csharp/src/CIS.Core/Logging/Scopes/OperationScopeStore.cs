@@ -1,7 +1,7 @@
 namespace CIS.Logging.Scopes;
 
-// One instance belongs to one future CoreLogRuntime; there is no process-wide scope slot.
-// Runtime admission/closure and event capture are separate later integrations.
+// One instance belongs to one CoreLogRuntime; there is no process-wide scope slot.
+// The runtime checks admission before beginning a scope and captures its view when logging.
 internal sealed class OperationScopeStore
 {
     internal const int MaximumDepth = 32;
