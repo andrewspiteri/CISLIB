@@ -1,0 +1,27 @@
+{
+  "verdict": "CHANGES_REQUIRED",
+  "findings": [
+    {
+      "severity": "medium",
+      "path": "planning/logging/evidence/wp07-s01-t02/verification.json",
+      "line": 1,
+      "issue": "The supplied verification.json is not the generator's output. freeze-evidence.py writes `review` as {state} only and writes no `release` block. The supplied file adds `review.previousFollowup` and a `release` block (exitCode 2, summary `native/Release/summary.json`, remainingPlannedCaseGroups 27, fullReleaseAreasPending 9). The post-response review-state update is expected, but the `release` block is unreviewed hand-added content. Its `summary` path is also absent from audit.nativeArtifacts. That list enumerates exactly 228 files: Developer 15, Ubuntu 109, WindowsCandidate 104, which matches evidence-cleanup-audit. So either the referenced Release summary does not exist, or it was placed under native/ after the freeze and sits outside the qualifying membership. Both outcomes break the claim that the retained generator reproduces the receipt, and the Release exit-2 / pending counts have no retained evidence.",
+      "requiredFix": "Have the generator emit the `release` block itself. It should copy the Release summary to an explicitly non-qualifying path (e.g. `pending/Release/summary.json`) or include it with its hash, and assert exitCode==2 and the pending counts from that file. Alternatively, remove the `release` block. Then archive the current native/ root, rerun the generator (no test rerun needed), and limit any later hand edit to `review.state`."
+    },
+    {
+      "severity": "low",
+      "path": "planning/logging/evidence/wp07-s01-t02/task/freeze-evidence.py",
+      "line": 43,
+      "issue": "The stale pressure-mode guard (no stdout.txt or terminal-stream.txt beside burst/deadline reports) only runs over native/WindowsCandidate. native/Ubuntu is copied wholesale from linux-05-retained with no equivalent check. The current Ubuntu artifacts are clean (child-28/29 hold only replies, report, stdout.bin, terminal-stderr.txt and terminal-stdout.bin). However, the generator would not catch stale Ubuntu pressure files, which was the original defect class.",
+      "requiredFix": "Apply the same assertion to `native/Ubuntu/**/child-*/report.json` for burst/deadline modes. Fold this into the regeneration required by the finding above."
+    }
+  ],
+  "limits": [
+    "Review is limited to the supplied files. No commands were run and no hashes, byte lengths or counts were recomputed; supplied values are taken as stated. Only the nativeArtifacts total of 228 was tallied by hand from the listing.",
+    "Verified in the generator source as requested:\n- fresh-root refusal\n- single Ubuntu candidate.json, asserted before and after the copy\n- projectSha256 equality across both receipts and the current template\n- staged DLL hash == linux-inputs-05 manifest == current on-disk integration DLL\n- every Ubuntu TRX TestMethod.codeBase == the snapshot root + DLL path\n- strict raw-byte complete-line JSON parse, tail bound and written/failed accounting\n- original 'stopped' reply stop == lastStopResult\n- self-copy plus auditGenerator SHA\nThe frozen audit values are consistent with these checks.",
+    "`samePackageAndPortableTestAssemblyOnBothLanes: true` is a literal. Package identity is checked through both receipts. The Windows-lane test DLL identity is inferred from the current on-disk DLL, not from Windows run evidence. This holds only if nothing rebuilt that output after run 70056f5f.",
+    "The step that turned linux-evidence-05.tar into linux-05-retained is not in the supplied evidence. The retained Ubuntu root has no DLLs or package files, so a filter was applied somewhere. The linux-payload-05.tar archiveSha256 is recorded but never verified by run-linux-05.sh or the generator.",
+    "These were not supplied and are not reviewed: the Windows integration TRX, Developer summary/source-inputs.json, baseline.json, run-linux-05.py, the prior-runs/pre-final-native contents, and whether native/Release exists on disk.",
+    "Earlier native results (19 per lane, 5299 full Developer tests passed) and the pending Release and future gates are accepted as stated. This verdict covers evidence integrity only, not new executions."
+  ]
+}

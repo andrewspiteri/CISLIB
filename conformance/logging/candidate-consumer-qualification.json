@@ -1,0 +1,81 @@
+{
+  "schemaVersion": 1,
+  "task": "WP07-S01-T02",
+  "consumer": "implementations/csharp/verification/consumers/logging-candidate/Program.cs",
+  "projectTemplate": "implementations/csharp/verification/consumers/logging-candidate/Consumer.csproj.template",
+  "harness": "implementations/csharp/tests/CIS.Core.IntegrationTests/CandidatePackageFixture.cs",
+  "tests": "implementations/csharp/tests/CIS.Core.IntegrationTests/CandidateLoggingProcessTests.cs",
+  "cases": [
+    {
+      "id": "INT-CANDIDATE-OUTPUT",
+      "method": "CIS.Tests.IntegrationTests.CandidateLoggingProcessTests.PackedConsumerSelectsPresentationStreamsAndIndependentThresholds",
+      "minimumExecutions": 4
+    },
+    {
+      "id": "INT-CANDIDATE-PROVIDER",
+      "method": "CIS.Tests.IntegrationTests.CandidateLoggingProcessTests.PackedMicrosoftProviderMapsScopesAndLeavesItsRuntimeUsableAfterDisposal",
+      "minimumExecutions": 1
+    },
+    {
+      "id": "INT-CANDIDATE-ORIGIN",
+      "method": "CIS.Tests.IntegrationTests.CandidateLoggingProcessTests.CandidateOriginGuardRejectsAlteredAssemblyAndRuntimeEvidence",
+      "minimumExecutions": 1
+    },
+    {
+      "id": "INT-CANDIDATE-DISABLED",
+      "method": "CIS.Tests.IntegrationTests.CandidateLoggingProcessTests.PackedConsumerWithDisabledOutputsSkipsFactoriesAndStopsIdempotently",
+      "minimumExecutions": 1
+    },
+    {
+      "id": "INT-CANDIDATE-OWNERSHIP",
+      "method": "CIS.Tests.IntegrationTests.CandidateLoggingProcessTests.PackedConsumersEnforceExclusiveGroupsReleaseOnTerminationAndKeepDistinctGroupsIndependent",
+      "minimumExecutions": 1
+    },
+    {
+      "id": "INT-CANDIDATE-INIT",
+      "method": "CIS.Tests.IntegrationTests.CandidateLoggingProcessTests.PackedStartupRejectsUnsafeExistingOutputWithoutChangingBytesOrLeakingItsLease",
+      "minimumExecutions": 2
+    },
+    {
+      "id": "INT-CANDIDATE-RESTART",
+      "method": "CIS.Tests.IntegrationTests.CandidateLoggingProcessTests.PackedRestartContinuesRotationIdentitiesAndRetainsOnlyOwnedNewestSegments",
+      "minimumExecutions": 1
+    },
+    {
+      "id": "INT-CANDIDATE-RECOVERY",
+      "method": "CIS.Tests.IntegrationTests.CandidateLoggingProcessTests.PackedStartupReconcilesPreparedInterruptedRotationAndPreservesOriginalBytes",
+      "minimumExecutions": 4
+    },
+    {
+      "id": "INT-CANDIDATE-FAULT",
+      "method": "CIS.Tests.IntegrationTests.CandidateLoggingProcessTests.PackedRotationCollisionFaultsOnlyFileAndKeepsConsoleAvailable",
+      "minimumExecutions": 1
+    },
+    {
+      "id": "INT-CANDIDATE-PIPE",
+      "method": "CIS.Tests.IntegrationTests.CandidateLoggingProcessTests.PackedPipePressureIsBoundedAndStopReportsActualDeadlineBeforeLateDrain",
+      "minimumExecutions": 2
+    },
+    {
+      "id": "INT-CANDIDATE-CANCEL",
+      "method": "CIS.Tests.IntegrationTests.CandidateLoggingProcessTests.PackedAlreadyCancelledStopWaiterDoesNotCancelSharedDrainOrDispose",
+      "minimumExecutions": 1
+    }
+  ],
+  "requirements": [
+    "Real exact-package restore, local-only feed and fresh private package/HTTP cache",
+    "Exactly CIS.Core and its approved two-package runtime closure; no ProjectReference or friend access",
+    "Packed Core bytes agree with the running suite; every child checks actual loaded DLL hashes/paths, runtime and PID",
+    "Human normal/verbose, JSONL, separate CLI result, independent console/file thresholds and lazy work",
+    "Packaged Microsoft provider mapping, scopes, exception/Activity and nonowning disposal",
+    "Unicode physical paths, exclusive ownership, independent groups and termination/restart lease release",
+    "Safe startup rejection preserves bytes and releases ownership",
+    "Physical rotation, monotonic segment IDs, restart retention and neighbor preservation",
+    "Prepared before-rename, renamed, published and partial JSONL recovery states preserve original bytes",
+    "Real name-collision failure isolates file while console continues",
+    "Real unread OS pipe produces flush timeout/pending/full accounting; explicit drain releases the obstruction",
+    "Shared stop/dispose, cancelled waiter, original deadline result and later live settlement"
+  ],
+  "evidence": "planning/logging/evidence/wp07-s01-t02/verification.json",
+  "limits": "Supporting internal/source-reference tests remain technical evidence. Complete concurrency, coverage, discovery, architecture, mutation, cumulative compatibility and final release lanes remain required. Prepared physical states qualify recovery; no timed-crash/durability or hosted-ingestion promise."
+}

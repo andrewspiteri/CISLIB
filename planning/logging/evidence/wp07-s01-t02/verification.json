@@ -1,0 +1,119 @@
+{
+  "task": "WP07-S01-T02",
+  "baseCommit": "8918de213fb7efa769c67765a80dc1dd5c5817b5",
+  "scope": "Real exact-candidate public consumer qualification at process/stream/file boundaries.",
+  "audit": "audit.json",
+  "developer": {
+    "runId": "70056f5f94cb47c4a78d7082055eb299",
+    "startedUtc": "2026-10-15T02:14:11.6503890Z",
+    "finishedUtc": "2026-10-15T02:19:34.8092374Z",
+    "exitCode": 0,
+    "stagesPassed": 15,
+    "totalTests": 5299
+  },
+  "candidate": {
+    "packageVersion": "0.1.0-dev.1",
+    "packageSha256": "89f409a0800b00b1d068492cec9e030e0a1ea4325ff7551252c9884346f3bf48",
+    "assemblyHashes": {
+      "core": "32be93e73044cae6e9d098dcceba3807114638ed8ceb990f28e0c1c0acfcef24",
+      "logging": "7c242f8ca612fa1acc61f78efd5f8c89e01bd0bd47dc4ecc65e0e6e24f1a1668",
+      "di": "da04edc338d5aa0f38a1f5fa5ff3ee7e36affe9c961daf3ea724a428bd746bc6"
+    },
+    "samePackageAndPortableTestAssemblyOnBothLanes": true,
+    "sameConsumerProjectSha256": "2ff4b527bec7ee026aff70d5647f4817c782b8df2807dab74ebf6f8f60c1d49a",
+    "nativeStagedTestAssemblySha256": "854ee1c76dc248dbffad2cdf2f82a3c4eab83375d7e79a510f6c092d47f8e563",
+    "nativeTestCodebase": "/tmp/cislib-wp07-s01-t02-7734db31e8714f54b6c3472cfc8d0cf5/implementations/csharp/tests/CIS.Core.IntegrationTests/bin/Release/net10.0/CIS.Core.IntegrationTests.dll"
+  },
+  "nativeCandidateCases": {
+    "windows-x64": 19,
+    "linux-ubuntu2404-x64": 19
+  },
+  "inputs": [
+    {
+      "path": "implementations/csharp/tests/CIS.Core.IntegrationTests/CandidatePackageFixture.cs",
+      "bytes": 17072,
+      "sha256": "5df60f2bb67614c6e3c532b7286f6c77e8222cb25f55c97c4f2cdb1e1f99aff5",
+      "runStartSha256": "5df60f2bb67614c6e3c532b7286f6c77e8222cb25f55c97c4f2cdb1e1f99aff5",
+      "equal": true
+    },
+    {
+      "path": "implementations/csharp/tests/CIS.Core.IntegrationTests/CandidateLoggingProcessTests.cs",
+      "bytes": 20702,
+      "sha256": "573606758b6dc4952b764ee36b733bcc5c5e60a779753c2b2d99065988cfd060",
+      "runStartSha256": "573606758b6dc4952b764ee36b733bcc5c5e60a779753c2b2d99065988cfd060",
+      "equal": true
+    },
+    {
+      "path": "implementations/csharp/verification/consumers/logging-candidate/Program.cs",
+      "bytes": 11309,
+      "sha256": "511dcf4bc061e3892a9b0d273792e4049c6e5b9010d6e7bc0599d8f4d8d8a564",
+      "runStartSha256": "511dcf4bc061e3892a9b0d273792e4049c6e5b9010d6e7bc0599d8f4d8d8a564",
+      "equal": true
+    },
+    {
+      "path": "implementations/csharp/verification/consumers/logging-candidate/Consumer.csproj.template",
+      "bytes": 592,
+      "sha256": "2ff4b527bec7ee026aff70d5647f4817c782b8df2807dab74ebf6f8f60c1d49a",
+      "runStartSha256": "2ff4b527bec7ee026aff70d5647f4817c782b8df2807dab74ebf6f8f60c1d49a",
+      "equal": true
+    },
+    {
+      "path": "conformance/logging/case-inventory.json",
+      "bytes": 362205,
+      "sha256": "881a45e43024f413e00876c642063030efa234732ca72ef8c20741cb33f94e13",
+      "runStartSha256": "881a45e43024f413e00876c642063030efa234732ca72ef8c20741cb33f94e13",
+      "equal": true
+    },
+    {
+      "path": "conformance/logging/requirement-case-map.json",
+      "bytes": 30342,
+      "sha256": "01b33126ed1569a14f66a59fe3b43495d390f67e5f360e0edfd37f94b7302629",
+      "runStartSha256": "01b33126ed1569a14f66a59fe3b43495d390f67e5f360e0edfd37f94b7302629",
+      "equal": true
+    },
+    {
+      "path": "conformance/logging/candidate-consumer-qualification.json",
+      "bytes": 4539,
+      "sha256": "64b271f892f80b4663a2d69baa4ad689a542b171a20f3e6d7c876b7d6d340042",
+      "runStartSha256": "64b271f892f80b4663a2d69baa4ad689a542b171a20f3e6d7c876b7d6d340042",
+      "equal": true
+    },
+    {
+      "path": "docs/modules/logging/candidate-consumers.md",
+      "bytes": 3185,
+      "sha256": "70457bbcaee0e6413bd26452c1e701c6aaac31819eb2d5f0b38d271b3548874a",
+      "runStartSha256": "70457bbcaee0e6413bd26452c1e701c6aaac31819eb2d5f0b38d271b3548874a",
+      "equal": true
+    }
+  ],
+  "controls": "Three changed loaded-assembly hashes and a changed runtime label are rejected after a real positive process. Pressure uses a private BCL control pipe and a real unread stdout pipe. Recovery intentionally prepares documented test states from candidate-produced inventory and bytes.",
+  "priorResults": "Retained focused failures exposed fixture cache-path formatting, normal/verbose and bounded payload assumptions, and a local UTF-8 edit error. Initial native console-control pressure cases timed out (17pass/2fail). A corrected private-pipe run passed19 but its shell wrapper returned2; saved-script invocation passes19 and exits0. The full Windows profile then repacked the archive (same three DLL hashes, different package SHA); final Ubuntu replay uses exactly that selected archive and passes19 with exit0. The first native TRX was not retained before WSL temporary state closed; its native console output is retained without inventing the missing report.",
+  "auditGenerator": {
+    "path": "task/freeze-evidence.py",
+    "sha256": "5b79f0581a63acab7edcf2d193f8c28c2ef1f9c962e62975e3618dafe635cfcb"
+  },
+  "release": {
+    "exitCode": 2,
+    "summary": {
+      "path": "pending/Release/summary.json",
+      "bytes": 9290,
+      "sha256": "919824192fa1358c789606efcb5156cccfa8354936781847342ed9f9b4c2d77d"
+    },
+    "remainingPlannedCaseGroups": 27,
+    "missingReleaseGates": 8,
+    "missingFamilyArea": true,
+    "fullReleaseAreasPending": 9
+  },
+  "review": {
+    "initial": "ChangesRequired:5findings",
+    "findings": "task/claude-findings.json",
+    "resolutions": "task/review-resolutions.json",
+    "followupFindings": "task/claude-final-findings.json",
+    "evidenceFindings": "task/claude-evidence-findings.json",
+    "final": "PASS",
+    "finalFindings": "task/claude-integrity-findings.json",
+    "promptSha256": "22d7a1068157c58e552932f883632cf489279001cb11af7f904056f45af02f81",
+    "rawResultSha256": "077ab7a9607e6457659ea4e78818b318dc06f42a20f2ab63f6caa542a12c041b"
+  },
+  "limits": "Both lanes qualify these19 candidate cases, not full platform/release support. Complete deterministic concurrency, coverage, discovery, architecture, mutation, cumulative compatibility, examples/skills and full release/publication remain pending. No shipping source/API/dependency, Type Manager implementation or publication ledger change."
+}

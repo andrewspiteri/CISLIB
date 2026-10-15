@@ -1,0 +1,3823 @@
+Final evidence-only follow-up. Return only JSON {verdict:PASS|CHANGES_REQUIRED,findings:[],limits:[]}; no tools, writes, plans or approval requests. Last review found no remaining test-code defects, only stale frozen generator/native copies. Both are now corrected. No executable/test source changed and no test rerun is claimed. The old mixed native/ tree was moved under explicitly prior-runs/pre-final-native, excluded from qualifying nativeArtifacts. The generator refuses to run with an existing native/ root, then copies only the qualifying current Windows root and final native05 retained root; exactly one Ubuntu candidate.json is asserted. Stale stdout.txt/terminal-stream.txt are forbidden specifically for pressure modes; ordinary Run() stdout.txt is legitimate. The actual updated generator copies itself into task/freeze-evidence.py, with its SHA256 in verification.auditGenerator, then generated the supplied audit/receipt from full run70056f5f and snapshot05. All snapshot05 input/script/log/exit files are supplied. The independent cleanup audit lists exact qualifying root membership and matches every qualifying native artifact hash/length. Verify raw-code generator checks for project SHA, staged integration DLL SHA versus05manifest/current Windows DLL, exact TRX codebase root, raw complete/tail accounting and original stop comparison. Native19perlane andfull5299passed previously are unchanged;Release2 andfuture gates remain pending.
+The generator is an evidence freeze, so safely refuses reuse of an existing qualifying output; regenerating requires a fresh/archived native root. Retained earlier runs stay prior evidence only. Final review state will be updated to your actual verdict AFTER response, then checksum manifest sealed before commit; no prewritten PASS required.
+
+FILE planning/logging/evidence/wp07-s01-t02/verification.json SHA256 3f89eebe78f0ec8a5d0d36d562732d59536fe9d1e09d2bf8789c1c7d4a381a55
+{
+  "task": "WP07-S01-T02",
+  "baseCommit": "8918de213fb7efa769c67765a80dc1dd5c5817b5",
+  "scope": "Real exact-candidate public consumer qualification at process/stream/file boundaries.",
+  "audit": "audit.json",
+  "developer": {
+    "runId": "70056f5f94cb47c4a78d7082055eb299",
+    "startedUtc": "2026-10-15T02:14:11.6503890Z",
+    "finishedUtc": "2026-10-15T02:19:34.8092374Z",
+    "exitCode": 0,
+    "stagesPassed": 15,
+    "totalTests": 5299
+  },
+  "candidate": {
+    "packageVersion": "0.1.0-dev.1",
+    "packageSha256": "89f409a0800b00b1d068492cec9e030e0a1ea4325ff7551252c9884346f3bf48",
+    "assemblyHashes": {
+      "core": "32be93e73044cae6e9d098dcceba3807114638ed8ceb990f28e0c1c0acfcef24",
+      "logging": "7c242f8ca612fa1acc61f78efd5f8c89e01bd0bd47dc4ecc65e0e6e24f1a1668",
+      "di": "da04edc338d5aa0f38a1f5fa5ff3ee7e36affe9c961daf3ea724a428bd746bc6"
+    },
+    "samePackageAndPortableTestAssemblyOnBothLanes": true,
+    "sameConsumerProjectSha256": "2ff4b527bec7ee026aff70d5647f4817c782b8df2807dab74ebf6f8f60c1d49a",
+    "nativeStagedTestAssemblySha256": "854ee1c76dc248dbffad2cdf2f82a3c4eab83375d7e79a510f6c092d47f8e563",
+    "nativeTestCodebase": "/tmp/cislib-wp07-s01-t02-7734db31e8714f54b6c3472cfc8d0cf5/implementations/csharp/tests/CIS.Core.IntegrationTests/bin/Release/net10.0/CIS.Core.IntegrationTests.dll"
+  },
+  "nativeCandidateCases": {
+    "windows-x64": 19,
+    "linux-ubuntu2404-x64": 19
+  },
+  "inputs": [
+    {
+      "path": "implementations/csharp/tests/CIS.Core.IntegrationTests/CandidatePackageFixture.cs",
+      "bytes": 17072,
+      "sha256": "5df60f2bb67614c6e3c532b7286f6c77e8222cb25f55c97c4f2cdb1e1f99aff5",
+      "runStartSha256": "5df60f2bb67614c6e3c532b7286f6c77e8222cb25f55c97c4f2cdb1e1f99aff5",
+      "equal": true
+    },
+    {
+      "path": "implementations/csharp/tests/CIS.Core.IntegrationTests/CandidateLoggingProcessTests.cs",
+      "bytes": 20702,
+      "sha256": "573606758b6dc4952b764ee36b733bcc5c5e60a779753c2b2d99065988cfd060",
+      "runStartSha256": "573606758b6dc4952b764ee36b733bcc5c5e60a779753c2b2d99065988cfd060",
+      "equal": true
+    },
+    {
+      "path": "implementations/csharp/verification/consumers/logging-candidate/Program.cs",
+      "bytes": 11309,
+      "sha256": "511dcf4bc061e3892a9b0d273792e4049c6e5b9010d6e7bc0599d8f4d8d8a564",
+      "runStartSha256": "511dcf4bc061e3892a9b0d273792e4049c6e5b9010d6e7bc0599d8f4d8d8a564",
+      "equal": true
+    },
+    {
+      "path": "implementations/csharp/verification/consumers/logging-candidate/Consumer.csproj.template",
+      "bytes": 592,
+      "sha256": "2ff4b527bec7ee026aff70d5647f4817c782b8df2807dab74ebf6f8f60c1d49a",
+      "runStartSha256": "2ff4b527bec7ee026aff70d5647f4817c782b8df2807dab74ebf6f8f60c1d49a",
+      "equal": true
+    },
+    {
+      "path": "conformance/logging/case-inventory.json",
+      "bytes": 362205,
+      "sha256": "881a45e43024f413e00876c642063030efa234732ca72ef8c20741cb33f94e13",
+      "runStartSha256": "881a45e43024f413e00876c642063030efa234732ca72ef8c20741cb33f94e13",
+      "equal": true
+    },
+    {
+      "path": "conformance/logging/requirement-case-map.json",
+      "bytes": 30342,
+      "sha256": "01b33126ed1569a14f66a59fe3b43495d390f67e5f360e0edfd37f94b7302629",
+      "runStartSha256": "01b33126ed1569a14f66a59fe3b43495d390f67e5f360e0edfd37f94b7302629",
+      "equal": true
+    },
+    {
+      "path": "conformance/logging/candidate-consumer-qualification.json",
+      "bytes": 4539,
+      "sha256": "64b271f892f80b4663a2d69baa4ad689a542b171a20f3e6d7c876b7d6d340042",
+      "runStartSha256": "64b271f892f80b4663a2d69baa4ad689a542b171a20f3e6d7c876b7d6d340042",
+      "equal": true
+    },
+    {
+      "path": "docs/modules/logging/candidate-consumers.md",
+      "bytes": 3185,
+      "sha256": "70457bbcaee0e6413bd26452c1e701c6aaac31819eb2d5f0b38d271b3548874a",
+      "runStartSha256": "70457bbcaee0e6413bd26452c1e701c6aaac31819eb2d5f0b38d271b3548874a",
+      "equal": true
+    }
+  ],
+  "controls": "Three changed loaded-assembly hashes and a changed runtime label are rejected after a real positive process. Pressure uses a private BCL control pipe and a real unread stdout pipe. Recovery intentionally prepares documented test states from candidate-produced inventory and bytes.",
+  "priorResults": "Retained focused failures exposed fixture cache-path formatting, normal/verbose and bounded payload assumptions, and a local UTF-8 edit error. Initial native console-control pressure cases timed out (17pass/2fail). A corrected private-pipe run passed19 but its shell wrapper returned2; saved-script invocation passes19 and exits0. The full Windows profile then repacked the archive (same three DLL hashes, different package SHA); final Ubuntu replay uses exactly that selected archive and passes19 with exit0. The first native TRX was not retained before WSL temporary state closed; its native console output is retained without inventing the missing report.",
+  "auditGenerator": {
+    "path": "task/freeze-evidence.py",
+    "sha256": "4af3ef8acb35fbf4f21c362a0cd93e349fc60dc833d878ee980988251d84cec5"
+  },
+  "review": {
+    "state": "Pending evidence-only follow-up after code review corrections",
+    "previousFollowup": "ChangesRequired: stale retained generator/native copies; corrected without code changes."
+  },
+  "limits": "Both lanes qualify these19 candidate cases, not full platform/release support. Complete deterministic concurrency, coverage, discovery, architecture, mutation, cumulative compatibility, examples/skills and full release/publication remain pending. No shipping source/API/dependency, Type Manager implementation or publication ledger change.",
+  "release": {
+    "exitCode": 2,
+    "summary": "native/Release/summary.json",
+    "remainingPlannedCaseGroups": 27,
+    "fullReleaseAreasPending": 9
+  }
+}
+
+END FILE
+
+FILE planning/logging/evidence/wp07-s01-t02/audit.json SHA256 3e3b646d0e0099043d56f33949f2e3fe933f26dfa0c02f10aa335b992c651f07
+{
+  "task": "WP07-S01-T02",
+  "runId": "70056f5f94cb47c4a78d7082055eb299",
+  "startedUtc": "2026-10-15T02:14:11.6503890Z",
+  "finishedUtc": "2026-10-15T02:19:34.8092374Z",
+  "stagesPassed": 15,
+  "familyCounts": {
+    "unit": {
+      "total": "3373",
+      "executed": "3373",
+      "passed": "3373",
+      "failed": "0",
+      "error": "0",
+      "timeout": "0",
+      "aborted": "0",
+      "inconclusive": "0",
+      "passedButRunAborted": "0",
+      "notRunnable": "0",
+      "notExecuted": "0",
+      "disconnected": "0",
+      "warning": "0",
+      "completed": "0",
+      "inProgress": "0",
+      "pending": "0"
+    },
+    "integration": {
+      "total": "1419",
+      "executed": "1419",
+      "passed": "1419",
+      "failed": "0",
+      "error": "0",
+      "timeout": "0",
+      "aborted": "0",
+      "inconclusive": "0",
+      "passedButRunAborted": "0",
+      "notRunnable": "0",
+      "notExecuted": "0",
+      "disconnected": "0",
+      "warning": "0",
+      "completed": "0",
+      "inProgress": "0",
+      "pending": "0"
+    },
+    "architecture": {
+      "total": "483",
+      "executed": "483",
+      "passed": "483",
+      "failed": "0",
+      "error": "0",
+      "timeout": "0",
+      "aborted": "0",
+      "inconclusive": "0",
+      "passedButRunAborted": "0",
+      "notRunnable": "0",
+      "notExecuted": "0",
+      "disconnected": "0",
+      "warning": "0",
+      "completed": "0",
+      "inProgress": "0",
+      "pending": "0"
+    },
+    "business": {
+      "total": "24",
+      "executed": "24",
+      "passed": "24",
+      "failed": "0",
+      "error": "0",
+      "timeout": "0",
+      "aborted": "0",
+      "inconclusive": "0",
+      "passedButRunAborted": "0",
+      "notRunnable": "0",
+      "notExecuted": "0",
+      "disconnected": "0",
+      "warning": "0",
+      "completed": "0",
+      "inProgress": "0",
+      "pending": "0"
+    }
+  },
+  "candidate": {
+    "packageVersion": "0.1.0-dev.1",
+    "packageSha256": "89f409a0800b00b1d068492cec9e030e0a1ea4325ff7551252c9884346f3bf48",
+    "assemblyHashes": {
+      "core": "32be93e73044cae6e9d098dcceba3807114638ed8ceb990f28e0c1c0acfcef24",
+      "logging": "7c242f8ca612fa1acc61f78efd5f8c89e01bd0bd47dc4ecc65e0e6e24f1a1668",
+      "di": "da04edc338d5aa0f38a1f5fa5ff3ee7e36affe9c961daf3ea724a428bd746bc6"
+    },
+    "samePackageAndPortableTestAssemblyOnBothLanes": true,
+    "sameConsumerProjectSha256": "2ff4b527bec7ee026aff70d5647f4817c782b8df2807dab74ebf6f8f60c1d49a",
+    "nativeStagedTestAssemblySha256": "854ee1c76dc248dbffad2cdf2f82a3c4eab83375d7e79a510f6c092d47f8e563",
+    "nativeTestCodebase": "/tmp/cislib-wp07-s01-t02-7734db31e8714f54b6c3472cfc8d0cf5/implementations/csharp/tests/CIS.Core.IntegrationTests/bin/Release/net10.0/CIS.Core.IntegrationTests.dll"
+  },
+  "lanes": {
+    "windows-x64": {
+      "nativeReport": {
+        "path": "native/Developer/families/integration/report.trx",
+        "bytes": 5270668,
+        "sha256": "7630ac69af4f96b855281979d26332fe5eaee8d70a07263928c93c5231570f2e",
+        "sourcePath": ".artifacts/csharp/verification/Developer/families/integration/report.trx"
+      },
+      "times": {
+        "creation": "2026-10-15T04:17:34.6382787+02:00",
+        "queuing": "2026-10-15T04:17:34.6382792+02:00",
+        "start": "2026-10-15T04:17:33.3114590+02:00",
+        "finish": "2026-10-15T04:18:36.5016286+02:00"
+      },
+      "caseBindings": [
+        {
+          "id": "INT-CANDIDATE-OUTPUT",
+          "method": "CIS.Tests.IntegrationTests.CandidateLoggingProcessTests.PackedConsumerSelectsPresentationStreamsAndIndependentThresholds",
+          "executions": 4,
+          "outcome": "Passed",
+          "testNames": [
+            "PackedConsumerSelectsPresentationStreamsAndIndependentThresholds (\"jsonl\",\"normal\",\"stdout\")",
+            "PackedConsumerSelectsPresentationStreamsAndIndependentThresholds (\"human\",\"normal\",\"stderr\")",
+            "PackedConsumerSelectsPresentationStreamsAndIndependentThresholds (\"jsonl\",\"normal\",\"stderr\")",
+            "PackedConsumerSelectsPresentationStreamsAndIndependentThresholds (\"human\",\"verbose\",\"stderr\")"
+          ]
+        },
+        {
+          "id": "INT-CANDIDATE-PROVIDER",
+          "method": "CIS.Tests.IntegrationTests.CandidateLoggingProcessTests.PackedMicrosoftProviderMapsScopesAndLeavesItsRuntimeUsableAfterDisposal",
+          "executions": 1,
+          "outcome": "Passed",
+          "testNames": [
+            "PackedMicrosoftProviderMapsScopesAndLeavesItsRuntimeUsableAfterDisposal"
+          ]
+        },
+        {
+          "id": "INT-CANDIDATE-ORIGIN",
+          "method": "CIS.Tests.IntegrationTests.CandidateLoggingProcessTests.CandidateOriginGuardRejectsAlteredAssemblyAndRuntimeEvidence",
+          "executions": 1,
+          "outcome": "Passed",
+          "testNames": [
+            "CandidateOriginGuardRejectsAlteredAssemblyAndRuntimeEvidence"
+          ]
+        },
+        {
+          "id": "INT-CANDIDATE-DISABLED",
+          "method": "CIS.Tests.IntegrationTests.CandidateLoggingProcessTests.PackedConsumerWithDisabledOutputsSkipsFactoriesAndStopsIdempotently",
+          "executions": 1,
+          "outcome": "Passed",
+          "testNames": [
+            "PackedConsumerWithDisabledOutputsSkipsFactoriesAndStopsIdempotently"
+          ]
+        },
+        {
+          "id": "INT-CANDIDATE-OWNERSHIP",
+          "method": "CIS.Tests.IntegrationTests.CandidateLoggingProcessTests.PackedConsumersEnforceExclusiveGroupsReleaseOnTerminationAndKeepDistinctGroupsIndependent",
+          "executions": 1,
+          "outcome": "Passed",
+          "testNames": [
+            "PackedConsumersEnforceExclusiveGroupsReleaseOnTerminationAndKeepDistinctGroupsIndependent"
+          ]
+        },
+        {
+          "id": "INT-CANDIDATE-INIT",
+          "method": "CIS.Tests.IntegrationTests.CandidateLoggingProcessTests.PackedStartupRejectsUnsafeExistingOutputWithoutChangingBytesOrLeakingItsLease",
+          "executions": 2,
+          "outcome": "Passed",
+          "testNames": [
+            "PackedStartupRejectsUnsafeExistingOutputWithoutChangingBytesOrLeakingItsLease (False)",
+            "PackedStartupRejectsUnsafeExistingOutputWithoutChangingBytesOrLeakingItsLease (True)"
+          ]
+        },
+        {
+          "id": "INT-CANDIDATE-RESTART",
+          "method": "CIS.Tests.IntegrationTests.CandidateLoggingProcessTests.PackedRestartContinuesRotationIdentitiesAndRetainsOnlyOwnedNewestSegments",
+          "executions": 1,
+          "outcome": "Passed",
+          "testNames": [
+            "PackedRestartContinuesRotationIdentitiesAndRetainsOnlyOwnedNewestSegments"
+          ]
+        },
+        {
+          "id": "INT-CANDIDATE-RECOVERY",
+          "method": "CIS.Tests.IntegrationTests.CandidateLoggingProcessTests.PackedStartupReconcilesPreparedInterruptedRotationAndPreservesOriginalBytes",
+          "executions": 4,
+          "outcome": "Passed",
+          "testNames": [
+            "PackedStartupReconcilesPreparedInterruptedRotationAndPreservesOriginalBytes (\"published\")",
+            "PackedStartupReconcilesPreparedInterruptedRotationAndPreservesOriginalBytes (\"partial\")",
+            "PackedStartupReconcilesPreparedInterruptedRotationAndPreservesOriginalBytes (\"renamed\")",
+            "PackedStartupReconcilesPreparedInterruptedRotationAndPreservesOriginalBytes (\"intent\")"
+          ]
+        },
+        {
+          "id": "INT-CANDIDATE-FAULT",
+          "method": "CIS.Tests.IntegrationTests.CandidateLoggingProcessTests.PackedRotationCollisionFaultsOnlyFileAndKeepsConsoleAvailable",
+          "executions": 1,
+          "outcome": "Passed",
+          "testNames": [
+            "PackedRotationCollisionFaultsOnlyFileAndKeepsConsoleAvailable"
+          ]
+        },
+        {
+          "id": "INT-CANDIDATE-PIPE",
+          "method": "CIS.Tests.IntegrationTests.CandidateLoggingProcessTests.PackedPipePressureIsBoundedAndStopReportsActualDeadlineBeforeLateDrain",
+          "executions": 2,
+          "outcome": "Passed",
+          "testNames": [
+            "PackedPipePressureIsBoundedAndStopReportsActualDeadlineBeforeLateDrain (True)",
+            "PackedPipePressureIsBoundedAndStopReportsActualDeadlineBeforeLateDrain (False)"
+          ]
+        },
+        {
+          "id": "INT-CANDIDATE-CANCEL",
+          "method": "CIS.Tests.IntegrationTests.CandidateLoggingProcessTests.PackedAlreadyCancelledStopWaiterDoesNotCancelSharedDrainOrDispose",
+          "executions": 1,
+          "outcome": "Passed",
+          "testNames": [
+            "PackedAlreadyCancelledStopWaiterDoesNotCancelSharedDrainOrDispose"
+          ]
+        }
+      ],
+      "candidateExecutions": 19,
+      "failed": 0,
+      "skipped": 0,
+      "processOrigins": [
+        {
+          "report": "child-1/report.json",
+          "mode": "emit",
+          "stage": "stopped",
+          "pid": 131432,
+          "instanceId": "007aaf93-6e66-4086-9453-9d3b0d204f21",
+          "loadedCoreSha256": "32be93e73044cae6e9d098dcceba3807114638ed8ceb990f28e0c1c0acfcef24",
+          "os": "windows",
+          "architecture": "X64",
+          "runtime": ".NET 10.0.12"
+        },
+        {
+          "report": "child-10/report.json",
+          "mode": "produce",
+          "stage": "stopped",
+          "pid": 66760,
+          "instanceId": "96b50e31-a0dc-4d4a-9b8b-dc360c3e62f4",
+          "loadedCoreSha256": "32be93e73044cae6e9d098dcceba3807114638ed8ceb990f28e0c1c0acfcef24",
+          "os": "windows",
+          "architecture": "X64",
+          "runtime": ".NET 10.0.12"
+        },
+        {
+          "report": "child-11/report.json",
+          "mode": "produce",
+          "stage": "stopped",
+          "pid": 37516,
+          "instanceId": "49a21914-e6e4-491c-832d-8d3c2cf5e82f",
+          "loadedCoreSha256": "32be93e73044cae6e9d098dcceba3807114638ed8ceb990f28e0c1c0acfcef24",
+          "os": "windows",
+          "architecture": "X64",
+          "runtime": ".NET 10.0.12"
+        },
+        {
+          "report": "child-12/report.json",
+          "mode": "produce",
+          "stage": "initialization-failed",
+          "pid": 28292,
+          "instanceId": "694694ac-9283-4db8-a5b8-cc4788d766ea",
+          "loadedCoreSha256": "32be93e73044cae6e9d098dcceba3807114638ed8ceb990f28e0c1c0acfcef24",
+          "os": "windows",
+          "architecture": "X64",
+          "runtime": ".NET 10.0.12"
+        },
+        {
+          "report": "child-13/report.json",
+          "mode": "produce",
+          "stage": "initialization-failed",
+          "pid": 75884,
+          "instanceId": "f621faf9-ffe3-4b3a-8e8e-f870d42c81b3",
+          "loadedCoreSha256": "32be93e73044cae6e9d098dcceba3807114638ed8ceb990f28e0c1c0acfcef24",
+          "os": "windows",
+          "architecture": "X64",
+          "runtime": ".NET 10.0.12"
+        },
+        {
+          "report": "child-14/report.json",
+          "mode": "produce",
+          "stage": "stopped",
+          "pid": 83192,
+          "instanceId": "ad973554-39c2-456d-b04e-df6b0928bf94",
+          "loadedCoreSha256": "32be93e73044cae6e9d098dcceba3807114638ed8ceb990f28e0c1c0acfcef24",
+          "os": "windows",
+          "architecture": "X64",
+          "runtime": ".NET 10.0.12"
+        },
+        {
+          "report": "child-15/report.json",
+          "mode": "produce",
+          "stage": "initialization-failed",
+          "pid": 115436,
+          "instanceId": "345e7971-e852-40b5-ab0e-e0f0df6967c5",
+          "loadedCoreSha256": "32be93e73044cae6e9d098dcceba3807114638ed8ceb990f28e0c1c0acfcef24",
+          "os": "windows",
+          "architecture": "X64",
+          "runtime": ".NET 10.0.12"
+        },
+        {
+          "report": "child-16/report.json",
+          "mode": "produce",
+          "stage": "initialization-failed",
+          "pid": 21604,
+          "instanceId": "403ca436-3dc6-4354-b57b-d2592c1723bd",
+          "loadedCoreSha256": "32be93e73044cae6e9d098dcceba3807114638ed8ceb990f28e0c1c0acfcef24",
+          "os": "windows",
+          "architecture": "X64",
+          "runtime": ".NET 10.0.12"
+        },
+        {
+          "report": "child-17/report.json",
+          "mode": "produce",
+          "stage": "stopped",
+          "pid": 134164,
+          "instanceId": "e1c2f585-c176-4e48-a67e-2dc839ba784e",
+          "loadedCoreSha256": "32be93e73044cae6e9d098dcceba3807114638ed8ceb990f28e0c1c0acfcef24",
+          "os": "windows",
+          "architecture": "X64",
+          "runtime": ".NET 10.0.12"
+        },
+        {
+          "report": "child-18/report.json",
+          "mode": "produce",
+          "stage": "stopped",
+          "pid": 43820,
+          "instanceId": "2c381925-8c01-4896-a09c-fff07f8eba55",
+          "loadedCoreSha256": "32be93e73044cae6e9d098dcceba3807114638ed8ceb990f28e0c1c0acfcef24",
+          "os": "windows",
+          "architecture": "X64",
+          "runtime": ".NET 10.0.12"
+        },
+        {
+          "report": "child-19/report.json",
+          "mode": "produce",
+          "stage": "stopped",
+          "pid": 135908,
+          "instanceId": "daa9edc3-4023-4e08-bf63-3bee62702b2e",
+          "loadedCoreSha256": "32be93e73044cae6e9d098dcceba3807114638ed8ceb990f28e0c1c0acfcef24",
+          "os": "windows",
+          "architecture": "X64",
+          "runtime": ".NET 10.0.12"
+        },
+        {
+          "report": "child-2/report.json",
+          "mode": "emit",
+          "stage": "stopped",
+          "pid": 125164,
+          "instanceId": "e2e963e1-86fd-48f8-8dbc-025eccb3fdbe",
+          "loadedCoreSha256": "32be93e73044cae6e9d098dcceba3807114638ed8ceb990f28e0c1c0acfcef24",
+          "os": "windows",
+          "architecture": "X64",
+          "runtime": ".NET 10.0.12"
+        },
+        {
+          "report": "child-20/report.json",
+          "mode": "produce",
+          "stage": "stopped",
+          "pid": 162540,
+          "instanceId": "0fa8bf94-a6ff-493e-ad74-9dccb05f4a7f",
+          "loadedCoreSha256": "32be93e73044cae6e9d098dcceba3807114638ed8ceb990f28e0c1c0acfcef24",
+          "os": "windows",
+          "architecture": "X64",
+          "runtime": ".NET 10.0.12"
+        },
+        {
+          "report": "child-21/report.json",
+          "mode": "produce",
+          "stage": "stopped",
+          "pid": 90536,
+          "instanceId": "5aeb8c20-4b1e-4e4a-9799-8fa397dc5296",
+          "loadedCoreSha256": "32be93e73044cae6e9d098dcceba3807114638ed8ceb990f28e0c1c0acfcef24",
+          "os": "windows",
+          "architecture": "X64",
+          "runtime": ".NET 10.0.12"
+        },
+        {
+          "report": "child-22/report.json",
+          "mode": "produce",
+          "stage": "stopped",
+          "pid": 46272,
+          "instanceId": "d75ac625-7283-4b9f-8077-680659dbae9c",
+          "loadedCoreSha256": "32be93e73044cae6e9d098dcceba3807114638ed8ceb990f28e0c1c0acfcef24",
+          "os": "windows",
+          "architecture": "X64",
+          "runtime": ".NET 10.0.12"
+        },
+        {
+          "report": "child-23/report.json",
+          "mode": "produce",
+          "stage": "stopped",
+          "pid": 159388,
+          "instanceId": "6f83a9b3-ddb5-4d9c-83b2-491dc6069233",
+          "loadedCoreSha256": "32be93e73044cae6e9d098dcceba3807114638ed8ceb990f28e0c1c0acfcef24",
+          "os": "windows",
+          "architecture": "X64",
+          "runtime": ".NET 10.0.12"
+        },
+        {
+          "report": "child-24/report.json",
+          "mode": "produce",
+          "stage": "stopped",
+          "pid": 144544,
+          "instanceId": "c6d69507-4cca-4def-b55d-30e640e673fe",
+          "loadedCoreSha256": "32be93e73044cae6e9d098dcceba3807114638ed8ceb990f28e0c1c0acfcef24",
+          "os": "windows",
+          "architecture": "X64",
+          "runtime": ".NET 10.0.12"
+        },
+        {
+          "report": "child-25/report.json",
+          "mode": "produce",
+          "stage": "stopped",
+          "pid": 168384,
+          "instanceId": "775af5a5-7bd1-4b0c-8840-4eed6ca577ed",
+          "loadedCoreSha256": "32be93e73044cae6e9d098dcceba3807114638ed8ceb990f28e0c1c0acfcef24",
+          "os": "windows",
+          "architecture": "X64",
+          "runtime": ".NET 10.0.12"
+        },
+        {
+          "report": "child-26/report.json",
+          "mode": "produce",
+          "stage": "stopped",
+          "pid": 168844,
+          "instanceId": "d60c53d5-f842-4e19-b6ce-156672abde54",
+          "loadedCoreSha256": "32be93e73044cae6e9d098dcceba3807114638ed8ceb990f28e0c1c0acfcef24",
+          "os": "windows",
+          "architecture": "X64",
+          "runtime": ".NET 10.0.12"
+        },
+        {
+          "report": "child-27/report.json",
+          "mode": "interactive",
+          "stage": "stopped",
+          "pid": 125452,
+          "instanceId": "1269bb71-0db3-42a6-a879-e77f08ef2b02",
+          "loadedCoreSha256": "32be93e73044cae6e9d098dcceba3807114638ed8ceb990f28e0c1c0acfcef24",
+          "os": "windows",
+          "architecture": "X64",
+          "runtime": ".NET 10.0.12"
+        },
+        {
+          "report": "child-28/report.json",
+          "mode": "burst",
+          "stage": "stopped",
+          "pid": 127112,
+          "instanceId": "995e46ab-2cce-4870-a57c-e2ca45c2efa3",
+          "loadedCoreSha256": "32be93e73044cae6e9d098dcceba3807114638ed8ceb990f28e0c1c0acfcef24",
+          "os": "windows",
+          "architecture": "X64",
+          "runtime": ".NET 10.0.12"
+        },
+        {
+          "report": "child-29/report.json",
+          "mode": "deadline",
+          "stage": "settled",
+          "pid": 69408,
+          "instanceId": "c8939a7b-88a7-4fc2-b1ac-ca2245b9dccb",
+          "loadedCoreSha256": "32be93e73044cae6e9d098dcceba3807114638ed8ceb990f28e0c1c0acfcef24",
+          "os": "windows",
+          "architecture": "X64",
+          "runtime": ".NET 10.0.12"
+        },
+        {
+          "report": "child-3/report.json",
+          "mode": "emit",
+          "stage": "stopped",
+          "pid": 53024,
+          "instanceId": "9b6fa68f-dcf0-4012-a27a-dcd2f45a87d6",
+          "loadedCoreSha256": "32be93e73044cae6e9d098dcceba3807114638ed8ceb990f28e0c1c0acfcef24",
+          "os": "windows",
+          "architecture": "X64",
+          "runtime": ".NET 10.0.12"
+        },
+        {
+          "report": "child-30/report.json",
+          "mode": "cancel",
+          "stage": "stopped",
+          "pid": 34944,
+          "instanceId": "ac59b198-db56-42a0-85a2-c0f3dfb8e5b9",
+          "loadedCoreSha256": "32be93e73044cae6e9d098dcceba3807114638ed8ceb990f28e0c1c0acfcef24",
+          "os": "windows",
+          "architecture": "X64",
+          "runtime": ".NET 10.0.12"
+        },
+        {
+          "report": "child-4/report.json",
+          "mode": "emit",
+          "stage": "stopped",
+          "pid": 94464,
+          "instanceId": "cff7d661-d5c1-4fed-9ea9-eb9ef68e1fa6",
+          "loadedCoreSha256": "32be93e73044cae6e9d098dcceba3807114638ed8ceb990f28e0c1c0acfcef24",
+          "os": "windows",
+          "architecture": "X64",
+          "runtime": ".NET 10.0.12"
+        },
+        {
+          "report": "child-5/report.json",
+          "mode": "provider",
+          "stage": "stopped",
+          "pid": 158056,
+          "instanceId": "51dc8b87-70a8-4e12-bb15-c3e0dc272c90",
+          "loadedCoreSha256": "32be93e73044cae6e9d098dcceba3807114638ed8ceb990f28e0c1c0acfcef24",
+          "os": "windows",
+          "architecture": "X64",
+          "runtime": ".NET 10.0.12"
+        },
+        {
+          "report": "child-6/report.json",
+          "mode": "disabled",
+          "stage": "stopped",
+          "pid": 94280,
+          "instanceId": "32f3943a-b704-4900-a7ee-6102afdafa1e",
+          "loadedCoreSha256": "32be93e73044cae6e9d098dcceba3807114638ed8ceb990f28e0c1c0acfcef24",
+          "os": "windows",
+          "architecture": "X64",
+          "runtime": ".NET 10.0.12"
+        },
+        {
+          "report": "child-7/report.json",
+          "mode": "disabled",
+          "stage": "stopped",
+          "pid": 13124,
+          "instanceId": "06436ce7-78e8-47d5-b0c2-f03788b27794",
+          "loadedCoreSha256": "32be93e73044cae6e9d098dcceba3807114638ed8ceb990f28e0c1c0acfcef24",
+          "os": "windows",
+          "architecture": "X64",
+          "runtime": ".NET 10.0.12"
+        },
+        {
+          "report": "child-8/report.json",
+          "mode": "interactive",
+          "stage": "written",
+          "pid": 133828,
+          "instanceId": "4773e637-dfa7-496f-9733-0b2a8eeefea8",
+          "loadedCoreSha256": "32be93e73044cae6e9d098dcceba3807114638ed8ceb990f28e0c1c0acfcef24",
+          "os": "windows",
+          "architecture": "X64",
+          "runtime": ".NET 10.0.12"
+        },
+        {
+          "report": "child-9/report.json",
+          "mode": "produce",
+          "stage": "initialization-failed",
+          "pid": 106776,
+          "instanceId": "c787a334-b5a5-4abc-96d2-101fd16b9a02",
+          "loadedCoreSha256": "32be93e73044cae6e9d098dcceba3807114638ed8ceb990f28e0c1c0acfcef24",
+          "os": "windows",
+          "architecture": "X64",
+          "runtime": ".NET 10.0.12"
+        }
+      ],
+      "privateRestoreReceipt": {
+        "path": "native/WindowsCandidate/candidate.json",
+        "bytes": 1064,
+        "sha256": "0da27772d2c68fa6ead3a5740c4d6f782af475b5f72b7560c498d3a726f8ed6f",
+        "sourcePath": ".artifacts/csharp/candidate-consumers/aa54c22bc99a4a94854bb84b776341a8/candidate.json"
+      },
+      "physicalPressureObservations": [
+        {
+          "mode": "burst",
+          "rawBytes": 31438,
+          "rawSha256": "47cdcb9b1ea80257dc741b3634f21a3d57ada7c0edb3102a39a0ea84ec57cc8d",
+          "completeRecords": 2,
+          "partialTailBytes": 0,
+          "written": 2,
+          "failed": 0,
+          "abandoned": 0,
+          "pending": 0,
+          "originalStopUnchanged": true
+        },
+        {
+          "mode": "deadline",
+          "rawBytes": 15718,
+          "rawSha256": "bbdf1af1955c0bea0d3a638643268137c8f89630a1aaf3e2dcd255dc43af0c8f",
+          "completeRecords": 1,
+          "partialTailBytes": 0,
+          "written": 1,
+          "failed": 0,
+          "abandoned": 1,
+          "pending": 0,
+          "originalStopUnchanged": true
+        }
+      ]
+    },
+    "linux-ubuntu2404-x64": {
+      "nativeReport": {
+        "path": "native/Ubuntu/results/report.trx",
+        "bytes": 30179,
+        "sha256": "d4551a01716b190dfd7cf6eece83be286d06937e4c754d81b89563e69489cef4",
+        "sourcePath": ".artifacts/csharp/tasks/wp07-s01-t02/linux-05-retained/results/report.trx"
+      },
+      "times": {
+        "creation": "2026-10-15T04:20:35.3402216+02:00",
+        "queuing": "2026-10-15T04:20:35.3402216+02:00",
+        "start": "2026-10-15T04:20:18.5958574+02:00",
+        "finish": "2026-10-15T04:20:43.5932235+02:00"
+      },
+      "caseBindings": [
+        {
+          "id": "INT-CANDIDATE-OUTPUT",
+          "method": "CIS.Tests.IntegrationTests.CandidateLoggingProcessTests.PackedConsumerSelectsPresentationStreamsAndIndependentThresholds",
+          "executions": 4,
+          "outcome": "Passed",
+          "testNames": [
+            "PackedConsumerSelectsPresentationStreamsAndIndependentThresholds (\"jsonl\",\"normal\",\"stdout\")",
+            "PackedConsumerSelectsPresentationStreamsAndIndependentThresholds (\"human\",\"normal\",\"stderr\")",
+            "PackedConsumerSelectsPresentationStreamsAndIndependentThresholds (\"human\",\"verbose\",\"stderr\")",
+            "PackedConsumerSelectsPresentationStreamsAndIndependentThresholds (\"jsonl\",\"normal\",\"stderr\")"
+          ]
+        },
+        {
+          "id": "INT-CANDIDATE-PROVIDER",
+          "method": "CIS.Tests.IntegrationTests.CandidateLoggingProcessTests.PackedMicrosoftProviderMapsScopesAndLeavesItsRuntimeUsableAfterDisposal",
+          "executions": 1,
+          "outcome": "Passed",
+          "testNames": [
+            "PackedMicrosoftProviderMapsScopesAndLeavesItsRuntimeUsableAfterDisposal"
+          ]
+        },
+        {
+          "id": "INT-CANDIDATE-ORIGIN",
+          "method": "CIS.Tests.IntegrationTests.CandidateLoggingProcessTests.CandidateOriginGuardRejectsAlteredAssemblyAndRuntimeEvidence",
+          "executions": 1,
+          "outcome": "Passed",
+          "testNames": [
+            "CandidateOriginGuardRejectsAlteredAssemblyAndRuntimeEvidence"
+          ]
+        },
+        {
+          "id": "INT-CANDIDATE-DISABLED",
+          "method": "CIS.Tests.IntegrationTests.CandidateLoggingProcessTests.PackedConsumerWithDisabledOutputsSkipsFactoriesAndStopsIdempotently",
+          "executions": 1,
+          "outcome": "Passed",
+          "testNames": [
+            "PackedConsumerWithDisabledOutputsSkipsFactoriesAndStopsIdempotently"
+          ]
+        },
+        {
+          "id": "INT-CANDIDATE-OWNERSHIP",
+          "method": "CIS.Tests.IntegrationTests.CandidateLoggingProcessTests.PackedConsumersEnforceExclusiveGroupsReleaseOnTerminationAndKeepDistinctGroupsIndependent",
+          "executions": 1,
+          "outcome": "Passed",
+          "testNames": [
+            "PackedConsumersEnforceExclusiveGroupsReleaseOnTerminationAndKeepDistinctGroupsIndependent"
+          ]
+        },
+        {
+          "id": "INT-CANDIDATE-INIT",
+          "method": "CIS.Tests.IntegrationTests.CandidateLoggingProcessTests.PackedStartupRejectsUnsafeExistingOutputWithoutChangingBytesOrLeakingItsLease",
+          "executions": 2,
+          "outcome": "Passed",
+          "testNames": [
+            "PackedStartupRejectsUnsafeExistingOutputWithoutChangingBytesOrLeakingItsLease (True)",
+            "PackedStartupRejectsUnsafeExistingOutputWithoutChangingBytesOrLeakingItsLease (False)"
+          ]
+        },
+        {
+          "id": "INT-CANDIDATE-RESTART",
+          "method": "CIS.Tests.IntegrationTests.CandidateLoggingProcessTests.PackedRestartContinuesRotationIdentitiesAndRetainsOnlyOwnedNewestSegments",
+          "executions": 1,
+          "outcome": "Passed",
+          "testNames": [
+            "PackedRestartContinuesRotationIdentitiesAndRetainsOnlyOwnedNewestSegments"
+          ]
+        },
+        {
+          "id": "INT-CANDIDATE-RECOVERY",
+          "method": "CIS.Tests.IntegrationTests.CandidateLoggingProcessTests.PackedStartupReconcilesPreparedInterruptedRotationAndPreservesOriginalBytes",
+          "executions": 4,
+          "outcome": "Passed",
+          "testNames": [
+            "PackedStartupReconcilesPreparedInterruptedRotationAndPreservesOriginalBytes (\"published\")",
+            "PackedStartupReconcilesPreparedInterruptedRotationAndPreservesOriginalBytes (\"renamed\")",
+            "PackedStartupReconcilesPreparedInterruptedRotationAndPreservesOriginalBytes (\"partial\")",
+            "PackedStartupReconcilesPreparedInterruptedRotationAndPreservesOriginalBytes (\"intent\")"
+          ]
+        },
+        {
+          "id": "INT-CANDIDATE-FAULT",
+          "method": "CIS.Tests.IntegrationTests.CandidateLoggingProcessTests.PackedRotationCollisionFaultsOnlyFileAndKeepsConsoleAvailable",
+          "executions": 1,
+          "outcome": "Passed",
+          "testNames": [
+            "PackedRotationCollisionFaultsOnlyFileAndKeepsConsoleAvailable"
+          ]
+        },
+        {
+          "id": "INT-CANDIDATE-PIPE",
+          "method": "CIS.Tests.IntegrationTests.CandidateLoggingProcessTests.PackedPipePressureIsBoundedAndStopReportsActualDeadlineBeforeLateDrain",
+          "executions": 2,
+          "outcome": "Passed",
+          "testNames": [
+            "PackedPipePressureIsBoundedAndStopReportsActualDeadlineBeforeLateDrain (False)",
+            "PackedPipePressureIsBoundedAndStopReportsActualDeadlineBeforeLateDrain (True)"
+          ]
+        },
+        {
+          "id": "INT-CANDIDATE-CANCEL",
+          "method": "CIS.Tests.IntegrationTests.CandidateLoggingProcessTests.PackedAlreadyCancelledStopWaiterDoesNotCancelSharedDrainOrDispose",
+          "executions": 1,
+          "outcome": "Passed",
+          "testNames": [
+            "PackedAlreadyCancelledStopWaiterDoesNotCancelSharedDrainOrDispose"
+          ]
+        }
+      ],
+      "candidateExecutions": 19,
+      "failed": 0,
+      "skipped": 0,
+      "processOrigins": [
+        {
+          "report": "child-1/report.json",
+          "mode": "emit",
+          "stage": "stopped",
+          "pid": 600,
+          "instanceId": "7b28732e-8a01-44a7-bb9c-f790d272a39b",
+          "loadedCoreSha256": "32be93e73044cae6e9d098dcceba3807114638ed8ceb990f28e0c1c0acfcef24",
+          "os": "linux",
+          "architecture": "X64",
+          "runtime": ".NET 10.0.12"
+        },
+        {
+          "report": "child-10/report.json",
+          "mode": "produce",
+          "stage": "stopped",
+          "pid": 709,
+          "instanceId": "79ffb063-aea7-493a-9682-b436aea8c76a",
+          "loadedCoreSha256": "32be93e73044cae6e9d098dcceba3807114638ed8ceb990f28e0c1c0acfcef24",
+          "os": "linux",
+          "architecture": "X64",
+          "runtime": ".NET 10.0.12"
+        },
+        {
+          "report": "child-11/report.json",
+          "mode": "produce",
+          "stage": "stopped",
+          "pid": 721,
+          "instanceId": "908e7b4e-89d0-4c20-ab0a-72f5df3795fd",
+          "loadedCoreSha256": "32be93e73044cae6e9d098dcceba3807114638ed8ceb990f28e0c1c0acfcef24",
+          "os": "linux",
+          "architecture": "X64",
+          "runtime": ".NET 10.0.12"
+        },
+        {
+          "report": "child-12/report.json",
+          "mode": "produce",
+          "stage": "initialization-failed",
+          "pid": 734,
+          "instanceId": "49095901-6210-4eb9-8815-ff82bf1f08ec",
+          "loadedCoreSha256": "32be93e73044cae6e9d098dcceba3807114638ed8ceb990f28e0c1c0acfcef24",
+          "os": "linux",
+          "architecture": "X64",
+          "runtime": ".NET 10.0.12"
+        },
+        {
+          "report": "child-13/report.json",
+          "mode": "produce",
+          "stage": "initialization-failed",
+          "pid": 744,
+          "instanceId": "1a930f33-56cf-46d1-b2da-2c3edf95c455",
+          "loadedCoreSha256": "32be93e73044cae6e9d098dcceba3807114638ed8ceb990f28e0c1c0acfcef24",
+          "os": "linux",
+          "architecture": "X64",
+          "runtime": ".NET 10.0.12"
+        },
+        {
+          "report": "child-14/report.json",
+          "mode": "produce",
+          "stage": "stopped",
+          "pid": 754,
+          "instanceId": "17812106-8902-4a4d-9909-6bae977dfde3",
+          "loadedCoreSha256": "32be93e73044cae6e9d098dcceba3807114638ed8ceb990f28e0c1c0acfcef24",
+          "os": "linux",
+          "architecture": "X64",
+          "runtime": ".NET 10.0.12"
+        },
+        {
+          "report": "child-15/report.json",
+          "mode": "produce",
+          "stage": "initialization-failed",
+          "pid": 766,
+          "instanceId": "ec3356c5-ad57-4730-b286-40594c6c5b1a",
+          "loadedCoreSha256": "32be93e73044cae6e9d098dcceba3807114638ed8ceb990f28e0c1c0acfcef24",
+          "os": "linux",
+          "architecture": "X64",
+          "runtime": ".NET 10.0.12"
+        },
+        {
+          "report": "child-16/report.json",
+          "mode": "produce",
+          "stage": "initialization-failed",
+          "pid": 776,
+          "instanceId": "eaacadb3-4b52-42aa-843c-f3c15955b1c6",
+          "loadedCoreSha256": "32be93e73044cae6e9d098dcceba3807114638ed8ceb990f28e0c1c0acfcef24",
+          "os": "linux",
+          "architecture": "X64",
+          "runtime": ".NET 10.0.12"
+        },
+        {
+          "report": "child-17/report.json",
+          "mode": "produce",
+          "stage": "stopped",
+          "pid": 786,
+          "instanceId": "53afbd57-0040-4e00-a143-28de76530a6c",
+          "loadedCoreSha256": "32be93e73044cae6e9d098dcceba3807114638ed8ceb990f28e0c1c0acfcef24",
+          "os": "linux",
+          "architecture": "X64",
+          "runtime": ".NET 10.0.12"
+        },
+        {
+          "report": "child-18/report.json",
+          "mode": "produce",
+          "stage": "stopped",
+          "pid": 798,
+          "instanceId": "fd29eb29-7a79-4a8b-ace5-7d8d74be6847",
+          "loadedCoreSha256": "32be93e73044cae6e9d098dcceba3807114638ed8ceb990f28e0c1c0acfcef24",
+          "os": "linux",
+          "architecture": "X64",
+          "runtime": ".NET 10.0.12"
+        },
+        {
+          "report": "child-19/report.json",
+          "mode": "produce",
+          "stage": "stopped",
+          "pid": 810,
+          "instanceId": "662b2813-8244-4c7d-9bc6-a79e8d69f9f8",
+          "loadedCoreSha256": "32be93e73044cae6e9d098dcceba3807114638ed8ceb990f28e0c1c0acfcef24",
+          "os": "linux",
+          "architecture": "X64",
+          "runtime": ".NET 10.0.12"
+        },
+        {
+          "report": "child-2/report.json",
+          "mode": "emit",
+          "stage": "stopped",
+          "pid": 615,
+          "instanceId": "656815f9-34b7-4fd2-95db-dddc39b00f73",
+          "loadedCoreSha256": "32be93e73044cae6e9d098dcceba3807114638ed8ceb990f28e0c1c0acfcef24",
+          "os": "linux",
+          "architecture": "X64",
+          "runtime": ".NET 10.0.12"
+        },
+        {
+          "report": "child-20/report.json",
+          "mode": "produce",
+          "stage": "stopped",
+          "pid": 822,
+          "instanceId": "7b417851-3d08-4268-bce4-8db52fbad895",
+          "loadedCoreSha256": "32be93e73044cae6e9d098dcceba3807114638ed8ceb990f28e0c1c0acfcef24",
+          "os": "linux",
+          "architecture": "X64",
+          "runtime": ".NET 10.0.12"
+        },
+        {
+          "report": "child-21/report.json",
+          "mode": "produce",
+          "stage": "stopped",
+          "pid": 834,
+          "instanceId": "4e12643b-672b-47d8-b297-fca87051e2b0",
+          "loadedCoreSha256": "32be93e73044cae6e9d098dcceba3807114638ed8ceb990f28e0c1c0acfcef24",
+          "os": "linux",
+          "architecture": "X64",
+          "runtime": ".NET 10.0.12"
+        },
+        {
+          "report": "child-22/report.json",
+          "mode": "produce",
+          "stage": "stopped",
+          "pid": 846,
+          "instanceId": "21e8f6b5-150e-4b49-878e-88358e9127f9",
+          "loadedCoreSha256": "32be93e73044cae6e9d098dcceba3807114638ed8ceb990f28e0c1c0acfcef24",
+          "os": "linux",
+          "architecture": "X64",
+          "runtime": ".NET 10.0.12"
+        },
+        {
+          "report": "child-23/report.json",
+          "mode": "produce",
+          "stage": "stopped",
+          "pid": 858,
+          "instanceId": "08836a73-f185-452a-bb17-841358f828b5",
+          "loadedCoreSha256": "32be93e73044cae6e9d098dcceba3807114638ed8ceb990f28e0c1c0acfcef24",
+          "os": "linux",
+          "architecture": "X64",
+          "runtime": ".NET 10.0.12"
+        },
+        {
+          "report": "child-24/report.json",
+          "mode": "produce",
+          "stage": "stopped",
+          "pid": 870,
+          "instanceId": "6b997278-fbe1-4dd0-8225-5e9a9a587476",
+          "loadedCoreSha256": "32be93e73044cae6e9d098dcceba3807114638ed8ceb990f28e0c1c0acfcef24",
+          "os": "linux",
+          "architecture": "X64",
+          "runtime": ".NET 10.0.12"
+        },
+        {
+          "report": "child-25/report.json",
+          "mode": "produce",
+          "stage": "stopped",
+          "pid": 882,
+          "instanceId": "615e03dc-6dca-42b7-ab36-0075486713f6",
+          "loadedCoreSha256": "32be93e73044cae6e9d098dcceba3807114638ed8ceb990f28e0c1c0acfcef24",
+          "os": "linux",
+          "architecture": "X64",
+          "runtime": ".NET 10.0.12"
+        },
+        {
+          "report": "child-26/report.json",
+          "mode": "produce",
+          "stage": "stopped",
+          "pid": 897,
+          "instanceId": "705c68d9-7cbe-4e03-955b-79c03b8ed1ce",
+          "loadedCoreSha256": "32be93e73044cae6e9d098dcceba3807114638ed8ceb990f28e0c1c0acfcef24",
+          "os": "linux",
+          "architecture": "X64",
+          "runtime": ".NET 10.0.12"
+        },
+        {
+          "report": "child-27/report.json",
+          "mode": "interactive",
+          "stage": "stopped",
+          "pid": 909,
+          "instanceId": "4fc5c5c6-e511-41a3-b680-be8dca9b3163",
+          "loadedCoreSha256": "32be93e73044cae6e9d098dcceba3807114638ed8ceb990f28e0c1c0acfcef24",
+          "os": "linux",
+          "architecture": "X64",
+          "runtime": ".NET 10.0.12"
+        },
+        {
+          "report": "child-28/report.json",
+          "mode": "burst",
+          "stage": "stopped",
+          "pid": 924,
+          "instanceId": "c283bd25-86e3-40a8-8da9-334eafb79b86",
+          "loadedCoreSha256": "32be93e73044cae6e9d098dcceba3807114638ed8ceb990f28e0c1c0acfcef24",
+          "os": "linux",
+          "architecture": "X64",
+          "runtime": ".NET 10.0.12"
+        },
+        {
+          "report": "child-29/report.json",
+          "mode": "deadline",
+          "stage": "settled",
+          "pid": 939,
+          "instanceId": "aa48220f-1889-4dc7-8297-55d29b972139",
+          "loadedCoreSha256": "32be93e73044cae6e9d098dcceba3807114638ed8ceb990f28e0c1c0acfcef24",
+          "os": "linux",
+          "architecture": "X64",
+          "runtime": ".NET 10.0.12"
+        },
+        {
+          "report": "child-3/report.json",
+          "mode": "emit",
+          "stage": "stopped",
+          "pid": 629,
+          "instanceId": "d56867ca-a604-4ef4-bc89-0e9c0f29d13a",
+          "loadedCoreSha256": "32be93e73044cae6e9d098dcceba3807114638ed8ceb990f28e0c1c0acfcef24",
+          "os": "linux",
+          "architecture": "X64",
+          "runtime": ".NET 10.0.12"
+        },
+        {
+          "report": "child-30/report.json",
+          "mode": "cancel",
+          "stage": "stopped",
+          "pid": 954,
+          "instanceId": "a4358a3f-d293-45e4-9ab6-b9b8ef89e643",
+          "loadedCoreSha256": "32be93e73044cae6e9d098dcceba3807114638ed8ceb990f28e0c1c0acfcef24",
+          "os": "linux",
+          "architecture": "X64",
+          "runtime": ".NET 10.0.12"
+        },
+        {
+          "report": "child-4/report.json",
+          "mode": "emit",
+          "stage": "stopped",
+          "pid": 644,
+          "instanceId": "059b6881-c829-4598-af60-f6e7849f13da",
+          "loadedCoreSha256": "32be93e73044cae6e9d098dcceba3807114638ed8ceb990f28e0c1c0acfcef24",
+          "os": "linux",
+          "architecture": "X64",
+          "runtime": ".NET 10.0.12"
+        },
+        {
+          "report": "child-5/report.json",
+          "mode": "provider",
+          "stage": "stopped",
+          "pid": 659,
+          "instanceId": "0cd4658f-91ad-48a0-a2b6-459a4f1ed42a",
+          "loadedCoreSha256": "32be93e73044cae6e9d098dcceba3807114638ed8ceb990f28e0c1c0acfcef24",
+          "os": "linux",
+          "architecture": "X64",
+          "runtime": ".NET 10.0.12"
+        },
+        {
+          "report": "child-6/report.json",
+          "mode": "disabled",
+          "stage": "stopped",
+          "pid": 672,
+          "instanceId": "64477b1a-2ac6-4f95-b50b-d87ca0427755",
+          "loadedCoreSha256": "32be93e73044cae6e9d098dcceba3807114638ed8ceb990f28e0c1c0acfcef24",
+          "os": "linux",
+          "architecture": "X64",
+          "runtime": ".NET 10.0.12"
+        },
+        {
+          "report": "child-7/report.json",
+          "mode": "disabled",
+          "stage": "stopped",
+          "pid": 679,
+          "instanceId": "803899c4-d303-4c85-aff1-d17d2b1ba1ef",
+          "loadedCoreSha256": "32be93e73044cae6e9d098dcceba3807114638ed8ceb990f28e0c1c0acfcef24",
+          "os": "linux",
+          "architecture": "X64",
+          "runtime": ".NET 10.0.12"
+        },
+        {
+          "report": "child-8/report.json",
+          "mode": "interactive",
+          "stage": "written",
+          "pid": 686,
+          "instanceId": "e2b376a0-1bf1-4504-a3ce-f1fc7ba9fafd",
+          "loadedCoreSha256": "32be93e73044cae6e9d098dcceba3807114638ed8ceb990f28e0c1c0acfcef24",
+          "os": "linux",
+          "architecture": "X64",
+          "runtime": ".NET 10.0.12"
+        },
+        {
+          "report": "child-9/report.json",
+          "mode": "produce",
+          "stage": "initialization-failed",
+          "pid": 699,
+          "instanceId": "b1559b3f-24b0-45dd-85d9-4758a95d2e09",
+          "loadedCoreSha256": "32be93e73044cae6e9d098dcceba3807114638ed8ceb990f28e0c1c0acfcef24",
+          "os": "linux",
+          "architecture": "X64",
+          "runtime": ".NET 10.0.12"
+        }
+      ],
+      "privateRestoreReceipt": {
+        "path": "native/Ubuntu/.artifacts/csharp/candidate-consumers/4516cef548c745529c80da9fa583744d/candidate.json",
+        "bytes": 1064,
+        "sha256": "01235d43ed6a7b00dca77d0cefcd2e12e33951574a7b51366ddc756be6136ccb",
+        "sourcePath": ".artifacts/csharp/tasks/wp07-s01-t02/linux-05-retained/.artifacts/csharp/candidate-consumers/4516cef548c745529c80da9fa583744d/candidate.json"
+      },
+      "physicalPressureObservations": [
+        {
+          "mode": "burst",
+          "rawBytes": 93978,
+          "rawSha256": "0383153b554aa2775e5f922868147dde6440abbb7c0131f25c35de0753c55c3e",
+          "completeRecords": 6,
+          "partialTailBytes": 0,
+          "written": 6,
+          "failed": 0,
+          "abandoned": 0,
+          "pending": 0,
+          "originalStopUnchanged": true
+        },
+        {
+          "mode": "deadline",
+          "rawBytes": 78315,
+          "rawSha256": "411cf67884519396ab223b87182ed262e77c89e4415d60a947af384b4f4727ce",
+          "completeRecords": 5,
+          "partialTailBytes": 0,
+          "written": 5,
+          "failed": 0,
+          "abandoned": 1,
+          "pending": 0,
+          "originalStopUnchanged": true
+        }
+      ]
+    }
+  },
+  "sourceInputs": [
+    {
+      "path": "implementations/csharp/tests/CIS.Core.IntegrationTests/CandidatePackageFixture.cs",
+      "bytes": 17072,
+      "sha256": "5df60f2bb67614c6e3c532b7286f6c77e8222cb25f55c97c4f2cdb1e1f99aff5",
+      "runStartSha256": "5df60f2bb67614c6e3c532b7286f6c77e8222cb25f55c97c4f2cdb1e1f99aff5",
+      "equal": true
+    },
+    {
+      "path": "implementations/csharp/tests/CIS.Core.IntegrationTests/CandidateLoggingProcessTests.cs",
+      "bytes": 20702,
+      "sha256": "573606758b6dc4952b764ee36b733bcc5c5e60a779753c2b2d99065988cfd060",
+      "runStartSha256": "573606758b6dc4952b764ee36b733bcc5c5e60a779753c2b2d99065988cfd060",
+      "equal": true
+    },
+    {
+      "path": "implementations/csharp/verification/consumers/logging-candidate/Program.cs",
+      "bytes": 11309,
+      "sha256": "511dcf4bc061e3892a9b0d273792e4049c6e5b9010d6e7bc0599d8f4d8d8a564",
+      "runStartSha256": "511dcf4bc061e3892a9b0d273792e4049c6e5b9010d6e7bc0599d8f4d8d8a564",
+      "equal": true
+    },
+    {
+      "path": "implementations/csharp/verification/consumers/logging-candidate/Consumer.csproj.template",
+      "bytes": 592,
+      "sha256": "2ff4b527bec7ee026aff70d5647f4817c782b8df2807dab74ebf6f8f60c1d49a",
+      "runStartSha256": "2ff4b527bec7ee026aff70d5647f4817c782b8df2807dab74ebf6f8f60c1d49a",
+      "equal": true
+    },
+    {
+      "path": "conformance/logging/case-inventory.json",
+      "bytes": 362205,
+      "sha256": "881a45e43024f413e00876c642063030efa234732ca72ef8c20741cb33f94e13",
+      "runStartSha256": "881a45e43024f413e00876c642063030efa234732ca72ef8c20741cb33f94e13",
+      "equal": true
+    },
+    {
+      "path": "conformance/logging/requirement-case-map.json",
+      "bytes": 30342,
+      "sha256": "01b33126ed1569a14f66a59fe3b43495d390f67e5f360e0edfd37f94b7302629",
+      "runStartSha256": "01b33126ed1569a14f66a59fe3b43495d390f67e5f360e0edfd37f94b7302629",
+      "equal": true
+    },
+    {
+      "path": "conformance/logging/candidate-consumer-qualification.json",
+      "bytes": 4539,
+      "sha256": "64b271f892f80b4663a2d69baa4ad689a542b171a20f3e6d7c876b7d6d340042",
+      "runStartSha256": "64b271f892f80b4663a2d69baa4ad689a542b171a20f3e6d7c876b7d6d340042",
+      "equal": true
+    },
+    {
+      "path": "docs/modules/logging/candidate-consumers.md",
+      "bytes": 3185,
+      "sha256": "70457bbcaee0e6413bd26452c1e701c6aaac31819eb2d5f0b38d271b3548874a",
+      "runStartSha256": "70457bbcaee0e6413bd26452c1e701c6aaac31819eb2d5f0b38d271b3548874a",
+      "equal": true
+    }
+  ],
+  "shippingSourcesUnchanged": 77,
+  "protectedWorkPreserved": true,
+  "nativeArtifacts": [
+    {
+      "path": "native/Developer/families/architecture/discovery.json",
+      "bytes": 47487,
+      "sha256": "f37c04e6d3a3e6c0f179e2b06913b5af829e63093b86dc302e5f2f4756894cd1"
+    },
+    {
+      "path": "native/Developer/families/architecture/execution.json",
+      "bytes": 163,
+      "sha256": "2d78a3264701dd6727c1e958b92b5ec872c7ea3521db5520c560868f945e85b3"
+    },
+    {
+      "path": "native/Developer/families/architecture/report.trx",
+      "bytes": 689379,
+      "sha256": "79692492072941e93337d77bb8efc1441a3f0335839cc18fecc100096fd9e782"
+    },
+    {
+      "path": "native/Developer/families/business/discovery.json",
+      "bytes": 2986,
+      "sha256": "a763a867c8e647c4dfa6efffb02dd11c87d99096b7236f4717ab8e1f225e466b"
+    },
+    {
+      "path": "native/Developer/families/business/execution.json",
+      "bytes": 157,
+      "sha256": "875d448e141a58064cacb3b602fdeccdcdd22ad05845992dd2806511ce175d1c"
+    },
+    {
+      "path": "native/Developer/families/business/report.trx",
+      "bytes": 37657,
+      "sha256": "9699f7fdc5f1d205ddf13d3d18a04ea725cfa792fd4a1516c639d77f7b6c8940"
+    },
+    {
+      "path": "native/Developer/families/integration/discovery.json",
+      "bytes": 133727,
+      "sha256": "b2adb384ad9729c40835c30d85f245e9b29caf267d3350162f12116f9ea8cb0b"
+    },
+    {
+      "path": "native/Developer/families/integration/execution.json",
+      "bytes": 164,
+      "sha256": "09f4e1c9c135e52f9ed220ea72cf89b767235ad1aaea7bb4f5045f6d33591ce7"
+    },
+    {
+      "path": "native/Developer/families/integration/report.trx",
+      "bytes": 5270668,
+      "sha256": "7630ac69af4f96b855281979d26332fe5eaee8d70a07263928c93c5231570f2e"
+    },
+    {
+      "path": "native/Developer/families/unit/discovery.json",
+      "bytes": 334505,
+      "sha256": "97e3a60f6db9db2aaef74fc3fa046a9edc70c5f1f1113289ef052fd897c03be7"
+    },
+    {
+      "path": "native/Developer/families/unit/execution.json",
+      "bytes": 157,
+      "sha256": "d0121fc61f9ba58708cc9fac1455c9b1c66bfa734fc9b4d4201fa17764bfcec5"
+    },
+    {
+      "path": "native/Developer/families/unit/report.trx",
+      "bytes": 4724136,
+      "sha256": "f4ee7d76a2209259a98751552e6e09e468d7ad086c330d651e86be8fb5cf3236"
+    },
+    {
+      "path": "native/Developer/source-inputs.json",
+      "bytes": 10050511,
+      "sha256": "5c6429b228ed694d0ccb07878d19064cccf1993184af101cc91bd34e8b2c7b4e"
+    },
+    {
+      "path": "native/Developer/summary.json",
+      "bytes": 8470,
+      "sha256": "30f1f4ecedae3677cff5d61bb76699208b7a2e620d13cdf5937b5a7647d1515f"
+    },
+    {
+      "path": "native/Developer/validation.json",
+      "bytes": 127,
+      "sha256": "ef4b67392fb7611ed6ad4dfa4f8f5b916535d50cb40ae5e01f6c742ccf21adfb"
+    },
+    {
+      "path": "native/Ubuntu/.artifacts/csharp/candidate-consumers/4516cef548c745529c80da9fa583744d/app/bin/Release/net10.0/CIS.Logging.CandidateConsumer.deps.json",
+      "bytes": 2621,
+      "sha256": "c2dbc4dbd0d7a78a0e0e724b7230473ca4c0f30c9b323102489082f7d22db3ff"
+    },
+    {
+      "path": "native/Ubuntu/.artifacts/csharp/candidate-consumers/4516cef548c745529c80da9fa583744d/app/bin/Release/net10.0/CIS.Logging.CandidateConsumer.runtimeconfig.json",
+      "bytes": 330,
+      "sha256": "9950d4583cfc9a106857c0d5b8a75b53e8774852b57b80bc3823a74d44a4d87f"
+    },
+    {
+      "path": "native/Ubuntu/.artifacts/csharp/candidate-consumers/4516cef548c745529c80da9fa583744d/app/obj/Consumer.csproj.nuget.dgspec.json",
+      "bytes": 22195,
+      "sha256": "1b1a561de8dadefa3b1e45becae9edad7f420c4df527684770e085dafcc0e818"
+    },
+    {
+      "path": "native/Ubuntu/.artifacts/csharp/candidate-consumers/4516cef548c745529c80da9fa583744d/app/obj/project.assets.json",
+      "bytes": 31592,
+      "sha256": "78152a6beaacd614b9d460a34370261e90e6007a551f8ca8e166a9d9eae57648"
+    },
+    {
+      "path": "native/Ubuntu/.artifacts/csharp/candidate-consumers/4516cef548c745529c80da9fa583744d/app/obj/Release/net10.0/Consumer.csproj.FileListAbsolute.txt",
+      "bytes": 3421,
+      "sha256": "0115032a8bc1606435cdf689a6d83a8a3a4c75a71b8aa42d04ffc9e1c4218319"
+    },
+    {
+      "path": "native/Ubuntu/.artifacts/csharp/candidate-consumers/4516cef548c745529c80da9fa583744d/app/packages.lock.json",
+      "bytes": 1022,
+      "sha256": "720371571a9e99ed4c3f53965689642cc6cb670daf09669d4075694bfca55fd9"
+    },
+    {
+      "path": "native/Ubuntu/.artifacts/csharp/candidate-consumers/4516cef548c745529c80da9fa583744d/build.log",
+      "bytes": 277,
+      "sha256": "1002cdef75978f12d9dd9b5f0716dbaff23f0771ea8ac8e0e64e7035e97657af"
+    },
+    {
+      "path": "native/Ubuntu/.artifacts/csharp/candidate-consumers/4516cef548c745529c80da9fa583744d/candidate.json",
+      "bytes": 1064,
+      "sha256": "01235d43ed6a7b00dca77d0cefcd2e12e33951574a7b51366ddc756be6136ccb"
+    },
+    {
+      "path": "native/Ubuntu/.artifacts/csharp/candidate-consumers/4516cef548c745529c80da9fa583744d/child-1/report.json",
+      "bytes": 6049,
+      "sha256": "be65720ef17d89357da8f334dcda37abc2609ecacb234ef299013dc8652b55f1"
+    },
+    {
+      "path": "native/Ubuntu/.artifacts/csharp/candidate-consumers/4516cef548c745529c80da9fa583744d/child-1/stderr.txt",
+      "bytes": 161,
+      "sha256": "342a08f3037716b55c8f52e77416ae624b0830008ad5315ae4f6dff9554b9955"
+    },
+    {
+      "path": "native/Ubuntu/.artifacts/csharp/candidate-consumers/4516cef548c745529c80da9fa583744d/child-1/stdout.txt",
+      "bytes": 17,
+      "sha256": "71d6b9b11ff159dcc618645db817357430d220420931299eafc13ac4d020d48f"
+    },
+    {
+      "path": "native/Ubuntu/.artifacts/csharp/candidate-consumers/4516cef548c745529c80da9fa583744d/child-10/report.json",
+      "bytes": 4299,
+      "sha256": "a3652e6c5c94f546b6f656bfc1a305858903c7e4386d92b2b67335441538a4cb"
+    },
+    {
+      "path": "native/Ubuntu/.artifacts/csharp/candidate-consumers/4516cef548c745529c80da9fa583744d/child-10/stderr.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "native/Ubuntu/.artifacts/csharp/candidate-consumers/4516cef548c745529c80da9fa583744d/child-10/stdout.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "native/Ubuntu/.artifacts/csharp/candidate-consumers/4516cef548c745529c80da9fa583744d/child-11/report.json",
+      "bytes": 4494,
+      "sha256": "7ac7750c648041cd1fc9db1200f382188805ed9144d7544562f84b0072b95f24"
+    },
+    {
+      "path": "native/Ubuntu/.artifacts/csharp/candidate-consumers/4516cef548c745529c80da9fa583744d/child-11/stderr.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "native/Ubuntu/.artifacts/csharp/candidate-consumers/4516cef548c745529c80da9fa583744d/child-11/stdout.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "native/Ubuntu/.artifacts/csharp/candidate-consumers/4516cef548c745529c80da9fa583744d/child-12/report.json",
+      "bytes": 2009,
+      "sha256": "4151700c327d91f19a8133f626007484a51703dcc0dff37e499287b995328595"
+    },
+    {
+      "path": "native/Ubuntu/.artifacts/csharp/candidate-consumers/4516cef548c745529c80da9fa583744d/child-12/stderr.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "native/Ubuntu/.artifacts/csharp/candidate-consumers/4516cef548c745529c80da9fa583744d/child-12/stdout.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "native/Ubuntu/.artifacts/csharp/candidate-consumers/4516cef548c745529c80da9fa583744d/child-13/report.json",
+      "bytes": 2009,
+      "sha256": "7ad62222221773a08361f8c23fbfb84fe1e2bf1e164e948830e0c161478caa78"
+    },
+    {
+      "path": "native/Ubuntu/.artifacts/csharp/candidate-consumers/4516cef548c745529c80da9fa583744d/child-13/stderr.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "native/Ubuntu/.artifacts/csharp/candidate-consumers/4516cef548c745529c80da9fa583744d/child-13/stdout.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "native/Ubuntu/.artifacts/csharp/candidate-consumers/4516cef548c745529c80da9fa583744d/child-14/report.json",
+      "bytes": 4294,
+      "sha256": "ffc5b38b3cc33c6f4ba0744bfb6d362786b9de9d31666a45d9518bd11421684b"
+    },
+    {
+      "path": "native/Ubuntu/.artifacts/csharp/candidate-consumers/4516cef548c745529c80da9fa583744d/child-14/stderr.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "native/Ubuntu/.artifacts/csharp/candidate-consumers/4516cef548c745529c80da9fa583744d/child-14/stdout.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "native/Ubuntu/.artifacts/csharp/candidate-consumers/4516cef548c745529c80da9fa583744d/child-15/report.json",
+      "bytes": 2014,
+      "sha256": "e2f49c6b8261b68e8e489e71f47c4c42f06d62ed7ebe4a7db3511d995d8066b8"
+    },
+    {
+      "path": "native/Ubuntu/.artifacts/csharp/candidate-consumers/4516cef548c745529c80da9fa583744d/child-15/stderr.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "native/Ubuntu/.artifacts/csharp/candidate-consumers/4516cef548c745529c80da9fa583744d/child-15/stdout.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "native/Ubuntu/.artifacts/csharp/candidate-consumers/4516cef548c745529c80da9fa583744d/child-16/report.json",
+      "bytes": 2014,
+      "sha256": "3a330a658dd14d48bb5b3385b29de183197a570874ae2e8f2632a35e1162f143"
+    },
+    {
+      "path": "native/Ubuntu/.artifacts/csharp/candidate-consumers/4516cef548c745529c80da9fa583744d/child-16/stderr.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "native/Ubuntu/.artifacts/csharp/candidate-consumers/4516cef548c745529c80da9fa583744d/child-16/stdout.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "native/Ubuntu/.artifacts/csharp/candidate-consumers/4516cef548c745529c80da9fa583744d/child-17/report.json",
+      "bytes": 5800,
+      "sha256": "4e5abf169d86a0ba253050c47fbc53aa58467c829620b5a52541a19f0f36fe5b"
+    },
+    {
+      "path": "native/Ubuntu/.artifacts/csharp/candidate-consumers/4516cef548c745529c80da9fa583744d/child-17/stderr.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "native/Ubuntu/.artifacts/csharp/candidate-consumers/4516cef548c745529c80da9fa583744d/child-17/stdout.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "native/Ubuntu/.artifacts/csharp/candidate-consumers/4516cef548c745529c80da9fa583744d/child-18/report.json",
+      "bytes": 6209,
+      "sha256": "3981c753f7938cfd4dac39533e1d2626f16ed356c6870b4a330bae568f84e622"
+    },
+    {
+      "path": "native/Ubuntu/.artifacts/csharp/candidate-consumers/4516cef548c745529c80da9fa583744d/child-18/stderr.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "native/Ubuntu/.artifacts/csharp/candidate-consumers/4516cef548c745529c80da9fa583744d/child-18/stdout.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "native/Ubuntu/.artifacts/csharp/candidate-consumers/4516cef548c745529c80da9fa583744d/child-19/report.json",
+      "bytes": 4302,
+      "sha256": "2b2be09ccb769fc3b40a2b11d5b0a1d22bb197f103ece79cdf6904dc5b06473e"
+    },
+    {
+      "path": "native/Ubuntu/.artifacts/csharp/candidate-consumers/4516cef548c745529c80da9fa583744d/child-19/stderr.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "native/Ubuntu/.artifacts/csharp/candidate-consumers/4516cef548c745529c80da9fa583744d/child-19/stdout.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "native/Ubuntu/.artifacts/csharp/candidate-consumers/4516cef548c745529c80da9fa583744d/child-2/report.json",
+      "bytes": 6049,
+      "sha256": "63ee21c3cb35228f807ced24b10b22fe1f67edefbfa556d46b62573df9b06042"
+    },
+    {
+      "path": "native/Ubuntu/.artifacts/csharp/candidate-consumers/4516cef548c745529c80da9fa583744d/child-2/stderr.txt",
+      "bytes": 829,
+      "sha256": "6ce3aeefa75305ea1b8bba143c498296b9c8025a374f523b3c9266b1d66fc81f"
+    },
+    {
+      "path": "native/Ubuntu/.artifacts/csharp/candidate-consumers/4516cef548c745529c80da9fa583744d/child-2/stdout.txt",
+      "bytes": 17,
+      "sha256": "71d6b9b11ff159dcc618645db817357430d220420931299eafc13ac4d020d48f"
+    },
+    {
+      "path": "native/Ubuntu/.artifacts/csharp/candidate-consumers/4516cef548c745529c80da9fa583744d/child-20/report.json",
+      "bytes": 4494,
+      "sha256": "d6b3cf0c27085b1ed94bd0c0228470b07d017d059420938960b6c74dd364c79e"
+    },
+    {
+      "path": "native/Ubuntu/.artifacts/csharp/candidate-consumers/4516cef548c745529c80da9fa583744d/child-20/stderr.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "native/Ubuntu/.artifacts/csharp/candidate-consumers/4516cef548c745529c80da9fa583744d/child-20/stdout.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "native/Ubuntu/.artifacts/csharp/candidate-consumers/4516cef548c745529c80da9fa583744d/child-21/report.json",
+      "bytes": 4302,
+      "sha256": "e5194e725a0cde437539a3e0ee431ef261b701725a0248042707e477852ebbc4"
+    },
+    {
+      "path": "native/Ubuntu/.artifacts/csharp/candidate-consumers/4516cef548c745529c80da9fa583744d/child-21/stderr.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "native/Ubuntu/.artifacts/csharp/candidate-consumers/4516cef548c745529c80da9fa583744d/child-21/stdout.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "native/Ubuntu/.artifacts/csharp/candidate-consumers/4516cef548c745529c80da9fa583744d/child-22/report.json",
+      "bytes": 4494,
+      "sha256": "854d384bf389362f464e22de5bb7d64c7c29773ae55e60ec6f361d1f9ff0db67"
+    },
+    {
+      "path": "native/Ubuntu/.artifacts/csharp/candidate-consumers/4516cef548c745529c80da9fa583744d/child-22/stderr.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "native/Ubuntu/.artifacts/csharp/candidate-consumers/4516cef548c745529c80da9fa583744d/child-22/stdout.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "native/Ubuntu/.artifacts/csharp/candidate-consumers/4516cef548c745529c80da9fa583744d/child-23/report.json",
+      "bytes": 4296,
+      "sha256": "c41ad90440b056c8d466e4dc72b1ac92f4eae19736bb17dbf80b46f6b54a475b"
+    },
+    {
+      "path": "native/Ubuntu/.artifacts/csharp/candidate-consumers/4516cef548c745529c80da9fa583744d/child-23/stderr.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "native/Ubuntu/.artifacts/csharp/candidate-consumers/4516cef548c745529c80da9fa583744d/child-23/stdout.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "native/Ubuntu/.artifacts/csharp/candidate-consumers/4516cef548c745529c80da9fa583744d/child-24/report.json",
+      "bytes": 4600,
+      "sha256": "8dcf97c46dfd4dfd2ad216efb1ae8731060be1b8c305d8e589052278d4a47ac5"
+    },
+    {
+      "path": "native/Ubuntu/.artifacts/csharp/candidate-consumers/4516cef548c745529c80da9fa583744d/child-24/stderr.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "native/Ubuntu/.artifacts/csharp/candidate-consumers/4516cef548c745529c80da9fa583744d/child-24/stdout.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "native/Ubuntu/.artifacts/csharp/candidate-consumers/4516cef548c745529c80da9fa583744d/child-25/report.json",
+      "bytes": 4302,
+      "sha256": "10c9ad81777ae533d05cd418dc0b98fe736e767b0f99b7295378c430b8559971"
+    },
+    {
+      "path": "native/Ubuntu/.artifacts/csharp/candidate-consumers/4516cef548c745529c80da9fa583744d/child-25/stderr.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "native/Ubuntu/.artifacts/csharp/candidate-consumers/4516cef548c745529c80da9fa583744d/child-25/stdout.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "native/Ubuntu/.artifacts/csharp/candidate-consumers/4516cef548c745529c80da9fa583744d/child-26/report.json",
+      "bytes": 4489,
+      "sha256": "928bf373f038e671fba9f9a2e151d3a8c2743af0ca1f69c4ec521146185c96e6"
+    },
+    {
+      "path": "native/Ubuntu/.artifacts/csharp/candidate-consumers/4516cef548c745529c80da9fa583744d/child-26/stderr.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "native/Ubuntu/.artifacts/csharp/candidate-consumers/4516cef548c745529c80da9fa583744d/child-26/stdout.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "native/Ubuntu/.artifacts/csharp/candidate-consumers/4516cef548c745529c80da9fa583744d/child-27/replies.json",
+      "bytes": 22413,
+      "sha256": "8282293dab62b4e032dce1b9378f4d52d6c1a4b8a72a0767923bab3c1be3d4ef"
+    },
+    {
+      "path": "native/Ubuntu/.artifacts/csharp/candidate-consumers/4516cef548c745529c80da9fa583744d/child-27/report.json",
+      "bytes": 6482,
+      "sha256": "4e3c012b3f06204b1053815a6d7b06c05f22814839472822c4b2a09f2d457381"
+    },
+    {
+      "path": "native/Ubuntu/.artifacts/csharp/candidate-consumers/4516cef548c745529c80da9fa583744d/child-27/stderr.txt",
+      "bytes": 73994,
+      "sha256": "bec787a129be44ddf78d1eb929d4a051c68dfd57c8ded9833fee9cbdd7d07f98"
+    },
+    {
+      "path": "native/Ubuntu/.artifacts/csharp/candidate-consumers/4516cef548c745529c80da9fa583744d/child-27/terminal-stream.txt",
+      "bytes": 73994,
+      "sha256": "bec787a129be44ddf78d1eb929d4a051c68dfd57c8ded9833fee9cbdd7d07f98"
+    },
+    {
+      "path": "native/Ubuntu/.artifacts/csharp/candidate-consumers/4516cef548c745529c80da9fa583744d/child-28/replies.json",
+      "bytes": 16099,
+      "sha256": "edb65c0dad1ce3374f9f64f5fbec10efb225d9ea0615d64589a1d375952fe5da"
+    },
+    {
+      "path": "native/Ubuntu/.artifacts/csharp/candidate-consumers/4516cef548c745529c80da9fa583744d/child-28/report.json",
+      "bytes": 8685,
+      "sha256": "a58f27c8db1c017471b376e222a0700de32586508a42ad6ecbd501deeb66b2fc"
+    },
+    {
+      "path": "native/Ubuntu/.artifacts/csharp/candidate-consumers/4516cef548c745529c80da9fa583744d/child-28/stdout.bin",
+      "bytes": 93978,
+      "sha256": "0383153b554aa2775e5f922868147dde6440abbb7c0131f25c35de0753c55c3e"
+    },
+    {
+      "path": "native/Ubuntu/.artifacts/csharp/candidate-consumers/4516cef548c745529c80da9fa583744d/child-28/terminal-stderr.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "native/Ubuntu/.artifacts/csharp/candidate-consumers/4516cef548c745529c80da9fa583744d/child-28/terminal-stdout.bin",
+      "bytes": 93978,
+      "sha256": "0383153b554aa2775e5f922868147dde6440abbb7c0131f25c35de0753c55c3e"
+    },
+    {
+      "path": "native/Ubuntu/.artifacts/csharp/candidate-consumers/4516cef548c745529c80da9fa583744d/child-29/replies.json",
+      "bytes": 23559,
+      "sha256": "d59c974428b11ff522d3aad3d707770d213d276e1cabe300b0d38b35469e2b3e"
+    },
+    {
+      "path": "native/Ubuntu/.artifacts/csharp/candidate-consumers/4516cef548c745529c80da9fa583744d/child-29/report.json",
+      "bytes": 7457,
+      "sha256": "c865f9c6ebd1bd3e09dff4dd5aa604a2cc1d644403c41d900e1099c0d4cda9ba"
+    },
+    {
+      "path": "native/Ubuntu/.artifacts/csharp/candidate-consumers/4516cef548c745529c80da9fa583744d/child-29/stdout.bin",
+      "bytes": 78315,
+      "sha256": "411cf67884519396ab223b87182ed262e77c89e4415d60a947af384b4f4727ce"
+    },
+    {
+      "path": "native/Ubuntu/.artifacts/csharp/candidate-consumers/4516cef548c745529c80da9fa583744d/child-29/terminal-stderr.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "native/Ubuntu/.artifacts/csharp/candidate-consumers/4516cef548c745529c80da9fa583744d/child-29/terminal-stdout.bin",
+      "bytes": 78315,
+      "sha256": "411cf67884519396ab223b87182ed262e77c89e4415d60a947af384b4f4727ce"
+    },
+    {
+      "path": "native/Ubuntu/.artifacts/csharp/candidate-consumers/4516cef548c745529c80da9fa583744d/child-3/report.json",
+      "bytes": 6048,
+      "sha256": "f120e35c418e3b97a0601eebd0c81fe9ade1b3cdf84221ea991a084d76a72f18"
+    },
+    {
+      "path": "native/Ubuntu/.artifacts/csharp/candidate-consumers/4516cef548c745529c80da9fa583744d/child-3/stderr.txt",
+      "bytes": 807,
+      "sha256": "ee6d3e2a54e36117fc9ec0d1a70c6ff668d3c1923211cccfec9716aadeb9b02e"
+    },
+    {
+      "path": "native/Ubuntu/.artifacts/csharp/candidate-consumers/4516cef548c745529c80da9fa583744d/child-3/stdout.txt",
+      "bytes": 17,
+      "sha256": "71d6b9b11ff159dcc618645db817357430d220420931299eafc13ac4d020d48f"
+    },
+    {
+      "path": "native/Ubuntu/.artifacts/csharp/candidate-consumers/4516cef548c745529c80da9fa583744d/child-30/report.json",
+      "bytes": 6339,
+      "sha256": "57d9ba20a2bda734bed7e09bdf45a89082f86b7c107150448bba6ec82b8fbdd3"
+    },
+    {
+      "path": "native/Ubuntu/.artifacts/csharp/candidate-consumers/4516cef548c745529c80da9fa583744d/child-30/stderr.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "native/Ubuntu/.artifacts/csharp/candidate-consumers/4516cef548c745529c80da9fa583744d/child-30/stdout.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "native/Ubuntu/.artifacts/csharp/candidate-consumers/4516cef548c745529c80da9fa583744d/child-4/report.json",
+      "bytes": 6041,
+      "sha256": "af8f185ff362156c7fcfec7f7ec5ce7adc651065f3efd884e48f34f4be416251"
+    },
+    {
+      "path": "native/Ubuntu/.artifacts/csharp/candidate-consumers/4516cef548c745529c80da9fa583744d/child-4/stderr.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "native/Ubuntu/.artifacts/csharp/candidate-consumers/4516cef548c745529c80da9fa583744d/child-4/stdout.txt",
+      "bytes": 807,
+      "sha256": "c80d45b1a58673f3a01b2027e8bca7f3d33d2fc79a9f950e0eac782d0dc95352"
+    },
+    {
+      "path": "native/Ubuntu/.artifacts/csharp/candidate-consumers/4516cef548c745529c80da9fa583744d/child-5/report.json",
+      "bytes": 4303,
+      "sha256": "7f58c9a249b260d9eb7a6e2490af34f04e63cababfe1f261b128b0d8dc00ef04"
+    },
+    {
+      "path": "native/Ubuntu/.artifacts/csharp/candidate-consumers/4516cef548c745529c80da9fa583744d/child-5/stderr.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "native/Ubuntu/.artifacts/csharp/candidate-consumers/4516cef548c745529c80da9fa583744d/child-5/stdout.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "native/Ubuntu/.artifacts/csharp/candidate-consumers/4516cef548c745529c80da9fa583744d/child-6/report.json",
+      "bytes": 3188,
+      "sha256": "ca2ee761972c33ee28bd7f51f581a7235600c2977c2d90d3139791c825526da4"
+    },
+    {
+      "path": "native/Ubuntu/.artifacts/csharp/candidate-consumers/4516cef548c745529c80da9fa583744d/child-6/stderr.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "native/Ubuntu/.artifacts/csharp/candidate-consumers/4516cef548c745529c80da9fa583744d/child-6/stdout.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "native/Ubuntu/.artifacts/csharp/candidate-consumers/4516cef548c745529c80da9fa583744d/child-7/report.json",
+      "bytes": 3188,
+      "sha256": "6094050cfa3e500c75a2d4fbe6a7233a406c5ac3be5fcf33b2708e4aa243f889"
+    },
+    {
+      "path": "native/Ubuntu/.artifacts/csharp/candidate-consumers/4516cef548c745529c80da9fa583744d/child-7/stderr.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "native/Ubuntu/.artifacts/csharp/candidate-consumers/4516cef548c745529c80da9fa583744d/child-7/stdout.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "native/Ubuntu/.artifacts/csharp/candidate-consumers/4516cef548c745529c80da9fa583744d/child-8/replies.json",
+      "bytes": 5446,
+      "sha256": "e10b2fd44c82371939bf175b3bafcda1af574a07ccd62d700eebc8dbb864c599"
+    },
+    {
+      "path": "native/Ubuntu/.artifacts/csharp/candidate-consumers/4516cef548c745529c80da9fa583744d/child-8/report.json",
+      "bytes": 3025,
+      "sha256": "d58bd39e17a6aae761bad759111bc6aaf6306f47078a79b03cb1594ffdcbbca3"
+    },
+    {
+      "path": "native/Ubuntu/.artifacts/csharp/candidate-consumers/4516cef548c745529c80da9fa583744d/child-8/terminal-stream.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "native/Ubuntu/.artifacts/csharp/candidate-consumers/4516cef548c745529c80da9fa583744d/child-9/report.json",
+      "bytes": 2013,
+      "sha256": "de0517a8a7b3a2d27e3a8f18ea5e8b0292c5691ff6d57fe8371e4c85352d18f3"
+    },
+    {
+      "path": "native/Ubuntu/.artifacts/csharp/candidate-consumers/4516cef548c745529c80da9fa583744d/child-9/stderr.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "native/Ubuntu/.artifacts/csharp/candidate-consumers/4516cef548c745529c80da9fa583744d/child-9/stdout.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "native/Ubuntu/.artifacts/csharp/candidate-consumers/4516cef548c745529c80da9fa583744d/global.json",
+      "bytes": 145,
+      "sha256": "86746c523b75c3e560cab3938c5c6c7c65c33dc9fbe298a554f90c724f2ef30e"
+    },
+    {
+      "path": "native/Ubuntu/.artifacts/csharp/candidate-consumers/4516cef548c745529c80da9fa583744d/restore.log",
+      "bytes": 210,
+      "sha256": "b54b987f8562d24a284f2e792c3d1c39100b76538aed02a0728c79ef6a06ba46"
+    },
+    {
+      "path": "native/Ubuntu/dotnet-info.txt",
+      "bytes": 1534,
+      "sha256": "90bc3d6853ca611fb23ac5dd82089c3b54bdbd78152469dd6e8044f42fb04c38"
+    },
+    {
+      "path": "native/Ubuntu/os-release.txt",
+      "bytes": 400,
+      "sha256": "01af466feb100306498c86aa6bad1815e33036019aa34d4362c20f374ea5c829"
+    },
+    {
+      "path": "native/Ubuntu/results/report.trx",
+      "bytes": 30179,
+      "sha256": "d4551a01716b190dfd7cf6eece83be286d06937e4c754d81b89563e69489cef4"
+    },
+    {
+      "path": "native/Ubuntu/test-assembly.sha256",
+      "bytes": 229,
+      "sha256": "dcc7ca7227a7023941df590b08261d1361923effad45d722354a8ce8e6f3dc90"
+    },
+    {
+      "path": "native/WindowsCandidate/app/obj/Consumer.csproj.nuget.dgspec.json",
+      "bytes": 22326,
+      "sha256": "283c8ac276bcab14da0de1a1768fd971c50251de3b9d74bb8e52982386be3657"
+    },
+    {
+      "path": "native/WindowsCandidate/app/obj/project.assets.json",
+      "bytes": 31929,
+      "sha256": "f9e796de237e98a19800c4a4fc6979d0efff86f7be0021081dc5f8e10db8a38f"
+    },
+    {
+      "path": "native/WindowsCandidate/app/obj/Release/net10.0/Consumer.csproj.FileListAbsolute.txt",
+      "bytes": 3067,
+      "sha256": "0287bf3006b585d31c1b65a2fa1e3db74b64f64c9c8c52e42937a374b364c963"
+    },
+    {
+      "path": "native/WindowsCandidate/app/obj/Release/net10.0/Consumer.sourcelink.json",
+      "bytes": 152,
+      "sha256": "dbbacac987bb86acdb014206db12678e1c46f41594449379d54eaf6c62757100"
+    },
+    {
+      "path": "native/WindowsCandidate/app/packages.lock.json",
+      "bytes": 1050,
+      "sha256": "390eb54b087b04efcc5c99c0f9d763a7fcbcdd1e951fd749ea6c5a6e690921a5"
+    },
+    {
+      "path": "native/WindowsCandidate/build.log",
+      "bytes": 255,
+      "sha256": "2c61da8e0f4a9c8bf5d9b25c2244caeb18954f2e9c93199d222e6f4646215929"
+    },
+    {
+      "path": "native/WindowsCandidate/candidate.json",
+      "bytes": 1064,
+      "sha256": "0da27772d2c68fa6ead3a5740c4d6f782af475b5f72b7560c498d3a726f8ed6f"
+    },
+    {
+      "path": "native/WindowsCandidate/child-1/report.json",
+      "bytes": 5986,
+      "sha256": "8a432b6daa67386957ca2bec5187b4be41133fdcf93a3d3c40c792433a5bcee7"
+    },
+    {
+      "path": "native/WindowsCandidate/child-1/stderr.txt",
+      "bytes": 161,
+      "sha256": "bc1b6cd5af8606d384562a2c064e16f4c41123d6730bc9f47000d1c9c97170ad"
+    },
+    {
+      "path": "native/WindowsCandidate/child-1/stdout.txt",
+      "bytes": 18,
+      "sha256": "64847e311386188b701aeb88236b06dceb06f68367cf130231dfd2c8e741f67f"
+    },
+    {
+      "path": "native/WindowsCandidate/child-10/report.json",
+      "bytes": 4238,
+      "sha256": "a8da1bc47635ed2ac086768cc73a9d26724b95ba1601d384e367c689aa28650a"
+    },
+    {
+      "path": "native/WindowsCandidate/child-10/stderr.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "native/WindowsCandidate/child-10/stdout.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "native/WindowsCandidate/child-11/report.json",
+      "bytes": 4430,
+      "sha256": "c308d22292094cc302da038c689441fc5d2ac62ef023c161ec7f2d40eb44606d"
+    },
+    {
+      "path": "native/WindowsCandidate/child-11/stderr.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "native/WindowsCandidate/child-11/stdout.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "native/WindowsCandidate/child-12/report.json",
+      "bytes": 1945,
+      "sha256": "9b9ec52f5be54ce413ce2de4edebec9ad5454db756d073d2ab0051fa28ec3243"
+    },
+    {
+      "path": "native/WindowsCandidate/child-12/stderr.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "native/WindowsCandidate/child-12/stdout.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "native/WindowsCandidate/child-13/report.json",
+      "bytes": 1945,
+      "sha256": "17a4ea03bffd76a0d11e1245c722ab5fefd319afd8173da1fd75a422531a18cc"
+    },
+    {
+      "path": "native/WindowsCandidate/child-13/stderr.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "native/WindowsCandidate/child-13/stdout.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "native/WindowsCandidate/child-14/report.json",
+      "bytes": 4238,
+      "sha256": "4c73446ba7f6c6af5236852edfb189f43a5fd6b6eaa272940192f568b710123e"
+    },
+    {
+      "path": "native/WindowsCandidate/child-14/stderr.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "native/WindowsCandidate/child-14/stdout.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "native/WindowsCandidate/child-15/report.json",
+      "bytes": 1951,
+      "sha256": "4c6c3ab9fb571e79cabedb1ccd013d83b074521f5fc5aed6c1125f9508496073"
+    },
+    {
+      "path": "native/WindowsCandidate/child-15/stderr.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "native/WindowsCandidate/child-15/stdout.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "native/WindowsCandidate/child-16/report.json",
+      "bytes": 1950,
+      "sha256": "4b5eebfe016057282fd16ecd8381ea2c17d1442bea590040186bfff5d2265183"
+    },
+    {
+      "path": "native/WindowsCandidate/child-16/stderr.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "native/WindowsCandidate/child-16/stdout.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "native/WindowsCandidate/child-17/report.json",
+      "bytes": 5733,
+      "sha256": "3d47ea34973c389f0f1f414331ec7085b902cc1e005c44497a73f60876ecf6b0"
+    },
+    {
+      "path": "native/WindowsCandidate/child-17/stderr.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "native/WindowsCandidate/child-17/stdout.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "native/WindowsCandidate/child-18/report.json",
+      "bytes": 6146,
+      "sha256": "b7a2b9d9393755c629ad63a3c2d50fe8bc14fc1eaa9a9820c6736ac599796cfd"
+    },
+    {
+      "path": "native/WindowsCandidate/child-18/stderr.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "native/WindowsCandidate/child-18/stdout.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "native/WindowsCandidate/child-19/report.json",
+      "bytes": 4236,
+      "sha256": "3f37f141ff7ff87b03a19ecb0403bdc26f628a37361d73ceec6b200fc30bfae6"
+    },
+    {
+      "path": "native/WindowsCandidate/child-19/stderr.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "native/WindowsCandidate/child-19/stdout.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "native/WindowsCandidate/child-2/report.json",
+      "bytes": 5986,
+      "sha256": "448b86d24ed0fad347a0a2936cfdab9115ab0e9837ec748998f5a600c0470ef7"
+    },
+    {
+      "path": "native/WindowsCandidate/child-2/stderr.txt",
+      "bytes": 885,
+      "sha256": "6a3dc49a7009635471ed42fb0a61c600151cbebc8ff2d00c997d210068af5464"
+    },
+    {
+      "path": "native/WindowsCandidate/child-2/stdout.txt",
+      "bytes": 18,
+      "sha256": "64847e311386188b701aeb88236b06dceb06f68367cf130231dfd2c8e741f67f"
+    },
+    {
+      "path": "native/WindowsCandidate/child-20/report.json",
+      "bytes": 4431,
+      "sha256": "9a5575605f006913095d590e4a795d1cfccc7cd3eec9c4d7a0e307fe5d7a1301"
+    },
+    {
+      "path": "native/WindowsCandidate/child-20/stderr.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "native/WindowsCandidate/child-20/stdout.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "native/WindowsCandidate/child-21/report.json",
+      "bytes": 4235,
+      "sha256": "f819b146390dd9960ad6f656d8eea363329d22273f0b8e0f61f42c09d5a7f211"
+    },
+    {
+      "path": "native/WindowsCandidate/child-21/stderr.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "native/WindowsCandidate/child-21/stdout.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "native/WindowsCandidate/child-22/report.json",
+      "bytes": 4430,
+      "sha256": "a7568bf6921f39c4f315de6655f4d69be3c9039102dee39679b95d29a9ece016"
+    },
+    {
+      "path": "native/WindowsCandidate/child-22/stderr.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "native/WindowsCandidate/child-22/stdout.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "native/WindowsCandidate/child-23/report.json",
+      "bytes": 4235,
+      "sha256": "3d8fb91b552dbf60da1c9ab06fb7dcce17189178ce7aab5378d461c23f997e12"
+    },
+    {
+      "path": "native/WindowsCandidate/child-23/stderr.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "native/WindowsCandidate/child-23/stdout.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "native/WindowsCandidate/child-24/report.json",
+      "bytes": 4540,
+      "sha256": "329c1b5e5082ea74a8df3140f5c2d39bc97f78f69b3b9bed5a174ab2ec0c3eb9"
+    },
+    {
+      "path": "native/WindowsCandidate/child-24/stderr.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "native/WindowsCandidate/child-24/stdout.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "native/WindowsCandidate/child-25/report.json",
+      "bytes": 4239,
+      "sha256": "303e17ebc2ce921f0552967d7c325bad35e113bd981379de20152e1944b45c8a"
+    },
+    {
+      "path": "native/WindowsCandidate/child-25/stderr.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "native/WindowsCandidate/child-25/stdout.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "native/WindowsCandidate/child-26/report.json",
+      "bytes": 4430,
+      "sha256": "04657e7c8433434497a8b876c1be70efd9a0da22e2f1169d2758250d7e5eb79c"
+    },
+    {
+      "path": "native/WindowsCandidate/child-26/stderr.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "native/WindowsCandidate/child-26/stdout.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "native/WindowsCandidate/child-27/replies.json",
+      "bytes": 22095,
+      "sha256": "e0e7796c8c43cc1c793d311489ee26e3c3cddfad9839f0f7b9ebb0943157d22d"
+    },
+    {
+      "path": "native/WindowsCandidate/child-27/report.json",
+      "bytes": 6418,
+      "sha256": "d5b4cc0ecb94024769dba77d07cfcff12dcf461fbdf9fe1c78e2c8d5cead61c1"
+    },
+    {
+      "path": "native/WindowsCandidate/child-27/stderr.txt",
+      "bytes": 74330,
+      "sha256": "e13dc2e1809300062aaa02caa81c4000008e712aaeb04c6c8523fbba9ad0b7f6"
+    },
+    {
+      "path": "native/WindowsCandidate/child-27/terminal-stream.txt",
+      "bytes": 74330,
+      "sha256": "e13dc2e1809300062aaa02caa81c4000008e712aaeb04c6c8523fbba9ad0b7f6"
+    },
+    {
+      "path": "native/WindowsCandidate/child-28/replies.json",
+      "bytes": 16005,
+      "sha256": "2aad6686b69233e7ac01d1e142d8c4693a7aae4983154b76808f461d715c0b1f"
+    },
+    {
+      "path": "native/WindowsCandidate/child-28/report.json",
+      "bytes": 8638,
+      "sha256": "642e5cf31139184fc05e995f82feb9f326abdca28107c0f84953e1f3211ebc66"
+    },
+    {
+      "path": "native/WindowsCandidate/child-28/stdout.bin",
+      "bytes": 31438,
+      "sha256": "47cdcb9b1ea80257dc741b3634f21a3d57ada7c0edb3102a39a0ea84ec57cc8d"
+    },
+    {
+      "path": "native/WindowsCandidate/child-28/terminal-stderr.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "native/WindowsCandidate/child-28/terminal-stdout.bin",
+      "bytes": 31438,
+      "sha256": "47cdcb9b1ea80257dc741b3634f21a3d57ada7c0edb3102a39a0ea84ec57cc8d"
+    },
+    {
+      "path": "native/WindowsCandidate/child-29/replies.json",
+      "bytes": 23415,
+      "sha256": "0e737b427c1897aa814fa9b4d509f1e30868ce5bfaa7a62e06f73d7ac30d462d"
+    },
+    {
+      "path": "native/WindowsCandidate/child-29/report.json",
+      "bytes": 7409,
+      "sha256": "ca4b32e72c33409e2313463ace5cd27ef450932a6f1738f31378a8b187f7de52"
+    },
+    {
+      "path": "native/WindowsCandidate/child-29/stdout.bin",
+      "bytes": 15718,
+      "sha256": "bbdf1af1955c0bea0d3a638643268137c8f89630a1aaf3e2dcd255dc43af0c8f"
+    },
+    {
+      "path": "native/WindowsCandidate/child-29/terminal-stderr.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "native/WindowsCandidate/child-29/terminal-stdout.bin",
+      "bytes": 15718,
+      "sha256": "bbdf1af1955c0bea0d3a638643268137c8f89630a1aaf3e2dcd255dc43af0c8f"
+    },
+    {
+      "path": "native/WindowsCandidate/child-3/report.json",
+      "bytes": 5985,
+      "sha256": "8a64379be3021d7c0d2221ffabbdb4a56080bd3dbb6e77a96daecdddc4aed207"
+    },
+    {
+      "path": "native/WindowsCandidate/child-3/stderr.txt",
+      "bytes": 862,
+      "sha256": "d220f0fc4f1965b2cea344fd568717b2b05830ddb43b99a6986d829fcdff32d0"
+    },
+    {
+      "path": "native/WindowsCandidate/child-3/stdout.txt",
+      "bytes": 18,
+      "sha256": "64847e311386188b701aeb88236b06dceb06f68367cf130231dfd2c8e741f67f"
+    },
+    {
+      "path": "native/WindowsCandidate/child-30/report.json",
+      "bytes": 6279,
+      "sha256": "7e28d63bdac467e3f19b40c0e8e65e0901b4a6b15b02c99d44cc26eafd6ca71b"
+    },
+    {
+      "path": "native/WindowsCandidate/child-30/stderr.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "native/WindowsCandidate/child-30/stdout.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "native/WindowsCandidate/child-4/report.json",
+      "bytes": 5985,
+      "sha256": "0fc8b5d6735c739aa3d866287657eb502e63749362ca6ae1f1f0323dab3b9143"
+    },
+    {
+      "path": "native/WindowsCandidate/child-4/stderr.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "native/WindowsCandidate/child-4/stdout.txt",
+      "bytes": 862,
+      "sha256": "3245f74d886fa1812e86ae03a7fca3549ac7ade9f35f1f55f034f3f37d3e8d47"
+    },
+    {
+      "path": "native/WindowsCandidate/child-5/report.json",
+      "bytes": 4240,
+      "sha256": "116c76999fd72cfbd5eae42ec02f24897d0db1eacf88387241f5faa1b9815d8d"
+    },
+    {
+      "path": "native/WindowsCandidate/child-5/stderr.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "native/WindowsCandidate/child-5/stdout.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "native/WindowsCandidate/child-6/report.json",
+      "bytes": 3123,
+      "sha256": "e1ec56e620307edb3231e3e14acdddc92ec371f4aa5a6781f587e75f029f5025"
+    },
+    {
+      "path": "native/WindowsCandidate/child-6/stderr.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "native/WindowsCandidate/child-6/stdout.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "native/WindowsCandidate/child-7/report.json",
+      "bytes": 3122,
+      "sha256": "a0bae3c00a90feb5781f8d6fa3aec034bb6661f349b599a2cd6086d78fde1968"
+    },
+    {
+      "path": "native/WindowsCandidate/child-7/stderr.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "native/WindowsCandidate/child-7/stdout.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "native/WindowsCandidate/child-8/replies.json",
+      "bytes": 5319,
+      "sha256": "6a3e05c87d494494d5ffcb9cf6070040bf81f903639f24830b70d68e5e556c40"
+    },
+    {
+      "path": "native/WindowsCandidate/child-8/report.json",
+      "bytes": 2961,
+      "sha256": "b6aa00690fe513864d1a447e0b41bcfb10fc56dd633505a91fd6107a066a0880"
+    },
+    {
+      "path": "native/WindowsCandidate/child-8/terminal-stream.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "native/WindowsCandidate/child-9/report.json",
+      "bytes": 1950,
+      "sha256": "0b1b0c40e7ad7fd43908fbb2eb8848e5f191473e28354274952e33e6e7d00329"
+    },
+    {
+      "path": "native/WindowsCandidate/child-9/stderr.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "native/WindowsCandidate/child-9/stdout.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "native/WindowsCandidate/global.json",
+      "bytes": 145,
+      "sha256": "86746c523b75c3e560cab3938c5c6c7c65c33dc9fbe298a554f90c724f2ef30e"
+    },
+    {
+      "path": "native/WindowsCandidate/restore.log",
+      "bytes": 183,
+      "sha256": "a58d3e4c79913a7f79bdd812c0fa32da5a0a2850a525711b40f22a8cf865a2d0"
+    }
+  ],
+  "result": "Passed"
+}
+
+END FILE
+
+FILE planning/logging/evidence/wp07-s01-t02/task/freeze-evidence.py SHA256 4af3ef8acb35fbf4f21c362a0cd93e349fc60dc833d878ee980988251d84cec5
+from pathlib import Path
+import json,hashlib,shutil,xml.etree.ElementTree as E,datetime
+r=Path.cwd();t=r/'.artifacts/csharp/tasks/wp07-s01-t02';e=r/'planning/logging/evidence/wp07-s01-t02';report=r/'.artifacts/csharp/verification/Developer'
+load=lambda p:json.loads(p.read_text(encoding='utf-8-sig'))
+assert not (e/'native').exists(),'Use a fresh qualifying native evidence root; archive prior observations separately.'
+s=load(report/'summary.json');assert s['finishedUtc'] and s['exitCode']==0,s.get('exitCode');assert (t/'developer-reviewed.exit').read_text(encoding='utf-8-sig').strip()=='0'
+assert len(s['stages'])==15 and all(x['status']=='Passed' for x in s['stages'])
+n={'t':'http://microsoft.com/schemas/VisualStudio/TeamTest/2010'};cases=[c for c in load(r/'conformance/logging/case-inventory.json')['cases'] if c['id'].startswith('INT-CANDIDATE-')];assert len(cases)==11 and sum(c['minimumExecutions'] for c in cases)==19
+native=t/'linux-05-retained';lanes={};artifacts=[]
+def digest(p):return hashlib.sha256(p.read_bytes()).hexdigest()
+def reference(p):return {'path':p.relative_to(r).as_posix(),'bytes':p.stat().st_size,'sha256':digest(p)}
+for lane,p in [('windows-x64',report/'families/integration/report.trx'),('linux-ubuntu2404-x64',native/'results/report.trx')]:
+ tree=E.parse(p);lookup={}
+ for d in tree.findall('.//t:UnitTest',n):
+  m=d.find('t:TestMethod',n)
+  if m is not None:lookup[d.get('id')]=m.get('className').split(',')[0]+'.'+m.get('name')
+ methods={}
+ for row in tree.findall('.//t:UnitTestResult',n):
+  method=lookup[row.get('testId')]
+  if method.startswith('CIS.Tests.IntegrationTests.CandidateLoggingProcessTests.'):
+   assert row.get('outcome')=='Passed',row.get('testName');methods.setdefault(method,[]).append(row.get('testName'))
+ bindings=[]
+ for c in cases:
+  assert len(methods.get(c['method'],[]))==c['minimumExecutions'],(lane,c['id']);bindings.append({'id':c['id'],'method':c['method'],'executions':len(methods[c['method']]),'outcome':'Passed','testNames':methods[c['method']]})
+ assert sum(map(len,methods.values()))==19;lanes[lane]={'nativeReport':reference(p),'times':tree.find('t:Times',n).attrib,'caseBindings':bindings,'candidateExecutions':19,'failed':0,'skipped':0}
+# Locate the actual private restore created within the full Windows run, using its test-context receipt.
+text=(report/'families/integration/report.trx').read_text(encoding='utf-8-sig');import re
+match=re.search(r'Exact package consumer evidence: ([^\r\n<]+)',text);assert match
+win=Path(match.group(1).strip());assert (win/'candidate.json').is_file(),win
+linux_receipts=list(native.rglob('candidate.json'));assert len(linux_receipts)==1
+wp=load(win/'candidate.json');lp=load(linux_receipts[0]);assert wp['packageSha256']==lp['packageSha256'],(wp['packageSha256'],lp['packageSha256']);assert wp['assemblyHashes']==lp['assemblyHashes'];assert wp['projectSha256']==lp['projectSha256']==digest(r/'implementations/csharp/verification/consumers/logging-candidate/Consumer.csproj.template');assert wp['programSha256']==lp['programSha256']==digest(r/'implementations/csharp/verification/consumers/logging-candidate/Program.cs')
+for lane,root in [('windows-x64',win),('linux-ubuntu2404-x64',linux_receipts[0].parent)]:
+ origin=[]
+ for p in root.glob('child-*/report.json'):
+  data=load(p);assert data['os']==('windows' if lane=='windows-x64' else 'linux') and data['architecture']=='X64' and data['runtime']=='.NET 10.0.12'
+  for name,value in wp['assemblyHashes'].items():assert data[name]['sha256']==value,(lane,p,name)
+  origin.append({'report':p.relative_to(root).as_posix(),'mode':data['mode'],'stage':data['stage'],'pid':data['pid'],'instanceId':data['instanceId'],'loadedCoreSha256':data['core']['sha256'],'os':data['os'],'architecture':data['architecture'],'runtime':data['runtime']})
+ assert len(origin)>=19;lanes[lane]['processOrigins']=origin;lanes[lane]['privateRestoreReceipt']=reference(root/'candidate.json')
+ pressure=[]
+ for process_report in root.glob('child-*/report.json'):
+  observed=load(process_report)
+  if observed['mode'] not in ['burst','deadline']:continue
+  raw_path=process_report.parent/'stdout.bin';raw=raw_path.read_bytes();prefix=raw.rfind(b'\n')+1
+  complete=[json.loads(line.decode('utf-8')) for line in raw[:prefix].splitlines()];tail=len(raw)-prefix
+  output=next(o for o in observed['diagnostics']['outputs'] if o['outputName']=='console');uncertain=len(complete)-output['written']
+  assert uncertain>=0 and uncertain+bool(tail)<=output['failed'] and tail<16384
+  replies=load(process_report.parent/'replies.json');blocked=replies[0];held=next(o for o in blocked['diagnostics']['outputs'] if o['outputName']=='console')
+  assert blocked['flush']['completion']=='TimedOut' and held['queueFull']>0 and 1<=held['pending']<=2
+  original=next(row for row in replies if row['stage']=='stopped')
+  assert original['stop']==observed['diagnostics']['lastStopResult']
+  if observed['mode']=='burst':assert tail==0 and len(complete)==output['written'] and original['stop']['succeeded']
+  else:assert original['stop']['completion']=='TimedOut' and not original['stop']['succeeded']
+  pressure.append({'mode':observed['mode'],'rawBytes':len(raw),'rawSha256':digest(raw_path),'completeRecords':len(complete),'partialTailBytes':tail,'written':output['written'],'failed':output['failed'],'abandoned':output['abandoned'],'pending':output['pending'],'originalStopUnchanged':True})
+ assert len(pressure)==2;lanes[lane]['physicalPressureObservations']=pressure
+
+# Protect all shipping sources and the independently owned work.
+base=load(t/'baseline.json')
+for f in base['protected']+base['shippingSources']:assert digest(r/f['path'])==f['sha256'],f['path']
+source_paths=['implementations/csharp/tests/CIS.Core.IntegrationTests/CandidatePackageFixture.cs','implementations/csharp/tests/CIS.Core.IntegrationTests/CandidateLoggingProcessTests.cs','implementations/csharp/verification/consumers/logging-candidate/Program.cs','implementations/csharp/verification/consumers/logging-candidate/Consumer.csproj.template','conformance/logging/case-inventory.json','conformance/logging/requirement-case-map.json','conformance/logging/candidate-consumer-qualification.json','docs/modules/logging/candidate-consumers.md']
+run_inputs={i['path']:i['sha256'] for i in load(report/'source-inputs.json')}
+for path in source_paths:assert digest(r/path)==run_inputs[path],path
+# Native snapshot recorded the executed portable test assembly and current consumer source.
+linux_inputs=load(t/'linux-inputs-05.json');recorded={i['path']:i['sha256'] for i in linux_inputs['files']}
+assert recorded['implementations/csharp/verification/consumers/logging-candidate/Program.cs']==digest(r/source_paths[2])
+test_dll='implementations/csharp/tests/CIS.Core.IntegrationTests/bin/Release/net10.0/CIS.Core.IntegrationTests.dll';assert recorded[test_dll]==digest(r/test_dll),'Native and current integration assembly differ'
+staged_hash=(native/'test-assembly.sha256').read_text(encoding='utf-8').split()[0]
+assert staged_hash==recorded[test_dll]==digest(r/test_dll)
+expected_codebase=linux_inputs['root']+'/'+test_dll
+for method in E.parse(native/'results/report.trx').findall('.//t:TestMethod',n):assert method.get('codeBase')==expected_codebase,method.attrib
+
+e.mkdir(parents=True,exist_ok=True)
+def copy(src,dst):
+ p=e/dst;p.parent.mkdir(parents=True,exist_ok=True);shutil.copy2(src,p)
+for name in ['summary.json','validation.json','source-inputs.json']:copy(report/name,Path('native/Developer')/name)
+family_counts={}
+for family in ['unit','integration','architecture','business']:
+ for name in ['report.trx','discovery.json','execution.json']:copy(report/f'families/{family}/{name}',Path('native/Developer/families')/family/name)
+ counters=E.parse(report/f'families/{family}/report.trx').find('.//t:Counters',n).attrib;assert counters['failed']=='0' and counters['notExecuted']=='0';family_counts[family]=counters
+for p in native.rglob('*'):
+ if p.is_file():copy(p,Path('native/Ubuntu')/p.relative_to(native))
+# Retain all control replies and raw redirected output from the exact full-run consumer, plus restore inputs/metadata.
+for p in win.rglob('*'):
+ if p.is_file() and p.suffix in ['.json','.txt','.log','.bin'] and not {'packages','http-cache','feed','bin'} & set(p.relative_to(win).parts):copy(p,Path('native/WindowsCandidate')/p.relative_to(win))
+copy(Path(__file__).resolve(),Path('task/freeze-evidence.py'))
+for name in ['baseline.json','graph-before.txt','graph-start.txt','graph-find.txt','graph-runtime-context.txt','developer-reviewed.log','developer-reviewed.exit','linux.log','linux.exit','linux-02.log','linux-02.exit','linux-05.log','linux-05.exit','linux-inputs-05.json','run-linux-05.sh','run-linux-05.py']:
+ copy(t/name,Path('task')/name)
+for folder in ['focused','focused-02','focused-03','focused-04','focused-05','focused-06','focused-reviewed']:
+ if (t/folder/'report.trx').is_file():copy(t/folder/'report.trx',Path('prior-runs')/folder/'report.trx')
+assert len(list((e/'native/Ubuntu').rglob('candidate.json')))==1
+for report_path in (e/'native/WindowsCandidate').glob('child-*/report.json'):
+ if load(report_path)['mode'] in ['burst','deadline']:
+  assert not (report_path.parent/'stdout.txt').exists() and not (report_path.parent/'terminal-stream.txt').exists(),'Stale pressure evidence'
+# Bind every reference to retained evidence, keeping source paths as provenance only.
+for lane,relative in [('windows-x64','native/Developer/families/integration/report.trx'),('linux-ubuntu2404-x64','native/Ubuntu/results/report.trx')]:
+ ref=lanes[lane]['nativeReport'];ref['sourcePath']=ref['path'];ref['path']=relative
+ receipt=lanes[lane]['privateRestoreReceipt'];receipt['sourcePath']=receipt['path']
+ receipt['path']='native/WindowsCandidate/candidate.json' if lane=='windows-x64' else 'native/Ubuntu/'+linux_receipts[0].relative_to(native).as_posix()
+native_artifacts=[dict(reference(p),path=p.relative_to(e).as_posix()) for p in sorted((e/'native').rglob('*')) if p.is_file()]
+audit={'task':'WP07-S01-T02','runId':s['runId'],'startedUtc':s['startedUtc'],'finishedUtc':s['finishedUtc'],'stagesPassed':15,'familyCounts':family_counts,'candidate':{'packageVersion':wp['packageVersion'],'packageSha256':wp['packageSha256'],'assemblyHashes':wp['assemblyHashes'],'samePackageAndPortableTestAssemblyOnBothLanes':True,'sameConsumerProjectSha256':wp['projectSha256'],'nativeStagedTestAssemblySha256':staged_hash,'nativeTestCodebase':expected_codebase},'lanes':lanes,'sourceInputs':[dict(reference(r/p),runStartSha256=run_inputs[p],equal=True) for p in source_paths],'shippingSourcesUnchanged':len(base['shippingSources']),'protectedWorkPreserved':True,'nativeArtifacts':native_artifacts,'result':'Passed'}
+(t/'audit.json').write_bytes((json.dumps(audit,indent=2)+'\n').encode());copy(t/'audit.json',Path('audit.json'))
+receipt={'task':'WP07-S01-T02','baseCommit':base['baseCommit'],'scope':'Real exact-candidate public consumer qualification at process/stream/file boundaries.','audit':'audit.json','developer':{'runId':s['runId'],'startedUtc':s['startedUtc'],'finishedUtc':s['finishedUtc'],'exitCode':0,'stagesPassed':15,'totalTests':sum(int(c['total']) for c in family_counts.values())},'candidate':audit['candidate'],'nativeCandidateCases':{'windows-x64':19,'linux-ubuntu2404-x64':19},'inputs':audit['sourceInputs'],'controls':'Three changed loaded-assembly hashes and a changed runtime label are rejected after a real positive process. Pressure uses a private BCL control pipe and a real unread stdout pipe. Recovery intentionally prepares documented test states from candidate-produced inventory and bytes.','priorResults':'Retained focused failures exposed fixture cache-path formatting, normal/verbose and bounded payload assumptions, and a local UTF-8 edit error. Initial native console-control pressure cases timed out (17pass/2fail). A corrected private-pipe run passed19 but its shell wrapper returned2; saved-script invocation passes19 and exits0. The full Windows profile then repacked the archive (same three DLL hashes, different package SHA); final Ubuntu replay uses exactly that selected archive and passes19 with exit0. The first native TRX was not retained before WSL temporary state closed; its native console output is retained without inventing the missing report.','auditGenerator':{'path':'task/freeze-evidence.py','sha256':digest(Path(__file__))},'review':{'state':'Pending evidence-only follow-up after code review corrections'},'limits':'Both lanes qualify these19 candidate cases, not full platform/release support. Complete deterministic concurrency, coverage, discovery, architecture, mutation, cumulative compatibility, examples/skills and full release/publication remain pending. No shipping source/API/dependency, Type Manager implementation or publication ledger change.'}
+(e/'verification.json').write_bytes((json.dumps(receipt,indent=2)+'\n').encode());print('Frozen task evidence:',receipt['developer']['totalTests'],'full Developer tests;19 candidate cases per lane')
+
+END FILE
+
+FILE planning/logging/evidence/wp07-s01-t02/task/linux-inputs-05.json SHA256 6cbdfb1af589462102b7895b8b208699b14b4c4d20ec7c0ac32eb1a92afcec5b
+{
+  "root": "/tmp/cislib-wp07-s01-t02-7734db31e8714f54b6c3472cfc8d0cf5",
+  "sdk": "/mnt/c/miscwork/portfolio/cislib/.artifacts/type-manager/toolchains/linux-sdk-10.0.401",
+  "archiveSha256": "d3d997561a2fbb5dc2f4addbda62a058654e80780be1d163aef89180f94a3394",
+  "files": [
+    {
+      "path": "implementations/csharp/tests/CIS.Core.IntegrationTests/bin/Release/net10.0/.msCoverageSourceRootsMapping_CIS.Core.IntegrationTests",
+      "sha256": "88b74a064b87261cf3d4fe2ff5bbaeda764e20767234c426c9ff4b4245831b5d"
+    },
+    {
+      "path": "implementations/csharp/tests/CIS.Core.IntegrationTests/bin/Release/net10.0/CIS.Core.DiscoveryFixture.deps.json",
+      "sha256": "c8a4d158910722332e09b0ec9ea92bccb218ca9afdf52ced22f2438948aa3621"
+    },
+    {
+      "path": "implementations/csharp/tests/CIS.Core.IntegrationTests/bin/Release/net10.0/CIS.Core.DiscoveryFixture.dll",
+      "sha256": "957d3f569e22ffb32cc7abe4a48408544483254d81b121ad0eb3766b4d8d1832"
+    },
+    {
+      "path": "implementations/csharp/tests/CIS.Core.IntegrationTests/bin/Release/net10.0/CIS.Core.DiscoveryFixture.exe",
+      "sha256": "ab300b58fe1287e329095562d261faf0ea06e5e3ef98bb032dfda59a35ec152f"
+    },
+    {
+      "path": "implementations/csharp/tests/CIS.Core.IntegrationTests/bin/Release/net10.0/CIS.Core.DiscoveryFixture.pdb",
+      "sha256": "827c0fb92440d407c110cd4e293d273fcae646a8163ab13ba06b63fa7599638a"
+    },
+    {
+      "path": "implementations/csharp/tests/CIS.Core.IntegrationTests/bin/Release/net10.0/CIS.Core.DiscoveryFixture.runtimeconfig.json",
+      "sha256": "c230a317a54dd960bcbeb5f347f52e18dc665a26f7efda2159fced9a5ac7e097"
+    },
+    {
+      "path": "implementations/csharp/tests/CIS.Core.IntegrationTests/bin/Release/net10.0/CIS.Core.dll",
+      "sha256": "32be93e73044cae6e9d098dcceba3807114638ed8ceb990f28e0c1c0acfcef24"
+    },
+    {
+      "path": "implementations/csharp/tests/CIS.Core.IntegrationTests/bin/Release/net10.0/CIS.Core.IntegrationTests.deps.json",
+      "sha256": "b96d6dd1f14bad317f296533884e50c356bdf1ecf74a8d042a25bfff17695f85"
+    },
+    {
+      "path": "implementations/csharp/tests/CIS.Core.IntegrationTests/bin/Release/net10.0/CIS.Core.IntegrationTests.dll",
+      "sha256": "854ee1c76dc248dbffad2cdf2f82a3c4eab83375d7e79a510f6c092d47f8e563"
+    },
+    {
+      "path": "implementations/csharp/tests/CIS.Core.IntegrationTests/bin/Release/net10.0/CIS.Core.IntegrationTests.pdb",
+      "sha256": "a64d3e407249a26c8c425d77ef4d4c92c9e0b8f4a8aeded318da35366864d155"
+    },
+    {
+      "path": "implementations/csharp/tests/CIS.Core.IntegrationTests/bin/Release/net10.0/CIS.Core.IntegrationTests.runtimeconfig.json",
+      "sha256": "130aa09981db7c7fc40163508b2cf4a155d36cdda034c8805131d0b0cd951b91"
+    },
+    {
+      "path": "implementations/csharp/tests/CIS.Core.IntegrationTests/bin/Release/net10.0/CIS.Core.pdb",
+      "sha256": "8e1e7b59b4d4af1ca95ef687acbc1c6b89d8baee8fed9ccd8248bd40eba937dd"
+    },
+    {
+      "path": "implementations/csharp/tests/CIS.Core.IntegrationTests/bin/Release/net10.0/CIS.Core.TestSupport.dll",
+      "sha256": "8200ed7368d381c172e5671a589b18bd9b7586b4fac99eef40ff113ebde0d19b"
+    },
+    {
+      "path": "implementations/csharp/tests/CIS.Core.IntegrationTests/bin/Release/net10.0/CIS.Core.TestSupport.pdb",
+      "sha256": "2e2635d239114ba9219f4a87d0293812d383a1a2437b21973ca9edbbc730d87d"
+    },
+    {
+      "path": "implementations/csharp/tests/CIS.Core.IntegrationTests/bin/Release/net10.0/CIS.Core.xml",
+      "sha256": "8d51ecc1997ccbdd975ba2b317116e1e45e5b3524647ab01ce63558e8b739f6a"
+    },
+    {
+      "path": "implementations/csharp/tests/CIS.Core.IntegrationTests/bin/Release/net10.0/Microsoft.ApplicationInsights.dll",
+      "sha256": "bf9a4b88c7f94267e1cc7ed0700c575d3eb3266ff25bcb76e4f40f1b0fba022d"
+    },
+    {
+      "path": "implementations/csharp/tests/CIS.Core.IntegrationTests/bin/Release/net10.0/Microsoft.Extensions.DependencyInjection.Abstractions.dll",
+      "sha256": "da04edc338d5aa0f38a1f5fa5ff3ee7e36affe9c961daf3ea724a428bd746bc6"
+    },
+    {
+      "path": "implementations/csharp/tests/CIS.Core.IntegrationTests/bin/Release/net10.0/Microsoft.Extensions.DependencyInjection.dll",
+      "sha256": "2d0e268bf76b4ce36a55ebb2767354db956c6660de65d6cccfc35c957fb12cfc"
+    },
+    {
+      "path": "implementations/csharp/tests/CIS.Core.IntegrationTests/bin/Release/net10.0/Microsoft.Extensions.Logging.Abstractions.dll",
+      "sha256": "7c242f8ca612fa1acc61f78efd5f8c89e01bd0bd47dc4ecc65e0e6e24f1a1668"
+    },
+    {
+      "path": "implementations/csharp/tests/CIS.Core.IntegrationTests/bin/Release/net10.0/Microsoft.Extensions.Logging.dll",
+      "sha256": "05b76234f2a5eb945b268ced706cb4d81446778ea6bd6910298b5e9111170b4a"
+    },
+    {
+      "path": "implementations/csharp/tests/CIS.Core.IntegrationTests/bin/Release/net10.0/Microsoft.Extensions.Options.dll",
+      "sha256": "b4ff561da6a7b11b68341f9fd32cab3f8b23cdd8b40332b9fd8bed73a9ee7de3"
+    },
+    {
+      "path": "implementations/csharp/tests/CIS.Core.IntegrationTests/bin/Release/net10.0/Microsoft.Extensions.Primitives.dll",
+      "sha256": "67642533eb87e8dadeb9026de59ff4b66cc9bf35c0cfbedfef7b79bc6d8b30bc"
+    },
+    {
+      "path": "implementations/csharp/tests/CIS.Core.IntegrationTests/bin/Release/net10.0/Microsoft.Testing.Extensions.MSBuild.dll",
+      "sha256": "828e7dc4e0206da2a9a58df26651acc2f28b7169509c5c26dcff3c991513fe09"
+    },
+    {
+      "path": "implementations/csharp/tests/CIS.Core.IntegrationTests/bin/Release/net10.0/Microsoft.Testing.Extensions.Telemetry.dll",
+      "sha256": "c4f35fc45c100733d6f00f9aba87fe6c96481d3c43c416d32a4722fddd6e79e1"
+    },
+    {
+      "path": "implementations/csharp/tests/CIS.Core.IntegrationTests/bin/Release/net10.0/Microsoft.Testing.Extensions.TrxReport.Abstractions.dll",
+      "sha256": "f57bc3dcd63c0dcd08db8d5e729836d156351a2d18041a5b7978a424e5b37142"
+    },
+    {
+      "path": "implementations/csharp/tests/CIS.Core.IntegrationTests/bin/Release/net10.0/Microsoft.Testing.Platform.dll",
+      "sha256": "a3319a6bb4bdfb1df2e531765c5a48c2b48de1fe7cf4dcd932c9b82f114107da"
+    },
+    {
+      "path": "implementations/csharp/tests/CIS.Core.IntegrationTests/bin/Release/net10.0/Microsoft.TestPlatform.CommunicationUtilities.dll",
+      "sha256": "24c3b9f2710340c328db8bc9c37797d15e2cf32e4fca37f60f6f01bd35b6e0ff"
+    },
+    {
+      "path": "implementations/csharp/tests/CIS.Core.IntegrationTests/bin/Release/net10.0/Microsoft.TestPlatform.CoreUtilities.dll",
+      "sha256": "ca8cd4a0c394af3cc03c8e83b0377ecf14e6a8c68e4b0b50f732b1370950d7df"
+    },
+    {
+      "path": "implementations/csharp/tests/CIS.Core.IntegrationTests/bin/Release/net10.0/Microsoft.TestPlatform.CrossPlatEngine.dll",
+      "sha256": "9cde8a3ed9b3d2bc95f6c351af59ac943ee3495d3c1312950eedf6176a489b5a"
+    },
+    {
+      "path": "implementations/csharp/tests/CIS.Core.IntegrationTests/bin/Release/net10.0/Microsoft.TestPlatform.PlatformAbstractions.dll",
+      "sha256": "8bc7faec348a71336af3bfbeecad564ad0f97a8216835ed90cd2ceff621a3697"
+    },
+    {
+      "path": "implementations/csharp/tests/CIS.Core.IntegrationTests/bin/Release/net10.0/Microsoft.TestPlatform.Utilities.dll",
+      "sha256": "29d176ae1f87dac87c8064dddf30a5e2439e4f48e28417e8604d71cc9d920ce8"
+    },
+    {
+      "path": "implementations/csharp/tests/CIS.Core.IntegrationTests/bin/Release/net10.0/Microsoft.VisualStudio.CodeCoverage.Shim.dll",
+      "sha256": "8d4e1668a9f141d80a2615b946e43a2d64fe3528a1f54c79624a6c217019a646"
+    },
+    {
+      "path": "implementations/csharp/tests/CIS.Core.IntegrationTests/bin/Release/net10.0/Microsoft.VisualStudio.TestPlatform.Common.dll",
+      "sha256": "c38efb5cfcceb4cdf0f1fb04eea0b1d17310c6eda839dd3ae31e658e91cc7de6"
+    },
+    {
+      "path": "implementations/csharp/tests/CIS.Core.IntegrationTests/bin/Release/net10.0/Microsoft.VisualStudio.TestPlatform.ObjectModel.dll",
+      "sha256": "ff730c68bebe827f74e2bdcfb571400ab328c00be11c7fe3a1fe01143b483bc6"
+    },
+    {
+      "path": "implementations/csharp/tests/CIS.Core.IntegrationTests/bin/Release/net10.0/MSTest.TestAdapter.dll",
+      "sha256": "18de8760190a607e903da92c548e976628a9da1cabde1dbec32a773f0f08e99a"
+    },
+    {
+      "path": "implementations/csharp/tests/CIS.Core.IntegrationTests/bin/Release/net10.0/MSTest.TestFramework.dll",
+      "sha256": "1ef03e88502ea03be38088bd1e23bfe7fbce516d1e74225acb84b6640cd8b73b"
+    },
+    {
+      "path": "implementations/csharp/tests/CIS.Core.IntegrationTests/bin/Release/net10.0/MSTest.TestFramework.Extensions.dll",
+      "sha256": "39b4014cd714c704a35e3d690dbddbee209b9b4925db8da2e870686ceb0ec5d1"
+    },
+    {
+      "path": "implementations/csharp/tests/CIS.Core.IntegrationTests/bin/Release/net10.0/MSTest.TestFramework.Extensions.xml",
+      "sha256": "2230d28380744cbbc1ad7dce96fd20c3ee35aa0e5074dbd1404a0786eb06d92f"
+    },
+    {
+      "path": "implementations/csharp/tests/CIS.Core.IntegrationTests/bin/Release/net10.0/MSTestAdapter.PlatformServices.dll",
+      "sha256": "74559c1c0fa199dc1ce53324a95b67b3084ca906df9ddac52fdb29bb2043c943"
+    },
+    {
+      "path": "implementations/csharp/tests/CIS.Core.IntegrationTests/bin/Release/net10.0/testhost.dll",
+      "sha256": "ad339a6279013d6af52dde6bcb8b90a19a395a54c6fcf085ff5a42435c60c4c5"
+    },
+    {
+      "path": "implementations/csharp/tests/CIS.Core.IntegrationTests/bin/Release/net10.0/testhost.exe",
+      "sha256": "9620b96c776dc786824ea167dc1a4991c8e0e2dc093dc63f78cb44c0bd4c8cc0"
+    },
+    {
+      "path": "implementations/csharp/tests/CIS.Core.IntegrationTests/bin/Release/net10.0/cs/Microsoft.Testing.Extensions.MSBuild.resources.dll",
+      "sha256": "89eb97d173b9a1e449567ba443502542df77743f158c8fee41f6f2bdc3629638"
+    },
+    {
+      "path": "implementations/csharp/tests/CIS.Core.IntegrationTests/bin/Release/net10.0/cs/Microsoft.Testing.Extensions.Telemetry.resources.dll",
+      "sha256": "31b09f9bc213163bfa28978ac925e08bf75d0ae3c332c4b9941c21a5edb1bec3"
+    },
+    {
+      "path": "implementations/csharp/tests/CIS.Core.IntegrationTests/bin/Release/net10.0/cs/Microsoft.Testing.Platform.resources.dll",
+      "sha256": "ee849dcddda6b96cbb84f0cb0d00f2faefb9b9f3ae48dd1156b51ae98f604380"
+    },
+    {
+      "path": "implementations/csharp/tests/CIS.Core.IntegrationTests/bin/Release/net10.0/cs/Microsoft.TestPlatform.CommunicationUtilities.resources.dll",
+      "sha256": "7a2f0d7b97536a3853064193ec92ce9f1200ae669b82a84281de44471dafb21c"
+    },
+    {
+      "path": "implementations/csharp/tests/CIS.Core.IntegrationTests/bin/Release/net10.0/cs/Microsoft.TestPlatform.CoreUtilities.resources.dll",
+      "sha256": "5f5501b18f65687cebd354196f563c520b4575e58eca474f3b3d1bd3247b9b46"
+    },
+    {
+      "path": "implementations/csharp/tests/CIS.Core.IntegrationTests/bin/Release/net10.0/cs/Microsoft.TestPlatform.CrossPlatEngine.resources.dll",
+      "sha256": "15f05b004d8f9a90650efa62f29f1ac576b91a3f21ae65beb80a6fb318fbeab2"
+    },
+    {
+      "path": "implementations/csharp/tests/CIS.Core.IntegrationTests/bin/Release/net10.0/cs/Microsoft.VisualStudio.TestPlatform.Common.resources.dll",
+      "sha256": "6b2deb5bd9ac08a364bd64bb503104725c2bdc562fa5a19d99463b9dfedc0544"
+    },
+    {
+      "path": "implementations/csharp/tests/CIS.Core.IntegrationTests/bin/Release/net10.0/cs/Microsoft.VisualStudio.TestPlatform.ObjectModel.resources.dll",
+      "sha256": "a24d277e98d3dc7986741ff0c72e628aca9814556d6d64b5e3992bacf07c6f17"
+    },
+    {
+      "path": "implementations/csharp/tests/CIS.Core.IntegrationTests/bin/Release/net10.0/cs/MSTest.TestFramework.resources.dll",
+      "sha256": "02cff0820a90831f4f4c4cad6541b68fa2973136b6721762e77104d9d7752179"
+    },
+    {
+      "path": "implementations/csharp/tests/CIS.Core.IntegrationTests/bin/Release/net10.0/de/Microsoft.Testing.Extensions.MSBuild.resources.dll",
+      "sha256": "fcd8e6dda5bd53595685f1b4393a5e377b3a8ec5614f4db7ae3fd8f3970b01ad"
+    },
+    {
+      "path": "implementations/csharp/tests/CIS.Core.IntegrationTests/bin/Release/net10.0/de/Microsoft.Testing.Extensions.Telemetry.resources.dll",
+      "sha256": "305f8f8953f1a382113f974c188790bab193509aff87b515dfcd1d8064b093a8"
+    },
+    {
+      "path": "implementations/csharp/tests/CIS.Core.IntegrationTests/bin/Release/net10.0/de/Microsoft.Testing.Platform.resources.dll",
+      "sha256": "54dc9bd2a5fe2cb080613014f938c0bf5f6a6a01ab3d009a513878bb7e863eca"
+    },
+    {
+      "path": "implementations/csharp/tests/CIS.Core.IntegrationTests/bin/Release/net10.0/de/Microsoft.TestPlatform.CommunicationUtilities.resources.dll",
+      "sha256": "45572aefbfd158340f1ea4ed40d2d2f9300ebddf024060cdda3bebb35854b2e2"
+    },
+    {
+      "path": "implementations/csharp/tests/CIS.Core.IntegrationTests/bin/Release/net10.0/de/Microsoft.TestPlatform.CoreUtilities.resources.dll",
+      "sha256": "cf94a0635173d6d868a90161757cb9484e559fedfde6e7ea50dd935e1d9b6666"
+    },
+    {
+      "path": "implementations/csharp/tests/CIS.Core.IntegrationTests/bin/Release/net10.0/de/Microsoft.TestPlatform.CrossPlatEngine.resources.dll",
+      "sha256": "417e53c758220679b7c850d893ec5754b168e8b95f2e9547eab9233a27799b85"
+    },
+    {
+      "path": "implementations/csharp/tests/CIS.Core.IntegrationTests/bin/Release/net10.0/de/Microsoft.VisualStudio.TestPlatform.Common.resources.dll",
+      "sha256": "f44082da024f2dbb37936b1a8f8c5683564716089b6389b892cc90088acb48ff"
+    },
+    {
+      "path": "implementations/csharp/tests/CIS.Core.IntegrationTests/bin/Release/net10.0/de/Microsoft.VisualStudio.TestPlatform.ObjectModel.resources.dll",
+      "sha256": "edfdf3cb64553da8e229463948aa7b962e96e4037d510fb7fad4f26da9e7c8b5"
+    },
+    {
+      "path": "implementations/csharp/tests/CIS.Core.IntegrationTests/bin/Release/net10.0/de/MSTest.TestFramework.resources.dll",
+      "sha256": "11a8fdaac95ae6ea9ed14d703f6692557eaa494ebdedc0695b7eab3ef8ebc3c5"
+    },
+    {
+      "path": "implementations/csharp/tests/CIS.Core.IntegrationTests/bin/Release/net10.0/discovery-fixture/CIS.Core.DiscoveryFixture.deps.json",
+      "sha256": "c8a4d158910722332e09b0ec9ea92bccb218ca9afdf52ced22f2438948aa3621"
+    },
+    {
+      "path": "implementations/csharp/tests/CIS.Core.IntegrationTests/bin/Release/net10.0/discovery-fixture/CIS.Core.DiscoveryFixture.dll",
+      "sha256": "957d3f569e22ffb32cc7abe4a48408544483254d81b121ad0eb3766b4d8d1832"
+    },
+    {
+      "path": "implementations/csharp/tests/CIS.Core.IntegrationTests/bin/Release/net10.0/discovery-fixture/CIS.Core.DiscoveryFixture.exe",
+      "sha256": "ab300b58fe1287e329095562d261faf0ea06e5e3ef98bb032dfda59a35ec152f"
+    },
+    {
+      "path": "implementations/csharp/tests/CIS.Core.IntegrationTests/bin/Release/net10.0/discovery-fixture/CIS.Core.DiscoveryFixture.pdb",
+      "sha256": "827c0fb92440d407c110cd4e293d273fcae646a8163ab13ba06b63fa7599638a"
+    },
+    {
+      "path": "implementations/csharp/tests/CIS.Core.IntegrationTests/bin/Release/net10.0/discovery-fixture/CIS.Core.DiscoveryFixture.runtimeconfig.json",
+      "sha256": "c230a317a54dd960bcbeb5f347f52e18dc665a26f7efda2159fced9a5ac7e097"
+    },
+    {
+      "path": "implementations/csharp/tests/CIS.Core.IntegrationTests/bin/Release/net10.0/discovery-fixture/CIS.Core.dll",
+      "sha256": "32be93e73044cae6e9d098dcceba3807114638ed8ceb990f28e0c1c0acfcef24"
+    },
+    {
+      "path": "implementations/csharp/tests/CIS.Core.IntegrationTests/bin/Release/net10.0/discovery-fixture/CIS.Core.pdb",
+      "sha256": "8e1e7b59b4d4af1ca95ef687acbc1c6b89d8baee8fed9ccd8248bd40eba937dd"
+    },
+    {
+      "path": "implementations/csharp/tests/CIS.Core.IntegrationTests/bin/Release/net10.0/discovery-fixture/CIS.Core.xml",
+      "sha256": "8d51ecc1997ccbdd975ba2b317116e1e45e5b3524647ab01ce63558e8b739f6a"
+    },
+    {
+      "path": "implementations/csharp/tests/CIS.Core.IntegrationTests/bin/Release/net10.0/discovery-fixture/Microsoft.Extensions.DependencyInjection.Abstractions.dll",
+      "sha256": "da04edc338d5aa0f38a1f5fa5ff3ee7e36affe9c961daf3ea724a428bd746bc6"
+    },
+    {
+      "path": "implementations/csharp/tests/CIS.Core.IntegrationTests/bin/Release/net10.0/discovery-fixture/Microsoft.Extensions.DependencyInjection.dll",
+      "sha256": "2d0e268bf76b4ce36a55ebb2767354db956c6660de65d6cccfc35c957fb12cfc"
+    },
+    {
+      "path": "implementations/csharp/tests/CIS.Core.IntegrationTests/bin/Release/net10.0/discovery-fixture/Microsoft.Extensions.Logging.Abstractions.dll",
+      "sha256": "7c242f8ca612fa1acc61f78efd5f8c89e01bd0bd47dc4ecc65e0e6e24f1a1668"
+    },
+    {
+      "path": "implementations/csharp/tests/CIS.Core.IntegrationTests/bin/Release/net10.0/discovery-fixture/Microsoft.Extensions.Logging.dll",
+      "sha256": "05b76234f2a5eb945b268ced706cb4d81446778ea6bd6910298b5e9111170b4a"
+    },
+    {
+      "path": "implementations/csharp/tests/CIS.Core.IntegrationTests/bin/Release/net10.0/discovery-fixture/Microsoft.Extensions.Options.dll",
+      "sha256": "b4ff561da6a7b11b68341f9fd32cab3f8b23cdd8b40332b9fd8bed73a9ee7de3"
+    },
+    {
+      "path": "implementations/csharp/tests/CIS.Core.IntegrationTests/bin/Release/net10.0/discovery-fixture/Microsoft.Extensions.Primitives.dll",
+      "sha256": "67642533eb87e8dadeb9026de59ff4b66cc9bf35c0cfbedfef7b79bc6d8b30bc"
+    },
+    {
+      "path": "implementations/csharp/tests/CIS.Core.IntegrationTests/bin/Release/net10.0/es/Microsoft.Testing.Extensions.MSBuild.resources.dll",
+      "sha256": "8a0534058fc1262117ddbcf3d38e0a4597770f966ce40113556359c0a428c379"
+    },
+    {
+      "path": "implementations/csharp/tests/CIS.Core.IntegrationTests/bin/Release/net10.0/es/Microsoft.Testing.Extensions.Telemetry.resources.dll",
+      "sha256": "be2c60c3513efed1807fde9e2d89c07a80f5efc52b2c8273498250323ec063a3"
+    },
+    {
+      "path": "implementations/csharp/tests/CIS.Core.IntegrationTests/bin/Release/net10.0/es/Microsoft.Testing.Platform.resources.dll",
+      "sha256": "2fc212a30af72cccb225128537955c28678b726c2209b81c43bc95f8fd036c34"
+    },
+    {
+      "path": "implementations/csharp/tests/CIS.Core.IntegrationTests/bin/Release/net10.0/es/Microsoft.TestPlatform.CommunicationUtilities.resources.dll",
+      "sha256": "91ffbfdbe6b9d134565fd001c8b432ed0570e4f1b64e56b812dac5a1f931c7c0"
+    },
+    {
+      "path": "implementations/csharp/tests/CIS.Core.IntegrationTests/bin/Release/net10.0/es/Microsoft.TestPlatform.CoreUtilities.resources.dll",
+      "sha256": "6de8b0fd082756f612d4c8b3b06e3558e2321bcb910d5a70769050f308b96641"
+    },
+    {
+      "path": "implementations/csharp/tests/CIS.Core.IntegrationTests/bin/Release/net10.0/es/Microsoft.TestPlatform.CrossPlatEngine.resources.dll",
+      "sha256": "b4ff391fe91eae0d4eba06bc9c09b4ef3fb583fdbcee0b8a49ef7d5d358a6af8"
+    },
+    {
+      "path": "implementations/csharp/tests/CIS.Core.IntegrationTests/bin/Release/net10.0/es/Microsoft.VisualStudio.TestPlatform.Common.resources.dll",
+      "sha256": "7afd57a2f8e63f9d0a7c39d6c467aa45a791e29815f806b5751fb5ab375cacca"
+    },
+    {
+      "path": "implementations/csharp/tests/CIS.Core.IntegrationTests/bin/Release/net10.0/es/Microsoft.VisualStudio.TestPlatform.ObjectModel.resources.dll",
+      "sha256": "eb966be23882a9e11459d283241a67e7c0265f271e98603f13cabaadd8f7ee64"
+    },
+    {
+      "path": "implementations/csharp/tests/CIS.Core.IntegrationTests/bin/Release/net10.0/es/MSTest.TestFramework.resources.dll",
+      "sha256": "0eaa5443cf2f9e8629d1030e77d8d430b5831bd2acd0dd106ddbe5f14721352f"
+    },
+    {
+      "path": "implementations/csharp/tests/CIS.Core.IntegrationTests/bin/Release/net10.0/fr/Microsoft.Testing.Extensions.MSBuild.resources.dll",
+      "sha256": "03501f48b593ae0cfd4db74fd200049c0d43295b2697d00032aed88feb635292"
+    },
+    {
+      "path": "implementations/csharp/tests/CIS.Core.IntegrationTests/bin/Release/net10.0/fr/Microsoft.Testing.Extensions.Telemetry.resources.dll",
+      "sha256": "624a77a903f4456f742d2ae9be2f24443de123715f46bb71345aa26e2109e08a"
+    },
+    {
+      "path": "implementations/csharp/tests/CIS.Core.IntegrationTests/bin/Release/net10.0/fr/Microsoft.Testing.Platform.resources.dll",
+      "sha256": "2574ae39d02056c9a56ca80a6f0b20619ae66f9bdea2dc1d9c78acec036d01ed"
+    },
+    {
+      "path": "implementations/csharp/tests/CIS.Core.IntegrationTests/bin/Release/net10.0/fr/Microsoft.TestPlatform.CommunicationUtilities.resources.dll",
+      "sha256": "6d4123a175657dec7e6a82f787be5adbe459656bdfb874cb622fe9ea39daf7e3"
+    },
+    {
+      "path": "implementations/csharp/tests/CIS.Core.IntegrationTests/bin/Release/net10.0/fr/Microsoft.TestPlatform.CoreUtilities.resources.dll",
+      "sha256": "bec57046f616616913fd1416f013635a41a06c1c4d8ad67a8ee31f6098a3444b"
+    },
+    {
+      "path": "implementations/csharp/tests/CIS.Core.IntegrationTests/bin/Release/net10.0/fr/Microsoft.TestPlatform.CrossPlatEngine.resources.dll",
+      "sha256": "522befbf13ace67d8d17f6b77715cf01c59e21688b84be3c8373065f6e485de5"
+    },
+    {
+      "path": "implementations/csharp/tests/CIS.Core.IntegrationTests/bin/Release/net10.0/fr/Microsoft.VisualStudio.TestPlatform.Common.resources.dll",
+      "sha256": "67ab307dd61f2bbb841051e7f68318b5b75c510040f50bf6f3174287c1af3d33"
+    },
+    {
+      "path": "implementations/csharp/tests/CIS.Core.IntegrationTests/bin/Release/net10.0/fr/Microsoft.VisualStudio.TestPlatform.ObjectModel.resources.dll",
+      "sha256": "07614b2d790a3b6ad93b41961566b84e4ad56cc86f5bf39658c06a13f2613db4"
+    },
+    {
+      "path": "implementations/csharp/tests/CIS.Core.IntegrationTests/bin/Release/net10.0/fr/MSTest.TestFramework.resources.dll",
+      "sha256": "7a798cbd852c24d47c099af0ae581b2744470b7b3f74da37aa111c5b2c05b34f"
+    },
+    {
+      "path": "implementations/csharp/tests/CIS.Core.IntegrationTests/bin/Release/net10.0/it/Microsoft.Testing.Extensions.MSBuild.resources.dll",
+      "sha256": "2f41fe8e1163b94573c80b732be76f263bdb66099fa0c0f8e94ead03a550eb49"
+    },
+    {
+      "path": "implementations/csharp/tests/CIS.Core.IntegrationTests/bin/Release/net10.0/it/Microsoft.Testing.Extensions.Telemetry.resources.dll",
+      "sha256": "0ce2b9749100e058295b59f6cc12cb4b3c89da536ccbec88c3f3b3d43b1532e2"
+    },
+    {
+      "path": "implementations/csharp/tests/CIS.Core.IntegrationTests/bin/Release/net10.0/it/Microsoft.Testing.Platform.resources.dll",
+      "sha256": "821cb47f17a40d440f52a3c6cb258db90385cf420c5224484ced81b92f79b795"
+    },
+    {
+      "path": "implementations/csharp/tests/CIS.Core.IntegrationTests/bin/Release/net10.0/it/Microsoft.TestPlatform.CommunicationUtilities.resources.dll",
+      "sha256": "3a9b5440682910f99a4d3b51b3ac32f4d0c0f9cfeb959a9e26de085d45ad7cac"
+    },
+    {
+      "path": "implementations/csharp/tests/CIS.Core.IntegrationTests/bin/Release/net10.0/it/Microsoft.TestPlatform.CoreUtilities.resources.dll",
+      "sha256": "2af9b70d68f3ab2bbaa609e5e556811c7f68869ce2c3cc6d7209b3d6722e0968"
+    },
+    {
+      "path": "implementations/csharp/tests/CIS.Core.IntegrationTests/bin/Release/net10.0/it/Microsoft.TestPlatform.CrossPlatEngine.resources.dll",
+      "sha256": "63abe8199bd651d7c9418148c9cec7d09877a13a2b95927bc62f476f1fb796ec"
+    },
+    {
+      "path": "implementations/csharp/tests/CIS.Core.IntegrationTests/bin/Release/net10.0/it/Microsoft.VisualStudio.TestPlatform.Common.resources.dll",
+      "sha256": "fa43b5a74e50b89b243dcb10d9ac32a6a2db3ff1cdc4b884c01223f2f78c96c7"
+    },
+    {
+      "path": "implementations/csharp/tests/CIS.Core.IntegrationTests/bin/Release/net10.0/it/Microsoft.VisualStudio.TestPlatform.ObjectModel.resources.dll",
+      "sha256": "5202a294a2b02c741ba292ba802f12b9473836a81ce61cb42f462eead6dc4dfa"
+    },
+    {
+      "path": "implementations/csharp/tests/CIS.Core.IntegrationTests/bin/Release/net10.0/it/MSTest.TestFramework.resources.dll",
+      "sha256": "509f22718faf2831fa8aa1d9053b26198d6fe412d2f979f8ff785da13d5b0ca0"
+    },
+    {
+      "path": "implementations/csharp/tests/CIS.Core.IntegrationTests/bin/Release/net10.0/ja/Microsoft.Testing.Extensions.MSBuild.resources.dll",
+      "sha256": "cb70d4bfd21a2919440f67e86e712872dff435d870ca123b3f9684c0f63be856"
+    },
+    {
+      "path": "implementations/csharp/tests/CIS.Core.IntegrationTests/bin/Release/net10.0/ja/Microsoft.Testing.Extensions.Telemetry.resources.dll",
+      "sha256": "2f1909e5e06cd214dc617d75330ca67e2a3c7245fdd8f3b446cc51b049d35f7f"
+    },
+    {
+      "path": "implementations/csharp/tests/CIS.Core.IntegrationTests/bin/Release/net10.0/ja/Microsoft.Testing.Platform.resources.dll",
+      "sha256": "dcece76d6c872cd65e597f7eefddebca4de8688e996263fed2d69d735452f0f0"
+    },
+    {
+      "path": "implementations/csharp/tests/CIS.Core.IntegrationTests/bin/Release/net10.0/ja/Microsoft.TestPlatform.CommunicationUtilities.resources.dll",
+      "sha256": "eff24e7eeef7e342289b5953b470225ff6eec51db64f3fbe1f62c44ed80da824"
+    },
+    {
+      "path": "implementations/csharp/tests/CIS.Core.IntegrationTests/bin/Release/net10.0/ja/Microsoft.TestPlatform.CoreUtilities.resources.dll",
+      "sha256": "63d61001cdf7c501e253adeace734b32023cf617c04785937525fc0f202c3e21"
+    },
+    {
+      "path": "implementations/csharp/tests/CIS.Core.IntegrationTests/bin/Release/net10.0/ja/Microsoft.TestPlatform.CrossPlatEngine.resources.dll",
+      "sha256": "7b52b294fe2a7aed68b8b772cf63bce00e994e3a82d275419ee97eeb76543e36"
+    },
+    {
+      "path": "implementations/csharp/tests/CIS.Core.IntegrationTests/bin/Release/net10.0/ja/Microsoft.VisualStudio.TestPlatform.Common.resources.dll",
+      "sha256": "3ad8c259cf7b1b82b1402100f2b5b1530e4d4cefae3a91e1ab4783a803c4dcf1"
+    },
+    {
+      "path": "implementations/csharp/tests/CIS.Core.IntegrationTests/bin/Release/net10.0/ja/Microsoft.VisualStudio.TestPlatform.ObjectModel.resources.dll",
+      "sha256": "d2a679cc9cf0b0e5c865bd937ec90e45ecb434289c6b017992f417e34bae646c"
+    },
+    {
+      "path": "implementations/csharp/tests/CIS.Core.IntegrationTests/bin/Release/net10.0/ja/MSTest.TestFramework.resources.dll",
+      "sha256": "0711c6d66bc284555afad8142b5a87065855aa1ce7a541ec18e83bda87e9b938"
+    },
+    {
+      "path": "implementations/csharp/tests/CIS.Core.IntegrationTests/bin/Release/net10.0/ko/Microsoft.Testing.Extensions.MSBuild.resources.dll",
+      "sha256": "c028ce9285c9e4e65cd13f8eec21cc5b8fa144dba0f9514e3b6fc09c9476b185"
+    },
+    {
+      "path": "implementations/csharp/tests/CIS.Core.IntegrationTests/bin/Release/net10.0/ko/Microsoft.Testing.Extensions.Telemetry.resources.dll",
+      "sha256": "8be28bc62fa915a6f884520b105f9749ec1eaaaae13097291820a35b2e21f769"
+    },
+    {
+      "path": "implementations/csharp/tests/CIS.Core.IntegrationTests/bin/Release/net10.0/ko/Microsoft.Testing.Platform.resources.dll",
+      "sha256": "b825a9994bb95d7b1a37ea76f71adb33cca9a63c6e7a158021abdad944c889ed"
+    },
+    {
+      "path": "implementations/csharp/tests/CIS.Core.IntegrationTests/bin/Release/net10.0/ko/Microsoft.TestPlatform.CommunicationUtilities.resources.dll",
+      "sha256": "9c4d8a39201e8071fabfc83391ee90d4947b8df91d06f173eb50ac70b53cbd55"
+    },
+    {
+      "path": "implementations/csharp/tests/CIS.Core.IntegrationTests/bin/Release/net10.0/ko/Microsoft.TestPlatform.CoreUtilities.resources.dll",
+      "sha256": "e7528a92a6ec0e1684537dd550cdb016ecc8df62a55c85294e608358e28a560d"
+    },
+    {
+      "path": "implementations/csharp/tests/CIS.Core.IntegrationTests/bin/Release/net10.0/ko/Microsoft.TestPlatform.CrossPlatEngine.resources.dll",
+      "sha256": "e25583d01cb6e19de1c8daf050cfc5df71b3e6792bafda95a68529ce24e18005"
+    },
+    {
+      "path": "implementations/csharp/tests/CIS.Core.IntegrationTests/bin/Release/net10.0/ko/Microsoft.VisualStudio.TestPlatform.Common.resources.dll",
+      "sha256": "3850eb61e6d5cb46e3daa9666c099e2a1e11dc5223d792eb4c7f4a143e0302a9"
+    },
+    {
+      "path": "implementations/csharp/tests/CIS.Core.IntegrationTests/bin/Release/net10.0/ko/Microsoft.VisualStudio.TestPlatform.ObjectModel.resources.dll",
+      "sha256": "dc7b27e609e842eeea5da50ea172f288479b652ea779072e5dbbde045418819d"
+    },
+    {
+      "path": "implementations/csharp/tests/CIS.Core.IntegrationTests/bin/Release/net10.0/ko/MSTest.TestFramework.resources.dll",
+      "sha256": "61079b0f0d5a5778df6d4ecd30fff69c286cc921ba4643313ab1a5157afa95d9"
+    },
+    {
+      "path": "implementations/csharp/tests/CIS.Core.IntegrationTests/bin/Release/net10.0/pl/Microsoft.Testing.Extensions.MSBuild.resources.dll",
+      "sha256": "1b356a67f1a6d3522658c0e19253c26336cb09f9b5f8b7fc174d0bae6d5a906f"
+    },
+    {
+      "path": "implementations/csharp/tests/CIS.Core.IntegrationTests/bin/Release/net10.0/pl/Microsoft.Testing.Extensions.Telemetry.resources.dll",
+      "sha256": "5f526e320e2ed6cea9e7436b3710da6fbcbed038a8b2f6567db47f2bfe965d25"
+    },
+    {
+      "path": "implementations/csharp/tests/CIS.Core.IntegrationTests/bin/Release/net10.0/pl/Microsoft.Testing.Platform.resources.dll",
+      "sha256": "9c565afdafa7f30bfb19ceb59375da9c9a9bf083362a65a961055029c2811b2d"
+    },
+    {
+      "path": "implementations/csharp/tests/CIS.Core.IntegrationTests/bin/Release/net10.0/pl/Microsoft.TestPlatform.CommunicationUtilities.resources.dll",
+      "sha256": "8cee907bab9068f30a6c0740b49ce3d4c9be887b7c5f6a8240954afe46e233a3"
+    },
+    {
+      "path": "implementations/csharp/tests/CIS.Core.IntegrationTests/bin/Release/net10.0/pl/Microsoft.TestPlatform.CoreUtilities.resources.dll",
+      "sha256": "cb997c46356be42b346682b3a1b6825cb6f70a30c92403048f7dbdf25065f6ab"
+    },
+    {
+      "path": "implementations/csharp/tests/CIS.Core.IntegrationTests/bin/Release/net10.0/pl/Microsoft.TestPlatform.CrossPlatEngine.resources.dll",
+      "sha256": "1e084c594a6f9d405bd817d7e21b1d7e50d472d5d09a853e99b9732da5b6a7be"
+    },
+    {
+      "path": "implementations/csharp/tests/CIS.Core.IntegrationTests/bin/Release/net10.0/pl/Microsoft.VisualStudio.TestPlatform.Common.resources.dll",
+      "sha256": "687771c2ad91e5b705e5bb9f15d4d485c60ff93c56de869886b1f6d2831606c3"
+    },
+    {
+      "path": "implementations/csharp/tests/CIS.Core.IntegrationTests/bin/Release/net10.0/pl/Microsoft.VisualStudio.TestPlatform.ObjectModel.resources.dll",
+      "sha256": "48f6bb8c551179da07d5e136a0c781dd6433f23312f3ce9241dcec29d8412f3e"
+    },
+    {
+      "path": "implementations/csharp/tests/CIS.Core.IntegrationTests/bin/Release/net10.0/pl/MSTest.TestFramework.resources.dll",
+      "sha256": "bac69939d2f501abe4f55da6f410f179233359f4268b0551712d92433530fa3b"
+    },
+    {
+      "path": "implementations/csharp/tests/CIS.Core.IntegrationTests/bin/Release/net10.0/pt-BR/Microsoft.Testing.Extensions.MSBuild.resources.dll",
+      "sha256": "0fc5ebb3313d8151cae638e302e3feab7913f28c51aedcafcb0cb9a32d3fffc0"
+    },
+    {
+      "path": "implementations/csharp/tests/CIS.Core.IntegrationTests/bin/Release/net10.0/pt-BR/Microsoft.Testing.Extensions.Telemetry.resources.dll",
+      "sha256": "52d86a70478e014a9df2b9a87742881f15569f2cf422b755280239ae3cf698cc"
+    },
+    {
+      "path": "implementations/csharp/tests/CIS.Core.IntegrationTests/bin/Release/net10.0/pt-BR/Microsoft.Testing.Platform.resources.dll",
+      "sha256": "cf2cc21f90f599f74db14ff684479378fee4b0ace77dbc2ecd03022586235366"
+    },
+    {
+      "path": "implementations/csharp/tests/CIS.Core.IntegrationTests/bin/Release/net10.0/pt-BR/Microsoft.TestPlatform.CommunicationUtilities.resources.dll",
+      "sha256": "436dc88d1317cdedf7f82795a42af0929c8310b6228b4ff8eb1a82432821a3c5"
+    },
+    {
+      "path": "implementations/csharp/tests/CIS.Core.IntegrationTests/bin/Release/net10.0/pt-BR/Microsoft.TestPlatform.CoreUtilities.resources.dll",
+      "sha256": "2bb0340569343f0c3288f35a5cfa947d9495de55d04e93f2c380b75b45d681a9"
+    },
+    {
+      "path": "implementations/csharp/tests/CIS.Core.IntegrationTests/bin/Release/net10.0/pt-BR/Microsoft.TestPlatform.CrossPlatEngine.resources.dll",
+      "sha256": "d1865dd55afbd39ea0902a49e243f7c85e4a587134d31737b7fd764157fa74fb"
+    },
+    {
+      "path": "implementations/csharp/tests/CIS.Core.IntegrationTests/bin/Release/net10.0/pt-BR/Microsoft.VisualStudio.TestPlatform.Common.resources.dll",
+      "sha256": "e0e34b02d8496f5466f85a1580e9113118eee9d1c0a71dad1e372d87465f157f"
+    },
+    {
+      "path": "implementations/csharp/tests/CIS.Core.IntegrationTests/bin/Release/net10.0/pt-BR/Microsoft.VisualStudio.TestPlatform.ObjectModel.resources.dll",
+      "sha256": "3944adc8b9c09a7007aaea3c86ee7666ddf3e7328b16edcc72f7e6dcc1ff1de8"
+    },
+    {
+      "path": "implementations/csharp/tests/CIS.Core.IntegrationTests/bin/Release/net10.0/pt-BR/MSTest.TestFramework.resources.dll",
+      "sha256": "ceff285efbcffa70e4eedff45c6fb2dc5831d377508f561e312366d510244a87"
+    },
+    {
+      "path": "implementations/csharp/tests/CIS.Core.IntegrationTests/bin/Release/net10.0/ru/Microsoft.Testing.Extensions.MSBuild.resources.dll",
+      "sha256": "f9327680fe76b9a1ce3464890416d0d62114454b0ab16bcd17b9fdf2a76e70c5"
+    },
+    {
+      "path": "implementations/csharp/tests/CIS.Core.IntegrationTests/bin/Release/net10.0/ru/Microsoft.Testing.Extensions.Telemetry.resources.dll",
+      "sha256": "f355955e1651665f500e6f1112e3cfba9dce61e86cb646b78ecdcefac9d3b652"
+    },
+    {
+      "path": "implementations/csharp/tests/CIS.Core.IntegrationTests/bin/Release/net10.0/ru/Microsoft.Testing.Platform.resources.dll",
+      "sha256": "8cc183c808a547514a93a9938999aca13d7f126a9ba6469ff5f98d294be956e0"
+    },
+    {
+      "path": "implementations/csharp/tests/CIS.Core.IntegrationTests/bin/Release/net10.0/ru/Microsoft.TestPlatform.CommunicationUtilities.resources.dll",
+      "sha256": "f3fcd583ff53d3f2145a7a4418a8145db1f1f088908fb92cbab848b815e91dc2"
+    },
+    {
+      "path": "implementations/csharp/tests/CIS.Core.IntegrationTests/bin/Release/net10.0/ru/Microsoft.TestPlatform.CoreUtilities.resources.dll",
+      "sha256": "089d9052b2fa1ef63f2bd1f0f0f8161fe6d1d02721fc39d4b48c333d26826306"
+    },
+    {
+      "path": "implementations/csharp/tests/CIS.Core.IntegrationTests/bin/Release/net10.0/ru/Microsoft.TestPlatform.CrossPlatEngine.resources.dll",
+      "sha256": "945c4a1304189209c1cada1b8279608df188595b09bd012e28473ab329080aa1"
+    },
+    {
+      "path": "implementations/csharp/tests/CIS.Core.IntegrationTests/bin/Release/net10.0/ru/Microsoft.VisualStudio.TestPlatform.Common.resources.dll",
+      "sha256": "0a616270492b4d944980509c794e819825c9217a050520994aa5ed9583702b7c"
+    },
+    {
+      "path": "implementations/csharp/tests/CIS.Core.IntegrationTests/bin/Release/net10.0/ru/Microsoft.VisualStudio.TestPlatform.ObjectModel.resources.dll",
+      "sha256": "515c96257715a3ccd56af8acd9460e72e57dda825ff16824d2912271beca0749"
+    },
+    {
+      "path": "implementations/csharp/tests/CIS.Core.IntegrationTests/bin/Release/net10.0/ru/MSTest.TestFramework.resources.dll",
+      "sha256": "66ad16b1031f63e2cdc85bb585a60be20b49151a5c7734550cccadf33d9d7352"
+    },
+    {
+      "path": "implementations/csharp/tests/CIS.Core.IntegrationTests/bin/Release/net10.0/tr/Microsoft.Testing.Extensions.MSBuild.resources.dll",
+      "sha256": "b6ee86b4703400b80c6865cda1582333465184126e0ed66780cae92f642b452c"
+    },
+    {
+      "path": "implementations/csharp/tests/CIS.Core.IntegrationTests/bin/Release/net10.0/tr/Microsoft.Testing.Extensions.Telemetry.resources.dll",
+      "sha256": "60863acb3fc748fd994454f69a0323454850e4b0f252bfba898ea4d5a7245131"
+    },
+    {
+      "path": "implementations/csharp/tests/CIS.Core.IntegrationTests/bin/Release/net10.0/tr/Microsoft.Testing.Platform.resources.dll",
+      "sha256": "575a0f0d5db2eb2ebcf405457cdc41e44852febcb8f862c814d15c54962b3dfc"
+    },
+    {
+      "path": "implementations/csharp/tests/CIS.Core.IntegrationTests/bin/Release/net10.0/tr/Microsoft.TestPlatform.CommunicationUtilities.resources.dll",
+      "sha256": "ecc813c1626c6d2a7ff4166a9ba1b390022069c7b6894ad387c9e8870f831099"
+    },
+    {
+      "path": "implementations/csharp/tests/CIS.Core.IntegrationTests/bin/Release/net10.0/tr/Microsoft.TestPlatform.CoreUtilities.resources.dll",
+      "sha256": "1fee9a7a6af5ef00d7fdd4f3bf265645c7984224352e95347c2f082f64d8ade2"
+    },
+    {
+      "path": "implementations/csharp/tests/CIS.Core.IntegrationTests/bin/Release/net10.0/tr/Microsoft.TestPlatform.CrossPlatEngine.resources.dll",
+      "sha256": "aa9ab1c2a40b4eb91b1535121310d9ef379f3ac89efa5a15513a8af3eb1e2cc8"
+    },
+    {
+      "path": "implementations/csharp/tests/CIS.Core.IntegrationTests/bin/Release/net10.0/tr/Microsoft.VisualStudio.TestPlatform.Common.resources.dll",
+      "sha256": "29fad6dbd21edfe8d8bfc9878bdd18d330c5a258ae8d13e695d0cd9854f64bba"
+    },
+    {
+      "path": "implementations/csharp/tests/CIS.Core.IntegrationTests/bin/Release/net10.0/tr/Microsoft.VisualStudio.TestPlatform.ObjectModel.resources.dll",
+      "sha256": "5b39c999ccf72eb01ba387c8a0d72814d68a7120e623accbd2da544ee04ba5dc"
+    },
+    {
+      "path": "implementations/csharp/tests/CIS.Core.IntegrationTests/bin/Release/net10.0/tr/MSTest.TestFramework.resources.dll",
+      "sha256": "b432abcc62b24a6194675ade0f6f40c3f1903d75b018ff45c7c28605488b856d"
+    },
+    {
+      "path": "implementations/csharp/tests/CIS.Core.IntegrationTests/bin/Release/net10.0/zh-Hans/Microsoft.Testing.Extensions.MSBuild.resources.dll",
+      "sha256": "86180329b340727d69b7969f0a6117750c369a3239fd611696f41cc0ea25a1f9"
+    },
+    {
+      "path": "implementations/csharp/tests/CIS.Core.IntegrationTests/bin/Release/net10.0/zh-Hans/Microsoft.Testing.Extensions.Telemetry.resources.dll",
+      "sha256": "b81555fd20abcec4b5a66fe11115080eb89cd11a8a0b9858cf9b4bc0503c0479"
+    },
+    {
+      "path": "implementations/csharp/tests/CIS.Core.IntegrationTests/bin/Release/net10.0/zh-Hans/Microsoft.Testing.Platform.resources.dll",
+      "sha256": "a6323cb66a3b0bf33d3cd3a8ef567126b49b7c777b7352230e52236d5fae4c99"
+    },
+    {
+      "path": "implementations/csharp/tests/CIS.Core.IntegrationTests/bin/Release/net10.0/zh-Hans/Microsoft.TestPlatform.CommunicationUtilities.resources.dll",
+      "sha256": "64c3d59ac2ff9780732c1eb5bad7c18bd2ac03c722a9fed5511de8f25d316f23"
+    },
+    {
+      "path": "implementations/csharp/tests/CIS.Core.IntegrationTests/bin/Release/net10.0/zh-Hans/Microsoft.TestPlatform.CoreUtilities.resources.dll",
+      "sha256": "db896ac2579f5d5773f940bd278852c689799a3e0acc51bb30e46eef99fc76fb"
+    },
+    {
+      "path": "implementations/csharp/tests/CIS.Core.IntegrationTests/bin/Release/net10.0/zh-Hans/Microsoft.TestPlatform.CrossPlatEngine.resources.dll",
+      "sha256": "abc3c11d9779f4f19a3feedce14c138c3143d189ba1055e034c48a90187075c5"
+    },
+    {
+      "path": "implementations/csharp/tests/CIS.Core.IntegrationTests/bin/Release/net10.0/zh-Hans/Microsoft.VisualStudio.TestPlatform.Common.resources.dll",
+      "sha256": "1f034335ddc71adce1aa1df8c7254b97c77bddbaf5d862bab75b520fdd293d45"
+    },
+    {
+      "path": "implementations/csharp/tests/CIS.Core.IntegrationTests/bin/Release/net10.0/zh-Hans/Microsoft.VisualStudio.TestPlatform.ObjectModel.resources.dll",
+      "sha256": "3f370c15663359c40bcee2a7d15cd386f01980be753f7ab1505783649d70dcaf"
+    },
+    {
+      "path": "implementations/csharp/tests/CIS.Core.IntegrationTests/bin/Release/net10.0/zh-Hans/MSTest.TestFramework.resources.dll",
+      "sha256": "74c25b78848516a9a535e43e3501a0bc72f1b31c76648d29125ac0a19a19c615"
+    },
+    {
+      "path": "implementations/csharp/tests/CIS.Core.IntegrationTests/bin/Release/net10.0/zh-Hant/Microsoft.Testing.Extensions.MSBuild.resources.dll",
+      "sha256": "e4fbe648379c0788eab6a3e1e1655ee108683ed8511923d3050cfa0a3bcd276b"
+    },
+    {
+      "path": "implementations/csharp/tests/CIS.Core.IntegrationTests/bin/Release/net10.0/zh-Hant/Microsoft.Testing.Extensions.Telemetry.resources.dll",
+      "sha256": "68f0fac1b1f5a7815be0e27e8093f008643f2c46dabdea9eca8be3485075c406"
+    },
+    {
+      "path": "implementations/csharp/tests/CIS.Core.IntegrationTests/bin/Release/net10.0/zh-Hant/Microsoft.Testing.Platform.resources.dll",
+      "sha256": "ac2d2abbad624cd80ae79f7505c64e914850bcd68cc361b699d485327f0c68f8"
+    },
+    {
+      "path": "implementations/csharp/tests/CIS.Core.IntegrationTests/bin/Release/net10.0/zh-Hant/Microsoft.TestPlatform.CommunicationUtilities.resources.dll",
+      "sha256": "a159e3fd80ab34839b62b2cdf0a3f7ae4b188dc7155769379e94e1333b84ce0f"
+    },
+    {
+      "path": "implementations/csharp/tests/CIS.Core.IntegrationTests/bin/Release/net10.0/zh-Hant/Microsoft.TestPlatform.CoreUtilities.resources.dll",
+      "sha256": "fe732572a93c216282c0ef0a8762246735c8885873e03ffe9fd287d202f0d806"
+    },
+    {
+      "path": "implementations/csharp/tests/CIS.Core.IntegrationTests/bin/Release/net10.0/zh-Hant/Microsoft.TestPlatform.CrossPlatEngine.resources.dll",
+      "sha256": "2c3d9a8e06973943d45dcd5cbb9c18dec563f42e2ac0c16ebd7d98fa91f6ca70"
+    },
+    {
+      "path": "implementations/csharp/tests/CIS.Core.IntegrationTests/bin/Release/net10.0/zh-Hant/Microsoft.VisualStudio.TestPlatform.Common.resources.dll",
+      "sha256": "d2b8fd8f98eda57c047e1cef1cb43d8cb0d066cc052cb172d696973c8b92cc06"
+    },
+    {
+      "path": "implementations/csharp/tests/CIS.Core.IntegrationTests/bin/Release/net10.0/zh-Hant/Microsoft.VisualStudio.TestPlatform.ObjectModel.resources.dll",
+      "sha256": "335d5fa4c5575ceb8f4ffb58fda53c1813a0c725a17f68219d012d390ddf978f"
+    },
+    {
+      "path": "implementations/csharp/tests/CIS.Core.IntegrationTests/bin/Release/net10.0/zh-Hant/MSTest.TestFramework.resources.dll",
+      "sha256": "7b311dbd1cbd938808f53f09c7a72a3c6d0ac9c7cff953a22bd254b00965430e"
+    },
+    {
+      "path": "conformance/logging/admission-cases.json",
+      "sha256": "a8e59b00a4446f065017a6af40809572fbfe96afa8630f36407a36a86c5cd053"
+    },
+    {
+      "path": "conformance/logging/case-inventory.json",
+      "sha256": "881a45e43024f413e00876c642063030efa234732ca72ef8c20741cb33f94e13"
+    },
+    {
+      "path": "conformance/logging/configuration-cases.json",
+      "sha256": "af5476b03e334e82c6b8e7d0f83c9af0247df06536b9c3c2ec3135aed4f1caa6"
+    },
+    {
+      "path": "conformance/logging/configuration-resolution-cases.json",
+      "sha256": "717116fc9784396e58834003b4c580fe3e9eb96f6e939d0323ff54adec3b92fd"
+    },
+    {
+      "path": "conformance/logging/configuration-validation-cases.json",
+      "sha256": "07e01a95b94a5d2c49531d1a0befb0c84a8b0cadfcc74b30b7955bd75f040c8d"
+    },
+    {
+      "path": "conformance/logging/console-composition-cases.json",
+      "sha256": "92e3691562c29bda528e7231d77f6850d5daadd408de587dfe6016d5ecb082dc"
+    },
+    {
+      "path": "conformance/logging/console-consumer-cases.json",
+      "sha256": "80534decfe3c099854136300573fcd48d6d7209bbd7ee1da55182410713b2400"
+    },
+    {
+      "path": "conformance/logging/console-ownership-cases.json",
+      "sha256": "afde3d5d7f7a0e739a5ae50a9cf8487bebb62cfaa2cee49b52650c9414363d97"
+    },
+    {
+      "path": "conformance/logging/console-qualification-map.json",
+      "sha256": "92ac5aed8fc38d51c97262d7a66e78f5e39b330867ca5eca3299683e276a70e1"
+    },
+    {
+      "path": "conformance/logging/console-startup-cases.json",
+      "sha256": "4500d1709a4ad3a16afe6cb9a2638ba44fbf0fc0e8ff86cacf5a5c3ede100144"
+    },
+    {
+      "path": "conformance/logging/delivery-observation-cases.json",
+      "sha256": "edb50d2eb0b452781f7f5d37d68e381f025209009778645562446804be83de4c"
+    },
+    {
+      "path": "conformance/logging/diagnostics-cases.json",
+      "sha256": "515d2c6a2a2a2955d1e10d51bfe77622394917b58f5bd92a8ab932203ef7fdd0"
+    },
+    {
+      "path": "conformance/logging/discovery-cases.json",
+      "sha256": "97cb8cd0a8ac9533ed3fbbae87ef9d49632729728a5e4020dee3f01a60a50cfe"
+    },
+    {
+      "path": "conformance/logging/drain-result-cases.json",
+      "sha256": "f254cba67a791a17bf8f38bd337d68036248ea3e73d6b57da0feac7a5520cf9a"
+    },
+    {
+      "path": "conformance/logging/environment-constructor-binding-migration.json",
+      "sha256": "a93f62e6c7bd265bb5f93c44d40fb680fe6424a8f618bf8f93654f5493c7d78c"
+    },
+    {
+      "path": "conformance/logging/environment-initialization-bindings.json",
+      "sha256": "8eb8b2ff148ae89e43374e24b233c9fae88c4173d1bdc5aacfd9d10e1965d3c7"
+    },
+    {
+      "path": "conformance/logging/environment-passive-store-bindings.json",
+      "sha256": "6b6ed2f48b7a130aa92d30d5e6a49d50d38a81998f6ed9a1770b9c132a4fd157"
+    },
+    {
+      "path": "conformance/logging/event-capture-expectations.json",
+      "sha256": "a9d8737be62f494b45c8b1e1964599998a5fbce39b69a5cb47cc85eff84450d3"
+    },
+    {
+      "path": "conformance/logging/event-correlation-cases.json",
+      "sha256": "02215907b3250ad44d4708f1bac934d0eb3e4818f82376d8b7531b4bd54ed233"
+    },
+    {
+      "path": "conformance/logging/event-encoding-cases.json",
+      "sha256": "4d247c78e71141af50a08345a61ec92bd1a7d08f79eaca6f463a3abf122f485e"
+    },
+    {
+      "path": "conformance/logging/event-precedence-cases.json",
+      "sha256": "cef8762291876da2086d8dadb77a48b6269f004e25b56c08e0b3732c4f1a0b02"
+    },
+    {
+      "path": "conformance/logging/event-projection-cases.json",
+      "sha256": "0d6d26b2545b67ae8aaf927cc86bd654f0e13e65e8a6c6d6f7ad16d3d98153a2"
+    },
+    {
+      "path": "conformance/logging/event-qualification-cases.json",
+      "sha256": "0b9c848e841de0ee83e0617f73611843be878b2d677a43121e6781f645869917"
+    },
+    {
+      "path": "conformance/logging/event-qualification-map.json",
+      "sha256": "4138ff4545e73c668769f30a173ce0c23d3cbe12c97235fac6cc96fef697c615"
+    },
+    {
+      "path": "conformance/logging/event-record-cases.json",
+      "sha256": "5cdaf3c499ab38e378a2dc341a882fda6dcfab06bf573ebebe5f1451f32c483d"
+    },
+    {
+      "path": "conformance/logging/event-value-cases.json",
+      "sha256": "2450f372be433f8c48789436c471173d5545a69de4dfd06ee79f88b87118bf3f"
+    },
+    {
+      "path": "conformance/logging/exception-qualification-cases.json",
+      "sha256": "f30e1b2e247b957c0a00e048a5dec036f14c38c622be7f0ba517e134cdade32d"
+    },
+    {
+      "path": "conformance/logging/exception-qualification-map.json",
+      "sha256": "d9835829a7e384e01edb0298e54032689231b4407991c458302e63c29279bf70"
+    },
+    {
+      "path": "conformance/logging/file-interval-cases.json",
+      "sha256": "e371a4b7a71246baffba657fcf70a63340f24b7df53b8d66fe2817c640c4684d"
+    },
+    {
+      "path": "conformance/logging/file-recovery-qualification-map.json",
+      "sha256": "aa6ea00c5b58c3658b04154f036e43177c2462959b3ebf5e4d5e33662bed320c"
+    },
+    {
+      "path": "conformance/logging/file-rotation-qualification-map.json",
+      "sha256": "87372ced471af76a5ae12900afac2547cc4cb0b3de892d4bad96eb6c66d4bef4"
+    },
+    {
+      "path": "conformance/logging/file-startup-qualification-map.json",
+      "sha256": "3017da8850781572c98a9b09d3a2ffd3e7fa1d08e0103399009c23b5cf9b1776"
+    },
+    {
+      "path": "conformance/logging/file-timer-coordination-cases.json",
+      "sha256": "faaef518e8815207f4c57603948da20cf3bedf4c6cc9eea1ea5c739d02c69a6c"
+    },
+    {
+      "path": "conformance/logging/file-timer-lifecycle-cases.json",
+      "sha256": "e355b9377b076858bcffbdf89e3459bfa2febe53af69fb6f719d1bc0ffaef910"
+    },
+    {
+      "path": "conformance/logging/file-timer-qualification-cases.json",
+      "sha256": "bc7c983496cd95db272452094483930e16a208b5561b6b5c389569a9f26cf0de"
+    },
+    {
+      "path": "conformance/logging/file-timer-qualification-map.json",
+      "sha256": "700482bdabafd829c12ff912039ecc87fb484e805306ee47ace469ffa315f7ae"
+    },
+    {
+      "path": "conformance/logging/flush-stress-cases.json",
+      "sha256": "86ebc4094983c8d768996f6dacdfafff28ed071da1c6aa7e019de6786beac312"
+    },
+    {
+      "path": "conformance/logging/functional-reconciliation.json",
+      "sha256": "16ae4e3e7b231607b5e60d284a6a4de956c2e922e63a54825e8ebf8962d56d2f"
+    },
+    {
+      "path": "conformance/logging/human-rendering-cases.json",
+      "sha256": "4d403ebdc8e90f4f816d4898d59b82db65c73c8ce182513aec145e2e79599e48"
+    },
+    {
+      "path": "conformance/logging/jsonl-reuse-cases.json",
+      "sha256": "3c7899ed6cb6f9e3ffb24ff5ad265e27224b7b026410fc2987cacf7ae517b994"
+    },
+    {
+      "path": "conformance/logging/logger-capture-cases.json",
+      "sha256": "ca3fd363e44cfdf0b9a466905818a1be1b883e8c16d292f1a6ac8fe4e93cc88d"
+    },
+    {
+      "path": "conformance/logging/logger-decision-cases.json",
+      "sha256": "4eea6d63ad5d4220854777d4a217bf27a7cb924549b19c53dcc11a1e3279c293"
+    },
+    {
+      "path": "conformance/logging/logger-foundation-cases.json",
+      "sha256": "ca9b8831cafcd4a2be5a0faa3db1ce579ef4fe312a12913d6b3e967ec159d27b"
+    },
+    {
+      "path": "conformance/logging/logger-outcome-cases.json",
+      "sha256": "59af45ea70bef4b8db7ce98040cf2e8f68eebf5ae1b7b80900106ceb39e7a70e"
+    },
+    {
+      "path": "conformance/logging/logger-qualification-map.json",
+      "sha256": "6ffd523ff31528ca28c0cb10ee3e110d63f01240d009da5c0fa8052a7cb31b2e"
+    },
+    {
+      "path": "conformance/logging/metadata-cases.json",
+      "sha256": "8b62635764b3cd7e39ddd3ac31d62c264626b42867272af4f3ada904af9904b9"
+    },
+    {
+      "path": "conformance/logging/microsoft-package-boundary-cases.json",
+      "sha256": "977caa9971402ab0fe07c73d8d9f8e5b07f506a4fd9aaf37d711f6f7926ffd25"
+    },
+    {
+      "path": "conformance/logging/output-accounting-cases.json",
+      "sha256": "b599f664e25073f1457b5622e262d25d9f10b680e18927ede29c142ca95a9432"
+    },
+    {
+      "path": "conformance/logging/output-queue-cases.json",
+      "sha256": "1044f2e98ad1dbce93066b972a1783c455082a4c6bdbf30280f9b9f7ee36cce0"
+    },
+    {
+      "path": "conformance/logging/output-state-cases.json",
+      "sha256": "6643d3afc8db9876b0e3b4b8d5c74bab15be095abc447711488025701ec3029e"
+    },
+    {
+      "path": "conformance/logging/passive-configuration-validation-cases.json",
+      "sha256": "9b5d41acc6ff2433c2c6ce71c0efb057f16f10f6fff01c271fe8f6b99860a100"
+    },
+    {
+      "path": "conformance/logging/passive-environment-cases.json",
+      "sha256": "78b839b67a54ed9456fca2057ed1f29c98e806216bf738d160dd57db70ca4e3b"
+    },
+    {
+      "path": "conformance/logging/presentation-cases.json",
+      "sha256": "290798d5fec94a7d367ab1960a9004d8cbedf328741bab7919e838d2193fb8b8"
+    },
+    {
+      "path": "conformance/logging/provider-behavior-cases.json",
+      "sha256": "7c6e7a9ecca5b3691c73a7a004ad3fdfa10a04aac003ed98d936e23445e1fbea"
+    },
+    {
+      "path": "conformance/logging/provider-foundation-cases.json",
+      "sha256": "3f90ca54e32afe61b94ca4ba7edc62a3cdcbe63efabee6cd20b349acad6c92c5"
+    },
+    {
+      "path": "conformance/logging/provider-host-filter-cases.json",
+      "sha256": "4d9841819ccccad54f11f1c63873971632bcd739108e31950fc5b382ee56eea2"
+    },
+    {
+      "path": "conformance/logging/provider-host-story-acceptance.json",
+      "sha256": "e0f6a8133c9b9cf7923b7e690c3113524afcd88ae1a3cae09f81f215f9f30b10"
+    },
+    {
+      "path": "conformance/logging/provider-host-story-cases.json",
+      "sha256": "22f9dc32d250db956fc86f8b7f225e1bef3eae274ee3f2eb8bea6062fd15c9b7"
+    },
+    {
+      "path": "conformance/logging/provider-mapping-cases.json",
+      "sha256": "478463d9e606211fbc2aabf9eabb0f7faefac0d76737ba92b1de4c7105ae07fc"
+    },
+    {
+      "path": "conformance/logging/provider-operation-cases.json",
+      "sha256": "a6cb00e515ec271b486894809e7ba52a4a5882b05f591fc33029e989a4120f2f"
+    },
+    {
+      "path": "conformance/logging/provider-ownership-cases.json",
+      "sha256": "7b44c4016a52f8f6891998e2f17718561e8ac518b23f85c6e2674a88dd029302"
+    },
+    {
+      "path": "conformance/logging/provider-scope-cases.json",
+      "sha256": "6dac1a5d0adfe5b60cdab2e127c5cbdfaa669713da9459ecb71cae825117f97e"
+    },
+    {
+      "path": "conformance/logging/provider-state-cases.json",
+      "sha256": "be4ca91984f594412713d7c7097fc6021075a7811d6a778741d57793d1a915ee"
+    },
+    {
+      "path": "conformance/logging/provider-story-acceptance.json",
+      "sha256": "8ee9a4d81d92eb8528b1bdd9720c3bf99e6e4ab9b11714cb2e8331c1ad955a3e"
+    },
+    {
+      "path": "conformance/logging/queue-burst-cases.json",
+      "sha256": "4c4b4dbef8e8fd8c5e6ab05ce305eae247636638f08060ba0c983a4ea4193cf2"
+    },
+    {
+      "path": "conformance/logging/queue-overflow-cases.json",
+      "sha256": "3899dc33f194242f9776b76a4191f583eadef6dffd82bc90890915d8ee69849e"
+    },
+    {
+      "path": "conformance/logging/queued-fanout-cases.json",
+      "sha256": "f52b8c44a95ea474bf2d42dfa4c4fabbf20401735b96dec714215c50dc3ffa3a"
+    },
+    {
+      "path": "conformance/logging/README.md",
+      "sha256": "f6cee15f6c98f48553c47b1d680bddbec9fafcdd37f817430d571c741ccef974"
+    },
+    {
+      "path": "conformance/logging/rendering-story-cases.json",
+      "sha256": "18fd1b2229fbb80c45fc447673c3b47a9596e19b54d7c60d45ec77f5958fe4ed"
+    },
+    {
+      "path": "conformance/logging/requirement-case-map.json",
+      "sha256": "01b33126ed1569a14f66a59fe3b43495d390f67e5f360e0edfd37f94b7302629"
+    },
+    {
+      "path": "conformance/logging/runtime-create-cases.json",
+      "sha256": "f8f50b9cbae90df468b9e557976aee7eb3e4e12d96385eb39118c4b38716944e"
+    },
+    {
+      "path": "conformance/logging/runtime-lifecycle-expectations.json",
+      "sha256": "eab9e4ea74678deb786eb1b8764798af364f2f8a521c9ee712f7c078860df866"
+    },
+    {
+      "path": "conformance/logging/scope-qualification-cases.json",
+      "sha256": "994d1c925942955fd2e34ca4a9ce9502c82918716fb91389b00d1cc457b83a6e"
+    },
+    {
+      "path": "conformance/logging/scope-qualification-map.json",
+      "sha256": "f5e20956c1581022639e18efe0bc223523d5e0a54c3d504edbaeb40456f7e7fc"
+    },
+    {
+      "path": "conformance/logging/startup-lifecycle-cases.json",
+      "sha256": "c34ef43bcc0c352a052e7ef9f9bc84d221185c0373ca4d7f338f5e4f8bf738e2"
+    },
+    {
+      "path": "conformance/logging/startup-qualification-bindings.json",
+      "sha256": "01e6ac543bf4e4a8c40f165c3ddd6894463c9b4be4e120b970edb883be005742"
+    },
+    {
+      "path": "conformance/logging/stop-cleanup-cases.json",
+      "sha256": "b20318038e3dac8b8fa2d60d33efebb91141566d0358f5df994ce80f0b27efa8"
+    },
+    {
+      "path": "conformance/logging/stop-drain-cases.json",
+      "sha256": "744ec0d4d7785da1051d2d6602838960e755cca5ff59fc1843ce5e6ac4f2e9f7"
+    },
+    {
+      "path": "conformance/logging/stop-join-cases.json",
+      "sha256": "2057616c7610e202c553bf9a2b9b7bebf9c16a1ea244e2f16f22cd31f149272b"
+    },
+    {
+      "path": "conformance/logging/stop-lifecycle-cases.json",
+      "sha256": "d63d63da76582db5106a105bf7a3e9c93c2da6f16a7edc71eddef0e486b526c5"
+    },
+    {
+      "path": "conformance/logging/stop-start-cases.json",
+      "sha256": "e089ff9e8d44522825b805a1138145eb40cf533284d217394e830eef342fd246"
+    },
+    {
+      "path": "conformance/logging/value-collection-cases.json",
+      "sha256": "073f9b1c3291394e9eb3aa4658a0620cee10e93d685dd0753de127d41493d04e"
+    },
+    {
+      "path": "conformance/logging/value-normalization-cases.json",
+      "sha256": "f04b2226a4f165e34a09e59db1f0bd765b7d886e24f0a899886e653bb5bea3b5"
+    },
+    {
+      "path": "conformance/logging/value-qualification-cases.json",
+      "sha256": "41ca58e619a8105bca25b0f6b0e32e9348b3b5a791fe6cf9b1aa08e8307f84ec"
+    },
+    {
+      "path": "conformance/logging/value-qualification-map.json",
+      "sha256": "2e11ccc9a0121d5d9fcee6cf542d739ccb8bb17ce25bcfb89583abb22aadffb6"
+    },
+    {
+      "path": "conformance/logging/compatibility/samples/catalog.json",
+      "sha256": "84a168391e3c2fe5ba035901e80d642eefe995681249ae26c5c66057e55d83b6"
+    },
+    {
+      "path": "conformance/logging/compatibility/samples/wire/baseline.jsonl",
+      "sha256": "7618b0ab27c3ae8df0479218a24b54a0d9387288554df49bd52a4addf573d38f"
+    },
+    {
+      "path": "conformance/logging/compatibility/samples/wire/WIRE-ARRAY-ORDER.jsonl",
+      "sha256": "c8c9b6d8247e65ccc9bc8d9ebb02ab5fff5773a6177e8d8d0b9ff3313d7aad81"
+    },
+    {
+      "path": "conformance/logging/compatibility/samples/wire/WIRE-ATTRIBUTE-INJECTION.jsonl",
+      "sha256": "9a5db5daf48e18ee7fd140645d60e2ab3659fd82c3cba28c26a401e9bf7c0022"
+    },
+    {
+      "path": "conformance/logging/compatibility/samples/wire/WIRE-BOM.jsonl",
+      "sha256": "5f2bb4dd4e5de4e836e2ce3503d28c7bea321d66481dcaf61710ff961ed93d86"
+    },
+    {
+      "path": "conformance/logging/compatibility/samples/wire/WIRE-DECIMAL-PRECISION.jsonl",
+      "sha256": "a32f586ac1d659951d5d35844026153ff1c68274dbd4f5da885f7f6036a019da"
+    },
+    {
+      "path": "conformance/logging/compatibility/samples/wire/WIRE-IMPOSSIBLE-TIME.jsonl",
+      "sha256": "f9a303bc0966c181694d0d408add1441eca016db7d626526020a90bda15614c6"
+    },
+    {
+      "path": "conformance/logging/compatibility/samples/wire/WIRE-MESSAGE-TEXT.jsonl",
+      "sha256": "e052af150af75935db5c7d1b0249532d3f07efe6277cb2561a4733513cf9a111"
+    },
+    {
+      "path": "conformance/logging/compatibility/samples/wire/WIRE-MISSING-SERVICE.jsonl",
+      "sha256": "425b8b3a0f96156459729a76600dfca3198f4e28951b5cb713ff8a2cead9296a"
+    },
+    {
+      "path": "conformance/logging/compatibility/samples/wire/WIRE-NEW-OPERATION.jsonl",
+      "sha256": "d32ab2de9d31f08f4e7237dcd245411d02cbdab423f4187ff094d8f88912f9b1"
+    },
+    {
+      "path": "conformance/logging/compatibility/samples/wire/WIRE-NO-LF.jsonl",
+      "sha256": "dfd62fae4974518c5fb9a07e02724d9e0e3435c6e047d57ea95cb876c77b1818"
+    },
+    {
+      "path": "conformance/logging/compatibility/samples/wire/WIRE-NULL-OMISSION.jsonl",
+      "sha256": "65f66a952fc5791c23558d9b1c6a000c0630ade9b2083eaf9884ce0d5cb356e4"
+    },
+    {
+      "path": "conformance/logging/compatibility/samples/wire/WIRE-NUMBER-STRING.jsonl",
+      "sha256": "fae9aa3cc7b3b32aea83c496cbf49c72704cacda7a9b6db9a7a22e78bc02be94"
+    },
+    {
+      "path": "conformance/logging/compatibility/samples/wire/WIRE-OBJECT-ORDER.jsonl",
+      "sha256": "9556248cdc3c1ef27d2610d9084f014c47de4f5f14e9bb5da5362396e2507704"
+    },
+    {
+      "path": "conformance/logging/compatibility/samples/wire/WIRE-RESOURCE-ADDITION.jsonl",
+      "sha256": "60eceb036ad8497c925c0b52d7ede594359f97fd79b0f68c680834394725e671"
+    },
+    {
+      "path": "conformance/logging/compatibility/samples/wire/WIRE-ROOT-ADDITION.jsonl",
+      "sha256": "e3d5d05c891872fa181fd4ce5c20f1578a0589b995caad81a9e3bef4c4400ad1"
+    },
+    {
+      "path": "conformance/logging/compatibility/samples/wire/WIRE-SAME.jsonl",
+      "sha256": "7618b0ab27c3ae8df0479218a24b54a0d9387288554df49bd52a4addf573d38f"
+    },
+    {
+      "path": "conformance/logging/compatibility/samples/wire/WIRE-SCHEMA-CHANGE.jsonl",
+      "sha256": "d5ecfe8a00614eee1b69692a9cdd6717a9b878e60bb8336b96cde55278c01baa"
+    },
+    {
+      "path": "conformance/logging/compatibility/samples/wire/WIRE-SERVICE-MEANING.jsonl",
+      "sha256": "bebe6d8acd4e7f91ec11f2236b9045c6113008c7357601d689bca3a3f605dbb4"
+    },
+    {
+      "path": "conformance/logging/compatibility/samples/wire/WIRE-SERVICE-TYPE.jsonl",
+      "sha256": "57c63509a3e348ff7e365a822449c59382c5bb94db221b317ffc833125659091"
+    },
+    {
+      "path": "conformance/logging/compatibility/samples/wire/WIRE-SPAN-MEANING.jsonl",
+      "sha256": "cf6da2d704683e4d0a48069e6f57ddf09d156d0e00c924ca080a228eb8eab845"
+    },
+    {
+      "path": "conformance/logging/compatibility/samples/wire/WIRE-STATUS-MEANING.jsonl",
+      "sha256": "6e9b1546c0be74969ff8fac506d3ff7795e59d18575762176745bb3ff7e2c2ac"
+    },
+    {
+      "path": "contracts/logging/README.md",
+      "sha256": "bcfd3efd42f311e726da35e153d770400950eda1feb0b75072e2d63909e5be49"
+    },
+    {
+      "path": "contracts/logging/v1/configuration.json",
+      "sha256": "74c8c380ad5c3045eab60e379544a7e3715cd526f46705d94721d3427c716b8e"
+    },
+    {
+      "path": "contracts/logging/v1/environment-contract.json",
+      "sha256": "c09f898fe3d120a5a638b517c370db88c7d335a1a056d2e0eb45da507f5a1285"
+    },
+    {
+      "path": "contracts/logging/v1/event-contract.json",
+      "sha256": "8250774819fa253345dde8a26c27a41af0f00122ef70f657273f0d4376a517d7"
+    },
+    {
+      "path": "contracts/logging/v1/event.schema.json",
+      "sha256": "0bdda87558f9687ecf61174dc8a3d9aa5555db15b12224a9eb46ccc825addc32"
+    },
+    {
+      "path": "contracts/logging/v1/passive-environment-contract.json",
+      "sha256": "39e40d6b3a5517e6701ad714b39de2ea5b80f452d182e687ed3e36c6ad6f47b6"
+    },
+    {
+      "path": "contracts/logging/v1/runtime-contract.json",
+      "sha256": "8cfec2e7ad460951a22ef08baf8ee10a657ec2113346ea906726a0f974662266"
+    },
+    {
+      "path": "contracts/logging/v1/startup-contract.json",
+      "sha256": "daca0db9a3f634ef73d6af7385f64ad0c5a53a0f99e30fee1eb7accbc2f43ba9"
+    },
+    {
+      "path": "implementations/csharp/CisLib.slnx",
+      "sha256": "6090d056e5dfa20edbd098b2360e8dfa6ec47ddc31b2131dfd7abb1fc8b0be51"
+    },
+    {
+      "path": "implementations/csharp/global.json",
+      "sha256": "86746c523b75c3e560cab3938c5c6c7c65c33dc9fbe298a554f90c724f2ef30e"
+    },
+    {
+      "path": "implementations/csharp/eng/runtime-dependencies.json",
+      "sha256": "1e7a7d87169b5d81999239dabbf7821b71d973becf25928ecd6e4a02bcba264f"
+    },
+    {
+      "path": "implementations/csharp/verification/consumers/logging-candidate/Program.cs",
+      "sha256": "511dcf4bc061e3892a9b0d273792e4049c6e5b9010d6e7bc0599d8f4d8d8a564"
+    },
+    {
+      "path": "implementations/csharp/verification/consumers/logging-candidate/Consumer.csproj.template",
+      "sha256": "2ff4b527bec7ee026aff70d5647f4817c782b8df2807dab74ebf6f8f60c1d49a"
+    },
+    {
+      "path": "implementations/csharp/src/CIS.Core/obj/project.assets.json",
+      "sha256": "7269ae12b45fcfbec33e359dd96a9adf61ac1f43256e704d1c2de36445ca36e9"
+    },
+    {
+      "path": ".artifacts/csharp/packages/CIS.Core.0.1.0-dev.1.nupkg",
+      "sha256": "89f409a0800b00b1d068492cec9e030e0a1ea4325ff7551252c9884346f3bf48"
+    },
+    {
+      "path": "dependency-cache/microsoft.extensions.logging.abstractions/10.0.12/microsoft.extensions.logging.abstractions.10.0.12.nupkg",
+      "sha256": "34eaaa60afb61ed3d86e2e2669eae0c690d0e237e8a7066ba5bdb45a386709e7"
+    },
+    {
+      "path": "dependency-cache/microsoft.extensions.dependencyinjection.abstractions/10.0.12/microsoft.extensions.dependencyinjection.abstractions.10.0.12.nupkg",
+      "sha256": "4664fab0ac4b56b8935333f59ee9e7801c8ab96de7c57cb3b6eb8192a5a61c55"
+    }
+  ]
+}
+
+END FILE
+
+FILE planning/logging/evidence/wp07-s01-t02/task/run-linux-05.sh SHA256 3573e3442ef347b5c2a7e266c40448fe02f2a1b4ca94b37a1c3ef1965dbcad06
+set -eu
+[ ! -e /tmp/cislib-wp07-s01-t02-7734db31e8714f54b6c3472cfc8d0cf5 ]
+mkdir -p /tmp/cislib-wp07-s01-t02-7734db31e8714f54b6c3472cfc8d0cf5
+tar -xf /mnt/c/miscwork/portfolio/cislib/.artifacts/csharp/tasks/wp07-s01-t02/linux-payload-05.tar -C /tmp/cislib-wp07-s01-t02-7734db31e8714f54b6c3472cfc8d0cf5
+export DOTNET_ROOT=/mnt/c/miscwork/portfolio/cislib/.artifacts/type-manager/toolchains/linux-sdk-10.0.401
+export PATH=/mnt/c/miscwork/portfolio/cislib/.artifacts/type-manager/toolchains/linux-sdk-10.0.401:"$PATH"
+cd /tmp/cislib-wp07-s01-t02-7734db31e8714f54b6c3472cfc8d0cf5/implementations/csharp
+cat /etc/os-release > /tmp/cislib-wp07-s01-t02-7734db31e8714f54b6c3472cfc8d0cf5/os-release.txt
+/mnt/c/miscwork/portfolio/cislib/.artifacts/type-manager/toolchains/linux-sdk-10.0.401/dotnet --info > /tmp/cislib-wp07-s01-t02-7734db31e8714f54b6c3472cfc8d0cf5/dotnet-info.txt
+sha256sum /tmp/cislib-wp07-s01-t02-7734db31e8714f54b6c3472cfc8d0cf5/implementations/csharp/tests/CIS.Core.IntegrationTests/bin/Release/net10.0/CIS.Core.IntegrationTests.dll > /tmp/cislib-wp07-s01-t02-7734db31e8714f54b6c3472cfc8d0cf5/test-assembly.sha256
+set +e
+/mnt/c/miscwork/portfolio/cislib/.artifacts/type-manager/toolchains/linux-sdk-10.0.401/dotnet vstest /tmp/cislib-wp07-s01-t02-7734db31e8714f54b6c3472cfc8d0cf5/implementations/csharp/tests/CIS.Core.IntegrationTests/bin/Release/net10.0/CIS.Core.IntegrationTests.dll '--TestCaseFilter:FullyQualifiedName~CandidateLoggingProcessTests' --ResultsDirectory:/tmp/cislib-wp07-s01-t02-7734db31e8714f54b6c3472cfc8d0cf5/results '--logger:trx;LogFileName=report.trx'
+case_code=$?
+set -e
+cd /tmp/cislib-wp07-s01-t02-7734db31e8714f54b6c3472cfc8d0cf5
+tar -cf /mnt/c/miscwork/portfolio/cislib/.artifacts/csharp/tasks/wp07-s01-t02/linux-evidence-05.tar results .artifacts/csharp/candidate-consumers os-release.txt dotnet-info.txt test-assembly.sha256
+exit "$case_code"
+
+END FILE
+
+FILE planning/logging/evidence/wp07-s01-t02/task/linux-05.log SHA256 c80df5ff200e7012602b4214f186697d3617729c6bb80898d6b55849e9813e28
+VSTest version 18.7.0 (x64)
+
+Starting test execution, please wait...
+A total of 1 test files matched the specified pattern.
+Results File: /tmp/cislib-wp07-s01-t02-7734db31e8714f54b6c3472cfc8d0cf5/results/report.trx
+
+Passed!  - Failed:     0, Passed:    19, Skipped:     0, Total:    19, Duration: 23 s - CIS.Core.IntegrationTests.dll (net10.0)
+
+END FILE
+
+FILE planning/logging/evidence/wp07-s01-t02/task/linux-05.exit SHA256 9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa
+0
+
+END FILE
+
+FILE .artifacts/csharp/tasks/wp07-s01-t02/claude-final-findings.json SHA256 9ebd9996676e26d75d3d80959052404dc6ba00794aaac84552e0b50a626b5a24
+{
+  "verdict": "CHANGES_REQUIRED",
+  "findings": [
+    {
+      "severity": "medium",
+      "path": "planning/logging/evidence/wp07-s01-t02/task/freeze-evidence.py",
+      "line": 5,
+      "issue": "The retained freeze script did not produce the audit.json it is filed with. It still points at `linux-04-retained` and `linux-inputs-03.json`, copies `run-linux-04.*`, and only compares packageSha256, assemblyHashes and programSha256. It has no check for projectSha256 or that every TRX TestMethod.codeBase equals the staged path. It also does no staged test-DLL binding, writes no `physicalPressureObservations`, no `nativeTestCodebase` and no `sameConsumerProjectSha256`, and does not compare raw output with the original stop result. audit.json does contain those fields and names `linux-05-retained` as its source. So all five resolutions are claimed in the frozen evidence, but no retained script performs them. The script also cannot reproduce the audit as committed.",
+      "requiredFix": "Replace the retained script with the generator or independent audit script that actually produced audit.json for run 70056f5f / linux-05. Include the snapshot-05 inputs and the run-linux-05 script/log/exit files in the task copies. Add the script's hash to the recorded inputs, then rerun it to regenerate audit.json and verification.json."
+    },
+    {
+      "severity": "medium",
+      "path": "planning/logging/evidence/wp07-s01-t02/audit.json",
+      "line": 1,
+      "issue": "The evidence directory mixes stale artifacts from earlier runs and harness versions into the qualifying artifact list. (1) native/Ubuntu holds a second consumer root, candidate-consumers/4e7481e8\u2026, with a different candidate.json. It is not the root named in the qualifying TRX (4516cef5\u2026). Its burst and deadline children (child-28/29) have stdout.txt and terminal-stream.txt, which only the earlier text-decoding harness could produce. (2) native/WindowsCandidate/child-28 and child-29 contain stdout.txt and terminal-stream.txt next to stdout.bin. The current Child code writes only stdout.bin, terminal-stdout.bin and terminal-stderr.txt for blocked modes. The stdout.txt files match stdout.bin in length but not in hash (child-28: 7f97\u2026 vs 47cd\u2026), so they come from a different execution. audit.nativeArtifacts hashes all of these as qualifying-run evidence. This happens because copy() overwrites files but never clears earlier freeze output.",
+      "requiredFix": "Clear native/ (and prior-runs/ if regenerated) before freezing. Copy only the qualifying Windows root and the single Ubuntu root that the TRX references, and assert exactly one candidate.json under native/Ubuntu. If you keep the earlier runs, move them under a labeled prior-runs path that is excluded from qualifying nativeArtifacts. Then regenerate audit.json and verification.json."
+    }
+  ],
+  "limits": [
+    "Review is limited to the supplied files; shipping CIS.Core sources, ProcessRunner/TemporaryDirectory, the Windows integration TRX, source-inputs.json, the snapshot-05 inputs and the run-linux-05 script were not available.",
+    "No commands were run and no hashes were recomputed; supplied SHA-256 values, byte counts and results are taken as stated.",
+    "Test and consumer logic for the five prior findings looks correctly corrected in source: parent DeepEquals against the returned stop, raw-byte strict prefix/tail bounding against Failed, 5000/100 ms split, and the projectSha256 receipt field. The remaining defects are in the frozen evidence and its reproducibility, not the test code.",
+    "Line numbers are approximate."
+  ]
+}
+
+END FILE
+
+FILE .artifacts/csharp/tasks/wp07-s01-t02/evidence-cleanup-audit.json SHA256 809230b0d4be73426a3bfdea44d56d90162f210bc40eb0d6b6db3fb333589698
+{
+  "task": "WP07-S01-T02",
+  "codeChangesSinceLastReview": false,
+  "qualifyingUbuntuRoot": "native/Ubuntu/.artifacts/csharp/candidate-consumers/4516cef548c745529c80da9fa583744d",
+  "qualifyingWindowsRoot": "native/WindowsCandidate",
+  "qualifyingNativeArtifactCount": 228,
+  "generatorPath": "task/freeze-evidence.py",
+  "generatorSha256": "4af3ef8acb35fbf4f21c362a0cd93e349fc60dc833d878ee980988251d84cec5",
+  "retainedGeneratorEqualsExecutedGenerator": true,
+  "priorEvidence": "prior-runs/pre-final-native is explicitly prior and excluded from audit.nativeArtifacts. The transient guard-only duplicate was removed.",
+  "pressureModeFiles": [
+    {
+      "mode": "burst",
+      "root": "native/WindowsCandidate/child-28",
+      "files": [
+        "replies.json",
+        "report.json",
+        "stdout.bin",
+        "terminal-stderr.txt",
+        "terminal-stdout.bin"
+      ]
+    },
+    {
+      "mode": "deadline",
+      "root": "native/WindowsCandidate/child-29",
+      "files": [
+        "replies.json",
+        "report.json",
+        "stdout.bin",
+        "terminal-stderr.txt",
+        "terminal-stdout.bin"
+      ]
+    },
+    {
+      "mode": "burst",
+      "root": "native/Ubuntu/.artifacts/csharp/candidate-consumers/4516cef548c745529c80da9fa583744d/child-28",
+      "files": [
+        "replies.json",
+        "report.json",
+        "stdout.bin",
+        "terminal-stderr.txt",
+        "terminal-stdout.bin"
+      ]
+    },
+    {
+      "mode": "deadline",
+      "root": "native/Ubuntu/.artifacts/csharp/candidate-consumers/4516cef548c745529c80da9fa583744d/child-29",
+      "files": [
+        "replies.json",
+        "report.json",
+        "stdout.bin",
+        "terminal-stderr.txt",
+        "terminal-stdout.bin"
+      ]
+    }
+  ]
+}
+
+END FILE
