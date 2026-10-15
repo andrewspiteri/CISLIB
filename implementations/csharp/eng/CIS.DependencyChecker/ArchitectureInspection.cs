@@ -135,10 +135,11 @@ internal static class ArchitectureInspection
             packageDependencyGroups = dependencyGroups,
             assemblies = assemblyFacts,
             levels = new[] { "evaluated-project-framework-references", "all-locked-target-graphs", "package-groups-and-assets", "compiled-references-and-public-api", "internal-type-namespace-uses" },
-            scope = "Observed static architecture facts and locked-input consistency. Exact amended dependency allowlists execute here. Ownership, separation and comprehensive negative qualification remain WP07-S02-T03/T04. Not a full release qualification."
+            scope = "Observed static architecture facts and locked-input consistency. Exact amended dependency allowlists execute here. Ownership, separation and package guards execute here; comprehensive negative qualification remains WP07-S02-T04. Not a full release qualification."
         };
         JsonObject observed = JsonSerializer.SerializeToNode(report)!.AsObject();
         observed["allowlists"] = ArchitecturePolicy.Assert(languageRoot, observed);
+        observed["ownership"] = ArchitectureOwnershipPolicy.Assert(languageRoot, observed);
         File.WriteAllText(reportPath, observed.ToJsonString(new JsonSerializerOptions { WriteIndented = true }));
         Console.WriteLine($"Architecture inspection completed: {projects.Count} projects, {projects.Sum(project => project.targets.Count)} target graphs, {assemblyFacts.Count} packaged assemblies. Report: {reportPath}");
     }
