@@ -1,0 +1,39 @@
+{
+  "verdict": "CHANGES_REQUIRED",
+  "requiredFindings": [
+    {
+      "id": "T04-R1",
+      "severity": "medium",
+      "file": "implementations/csharp/verification/compatibility/microsoft-logging/source/Program.cs",
+      "line": 45,
+      "problem": "The source fixture calls CreateLogger and SetScopeProvider only through the Microsoft interfaces (ILoggerProvider and ISupportExternalScope). So the named arguments categoryName: and scopeProvider: bind to Microsoft's interface parameter names, not to CoreLoggerProvider's public members. Renaming either CIS parameter, or changing either method to an explicit interface implementation, would still compile for this consumer. The frozen binary would also not break, because its IL references the interface methods rather than CoreLoggerProvider::CreateLogger or CoreLoggerProvider::SetScopeProvider. The reflection probe would catch a rename at runtime, but an explicit-implementation change would surface only as a NullReferenceException from GetMethod(...)!, not a clear rejection. The registry contract line 'named constructor/category/scope parameters' and the layer B/C claims therefore overstate source and binary coverage for the two members CIS publishes on the concrete type.",
+      "requestedFix": "Keep the interface calls and add direct concrete calls with named arguments, for example provider.CreateLogger(categoryName: ...) and provider.SetScopeProvider(scopeProvider: ...). This makes the source layer compile-bind CIS's own names and makes the frozen consumer carry memberrefs to the concrete methods. Optionally make the reflection probe emit a clear 'missing' marker instead of relying on the null-forgiving operator. Rerun the fixture command and guards, then update the recorded consumer, frozen and source-input hashes."
+    },
+    {
+      "id": "T04-R2",
+      "severity": "low",
+      "file": "implementations/csharp/verification/families.json",
+      "line": 76,
+      "problem": "The compatibility family's developerReason still says 'No implemented logging cases yet; not executed or counted as passing.' This task adds an implemented and executed provider fixture under that family's moduleHarnesses. T03 updated the mutation family's developerReason in the same situation, so this one is now stale and inconsistent with it.",
+      "requestedFix": "Reword it, following the mutation family's T03 wording. For example: the family test project has no cases and is not counted as passing; the embedded provider fixtures run through the separate eng/check-microsoft-logging-compatibility.ps1 command; the complete family remains pending WP07."
+    },
+    {
+      "id": "T04-R3",
+      "severity": "low",
+      "file": "planning/logging/evidence/wp06-s03-t04/receipt.json",
+      "line": 6,
+      "problem": "Some evidence statements are unfinished or lack provenance. 'status' says Claude review is pending. graphLimitations says 'fresh bounded queries to follow'. packageLink states packedCoreSha256 and consumersLoadedPackedCoreBytes=true, but the evidence includes no command or package path showing how the packed DLL hash was extracted. The commands/ directory also omits the main runner invocation with its -CoreAssembly and -OutputRoot values; the result paths show an explicit .artifacts/csharp/tasks/wp06-s03-t04/qualified-fixtures root rather than the default GUID directory.",
+      "requestedFix": "Add the exact fixture-runner invocation and the pack/extract-and-hash command, with the source .nupkg path, under commands/. After review, update status and review. Either record the fresh graph query results or state the graph limitation as final, rather than leaving 'to follow'."
+    }
+  ],
+  "optionalNotes": [
+    "Registry layer 'A' is satisfied by a literal reflection subset check, not by APICompat, even though APICompat is pinned in toolchain.json. Consider a short qualifier in the fixture's 'qualifier' or 'contracts' entry so layer A is not read as APICompat coverage.",
+    "sameRuntimePayloadForBothScenarios is hard-coded to $true. It is structurally true today because both scenarios copy the same $libraries, but deriving it from per-scenario runtime input hashes would make the report self-checking if CompleteUpgrade ever gains optional integration identities.",
+    "Consumer.csproj.template hard-codes net10.0 and RuntimeFrameworkVersion 10.0.12, while the runner reads targetRuntime from toolchain.json. A one-line runner assertion that the template matches policy would prevent silent drift. The exec --fx-version already pins the runtime, so this is defensive only.",
+    "The child-process environment scrub removes CORE_* and DD_* but not DOTNET_STARTUP_HOOKS, DOTNET_ADDITIONAL_DEPS or DOTNET_SHARED_STORE. The loaded-path and hash checks on the four assemblies limit the impact; removing these variables would tighten isolation cheaply.",
+    "Program.cs decodes the file bytes twice and parses the first line before the exact-count check. Decoding once into lines and parsing after Require(lines.Length == 3) is clearer, with no behavior change.",
+    "The three guard controls do not exercise the 'interface missing', 'return changed', parameter type/optional, or frozen-hash-changed rejection paths. This matches the stated limited scope; leaving them to WP07 negative controls is reasonable.",
+    "plan-amendments.md contains pre-existing mojibake (WP02-S02 range dash, S09-T01 'T02\u00e2\u20ac\u201cT04'). Confirm the diff for this task adds only the WP06-S03-T04 section and does not re-encode the file.",
+    "Path comparison in Invoke-Consumer uses case-insensitive -ne. That is fine on Windows; for the future Ubuntu lane, consider -cne after GetFullPath on both sides."
+  ]
+}

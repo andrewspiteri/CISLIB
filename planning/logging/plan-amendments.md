@@ -239,3 +239,8 @@ The existing evaluated/restored/compiled/packed checker is retained. Twelve new 
 ## WP06-S03-T03 adapter slice wiring
 
 The explicit shipping-project slice uses the single CIS.Core assembly and all three adapter source files, with separate actual unit/integration coverage and Complete Stryker invocation. Microsoft child-process coverage is observed in raw reports. Stryker injections are tested only in process by provider unit tests; no child kill credit is inferred. The initial 60%, pre-review 55.38% and revised-runner 54.62% scores remain failed 90% mutation gates, with native surviving/no-coverage/noncompiling/ignored statuses retained, not reclassified. T03 wires and observes the slice; complete shipping matrix, gaps/dispositions and recorded-platform execution remain WP07 as the original task directs. Source mutation occurs only in a hash-linked ignored snapshot and failed runs rebuild/check that copy. No shipping source/API/dependency or extra bridge assembly is introduced.
+
+
+## WP06-S03-T04 implemented provider compatibility fixtures
+
+The provider consumer and API/source/compiled-input inventory use the existing single CIS.Core identity. Actual source execution and two separately executed newly frozen binary scenarios qualify these unpublished fixtures at the public runtime/file seam. CoreReplacement and CompleteUpgrade share a payload because the provider is contained in Core; no older bridge identity or publication is invented. Full cumulative package/API/runtime/platform compatibility and first-release negative controls remain WP07, with actual publication archives in WP09. This adds no shipping API/source/dependency and leaves historical reference fixtures, the actual ledger and original Planned release case groups unchanged.

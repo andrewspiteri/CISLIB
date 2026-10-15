@@ -1,0 +1,28 @@
+{
+  "verdict": "CHANGES_REQUIRED",
+  "requiredFindings": [
+    {
+      "id": "T04-F1",
+      "severity": "low",
+      "file": "planning/logging/evidence/wp06-s03-t04/commands/execution.json",
+      "problem": "Command provenance is still incomplete, which is the same class of gap as R3. 'inspect-concrete-memberrefs' runs .artifacts/csharp/tasks/wp06-s03-t04/inspect-concrete-memberrefs.ps1. That script is under the ignored .artifacts tree, so the committed evidence cannot reproduce or audit the PE-only memberref claim in receipt.concreteBinaryMemberRefs. guard-results-qualified.json says it uses 'the actual runner function and native consumer', but no guard command or script is recorded. It is therefore unclear how Invoke-Consumer was isolated, and how the api-parameter and candidate-hash mutations were applied. The runner log path also points into .artifacts only.",
+      "requestedFix": "Retain the memberref inspection script and the guard driver under evidence commands/, as inspect-package-link.py already is. Record their argv entries and SHA256 in execution.json, or state explicitly that the scripts are local-only and not retained. The results need no rerun if the retained scripts are the exact ones executed. Hash-link them."
+    },
+    {
+      "id": "T04-F2",
+      "severity": "low",
+      "file": "planning/logging/evidence/wp06-s03-t04/receipt.json",
+      "problem": "developer.noncompiledTaskRefinementsAfterInventory lists implementations/csharp/verification/families.json and the registry. Both changed after the recorded Developer run, and the stated qualification is 'current provider source and binary controls executed independently'. The fixture command reads neither families.json nor the registry. families.json is a verification manifest consumed by eng/verify.ps1 and possibly by architecture checks. So the current families.json and registry content have not been validated by anything executed. The qualification text implies coverage it does not have. Program.cs is also labelled 'noncompiled', though the fixture command compiles it. It is only absent from the Developer profile.",
+      "requestedFix": "Choose one. (a) Rerun the scaffold or architecture checks that consume families.json and the catalog/registry links (or the full Developer profile) against the current hashes and record the result. (b) Reword per file: Program.cs is compiled and executed by the dedicated fixture command; families.json and the registry are manifest edits whose schema/consumer validation was not re-executed after the Developer inventory. Do not claim 'Verified fixture registration' beyond what was executed."
+    }
+  ],
+  "optionalNotes": [
+    "R1 resolved. `provider` is declared via `var` as CoreLoggerProvider, so the named concrete calls bind CIS parameter names. An explicit-interface change would fail to compile. Because the type is sealed, the frozen IL carries CoreLoggerProvider memberrefs for .ctor/CreateLogger/SetScopeProvider/Dispose. Recorded hashes are consistent across sources: Program.cs 6f682b, api-contract abab9b, template 3293d3 and runner 13c897 match the supplied file headers. Consumer 267d8c and Core 28e8cd agree across results, frozen inputs, guards, memberrefs and package-link.",
+    "R2 resolved. The compatibility developerReason now mirrors the mutation family's T03 wording and does not count the empty project as passing.",
+    "R3 largely resolved. The main runner argv/OutputRoot matches the 'qualified-after-review' paths in results.json. inspect-package-link.py records the actual nupkg path and asserts packed-Core hash equality against every process-loaded Core. 'consumersLoadedPackedCoreBytes' is a byte-identity claim, not a restore-from-package claim. That is acceptable given packageRestoreQualificationClaimed=false. Committing the retained .nupkg under planning/ is a repository-size and licence-review decision; confirm it is intended, or keep it local and retain only the hash.",
+    "graphLimitations says the fresh bounded provider calls/tests-for results are retained, but receipt.graph.proof references only graph-status-reviewed.txt. Add the paths of the retained query outputs.",
+    "The reflection probe still uses GetMethod(...)! and sameRuntimePayloadForBothScenarios is still hard-coded $true. Both remain acceptable as previously noted; deriving the flag from per-scenario runtime hashes would make it self-checking.",
+    "The graph status now shows Program.CustomScopes duplicated across fixtures/ and fixtures-qualified/ evidence source copies. That is disclosed under warnings and is not a coverage claim.",
+    "Earlier optional notes (template/policy runtime assertion, DOTNET_* environment scrub, case-sensitive path compare for the Ubuntu lane, broader guard negative controls) remain reasonable WP07 deferrals."
+  ]
+}

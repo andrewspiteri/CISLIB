@@ -1,0 +1,74 @@
+{
+  "schema": "cis.logging.provider-compatibility-fixtures/v1",
+  "taskId": "WP06-S03-T04",
+  "state": "Registered editable unpublished fixtures; freeze copies and actual binaries at publication.",
+  "identity": {
+    "packageId": "CIS.Core",
+    "assembly": "CIS.Core",
+    "namespace": "CIS.Logging.MicrosoftLogger",
+    "separateProviderPackage": false
+  },
+  "protocol": "compatibility/csharp/replay-rules.json",
+  "publicationLedger": "compatibility/csharp/publications/ledger.json",
+  "fixtureRoot": "implementations/csharp/verification/compatibility/microsoft-logging",
+  "harness": "implementations/csharp/eng/check-microsoft-logging-compatibility.ps1",
+  "fixtures": [
+    {
+      "id": "provider-contract-consumer",
+      "layers": [
+        "A",
+        "B",
+        "C",
+        "D"
+      ],
+      "source": "source/Program.cs",
+      "projectTemplate": "Consumer.csproj.template",
+      "api": "api-contract.json",
+      "sourceSettings": {
+        "targetFramework": "net10.0",
+        "langVersion": "14.0",
+        "nullable": "enable",
+        "warningsAsErrors": true
+      },
+      "binaryCapture": [
+        "CIS.Logging.ProviderContractConsumer.dll",
+        "CIS.Logging.ProviderContractConsumer.pdb",
+        "CIS.Logging.ProviderContractConsumer.deps.json",
+        "CIS.Logging.ProviderContractConsumer.runtimeconfig.json"
+      ],
+      "contracts": [
+        "Public sealed provider in Core; named constructor/category/scope parameters and Microsoft interfaces",
+        "ILogger extension/params/EventId and generic formatter source bindings",
+        "Caller custom IExternalScopeProvider and typed OperationContextData scope",
+        "Copied/borrowed scope projection, event template/id and exact three physical JSONL observations",
+        "Idempotent nonowning provider disposal leaves direct Core logging available",
+        "Actual process-loaded consumer/Core/Microsoft dependency path, identity and SHA256"
+      ],
+      "qualifier": "Layer A is a literal public reflection subset fixture, not APICompat qualification. Actual direct concrete plus interface source calls and newly frozen binary controls; no published history invented."
+    }
+  ],
+  "binaryScenarios": [
+    {
+      "id": "CoreReplacement",
+      "replacement": "Replace CIS.Core.dll, which contains the provider. Freeze consumer and unaffected dependencies; only necessary approved closure changes may be recorded.",
+      "futureHistory": "For every applicable archived provider consumer; retain original inputs and consumer hashes."
+    },
+    {
+      "id": "CompleteUpgrade",
+      "replacement": "Replace CIS.Core.dll and applicable optional integration identities. The provider travels inside Core; never invent a bridge package.",
+      "futureHistory": "Run separately even when Core-only payload matches CoreReplacement."
+    }
+  ],
+  "currentControls": {
+    "scenarios": [
+      "Source",
+      "CoreReplacement",
+      "CompleteUpgrade"
+    ],
+    "sameCoreOnlyRuntimePayload": true,
+    "historicalComparisonClaimed": false,
+    "packageRestoreQualificationClaimed": false,
+    "platformReleaseQualificationClaimed": false
+  },
+  "remaining": "WP07 implements complete cumulative package/API/source/binary/behavior qualification, negative controls, source-bound dispositions and required platform/runtime membership. WP09 freezes actual publication archives. This registry does not activate the four Planned release case groups."
+}

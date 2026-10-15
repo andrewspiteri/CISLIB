@@ -1,0 +1,108 @@
+[
+  {
+    "id": "provider-fixtures-after-review",
+    "executable": "pwsh",
+    "workingDirectory": "C:\\miscwork\\portfolio\\cislib",
+    "argv": [
+      "-NoProfile",
+      "-File",
+      "implementations/csharp/eng/check-microsoft-logging-compatibility.ps1",
+      "-CoreAssembly",
+      "implementations/csharp/src/CIS.Core/bin/Release/net10.0/CIS.Core.dll",
+      "-OutputRoot",
+      ".artifacts/csharp/tasks/wp06-s03-t04/qualified-after-review"
+    ],
+    "exitCode": 0,
+    "log": ".artifacts/csharp/tasks/wp06-s03-t04/qualified-after-review.log",
+    "retainedLog": "planning/logging/evidence/wp06-s03-t04/commands/fixture-runner.log"
+  },
+  {
+    "id": "package-link-extraction",
+    "executable": "python",
+    "workingDirectory": "C:\\miscwork\\portfolio\\cislib",
+    "argv": [
+      "planning/logging/evidence/wp06-s03-t04/commands/inspect-package-link.py"
+    ],
+    "exitCode": 0,
+    "result": "planning/logging/evidence/wp06-s03-t04/package-link.json",
+    "scriptSha256": "f94d753a1f14d726bd9fb6f9529c0bfeffbd9c4c9e1bd2ea3399f85f65df0d5f"
+  },
+  {
+    "id": "inspect-concrete-memberrefs",
+    "executable": "pwsh",
+    "workingDirectory": "C:\\miscwork\\portfolio\\cislib",
+    "argv": [
+      "-NoProfile",
+      "-File",
+      ".artifacts/csharp/tasks/wp06-s03-t04/inspect-concrete-memberrefs.ps1",
+      "-Consumer",
+      ".artifacts/csharp/tasks/wp06-s03-t04/qualified-after-review/frozen/CIS.Logging.ProviderContractConsumer.dll"
+    ],
+    "exitCode": 0,
+    "result": "planning/logging/evidence/wp06-s03-t04/concrete-memberrefs.json",
+    "retainedScript": "planning/logging/evidence/wp06-s03-t04/commands/inspect-concrete-memberrefs.ps1",
+    "scriptSha256": "57c4bc9251e1e20b2d5127574083a63dfc6260c62c1d64c6149642d0ea807a8e"
+  },
+  {
+    "id": "metadata-guards-after-review",
+    "executable": "pwsh",
+    "workingDirectory": "C:\\miscwork\\portfolio\\cislib",
+    "argv": [
+      "-NoProfile",
+      "-File",
+      ".artifacts/csharp/tasks/wp06-s03-t04/check-metadata-guards-after-review.ps1"
+    ],
+    "exitCode": 0,
+    "retainedScript": "planning/logging/evidence/wp06-s03-t04/commands/check-metadata-guards-after-review.ps1",
+    "scriptSha256": "2341d85d78b1e87dc8746d364e858d5476d9295b4610b084a0ff3742e5c3c478",
+    "result": "guard-results-qualified.json"
+  },
+  {
+    "id": "current-manifest-production-reader",
+    "executable": "pwsh",
+    "workingDirectory": "C:\\miscwork\\portfolio\\cislib",
+    "argv": [
+      "-NoProfile",
+      "-File",
+      "implementations/csharp/eng/check-release.ps1",
+      "-Profile",
+      "Developer",
+      "-Lane",
+      "windows-x64",
+      "-EvidenceRoot",
+      ".artifacts/csharp/verification/Developer",
+      "-OutputPath",
+      ".artifacts/csharp/tasks/wp06-s03-t04/current-manifest-validation.json"
+    ],
+    "exitCode": 0,
+    "scriptSha256": "9f7a64707d5a9beabd348f74cad40cae464cd5d3f9246fe3bb449d51a4adff37",
+    "result": "current-manifest-validation.json",
+    "manifestSha256": "afb64481bdd6b6727dd42b36be4e1d30f0579ef7c7d4b3d7d7e36e807d1e597e"
+  },
+  {
+    "id": "targeted-registry-link-validation",
+    "executable": "python",
+    "workingDirectory": "C:\\miscwork\\portfolio\\cislib",
+    "argv": [
+      "planning/logging/evidence/wp06-s03-t04/commands/validate-registry.py"
+    ],
+    "exitCode": 0,
+    "scriptSha256": "5cc9ef755290386dfd8751e9e924ae96dc0d7b2b340afe7b12ab67b5e00df07d",
+    "result": "registry-validation.json"
+  },
+  {
+    "id": "retained-memberref-script-reexecution",
+    "executable": "pwsh",
+    "workingDirectory": "C:\\miscwork\\portfolio\\cislib",
+    "argv": [
+      "-NoProfile",
+      "-File",
+      "planning/logging/evidence/wp06-s03-t04/commands/inspect-concrete-memberrefs.ps1",
+      "-Consumer",
+      "planning/logging/evidence/wp06-s03-t04/fixtures-qualified/frozen/CIS.Logging.ProviderContractConsumer.dll"
+    ],
+    "exitCode": 0,
+    "scriptSha256": "57c4bc9251e1e20b2d5127574083a63dfc6260c62c1d64c6149642d0ea807a8e",
+    "result": "retained-memberrefs.json"
+  }
+]

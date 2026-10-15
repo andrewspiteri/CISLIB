@@ -74,13 +74,21 @@
       "harness": null,
       "reportSchema": "vstest.trx/2010",
       "developerEnabled": false,
-      "developerReason": "No implemented logging cases yet; not executed or counted as passing.",
+      "developerReason": "The family test project has no cases and is not counted as passing. Implemented provider fixtures execute via the separate eng/check-microsoft-logging-compatibility.ps1 command; complete cumulative family qualification remains WP07.",
       "pendingReason": "Full shipping scope and complete logging cases remain pending.",
       "slots": {
         "discovery": "families/compatibility/discovery.json",
         "execution": "families/compatibility/execution.json",
         "nativeReport": "families/compatibility/report.trx"
-      }
+      },
+      "moduleHarnesses": [
+        {
+          "id": "logging-microsoft",
+          "registry": "compatibility/csharp/microsoft-logging-fixtures.json",
+          "harness": "eng/check-microsoft-logging-compatibility.ps1",
+          "scope": "Separate actual provider fixture command. Complete cumulative release family remains pending WP07."
+        }
+      ]
     },
     {
       "id": "business",

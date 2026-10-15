@@ -1,0 +1,53 @@
+{
+  "type": "CIS.Logging.MicrosoftLogger.CoreLoggerProvider",
+  "isSealed": true,
+  "interfaces": [
+    "Microsoft.Extensions.Logging.ILoggerProvider",
+    "Microsoft.Extensions.Logging.ISupportExternalScope",
+    "System.IDisposable"
+  ],
+  "constructor": {
+    "parameters": [
+      {
+        "name": "runtime",
+        "type": "CIS.Logging.CoreLogRuntime",
+        "optional": false
+      }
+    ]
+  },
+  "methods": [
+    {
+      "name": "CreateLogger",
+      "returns": "Microsoft.Extensions.Logging.ILogger",
+      "signature": {
+        "parameters": [
+          {
+            "name": "categoryName",
+            "type": "System.String",
+            "optional": false
+          }
+        ]
+      }
+    },
+    {
+      "name": "SetScopeProvider",
+      "returns": "System.Void",
+      "signature": {
+        "parameters": [
+          {
+            "name": "scopeProvider",
+            "type": "Microsoft.Extensions.Logging.IExternalScopeProvider",
+            "optional": false
+          }
+        ]
+      }
+    },
+    {
+      "name": "Dispose",
+      "returns": "System.Void",
+      "signature": {
+        "parameters": []
+      }
+    }
+  ]
+}
