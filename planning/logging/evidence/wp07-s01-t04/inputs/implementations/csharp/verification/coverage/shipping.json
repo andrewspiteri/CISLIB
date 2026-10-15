@@ -1,0 +1,41 @@
+{
+  "schema": "cis.csharp.shipping-coverage/v1",
+  "settings": "verification/coverage/shipping.runsettings",
+  "minimumLineRate": 0.95,
+  "minimumBranchRate": 0.9,
+  "assemblies": [
+    {
+      "name": "CIS.Core",
+      "project": "src/CIS.Core/CIS.Core.csproj",
+      "packageEntry": "lib/net10.0/CIS.Core.dll",
+      "sourceRoot": "src/CIS.Core",
+      "nonExecutable": {
+        "Environment/EnvironmentKind.cs": "Enum declarations only; no executable method body.",
+        "Environment/Resolution/ConfigurationIssueCodes.cs": "Constants only; no executable method body.",
+        "Logging/CoreLogLevel.cs": "Enum declarations only; no executable method body.",
+        "Logging/CoreLogState.cs": "Enum declarations only; no executable method body.",
+        "Logging/LoggingOutputEnums.cs": "Enum declarations only; no executable method body.",
+        "Logging/LogOutputState.cs": "Enum declarations only; no executable method body.",
+        "Logging/LogValueKind.cs": "Enum declarations only; no executable method body.",
+        "Logging/LogWriteOutcome.cs": "Enum declarations only; no executable method body.",
+        "Logging/Runtime/ILogOutputAdmission.cs": "Interface declarations only; no default implementations.",
+        "TypeManagement/TypeManagerFailureKind.cs": "Enum declarations only; no executable method body."
+      }
+    },
+    {
+      "name": "CIS.TypeManager.Build",
+      "project": "eng/CIS.TypeManager.Build/CIS.TypeManager.Build.csproj",
+      "packageEntry": "tools/net10.0/CIS.TypeManager.Build.dll",
+      "sourceRoot": "eng/CIS.TypeManager.Build",
+      "nonExecutable": {}
+    }
+  ],
+  "families": {
+    "unit": "UnitTests",
+    "integration": "IntegrationTests",
+    "architecture": "ArchitectureTests",
+    "business": "BusinessCases"
+  },
+  "aggregation": "Keep native class/source/line identities and fixed branch denominators. Across reports, OR line execution and take MAX covered branch count on each line (a conservative lower bound; never sum unidentified covered branches). Across assemblies, sum denominators and covered counts. Do not merge across OS lanes.",
+  "exclusions": "No collector source/function/attribute exclusions; auto-properties included. Only the ten enumerated non-executable source files have no sequence-point denominator. Compiler-generated SDK metadata has no handwritten executable source; unexpected reported source paths fail closed. No handwritten executable exclusion is permitted."
+}

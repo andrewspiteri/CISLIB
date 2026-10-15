@@ -1,0 +1,98 @@
+{
+  "task": "WP07-S01-T04",
+  "baseCommit": "41d50fbadb169b6bdd27aa5440491441cb55a6b9",
+  "scope": "Windows native Microsoft coverage over all four currently active families; measurement complete, release thresholds and full Ubuntu coverage pending.",
+  "developer": {
+    "runId": "4cf0f91c230e40a5a694f25bab1f7c0d",
+    "exitCode": 0,
+    "stagesPassed": 15,
+    "testsPassed": 5304
+  },
+  "coverage": {
+    "exitCode": 2,
+    "report": "native/Coverage/coverage.json",
+    "qualified": false,
+    "assemblies": [
+      {
+        "assembly": "CIS.Core",
+        "linesCovered": 2809,
+        "linesTotal": 2892,
+        "branchesCoveredLowerBound": 2075,
+        "branchesTotal": 2261,
+        "lineRate": 0.9713001383125864,
+        "branchRateLowerBound": 0.9177355152587351,
+        "thresholdPassed": true
+      },
+      {
+        "assembly": "CIS.TypeManager.Build",
+        "linesCovered": 82,
+        "linesTotal": 104,
+        "branchesCoveredLowerBound": 37,
+        "branchesTotal": 70,
+        "lineRate": 0.7884615384615384,
+        "branchRateLowerBound": 0.5285714285714286,
+        "thresholdPassed": false
+      }
+    ],
+    "aggregate": {
+      "linesCovered": 2891,
+      "linesTotal": 2996,
+      "branchesCoveredLowerBound": 2112,
+      "branchesTotal": 2331,
+      "lineRate": 0.9649532710280374,
+      "branchRateLowerBound": 0.9060489060489061,
+      "thresholdPassed": true
+    },
+    "sourceFiles": 78,
+    "nonExecutableFiles": 10
+  },
+  "release": {
+    "exitCode": 2,
+    "summary": "pending/Release/summary.json",
+    "issues": 41
+  },
+  "localControls": {
+    "passed": 10,
+    "report": "task/summary-controls.json"
+  },
+  "protectedInputs": {
+    "count": 93,
+    "unchanged": true
+  },
+  "hostBuildSettings": {
+    "MaxBuildNodes": 1,
+    "MSBUILDDISABLENODEREUSE": "1",
+    "UseSharedCompilation": "false",
+    "DOTNET_CLI_USE_MSBUILD_SERVER": "0"
+  },
+  "verificationSourceNote": "Between the Developer run and final coverage, only the coverage runner SDK metadata block moved into the pinned language directory; the exact relocation is asserted by this generator. All shipping and test sources/binaries remain pinned.",
+  "review": {
+    "task": "WP07-S01-T04",
+    "review": "Claude code-only read-only review",
+    "status": "UnavailableAutomaticApprovalRejection",
+    "transferPerformed": false,
+    "reason": "Automatic approval review rejected transmitting private repository source to external Claude because standing authorization did not specifically approve the exact payload and destination under the sensitive-egress rule.",
+    "rejectedPayload": {
+      "files": 8,
+      "sourceBytes": 39000,
+      "manifestSha256": "2c6e655b6e25160a341ab08a17e15caa9d595cc065328bd01933fb08638d958c"
+    },
+    "pendingPayload": {
+      "files": 9,
+      "sourceBytes": 39528,
+      "manifest": "claude-code-manifest.json",
+      "manifestSha256": "817e26fa6dd0b1ae70b806615fd60fbd835668bf8a2a9ff090c36e947aad17e3"
+    },
+    "userQuestion": "Exact source-transfer approval remains pending; no reply or elapsed time was treated as authorization.",
+    "fallback": "Completed native verification and local inspection under the user instruction to keep going. No alternate source-transfer route used. Claude review is not claimed."
+  },
+  "remaining": [
+    "Helper coverage below required per-assembly threshold; retain every uncovered source/branch.",
+    "Full Ubuntu coverage and six-family release discovery/qualification.",
+    "Claude review unavailable after automatic rejection; no source transfer performed or independent review claimed."
+  ],
+  "evidenceGenerator": {
+    "path": "task/freeze-evidence.py",
+    "sha256": "e9466e906dbaa48a9e4f12489d33cf8f8d8af074c5b0b0fb43c3a703c44e8f8c"
+  }
+}

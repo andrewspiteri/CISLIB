@@ -1,6 +1,7 @@
 param(
     [ValidateSet('Developer', 'Release')][string] $Profile = 'Developer',
-    [string] $Lane = $(if ($IsWindows) { 'windows-x64' } else { 'linux-ubuntu2404-x64' })
+    [string] $Lane = $(if ($IsWindows) { 'windows-x64' } else { 'linux-ubuntu2404-x64' }),
+    [ValidateRange(0, 64)][int] $MaxBuildNodes = 0
 )
 
 $ErrorActionPreference = 'Stop'
@@ -86,7 +87,11 @@ try {
         Invoke-VerificationStage $context 'restore' { $null = Invoke-VerificationCommand (Join-Path $reportRoot 'logs/restore.log') @('restore', 'CisLib.slnx', '--locked-mode', '--configfile', 'NuGet.config') }
         Invoke-VerificationStage $context 'project-boundaries' { $null = Invoke-VerificationCommand (Join-Path $reportRoot 'logs/project-boundaries.log') @('-NoProfile', '-File', (Join-Path $PSScriptRoot 'check-dependencies.ps1')) 'pwsh' }
         Invoke-VerificationStage $context 'format' { $null = Invoke-VerificationCommand (Join-Path $reportRoot 'logs/format.log') @('format', 'CisLib.slnx', '--verify-no-changes', '--no-restore') }
-        Invoke-VerificationStage $context 'build' { $null = Invoke-VerificationCommand (Join-Path $reportRoot 'logs/build.log') @('build', 'CisLib.slnx', '-c', 'Release', '--no-restore') }
+        Invoke-VerificationStage $context 'build' {
+            $buildArguments = @('build', 'CisLib.slnx', '-c', 'Release', '--no-restore')
+            if ($MaxBuildNodes -gt 0) { $buildArguments += "-maxcpucount:$MaxBuildNodes" }
+            $null = Invoke-VerificationCommand (Join-Path $reportRoot 'logs/build.log') $buildArguments
+        }
         $core = Join-Path $languageRoot 'src/CIS.Core/bin/Release/net10.0/CIS.Core.dll'
         Invoke-VerificationStage $context 'startup-contract' { $null = Invoke-VerificationCommand (Join-Path $reportRoot 'logs/startup-contract.log') @('-NoProfile', '-File', (Join-Path $PSScriptRoot 'check-startup-contract.ps1'), '-OutputRoot', (Join-Path $reportRoot 'contracts/startup')) 'pwsh' }
         Invoke-VerificationStage $context 'compatibility-samples' { $null = Invoke-VerificationCommand (Join-Path $reportRoot 'logs/compatibility-samples.log') @('-NoProfile', '-File', (Join-Path $PSScriptRoot 'check-compatibility-samples.ps1'), '-StartupRoot', (Join-Path $reportRoot 'contracts/startup'), '-OutputRoot', (Join-Path $reportRoot 'contracts/compatibility-samples')) 'pwsh' }
