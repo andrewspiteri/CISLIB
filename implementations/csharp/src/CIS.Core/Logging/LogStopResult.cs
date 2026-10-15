@@ -25,6 +25,6 @@ public sealed class LogStopResult
     public long InvalidEventCount { get; }
     /// <summary>The runtime truncation count frozen with the original boundary.</summary>
     public long TruncatedEventCount { get; }
-    /// <summary>Owned console-then-file fixed-boundary observations; disabled outputs are omitted.</summary>
+    /// <summary>Owned console, file, then registered-writer fixed-boundary observations; disabled outputs are omitted.</summary>
     public IReadOnlyList<LogOutputDrainResult> Outputs { get; }
 }

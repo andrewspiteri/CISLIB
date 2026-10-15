@@ -3,6 +3,10 @@ namespace CIS.Logging.Runtime;
 internal sealed class OutputQueues
 {
     private readonly object admissionGate;
+    private readonly List<(string Name, OutputEventQueue Queue)> entries = [];
+    private Task? completion;
+    internal IReadOnlyList<(string Name, OutputEventQueue Queue)> Entries => entries;
+    internal OutputEventQueue Get(string name) => entries.Single(entry => entry.Name == name).Queue;
     internal OutputQueues(int capacity, bool consoleEnabled, bool fileEnabled, Func<AdmittedEvent, ValueTask>? consoleWrite, Func<AdmittedEvent, ValueTask>? fileWrite, object? sharedAdmissionGate = null, Func<Func<Task>, Task>? launchWorker = null, IDisposable? fileResource = null, Func<ValueTask>? consoleFlush = null, Func<ValueTask>? fileFlush = null, Func<AdmittedEvent, CancellationToken, ValueTask>? consoleCancellableWrite = null, Func<AdmittedEvent, CancellationToken, ValueTask>? fileCancellableWrite = null, Func<CancellationToken, ValueTask>? consoleCancellableFlush = null, Func<CancellationToken, ValueTask>? fileCancellableFlush = null, TimeProvider? timeProvider = null)
     {
         admissionGate = sharedAdmissionGate ?? new object();
@@ -36,14 +40,15 @@ internal sealed class OutputQueues
             if (consoleWrite is not null)
             {
                 Console = Create("console", consoleWrite, null, consoleFlush, consoleCancellableWrite, consoleCancellableFlush);
+                entries.Add(("console", Console));
             }
 
             if (fileWrite is not null)
             {
                 File = Create("file", fileWrite, fileResource, fileFlush, fileCancellableWrite, fileCancellableFlush);
+                entries.Add(("file", File));
             }
 
-            Completion = Task.WhenAll(Console?.Completion ?? Task.CompletedTask, File?.Completion ?? Task.CompletedTask);
         }
         catch
         {
@@ -51,7 +56,7 @@ internal sealed class OutputQueues
             Complete();
             try
             {
-                Task.WhenAll(Console?.Completion ?? Task.CompletedTask, File?.Completion ?? Task.CompletedTask).GetAwaiter().GetResult();
+                Task.WhenAll(entries.Select(entry => entry.Queue.Completion)).GetAwaiter().GetResult();
             }
             catch
             {
@@ -75,14 +80,24 @@ internal sealed class OutputQueues
 
     internal OutputEventQueue? Console { get; }
     internal OutputEventQueue? File { get; }
-    internal Task Completion { get; }
+    internal Task Completion
+    {
+        get { lock (admissionGate) { return completion ??= Task.WhenAll(entries.Select(entry => entry.Queue.Completion)); } }
+    }
+
+    // Startup only, before this collection is published to callers.
+    internal void Add(string name, OutputEventQueue queue)
+    {
+        if (entries.Any(entry => entry.Name == name)) { throw new ArgumentException("Duplicate output name.", nameof(name)); }
+        if (completion is not null) { throw new InvalidOperationException("Writer startup is already sealed."); }
+        entries.Add((name, queue));
+    }
 
     internal void SetStopBudget(ElapsedBudget budget)
     {
         lock (admissionGate)
         {
-            Console?.SetStopBudget(budget);
-            File?.SetStopBudget(budget);
+            foreach (var entry in entries) { entry.Queue.SetStopBudget(budget); }
         }
     }
 
@@ -90,8 +105,7 @@ internal sealed class OutputQueues
     {
         lock (admissionGate)
         {
-            Console?.Complete();
-            File?.Complete();
+            foreach (var entry in entries) { entry.Queue.Complete(); }
         }
     }
 
@@ -99,20 +113,17 @@ internal sealed class OutputQueues
     {
         lock (admissionGate)
         {
-            Console?.AbandonUnstarted(observedAt);
-            File?.AbandonUnstarted(observedAt);
+            foreach (var entry in entries) { entry.Queue.AbandonUnstarted(observedAt); }
         }
     }
 
     internal void RequestIoCancellation()
     {
-        Console?.RequestIoCancellation();
-        File?.RequestIoCancellation();
+        foreach (var entry in entries) { entry.Queue.RequestIoCancellation(); }
     }
 
     internal void RecordCleanupFault(string code)
     {
-        Console?.RecordCleanupFault(code);
-        File?.RecordCleanupFault(code);
+        foreach (var entry in entries) { entry.Queue.RecordCleanupFault(code); }
     }
 }

@@ -54,7 +54,7 @@ public sealed class LogOutputDrainResult
         Rejections = rejections;
     }
 
-    /// <summary>The enabled destination, console or file.</summary>
+    /// <summary>The enabled built-in or registered destination.</summary>
     public string OutputName { get; }
     /// <summary>The last accepted sequence included in this observation.</summary>
     public long AcceptedSequenceBoundary { get; }
@@ -104,6 +104,6 @@ public sealed class LogFlushResult
     public long InvalidEventCount { get; }
     /// <summary>The cumulative truncated-event count at initial capture.</summary>
     public long TruncatedEventCount { get; }
-    /// <summary>Owned console-then-file observations; disabled outputs are omitted.</summary>
+    /// <summary>Owned console, file, then registered-writer observations; disabled outputs are omitted.</summary>
     public IReadOnlyList<LogOutputDrainResult> Outputs { get; }
 }

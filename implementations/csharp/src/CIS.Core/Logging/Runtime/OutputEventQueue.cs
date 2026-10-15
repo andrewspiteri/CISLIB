@@ -15,6 +15,7 @@ internal sealed class OutputEventQueue : ILogOutputAdmission
     private Task? ioCancellationCompletion;
     private bool ioCancellationClosed;
     private readonly IDisposable? ownedResource;
+    private readonly Func<ValueTask>? cleanup;
     private readonly Func<CancellationToken, ValueTask>? flush;
     private readonly SortedDictionary<long, OutputFlushRegistration> flushRequests = [];
     private TaskCompletionSource wake = NewWake();
@@ -44,7 +45,7 @@ internal sealed class OutputEventQueue : ILogOutputAdmission
     private LogOutputState state;
     private string? lastFaultCode;
     private DateTimeOffset? lastFaultAtUtc;
-    internal OutputEventQueue(int capacity, Func<AdmittedEvent, ValueTask> write, object? sharedAdmissionGate = null, Func<Func<Task>, Task>? launchWorker = null, IDisposable? ownedResource = null, Func<ValueTask>? flush = null, Func<AdmittedEvent, CancellationToken, ValueTask>? cancellableWrite = null, Func<CancellationToken, ValueTask>? cancellableFlush = null, TimeProvider? timeProvider = null)
+    internal OutputEventQueue(int capacity, Func<AdmittedEvent, ValueTask> write, object? sharedAdmissionGate = null, Func<Func<Task>, Task>? launchWorker = null, IDisposable? ownedResource = null, Func<ValueTask>? flush = null, Func<AdmittedEvent, CancellationToken, ValueTask>? cancellableWrite = null, Func<CancellationToken, ValueTask>? cancellableFlush = null, TimeProvider? timeProvider = null, Func<ValueTask>? cleanup = null)
     {
         ArgumentNullException.ThrowIfNull(write);
         if (capacity is < LoggingOptions.MinimumQueueCapacity or > LoggingOptions.MaximumQueueCapacity)
@@ -56,6 +57,7 @@ internal sealed class OutputEventQueue : ILogOutputAdmission
         clock = timeProvider ?? TimeProvider.System;
         this.write = cancellableWrite ?? ((admitted, _) => write(admitted));
         this.ownedResource = ownedResource;
+        this.cleanup = cleanup;
         this.flush = cancellableFlush ?? (flush is null ? null : _ => flush());
         if (cancellableWrite is not null || cancellableFlush is not null)
         {
@@ -822,6 +824,7 @@ internal sealed class OutputEventQueue : ILogOutputAdmission
             try
             {
                 ownedResource?.Dispose();
+                if (cleanup is not null) { await cleanup().ConfigureAwait(false); }
             }
             catch (Exception error)
             {

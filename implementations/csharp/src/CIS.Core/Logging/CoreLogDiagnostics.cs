@@ -23,7 +23,7 @@ public sealed class CoreLogDiagnostics
     public long InvalidEventCount { get; }
     /// <summary>Cumulative valid captures with omitted payload, saturating at Int64.MaxValue.</summary>
     public long TruncatedEventCount { get; }
-    /// <summary>Owned console-then-file observations; disabled outputs are omitted.</summary>
+    /// <summary>Owned console, file, then registered-writer observations; disabled outputs are omitted.</summary>
     public IReadOnlyList<LogOutputDiagnostics> Outputs { get; }
     /// <summary>The original cached stop observation, or null until the shared operation publishes one.</summary>
     public LogStopResult? LastStopResult { get; }

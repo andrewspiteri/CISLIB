@@ -110,6 +110,8 @@ The proposed execution boundary is: caller-owned capture and bounded incoming ad
 
 **User selection, 15 October:** bounded memory queue, rejecting new events when full, with startup-only writer registration. Incoming acceptance is separate from later writer delivery; flush/stop drain accepted work. Durable disk spooling and live writer registration are outside this selected first implementation.
 
+The first D slice implements `ILogWriter`, immutable startup registrations, independent custom output workers and generic flush/stop/diagnostic enumeration. Borrowed/owned cleanup, rollback, fault isolation and late completion have native evidence in the [registered-writer checkpoint](evidence/corrective-registered-writers-2026-10-15.md). The incoming spool, common built-in adapter composition and E extension processing remain open; this is not completion of D.
+
 Introduce one supported writer registration/contract, with console and file as adapters to it. Keep each writer's ownership, ordering, queue capacity, failures and flush obligations explicit. Preserve file-group acquisition, intent-first retirement/recovery and borrowed console ownership.
 
 Before coding, decide how incoming acceptance relates to eventual writer admission, tickets, truncation and failures. Carry a captured flush/stop boundary across both the incoming processor and all resulting writer work; draining only today's writer queues is insufficient. Preserve one shutdown deadline, caller cancellation semantics, immutable completed observations and late cleanup accounting.

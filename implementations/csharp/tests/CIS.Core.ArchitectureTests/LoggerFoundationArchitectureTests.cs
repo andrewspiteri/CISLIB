@@ -25,7 +25,14 @@ public sealed class LoggerFoundationArchitectureTests
         }
         CollectionAssert.AreEqual(new[] { "level", "data" }, typeof(CoreLogger).GetMethod("Write")!.GetParameters().Select(item => item.Name).ToArray());
         CollectionAssert.AreEqual(new[] { "level", "factory" }, typeof(CoreLogger).GetMethod("WriteLazy")!.GetParameters().Select(item => item.Name).ToArray());
-        CollectionAssert.AreEquivalent(new[] { "Create", "CreateLogger", "BeginScope", "GetDiagnostics", "FlushAsync", "StopAsync", "DisposeAsync" }, runtimeMethods.Select(method => method.Name).ToArray());
+        CollectionAssert.AreEquivalent(new[] { "Create", "Create", "get_Completion", "CreateLogger", "BeginScope", "GetDiagnostics", "FlushAsync", "StopAsync", "DisposeAsync" }, runtimeMethods.Select(method => method.Name).ToArray());
+        Assert.IsNotNull(typeof(CoreLogRuntime).GetMethod("Create", Type.EmptyTypes));
+        MethodInfo registered = typeof(CoreLogRuntime).GetMethod("Create", [typeof(IEnumerable<LogWriterRegistration>)])!;
+        Assert.AreEqual("writers", registered.GetParameters().Single().Name);
+        Assert.AreEqual(typeof(Task), typeof(CoreLogRuntime).GetProperty("Completion")!.PropertyType);
+        Assert.IsTrue(typeof(IAsyncDisposable).IsAssignableFrom(typeof(ILogWriter)));
+        CollectionAssert.AreEquivalent(new[] { "WriteAsync", "FlushAsync" }, typeof(ILogWriter).GetMethods().Select(method => method.Name).ToArray());
+        foreach (PropertyInfo property in typeof(LogWriterRegistration).GetProperties()) { Assert.IsNull(property.GetSetMethod(nonPublic: true)); }
         MethodInfo scope = typeof(CoreLogRuntime).GetMethod("BeginScope")!;
         Assert.AreEqual(typeof(IDisposable), scope.ReturnType);
         CollectionAssert.AreEqual(new[] { "context" }, scope.GetParameters().Select(item => item.Name).ToArray());

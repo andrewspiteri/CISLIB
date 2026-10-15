@@ -1,26 +1,28 @@
 namespace CIS.Logging.Runtime;
 // Immutable initial facts. The shared registration resolves writer flushing, not a public drain result.
-internal readonly record struct RuntimeFlushBoundary(DateTimeOffset BoundaryCapturedAtUtc, long InvalidEventCount, long TruncatedEventCount, OutputFlushBoundary? Console, OutputFlushBoundary? File)
+internal readonly record struct RuntimeFlushBoundary(DateTimeOffset BoundaryCapturedAtUtc, long InvalidEventCount, long TruncatedEventCount, OutputFlushBoundary? Console, OutputFlushBoundary? File, IReadOnlyList<NamedOutputFlushBoundary>? Additional = null)
 {
+    internal IEnumerable<NamedOutputFlushBoundary> Entries
+    {
+        get
+        {
+            if (Console is { } console) { yield return new("console", console); }
+            if (File is { } file) { yield return new("file", file); }
+            if (Additional is not null) { foreach (var entry in Additional) { yield return entry; } }
+        }
+    }
     // The caller supplies its lifetime token (cancellation or deadline). Never retain a per-caller WhenAll.
     internal async Task<bool> WaitForWriterFlushAsync(CancellationToken waitCancellation)
     {
         waitCancellation.ThrowIfCancellationRequested();
-        bool consoleSucceeded = true, fileSucceeded = true;
-        if (Console is { } console)
-        {
-            consoleSucceeded = await console.Registration.WaitForWriterFlushAsync(waitCancellation).ConfigureAwait(false);
-        }
-
-        if (File is { } file)
-        {
-            fileSucceeded = await file.Registration.WaitForWriterFlushAsync(waitCancellation).ConfigureAwait(false);
-        }
-
-        return consoleSucceeded && fileSucceeded;
+        bool succeeded = true;
+        foreach (var entry in Entries)
+        { succeeded &= await entry.Boundary.Registration.WaitForWriterFlushAsync(waitCancellation).ConfigureAwait(false); }
+        return succeeded;
     }
 }
 
+internal readonly record struct NamedOutputFlushBoundary(string Name, OutputFlushBoundary Boundary);
 internal readonly record struct OutputFlushBoundary(long AcceptedSequenceBoundary, long Filtered, long QueueFull, long Unavailable, OutputFlushRegistration Registration);
 internal sealed class OutputFlushRegistration(long boundary)
 {

@@ -13,7 +13,7 @@ public sealed class LogWriteResult
 
     /// <summary>The aggregate outcome.</summary>
     public LogWriteOutcome Outcome { get; }
-    /// <summary>Owned observations in console-then-file order; disabled outputs are omitted.</summary>
+    /// <summary>Owned observations in console, file, then registered-writer order; disabled outputs are omitted.</summary>
     public IReadOnlyList<LogOutputWriteResult> Outputs { get; }
     /// <summary>A fixed safe capture error code for InvalidEvent; otherwise null.</summary>
     public string? ErrorCode { get; }

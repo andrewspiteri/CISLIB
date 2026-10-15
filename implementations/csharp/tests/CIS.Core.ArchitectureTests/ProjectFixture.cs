@@ -11,7 +11,7 @@ internal sealed class ProjectFixture : IDisposable
         string[] paths = [
             "global.json", "Directory.Build.props", "Directory.Packages.props",
             "src/CIS.Core/CIS.Core.csproj", "eng/project-boundaries.json",
-            "eng/runtime-dependencies.json", "eng/development-dependencies.json",
+            "eng/runtime-dependencies.json", "eng/development-dependencies.json", "eng/toolchain.json",
             "build/type-manager/package/CIS.TypeManager.Pack.targets"
         ];
         foreach (string relative in paths)

@@ -26,7 +26,7 @@ public sealed class CoreLogRuntime : IAsyncDisposable
     private long invalidEventCount;
     private long truncatedEventCount;
     // The direct internal admission seam remains available for existing focused qualification.
-    internal CoreLogRuntime(EventMetadata metadata, LoggingOptions options, ILogOutputAdmission? console, ILogOutputAdmission? file, TimeProvider? timeProvider = null, object? sharedAdmissionGate = null, OutputQueues? queuedOutputs = null, ConsoleOutputWriter? consoleWriter = null, FileOutputWriter? fileWriter = null)
+    internal CoreLogRuntime(EventMetadata metadata, LoggingOptions options, ILogOutputAdmission? console, ILogOutputAdmission? file, TimeProvider? timeProvider = null, object? sharedAdmissionGate = null, OutputQueues? queuedOutputs = null, ConsoleOutputWriter? consoleWriter = null, FileOutputWriter? fileWriter = null, IReadOnlyList<LogWriterRegistration>? writers = null)
     {
         ArgumentNullException.ThrowIfNull(metadata);
         ArgumentNullException.ThrowIfNull(options);
@@ -50,6 +50,11 @@ public sealed class CoreLogRuntime : IAsyncDisposable
         var configured = new List<Output>(2);
         Add("console", consoleEnabled, consoleLevel, console);
         Add("file", fileEnabled, fileLevel, file);
+        if (writers is not null)
+        {
+            foreach (var registration in writers)
+            { Add(registration.Name, true, registration.Level, queuedOutputs!.Get(registration.Name)); }
+        }
         outputs = configured.ToArray();
         void Add(string name, bool enabled, CoreLogLevel threshold, ILogOutputAdmission? admission)
         {
@@ -76,6 +81,21 @@ public sealed class CoreLogRuntime : IAsyncDisposable
         options.Prepare(Directory.GetCurrentDirectory());
         return CreateConfiguredQueued(new EventMetadata(), options);
     }
+
+    /// <summary>Creates a runtime with additional writers whose registrations are captured at startup.</summary>
+    /// <remarks>Built-in destinations retain their configured behavior. Each custom writer has an independent
+    /// queue using the captured QueueCapacity. Registration changes after startup do not affect this runtime.</remarks>
+    public static CoreLogRuntime Create(IEnumerable<LogWriterRegistration> writers)
+    {
+        ArgumentNullException.ThrowIfNull(writers);
+        LoggingOptions options = EnvironmentOptions.Logging;
+        options.Prepare(Directory.GetCurrentDirectory());
+        return QueuedRuntimeFactory.CreateConfiguredQueued(new EventMetadata(), options, writers: writers);
+    }
+
+    /// <summary>Settles after all writer operations and owned cleanup finish, including late cleanup after stop timeout.</summary>
+    /// <remarks>Unlike StopAsync this task has no timeout and may fault when a writer or cleanup fails.</remarks>
+    public Task Completion => queuedOutputs?.Completion ?? Task.CompletedTask;
 
     // Trusted fixtures use the same factory as public creation; no alternative production pipeline.
     internal static CoreLogRuntime CreateQueued(EventMetadata metadata, LoggingOptions options, Func<AdmittedEvent, ValueTask>? consoleWrite, Func<AdmittedEvent, ValueTask>? fileWrite, TimeProvider? timeProvider = null, Func<ValueTask>? consoleFlush = null, Func<ValueTask>? fileFlush = null) => QueuedRuntimeFactory.CreateQueued(metadata, options, consoleWrite, fileWrite, timeProvider, consoleFlush, fileFlush);
@@ -177,7 +197,7 @@ public sealed class CoreLogRuntime : IAsyncDisposable
     {
         try
         {
-            if (boundary.Console is null && boundary.File is null)
+            if (!boundary.Entries.Any())
             {
                 PublishStop(CaptureFlushResult(boundary), completion);
                 return;
@@ -187,21 +207,14 @@ public sealed class CoreLogRuntime : IAsyncDisposable
             try
             {
                 await boundary.WaitForWriterFlushAsync(deadline.Token).ConfigureAwait(false);
-                if (boundary.Console is { } console)
-                {
-                    await queuedOutputs!.Console!.WaitForCoveredRecordsAsync("console", console, deadline.Token).ConfigureAwait(false);
-                }
-
-                if (boundary.File is { } file)
-                {
-                    await queuedOutputs!.File!.WaitForCoveredRecordsAsync("file", file, deadline.Token).ConfigureAwait(false);
-                }
+                foreach (var entry in boundary.Entries)
+                { await queuedOutputs!.Get(entry.Name).WaitForCoveredRecordsAsync(entry.Name, entry.Boundary, deadline.Token).ConfigureAwait(false); }
 
                 try
                 {
                     await queuedOutputs!.Completion.WaitAsync(deadline.Token).ConfigureAwait(false);
                 }
-                catch (Exception) when ((queuedOutputs!.Completion.IsFaulted || queuedOutputs.Completion.IsCanceled) && (queuedOutputs.Console?.IsFaulted == true || queuedOutputs.File?.IsFaulted == true))
+                catch (Exception) when ((queuedOutputs!.Completion.IsFaulted || queuedOutputs.Completion.IsCanceled) && queuedOutputs.Entries.Any(entry => entry.Queue.IsFaulted))
                 { /* Terminal writer faults remain safe output results, not business-call I/O exceptions. */
                 }
             }
@@ -274,7 +287,7 @@ public sealed class CoreLogRuntime : IAsyncDisposable
     private async Task<LogFlushResult> ObserveFlushAsync(RuntimeFlushBoundary boundary, long started, TimeSpan timeout, CancellationToken caller)
     {
         caller.ThrowIfCancellationRequested();
-        if (boundary.Console is null && boundary.File is null)
+        if (!boundary.Entries.Any())
         {
             return CaptureFlushResult(boundary);
         }
@@ -285,15 +298,8 @@ public sealed class CoreLogRuntime : IAsyncDisposable
         {
             await boundary.WaitForWriterFlushAsync(wait.Token).ConfigureAwait(false);
             // A terminal unavailable flush can precede the disposition of an already-started write.
-            if (boundary.Console is { } console)
-            {
-                await queuedOutputs!.Console!.WaitForCoveredRecordsAsync("console", console, wait.Token).ConfigureAwait(false);
-            }
-
-            if (boundary.File is { } file)
-            {
-                await queuedOutputs!.File!.WaitForCoveredRecordsAsync("file", file, wait.Token).ConfigureAwait(false);
-            }
+            foreach (var entry in boundary.Entries)
+            { await queuedOutputs!.Get(entry.Name).WaitForCoveredRecordsAsync(entry.Name, entry.Boundary, wait.Token).ConfigureAwait(false); }
         }
         catch (OperationCanceledException) when (wait.IsCancellationRequested)
         {
@@ -308,18 +314,9 @@ public sealed class CoreLogRuntime : IAsyncDisposable
     {
         lock (admissionGate)
         {
-            var observations = new List<LogOutputDrainResult>(2);
-            if (boundary.Console is { } console)
-            {
-                observations.Add(queuedOutputs!.Console!.CaptureDrain("console", console));
-            }
-
-            if (boundary.File is { } file)
-            {
-                observations.Add(queuedOutputs!.File!.CaptureDrain("file", file));
-            }
-
-            return new LogFlushResult(boundary.BoundaryCapturedAtUtc, DateTimeOffset.UtcNow, boundary.InvalidEventCount, boundary.TruncatedEventCount, observations, deadlineExceeded: budget is { } selected && new[] { boundary.Console, boundary.File }.Any(output => output is { } value && (value.Registration.SettledAt is not { } settled || !selected.Contains(settled))));
+            var observations = boundary.Entries.Select(entry => queuedOutputs!.Get(entry.Name).CaptureDrain(entry.Name, entry.Boundary)).ToArray();
+            return new LogFlushResult(boundary.BoundaryCapturedAtUtc, DateTimeOffset.UtcNow, boundary.InvalidEventCount, boundary.TruncatedEventCount, observations,
+                deadlineExceeded: budget is { } selected && boundary.Entries.Any(entry => entry.Boundary.Registration.SettledAt is not { } settled || !selected.Contains(settled)));
         }
     }
 
@@ -337,7 +334,9 @@ public sealed class CoreLogRuntime : IAsyncDisposable
             DateTimeOffset capturedAt = DateTimeOffset.UtcNow;
             OutputFlushBoundary? console = queuedOutputs.Console?.RegisterFlushBoundary(timestamp);
             OutputFlushBoundary? file = queuedOutputs.File?.RegisterFlushBoundary(timestamp);
-            return new RuntimeFlushBoundary(capturedAt, InvalidEventCount, TruncatedEventCount, console, file);
+            var additional = queuedOutputs.Entries.Where(entry => entry.Name is not ("console" or "file"))
+                .Select(entry => new NamedOutputFlushBoundary(entry.Name, entry.Queue.RegisterFlushBoundary(timestamp))).ToArray();
+            return new RuntimeFlushBoundary(capturedAt, InvalidEventCount, TruncatedEventCount, console, file, Array.AsReadOnly(additional));
         }
     }
 
@@ -363,16 +362,8 @@ public sealed class CoreLogRuntime : IAsyncDisposable
         lock (admissionGate)
         {
             RuntimeAccounting counts = CaptureAccounting();
-            var values = new List<LogOutputDiagnostics>(2);
-            if (counts.Console is OutputAccounting console)
-            {
-                values.Add(new LogOutputDiagnostics("console", console));
-            }
-
-            if (counts.File is OutputAccounting file)
-            {
-                values.Add(new LogOutputDiagnostics("file", file, recoveredPartialSegment));
-            }
+            var values = queuedOutputs!.Entries.Select(entry => new LogOutputDiagnostics(entry.Name, entry.Queue.CaptureAccounting(),
+                entry.Name == "file" && recoveredPartialSegment)).ToArray();
 
             CoreLogState state = !counts.AdmissionClosed ? CoreLogState.Running : values.All(value => value.State == LogOutputState.Stopped) ? CoreLogState.Stopped : CoreLogState.Stopping;
             return new CoreLogDiagnostics(state, counts.AdmissionClosed, DateTimeOffset.UtcNow, shutdownStartedAtUtc, counts.InvalidEventCount, counts.TruncatedEventCount, values, lastStopResult);
