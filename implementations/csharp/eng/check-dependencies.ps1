@@ -12,6 +12,8 @@ $LanguageRoot = [IO.Path]::GetFullPath($LanguageRoot)
 $projectPolicy = Get-Content -Raw -LiteralPath (Join-Path $LanguageRoot 'eng/project-boundaries.json') | ConvertFrom-Json -AsHashtable
 $runtimePolicy = Get-Content -Raw -LiteralPath (Join-Path $LanguageRoot 'eng/runtime-dependencies.json') | ConvertFrom-Json -AsHashtable
 $developmentPolicy = Get-Content -Raw -LiteralPath (Join-Path $LanguageRoot 'eng/development-dependencies.json') | ConvertFrom-Json -AsHashtable
+$pinnedSdk = (Get-Content -Raw -LiteralPath (Join-Path $LanguageRoot 'global.json') | ConvertFrom-Json).sdk.version
+if ($pinnedSdk -cne (Get-Content -Raw -LiteralPath (Join-Path $LanguageRoot 'eng/toolchain.json') | ConvertFrom-Json).sdk) { throw 'SDK pins disagree.' }
 $runtimeAllowed = @{}
 foreach ($package in $runtimePolicy.packages) { $runtimeAllowed[$package.id] = $package.version }
 $developmentAllowed = @{}
@@ -28,7 +30,7 @@ function Invoke-Evaluation {
         $arguments += @('-t:ResolveReferences', '-p:BuildProjectReferences=false', '-getItem:ReferencePath')
     }
     else {
-        $arguments += @('-getItem:ProjectReference,PackageReference,FrameworkReference,Reference', '-getProperty:TargetFramework,IsPackable,IsTestProject,AssemblyName,PackageId,RootNamespace,OutputType,MSBuildBinPath,NETCoreSdkVersion')
+        $arguments += @('-getItem:ProjectReference,PackageReference,FrameworkReference,Reference', '-getProperty:TargetFramework,IsPackable,IsTestProject,AssemblyName,PackageId,RootNamespace,OutputType,MSBuildBinPath,MSBuildSDKsPath,NETCoreSdkBundledVersionsProps,NetCoreRoot,NETCoreSdkVersion')
     }
     $result = & dotnet @arguments
     if ($LASTEXITCODE -ne 0) { throw "Project evaluation failed: $Path" }
@@ -129,11 +131,17 @@ try {
         }
         foreach ($reference in $evaluation.Items.Reference) {
             if ($project.role -eq 'build-tool') {
-                $pinnedSdk = (Get-Content -Raw -LiteralPath (Join-Path $LanguageRoot 'global.json') | ConvertFrom-Json).sdk.version
-                $expectedPath = [IO.Path]::GetFullPath((Join-Path $evaluation.Properties.MSBuildBinPath ($reference.Identity + '.dll')))
-                if ($reference.Identity -notin $project.sdkAssemblyReferences -or $reference.Private -ne 'false' -or
+                $bundled = $evaluation.Properties.NETCoreSdkBundledVersionsProps
+                $sdkRoot = $evaluation.Properties.NetCoreRoot
+                if (-not [IO.Path]::IsPathFullyQualified($bundled) -or -not [IO.Path]::IsPathFullyQualified($sdkRoot)) { throw 'Missing absolute selected SDK facts.' }
+                $selectedSdk = [IO.Path]::GetDirectoryName([IO.Path]::GetFullPath($bundled))
+                $expectedSdk = [IO.Path]::GetFullPath((Join-Path $sdkRoot ('sdk/' + $pinnedSdk)))
+                $comparison = if ($IsWindows) { [StringComparison]::OrdinalIgnoreCase } else { [StringComparison]::Ordinal }
+                if ([IO.Path]::GetFileName($bundled) -cne 'Microsoft.NETCoreSdk.BundledVersions.props' -or -not $selectedSdk.Equals($expectedSdk, $comparison)) { throw 'SDK origin does not match its root and version.' }
+                $expectedPath = Join-Path $expectedSdk ($reference.Identity + '.dll')
+                if ($reference.Identity -notin $project.sdkAssemblyReferences -or $reference.Private -cne 'false' -or
                     $evaluation.Properties.NETCoreSdkVersion -ne $pinnedSdk -or
-                    [IO.Path]::GetFullPath($reference.HintPath) -ne $expectedPath -or -not (Test-Path -LiteralPath $expectedPath)) {
+                    -not [IO.Path]::GetFullPath($reference.HintPath).Equals($expectedPath, $comparison) -or -not (Test-Path -LiteralPath $expectedPath)) {
                     throw "Unapproved pinned-SDK build-tool reference: $($reference.Identity)"
                 }
                 continue

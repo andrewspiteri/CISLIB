@@ -12,6 +12,7 @@ internal static class ArchitecturePolicy
         JsonObject runtime = Read(root, "eng/runtime-dependencies.json");
         JsonObject development = Read(root, "eng/development-dependencies.json");
         JsonObject toolchain = Read(root, "eng/toolchain.json");
+        Require(Text(Read(root, "global.json")["sdk"]!, "version") == Text(toolchain, "sdk"), "ARCH-SDK-VERSION", "SDK pins disagree.");
         Dictionary<string, string> runtimePackages = Packages(runtime);
         Dictionary<string, string> developmentPackages = Packages(development);
         JsonObject[] projects = Objects(report["projects"]).ToArray();
@@ -29,6 +30,7 @@ internal static class ArchitecturePolicy
             {
                 string context = path + " " + Text(target, "target");
                 JsonNode properties = target["properties"]!, items = target["items"]!;
+                Require(Text(properties, "NETCoreSdkVersion") == Text(toolchain, "sdk"), "ARCH-SDK-VERSION", context);
                 Require(Text(properties, "TargetFramework") == Text(policy, "targetFramework"), "ARCH-FRAMEWORK", context);
                 Require(Text(properties, "IsPackable").Equals(role == "shipping" ? "true" : "false", StringComparison.OrdinalIgnoreCase), "ARCH-PACKABILITY", context);
                 if (role == "shipping")
@@ -155,7 +157,7 @@ internal static class ArchitecturePolicy
         {
             Same(references.Select(item => Text(item, "Identity")), Strings(rule["sdkAssemblyReferences"]), "ARCH-SDK-REFERENCE", context);
             foreach (JsonObject reference in references)
-            { Require(Text(reference, "Private") == "false" && SamePath(Text(reference, "HintPath"), Path.Combine(Text(properties, "MSBuildBinPath"), Text(reference, "Identity") + ".dll")), "ARCH-SDK-REFERENCE", context); }
+            { Require(Text(reference, "Private") == "false" && SamePath(Text(reference, "HintPath"), Path.Combine(SelectedSdk(properties), Text(reference, "Identity") + ".dll")), "ARCH-SDK-REFERENCE", context); }
             return;
         }
         foreach (JsonObject reference in references)
@@ -170,7 +172,7 @@ internal static class ArchitecturePolicy
     private static Dictionary<string, AssemblyName> CompilerReferences(JsonObject target, JsonObject rule, Dictionary<string, string> runtime, JsonObject toolchain)
     {
         JsonNode properties = target["properties"]!;
-        string sdk = Text(properties, "MSBuildBinPath"), framework = Text(properties, "TargetFramework");
+        string sdk = SelectedSdk(properties), framework = Text(properties, "TargetFramework");
         Require(Text(properties, "NETCoreSdkVersion") == Text(toolchain, "sdk"), "ARCH-SDK-VERSION", sdk);
         string dotnet = Directory.GetParent(Directory.GetParent(sdk)!.FullName)!.FullName;
         string frameworkRoot = Path.Combine(dotnet, "packs", "Microsoft.NETCore.App.Ref", Text(toolchain, "targetRuntime"), "ref", framework);
@@ -194,6 +196,15 @@ internal static class ArchitecturePolicy
         }
         Require(allowed.Count > 0, "ARCH-COMPILER-IDENTITY", Text(rule, "path"));
         return allowed;
+    }
+
+    private static string SelectedSdk(JsonNode properties)
+    {
+        string bundled = Text(properties, "NETCoreSdkBundledVersionsProps"), root = Text(properties, "NetCoreRoot");
+        Require(Path.IsPathFullyQualified(bundled) && Path.IsPathFullyQualified(root), "ARCH-SDK-REFERENCE", "Missing absolute selected SDK facts.");
+        string sdk = Path.GetDirectoryName(Path.GetFullPath(bundled))!;
+        Require(Path.GetFileName(bundled) == "Microsoft.NETCoreSdk.BundledVersions.props" && SamePath(sdk, Path.Combine(root, "sdk", Text(properties, "NETCoreSdkVersion"))), "ARCH-SDK-REFERENCE", "SDK origin does not match its root and version.");
+        return sdk;
     }
 
     private static JsonObject Read(string root, string path) => JsonNode.Parse(File.ReadAllText(Path.Combine(root, path)))!.AsObject();

@@ -11,6 +11,9 @@ public sealed class ArchitectureAllowlistTests
     private static JsonObject Read(string path) => JsonNode.Parse(File.ReadAllText(Path.Combine(Root, path)))!.AsObject();
     private static JsonObject Current()
     {
+        string? inspection = System.Environment.GetEnvironmentVariable("CIS_ARCHITECTURE_INSPECTION");
+        if (!string.IsNullOrWhiteSpace(inspection))
+        { return JsonNode.Parse(File.ReadAllText(inspection))!.AsObject(); }
         string repository = Directory.GetParent(Directory.GetParent(Root)!.FullName)!.FullName;
         string reports = Path.Combine(repository, ".artifacts/csharp/verification/Developer");
         JsonObject summary = JsonNode.Parse(File.ReadAllText(Path.Combine(reports, "summary.json")))!.AsObject();
@@ -53,6 +56,10 @@ public sealed class ArchitectureAllowlistTests
     [DataRow("package-group", "ARCH-PACKAGE-GROUP")]
     [DataRow("framework-download", "ARCH-FRAMEWORK-DOWNLOAD")]
     [DataRow("manual-reference", "ARCH-MANUAL-REFERENCE")]
+    [DataRow("host-reference", "ARCH-SDK-REFERENCE")]
+    [DataRow("copy-sdk-reference", "ARCH-SDK-REFERENCE")]
+    [DataRow("missing-sdk-directory", "ARCH-SDK-REFERENCE")]
+    [DataRow("wrong-sdk-version-directory", "ARCH-SDK-REFERENCE")]
     public void PolicyRejectsIsolatedObservedFactViolations(string kind, string diagnostic)
     {
         JsonObject report = Current();
@@ -92,10 +99,33 @@ public sealed class ArchitectureAllowlistTests
             case "package-group": report["packageDependencyGroups"]![0]!["dependencies"]!.AsArray().Add(new JsonObject { ["id"] = "Microsoft.Extensions.Logging", ["version"] = "10.0.12" }); break;
             case "framework-download": core["restoreFrameworks"]!["net10.0"]!["downloadDependencies"] = new JsonArray(new JsonObject { ["name"] = "unapproved.runtime", ["version"] = "[1.0.0, 1.0.0]" }); break;
             case "manual-reference": items["Reference"]!.AsArray().Add(new JsonObject { ["Identity"] = "NLog", ["HintPath"] = typeof(ArchitectureAllowlistTests).Assembly.Location }); break;
+            case "host-reference":
+                JsonObject logger = Target(Project(report, "eng/CIS.Discovery.TestLogger/CIS.Discovery.TestLogger.csproj"));
+                logger["items"]!["Reference"]![0]!["HintPath"] = Path.Combine(Root, "unapproved-host", "Microsoft.VisualStudio.TestPlatform.ObjectModel.dll"); break;
+            case "copy-sdk-reference": Target(Project(report, "eng/CIS.TypeManager.Build/CIS.TypeManager.Build.csproj"))["items"]!["Reference"]![0]!["Private"] = "true"; break;
+            case "missing-sdk-directory": target["properties"]!["NETCoreSdkBundledVersionsProps"] = ""; break;
+            case "wrong-sdk-version-directory":
+                target["properties"]!["NETCoreSdkBundledVersionsProps"] = Path.Combine(target["properties"]!["NetCoreRoot"]!.GetValue<string>(), "sdk", "99.0.0", "Microsoft.NETCoreSdk.BundledVersions.props"); break;
             default: Assert.Fail("Unknown control."); break;
         }
         InvalidDataException error = Assert.Throws<InvalidDataException>(() => ArchitecturePolicy.Assert(Root, report));
         StringAssert.StartsWith(error.Message, diagnostic + ":");
+    }
+
+    [TestMethod]
+    public void HostMsbuildDirectoryDoesNotChooseTheSdkReferenceOrigin()
+    {
+        JsonObject report = Current();
+        _ = ArchitecturePolicy.Assert(Root, report);
+        foreach (JsonNode? project in report["projects"]!.AsArray())
+        {
+            foreach (JsonNode? target in project!["targets"]!.AsArray())
+            {
+                target!["properties"]!["MSBuildBinPath"] = Path.Combine(Root, "different-msbuild-host");
+                target["properties"]!["MSBuildSDKsPath"] = Path.Combine(Root, "different-host-sdks");
+            }
+        }
+        Assert.AreEqual(0, ArchitecturePolicy.Assert(Root, report)["violations"]!.GetValue<int>());
     }
 
     [TestMethod]

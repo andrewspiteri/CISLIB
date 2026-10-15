@@ -2,6 +2,11 @@ using System.Text.Json;
 using CIS.TestSupport;
 using CIS.Verification;
 
+if (args.Length > 0 && args[0] == "focused-test")
+{
+    return await FocusedTests.RunAsync(args[1..]);
+}
+
 if (args.Length == 4 && args[0] == "architecture")
 {
     try { await ArchitectureInspection.Write(args[1], args[2], args[3]); return 0; }

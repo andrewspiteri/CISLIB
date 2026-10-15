@@ -154,7 +154,7 @@ internal static class ArchitectureInspection
     private static Task<JsonObject> Evaluate(string root, string path, string framework = "", string rid = "", bool resolve = false)
     {
         var arguments = new List<string> { "msbuild", path, "-nologo", "-verbosity:quiet", "-p:Configuration=Release", "-p:BuildProjectReferences=false",
-            "-getProperty:TargetFramework,TargetFrameworks,TargetPath,AssemblyName,PackageId,RootNamespace,IsPackable,RuntimeIdentifier,RuntimeIdentifiers,ProjectAssetsFile,NuGetLockFilePath,NETCoreSdkVersion,MSBuildBinPath",
+            "-getProperty:TargetFramework,TargetFrameworks,TargetPath,AssemblyName,PackageId,RootNamespace,IsPackable,RuntimeIdentifier,RuntimeIdentifiers,ProjectAssetsFile,NuGetLockFilePath,NETCoreSdkVersion,MSBuildBinPath,MSBuildSDKsPath,NETCoreSdkBundledVersionsProps,NetCoreRoot",
             "-getItem:ProjectReference,PackageReference,FrameworkReference,Reference,ReferencePath" };
         if (framework.Length > 0) { arguments.Add("-p:TargetFramework=" + framework); }
         if (rid.Length > 0) { arguments.Add("-p:RuntimeIdentifier=" + rid); }

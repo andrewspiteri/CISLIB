@@ -7,6 +7,9 @@ param(
 
 $ErrorActionPreference = 'Stop'
 Set-StrictMode -Version Latest
+if (-not [string]::IsNullOrWhiteSpace($env:CIS_ARCHITECTURE_INSPECTION)) {
+    throw 'CIS_ARCHITECTURE_INSPECTION is only for focused tests. Clear it before running a Developer or Release checkpoint.'
+}
 Import-Module (Join-Path $PSScriptRoot 'Evidence.psm1') -Force
 Import-Module (Join-Path $PSScriptRoot 'Verification.psm1') -Force
 $languageRoot = Split-Path $PSScriptRoot -Parent

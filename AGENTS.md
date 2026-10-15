@@ -17,15 +17,16 @@
 
 ## Verification and examples
 
-- Run `pwsh -File eng/verify.ps1` for scaffold verification. The release profile must continue to fail until required release evidence exists.
+- During an edit, run selected native tests with `pwsh -File eng/test.ps1 -Project UnitTests -Class <class>` (or `-Category` / `-Filter`). This incrementally builds that project and rejects empty, failed or skipped native results. See `docs/architecture/csharp-focused-tests.md` for prerequisites and scope.
+- Run `pwsh -File eng/verify.ps1` at a coherent checkpoint and the required release profile before release qualification. A focused pass does not satisfy unexecuted families, coverage, mutation or release gates. Coordinate shared build/output directories with other active chats.
 - Add tests when real behavior is implemented. Follow the six verification families in the logging plan and keep development tools outside shipping dependencies.
 - Keep developer source-reference examples explicit. Release reference examples must consume the exact verified packages.
-- Avoid public placeholder APIs and simulated logging implementations. The console host currently identifies that logging is not implemented.
+- Avoid public placeholder APIs and simulated logging implementations. Logging and Type Manager have implemented behavior and native tests; preserve the distinction between that evidence and outstanding corrective/release work.
 - Runnable skill/API examples must be verified against their matching package version before activation.
 
 ## Changes
 
-- The user requests Claude review when available. Before committing concrete changes, run a read-only Claude review and address actionable findings. Check the host environment outside the sandbox when needed, including the VS Code extension CLI; a missing sandbox PATH entry does not establish that Claude is unavailable. Report an unavailable route honestly.
+- User direction (15 October 2026): stop Claude reviews rather than request further review permission. Use local review and appropriate native verification; do not send further Claude review payloads unless the user explicitly changes this direction.
 - Keep each implementation within the requested task/module scope. Prefer direct implementations; add abstractions only for a concrete requirement.
 - Use readable C#, nullable checking, SDK analyzers, warnings as errors and documented public behavior.
 - User direction: use C# for new C# implementation code, tests and verification utilities. Do not add another implementation language for C# project work. Existing script-based checks can be migrated in a separate cleanup; keep established shell entry points as invocation glue.
