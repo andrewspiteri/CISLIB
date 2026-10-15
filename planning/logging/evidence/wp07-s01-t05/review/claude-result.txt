@@ -1,0 +1,70 @@
+```json
+{
+  "task": "WP07-S01-T05",
+  "verdict": "FINDINGS",
+  "executionStatus": "Windows and Ubuntu results are pending and are not treated as passes. This review is static only.",
+  "findings": [
+    {
+      "severity": "medium",
+      "area": "claim accuracy",
+      "issue": "'237 actual required methods' counts binding entries, not distinct methods. UT-CONFIG-BOUNDS repeats all 28 UT-CONFIG-PRECEDENCE bindings. The three PublicOperationScopeTests methods appear in both UT-IMMUTABILITY and UT-CONTEXT. Several CandidateLoggingProcessTests, ConsoleConsumerProcessTests, FileRuntimeStartup and FileRetention methods repeat across INT groups. My static count is 237 bindings over about 195 distinct methods (about 162 unit and 33 integration).",
+      "action": "Report bindings and distinct methods separately in the doc and task evidence, computed from the inventory rather than written by hand."
+    },
+    {
+      "severity": "medium",
+      "area": "binding fidelity",
+      "issue": "UT-CONFIG-PRECEDENCE and UT-CONFIG-BOUNDS have identical binding lists, so neither group shows coverage specific to its title. Path-syntax tests stand in for 'every precedence layer', and alias/precedence tests stand in for bounds.",
+      "action": "Bind each group to the subset that exercises its requirement. If the shared union is intentional, record why per group."
+    },
+    {
+      "severity": "medium",
+      "area": "lane applicability",
+      "issue": "Bindings are lane-agnostic, and every group requires both lanes with minimumExecutions 1. Any platform-conditional method or data source that yields zero rows on one OS will fail MissingRequiredCase there. Examples are FileAcquisitionProcessTests.DisabledUnixFileLockingCannotSilentlyCreateAnUnownedActiveFile and the *ForTheirNativePlatform vectors. The doc says platform selection is not a skip, but the inventory cannot express per-lane bindings.",
+      "action": "Before activation, confirm from the pending native reports that every bound method has at least one executed row on each lane. Otherwise add per-binding lanes and minimums rather than relaxing the group."
+    },
+    {
+      "severity": "medium",
+      "area": "evidence freshness",
+      "issue": "Write-DiscoveryReconciliation runs only on the try path and never deletes a previous discovery-reconciliation.json. A run that fails or throws can leave an older run's reconciliation beside the new summary. The file also has no runId or source binding.",
+      "action": "Delete the file at startup. Either write it from finally or record that it was not produced. Include summary.runId and source.commit/inputInventory, and reference its hash from summary or validation."
+    },
+    {
+      "severity": "low",
+      "area": "reconciliation completeness",
+      "issue": "supportingMethods iterates only executed method keys. A method that was discovered but not executed is omitted even though the reconciliation is still written for that run. A method bound only by a lane-inapplicable Implemented case would be mislabelled as supporting.",
+      "action": "Iterate the union of discovered and executed keys. Mark inapplicable-bound methods separately from genuinely unbound ones."
+    },
+    {
+      "severity": "low",
+      "area": "checker negative controls",
+      "issue": "Some identity rules have no fixture control: an extra discovered row, a substituted unique ID, a zero or empty GUID, a non-fully-qualified source, errors > 0, and tests[] count != total. The code handles these, but they are unqualified.",
+      "action": "Add DataRows to RejectsNativeDiscoveryAndGroupDrift for these cases."
+    },
+    {
+      "severity": "low",
+      "area": "live writer path untested",
+      "issue": "In verify.ps1, discovery.cases[].count uses Measure-Object -Property count over hashtables. The fixture never exercises this path because it hand-writes discovery.json, so its correctness under StrictMode rests only on the pending live runs. A failure here would fail safe as DiscoveryCaseMismatch.",
+      "action": "Use an explicit sum, or confirm the live discovery.json counts match the native counts on both lanes."
+    },
+    {
+      "severity": "low",
+      "area": "display-name parsing",
+      "issue": "ConvertFrom-Json converts ISO-date-like strings to DateTime. A DataRow display name in date form would no longer be the raw native string, which breaks the raw-unchanged comparison.",
+      "action": "Use -DateKind String if the pinned pwsh supports it, or read the Name values through System.Text.Json."
+    },
+    {
+      "severity": "low",
+      "area": "maintainability",
+      "issue": "Get-VerificationIssues assigns to $matches, which is the automatic $Matches variable. Unexpected .NET exceptions inside the family try block become issue codes made from the whole message. Group entries keep method:null and minimumExecutions:1 next to bindings, which is harmless but ambiguous.",
+      "action": "Rename the variable, map uncoded exceptions to a fixed code, and consider dropping the leaf fields from group entries."
+    }
+  ],
+  "confirmed": [
+    "Discovery to execution is a bijection: unique IDs on both sides, equal totals, and every result matched by exact ID, ordinal method, display name and normalized source (case-insensitive on Windows only).",
+    "The legacy encoding is one-way, applied only to display names, and never decodes literal backslashes. IDs, methods and sources are compared raw. The literal-escape and swapped-surrogate negatives are correct.",
+    "There are 9 Planned obligations: MUT-FULL-CORE, ARCH-PUBLIC-TYPES, ARCH-IMMUTABLE-CONFIG, COMPAT-API/SOURCE/BINARY/CONFIG-WIRE-BEHAVIOR, BC-009 and BC-010. All still fail the Release profile.",
+    "The logger references the SDK ObjectModel with Private=false, sets IsPackable=false and adds no PackageReference. The SDK framework downloads appear only in source mapping and toolchain.json, not as Core dependencies.",
+    "Stale discovery-native.json and report.trx files are removed before each family run, and the logger opens its output with FileMode.CreateNew."
+  ]
+}
+```

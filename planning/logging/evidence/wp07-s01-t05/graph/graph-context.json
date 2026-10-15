@@ -1,0 +1,48 @@
+{
+  "task": "WP07-S01-T05",
+  "lastSuccessfulBuild": {
+    "buildId": "sha256:88cf4795a1112d30ae7a38e0c1f06a46f3a7fd208671d59718e9c8612ea824cf",
+    "nodes": 11114,
+    "edges": 44250,
+    "warnings": 146,
+    "errors": 0,
+    "status": "partial"
+  },
+  "latestObservedFreshness": "unavailable: status cache probe reports a SQLite readonly-database write error",
+  "refreshAttempt": {
+    "status": "TimedOut",
+    "deadlineSeconds": 60
+  },
+  "boundedQueries": [
+    {
+      "query": "DiscoveryLogger",
+      "exitCode": 124,
+      "output": "\nBounded graph query exceeded 45 seconds; no symbol/relationship completeness claimed.\n"
+    },
+    {
+      "query": "Get-VerificationIssues",
+      "exitCode": 0,
+      "output": "status=no-match;exitCode=0;freshness=stale;nodes=0;traversals=0;truncated=false\r\nrepository=C:\\miscwork\\portfolio\\cislib\r\ngraphPath=.cis/local/graph/context.db\r\nbuildId=sha256:d9119e12c672e1255d6a843ab48eddd0c7cecdd56209be9760034405d1cb8881\r\nquery.limit=5\r\nquery.operation=find\r\nquery.text=Get-VerificationIssues\r\ndiagnostic=CIS-GRAPH-QUERY-STALE-001;severity=warning;message=The derived graph does not match the current repository inputs. Run `cis graph build`.\r\nevidence.CIS-GRAPH-QUERY-STALE-001=i"
+    }
+  ],
+  "limits": [
+    "PowerShell verifier symbol has no extracted match.",
+    "DiscoveryLogger query exceeded its bounded deadline.",
+    "No complete semantic/test relationship graph or final freshness is claimed.",
+    "Canonical case inventory, native discovery/execution, reports and commit remain completion evidence.",
+    "Final graph build completed partial with 146 ownership warnings and zero build errors; status/freshness cannot be confirmed because its cache probe fails. No graph state was hand-edited."
+  ],
+  "finalRefreshAttempt": {
+    "status": "Completed",
+    "exitCode": 0,
+    "deadlineSeconds": 120,
+    "log": "final-refresh.log"
+  },
+  "finalStatus": "status=graph-unavailable;exitCode=4;freshness=unknown;nodes=0;edges=0;errors=1;warnings=0;information=0;strict=false\r\nrepository=C:\\miscwork\\portfolio\\cislib\r\ngraphPath=.cis/local/graph/context.db\r\nbuildId=",
+  "finalStatusProbe": {
+    "exitCode": 4,
+    "diagnostic": "CIS-GRAPH-VALIDATE-LOAD-001",
+    "reason": "SQLite graph status cache is empty or incompatible: SQLite Error 8: attempt to write a readonly database.",
+    "log": "final-status.log"
+  }
+}

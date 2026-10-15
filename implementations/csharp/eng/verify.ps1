@@ -1,3 +1,4 @@
+#Requires -Version 7.5
 param(
     [ValidateSet('Developer', 'Release')][string] $Profile = 'Developer',
     [string] $Lane = $(if ($IsWindows) { 'windows-x64' } else { 'linux-ubuntu2404-x64' }),
@@ -13,10 +14,13 @@ $repositoryRoot = Split-Path (Split-Path $languageRoot -Parent) -Parent
 $reportRoot = Join-Path $repositoryRoot ".artifacts/csharp/verification/$Profile"
 $packageRoot = Join-Path $repositoryRoot '.artifacts/csharp/packages'
 $legacyTests = Join-Path $repositoryRoot '.artifacts/csharp/tests'
-$manifest = Get-Content -Raw -LiteralPath (Join-Path $languageRoot 'verification/families.json') | ConvertFrom-Json -AsHashtable
-$inventory = Get-Content -Raw -LiteralPath (Join-Path $repositoryRoot 'conformance/logging/case-inventory.json') | ConvertFrom-Json -AsHashtable
+$manifest = Get-Content -Raw -LiteralPath (Join-Path $languageRoot 'verification/families.json') | ConvertFrom-Json -AsHashtable -DateKind String
+$inventory = Get-Content -Raw -LiteralPath (Join-Path $repositoryRoot 'conformance/logging/case-inventory.json') | ConvertFrom-Json -AsHashtable -DateKind String
 $context = @{ stages = [System.Collections.Generic.List[object]]::new() }
 $summary = [ordered]@{ schema = 'cis.verification/v1'; profile = $Profile; lane = $Lane; runId = [guid]::NewGuid().ToString('N'); startedUtc = [DateTime]::UtcNow.ToString('o'); finishedUtc = $null; exitCode = $null; source = $null; families = @(); stages = @(); issues = @() }
+$reconciliationPath = Join-Path $reportRoot 'discovery-reconciliation.json'
+$summary.reconciliation = [ordered]@{ status = 'NotProduced'; report = $null; reason = 'No complete family inventory for this run.' }
+if (Test-Path -LiteralPath $reconciliationPath) { Remove-Item -LiteralPath $reconciliationPath }
 $exitCode = 1
 $previousTelemetry = @{}
 New-Item -ItemType Directory -Path (Join-Path $reportRoot 'logs'), $legacyTests -Force | Out-Null
@@ -29,23 +33,30 @@ function Publish-Summary {
 function Invoke-Family {
     param([hashtable] $Family, [object] $Entry)
     $directory = Join-Path $reportRoot "families/$($Family.id)"
-    $arguments = @('test', $Family.project, '-c', 'Release', '--no-build', '--no-restore')
-    $lines = @(Invoke-VerificationCommand (Join-Path $directory 'discovery.log') ($arguments + @('--list-tests')))
-    $names = @($lines | Where-Object { $_ -match '^    \S' } | ForEach-Object { $_.Trim() })
-    $cases = @($inventory.cases | Where-Object { $_.family -eq $Family.id -and $_.implementation -eq 'Implemented' } | ForEach-Object {
-        $methodName = $_.method.Split('.')[-1]
-        [ordered]@{ id = $_.id; count = @($names | Where-Object { $_ -match ('^' + [regex]::Escape($methodName) + '(?:\s|\(|$)') }).Count }
+    $arguments = @('test', $Family.project, '-c', 'Release', '--no-build', '--no-restore', '--settings', (Join-Path $languageRoot 'verification/developer.runsettings'))
+    $discoveryNativePath = Join-Path $directory 'discovery-native.json'
+    if (Test-Path -LiteralPath $discoveryNativePath) { Remove-Item -LiteralPath $discoveryNativePath }
+    $loggerDirectory = Join-Path $PSScriptRoot 'CIS.Discovery.TestLogger/bin/Release/net10.0'
+    $null = Invoke-VerificationCommand (Join-Path $directory 'discovery.log') ($arguments + @('--list-tests', '--test-adapter-path', $loggerDirectory, '--logger', "cis-discovery;OutputPath=$discoveryNativePath"))
+    $discoveredNative = Read-NativeDiscovery $discoveryNativePath
+    $discoveryCounts = Get-MethodCounts $discoveredNative.tests 'Method'
+    $cases = @($inventory.cases | Where-Object { $_.family -eq $Family.id -and $_.implementation -eq 'Implemented' -and $Lane -in $_.lanes } | ForEach-Object {
+        $case = $_
+        $bindings = @(Get-CaseBindings $case | ForEach-Object {
+            @{ method = $_.method; count = $(if ($discoveryCounts.ContainsKey($_.method)) { $discoveryCounts[$_.method] } else { 0 }) }
+        })
+        [ordered]@{ id = $case.id; count = ($bindings | Measure-Object count -Sum).Sum; bindings = $bindings }
     })
     $discoveryPath = Join-Path $directory 'discovery.json'
-    Write-VerificationJson $discoveryPath ([ordered]@{ schema = 'cis.discovery/v1'; family = $Family.id; status = 'Discovered'; discovered = $names.Count; cases = $cases; names = $names })
+    Write-VerificationJson $discoveryPath ([ordered]@{ schema = 'cis.discovery/v1'; family = $Family.id; status = 'Discovered'; discovered = $discoveredNative.total; cases = $cases; nativeReport = New-EvidenceReference $reportRoot $discoveryNativePath 'cis.vstest-discovery/v1' })
     $Entry.discovery = New-EvidenceReference $reportRoot $discoveryPath 'cis.discovery/v1'
-    if ($names.Count -eq 0) { throw "Zero discovered tests: $($Family.id)" }
+
     $nativePath = Join-Path $directory 'report.trx'
     # VSTest must emit a new report for this invocation; never accept an old report after a failed run.
     if (Test-Path -LiteralPath $nativePath) { Remove-Item -LiteralPath $nativePath }
     $runFailure = $null
     try {
-        $null = Invoke-VerificationCommand (Join-Path $directory 'execution.log') ($arguments + @('--results-directory', $directory, '--logger', 'trx;LogFileName=report.trx', '--', 'RunConfiguration.TreatNoTestsAsError=true', 'RunConfiguration.TestSessionTimeout=120000'))
+        $null = Invoke-VerificationCommand (Join-Path $directory 'execution.log') ($arguments + @('--results-directory', $directory, '--logger', 'trx;LogFileName=report.trx', '--', 'RunConfiguration.TreatNoTestsAsError=true'))
     }
     catch { $runFailure = $_ }
     if (-not (Test-Path -LiteralPath $nativePath)) {
@@ -65,6 +76,8 @@ function Invoke-Family {
 
 Push-Location $languageRoot
 try {
+    $actualLane = if ($IsWindows) { 'windows-x64' } elseif ($IsLinux) { 'linux-ubuntu2404-x64' } else { 'unsupported' }
+    if ($Profile -eq 'Developer' -and ($Lane -ne $actualLane -or [Runtime.InteropServices.RuntimeInformation]::ProcessArchitecture -ne 'X64')) { throw 'Requested lane does not match the actual execution host.' }
     foreach ($name in @('DOTNET_CLI_TELEMETRY_OPTOUT', 'TESTINGPLATFORM_TELEMETRY_OPTOUT', 'VSTEST_TELEMETRY_OPTEDOUT')) {
         $previousTelemetry[$name] = [Environment]::GetEnvironmentVariable($name)
         [Environment]::SetEnvironmentVariable($name, '1')
@@ -113,17 +126,29 @@ try {
         Invoke-VerificationStage $context 'host' { $null = Invoke-VerificationCommand (Join-Path $reportRoot 'logs/host.log') @('run', '--project', 'examples/logging/ConsoleHuman', '-c', 'Release', '--no-build', '--no-restore') }
     }
     Publish-Summary
-    $summary.issues = @(Get-VerificationIssues $reportRoot $manifest $inventory $Profile $Lane)
-    $exitCode = if ($summary.issues.Count -eq 0) { 0 } else { 2 }
+    $exitCode = 0
 }
 catch {
     $failureDetail = $_.Exception.Message
     Publish-Summary
-    $summary.issues = @(Get-VerificationIssues $reportRoot $manifest $inventory $Profile $Lane)
     $summary.issues += [ordered]@{ code = 'StageFailure'; detail = $failureDetail }
     $exitCode = 1
 }
 finally {
+    if ($summary.families.Count -eq $manifest.families.Count) {
+        try {
+            Write-DiscoveryReconciliation $reportRoot $summary $manifest $inventory $Lane
+            $summary.reconciliation = [ordered]@{ status = 'Produced'; report = New-EvidenceReference $reportRoot $reconciliationPath 'cis.discovery-reconciliation/v1'; reason = $null }
+        }
+        catch {
+            $summary.reconciliation.reason = $_.Exception.Message
+            $summary.issues += [ordered]@{ code = 'ReconciliationFailure'; detail = $_.Exception.Message }
+            $exitCode = 1
+        }
+    }
+    Publish-Summary
+    $summary.issues = @($summary.issues) + @(Get-VerificationIssues $reportRoot $manifest $inventory $Profile $Lane)
+    if ($exitCode -eq 0 -and $summary.issues.Count -gt 0) { $exitCode = 2 }
     $summary.exitCode = $exitCode
     $summary.finishedUtc = [DateTime]::UtcNow.ToString('o')
     Publish-Summary

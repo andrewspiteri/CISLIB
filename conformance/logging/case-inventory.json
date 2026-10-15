@@ -401,7 +401,7 @@
       "id": "UT-CONFIG-PRECEDENCE",
       "family": "unit",
       "title": "Every precedence layer and invalid higher priority",
-      "implementation": "Planned",
+      "implementation": "Implemented",
       "method": null,
       "minimumExecutions": 1,
       "lanes": [
@@ -412,13 +412,48 @@
         "REQ-002",
         "REQ-004"
       ],
-      "source": "Supplied guide sections 14-17, as amended; stable inventory refined additively with implementation."
+      "source": "Supplied guide sections 14-17, as amended; stable inventory refined additively with implementation.",
+      "bindings": [
+        {
+          "method": "CIS.Tests.UnitTests.ConfigurationNormalizationTests.BlankAliasesAndSetupTextUseDiscoveryOrDefaults",
+          "minimumExecutions": 1
+        },
+        {
+          "method": "CIS.Tests.UnitTests.ConfigurationNormalizationTests.BlankCoreValuesUseTypedSetupForEverySetting",
+          "minimumExecutions": 1
+        },
+        {
+          "method": "CIS.Tests.UnitTests.ConfigurationNormalizationTests.IdentityLayersPreserveTrimmedCaseAndUnicodeSequences",
+          "minimumExecutions": 1
+        },
+        {
+          "method": "CIS.Tests.UnitTests.EnvironmentOverridesTests.MissingOrBlankCanonicalUsesEachIdentityAlias",
+          "minimumExecutions": 1
+        },
+        {
+          "method": "CIS.Tests.UnitTests.EnvironmentOverridesTests.NonblankCanonicalNeverReadsItsShadowedAlias",
+          "minimumExecutions": 1
+        },
+        {
+          "method": "CIS.Tests.UnitTests.EnvironmentOverridesTests.RequiredEnvironmentReadFailuresPropagate",
+          "minimumExecutions": 1
+        },
+        {
+          "method": "CIS.Tests.UnitTests.ConfigurationTableTests.SelectedConfigurationMatchesTheSharedTable",
+          "minimumExecutions": 26
+        },
+        {
+          "method": "CIS.Tests.UnitTests.ConfigurationNormalizationTests.NonblankMalformedTokensAreNotRepairedOrReplaced",
+          "minimumExecutions": 1
+        }
+      ],
+      "implementationEvidence": "Shared 26-row settings table plus blank/default/setup/environment/alias precedence and required-read propagation controls."
     },
     {
       "id": "UT-CONFIG-BOUNDS",
       "family": "unit",
       "title": "Explicit bool/numeric tokens, bounds and relative path capture",
-      "implementation": "Planned",
+      "implementation": "Implemented",
       "method": null,
       "minimumExecutions": 1,
       "lanes": [
@@ -429,13 +464,60 @@
         "REQ-002",
         "REQ-004"
       ],
-      "source": "Supplied guide sections 14-17, as amended; stable inventory refined additively with implementation."
+      "source": "Supplied guide sections 14-17, as amended; stable inventory refined additively with implementation.",
+      "bindings": [
+        {
+          "method": "CIS.Tests.UnitTests.ConfigurationNormalizationTests.NonblankMalformedTokensAreNotRepairedOrReplaced",
+          "minimumExecutions": 1
+        },
+        {
+          "method": "CIS.Tests.UnitTests.ConfigurationNormalizationTests.TokensMatchOrdinalCaseAcrossCultures",
+          "minimumExecutions": 1
+        },
+        {
+          "method": "CIS.Tests.UnitTests.ConfigurationOptionValidationTests.EnabledFileSizeRelationshipAvoidsDuplicateRangeErrors",
+          "minimumExecutions": 1
+        },
+        {
+          "method": "CIS.Tests.UnitTests.ConfigurationOptionValidationTests.SharedCrossOptionVectorsValidateWithoutOutputSideEffects",
+          "minimumExecutions": 1
+        },
+        {
+          "method": "CIS.Tests.UnitTests.ConfigurationOptionValidationTests.TypedSetupUsesTheSameInclusiveNumericBounds",
+          "minimumExecutions": 1
+        },
+        {
+          "method": "CIS.Tests.UnitTests.ConfigurationValidationVectorTests.ActualAggregatedIssuesRemainOwnedAndImmutableAcrossLaterValidation",
+          "minimumExecutions": 1
+        },
+        {
+          "method": "CIS.Tests.UnitTests.ConfigurationValidationVectorTests.CompleteValidationMatchesCombinedBoundaryPriorityAndSafeErrorFixtures",
+          "minimumExecutions": 1
+        },
+        {
+          "method": "CIS.Tests.UnitTests.ConfigurationValidationVectorTests.EveryApplicablePerKeyVectorPassesThroughCompleteValidation",
+          "minimumExecutions": 1
+        },
+        {
+          "method": "CIS.Tests.UnitTests.EnvironmentOverridesTests.ConsumersRejectEveryInteriorIdentityControl",
+          "minimumExecutions": 1
+        },
+        {
+          "method": "CIS.Tests.UnitTests.EnvironmentOverridesTests.ControlledInvalidMetadataAndLoggingInputsAreRejectedAtTheirConsumers",
+          "minimumExecutions": 1
+        },
+        {
+          "method": "CIS.Tests.UnitTests.EnvironmentOverridesTests.IntegerGrammarIsIndependentOfCulture",
+          "minimumExecutions": 1
+        }
+      ],
+      "implementationEvidence": "Inclusive numeric and cross-option bounds, complete per-key/platform validation vectors, invalid tokens and identity controls. Path syntax has separate leaf bindings."
     },
     {
       "id": "UT-IDENTITY",
       "family": "unit",
       "title": "Application metadata, optional runtime context, UTC and restart IDs",
-      "implementation": "Planned",
+      "implementation": "Implemented",
       "method": null,
       "minimumExecutions": 1,
       "lanes": [
@@ -446,13 +528,44 @@
         "REQ-002",
         "REQ-003"
       ],
-      "source": "Supplied guide sections 14-17, as amended; stable inventory refined additively with implementation."
+      "source": "Supplied guide sections 14-17, as amended; stable inventory refined additively with implementation.",
+      "bindings": [
+        {
+          "method": "CIS.Tests.UnitTests.EnvironmentConstructorTests.AssemblyInformationPrecedesAssemblyVersionAndIgnoresFileVersion",
+          "minimumExecutions": 1
+        },
+        {
+          "method": "CIS.Tests.UnitTests.EnvironmentConstructorTests.AutomaticFactsMatchTheCurrentProcessAndProduceOwnedMetadata",
+          "minimumExecutions": 1
+        },
+        {
+          "method": "CIS.Tests.UnitTests.EnvironmentConstructorTests.CommonIdentityValuesAreInternedAndPolicyValuesRemainOrdinaryProperties",
+          "minimumExecutions": 1
+        },
+        {
+          "method": "CIS.Tests.UnitTests.EnvironmentConstructorTests.MissingEntryAssemblyHasAnHonestUnknownBuildFallback",
+          "minimumExecutions": 1
+        },
+        {
+          "method": "CIS.Tests.UnitTests.EnvironmentConstructorTests.RepeatedAccessRetainsTheSameFactsAndSettingsWithoutRegeneratingIds",
+          "minimumExecutions": 1
+        },
+        {
+          "method": "CIS.Tests.UnitTests.StartupMetadataFixtureTests.MetadataComparatorRejectsSemanticSubstitution",
+          "minimumExecutions": 1
+        },
+        {
+          "method": "CIS.Tests.UnitTests.StartupMetadataFixtureTests.SharedMetadataVectorsExecuteAgainstActualOwnedCoreSnapshots",
+          "minimumExecutions": 1
+        }
+      ],
+      "implementationEvidence": "WP07-S01-T05: every listed native method is required; source/candidate and controlled-seam limits remain those of functional-reconciliation, candidate-consumer-qualification and concurrency-qualification maps."
     },
     {
       "id": "UT-IMMUTABILITY",
       "family": "unit",
       "title": "Deep capture of metadata/values/exceptions",
-      "implementation": "Planned",
+      "implementation": "Implemented",
       "method": null,
       "minimumExecutions": 1,
       "lanes": [
@@ -463,13 +576,100 @@
         "REQ-003",
         "REQ-008"
       ],
-      "source": "Supplied guide sections 14-17, as amended; stable inventory refined additively with implementation."
+      "source": "Supplied guide sections 14-17, as amended; stable inventory refined additively with implementation.",
+      "bindings": [
+        {
+          "method": "CIS.Tests.UnitTests.ConfigurationDiagnosticTests.DiagnosticsHaveTheActualProposedPublicShapeCodesAndNamedConstructors",
+          "minimumExecutions": 1
+        },
+        {
+          "method": "CIS.Tests.UnitTests.ConfigurationDiagnosticTests.ExceptionCopiesAndEnumeratesIssueInputOnceInOrder",
+          "minimumExecutions": 1
+        },
+        {
+          "method": "CIS.Tests.UnitTests.ConfigurationDiagnosticTests.ExceptionFormattingDoesNotAutomaticallyDumpEvenCallerSuppliedUnsafeIssues",
+          "minimumExecutions": 1
+        },
+        {
+          "method": "CIS.Tests.UnitTests.ConfigurationDiagnosticTests.ExceptionRejectsNullSequenceAndNullElements",
+          "minimumExecutions": 1
+        },
+        {
+          "method": "CIS.Tests.UnitTests.ConfigurationDiagnosticTests.IssueRejectsNullArgumentsWithStableParameterNames",
+          "minimumExecutions": 1
+        },
+        {
+          "method": "CIS.Tests.UnitTests.ExceptionContentTests.CallerExceptionsCyclicDataPayloadsAndHeadersAreCollectibleWhileCaptureLives",
+          "minimumExecutions": 1
+        },
+        {
+          "method": "CIS.Tests.UnitTests.ExceptionContentTests.EveryExcludedGetterTrapIsArmedAndCaptureNeverCallsIt",
+          "minimumExecutions": 1
+        },
+        {
+          "method": "CIS.Tests.UnitTests.ExceptionContentTests.ExactContentComparatorRejectsMisplacedMissingAndSpuriousMarkersOrFields",
+          "minimumExecutions": 1
+        },
+        {
+          "method": "CIS.Tests.UnitTests.ExceptionContentTests.MarkersDescribeOnlyLocallyClippedContentAndExcludeEveryOtherField",
+          "minimumExecutions": 1
+        },
+        {
+          "method": "CIS.Tests.UnitTests.ExceptionContentTests.NativeDataSourceAndHelpLinkMutationDoesNotChangeCapturedContent",
+          "minimumExecutions": 1
+        },
+        {
+          "method": "CIS.Tests.UnitTests.LogValueCollectionTests.ActualCollectionFactoriesMatchIndependentRootAndBoundaryVectors",
+          "minimumExecutions": 1
+        },
+        {
+          "method": "CIS.Tests.UnitTests.LogValueCollectionTests.BoundaryComparatorRejectsWrongRootCountingAndFalseLossMarkers",
+          "minimumExecutions": 1
+        },
+        {
+          "method": "CIS.Tests.UnitTests.LogValueCollectionTests.MapStructuralProjectionKeepsABoundedEnumerationPrefixWithOrdinalKeys",
+          "minimumExecutions": 1
+        },
+        {
+          "method": "CIS.Tests.UnitTests.LogValueCollectionTests.ObservedInvalidChildrenAndKeysFailEvenAtTheFirstExcessEntry",
+          "minimumExecutions": 1
+        },
+        {
+          "method": "CIS.Tests.UnitTests.LogValueCollectionTests.ParallelRootsUseIndependentBudgetsAndImmutableSharedChildren",
+          "minimumExecutions": 1
+        },
+        {
+          "method": "CIS.Tests.UnitTests.LogValueCollectionTests.PartialDescendantProjectionOwnsShapesAndDoesNotMutateSharedInputs",
+          "minimumExecutions": 1
+        },
+        {
+          "method": "CIS.Tests.UnitTests.LogValueCollectionTests.PriorTruncationSurvivesReuseWithoutAnyAdditionalOmission",
+          "minimumExecutions": 1
+        },
+        {
+          "method": "CIS.Tests.UnitTests.LogValueCollectionTests.StructuralProjectionNeverChangesRetainedScalarKinds",
+          "minimumExecutions": 1
+        },
+        {
+          "method": "CIS.Tests.UnitTests.PublicOperationScopeTests.CreatorCanDisposeExistingScopeAfterRuntimeStopAndRepeatSafely",
+          "minimumExecutions": 1
+        },
+        {
+          "method": "CIS.Tests.UnitTests.PublicOperationScopeTests.PublicScopeNullGuardPrecedesClosedStateAndValidScopeCannotStartAfterStop",
+          "minimumExecutions": 1
+        },
+        {
+          "method": "CIS.Tests.UnitTests.PublicOperationScopeTests.PublicScopesCopyInputsRejectBadLifoAndRestoreAcrossAwait",
+          "minimumExecutions": 1
+        }
+      ],
+      "implementationEvidence": "WP07-S01-T05: every listed native method is required; source/candidate and controlled-seam limits remain those of functional-reconciliation, candidate-consumer-qualification and concurrency-qualification maps."
     },
     {
       "id": "UT-FILTERING",
       "family": "unit",
       "title": "Every level/threshold and None/stopped precedence",
-      "implementation": "Planned",
+      "implementation": "Implemented",
       "method": null,
       "minimumExecutions": 1,
       "lanes": [
@@ -479,13 +679,68 @@
       "requirements": [
         "REQ-004"
       ],
-      "source": "Supplied guide sections 14-17, as amended; stable inventory refined additively with implementation."
+      "source": "Supplied guide sections 14-17, as amended; stable inventory refined additively with implementation.",
+      "bindings": [
+        {
+          "method": "CIS.Tests.UnitTests.LoggerFoundationTests.AllLoggerMethodsRejectUndefinedLevelsAfterClosure",
+          "minimumExecutions": 1
+        },
+        {
+          "method": "CIS.Tests.UnitTests.LoggerFoundationTests.ComparatorRejectsCorruptedOriginalBytes",
+          "minimumExecutions": 1
+        },
+        {
+          "method": "CIS.Tests.UnitTests.LoggerFoundationTests.ComponentBoundsUseScalarsAndPreserveSuppliedSpelling",
+          "minimumExecutions": 1
+        },
+        {
+          "method": "CIS.Tests.UnitTests.LoggerFoundationTests.ComponentsRejectBlankControlsAndMalformedUnicode",
+          "minimumExecutions": 1
+        },
+        {
+          "method": "CIS.Tests.UnitTests.LoggerFoundationTests.FactoryCanCloseAdmissionFromAnotherThreadWithoutHoldingTheGate",
+          "minimumExecutions": 1
+        },
+        {
+          "method": "CIS.Tests.UnitTests.LoggerFoundationTests.NoneSkipsMalformedContentAndFactoryButDoesNotOverrideClosure",
+          "minimumExecutions": 1
+        },
+        {
+          "method": "CIS.Tests.UnitTests.LoggerFoundationTests.OwnedEncoderFailureIsNotCountedAsInvalidCallerContent",
+          "minimumExecutions": 1
+        },
+        {
+          "method": "CIS.Tests.UnitTests.LoggerFoundationTests.RequiredWriteArgumentPrecedesLevelAndClosure",
+          "minimumExecutions": 1
+        },
+        {
+          "method": "CIS.Tests.UnitTests.LoggerFoundationTests.ResultCollectionsAreOwnedAndCannotChangeWithLaterAdmissions",
+          "minimumExecutions": 1
+        },
+        {
+          "method": "CIS.Tests.UnitTests.LoggerFoundationTests.SharedFoundationCasesExerciseTheActualLogger",
+          "minimumExecutions": 1
+        },
+        {
+          "method": "CIS.Tests.UnitTests.LoggerOutcomeTests.CatalogIncludesEachOrderedOutputPairForDirectAndLazyCalls",
+          "minimumExecutions": 1
+        },
+        {
+          "method": "CIS.Tests.UnitTests.LoggerOutcomeTests.ComparatorRejectsAlteredOutcomeAdmissionAndWireObservations",
+          "minimumExecutions": 1
+        },
+        {
+          "method": "CIS.Tests.UnitTests.LoggerOutcomeTests.CompleteOutcomeTableMatchesRealLoggerInterestAndAdmission",
+          "minimumExecutions": 1
+        }
+      ],
+      "implementationEvidence": "WP07-S01-T05: every listed native method is required; source/candidate and controlled-seam limits remain those of functional-reconciliation, candidate-consumer-qualification and concurrency-qualification maps."
     },
     {
       "id": "UT-DEFERRED",
       "family": "unit",
       "title": "No filtered factory work; one interested invocation",
-      "implementation": "Planned",
+      "implementation": "Implemented",
       "method": null,
       "minimumExecutions": 1,
       "lanes": [
@@ -495,13 +750,48 @@
       "requirements": [
         "REQ-004"
       ],
-      "source": "Supplied guide sections 14-17, as amended; stable inventory refined additively with implementation."
+      "source": "Supplied guide sections 14-17, as amended; stable inventory refined additively with implementation.",
+      "bindings": [
+        {
+          "method": "CIS.Tests.UnitTests.LoggerCaptureTests.ComparatorRejectsFalseCaptureAndTicketObservations",
+          "minimumExecutions": 1
+        },
+        {
+          "method": "CIS.Tests.UnitTests.LoggerCaptureTests.ConcurrentWritesCountEachCaptureAndFactoryOnce",
+          "minimumExecutions": 1
+        },
+        {
+          "method": "CIS.Tests.UnitTests.LoggerCaptureTests.GlobalLossCountersSaturateInsteadOfWrapping",
+          "minimumExecutions": 1
+        },
+        {
+          "method": "CIS.Tests.UnitTests.LoggerCaptureTests.ProtocolInvalidOutputCannotInventOrHideTickets",
+          "minimumExecutions": 1
+        },
+        {
+          "method": "CIS.Tests.UnitTests.LoggerCaptureTests.SharedCaptureCasesQualifyLazyRejectionOutcomesAndOutputOwnedTickets",
+          "minimumExecutions": 1
+        },
+        {
+          "method": "CIS.Tests.UnitTests.LoggerDecisionTests.ComparatorRejectsAlteredExecutionObservations",
+          "minimumExecutions": 1
+        },
+        {
+          "method": "CIS.Tests.UnitTests.LoggerDecisionTests.IsEnabledValidatesUndefinedLevelsBeforeClosedOrFaultedState",
+          "minimumExecutions": 1
+        },
+        {
+          "method": "CIS.Tests.UnitTests.LoggerDecisionTests.SharedDecisionCasesObserveArgumentsThenStateThenCaptureThenAdmission",
+          "minimumExecutions": 1
+        }
+      ],
+      "implementationEvidence": "WP07-S01-T05: every listed native method is required; source/candidate and controlled-seam limits remain those of functional-reconciliation, candidate-consumer-qualification and concurrency-qualification maps."
     },
     {
       "id": "UT-SERIALIZATION",
       "family": "unit",
       "title": "Exact supported values, JSON escaping and encoding bounds",
-      "implementation": "Planned",
+      "implementation": "Implemented",
       "method": null,
       "minimumExecutions": 1,
       "lanes": [
@@ -512,13 +802,96 @@
         "REQ-003",
         "REQ-010"
       ],
-      "source": "Supplied guide sections 14-17, as amended; stable inventory refined additively with implementation."
+      "source": "Supplied guide sections 14-17, as amended; stable inventory refined additively with implementation.",
+      "bindings": [
+        {
+          "method": "CIS.Tests.UnitTests.EventEncodingTests.AllTypedValuesAndOptionalFactsRoundTripAsOneOwnedRecord",
+          "minimumExecutions": 1
+        },
+        {
+          "method": "CIS.Tests.UnitTests.EventEncodingTests.BudgetDoesNotInventEmptyOptionalStringsButKeepsSuppliedEmptyValues",
+          "minimumExecutions": 1
+        },
+        {
+          "method": "CIS.Tests.UnitTests.EventEncodingTests.EarlierScalarProjectionLossRemainsMarkedEvenWhenEncodedEntryFits",
+          "minimumExecutions": 1
+        },
+        {
+          "method": "CIS.Tests.UnitTests.EventEncodingTests.EncoderRejectsInvalidConfiguredLimits",
+          "minimumExecutions": 1
+        },
+        {
+          "method": "CIS.Tests.UnitTests.EventEncodingTests.EncoderRequiresOwnedFacts",
+          "minimumExecutions": 1
+        },
+        {
+          "method": "CIS.Tests.UnitTests.EventEncodingTests.EscapedByteBoundaryNeverSplitsAScalar",
+          "minimumExecutions": 1
+        },
+        {
+          "method": "CIS.Tests.UnitTests.EventEncodingTests.ExactlyAtCapFitsAndOneExtraByteTriggersMarkedTruncationIncludingLf",
+          "minimumExecutions": 1
+        },
+        {
+          "method": "CIS.Tests.UnitTests.EventEncodingTests.HugeAttachmentDoesNotCreateAFullEscapedSecondaryRepresentation",
+          "minimumExecutions": 1
+        },
+        {
+          "method": "CIS.Tests.UnitTests.EventEncodingTests.IndivisibleStringRepresentationsAreOmittedWholeWhenOnlyQuotesFit",
+          "minimumExecutions": 1
+        },
+        {
+          "method": "CIS.Tests.UnitTests.EventEncodingTests.JsonEscapingRoundTripsControlsAndUnicodeWithoutRawLines",
+          "minimumExecutions": 1
+        },
+        {
+          "method": "CIS.Tests.UnitTests.EventEncodingTests.MessageThenOrdinalAttributesWinBeforeExceptionTemplateAndDescriptions",
+          "minimumExecutions": 1
+        },
+        {
+          "method": "CIS.Tests.UnitTests.EventEncodingTests.NestedCollectionsRetainTheirShapesAndExceptionRetainsLocalMarker",
+          "minimumExecutions": 1
+        },
+        {
+          "method": "CIS.Tests.UnitTests.EventEncodingTests.NumberFormattingPreservesFiniteDoubleAndActualMeasuredBytes",
+          "minimumExecutions": 1
+        },
+        {
+          "method": "CIS.Tests.UnitTests.EventEncodingTests.OmittedAtomicAttributeDoesNotPreventLaterSmallValuesFromFitting",
+          "minimumExecutions": 1
+        },
+        {
+          "method": "CIS.Tests.UnitTests.EventEncodingTests.OversizedProtectedEnvelopeHasSpecificFailureAndDoesNotAlterFacts",
+          "minimumExecutions": 1
+        },
+        {
+          "method": "CIS.Tests.UnitTests.EventEncodingTests.SortedMapBudgetIsIndependentOfInsertionOrderAndKeepsArrayOrder",
+          "minimumExecutions": 1
+        },
+        {
+          "method": "CIS.Tests.UnitTests.ExceptionQualificationTests.BothNativeFixtureTypesHaveArmedExcludedGetterTraps",
+          "minimumExecutions": 1
+        },
+        {
+          "method": "CIS.Tests.UnitTests.ExceptionQualificationTests.EverySharedExceptionRowCapturesOnceAgainstCoreAcrossCultures",
+          "minimumExecutions": 1
+        },
+        {
+          "method": "CIS.Tests.UnitTests.ExceptionQualificationTests.OwnedTextAndShapeExposeStableInputsForLaterAggregateSizing",
+          "minimumExecutions": 1
+        },
+        {
+          "method": "CIS.Tests.UnitTests.ExceptionQualificationTests.SharedComparatorRejectsIncorrectTreeLossReadsTypesAndErrors",
+          "minimumExecutions": 1
+        }
+      ],
+      "implementationEvidence": "WP07-S01-T05: every listed native method is required; source/candidate and controlled-seam limits remain those of functional-reconciliation, candidate-consumer-qualification and concurrency-qualification maps."
     },
     {
       "id": "UT-CONTEXT",
       "family": "unit",
       "title": "Nested/async/concurrent operation context isolation",
-      "implementation": "Planned",
+      "implementation": "Implemented",
       "method": null,
       "minimumExecutions": 1,
       "lanes": [
@@ -528,13 +901,68 @@
       "requirements": [
         "REQ-003"
       ],
-      "source": "Supplied guide sections 14-17, as amended; stable inventory refined additively with implementation."
+      "source": "Supplied guide sections 14-17, as amended; stable inventory refined additively with implementation.",
+      "bindings": [
+        {
+          "method": "CIS.Tests.UnitTests.EventPrecedenceTests.ExplicitWinnerKeepsItsTypedKindAndReplacesTheWholeScopeValue",
+          "minimumExecutions": 1
+        },
+        {
+          "method": "CIS.Tests.UnitTests.EventPrecedenceTests.IdentifierScalarBoundsApplyAfterTrimWithoutClippingOrStateMutation",
+          "minimumExecutions": 1
+        },
+        {
+          "method": "CIS.Tests.UnitTests.EventPrecedenceTests.LaterScopesAndEventMutationsCannotChangeEarlierOwnedWinners",
+          "minimumExecutions": 1
+        },
+        {
+          "method": "CIS.Tests.UnitTests.EventPrecedenceTests.LiteralSharedPrecedenceUsesActualOwnedCoreFacts",
+          "minimumExecutions": 1
+        },
+        {
+          "method": "CIS.Tests.UnitTests.EventPrecedenceTests.OriginalPrecedenceVectorsExecuteAgainstActualScopeAndEventFacts",
+          "minimumExecutions": 1
+        },
+        {
+          "method": "CIS.Tests.UnitTests.EventPrecedenceTests.PrecedenceComparatorRejectsWrongWinnersAndFreeFormPromotion",
+          "minimumExecutions": 1
+        },
+        {
+          "method": "CIS.Tests.UnitTests.OperationScopeQualificationTests.CompleteScopeComparatorRejectsChangedIdsValuesOrderTypesAndFields",
+          "minimumExecutions": 1
+        },
+        {
+          "method": "CIS.Tests.UnitTests.OperationScopeQualificationTests.EverySharedScopeScenarioExecutesAgainstCoreWithBarriers",
+          "minimumExecutions": 1
+        },
+        {
+          "method": "CIS.Tests.UnitTests.OperationScopeQualificationTests.JoinedFixturePreservesAnIndependentControllerFailureAfterWorkersComplete",
+          "minimumExecutions": 1
+        },
+        {
+          "method": "CIS.Tests.UnitTests.OperationScopeQualificationTests.JoinedFixtureReportsEveryWorkerFailureWithoutDuplicatingReadiness",
+          "minimumExecutions": 1
+        },
+        {
+          "method": "CIS.Tests.UnitTests.PublicOperationScopeTests.CreatorCanDisposeExistingScopeAfterRuntimeStopAndRepeatSafely",
+          "minimumExecutions": 1
+        },
+        {
+          "method": "CIS.Tests.UnitTests.PublicOperationScopeTests.PublicScopeNullGuardPrecedesClosedStateAndValidScopeCannotStartAfterStop",
+          "minimumExecutions": 1
+        },
+        {
+          "method": "CIS.Tests.UnitTests.PublicOperationScopeTests.PublicScopesCopyInputsRejectBadLifoAndRestoreAcrossAwait",
+          "minimumExecutions": 1
+        }
+      ],
+      "implementationEvidence": "WP07-S01-T05: every listed native method is required; source/candidate and controlled-seam limits remain those of functional-reconciliation, candidate-consumer-qualification and concurrency-qualification maps."
     },
     {
       "id": "UT-DELIVERY",
       "family": "unit",
       "title": "Admission, counters, flush, worker failures, stop/cancellation",
-      "implementation": "Planned",
+      "implementation": "Implemented",
       "method": null,
       "minimumExecutions": 1,
       "lanes": [
@@ -544,13 +972,96 @@
       "requirements": [
         "REQ-004"
       ],
-      "source": "Supplied guide sections 14-17, as amended; stable inventory refined additively with implementation."
+      "source": "Supplied guide sections 14-17, as amended; stable inventory refined additively with implementation.",
+      "bindings": [
+        {
+          "method": "CIS.Tests.UnitTests.DeliveryObservationTests.CompletePartialAndUnresolvedStreamsKeepTruthfulBoundaries",
+          "minimumExecutions": 1
+        },
+        {
+          "method": "CIS.Tests.UnitTests.DeliveryObservationTests.DeliveryMatcherRejectsPrematureConfirmationAndUntruthfulObservations",
+          "minimumExecutions": 1
+        },
+        {
+          "method": "CIS.Tests.UnitTests.DeliveryObservationTests.LiveAccountingRefusesToInventFactsForAdmissionDoubles",
+          "minimumExecutions": 1
+        },
+        {
+          "method": "CIS.Tests.UnitTests.DeliveryObservationTests.LiveRuntimeBoundariesStayConsistentDuringConcurrentFanoutAndGlobalLoss",
+          "minimumExecutions": 1
+        },
+        {
+          "method": "CIS.Tests.UnitTests.DeliveryObservationTests.SynchronousTerminalWriteFailureIsFailedWithItsOriginalException",
+          "minimumExecutions": 1
+        },
+        {
+          "method": "CIS.Tests.UnitTests.FlushStressTests.PublicFlushStressUsesActualQueuesWritersTimersAndMeasuredStorage",
+          "minimumExecutions": 1
+        },
+        {
+          "method": "CIS.Tests.UnitTests.OutputAccountingTests.AccountingMatcherRejectsInventedLostOrMutatedCounts",
+          "minimumExecutions": 1
+        },
+        {
+          "method": "CIS.Tests.UnitTests.OutputAccountingTests.ActualWorkersKeepCumulativeCountsAndUnresolvedGauges",
+          "minimumExecutions": 1
+        },
+        {
+          "method": "CIS.Tests.UnitTests.OutputAccountingTests.ConcurrentAdmissionsPreserveOneConsistentAcceptedPartition",
+          "minimumExecutions": 1
+        },
+        {
+          "method": "CIS.Tests.UnitTests.OutputAccountingTests.RejectionCountersAndAggregatesSaturateWithoutWrapping",
+          "minimumExecutions": 1
+        },
+        {
+          "method": "CIS.Tests.UnitTests.StopDrainTests.ActualQueuedDrainDistinguishesAbandonmentFromUnresolvedIo",
+          "minimumExecutions": 1
+        },
+        {
+          "method": "CIS.Tests.UnitTests.StopDrainTests.FileQueueCancellationKeepsOwnedResourceUntilItsActualWriteSettles",
+          "minimumExecutions": 1
+        },
+        {
+          "method": "CIS.Tests.UnitTests.StopJoinTests.CallerCancellationAndDisposalJoinTheOriginalBoundedOperation",
+          "minimumExecutions": 1
+        },
+        {
+          "method": "CIS.Tests.UnitTests.StopStartTests.AWrittenRecordWithBlockedFinalFlushRemainsTimedOutWithoutRewritingResult",
+          "minimumExecutions": 1
+        },
+        {
+          "method": "CIS.Tests.UnitTests.StopStartTests.CancelledWaitDetachesFromLiveSharedStopAndPreservesInitialFacts",
+          "minimumExecutions": 1
+        },
+        {
+          "method": "CIS.Tests.UnitTests.StopStartTests.EmptyStopClosesOnceAndAlreadyCancelledCallerStillInitiates",
+          "minimumExecutions": 1
+        },
+        {
+          "method": "CIS.Tests.UnitTests.StopStartTests.InvalidShutdownTimeoutIsRejectedBeforeOutputAcquisition",
+          "minimumExecutions": 1
+        },
+        {
+          "method": "CIS.Tests.UnitTests.StopStartTests.NormalDualStopFlushesOriginalIndependentTargetsAndSharesOwnedResult",
+          "minimumExecutions": 1
+        },
+        {
+          "method": "CIS.Tests.UnitTests.StopStartTests.OneOriginalDeadlineSurvivesRepeatedCallersAndOptionOrUtcChanges",
+          "minimumExecutions": 1
+        },
+        {
+          "method": "CIS.Tests.UnitTests.StopStartTests.TerminalFlushFailureReturnsActualFailedStopResult",
+          "minimumExecutions": 1
+        }
+      ],
+      "implementationEvidence": "WP07-S01-T05: every listed native method is required; source/candidate and controlled-seam limits remain those of functional-reconciliation, candidate-consumer-qualification and concurrency-qualification maps."
     },
     {
       "id": "UT-FILE-POLICY",
       "family": "unit",
       "title": "Rotation, ownership, retention/recovery and rollback",
-      "implementation": "Planned",
+      "implementation": "Implemented",
       "method": null,
       "minimumExecutions": 1,
       "lanes": [
@@ -560,13 +1071,156 @@
       "requirements": [
         "REQ-004"
       ],
-      "source": "Supplied guide sections 14-17, as amended; stable inventory refined additively with implementation."
+      "source": "Supplied guide sections 14-17, as amended; stable inventory refined additively with implementation.",
+      "bindings": [
+        {
+          "method": "CIS.Tests.UnitTests.FileInventoryTests.CompatibleOwnedClosedAndDamagedMembersAreInspectedWithoutModification",
+          "minimumExecutions": 1
+        },
+        {
+          "method": "CIS.Tests.UnitTests.FileInventoryTests.EmptyGroupRecordsItsFormatAndRetainsIdentityAcrossRestart",
+          "minimumExecutions": 1
+        },
+        {
+          "method": "CIS.Tests.UnitTests.FileInventoryTests.ExistingEvenEmptyGroupRequiresArchivalBeforeFormatSwitch",
+          "minimumExecutions": 1
+        },
+        {
+          "method": "CIS.Tests.UnitTests.FileInventoryTests.InvalidFormatAndDisposedOwnerCannotCreateInventory",
+          "minimumExecutions": 1
+        },
+        {
+          "method": "CIS.Tests.UnitTests.FileInventoryTests.InventoryCountIsBoundedAtMaximumRetainedSegmentsPlusActive",
+          "minimumExecutions": 1
+        },
+        {
+          "method": "CIS.Tests.UnitTests.FileInventoryTests.InventoryDirectoryCollisionIsPreservedAndReleasesOwnedHandles",
+          "minimumExecutions": 1
+        },
+        {
+          "method": "CIS.Tests.UnitTests.FileInventoryTests.MalformedOrIncompatibleInventoryPreservesAllBytesAndReleasesOwnership",
+          "minimumExecutions": 1
+        },
+        {
+          "method": "CIS.Tests.UnitTests.FileInventoryTests.MissingActiveSegmentCannotSilentlyReuseAnExistingIdentity",
+          "minimumExecutions": 1
+        },
+        {
+          "method": "CIS.Tests.UnitTests.FileInventoryTests.NonemptyMissingInventoryFailsWithoutInferringFormatOrChangingBytes",
+          "minimumExecutions": 1
+        },
+        {
+          "method": "CIS.Tests.UnitTests.FileRecoveryTests.HumanPartialBoundaryStillFailsUnchangedInsteadOfJsonlRecovery",
+          "minimumExecutions": 1
+        },
+        {
+          "method": "CIS.Tests.UnitTests.FileRecoveryTests.IneligibleOwnersCannotRecoverOrChangeExistingBytes",
+          "minimumExecutions": 1
+        },
+        {
+          "method": "CIS.Tests.UnitTests.FileRecoveryTests.PredictableRecoveryFailuresPreserveAllPreimagesAndReleaseOwnership",
+          "minimumExecutions": 1
+        },
+        {
+          "method": "CIS.Tests.UnitTests.FileRecoveryTests.RecoveryPreservesTheWholePartialSegmentUnderItsPersistentIdentity",
+          "minimumExecutions": 1
+        },
+        {
+          "method": "CIS.Tests.UnitTests.FileRecoveryTests.StartupRecoveryDiagnosticIsOwnedStickyAndDoesNotInventDeliveryFailures",
+          "minimumExecutions": 1
+        },
+        {
+          "method": "CIS.Tests.UnitTests.FileRecoveryTests.SuccessiveRecoveriesUseDistinctIncreasingDamagedIdsWithoutOverwritingEarlierDamage",
+          "minimumExecutions": 1
+        },
+        {
+          "method": "CIS.Tests.UnitTests.FileRetentionTests.ConfiguredStartupFailureJoinsWorkersWithoutPruningExistingData",
+          "minimumExecutions": 1
+        },
+        {
+          "method": "CIS.Tests.UnitTests.FileRetentionTests.ListedIdentityOrderCountsDamagedSegmentsAndPreservesUnlistedNeighbors",
+          "minimumExecutions": 1
+        },
+        {
+          "method": "CIS.Tests.UnitTests.FileRetentionTests.LowerStartupLimitPreservesAllDataAndReleasesAcquiredHandles",
+          "minimumExecutions": 1
+        },
+        {
+          "method": "CIS.Tests.UnitTests.FileRetentionTests.NewestSegmentIdsAndBytesSurviveRepeatedRotationAndRestart",
+          "minimumExecutions": 1
+        },
+        {
+          "method": "CIS.Tests.UnitTests.FileRotationTests.ClosedNameCollisionPreservesBothFilesAndInventory",
+          "minimumExecutions": 1
+        },
+        {
+          "method": "CIS.Tests.UnitTests.FileRotationTests.EncodedUtf8AndLfDetermineExactSegmentBoundary",
+          "minimumExecutions": 1
+        },
+        {
+          "method": "CIS.Tests.UnitTests.FileRotationTests.ExhaustedSegmentIdentityFailsBeforeRetiringOrRenamingData",
+          "minimumExecutions": 1
+        },
+        {
+          "method": "CIS.Tests.UnitTests.FileRotationTests.ExistingFullSegmentRotatesBeforeFirstIncomingRecord",
+          "minimumExecutions": 1
+        },
+        {
+          "method": "CIS.Tests.UnitTests.FileRotationTests.FailedMetadataPublicationPreservesClosedBytesAndLeavesNoAppendableActivePath",
+          "minimumExecutions": 1
+        },
+        {
+          "method": "CIS.Tests.UnitTests.FileRotationTests.MaximumInventoryRotatesWithinTheReadableBound",
+          "minimumExecutions": 1
+        },
+        {
+          "method": "CIS.Tests.UnitTests.FileRotationTests.RecordLargerThanAnEmptySegmentNeverCreatesEmptyRotations",
+          "minimumExecutions": 1
+        },
+        {
+          "method": "CIS.Tests.UnitTests.FileRuntimeStartupTests.ConfiguredOutputsWriteOrRollbackWithoutLeakingResources",
+          "minimumExecutions": 1
+        },
+        {
+          "method": "CIS.Tests.UnitTests.FileRuntimeStartupTests.InvalidInputsFailBeforeAnyStreamWorkerOrDirectory",
+          "minimumExecutions": 1
+        },
+        {
+          "method": "CIS.Tests.UnitTests.FileRuntimeStartupTests.OwnedCleanupCompletesBeforeWorkerCompletionAndRunsOutsideAdmissionGate",
+          "minimumExecutions": 1
+        },
+        {
+          "method": "CIS.Tests.UnitTests.FileRuntimeStartupTests.StartupComparerRejectsChangedRollbackFacts",
+          "minimumExecutions": 1
+        },
+        {
+          "method": "CIS.Tests.UnitTests.FileTransitionTests.AmbiguousOrInvalidTransitionFailsBeforeChangingAnyExistingBytes",
+          "minimumExecutions": 1
+        },
+        {
+          "method": "CIS.Tests.UnitTests.FileTransitionTests.KnownTransitionsResumeExactlyOnceWithoutChangingSurvivingEvidence",
+          "minimumExecutions": 1
+        },
+        {
+          "method": "CIS.Tests.UnitTests.FileTransitionTests.NewlySelectedBoundsFailBeforeCompletingAnInterruptedTransition",
+          "minimumExecutions": 1
+        },
+        {
+          "method": "CIS.Tests.UnitTests.FileTransitionTests.NormalRotationRetiresDamagedAndClosedMembersByPersistentId",
+          "minimumExecutions": 1
+        },
+        {
+          "method": "CIS.Tests.UnitTests.FileTransitionTests.RetirementBeforeIntentCannotBeGuessedAndFailsUnchanged",
+          "minimumExecutions": 1
+        }
+      ],
+      "implementationEvidence": "WP07-S01-T05: every listed native method is required; source/candidate and controlled-seam limits remain those of functional-reconciliation, candidate-consumer-qualification and concurrency-qualification maps."
     },
     {
       "id": "INT-HUMAN",
       "family": "integration",
       "title": "Normal/verbose real process output",
-      "implementation": "Planned",
+      "implementation": "Implemented",
       "method": null,
       "minimumExecutions": 1,
       "lanes": [
@@ -577,13 +1231,32 @@
         "REQ-001",
         "REQ-004"
       ],
-      "source": "Supplied guide sections 14-17, as amended; stable inventory refined additively with implementation."
+      "source": "Supplied guide sections 14-17, as amended; stable inventory refined additively with implementation.",
+      "bindings": [
+        {
+          "method": "CIS.Tests.IntegrationTests.CandidateLoggingProcessTests.PackedConsumerSelectsPresentationStreamsAndIndependentThresholds",
+          "minimumExecutions": 1
+        },
+        {
+          "method": "CIS.Tests.IntegrationTests.ConsoleConsumerProcessTests.ConsumerComparerRejectsSpecificCorruption",
+          "minimumExecutions": 1
+        },
+        {
+          "method": "CIS.Tests.IntegrationTests.ConsoleConsumerProcessTests.SameCompiledConsumerUsesEnvironmentAndDrainsBothStreams",
+          "minimumExecutions": 1
+        },
+        {
+          "method": "CIS.Tests.IntegrationTests.HumanRenderingProcessTests.HumanRenderingRunsInAnIsolatedExactRuntimeChild",
+          "minimumExecutions": 1
+        }
+      ],
+      "implementationEvidence": "WP07-S01-T05: every listed native method is required; source/candidate and controlled-seam limits remain those of functional-reconciliation, candidate-consumer-qualification and concurrency-qualification maps."
     },
     {
       "id": "INT-JSONL-STREAMS",
       "family": "integration",
       "title": "CLI stdout result and separate parseable stderr",
-      "implementation": "Planned",
+      "implementation": "Implemented",
       "method": null,
       "minimumExecutions": 1,
       "lanes": [
@@ -595,13 +1268,32 @@
         "REQ-004",
         "REQ-010"
       ],
-      "source": "Supplied guide sections 14-17, as amended; stable inventory refined additively with implementation."
+      "source": "Supplied guide sections 14-17, as amended; stable inventory refined additively with implementation.",
+      "bindings": [
+        {
+          "method": "CIS.Tests.IntegrationTests.CandidateLoggingProcessTests.PackedConsumerSelectsPresentationStreamsAndIndependentThresholds",
+          "minimumExecutions": 1
+        },
+        {
+          "method": "CIS.Tests.IntegrationTests.ConsoleConsumerProcessTests.ConsumerComparerRejectsSpecificCorruption",
+          "minimumExecutions": 1
+        },
+        {
+          "method": "CIS.Tests.IntegrationTests.ConsoleConsumerProcessTests.SameCompiledConsumerUsesEnvironmentAndDrainsBothStreams",
+          "minimumExecutions": 1
+        },
+        {
+          "method": "CIS.Tests.IntegrationTests.EventEncodingProcessTests.JsonEncodingRunsInAnIsolatedExactRuntimeChild",
+          "minimumExecutions": 1
+        }
+      ],
+      "implementationEvidence": "WP07-S01-T05: every listed native method is required; source/candidate and controlled-seam limits remain those of functional-reconciliation, candidate-consumer-qualification and concurrency-qualification maps."
     },
     {
       "id": "INT-OUTPUTS",
       "family": "integration",
       "title": "Independent console/file levels and simultaneous outputs",
-      "implementation": "Planned",
+      "implementation": "Implemented",
       "method": null,
       "minimumExecutions": 1,
       "lanes": [
@@ -611,13 +1303,28 @@
       "requirements": [
         "REQ-004"
       ],
-      "source": "Supplied guide sections 14-17, as amended; stable inventory refined additively with implementation."
+      "source": "Supplied guide sections 14-17, as amended; stable inventory refined additively with implementation.",
+      "bindings": [
+        {
+          "method": "CIS.Tests.IntegrationTests.CandidateLoggingProcessTests.PackedConsumerSelectsPresentationStreamsAndIndependentThresholds",
+          "minimumExecutions": 1
+        },
+        {
+          "method": "CIS.Tests.IntegrationTests.CandidateLoggingProcessTests.PackedConsumerWithDisabledOutputsSkipsFactoriesAndStopsIdempotently",
+          "minimumExecutions": 1
+        },
+        {
+          "method": "CIS.Tests.IntegrationTests.FileRuntimeStartupProcessTests.ConfiguredFileAndConsoleStartupInFreshConsumer",
+          "minimumExecutions": 1
+        }
+      ],
+      "implementationEvidence": "WP07-S01-T05: every listed native method is required; source/candidate and controlled-seam limits remain those of functional-reconciliation, candidate-consumer-qualification and concurrency-qualification maps."
     },
     {
       "id": "INT-IDENTITY-RESTART",
       "family": "integration",
       "title": "Metadata and new process instance on restart",
-      "implementation": "Planned",
+      "implementation": "Implemented",
       "method": null,
       "minimumExecutions": 1,
       "lanes": [
@@ -627,13 +1334,28 @@
       "requirements": [
         "REQ-003"
       ],
-      "source": "Supplied guide sections 14-17, as amended; stable inventory refined additively with implementation."
+      "source": "Supplied guide sections 14-17, as amended; stable inventory refined additively with implementation.",
+      "bindings": [
+        {
+          "method": "CIS.Tests.IntegrationTests.CandidateLoggingProcessTests.PackedRestartContinuesRotationIdentitiesAndRetainsOnlyOwnedNewestSegments",
+          "minimumExecutions": 1
+        },
+        {
+          "method": "CIS.Tests.IntegrationTests.EnvironmentOptionsProcessTests.ReadonlyConstructorFactsAndLoggingCaptureWorkInFreshApplicationProcesses",
+          "minimumExecutions": 1
+        },
+        {
+          "method": "CIS.Tests.IntegrationTests.FileRetentionProcessTests.SeparateProducersKeepTheSameGroupAndNewestBoundedSegments",
+          "minimumExecutions": 1
+        }
+      ],
+      "implementationEvidence": "WP07-S01-T05: every listed native method is required; source/candidate and controlled-seam limits remain those of functional-reconciliation, candidate-consumer-qualification and concurrency-qualification maps."
     },
     {
       "id": "INT-FAILURE-ISOLATION",
       "family": "integration",
       "title": "Initialization and writer failure boundaries",
-      "implementation": "Planned",
+      "implementation": "Implemented",
       "method": null,
       "minimumExecutions": 1,
       "lanes": [
@@ -643,13 +1365,48 @@
       "requirements": [
         "REQ-004"
       ],
-      "source": "Supplied guide sections 14-17, as amended; stable inventory refined additively with implementation."
+      "source": "Supplied guide sections 14-17, as amended; stable inventory refined additively with implementation.",
+      "bindings": [
+        {
+          "method": "CIS.Tests.IntegrationTests.CandidateLoggingProcessTests.PackedRotationCollisionFaultsOnlyFileAndKeepsConsoleAvailable",
+          "minimumExecutions": 1
+        },
+        {
+          "method": "CIS.Tests.IntegrationTests.CandidateLoggingProcessTests.PackedStartupReconcilesPreparedInterruptedRotationAndPreservesOriginalBytes",
+          "minimumExecutions": 1
+        },
+        {
+          "method": "CIS.Tests.IntegrationTests.CandidateLoggingProcessTests.PackedStartupRejectsUnsafeExistingOutputWithoutChangingBytesOrLeakingItsLease",
+          "minimumExecutions": 1
+        },
+        {
+          "method": "CIS.Tests.IntegrationTests.ConsoleConsumerProcessTests.ConsumerComparerRejectsSpecificCorruption",
+          "minimumExecutions": 1
+        },
+        {
+          "method": "CIS.Tests.IntegrationTests.ConsoleConsumerProcessTests.SameCompiledConsumerUsesEnvironmentAndDrainsBothStreams",
+          "minimumExecutions": 1
+        },
+        {
+          "method": "CIS.Tests.IntegrationTests.ConsoleStartupProcessTests.FailedStartupConsumersJoinWorkersAndKeepApplicationStreams",
+          "minimumExecutions": 1
+        },
+        {
+          "method": "CIS.Tests.IntegrationTests.FileFailureProcessTests.RealConsumersExposeTerminalPolicyFailureAndHealthyOutput",
+          "minimumExecutions": 1
+        },
+        {
+          "method": "CIS.Tests.IntegrationTests.FileRuntimeStartupProcessTests.ConfiguredFileAndConsoleStartupInFreshConsumer",
+          "minimumExecutions": 1
+        }
+      ],
+      "implementationEvidence": "WP07-S01-T05: every listed native method is required; source/candidate and controlled-seam limits remain those of functional-reconciliation, candidate-consumer-qualification and concurrency-qualification maps."
     },
     {
       "id": "INT-FILE-LIFECYCLE",
       "family": "integration",
       "title": "Exclusive ownership, rotation/retention across restart and Unicode paths",
-      "implementation": "Planned",
+      "implementation": "Implemented",
       "method": null,
       "minimumExecutions": 1,
       "lanes": [
@@ -659,13 +1416,72 @@
       "requirements": [
         "REQ-004"
       ],
-      "source": "Supplied guide sections 14-17, as amended; stable inventory refined additively with implementation."
+      "source": "Supplied guide sections 14-17, as amended; stable inventory refined additively with implementation.",
+      "bindings": [
+        {
+          "method": "CIS.Tests.IntegrationTests.CandidateLoggingProcessTests.PackedConsumersEnforceExclusiveGroupsReleaseOnTerminationAndKeepDistinctGroupsIndependent",
+          "minimumExecutions": 1
+        },
+        {
+          "method": "CIS.Tests.IntegrationTests.CandidateLoggingProcessTests.PackedRestartContinuesRotationIdentitiesAndRetainsOnlyOwnedNewestSegments",
+          "minimumExecutions": 1
+        },
+        {
+          "method": "CIS.Tests.IntegrationTests.CandidateLoggingProcessTests.PackedStartupReconcilesPreparedInterruptedRotationAndPreservesOriginalBytes",
+          "minimumExecutions": 1
+        },
+        {
+          "method": "CIS.Tests.IntegrationTests.ConfigurationPathProcessTests.ChildCwdChangeCannotRedirectValidatedPathOrCreateOutputs",
+          "minimumExecutions": 1
+        },
+        {
+          "method": "CIS.Tests.IntegrationTests.FileAcquisitionProcessTests.CapturedPathIsAcquiredInItsOriginalDirectoryFromAnotherChildCwd",
+          "minimumExecutions": 1
+        },
+        {
+          "method": "CIS.Tests.IntegrationTests.FileAcquisitionProcessTests.DisabledUnixFileLockingCannotSilentlyCreateAnUnownedActiveFile",
+          "minimumExecutions": 1
+        },
+        {
+          "method": "CIS.Tests.IntegrationTests.FileAcquisitionProcessTests.SameGroupIsExclusiveWhileDistinctGroupAndReadersWorkThenOwnershipIsReleased",
+          "minimumExecutions": 1
+        },
+        {
+          "method": "CIS.Tests.IntegrationTests.FileGroupConsumerProcessTests.FormatSwitchFailsWithoutChangingExistingActiveOrInventory",
+          "minimumExecutions": 1
+        },
+        {
+          "method": "CIS.Tests.IntegrationTests.FileGroupConsumerProcessTests.KilledRuntimeReleasesOwnershipAndNextProcessAppends",
+          "minimumExecutions": 1
+        },
+        {
+          "method": "CIS.Tests.IntegrationTests.FileGroupConsumerProcessTests.LiveProcessesExcludeSameGroupAndAppendIndependentlyToDistinctGroups",
+          "minimumExecutions": 1
+        },
+        {
+          "method": "CIS.Tests.IntegrationTests.FileGroupConsumerProcessTests.MissingInventoryRejectsExistingBytesAndReleasesThePathLease",
+          "minimumExecutions": 1
+        },
+        {
+          "method": "CIS.Tests.IntegrationTests.FileGroupConsumerProcessTests.RelativeUnicodePathIsPreparedBeforeIoAndSurvivesLaterDirectoryChange",
+          "minimumExecutions": 1
+        },
+        {
+          "method": "CIS.Tests.IntegrationTests.FileRestartProcessTests.SeparateProducerAndRestartProcessesPreserveWholeSegmentsAndSafeFailures",
+          "minimumExecutions": 1
+        },
+        {
+          "method": "CIS.Tests.IntegrationTests.FileRetentionProcessTests.SeparateProducersKeepTheSameGroupAndNewestBoundedSegments",
+          "minimumExecutions": 1
+        }
+      ],
+      "implementationEvidence": "WP07-S01-T05: every listed native method is required; source/candidate and controlled-seam limits remain those of functional-reconciliation, candidate-consumer-qualification and concurrency-qualification maps."
     },
     {
       "id": "INT-BURST-STOP",
       "family": "integration",
       "title": "Bounded queues, graceful stop and deadline reports",
-      "implementation": "Planned",
+      "implementation": "Implemented",
       "method": null,
       "minimumExecutions": 1,
       "lanes": [
@@ -675,13 +1491,44 @@
       "requirements": [
         "REQ-004"
       ],
-      "source": "Supplied guide sections 14-17, as amended; stable inventory refined additively with implementation."
+      "source": "Supplied guide sections 14-17, as amended; stable inventory refined additively with implementation.",
+      "bindings": [
+        {
+          "method": "CIS.Tests.IntegrationTests.CandidateLoggingProcessTests.PackedAlreadyCancelledStopWaiterDoesNotCancelSharedDrainOrDispose",
+          "minimumExecutions": 1
+        },
+        {
+          "method": "CIS.Tests.IntegrationTests.CandidateLoggingProcessTests.PackedConsumerWithDisabledOutputsSkipsFactoriesAndStopsIdempotently",
+          "minimumExecutions": 1
+        },
+        {
+          "method": "CIS.Tests.IntegrationTests.CandidateLoggingProcessTests.PackedPipePressureIsBoundedAndStopReportsActualDeadlineBeforeLateDrain",
+          "minimumExecutions": 1
+        },
+        {
+          "method": "CIS.Tests.IntegrationTests.FlushResultProcessTests.ActualPublicFlushRunsInAnExactRuntimeChild",
+          "minimumExecutions": 1
+        },
+        {
+          "method": "CIS.Tests.IntegrationTests.ProviderBehaviorProcessTests.ProviderInterestAndRejectionUseActualCore",
+          "minimumExecutions": 1
+        },
+        {
+          "method": "CIS.Tests.IntegrationTests.StopDrainProcessTests.ActualSharedStopRunsInAnExactRuntimeChild",
+          "minimumExecutions": 1
+        },
+        {
+          "method": "CIS.Tests.IntegrationTests.StopLifecycleProcessTests.ShutdownAndCrashBoundariesUseActualChildren",
+          "minimumExecutions": 1
+        }
+      ],
+      "implementationEvidence": "WP07-S01-T05: every listed native method is required; source/candidate and controlled-seam limits remain those of functional-reconciliation, candidate-consumer-qualification and concurrency-qualification maps."
     },
     {
       "id": "INT-MICROSOFT-LOGGER",
       "family": "integration",
       "title": "Provider mapping/scopes/filtering/ownership inside Core",
-      "implementation": "Planned",
+      "implementation": "Implemented",
       "method": null,
       "minimumExecutions": 1,
       "lanes": [
@@ -692,7 +1539,14 @@
         "REQ-001",
         "REQ-008"
       ],
-      "source": "Supplied guide sections 14-17, as amended; stable inventory refined additively with implementation."
+      "source": "Supplied guide sections 14-17, as amended; stable inventory refined additively with implementation.",
+      "bindings": [
+        {
+          "method": "CIS.Tests.IntegrationTests.CandidateLoggingProcessTests.PackedMicrosoftProviderMapsScopesAndLeavesItsRuntimeUsableAfterDisposal",
+          "minimumExecutions": 1
+        }
+      ],
+      "implementationEvidence": "WP07-S01-T05: every listed native method is required; source/candidate and controlled-seam limits remain those of functional-reconciliation, candidate-consumer-qualification and concurrency-qualification maps."
     },
     {
       "id": "MUT-FULL-CORE",

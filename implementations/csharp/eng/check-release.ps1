@@ -1,3 +1,4 @@
+#Requires -Version 7.5
 param(
     [string] $EvidenceRoot,
     [ValidateSet('Developer', 'Release')][string] $Profile = 'Release',
@@ -12,8 +13,8 @@ Import-Module (Join-Path $PSScriptRoot 'Evidence.psm1') -Force
 if (-not $EvidenceRoot) { $EvidenceRoot = Join-Path (Split-Path (Split-Path (Split-Path $PSScriptRoot -Parent) -Parent) -Parent) ".artifacts/csharp/verification/$Profile" }
 if (-not $OutputPath) { $OutputPath = Join-Path $EvidenceRoot 'validation.json' }
 try {
-    $manifest = Get-Content -Raw -LiteralPath $ManifestPath | ConvertFrom-Json -AsHashtable
-    $inventory = Get-Content -Raw -LiteralPath $InventoryPath | ConvertFrom-Json -AsHashtable
+    $manifest = Get-Content -Raw -LiteralPath $ManifestPath | ConvertFrom-Json -AsHashtable -DateKind String
+    $inventory = Get-Content -Raw -LiteralPath $InventoryPath | ConvertFrom-Json -AsHashtable -DateKind String
     $issues = @(Get-VerificationIssues $EvidenceRoot $manifest $inventory $Profile $Lane)
 }
 catch { $issues = @([ordered]@{ code = 'UnrecognizedReportSchema'; detail = $_.Exception.Message }) }

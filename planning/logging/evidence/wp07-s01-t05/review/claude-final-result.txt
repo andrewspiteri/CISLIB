@@ -1,0 +1,57 @@
+```json
+{
+  "task": "WP07-S01-T05",
+  "verdict": "FINDINGS",
+  "basis": "Static read of the supplied code, contract metadata and docs only. Nothing was executed. Pending Ubuntu/full/checker runs are not assumed to pass.",
+  "confirmed": [
+    "The 18 groups contain 199 binding entries over 185 distinct methods; the 14 duplicates are the shared PublicOperationScope and integration-process methods. Nine Planned obligations are retained.",
+    "Discovery/execution form an exact bijection by ID: totals are equal, IDs are unique on both sides, and every TRX ID is found in discovery. Method and name comparisons are ordinal; source uses an OS-appropriate comparison.",
+    "Legacy encoding is applied only to the discovery display name, never to ID, method or source. It is one-way with no unescaping. Literal and swapped-escape negatives are covered.",
+    "Discovery is rejected when `aborted` is missing or not a bool, when `errors` or `total` are absent, and when the wrapper total disagrees.",
+    "The reconciliation file is deleted at startup, written then validated in `finally`, and bound to the summary by hash, runId, source, profile and lane.",
+    "The logger is nonshipping, references the SDK ObjectModel with Private=false, and matches the `*.TestLogger.dll` adapter-discovery pattern. Its CreateNew output fails closed on reuse."
+  ],
+  "findings": [
+    {
+      "severity": "medium",
+      "location": "implementations/csharp/eng/Evidence.psm1 (Get-VerificationIssues, reconciliation guard)",
+      "issue": "Enforcement is keyed only on `summary.ContainsKey('reconciliation')`. Deleting that field from a current summary (which verify.ps1 always writes with `runId`) silently skips the freshness and identity checks, even when families executed. The legacy and current formats share schema `cis.verification/v1`, so the field's absence cannot distinguish them.",
+      "fix": "Require a Produced reconciliation whenever the summary has `runId` (or another current-runner marker). The legacy fixture base has neither field, so it keeps passing. Add a negative control that reconciles a fixture, then removes `summary.reconciliation`, and expects InvalidReconciliation."
+    },
+    {
+      "severity": "low-medium",
+      "location": "Evidence.psm1 Write-DiscoveryReconciliation (binding and supportingMethods `executed`)",
+      "issue": "`executed` counts every TRX row, including `NotExecuted`. execution.json defines `executed = total - skipped`, so the reconciliation's per-method `executed` contradicts the family execution record whenever a row is skipped.",
+      "fix": "Count only rows whose outcome is not `NotExecuted` (or rename the field to `reported`). Assert this in the reconciliation test with a skipped row."
+    },
+    {
+      "severity": "low",
+      "location": "Evidence.psm1 Get-VerificationIssues (reconciliation checks)",
+      "issue": "Reconciliation failures `throw` inside the outer try, which aborts every remaining stage and family check. For example, invalid discovery makes verify.ps1 record NotProduced. The checker then reports only InvalidReconciliation, without the precise InvalidDiscovery, FailedCase or similar codes. It still fails closed, but the diagnostics are lost.",
+      "fix": "Use `Add-Issue 'InvalidReconciliation'` (and catch hash/missing-report errors locally), then continue to the family checks."
+    },
+    {
+      "severity": "low",
+      "location": "implementations/csharp/eng/check-release.ps1",
+      "issue": "The manifest and inventory are parsed without `-DateKind String`, while verify.ps1 parses them with it. The standalone and integrated checkers therefore type ISO-like inventory strings differently, which conflicts with the documented string-preserving parsing.",
+      "fix": "Add `-DateKind String` to both ConvertFrom-Json calls."
+    },
+    {
+      "severity": "low",
+      "location": "Evidence.psm1 Read-NativeDiscovery",
+      "issue": "A null or missing `Source` makes `IsPathFullyQualified` throw ArgumentNullException. The catch then classifies it as UnrecognizedReportSchema instead of InvalidDiscovery.",
+      "fix": "Test `[string]::IsNullOrWhiteSpace($test.Source)` before `IsPathFullyQualified`."
+    },
+    {
+      "severity": "low (conditional)",
+      "location": "conformance/logging/case-inventory.json UT-CONFIG-PRECEDENCE",
+      "issue": "The title requires the 'invalid higher priority' behavior. The explicit control for a malformed higher layer not being replaced, `ConfigurationNormalizationTests.NonblankMalformedTokensAreNotRepairedOrReplaced`, is bound only to UT-CONFIG-BOUNDS.",
+      "fix": "If the 26-row table does not itself contain invalid higher-priority rows, also bind this method to PRECEDENCE. Shared bindings are already supported."
+    }
+  ],
+  "notTreatedAsFindings": [
+    "Lone surrogates fail closed after JSON replacement with U+FFFD. This is documented and accepted.",
+    "Release profile reports MissingRequiredCase twice for Planned cases. This is redundant but fails closed."
+  ]
+}
+```

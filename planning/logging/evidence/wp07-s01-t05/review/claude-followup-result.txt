@@ -1,0 +1,60 @@
+```json
+{
+  "verdict": "FINDINGS",
+  "scope_checked": "Evidence.psm1, verify.ps1, DiscoveryLogger.cs/.csproj, VerificationEvidenceTests.cs, NuGet.config, toolchain.json, reconciliation doc, follow-up group inventory. Recounted the inventory: 18 groups, 199 binding entries, 185 distinct methods (14 overlapping entries), 9 Planned obligations. All four counts match the doc. No public API or runtime changes are visible.",
+  "not_assumed": "The 10 checker executions, the final runs and the live Ubuntu full run are pending. Nothing below treats them as passed.",
+  "findings": [
+    {
+      "id": "F1",
+      "severity": "medium",
+      "area": "verification",
+      "issue": "The group tests cannot tell whether every binding is required or any binding is enough. CompositeGroup and MissingGroupMethod each use a single binding. If the `-or` in the per-binding `$missing` check became `-and`, or the summation in `$discoveryCount` / Invoke-Family `Measure-Object count -Sum` broke, the tests would not fail.",
+      "action": "Add a positive group with at least 2 distinct bindings that are present in the retained TRX, plus a leaf or second group that shares one method. Assert that the summed discovery count is accepted. Add negatives where one of two bindings is absent, and where one binding's minimumExecutions exceeds its native rows. Both should report MissingRequiredCase."
+    },
+    {
+      "id": "F2",
+      "severity": "medium",
+      "area": "verification",
+      "issue": "No checker control exercises Write-DiscoveryReconciliation. The following are qualified only by the live run: UnboundTechnical vs BoundOnlyToInapplicableCases classification, the discovered∪executed union, per-binding passed/failed/skipped counts, runId/source copy, and Produced/NotProduced. The standalone check-release path (Get-VerificationIssues) also never validates summary.reconciliation. It does not check status, does not check the hash via Resolve-EvidenceFile, and does not check that runId/source equal the summary. A stale or edited reconciliation in a retained bundle would therefore go undetected.",
+      "action": "Add a fixture test that calls Write-DiscoveryReconciliation on the EvidenceFixture. Include an inapplicable-lane Implemented case, an unbound executed method and a Planned case, and assert the classifications and counts. Then either have the checker verify the reconciliation reference (hash plus runId/source equality) when any family is Executed, or state explicitly that reconciliation is unchecked supplementary output."
+    },
+    {
+      "id": "F3",
+      "severity": "low",
+      "area": "correctness",
+      "issue": "Read-NativeDiscovery fails open when `aborted` is missing or non-boolean, because `$report.aborted` is null and therefore falsy. There is also no negative control for a wrapper `discovered` that differs only from the native total. ExtraDiscoveryRow and DiscoveryMissingRow change both values together.",
+      "action": "Require `$report.aborted -is [bool] -and -not $report.aborted`. Add a MissingAbortedFlag negative that expects InvalidDiscovery. Add a WrapperDiscoveredMismatch negative that changes only discovery.discovered and expects DiscoveryExecutionMismatch."
+    },
+    {
+      "id": "F4",
+      "severity": "low",
+      "area": "correctness/documentation",
+      "issue": "Unverified: the logger serializes with the default System.Text.Json encoder, which I believe replaces ill-formed UTF-16 (lone surrogates) with U+FFFD. If so, a DataRow display name containing a lone surrogate is not recorded raw. It would then fail as DiscoveryExecutionMismatch against the legacy TRX `\\udXXX` form. This fails closed, but it contradicts 'raw names remain unchanged' for that input class, and no control covers it. The surrogate branch of the encoding only qualifies valid pairs.",
+      "action": "Confirm the encoder behavior. Then either document lone surrogates as an unsupported/fail-closed display-name input, or emit names losslessly (for example a UTF-16 code-unit array alongside Name) and add a lone-surrogate control."
+    },
+    {
+      "id": "F5",
+      "severity": "low",
+      "area": "toolchain",
+      "issue": "`ConvertFrom-Json -DateKind String` needs PowerShell 7.5 or later. Neither toolchain.json nor the scripts declare or enforce that. On a 7.4 LTS host (a plausible Ubuntu lane), every parse fails, and the outer catch classifies the failure as UnrecognizedReportSchema instead of a toolchain error.",
+      "action": "Add `#Requires -Version 7.5` to verify.ps1, check-release.ps1 and the Evidence module (or an explicit version check with a clear code). Record the minimum pwsh version in toolchain.json and in the Ubuntu lane evidence."
+    },
+    {
+      "id": "F6",
+      "severity": "nit",
+      "area": "correctness",
+      "issue": "Write-DiscoveryReconciliation reads the wrapper with `Get-Content -Raw <path>` (positional -Path). Bracket characters in the checkout path would be treated as wildcards. Everywhere else the code uses -LiteralPath.",
+      "action": "Use `Get-Content -Raw -LiteralPath`."
+    }
+  ],
+  "confirmed_ok": [
+    "Bijective ID/method/name/source reconciliation: totals equality plus unique TRX IDs plus a per-result lookup",
+    "Ordinal method/name/case-ID comparisons; OS-appropriate source comparison",
+    "Legacy encoding applied only to the discovery display name, one-way and lowercase; literal-escape and swapped-surrogate negatives are effective",
+    "ISO-date positive depends on DateKind String",
+    "Reconciliation freshness: deleted at start, written in finally, hash-referenced, NotProduced reason recorded, exit 1 on failure",
+    "Logger is nonshipping, IsPackable=false, references only the SDK ObjectModel with Private=false; no PackageReference",
+    "The six frameworkDownloads identities and versions match the NuGet source mapping and targetRuntime"
+  ]
+}
+```
