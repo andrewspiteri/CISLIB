@@ -1,3 +1,4 @@
+using System.Collections;
 using System.Globalization;
 using System.Security.Cryptography;
 using System.Text.Json.Nodes;
@@ -7,6 +8,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 namespace CIS.Tests.IntegrationTests;
 
 [TestClass]
+[DoNotParallelize]
 public sealed class DiscoveryProcessTests
 {
     private const string ApplicationBuild = "9.8.7-rc.2+sha.Application";
@@ -20,6 +22,11 @@ public sealed class DiscoveryProcessTests
     public async Task ChildProjectionUsesTheApplicationAndVisibleRuntimeFacts(string scenario, string expectedBuild)
     {
         JsonObject result = await Run(scenario, " Deployment.First ", "Shadowed.Alias");
+        AssertProjection(result, scenario, expectedBuild, "Deployment.First");
+    }
+
+    private static void AssertProjection(JsonObject result, string scenario, string expectedBuild, string expectedService)
+    {
         JsonObject observed = result["Observed"]!.AsObject();
         JsonObject application = result["Application"]!.AsObject();
         JsonObject runtime = result["Runtime"]!.AsObject();
@@ -29,13 +36,18 @@ public sealed class DiscoveryProcessTests
         Assert.AreEqual("CIS.Core.DiscoveryFixture", Text(application, "ApplicationName"));
         Assert.AreEqual(expectedBuild, Text(application, "BuildVersion"));
         Assert.AreEqual(expectedBuild, Text(versions, "BuildVersion"));
-        Assert.AreEqual("Deployment.First", Text(versions, "ServiceVersion"));
+        Assert.AreEqual(expectedService, Text(versions, "ServiceVersion"));
+        Assert.AreEqual(scenario == "native" ? "static-constructor" : "controlled-internal-projection", Text(result, "FactBinding"));
+        CollectionAssert.AreEquivalent(new[] { "ApplicationName", "BuildVersion", "CommitId", "BuildId" }, application.Select(pair => pair.Key).ToArray());
+        CollectionAssert.AreEquivalent(new[] { "BuildVersion", "ServiceVersion" }, versions.Select(pair => pair.Key).ToArray());
         Assert.IsNull(application["CommitId"]);
         Assert.IsNull(application["BuildId"]);
         Assert.AreEqual(ApplicationBuild, Text(observed, "EntryInformationalVersion"));
         Assert.AreEqual("23.0.0.0", Text(observed, "EntryAssemblyVersion"));
         Assert.AreEqual("88.0.0.0", Text(observed, "EntryFileVersion"));
         Assert.AreEqual("1.0.0.0", Text(observed, "CoreAssemblyVersion"));
+        Assert.AreEqual("CIS.Core", Text(observed, "CoreName"));
+        Assert.AreEqual(".NET 10.0.12", Text(observed, "RuntimeDescription"));
         Assert.AreNotEqual(ApplicationBuild, Text(observed, "CoreInformationalVersion"));
         Assert.AreEqual(Hash(FixturePath), Text(observed, "EntrySha256"));
         Assert.AreEqual(Hash(Path.Combine(Path.GetDirectoryName(FixturePath)!, "CIS.Core.dll")), Text(observed, "CoreSha256"));
@@ -54,6 +66,7 @@ public sealed class DiscoveryProcessTests
         {
             foreach (string field in new[] { "ProcessStartedAtUtc", "HostName", "OperatingSystemDescription", "OSArchitecture", "ProcessArchitecture", "RuntimeDescription", "ProcessId" })
             {
+                Assert.IsTrue(runtime.ContainsKey(field), field);
                 Assert.IsNull(runtime[field], field);
             }
         }
@@ -76,49 +89,106 @@ public sealed class DiscoveryProcessTests
     [TestMethod]
     public async Task ChangingChildTelemetryLabelsKeepsBuildFactsAndParentEnvironmentStable()
     {
-        string[] keys = ["CORE_SERVICE_VERSION", "DD_VERSION", "DD_AGENT_HOST"];
-        string?[] before = keys.Select(Environment.GetEnvironmentVariable).ToArray();
-        JsonObject first = await Run("native", "Deployment.First", null);
-        JsonObject second = await Run("native", "Deployment.Second", null);
-
-        Assert.IsTrue(JsonNode.DeepEquals(first["Application"], second["Application"]));
-        Assert.AreEqual(ApplicationBuild, Text(first["Versions"]!.AsObject(), "BuildVersion"));
-        Assert.AreEqual(ApplicationBuild, Text(second["Versions"]!.AsObject(), "BuildVersion"));
-        Assert.AreEqual("Deployment.First", Text(first["Versions"]!.AsObject(), "ServiceVersion"));
-        Assert.AreEqual("Deployment.Second", Text(second["Versions"]!.AsObject(), "ServiceVersion"));
-        Assert.AreNotEqual(Text(first["Initialization"]!.AsObject(), "InstanceId"), Text(second["Initialization"]!.AsObject(), "InstanceId"));
-        CollectionAssert.AreEqual(before, keys.Select(Environment.GetEnvironmentVariable).ToArray());
+        (string Mode, string? Core, string? Alias, string Build, string Service)[] scenarios =
+        [
+            ("native", " Deployment.First ", "Shadowed", ApplicationBuild, "Deployment.First"),
+            ("assembly-version", "Deployment.First", null, "23.0.0.0", "Deployment.First"),
+            ("unavailable", "Deployment.First", null, "unknown", "Deployment.First"),
+            ("native", "Deployment.Second", null, ApplicationBuild, "Deployment.Second"),
+            ("native", null, " Alias.Label ", ApplicationBuild, "Alias.Label"),
+            ("native", " \t", "Alias.Label", ApplicationBuild, "Alias.Label"),
+            ("native", " ", "\t", ApplicationBuild, ApplicationBuild)
+        ];
+        var ids = new HashSet<string>(StringComparer.Ordinal);
+        JsonNode? firstApplication = null;
+        foreach (var scenario in scenarios)
+        {
+            JsonObject result = await Run(scenario.Mode, scenario.Core, scenario.Alias);
+            AssertProjection(result, scenario.Mode, scenario.Build, scenario.Service);
+            Assert.IsTrue(ids.Add(Text(result["Initialization"]!.AsObject(), "InstanceId")!), "Instance ID reused between children.");
+            if (scenario.Mode == "native")
+            {
+                firstApplication ??= result["Application"];
+                Assert.IsTrue(JsonNode.DeepEquals(firstApplication, result["Application"]), "Telemetry label changed application facts.");
+            }
+        }
     }
 
     [TestMethod]
-    [DataRow(null, " Alias.Label ", "Alias.Label", "DD_VERSION")]
-    [DataRow(" \t", "Alias.Label", "Alias.Label", "DD_VERSION")]
-    [DataRow(" ", "\t", ApplicationBuild, "BuildVersion")]
-    public async Task ChildVersionSelectionUsesOnlyTheFirstNonblankVersionSource(string? core, string? alias, string expected, string expectedSource)
+    [DataRow(null, " Alias.Label ", "Alias.Label")]
+    [DataRow(" \t", "Alias.Label", "Alias.Label")]
+    [DataRow(" ", "\t", ApplicationBuild)]
+    public async Task ChildVersionSelectionUsesOnlyTheFirstNonblankVersionSource(string? core, string? alias, string expected)
     {
         JsonObject result = await Run("native", core, alias);
-        JsonObject versions = result["Versions"]!.AsObject();
-        Assert.AreEqual(ApplicationBuild, Text(versions, "BuildVersion"));
-        Assert.AreEqual(expected, Text(versions, "ServiceVersion"));
-        Assert.IsTrue(expectedSource is "DD_VERSION" or "BuildVersion");
+        AssertProjection(result, "native", ApplicationBuild, expected);
+    }
+
+    [TestMethod]
+    [DataRow("binding")]
+    [DataRow("runtime")]
+    [DataRow("core-name")]
+    [DataRow("core-bytes")]
+    [DataRow("instance")]
+    public async Task ProjectionChecksRejectCorruptedChildObservations(string fault)
+    {
+        JsonObject result = await Run("native", "Deployment.First", null);
+        AssertProjection(result, "native", ApplicationBuild, "Deployment.First");
+        switch (fault)
+        {
+            case "binding": result["FactBinding"] = "controlled-internal-projection"; break;
+            case "runtime": result["Observed"]!["RuntimeDescription"] = ".NET 10.0.99"; break;
+            case "core-name": result["Observed"]!["CoreName"] = "Unexpected.Core"; break;
+            case "core-bytes": result["Observed"]!["CoreSha256"] = new string('0', 64); break;
+            case "instance": result["Initialization"]!["InstanceId"] = Guid.Empty.ToString("D"); break;
+            default: Assert.Fail("Unknown corruption control."); break;
+        }
+        Assert.ThrowsExactly<AssertFailedException>(() => AssertProjection(result, "native", ApplicationBuild, "Deployment.First"));
     }
 
     private async Task<JsonObject> Run(string scenario, string? core, string? alias)
     {
-        ProcessResult result = await ProcessRunner.RunAsync("dotnet", [FixturePath, scenario], AppContext.BaseDirectory, TimeSpan.FromSeconds(15), new Dictionary<string, string?>
+        Dictionary<string, string?> before = ParentEnvironment();
+        var environment = new Dictionary<string, string?>(StringComparer.Ordinal);
+        JsonObject catalog = JsonNode.Parse(File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "discovery-configuration.json")))!.AsObject();
+        foreach (JsonNode? setting in catalog["settings"]!.AsArray())
         {
-            ["CORE_SERVICE_VERSION"] = core,
-            ["DD_VERSION"] = alias,
-            ["DD_AGENT_HOST"] = "collector-only.example",
-            ["DOTNET_CLI_TELEMETRY_OPTOUT"] = "1"
-        });
+            environment[setting!["key"]!.GetValue<string>()] = null;
+            foreach (JsonNode? name in setting["aliases"]?.AsArray() ?? [])
+            {
+                environment[name!.GetValue<string>()] = null;
+            }
+        }
+        environment["CORE_SERVICE_VERSION"] = core;
+        environment["DD_VERSION"] = alias;
+        environment["DD_AGENT_HOST"] = "collector-only.example";
+        environment["DOTNET_CLI_TELEMETRY_OPTOUT"] = "1";
+        ProcessResult result;
+        try
+        {
+            result = await ProcessRunner.RunAsync("dotnet", ["exec", "--fx-version", "10.0.12", "--roll-forward", "Disable", FixturePath, scenario],
+                Path.GetDirectoryName(FixturePath)!, TimeSpan.FromSeconds(15), environment);
+        }
+        finally
+        {
+            Dictionary<string, string?> after = ParentEnvironment();
+            Assert.IsTrue(before.Count == after.Count && before.All(pair => after.TryGetValue(pair.Key, out string? value) && value == pair.Value),
+                "Parent environment changed; values are intentionally not logged.");
+        }
         Assert.AreEqual(0, result.ExitCode, result.StandardOutput + result.StandardError);
         Assert.AreEqual(string.Empty, result.StandardError);
         TestContext.WriteLine(result.StandardOutput);
         return JsonNode.Parse(result.StandardOutput)!.AsObject();
     }
 
-    private static string? Text(JsonObject node, string key) => node[key]?.GetValue<string>();
+    private static Dictionary<string, string?> ParentEnvironment() => Environment.GetEnvironmentVariables().Cast<DictionaryEntry>()
+        .ToDictionary(entry => (string)entry.Key, entry => (string?)entry.Value, StringComparer.Ordinal);
+
+    private static string? Text(JsonObject node, string key)
+    {
+        Assert.IsTrue(node.ContainsKey(key), $"Missing observation: {key}");
+        return node[key]?.GetValue<string>();
+    }
     private static DateTimeOffset Time(JsonObject node, string key) => DateTimeOffset.Parse(Text(node, key)!, CultureInfo.InvariantCulture);
     private static string Hash(string path) => Convert.ToHexStringLower(SHA256.HashData(File.ReadAllBytes(path)));
 }
