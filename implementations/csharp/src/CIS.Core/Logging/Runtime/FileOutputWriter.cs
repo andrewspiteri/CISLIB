@@ -76,7 +76,6 @@ internal sealed class FileOutputWriter(string absolutePath, LogOutputFormat form
         }
     }
 
-    internal bool HasSamePresentation(ConsoleOutputWriter other) => format == other.Format && detail == other.Detail;
     internal RenderedEvent Prepare(EncodedEvent captured) => EventRenderer.Render(captured, format, detail, maximumEntryBytes);
     internal ValueTask FlushAsync() => FlushAsync(CancellationToken.None);
     internal ValueTask FlushAsync(CancellationToken cancellationToken) => new((owner ?? throw new InvalidOperationException("File output is not initialized.")).ActiveFile.FlushAsync(cancellationToken));

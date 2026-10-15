@@ -19,15 +19,9 @@ public sealed partial class CoreLogRuntime
 
     private Action PrepareIncoming(IncomingEvent item)
     {
-        bool console, file;
-        lock (admissionGate)
-        {
-            console = consoleWriter is not null && outputs.Any(output => output.Name == "console" && Interested(output, item.Level) && !output.Admission.IsFaulted);
-            file = fileWriter is not null && outputs.Any(output => output.Name == "file" && Interested(output, item.Level) && !output.Admission.IsFaulted);
-        }
         try
         {
-            Func<LogWriteResult> commit = PrepareCapturedEvent(item.Facts, item.Level, console, file, fromIncoming: true);
+            Func<LogWriteResult> commit = PrepareCapturedEvent(item.Facts, item.Level, CapturePreparingOutputs(item.Level), fromIncoming: true);
             return () =>
             {
                 LogWriteResult result = commit();

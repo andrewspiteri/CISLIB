@@ -112,40 +112,39 @@ internal static class QueuedRuntimeFactory
     {
         CoreLogRuntime.ValidateSettings(selected.EffectiveConsoleLevel, selected.EffectiveFileLevel, selected.MaxEntryBytes);
         var gate = new object();
-        var queues = new OutputQueues(capacity: selected.QueueCapacity, consoleEnabled: selected.ConsoleEnabled, fileEnabled: selected.FileEnabled, consoleWrite: consoleWrite, fileWrite: fileWrite, sharedAdmissionGate: gate, launchWorker: launchWorker, fileResource: fileWriter, consoleFlush: writer is null ? consoleFlush : writer.FlushAsync, fileFlush: fileWriter is null ? fileFlush : fileWriter.FlushAsync, consoleCancellableWrite: writer is null ? null : writer.WriteAsync, fileCancellableWrite: fileWriter is null ? null : fileWriter.WriteAsync, consoleCancellableFlush: writer is null ? null : writer.FlushAsync, fileCancellableFlush: fileWriter is null ? null : fileWriter.FlushAsync, timeProvider: timeProvider);
         bool ownershipTransferred = false;
+        var bindings = new List<OutputWriterBinding>();
+        AddBuiltIn("console", selected.ConsoleEnabled, selected.EffectiveConsoleLevel, consoleWrite,
+            writer is null ? null : writer.WriteAsync, writer is null ? consoleFlush is null ? null : _ => consoleFlush() : writer.FlushAsync,
+            writer is null ? null : writer.Prepare, writer is null ? null : writer.Initialize);
+        AddBuiltIn("file", selected.FileEnabled, selected.EffectiveFileLevel, fileWrite,
+            fileWriter is null ? null : fileWriter.WriteAsync, fileWriter is null ? fileFlush is null ? null : _ => fileFlush() : fileWriter.FlushAsync,
+            fileWriter is null ? null : fileWriter.Prepare, fileWriter is null ? null : fileWriter.Initialize,
+            fileWriter is null ? null : () => { fileWriter.Dispose(); return ValueTask.CompletedTask; },
+            fileWriter is null ? null : selected.FlushInterval);
+        foreach (var registration in registrations ?? [])
+        {
+            ValueTask Write(AdmittedEvent admitted, CancellationToken cancellation) =>
+                registration.Writer.WriteAsync(System.Text.Encoding.UTF8.GetString(admitted.Event.JsonLine.Span), cancellation);
+            ValueTask Cleanup() => Volatile.Read(ref ownershipTransferred) && registration.OwnsWriter
+                ? registration.Writer.DisposeAsync() : ValueTask.CompletedTask;
+            bindings.Add(new(registration.Name, registration.Level, Write, registration.Writer.FlushAsync, Cleanup: Cleanup));
+        }
+        var queues = new OutputQueues(selected.QueueCapacity, bindings, gate, launchWorker, timeProvider);
         try
         {
-            foreach (var registration in registrations ?? [])
-            {
-                async ValueTask Write(AdmittedEvent admitted, CancellationToken cancellation) =>
-                    await registration.Writer.WriteAsync(System.Text.Encoding.UTF8.GetString(admitted.Event.JsonLine.Span), cancellation).ConfigureAwait(false);
-                async ValueTask Cleanup()
-                {
-                    if (Volatile.Read(ref ownershipTransferred) && registration.OwnsWriter)
-                    { await registration.Writer.DisposeAsync().ConfigureAwait(false); }
-                }
-                OutputEventQueue queue;
-                try
-                {
-                    queue = new OutputEventQueue(selected.QueueCapacity, admitted => Write(admitted, CancellationToken.None), gate, launchWorker,
-                        cancellableWrite: Write, cancellableFlush: registration.Writer.FlushAsync, timeProvider: timeProvider, cleanup: Cleanup);
-                }
-                catch { throw new CoreLogInitializationException(registration.Name, "WorkerInitializationFailed"); }
-                queues.Add(registration.Name, queue);
-            }
-            writer?.Initialize();
-            fileWriter?.Initialize();
-            var runtime = new CoreLogRuntime(metadata: metadata, options: selected, console: queues.Console, file: queues.File, timeProvider: timeProvider, sharedAdmissionGate: gate, queuedOutputs: queues, consoleWriter: writer, fileWriter: fileWriter, writers: registrations);
-            if (fileWriter is not null)
+            foreach (var binding in bindings) { binding.Initialize?.Invoke(); }
+            var runtime = new CoreLogRuntime(metadata, selected, queues.Console, queues.File, timeProvider, gate, queues,
+                bindings, fileWriter?.RecoveredPartialSegment == true);
+            foreach (var binding in bindings.Where(binding => binding.FlushInterval is not null))
             {
                 try
                 {
-                    queues.File!.StartFileFlushTimer(timeProvider ?? TimeProvider.System, selected.FlushInterval);
+                    queues.Get(binding.Name).StartFileFlushTimer(timeProvider ?? TimeProvider.System, binding.FlushInterval!.Value);
                 }
                 catch
                 {
-                    throw new CoreLogInitializationException("file", "FileFlushTimerInitializationFailed");
+                    throw new CoreLogInitializationException(binding.Name, "FileFlushTimerInitializationFailed");
                 }
             }
 
@@ -169,15 +168,18 @@ internal static class QueuedRuntimeFactory
             {
             }
 
-            try
-            {
-                fileWriter?.Dispose();
-            }
-            catch
-            {
-            }
-
             throw;
+        }
+
+        void AddBuiltIn(string name, bool enabled, CoreLogLevel level, Func<AdmittedEvent, ValueTask>? write,
+            Func<AdmittedEvent, CancellationToken, ValueTask>? cancellableWrite, Func<CancellationToken, ValueTask>? flush,
+            Func<Events.EncodedEvent, Rendering.RenderedEvent>? prepare, Action? initialize,
+            Func<ValueTask>? cleanup = null, TimeSpan? interval = null)
+        {
+            if (enabled != (write is not null)) { throw new ArgumentException("Writer presence must match enabled output.", name); }
+            if (!enabled && flush is not null) { throw new ArgumentException("Disabled output cannot have a flush callback.", name); }
+            if (write is not null)
+            { bindings.Add(new(name, level, cancellableWrite ?? ((item, _) => write(item)), flush, prepare, initialize, cleanup, interval)); }
         }
     }
 }

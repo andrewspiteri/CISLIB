@@ -10,8 +10,6 @@ public sealed partial class CoreLogRuntime : IAsyncDisposable
 {
     private readonly object admissionGate;
     private readonly OutputQueues? queuedOutputs;
-    private readonly ConsoleOutputWriter? consoleWriter;
-    private readonly FileOutputWriter? fileWriter;
     private readonly bool recoveredPartialSegment;
     private readonly EventMetadata metadata;
     private readonly TimeProvider timeProvider;
@@ -26,7 +24,7 @@ public sealed partial class CoreLogRuntime : IAsyncDisposable
     private long invalidEventCount;
     private long truncatedEventCount;
     // The direct internal admission seam remains available for existing focused qualification.
-    internal CoreLogRuntime(EventMetadata metadata, LoggingOptions options, ILogOutputAdmission? console, ILogOutputAdmission? file, TimeProvider? timeProvider = null, object? sharedAdmissionGate = null, OutputQueues? queuedOutputs = null, ConsoleOutputWriter? consoleWriter = null, FileOutputWriter? fileWriter = null, IReadOnlyList<LogWriterRegistration>? writers = null)
+    internal CoreLogRuntime(EventMetadata metadata, LoggingOptions options, ILogOutputAdmission? console, ILogOutputAdmission? file, TimeProvider? timeProvider = null, object? sharedAdmissionGate = null, OutputQueues? queuedOutputs = null, IReadOnlyList<OutputWriterBinding>? writers = null, bool recoveredPartialSegment = false)
     {
         ArgumentNullException.ThrowIfNull(metadata);
         ArgumentNullException.ThrowIfNull(options);
@@ -39,21 +37,22 @@ public sealed partial class CoreLogRuntime : IAsyncDisposable
         ValidateShutdownTimeout(options.ShutdownTimeoutMilliseconds);
         admissionGate = sharedAdmissionGate ?? new object();
         this.queuedOutputs = queuedOutputs;
-        this.consoleWriter = consoleWriter;
-        this.fileWriter = fileWriter;
-        recoveredPartialSegment = fileWriter?.RecoveredPartialSegment == true;
+        this.recoveredPartialSegment = recoveredPartialSegment;
         this.metadata = metadata;
         this.timeProvider = timeProvider ?? TimeProvider.System;
         timestampFrequency = this.timeProvider.TimestampFrequency;
         maximumEntryBytes = maximumBytes;
         shutdownTimeout = options.ShutdownTimeout;
         var configured = new List<Output>(2);
-        Add("console", consoleEnabled, consoleLevel, console);
-        Add("file", fileEnabled, fileLevel, file);
-        if (writers is not null)
+        if (writers is null)
+        {
+            Add("console", consoleEnabled, consoleLevel, console);
+            Add("file", fileEnabled, fileLevel, file);
+        }
+        else
         {
             foreach (var registration in writers)
-            { Add(registration.Name, true, registration.Level, queuedOutputs!.Get(registration.Name)); }
+            { configured.Add(new(registration.Name, registration.Level, queuedOutputs!.Get(registration.Name), registration.Prepare)); }
         }
         outputs = configured.ToArray();
         void Add(string name, bool enabled, CoreLogLevel threshold, ILogOutputAdmission? admission)
@@ -436,7 +435,7 @@ public sealed partial class CoreLogRuntime : IAsyncDisposable
     internal LogWriteResult Write(string component, CoreLogLevel level, LogEventData? data, Func<LogEventData>? factory)
     {
         ValidateLevel(level);
-        bool renderConsole, renderFile;
+        Output[] preparing;
         lock (admissionGate)
         {
             if (admissionClosed)
@@ -454,8 +453,8 @@ public sealed partial class CoreLogRuntime : IAsyncDisposable
                 return FinishWithoutCapture(level, LogWriteOutcome.Rejected);
             }
 
-            renderConsole = consoleWriter is not null && outputs.Any(output => output.Name == "console" && Interested(output, level) && !output.Admission.IsFaulted);
-            renderFile = fileWriter is not null && outputs.Any(output => output.Name == "file" && Interested(output, level) && !output.Admission.IsFaulted);
+            preparing = incoming is null ? CapturePreparingOutputs(level) : [];
+
         }
 
         // No gate is held around caller factories, clock, scopes or payload callbacks.
@@ -494,43 +493,30 @@ public sealed partial class CoreLogRuntime : IAsyncDisposable
                     sequence is null ? "IncomingQueueFull" : null, facts.IsTruncated, sequence);
             }
         }
-        try { return PrepareCapturedEvent(facts, level, renderConsole, renderFile, fromIncoming: false)(); }
+        try { return PrepareCapturedEvent(facts, level, preparing, fromIncoming: false)(); }
         catch (EventEnvelopeTooLargeException) { return Invalid("EnvelopeTooLarge"); }
     }
 
-    private Func<LogWriteResult> PrepareCapturedEvent(CapturedEventFacts facts, CoreLogLevel level, bool renderConsole, bool renderFile, bool fromIncoming)
+    private Output[] CapturePreparingOutputs(CoreLogLevel level)
     {
-        RenderedEvent? preparedConsole = null, preparedFile = null;
+        lock (admissionGate)
+        { return outputs.Where(output => output.Prepare is not null && Interested(output, level) && !output.Admission.IsFaulted).ToArray(); }
+    }
+
+    private Func<LogWriteResult> PrepareCapturedEvent(CapturedEventFacts facts, CoreLogLevel level, Output[] interested, bool fromIncoming)
+    {
+        var prepared = new Dictionary<string, RenderedEvent>(StringComparer.Ordinal);
+        var failed = new List<Output>();
         // Other owned encoding/rendering consistency errors are Core defects, not invalid caller content.
         EncodedEvent captured = EventEncoder.Encode(facts, maximumEntryBytes);
-
-        bool consoleRenderFailed = false, fileRenderFailed = false;
-        if (renderConsole)
+        foreach (Output output in interested)
         {
-            try
-            {
-                preparedConsole = consoleWriter!.Prepare(captured);
-            }
-            catch (EventEnvelopeTooLargeException)
-            {
-                consoleRenderFailed = true;
-            }
-        }
-
-        if (renderFile)
-        {
-            try
-            {
-                preparedFile = preparedConsole is { } shared && fileWriter!.HasSamePresentation(consoleWriter!) ? shared : fileWriter!.Prepare(captured);
-            }
-            catch (EventEnvelopeTooLargeException)
-            {
-                fileRenderFailed = true;
-            }
+            try { prepared.Add(output.Name, output.Prepare!(captured)); }
+            catch (EventEnvelopeTooLargeException) { failed.Add(output); }
         }
 
         long observedAt = timeProvider.GetTimestamp();
-        bool isTruncated = captured.IsTruncated || preparedConsole?.IsTruncated == true || preparedFile?.IsTruncated == true;
+        bool isTruncated = captured.IsTruncated || prepared.Values.Any(value => value.IsTruncated);
         return () =>
         {
             lock (admissionGate)
@@ -545,17 +531,9 @@ public sealed partial class CoreLogRuntime : IAsyncDisposable
                     return Stopped(isTruncated);
                 }
 
-                if (consoleRenderFailed)
-                {
-                    queuedOutputs!.Console!.FaultForRendering(observedAt);
-                }
+                foreach (Output output in failed) { ((OutputEventQueue)output.Admission).FaultForRendering(observedAt); }
 
-                if (fileRenderFailed)
-                {
-                    queuedOutputs!.File!.FaultForRendering(observedAt);
-                }
-
-                return Admit(level, captured, preparedConsole?.Line, preparedFile?.Line, isTruncated, observedAt);
+                return Admit(level, captured, prepared, isTruncated, observedAt);
             }
         };
     }
@@ -619,7 +597,7 @@ public sealed partial class CoreLogRuntime : IAsyncDisposable
         return new LogWriteResult(outcome, observations);
     }
 
-    private LogWriteResult Admit(CoreLogLevel level, EncodedEvent captured, ReadOnlyMemory<byte>? consoleLine, ReadOnlyMemory<byte>? fileLine, bool isTruncated, long observedAt)
+    private LogWriteResult Admit(CoreLogLevel level, EncodedEvent captured, IReadOnlyDictionary<string, RenderedEvent> prepared, bool isTruncated, long observedAt)
     {
         var observations = new List<LogOutputWriteResult>(outputs.Length);
         int accepted = 0;
@@ -641,18 +619,10 @@ public sealed partial class CoreLogRuntime : IAsyncDisposable
                     output.Admission.RecordUnavailable();
                     status = LogOutputWriteStatus.Faulted;
                 }
-                else if (output.Name == "console" && consoleLine is { } preparedLine)
-                {
-                    status = queuedOutputs!.Console!.TryAdmit(captured, preparedLine, out sequence, observedAt);
-                }
-                else if (output.Name == "file" && fileLine is { } preparedFileLine)
-                {
-                    status = queuedOutputs!.File!.TryAdmit(captured, preparedFileLine, out sequence, observedAt);
-                }
                 else
                 {
                     status = output.Admission is OutputEventQueue queue
-                        ? queue.TryAdmit(captured, null, out sequence, observedAt)
+                        ? queue.TryAdmit(captured, prepared.TryGetValue(output.Name, out var rendered) ? rendered.Line : (ReadOnlyMemory<byte>?)null, out sequence, observedAt)
                         : output.Admission.TryAdmit(captured, out sequence);
                 }
 
@@ -745,5 +715,5 @@ public sealed partial class CoreLogRuntime : IAsyncDisposable
         }
     }
 
-    private sealed record Output(string Name, CoreLogLevel Threshold, ILogOutputAdmission Admission);
+    private sealed record Output(string Name, CoreLogLevel Threshold, ILogOutputAdmission Admission, Func<EncodedEvent, RenderedEvent>? Prepare = null);
 }

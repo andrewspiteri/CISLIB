@@ -52,7 +52,7 @@ internal static class FileFailureFixture
             var gate = new object(); var console = new ConsoleOutputWriter(borrowed, LogOutputFormat.JsonLines, HumanOutputDetail.Verbose, 16384); var file = new FileOutputWriter(path, format, HumanOutputDetail.Verbose, 16384, 16, 1);
             ValueTask Attempt(AdmittedEvent admitted) { attempts++; attemptedFileBytes = admitted.PreparedLine?.ToArray() ?? throw new InvalidOperationException("Missing prepared Human bytes."); return file.WriteAsync(admitted); }
             var queues = new OutputQueues(4, true, true, console.WriteAsync, Attempt, gate, Launch, file);
-            try { console.Initialize(); file.Initialize(); runtime = new CoreLogRuntime(ConsoleCompositionFixture.Metadata(), options, queues.Console, queues.File, new Clock(), gate, queues, console, file); }
+            try { console.Initialize(); file.Initialize(); runtime = new CoreLogRuntime(ConsoleCompositionFixture.Metadata(), options, queues.Console, queues.File, new Clock(), gate, queues, [new("console", options.EffectiveConsoleLevel, console.WriteAsync, Prepare: console.Prepare), new("file", options.EffectiveFileLevel, file.WriteAsync, Prepare: file.Prepare)], file.RecoveredPartialSegment); }
             catch { release.TrySetResult(); queues.Complete(); await queues.Completion.WaitAsync(Limit); file.Dispose(); throw; }
         }
         try

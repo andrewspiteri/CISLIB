@@ -7,6 +7,36 @@ internal sealed class OutputQueues
     private Task? completion;
     internal IReadOnlyList<(string Name, OutputEventQueue Queue)> Entries => entries;
     internal OutputEventQueue Get(string name) => entries.Single(entry => entry.Name == name).Queue;
+    internal OutputQueues(int capacity, IReadOnlyList<OutputWriterBinding> writers, object sharedAdmissionGate,
+        Func<Func<Task>, Task>? launchWorker = null, TimeProvider? timeProvider = null)
+    {
+        admissionGate = sharedAdmissionGate;
+        if (capacity is < LoggingOptions.MinimumQueueCapacity or > LoggingOptions.MaximumQueueCapacity)
+        { throw new ArgumentOutOfRangeException(nameof(capacity)); }
+        try
+        {
+            foreach (var writer in writers)
+            {
+                OutputEventQueue queue;
+                try
+                {
+                    queue = new OutputEventQueue(capacity, item => writer.Write(item, CancellationToken.None), admissionGate,
+                        launchWorker, cancellableWrite: writer.Write, cancellableFlush: writer.Flush,
+                        timeProvider: timeProvider, cleanup: writer.Cleanup);
+                }
+                catch { throw new CoreLogInitializationException(writer.Name, "WorkerInitializationFailed"); }
+                Add(writer.Name, queue);
+            }
+        }
+        catch
+        {
+            Complete();
+            try { Completion.GetAwaiter().GetResult(); } catch { }
+            throw;
+        }
+    }
+
+    // Legacy paired qualification seam. Production supplies the common writer collection above.
     internal OutputQueues(int capacity, bool consoleEnabled, bool fileEnabled, Func<AdmittedEvent, ValueTask>? consoleWrite, Func<AdmittedEvent, ValueTask>? fileWrite, object? sharedAdmissionGate = null, Func<Func<Task>, Task>? launchWorker = null, IDisposable? fileResource = null, Func<ValueTask>? consoleFlush = null, Func<ValueTask>? fileFlush = null, Func<AdmittedEvent, CancellationToken, ValueTask>? consoleCancellableWrite = null, Func<AdmittedEvent, CancellationToken, ValueTask>? fileCancellableWrite = null, Func<CancellationToken, ValueTask>? consoleCancellableFlush = null, Func<CancellationToken, ValueTask>? fileCancellableFlush = null, TimeProvider? timeProvider = null)
     {
         admissionGate = sharedAdmissionGate ?? new object();
@@ -39,14 +69,12 @@ internal sealed class OutputQueues
         {
             if (consoleWrite is not null)
             {
-                Console = Create("console", consoleWrite, null, consoleFlush, consoleCancellableWrite, consoleCancellableFlush);
-                entries.Add(("console", Console));
+                entries.Add(("console", Create("console", consoleWrite, null, consoleFlush, consoleCancellableWrite, consoleCancellableFlush)));
             }
 
             if (fileWrite is not null)
             {
-                File = Create("file", fileWrite, fileResource, fileFlush, fileCancellableWrite, fileCancellableFlush);
-                entries.Add(("file", File));
+                entries.Add(("file", Create("file", fileWrite, fileResource, fileFlush, fileCancellableWrite, fileCancellableFlush)));
             }
 
         }
@@ -78,8 +106,8 @@ internal sealed class OutputQueues
         }
     }
 
-    internal OutputEventQueue? Console { get; }
-    internal OutputEventQueue? File { get; }
+    internal OutputEventQueue? Console => entries.FirstOrDefault(entry => entry.Name == "console").Queue;
+    internal OutputEventQueue? File => entries.FirstOrDefault(entry => entry.Name == "file").Queue;
     internal Task Completion
     {
         get { lock (admissionGate) { return completion ??= Task.WhenAll(entries.Select(entry => entry.Queue.Completion)); } }

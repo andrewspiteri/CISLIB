@@ -43,7 +43,7 @@ internal static class FileRotationPolicyFixture
             var gate = new object(); var console = new ConsoleOutputWriter(borrowed, LogOutputFormat.JsonLines, HumanOutputDetail.Verbose, 16384); var file = new FileOutputWriter(path, format, HumanOutputDetail.Verbose, 16384, 65536, 1);
             ValueTask Write(AdmittedEvent admitted) { attempts++; if (attempts == 2) { return ValueTask.FromException(new IOException("Controlled storage write failure.")); } firstRecord = admitted.PreparedLine?.ToArray() ?? throw new InvalidOperationException("Missing prepared bytes."); return file.WriteAsync(admitted); }
             var queues = new OutputQueues(4, true, true, console.WriteAsync, Write, gate, Launch, file);
-            try { console.Initialize(); file.Initialize(); runtime = new CoreLogRuntime(ConsoleCompositionFixture.Metadata(), options, queues.Console, queues.File, new Clock(), gate, queues, console, file); }
+            try { console.Initialize(); file.Initialize(); runtime = new CoreLogRuntime(ConsoleCompositionFixture.Metadata(), options, queues.Console, queues.File, new Clock(), gate, queues, [new("console", options.EffectiveConsoleLevel, console.WriteAsync, Prepare: console.Prepare), new("file", options.EffectiveFileLevel, file.WriteAsync, Prepare: file.Prepare)], file.RecoveredPartialSegment); }
             catch { release.TrySetResult(); queues.Complete(); await queues.Completion.WaitAsync(Limit); file.Dispose(); throw; }
         }
         try
