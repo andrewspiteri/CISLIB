@@ -47,6 +47,24 @@ public sealed class CandidateLoggingProcessTests
     }
 
     [TestMethod]
+    public async Task PackedProcessingPoliciesAndConvenienceCallsUseTheSameWriterPipeline()
+    {
+        using var root = new TemporaryDirectory(); var value = await fixture.Run("processing", root.Path);
+        SuccessfulStop(value.Report);
+        var records = Records(File.ReadAllBytes(PathFor(root.Path)));
+        CollectionAssert.AreEqual(new[] { "log.message", "typed", "lazy" }, records.Select(row => (string?)row["event_name"]).ToArray());
+        Assert.IsTrue(records.All(row => (string?)row["message"] == "safe" && !row.ContainsKey("exception")));
+        Assert.AreEqual(42, records[1]["attributes"]!["customer"]!.GetValue<int>());
+        string application = string.Concat(value.Report["applicationLines"]!.AsArray().Select(line => line!.GetValue<string>()));
+        Assert.AreEqual(File.ReadAllText(PathFor(root.Path)), application);
+        Assert.AreEqual(1, value.Report["applicationDisposals"]!.GetValue<int>());
+        JsonObject incoming = value.Report["stop"]!["incoming"]!.AsObject();
+        Assert.AreEqual(6L, Count(incoming, "accepted")); Assert.AreEqual(6L, Count(incoming, "processed"));
+        Assert.AreEqual(3L, Count(incoming, "suppressed")); Assert.AreEqual(1L, Count(incoming, "duplicateSuppressed"));
+        Assert.AreEqual(0L, Count(incoming, "failed")); Assert.AreEqual(0L, Count(incoming, "pending"));
+    }
+
+    [TestMethod]
     [DataRow("human", "normal", "stderr")]
     [DataRow("human", "verbose", "stderr")]
     [DataRow("jsonl", "normal", "stderr")]

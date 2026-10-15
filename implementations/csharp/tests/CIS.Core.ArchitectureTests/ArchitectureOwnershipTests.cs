@@ -42,6 +42,8 @@ public sealed class ArchitectureOwnershipTests
     [DataRow("unsealed", "ARCH-OWNERSHIP-SHAPE")]
     [DataRow("inherited-state", "ARCH-OWNERSHIP-SHAPE")]
     [DataRow("mutable-capture", "ARCH-OWNERSHIP-MUTABLE")]
+    [DataRow("mutable-incoming-accounting", "ARCH-OWNERSHIP-MUTABLE")]
+    [DataRow("incoming-accounting-writer", "ARCH-OWNERSHIP-FIELD")]
     [DataRow("borrowed-options", "ARCH-OWNERSHIP-FIELD")]
     [DataRow("borrowed-map", "ARCH-OWNERSHIP-FIELD")]
     [DataRow("borrowed-child", "ARCH-OWNERSHIP-FIELD")]
@@ -75,6 +77,8 @@ public sealed class ArchitectureOwnershipTests
             case "unsealed": metadata["attributes"] = "Public, BeforeFieldInit"; break;
             case "inherited-state": metadata["baseType"] = "[System.Runtime]System.Exception"; break;
             case "mutable-capture": Field(metadata, "<ApplicationName>k__BackingField")["attributes"] = "Private"; break;
+            case "mutable-incoming-accounting": Field(Type(facts, "CIS.Logging.Runtime.IncomingAccounting"), "<Accepted>k__BackingField")["attributes"] = "Private"; break;
+            case "incoming-accounting-writer": Type(facts, "CIS.Logging.Runtime.IncomingAccounting")["members"]!.AsArray().Add(Member("field", "writer", "[CIS.Core]CIS.Logging.Runtime.OutputEventQueue")); break;
             case "borrowed-options": metadata["members"]!.AsArray().Add(Member("field", "caller", "[CIS.Core]CIS.Logging.LoggingOptions")); break;
             case "borrowed-map": Field(Type(facts, "CIS.Logging.LogValue"), "map")["signature"] = "[System.Collections]System.Collections.Generic.Dictionary`2<String, [CIS.Core]CIS.Logging.LogValue>"; break;
             case "borrowed-child": Field(Type(facts, "CIS.Logging.LogValue"), "array")["signature"] = "[System.Runtime]System.Collections.ObjectModel.ReadOnlyCollection`1<[CIS.Core]CIS.Logging.LogEventData>"; break;

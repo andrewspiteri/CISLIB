@@ -36,7 +36,7 @@ public sealed class DiagnosticsTests
     }
     [TestMethod]
     [DataRow("runtime", "State,AdmissionClosed,ObservedAtUtc,ShutdownStartedAtUtc,InvalidEventCount,TruncatedEventCount,Outputs,LastStopResult,Incoming")]
-    [DataRow("incoming", "Accepted,Processed,Failed,Abandoned,Pending,QueueFull,RejectedByWriters")]
+    [DataRow("incoming", "Accepted,Processed,Failed,Abandoned,Pending,QueueFull,RejectedByWriters,Suppressed,DuplicateSuppressed,DuplicateKeyEvictions")]
     [DataRow("output", "OutputName,State,AcceptedSequence,Filtered,AdmissionAttempts,Accepted,QueueFull,Unavailable,Written,Failed,Abandoned,Pending,InFlight,Buffered,LastFaultCode,LastFaultAtUtc,RecoveredPartialSegment")]
     public void PublicDiagnosticContainersHaveOnlySealedGetterOnlyFacts(string typeName, string fields)
     {

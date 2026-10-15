@@ -92,6 +92,15 @@ public sealed partial class CoreLogRuntime : IAsyncDisposable
         return QueuedRuntimeFactory.CreateConfiguredQueued(new EventMetadata(), options, writers: writers, incomingPipeline: true);
     }
 
+    /// <summary>Creates a runtime with startup-captured processing policies and optional application writers.</summary>
+    public static CoreLogRuntime Create(LogProcessingOptions processing, IEnumerable<LogWriterRegistration>? writers = null)
+    {
+        ArgumentNullException.ThrowIfNull(processing);
+        LoggingOptions options = EnvironmentOptions.Logging;
+        options.Prepare(Directory.GetCurrentDirectory());
+        return QueuedRuntimeFactory.CreateConfiguredQueued(new EventMetadata(), options, writers: writers, incomingPipeline: true, processing: processing);
+    }
+
     /// <summary>Settles after incoming processing, writer operations and owned cleanup finish, including late cleanup after stop timeout.</summary>
     /// <remarks>Unlike StopAsync this task has no timeout and may fault when a writer or cleanup fails.</remarks>
     public Task Completion
@@ -120,6 +129,7 @@ public sealed partial class CoreLogRuntime : IAsyncDisposable
     /// <remarks>The configured overall timeout is frozen at creation. UTC is an observation label; elapsed time is monotonic. At expiry, unstarted accepted records are abandoned. Cancellation of active writes/flushes is requested but is not guaranteed, and no new flush, retry or replacement writer starts. Completed means terminal dispositions, not successful delivery or resource release. A timed-out observation can retain pending I/O; its later completion does not change the cached result.</remarks>
     public Task<LogStopResult> StopAsync(CancellationToken cancellationToken)
     {
+        if (EventProcessing.IsCallbackActive) { throw new InvalidOperationException("Processing callbacks cannot stop a logging runtime."); }
         if (incoming is not null) { return StopIncomingAsync(cancellationToken); }
         if (queuedOutputs is null)
         {
@@ -277,6 +287,7 @@ public sealed partial class CoreLogRuntime : IAsyncDisposable
     /// <remarks>UTC labels are system observations; elapsed deadlines use the runtime TimeProvider. Flush does not stop admission or guarantee disk durability. After closure it cannot reopen a writer; a terminal writer returns an unavailable/failed flush even if the original stop flushed successfully. Inspect LastStopResult for that original shutdown outcome.</remarks>
     public Task<LogFlushResult> FlushAsync(TimeSpan timeout, CancellationToken cancellationToken)
     {
+        if (EventProcessing.IsCallbackActive) { throw new InvalidOperationException("Processing callbacks cannot flush a logging runtime."); }
         if (timeout.Ticks <= 0)
         {
             throw new ArgumentOutOfRangeException(nameof(timeout));
@@ -370,7 +381,7 @@ public sealed partial class CoreLogRuntime : IAsyncDisposable
                 entry.Name == "file" && recoveredPartialSegment)).ToArray();
 
             CoreLogState state = !counts.AdmissionClosed ? CoreLogState.Running : values.All(value => value.State == LogOutputState.Stopped) ? CoreLogState.Stopped : CoreLogState.Stopping;
-            if (incoming is not null && counts.AdmissionClosed && !Completion.IsCompleted) { state = CoreLogState.Stopping; }
+            if (incoming is not null && counts.AdmissionClosed && !incoming.Completion.IsCompleted) { state = CoreLogState.Stopping; }
             return new CoreLogDiagnostics(state, counts.AdmissionClosed, DateTimeOffset.UtcNow, shutdownStartedAtUtc, counts.InvalidEventCount, counts.TruncatedEventCount, values, lastStopResult,
                 incoming is null ? null : new LogIncomingSnapshot(incoming.Capture()));
         }
@@ -426,6 +437,7 @@ public sealed partial class CoreLogRuntime : IAsyncDisposable
     internal bool IsEnabled(CoreLogLevel level)
     {
         ValidateLevel(level);
+        if (EventProcessing.IsCallbackActive) { return false; }
         lock (admissionGate)
         {
             return !admissionClosed && outputs.Any(output => Interested(output, level) && !output.Admission.IsFaulted);
@@ -435,6 +447,7 @@ public sealed partial class CoreLogRuntime : IAsyncDisposable
     internal LogWriteResult Write(string component, CoreLogLevel level, LogEventData? data, Func<LogEventData>? factory)
     {
         ValidateLevel(level);
+        if (EventProcessing.IsCallbackActive) { return Invalid("RecursiveProcessing"); }
         Output[] preparing;
         lock (admissionGate)
         {
@@ -503,7 +516,7 @@ public sealed partial class CoreLogRuntime : IAsyncDisposable
         { return outputs.Where(output => output.Prepare is not null && Interested(output, level) && !output.Admission.IsFaulted).ToArray(); }
     }
 
-    private Func<LogWriteResult> PrepareCapturedEvent(CapturedEventFacts facts, CoreLogLevel level, Output[] interested, bool fromIncoming)
+    private Func<LogWriteResult> PrepareCapturedEvent(CapturedEventFacts facts, CoreLogLevel level, Output[] interested, bool fromIncoming, IReadOnlyList<string>? destinations = null, bool originalWasTruncated = false)
     {
         var prepared = new Dictionary<string, RenderedEvent>(StringComparer.Ordinal);
         var failed = new List<Output>();
@@ -521,7 +534,7 @@ public sealed partial class CoreLogRuntime : IAsyncDisposable
         {
             lock (admissionGate)
             {
-                if (isTruncated && (!fromIncoming || !facts.IsTruncated))
+                if (isTruncated && (!fromIncoming || !originalWasTruncated))
                 {
                     IncrementLossCounter(ref truncatedEventCount);
                 }
@@ -533,7 +546,7 @@ public sealed partial class CoreLogRuntime : IAsyncDisposable
 
                 foreach (Output output in failed) { ((OutputEventQueue)output.Admission).FaultForRendering(observedAt); }
 
-                return Admit(level, captured, prepared, isTruncated, observedAt);
+                return Admit(level, captured, prepared, isTruncated, observedAt, destinations);
             }
         };
     }
@@ -597,7 +610,7 @@ public sealed partial class CoreLogRuntime : IAsyncDisposable
         return new LogWriteResult(outcome, observations);
     }
 
-    private LogWriteResult Admit(CoreLogLevel level, EncodedEvent captured, IReadOnlyDictionary<string, RenderedEvent> prepared, bool isTruncated, long observedAt)
+    private LogWriteResult Admit(CoreLogLevel level, EncodedEvent captured, IReadOnlyDictionary<string, RenderedEvent> prepared, bool isTruncated, long observedAt, IReadOnlyList<string>? destinations)
     {
         var observations = new List<LogOutputWriteResult>(outputs.Length);
         int accepted = 0;
@@ -606,7 +619,8 @@ public sealed partial class CoreLogRuntime : IAsyncDisposable
         {
             long? sequence = null;
             LogOutputWriteStatus status;
-            if (!Interested(output, level))
+            bool routed = Interested(output, level) && (destinations is null || destinations.Contains(output.Name, StringComparer.Ordinal));
+            if (!routed)
             {
                 output.Admission.RecordFiltered();
                 status = LogOutputWriteStatus.Filtered;
@@ -632,7 +646,7 @@ public sealed partial class CoreLogRuntime : IAsyncDisposable
                 }
             }
 
-            if (Interested(output, level) && status is not (LogOutputWriteStatus.Accepted or LogOutputWriteStatus.QueueFull or LogOutputWriteStatus.Faulted))
+            if (routed && status is not (LogOutputWriteStatus.Accepted or LogOutputWriteStatus.QueueFull or LogOutputWriteStatus.Faulted))
             {
                 throw new InvalidOperationException("Output admission returned an invalid status.");
             }
@@ -646,7 +660,8 @@ public sealed partial class CoreLogRuntime : IAsyncDisposable
         }
 
         LogWriteOutcome outcome = LogWriteOutcome.Rejected;
-        if (accepted == interested)
+        if (interested == 0) { outcome = LogWriteOutcome.Filtered; }
+        else if (accepted == interested)
         {
             outcome = LogWriteOutcome.Accepted;
         }

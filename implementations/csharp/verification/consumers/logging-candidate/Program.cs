@@ -124,7 +124,15 @@ internal static class Program
         JsonNode? before = path is not null && File.Exists(path + ".cis.inventory.json") ? JsonNode.Parse(File.ReadAllBytes(path + ".cis.inventory.json")) : null;
         try
         {
-            runtime = CoreLogRuntime.Create(); logger = runtime.CreateLogger("Candidate.Consumer");
+            var applicationWriter = mode == "processing" ? new ApplicationWriter() : null;
+            runtime = applicationWriter is null ? CoreLogRuntime.Create() : CoreLogRuntime.Create(new LogProcessingOptions
+            {
+                Interceptors = [_ => new() { Message = "safe", ClearMessageTemplate = true, RemoveException = true }],
+                Filter = value => value.EventName != "excluded",
+                Route = (_, value) => value.EventName != "routed-away",
+                DuplicateSuppression = new(value => value.EventName, TimeSpan.FromMinutes(1), 8)
+            }, [new("application", applicationWriter, ownsWriter: true)]);
+            logger = runtime.CreateLogger("Candidate.Consumer");
             if (mode is "burst" or "deadline") { await BlockedPipe(); return 0; }
             if (mode == "interactive") { await Interact(); return 0; }
             if (mode == "emit")
@@ -135,6 +143,13 @@ internal static class Program
                     receipts.Add(logger.WriteLazy(CoreLogLevel.Debug, () => { factories++; return new() { EventName = "event.debug", Message = "deferred" }; }));
                     receipts.Add(logger.WriteLazy(CoreLogLevel.Trace, () => { factories++; throw new InvalidOperationException("Filtered factory ran."); }));
                 }
+            }
+            else if (mode == "processing")
+            {
+                receipts.Add(logger.Info("private")); receipts.Add(logger.Info("private"));
+                receipts.Add(logger.Info("excluded", "private")); receipts.Add(logger.Info("routed-away", "private"));
+                receipts.Add(logger.Info(new LogEventData { EventName = "typed", Message = "private", Attributes = new Dictionary<string, LogValue> { ["customer"] = LogValue.Integer(42) }, Exception = new Exception("private") }));
+                receipts.Add(logger.WarnLazy(() => { factories++; return new() { EventName = "lazy", Message = "private" }; }));
             }
             else if (mode == "provider")
             {
@@ -163,6 +178,11 @@ internal static class Program
             else if (mode != "disabled") { throw new ArgumentException("Unknown candidate mode."); }
             if (mode == "disabled") { receipts.Add(logger.WriteLazy(CoreLogLevel.Information, () => { factories++; throw new InvalidOperationException("Disabled factory ran."); })); }
             JsonObject result = await Stop(); result["before"] = before;
+            if (applicationWriter is not null)
+            {
+                result["applicationLines"] = JsonSerializer.SerializeToNode(applicationWriter.Lines, Json);
+                result["applicationDisposals"] = applicationWriter.Disposals;
+            }
             // The application can still write its own command result after the borrowed console stops.
             if (mode == "emit" && Environment.GetEnvironmentVariable("CORE_LOG_CONSOLE_STREAM") == "stderr") { Console.WriteLine("{\"command\":\"ok\"}"); }
             Publish(result); return 0;
@@ -172,5 +192,14 @@ internal static class Program
             JsonObject result = Observe("initialization-failed"); result["output"] = error.OutputName; result["code"] = error.ErrorCode; Publish(result); return 0;
         }
         finally { if (runtime is not null) { await runtime.DisposeAsync(); } }
+    }
+
+    private sealed class ApplicationWriter : ILogWriter
+    {
+        internal List<string> Lines { get; } = [];
+        internal int Disposals;
+        public ValueTask WriteAsync(string jsonLine, CancellationToken cancellationToken) { Lines.Add(jsonLine); return ValueTask.CompletedTask; }
+        public ValueTask FlushAsync(CancellationToken cancellationToken) => ValueTask.CompletedTask;
+        public ValueTask DisposeAsync() { Disposals++; return ValueTask.CompletedTask; }
     }
 }

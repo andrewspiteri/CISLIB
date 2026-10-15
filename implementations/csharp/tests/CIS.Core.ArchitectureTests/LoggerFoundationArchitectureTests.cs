@@ -16,7 +16,9 @@ public sealed class LoggerFoundationArchitectureTests
         Assert.AreEqual(0, typeof(CoreLogger).GetConstructors().Length);
         Assert.AreEqual(0, typeof(CoreLogRuntime).GetConstructors().Length);
         var methods = typeof(CoreLogger).GetMethods(BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly);
-        CollectionAssert.AreEquivalent(new[] { "IsEnabled", "Write", "WriteLazy" }, methods.Select(method => method.Name).ToArray());
+        var expected = new[] { "IsEnabled", "Write", "WriteLazy" }.Concat(new[] { "Trace", "Debug", "Info", "Warn", "Error", "Critical" }
+            .SelectMany(name => new[] { name, name, name, name + "Lazy" })).ToArray();
+        CollectionAssert.AreEquivalent(expected, methods.Select(method => method.Name).ToArray());
         var runtimeMethods = typeof(CoreLogRuntime).GetMethods(BindingFlags.Public | BindingFlags.Instance | BindingFlags.Static | BindingFlags.DeclaredOnly);
         foreach (MethodInfo method in methods.Concat(runtimeMethods))
         {
@@ -25,7 +27,7 @@ public sealed class LoggerFoundationArchitectureTests
         }
         CollectionAssert.AreEqual(new[] { "level", "data" }, typeof(CoreLogger).GetMethod("Write")!.GetParameters().Select(item => item.Name).ToArray());
         CollectionAssert.AreEqual(new[] { "level", "factory" }, typeof(CoreLogger).GetMethod("WriteLazy")!.GetParameters().Select(item => item.Name).ToArray());
-        CollectionAssert.AreEquivalent(new[] { "Create", "Create", "get_Completion", "CreateLogger", "BeginScope", "GetDiagnostics", "FlushAsync", "StopAsync", "DisposeAsync" }, runtimeMethods.Select(method => method.Name).ToArray());
+        CollectionAssert.AreEquivalent(new[] { "Create", "Create", "Create", "get_Completion", "CreateLogger", "BeginScope", "GetDiagnostics", "FlushAsync", "StopAsync", "DisposeAsync" }, runtimeMethods.Select(method => method.Name).ToArray());
         Assert.IsNotNull(typeof(CoreLogRuntime).GetMethod("Create", Type.EmptyTypes));
         MethodInfo registered = typeof(CoreLogRuntime).GetMethod("Create", [typeof(IEnumerable<LogWriterRegistration>)])!;
         Assert.AreEqual("writers", registered.GetParameters().Single().Name);

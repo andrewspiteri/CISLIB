@@ -7,11 +7,13 @@ public sealed partial class CoreLogRuntime
 {
     private IncomingEventQueue? incoming;
     private Task? pipelineCompletion;
+    private EventProcessing? processing;
 
     // Invoked exactly once by unpublished factory composition, after output initialization succeeds.
-    internal void StartIncoming(int capacity, Func<Func<Task>, Task>? launch = null)
+    internal void StartIncoming(int capacity, Func<Func<Task>, Task>? launch = null, EventProcessing? processing = null)
     {
         if (incoming is not null || pipelineCompletion is not null) { throw new InvalidOperationException("Runtime startup is sealed."); }
+        this.processing = processing;
         incoming = new IncomingEventQueue(capacity, admissionGate, timeProvider, PrepareIncoming, RegisterFlushBoundaryAt, launch);
     }
 
@@ -21,12 +23,26 @@ public sealed partial class CoreLogRuntime
     {
         try
         {
-            Func<LogWriteResult> commit = PrepareCapturedEvent(item.Facts, item.Level, CapturePreparingOutputs(item.Level), fromIncoming: true);
+            ProcessingDecision? decision = processing?.Prepare(item.Facts, item.Level,
+                outputs.Where(output => Interested(output, item.Level)).Select(output => output.Name).ToArray());
+            if (decision is { Suppressed: true })
+            {
+                return () =>
+                {
+                    incoming!.RecordSuppressed(decision.Duplicate);
+                    foreach (var output in outputs) { output.Admission.RecordFiltered(); }
+                };
+            }
+            Output[] preparing = CapturePreparingOutputs(item.Level);
+            if (decision is not null) { preparing = preparing.Where(output => decision.Destinations.Contains(output.Name, StringComparer.Ordinal)).ToArray(); }
+            Func<LogWriteResult> commit = PrepareCapturedEvent(decision?.Facts ?? item.Facts, item.Level, preparing, fromIncoming: true, decision?.Destinations, item.Facts.IsTruncated);
             return () =>
             {
                 LogWriteResult result = commit();
                 if (result.Outcome is LogWriteOutcome.Rejected or LogWriteOutcome.PartiallyAccepted)
                 { incoming!.RecordWriterRejection(); }
+                if ((result.Outcome is LogWriteOutcome.Accepted or LogWriteOutcome.PartiallyAccepted) && processing?.Remember(decision?.Key) == true)
+                { incoming!.RecordDuplicateKeyEviction(); }
             };
         }
         catch (EventEnvelopeTooLargeException)

@@ -3,7 +3,10 @@ using System.Text;
 
 namespace CIS.TestSupport;
 
-public sealed record ProcessResult(int ExitCode, string StandardOutput, string StandardError);
+public sealed record ProcessResult(int ExitCode, string StandardOutput, string StandardError)
+{
+    public int ProcessId { get; init; }
+}
 
 /// <summary>Runs a bounded child process while draining its two output streams concurrently.</summary>
 public static class ProcessRunner
@@ -54,7 +57,7 @@ public static class ProcessRunner
         {
             await process.WaitForExitAsync(deadline.Token).ConfigureAwait(false);
             await Task.WhenAll(output, error).WaitAsync(deadline.Token).ConfigureAwait(false);
-            return new ProcessResult(process.ExitCode, await output.ConfigureAwait(false), await error.ConfigureAwait(false));
+            return new ProcessResult(process.ExitCode, await output.ConfigureAwait(false), await error.ConfigureAwait(false)) { ProcessId = process.Id };
         }
         catch (OperationCanceledException exception) when (deadline.IsCancellationRequested)
         {

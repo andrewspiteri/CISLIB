@@ -302,7 +302,7 @@ internal sealed class ArchitectureViolationFixture : IDisposable
     {
         string path = PathAt(relative), source = File.ReadAllText(path);
         Assert.IsTrue(source.Contains("namespace CIS.Logging;", StringComparison.Ordinal), "Expected the pinned file-scoped namespace.");
-        Assert.AreEqual(1, Regex.Matches(source, @"(?m)^public sealed class " + Regex.Escape(Path.GetFileNameWithoutExtension(path)) + @"(?: : [^\r\n]+)?\r?$").Count, "Expected one intended top-level class.");
+        Assert.AreEqual(1, Regex.Matches(source, @"(?m)^public sealed (?:partial )?class " + Regex.Escape(Path.GetFileNameWithoutExtension(path)) + @"(?: : [^\r\n]+)?\r?$").Count, "Expected one intended top-level class.");
         Assert.AreEqual(1, Regex.Matches(source, @"(?m)^}\r?$").Count, "Expected one unindented top-level class close.");
         Assert.IsTrue(source.TrimEnd().EndsWith('}'));
         int closing = source.LastIndexOf('}');

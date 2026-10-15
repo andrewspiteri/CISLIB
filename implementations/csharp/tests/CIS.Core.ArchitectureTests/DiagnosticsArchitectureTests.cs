@@ -22,6 +22,8 @@ public sealed class DiagnosticsArchitectureTests
     [DataRow(nameof(ThreadPoolProbe))]
     [DataRow(nameof(ThreadProbe))]
     [DataRow(nameof(TimerProbe))]
+    [DataRow(nameof(CombinedTaskProbe))]
+    [DataRow(nameof(RuntimeCompletionProbe))]
     public void InspectorRejectsActualForbiddenDiagnosticCallSites(string name) => Assert.ThrowsExactly<InvalidDataException>(() => Inspect(typeof(DiagnosticsArchitectureTests).GetMethod(name, BindingFlags.NonPublic | BindingFlags.Static)!));
     private static LogWriteResult RouteProbe(CoreLogger logger) => logger.Write(CoreLogLevel.Information, new LogEventData { EventName = "probe" });
     private static void IoProbe() => File.WriteAllText("not-executed", "not-executed");
@@ -32,13 +34,19 @@ public sealed class DiagnosticsArchitectureTests
     private static bool ThreadPoolProbe() => ThreadPool.QueueUserWorkItem(_ => { });
     private static Thread ThreadProbe() => new Thread(() => { });
     private static Timer TimerProbe() => new Timer(_ => { }, null, 0, 1);
+    private static Task CombinedTaskProbe(Task first, Task second) => Task.WhenAll(first, second);
+    private static Task RuntimeCompletionProbe(CoreLogRuntime runtime) => runtime.Completion;
     private static bool AllowedShippingTarget(MethodBase target)
     {
         string name = target.DeclaringType?.FullName ?? "";
         return name switch
         {
-            "CIS.Logging.CoreLogRuntime" => target.Name is "GetDiagnostics" or "CaptureAccounting" or "get_InvalidEventCount" or "get_TruncatedEventCount",
-            "CIS.Logging.Runtime.OutputQueues" => target.Name is "get_Console" or "get_File",
+            "CIS.Logging.CoreLogRuntime" => target.Name is "GetDiagnostics" or "CaptureAccounting" or "get_InvalidEventCount" or "get_TruncatedEventCount" || target.Name.StartsWith("<GetDiagnostics>b__", StringComparison.Ordinal),
+            "CIS.Logging.Runtime.OutputQueues" => target.Name is "get_Console" or "get_File" or "get_Entries",
+            "CIS.Logging.Runtime.OutputQueues+<>c" => target.Name.StartsWith("<get_Console>b__", StringComparison.Ordinal) || target.Name.StartsWith("<get_File>b__", StringComparison.Ordinal),
+            "CIS.Logging.Runtime.IncomingEventQueue" => target.Name is "Capture" or "get_Completion",
+            "CIS.Logging.Runtime.IncomingFlushBoundary" => target.Name is "get_Observation" or "get_Target" or "get_QueueFull",
+            "CIS.Logging.Runtime.IncomingAccounting" or "CIS.Logging.LogIncomingSnapshot" => target.IsConstructor || target.Name.StartsWith("get_", StringComparison.Ordinal),
             "CIS.Logging.Runtime.OutputEventQueue" => target.Name == "CaptureAccounting",
             "CIS.Logging.Runtime.RuntimeAccounting" or "CIS.Logging.Runtime.OutputAccounting" or "CIS.Logging.CoreLogDiagnostics" or "CIS.Logging.LogOutputDiagnostics" => target.IsConstructor || target.Name.StartsWith("get_", StringComparison.Ordinal) || name == "CIS.Logging.Runtime.OutputAccounting" && target.Name == "SaturatingSum",
             "CIS.Logging.CoreLogRuntime+<>c" => target.Name.StartsWith("<GetDiagnostics>b__", StringComparison.Ordinal),
@@ -60,7 +68,7 @@ public sealed class DiagnosticsArchitectureTests
                     MethodBase target = method.Module.ResolveMethod(BitConverter.ToInt32(body, offset), method.DeclaringType?.GetGenericArguments(), method.IsGenericMethod ? method.GetGenericArguments() : null)!;
                     string name = target.DeclaringType?.FullName ?? "";
                     if (name is "System.Console" or "System.Environment" or "System.TimeProvider" or "CIS.EnvironmentOptions" or "CIS.Logging.LoggingOptions" or "CIS.Logging.CoreLogger" or "System.Diagnostics.Trace" or "System.Diagnostics.Debug" or "System.Diagnostics.Activity" or "System.Threading.ThreadPool" or "System.Threading.Thread" or "System.Threading.Timer"
-                        || name.StartsWith("System.IO.", StringComparison.Ordinal) || name.StartsWith("System.Threading.Tasks.", StringComparison.Ordinal)
+                        || name.StartsWith("System.IO.", StringComparison.Ordinal) || name.StartsWith("System.Threading.Tasks.", StringComparison.Ordinal) && !(name == "System.Threading.Tasks.Task" && target.Name == "get_IsCompleted")
                         || name.StartsWith("System.Threading.Channels.", StringComparison.Ordinal) && target.Name is not ("get_Reader" or "get_Count")
                         || target.Module.Assembly == typeof(CoreLogRuntime).Assembly && !AllowedShippingTarget(target))
                     { throw new InvalidDataException("Diagnostics call a forbidden route/source/I/O/task: " + name + "." + target.Name); }

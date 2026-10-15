@@ -15,12 +15,15 @@ Before this correction, an accepted `Write` result described synchronous per-out
 | Counter | Meaning |
 | --- | --- |
 | Accepted | Number of incoming acceptance tickets through the observation boundary |
-| Processed | Events dispatched through writer admission, whether writers accepted or rejected them |
+| Processed | Events settled by intentional policy suppression or writer admission |
 | Failed | Background preparation/dispatch failures |
 | Abandoned | Accepted events discarded before dispatch when shutdown expired |
 | Pending | Queued events or active background preparation |
 | QueueFull | New incoming events rejected for lack of capacity |
 | RejectedByWriters | A subset of Processed: events rejected by at least one interested writer |
+| Suppressed | A subset of Processed: events intentionally excluded by policy, not loss |
+| DuplicateSuppressed | A subset of Suppressed: events matching the opt-in duplicate policy |
+| DuplicateKeyEvictions | Oldest duplicate keys removed at capacity; no event is discarded |
 
 `Accepted = Processed + Failed + Abandoned + Pending`. Writer accounting remains independent. Processing does not mean delivery. A covered accepted event rejected by a writer makes flush/stop `Succeeded=false` and `LossObserved=true`, even if every event that reached that writer subsequently completed. Incoming rejections are also visible as loss; they have no acceptance ticket.
 
@@ -30,4 +33,4 @@ Flush captures the current incoming sequence. The worker processes that prefix, 
 
 Stop closes incoming admission and drains accepted work through the same two stages. Its one captured shutdown budget includes background processing, output draining and cleanup. At expiry, queued input and preparation that has not committed to writer admission are counted as abandoned. Preparation that finishes later cannot send that discarded event to a writer. Already-started writer I/O may remain pending; cancellation is cooperative and resources are never disposed beneath it. `Completion` settles only when actual processing, I/O and cleanup end, possibly after the immutable stop result has been returned.
 
-This implementation preserves the existing file recovery, retention, borrowed-console, provider ownership and fixed output-boundary behavior. Output-only internal test factories are explicitly marked as such; their historical results do not claim incoming-stage coverage. `IncomingEventQueueTests`, `IncomingRuntimeTests`, the public shutdown children and the exact-package pipe-pressure consumer qualify the new boundary directly. Common built-in adapter composition, filters/interceptors, duplicate policy and convenience calls remain separately tracked corrective work.
+This implementation preserves existing recovery, retention, borrowed-console, provider ownership and output boundaries. Output-only internal factories remain explicitly marked; historical results do not claim incoming coverage. Incoming tests, public shutdown children and exact-package pressure consumers qualify this boundary. Subsequent common-writer and [processing policy](processing-policies.md) slices extend it with their own evidence; release qualification remains separate.

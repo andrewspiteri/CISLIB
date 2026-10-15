@@ -2,7 +2,7 @@ namespace CIS.Logging;
 
 /// <summary>A component logger borrowing its runtime; it has no independent lifecycle.</summary>
 /// <remarks>Methods support concurrent calls. Method severity alone controls filtering and capture.</remarks>
-public sealed class CoreLogger
+public sealed partial class CoreLogger
 {
     private readonly CoreLogRuntime runtime;
     private readonly string component;

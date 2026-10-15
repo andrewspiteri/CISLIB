@@ -26,7 +26,17 @@ public sealed class ProviderBehaviorProcessTests
         Assert.AreEqual(Hash(host), report["fixtureSha256"]!.GetValue<string>());
         Assert.AreEqual(Hash(Path.Combine(Path.GetDirectoryName(host)!, "CIS.Core.dll")), report["coreSha256"]!.GetValue<string>());
         Assert.AreEqual(OperatingSystem.IsWindows() ? "windows" : "linux", report["os"]!.GetValue<string>());
-        ProviderBehaviorExpectations.Validate(mode, report);
+        bool physical = ProviderBehaviorExpectations.IsPhysicalMode(mode);
+        ProviderBehaviorExpectations.Validate(mode, report, child.ProcessId, physical);
+        if (physical)
+        {
+            CollectionAssert.AreEqual(Convert.FromBase64String(report["bytes"]!.GetValue<string>()), File.ReadAllBytes(Path.Combine(root.Path, "logs Ω", "active.log")));
+            JsonObject changed = report.DeepClone().AsObject();
+            changed["pid"] = child.ProcessId + 1;
+            Assert.AreEqual("actual child PID", Assert.ThrowsExactly<InvalidDataException>(() => ProviderBehaviorExpectations.Validate(mode, changed, child.ProcessId, physical)).Message);
+            changed = report.DeepClone().AsObject(); changed["leaseReleased"] = false;
+            Assert.AreEqual("physical lifetime", Assert.ThrowsExactly<InvalidDataException>(() => ProviderBehaviorExpectations.Validate(mode, changed, child.ProcessId, physical)).Message);
+        }
     }
     private static string Hash(string path) => Convert.ToHexStringLower(SHA256.HashData(File.ReadAllBytes(path)));
 }

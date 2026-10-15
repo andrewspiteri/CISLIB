@@ -134,13 +134,17 @@ public sealed class RuntimeContractTests
             TypeDefinition type = types[ns + '.' + contract.Name];
             Assert.IsTrue((type.Attributes & TypeAttributes.Sealed) != 0, contract.Name);
             MethodDefinition[] methods = PublicMethods(reader, type).Where(method => reader.GetString(method.Name) != ".ctor").ToArray();
-            CollectionAssert.AreEquivalent(contract.Value.EnumerateObject().Select(method => method.Name).ToArray(), methods.Select(method => reader.GetString(method.Name)).ToArray());
-            foreach (JsonProperty expected in contract.Value.EnumerateObject())
+            var expectedMethods = contract.Value.EnumerateObject().SelectMany(method =>
+                (method.Value.ValueKind == JsonValueKind.Array ? method.Value.EnumerateArray().ToArray() : [method.Value])
+                .Select(value => (method.Name, Value: value))).ToArray();
+            CollectionAssert.AreEquivalent(expectedMethods.Select(method => method.Name).ToArray(), methods.Select(method => reader.GetString(method.Name)).ToArray());
+            foreach (var expected in expectedMethods)
             {
-                MethodDefinition method = methods.Single(method => reader.GetString(method.Name) == expected.Name);
+                JsonProperty[] parameters = expected.Value.GetProperty("parameters").EnumerateObject().ToArray();
+                MethodDefinition method = methods.Single(method => reader.GetString(method.Name) == expected.Name &&
+                    method.DecodeSignature(provider, null).ParameterTypes.SequenceEqual(parameters.Select(parameter => parameter.Value.GetString()!)));
                 MethodSignature<string> signature = method.DecodeSignature(provider, null);
                 Assert.AreEqual(expected.Value.GetProperty("return").GetString(), signature.ReturnType, expected.Name);
-                JsonProperty[] parameters = expected.Value.GetProperty("parameters").EnumerateObject().ToArray();
                 CollectionAssert.AreEqual(parameters.Select(parameter => parameter.Value.GetString()!).ToArray(), signature.ParameterTypes.ToArray(), expected.Name);
                 string[] names = method.GetParameters().Select(reader.GetParameter).Where(parameter => parameter.SequenceNumber > 0).OrderBy(parameter => parameter.SequenceNumber).Select(parameter => reader.GetString(parameter.Name)).ToArray();
                 CollectionAssert.AreEqual(parameters.Select(parameter => parameter.Name).ToArray(), names, expected.Name);

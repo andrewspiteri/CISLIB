@@ -153,17 +153,31 @@ internal static class ShippingCoverage
             long[] totals = [lc, lt, bc, bt];
             long[] native = [Number(xml.Root!, "lines-covered"), Number(xml.Root!, "lines-valid"), Number(xml.Root!, "branches-covered"), Number(xml.Root!, "branches-valid")];
             if (!totals.SequenceEqual(native)) { throw new InvalidDataException("Parsed denominator does not equal the native report totals."); }
-            reports.Add(new JsonObject { ["trx"] = trx, ["trxSha256"] = Hash(trx), ["cobertura"] = report, ["coberturaSha256"] = Hash(report),
-                ["testsPassed"] = Number(counters[0], "passed"), ["nativeTotals"] = JsonSerializer.SerializeToNode(totals) });
+            reports.Add(new JsonObject
+            {
+                ["trx"] = trx,
+                ["trxSha256"] = Hash(trx),
+                ["cobertura"] = report,
+                ["coberturaSha256"] = Hash(report),
+                ["testsPassed"] = Number(counters[0], "passed"),
+                ["nativeTotals"] = JsonSerializer.SerializeToNode(totals)
+            });
         }
 
         JsonObject Counts(IEnumerable<Point> values)
         {
             Point[] points = values.ToArray();
             long lc = points.LongCount(point => point.Hit), lt = points.LongLength, bc = points.Sum(point => point.Covered), bt = points.Sum(point => point.Total);
-            return new JsonObject { ["linesCovered"] = lc, ["linesTotal"] = lt, ["branchesCoveredLowerBound"] = bc, ["branchesTotal"] = bt,
-                ["lineRate"] = lt > 0 ? (double)lc / lt : null, ["branchRateLowerBound"] = bt > 0 ? (double)bc / bt : null,
-                ["thresholdPassed"] = lt > 0 && bt > 0 && lc >= lineMinimum * lt && bc >= branchMinimum * bt };
+            return new JsonObject
+            {
+                ["linesCovered"] = lc,
+                ["linesTotal"] = lt,
+                ["branchesCoveredLowerBound"] = bc,
+                ["branchesTotal"] = bt,
+                ["lineRate"] = lt > 0 ? (double)lc / lt : null,
+                ["branchRateLowerBound"] = bt > 0 ? (double)bc / bt : null,
+                ["thresholdPassed"] = lt > 0 && bt > 0 && lc >= lineMinimum * lt && bc >= branchMinimum * bt
+            };
         }
         var output = new JsonArray();
         var aggregate = new List<Point>();
@@ -190,9 +204,18 @@ internal static class ShippingCoverage
         Point[] calibration = core.Points.Where(point => point.Key.Path.EndsWith("/SeverityTokenParser.cs", StringComparison.Ordinal)).Select(point => point.Value).ToArray();
         if (calibration.Length == 0 || calibration.Sum(point => point.Total) == 0 || calibration.Sum(point => point.Covered) == 0)
         { throw new InvalidDataException("Known branching fixture has no observed branches."); }
-        return new JsonObject { ["schema"] = "cis.csharp.shipping-coverage-observation/v1", ["policySha256"] = Hash(policyPath),
-            ["aggregation"] = policy["aggregation"]!.DeepClone(), ["exclusions"] = policy["exclusions"]!.DeepClone(), ["reports"] = reports,
-            ["assemblies"] = output, ["aggregate"] = Counts(aggregate), ["qualified"] = output.All(item => item!["thresholdPassed"]!.GetValue<bool>()), ["branchCalibration"] = Counts(calibration) };
+        return new JsonObject
+        {
+            ["schema"] = "cis.csharp.shipping-coverage-observation/v1",
+            ["policySha256"] = Hash(policyPath),
+            ["aggregation"] = policy["aggregation"]!.DeepClone(),
+            ["exclusions"] = policy["exclusions"]!.DeepClone(),
+            ["reports"] = reports,
+            ["assemblies"] = output,
+            ["aggregate"] = Counts(aggregate),
+            ["qualified"] = output.All(item => item!["thresholdPassed"]!.GetValue<bool>()),
+            ["branchCalibration"] = Counts(calibration)
+        };
     }
 
     private static string Contained(string root, string relative)

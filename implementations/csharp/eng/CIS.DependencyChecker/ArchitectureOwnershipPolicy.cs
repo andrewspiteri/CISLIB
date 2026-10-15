@@ -16,7 +16,8 @@ internal static class ArchitectureOwnershipPolicy
         "CIS.Logging.Exceptions.CapturedException", "CIS.Logging.CoreLogDiagnostics", "CIS.Logging.LogOutputDiagnostics",
         "CIS.Logging.LogWriteResult", "CIS.Logging.LogOutputWriteResult", "CIS.Logging.LogFlushResult",
         "CIS.Logging.LogStopResult", "CIS.Logging.LogOutputDrainResult", "CIS.Logging.LogOutputRejectionSnapshot",
-        "CIS.Logging.Runtime.AdmittedEvent", "CIS.Logging.Runtime.OutputAccounting", "CIS.Logging.Runtime.RuntimeAccounting"
+        "CIS.Logging.Runtime.AdmittedEvent", "CIS.Logging.Runtime.OutputAccounting", "CIS.Logging.Runtime.RuntimeAccounting",
+        "CIS.Logging.Runtime.IncomingAccounting"
     ];
     private static readonly Dictionary<string, string> BuildAssets = new(StringComparer.Ordinal)
     {

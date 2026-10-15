@@ -79,9 +79,17 @@ internal static class FocusedTests
         elapsed.Stop();
         File.WriteAllText(Path.Combine(output, "summary.json"), JsonSerializer.Serialize(new
         {
-            scope = "focused-native-tests", passed = failure is null, failure, started,
-            selection.Project, selection.Configuration, selection.Filter, selection.TimeoutSeconds,
-            buildSeconds, nativeDiscoveryAndExecutionSeconds = nativeSeconds, totalSeconds = elapsed.Elapsed.TotalSeconds,
+            scope = "focused-native-tests",
+            passed = failure is null,
+            failure,
+            started,
+            selection.Project,
+            selection.Configuration,
+            selection.Filter,
+            selection.TimeoutSeconds,
+            buildSeconds,
+            nativeDiscoveryAndExecutionSeconds = nativeSeconds,
+            totalSeconds = elapsed.Elapsed.TotalSeconds,
             cases,
             omitted = "Unselected tests and families, package/API/architecture checkpoint prerequisites, coverage, mutation, performance and release qualification are not credited."
         }, new JsonSerializerOptions { WriteIndented = true }));

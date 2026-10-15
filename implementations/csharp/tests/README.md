@@ -26,6 +26,8 @@ Architecture and some process/package tests have explicit fixture prerequisites.
 
 Run `pwsh -File eng/verify.ps1` at coherent checkpoints. Developer executes the populated unit, integration, architecture and business families; compatibility without historical publications is not counted as passing. Release still rejects incomplete evidence. Existing mutation/API/coverage tools and remaining Python checks are part of the broader qualification path, not prerequisites for every unit edit.
 
+Provider interest/rejection verification now uses native `ProviderBehaviorTests`, `ProviderBehaviorVerifierTests` and `ProviderBehaviorProcessTests`. The verifier controls preserve the former reader's 21 corruptions and check strict numeric types, framing, catalog membership and real child PID/file facts. Run the unit filter `FullyQualifiedName~ProviderBehavior` and integration class `ProviderBehaviorProcessTests`; no Python or package checkpoint is required. Other legacy readers remain subject to individual migration.
+
 The entries below record historical roadmap additions; their statements about work then pending do not describe the current implementation status.
 
 WP01-S04 adds manual UTC/monotonic clocks and timers, explicit metadata/UUID sequences, bounded asynchronous signals/barriers and controllable writers. The process helper supports isolated child environments and stops owned children at finite deadlines. Nine new unit cases exercise these behaviors. Architecture tests add a genuine native-report positive baseline and six independent evidence rejection controls. Read [verification and source replay](../../../docs/architecture/csharp-verification.md) for manifests, required cases, report paths and source replay limits.

@@ -29,7 +29,7 @@ internal static class QueuedRuntimeFactory
         return ComposeQueued(metadata, selected, writer is null ? null : writer.WriteAsync, fileWrite, timeProvider, writer, launchWorker);
     }
 
-    internal static CoreLogRuntime CreateConfiguredQueued(EventMetadata metadata, LoggingOptions options, TimeProvider? timeProvider = null, Func<ConsoleOutputStream, Stream>? acquireConsole = null, Func<Func<Task>, Task>? launchWorker = null, IEnumerable<LogWriterRegistration>? writers = null, bool incomingPipeline = false)
+    internal static CoreLogRuntime CreateConfiguredQueued(EventMetadata metadata, LoggingOptions options, TimeProvider? timeProvider = null, Func<ConsoleOutputStream, Stream>? acquireConsole = null, Func<Func<Task>, Task>? launchWorker = null, IEnumerable<LogWriterRegistration>? writers = null, bool incomingPipeline = false, LogProcessingOptions? processing = null)
     {
         ArgumentNullException.ThrowIfNull(metadata);
         LogWriterRegistration[] registrations = writers?.ToArray() ?? [];
@@ -37,6 +37,7 @@ internal static class QueuedRuntimeFactory
             registrations.Select(registration => registration.Writer).Distinct(ReferenceEqualityComparer.Instance).Count() != registrations.Length)
         { throw new ArgumentException("Writers and their ordinal names must be nonnull and unique.", nameof(writers)); }
         LoggingOptions selected = CaptureQueueOptions(options);
+        EventProcessing? processor = processing is null ? null : new(processing, timeProvider ?? TimeProvider.System, selected.MaxEntryBytes);
         CoreLogRuntime.ValidateSettings(selected.EffectiveConsoleLevel, selected.EffectiveFileLevel, selected.MaxEntryBytes);
         if (selected.QueueCapacity is < LoggingOptions.MinimumQueueCapacity or > LoggingOptions.MaximumQueueCapacity || selected.FileMaxBytes is < LoggingOptions.MinimumFileMaxBytes or > LoggingOptions.MaximumFileMaxBytes || selected.FileRetainedFiles is < LoggingOptions.MinimumFileRetainedFiles or > LoggingOptions.MaximumFileRetainedFiles || selected.FileEnabled && (selected.FileMaxBytes < selected.MaxEntryBytes || selected.FlushIntervalMilliseconds is < LoggingOptions.MinimumFlushIntervalMilliseconds or > LoggingOptions.MaximumFlushIntervalMilliseconds))
         {
@@ -55,7 +56,7 @@ internal static class QueuedRuntimeFactory
 
         ConsoleOutputWriter? console = AcquireConsoleWriter(selected, acquireConsole);
         FileOutputWriter? file = selected.FileEnabled ? new(selected.FilePath!, selected.FileFormat, selected.HumanDetail, selected.MaxEntryBytes, selected.FileMaxBytes, selected.FileRetainedFiles) : null;
-        return ComposeQueued(metadata, selected, console is null ? null : console.WriteAsync, file is null ? null : file.WriteAsync, timeProvider, console, launchWorker, file, registrations: registrations, incomingPipeline: incomingPipeline);
+        return ComposeQueued(metadata, selected, console is null ? null : console.WriteAsync, file is null ? null : file.WriteAsync, timeProvider, console, launchWorker, file, registrations: registrations, incomingPipeline: incomingPipeline || processor is not null, processing: processor);
     }
 
     private static ConsoleOutputWriter? AcquireConsoleWriter(LoggingOptions selected, Func<ConsoleOutputStream, Stream>? acquireConsole)
@@ -108,7 +109,7 @@ internal static class QueuedRuntimeFactory
         };
     }
 
-    private static CoreLogRuntime ComposeQueued(EventMetadata metadata, LoggingOptions selected, Func<AdmittedEvent, ValueTask>? consoleWrite, Func<AdmittedEvent, ValueTask>? fileWrite, TimeProvider? timeProvider, ConsoleOutputWriter? writer = null, Func<Func<Task>, Task>? launchWorker = null, FileOutputWriter? fileWriter = null, Func<ValueTask>? consoleFlush = null, Func<ValueTask>? fileFlush = null, IReadOnlyList<LogWriterRegistration>? registrations = null, bool incomingPipeline = false)
+    private static CoreLogRuntime ComposeQueued(EventMetadata metadata, LoggingOptions selected, Func<AdmittedEvent, ValueTask>? consoleWrite, Func<AdmittedEvent, ValueTask>? fileWrite, TimeProvider? timeProvider, ConsoleOutputWriter? writer = null, Func<Func<Task>, Task>? launchWorker = null, FileOutputWriter? fileWriter = null, Func<ValueTask>? consoleFlush = null, Func<ValueTask>? fileFlush = null, IReadOnlyList<LogWriterRegistration>? registrations = null, bool incomingPipeline = false, EventProcessing? processing = null)
     {
         CoreLogRuntime.ValidateSettings(selected.EffectiveConsoleLevel, selected.EffectiveFileLevel, selected.MaxEntryBytes);
         var gate = new object();
@@ -150,7 +151,7 @@ internal static class QueuedRuntimeFactory
 
             if (incomingPipeline)
             {
-                try { runtime.StartIncoming(selected.QueueCapacity, launchWorker); }
+                try { runtime.StartIncoming(selected.QueueCapacity, launchWorker, processing); }
                 catch { throw new CoreLogInitializationException("incoming", "WorkerInitializationFailed"); }
             }
             Volatile.Write(ref ownershipTransferred, true);

@@ -6,11 +6,28 @@
   "providerNamespace": "CIS.Logging.MicrosoftLogger",
   "methods": {
     "CoreLogRuntime": {
-      "Create": {
-        "return": "CoreLogRuntime",
-        "static": true,
-        "parameters": {}
-      },
+      "Create": [
+        {
+          "static": true,
+          "return": "CoreLogRuntime",
+          "parameters": {}
+        },
+        {
+          "static": true,
+          "return": "CoreLogRuntime",
+          "parameters": {
+            "writers": "IEnumerable<LogWriterRegistration>"
+          }
+        },
+        {
+          "static": true,
+          "return": "CoreLogRuntime",
+          "parameters": {
+            "processing": "LogProcessingOptions",
+            "writers": "IEnumerable<LogWriterRegistration>"
+          }
+        }
+      ],
       "CreateLogger": {
         "return": "CoreLogger",
         "parameters": {
@@ -43,6 +60,10 @@
       "DisposeAsync": {
         "return": "ValueTask",
         "parameters": {}
+      },
+      "get_Completion": {
+        "parameters": {},
+        "return": "Task"
       }
     },
     "CoreLogger": {
@@ -65,6 +86,168 @@
           "level": "CoreLogLevel",
           "factory": "Func<LogEventData>"
         }
+      },
+      "Trace": [
+        {
+          "parameters": {
+            "message": "string"
+          },
+          "return": "LogWriteResult"
+        },
+        {
+          "parameters": {
+            "eventName": "string",
+            "message": "string"
+          },
+          "return": "LogWriteResult"
+        },
+        {
+          "parameters": {
+            "data": "LogEventData"
+          },
+          "return": "LogWriteResult"
+        }
+      ],
+      "TraceLazy": {
+        "parameters": {
+          "factory": "Func<LogEventData>"
+        },
+        "return": "LogWriteResult"
+      },
+      "Debug": [
+        {
+          "parameters": {
+            "message": "string"
+          },
+          "return": "LogWriteResult"
+        },
+        {
+          "parameters": {
+            "eventName": "string",
+            "message": "string"
+          },
+          "return": "LogWriteResult"
+        },
+        {
+          "parameters": {
+            "data": "LogEventData"
+          },
+          "return": "LogWriteResult"
+        }
+      ],
+      "DebugLazy": {
+        "parameters": {
+          "factory": "Func<LogEventData>"
+        },
+        "return": "LogWriteResult"
+      },
+      "Info": [
+        {
+          "parameters": {
+            "message": "string"
+          },
+          "return": "LogWriteResult"
+        },
+        {
+          "parameters": {
+            "eventName": "string",
+            "message": "string"
+          },
+          "return": "LogWriteResult"
+        },
+        {
+          "parameters": {
+            "data": "LogEventData"
+          },
+          "return": "LogWriteResult"
+        }
+      ],
+      "InfoLazy": {
+        "parameters": {
+          "factory": "Func<LogEventData>"
+        },
+        "return": "LogWriteResult"
+      },
+      "Warn": [
+        {
+          "parameters": {
+            "message": "string"
+          },
+          "return": "LogWriteResult"
+        },
+        {
+          "parameters": {
+            "eventName": "string",
+            "message": "string"
+          },
+          "return": "LogWriteResult"
+        },
+        {
+          "parameters": {
+            "data": "LogEventData"
+          },
+          "return": "LogWriteResult"
+        }
+      ],
+      "WarnLazy": {
+        "parameters": {
+          "factory": "Func<LogEventData>"
+        },
+        "return": "LogWriteResult"
+      },
+      "Error": [
+        {
+          "parameters": {
+            "message": "string"
+          },
+          "return": "LogWriteResult"
+        },
+        {
+          "parameters": {
+            "eventName": "string",
+            "message": "string"
+          },
+          "return": "LogWriteResult"
+        },
+        {
+          "parameters": {
+            "data": "LogEventData"
+          },
+          "return": "LogWriteResult"
+        }
+      ],
+      "ErrorLazy": {
+        "parameters": {
+          "factory": "Func<LogEventData>"
+        },
+        "return": "LogWriteResult"
+      },
+      "Critical": [
+        {
+          "parameters": {
+            "message": "string"
+          },
+          "return": "LogWriteResult"
+        },
+        {
+          "parameters": {
+            "eventName": "string",
+            "message": "string"
+          },
+          "return": "LogWriteResult"
+        },
+        {
+          "parameters": {
+            "data": "LogEventData"
+          },
+          "return": "LogWriteResult"
+        }
+      ],
+      "CriticalLazy": {
+        "parameters": {
+          "factory": "Func<LogEventData>"
+        },
+        "return": "LogWriteResult"
       }
     },
     "CoreLoggerProvider": {
@@ -178,7 +361,10 @@
       "Abandoned": "long",
       "Pending": "long",
       "QueueFull": "long",
-      "RejectedByWriters": "long"
+      "RejectedByWriters": "long",
+      "Suppressed": "long",
+      "DuplicateSuppressed": "long",
+      "DuplicateKeyEvictions": "long"
     }
   },
   "enums": {

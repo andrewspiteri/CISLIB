@@ -130,7 +130,7 @@ internal static class EventProjection
         }
     }
 
-    private static string CaptureText(string value, out bool truncated)
+    internal static string CaptureText(string value, out bool truncated)
     {
         ArgumentNullException.ThrowIfNull(value, "data");
         // Unlike bounded exception accessors, the named message/template is a supplied string.

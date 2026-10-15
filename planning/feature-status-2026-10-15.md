@@ -77,3 +77,7 @@ Completion of an original task can have a documented wiring or measurement scope
 ## Pause and next action
 
 The requested stopping point is completion and commit of WP07-S02-T04. No later roadmap task will be started in this run. When resumed, the next logging task is WP07-S03-T01: define the complete mutation matrix/invocations/reports before running full mutation qualification.
+
+## 16 October corrective implementation addendum
+
+The earlier pause and next-action statements above describe the 15 October checkpoint. Subsequent user authorization continued corrective work here while the logging chat remained paused. Bounded incoming admission and shared deadline accounting are committed in `450a3ee3`; common writer composition is committed in `6c346acc`. Startup-captured interceptors, filtering/routing, opt-in application-key/window duplicate suppression and message-only/named/typed/lazy convenience methods are implemented. The combined Windows Developer checkpoint passed all 5,637 enabled native cases; final Ubuntu processing/lifecycle, exact-package and diagnostic checks passed 307, 20 and 12 cases. See [the corrective map](corrective-implementation-map-2026-10-15.md), [policy semantics](../docs/modules/logging/processing-policies.md) and [extension evidence](evidence/corrective-processing-2026-10-16.md). Remaining native migration, runnable examples, IDE acceptance and final qualification are still open; the old mutation pointer is not automatically resumed.

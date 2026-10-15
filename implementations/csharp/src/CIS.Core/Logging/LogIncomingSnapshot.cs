@@ -10,10 +10,11 @@ public sealed class LogIncomingSnapshot
         Accepted = counts.Accepted; Processed = counts.Processed; Failed = counts.Failed;
         Abandoned = counts.Abandoned; Pending = counts.Pending; QueueFull = counts.QueueFull;
         RejectedByWriters = counts.RejectedByWriters;
+        Suppressed = counts.Suppressed; DuplicateSuppressed = counts.DuplicateSuppressed; DuplicateKeyEvictions = counts.DuplicateKeyEvictions;
     }
     /// <summary>Accepted incoming events through this observation's sequence boundary.</summary>
     public long Accepted { get; }
-    /// <summary>Events processed through writer admission; individual writers may still reject or fail.</summary>
+    /// <summary>Events processed through policy suppression or writer admission; individual writers may still reject or fail.</summary>
     public long Processed { get; }
     /// <summary>Events whose background preparation or dispatch failed.</summary>
     public long Failed { get; }
@@ -25,4 +26,10 @@ public sealed class LogIncomingSnapshot
     public long QueueFull { get; }
     /// <summary>Processed events rejected by at least one interested writer; these events are already counted in Processed.</summary>
     public long RejectedByWriters { get; }
+    /// <summary>Processed events intentionally excluded by global filtering, all routing decisions or duplicate policy. Not loss.</summary>
+    public long Suppressed { get; }
+    /// <summary>The subset of Suppressed excluded by the configured duplicate policy.</summary>
+    public long DuplicateSuppressed { get; }
+    /// <summary>Oldest duplicate identities evicted at the configured capacity; no event is discarded by eviction.</summary>
+    public long DuplicateKeyEvictions { get; }
 }
