@@ -27,7 +27,7 @@ def summarize(language, directories):
             sources[key] = assembly['name']
         if set(assembly['nonExecutable']) - {p.relative_to(root).as_posix() for p in root.rglob('*.cs')}:
             raise ValueError('Non-executable inventory names a missing source')
-        evaluated = subprocess.run(['dotnet', 'msbuild', assembly['project'], '-getItem:Compile', '-nologo'], cwd=language,
+        evaluated = subprocess.run(['dotnet', 'msbuild', assembly['project'], '-getItem:Compile', '-p:Configuration=Release', '-p:TargetFramework=net10.0', '-nologo'], cwd=language,
                                    check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, encoding='utf-8', errors='strict')
         compile_items = json.loads(evaluated.stdout)['Items']['Compile']
         compiled = set()
@@ -111,6 +111,8 @@ def summarize(language, directories):
             files.append(dict(source, **counts(points.values()), uncoveredLines=sorted({key[2] for key, value in points.items() if not value[0]}),
                               partiallyCoveredBranchLines=sorted({key[2] for key, value in points.items() if value[1] < value[2]})))
         aggregate.extend(assembly['points'].values())
+        if sum(value[2] for value in assembly['points'].values()) == 0:
+            raise ValueError('Assembly has no native branch denominator: ' + name)
         output.append({'assembly': name, **counts(assembly['points'].values()), 'sources': files})
     calibration = [value for key, value in assemblies['CIS.Core']['points'].items() if key[0].endswith('/SeverityTokenParser.cs')]
     if not calibration or sum(v[2] for v in calibration) == 0 or sum(v[1] for v in calibration) == 0:

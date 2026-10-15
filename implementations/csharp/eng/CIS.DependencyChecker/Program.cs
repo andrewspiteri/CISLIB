@@ -1,5 +1,25 @@
 using System.Text.Json;
 using CIS.TestSupport;
+using CIS.Verification;
+
+if (args.Length == 4 && args[0] == "architecture")
+{
+    try { await ArchitectureInspection.Write(args[1], args[2], args[3]); return 0; }
+    catch (Exception exception) when (exception is IOException or InvalidDataException or BadImageFormatException or InvalidOperationException or ArgumentException or JsonException or System.Xml.XmlException)
+    {
+        Console.Error.WriteLine("Architecture inspection failed: " + exception.Message);
+        return 1;
+    }
+}
+if (args.Length == 3 && args[0] == "inspect")
+{
+    try { AssemblyInspection.Write(args[1], args[2]); return 0; }
+    catch (Exception exception) when (exception is IOException or InvalidDataException or BadImageFormatException or InvalidOperationException or ArgumentException)
+    {
+        Console.Error.WriteLine("Assembly inspection failed: " + exception.Message);
+        return 1;
+    }
+}
 
 if (args.Length != 2)
 {
@@ -27,7 +47,7 @@ try
     Console.WriteLine(JsonSerializer.Serialize(new { Assembly = args[0], References = AssemblyReferences.Read(args[0]) }));
     return 0;
 }
-catch (Exception exception) when (exception is IOException or BadImageFormatException or JsonException)
+catch (Exception exception) when (exception is IOException or InvalidDataException or BadImageFormatException or JsonException)
 {
     Console.Error.WriteLine(exception.Message);
     return 1;

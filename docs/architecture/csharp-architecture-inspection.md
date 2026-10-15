@@ -1,0 +1,19 @@
+# C# architecture inspection
+
+WP07-S02-T01 adds an observed architecture inventory to the Developer verifier. Run `dotnet eng/CIS.DependencyChecker/bin/Release/net10.0/CIS.DependencyChecker.dll architecture <language-root> <candidate.nupkg> <report-directory>` from `implementations/csharp` after locked restore, Release build and pack. The verifier passes the exact package selected by its evaluated version and retains a run-specific report reference.
+
+The five inspected levels are:
+
+1. Every independently discovered C# project, with evaluated project, package, framework and explicit assembly references for each declared framework/RID context. The registered project inventory must agree with discovery.
+2. Every restored target graph, checked against the corresponding locked versions and content hashes. NuGet RID lock sections are deltas over the base framework graph; both are retained. Declared, restored and locked target inventories must agree. Restore framework/download metadata remains visible separately from NuGet target packages.
+3. Every candidate package entry and dependency group, including DLLs outside `lib/`. Each DLL is inspected and bound by assembly identity and exact bytes to a unique evaluated Release project output. The packaged Type Manager build helper is included even though its project is not independently packable.
+4. Metadata assembly references and public/protected type/member signature shapes, including nested visibility, generic types, properties and events.
+5. Static type uses from signatures, base/interface relationships, generic constraints, custom attribute constructors, IL operands, local signatures and catch regions. Internal type edges and namespace edges retain their use sites, including compiler-generated implementation types and the module type. Module, interface implementation and generic parameter/constraint attributes are visited; an exact custom-attribute table count rejects omitted attribute parents. Explicit method override declarations are also decoded.
+
+The orchestration and metadata reader are implemented in C#, following the user direction to keep new C# project tools and tests in C#. The nonshipping `CIS.DependencyChecker inspect <assembly> <report>` command reads PE metadata without loading or executing the inspected assembly. Existing compiled-reference allowlist behavior remains available through its original two-argument command. The new MSTest cases exercise real Core/helper outputs, generic and nested visibility, internal IL dependencies, a throwing initializer and malformed input.
+
+Reports use `cis.architecture-inspection/v1` and `cis.assembly-inspection/v1`. Input, candidate, assembly and report hashes identify the observed files. Absolute paths describe the actual execution checkout. Static inspection cannot infer reflection strings, serialized attribute arguments or runtime-selected dependencies. This inventory is not cumulative API compatibility or a complete architecture approval. Exact amended allowlists remain WP07-S02-T02; ownership/separation rules remain T03; comprehensive deliberate violation qualification remains T04. The release gates remain pending.
+
+## Late WP07-S01-T04 coverage review
+
+The user-approved original nine-file T04 payload was reviewed after T05. Its six findings are corrected in this checkpoint: every DLL package location is inventoried, copy-local shipping binaries used by no-build test hosts must match the package and are rehashed after execution, source inventory evaluation uses Release/net10.0, a zero assembly branch denominator is a collection error, the exact evaluated package version is selected despite other versions in the output directory, and a dead input-list append is removed. These corrections do not grant missing helper/Ubuntu/full-release coverage qualification.

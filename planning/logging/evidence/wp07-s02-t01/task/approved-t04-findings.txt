@@ -1,0 +1,53 @@
+```json
+{
+  "verdict": "FINDINGS",
+  "findings": [
+    {
+      "severity": "medium",
+      "area": "false coverage credit / candidate identity",
+      "location": "implementations/csharp/eng/verify-shipping-coverage.ps1 (package hash loop and inputs)",
+      "issue": "Tests run with --no-build and load CIS.Core.dll from each tests/CIS.Core.<Family>/bin/Release/net10.0/ copy. The ModulePath regex matches any CIS.Core.dll. Only src/CIS.Core/bin and the packed entries are hash-checked, and the test-bin copies are not in inputs.json. A stale or divergent copy-local binary would receive coverage that is credited to the packaged candidate.",
+      "fix": "For each family, require tests/CIS.Core.<Family>/bin/Release/net10.0/CIS.Core.dll to equal the packed lib entry hash. Do the same for CIS.TypeManager.Build.dll wherever it is copied. Add these files to the inventoried inputs so the post-run rehash covers them."
+    },
+    {
+      "severity": "medium",
+      "area": "missing inventory",
+      "location": "verify-shipping-coverage.ps1: $actual = ... -match '^(lib|tools)/.*[.]dll$'",
+      "issue": "The shipped-DLL comparison ignores DLLs outside lib/ and tools/, such as build/, buildTransitive/, analyzers/ and runtimes/. A packaged handwritten assembly in those folders would escape the coverage inventory without failing.",
+      "fix": "Match every '[.]dll$' entry in the archive, case-insensitively, and compare it with the policy packageEntry set."
+    },
+    {
+      "severity": "low",
+      "area": "inventory control effectiveness",
+      "location": "summarize-shipping-coverage.py: dotnet msbuild ... -getItem:Compile",
+      "issue": "Evaluation uses the default Debug configuration, but the measured binaries are Release. Configuration-conditioned Compile items could make the comparison check the wrong source set.",
+      "fix": "Pass -p:Configuration=Release, and optionally -p:TargetFramework=net10.0, to the evaluation."
+    },
+    {
+      "severity": "low",
+      "area": "doc/code mismatch",
+      "location": "docs/modules/logging/coverage-qualification.md paragraph 2 vs counts()",
+      "issue": "The doc says zero assembly branch denominators fail collection. In the code, bt == 0 only sets thresholdPassed=false, so the script exits 2, which reads as a complete measurement that missed the threshold.",
+      "fix": "Raise a ValueError for an assembly with branchesTotal == 0, or reword the doc to say this case yields exit 2 / unqualified."
+    },
+    {
+      "severity": "low",
+      "area": "practical reproducibility",
+      "location": "verify-shipping-coverage.ps1: Get-ChildItem ... 'CIS.Core.*.nupkg' with Count -ne 1",
+      "issue": "verify.ps1 packs into a shared .artifacts/csharp/packages directory. After any version change, leftover packages make coverage throw until someone cleans the directory by hand.",
+      "fix": "Select CIS.Core.<evaluated Version>.nupkg the same way verify.ps1 does with -getProperty:Version, and fail only if that file is missing."
+    },
+    {
+      "severity": "low",
+      "area": "dead code / evidence completeness",
+      "location": "verify-shipping-coverage.ps1: '$inputPaths += $packages[0].FullName'",
+      "issue": "This line runs after $inputs has already been serialized and is never used. The package is recorded separately in candidate.json and rechecked, so nothing is lost, but the line suggests it belongs to the input inventory.",
+      "fix": "Remove the line, or move the package into the inputs inventory before serialization."
+    }
+  ],
+  "notes": [
+    "Several controls look sound and need no change: MAX branch aggregation as a lower bound, the line-hit OR, denominator-drift and native-total cross-checks, fail-closed handling of unmapped or unexpected sources, the check that non-executable sources acquire no sequence points, the unmeasured-source check, the TRX all-passed requirement, the immutable output root and MaxBuildNodes scoped to the build stage.",
+    "The minimum rates are duplicated in toolchain.json and shipping.json; the summarizer uses only shipping.json. Consider asserting they are equal (optional)."
+  ]
+}
+```

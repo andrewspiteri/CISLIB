@@ -115,9 +115,13 @@ try {
             $null = Invoke-VerificationCommand (Join-Path $reportRoot 'logs/publication-ledger.log') @('-NoProfile', '-File', (Join-Path $PSScriptRoot 'check-publications.ps1'), '-OutputPath', $publicationReport) 'pwsh'
         }
         Invoke-VerificationStage $context 'pack' { $null = Invoke-VerificationCommand (Join-Path $reportRoot 'logs/pack.log') @('pack', 'src/CIS.Core/CIS.Core.csproj', '-c', 'Release', '--no-build', '--no-restore', '-o', $packageRoot) }
-        $version = (& dotnet msbuild src/CIS.Core/CIS.Core.csproj -getProperty:Version).Trim()
+        $version = (& dotnet msbuild src/CIS.Core/CIS.Core.csproj -p:Configuration=Release -getProperty:Version).Trim()
         if ($LASTEXITCODE -ne 0) { throw 'Unable to evaluate package version.' }
         Invoke-VerificationStage $context 'package-boundaries' { $null = Invoke-VerificationCommand (Join-Path $reportRoot 'logs/package-boundaries.log') @('-NoProfile', '-File', (Join-Path $PSScriptRoot 'check-dependencies.ps1'), '-ProjectPath', 'src/CIS.Core/CIS.Core.csproj', '-AssemblyPath', $core, '-PackagePath', (Join-Path $packageRoot "CIS.Core.$version.nupkg")) 'pwsh' }
+        $architectureRoot = Join-Path $reportRoot "architecture/$($summary.runId)"
+        Invoke-VerificationStage $context 'architecture-inspection' { $null = Invoke-VerificationCommand (Join-Path $reportRoot 'logs/architecture-inspection.log') @((Join-Path $PSScriptRoot 'CIS.DependencyChecker/bin/Release/net10.0/CIS.DependencyChecker.dll'), 'architecture', $languageRoot, (Join-Path $packageRoot "CIS.Core.$version.nupkg"), $architectureRoot) }
+        $summary.architectureInspection = New-EvidenceReference $reportRoot (Join-Path $architectureRoot 'inspection.json') 'cis.architecture-inspection/v1'
+        Publish-Summary
         foreach ($family in $manifest.families | Where-Object { $_.developerEnabled }) {
             $entry = $summary.families | Where-Object { $_.id -eq $family.id }
             Invoke-VerificationStage $context "tests-$($family.id)" { Invoke-Family $family $entry }

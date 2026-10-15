@@ -24,6 +24,19 @@ $inputPaths += Get-ChildItem (Join-Path $languageRoot 'tests') -Recurse -File |
 foreach ($family in $policy.families.PSObject.Properties) {
     $inputPaths += Join-Path $languageRoot ("tests/CIS.Core.$($family.Value)/bin/Release/net10.0/CIS.Core.$($family.Value).dll")
 }
+# Include every shipping assembly copy that the no-build test hosts can load.
+$loadedCopies = @()
+foreach ($family in $policy.families.PSObject.Properties) {
+    $directory = Join-Path $languageRoot "tests/CIS.Core.$($family.Value)/bin/Release/net10.0"
+    foreach ($assembly in $policy.assemblies) {
+        $copy = Join-Path $directory ($assembly.name + '.dll')
+        if (Test-Path -LiteralPath $copy) {
+            $inputPaths += $copy
+            $loadedCopies += @{ path = $copy; assembly = $assembly.name }
+        }
+        elseif ($assembly.name -eq 'CIS.Core') { throw "Missing copy-local shipping assembly: $copy" }
+    }
+}
 $inputs = @($inputPaths | Sort-Object -Unique | ForEach-Object {
     @{ path = [IO.Path]::GetRelativePath($languageRoot, $_).Replace('\', '/'); sha256 = (Get-FileHash -LiteralPath $_ -Algorithm SHA256).Hash.ToLowerInvariant() }
 })
@@ -36,13 +49,14 @@ try {
     [ordered]@{ os = [Runtime.InteropServices.RuntimeInformation]::OSDescription; processArchitecture = [Runtime.InteropServices.RuntimeInformation]::ProcessArchitecture.ToString();
         sdk = (& dotnet --version); sourceCommit = (& git -C $languageRoot rev-parse HEAD) } | ConvertTo-Json | Set-Content (Join-Path $OutputRoot 'environment.json') -Encoding utf8
     $repositoryRoot = Split-Path (Split-Path $languageRoot -Parent) -Parent
-    $packages = @(Get-ChildItem (Join-Path $repositoryRoot '.artifacts/csharp/packages') -File -Filter 'CIS.Core.*.nupkg')
-    if ($packages.Count -ne 1) { throw 'Expected exactly one prepared candidate Core package.' }
+    $version = (& dotnet msbuild src/CIS.Core/CIS.Core.csproj -p:Configuration=Release -getProperty:Version).Trim()
+    if ($LASTEXITCODE -ne 0) { throw 'Unable to evaluate candidate version.' }
+    $packages = @(Get-Item -LiteralPath (Join-Path $repositoryRoot ".artifacts/csharp/packages/CIS.Core.$version.nupkg"))
     Add-Type -AssemblyName System.IO.Compression
     $archive = [IO.Compression.ZipFile]::OpenRead($packages[0].FullName)
     try {
         $expected = @($policy.assemblies | ForEach-Object packageEntry | Sort-Object)
-        $actual = @($archive.Entries | Where-Object { $_.FullName -match '^(lib|tools)/.*[.]dll$' } | ForEach-Object FullName | Sort-Object)
+        $actual = @($archive.Entries | Where-Object { $_.FullName -match '[.]dll$' } | ForEach-Object FullName | Sort-Object)
         if (@(Compare-Object $expected $actual).Count -ne 0) { throw 'Shipped DLL inventory differs from the coverage policy.' }
         foreach ($assembly in $policy.assemblies) {
             $entry = $archive.GetEntry($assembly.packageEntry)
@@ -51,10 +65,12 @@ try {
             finally { $stream.Dispose() }
             $binary = Join-Path (Split-Path (Join-Path $languageRoot $assembly.project) -Parent) ("bin/Release/net10.0/" + $assembly.name + '.dll')
             if ((Get-FileHash $binary -Algorithm SHA256).Hash.ToLowerInvariant() -ne $packedHash) { throw "Repack the current candidate before coverage: $($assembly.name)" }
+            foreach ($copy in $loadedCopies | Where-Object assembly -EQ $assembly.name) {
+                if ((Get-FileHash -LiteralPath $copy.path -Algorithm SHA256).Hash.ToLowerInvariant() -cne $packedHash) { throw "Copy-local shipping assembly differs from the package: $($copy.path)" }
+            }
         }
     }
     finally { $archive.Dispose() }
-    $inputPaths += $packages[0].FullName
     $packageHash = (Get-FileHash $packages[0].FullName -Algorithm SHA256).Hash.ToLowerInvariant()
     @{ path = [IO.Path]::GetRelativePath($repositoryRoot, $packages[0].FullName).Replace('\', '/'); sha256 = $packageHash } |
         ConvertTo-Json | Set-Content (Join-Path $OutputRoot 'candidate.json') -Encoding utf8

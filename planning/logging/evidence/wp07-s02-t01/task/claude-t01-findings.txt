@@ -1,0 +1,55 @@
+```json
+{
+  "task": "WP07-S02-T01",
+  "verdict": "FINDINGS",
+  "basis": "Static read of the supplied payload only. No tools were run, so there is no build, test or verifier evidence behind this review.",
+  "findings": [
+    {
+      "id": "F1",
+      "severity": "Medium",
+      "location": "implementations/csharp/eng/verify.ps1 (the `$summary.architectureInspection = ...` assignment after the 'architecture-inspection' stage); implementations/csharp/tests/CIS.Core.ArchitectureTests/AssemblyInspectionTests.cs (DeveloperInventoryIncludesEveryRestoredTargetAndEveryPackageDll)",
+      "issue": "The summary reference is assigned in memory, but summary.json is not written again until after the first test family finishes. The last write before the test stages is the initial Publish-Summary, which has no `architectureInspection` key. If the architecture-test family is the first developer-enabled family, the test reads `summary[\"architectureInspection\"]!` as null and fails with a NullReferenceException. If it is not first, the test passes only because of family ordering. Run outside the verifier, the test silently validates whatever earlier run left on disk.",
+      "fix": "Call Publish-Summary immediately after assigning `$summary.architectureInspection`, so the in-run consumer always sees this run's reference. Optionally have the test assert that the report's sourceCommit and runId match summary.json, so it cannot pass against another run."
+    },
+    {
+      "id": "F2",
+      "severity": "Medium",
+      "location": "implementations/csharp/eng/CIS.DependencyChecker/AssemblyInspection.cs (Write: Attributes(...) call sites)",
+      "issue": "Level 5 claims custom-attribute-constructor uses, but only type, field, method, parameter, property, event and assembly attributes are visited. Four attribute parents are skipped: the module definition, InterfaceImplementation rows, GenericParameter rows and GenericParameterConstraint rows. The module case matters in practice: current C# emits `[module: RefSafetyRules]` and often `[module: NullableContext]`/`SkipLocalsInit`. Interface and generic-parameter nullability emits NullableAttribute, which is frequently an embedded internal type in the same assembly. These internal type uses are missing from typeUses and internalDependencies. MethodImplementation declarations, the `.override` targets, are also not decoded.",
+      "fix": "Visit reader.GetModuleDefinition().GetCustomAttributes() under site \"module\". Also visit the attributes of each interface implementation (type site), each generic parameter and each generic parameter constraint (inside Constraints), and Touch each MethodImplementation's MethodDeclaration under the type site. Add a completeness guard: count the visited attribute handles and Require that the count equals reader.CustomAttributes.Count, so future omissions fail closed instead of silently shrinking the inventory."
+    },
+    {
+      "id": "F3",
+      "severity": "Low",
+      "location": "implementations/csharp/eng/CIS.DependencyChecker/Program.cs ('architecture' catch filter); ArchitectureInspection.cs (Require)",
+      "issue": "Require throws System.IO.InvalidDataException, which derives from SystemException, not IOException. The filter does not list it, so every policy or consistency failure (lock/assets mismatch, unregistered project, SDK pin, packed-assembly drift) escapes as an unhandled exception. The process still exits nonzero, so the check fails closed, but the output is a runtime crash and stack trace instead of the documented 'Architecture inspection failed:' diagnostic. Missing JSON nodes accessed with `!` crash the same way (NullReferenceException).",
+      "fix": "Add InvalidDataException to the 'architecture' filter (and to 'inspect' for consistency). Optionally replace the bare `!` lookups on JSON nodes with a Required(node, key) helper that throws InvalidDataException with the missing key path."
+    },
+    {
+      "id": "F4",
+      "severity": "Low",
+      "location": "implementations/csharp/eng/verify.ps1 (`$version = (& dotnet msbuild src/CIS.Core/CIS.Core.csproj -getProperty:Version)`)",
+      "issue": "Correction 5 made the coverage script evaluate Version with -p:Configuration=Release. The Developer verifier still evaluates it without a configuration, and now uses that value to choose the exact package handed to the new architecture stage, after a Release pack. The two entry points select the candidate inconsistently.",
+      "fix": "Add -p:Configuration=Release to the verify.ps1 Version evaluation, matching verify-shipping-coverage.ps1 and the pack stage."
+    }
+  ],
+  "t04CorrectionsReview": {
+    "1_everyDllLocationInventoried": "Present. The policy packageEntry set is compared against every *.dll entry in the archive.",
+    "2_copyLocalMatchesAndRehashed": "Present. Copies are compared to the packed hash before execution and included in inputs.json, which is rehashed after all families run.",
+    "3_releaseNet10SourceInventory": "Present. The summarizer evaluates Compile items with -p:Configuration=Release -p:TargetFramework=net10.0.",
+    "4_zeroBranchDenominatorIsError": "Present. Note that any per-source 'Unmeasured executable source' error fires first for an unexercised assembly. This is consistent with not granting helper coverage.",
+    "5_exactEvaluatedVersionSelected": "Present in the coverage script. See F4 for the inconsistent verify.ps1 counterpart.",
+    "6_deadInputAppendRemoved": "Not verifiable from the payload because no diff was supplied. The current input-list construction has no visible dead append."
+  },
+  "scopeConfirmed": [
+    "Orchestration, metadata reader, signature provider and tests are C#. verify.ps1 only adds a stage that invokes the compiled tool.",
+    "No CIS.Core source or public API changes are in the payload.",
+    "Reflection strings and serialized attribute arguments are explicitly excluded in the report limits and docs.",
+    "Public shape is labeled as an inventory, not compatibility or ownership approval. Allowlist, ownership/separation and negative qualification are deferred to T02/T03/T04.",
+    "The tool fails closed on unknown IL opcodes and metadata handles, truncated operands, schema versions and target-inventory disagreement. Package entries are extracted to counter-named files, so there is no zip-slip exposure."
+  ],
+  "notesOutsidePayload": [
+    "git status shows modified AGENTS.md and untracked implementations/csharp/examples/type-manager/Web/Properties/. Neither is part of this review payload. Confirm they are intentional before including them in the T01 commit; Properties/ is likely an IDE-generated launchSettings artifact."
+  ]
+}
+```
