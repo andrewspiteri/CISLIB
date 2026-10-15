@@ -1,3 +1,5 @@
+Current behavior is amended by the [15 October review corrections](review-contract-2026-10-15.md), including intent-first retirement, full-group recovery, bounded candidate cleanup and monotonic completion timing. The task-specific qualification narrative below is historical evidence at its recorded checkpoint.
+
 # Restart and collector-input qualification
 
 WP05-S07-T04 qualifies the existing C# file recovery implementation through separate real producers, restarts and the [source-preserving four-criterion map](../../../conformance/logging/file-recovery-qualification-map.json). No shipping implementation or dependency is added.

@@ -9,9 +9,7 @@ namespace CIS.Logging.Events;
 internal static class EventProjection
 {
     internal const int MaximumPayloadScalars = 8192;
-
-    internal static CapturedEventFacts? Capture(EventMetadata metadata, CapturedScopeContext scope,
-        string component, CoreLogLevel severity, LogEventData data, TimeProvider? timeProvider = null)
+    internal static CapturedEventFacts? Capture(EventMetadata metadata, CapturedScopeContext scope, string component, CoreLogLevel severity, LogEventData data, TimeProvider? timeProvider = null)
     {
         string? status = severity switch
         {
@@ -24,12 +22,15 @@ internal static class EventProjection
             CoreLogLevel.None => null,
             _ => throw new ArgumentOutOfRangeException(nameof(severity), "Use a declared logging severity.")
         };
-        if (status is null) { return null; }
+        if (status is null)
+        {
+            return null;
+        }
+
         ArgumentNullException.ThrowIfNull(metadata);
         ArgumentNullException.ThrowIfNull(scope);
         ArgumentNullException.ThrowIfNull(data);
         ValidateName(component, nameof(component));
-
         // Read named input references before invoking cooperative collection/exception accessors.
         string eventName = data.EventName;
         string message = data.Message;
@@ -43,30 +44,57 @@ internal static class EventProjection
         // Own Activity IDs before clock/payload callbacks can replace the ambient context.
         (string? traceId, string? spanId) = CaptureActivity();
         DateTimeOffset timestampUtc = (timeProvider ?? TimeProvider.System).GetUtcNow().ToUniversalTime();
-        if (sourceScopes is not null) { scope = scope.Overlay(sourceScopes(OperationScopeStore.MaximumDepth - scope.ScopeDepth)); }
+        if (sourceScopes is not null)
+        {
+            scope = scope.Overlay(sourceScopes(OperationScopeStore.MaximumDepth - scope.ScopeDepth));
+        }
+
         (string? Template, LogValue Attributes)? adapted = sourceState?.Invoke();
         template = adapted?.Template ?? template;
         string capturedMessage = CaptureText(message, out bool messageClipped);
         bool templateClipped = false;
         string? capturedTemplate = template is null ? null : CaptureText(template, out templateClipped);
-        if (string.IsNullOrEmpty(operationId)) { operationId = scope.OperationId; }
+        if (string.IsNullOrEmpty(operationId))
+        {
+            operationId = scope.OperationId;
+        }
         else if (!UnicodeScalarText.IsValid(operationId, 255, allowControls: false))
         {
             throw new ArgumentException("Use an operation identifier of at most 255 valid Unicode scalars without controls.", nameof(data));
         }
+
         LogValue explicitAttributes = adapted?.Attributes ?? LogValue.Map(sourceAttributes ?? new Dictionary<string, LogValue>());
         LogValue attributes = Merge(scope.Attributes, explicitAttributes);
         CapturedException? exception = ExceptionProjection.Capture(sourceException);
-        return new CapturedEventFacts(timestampUtc, traceId, spanId, status, eventName, capturedMessage, capturedTemplate, operationId,
-            metadata.ApplicationName, metadata.EnvironmentName, metadata.ServiceVersion, component,
-            Resource(metadata), attributes, exception,
-            messageClipped || templateClipped || attributes.IsTruncated || exception?.HasTruncatedContent == true);
+        return new CapturedEventFacts(
+            timestampUtc: timestampUtc,
+            traceId: traceId,
+            spanId: spanId,
+            status: status,
+            eventName: eventName,
+            message: capturedMessage,
+            template: capturedTemplate,
+            operationId: operationId,
+            service: metadata.ApplicationName,
+            environment: metadata.EnvironmentName,
+            version: metadata.ServiceVersion,
+            component: component,
+            resource: metadata.ResourceProjection,
+            attributes: attributes,
+            exception: exception,
+            isTruncated: messageClipped || templateClipped || attributes.IsTruncated || exception?.HasTruncatedContent == true,
+            hasProviderEventId: sourceState is not null,
+            explicitAttributes: explicitAttributes);
     }
 
     private static (string? TraceId, string? SpanId) CaptureActivity()
     {
         Activity? activity = Activity.Current;
-        if (activity?.IdFormat != ActivityIdFormat.W3C) { return (null, null); }
+        if (activity?.IdFormat != ActivityIdFormat.W3C)
+        {
+            return (null, null);
+        }
+
         string traceId = activity.TraceId.ToHexString();
         string spanId = activity.SpanId.ToHexString();
         return IsValidHexId(traceId, 32) && IsValidHexId(spanId, 16) ? (traceId, spanId) : (null, null);
@@ -74,13 +102,22 @@ internal static class EventProjection
 
     private static bool IsValidHexId(string value, int length)
     {
-        if (value.Length != length) { return false; }
+        if (value.Length != length)
+        {
+            return false;
+        }
+
         bool nonzero = false;
         foreach (char character in value)
         {
-            if (!(character is >= '0' and <= '9' or >= 'a' and <= 'f')) { return false; }
+            if (!(character is >= '0' and <= '9' or >= 'a' and <= 'f'))
+            {
+                return false;
+            }
+
             nonzero |= character != '0';
         }
+
         return nonzero;
     }
 
@@ -102,6 +139,7 @@ internal static class EventProjection
         {
             throw new ArgumentException("Use valid Unicode scalar text.", "data");
         }
+
         return UnicodeScalarText.Prefix(value, MaximumPayloadScalars, out truncated);
     }
 
@@ -109,18 +147,36 @@ internal static class EventProjection
     {
         var winners = new Dictionary<string, LogValue>(StringComparer.Ordinal);
         bool truncated = scope.IsTruncated || explicitAttributes.IsTruncated;
-        foreach (LogValue map in new[] { scope, explicitAttributes })
+        foreach (LogValue map in new[]
+        {
+            explicitAttributes,
+            scope
+        }
+
+        )
         {
             foreach ((string key, LogValue value) in map.MapProperties)
             {
-                if (winners.ContainsKey(key) || winners.Count < LogValueProjection.MaximumNodes - 1) { winners[key] = value; }
-                else { truncated = true; }
+                if (winners.ContainsKey(key))
+                {
+                    continue;
+                }
+
+                if (winners.Count < LogValueProjection.MaximumNodes - 1)
+                {
+                    winners.Add(key, value);
+                }
+                else
+                {
+                    truncated = true;
+                }
             }
         }
+
         return new LogValueProjection().Map(winners, depth: 1, truncated);
     }
 
-    private static LogValue Resource(EventMetadata metadata)
+    internal static LogValue CreateResource(EventMetadata metadata)
     {
         var resource = new Dictionary<string, LogValue>(StringComparer.Ordinal)
         {
@@ -138,17 +194,30 @@ internal static class EventProjection
             }),
             ["os_family"] = LogValue.String(metadata.OperatingSystem)
         };
-        if (metadata.ProcessStartedAtUtc is { } started) { resource["process_started_at"] = LogValue.Timestamp(started); }
+        if (metadata.ProcessStartedAtUtc is { } started)
+        {
+            resource["process_started_at"] = LogValue.Timestamp(started);
+        }
+
         Add("host_name", metadata.HostName);
         Add("os_description", metadata.OperatingSystemDescription);
         Add("os_architecture", metadata.OSArchitecture);
         Add("process_architecture", metadata.ProcessArchitecture);
         Add("runtime_description", metadata.RuntimeDescription);
-        if (metadata.ProcessId is { } processId) { resource["process_id"] = LogValue.Integer(processId); }
+        if (metadata.ProcessId is { } processId)
+        {
+            resource["process_id"] = LogValue.Integer(processId);
+        }
+
         Add("commit_id", metadata.CommitId);
         Add("build_id", metadata.BuildId);
         return LogValue.Map(resource);
-
-        void Add(string key, string? value) { if (value is not null) { resource[key] = LogValue.String(value); } }
+        void Add(string key, string? value)
+        {
+            if (value is not null)
+            {
+                resource[key] = LogValue.String(value);
+            }
+        }
     }
 }

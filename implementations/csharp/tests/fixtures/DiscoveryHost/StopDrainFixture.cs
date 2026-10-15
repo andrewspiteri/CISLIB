@@ -55,7 +55,7 @@ internal static class StopDrainFixture
             int registeredAfterDeadline = runtime.QueuedOutputs.Console!.RegisteredFlushCount;
             if (!normal && !flushing)
             {
-                Require(registeredAfterDeadline == (mode == "single-write" ? 1 : 0));
+                Require(mode == "cancel-write" ? registeredAfterDeadline is 0 or 1 : registeredAfterDeadline == (queued ? 0 : 1));
                 Require(runtime.QueuedOutputs.Console.CaptureAccounting().Abandoned == (queued ? 3 : mode == "single-write" ? 0 : 2));
             }
             Require(ReferenceEquals(stop, runtime.StopAsync(CancellationToken.None)));

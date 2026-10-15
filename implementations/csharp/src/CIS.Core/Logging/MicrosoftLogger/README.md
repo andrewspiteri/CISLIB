@@ -1,7 +1,5 @@
 # Microsoft logger integration
 
-Implement the adapter from Microsoft `ILogger`/`ILoggerProvider` and host scopes to the Core logging module here, using namespace `CIS.Logging.MicrosoftLogger`.
+`CIS.Logging.MicrosoftLogger` implements `CoreLoggerProvider`, host registration, severity/EventId/structured-state mapping and owned/borrowed scope capture in the same `CIS.Core` assembly. The provider borrows its application-owned runtime; disposing the provider does not stop that runtime. Host filters and Core output thresholds both apply.
 
-It is compiled into the same Core assembly. The initial Microsoft logging abstractions dependency is approved; provider implementation, filters, scope mapping and runtime ownership are pending logging functionality.
-
-Third-party integrations such as NLog belong in separately built and packaged projects.
+The approved Microsoft logging abstractions dependency is checked by the repository's dependency boundaries. Third-party integrations such as NLog belong in separate packages. Read [packaging](../../../../../../docs/modules/logging/microsoft-logging-packaging.md), [scope capture](../../../../../../docs/modules/logging/microsoft-provider-scopes.md) and the [current review addendum](../../../../../../docs/modules/logging/review-contract-2026-10-15.md). Provider/runtime stories are implemented; examples, activated skills and full release qualification remain pending.

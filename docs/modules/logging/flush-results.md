@@ -1,3 +1,5 @@
+Current behavior is amended by the [15 October review corrections](review-contract-2026-10-15.md), including intent-first retirement, full-group recovery, bounded candidate cleanup and monotonic completion timing. The task-specific qualification narrative below is historical evidence at its recorded checkpoint.
+
 # Public flush results
 
 WP05-S08-T03 implements the actual CIS.Logging.CoreLogRuntime.FlushAsync(TimeSpan timeout, CancellationToken cancellationToken) method and its sealed getter-only result types. Public runtime creation and shutdown remain later tasks; development fixtures compose actual Core queues internally.

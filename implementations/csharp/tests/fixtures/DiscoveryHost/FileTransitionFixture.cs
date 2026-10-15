@@ -40,8 +40,8 @@ internal static class FileTransitionFixture
         using (var owner = FileOutputOwner.Initialize(path, format))
         {
             next = recovery ? owner.Inventory!.AfterPartialRecovery(path, 2) : owner.Inventory!.AfterRotation(path, 2);
-            if (!recovery) { File.Delete(Path.Combine(directory, owner.Inventory!.Segments[0].FileName)); }
             FileGroupTransition.Begin(owner, next, 2, recovery);
+            if (!recovery) { File.Delete(Path.Combine(directory, owner.Inventory!.Segments[0].FileName)); }
         }
         string archived = Path.Combine(directory, next.Segments[^2].FileName);
         string stage = mode.Contains('-', StringComparison.Ordinal) ? mode[(mode.IndexOf('-', StringComparison.Ordinal) + 1)..] : "";

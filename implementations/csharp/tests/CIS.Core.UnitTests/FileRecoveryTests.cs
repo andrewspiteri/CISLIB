@@ -75,7 +75,6 @@ public sealed class FileRecoveryTests
     [TestMethod]
     [DataRow("collision-file", "FileRecoveryCollision")]
     [DataRow("collision-directory", "FileRecoveryCollision")]
-    [DataRow("full", "FileRetentionLimitExceeded")]
     [DataRow("over-bound", "FileRetentionLimitExceeded")]
     [DataRow("id-exhausted", "FileRecoveryIdentityExhausted")]
     public void PredictableRecoveryFailuresPreserveAllPreimagesAndReleaseOwnership(string mode, string code)

@@ -32,7 +32,7 @@ internal static class FlushStressExpectations
             Require(repeated["iterations"]!.GetValue<int>() == 5000 && repeated["cancelled"]!.GetValue<int>() == 2500 && repeated["timedOut"]!.GetValue<int>() == 2500);
             Require(repeated["peakAttached"]!.GetValue<int>() == 1 && repeated["peakSlots"]!.GetValue<int>() <= 4);
             Require(report["weakSamples"]!.GetValue<int>() == 10 && report["collectedSamples"]!.GetValue<int>() == 10);
-            Require(report["afterDetach"]!["controls"]!.GetValue<int>() == (mode == "repeat-progress" ? 0 : 4));
+            Require(report["afterDetach"]!["controls"]!.GetValue<int>() == (mode == "repeat-progress" ? 1 : 4));
             Require(report["afterDetach"]!["attached"]!.GetValue<int>() == 0 && report["finalControls"]!.GetValue<int>() == 0);
             Result(repeated["first"]!); Result(repeated["last"]!); Result(report["final"]!);
         }

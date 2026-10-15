@@ -1,11 +1,10 @@
 namespace CIS.Logging;
-
 /// <summary>Whether a captured delivery boundary settled within its caller's wait.</summary>
 public enum LogCompletion
 {
-    /// <summary>Every covered record and writer flush has a terminal disposition.</summary>
+    /// <summary>Every covered record and writer flush settled before the original monotonic budget expired.</summary>
     Completed = 0,
-    /// <summary>Covered work or a writer flush remained unresolved at the deadline.</summary>
+    /// <summary>Covered work or a writer flush did not settle before the deadline, even if observed terminal later.</summary>
     TimedOut = 1
 }
 
@@ -26,7 +25,12 @@ public enum LogWriterFlushStatus
 public sealed class LogOutputRejectionSnapshot
 {
     internal LogOutputRejectionSnapshot(long filtered, long queueFull, long unavailable)
-    { Filtered = filtered; QueueFull = queueFull; Unavailable = unavailable; }
+    {
+        Filtered = filtered;
+        QueueFull = queueFull;
+        Unavailable = unavailable;
+    }
+
     /// <summary>Events excluded by this output's threshold; filtering is not loss.</summary>
     public long Filtered { get; }
     /// <summary>Interested admissions rejected because the output queue was full.</summary>
@@ -38,12 +42,18 @@ public sealed class LogOutputRejectionSnapshot
 /// <summary>An owned immutable observation through one output's fixed accepted boundary.</summary>
 public sealed class LogOutputDrainResult
 {
-    internal LogOutputDrainResult(string name, long boundary, long written, long failed, long abandoned,
-        long pending, LogWriterFlushStatus writerFlushStatus, LogOutputRejectionSnapshot rejections)
+    internal LogOutputDrainResult(string name, long boundary, long written, long failed, long abandoned, long pending, LogWriterFlushStatus writerFlushStatus, LogOutputRejectionSnapshot rejections)
     {
-        OutputName = name; AcceptedSequenceBoundary = boundary; Written = written; Failed = failed;
-        Abandoned = abandoned; Pending = pending; WriterFlushStatus = writerFlushStatus; Rejections = rejections;
+        OutputName = name;
+        AcceptedSequenceBoundary = boundary;
+        Written = written;
+        Failed = failed;
+        Abandoned = abandoned;
+        Pending = pending;
+        WriterFlushStatus = writerFlushStatus;
+        Rejections = rejections;
     }
+
     /// <summary>The enabled destination, console or file.</summary>
     public string OutputName { get; }
     /// <summary>The last accepted sequence included in this observation.</summary>
@@ -68,22 +78,21 @@ public sealed class LogOutputDrainResult
 /// <remarks>Writer-buffer confirmation does not acknowledge disk durability or collector receipt.</remarks>
 public sealed class LogFlushResult
 {
-    internal LogFlushResult(DateTimeOffset boundaryCapturedAtUtc, DateTimeOffset observedAtUtc,
-        long invalidEventCount, long truncatedEventCount, IEnumerable<LogOutputDrainResult> outputs)
+    internal LogFlushResult(DateTimeOffset boundaryCapturedAtUtc, DateTimeOffset observedAtUtc, long invalidEventCount, long truncatedEventCount, IEnumerable<LogOutputDrainResult> outputs, bool deadlineExceeded = false)
     {
-        BoundaryCapturedAtUtc = boundaryCapturedAtUtc; ObservedAtUtc = observedAtUtc;
-        InvalidEventCount = invalidEventCount; TruncatedEventCount = truncatedEventCount;
+        BoundaryCapturedAtUtc = boundaryCapturedAtUtc;
+        ObservedAtUtc = observedAtUtc;
+        InvalidEventCount = invalidEventCount;
+        TruncatedEventCount = truncatedEventCount;
         Outputs = Array.AsReadOnly(outputs.ToArray());
-        Completion = Outputs.All(output => output.Pending == 0 && output.WriterFlushStatus is LogWriterFlushStatus.Succeeded or LogWriterFlushStatus.Failed)
-            ? LogCompletion.Completed : LogCompletion.TimedOut;
-        Succeeded = Outputs.All(output => output.Pending == 0 && output.Failed == 0 && output.Abandoned == 0 && output.WriterFlushSucceeded);
-        LossObserved = invalidEventCount > 0 || truncatedEventCount > 0 ||
-            Outputs.Any(output => output.Failed > 0 || output.Abandoned > 0 || output.Rejections.QueueFull > 0 ||
-                output.Rejections.Unavailable > 0 || output.WriterFlushStatus == LogWriterFlushStatus.Failed);
+        Completion = !deadlineExceeded && Outputs.All(output => output.Pending == 0 && output.WriterFlushStatus is LogWriterFlushStatus.Succeeded or LogWriterFlushStatus.Failed) ? LogCompletion.Completed : LogCompletion.TimedOut;
+        Succeeded = Completion == LogCompletion.Completed && Outputs.All(output => output.Pending == 0 && output.Failed == 0 && output.Abandoned == 0 && output.WriterFlushSucceeded);
+        LossObserved = invalidEventCount > 0 || truncatedEventCount > 0 || Outputs.Any(output => output.Failed > 0 || output.Abandoned > 0 || output.Rejections.QueueFull > 0 || output.Rejections.Unavailable > 0 || output.WriterFlushStatus == LogWriterFlushStatus.Failed);
     }
+
     /// <summary>Whether all covered dispositions settled within the wait.</summary>
     public LogCompletion Completion { get; }
-    /// <summary>Whether every covered record was written and every writer flush succeeded.</summary>
+    /// <summary>Whether completion was timely, every covered record was written and every writer flush succeeded.</summary>
     public bool Succeeded { get; }
     /// <summary>Whether initial capture/rejection facts or covered terminal failures confirm loss.</summary>
     public bool LossObserved { get; }

@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "story": "WP02-S03",
-  "state": "Unpublished contract; pure specification validation/compile-only qualification, no runtime implementation",
+  "state": "Unpublished current development contract; runtime/provider implemented, complete release qualification pending.",
   "authority": "Source guide sections 10-13 as amended by user architecture, facade name and oversized-payload truncation and creator-disposes scope ownership with detection limits. New property/type/code/enum names are maintainer prepublication choices.",
   "csharpSurface": "implementations/csharp/verification/contracts/startup/runtime-surface.json",
   "writeOrder": [
@@ -48,14 +48,14 @@
   "writeResults": "Each enabled output appears in configured console-then-file order; disabled outputs omitted. AcceptedSequence exists only for successful admission and is positive/contiguous per output. Empty boundary is 0. Filtered includes per-enabled-output Filtered entries; none enabled is empty. Stopped uses Stopped entries regardless of level. InvalidEvent has safe ErrorCode and no entries. ErrorCode null for other normal outcomes. IsTruncated records actual capture truncation even if later admission rejects it; false on early paths.",
   "counterRules": "Runtime InvalidEventCount increments once only on invalid capture before fan-out, with no per-output counter changes. TruncatedEventCount increments once for a valid truncated capture; it does not increment InvalidEventCount. Factory exceptions are caller exceptions, not successful writes or invented capture rejections. Per-output admissionAttempts counts interested accepted/queue-full/unavailable attempts (including all-faulted early rejection); filtered increments only on valid/early filtered paths. No rejected/filtered attempt advances accepted sequence.",
   "observations": {
-    "counts": "Nonnegative Int64 counters; Pending includes queued plus unresolved in-flight accepted work and is a gauge. Portable result fixtures encode Int64 values as exact base-10 strings; this is fixture transport, not event JSON.",
+    "counts": "Nonnegative Int64 counters. Pending includes queued plus unresolved in-flight accepted records. Public InFlight is 0/1 and Buffered = Pending - InFlight; both are gauges. Portable result fixtures encode Int64 counts as exact decimal strings.",
     "initial": "BoundaryCapturedAtUtc, InvalidEventCount, TruncatedEventCount and per-output rejection snapshots captured with initial accepted boundaries. Do not replace them with later cumulative values.",
     "final": "ObservedAtUtc and written/failed/abandoned/pending through those fixed boundaries observed consistently at return. Report objects/collections never mutate afterwards; later diagnostics can differ. UTC timestamps may move backwards; deadlines use monotonic elapsed time.",
     "identity": "AcceptedSequenceBoundary = Written + Failed + Abandoned + Pending; no dequeued/partial record is confirmed written.",
-    "completion": "Completed iff all covered pending is zero and every covered writer flush is resolved (Succeeded or Failed). TimedOut iff a boundary or flush remains unresolved at timeout/deadline.",
-    "succeeded": "All covered pending/failed/abandoned zero and every writer flush succeeded. Empty outputs succeed. Completed can report Succeeded=false.",
+    "completion": "Completed iff covered records and writer flushing settled before the original monotonic budget expires. TimedOut can have zero Pending when work settled late. Worker completion observations distinguish timely work observed later from late work with delayed timer dispatch.",
+    "succeeded": "Completed and all covered pending/failed/abandoned zero and every writer flush succeeded. Empty outputs succeed. Completed can report Succeeded=false.",
     "lossObserved": "Initial invalid/truncated counts >0, initial queue-full/unavailable rejections >0, covered failed/abandoned counts >0 or writer flush Failed. Filtered is not loss. Pending alone is unresolved, not confirmed loss. Succeeded=true and LossObserved=true can coexist.",
-    "writerFlush": "NotRequested/Pending/Succeeded/Failed distinguish no request, unresolved, buffer flush confirmation and terminal flush/unavailable failure. WriterFlushSucceeded iff status Succeeded."
+    "writerFlush": "NotRequested is reserved for a future observation with no request; current public flush/stop results use Pending/Succeeded/Failed for unresolved, confirmed buffer flushing and terminal flush/unavailable failure. WriterFlushSucceeded iff status Succeeded."
   },
   "coordination": {
     "admission": "One bounded queue and one sequential worker per enabled output. Nonblocking TryWrite; full rejects incoming output admission, preserves previously accepted events. No synchronous continuations into business calls.",
@@ -63,7 +63,7 @@
     "flushBoundary": "Register nondroppable coordination under same synchronization as ticket boundary capture before later admission overtakes it. Later events do not extend the target. Serialize flushes with writes.",
     "coalescing": "At most one retained coordination record per outstanding accepted boundary plus the completed boundary currently being flushed. Same-boundary calls coalesce; callers retain their original boundary/counters/deadline and detach on cancellation/timeout/completion. No per-cancelled-caller retained list.",
     "timer": "File buffer interval schedules a flush even after one event then idle; blocked I/O may delay completion and remains observable.",
-    "deadlines": "Use internal TimeProvider seam and monotonic elapsed time; UTC only labels observations. First StopAsync starts the configured overall deadline once; later stops/disposals join it.",
+    "deadlines": "Monotonic completion observations determine timing independently of timer dispatch and waiter resumption. First StopAsync owns one overall budget; workers check it before later work. Counts freeze at first final Core observation, not a reconstructed historical instant. Later stops/disposals join the original result.",
     "shutdown": "At shared deadline, abandon only queued/not-started accepted work; request cancellation of in-flight I/O and keep unresolved work Pending. Do not dispose resources under unresolved writes or spawn replacement writes/retries. Safely close owned outputs once outstanding I/O resolves; borrowed console streams never disposed.",
     "cachedStop": "One immutable stop result is retained in LastStopResult. Subsequent StopAsync/DisposeAsync join the same operation/result even when later live diagnostics show completion. Never reopen admission or restart deadline.",
     "fault": "Terminal output failure records in-flight failure/queued abandonment and rejects new output admissions without affecting other workers. Keep last safe fault code/time through Stopped; no automatic retry/recovery; explicitly recreate runtime."
@@ -73,7 +73,7 @@
     "logger": "Borrows runtime; no independent shutdown owner.",
     "provider": "CoreLoggerProvider in CIS.Logging.MicrosoftLogger borrows runtime; IDisposable stops only provider-owned registrations/scopes, never the shared runtime. Initial API has no owning-mode overload. Host and core scopes use the same bounded copy/precedence contract.",
     "scope": "Belongs to creating runtime and logical async flow, disposed LIFO by the creator; no cross-concurrent-flow transfer or disposal. Normal child contexts inherit values and may create/dispose their own scopes. Completion state can be set by a prohibited pop in any flow; it is not proof of ownership. Contexts captured before a pop can retain the old frame. Returning a handle from an async helper does not install its scope in the caller. Unawaited child work may retain inherited values after the creator scope ends.",
-    "writers": "Runtime owns file handles/workers; console TextWriters are borrowed. Startup rollback preserves pre-existing files/segments.",
+    "writers": "Runtime owns file handles/workers; console streams are borrowed. Pre-commit startup rollback preserves pre-existing members; a valid committed intent may finish its exact recorded retirement during recovery.",
     "results": "Sealed getter-only, owned immutable collections; no public result constructors or live counter views."
   },
   "deliveryTerms": {
@@ -83,13 +83,14 @@
     "durable": "No disk fsync/crash durability guarantee.",
     "collectorAcknowledged": "No hosted collector acknowledgement/exactly-once delivery promise."
   },
-  "executionLimit": "Decision/result validators evaluate portable specification examples only. Real queues, workers, timeouts, cancellation, provider ownership and disposal remain WP04/WP05/WP06 runtime tests.",
+  "executionLimit": "Original specification vectors and historical execution receipts remain preserved. Current runtime corrections and their evidence are tracked separately in the dated review receipt.",
   "threadSafety": "Runtime/logger methods and diagnostics support concurrent calls. Configuration/thresholds are immutable. Never hold admission synchronization while invoking caller factories or traversing content. Recheck closure after capture under the same synchronization that protects independent output TryWrite/tickets; Stop cannot split one fan-out. If Stop wins, return Stopped with stopped enabled-output entries and no accepted tickets. Capture may already have occurred, so preserve IsTruncated/global capture diagnostics. Early Stopped still never captures. Results remain immutable; scopes belong to their logical flow. Provider disposal is idempotent and does not stop shared runtime; mapping behavior is qualified in WP06.",
   "fileRecovery": {
     "startup": "After validating exclusive managed JSONL/UTF-8/no-BOM/LF identity, preserve a partial active segment in its entirety as a same-group damaged member and create a fresh active segment with the next persistent ID. Never append fresh JSON to the partial bytes.",
     "diagnostic": "RecoveredPartialSegment is an immutable safe Boolean on the file output observation: true only when this runtime successfully recovered a partial segment during startup, retained after stop, false for console and a later intact startup. It contains no path/content/exception payload and does not invent current-runtime failed/abandoned counts.",
-    "safety": "Exact damaged-name collisions, exhausted segment IDs or insufficient retention capacity fail startup before renaming or growing the group. Existing data remains unchanged. Inventory records damaged state distinctly; damaged members count toward the same group bound.",
-    "qualification": "WP05-S07-T02 implements partial preservation and safe observation. T03 adds bounded pending transitions and same-bound damaged retention. T04 complete restart/collector/failure qualification remains required; no full S07 or release completion is implied.",
-    "interruptedTransitions": "A bounded same-directory pending record stores exact previous/next identities and complete original length/SHA256 after required runtime retirement and before rename. Under the cooperative group lease, startup validates all identities/bytes/membership and selected limits before resuming rename/publication/fresh-empty-create/completion. No startup retirement. Unprovable pre-intent gaps and ambiguous states fail unchanged; private candidates and unrelated evidence are never used or deleted for repair. Pending is removed before runtime publication/entry writing. No crash-durable or exactly-once guarantee."
-  }
+    "safety": "Exact collisions, exhausted IDs or a lower bound than the pre-existing group fail before a new transition commits. A full group may recover by recording and retiring its exact oldest retained member first, preserving the whole partial active as damaged and creating the next active within the same bound.",
+    "qualification": "Runtime/restart/provider stories have development evidence; current corrections are tracked by planning/logging/reviews/2026-10-15. Six-family exact-candidate release qualification remains incomplete.",
+    "interruptedTransitions": "Schema-2 intent is published before any retirement or rename. It stores exact previous/next inventories, original active length/hash and planned retired IDs/names/lengths/hashes. Restart validates all surviving members before finishing only this exact plan; only the recorded retired prefix may already be missing. Schema-1 intents retain the legacy already-retired-prefix rule. Pre-intent gaps and ambiguous states fail without guessing. One private candidate slot per kind is cleaned only by its creating attempt; failed cleanup blocks later publication. Foreign/pre-existing candidates are preserved."
+  },
+  "reviewAddendum": "docs/modules/logging/review-contract-2026-10-15.md"
 }

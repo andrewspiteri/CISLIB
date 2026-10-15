@@ -149,6 +149,8 @@ public sealed class LogOutputDiagnostics
     public extern long Failed { [MethodImpl(MethodImplOptions.InternalCall)] get; }
     public extern long Abandoned { [MethodImpl(MethodImplOptions.InternalCall)] get; }
     public extern long Pending { [MethodImpl(MethodImplOptions.InternalCall)] get; }
+    public extern long InFlight { [MethodImpl(MethodImplOptions.InternalCall)] get; }
+    public extern long Buffered { [MethodImpl(MethodImplOptions.InternalCall)] get; }
     public extern string? LastFaultCode { [MethodImpl(MethodImplOptions.InternalCall)] get; }
     public extern DateTimeOffset? LastFaultAtUtc { [MethodImpl(MethodImplOptions.InternalCall)] get; }
     public extern bool RecoveredPartialSegment { [MethodImpl(MethodImplOptions.InternalCall)] get; }
@@ -175,6 +177,7 @@ public static class LogErrorCodes
     public const string OutputOwnershipUnavailable = "OutputOwnershipUnavailable";
     public const string WriteFailed = "WriteFailed";
     public const string RenderFailed = "RenderFailed";
+    public const string RenderTooLarge = "RenderTooLarge";
     public const string FlushFailed = "FlushFailed";
 }
 

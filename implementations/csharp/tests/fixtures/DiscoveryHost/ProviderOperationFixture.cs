@@ -57,12 +57,20 @@ internal static class ProviderOperationFixture
                     using (logger.BeginScope(new OperationContextData { OperationId = "parent" }))
                     {
                         KeyValuePair<string, object?>[][] inputs = [[new("operation_id", "one"), new("operation_id", 7)], [new("operation_id", 7), new("operation_id", "two")], [new("operation_id", "three"), new("operation_id", " ")], [new("Operation_Id", "ordinary")], [new("operation_id", null)]];
-                        for (int i = 0; i < inputs.Length; i++) { using (logger.BeginScope(inputs[i])) { Log("duplicate." + i); } }
+                        for (int i = 0; i < inputs.Length; i++)
+                        {
+                            try { using (logger.BeginScope(inputs[i])) { Log("duplicate." + i); } }
+                            catch (ArgumentException) { errors++; Log("rejected." + i); }
+                        }
                     }
                     break;
                 case "nonstring":
-                    using (logger.BeginScope(new Dictionary<string, object?> { ["operation_id"] = 7 })) { Log("integer"); }
-                    using (logger.BeginScope(new Dictionary<string, object?> { ["operation_id"] = LogValue.String("explicit") })) { Log("explicit-value"); }
+                    foreach (object invalidId in new object[] { 7, LogValue.String("explicit") })
+                    {
+                        try { logger.BeginScope(new Dictionary<string, object?> { ["operation_id"] = invalidId }); }
+                        catch (ArgumentException) { errors++; }
+                    }
+                    Log("after");
                     break;
                 case "event":
                     using (logger.BeginScope(Scope("scope", "scope")))
@@ -91,6 +99,7 @@ internal static class ProviderOperationFixture
                     break;
                 case "host-omitted":
                     provider.SetScopeProvider(host); using (host.Push(Scope("parent", "parent"))) using (host.Push(Scope("bad\0id", "bad"))) { Log(); }
+                    Log("after");
                     break;
                 case "callback-errors":
                     provider.SetScopeProvider(new ThrowingHost()); Log("provider-error"); provider.SetScopeProvider(host);

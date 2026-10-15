@@ -2,53 +2,81 @@ using CIS.Logging.Events;
 using CIS.Logging.Rendering;
 
 namespace CIS.Logging.Runtime;
-
 // Only the sequential file worker writes. Its terminal path releases this owned resource.
 internal sealed class FileOutputWriter(string absolutePath, LogOutputFormat format, HumanOutputDetail detail, int maximumEntryBytes, long maximumFileBytes, int maximumRetainedFiles) : IDisposable
 {
     private FileOutputOwner? owner;
     private long activeBytes;
     internal bool RecoveredPartialSegment { get; private set; }
+
     internal void Initialize()
     {
         if (maximumRetainedFiles is < LoggingOptions.MinimumFileRetainedFiles or > LoggingOptions.MaximumFileRetainedFiles)
-        { throw new ArgumentOutOfRangeException(nameof(maximumRetainedFiles)); }
+        {
+            throw new ArgumentOutOfRangeException(nameof(maximumRetainedFiles));
+        }
+
         FileOutputOwner acquired = FileOutputOwner.Initialize(absolutePath, format, maximumRetainedFiles, maximumFileBytes);
         try
         {
             RecoveredPartialSegment = acquired.RecoveredPartialSegment;
             long length = acquired.ActiveFile.Length;
-            if (length > maximumFileBytes) { throw new CoreLogInitializationException("file", "FileSizeLimitExceeded"); }
+            if (length > maximumFileBytes)
+            {
+                throw new CoreLogInitializationException("file", "FileSizeLimitExceeded");
+            }
+
             bool partial = false;
             if (format == LogOutputFormat.JsonLines)
             {
                 JsonlRecordBoundary boundary = JsonlRecordBoundary.Inspect(acquired);
                 if (boundary.Status == JsonlBoundaryStatus.Invalid)
-                { throw new CoreLogInitializationException("file", "FileRecordBoundaryInvalid"); }
+                {
+                    throw new CoreLogInitializationException("file", "FileRecordBoundaryInvalid");
+                }
+
                 partial = boundary.Status == JsonlBoundaryStatus.Partial;
             }
             else if (length != 0)
             {
                 acquired.ActiveFile.Position = length - 1;
-                if (acquired.ActiveFile.ReadByte() != (byte)'\n') { throw new CoreLogInitializationException("file", "FileRecordBoundaryInvalid"); }
+                if (acquired.ActiveFile.ReadByte() != (byte)'\n')
+                {
+                    throw new CoreLogInitializationException("file", "FileRecordBoundaryInvalid");
+                }
             }
+
             // Failed startup preserves every pre-existing retained segment. A lower
             // selected bound needs explicit archival or a new group before retry.
             if (acquired.Inventory!.Segments.Count - 1 > maximumRetainedFiles)
-            { throw new CoreLogInitializationException("file", "FileRetentionLimitExceeded"); }
+            {
+                throw new CoreLogInitializationException("file", "FileRetentionLimitExceeded");
+            }
+
             if (partial)
             {
                 acquired.RecoverPartialSegment(maximumRetainedFiles);
                 length = 0;
                 RecoveredPartialSegment = true;
             }
+
             acquired.ActiveFile.Position = length;
             activeBytes = length;
             owner = acquired;
         }
-        catch (CoreLogInitializationException) { acquired.Dispose(); throw; }
-        catch { acquired.Dispose(); throw new CoreLogInitializationException("file", "FileInitializationFailed"); }
+        catch (CoreLogInitializationException)
+        {
+            acquired.Dispose();
+            throw;
+        }
+        catch
+        {
+            acquired.Dispose();
+            throw new CoreLogInitializationException("file", "FileInitializationFailed");
+        }
     }
+
+    internal bool HasSamePresentation(ConsoleOutputWriter other) => format == other.Format && detail == other.Detail;
     internal RenderedEvent Prepare(EncodedEvent captured) => EventRenderer.Render(captured, format, detail, maximumEntryBytes);
     internal ValueTask FlushAsync() => FlushAsync(CancellationToken.None);
     internal ValueTask FlushAsync(CancellationToken cancellationToken) => new((owner ?? throw new InvalidOperationException("File output is not initialized.")).ActiveFile.FlushAsync(cancellationToken));
@@ -59,18 +87,26 @@ internal sealed class FileOutputWriter(string absolutePath, LogOutputFormat form
         FileOutputOwner active = owner ?? throw new InvalidOperationException("File output is not initialized.");
         ReadOnlyMemory<byte> line = admitted.PreparedLine ?? throw new InvalidOperationException("File records require prepared output bytes.");
         // The prepared record includes every encoded byte and its LF. Never split it.
+        // Defensive for trusted internal composition; public options require FileMaxBytes >= MaxEntryBytes.
         if (line.Length > maximumFileBytes)
         {
-            if (format == LogOutputFormat.Human) { throw FileOutputWriteException.RenderTooLarge(); }
+            if (format == LogOutputFormat.Human)
+            {
+                throw FileOutputWriteException.RenderTooLarge();
+            }
+
             throw new IOException("File record exceeds the segment byte limit.");
         }
+
         if (line.Length > maximumFileBytes - activeBytes)
         {
             active.Rotate(maximumRetainedFiles);
             activeBytes = 0;
         }
+
         await active.ActiveFile.WriteAsync(line, cancellationToken).ConfigureAwait(false);
         activeBytes += line.Length;
     }
+
     public void Dispose() => Interlocked.Exchange(ref owner, null)?.Dispose();
 }

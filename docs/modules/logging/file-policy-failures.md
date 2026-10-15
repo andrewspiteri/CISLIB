@@ -1,3 +1,5 @@
+Current behavior is amended by the [15 October review corrections](review-contract-2026-10-15.md), including intent-first retirement, full-group recovery, bounded candidate cleanup and monotonic completion timing. The task-specific qualification narrative below is historical evidence at its recorded checkpoint.
+
 # Terminal file-policy failures
 
 WP05-S06-T03 retains the existing sequential worker's terminal policy and adds two fixed safe file fault codes. A required exact listed-member deletion that fails with an expected filesystem/access/security exception reports RetentionDeleteFailed. A prepared Human record larger than the actual segment reports RenderTooLarge before any retirement, rename or new active file. Generic writer exceptions still report WriteFailed. The internal typed exception has only private construction and fixed factories; it carries no raw path, payload, inner exception or data. Arbitrary exception data cannot select a policy code.

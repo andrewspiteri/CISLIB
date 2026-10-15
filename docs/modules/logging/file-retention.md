@@ -1,3 +1,5 @@
+Current behavior is amended by the [15 October review corrections](review-contract-2026-10-15.md), including intent-first retirement, full-group recovery, bounded candidate cleanup and monotonic completion timing. The task-specific qualification narrative below is historical evidence at its recorded checkpoint.
+
 # Retained segments and restart order
 
 WP05-S06-T02 passes the frozen FileRetainedFiles setting to the existing file worker. Each rotation keeps at most that many listed retained segments plus one active segment. The persistent group GUID is unchanged; the closing active keeps its ID and its exact group-owned closed name, and the new active receives the next positive Int64 ID. The inventory remains strictly ordered by ID, independently of directory enumeration, timestamps or the process that opens it.

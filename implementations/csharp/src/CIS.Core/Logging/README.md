@@ -1,13 +1,7 @@
 # Logging module
 
-Implement logging contracts, immutable event capture, context, output selection, buffering, formatting and lifecycle in this folder, using namespace `CIS.Logging` and responsibility-specific children where appropriate.
+`CIS.Logging` is implemented inside the single `CIS.Core` project/package. It provides runtime-bound loggers, bounded typed event capture, operation scopes, JSONL/human rendering, independent console/file queues, managed file retention/recovery, flush/stop results and immutable diagnostics. `CoreLogRuntime.Create()` uses prepared `CIS.EnvironmentOptions.Logging`; the application owns stop and disposal.
 
-This module is compiled into the Core project. It is not a separate project/package. Future Core modules are siblings of this folder.
+`Configuration/` handles severity aliases and configuration parsing; `Events/`, `Values/` and `Exceptions/` own bounded capture/encoding; `Rendering/` prepares presentation bytes; `Runtime/` owns acquisition, queues, files and deadlines; `Scopes/` owns asynchronous operation context. `MicrosoftLogger/` adapts the Microsoft logging interfaces in this assembly.
 
-`Configuration/SeverityTokenParser.cs` is the first implemented behavior. It recognizes the seven named levels plus the user-approved `TRC`, `DBG`, `INF`/`INFO`, `WRN`/`WARN`, `ERR` and `CRT`/`CRIT` abbreviations, with invariant case normalization and trimming. It keeps absent, valid and invalid input distinct and supplies no fallback/default. It remains internal and is preserved for the later configuration resolver. Runtime logging and MicrosoftLogger behavior are still planned.
-
-`LogValue` now implements the typed immutable attribute model, including bounded owned collections. `Exceptions/` holds the internal owned exception capture foundation for later event creation; [exception guidance](../../../../../docs/modules/logging/exception-projection.md) records its scope. Neither adds a working logger/output lifecycle.
-
-`Events/` now captures owned metadata/scope/activity facts and encodes one bounded JSONL record under the configured entry cap, with the user-selected payload truncation policy. See [encoding guidance](../../../../../docs/modules/logging/event-encoding.md). Runtime/output/provider integration remains subsequent work.
-
-Complete capture/encoding story qualification is described in [WP04-S04-T05](../../../../../docs/modules/logging/event-qualification.md). Runtime/output integration remains subsequent work.
+Read the [current review addendum](../../../../../docs/modules/logging/review-contract-2026-10-15.md), [environment API](../../../../../docs/modules/logging/environment-options.md) and [implementation status](../../../../../planning/logging/implementation-status.md). Runnable package examples, activated instructions/skills and complete release qualification remain pending. Historical task receipts describe their original checkpoint, not the current implementation's remaining scope.

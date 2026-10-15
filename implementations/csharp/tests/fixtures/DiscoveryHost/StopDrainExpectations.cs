@@ -14,7 +14,7 @@ internal static class StopDrainExpectations
         bool normal = mode == "normal-dual", queued = mode == "queued-only", flush = mode is "blocked-flush" or "cancel-flush";
         bool single = mode == "single-write";
         JsonNode result = report["result"]!;
-        Require(result["completion"]!.GetValue<string>() == (normal || queued ? "Completed" : "TimedOut"));
+        Require(result["completion"]!.GetValue<string>() == (normal ? "Completed" : "TimedOut"));
         Require(result["succeeded"]!.GetValue<bool>() == normal && result["loss"]!.GetValue<bool>() == (!normal && !flush && !single));
         JsonArray outputs = result["outputs"]!.AsArray(); Require(outputs.Count == (normal ? 2 : 1));
         foreach (JsonNode? o in outputs)

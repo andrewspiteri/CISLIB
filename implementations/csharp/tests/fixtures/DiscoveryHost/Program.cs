@@ -11,6 +11,7 @@ internal static class Program
 {
     private static int Main(string[] args)
     {
+        if (args.Length == 3 && args[0] == "logging-review") { return LoggingReviewFixture.Run(args[1], args[2]); }
         if (args.Length == 3 && args[0] == "logging-business") { return LoggingBusinessFixture.Run(args[1], args[2]); }
         if (args.Length == 3 && args[0] == "provider-behavior") { return ProviderBehaviorFixture.Run(args[1], args[2]); }
         if (args.Length == 3 && args[0] == "provider-scope") { return ProviderScopeFixture.Run(args[1], args[2]); }

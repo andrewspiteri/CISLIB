@@ -80,7 +80,7 @@ internal static class FlushStressFixture
                 Require(logger.Write(CoreLogLevel.Information, Data("")).Outcome == LogWriteOutcome.InvalidEvent);
             }
             JsonObject before = QueueGauge(queue);
-            Require(before["controls"]!.GetValue<int>() == (progress ? 0 : 4));
+            Require(before["controls"]!.GetValue<int>() == (progress ? 1 : 4));
             var counters = await RepeatCallersAsync();
             // The helper frame no longer retains its per-caller deadlines or task locals.
             for (int attempt = 0; attempt < 3; attempt++) { GC.Collect(2, GCCollectionMode.Forced, true, true); GC.WaitForPendingFinalizers(); }
@@ -131,7 +131,7 @@ internal static class FlushStressFixture
                     first ??= Result(result); last = Result(result); timedOut++;
                 }
                 Require(FlushCoordinationFixture.Continuations(held) == 0 && FlushCoordinationFixture.ContinuationSlots(held) <= 4 &&
-                    clock.Active == 0 && queue.RegisteredFlushCount == (progress ? 0 : 4));
+                    clock.Active == 0 && queue.RegisteredFlushCount == (progress ? 1 : 4));
             }
             clock.SampleOwners = false;
             Require(clock.Created - baselineCreated == 5000 && cancelledCount == 2500 && timedOut == 2500 && !sharedCaller.IsCancellationRequested);

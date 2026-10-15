@@ -45,12 +45,14 @@ internal sealed class ProviderStateCapture
                 }
                 if (!includeEventId && key == "operation_id")
                 {
-                    if (value is string identifier)
+                    if (value is not null and not string)
                     {
-                        operationId = CapturedOperationContext.NormalizeOperationId(identifier, "state");
-                        attributes.Remove(key); continue;
+                        throw new ArgumentException("A scope operation_id must be a string or null.");
                     }
-                    operationId = null;
+
+                    operationId = CapturedOperationContext.NormalizeOperationId((string?)value, "state");
+                    attributes.Remove(key);
+                    continue;
                 }
                 if (includeEventId && key == "event_id") { continue; }
                 // Keep scanning bounded root metadata after the value budget is spent.

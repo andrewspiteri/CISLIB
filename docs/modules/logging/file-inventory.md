@@ -1,3 +1,5 @@
+Current behavior is amended by the [15 October review corrections](review-contract-2026-10-15.md), including intent-first retirement, full-group recovery, bounded candidate cleanup and monotonic completion timing. The task-specific qualification narrative below is historical evidence at its recorded checkpoint.
+
 # Owned file-group inventory
 
 WP05-S05-T02 adds internal format-aware `FileOutputOwner.Initialize(path, format)` and `FileGroupInventory`. Acquisition first holds the existing path-group lease. The format-aware overload then creates or inspects `<active-path>.cis.inventory.json`; failed inventory initialization closes its owned handles and releases the lease. Invalid format arguments fail before acquisition. The raw T01 acquisition overload remains internal and does not make a file eligible for append.

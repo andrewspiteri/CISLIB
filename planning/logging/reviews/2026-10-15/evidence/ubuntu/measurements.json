@@ -1,0 +1,115 @@
+{
+  "schema": "cis.logging-review-measurements/v1",
+  "runtime": ".NET 10.0.12",
+  "os": "Ubuntu 24.04.4 LTS",
+  "architecture": "X64",
+  "iterations": 1000,
+  "measurements": [
+    {
+      "mode": "disabled",
+      "records": 1000,
+      "milliseconds": 0.3727,
+      "recordsPerSecond": 2683123.1553528304,
+      "allocatedBytes": 171200,
+      "allocatedBytesPerRecord": 171.2,
+      "rotations": 0
+    },
+    {
+      "mode": "jsonl",
+      "records": 1000,
+      "milliseconds": 50.7849,
+      "recordsPerSecond": 19690.892371551385,
+      "allocatedBytes": 11275528,
+      "allocatedBytesPerRecord": 11275.528,
+      "rotations": 0
+    },
+    {
+      "mode": "scoped-jsonl",
+      "records": 1000,
+      "milliseconds": 51.0312,
+      "recordsPerSecond": 19595.855084732477,
+      "allocatedBytes": 12521008,
+      "allocatedBytesPerRecord": 12521.008,
+      "rotations": 0
+    },
+    {
+      "mode": "human-normal",
+      "records": 1000,
+      "milliseconds": 61.989,
+      "recordsPerSecond": 16131.894368355675,
+      "allocatedBytes": 12996328,
+      "allocatedBytesPerRecord": 12996.328,
+      "rotations": 0
+    },
+    {
+      "mode": "human-verbose",
+      "records": 1000,
+      "milliseconds": 92.9593,
+      "recordsPerSecond": 10757.395978670236,
+      "allocatedBytes": 17143128,
+      "allocatedBytesPerRecord": 17143.128,
+      "rotations": 0
+    },
+    {
+      "mode": "dual-human",
+      "records": 1000,
+      "milliseconds": 95.4973,
+      "recordsPerSecond": 10471.500241368081,
+      "allocatedBytes": 17824768,
+      "allocatedBytesPerRecord": 17824.768,
+      "rotations": 0
+    },
+    {
+      "mode": "large-attributes",
+      "records": 1000,
+      "milliseconds": 1854.8187,
+      "recordsPerSecond": 539.1362508907205,
+      "allocatedBytes": 289676584,
+      "allocatedBytesPerRecord": 289676.584,
+      "rotations": 0
+    },
+    {
+      "mode": "exception",
+      "records": 1000,
+      "milliseconds": 38.5259,
+      "recordsPerSecond": 25956.564285324937,
+      "allocatedBytes": 13168904,
+      "allocatedBytesPerRecord": 13168.904,
+      "rotations": 0
+    },
+    {
+      "mode": "rotation",
+      "records": 1000,
+      "milliseconds": 2947.5757,
+      "recordsPerSecond": 339.26185508993035,
+      "allocatedBytes": 66571120,
+      "allocatedBytesPerRecord": 66571.12,
+      "rotations": 2
+    },
+    {
+      "mode": "saturation",
+      "capacity": 128,
+      "entryLimit": 16384,
+      "actualRecordBytes": 16380,
+      "pending": 129,
+      "payloadBytes": 2113020,
+      "retainedManagedHeapDeltaBytes": 2066568,
+      "allocatedBytes": 16649424,
+      "milliseconds": 79.2444,
+      "configuredPayloadCeilingBytes": 2097152
+    },
+    {
+      "mode": "saturation",
+      "capacity": 1024,
+      "entryLimit": 65536,
+      "actualRecordBytes": 65532,
+      "pending": 1025,
+      "payloadBytes": 67170300,
+      "retainedManagedHeapDeltaBytes": 67097336,
+      "allocatedBytes": 485380888,
+      "milliseconds": 1371.4272,
+      "configuredPayloadCeilingBytes": 67108864
+    }
+  ],
+  "limits": "One process/run; total managed allocations include workers. Warm-up is 64 records per runtime mode. Throughput includes batch flush and physical file I/O where enabled. Retention is a forced-GC managed-heap delta while one writer is held. No statistical or production-memory guarantee."
+}

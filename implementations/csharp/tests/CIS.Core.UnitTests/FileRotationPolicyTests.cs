@@ -42,10 +42,10 @@ public sealed class FileRotationPolicyTests
             case "transition-content":
                 string pending = actual["after"]!.AsObject().Select(x => x.Key).Single(x => x.EndsWith(".cis.transition.json", StringComparison.Ordinal)); JsonObject intent = JsonNode.Parse(Convert.FromBase64String(actual["after"]![pending]!.GetValue<string>()))!.AsObject(); intent["originalSha256"] = new string('0', 64); actual["after"]![pending] = Convert.ToBase64String(System.Text.Encoding.UTF8.GetBytes(intent.ToJsonString() + "\n")); break;
             case "candidate-content":
-                string candidate = actual["after"]!.AsObject().Select(x => x.Key).Single(x => x.EndsWith(".tmp", StringComparison.Ordinal)); JsonObject next = JsonNode.Parse(Convert.FromBase64String(actual["after"]![candidate]!.GetValue<string>()))!.AsObject(); next["segments"]!.AsArray()[^1]!["id"] = 1L; actual["after"]![candidate] = Convert.ToBase64String(System.Text.Encoding.UTF8.GetBytes(next.ToJsonString() + "\n")); break;
+                actual["after"]!["logs/Ω-🙂.log.cis.inventory.json.candidate.tmp"] = Convert.ToBase64String(System.Text.Encoding.UTF8.GetBytes("invented leftover")); break;
             default: actual["final"]!["outputs"]![1]!["abandoned"] = 0L; break;
         }
         InvalidDataException error = Assert.ThrowsExactly<InvalidDataException>(() => FileRotationPolicyExpectations.Validate(mode, actual));
-        Assert.AreEqual(corruption switch { "filesystem" => "exact filesystem transition", "membership" => "exact membership", "code" => "terminal fault", "console" => "console progress", "release" => "physical creation/release", "candidate-content" => "candidate inventory", "transition-content" => "transition intent", _ => "file accounting" }, error.Message);
+        Assert.AreEqual(corruption switch { "filesystem" => "exact filesystem transition", "membership" => "exact membership", "code" => "terminal fault", "console" => "console progress", "release" => "physical creation/release", "candidate-content" => "private inventory candidate", "transition-content" => "transition intent", _ => "file accounting" }, error.Message);
     }
 }

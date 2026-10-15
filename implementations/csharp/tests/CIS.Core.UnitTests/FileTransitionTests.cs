@@ -173,8 +173,8 @@ public sealed class FileTransitionTests
         using (var owner = FileOutputOwner.Initialize(path, LogOutputFormat.JsonLines))
         {
             next = recovery ? owner.Inventory!.AfterPartialRecovery(path, 2) : owner.Inventory!.AfterRotation(path, 2);
-            if (!recovery) { File.Delete(Path.Combine(Path.GetDirectoryName(path)!, owner.Inventory!.Segments[0].FileName)); }
             FileGroupTransition.Begin(owner, next, 2, recovery);
+            if (!recovery) { File.Delete(Path.Combine(Path.GetDirectoryName(path)!, owner.Inventory!.Segments[0].FileName)); }
         }
         if (stage != "intent") { File.Move(path, Path.Combine(Path.GetDirectoryName(path)!, next.Segments[^2].FileName)); }
         if (stage is "published" or "created") { next.PublishReplacement(path); }

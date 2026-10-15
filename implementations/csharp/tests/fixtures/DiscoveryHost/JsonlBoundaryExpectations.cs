@@ -9,14 +9,13 @@ internal static class JsonlBoundaryExpectations
     {
         bool identity = mode is "missing-inventory" or "wrong-format" or "wrong-encoding";
         bool partial = mode is "missing-lf" or "partial-json" or "partial-utf8" or "repeat" or "with-retained" or "collision-file" or "collision-directory" or "retention-full" or "identity-exhausted";
-        bool recovery = mode is "missing-lf" or "partial-json" or "partial-utf8" or "repeat" or "with-retained";
+        bool recovery = mode is "missing-lf" or "partial-json" or "partial-utf8" or "repeat" or "with-retained" or "retention-full";
         bool success = recovery || mode is "empty" or "object" or "unicode" or "two-records" or "chunk-boundary";
         string? error = mode switch
         {
             "missing-inventory" => "FileInventoryMissing",
             "wrong-format" or "wrong-encoding" => "FileInventoryIncompatible",
             "collision-file" or "collision-directory" => "FileRecoveryCollision",
-            "retention-full" => "FileRetentionLimitExceeded",
             "identity-exhausted" => "FileRecoveryIdentityExhausted",
             _ => success ? null : "FileRecordBoundaryInvalid"
         };
@@ -66,6 +65,11 @@ internal static class JsonlBoundaryExpectations
                 entries[^1]!["fileName"] = damaged;
                 entries[^1]!["state"] = "damaged";
                 entries.Add(new JsonObject { ["id"] = id + 1, ["fileName"] = active, ["state"] = "active" });
+                if (mode == "retention-full")
+                {
+                    expected.Remove(entries[0]!["fileName"]!.GetValue<string>());
+                    entries.RemoveAt(0);
+                }
                 if (mode == "repeat")
                 {
                     byte[] first = Bytes(actual, "firstActive");

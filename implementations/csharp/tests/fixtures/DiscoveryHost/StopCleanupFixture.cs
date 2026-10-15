@@ -25,7 +25,7 @@ internal static class StopCleanupFixture
         var options = new LoggingOptions { ConsoleLevel = CoreLogLevel.Information, FileLevel = CoreLogLevel.Information, FilePath = Path.Combine(Path.GetTempPath(), "unused-kernel.jsonl"), QueueCapacity = 3, MaxEntryBytes = 16384, ShutdownTimeoutMilliseconds = 10 };
         var queues = new OutputQueues(3, true, true, item => console.WriteAsync(item.Event.JsonLine), item => writer.WriteAsync(item.Event.JsonLine, CancellationToken.None), gate,
             fileResource: owner, consoleFlush: () => new ValueTask(console.FlushAsync()), fileFlush: () => new ValueTask(writer.FlushAsync(CancellationToken.None)),
-            fileCancellableWrite: (item, token) => writer.WriteAsync(item.Event.JsonLine, token), fileCancellableFlush: token => new ValueTask(writer.FlushAsync(token)));
+            fileCancellableWrite: (item, token) => writer.WriteAsync(item.Event.JsonLine, token), fileCancellableFlush: token => new ValueTask(writer.FlushAsync(token)), timeProvider: clock);
         var runtime = new CoreLogRuntime(ConsoleCompositionFixture.Metadata(), options, queues.Console, queues.File, clock, gate, queues);
         queues.File!.StartFileFlushTimer(clock, TimeSpan.FromMilliseconds(1000));
         OutputFlushRegistration? originalFileFlush = null;
@@ -67,7 +67,7 @@ internal static class StopCleanupFixture
                 {
                     await clock.DeadlineDisposeEntered.Task.WaitAsync(Guard); clock.DeadlineDisposeRelease.TrySetResult();
                     await UntilAsync(() => runtime.GetDiagnostics().Outputs.All(o => o.LastFaultCode == "ShutdownTimerCleanupFailed"));
-                    inactiveFlushResolved = originalFileFlush!.WriterFlushCompletion.IsCompletedSuccessfully && !originalFileFlush.WriterFlushCompletion.Result && queues.File.RegisteredFlushCount == 0; Require(inactiveFlushResolved);
+                    inactiveFlushResolved = originalFileFlush!.WriterFlushCompletion.IsCompletedSuccessfully && !originalFileFlush.WriterFlushCompletion.Result && queues.File.RegisteredFlushCount == 1; Require(inactiveFlushResolved);
                     Require(owner.Calls == 0 && writer.InFlight);
                     lateFlush = runtime.FlushAsync(TimeSpan.FromMilliseconds(100), CancellationToken.None);
                 }

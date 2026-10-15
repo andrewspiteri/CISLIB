@@ -2,6 +2,8 @@
 
 Updated 15 October 2026. This record tracks work against the preserved source task IDs, applying [plan amendments](plan-amendments.md). Original source plans/backlog and their recorded hashes remain unchanged.
 
+The [corrective logging review](reviews/2026-10-15/README.md) is verified on both native lanes after Claude review and local fixes. The user has requested resuming the roadmap from WP07-S02-T02 after this correction checkpoint.
+
 ## Current foundation tasks
 
 | Task | State | Outcome and evidence |
@@ -261,4 +263,4 @@ WP05-S09 is Done for its four original controlled-time scheduling criteria at th
 
 | WP07-S02-T01 | Done (five-level inspection scope) | [Guide](../../docs/architecture/csharp-architecture-inspection.md) and [verification](evidence/wp07-s02-t01/verification.json): new C# orchestration, metadata reader and six C# cases inspect all27 projects/33 framework-RID graphs, locked versions/hashes with inherited RID deltas, every package asset and both packaged assemblies, public signatures and internal type/namespace uses. Exact attribute-table completeness includes module/interface/generic annotations and explicit override declarations. Windows and native Ubuntu each pass5348tests/16stages from the same maintained-source snapshot. Both approved Claude reviews are retained; six late coverage findings and four current inspection findings are addressed and verified locally, without claiming an external follow-up PASS. Corrected pre-review-candidate coverage remains unqualified because the build helper is below thresholds; two C# rejection controls pass. All99 protected inputs and the other chat profile are preserved. Release exits2. Exact allowlist policy, ownership/separation and comprehensive negative qualification remain T02/T03/T04; full release and offline replay remain pending. |
 
-15 October 2026: 129 of 199 original C# roadmap tasks are complete; 70 remain. Functional candidate, concurrency, native discovery and observed architecture inventory are implemented within their documented boundaries. Full coverage qualification, remaining architecture policy/controls, mutation, cumulative compatibility, examples, instructions/skills and full release/bundle/publication remain required. The next task is WP07-S02-T02. The user requested a pause after the verified WP07-S02-T01 commit; do not start T02 until the goal is resumed.
+15 October 2026: 129 of 199 original C# roadmap tasks are complete; 70 remain. Functional candidate, concurrency, native discovery and observed architecture inventory are implemented within their documented boundaries. Full coverage qualification, remaining architecture policy/controls, mutation, cumulative compatibility, examples, instructions/skills and full release/bundle/publication remain required. The next task is WP07-S02-T02. The earlier pause is revoked by the user's request to resume after the corrective review checkpoint.

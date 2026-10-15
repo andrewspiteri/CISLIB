@@ -25,7 +25,7 @@ public sealed class StopDrainTests
         CancellationToken token = default; int writes = 0, flushes = 0; var resource = new OwnedResource();
         var queues = new OutputQueues(3, false, true, null, _ => ValueTask.CompletedTask, gate, fileResource: resource,
             fileFlush: () => { flushes++; return ValueTask.CompletedTask; },
-            fileCancellableWrite: async (_, cancellation) => { token = cancellation; writes++; entered.TrySetResult(); await release.Task; });
+            fileCancellableWrite: async (_, cancellation) => { token = cancellation; writes++; entered.TrySetResult(); await release.Task; }, timeProvider: clock);
         var options = new LoggingOptions { ConsoleLevel = CoreLogLevel.None, FileLevel = CoreLogLevel.Information, FilePath = "controlled", MaxEntryBytes = 16384, ShutdownTimeoutMilliseconds = 10 };
         var runtime = new CoreLogRuntime(ConsoleCompositionFixture.Metadata(), options, null, queues.File, clock, gate, queues);
         try
@@ -38,7 +38,7 @@ public sealed class StopDrainTests
             Assert.IsTrue(token.IsCancellationRequested); Assert.IsFalse(resource.Disposed);
             Assert.AreEqual(2L, result.Outputs[0].Abandoned); Assert.AreEqual(1L, result.Outputs[0].Pending);
             Assert.AreEqual(LogWriterFlushStatus.Failed, result.Outputs[0].WriterFlushStatus);
-            Assert.AreEqual(0, queues.File!.RegisteredFlushCount);
+            Assert.AreEqual(1, queues.File!.RegisteredFlushCount);
             release.TrySetResult(); await queues.Completion.WaitAsync(Guard);
             Assert.IsTrue(resource.Disposed); Assert.AreEqual(1, writes); Assert.AreEqual(0, flushes);
             Assert.AreEqual(1L, result.Outputs[0].Pending); Assert.AreEqual(1L, runtime.GetDiagnostics().Outputs[0].Written);

@@ -62,10 +62,10 @@ internal static class FileRestartFixture
             if (rotation || recovery)
             {
                 FileGroupInventory next = recovery ? owner.Inventory!.AfterPartialRecovery(path, 3) : owner.Inventory!.AfterRotation(path, 2);
-                if (rotation) { foreach (var member in owner.Inventory!.Segments.Take(owner.Inventory.Segments.Count + 1 - next.Segments.Count)) { File.Delete(Path.Combine(directory, member.FileName)); } }
                 if (mode != "unproven-gap")
                 {
                     FileGroupTransition.Begin(owner, next, recovery ? 3 : 2, recovery);
+                    if (rotation) { foreach (var member in owner.Inventory!.Segments.Take(owner.Inventory.Segments.Count + 1 - next.Segments.Count)) { File.Delete(Path.Combine(directory, member.FileName)); } }
                     string target = Path.Combine(directory, next.Segments[^2].FileName), stage = mode[(mode.IndexOf('-', StringComparison.Ordinal) + 1)..];
                     if (mode == "ambiguous-both") { File.WriteAllBytes(target, records[1]); }
                     else if (stage is "renamed" or "published" or "created")
@@ -75,6 +75,7 @@ internal static class FileRestartFixture
                         if (stage == "created") { fresh = new FileStream(path, FileMode.CreateNew, FileAccess.ReadWrite, FileShare.Read); }
                     }
                 }
+                else if (rotation) { foreach (var member in owner.Inventory!.Segments.Take(owner.Inventory.Segments.Count + 1 - next.Segments.Count)) { File.Delete(Path.Combine(directory, member.FileName)); } }
             }
             if (mode.StartsWith("collision", StringComparison.Ordinal))
             {

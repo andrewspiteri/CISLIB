@@ -11,10 +11,10 @@ internal static class ProviderScopeExpectations
     {
         Require(Modes.Contains(mode, StringComparer.Ordinal) && a["mode"]!.GetValue<string>() == mode && a["runtime"]!.GetValue<string>() == ".NET 10.0.12");
         Require(a["leaseReleased"]!.GetValue<bool>() == a["physical"]!.GetValue<bool>() && a["filteredHostCalls"]!.GetValue<int>() == 0);
-        int count = mode is "invalid" or "host-incompatible" ? 4 : mode is "hybrid" or "async-owned" or "async-external" or "replacement" ? 3 : mode == "bounds" ? 2 : mode == "filtered" ? 0 : 1;
+        int count = mode is "invalid" or "host-incompatible" ? 1 : mode is "hybrid" or "async-owned" or "async-external" or "replacement" ? 3 : mode == "bounds" ? 2 : mode == "filtered" ? 0 : 1;
         int calls = mode is "async-owned" or "async-external" or "depth" ? 3 : mode is "hybrid" or "bounds" or "replacement" ? 2 : mode is "invalid" or "host-incompatible" ? 4 : mode == "filtered" ? 0 : 1;
         Require(a["formatterCalls"]!.GetValue<int>() == calls && a["ownedErrors"]!.GetValue<int>() == (mode is "invalid" or "depth" ? 1 : 0) && a["fieldVisits"]!.GetValue<int>() == (mode == "bounds" ? 1025 : 0));
-        Require(a["invalid"]!.GetValue<string>() == (mode == "depth" ? "2" : "0") && a["truncated"]!.GetValue<string>() == (mode == "bounds" ? "2" : mode is "invalid" or "host-incompatible" ? "3" : "0"));
+        Require(a["invalid"]!.GetValue<string>() == (mode == "depth" ? "2" : mode is "invalid" or "host-incompatible" ? "3" : "0") && a["truncated"]!.GetValue<string>() == (mode == "bounds" ? "2" : "0"));
         Require(a["result"]!["completion"]!.GetValue<string>() == "Completed" && a["result"]!["succeeded"]!.GetValue<bool>() && a["result"]!["loss"]!.GetValue<bool>() == (mode is "bounds" or "invalid" or "host-incompatible" or "depth"));
         JsonNode output = a["result"]!["outputs"]![0]!; Require(output["boundary"]!.GetValue<string>() == count.ToString(System.Globalization.CultureInfo.InvariantCulture) && output["written"]!.GetValue<string>() == count.ToString(System.Globalization.CultureInfo.InvariantCulture) && output["failed"]!.GetValue<string>() == "0" && output["abandoned"]!.GetValue<string>() == "0" && output["pending"]!.GetValue<string>() == "0" && output["flush"]!.GetValue<string>() == "Succeeded");
         byte[] bytes = Convert.FromBase64String(a["bytes"]!.GetValue<string>()); Require(count == 0 ? bytes.Length == 0 : bytes[^1] == (byte)'\n' && !bytes.AsSpan().StartsWith(new byte[] { 239, 187, 191 }));
@@ -39,15 +39,15 @@ internal static class ProviderScopeExpectations
         }
         if (mode == "bounds")
         {
-            JsonObject fields = rows[0]["attributes"]!.AsObject(); Require(fields.Count == 1023 && fields["k1022"]!.GetValue<int>() == 1022 && fields["event_id"] is null && rows.All(row => row["truncated"]!.GetValue<bool>()));
+            JsonObject fields = rows[0]["attributes"]!.AsObject(); Require(fields.Count == 1023 && fields["k1021"]!.GetValue<int>() == 1021 && fields["k1022"] is null && fields["event_id"]!.GetValue<int>() == 17 && rows.All(row => row["truncated"]!.GetValue<bool>()));
             JsonNode deep = new JsonArray(); for (int i = 0; i < 6; i++) { deep = new JsonArray(deep); }
             Require(JsonNode.DeepEquals(rows[1]["attributes"]!["deep"], deep) && rows[1]["attributes"]!["event_id"]!.GetValue<int>() == 17);
         }
         if (mode == "depth") { Attributes(0, "{\"event_id\":17}"); Require(rows[0]["event_name"]!.GetValue<string>() == "after"); }
         if (mode is "invalid" or "host-incompatible")
         {
-            for (int i = 0; i < 4; i++) { Attributes(i, "{\"event_id\":17}"); Require(i < 3 ? rows[i]["truncated"]!.GetValue<bool>() : rows[i]["truncated"] is null); }
-            Require(rows[3]["event_name"]!.GetValue<string>() == "after");
+            Attributes(0, "{\"event_id\":17}"); Require(rows[0]["truncated"] is null);
+            Require(rows[0]["event_name"]!.GetValue<string>() == "after");
         }
         if (mode == "correlation") { Attributes(0, "{\"trace_id\":\"fake\",\"event_id\":17}"); Require(rows[0]["trace_id"]!.GetValue<string>() == a["trace"]!.GetValue<string>() && rows[0]["span_id"]!.GetValue<string>() == a["span"]!.GetValue<string>()); }
         if (mode == "replacement") { Attributes(0, "{\"owner\":\"first\",\"event_id\":17}"); Attributes(1, "{\"owner\":\"second\",\"event_id\":17}"); Attributes(2, "{}"); }

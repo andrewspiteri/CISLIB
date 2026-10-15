@@ -1,5 +1,4 @@
 namespace CIS.Logging.Runtime;
-
 // Acquisition owns physical handles only. Inventory validation must precede any append.
 internal sealed class FileOutputOwner : IDisposable
 {
@@ -19,7 +18,6 @@ internal sealed class FileOutputOwner : IDisposable
     }
 
     internal static FileOutputOwner Initialize(string capturedAbsolutePath) => InitializeCore(capturedAbsolutePath, rejectLostActive: false);
-
     private static FileOutputOwner InitializeCore(string capturedAbsolutePath, bool rejectLostActive, LogOutputFormat? format = null, int maximumRetainedFiles = LoggingOptions.MaximumFileRetainedFiles, long maximumFileBytes = long.MaxValue)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(capturedAbsolutePath);
@@ -47,15 +45,28 @@ internal sealed class FileOutputOwner : IDisposable
             {
                 throw new CoreLogInitializationException("file", "FileOwnershipUnavailable");
             }
+
             bool recoveredPartial = format is { } selected && FileGroupTransition.Reconcile(capturedAbsolutePath, selected, maximumRetainedFiles, maximumFileBytes);
             bool activeWasCreated = false;
-            try { active = OpenActive(capturedAbsolutePath, FileMode.Open); }
+            try
+            {
+                active = OpenActive(capturedAbsolutePath, FileMode.Open);
+            }
             catch (FileNotFoundException)
             {
-                if (rejectLostActive && HasExistingInventory(capturedAbsolutePath)) { throw new CoreLogInitializationException("file", "FileInventoryIncompatible"); }
-                active = OpenActive(capturedAbsolutePath, FileMode.CreateNew); activeWasCreated = true;
+                if (rejectLostActive && HasExistingInventory(capturedAbsolutePath))
+                {
+                    throw new CoreLogInitializationException("file", "FileInventoryIncompatible");
+                }
+
+                active = OpenActive(capturedAbsolutePath, FileMode.CreateNew);
+                activeWasCreated = true;
             }
-            var owner = new FileOutputOwner(capturedAbsolutePath, lease, active, activeWasCreated) { RecoveredPartialSegment = recoveredPartial };
+
+            var owner = new FileOutputOwner(capturedAbsolutePath, lease, active, activeWasCreated)
+            {
+                RecoveredPartialSegment = recoveredPartial
+            };
             lease = null;
             active = null;
             return owner;
@@ -66,8 +77,14 @@ internal sealed class FileOutputOwner : IDisposable
         }
         finally
         {
-            try { active?.Dispose(); }
-            finally { lease?.Dispose(); }
+            try
+            {
+                active?.Dispose();
+            }
+            finally
+            {
+                lease?.Dispose();
+            }
         }
     }
 
@@ -78,26 +95,35 @@ internal sealed class FileOutputOwner : IDisposable
             using var existing = new FileStream(path + ".cis.inventory.json", FileMode.Open, FileAccess.Read, FileShare.Read);
             return true;
         }
-        catch (FileNotFoundException) { return false; }
+        catch (FileNotFoundException)
+        {
+            return false;
+        }
         catch (Exception error) when (error is IOException or UnauthorizedAccessException or System.Security.SecurityException)
         {
             throw new CoreLogInitializationException("file", "FileInventoryInitializationFailed");
         }
     }
 
-    private static FileStream OpenActive(string path, FileMode mode)
-        => new(path, mode, FileAccess.ReadWrite, FileShare.Read, bufferSize: 1, FileOptions.Asynchronous | FileOptions.SequentialScan);
-
+    private static FileStream OpenActive(string path, FileMode mode) => new(path, mode, FileAccess.ReadWrite, FileShare.Read, bufferSize: 1, FileOptions.Asynchronous | FileOptions.SequentialScan);
     internal static FileOutputOwner Initialize(string capturedAbsolutePath, LogOutputFormat format, int maximumRetainedFiles = LoggingOptions.MaximumFileRetainedFiles, long maximumFileBytes = long.MaxValue)
     {
-        if (!Enum.IsDefined(format)) { throw new ArgumentOutOfRangeException(nameof(format)); }
+        if (!Enum.IsDefined(format))
+        {
+            throw new ArgumentOutOfRangeException(nameof(format));
+        }
+
         FileOutputOwner owner = InitializeCore(capturedAbsolutePath, rejectLostActive: true, format, maximumRetainedFiles, maximumFileBytes);
         try
         {
             owner.Inventory = FileGroupInventory.OpenOrCreate(owner, format);
             return owner;
         }
-        catch { owner.Dispose(); throw; }
+        catch
+        {
+            owner.Dispose();
+            throw;
+        }
     }
 
     internal void Rotate(int maximumRetainedFiles)
@@ -109,31 +135,12 @@ internal sealed class FileOutputOwner : IDisposable
         string closedPath = Path.Combine(directory, next.Segments[^2].FileName);
         // Reject a known reserved-name collision before retiring any listed evidence.
         // The non-overwriting move below still protects against later external races.
-        if (File.Exists(closedPath) || Directory.Exists(closedPath)) { throw new IOException("Reserved closed segment already exists."); }
-        // Remove only exact oldest inventory members, while holding the group lease,
-        // before the old active file becomes an additional retained segment.
-        int removed = current.Segments.Count + 1 - next.Segments.Count;
-        try
+        if (File.Exists(closedPath) || Directory.Exists(closedPath))
         {
-            for (int index = 0; index < removed; index++) { File.Delete(Path.Combine(directory, current.Segments[index].FileName)); }
+            throw new IOException("Reserved closed segment already exists.");
         }
-        catch (Exception error) when (error is IOException or UnauthorizedAccessException or System.Security.SecurityException)
-        {
-            // No new retained segment has been created. The sequential worker faults,
-            // preserves other outputs and releases this owner's handles without retry.
-            throw FileOutputWriteException.RetentionDeleteFailed();
-        }
-        FileGroupTransition.Begin(this, next, maximumRetainedFiles, recovery: false);
-        // The lease remains held throughout. No incoming record is written until the new
-        // identity is published. Failure after rename leaves no active path to append to;
-        // the pending transition permits a later owner to reconcile verified stages.
-        // Any rotation exception makes this writer unusable; its worker faults terminally.
-        ActiveFile.Dispose();
-        File.Move(AbsolutePath, closedPath, overwrite: false);
-        next.PublishReplacement(AbsolutePath);
-        Inventory = next;
-        ActiveFile = OpenActive(AbsolutePath, FileMode.CreateNew);
-        FileGroupTransition.Complete(AbsolutePath);
+
+        CommitTransition(next, maximumRetainedFiles, recovery: false, closedPath);
     }
 
     internal void RecoverPartialSegment(int maximumRetainedFiles)
@@ -141,26 +148,41 @@ internal sealed class FileOutputOwner : IDisposable
         RequireOwnership();
         FileGroupInventory current = Inventory ?? throw new InvalidOperationException("Recovery requires a managed inventory.");
         if (JsonlRecordBoundary.Inspect(this).Status != JsonlBoundaryStatus.Partial)
-        { throw new InvalidOperationException("Recovery requires a partial final JSONL record."); }
+        {
+            throw new InvalidOperationException("Recovery requires a partial final JSONL record.");
+        }
+
         FileGroupInventory next = current.AfterPartialRecovery(AbsolutePath, maximumRetainedFiles);
         string damagedPath = Path.Combine(Path.GetDirectoryName(AbsolutePath)!, next.Segments[^2].FileName);
         if (File.Exists(damagedPath) || Directory.Exists(damagedPath))
-        { throw new CoreLogInitializationException("file", "FileRecoveryCollision"); }
-        FileGroupTransition.Begin(this, next, maximumRetainedFiles, recovery: true);
-        // Preserve the entire segment, including any intact earlier records, under
-        // the same lease. A failed transition never makes old bytes appendable.
+        {
+            throw new CoreLogInitializationException("file", "FileRecoveryCollision");
+        }
+
+        CommitTransition(next, maximumRetainedFiles, recovery: true, damagedPath);
+        RecoveredPartialSegment = true;
+    }
+
+    private void CommitTransition(FileGroupInventory next, int maximumRetainedFiles, bool recovery, string archivedPath)
+    {
+        FileGroupTransition intent = FileGroupTransition.Begin(this, next, maximumRetainedFiles, recovery);
+        intent.Retire(AbsolutePath);
+        // Keep the lease throughout. No incoming record is appended before publication;
+        // any interruption is reconciled from the exact durable intent by a later owner.
         ActiveFile.Dispose();
-        File.Move(AbsolutePath, damagedPath, overwrite: false);
+        File.Move(AbsolutePath, archivedPath, overwrite: false);
         next.PublishReplacement(AbsolutePath);
         Inventory = next;
         ActiveFile = OpenActive(AbsolutePath, FileMode.CreateNew);
         FileGroupTransition.Complete(AbsolutePath);
-        RecoveredPartialSegment = true;
     }
 
     internal void RequireOwnership()
     {
-        if (!lease.CanWrite || !ActiveFile.CanWrite) { throw new InvalidOperationException("File ownership is not active."); }
+        if (!lease.CanWrite || !ActiveFile.CanWrite)
+        {
+            throw new InvalidOperationException("File ownership is not active.");
+        }
     }
 
     private static bool ExcludesSecondHandle(string leasePath)
@@ -170,13 +192,22 @@ internal sealed class FileOutputOwner : IDisposable
             using var second = new FileStream(leasePath, FileMode.Open, FileAccess.ReadWrite, FileShare.None);
             return false;
         }
-        catch (IOException) { return true; }
+        catch (IOException)
+        {
+            return true;
+        }
     }
 
     public void Dispose()
     {
-        try { ActiveFile.Dispose(); }
-        finally { lease.Dispose(); }
+        try
+        {
+            ActiveFile.Dispose();
+        }
+        finally
+        {
+            lease.Dispose();
+        }
         // Do not unlink the lease: a new inode could bypass an existing Unix owner's lock.
     }
 }

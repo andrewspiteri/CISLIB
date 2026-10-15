@@ -143,7 +143,7 @@ internal static class StopLifecycleFixture
         var writer = new HeldFile(PathFor(root), flushing, mode == "late-failure", prefix: !flushing);
         var options = Options(root); options.QueueCapacity = 8; options.ShutdownTimeoutMilliseconds = 10;
         var queues = new OutputQueues(8, false, true, null, item => writer.WriteAsync(item, CancellationToken.None), gate, fileResource: writer,
-            fileFlush: () => writer.FlushAsync(CancellationToken.None), fileCancellableWrite: writer.WriteAsync, fileCancellableFlush: writer.FlushAsync);
+            fileFlush: () => writer.FlushAsync(CancellationToken.None), fileCancellableWrite: writer.WriteAsync, fileCancellableFlush: writer.FlushAsync, timeProvider: clock);
         var runtime = new CoreLogRuntime(ConsoleCompositionFixture.Metadata(), options, null, queues.File, clock, gate, queues);
         Exception? primaryFailure = null;
         try
@@ -201,7 +201,7 @@ internal static class StopLifecycleFixture
         var gate = new object(); var clock = new Clock(); var writer = new HeldFile(PathFor(root), false, false, mode != "kill-queued");
         var options = Options(root); options.QueueCapacity = 8; options.ShutdownTimeoutMilliseconds = 10;
         var queues = new OutputQueues(8, false, true, null, item => writer.WriteAsync(item, CancellationToken.None), gate, fileResource: writer,
-            fileFlush: () => writer.FlushAsync(CancellationToken.None), fileCancellableWrite: writer.WriteAsync, fileCancellableFlush: writer.FlushAsync);
+            fileFlush: () => writer.FlushAsync(CancellationToken.None), fileCancellableWrite: writer.WriteAsync, fileCancellableFlush: writer.FlushAsync, timeProvider: clock);
         var runtime = new CoreLogRuntime(ConsoleCompositionFixture.Metadata(), options, null, queues.File, clock, gate, queues);
         for (int i = 0; i < 6; i++)
         { Accepted(runtime.CreateLogger("CrashBoundary").Write(CoreLogLevel.Information, Data("held." + i))); if (i == 0) { await writer.Entered.Task.WaitAsync(Guard); } }

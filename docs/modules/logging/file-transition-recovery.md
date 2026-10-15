@@ -1,25 +1,10 @@
 # Interrupted file transitions
 
-WP05-S07-T03 keeps damaged and closed segments in the same retained-file count, ordered by persistent segment ID. Required oldest-member deletion still finishes before any further segment growth. A deletion failure faults the file worker through RetentionDeleteFailed, preserving other outputs. Startup does not silently prune pre-existing evidence.
+Rotation and partial recovery publish schema-2 intent before any retirement. It names the exact old/new inventories, original active bytes and planned retirement IDs/names/lengths/hashes. Restart validates all surviving members before resuming only that exact retirement/rename/publication/fresh-active sequence. The oldest planned prefix may be partly or wholly absent; a missing survivor or changed retirement still fails. Legacy schema-1 intent retains its already-retired-prefix rule. A full retention group can recover by retiring its oldest owned member and preserving the complete partial active as damaged.
 
-Rotation now publishes one bounded pending record at <active-path>.cis.transition.json after required retirement and before rename. Partial recovery publishes it before rename, with no startup retirement. The record contains the previous and next inventories, the original selected retention limit, the operation kind, and the old active file's length and SHA-256. It is published from a flushed same-directory private candidate without overwriting an existing pending name. Computing the digest reads the old active once per transition; restart checks that complete byte preimage before trusting the intent.
+Each metadata kind uses one private candidate slot; a failed creating attempt removes only its own candidate. Failed cleanup leaves a blocking slot, rather than generating unbounded files. Occupied/unrelated candidates are preserved. Committed recovery may complete exact recorded retirement; pre-commit rollback still preserves existing members. Unproven pre-intent gaps and ambiguous states fail without guessing.
 
-Under the exclusive cooperative path-group lease, startup validates the bounded strict UTF-8 record, inventories, exactly permitted identity progression, selected size/retention limits, surviving named members, and the original bytes. It resumes these known states:
-
-| Persisted state | Startup action |
-| --- | --- |
-| Old inventory, old active present, target archive absent | Rename the verified old active, publish next inventory, create fresh active |
-| Old inventory, old active absent, verified target archive present | Publish next inventory and create fresh active |
-| Next inventory, verified target archive present, active absent | Create fresh active |
-| Next inventory, verified target archive present, active empty | Remove the completed pending record |
-
-The pending record is removed before runtime publication or the next entry write. No fresh entry is appended while it exists. Recovery diagnostics remain true for a successful interrupted partial-recovery operation, including completion after inventory publication; a later intact runtime reports false.
-
-Both old active and target present under old metadata, neither present, changed original bytes, nonempty fresh active, missing surviving members, reappeared retired members, mismatched inventories, malformed records and unsupported identity progression fail clearly before changing existing bytes. Invalid transition state uses FileTransitionIncompatible; access/publication/create/cleanup errors use FileTransitionInitializationFailed. These fixed internal categories retain no raw paths, payloads or inner exceptions. Lower newly selected size or retention limits fail unchanged using the existing limit categories.
-
-A stop or failure after retirement but before pending publication has no reliable transition proof. Startup fails unchanged on the old inventory's missing member. Older interrupted states without a pending record also retain the existing fail-closed behavior; startup never guesses from unlisted .tmp candidates, archive filenames or timestamps. Private candidates and unrelated/unlisted neighbors are preserved. Failures during a verified resumption can leave another documented stage for a later attempt; there is no retry in the failed runtime.
-
-The protocol coordinates cooperating writers and makes deterministic process restart possible. It does not guarantee power-loss durability, hostile filesystem-race resistance, network-filesystem semantics or exactly-once ingestion. Partial-tail validation and Human exclusions remain unchanged.
+The [current review addendum](review-contract-2026-10-15.md) defines resumable states, safe categories and capacity/lifecycle rules. This cooperative protocol does not promise power-loss durability, hostile-race resistance or exactly-once delivery.
 
 ## Qualification
 

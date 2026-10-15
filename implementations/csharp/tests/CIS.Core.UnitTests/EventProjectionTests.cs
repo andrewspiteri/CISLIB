@@ -275,21 +275,21 @@ public sealed class EventProjectionTests
         Assert.AreSame(head, store.CurrentFrame);
         if (budget == "candidates")
         {
-            Assert.IsFalse(facts.Attributes.MapProperties.ContainsKey("new"));
+            Assert.AreEqual("omitted", facts.Attributes.MapProperties["new"].Scalar.Text);
             Assert.AreEqual(1023, facts.Attributes.MapProperties.Count);
             Assert.AreEqual("winner", facts.Attributes.MapProperties["key1022"].Scalar.Text);
         }
         else if (budget == "scalars")
         {
             Assert.AreEqual(1023, facts.Attributes.MapProperties.Count);
-            Assert.AreEqual(600, facts.Attributes.MapProperties.Keys.Count(key => key.StartsWith("scope", StringComparison.Ordinal)));
-            Assert.AreEqual(423, facts.Attributes.MapProperties.Keys.Count(key => key.StartsWith("event", StringComparison.Ordinal)));
+            Assert.AreEqual(423, facts.Attributes.MapProperties.Keys.Count(key => key.StartsWith("scope", StringComparison.Ordinal)));
+            Assert.AreEqual(600, facts.Attributes.MapProperties.Keys.Count(key => key.StartsWith("event", StringComparison.Ordinal)));
         }
         else
         {
-            Assert.AreEqual(600, facts.Attributes.MapProperties["scope-array"].ArrayItems.Count);
-            Assert.AreEqual(421, facts.Attributes.MapProperties["event-array"].ArrayItems.Count);
-            Assert.IsTrue(facts.Attributes.MapProperties["event-array"].IsTruncated);
+            Assert.AreEqual(421, facts.Attributes.MapProperties["scope-array"].ArrayItems.Count);
+            Assert.AreEqual(600, facts.Attributes.MapProperties["event-array"].ArrayItems.Count);
+            Assert.IsTrue(facts.Attributes.MapProperties["scope-array"].IsTruncated);
             Assert.AreEqual(600, explicitAttributes["event-array"].ArrayItems.Count);
         }
     }

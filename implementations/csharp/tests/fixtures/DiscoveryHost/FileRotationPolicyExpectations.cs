@@ -34,19 +34,28 @@ internal static class FileRotationPolicyExpectations
             for (int slot = 0; slot < 2; slot++) { JsonObject o = outputs[slot]!.AsObject(); bool fault = index == 3 && slot == 1; Require(o["name"]!.GetValue<string>() == (slot == 0 ? "console" : "file") && o["status"]!.GetValue<string>() == (fault ? "Faulted" : "Accepted") && (fault ? o["sequence"] is null : o["sequence"]!.GetValue<long>() == index + 1), "tickets"); }
         }
         JsonObject expected = actual["before"]!.DeepClone().AsObject(); const string active = "logs/\u03a9-\U0001f642.log"; string closed = "logs/.cis-log-" + actual["group"]!.GetValue<string>() + "-00000000000000000002.closed", oldest = closed.Replace("00000000000000000002.closed", "00000000000000000001.closed", StringComparison.Ordinal);
-        string? candidate = null;
         if (metadata)
         {
+            byte[] retired = Convert.FromBase64String(expected[oldest]!.GetValue<string>());
             JsonNode seed = expected[active]!.DeepClone(); expected.Remove(active); expected.Remove(oldest); expected[closed] = seed;
-            string prefix = active + ".cis.inventory.json."; string[] candidates = actual["after"]!.AsObject().Select(x => x.Key).Where(x => x.StartsWith(prefix, StringComparison.Ordinal) && x.EndsWith(".tmp", StringComparison.Ordinal)).ToArray(); Require(candidates.Length == 1, "private inventory candidate"); candidate = candidates[0]; Require(Guid.TryParseExact(candidate[prefix.Length..^4], "N", out Guid id) && id != Guid.Empty, "private inventory candidate");
-            byte[] candidateBytes = Convert.FromBase64String(actual["after"]![candidate]!.GetValue<string>()); Require(candidateBytes.Length > 0 && candidateBytes[^1] == 10 && !candidateBytes.AsSpan().StartsWith(new byte[] { 239, 187, 191 }), "candidate framing");
+            string prefix = active + ".cis.inventory.json.";
+            Require(!actual["after"]!.AsObject().Any(x => x.Key.StartsWith(prefix, StringComparison.Ordinal) && x.Key.EndsWith(".tmp", StringComparison.Ordinal)), "private inventory candidate");
             var next = new JsonObject { ["schema"] = 1, ["groupId"] = actual["group"]!.DeepClone(), ["format"] = mode.Contains("human", StringComparison.Ordinal) ? "human" : "jsonl", ["encoding"] = "utf-8", ["bom"] = false, ["newline"] = "lf", ["segments"] = new JsonArray(new JsonObject { ["id"] = 2, ["fileName"] = closed[5..], ["state"] = "closed" }, new JsonObject { ["id"] = 3, ["fileName"] = active[5..], ["state"] = "active" }) };
-            Require(JsonNode.DeepEquals(next, JsonNode.Parse(candidateBytes)), "candidate inventory"); expected[candidate] = actual["after"]![candidate]!.DeepClone();
             string pending = active + ".cis.transition.json";
             byte[] pendingBytes = Convert.FromBase64String(actual["after"]![pending]!.GetValue<string>());
             JsonObject previous = next.DeepClone().AsObject(); previous["segments"] = new JsonArray(new JsonObject { ["id"] = 1, ["fileName"] = oldest[5..], ["state"] = "closed" }, new JsonObject { ["id"] = 2, ["fileName"] = active[5..], ["state"] = "active" });
             byte[] prior = Convert.FromBase64String(seed.GetValue<string>());
-            var intent = new JsonObject { ["schema"] = 1, ["recovery"] = false, ["retainedLimit"] = 1, ["originalBytes"] = prior.Length, ["originalSha256"] = Convert.ToHexStringLower(System.Security.Cryptography.SHA256.HashData(prior)), ["previous"] = previous, ["next"] = next.DeepClone() };
+            var intent = new JsonObject
+            {
+                ["schema"] = 2,
+                ["recovery"] = false,
+                ["retainedLimit"] = 1,
+                ["originalBytes"] = prior.Length,
+                ["originalSha256"] = Convert.ToHexStringLower(System.Security.Cryptography.SHA256.HashData(prior)),
+                ["previous"] = previous,
+                ["next"] = next,
+                ["retirements"] = new JsonArray(new JsonObject { ["id"] = 1, ["fileName"] = oldest[5..], ["bytes"] = retired.Length, ["sha256"] = Convert.ToHexStringLower(System.Security.Cryptography.SHA256.HashData(retired)) })
+            };
             Require(pendingBytes.Length > 0 && pendingBytes[^1] == 10 && JsonNode.DeepEquals(intent, JsonNode.Parse(pendingBytes)), "transition intent");
             expected[pending] = actual["after"]![pending]!.DeepClone();
         }
@@ -54,7 +63,7 @@ internal static class FileRotationPolicyExpectations
         else { Require(actual["controlledWriteAttempts"] is null && actual["firstRecordBytes"] is null, "configured writer"); }
         Require(JsonNode.DeepEquals(expected, actual["after"]), "exact filesystem transition");
         JsonArray names = actual["namesBefore"]!.DeepClone().AsArray();
-        if (metadata) { string activeName = "\u03a9-\U0001f642.log", oldName = oldest[5..]; names = new JsonArray(names.Select(x => x!.GetValue<string>()).Where(x => x != activeName && x != oldName).Append(closed[5..]).Append(candidate![5..]).Append(active[5..] + ".cis.transition.json").Order(StringComparer.Ordinal).Select(x => (JsonNode)JsonValue.Create(x)!).ToArray()); }
+        if (metadata) { string activeName = "\u03a9-\U0001f642.log", oldName = oldest[5..]; names = new JsonArray(names.Select(x => x!.GetValue<string>()).Where(x => x != activeName && x != oldName).Append(closed[5..]).Append(active[5..] + ".cis.transition.json").Order(StringComparer.Ordinal).Select(x => (JsonNode)JsonValue.Create(x)!).ToArray()); }
         Require(JsonNode.DeepEquals(names, actual["namesAfter"]), "exact membership");
         byte[] bytes = Convert.FromBase64String(actual["consoleBytes"]!.GetValue<string>()); Require(bytes.Length > 0 && bytes[^1] == 10 && !bytes.AsSpan().StartsWith(new byte[] { 239, 187, 191 }), "console framing"); string[] lines = new UTF8Encoding(false, true).GetString(bytes).Split('\n'); Require(lines.Length == 5, "console record count");
         for (int index = 0; index < 4; index++) { JsonObject record = JsonNode.Parse(lines[index])!.AsObject(); Require(record["component"]!.GetValue<string>() == "Policy" && record["event_name"]!.GetValue<string>() == "policy." + index && record["message"]!.GetValue<string>() == "\u03a9 \U0001f642 e\u0301\nline" && record["attributes"]!["producer_pid"]!.GetValue<long>() == actual["pid"]!.GetValue<int>() && record["truncated"] is null, "literal console records"); }

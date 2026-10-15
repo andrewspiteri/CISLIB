@@ -1,19 +1,29 @@
 using CIS.Logging.Runtime;
 
 namespace CIS.Logging;
-
 /// <summary>An owned immutable live observation of one enabled output.</summary>
 public sealed class LogOutputDiagnostics
 {
     internal LogOutputDiagnostics(string name, OutputAccounting counts, bool recoveredPartialSegment = false)
     {
-        OutputName = name; State = counts.State; AcceptedSequence = counts.AcceptedSequence;
-        Filtered = counts.Filtered; AdmissionAttempts = counts.AdmissionAttempts; Accepted = counts.Accepted;
-        QueueFull = counts.QueueFull; Unavailable = counts.Unavailable; Written = counts.Written;
-        Failed = counts.Failed; Abandoned = counts.Abandoned; Pending = counts.Pending;
-        LastFaultCode = counts.LastFaultCode; LastFaultAtUtc = counts.LastFaultAtUtc;
+        OutputName = name;
+        State = counts.State;
+        AcceptedSequence = counts.AcceptedSequence;
+        Filtered = counts.Filtered;
+        AdmissionAttempts = counts.AdmissionAttempts;
+        Accepted = counts.Accepted;
+        QueueFull = counts.QueueFull;
+        Unavailable = counts.Unavailable;
+        Written = counts.Written;
+        Failed = counts.Failed;
+        Abandoned = counts.Abandoned;
+        Pending = counts.Pending;
+        InFlight = counts.InFlight;
+        LastFaultCode = counts.LastFaultCode;
+        LastFaultAtUtc = counts.LastFaultAtUtc;
         RecoveredPartialSegment = recoveredPartialSegment;
     }
+
     /// <summary>Whether this runtime preserved a partial file segment during successful startup. Retained after stop; false for console.</summary>
     public bool RecoveredPartialSegment { get; }
     /// <summary>The configured destination name.</summary>
@@ -40,6 +50,10 @@ public sealed class LogOutputDiagnostics
     public long Abandoned { get; }
     /// <summary>Accepted unresolved records, including in-flight work.</summary>
     public long Pending { get; }
+    /// <summary>Accepted records currently inside an unresolved writer call; zero or one.</summary>
+    public long InFlight { get; }
+    /// <summary>Accepted records still waiting in the output queue.</summary>
+    public long Buffered => Pending - InFlight;
     /// <summary>The latest fixed safe fault category, retained after stop; no exception payload. Cleanup can supersede a delivery category, and a shutdown-timer cleanup fault applies to every enabled output. Stop results and delivery counts retain their original meaning.</summary>
     public string? LastFaultCode { get; }
     /// <summary>The system UTC time of the last fault publication, retained after stop.</summary>
