@@ -197,6 +197,7 @@ internal static class ConsoleOwnershipFixture
         JsonObject actual = ExecuteAsync(row).GetAwaiter().GetResult(); ConsoleOwnershipExpectations.Validate(catalog, row, actual);
         actual["observed"] = new JsonObject
         {
+            ["processId"] = System.Environment.ProcessId,
             ["runtimeDescription"] = RuntimeInformation.FrameworkDescription,
             ["operatingSystem"] = OperatingSystem.IsWindows() ? "windows" : "linux",
             ["fixtureSha256"] = Hash(typeof(ConsoleOwnershipFixture).Assembly.Location),

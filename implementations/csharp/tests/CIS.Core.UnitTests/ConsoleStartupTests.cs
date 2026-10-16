@@ -29,6 +29,7 @@ public sealed class ConsoleStartupTests
     public async Task StartupMatcherRejectsLeakedWorkersUnsafeErrorsAndChangedStreams(string fault)
     {
         JsonObject row = Row(Catalog(), "STARTUP-CANWRITE-THROW-BOTH-0"), actual = await ConsoleStartupFixture.ExecuteAsync(row);
+        ConsoleStartupExpectations.Validate(row, actual);
         ConsoleStartupExpectations.Damage(actual, fault);
         string message = fault switch
         {

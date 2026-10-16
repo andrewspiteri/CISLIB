@@ -16,6 +16,7 @@ public sealed class ConsoleOwnershipTests
         ConsoleOwnershipExpectations.Validate(catalog, row, await ConsoleOwnershipFixture.ExecuteAsync(row));
     }
     [TestMethod]
+    [DataRow("noncanonical-ticket")]
     [DataRow("dispose")]
     [DataRow("overlap")]
     [DataRow("ticket")]
@@ -33,10 +34,13 @@ public sealed class ConsoleOwnershipTests
     {
         bool failingRow = fault is "fault" or "prefix" or "catalog-failed" or "catalog-abandoned";
         JsonObject catalog = Catalog(), row = Row(catalog, failingRow ? "BORROW-FAULT-10" : "BORROW-DRAIN-10"), actual = await ConsoleOwnershipFixture.ExecuteAsync(row);
-        if (fault.StartsWith("catalog-", StringComparison.Ordinal)) { string key = fault[8..]; row["expected"]![key] = row["expected"]![key]!.GetValue<int>() + 1; }
+        ConsoleOwnershipExpectations.Validate(catalog, row, actual);
+        if (fault == "noncanonical-ticket") { actual["results"]![0]!["ticket"] = "01"; }
+        else if (fault.StartsWith("catalog-", StringComparison.Ordinal)) { string key = fault[8..]; row["expected"]![key] = row["expected"]![key]!.GetValue<int>() + 1; }
         else { ConsoleOwnershipExpectations.Damage(actual, fault); }
         string message = fault switch
         {
+            "noncanonical-ticket" => "Canonical ticket differs.",
             "dispose" => "Borrowed disposedBeforeOwner differs.",
             "overlap" => "Borrowed maxActive differs.",
             "ticket" => "Successful ticket set differs.",

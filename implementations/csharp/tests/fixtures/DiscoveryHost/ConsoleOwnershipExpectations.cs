@@ -21,6 +21,8 @@ internal static class ConsoleOwnershipExpectations
         Require(results.Select(v => v["index"]!.GetValue<int>()).Order().SequenceEqual(Enumerable.Range(0, count)), "Caller identity set differs.");
         foreach (JsonObject result in results)
         {
+            string token = (string)result["ticket"]!;
+            Require(long.TryParse(token, NumberStyles.None, CultureInfo.InvariantCulture, out long ticket) && ticket > 0 && ticket.ToString(CultureInfo.InvariantCulture) == token, "Canonical ticket differs.");
             int index = result["index"]!.GetValue<int>(); Require(result["generation"]!.GetValue<int>() == index / perRun, "Runtime generation differs.");
             Require(result["outcome"]!.GetValue<string>() == "Accepted" && !result["truncated"]!.GetValue<bool>() && result["outputCount"]!.GetValue<int>() == 1
                 && result["name"]!.GetValue<string>() == "console" && result["status"]!.GetValue<string>() == "Accepted", "Caller admission differs.");

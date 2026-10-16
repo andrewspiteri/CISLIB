@@ -29,6 +29,7 @@ public sealed class ConsoleCompositionTests
     public async Task ConsoleMatcherRejectsChangedStreamFactsAndAccounting(string fault)
     {
         JsonObject catalog = Catalog(), row = Row(catalog, "CONSOLE-CONSOLE-110"), actual = await ConsoleCompositionFixture.ExecuteAsync(row);
+        ConsoleCompositionExpectations.Validate(catalog, row, actual);
         ConsoleCompositionExpectations.Damage(actual, fault);
         Assert.ThrowsExactly<InvalidDataException>(() => ConsoleCompositionExpectations.Validate(catalog, row, actual));
     }
@@ -50,6 +51,26 @@ public sealed class ConsoleCompositionTests
         CoreLogInitializationException error = Assert.ThrowsExactly<CoreLogInitializationException>(() => CoreLogRuntime.CreateConsoleQueued(ConsoleCompositionFixture.Metadata(), new LoggingOptions(), acquireConsole: _ => null!));
         Assert.AreEqual("console", error.OutputName); Assert.AreEqual("ConsoleInitializationFailed", error.ErrorCode); Assert.IsNull(error.InnerException);
     }
+    [TestMethod]
+    [DataRow("extra-output", "CONSOLE-CONSOLE-110", "Console output field set differs.")]
+    [DataRow("extra-capture", "CONSOLE-CAP-01-16384", "Unknown captured JSON fact appeared.")]
+    public async Task ConsoleMatcherRejectsInventedOutputAndCaptureFields(string fault, string id, string reason)
+    {
+        JsonObject catalog = Catalog(), row = Row(catalog, id), actual = await ConsoleCompositionFixture.ExecuteAsync(row);
+        ConsoleCompositionExpectations.Validate(catalog, row, actual);
+        if (fault == "extra-output") { actual["outputs"]![0]!["invented"] = true; }
+        else
+        {
+            byte[] bytes = Convert.FromBase64String((string)actual["file"]!);
+            string[] lines = System.Text.Encoding.UTF8.GetString(bytes).TrimEnd('\n').Split('\n');
+            JsonObject record = JsonNode.Parse(lines[0])!.AsObject(); record.Remove("attributes"); record["message"] = "\u200d"; record["invented"] = true;
+            lines[0] = record.ToJsonString();
+            actual["file"] = Convert.ToBase64String(System.Text.Encoding.UTF8.GetBytes(string.Join("\n", lines) + "\n"));
+        }
+        InvalidDataException error = Assert.ThrowsExactly<InvalidDataException>(() => ConsoleCompositionExpectations.Validate(catalog, row, actual));
+        Assert.AreEqual(reason, error.Message);
+    }
+
     private static readonly AsyncLocal<string?> Creator = new();
     private sealed class HeldStream(bool fail) : MemoryStream
     {

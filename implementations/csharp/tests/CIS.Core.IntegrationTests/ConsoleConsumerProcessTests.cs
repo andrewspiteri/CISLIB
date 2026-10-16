@@ -1,8 +1,5 @@
-using System.Security.Cryptography;
-using System.Text;
 using System.Text.Json.Nodes;
 using CIS.Tests.DiscoveryFixture;
-using CIS.TestSupport;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace CIS.Tests.IntegrationTests;
@@ -10,7 +7,8 @@ namespace CIS.Tests.IntegrationTests;
 [TestClass]
 public sealed class ConsoleConsumerProcessTests
 {
-    public static IEnumerable<object[]> Rows => LogValueProcessTests.Read("console-consumer-cases.json")["cases"]!.AsArray().Select(row => new object[] { row!["id"]!.GetValue<string>() });
+    public TestContext TestContext { get; set; } = null!;
+    public static IEnumerable<object[]> Rows => ConsoleProcessChecks.Cases("consumer", 38);
     [TestMethod]
     [DynamicData(nameof(Rows))]
     public async Task SameCompiledConsumerUsesEnvironmentAndDrainsBothStreams(string id) => await Run(id);
@@ -35,38 +33,26 @@ public sealed class ConsoleConsumerProcessTests
         InvalidDataException error = Assert.ThrowsExactly<InvalidDataException>(() => ConsoleConsumerExpectations.Validate(catalog, row, actual, physicalBytes: true));
         Assert.AreEqual(reason, error.Message);
     }
-    private static async Task<(JsonObject Catalog, JsonObject Row, JsonObject Actual)> Run(string id)
+    [TestMethod]
+    public async Task IndependentConsumersHaveUniqueInstanceIdentities()
     {
-        string host = Path.Combine(AppContext.BaseDirectory, "discovery-fixture", "CIS.Core.DiscoveryFixture.dll"), path = LogValueProcessTests.Find("console-consumer-cases.json");
-        JsonObject catalog = LogValueProcessTests.Read("console-consumer-cases.json"), row = catalog["cases"]!.AsArray().Single(item => item!["id"]!.GetValue<string>() == id)!.AsObject();
-        using var owned = new TemporaryDirectory();
-        ProcessResult child = await ProcessRunner.RunAsync("dotnet", ["exec", "--fx-version", "10.0.12", "--roll-forward", "Disable", host, "console-consumer", path, id],
-            owned.Path, TimeSpan.FromSeconds(30), ConsoleConsumerExpectations.EnvironmentFor(row), new UTF8Encoding(false, true));
-        Assert.AreEqual(0, child.ExitCode, child.StandardError);
-        if (row["mode"]!.GetValue<string>() == "pressure")
+        var identities = new HashSet<string>(StringComparer.Ordinal);
+        foreach (object[] row in Rows)
         {
-            Assert.IsTrue(Encoding.UTF8.GetByteCount(child.StandardOutput) >= row["minimumStdoutBytes"]!.GetValue<int>());
-            Assert.IsTrue(Encoding.UTF8.GetByteCount(child.StandardError) >= row["minimumStderrBytes"]!.GetValue<int>());
+            (_, _, JsonObject actual) = await Run((string)row[0]);
+            Assert.IsTrue(identities.Add((string)actual["resource"]!["instance_id"]!), "A fresh consumer reused its instance identity.");
         }
-        int reportStart = child.StandardOutput.LastIndexOf('\n', child.StandardOutput.Length - 2) + 1;
-        JsonObject actual = JsonNode.Parse(child.StandardOutput[reportStart..])!.AsObject();
-        if (row["physical"]!.GetValue<bool>())
-        {
-            actual["stdout"] = Convert.ToBase64String(Encoding.UTF8.GetBytes(child.StandardOutput[..reportStart]));
-            actual["stderr"] = Convert.ToBase64String(Encoding.UTF8.GetBytes(child.StandardError));
-        }
-        else { Assert.AreEqual(0, reportStart); Assert.AreEqual("", child.StandardError); }
+        Assert.AreEqual(38, identities.Count);
+    }
+
+    private async Task<(JsonObject Catalog, JsonObject Row, JsonObject Actual)> Run(string id)
+    {
+        JsonObject catalog = LogValueProcessTests.Read("console-consumer-cases.json"), row = catalog["cases"]!.AsArray().Single(item => (string?)item!["id"] == id)!.AsObject();
+        JsonObject actual = await ConsoleProcessChecks.Capture("consumer", row, TestContext, ConsoleConsumerExpectations.EnvironmentFor(row));
         ConsoleConsumerExpectations.Validate(catalog, row, actual, physicalBytes: true);
         JsonNode observed = actual["observed"]!;
-        Assert.AreEqual(".NET 10.0.12", observed["runtimeDescription"]!.GetValue<string>());
-        Assert.AreEqual(OperatingSystem.IsWindows() ? "windows" : "linux", observed["operatingSystem"]!.GetValue<string>());
-        Assert.AreEqual(observed["operatingSystem"]!.GetValue<string>(), actual["resource"]!["os_family"]!.GetValue<string>());
+        Assert.AreEqual((string?)observed["operatingSystem"], (string?)actual["resource"]!["os_family"]);
         Assert.AreEqual(observed["processId"]!.GetValue<int>(), actual["resource"]!["process_id"]!.GetValue<int>());
-        Assert.AreEqual(Hash(host), observed["fixtureSha256"]!.GetValue<string>());
-        Assert.AreEqual(Hash(Path.Combine(Path.GetDirectoryName(host)!, "CIS.Core.dll")), observed["coreSha256"]!.GetValue<string>());
-        Assert.AreEqual(Hash(path), observed["inputsSha256"]!.GetValue<string>());
-        Assert.AreEqual(0, Directory.EnumerateFileSystemEntries(owned.Path).Count());
         return (catalog, row, actual);
     }
-    private static string Hash(string path) => Convert.ToHexStringLower(SHA256.HashData(File.ReadAllBytes(path)));
 }

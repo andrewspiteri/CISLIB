@@ -35,7 +35,7 @@ internal static class FixtureProcessChecks
         return rows;
     }
 
-    internal static async Task<(JsonObject Report, int ProcessId)> RunAsync(string[] arguments, string directory, TestContext context, string? inputs = null, IReadOnlyDictionary<string, string?>? environment = null, TimeSpan? timeout = null)
+    internal static async Task<(JsonObject Report, int ProcessId)> RunAsync(string[] arguments, string directory, TestContext context, string? inputs = null, IReadOnlyDictionary<string, string?>? environment = null, TimeSpan? timeout = null, bool physicalStreams = false, int minimumStdoutBytes = 0, int minimumStderrBytes = 0)
     {
         string host = Path.Combine(AppContext.BaseDirectory, "discovery-fixture", "CIS.Core.DiscoveryFixture.dll");
         string core = Path.Combine(Path.GetDirectoryName(host)!, "CIS.Core.dll");
@@ -49,8 +49,22 @@ internal static class FixtureProcessChecks
         CollectionAssert.AreEquivalent(parent.Keys.ToArray(), after.Keys.ToArray());
         Assert.IsTrue(parent.All(pair => after[pair.Key] == pair.Value), "Parent environment changed.");
         Assert.AreEqual(0, child.ExitCode, child.StandardOutput + child.StandardError);
-        Assert.AreEqual("", child.StandardError);
-        JsonObject report = JsonNode.Parse(child.StandardOutput)!.AsObject();
+        Assert.IsTrue(Encoding.UTF8.GetByteCount(child.StandardOutput) >= minimumStdoutBytes, "Stdout pipe pressure was not exercised.");
+        Assert.IsTrue(Encoding.UTF8.GetByteCount(child.StandardError) >= minimumStderrBytes, "Stderr pipe pressure was not exercised.");
+        JsonObject report;
+        if (physicalStreams)
+        {
+            string text = child.StandardOutput.TrimEnd('\r', '\n');
+            int start = text.LastIndexOf('\n') + 1;
+            report = JsonNode.Parse(text[start..])!.AsObject();
+            report["stdout"] = Convert.ToBase64String(Encoding.UTF8.GetBytes(child.StandardOutput[..start]));
+            report["stderr"] = Convert.ToBase64String(Encoding.UTF8.GetBytes(child.StandardError));
+        }
+        else
+        {
+            Assert.AreEqual("", child.StandardError);
+            report = JsonNode.Parse(child.StandardOutput)!.AsObject();
+        }
         JsonNode observed = report["observed"]!;
         Assert.AreEqual(Family, (string?)observed["operatingSystem"]);
         Assert.AreEqual(".NET 10.0.12", (string?)observed["runtimeDescription"]);
@@ -67,6 +81,7 @@ internal static class FixtureProcessChecks
         context.WriteLine("Physical logging fixture command: " + string.Join(" ", command));
         context.WriteLine("Physical child PID: " + child.ProcessId);
         context.WriteLine(child.StandardOutput);
+        if (physicalStreams) { context.WriteLine(child.StandardError); }
         return (report, child.ProcessId);
     }
 

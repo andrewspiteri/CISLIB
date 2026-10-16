@@ -159,6 +159,7 @@ internal static class ConsoleStartupFixture
         JsonObject actual = ExecuteAsync(row).GetAwaiter().GetResult(); ConsoleStartupExpectations.Validate(row, actual);
         actual["observed"] = new JsonObject
         {
+            ["processId"] = System.Environment.ProcessId,
             ["runtimeDescription"] = RuntimeInformation.FrameworkDescription,
             ["operatingSystem"] = OperatingSystem.IsWindows() ? "windows" : "linux",
             ["fixtureSha256"] = Hash(typeof(ConsoleStartupFixture).Assembly.Location),

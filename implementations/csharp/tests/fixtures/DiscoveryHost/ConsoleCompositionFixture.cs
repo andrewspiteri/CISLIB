@@ -112,6 +112,7 @@ internal static class ConsoleCompositionFixture
         JsonObject actual = ExecuteAsync(row).GetAwaiter().GetResult(); ConsoleCompositionExpectations.Validate(catalog, row, actual);
         actual["observed"] = new JsonObject
         {
+            ["processId"] = System.Environment.ProcessId,
             ["runtimeDescription"] = RuntimeInformation.FrameworkDescription,
             ["operatingSystem"] = OperatingSystem.IsWindows() ? "windows" : "linux",
             ["fixtureSha256"] = Hash(typeof(ConsoleCompositionFixture).Assembly.Location),

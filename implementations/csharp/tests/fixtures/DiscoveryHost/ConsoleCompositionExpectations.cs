@@ -19,7 +19,7 @@ internal static class ConsoleCompositionExpectations
         Require(outputs.Count == names.Length, "Configured output set differs.");
         for (int index = 0; index < outputs.Count; index++)
         {
-            JsonObject output = outputs[index]!.AsObject(); string name = names[index]; int records = expected[name + "Records"]!.GetValue<int>();
+            JsonObject output = outputs[index]!.AsObject(); Require(output.Count == 7, "Console output field set differs."); string name = names[index]; int records = expected[name + "Records"]!.GetValue<int>();
             int filtered = expected["results"]!.AsArray().Count(result => result!["outputs"]!.AsArray().Any(value => value!["name"]!.GetValue<string>() == name && value["status"]!.GetValue<string>() == "Filtered"));
             Require(output["name"]!.GetValue<string>() == name && output["accepted"]!.GetValue<string>() == records.ToString(System.Globalization.CultureInfo.InvariantCulture)
                 && output["written"]!.GetValue<string>() == output["accepted"]!.GetValue<string>() && output["filtered"]!.GetValue<string>() == filtered.ToString(System.Globalization.CultureInfo.InvariantCulture), "Console accepted/written/filtered differs.");
@@ -57,6 +57,7 @@ internal static class ConsoleCompositionExpectations
                 {
                     foreach (string key in new[] { "schema_version", "timestamp", "status", "event_name", "service", "env", "version", "component", "resource", "operation_id" })
                     { Require(JsonNode.DeepEquals(wanted[key], value[key]), "Protected truncated JSONL fact differs."); }
+                    Require(value.All(pair => wanted.ContainsKey(pair.Key) || pair.Key == "truncated"), "Unknown captured JSON fact appeared.");
                     Require(value["truncated"]!.GetValue<bool>() && value["message"]!.GetValue<string>().Length is > 0 and < 8192 && value["message"]!.GetValue<string>().All(c => c == '\u200d'), "Captured truncation differs.");
                 }
             }
