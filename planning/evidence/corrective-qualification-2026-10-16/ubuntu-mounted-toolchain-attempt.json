@@ -1,0 +1,283 @@
+{
+  "schema": "cis.verification/v1",
+  "profile": "Developer",
+  "lane": "linux-ubuntu2404-x64",
+  "runId": "05d8580909d7408a97b4b9b4a28ec45a",
+  "startedUtc": "2026-10-16T19:29:43.6513712Z",
+  "finishedUtc": "2026-10-16T20:15:20.9923694Z",
+  "exitCode": 1,
+  "source": {
+    "commit": "396e87d6c425ade0083bdc3eadcc4dcb2b07becc",
+    "inputInventory": {
+      "path": "source-inputs.json",
+      "sha256": "6ecc5edaa377a9d897306b5676de9a69c7bdd02b920d58c7a3d73f1b7e733e43",
+      "schema": "cis.source-inputs/v1"
+    }
+  },
+  "families": [
+    {
+      "id": "unit",
+      "status": "Executed",
+      "reason": null,
+      "scope": "foundation-only",
+      "discovery": {
+        "path": "families/unit/discovery.json",
+        "sha256": "c12d94f34d037a79ae5f4d141eaae3350a6b5a1d4954a8d8128db91c8b1798e3",
+        "schema": "cis.discovery/v1"
+      },
+      "execution": {
+        "path": "families/unit/execution.json",
+        "sha256": "fb778de1c7df3fc8f0d3d824515c024dcb2bfa2b0d22faca24962dd720cb0726",
+        "schema": "cis.execution/v1"
+      },
+      "report": {
+        "path": "families/unit/report.trx",
+        "sha256": "c223a830ec49ab2074fdf99aad278eed36e46458760e2a638c03a790333ec0a0",
+        "schema": "vstest.trx/2010"
+      }
+    },
+    {
+      "id": "integration",
+      "status": "Executed",
+      "reason": null,
+      "scope": "foundation-only",
+      "discovery": {
+        "path": "families/integration/discovery.json",
+        "sha256": "fec8ed23f353074813d7d6f32e9d064b6f8465002039dd810819c67a490b5524",
+        "schema": "cis.discovery/v1"
+      },
+      "execution": {
+        "path": "families/integration/execution.json",
+        "sha256": "3097563b10706d5f7210644dbbf96c93d3151b6532f1d88da8ce2b47c52bd21e",
+        "schema": "cis.execution/v1"
+      },
+      "report": {
+        "path": "families/integration/report.trx",
+        "sha256": "d44055246ec4732deb56496f4eb65c19167511731043e89f4ade48c3dea27823",
+        "schema": "vstest.trx/2010"
+      }
+    },
+    {
+      "id": "mutation",
+      "status": "NotRun",
+      "reason": "Explicit parser toolchain and dedicated embedded Microsoft adapter qualification commands; full matrix remains separate from the fast developer profile.",
+      "scope": "foundation-only",
+      "discovery": {
+        "path": "families/mutation/discovery.json",
+        "sha256": "1ead8aac994c1719a415f01fb3cc56a5cf669fab647e288c526106a2cae7b31d",
+        "schema": "cis.discovery/v1"
+      },
+      "execution": {
+        "path": "families/mutation/execution.json",
+        "sha256": "9817dd213d67fa05231d6e20ddceba7c3ac1de3531410fd51da203a648f7a047",
+        "schema": "cis.execution/v1"
+      },
+      "report": null
+    },
+    {
+      "id": "architecture",
+      "status": "Executed",
+      "reason": null,
+      "scope": "foundation-only",
+      "discovery": {
+        "path": "families/architecture/discovery.json",
+        "sha256": "9e11820ba2c58e42902921d0a03e47bee451ad3e97f5d32f2fe8f955c685f56c",
+        "schema": "cis.discovery/v1"
+      },
+      "execution": {
+        "path": "families/architecture/execution.json",
+        "sha256": "aed26266d134640200d2e2a9f0ded435e4a8c046c6b1de4f811e96f43d3608ac",
+        "schema": "cis.execution/v1"
+      },
+      "report": {
+        "path": "families/architecture/report.trx",
+        "sha256": "0b3976868710dba17af3a13eb8ea790944f04fc1bc7a50d1578244b655d583cc",
+        "schema": "vstest.trx/2010"
+      }
+    },
+    {
+      "id": "compatibility",
+      "status": "NotRun",
+      "reason": "Native Type Manager development compatibility and provenance controls run explicitly through eng/test.ps1 -Project CompatibilityTests with the pinned ApiCompat tool and .NET 8 host. They are not credited by this Developer profile. Provider fixtures retain their separate command; complete cumulative family qualification remains WP07.",
+      "scope": "foundation-only",
+      "discovery": {
+        "path": "families/compatibility/discovery.json",
+        "sha256": "c2023138c03fe52ed7304ba832303afe2d406e7d7aca36288d91f2d373c124dd",
+        "schema": "cis.discovery/v1"
+      },
+      "execution": {
+        "path": "families/compatibility/execution.json",
+        "sha256": "6d17f06f15ce389517beba679511f369faa7e8f93ff1b932b2990686a9c2a90f",
+        "schema": "cis.execution/v1"
+      },
+      "report": null
+    },
+    {
+      "id": "business",
+      "status": "NotRun",
+      "reason": null,
+      "scope": "foundation-only",
+      "discovery": {
+        "path": "families/business/discovery.json",
+        "sha256": "95ede575ae90c6306a442e5b73d62c8c1ee294147b07cb38cf7ff703bae74b35",
+        "schema": "cis.discovery/v1"
+      },
+      "execution": {
+        "path": "families/business/execution.json",
+        "sha256": "a2234b6ae6f97883ff963ace6058e95fde78e4151142bc01c5a849a25a51fadd",
+        "schema": "cis.execution/v1"
+      },
+      "report": null
+    }
+  ],
+  "stages": [
+    {
+      "id": "restore",
+      "status": "Passed",
+      "exitCode": 0,
+      "startedUtc": "2026-10-16T19:29:49.6165648Z",
+      "finishedUtc": "2026-10-16T19:30:01.2326132Z",
+      "detail": null
+    },
+    {
+      "id": "project-boundaries",
+      "status": "Passed",
+      "exitCode": 0,
+      "startedUtc": "2026-10-16T19:30:01.2332051Z",
+      "finishedUtc": "2026-10-16T19:32:06.1545857Z",
+      "detail": null
+    },
+    {
+      "id": "format",
+      "status": "Passed",
+      "exitCode": 0,
+      "startedUtc": "2026-10-16T19:32:06.1546885Z",
+      "finishedUtc": "2026-10-16T19:35:07.2053811Z",
+      "detail": null
+    },
+    {
+      "id": "build",
+      "status": "Passed",
+      "exitCode": 0,
+      "startedUtc": "2026-10-16T19:35:07.2055792Z",
+      "finishedUtc": "2026-10-16T19:36:12.7437864Z",
+      "detail": null
+    },
+    {
+      "id": "startup-contract",
+      "status": "Passed",
+      "exitCode": 0,
+      "startedUtc": "2026-10-16T19:36:12.7439876Z",
+      "finishedUtc": "2026-10-16T19:40:47.4055984Z",
+      "detail": null
+    },
+    {
+      "id": "compatibility-samples",
+      "status": "Passed",
+      "exitCode": 0,
+      "startedUtc": "2026-10-16T19:40:47.4057151Z",
+      "finishedUtc": "2026-10-16T19:45:16.6593923Z",
+      "detail": null
+    },
+    {
+      "id": "log-value-consumers",
+      "status": "Passed",
+      "exitCode": 0,
+      "startedUtc": "2026-10-16T19:45:16.6594822Z",
+      "finishedUtc": "2026-10-16T19:45:52.3671840Z",
+      "detail": null
+    },
+    {
+      "id": "publication-ledger",
+      "status": "Passed",
+      "exitCode": 0,
+      "startedUtc": "2026-10-16T19:45:52.3672480Z",
+      "finishedUtc": "2026-10-16T19:45:53.0596805Z",
+      "detail": null
+    },
+    {
+      "id": "pack",
+      "status": "Passed",
+      "exitCode": 0,
+      "startedUtc": "2026-10-16T19:45:53.0597309Z",
+      "finishedUtc": "2026-10-16T19:45:57.3287075Z",
+      "detail": null
+    },
+    {
+      "id": "package-boundaries",
+      "status": "Passed",
+      "exitCode": 0,
+      "startedUtc": "2026-10-16T19:45:59.8580285Z",
+      "finishedUtc": "2026-10-16T19:46:16.2702389Z",
+      "detail": null
+    },
+    {
+      "id": "architecture-inspection",
+      "status": "Passed",
+      "exitCode": 0,
+      "startedUtc": "2026-10-16T19:46:16.2712024Z",
+      "finishedUtc": "2026-10-16T19:49:49.6330823Z",
+      "detail": null
+    },
+    {
+      "id": "tests-unit",
+      "status": "Passed",
+      "exitCode": 0,
+      "startedUtc": "2026-10-16T19:49:49.6421531Z",
+      "finishedUtc": "2026-10-16T19:50:17.8265170Z",
+      "detail": null
+    },
+    {
+      "id": "tests-integration",
+      "status": "Passed",
+      "exitCode": 0,
+      "startedUtc": "2026-10-16T19:50:17.8273464Z",
+      "finishedUtc": "2026-10-16T19:53:21.3573794Z",
+      "detail": null
+    },
+    {
+      "id": "tests-architecture",
+      "status": "Failed",
+      "exitCode": 1,
+      "startedUtc": "2026-10-16T19:53:21.3583838Z",
+      "finishedUtc": "2026-10-16T20:15:18.7712816Z",
+      "detail": "dotnet test tests/CIS.Core.ArchitectureTests/CIS.Core.ArchitectureTests.csproj -c Release --no-build --no-restore --settings /home/user/cislib-verification/ubuntu-developer-396e87d6-archive/source/implementations/csharp/verification/architecture.runsettings --results-directory /home/user/cislib-verification/ubuntu-developer-396e87d6-archive/source/.artifacts/csharp/verification/Developer/families/architecture --logger trx;LogFileName=report.trx -- RunConfiguration.TreatNoTestsAsError=true failed with exit 1. See /home/user/cislib-verification/ubuntu-developer-396e87d6-archive/source/.artifacts/csharp/verification/Developer/families/architecture/execution.log"
+    }
+  ],
+  "issues": [
+    {
+      "code": "StageFailure",
+      "detail": "dotnet test tests/CIS.Core.ArchitectureTests/CIS.Core.ArchitectureTests.csproj -c Release --no-build --no-restore --settings /home/user/cislib-verification/ubuntu-developer-396e87d6-archive/source/implementations/csharp/verification/architecture.runsettings --results-directory /home/user/cislib-verification/ubuntu-developer-396e87d6-archive/source/.artifacts/csharp/verification/Developer/families/architecture --logger trx;LogFileName=report.trx -- RunConfiguration.TreatNoTestsAsError=true failed with exit 1. See /home/user/cislib-verification/ubuntu-developer-396e87d6-archive/source/.artifacts/csharp/verification/Developer/families/architecture/execution.log"
+    },
+    {
+      "code": "FailedStage",
+      "detail": "tests-architecture"
+    },
+    {
+      "code": "DiscoveryExecutionMismatch",
+      "detail": "architecture: discovered IDs, methods, names, source paths or totals differ from execution."
+    },
+    {
+      "code": "MissingRequiredCase",
+      "detail": "architecture: AT-INSPECTOR-FIXTURE-NEGATIVES"
+    },
+    {
+      "code": "MissingFamilyExecution",
+      "detail": "business: "
+    }
+  ],
+  "reconciliation": {
+    "status": "Produced",
+    "report": {
+      "path": "discovery-reconciliation.json",
+      "sha256": "80d8caf5937595ceed875f79de4a7fa07e5ae4f4d91058bb652496f620aaeb61",
+      "schema": "cis.discovery-reconciliation/v1"
+    },
+    "reason": null
+  },
+  "architectureInspection": {
+    "path": "architecture/05d8580909d7408a97b4b9b4a28ec45a/inspection.json",
+    "sha256": "b4becba55dfff1c60b32291d73ec477700e12dbca222435447098b9fe9c3e2fd",
+    "schema": "cis.architecture-inspection/v1"
+  }
+}
