@@ -52,3 +52,15 @@ Use `type-manager-examples --repo-root ../.. --package <exact-Core.nupkg> --depe
 Use `type-manager-mutation-prepare --repo-root ../.. --output-root <empty-directory> --candidate-core <frozen-Core.dll> --candidate-report <completed-runtime-results.json> --expected-candidate-report-sha256 <independent-report-pin> --expected-core-sha256 <independent-Core-pin>`. It copies the module, eight canonical test files, configuration and pinned dependency DLLs into an isolated source project and records all generated files. Run the emitted baseline command there before considering the emitted pinned Stryker command. Preparation explicitly remains unqualified; it never mutates shipping source or starts a mutation campaign.
 
 `type-manager-mutation-prepare-controls --repo-root ../.. --output-root <empty-directory> --candidate-core <frozen-Core.dll> --candidate-report <completed-runtime-results.json>` checks four actual provenance rejections. The fixed old 483-mutant replay script is retired as historical-only; its source remains in Git and its original reports/classifications are unchanged. See the [migration/retirement record](../../../../planning/evidence/corrective-type-manager-mutation-tools-2026-10-16.md).
+
+## Frozen-fixture measurements
+
+From the language root, use the same `dotnet run --project eng/CIS.DependencyChecker -c Debug --` entry point:
+
+```powershell
+type-manager-measure prepare --repo-root ../.. --output-root <empty-fixture-directory> --candidate-core <frozen-Core.dll> --candidate-report <completed-runtime-results.json> --expected-core-sha256 <independent-Core-pin>
+type-manager-measure run --repo-root ../.. --output-root <empty-run-directory> --fixtures <completed-fixture-directory> --expected-fixtures-sha256 <independent-fixture-report-pin> --expected-core-sha256 <independent-Core-pin> --samples 12 --warmups 1 --iterations 1000
+type-manager-measure-controls --repo-root ../.. --output-root <empty-controls-directory> --fixtures <completed-fixture-directory> --expected-fixtures-sha256 <independent-fixture-report-pin> --expected-core-sha256 <independent-Core-pin>
+```
+
+`prepare` builds private small/large catalogs from the existing C# templates and records exact deployment hashes. `run` reuses those frozen bytes in fresh eager/deferred processes; use at least twelve samples in multiples of four, one warmup and 1,000 iterations. Defaults are twelve samples, two warmups and 10,000 iterations. It retains every observation and distribution without imposing a timing threshold. Seven controls qualify report/harness/template/deployment/sample guards. Copy the exact compiled checker alongside fixtures for cross-OS replay; rebuilding it requires new matching producer evidence. These reports explicitly remain unqualified. See the [migration evidence](../../../../planning/evidence/corrective-type-manager-measurement-migration-2026-10-16.md).
