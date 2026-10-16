@@ -119,7 +119,7 @@ To check an exact locally packed Core artifact in clean package consumers, run
 `--package <Core.nupkg>`, `--dependency-cache <NuGet-global-packages-directory>`,
 `--rid-package <CIS.TypeManager.RidFixture.1.0.0.nupkg>` and an empty `--output-root`.
 The RID fixture is produced by
-`tests/fixtures/TypeManager/verify-inventory-matrix.py`; it is test input only.
+the C# `type-manager-inventory` command in `eng/CIS.DependencyChecker`; it is test input only. See the checker README for native fixture arguments and Console/Web SDK settings.
 The package verifier copies the exact package and approved Microsoft dependency
 archives into a private feed and uses a fresh package cache. Run it under each
 supported OS with the pinned SDK. Its JSON report records hashes and individual

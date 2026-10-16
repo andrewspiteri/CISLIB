@@ -32,7 +32,7 @@ internal sealed class TypeManagerVerificationInputs
         if (Directory.Exists(root) && Directory.EnumerateFileSystemEntries(root).Any()) { throw new InvalidDataException("Use an empty output directory."); }
         Directory.CreateDirectory(root); Directory.CreateDirectory(Path.Combine(root, "logs"));
     }
-    internal async Task<ProcessResult> Run(string name, IEnumerable<string> arguments, string? cwd = null, string? expectedError = null, IReadOnlyDictionary<string, string?>? environment = null, TimeSpan? timeout = null)
+    internal async Task<ProcessResult> Run(string name, IEnumerable<string> arguments, string? cwd = null, string? expectedError = null, IReadOnlyDictionary<string, string?>? environment = null, TimeSpan? timeout = null, bool requireSuccess = true)
     {
         string[] command = arguments.ToArray();
         ProcessResult child = await ProcessRunner.RunAsync(Dotnet, command, cwd ?? Output, timeout ?? TimeSpan.FromMinutes(4), environment, new UTF8Encoding(false, true));
@@ -47,7 +47,7 @@ internal sealed class TypeManagerVerificationInputs
             ["stdoutSha256"] = Digest(Encoding.UTF8.GetBytes(child.StandardOutput)),
             ["stderrSha256"] = Digest(Encoding.UTF8.GetBytes(child.StandardError))
         });
-        Require(expectedError is null ? child.ExitCode == 0 : child.ExitCode != 0 && combined.Contains(expectedError, StringComparison.Ordinal), name + (expectedError is null ? " failed; inspect its log." : " did not reject for " + expectedError));
+        Require(expectedError is null ? !requireSuccess || child.ExitCode == 0 : child.ExitCode != 0 && combined.Contains(expectedError, StringComparison.Ordinal), name + (expectedError is null ? " failed; inspect its log." : " did not reject for " + expectedError));
         return child;
     }
     internal JsonObject CoreSources() => TreeHashes(Path.Combine(Language, "src", "CIS.Core"), path => path.EndsWith(".cs", StringComparison.Ordinal), sourceOnly: true);
