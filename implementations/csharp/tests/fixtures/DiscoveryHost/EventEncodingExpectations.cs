@@ -26,20 +26,22 @@ internal static class EventEncodingExpectations
         Require(record["component"]!.GetValue<string>() == "component" && record["event_name"]!.GetValue<string>() == "encoding.event", "Names differ.");
         Require(record["status"]!.GetValue<string>() == "info", "Severity differs.");
         if (row["expected"]!["fillsLimit"]!.GetValue<bool>()) { Require(bytes == cap, "Exact cap including LF differs."); }
+        Require(record["resource"] is JsonObject resource && (string?)resource["build_version"] == "1.2.3", "Protected build resource differs.");
         string mode = row["input"]!["mode"]!.GetValue<string>(); JsonObject attributes = record["attributes"]!.AsObject();
         if (mode == "complete")
         {
             Require(record["message"]!.GetValue<string>() == "quote \" slash \\ newline\n café 😀", "Captured text changed.");
             Require(record["operation_id"]!.GetValue<string>() == "scope-operation", "Scope ID differs.");
             Require(record["trace_id"]!.GetValue<string>() == new string('1', 32), "Trace differs.");
-            string span = record["span_id"]!.GetValue<string>(); Require(span.Length == 16 && span != new string('0', 16) && span != new string('2', 16), "Current span differs.");
+            string span = record["span_id"]!.GetValue<string>(); Require(span.Length == 16 && span.All(c => c is >= '0' and <= '9' or >= 'a' and <= 'f') && span != new string('0', 16) && span != new string('2', 16), "Current span differs.");
             Require(attributes.ContainsKey("null") && attributes["null"] is null, "Explicit null lost.");
             Require(attributes["integer"]!.GetValue<long>() == 9007199254740991 && attributes["integerString"]!.GetValue<string>() == "90071992547409920000" && attributes["decimal"]!.GetValue<string>() == "12.3400", "Scalar types differ.");
-            Require(attributes["array"]![0]!.GetValue<bool>() && attributes["array"]![1]!.GetValue<double>() == 1.25, "Array order/types differ.");
+            Require(JsonNode.DeepEquals(attributes["array"], JsonNode.Parse("[true,1.25]")), "Array order/types differ.");
+            Require(attributes["map"]!.AsObject().Select(pair => pair.Key).SequenceEqual(new[] { "a", "z" }, StringComparer.Ordinal), "Ordinal map order differs.");
             Require(record["message_template"]!.GetValue<string>() == "", "Empty template was omitted.");
         }
         else if (mode == "atomic") { Require(!attributes.ContainsKey("a") && attributes["b"]!.GetValue<int>() == 0, "Indivisible value was corrupted or later value lost."); }
-        else if (mode == "prior") { Require(record["message"]!.GetValue<string>().Length == 8192, "Earlier scalar clipping differs."); }
+        else if (mode == "prior") { Require(record["message"]!.GetValue<string>() == new string('x', 8192), "Earlier scalar clipping differs."); }
         else if (mode == "exception") { Require(record["exception"]!["truncated"]!.GetValue<bool>() && record["exception"]!["message"]!.GetValue<string>() == "captured failure", "Exception marker/text differs."); }
         else if (mode == "unicode")
         {

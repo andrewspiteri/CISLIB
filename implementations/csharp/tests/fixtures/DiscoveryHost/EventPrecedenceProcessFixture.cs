@@ -16,6 +16,7 @@ internal static class EventPrecedenceProcessFixture
         actual["observed"] = new JsonObject
         {
             ["lifecycleApiPresent"] = (typeof(EnvironmentOptions).GetMethod("Initialize") is not null),
+            ["processId"] = System.Environment.ProcessId,
             ["runtimeDescription"] = RuntimeInformation.FrameworkDescription,
             ["operatingSystem"] = OperatingSystem.IsWindows() ? "windows" : OperatingSystem.IsLinux() ? "linux"
                 : OperatingSystem.IsMacOS() ? "macos" : "unknown",

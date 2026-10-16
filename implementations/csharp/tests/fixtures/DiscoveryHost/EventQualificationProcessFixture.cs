@@ -15,6 +15,8 @@ internal static class EventQualificationProcessFixture
         EventQualificationExpectations.Validate(catalog, row, actual);
         actual["observed"] = new JsonObject
         {
+            ["lifecycleApiPresent"] = typeof(EnvironmentOptions).GetMethod("Initialize") is not null,
+            ["processId"] = System.Environment.ProcessId,
             ["runtimeDescription"] = RuntimeInformation.FrameworkDescription,
             ["operatingSystem"] = OperatingSystem.IsWindows() ? "windows" : OperatingSystem.IsLinux() ? "linux" : "unknown",
             ["fixtureSha256"] = Hash(typeof(EventQualificationProcessFixture).Assembly.Location),

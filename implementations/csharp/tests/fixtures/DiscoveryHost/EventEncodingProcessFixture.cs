@@ -13,6 +13,8 @@ internal static class EventEncodingProcessFixture
         JsonObject actual = EventEncodingFixture.Execute(row); EventEncodingExpectations.Validate(row, actual);
         actual["observed"] = new JsonObject
         {
+            ["lifecycleApiPresent"] = typeof(EnvironmentOptions).GetMethod("Initialize") is not null,
+            ["processId"] = System.Environment.ProcessId,
             ["runtimeDescription"] = RuntimeInformation.FrameworkDescription,
             ["operatingSystem"] = OperatingSystem.IsWindows() ? "windows" : OperatingSystem.IsLinux() ? "linux" : "unknown",
             ["fixtureSha256"] = Hash(typeof(EventEncodingProcessFixture).Assembly.Location),
