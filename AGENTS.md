@@ -11,7 +11,7 @@
 - Put shared module contracts in `contracts/` and shared cases in `conformance/`. Keep C# public types and implementation details in `implementations/csharp/`.
 - Build the C# library as one `CIS.Core` project/package/assembly, with root namespace `CIS`. Use explicit `CIS.*` namespaces for handwritten module types. `CIS.Logging` and `CIS.Logging.MicrosoftLogger` are namespaces and folders inside it. Future modules are siblings of Logging.
 - Approve actual Microsoft-maintained package identities and dependency closures explicitly. Isolate third-party runtime dependencies in separate optional projects/packages.
-- Keep Core independent of CIS, application infrastructure and collector SDKs. The application owns its runtime lifecycle.
+- Keep Core independent of Change Impact Studio tooling/CLI, application infrastructure and collector SDKs. The application owns its runtime lifecycle.
 - Keep language build settings local to `implementations/<language>/`. New runtimes declare supported capabilities and conformance applicability; do not promise C# binary/API mechanics in another language.
 - Preserve published contracts and historical baselines. Library naming is selected; resolve the remaining publication choices before the first release.
 
@@ -27,6 +27,7 @@
 ## Changes
 
 - User direction (15 October 2026): stop Claude reviews rather than request further review permission. Use local review and appropriate native verification; do not send further Claude review payloads unless the user explicitly changes this direction.
+- Later explicit user authorization (17 October 2026): the exact 24-bundle read-only Anthropic Claude review set is approved, manifest SHA-256 66bea29723b9aa2a039df2934c69d3dc0c0b25f189c95ee557eb1d8a4972a46a. Seventeen bundles completed; seven remain after a service quota refusal. Do not ask again for those unchanged payloads. Preserve raw attempts and read-only/no-tools/no-delegation restrictions; changed payloads are outside this specific authorization. See planning/reviews/corrective-approved-2026-10-17/README.md. The original roadmap goal remains paused.
 - Keep each implementation within the requested task/module scope. Prefer direct implementations; add abstractions only for a concrete requirement.
 - Use readable C#, nullable checking, SDK analyzers, warnings as errors and documented public behavior.
 - User direction: use C# for new C# implementation code, tests and verification utilities. Do not add another implementation language for C# project work. Existing script-based checks can be migrated in a separate cleanup; keep established shell entry points as invocation glue.
