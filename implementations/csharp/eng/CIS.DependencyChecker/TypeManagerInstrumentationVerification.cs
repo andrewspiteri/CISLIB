@@ -107,4 +107,3 @@ internal static class TypeManagerInstrumentationVerification
         return source[..index] + after + source[(index + before.Length)..];
     }
 }
-

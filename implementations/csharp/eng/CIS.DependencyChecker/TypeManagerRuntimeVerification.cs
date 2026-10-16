@@ -118,4 +118,3 @@ internal static class TypeManagerRuntimeVerification
         finally { Save(); }
     }
 }
-

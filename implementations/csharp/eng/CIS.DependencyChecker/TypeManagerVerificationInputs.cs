@@ -78,4 +78,3 @@ internal sealed class TypeManagerVerificationInputs
     internal static void WriteJson(string path, JsonObject value) => Write(path, value.ToJsonString(new JsonSerializerOptions { WriteIndented = true }) + "\n");
     internal static void Require(bool value, string reason) { if (!value) { throw new InvalidDataException(reason); } }
 }
-

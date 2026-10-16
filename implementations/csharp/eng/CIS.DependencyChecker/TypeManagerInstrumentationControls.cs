@@ -36,4 +36,3 @@ internal static class TypeManagerInstrumentationControls
         finally { WriteJson(reportPath, report); }
     }
 }
-
