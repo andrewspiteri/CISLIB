@@ -127,6 +127,7 @@ internal sealed class ProviderStateCapture
             var owned = new Dictionary<string, LogValue>(StringComparer.Ordinal);
             foreach ((string key, object? value) in properties)
             {
+                if (remaining == 0 || depth + 1 > LogValueProjection.MaximumDepth) { truncated = true; break; }
                 ValidateKey(key);
                 LogValue? retained = Value(value, depth + 1);
                 if (retained is null) { truncated = true; break; }

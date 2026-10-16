@@ -11136,6 +11136,33 @@
       "id": "INT-JSONL-BOUNDARY-NATIVE-MODES",
       "source": "All 23 original physical boundary modes, including intent-first retention-full recovery. Separate twelve-control reader binding remains required.",
       "method": "CIS.Tests.IntegrationTests.JsonlBoundaryProcessTests.ManagedJsonlInspectionAndStartupPreserveActualPhysicalBoundary"
+    },
+    {
+      "id": "UT-REVIEW-PROVIDER-MAP-BOUNDARY",
+      "family": "unit",
+      "title": "Provider maps truncate before validating omitted keys",
+      "implementation": "Implemented",
+      "method": null,
+      "minimumExecutions": 8,
+      "bindings": [
+        {
+          "method": "CIS.Tests.UnitTests.ProviderStateBoundaryTests.ExhaustedMapBudgetOmitsInvalidKeysAndPreservesTheRetainedPrefix",
+          "minimumExecutions": 4
+        },
+        {
+          "method": "CIS.Tests.UnitTests.ProviderStateBoundaryTests.MaximumMapDepthOmitsInvalidKeysBeforeInspectingTheirValues",
+          "minimumExecutions": 2
+        },
+        {
+          "method": "CIS.Tests.UnitTests.ProviderStateBoundaryTests.InvalidRetainedMapKeysStillRejectCapture",
+          "minimumExecutions": 2
+        }
+      ],
+      "lanes": [
+        "windows-x64",
+        "linux-ubuntu2404-x64"
+      ],
+      "source": "17 October 2026 confirmed Claude PROVIDER-BUDGET finding: actual event/scope capture, node/depth boundaries, retained prefixes and strict retained-key rejection. No planned release group replaced."
     }
   ]
 }
