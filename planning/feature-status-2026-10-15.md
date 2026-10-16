@@ -1,8 +1,10 @@
 # CISLIB feature and remaining-work report
 
-Updated 16 October 2026 after completing the maintained Python cleanup and full Windows Developer checkpoint, based on `1de526ed`. The original 15 October filename is retained for existing links. This report applies the user's decisions and current amendments; original attachments and earlier receipts remain historical inputs.
+Updated 16 October 2026 after completing the maintained Python cleanup and full Windows Developer checkpoint, based on `54e01194` and including the subsequent partial Claude review. The original 15 October filename is retained for existing links. This report applies the user's decisions and current amendments; original attachments and earlier receipts remain historical inputs.
 
 **The original logging roadmap goal remains paused.** The user's subsequent instruction continues corrective work; the original mutation queue is not automatically resumed. The C# logging runtime, Microsoft logging integration and subsequent corrective features are implemented development code. Complete release qualification, teaching examples, agent skills and publication remain pending. Type Manager has separately tracked implementation and qualification work.
+
+The [16 October Claude review](reviews/corrective-2026-10-16/README.md) is **incomplete: three of six original passes returned eleven actionable findings; 325 assigned paths remain unreviewed**. Open items include incoming flush/stop counter snapshots, contract/catalog drift, missing required-case/negative-control assertions and tooling/documentation provenance. No fixes are claimed. Further submissions reached Claude's session usage limit, recorded as resetting at 23:00 Malta on 16 October; smaller continuation bundles are prepared. The original 6,434-case test result retains its documented source snapshot and does not imply review closure.
 
 ## Repository and package foundation
 
@@ -122,6 +124,7 @@ Type Manager has not declared a complete milestone or release gate. Full mutatio
 
 | Area | Still pending |
 | --- | --- |
+| Claude review completion and dispositions | Complete the remaining three original review scopes after the external usage-limit reset and resolve the eleven recorded findings in small verified batches. The three returned reviews and locally resolved context questions are retained; no whole-change PASS or implementation fix is claimed. [Review record](reviews/corrective-2026-10-16/README.md) |
 | Remaining native C# tooling boundary (Batch B) | The maintained Python cleanup is complete: needed checks run in C#, and the fixed historical mutation replay retired. Zero maintained implementation Python files remain. Five historical implementation helpers and 106 scripts in frozen planning/evidence are preserved. Shell entry points remain invocation glue; substantive PowerShell policy still needs its separate assessment. This cleanup does not close release, coverage, mutation or full Ubuntu gates. [Latest scope](evidence/corrective-type-manager-measurement-migration-2026-10-16.md) |
 | Supported IDE acceptance | Exercise a supported Visual Studio IDE, normal build, Test Explorer and actual design-time loading. Build Tools/CLI observations do not close this requirement. |
 | Both-lane corrected checkpoint (Batch F) | Run all required verification families on Windows and native Ubuntu against the same frozen, unchanged candidate. The latest full Windows Developer pass, separately executed compatibility cases and Ubuntu selected checks leave this complete qualification open. |
