@@ -20,7 +20,7 @@ public sealed class FileRecoveryQualificationTests
         Match modeDeclaration = Regex.Match(fixture, @"Modes = \[(.*?)\];", RegexOptions.Singleline); Assert.IsTrue(modeDeclaration.Success);
         string[] restartModes = Regex.Matches(modeDeclaration.Groups[1].Value, "\\\"([^\\\"]+)\\\"").Select(match => match.Groups[1].Value).ToArray(); Assert.AreEqual(15, restartModes.Length);
         var boundRestartModes = new HashSet<string>(StringComparer.Ordinal);
-        CollectionAssert.AreEquivalent(new[] { "restart", "failure", "boundary" }, map["lanes"]!.AsObject().Select(lane => lane.Key).ToArray());
+        CollectionAssert.AreEquivalent(new[] { "restart", "failure", "boundary", "corrective" }, map["lanes"]!.AsObject().Select(lane => lane.Key).ToArray());
         var literalLaneModes = new Dictionary<string, string[]>(StringComparer.Ordinal);
         foreach (KeyValuePair<string, JsonNode?> lane in map["lanes"]!.AsObject())
         {
@@ -29,7 +29,13 @@ public sealed class FileRecoveryQualificationTests
             if (lane.Key != "restart")
             {
                 string reader = File.ReadAllText(Path.Combine(folder, lane.Value[native ? "caseSource" : "verifier"]!.GetValue<string>()));
-                Match modes = Regex.Match(reader, native ? @"Modes = \[(.*?)\];" : @"(?m)^MODES=\[(.*?)\]", RegexOptions.Singleline); Assert.IsTrue(modes.Success);
+                Match modes = Regex.Match(reader, native ? @"Modes = \[(.*?)\];" : @"(?m)^MODES=\[(.*?)\]", RegexOptions.Singleline);
+                if (native && !modes.Success)
+                {
+                    string[] rows = Regex.Matches(reader, @"\[DataRow\(""([^""]+)""\)\]").Select(match => match.Groups[1].Value).ToArray();
+                    Assert.IsTrue(rows.Length > 0); Assert.AreEqual("vstest.trx/2010", lane.Value["reportSchema"]!.GetValue<string>()); literalLaneModes.Add(lane.Key, rows); continue;
+                }
+                Assert.IsTrue(modes.Success);
                 literalLaneModes.Add(lane.Key, Regex.Matches(modes.Groups[1].Value, native ? "\"([^\"]+)\"" : "'([^']+)'").Select(match => match.Groups[1].Value).ToArray());
             }
             if (native) { Assert.AreEqual("vstest.trx/2010", lane.Value["reportSchema"]!.GetValue<string>()); }

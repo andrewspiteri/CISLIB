@@ -18,11 +18,11 @@ internal static class FileFailureFixture
         internal int Disposes;
         protected override void Dispose(bool disposing) { if (disposing) { Disposes++; } base.Dispose(disposing); }
     }
-    internal static int Run(string mode, string root) { Console.WriteLine(ExecuteAsync(mode, root, externalRelease: mode.EndsWith("permission", StringComparison.Ordinal)).GetAwaiter().GetResult().ToJsonString()); return 0; }
-    internal static async Task<JsonObject> ExecuteAsync(string mode, string root, bool externalRelease = false)
+    internal static int Run(string mode, string root) { Console.WriteLine(ExecuteAsync(mode, root).GetAwaiter().GetResult().ToJsonString()); return 0; }
+    internal static async Task<JsonObject> ExecuteAsync(string mode, string root)
     {
         bool render = mode.StartsWith("render", StringComparison.Ordinal), human = render || mode.StartsWith("delete-human", StringComparison.Ordinal), empty = mode == "render-empty", damaged = mode.Contains("-damaged-", StringComparison.Ordinal);
-        if (!Modes.Contains(mode, StringComparer.Ordinal) && mode is not ("delete-jsonl-permission" or "delete-human-permission" or "delete-jsonl-damaged-permission")) { throw new ArgumentException("Unknown file failure mode.", nameof(mode)); }
+        if (!Modes.Contains(mode, StringComparer.Ordinal)) { throw new ArgumentException("Unknown file failure mode.", nameof(mode)); }
         string path = Path.Combine(root, "logs", "\u03a9-\U0001f642.log"); LogOutputFormat format = human ? LogOutputFormat.Human : LogOutputFormat.JsonLines;
         using (FileOutputOwner.Initialize(path, format)) { }
         JsonObject inventory = JsonNode.Parse(File.ReadAllBytes(path + ".cis.inventory.json"))!.AsObject(); string group = inventory["groupId"]!.GetValue<string>(), directory = Path.GetDirectoryName(path)!;
@@ -65,11 +65,6 @@ internal static class FileFailureFixture
             JsonObject before = Snapshot(); string[] namesBefore = Names(); var results = new JsonArray(); CoreLogger logger = runtime.CreateLogger("Failure");
             LogWriteResult Write(int index) => logger.WriteLazy(CoreLogLevel.Information, () => { factories++; return new LogEventData { EventName = "failure." + index, Message = "preserved", Attributes = new Dictionary<string, LogValue> { ["producer_pid"] = LogValue.Integer(Environment.ProcessId) } }; });
             for (int index = 0; index < 3; index++) { results.Add(Result(Write(index))); }
-            if (externalRelease)
-            {
-                Console.WriteLine(new JsonObject { ["stage"] = "prepared", ["mode"] = mode, ["pid"] = Environment.ProcessId, ["path"] = path, ["victim"] = victim }.ToJsonString()); Console.Out.Flush();
-                if (Console.ReadLine() != "continue") { throw new InvalidOperationException("Missing owned permission release."); }
-            }
             release.TrySetResult(); FileOutputWriteException error;
             try { await runtime.QueuedOutputs!.File!.Completion.WaitAsync(Limit); throw new InvalidOperationException("Expected terminal file failure."); }
             catch (FileOutputWriteException observed) { error = observed; }

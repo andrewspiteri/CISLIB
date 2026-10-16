@@ -10,6 +10,7 @@ namespace CIS.Tests.IntegrationTests;
 [TestClass]
 public sealed class LoggingReviewProcessTests
 {
+    public TestContext TestContext { get; set; } = null!;
     [TestMethod]
     [DataRow("recovery-1")]
     [DataRow("recovery-10")]
@@ -34,13 +35,9 @@ public sealed class LoggingReviewProcessTests
     public async Task PublicConsumersRecoverExactPlansAndBoundPrivateArtifacts(string mode)
     {
         using var root = new TemporaryDirectory();
-        string host = Path.Combine(AppContext.BaseDirectory, "discovery-fixture", "CIS.Core.DiscoveryFixture.dll");
-        ProcessResult process = await ProcessRunner.RunAsync("dotnet", ["exec", "--fx-version", "10.0.12", "--roll-forward", "Disable", host, "logging-review", mode, root.Path], root.Path, TimeSpan.FromSeconds(30), outputEncoding: new UTF8Encoding(false, true));
-        Assert.AreEqual(0, process.ExitCode, process.StandardError); Assert.AreEqual("", process.StandardError);
-        JsonObject report = JsonNode.Parse(process.StandardOutput)!.AsObject();
-        Assert.AreEqual(mode, (string?)report["mode"]); Assert.AreEqual(".NET 10.0.12", (string?)report["runtime"]);
-        Assert.AreEqual(OperatingSystem.IsWindows() ? "windows" : "linux", (string?)report["os"]);
-        Assert.AreEqual(Hash(host), (string?)report["fixtureSha256"]); Assert.AreEqual(Hash(Path.Combine(Path.GetDirectoryName(host)!, "CIS.Core.dll")), (string?)report["coreSha256"]);
+        (JsonObject report, _) = await FixtureProcessChecks.RunAsync(["logging-review", mode, root.Path], root.Path, TestContext,
+            environment: new Dictionary<string, string?> { ["DOTNET_SYSTEM_IO_DISABLEFILELOCKING"] = null }, timeout: TimeSpan.FromSeconds(30), flatReport: true);
+        Assert.AreEqual(mode, (string?)report["mode"]);
         if (mode == "cleanup-denied")
         {
             Assert.AreEqual(1, Directory.EnumerateFileSystemEntries(root.Path, "*.candidate.tmp").Count());

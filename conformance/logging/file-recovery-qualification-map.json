@@ -69,11 +69,14 @@
           "recovery-created"
         ],
         "failure": [
-          "delete-jsonl-damaged-directory",
-          "delete-jsonl-damaged-permission"
+          "delete-jsonl-damaged-directory"
         ],
         "boundary": [
           "retention-full"
+        ],
+        "corrective": [
+          "rotation-denied",
+          "recovery-denied"
         ]
       },
       "platforms": [
@@ -83,6 +86,9 @@
       "limits": "Actual internal configured runtimes and owned native processes; physical checkpoints are staged by the fixture with fixture reproductions of retirement/rename/create, actual Core intent/inventory publication and matching runtime retention settings, then the held producer is forcibly terminated. No observation inside an uninstrumented production Rotate call, power-loss durability or exactly-once ingestion claim. Collector example is read-only and requires a stopped group.",
       "additionalExecutedTests": [
         "CIS.Tests.UnitTests.FileTransitionTests.NormalRotationRetiresDamagedAndClosedMembersByPersistentId"
+      ],
+      "historicalSupersededCases": [
+        "delete-jsonl-damaged-permission"
       ]
     },
     {
@@ -104,15 +110,21 @@
           "ambiguous-both"
         ],
         "failure": [
-          "delete-jsonl-damaged-directory",
-          "delete-jsonl-damaged-permission"
+          "delete-jsonl-damaged-directory"
+        ],
+        "corrective": [
+          "rotation-denied",
+          "recovery-denied"
         ]
       },
       "platforms": [
         "windows",
         "linux"
       ],
-      "limits": "Actual internal configured runtimes and owned native processes; physical checkpoints are staged by the fixture with fixture reproductions of retirement/rename/create, actual Core intent/inventory publication and matching runtime retention settings, then the held producer is forcibly terminated. No observation inside an uninstrumented production Rotate call, power-loss durability or exactly-once ingestion claim. Collector example is read-only and requires a stopped group."
+      "limits": "Actual internal configured runtimes and owned native processes; physical checkpoints are staged by the fixture with fixture reproductions of retirement/rename/create, actual Core intent/inventory publication and matching runtime retention settings, then the held producer is forcibly terminated. No observation inside an uninstrumented production Rotate call, power-loss durability or exactly-once ingestion claim. Collector example is read-only and requires a stopped group.",
+      "historicalSupersededCases": [
+        "delete-jsonl-damaged-permission"
+      ]
     }
   ],
   "lanes": {
@@ -121,14 +133,21 @@
       "reportSchema": "cis.logging.file-restart-native/v1"
     },
     "failure": {
-      "verifier": "implementations/csharp/tests/fixtures/DiscoveryHost/verify-file-failure.py",
-      "reportSchema": "cis.logging.file-policy-failures-native/v1"
+      "verifier": "implementations/csharp/tests/CIS.Core.IntegrationTests/FileFailureProcessTests.cs",
+      "reportSchema": "vstest.trx/2010",
+      "historicalReportSchema": "cis.logging.file-policy-failures-native/v1",
+      "caseSource": "implementations/csharp/tests/fixtures/DiscoveryHost/FileFailureFixture.cs"
     },
     "boundary": {
       "verifier": "implementations/csharp/tests/CIS.Core.IntegrationTests/JsonlBoundaryProcessTests.cs",
       "reportSchema": "vstest.trx/2010",
       "historicalReportSchema": "cis.logging.jsonl-recovery-native/v1",
       "caseSource": "implementations/csharp/tests/fixtures/DiscoveryHost/JsonlBoundaryFixture.cs"
+    },
+    "corrective": {
+      "verifier": "implementations/csharp/tests/CIS.Core.IntegrationTests/LoggingReviewProcessTests.cs",
+      "caseSource": "implementations/csharp/tests/CIS.Core.IntegrationTests/LoggingReviewProcessTests.cs",
+      "reportSchema": "vstest.trx/2010"
     }
   }
 }
