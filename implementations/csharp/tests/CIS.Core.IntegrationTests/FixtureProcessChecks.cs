@@ -6,8 +6,8 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace CIS.Tests.IntegrationTests;
 
-// Physical process observations shared only by configuration tests.
-internal static class ConfigurationProcessChecks
+// Physical process observations shared by logging fixture tests.
+internal static class FixtureProcessChecks
 {
     internal static string Family => OperatingSystem.IsWindows() ? "windows" : "linux";
     internal static string Lane => OperatingSystem.IsWindows() ? "windows-x64" : "linux-ubuntu2404-x64";
@@ -21,7 +21,7 @@ internal static class ConfigurationProcessChecks
             if (File.Exists(path)) { return path; }
             directory = directory.Parent;
         }
-        throw new FileNotFoundException("Cannot find configuration inputs: " + name);
+        throw new FileNotFoundException("Cannot find logging fixture inputs: " + name);
     }
 
     internal static JsonArray Cases(string name, int count)
@@ -64,7 +64,7 @@ internal static class ConfigurationProcessChecks
             Assert.AreEqual(inputHash, (string?)observed["inputsSha256"]);
             Assert.AreEqual(inputHash, Hash(inputs));
         }
-        context.WriteLine("Physical configuration command: " + string.Join(" ", command));
+        context.WriteLine("Physical logging fixture command: " + string.Join(" ", command));
         context.WriteLine("Physical child PID: " + child.ProcessId);
         context.WriteLine(child.StandardOutput);
         return (report, child.ProcessId);

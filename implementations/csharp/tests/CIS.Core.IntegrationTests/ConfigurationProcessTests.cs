@@ -9,14 +9,14 @@ namespace CIS.Tests.IntegrationTests;
 public sealed class ConfigurationProcessTests
 {
     public TestContext TestContext { get; set; } = null!;
-    public static IEnumerable<object[]> SharedCases => ConfigurationProcessChecks.Cases("configuration-resolution-cases.json", 26).Select(row => new object[] { (string)row!["id"]! });
+    public static IEnumerable<object[]> SharedCases => FixtureProcessChecks.Cases("configuration-resolution-cases.json", 26).Select(row => new object[] { (string)row!["id"]! });
 
     [TestMethod]
     [DynamicData(nameof(SharedCases))]
     public async Task ChildConfigurationMatchesSharedInputsWithoutChangingHostLabel(string id)
     {
-        string inputs = ConfigurationProcessChecks.Find("configuration-resolution-cases.json");
-        JsonObject row = ConfigurationProcessChecks.Cases("configuration-resolution-cases.json", 26).Single(row => (string?)row!["id"] == id)!.AsObject();
+        string inputs = FixtureProcessChecks.Find("configuration-resolution-cases.json");
+        JsonObject row = FixtureProcessChecks.Cases("configuration-resolution-cases.json", 26).Single(row => (string?)row!["id"] == id)!.AsObject();
         JsonObject input = row["inputs"]!.AsObject();
         var environment = new Dictionary<string, string?>();
         foreach (JsonNode? setting in ConfigurationReadExpectations.Catalog()["settings"]!.AsArray())
@@ -29,7 +29,7 @@ public sealed class ConfigurationProcessTests
         environment["ASPNETCORE_ENVIRONMENT"] = hostLabel;
         environment["CORE_PASSWORD"] = "unknown-child-fixture-sentinel";
         using var directory = new TemporaryDirectory();
-        (JsonObject result, _) = await ConfigurationProcessChecks.RunAsync(["configuration", inputs, id], directory.Path, TestContext, inputs, environment);
+        (JsonObject result, _) = await FixtureProcessChecks.RunAsync(["configuration", inputs, id], directory.Path, TestContext, inputs, environment);
         Assert.AreEqual(id, (string?)result["caseId"]);
         JsonObject configuration = result["configuration"]!.AsObject();
         JsonObject expected = row["expected"]!.AsObject();
@@ -40,7 +40,7 @@ public sealed class ConfigurationProcessTests
             Assert.IsNull(configuration["filePath"]);
             Assert.IsNull(configuration["workingDirectory"]);
             CollectionAssert.AreEqual(expected["settings"]!.AsArray().Where(setting => (string?)setting!["state"] == "InvalidToken").Select(setting => "InvalidToken:" + (string)setting!["key"]!).ToArray(),
-                ConfigurationProcessChecks.Issues(configuration["issues"]!));
+                FixtureProcessChecks.Issues(configuration["issues"]!));
         }
         else
         {

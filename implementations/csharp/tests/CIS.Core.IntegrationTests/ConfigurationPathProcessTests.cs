@@ -16,8 +16,8 @@ public sealed class ConfigurationPathProcessTests
     [TestMethod]
     public void ConfigurationCatalogMembershipIsComplete()
     {
-        _ = ConfigurationProcessChecks.Cases("configuration-resolution-cases.json", 26);
-        _ = ConfigurationProcessChecks.Cases("passive-configuration-validation-cases.json", 24);
+        _ = FixtureProcessChecks.Cases("configuration-resolution-cases.json", 26);
+        _ = FixtureProcessChecks.Cases("passive-configuration-validation-cases.json", 24);
         Assert.AreEqual(14, PathRows().Length);
         Assert.AreEqual(13, PathRows().Count(Applies));
         string[] names = ConfigurationReadExpectations.Expected(new JsonObject());
@@ -29,7 +29,7 @@ public sealed class ConfigurationPathProcessTests
     [DynamicData(nameof(SharedCases))]
     public async Task ChildCwdChangeCannotRedirectValidatedPathOrCreateOutputs(string id)
     {
-        string inputs = ConfigurationProcessChecks.Find("configuration-cases.json");
+        string inputs = FixtureProcessChecks.Find("configuration-cases.json");
         JsonObject row = PathRows().Single(row => (string?)row["id"] == id);
         await CheckPathAsync(inputs, row);
     }
@@ -89,7 +89,7 @@ public sealed class ConfigurationPathProcessTests
         string before = Path.Combine(owned.Path, "before"), after = Path.Combine(owned.Path, "after");
         Directory.CreateDirectory(before);
         Directory.CreateDirectory(after);
-        (JsonObject result, _) = await ConfigurationProcessChecks.RunAsync(["configuration-path", inputs, id, after], before, TestContext, inputs);
+        (JsonObject result, _) = await FixtureProcessChecks.RunAsync(["configuration-path", inputs, id, after], before, TestContext, inputs);
         string captured = (string?)row["inputs"]!["workingDirectoryAtInitialization"] ?? before;
         Assert.AreEqual(id, (string?)result["caseId"]);
         Assert.AreEqual(before, (string?)result["initialActualDirectory"]);
@@ -104,7 +104,7 @@ public sealed class ConfigurationPathProcessTests
             {
                 if ((string?)issue!["code"] == "InvalidPath") { issue["key"] = "LoggingOptions.FilePath"; }
             }
-            CollectionAssert.AreEqual(ConfigurationProcessChecks.Issues(expectedIssues), ConfigurationProcessChecks.Issues(result["issues"]!));
+            CollectionAssert.AreEqual(FixtureProcessChecks.Issues(expectedIssues), FixtureProcessChecks.Issues(result["issues"]!));
             Assert.IsNull(result["absolutePathBefore"]);
             Assert.IsNull(result["absolutePathAfter"]);
             Assert.IsNull(result["validatedWorkingDirectory"]);
@@ -127,8 +127,8 @@ public sealed class ConfigurationPathProcessTests
         Assert.AreEqual(2, Directory.GetFileSystemEntries(owned.Path).Length);
     }
 
-    private static JsonObject[] PathRows() => ConfigurationProcessChecks.Cases("configuration-cases.json", 350).OfType<JsonObject>().Where(row => (string?)row["key"] == "CORE_LOG_FILE_PATH").ToArray();
-    private static bool Applies(JsonObject row) => row["lanes"] is not JsonArray lanes || lanes.Any(lane => (string?)lane == ConfigurationProcessChecks.Lane);
+    private static JsonObject[] PathRows() => FixtureProcessChecks.Cases("configuration-cases.json", 350).OfType<JsonObject>().Where(row => (string?)row["key"] == "CORE_LOG_FILE_PATH").ToArray();
+    private static bool Applies(JsonObject row) => row["lanes"] is not JsonArray lanes || lanes.Any(lane => (string?)lane == FixtureProcessChecks.Lane);
 
     [DllImport("kernel32.dll", CharSet = CharSet.Unicode, ExactSpelling = true, SetLastError = true)]
     [DefaultDllImportSearchPaths(DllImportSearchPath.System32)]

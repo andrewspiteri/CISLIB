@@ -58,3 +58,7 @@ The [acceptance map](../../../conformance/logging/value-qualification-map.json) 
 The first compiler-harness run failed because a successful silent compilation did not create its expected log file. The harness now creates that file explicitly. Retained initial failure and correction records distinguish the harness defect from the passing consumer checks.
 
 Replay preparation also initially omitted the inventory-writing module in the task command. That attempt exited before copying inputs or executing tests; its retained log/summary records the corrected orchestration error.
+
+## Native driver migration, 16 October 2026
+
+The scalar, normalization, collection and qualification process checks now run entirely in C#. The three standalone Python value drivers are retired. Native assertions retain typed-kind/error/parameter attribution, distinguish malformed fixture transports from actual Core calls, and measure emitted collection JSON independently of the fixture's Core traversal. The shared logging fixture process helper binds actual PID/runtime/OS and exact input/loaded bytes while checking complete parent-state preservation and no outputs. All four unchanged catalogs retain their declared membership. [Current migration evidence](../../../planning/evidence/corrective-values-migration-2026-10-16.md) records native runs and their scope; earlier evidence above stays historical.

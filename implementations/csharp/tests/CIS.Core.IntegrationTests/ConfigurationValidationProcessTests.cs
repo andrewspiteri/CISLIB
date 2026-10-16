@@ -9,23 +9,23 @@ namespace CIS.Tests.IntegrationTests;
 public sealed class ConfigurationValidationProcessTests
 {
     public TestContext TestContext { get; set; } = null!;
-    public static IEnumerable<object[]> SharedCases => ConfigurationProcessChecks.Cases("passive-configuration-validation-cases.json", 24).Select(row => new object[] { (string)row!["id"]! });
+    public static IEnumerable<object[]> SharedCases => FixtureProcessChecks.Cases("passive-configuration-validation-cases.json", 24).Select(row => new object[] { (string)row!["id"]! });
 
     [TestMethod]
     [DynamicData(nameof(SharedCases))]
     public async Task CompleteValidationRemainsSafeAndStableAcrossActualChildDirectoryChanges(string id)
     {
-        string inputs = ConfigurationProcessChecks.Find("passive-configuration-validation-cases.json");
-        JsonNode row = ConfigurationProcessChecks.Cases("passive-configuration-validation-cases.json", 24).Single(row => (string?)row!["id"] == id)!;
+        string inputs = FixtureProcessChecks.Find("passive-configuration-validation-cases.json");
+        JsonNode row = FixtureProcessChecks.Cases("passive-configuration-validation-cases.json", 24).Single(row => (string?)row!["id"] == id)!;
         using var owned = new TemporaryDirectory();
         string before = Path.Combine(owned.Path, "before"), after = Path.Combine(owned.Path, "after");
         Directory.CreateDirectory(before);
         Directory.CreateDirectory(after);
-        (JsonObject result, _) = await ConfigurationProcessChecks.RunAsync(["configuration-validation", inputs, id, after], before, TestContext, inputs);
+        (JsonObject result, _) = await FixtureProcessChecks.RunAsync(["configuration-validation", inputs, id, after], before, TestContext, inputs);
         JsonNode expected = row["expected"]!;
         bool valid = (string?)expected["status"] == "Valid";
         Assert.AreEqual((string?)expected["status"], (string?)result["status"]);
-        CollectionAssert.AreEquivalent(ConfigurationProcessChecks.Issues(expected["issues"]!), ConfigurationProcessChecks.Issues(result["issues"]!));
+        CollectionAssert.AreEquivalent(FixtureProcessChecks.Issues(expected["issues"]!), FixtureProcessChecks.Issues(result["issues"]!));
         Assert.IsTrue(result["issues"]!.AsArray().All(issue => !string.IsNullOrWhiteSpace((string?)issue!["explanation"])));
         JsonNode observed = result["observed"]!;
         Assert.AreEqual(id, (string?)observed["caseId"]);
@@ -55,7 +55,7 @@ public sealed class ConfigurationValidationProcessTests
             Assert.AreEqual("Core configuration is invalid. Inspect Issues for details.", (string?)result["message"]);
             StringAssert.StartsWith((string)result["exceptionText"]!, "CIS.Configuration.CoreConfigurationException:");
         }
-        if (expected["values"] is JsonObject subset) { ConfigurationProcessChecks.Subset(subset, result["values"]!); }
+        if (expected["values"] is JsonObject subset) { FixtureProcessChecks.Subset(subset, result["values"]!); }
         string diagnostic = (string?)result["message"] + (string?)result["exceptionText"] + string.Join("|", result["issues"]!.AsArray().Select(issue => (string?)issue!["explanation"]));
         foreach (JsonNode? forbidden in row["diagnosticsMustExclude"]!.AsArray())
         {

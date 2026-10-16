@@ -55,7 +55,7 @@ public sealed class EnvironmentOptionsProcessTests
             variables["CORE_LOG_LEVEL"] = "WRN";
             variables["CORE_LOG_MAX_ENTRY_BYTES"] = "131072";
         }
-        (JsonObject result, int processId) = await ConfigurationProcessChecks.RunAsync(["constructor-options", scenario], directory.Path, TestContext, environment: variables);
+        (JsonObject result, int processId) = await FixtureProcessChecks.RunAsync(["constructor-options", scenario], directory.Path, TestContext, environment: variables);
         Assert.AreEqual(scenario, (string?)result["scenario"]);
         Assert.AreEqual(processId, result["observedPid"]!.GetValue<int>());
         Guid? instanceId = null;
@@ -89,7 +89,7 @@ public sealed class EnvironmentOptionsProcessTests
                 Assert.IsTrue(JsonNode.DeepEquals(values[name], metadata[name]), "Metadata fact differs: " + name);
             }
             foreach (string name in new[] { "HostName", "RuntimeDescription", "OSArchitecture", "ProcessArchitecture" }) { Assert.IsFalse(string.IsNullOrWhiteSpace((string?)values[name])); }
-            Assert.AreEqual(ConfigurationProcessChecks.Family, (string?)values["OperatingSystem"]);
+            Assert.AreEqual(FixtureProcessChecks.Family, (string?)values["OperatingSystem"]);
             DateTimeOffset timestamp = values["InitializedAtUtc"]!.GetValue<DateTimeOffset>();
             Assert.AreEqual(TimeSpan.Zero, timestamp.Offset);
             Assert.IsTrue(result["before"]!.GetValue<DateTimeOffset>() <= timestamp && timestamp <= result["after"]!.GetValue<DateTimeOffset>());
