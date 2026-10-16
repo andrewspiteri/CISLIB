@@ -43,7 +43,8 @@ internal static class FileRuntimeStartupExpectations
             var expected = new JsonObject { ["output"] = output, ["code"] = code, ["message"] = "Logging output '" + output + "' could not initialize (" + code + ").", ["inner"] = false, ["dataCount"] = 0 };
             Require(JsonNode.DeepEquals(expected, actual["error"]), "Safe startup error differs.");
             Require(actual["result"] is null && actual["diagnostics"] is null && actual["factories"]!.GetValue<int>() == 0 && consoleBytes.Length == 0, "Failed startup was published or emitted a record.");
-            foreach (JsonNode? queue in actual["queues"]!.AsArray()) { Require(queue!["state"]!.GetValue<string>() == "Stopped" && queue["accepted"]!.GetValue<long>() == 0 && queue["pending"]!.GetValue<int>() == 0, "Failed worker retained work."); }
+            Require(actual["queues"]!.AsArray().Count == workers, "Failed queue count differs.");
+            foreach (JsonNode? queue in actual["queues"]!.AsArray()) { Require(queue!.AsObject().Count == 3 && queue!["state"]!.GetValue<string>() == "Stopped" && queue["accepted"]!.GetValue<long>() == 0 && queue["pending"]!.GetValue<int>() == 0, "Failed worker retained work."); }
             if (mode == "existing-owner") { CheckRecords(fileBytes, false, ["file.prior", "file.after.failure"], ["prior record", "existing writer survives"]); }
             else if (mode is "rollback-missing" or "rollback-format" or "rollback-retained") { Require(fileBytes.AsSpan().SequenceEqual(Encoding.UTF8.GetBytes("{\"prior\":true}\n")), "Pre-existing record changed."); }
             else if (mode == "rollback-invalid-json") { Require(fileBytes.AsSpan().SequenceEqual(Encoding.UTF8.GetBytes("{\"prior\":\n")), "Invalid terminated JSON preimage changed."); }
@@ -97,16 +98,8 @@ internal static class FileRuntimeStartupExpectations
     }
     private static JsonObject HumanRecord(byte[] raw)
     {
-        var result = new JsonObject(); int offset = 0;
-        while (offset < raw.Length - 1)
-        {
-            while (offset < raw.Length - 1 && raw[offset] == 32) { offset++; }
-            if (offset == raw.Length - 1) { break; }
-            int equal = Array.IndexOf(raw, (byte)'=', offset); Require(equal >= offset, "Human field label missing.");
-            string name = Encoding.UTF8.GetString(raw.AsSpan(offset, equal - offset)); var reader = new Utf8JsonReader(raw.AsSpan(equal + 1)); using JsonDocument field = JsonDocument.ParseValue(ref reader);
-            Require(!result.ContainsKey(name), "Duplicate human field."); result[name] = JsonNode.Parse(field.RootElement.GetRawText()); offset = equal + 1 + (int)reader.BytesConsumed;
-            Require(offset == raw.Length - 1 || raw[offset] == 32, "Human field separation differs.");
-        }
+        var result = new JsonObject();
+        foreach ((string name, JsonElement field) in HumanRenderingExpectations.Read(raw, 65536)) { result.Add(name, JsonNode.Parse(field.GetRawText())); }
         return result;
     }
 }

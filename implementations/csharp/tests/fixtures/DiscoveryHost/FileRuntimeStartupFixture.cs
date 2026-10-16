@@ -198,8 +198,9 @@ internal static class FileRuntimeStartupFixture
         string host = typeof(FileRuntimeStartupFixture).Assembly.Location, core = typeof(CoreLogRuntime).Assembly.Location;
         report["observed"] = new JsonObject
         {
-            ["runtime"] = RuntimeInformation.FrameworkDescription,
-            ["os"] = OperatingSystem.IsWindows() ? "windows" : "linux",
+            ["processId"] = Environment.ProcessId,
+            ["runtimeDescription"] = RuntimeInformation.FrameworkDescription,
+            ["operatingSystem"] = OperatingSystem.IsWindows() ? "windows" : "linux",
             ["fixtureSha256"] = Hash(host),
             ["coreSha256"] = Hash(core)
         };

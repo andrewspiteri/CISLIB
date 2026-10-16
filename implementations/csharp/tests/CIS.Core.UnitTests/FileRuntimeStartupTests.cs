@@ -45,6 +45,7 @@ public sealed class FileRuntimeStartupTests
     public async Task StartupComparerRejectsChangedRollbackFacts(string fault)
     {
         using var root = new TemporaryDirectory(); JsonObject actual = await FileRuntimeStartupFixture.ExecuteAsync("rollback-missing", root.Path);
+        FileRuntimeStartupExpectations.Validate("rollback-missing", actual);
         switch (fault)
         {
             case "worker": actual["joinedAtReturn"]![0] = false; break;
