@@ -67,21 +67,21 @@ public sealed class FileRetentionProcessTests
         int retained = mode.EndsWith('1') ? 1 : 3, count = phase == "start" ? 20 : 12, last = phase == "start" ? 5 : 8;
         Assert.AreEqual(mode, (string?)actual["mode"]); Assert.AreEqual(phase, (string?)actual["phase"]); Assert.AreEqual("Stopped", (string?)actual["state"]);
         var output = new JsonObject { ["name"] = "file", ["state"] = "Stopped", ["accepted"] = count, ["written"] = count, ["failed"] = 0, ["pending"] = 0, ["abandoned"] = 0 };
-        Assert.IsTrue(JsonNode.DeepEquals(output, actual["output"]));
+        Require(JsonNode.DeepEquals(output, actual["output"]), "output accounting");
         var results = new JsonArray(); for (int index = 1; index <= count; index++) { results.Add(new JsonObject { ["outcome"] = "Accepted", ["truncated"] = false, ["sequence"] = index }); }
         Assert.IsTrue(JsonNode.DeepEquals(results, actual["results"]));
         string group = (string)actual["inventory"]!["groupId"]!; Assert.IsTrue(Guid.TryParseExact(group, "N", out Guid id) && id != Guid.Empty); Assert.AreEqual(id.ToString("N"), group);
         if (previous is null) { Assert.IsNull(actual["before"]); }
         else
         {
-            Assert.IsTrue(JsonNode.DeepEquals(previous["inventory"], actual["before"])); Assert.AreEqual((string?)previous["inventory"]!["groupId"], group);
+            Require(JsonNode.DeepEquals(previous["inventory"], actual["before"]), "previous inventory"); Require((string?)previous["inventory"]!["groupId"] == group, "same group");
             Assert.AreNotEqual((string?)previous["instanceId"], (string?)actual["instanceId"]);
         }
         var segments = new JsonArray();
         for (int value = last - retained; value <= last; value++)
         { segments.Add(new JsonObject { ["id"] = value, ["fileName"] = value == last ? Active : ".cis-log-" + group + "-" + value.ToString("D20", CultureInfo.InvariantCulture) + ".closed", ["state"] = value == last ? "active" : "closed" }); }
         var inventory = new JsonObject { ["schema"] = 1, ["groupId"] = group, ["format"] = mode.StartsWith("human", StringComparison.Ordinal) ? "human" : "jsonl", ["encoding"] = "utf-8", ["bom"] = false, ["newline"] = "lf", ["segments"] = segments };
-        Assert.IsTrue(JsonNode.DeepEquals(inventory, actual["inventory"]));
+        Require(JsonNode.DeepEquals(inventory, actual["inventory"]), "bounded inventory");
         CollectionAssert.AreEqual(segments.Select(s => (string)s!["fileName"]!).ToArray(), actual["files"]!.AsArray().Select(f => (string)f!["name"]!).ToArray());
     }
 
@@ -99,22 +99,22 @@ public sealed class FileRetentionProcessTests
             foreach ((string key, string wanted) in new[] { ("component", "Retention"), ("event_name", "retention.event"), ("message", new string('x', 7000) + "Ω🙂"), ("service", "Retention.App"), ("env", "test"), ("version", "1.2.3"), ("timestamp", "2026-10-13T10:11:12.0000000Z"), (human ? "severity" : "status", "info") })
             { Assert.AreEqual(wanted, (string?)value[key], key); }
             int entry = (id - 1) * 4 + offset; JsonObject origin = origins[entry < 20 ? 0 : 1];
-            Assert.IsTrue(JsonNode.DeepEquals(new JsonObject { ["entry_index"] = entry, ["payload"] = new string('y', 7000) }, value["attributes"]));
+            Require(JsonNode.DeepEquals(new JsonObject { ["entry_index"] = entry, ["payload"] = new string('y', 7000) }, value["attributes"]), "record order");
             Assert.IsFalse(value.ContainsKey("truncated"));
             JsonNode resource = human ? value : value["resource"]!; string prefix = human ? "resource." : "";
-            Assert.AreEqual((string?)origin["instanceId"], (string?)resource[prefix + "instance_id"]);
-            Assert.AreEqual(origin["pid"]!.GetValue<long>(), resource[prefix + "process_id"]!.GetValue<long>());
+            Require((string?)origin["instanceId"] == (string?)resource[prefix + "instance_id"], "record instance");
+            Require(origin["pid"]!.GetValue<long>() == resource[prefix + "process_id"]!.GetValue<long>(), "record pid");
         }
     }
 
     private static void Neighbors(Dictionary<string, byte[]> neighbors)
-    { foreach ((string path, byte[] raw) in neighbors) { CollectionAssert.AreEqual(raw, File.ReadAllBytes(path)); } }
+    { foreach ((string path, byte[] raw) in neighbors) { Require(raw.AsSpan().SequenceEqual(File.ReadAllBytes(path)), "neighbor preservation"); } }
 
     private static void Membership(string directory, JsonObject inventory, Dictionary<string, byte[]> neighbors)
     {
         string[] expected = inventory["segments"]!.AsArray().Select(s => (string)s!["fileName"]!)
             .Concat([Active + ".cis.inventory.json", Active + ".cis.lock"]).Concat(neighbors.Keys.Where(p => Path.GetDirectoryName(p) == directory).Select(p => Path.GetFileName(p)!)).ToArray();
-        CollectionAssert.AreEquivalent(expected, Directory.GetFileSystemEntries(directory).Select(p => Path.GetFileName(p)!).ToArray());
+        Require(expected.Order(StringComparer.Ordinal).SequenceEqual(Directory.GetFileSystemEntries(directory).Select(p => Path.GetFileName(p)!).Order(StringComparer.Ordinal)), "exact membership");
     }
 
     private static void Preimages(JsonObject actual, JsonObject? previous)
@@ -122,7 +122,7 @@ public sealed class FileRetentionProcessTests
         if (previous is null) { return; }
         var hashes = previous["inventory"]!["segments"]!.AsArray().Select((s, index) => (Id: s!["id"]!.GetValue<int>(), Hash: (string?)previous["files"]![index]!["sha256"])).ToDictionary(p => p.Id, p => p.Hash);
         foreach ((JsonNode? segment, int index) in actual["inventory"]!["segments"]!.AsArray().Select((s, i) => (s, i)))
-        { if (hashes.TryGetValue(segment!["id"]!.GetValue<int>(), out string? hash)) { Assert.AreEqual(hash, (string?)actual["files"]![index]!["sha256"]); } }
+        { if (hashes.TryGetValue(segment!["id"]!.GetValue<int>(), out string? hash)) { Require(hash == (string?)actual["files"]![index]!["sha256"], "retained preimage"); } }
     }
 
     private void Controls(JsonObject sample, JsonObject prior, List<JsonObject> origins, string directory, Dictionary<string, byte[]> neighbors)
@@ -138,14 +138,14 @@ public sealed class FileRetentionProcessTests
             else if (key == "extra-member")
             {
                 string extra = Path.Combine(directory, "unexpected.closed"); File.WriteAllText(extra, "extra");
-                try { Assert.ThrowsExactly<AssertFailedException>(() => Membership(directory, sample["inventory"]!.AsObject(), neighbors)); }
+                try { Assert.AreEqual("exact membership", Assert.ThrowsExactly<InvalidDataException>(() => Membership(directory, sample["inventory"]!.AsObject(), neighbors)).Message); }
                 finally { File.Delete(extra); }
                 TestContext.WriteLine("Rejected original retention control: " + key); continue;
             }
             else if (key == "neighbor")
             {
                 string path = neighbors.Keys.First(); File.WriteAllText(path, "changed neighbor");
-                try { Assert.ThrowsExactly<AssertFailedException>(() => Neighbors(neighbors)); }
+                try { Assert.AreEqual("neighbor preservation", Assert.ThrowsExactly<InvalidDataException>(() => Neighbors(neighbors)).Message); }
                 finally { File.WriteAllBytes(path, neighbors[path]); }
                 TestContext.WriteLine("Rejected original retention control: " + key); continue;
             }
@@ -158,9 +158,12 @@ public sealed class FileRetentionProcessTests
                 else { value["resource"]!["instance_id"] = "eeeeeeee-eeee-eeee-eeee-eeeeeeeeeeee"; }
                 lines[0] = value.ToJsonString(); byte[] changed = Encoding.UTF8.GetBytes(string.Join('\n', lines)); damage = () => Records(changed, false, 5, origins);
             }
-            Assert.ThrowsExactly<AssertFailedException>(damage); TestContext.WriteLine("Rejected original retention control: " + key);
+            string reason = key switch { "bound" or "id-reset" => "bounded inventory", "written" => "output accounting", "group" => "same group", "record-order" => "record order", "record-pid" => "record pid", "record-instance" => "record instance", _ => "retained preimage" };
+            Assert.AreEqual(reason, Assert.ThrowsExactly<InvalidDataException>(damage).Message);
+            TestContext.WriteLine("Rejected original retention control: " + key);
         }
     }
 
+    private static void Require(bool value, string reason) { if (!value) { throw new InvalidDataException(reason); } }
     private static string Hash(string path) => Convert.ToHexStringLower(SHA256.HashData(File.ReadAllBytes(path)));
 }

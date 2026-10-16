@@ -56,7 +56,11 @@ public sealed class JsonlInputSelectorTests
             case "duplicate-id": document["segments"]![1]!["id"] = 1; break;
             case "missing-member": File.Delete(damaged); break;
             case "directory-member": File.Delete(damaged); Directory.CreateDirectory(damaged); break;
-            case "inventory-bound": File.WriteAllBytes(metadata, Encoding.UTF8.GetBytes(new string(' ', JsonlInputSelector.InventoryBytes + 1))); break;
+            case "inventory-bound":
+                byte[] valid = File.ReadAllBytes(metadata), oversized = new byte[JsonlInputSelector.InventoryBytes + 1];
+                Array.Fill(oversized, (byte)' '); valid.CopyTo(oversized, 0);
+                using (JsonDocument parsed = JsonDocument.Parse(oversized)) { Assert.AreEqual(1, parsed.RootElement.GetProperty("schema").GetInt32()); }
+                File.WriteAllBytes(metadata, oversized); break;
             case "entry-bound": File.WriteAllText(active, "{\"a\":\"" + new string('x', JsonlInputSelector.EntryBytes) + "\"}\n"); break;
             case "inventory-bom": File.WriteAllBytes(metadata, [0xef, 0xbb, 0xbf, .. File.ReadAllBytes(metadata)]); break;
             case "schema": document["schema"] = 2; break;

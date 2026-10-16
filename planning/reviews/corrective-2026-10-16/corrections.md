@@ -19,6 +19,21 @@ Executed with SDK 10.0.401 / runtime 10.0.12:
 
 Selection: IncomingRuntimeTests, IncomingEventQueueTests and ProcessingPolicyTests. These are focused development checks, not coverage, mutation or release qualification. A comprehensive Developer checkpoint remains required after the remaining fixes.
 
+## F1, F2, F3, F5 and F6 — file verification and evidence labels
+
+Fixed the required inventory binding for all 23 physical JSONL boundary modes on both lanes; the separate twelve-corruption binding remains. The selector's size corruption is now a valid metadata document padded one byte beyond the limit, with independent parsing proving that JSON syntax is not its rejection reason. Exact-bound positives remain.
+
+Restored stable intended-reason comparisons for all original corruptions in the six named transition/boundary/rotation/retention/inventory/acquisition readers. They still validate actual physical positives before each corruption. No corruption ID was retired. The inventory holder now uses the same acquired metadata/member/hash checks as the ordinary probe and explicitly checks creation, empty active length and initial segment identity.
+
+Current rotation/recovery maps and the policy guide now distinguish unreadable retirement-member preflight from actual post-intent deletion denial. Historical cases/receipts retain their original wording. LoggingReviewProcessTests rotation-denied/recovery-denied remain the actual deletion-denial evidence.
+
+| Lane | Selected native cases | Result | Report |
+| --- | ---: | --- | --- |
+| Windows | 152 | Passed; zero failed/skipped | .artifacts/csharp/focused/f324b8abadd248c68fbd750036c6e50b/summary.json |
+| Ubuntu 24.04 | 153 | Passed; zero failed/skipped | .artifacts/corrective/batch-a/linux/.artifacts/csharp/focused/bc4841e8c3c84b16ab87e6b82ecc047e/summary.json |
+
+Selection: FileTransitionProcessTests, JsonlBoundaryProcessTests, FileRotationProcessTests, FileRetentionProcessTests, FileInventoryProcessTests, FileAcquisitionProcessTests and JsonlInputSelectorTests. Ubuntu executed the additional symlink selector control; Windows error 1314 remains an explicitly unexecuted prerequisite case, not a skip or passing rejection.
+
 ## Still open
 
-F1, F2, F3, F5, F6 and T1–T4 from [the original summary](README.md) remain open pending implementation and verification.
+T1–T4 from [the original summary](README.md) remain open pending verification.

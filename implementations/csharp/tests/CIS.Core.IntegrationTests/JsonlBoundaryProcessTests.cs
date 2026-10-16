@@ -50,7 +50,21 @@ public sealed class JsonlBoundaryProcessTests
             case "restart-flag": report["restartRecovered"] = true; break;
             case "accounting": report["phases"]![0]!["failed"] = 1L; break;
         }
-        Assert.ThrowsExactly<InvalidDataException>(() => JsonlBoundaryExpectations.Validate(mode, report));
+        string reason = key switch
+        {
+            "status" => "boundary status/length",
+            "position" => "stream position",
+            "identity-order" => "identity before inspection",
+            "append" => "literal policy record: event_name",
+            "failed-growth" => "failed startup preserves bytes",
+            "inventory" => "inventory unchanged",
+            "release" => "actual inspection/release",
+            "recovery-flag" or "restart-flag" => "actual append/recovery diagnostics",
+            "damage-status" => "persistent damaged inventory",
+            "accounting" => "current delivery accounting",
+            _ => "exact physical transition"
+        };
+        Assert.AreEqual(reason, Assert.ThrowsExactly<InvalidDataException>(() => JsonlBoundaryExpectations.Validate(mode, report)).Message);
         TestContext.WriteLine("Rejected original boundary control: " + key);
     }
 

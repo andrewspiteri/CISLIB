@@ -148,7 +148,8 @@ public sealed class FileAcquisitionProcessTests
         File.WriteAllText(path + ".cis.lock", "unrelated");
         JsonObject report = await Probe("probe", path, root.Path, "failed", null, "FileOwnershipUnavailable");
         if (field == "error") { report["error"]!["inner"] = true; } else { report[field] = "damaged"; }
-        Assert.ThrowsExactly<AssertFailedException>(() => Validate(report, "failed", null, "FileOwnershipUnavailable", report["pid"]!.GetValue<int>()));
+        string reason = field switch { "status" => "status", "coreSha256" => "Core hash", "length" => "length", _ => "safe error" };
+        Assert.AreEqual(reason, Assert.ThrowsExactly<InvalidDataException>(() => Validate(report, "failed", null, "FileOwnershipUnavailable", report["pid"]!.GetValue<int>())).Message);
         TestContext.WriteLine($"Rejected original acquisition control: {field}");
     }
 
@@ -190,21 +191,22 @@ public sealed class FileAcquisitionProcessTests
 
     private void Validate(JsonObject result, string status, long? length, string? code = null, int pid = 0)
     {
-        Assert.AreEqual(status, result["status"]!.GetValue<string>());
+        Require(status == result["status"]!.GetValue<string>(), "status");
         Assert.AreEqual(".NET 10.0.12", result["runtime"]!.GetValue<string>());
         Assert.AreEqual(OperatingSystem.IsWindows() ? "windows" : "linux", result["os"]!.GetValue<string>());
         Assert.AreEqual(hostHash, result["fixtureSha256"]!.GetValue<string>());
-        Assert.AreEqual(coreHash, result["coreSha256"]!.GetValue<string>());
+        Require(coreHash == result["coreSha256"]!.GetValue<string>(), "Core hash");
         Assert.AreEqual(pid, result["pid"]!.GetValue<int>());
         if (length.HasValue) { Assert.AreEqual(JsonValue.Create(length.Value)!.ToJsonString(), result["length"]!.ToJsonString()); }
-        else { Assert.IsNull(result["length"]); }
+        else { Require(result["length"] is null, "length"); }
         if (code is null) { Assert.IsNull(result["error"]); }
         else
         {
             var expected = new JsonObject { ["output"] = "file", ["code"] = code, ["message"] = $"Logging output 'file' could not initialize ({code}).", ["inner"] = false, ["dataCount"] = 0 };
-            Assert.IsTrue(JsonNode.DeepEquals(expected, result["error"]), "Safe error differs.");
+            Require(JsonNode.DeepEquals(expected, result["error"]), "safe error");
         }
     }
 
+    private static void Require(bool value, string reason) { if (!value) { throw new InvalidDataException(reason); } }
     private static string Hash(string path) => Convert.ToHexStringLower(SHA256.HashData(File.ReadAllBytes(path)));
 }

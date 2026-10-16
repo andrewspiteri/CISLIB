@@ -85,7 +85,9 @@ public sealed class FileInventoryProcessTests
         using var holder = new Process { StartInfo = start }; holder.Start(); Task<string> stderr = holder.StandardError.ReadToEndAsync();
         try
         {
-            JsonObject ready = JsonNode.Parse((await holder.StandardOutput.ReadLineAsync().WaitAsync(Limit))!)!.AsObject(); Validate(ready, "acquired");
+            JsonObject ready = JsonNode.Parse((await holder.StandardOutput.ReadLineAsync().WaitAsync(Limit))!)!.AsObject(); Validate(ready, "acquired"); ValidateAcquired(ready, "jsonl", path);
+            Assert.IsTrue(ready["created"]!.GetValue<bool>()); Assert.AreEqual(0L, ready["length"]!.GetValue<long>());
+            Assert.AreEqual(1L, ready["segmentId"]!.GetValue<long>()); Assert.AreEqual(1, ready["segments"]!.GetValue<int>());
             byte[] before = File.ReadAllBytes(Metadata(path)); JsonObject blocked = await Probe("jsonl", path, root.Path); Validate(blocked, "failed"); AssertSafe(blocked, "FileOwnershipUnavailable");
             CollectionAssert.AreEqual(before, File.ReadAllBytes(Metadata(path))); JsonObject distinct = await Probe("human", Path.Combine(root.Path, "distinct.log"), root.Path); Validate(distinct, "acquired");
             Assert.AreNotEqual((string?)ready["groupId"], (string?)distinct["groupId"]); Assert.AreEqual(holder.Id, ready["pid"]!.GetValue<int>());
@@ -202,7 +204,8 @@ public sealed class FileInventoryProcessTests
         File.WriteAllText(path + ".cis.lock", "unrelated");
         JsonObject report = await Probe("jsonl", path, root.Path); Validate(report, "failed"); AssertSafe(report, "FileOwnershipUnavailable");
         if (field == "error") { report["error"]!["inner"] = true; } else { report[field] = "damaged"; }
-        Assert.ThrowsExactly<AssertFailedException>(() => { Validate(report, "failed"); AssertSafe(report, "FileOwnershipUnavailable"); });
+        string reason = field switch { "status" => "status", "runtime" => "runtime", "coreSha256" => "Core hash", "groupId" => "failed inventory facts", _ => "safe error" };
+        Assert.AreEqual(reason, Assert.ThrowsExactly<InvalidDataException>(() => { Validate(report, "failed"); AssertSafe(report, "FileOwnershipUnavailable"); }).Message);
         TestContext.WriteLine("Rejected original inventory control: " + field);
     }
 
@@ -213,37 +216,40 @@ public sealed class FileInventoryProcessTests
         (JsonObject report, _) = await FixtureProcessChecks.RunAsync(["file-inventory", format, path], cwd, TestContext,
             environment: new Dictionary<string, string?> { ["DOTNET_SYSTEM_IO_DISABLEFILELOCKING"] = null }, timeout: Limit, flatReport: true);
         foreach ((string file, byte[] bytes) in preimages) { CollectionAssert.AreEqual(bytes, ReadShared(file)); }
-        if ((string?)report["status"] == "acquired")
-        {
-            byte[] raw = File.ReadAllBytes(Metadata(path)); Assert.IsFalse(raw.AsSpan().StartsWith(new byte[] { 0xef, 0xbb, 0xbf }));
-            JsonObject stored = JsonNode.Parse(new UTF8Encoding(false, true).GetString(raw))!.AsObject();
-            Assert.AreEqual(1, stored["schema"]!.GetValue<int>()); Assert.AreEqual(format, (string?)stored["format"]);
-            Assert.AreEqual("utf-8", (string?)stored["encoding"]); Assert.AreEqual("lf", (string?)stored["newline"]); Assert.IsFalse(stored["bom"]!.GetValue<bool>());
-            Assert.AreEqual((string?)report["groupId"], (string?)stored["groupId"]); Assert.AreEqual(Hash(Metadata(path)), (string?)report["inventorySha256"]);
-            Assert.AreEqual(stored["segments"]!.AsArray().Count, report["segments"]!.GetValue<int>());
-            Assert.AreEqual(stored["segments"]!.AsArray()[^1]!["id"]!.GetValue<long>(), report["segmentId"]!.GetValue<long>());
-            Assert.AreEqual(format, (string?)report["format"]); Assert.AreEqual(new FileInfo(path).Length, report["length"]!.GetValue<long>());
-            Assert.IsTrue(Guid.TryParseExact((string?)report["groupId"], "N", out Guid group) && group != Guid.Empty);
-            Assert.AreEqual(group.ToString("N"), (string?)report["groupId"]);
-            Assert.AreEqual(0, Directory.GetFiles(Path.GetDirectoryName(path)!, Path.GetFileName(Metadata(path)) + ".*.tmp").Length);
-        }
+        if ((string?)report["status"] == "acquired") { ValidateAcquired(report, format, path); }
         return report;
+    }
+
+    private static void ValidateAcquired(JsonObject report, string format, string path)
+    {
+        byte[] raw = File.ReadAllBytes(Metadata(path)); Assert.IsFalse(raw.AsSpan().StartsWith(new byte[] { 0xef, 0xbb, 0xbf }));
+        JsonObject stored = JsonNode.Parse(new UTF8Encoding(false, true).GetString(raw))!.AsObject();
+        Assert.AreEqual(1, stored["schema"]!.GetValue<int>()); Assert.AreEqual(format, (string?)stored["format"]);
+        Assert.AreEqual("utf-8", (string?)stored["encoding"]); Assert.AreEqual("lf", (string?)stored["newline"]); Assert.IsFalse(stored["bom"]!.GetValue<bool>());
+        Assert.AreEqual((string?)report["groupId"], (string?)stored["groupId"]); Assert.AreEqual(Hash(Metadata(path)), (string?)report["inventorySha256"]);
+        Assert.AreEqual(stored["segments"]!.AsArray().Count, report["segments"]!.GetValue<int>());
+        Assert.AreEqual(stored["segments"]!.AsArray()[^1]!["id"]!.GetValue<long>(), report["segmentId"]!.GetValue<long>());
+        Assert.AreEqual(format, (string?)report["format"]); Assert.AreEqual(new FileInfo(path).Length, report["length"]!.GetValue<long>());
+        Assert.IsTrue(Guid.TryParseExact((string?)report["groupId"], "N", out Guid group) && group != Guid.Empty);
+        Assert.AreEqual(group.ToString("N"), (string?)report["groupId"]);
+        Assert.AreEqual(0, Directory.GetFiles(Path.GetDirectoryName(path)!, Path.GetFileName(Metadata(path)) + ".*.tmp").Length);
     }
 
     private static void Validate(JsonObject result, string status)
     {
-        Assert.AreEqual(status, result["status"]!.GetValue<string>()); Assert.AreEqual(".NET 10.0.12", result["runtime"]!.GetValue<string>());
+        Require(status == result["status"]!.GetValue<string>(), "status"); Require(result["runtime"]!.GetValue<string>() == ".NET 10.0.12", "runtime");
         Assert.AreEqual(OperatingSystem.IsWindows() ? "windows" : "linux", result["os"]!.GetValue<string>());
-        Assert.AreEqual(Hash(Host), result["fixtureSha256"]!.GetValue<string>()); Assert.AreEqual(Hash(Path.Combine(Path.GetDirectoryName(Host)!, "CIS.Core.dll")), result["coreSha256"]!.GetValue<string>());
-        if (status != "acquired") { foreach (string field in new[] { "length", "created", "groupId", "segmentId", "segments", "format", "inventorySha256" }) { Assert.IsNull(result[field], "Failed/released owner leaked inventory facts."); } }
+        Assert.AreEqual(Hash(Host), result["fixtureSha256"]!.GetValue<string>()); Require(Hash(Path.Combine(Path.GetDirectoryName(Host)!, "CIS.Core.dll")) == result["coreSha256"]!.GetValue<string>(), "Core hash");
+        if (status != "acquired") { foreach (string field in new[] { "length", "created", "groupId", "segmentId", "segments", "format", "inventorySha256" }) { Require(result[field] is null, "failed inventory facts"); } }
         if (status != "failed") { Assert.IsNull(result["error"]); }
     }
     private static void AssertSafe(JsonObject result, string code)
     {
         JsonObject error = result["error"]!.AsObject(); Assert.AreEqual("file", error["output"]!.GetValue<string>()); Assert.AreEqual(code, error["code"]!.GetValue<string>());
-        Assert.IsFalse(error["inner"]!.GetValue<bool>()); Assert.AreEqual(0, error["dataCount"]!.GetValue<int>()); Assert.AreEqual($"Logging output 'file' could not initialize ({code}).", error["message"]!.GetValue<string>());
+        Require(!error["inner"]!.GetValue<bool>(), "safe error"); Assert.AreEqual(0, error["dataCount"]!.GetValue<int>()); Assert.AreEqual($"Logging output 'file' could not initialize ({code}).", error["message"]!.GetValue<string>());
     }
     private static byte[] ReadShared(string path)
     { using var file = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite); using var bytes = new MemoryStream(); file.CopyTo(bytes); return bytes.ToArray(); }
+    private static void Require(bool value, string reason) { if (!value) { throw new InvalidDataException(reason); } }
     private static string Hash(string path) => Convert.ToHexStringLower(SHA256.HashData(File.ReadAllBytes(path)));
 }

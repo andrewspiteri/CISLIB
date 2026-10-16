@@ -40,7 +40,8 @@ public sealed class FileRotationProcessTests
             case "borrowedDisposes": report[field] = 1; break;
             case "recordBytes": report[field] = Convert.ToBase64String(Bytes(report, field)[..^1]); break;
         }
-        Assert.ThrowsExactly<AssertFailedException>(() => Check("jsonl-over", report));
+        string reason = field switch { "activeBytes" => "active bytes", "inventory" => "next inventory", "outputs" => "output accounting", "borrowedDisposes" => "borrowed disposal", _ => "record bounds" };
+        Assert.AreEqual(reason, Assert.ThrowsExactly<InvalidDataException>(() => Check("jsonl-over", report)).Message);
         TestContext.WriteLine("Rejected original rotation control: " + field);
     }
 
@@ -64,14 +65,14 @@ public sealed class FileRotationProcessTests
         bool human = mode.StartsWith("human", StringComparison.Ordinal), over = mode.EndsWith("over", StringComparison.Ordinal);
         Assert.AreEqual(mode, (string?)report["mode"]); Assert.AreEqual("Accepted", (string?)report["result"]);
         Assert.IsFalse(report["truncated"]!.GetValue<bool>()); Assert.AreEqual("Stopped", (string?)report["state"]);
-        Assert.AreEqual(0, report["borrowedDisposes"]!.GetValue<int>());
+        Require(report["borrowedDisposes"]!.GetValue<int>() == 0, "borrowed disposal");
         var tickets = new JsonArray(); var outputs = new JsonArray();
         foreach (string name in new[] { "console", "file" })
         {
             tickets.Add(new JsonObject { ["name"] = name, ["status"] = "Accepted", ["sequence"] = 1 });
             outputs.Add(new JsonObject { ["name"] = name, ["state"] = "Stopped", ["accepted"] = 1, ["written"] = 1, ["failed"] = 0, ["pending"] = 0, ["abandoned"] = 0 });
         }
-        Assert.IsTrue(JsonNode.DeepEquals(tickets, report["tickets"])); Assert.IsTrue(JsonNode.DeepEquals(outputs, report["outputs"]));
+        Assert.IsTrue(JsonNode.DeepEquals(tickets, report["tickets"])); Require(JsonNode.DeepEquals(outputs, report["outputs"]), "output accounting");
         byte[] line = Bytes(report, "recordBytes"), seed = Bytes(report, "seedBytes"), active = Bytes(report, "activeBytes");
         Record(line, human); Record(Bytes(report, "consoleBytes"), false);
         Assert.AreEqual(65536 + (over ? 1 : 0), seed.Length + line.Length);
@@ -85,15 +86,15 @@ public sealed class FileRotationProcessTests
         Assert.IsTrue(JsonNode.DeepEquals(old, report["oldInventory"]));
         var next = (JsonObject)old.DeepClone();
         if (over) { next["segments"] = new JsonArray(Segment(1, closed, "closed"), Segment(2, fileName, "active")); }
-        Assert.IsTrue(JsonNode.DeepEquals(next, report["inventory"]));
-        CollectionAssert.AreEqual(over ? line : [.. seed, .. line], active); Assert.IsTrue(active.Length <= 65536);
+        Require(JsonNode.DeepEquals(next, report["inventory"]), "next inventory");
+        Require(active.AsSpan().SequenceEqual(over ? line : [.. seed, .. line]), "active bytes"); Assert.IsTrue(active.Length <= 65536);
         JsonArray expectedClosed = over ? new JsonArray(new JsonObject { ["name"] = closed, ["bytes"] = (string?)report["seedBytes"] }) : [];
         Assert.IsTrue(JsonNode.DeepEquals(expectedClosed, report["closed"]));
     }
 
     private static void Record(byte[] raw, bool human)
     {
-        Assert.IsTrue(raw.Length is > 0 and <= 16384 && raw[^1] == 10);
+        Require(raw.Length is > 0 and <= 16384 && raw[^1] == 10, "record bounds");
         Assert.IsFalse(raw.AsSpan().StartsWith(new byte[] { 0xef, 0xbb, 0xbf }));
         string text = new UTF8Encoding(false, true).GetString(raw);
         Assert.AreEqual(1, text.Count(c => c == '\n')); Assert.IsFalse(text.Contains('\r'));
@@ -110,5 +111,6 @@ public sealed class FileRotationProcessTests
         if (!human) { Assert.AreEqual(1, fields["schema_version"].GetInt32()); Assert.AreEqual("11111111-1111-1111-1111-111111111111", fields["resource"].GetProperty("instance_id").GetString()); }
     }
 
+    private static void Require(bool value, string reason) { if (!value) { throw new InvalidDataException(reason); } }
     private static byte[] Bytes(JsonObject report, string key) => Convert.FromBase64String((string)report[key]!);
 }

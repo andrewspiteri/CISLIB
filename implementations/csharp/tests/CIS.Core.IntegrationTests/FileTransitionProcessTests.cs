@@ -51,7 +51,21 @@ public sealed class FileTransitionProcessTests
             case "archive": string name = report["after"]!.AsObject().Select(p => p.Key).Single(k => k.EndsWith("00000000000000000002.damaged", StringComparison.Ordinal)); report["after"]![name] = Convert.ToBase64String(Encoding.UTF8.GetBytes("changed")); break;
             case "neighbor": report["after"]!["neighbor.bin"] = Convert.ToBase64String(Encoding.UTF8.GetBytes("changed")); break;
         }
-        Assert.ThrowsExactly<InvalidDataException>(() => FileTransitionExpectations.Validate(mode, report)); TestContext.WriteLine("Rejected original transition control: " + key);
+        string reason = key switch
+        {
+            "composition" => "composition",
+            "release" => "in-process release",
+            "intent" => "pending intent",
+            "code" => "safe failure",
+            "failure-growth" => "unchanged failure",
+            "flag" or "restart-flag" => "recovery diagnostics",
+            "accounting" => "delivery accounting",
+            "record" => "literal policy record: event_name",
+            "inventory" => "next inventory",
+            _ => "exact physical transition"
+        };
+        Assert.AreEqual(reason, Assert.ThrowsExactly<InvalidDataException>(() => FileTransitionExpectations.Validate(mode, report)).Message);
+        TestContext.WriteLine("Rejected original transition control: " + key);
     }
 
     private async Task<JsonObject> Run(string mode, string root)
