@@ -1,62 +1,88 @@
-using System.Text;
 using System.Text.Json.Nodes;
+using static CIS.Tests.DiscoveryFixture.ProviderReportChecks;
 
 namespace CIS.Tests.DiscoveryFixture;
 
 internal static class ProviderHostStoryExpectations
 {
     internal static readonly string[] Modes = ["async-owned", "async-external", "factory-precedence", "factory-lifetime", "shutdown", "shutdown-loss", "factory-formatter"];
-    internal static void Validate(string mode, JsonObject report)
+    private const string Category = "CIS.Tests.DiscoveryFixture.ProviderHostStoryFixture.Worker";
+    internal static void Validate(string mode, JsonObject a, int? expectedPid = null)
     {
-        void Require(bool value, string reason) { if (!value) { throw new InvalidDataException(reason); } }
+        Header(mode, Modes, a, expectedPid);
         bool concurrent = mode.StartsWith("async-", StringComparison.Ordinal), shutdown = mode is "shutdown" or "shutdown-loss", loss = mode == "shutdown-loss";
         int count = concurrent ? 9 : mode == "factory-precedence" ? 4 : mode == "factory-formatter" ? 1 : 3;
-        int formatters = concurrent ? 9 : mode is "factory-lifetime" or "shutdown" or "factory-formatter" ? 2 : 3;
-        Require((string?)report["mode"] == mode && (string?)report["runtime"] == ".NET 10.0.12" && report["leaseReleased"]!.GetValue<bool>(), "Actual mode/runtime/lease.");
-        Require(report["formatterExceptionPreserved"]!.GetValue<bool>() == (mode == "factory-formatter"), "Factory aggregates original formatter failure.");
-        Require(report["formatterCalls"]!.GetValue<int>() == formatters && report["arrivals"]!.GetValue<int>() == (concurrent ? 2 : 0), "Actual callback/concurrent cohort.");
-        Require(report["sameStopTask"]!.GetValue<bool>() && report["sameStopResult"]!.GetValue<bool>() && report["workFinishedAtStop"]!.GetValue<bool>() == shutdown && report["ownerAttention"]!.GetValue<bool>() == loss, "Application observes shared stop and actual loss.");
-        Require(report["sharedLiveAfterFactoryDispose"]!.GetValue<bool>() == (mode == "factory-lifetime") && report["disposedGuards"]!.GetValue<int>() == (mode == "factory-lifetime" ? 2 : 0), "Factory/provider/Core lifetimes.");
-        Require((string?)report["invalid"] == (loss ? "1" : "0") && (string?)report["truncated"] == "0", "Actual rejection/truncation.");
-        string[] phases = report["phases"]!.AsArray().Select(x => x!.GetValue<string>()).ToArray();
-        Require(phases.SequenceEqual(shutdown ? new[] { "work.started", "shutdown.requested", "work.finished", "runtime.stop", "factory.dispose" } : []), "Work finishes before runtime stop/factory disposal.");
-        byte[] data = Convert.FromBase64String(report["bytes"]!.GetValue<string>()); string text = Encoding.UTF8.GetString(data);
-        Require(text.EndsWith('\n') && !text.StartsWith('\uFEFF'), "Actual JSONL framing.");
-        JsonObject[] rows = text.Split('\n', StringSplitOptions.RemoveEmptyEntries).Select(line => JsonNode.Parse(line)!.AsObject()).ToArray();
-        Require(rows.Length == count, "Actual record count.");
+        int formats = concurrent ? 9 : mode is "factory-lifetime" or "shutdown" or "factory-formatter" ? 2 : 3;
+        Require(Same(a["formatterExceptionPreserved"], JsonValue.Create(mode == "factory-formatter")), "formatter exception identity");
+        Require(Integer(a["formatterCalls"], formats) && Integer(a["arrivals"], concurrent ? 2 : 0), "callbacks and cohort");
+        Require(Same(a["sameStopTask"], "true") && Same(a["sameStopResult"], "true") &&
+            Same(a["workFinishedAtStop"], JsonValue.Create(shutdown)) && Same(a["ownerAttention"], JsonValue.Create(loss)), "observed stop and attention");
+        Require(Same(a["sharedLiveAfterFactoryDispose"], JsonValue.Create(mode == "factory-lifetime")) &&
+            Integer(a["disposedGuards"], mode == "factory-lifetime" ? 2 : 0), "factory and Core ownership");
+        Require((string?)a["invalid"] == (loss ? "1" : "0") && (string?)a["truncated"] == "0" && Same(a["leaseReleased"], "true"), "actual accounting and lease");
+        string[] phases = a["phases"]!.AsArray().Select(item => item!.GetValue<string>()).ToArray();
+        Require(phases.SequenceEqual(shutdown ? ["work.started", "shutdown.requested", "work.finished", "runtime.stop", "factory.dispose"] : Array.Empty<string>()), "shutdown ordering");
+        JsonObject[] rows = Rows(a, count);
         foreach (JsonObject row in rows)
         {
-            Require((string?)row["status"] == "info" && row["schema_version"]!.GetValue<int>() == 1 && row["resource"]!["process_id"]!.GetValue<int>() == report["pid"]!.GetValue<int>() && row["truncated"] is null, "Core wire identity and no truncation.");
+            Require(Integer(row["schema_version"], 1) && (string?)row["status"] == "info" && !row.ContainsKey("truncated"), "wire schema/status/truncation");
+            Identity(row, a, true, "automatic identity");
+        }
+        void Event(JsonObject row, string name, string? operation, string category, JsonObject attributes, string message = "rendered")
+        {
+            Require((string?)row["event_name"] == name && (string?)row["operation_id"] == operation &&
+                (string?)row["component"] == category && (string?)row["message"] == message, "operation category message");
+            Require(Same(row["attributes"], attributes), "exact event attributes");
         }
         if (concurrent)
         {
-            string category = mode == "async-owned" ? "Owned.Host.Story" : "CIS.Tests.DiscoveryFixture.ProviderHostStoryFixture.Worker";
+            string category = mode == "async-owned" ? "Owned.Host.Story" : Category;
             for (int owner = 1; owner <= 2; owner++)
             {
-                JsonObject[] operation = rows.Where(x => x["event_name"]!.GetValue<string>().StartsWith($"owner.{owner}.", StringComparison.Ordinal)).ToArray();
-                Require(operation.Select(x => x["event_name"]!.GetValue<string>()).SequenceEqual(new[] { $"owner.{owner}.outer", $"owner.{owner}.inner", $"owner.{owner}.event", $"owner.{owner}.restored" }), "Per-operation order.");
-                for (int i = 0; i < operation.Length; i++)
+                JsonObject[] selected = rows.Where(row => row["event_name"]!.GetValue<string>().StartsWith("owner." + owner + ".", StringComparison.Ordinal)).ToArray();
+                string[] names = new[] { "outer", "inner", "event", "restored" }.Select(name => "owner." + owner + "." + name).ToArray();
+                Require(selected.Select(row => (string?)row["event_name"]).SequenceEqual(names), "per-operation order");
+                for (int i = 0; i < selected.Length; i++)
                 {
-                    JsonObject row = operation[i]; JsonObject attributes = row["attributes"]!.AsObject();
-                    Require((string?)row["operation_id"] == (i is 1 or 2 ? "nested." : "operation.") + owner && (string?)row["component"] == category && (string?)row["message"] == "rendered", "Distinct operation/typed category.");
-                    Require(attributes["owner"]!.GetValue<int>() == owner && (string?)attributes["phase"] == (mode == "async-owned" ? "initial" : "changed") && (string?)attributes["common"] == (i == 2 ? "event" : i == 1 ? "inner" : "outer") && attributes["event_id"]!.GetValue<int>() == 17 && (string?)attributes["operation_id"] == (i == 2 ? "ordinary-event-field" : null), "Copied/borrowed nested/event state.");
+                    var attributes = new JsonObject
+                    {
+                        ["owner"] = owner,
+                        ["phase"] = mode == "async-owned" ? "initial" : "changed",
+                        ["common"] = i == 2 ? "event" : i == 1 ? "inner" : "outer",
+                        ["event_id"] = 17
+                    };
+                    if (i == 2) { attributes["operation_id"] = "ordinary-event-field"; }
+                    Event(selected[i], names[i], (i is 1 or 2 ? "nested." : "operation.") + owner, category, attributes);
                 }
             }
-            Require((string?)rows[^1]["event_name"] == "after" && rows[^1]["operation_id"] is null && rows[^1]["attributes"]!.AsObject().Count == 1, "No scope leaked to caller.");
+            Event(rows[^1], "after", null, category, new JsonObject { ["event_id"] = 17 });
         }
-        if (mode == "factory-precedence")
+        else if (mode == "factory-precedence")
         {
-            Require(rows.Select(x => (string?)x["operation_id"]).SequenceEqual(new string?[] { "host.outer", "host.inner", "event.explicit", null }), "Core/host/event operation precedence.");
-            Require(rows.Take(3).All(x => (string?)x["trace_id"] == (string?)report["trace"] && (string?)x["span_id"] == (string?)report["span"] && (string?)x["service"] == "CIS.Core.DiscoveryFixture" && (string?)x["env"] != "fake" && (string?)x["version"] != "fake" && (string?)x["component"] != "fake" && x["resource"] is JsonObject), "Protected identity and Activity.");
-            Require(rows[1]["attributes"]!["common"]!.GetValue<string>() == "event" && rows[1]["attributes"]!["core"]!.GetValue<bool>() && (string?)rows[1]["attributes"]!["operation_id"] == "ordinary-event-field", "Factory layers and event override.");
+            JsonObject first = JsonNode.Parse("""{"core":true,"service":"fake","trace_id":"fake","span_id":"fake","event_id":17,"common":"host"}""")!.AsObject();
+            Event(rows[0], "outer", "host.outer", Category, first);
+            JsonObject second = JsonNode.Parse("""{"core":true,"service":"fake","trace_id":"fake","span_id":"fake","event_id":17,"common":"event","operation_id":"ordinary-event-field","env":"fake","version":"fake","component":"fake","resource":"fake"}""")!.AsObject();
+            Event(rows[1], "inner", "host.inner", Category, second);
+            Event(rows[2], "explicit", "event.explicit", "Direct.Host.Story", new JsonObject { ["core"] = true, ["common"] = "core" }, "direct");
+            Event(rows[3], "after", null, Category, new JsonObject { ["event_id"] = 17 });
+            Activity(a);
+            Require(rows.Take(3).All(row => Same(row["trace_id"], a["trace"]) && Same(row["span_id"], a["span"]) &&
+                (string?)row["env"] != "fake" && (string?)row["version"] != "fake"), "protected Activity and identity");
+            Require(!rows[3].ContainsKey("trace_id") && !rows[3].ContainsKey("span_id"), "Activity does not leak");
         }
-        if (mode == "factory-lifetime") { Require(rows.Select(x => (string?)x["event_name"]).SequenceEqual(new[] { "before", "direct.live", "other.live" }) && rows.All(x => (string?)x["operation_id"] == "core.owner"), "Runtime and caller scope survive factory disposal."); }
-        if (shutdown) { Require(rows.Select(x => (string?)x["event_name"]).SequenceEqual(new[] { "work.started", "work.finished", "owner.finishing" }) && (string?)rows[0]["operation_id"] == "background" && (string?)rows[1]["operation_id"] == "background" && rows[2]["operation_id"] is null, "Application completion and no rejected record."); }
-        if (mode == "factory-formatter") { Require((string?)rows[0]["event_name"] == "after.formatter" && (string?)rows[0]["component"] == "CIS.Tests.DiscoveryFixture.ProviderHostStoryFixture.Worker", "No failed-formatter admission; later calls remain usable."); }
-        JsonObject result = report["result"]!.AsObject();
-        Require((string?)result["completion"] == "Completed" && result["succeeded"]!.GetValue<bool>() && result["loss"]!.GetValue<bool>() == loss, "Actual stop result.");
-        JsonArray outputs = result["outputs"]!.AsArray(); Require(outputs.Count == 1, "File composition.");
-        JsonObject output = outputs[0]!.AsObject(); string n = count.ToString(System.Globalization.CultureInfo.InvariantCulture);
-        Require((string?)output["boundary"] == n && (string?)output["written"] == n && (string?)output["failed"] == "0" && (string?)output["abandoned"] == "0" && (string?)output["pending"] == "0" && (string?)output["flush"] == "Succeeded", "Exact stopped delivery.");
+        else if (mode == "factory-lifetime")
+        {
+            Event(rows[0], "before", "core.owner", Category, new JsonObject { ["owner"] = "application", ["event_id"] = 17 });
+            Event(rows[1], "direct.live", "core.owner", "Direct.Host.Story", new JsonObject { ["owner"] = "application" }, "direct");
+            Event(rows[2], "other.live", "core.owner", "Other.Host.Story", new JsonObject { ["owner"] = "application", ["event_id"] = 17 });
+        }
+        else if (mode == "factory-formatter") { Event(rows[0], "after.formatter", null, Category, new JsonObject { ["event_id"] = 17 }); }
+        else
+        {
+            Event(rows[0], "work.started", "background", Category, new JsonObject { ["owner"] = "worker", ["event_id"] = 17 });
+            Event(rows[1], "work.finished", "background", Category, new JsonObject { ["owner"] = "worker", ["event_id"] = 17 });
+            Event(rows[2], "owner.finishing", null, "Direct.Host.Story", new JsonObject(), "direct");
+        }
+        Stop(a, count, true, loss, "actual Core stop result", "exact drain delivery");
     }
 }

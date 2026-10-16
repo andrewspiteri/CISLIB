@@ -1,58 +1,60 @@
 using System.Text;
 using System.Text.Json.Nodes;
+using static CIS.Tests.DiscoveryFixture.ProviderReportChecks;
 
 namespace CIS.Tests.DiscoveryFixture;
 
 internal static class ProviderHostFilterExpectations
 {
     internal static readonly string[] Modes = ["broad", "provider-rule", "category-rule", "narrow-host", "narrow-category", "trace-file", "core-off"];
-
-    internal static void Validate(string mode, JsonObject report, string consoleText)
+    internal static void Validate(string mode, JsonObject a, string consoleText, int? expectedPid = null)
     {
-        void Require(bool value, string reason) { if (!value) { throw new InvalidDataException(reason); } }
+        Header(mode, Modes, a, expectedPid);
         bool off = mode == "core-off", narrow = mode is "narrow-host" or "narrow-category";
         int count = off ? 0 : narrow ? 3 : mode == "trace-file" ? 6 : 5;
-        Require((string?)report["consoleLevel"] == (off ? "None" : "Warning") && (string?)report["fileLevel"] == (off ? "None" : mode == "trace-file" ? "Trace" : "Debug"), "Core thresholds.");
-        Require((string?)report["mode"] == mode && (string?)report["runtime"] == ".NET 10.0.12", "Actual case and runtime.");
-        Require(report["formatterCalls"]!.GetValue<int>() == count && report["stateEnumerations"]!.GetValue<int>() == count, "Only interested events invoke formatter and copy state.");
-        Require(report["coreDebug"]!.GetValue<bool>() == !off && report["hostDebug"]!.GetValue<bool>() == (!off && !narrow), "Host can suppress an interested Core event.");
-        Require(report["fileExists"]!.GetValue<bool>() == !off && report["leaseReleased"]!.GetValue<bool>() == !off && (string?)report["invalid"] == "0", "Physical file lifetime and valid events.");
-        string[] fileNames = off ? [] : narrow ? ["warning", "error", "critical", "direct.debug"] : mode == "trace-file" ? ["trace", "debug", "information", "warning", "error", "critical"] : ["debug", "information", "warning", "error", "critical"];
+        Require(Integer(a["formatterCalls"], count) && Integer(a["stateEnumerations"], count), "skipped callback work");
+        Require(Same(a["coreDebug"], JsonValue.Create(!off)) && Same(a["hostDebug"], JsonValue.Create(!off && !narrow)), "effective host interest");
+        Require(Same(a["fileExists"], JsonValue.Create(!off)) && Same(a["leaseReleased"], JsonValue.Create(!off)), "physical lifetime");
+        Require((string?)a["consoleLevel"] == (off ? "None" : "Warning") &&
+            (string?)a["fileLevel"] == (off ? "None" : mode == "trace-file" ? "Trace" : "Debug"), "core thresholds");
+        Require((string?)a["invalid"] == "0", "invalid accounting");
+        string[] fileNames = off ? [] : narrow ? ["warning", "error", "critical", "direct.debug"] :
+            mode == "trace-file" ? ["trace", "debug", "information", "warning", "error", "critical"] : ["debug", "information", "warning", "error", "critical"];
         string[] consoleNames = off ? [] : ["warning", "error", "critical"];
-        byte[] file = Convert.FromBase64String(report["fileBytes"]!.GetValue<string>());
-        Check(Encoding.UTF8.GetString(file), fileNames);
-        Check(consoleText, consoleNames);
-        JsonObject result = report["result"]!.AsObject();
-        Require(result["succeeded"]!.GetValue<bool>() && !result["loss"]!.GetValue<bool>() && (string?)result["completion"] == "Completed", "Successful stop cannot detect host suppression.");
-        JsonArray outputs = result["outputs"]!.AsArray();
-        Require(outputs.Count == (off ? 0 : 2), "Configured destinations.");
-        foreach (JsonNode? node in outputs)
+        Check(Convert.FromBase64String(a["fileBytes"]!.GetValue<string>()), fileNames);
+        Check(Encoding.UTF8.GetBytes(consoleText), consoleNames);
+        JsonObject result = a["result"]!.AsObject(); Shape(result);
+        Require((string?)result["completion"] == "Completed" && Same(result["succeeded"], "true") && Same(result["loss"], "false"), "actual stop result");
+        string[] destinations = off ? [] : ["console", "file"];
+        JsonArray stopped = result["outputs"]!.AsArray();
+        Require(stopped.Select(output => (string?)output!["name"]).SequenceEqual(destinations), "output composition");
+        foreach (JsonNode? output in stopped)
         {
-            JsonObject output = node!.AsObject();
-            string expected = ((string?)output["name"] == "console" ? consoleNames.Length : fileNames.Length).ToString(System.Globalization.CultureInfo.InvariantCulture);
-            Require((string?)output["boundary"] == expected && (string?)output["written"] == expected && (string?)output["failed"] == "0" && (string?)output["pending"] == "0" && (string?)output["abandoned"] == "0" && (string?)output["flush"] == "Succeeded", "Independent destination delivery.");
+            Delivery(output!, (string?)output!["name"] == "console" ? consoleNames.Length : fileNames.Length, "separate core delivery");
         }
-        JsonArray live = report["outputs"]!.AsArray();
-        Require(live.Select(node => (string?)node!["name"]).SequenceEqual(off ? [] : new[] { "console", "file" }), "Live destination composition.");
-        foreach (JsonNode? node in live)
+        JsonArray live = a["outputs"]!.AsArray();
+        Require(live.Select(output => (string?)output!["name"]).SequenceEqual(destinations), "live output composition");
+        foreach (JsonNode? output in live)
         {
-            JsonObject output = node!.AsObject();
-            string expected = ((string?)output["name"] == "console" ? consoleNames.Length : fileNames.Length).ToString(System.Globalization.CultureInfo.InvariantCulture);
-            Require((string?)output["accepted"] == expected && (string?)output["written"] == expected && (string?)output["failed"] == "0" && (string?)output["abandoned"] == "0" && (string?)output["pending"] == "0" && (string?)output["full"] == "0" && (string?)output["unavailable"] == "0" && output["fault"] is null, "Live delivery accounting.");
+            string expected = ((string?)output!["name"] == "console" ? consoleNames.Length : fileNames.Length).ToString(System.Globalization.CultureInfo.InvariantCulture);
+            Require((string?)output["accepted"] == expected && (string?)output["written"] == expected &&
+                new[] { "failed", "abandoned", "pending", "full", "unavailable" }.All(key => (string?)output[key] == "0") &&
+                output["fault"] is null, "live delivery accounting");
         }
-        void Check(string text, string[] names)
+        void Check(byte[] data, string[] names)
         {
-            Require(text.Length == 0 || text.EndsWith('\n') && !text.StartsWith('\uFEFF'), "JSONL framing.");
-            JsonObject[] rows = text.Split('\n', StringSplitOptions.RemoveEmptyEntries).Select(line => JsonNode.Parse(line)!.AsObject()).ToArray();
-            Require(rows.Select(row => row["event_name"]!.GetValue<string>()).SequenceEqual(names), "Output severity selection.");
+            JsonObject[] rows = Rows(data, names.Length, countReason: "destination severity records");
+            Require(rows.Select(row => (string?)row["event_name"]).SequenceEqual(names), "destination severity records");
             foreach (JsonObject row in rows)
             {
-                string name = row["event_name"]!.GetValue<string>();
-                Require((string?)row["status"] == (name == "information" ? "info" : name == "warning" ? "warn" : name == "direct.debug" ? "debug" : name), "Core level mapping.");
-                Require((string?)row["message"] == (name == "direct.debug" ? "direct" : "rendered"), "Actual formatter message.");
-                Require(row["resource"]!["process_id"]!.GetValue<int>() == report["pid"]!.GetValue<int>() && row["schema_version"]!.GetValue<int>() == 1, "Automatic wire identity.");
-                Require((string?)row["component"] == (name == "direct.debug" ? "Direct.Host.Filter" : "Provider.Host.Filters"), "Factory category mapping.");
-                if (name != "direct.debug") { Require(row["attributes"]!.AsObject().Count == 2 && row["attributes"]!["event_id"]!.GetValue<int>() == 17 && row["attributes"]!["value"]!.GetValue<int>() == 7, "Structured provider state."); }
+                string name = row["event_name"]!.GetValue<string>(); bool direct = name == "direct.debug";
+                string status = name switch { "information" => "info", "warning" => "warn", "direct.debug" => "debug", _ => name };
+                Require(Integer(row["schema_version"], 1) && (string?)row["status"] == status, "wire level");
+                Require((string?)row["message"] == (direct ? "direct" : "rendered") &&
+                    (string?)row["component"] == (direct ? "Direct.Host.Filter" : "Provider.Host.Filters"), "mapped message and category");
+                Identity(row, a, true, "automatic facts");
+                Require(!row.ContainsKey("truncated") && !row.ContainsKey("operation_id"), "untruncated ordinary event");
+                Require(Same(row["attributes"], direct ? "{}" : """{"event_id":17,"value":7}"""), "structured state");
             }
         }
     }
