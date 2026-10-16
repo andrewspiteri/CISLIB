@@ -5,6 +5,7 @@ namespace CIS.Tests.DiscoveryFixture;
 
 internal static class JsonlBoundaryExpectations
 {
+    internal static readonly string[] Modes = ["empty", "object", "unicode", "two-records", "chunk-boundary", "missing-lf", "partial-json", "partial-utf8", "invalid-json", "invalid-utf8", "array", "blank", "crlf", "bom", "missing-inventory", "wrong-format", "wrong-encoding", "repeat", "with-retained", "collision-file", "collision-directory", "retention-full", "identity-exhausted"];
     internal static void Validate(string mode, JsonObject actual)
     {
         bool identity = mode is "missing-inventory" or "wrong-format" or "wrong-encoding";
@@ -31,7 +32,7 @@ internal static class JsonlBoundaryExpectations
             Require(actual["status"]!.GetValue<string>() == status && actual["length"]!.GetValue<long>() == before.LongLength, "boundary status/length");
             Require(actual["originalPosition"]!.GetValue<long>() == (before.Length == 0 ? 0 : 3) && JsonNode.DeepEquals(actual["originalPosition"], actual["restoredPosition"]), "stream position");
         }
-        JsonObject expected = actual["preimage"]!.DeepClone().AsObject(), filesystem = actual["filesystem"]!.AsObject();
+        JsonObject expected = LiteralPreimage(mode, actual), filesystem = actual["filesystem"]!.AsObject();
         string active = "\u03a9-\U0001f642.jsonl", metadata = active + ".cis.inventory.json";
         Require(expected[active]!.GetValue<string>() == actual["before"]!.GetValue<string>(), "physical original");
         Require(Encoding.UTF8.GetString(Bytes(actual, "neighbor")) == "untouched neighbor\n", "neighbor preservation");
@@ -82,6 +83,7 @@ internal static class JsonlBoundaryExpectations
                     entries[^1]!["state"] = "damaged";
                     entries.Add(new JsonObject { ["id"] = id + 2, ["fileName"] = active, ["state"] = "active" });
                 }
+                byte[] published = Bytes(actual, "inventoryAfter"); Require(published.Length > 0 && published[^1] == 10 && !published.Contains((byte)13) && !published.AsSpan().StartsWith(new byte[] { 0xef, 0xbb, 0xbf }), "published inventory framing");
                 Require(JsonNode.DeepEquals(next, JsonNode.Parse(Bytes(actual, "inventoryAfter"))), "persistent damaged inventory");
                 expected[metadata] = actual["inventoryAfter"]!.DeepClone();
             }
@@ -92,13 +94,51 @@ internal static class JsonlBoundaryExpectations
         string[] names = filesystem.Select(x => x.Key.Split('/')[0]).Distinct(StringComparer.Ordinal).Order(StringComparer.Ordinal).ToArray();
         Require(actual["names"]!.AsArray().Select(x => x!.GetValue<string>()).SequenceEqual(names), "exact membership");
     }
-    private static byte[] Bytes(JsonObject value, string key) => Convert.FromBase64String(value[key]!.GetValue<string>());
-    private static void Record(byte[] line, int pid)
+    private static JsonObject LiteralPreimage(string mode, JsonObject actual)
     {
-        Require(line.Length > 0 && line[^1] == 10 && line.AsSpan().Count((byte)10) == 1 && !line.AsSpan().Contains((byte)13), "complete appended record");
-        JsonObject record = JsonNode.Parse(line)!.AsObject();
-        Require(record["event_name"]!.GetValue<string>() == "boundary.append" && record["component"]!.GetValue<string>() == "Boundary" && record["message"]!.GetValue<string>() == "\u03a9 \U0001f642" && record["attributes"]!["producer_pid"]!.GetValue<long>() == pid && record["truncated"] is null, "literal append");
+        const string active = "Ω-🙂.jsonl", foreign = ".cis-log-ffffffffffffffffffffffffffffffff-00000000000000000001.closed";
+        byte[] seed = mode switch
+        {
+            "repeat" or "with-retained" or "collision-file" or "collision-directory" or "retention-full" or "identity-exhausted" => Encoding.UTF8.GetBytes("{\"stage\":"),
+            "empty" => [],
+            "unicode" => Encoding.UTF8.GetBytes("{\"message\":\"Ω 🙂 é\"}\n"),
+            "two-records" => Encoding.UTF8.GetBytes("{\"first\":true}\n{\"next\":true}\n"),
+            "chunk-boundary" => Encoding.UTF8.GetBytes("{\"prior\":true}\n{\"message\":\"" + new string('x', 4081) + "\"}\n"),
+            "missing-lf" => Encoding.UTF8.GetBytes("{\"a\":1}"),
+            "partial-json" => Encoding.UTF8.GetBytes("{\"prior\":true}\n{\"message\":"),
+            "partial-utf8" => [.. Encoding.UTF8.GetBytes("{\"prior\":true}\n{\"message\":\""), 0xf0, 0x9f],
+            "invalid-json" => Encoding.UTF8.GetBytes("{\"a\":\n"),
+            "invalid-utf8" => [.. Encoding.UTF8.GetBytes("{\"a\":\""), 0xff, .. Encoding.UTF8.GetBytes("\"}\n")],
+            "array" => Encoding.UTF8.GetBytes("[]\n"),
+            "blank" => [10],
+            "crlf" => Encoding.UTF8.GetBytes("{}\r\n"),
+            "bom" => [0xef, 0xbb, 0xbf, .. Encoding.UTF8.GetBytes("{}\n")],
+            "wrong-format" or "wrong-encoding" => [0xff, 10],
+            _ => Encoding.UTF8.GetBytes("{\"a\":1}\n")
+        };
+        Require(seed.AsSpan().SequenceEqual(Bytes(actual, "before")), "literal seed");
+        var expected = new JsonObject { [active] = Convert.ToBase64String(seed), [active + ".cis.lock"] = "", [foreign] = Convert.ToBase64String(Encoding.UTF8.GetBytes("untouched neighbor\n")) };
+        if (mode == "missing-inventory") { Require(actual["inventoryBefore"] is null, "missing inventory"); }
+        else
+        {
+            JsonObject old = JsonNode.Parse(Bytes(actual, "inventoryBefore"))!.AsObject(); string group = (string)old["groupId"]!;
+            Require(Guid.TryParseExact(group, "N", out Guid value) && value != Guid.Empty && value.ToString("N") == group, "persistent group");
+            string Name(long id, string state) => ".cis-log-" + group + "-" + id.ToString("D20", System.Globalization.CultureInfo.InvariantCulture) + "." + state;
+            JsonObject Segment(long id, string name, string state) => new() { ["id"] = id, ["fileName"] = name, ["state"] = state };
+            var segments = new JsonArray();
+            if (mode is "with-retained" or "retention-full") { string name = Name(1, "closed"); segments.Add(Segment(1, name, "closed")); expected[name] = Convert.ToBase64String(Encoding.UTF8.GetBytes("prior closed evidence\n")); }
+            if (mode == "with-retained") { string name = Name(3, "damaged"); segments.Add(Segment(3, name, "damaged")); expected[name] = Convert.ToBase64String([0xff, 10]); }
+            long id = mode == "with-retained" ? 7 : mode == "retention-full" ? 2 : mode == "identity-exhausted" ? long.MaxValue : 1;
+            segments.Add(Segment(id, active, "active"));
+            var inventory = new JsonObject { ["schema"] = 1, ["groupId"] = group, ["format"] = mode == "wrong-format" ? "human" : "jsonl", ["encoding"] = mode == "wrong-encoding" ? "utf-16" : "utf-8", ["bom"] = false, ["newline"] = "lf", ["segments"] = segments };
+            Require(JsonNode.DeepEquals(inventory, old), "literal inventory identity"); expected[active + ".cis.inventory.json"] = actual["inventoryBefore"]!.DeepClone();
+            if (mode is "collision-file" or "collision-directory") { expected[Name(1, "damaged") + (mode == "collision-directory" ? "/keep.txt" : "")] = Convert.ToBase64String(Encoding.UTF8.GetBytes("reserved name\n")); }
+        }
+        Require(JsonNode.DeepEquals(expected, actual["preimage"]), "literal physical preimage"); return expected;
     }
+
+    private static byte[] Bytes(JsonObject value, string key) => Convert.FromBase64String(value[key]!.GetValue<string>());
+    private static void Record(byte[] line, int pid) => FileRecordChecks.Record(line, false, "Boundary", "boundary.append", "Ω 🙂", pid);
     private static void Require(bool value, string reason)
     { if (!value) { throw new InvalidDataException(reason); } }
 }

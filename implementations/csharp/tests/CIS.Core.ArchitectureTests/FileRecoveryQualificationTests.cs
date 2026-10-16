@@ -25,13 +25,16 @@ public sealed class FileRecoveryQualificationTests
         foreach (KeyValuePair<string, JsonNode?> lane in map["lanes"]!.AsObject())
         {
             Assert.IsTrue(File.Exists(Path.Combine(folder, lane.Value!["verifier"]!.GetValue<string>())));
+            bool native = lane.Value!["verifier"]!.GetValue<string>().EndsWith(".cs", StringComparison.Ordinal);
             if (lane.Key != "restart")
             {
-                string reader = File.ReadAllText(Path.Combine(folder, lane.Value!["verifier"]!.GetValue<string>()));
-                Match modes = Regex.Match(reader, @"(?m)^MODES=\[(.*?)\]"); Assert.IsTrue(modes.Success);
-                literalLaneModes.Add(lane.Key, Regex.Matches(modes.Groups[1].Value, "'([^']+)'").Select(match => match.Groups[1].Value).ToArray());
+                string reader = File.ReadAllText(Path.Combine(folder, lane.Value[native ? "caseSource" : "verifier"]!.GetValue<string>()));
+                Match modes = Regex.Match(reader, native ? @"Modes = \[(.*?)\];" : @"(?m)^MODES=\[(.*?)\]", RegexOptions.Singleline); Assert.IsTrue(modes.Success);
+                literalLaneModes.Add(lane.Key, Regex.Matches(modes.Groups[1].Value, native ? "\"([^\"]+)\"" : "'([^']+)'").Select(match => match.Groups[1].Value).ToArray());
             }
-            Assert.IsTrue(File.ReadAllText(Path.Combine(folder, lane.Value!["verifier"]!.GetValue<string>())).Contains("schema='" + lane.Value["reportSchema"]!.GetValue<string>() + "'", StringComparison.Ordinal));
+            if (native) { Assert.AreEqual("vstest.trx/2010", lane.Value["reportSchema"]!.GetValue<string>()); }
+            else { Assert.IsTrue(File.ReadAllText(Path.Combine(folder, lane.Value["verifier"]!.GetValue<string>())).Contains("schema='" + lane.Value["reportSchema"]!.GetValue<string>() + "'", StringComparison.Ordinal)); }
+
         }
         foreach (JsonNode? node in criteria)
         {
