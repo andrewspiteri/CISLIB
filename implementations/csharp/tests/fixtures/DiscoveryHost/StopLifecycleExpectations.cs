@@ -79,10 +79,13 @@ internal static class StopLifecycleExpectations
         if (flushing) { Require(pending.SequenceEqual(bytes) && Records(bytes, pid).Select(x => x["event_name"]!.GetValue<string>()).SequenceEqual(new[] { "seed", "held.0", "held.1", "held.2" })); }
         else { Require(pending.SequenceEqual(seed.Concat(line.Take(32)))); Require(bytes.SequenceEqual(failure ? pending : seed.Concat(line).ToArray())); }
     }
-    internal static void PhysicalConsole(JsonObject report, string stdout)
+    internal static void PhysicalConsole(JsonObject report, string stdout) =>
+        PhysicalConsole(report, new UTF8Encoding(false, true).GetBytes(stdout).AsMemory());
+
+    internal static void PhysicalConsole(JsonObject report, ReadOnlyMemory<byte> stdout)
     {
-        const string marker = "application-after-stop\n"; Require(stdout.EndsWith(marker, StringComparison.Ordinal));
-        byte[] actual = new UTF8Encoding(false, true).GetBytes(stdout[..^marker.Length]); byte[] seed = Bytes(report, "seed"), file = Bytes(report, "bytes");
+        ReadOnlySpan<byte> marker = "application-after-stop\n"u8; Require(stdout.Span.EndsWith(marker));
+        byte[] actual = stdout[..^marker.Length].ToArray(); byte[] seed = Bytes(report, "seed"), file = Bytes(report, "bytes");
         Require(actual.SequenceEqual(file.Skip(seed.Length))); _ = Records(actual, report["pid"]!.GetValue<int>());
     }
     internal static void Checkpoint(string mode, JsonObject a, int? processId = null)

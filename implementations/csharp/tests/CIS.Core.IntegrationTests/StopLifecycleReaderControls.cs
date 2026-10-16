@@ -58,6 +58,7 @@ internal static class StopLifecycleReaderControls
         if (mode != "normal-dual") { return; }
         JsonObject changed = report.DeepClone().AsObject(); changed["result"]!["outputs"]![0]!["written"] = "119";
         Reject("console-dispositions", () => StopLifecycleExpectations.Validate(mode, changed, pid), context);
+        Reject("console-bom", () => StopLifecycleExpectations.PhysicalConsole(report, "\uFEFF" + stdout), context);
         const string marker = "application-after-stop\n";
         Reject("console-marker", () => StopLifecycleExpectations.PhysicalConsole(report, stdout[..^marker.Length]), context);
         Reject("console-bytes", () => StopLifecycleExpectations.PhysicalConsole(report, stdout[(stdout.IndexOf('\n') + 1)..]), context);

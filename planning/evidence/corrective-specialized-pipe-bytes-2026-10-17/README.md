@@ -1,0 +1,11 @@
+# Specialized physical stream readers
+
+17 October 2026, based on `b4a520c3`. Completes the **PHYSICAL-BYTES** follow-up after the [shared capture correction](../corrective-physical-pipe-bytes-2026-10-17/README.md). No shipping implementation or runtime API changes.
+
+Lifecycle normal-output capture now drains stdout bytes and passes those original bytes to its physical console verifier. Candidate consumers retain original stdout/stderr in their result and binary evidence files. The interactive candidate drains raw stderr; its existing blocked stdout capture was already raw. JSONL checks use those bytes directly. Text remains available for application-facing human presentation and control reports. Existing child guards and owned termination remain.
+
+Two candidate JSONL presentation rows and the lifecycle console row now include an additional BOM corruption after their valid physical output. These are added checks within existing required native cases, not three new case identities. The nine native emitter regressions from the preceding batch remain required.
+
+**40 native Release integration cases pass on Windows and Ubuntu**, zero failures/skips: 20 candidate consumer cases, 11 lifecycle cases and nine stream regressions. Windows `7866e824dad843a481e2f07cf2444cec`; final Ubuntu `ca4cbf6c3ae04d53a2d1c15cf41596e2`. [Windows](windows-specialized.json), [Ubuntu](ubuntu-specialized.json). Ubuntu was repeated after synchronizing final formatting bytes; the [C# audit](RetainSpecializedEvidence.cs) checks that all five changed files have identical SHA-256 values in the canonical and native workspaces. [Audit](audit.json).
+
+Each lane locally rebuilt/repacked Core before its consumer tests; consumer preparation checks its actual DLL against its own package bytes. This does not claim one unchanged package across lanes. The preceding shared-transport candidate passed 6,460 Windows Developer cases; this later five-file test-only delta has focused verification and formatting, not a repeated complete checkpoint. Full Ubuntu, coverage, mutation, compatibility, external rereview and release gates remain open. The original logging roadmap remains paused; other confirmed findings stay pending.

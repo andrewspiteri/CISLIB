@@ -133,14 +133,15 @@ internal sealed class CandidatePackageFixture
         }
         Assert.AreEqual(Host, (string?)report["consumer"]!["path"]); Assert.AreEqual(Hash(Host), (string?)report["consumer"]!["sha256"]);
     }
-    internal async Task<(JsonObject Report, string Stdout, string Stderr)> Run(string mode, string cwd, IReadOnlyDictionary<string, string?>? changes = null, int count = 1)
+    internal async Task<(JsonObject Report, string Stdout, string Stderr, ReadOnlyMemory<byte> StdoutBytes, ReadOnlyMemory<byte> StderrBytes)> Run(string mode, string cwd, IReadOnlyDictionary<string, string?>? changes = null, int count = 1)
     {
         string observation = Path.Combine(Root, "child-" + Interlocked.Increment(ref nextChild)); Directory.CreateDirectory(observation);
         string reportPath = Path.Combine(observation, "report.json");
         ProcessResult result = await ProcessRunner.RunAsync("dotnet", ["exec", "--fx-version", "10.0.12", "--roll-forward", "Disable", Host, mode, reportPath, count.ToString(System.Globalization.CultureInfo.InvariantCulture)], cwd, Guard, Variables(cwd, changes), new UTF8Encoding(false, true));
         File.WriteAllText(Path.Combine(observation, "stdout.txt"), result.StandardOutput); File.WriteAllText(Path.Combine(observation, "stderr.txt"), result.StandardError);
         Assert.AreEqual(0, result.ExitCode, result.StandardError); JsonObject report = JsonNode.Parse(File.ReadAllBytes(reportPath))!.AsObject(); Origin(report);
-        return (report, result.StandardOutput, result.StandardError);
+        File.WriteAllBytes(Path.Combine(observation, "stdout.bin"), result.StandardOutputBytes.ToArray()); File.WriteAllBytes(Path.Combine(observation, "stderr.bin"), result.StandardErrorBytes.ToArray());
+        return (report, result.StandardOutput, result.StandardError, result.StandardOutputBytes, result.StandardErrorBytes);
     }
     internal Child Start(string mode, string cwd, IReadOnlyDictionary<string, string?>? changes = null) => new(this, mode, cwd, changes, Interlocked.Increment(ref nextChild));
     internal sealed class Child : IAsyncDisposable
@@ -153,9 +154,10 @@ internal sealed class CandidatePackageFixture
         private readonly NamedPipeServerStream? controlPipe;
         private readonly Task? connected;
         private readonly Task<string>? errors;
-        private Task<string>? data;
+        private Task<byte[]>? data;
         private Task<byte[]>? rawData;
         internal byte[]? RawStdout { get; private set; }
+        internal byte[]? RawStderr { get; private set; }
         private readonly bool blocked;
         private readonly List<JsonObject> replies = [];
         internal Child(CandidatePackageFixture owner, string mode, string cwd, IReadOnlyDictionary<string, string?>? changes, int id)
@@ -175,7 +177,7 @@ internal sealed class CandidatePackageFixture
             Process = Process.Start(start)!;
             if (blocked) { errors = Process.StandardError.ReadToEndAsync(); }
             else { control = Process.StandardOutput; }
-            if (!blocked) { data = Process.StandardError.ReadToEndAsync(); }
+            if (!blocked) { data = DrainRaw(Process.StandardError.BaseStream); }
         }
         internal async Task<JsonObject> Read()
         {
@@ -193,11 +195,11 @@ internal sealed class CandidatePackageFixture
             else { await Process.StandardInput.WriteLineAsync(command); await Process.StandardInput.FlushAsync(); }
             return await Read();
         }
-        private async Task<byte[]> DrainRaw()
+        private static async Task<byte[]> DrainRaw(Stream stream)
         {
-            using var buffer = new MemoryStream(); await Process.StandardOutput.BaseStream.CopyToAsync(buffer); return buffer.ToArray();
+            using var buffer = new MemoryStream(); await stream.CopyToAsync(buffer); return buffer.ToArray();
         }
-        internal Task BeginDrain() => rawData ??= DrainRaw();
+        internal Task BeginDrain() => rawData ??= DrainRaw(Process.StandardOutput.BaseStream);
         internal async Task<string> Finish()
         {
             await Process.WaitForExitAsync().WaitAsync(Guard); Assert.AreEqual(0, Process.ExitCode);
@@ -208,8 +210,8 @@ internal sealed class CandidatePackageFixture
                 RawStdout = await (rawData ?? throw new InvalidOperationException("Data stream must be drained before finish.")).WaitAsync(Guard);
                 File.WriteAllBytes(Path.Combine(observation, "stdout.bin"), RawStdout); return "";
             }
-            string text = await data!.WaitAsync(Guard);
-            File.WriteAllText(Path.Combine(observation, "stderr.txt"), text); return text;
+            RawStderr = await data!.WaitAsync(Guard);
+            File.WriteAllBytes(Path.Combine(observation, "stderr.bin"), RawStderr); return new UTF8Encoding(false, true).GetString(RawStderr);
         }
         public async ValueTask DisposeAsync()
         {
@@ -217,7 +219,7 @@ internal sealed class CandidatePackageFixture
             {
                 if (!Process.HasExited) { Process.Kill(entireProcessTree: true); }
                 await Process.WaitForExitAsync().WaitAsync(Guard);
-                if (data is not null) { File.WriteAllText(Path.Combine(observation, "terminal-stream.txt"), await data.WaitAsync(Guard)); }
+                if (data is not null) { File.WriteAllBytes(Path.Combine(observation, "terminal-stream.bin"), await data.WaitAsync(Guard)); }
                 if (errors is not null) { File.WriteAllText(Path.Combine(observation, "terminal-stderr.txt"), await errors.WaitAsync(Guard)); }
                 if (rawData is not null) { File.WriteAllBytes(Path.Combine(observation, "terminal-stdout.bin"), await rawData.WaitAsync(Guard)); }
             }

@@ -26,11 +26,14 @@ public sealed class StopLifecycleProcessTests
         {
             if (!mode.StartsWith("kill-", StringComparison.Ordinal))
             {
-                string stdout = await child.StandardOutput.ReadToEndAsync().WaitAsync(Guard); await child.WaitForExitAsync().WaitAsync(Guard);
+                using var stdoutBytes = new MemoryStream();
+                await child.StandardOutput.BaseStream.CopyToAsync(stdoutBytes).WaitAsync(Guard); await child.WaitForExitAsync().WaitAsync(Guard);
+                byte[] originalStdout = stdoutBytes.ToArray();
+                string stdout = new UTF8Encoding(false, true).GetString(originalStdout);
                 string error = await stderr.WaitAsync(Guard); Assert.AreEqual(0, child.ExitCode, error);
                 if (mode != "normal-dual") { Assert.AreEqual("", error); }
                 JsonObject report = JsonNode.Parse(mode == "normal-dual" ? error : stdout)!.AsObject();
-                if (mode == "normal-dual") { StopLifecycleExpectations.PhysicalConsole(report, stdout); }
+                if (mode == "normal-dual") { StopLifecycleExpectations.PhysicalConsole(report, originalStdout.AsMemory()); }
                 Identity(host, child.Id, report); StopLifecycleExpectations.Validate(mode, report, child.Id);
                 TestContext.WriteLine(stdout); TestContext.WriteLine(error);
                 StopLifecycleReaderControls.Check(mode, report, child.Id, TestContext, stdout); return;

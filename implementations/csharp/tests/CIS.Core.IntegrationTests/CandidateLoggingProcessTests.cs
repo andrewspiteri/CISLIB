@@ -35,7 +35,6 @@ public sealed class CandidateLoggingProcessTests
         Assert.IsTrue(lines.Take(lines.Length - 1).All(line => line.Length > 0));
         return lines.Take(lines.Length - 1).Select(line => { Assert.IsTrue(Encoding.UTF8.GetByteCount(line) + 1 <= 16384); return JsonNode.Parse(line)!.AsObject(); }).ToArray();
     }
-    private static JsonObject[] Records(string text) => Records(Encoding.UTF8.GetBytes(text));
     private static JsonObject[] Retained(string path, JsonObject inventory) => inventory["segments"]!.AsArray().SelectMany(segment => Records(File.ReadAllBytes(Path.Combine(Path.GetDirectoryName(path)!, segment!["fileName"]!.GetValue<string>())))).ToArray();
     private static void SuccessfulStop(JsonObject report)
     {
@@ -83,14 +82,20 @@ public sealed class CandidateLoggingProcessTests
             Assert.AreEqual((string?)value.Report["instanceId"], (string?)row["resource"]!["instance_id"]); Assert.AreEqual(value.Report["pid"]!.GetValue<int>(), row["resource"]!["process_id"]!.GetValue<int>());
         }
         string console = stream == "stderr" ? value.Stderr : value.Stdout;
-        if (format == "jsonl") { Assert.AreEqual("event.error", (string?)Records(console).Single()["event_name"]); }
+        byte[] consoleBytes = (stream == "stderr" ? value.StderrBytes : value.StdoutBytes).ToArray();
+        Assert.IsFalse(consoleBytes.AsSpan().StartsWith(new byte[] { 239, 187, 191 }));
+        if (format == "jsonl")
+        {
+            Assert.AreEqual("event.error", (string?)Records(consoleBytes).Single()["event_name"]);
+            Assert.ThrowsExactly<AssertFailedException>(() => Records([239, 187, 191, .. consoleBytes]));
+        }
         else
         {
             StringAssert.Contains(console, "event.error"); Assert.IsFalse(console.Contains('\u001b')); Assert.AreEqual(1, console.Count(c => c == '\n'));
             if (detail == "verbose") { StringAssert.Contains(console, "candidate failure"); StringAssert.Contains(console, "Candidate.App"); StringAssert.Contains(console, "candidate.operation"); }
         }
         if (stream == "stderr") { Assert.AreEqual("ok", (string?)JsonNode.Parse(value.Stdout)!["command"]); }
-        else { Assert.AreEqual("", value.Stderr); }
+        else { Assert.AreEqual(0, value.StderrBytes.Length); }
     }
 
     [TestMethod]
@@ -122,7 +127,7 @@ public sealed class CandidateLoggingProcessTests
     {
         using var root = new TemporaryDirectory(); var value = await fixture.Run("disabled", root.Path, new Dictionary<string, string?> { ["CORE_LOG_FILE_LEVEL"] = "None" });
         SuccessfulStop(value.Report); Assert.AreEqual(0, value.Report["factories"]!.GetValue<int>()); Assert.AreEqual("Filtered", (string?)value.Report["receipts"]![0]!["outcome"]);
-        Assert.AreEqual("", value.Stdout); Assert.AreEqual("", value.Stderr); Assert.IsFalse(File.Exists(PathFor(root.Path)));
+        Assert.AreEqual(0, value.StdoutBytes.Length); Assert.AreEqual(0, value.StderrBytes.Length); Assert.IsFalse(File.Exists(PathFor(root.Path)));
     }
 
     [TestMethod]
@@ -218,7 +223,7 @@ public sealed class CandidateLoggingProcessTests
         JsonObject failed = await child.Command("{\"name\":\"trigger\",\"count\":1,\"payload\":14000}"); Assert.AreEqual("Faulted", (string?)Output(failed, "file")["state"]); Assert.AreEqual(1L, Count(Output(failed, "file"), "failed"));
         JsonObject after = await child.Command("{\"name\":\"after\",\"count\":1,\"payload\":0}"); Assert.AreEqual(1L, Count(Output(after, "file"), "unavailable"));
         JsonObject stop = await child.Command("stop"); Assert.IsTrue(stop["stop"]!["lossObserved"]!.GetValue<bool>()); Assert.IsFalse(stop["stop"]!["succeeded"]!.GetValue<bool>());
-        string console = await child.Finish(); CollectionAssert.AreEqual(new[] { "initial.0", "initial.1", "initial.2", "initial.3", "trigger.0", "after.0" }, Records(console).Select(row => (string?)row["event_name"]).ToArray());
+        _ = await child.Finish(); CollectionAssert.AreEqual(new[] { "initial.0", "initial.1", "initial.2", "initial.3", "trigger.0", "after.0" }, Records(child.RawStderr!).Select(row => (string?)row["event_name"]).ToArray());
         CollectionAssert.AreEqual(before, ReadLive(path)); Assert.AreEqual("do not replace", File.ReadAllText(collision)); Assert.AreEqual(0L, Count(Output(stop, "console"), "failed"));
     }
 
