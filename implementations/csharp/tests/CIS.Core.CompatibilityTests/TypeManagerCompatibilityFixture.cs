@@ -1,5 +1,6 @@
 using System.Runtime.InteropServices;
 using System.Security;
+using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Nodes;
@@ -71,11 +72,12 @@ internal sealed class TypeManagerCompatibilityFixture
         Require(new[] { selected, producerPath, expected }.All(value => value is null) || new[] { selected, producerPath, expected }.All(value => !string.IsNullOrWhiteSpace(value)), "Set all three CIS_COMPAT_CORE, CIS_COMPAT_REPORT and CIS_COMPAT_CORE_SHA256 values, or none.");
         Core = Path.GetFullPath(selected ?? typeof(CIS.TypeManagement.TypeManagerOptions).Assembly.Location);
         Dictionary<string, string> sources = ModuleSources(Language);
-        JsonObject producer = producerPath is null ? ProjectProducer(Core, sources) : Read(producerPath);
+        byte[]? producerBytes = producerPath is null ? null : File.ReadAllBytes(producerPath);
+        JsonObject producer = producerBytes is null ? ProjectProducer(Core, sources) : JsonNode.Parse(producerBytes)!.AsObject();
         Producer(producer, Core, expected ?? Hash(Core), sources);
         File.WriteAllText(Path.Combine(Root, "candidate-producer.json"), producer.ToJsonString());
         foreach (string path in new[] { Core, Path.Combine(Language, "eng/toolchain.json"), Path.Combine(Language, "global.json"), Path.Combine(Root, "candidate-producer.json") }) { Pin(path); }
-        if (producerPath is not null) { Pin(producerPath); }
+        if (producerPath is not null) { immutable.Add(Path.GetFullPath(producerPath), Convert.ToHexStringLower(SHA256.HashData(producerBytes!))); }
         else { Pin(Path.ChangeExtension(Core, ".pdb")); }
         foreach (string name in Dependencies) { Pin(Path.Combine(Path.GetDirectoryName(Core)!, name)); }
         foreach (string relative in sources.Keys) { Pin(Path.Combine(Language, "src/CIS.Core", relative)); }

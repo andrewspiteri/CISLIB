@@ -70,9 +70,13 @@ internal sealed class TypeManagerExamplesVerification
         // The example projects restore both supported RIDs; keep their actual
         // configuration and seed the private feed with the pinned SDK packs.
         report["sdkPackages"] = new JsonObject();
-        string runtimeVersion = (string)Read(Path.Combine(language, "eng", "toolchain.json"))["targetRuntime"]!;
-        foreach (string name in new[] { "microsoft.netcore.app.runtime.win-x64", "microsoft.netcore.app.runtime.linux-x64", "microsoft.windowsdesktop.app.runtime.win-x64", "microsoft.aspnetcore.app.runtime.win-x64", "microsoft.aspnetcore.app.runtime.linux-x64", "microsoft.netcore.app.host.win-x64", "microsoft.netcore.app.host.linux-x64" })
+        string toolchainPath = Path.Combine(language, "eng", "toolchain.json");
+        JsonObject toolchain = Read(toolchainPath);
+        report["toolchainPolicySha256"] = Hash(toolchainPath);
+        foreach (JsonNode? pack in toolchain["frameworkDownloads"]!["packages"]!.AsArray())
         {
+            string name = ((string)pack!["id"]!).ToLowerInvariant(), runtimeVersion = (string)pack["version"]!;
+            Require(runtimeVersion == (string?)toolchain["targetRuntime"], "Framework download version must match targetRuntime");
             string path = Path.Combine(input.PathOf("dependency-cache"), name, runtimeVersion, name + "." + runtimeVersion + ".nupkg");
             Copy(path, Path.Combine(feed, Path.GetFileName(path))); report["sdkPackages"]![Path.GetFileName(path)] = Hash(path);
         }

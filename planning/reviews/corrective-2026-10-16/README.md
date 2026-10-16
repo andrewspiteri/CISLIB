@@ -4,6 +4,8 @@
 
 **Status: incomplete.** Claude Opus 5.5 completed three of six original passes and returned findings. Another submission returned HTTP 429, `usage_limit_reached`: “You've hit your session limit · resets 11pm (Europe/Malta).” That is 23:00 Malta on 16 October. No approval review blocked these transfers. Remaining requests were not sent after the service limit became known. No implementation fixes or new verification runs were performed for this review.
 
+Current correction status: all eleven supported findings have been fixed and targeted checks pass on Windows and Ubuntu. See [corrections and verification](corrections.md). The comprehensive Developer checkpoint is pending. This does not complete the three unreviewed scopes or claim a Claude review of the fixes.
+
 ## Scope and coverage
 
 The snapshot is `c1f37a2e` through `54e01194e2281bcd254e6321753fe191f86ed316`: 47 corrective commits, 472 committed changed/deleted paths, plus five explicitly identified uncommitted files, for 477 assigned paths. Current Core, decisions, selected fixture/vector context, original deleted Python readers and relevant diffs were supplied. The human's amended scope and the difference between development evidence and release qualification were explicit.
@@ -21,7 +23,7 @@ Thus 152 assigned paths received their scoped review; 325 remain. Context suppli
 
 The CLI was Claude Code 2.1.295 using `claude-opus-5-5`. Print/JSON mode, a custom review-only system prompt, safe/restricted mode, an empty tool list, empty strict MCP configuration, disabled slash commands/Chrome, no session persistence and noninteractive denied permissions were used. Completed responses report one turn, zero subagents and no web tool use. No credentials or binaries were bundled. These are static reviews, not execution or release qualification.
 
-## Open findings
+## Findings at the reviewed snapshot
 
 Eleven Claude-reported actionable items are retained below. The raw reviews preserve their own severity and reasoning. Source inspection corroborated the central observations; this review did not execute reproductions, and some details still need a focused acceptance decision or context check. No finding is silently treated as fixed.
 

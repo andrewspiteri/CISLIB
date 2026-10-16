@@ -29,7 +29,8 @@ internal sealed class TypeManagerMeasurement
             ["harnessSha256"] = Hash(typeof(TypeManagerMeasurement).Assembly.Location),
             ["runtimePolicySha256"] = Hash(Path.Combine(language, "eng", "toolchain.json")),
             ["sdk"] = policy["sdk"]!.DeepClone(),
-            ["runtime"] = policy["targetRuntime"]!.DeepClone()
+            ["runtime"] = policy["targetRuntime"]!.DeepClone(),
+            ["processWallObservation"] = "Verifier elapsed time around child execution, strict output decoding, output hashing and log writes; not comparable to the retired Python child-only timer."
         };
     }
     internal static async Task<int> RunAsync(string[] arguments)
@@ -78,7 +79,7 @@ internal sealed class TypeManagerMeasurement
     }
     private async Task Prepare()
     {
-        string core = input.PathOf("candidate-core"), producerPath = input.PathOf("candidate-report"); JsonObject producer = Read(producerPath);
+        string core = input.PathOf("candidate-core"), producerPath = input.PathOf("candidate-report"); JsonObject producer = Read(producerPath, out string producerHash);
         Require(Hash(core) == corePin && (bool?)producer["complete"] == true && (string?)producer["coreSha256"] == corePin, "Candidate does not match completed producer and expected hash");
         string coreRoot = Path.Combine(language, "src", "CIS.Core");
         JsonObject sources = new(TreeHashes(Path.Combine(coreRoot, "TypeManagement"), path => path.EndsWith(".cs", StringComparison.Ordinal)).Select(p => new KeyValuePair<string, JsonNode?>("TypeManagement/" + p.Key, p.Value!.DeepClone())));
@@ -120,7 +121,7 @@ internal sealed class TypeManagerMeasurement
             });
             catalogs[size] = new JsonObject { ["libraries"] = libraries, ["classesPerLibrary"] = classes, ["generatedClasses"] = libraries * classes };
         }
-        report["coreSha256"] = Hash(core); report["candidateReportSha256"] = Hash(producerPath); report["moduleSourceInputs"] = sources; report["dependencyIdentities"] = identities;
+        report["coreSha256"] = Hash(core); report["candidateReportSha256"] = producerHash; report["moduleSourceInputs"] = sources; report["dependencyIdentities"] = identities;
         report["catalogs"] = catalogs; report["fixtureSourceInputs"] = TreeHashes(templates, p => p.EndsWith(".cs", StringComparison.Ordinal));
         report["generatedSourceInputs"] = TreeHashes(Path.Combine(root, "build"), p => Path.GetFileName(p) == "Program.cs");
         report["deployment"] = new JsonObject(TreeHashes(Path.Combine(root, "deploy")).Select(p => new KeyValuePair<string, JsonNode?>("deploy/" + p.Key, p.Value!.DeepClone())));
@@ -130,8 +131,8 @@ internal sealed class TypeManagerMeasurement
     private async Task Measure(int samples, int warmups, int iterations)
     {
         string fixtures = input.PathOf("fixtures"), manifest = Path.Combine(fixtures, "results.json");
-        Require(Hash(manifest) == input.Get("expected-fixtures-sha256"), "Fixture producer report hash mismatch");
-        JsonObject inputs = Read(manifest);
+        string fixturePin = input.Get("expected-fixtures-sha256");
+        JsonObject inputs = ReadPinned(manifest, fixturePin, "Fixture producer report hash mismatch");
         Require((bool?)inputs["complete"] == true && (string?)inputs["operation"] == "prepare" && (string?)inputs["coreSha256"] == corePin && (string?)inputs["harnessSha256"] == (string?)report["harnessSha256"], "Fixture provenance mismatch");
         string templates = Path.Combine(language, "tests", "fixtures", "TypeManager", "Performance");
         Require((string?)inputs["runtimePolicySha256"] == (string?)report["runtimePolicySha256"] && JsonNode.DeepEquals(inputs["fixtureSourceInputs"], TreeHashes(templates, p => p.EndsWith(".cs", StringComparison.Ordinal))), "Fixture source or runtime policy differs from producer");
@@ -158,7 +159,7 @@ internal sealed class TypeManagerMeasurement
             foreach ((string size, _) in inputs["catalogs"]!.AsObject()) { Require(Hash(Path.Combine(fixtures, "deploy", size, "CIS.Core.dll")) == corePin, "Deployment Core mismatch"); }
         }
         VerifyDeployment();
-        report["coreSha256"] = corePin; report["fixtureReportSha256"] = Hash(manifest); report["deployment"] = inputs["deployment"]!.DeepClone();
+        report["coreSha256"] = corePin; report["fixtureReportSha256"] = fixturePin; report["deployment"] = inputs["deployment"]!.DeepClone();
         report["samplesPerGroup"] = samples; report["warmupRounds"] = warmups; report["queryIterations"] = iterations; report["observations"] = new JsonArray();
         for (int round = 0; round < warmups + samples; round++)
         {
@@ -206,8 +207,7 @@ internal sealed class TypeManagerMeasurement
     {
         var input = new TypeManagerVerificationInputs(arguments, ["repo-root", "fixtures", "expected-fixtures-sha256", "expected-core-sha256", "output-root"], []);
         input.EmptyOutput(); string root = input.Output, fixtures = input.PathOf("fixtures"), original = Path.Combine(fixtures, "results.json"), tool = typeof(TypeManagerMeasurement).Assembly.Location;
-        Require(Hash(original) == input.Get("expected-fixtures-sha256"), "Control fixture report pin mismatch");
-        JsonObject producer = Read(original); var report = new JsonObject { ["complete"] = false, ["qualified"] = false, ["verifierSha256"] = Hash(tool), ["results"] = new JsonArray() };
+        JsonObject producer = ReadPinned(original, input.Get("expected-fixtures-sha256"), "Control fixture report pin mismatch"); var report = new JsonObject { ["complete"] = false, ["qualified"] = false, ["verifierSha256"] = Hash(tool), ["results"] = new JsonArray() };
         string path = Path.Combine(root, "results.json"); WriteJson(path, report);
         try
         {

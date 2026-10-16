@@ -94,6 +94,13 @@ From the repository root, with the pinned SDK available:
 dotnet run --project implementations/csharp/eng/CIS.DependencyChecker -c Debug -- type-manager-examples --repo-root . --package <exact-CIS.Core.nupkg> --dependency-cache <nuget-packages-directory> --output-root <empty-output-directory>
 ```
 
+The dependency cache must contain the two runtime dependency archives from
+`eng/runtime-dependencies.json` and all seven SDK runtime/host pack archives from
+`eng/toolchain.json` → `frameworkDownloads.packages`, at their exact listed versions.
+Both Windows and Ubuntu need all nine archives because these examples restore both
+supported RIDs. The verifier copies them to its private offline feed and records
+hashes; it does not fetch missing packages. See the [native verification guide](../../eng/CIS.DependencyChecker/README.md#type-manager-examples).
+
 The verifier runs Debug/Release builds, Release folder publish and publish without
 building, for both hosts in source and package mode. Each layout runs in a fresh
 process and gets separate missing-manifest, malformed-manifest and missing-library

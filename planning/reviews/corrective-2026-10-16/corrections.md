@@ -34,6 +34,30 @@ Current rotation/recovery maps and the policy guide now distinguish unreadable r
 
 Selection: FileTransitionProcessTests, JsonlBoundaryProcessTests, FileRotationProcessTests, FileRetentionProcessTests, FileInventoryProcessTests, FileAcquisitionProcessTests and JsonlInputSelectorTests. Ubuntu executed the additional symlink selector control; Windows error 1314 remains an explicitly unexecuted prerequisite case, not a skip or passing rejection.
 
-## Still open
+## T1–T4 — Type Manager verification and current guidance
 
-T1–T4 from [the original summary](README.md) remain open pending verification.
+Corrected the maintained acceptance map to native runtime/inventory commands, and documented the example cache's two runtime archives plus all seven pinned SDK runtime/host packs on both operating systems. The examples verifier now reads those seven pack identities/versions from the existing frameworkDownloads policy and records its policy hash; it adds no dependency or network fallback.
+
+The measurement guide and reports explicitly define processWallMilliseconds as verifier elapsed time including child execution, strict output decoding, output hashing and log writes. It is not directly comparable with the retired Python child-only timing. Child-reported metrics keep their own boundaries, no threshold is added, and reports remain unqualified.
+
+Mutation preparation and measurement pin/parse one owned byte array. Measurement preparation records the hash of the same bytes it parsed. Their guard drivers use the same pin checks. The compatibility reader also parses and pins the same producer bytes, while retaining later unchanged-input checks. These are local provenance corrections, not a security exploit claim or a new verification framework.
+
+Verification uses frozen checker SHA-256 66b8b339713a1a7e68c5f515bee6439c76919ce627d37dcfceb9a5ce234c6fc3 and producer Core SHA-256 e4fcbc57aa14864ae021b39ccc1eefe4e2da3a1bb9056d7a6a21e1f57e169298. Producer report SHA-256 e53db55083a1d1ac16e82e031fbe9dd3c4fcd5410819f290067289ab7a34ac24. Both OSes reuse these exact managed fixture/tool bytes where replay is declared. A subsequent explanatory Core comment cleanup does not change Type Manager module sources; the later Developer checkpoint has its own complete source inventory.
+
+| Verification | Windows | Ubuntu 24.04 |
+| --- | --- | --- |
+| Runtime producer/replay logical checks | 17 passed | 17 passed |
+| Mutation preparation provenance controls | 4 passed | 4 passed |
+| Prepared isolated native baseline | 100 passed; zero failed/skipped | 100 passed; zero failed/skipped |
+| Frozen-fixture measurement | 52 fresh processes; 48 measured and four warmup | Same frozen fixtures; 52 fresh processes |
+| Measurement provenance/sample controls | 7 passed | 7 passed |
+| Source/exact-package example checks | 66 passed | 66 passed |
+| Selected native compatibility cases using explicit producer/Core inputs | 5 passed; zero failed/skipped | 5 passed; zero failed/skipped |
+
+Raw reports/logs and the frozen tool are under .artifacts/corrective/claude-fixes. Windows compatibility report: .artifacts/csharp/focused/94ea2705c2fc4907984b29e9c981172f/summary.json. Ubuntu: .artifacts/corrective/batch-a/linux/.artifacts/csharp/focused/6ef49375fb9947598a4cec251dcbff9c/summary.json. The example package is the earlier exact development archive with SHA-256 6ebf90713b29ec2608a4d32e3593de76c6662aad5146d13847aef95518be6e54; these checks do not qualify a newly released package. Its source/package lanes have separately recorded Core hashes.
+
+All 3,710 current Windows unit cases also passed with zero failed/skipped: .artifacts/csharp/focused/520874c5139040159c849ff03395310b/summary.json. Utility logical checks, baseline cases and process observations are separate measures and must not be added into one invented native case count.
+
+## Remaining verification and review
+
+All eleven supported findings are fixed and targeted verification is complete. The comprehensive Windows Developer checkpoint remains pending. The three uncompleted Claude scopes (325 assigned paths at the original snapshot) and a review of these fixes remain unexecuted. Prepared old continuation bundles do not cover this new source delta. Coverage, mutation, complete Ubuntu Developer, release/package history, supported IDE acceptance, teaching examples/skills and publication remain separate pending work. The original roadmap goal remains paused.

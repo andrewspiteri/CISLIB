@@ -11,10 +11,10 @@ is development evidence, not a release claim; remaining checks are explicit belo
 - Architecture fixtures: `implementations/csharp/tests/CIS.Core.ArchitectureTests/TypeManagerBoundaryTests.cs`
   and `TypeManagerRuntimeArchitectureTests.cs`.
 - Runtime child processes: `implementations/csharp/tests/fixtures/TypeManager/Runtime/Host/Program.cs`,
-  driven by `verify-runtime-processes.py` in the parent TypeManager fixture directory.
+  driven by the native C# `type-manager-runtime` command in `implementations/csharp/eng/CIS.DependencyChecker`.
 - Ordinary generated-inventory host: `implementations/csharp/tests/fixtures/TypeManager/Host/Program.cs`.
 - Inventory lifecycle: `implementations/csharp/eng/verify-type-manager-inventory.ps1`;
-  independent SDK/RID matrix: `implementations/csharp/tests/fixtures/TypeManager/verify-inventory-matrix.py`.
+  independent SDK/RID matrix: native `type-manager-inventory`. See the [native command guide](../../implementations/csharp/eng/CIS.DependencyChecker/README.md) and [runtime](../evidence/corrective-type-manager-runtime-migration-2026-10-16.md)/[inventory migration evidence](../evidence/corrective-type-manager-inventory-migration-2026-10-16.md).
 - Frozen runtime results and review corrections: [runtime closure](evidence/runtime-closure/README.md).
 - Expanded runtime acceptance, source instrumentation and targeted mutant controls:
   [runtime acceptance](evidence/runtime-acceptance/README.md).

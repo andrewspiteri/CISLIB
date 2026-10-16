@@ -12,8 +12,7 @@ internal static class TypeManagerMutationPreparation
         string root = input.Output, language = input.Language, candidate = input.PathOf("candidate-core"), producerPath = input.PathOf("candidate-report");
         if (Directory.Exists(root)) { Require(!Directory.EnumerateFileSystemEntries(root).Any(), "Use an empty output directory"); }
         string reportPin = input.Get("expected-candidate-report-sha256"), corePin = input.Get("expected-core-sha256");
-        Require(Hash(producerPath) == reportPin, "Candidate producer differs from the independent report pin");
-        JsonObject producer = Read(producerPath);
+        JsonObject producer = ReadPinned(producerPath, reportPin, "Candidate producer differs from the independent report pin");
         Require(Hash(candidate) == corePin && (bool?)producer["complete"] == true && (string?)producer["coreSha256"] == corePin, "Completed producer/Core differs from the independent pin");
         string coreRoot = Path.Combine(language, "src", "CIS.Core"), module = Path.Combine(coreRoot, "TypeManagement");
         JsonObject moduleInputs = new(Directory.GetFiles(module, "*.cs", SearchOption.AllDirectories).Order(StringComparer.Ordinal).Select(p => new KeyValuePair<string, JsonNode?>(Path.GetRelativePath(coreRoot, p).Replace('\\', '/'), JsonValue.Create(Hash(p)))));
@@ -73,7 +72,7 @@ internal static class TypeManagerMutationPreparation
         string candidatePin = Hash(candidate), producerPin = Hash(producer), tool = typeof(TypeManagerMutationPreparation).Assembly.Location;
         string changedCore = Path.Combine(root, "changed-core.dll"), changedSource = Path.Combine(root, "changed-source.json"), changedDependency = Path.Combine(root, "dependency", "CIS.Core.dll");
         Copy(candidate, changedCore); using (FileStream stream = new(changedCore, FileMode.Append)) { stream.WriteByte(0); }
-        JsonObject changed = Read(producer); changed["coreSourceInputs"]!["TypeManagement/TypeManager.cs"] = new string('0', 64); WriteJson(changedSource, changed);
+        JsonObject changed = ReadPinned(producer, producerPin, "Control producer report pin mismatch"); changed["coreSourceInputs"]!["TypeManagement/TypeManager.cs"] = new string('0', 64); WriteJson(changedSource, changed);
         Copy(candidate, changedDependency);
         foreach (string file in new[] { "Microsoft.Extensions.Logging.Abstractions.dll", "Microsoft.Extensions.DependencyInjection.Abstractions.dll" })
         { Copy(Path.Combine(Path.GetDirectoryName(candidate)!, file), Path.Combine(Path.GetDirectoryName(changedDependency)!, file)); }

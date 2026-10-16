@@ -364,8 +364,7 @@ public sealed partial class CoreLogRuntime : IAsyncDisposable
 
         lock (admissionGate)
         {
-            // Output/disposition/truncation/closure changes share this gate. Invalid increments
-            // independently, so its atomic read chooses the observation point while the rest is stable.
+            // Admission, disposition and loss-counter changes share this gate.
             return new RuntimeAccounting(admissionClosed, InvalidEventCount, TruncatedEventCount, queuedOutputs.Console?.CaptureAccounting(), queuedOutputs.File?.CaptureAccounting());
         }
     }

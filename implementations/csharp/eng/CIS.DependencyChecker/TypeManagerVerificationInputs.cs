@@ -71,7 +71,19 @@ internal sealed class TypeManagerVerificationInputs
             Copy(file, Path.Combine(target, relative));
         }
     }
-    internal static JsonObject Read(string path) => JsonNode.Parse(File.ReadAllText(path))!.AsObject();
+    internal static JsonObject Read(string path) => Read(path, out _);
+    internal static JsonObject Read(string path, out string hash)
+    {
+        byte[] bytes = File.ReadAllBytes(path);
+        hash = Digest(bytes);
+        return JsonNode.Parse(bytes)!.AsObject();
+    }
+    internal static JsonObject ReadPinned(string path, string expectedHash, string reason)
+    {
+        byte[] bytes = File.ReadAllBytes(path);
+        Require(Digest(bytes) == expectedHash, reason);
+        return JsonNode.Parse(bytes)!.AsObject();
+    }
     internal static string Hash(string path) => Digest(File.ReadAllBytes(path));
     internal static string Digest(ReadOnlySpan<byte> bytes) => Convert.ToHexStringLower(SHA256.HashData(bytes));
     internal static void Write(string path, string text) { Directory.CreateDirectory(Path.GetDirectoryName(path)!); File.WriteAllText(path, text, new UTF8Encoding(false)); }
