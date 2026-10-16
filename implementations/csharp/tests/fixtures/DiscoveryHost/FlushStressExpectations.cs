@@ -6,9 +6,10 @@ namespace CIS.Tests.DiscoveryFixture;
 internal static class FlushStressExpectations
 {
     private static void Require(bool value) { if (!value) { throw new InvalidOperationException("Flush stress report expectation failed."); } }
-    private static long Number(JsonNode? value) => long.Parse(value!.GetValue<string>(), CultureInfo.InvariantCulture);
-    internal static void Validate(string mode, JsonObject report)
+    private static long Number(JsonNode? value) => LifecycleReportChecks.Number(value);
+    internal static void Validate(string mode, JsonObject report, int? processId = null)
     {
+        FlushStressReaderChecks.Validate(mode, report, processId);
         Require(report["mode"]!.GetValue<string>() == mode && report["runtime"]!.GetValue<string>() == ".NET 10.0.12");
         if (mode == "deadline-race")
         {

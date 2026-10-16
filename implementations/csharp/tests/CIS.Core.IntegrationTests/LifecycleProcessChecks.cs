@@ -43,7 +43,7 @@ internal static class LifecycleProcessChecks
                 using var lease = new FileStream(path + ".cis.lock", FileMode.Open, FileAccess.ReadWrite, FileShare.None);
             }
         }
-        if (command == "stop-cleanup") { Assert.AreEqual(0, Directory.EnumerateFileSystemEntries(root.Path).Count()); }
+        if (command is "stop-cleanup" or "flush-stress") { Assert.AreEqual(0, Directory.EnumerateFileSystemEntries(root.Path).Count()); }
         if (command == "flush-boundary" && mode == "physical")
         {
             string path = (string)report["path"]!;
@@ -71,6 +71,7 @@ internal static class LifecycleProcessChecks
             case "flush-boundary": FlushBoundaryExpectations.Validate(mode, report, pid); break;
             case "flush-coordination": FlushCoordinationExpectations.Validate(mode, report, pid); break;
             case "flush-results": FlushResultExpectations.Validate(mode, report, pid); break;
+            case "flush-stress": FlushStressExpectations.Validate(mode, report, pid); break;
             default: throw new ArgumentOutOfRangeException(nameof(command));
         }
     }

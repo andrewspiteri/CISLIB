@@ -63,6 +63,40 @@ public sealed class FlushReaderMigrationTests
         new object[] { "flush-results", "cancel", "console-record" },
         new object[] { "flush-results", "physical", "file-record" },
         new object[] { "flush-results", "later-failure", "later-failure" },
+        new object[] { "flush-stress", "repeat-write", "completion" },
+        new object[] { "flush-stress", "repeat-write", "pending" },
+        new object[] { "flush-stress", "repeat-write", "controls" },
+        new object[] { "flush-stress", "repeat-write", "retained" },
+        new object[] { "flush-stress", "repeat-write", "slots" },
+        new object[] { "flush-stress", "repeat-write", "owners" },
+        new object[] { "flush-stress", "repeat-write", "timers" },
+        new object[] { "flush-stress", "repeat-write", "global" },
+        new object[] { "flush-stress", "repeat-progress", "progress" },
+        new object[] { "flush-stress", "repeat-progress", "signal" },
+        new object[] { "flush-stress", "saturation", "boundary" },
+        new object[] { "flush-stress", "saturation", "reject" },
+        new object[] { "flush-stress", "saturation", "file-control" },
+        new object[] { "flush-stress", "saturation", "framing" },
+        new object[] { "flush-stress", "saturation", "order" },
+        new object[] { "flush-stress", "cohort", "overlap" },
+        new object[] { "flush-stress", "cohort", "cohort-detach" },
+        new object[] { "flush-stress", "cohort", "cohort-controls" },
+        new object[] { "flush-stress", "cohort", "file-attached" },
+        new object[] { "flush-stress", "cohort", "file-detach" },
+        new object[] { "flush-stress", "failed-flush", "loss" },
+        new object[] { "flush-stress", "failed-flush", "later-abandon" },
+        new object[] { "flush-stress", "failed-flush", "later-wire" },
+        new object[] { "flush-stress", "failed-flush", "cancel-count" },
+        new object[] { "flush-stress", "concurrent", "concurrent-target" },
+        new object[] { "flush-stress", "concurrent", "ticket" },
+        new object[] { "flush-stress", "concurrent", "records" },
+        new object[] { "flush-stress", "saturation", "UTC-due" },
+        new object[] { "flush-stress", "cohort", "file-budget" },
+        new object[] { "flush-stress", "deadline-race", "callback" },
+        new object[] { "flush-stress", "deadline-race", "notification" },
+        new object[] { "flush-stress", "deadline-race", "source" },
+        new object[] { "flush-stress", "deadline-race", "freeze" },
+        new object[] { "flush-stress", "repeat-write", "pid" },
     ];
 
     [TestMethod]
@@ -128,9 +162,43 @@ public sealed class FlushReaderMigrationTests
             case ("flush-results", "console-record"): { a["bytes"] = ""; break; }
             case ("flush-results", "file-record"): { a["fileBytes"] = ""; break; }
             case ("flush-results", "later-failure"): { a["diagnostics"]![0]!["failed"] = "0"; break; }
+            case ("flush-stress", "completion"): { a["repeated"]!["first"]!["completion"] = "Completed"; break; }
+            case ("flush-stress", "pending"): { a["repeated"]!["first"]!["outputs"]![0]!["pending"] = "3"; break; }
+            case ("flush-stress", "controls"): { a["afterDetach"]!["controls"] = 5; break; }
+            case ("flush-stress", "retained"): { a["afterDetach"]!["attached"] = 1; break; }
+            case ("flush-stress", "slots"): { a["repeated"]!["peakSlots"] = 100; break; }
+            case ("flush-stress", "owners"): { a["collectedSamples"] = 4; break; }
+            case ("flush-stress", "timers"): { a["timers"]!["active"] = 1; break; }
+            case ("flush-stress", "global"): { a["repeated"]!["first"]!["invalid"] = "2"; break; }
+            case ("flush-stress", "progress"): { a["progressSlots"] = 100; break; }
+            case ("flush-stress", "signal"): { a["progressCleared"] = false; break; }
+            case ("flush-stress", "boundary"): { a["early"]!["outputs"]![0]!["boundary"] = "4"; a["early"]!["outputs"]![0]!["pending"] = "4"; break; }
+            case ("flush-stress", "reject"): { a["late"]!["outputs"]![0]!["full"] = "0"; break; }
+            case ("flush-stress", "file-control"): { a["detachedFile"]!["controls"] = 0; break; }
+            case ("flush-stress", "framing"): { a["console"]!["bytes"] = Convert.ToBase64String(Convert.FromBase64String((string)a["console"]!["bytes"]!)[..^1]); break; }
+            case ("flush-stress", "order"): { a["console"]!["order"]![1] = "flush.4"; break; }
+            case ("flush-stress", "overlap"): { a["console"]!["maximumIo"] = 2; break; }
+            case ("flush-stress", "cohort-detach"): { a["phases"]![1]!["console"]!["attached"] = 64; break; }
+            case ("flush-stress", "cohort-controls"): { a["phases"]![1]!["file"]!["controls"] = 0; break; }
+            case ("flush-stress", "file-attached"): { a["phases"]![2]!["file"]!["attached"] = 0; break; }
+            case ("flush-stress", "file-detach"): { a["phases"]![3]!["timers"] = 16; break; }
+            case ("flush-stress", "loss"): { a["timeouts"]![0]!["loss"] = true; break; }
+            case ("flush-stress", "later-abandon"): { a["results"]![0]!["outputs"]![0]!["boundary"] = "4"; a["results"]![0]!["outputs"]![0]!["abandoned"] = "3"; break; }
+            case ("flush-stress", "later-wire"): { JsonArray accepted = a["laterAccepted"]!.AsArray(); accepted.RemoveAt(accepted.Count - 1); break; }
+            case ("flush-stress", "cancel-count"): { a["cancelled"] = 31; break; }
+            case ("flush-stress", "concurrent-target"): { JsonNode output = a["observations"]![0]!["final"]!["outputs"]![0]!; output["boundary"] = (long.Parse((string)output["boundary"]!, System.Globalization.CultureInfo.InvariantCulture) + 1).ToString(System.Globalization.CultureInfo.InvariantCulture); output["written"] = (long.Parse((string)output["written"]!, System.Globalization.CultureInfo.InvariantCulture) + 1).ToString(System.Globalization.CultureInfo.InvariantCulture); break; }
+            case ("flush-stress", "ticket"): { a["writes"]!.AsArray().Single(row => (string?)row!["name"] == "first")!["outputs"]![0]!["ticket"] = "2"; break; }
+            case ("flush-stress", "records"): { a["console"]!["bytes"] = ""; break; }
+            case ("flush-stress", "UTC-due"): { a["dueBeforeTimeout"] = new JsonArray("100000000", "100000000"); break; }
+            case ("flush-stress", "file-budget"): { a["phases"]![3]!["dueTicks"]![0] = "100000000"; break; }
+            case ("flush-stress", "callback"): { a["observations"]![0]!["during"]!["callbacks"] = 0; break; }
+            case ("flush-stress", "notification"): { a["observations"]![1]!["notificationHeldBeforeCompletion"] = false; break; }
+            case ("flush-stress", "source"): { a["observations"]![0]!["sourceReadableDuringJoin"] = false; break; }
+            case ("flush-stress", "freeze"): { JsonNode output = a["observations"]![1]!["result"]!["outputs"]![0]!; output["written"] = "1"; output["pending"] = "0"; output["flush"] = "Succeeded"; output["flushSucceeded"] = true; break; }
+            case ("flush-stress", "pid"): { a["pid"] = pid + 1; break; }
             default: throw new ArgumentOutOfRangeException(nameof(fault));
         }
-        if (command == "flush-results") { Assert.ThrowsExactly<InvalidOperationException>(() => LifecycleProcessChecks.Validate(command, mode, a, pid)); }
+        if (command is "flush-results" or "flush-stress") { Assert.ThrowsExactly<InvalidOperationException>(() => LifecycleProcessChecks.Validate(command, mode, a, pid)); }
         else { Assert.ThrowsExactly<InvalidDataException>(() => LifecycleProcessChecks.Validate(command, mode, a, pid)); }
     }
 }
