@@ -50,6 +50,12 @@ internal static class LifecycleProcessChecks
             CollectionAssert.AreEqual(Convert.FromBase64String((string)report["bytes"]!), File.ReadAllBytes(path));
             using var lease = new FileStream(path + ".cis.lock", FileMode.Open, FileAccess.ReadWrite, FileShare.None);
         }
+        if (command == "flush-results" && mode == "physical")
+        {
+            string path = Path.Combine(root.Path, "flush-results.jsonl");
+            CollectionAssert.AreEqual(Convert.FromBase64String((string)report["fileBytes"]!), File.ReadAllBytes(path));
+            using var lease = new FileStream(path + ".cis.lock", FileMode.Open, FileAccess.ReadWrite, FileShare.None);
+        }
         return report;
     }
 
@@ -64,6 +70,7 @@ internal static class LifecycleProcessChecks
             case "runtime-create": RuntimeCreateExpectations.Validate(mode, report, pid); break;
             case "flush-boundary": FlushBoundaryExpectations.Validate(mode, report, pid); break;
             case "flush-coordination": FlushCoordinationExpectations.Validate(mode, report, pid); break;
+            case "flush-results": FlushResultExpectations.Validate(mode, report, pid); break;
             default: throw new ArgumentOutOfRangeException(nameof(command));
         }
     }

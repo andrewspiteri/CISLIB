@@ -5,10 +5,11 @@ namespace CIS.Tests.DiscoveryFixture;
 internal static class FlushResultExpectations
 {
     private static void Require(bool condition) { if (!condition) { throw new InvalidOperationException("Public flush expectation failed."); } }
-    internal static void Validate(string mode, JsonObject report)
+    internal static void Validate(string mode, JsonObject report, int? processId = null)
     {
+        LifecycleReportChecks.Identity(mode, report, processId); ValidateReader(mode, report);
         static bool Bool(JsonNode? n) => n!.GetValue<bool>();
-        static long Number(JsonNode? n) => long.Parse(n!.GetValue<string>(), System.Globalization.CultureInfo.InvariantCulture);
+        static long Number(JsonNode? n) => LifecycleReportChecks.Number(n);
         Require(report["mode"]!.GetValue<string>() == mode && report["runtime"]!.GetValue<string>() == ".NET 10.0.12" && Bool(report["immutableAfterIo"]));
         bool cancelled = mode is "cancel" or "pre-cancel" or "long-timeout";
         Require(Bool(report["cancelled"]) == cancelled);
@@ -53,5 +54,32 @@ internal static class FlushResultExpectations
         if (mode == "clock") { Require(Bool(report["survivedUtcCorrections"])); }
         if (mode == "exhaustion") { Require(Bool(report["stillPendingAfterFault"])); }
         if (mode == "physical") { Require(Bool(report["leaseReleased"])); }
+    }
+    private static void ValidateReader(string mode, JsonObject report)
+    {
+        static long Count(JsonNode? value) => LifecycleReportChecks.Number(value);
+        bool cancelled = mode is "cancel" or "pre-cancel" or "long-timeout";
+        if (mode != "physical")
+        {
+            Require(report["heldControls"]!.GetValue<int>() == (mode is "empty" or "closed" ? 0 : 1));
+            Require(report["controlsAfterWait"]!.GetValue<int>() == (mode is "empty" or "loss" or "write-failure" or "flush-failure" or "later-failure" or "filtered" or "closed" or "dual" ? 0 : 1));
+        }
+        if (cancelled) { Require(!report.ContainsKey("result")); }
+        else
+        {
+            JsonObject result = report["result"]!.AsObject(); LifecycleReportChecks.Result(result, globalCounts: true);
+            LifecycleReportChecks.Names(result["outputs"]!.AsArray(), mode == "empty" ? [] : mode is "physical" or "dual" ? ["console", "file"] : ["console"]);
+        }
+        int pid = report["pid"]!.GetValue<int>();
+        JsonObject[] console = LifecycleReportChecks.Records(report["bytes"], pid), file = LifecycleReportChecks.Records(report["fileBytes"], pid);
+        string[] names = mode is "empty" or "write-failure" or "filtered" or "closed" ? [] : mode is "loss" or "physical" ? ["first", "second"] : ["first"];
+        Require(console.Select(record => (string)record["event_name"]!).SequenceEqual(names));
+        Require(file.Select(record => (string)record["event_name"]!).SequenceEqual(mode == "physical" ? ["first", "second"] : mode == "dual" ? ["first"] : Array.Empty<string>()));
+        Require(console.Concat(file).All(record => (string?)record["status"] == "info"));
+        if (mode == "physical") { Require(report["leaseReleased"]!.GetValue<bool>()); return; }
+        JsonArray diagnostics = report["diagnostics"]!.AsArray();
+        Require(diagnostics.All(output => Count(output!["pending"]) == 0));
+        if (mode == "loss") { Require(Count(diagnostics[0]!["invalid"]) == 2 && Count(diagnostics[0]!["filtered"]) == 2); }
+        if (mode == "later-failure") { Require(Count(diagnostics[0]!["failed"]) == 1); }
     }
 }
