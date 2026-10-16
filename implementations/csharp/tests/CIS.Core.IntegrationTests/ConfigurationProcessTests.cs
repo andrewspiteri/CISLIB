@@ -1,4 +1,3 @@
-using System.Security.Cryptography;
 using System.Text.Json.Nodes;
 using CIS.Tests.DiscoveryFixture;
 using CIS.TestSupport;
@@ -9,61 +8,51 @@ namespace CIS.Tests.IntegrationTests;
 [TestClass]
 public sealed class ConfigurationProcessTests
 {
-    private static readonly string FixturePath = Path.Combine(AppContext.BaseDirectory, "discovery-fixture", "CIS.Core.DiscoveryFixture.dll");
     public TestContext TestContext { get; set; } = null!;
+    public static IEnumerable<object[]> SharedCases => ConfigurationProcessChecks.Cases("configuration-resolution-cases.json", 26).Select(row => new object[] { (string)row!["id"]! });
 
     [TestMethod]
-    [DataRow("CFG-RESOLVE-DEFAULTS")]
-    [DataRow("CFG-RESOLVE-ENVIRONMENT-ALL")]
-    [DataRow("CFG-RESOLVE-DD-ALIASES")]
-    [DataRow("CFG-RESOLVE-INDEPENDENT-LEVELS")]
-    [DataRow("CFG-RESOLVE-GLOBAL-NONE-OWN-LEVELS")]
-    [DataRow("CFG-RESOLVE-BOTH-NONE")]
-    [DataRow("CFG-RESOLVE-TELEMETRY-CORE")]
-    [DataRow("CFG-RESOLVE-TELEMETRY-DD")]
-    [DataRow("CFG-RESOLVE-INVALID-HIGHER-PRIORITY")]
-    [DataRow("CFG-RESOLVE-INVALID-DISABLED-OPTIONS")]
+    [DynamicData(nameof(SharedCases))]
     public async Task ChildConfigurationMatchesSharedInputsWithoutChangingHostLabel(string id)
     {
-        JsonObject document = JsonNode.Parse(File.ReadAllText(FindInputs()))!.AsObject();
-        JsonObject row = document["cases"]!.AsArray().Single(row => row!["id"]!.GetValue<string>() == id)!.AsObject();
+        string inputs = ConfigurationProcessChecks.Find("configuration-resolution-cases.json");
+        JsonObject row = ConfigurationProcessChecks.Cases("configuration-resolution-cases.json", 26).Single(row => (string?)row!["id"] == id)!.AsObject();
         JsonObject input = row["inputs"]!.AsObject();
         var environment = new Dictionary<string, string?>();
-        foreach (JsonNode? setting in row["expected"]!["settings"]!.AsArray()) { environment[setting!["key"]!.GetValue<string>()] = null; }
-        foreach (string alias in new[] { "DD_SERVICE", "DD_ENV", "DD_VERSION" }) { environment[alias] = null; }
-        foreach ((string name, JsonNode? value) in input["environment"]!.AsObject()) { environment[name] = value?.GetValue<string>(); }
-        string? hostLabel = input["host"]!["environmentName"]?.GetValue<string>();
+        foreach (JsonNode? setting in ConfigurationReadExpectations.Catalog()["settings"]!.AsArray())
+        {
+            environment[(string)setting!["key"]!] = null;
+            foreach (JsonNode? alias in setting["aliases"]?.AsArray() ?? []) { environment[(string)alias!] = null; }
+        }
+        foreach ((string name, JsonNode? value) in input["environment"]!.AsObject()) { environment[name] = (string?)value; }
+        string? hostLabel = (string?)input["host"]!["environmentName"];
         environment["ASPNETCORE_ENVIRONMENT"] = hostLabel;
         environment["CORE_PASSWORD"] = "unknown-child-fixture-sentinel";
-        string?[] before = environment.Keys.Select(Environment.GetEnvironmentVariable).ToArray();
         using var directory = new TemporaryDirectory();
-        ProcessResult process = await ProcessRunner.RunAsync("dotnet", ["exec", "--fx-version", "10.0.12", "--roll-forward", "Disable", FixturePath, "configuration", FindInputs(), id], directory.Path, TimeSpan.FromSeconds(15), environment);
-        Assert.AreEqual(0, process.ExitCode, process.StandardOutput + process.StandardError);
-        Assert.AreEqual(string.Empty, process.StandardError);
-        TestContext.WriteLine(process.StandardOutput);
-        JsonObject result = JsonNode.Parse(process.StandardOutput)!.AsObject();
+        (JsonObject result, _) = await ConfigurationProcessChecks.RunAsync(["configuration", inputs, id], directory.Path, TestContext, inputs, environment);
+        Assert.AreEqual(id, (string?)result["caseId"]);
         JsonObject configuration = result["configuration"]!.AsObject();
         JsonObject expected = row["expected"]!.AsObject();
         if (expected["hasParseErrors"]!.GetValue<bool>())
         {
-            Assert.AreEqual("Invalid", configuration["status"]!.GetValue<string>());
-            Assert.IsNull(configuration["values"]);
-            CollectionAssert.AreEqual(expected["settings"]!.AsArray().Where(setting => setting!["state"]!.GetValue<string>() == "InvalidToken").Select(setting => setting!["key"]!.GetValue<string>()).ToArray(),
-                configuration["issues"]!.AsArray().Select(issue => issue!["key"]!.GetValue<string>()).ToArray());
+            Assert.AreEqual("Invalid", (string?)configuration["status"]);
+            Assert.IsFalse(configuration.ContainsKey("values"));
+            Assert.IsNull(configuration["filePath"]);
+            Assert.IsNull(configuration["workingDirectory"]);
+            CollectionAssert.AreEqual(expected["settings"]!.AsArray().Where(setting => (string?)setting!["state"] == "InvalidToken").Select(setting => "InvalidToken:" + (string)setting!["key"]!).ToArray(),
+                ConfigurationProcessChecks.Issues(configuration["issues"]!));
         }
         else
         {
-            Assert.AreEqual("Valid", configuration["status"]!.GetValue<string>());
-            Assert.AreEqual(expected["buildVersion"]!.GetValue<string>(), configuration["values"]!["BuildVersion"]!.GetValue<string>());
+            Assert.AreEqual("Valid", (string?)configuration["status"]);
+            Assert.AreEqual(0, configuration["issues"]!.AsArray().Count);
+            Assert.AreEqual((string?)expected["buildVersion"], (string?)configuration["values"]!["BuildVersion"]);
             foreach (JsonNode? setting in expected["settings"]!.AsArray())
             {
-                string key = setting!["key"]!.GetValue<string>();
-                string property = ConfigurationReadExpectations.Catalog()["settings"]!.AsArray().Single(row => row!["key"]!.GetValue<string>() == key)!["property"]!.GetValue<string>();
+                string key = (string)setting!["key"]!;
+                string property = (string)ConfigurationReadExpectations.Catalog()["settings"]!.AsArray().Single(row => (string?)row!["key"] == key)!["property"]!;
                 JsonNode? wanted = setting["value"];
-                if (key == "CORE_LOG_FILE_PATH" && wanted is not null)
-                {
-                    wanted = JsonValue.Create(Path.GetFullPath(wanted.GetValue<string>(), directory.Path));
-                }
+                if (key == "CORE_LOG_FILE_PATH" && wanted is not null) { wanted = JsonValue.Create(Path.GetFullPath((string)wanted!, directory.Path)); }
                 Assert.IsTrue(JsonNode.DeepEquals(wanted, configuration["values"]![property]), id + ":" + key);
             }
             Assert.IsTrue(JsonNode.DeepEquals(expected["consoleEnabled"], configuration["consoleEnabled"]));
@@ -71,33 +60,13 @@ public sealed class ConfigurationProcessTests
         }
         Assert.IsTrue(JsonNode.DeepEquals(input["host"], result["hostBefore"]));
         Assert.IsTrue(JsonNode.DeepEquals(result["hostBefore"], result["hostAfter"]));
-        Assert.AreEqual(hostLabel, result["frameworkVariableBefore"]?.GetValue<string>());
-        Assert.AreEqual(hostLabel, result["frameworkVariableAfter"]?.GetValue<string>());
-        JsonObject observed = result["observed"]!.AsObject();
-        Assert.AreEqual(".NET 10.0.12", observed["runtimeDescription"]!.GetValue<string>());
-        Assert.AreEqual(OperatingSystem.IsWindows() ? "windows" : OperatingSystem.IsLinux() ? "linux" : "macos", observed["operatingSystem"]!.GetValue<string>());
-        Assert.AreEqual(Hash(FixturePath), observed["fixtureSha256"]!.GetValue<string>());
-        Assert.AreEqual(Hash(Path.Combine(Path.GetDirectoryName(FixturePath)!, "CIS.Core.dll")), observed["coreSha256"]!.GetValue<string>());
-        Assert.AreEqual(Hash(FindInputs()), observed["inputsSha256"]!.GetValue<string>());
-        string[] reads = observed["recognizedReads"]!.AsArray().Select(node => node!.GetValue<string>()).ToArray();
+        Assert.AreEqual(hostLabel, (string?)result["frameworkVariableBefore"]);
+        Assert.AreEqual(hostLabel, (string?)result["frameworkVariableAfter"]);
+        string[] reads = result["observed"]!["recognizedReads"]!.AsArray().Select(node => (string)node!).ToArray();
         CollectionAssert.AreEqual(ConfigurationReadExpectations.Expected(input), reads);
         Assert.AreEqual(reads.Length, reads.Distinct(StringComparer.Ordinal).Count());
         Assert.IsFalse(reads.Contains("ASPNETCORE_ENVIRONMENT", StringComparer.Ordinal));
         Assert.IsFalse(reads.Contains("CORE_PASSWORD", StringComparer.Ordinal));
         Assert.AreEqual(0, Directory.GetFileSystemEntries(directory.Path).Length, "Selection created filesystem outputs.");
-        CollectionAssert.AreEqual(before, environment.Keys.Select(Environment.GetEnvironmentVariable).ToArray());
-    }
-
-    private static string Hash(string path) => Convert.ToHexStringLower(SHA256.HashData(File.ReadAllBytes(path)));
-    private static string FindInputs()
-    {
-        DirectoryInfo? directory = new(AppContext.BaseDirectory);
-        while (directory is not null)
-        {
-            string path = Path.Combine(directory.FullName, "conformance", "logging", "configuration-resolution-cases.json");
-            if (File.Exists(path)) { return path; }
-            directory = directory.Parent;
-        }
-        throw new FileNotFoundException("Cannot find configuration inputs.");
     }
 }

@@ -1432,7 +1432,7 @@
         },
         {
           "method": "CIS.Tests.IntegrationTests.ConfigurationPathProcessTests.ChildCwdChangeCannotRedirectValidatedPathOrCreateOutputs",
-          "minimumExecutions": 1
+          "minimumExecutions": 13
         },
         {
           "method": "CIS.Tests.IntegrationTests.FileAcquisitionProcessTests.CapturedPathIsAcquiredInItsOriginalDirectoryFromAnotherChildCwd",
@@ -2639,7 +2639,7 @@
       "title": "ChildConfigurationMatchesSharedInputsWithoutChangingHostLabel",
       "implementation": "Implemented",
       "method": "CIS.Tests.IntegrationTests.ConfigurationProcessTests.ChildConfigurationMatchesSharedInputsWithoutChangingHostLabel",
-      "minimumExecutions": 8,
+      "minimumExecutions": 26,
       "lanes": [
         "windows-x64",
         "linux-ubuntu2404-x64"
@@ -2981,7 +2981,7 @@
       "title": "ChildCwdChangeCannotRedirectValidatedPathOrCreateOutputs",
       "implementation": "Implemented",
       "method": "CIS.Tests.IntegrationTests.ConfigurationPathProcessTests.ChildCwdChangeCannotRedirectValidatedPathOrCreateOutputs",
-      "minimumExecutions": 3,
+      "minimumExecutions": 13,
       "lanes": [
         "windows-x64",
         "linux-ubuntu2404-x64"
@@ -3111,7 +3111,7 @@
       "title": "CompleteValidationRemainsSafeAndStableAcrossActualChildDirectoryChanges",
       "implementation": "Implemented",
       "method": "CIS.Tests.IntegrationTests.ConfigurationValidationProcessTests.CompleteValidationRemainsSafeAndStableAcrossActualChildDirectoryChanges",
-      "minimumExecutions": 4,
+      "minimumExecutions": 24,
       "lanes": [
         "windows-x64",
         "linux-ubuntu2404-x64"
@@ -10507,6 +10507,33 @@
       ],
       "requirements": [],
       "source": "Corrective C02 / Batch B; independent parent observation of native child PID, exact fixture/Core/factory hashes, actual file bytes and released exclusive lease."
+    },
+    {
+      "id": "IT-CONFIG-CATALOG-NATIVE",
+      "family": "integration",
+      "implementation": "Implemented",
+      "method": "CIS.Tests.IntegrationTests.ConfigurationPathProcessTests.ConfigurationCatalogMembershipIsComplete",
+      "minimumExecutions": 1,
+      "lanes": ["windows-x64", "linux-ubuntu2404-x64"],
+      "source": "Native configuration migration: complete resolution, validation and lane-specific path membership plus recognized-variable catalog."
+    },
+    {
+      "id": "IT-ENV-INSTANCE-PROCESSES-NATIVE",
+      "family": "integration",
+      "implementation": "Implemented",
+      "method": "CIS.Tests.IntegrationTests.EnvironmentOptionsProcessTests.SeparateApplicationProcessesReceiveDistinctInstanceIds",
+      "minimumExecutions": 1,
+      "lanes": ["windows-x64", "linux-ubuntu2404-x64"],
+      "source": "Four real application processes receive distinct nonempty instance IDs; their physical identities and constructor observations are also checked."
+    },
+    {
+      "id": "IT-CONFIG-TILDE-PROCESSES-NATIVE",
+      "family": "integration",
+      "implementation": "Implemented",
+      "method": "CIS.Tests.IntegrationTests.ConfigurationPathProcessTests.ExistingAliasAndLiteralTildesRemainLexicalInActualChildProcesses",
+      "minimumExecutions": 3,
+      "lanes": ["windows-x64", "linux-ubuntu2404-x64"],
+      "source": "Windows harness confirms an existing 8.3 alias independently and requires literal Core preservation in three actual children. Linux exercises literal tildes/private-use markers under an existing directory, with no Windows alias claim."
     }
   ]
 }

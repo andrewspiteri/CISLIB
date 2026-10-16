@@ -40,6 +40,7 @@ internal static class ConfigurationPathProcessFixture
             ["errorMessage"] = errorMessage,
             ["observed"] = new JsonObject
             {
+                ["processId"] = System.Environment.ProcessId,
                 ["operatingSystem"] = OperatingSystem.IsWindows() ? "windows" : OperatingSystem.IsLinux() ? "linux" : "macos",
                 ["runtimeDescription"] = RuntimeInformation.FrameworkDescription,
                 ["fixtureSha256"] = Hash(typeof(ConfigurationPathProcessFixture).Assembly.Location),

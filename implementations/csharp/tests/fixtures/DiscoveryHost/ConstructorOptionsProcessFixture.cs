@@ -1,3 +1,5 @@
+using System.Runtime.InteropServices;
+using System.Security.Cryptography;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using CIS.Configuration;
@@ -59,6 +61,7 @@ internal static class ConstructorOptionsProcessFixture
         string? selected = System.Environment.GetEnvironmentVariable("CORE_SERVICE_NAME");
         Console.WriteLine(new JsonObject
         {
+            ["observed"] = new JsonObject { ["processId"] = System.Environment.ProcessId, ["operatingSystem"] = OperatingSystem.IsWindows() ? "windows" : "linux", ["runtimeDescription"] = RuntimeInformation.FrameworkDescription, ["fixtureSha256"] = Convert.ToHexStringLower(SHA256.HashData(File.ReadAllBytes(typeof(ConstructorOptionsProcessFixture).Assembly.Location))), ["coreSha256"] = Convert.ToHexStringLower(SHA256.HashData(File.ReadAllBytes(typeof(EnvironmentOptions).Assembly.Location))) },
             ["scenario"] = scenario,
             ["values"] = values,
             ["metadata"] = metadata is null ? null : JsonSerializer.SerializeToNode(metadata),

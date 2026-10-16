@@ -32,6 +32,7 @@ internal static class ConfigurationValidationProcessFixture
             ["directoryReads"] = directoryReads,
             ["storedProjectionStable"] = stable,
             ["recognizedReads"] = new JsonArray(source.Reads.Select(name => (JsonNode)JsonValue.Create(name)!).ToArray()),
+            ["processId"] = System.Environment.ProcessId,
             ["operatingSystem"] = OperatingSystem.IsWindows() ? "windows" : OperatingSystem.IsLinux() ? "linux" : "macos",
             ["runtimeDescription"] = RuntimeInformation.FrameworkDescription,
             ["fixtureSha256"] = Hash(typeof(ConfigurationValidationProcessFixture).Assembly.Location),

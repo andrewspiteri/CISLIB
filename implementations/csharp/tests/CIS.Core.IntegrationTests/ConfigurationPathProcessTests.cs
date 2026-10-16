@@ -1,4 +1,5 @@
-using System.Security.Cryptography;
+using System.Runtime.InteropServices;
+using System.Text;
 using System.Text.Json.Nodes;
 using CIS.Tests.DiscoveryFixture;
 using CIS.TestSupport;
@@ -10,61 +11,129 @@ namespace CIS.Tests.IntegrationTests;
 public sealed class ConfigurationPathProcessTests
 {
     public TestContext TestContext { get; set; } = null!;
+    public static IEnumerable<object[]> SharedCases => PathRows().Where(Applies).Select(row => new object[] { (string)row!["id"]! });
 
     [TestMethod]
-    [DataRow("CFG-LOG-FILE-PATH-RELATIVE", "logs/app.jsonl")]
-    [DataRow("CFG-LOG-FILE-PATH-BLANK-CORE-USES-SETUP", "logs/app.jsonl")]
-    [DataRow("CFG-LOG-FILE-PATH-ABSENT", null)]
-    public async Task ChildCwdChangeCannotRedirectValidatedPathOrCreateOutputs(string id, string? relative)
+    public void ConfigurationCatalogMembershipIsComplete()
     {
-        string fixture = Path.Combine(AppContext.BaseDirectory, "discovery-fixture", "CIS.Core.DiscoveryFixture.dll");
-        string inputs = FindInputs();
-        JsonObject row = JsonNode.Parse(File.ReadAllText(inputs))!["cases"]!.AsArray().Single(row => row!["id"]!.GetValue<string>() == id)!.AsObject();
-        using var owned = new TemporaryDirectory();
-        string beforeDirectory = Path.Combine(owned.Path, "before");
-        string afterDirectory = Path.Combine(owned.Path, "after");
-        Directory.CreateDirectory(beforeDirectory);
-        Directory.CreateDirectory(afterDirectory);
-        string parentBefore = Directory.GetCurrentDirectory();
-        ProcessResult process = await ProcessRunner.RunAsync("dotnet", ["exec", "--fx-version", "10.0.12", "--roll-forward", "Disable", fixture, "configuration-path", inputs, id, afterDirectory], beforeDirectory, TimeSpan.FromSeconds(15));
-        Assert.AreEqual(0, process.ExitCode, process.StandardOutput + process.StandardError);
-        Assert.AreEqual(string.Empty, process.StandardError);
-        TestContext.WriteLine(process.StandardOutput);
-        JsonNode result = JsonNode.Parse(process.StandardOutput)!;
-        Assert.AreEqual(beforeDirectory, result["initialActualDirectory"]!.GetValue<string>());
-        Assert.AreEqual(afterDirectory, result["afterActualDirectory"]!.GetValue<string>());
-        Assert.AreEqual("actual-child-cwd", result["directorySource"]!.GetValue<string>());
-        Assert.AreEqual(beforeDirectory, result["capturedDirectory"]!.GetValue<string>());
-        Assert.AreEqual(beforeDirectory, result["validatedWorkingDirectory"]!.GetValue<string>());
-        Assert.AreEqual(1, result["directoryReads"]!.GetValue<int>());
-        string? expected = relative is null ? null : Path.Combine(beforeDirectory, "logs", "app.jsonl");
-        Assert.AreEqual(expected, result["absolutePathBefore"]?.GetValue<string>());
-        Assert.AreEqual(expected, result["absolutePathAfter"]?.GetValue<string>());
-        Assert.AreEqual(0, result["issues"]!.AsArray().Count);
-        CollectionAssert.AreEqual(ConfigurationReadExpectations.Expected(row["inputs"]!.AsObject()), result["observed"]!["recognizedReads"]!.AsArray().Select(name => name!.GetValue<string>()).ToArray());
-        Assert.AreEqual(Hash(fixture), result["observed"]!["fixtureSha256"]!.GetValue<string>());
-        Assert.AreEqual(Hash(Path.Combine(Path.GetDirectoryName(fixture)!, "CIS.Core.dll")), result["observed"]!["coreSha256"]!.GetValue<string>());
-        Assert.AreEqual(Hash(inputs), result["observed"]!["inputsSha256"]!.GetValue<string>());
-        Assert.AreEqual(".NET 10.0.12", result["observed"]!["runtimeDescription"]!.GetValue<string>());
-        Assert.AreEqual(0, Directory.GetFileSystemEntries(beforeDirectory).Length);
-        Assert.AreEqual(0, Directory.GetFileSystemEntries(afterDirectory).Length);
-        Assert.AreEqual(2, Directory.GetFileSystemEntries(owned.Path).Length);
-        Assert.AreEqual(parentBefore, Directory.GetCurrentDirectory());
+        _ = ConfigurationProcessChecks.Cases("configuration-resolution-cases.json", 26);
+        _ = ConfigurationProcessChecks.Cases("passive-configuration-validation-cases.json", 24);
+        Assert.AreEqual(14, PathRows().Length);
+        Assert.AreEqual(13, PathRows().Count(Applies));
+        string[] names = ConfigurationReadExpectations.Expected(new JsonObject());
+        Assert.AreEqual(21, names.Length);
+        Assert.AreEqual(21, names.Distinct(StringComparer.Ordinal).Count());
     }
 
-    private static string Hash(string path) => Convert.ToHexStringLower(SHA256.HashData(File.ReadAllBytes(path)));
-    private static string FindInputs()
+    [TestMethod]
+    [DynamicData(nameof(SharedCases))]
+    public async Task ChildCwdChangeCannotRedirectValidatedPathOrCreateOutputs(string id)
     {
-        DirectoryInfo? directory = new(AppContext.BaseDirectory);
-        while (directory is not null)
-        {
-            string path = Path.Combine(directory.FullName, "conformance", "logging", "configuration-cases.json");
-            if (File.Exists(path))
-            {
-                return path;
-            }
-            directory = directory.Parent;
-        }
-        throw new FileNotFoundException("Cannot find shared path inputs.");
+        string inputs = ConfigurationProcessChecks.Find("configuration-cases.json");
+        JsonObject row = PathRows().Single(row => (string?)row["id"] == id);
+        await CheckPathAsync(inputs, row);
     }
+
+    [TestMethod]
+    [DataRow("absolute")]
+    [DataRow("captured-base")]
+    [DataRow("marker-collision")]
+    public async Task ExistingAliasAndLiteralTildesRemainLexicalInActualChildProcesses(string mode)
+    {
+        using var owned = new TemporaryDirectory();
+        string alias;
+        if (OperatingSystem.IsWindows())
+        {
+            string programFiles = Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles);
+            var buffer = new StringBuilder(32768);
+            uint size = GetShortPathNameW(programFiles, buffer, (uint)buffer.Capacity);
+            Assert.IsTrue(size > 0 && size < buffer.Capacity, "The Windows lane requires an existing 8.3 alias.");
+            alias = buffer.ToString();
+            size = GetLongPathNameW(alias, buffer, (uint)buffer.Capacity);
+            Assert.IsTrue(size > 0 && size < buffer.Capacity);
+            Assert.IsTrue(alias.Contains('~') && Directory.Exists(alias));
+            Assert.AreNotEqual(alias, buffer.ToString());
+            TestContext.WriteLine("Harness-confirmed existing short alias: " + alias + "; expanded: " + buffer);
+        }
+        else
+        {
+            alias = Path.Combine(owned.Path, "existing~base Ω");
+            Directory.CreateDirectory(alias);
+            TestContext.WriteLine("Linux literal-tilde directory: " + alias + "; no Windows alias claim.");
+        }
+        string leaf = "cislib-path-never-created-" + Guid.NewGuid().ToString("N");
+        string suffix = mode == "marker-collision" ? "\ue000-\ue001-~log.jsonl" : "log.jsonl";
+        string expected = Path.Combine(alias, leaf, suffix);
+        string input = mode == "absolute" ? expected : leaf + "/" + suffix;
+        JsonObject row = PathRows().First(row => (string?)row["expected"]!["status"] != "Invalid").DeepClone().AsObject();
+        row["id"] = "PATH-TILDE-" + mode;
+        row["inputs"] = new JsonObject
+        {
+            ["environment"] = new JsonObject { ["CORE_LOG_FILE_PATH"] = input },
+            ["setup"] = new JsonObject(),
+            ["discovery"] = new JsonObject { ["applicationName"] = "Fixture.App", ["buildVersion"] = "1.0.0" }
+        };
+        if (mode != "absolute") { row["inputs"]!["workingDirectoryAtInitialization"] = alias; }
+        row["expected"] = new JsonObject { ["status"] = "Resolved", ["value"] = expected };
+        string inputs = Path.Combine(owned.Path, "inputs.json");
+        File.WriteAllText(inputs, new JsonObject { ["cases"] = new JsonArray(row.DeepClone()) }.ToJsonString(), new UTF8Encoding(false, true));
+        Assert.IsFalse(Directory.Exists(Path.Combine(alias, leaf)));
+        await CheckPathAsync(inputs, row);
+        Assert.IsFalse(Directory.Exists(Path.Combine(alias, leaf)));
+    }
+
+    private async Task CheckPathAsync(string inputs, JsonObject row)
+    {
+        string id = (string)row["id"]!;
+        using var owned = new TemporaryDirectory();
+        string before = Path.Combine(owned.Path, "before"), after = Path.Combine(owned.Path, "after");
+        Directory.CreateDirectory(before);
+        Directory.CreateDirectory(after);
+        (JsonObject result, _) = await ConfigurationProcessChecks.RunAsync(["configuration-path", inputs, id, after], before, TestContext, inputs);
+        string captured = (string?)row["inputs"]!["workingDirectoryAtInitialization"] ?? before;
+        Assert.AreEqual(id, (string?)result["caseId"]);
+        Assert.AreEqual(before, (string?)result["initialActualDirectory"]);
+        Assert.AreEqual(after, (string?)result["afterActualDirectory"]);
+        Assert.AreEqual(captured == before ? "actual-child-cwd" : "declared-fixture-base", (string?)result["directorySource"]);
+        Assert.AreEqual(captured, (string?)result["capturedDirectory"]);
+        Assert.AreEqual(1, result["directoryReads"]!.GetValue<int>());
+        if ((string?)row["expected"]!["status"] == "Invalid")
+        {
+            JsonArray expectedIssues = row["expected"]!["issues"]!.DeepClone().AsArray();
+            foreach (JsonNode? issue in expectedIssues)
+            {
+                if ((string?)issue!["code"] == "InvalidPath") { issue["key"] = "LoggingOptions.FilePath"; }
+            }
+            CollectionAssert.AreEqual(ConfigurationProcessChecks.Issues(expectedIssues), ConfigurationProcessChecks.Issues(result["issues"]!));
+            Assert.IsNull(result["absolutePathBefore"]);
+            Assert.IsNull(result["absolutePathAfter"]);
+            Assert.IsNull(result["validatedWorkingDirectory"]);
+            string safe = (string?)result["errorMessage"] + string.Join("|", result["issues"]!.AsArray().Select(issue => (string?)issue!["explanation"]));
+            Assert.IsFalse(safe.Contains("invalid\0path", StringComparison.Ordinal));
+            Assert.IsFalse(safe.Contains("must-not-appear", StringComparison.Ordinal));
+        }
+        else
+        {
+            JsonNode? wanted = row["expected"]!["value"];
+            string? expected = wanted is JsonObject relative ? Path.GetFullPath((string)relative["input"]!, captured) : (string?)wanted;
+            Assert.AreEqual(expected, (string?)result["absolutePathBefore"]);
+            Assert.AreEqual(expected, (string?)result["absolutePathAfter"]);
+            Assert.AreEqual(captured, (string?)result["validatedWorkingDirectory"]);
+            Assert.AreEqual(0, result["issues"]!.AsArray().Count);
+        }
+        CollectionAssert.AreEqual(ConfigurationReadExpectations.Expected(row["inputs"]!.AsObject()), result["observed"]!["recognizedReads"]!.AsArray().Select(name => (string)name!).ToArray());
+        Assert.AreEqual(0, Directory.GetFileSystemEntries(before).Length);
+        Assert.AreEqual(0, Directory.GetFileSystemEntries(after).Length);
+        Assert.AreEqual(2, Directory.GetFileSystemEntries(owned.Path).Length);
+    }
+
+    private static JsonObject[] PathRows() => ConfigurationProcessChecks.Cases("configuration-cases.json", 350).OfType<JsonObject>().Where(row => (string?)row["key"] == "CORE_LOG_FILE_PATH").ToArray();
+    private static bool Applies(JsonObject row) => row["lanes"] is not JsonArray lanes || lanes.Any(lane => (string?)lane == ConfigurationProcessChecks.Lane);
+
+    [DllImport("kernel32.dll", CharSet = CharSet.Unicode, ExactSpelling = true, SetLastError = true)]
+    [DefaultDllImportSearchPaths(DllImportSearchPath.System32)]
+    private static extern uint GetShortPathNameW(string path, StringBuilder buffer, uint size);
+    [DllImport("kernel32.dll", CharSet = CharSet.Unicode, ExactSpelling = true, SetLastError = true)]
+    [DefaultDllImportSearchPaths(DllImportSearchPath.System32)]
+    private static extern uint GetLongPathNameW(string path, StringBuilder buffer, uint size);
 }
