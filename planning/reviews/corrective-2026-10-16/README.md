@@ -4,7 +4,7 @@
 
 **Status: incomplete.** Claude Opus 5.5 completed three of six original passes and returned findings. Another submission returned HTTP 429, `usage_limit_reached`: “You've hit your session limit · resets 11pm (Europe/Malta).” That is 23:00 Malta on 16 October. No approval review blocked these transfers. Remaining requests were not sent after the service limit became known. No implementation fixes or new verification runs were performed for this review.
 
-Current correction status: all eleven supported findings have been fixed and targeted checks pass on Windows and Ubuntu. See [corrections and verification](corrections.md). The comprehensive Developer checkpoint is pending. This does not complete the three unreviewed scopes or claim a Claude review of the fixes.
+Current correction status: all eleven supported findings have been fixed and targeted checks pass on Windows and Ubuntu. See [corrections and verification](corrections.md). The final Windows Developer checkpoint passes all 6,438 native cases with zero failures/skips/issues; see the [checkpoint](../../evidence/corrective-claude-findings-checkpoint-2026-10-16.md). This does not complete the three unreviewed scopes or claim a Claude review of the fixes.
 
 ## Scope and coverage
 

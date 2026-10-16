@@ -17,7 +17,7 @@ Executed with SDK 10.0.401 / runtime 10.0.12:
 | Windows | 38 | Passed; zero failed/skipped | .artifacts/csharp/focused/3293d1df99014c73ac6cf8eea0fb4f1e/summary.json |
 | Ubuntu 24.04 | 38 | Passed; zero failed/skipped | .artifacts/corrective/batch-a/linux/.artifacts/csharp/focused/b8ffa6c7d98c4591a690014b537a168d/summary.json |
 
-Selection: IncomingRuntimeTests, IncomingEventQueueTests and ProcessingPolicyTests. These are focused development checks, not coverage, mutation or release qualification. A comprehensive Developer checkpoint remains required after the remaining fixes.
+Selection: IncomingRuntimeTests, IncomingEventQueueTests and ProcessingPolicyTests. These are focused development checks, not coverage, mutation or release qualification. The subsequent comprehensive Developer checkpoint below covers the completed fixes.
 
 ## F1, F2, F3, F5 and F6 — file verification and evidence labels
 
@@ -66,8 +66,8 @@ Replaced that copy with direct readonly value construction. The existing diagnos
 
 Reports: Windows diagnostics .artifacts/csharp/focused/c9388f2511344c29b7a0fbb3b4fddc37/summary.json; Windows runtime .artifacts/csharp/focused/5bcb0b21c6c14ec995b8e0340f9b81dc/summary.json; Windows contract .artifacts/csharp/focused/f351891139a4489db81fbff20e9f8a9b/summary.json; Ubuntu diagnostics .artifacts/corrective/batch-a/linux/.artifacts/csharp/focused/80f06b4484d04f2ebb90f8cc97cf3e20/summary.json; Ubuntu runtime .artifacts/corrective/batch-a/linux/.artifacts/csharp/focused/b18c5c528de040069b65d3fa39ad3998/summary.json.
 
-The failed Developer output and log are preserved under .artifacts/corrective/claude-fixes/failed-0127538b333f4c458ebbd307ae471370. Failed summary SHA-256: 142c527ca4855f6ad0a44bba7ab91194866c51ce6077feaa9340c8e6c58783ff. Its source inventory remains 85094fa4a55a85600587d944da69071fe119e6ee78c9e8a092e0a10dfd52b9da. A fresh frozen-source Developer run is required for the corrected implementation.
+The failed Developer output and log are preserved under .artifacts/corrective/claude-fixes/failed-0127538b333f4c458ebbd307ae471370. Failed summary SHA-256: 142c527ca4855f6ad0a44bba7ab91194866c51ce6077feaa9340c8e6c58783ff. Its source inventory remains 85094fa4a55a85600587d944da69071fe119e6ee78c9e8a092e0a10dfd52b9da. The subsequent fresh frozen-source Developer run below verifies the corrected implementation.
 
 ## Remaining verification and review
 
-All eleven supported findings are fixed and targeted verification is complete. The comprehensive Windows Developer checkpoint remains pending. The three uncompleted Claude scopes (325 assigned paths at the original snapshot) and a review of these fixes remain unexecuted. Prepared old continuation bundles do not cover this new source delta. Coverage, mutation, complete Ubuntu Developer, release/package history, supported IDE acceptance, teaching examples/skills and publication remain separate pending work. The original roadmap goal remains paused.
+All eleven supported findings are fixed and verified. Final Windows Developer run ac73d96d939c4f2d819463df71ba9f36, at source 7a606607, passes all 6,438 native cases with zero failures/skips/issues, including the unchanged diagnostics guard. See the [verified checkpoint](../../evidence/corrective-claude-findings-checkpoint-2026-10-16.md) for exact source/artifact pins and the separately preserved failed first attempt. The three uncompleted Claude scopes (325 assigned paths at the original snapshot) and a review of these fixes remain unexecuted. Prepared old continuation bundles do not cover this new source delta. Coverage, mutation, complete Ubuntu Developer, release/package history, supported IDE acceptance, teaching examples/skills and publication remain separate pending work. The original roadmap goal remains paused.
