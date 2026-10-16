@@ -1,5 +1,5 @@
-using System.Security.Cryptography;
 using System.Text.Json.Nodes;
+using CIS.Tests.DiscoveryFixture;
 using CIS.TestSupport;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -9,44 +9,29 @@ namespace CIS.Tests.IntegrationTests;
 public sealed class OperationScopeQualificationProcessTests
 {
     public TestContext TestContext { get; set; } = null!;
-    public static IEnumerable<object[]> Rows => LogValueProcessTests.Read("scope-qualification-cases.json")["cases"]!.AsArray()
-        .Select(row => new object[] { row!["id"]!.GetValue<string>() });
+    public static IEnumerable<object[]> Rows => FixtureProcessChecks.Cases("scope-qualification-cases.json", 14).Select(row => new object[] { (string)row!["id"]! });
 
     [TestMethod]
     [DynamicData(nameof(Rows))]
     public async Task EverySharedScopeScenarioRunsInAnIsolatedExactRuntimeChild(string id)
     {
-        string host = Path.Combine(AppContext.BaseDirectory, "discovery-fixture", "CIS.Core.DiscoveryFixture.dll");
-        string input = LogValueProcessTests.Find("scope-qualification-cases.json");
+        string input = FixtureProcessChecks.Find("scope-qualification-cases.json");
         using var owned = new TemporaryDirectory();
-        ProcessResult process = await ProcessRunner.RunAsync("dotnet",
-            ["exec", "--fx-version", "10.0.12", "--roll-forward", "Disable", host, "scope-qualification", input, id],
-            owned.Path, TimeSpan.FromSeconds(30), new Dictionary<string, string?>
+        (JsonObject result, _) = await FixtureProcessChecks.RunAsync(["scope-qualification", input, id], owned.Path, TestContext, input,
+            new Dictionary<string, string?>
             {
                 ["CORE_LOG_LEVEL"] = "invalid-must-not-be-read",
                 ["DD_AGENT_HOST"] = "CIS_NEVER_CAPTURE_COLLECTOR",
                 ["CIS_PRIVATE_SCOPE_TOKEN"] = "CIS_NEVER_CAPTURE_SCOPE"
-            });
-        Assert.AreEqual(0, process.ExitCode, process.StandardError);
-        Assert.AreEqual(string.Empty, process.StandardError);
-        TestContext.WriteLine(process.StandardOutput);
-        JsonObject result = JsonNode.Parse(process.StandardOutput)!.AsObject();
-        Assert.AreEqual(id, result["caseId"]!.GetValue<string>());
+            }, TimeSpan.FromSeconds(30));
+        Assert.AreEqual(id, (string?)result["caseId"]);
+        Assert.IsFalse(result["observed"]!["lifecycleApiPresent"]!.GetValue<bool>());
+        Assert.IsFalse(result.ToJsonString().Contains("CIS_NEVER_CAPTURE_SCOPE", StringComparison.Ordinal));
+        Assert.IsFalse(result.ToJsonString().Contains("CIS_NEVER_CAPTURE_COLLECTOR", StringComparison.Ordinal));
         JsonObject catalog = LogValueProcessTests.Read("scope-qualification-cases.json");
-        JsonObject row = catalog["cases"]!.AsArray().Single(row => row!["id"]!.GetValue<string>() == id)!.AsObject();
-        JsonObject semantic = result.DeepClone().AsObject();
-        semantic.Remove("observed");
-        CIS.Tests.DiscoveryFixture.OperationScopeQualificationExpectations.Validate(row, catalog["nativeBindings"]!.AsObject(), semantic);
-        JsonNode observed = result["observed"]!;
-        Assert.IsFalse(observed["lifecycleApiPresent"]!.GetValue<bool>());
-        Assert.AreEqual(".NET 10.0.12", observed["runtimeDescription"]!.GetValue<string>());
-        Assert.AreEqual(Hash(host), observed["fixtureSha256"]!.GetValue<string>());
-        Assert.AreEqual(Hash(Path.Combine(Path.GetDirectoryName(host)!, "CIS.Core.dll")), observed["coreSha256"]!.GetValue<string>());
-        Assert.AreEqual(Hash(input), observed["inputsSha256"]!.GetValue<string>());
-        Assert.IsFalse(process.StandardOutput.Contains("CIS_NEVER_CAPTURE_SCOPE", StringComparison.Ordinal));
-        Assert.IsFalse(process.StandardOutput.Contains("CIS_NEVER_CAPTURE_COLLECTOR", StringComparison.Ordinal));
+        JsonObject row = catalog["cases"]!.AsArray().Single(row => (string?)row!["id"] == id)!.AsObject();
+        result.Remove("observed");
+        OperationScopeQualificationExpectations.Validate(row, catalog["nativeBindings"]!.AsObject(), result);
         Assert.AreEqual(0, Directory.EnumerateFileSystemEntries(owned.Path).Count());
     }
-
-    private static string Hash(string path) => Convert.ToHexStringLower(SHA256.HashData(File.ReadAllBytes(path)));
 }

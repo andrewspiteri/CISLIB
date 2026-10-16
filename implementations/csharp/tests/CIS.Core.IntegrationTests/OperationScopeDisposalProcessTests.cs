@@ -1,4 +1,3 @@
-using System.Security.Cryptography;
 using System.Text.Json.Nodes;
 using CIS.TestSupport;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -17,26 +16,47 @@ public sealed class OperationScopeDisposalProcessTests
     [DataRow("absent")]
     public async Task NativeScopeDisposalRunsInAnIsolatedExactRuntimeChild(string mode)
     {
-        string host = Path.Combine(AppContext.BaseDirectory, "discovery-fixture", "CIS.Core.DiscoveryFixture.dll");
+        Validate(mode, await Capture(mode));
+    }
+
+    [TestMethod]
+    [DataRow("lifo")]
+    [DataRow("repeat")]
+    [DataRow("absent")]
+    public async Task ScopeReportCorruptionsAreRejectedAfterTheOriginalPhysicalReportPasses(string mode)
+    {
+        JsonObject actual = await Capture(mode);
+        Validate(mode, actual);
+        switch (mode)
+        {
+            case "lifo": actual["restoredIds"] = new JsonArray("outer", "middle", null); break;
+            case "repeat": actual["ownerRepeatsHarmless"] = 1; break;
+            case "absent": actual["message"] = "creating logical flow"; break;
+            default: throw new InvalidDataException("Unknown scope control.");
+        }
+        Assert.ThrowsExactly<AssertFailedException>(() => Validate(mode, actual));
+    }
+
+    private async Task<JsonObject> Capture(string mode)
+    {
         using var owned = new TemporaryDirectory();
-        ProcessResult process = await ProcessRunner.RunAsync("dotnet",
-            ["exec", "--fx-version", "10.0.12", "--roll-forward", "Disable", host, "scope-disposal", mode],
-            owned.Path, TimeSpan.FromSeconds(20), new Dictionary<string, string?>
+        (JsonObject actual, _) = await FixtureProcessChecks.RunAsync(["scope-disposal", mode], owned.Path, TestContext,
+            environment: new Dictionary<string, string?>
             {
                 ["CORE_LOG_LEVEL"] = "invalid-must-not-be-read",
                 ["DD_AGENT_HOST"] = "CIS_NEVER_CAPTURE_COLLECTOR",
                 ["CIS_PRIVATE_SCOPE_TOKEN"] = "CIS_NEVER_CAPTURE_SCOPE"
-            });
-        Assert.AreEqual(0, process.ExitCode, process.StandardError);
-        Assert.AreEqual(string.Empty, process.StandardError);
-        TestContext.WriteLine(process.StandardOutput);
-        JsonObject actual = JsonNode.Parse(process.StandardOutput)!.AsObject();
-        JsonObject observed = actual["observed"]!.AsObject();
-        Assert.IsFalse(observed["lifecycleApiPresent"]!.GetValue<bool>());
-        Assert.AreEqual(".NET 10.0.12", observed["runtimeDescription"]!.GetValue<string>());
-        Assert.AreEqual(Hash(host), observed["fixtureSha256"]!.GetValue<string>());
-        Assert.AreEqual(Hash(Path.Combine(Path.GetDirectoryName(host)!, "CIS.Core.dll")), observed["coreSha256"]!.GetValue<string>());
+            }, timeout: TimeSpan.FromSeconds(20));
+        Assert.IsFalse(actual["observed"]!["lifecycleApiPresent"]!.GetValue<bool>());
+        Assert.IsFalse(actual.ToJsonString().Contains("CIS_NEVER_CAPTURE_SCOPE", StringComparison.Ordinal));
+        Assert.IsFalse(actual.ToJsonString().Contains("CIS_NEVER_CAPTURE_COLLECTOR", StringComparison.Ordinal));
+        Assert.AreEqual(0, Directory.EnumerateFileSystemEntries(owned.Path).Count());
         actual.Remove("observed");
+        return actual;
+    }
+
+    private static void Validate(string mode, JsonObject actual)
+    {
         string expected = mode switch
         {
             "lifo" => """{"mode":"lifo","error":"InvalidOperationException","message":"Dispose operation scopes in LIFO order.","headUnchanged":true,"restoredIds":["middle","outer",null],"storeEmpty":true}""",
@@ -45,11 +65,6 @@ public sealed class OperationScopeDisposalProcessTests
             "absent" => """{"mode":"absent","error":"InvalidOperationException","message":"The operation scope is not active in the current asynchronous context.","foreignHeadUnchanged":true,"creatorHeadUnchanged":true,"absentGuardStillRejects":true,"storeEmpty":true}""",
             _ => throw new InvalidDataException("Unknown scenario.")
         };
-        Assert.IsTrue(JsonNode.DeepEquals(JsonNode.Parse(expected), actual));
-        Assert.IsFalse(process.StandardOutput.Contains("CIS_NEVER_CAPTURE_SCOPE", StringComparison.Ordinal));
-        Assert.IsFalse(process.StandardOutput.Contains("CIS_NEVER_CAPTURE_COLLECTOR", StringComparison.Ordinal));
-        Assert.AreEqual(0, Directory.EnumerateFileSystemEntries(owned.Path).Count());
+        Assert.IsTrue(JsonNode.DeepEquals(JsonNode.Parse(expected), actual), "Scope observation differs: " + mode);
     }
-
-    private static string Hash(string path) => Convert.ToHexStringLower(SHA256.HashData(File.ReadAllBytes(path)));
 }

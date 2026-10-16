@@ -35,7 +35,7 @@ internal static class FixtureProcessChecks
         return rows;
     }
 
-    internal static async Task<(JsonObject Report, int ProcessId)> RunAsync(string[] arguments, string directory, TestContext context, string? inputs = null, IReadOnlyDictionary<string, string?>? environment = null)
+    internal static async Task<(JsonObject Report, int ProcessId)> RunAsync(string[] arguments, string directory, TestContext context, string? inputs = null, IReadOnlyDictionary<string, string?>? environment = null, TimeSpan? timeout = null)
     {
         string host = Path.Combine(AppContext.BaseDirectory, "discovery-fixture", "CIS.Core.DiscoveryFixture.dll");
         string core = Path.Combine(Path.GetDirectoryName(host)!, "CIS.Core.dll");
@@ -43,7 +43,7 @@ internal static class FixtureProcessChecks
         string parentDirectory = Directory.GetCurrentDirectory();
         Dictionary<string, string?> parent = ParentEnvironment();
         string[] command = ["exec", "--fx-version", "10.0.12", "--roll-forward", "Disable", host, .. arguments];
-        ProcessResult child = await ProcessRunner.RunAsync("dotnet", command, directory, TimeSpan.FromSeconds(15), environment, new UTF8Encoding(false, true));
+        ProcessResult child = await ProcessRunner.RunAsync("dotnet", command, directory, timeout ?? TimeSpan.FromSeconds(15), environment, new UTF8Encoding(false, true));
         Assert.AreEqual(parentDirectory, Directory.GetCurrentDirectory());
         Dictionary<string, string?> after = ParentEnvironment();
         CollectionAssert.AreEquivalent(parent.Keys.ToArray(), after.Keys.ToArray());

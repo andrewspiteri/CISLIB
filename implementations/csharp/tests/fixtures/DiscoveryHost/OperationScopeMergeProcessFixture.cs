@@ -23,6 +23,7 @@ internal static class OperationScopeMergeProcessFixture
         result["mode"] = mode;
         result["observed"] = new JsonObject
         {
+            ["processId"] = System.Environment.ProcessId,
             ["lifecycleApiPresent"] = (typeof(EnvironmentOptions).GetMethod("Initialize") is not null),
             ["runtimeDescription"] = RuntimeInformation.FrameworkDescription,
             ["operatingSystem"] = OperatingSystem.IsWindows() ? "windows" : "linux",

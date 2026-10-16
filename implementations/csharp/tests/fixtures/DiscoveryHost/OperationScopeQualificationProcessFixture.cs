@@ -15,6 +15,7 @@ internal static class OperationScopeQualificationProcessFixture
         OperationScopeQualificationExpectations.Validate(row, catalog["nativeBindings"]!.AsObject(), result);
         result["observed"] = new JsonObject
         {
+            ["processId"] = System.Environment.ProcessId,
             ["lifecycleApiPresent"] = (typeof(EnvironmentOptions).GetMethod("Initialize") is not null),
             ["runtimeDescription"] = RuntimeInformation.FrameworkDescription,
             ["operatingSystem"] = OperatingSystem.IsWindows() ? "windows" : OperatingSystem.IsLinux() ? "linux"
