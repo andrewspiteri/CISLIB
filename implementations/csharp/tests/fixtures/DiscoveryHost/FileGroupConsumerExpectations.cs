@@ -35,6 +35,7 @@ internal static class FileGroupConsumerExpectations
             else { value = JsonNode.Parse(line)!.AsObject(); }
             foreach ((string key, string wanted) in new[] { ("event_name", expected[n].Event), ("message", fileName), ("component", "Group"), (human ? "severity" : "status", "info"), ("service", "Console.App"), ("env", "test"), ("version", "1.2.3"), ("timestamp", "2026-10-13T10:11:12.0000000Z") }) { Require(value[key]!.GetValue<string>() == wanted, "Group record identity differs."); }
             Require(value["attributes"]!["process_id"]!.GetValue<int>() == expected[n].Pid && value["truncated"] is null, "Cross-process payload/loss differs.");
+            if (!human) { Require(value["schema_version"]!.GetValue<int>() == 1 && (string?)value["resource"]!["instance_id"] == "11111111-1111-1111-1111-111111111111", "Protected group facts differ."); }
         }
     }
 }

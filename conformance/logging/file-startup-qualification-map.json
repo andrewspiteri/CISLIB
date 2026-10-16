@@ -23,7 +23,11 @@
         "windows",
         "linux"
       ],
-      "supplemental": "T03 native27modes reexecuted with current assemblies; T01/T02 foundation cases execute in final Developer suite."
+      "supplemental": "T03 native27modes reexecuted with current assemblies; T01/T02 foundation cases execute in final Developer suite.",
+      "nativeMethods": [
+        "CIS.Tests.IntegrationTests.FileGroupConsumerProcessTests.LiveProcessesExcludeSameGroupAndAppendIndependentlyToDistinctGroups",
+        "CIS.Tests.IntegrationTests.FileGroupConsumerProcessTests.KilledRuntimeReleasesOwnershipAndNextProcessAppends"
+      ]
     },
     {
       "id": "WP05-S05-AC02",
@@ -46,7 +50,12 @@
         "windows",
         "linux"
       ],
-      "supplemental": "T03 native27modes reexecuted with current assemblies; T01/T02 foundation cases execute in final Developer suite."
+      "supplemental": "T03 native27modes reexecuted with current assemblies; T01/T02 foundation cases execute in final Developer suite.",
+      "nativeMethods": [
+        "CIS.Tests.IntegrationTests.FileGroupConsumerProcessTests.FormatSwitchFailsWithoutChangingExistingActiveOrInventory",
+        "CIS.Tests.IntegrationTests.FileGroupConsumerProcessTests.MissingInventoryRejectsExistingBytesAndReleasesThePathLease",
+        "CIS.Tests.IntegrationTests.FileGroupConsumerProcessTests.EmptyExistingGroupsPreserveTheirFormatAndIdentity"
+      ]
     },
     {
       "id": "WP05-S05-AC03",
@@ -58,7 +67,10 @@
         "windows",
         "linux"
       ],
-      "supplemental": "T03 native27modes reexecuted with current assemblies; T01/T02 foundation cases execute in final Developer suite."
+      "supplemental": "T03 native27modes reexecuted with current assemblies; T01/T02 foundation cases execute in final Developer suite.",
+      "nativeMethods": [
+        "CIS.Tests.IntegrationTests.FileGroupConsumerProcessTests.RelativeUnicodePathIsPreparedBeforeIoAndSurvivesLaterDirectoryChange"
+      ]
     },
     {
       "id": "WP05-S05-AC04",
@@ -79,10 +91,25 @@
         "windows",
         "linux"
       ],
-      "supplemental": "T03 native27modes reexecuted with current assemblies; T01/T02 foundation cases execute in final Developer suite."
+      "supplemental": "T03 native27modes reexecuted with current assemblies; T01/T02 foundation cases execute in final Developer suite.",
+      "nativeMethods": [
+        "CIS.Tests.IntegrationTests.FileGroupConsumerProcessTests.ActualDeniedOperationsFailSafelyAndRestoreOwnedPermissions"
+      ]
     }
   ],
-  "primaryVerifier": "implementations/csharp/tests/fixtures/DiscoveryHost/verify-file-group-consumers.py",
-  "supplementalVerifier": "implementations/csharp/tests/fixtures/DiscoveryHost/verify-file-runtime-startup.py",
-  "plannedReleaseCasesUnchanged": 41
+  "primaryVerifier": "implementations/csharp/tests/CIS.Core.IntegrationTests/FileGroupConsumerProcessTests.cs",
+  "supplementalVerifier": "implementations/csharp/tests/CIS.Core.IntegrationTests/FileRuntimeStartupProcessTests.cs",
+  "plannedReleaseCasesUnchanged": 41,
+  "nativeCorruptionControls": {
+    "method": "CIS.Tests.IntegrationTests.FileGroupConsumerProcessTests.OriginalGroupReaderCorruptionsAreRejectedAfterPhysicalPositive",
+    "minimumExecutions": 6,
+    "ids": [
+      "joined",
+      "borrowedDisposes",
+      "error",
+      "capturedPath",
+      "factories",
+      "leaseReleased"
+    ]
+  }
 }
