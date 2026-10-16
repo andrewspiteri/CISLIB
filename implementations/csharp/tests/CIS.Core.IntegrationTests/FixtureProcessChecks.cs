@@ -49,20 +49,16 @@ internal static class FixtureProcessChecks
         CollectionAssert.AreEquivalent(parent.Keys.ToArray(), after.Keys.ToArray());
         Assert.IsTrue(parent.All(pair => after[pair.Key] == pair.Value), "Parent environment changed.");
         Assert.AreEqual(0, child.ExitCode, child.StandardOutput + child.StandardError);
-        Assert.IsTrue(Encoding.UTF8.GetByteCount(child.StandardOutput) >= minimumStdoutBytes, "Stdout pipe pressure was not exercised.");
-        Assert.IsTrue(Encoding.UTF8.GetByteCount(child.StandardError) >= minimumStderrBytes, "Stderr pipe pressure was not exercised.");
+        Assert.IsTrue(child.StandardOutputBytes.Length >= minimumStdoutBytes, "Stdout pipe pressure was not exercised.");
+        Assert.IsTrue(child.StandardErrorBytes.Length >= minimumStderrBytes, "Stderr pipe pressure was not exercised.");
         JsonObject report;
         if (physicalStreams)
         {
-            string text = child.StandardOutput.TrimEnd('\r', '\n');
-            int start = text.LastIndexOf('\n') + 1;
-            report = JsonNode.Parse(text[start..])!.AsObject();
-            report["stdout"] = Convert.ToBase64String(Encoding.UTF8.GetBytes(child.StandardOutput[..start]));
-            report["stderr"] = Convert.ToBase64String(Encoding.UTF8.GetBytes(child.StandardError));
+            report = ReadPhysicalReport(child);
         }
         else
         {
-            Assert.AreEqual("", child.StandardError);
+            Assert.AreEqual(0, child.StandardErrorBytes.Length);
             report = JsonNode.Parse(child.StandardOutput)!.AsObject();
         }
         JsonNode observed = flatReport ? report : report["observed"]!;
@@ -83,6 +79,18 @@ internal static class FixtureProcessChecks
         context.WriteLine(child.StandardOutput);
         if (physicalStreams) { context.WriteLine(child.StandardError); }
         return (report, child.ProcessId);
+    }
+
+    internal static JsonObject ReadPhysicalReport(ProcessResult child)
+    {
+        ReadOnlySpan<byte> stdout = child.StandardOutputBytes.Span;
+        int end = stdout.Length;
+        while (end > 0 && stdout[end - 1] is 13 or 10) { end--; }
+        int start = stdout[..end].LastIndexOf((byte)10) + 1;
+        JsonObject report = JsonNode.Parse(stdout[start..])!.AsObject();
+        report["stdout"] = Convert.ToBase64String(stdout[..start]);
+        report["stderr"] = Convert.ToBase64String(child.StandardErrorBytes.Span);
+        return report;
     }
 
     internal static void Subset(JsonObject expected, JsonNode actual)

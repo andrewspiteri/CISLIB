@@ -6,6 +6,8 @@ namespace CIS.TestSupport;
 public sealed record ProcessResult(int ExitCode, string StandardOutput, string StandardError)
 {
     public int ProcessId { get; init; }
+    public ReadOnlyMemory<byte> StandardOutputBytes { get; init; }
+    public ReadOnlyMemory<byte> StandardErrorBytes { get; init; }
 }
 
 /// <summary>Runs a bounded child process while draining its two output streams concurrently.</summary>
@@ -51,13 +53,22 @@ public static class ProcessRunner
         using var process = new Process { StartInfo = startInfo };
         using var deadline = new CancellationTokenSource(timeout);
         process.Start();
-        Task<string> output = process.StandardOutput.ReadToEndAsync(deadline.Token);
-        Task<string> error = process.StandardError.ReadToEndAsync(deadline.Token);
+        using var stdout = new MemoryStream();
+        using var stderr = new MemoryStream();
+        Encoding stdoutEncoding = process.StandardOutput.CurrentEncoding, stderrEncoding = process.StandardError.CurrentEncoding;
+        Task output = process.StandardOutput.BaseStream.CopyToAsync(stdout, deadline.Token);
+        Task error = process.StandardError.BaseStream.CopyToAsync(stderr, deadline.Token);
         try
         {
             await process.WaitForExitAsync(deadline.Token).ConfigureAwait(false);
             await Task.WhenAll(output, error).WaitAsync(deadline.Token).ConfigureAwait(false);
-            return new ProcessResult(process.ExitCode, await output.ConfigureAwait(false), await error.ConfigureAwait(false)) { ProcessId = process.Id };
+            byte[] stdoutBytes = stdout.ToArray(), stderrBytes = stderr.ToArray();
+            return new ProcessResult(process.ExitCode, Decode(stdoutBytes, stdoutEncoding), Decode(stderrBytes, stderrEncoding))
+            {
+                ProcessId = process.Id,
+                StandardOutputBytes = stdoutBytes,
+                StandardErrorBytes = stderrBytes
+            };
         }
         catch (OperationCanceledException exception) when (deadline.IsCancellationRequested)
         {
@@ -66,7 +77,13 @@ public static class ProcessRunner
         }
     }
 
-    private static async Task StopAndObserveAsync(Process process, Task<string> output, Task<string> error)
+    private static string Decode(byte[] bytes, Encoding encoding)
+    {
+        using var reader = new StreamReader(new MemoryStream(bytes, writable: false), encoding, detectEncodingFromByteOrderMarks: true);
+        return reader.ReadToEnd();
+    }
+
+    private static async Task StopAndObserveAsync(Process process, Task output, Task error)
     {
         try
         {

@@ -11163,6 +11163,23 @@
         "linux-ubuntu2404-x64"
       ],
       "source": "17 October 2026 confirmed Claude PROVIDER-BUDGET finding: actual event/scope capture, node/depth boundaries, retained prefixes and strict retained-key rejection. No planned release group replaced."
+    },
+    {
+      "id": "INT-REVIEW-PHYSICAL-PIPE-BYTES",
+      "family": "integration",
+      "title": "Physical pipe capture preserves bytes before text decoding",
+      "implementation": "Implemented",
+      "method": null,
+      "minimumExecutions": 9,
+      "bindings": [
+        { "method": "CIS.Tests.IntegrationTests.ProcessStreamCaptureTests.OriginalBytesSurviveWhileTextKeepsItsExistingBomDecoding", "minimumExecutions": 2 },
+        { "method": "CIS.Tests.IntegrationTests.ProcessStreamCaptureTests.PhysicalReportExtractionUsesByteOffsetsAndRetainsBothOriginalStreams", "minimumExecutions": 2 },
+        { "method": "CIS.Tests.IntegrationTests.ProcessStreamCaptureTests.JsonlFramingRejectsTheOriginalBomOnEitherPipe", "minimumExecutions": 2 },
+        { "method": "CIS.Tests.IntegrationTests.ProcessStreamCaptureTests.MalformedUtf8StillFailsStrictTextDecodingOnEitherPipe", "minimumExecutions": 2 },
+        { "method": "CIS.Tests.IntegrationTests.ProcessStreamCaptureTests.BothPipesDrainConcurrentlyBeyondTheirNativeBufferCapacity", "minimumExecutions": 1 }
+      ],
+      "lanes": [ "windows-x64", "linux-ubuntu2404-x64" ],
+      "source": "17 October 2026 confirmed Claude PHYSICAL-BYTES finding: native C# emitter, original BOM/Unicode bytes, byte-offset report extraction, strict UTF-8 and concurrent pipe pressure. No release group replaced."
     }
   ]
 }

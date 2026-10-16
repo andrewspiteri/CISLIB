@@ -8,6 +8,9 @@ internal static class ProviderHostFilterExpectations
 {
     internal static readonly string[] Modes = ["broad", "provider-rule", "category-rule", "narrow-host", "narrow-category", "trace-file", "core-off"];
     internal static void Validate(string mode, JsonObject a, string consoleText, int? expectedPid = null)
+        => Validate(mode, a, Encoding.UTF8.GetBytes(consoleText).AsMemory(), expectedPid);
+
+    internal static void Validate(string mode, JsonObject a, ReadOnlyMemory<byte> consoleBytes, int? expectedPid = null)
     {
         Header(mode, Modes, a, expectedPid);
         bool off = mode == "core-off", narrow = mode is "narrow-host" or "narrow-category";
@@ -22,7 +25,7 @@ internal static class ProviderHostFilterExpectations
             mode == "trace-file" ? ["trace", "debug", "information", "warning", "error", "critical"] : ["debug", "information", "warning", "error", "critical"];
         string[] consoleNames = off ? [] : ["warning", "error", "critical"];
         Check(Convert.FromBase64String(a["fileBytes"]!.GetValue<string>()), fileNames);
-        Check(Encoding.UTF8.GetBytes(consoleText), consoleNames);
+        Check(consoleBytes.ToArray(), consoleNames);
         JsonObject result = a["result"]!.AsObject(); Shape(result);
         Require((string?)result["completion"] == "Completed" && Same(result["succeeded"], "true") && Same(result["loss"], "false"), "actual stop result");
         string[] destinations = off ? [] : ["console", "file"];

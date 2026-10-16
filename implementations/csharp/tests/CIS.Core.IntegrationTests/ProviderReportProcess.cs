@@ -1,6 +1,7 @@
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json.Nodes;
+using CIS.Tests.DiscoveryFixture;
 using CIS.TestSupport;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -21,7 +22,7 @@ internal static class ProviderReportProcess
         string[] arguments = ["exec", "--fx-version", "10.0.12", "--roll-forward", "Disable", host, family, mode, root.Path];
         ProcessResult child = await ProcessRunner.RunAsync("dotnet", arguments, root.Path, TimeSpan.FromSeconds(60), environment, new UTF8Encoding(false, true));
         Assert.AreEqual(0, child.ExitCode, child.StandardOutput + child.StandardError);
-        if (family != "provider-host-filter") { Assert.AreEqual("", child.StandardError); }
+        if (family != "provider-host-filter") { Assert.AreEqual(0, child.StandardErrorBytes.Length); }
         JsonObject report = JsonNode.Parse(child.StandardOutput)!.AsObject();
         Assert.AreEqual(hostHash, (string?)report["fixtureSha256"]);
         Assert.AreEqual(coreHash, (string?)report["coreSha256"]);
@@ -30,6 +31,7 @@ internal static class ProviderReportProcess
         if (family == "provider-host-filter")
         {
             Assert.AreEqual(Hash(Path.Combine(Path.GetDirectoryName(host)!, "Microsoft.Extensions.Logging.dll")), (string?)report["factorySha256"]);
+            ProviderHostFilterExpectations.Validate(mode, report, child.StandardErrorBytes, child.ProcessId);
         }
         string file = Path.Combine(root.Path, "logs Ω", "active.log");
         bool exists = family != "provider-host-filter" || mode != "core-off";
@@ -42,7 +44,7 @@ internal static class ProviderReportProcess
         context.WriteLine("Physical child PID: " + child.ProcessId);
         context.WriteLine("Physical file SHA-256: " + Convert.ToHexStringLower(SHA256.HashData(actual)));
         context.WriteLine("Physical provider report: " + report.ToJsonString());
-        if (family == "provider-host-filter") { context.WriteLine("Physical console JSONL: " + child.StandardError); }
+        if (family == "provider-host-filter") { context.WriteLine("Physical console bytes (base64): " + Convert.ToBase64String(child.StandardErrorBytes.Span)); }
         return new(report, child.StandardError, child.ProcessId);
     }
     private static string Hash(string path) => Convert.ToHexStringLower(SHA256.HashData(File.ReadAllBytes(path)));
