@@ -95,28 +95,40 @@
   ],
   "lanes": {
     "interval": {
-      "verifier": "implementations/csharp/tests/fixtures/DiscoveryHost/verify-file-interval.py",
-      "reportSchema": "cis.logging.file-interval-native/v1",
+      "verifier": "implementations/csharp/tests/CIS.Core.IntegrationTests/FileIntervalProcessTests.cs",
+      "reportSchema": "vstest.trx/2010",
       "caseInventory": "conformance/logging/file-interval-cases.json",
-      "fixture": "implementations/csharp/tests/fixtures/DiscoveryHost/FileIntervalFixture.cs"
+      "fixture": "implementations/csharp/tests/fixtures/DiscoveryHost/FileIntervalFixture.cs",
+      "historicalReportSchema": "cis.logging.file-interval-native/v1",
+      "reader": "implementations/csharp/tests/fixtures/DiscoveryHost/FileIntervalExpectations.cs",
+      "controls": "implementations/csharp/tests/CIS.Core.IntegrationTests/FileTimerReaderControls.cs"
     },
     "timer": {
-      "verifier": "implementations/csharp/tests/fixtures/DiscoveryHost/verify-file-timer-coordination.py",
-      "reportSchema": "cis.logging.file-timer-coordination-native/v1",
+      "verifier": "implementations/csharp/tests/CIS.Core.IntegrationTests/FileTimerCoordinationProcessTests.cs",
+      "reportSchema": "vstest.trx/2010",
       "caseInventory": "conformance/logging/file-timer-coordination-cases.json",
-      "fixture": "implementations/csharp/tests/fixtures/DiscoveryHost/FileTimerCoordinationFixture.cs"
+      "fixture": "implementations/csharp/tests/fixtures/DiscoveryHost/FileTimerCoordinationFixture.cs",
+      "historicalReportSchema": "cis.logging.file-timer-coordination-native/v1",
+      "reader": "implementations/csharp/tests/fixtures/DiscoveryHost/FileTimerCoordinationExpectations.cs",
+      "controls": "implementations/csharp/tests/CIS.Core.IntegrationTests/FileTimerReaderControls.cs"
     },
     "lifecycle": {
-      "verifier": "implementations/csharp/tests/fixtures/DiscoveryHost/verify-file-timer-lifecycle.py",
-      "reportSchema": "cis.logging.file-timer-lifecycle-native/v1",
+      "verifier": "implementations/csharp/tests/CIS.Core.IntegrationTests/FileTimerLifecycleProcessTests.cs",
+      "reportSchema": "vstest.trx/2010",
       "caseInventory": "conformance/logging/file-timer-lifecycle-cases.json",
-      "fixture": "implementations/csharp/tests/fixtures/DiscoveryHost/FileTimerLifecycleFixture.cs"
+      "fixture": "implementations/csharp/tests/fixtures/DiscoveryHost/FileTimerLifecycleFixture.cs",
+      "historicalReportSchema": "cis.logging.file-timer-lifecycle-native/v1",
+      "reader": "implementations/csharp/tests/fixtures/DiscoveryHost/FileTimerLifecycleExpectations.cs",
+      "controls": "implementations/csharp/tests/CIS.Core.IntegrationTests/FileTimerReaderControls.cs"
     },
     "qualification": {
-      "verifier": "implementations/csharp/tests/fixtures/DiscoveryHost/verify-file-timer-qualification.py",
-      "reportSchema": "cis.logging.file-timer-qualification-native/v1",
+      "verifier": "implementations/csharp/tests/CIS.Core.IntegrationTests/FileTimerQualificationProcessTests.cs",
+      "reportSchema": "vstest.trx/2010",
       "caseInventory": "conformance/logging/file-timer-qualification-cases.json",
-      "fixture": "implementations/csharp/tests/fixtures/DiscoveryHost/FileTimerQualificationFixture.cs"
+      "fixture": "implementations/csharp/tests/fixtures/DiscoveryHost/FileTimerQualificationFixture.cs",
+      "historicalReportSchema": "cis.logging.file-timer-qualification-native/v1",
+      "reader": "implementations/csharp/tests/fixtures/DiscoveryHost/FileTimerQualificationExpectations.cs",
+      "controls": "implementations/csharp/tests/CIS.Core.IntegrationTests/FileTimerReaderControls.cs"
     }
   },
   "supplementalCases": {
@@ -132,5 +144,6 @@
       "arm-false",
       "arm-disposed"
     ]
-  }
+  },
+  "nativeAcceptance": "Native VSTest execution/discovery reconciliation and required-case bindings replace redundant custom Python report envelopes. Physical child readers directly validate parsed original stdout, actual identities and catalog hashes. Historical envelope hashes remain historical; no same-package/full-both-lane credit follows from focused checks."
 }

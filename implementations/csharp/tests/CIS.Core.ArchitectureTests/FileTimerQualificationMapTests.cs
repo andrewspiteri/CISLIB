@@ -36,7 +36,7 @@ public sealed class FileTimerQualificationMapTests
             var modes = Regex.Matches(declaration.Groups[1].Value, "\\\"([^\\\"]+)\\\"").Select(m => m.Groups[1].Value).ToHashSet(StringComparer.Ordinal);
             Check(modes.SetEquals(cases[lane.Key]), "fixture inventory");
             string reader = File.ReadAllText(Path.Combine(root, value["verifier"]!.GetValue<string>()));
-            Check(reader.Contains("schema='" + value["reportSchema"]!.GetValue<string>() + "'", StringComparison.Ordinal), "reader schema");
+            Check(value["reportSchema"]!.GetValue<string>() == "vstest.trx/2010" && value["verifier"]!.GetValue<string>().EndsWith(".cs", StringComparison.Ordinal) && reader.Contains("OriginalTimerReaderCorruptionsRejectAfterPhysicalPositive", StringComparison.Ordinal) && File.Exists(Path.Combine(root, value["reader"]!.GetValue<string>())) && File.Exists(Path.Combine(root, value["controls"]!.GetValue<string>())), "reader schema");
         }
         foreach (JsonNode? item in criteria)
         {
