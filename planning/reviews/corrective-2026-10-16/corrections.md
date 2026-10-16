@@ -58,6 +58,16 @@ Raw reports/logs and the frozen tool are under .artifacts/corrective/claude-fixe
 
 All 3,710 current Windows unit cases also passed with zero failed/skipped: .artifacts/csharp/focused/520874c5139040159c849ff03395310b/summary.json. Utility logical checks, baseline cases and process observations are separate measures and must not be added into one invented native case count.
 
+## R1 follow-up — readonly diagnostics construction
+
+The first combined Developer run, 0127538b333f4c458ebbd307ae471370, failed one architecture case: DiagnosticIlDoesNotRouteDoIoQueryCallerSourcesOrCreateTasks. Its diagnostic IL traversal rejected the generated IncomingAccounting.set_QueueFull call used by a record-struct copy. Unit (3,710) and integration (2,085) passed; architecture passed 618 of 619; business did not run. This run is not a passing checkpoint.
+
+Replaced that copy with direct readonly value construction. The existing diagnostic guard and all its negative controls are unchanged. Twelve DiagnosticsArchitectureTests pass on Windows and Ubuntu, and all 38 incoming/processing cases pass again on each lane. Eighty-two Windows foundation/runtime-contract architecture cases also pass. The portable Create and thread-safety descriptions were aligned with the static environment and incoming-admission API while reconciling R2.
+
+Reports: Windows diagnostics .artifacts/csharp/focused/c9388f2511344c29b7a0fbb3b4fddc37/summary.json; Windows runtime .artifacts/csharp/focused/5bcb0b21c6c14ec995b8e0340f9b81dc/summary.json; Windows contract .artifacts/csharp/focused/f351891139a4489db81fbff20e9f8a9b/summary.json; Ubuntu diagnostics .artifacts/corrective/batch-a/linux/.artifacts/csharp/focused/80f06b4484d04f2ebb90f8cc97cf3e20/summary.json; Ubuntu runtime .artifacts/corrective/batch-a/linux/.artifacts/csharp/focused/b18c5c528de040069b65d3fa39ad3998/summary.json.
+
+The failed Developer output and log are preserved under .artifacts/corrective/claude-fixes/failed-0127538b333f4c458ebbd307ae471370. Failed summary SHA-256: 142c527ca4855f6ad0a44bba7ab91194866c51ce6077feaa9340c8e6c58783ff. Its source inventory remains 85094fa4a55a85600587d944da69071fe119e6ee78c9e8a092e0a10dfd52b9da. A fresh frozen-source Developer run is required for the corrected implementation.
+
 ## Remaining verification and review
 
 All eleven supported findings are fixed and targeted verification is complete. The comprehensive Windows Developer checkpoint remains pending. The three uncompleted Claude scopes (325 assigned paths at the original snapshot) and a review of these fixes remain unexecuted. Prepared old continuation bundles do not cover this new source delta. Coverage, mutation, complete Ubuntu Developer, release/package history, supported IDE acceptance, teaching examples/skills and publication remain separate pending work. The original roadmap goal remains paused.

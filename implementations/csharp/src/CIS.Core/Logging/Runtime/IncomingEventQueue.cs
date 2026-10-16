@@ -72,7 +72,12 @@ internal sealed class IncomingEventQueue
     {
         lock (gate)
         {
-            if (boundary?.Observation is { } frozen) { return frozen with { QueueFull = callerQueueFull ?? frozen.QueueFull }; }
+            if (boundary?.Observation is { } frozen)
+            {
+                return new(frozen.Accepted, frozen.Processed, frozen.Failed, frozen.Abandoned, frozen.Pending,
+                    callerQueueFull ?? frozen.QueueFull, frozen.RejectedByWriters, frozen.Suppressed,
+                    frozen.DuplicateSuppressed, frozen.DuplicateKeyEvictions);
+            }
             long target = boundary?.Target ?? accepted;
             long discarded = firstAbandoned == 0 ? 0 : Math.Max(0, target - firstAbandoned + 1);
             return new(target, processed, failed, discarded, target - processed - failed - discarded,
