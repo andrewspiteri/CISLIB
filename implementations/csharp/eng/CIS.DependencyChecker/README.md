@@ -42,3 +42,7 @@ dotnet run --project eng/CIS.DependencyChecker -c Debug -- type-manager-package 
 ```
 
 The RID package comes from the inventory matrix. The checker copies the exact Core/RID and approved Microsoft dependency archives into its private feed, verifies consumed Core/helper/managed RID bytes, and exercises incremental/no-restore, offline locked restore, reference removal/readdition with planted stale assets, host rename/clean, design-time skip/missing-helper guards, central versions, SDK-hook preservation and unsupported-profile rejection. Its 57 recorded checks include deliberate failures that must reject for their intended categories. Package inputs remain byte-checked; build tooling must not appear in runtime deployment. These are exact-package development checks, not a completed release gate.
+
+## Type Manager examples
+
+Use `type-manager-examples --repo-root ../.. --package <exact-Core.nupkg> --dependency-cache <package-cache> --output-root <empty-directory>` with the same `dotnet run` entry point. The cache must contain the two approved runtime archives and the seven Windows/Linux SDK runtime/host archives at the pinned target runtime; the report records their hashes. The private feed stays offline during verification. All 66 checks cover source/package Console/Web build and publication layouts, broken deployment startup boundaries and two real HTTP sessions. See the [examples guide](../../examples/type-manager/README.md) and [migration evidence](../../../../planning/evidence/corrective-type-manager-examples-migration-2026-10-16.md).

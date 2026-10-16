@@ -91,7 +91,7 @@ dependency or deployed application file.
 From the repository root, with the pinned SDK available:
 
 ```powershell
-python implementations/csharp/eng/verify-type-manager-examples.py --repo-root . --package <exact-CIS.Core.nupkg> --dependency-cache <nuget-packages-directory> --output-root <empty-output-directory>
+dotnet run --project implementations/csharp/eng/CIS.DependencyChecker -c Debug -- type-manager-examples --repo-root . --package <exact-CIS.Core.nupkg> --dependency-cache <nuget-packages-directory> --output-root <empty-output-directory>
 ```
 
 The verifier runs Debug/Release builds, Release folder publish and publish without
