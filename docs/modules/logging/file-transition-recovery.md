@@ -12,3 +12,5 @@ Thirty-two direct cases cover the four resumable stages for normal/partial JSONL
 
 
 [Task evidence](../../../planning/logging/evidence/wp05-s07-t03/receipt.json) retains 4,681 passing Developer tests, 59 compiler controls and 257 Windows/Ubuntu native process runs with 128 specifically rejected corruption controls. Frozen native DLL copies exactly match the final Developer assemblies; all 599 current critical inputs match execution. Claude initial R1 is corrected together with O1-O5 and the follow-up is PASS with no required findings. Static review is separate from execution and indexed byte audits. The Release gate remains incomplete with all 41 Planned rows preserved.
+
+The 16 October [native transition migration](../../../planning/evidence/corrective-transition-migration-2026-10-16.md) retires its Python driver after retaining all sixteen modes and twelve original corruption controls. Native readers independently check complete physical preimages/transitions and current version-two intent-first retirement hashes. Both lanes pass 28 integration and 32 unit cases; this remains focused development verification.

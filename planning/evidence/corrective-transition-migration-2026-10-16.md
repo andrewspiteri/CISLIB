@@ -1,0 +1,15 @@
+# Native file-transition reader migration
+
+16 October 2026, based on `f4fe04bb`. Corrective Batch B changes verification only. Shipping Core, public behavior, dependencies and frozen evidence remain unchanged. No Python execution or Claude transfer.
+
+All sixteen original interruption/ambiguity modes and all twelve original corruption controls remain in native C#. Every control follows positive physical output validation. The independent reader reconstructs complete stage preimages, previous/next inventory identity, original/archive/neighbor bytes, fixed errors, record framing/protected producer facts and final accounting. The process helper binds actual PID/runtime/OS, before/after managed hashes, full parent environment/CWD and original command/output with the unchanged 30-second limit. The parent independently compares every physical leaf with the reported after-snapshot and checks the captured path.
+
+The historical reader expected schema-one intents. Current corrective Core already publishes schema two before retirement, including exact retired-member lengths and hashes. Native checks require that current shape (including the empty recovery retirement list and completed rotation retirement prefix), without changing runtime behavior. Historical input/report hashes remain historical and are not reassigned.
+
+Windows integration `6af5404654a7483f9861360a17149c0b` passes 28 and unit `91448a072add49b8ae846d313dfddc32` passes 32, zero failures/skips and zero build warnings/errors. Formatting completes. Ubuntu integration `18c44ee56e514d2da61fdfee31ea6023` passes 28 and unit `90c5bfdfe3414f85a66c13a7c2016c6b` passes 32, zero failures/skips. All 60 case identities match across lanes. TRX audits confirm 28 actual children and all twelve distinct original control IDs per lane. Ubuntu uses isolated scoped source copies.
+
+After read-only call-site reconciliation, `verify-file-transition.py` is retired (10,538 bytes; SHA-256 `c6b6368de59800160b9cfabc0eec40a3feae7018fe48931ee3441cb6d6ae0a62`). Guarded retirement/case/control audits remain under `.artifacts/corrective/file-transition-reader`; Git retains the original script. Eighteen nonhistorical implementation Python files remain: eight DiscoveryHost drivers, one unchanged temporary helper, six engineering utilities and three Type Manager fixture utilities, plus the unchanged documentation selector for its one legacy importer. Frozen historical files remain preserved.
+
+The earlier 6,260-case full Windows Developer checkpoint predates the selector, boundary and transition migrations. These focused checks do not close full corrected-candidate coverage/mutation/compatibility/both-lane/package/examples/release qualification. The original roadmap remains paused.
+
+Final graph: schema 2, 10,873 nodes/52,460 edges, zero diagnostics, build `2aac0d02d3c7739fcd088b6bdfa29de31db8373d48cbf180d0cf3ad8b9859050`. Compiler/semantic extractors remain 6/3. The exact transition process root has a fresh/untruncated depth-one related query (four nodes/four traversals, limit ten, proposed edges excluded). This is bounded navigation evidence, not semantic completeness.
