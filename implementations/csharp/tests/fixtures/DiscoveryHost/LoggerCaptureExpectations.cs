@@ -20,6 +20,7 @@ internal static class LoggerCaptureExpectations
         }
         Require(actual["sharedCaptures"]!.GetValue<int>() == shared, "Capture fanout differs.");
         JsonArray messages = row["expected"]!["wireMessages"]!.AsArray();
+        Require(actual["wires"] is JsonArray groups && groups.Count == 2, "Output wire groups differ.");
         for (int index = 0; index < 2; index++)
         {
             JsonArray wires = actual["wires"]![index]!.AsArray();

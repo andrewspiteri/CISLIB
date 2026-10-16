@@ -13,6 +13,7 @@ internal static class LoggerFoundationProcessFixture
         JsonObject actual = LoggerFoundationFixture.Execute(row); LoggerFoundationExpectations.Validate(row, actual);
         actual["observed"] = new JsonObject
         {
+            ["processId"] = System.Environment.ProcessId,
             ["runtimeDescription"] = RuntimeInformation.FrameworkDescription,
             ["operatingSystem"] = OperatingSystem.IsWindows() ? "windows" : OperatingSystem.IsLinux() ? "linux" : "unknown",
             ["fixtureSha256"] = Hash(typeof(LoggerFoundationProcessFixture).Assembly.Location),

@@ -94,12 +94,20 @@ public sealed class LoggerCaptureTests
     [DataRow("global")]
     [DataRow("ticket")]
     [DataRow("utf8")]
+    [DataRow("invalid-ticket")]
+    [DataRow("loss")]
+    [DataRow("exception")]
     public void ComparatorRejectsFalseCaptureAndTicketObservations(string fault)
     {
-        JsonObject row = Catalog()["cases"]!.AsArray().Single(item => item!["id"]!.GetValue<string>() == "CAPTURE-NAME-NULL-LAZY")!.AsObject();
+        string id = fault == "loss" ? "CAPTURE-TRUNCATED-REJECTED-LAZY" : fault == "exception" ? "CAPTURE-THROW-IO" : "CAPTURE-NAME-NULL-LAZY";
+        JsonObject row = Catalog()["cases"]!.AsArray().Single(item => (string?)item!["id"] == id)!.AsObject();
         JsonObject actual = LoggerCaptureFixture.Execute(row);
+        LoggerCaptureExpectations.Validate(row, actual);
         switch (fault)
         {
+            case "invalid-ticket": actual["results"]![1]!["outputs"] = new JsonArray(new JsonObject { ["name"] = "console", ["status"] = "Accepted", ["sequence"] = 12L }); break;
+            case "loss": actual["truncatedCount"] = 0; break;
+            case "exception": actual["exceptionSame"]![1] = false; break;
             case "factory": actual["factoryCalls"] = 4; break;
             case "balanced-factory": actual["factoryInvocations"]![0] = 2; actual["factoryInvocations"]![1] = 0; break;
             case "global": actual["invalidCount"] = 2; break;

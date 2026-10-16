@@ -754,7 +754,7 @@
       "bindings": [
         {
           "method": "CIS.Tests.UnitTests.LoggerCaptureTests.ComparatorRejectsFalseCaptureAndTicketObservations",
-          "minimumExecutions": 1
+          "minimumExecutions": 8
         },
         {
           "method": "CIS.Tests.UnitTests.LoggerCaptureTests.ConcurrentWritesCountEachCaptureAndFactoryOnce",
@@ -774,7 +774,7 @@
         },
         {
           "method": "CIS.Tests.UnitTests.LoggerDecisionTests.ComparatorRejectsAlteredExecutionObservations",
-          "minimumExecutions": 1
+          "minimumExecutions": 8
         },
         {
           "method": "CIS.Tests.UnitTests.LoggerDecisionTests.IsEnabledValidatesUndefinedLevelsBeforeClosedOrFaultedState",
@@ -6813,7 +6813,7 @@
       "title": "ComparatorRejectsAlteredExecutionObservations",
       "implementation": "Implemented",
       "method": "CIS.Tests.UnitTests.LoggerDecisionTests.ComparatorRejectsAlteredExecutionObservations",
-      "minimumExecutions": 4,
+      "minimumExecutions": 8,
       "lanes": [
         "windows-x64",
         "linux-ubuntu2404-x64"
@@ -6915,7 +6915,7 @@
       "title": "ComparatorRejectsFalseCaptureAndTicketObservations",
       "implementation": "Implemented",
       "method": "CIS.Tests.UnitTests.LoggerCaptureTests.ComparatorRejectsFalseCaptureAndTicketObservations",
-      "minimumExecutions": 5,
+      "minimumExecutions": 8,
       "lanes": [
         "windows-x64",
         "linux-ubuntu2404-x64"
@@ -10588,6 +10588,15 @@
       "minimumExecutions": 5,
       "lanes": ["windows-x64", "linux-ubuntu2404-x64"],
       "source": "Migrated Python encoding observations: protected build, hexadecimal span, ordinal map order, exact array membership and retained prior text; positive Core output precedes each corruption."
+    },
+    {
+      "id": "UT-LOGGER-FOUNDATION-TICKET-MIGRATION",
+      "family": "unit",
+      "implementation": "Implemented",
+      "method": "CIS.Tests.UnitTests.LoggerFoundationTests.ComparatorRejectsMissingWrongAndInventedRejectionTickets",
+      "minimumExecutions": 3,
+      "lanes": ["windows-x64", "linux-ubuntu2404-x64"],
+      "source": "Three former Python ticket controls retain missing/wrong accepted tickets and invented rejection-ticket detection after positive Core output validation."
     }
   ]
 }

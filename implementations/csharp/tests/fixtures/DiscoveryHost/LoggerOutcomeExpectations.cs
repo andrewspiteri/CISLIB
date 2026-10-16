@@ -18,6 +18,7 @@ internal static class LoggerOutcomeExpectations
         }
         JsonArray results = row["expected"]!["results"]!.AsArray();
         var acceptedBytes = new Dictionary<int, byte[]>();
+        Require(actual["wires"] is JsonArray groups && groups.Count == 2, "Output wire groups differ.");
         for (int index = 0; index < 2; index++)
         {
             JsonArray wires = actual["wires"]![index]!.AsArray();

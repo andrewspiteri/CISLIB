@@ -148,6 +148,21 @@ public sealed class LoggerFoundationTests
         else { Assert.ThrowsExactly<InvalidDataException>(() => LoggerFoundationExpectations.Validate(row, actual)); }
     }
 
+    [TestMethod]
+    [DataRow("missing")]
+    [DataRow("wrong")]
+    [DataRow("rejection")]
+    public void ComparatorRejectsMissingWrongAndInventedRejectionTickets(string fault)
+    {
+        string id = fault == "rejection" ? "LOGGER-FULL" : "LOGGER-DIRECT-INFORMATION";
+        JsonObject row = Catalog()["cases"]!.AsArray().Single(item => (string?)item!["id"] == id)!.AsObject();
+        JsonObject actual = LoggerFoundationFixture.Execute(row);
+        LoggerFoundationExpectations.Validate(row, actual);
+        JsonNode output = actual["results"]![fault == "rejection" ? 1 : 0]!["outputs"]![0]!;
+        output["sequence"] = fault == "missing" ? null : JsonValue.Create(fault == "wrong" ? 2L : 1L);
+        Assert.ThrowsExactly<InvalidDataException>(() => LoggerFoundationExpectations.Validate(row, actual));
+    }
+
     private static CoreLogRuntime Runtime(LoggerFoundationFixture.Output? output = null) => new(EventQualificationFixture.Metadata().CaptureMetadata(), new LoggingOptions(), output ?? new(), null);
     private static JsonObject Catalog() => JsonNode.Parse(File.ReadAllText(Path.Combine(Path.GetDirectoryName(ConfigurationFixtureAdapter.FindFixture())!, "logger-foundation-cases.json")))!.AsObject();
 }

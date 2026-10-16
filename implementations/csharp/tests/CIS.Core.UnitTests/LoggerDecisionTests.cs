@@ -39,12 +39,24 @@ public sealed class LoggerDecisionTests
     [DataRow("attempt")]
     [DataRow("ticket")]
     [DataRow("utf8")]
+    [DataRow("order")]
+    [DataRow("premature")]
+    [DataRow("unavailable")]
+    [DataRow("closed")]
     public void ComparatorRejectsAlteredExecutionObservations(string fault)
     {
-        JsonObject row = Catalog()["cases"]!.AsArray().Single(item => item!["id"]!.GetValue<string>() == "DECISION-CAPTURE-FANOUT-DIRECT")!.AsObject();
+        string id = fault is "premature" or "unavailable" ? "DECISION-ALL-FAULTED-LAZY" : fault == "closed" ? "DECISION-CLOSED-NONE-DIRECT" : "DECISION-CAPTURE-FANOUT-DIRECT";
+        JsonObject row = Catalog()["cases"]!.AsArray().Single(item => (string?)item!["id"] == id)!.AsObject();
         JsonObject actual = LoggerDecisionFixture.Execute(row);
+        LoggerDecisionExpectations.Validate(row, actual);
         switch (fault)
         {
+            case "order":
+                JsonArray trace = actual["trace"]!.AsArray();
+                JsonNode first = trace[0]!.DeepClone(); trace[0] = trace[1]!.DeepClone(); trace[1] = first; break;
+            case "premature": actual["trace"]!.AsArray().Add("factory"); break;
+            case "unavailable": actual["unavailable"]![0] = 0; break;
+            case "closed": actual["attempts"]![0] = 1; break;
             case "trace": actual["trace"]!.AsArray().Insert(0, "factory"); break;
             case "attempt": actual["attempts"]![0] = 0; break;
             case "ticket": actual["result"]!["outputs"]![0]!["sequence"] = 2; break;

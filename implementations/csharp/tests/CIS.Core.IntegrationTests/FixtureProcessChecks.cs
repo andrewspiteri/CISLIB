@@ -24,12 +24,12 @@ internal static class FixtureProcessChecks
         throw new FileNotFoundException("Cannot find logging fixture inputs: " + name);
     }
 
-    internal static JsonArray Cases(string name, int count)
+    internal static JsonArray Cases(string name, int count, bool declaresCount = true)
     {
         JsonObject document = JsonNode.Parse(File.ReadAllText(Find(name)))!.AsObject();
         JsonArray rows = document["cases"]!.AsArray();
         Assert.AreEqual(1, document["schemaVersion"]!.GetValue<int>());
-        Assert.AreEqual(count, document["caseCount"]!.GetValue<int>());
+        if (declaresCount || document.ContainsKey("caseCount")) { Assert.AreEqual(count, document["caseCount"]!.GetValue<int>()); }
         Assert.AreEqual(count, rows.Count);
         Assert.AreEqual(count, rows.Select(row => (string)row!["id"]!).Distinct(StringComparer.Ordinal).Count());
         return rows;
