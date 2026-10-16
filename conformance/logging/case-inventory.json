@@ -1519,7 +1519,7 @@
         },
         {
           "method": "CIS.Tests.IntegrationTests.StopLifecycleProcessTests.ShutdownAndCrashBoundariesUseActualChildren",
-          "minimumExecutions": 1
+          "minimumExecutions": 11
         }
       ],
       "implementationEvidence": "WP07-S01-T05: every listed native method is required; source/candidate and controlled-seam limits remain those of functional-reconciliation, candidate-consumer-qualification and concurrency-qualification maps."
@@ -10647,6 +10647,18 @@
         "linux-ubuntu2404-x64"
       ],
       "source": "Retains all 30 start, 21 drain, 23 join, 29 cleanup and 13 runtime-create reader corruptions after positive physical child validation. Current deadline/registration behavior supersedes two stale Python assertions."
+    },
+    {
+      "id": "UT-STOP-LIFECYCLE-KERNEL-MIGRATION",
+      "family": "unit",
+      "implementation": "Implemented",
+      "method": "CIS.Tests.UnitTests.StopLifecycleTests.PhysicalOwnershipWaitsForLateIo",
+      "minimumExecutions": 4,
+      "lanes": [
+        "windows-x64",
+        "linux-ubuntu2404-x64"
+      ],
+      "source": "Native shutdown reader migration retains all four actual physical-ownership kernel cases. Eleven process cases separately retain forty legacy report/console/restart corruptions."
     }
   ]
 }
