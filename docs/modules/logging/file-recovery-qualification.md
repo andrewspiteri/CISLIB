@@ -12,19 +12,20 @@ Damaged and closed members share the retained bound. The rotation checkpoints us
 
 ## Read-only collector example
 
-[select-jsonl-inputs.py](examples/select-jsonl-inputs.py) is a development helper for a **stopped local managed JSONL group**. Stop the application and wait for its writer to finish before using it. It reads the current private inventory format and prints a JSON array of absolute paths in persistent segment order. Only inventoried closed and active members are selected. Damaged members, another group's files, unlisted same-group archives and private publication candidates are excluded.
+The C# [JSONL input selector](../../../implementations/csharp/eng/CIS.DependencyChecker/JsonlInputSelector.cs) is a development helper for a **stopped local managed JSONL group**. Stop the application and wait for its writer to finish before using it. It reads the current private inventory format and prints a JSON array of absolute paths in persistent segment order. Only inventoried closed and active members are selected. Damaged members, another group's files, unlisted same-group archives and private publication candidates are excluded.
 
 ```powershell
-python -X utf8 docs/modules/logging/examples/select-jsonl-inputs.py C:\logs\application.jsonl
+Set-Location implementations/csharp
+dotnet run --project eng/CIS.DependencyChecker -- select-jsonl-inputs C:\logs\application.jsonl
 ```
 
 The example validates the inventory and every selected record before printing any paths. It refuses a pending transition, missing/nonregular or symbolic-link members, unsupported format/identity/framing, duplicate JSON keys, nonfinite numbers, incomplete records and invalid UTF-8. Inventory reads are bounded to 2 MiB and each JSONL record to the absolute supported 16 MiB including LF. Damaged contents are not parsed. Success returns 0; inconsistent groups return 2 with empty stdout and a fixed diagnostic. These checks validate complete JSON objects and group framing, not the full event schema. The negative mutations test rejection of inconsistent inputs; several violate more than one inventory condition and are not isolated mutation tests for individual guards.
 
-Each successful native restart invokes the actual helper as a separate Python process and verifies exact path selection plus real producer identities in selected records. Failed groups must expose no input paths. Twenty-seven additional filesystem/record/inventory mutations execute the actual helper function and must fail (the symlink mutation may be skipped only when Windows lacks the required privilege), after a valid baseline that excludes malformed damage and unrelated valid JSONL.
+The remaining legacy restart driver still invokes its unchanged Python helper in separate processes. The native replacement has 27 original rejection controls, two exact-bound positives and two actual CLI cases. Ubuntu executes all 31; this Windows host executes 30 because a separate owned probe observes error 1314 for file symlink creation. That one unexecuted control is recorded explicitly and is never credited as a passing rejection. Every other corruption follows a valid baseline excluding malformed damage and unrelated JSONL. The native parser has an explicit 1,024-level nesting ceiling; these checks validate objects and group framing rather than the full event schema.
 
 Valid exact 2 MiB inventory and 16 MiB record boundaries are also executed. The fixed diagnostic does not expose internal rejection details.
 
-This offline example has no live ownership lock, tailing, transport, acknowledgement or collector SDK. Stop/prevent concurrent writers for the whole selection and read operation; a path list is not a durable snapshot. The private inventory may change before publication. This helper does not implement Core in Python or activate the public runtime/package examples and skills.
+This offline example has no live ownership lock, tailing, transport, acknowledgement or collector SDK. Stop/prevent concurrent writers for the whole selection and read operation; a path list is not a durable snapshot. The private inventory may change before publication. This development tool does not activate the public runtime/package examples and skills. The unchanged Python helper remains temporarily for its one legacy restart-driver importer. Its retirement follows that driver migration; no new Python implementation is added.
 
 ## Limits
 
