@@ -14,6 +14,7 @@ internal static class JsonlReuseProcessFixture
         JsonObject actual = JsonlReuseFixture.Execute(row); JsonlReuseExpectations.Validate(catalog, row, actual);
         actual["observed"] = new JsonObject
         {
+            ["processId"] = System.Environment.ProcessId,
             ["runtimeDescription"] = RuntimeInformation.FrameworkDescription,
             ["operatingSystem"] = OperatingSystem.IsWindows() ? "windows" : OperatingSystem.IsLinux() ? "linux" : "unknown",
             ["fixtureSha256"] = Hash(typeof(JsonlReuseProcessFixture).Assembly.Location),

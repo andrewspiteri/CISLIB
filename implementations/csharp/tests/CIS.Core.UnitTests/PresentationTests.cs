@@ -47,7 +47,11 @@ public sealed class PresentationTests
     [TestMethod]
     public void ExpectedAdmissionIsIdenticalAcrossAllPresentationChoicesWithinEachProfile()
     {
-        foreach (var group in Catalog()["cases"]!.AsArray().GroupBy(row => row!["profile"]!.GetValue<string>()))
+        JsonArray rows = Catalog()["cases"]!.AsArray();
+        var expected = (from profile in new[] { "both", "console", "file", "disabled" } from console in Enumerable.Range(0, 2) from file in Enumerable.Range(0, 2) from detail in Enumerable.Range(0, 2) from stream in Enumerable.Range(0, 2) select (profile, console, file, detail, stream)).ToArray();
+        var actual = rows.Select(row => ((string)row!["profile"]!, row["consoleFormat"]!.GetValue<int>(), row["fileFormat"]!.GetValue<int>(), row["detail"]!.GetValue<int>(), row["stream"]!.GetValue<int>())).ToArray();
+        CollectionAssert.AreEquivalent(expected, actual);
+        foreach (var group in rows.GroupBy(row => row!["profile"]!.GetValue<string>()))
         {
             Assert.AreEqual(16, group.Count());
             JsonNode first = group.First()!["expected"]!;

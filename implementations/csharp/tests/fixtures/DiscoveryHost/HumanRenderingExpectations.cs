@@ -45,6 +45,8 @@ internal static class HumanRenderingExpectations
         byte[] raw = Convert.FromBase64String(actual["json"]!.GetValue<string>());
         using JsonDocument document = JsonDocument.Parse(raw); JsonElement captured = document.RootElement;
         if (actual["captureUnchanged"]!.GetValue<bool>() != true || actual["clockCalls"]!.GetValue<int>() != 1) { throw new InvalidDataException("Rendering recaptured or changed the event."); }
+        string[] levels = ["trace", "debug", "info", "warn", "error", "critical"];
+        if ((string?)actual["caseId"] != (string?)row["id"] || captured.GetProperty("status").GetString() != levels[row["level"]!.GetValue<int>()]) { throw new InvalidDataException("Captured identity/severity differs."); }
         foreach (string detail in new[] { "normal", "verbose" })
         {
             byte[] line = Convert.FromBase64String(actual[detail]!.GetValue<string>());

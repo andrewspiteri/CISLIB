@@ -1,7 +1,5 @@
-using System.Security.Cryptography;
 using System.Text.Json.Nodes;
 using CIS.Tests.DiscoveryFixture;
-using CIS.TestSupport;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace CIS.Tests.IntegrationTests;
@@ -9,25 +7,17 @@ namespace CIS.Tests.IntegrationTests;
 [TestClass]
 public sealed class HumanRenderingProcessTests
 {
-    public static IEnumerable<object[]> Rows => LogValueProcessTests.Read("human-rendering-cases.json")["cases"]!.AsArray().Select(row => new object[] { row!["id"]!.GetValue<string>() });
+    public TestContext TestContext { get; set; } = null!;
+    public static IEnumerable<object[]> Rows => FixtureProcessChecks.Cases("human-rendering-cases.json", 12, declaresCount: false).Select(row => new object[] { (string)row!["id"]! });
+
     [TestMethod]
     [DynamicData(nameof(Rows))]
     public async Task HumanRenderingRunsInAnIsolatedExactRuntimeChild(string id)
     {
-        string host = Path.Combine(AppContext.BaseDirectory, "discovery-fixture", "CIS.Core.DiscoveryFixture.dll"), input = LogValueProcessTests.Find("human-rendering-cases.json");
-        using var owned = new TemporaryDirectory();
-        ProcessResult process = await ProcessRunner.RunAsync("dotnet", ["exec", "--fx-version", "10.0.12", "--roll-forward", "Disable", host, "human-rendering", input, id],
-            owned.Path, TimeSpan.FromSeconds(30), new Dictionary<string, string?> { ["CORE_LOG_LEVEL"] = "invalid-must-not-be-read" });
-        Assert.AreEqual(0, process.ExitCode, process.StandardError); Assert.AreEqual("", process.StandardError);
-        JsonObject actual = JsonNode.Parse(process.StandardOutput)!.AsObject();
-        JsonObject row = LogValueProcessTests.Read("human-rendering-cases.json")["cases"]!.AsArray().Single(item => item!["id"]!.GetValue<string>() == id)!.AsObject();
+        string input = FixtureProcessChecks.Find("human-rendering-cases.json");
+        JsonObject actual = await JsonlReuseProcessTests.Capture("human-rendering", input, id, TestContext);
+        JsonObject catalog = LogValueProcessTests.Read("human-rendering-cases.json");
+        JsonObject row = catalog["cases"]!.AsArray().Single(item => (string?)item!["id"] == id)!.AsObject();
         HumanRenderingExpectations.Validate(row, actual);
-        Assert.AreEqual(".NET 10.0.12", actual["observed"]!["runtimeDescription"]!.GetValue<string>());
-        Assert.AreEqual(OperatingSystem.IsWindows() ? "windows" : "linux", actual["observed"]!["operatingSystem"]!.GetValue<string>());
-        Assert.AreEqual(Hash(host), actual["observed"]!["fixtureSha256"]!.GetValue<string>());
-        Assert.AreEqual(Hash(Path.Combine(Path.GetDirectoryName(host)!, "CIS.Core.dll")), actual["observed"]!["coreSha256"]!.GetValue<string>());
-        Assert.AreEqual(Hash(input), actual["observed"]!["inputsSha256"]!.GetValue<string>());
-        Assert.AreEqual(0, Directory.EnumerateFileSystemEntries(owned.Path).Count());
     }
-    private static string Hash(string path) => Convert.ToHexStringLower(SHA256.HashData(File.ReadAllBytes(path)));
 }

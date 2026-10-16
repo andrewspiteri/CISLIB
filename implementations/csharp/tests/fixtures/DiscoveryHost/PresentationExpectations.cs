@@ -37,6 +37,7 @@ internal static class PresentationExpectations
                 using JsonDocument document = JsonDocument.Parse(source); JsonElement capture = document.RootElement;
                 foreach ((string key, string value) in new[] { ("status", statuses[index]!.GetValue<string>()), ("service", "Presentation.App"), ("component", "Presentation"), ("event_name", "presentation.event"), ("message", "literal {user} {missing:format} unmatched { } quote \" slash \\\n\u001b[2J caf\u00e9 \U0001f600\u202e"), ("message_template", "raw {user} {missing:format} unmatched { {{ }}\n\u001b[31m"), ("operation_id", "before-operation"), ("timestamp", "2026-10-12T10:11:12.1234567Z") })
                 { if (capture.GetProperty(key).GetString() != value) { throw new InvalidDataException("Captured meaning differs: " + key); } }
+                if (capture.GetProperty("attributes").GetProperty("user").GetString() != "CIS_MUST_NOT_INTERPOLATE" || capture.GetProperty("attributes").GetProperty("number").GetInt32() != 42) { throw new InvalidDataException("Template attributes changed."); }
                 foreach (string id in new[] { "traceId", "spanId" })
                 {
                     string key = id == "traceId" ? "trace_id" : "span_id";

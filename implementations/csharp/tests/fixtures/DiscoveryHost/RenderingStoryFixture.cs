@@ -16,6 +16,7 @@ internal static class RenderingStoryFixture
         JsonObject actual = Execute(row); RenderingStoryExpectations.Validate(catalog, row, actual);
         actual["observed"] = new JsonObject
         {
+            ["processId"] = System.Environment.ProcessId,
             ["runtimeDescription"] = RuntimeInformation.FrameworkDescription,
             ["operatingSystem"] = OperatingSystem.IsWindows() ? "windows" : OperatingSystem.IsLinux() ? "linux" : "unknown",
             ["fixtureSha256"] = Hash(typeof(RenderingStoryFixture).Assembly.Location),
