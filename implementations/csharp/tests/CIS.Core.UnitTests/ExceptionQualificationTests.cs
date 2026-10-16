@@ -47,6 +47,7 @@ public sealed class ExceptionQualificationTests
     [DataRow("missing")]
     [DataRow("data")]
     [DataRow("bool-number")]
+    [DataRow("float-number")]
     [DataRow("immutability")]
     [DataRow("error")]
     [DataRow("parameter")]
@@ -75,6 +76,7 @@ public sealed class ExceptionQualificationTests
             case "missing": actual.Remove("exception"); break;
             case "data": root!["data"] = "private"; break;
             case "bool-number": actual["nodes"] = true; break;
+            case "float-number": actual["nodes"] = JsonNode.Parse("4.0"); break;
             case "immutability": actual["stableAfterMutation"] = false; break;
             case "error": actual["error"] = null; break;
             case "parameter": actual["parameter"] = "input"; break;

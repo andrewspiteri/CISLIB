@@ -56,6 +56,7 @@ internal static class ExceptionContentExpectations
             throw new InvalidDataException("Captured exception content differs.");
         }
         bool hasTrapSources = !id.StartsWith("data-", StringComparison.Ordinal) && id != "retention";
+        if (!hasTrapSources && result.ContainsKey("reads")) { throw new InvalidDataException("Unexpected exception read observations."); }
         if (hasTrapSources && result["reads"] is not JsonArray)
         {
             throw new InvalidDataException("Missing exception read observations.");

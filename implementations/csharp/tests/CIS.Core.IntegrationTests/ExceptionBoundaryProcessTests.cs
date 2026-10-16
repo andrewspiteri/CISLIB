@@ -1,8 +1,6 @@
-using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json.Nodes;
 using CIS.Tests.DiscoveryFixture;
-using CIS.TestSupport;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace CIS.Tests.IntegrationTests;
@@ -11,70 +9,48 @@ namespace CIS.Tests.IntegrationTests;
 public sealed class ExceptionBoundaryProcessTests
 {
     public TestContext TestContext { get; set; } = null!;
-
     public static IEnumerable<object[]> Cases => ExceptionBoundarySources.Cases.Select(id => new object[] { id });
 
     [TestMethod]
     [DynamicData(nameof(Cases))]
     public async Task ActualExceptionBoundaryCasesRunInFreshUninitializedProcesses(string id)
     {
-        string host = Path.Combine(AppContext.BaseDirectory, "discovery-fixture", "CIS.Core.DiscoveryFixture.dll");
-        using var owned = new TemporaryDirectory();
-        ProcessResult child = await ProcessRunner.RunAsync("dotnet",
-            ["exec", "--fx-version", "10.0.12", "--roll-forward", "Disable", host, "exception-boundary", id],
-            owned.Path, TimeSpan.FromSeconds(15), new Dictionary<string, string?> { ["CORE_LOG_LEVEL"] = "invalid-must-not-be-read", ["DD_AGENT_HOST"] = "CIS_NEVER_CAPTURE_COLLECTOR" });
-        Assert.AreEqual(0, child.ExitCode, child.StandardError);
-        Assert.AreEqual(string.Empty, child.StandardError);
-        TestContext.WriteLine(child.StandardOutput);
-        JsonObject actual = JsonNode.Parse(child.StandardOutput)!.AsObject();
-        Assert.AreEqual(id, actual["caseId"]!.GetValue<string>());
+        JsonObject actual = await ExceptionProjectionProcessTests.Capture("exception-boundary", id, TestContext);
         ExceptionBoundaryExpectations.Verify(id, actual);
         ExceptionBoundaryExpectations.VerifyReads(id, actual);
-        (int nodes, int depth) = Measure(actual["exception"]!);
-        Assert.IsTrue(nodes <= 16 && depth <= 4);
-        Assert.AreEqual(nodes, actual["nodes"]!.GetValue<int>());
-        Assert.AreEqual(depth, actual["depth"]!.GetValue<int>());
-        Assert.AreEqual(nodes, actual["cachedNodes"]!.GetValue<int>());
-        Assert.AreEqual(depth, actual["cachedDepth"]!.GetValue<int>());
-        JsonNode observed = actual["observed"]!;
-        Assert.IsFalse(observed["lifecycleApiPresent"]!.GetValue<bool>());
-        Assert.AreEqual(".NET 10.0.12", observed["runtimeDescription"]!.GetValue<string>());
-        Assert.AreEqual(Hash(host), observed["fixtureSha256"]!.GetValue<string>());
-        Assert.AreEqual(Hash(Path.Combine(Path.GetDirectoryName(host)!, "CIS.Core.dll")), observed["coreSha256"]!.GetValue<string>());
-        Assert.IsFalse(child.StandardOutput.Contains("CIS_NEVER_CAPTURE_COLLECTOR", StringComparison.Ordinal));
-        Assert.AreEqual(0, Directory.EnumerateFileSystemEntries(owned.Path).Count());
+        CheckShape(actual);
     }
 
-    private static (int Nodes, int Depth) Measure(JsonNode root)
+    // Traverse emitted JSON independently of Core's exception graph and cached measurements.
+    internal static void CheckShape(JsonObject actual, bool requirePreorder = true)
     {
-        var pending = new Queue<(JsonNode Node, int Depth)>();
-        pending.Enqueue((root, 1));
-        int nodes = 0;
-        int depth = 0;
-        while (pending.TryDequeue(out var item))
+        var pending = new Stack<(JsonNode Node, int Depth)>();
+        if (actual["exception"] is JsonNode root) { pending.Push((root, 1)); }
+        var labels = new List<string>();
+        int maximum = 0;
+        bool loss = false;
+        string[] allowed = ["type", "message", "stack_trace", "inner_exceptions", "truncated"];
+        while (pending.TryPop(out var item))
         {
-            nodes++;
-            depth = Math.Max(depth, item.Depth);
-            Assert.IsNotNull(item.Node["type"]!.GetValue<string>());
-            Assert.IsTrue(item.Node["message"]!.GetValue<string>().EnumerateRunes().Count() <= 4096);
-            if (item.Node["stack_trace"] is JsonNode stack)
-            {
-                Assert.IsTrue(stack.GetValue<string>().EnumerateRunes().Count() <= 16384);
-            }
-            if (item.Node["truncated"] is JsonNode truncated)
-            {
-                Assert.IsTrue(truncated.GetValue<bool>());
-            }
+            Assert.IsTrue(item.Node.AsObject().All(pair => allowed.Contains(pair.Key, StringComparer.Ordinal)));
+            Assert.IsFalse(string.IsNullOrWhiteSpace((string?)item.Node["type"]));
+            string message = (string)item.Node["message"]!;
+            Assert.IsTrue(message.EnumerateRunes().Count() <= 4096);
+            labels.Add(message);
+            maximum = Math.Max(maximum, item.Depth);
+            Assert.IsTrue(labels.Count <= 16 && maximum <= 4);
+            if (item.Node["stack_trace"] is JsonNode stack) { Assert.IsTrue(stack.GetValue<string>().EnumerateRunes().Count() <= 16384); }
+            if (item.Node["truncated"] is JsonNode marker) { Assert.IsTrue(marker.GetValue<bool>()); loss = true; }
             if (item.Node["inner_exceptions"] is JsonArray children)
             {
-                foreach (JsonNode? child in children)
-                {
-                    pending.Enqueue((child!, item.Depth + 1));
-                }
+                foreach (JsonNode? child in children.Reverse()) { pending.Push((child!, item.Depth + 1)); }
             }
         }
-        return (nodes, depth);
+        Assert.AreEqual(labels.Count, actual["nodes"]!.GetValue<int>());
+        Assert.AreEqual(labels.Count, actual["cachedNodes"]!.GetValue<int>());
+        Assert.AreEqual(maximum, actual["depth"]!.GetValue<int>());
+        Assert.AreEqual(maximum, actual["cachedDepth"]!.GetValue<int>());
+        Assert.AreEqual(loss, actual["hasTruncatedContent"]!.GetValue<bool>());
+        if (requirePreorder) { CollectionAssert.AreEqual(labels.ToArray(), actual["preorder"]!.AsArray().Select(value => (string)value!).ToArray()); }
     }
-
-    private static string Hash(string path) => Convert.ToHexStringLower(SHA256.HashData(File.ReadAllBytes(path)));
 }

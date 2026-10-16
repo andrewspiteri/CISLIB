@@ -34,6 +34,10 @@ internal static class ExceptionQualificationExpectations
     // C# diagnostic and failure-read bindings are native observations, not portable requirements.
     internal static void Validate(JsonObject row, JsonObject actual, JsonObject nativeBindings)
     {
+        foreach (string key in new[] { "nodes", "depth", "cachedNodes", "cachedDepth" })
+        {
+            if (actual[key] is not JsonValue count || !count.TryGetValue<int>(out _)) { throw new InvalidDataException("Exception count must be an integer: " + key); }
+        }
         JsonObject expected = row["expected"]!.AsObject();
         JsonObject result = actual.DeepClone().AsObject();
         if (result["reads"]!.AsObject().Any(probe => probe.Value!["forbidden"]!.GetValue<int>() != 0))

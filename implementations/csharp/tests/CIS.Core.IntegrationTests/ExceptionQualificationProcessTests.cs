@@ -1,6 +1,5 @@
-using System.Security.Cryptography;
 using System.Text.Json.Nodes;
-using CIS.TestSupport;
+using CIS.Tests.DiscoveryFixture;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace CIS.Tests.IntegrationTests;
@@ -9,40 +8,17 @@ namespace CIS.Tests.IntegrationTests;
 public sealed class ExceptionQualificationProcessTests
 {
     public TestContext TestContext { get; set; } = null!;
-    public static IEnumerable<object[]> Rows => LogValueProcessTests.Read("exception-qualification-cases.json")["cases"]!.AsArray()
-        .Select(row => new object[] { row!["id"]!.GetValue<string>() });
+    public static IEnumerable<object[]> Rows => FixtureProcessChecks.Cases("exception-qualification-cases.json", 68).Select(row => new object[] { (string)row!["id"]! });
 
     [TestMethod]
     [DynamicData(nameof(Rows))]
     public async Task EverySharedExceptionDescriptorRunsInAnIsolatedChild(string id)
     {
-        string host = Path.Combine(AppContext.BaseDirectory, "discovery-fixture", "CIS.Core.DiscoveryFixture.dll");
-        string input = LogValueProcessTests.Find("exception-qualification-cases.json");
-        using var owned = new TemporaryDirectory();
-        ProcessResult process = await ProcessRunner.RunAsync("dotnet",
-            ["exec", "--fx-version", "10.0.12", "--roll-forward", "Disable", host, "exception-qualification", input, id],
-            owned.Path, TimeSpan.FromSeconds(15), new Dictionary<string, string?>
-            {
-                ["CORE_LOG_LEVEL"] = "invalid-must-not-be-read",
-                ["DD_AGENT_HOST"] = "CIS_NEVER_CAPTURE_COLLECTOR",
-                ["CIS_PRIVATE_EXCEPTION_TOKEN"] = "CIS_PRIVATE_QUALIFICATION_DATA"
-            });
-        Assert.AreEqual(0, process.ExitCode, process.StandardError);
-        Assert.AreEqual(string.Empty, process.StandardError);
-        TestContext.WriteLine(process.StandardOutput);
-        JsonObject result = JsonNode.Parse(process.StandardOutput)!.AsObject();
-        Assert.AreEqual(id, result["caseId"]!.GetValue<string>());
-        Assert.IsTrue(result["stableAfterMutation"]!.GetValue<bool>());
-        JsonNode observed = result["observed"]!;
-        Assert.IsFalse(observed["lifecycleApiPresent"]!.GetValue<bool>());
-        Assert.AreEqual(".NET 10.0.12", observed["runtimeDescription"]!.GetValue<string>());
-        Assert.AreEqual(Hash(host), observed["fixtureSha256"]!.GetValue<string>());
-        Assert.AreEqual(Hash(Path.Combine(Path.GetDirectoryName(host)!, "CIS.Core.dll")), observed["coreSha256"]!.GetValue<string>());
-        Assert.AreEqual(Hash(input), observed["inputsSha256"]!.GetValue<string>());
-        Assert.IsFalse(process.StandardOutput.Contains("CIS_PRIVATE_QUALIFICATION_DATA", StringComparison.Ordinal));
-        Assert.IsFalse(process.StandardOutput.Contains("CIS_NEVER_CAPTURE_COLLECTOR", StringComparison.Ordinal));
-        Assert.AreEqual(0, Directory.EnumerateFileSystemEntries(owned.Path).Count());
+        string input = FixtureProcessChecks.Find("exception-qualification-cases.json");
+        JsonObject actual = await ExceptionProjectionProcessTests.Capture("exception-qualification", id, TestContext, input, "CIS_PRIVATE_QUALIFICATION_DATA");
+        JsonObject catalog = LogValueProcessTests.Read("exception-qualification-cases.json");
+        JsonObject row = catalog["cases"]!.AsArray().Single(row => (string?)row!["id"] == id)!.AsObject();
+        ExceptionQualificationExpectations.Validate(row, actual, catalog["adapterObservations"]!["csharp"]!.AsObject());
+        ExceptionBoundaryProcessTests.CheckShape(actual, requirePreorder: false);
     }
-
-    private static string Hash(string path) => Convert.ToHexStringLower(SHA256.HashData(File.ReadAllBytes(path)));
 }
