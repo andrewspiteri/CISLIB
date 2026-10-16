@@ -2,6 +2,23 @@ using System.Text.Json;
 using CIS.TestSupport;
 using CIS.Verification;
 
+if (args.Length > 0 && args[0] is "type-manager-runtime" or "type-manager-instrumentation" or "type-manager-instrumentation-controls")
+{
+    try
+    {
+        return args[0] switch
+        {
+            "type-manager-runtime" => await TypeManagerRuntimeVerification.RunAsync(args[1..]),
+            "type-manager-instrumentation" => await TypeManagerInstrumentationVerification.RunAsync(args[1..]),
+            _ => await TypeManagerInstrumentationControls.RunAsync(args[1..])
+        };
+    }
+    catch (ArgumentException error) { Console.Error.WriteLine(error.Message); return 2; }
+    catch (Exception error) when (error is IOException or InvalidDataException or UnauthorizedAccessException or InvalidOperationException or JsonException or System.Xml.XmlException or System.ComponentModel.Win32Exception or TimeoutException)
+    { Console.Error.WriteLine(error.Message); return 1; }
+}
+
+
 if (args.Length > 0 && args[0] == "select-jsonl-inputs")
 {
     return JsonlInputSelector.Run(args[1..]);
