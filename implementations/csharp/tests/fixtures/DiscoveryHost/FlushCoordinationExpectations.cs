@@ -5,8 +5,9 @@ namespace CIS.Tests.DiscoveryFixture;
 
 internal static class FlushCoordinationExpectations
 {
-    internal static void Validate(string mode, JsonObject actual)
+    internal static void Validate(string mode, JsonObject actual, int? processId = null)
     {
+        FlushReaderChecks.Coordination(mode, actual, processId);
         void Require(bool condition, string reason) { if (!condition) { throw new InvalidDataException(reason); } }
         int Number(string key) => actual[key]!.GetValue<int>();
         Require(actual["runtime"]!.GetValue<string>() == ".NET 10.0.12", "pinned framework storage");

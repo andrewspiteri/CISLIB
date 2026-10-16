@@ -22,7 +22,7 @@ internal static class LifecycleProcessChecks
             .Where(key => key.StartsWith("CORE_", StringComparison.OrdinalIgnoreCase)).ToDictionary(key => key, _ => (string?)null, StringComparer.Ordinal);
         if (command == "stop-start" && mode == "env") { environment["CORE_LOG_SHUTDOWN_TIMEOUT_MS"] = "250"; }
         (JsonObject report, int pid) = await FixtureProcessChecks.RunAsync([command, mode, root.Path], root.Path, context,
-            environment: environment, timeout: TimeSpan.FromSeconds(60), flatReport: true);
+            environment: environment, timeout: TimeSpan.FromSeconds(command == "flush-boundary" ? 30 : 60), flatReport: true);
         Validate(command, mode, report, pid);
         if (command == "stop-drain" && mode == "normal-dual")
         {
@@ -44,6 +44,12 @@ internal static class LifecycleProcessChecks
             }
         }
         if (command == "stop-cleanup") { Assert.AreEqual(0, Directory.EnumerateFileSystemEntries(root.Path).Count()); }
+        if (command == "flush-boundary" && mode == "physical")
+        {
+            string path = (string)report["path"]!;
+            CollectionAssert.AreEqual(Convert.FromBase64String((string)report["bytes"]!), File.ReadAllBytes(path));
+            using var lease = new FileStream(path + ".cis.lock", FileMode.Open, FileAccess.ReadWrite, FileShare.None);
+        }
         return report;
     }
 
@@ -56,6 +62,8 @@ internal static class LifecycleProcessChecks
             case "stop-join": StopJoinExpectations.Validate(mode, report, pid); break;
             case "stop-cleanup": StopCleanupExpectations.Validate(mode, report, pid); break;
             case "runtime-create": RuntimeCreateExpectations.Validate(mode, report, pid); break;
+            case "flush-boundary": FlushBoundaryExpectations.Validate(mode, report, pid); break;
+            case "flush-coordination": FlushCoordinationExpectations.Validate(mode, report, pid); break;
             default: throw new ArgumentOutOfRangeException(nameof(command));
         }
     }

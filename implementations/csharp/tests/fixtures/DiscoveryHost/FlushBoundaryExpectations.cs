@@ -5,8 +5,9 @@ namespace CIS.Tests.DiscoveryFixture;
 
 internal static class FlushBoundaryExpectations
 {
-    internal static void Validate(string mode, JsonObject actual)
+    internal static void Validate(string mode, JsonObject actual, int? processId = null)
     {
+        FlushReaderChecks.Boundary(mode, actual, processId);
         void Require(bool value, string reason) { if (!value) { throw new InvalidDataException(reason); } }
         Require(actual["mode"]!.GetValue<string>() == mode, "mode");
         Require(JsonNode.DeepEquals(actual["captures"], actual["after"]), "snapshot serialization");
