@@ -1,5 +1,7 @@
+using System.Diagnostics;
 using System.Security.Cryptography;
 using System.Text;
+using System.Text.Json;
 using System.Text.Json.Nodes;
 using CIS.TestSupport;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -9,6 +11,9 @@ namespace CIS.Tests.IntegrationTests;
 [TestClass]
 public sealed class FileRestartProcessTests
 {
+    public TestContext TestContext { get; set; } = null!;
+    private static readonly TimeSpan Limit = TimeSpan.FromSeconds(30);
+
     [TestMethod]
     [DataRow("intact")]
     [DataRow("partial-json")]
@@ -26,54 +31,149 @@ public sealed class FileRestartProcessTests
     [DataRow("unproven-gap")]
     [DataRow("ambiguous-both")]
     public async Task SeparateProducerAndRestartProcessesPreserveWholeSegmentsAndSafeFailures(string mode)
+    { using var root = new TemporaryDirectory(); await Scenario(mode, root.Path); }
+
+    [TestMethod]
+    [DataRow("original")]
+    [DataRow("stage")]
+    [DataRow("pending")]
+    [DataRow("failure-code")]
+    [DataRow("failure-growth")]
+    [DataRow("lease")]
+    [DataRow("accounting")]
+    [DataRow("archive")]
+    [DataRow("neighbor")]
+    [DataRow("record")]
+    [DataRow("inventory")]
+    [DataRow("probe")]
+    public async Task OriginalRestartReaderCorruptionsRejectAfterPhysicalPositive(string key)
     {
-        using var root = new TemporaryDirectory(); string host = Path.Combine(AppContext.BaseDirectory, "discovery-fixture", "CIS.Core.DiscoveryFixture.dll");
-        async Task<JsonObject> Run(string phase)
+        string mode = key.StartsWith("failure", StringComparison.Ordinal) ? "collision-file" : key == "probe" ? "rotation-published" : "recovery-intent";
+        using var root = new TemporaryDirectory(); (JsonObject seed, JsonObject resume, JsonObject? probe) = await Scenario(mode, root.Path);
+        void Edit(JsonNode container, string name, Action<JsonObject> mutation)
+        { JsonObject value = JsonNode.Parse(Convert.FromBase64String((string)container[name]!))!.AsObject(); mutation(value); container[name] = Convert.ToBase64String(Encoding.UTF8.GetBytes(value.ToJsonString() + "\n")); }
+        const string active = FileRestartExpectations.Active;
+        switch (key)
         {
-            ProcessResult result = await ProcessRunner.RunAsync("dotnet", ["exec", "--fx-version", "10.0.12", "--roll-forward", "Disable", host, "file-restart", mode, phase, root.Path], root.Path, TimeSpan.FromSeconds(30), outputEncoding: new UTF8Encoding(false, true));
-            Assert.AreEqual(0, result.ExitCode, result.StandardError); Assert.AreEqual("", result.StandardError); JsonObject report = JsonNode.Parse(result.StandardOutput)!.AsObject();
-            Assert.AreEqual(Hash(host), report["fixtureSha256"]!.GetValue<string>()); Assert.AreEqual(Hash(Path.Combine(Path.GetDirectoryName(host)!, "CIS.Core.dll")), report["coreSha256"]!.GetValue<string>());
-            Assert.AreEqual(".NET 10.0.12", report["runtime"]!.GetValue<string>()); return report;
+            case "original": JsonObject original = JsonNode.Parse(Convert.FromBase64String((string)seed["seedRecords"]![0]!))!.AsObject(); original["event_name"] = "other"; seed["seedRecords"]![0] = Convert.ToBase64String(Encoding.UTF8.GetBytes(original.ToJsonString() + "\n")); break;
+            case "stage": seed["files"]!["neighbor.bin"] = Convert.ToBase64String("changed"u8); break;
+            case "pending": Edit(seed["files"]!, active + ".cis.transition.json", value => value["originalSha256"] = new string('0', 64)); break;
+            case "failure-code": resume["error"]!["code"] = "Other"; break;
+            case "failure-growth": resume["after"]![active] = Convert.ToBase64String("changed"u8); break;
+            case "lease": resume["leaseReleased"] = false; break;
+            case "accounting": resume["final"]!["written"] = 0L; break;
+            case "archive": string archive = resume["after"]!.AsObject().Select(p => p.Key).Single(k => k.EndsWith("00000000000000000003.damaged", StringComparison.Ordinal)); resume["after"]![archive] = Convert.ToBase64String("changed"u8); break;
+            case "neighbor": resume["after"]!["neighbor.bin"] = Convert.ToBase64String("changed"u8); break;
+            case "record": Edit(resume["after"]!, active, value => value["attributes"]!["producer_pid"] = 0); break;
+            case "inventory": Edit(resume["after"]!, active + ".cis.inventory.json", value => value["segments"]!.AsArray()[^1]!["id"] = 99); break;
+            case "probe": probe!["after"]!["neighbor.bin"] = Convert.ToBase64String("changed"u8); break;
         }
-        JsonObject seed = await Run("seed"), resume = await Run("resume");
-        Assert.AreNotEqual(seed["pid"]!.GetValue<int>(), resume["pid"]!.GetValue<int>());
-        Assert.AreEqual(2L, seed["seedWritten"]!.GetValue<long>()); Assert.IsTrue(seed["leaseHeld"]!.GetValue<bool>()); Assert.IsTrue(resume["leaseReleased"]!.GetValue<bool>());
-        Assert.IsTrue(JsonNode.DeepEquals(seed["files"], resume["before"]));
-        bool failure = mode is "collision-file" or "collision-directory" or "unproven-gap" or "ambiguous-both";
-        if (failure)
-        {
-            string code = mode.StartsWith("collision", StringComparison.Ordinal) ? "FileRecoveryCollision" : mode == "unproven-gap" ? "FileInventoryIncompatible" : "FileTransitionIncompatible";
-            Assert.AreEqual(code, resume["error"]!["code"]!.GetValue<string>()); Assert.IsFalse(resume["error"]!["inner"]!.GetValue<bool>());
-            Assert.IsTrue(JsonNode.DeepEquals(resume["before"], resume["after"])); Assert.IsTrue(JsonNode.DeepEquals(resume["namesBefore"], resume["namesAfter"])); Assert.IsNull(resume["final"]);
-        }
-        else
-        {
-            Assert.IsNull(resume["error"]); Assert.AreEqual("Accepted", resume["outcome"]!.GetValue<string>());
-            bool recovered = mode.StartsWith("partial", StringComparison.Ordinal) || mode.StartsWith("recovery", StringComparison.Ordinal);
-            JsonObject final = resume["final"]!.AsObject(); Assert.AreEqual(recovered, final["recovered"]!.GetValue<bool>()); Assert.AreEqual(1L, final["written"]!.GetValue<long>());
-            Assert.AreEqual(0L, final["failed"]!.GetValue<long>() + final["abandoned"]!.GetValue<long>() + final["pending"]!.GetValue<long>());
-            const string active = "logs/\u03a9-\U0001f642.jsonl"; JsonObject files = resume["after"]!.AsObject();
-            Assert.IsFalse(files.ContainsKey(active + ".cis.transition.json"));
-            JsonObject metadata = JsonNode.Parse(Convert.FromBase64String(files[active + ".cis.inventory.json"]!.GetValue<string>()))!.AsObject(); Assert.AreEqual(seed["group"]!.GetValue<string>(), metadata["groupId"]!.GetValue<string>());
-            JsonArray members = metadata["segments"]!.AsArray(); Assert.AreEqual(mode == "intact" ? 1L : mode.StartsWith("partial", StringComparison.Ordinal) ? 2L : 4L, members[^1]!["id"]!.GetValue<long>());
-            if (mode != "intact")
-            {
-                byte[] first = Convert.FromBase64String(seed["seedRecords"]![0]!.GetValue<string>()), second = Convert.FromBase64String(seed["seedRecords"]![1]!.GetValue<string>());
-                byte[] suffix = mode == "partial-json" ? Encoding.UTF8.GetBytes("{\"partial\":") : [.. Encoding.UTF8.GetBytes("{\"partial\":\""), 0xf0, 0x9f];
-                byte[] original = mode.StartsWith("partial", StringComparison.Ordinal) ? [.. first, .. second, .. suffix] : mode.StartsWith("recovery", StringComparison.Ordinal) ? [.. second, .. suffix] : second;
-                string archive = "logs/" + members[^2]!["fileName"]!.GetValue<string>();
-                CollectionAssert.AreEqual(original, Convert.FromBase64String(files[archive]!.GetValue<string>()));
-            }
-            foreach (JsonNode? member in members.Take(members.Count - 1))
-            {
-                string key = "logs/" + member!["fileName"]!.GetValue<string>();
-                if (seed["files"]!.AsObject().ContainsKey(key)) { Assert.IsTrue(JsonNode.DeepEquals(seed["files"]![key], files[key]), key); }
-            }
-            KeyValuePair<string, JsonNode?>[] neighbors = seed["files"]!.AsObject().Where(entry => entry.Key == "neighbor.bin" || entry.Key.EndsWith("00000000000000000050.closed", StringComparison.Ordinal) || entry.Key.Contains("ffffffffffffffffffffffffffffffff", StringComparison.Ordinal) || entry.Key.EndsWith("unlisted.tmp", StringComparison.Ordinal)).ToArray();
-            Assert.AreEqual(4, neighbors.Length);
-            foreach (KeyValuePair<string, JsonNode?> neighbor in neighbors) { Assert.IsTrue(JsonNode.DeepEquals(neighbor.Value, files[neighbor.Key])); }
-        }
-        foreach (KeyValuePair<string, JsonNode?> entry in resume["after"]!.AsObject()) { CollectionAssert.AreEqual(Convert.FromBase64String(entry.Value!.GetValue<string>()), File.ReadAllBytes(Path.Combine(root.Path, entry.Key))); }
+        InvalidDataException error = Assert.ThrowsExactly<InvalidDataException>(() => FileRestartExpectations.Validate(mode, seed, resume, probe));
+        string reason = key switch { "original" or "record" => "actual record producer", "stage" => "literal stage preimage", "pending" => "pending identity", "failure-code" => "safe failure", "failure-growth" => "unchanged restart failure", "lease" => "owned process/lease", "accounting" => "current accounting", "inventory" => "next inventory", "probe" => "held probe preservation", _ => "exact restart transition" };
+        Assert.AreEqual(reason, error.Message); TestContext.WriteLine("Rejected original restart control: " + key);
     }
+
+    private async Task<(JsonObject Seed, JsonObject Resume, JsonObject? Probe)> Scenario(string mode, string root)
+    {
+        JsonObject seed; JsonObject? probe = null;
+        await using (var producer = new HeldProducer(mode, root, TestContext))
+        {
+            seed = await producer.Read();
+            if (mode is "rotation-published" or "recovery-intent") { probe = await Run(mode, "probe", root); }
+            await producer.Kill();
+        }
+        JsonObject resume = await Run(mode, "resume", root);
+        FileRestartExpectations.Validate(mode, seed, resume, probe);
+        string active = Path.Combine(root, "logs", "Ω-🙂.jsonl");
+        Assert.AreEqual(active, (string?)seed["path"]); Assert.AreEqual(active, (string?)resume["path"]);
+        var physical = new JsonObject();
+        foreach (string file in Directory.GetFiles(root, "*", SearchOption.AllDirectories).Where(f => !f.EndsWith(".cis.lock", StringComparison.Ordinal)))
+        { physical.Add(Path.GetRelativePath(root, file).Replace('\\', '/'), Convert.ToBase64String(File.ReadAllBytes(file))); }
+        Assert.IsTrue(JsonNode.DeepEquals(physical, resume["after"]));
+        CollectionAssert.AreEqual(resume["namesAfter"]!.AsArray().Select(n => (string)n!).ToArray(), Directory.GetFileSystemEntries(root, "*", SearchOption.AllDirectories).Select(n => Path.GetRelativePath(root, n).Replace('\\', '/')).Order(StringComparer.Ordinal).ToArray());
+        await Selector(mode, active, root, seed, resume);
+        return (seed, resume, probe);
+    }
+
+    private async Task<JsonObject> Run(string mode, string phase, string root)
+    {
+        (JsonObject report, _) = await FixtureProcessChecks.RunAsync(["file-restart", mode, phase, root], root, TestContext,
+            environment: new Dictionary<string, string?> { ["DOTNET_SYSTEM_IO_DISABLEFILELOCKING"] = null }, timeout: Limit, flatReport: true);
+        Assert.AreEqual(phase, (string?)report["phase"]); return report;
+    }
+
+
+    private async Task Selector(string mode, string active, string root, JsonObject seed, JsonObject resume)
+    {
+        string repository = Path.GetFullPath("../..", Path.GetDirectoryName(FixtureProcessChecks.Find("case-inventory.json"))!);
+        string configuration = new DirectoryInfo(AppContext.BaseDirectory).Parent!.Name;
+        string tool = Path.Combine(repository, "implementations/csharp/eng/CIS.DependencyChecker/bin", configuration, "net10.0/CIS.DependencyChecker.dll"), beforeHash = Hash(tool), cwd = Directory.GetCurrentDirectory();
+        Dictionary<string, string?> parent = Parent();
+        string[] command = ["exec", "--fx-version", "10.0.12", "--roll-forward", "Disable", tool, "select-jsonl-inputs", active];
+        ProcessResult child = await ProcessRunner.RunAsync("dotnet", command, root, Limit, outputEncoding: new UTF8Encoding(false, true));
+        TestContext.WriteLine("Restart selector child: " + child.ProcessId + "; " + string.Join(" ", command) + "; sha256=" + beforeHash); TestContext.WriteLine(child.StandardOutput); TestContext.WriteLine(child.StandardError);
+        Assert.AreEqual(beforeHash, Hash(tool)); Assert.AreEqual(cwd, Directory.GetCurrentDirectory());
+        Dictionary<string, string?> after = Parent(); CollectionAssert.AreEquivalent(parent.Keys.ToArray(), after.Keys.ToArray()); Assert.IsTrue(parent.All(p => after[p.Key] == p.Value));
+        bool failure = mode.StartsWith("collision", StringComparison.Ordinal) || mode is "unproven-gap" or "ambiguous-both";
+        Assert.AreEqual(failure ? 2 : 0, child.ExitCode);
+        if (failure) { Assert.AreEqual("", child.StandardOutput); Assert.AreEqual("Cannot select a consistent stopped JSONL group." + Environment.NewLine, child.StandardError); return; }
+        Assert.AreEqual("", child.StandardError);
+        JsonObject inventory = JsonNode.Parse(Convert.FromBase64String((string)resume["after"]![FileRestartExpectations.Active + ".cis.inventory.json"]!))!.AsObject();
+        string[] expected = inventory["segments"]!.AsArray().Where(m => (string?)m!["state"] is "active" or "closed").Select(m => Path.Combine(root, "logs", (string)m!["fileName"]!)).ToArray();
+        string[] selected = JsonSerializer.Deserialize<string[]>(child.StandardOutput)!;
+        CollectionAssert.AreEqual(expected, selected); Assert.AreEqual(mode.StartsWith("rotation", StringComparison.Ordinal) ? 3 : mode.StartsWith("recovery", StringComparison.Ordinal) ? 2 : 1, selected.Length);
+        foreach (string path in selected)
+        {
+            foreach (byte[] line in FileRestartExpectations.Split(File.ReadAllBytes(path)))
+            {
+                JsonObject record = JsonNode.Parse(line)!.AsObject(); string name = (string)record["event_name"]!; int pid = record["attributes"]!["producer_pid"]!.GetValue<int>();
+                Assert.IsTrue(name == "restart.resume" && pid == resume["pid"]!.GetValue<int>() || name is "restart.seed.0" or "restart.seed.1" && pid == seed["pid"]!.GetValue<int>());
+                FileRestartExpectations.Record(line, name, pid);
+            }
+        }
+    }
+
+    private sealed class HeldProducer : IAsyncDisposable
+    {
+        private readonly Process child; private readonly Task<string> errors; private readonly string hostHash, coreHash, cwd; private readonly Dictionary<string, string?> parent; private readonly TestContext context;
+        internal HeldProducer(string mode, string root, TestContext context)
+        {
+            this.context = context; hostHash = Hash(Host); coreHash = Hash(Core); cwd = Directory.GetCurrentDirectory(); parent = Parent();
+            var start = new ProcessStartInfo("dotnet") { WorkingDirectory = root, UseShellExecute = false, CreateNoWindow = true, RedirectStandardInput = true, RedirectStandardOutput = true, RedirectStandardError = true, StandardOutputEncoding = new UTF8Encoding(false, true), StandardErrorEncoding = new UTF8Encoding(false, true) };
+            string[] command = ["exec", "--fx-version", "10.0.12", "--roll-forward", "Disable", Host, "file-restart", mode, "hold", root];
+            foreach (string argument in command) { start.ArgumentList.Add(argument); }
+            start.Environment.Remove("DOTNET_SYSTEM_IO_DISABLEFILELOCKING");
+            child = Process.Start(start) ?? throw new InvalidOperationException("Cannot start owned producer."); errors = child.StandardError.ReadToEndAsync();
+            context.WriteLine("Held restart producer: " + child.Id + "; " + string.Join(" ", command));
+        }
+        internal async Task<JsonObject> Read()
+        {
+            string line = await child.StandardOutput.ReadLineAsync().WaitAsync(Limit) ?? throw new InvalidDataException("Missing held producer report.");
+            Assert.IsFalse(child.HasExited); Assert.IsFalse(line.StartsWith('\uFEFF')); context.WriteLine(line);
+            JsonObject report = JsonNode.Parse(line)!.AsObject();
+            Assert.AreEqual(child.Id, report["pid"]!.GetValue<int>()); Assert.AreEqual(".NET 10.0.12", (string?)report["runtime"]); Assert.AreEqual(FixtureProcessChecks.Family, (string?)report["os"]);
+            Assert.AreEqual(hostHash, (string?)report["fixtureSha256"]); Assert.AreEqual(coreHash, (string?)report["coreSha256"]); return report;
+        }
+        internal async Task Kill()
+        {
+            Assert.IsFalse(child.HasExited); child.Kill(entireProcessTree: true); await child.WaitForExitAsync().WaitAsync(Limit); Assert.IsTrue(child.HasExited);
+            Assert.AreEqual("", await child.StandardOutput.ReadToEndAsync().WaitAsync(Limit)); Assert.AreEqual("", await errors.WaitAsync(Limit));
+            context.WriteLine("Forced owned producer exit: " + child.Id + "; exit=" + child.ExitCode);
+        }
+        public async ValueTask DisposeAsync()
+        {
+            try
+            {
+                if (!child.HasExited) { child.Kill(entireProcessTree: true); }
+                await child.WaitForExitAsync().WaitAsync(Limit); await errors.WaitAsync(Limit);
+                Assert.AreEqual(hostHash, Hash(Host)); Assert.AreEqual(coreHash, Hash(Core)); Assert.AreEqual(cwd, Directory.GetCurrentDirectory());
+                Dictionary<string, string?> after = Parent(); CollectionAssert.AreEquivalent(parent.Keys.ToArray(), after.Keys.ToArray()); Assert.IsTrue(parent.All(p => after[p.Key] == p.Value));
+            }
+            finally { child.Dispose(); }
+        }
+    }
+    private static string Host => Path.Combine(AppContext.BaseDirectory, "discovery-fixture", "CIS.Core.DiscoveryFixture.dll");
+    private static string Core => Path.Combine(Path.GetDirectoryName(Host)!, "CIS.Core.dll");
     private static string Hash(string path) => Convert.ToHexStringLower(SHA256.HashData(File.ReadAllBytes(path)));
+    private static Dictionary<string, string?> Parent() => Environment.GetEnvironmentVariables().Keys.Cast<string>().ToDictionary(key => key, Environment.GetEnvironmentVariable, StringComparer.Ordinal);
 }

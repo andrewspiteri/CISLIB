@@ -1528,7 +1528,7 @@
         },
         {
           "method": "CIS.Tests.IntegrationTests.FileRestartProcessTests.SeparateProducerAndRestartProcessesPreserveWholeSegmentsAndSafeFailures",
-          "minimumExecutions": 1
+          "minimumExecutions": 15
         },
         {
           "method": "CIS.Tests.IntegrationTests.FileRetentionProcessTests.SeparateProducersKeepTheSameGroupAndNewestBoundedSegments",
@@ -10859,6 +10859,18 @@
         "windows-x64",
         "linux-ubuntu2404-x64"
       ]
+    },
+    {
+      "id": "INT-FILE-RESTART-READER-CONTROLS",
+      "family": "integration",
+      "implementation": "Implemented",
+      "method": "CIS.Tests.IntegrationTests.FileRestartProcessTests.OriginalRestartReaderCorruptionsRejectAfterPhysicalPositive",
+      "minimumExecutions": 12,
+      "lanes": [
+        "windows-x64",
+        "linux-ubuntu2404-x64"
+      ],
+      "source": "All twelve original restart reader corruptions follow held producer, forced exit, actual restart and native selector validation. Existing selector guard/bound cases remain separately required."
     }
   ]
 }
