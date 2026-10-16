@@ -42,6 +42,7 @@ internal static class FileAcquisitionFixture
         string host = typeof(FileAcquisitionFixture).Assembly.Location, core = typeof(CoreLogRuntime).Assembly.Location;
         Console.WriteLine(new JsonObject
         {
+            ["pid"] = Environment.ProcessId,
             ["status"] = status,
             ["error"] = error,
             ["length"] = length,

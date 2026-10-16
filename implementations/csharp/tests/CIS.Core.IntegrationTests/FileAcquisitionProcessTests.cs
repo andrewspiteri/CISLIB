@@ -1,3 +1,4 @@
+using System.Collections;
 using System.Diagnostics;
 using System.Security.Cryptography;
 using System.Text;
@@ -12,6 +13,29 @@ public sealed class FileAcquisitionProcessTests
 {
     private static readonly TimeSpan Limit = TimeSpan.FromSeconds(15);
     private static string Host => Path.Combine(AppContext.BaseDirectory, "discovery-fixture", "CIS.Core.DiscoveryFixture.dll");
+    private static string Core => Path.Combine(Path.GetDirectoryName(Host)!, "CIS.Core.dll");
+    private string hostHash = "", coreHash = "", parentDirectory = "";
+    private Dictionary<string, string?> parentEnvironment = [];
+    public TestContext TestContext { get; set; } = null!;
+
+    [TestInitialize]
+    public void CaptureParent()
+    {
+        hostHash = Hash(Host); coreHash = Hash(Core); parentDirectory = Directory.GetCurrentDirectory();
+        parentEnvironment = Environment.GetEnvironmentVariables().Cast<DictionaryEntry>()
+            .ToDictionary(p => (string)p.Key, p => (string?)p.Value, StringComparer.Ordinal);
+    }
+
+    [TestCleanup]
+    public void ParentAndManagedInputsRemainUnchanged()
+    {
+        Assert.AreEqual(hostHash, Hash(Host)); Assert.AreEqual(coreHash, Hash(Core));
+        Assert.AreEqual(parentDirectory, Directory.GetCurrentDirectory());
+        Dictionary<string, string?> current = Environment.GetEnvironmentVariables().Cast<DictionaryEntry>()
+            .ToDictionary(p => (string)p.Key, p => (string?)p.Value, StringComparer.Ordinal);
+        CollectionAssert.AreEquivalent(parentEnvironment.Keys.ToArray(), current.Keys.ToArray());
+        foreach ((string key, string? value) in parentEnvironment) { Assert.AreEqual(value, current[key], "Parent environment changed."); }
+    }
 
     [TestMethod]
     [DataRow(false)]
@@ -19,32 +43,37 @@ public sealed class FileAcquisitionProcessTests
     public async Task SameGroupIsExclusiveWhileDistinctGroupAndReadersWorkThenOwnershipIsReleased(bool terminate)
     {
         using var root = new TemporaryDirectory();
-        string path = Path.Combine(root.Path, "\u03a9-\U0001f642.jsonl"), distinct = Path.Combine(root.Path, "other.jsonl");
-        byte[] retained = Encoding.UTF8.GetBytes("pre-existing-active-data\n"); File.WriteAllBytes(path, retained);
+        string path = Path.Combine(root.Path, "Ω-🙂.jsonl"), distinct = Path.Combine(root.Path, "other.jsonl");
+        byte[] retained = Encoding.UTF8.GetBytes("existing-unvalidated-data\n"); File.WriteAllBytes(path, retained);
         using var holder = new Process { StartInfo = Start("hold", path, root.Path) };
         holder.Start(); Task<string> stderr = holder.StandardError.ReadToEndAsync();
+        TestContext.WriteLine($"Physical acquisition child: {holder.Id}; hold; {path}; {hostHash}; {coreHash}");
         try
         {
-            JsonObject ready = JsonNode.Parse((await holder.StandardOutput.ReadLineAsync().WaitAsync(Limit))!)!.AsObject();
-            Validate(ready, "acquired"); Assert.AreEqual(retained.Length, ready["length"]!.GetValue<long>());
+            string? ready = await holder.StandardOutput.ReadLineAsync().WaitAsync(Limit); Assert.IsNotNull(ready);
+            TestContext.WriteLine(ready); Validate(Parse(ready), "acquired", retained.Length, pid: holder.Id);
             using (var reader = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
             { byte[] observed = new byte[retained.Length]; reader.ReadExactly(observed); CollectionAssert.AreEqual(retained, observed); }
-            JsonObject blocked = await Probe("probe", path, root.Path); Validate(blocked, "failed");
-            AssertSafe(blocked, "FileOwnershipUnavailable");
-            Validate(await Probe("probe", distinct, root.Path), "acquired");
-            Assert.AreEqual(0L, new FileInfo(distinct).Length);
+            await Probe("probe", path, root.Path, "failed", null, "FileOwnershipUnavailable");
+            string alias = Path.Combine(root.Path, ".", Path.GetFileName(path));
+            await Probe("probe", alias, root.Path, "failed", null, "FileOwnershipUnavailable");
+            await Probe("probe", distinct, root.Path);
+            using (var reader = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
+            { byte[] observed = new byte[retained.Length]; reader.ReadExactly(observed); CollectionAssert.AreEqual(retained, observed); }
             if (terminate) { holder.Kill(entireProcessTree: true); }
             else
             {
                 await holder.StandardInput.WriteLineAsync("release"); await holder.StandardInput.FlushAsync();
-                Validate(JsonNode.Parse((await holder.StandardOutput.ReadLineAsync().WaitAsync(Limit))!)!.AsObject(), "released");
+                string? released = await holder.StandardOutput.ReadLineAsync().WaitAsync(Limit); Assert.IsNotNull(released);
+                TestContext.WriteLine(released); Validate(Parse(released), "released", null, pid: holder.Id);
             }
             await holder.WaitForExitAsync().WaitAsync(Limit);
-            if (!terminate) { Assert.AreEqual(0, holder.ExitCode); }
+            if (terminate) { Assert.AreNotEqual(0, holder.ExitCode); } else { Assert.AreEqual(0, holder.ExitCode); }
             Assert.AreEqual("", await stderr.WaitAsync(Limit));
-            Validate(await Probe("probe", path, root.Path), "acquired");
+            Assert.AreEqual("", await holder.StandardOutput.ReadToEndAsync().WaitAsync(Limit));
+            await Probe("probe", path, root.Path, length: retained.Length);
             CollectionAssert.AreEqual(retained, File.ReadAllBytes(path));
-            Assert.IsTrue(File.Exists(path + ".cis.lock"));
+            CollectionAssert.AreEqual(Array.Empty<byte>(), File.ReadAllBytes(path + ".cis.lock"));
         }
         finally
         {
@@ -54,28 +83,76 @@ public sealed class FileAcquisitionProcessTests
     }
 
     [TestMethod]
-    public async Task DisabledUnixFileLockingCannotSilentlyCreateAnUnownedActiveFile()
+    [DataRow(false)]
+    [DataRow(true)]
+    public async Task DisabledUnixFileLockingCannotSilentlyCreateAnUnownedActiveFile(bool environmentOverride)
     {
         using var root = new TemporaryDirectory(); string path = Path.Combine(root.Path, "active.jsonl");
-        JsonObject result = await Probe("disabled-locks", path, root.Path);
-        Validate(result, OperatingSystem.IsWindows() ? "acquired" : "failed");
-        if (!OperatingSystem.IsWindows()) { AssertSafe(result, "FileOwnershipUnavailable"); Assert.IsFalse(File.Exists(path)); }
-        Validate(await Probe("probe", path, root.Path), "acquired");
+        bool windows = OperatingSystem.IsWindows();
+        await Probe(environmentOverride ? "probe" : "disabled-locks", path, root.Path,
+            windows ? "acquired" : "failed", windows ? 0 : null, windows ? null : "FileOwnershipUnavailable", environmentOverride);
+        Assert.AreEqual(windows, File.Exists(path));
+        await Probe("probe", path, root.Path);
     }
 
     [TestMethod]
     [DataRow("logs/app.jsonl")]
-    [DataRow("logs/\u03a9-\U0001f642.jsonl")]
+    [DataRow("logs/Ω-🙂-é.jsonl")]
     public async Task CapturedPathIsAcquiredInItsOriginalDirectoryFromAnotherChildCwd(string relative)
     {
         using var root = new TemporaryDirectory(); string captured = Path.Combine(root.Path, "original"), later = Path.Combine(root.Path, "later");
         var options = new CIS.Logging.LoggingOptions { FilePath = relative }; options.Prepare(captured);
         Assert.IsFalse(Directory.Exists(captured)); Directory.CreateDirectory(later);
-        Validate(await Probe("probe", options.FilePath!, later), "acquired");
-        Assert.IsTrue(File.Exists(options.FilePath)); Assert.AreEqual(0, Directory.GetFileSystemEntries(later).Length);
+        await Probe("probe", options.FilePath!, later);
+        CollectionAssert.AreEqual(Array.Empty<byte>(), File.ReadAllBytes(options.FilePath!));
+        Assert.AreEqual(0, Directory.GetFileSystemEntries(later).Length);
     }
 
-    private static ProcessStartInfo Start(string mode, string path, string cwd)
+    [TestMethod]
+    public async Task UnrelatedLeaseBytesArePreservedWithoutCreatingAnActiveFile()
+    {
+        using var root = new TemporaryDirectory(); string path = Path.Combine(root.Path, "active.jsonl");
+        byte[] retained = Encoding.UTF8.GetBytes("unrelated"); File.WriteAllBytes(path + ".cis.lock", retained);
+        await Probe("probe", path, root.Path, "failed", null, "FileOwnershipUnavailable");
+        Assert.IsFalse(File.Exists(path)); CollectionAssert.AreEqual(retained, File.ReadAllBytes(path + ".cis.lock"));
+    }
+
+    [TestMethod]
+    [DataRow(1)]
+    [DataRow(2)]
+    public async Task FailedActiveOpenReleasesItsLeaseAndPreservesTheDirectory(int attempts)
+    {
+        using var root = new TemporaryDirectory(); string path = Path.Combine(root.Path, "active-directory"); Directory.CreateDirectory(path);
+        string retained = Path.Combine(path, "retained.txt"); File.WriteAllText(retained, "keep");
+        for (int i = 0; i < attempts; i++) { await Probe("probe", path, root.Path, "failed", null, "FileInitializationFailed"); }
+        Assert.AreEqual("keep", File.ReadAllText(retained));
+    }
+
+    [TestMethod]
+    public async Task ParentFileFailureDoesNotChooseAnotherOutputPath()
+    {
+        using var root = new TemporaryDirectory(); string parent = Path.Combine(root.Path, "parent-file"), later = Path.Combine(root.Path, "later");
+        File.WriteAllText(parent, "keep-parent"); Directory.CreateDirectory(later);
+        await Probe("probe", Path.Combine(parent, "active.jsonl"), later, "failed", null, "FileInitializationFailed");
+        Assert.AreEqual("keep-parent", File.ReadAllText(parent)); Assert.AreEqual(0, Directory.GetFileSystemEntries(later).Length);
+    }
+
+    [TestMethod]
+    [DataRow("status")]
+    [DataRow("coreSha256")]
+    [DataRow("length")]
+    [DataRow("error")]
+    public async Task OriginalReaderCorruptionsAreRejectedAfterPhysicalPositive(string field)
+    {
+        using var root = new TemporaryDirectory(); string path = Path.Combine(root.Path, "active.jsonl");
+        File.WriteAllText(path + ".cis.lock", "unrelated");
+        JsonObject report = await Probe("probe", path, root.Path, "failed", null, "FileOwnershipUnavailable");
+        if (field == "error") { report["error"]!["inner"] = true; } else { report[field] = "damaged"; }
+        Assert.ThrowsExactly<AssertFailedException>(() => Validate(report, "failed", null, "FileOwnershipUnavailable", report["pid"]!.GetValue<int>()));
+        TestContext.WriteLine($"Rejected original acquisition control: {field}");
+    }
+
+    private static ProcessStartInfo Start(string mode, string path, string cwd, bool disabledEnvironment = false)
     {
         var start = new ProcessStartInfo("dotnet")
         {
@@ -90,30 +167,44 @@ public sealed class FileAcquisitionProcessTests
         };
         foreach (string value in new[] { "exec", "--fx-version", "10.0.12", "--roll-forward", "Disable", Host, "file-acquisition", mode, path }) { start.ArgumentList.Add(value); }
         start.Environment.Remove("DOTNET_SYSTEM_IO_DISABLEFILELOCKING");
+        if (disabledEnvironment) { start.Environment["DOTNET_SYSTEM_IO_DISABLEFILELOCKING"] = "1"; }
         return start;
     }
-    private static async Task<JsonObject> Probe(string mode, string path, string cwd)
+
+    private async Task<JsonObject> Probe(string mode, string path, string cwd, string status = "acquired", long? length = 0, string? code = null, bool disabledEnvironment = false)
     {
         ProcessResult result = await ProcessRunner.RunAsync("dotnet", ["exec", "--fx-version", "10.0.12", "--roll-forward", "Disable", Host, "file-acquisition", mode, path], cwd, Limit,
-            new Dictionary<string, string?> { ["DOTNET_SYSTEM_IO_DISABLEFILELOCKING"] = null }, new UTF8Encoding(false, true));
+            new Dictionary<string, string?> { ["DOTNET_SYSTEM_IO_DISABLEFILELOCKING"] = disabledEnvironment ? "1" : null }, new UTF8Encoding(false, true));
+        TestContext.WriteLine($"Physical acquisition child: {result.ProcessId}; {mode}; {path}; {hostHash}; {coreHash}");
+        TestContext.WriteLine(result.StandardOutput); TestContext.WriteLine(result.StandardError);
         Assert.AreEqual(0, result.ExitCode, result.StandardError); Assert.AreEqual("", result.StandardError);
-        return JsonNode.Parse(result.StandardOutput)!.AsObject();
+        JsonObject report = Parse(result.StandardOutput); Validate(report, status, length, code, result.ProcessId);
+        return report;
     }
-    private static void Validate(JsonObject result, string status)
+
+    private static JsonObject Parse(string text)
+    {
+        Assert.IsFalse(text.StartsWith('\uFEFF'));
+        return JsonNode.Parse(text)!.AsObject();
+    }
+
+    private void Validate(JsonObject result, string status, long? length, string? code = null, int pid = 0)
     {
         Assert.AreEqual(status, result["status"]!.GetValue<string>());
         Assert.AreEqual(".NET 10.0.12", result["runtime"]!.GetValue<string>());
         Assert.AreEqual(OperatingSystem.IsWindows() ? "windows" : "linux", result["os"]!.GetValue<string>());
-        Assert.AreEqual(Hash(Host), result["fixtureSha256"]!.GetValue<string>());
-        Assert.AreEqual(Hash(Path.Combine(Path.GetDirectoryName(Host)!, "CIS.Core.dll")), result["coreSha256"]!.GetValue<string>());
-        if (status != "failed") { Assert.IsNull(result["error"]); }
+        Assert.AreEqual(hostHash, result["fixtureSha256"]!.GetValue<string>());
+        Assert.AreEqual(coreHash, result["coreSha256"]!.GetValue<string>());
+        Assert.AreEqual(pid, result["pid"]!.GetValue<int>());
+        if (length.HasValue) { Assert.AreEqual(JsonValue.Create(length.Value)!.ToJsonString(), result["length"]!.ToJsonString()); }
+        else { Assert.IsNull(result["length"]); }
+        if (code is null) { Assert.IsNull(result["error"]); }
+        else
+        {
+            var expected = new JsonObject { ["output"] = "file", ["code"] = code, ["message"] = $"Logging output 'file' could not initialize ({code}).", ["inner"] = false, ["dataCount"] = 0 };
+            Assert.IsTrue(JsonNode.DeepEquals(expected, result["error"]), "Safe error differs.");
+        }
     }
-    private static void AssertSafe(JsonObject result, string code)
-    {
-        JsonObject error = result["error"]!.AsObject();
-        Assert.AreEqual("file", error["output"]!.GetValue<string>()); Assert.AreEqual(code, error["code"]!.GetValue<string>());
-        Assert.AreEqual($"Logging output 'file' could not initialize ({code}).", error["message"]!.GetValue<string>());
-        Assert.IsFalse(error["inner"]!.GetValue<bool>()); Assert.AreEqual(0, error["dataCount"]!.GetValue<int>());
-    }
+
     private static string Hash(string path) => Convert.ToHexStringLower(SHA256.HashData(File.ReadAllBytes(path)));
 }
