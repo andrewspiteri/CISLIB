@@ -83,6 +83,48 @@ public sealed class StopReaderMigrationTests
         new object[] { "stop-join", "stop-first", "records" },
         new object[] { "stop-join", "deadline-joins", "live" },
         new object[] { "stop-join", "dispose-first", "timer" },
+        new object[] { "stop-cleanup", "normal", "pid" },
+        new object[] { "stop-cleanup", "normal", "runtime" },
+        new object[] { "stop-cleanup", "normal", "shape" },
+        new object[] { "stop-cleanup", "ownership-held", "summary" },
+        new object[] { "stop-cleanup", "normal", "console" },
+        new object[] { "stop-cleanup", "ownership-held", "pending" },
+        new object[] { "stop-cleanup", "ownership-held", "flush" },
+        new object[] { "stop-cleanup", "resource-failure", "fault" },
+        new object[] { "stop-cleanup", "callback-write-failure", "late" },
+        new object[] { "stop-cleanup", "normal", "owner" },
+        new object[] { "stop-cleanup", "normal", "gate" },
+        new object[] { "stop-cleanup", "normal", "io" },
+        new object[] { "stop-cleanup", "normal", "callback" },
+        new object[] { "stop-cleanup", "normal", "borrowed" },
+        new object[] { "stop-cleanup", "ownership-held", "held" },
+        new object[] { "stop-cleanup", "callback-held", "callback-held" },
+        new object[] { "stop-cleanup", "normal", "identity" },
+        new object[] { "stop-cleanup", "normal", "immutable" },
+        new object[] { "stop-cleanup", "normal", "joiners" },
+        new object[] { "stop-cleanup", "write-resource-failure", "primary" },
+        new object[] { "stop-cleanup", "write-resource-failure", "first" },
+        new object[] { "stop-cleanup", "write-resource-failure", "cleanup" },
+        new object[] { "stop-cleanup", "write-timer-resource-failure", "errors" },
+        new object[] { "stop-cleanup", "ownership-held", "calls" },
+        new object[] { "stop-cleanup", "normal", "records" },
+        new object[] { "stop-cleanup", "normal", "timer" },
+        new object[] { "stop-cleanup", "deadline-cleanup-held", "inactive-flush" },
+        new object[] { "stop-cleanup", "deadline-cleanup-held", "late-flush" },
+        new object[] { "stop-cleanup", "post-stop-flush", "post-flush" },
+        new object[] { "runtime-create", "file", "pid" },
+        new object[] { "runtime-create", "file", "runtime" },
+        new object[] { "runtime-create", "invalid-settings", "validation" },
+        new object[] { "runtime-create", "invalid-metadata", "metadata" },
+        new object[] { "runtime-create", "file", "stop" },
+        new object[] { "runtime-create", "file", "facts" },
+        new object[] { "runtime-create", "file", "release" },
+        new object[] { "runtime-create", "file", "freeze" },
+        new object[] { "runtime-create", "contended", "contention" },
+        new object[] { "runtime-create", "file", "record" },
+        new object[] { "runtime-create", "disabled", "disabled" },
+        new object[] { "runtime-create", "file", "application" },
+        new object[] { "runtime-create", "file", "delivery" },
     ];
 
     [TestMethod]
@@ -174,6 +216,48 @@ public sealed class StopReaderMigrationTests
             case ("stop-join", "records"): a["stream"]!["bytes"] = ""; break;
             case ("stop-join", "live"): a["live"]![0]!["pending"] = "1"; break;
             case ("stop-join", "timer"): a["timers"]!["created"] = 2; break;
+            case ("stop-cleanup", "pid"): a["pid"] = pid + 1; break;
+            case ("stop-cleanup", "runtime"): a["runtime"] = ".NET 10.0.13"; break;
+            case ("stop-cleanup", "shape"): a["result"]!["extra"] = true; break;
+            case ("stop-cleanup", "summary"): a["result"]!["succeeded"] = true; break;
+            case ("stop-cleanup", "console"): a["result"]!["outputs"]![0]!["written"] = "0"; break;
+            case ("stop-cleanup", "pending"): a["result"]!["outputs"]![1]!["pending"] = "0"; break;
+            case ("stop-cleanup", "flush"): a["result"]!["outputs"]![1]!["flush"] = "Succeeded"; break;
+            case ("stop-cleanup", "fault"): a["live"]![1]!["fault"] = null; break;
+            case ("stop-cleanup", "late"): a["live"]![1]!["failed"] = "0"; break;
+            case ("stop-cleanup", "owner"): a["owner"]!["calls"] = 2; break;
+            case ("stop-cleanup", "gate"): a["owner"]!["gateFree"] = false; break;
+            case ("stop-cleanup", "io"): a["owner"]!["activeIo"] = true; break;
+            case ("stop-cleanup", "callback"): a["owner"]!["activeCallback"] = true; break;
+            case ("stop-cleanup", "borrowed"): a["borrowedConsoleOpen"] = false; break;
+            case ("stop-cleanup", "held"): a["heldOwned"] = false; break;
+            case ("stop-cleanup", "callback-held"): a["heldCallback"] = false; break;
+            case ("stop-cleanup", "identity"): a["sameTask"] = false; break;
+            case ("stop-cleanup", "immutable"): a["immutable"] = false; break;
+            case ("stop-cleanup", "joiners"): a["disposeJoiners"] = 63; break;
+            case ("stop-cleanup", "primary"): a["primaryPreserved"] = false; break;
+            case ("stop-cleanup", "first"): a["primaryFirst"] = false; break;
+            case ("stop-cleanup", "cleanup"): a["cleanupPreserved"] = false; break;
+            case ("stop-cleanup", "errors"): a["workerErrors"] = 2; break;
+            case ("stop-cleanup", "calls"): a["file"]!["flushes"] = 1; break;
+            case ("stop-cleanup", "records"): a["file"]!["bytes"] = ""; break;
+            case ("stop-cleanup", "timer"): a["timerDisposeCalls"] = 2; break;
+            case ("stop-cleanup", "inactive-flush"): a["inactiveFlushResolved"] = false; break;
+            case ("stop-cleanup", "late-flush"): a["lateFlushCompleted"] = false; break;
+            case ("stop-cleanup", "post-flush"): a["postFlushSucceeded"] = true; break;
+            case ("runtime-create", "pid"): a["pid"] = pid + 1; break;
+            case ("runtime-create", "runtime"): a["runtime"] = ".NET 10.0.13"; break;
+            case ("runtime-create", "validation"): a["noFileArtifacts"] = false; break;
+            case ("runtime-create", "metadata"): a["error"] = null; break;
+            case ("runtime-create", "stop"): a["result"]!["succeeded"] = false; break;
+            case ("runtime-create", "facts"): a["factPid"] = pid + 1; break;
+            case ("runtime-create", "release"): a["released"] = false; break;
+            case ("runtime-create", "freeze"): a["frozen"] = false; break;
+            case ("runtime-create", "contention"): a["error"] = "unsafe raw path"; break;
+            case ("runtime-create", "record"): a["bytes"] = ""; break;
+            case ("runtime-create", "disabled"): a["noFileArtifacts"] = false; break;
+            case ("runtime-create", "application"): a["application"] = "unknown"; break;
+            case ("runtime-create", "delivery"): a["result"]!["outputs"]![0]!["written"] = "0"; break;
             default: throw new ArgumentOutOfRangeException(nameof(fault));
         }
     }

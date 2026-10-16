@@ -30,6 +30,20 @@ internal static class LifecycleProcessChecks
             CollectionAssert.AreEqual(Convert.FromBase64String((string)report["fileBytes"]!), File.ReadAllBytes(path));
             using var lease = new FileStream(path, FileMode.Open, FileAccess.ReadWrite, FileShare.None);
         }
+        if (command == "runtime-create")
+        {
+            string path = Path.Combine(root.Path, "logs Ω", "active.log");
+            if (mode is "invalid-settings" or "invalid-metadata" or "disabled")
+            {
+                Assert.IsFalse(File.Exists(path)); Assert.IsFalse(File.Exists(path + ".cis.lock"));
+            }
+            else
+            {
+                CollectionAssert.AreEqual(Convert.FromBase64String((string)report["bytes"]!), File.ReadAllBytes(path));
+                using var lease = new FileStream(path + ".cis.lock", FileMode.Open, FileAccess.ReadWrite, FileShare.None);
+            }
+        }
+        if (command == "stop-cleanup") { Assert.AreEqual(0, Directory.EnumerateFileSystemEntries(root.Path).Count()); }
         return report;
     }
 
@@ -40,6 +54,8 @@ internal static class LifecycleProcessChecks
             case "stop-start": StopStartExpectations.Validate(mode, report, pid); break;
             case "stop-drain": StopDrainExpectations.Validate(mode, report, pid); break;
             case "stop-join": StopJoinExpectations.Validate(mode, report, pid); break;
+            case "stop-cleanup": StopCleanupExpectations.Validate(mode, report, pid); break;
+            case "runtime-create": RuntimeCreateExpectations.Validate(mode, report, pid); break;
             default: throw new ArgumentOutOfRangeException(nameof(command));
         }
     }
