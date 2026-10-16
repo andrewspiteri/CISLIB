@@ -17,3 +17,5 @@ The historical T01 fourteen new unit cases exercised LF-inclusive exact/one-byte
 [T04 combined S06 qualification](file-rotation-qualification.md) maps the four original criteria to current boundary, restart/retention, terminal-failure and supplemental physical-policy cases. Interrupted updates and damaged-record recovery remain S07.
 
 Current WP05-S07-T03 behavior is described in [interrupted file transitions](file-transition-recovery.md). Known pending transitions now resume after byte/identity validation; older states without transition proof still fail clearly. Historical task evidence above remains its original execution snapshot.
+
+The 16 October [native inventory/rotation migration](../../../planning/evidence/corrective-inventory-rotation-migration-2026-10-16.md) retires both Python drivers. The complete physical matrices and ten original corruption controls execute in C#: 41 integration and 56 unit cases pass on each native lane, including independent file/metadata/record checks. This is focused development verification.

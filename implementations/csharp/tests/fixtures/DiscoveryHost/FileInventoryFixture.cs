@@ -41,6 +41,7 @@ internal static class FileInventoryFixture
         FileGroupInventory? inventory = owner?.Inventory;
         Console.WriteLine(new JsonObject
         {
+            ["pid"] = Environment.ProcessId,
             ["status"] = status,
             ["error"] = error,
             ["length"] = owner?.ActiveFile.Length,

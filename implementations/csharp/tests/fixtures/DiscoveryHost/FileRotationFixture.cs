@@ -42,6 +42,7 @@ internal static class FileRotationFixture
             CoreLogDiagnostics diagnostics = runtime.GetDiagnostics();
             return new JsonObject
             {
+                ["pid"] = Environment.ProcessId,
                 ["mode"] = mode,
                 ["path"] = path,
                 ["runtime"] = RuntimeInformation.FrameworkDescription,

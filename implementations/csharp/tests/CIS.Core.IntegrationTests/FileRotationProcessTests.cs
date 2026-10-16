@@ -1,6 +1,7 @@
-using System.Security.Cryptography;
 using System.Text;
+using System.Text.Json;
 using System.Text.Json.Nodes;
+using CIS.Tests.DiscoveryFixture;
 using CIS.TestSupport;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -9,6 +10,8 @@ namespace CIS.Tests.IntegrationTests;
 [TestClass]
 public sealed class FileRotationProcessTests
 {
+    public TestContext TestContext { get; set; } = null!;
+
     [TestMethod]
     [DataRow("jsonl-exact")]
     [DataRow("jsonl-over")]
@@ -16,27 +19,96 @@ public sealed class FileRotationProcessTests
     [DataRow("human-over")]
     public async Task ActualPreparedRecordBytesRotateOnlyWhenTheCompleteRecordExceedsTheLimit(string mode)
     {
-        using var root = new TemporaryDirectory(); string host = Path.Combine(AppContext.BaseDirectory, "discovery-fixture", "CIS.Core.DiscoveryFixture.dll");
-        ProcessResult process = await ProcessRunner.RunAsync("dotnet", ["exec", "--fx-version", "10.0.12", "--roll-forward", "Disable", host, "file-rotation", mode, root.Path], root.Path, TimeSpan.FromSeconds(30), outputEncoding: new UTF8Encoding(false, true));
-        Assert.AreEqual(0, process.ExitCode, process.StandardError); Assert.AreEqual("", process.StandardError); JsonObject actual = JsonNode.Parse(process.StandardOutput)!.AsObject();
-        Assert.AreEqual(mode, actual["mode"]!.GetValue<string>()); Assert.AreEqual(".NET 10.0.12", actual["runtime"]!.GetValue<string>());
-        Assert.AreEqual(OperatingSystem.IsWindows() ? "windows" : "linux", actual["os"]!.GetValue<string>()); Assert.AreEqual(Hash(host), actual["fixtureSha256"]!.GetValue<string>()); Assert.AreEqual(Hash(Path.Combine(Path.GetDirectoryName(host)!, "CIS.Core.dll")), actual["coreSha256"]!.GetValue<string>());
-        byte[] record = Bytes(actual, "recordBytes"), seed = Bytes(actual, "seedBytes"), active = Bytes(actual, "activeBytes"); bool over = mode.EndsWith("over", StringComparison.Ordinal);
-        Assert.AreEqual(65536 + (over ? 1 : 0), seed.Length + record.Length); Assert.AreEqual("Accepted", actual["result"]!.GetValue<string>()); Assert.IsFalse(actual["truncated"]!.GetValue<bool>()); Assert.AreEqual("Stopped", actual["state"]!.GetValue<string>()); Assert.AreEqual(0, actual["borrowedDisposes"]!.GetValue<int>());
-        foreach (JsonNode? output in actual["outputs"]!.AsArray()) { Assert.AreEqual("Stopped", output!["state"]!.GetValue<string>()); Assert.AreEqual(1L, output["accepted"]!.GetValue<long>()); Assert.AreEqual(1L, output["written"]!.GetValue<long>()); foreach (string field in new[] { "failed", "pending", "abandoned" }) { Assert.AreEqual(0L, output[field]!.GetValue<long>()); } }
-        string path = actual["path"]!.GetValue<string>(); CollectionAssert.AreEqual(File.ReadAllBytes(path), active);
-        JsonObject old = actual["oldInventory"]!.AsObject(), inventory = actual["inventory"]!.AsObject(); Assert.AreEqual(old["groupId"]!.GetValue<string>(), inventory["groupId"]!.GetValue<string>());
-        JsonArray closed = actual["closed"]!.AsArray(); Assert.AreEqual(over ? 1 : 0, closed.Count); Assert.AreEqual(over ? 2 : 1, inventory["segments"]!.AsArray().Count);
-        if (over)
-        {
-            CollectionAssert.AreEqual(record, active); CollectionAssert.AreEqual(seed, Convert.FromBase64String(closed[0]!["bytes"]!.GetValue<string>()));
-            string name = ".cis-log-" + inventory["groupId"]!.GetValue<string>() + "-00000000000000000001.closed"; Assert.AreEqual(name, closed[0]!["name"]!.GetValue<string>()); Assert.AreEqual(2L, inventory["segments"]![1]!["id"]!.GetValue<long>());
-            CollectionAssert.AreEqual(seed, File.ReadAllBytes(Path.Combine(Path.GetDirectoryName(path)!, name)));
-        }
-        else { CollectionAssert.AreEqual(seed.Concat(record).ToArray(), active); Assert.IsTrue(JsonNode.DeepEquals(old, inventory)); }
-        Assert.IsTrue(active.Length <= 65536); Assert.IsTrue(record[^1] == 10 && seed[^1] == 10);
-        JsonObject console = JsonNode.Parse(Bytes(actual, "consoleBytes"))!.AsObject(); Assert.AreEqual("rotation.event", console["event_name"]!.GetValue<string>()); Assert.AreEqual("\u03a9 \U0001f642 e\u0301", console["message"]!.GetValue<string>());
+        using var root = new TemporaryDirectory(); JsonObject report = await Run(mode, root.Path);
+        Check(mode, report);
     }
-    private static byte[] Bytes(JsonObject value, string key) => Convert.FromBase64String(value[key]!.GetValue<string>());
-    private static string Hash(string path) => Convert.ToHexStringLower(SHA256.HashData(File.ReadAllBytes(path)));
+
+    [TestMethod]
+    [DataRow("activeBytes")]
+    [DataRow("inventory")]
+    [DataRow("outputs")]
+    [DataRow("borrowedDisposes")]
+    [DataRow("recordBytes")]
+    public async Task OriginalRotationReaderCorruptionsAreRejectedAfterPhysicalPositive(string field)
+    {
+        using var root = new TemporaryDirectory(); JsonObject report = await Run("jsonl-over", root.Path); Check("jsonl-over", report);
+        switch (field)
+        {
+            case "activeBytes": report[field] = Convert.ToBase64String([.. Bytes(report, "seedBytes"), .. Bytes(report, "recordBytes")]); break;
+            case "inventory": report[field]!["segments"]!.AsArray()[^1]!["id"] = 1; break;
+            case "outputs": report[field]![1]!["written"] = 0; break;
+            case "borrowedDisposes": report[field] = 1; break;
+            case "recordBytes": report[field] = Convert.ToBase64String(Bytes(report, field)[..^1]); break;
+        }
+        Assert.ThrowsExactly<AssertFailedException>(() => Check("jsonl-over", report));
+        TestContext.WriteLine("Rejected original rotation control: " + field);
+    }
+
+    private async Task<JsonObject> Run(string mode, string root)
+    {
+        (JsonObject report, _) = await FixtureProcessChecks.RunAsync(["file-rotation", mode, root], root, TestContext,
+            environment: new Dictionary<string, string?> { ["DOTNET_SYSTEM_IO_DISABLEFILELOCKING"] = null }, timeout: TimeSpan.FromSeconds(30), flatReport: true);
+        string path = Path.Combine(root, "logs", "Ω-🙂.log");
+        Assert.AreEqual(path, (string?)report["path"]);
+        CollectionAssert.AreEqual(Bytes(report, "activeBytes"), File.ReadAllBytes(path));
+        CollectionAssert.AreEqual(Bytes(report, "recordBytes"), File.ReadAllBytes(Path.Combine(root, "reference.log")));
+        Assert.IsTrue(JsonNode.DeepEquals(report["inventory"], JsonNode.Parse(File.ReadAllBytes(path + ".cis.inventory.json"))));
+        Assert.AreEqual(report["closed"]!.AsArray().Count, Directory.GetFiles(Path.GetDirectoryName(path)!, "*.closed").Length);
+        foreach (JsonNode? item in report["closed"]!.AsArray())
+        { CollectionAssert.AreEqual(Convert.FromBase64String((string)item!["bytes"]!), File.ReadAllBytes(Path.Combine(Path.GetDirectoryName(path)!, (string)item["name"]!))); }
+        return report;
+    }
+
+    private static void Check(string mode, JsonObject report)
+    {
+        bool human = mode.StartsWith("human", StringComparison.Ordinal), over = mode.EndsWith("over", StringComparison.Ordinal);
+        Assert.AreEqual(mode, (string?)report["mode"]); Assert.AreEqual("Accepted", (string?)report["result"]);
+        Assert.IsFalse(report["truncated"]!.GetValue<bool>()); Assert.AreEqual("Stopped", (string?)report["state"]);
+        Assert.AreEqual(0, report["borrowedDisposes"]!.GetValue<int>());
+        var tickets = new JsonArray(); var outputs = new JsonArray();
+        foreach (string name in new[] { "console", "file" })
+        {
+            tickets.Add(new JsonObject { ["name"] = name, ["status"] = "Accepted", ["sequence"] = 1 });
+            outputs.Add(new JsonObject { ["name"] = name, ["state"] = "Stopped", ["accepted"] = 1, ["written"] = 1, ["failed"] = 0, ["pending"] = 0, ["abandoned"] = 0 });
+        }
+        Assert.IsTrue(JsonNode.DeepEquals(tickets, report["tickets"])); Assert.IsTrue(JsonNode.DeepEquals(outputs, report["outputs"]));
+        byte[] line = Bytes(report, "recordBytes"), seed = Bytes(report, "seedBytes"), active = Bytes(report, "activeBytes");
+        Record(line, human); Record(Bytes(report, "consoleBytes"), false);
+        Assert.AreEqual(65536 + (over ? 1 : 0), seed.Length + line.Length);
+        string prefix = human ? "seed=\"" : "{\"seed\":\"", suffix = human ? "\"\n" : "\"}\n";
+        CollectionAssert.AreEqual(Encoding.UTF8.GetBytes(prefix + new string('a', seed.Length - prefix.Length - suffix.Length) + suffix), seed);
+        string group = (string)report["oldInventory"]!["groupId"]!;
+        Assert.IsTrue(Guid.TryParseExact(group, "N", out Guid id) && id != Guid.Empty); Assert.AreEqual(id.ToString("N"), group);
+        JsonObject Segment(int value, string name, string state) => new() { ["id"] = value, ["fileName"] = name, ["state"] = state };
+        string closed = ".cis-log-" + group + "-00000000000000000001.closed", fileName = "Ω-🙂.log";
+        var old = new JsonObject { ["schema"] = 1, ["groupId"] = group, ["format"] = human ? "human" : "jsonl", ["encoding"] = "utf-8", ["bom"] = false, ["newline"] = "lf", ["segments"] = new JsonArray(Segment(1, fileName, "active")) };
+        Assert.IsTrue(JsonNode.DeepEquals(old, report["oldInventory"]));
+        var next = (JsonObject)old.DeepClone();
+        if (over) { next["segments"] = new JsonArray(Segment(1, closed, "closed"), Segment(2, fileName, "active")); }
+        Assert.IsTrue(JsonNode.DeepEquals(next, report["inventory"]));
+        CollectionAssert.AreEqual(over ? line : [.. seed, .. line], active); Assert.IsTrue(active.Length <= 65536);
+        JsonArray expectedClosed = over ? new JsonArray(new JsonObject { ["name"] = closed, ["bytes"] = (string?)report["seedBytes"] }) : [];
+        Assert.IsTrue(JsonNode.DeepEquals(expectedClosed, report["closed"]));
+    }
+
+    private static void Record(byte[] raw, bool human)
+    {
+        Assert.IsTrue(raw.Length is > 0 and <= 16384 && raw[^1] == 10);
+        Assert.IsFalse(raw.AsSpan().StartsWith(new byte[] { 0xef, 0xbb, 0xbf }));
+        string text = new UTF8Encoding(false, true).GetString(raw);
+        Assert.AreEqual(1, text.Count(c => c == '\n')); Assert.IsFalse(text.Contains('\r'));
+        Dictionary<string, JsonElement> fields;
+        if (human) { fields = HumanRenderingExpectations.Read(raw, 16384); }
+        else
+        {
+            using JsonDocument document = JsonDocument.Parse(raw);
+            fields = document.RootElement.EnumerateObject().ToDictionary(p => p.Name, p => p.Value.Clone(), StringComparer.Ordinal);
+        }
+        foreach ((string key, string value) in new[] { ("event_name", "rotation.event"), ("message", "Ω 🙂 é"), ("component", "Rotation"), (human ? "severity" : "status", "info"), ("service", "Console.App"), ("env", "test"), ("version", "1.2.3"), ("timestamp", "2026-10-13T10:11:12.0000000Z") })
+        { Assert.AreEqual(value, fields[key].GetString(), key); }
+        Assert.IsFalse(fields.ContainsKey("truncated"));
+        if (!human) { Assert.AreEqual(1, fields["schema_version"].GetInt32()); Assert.AreEqual("11111111-1111-1111-1111-111111111111", fields["resource"].GetProperty("instance_id").GetString()); }
+    }
+
+    private static byte[] Bytes(JsonObject report, string key) => Convert.FromBase64String((string)report[key]!);
 }
