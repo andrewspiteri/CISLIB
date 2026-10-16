@@ -53,6 +53,7 @@ public sealed class QueueOverflowTests
     public async Task OverflowComparatorRejectsEvictionLossAndFalseAcceptance(string fault)
     {
         JsonObject row = Row("OVERFLOW-BOTH-FULL"), actual = await QueuedFanoutFixture.ExecuteAsync(row);
+        QueuedFanoutExpectations.Validate(row, actual);
         if (fault == "eviction")
         {
             JsonNode wire = actual["wires"]!["console"]!; JsonNode item = wire["attempted"]![0]!;

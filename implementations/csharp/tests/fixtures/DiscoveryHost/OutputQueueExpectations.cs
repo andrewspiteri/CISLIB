@@ -11,6 +11,8 @@ internal static class OutputQueueExpectations
         Require(actual["distinctWorkers"]!.GetValue<bool>() && actual["completed"]!.GetValue<bool>(), "Worker ownership/completion differs.");
         bool independent = row["mode"]!.GetValue<string>() == "independent";
         if (independent) { Require(actual["outputs"]!["consoleProgressWhileFileBlocked"]!.GetValue<bool>(), "Blocked file prevented console progress."); }
+        string[] names = new[] { "console", "file" }.Where(name => row[name + "Enabled"]!.GetValue<bool>()).Concat(independent ? new[] { "consoleProgressWhileFileBlocked" } : []).ToArray();
+        Require(actual["outputs"]!.AsObject().Select(pair => pair.Key).ToHashSet(StringComparer.Ordinal).SetEquals(names), "Enabled worker set differs.");
         foreach (string name in new[] { "console", "file" })
         {
             bool enabled = row[name + "Enabled"]!.GetValue<bool>(); JsonNode? output = actual["outputs"]![name];
@@ -25,7 +27,13 @@ internal static class OutputQueueExpectations
             Require(!text.StartsWith("\uFEFF", StringComparison.Ordinal) && text.EndsWith("\n", StringComparison.Ordinal), "Memory writer record framing differs.");
             string[] records = text.Split('\n');
             Require(records.Length == accepted + 1 && records[^1].Length == 0 && records.Take(accepted).All(line => Encoding.UTF8.GetByteCount(line) + 1 <= 65536), "Memory writer record count/bounds differs.");
-            Require(records.Take(accepted).Select(line => JsonNode.Parse(line)!["message"]!.GetValue<string>()).SequenceEqual(Enumerable.Range(0, accepted).Select(index => "record-" + index)), "Actual stream facts/order differ.");
+            for (int index = 0; index < accepted; index++)
+            {
+                Require(!records[index].Contains('\r'), "Raw record CR appeared.");
+                JsonNode record = JsonNode.Parse(records[index])!;
+                Require(record["schema_version"]!.GetValue<int>() == 1 && (string?)record["component"] == "Queue" && (string?)record["status"] == "info"
+                    && (string?)record["event_name"] == "queue.event" && (string?)record["message"] == "record-" + index, "Actual stream facts/order differ.");
+            }
             Require(output["messages"]!.AsArray().Select(value => value!.GetValue<string>()).SequenceEqual(Enumerable.Range(0, accepted).Select(index => "record-" + index)), "Previously admitted work was lost or reordered.");
         }
     }

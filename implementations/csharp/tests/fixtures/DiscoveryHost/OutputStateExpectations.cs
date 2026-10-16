@@ -14,7 +14,10 @@ internal static class OutputStateExpectations
         string[] names = new[] { "console", "file" }.Where(name => row[name + "Mode"]!.GetValue<string>() != "disabled").ToArray();
         JsonArray expected = row["expected"]!["checkpoints"]!.AsArray(), points = actual["checkpoints"]!.AsArray(); Require(points.Count == expected.Count, "Boundary set differs.");
         var faults = new Dictionary<string, string>(StringComparer.Ordinal);
+        var previous = new Dictionary<string, Dictionary<string, long>>(StringComparer.Ordinal);
         DateTimeOffset before = DateTimeOffset.ParseExact(actual["beforeUtc"]!.GetValue<string>(), "O", CultureInfo.InvariantCulture), after = DateTimeOffset.ParseExact(actual["afterUtc"]!.GetValue<string>(), "O", CultureInfo.InvariantCulture);
+        Require(before.Offset == TimeSpan.Zero && after.Offset == TimeSpan.Zero && before <= after
+            && (string?)actual["beforeUtc"] == before.ToString("O", CultureInfo.InvariantCulture) && (string?)actual["afterUtc"] == after.ToString("O", CultureInfo.InvariantCulture), "Noncanonical capture interval.");
         for (int index = 0; index < points.Count; index++)
         {
             JsonObject point = points[index]!.AsObject(), wanted = expected[index]!.AsObject();
@@ -24,9 +27,13 @@ internal static class OutputStateExpectations
             foreach (string name in names)
             {
                 JsonObject counts = outputs[name]!.AsObject(), expectedCounts = wanted["outputs"]![name]!.AsObject();
+                Require(counts.Count == expectedCounts.Count + 1 && counts.ContainsKey("faultAtUtc"), "Output state field set differs.");
                 foreach (var item in expectedCounts) { Require(JsonNode.DeepEquals(item.Value, counts[item.Key]), "Literal state/disposition differs: " + name + "/" + item.Key); }
                 long Count(string key) { string token = counts[key]!.GetValue<string>(); Require(long.TryParse(token, NumberStyles.None, CultureInfo.InvariantCulture, out long value) && value >= 0 && token == value.ToString(CultureInfo.InvariantCulture), "Noncanonical counter."); return value; }
                 Require(Count("accepted") == Count("written") + Count("failed") + Count("abandoned") + Count("pending") && Count("inFlight") <= Count("pending") && Count("inFlight") <= 1, "Accepted disposition differs.");
+                var current = new[] { "accepted", "written", "failed", "abandoned", "pending", "inFlight", "unavailable" }.ToDictionary(key => key, Count, StringComparer.Ordinal);
+                if (previous.TryGetValue(name, out Dictionary<string, long>? prior)) { Require(current.All(pair => pair.Key is "pending" or "inFlight" || pair.Value >= prior[pair.Key]), "Cumulative count decreased."); }
+                previous[name] = current;
                 if (counts["fault"] is null) { Require(counts["faultAtUtc"] is null, "Nonfaulted timestamp appeared."); }
                 else
                 {
@@ -50,7 +57,7 @@ internal static class OutputStateExpectations
             {
                 long ticket = attempted[index]!["ticket"]!.GetValue<long>(); Require(ticket == index + 1 && (fails || confirmed[index]!.GetValue<long>() == ticket), "Ticket order differs.");
                 byte[] bytes = Convert.FromBase64String(attempted[index]!["bytes"]!.GetValue<string>()); originals.Add(bytes);
-                Require(bytes.Length <= 65536 && bytes[^1] == 10 && bytes.Count(value => value == 10) == 1 && !bytes.Contains((byte)13), "Captured framing differs.");
+                Require(bytes.Length is > 0 and <= 65536 && !bytes.AsSpan().StartsWith(new byte[] { 0xef, 0xbb, 0xbf }) && bytes[^1] == 10 && bytes.Count(value => value == 10) == 1 && !bytes.Contains((byte)13), "Captured framing differs.");
                 JsonObject body = JsonNode.Parse(new UTF8Encoding(false, true).GetString(bytes))!.AsObject(); Require(body["component"]!.GetValue<string>() == "States" && body["event_name"]!.GetValue<string>() == "states.event" && body["message"]!.GetValue<string>() == "record-" + ticket, "Original event differs.");
                 if (shared.TryGetValue(ticket, out byte[]? original)) { Require(bytes.SequenceEqual(original), "Shared capture changed."); } else { shared[ticket] = bytes; }
             }

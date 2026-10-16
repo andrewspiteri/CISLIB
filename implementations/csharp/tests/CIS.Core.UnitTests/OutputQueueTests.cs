@@ -1,4 +1,5 @@
 using System.Collections.Concurrent;
+using System.Text;
 using System.Text.Json.Nodes;
 using CIS.Logging.Events;
 using CIS.Logging.Runtime;
@@ -118,6 +119,7 @@ public sealed class OutputQueueTests
     public async Task ComparatorRejectsChangedBoundsIsolationBytesAndOwnership(string fault)
     {
         JsonObject row = Row("QUEUE-BOTH-2"), actual = await OutputQueueFixture.ExecuteAsync(row), output = actual["outputs"]!["file"]!.AsObject();
+        OutputQueueExpectations.Validate(row, actual);
         switch (fault)
         {
             case "admission": output["admissions"]![3] = true; break;
@@ -132,6 +134,39 @@ public sealed class OutputQueueTests
         }
         Assert.ThrowsExactly<InvalidDataException>(() => OutputQueueExpectations.Validate(row, actual));
     }
+    [TestMethod]
+    [DataRow("worker-set")]
+    [DataRow("schema")]
+    [DataRow("event")]
+    [DataRow("status")]
+    [DataRow("component")]
+    [DataRow("raw-cr")]
+    [DataRow("framing")]
+    public async Task QueueMatcherRejectsExtraWorkersAndChangedOriginalRecords(string fault)
+    {
+        JsonObject row = Row("QUEUE-BOTH-2"), actual = await OutputQueueFixture.ExecuteAsync(row);
+        OutputQueueExpectations.Validate(row, actual);
+        if (fault == "worker-set") { actual["outputs"]!["invented"] = new JsonObject(); }
+        else
+        {
+            JsonNode output = actual["outputs"]!["file"]!;
+            string raw = Encoding.UTF8.GetString(Convert.FromBase64String((string)output["stream"]!));
+            if (fault == "framing") { raw += "\n"; }
+            else if (fault == "raw-cr") { raw = raw[..^1] + "\r\n"; }
+            else
+            {
+                string[] lines = raw.TrimEnd('\n').Split('\n');
+                JsonObject record = JsonNode.Parse(lines[0])!.AsObject();
+                if (fault == "schema") { record["schema_version"] = 2; }
+                else { record[fault == "event" ? "event_name" : fault] = "changed"; }
+                lines[0] = record.ToJsonString(); raw = string.Join("\n", lines) + "\n";
+            }
+            output["stream"] = Convert.ToBase64String(Encoding.UTF8.GetBytes(raw));
+            output["expectedStream"] = output["stream"]!.DeepClone();
+        }
+        Assert.ThrowsExactly<InvalidDataException>(() => OutputQueueExpectations.Validate(row, actual));
+    }
+
     [TestMethod]
     public void MatrixIncludesCapacityAndEnabledCombinationsPlusIndependentProgress()
     {

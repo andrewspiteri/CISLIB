@@ -40,13 +40,16 @@ internal static class QueuedFanoutExpectations
             {
                 long ticket = item!["ticket"]!.GetValue<long>(); byte[] raw = Convert.FromBase64String(item["wire"]!.GetValue<string>());
                 Require(raw.AsSpan().SequenceEqual(Convert.FromBase64String(item["after"]!.GetValue<string>())) && originals.TryAdd(ticket, raw), "Capture changed or ticket reused.");
-                string text = new UTF8Encoding(false, true).GetString(raw); Require(raw.Length is > 0 and <= 65536 && !text.StartsWith("\uFEFF", StringComparison.Ordinal) && text.EndsWith("\n", StringComparison.Ordinal) && text.Count(c => c == '\n') == 1, "Record framing/bounds differ.");
+                string text = new UTF8Encoding(false, true).GetString(raw); Require(raw.Length is > 0 and <= 65536 && !text.StartsWith("\uFEFF", StringComparison.Ordinal) && text.EndsWith("\n", StringComparison.Ordinal) && text.Count(c => c == '\n') == 1 && !text.Contains('\r'), "Record framing/bounds differ.");
                 JsonNode record = JsonNode.Parse(raw)!; JsonNode? binding = bindings.SingleOrDefault(binding => binding!["outputs"]!.AsArray().Any(output => output!["name"]!.GetValue<string>() == name && output["status"]!.GetValue<string>() == "Accepted" && output["ticket"]!.GetValue<long>() == ticket))!;
                 Require(binding is not null, "Accepted ticket has no matching caller binding.");
                 int caller = binding!["caller"]!.GetValue<int>(); JsonNode step = row["steps"]!.AsArray().Single(step => step!["label"]!.GetValue<int>() == caller)!;
                 Require(record["message"]!.GetValue<string>() == "record-" + caller && JsonNode.DeepEquals(record["attributes"]!["input"], JsonValue.Create(caller)) && record["service"]!.GetValue<string>() == "Fanout.App" && record["component"]!.GetValue<string>() == "Fanout" && record["event_name"]!.GetValue<string>() == "fanout.event", "Original producer facts differ.");
+                Require(record["schema_version"]!.GetValue<int>() == 1 && (string?)record["timestamp"] == "2026-10-12T10:11:12.1234567Z", "Captured schema/time differs.");
                 Require(record["status"]!.GetValue<string>() == (step["level"]!.GetValue<string>() switch { "Debug" => "debug", "Warning" => "warn", _ => "info" }), "Captured severity differs.");
             }
+            long[] accepted = acceptedTickets.Where(pair => pair.Name == name).Select(pair => pair.Ticket).Order().ToArray();
+            Require(accepted.SequenceEqual(Enumerable.Range(1, accepted.Length).Select(ticket => (long)ticket)) && actual["semantic"]!["outputs"]![name]!["lastAcceptedSequence"]!.GetValue<long>() == accepted.Length, "Successful admission ticket prefix differs.");
             Require(wire["attempted"]!.AsArray().Select(item => item!["ticket"]!.GetValue<long>()).SequenceEqual(actual["semantic"]!["outputs"]![name]!["attemptedTickets"]!.AsArray().Select(item => item!.GetValue<long>())), "Attempted ticket stream differs.");
             byte[] expected = actual["semantic"]!["outputs"]![name]!["writtenTickets"]!.AsArray().SelectMany(ticket => originals[ticket!.GetValue<long>()]).ToArray();
             Require(expected.AsSpan().SequenceEqual(Convert.FromBase64String(wire["stream"]!.GetValue<string>())), "Confirmed stream bytes/order differ.");

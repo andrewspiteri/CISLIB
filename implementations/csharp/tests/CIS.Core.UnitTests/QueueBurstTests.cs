@@ -26,6 +26,7 @@ public sealed class QueueBurstTests
     public async Task BurstMatcherRejectsUnboundedLostOrInventedWork(string fault)
     {
         JsonObject row = Row("BURST-BOTH-1"), actual = await QueuedFanoutFixture.ExecuteAsync(row);
+        QueueBurstExpectations.Validate(row, actual);
         JsonNode binding = actual["bindings"]![0]!, result = actual["semantic"]!["results"]![0]!;
         switch (fault)
         {

@@ -29,6 +29,7 @@ public sealed class DeliveryObservationTests
     {
         string id = fault == "full-as-written" ? "DELIVERY-FILE-COMPLETE-FAILURE" : fault == "partial-as-written" ? "DELIVERY-CONSOLE-PARTIAL-FAILURE" : fault == "cancel-as-failed" ? "DELIVERY-CONSOLE-PARTIAL-CANCEL" : "DELIVERY-BOTH-PARTIAL-SUCCESS";
         JsonObject row = Row(id), actual = await DeliveryObservationFixture.ExecuteAsync(row);
+        DeliveryObservationExpectations.Validate(row, actual);
         string name = fault == "full-as-written" ? "file" : "console";
         JsonNode held = actual["checkpoints"]![1]!["observation"]!["outputs"]![name]!, final = actual["checkpoints"]![5]!["observation"]!["outputs"]![name]!;
         JsonNode wire = actual["wires"]![name]!;

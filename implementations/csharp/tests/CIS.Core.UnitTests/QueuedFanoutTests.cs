@@ -145,21 +145,17 @@ public sealed class QueuedFanoutTests
         }
         finally { runtime.CloseAdmission(); await runtime.QueuedOutputs!.Completion.WaitAsync(TimeSpan.FromSeconds(10)); }
     }
+    public static IEnumerable<object[]> Controls =>
+        from choice in new[] { ("queued-fanout-cases.json", "FANOUT-BOTH"), ("queue-overflow-cases.json", "OVERFLOW-BOTH-FULL") }
+        from fault in new[] { "ticket", "gap", "factory", "clock", "gate", "copy", "stream", "binding", "fault", "order", "unbound", "source", "framing", "schema", "time" }
+        select new object[] { choice.Item1, choice.Item2, fault };
+
     [TestMethod]
-    [DataRow("ticket")]
-    [DataRow("gap")]
-    [DataRow("factory")]
-    [DataRow("clock")]
-    [DataRow("gate")]
-    [DataRow("copy")]
-    [DataRow("stream")]
-    [DataRow("binding")]
-    [DataRow("fault")]
-    [DataRow("order")]
-    [DataRow("unbound")]
-    public async Task ComparatorRejectsInventedTicketsRecaptureGateAndWireChanges(string fault)
+    [DynamicData(nameof(Controls))]
+    public async Task ComparatorRejectsInventedTicketsRecaptureGateAndWireChanges(string catalogName, string id, string fault)
     {
-        JsonObject row = Row("FANOUT-BOTH"), actual = await QueuedFanoutFixture.ExecuteAsync(row);
+        JsonObject row = JsonNode.Parse(File.ReadAllText(Path.Combine(Path.GetDirectoryName(ConfigurationFixtureAdapter.FindFixture())!, catalogName)))!["cases"]!.AsArray().Single(item => (string?)item!["id"] == id)!.AsObject(), actual = await QueuedFanoutFixture.ExecuteAsync(row);
+        QueuedFanoutExpectations.Validate(row, actual);
         switch (fault)
         {
             case "ticket": actual["semantic"]!["results"]![0]!["outputs"]![0]!["ticket"] = null; break;
@@ -172,7 +168,22 @@ public sealed class QueuedFanoutTests
             case "fault": actual["semantic"]!["outputs"]!["file"]!["faulted"] = true; break;
             case "unbound": actual["wires"]!["console"]!["attempted"]![0]!["ticket"] = 4L; break;
             case "order": actual["semantic"]!["outputs"]!["console"]!["attemptedTickets"] = new JsonArray(3, 2, 1); break;
-            default: actual["wires"]!["console"]!["stream"] = Convert.ToBase64String([10]); break;
+            case "stream": actual["wires"]!["console"]!["stream"] = Convert.ToBase64String([10]); break;
+            default:
+                JsonNode wire = actual["wires"]!["console"]!, item = wire["attempted"]![0]!;
+                byte[] raw = Convert.FromBase64String((string)item["wire"]!);
+                if (fault == "framing") { raw = raw.Concat(new byte[] { 10 }).ToArray(); }
+                else
+                {
+                    JsonObject body = JsonNode.Parse(raw)!.AsObject();
+                    if (fault == "source") { body["message"] = "CIS_CHANGED_AFTER_ADMISSION"; }
+                    else if (fault == "schema") { body["schema_version"] = 2; }
+                    else { body["timestamp"] = "2001-01-01T00:00:00.0000000Z"; }
+                    raw = Encoding.UTF8.GetBytes(body.ToJsonString() + "\n");
+                }
+                item["wire"] = Convert.ToBase64String(raw); item["after"] = Convert.ToBase64String(raw);
+                wire["stream"] = Convert.ToBase64String(wire["attempted"]!.AsArray().SelectMany(record => Convert.FromBase64String((string)record!["wire"]!)).ToArray());
+                break;
         }
         Assert.ThrowsExactly<InvalidDataException>(() => QueuedFanoutExpectations.Validate(row, actual));
     }

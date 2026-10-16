@@ -18,6 +18,7 @@ public sealed class OutputStateTests
     public async Task RealOutputTransitionsRetainSafeFaultsAndIsolateHealthyWorkers(string id)
     { JsonObject row = Row(id); OutputStateExpectations.Validate(row, await OutputStateFixture.ExecuteAsync(row)); }
     [TestMethod]
+    [DataRow("extra-output")]
     [DataRow("fault")]
     [DataRow("time")]
     [DataRow("state")]
@@ -28,7 +29,9 @@ public sealed class OutputStateTests
     public async Task StateMatcherRejectsLostFaultsRetriesAndRewrittenBoundaries(string fault)
     {
         JsonObject row = Row("STATE-ISOLATE-FILE"), actual = await OutputStateFixture.ExecuteAsync(row);
-        OutputStateExpectations.Damage(actual, fault);
+        OutputStateExpectations.Validate(row, actual);
+        if (fault == "extra-output") { actual["checkpoints"]![0]!["outputs"]!["console"]!["invented"] = true; }
+        else { OutputStateExpectations.Damage(actual, fault); }
         Assert.ThrowsExactly<InvalidDataException>(() => OutputStateExpectations.Validate(row, actual));
     }
     [TestMethod]

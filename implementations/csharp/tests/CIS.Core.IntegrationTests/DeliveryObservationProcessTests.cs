@@ -1,7 +1,5 @@
-using System.Security.Cryptography;
 using System.Text.Json.Nodes;
 using CIS.Tests.DiscoveryFixture;
-using CIS.TestSupport;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace CIS.Tests.IntegrationTests;
@@ -9,22 +7,15 @@ namespace CIS.Tests.IntegrationTests;
 [TestClass]
 public sealed class DeliveryObservationProcessTests
 {
-    public static IEnumerable<object[]> Rows => LogValueProcessTests.Read("delivery-observation-cases.json")["cases"]!.AsArray().Select(row => new object[] { row!["id"]!.GetValue<string>() });
+    public TestContext TestContext { get; set; } = null!;
+    public static IEnumerable<object[]> Rows => QueueProcessChecks.Cases("delivery-observation-cases.json", 11);
+
     [TestMethod]
     [DynamicData(nameof(Rows))]
     public async Task DeliveryBoundariesRunInExactRuntimeChildren(string id)
     {
-        string host = Path.Combine(AppContext.BaseDirectory, "discovery-fixture", "CIS.Core.DiscoveryFixture.dll"), input = LogValueProcessTests.Find("delivery-observation-cases.json");
-        using var owned = new TemporaryDirectory();
-        ProcessResult process = await ProcessRunner.RunAsync("dotnet", ["exec", "--fx-version", "10.0.12", "--roll-forward", "Disable", host, "delivery-observation", input, id], owned.Path, TimeSpan.FromSeconds(30),
-            new Dictionary<string, string?> { ["CORE_LOG_QUEUE_CAPACITY"] = "invalid-must-not-be-read", ["TERM"] = "dumb", ["NO_COLOR"] = "1" });
-        Assert.AreEqual(0, process.ExitCode, process.StandardError); Assert.AreEqual("", process.StandardError);
-        JsonObject catalog = LogValueProcessTests.Read("delivery-observation-cases.json"), row = catalog["cases"]!.AsArray().Single(item => item!["id"]!.GetValue<string>() == id)!.AsObject();
-        JsonObject actual = JsonNode.Parse(process.StandardOutput)!.AsObject(); DeliveryObservationExpectations.Validate(row, actual);
-        Assert.AreEqual(".NET 10.0.12", actual["observed"]!["runtimeDescription"]!.GetValue<string>());
-        Assert.AreEqual(OperatingSystem.IsWindows() ? "windows" : "linux", actual["observed"]!["operatingSystem"]!.GetValue<string>());
-        Assert.AreEqual(Hash(host), actual["observed"]!["fixtureSha256"]!.GetValue<string>()); Assert.AreEqual(Hash(Path.Combine(Path.GetDirectoryName(host)!, "CIS.Core.dll")), actual["observed"]!["coreSha256"]!.GetValue<string>());
-        Assert.AreEqual(Hash(input), actual["observed"]!["inputsSha256"]!.GetValue<string>()); Assert.AreEqual(0, Directory.EnumerateFileSystemEntries(owned.Path).Count());
+        JsonObject row = LogValueProcessTests.Read("delivery-observation-cases.json")["cases"]!.AsArray().Single(item => (string?)item!["id"] == id)!.AsObject();
+        JsonObject actual = await QueueProcessChecks.Capture("delivery-observation", "delivery-observation-cases.json", id, TestContext, 35);
+        DeliveryObservationExpectations.Validate(row, actual);
     }
-    private static string Hash(string path) => Convert.ToHexStringLower(SHA256.HashData(File.ReadAllBytes(path)));
 }

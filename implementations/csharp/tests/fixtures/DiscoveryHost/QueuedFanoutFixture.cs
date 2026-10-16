@@ -230,7 +230,7 @@ internal static class QueuedFanoutFixture
     internal static int Run(string path, string id)
     {
         JsonObject row = JsonNode.Parse(File.ReadAllText(path))!["cases"]!.AsArray().Single(row => row!["id"]!.GetValue<string>() == id)!.AsObject(); JsonObject actual = ExecuteAsync(row).GetAwaiter().GetResult(); if (row["mode"]!.GetValue<string>() == "burst") { QueueBurstExpectations.Validate(row, actual); } else { QueuedFanoutExpectations.Validate(row, actual); }
-        actual["observed"] = new JsonObject { ["runtimeDescription"] = RuntimeInformation.FrameworkDescription, ["operatingSystem"] = OperatingSystem.IsWindows() ? "windows" : OperatingSystem.IsLinux() ? "linux" : "unknown", ["coreSha256"] = Hash(typeof(CoreLogRuntime).Assembly.Location), ["fixtureSha256"] = Hash(typeof(QueuedFanoutFixture).Assembly.Location), ["inputsSha256"] = Hash(path) };
+        actual["observed"] = new JsonObject { ["processId"] = System.Environment.ProcessId, ["runtimeDescription"] = RuntimeInformation.FrameworkDescription, ["operatingSystem"] = OperatingSystem.IsWindows() ? "windows" : OperatingSystem.IsLinux() ? "linux" : "unknown", ["coreSha256"] = Hash(typeof(CoreLogRuntime).Assembly.Location), ["fixtureSha256"] = Hash(typeof(QueuedFanoutFixture).Assembly.Location), ["inputsSha256"] = Hash(path) };
         Console.WriteLine(actual.ToJsonString()); return 0;
     }
     private static string Hash(string path) => Convert.ToHexStringLower(SHA256.HashData(File.ReadAllBytes(path)));

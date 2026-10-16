@@ -1,7 +1,6 @@
 using System.Security.Cryptography;
 using System.Text.Json.Nodes;
 using CIS.Tests.DiscoveryFixture;
-using CIS.TestSupport;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace CIS.Tests.IntegrationTests;
@@ -9,25 +8,25 @@ namespace CIS.Tests.IntegrationTests;
 [TestClass]
 public sealed class DiagnosticsProcessTests
 {
-    public static IEnumerable<object[]> Rows => LogValueProcessTests.Read("diagnostics-cases.json")["cases"]!.AsArray().Select(row => new object[] { row!["id"]!.GetValue<string>() });
+    public TestContext TestContext { get; set; } = null!;
+    public static IEnumerable<object[]> Rows => QueueProcessChecks.Cases("diagnostics-cases.json", 23);
+
     [TestMethod]
     [DynamicData(nameof(Rows))]
     public async Task PublicDiagnosticsRunInExactRuntimeChildren(string id)
     {
-        string host = Path.Combine(AppContext.BaseDirectory, "discovery-fixture", "CIS.Core.DiscoveryFixture.dll"), input = LogValueProcessTests.Find("diagnostics-cases.json");
-        using var owned = new TemporaryDirectory();
-        ProcessResult process = await ProcessRunner.RunAsync("dotnet", ["exec", "--fx-version", "10.0.12", "--roll-forward", "Disable", host, "diagnostics", input, id], owned.Path, TimeSpan.FromSeconds(30),
-            new Dictionary<string, string?> { ["CORE_LOG_QUEUE_CAPACITY"] = "invalid-must-not-be-read", ["TERM"] = "dumb", ["NO_COLOR"] = "1" });
-        Assert.AreEqual(0, process.ExitCode, process.StandardError); Assert.AreEqual("", process.StandardError);
-        JsonObject catalog = LogValueProcessTests.Read("diagnostics-cases.json"), row = catalog["cases"]!.AsArray().Single(item => item!["id"]!.GetValue<string>() == id)!.AsObject();
-        JsonObject actual = JsonNode.Parse(process.StandardOutput)!.AsObject(); DiagnosticsExpectations.Validate(row, actual);
-        JsonObject sourceRow = LogValueProcessTests.Read(row["sourceCatalog"]!.GetValue<string>())["cases"]!.AsArray().Single(item => item!["id"]!.GetValue<string>() == row["sourceCaseId"]!.GetValue<string>())!.AsObject();
-        if (row["profile"]!.GetValue<string>() == "delivery") { DeliveryObservationExpectations.Validate(sourceRow, actual["source"]!.AsObject()); } else { OutputStateExpectations.Validate(sourceRow, actual["source"]!.AsObject()); }
-        Assert.AreEqual(".NET 10.0.12", actual["observed"]!["runtimeDescription"]!.GetValue<string>());
-        Assert.AreEqual(OperatingSystem.IsWindows() ? "windows" : "linux", actual["observed"]!["operatingSystem"]!.GetValue<string>());
-        Assert.AreEqual(Hash(host), actual["observed"]!["fixtureSha256"]!.GetValue<string>()); Assert.AreEqual(Hash(Path.Combine(Path.GetDirectoryName(host)!, "CIS.Core.dll")), actual["observed"]!["coreSha256"]!.GetValue<string>());
-        Assert.AreEqual(Hash(input), actual["observed"]!["inputsSha256"]!.GetValue<string>());
-        Assert.AreEqual(Hash(Path.Combine(Path.GetDirectoryName(input)!, row["sourceCatalog"]!.GetValue<string>())), actual["observed"]!["sourceInputsSha256"]!.GetValue<string>()); Assert.AreEqual(0, Directory.EnumerateFileSystemEntries(owned.Path).Count());
+        JsonObject row = LogValueProcessTests.Read("diagnostics-cases.json")["cases"]!.AsArray().Single(item => (string?)item!["id"] == id)!.AsObject();
+        string sourceCatalog = (string)row["profile"]! == "delivery" ? "delivery-observation-cases.json" : "output-state-cases.json";
+        Assert.AreEqual(sourceCatalog, (string?)row["sourceCatalog"]);
+        Assert.AreEqual("DIAGNOSTICS-" + (string)row["sourceCaseId"]!, id);
+        string sourcePath = FixtureProcessChecks.Find(sourceCatalog), sourceHash = Hash(sourcePath);
+        JsonObject actual = await QueueProcessChecks.Capture("diagnostics", "diagnostics-cases.json", id, TestContext, 35);
+        DiagnosticsExpectations.Validate(row, actual);
+        Assert.AreEqual(sourceHash, (string?)actual["observed"]!["sourceInputsSha256"]);
+        Assert.AreEqual(sourceHash, Hash(sourcePath));
+        JsonObject sourceRow = LogValueProcessTests.Read(sourceCatalog)["cases"]!.AsArray().Single(item => (string?)item!["id"] == (string?)row["sourceCaseId"])!.AsObject();
+        if ((string?)row["profile"] == "delivery") { DeliveryObservationExpectations.Validate(sourceRow, actual["source"]!.AsObject()); }
+        else { OutputStateExpectations.Validate(sourceRow, actual["source"]!.AsObject()); }
     }
     private static string Hash(string path) => Convert.ToHexStringLower(SHA256.HashData(File.ReadAllBytes(path)));
 }

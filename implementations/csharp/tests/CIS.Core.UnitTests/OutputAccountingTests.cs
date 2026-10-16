@@ -28,6 +28,7 @@ public sealed class OutputAccountingTests
     public async Task AccountingMatcherRejectsInventedLostOrMutatedCounts(string fault)
     {
         JsonObject row = Row("ACCOUNT-BOTH"), actual = await OutputAccountingFixture.ExecuteAsync(row);
+        OutputAccountingExpectations.Validate(row, actual);
         JsonNode counts = actual["checkpoints"]![1]!["outputs"]!["console"]!;
         switch (fault)
         {

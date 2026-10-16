@@ -17,6 +17,7 @@ public sealed class DiagnosticsTests
     public async Task PublicOwnedSnapshotsQualifyTheActualAccountingFaultAndPartialWriteStory(string id)
     { JsonObject row = Row(id); DiagnosticsExpectations.Validate(row, await DiagnosticsFixture.ExecuteAsync(Folder(), row)); }
     [TestMethod]
+    [DataRow("extra-output")]
     [DataRow("runtime-state")]
     [DataRow("closure")]
     [DataRow("observed-time")]
@@ -31,7 +32,10 @@ public sealed class DiagnosticsTests
     [DataRow("fault-retention")]
     public async Task DiagnosticsMatcherRejectsInventedCountersLostFaultsAndRewrittenSnapshots(string fault)
     {
-        JsonObject row = Row("DIAGNOSTICS-STATE-ISOLATE-CONSOLE"), actual = await DiagnosticsFixture.ExecuteAsync(Folder(), row); DiagnosticsExpectations.Damage(actual, fault);
+        JsonObject row = Row("DIAGNOSTICS-STATE-ISOLATE-CONSOLE"), actual = await DiagnosticsFixture.ExecuteAsync(Folder(), row);
+        DiagnosticsExpectations.Validate(row, actual);
+        if (fault == "extra-output") { actual["source"]!["diagnostics"]![0]!["outputs"]![0]!["invented"] = true; }
+        else { DiagnosticsExpectations.Damage(actual, fault); }
         Assert.ThrowsExactly<InvalidDataException>(() => DiagnosticsExpectations.Validate(row, actual));
     }
     [TestMethod]
