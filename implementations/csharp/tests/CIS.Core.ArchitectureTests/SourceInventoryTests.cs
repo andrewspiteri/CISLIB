@@ -57,6 +57,45 @@ public sealed class SourceInventoryTests
     }
 
     [TestMethod]
+    public async Task AliasToGitRootKeepsIgnoredFilesExcludedAndIndexBytesUnchanged()
+    {
+        using var directory = new TemporaryDirectory();
+        string root = Directory.CreateDirectory(Path.Combine(directory.Path, "actual repo")).FullName;
+        string alias = Path.Combine(directory.Path, "alias repo");
+        try
+        {
+            await GitAsync(root, "init", "--quiet");
+            File.WriteAllText(Path.Combine(root, ".gitignore"), "ignored.txt\n");
+            File.WriteAllText(Path.Combine(root, "kept.txt"), "tracked");
+            await GitAsync(root, "add", "--", ".gitignore", "kept.txt");
+            File.WriteAllText(Path.Combine(root, "new.txt"), "untracked");
+            File.WriteAllText(Path.Combine(root, "ignored.txt"), "must stay excluded");
+            string index = Path.Combine(root, ".git", "index");
+            byte[] before = File.ReadAllBytes(index);
+            if (OperatingSystem.IsWindows())
+            {
+                ProcessResult link = await ProcessRunner.RunAsync("cmd.exe", ["/d", "/c", "mklink", "/J", alias, root], directory.Path, TimeSpan.FromSeconds(20));
+                Assert.AreEqual(0, link.ExitCode, link.StandardOutput + link.StandardError);
+            }
+            else { Directory.CreateSymbolicLink(alias, root); }
+
+            SourceInventoryEntry[] canonical = await SourceInventory.CaptureAsync(root);
+            SourceInventoryEntry[] linked = await SourceInventory.CaptureAsync(alias);
+
+            CollectionAssert.AreEqual(new[] { ".gitignore", "kept.txt", "new.txt" }, canonical.Select(item => item.Path).ToArray());
+            CollectionAssert.AreEqual(canonical, linked);
+            CollectionAssert.AreEqual(before, File.ReadAllBytes(index), "Neither spelling may write the Git index.");
+            AssertDigests(alias, linked);
+        }
+        finally
+        {
+            // Delete only the owned link, without recursion, before disposing the fixture directory.
+            if (Directory.Exists(alias)) { Directory.Delete(alias); }
+            MakeOwnedGitObjectsWritable(root);
+        }
+    }
+
+    [TestMethod]
     public async Task NestedDirectoryUsesCopyInventoryInsteadOfItsParentsIndex()
     {
         using var directory = new TemporaryDirectory();

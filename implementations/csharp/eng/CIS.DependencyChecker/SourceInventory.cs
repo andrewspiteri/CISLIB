@@ -35,11 +35,9 @@ internal static class SourceInventory
     {
         root = Path.TrimEndingDirectorySeparator(Path.GetFullPath(root));
         if (!Directory.Exists(root)) { throw new DirectoryNotFoundException("Source root does not exist: " + root); }
-        ProcessResult repository = await GitAsync(root, "rev-parse", "--show-toplevel");
+        ProcessResult repository = await GitAsync(root, "rev-parse", "--show-prefix");
         IEnumerable<string> files;
-        if (repository.ExitCode == 0 && string.Equals(root,
-            Path.TrimEndingDirectorySeparator(Path.GetFullPath(repository.StandardOutput.TrimEnd('\r', '\n'))),
-            OperatingSystem.IsWindows() ? StringComparison.OrdinalIgnoreCase : StringComparison.Ordinal))
+        if (repository.ExitCode == 0 && repository.StandardOutput.TrimEnd('\r', '\n').Length == 0)
         {
             string[] inputs = await GitPathsAsync(root, "--cached", "--others", "--exclude-standard");
             var deleted = new HashSet<string>(await GitPathsAsync(root, "--deleted"), StringComparer.Ordinal);
