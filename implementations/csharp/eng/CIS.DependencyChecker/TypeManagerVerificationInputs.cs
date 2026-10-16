@@ -77,4 +77,23 @@ internal sealed class TypeManagerVerificationInputs
     internal static void Write(string path, string text) { Directory.CreateDirectory(Path.GetDirectoryName(path)!); File.WriteAllText(path, text, new UTF8Encoding(false)); }
     internal static void WriteJson(string path, JsonObject value) => Write(path, value.ToJsonString(new JsonSerializerOptions { WriteIndented = true }) + "\n");
     internal static void Require(bool value, string reason) { if (!value) { throw new InvalidDataException(reason); } }
+    internal static IReadOnlyDictionary<string, string?> HermeticEnvironment(string root)
+    {
+        var allowed = new HashSet<string>(["PATH", "SYSTEMROOT", "WINDIR", "COMSPEC", "TEMP", "TMP", "TMPDIR", "HOME", "USERPROFILE", "APPDATA", "LOCALAPPDATA", "PROGRAMFILES", "PROGRAMFILES(X86)", "PROGRAMW6432", "DOTNET_ROOT", "DOTNET_ROOT_X64", "NUMBER_OF_PROCESSORS", "PROCESSOR_ARCHITECTURE"], StringComparer.OrdinalIgnoreCase);
+        var result = Environment.GetEnvironmentVariables().Keys.Cast<string>().ToDictionary(key => key, key => allowed.Contains(key) ? Environment.GetEnvironmentVariable(key) : null, OperatingSystem.IsWindows() ? StringComparer.OrdinalIgnoreCase : StringComparer.Ordinal);
+        foreach ((string key, string value) in new Dictionary<string, string>
+        {
+            ["NUGET_PACKAGES"] = Path.Combine(root, "packages"),
+            ["NUGET_HTTP_CACHE_PATH"] = Path.Combine(root, "http-cache"),
+            ["DOTNET_CLI_HOME"] = Path.Combine(root, "dotnet-home"),
+            ["DOTNET_CLI_TELEMETRY_OPTOUT"] = "1",
+            ["MSBUILDDISABLENODEREUSE"] = "1",
+            ["DOTNET_GENERATE_ASPNET_CERTIFICATE"] = "false",
+            ["DOTNET_ADD_GLOBAL_TOOLS_TO_PATH"] = "false",
+            ["DOTNET_CLI_WORKLOAD_UPDATE_NOTIFY_DISABLE"] = "true",
+            ["DOTNET_NOLOGO"] = "1"
+        }) { result[key] = value; }
+        return result;
+    }
+
 }

@@ -2,7 +2,7 @@ using System.Text.Json;
 using CIS.TestSupport;
 using CIS.Verification;
 
-if (args.Length > 0 && args[0] is "type-manager-runtime" or "type-manager-instrumentation" or "type-manager-instrumentation-controls" or "type-manager-inventory")
+if (args.Length > 0 && args[0] is "type-manager-runtime" or "type-manager-instrumentation" or "type-manager-instrumentation-controls" or "type-manager-inventory" or "type-manager-package")
 {
     try
     {
@@ -10,6 +10,7 @@ if (args.Length > 0 && args[0] is "type-manager-runtime" or "type-manager-instru
         {
             "type-manager-runtime" => await TypeManagerRuntimeVerification.RunAsync(args[1..]),
             "type-manager-inventory" => await TypeManagerInventoryVerification.RunAsync(args[1..]),
+            "type-manager-package" => await TypeManagerPackageVerification.RunAsync(args[1..]),
             "type-manager-instrumentation" => await TypeManagerInstrumentationVerification.RunAsync(args[1..]),
             _ => await TypeManagerInstrumentationControls.RunAsync(args[1..])
         };

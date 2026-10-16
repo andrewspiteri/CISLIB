@@ -32,3 +32,13 @@ dotnet run --project eng/CIS.DependencyChecker -c Debug -- type-manager-inventor
 The default is Console/Release. Use `--host-sdk web` and/or `--configuration Debug` for the other supported settings; each invocation needs its own empty output root. `--build-targets <owned-targets-file>` selects an alternate integration target for explicit controls. The command compiles neutral/Windows/Linux managed variants and a local RID fixture package, then checks default/native/cross RID in build, publish-without-build and publish-with-build layouts. It requires exact managed inventory membership/order, selected RID bytes, real native execution and exclusion of native, satellite and ordinary DLL content. Deliberate failed builds must leave `complete` false and return nonzero.
 
 The matrix qualifies CLI publication using explicit output paths. Visual Studio PublishUrl/profile copying and released package compatibility remain separate. Native fixture and copied source/tool hashes remain in the report.
+
+## Exact package consumers
+
+The native package command keeps the feed, package cache and generated hosts under an empty output root:
+
+```powershell
+dotnet run --project eng/CIS.DependencyChecker -c Debug -- type-manager-package --repo-root ../.. --package <CIS.Core.nupkg> --dependency-cache <NuGet-global-packages-directory> --rid-package <CIS.TypeManager.RidFixture.1.0.0.nupkg> --output-root ../../.artifacts/tm-native/package
+```
+
+The RID package comes from the inventory matrix. The checker copies the exact Core/RID and approved Microsoft dependency archives into its private feed, verifies consumed Core/helper/managed RID bytes, and exercises incremental/no-restore, offline locked restore, reference removal/readdition with planted stale assets, host rename/clean, design-time skip/missing-helper guards, central versions, SDK-hook preservation and unsupported-profile rejection. Its 57 recorded checks include deliberate failures that must reject for their intended categories. Package inputs remain byte-checked; build tooling must not appear in runtime deployment. These are exact-package development checks, not a completed release gate.

@@ -115,7 +115,7 @@ chosen output root (default `.artifacts/type-manager/inventory`) and normal fixt
 build output directories. It leaves the fixture in its original reference state.
 
 To check an exact locally packed Core artifact in clean package consumers, run
-`eng/verify-type-manager-package.py` from the repository root with `--repo-root .`,
+the C# `type-manager-package` command in `eng/CIS.DependencyChecker` from the language root with `--repo-root ../..`,
 `--package <Core.nupkg>`, `--dependency-cache <NuGet-global-packages-directory>`,
 `--rid-package <CIS.TypeManager.RidFixture.1.0.0.nupkg>` and an empty `--output-root`.
 The RID fixture is produced by
