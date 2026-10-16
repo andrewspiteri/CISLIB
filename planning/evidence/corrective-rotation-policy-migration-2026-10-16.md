@@ -1,0 +1,15 @@
+# Native rotation-policy reader migration
+
+16 October 2026, based on `9dec16f4`. Corrective Batch B changes verification only. Shipping Core, public behavior and dependencies remain unchanged. No Python execution or Claude transfer.
+
+All eight original common fault modes and all eight original corruption controls remain native C#. Complete literal preimages, inventory/group identity, exact physical leaves/membership, bounded protected JSONL/Human records, complete ticket/output shapes and UTC fault retention now join the prior assertions. The historical schema-one/leftover-candidate expectations are reconciled with the approved existing schema-two intent-first retirement and private-candidate cleanup. The candidate-content control rejects an unexpected candidate remnant; transition-content rejects changed intent identity.
+
+The ninth Linux-only mode executes the actual configured writer in an owned held child. C# registers a Linux SIGXFSZ cancellation handler, invokes the installed prlimit utility against that exact PID, preserves the hard limit, verifies soft RLIMIT_FSIZE zero before release, and observes the real OS write rejection and process exit. Parent environment/CWD and managed hashes remain checked; no host/global capacity setting changes. Windows does not claim this Linux-only observation.
+
+Windows integration `95cdcb87a42d4c9484f0788debef9cb1` passes eight, unit `975c9e371c5249969430a2c8bc3b64e1` passes sixteen and architecture `68362e24f0f442bd83eff744279179ca` passes one. Ubuntu integration `495f9199c173419892d45eea1ab6d493` passes nine, unit `dabcb335b5534f039936f8e7d08b2eef` passes sixteen and architecture `942335b91bb74c6ca18001f879792eaf` passes one. Zero failures/skips or build warnings/errors. All 24 shared process/unit identities match; Linux has its one extra capacity mode. Formatting completes. Scoped Ubuntu copies remain distinct from one shared exact package candidate.
+
+After call-site reconciliation, `verify-file-rotation-policy.py` is retired (15,126 bytes; SHA-256 `3883a38bc9a47d2d24cd527ab5fda610d4e8994ceceb3bd8ad1383d6c1912d34`). Guarded retirement/case audits remain in `.artifacts/corrective/file-rotation-policy-reader`; Git preserves the original. Sixteen nonhistorical implementation Python files remain: six DiscoveryHost drivers, one unchanged temporary helper, six engineering utilities and three Type Manager fixture utilities, plus the documentation selector awaiting its restart-driver retirement. Frozen historical scripts remain preserved.
+
+Graph: schema 2, 10,856 nodes/52,509 edges, zero diagnostics, build `2eda2442d359c4b969bb005732a938081a87ca849b17d68457b53c54ff32130c`, compiler/semantic extractors 6/3. Exact FileRotationPolicyProcessTests related query is fresh/untruncated at depth one, four nodes/four traversals, limit ten, no proposed edges. This is navigation evidence, not semantic completeness.
+
+The earlier 6,260-case full Windows Developer checkpoint predates this migration. Focused verification does not close full corrected-candidate coverage/mutation/compatibility/both-lane/package/examples/release qualification. The original logging roadmap remains paused.

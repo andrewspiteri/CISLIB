@@ -13,7 +13,7 @@ internal static class FileRotationPolicyFixture
     private static readonly TimeSpan Limit = TimeSpan.FromSeconds(15);
     private sealed class Clock : TimeProvider { public override DateTimeOffset GetUtcNow() => new(2026, 10, 13, 10, 11, 12, TimeSpan.Zero); }
     private sealed class Borrowed : MemoryStream { internal int Disposes; protected override void Dispose(bool disposing) { if (disposing) { Disposes++; } base.Dispose(disposing); } }
-    internal static int Run(string mode, string root) { Console.WriteLine(ExecuteAsync(mode, root).GetAwaiter().GetResult().ToJsonString()); return 0; }
+    internal static int Run(string mode, string root) { using PosixSignalRegistration? signal = OperatingSystem.IsLinux() && mode == "write-jsonl-os-limit" ? PosixSignalRegistration.Create((PosixSignal)25, context => context.Cancel = true) : null; Console.WriteLine(ExecuteAsync(mode, root).GetAwaiter().GetResult().ToJsonString()); return 0; }
     internal static async Task<JsonObject> ExecuteAsync(string mode, string root)
     {
         bool limited = mode == "write-jsonl-os-limit", write = mode.StartsWith("write", StringComparison.Ordinal), human = mode.Contains("human", StringComparison.Ordinal), metadataFailure = mode.StartsWith("metadata", StringComparison.Ordinal);
