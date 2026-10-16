@@ -55,8 +55,8 @@ For each covered boundary, `AcceptedSequenceBoundary = Written + Failed + Abando
 
 | Result property | Meaning |
 | --- | --- |
-| Completion=Completed | No covered work or writer flush remains unresolved; terminal failure can still exist. |
-| Completion=TimedOut | Covered work or writer flush remains unresolved at the deadline observation. |
+| Completion=Completed | The overall deadline has not expired and no covered incoming work, output work or writer flush remains unresolved; terminal failure can still exist. |
+| Completion=TimedOut | The overall deadline expired or covered incoming/output work or writer flush remains unresolved. The immutable stop result includes its shared processing/cleanup budget. |
 | Succeeded | All covered work was written and every writer buffer flush succeeded. |
 | LossObserved | Captured cumulative observations include invalid/truncated capture, queue-full/unavailable rejection, covered failure/abandonment or a failed flush. |
 

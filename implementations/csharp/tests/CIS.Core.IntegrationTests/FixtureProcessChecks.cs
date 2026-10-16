@@ -35,7 +35,7 @@ internal static class FixtureProcessChecks
         return rows;
     }
 
-    internal static async Task<(JsonObject Report, int ProcessId)> RunAsync(string[] arguments, string directory, TestContext context, string? inputs = null, IReadOnlyDictionary<string, string?>? environment = null, TimeSpan? timeout = null, bool physicalStreams = false, int minimumStdoutBytes = 0, int minimumStderrBytes = 0)
+    internal static async Task<(JsonObject Report, int ProcessId)> RunAsync(string[] arguments, string directory, TestContext context, string? inputs = null, IReadOnlyDictionary<string, string?>? environment = null, TimeSpan? timeout = null, bool physicalStreams = false, int minimumStdoutBytes = 0, int minimumStderrBytes = 0, bool flatReport = false)
     {
         string host = Path.Combine(AppContext.BaseDirectory, "discovery-fixture", "CIS.Core.DiscoveryFixture.dll");
         string core = Path.Combine(Path.GetDirectoryName(host)!, "CIS.Core.dll");
@@ -65,10 +65,10 @@ internal static class FixtureProcessChecks
             Assert.AreEqual("", child.StandardError);
             report = JsonNode.Parse(child.StandardOutput)!.AsObject();
         }
-        JsonNode observed = report["observed"]!;
-        Assert.AreEqual(Family, (string?)observed["operatingSystem"]);
-        Assert.AreEqual(".NET 10.0.12", (string?)observed["runtimeDescription"]);
-        Assert.AreEqual(child.ProcessId, observed["processId"]!.GetValue<int>());
+        JsonNode observed = flatReport ? report : report["observed"]!;
+        Assert.AreEqual(Family, (string?)observed[flatReport ? "os" : "operatingSystem"]);
+        Assert.AreEqual(".NET 10.0.12", (string?)observed[flatReport ? "runtime" : "runtimeDescription"]);
+        Assert.AreEqual(child.ProcessId, observed[flatReport ? "pid" : "processId"]!.GetValue<int>());
         Assert.AreEqual(hostHash, (string?)observed["fixtureSha256"]);
         Assert.AreEqual(coreHash, (string?)observed["coreSha256"]);
         Assert.AreEqual(hostHash, Hash(host));

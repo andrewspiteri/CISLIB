@@ -59,6 +59,12 @@ internal static class StopDrainFixture
                 Require(runtime.QueuedOutputs.Console.CaptureAccounting().Abandoned == (queued ? 3 : mode == "single-write" ? 0 : 2));
             }
             Require(ReferenceEquals(stop, runtime.StopAsync(CancellationToken.None)));
+            if (cooperative)
+            {
+                // Observe cancellation before the test's release can win the held-I/O race.
+                try { await runtime.QueuedOutputs.Console.Completion.WaitAsync(Guard); }
+                catch (OperationCanceledException) { }
+            }
             stream.ReleaseAll(); startWorker.TrySetResult();
             try { await runtime.QueuedOutputs.Completion.WaitAsync(Guard); }
             catch (OperationCanceledException) when (cooperative) { }
