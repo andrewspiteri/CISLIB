@@ -1,4 +1,8 @@
+using System.Security.Cryptography;
+using System.Text;
+using System.Text.Json;
 using CIS.TestSupport;
+using CIS.Verification;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace CIS.Tests.ArchitectureTests;
@@ -9,12 +13,174 @@ public sealed class SourceInventoryTests
     [TestMethod]
     public async Task WorkingTreeInventoryIncludesCurrentInputsWithoutStagingDeletions()
     {
-        DirectoryInfo? root = new(AppContext.BaseDirectory);
-        while (root is not null && !File.Exists(Path.Combine(root.FullName, "implementations", "csharp", "eng", "check-source-inventory.ps1"))) { root = root.Parent; }
-        Assert.IsNotNull(root);
         using var directory = new TemporaryDirectory();
-        ProcessResult result = await ProcessRunner.RunAsync("pwsh", ["-NoProfile", "-File", Path.Combine(root.FullName, "implementations", "csharp", "eng", "check-source-inventory.ps1"), "-FixtureRoot", directory.Path], root.FullName, TimeSpan.FromSeconds(20));
+        try
+        {
+            await GitAsync(directory.Path, "init", "--quiet");
+            File.WriteAllText(Path.Combine(directory.Path, ".gitignore"), "ignored.txt\n");
+            File.WriteAllText(Path.Combine(directory.Path, "kept.txt"), "staged");
+            File.WriteAllText(Path.Combine(directory.Path, "removed.txt"), "removed");
+            await GitAsync(directory.Path, "add", "--", ".gitignore", "kept.txt", "removed.txt");
+            File.Delete(Path.Combine(directory.Path, "removed.txt"));
+            File.WriteAllBytes(Path.Combine(directory.Path, "kept.txt"), [0, 1, 255, 10]);
+            File.WriteAllText(Path.Combine(directory.Path, "new.txt"), "new");
+            File.WriteAllText(Path.Combine(directory.Path, "résumé notes.txt"), "unicode");
+            File.WriteAllText(Path.Combine(directory.Path, "ignored.txt"), "ignored");
+            string index = Path.Combine(directory.Path, ".git", "index");
+            byte[] before = File.ReadAllBytes(index);
+
+            SourceInventoryEntry[] inventory = await SourceInventory.CaptureAsync(directory.Path);
+
+            CollectionAssert.AreEqual(new[] { ".gitignore", "kept.txt", "new.txt", "résumé notes.txt" }, inventory.Select(item => item.Path).ToArray());
+            CollectionAssert.AreEqual(before, File.ReadAllBytes(index), "Inventory must not write the index.");
+            AssertDigests(directory.Path, inventory);
+        }
+        finally { MakeOwnedGitObjectsWritable(directory.Path); }
+    }
+
+    [TestMethod]
+    public async Task CopyInventoryExcludesBuildDirectoriesAndKeepsHiddenSource()
+    {
+        using var directory = new TemporaryDirectory();
+        foreach (string folder in new[] { ".artifacts", "bin", "obj", ".vs", "src/bin", "src/.git" })
+        {
+            Directory.CreateDirectory(Path.Combine(directory.Path, folder));
+            File.WriteAllText(Path.Combine(directory.Path, folder, "excluded.txt"), "excluded");
+        }
+        File.WriteAllText(Path.Combine(directory.Path, ".settings"), "hidden source");
+        File.WriteAllText(Path.Combine(directory.Path, "src", "source.cs"), "source");
+
+        SourceInventoryEntry[] inventory = await SourceInventory.CaptureAsync(directory.Path);
+
+        CollectionAssert.AreEqual(new[] { ".settings", "src/source.cs" }, inventory.Select(item => item.Path).ToArray());
+        AssertDigests(directory.Path, inventory);
+    }
+
+    [TestMethod]
+    public async Task NestedDirectoryUsesCopyInventoryInsteadOfItsParentsIndex()
+    {
+        using var directory = new TemporaryDirectory();
+        try
+        {
+            await GitAsync(directory.Path, "init", "--quiet");
+            File.WriteAllText(Path.Combine(directory.Path, ".gitignore"), "nested/\n");
+            string nested = Directory.CreateDirectory(Path.Combine(directory.Path, "nested")).FullName;
+            File.WriteAllText(Path.Combine(nested, "input.txt"), "not in parent index");
+
+            SourceInventoryEntry[] inventory = await SourceInventory.CaptureAsync(nested);
+
+            CollectionAssert.AreEqual(new[] { "input.txt" }, inventory.Select(item => item.Path).ToArray());
+            AssertDigests(nested, inventory);
+        }
+        finally { MakeOwnedGitObjectsWritable(directory.Path); }
+    }
+
+    [TestMethod]
+    public async Task InvalidGitIndexFailsInsteadOfReturningAPartialInventory()
+    {
+        using var directory = new TemporaryDirectory();
+        try
+        {
+            await GitAsync(directory.Path, "init", "--quiet");
+            string index = Path.Combine(directory.Path, ".git", "index");
+            byte[] invalid = Encoding.UTF8.GetBytes("not a Git index");
+            File.WriteAllBytes(index, invalid);
+
+            await Assert.ThrowsExactlyAsync<InvalidOperationException>(() => SourceInventory.CaptureAsync(directory.Path));
+            CollectionAssert.AreEqual(invalid, File.ReadAllBytes(index));
+        }
+        finally { MakeOwnedGitObjectsWritable(directory.Path); }
+    }
+
+    [TestMethod]
+    public async Task NativeCommandWritesJsonAndRejectsMissingRoots()
+    {
+        using var directory = new TemporaryDirectory();
+        DirectoryInfo? language = new(AppContext.BaseDirectory);
+        while (language is not null && !File.Exists(Path.Combine(language.FullName, "CisLib.slnx"))) { language = language.Parent; }
+        Assert.IsNotNull(language);
+        string configuration = new DirectoryInfo(AppContext.BaseDirectory).Parent!.Name;
+        string checker = Path.Combine(language.FullName, "eng", "CIS.DependencyChecker", "bin", configuration, "net10.0", "CIS.DependencyChecker.dll");
+        Assert.IsTrue(File.Exists(checker), "Build the native checker before running its command control.");
+        File.WriteAllText(Path.Combine(directory.Path, "input.txt"), "native command");
+        ProcessResult positive = await ProcessRunner.RunAsync("dotnet", [checker, "source-inventory", directory.Path], language.FullName, TimeSpan.FromSeconds(30));
+        Assert.AreEqual(0, positive.ExitCode, positive.StandardError);
+        using JsonDocument output = JsonDocument.Parse(positive.StandardOutput);
+        Assert.AreEqual(1, output.RootElement.GetArrayLength());
+        Assert.AreEqual("input.txt", output.RootElement[0].GetProperty("path").GetString());
+        Assert.AreEqual(Convert.ToHexStringLower(SHA256.HashData(Encoding.UTF8.GetBytes("native command"))), output.RootElement[0].GetProperty("sha256").GetString());
+
+        ProcessResult negative = await ProcessRunner.RunAsync("dotnet", [checker, "source-inventory", Path.Combine(directory.Path, "missing")], language.FullName, TimeSpan.FromSeconds(30));
+        Assert.AreEqual(1, negative.ExitCode, negative.StandardError);
+        Assert.AreEqual("", negative.StandardOutput);
+        StringAssert.Contains(negative.StandardError, "Source root does not exist");
+    }
+
+    [TestMethod]
+    public async Task ShellBridgeBootstrapsAnUnbuiltToolCopyWithoutPollutingJson()
+    {
+        using var directory = new TemporaryDirectory();
+        DirectoryInfo? language = new(AppContext.BaseDirectory);
+        while (language is not null && !File.Exists(Path.Combine(language.FullName, "CisLib.slnx"))) { language = language.Parent; }
+        Assert.IsNotNull(language);
+        foreach (string file in new[] { "Directory.Build.props", "Directory.Packages.props", "global.json", "NuGet.config", "eng/Verification.psm1" })
+        {
+            string target = Path.Combine(directory.Path, file);
+            Directory.CreateDirectory(Path.GetDirectoryName(target)!);
+            File.Copy(Path.Combine(language.FullName, file), target);
+        }
+        foreach (string folder in new[] { "eng/CIS.DependencyChecker", "tests/CIS.Core.TestSupport" })
+        {
+            string target = Directory.CreateDirectory(Path.Combine(directory.Path, folder)).FullName;
+            foreach (string file in Directory.EnumerateFiles(Path.Combine(language.FullName, folder)))
+            {
+                if (Path.GetExtension(file) is ".cs" or ".csproj" || Path.GetFileName(file) == "packages.lock.json")
+                { File.Copy(file, Path.Combine(target, Path.GetFileName(file))); }
+            }
+        }
+        string input = Directory.CreateDirectory(Path.Combine(directory.Path, "input")).FullName;
+        File.WriteAllText(Path.Combine(input, "input.txt"), "bootstrap");
+        string script = Path.Combine(directory.Path, "bridge.ps1");
+        File.WriteAllText(script, """
+            $ErrorActionPreference = 'Stop'
+            Import-Module (Join-Path $PSScriptRoot 'eng/Verification.psm1') -Force
+            @(Get-SourceInventory (Join-Path $PSScriptRoot 'input')) | ConvertTo-Json -AsArray -Compress
+            """);
+        string checker = Path.Combine(directory.Path, "eng/CIS.DependencyChecker/bin/Release/net10.0/CIS.DependencyChecker.dll");
+        Assert.IsFalse(File.Exists(checker));
+
+        ProcessResult result = await ProcessRunner.RunAsync("pwsh", ["-NoProfile", "-File", script], directory.Path, TimeSpan.FromSeconds(120));
+
+        Assert.AreEqual(0, result.ExitCode, result.StandardOutput + result.StandardError);
+        Assert.IsTrue(File.Exists(checker));
+        using JsonDocument output = JsonDocument.Parse(result.StandardOutput);
+        Assert.AreEqual(1, output.RootElement.GetArrayLength());
+        Assert.AreEqual("input.txt", output.RootElement[0].GetProperty("path").GetString());
+        Assert.AreEqual(Convert.ToHexStringLower(SHA256.HashData(Encoding.UTF8.GetBytes("bootstrap"))), output.RootElement[0].GetProperty("sha256").GetString());
+    }
+
+    private static void AssertDigests(string root, SourceInventoryEntry[] inventory)
+    {
+        foreach (SourceInventoryEntry item in inventory)
+        {
+            Assert.AreEqual(Convert.ToHexStringLower(SHA256.HashData(File.ReadAllBytes(Path.Combine(root, item.Path)))), item.Sha256);
+        }
+    }
+
+    private static async Task GitAsync(string root, params string[] arguments)
+    {
+        ProcessResult result = await ProcessRunner.RunAsync("git", ["-C", root, .. arguments], root, TimeSpan.FromSeconds(20));
         Assert.AreEqual(0, result.ExitCode, result.StandardError);
-        Assert.IsTrue(result.StandardOutput.StartsWith("Passed:", StringComparison.Ordinal));
+    }
+
+    private static void MakeOwnedGitObjectsWritable(string ownedRoot)
+    {
+        // This exact directory was created by TemporaryDirectory; cleanup also runs after assertion failures.
+        string objects = Path.GetFullPath(Path.Combine(ownedRoot, ".git", "objects"));
+        if (!objects.StartsWith(Path.GetFullPath(ownedRoot) + Path.DirectorySeparatorChar, StringComparison.Ordinal))
+        { throw new InvalidOperationException("Git fixture cleanup escaped its owned root."); }
+        if (!Directory.Exists(objects)) { return; }
+        foreach (string file in Directory.EnumerateFiles(objects, "*", SearchOption.AllDirectories))
+        { File.SetAttributes(file, File.GetAttributes(file) & ~FileAttributes.ReadOnly); }
     }
 }

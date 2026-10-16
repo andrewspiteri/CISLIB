@@ -6309,8 +6309,34 @@
       "id": "ARCH-VERIFICATION-SOURCE-INVENTORY",
       "family": "architecture",
       "implementation": "Implemented",
-      "method": "CIS.Tests.ArchitectureTests.SourceInventoryTests.WorkingTreeInventoryIncludesCurrentInputsWithoutStagingDeletions",
+      "method": null,
       "minimumExecutions": 1,
+      "bindings": [
+        {
+          "method": "CIS.Tests.ArchitectureTests.SourceInventoryTests.WorkingTreeInventoryIncludesCurrentInputsWithoutStagingDeletions",
+          "minimumExecutions": 1
+        },
+        {
+          "method": "CIS.Tests.ArchitectureTests.SourceInventoryTests.CopyInventoryExcludesBuildDirectoriesAndKeepsHiddenSource",
+          "minimumExecutions": 1
+        },
+        {
+          "method": "CIS.Tests.ArchitectureTests.SourceInventoryTests.NestedDirectoryUsesCopyInventoryInsteadOfItsParentsIndex",
+          "minimumExecutions": 1
+        },
+        {
+          "method": "CIS.Tests.ArchitectureTests.SourceInventoryTests.InvalidGitIndexFailsInsteadOfReturningAPartialInventory",
+          "minimumExecutions": 1
+        },
+        {
+          "method": "CIS.Tests.ArchitectureTests.SourceInventoryTests.ShellBridgeBootstrapsAnUnbuiltToolCopyWithoutPollutingJson",
+          "minimumExecutions": 1
+        },
+        {
+          "method": "CIS.Tests.ArchitectureTests.SourceInventoryTests.NativeCommandWritesJsonAndRejectsMissingRoots",
+          "minimumExecutions": 1
+        }
+      ],
       "lanes": [
         "windows-x64",
         "linux-ubuntu2404-x64"

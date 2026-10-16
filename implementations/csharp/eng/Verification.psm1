@@ -2,19 +2,14 @@ Set-StrictMode -Version Latest
 
 function Get-SourceInventory {
     param([string] $Root)
-    $gitRoot = (& git -C $Root rev-parse --show-toplevel 2>$null)
-    if ($LASTEXITCODE -eq 0 -and [IO.Path]::GetFullPath($gitRoot) -eq [IO.Path]::GetFullPath($Root)) {
-        $files = @(& git -C $Root ls-files --cached --others --exclude-standard)
-        if ($LASTEXITCODE -ne 0) { throw 'Unable to enumerate Git source inputs.' }
-        # Inventory the current working tree. Git --cached includes unstaged deletions.
-        $deleted = @(& git -C $Root ls-files --deleted)
-        if ($LASTEXITCODE -ne 0) { throw 'Unable to enumerate working-tree deletions.' }
-        $files = @($files | Where-Object { $_ -notin $deleted })
-    }
-    else {
-        $files = @(Get-ChildItem -LiteralPath $Root -Recurse -File | ForEach-Object { [IO.Path]::GetRelativePath($Root, $_.FullName).Replace('\', '/') } | Where-Object { $_ -notmatch '(^|/)(\.git|\.artifacts|bin|obj|\.vs)(/|$)' })
-    }
-    return @($files | Sort-Object -Unique | ForEach-Object { [ordered]@{ path = $_; sha256 = (Get-FileHash -LiteralPath (Join-Path $Root $_) -Algorithm SHA256).Hash.ToLowerInvariant() } })
+    $project = Join-Path $PSScriptRoot 'CIS.DependencyChecker/CIS.DependencyChecker.csproj'
+    # Bootstrap before the profile build, including on a fresh checkout. Keep build output outside the JSON pipeline.
+    $build = @(& dotnet build $project -c Release -p:RestoreLockedMode=true --nologo --verbosity quiet 2>&1)
+    if ($LASTEXITCODE -ne 0) { throw "Unable to build source inventory tool: $($build -join [Environment]::NewLine)" }
+    $checker = Join-Path $PSScriptRoot 'CIS.DependencyChecker/bin/Release/net10.0/CIS.DependencyChecker.dll'
+    $output = @(& dotnet $checker source-inventory $Root)
+    if ($LASTEXITCODE -ne 0) { throw 'Unable to capture source inventory.' }
+    return ($output -join [Environment]::NewLine | ConvertFrom-Json -AsHashtable)
 }
 
 function Invoke-VerificationStage {

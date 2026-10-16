@@ -26,6 +26,11 @@ if (args.Length > 0 && args[0] is "type-manager-runtime" or "type-manager-instru
 }
 
 
+if (args.Length > 0 && args[0] == "source-inventory")
+{
+    return await SourceInventory.RunAsync(args[1..]);
+}
+
 if (args.Length > 0 && args[0] == "select-jsonl-inputs")
 {
     return JsonlInputSelector.Run(args[1..]);
