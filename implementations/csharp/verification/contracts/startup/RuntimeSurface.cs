@@ -192,6 +192,8 @@ public static class LogErrorCodes
     public const string InvalidUnicode = "InvalidUnicode";
     public const string InvalidFactoryResult = "InvalidFactoryResult";
     public const string EnvelopeTooLarge = "EnvelopeTooLarge";
+    public const string IncomingQueueFull = "IncomingQueueFull";
+    public const string RecursiveProcessing = "RecursiveProcessing";
     public const string OutputInitializationFailed = "OutputInitializationFailed";
     public const string OutputOwnershipUnavailable = "OutputOwnershipUnavailable";
     public const string WriteFailed = "WriteFailed";

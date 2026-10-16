@@ -8,7 +8,7 @@ namespace CIS.Logging.Runtime;
 // unbounded recursive input, including through Task.Run or a second runtime.
 internal sealed class EventProcessing
 {
-    private static readonly AsyncLocal<bool> Active = new();
+    private static readonly AsyncLocal<EventProcessing?> Active = new();
     private readonly Func<LogProcessingEvent, LogEventChanges>[] interceptors;
     private readonly Func<LogProcessingEvent, bool>? filter;
     private readonly Func<string, LogProcessingEvent, bool>? route;
@@ -25,11 +25,12 @@ internal sealed class EventProcessing
         if (interceptors.Any(callback => callback is null)) { throw new ArgumentException("Interceptors must be nonnull.", nameof(options)); }
         filter = options.Filter; route = options.Route; duplicate = options.DuplicateSuppression; this.clock = clock; this.maximumBytes = maximumBytes;
     }
-    internal static bool IsCallbackActive => Active.Value;
+    internal static bool IsCallbackActive => Active.Value is not null;
+    internal bool IsOwnCallbackActive => ReferenceEquals(Active.Value, this);
 
     internal ProcessingDecision Prepare(CapturedEventFacts facts, CoreLogLevel level, IReadOnlyList<string> destinations)
     {
-        bool previous = Active.Value; Active.Value = true;
+        EventProcessing? previous = Active.Value; Active.Value = this;
         try
         {
             facts = Bound(facts);

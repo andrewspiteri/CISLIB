@@ -8,6 +8,7 @@ public sealed partial class CoreLogRuntime
     private IncomingEventQueue? incoming;
     private Task? pipelineCompletion;
     private EventProcessing? processing;
+    private long workerInvalid, workerTruncated;
 
     // Invoked exactly once by unpublished factory composition, after output initialization succeeds.
     internal void StartIncoming(int capacity, Func<Func<Task>, Task>? launch = null, EventProcessing? processing = null)
@@ -17,7 +18,24 @@ public sealed partial class CoreLogRuntime
         incoming = new IncomingEventQueue(capacity, admissionGate, timeProvider, PrepareIncoming, RegisterFlushBoundaryAt, launch);
     }
 
-    private RuntimeFlushBoundary RegisterFlushBoundaryAt(long timestamp) => RegisterFlushBoundary(timestamp);
+    private RuntimeFlushBoundary RegisterFlushBoundaryAt(long timestamp)
+    {
+        RuntimeFlushBoundary boundary = RegisterFlushBoundary(timestamp);
+        // Freeze worker effects through this prefix, excluding unrelated caller-side early decisions.
+        var entries = boundary.Entries.Select(entry =>
+        {
+            Output output = outputs.Single(output => output.Name == entry.Name);
+            return entry with
+            {
+                Boundary = entry.Boundary with
+                {
+                    Filtered = entry.Boundary.Filtered - output.CallerFiltered,
+                    Unavailable = entry.Boundary.Unavailable - output.CallerUnavailable
+                }
+            };
+        }).ToArray();
+        return new(boundary.BoundaryCapturedAtUtc, workerInvalid, workerTruncated, null, null, entries);
+    }
 
     private Action PrepareIncoming(IncomingEvent item)
     {
@@ -47,8 +65,13 @@ public sealed partial class CoreLogRuntime
         }
         catch (EventEnvelopeTooLargeException)
         {
-            IncrementLossCounter(ref invalidEventCount);
-            throw;
+            // Commit this disposition under the incoming gate; abandoned preparation adds no loss.
+            return () =>
+            {
+                IncrementLossCounter(ref invalidEventCount);
+                IncrementLossCounter(ref workerInvalid);
+                throw new EventEnvelopeTooLargeException();
+            };
         }
     }
 
@@ -56,7 +79,11 @@ public sealed partial class CoreLogRuntime
     {
         lock (admissionGate)
         {
-            return new(DateTimeOffset.UtcNow, InvalidEventCount, TruncatedEventCount, incoming!.RegisterBoundary(started));
+            return new(DateTimeOffset.UtcNow, InvalidEventCount, TruncatedEventCount, workerInvalid, workerTruncated,
+                incoming!.Capture().QueueFull,
+                outputs.ToDictionary(output => output.Name,
+                    output => new LogOutputRejectionSnapshot(output.CallerFiltered, 0, output.CallerUnavailable)),
+                incoming.RegisterBoundary(started));
         }
     }
 
@@ -76,12 +103,21 @@ public sealed partial class CoreLogRuntime
         {
             RuntimeFlushBoundary? downstream = boundary.Incoming.Outputs;
             var entries = downstream?.Entries.ToArray() ?? [];
-            var observations = entries.Select(entry => queuedOutputs!.Get(entry.Name).CaptureDrain(entry.Name, entry.Boundary));
+            var observations = entries.Select(entry =>
+            {
+                LogOutputRejectionSnapshot caller = boundary.Rejections[entry.Name];
+                return queuedOutputs!.Get(entry.Name).CaptureDrain(entry.Name, entry.Boundary with
+                {
+                    Filtered = AddLoss(entry.Boundary.Filtered, caller.Filtered),
+                    Unavailable = AddLoss(entry.Boundary.Unavailable, caller.Unavailable)
+                });
+            });
             bool late = boundary.Incoming.SettledAt is not { } settled || !budget.Contains(settled) ||
                 entries.Any(entry => entry.Boundary.Registration.SettledAt is not { } timestamp || !budget.Contains(timestamp));
             return new LogFlushResult(boundary.CapturedAtUtc, DateTimeOffset.UtcNow,
-                downstream?.InvalidEventCount ?? boundary.Invalid, downstream?.TruncatedEventCount ?? boundary.Truncated,
-                observations, late, new LogIncomingSnapshot(incoming!.Capture(boundary.Incoming)));
+                AddLoss(boundary.Invalid, (downstream?.InvalidEventCount ?? workerInvalid) - boundary.WorkerInvalid),
+                AddLoss(boundary.Truncated, (downstream?.TruncatedEventCount ?? workerTruncated) - boundary.WorkerTruncated),
+                observations, late, new LogIncomingSnapshot(incoming!.Capture(boundary.Incoming, boundary.QueueFull)));
         }
     }
 
@@ -174,5 +210,9 @@ public sealed partial class CoreLogRuntime
         return observation;
     }
 
-    private sealed record PipelineBoundary(DateTimeOffset CapturedAtUtc, long Invalid, long Truncated, IncomingFlushBoundary Incoming);
+    private static long AddLoss(long initial, long additional) => initial > long.MaxValue - additional ? long.MaxValue : initial + additional;
+
+    private sealed record PipelineBoundary(DateTimeOffset CapturedAtUtc, long Invalid, long Truncated,
+        long WorkerInvalid, long WorkerTruncated, long QueueFull,
+        IReadOnlyDictionary<string, LogOutputRejectionSnapshot> Rejections, IncomingFlushBoundary Incoming);
 }

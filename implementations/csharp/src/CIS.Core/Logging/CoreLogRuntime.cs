@@ -537,6 +537,7 @@ public sealed partial class CoreLogRuntime : IAsyncDisposable
                 if (isTruncated && (!fromIncoming || !originalWasTruncated))
                 {
                     IncrementLossCounter(ref truncatedEventCount);
+                    if (fromIncoming) { IncrementLossCounter(ref workerTruncated); }
                 }
 
                 if (admissionClosed && !fromIncoming)
@@ -566,7 +567,11 @@ public sealed partial class CoreLogRuntime : IAsyncDisposable
 
     private LogWriteResult Invalid(string code)
     {
-        IncrementLossCounter(ref invalidEventCount);
+        lock (admissionGate)
+        {
+            IncrementLossCounter(ref invalidEventCount);
+            if (processing?.IsOwnCallbackActive == true) { IncrementLossCounter(ref workerInvalid); }
+        }
         return new LogWriteResult(LogWriteOutcome.InvalidEvent, [], code);
     }
 
@@ -596,11 +601,13 @@ public sealed partial class CoreLogRuntime : IAsyncDisposable
             if (Interested(output, level))
             {
                 output.Admission.RecordUnavailable();
+                if (output.CallerUnavailable != long.MaxValue) { output.CallerUnavailable++; }
                 status = LogOutputWriteStatus.Faulted;
             }
             else
             {
                 output.Admission.RecordFiltered();
+                if (output.CallerFiltered != long.MaxValue) { output.CallerFiltered++; }
                 status = LogOutputWriteStatus.Filtered;
             }
 
@@ -730,5 +737,9 @@ public sealed partial class CoreLogRuntime : IAsyncDisposable
         }
     }
 
-    private sealed record Output(string Name, CoreLogLevel Threshold, ILogOutputAdmission Admission, Func<EncodedEvent, RenderedEvent>? Prepare = null);
+    private sealed record Output(string Name, CoreLogLevel Threshold, ILogOutputAdmission Admission, Func<EncodedEvent, RenderedEvent>? Prepare = null)
+    {
+        internal long CallerFiltered { get; set; }
+        internal long CallerUnavailable { get; set; }
+    }
 }

@@ -3,13 +3,13 @@ namespace CIS.Logging;
 /// <summary>The aggregate admission outcome; acceptance is not delivery confirmation.</summary>
 public enum LogWriteOutcome : int
 {
-    /// <summary>The runtime accepted the captured event into its incoming queue. This is not writer admission or delivery confirmation.</summary>
+    /// <summary>The public runtime accepted the captured event into its incoming queue. Internal output-stage qualification uses this for admission by every interested output. Neither confirms delivery.</summary>
     Accepted = 0,
     /// <summary>Some interested outputs accepted and others rejected.</summary>
     PartiallyAccepted = 1,
     /// <summary>No configured output was interested.</summary>
     Filtered = 2,
-    /// <summary>No interested output accepted.</summary>
+    /// <summary>Incoming admission was rejected, or no interested output accepted on an early or internal output-stage path.</summary>
     Rejected = 3,
     /// <summary>Runtime admission is closed.</summary>
     Stopped = 4,

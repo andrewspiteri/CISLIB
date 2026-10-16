@@ -21,7 +21,7 @@ public enum LogWriterFlushStatus
     Failed = 3
 }
 
-/// <summary>Owned rejection counts captured when a flush boundary was registered.</summary>
+/// <summary>Owned caller rejection counts at registration plus worker rejections through the covered incoming prefix.</summary>
 public sealed class LogOutputRejectionSnapshot
 {
     internal LogOutputRejectionSnapshot(long filtered, long queueFull, long unavailable)
@@ -70,7 +70,7 @@ public sealed class LogOutputDrainResult
     public LogWriterFlushStatus WriterFlushStatus { get; }
     /// <summary>Whether the writer confirmed its buffer flush.</summary>
     public bool WriterFlushSucceeded => WriterFlushStatus == LogWriterFlushStatus.Succeeded;
-    /// <summary>Rejection counts frozen at initial boundary capture.</summary>
+    /// <summary>Caller rejection counts at registration plus covered worker rejections, frozen before later input dispatch.</summary>
     public LogOutputRejectionSnapshot Rejections { get; }
 }
 
@@ -101,9 +101,9 @@ public sealed class LogFlushResult
     public DateTimeOffset BoundaryCapturedAtUtc { get; }
     /// <summary>The system UTC label of this final owned observation; not an elapsed deadline.</summary>
     public DateTimeOffset ObservedAtUtc { get; }
-    /// <summary>The cumulative invalid-event count at initial capture.</summary>
+    /// <summary>The cumulative invalid-event count at registration plus later invalid processing through the covered incoming prefix.</summary>
     public long InvalidEventCount { get; }
-    /// <summary>The cumulative truncated-event count at initial capture.</summary>
+    /// <summary>The cumulative truncated-event count at registration plus later truncation through the covered incoming prefix.</summary>
     public long TruncatedEventCount { get; }
     /// <summary>Owned console, file, then registered-writer observations; disabled outputs are omitted.</summary>
     public IReadOnlyList<LogOutputDrainResult> Outputs { get; }

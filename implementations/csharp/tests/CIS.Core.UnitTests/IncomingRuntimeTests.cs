@@ -167,6 +167,110 @@ public sealed class IncomingRuntimeTests
         finally { release.TrySetResult(); await runtime.DisposeAsync(); }
     }
 
+
+    [TestMethod]
+    public async Task FlushKeepsCallerLossSnapshotsWhileCoveredWorkWaits()
+    {
+        var start = Signal(); var runtime = Create([new Writer()], start.Task);
+        try
+        {
+            var logger = runtime.CreateLogger("Snapshots");
+            logger.Info("covered");
+            Task<LogFlushResult> first = runtime.FlushAsync(Limit, CancellationToken.None);
+            Assert.AreEqual(LogWriteOutcome.InvalidEvent, logger.Write(CoreLogLevel.Information,
+                new LogEventData { EventName = "", Message = "invalid" }).Outcome);
+            Assert.IsTrue(logger.Info(new string('x', 9000)).IsTruncated);
+            Task<LogFlushResult> second = runtime.FlushAsync(Limit, CancellationToken.None);
+            start.TrySetResult();
+            LogFlushResult before = await first.WaitAsync(Limit), after = await second.WaitAsync(Limit);
+            Assert.IsTrue(before.Succeeded); Assert.IsFalse(before.LossObserved);
+            Assert.AreEqual(0L, before.InvalidEventCount); Assert.AreEqual(0L, before.TruncatedEventCount);
+            Assert.AreEqual(1L, after.InvalidEventCount); Assert.AreEqual(1L, after.TruncatedEventCount);
+            Assert.AreEqual(1L, before.Incoming!.Accepted); Assert.AreEqual(2L, after.Incoming!.Accepted);
+        }
+        finally { start.TrySetResult(); await runtime.DisposeAsync(); }
+    }
+
+    [TestMethod]
+    public async Task CoalescedFlushesKeepTheirOwnIncomingRejections()
+    {
+        var start = Signal(); var runtime = Create([new Writer()], start.Task, capacity: 1);
+        try
+        {
+            var logger = runtime.CreateLogger("Coalesced"); logger.Info("covered");
+            Task<LogFlushResult> first = runtime.FlushAsync(Limit, CancellationToken.None);
+            Assert.AreEqual("IncomingQueueFull", logger.Info("rejected-one").ErrorCode);
+            Assert.AreEqual("IncomingQueueFull", logger.Info("rejected-two").ErrorCode);
+            Task<LogFlushResult> second = runtime.FlushAsync(Limit, CancellationToken.None);
+            start.TrySetResult();
+            LogFlushResult before = await first.WaitAsync(Limit), after = await second.WaitAsync(Limit);
+            Assert.AreEqual(1L, before.Incoming!.Accepted); Assert.AreEqual(1L, after.Incoming!.Accepted);
+            Assert.AreEqual(0L, before.Incoming.QueueFull); Assert.AreEqual(2L, after.Incoming.QueueFull);
+            Assert.IsFalse(before.LossObserved); Assert.IsTrue(after.LossObserved);
+        }
+        finally { start.TrySetResult(); await runtime.DisposeAsync(); }
+    }
+
+    [TestMethod]
+    public async Task StopExcludesTruncationFromCaptureThatLosesAdmissionRace()
+    {
+        var start = Signal(); var entered = Signal(); var release = Signal();
+        var runtime = Create([new Writer()], start.Task);
+        try
+        {
+            var logger = runtime.CreateLogger("StopRace"); logger.Info("covered");
+            Task<LogWriteResult> write = Task.Run(() => logger.InfoLazy(() =>
+            {
+                entered.TrySetResult(); release.Task.WaitAsync(Limit).GetAwaiter().GetResult();
+                return new LogEventData { EventName = "late", Message = new string('x', 9000) };
+            }));
+            await entered.Task.WaitAsync(Limit);
+            Task<LogStopResult> stop = runtime.StopAsync(CancellationToken.None);
+            release.TrySetResult(); LogWriteResult late = await write.WaitAsync(Limit);
+            Assert.AreEqual(LogWriteOutcome.Stopped, late.Outcome); Assert.IsTrue(late.IsTruncated);
+            start.TrySetResult(); LogStopResult result = await stop.WaitAsync(Limit);
+            Assert.IsTrue(result.Succeeded); Assert.IsFalse(result.LossObserved);
+            Assert.AreEqual(0L, result.TruncatedEventCount); Assert.AreEqual(1L, runtime.GetDiagnostics().TruncatedEventCount);
+        }
+        finally { release.TrySetResult(); start.TrySetResult(); await runtime.DisposeAsync(); }
+    }
+
+
+    [TestMethod]
+    public async Task FlushExcludesLaterEarlyOutputDecisionsAndRetainsCoveredWorkerRejections()
+    {
+        var entered = Signal(); var release = Signal(); int calls = 0;
+        var runtime = QueuedRuntimeFactory.CreateConfiguredQueued(new EventMetadata(),
+            new LoggingOptions { ConsoleLevel = CoreLogLevel.None, FileLevel = CoreLogLevel.None, QueueCapacity = 4 },
+            writers: [new("failed", new Writer((_, _) => throw new IOException()), CoreLogLevel.Information),
+                new("healthy", new Writer(), CoreLogLevel.Error)],
+            processing: new LogProcessingOptions
+            {
+                Interceptors = [_ =>
+            {
+                if (Interlocked.Increment(ref calls) == 2)
+                { entered.TrySetResult(); release.Task.WaitAsync(Limit).GetAwaiter().GetResult(); }
+                return new();
+            }]
+            });
+        try
+        {
+            var logger = runtime.CreateLogger("Rejections"); logger.Info("fault-writer");
+            await Assert.ThrowsExactlyAsync<IOException>(() => runtime.QueuedOutputs!.Get("failed").Completion.WaitAsync(Limit));
+            logger.Error("covered"); await entered.Task.WaitAsync(Limit);
+            Task<LogFlushResult> first = runtime.FlushAsync(Limit, CancellationToken.None);
+            Assert.AreEqual(LogWriteOutcome.Rejected, logger.Info("later-unavailable").Outcome);
+            Task<LogFlushResult> second = runtime.FlushAsync(Limit, CancellationToken.None);
+            release.TrySetResult();
+            LogFlushResult before = await first.WaitAsync(Limit), after = await second.WaitAsync(Limit);
+            Assert.AreEqual(1L, before.Outputs.Single(output => output.OutputName == "failed").Rejections.Unavailable);
+            Assert.AreEqual(2L, after.Outputs.Single(output => output.OutputName == "failed").Rejections.Unavailable);
+            Assert.AreEqual(1L, before.Outputs.Single(output => output.OutputName == "healthy").Rejections.Filtered);
+            Assert.AreEqual(2L, after.Outputs.Single(output => output.OutputName == "healthy").Rejections.Filtered);
+        }
+        finally { release.TrySetResult(); await runtime.DisposeAsync(); }
+    }
+
     private sealed class Writer(Func<string, CancellationToken, ValueTask>? write = null) : ILogWriter
     {
         internal ConcurrentQueue<string> Lines { get; } = new();

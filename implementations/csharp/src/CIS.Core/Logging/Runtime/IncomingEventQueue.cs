@@ -61,22 +61,22 @@ internal sealed class IncomingEventQueue
         lock (gate)
         {
             if (boundaries.TryGetValue(accepted, out var existing)) { return existing; }
-            var boundary = new IncomingFlushBoundary(accepted, queueFull);
+            var boundary = new IncomingFlushBoundary(accepted);
             if (settled == accepted) { Resolve(boundary, observedAt); }
             else { boundaries.Add(accepted, boundary); }
             return boundary;
         }
     }
 
-    internal IncomingAccounting Capture(IncomingFlushBoundary? boundary = null)
+    internal IncomingAccounting Capture(IncomingFlushBoundary? boundary = null, long? callerQueueFull = null)
     {
         lock (gate)
         {
-            if (boundary?.Observation is { } frozen) { return frozen; }
+            if (boundary?.Observation is { } frozen) { return frozen with { QueueFull = callerQueueFull ?? frozen.QueueFull }; }
             long target = boundary?.Target ?? accepted;
             long discarded = firstAbandoned == 0 ? 0 : Math.Max(0, target - firstAbandoned + 1);
             return new(target, processed, failed, discarded, target - processed - failed - discarded,
-                boundary?.QueueFull ?? queueFull, rejectedByWriters, suppressed, duplicateSuppressed, duplicateKeyEvictions);
+                callerQueueFull ?? queueFull, rejectedByWriters, suppressed, duplicateSuppressed, duplicateKeyEvictions);
         }
     }
 
@@ -172,10 +172,9 @@ internal sealed class IncomingEventQueue
 internal readonly record struct IncomingEvent(long Sequence, CoreLogLevel Level, CapturedEventFacts Facts);
 internal readonly record struct IncomingAccounting(long Accepted, long Processed, long Failed, long Abandoned, long Pending, long QueueFull, long RejectedByWriters = 0,
     long Suppressed = 0, long DuplicateSuppressed = 0, long DuplicateKeyEvictions = 0);
-internal sealed class IncomingFlushBoundary(long target, long queueFull)
+internal sealed class IncomingFlushBoundary(long target)
 {
     internal long Target { get; } = target;
-    internal long QueueFull { get; } = queueFull;
     internal TaskCompletionSource Ready { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
     internal IncomingAccounting? Observation { get; set; }
     internal RuntimeFlushBoundary? Outputs { get; set; }
