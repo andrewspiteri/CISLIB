@@ -155,7 +155,8 @@ internal static class ConsoleStartupFixture
     }
     internal static int Run(string path, string id)
     {
-        JsonObject catalog = JsonNode.Parse(File.ReadAllText(path))!.AsObject(), row = catalog["cases"]!.AsArray().Single(value => value!["id"]!.GetValue<string>() == id)!.AsObject();
+        byte[] inputBytes = File.ReadAllBytes(path);
+        JsonObject catalog = JsonNode.Parse(inputBytes)!.AsObject(), row = catalog["cases"]!.AsArray().Single(value => value!["id"]!.GetValue<string>() == id)!.AsObject();
         JsonObject actual = ExecuteAsync(row).GetAwaiter().GetResult(); ConsoleStartupExpectations.Validate(row, actual);
         actual["observed"] = new JsonObject
         {
@@ -164,7 +165,7 @@ internal static class ConsoleStartupFixture
             ["operatingSystem"] = OperatingSystem.IsWindows() ? "windows" : "linux",
             ["fixtureSha256"] = Hash(typeof(ConsoleStartupFixture).Assembly.Location),
             ["coreSha256"] = Hash(typeof(CoreLogRuntime).Assembly.Location),
-            ["inputsSha256"] = Hash(path)
+            ["inputsSha256"] = Convert.ToHexStringLower(SHA256.HashData(inputBytes))
         };
         Console.WriteLine(actual.ToJsonString()); return 0;
     }

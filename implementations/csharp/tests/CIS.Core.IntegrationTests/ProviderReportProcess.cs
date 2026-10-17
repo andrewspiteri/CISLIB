@@ -34,15 +34,18 @@ internal static class ProviderReportProcess
             ProviderHostFilterExpectations.Validate(mode, report, child.StandardErrorBytes, child.ProcessId);
         }
         string file = Path.Combine(root.Path, "logs Ω", "active.log");
-        bool exists = family != "provider-host-filter" || mode != "core-off";
+        bool exists = family == "provider-behavior" ? ProviderBehaviorExpectations.IsPhysicalMode(mode) : family != "provider-host-filter" || mode != "core-off";
         Assert.AreEqual(exists, File.Exists(file));
         if (family == "provider-host-filter") { Assert.AreEqual(exists, report["fileExists"]!.GetValue<bool>()); }
         byte[] actual = exists ? File.ReadAllBytes(file) : [];
-        CollectionAssert.AreEqual(actual, Convert.FromBase64String(report[family == "provider-host-filter" ? "fileBytes" : "bytes"]!.GetValue<string>()));
+        if (exists || family != "provider-behavior") { CollectionAssert.AreEqual(actual, Convert.FromBase64String(report[family == "provider-host-filter" ? "fileBytes" : "bytes"]!.GetValue<string>())); }
         if (exists) { using var lease = new FileStream(file + ".cis.lock", FileMode.Open, FileAccess.ReadWrite, FileShare.None); }
         context.WriteLine("Physical provider command: " + string.Join(" ", arguments));
         context.WriteLine("Physical child PID: " + child.ProcessId);
         context.WriteLine("Physical file SHA-256: " + Convert.ToHexStringLower(SHA256.HashData(actual)));
+        context.WriteLine("Original stdout SHA-256: " + Convert.ToHexStringLower(SHA256.HashData(child.StandardOutputBytes.Span)));
+        context.WriteLine("Original stderr SHA-256: " + Convert.ToHexStringLower(SHA256.HashData(child.StandardErrorBytes.Span)));
+        context.WriteLine("Physical file exists/lease reacquired: " + exists);
         context.WriteLine("Physical provider report: " + report.ToJsonString());
         if (family == "provider-host-filter") { context.WriteLine("Physical console bytes (base64): " + Convert.ToBase64String(child.StandardErrorBytes.Span)); }
         return new(report, child.StandardError, child.ProcessId);

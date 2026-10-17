@@ -146,8 +146,9 @@ internal static class DeliveryObservationFixture
     };
     internal static int Run(string path, string id)
     {
-        JsonObject row = JsonNode.Parse(File.ReadAllText(path))!["cases"]!.AsArray().Single(item => item!["id"]!.GetValue<string>() == id)!.AsObject(); JsonObject actual = ExecuteAsync(row).GetAwaiter().GetResult(); DeliveryObservationExpectations.Validate(row, actual);
-        actual["observed"] = new JsonObject { ["processId"] = System.Environment.ProcessId, ["runtimeDescription"] = RuntimeInformation.FrameworkDescription, ["operatingSystem"] = OperatingSystem.IsWindows() ? "windows" : "linux", ["fixtureSha256"] = Hash(typeof(DeliveryObservationFixture).Assembly.Location), ["coreSha256"] = Hash(typeof(CoreLogRuntime).Assembly.Location), ["inputsSha256"] = Hash(path) }; Console.WriteLine(actual.ToJsonString()); return 0;
+        byte[] inputBytes = File.ReadAllBytes(path);
+        JsonObject row = JsonNode.Parse(inputBytes)!["cases"]!.AsArray().Single(item => item!["id"]!.GetValue<string>() == id)!.AsObject(); JsonObject actual = ExecuteAsync(row).GetAwaiter().GetResult(); DeliveryObservationExpectations.Validate(row, actual);
+        actual["observed"] = new JsonObject { ["processId"] = System.Environment.ProcessId, ["runtimeDescription"] = RuntimeInformation.FrameworkDescription, ["operatingSystem"] = OperatingSystem.IsWindows() ? "windows" : "linux", ["fixtureSha256"] = Hash(typeof(DeliveryObservationFixture).Assembly.Location), ["coreSha256"] = Hash(typeof(CoreLogRuntime).Assembly.Location), ["inputsSha256"] = Convert.ToHexStringLower(SHA256.HashData(inputBytes)) }; Console.WriteLine(actual.ToJsonString()); return 0;
     }
     private static string Hash(string path) => Convert.ToHexStringLower(SHA256.HashData(File.ReadAllBytes(path)));
 }

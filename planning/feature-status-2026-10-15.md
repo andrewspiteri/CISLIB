@@ -12,6 +12,8 @@ The logger binding correction passes 185 unit and 148 integration cases per nati
 
 Explicit UTC and decoded privacy corrections pass all 96 selected integration cases per native lane, including ten required reader controls. [Evidence](evidence/corrective-utc-privacy-2026-10-17/README.md).
 
+Owned input-byte and provider evidence corrections pass 1,365 selected integration cases per native lane. All 29 catalog entry points bind parsing and hashes to one read; four provider families reuse the existing physical report helper. [Evidence](evidence/corrective-input-identity-2026-10-17/README.md).
+
 ## Repository and package foundation
 
 - Separate CISLIB Git repository, organized for multiple modules and future language implementations under `implementations/<language>`.

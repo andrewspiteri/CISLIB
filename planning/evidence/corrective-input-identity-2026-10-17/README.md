@@ -1,0 +1,11 @@
+# Owned fixture input bytes and consistent provider evidence
+
+17 October 2026, based on 3311cf12. Closes INPUT-IDENTITY with direct changes to test fixtures only.
+
+All 29 child entry points which previously parsed a catalog and hashed a second read now read one byte array, parse that array and hash that array. This covers configuration, console, values, scopes, exceptions, events, logger, rendering, queue and diagnostics fixtures. Diagnostics also parses and hashes the same owned bytes for its referenced source catalog. No shipping reader or public API changes.
+
+Provider foundation, behavior, mapping and state process cases reuse the existing ProviderReportProcess helper. It records the actual command/PID, before/after loaded assembly hashes, raw stdout/stderr hashes, physical file hash and full report in native TRX output. Physical cases compare the real file bytes and independently reacquire its exclusive lease. Nonphysical behavior modes remain explicitly nonphysical and do not claim a file/lease observation.
+
+Each lane passes 1,239 primary integration cases and 126 additional cases (Ubuntu additional selection is 114 plus 12 human-rendering cases), zero failures/skips. Raw focused summaries are retained. An initial broad method-name filter accidentally included five candidate-package consumers and correctly failed the stale-package hash guard; no acceptance rule was weakened. One Windows configuration child then exceeded its existing 15-second deadline during concurrent cross-lane runs; the same complete primary selection passed unchanged on rerun. These earlier attempts remain under .artifacts/csharp/focused (d164d88939934c88a497c9fb2d2dd9ae, ec0863e49bce4fec9aa1741d9ad8d782, 755351224910450faa2c623b41b2dac4).
+
+CIS navigation before edits: fresh ProviderReportProcess class lookup, build 0b1307be632f583061bdd51f5d7ba5d54cf425dd3a8fa3b8acc3ad999e276c83; no diagnostics or truncation. Focused fixture checks do not repeat the full checkpoint, exact cross-lane package qualification, coverage, mutation, compatibility or release gates. The roadmap stays paused.

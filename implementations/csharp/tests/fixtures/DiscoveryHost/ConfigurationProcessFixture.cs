@@ -10,7 +10,8 @@ internal static class ConfigurationProcessFixture
 {
     public static int Run(string path, string id)
     {
-        JsonObject row = ConfigurationFixtureAdapter.Case(ConfigurationFixtureAdapter.ReadDocument(path), id);
+        byte[] inputBytes = File.ReadAllBytes(path);
+        JsonObject row = ConfigurationFixtureAdapter.Case(JsonNode.Parse(inputBytes)!.AsObject(), id);
         JsonObject input = row["inputs"]!.AsObject();
         JsonNode hostBefore = input["host"]!.DeepClone();
         string? frameworkBefore = System.Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
@@ -34,7 +35,7 @@ internal static class ConfigurationProcessFixture
                 ["processId"] = System.Environment.ProcessId,
                 ["fixtureSha256"] = Hash(typeof(ConfigurationProcessFixture).Assembly.Location),
                 ["coreSha256"] = Hash(typeof(EnvironmentOptions).Assembly.Location),
-                ["inputsSha256"] = Hash(path),
+                ["inputsSha256"] = Convert.ToHexStringLower(SHA256.HashData(inputBytes)),
                 ["recognizedReads"] = new JsonArray(source.Reads.Select(name => (JsonNode)JsonValue.Create(name)!).ToArray())
             }
         };

@@ -9,7 +9,8 @@ internal static class OperationScopeQualificationProcessFixture
 {
     internal static async Task<int> RunAsync(string path, string id)
     {
-        JsonObject catalog = JsonNode.Parse(File.ReadAllText(path))!.AsObject();
+        byte[] inputBytes = File.ReadAllBytes(path);
+        JsonObject catalog = JsonNode.Parse(inputBytes)!.AsObject();
         JsonObject row = catalog["cases"]!.AsArray().Single(row => row!["id"]!.GetValue<string>() == id)!.AsObject();
         JsonObject result = await OperationScopeQualificationFixture.ExecuteAsync(row).ConfigureAwait(false);
         OperationScopeQualificationExpectations.Validate(row, catalog["nativeBindings"]!.AsObject(), result);
@@ -22,7 +23,7 @@ internal static class OperationScopeQualificationProcessFixture
                 : OperatingSystem.IsMacOS() ? "macos" : "unknown",
             ["fixtureSha256"] = Hash(typeof(OperationScopeQualificationProcessFixture).Assembly.Location),
             ["coreSha256"] = Hash(typeof(OperationScopeStore).Assembly.Location),
-            ["inputsSha256"] = Hash(path)
+            ["inputsSha256"] = Convert.ToHexStringLower(SHA256.HashData(inputBytes))
         };
         Console.WriteLine(result.ToJsonString());
         return 0;

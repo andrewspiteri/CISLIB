@@ -9,7 +9,8 @@ internal static class JsonlReuseProcessFixture
 {
     internal static int Run(string path, string id)
     {
-        JsonObject catalog = JsonNode.Parse(File.ReadAllText(path))!.AsObject();
+        byte[] inputBytes = File.ReadAllBytes(path);
+        JsonObject catalog = JsonNode.Parse(inputBytes)!.AsObject();
         JsonObject row = catalog["cases"]!.AsArray().Single(item => item!["id"]!.GetValue<string>() == id)!.AsObject();
         JsonObject actual = JsonlReuseFixture.Execute(row); JsonlReuseExpectations.Validate(catalog, row, actual);
         actual["observed"] = new JsonObject
@@ -19,7 +20,7 @@ internal static class JsonlReuseProcessFixture
             ["operatingSystem"] = OperatingSystem.IsWindows() ? "windows" : OperatingSystem.IsLinux() ? "linux" : "unknown",
             ["fixtureSha256"] = Hash(typeof(JsonlReuseProcessFixture).Assembly.Location),
             ["coreSha256"] = Hash(typeof(LogEventData).Assembly.Location),
-            ["inputsSha256"] = Hash(path)
+            ["inputsSha256"] = Convert.ToHexStringLower(SHA256.HashData(inputBytes))
         };
         Console.WriteLine(actual.ToJsonString()); return 0;
     }

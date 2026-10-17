@@ -9,7 +9,8 @@ internal static class ConfigurationPathProcessFixture
 {
     public static int Run(string inputPath, string id, string afterDirectory)
     {
-        JsonObject row = ConfigurationFixtureAdapter.Case(ConfigurationFixtureAdapter.ReadDocument(inputPath), id);
+        byte[] inputBytes = File.ReadAllBytes(inputPath);
+        JsonObject row = ConfigurationFixtureAdapter.Case(JsonNode.Parse(inputBytes)!.AsObject(), id);
         JsonObject input = row["inputs"]!.AsObject();
         string initialActualDirectory = Directory.GetCurrentDirectory();
         int directoryReads = 0;
@@ -45,7 +46,7 @@ internal static class ConfigurationPathProcessFixture
                 ["runtimeDescription"] = RuntimeInformation.FrameworkDescription,
                 ["fixtureSha256"] = Hash(typeof(ConfigurationPathProcessFixture).Assembly.Location),
                 ["coreSha256"] = Hash(typeof(EnvironmentOptions).Assembly.Location),
-                ["inputsSha256"] = Hash(inputPath),
+                ["inputsSha256"] = Convert.ToHexStringLower(SHA256.HashData(inputBytes)),
                 ["recognizedReads"] = new JsonArray(source.Reads.Select(name => (JsonNode)JsonValue.Create(name)!).ToArray())
             }
         };

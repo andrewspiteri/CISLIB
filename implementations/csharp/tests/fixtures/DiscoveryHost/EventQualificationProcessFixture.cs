@@ -9,7 +9,8 @@ internal static class EventQualificationProcessFixture
 {
     internal static async Task<int> RunAsync(string path, string id)
     {
-        JsonObject catalog = JsonNode.Parse(File.ReadAllText(path))!.AsObject();
+        byte[] inputBytes = File.ReadAllBytes(path);
+        JsonObject catalog = JsonNode.Parse(inputBytes)!.AsObject();
         JsonObject row = catalog["cases"]!.AsArray().Single(item => item!["id"]!.GetValue<string>() == id)!.AsObject();
         JsonObject actual = await EventQualificationFixture.ExecuteAsync(row).ConfigureAwait(false);
         EventQualificationExpectations.Validate(catalog, row, actual);
@@ -21,7 +22,7 @@ internal static class EventQualificationProcessFixture
             ["operatingSystem"] = OperatingSystem.IsWindows() ? "windows" : OperatingSystem.IsLinux() ? "linux" : "unknown",
             ["fixtureSha256"] = Hash(typeof(EventQualificationProcessFixture).Assembly.Location),
             ["coreSha256"] = Hash(typeof(LogEventData).Assembly.Location),
-            ["inputsSha256"] = Hash(path)
+            ["inputsSha256"] = Convert.ToHexStringLower(SHA256.HashData(inputBytes))
         };
         Console.WriteLine(actual.ToJsonString()); return 0;
     }

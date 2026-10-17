@@ -181,7 +181,8 @@ internal static class ConsoleConsumerFixture
     }
     internal static int Run(string path, string id)
     {
-        JsonObject catalog = JsonNode.Parse(File.ReadAllText(path))!.AsObject(), row = catalog["cases"]!.AsArray().Single(value => value!["id"]!.GetValue<string>() == id)!.AsObject();
+        byte[] inputBytes = File.ReadAllBytes(path);
+        JsonObject catalog = JsonNode.Parse(inputBytes)!.AsObject(), row = catalog["cases"]!.AsArray().Single(value => value!["id"]!.GetValue<string>() == id)!.AsObject();
         JsonObject actual = ExecuteAsync(row).GetAwaiter().GetResult(); ConsoleConsumerExpectations.Validate(catalog, row, actual);
         actual["observed"] = new JsonObject
         {
@@ -189,7 +190,7 @@ internal static class ConsoleConsumerFixture
             ["operatingSystem"] = OperatingSystem.IsWindows() ? "windows" : "linux",
             ["fixtureSha256"] = Hash(typeof(ConsoleConsumerFixture).Assembly.Location),
             ["coreSha256"] = Hash(typeof(CoreLogRuntime).Assembly.Location),
-            ["inputsSha256"] = Hash(path),
+            ["inputsSha256"] = Convert.ToHexStringLower(SHA256.HashData(inputBytes)),
             ["processId"] = System.Environment.ProcessId
         };
         // With default stderr this one JSON value is the complete stdout command result.

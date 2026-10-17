@@ -9,7 +9,8 @@ internal static class LogValueProcessFixture
 {
     public static int Run(string inputPath, string id, bool collections = false, bool qualification = false)
     {
-        JsonObject row = ConfigurationFixtureAdapter.Case(ConfigurationFixtureAdapter.ReadDocument(inputPath), id);
+        byte[] inputBytes = File.ReadAllBytes(inputPath);
+        JsonObject row = ConfigurationFixtureAdapter.Case(JsonNode.Parse(inputBytes)!.AsObject(), id);
         JsonObject result;
         if (qualification)
         {
@@ -32,7 +33,7 @@ internal static class LogValueProcessFixture
             ["operatingSystem"] = OperatingSystem.IsWindows() ? "windows" : "linux",
             ["fixtureSha256"] = Hash(typeof(LogValueProcessFixture).Assembly.Location),
             ["coreSha256"] = Hash(typeof(LogValue).Assembly.Location),
-            ["inputsSha256"] = Hash(inputPath)
+            ["inputsSha256"] = Convert.ToHexStringLower(SHA256.HashData(inputBytes))
         };
         Console.WriteLine(result.ToJsonString());
         return 0;
