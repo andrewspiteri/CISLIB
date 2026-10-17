@@ -1,0 +1,84 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TestRun id="7dd2f0df-cad9-4698-a201-e6592d6e7d97" name="andrs@ARCTURUS 2026-10-17 16:04:29" runUser="ARCTURUS\andrs" xmlns="http://microsoft.com/schemas/VisualStudio/TeamTest/2010">
+  <Times creation="2026-10-17T16:04:29.0826454+02:00" queuing="2026-10-17T16:04:29.0826459+02:00" start="2026-10-17T16:04:27.8407572+02:00" finish="2026-10-17T16:04:29.0885906+02:00" />
+  <TestSettings name="default" id="d75163a7-062e-4a7f-a2d8-4ce66130f1e9">
+    <Deployment runDeploymentRoot="andrs_ARCTURUS_2026-10-17_16_04_29" />
+  </TestSettings>
+  <Results>
+    <UnitTestResult executionId="930fd6c1-3268-415b-a09d-b8eb1f7bd111" testId="1e6f9072-8719-8e41-a05b-536660768da8" testName="DetachedCallbackRejectionUsesItsOwnCallerRegistration (False)" computerName="ARCTURUS" duration="00:00:00.1079707" startTime="2026-10-17T16:04:28.7562341+02:00" endTime="2026-10-17T16:04:28.8902357+02:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Failed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="930fd6c1-3268-415b-a09d-b8eb1f7bd111">
+      <Output>
+        <ErrorInfo>
+          <Message>Assertion failed. Expected values to be equal.&#xD;
+An ended callback flow cannot add worker loss to a later prefix.&#xD;
+&#xD;
+expected: 0&#xD;
+actual:   1&#xD;
+&#xD;
+Assert.AreEqual(rejectionBeforeRegistration ? 1L : 0L, result.InvalidEventCount)</Message>
+          <StackTrace>   at CIS.Tests.UnitTests.IncomingRuntimeTests.DetachedCallbackRejectionUsesItsOwnCallerRegistration(Boolean rejectionBeforeRegistration) in C:\miscwork\portfolio\cislib\implementations\csharp\tests\CIS.Core.UnitTests\IncomingRuntimeTests.cs:line 337&#xD;
+   at CIS.Tests.UnitTests.IncomingRuntimeTests.DetachedCallbackRejectionUsesItsOwnCallerRegistration(Boolean rejectionBeforeRegistration) in C:\miscwork\portfolio\cislib\implementations\csharp\tests\CIS.Core.UnitTests\IncomingRuntimeTests.cs:line 342&#xD;
+   at Microsoft.VisualStudio.TestPlatform.MSTest.TestAdapter.Execution.TestMethodInfo.ExecuteInternalAsync(Object[] arguments, CancellationTokenSource timeoutTokenSource, TestInvocationState invocationState)</StackTrace>
+        </ErrorInfo>
+      </Output>
+    </UnitTestResult>
+    <UnitTestResult executionId="924da3c3-e942-463b-87bb-eb6bd8c6602a" testId="15320194-6e8d-83a5-8cbf-984664a8788b" testName="IncomingFlushTimeoutKeepsOnlyItsRegisteredOutputLoss (True)" computerName="ARCTURUS" duration="00:00:00.1908210" startTime="2026-10-17T16:04:28.7562256+02:00" endTime="2026-10-17T16:04:28.9702908+02:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="924da3c3-e942-463b-87bb-eb6bd8c6602a" />
+    <UnitTestResult executionId="41874d41-2ddd-4d9b-933c-80366379740e" testId="1dd5aae9-dfbe-8255-ba61-6b25b5e46816" testName="JoinedCallbackChildRejectionStillBelongsToItsActiveWorkerPrefix" computerName="ARCTURUS" duration="00:00:00.1058541" startTime="2026-10-17T16:04:28.7562266+02:00" endTime="2026-10-17T16:04:28.8902497+02:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="41874d41-2ddd-4d9b-933c-80366379740e" />
+    <UnitTestResult executionId="843075c6-71be-4a31-856e-19ba26020cc4" testId="1c8c3aa6-108e-8de2-9441-4edfdb3088bc" testName="IncomingFlushTimeoutKeepsOnlyItsRegisteredOutputLoss (False)" computerName="ARCTURUS" duration="00:00:00.1910699" startTime="2026-10-17T16:04:28.7562560+02:00" endTime="2026-10-17T16:04:28.9732284+02:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Failed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="843075c6-71be-4a31-856e-19ba26020cc4">
+      <Output>
+        <ErrorInfo>
+          <Message>Assertion failed. Expected values to be equal.&#xD;
+Registration loss must survive without admitting later caller loss.&#xD;
+&#xD;
+expected: true&#xD;
+actual:   false&#xD;
+&#xD;
+Assert.AreEqual(!rejectionAfterRegistration, result.LossObserved)</Message>
+          <StackTrace>   at CIS.Tests.UnitTests.IncomingRuntimeTests.IncomingFlushTimeoutKeepsOnlyItsRegisteredOutputLoss(Boolean rejectionAfterRegistration) in C:\miscwork\portfolio\cislib\implementations\csharp\tests\CIS.Core.UnitTests\IncomingRuntimeTests.cs:line 302&#xD;
+   at CIS.Tests.UnitTests.IncomingRuntimeTests.IncomingFlushTimeoutKeepsOnlyItsRegisteredOutputLoss(Boolean rejectionAfterRegistration) in C:\miscwork\portfolio\cislib\implementations\csharp\tests\CIS.Core.UnitTests\IncomingRuntimeTests.cs:line 306&#xD;
+   at Microsoft.VisualStudio.TestPlatform.MSTest.TestAdapter.Execution.TestMethodInfo.ExecuteInternalAsync(Object[] arguments, CancellationTokenSource timeoutTokenSource, TestInvocationState invocationState)</StackTrace>
+        </ErrorInfo>
+      </Output>
+    </UnitTestResult>
+    <UnitTestResult executionId="45c0bd7a-2093-4927-9db5-bf2f508d35af" testId="19ddfd9c-e336-87e5-b794-a8b726b83238" testName="DetachedCallbackRejectionUsesItsOwnCallerRegistration (True)" computerName="ARCTURUS" duration="00:00:00.1048996" startTime="2026-10-17T16:04:28.7562671+02:00" endTime="2026-10-17T16:04:28.8902391+02:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="45c0bd7a-2093-4927-9db5-bf2f508d35af" />
+  </Results>
+  <TestDefinitions>
+    <UnitTest name="JoinedCallbackChildRejectionStillBelongsToItsActiveWorkerPrefix" storage="c:\miscwork\portfolio\cislib\implementations\csharp\tests\cis.core.unittests\bin\debug\net10.0\cis.core.unittests.dll" id="1dd5aae9-dfbe-8255-ba61-6b25b5e46816">
+      <Execution id="41874d41-2ddd-4d9b-933c-80366379740e" />
+      <TestMethod codeBase="C:\miscwork\portfolio\cislib\implementations\csharp\tests\CIS.Core.UnitTests\bin\Debug\net10.0\CIS.Core.UnitTests.dll" adapterTypeName="executor://mstestadapter/v4" className="CIS.Tests.UnitTests.IncomingRuntimeTests" name="JoinedCallbackChildRejectionStillBelongsToItsActiveWorkerPrefix" />
+    </UnitTest>
+    <UnitTest name="IncomingFlushTimeoutKeepsOnlyItsRegisteredOutputLoss (True)" storage="c:\miscwork\portfolio\cislib\implementations\csharp\tests\cis.core.unittests\bin\debug\net10.0\cis.core.unittests.dll" id="15320194-6e8d-83a5-8cbf-984664a8788b">
+      <Execution id="924da3c3-e942-463b-87bb-eb6bd8c6602a" />
+      <TestMethod codeBase="C:\miscwork\portfolio\cislib\implementations\csharp\tests\CIS.Core.UnitTests\bin\Debug\net10.0\CIS.Core.UnitTests.dll" adapterTypeName="executor://mstestadapter/v4" className="CIS.Tests.UnitTests.IncomingRuntimeTests" name="IncomingFlushTimeoutKeepsOnlyItsRegisteredOutputLoss" />
+    </UnitTest>
+    <UnitTest name="DetachedCallbackRejectionUsesItsOwnCallerRegistration (True)" storage="c:\miscwork\portfolio\cislib\implementations\csharp\tests\cis.core.unittests\bin\debug\net10.0\cis.core.unittests.dll" id="19ddfd9c-e336-87e5-b794-a8b726b83238">
+      <Execution id="45c0bd7a-2093-4927-9db5-bf2f508d35af" />
+      <TestMethod codeBase="C:\miscwork\portfolio\cislib\implementations\csharp\tests\CIS.Core.UnitTests\bin\Debug\net10.0\CIS.Core.UnitTests.dll" adapterTypeName="executor://mstestadapter/v4" className="CIS.Tests.UnitTests.IncomingRuntimeTests" name="DetachedCallbackRejectionUsesItsOwnCallerRegistration" />
+    </UnitTest>
+    <UnitTest name="IncomingFlushTimeoutKeepsOnlyItsRegisteredOutputLoss (False)" storage="c:\miscwork\portfolio\cislib\implementations\csharp\tests\cis.core.unittests\bin\debug\net10.0\cis.core.unittests.dll" id="1c8c3aa6-108e-8de2-9441-4edfdb3088bc">
+      <Execution id="843075c6-71be-4a31-856e-19ba26020cc4" />
+      <TestMethod codeBase="C:\miscwork\portfolio\cislib\implementations\csharp\tests\CIS.Core.UnitTests\bin\Debug\net10.0\CIS.Core.UnitTests.dll" adapterTypeName="executor://mstestadapter/v4" className="CIS.Tests.UnitTests.IncomingRuntimeTests" name="IncomingFlushTimeoutKeepsOnlyItsRegisteredOutputLoss" />
+    </UnitTest>
+    <UnitTest name="DetachedCallbackRejectionUsesItsOwnCallerRegistration (False)" storage="c:\miscwork\portfolio\cislib\implementations\csharp\tests\cis.core.unittests\bin\debug\net10.0\cis.core.unittests.dll" id="1e6f9072-8719-8e41-a05b-536660768da8">
+      <Execution id="930fd6c1-3268-415b-a09d-b8eb1f7bd111" />
+      <TestMethod codeBase="C:\miscwork\portfolio\cislib\implementations\csharp\tests\CIS.Core.UnitTests\bin\Debug\net10.0\CIS.Core.UnitTests.dll" adapterTypeName="executor://mstestadapter/v4" className="CIS.Tests.UnitTests.IncomingRuntimeTests" name="DetachedCallbackRejectionUsesItsOwnCallerRegistration" />
+    </UnitTest>
+  </TestDefinitions>
+  <TestEntries>
+    <TestEntry testId="1e6f9072-8719-8e41-a05b-536660768da8" executionId="930fd6c1-3268-415b-a09d-b8eb1f7bd111" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="15320194-6e8d-83a5-8cbf-984664a8788b" executionId="924da3c3-e942-463b-87bb-eb6bd8c6602a" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="1dd5aae9-dfbe-8255-ba61-6b25b5e46816" executionId="41874d41-2ddd-4d9b-933c-80366379740e" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="1c8c3aa6-108e-8de2-9441-4edfdb3088bc" executionId="843075c6-71be-4a31-856e-19ba26020cc4" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="19ddfd9c-e336-87e5-b794-a8b726b83238" executionId="45c0bd7a-2093-4927-9db5-bf2f508d35af" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+  </TestEntries>
+  <TestLists>
+    <TestList name="Results Not in a List" id="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestList name="All Loaded Results" id="19431567-8539-422a-85d7-44ee4e166bda" />
+  </TestLists>
+  <ResultSummary outcome="Failed">
+    <Counters total="5" executed="5" passed="3" failed="2" error="0" timeout="0" aborted="0" inconclusive="0" passedButRunAborted="0" notRunnable="0" notExecuted="0" disconnected="0" warning="0" completed="0" inProgress="0" pending="0" />
+    <Output>
+      <StdOut>Test Parallelization enabled for C:\miscwork\portfolio\cislib\implementations\csharp\tests\CIS.Core.UnitTests\bin\Debug\net10.0\CIS.Core.UnitTests.dll (Workers: 20, Scope: MethodLevel)&#xD;
+</StdOut>
+    </Output>
+  </ResultSummary>
+</TestRun>

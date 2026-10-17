@@ -117,7 +117,8 @@ public sealed partial class CoreLogRuntime
             return new LogFlushResult(boundary.CapturedAtUtc, DateTimeOffset.UtcNow,
                 AddLoss(boundary.Invalid, (downstream?.InvalidEventCount ?? workerInvalid) - boundary.WorkerInvalid),
                 AddLoss(boundary.Truncated, (downstream?.TruncatedEventCount ?? workerTruncated) - boundary.WorkerTruncated),
-                observations, late, new LogIncomingSnapshot(incoming!.Capture(boundary.Incoming, boundary.QueueFull)));
+                observations, late, new LogIncomingSnapshot(incoming!.Capture(boundary.Incoming, boundary.QueueFull)),
+                registrationLoss: boundary.Rejections.Values.Any(rejection => rejection.Unavailable > 0));
         }
     }
 

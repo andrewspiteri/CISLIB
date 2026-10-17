@@ -11287,6 +11287,20 @@
       "minimumExecutions": 8,
       "lanes": [ "windows-x64", "linux-ubuntu2404-x64" ],
       "source": "17 October evidence follow-up: silent/nonempty commands must create or replace their log, with success/failure exit behavior preserved."
+    },
+    {
+      "id": "UT-REVIEW-INCOMING-REGISTRATION-LOSS",
+      "family": "unit",
+      "implementation": "Implemented",
+      "method": null,
+      "minimumExecutions": 5,
+      "bindings": [
+        { "method": "CIS.Tests.UnitTests.IncomingRuntimeTests.IncomingFlushTimeoutKeepsOnlyItsRegisteredOutputLoss", "minimumExecutions": 2 },
+        { "method": "CIS.Tests.UnitTests.IncomingRuntimeTests.DetachedCallbackRejectionUsesItsOwnCallerRegistration", "minimumExecutions": 2 },
+        { "method": "CIS.Tests.UnitTests.IncomingRuntimeTests.JoinedCallbackChildRejectionStillBelongsToItsActiveWorkerPrefix", "minimumExecutions": 1 }
+      ],
+      "lanes": [ "windows-x64", "linux-ubuntu2404-x64" ],
+      "source": "Approved continuation 22-F1/F4: registration loss survives unresolved input, late detached callback rejection remains caller-side, and joined child effects remain covered."
     }
   ]
 }

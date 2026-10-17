@@ -8,7 +8,7 @@ namespace CIS.Logging.Runtime;
 // unbounded recursive input, including through Task.Run or a second runtime.
 internal sealed class EventProcessing
 {
-    private static readonly AsyncLocal<EventProcessing?> Active = new();
+    private static readonly AsyncLocal<CallbackScope?> Active = new();
     private readonly Func<LogProcessingEvent, LogEventChanges>[] interceptors;
     private readonly Func<LogProcessingEvent, bool>? filter;
     private readonly Func<string, LogProcessingEvent, bool>? route;
@@ -26,11 +26,12 @@ internal sealed class EventProcessing
         filter = options.Filter; route = options.Route; duplicate = options.DuplicateSuppression; this.clock = clock; this.maximumBytes = maximumBytes;
     }
     internal static bool IsCallbackActive => Active.Value is not null;
-    internal bool IsOwnCallbackActive => ReferenceEquals(Active.Value, this);
+    internal bool IsOwnCallbackActive => Active.Value is { } scope && ReferenceEquals(scope.Owner, this) && Volatile.Read(ref scope.Executing) != 0;
 
     internal ProcessingDecision Prepare(CapturedEventFacts facts, CoreLogLevel level, IReadOnlyList<string> destinations)
     {
-        EventProcessing? previous = Active.Value; Active.Value = this;
+        CallbackScope? previous = Active.Value;
+        var current = new CallbackScope(this); Active.Value = current;
         try
         {
             facts = Bound(facts);
@@ -49,9 +50,15 @@ internal sealed class EventProcessing
             Expire(now);
             return new(facts, selected, key is not null && keys.ContainsKey(key), key is not null && keys.ContainsKey(key), key);
         }
-        finally { Active.Value = previous; }
+        finally { Volatile.Write(ref current.Executing, 0); Active.Value = previous; }
     }
 
+    // Inherited flows stay recursion-protected, but cannot charge a later prefix after this callback ends.
+    private sealed class CallbackScope(EventProcessing owner)
+    {
+        internal EventProcessing Owner { get; } = owner;
+        internal int Executing = 1;
+    }
     // Called after actual writer admission, so rejected events do not poison the duplicate window.
     internal bool Remember(string? key)
     {

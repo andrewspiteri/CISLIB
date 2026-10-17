@@ -17,6 +17,8 @@ Owned input-byte and provider evidence corrections pass 1,365 selected integrati
 
 All eleven confirmed 17 October correction IDs now have verified scoped fixes. Current guidance, provider scope ownership and inventory lane descriptions are reconciled; 46 scope controls pass per lane with distinct accessor sentinels. [Guidance evidence](evidence/corrective-guidance-scope-2026-10-17/README.md). The combined checkpoint now passes both native lanes; seven approved review bundles and release gates remain separate.
 
+The afternoon [approved review continuation](reviews/corrective-continuation-2026-10-17/README.md) completes 23/24 bundles (339/352 assigned paths); only governance bundle 20 remains after a weekly quota refusal. Newly reproduced incoming loss/accounting findings 22-F1/F4 are now fixed with five regressions; all 61 selected unit cases pass per native lane. [Evidence](evidence/corrective-incoming-registration-loss-2026-10-17/README.md). Further supported continuation findings are in progress; the preceding complete checkpoint predates this delta.
+
 ## Repository and package foundation
 
 - Separate CISLIB Git repository, organized for multiple modules and future language implementations under `implementations/<language>`.

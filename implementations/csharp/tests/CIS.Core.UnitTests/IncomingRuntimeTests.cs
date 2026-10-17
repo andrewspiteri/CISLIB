@@ -271,6 +271,109 @@ public sealed class IncomingRuntimeTests
         finally { release.TrySetResult(); await runtime.DisposeAsync(); }
     }
 
+    [TestMethod]
+    [DataRow(false)]
+    [DataRow(true)]
+    public async Task IncomingFlushTimeoutKeepsOnlyItsRegisteredOutputLoss(bool rejectionAfterRegistration)
+    {
+        var entered = Signal(); var release = Signal();
+        var runtime = QueuedRuntimeFactory.CreateConfiguredQueued(new EventMetadata(),
+            new LoggingOptions { ConsoleLevel = CoreLogLevel.None, FileLevel = CoreLogLevel.None, QueueCapacity = 4 },
+            writers: [new("failed", new Writer((_, _) => throw new IOException()), CoreLogLevel.Information),
+                new("healthy", new Writer(), CoreLogLevel.Error)],
+            processing: new LogProcessingOptions
+            {
+                Interceptors = [value =>
+            {
+                if (value.Message == "covered") { entered.TrySetResult(); release.Task.WaitAsync(Limit).GetAwaiter().GetResult(); }
+                return new();
+            }]
+            });
+        try
+        {
+            var logger = runtime.CreateLogger("TimeoutLoss");
+            logger.Info("fault-writer");
+            await Assert.ThrowsExactlyAsync<IOException>(() => runtime.QueuedOutputs!.Get("failed").Completion.WaitAsync(Limit));
+            logger.Error("covered"); await entered.Task.WaitAsync(Limit);
+            if (!rejectionAfterRegistration) { Assert.AreEqual(LogWriteOutcome.Rejected, logger.Info("unavailable").Outcome); }
+            Task<LogFlushResult> flush = runtime.FlushAsync(TimeSpan.FromMilliseconds(100), CancellationToken.None);
+            if (rejectionAfterRegistration) { Assert.AreEqual(LogWriteOutcome.Rejected, logger.Info("unavailable").Outcome); }
+            LogFlushResult result = await flush.WaitAsync(Limit);
+            Assert.AreEqual(LogCompletion.TimedOut, result.Completion);
+            Assert.HasCount(0, result.Outputs, "Unresolved input must not invent downstream boundaries.");
+            Assert.AreEqual(1L, result.Incoming!.Pending);
+            Assert.AreEqual(!rejectionAfterRegistration, result.LossObserved, "Registration loss must survive without admitting later caller loss.");
+            release.TrySetResult(); await runtime.StopAsync(CancellationToken.None).WaitAsync(Limit);
+            Assert.AreEqual(!rejectionAfterRegistration, result.LossObserved, "The timeout result stays immutable.");
+        }
+        finally { release.TrySetResult(); await runtime.DisposeAsync(); }
+    }
+
+    [TestMethod]
+    [DataRow(false)]
+    [DataRow(true)]
+    public async Task DetachedCallbackRejectionUsesItsOwnCallerRegistration(bool rejectionBeforeRegistration)
+    {
+        var enterSecond = Signal(); var releaseSecond = Signal(); var releaseChild = Signal();
+        CoreLogRuntime? runtime = null; Task<LogWriteResult>? detached = null;
+        runtime = QueuedRuntimeFactory.CreateConfiguredQueued(new EventMetadata(),
+            new LoggingOptions { ConsoleLevel = CoreLogLevel.None, FileLevel = CoreLogLevel.None },
+            writers: [new("writer", new Writer())],
+            processing: new LogProcessingOptions
+            {
+                Interceptors = [value =>
+            {
+                if (value.Message == "first") { detached = Task.Run(async () => { await releaseChild.Task; return runtime!.CreateLogger("Detached").Info("late"); }); }
+                if (value.Message == "covered") { enterSecond.TrySetResult(); releaseSecond.Task.WaitAsync(Limit).GetAwaiter().GetResult(); }
+                return new();
+            }]
+            });
+        try
+        {
+            var logger = runtime.CreateLogger("Callbacks"); logger.Info("first");
+            Assert.IsTrue((await runtime.FlushAsync(Limit, CancellationToken.None)).Succeeded);
+            Assert.IsNotNull(detached);
+            logger.Info("covered"); await enterSecond.Task.WaitAsync(Limit);
+            if (rejectionBeforeRegistration) { releaseChild.TrySetResult(); await detached.WaitAsync(Limit); }
+            Task<LogFlushResult> flush = runtime.FlushAsync(Limit, CancellationToken.None);
+            releaseChild.TrySetResult();
+            LogWriteResult rejected = await detached.WaitAsync(Limit);
+            Assert.AreEqual("RecursiveProcessing", rejected.ErrorCode);
+            releaseSecond.TrySetResult(); LogFlushResult result = await flush.WaitAsync(Limit);
+            Assert.AreEqual(rejectionBeforeRegistration ? 1L : 0L, result.InvalidEventCount, "An ended callback flow cannot add worker loss to a later prefix.");
+            Assert.AreEqual(rejectionBeforeRegistration, result.LossObserved);
+            Assert.AreEqual(1L, runtime.GetDiagnostics().InvalidEventCount);
+            Assert.AreEqual(2L, result.Incoming!.Processed);
+        }
+        finally { releaseChild.TrySetResult(); releaseSecond.TrySetResult(); if (detached is not null) { await detached.WaitAsync(Limit); } await runtime.DisposeAsync(); }
+    }
+
+    [TestMethod]
+    public async Task JoinedCallbackChildRejectionStillBelongsToItsActiveWorkerPrefix()
+    {
+        CoreLogRuntime? runtime = null; LogWriteResult? rejected = null;
+        runtime = QueuedRuntimeFactory.CreateConfiguredQueued(new EventMetadata(),
+            new LoggingOptions { ConsoleLevel = CoreLogLevel.None, FileLevel = CoreLogLevel.None },
+            writers: [new("writer", new Writer())],
+            processing: new LogProcessingOptions
+            {
+                Interceptors = [_ =>
+            {
+                rejected = Task.Run(() => runtime!.CreateLogger("Child").Info("recursive")).WaitAsync(Limit).GetAwaiter().GetResult();
+                return new();
+            }]
+            });
+        await using (runtime)
+        {
+            runtime.CreateLogger("Parent").Info("covered");
+            LogFlushResult result = await runtime.FlushAsync(Limit, CancellationToken.None);
+            Assert.AreEqual("RecursiveProcessing", rejected!.ErrorCode);
+            Assert.AreEqual(1L, result.InvalidEventCount);
+            Assert.IsTrue(result.LossObserved);
+            Assert.AreEqual(1L, result.Incoming!.Processed);
+            Assert.AreEqual(1L, result.Outputs.Single().Written);
+        }
+    }
     private sealed class Writer(Func<string, CancellationToken, ValueTask>? write = null) : ILogWriter
     {
         internal ConcurrentQueue<string> Lines { get; } = new();
