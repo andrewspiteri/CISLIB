@@ -61,7 +61,7 @@ public sealed class ProviderHostDependencyBoundaryTests
         ProcessResult negative = await Check();
         Assert.AreNotEqual(0, negative.ExitCode, negative.StandardOutput + negative.StandardError);
         StringAssert.Contains(negative.StandardError, expected);
-        Task<ProcessResult> Check() => ProcessRunner.RunAsync("pwsh", ["-NoProfile", "-File", Path.Combine(language, "eng", "check-dependencies.ps1"), "-LanguageRoot", fixture.Path, "-ProjectPath", relative], fixture.Path, TimeSpan.FromSeconds(60));
+        Task<ProcessResult> Check() => DependencyCheckRunner.Run(language, fixture.Path, relative);
     }
 
     private static string FindRoot()

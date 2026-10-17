@@ -26,6 +26,16 @@ if (args.Length > 0 && args[0] is "type-manager-runtime" or "type-manager-instru
 }
 
 
+if (args.Length > 0 && args[0] == "dependencies")
+{
+    return await DependencyChecks.RunAsync(args[1..]);
+}
+
+if (args.Length > 0 && args[0] == "dependency-role-control")
+{
+    return await DependencyRoleControl.RunAsync(args[1..]);
+}
+
 if (args.Length > 0 && args[0] == "compiler-checks")
 {
     return await CompilerChecks.RunAsync(args[1..]);

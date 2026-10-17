@@ -168,9 +168,7 @@ public sealed class DependencyBoundaryTests
     }
     private static Task<ProcessResult> RunProjectCheck(string root, params string[] extraArguments)
     {
-        string script = Path.Combine(LanguageRoot, "eng", "check-dependencies.ps1");
-        string[] arguments = ["-NoProfile", "-File", script, "-LanguageRoot", root, "-ProjectPath", "src/CIS.Core/CIS.Core.csproj", .. extraArguments];
-        return ProcessRunner.RunAsync("pwsh", arguments, root, TimeSpan.FromSeconds(60));
+        return DependencyCheckRunner.Run(LanguageRoot, root, "src/CIS.Core/CIS.Core.csproj", extraArguments);
     }
 
     private static void AssertRejected(ProcessResult result, string expectedRule)

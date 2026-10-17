@@ -21,10 +21,10 @@ MSTest imports three additional assembly references from its build targets. Only
 
 ## Executed gates
 
-[check-dependencies.ps1](../../implementations/csharp/eng/check-dependencies.ps1) checks:
+The stable [check-dependencies.ps1](../../implementations/csharp/eng/check-dependencies.ps1) launcher invokes [DependencyChecks.cs](../../implementations/csharp/eng/CIS.DependencyChecker/DependencyChecks.cs) in the existing C# tool. The native policy checks:
 
 1. All registered evaluated projects, their target/packability, exact project edges, explicit package IDs and frameworks. Convenience frameworks such as ASP.NET cannot enter Core.
-2. Each restored target graph, including exact runtime/development versions and local project origins. Core's runtime closure must equal its approved inventory.
+2. The registered base restored graph, including exact runtime/development versions and local project origins. The separate [all-target inspection](csharp-dependency-allowlists.md) also checks declared target/RID and locked inventories. Core's runtime closure must equal its approved inventory.
 3. Packed dependency groups and versions, and a closed asset list. Bundled third-party/test DLLs, native assets and unapproved content/build scripts are rejected.
 4. Compiled Core DLL references using .NET managed metadata APIs, without executing the inspected assembly. Allowed names come only from the SDK's resolved `Microsoft.NETCore.App` reference pack and approved runtime packages. The packed DLL must match the inspected build when both paths are supplied.
 

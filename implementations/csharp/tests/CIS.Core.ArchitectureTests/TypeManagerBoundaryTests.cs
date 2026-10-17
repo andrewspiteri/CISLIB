@@ -116,9 +116,7 @@ public sealed class TypeManagerBoundaryTests
                     : "deliberately changed package asset");
             }
         }
-        string script = Path.Combine(LanguageRoot, "eng", "check-dependencies.ps1");
-        ProcessResult result = await ProcessRunner.RunAsync("pwsh", ["-NoProfile", "-File", script,
-            "-ProjectPath", "src/CIS.Core/CIS.Core.csproj", "-PackagePath", package, "-AssemblyPath", core], LanguageRoot, TimeSpan.FromSeconds(60));
+        ProcessResult result = await DependencyCheckRunner.Run(LanguageRoot, LanguageRoot, "src/CIS.Core/CIS.Core.csproj", "-PackagePath", package, "-AssemblyPath", core);
 
         if (change == "unchanged")
         {
@@ -131,9 +129,7 @@ public sealed class TypeManagerBoundaryTests
 
     private static Task<ProcessResult> RunCheck(string root, string project)
     {
-        string script = Path.Combine(LanguageRoot, "eng", "check-dependencies.ps1");
-        return ProcessRunner.RunAsync("pwsh", ["-NoProfile", "-File", script, "-LanguageRoot", root,
-            "-ProjectPath", project], root, TimeSpan.FromSeconds(60));
+        return DependencyCheckRunner.Run(LanguageRoot, root, project);
     }
 
     private static void CopyFile(string root, string relativePath)

@@ -81,9 +81,7 @@ public sealed class MicrosoftLoggingPackageBoundaryTests
         AssertRejected(await Check("-PackagePath", path), reason);
     }
 
-    private static Task<ProcessResult> Check(params string[] extra) => ProcessRunner.RunAsync("pwsh",
-        ["-NoProfile", "-File", Path.Combine(LanguageRoot, "eng", "check-dependencies.ps1"), "-ProjectPath", "src/CIS.Core/CIS.Core.csproj", .. extra],
-        LanguageRoot, TimeSpan.FromSeconds(60));
+    private static Task<ProcessResult> Check(params string[] extra) => DependencyCheckRunner.Run(LanguageRoot, LanguageRoot, "src/CIS.Core/CIS.Core.csproj", extra);
     private static void AssertPassed(ProcessResult result) => Assert.AreEqual(0, result.ExitCode, result.StandardOutput + result.StandardError);
     private static void AssertRejected(ProcessResult result, string reason)
     {

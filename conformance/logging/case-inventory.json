@@ -11410,6 +11410,26 @@
       "lanes": [ "windows-x64", "linux-ubuntu2404-x64" ],
       "requirements": [ "REQ-007" ],
       "source": "18 October user-authorized compiler-policy migration; supplements the existing 25 startup, 22 incompatible-shape and 12 actual-Core consumer controls without claiming published compatibility."
+    },
+    {
+      "id": "ARCH-NATIVE-DEPENDENCY-MIGRATION",
+      "family": "architecture",
+      "title": "Native dependency checking preserves project settings, restored membership and the compiled role guard",
+      "implementation": "Implemented",
+      "method": null,
+      "minimumExecutions": 15,
+      "bindings": [
+        { "method": "CIS.Tests.ArchitectureTests.DependencyMigrationTests.EvaluatedShippingSettingsRetainTheirBoundaries", "minimumExecutions": 5 },
+        { "method": "CIS.Tests.ArchitectureTests.DependencyMigrationTests.RestoredInventoryDoesNotLoseRequiredOrUnexpectedEntries", "minimumExecutions": 4 },
+        { "method": "CIS.Tests.ArchitectureTests.DependencyMigrationTests.ManualCoreReferenceIsStillForbidden", "minimumExecutions": 1 },
+        { "method": "CIS.Tests.ArchitectureTests.DependencyMigrationTests.SdkPinsMustAgree", "minimumExecutions": 1 },
+        { "method": "CIS.Tests.ArchitectureTests.DependencyMigrationTests.ProjectInventoryCannotBeBypassed", "minimumExecutions": 2 },
+        { "method": "CIS.Tests.ArchitectureTests.DependencyMigrationTests.SdkBuildToolCannotOmitAnApprovedReference", "minimumExecutions": 1 },
+        { "method": "CIS.Tests.ArchitectureTests.DependencyMigrationTests.ExampleRoleGuardIsObservedByACompiledCheckerMutant", "minimumExecutions": 1 }
+      ],
+      "lanes": [ "windows-x64", "linux-ubuntu2404-x64" ],
+      "requirements": [ "REQ-007" ],
+      "source": "18 October user-authorized native dependency migration. Supplements existing evaluated, restored, compiled and packed negative controls; preserves the example role-guard mutation without qualifying full shipping mutation."
     }
 
   ]

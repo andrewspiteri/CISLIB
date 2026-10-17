@@ -39,7 +39,7 @@ foreach ($name in @('project-boundaries.json', 'runtime-dependencies.json', 'dev
 }
 $inputHashes = @{}
 foreach ($file in $inputFiles) { $inputHashes[$file] = (Get-FileHash (Join-Path $LanguageRoot $file)).Hash.ToLowerInvariant() }
-$report = @{ complete = $false; inputScope = 'Checked project metadata, copied policy and named language configuration; not full transitive build provenance'; inputs = $inputHashes; verifierSha256 = (Get-FileHash $PSCommandPath).Hash.ToLowerInvariant(); checkerSha256 = (Get-FileHash (Join-Path $PSScriptRoot 'check-dependencies.ps1')).Hash.ToLowerInvariant(); results = @() }
+$report = @{ complete = $false; inputScope = 'Checked project metadata, copied policy and named language configuration; not full transitive build provenance'; inputs = $inputHashes; verifierSha256 = (Get-FileHash $PSCommandPath).Hash.ToLowerInvariant(); checkerSha256 = (Get-FileHash (Join-Path $PSScriptRoot 'check-dependencies.ps1')).Hash.ToLowerInvariant(); nativeCheckerSha256 = (Get-FileHash (Join-Path $PSScriptRoot 'CIS.DependencyChecker/DependencyChecks.cs')).Hash.ToLowerInvariant(); results = @() }
 $driver = Join-Path $OutputRoot 'invoke-checker.ps1'
 @'
 param([string] $Checker, [string] $LanguageRoot, [string] $Project)
@@ -106,12 +106,9 @@ foreach ($project in @('src/CIS.Core/CIS.Core.csproj', 'tests/fixtures/TypeManag
         $xml.Save($path)
         Check-Project ('reject-policy-' + [IO.Path]::GetFileNameWithoutExtension($project)) $project "Forbidden framework reference from ${project}: Microsoft.AspNetCore.App"
         if ($project -eq 'src/CIS.Core/CIS.Core.csproj') {
-            $checkerText = [IO.File]::ReadAllText((Join-Path $PSScriptRoot 'check-dependencies.ps1'))
-            $anchor = '$project.role -eq ''example'' -and '
-            if ([regex]::Matches($checkerText, [regex]::Escape($anchor)).Count -ne 1) { throw 'Role-gate mutation anchor is not unique.' }
-            $mutant = Join-Path $OutputRoot 'checker-without-role-gate.ps1'
-            [IO.File]::WriteAllText($mutant, $checkerText.Replace($anchor, ''))
-            & pwsh -NoProfile -File $driver -Checker $mutant -LanguageRoot $LanguageRoot -Project $project *> (Join-Path $OutputRoot 'role-gate-mutant.log')
+            Import-Module (Join-Path $PSScriptRoot 'Evidence.psm1') -Force
+            $tool = Get-EvidenceTool
+            & dotnet $tool dependency-role-control $canonical $LanguageRoot $project $OutputRoot *> (Join-Path $OutputRoot 'role-gate-mutant.log')
             if ($LASTEXITCODE -ne 0) { throw 'Role-gate control is masked by another rejection; inspect the mutant log.' }
             $report.results += @{ case = 'role-gate-mutant-detected'; passed = $true; observed = 'Removing only the role guard accepts the forbidden shipping framework, which the control rejects with the real checker.' }
             Save-Report
