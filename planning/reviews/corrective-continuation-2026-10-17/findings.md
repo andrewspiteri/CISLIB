@@ -5,7 +5,7 @@
 | Review finding | Current disposition | Evidence / scope |
 | --- | --- | --- |
 | 17-F1 rotation recovery lane | Corrected: structured corrective verifier binding; limits distinguish supplemental deletion-denial resume from full S07 qualification. | file-rotation-qualification-map.json; existing scenario identities/minima preserved. |
-| 17-F2 inspection HEAD identity | Corrected: repositoryHeadCommit and explicit HEAD-only sourceIdentityScope replace ambiguous sourceCommit. | ArchitectureInspection; hashed package/binary/policy observations retain their own scope. Fresh inspection is part of the next Developer checkpoint. |
+| 17-F2 inspection HEAD identity | Corrected: repositoryHeadCommit and explicit HEAD-only sourceIdentityScope replace ambiguous sourceCommit. | ArchitectureInspection; hashed package/binary/policy observations retain their own scope. Fresh Windows/Ubuntu inspections are checked in the combined checkpoint audit. |
 | 17-F3 mutable setup description | Corrected: EnvironmentKind, CommitId and BuildId are named alongside logging settings. | functional-reconciliation.json; user-selected setters retained. |
 | 17-F4 profile roots/components | Prepared, not applied: file-specific selector root and missing Type Manager/discovery components. | [Preserved-document patch](preserved-cis-guidance.md). Live user-owned edits remain unchanged. |
 | 17-F5 historical task example | Prepared, not applied: old exception route labelled historical. | Same preserved-document patch; graph validation still pending application. |
@@ -35,4 +35,4 @@
 
 Review bundle 20 remains unavailable after the retained weekly quota refusal. No new payload was sent and no retry is scheduled. Fresh coverage/qualification and the two preserved-document applications remain explicit. Other reviewer questions were not promoted to defects without supporting evidence; no release or current-source Claude PASS is claimed.
 
-The first combined Developer attempts exposed one changed package-diagnostic ordering, with 642/643 architecture cases passing in each lane and business unexecuted. The order is restored without changing test expectations; all 36 affected package cases pass per lane. [Follow-up and failed-run records](../../evidence/corrective-package-diagnostic-order-2026-10-17/README.md). Fresh combined reruns are tracked separately.
+The first combined Developer attempts exposed one changed package-diagnostic ordering, with 642/643 architecture cases passing in each lane and business unexecuted. The order is restored without changing test expectations; all 36 affected package cases pass per lane. [Follow-up and failed-run records](../../evidence/corrective-package-diagnostic-order-2026-10-17/README.md). The corrected combined Developer reruns pass 6,537 Windows and 6,539 Ubuntu cases with zero failures/skips/issues; [combined audit and limits](../../evidence/corrective-continuation-checkpoint-2026-10-17/README.md).
