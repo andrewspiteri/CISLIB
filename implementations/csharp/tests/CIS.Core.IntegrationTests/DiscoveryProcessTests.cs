@@ -37,7 +37,7 @@ public sealed class DiscoveryProcessTests
         Assert.AreEqual(expectedBuild, Text(application, "BuildVersion"));
         Assert.AreEqual(expectedBuild, Text(versions, "BuildVersion"));
         Assert.AreEqual(expectedService, Text(versions, "ServiceVersion"));
-        Assert.AreEqual(scenario == "native" ? "static-constructor" : "controlled-internal-projection", Text(result, "FactBinding"));
+        Assert.AreEqual(scenario == "native" ? "static-constructor" : "controlled-internal-projection", Text(result, "FactBinding"), "Discovery fact binding differs.");
         CollectionAssert.AreEquivalent(new[] { "ApplicationName", "BuildVersion", "CommitId", "BuildId" }, application.Select(pair => pair.Key).ToArray());
         CollectionAssert.AreEquivalent(new[] { "BuildVersion", "ServiceVersion" }, versions.Select(pair => pair.Key).ToArray());
         Assert.IsNull(application["CommitId"]);
@@ -46,16 +46,16 @@ public sealed class DiscoveryProcessTests
         Assert.AreEqual("23.0.0.0", Text(observed, "EntryAssemblyVersion"));
         Assert.AreEqual("88.0.0.0", Text(observed, "EntryFileVersion"));
         Assert.AreEqual("1.0.0.0", Text(observed, "CoreAssemblyVersion"));
-        Assert.AreEqual("CIS.Core", Text(observed, "CoreName"));
-        Assert.AreEqual(".NET 10.0.12", Text(observed, "RuntimeDescription"));
+        Assert.AreEqual("CIS.Core", Text(observed, "CoreName"), "Observed Core name differs.");
+        Assert.AreEqual(".NET 10.0.12", Text(observed, "RuntimeDescription"), "Observed runtime differs.");
         Assert.AreNotEqual(ApplicationBuild, Text(observed, "CoreInformationalVersion"));
         Assert.AreEqual(Hash(FixturePath), Text(observed, "EntrySha256"));
-        Assert.AreEqual(Hash(Path.Combine(Path.GetDirectoryName(FixturePath)!, "CIS.Core.dll")), Text(observed, "CoreSha256"));
+        Assert.AreEqual(Hash(Path.Combine(Path.GetDirectoryName(FixturePath)!, "CIS.Core.dll")), Text(observed, "CoreSha256"), "Observed Core SHA-256 differs.");
         Assert.AreEqual(OperatingSystem.IsWindows() ? "windows" : OperatingSystem.IsLinux() ? "linux" : OperatingSystem.IsMacOS() ? "macos" : "unknown", Text(runtime, "OperatingSystem"));
         Assert.AreEqual(Text(observed, "OperatingSystem"), Text(runtime, "OperatingSystem"));
         string id = Text(initialization, "InstanceId")!;
         Assert.IsTrue(Guid.TryParseExact(id, "D", out Guid uuid));
-        Assert.AreNotEqual(Guid.Empty, uuid);
+        Assert.AreNotEqual(Guid.Empty, uuid, "Initialization instance ID must be nonempty.");
         Assert.AreEqual(uuid.ToString("D"), id);
         DateTimeOffset initialized = Time(initialization, "InitializedAtUtc");
         Assert.AreEqual(TimeSpan.Zero, initialized.Offset);
@@ -143,7 +143,16 @@ public sealed class DiscoveryProcessTests
             case "instance": result["Initialization"]!["InstanceId"] = Guid.Empty.ToString("D"); break;
             default: Assert.Fail("Unknown corruption control."); break;
         }
-        Assert.ThrowsExactly<AssertFailedException>(() => AssertProjection(result, "native", ApplicationBuild, "Deployment.First"));
+        string reason = fault switch
+        {
+            "binding" => "Discovery fact binding differs.",
+            "runtime" => "Observed runtime differs.",
+            "core-name" => "Observed Core name differs.",
+            "core-bytes" => "Observed Core SHA-256 differs.",
+            "instance" => "Initialization instance ID must be nonempty.",
+            _ => throw new AssertFailedException("Unknown corruption control.")
+        };
+        StringAssert.Contains(Assert.ThrowsExactly<AssertFailedException>(() => AssertProjection(result, "native", ApplicationBuild, "Deployment.First")).Message, reason);
     }
 
     private async Task<JsonObject> Run(string scenario, string? core, string? alias)

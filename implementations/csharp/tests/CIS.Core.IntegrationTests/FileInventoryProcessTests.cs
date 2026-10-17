@@ -50,8 +50,10 @@ public sealed class FileInventoryProcessTests
         CollectionAssert.AreEqual(active, File.ReadAllBytes(path));
         if (before is null) { Assert.IsFalse(File.Exists(Metadata(path))); } else { CollectionAssert.AreEqual(before, File.ReadAllBytes(Metadata(path))); }
         // A subsequent raw acquisition proves rollback released the actual group lease.
-        ProcessResult raw = await ProcessRunner.RunAsync("dotnet", ["exec", "--fx-version", "10.0.12", "--roll-forward", "Disable", Host, "file-acquisition", "probe", path], root.Path, Limit);
-        Assert.AreEqual(0, raw.ExitCode, raw.StandardError); Assert.AreEqual("acquired", JsonNode.Parse(raw.StandardOutput)!["status"]!.GetValue<string>());
+        (JsonObject acquired, _) = await FixtureProcessChecks.RunAsync(["file-acquisition", "probe", path], root.Path, TestContext,
+            environment: new Dictionary<string, string?> { ["DOTNET_SYSTEM_IO_DISABLEFILELOCKING"] = null }, timeout: Limit, flatReport: true);
+        Assert.AreEqual("acquired", acquired["status"]!.GetValue<string>());
+        Assert.AreEqual(active.Length, acquired["length"]!.GetValue<long>());
     }
 
     [TestMethod]
