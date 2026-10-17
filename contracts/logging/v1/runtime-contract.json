@@ -7,6 +7,7 @@
   "writeOrder": [
     "Required data/factory nonnull",
     "Defined method level",
+    "Processing callback flow (including inherited child tasks, across runtimes) -> InvalidEvent/RecursiveProcessing without capture",
     "Admission closed -> Stopped",
     "None/no configured interest -> Filtered",
     "All interested outputs faulted -> Rejected without capture",
@@ -15,15 +16,15 @@
     "Attempt nonblocking incoming admission; one worker processes accepted input and attempts independent output admission."
   ],
   "arguments": {
-    "Create": "Captures static EnvironmentOptions facts and prepared LoggingOptions; invalid module settings -> CoreConfigurationException. Null writers/processing argument on its corresponding overload -> ArgumentNullException. Static environment initialization may raise TypeInitializationException. Output initialization -> CoreLogInitializationException with safe OutputName/ErrorCode and rollback of owned resources.",
+    "Create": "Captures static EnvironmentOptions facts and prepared LoggingOptions; invalid module settings -> CoreConfigurationException. Null writers/processing argument on its corresponding overload or null processing.Interceptors -> ArgumentNullException. Null/duplicate writer registrations, duplicate writer names/instances or null interceptor elements -> ArgumentException. Static environment initialization may raise TypeInitializationException. Output initialization -> CoreLogInitializationException with safe component label OutputName (including incoming worker initialization)/ErrorCode and rollback of owned resources.",
     "CreateLogger": "Null component -> ArgumentNullException; empty/blank/control/over-255-scalar component -> ArgumentException. May create a logger after stop; it cannot reopen admission.",
-    "IsEnabled": "Undefined level -> ArgumentOutOfRangeException, including after stop; None/closed/all interested faulted -> false. Queue fullness does not make it false.",
+    "IsEnabled": "Undefined level -> ArgumentOutOfRangeException, including after stop; None/closed/all interested faulted or processing callback flow -> false. Callback restrictions follow inherited child tasks and apply across runtimes. Queue fullness does not make it false.",
     "Write": "Null data -> ArgumentNullException before validating level; undefined level -> ArgumentOutOfRangeException. Invalid captured content -> InvalidEvent/ErrorCode, no output entries. Recursive processing callbacks return InvalidEvent/RecursiveProcessing without capture.",
     "WriteLazy": "Null factory -> ArgumentNullException before validating level. Invoke at most once only after early decision stages. Caller exception propagates unchanged without output entries/capture counts; null return -> InvalidEvent/InvalidFactoryResult.",
     "BeginScope": "Null context -> ArgumentNullException; closed admission -> InvalidOperationException before content traversal. Invalid operation ID -> ArgumentException. Oversized supported payload is copied with truncation provenance. Depth >32 or disposal of a non-head active scope -> InvalidOperationException without scope mutation. Disposal of a scope absent from the current context whose handle has never completed disposal in any flow also throws InvalidOperationException without mutation. The creator alone disposes its handle in its logical flow; repeat disposal in that flow after its successful pop is harmless. Transfer/disposal from another concurrent flow is prohibited. The stated scope-state guards detect some misuse; other misuse has unspecified behavior and no universal cross-flow rejection is promised.",
-    "FlushAsync": "Validate positive finite timeout before registering boundary or checking cancellation; zero/negative/Timeout.InfiniteTimeSpan -> ArgumentOutOfRangeException. Positive TimeSpan values supported. Capture/register boundary even if caller token is already cancelled; cancellation throws OperationCanceledException for the caller only.",
-    "StopAsync": "First request closes admission and starts shared shutdown even when caller token already cancelled; cancellation affects caller wait only.",
-    "DisposeAsync": "Joins shared shutdown, no synchronous Dispose or additional deadline. Repeated disposal safe. Drain failure remains a result, not a thrown business logging I/O failure.",
+    "FlushAsync": "Reject processing callback flows (including inherited child tasks, across runtimes) synchronously with InvalidOperationException first. Then validate positive finite timeout before registering boundary or checking cancellation; zero/negative/Timeout.InfiniteTimeSpan -> ArgumentOutOfRangeException. Positive TimeSpan values supported. Capture/register boundary even if caller token is already cancelled; cancellation throws OperationCanceledException for the caller only.",
+    "StopAsync": "Reject processing callback flows synchronously with InvalidOperationException, including inherited child tasks across runtimes. Otherwise first request closes admission and starts shared shutdown even when caller token already cancelled; cancellation affects caller wait only.",
+    "DisposeAsync": "Joins shared shutdown, no synchronous Dispose or additional deadline. Processing callback flows synchronously throw InvalidOperationException through StopAsync, including inherited child tasks across runtimes. Outside these flows repeated disposal is safe. Drain failure remains a result, not a thrown business logging I/O failure.",
     "GetDiagnostics": "Always available after fault/stop/disposal; creates an owned immutable observation without routing another log."
   },
   "outcomes": {

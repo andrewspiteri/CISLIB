@@ -5,7 +5,7 @@ public enum LogWriteOutcome : int
 {
     /// <summary>The public runtime accepted the captured event into its incoming queue. Internal output-stage qualification uses this for admission by every interested output. Neither confirms delivery.</summary>
     Accepted = 0,
-    /// <summary>Some interested outputs accepted and others rejected.</summary>
+    /// <summary>Internal output-stage qualification: some interested outputs accepted and others rejected. Public incoming admission does not return this outcome.</summary>
     PartiallyAccepted = 1,
     /// <summary>No configured output was interested.</summary>
     Filtered = 2,
@@ -20,11 +20,11 @@ public enum LogWriteOutcome : int
 /// <summary>The admission result for one enabled output.</summary>
 public enum LogOutputWriteStatus : int
 {
-    /// <summary>Accepted by this output.</summary>
+    /// <summary>Internal output-stage qualification: accepted by this output. Public incoming acceptance has no output entries.</summary>
     Accepted = 0,
     /// <summary>Below this output's threshold.</summary>
     Filtered = 1,
-    /// <summary>This output rejected the incoming event because its queue was full.</summary>
+    /// <summary>Internal output-stage qualification: this output rejected admission because its queue was full. Public incoming queue rejection has no output entries.</summary>
     QueueFull = 2,
     /// <summary>This output is faulted.</summary>
     Faulted = 3,

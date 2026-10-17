@@ -84,6 +84,8 @@ public sealed partial class CoreLogRuntime : IAsyncDisposable
     /// <summary>Creates a runtime with additional writers whose registrations are captured at startup.</summary>
     /// <remarks>Built-in destinations retain their configured behavior. Each custom writer has an independent
     /// queue using the captured QueueCapacity. Registration changes after startup do not affect this runtime.</remarks>
+    /// <exception cref="ArgumentNullException">The writers argument is null.</exception>
+    /// <exception cref="ArgumentException">A registration is null or duplicates a writer name or instance.</exception>
     public static CoreLogRuntime Create(IEnumerable<LogWriterRegistration> writers)
     {
         ArgumentNullException.ThrowIfNull(writers);
@@ -93,6 +95,8 @@ public sealed partial class CoreLogRuntime : IAsyncDisposable
     }
 
     /// <summary>Creates a runtime with startup-captured processing policies and optional application writers.</summary>
+    /// <exception cref="ArgumentNullException">Processing or its Interceptors collection is null.</exception>
+    /// <exception cref="ArgumentException">An interceptor or registration is null, or writer names/instances are duplicated.</exception>
     public static CoreLogRuntime Create(LogProcessingOptions processing, IEnumerable<LogWriterRegistration>? writers = null)
     {
         ArgumentNullException.ThrowIfNull(processing);
@@ -127,6 +131,7 @@ public sealed partial class CoreLogRuntime : IAsyncDisposable
     /// <returns>The same owned immutable observation retained for all joining callers.</returns>
     /// <exception cref = "OperationCanceledException">The caller cancels its own wait.</exception>
     /// <remarks>The configured overall timeout is frozen at creation. UTC is an observation label; elapsed time is monotonic. At expiry, unstarted accepted records are abandoned. Cancellation of active writes/flushes is requested but is not guaranteed, and no new flush, retry or replacement writer starts. Completed means terminal dispositions, not successful delivery or resource release. A timed-out observation can retain pending I/O; its later completion does not change the cached result.</remarks>
+    /// <exception cref="InvalidOperationException">Called from a processing callback flow, including inherited child tasks, across runtimes.</exception>
     public Task<LogStopResult> StopAsync(CancellationToken cancellationToken)
     {
         if (EventProcessing.IsCallbackActive) { throw new InvalidOperationException("Processing callbacks cannot stop a logging runtime."); }
@@ -204,7 +209,8 @@ public sealed partial class CoreLogRuntime : IAsyncDisposable
 
     /// <summary>Starts or joins the original bounded stop operation without a new drain window.</summary>
     /// <returns>A wait on the same shared operation; unsuccessful draining remains visible in LastStopResult.</returns>
-    /// <remarks>Repeated disposal is harmless. At the original deadline this wait may complete while actual I/O and owned cleanup remain pending; no resource is disposed beneath active I/O. Inspect GetDiagnostics().LastStopResult for the immutable drain outcome.</remarks>
+    /// <remarks>Outside processing callback flows, repeated disposal is harmless. At the original deadline this wait may complete while actual I/O and owned cleanup remain pending; no resource is disposed beneath active I/O. Inspect GetDiagnostics().LastStopResult for the immutable drain outcome.</remarks>
+    /// <exception cref="InvalidOperationException">Thrown synchronously from a processing callback flow, including inherited child tasks, across runtimes.</exception>
     public ValueTask DisposeAsync() => new(StopAsync(CancellationToken.None));
     private async Task RunStopAsync(RuntimeFlushBoundary boundary, long started, TaskCompletionSource<LogStopResult> completion)
     {
@@ -285,6 +291,7 @@ public sealed partial class CoreLogRuntime : IAsyncDisposable
     /// <exception cref = "ArgumentOutOfRangeException">The timeout is zero, negative or infinite.</exception>
     /// <exception cref = "OperationCanceledException">The caller token is cancelled, including after boundary registration.</exception>
     /// <remarks>UTC labels are system observations; elapsed deadlines use the runtime TimeProvider. Flush does not stop admission or guarantee disk durability. After closure it cannot reopen a writer; a terminal writer returns an unavailable/failed flush even if the original stop flushed successfully. Inspect LastStopResult for that original shutdown outcome.</remarks>
+    /// <exception cref="InvalidOperationException">Called from a processing callback flow, including inherited child tasks across runtimes. This guard precedes timeout validation.</exception>
     public Task<LogFlushResult> FlushAsync(TimeSpan timeout, CancellationToken cancellationToken)
     {
         if (EventProcessing.IsCallbackActive) { throw new InvalidOperationException("Processing callbacks cannot flush a logging runtime."); }

@@ -194,6 +194,10 @@ public static class LogErrorCodes
     public const string EnvelopeTooLarge = "EnvelopeTooLarge";
     public const string IncomingQueueFull = "IncomingQueueFull";
     public const string RecursiveProcessing = "RecursiveProcessing";
+    public const string ConsoleInitializationFailed = "ConsoleInitializationFailed";
+    public const string FileFlushTimerInitializationFailed = "FileFlushTimerInitializationFailed";
+    public const string WorkerInitializationFailed = "WorkerInitializationFailed";
+    public const string ShutdownTimerCleanupFailed = "ShutdownTimerCleanupFailed";
     public const string OutputInitializationFailed = "OutputInitializationFailed";
     public const string OutputOwnershipUnavailable = "OutputOwnershipUnavailable";
     public const string WriteFailed = "WriteFailed";

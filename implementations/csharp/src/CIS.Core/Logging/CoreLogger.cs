@@ -14,6 +14,7 @@ public sealed partial class CoreLogger
     }
 
     /// <summary>Checks running output interest without reserving queue capacity.</summary>
+    /// <remarks>Returns false in processing callback flows, including inherited child tasks across runtimes.</remarks>
     /// <exception cref="ArgumentOutOfRangeException">The level is undefined.</exception>
     public bool IsEnabled(CoreLogLevel level) => runtime.IsEnabled(level);
 

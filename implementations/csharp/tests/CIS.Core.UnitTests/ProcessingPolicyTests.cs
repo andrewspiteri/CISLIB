@@ -155,6 +155,8 @@ public sealed class ProcessingPolicyTests
             Assert.IsNotNull(Task.Run(runtime!.GetDiagnostics).WaitAsync(Limit).GetAwaiter().GetResult(), "No admission lock may be held around callbacks.");
             Assert.ThrowsExactly<InvalidOperationException>(() => runtime.FlushAsync(Limit, CancellationToken.None));
             Assert.ThrowsExactly<InvalidOperationException>(() => runtime.StopAsync(CancellationToken.None));
+            Assert.ThrowsExactly<InvalidOperationException>(() => runtime.FlushAsync(TimeSpan.Zero, CancellationToken.None));
+            Assert.ThrowsExactly<InvalidOperationException>(() => runtime.DisposeAsync());
             return new();
         }]
         }, [writer]);
