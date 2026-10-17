@@ -13,3 +13,5 @@ The two scope map sentinels now throw InvalidDataException from non-enumerating 
 A CIS graph refresh failed in the external CLI's FrontendContextService.AtomicWrite with UnauthorizedAccessException replacing .cis/local/frontend/context.json. The subsequent symbol lookup correctly reported stale inputs. No CLI source or derived state was edited to conceal it; a final refresh will be retried. This does not affect native test execution.
 
 Focused results do not repeat full Developer, coverage, mutation, compatibility or release gates. No new public instrumentation or validation framework. The original roadmap remains paused.
+
+The final graph retry succeeded with fresh build 632773f2115f0774626fa4f5916fac1247e1b1840ad19630a63a982b69d5b693 and zero diagnostics. A further Ubuntu selection passes 273 logger/JSONL/diagnostic/console unit cases and all four logger-qualification architecture cases. The combined 6,511 Windows / 6,513 Ubuntu Developer checkpoint also passes; see [final receipt](../corrective-confirmed-findings-checkpoint-2026-10-17/README.md).

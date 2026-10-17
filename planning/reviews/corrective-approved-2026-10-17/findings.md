@@ -20,6 +20,8 @@
 
 The inherited scope-depth accessor and bookkeeping footnotes are also corrected: non-enumerating map accessors throw a distinct InvalidDataException rather than the depth guard exception, with all 46 selected scope cases passing per native lane. Fixture-local validatedWorkingDirectory and captureCalls are explicitly labelled bookkeeping, not independent production observations. No public instrumentation API was added. [Evidence](../../evidence/corrective-guidance-scope-2026-10-17/README.md).
 
+All eleven groups above and the inherited footnotes are now corrected. The combined checkpoint passes 6,511 Windows and 6,513 Ubuntu cases with zero failures/skips/issues. [Final evidence and remaining gate limits](../../evidence/corrective-confirmed-findings-checkpoint-2026-10-17/README.md).
+
 ## Concerns resolved by omitted context
 
 - **Scope qualification controls are present.** OperationScopeQualificationTests retains all six named faults; duplicate process controls are unnecessary.
@@ -31,7 +33,7 @@ The inherited scope-depth accessor and bookkeeping footnotes are also corrected:
 - **Reserved writer names and initial state are guarded.** LogWriterRegistration rejects console/file, and LogOutputState.Running is explicitly zero. Suppression counters execute in committed closures under the incoming gate, not speculative preparation.
 - **Reported Windows alias failure is not established for the actual helper.** TemporaryDirectory normalizes its root before fixture construction. [Probe](configuration-alias-probe.json) confirms the naive alias mechanism but agreement for the helper-normalized base. No files were created in Program Files.
 - **Relative inventory-root failure did not reproduce.** The bridge correctly resolves a relative root after Set-Location; current callers also pass absolute roots. PSDrive inputs are a separate question.
-- **Ubuntu development evidence exists.** The old prompts predate the current complete Ubuntu run. The latest checkpoint passes 6,445 native cases with zero failures/skips/issues; the inventory's stale Windows-only descriptions do not prove missing Linux execution.
+- **Ubuntu development evidence exists.** The old prompts predate the current complete Ubuntu run. The earlier source-inventory checkpoint passed 6,445 native cases; the combined corrective checkpoint now passes 6,513 with zero failures/skips/issues; the inventory's stale Windows-only descriptions do not prove missing Linux execution.
 
 ## Open limits and proportionate follow-up
 
