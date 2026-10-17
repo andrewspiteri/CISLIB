@@ -253,6 +253,9 @@ try {
             $dependencyIds = [Collections.Generic.HashSet[string]]::new([StringComparer]::OrdinalIgnoreCase)
             foreach ($dependency in $dependencies) {
                 if (-not $dependencyIds.Add($dependency.id)) { throw "Duplicate packed dependency: $($dependency.id)" }
+            }
+            if ($dependencies.Count -ne $directPackages.Count) { throw 'Packed direct dependency inventory mismatch.' }
+            foreach ($dependency in $dependencies) {
                 $expected = @($directPackages | Where-Object id -eq $dependency.id)
                 if ($expected.Count -ne 1 -or $dependency.version -ne $expected[0].version) { throw "Unapproved packed dependency: $($dependency.id)/$($dependency.version)" }
             }

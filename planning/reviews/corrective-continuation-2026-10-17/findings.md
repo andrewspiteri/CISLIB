@@ -34,3 +34,5 @@
 | 23-F2 evidence-map date | Corrected to Updated 17 October. | Type Manager acceptance-evidence.md. |
 
 Review bundle 20 remains unavailable after the retained weekly quota refusal. No new payload was sent and no retry is scheduled. Fresh coverage/qualification and the two preserved-document applications remain explicit. Other reviewer questions were not promoted to defects without supporting evidence; no release or current-source Claude PASS is claimed.
+
+The first combined Developer attempts exposed one changed package-diagnostic ordering, with 642/643 architecture cases passing in each lane and business unexecuted. The order is restored without changing test expectations; all 36 affected package cases pass per lane. [Follow-up and failed-run records](../../evidence/corrective-package-diagnostic-order-2026-10-17/README.md). Fresh combined reruns are tracked separately.

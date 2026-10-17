@@ -1,0 +1,7 @@
+# Package diagnostic-order follow-up
+
+17 October 2026, after 490c9adf. Full Developer attempts 9e680490632244edbda1860f03900f4f (Windows) and 4e960894c27c4b4599d60e636a38bd7f (Ubuntu) each found the same single architecture failure. The stricter dependency checker reported an unapproved NLog identity before the existing extra-dependency test's cardinality diagnostic. In each lane 642/643 architecture cases passed and one failed; business did not run. Neither attempt is a passing checkpoint. Raw reports/packages are retained under .artifacts/corrective/continuation-checkpoint-2026-10-17/{windows,ubuntu}-before-diagnostic-order and corresponding -packages directories. Thin raw summaries/validation remain here without byte conversion.
+
+The fix rejects duplicate nuspec IDs first, then preserves established cardinality, identity/version and exact-set checks. The old expected reasons remain unchanged; duplicate controls remain specific and effective. No new test abstraction, behavior promise or gate change.
+
+All 36 affected C# cases pass on Windows e37fd9a3a46d43e5863bbba1275506f5 and native Ubuntu b6dd250f8cd64c71994336b37c6b5484, zero failures/skips. This includes the MicrosoftLoggingPackageBoundaryTests omitted by the earlier dependency-class selection. Complete Developer reruns are separately retained; focused checks alone do not close those checkpoints or release gates. The roadmap stays paused.

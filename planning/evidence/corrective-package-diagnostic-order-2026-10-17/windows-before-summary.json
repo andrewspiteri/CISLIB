@@ -1,0 +1,279 @@
+{
+  "schema": "cis.verification/v1",
+  "profile": "Developer",
+  "lane": "windows-x64",
+  "runId": "9e680490632244edbda1860f03900f4f",
+  "startedUtc": "2026-10-17T14:46:45.3553492Z",
+  "finishedUtc": "2026-10-17T15:11:23.4471752Z",
+  "exitCode": 1,
+  "source": {
+    "commit": "490c9adfdae5efa50579c06663a509ef26d46d2c",
+    "inputInventory": {
+      "path": "source-inputs.json",
+      "sha256": "4c1d91aa53258c7a1f572b8293606230546caddff68ad6bf52ce1ea3203626a9",
+      "schema": "cis.source-inputs/v1"
+    }
+  },
+  "families": [
+    {
+      "id": "unit",
+      "status": "Executed",
+      "reason": null,
+      "scope": "foundation-only",
+      "discovery": {
+        "path": "families/unit/discovery.json",
+        "sha256": "f06dac20e32472397879b92cdf190be3ebfa4766add74e858bd96aafc00c201f",
+        "schema": "cis.discovery/v1"
+      },
+      "execution": {
+        "path": "families/unit/execution.json",
+        "sha256": "5334db2fc78d5bc71ba7c5a5caafba7dc359d99e71cd0de41a2523aa629647f3",
+        "schema": "cis.execution/v1"
+      },
+      "report": {
+        "path": "families/unit/report.trx",
+        "sha256": "ef6be5e16ee6ee3ee1da354244130a3b5d172b7f628e39ef0261a69244256635",
+        "schema": "vstest.trx/2010"
+      }
+    },
+    {
+      "id": "integration",
+      "status": "Executed",
+      "reason": null,
+      "scope": "foundation-only",
+      "discovery": {
+        "path": "families/integration/discovery.json",
+        "sha256": "7238254a4d7eea48504b5ac9295ed348e9203ea22c4819755ead6a197d8dc27a",
+        "schema": "cis.discovery/v1"
+      },
+      "execution": {
+        "path": "families/integration/execution.json",
+        "sha256": "b68b0e3ed856e3d8dba3665f4b6190b35ff9e986ebaadb6a5d8c361f5bb555d8",
+        "schema": "cis.execution/v1"
+      },
+      "report": {
+        "path": "families/integration/report.trx",
+        "sha256": "6f0db6d68cc2dc4d2f2e48b6932495e0cc449e8afda8a701558b97a8f29be4fe",
+        "schema": "vstest.trx/2010"
+      }
+    },
+    {
+      "id": "mutation",
+      "status": "NotRun",
+      "reason": "Explicit parser toolchain and dedicated embedded Microsoft adapter qualification commands; full matrix remains separate from the fast developer profile.",
+      "scope": "foundation-only",
+      "discovery": {
+        "path": "families/mutation/discovery.json",
+        "sha256": "d21e04bd463ea9248d0400dccd096c6a1c6c339ed5cd38a3098e99839f83651c",
+        "schema": "cis.discovery/v1"
+      },
+      "execution": {
+        "path": "families/mutation/execution.json",
+        "sha256": "2f17a2b3eeaec49c37d10ec890f064778c482f7c70e4492e6fae464e98166d15",
+        "schema": "cis.execution/v1"
+      },
+      "report": null
+    },
+    {
+      "id": "architecture",
+      "status": "Executed",
+      "reason": null,
+      "scope": "foundation-only",
+      "discovery": {
+        "path": "families/architecture/discovery.json",
+        "sha256": "44238a9dc2e0dbedb75a30925bfbb3ff589a89e472899a1689500c223eb4eda2",
+        "schema": "cis.discovery/v1"
+      },
+      "execution": {
+        "path": "families/architecture/execution.json",
+        "sha256": "a5845ffe9153d99e47b73b12d03a2e5491655be88288047ad74a4b12924ba11e",
+        "schema": "cis.execution/v1"
+      },
+      "report": {
+        "path": "families/architecture/report.trx",
+        "sha256": "8a5eccdee7eb21a2e39c7f5d557d68fb9a2d90dcb36411f80dceaab3e789afdf",
+        "schema": "vstest.trx/2010"
+      }
+    },
+    {
+      "id": "compatibility",
+      "status": "NotRun",
+      "reason": "Native Type Manager development compatibility and provenance controls run explicitly through eng/test.ps1 -Project CompatibilityTests with the pinned ApiCompat tool and .NET 8 host. They are not credited by this Developer profile. Provider fixtures retain their separate command; complete cumulative family qualification remains WP07.",
+      "scope": "foundation-only",
+      "discovery": {
+        "path": "families/compatibility/discovery.json",
+        "sha256": "e22c0680acae408682f0be9290fe07cf572e72d5b160631ff1ec172b0892cee2",
+        "schema": "cis.discovery/v1"
+      },
+      "execution": {
+        "path": "families/compatibility/execution.json",
+        "sha256": "a697c248f3d7f67bbf6b9289b082458e6d9566fc5d30f9f5c53a15b598e04b7e",
+        "schema": "cis.execution/v1"
+      },
+      "report": null
+    },
+    {
+      "id": "business",
+      "status": "NotRun",
+      "reason": null,
+      "scope": "foundation-only",
+      "discovery": {
+        "path": "families/business/discovery.json",
+        "sha256": "5bc7eeca2644fca19d65f1e5332fac3e835e740e81183899ec27f7bddcfabbe3",
+        "schema": "cis.discovery/v1"
+      },
+      "execution": {
+        "path": "families/business/execution.json",
+        "sha256": "41947d264ca5f9fcbc9242d6980993fb5b573b3e5d2d3d3e209ffd3e3f9eccb2",
+        "schema": "cis.execution/v1"
+      },
+      "report": null
+    }
+  ],
+  "stages": [
+    {
+      "id": "restore",
+      "status": "Passed",
+      "exitCode": 0,
+      "startedUtc": "2026-10-17T14:47:59.7524625Z",
+      "finishedUtc": "2026-10-17T14:48:09.9287555Z",
+      "detail": null
+    },
+    {
+      "id": "project-boundaries",
+      "status": "Passed",
+      "exitCode": 0,
+      "startedUtc": "2026-10-17T14:48:09.9304514Z",
+      "finishedUtc": "2026-10-17T14:48:50.7637354Z",
+      "detail": null
+    },
+    {
+      "id": "format",
+      "status": "Passed",
+      "exitCode": 0,
+      "startedUtc": "2026-10-17T14:48:50.7639239Z",
+      "finishedUtc": "2026-10-17T14:50:13.6044816Z",
+      "detail": null
+    },
+    {
+      "id": "build",
+      "status": "Passed",
+      "exitCode": 0,
+      "startedUtc": "2026-10-17T14:50:13.6046594Z",
+      "finishedUtc": "2026-10-17T14:50:37.5384189Z",
+      "detail": null
+    },
+    {
+      "id": "startup-contract",
+      "status": "Passed",
+      "exitCode": 0,
+      "startedUtc": "2026-10-17T14:50:37.5387856Z",
+      "finishedUtc": "2026-10-17T14:51:56.6770879Z",
+      "detail": null
+    },
+    {
+      "id": "compatibility-samples",
+      "status": "Passed",
+      "exitCode": 0,
+      "startedUtc": "2026-10-17T14:51:56.6772445Z",
+      "finishedUtc": "2026-10-17T14:53:36.8307033Z",
+      "detail": null
+    },
+    {
+      "id": "log-value-consumers",
+      "status": "Passed",
+      "exitCode": 0,
+      "startedUtc": "2026-10-17T14:53:36.8309204Z",
+      "finishedUtc": "2026-10-17T14:53:59.5889692Z",
+      "detail": null
+    },
+    {
+      "id": "publication-ledger",
+      "status": "Passed",
+      "exitCode": 0,
+      "startedUtc": "2026-10-17T14:53:59.5891670Z",
+      "finishedUtc": "2026-10-17T14:54:01.5677366Z",
+      "detail": null
+    },
+    {
+      "id": "pack",
+      "status": "Passed",
+      "exitCode": 0,
+      "startedUtc": "2026-10-17T14:54:01.5679235Z",
+      "finishedUtc": "2026-10-17T14:54:05.4820791Z",
+      "detail": null
+    },
+    {
+      "id": "package-boundaries",
+      "status": "Passed",
+      "exitCode": 0,
+      "startedUtc": "2026-10-17T14:54:07.2273706Z",
+      "finishedUtc": "2026-10-17T14:54:16.5969637Z",
+      "detail": null
+    },
+    {
+      "id": "architecture-inspection",
+      "status": "Passed",
+      "exitCode": 0,
+      "startedUtc": "2026-10-17T14:54:16.5999545Z",
+      "finishedUtc": "2026-10-17T14:56:05.6094897Z",
+      "detail": null
+    },
+    {
+      "id": "tests-unit",
+      "status": "Passed",
+      "exitCode": 0,
+      "startedUtc": "2026-10-17T14:56:05.7004500Z",
+      "finishedUtc": "2026-10-17T14:57:17.0089314Z",
+      "detail": null
+    },
+    {
+      "id": "tests-integration",
+      "status": "Passed",
+      "exitCode": 0,
+      "startedUtc": "2026-10-17T14:57:17.0191808Z",
+      "finishedUtc": "2026-10-17T15:02:01.4231938Z",
+      "detail": null
+    },
+    {
+      "id": "tests-architecture",
+      "status": "Failed",
+      "exitCode": 1,
+      "startedUtc": "2026-10-17T15:02:01.4345887Z",
+      "finishedUtc": "2026-10-17T15:11:17.9209505Z",
+      "detail": "dotnet test tests/CIS.Core.ArchitectureTests/CIS.Core.ArchitectureTests.csproj -c Release --no-build --no-restore --settings C:\\miscwork\\portfolio\\cislib\\implementations\\csharp\\verification\\architecture.runsettings --results-directory C:\\miscwork\\portfolio\\cislib\\.artifacts\\csharp\\verification\\Developer\\families\\architecture --logger trx;LogFileName=report.trx -- RunConfiguration.TreatNoTestsAsError=true failed with exit 1. See C:\\miscwork\\portfolio\\cislib\\.artifacts\\csharp\\verification\\Developer\\families\\architecture\\execution.log"
+    }
+  ],
+  "issues": [
+    {
+      "code": "StageFailure",
+      "detail": "dotnet test tests/CIS.Core.ArchitectureTests/CIS.Core.ArchitectureTests.csproj -c Release --no-build --no-restore --settings C:\\miscwork\\portfolio\\cislib\\implementations\\csharp\\verification\\architecture.runsettings --results-directory C:\\miscwork\\portfolio\\cislib\\.artifacts\\csharp\\verification\\Developer\\families\\architecture --logger trx;LogFileName=report.trx -- RunConfiguration.TreatNoTestsAsError=true failed with exit 1. See C:\\miscwork\\portfolio\\cislib\\.artifacts\\csharp\\verification\\Developer\\families\\architecture\\execution.log"
+    },
+    {
+      "code": "FailedStage",
+      "detail": "tests-architecture"
+    },
+    {
+      "code": "FailedCase",
+      "detail": "architecture: CopiedPackageRejectsFactoryAndThirdPartyLeakage (\"extra-dependency\",\"Packed direct dependency inventory mismatch\")"
+    },
+    {
+      "code": "MissingFamilyExecution",
+      "detail": "business: "
+    }
+  ],
+  "reconciliation": {
+    "status": "Produced",
+    "report": {
+      "path": "discovery-reconciliation.json",
+      "sha256": "428a07c83ffd4c5775aa414827681873c974c74fe50b5603f54bdd201e1bda91",
+      "schema": "cis.discovery-reconciliation/v1"
+    },
+    "reason": null
+  },
+  "architectureInspection": {
+    "path": "architecture/9e680490632244edbda1860f03900f4f/inspection.json",
+    "sha256": "8d384218eaf0b49623143469f52594df3c576f491e63edac1d58f9f88c9b99d6",
+    "schema": "cis.architecture-inspection/v1"
+  }
+}
