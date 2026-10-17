@@ -1,0 +1,13 @@
+# Approved review continuation — 17 October afternoon
+
+**23 of 24 approved bundles have now completed.** This continuation completes six of the seven previously pending reviews: governance bundles 17, 18 and 19 and corrective file/runtime/Type Manager bundles 21, 22 and 23. Bundle 20 (governance 6) returned HTTP 429 usage_limit_reached: “You've hit your weekly limit · resets 6am (Europe/Malta)”. No more retries were made and no automatic retry is scheduled.
+
+The original [exact manifest](../corrective-review-set-2026-10-16/manifest.json), SHA-256 66bea29723b9aa2a039df2934c69d3dc0c0b25f189c95ee557eb1d8a4972a46a, remains the sole payload authorization. All 24 prompt hashes/lengths were checked before execution; only the seven unchanged pending prompts were submitted. No new current-source payload was transmitted. These prompts retain their original 396e87d6 snapshots and declared inputs; they are not current-HEAD rereviews.
+
+The [C# runner](RunApprovedReview.cs) uses the established Claude Code 2.1.295 binary with opus/high (resolved to claude-opus-5-5), no tools, strict empty MCP, disabled slash commands/Chrome, no persistence and an explicit no-delegation/no-other-files/read-only system instruction. Each successful response reports one turn and no permission denials. No Claude tests or repository actions occurred.
+
+The [executed C# retention audit](RetainContinuation.cs) verifies the exact manifest, every payload, submitted process identity/restrictions, raw response hash and Markdown extraction, and preserves fresh outputs without overwriting the earlier refusals. [Index](index.json). Together with the [original receipt](../corrective-approved-2026-10-17/README.md), the completed reviews cover **339 of 352 assigned paths**; **13 paths** remain in bundle 20. All three dedicated earlier corrective-fix reviews are now complete for their approved older snapshots.
+
+Raw findings are unmodified under results/. Local triage and fix receipts are separate: source context can refute a proposed mechanism, and an older finding may already be fixed. The earlier eleven confirmed groups remain closed by their scoped commits. This continuation reproduced two additional incoming-runtime accounting defects; their fixes and native verification are being recorded separately.
+
+The original roadmap remains paused. One reviewed payload is still unavailable, and neither static review nor focused corrections close release, coverage, mutation, historical compatibility or exact shared-package gates. No whole-change Claude PASS or review of later changed payloads is claimed.
