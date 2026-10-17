@@ -63,7 +63,7 @@ The existing logging chat confirmed no active operations and remains paused at `
 
 ## Batch B Native tests and a useful fast loop
 
-**Change locations:** existing `tests/CIS.Core.*` family projects; `tests/CIS.Core.TestSupport`; `tests/fixtures`; `eng/CIS.Discovery.TestLogger`; `eng/CIS.DependencyChecker`; `eng/verify.ps1`, `Evidence.psm1`, `Verification.psm1`, `Publications.psm1`; `verification/families.json` and runsettings; repository `eng/verify.ps1`, `AGENTS.md`, test README and verification guidance.
+**Change locations:** existing `tests/CIS.Core.*` family projects; `tests/CIS.Core.TestSupport`; `tests/fixtures`; `eng/CIS.Discovery.TestLogger`; `eng/CIS.DependencyChecker`; `eng/verify.ps1`, `Evidence.psm1`, `Verification.psm1`, native `CIS.DependencyChecker/PublicationValidation.cs`; `verification/families.json` and runsettings; repository `eng/verify.ps1`, `AGENTS.md`, test README and verification guidance.
 
 First deliver a thin focused launcher selecting an existing project/class/category through ordinary .NET tooling. Incrementally build its dependencies, retain native results and reconcile what the filter actually selected. Reject zero discovered/executed cases, unexpected skips, stale reports and tool failures. A focused result identifies omitted families rather than crediting them as passed. Do not build a dependency-selection framework.
 

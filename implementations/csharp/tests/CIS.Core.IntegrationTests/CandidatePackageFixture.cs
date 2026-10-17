@@ -36,6 +36,18 @@ internal sealed class CandidatePackageFixture
         string core = typeof(CoreLogRuntime).Assembly.Location;
         string version = FileVersionInfo.GetVersionInfo(core).ProductVersion!.Split('+')[0];
         string package = Path.Combine(repository, ".artifacts/csharp/packages", "CIS.Core." + version + ".nupkg");
+        // Test Explorer normally builds Debug. Give that development run its own package;
+        // checkpoint/release runs still consume and verify the previously selected Release package.
+        if (typeof(CoreLogRuntime).Assembly.GetCustomAttributes(typeof(System.Reflection.AssemblyConfigurationAttribute), false)
+            .Cast<System.Reflection.AssemblyConfigurationAttribute>().Single().Configuration == "Debug")
+        {
+            string feed = Path.Combine(fixture.Root, "feed");
+            ProcessResult packed = await ProcessRunner.RunAsync("dotnet", ["pack", "src/CIS.Core/CIS.Core.csproj", "-c", "Debug", "--no-build", "--no-restore", "-o", feed],
+                language, TimeSpan.FromSeconds(90), Variables(fixture.Root));
+            File.WriteAllText(Path.Combine(fixture.Root, "pack.log"), packed.StandardOutput + packed.StandardError);
+            Assert.AreEqual(0, packed.ExitCode, packed.StandardOutput + packed.StandardError);
+            package = Path.Combine(feed, "CIS.Core." + version + ".nupkg");
+        }
         using (ZipArchive zip = ZipFile.OpenRead(package))
         {
             using Stream dll = zip.GetEntry("lib/net10.0/CIS.Core.dll")!.Open();
@@ -44,7 +56,8 @@ internal sealed class CandidatePackageFixture
             using Stream nuspec = zip.GetEntry("CIS.Core.nuspec")!.Open();
             Assert.AreEqual(version, XDocument.Load(nuspec).Descendants().Single(e => e.Name.LocalName == "version").Value);
         }
-        File.Copy(package, Path.Combine(fixture.Root, "feed", Path.GetFileName(package)));
+        string localPackage = Path.Combine(fixture.Root, "feed", Path.GetFileName(package));
+        if (package != localPackage) { File.Copy(package, localPackage); }
         JsonObject assets = JsonNode.Parse(File.ReadAllBytes(Path.Combine(language, "src/CIS.Core/obj/project.assets.json")))!.AsObject();
         JsonObject policy = JsonNode.Parse(File.ReadAllBytes(Path.Combine(language, "eng/runtime-dependencies.json")))!.AsObject();
         var packageHashes = new JsonObject { [Path.GetFileName(package)] = Hash(package) };

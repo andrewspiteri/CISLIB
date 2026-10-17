@@ -26,6 +26,11 @@ if (args.Length > 0 && args[0] is "type-manager-runtime" or "type-manager-instru
 }
 
 
+if (args.Length > 0 && args[0] == "publications")
+{
+    return PublicationValidation.Run(args[1..]);
+}
+
 if (args.Length > 0 && args[0] == "release-evidence")
 {
     return VerificationEvidence.Run(args[1..]);

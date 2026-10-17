@@ -14,7 +14,7 @@ dotnet test tests/CIS.Core.UnitTests/CIS.Core.UnitTests.csproj -c Debug --list-t
 
 The selected SDK supplies build-tool reference assemblies beside its imported `NETCoreSdkBundledVersionsProps` file. The running MSBuild host and its default `MSBuildSDKsPath` are separate facts, especially under Visual Studio. References stay non-copy-local, build-only and outside Core runtime dependencies. Policy checks require the imported SDK path to equal `NetCoreRoot/sdk/NETCoreSdkVersion`, matching pins in global.json and toolchain.json, plus approved reference identities and resolved paths.
 
-Visual Studio needs a version supporting .NET 10 and the selected SDK, with the relevant .NET workload. See Microsoft's [SDK/MSBuild/Visual Studio compatibility table](https://learn.microsoft.com/dotnet/core/porting/versioning-sdk-msbuild-vs). The present machine only has Visual Studio 2022 Build Tools: that is not qualification of an executable supported IDE build, Test Explorer or design-time behavior. CLI results must not be presented as those results. Custom Type Manager helper output layouts remain unsupported with CISTM005.
+Visual Studio needs a version supporting .NET 10 and the selected SDK, with the relevant .NET workload. See Microsoft's [SDK/MSBuild/Visual Studio compatibility table](https://learn.microsoft.com/dotnet/core/porting/versioning-sdk-msbuild-vs). This host now also has Visual Studio 18 Insiders. Its Test Explorer results exposed missing PowerShell and Debug/Release prerequisite mismatches on 17 October. CLI/native test results still do not qualify the IDE UI or design-time behavior. Custom Type Manager helper output layouts remain unsupported with CISTM005.
 
 ## The edit loop
 
@@ -52,3 +52,11 @@ try {
 ```
 
 Developer and Release checkpoint entry points reject a nonempty override before changing reports. That environment override is only a fixture input for `ArchitectureAllowlistTests` and `ArchitectureOwnershipTests`; it does not approve a checkpoint or bypass the inspection's policy. Without it, the class uses the Developer inspection recorded by the existing checkpoint summary. Other architecture classes retain their own explicit package/compiler/evidence prerequisites. Do not overwrite existing checkpoint reports to run a selected test.
+
+## Test Explorer prerequisites
+
+Install PowerShell 7.5 or later for the Windows user (for example, `winget install --id Microsoft.PowerShell --exact --scope user`), as well as the pinned SDK/runtime. Codex's private PowerShell directory is not a normal host installation and must not be relied on by Test Explorer. Restart Visual Studio if an existing session has an older PATH. Ordinary test runs default to four MSTest workers, matching the Developer runner's bounded settings. Developer's shared session budget is ten minutes because the complete Windows integration family exceeds five minutes; architecture retains its separate twenty-minute budget.
+
+Debug packaged logging tests create a fresh package from their current project build under their own candidate directory, then verify its assembly hash and consume it from an isolated local feed. Release runs retain the preselected package and reject stale bytes. Architecture tests that inspect compiler-control evidence check the Release assembly that produced that evidence; a Debug test host is not that candidate. The full Developer checkpoint remains the supported preparation for retained architecture/compiler evidence.
+
+Compatibility cases also need the pinned ApiCompat 10.0.401 entry DLL and .NET runtime 8.0.31 on its selected host. The SDK 10.0.401/runtime 10.0.12 installation alone does not supply that .NET 8 tool host. Existing `CIS_COMPAT_API_TOOL` and `CIS_COMPAT_API_DOTNET` overrides can select an explicitly prepared tool/host. A local-tool resolver may reuse an earlier custom package cache, so a successful `dotnet tool restore` alone does not prove the entry DLL exists under the test process's default NuGet cache. See [toolchain qualification](csharp-toolchain.md) for the isolated restore procedure and pins.

@@ -85,32 +85,21 @@ internal sealed class PublicationFixture : IDisposable
 
     internal string RecordPath(int sequence = 1) => Path.Combine(Root, "records", sequence + ".json");
 
-    internal async Task<JsonObject> Validate(string repositoryRoot, int expectedExit)
+    internal Task<JsonObject> Validate(string repositoryRoot, int expectedExit)
     {
-        if (!File.Exists(LedgerPath))
-        {
-            Write(LedgerPath, Ledger);
-        }
-
+        SaveLedger();
         string[] inputs = Snapshot();
-        var arguments = new List<string>
-        {
-            "-NoProfile", "-File", Path.Combine(repositoryRoot, "eng", "check-publications.ps1"),
-            "-LedgerPath", LedgerPath, "-ArtifactRoot", Root, "-OutputPath", ValidationPath
-        };
-        if (UsePrevious)
-        {
-            arguments.AddRange(["-PreviousLedgerPath", PreviousPath]);
-            if (SupplyPreviousHash)
-            {
-                arguments.AddRange(["-PreviousLedgerSha256", PreviousHash]);
-            }
-        }
-
-        ProcessResult result = await ProcessRunner.RunAsync("pwsh", arguments, repositoryRoot, TimeSpan.FromSeconds(30));
-        Assert.AreEqual(expectedExit, result.ExitCode, result.StandardOutput + result.StandardError);
+        JsonObject report = CIS.Verification.PublicationValidation.Validate(LedgerPath, Root,
+            Path.Combine(repositoryRoot, "compatibility/csharp/publications"), UsePrevious ? PreviousPath : null,
+            UsePrevious && SupplyPreviousHash ? PreviousHash : null);
+        Assert.AreEqual(expectedExit, report["exitCode"]!.GetValue<int>(), report.ToJsonString());
         CollectionAssert.AreEqual(inputs, Snapshot(), "Validator must not modify ledger, previous anchor, records or artifacts.");
-        return JsonNode.Parse(File.ReadAllText(ValidationPath))!.AsObject();
+        return Task.FromResult(report);
+    }
+
+    internal void SaveLedger()
+    {
+        if (!File.Exists(LedgerPath)) { Write(LedgerPath, Ledger); }
     }
 
     public void Dispose() => directory.Dispose();

@@ -62,4 +62,4 @@ function Copy-EvidenceTool {
     }
 }
 
-Export-ModuleMember -Function Write-VerificationJson, Read-NativeTrx, New-EvidenceReference, Invoke-EvidenceTool, Copy-EvidenceTool
+Export-ModuleMember -Function Get-EvidenceTool, Write-VerificationJson, Read-NativeTrx, New-EvidenceReference, Invoke-EvidenceTool, Copy-EvidenceTool

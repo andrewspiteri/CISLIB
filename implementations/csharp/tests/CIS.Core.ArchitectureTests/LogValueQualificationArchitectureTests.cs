@@ -19,7 +19,8 @@ public sealed class LogValueQualificationArchitectureTests
         Assert.AreEqual(10, report["controls"]!.AsArray().Count(control => control!["expectedDiagnostic"] is not null));
         JsonNode executable = report["controls"]!.AsArray().Single(control => control!["executed"]!.GetValue<bool>())!;
         Assert.AreEqual(0, executable["executionExitCode"]!.GetValue<int>());
-        Assert.AreEqual(Hash(typeof(LogValue).Assembly.Location), report["coreSha256"]!.GetValue<string>());
+        // This report is produced against Release by the Developer checkpoint, even when Test Explorer builds Debug.
+        Assert.AreEqual(Hash(Find("implementations/csharp/src/CIS.Core/bin/Release/net10.0/CIS.Core.dll")), report["coreSha256"]!.GetValue<string>());
         foreach (JsonNode? source in report["source"]!.AsArray())
         {
             Assert.AreEqual(source!["sha256"]!.GetValue<string>(), Hash(Find(source["path"]!.GetValue<string>())));

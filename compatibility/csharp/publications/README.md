@@ -34,7 +34,7 @@ Retain record/artifact bytes in durable publication storage, with an independent
 
 ## Validation and trusted history
 
-From the repository root, using PowerShell 7.6.5 (the executed development version; parsing requires 7.5 or later):
+From the repository root, using PowerShell 7.5 or later and the pinned .NET SDK:
 
 ```powershell
 pwsh -NoProfile -File eng/check-publications.ps1
@@ -47,12 +47,14 @@ pwsh -NoProfile -File eng/check-publications.ps1 `
 
 The first command validates schema, links and artifact hashes, reporting `NotCompared` for append-only history. The second also verifies the supplied previous bytes against a trusted hash and compares immutable header/array prefixes. The previous path and hash must be supplied together. Deriving a new trusted hash from potentially rewritten history during the same check defeats the anchor; the validator cannot establish that trust itself. Ledger whitespace/member order may change because prefix comparison uses JSON values; referenced baseline/artifact hashes bind exact original bytes.
 
-Exit 0 means format/integrity checks passed; exit 2 means rejection. The default report is `.artifacts/csharp/publications/validation.json`. Custom output must be new and outside retained publication storage; output never replaces either ledger. The validator reads and does not mutate retained inputs. Developer verification invokes it and records its own disposable report under `contracts/publications/validation.json`, with a `publication-ledger` stage log. It does not automatically obtain a trusted previous ledger or authorize publication.
+The launcher delegates validation to the existing C# development checker. It reads these unchanged canonical schemas, supports their current vocabulary and rejects unsupported schema assertions. No schema/runtime package was added. Exit 0 means format/integrity checks passed; exit 2 means rejection. Unsafe output destinations exit 1 without replacing retained inputs. The default report is `.artifacts/csharp/publications/validation.json`. Custom output must be new and outside retained publication storage; output never replaces either ledger. The validator reads and does not mutate retained inputs. Developer verification invokes it and records its own disposable report under `contracts/publications/validation.json`, with a `publication-ledger` stage log. It does not automatically obtain a trusted previous ledger or authorize publication.
 
-Reports always declare `actualPublicationAttested:false`, `compatibilityChecksExecuted:0` and `compatibilityQualified:false`. A valid schema/hash does not prove a NuGet archive is legitimate, API metadata complete, consumer executable, feed receipt authentic or historical replay successful. With zero rows the report says `NoPublicationsRecorded`, while `firstReleaseHarnessRequired:true` keeps first-release qualification mandatory. Actual receipt verification, package/consumer materialization and the four compatibility layers remain separate roadmap work.
+Successful integrity reports declare `actualPublicationAttested:false`, `compatibilityChecksExecuted:0` and `compatibilityQualified:false`. A valid schema/hash does not prove a NuGet archive is legitimate, API metadata complete, consumer executable, feed receipt authentic or historical replay successful. With zero rows the report says `NoPublicationsRecorded`, while `firstReleaseHarnessRequired:true` keeps first-release qualification mandatory. Actual receipt verification, package/consumer materialization and the four compatibility layers remain separate roadmap work.
 
 ## Executed format controls
 
 `PublicationManifestTests` exercises 43 native development controls: six valid format cases and 37 expected rejections. They cover empty history, first prerelease, intermediate membership, partial promotion, added identity and integrity without an anchor; removal/reordering/rewriting, wrong/missing anchors, duplicate/unknown membership, invalid JSON/versions/time, absent source/binary/API records, broken links and changed/missing artifacts.
+
+The migration adds 29 native controls for numeric precision, schema additions, nested escaped duplicates, link/origin membership, linked artifacts, output ownership and the stable launcher. The original 43 controls now invoke the same C# validator directly; two launcher controls verify command/report/exit behavior.
 
 Synthetic payloads are opaque test bytes, use `example.invalid` and never enter the maintained ledger. Tests also verify input hashes remain unchanged. Passing these architecture controls qualifies the format validator only. No historical release or runtime compatibility execution is claimed. T03 defines replay/equality rules; T04 prepares compiling source patterns and deliberately incompatible samples for the later package harness.

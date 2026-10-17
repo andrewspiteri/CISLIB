@@ -11371,6 +11371,27 @@
       "lanes": [ "windows-x64", "linux-ubuntu2404-x64" ],
       "requirements": [ "REQ-007" ],
       "source": "17 October user-authorized C# migration of the existing release-evidence policy; preserves original controls and release refusals. Does not close pending qualification gates."
+    },
+    {
+      "id": "ARCH-NATIVE-PUBLICATION-MIGRATION",
+      "family": "architecture",
+      "title": "Native publication validation retains schemas, immutable history, links and output ownership",
+      "implementation": "Implemented",
+      "method": null,
+      "minimumExecutions": 29,
+      "bindings": [
+        { "method": "CIS.Tests.ArchitectureTests.PublicationNativeTests.RetainedSchemaAndLinkChecksRejectAdditionalCorruption", "minimumExecutions": 8 },
+        { "method": "CIS.Tests.ArchitectureTests.PublicationNativeTests.IntegerSchemaDoesNotRoundFractionsOrRejectEquivalentSpellings", "minimumExecutions": 11 },
+        { "method": "CIS.Tests.ArchitectureTests.PublicationNativeTests.AppendOnlyComparisonAcceptsEquivalentNumberSpellingsAndObjectOrder", "minimumExecutions": 1 },
+        { "method": "CIS.Tests.ArchitectureTests.PublicationNativeTests.UnsupportedSchemaAssertionsFailEvenOnAnUnusedBranch", "minimumExecutions": 1 },
+        { "method": "CIS.Tests.ArchitectureTests.PublicationNativeTests.EscapedDuplicateJsonMembersAreRejectedInsideRecords", "minimumExecutions": 1 },
+        { "method": "CIS.Tests.ArchitectureTests.PublicationNativeTests.LinkedArtifactDirectoryIsRejected", "minimumExecutions": 1 },
+        { "method": "CIS.Tests.ArchitectureTests.PublicationNativeTests.OutputRefusalsPreserveExistingInputBytes", "minimumExecutions": 4 },
+        { "method": "CIS.Tests.ArchitectureTests.PublicationLauncherTests.StableLauncherWritesNativeSuccessAndRefusalReports", "minimumExecutions": 2 }
+      ],
+      "lanes": [ "windows-x64", "linux-ubuntu2404-x64" ],
+      "requirements": [ "REQ-007" ],
+      "source": "17 October user-authorized C# migration; supplements the original 43 publication controls without replacing planned release/compatibility qualification."
     }
   ]
 }
