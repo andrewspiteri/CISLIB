@@ -518,6 +518,36 @@ public sealed class VerificationEvidenceTests
         public void Dispose() => directory.Dispose();
     }
 
+    [TestMethod]
+    [DataRow(false, false, 0)]
+    [DataRow(false, true, 0)]
+    [DataRow(true, false, 0)]
+    [DataRow(true, true, 0)]
+    [DataRow(false, false, 7)]
+    [DataRow(false, true, 7)]
+    [DataRow(true, false, 7)]
+    [DataRow(true, true, 7)]
+    public async Task CommandLogContainsOnlyTheCurrentInvocation(bool previousLog, bool emitsOutput, int childExitCode)
+    {
+        using var directory = new TemporaryDirectory();
+        string log = Path.Combine(directory.Path, "command log.txt");
+        if (previousLog) { File.WriteAllText(log, "stale previous invocation\n"); }
+        string script = Path.Combine(directory.Path, "invoke.ps1");
+        File.WriteAllText(script, """
+            param($Module, $Log, $Program)
+            $ErrorActionPreference = 'Stop'
+            Import-Module $Module -Force
+            Invoke-VerificationCommand -LogPath $Log -Executable pwsh -Arguments @('-NoProfile', '-Command', $Program)
+            """);
+        string program = (emitsOutput ? "[Console]::WriteLine('current invocation'); " : "") + "exit " + childExitCode;
+        ProcessResult result = await ProcessRunner.RunAsync("pwsh",
+            ["-NoProfile", "-File", script, Path.Combine(RepositoryRoot, "implementations/csharp/eng/Verification.psm1"), log, program],
+            directory.Path, TimeSpan.FromSeconds(30));
+        Assert.AreEqual(childExitCode == 0 ? 0 : 1, result.ExitCode, result.StandardOutput + result.StandardError);
+        Assert.IsTrue(File.Exists(log), "Every invocation must create its own command log.");
+        Assert.AreEqual(emitsOutput ? "current invocation" + Environment.NewLine : "", File.ReadAllText(log),
+            "A silent invocation must replace old contents with an empty file.");
+    }
     private static string FindRepositoryRoot()
     {
         DirectoryInfo? directory = new(AppContext.BaseDirectory);

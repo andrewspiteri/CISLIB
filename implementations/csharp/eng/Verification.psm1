@@ -25,7 +25,7 @@ function Invoke-VerificationCommand {
     param([string] $LogPath, [string[]] $Arguments, [string] $Executable = 'dotnet')
     $lines = @(& $Executable @Arguments 2>&1 | ForEach-Object { $_.ToString() })
     $exitCode = $LASTEXITCODE
-    $lines | Set-Content -LiteralPath $LogPath -Encoding utf8
+    Set-Content -LiteralPath $LogPath -Value $lines -Encoding utf8
     $lines | ForEach-Object { Write-Host $_ }
     if ($exitCode -ne 0) { throw "$Executable $($Arguments -join ' ') failed with exit $exitCode. See $LogPath" }
     return $lines
