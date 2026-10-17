@@ -1,12 +1,15 @@
 using System.Security.Cryptography;
+using System.Text;
 using System.Text.Json.Nodes;
 using System.Xml.Linq;
 using CIS.TestSupport;
+using CIS.Verification;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace CIS.Tests.ArchitectureTests;
 
 [TestClass]
+[DoNotParallelize] // Launcher controls share the checker build output.
 public sealed class VerificationEvidenceTests
 {
     private static readonly string RepositoryRoot = FindRepositoryRoot();
@@ -147,6 +150,9 @@ public sealed class VerificationEvidenceTests
     [DataRow("Source", "InvalidReconciliation")]
     [DataRow("Status", "InvalidReconciliation")]
     [DataRow("Missing", "InvalidReconciliation")]
+    [DataRow("MissingSource", "InvalidReconciliation")]
+    [DataRow("MissingRunId", "InvalidReconciliation")]
+    [DataRow("MissingInputHash", "InvalidReconciliation")]
     public async Task RejectsAlteredOrStaleDeclaredReconciliation(string fault, string expectedCode)
     {
         using var fixture = new EvidenceFixture();
@@ -157,6 +163,138 @@ public sealed class VerificationEvidenceTests
         Assert.AreEqual(2, result.ExitCode, result.StandardOutput + result.StandardError);
         JsonArray issues = JsonNode.Parse(File.ReadAllText(fixture.ValidationPath))!["issues"]!.AsArray();
         Assert.IsTrue(issues.Any(issue => issue!["code"]!.GetValue<string>() == expectedCode), result.StandardOutput);
+    }
+
+    [TestMethod]
+    [DataRow("ReportHashMismatch", "ReportHashMismatch")]
+    [DataRow("EvidencePathOutsideRoot", "EvidencePathOutsideRoot")]
+    [DataRow("LaneMismatch", "LaneMismatch")]
+    [DataRow("ProfileMismatch", "ProfileMismatch")]
+    [DataRow("FailedStage", "FailedStage")]
+    [DataRow("InvalidFamilyManifest", "InvalidFamilyManifest")]
+    [DataRow("CounterMismatch", "CounterMismatch")]
+    [DataRow("DuplicateNativeId", "UnrecognizedReportSchema")]
+    [DataRow("NativeCounterMismatch", "UnrecognizedReportSchema")]
+    [DataRow("NativeUnknownOutcome", "UnrecognizedReportSchema")]
+    [DataRow("MissingNativeDefinition", "UnrecognizedReportSchema")]
+    [DataRow("FractionalDiscoveryCount", "UnrecognizedReportSchema")]
+    public async Task NativeMigrationKeepsCorruptEvidenceFailClosed(string fault, string expected)
+    {
+        using var fixture = new EvidenceFixture();
+        fixture.Introduce(fault);
+        ProcessResult result = await fixture.Validate();
+        Assert.AreEqual(2, result.ExitCode, result.StandardOutput);
+        JsonArray issues = JsonNode.Parse(File.ReadAllText(fixture.ValidationPath))!["issues"]!.AsArray();
+        Assert.IsTrue(issues.Any(issue => issue!["code"]!.GetValue<string>() == expected), result.StandardOutput);
+    }
+
+    [TestMethod]
+    public async Task AcceptsHistoricalIntegralDecimalCounts()
+    {
+        using var fixture = new EvidenceFixture();
+        fixture.Introduce("IntegralDiscoveryCount");
+        ProcessResult result = await fixture.Validate();
+        Assert.AreEqual(0, result.ExitCode, result.StandardOutput);
+    }
+
+    [TestMethod]
+    [DataRow("Developer", 0)]
+    [DataRow("Release", 2)]
+    public async Task StableLauncherUsesNativeValidationAndPreservesReleaseRefusal(string profile, int expected)
+    {
+        using var fixture = new EvidenceFixture();
+        if (profile == "Release") { fixture.Introduce("ReportInventory"); }
+        ProcessResult result = await fixture.ValidateLauncher(profile);
+        Assert.AreEqual(expected, result.ExitCode, result.StandardOutput + result.StandardError);
+        JsonObject validation = JsonNode.Parse(File.ReadAllText(fixture.ValidationPath))!.AsObject();
+        Assert.AreEqual(expected, validation["exitCode"]!.GetValue<int>());
+        if (profile == "Release")
+        {
+            JsonArray issues = validation["issues"]!.AsArray();
+            Assert.AreEqual(8, issues.Count(issue => issue!["code"]!.GetValue<string>() == "MissingReleaseGate"));
+            Assert.IsTrue(issues.Any(issue => issue!["code"]!.GetValue<string>() == "MissingFamilyExecution"));
+            Assert.IsTrue(issues.Any(issue => issue!["code"]!.GetValue<string>() == "MissingRequiredCase" && issue["detail"]!.GetValue<string>().Contains("UT-PLANNED", StringComparison.Ordinal)));
+        }
+    }
+
+    [TestMethod]
+    public async Task CopiedEvidenceReaderRunsWithoutRepositorySources()
+    {
+        using var directory = new TemporaryDirectory();
+        string module = Path.Combine(RepositoryRoot, "implementations/csharp/eng/Evidence.psm1");
+        string script = Path.Combine(directory.Path, "copy-reader.ps1");
+        File.WriteAllText(script, """
+            param($Module, $Root)
+            $ErrorActionPreference = 'Stop'
+            Import-Module $Module -Force
+            @(Copy-EvidenceTool $Root) | ConvertTo-Json -Depth 8
+            """);
+        ProcessResult copied = await ProcessRunner.RunAsync("pwsh", ["-NoProfile", "-File", script, module, directory.Path], directory.Path, TimeSpan.FromSeconds(90));
+        Assert.AreEqual(0, copied.ExitCode, copied.StandardOutput + copied.StandardError);
+        JsonArray inputs = JsonNode.Parse(copied.StandardOutput)!.AsArray();
+        CollectionAssert.AreEquivalent(new[] { "CIS.DependencyChecker.dll", "CIS.DependencyChecker.deps.json", "CIS.DependencyChecker.runtimeconfig.json", "CIS.Core.TestSupport.dll" },
+            inputs.Select(input => Path.GetFileName(input!["path"]!.GetValue<string>())).ToArray());
+        File.Copy(module, Path.Combine(directory.Path, "Evidence.psm1"));
+        string trx = Path.Combine(RepositoryRoot, "planning/logging/evidence/wp01-s03/unit-tests.trx");
+        File.WriteAllText(script, """
+            param($Module, $Trx)
+            $ErrorActionPreference = 'Stop'
+            Import-Module $Module -Force
+            [Console]::OutputEncoding = [Text.UTF8Encoding]::new($false)
+            Read-NativeTrx $Trx | ConvertTo-Json -Depth 8
+            """);
+        ProcessResult read = await ProcessRunner.RunAsync("pwsh", ["-NoProfile", "-File", script, Path.Combine(directory.Path, "Evidence.psm1"), trx], directory.Path, TimeSpan.FromSeconds(30), outputEncoding: new UTF8Encoding(false, true));
+        Assert.AreEqual(0, read.ExitCode, read.StandardOutput + read.StandardError);
+        JsonObject expected = VerificationEvidence.ReadTrx(trx), actual = JsonNode.Parse(read.StandardOutput)!.AsObject();
+        foreach (string counter in new[] { "total", "passed", "failed", "skipped" })
+        { Assert.AreEqual(expected[counter]!.GetValue<int>(), actual[counter]!.GetValue<int>(), counter); }
+        JsonArray expectedRows = expected["results"]!.AsArray(), actualRows = actual["results"]!.AsArray();
+        Assert.AreEqual(expectedRows.Count, actualRows.Count);
+        for (int row = 0; row < expectedRows.Count; row++)
+        {
+            foreach (string field in new[] { "testId", "method", "source", "name", "outcome" })
+            { Assert.AreEqual(expectedRows[row]![field]!.GetValue<string>(), actualRows[row]![field]!.GetValue<string>(), $"row {row}, {field}"); }
+        }
+        Assert.IsFalse(Directory.Exists(Path.Combine(directory.Path, "CIS.DependencyChecker")));
+        foreach (JsonNode? input in inputs)
+        {
+            string path = Path.Combine(directory.Path, input!["path"]!.GetValue<string>());
+            Assert.AreEqual(input["sha256"]!.GetValue<string>(), Convert.ToHexStringLower(SHA256.HashData(File.ReadAllBytes(path))));
+        }
+    }
+    [TestMethod]
+    public void MalformedInputsProduceStructuredRefusal()
+    {
+        using var directory = new TemporaryDirectory();
+        string invalid = Path.Combine(directory.Path, "invalid.json");
+        File.WriteAllText(invalid, "{not-json");
+        JsonObject result = VerificationEvidence.Validate(directory.Path, invalid, invalid, "Release", "windows-x64");
+        Assert.AreEqual(2, result["exitCode"]!.GetValue<int>());
+        Assert.AreEqual("UnrecognizedReportSchema", result["issues"]![0]!["code"]!.GetValue<string>());
+    }
+
+    [TestMethod]
+    public void FamilyDiscoveryRetainsExactBindingsWithoutCreditingPlannedOrForeignLaneCases()
+    {
+        using var fixture = new EvidenceFixture();
+        fixture.Introduce("ReportInventory");
+        JsonObject report = fixture.Discover();
+        JsonArray cases = report["cases"]!.AsArray();
+        Assert.AreEqual(1, cases.Count);
+        Assert.AreEqual("UT-SEVERITY-NAMES", cases[0]!["id"]!.GetValue<string>());
+        Assert.AreEqual(cases[0]!["count"]!.GetValue<int>(), cases[0]!["bindings"]![0]!["count"]!.GetValue<int>());
+        Assert.IsTrue(report["discovered"]!.GetValue<int>() > cases[0]!["count"]!.GetValue<int>());
+    }
+
+    [TestMethod]
+    public async Task MutationSliceNeverSatisfiesFullShippingQualification()
+    {
+        using var fixture = new EvidenceFixture();
+        fixture.Introduce("MutationSlice");
+        ProcessResult result = await fixture.Validate();
+        Assert.AreEqual(2, result.ExitCode, result.StandardOutput);
+        JsonArray issues = JsonNode.Parse(File.ReadAllText(fixture.ValidationPath))!["issues"]!.AsArray();
+        CollectionAssert.AreEquivalent(new[] { "IncompleteMutationScope", "MissingReleaseGate" }, issues.Select(issue => issue!["code"]!.GetValue<string>()).ToArray());
     }
 
     private sealed class EvidenceFixture : IDisposable
@@ -283,6 +421,67 @@ public sealed class VerificationEvidenceTests
         {
             switch (fault)
             {
+                case "MutationSlice":
+                    JsonNode mutationFamily = manifest["families"]!.AsArray().Single(item => item!["id"]!.GetValue<string>() == "mutation")!;
+                    mutationFamily["developerEnabled"] = true;
+                    JsonNode mutationEntry = summary["families"]!.AsArray().Single(item => item!["id"]!.GetValue<string>() == "mutation")!;
+                    mutationEntry["status"] = "Executed";
+                    mutationEntry["scope"] = "partial-slice";
+                    string mutationPath = Path.Combine(directory.Path, "mutation.json"), wrapperPath = Path.Combine(directory.Path, "mutation-discovery.json"), runPath = Path.Combine(directory.Path, "mutation-execution.json");
+                    File.WriteAllText(mutationPath, """{"schemaVersion":"3","files":{"Core.cs":{"mutants":[{"id":"0","status":"Killed"}]}}}""");
+                    File.WriteAllText(wrapperPath, """{"schema":"cis.discovery/v1","family":"mutation"}""");
+                    File.WriteAllText(runPath, """{"schema":"cis.execution/v1","family":"mutation"}""");
+                    mutationEntry["discovery"] = Reference(wrapperPath, "cis.discovery/v1");
+                    mutationEntry["execution"] = Reference(runPath, "cis.execution/v1");
+                    mutationEntry["report"] = Reference(mutationPath, "stryker.mutation/v3");
+                    break;
+                case "ReportHashMismatch":
+                    unit["report"]!["sha256"] = new string('0', 64);
+                    break;
+                case "EvidencePathOutsideRoot":
+                    unit["report"]!["path"] = "../outside.trx";
+                    break;
+                case "LaneMismatch":
+                    summary["lane"] = "linux-ubuntu2404-x64";
+                    break;
+                case "ProfileMismatch":
+                    summary["profile"] = "Release";
+                    break;
+                case "FailedStage":
+                    summary["stages"]!.AsArray().Add(new JsonObject { ["id"] = "broken-build", ["exitCode"] = 1 });
+                    break;
+                case "InvalidFamilyManifest":
+                    manifest["families"]!.AsArray().RemoveAt(5);
+                    break;
+                case "CounterMismatch":
+                    execution["passed"] = execution["passed"]!.GetValue<int>() + 1;
+                    Write(ExecutionPath, execution);
+                    unit["execution"] = Reference(ExecutionPath, "cis.execution/v1");
+                    break;
+                case "IntegralDiscoveryCount":
+                    discovery["cases"]![0]!["count"] = JsonNode.Parse(discovery["cases"]![0]!["count"]!.ToJsonString() + ".0");
+                    break;
+                case "FractionalDiscoveryCount":
+                    discovery["cases"]![0]!["count"] = 1.5;
+                    break;
+                case "DuplicateNativeId":
+                case "NativeCounterMismatch":
+                case "NativeUnknownOutcome":
+                case "MissingNativeDefinition":
+                    XDocument corrupt = XDocument.Load(nativePath);
+                    XNamespace corruptNs = corrupt.Root!.Name.Namespace;
+                    XElement[] rows = corrupt.Descendants(corruptNs + "UnitTestResult").ToArray();
+                    if (fault == "DuplicateNativeId") { rows[1].SetAttributeValue("testId", rows[0].Attribute("testId")!.Value); }
+                    if (fault == "NativeUnknownOutcome") { rows[0].SetAttributeValue("outcome", "Unknown"); }
+                    if (fault == "MissingNativeDefinition") { rows[0].SetAttributeValue("testId", Guid.NewGuid().ToString()); }
+                    if (fault == "NativeCounterMismatch")
+                    {
+                        XElement counts = corrupt.Descendants(corruptNs + "Counters").Single();
+                        counts.SetAttributeValue("passed", (int)counts.Attribute("passed")! - 1);
+                    }
+                    corrupt.Save(nativePath);
+                    unit["report"] = Reference(nativePath, "vstest.trx/2010");
+                    break;
                 case "MissingFamily":
                     summary["families"]!.AsArray().Remove(unit);
                     break;
@@ -461,7 +660,7 @@ public sealed class VerificationEvidenceTests
             }
         }
 
-        internal async Task<ProcessResult> Reconcile()
+        internal Task<ProcessResult> Reconcile()
         {
             summary["runId"] = "checker-fixture-run";
             summary["source"] = new JsonObject
@@ -470,33 +669,25 @@ public sealed class VerificationEvidenceTests
                 ["inputInventory"] = new JsonObject { ["path"] = "fixture-inputs.json", ["sha256"] = "checker-fixture-input-hash" }
             };
             WriteInputs();
-            string script = Path.Combine(directory.Path, "reconcile.ps1");
-            File.WriteAllText(script, """
-                param($Root, $Module)
-                $ErrorActionPreference = 'Stop'
-                Import-Module $Module -Force
-                $summary = Get-Content -Raw -LiteralPath (Join-Path $Root 'summary.json') | ConvertFrom-Json -AsHashtable -DateKind String
-                $manifest = Get-Content -Raw -LiteralPath (Join-Path $Root 'manifest.json') | ConvertFrom-Json -AsHashtable -DateKind String
-                $inventory = Get-Content -Raw -LiteralPath (Join-Path $Root 'inventory.json') | ConvertFrom-Json -AsHashtable -DateKind String
-                Write-DiscoveryReconciliation $Root $summary $manifest $inventory 'windows-x64'
-                $summary.reconciliation = @{ status = 'Produced'; report = New-EvidenceReference $Root (Join-Path $Root 'discovery-reconciliation.json') 'cis.discovery-reconciliation/v1'; reason = $null }
-                Write-VerificationJson (Join-Path $Root 'summary.json') $summary
-                """);
-            string module = Path.Combine(RepositoryRoot, "implementations", "csharp", "eng", "Evidence.psm1");
-            ProcessResult result = await ProcessRunner.RunAsync("pwsh", ["-NoProfile", "-File", script, "-Root", directory.Path, "-Module", module], RepositoryRoot, TimeSpan.FromSeconds(60));
-            if (result.ExitCode == 0)
-            {
-                summary["reconciliation"] = JsonNode.Parse(File.ReadAllText(Path.Combine(directory.Path, "summary.json")))!["reconciliation"]!.DeepClone();
-            }
-            return result;
+            JsonObject report = VerificationEvidence.Reconcile(directory.Path, summary, manifest, inventory, "windows-x64");
+            VerificationEvidence.Write(ReconciliationPath, report);
+            summary["reconciliation"] = new JsonObject { ["status"] = "Produced", ["report"] = Reference(ReconciliationPath, "cis.discovery-reconciliation/v1"), ["reason"] = null };
+            Write(Path.Combine(directory.Path, "summary.json"), summary);
+            return Task.FromResult(new ProcessResult(0, report.ToJsonString(), ""));
         }
-
         internal void AlterReconciliation(string fault)
         {
             JsonObject report = JsonNode.Parse(File.ReadAllText(ReconciliationPath))!.AsObject();
             if (fault == "Missing") { summary.Remove("reconciliation"); return; }
             if (fault == "Status") { summary["reconciliation"]!["status"] = "NotProduced"; return; }
             if (fault == "Source") { report["source"]!["commit"] = "another-commit"; }
+            else if (fault == "MissingSource") { report.Remove("source"); summary.Remove("source"); }
+            else if (fault == "MissingRunId") { report.Remove("runId"); summary.Remove("runId"); }
+            else if (fault == "MissingInputHash")
+            {
+                report["source"]!["inputInventory"]!.AsObject().Remove("sha256");
+                summary["source"]!["inputInventory"]!.AsObject().Remove("sha256");
+            }
             else { report["runId"] = "another-run"; }
             Write(ReconciliationPath, report);
             if (fault != "Hash") { summary["reconciliation"]!["report"] = Reference(ReconciliationPath, "cis.discovery-reconciliation/v1"); }
@@ -518,10 +709,25 @@ public sealed class VerificationEvidenceTests
         internal Task<ProcessResult> Validate()
         {
             WriteInputs();
-            string script = Path.Combine(RepositoryRoot, "implementations", "csharp", "eng", "check-release.ps1");
-            return ProcessRunner.RunAsync("pwsh", ["-NoProfile", "-File", script, "-Profile", "Developer", "-EvidenceRoot", directory.Path, "-ManifestPath", Path.Combine(directory.Path, "manifest.json"), "-InventoryPath", Path.Combine(directory.Path, "inventory.json")], RepositoryRoot, TimeSpan.FromSeconds(60));
+            JsonObject result = VerificationEvidence.Validate(directory.Path, Path.Combine(directory.Path, "manifest.json"), Path.Combine(directory.Path, "inventory.json"), "Developer", "windows-x64");
+            VerificationEvidence.Write(ValidationPath, result);
+            return Task.FromResult(new ProcessResult(result["exitCode"]!.GetValue<int>(), result.ToJsonString(), ""));
+        }
+        internal JsonObject Discover()
+        {
+            WriteInputs();
+            return VerificationEvidence.FamilyDiscovery(directory.Path, inventory, "unit", "windows-x64", nativeDiscoveryPath);
         }
 
+        internal Task<ProcessResult> ValidateLauncher(string profile)
+        {
+            summary["profile"] = profile;
+            WriteInputs();
+            string script = Path.Combine(RepositoryRoot, "implementations/csharp/eng/check-release.ps1");
+            return ProcessRunner.RunAsync("pwsh", ["-NoProfile", "-File", script, "-Profile", profile, "-EvidenceRoot", directory.Path,
+                "-ManifestPath", Path.Combine(directory.Path, "manifest.json"), "-InventoryPath", Path.Combine(directory.Path, "inventory.json"),
+                "-OutputPath", ValidationPath], RepositoryRoot, TimeSpan.FromSeconds(90));
+        }
         private JsonObject Reference(string path, string schema) => new()
         {
             ["path"] = Path.GetRelativePath(directory.Path, path).Replace('\\', '/'),

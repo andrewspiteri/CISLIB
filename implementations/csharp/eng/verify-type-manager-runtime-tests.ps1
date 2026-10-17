@@ -11,7 +11,8 @@ $CoreAssembly = [IO.Path]::GetFullPath($CoreAssembly)
 $OutputRoot = [IO.Path]::GetFullPath($OutputRoot)
 if ((Test-Path -LiteralPath $OutputRoot) -and @(Get-ChildItem -LiteralPath $OutputRoot -Force).Count -ne 0) { throw 'Use an empty output directory.' }
 New-Item -ItemType Directory -Force -Path $OutputRoot, (Join-Path $OutputRoot 'candidate') | Out-Null
-$inputs = @()
+Import-Module (Join-Path $PSScriptRoot 'Evidence.psm1') -Force
+$inputs = @(Copy-EvidenceTool $OutputRoot)
 foreach ($file in @('global.json', 'Directory.Build.props', 'Directory.Packages.props', 'NuGet.config', 'eng/Evidence.psm1', 'eng/toolchain.json',
     'tests/CIS.Core.UnitTests/TypeManagerManifestTests.cs',
     'tests/CIS.Core.UnitTests/TypeManagerInputTests.cs',

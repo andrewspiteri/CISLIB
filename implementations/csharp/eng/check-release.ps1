@@ -13,12 +13,11 @@ Import-Module (Join-Path $PSScriptRoot 'Evidence.psm1') -Force
 if (-not $EvidenceRoot) { $EvidenceRoot = Join-Path (Split-Path (Split-Path (Split-Path $PSScriptRoot -Parent) -Parent) -Parent) ".artifacts/csharp/verification/$Profile" }
 if (-not $OutputPath) { $OutputPath = Join-Path $EvidenceRoot 'validation.json' }
 try {
-    $manifest = Get-Content -Raw -LiteralPath $ManifestPath | ConvertFrom-Json -AsHashtable -DateKind String
-    $inventory = Get-Content -Raw -LiteralPath $InventoryPath | ConvertFrom-Json -AsHashtable -DateKind String
-    $issues = @(Get-VerificationIssues $EvidenceRoot $manifest $inventory $Profile $Lane)
+    $result = Invoke-EvidenceTool -Arguments @('validate', [IO.Path]::GetFullPath($EvidenceRoot), [IO.Path]::GetFullPath($ManifestPath), [IO.Path]::GetFullPath($InventoryPath), $Profile, $Lane, [IO.Path]::GetFullPath($OutputPath)) -AllowRefusal
 }
-catch { $issues = @([ordered]@{ code = 'UnrecognizedReportSchema'; detail = $_.Exception.Message }) }
-$result = [ordered]@{ schema = 'cis.validation/v1'; profile = $Profile; lane = $Lane; exitCode = $(if ($issues.Count -eq 0) { 0 } else { 2 }); issues = $issues }
-Write-VerificationJson $OutputPath $result
+catch {
+    $result = [ordered]@{ schema = 'cis.validation/v1'; profile = $Profile; lane = $Lane; exitCode = 2; issues = @([ordered]@{ code = 'UnrecognizedReportSchema'; detail = $_.Exception.Message }) }
+    Write-VerificationJson $OutputPath $result
+}
 $result | ConvertTo-Json -Depth 8
 exit $result.exitCode

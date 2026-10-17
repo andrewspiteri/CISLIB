@@ -42,17 +42,8 @@ function Invoke-Family {
     if (Test-Path -LiteralPath $discoveryNativePath) { Remove-Item -LiteralPath $discoveryNativePath }
     $loggerDirectory = Join-Path $PSScriptRoot 'CIS.Discovery.TestLogger/bin/Release/net10.0'
     $null = Invoke-VerificationCommand (Join-Path $directory 'discovery.log') ($arguments + @('--list-tests', '--test-adapter-path', $loggerDirectory, '--logger', "cis-discovery;OutputPath=$discoveryNativePath"))
-    $discoveredNative = Read-NativeDiscovery $discoveryNativePath
-    $discoveryCounts = Get-MethodCounts $discoveredNative.tests 'Method'
-    $cases = @($inventory.cases | Where-Object { $_.family -eq $Family.id -and $_.implementation -eq 'Implemented' -and $Lane -in $_.lanes } | ForEach-Object {
-        $case = $_
-        $bindings = @(Get-CaseBindings $case | ForEach-Object {
-            @{ method = $_.method; count = $(if ($discoveryCounts.ContainsKey($_.method)) { $discoveryCounts[$_.method] } else { 0 }) }
-        })
-        [ordered]@{ id = $case.id; count = ($bindings | Measure-Object count -Sum).Sum; bindings = $bindings }
-    })
     $discoveryPath = Join-Path $directory 'discovery.json'
-    Write-VerificationJson $discoveryPath ([ordered]@{ schema = 'cis.discovery/v1'; family = $Family.id; status = 'Discovered'; discovered = $discoveredNative.total; cases = $cases; nativeReport = New-EvidenceReference $reportRoot $discoveryNativePath 'cis.vstest-discovery/v1' })
+    $null = Invoke-EvidenceTool -Arguments @('discovery', $reportRoot, (Join-Path $repositoryRoot 'conformance/logging/case-inventory.json'), $Family.id, $Lane, $discoveryNativePath, $discoveryPath)
     $Entry.discovery = New-EvidenceReference $reportRoot $discoveryPath 'cis.discovery/v1'
 
     $nativePath = Join-Path $directory 'report.trx'
@@ -145,7 +136,7 @@ catch {
 finally {
     if ($summary.families.Count -eq $manifest.families.Count) {
         try {
-            Write-DiscoveryReconciliation $reportRoot $summary $manifest $inventory $Lane
+            $null = Invoke-EvidenceTool -Arguments @('reconcile', $reportRoot, (Join-Path $languageRoot 'verification/families.json'), (Join-Path $repositoryRoot 'conformance/logging/case-inventory.json'), $Lane)
             $summary.reconciliation = [ordered]@{ status = 'Produced'; report = New-EvidenceReference $reportRoot $reconciliationPath 'cis.discovery-reconciliation/v1'; reason = $null }
         }
         catch {
@@ -155,7 +146,11 @@ finally {
         }
     }
     Publish-Summary
-    $summary.issues = @($summary.issues) + @(Get-VerificationIssues $reportRoot $manifest $inventory $Profile $Lane)
+    try {
+        $validation = Invoke-EvidenceTool -Arguments @('validate', $reportRoot, (Join-Path $languageRoot 'verification/families.json'), (Join-Path $repositoryRoot 'conformance/logging/case-inventory.json'), $Profile, $Lane, '-') -AllowRefusal
+        $summary.issues = @($summary.issues) + @($validation.issues)
+    }
+    catch { $summary.issues += [ordered]@{ code = 'UnrecognizedReportSchema'; detail = $_.Exception.Message } }
     if ($exitCode -eq 0 -and $summary.issues.Count -gt 0) { $exitCode = 2 }
     $summary.exitCode = $exitCode
     $summary.finishedUtc = [DateTime]::UtcNow.ToString('o')

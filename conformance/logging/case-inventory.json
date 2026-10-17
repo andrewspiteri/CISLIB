@@ -11346,6 +11346,31 @@
       ],
       "lanes": [ "windows-x64", "linux-ubuntu2404-x64" ],
       "source": "Distinct Developer/Release guard identities preserve report bytes; the positive SDK-host independence case is bound separately from the 24 negative controls."
+    },
+    {
+      "id": "ARCH-NATIVE-EVIDENCE-MIGRATION",
+      "family": "architecture",
+      "title": "Native release-evidence parsing, discovery and reconciliation retain policy and fail closed",
+      "implementation": "Implemented",
+      "method": null,
+      "minimumExecutions": 60,
+      "bindings": [
+        { "method": "CIS.Tests.ArchitectureTests.VerificationEvidenceTests.AcceptsCompositeGroupWithExactNativeBindings", "minimumExecutions": 1 },
+        { "method": "CIS.Tests.ArchitectureTests.VerificationEvidenceTests.AcceptsOnlyTheKnownNativeDisplayNameRepresentations", "minimumExecutions": 4 },
+        { "method": "CIS.Tests.ArchitectureTests.VerificationEvidenceTests.RejectsNativeDiscoveryAndGroupDrift", "minimumExecutions": 27 },
+        { "method": "CIS.Tests.ArchitectureTests.VerificationEvidenceTests.ReconciliationPreservesRequiredInapplicableUnboundAndUnexecutedFacts", "minimumExecutions": 1 },
+        { "method": "CIS.Tests.ArchitectureTests.VerificationEvidenceTests.RejectsAlteredOrStaleDeclaredReconciliation", "minimumExecutions": 8 },
+        { "method": "CIS.Tests.ArchitectureTests.VerificationEvidenceTests.NativeMigrationKeepsCorruptEvidenceFailClosed", "minimumExecutions": 12 },
+        { "method": "CIS.Tests.ArchitectureTests.VerificationEvidenceTests.AcceptsHistoricalIntegralDecimalCounts", "minimumExecutions": 1 },
+        { "method": "CIS.Tests.ArchitectureTests.VerificationEvidenceTests.StableLauncherUsesNativeValidationAndPreservesReleaseRefusal", "minimumExecutions": 2 },
+        { "method": "CIS.Tests.ArchitectureTests.VerificationEvidenceTests.CopiedEvidenceReaderRunsWithoutRepositorySources", "minimumExecutions": 1 },
+        { "method": "CIS.Tests.ArchitectureTests.VerificationEvidenceTests.MalformedInputsProduceStructuredRefusal", "minimumExecutions": 1 },
+        { "method": "CIS.Tests.ArchitectureTests.VerificationEvidenceTests.FamilyDiscoveryRetainsExactBindingsWithoutCreditingPlannedOrForeignLaneCases", "minimumExecutions": 1 },
+        { "method": "CIS.Tests.ArchitectureTests.VerificationEvidenceTests.MutationSliceNeverSatisfiesFullShippingQualification", "minimumExecutions": 1 }
+      ],
+      "lanes": [ "windows-x64", "linux-ubuntu2404-x64" ],
+      "requirements": [ "REQ-007" ],
+      "source": "17 October user-authorized C# migration of the existing release-evidence policy; preserves original controls and release refusals. Does not close pending qualification gates."
     }
   ]
 }

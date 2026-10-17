@@ -36,6 +36,8 @@ try {
     }
     if ($moduleInputs.Count -ne @($producer.coreSourceInputs.Keys | Where-Object { $_.StartsWith('TypeManagement/') }).Count) { throw 'Candidate module source set differs.' }
     $report.moduleSourceInputs = $moduleInputs
+    Import-Module (Join-Path $PSScriptRoot 'Evidence.psm1') -Force
+    $report.inputs += @(Copy-EvidenceTool $OutputRoot)
     foreach ($file in @('global.json', 'Directory.Build.props', 'Directory.Packages.props', 'eng/toolchain.json', 'eng/Evidence.psm1',
         'tests/TestAssembly.cs', 'tests/CIS.Core.BusinessCases/TypeManagerStartupStories.cs')) {
         $source = Join-Path $language $file
