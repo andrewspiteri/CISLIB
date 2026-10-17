@@ -32,13 +32,14 @@ public sealed class ConfigurationProcessTests
         (JsonObject result, _) = await FixtureProcessChecks.RunAsync(["configuration", inputs, id], directory.Path, TestContext, inputs, environment);
         Assert.AreEqual(id, (string?)result["caseId"]);
         JsonObject configuration = result["configuration"]!.AsObject();
+        Assert.IsTrue(configuration.ContainsKey("filePath") && configuration.ContainsKey("workingDirectory"), "Missing configuration path facts.");
         JsonObject expected = row["expected"]!.AsObject();
         if (expected["hasParseErrors"]!.GetValue<bool>())
         {
             Assert.AreEqual("Invalid", (string?)configuration["status"]);
             Assert.IsFalse(configuration.ContainsKey("values"));
-            Assert.IsNull(configuration["filePath"]);
-            Assert.IsNull(configuration["workingDirectory"]);
+            FixtureProcessChecks.ExplicitNull(configuration, "filePath");
+            FixtureProcessChecks.ExplicitNull(configuration, "workingDirectory");
             CollectionAssert.AreEqual(expected["settings"]!.AsArray().Where(setting => (string?)setting!["state"] == "InvalidToken").Select(setting => "InvalidToken:" + (string)setting!["key"]!).ToArray(),
                 FixtureProcessChecks.Issues(configuration["issues"]!));
         }

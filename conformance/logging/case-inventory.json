@@ -11230,6 +11230,20 @@
       "minimumExecutions": 8,
       "lanes": [ "windows-x64", "linux-ubuntu2404-x64" ],
       "source": "17 October provider shape correction: both protected identity fields must remain non-null strings in operation and host-story readers."
+    },
+    {
+      "id": "INT-REVIEW-CONFIGURATION-SHAPES",
+      "family": "integration",
+      "implementation": "Implemented",
+      "method": null,
+      "minimumExecutions": 7,
+      "bindings": [
+        { "method": "CIS.Tests.IntegrationTests.ConfigurationValidationProcessTests.DeclaredNullFactsCannotOmitTheirMember", "minimumExecutions": 1 },
+        { "method": "CIS.Tests.IntegrationTests.ConfigurationValidationProcessTests.ExpectedValuesCannotSilentlyUseTheWrongShape", "minimumExecutions": 3 },
+        { "method": "CIS.Tests.IntegrationTests.EnvironmentOptionsProcessTests.ContainerShapeDistinguishesMissingNullFactsAndExcludedLogging", "minimumExecutions": 3 }
+      ],
+      "lanes": [ "windows-x64", "linux-ubuntu2404-x64" ],
+      "source": "17 October configuration reader correction: explicit null members, object-only expected subsets, and absent Logging metadata. Reader controls are in the integration assembly; they are not seven additional child-process scenarios."
     }
   ]
 }

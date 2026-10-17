@@ -97,6 +97,7 @@ public sealed class ConfigurationPathProcessTests
         Assert.AreEqual(captured == before ? "actual-child-cwd" : "declared-fixture-base", (string?)result["directorySource"]);
         Assert.AreEqual(captured, (string?)result["capturedDirectory"]);
         Assert.AreEqual(1, result["directoryReads"]!.GetValue<int>());
+        Assert.IsTrue(result.ContainsKey("absolutePathBefore") && result.ContainsKey("absolutePathAfter") && result.ContainsKey("validatedWorkingDirectory"), "Missing path observations.");
         if ((string?)row["expected"]!["status"] == "Invalid")
         {
             JsonArray expectedIssues = row["expected"]!["issues"]!.DeepClone().AsArray();
@@ -105,9 +106,9 @@ public sealed class ConfigurationPathProcessTests
                 if ((string?)issue!["code"] == "InvalidPath") { issue["key"] = "LoggingOptions.FilePath"; }
             }
             CollectionAssert.AreEqual(FixtureProcessChecks.Issues(expectedIssues), FixtureProcessChecks.Issues(result["issues"]!));
-            Assert.IsNull(result["absolutePathBefore"]);
-            Assert.IsNull(result["absolutePathAfter"]);
-            Assert.IsNull(result["validatedWorkingDirectory"]);
+            FixtureProcessChecks.ExplicitNull(result, "absolutePathBefore");
+            FixtureProcessChecks.ExplicitNull(result, "absolutePathAfter");
+            FixtureProcessChecks.ExplicitNull(result, "validatedWorkingDirectory");
             string safe = (string?)result["errorMessage"] + string.Join("|", result["issues"]!.AsArray().Select(issue => (string?)issue!["explanation"]));
             Assert.IsFalse(safe.Contains("invalid\0path", StringComparison.Ordinal));
             Assert.IsFalse(safe.Contains("must-not-appear", StringComparison.Ordinal));

@@ -93,6 +93,12 @@ internal static class FixtureProcessChecks
         return report;
     }
 
+    internal static void ExplicitNull(JsonObject actual, string key)
+    {
+        Assert.IsTrue(actual.ContainsKey(key), "Missing null member: " + key);
+        Assert.IsNull(actual[key], "Expected null: " + key);
+    }
+
     internal static void Subset(JsonObject expected, JsonNode actual)
     {
         foreach ((string key, JsonNode? value) in expected)

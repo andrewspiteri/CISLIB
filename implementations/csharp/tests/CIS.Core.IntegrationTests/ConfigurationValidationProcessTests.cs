@@ -24,6 +24,7 @@ public sealed class ConfigurationValidationProcessTests
         (JsonObject result, _) = await FixtureProcessChecks.RunAsync(["configuration-validation", inputs, id, after], before, TestContext, inputs);
         JsonNode expected = row["expected"]!;
         bool valid = (string?)expected["status"] == "Valid";
+        Assert.IsTrue(result.ContainsKey("filePath") && result.ContainsKey("workingDirectory"), "Missing validation path facts.");
         Assert.AreEqual((string?)expected["status"], (string?)result["status"]);
         CollectionAssert.AreEquivalent(FixtureProcessChecks.Issues(expected["issues"]!), FixtureProcessChecks.Issues(result["issues"]!));
         Assert.IsTrue(result["issues"]!.AsArray().All(issue => !string.IsNullOrWhiteSpace((string?)issue!["explanation"])));
@@ -39,9 +40,9 @@ public sealed class ConfigurationValidationProcessTests
             string? relative = (string?)expected["filePath"]?["input"];
             Assert.AreEqual(relative is null ? null : Path.GetFullPath(relative, before), (string?)result["filePath"]);
             Assert.AreEqual(before, (string?)result["workingDirectory"]);
-            Assert.IsNull(result["message"]);
-            Assert.IsNull(result["exceptionText"]);
-            Assert.IsTrue(result.ContainsKey("values"));
+            FixtureProcessChecks.ExplicitNull(result, "message");
+            FixtureProcessChecks.ExplicitNull(result, "exceptionText");
+            Assert.IsInstanceOfType<JsonObject>(result["values"]);
             foreach (string name in new[] { "consoleEnabled", "fileEnabled" })
             {
                 if (expected.AsObject().ContainsKey(name)) { Assert.IsTrue(JsonNode.DeepEquals(expected[name], result[name])); }
@@ -50,12 +51,12 @@ public sealed class ConfigurationValidationProcessTests
         else
         {
             Assert.IsFalse(result.ContainsKey("values"));
-            Assert.IsNull(result["filePath"]);
-            Assert.IsNull(result["workingDirectory"]);
+            FixtureProcessChecks.ExplicitNull(result, "filePath");
+            FixtureProcessChecks.ExplicitNull(result, "workingDirectory");
             Assert.AreEqual("Core configuration is invalid. Inspect Issues for details.", (string?)result["message"]);
             StringAssert.StartsWith((string)result["exceptionText"]!, "CIS.Configuration.CoreConfigurationException:");
         }
-        if (expected["values"] is JsonObject subset) { FixtureProcessChecks.Subset(subset, result["values"]!); }
+        VerifyExpectedValues(expected, result);
         string diagnostic = (string?)result["message"] + (string?)result["exceptionText"] + string.Join("|", result["issues"]!.AsArray().Select(issue => (string?)issue!["explanation"]));
         foreach (JsonNode? forbidden in row["diagnosticsMustExclude"]!.AsArray())
         {
@@ -66,4 +67,33 @@ public sealed class ConfigurationValidationProcessTests
         Assert.AreEqual(0, Directory.EnumerateFileSystemEntries(after).Count());
         Assert.AreEqual(2, Directory.EnumerateFileSystemEntries(owned.Path).Count());
     }
+    [TestMethod]
+    public void DeclaredNullFactsCannotOmitTheirMember()
+    {
+        var actual = new JsonObject { ["message"] = null };
+        FixtureProcessChecks.ExplicitNull(actual, "message");
+        actual.Remove("message");
+        Assert.ThrowsExactly<AssertFailedException>(() => FixtureProcessChecks.ExplicitNull(actual, "message"));
+    }
+
+    [TestMethod]
+    [DataRow("null")]
+    [DataRow("42")]
+    [DataRow("[]")]
+    public void ExpectedValuesCannotSilentlyUseTheWrongShape(string token)
+    {
+        var expected = new JsonObject { ["values"] = new JsonObject { ["Level"] = 2 } };
+        var actual = expected.DeepClone().AsObject();
+        VerifyExpectedValues(expected, actual);
+        expected["values"] = JsonNode.Parse(token);
+        Assert.ThrowsExactly<AssertFailedException>(() => VerifyExpectedValues(expected, actual));
+    }
+
+    private static void VerifyExpectedValues(JsonNode expected, JsonObject result)
+    {
+        if (!expected.AsObject().ContainsKey("values")) { return; }
+        Assert.IsInstanceOfType<JsonObject>(expected["values"], "Expected values must be an object.");
+        FixtureProcessChecks.Subset(expected["values"]!.AsObject(), result["values"]!);
+    }
+
 }

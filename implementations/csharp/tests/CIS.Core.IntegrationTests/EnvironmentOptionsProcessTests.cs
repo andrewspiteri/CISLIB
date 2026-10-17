@@ -61,10 +61,9 @@ public sealed class EnvironmentOptionsProcessTests
         Guid? instanceId = null;
         Assert.IsFalse(result["lifecycleApiPresent"]!.GetValue<bool>());
         Assert.IsTrue(result["readonlyFacts"]!.GetValue<bool>());
+        VerifyContainerShape(result, scenario != "invalid");
         if (scenario == "invalid")
         {
-            Assert.IsNull(result["values"]);
-            Assert.IsNull(result["metadata"]);
             Assert.IsTrue(result["repeatedFailure"]!.GetValue<bool>());
             Assert.IsFalse(result["invalidIdentityInterned"]!.GetValue<bool>());
             Assert.AreEqual(1, result["issues"]!.AsArray().Count);
@@ -94,7 +93,6 @@ public sealed class EnvironmentOptionsProcessTests
             Assert.AreEqual(TimeSpan.Zero, timestamp.Offset);
             Assert.IsTrue(result["before"]!.GetValue<DateTimeOffset>() <= timestamp && timestamp <= result["after"]!.GetValue<DateTimeOffset>());
             Assert.AreEqual(scenario == "overrides" ? 131072 : 65536, values["Logging"]!["MaxEntryBytes"]!.GetValue<int>());
-            Assert.IsNull(metadata["Logging"]);
             Assert.AreEqual(values["ApplicationName"]!.GetValue<string>(), metadata["ApplicationName"]!.GetValue<string>());
             Assert.AreEqual(0, result["issues"]!.AsArray().Count);
             Assert.AreEqual(scenario == "explicit" ? 1 : 0, values["EnvironmentKind"]!.GetValue<int>());
@@ -107,4 +105,30 @@ public sealed class EnvironmentOptionsProcessTests
         Assert.AreEqual(0, Directory.EnumerateFileSystemEntries(directory.Path).Count());
         return instanceId;
     }
+    [TestMethod]
+    [DataRow("values")]
+    [DataRow("metadata")]
+    [DataRow("Logging")]
+    public void ContainerShapeDistinguishesMissingNullFactsAndExcludedLogging(string field)
+    {
+        bool valid = field == "Logging";
+        JsonObject actual = valid
+            ? new JsonObject { ["values"] = new JsonObject(), ["metadata"] = new JsonObject() }
+            : new JsonObject { ["values"] = null, ["metadata"] = null };
+        VerifyContainerShape(actual, valid);
+        if (valid) { actual["metadata"]!["Logging"] = null; } else { actual.Remove(field); }
+        Assert.ThrowsExactly<AssertFailedException>(() => VerifyContainerShape(actual, valid));
+    }
+
+    private static void VerifyContainerShape(JsonObject result, bool valid)
+    {
+        if (valid)
+        {
+            Assert.IsInstanceOfType<JsonObject>(result["values"]);
+            Assert.IsInstanceOfType<JsonObject>(result["metadata"]);
+            Assert.IsFalse(result["metadata"]!.AsObject().ContainsKey("Logging"), "Metadata must omit Logging.");
+        }
+        else { FixtureProcessChecks.ExplicitNull(result, "values"); FixtureProcessChecks.ExplicitNull(result, "metadata"); }
+    }
+
 }
