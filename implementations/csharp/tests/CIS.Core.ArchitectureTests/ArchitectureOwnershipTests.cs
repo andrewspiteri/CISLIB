@@ -14,6 +14,8 @@ public sealed class ArchitectureOwnershipTests
     private static readonly string Root = FindRoot();
     private static JsonObject Current()
     {
+        string? inspection = System.Environment.GetEnvironmentVariable("CIS_ARCHITECTURE_INSPECTION");
+        if (!string.IsNullOrWhiteSpace(inspection)) { return JsonNode.Parse(File.ReadAllText(inspection))!.AsObject(); }
         string reports = Path.GetFullPath("../../.artifacts/csharp/verification/Developer", Root);
         JsonNode summary = JsonNode.Parse(File.ReadAllText(Path.Combine(reports, "summary.json")))!;
         return JsonNode.Parse(File.ReadAllText(Path.Combine(reports, summary["architectureInspection"]!["path"]!.GetValue<string>())))!.AsObject();

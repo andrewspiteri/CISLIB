@@ -1,12 +1,19 @@
 param([Parameter(Mandatory)][string] $OutputRoot)
 $ErrorActionPreference = 'Stop'
 Set-StrictMode -Version Latest
+if (-not [string]::IsNullOrWhiteSpace($env:CIS_ARCHITECTURE_INSPECTION)) {
+    throw 'CIS_ARCHITECTURE_INSPECTION is only for focused tests. Clear it before running shipping coverage.'
+}
+Import-Module (Join-Path $PSScriptRoot 'Verification.psm1') -Force
 $languageRoot = Split-Path $PSScriptRoot -Parent
 $policy = Get-Content -Raw (Join-Path $languageRoot 'verification/coverage/shipping.json') | ConvertFrom-Json
 $toolchain = Get-Content -Raw (Join-Path $PSScriptRoot 'toolchain.json') | ConvertFrom-Json
 $OutputRoot = [IO.Path]::GetFullPath($OutputRoot)
 if (Test-Path -LiteralPath $OutputRoot) { throw 'Use a new output directory; native reports are immutable.' }
 New-Item -ItemType Directory -Path $OutputRoot | Out-Null
+$repositoryRoot = Split-Path (Split-Path $languageRoot -Parent) -Parent
+$sourceBefore = @(Get-SourceInventory $repositoryRoot)
+$sourceBefore | ConvertTo-Json -Depth 6 | Set-Content (Join-Path $OutputRoot 'source-inputs.json') -Encoding utf8
 $commands = [Collections.Generic.List[object]]::new()
 $results = [Collections.Generic.List[string]]::new()
 $inputPaths = @((Join-Path $languageRoot 'Directory.Build.props'), (Join-Path $languageRoot 'Directory.Packages.props'), (Join-Path $languageRoot 'global.json'), (Join-Path $languageRoot 'NuGet.config'), $PSCommandPath, (Join-Path $PSScriptRoot 'CIS.DependencyChecker/ShippingCoverage.cs'), (Join-Path $PSScriptRoot 'toolchain.json'),
@@ -39,6 +46,25 @@ foreach ($family in $policy.families.PSObject.Properties) {
         elseif ($assembly.name -eq 'CIS.Core') { throw "Missing copy-local shipping assembly: $copy" }
     }
 }
+# Pin all repository inputs, including shared conformance/contracts and tool configuration.
+$inputPaths += $sourceBefore | ForEach-Object { Join-Path $repositoryRoot $_.path }
+$checker = Join-Path $PSScriptRoot 'CIS.DependencyChecker/bin/Release/net10.0/CIS.DependencyChecker.dll'
+$inputPaths += $checker
+# These are the Developer observations and reference bytes read by architecture tests.
+$developerRoot = Join-Path $repositoryRoot '.artifacts/csharp/verification/Developer'
+$developerSummaryPath = Join-Path $developerRoot 'summary.json'
+$developerSummary = Get-Content -Raw -LiteralPath $developerSummaryPath | ConvertFrom-Json
+if ($developerSummary.exitCode -ne 0 -or $developerSummary.profile -cne 'Developer') { throw 'Coverage requires a successful Developer checkpoint.' }
+$inspectionPath = Join-Path $developerRoot $developerSummary.architectureInspection.path
+if ((Get-FileHash -LiteralPath $inspectionPath -Algorithm SHA256).Hash.ToLowerInvariant() -cne $developerSummary.architectureInspection.sha256) { throw 'Developer inspection differs from its recorded pin.' }
+$inspection = Get-Content -Raw -LiteralPath $inspectionPath | ConvertFrom-Json
+$startupRoot = Join-Path $developerRoot 'contracts/startup'
+$startupSummaryPath = Join-Path $startupRoot 'summary.json'
+$startupSummary = Get-Content -Raw -LiteralPath $startupSummaryPath | ConvertFrom-Json
+$referencePath = Join-Path $startupRoot $startupSummary.referenceAssembly.path
+if ((Get-FileHash -LiteralPath $referencePath -Algorithm SHA256).Hash.ToLowerInvariant() -cne $startupSummary.referenceAssembly.sha256) { throw 'Startup reference assembly differs from its recorded pin.' }
+if ((Get-FileHash -LiteralPath $inspection.package.path -Algorithm SHA256).Hash.ToLowerInvariant() -cne $inspection.package.sha256) { throw 'Developer package differs from its recorded pin.' }
+$inputPaths += @($developerSummaryPath, $inspectionPath, $inspection.package.path, $startupSummaryPath, $referencePath)
 $inputs = @($inputPaths | Sort-Object -Unique | ForEach-Object {
     @{ path = [IO.Path]::GetRelativePath($languageRoot, $_).Replace('\', '/'); sha256 = (Get-FileHash -LiteralPath $_ -Algorithm SHA256).Hash.ToLowerInvariant() }
 })
@@ -90,10 +116,12 @@ try {
         $results.Add($directory)
     }
     if ((Get-FileHash $packages[0].FullName -Algorithm SHA256).Hash.ToLowerInvariant() -ne $packageHash) { throw 'Candidate package changed during coverage.' }
+    $sourceAfter = @(Get-SourceInventory $repositoryRoot)
+    if (Compare-Object $sourceBefore $sourceAfter -Property path,sha256) { throw 'Repository inputs changed during coverage.' }
     foreach ($input in $inputs) {
         if ((Get-FileHash -LiteralPath (Join-Path $languageRoot $input.path) -Algorithm SHA256).Hash.ToLowerInvariant() -ne $input.sha256) { throw "Coverage input changed: $($input.path)" }
     }
-    & dotnet run --project (Join-Path $PSScriptRoot 'CIS.DependencyChecker/CIS.DependencyChecker.csproj') -c Release -p:RestoreLockedMode=true --no-launch-profile -- shipping-coverage $languageRoot (Join-Path $OutputRoot 'coverage.json') @results
+    & dotnet $checker shipping-coverage $languageRoot (Join-Path $OutputRoot 'coverage.json') @results
     exit $LASTEXITCODE
 }
 finally {

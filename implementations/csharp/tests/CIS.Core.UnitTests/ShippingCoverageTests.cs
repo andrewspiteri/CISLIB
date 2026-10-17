@@ -136,7 +136,9 @@ public sealed class ShippingCoverageTests
             default: Assert.Fail("Unknown fault."); break;
         }
         fixture.Save();
-        await Assert.ThrowsExactlyAsync<InvalidDataException>(() => fixture.Summarize(second));
+        InvalidDataException error = await Assert.ThrowsExactlyAsync<InvalidDataException>(() => fixture.Summarize(second));
+        if (fault == "duplicate-point") { StringAssert.Contains(error.Message, "Duplicate native class/source/line identity."); }
+        if (fault == "invalid-branch-count") { StringAssert.Contains(error.Message, "Invalid native branch counts."); }
     }
 
     [TestMethod]
@@ -166,6 +168,21 @@ public sealed class ShippingCoverageTests
         Assert.IsFalse(File.Exists(invalidOutput), "Invalid evidence must not produce a success-shaped output.");
     }
 
+    [TestMethod]
+    public async Task CoverageRejectsFocusedInspectionOverrideBeforeCreatingReports()
+    {
+        using var directory = new TemporaryDirectory();
+        DirectoryInfo? root = new(AppContext.BaseDirectory);
+        while (root is not null && !File.Exists(Path.Combine(root.FullName, "implementations/csharp/CisLib.slnx"))) { root = root.Parent; }
+        Assert.IsNotNull(root);
+        string output = Path.Combine(directory.Path, "untouched");
+        ProcessResult result = await ProcessRunner.RunAsync("pwsh",
+            ["-NoProfile", "-File", Path.Combine(root.FullName, "implementations/csharp/eng/verify-shipping-coverage.ps1"), "-OutputRoot", output],
+            root.FullName, TimeSpan.FromSeconds(30), new Dictionary<string, string?> { ["CIS_ARCHITECTURE_INSPECTION"] = "arbitrary-focused-fixture.json" });
+        Assert.AreNotEqual(0, result.ExitCode);
+        StringAssert.Contains(result.StandardError, "CIS_ARCHITECTURE_INSPECTION is only for focused tests.");
+        Assert.IsFalse(Directory.Exists(output));
+    }
     private sealed class Fixture : IDisposable
     {
         private readonly TemporaryDirectory directory = new();

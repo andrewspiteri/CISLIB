@@ -1,6 +1,6 @@
 # Ordinary builds and focused native tests
 
-Use the pinned .NET SDK **10.0.401** and native runtime **10.0.12** from `implementations/csharp/global.json` and `eng/toolchain.json`. A newer installed patch does not satisfy the deliberately disabled roll-forward policy. The complete Developer toolchain also requires its separately pinned .NET 8 tool-host runtime; an ordinary unit test does not. For a private SDK installation, put that installation first on process `PATH` and set `DOTNET_ROOT` to it so child test processes use the same installation.
+Use the pinned .NET SDK **10.0.401** and native runtime **10.0.12** from `implementations/csharp/global.json` and `eng/toolchain.json`. A newer installed patch does not satisfy the deliberately disabled roll-forward policy. Dedicated compatibility tools require their separately pinned .NET 8 tool-host runtime; ordinary tests and the Developer profile do not run that compatibility gate. For a private SDK installation, put that installation first on process `PATH` and set `DOTNET_ROOT` to it so child test processes use the same installation.
 
 From `implementations/csharp`, ordinary commands need no prior package or verification checkpoint:
 
@@ -27,13 +27,13 @@ pwsh -NoProfile -File eng/test.ps1 -Project UnitTests -Filter 'FullyQualifiedNam
 pwsh -NoProfile -File eng/test.ps1 -Project IntegrationTests -Class DiscoveryProcessTests -Configuration Release
 ```
 
-`-Project` accepts a registered family short name, full project name, or its language-root-relative path. Omit the selector to run that entire project. `-Class` uses native FullyQualifiedName containment followed by a dot; give the full class name when short names are ambiguous. `-Category` uses native TestCategory equality. Use `-Filter` for combined VSTest expressions; the launcher does not implement a filter language. Choose exactly one selector. `-TimeoutSeconds` defaults to 300 and bounds each native build/test child; timeout is a failure.
+`-Project` accepts a registered family short name, full project name, or its language-root-relative path. Omit the selector to run that entire project. `-Class` uses native FullyQualifiedName containment followed by a dot; give the full class name when short names are ambiguous. `-Category` uses native TestCategory equality. Use `-Filter` for combined VSTest expressions; the launcher does not implement a filter language. Choose at most one selector. `-TimeoutSeconds` defaults to 300 and bounds each native build/test child; timeout is a failure.
 
 The thin PowerShell entry builds the existing development checker. Normal incremental build servers remain enabled; coordinate shared checkout builds rather than running a focused command concurrently with a checkpoint. Its C# command incrementally builds only the selected project and dependencies, then uses ordinary `dotnet test --no-build --no-restore`. Each invocation owns a fresh `.artifacts/csharp/focused/<id>/` directory with command arguments, build/test logs, native `selected.trx` and `summary.json`. A successful summary contains the actual native case names, method identities, sources and outcomes. Empty selection, missing/malformed/stale native results, failed or skipped cases, inconsistent counters/identities, timeout or nonzero tool exit fail the command. A failed run retains native logs/reports where produced, without crediting a partial case list as passing.
 
 The summary measures selected-project build and combined native discovery/execution/report time separately. Tool bootstrap and PowerShell startup are outside that timer; compare total command wall time separately, on the same host, and label cold setup versus an unchanged incremental run. Native VSTest discovers and executes the selection; this command does not claim an independent discovery census or release evidence reconciliation.
 
-Unselected cases and families, package/API and architecture checkpoint prerequisites, coverage, mutation, performance and release qualification remain unexecuted. Do not run the comprehensive Developer profile after every small edit. Run it at a coherent checkpoint, and retain all required release gates. This first focused slice does not migrate the existing Python verification scripts.
+Unselected cases and families, package/API and architecture checkpoint prerequisites, coverage, mutation, performance and release qualification remain unexecuted. Do not run the comprehensive Developer profile after every small edit. Run it at a coherent checkpoint, and retain all required release gates. The subsequent native verification migration retired maintained Python scripts; historical snapshots remain preserved.
 
 ## Tests with explicit checkpoint prerequisites
 
@@ -51,4 +51,4 @@ try {
 } finally { Remove-Item Env:CIS_ARCHITECTURE_INSPECTION -ErrorAction Ignore }
 ```
 
-Developer and Release checkpoint entry points reject a nonempty override before changing reports. That environment override is only a fixture input for `ArchitectureAllowlistTests`; it does not approve a checkpoint or bypass the inspection's policy. Without it, the class uses the Developer inspection recorded by the existing checkpoint summary. Other architecture classes retain their own explicit package/compiler/evidence prerequisites. Do not overwrite existing checkpoint reports to run a selected test.
+Developer and Release checkpoint entry points reject a nonempty override before changing reports. That environment override is only a fixture input for `ArchitectureAllowlistTests` and `ArchitectureOwnershipTests`; it does not approve a checkpoint or bypass the inspection's policy. Without it, the class uses the Developer inspection recorded by the existing checkpoint summary. Other architecture classes retain their own explicit package/compiler/evidence prerequisites. Do not overwrite existing checkpoint reports to run a selected test.
