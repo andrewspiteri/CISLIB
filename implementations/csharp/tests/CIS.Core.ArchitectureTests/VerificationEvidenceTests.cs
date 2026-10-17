@@ -12,6 +12,21 @@ public sealed class VerificationEvidenceTests
     private static readonly string RepositoryRoot = FindRepositoryRoot();
 
     [TestMethod]
+    [DataRow("Developer")]
+    [DataRow("Release")]
+    public async Task CheckpointOverrideGuardPreservesExistingReports(string profile)
+    {
+        string summary = Path.Combine(RepositoryRoot, ".artifacts/csharp/verification", profile, "summary.json");
+        byte[]? before = File.Exists(summary) ? File.ReadAllBytes(summary) : null;
+        ProcessResult result = await ProcessRunner.RunAsync("pwsh",
+            ["-NoProfile", "-File", Path.Combine(RepositoryRoot, "eng/verify.ps1"), "-Profile", profile],
+            RepositoryRoot, TimeSpan.FromSeconds(30), new Dictionary<string, string?> { ["CIS_ARCHITECTURE_INSPECTION"] = "focused-fixture.json" });
+        Assert.AreNotEqual(0, result.ExitCode, profile + ": " + result.StandardOutput);
+        StringAssert.Contains(result.StandardError, "CIS_ARCHITECTURE_INSPECTION is only for focused tests.");
+        if (before is null) { Assert.IsFalse(File.Exists(summary), profile); }
+        else { CollectionAssert.AreEqual(before, File.ReadAllBytes(summary), profile); }
+    }
+    [TestMethod]
     public async Task AcceptsTheNativePopulatedFixture()
     {
         using var fixture = new EvidenceFixture();

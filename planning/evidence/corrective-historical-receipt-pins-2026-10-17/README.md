@@ -1,0 +1,7 @@
+# Historical receipt identity supplement
+
+17 October 2026. Continuation 19-F6: the original Batch A receipt remains unchanged. This supplement retains previously unpinned logs and the original 29-case R1 focused summary (471e908afa8e465f80724e48f26081e7). Its identity is recovered from the original log and actual summary, not reconstructed. The old Developer/Release override logs contain identical error text and do not independently prove distinct invocations. New native two-profile controls retain explicit DataRow identities and check report bytes remain unchanged; they supplement, rather than rewrite, historical claims.
+
+Continuation 19-F5 is a prose ambiguity, not a missing negative gate: the five SDK observations comprise one positive host-independence case and four negative SDK-origin cases. PolicyRejectsIsolatedObservedFactViolations has exactly 24 rows, including wrong-sdk-version-directory, matching its required minimum of 24. HostMsbuildDirectoryDoesNotChooseTheSdkReferenceOrigin has its own passing native identity (now explicitly bound alongside the two profile guards). No minimum was reduced or inflated to 25.
+
+Both native lanes pass ten selected current controls (two profile guards, one SDK-host positive, seven source-inventory cases), zero failures/skips: Windows 35bbb415f2954501b781361c57d617f8 and Ubuntu 40c12d5a8f0a41ac80772b5556fa5089. Fresh full Developer and the renamed inspection field are verified separately at the coherent checkpoint.

@@ -11333,6 +11333,19 @@
       ],
       "lanes": [ "windows-x64", "linux-ubuntu2404-x64" ],
       "source": "Exact package asset names and distinct complete project/package/nuspec dependency inventories. Controls use copied actual packages and project definitions."
+    },
+    {
+      "id": "ARCH-REVIEW-CHECKPOINT-IDENTITY",
+      "family": "architecture",
+      "implementation": "Implemented",
+      "method": null,
+      "minimumExecutions": 3,
+      "bindings": [
+        { "method": "CIS.Tests.ArchitectureTests.VerificationEvidenceTests.CheckpointOverrideGuardPreservesExistingReports", "minimumExecutions": 2 },
+        { "method": "CIS.Tests.ArchitectureTests.ArchitectureAllowlistTests.HostMsbuildDirectoryDoesNotChooseTheSdkReferenceOrigin", "minimumExecutions": 1 }
+      ],
+      "lanes": [ "windows-x64", "linux-ubuntu2404-x64" ],
+      "source": "Distinct Developer/Release guard identities preserve report bytes; the positive SDK-host independence case is bound separately from the 24 negative controls."
     }
   ]
 }

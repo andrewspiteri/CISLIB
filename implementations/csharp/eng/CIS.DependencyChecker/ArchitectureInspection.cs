@@ -126,7 +126,8 @@ internal static class ArchitectureInspection
         {
             schema = "cis.architecture-inspection/v1",
             sdk = sdk.Trim(),
-            sourceCommit = (await Run(languageRoot, "git", ["rev-parse", "HEAD"])).Trim(),
+            repositoryHeadCommit = (await Run(languageRoot, "git", ["rev-parse", "HEAD"])).Trim(),
+            sourceIdentityScope = "Repository HEAD only; does not attest working-tree source identity. Package, inspected binaries and listed policy inputs are hashed separately.",
             package = Reference(packagePath),
             inspectionInputs = inputNames.Select(name => Reference(Path.Combine(languageRoot, name))).ToArray(),
             inspector = Reference(typeof(ArchitectureInspection).Assembly.Location),

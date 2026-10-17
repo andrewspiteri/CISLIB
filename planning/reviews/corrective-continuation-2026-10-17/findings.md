@@ -1,0 +1,36 @@
+# Approved continuation: current dispositions
+
+17 October 2026. Raw responses cover immutable approved older snapshots. This local correction log does not turn them into a Claude review of current source. Original eleven finding groups remain closed in the earlier findings log. The roadmap stays paused.
+
+| Review finding | Current disposition | Evidence / scope |
+| --- | --- | --- |
+| 17-F1 rotation recovery lane | Corrected: structured corrective verifier binding; limits distinguish supplemental deletion-denial resume from full S07 qualification. | file-rotation-qualification-map.json; existing scenario identities/minima preserved. |
+| 17-F2 inspection HEAD identity | Corrected: repositoryHeadCommit and explicit HEAD-only sourceIdentityScope replace ambiguous sourceCommit. | ArchitectureInspection; hashed package/binary/policy observations retain their own scope. Fresh inspection is part of the next Developer checkpoint. |
+| 17-F3 mutable setup description | Corrected: EnvironmentKind, CommitId and BuildId are named alongside logging settings. | functional-reconciliation.json; user-selected setters retained. |
+| 17-F4 profile roots/components | Prepared, not applied: file-specific selector root and missing Type Manager/discovery components. | [Preserved-document patch](preserved-cis-guidance.md). Live user-owned edits remain unchanged. |
+| 17-F5 historical task example | Prepared, not applied: old exception route labelled historical. | Same preserved-document patch; graph validation still pending application. |
+| 17-F6 selector wording | Corrected to at most one selector. | [Coverage/input evidence](../../evidence/corrective-coverage-inputs-2026-10-17/README.md). |
+| 18-F1 coverage shared inputs | Corrected orchestration: root inventory pins contracts, conformance and configuration; recheck detects additions/deletions. | [Coverage/input evidence](../../evidence/corrective-coverage-inputs-2026-10-17/README.md). Full fresh instrumented collection remains pending. |
+| 18-F2 mixed/unpinned Developer observations | Corrected: override guard, consumed Developer artifact pins, same focused ownership/allowlist input. Actual summarizer DLL is pinned and executed directly. | 29 coverage controls and 44 ownership cases pass per native lane. Expanded full collection path is not yet qualified. |
+| 18-F3 coverage exclusion count | Corrected to refer to enumerated declarations without a stale count. | shipping.json. |
+| 18-F4 masked coverage controls | Corrected: duplicate identity and invalid branch counts require their intended reasons. | 29 ShippingCoverageTests pass per lane. |
+| 18-F5 package names | Corrected: ordinal allowlist/metadata names and duplicate-name rejection ignoring case. | [Dependency evidence](../../evidence/corrective-dependency-sets-2026-10-17/README.md), 25 selected cases per lane. |
+| 18-F6 duplicate reference inventories | Corrected: distinct complete project/package/nuspec sets; versions still checked. | Same dependency evidence; eight new C# controls bound explicitly. |
+| 19-F1 discovery corruption reasons | Corrected: five specific reasons, including coupled observed/projected runtime corruption. | [File/discovery evidence](../../evidence/corrective-file-discovery-readers-2026-10-17/README.md), 62 selected cases per lane. |
+| 19-F2 current migration position | Corrected: maintained Python migration complete; remaining IDE/timing/PowerShell/F work explicit. | corrective-implementation-map-2026-10-15.md. |
+| 19-F3 orphan rows/no-edits prose | Corrected: proper table header, original-map qualifier and retired utility labels. | Same map; historical receipt boundaries preserved. |
+| 19-F4 review status | Corrected: exact-manifest authorization, 23/24 reviewed, current fixes locally verified rather than rereviewed. | Map and feature report; no whole-change PASS. |
+| 19-F5 SDK negative minimum | Clarified, no missing gate found: four negatives plus one positive SDK observation. The negative method has exactly 24 rows including wrong-version directory, matching minimum 24. | [Historical supplement](../../evidence/corrective-historical-receipt-pins-2026-10-17/README.md); positive method now separately bound. |
+| 19-F6 historical receipt identity | Corrected with supplement: original logs/29-case R1 focused summary pinned; old identical override logs explicitly limited; two fresh profile controls identify both invocations and preserve report bytes. | Same historical supplement. Original receipt/raw logs unchanged. |
+| 21-FA selector canonical-name controls | Refuted by source trace: selector opens computed existing canonical member, never the untrusted name; removing the name guard makes original traversal/foreign-name controls fail. | [File/discovery evidence](../../evidence/corrective-file-discovery-readers-2026-10-17/README.md). No executed mutant claim. |
+| 21-FB file guide preflight claim | Corrected: unreadable-member preflight distinguished from actual post-intent deletion denial. | Same evidence. |
+| 21-FC raw reacquisition probe | Corrected: existing shared runner supplies child identity/hash/environment checks and clears disabled Unix locking. | Three Ubuntu failures reproduced before fix; 62 cases per lane plus three poisoned-parent Ubuntu cases pass. |
+| 22-F1 timeout registration loss | Corrected: registration unavailability contributes LossObserved even with unresolved input/empty Outputs. | [Incoming evidence](../../evidence/corrective-incoming-registration-loss-2026-10-17/README.md), 61 cases per lane. |
+| 22-F2 callback/argument docs | Corrected: callback restrictions and precedence, synchronous disposal errors, registration/interceptor argument failures. | [Runtime docs evidence](../../evidence/corrective-runtime-documentation-2026-10-17/README.md), 22 unit/79 architecture cases per lane. |
+| 22-F3 safe-code catalog | Corrected: four emitted codes in nonshipping reference catalog; incoming worker label explicit. | Same runtime docs evidence; no new shipping LogErrorCodes type. |
+| 22-F4 detached callback attribution | Corrected: fresh per-Prepare scope marker distinguishes active joined work from later detached rejections. | Incoming evidence; five new C# regressions, two reproduced pre-fix failures. |
+| 22-F5 public outcome XML | Corrected: output-stage-only outcomes labelled precisely. | Runtime docs evidence. |
+| 23-F1 policy parse/hash reads | Corrected using existing Read(path, out hash); owned-byte BOM compatibility retained. | [Policy evidence](../../evidence/corrective-policy-bytes-2026-10-17/README.md), two C# cases per lane; long measurement/example workflows not repeated. |
+| 23-F2 evidence-map date | Corrected to Updated 17 October. | Type Manager acceptance-evidence.md. |
+
+Review bundle 20 remains unavailable after the retained weekly quota refusal. No new payload was sent and no retry is scheduled. Fresh coverage/qualification and the two preserved-document applications remain explicit. Other reviewer questions were not promoted to defects without supporting evidence; no release or current-source Claude PASS is claimed.

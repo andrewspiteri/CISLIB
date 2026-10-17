@@ -7,7 +7,7 @@
   "scope": "Functional reconciliation and missing observable development cases. This is not complete release qualification or a candidate-package/historical/platform pass.",
   "amendments": [
     "One shipping CIS.Core assembly embeds Microsoft provider; approved Microsoft packages are allowed, third-party integrations isolated.",
-    "EnvironmentOptions is a static constructor-initialized facts container with user-selected mutable logging settings before runtime capture; superseded immutable-static configuration prose is not adopted.",
+    "EnvironmentOptions is a static constructor-initialized facts container with mutable setup properties EnvironmentKind, CommitId and BuildId and user-selected mutable logging settings before runtime capture; superseded immutable-static configuration prose is not adopted.",
     "Valid oversized entries are truncated and marked, with a configurable default 64 KiB; unsupported values remain invalid and counted.",
     "Creator disposes scope handles in LIFO order; repeated valid disposal is harmless. Universal inherited-child disposal detection is not promised."
   ],
@@ -1879,7 +1879,7 @@
     },
     {
       "originalRule": "no mutable static configuration fields",
-      "currentDirection": "Superseded by user-selected static EnvironmentOptions constructor/facts and mutable logging settings before runtime capture. Readonly facts and captured runtime configuration remain required."
+      "currentDirection": "Superseded by user-selected static EnvironmentOptions constructor/facts, mutable setup properties EnvironmentKind, CommitId and BuildId, and mutable logging settings before runtime capture. Readonly facts and captured runtime configuration remain required."
     },
     {
       "originalRule": "no exposed caller-owned collections in resolved metadata",

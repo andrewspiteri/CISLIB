@@ -1,0 +1,98 @@
+diff --git a/docs/cis/graph-context.md b/docs/cis/graph-context.md
+index 869675e5..ac90ad4d 100644
+--- a/docs/cis/graph-context.md
++++ b/docs/cis/graph-context.md
+@@ -35,7 +35,7 @@ pwsh -NoProfile -File eng/cis.ps1 context search --repo . --kind test --text Exc
+ pwsh -NoProfile -File eng/cis.ps1 context search --repo . --kind reference-item --text WP04-S02-T04 --limit 10 --format agent
+ ```
+ 
+-The last command locates the next exception task's Draft route. Replace T04 with T03 to inspect the completed task. The [task index](references/traceability-matrix.md) covers WP04-S02 only; earlier and future tasks remain in the original roadmap. Draft rows provide navigation and do not establish CIS product acceptance.
++The last command illustrates the historical exception task's Draft route; it is not the current next task. Replace T04 with T03 to inspect the completed task. The [task index](references/traceability-matrix.md) covers WP04-S02 only; earlier and future tasks remain in the original roadmap. Draft rows provide navigation and do not establish CIS product acceptance.
+ 
+ Use the full returned node key to select related, caller or test queries. A key selects a graph node; it cannot separate declarations the tool has already merged. For the current internal capture method:
+ 
+diff --git a/docs/cis/references/repository-profile.md b/docs/cis/references/repository-profile.md
+index d01be65d..a363acc2 100644
+--- a/docs/cis/references/repository-profile.md
++++ b/docs/cis/references/repository-profile.md
+@@ -10,7 +10,7 @@ cis:
+ 
+ # Repository profile
+ 
+-This inventory maps physical source directories to graph components. The ten projects come from `implementations/csharp/CisLib.slnx`. Only CIS.Core is the shipping library; test, example, specification and development-tool components do not become runtime dependencies. C# is the current implementation. Future languages belong under `implementations/<language>/` and need their own declared capabilities.
++This inventory maps physical source directories to graph components. The registered project inventory comes from `implementations/csharp/CisLib.slnx`. Only CIS.Core is the shipping library; test, example, specification and development-tool components do not become runtime dependencies. C# is the current implementation. Future languages belong under `implementations/<language>/` and need their own declared capabilities.
+ 
+ ## Components
+ 
+@@ -126,7 +126,7 @@ This inventory maps physical source directories to graph components. The ten pro
+ 
+ ### logging-wire-examples
+ 
+-- Root: `implementations/csharp/eng/CIS.DependencyChecker`
++- Root: `implementations/csharp/eng/CIS.DependencyChecker/JsonlInputSelector.cs`
+ - Languages: csharp
+ - Frameworks: dotnet
+ - Roles: example-tool
+@@ -135,10 +135,55 @@ This inventory maps physical source directories to graph components. The ten pro
+ - Evidence:
+   - implementations/csharp/eng/CIS.DependencyChecker/JsonlInputSelector.cs
+ 
++### cis-typemanager-build
++
++- Root: `implementations/csharp/eng/CIS.TypeManager.Build`
++- Languages: csharp
++- Frameworks: dotnet
++- Roles: build-tool
++- Capabilities: type-inventory-generation
++- Confidence: high
++- Evidence:
++  - implementations/csharp/eng/CIS.TypeManager.Build/CIS.TypeManager.Build.csproj
++
++### typemanager-examples
++
++- Root: `implementations/csharp/examples/type-manager`
++- Languages: csharp
++- Frameworks: dotnet, aspnetcore
++- Roles: example
++- Capabilities: console-host-integration, web-host-integration
++- Confidence: high
++- Evidence:
++  - implementations/csharp/examples/type-manager/Console/Console.csproj
++  - implementations/csharp/examples/type-manager/Web/Web.csproj
++
++### typemanager-fixtures
++
++- Root: `implementations/csharp/tests/fixtures/TypeManager`
++- Languages: csharp
++- Frameworks: dotnet
++- Roles: test-fixture
++- Capabilities: inventory-runtime-verification
++- Confidence: high
++- Evidence:
++  - implementations/csharp/tests/fixtures/TypeManager/Host/Host.csproj
++
++### cis-discovery-testlogger
++
++- Root: `implementations/csharp/eng/CIS.Discovery.TestLogger`
++- Languages: csharp
++- Frameworks: dotnet
++- Roles: development-tool
++- Capabilities: native-test-discovery
++- Confidence: high
++- Evidence:
++  - implementations/csharp/eng/CIS.Discovery.TestLogger/CIS.Discovery.TestLogger.csproj
++
+ ### csharp-tooling
+ 
+ - Root: `implementations/csharp`
+-- Languages: csharp, python
++- Languages: csharp, powershell
+ - Frameworks: dotnet
+ - Roles: development-tool
+ - Capabilities: compiler-controls, conformance-verification
+@@ -147,4 +192,4 @@ This inventory maps physical source directories to graph components. The ten pro
+   - implementations/csharp/eng/verify.ps1
+   - implementations/csharp/verification/contracts/startup/
+ 
+-This fallback owns supporting files outside the ten project directories. More specific component roots take precedence. Some compiler-control sources intentionally do not compile in isolation; graph diagnostics for those files do not establish a defect in shipping Core. Native compiler reports remain their qualification evidence.
++This fallback owns supporting files outside the specific project directories. More specific component roots take precedence. Some compiler-control sources intentionally do not compile in isolation; graph diagnostics for those files do not establish a defect in shipping Core. Native compiler reports remain their qualification evidence.
