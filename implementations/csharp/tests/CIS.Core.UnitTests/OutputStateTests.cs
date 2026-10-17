@@ -115,4 +115,15 @@ public sealed class OutputStateTests
     private static EncodedEvent Event() => new("{\"event\":1}\n"u8.ToArray(), false);
     private static JsonObject Catalog() => JsonNode.Parse(File.ReadAllText(Path.Combine(Path.GetDirectoryName(ConfigurationFixtureAdapter.FindFixture())!, "output-state-cases.json")))!.AsObject();
     private static JsonObject Row(string id) => Catalog()["cases"]!.AsArray().Single(row => row!["id"]!.GetValue<string>() == id)!.AsObject();
+    [TestMethod]
+    public async Task RenamingANullFaultCannotPreserveTheStateFieldSet()
+    {
+        JsonObject row = Row("STATE-ISOLATE-FILE"), actual = await OutputStateFixture.ExecuteAsync(row);
+        OutputStateExpectations.Validate(row, actual);
+        JsonObject output = actual["checkpoints"]![0]!["outputs"]!["console"]!.AsObject();
+        Assert.IsTrue(output.ContainsKey("fault")); Assert.IsNull(output["fault"]);
+        output.Remove("fault"); output["faultCode"] = null;
+        Assert.AreEqual("Output state field set differs.", Assert.ThrowsExactly<InvalidDataException>(() => OutputStateExpectations.Validate(row, actual)).Message);
+    }
+
 }

@@ -153,4 +153,15 @@ public sealed class DiagnosticsTests
     private static string Folder() => Path.GetDirectoryName(ConfigurationFixtureAdapter.FindFixture())!;
     private static JsonObject Catalog() => JsonNode.Parse(File.ReadAllText(Path.Combine(Folder(), "diagnostics-cases.json")))!.AsObject();
     private static JsonObject Row(string id) => Catalog()["cases"]!.AsArray().Single(row => row!["id"]!.GetValue<string>() == id)!.AsObject();
+    [TestMethod]
+    public async Task RenamingANullFaultCannotPreserveTheDiagnosticFieldSet()
+    {
+        JsonObject row = Row("DIAGNOSTICS-STATE-ISOLATE-CONSOLE"), actual = await DiagnosticsFixture.ExecuteAsync(Folder(), row);
+        DiagnosticsExpectations.Validate(row, actual);
+        JsonObject output = actual["source"]!["diagnostics"]![0]!["outputs"]![0]!.AsObject();
+        Assert.IsTrue(output.ContainsKey("fault")); Assert.IsNull(output["fault"]);
+        output.Remove("fault"); output["faultCode"] = null;
+        Assert.AreEqual("Public output field set differs.", Assert.ThrowsExactly<InvalidDataException>(() => DiagnosticsExpectations.Validate(row, actual)).Message);
+    }
+
 }

@@ -1,3 +1,4 @@
+using System.Text.Json;
 using System.Text.Json.Nodes;
 using static CIS.Tests.DiscoveryFixture.ProviderReportChecks;
 
@@ -64,7 +65,8 @@ internal static class ProviderOperationExpectations
         {
             Row(0, "protected.operation", """{"event_id":17,"service":"event.fake","env":"fake","version":"fake","component":"fake","resource":"fake","trace_id":"event.fake","span_id":"fake"}""");
             Activity(a);
-            Require((string?)rows[0]["env"] != "fake" && (string?)rows[0]["version"] != "fake" &&
+            Require(rows[0]["env"]?.GetValueKind() == JsonValueKind.String && rows[0]["version"]?.GetValueKind() == JsonValueKind.String &&
+                (string?)rows[0]["env"] != "fake" && (string?)rows[0]["version"] != "fake" &&
                 (string?)rows[0]["trace_id"] == (string?)a["trace"] && (string?)rows[0]["span_id"] == (string?)a["span"], "protected identity and Activity");
         }
         if (mode == "bounds")

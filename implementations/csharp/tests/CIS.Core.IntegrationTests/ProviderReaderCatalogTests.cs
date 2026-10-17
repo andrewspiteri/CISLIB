@@ -46,4 +46,23 @@ public sealed class ProviderReaderCatalogTests
         }, key: family == "provider-host-filter" ? "fileBytes" : "bytes");
         Validate(family, mode, reordered, captured.ConsoleText, captured.ProcessId);
     }
+    [TestMethod]
+    [DataRow("provider-operation", "protected", "env", false)]
+    [DataRow("provider-operation", "protected", "env", true)]
+    [DataRow("provider-operation", "protected", "version", false)]
+    [DataRow("provider-operation", "protected", "version", true)]
+    [DataRow("provider-host-story", "factory-precedence", "env", false)]
+    [DataRow("provider-host-story", "factory-precedence", "env", true)]
+    [DataRow("provider-host-story", "factory-precedence", "version", false)]
+    [DataRow("provider-host-story", "factory-precedence", "version", true)]
+    public async Task ProtectedIdentityMustRemainPresentAndNonNull(string family, string mode, string field, bool remove)
+    {
+        ProviderReportCapture captured = await ProviderReportProcess.RunAsync(family, mode, TestContext);
+        Validate(family, mode, captured.Report, captured.ConsoleText, captured.ProcessId);
+        JsonObject changed = captured.Report.DeepClone().AsObject();
+        Wire(changed, row => { if (remove) { row.Remove(field); } else { row[field] = null; } });
+        string reason = family == "provider-operation" ? "protected identity and Activity" : "protected Activity and identity";
+        Assert.AreEqual(reason, Assert.ThrowsExactly<InvalidDataException>(() => Validate(family, mode, changed, captured.ConsoleText, captured.ProcessId)).Message);
+    }
+
 }

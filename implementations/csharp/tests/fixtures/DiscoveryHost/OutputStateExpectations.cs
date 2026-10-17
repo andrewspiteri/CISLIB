@@ -27,7 +27,7 @@ internal static class OutputStateExpectations
             foreach (string name in names)
             {
                 JsonObject counts = outputs[name]!.AsObject(), expectedCounts = wanted["outputs"]![name]!.AsObject();
-                Require(counts.Count == expectedCounts.Count + 1 && counts.ContainsKey("faultAtUtc"), "Output state field set differs.");
+                Require(counts.Select(field => field.Key).ToHashSet(StringComparer.Ordinal).SetEquals(expectedCounts.Select(field => field.Key).Append("faultAtUtc")), "Output state field set differs.");
                 foreach (var item in expectedCounts) { Require(JsonNode.DeepEquals(item.Value, counts[item.Key]), "Literal state/disposition differs: " + name + "/" + item.Key); }
                 long Count(string key) { string token = counts[key]!.GetValue<string>(); Require(long.TryParse(token, NumberStyles.None, CultureInfo.InvariantCulture, out long value) && value >= 0 && token == value.ToString(CultureInfo.InvariantCulture), "Noncanonical counter."); return value; }
                 Require(Count("accepted") == Count("written") + Count("failed") + Count("abandoned") + Count("pending") && Count("inFlight") <= Count("pending") && Count("inFlight") <= 1, "Accepted disposition differs.");

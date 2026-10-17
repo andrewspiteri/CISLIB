@@ -1,3 +1,4 @@
+using System.Text.Json;
 using System.Text.Json.Nodes;
 using static CIS.Tests.DiscoveryFixture.ProviderReportChecks;
 
@@ -67,6 +68,7 @@ internal static class ProviderHostStoryExpectations
             Event(rows[3], "after", null, Category, new JsonObject { ["event_id"] = 17 });
             Activity(a);
             Require(rows.Take(3).All(row => Same(row["trace_id"], a["trace"]) && Same(row["span_id"], a["span"]) &&
+                row["env"]?.GetValueKind() == JsonValueKind.String && row["version"]?.GetValueKind() == JsonValueKind.String &&
                 (string?)row["env"] != "fake" && (string?)row["version"] != "fake"), "protected Activity and identity");
             Require(!rows[3].ContainsKey("trace_id") && !rows[3].ContainsKey("span_id"), "Activity does not leak");
         }

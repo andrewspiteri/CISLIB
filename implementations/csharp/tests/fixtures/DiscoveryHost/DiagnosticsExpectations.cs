@@ -38,7 +38,7 @@ internal static class DiagnosticsExpectations
             for (int outputIndex = 0; outputIndex < outputs.Count; outputIndex++)
             {
                 JsonObject values = outputs[outputIndex]!.AsObject(), expectedValues = wantedOutputs[outputIndex]!.AsObject();
-                Require(values.Count == expectedValues.Count + 1 && values.ContainsKey("faultAtUtc"), "Public output field set differs.");
+                Require(values.Select(field => field.Key).ToHashSet(StringComparer.Ordinal).SetEquals(expectedValues.Select(field => field.Key).Append("faultAtUtc")), "Public output field set differs.");
                 foreach (var field in expectedValues) { Require(JsonNode.DeepEquals(values[field.Key], field.Value), "Literal public output observation differs: " + field.Key); }
                 string name = values["name"]!.GetValue<string>();
                 var counts = new[] { "sequence", "filtered", "attempts", "accepted", "queueFull", "unavailable", "written", "failed", "abandoned", "pending" }.ToDictionary(key => key, key => Count(values, key));

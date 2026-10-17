@@ -11208,6 +11208,28 @@
       "minimumExecutions": 1,
       "lanes": [ "windows-x64", "linux-ubuntu2404-x64" ],
       "source": "17 October confirmed null-projection finding: native positive child followed by a missing-member corruption."
+    },
+    {
+      "id": "UT-REVIEW-NULL-FAULT-FIELD-SETS",
+      "family": "unit",
+      "implementation": "Implemented",
+      "method": null,
+      "minimumExecutions": 2,
+      "bindings": [
+        { "method": "CIS.Tests.UnitTests.DiagnosticsTests.RenamingANullFaultCannotPreserveTheDiagnosticFieldSet", "minimumExecutions": 1 },
+        { "method": "CIS.Tests.UnitTests.OutputStateTests.RenamingANullFaultCannotPreserveTheStateFieldSet", "minimumExecutions": 1 }
+      ],
+      "lanes": [ "windows-x64", "linux-ubuntu2404-x64" ],
+      "source": "17 October exact-field-set correction: replacing fault:null with faultCode:null must reject after valid actual runtime observations."
+    },
+    {
+      "id": "INT-REVIEW-PROTECTED-IDENTITY-MEMBERS",
+      "family": "integration",
+      "implementation": "Implemented",
+      "method": "CIS.Tests.IntegrationTests.ProviderReaderCatalogTests.ProtectedIdentityMustRemainPresentAndNonNull",
+      "minimumExecutions": 8,
+      "lanes": [ "windows-x64", "linux-ubuntu2404-x64" ],
+      "source": "17 October provider shape correction: both protected identity fields must remain non-null strings in operation and host-story readers."
     }
   ]
 }
