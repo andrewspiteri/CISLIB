@@ -60,8 +60,8 @@ internal sealed class TypeManagerExamplesVerification
         report["packageVersion"] = version; report["packageCoreSha256"] = coreHash; report["packageHelperSha256"] = helperHash;
         Copy(Path.Combine(language, "global.json"), Path.Combine(root, "global.json")); Copy(Path.Combine(repository, ".editorconfig"), Path.Combine(root, ".editorconfig")); Write(Path.Combine(root, "Directory.Build.targets"), "<Project />\n");
         Directory.CreateDirectory(feed); Copy(input.PathOf("package"), Path.Combine(feed, "CIS.Core." + version + ".nupkg"));
-        string policy = Path.Combine(language, "eng", "runtime-dependencies.json"); report["runtimeDependencyPolicySha256"] = Hash(policy); report["dependencyPackages"] = new JsonObject();
-        foreach (JsonNode? item in Read(policy)["packages"]!.AsArray())
+        string policy = Path.Combine(language, "eng", "runtime-dependencies.json"); JsonObject dependencies = Read(policy, out string dependencyPolicyHash); report["runtimeDependencyPolicySha256"] = dependencyPolicyHash; report["dependencyPackages"] = new JsonObject();
+        foreach (JsonNode? item in dependencies["packages"]!.AsArray())
         {
             string name = ((string)item!["id"]!).ToLowerInvariant(), dependencyVersion = (string)item["version"]!;
             string path = Path.Combine(input.PathOf("dependency-cache"), name, dependencyVersion, name + "." + dependencyVersion + ".nupkg");
@@ -71,8 +71,8 @@ internal sealed class TypeManagerExamplesVerification
         // configuration and seed the private feed with the pinned SDK packs.
         report["sdkPackages"] = new JsonObject();
         string toolchainPath = Path.Combine(language, "eng", "toolchain.json");
-        JsonObject toolchain = Read(toolchainPath);
-        report["toolchainPolicySha256"] = Hash(toolchainPath);
+        JsonObject toolchain = Read(toolchainPath, out string toolchainHash);
+        report["toolchainPolicySha256"] = toolchainHash;
         foreach (JsonNode? pack in toolchain["frameworkDownloads"]!["packages"]!.AsArray())
         {
             string name = ((string)pack!["id"]!).ToLowerInvariant(), runtimeVersion = (string)pack["version"]!;

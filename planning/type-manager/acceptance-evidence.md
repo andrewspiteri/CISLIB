@@ -1,6 +1,6 @@
 # Type Manager acceptance evidence map
 
-14 October 2026. This maps the unchanged completion pack's A01–A30 scenarios to
+Updated 17 October 2026. This maps the unchanged completion pack's A01–A30 scenarios to
 current implementation evidence. It does not mark roadmap tasks complete. Evidence
 is development evidence, not a release claim; remaining checks are explicit below.
 

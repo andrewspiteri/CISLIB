@@ -76,13 +76,13 @@ internal sealed class TypeManagerVerificationInputs
     {
         byte[] bytes = File.ReadAllBytes(path);
         hash = Digest(bytes);
-        return JsonNode.Parse(bytes)!.AsObject();
+        return JsonNode.Parse(bytes.AsSpan().StartsWith(Encoding.UTF8.Preamble) ? bytes.AsSpan(Encoding.UTF8.Preamble.Length) : bytes)!.AsObject();
     }
     internal static JsonObject ReadPinned(string path, string expectedHash, string reason)
     {
         byte[] bytes = File.ReadAllBytes(path);
         Require(Digest(bytes) == expectedHash, reason);
-        return JsonNode.Parse(bytes)!.AsObject();
+        return JsonNode.Parse(bytes.AsSpan().StartsWith(Encoding.UTF8.Preamble) ? bytes.AsSpan(Encoding.UTF8.Preamble.Length) : bytes)!.AsObject();
     }
     internal static string Hash(string path) => Digest(File.ReadAllBytes(path));
     internal static string Digest(ReadOnlySpan<byte> bytes) => Convert.ToHexStringLower(SHA256.HashData(bytes));

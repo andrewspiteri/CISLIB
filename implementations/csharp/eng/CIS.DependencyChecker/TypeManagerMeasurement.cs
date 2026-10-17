@@ -16,7 +16,7 @@ internal sealed class TypeManagerMeasurement
     private TypeManagerMeasurement(string operation, TypeManagerVerificationInputs input)
     {
         this.operation = operation; this.input = input; root = input.Output; language = input.Language; corePin = input.Get("expected-core-sha256");
-        policy = Read(Path.Combine(language, "eng", "toolchain.json"));
+        policy = Read(Path.Combine(language, "eng", "toolchain.json"), out string policyHash);
         var env = HermeticEnvironment(root).ToDictionary(p => p.Key, p => p.Value);
         env["DOTNET_TieredCompilation"] = "1"; env["DOTNET_TieredPGO"] = "1"; environment = env;
         report = new JsonObject
@@ -27,7 +27,7 @@ internal sealed class TypeManagerMeasurement
             ["operation"] = operation,
             ["platform"] = RuntimeInformation.OSDescription,
             ["harnessSha256"] = Hash(typeof(TypeManagerMeasurement).Assembly.Location),
-            ["runtimePolicySha256"] = Hash(Path.Combine(language, "eng", "toolchain.json")),
+            ["runtimePolicySha256"] = policyHash,
             ["sdk"] = policy["sdk"]!.DeepClone(),
             ["runtime"] = policy["targetRuntime"]!.DeepClone(),
             ["processWallObservation"] = "Verifier elapsed time around child execution, strict output decoding, output hashing and log writes; not comparable to the retired Python child-only timer."
