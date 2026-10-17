@@ -19,10 +19,21 @@ public sealed class LoggerOutcomeTests
     [TestMethod]
     public void CatalogIncludesEachOrderedOutputPairForDirectAndLazyCalls()
     {
-        JsonObject catalog = Catalog();
+        ValidateCatalog(Catalog());
+    }
+
+    private static void ValidateCatalog(JsonObject catalog)
+    {
         JsonArray modes = catalog["modes"]!.AsArray(), rows = catalog["cases"]!.AsArray();
         Assert.AreEqual(125, rows.Count);
         Assert.AreEqual(125, rows.Select(row => row!["id"]!.GetValue<string>()).Distinct(StringComparer.Ordinal).Count());
+        string[] expectedModes = ["disabled", "filtered", "filtered-faulted", "accepted", "full", "faulted", "admission-fault"];
+        CollectionAssert.AreEqual(expectedModes, modes.Select(mode => mode!.GetValue<string>()).ToArray(), "Outcome modes differ.");
+        HashSet<string> expectedIds = (from console in expectedModes
+                                       from file in expectedModes
+                                       from method in new[] { "direct", "lazy" }
+                                       select $"OUTCOME-TABLE-{console.ToUpperInvariant()}-{file.ToUpperInvariant()}-{method.ToUpperInvariant()}").ToHashSet(StringComparer.Ordinal);
+        Assert.IsTrue(expectedIds.SetEquals(rows.Select(row => row!["id"]!.GetValue<string>()).Where(id => id.StartsWith("OUTCOME-TABLE-", StringComparison.Ordinal))), "Ordered outcome pair IDs differ.");
         foreach (string method in new[] { "direct", "lazy" })
         {
             for (int console = 0; console < modes.Count; console++)
@@ -74,6 +85,22 @@ public sealed class LoggerOutcomeTests
         }
         if (fault == "utf8") { Assert.ThrowsExactly<System.Text.DecoderFallbackException>(() => LoggerOutcomeExpectations.Validate(row, actual)); }
         else { Assert.ThrowsExactly<InvalidDataException>(() => LoggerOutcomeExpectations.Validate(row, actual)); }
+    }
+    [TestMethod]
+    [DataRow("missing-mode")]
+    [DataRow("renamed-mode")]
+    [DataRow("missing-pair")]
+    public void CatalogCannotRedefineTheExpectedMatrix(string fault)
+    {
+        JsonObject catalog = Catalog();
+        ValidateCatalog(catalog);
+        switch (fault)
+        {
+            case "missing-mode": catalog["modes"]!.AsArray().RemoveAt(6); break;
+            case "renamed-mode": catalog["modes"]![6] = "invented"; break;
+            case "missing-pair": catalog["cases"]![0]!["id"] = "OTHER-CASE"; break;
+        }
+        Assert.ThrowsExactly<AssertFailedException>(() => ValidateCatalog(catalog));
     }
     private static JsonObject Row(string id) => Catalog()["cases"]!.AsArray().Single(row => row!["id"]!.GetValue<string>() == id)!.AsObject();
     private static JsonObject Catalog() => JsonNode.Parse(File.ReadAllText(Path.Combine(Path.GetDirectoryName(ConfigurationFixtureAdapter.FindFixture())!, "logger-outcome-cases.json")))!.AsObject();

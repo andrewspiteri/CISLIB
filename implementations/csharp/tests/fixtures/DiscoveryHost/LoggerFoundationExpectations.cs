@@ -13,6 +13,7 @@ internal static class LoggerFoundationExpectations
         Require(JsonNode.DeepEquals(expected["outcomes"], new JsonArray(results.Select(result => result!["outcome"]!.DeepClone()).ToArray())), "Outcomes differ.");
         foreach (string key in new[] { "clockCalls", "factoryCalls" }) { Require(actual[key] is JsonValue count && count.TryGetValue<int>(out _) && JsonNode.DeepEquals(expected[key], actual[key]), key + " differs."); }
         string mode = row["input"]!["mode"]!.GetValue<string>();
+        int cap = row["input"]!["maxEntryBytes"]?.GetValue<int>() ?? 65536;
         for (int index = 0; index < 2; index++)
         {
             string output = index == 0 ? "console" : "file";
@@ -23,18 +24,18 @@ internal static class LoggerFoundationExpectations
             for (int recordIndex = 0; recordIndex < wires.Count; recordIndex++)
             {
                 byte[] bytes = Convert.FromBase64String(encoded[recordIndex]!.GetValue<string>());
-                int cap = mode == "truncate" ? 16384 : 65536;
+
                 Require(bytes.Length > 0 && bytes.Length <= cap && bytes[^1] == (byte)'\n' && bytes.Count(value => value == (byte)'\n') == 1 && !bytes.Contains((byte)'\r') && !bytes.AsSpan().StartsWith(new byte[] { 0xEF, 0xBB, 0xBF }), "Actual byte size/framing differs.");
                 string wire = new UTF8Encoding(false, true).GetString(bytes);
                 Require(wire == wires[recordIndex]!.GetValue<string>(), "Raw bytes and reported text differ.");
-                Require(wire.EndsWith('\n') && wire.Count(ch => ch == '\n') == 1 && !wire.Contains('\r') && !wire.StartsWith('\uFEFF') && new UTF8Encoding(false, true).GetByteCount(wire) <= 65536, "Wire size/framing differs.");
+                Require(wire.EndsWith('\n') && wire.Count(ch => ch == '\n') == 1 && !wire.Contains('\r') && !wire.StartsWith('\uFEFF') && new UTF8Encoding(false, true).GetByteCount(wire) <= cap, "Wire size/framing differs.");
                 JsonObject record = JsonNode.Parse(wire)!.AsObject();
                 Require(record["schema_version"]!.GetValue<int>() == 1, "Schema differs.");
                 Require(record["status"]!.GetValue<string>() == expected["status"]!.GetValue<string>() && record["timestamp"]!.GetValue<string>() == "2026-10-12T10:11:12.1234567Z", "Method severity/clock differs.");
                 Require(record["service"]!.GetValue<string>() == "Logger.App" && record["component"]!.GetValue<string>() == "Orders" && record["event_name"]!.GetValue<string>() == "logger.event" && record["message"]!.GetValue<string>() == "original", "Owned identity/data differs.");
                 bool lost = mode == "truncate";
                 Require(lost ? record["truncated"]!.GetValue<bool>() : !record.ContainsKey("truncated"), "Record loss differs.");
-                if (lost) { Require(Encoding.UTF8.GetByteCount(wire) <= 16384 && (record["attributes"]!["attachment"]!.GetValue<string>() is string prefix && prefix.Length is > 0 and < 50000 && prefix.All(c => c == 'x')), "Public write did not apply the selected cap."); }
+                if (lost) { Require(Encoding.UTF8.GetByteCount(wire) <= cap && (record["attributes"]!["attachment"]!.GetValue<string>() is string prefix && prefix.Length is > 0 and < 50000 && prefix.All(c => c == 'x')), "Public write did not apply the selected cap."); }
                 if (mode == "fanout")
                 {
                     Require(record["operation_id"]!.GetValue<string>() == "scope-op" && record["attributes"]!["tenant"]!.GetValue<string>() == "original", "Scope capture changed.");

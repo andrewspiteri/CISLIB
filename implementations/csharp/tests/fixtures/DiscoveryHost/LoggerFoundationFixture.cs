@@ -40,7 +40,7 @@ internal static class LoggerFoundationFixture
     {
         string mode = row["input"]!["mode"]!.GetValue<string>();
         CoreLogLevel level = Enum.Parse<CoreLogLevel>(row["input"]!["level"]!.GetValue<string>());
-        var options = new LoggingOptions { Level = CoreLogLevel.Trace };
+        var options = new LoggingOptions { Level = CoreLogLevel.Trace, MaxEntryBytes = row["input"]!["maxEntryBytes"]?.GetValue<int>() ?? 65536 };
         var console = new Output();
         var file = new Output();
         var clock = new Clock();
@@ -51,7 +51,7 @@ internal static class LoggerFoundationFixture
             options.FileLevel = CoreLogLevel.Debug;
             options.FilePath = Path.Combine(Directory.GetCurrentDirectory(), "cis-no-output-created.jsonl");
         }
-        else if (mode == "truncate") { options.MaxEntryBytes = 16384; }
+
         else if (mode == "disabled") { options.Level = CoreLogLevel.None; }
         else if (mode == "fanout") { options.FilePath = Path.Combine(Directory.GetCurrentDirectory(), "cis-no-output-created.jsonl"); }
         var metadata = EventQualificationFixture.Metadata();

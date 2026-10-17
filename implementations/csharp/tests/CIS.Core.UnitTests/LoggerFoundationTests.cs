@@ -135,6 +135,7 @@ public sealed class LoggerFoundationTests
     {
         JsonObject row = Catalog()["cases"]!.AsArray().Single(item => item!["id"]!.GetValue<string>() == "LOGGER-DIRECT-INFORMATION")!.AsObject();
         JsonObject actual = LoggerFoundationFixture.Execute(row);
+        LoggerFoundationExpectations.Validate(row, actual);
         byte[] bytes = Convert.FromBase64String(actual["console"]!["wireBase64"]![0]!.GetValue<string>());
         switch (fault)
         {
@@ -163,6 +164,26 @@ public sealed class LoggerFoundationTests
         Assert.ThrowsExactly<InvalidDataException>(() => LoggerFoundationExpectations.Validate(row, actual));
     }
 
+    [TestMethod]
+    public void ComparatorUsesTheDeclaredCapOutsideTruncationMode()
+    {
+        JsonObject row = Catalog()["cases"]!.AsArray().Single(item => (string?)item!["id"] == "LOGGER-SETTINGS")!.AsObject();
+        JsonObject actual = LoggerFoundationFixture.Execute(row);
+        LoggerFoundationExpectations.Validate(row, actual);
+        row["input"]!["maxEntryBytes"] = 16384;
+        InvalidDataException error = Assert.ThrowsExactly<InvalidDataException>(() => LoggerFoundationExpectations.Validate(row, actual));
+        Assert.AreEqual("Actual byte size/framing differs.", error.Message);
+    }
+
+    [TestMethod]
+    public void TruncationCanUseAnotherDeclaredCap()
+    {
+        JsonObject row = Catalog()["cases"]!.AsArray().Single(item => (string?)item!["input"]!["mode"] == "truncate")!.AsObject();
+        row["input"]!["maxEntryBytes"] = 32768;
+        JsonObject actual = LoggerFoundationFixture.Execute(row);
+        Assert.IsTrue(Convert.FromBase64String(actual["console"]!["wireBase64"]![0]!.GetValue<string>()).Length > 16384);
+        LoggerFoundationExpectations.Validate(row, actual);
+    }
     private static CoreLogRuntime Runtime(LoggerFoundationFixture.Output? output = null) => new(EventQualificationFixture.Metadata().CaptureMetadata(), new LoggingOptions(), output ?? new(), null);
     private static JsonObject Catalog() => JsonNode.Parse(File.ReadAllText(Path.Combine(Path.GetDirectoryName(ConfigurationFixtureAdapter.FindFixture())!, "logger-foundation-cases.json")))!.AsObject();
 }

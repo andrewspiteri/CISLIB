@@ -8,6 +8,8 @@ The [17 October Claude continuation](reviews/corrective-approved-2026-10-17/READ
 
 The earlier both-lane [source-inventory checkpoint](evidence/corrective-source-inventory-2026-10-16/README.md) still passes **6,443 Windows and 6,445 Ubuntu Developer cases**, zero failures/skips/issues, with identical source inputs. The provider correction passes **208 provider unit cases on each native lane**. The later common pipe-byte correction passes **6,460 Windows Developer cases** and **388 console/provider integration cases on each native lane**. The later specialized-reader delta passes 40 focused native Release cases per lane. Full Ubuntu verification and a repeated Windows full checkpoint for that later delta were not run. Those counts do not prove reader completeness or close release gates. The [earlier review](reviews/corrective-2026-10-16/README.md), [corrections](reviews/corrective-2026-10-16/corrections.md) and dated qualification receipts remain historical evidence. The new receipt retains exact raw responses and the seven pending payload identities; the original roadmap remains paused.
 
+The logger binding correction passes 185 unit and 148 integration cases per native lane, including five required cap/matrix controls. [Evidence](evidence/corrective-logger-bindings-2026-10-17/README.md).
+
 ## Repository and package foundation
 
 - Separate CISLIB Git repository, organized for multiple modules and future language implementations under `implementations/<language>`.
