@@ -105,7 +105,7 @@ try {
         }
         if ($project.role -eq 'test' -and $evaluation.Properties.IsTestProject -ne 'true') { throw "Test project is not enabled: $($project.path)" }
         if ($project.role -eq 'process-fixture' -and ($evaluation.Properties.IsTestProject -ne 'false' -or $evaluation.Properties.OutputType -ne 'Exe')) { throw "Process fixture must be a non-test executable: $($project.path)" }
-        $actualReferences = @()
+        $actualReferences = [Collections.Generic.HashSet[string]]::new([StringComparer]::Ordinal)
         foreach ($reference in $evaluation.Items.ProjectReference) {
             $referencePath = [IO.Path]::GetFullPath($reference.Identity, (Split-Path $path -Parent))
             $allowedReferences = @($project.projectReferences | ForEach-Object { [IO.Path]::GetFullPath((Join-Path $LanguageRoot $_)) })
@@ -117,9 +117,9 @@ try {
             if ($referencePath -in $buildOnlyReferences -and ($reference.ReferenceOutputAssembly -ne 'false' -or $reference.Private -ne 'false' -or $reference.PrivateAssets -ne 'all')) {
                 throw "Build-only project must not become a runtime reference: $($reference.Identity)"
             }
-            $actualReferences += $referencePath
+            if (-not $actualReferences.Add($referencePath)) { throw "Duplicate project reference: $referencePath" }
         }
-        if ($actualReferences.Count -ne $project.projectReferences.Count) { throw "Project reference inventory mismatch: $($project.path)" }
+        if (-not $actualReferences.SetEquals([string[]]@($project.projectReferences | ForEach-Object { [IO.Path]::GetFullPath((Join-Path $LanguageRoot $_)) }))) { throw "Project reference inventory mismatch: $($project.path)" }
         $approvedFrameworks = @($projectPolicy.implicitFramework)
         if ($project.role -eq 'example' -and $project.ContainsKey('additionalImplicitFrameworkReferences')) {
             $approvedFrameworks += @($project.additionalImplicitFrameworkReferences)
@@ -162,16 +162,16 @@ try {
         if ($project.role -eq 'build-tool' -and $evaluation.Items.Reference.Count -ne $project.sdkAssemblyReferences.Count) {
             throw "Build-tool SDK reference inventory mismatch: $($project.path)"
         }
-        $actualPackages = @()
+        $actualPackages = [Collections.Generic.HashSet[string]]::new([StringComparer]::OrdinalIgnoreCase)
         foreach ($reference in $evaluation.Items.PackageReference) {
             if ($reference.Identity -notin $project.packageReferences) { throw "Unapproved explicit package from $($project.path): $($reference.Identity)" }
             if ($project.role -eq 'test' -and $reference.PrivateAssets -ne 'all') { throw "Test package must have PrivateAssets=all: $($reference.Identity)" }
             if ($project.role -eq 'process-fixture' -and $project.ContainsKey('developmentPackageReferences') -and $reference.Identity -in $project.developmentPackageReferences -and $reference['PrivateAssets'] -ne 'all') {
                 throw "Fixture development package must have PrivateAssets=all: $($reference.Identity)"
             }
-            $actualPackages += $reference.Identity
+            if (-not $actualPackages.Add($reference.Identity)) { throw "Duplicate package reference: $($reference.Identity)" }
         }
-        if ($actualPackages.Count -ne $project.packageReferences.Count) { throw "Package reference inventory mismatch: $($project.path)" }
+        if (-not $actualPackages.SetEquals([string[]]$project.packageReferences)) { throw "Package reference inventory mismatch: $($project.path)" }
         $restoredPath = if ($AssetsPath -and $project.role -eq 'shipping') { $AssetsPath } else { Join-Path (Split-Path $path -Parent) 'obj/project.assets.json' }
         Check-RestoredGraph -Project $project -Path $restoredPath
     }
@@ -214,14 +214,16 @@ try {
                 'buildTransitive/CIS.Core.targets' = 'build/type-manager/package/CIS.Core.targets'
             }
             $allowedEntries += @($typeManagerAssets.Keys) + @('Sdk/PackageVersion.props', 'tools/net10.0/CIS.TypeManager.Build.dll')
+            $packedNames = [Collections.Generic.HashSet[string]]::new([StringComparer]::OrdinalIgnoreCase)
             foreach ($entry in $archive.Entries) {
-                if ($entry.FullName -notin $allowedEntries -and $entry.FullName -notmatch '^package/services/metadata/core-properties/[^/]+\.psmdcp$') {
+                if (-not $packedNames.Add($entry.FullName)) { throw "Duplicate packed asset: $($entry.FullName)" }
+                if ($entry.FullName -cnotin $allowedEntries -and $entry.FullName -cnotmatch '^package/services/metadata/core-properties/[^/]+\.psmdcp$') {
                     throw "Unexpected packed asset: $($entry.FullName)"
                 }
             }
-            if (@($archive.Entries | Where-Object FullName -eq 'lib/net10.0/CIS.Core.dll').Count -ne 1) { throw 'Core DLL target asset is missing.' }
+            if (@($archive.Entries | Where-Object FullName -ceq 'lib/net10.0/CIS.Core.dll').Count -ne 1) { throw 'Core DLL target asset is missing.' }
             foreach ($required in @($typeManagerAssets.Keys) + @('Sdk/PackageVersion.props', 'tools/net10.0/CIS.TypeManager.Build.dll')) {
-                if (@($archive.Entries | Where-Object FullName -eq $required).Count -ne 1) { throw "Type Manager package asset is missing or duplicated: $required" }
+                if (@($archive.Entries | Where-Object FullName -ceq $required).Count -ne 1) { throw "Type Manager package asset is missing or duplicated: $required" }
             }
             foreach ($name in $typeManagerAssets.Keys) {
                 $input = $archive.GetEntry($name).Open()
@@ -248,11 +250,13 @@ try {
             if ($groups.Count -ne 1 -or $groups[0].targetFramework -ne 'net10.0') { throw 'Unexpected package dependency groups.' }
             $directPackages = @($runtimePolicy.packages | Where-Object role -eq 'direct')
             $dependencies = @($groups[0].SelectNodes("*[local-name()='dependency']"))
-            if ($dependencies.Count -ne $directPackages.Count) { throw 'Packed direct dependency inventory mismatch.' }
+            $dependencyIds = [Collections.Generic.HashSet[string]]::new([StringComparer]::OrdinalIgnoreCase)
             foreach ($dependency in $dependencies) {
+                if (-not $dependencyIds.Add($dependency.id)) { throw "Duplicate packed dependency: $($dependency.id)" }
                 $expected = @($directPackages | Where-Object id -eq $dependency.id)
                 if ($expected.Count -ne 1 -or $dependency.version -ne $expected[0].version) { throw "Unapproved packed dependency: $($dependency.id)/$($dependency.version)" }
             }
+            if (-not $dependencyIds.SetEquals([string[]]@($directPackages | ForEach-Object id))) { throw 'Packed direct dependency set mismatch.' }
             $packedPath = Join-Path $reportDirectory ('CIS.Core-' + [Guid]::NewGuid().ToString('N') + '.dll')
             $input = $archive.GetEntry('lib/net10.0/CIS.Core.dll').Open()
             $output = [IO.File]::Create($packedPath)

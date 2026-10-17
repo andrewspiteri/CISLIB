@@ -107,6 +107,65 @@ public sealed class DependencyBoundaryTests
         AssertRejected(await RunProjectCheck(LanguageRoot, "-PackagePath", packagePath), "Unexpected packed asset");
     }
 
+    [TestMethod]
+    [DataRow("readme.md", "Duplicate packed asset")]
+    [DataRow("LIB/NET10.0/CIS.CORE.XML", "Duplicate packed asset")]
+    [DataRow("cis.core.nuspec", "Duplicate packed asset")]
+    [DataRow("_RELS/.RELS", "Duplicate packed asset")]
+    [DataRow("PACKAGE/services/metadata/core-properties/foreign.psmdcp", "Unexpected packed asset")]
+    public async Task PackageNamesAreExactAndCannotRepeatIgnoringCase(string extra, string rule)
+    {
+        using var directory = new TemporaryDirectory();
+        string packagePath = CopyCorePackage(directory.Path);
+        using (ZipArchive archive = ZipFile.Open(packagePath, ZipArchiveMode.Update))
+        {
+            using var writer = new StreamWriter(archive.CreateEntry(extra).Open());
+            writer.Write("synthetic extra asset");
+        }
+        AssertRejected(await RunProjectCheck(LanguageRoot, "-PackagePath", packagePath), rule);
+    }
+
+    [TestMethod]
+    [DataRow("ProjectReference")]
+    [DataRow("PackageReference")]
+    public async Task DuplicateEvaluatedReferencesAreRejected(string kind)
+    {
+        using var fixture = new ProjectFixture(LanguageRoot);
+        string coreProject = Path.Combine(fixture.Path, "src/CIS.Core/CIS.Core.csproj");
+        XDocument project = XDocument.Load(coreProject);
+        project.Root!.Add(new XElement("ItemGroup", new XElement(project.Descendants(kind).Single())));
+        project.Save(coreProject);
+        AssertRejected(await RunProjectCheck(fixture.Path), kind == "ProjectReference" ? "Duplicate project reference" : "Duplicate package reference");
+    }
+
+    [TestMethod]
+    public async Task DuplicateNuspecDependenciesAreRejected()
+    {
+        using var directory = new TemporaryDirectory();
+        string packagePath = CopyCorePackage(directory.Path);
+        using (ZipArchive archive = ZipFile.Open(packagePath, ZipArchiveMode.Update))
+        {
+            ZipArchiveEntry entry = archive.GetEntry("CIS.Core.nuspec")!;
+            XDocument spec;
+            using (Stream data = entry.Open()) { spec = XDocument.Load(data); }
+            XElement[] dependencies = spec.Descendants().Where(e => e.Name.LocalName == "dependency").ToArray();
+            Assert.AreEqual(1, dependencies.Length);
+            dependencies[0].AddAfterSelf(new XElement(dependencies[0]));
+            entry.Delete();
+            using Stream output = archive.CreateEntry("CIS.Core.nuspec").Open();
+            spec.Save(output);
+        }
+        AssertRejected(await RunProjectCheck(LanguageRoot, "-PackagePath", packagePath), "Duplicate packed dependency");
+    }
+
+    private static string CopyCorePackage(string root)
+    {
+        string core = Path.Combine(LanguageRoot, "src/CIS.Core/bin/Release/net10.0/CIS.Core.dll");
+        string version = System.Diagnostics.FileVersionInfo.GetVersionInfo(core).ProductVersion!.Split('+', 2)[0];
+        string target = Path.Combine(root, "fixture.nupkg");
+        File.Copy(Path.Combine(RepositoryRoot, ".artifacts/csharp/packages", $"CIS.Core.{version}.nupkg"), target);
+        return target;
+    }
     private static Task<ProcessResult> RunProjectCheck(string root, params string[] extraArguments)
     {
         string script = Path.Combine(LanguageRoot, "eng", "check-dependencies.ps1");

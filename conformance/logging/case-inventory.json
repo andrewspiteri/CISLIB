@@ -11319,6 +11319,20 @@
       "minimumExecutions": 1,
       "lanes": [ "windows-x64", "linux-ubuntu2404-x64" ],
       "source": "Coverage refuses focused inspection overrides before creating reports. Existing parser controls retain specific duplicate and branch-count reasons."
+    },
+    {
+      "id": "ARCH-REVIEW-DEPENDENCY-SETS",
+      "family": "architecture",
+      "implementation": "Implemented",
+      "method": null,
+      "minimumExecutions": 8,
+      "bindings": [
+        { "method": "CIS.Tests.ArchitectureTests.DependencyBoundaryTests.PackageNamesAreExactAndCannotRepeatIgnoringCase", "minimumExecutions": 5 },
+        { "method": "CIS.Tests.ArchitectureTests.DependencyBoundaryTests.DuplicateEvaluatedReferencesAreRejected", "minimumExecutions": 2 },
+        { "method": "CIS.Tests.ArchitectureTests.DependencyBoundaryTests.DuplicateNuspecDependenciesAreRejected", "minimumExecutions": 1 }
+      ],
+      "lanes": [ "windows-x64", "linux-ubuntu2404-x64" ],
+      "source": "Exact package asset names and distinct complete project/package/nuspec dependency inventories. Controls use copied actual packages and project definitions."
     }
   ]
 }
