@@ -113,4 +113,21 @@ internal static class FixtureProcessChecks
         (string)issue!["code"]! + ":" + (string)issue["key"]!).ToArray();
     private static Dictionary<string, string?> ParentEnvironment() => Environment.GetEnvironmentVariables().Keys.Cast<string>().ToDictionary(key => key, Environment.GetEnvironmentVariable, StringComparer.Ordinal);
     private static string Hash(string path) => Convert.ToHexStringLower(SHA256.HashData(File.ReadAllBytes(path)));
+    internal static void ExcludeStrings(JsonNode? node, params string[] forbidden)
+    {
+        if (node is JsonObject map)
+        {
+            foreach ((string key, JsonNode? value) in map)
+            {
+                Check(key);
+                ExcludeStrings(value, forbidden);
+            }
+        }
+        else if (node is JsonArray array)
+        {
+            foreach (JsonNode? value in array) { ExcludeStrings(value, forbidden); }
+        }
+        else if (node is JsonValue value && value.TryGetValue(out string? text)) { Check(text); }
+        void Check(string text) => Assert.IsFalse(forbidden.Any(token => text.Contains(token, StringComparison.Ordinal)), "Private sentinel appeared in the decoded report.");
+    }
 }

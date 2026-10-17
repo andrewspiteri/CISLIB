@@ -137,7 +137,7 @@ public sealed class DiscoveryProcessTests
         switch (fault)
         {
             case "binding": result["FactBinding"] = "controlled-internal-projection"; break;
-            case "runtime": result["Observed"]!["RuntimeDescription"] = ".NET 10.0.99"; break;
+            case "runtime": result["Observed"]!["RuntimeDescription"] = ".NET 10.0.99"; result["Runtime"]!["RuntimeDescription"] = ".NET 10.0.99"; break;
             case "core-name": result["Observed"]!["CoreName"] = "Unexpected.Core"; break;
             case "core-bytes": result["Observed"]!["CoreSha256"] = new string('0', 64); break;
             case "instance": result["Initialization"]!["InstanceId"] = Guid.Empty.ToString("D"); break;
@@ -189,6 +189,30 @@ public sealed class DiscoveryProcessTests
         Assert.IsTrue(node.ContainsKey(key), $"Missing observation: {key}");
         return node[key]?.GetValue<string>();
     }
-    private static DateTimeOffset Time(JsonObject node, string key) => DateTimeOffset.Parse(Text(node, key)!, CultureInfo.InvariantCulture);
+    [TestMethod]
+    [DataRow("2026-10-17T00:00:00")]
+    [DataRow("2026-10-17T00:00:00+01:00")]
+    public void UtcObservationsRequireAnExplicitZeroOffset(string token)
+    {
+        var node = new JsonObject { ["time"] = "2026-10-17T00:00:00Z" };
+        Assert.AreEqual(TimeSpan.Zero, Time(node, "time").Offset);
+        node["time"] = token;
+        StringAssert.Contains(Assert.ThrowsExactly<AssertFailedException>(() => Time(node, "time")).Message, "Observation must explicitly identify UTC.");
+    }
+
+    [TestMethod]
+    [DataRow("2026-10-17T00:00:00Z")]
+    [DataRow("2026-10-17T00:00:00.1234567+00:00")]
+    public void ExplicitUtcRepresentationsRemainValid(string token) =>
+        Assert.AreEqual(TimeSpan.Zero, Time(new JsonObject { ["time"] = token }, "time").Offset);
+
+    private static DateTimeOffset Time(JsonObject node, string key)
+    {
+        string token = Text(node, key)!;
+        Assert.IsTrue((token.EndsWith('Z') || token.EndsWith("+00:00", StringComparison.Ordinal)) &&
+            DateTimeOffset.TryParse(token, CultureInfo.InvariantCulture, DateTimeStyles.RoundtripKind, out DateTimeOffset parsed) && parsed.Offset == TimeSpan.Zero,
+            "Observation must explicitly identify UTC.");
+        return DateTimeOffset.Parse(token, CultureInfo.InvariantCulture, DateTimeStyles.RoundtripKind);
+    }
     private static string Hash(string path) => Convert.ToHexStringLower(SHA256.HashData(File.ReadAllBytes(path)));
 }

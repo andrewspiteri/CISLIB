@@ -10,6 +10,8 @@ The earlier both-lane [source-inventory checkpoint](evidence/corrective-source-i
 
 The logger binding correction passes 185 unit and 148 integration cases per native lane, including five required cap/matrix controls. [Evidence](evidence/corrective-logger-bindings-2026-10-17/README.md).
 
+Explicit UTC and decoded privacy corrections pass all 96 selected integration cases per native lane, including ten required reader controls. [Evidence](evidence/corrective-utc-privacy-2026-10-17/README.md).
+
 ## Repository and package foundation
 
 - Separate CISLIB Git repository, organized for multiple modules and future language implementations under `implementations/<language>`.

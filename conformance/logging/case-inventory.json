@@ -11258,6 +11258,21 @@
       ],
       "lanes": [ "windows-x64", "linux-ubuntu2404-x64" ],
       "source": "Confirmed LOGGER-BINDINGS correction: row-owned byte caps, independent seven-mode and 98-pair matrix."
+    },
+    {
+      "id": "INT-REVIEW-UTC-PRIVACY",
+      "family": "integration",
+      "implementation": "Implemented",
+      "method": null,
+      "minimumExecutions": 10,
+      "bindings": [
+        { "method": "CIS.Tests.IntegrationTests.DiscoveryProcessTests.UtcObservationsRequireAnExplicitZeroOffset", "minimumExecutions": 2 },
+        { "method": "CIS.Tests.IntegrationTests.DiscoveryProcessTests.ExplicitUtcRepresentationsRemainValid", "minimumExecutions": 2 },
+        { "method": "CIS.Tests.IntegrationTests.ConfigurationValidationProcessTests.PrivacyChecksInspectDecodedStringsOutsideDiagnosticFields", "minimumExecutions": 3 },
+        { "method": "CIS.Tests.IntegrationTests.EventProjectionProcessTests.PrivateAmbientTokensCannotAppearInTheReport", "minimumExecutions": 3 }
+      ],
+      "lanes": [ "windows-x64", "linux-ubuntu2404-x64" ],
+      "source": "Confirmed discovery UTC and decoded report privacy corrections; reader controls are not extra native child scenarios."
     }
   ]
 }

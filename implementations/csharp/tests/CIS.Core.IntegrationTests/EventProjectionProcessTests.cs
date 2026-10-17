@@ -35,9 +35,22 @@ public sealed class EventProjectionProcessTests
             }, TimeSpan.FromSeconds(30));
         Assert.AreEqual(id, (string?)actual["caseId"]);
         Assert.IsFalse(actual["observed"]!["lifecycleApiPresent"]!.GetValue<bool>());
-        Assert.IsFalse(actual.ToJsonString().Contains("CIS_NEVER_CAPTURE_COLLECTOR", StringComparison.Ordinal));
-        Assert.IsFalse(actual.ToJsonString().Contains("CIS_NEVER_CAPTURE_PROJECTION", StringComparison.Ordinal));
+        VerifyPrivacy(actual);
         Assert.AreEqual(0, Directory.EnumerateFileSystemEntries(owned.Path).Count());
         return actual;
     }
+    [TestMethod]
+    [DataRow("CIS_NEVER_CAPTURE_COLLECTOR")]
+    [DataRow("CIS_NEVER_CAPTURE_PROJECTION")]
+    [DataRow("CIS_NEVER_CAPTURE_ACTIVITY")]
+    public void PrivateAmbientTokensCannotAppearInTheReport(string sentinel)
+    {
+        var report = new JsonObject { ["attributes"] = new JsonObject { ["value"] = "safe" } };
+        VerifyPrivacy(report);
+        report["attributes"]!["value"] = sentinel;
+        StringAssert.Contains(Assert.ThrowsExactly<AssertFailedException>(() => VerifyPrivacy(report)).Message, "Private sentinel appeared");
+    }
+
+    private static void VerifyPrivacy(JsonObject actual) =>
+        FixtureProcessChecks.ExcludeStrings(actual, "CIS_NEVER_CAPTURE_COLLECTOR", "CIS_NEVER_CAPTURE_PROJECTION", "CIS_NEVER_CAPTURE_ACTIVITY");
 }

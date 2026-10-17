@@ -57,12 +57,7 @@ public sealed class ConfigurationValidationProcessTests
             StringAssert.StartsWith((string)result["exceptionText"]!, "CIS.Configuration.CoreConfigurationException:");
         }
         VerifyExpectedValues(expected, result);
-        string diagnostic = (string?)result["message"] + (string?)result["exceptionText"] + string.Join("|", result["issues"]!.AsArray().Select(issue => (string?)issue!["explanation"]));
-        foreach (JsonNode? forbidden in row["diagnosticsMustExclude"]!.AsArray())
-        {
-            Assert.IsFalse(result.ToJsonString().Contains((string)forbidden!, StringComparison.Ordinal));
-            Assert.IsFalse(diagnostic.Contains((string)forbidden!, StringComparison.Ordinal));
-        }
+        FixtureProcessChecks.ExcludeStrings(result, row["diagnosticsMustExclude"]!.AsArray().Select(value => value!.GetValue<string>()).ToArray());
         Assert.AreEqual(0, Directory.EnumerateFileSystemEntries(before).Count());
         Assert.AreEqual(0, Directory.EnumerateFileSystemEntries(after).Count());
         Assert.AreEqual(2, Directory.EnumerateFileSystemEntries(owned.Path).Count());
@@ -89,6 +84,18 @@ public sealed class ConfigurationValidationProcessTests
         Assert.ThrowsExactly<AssertFailedException>(() => VerifyExpectedValues(expected, actual));
     }
 
+    [TestMethod]
+    [DataRow("private+token")]
+    [DataRow("priv\u00e9")]
+    [DataRow("private\ttoken")]
+    public void PrivacyChecksInspectDecodedStringsOutsideDiagnosticFields(string forbidden)
+    {
+        var report = new JsonObject { ["observed"] = new JsonObject { ["nested"] = new JsonArray("safe") } };
+        FixtureProcessChecks.ExcludeStrings(report, forbidden);
+        report["observed"]!["nested"]![0] = forbidden;
+        JsonNode serialized = JsonNode.Parse(report.ToJsonString())!;
+        StringAssert.Contains(Assert.ThrowsExactly<AssertFailedException>(() => FixtureProcessChecks.ExcludeStrings(serialized, forbidden)).Message, "Private sentinel appeared");
+    }
     private static void VerifyExpectedValues(JsonNode expected, JsonObject result)
     {
         if (!expected.AsObject().ContainsKey("values")) { return; }
