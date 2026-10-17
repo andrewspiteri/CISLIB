@@ -11184,6 +11184,30 @@
       ],
       "lanes": [ "windows-x64", "linux-ubuntu2404-x64" ],
       "source": "17 October 2026 confirmed Claude PHYSICAL-BYTES finding: native C# emitter, original BOM/Unicode bytes, byte-offset report extraction, strict UTF-8 and concurrent pipe pressure. No release group replaced."
+    },
+    {
+      "id": "UT-REVIEW-EXCEPTION-ORACLES",
+      "family": "unit",
+      "implementation": "Implemented",
+      "method": null,
+      "minimumExecutions": 17,
+      "bindings": [
+        { "method": "CIS.Tests.UnitTests.ExceptionQualificationTests.ObserverCountsRequireIntegerJsonTokens", "minimumExecutions": 7 },
+        { "method": "CIS.Tests.UnitTests.ExceptionQualificationTests.ErrorBindingsMustExistEvenWhenTheReportDiagnosticsAreAlsoDamaged", "minimumExecutions": 5 },
+        { "method": "CIS.Tests.UnitTests.ExceptionQualificationTests.NullExpectedFactsMustBePresentRatherThanImplicitlyMissing", "minimumExecutions": 2 },
+        { "method": "CIS.Tests.UnitTests.ExceptionContentTests.OmittedSourcesKeepTheirIndependentProbeIdentityAndZeroReads", "minimumExecutions": 3 }
+      ],
+      "lanes": [ "windows-x64", "linux-ubuntu2404-x64" ],
+      "source": "17 October confirmed exception-reader findings: strict integer observers, mandatory native bindings and explicit null facts, independently pinned omitted-probe identity. No release group replaced."
+    },
+    {
+      "id": "INT-REVIEW-EXCEPTION-NULL-MEMBER",
+      "family": "integration",
+      "implementation": "Implemented",
+      "method": "CIS.Tests.IntegrationTests.ExceptionProjectionProcessTests.NullProjectionRequiresItsExplicitExceptionMember",
+      "minimumExecutions": 1,
+      "lanes": [ "windows-x64", "linux-ubuntu2404-x64" ],
+      "source": "17 October confirmed null-projection finding: native positive child followed by a missing-member corruption."
     }
   ]
 }

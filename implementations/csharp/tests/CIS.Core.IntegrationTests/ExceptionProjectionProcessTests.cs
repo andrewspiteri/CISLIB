@@ -19,6 +19,21 @@ public sealed class ExceptionProjectionProcessTests
     public async Task ActualExceptionFieldsAreOwnedInFreshUninitializedProcesses(string mode, int nodes, int depth)
     {
         JsonObject actual = await Capture("exception-projection", mode, TestContext);
+        Verify(mode, nodes, depth, actual);
+    }
+
+    [TestMethod]
+    public async Task NullProjectionRequiresItsExplicitExceptionMember()
+    {
+        JsonObject actual = await Capture("exception-projection", "null", TestContext);
+        Verify("null", 0, 0, actual);
+        actual.Remove("exception");
+        Assert.ThrowsExactly<AssertFailedException>(() => Verify("null", 0, 0, actual));
+    }
+
+    private static void Verify(string mode, int nodes, int depth, JsonObject actual)
+    {
+        Assert.IsTrue(actual.ContainsKey("exception"), "The exception projection member is required.");
         Assert.AreEqual(1, actual["captureCalls"]!.GetValue<int>());
         Assert.AreEqual(nodes, actual["nodes"]!.GetValue<int>());
         Assert.AreEqual(depth, actual["depth"]!.GetValue<int>());

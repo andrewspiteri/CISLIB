@@ -1,0 +1,13 @@
+# Independent exception observations and required shapes
+
+17 October 2026, based on `b558e774`. Fixes **EXCEPTION-ORACLES** from the [approved findings](../../reviews/corrective-approved-2026-10-17/findings.md). Shipping exception capture, limits and APIs are unchanged.
+
+Content verification now pins probe order/counts independently of ExceptionContentSources.Create, using the original declared sequences. Every omitted label must occur in that independent sequence. Qualification verifies nonnegative integer tokens for message/stack/forbidden observations in both actual and expected reads. Decimal and exponent spellings cannot compare equal to integer counts. Non-null errors require a present, shaped native binding, including an explicit parameter member; missing/null bindings cannot be hidden by also forging null diagnostics. Explicit expected exception/error members and the native projection's exception member are required even for null projections.
+
+Seventeen unit controls and one process control were added and bound on both lanes: seven counter-token controls, five damaged-binding controls, two missing expected-null facts, three omitted-probe identity/read controls and one missing native null-projection member. Fourteen unit controls fail before the guards are added, through acceptance or a wrong failure category; the native missing-member control also fails before the fix. [Unit counterexamples](before-unit.trx), [native projection counterexample](before-projection.trx). The omitted-probe tests additionally pin the complete literal root/n0..n16 sequence after a valid actual capture.
+
+**445 unit and 129 integration cases pass on Windows and Ubuntu**, zero failures/skips. Windows unit `d7f57fbad6f2442a8738a386dae27a6f`, integration `9afa115eef6b4a869db8d666bc089d80`; Ubuntu unit `112cd48e352b468e979dcd72c77e4433`, integration `42cb28af0bdf4d828bcbd039a377d63b`. [Windows unit](windows-unit.json), [integration](windows-integration.json), [Ubuntu unit](ubuntu-unit.json), [integration](ubuntu-integration.json).
+
+The [C# audit](RetainExceptionEvidence.cs) checks complete native outcomes, all 18 new case identities/counts, pre-fix failures and matching final code/inventory byte hashes on both lanes. [Audit](audit.json). Formatting passes. The projection matcher was extracted within its existing test class so the native missing-member control runs the actual same checks.
+
+This focused correction does not repeat full Developer, coverage, mutation, compatibility or release gates. Other confirmed findings and seven approved Claude bundles remain pending. The original roadmap remains paused.

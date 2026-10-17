@@ -166,6 +166,63 @@ public sealed class ExceptionQualificationTests
         .Sum(node => (long)Encoding.UTF8.GetByteCount(node.Type) + Encoding.UTF8.GetByteCount(node.Message)
             + (node.StackTrace is null ? 0 : Encoding.UTF8.GetByteCount(node.StackTrace)));
 
+    [TestMethod]
+    [DataRow("message", "1.0")]
+    [DataRow("stack", "1.0")]
+    [DataRow("forbidden", "0.0")]
+    [DataRow("message", "1e0")]
+    [DataRow("stack", "1e0")]
+    [DataRow("forbidden", "0e0")]
+    [DataRow("message", "true")]
+    public void ObserverCountsRequireIntegerJsonTokens(string field, string token)
+    {
+        JsonObject row = Row("EXCEPTION-AGGREGATE-ORDER"), bindings = NativeBindings();
+        JsonObject actual = ExceptionQualificationFixture.Execute(row, bindings);
+        ExceptionQualificationExpectations.Validate(row, actual, bindings);
+        actual["reads"]!["root"]![field] = JsonNode.Parse(token);
+        InvalidDataException error = Assert.ThrowsExactly<InvalidDataException>(() => ExceptionQualificationExpectations.Validate(row, actual, bindings));
+        StringAssert.StartsWith(error.Message, "Exception read count must be an integer:");
+    }
+
+    [TestMethod]
+    [DataRow("missing")]
+    [DataRow("null")]
+    [DataRow("empty")]
+    [DataRow("numeric-error")]
+    [DataRow("missing-parameter")]
+    public void ErrorBindingsMustExistEvenWhenTheReportDiagnosticsAreAlsoDamaged(string fault)
+    {
+        JsonObject row = Row("EXCEPTION-MESSAGE-UTF16-RETAINED-HIGH"), bindings = NativeBindings();
+        JsonObject actual = ExceptionQualificationFixture.Execute(row, bindings);
+        ExceptionQualificationExpectations.Validate(row, actual, bindings);
+        const string tag = "argument-invalid";
+        switch (fault)
+        {
+            case "missing": bindings.Remove(tag); break;
+            case "null": bindings[tag] = null; break;
+            case "empty": bindings[tag] = new JsonObject(); break;
+            case "numeric-error": bindings[tag]!["nativeError"] = 1; break;
+            case "missing-parameter": bindings[tag]!.AsObject().Remove("parameter"); break;
+        }
+        actual["nativeError"] = null;
+        actual["parameter"] = null;
+        InvalidDataException error = Assert.ThrowsExactly<InvalidDataException>(() => ExceptionQualificationExpectations.Validate(row, actual, bindings));
+        Assert.AreEqual("Invalid native exception error binding: argument-invalid", error.Message);
+    }
+
+    [TestMethod]
+    [DataRow("exception")]
+    [DataRow("error")]
+    public void NullExpectedFactsMustBePresentRatherThanImplicitlyMissing(string field)
+    {
+        JsonObject row = Row("EXCEPTION-NULL"), bindings = NativeBindings();
+        JsonObject actual = ExceptionQualificationFixture.Execute(row, bindings);
+        ExceptionQualificationExpectations.Validate(row, actual, bindings);
+        row["expected"]!.AsObject().Remove(field);
+        InvalidDataException error = Assert.ThrowsExactly<InvalidDataException>(() => ExceptionQualificationExpectations.Validate(row, actual, bindings));
+        Assert.AreEqual("Expected exception and error members are required.", error.Message);
+    }
+
     private static JsonObject NativeBindings() => LogValueTests.Read("exception-qualification-cases.json")["adapterObservations"]!["csharp"]!.AsObject();
 
     internal static JsonObject Row(string id) => LogValueTests.Read("exception-qualification-cases.json")["cases"]!.AsArray()

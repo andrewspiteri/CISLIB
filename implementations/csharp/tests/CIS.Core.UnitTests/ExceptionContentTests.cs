@@ -108,4 +108,25 @@ public sealed class ExceptionContentTests
         }
         Assert.ThrowsExactly<InvalidDataException>(() => ExceptionContentExpectations.Verify(id, result));
     }
+    [TestMethod]
+    [DataRow("omitted-missing")]
+    [DataRow("omitted-read")]
+    [DataRow("omitted-label")]
+    public void OmittedSourcesKeepTheirIndependentProbeIdentityAndZeroReads(string fault)
+    {
+        JsonObject result = ExceptionContentFixture.Execute("nodes");
+        ExceptionContentExpectations.Verify("nodes", result);
+        JsonArray reads = result["reads"]!.AsArray();
+        CollectionAssert.AreEqual(new[] { "root", "n0", "n1", "n2", "n3", "n4", "n5", "n6", "n7", "n8", "n9", "n10", "n11", "n12", "n13", "n14", "n15", "n16" }, reads.Select(read => (string)read!["label"]!).ToArray());
+        Assert.AreEqual(0, reads[^1]!["message"]!.GetValue<int>());
+        Assert.AreEqual(0, reads[^1]!["stack"]!.GetValue<int>());
+        switch (fault)
+        {
+            case "omitted-missing": reads.RemoveAt(reads.Count - 1); break;
+            case "omitted-read": reads[^1]!["message"] = 1; break;
+            case "omitted-label": reads[^1]!["label"] = "n17"; break;
+        }
+        InvalidDataException error = Assert.ThrowsExactly<InvalidDataException>(() => ExceptionContentExpectations.Verify("nodes", result));
+        Assert.AreEqual(fault == "omitted-missing" ? "Missing exception read observations." : "Exception field access differs.", error.Message);
+    }
 }

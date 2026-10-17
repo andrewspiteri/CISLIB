@@ -47,6 +47,23 @@ internal static class ExceptionContentExpectations
         _ => []
     };
 
+    // Probe construction order is part of the fixture contract, independent of the source builder.
+    private static string[] ProbeLabels(string id) => id switch
+    {
+        "depth" => ["d5", "d4", "d3", "d2", "d1"],
+        "depth-sibling" => ["d5", "d4", "d3", "d2", "d1", "tail", "root"],
+        "nodes" => ["root", .. Labels("n", 17)],
+        "mixed-nodes" => ["a", .. Labels("a", 8), "b", .. Labels("b", 8), "tail", "root"],
+        "nodes-last-branch" => ["a", .. Labels("a", 8), "b", .. Labels("b", 8), "root"],
+        "combined" => ["d4", "d3", "d2", "d1", "b", .. Labels("b", 13), "tail", "root"],
+        "child-message" or "child-stack" or "child-both" or "root-child" => ["child", "root"],
+        "complete" or "message" or "stack" or "both" or "empty-stack" or "null-message" => ["root"],
+        _ => throw new InvalidDataException("Unknown exception probe expectation.")
+    };
+
+    private static string[] Labels(string prefix, int count) =>
+        Enumerable.Range(0, count).Select(index => prefix + index).ToArray();
+
     internal static void Verify(string id, JsonObject result)
     {
         JsonObject expected = Tree(id);
@@ -63,16 +80,17 @@ internal static class ExceptionContentExpectations
         }
         if (result["reads"] is JsonArray reads)
         {
-            IReadOnlyList<ExceptionContentProbe> probes = ExceptionContentSources.Create(id).Probes;
+            string[] labels = ProbeLabels(id);
             string[] omitted = OmittedLabels(id);
-            if (reads.Count != probes.Count)
+            if (omitted.Except(labels, StringComparer.Ordinal).Any()) { throw new InvalidDataException("Omitted probes are absent from the expected sequence."); }
+            if (reads.Count != labels.Length)
             {
                 throw new InvalidDataException("Missing exception read observations.");
             }
-            for (int index = 0; index < probes.Count; index++)
+            for (int index = 0; index < labels.Length; index++)
             {
                 JsonNode read = reads[index]!;
-                string label = probes[index].Label;
+                string label = labels[index];
                 int count = omitted.Contains(label, StringComparer.Ordinal) ? 0 : 1;
                 if (read["label"]!.GetValue<string>() != label || read["message"]!.GetValue<int>() != count ||
                     read["stack"]!.GetValue<int>() != count || read["forbidden"]!.GetValue<int>() != 0)

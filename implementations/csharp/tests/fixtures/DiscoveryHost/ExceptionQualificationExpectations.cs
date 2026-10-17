@@ -39,12 +39,27 @@ internal static class ExceptionQualificationExpectations
             if (actual[key] is not JsonValue count || !count.TryGetValue<int>(out _)) { throw new InvalidDataException("Exception count must be an integer: " + key); }
         }
         JsonObject expected = row["expected"]!.AsObject();
+        if (!expected.ContainsKey("exception") || !expected.ContainsKey("error")) { throw new InvalidDataException("Expected exception and error members are required."); }
         JsonObject result = actual.DeepClone().AsObject();
+        JsonNode? expectedReads = expected["reads"] ?? row["nativeExpectedReads"]?["csharp"];
+        ValidateReadCounts(result["reads"]);
+        ValidateReadCounts(expectedReads);
         if (result["reads"]!.AsObject().Any(probe => probe.Value!["forbidden"]!.GetValue<int>() != 0))
         {
             throw new InvalidDataException("Excluded getters were read.");
         }
-        JsonNode? diagnostic = expected["error"] is JsonNode error ? nativeBindings[error.GetValue<string>()] : null;
+        JsonObject? diagnostic = null;
+        if (expected["error"] is JsonNode error)
+        {
+            string tag = error.GetValue<string>();
+            if (nativeBindings[tag] is not JsonObject binding || binding["nativeError"] is not JsonValue nativeError ||
+                !nativeError.TryGetValue<string>(out _) || !binding.ContainsKey("parameter") ||
+                (binding["parameter"] is JsonNode parameter && (parameter is not JsonValue scalar || !scalar.TryGetValue<string>(out _))))
+            {
+                throw new InvalidDataException("Invalid native exception error binding: " + tag);
+            }
+            diagnostic = binding;
+        }
         result.Remove("observed");
         var exact = new JsonObject
         {
@@ -61,11 +76,27 @@ internal static class ExceptionQualificationExpectations
             ["parameter"] = diagnostic?["parameter"]?.DeepClone(),
             ["stableAfterMutation"] = true,
             ["safeError"] = true,
-            ["reads"] = (expected["reads"] ?? row["nativeExpectedReads"]!["csharp"])!.DeepClone()
+            ["reads"] = expectedReads!.DeepClone()
         };
         if (!JsonNode.DeepEquals(exact, result))
         {
             throw new InvalidDataException("Exception qualification observation differs: " + row["id"]!.GetValue<string>());
+        }
+    }
+
+    private static void ValidateReadCounts(JsonNode? value)
+    {
+        if (value is not JsonObject reads) { throw new InvalidDataException("Exception read observations must be an object."); }
+        foreach ((string label, JsonNode? observation) in reads)
+        {
+            if (observation is not JsonObject counts) { throw new InvalidDataException("Exception read observations must be objects."); }
+            foreach (string key in new[] { "message", "stack", "forbidden" })
+            {
+                if (counts[key] is not JsonValue scalar || !scalar.TryGetValue<int>(out int number) || number < 0)
+                {
+                    throw new InvalidDataException("Exception read count must be an integer: " + label + "." + key);
+                }
+            }
         }
     }
 
