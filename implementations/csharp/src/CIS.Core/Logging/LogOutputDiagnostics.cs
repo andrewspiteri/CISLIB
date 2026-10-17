@@ -38,7 +38,7 @@ public sealed class LogOutputDiagnostics
     public long AdmissionAttempts { get; }
     /// <summary>Cumulative successfully admitted records.</summary>
     public long Accepted { get; }
-    /// <summary>Cumulative incoming queue-full rejections, saturating at Int64.MaxValue.</summary>
+    /// <summary>Cumulative queue-full rejections for this output, saturating at Int64.MaxValue.</summary>
     public long QueueFull { get; }
     /// <summary>Cumulative interested faulted-output rejections, saturating at Int64.MaxValue.</summary>
     public long Unavailable { get; }

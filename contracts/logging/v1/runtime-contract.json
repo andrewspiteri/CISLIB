@@ -71,7 +71,7 @@
   "ownership": {
     "application": "Owns Create -> scopes/background work -> explicit Stop/result inspection -> DisposeAsync lifecycle.",
     "logger": "Borrows runtime; no independent shutdown owner.",
-    "provider": "CoreLoggerProvider in CIS.Logging.MicrosoftLogger borrows runtime; IDisposable stops only provider-owned registrations/scopes, never the shared runtime. Initial API has no owning-mode overload. Host and core scopes use the same bounded copy/precedence contract.",
+    "provider": "CoreLoggerProvider in CIS.Logging.MicrosoftLogger borrows runtime; IDisposable disables the provider and releases its borrowed external-scope source reference, never the shared runtime or caller-owned scope handles. Scope creators still dispose their handles in LIFO order. Initial API has no owning-mode overload. Host and core scopes use the same bounded copy/precedence contract.",
     "scope": "Belongs to creating runtime and logical async flow, disposed LIFO by the creator; no cross-concurrent-flow transfer or disposal. Normal child contexts inherit values and may create/dispose their own scopes. Completion state can be set by a prohibited pop in any flow; it is not proof of ownership. Contexts captured before a pop can retain the old frame. Returning a handle from an async helper does not install its scope in the caller. Unawaited child work may retain inherited values after the creator scope ends.",
     "writers": "Runtime owns file handles/workers; console streams are borrowed. Pre-commit startup rollback preserves pre-existing members; a valid committed intent may finish its exact recorded retirement during recovery.",
     "results": "Sealed getter-only, owned immutable collections; no public result constructors or live counter views."

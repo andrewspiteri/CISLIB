@@ -1,5 +1,7 @@
 # Logger decision order
 
+> Current status, 17 October 2026: runtime, output and provider implementation and the native C# reader migrations are complete development work. Task-numbered milestones, earlier Python comparisons and task-local passing counts below describe historical execution, including their then-pending work. Use the [feature report](../../../planning/feature-status-2026-10-15.md) for current corrective/release status and [native test instructions](../../../implementations/csharp/tests/README.md) for maintained commands. Historical receipts retain their original source and do not qualify the current tree.
+
 WP04-S05-T02 qualifies the real CoreLogger methods and CoreLogRuntime admission path introduced in T01. The implementation already follows this order; this task adds the missing direct observations without changing shipping code, public APIs or dependencies.
 
 | Order | Decision | Observable effect |

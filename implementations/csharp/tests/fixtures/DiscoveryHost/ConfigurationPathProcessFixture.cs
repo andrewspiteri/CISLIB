@@ -36,6 +36,7 @@ internal static class ConfigurationPathProcessFixture
             ["directoryReads"] = directoryReads,
             ["absolutePathBefore"] = before,
             ["absolutePathAfter"] = after,
+            // Fixture bookkeeping; before/after absolute path observations establish retention.
             ["validatedWorkingDirectory"] = snapshot is null ? null : captured,
             ["issues"] = new JsonArray(issues.Select(issue => (JsonNode)new JsonObject { ["code"] = issue.Code, ["key"] = issue.Key, ["explanation"] = issue.Explanation }).ToArray()),
             ["errorMessage"] = errorMessage,

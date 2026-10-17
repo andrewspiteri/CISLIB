@@ -367,12 +367,12 @@ public sealed class OperationScopeMergeTests
 
     private sealed class CountingMap(Action callback) : IReadOnlyDictionary<string, LogValue>
     {
-        public LogValue this[string key] => throw new InvalidOperationException("Do not query caller content.");
-        public IEnumerable<string> Keys => throw new InvalidOperationException("Do not query caller content.");
-        public IEnumerable<LogValue> Values => throw new InvalidOperationException("Do not query caller content.");
-        public int Count => throw new InvalidOperationException("Do not query caller content.");
-        public bool ContainsKey(string key) => throw new InvalidOperationException("Do not query caller content.");
-        public bool TryGetValue(string key, out LogValue value) => throw new InvalidOperationException("Do not query caller content.");
+        public LogValue this[string key] => throw new InvalidDataException("Unexpected caller accessor.");
+        public IEnumerable<string> Keys => throw new InvalidDataException("Unexpected caller accessor.");
+        public IEnumerable<LogValue> Values => throw new InvalidDataException("Unexpected caller accessor.");
+        public int Count => throw new InvalidDataException("Unexpected caller accessor.");
+        public bool ContainsKey(string key) => throw new InvalidDataException("Unexpected caller accessor.");
+        public bool TryGetValue(string key, out LogValue value) => throw new InvalidDataException("Unexpected caller accessor.");
         public IEnumerator<KeyValuePair<string, LogValue>> GetEnumerator()
         {
             callback();

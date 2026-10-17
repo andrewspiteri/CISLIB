@@ -1,5 +1,7 @@
 # Operation scope foundation
 
+> Current status, 17 October 2026: runtime, output and provider implementation and the native C# reader migrations are complete development work. Task-numbered milestones, earlier Python comparisons and task-local passing counts below describe historical execution, including their then-pending work. Use the [feature report](../../../planning/feature-status-2026-10-15.md) for current corrective/release status and [native test instructions](../../../implementations/csharp/tests/README.md) for maintained commands. Historical receipts retain their original source and do not qualify the current tree.
+
 Current integration (WP07-S01-T01): `CoreLogRuntime.BeginScope(OperationContextData)` now exposes this store through the public runtime. It validates null before checking closed admission and copies the context using the existing bounded store. Calls begun after closure fail; a call already copying may finish during closure. Existing handles remain disposable after stop. The creator-disposes/LIFO/idempotence rules and inherited-context detection limits below are unchanged. Public-runtime tests and asynchronous business processes are recorded in [functional reconciliation](functional-reconciliation.md). Earlier task paragraphs below retain their historical scope.
 
 

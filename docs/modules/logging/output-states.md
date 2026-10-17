@@ -1,5 +1,7 @@
 # Output states and safe retained faults
 
+> Current status, 17 October 2026: runtime, output and provider implementation and the native C# reader migrations are complete development work. Task-numbered milestones, earlier Python comparisons and task-local passing counts below describe historical execution, including their then-pending work. Use the [feature report](../../../planning/feature-status-2026-10-15.md) for current corrective/release status and [native test instructions](../../../implementations/csharp/tests/README.md) for maintained commands. Historical receipts retain their original source and do not qualify the current tree.
+
 WP05-S03-T03 implements the selected four output states in the actual internal Core/Channel worker composition. `LogOutputState` retains Running=0, Faulted=1, Stopping=2 and Stopped=3. Public `GetDiagnostics` follows in T04; physical destination creation, flush coordination and bounded shutdown remain later tasks.
 
 A new output starts Running. Primitive `Complete` closes admission and changes it to Stopping while its worker resolves accepted work; worker completion changes it to Stopped. Empty and successful queues finish without a fault. Repeated closure is harmless.

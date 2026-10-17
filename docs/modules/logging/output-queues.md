@@ -1,5 +1,7 @@
 # Bounded output queue foundation
 
+> Current status, 17 October 2026: runtime, output and provider implementation and the native C# reader migrations are complete development work. Task-numbered milestones, earlier Python comparisons and task-local passing counts below describe historical execution, including their then-pending work. Use the [feature report](../../../planning/feature-status-2026-10-15.md) for current corrective/release status and [native test instructions](../../../implementations/csharp/tests/README.md) for maintained commands. Historical receipts retain their original source and do not qualify the current tree.
+
 WP05-S02-T01 creates internal queues and workers. T02 now implements [internal runtime fanout and accepted tickets](queued-fanout.md); mixed output outcomes and complete story qualification follow at T03/T04. There is no new public factory or lifecycle API.
 
 `OutputQueues` creates one `OutputEventQueue` for each enabled console/file output and none for disabled outputs. Both writer-presence checks and capacity validation happen before workers start. The internal composition caller supplies prepared capacity (1 through 65536), enabled flags and trusted writer callbacks. No mutable settings, terminal heuristics or destination creation enter this primitive.

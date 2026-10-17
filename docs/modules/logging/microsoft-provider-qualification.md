@@ -1,5 +1,7 @@
 # Microsoft bridge story qualification
 
+> Current status, 17 October 2026: runtime, output and provider implementation and the native C# reader migrations are complete development work. Task-numbered milestones, earlier Python comparisons and task-local passing counts below describe historical execution, including their then-pending work. Use the [feature report](../../../planning/feature-status-2026-10-15.md) for current corrective/release status and [native test instructions](../../../implementations/csharp/tests/README.md) for maintained commands. Historical receipts retain their original source and do not qualify the current tree.
+
 WP06-S01 maps the provider category logger into actual Core capture and admission. The [acceptance map](../../../conformance/logging/provider-story-acceptance.json) preserves all five original criterion descriptions and names their case and architecture-test bindings. AC05 follows the user-selected single CIS.Core assembly and allowed Microsoft package boundary. AC04 follows the user's truncation requirement for oversized valid payload; unsupported retained payload still invalidates the whole event before admission. Original supplied files remain unchanged.
 
 | Criterion | Qualification |

@@ -1,5 +1,7 @@
 Current behavior includes public creation, bounded stop and LastStopResult; [review corrections](review-contract-2026-10-15.md) add InFlight/Buffered. The development qualification narrative below retains its original task chronology.
 
+> Current status, 17 October 2026: runtime, output and provider implementation and the native C# reader migrations are complete development work. Task-numbered milestones, earlier Python comparisons and task-local passing counts below describe historical execution, including their then-pending work. Use the [feature report](../../../planning/feature-status-2026-10-15.md) for current corrective/release status and [native test instructions](../../../implementations/csharp/tests/README.md) for maintained commands. Historical receipts retain their original source and do not qualify the current tree.
+
 # Public live diagnostics and S03 qualification
 
 WP05-S03-T04 implements `CoreLogRuntime.GetDiagnostics()` and the concrete sealed getter-only `CoreLogDiagnostics`, `LogOutputDiagnostics` and `CoreLogState` types in `CIS.Logging`. It reads the real Core/Channel composition under the existing shared gate and returns owned values and an owned read-only console-then-file collection. Disabled destinations are omitted. Results remain unchanged while later worker/admission activity continues.

@@ -14,6 +14,8 @@ Explicit UTC and decoded privacy corrections pass all 96 selected integration ca
 
 Owned input-byte and provider evidence corrections pass 1,365 selected integration cases per native lane. All 29 catalog entry points bind parsing and hashes to one read; four provider families reuse the existing physical report helper. [Evidence](evidence/corrective-input-identity-2026-10-17/README.md).
 
+All eleven confirmed 17 October correction IDs now have verified scoped fixes. Current guidance, provider scope ownership and inventory lane descriptions are reconciled; 46 scope controls pass per lane with distinct accessor sentinels. [Guidance evidence](evidence/corrective-guidance-scope-2026-10-17/README.md). The final coherent checkpoint is still pending; seven approved review bundles and release gates remain separate.
+
 ## Repository and package foundation
 
 - Separate CISLIB Git repository, organized for multiple modules and future language implementations under `implementations/<language>`.

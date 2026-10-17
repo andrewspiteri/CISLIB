@@ -10,6 +10,7 @@ internal static class ExceptionProjectionProcessFixture
     internal static int Run(string mode)
     {
         Exception? source = Create(mode);
+        // Fixture bookkeeping for this invocation, not an independent production call counter.
         int captureCalls = 0;
         captureCalls++;
         CapturedException? captured = ExceptionProjection.Capture(source);

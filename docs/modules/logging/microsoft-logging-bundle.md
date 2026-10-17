@@ -1,5 +1,7 @@
 # Microsoft provider release bundle inventory
 
+> Current status, 17 October 2026: runtime, output and provider implementation and the native C# reader migrations are complete development work. Task-numbered milestones, earlier Python comparisons and task-local passing counts below describe historical execution, including their then-pending work. Use the [feature report](../../../planning/feature-status-2026-10-15.md) for current corrective/release status and [native test instructions](../../../implementations/csharp/tests/README.md) for maintained commands. Historical receipts retain their original source and do not qualify the current tree.
+
 WP06-S03-T05 adds the provider slice to the [first-release bundle registration](../../../implementations/csharp/verification/bundle/manifest.json). The provider remains part of CIS.Core. Its API XML, package and assembly digests, documentation, source/fixture/harness inputs, approved runtime/development inventories and prior reports must accompany complete release assurance.
 
 After the normal locked Developer verification and pack, run from the repository root with a new output directory:

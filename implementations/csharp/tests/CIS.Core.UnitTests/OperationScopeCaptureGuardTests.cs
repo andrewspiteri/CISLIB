@@ -104,12 +104,12 @@ public sealed class OperationScopeCaptureGuardTests
 
     private sealed class CallbackMap(Action callback) : IReadOnlyDictionary<string, LogValue>
     {
-        public LogValue this[string key] => throw new InvalidOperationException("Do not use an indexer during capture.");
-        public IEnumerable<string> Keys => throw new InvalidOperationException("Do not enumerate keys separately.");
-        public IEnumerable<LogValue> Values => throw new InvalidOperationException("Do not enumerate values separately.");
-        public int Count => throw new InvalidOperationException("Do not trust a caller count.");
-        public bool ContainsKey(string key) => throw new InvalidOperationException("Do not query a caller map.");
-        public bool TryGetValue(string key, out LogValue value) => throw new InvalidOperationException("Do not query a caller map.");
+        public LogValue this[string key] => throw new InvalidDataException("Unexpected caller accessor: do not use an indexer during capture.");
+        public IEnumerable<string> Keys => throw new InvalidDataException("Unexpected caller accessor: do not enumerate keys separately.");
+        public IEnumerable<LogValue> Values => throw new InvalidDataException("Unexpected caller accessor: do not enumerate values separately.");
+        public int Count => throw new InvalidDataException("Unexpected caller accessor: do not trust a caller count.");
+        public bool ContainsKey(string key) => throw new InvalidDataException("Unexpected caller accessor: do not query a caller map.");
+        public bool TryGetValue(string key, out LogValue value) => throw new InvalidDataException("Unexpected caller accessor: do not query a caller map.");
         public IEnumerator<KeyValuePair<string, LogValue>> GetEnumerator()
         {
             callback();
