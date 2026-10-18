@@ -11476,6 +11476,25 @@
       "lanes": [ "windows-x64", "linux-ubuntu2404-x64" ],
       "requirements": [ "REQ-007" ],
       "source": "18 October corrective Type Manager migration; supplements the 32 actual SDK lifecycle controls and eleven example controls, including a compiled role-guard mutant. It does not replace package/profile or full shipping mutation qualification."
+    },
+    {
+      "id": "ARCH-NATIVE-PROVIDER-COMPATIBILITY",
+      "family": "architecture",
+      "title": "Native provider compatibility preserves loaded bytes, public signatures and frozen consumer inputs",
+      "implementation": "Implemented",
+      "method": null,
+      "minimumExecutions": 42,
+      "bindings": [
+        { "method": "CIS.Tests.ArchitectureTests.MicrosoftLoggingCompatibilityChecksTests.ConsumerObservationsRetainResultRuntimeAndLoadedIdentity", "minimumExecutions": 14 },
+        { "method": "CIS.Tests.ArchitectureTests.MicrosoftLoggingCompatibilityChecksTests.ProviderApiKeepsRequiredMembersAndParameterDetails", "minimumExecutions": 14 },
+        { "method": "CIS.Tests.ArchitectureTests.MicrosoftLoggingCompatibilityChecksTests.ApprovedRuntimeDependenciesMustResolveUnambiguously", "minimumExecutions": 5 },
+        { "method": "CIS.Tests.ArchitectureTests.MicrosoftLoggingCompatibilityChecksTests.EveryFrozenConsumerInputMustRemainUnchanged", "minimumExecutions": 4 },
+        { "method": "CIS.Tests.ArchitectureTests.MicrosoftLoggingCompatibilityChecksTests.ConsumerProcessRequiresSuccessAndEmptyStderr", "minimumExecutions": 3 },
+        { "method": "CIS.Tests.ArchitectureTests.MicrosoftLoggingCompatibilityChecksTests.ExistingOutputIsNeverOverwritten", "minimumExecutions": 2 }
+      ],
+      "lanes": [ "windows-x64", "linux-ubuntu2404-x64" ],
+      "requirements": [ "REQ-007" ],
+      "source": "18 October corrective provider compatibility migration. Preserves source execution and two separately executed newly frozen binary copies; it does not qualify historical releases or cumulative package compatibility."
     }
 
   ]

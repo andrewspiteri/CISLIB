@@ -1,0 +1,126 @@
+{
+  "focusedProviderCompatibility": [
+    {
+      "lane": "windows",
+      "scenarios": 3,
+      "policyCases": 42,
+      "reportSha256": "d69cefa3b632e317f7d62a3dc29346e24a5c15e8781af148f63d3fc6dcbacaa7",
+      "unchangedConsumerInputs": 4,
+      "historicalComparisons": 0
+    },
+    {
+      "lane": "ubuntu",
+      "scenarios": 3,
+      "policyCases": 42,
+      "reportSha256": "5d7fd16cc57409bf42674e879b6f65fe5a9bdb8083635f9e8ac993c47799ec2d",
+      "unchangedConsumerInputs": 4,
+      "historicalComparisons": 0
+    }
+  ],
+  "recordedUtc": "2026-10-18T00:58:16.9755697\u002B00:00",
+  "windowsBaseCommit": "683670ef2526fe2a1b78b957f16ceecdb8d8b6c4",
+  "taskChangesBoundByInputHashes": true,
+  "matchingCodeBuildConfigurationInputs": 870,
+  "checkpoints": [
+    {
+      "lane": "windows",
+      "runId": "4e5017424f8049b6a56f3af1cba3904c",
+      "passed": 6707,
+      "families": [
+        {
+          "family": "unit",
+          "status": "Executed",
+          "passed": 3750
+        },
+        {
+          "family": "integration",
+          "status": "Executed",
+          "passed": 2120
+        },
+        {
+          "family": "mutation",
+          "status": "NotRun",
+          "reason": "Explicit parser toolchain and dedicated embedded Microsoft adapter qualification commands; full matrix remains separate from the fast developer profile.",
+          "passed": 0
+        },
+        {
+          "family": "architecture",
+          "status": "Executed",
+          "passed": 813
+        },
+        {
+          "family": "compatibility",
+          "status": "NotRun",
+          "reason": "Native Type Manager development compatibility and provenance controls run explicitly through eng/test.ps1 -Project CompatibilityTests with the pinned ApiCompat tool and .NET 8 host. They are not credited by this Developer profile. Provider fixtures retain their separate command; complete cumulative family qualification remains WP07.",
+          "passed": 0
+        },
+        {
+          "family": "business",
+          "status": "Executed",
+          "passed": 24
+        }
+      ],
+      "summarySha256": "4aebcafc8f5388fc1d9465bc709bfe2de3332f5284bc86114216c47b41a6f8f1",
+      "validationSha256": "ef4b67392fb7611ed6ad4dfa4f8f5b916535d50cb40ae5e01f6c742ccf21adfb",
+      "inputInventorySha256": "8581fac969baf3e4c8b04895956b7e8fd16214394f345aec088286643042a1c4"
+    },
+    {
+      "lane": "ubuntu",
+      "runId": "f84e0531043f4a1c95d18826c187cb9e",
+      "passed": 6709,
+      "families": [
+        {
+          "family": "unit",
+          "status": "Executed",
+          "passed": 3750
+        },
+        {
+          "family": "integration",
+          "status": "Executed",
+          "passed": 2122
+        },
+        {
+          "family": "mutation",
+          "status": "NotRun",
+          "reason": "Explicit parser toolchain and dedicated embedded Microsoft adapter qualification commands; full matrix remains separate from the fast developer profile.",
+          "passed": 0
+        },
+        {
+          "family": "architecture",
+          "status": "Executed",
+          "passed": 813
+        },
+        {
+          "family": "compatibility",
+          "status": "NotRun",
+          "reason": "Native Type Manager development compatibility and provenance controls run explicitly through eng/test.ps1 -Project CompatibilityTests with the pinned ApiCompat tool and .NET 8 host. They are not credited by this Developer profile. Provider fixtures retain their separate command; complete cumulative family qualification remains WP07.",
+          "passed": 0
+        },
+        {
+          "family": "business",
+          "status": "Executed",
+          "passed": 24
+        }
+      ],
+      "summarySha256": "a58dd9d1b7b4a984d61775e1ea4f4433acb992eff7e0f411a72b26dccf9901f5",
+      "validationSha256": "36e625982b6dc9eac0437a6d5fb98c0257224afcfd9eff4119c3798a902f4797",
+      "inputInventorySha256": "c8e5eb813f9afd12cabf505a5c160042d4b1ed07083d0c4648b9f275c3d1976b"
+    }
+  ],
+  "canonicalPublicationInputs": [
+    {
+      "path": "compatibility/csharp/publications/ledger.schema.json",
+      "sha256": "3a1054d6ed192e80c0803f2903a8dfcb02e6dd0205566c42c269f5a6f7acd195"
+    },
+    {
+      "path": "compatibility/csharp/publications/baseline.schema.json",
+      "sha256": "e44b078577dae81044ae32f5557f17d35797755999ede98ce8e7357e5fa061b0"
+    },
+    {
+      "path": "compatibility/csharp/publications/ledger.json",
+      "sha256": "50d551eea25133497208999dca619c71a96b147aa19f05c1af0742a5ca803a76"
+    }
+  ],
+  "archive": ".artifacts/corrective/provider-compatibility-migration-2026-10-18",
+  "limits": "Native worktrees retain different Git metadata and lane-local packages; this is not one-package cross-lane release qualification. Markdown documentation and the user-owned launchSettings.json are outside executable-input equality. Coverage, full shipping mutation and cumulative published compatibility were not repeated. The three explicit provider fixture scenarios are separate from Developer and do not qualify released historical compatibility."
+}
