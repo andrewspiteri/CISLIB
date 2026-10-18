@@ -1,0 +1,176 @@
+{
+  "shippingCoverage": [
+    {
+      "lane": "windows",
+      "testsPassed": 6747,
+      "policyCases": 40,
+      "qualified": false,
+      "exitCode": 2,
+      "reportSha256": "9d2bc827231b2323804d3b08158088e0c876f07a6874c56ed9be6b496ff937bf",
+      "inputPins": 51031,
+      "inputsSha256": "f6c9c3dcb0b182243bdca6ede46ec3724971c59a8b76b2ddc0b61f6c51a8e6e5",
+      "sourceInputsSha256": "a8e3ed157f9a001fc3125ad6ab1e10340f06f7aa1c62be96b2c58498042b68e5",
+      "packageSha256": "af656ca5eadb03ecaa3145d159be01e0b2e337a6d38782cb1020c255da30a0d5",
+      "assemblies": [
+        {
+          "assembly": "CIS.Core",
+          "lineRate": 0.9626961667095446,
+          "branchRateLowerBound": 0.9147175242893127,
+          "thresholdPassed": true
+        },
+        {
+          "assembly": "CIS.TypeManager.Build",
+          "lineRate": 0.7884615384615384,
+          "branchRateLowerBound": 0.5285714285714286,
+          "thresholdPassed": false
+        }
+      ]
+    },
+    {
+      "lane": "ubuntu",
+      "testsPassed": 6749,
+      "policyCases": 40,
+      "qualified": false,
+      "exitCode": 2,
+      "reportSha256": "3623988c3126271f6cfc9a8badbdbd963a8939045af5a8190c38673399415e41",
+      "inputPins": 50653,
+      "inputsSha256": "e0f2b940bbe116a09e48bcd1968f6988aba45cbd5bbc5f824fa4be1e1560493d",
+      "sourceInputsSha256": "96b9b497b1723acab28794c63b8f64b7b3d2dfa521c6bfd6b142453275f00539",
+      "packageSha256": "37f060b9a746c8861232949fa22852ea75cf95b447b33d98f944874980472425",
+      "assemblies": [
+        {
+          "assembly": "CIS.Core",
+          "lineRate": 0.9585798816568047,
+          "branchRateLowerBound": 0.9014033825116948,
+          "thresholdPassed": true
+        },
+        {
+          "assembly": "CIS.TypeManager.Build",
+          "lineRate": 0.7884615384615384,
+          "branchRateLowerBound": 0.5285714285714286,
+          "thresholdPassed": false
+        }
+      ]
+    }
+  ],
+  "compilerIsolationControls": [
+    {
+      "id": "windows-timeout-repro",
+      "failed": 2,
+      "passed": 0,
+      "trxSha256": "319055743df68d5d542520794db3bfe8803148a7bfc9874a9d6b3f3affc758c3"
+    },
+    {
+      "id": "windows-compiler-isolation-repro",
+      "failed": 0,
+      "passed": 2,
+      "trxSha256": "a0078b75df9df723316c46d6462db3cce84ead987fab816eb1dbead4372c0ae9"
+    }
+  ],
+  "recordedUtc": "2026-10-18T09:46:27.4772057\u002B00:00",
+  "windowsBaseCommit": "aae140d9b054bba8bd9cebe5e72748f0ab43d40b",
+  "taskChangesBoundByInputHashes": true,
+  "matchingCodeBuildConfigurationInputs": 872,
+  "checkpoints": [
+    {
+      "lane": "windows",
+      "runId": "aebfa15c6f0f4a13926b3f3dfee86693",
+      "passed": 6747,
+      "families": [
+        {
+          "family": "unit",
+          "status": "Executed",
+          "passed": 3750
+        },
+        {
+          "family": "integration",
+          "status": "Executed",
+          "passed": 2120
+        },
+        {
+          "family": "mutation",
+          "status": "NotRun",
+          "reason": "Explicit parser toolchain and dedicated embedded Microsoft adapter qualification commands; full matrix remains separate from the fast developer profile.",
+          "passed": 0
+        },
+        {
+          "family": "architecture",
+          "status": "Executed",
+          "passed": 853
+        },
+        {
+          "family": "compatibility",
+          "status": "NotRun",
+          "reason": "Native Type Manager development compatibility and provenance controls run explicitly through eng/test.ps1 -Project CompatibilityTests with the pinned ApiCompat tool and .NET 8 host. They are not credited by this Developer profile. Provider fixtures retain their separate command; complete cumulative family qualification remains WP07.",
+          "passed": 0
+        },
+        {
+          "family": "business",
+          "status": "Executed",
+          "passed": 24
+        }
+      ],
+      "summarySha256": "dbca9e518a6bb3e02c855d91aab33fd3ea5ac281ea8a0580260980e1f302249d",
+      "validationSha256": "ef4b67392fb7611ed6ad4dfa4f8f5b916535d50cb40ae5e01f6c742ccf21adfb",
+      "inputInventorySha256": "4a9f9569c3eed0fb20d37025d787b5c81de01558a2b78dc7ce569c48db7108fe"
+    },
+    {
+      "lane": "ubuntu",
+      "runId": "b3a0722d34bd4c049dec1bfff04f5e1c",
+      "passed": 6749,
+      "families": [
+        {
+          "family": "unit",
+          "status": "Executed",
+          "passed": 3750
+        },
+        {
+          "family": "integration",
+          "status": "Executed",
+          "passed": 2122
+        },
+        {
+          "family": "mutation",
+          "status": "NotRun",
+          "reason": "Explicit parser toolchain and dedicated embedded Microsoft adapter qualification commands; full matrix remains separate from the fast developer profile.",
+          "passed": 0
+        },
+        {
+          "family": "architecture",
+          "status": "Executed",
+          "passed": 853
+        },
+        {
+          "family": "compatibility",
+          "status": "NotRun",
+          "reason": "Native Type Manager development compatibility and provenance controls run explicitly through eng/test.ps1 -Project CompatibilityTests with the pinned ApiCompat tool and .NET 8 host. They are not credited by this Developer profile. Provider fixtures retain their separate command; complete cumulative family qualification remains WP07.",
+          "passed": 0
+        },
+        {
+          "family": "business",
+          "status": "Executed",
+          "passed": 24
+        }
+      ],
+      "summarySha256": "29f71a8730af4eb9abc4647ea6c6ba1757d379f657ff9c3dca43fd609efd6288",
+      "validationSha256": "36e625982b6dc9eac0437a6d5fb98c0257224afcfd9eff4119c3798a902f4797",
+      "inputInventorySha256": "96b9b497b1723acab28794c63b8f64b7b3d2dfa521c6bfd6b142453275f00539"
+    }
+  ],
+  "canonicalPublicationInputs": [
+    {
+      "path": "compatibility/csharp/publications/ledger.schema.json",
+      "sha256": "3a1054d6ed192e80c0803f2903a8dfcb02e6dd0205566c42c269f5a6f7acd195"
+    },
+    {
+      "path": "compatibility/csharp/publications/baseline.schema.json",
+      "sha256": "e44b078577dae81044ae32f5557f17d35797755999ede98ce8e7357e5fa061b0"
+    },
+    {
+      "path": "compatibility/csharp/publications/ledger.json",
+      "sha256": "50d551eea25133497208999dca619c71a96b147aa19f05c1af0742a5ca803a76"
+    }
+  ],
+  "archive": ".artifacts/corrective/shipping-coverage-collection-migration-2026-10-18",
+  "limits": "Native worktrees retain different Git metadata and lane-local packages; this is not one-package cross-lane release qualification. Markdown, planning evidence and the user-owned launchSettings.json are outside executable-input equality. Coverage separately binds each lane\u0027s Developer package, complete native families and source/binary/reference pins. A complete threshold-failing measurement remains unqualified. Full shipping mutation, cumulative published compatibility and complete Release profiles were not run. The original roadmap remains paused; Claude was not used."
+}

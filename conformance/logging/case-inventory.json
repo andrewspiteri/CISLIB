@@ -11495,6 +11495,26 @@
       "lanes": [ "windows-x64", "linux-ubuntu2404-x64" ],
       "requirements": [ "REQ-007" ],
       "source": "18 October corrective provider compatibility migration. Preserves source execution and two separately executed newly frozen binary copies; it does not qualify historical releases or cumulative package compatibility."
+    },
+    {
+      "id": "ARCH-NATIVE-SHIPPING-COVERAGE",
+      "family": "architecture",
+      "title": "Native coverage collection pins packages, loaded binaries, Developer references and source membership",
+      "implementation": "Implemented",
+      "method": null,
+      "minimumExecutions": 40,
+      "bindings": [
+        { "method": "CIS.Tests.ArchitectureTests.ShippingCoverageCollectionTests.PackageInventoryAndEveryLoadedCopyMustMatch", "minimumExecutions": 8 },
+        { "method": "CIS.Tests.ArchitectureTests.ShippingCoverageCollectionTests.DeveloperEvidenceAndStartupReferenceRemainPinnedAndContained", "minimumExecutions": 9 },
+        { "method": "CIS.Tests.ArchitectureTests.ShippingCoverageCollectionTests.CompleteSourceMembershipCannotDrift", "minimumExecutions": 4 },
+        { "method": "CIS.Tests.ArchitectureTests.ShippingCoverageCollectionTests.BinarySymbolsAndSharedInputsAreHashPinned", "minimumExecutions": 5 },
+        { "method": "CIS.Tests.ArchitectureTests.ShippingCoverageCollectionTests.OutputOwnershipAndFocusedOverridesFailBeforeWriting", "minimumExecutions": 5 },
+        { "method": "CIS.Tests.ArchitectureTests.ShippingCoverageCollectionTests.CoveragePolicyCannotEscapeOrDuplicateItsScope", "minimumExecutions": 8 },
+        { "method": "CIS.Tests.ArchitectureTests.ShippingCoverageCollectionTests.CollectorUsesExistingReleaseBinariesAndNativeReportFormat", "minimumExecutions": 1 }
+      ],
+      "lanes": [ "windows-x64", "linux-ubuntu2404-x64" ],
+      "requirements": [ "REQ-007" ],
+      "source": "18 October corrective coverage collection migration. Native report aggregation and unchanged 95% line / 90% branch per-assembly thresholds remain separate from passing collection-policy controls."
     }
 
   ]
