@@ -57,6 +57,19 @@ Developer and Release checkpoint entry points reject a nonempty override before 
 
 Install PowerShell 7.5 or later for the Windows user (for example, `winget install --id Microsoft.PowerShell --exact --scope user`), as well as the pinned SDK/runtime. Codex's private PowerShell directory is not a normal host installation and must not be relied on by Test Explorer. Restart Visual Studio if an existing session has an older PATH. Ordinary test runs default to four MSTest workers, matching the Developer runner's bounded settings. Developer's shared session budget is ten minutes because the complete Windows integration family exceeds five minutes; architecture retains its separate twenty-minute budget.
 
+The 18 October saved IDE run has 20 failed case records across ten methods, all unable to start `pwsh`. The running IDE and its Explorer parent have only the machine PATH; the installed user PowerShell alias directory is absent. Merely reopening the same shortcut can inherit that environment again. A notification to refresh the environment did not change their observed PATH values. No registry PATH values were changed.
+
+Close Visual Studio after saving your work, then run the following in PowerShell to reopen this checkout with the existing machine and user PATH values. These settings apply to this terminal and the IDE it launches. The compiler-isolation settings also avoid the independently reproduced fixture-bootstrap timeouts; they do not extend test deadlines or change test selection.
+
+```powershell
+$env:Path = [Environment]::GetEnvironmentVariable('Path', 'Machine') + ';' + [Environment]::GetEnvironmentVariable('Path', 'User')
+$env:UseSharedCompilation = 'false'
+$env:MSBUILDDISABLENODEREUSE = '1'
+& 'C:\Program Files\Microsoft Visual Studio\18\Insiders\Common7\IDE\devenv.exe' 'C:\miscwork\portfolio\cislib\implementations\csharp\CisLib.slnx'
+```
+
+The installed user PowerShell alias is under `%LOCALAPPDATA%\Microsoft\WindowsApps`; the command above does not add Codex's private runtime to PATH. With the ordinary user PATH, all four affected unit cases pass. With that PATH and the two scoped compiler settings, all sixteen affected architecture cases pass against the same existing Debug test binaries. This is a focused native rerun of the saved failures; Visual Studio Run All acceptance remains open. See the [diagnosis and native reports](../../planning/evidence/corrective-visual-studio-environment-2026-10-18/README.md).
+
 Debug packaged logging tests create a fresh package from their current project build under their own candidate directory, then verify its assembly hash and consume it from an isolated local feed. Release runs retain the preselected package and reject stale bytes. Architecture tests that inspect compiler-control evidence check the Release assembly that produced that evidence; a Debug test host is not that candidate. The full Developer checkpoint remains the supported preparation for retained architecture/compiler evidence.
 
 Compatibility cases also need the pinned ApiCompat 10.0.401 entry DLL and .NET runtime 8.0.31 on its selected host. The SDK 10.0.401/runtime 10.0.12 installation alone does not supply that .NET 8 tool host. Existing `CIS_COMPAT_API_TOOL` and `CIS_COMPAT_API_DOTNET` overrides can select an explicitly prepared tool/host. A local-tool resolver may reuse an earlier custom package cache, so a successful `dotnet tool restore` alone does not prove the entry DLL exists under the test process's default NuGet cache. See [toolchain qualification](csharp-toolchain.md) for the isolated restore procedure and pins.
