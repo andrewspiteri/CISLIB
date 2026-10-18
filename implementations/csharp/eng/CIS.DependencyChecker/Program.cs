@@ -2,12 +2,14 @@ using System.Text.Json;
 using CIS.TestSupport;
 using CIS.Verification;
 
-if (args.Length > 0 && args[0] is "type-manager-baseline" or "type-manager-frozen-tests" or "type-manager-runtime" or "type-manager-instrumentation" or "type-manager-instrumentation-controls" or "type-manager-inventory" or "type-manager-package" or "type-manager-examples" or "type-manager-mutation-prepare" or "type-manager-mutation-prepare-controls" or "type-manager-measure" or "type-manager-measure-controls")
+if (args.Length > 0 && args[0] is "type-manager-source-inventory" or "type-manager-example-boundaries" or "type-manager-baseline" or "type-manager-frozen-tests" or "type-manager-runtime" or "type-manager-instrumentation" or "type-manager-instrumentation-controls" or "type-manager-inventory" or "type-manager-package" or "type-manager-examples" or "type-manager-mutation-prepare" or "type-manager-mutation-prepare-controls" or "type-manager-measure" or "type-manager-measure-controls")
 {
     try
     {
         return args[0] switch
         {
+            "type-manager-source-inventory" => await TypeManagerSourceInventoryChecks.RunAsync(args[1..]),
+            "type-manager-example-boundaries" => await TypeManagerExampleBoundaryChecks.RunAsync(args[1..]),
             "type-manager-baseline" => await TypeManagerBaselineChecks.RunAsync(args[1..]),
             "type-manager-frozen-tests" => await TypeManagerFrozenTests.RunAsync(args[1..]),
             "type-manager-runtime" => await TypeManagerRuntimeVerification.RunAsync(args[1..]),

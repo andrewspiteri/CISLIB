@@ -1,5 +1,7 @@
 # Type Manager implementation status
 
+18 October corrective verification migration: all five remaining Type Manager PowerShell policy entries now invoke C#. The original frozen 90-case runtime suite, ten producer-bound business stories, three baseline compatibility checks, 32 SDK lifecycle checks and eleven example controls pass on Windows/Ubuntu; 42 new policy cases supplement them. The independent 111-case compatibility suite also passes against the selected frozen candidates. Complete Developer checkpoints pass 6,665 Windows and 6,667 Ubuntu cases, with zero failures/skips/issues. [Three-batch control map and retained evidence](../evidence/corrective-type-manager-sdk-migration-2026-10-18/README.md). Shipping behavior is unchanged, no release gate is closed, and the original roadmap remains paused.
+
 Latest loader/diagnostic checkpoint, 14 October 2026: [ten new regression cases](evidence/loader-regressions/README.md) pass against frozen Core on Windows/Ubuntu (90 cases per OS). Final-source mutation controls restore their 100-case baselines. The initial reviewed 100-case native mutation run improves to 57.98%, still below the unchanged 90% gate; its exact test revision is retained separately. Production source is unchanged and no milestone or release gate is closed.
 
 14 October 2026. In progress, in the same CIS.Core assembly and solution as logging.

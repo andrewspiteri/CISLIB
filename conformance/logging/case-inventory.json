@@ -11461,6 +11461,21 @@
       "lanes": [ "windows-x64", "linux-ubuntu2404-x64" ],
       "requirements": [ "REQ-007" ],
       "source": "18 October corrective Type Manager migration; original API, frozen binary and source consumer checks remain separate from the broader compatibility suite and released compatibility."
+    },
+    {
+      "id": "ARCH-NATIVE-TYPE-MANAGER-SDK",
+      "family": "architecture",
+      "title": "Native Type Manager SDK verification keeps deployed identities and isolated mutation boundaries",
+      "implementation": "Implemented",
+      "method": null,
+      "minimumExecutions": 14,
+      "bindings": [
+        { "method": "CIS.Tests.ArchitectureTests.TypeManagerSdkChecksTests.SourceInventoryRequiresExactOrderedDeployedMembership", "minimumExecutions": 10 },
+        { "method": "CIS.Tests.ArchitectureTests.TypeManagerSdkChecksTests.BoundaryMutationsRequireAnExistingIsolatedTree", "minimumExecutions": 4 }
+      ],
+      "lanes": [ "windows-x64", "linux-ubuntu2404-x64" ],
+      "requirements": [ "REQ-007" ],
+      "source": "18 October corrective Type Manager migration; supplements the 32 actual SDK lifecycle controls and eleven example controls, including a compiled role-guard mutant. It does not replace package/profile or full shipping mutation qualification."
     }
 
   ]
