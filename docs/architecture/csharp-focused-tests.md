@@ -55,20 +55,16 @@ Developer and Release checkpoint entry points reject a nonempty override before 
 
 ## Test Explorer prerequisites
 
-Install PowerShell 7.5 or later for the Windows user (for example, `winget install --id Microsoft.PowerShell --exact --scope user`), as well as the pinned SDK/runtime. Codex's private PowerShell directory is not a normal host installation and must not be relied on by Test Explorer. Restart Visual Studio if an existing session has an older PATH. Ordinary test runs default to four MSTest workers, matching the Developer runner's bounded settings. Developer's shared session budget is ten minutes because the complete Windows integration family exceeds five minutes; architecture retains its separate twenty-minute budget.
+Install PowerShell 7.5 or later for the Windows user (for example, `winget install --id Microsoft.PowerShell --exact --scope user`), as well as the pinned SDK/runtime. Codex's private PowerShell directory is not a normal host installation and must not be relied on by Test Explorer.
 
-The 18 October saved IDE run has 20 failed case records across ten methods, all unable to start `pwsh`. The running IDE and its Explorer parent have only the machine PATH; the installed user PowerShell alias directory is absent. Merely reopening the same shortcut can inherit that environment again. A notification to refresh the environment did not change their observed PATH values. No registry PATH values were changed.
+Open the solution normally, build it and run tests in Test Explorer. The shared C# MSTest assembly initializer in `tests/TestAssembly.cs` prepares each test host automatically:
 
-Close Visual Studio after saving your work, then run the following in PowerShell to reopen this checkout with the existing machine and user PATH values. These settings apply to this terminal and the IDE it launches. The compiler-isolation settings also avoid the independently reproduced fixture-bootstrap timeouts; they do not extend test deadlines or change test selection.
+- On Windows, append the standard PowerShell 7 installation directory and user WindowsApps directory only when they contain `pwsh.exe` and are absent from the inherited PATH. Existing PATH entries keep precedence. This covers an IDE inheriting only the machine PATH while PowerShell is installed for the user.
+- Default `UseSharedCompilation=false` and `MSBUILDDISABLENODEREUSE=1` for isolated fixture builds. Existing nonempty values are preserved.
 
-```powershell
-$env:Path = [Environment]::GetEnvironmentVariable('Path', 'Machine') + ';' + [Environment]::GetEnvironmentVariable('Path', 'User')
-$env:UseSharedCompilation = 'false'
-$env:MSBUILDDISABLENODEREUSE = '1'
-& 'C:\Program Files\Microsoft Visual Studio\18\Insiders\Common7\IDE\devenv.exe' 'C:\miscwork\portfolio\cislib\implementations\csharp\CisLib.slnx'
-```
+These are test-process settings; no special Visual Studio launch command or registry change is needed. The installed tools are still prerequisites. Test startup does not install or download anything. The earlier [environment diagnosis](../../planning/evidence/corrective-visual-studio-environment-2026-10-18/README.md) records the initial workaround; the [automatic setup correction](../../planning/evidence/corrective-visual-studio-normal-launch-2026-10-18/README.md) supersedes that launch requirement.
 
-The installed user PowerShell alias is under `%LOCALAPPDATA%\Microsoft\WindowsApps`; the command above does not add Codex's private runtime to PATH. With the ordinary user PATH, all four affected unit cases pass. With that PATH and the two scoped compiler settings, all sixteen affected architecture cases pass against the same existing Debug test binaries. This is a focused native rerun of the saved failures; Visual Studio Run All acceptance remains open. See the [diagnosis and native reports](../../planning/evidence/corrective-visual-studio-environment-2026-10-18/README.md).
+Ordinary test runs default to four MSTest workers, matching the Developer runner's bounded settings. Developer's shared session budget is ten minutes because the complete Windows integration family exceeds five minutes; architecture retains its separate twenty-minute budget.
 
 Debug packaged logging tests create a fresh package from their current project build under their own candidate directory, then verify its assembly hash and consume it from an isolated local feed. Release runs retain the preselected package and reject stale bytes. Architecture tests that inspect compiler-control evidence check the Release assembly that produced that evidence; a Debug test host is not that candidate. The full Developer checkpoint remains the supported preparation for retained architecture/compiler evidence.
 
