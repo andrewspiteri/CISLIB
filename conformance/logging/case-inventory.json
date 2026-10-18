@@ -11537,7 +11537,26 @@
       "lanes": [ "windows-x64", "linux-ubuntu2404-x64" ],
       "requirements": [ "REQ-007" ],
       "source": "18 October corrective adapter verification migration. Native three-file coverage and isolated mutation observations remain separate from complete shipping coverage/mutation and release qualification."
+    },
+    {
+      "id": "ARCH-NATIVE-TOOLCHAIN-PROVENANCE",
+      "family": "architecture",
+      "title": "Native toolchain and input provenance preserve exact inputs and smoke gates",
+      "implementation": "Implemented",
+      "method": null,
+      "minimumExecutions": 59,
+      "bindings": [
+        { "method": "CIS.Tests.ArchitectureTests.ToolchainChecksTests.ProvenanceBindsApprovedCacheAndRetainedBytes", "minimumExecutions": 18 },
+        { "method": "CIS.Tests.ArchitectureTests.ToolchainChecksTests.RecordedPrerequisitesCannotBeOverwritten", "minimumExecutions": 1 },
+        { "method": "CIS.Tests.ArchitectureTests.ToolchainChecksTests.CoveragePreservesNativeCountersCollectorAndGates", "minimumExecutions": 16 },
+        { "method": "CIS.Tests.ArchitectureTests.ToolchainChecksTests.MutationPreservesSourceReviewAndConservativeDenominator", "minimumExecutions": 16 },
+        { "method": "CIS.Tests.ArchitectureTests.ToolchainChecksTests.PackagePathsStayInsideTheirArchive", "minimumExecutions": 6 },
+        { "method": "CIS.Tests.ArchitectureTests.ToolchainChecksTests.NativeXmlRejectsDtd", "minimumExecutions": 1 },
+        { "method": "CIS.Tests.ArchitectureTests.ToolchainChecksTests.ToolHostAndRawProcessBytesRemainPinned", "minimumExecutions": 1 }
+      ],
+      "lanes": [ "windows-x64", "linux-ubuntu2404-x64" ],
+      "requirements": [ "REQ-007" ],
+      "source": "18 October corrective toolchain/input-provenance migration. Native policy controls preserve local parser smoke gates; full release and offline replay qualification remain separate."
     }
-
   ]
 }

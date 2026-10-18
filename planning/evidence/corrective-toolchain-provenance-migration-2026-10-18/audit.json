@@ -1,0 +1,155 @@
+{
+  "scope": "Corrective C# toolchain/input-provenance migration; parser smoke remains unqualified and release work remains separate.",
+  "checkpoints": [
+    {
+      "lane": "windows",
+      "runId": "281f488c3e9644d7a6433b27d17c2e76",
+      "passed": 6861,
+      "families": [
+        {
+          "family": "unit",
+          "status": "Executed",
+          "passed": 3750
+        },
+        {
+          "family": "integration",
+          "status": "Executed",
+          "passed": 2120
+        },
+        {
+          "family": "mutation",
+          "status": "NotRun",
+          "reason": "Explicit parser toolchain and dedicated embedded Microsoft adapter qualification commands; full matrix remains separate from the fast developer profile.",
+          "passed": 0
+        },
+        {
+          "family": "architecture",
+          "status": "Executed",
+          "passed": 967
+        },
+        {
+          "family": "compatibility",
+          "status": "NotRun",
+          "reason": "Native Type Manager development compatibility and provenance controls run explicitly through eng/test.ps1 -Project CompatibilityTests with the pinned ApiCompat tool and .NET 8 host. They are not credited by this Developer profile. Provider fixtures retain their separate command; complete cumulative family qualification remains WP07.",
+          "passed": 0
+        },
+        {
+          "family": "business",
+          "status": "Executed",
+          "passed": 24
+        }
+      ],
+      "summarySha256": "5fc08750460e1df4627cf3817d9cb79567a54d35e1e0b90ee15cccb2f25548b2",
+      "validationSha256": "ef4b67392fb7611ed6ad4dfa4f8f5b916535d50cb40ae5e01f6c742ccf21adfb",
+      "inputInventorySha256": "4b465f83e0307729518347af388e44d05513884961ca50efe81dd23a43a8293e"
+    },
+    {
+      "lane": "ubuntu",
+      "runId": "53726a0675724fae8f409e7bb8b309db",
+      "passed": 6863,
+      "families": [
+        {
+          "family": "unit",
+          "status": "Executed",
+          "passed": 3750
+        },
+        {
+          "family": "integration",
+          "status": "Executed",
+          "passed": 2122
+        },
+        {
+          "family": "mutation",
+          "status": "NotRun",
+          "reason": "Explicit parser toolchain and dedicated embedded Microsoft adapter qualification commands; full matrix remains separate from the fast developer profile.",
+          "passed": 0
+        },
+        {
+          "family": "architecture",
+          "status": "Executed",
+          "passed": 967
+        },
+        {
+          "family": "compatibility",
+          "status": "NotRun",
+          "reason": "Native Type Manager development compatibility and provenance controls run explicitly through eng/test.ps1 -Project CompatibilityTests with the pinned ApiCompat tool and .NET 8 host. They are not credited by this Developer profile. Provider fixtures retain their separate command; complete cumulative family qualification remains WP07.",
+          "passed": 0
+        },
+        {
+          "family": "business",
+          "status": "Executed",
+          "passed": 24
+        }
+      ],
+      "summarySha256": "e015d49dfd2fadc425fc485fe146a39112a659aef6588107a1e0e4eabf522333",
+      "validationSha256": "36e625982b6dc9eac0437a6d5fb98c0257224afcfd9eff4119c3798a902f4797",
+      "inputInventorySha256": "81529631bfcdea632e5dc4859672412929ad3b2bede4620d9da9a9e547b56980"
+    }
+  ],
+  "matchingExecutableInputs": 878,
+  "matchingCSharpInputs": 659,
+  "publicationInputs": [
+    {
+      "path": "compatibility/csharp/publications/ledger.schema.json",
+      "sha256": "3a1054d6ed192e80c0803f2903a8dfcb02e6dd0205566c42c269f5a6f7acd195"
+    },
+    {
+      "path": "compatibility/csharp/publications/baseline.schema.json",
+      "sha256": "e44b078577dae81044ae32f5557f17d35797755999ede98ce8e7357e5fa061b0"
+    },
+    {
+      "path": "compatibility/csharp/publications/ledger.json",
+      "sha256": "50d551eea25133497208999dca619c71a96b147aa19f05c1af0742a5ca803a76"
+    }
+  ],
+  "observations": [
+    {
+      "lane": "windows",
+      "rawRunRoot": "C:\\miscwork\\portfolio\\cislib\\.artifacts\\tci-w02",
+      "outcome": "Failed at unchanged smoke coverage gate",
+      "sourceInputs": 51092,
+      "restoredPackagesToolsAndDownloads": 26,
+      "coverage": {
+        "parserCases": 93,
+        "trxSha256": "74ab569badcd2b52e1aca7d89bc6b4c3fb333282f4d41820ece137ccd05ee330",
+        "coberturaSha256": "846907f926807181b5e60149efe69a7c7de5042db916975102e980d06d8a44c4",
+        "nativeReport": "400b3943-6ebd-40fb-807d-1cb27e46aeaa/andrs_ARCTURUS_2026-10-18.20_36_55.cobertura.xml",
+        "linesCovered": 15,
+        "linesValid": 3647,
+        "branchesCovered": 75,
+        "branchesValid": 2779,
+        "lineRate": 0.004112969564025226,
+        "branchRate": 0.026988125224901044,
+        "passed": false
+      },
+      "nativeCommandsPassed": 11,
+      "apiControlsMutationAndRepack": "NotRun: preceding coverage gate failed",
+      "sourceInventorySha256": "db7b0ed8e788256adec2b8c17259745df4b2b15199c79d070ec0e955bab26ec5"
+    },
+    {
+      "lane": "ubuntu",
+      "rawRunRoot": "\\\\wsl.localhost\\Ubuntu-24.04\\home\\user\\cislib-verification\\ubuntu-developer-396e87d6-archive\\source\\.artifacts\\tci-u02",
+      "outcome": "Failed at unchanged smoke coverage gate",
+      "sourceInputs": 50641,
+      "restoredPackagesToolsAndDownloads": 25,
+      "coverage": {
+        "parserCases": 93,
+        "trxSha256": "79b4e0aeb29886def59397697c17b3820e576abab21c6637413dbd1d5049547b",
+        "coberturaSha256": "3c3a8e6f902f1e73f161dbd6c0b7a3d934b5ba1d5d3897024c6e15c2d07ec381",
+        "nativeReport": "57f83e52-2bbd-45ba-a934-7e377f1f803f/user_Arcturus_2026-10-18.20_27_25.cobertura.xml",
+        "linesCovered": 15,
+        "linesValid": 3647,
+        "branchesCovered": 75,
+        "branchesValid": 2779,
+        "lineRate": 0.004112969564025226,
+        "branchRate": 0.026988125224901044,
+        "passed": false
+      },
+      "nativeCommandsPassed": 11,
+      "apiControlsMutationAndRepack": "NotRun: preceding coverage gate failed",
+      "sourceInventorySha256": "1fe0a0c59b93d701513ac561e159878b393ac487360241d9194f11edbb0462ab"
+    }
+  ],
+  "roadmap": "Paused",
+  "claudeUsed": false
+}

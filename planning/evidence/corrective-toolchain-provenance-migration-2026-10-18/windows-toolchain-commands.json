@@ -1,0 +1,172 @@
+[
+  {
+    "name": "sdk",
+    "executable": "dotnet",
+    "arguments": [
+      "--version"
+    ],
+    "workingDirectory": "C:\\miscwork\\portfolio\\cislib\\.artifacts\\tci-w02\\source\\implementations/csharp",
+    "expectedExit": 0,
+    "exitCode": 0,
+    "log": "logs/sdk.log"
+  },
+  {
+    "name": "dotnet-info",
+    "executable": "dotnet",
+    "arguments": [
+      "--info"
+    ],
+    "workingDirectory": "C:\\miscwork\\portfolio\\cislib\\.artifacts\\tci-w02\\source\\implementations/csharp",
+    "expectedExit": 0,
+    "exitCode": 0,
+    "log": "logs/dotnet-info.log"
+  },
+  {
+    "name": "runtimes",
+    "executable": "dotnet",
+    "arguments": [
+      "--list-runtimes"
+    ],
+    "workingDirectory": "C:\\miscwork\\portfolio\\cislib\\.artifacts\\tci-w02\\source\\implementations/csharp",
+    "expectedExit": 0,
+    "exitCode": 0,
+    "log": "logs/runtimes.log"
+  },
+  {
+    "name": "tool-restore",
+    "executable": "dotnet",
+    "arguments": [
+      "tool",
+      "restore",
+      "--tool-manifest",
+      ".config/dotnet-tools.json",
+      "--configfile",
+      "eng/Tools.NuGet.config",
+      "--no-http-cache"
+    ],
+    "workingDirectory": "C:\\miscwork\\portfolio\\cislib\\.artifacts\\tci-w02\\source\\implementations/csharp",
+    "expectedExit": 0,
+    "exitCode": 0,
+    "log": "logs/tool-restore.log"
+  },
+  {
+    "name": "stryker-help",
+    "executable": "dotnet",
+    "arguments": [
+      "exec",
+      "--fx-version",
+      "8.0.31",
+      "--roll-forward",
+      "Disable",
+      "C:\\miscwork\\portfolio\\cislib\\.artifacts\\tci-w02\\packages\\dotnet-stryker\\4.16.0\\tools\\net8.0\\any\\Stryker.CLI.dll",
+      "--help"
+    ],
+    "workingDirectory": "C:\\miscwork\\portfolio\\cislib\\.artifacts\\tci-w02\\source\\implementations/csharp",
+    "expectedExit": 0,
+    "exitCode": 0,
+    "log": "logs/stryker-help.log"
+  },
+  {
+    "name": "apicompat-version",
+    "executable": "dotnet",
+    "arguments": [
+      "exec",
+      "--fx-version",
+      "8.0.31",
+      "--roll-forward",
+      "Disable",
+      "C:\\miscwork\\portfolio\\cislib\\.artifacts\\tci-w02\\packages\\microsoft.dotnet.apicompat.tool\\10.0.401\\tools\\net8.0\\any\\Microsoft.DotNet.ApiCompat.Tool.dll",
+      "--version"
+    ],
+    "workingDirectory": "C:\\miscwork\\portfolio\\cislib\\.artifacts\\tci-w02\\source\\implementations/csharp",
+    "expectedExit": 0,
+    "exitCode": 0,
+    "log": "logs/apicompat-version.log"
+  },
+  {
+    "name": "locked-restore",
+    "executable": "dotnet",
+    "arguments": [
+      "restore",
+      "CisLib.slnx",
+      "--locked-mode",
+      "--configfile",
+      "NuGet.config",
+      "--no-http-cache"
+    ],
+    "workingDirectory": "C:\\miscwork\\portfolio\\cislib\\.artifacts\\tci-w02\\source\\implementations/csharp",
+    "expectedExit": 0,
+    "exitCode": 0,
+    "log": "logs/locked-restore.log"
+  },
+  {
+    "name": "git-version",
+    "executable": "git",
+    "arguments": [
+      "--version"
+    ],
+    "workingDirectory": "C:\\miscwork\\portfolio\\cislib\\.artifacts\\tci-w02\\source\\implementations/csharp",
+    "expectedExit": 0,
+    "exitCode": 0,
+    "log": "logs/git-version.log"
+  },
+  {
+    "name": "developer-verification",
+    "executable": "pwsh",
+    "arguments": [
+      "-NoProfile",
+      "-File",
+      "eng/verify.ps1",
+      "-MaxBuildNodes",
+      "4"
+    ],
+    "workingDirectory": "C:\\miscwork\\portfolio\\cislib\\.artifacts\\tci-w02\\source\\implementations/csharp",
+    "expectedExit": 0,
+    "exitCode": 0,
+    "log": "logs/developer-verification.log"
+  },
+  {
+    "name": "exact-runtime-host",
+    "executable": "dotnet",
+    "arguments": [
+      "exec",
+      "--fx-version",
+      "10.0.12",
+      "--roll-forward",
+      "Disable",
+      "examples/logging/ConsoleHuman/bin/Release/net10.0/CisLib.Examples.ConsoleHuman.dll"
+    ],
+    "workingDirectory": "C:\\miscwork\\portfolio\\cislib\\.artifacts\\tci-w02\\source\\implementations/csharp",
+    "expectedExit": 0,
+    "exitCode": 0,
+    "log": "logs/exact-runtime-host.log"
+  },
+  {
+    "name": "parser-coverage",
+    "executable": "dotnet",
+    "arguments": [
+      "test",
+      "tests/CIS.Core.UnitTests/CIS.Core.UnitTests.csproj",
+      "-c",
+      "Release",
+      "--no-build",
+      "--no-restore",
+      "--filter",
+      "FullyQualifiedName~SeverityTokenParserTests",
+      "--settings",
+      "verification/coverage/core.runsettings",
+      "--collect",
+      "Code Coverage;Format=cobertura",
+      "--results-directory",
+      "C:\\miscwork\\portfolio\\cislib\\.artifacts\\tci-w02\\coverage",
+      "--logger",
+      "trx;LogFileName=parser.trx",
+      "--diag",
+      "C:\\miscwork\\portfolio\\cislib\\.artifacts\\tci-w02\\coverage\\vstest.log"
+    ],
+    "workingDirectory": "C:\\miscwork\\portfolio\\cislib\\.artifacts\\tci-w02\\source\\implementations/csharp",
+    "expectedExit": 0,
+    "exitCode": 0,
+    "log": "logs/parser-coverage.log"
+  }
+]
