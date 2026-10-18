@@ -11515,6 +11515,28 @@
       "lanes": [ "windows-x64", "linux-ubuntu2404-x64" ],
       "requirements": [ "REQ-007" ],
       "source": "18 October corrective coverage collection migration. Native report aggregation and unchanged 95% line / 90% branch per-assembly thresholds remain separate from passing collection-policy controls."
+    },
+    {
+      "id": "ARCH-NATIVE-PROVIDER-QUALIFICATION",
+      "family": "architecture",
+      "title": "Native adapter observations retain exact files, measured execution and conservative mutation accounting",
+      "implementation": "Implemented",
+      "method": null,
+      "minimumExecutions": 55,
+      "bindings": [
+        { "method": "CIS.Tests.ArchitectureTests.MicrosoftLoggingQualificationTests.MatrixRequiresExactlyThePhysicalAdapterSources", "minimumExecutions": 7 },
+        { "method": "CIS.Tests.ArchitectureTests.MicrosoftLoggingQualificationTests.CoverageRequiresPassingNativeTestsAndUnambiguousMeasuredSources", "minimumExecutions": 23 },
+        { "method": "CIS.Tests.ArchitectureTests.MicrosoftLoggingQualificationTests.GeneratedClassesMergeBySourceLineWithoutAddingDenominators", "minimumExecutions": 3 },
+        { "method": "CIS.Tests.ArchitectureTests.MicrosoftLoggingQualificationTests.CoverageRejectsDtdBeforeReadingExternalContent", "minimumExecutions": 1 },
+        { "method": "CIS.Tests.ArchitectureTests.MicrosoftLoggingQualificationTests.MutationKeepsExactFilesAndConservativeTestableDenominator", "minimumExecutions": 10 },
+        { "method": "CIS.Tests.ArchitectureTests.MicrosoftLoggingQualificationTests.SnapshotAndCanonicalPinsCannotDrift", "minimumExecutions": 3 },
+        { "method": "CIS.Tests.ArchitectureTests.MicrosoftLoggingQualificationTests.ExistingOutputsAreNeverOverwritten", "minimumExecutions": 3 },
+        { "method": "CIS.Tests.ArchitectureTests.MicrosoftLoggingQualificationTests.CollectorPreservesAdapterFiltersAndNativeReportFormat", "minimumExecutions": 2 },
+        { "method": "CIS.Tests.ArchitectureTests.MicrosoftLoggingQualificationTests.MutationDiagnosticsRetainOriginalBytesInsteadOfReencodingDisplayText", "minimumExecutions": 3 }
+      ],
+      "lanes": [ "windows-x64", "linux-ubuntu2404-x64" ],
+      "requirements": [ "REQ-007" ],
+      "source": "18 October corrective adapter verification migration. Native three-file coverage and isolated mutation observations remain separate from complete shipping coverage/mutation and release qualification."
     }
 
   ]

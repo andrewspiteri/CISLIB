@@ -1,0 +1,122 @@
+[
+  {
+    "name": "sdk",
+    "executable": "dotnet",
+    "argv": [
+      "--version"
+    ],
+    "workingDirectory": "C:\\miscwork\\portfolio\\cislib\\implementations\\csharp",
+    "exitCode": 0,
+    "log": "logs/sdk.log"
+  },
+  {
+    "name": "tool-restore",
+    "executable": "dotnet",
+    "argv": [
+      "tool",
+      "restore",
+      "--configfile",
+      "eng/Tools.NuGet.config"
+    ],
+    "workingDirectory": "C:\\miscwork\\portfolio\\cislib\\.artifacts\\corrective\\provider-qualification-migration-2026-10-18\\windows-mutation-final\\source\\implementations/csharp/",
+    "exitCode": 0,
+    "log": "logs/tool-restore.log"
+  },
+  {
+    "name": "restore-unit",
+    "executable": "dotnet",
+    "argv": [
+      "restore",
+      "tests/CIS.Core.UnitTests/CIS.Core.UnitTests.csproj",
+      "--locked-mode",
+      "--configfile",
+      "NuGet.config"
+    ],
+    "workingDirectory": "C:\\miscwork\\portfolio\\cislib\\.artifacts\\corrective\\provider-qualification-migration-2026-10-18\\windows-mutation-final\\source\\implementations/csharp/",
+    "exitCode": 0,
+    "log": "logs/restore-unit.log"
+  },
+  {
+    "name": "build-unit",
+    "executable": "dotnet",
+    "argv": [
+      "build",
+      "tests/CIS.Core.UnitTests/CIS.Core.UnitTests.csproj",
+      "-c",
+      "Release",
+      "--no-restore"
+    ],
+    "workingDirectory": "C:\\miscwork\\portfolio\\cislib\\.artifacts\\corrective\\provider-qualification-migration-2026-10-18\\windows-mutation-final\\source\\implementations/csharp/",
+    "exitCode": 0,
+    "log": "logs/build-unit.log"
+  },
+  {
+    "name": "baseline-unit",
+    "executable": "dotnet",
+    "argv": [
+      "test",
+      "tests/CIS.Core.UnitTests/CIS.Core.UnitTests.csproj",
+      "-c",
+      "Release",
+      "--no-build",
+      "--no-restore",
+      "--filter",
+      "FullyQualifiedName~CIS.Tests.UnitTests.Provider",
+      "--logger",
+      "trx;LogFileName=baseline.trx",
+      "--results-directory",
+      "C:\\miscwork\\portfolio\\cislib\\.artifacts\\corrective\\provider-qualification-migration-2026-10-18\\windows-mutation-final\\baseline"
+    ],
+    "workingDirectory": "C:\\miscwork\\portfolio\\cislib\\.artifacts\\corrective\\provider-qualification-migration-2026-10-18\\windows-mutation-final\\source\\implementations/csharp/",
+    "exitCode": 0,
+    "log": "logs/baseline-unit.log"
+  },
+  {
+    "name": "global-packages",
+    "executable": "dotnet",
+    "argv": [
+      "nuget",
+      "locals",
+      "global-packages",
+      "--list",
+      "--force-english-output"
+    ],
+    "workingDirectory": "C:\\miscwork\\portfolio\\cislib\\.artifacts\\corrective\\provider-qualification-migration-2026-10-18\\windows-mutation-final\\source\\implementations/csharp/",
+    "exitCode": 0,
+    "log": "logs/global-packages.log"
+  },
+  {
+    "name": "mutation",
+    "executable": "dotnet",
+    "argv": [
+      "exec",
+      "--fx-version",
+      "8.0.31",
+      "--roll-forward",
+      "Disable",
+      "C:\\Users\\andrs\\.nuget\\packages\\dotnet-stryker\\4.16.0\\tools/net8.0/any/Stryker.CLI.dll",
+      "--config-file",
+      "../../verification/mutation/microsoft-logging-config.json",
+      "--output",
+      "C:\\miscwork\\portfolio\\cislib\\.artifacts\\corrective\\provider-qualification-migration-2026-10-18\\windows-mutation-final\\mutation"
+    ],
+    "workingDirectory": "C:\\miscwork\\portfolio\\cislib\\.artifacts\\corrective\\provider-qualification-migration-2026-10-18\\windows-mutation-final\\source\\implementations/csharp/src/CIS.Core",
+    "exitCode": 2,
+    "log": "logs/mutation.log"
+  },
+  {
+    "name": "unmutated-rebuild",
+    "executable": "dotnet",
+    "argv": [
+      "build",
+      "tests/CIS.Core.UnitTests/CIS.Core.UnitTests.csproj",
+      "-c",
+      "Release",
+      "--no-restore",
+      "--no-incremental"
+    ],
+    "workingDirectory": "C:\\miscwork\\portfolio\\cislib\\.artifacts\\corrective\\provider-qualification-migration-2026-10-18\\windows-mutation-final\\source\\implementations/csharp/",
+    "exitCode": 0,
+    "log": "logs/unmutated-rebuild.log"
+  }
+]

@@ -1,0 +1,90 @@
+[
+  {
+    "name": "sdk",
+    "executable": "dotnet",
+    "argv": [
+      "--version"
+    ],
+    "workingDirectory": "/home/user/cislib-verification/ubuntu-developer-396e87d6-archive/source/implementations/csharp",
+    "exitCode": 0,
+    "log": "logs/sdk.log"
+  },
+  {
+    "name": "build-Unit",
+    "executable": "dotnet",
+    "argv": [
+      "build",
+      "tests/CIS.Core.UnitTests/CIS.Core.UnitTests.csproj",
+      "-c",
+      "Release",
+      "--no-restore"
+    ],
+    "workingDirectory": "/home/user/cislib-verification/ubuntu-developer-396e87d6-archive/source/implementations/csharp",
+    "exitCode": 0,
+    "log": "logs/build-Unit.log"
+  },
+  {
+    "name": "coverage-Unit",
+    "executable": "dotnet",
+    "argv": [
+      "test",
+      "tests/CIS.Core.UnitTests/CIS.Core.UnitTests.csproj",
+      "-c",
+      "Release",
+      "--no-build",
+      "--no-restore",
+      "--filter",
+      "FullyQualifiedName~CIS.Tests.UnitTests.Provider",
+      "--settings",
+      "verification/coverage/microsoft-logging.runsettings",
+      "--collect",
+      "Code Coverage;Format=cobertura",
+      "--results-directory",
+      "/home/user/cislib-verification/ubuntu-developer-396e87d6-archive/source/.artifacts/corrective/provider-qualification-migration-2026-10-18/ubuntu-coverage-final/unit",
+      "--logger",
+      "trx;LogFileName=report.trx"
+    ],
+    "workingDirectory": "/home/user/cislib-verification/ubuntu-developer-396e87d6-archive/source/implementations/csharp",
+    "exitCode": 0,
+    "log": "logs/coverage-Unit.log"
+  },
+  {
+    "name": "build-Integration",
+    "executable": "dotnet",
+    "argv": [
+      "build",
+      "tests/CIS.Core.IntegrationTests/CIS.Core.IntegrationTests.csproj",
+      "-c",
+      "Release",
+      "--no-restore"
+    ],
+    "workingDirectory": "/home/user/cislib-verification/ubuntu-developer-396e87d6-archive/source/implementations/csharp",
+    "exitCode": 0,
+    "log": "logs/build-Integration.log"
+  },
+  {
+    "name": "coverage-Integration",
+    "executable": "dotnet",
+    "argv": [
+      "test",
+      "tests/CIS.Core.IntegrationTests/CIS.Core.IntegrationTests.csproj",
+      "-c",
+      "Release",
+      "--no-build",
+      "--no-restore",
+      "--filter",
+      "FullyQualifiedName~CIS.Tests.IntegrationTests.Provider",
+      "--settings",
+      "verification/coverage/microsoft-logging.runsettings",
+      "--collect",
+      "Code Coverage;Format=cobertura",
+      "--results-directory",
+      "/home/user/cislib-verification/ubuntu-developer-396e87d6-archive/source/.artifacts/corrective/provider-qualification-migration-2026-10-18/ubuntu-coverage-final/integration",
+      "--logger",
+      "trx;LogFileName=report.trx"
+    ],
+    "workingDirectory": "/home/user/cislib-verification/ubuntu-developer-396e87d6-archive/source/implementations/csharp",
+    "exitCode": 0,
+    "log": "logs/coverage-Integration.log"
+  }
+]
