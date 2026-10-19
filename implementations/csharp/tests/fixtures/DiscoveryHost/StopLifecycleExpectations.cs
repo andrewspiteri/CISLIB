@@ -45,7 +45,10 @@ internal static class StopLifecycleExpectations
         byte[] bytes = Bytes(a, "bytes"); Require(bytes.AsSpan().StartsWith(seed), "seed prefix");
         if (a["kind"]!.GetValue<string>() == "public")
         {
-            JsonArray receipts = a["receipts"]!.AsArray(); Require(receipts.Count > 0 && receipts.Select((x, i) => N(x!["ticket"]) == i + 1).All(x => x), "admission tickets");
+            JsonArray receipts = a["receipts"]!.AsArray();
+            long[] tickets = receipts.Select(x => N(x!["ticket"])).ToArray();
+            Require(tickets.Length > 0 && tickets.All(ticket => ticket > 0) && tickets.Distinct().Count() == tickets.Length &&
+                (mode == "producer-stop-race" || tickets.Select((ticket, index) => ticket == index + 1).All(match => match)), "admission tickets");
             JsonNode incoming = a["incoming"]!;
             Require(N(incoming["accepted"]) == receipts.Count && N(incoming["processed"]) == receipts.Count && N(incoming["failed"]) == 0 &&
                 N(incoming["abandoned"]) == 0 && N(incoming["pending"]) == 0 && N(incoming["queueFull"]) == 0, "incoming completion");
@@ -56,7 +59,12 @@ internal static class StopLifecycleExpectations
                 JsonNode console = result["outputs"]![0]!; Require(console["name"]!.GetValue<string>() == "console" && N(console["boundary"]) == receipts.Count && N(console["written"]) == receipts.Count && N(console["failed"]) == 0 && N(console["abandoned"]) == 0 && N(console["pending"]) == 0 && console["flush"]!.GetValue<string>() == "Succeeded", "public console dispositions");
             }
             JsonObject[] rows = Records(bytes, pid); Require(rows.Length == receipts.Count + 1, "public record count");
-            Require(rows.Skip(1).Select(x => x["event_name"]!.GetValue<string>()).SequenceEqual(receipts.Select(x => x!["event"]!.GetValue<string>())), "receipt record order");
+            string[] actualNames = rows.Skip(1).Select(x => x["event_name"]!.GetValue<string>()).ToArray();
+            string[] receiptNames = receipts.Select(x => x!["event"]!.GetValue<string>()).ToArray();
+            // Concurrent tickets correlate calls; creation order within each captured batch controls handoff.
+            Require(mode == "producer-stop-race"
+                ? actualNames.Order(StringComparer.Ordinal).SequenceEqual(receiptNames.Order(StringComparer.Ordinal))
+                : actualNames.SequenceEqual(receiptNames), "receipt record order");
             Require(a["attempts"]!.GetValue<int>() == receipts.Count + a["stopped"]!.GetValue<int>(), "attempt accounting");
             Require(a["attempts"]!.GetValue<int>() == (mode is "normal" or "normal-dual" ? 120 : mode == "pre-cancelled" ? 40 : 514), "producer attempt count");
             Require(a["cancelled"]!.GetValue<int>() == (mode == "pre-cancelled" ? 1 : 0) && a["racingStoppers"]!.GetValue<int>() == (mode == "producer-stop-race" ? 16 : 0), "caller/starter counts");

@@ -4,16 +4,17 @@ namespace CIS.Logging;
 /// <summary>An owned immutable live observation of one enabled output.</summary>
 public sealed class LogOutputDiagnostics
 {
-    internal LogOutputDiagnostics(string name, OutputAccounting counts, bool recoveredPartialSegment = false)
+    internal LogOutputDiagnostics(string name, OutputAccounting counts, bool recoveredPartialSegment = false,
+        long callerFiltered = 0, long callerUnavailable = 0)
     {
         OutputName = name;
         State = counts.State;
         AcceptedSequence = counts.AcceptedSequence;
-        Filtered = counts.Filtered;
-        AdmissionAttempts = counts.AdmissionAttempts;
+        Filtered = counts.Filtered > long.MaxValue - callerFiltered ? long.MaxValue : counts.Filtered + callerFiltered;
+        AdmissionAttempts = counts.AdmissionAttempts > long.MaxValue - callerUnavailable ? long.MaxValue : counts.AdmissionAttempts + callerUnavailable;
         Accepted = counts.Accepted;
         QueueFull = counts.QueueFull;
-        Unavailable = counts.Unavailable;
+        Unavailable = counts.Unavailable > long.MaxValue - callerUnavailable ? long.MaxValue : counts.Unavailable + callerUnavailable;
         Written = counts.Written;
         Failed = counts.Failed;
         Abandoned = counts.Abandoned;

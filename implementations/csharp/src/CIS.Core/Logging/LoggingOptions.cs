@@ -46,6 +46,23 @@ public sealed class LoggingOptions
     /// <summary>The QueueCapacity setting.</summary>
     public int QueueCapacity { get; set; } = 1024;
 
+    /// <summary>Fallback percentage of incoming slots inspected per publication (1–100).</summary>
+    public int IncomingScanPercentage { get; set; } = 30;
+    /// <summary>Trace scan percentage; null inherits IncomingScanPercentage.</summary>
+    public int? IncomingTraceScanPercentage { get; set; } = 20;
+    /// <summary>Debug scan percentage; null inherits IncomingScanPercentage.</summary>
+    public int? IncomingDebugScanPercentage { get; set; } = 30;
+    /// <summary>Information scan percentage; null inherits IncomingScanPercentage.</summary>
+    public int? IncomingInformationScanPercentage { get; set; } = 40;
+    /// <summary>Warning scan percentage; null inherits IncomingScanPercentage.</summary>
+    public int? IncomingWarningScanPercentage { get; set; } = 50;
+    /// <summary>Error scan percentage; null inherits IncomingScanPercentage.</summary>
+    public int? IncomingErrorScanPercentage { get; set; } = 60;
+    /// <summary>Critical scan percentage; null inherits IncomingScanPercentage.</summary>
+    public int? IncomingCriticalScanPercentage { get; set; } = 70;
+    /// <summary>Positive idle frontend poll interval in milliseconds; independent of file flushing.</summary>
+    public int IncomingPollIntervalMilliseconds { get; set; } = 1;
+
     /// <summary>Target interval in milliseconds for scheduling file-buffer flushes, including idle periods.</summary>
     /// <remarks>
     /// Defaults to 1,000 ms; Prepare requires 10–60,000 ms.
@@ -111,6 +128,7 @@ public sealed class LoggingOptions
             CheckEnum(fileLevel, nameof(FileLevel), issues);
         }
         CheckRange(QueueCapacity, MinimumQueueCapacity, MaximumQueueCapacity, nameof(QueueCapacity), issues);
+        CheckIncomingSettings(issues);
         CheckRange(FlushIntervalMilliseconds, MinimumFlushIntervalMilliseconds, MaximumFlushIntervalMilliseconds, nameof(FlushIntervalMilliseconds), issues);
         CheckRange(ShutdownTimeoutMilliseconds, MinimumShutdownTimeoutMilliseconds, MaximumShutdownTimeoutMilliseconds, nameof(ShutdownTimeoutMilliseconds), issues);
         CheckRange(FileMaxBytes, MinimumFileMaxBytes, MaximumFileMaxBytes, nameof(FileMaxBytes), issues);
@@ -143,6 +161,27 @@ public sealed class LoggingOptions
             throw new CoreConfigurationException(issues);
         }
         FilePath = path;
+    }
+
+    internal void ValidateIncomingSettings()
+    {
+        var issues = new List<ConfigurationIssue>();
+        CheckIncomingSettings(issues);
+        if (issues.Count != 0) { throw new CoreConfigurationException(issues); }
+    }
+
+    private void CheckIncomingSettings(List<ConfigurationIssue> issues)
+    {
+        CheckRange(IncomingScanPercentage, 1, 100, nameof(IncomingScanPercentage), issues);
+        CheckOverride(IncomingTraceScanPercentage, nameof(IncomingTraceScanPercentage));
+        CheckOverride(IncomingDebugScanPercentage, nameof(IncomingDebugScanPercentage));
+        CheckOverride(IncomingInformationScanPercentage, nameof(IncomingInformationScanPercentage));
+        CheckOverride(IncomingWarningScanPercentage, nameof(IncomingWarningScanPercentage));
+        CheckOverride(IncomingErrorScanPercentage, nameof(IncomingErrorScanPercentage));
+        CheckOverride(IncomingCriticalScanPercentage, nameof(IncomingCriticalScanPercentage));
+        CheckRange(IncomingPollIntervalMilliseconds, 1, int.MaxValue, nameof(IncomingPollIntervalMilliseconds), issues);
+        void CheckOverride(int? value, string name)
+        { if (value is { } percentage) { CheckRange(percentage, 1, 100, name, issues); } }
     }
 
     private static void CheckEnum<T>(T value, string name, List<ConfigurationIssue> issues) where T : struct, Enum

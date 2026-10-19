@@ -82,9 +82,10 @@ internal static class EventProjection
             resource: metadata.ResourceProjection,
             attributes: attributes,
             exception: exception,
-            isTruncated: messageClipped || templateClipped || attributes.IsTruncated || exception?.HasTruncatedContent == true,
+            isTruncated: messageClipped || templateClipped || attributes.IsTruncated || exception?.HasTruncatedContent == true || data.Interpolation?.IsTruncated == true,
             hasProviderEventId: sourceState is not null,
-            explicitAttributes: explicitAttributes);
+            explicitAttributes: explicitAttributes,
+            interpolation: data.Interpolation);
     }
 
     private static (string? TraceId, string? SpanId) CaptureActivity()

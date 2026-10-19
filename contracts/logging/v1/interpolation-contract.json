@@ -1,0 +1,31 @@
+{
+  "schemaVersion": 1,
+  "feature": "LOG-INTERPOLATION",
+  "state": "Implemented C# development behavior; Developer qualification recorded in planning/logging/template-api/README.md",
+  "languageCapability": "csharp-compiler-interpolated-string-handler",
+  "csharpSurface": "implementations/csharp/verification/contracts/startup/runtime-surface.json",
+  "guidance": "docs/modules/logging/interpolation.md",
+  "acceptance": "conformance/logging/interpolation-acceptance.json",
+  "syntax": "C# interpolation and .NET formatting; no separate named-placeholder grammar",
+  "names": ["Trace", "Debug", "Info", "Warn", "Error", "Critical", "Write"],
+  "culture": "InvariantCulture",
+  "nullDisplay": "Empty string",
+  "attributes": "Explicit typed values are independent structured attributes, never interpolation bindings or automatically inferred expression names. Existing scope precedence applies.",
+  "templateMetadata": "Generated positional format; source expression names are not guaranteed",
+  "evaluation": "Caller, in C# expression order, even for filtered/stopped calls. Exceptions from expressions precede the logger method. This handler does not short-circuit evaluation.",
+  "ownership": "Built-in scalars are immutable snapshots; strings/spans are bounded owned text. Other types format once on caller and retain only text. Freeze copies parts, never caller dictionaries or formatting objects.",
+  "rendering": "Consumer after claim, once before processing callbacks and initial byte projection. Existing output/lifecycle behavior applies. Internal output-only qualification seams format synchronously.",
+  "bounds": {
+    "parts": 1024,
+    "capturedTextScalars": 8192,
+    "formatUtf16Characters": 256,
+    "standardNumericPrecision": 8192,
+    "standardNumericPrecisionScope": "Listed owned built-in scalars only. Other framework and user types use caller-side formatting; their execution and intermediate allocations are outside the library bound.",
+    "renderedMessageScalars": 8192,
+    "formatScratchUtf16Characters": 16384,
+    "overflow": "Omit unsupported-size part or excess text/parts and mark truncated; preserve existing aggregate encoded-entry projection"
+  },
+  "captureErrors": ["InvalidUnicode", "InterpolationCaptureFailed", "ConflictingInterpolationInput"],
+  "backendFormatFailure": "Public frontend: Incoming.Failed and covered loss observations, without faulting unrelated writers. Internal output-only qualification: synchronous InvalidEvent/InterpolationFormatFailed.",
+  "frontend": "No change to publication, P01, consumer polling or lifecycle boundaries"
+}

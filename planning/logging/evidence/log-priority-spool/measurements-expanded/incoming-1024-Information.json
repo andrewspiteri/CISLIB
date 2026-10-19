@@ -1,0 +1,129 @@
+{
+  "schema": "cis.logging-frontend-measurements/v1",
+  "runtime": ".NET 10.0.12",
+  "os": "Microsoft Windows 10.0.26200",
+  "architecture": "X64",
+  "capacity": 1024,
+  "level": "Information",
+  "scanProfile": "20/30/40/50/60/70; fallback 30",
+  "idlePollMilliseconds": 1,
+  "measurements": [
+    {
+      "path": "owned-ring-publication",
+      "mode": "quiet",
+      "producers": 1,
+      "iterationsPerProducer": 4000,
+      "effectiveK": 410,
+      "maximumObservedProbes": 1,
+      "publicationExchanges": 4000,
+      "sourceDerivedLogicalProducerRmw": 24000,
+      "admitted": 4000,
+      "evicted": 0,
+      "consumed": 4000,
+      "observedConsumerDrainPerSecond": 5521048.999309869,
+      "elapsedMilliseconds": 0.7245,
+      "processCpuMilliseconds": 0,
+      "producerAllocatedBytes": 160000,
+      "latency": {
+        "units": "microseconds",
+        "p50": 0.1,
+        "p95": 0.2,
+        "p99": 0.2,
+        "maximum": 1
+      }
+    },
+    {
+      "path": "owned-ring-publication",
+      "mode": "full",
+      "producers": 1,
+      "iterationsPerProducer": 4000,
+      "effectiveK": 410,
+      "maximumObservedProbes": 410,
+      "publicationExchanges": 4000,
+      "sourceDerivedLogicalProducerRmw": 28000,
+      "admitted": 4000,
+      "evicted": 4000,
+      "consumed": 0,
+      "observedConsumerDrainPerSecond": 0,
+      "elapsedMilliseconds": 45.4165,
+      "processCpuMilliseconds": 46.875,
+      "producerAllocatedBytes": 160000,
+      "latency": {
+        "units": "microseconds",
+        "p50": 10.6,
+        "p95": 14.7,
+        "p99": 17.1,
+        "maximum": 37.2
+      }
+    },
+    {
+      "path": "owned-ring-publication",
+      "mode": "contended",
+      "producers": 4,
+      "iterationsPerProducer": 4000,
+      "effectiveK": 410,
+      "maximumObservedProbes": 410,
+      "publicationExchanges": 16000,
+      "sourceDerivedLogicalProducerRmw": 96354,
+      "admitted": 16000,
+      "evicted": 354,
+      "consumed": 16360,
+      "observedConsumerDrainPerSecond": 938934.8025711663,
+      "elapsedMilliseconds": 17.424,
+      "processCpuMilliseconds": 0,
+      "producerAllocatedBytes": 640000,
+      "latency": {
+        "units": "microseconds",
+        "p50": 0.7,
+        "p95": 2.6,
+        "p99": 17.5,
+        "maximum": 50.8
+      }
+    },
+    {
+      "path": "complete-caller-including-capture",
+      "mode": "full-consumer-paused",
+      "producers": 1,
+      "iterations": 1000,
+      "elapsedMilliseconds": 14.9107,
+      "processCpuMilliseconds": 15.625,
+      "callerAllocatedBytes": 1176000,
+      "legacyFactoryCalls": 0,
+      "legacyFactoryLatency": null,
+      "backendDispatch": "Consumer gated throughout the measured caller window; no backend dispatch executes.",
+      "latency": {
+        "units": "microseconds",
+        "p50": 14,
+        "p95": 18.5,
+        "p99": 21.2,
+        "maximum": 37.6
+      }
+    },
+    {
+      "path": "complete-caller-including-legacy-factory-and-capture",
+      "mode": "full-consumer-paused",
+      "producers": 1,
+      "iterations": 1000,
+      "elapsedMilliseconds": 15.064,
+      "processCpuMilliseconds": 15.625,
+      "callerAllocatedBytes": 1256000,
+      "legacyFactoryCalls": 1000,
+      "legacyFactoryLatency": {
+        "units": "microseconds",
+        "p50": 0,
+        "p95": 0.1,
+        "p99": 0.4,
+        "maximum": 1
+      },
+      "backendDispatch": "Consumer gated throughout the measured caller window; no backend dispatch executes.",
+      "latency": {
+        "units": "microseconds",
+        "p50": 13.7,
+        "p95": 18.8,
+        "p99": 27.5,
+        "maximum": 168.8
+      }
+    }
+  ],
+  "limits": "One Windows/native process observation, not a statistical or release gate. Ring latency excludes payload capture; thread allocation includes occurrence construction. Quiet driver claims after each call; full driver pauses consumption; contended driver uses four producers and one polling consumer of the real ring. Process CPU includes driver/consumer/CLR work. Logical producer RMW counts are derived from actual admissions/evictions and audited source sites (6 per admission plus 1 per eviction), not hardware instruction counters. Complete-caller rows include owned capture with the actual runtime consumer paused; the legacy-factory row separately records its simple callback\u0027s duration within total caller latency. These are not arbitrary application callback costs. Sampling buffers belong to the harness, not production storage."
+}

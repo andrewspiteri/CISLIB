@@ -22,6 +22,7 @@ public sealed class LogEventData
 
     /// <summary>The optional exception, projected without retaining the caller exception or its Data.</summary>
     public Exception? Exception { get; set; }
+    internal Events.CapturedInterpolation? Interpolation { get; init; }
     // Adapter capture runs inside core validation after Activity/clock capture, before admission.
     internal Func<(string? Template, LogValue Attributes)>? CaptureState { get; init; }
     internal Func<int, Scopes.CapturedScopeContext>? CaptureScopes { get; init; }

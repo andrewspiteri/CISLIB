@@ -50,6 +50,10 @@ public sealed class ArchitectureOwnershipTests
     [DataRow("borrowed-map", "ARCH-OWNERSHIP-FIELD")]
     [DataRow("borrowed-child", "ARCH-OWNERSHIP-FIELD")]
     [DataRow("public-buffer", "ARCH-OWNERSHIP-FIELD")]
+    [DataRow("public-interpolation-buffer", "ARCH-OWNERSHIP-FIELD")]
+    [DataRow("interpolation-caller-array", "ARCH-OWNERSHIP-FIELD")]
+    [DataRow("interpolation-mutable-part", "ARCH-INTERPOLATION-MUTABLE")]
+    [DataRow("interpolation-extra-part-state", "ARCH-INTERPOLATION-FIELD")]
     [DataRow("setter", "ARCH-OWNERSHIP-SETTER")]
     [DataRow("property-buffer", "ARCH-OWNERSHIP-EXPOSURE")]
     [DataRow("method-buffer", "ARCH-OWNERSHIP-EXPOSURE")]
@@ -85,6 +89,10 @@ public sealed class ArchitectureOwnershipTests
             case "borrowed-map": Field(Type(facts, "CIS.Logging.LogValue"), "map")["signature"] = "[System.Collections]System.Collections.Generic.Dictionary`2<String, [CIS.Core]CIS.Logging.LogValue>"; break;
             case "borrowed-child": Field(Type(facts, "CIS.Logging.LogValue"), "array")["signature"] = "[System.Runtime]System.Collections.ObjectModel.ReadOnlyCollection`1<[CIS.Core]CIS.Logging.LogEventData>"; break;
             case "public-buffer": Field(Type(facts, "CIS.Logging.Events.EncodedEvent"), "jsonLine")["attributes"] = "Public, InitOnly"; break;
+            case "public-interpolation-buffer": Field(Type(facts, "CIS.Logging.Events.CapturedInterpolation"), "parts")["attributes"] = "Public, InitOnly"; break;
+            case "interpolation-caller-array": Field(Type(facts, "CIS.Logging.Events.CapturedInterpolation"), "parts")["signature"] = "[CIS.Core]CIS.Logging.LogEventData[]"; break;
+            case "interpolation-mutable-part": Field(Type(facts, "CIS.Logging.Events.InterpolationPart"), "<Value>k__BackingField")["attributes"] = "Private"; break;
+            case "interpolation-extra-part-state": Type(facts, "CIS.Logging.Events.InterpolationPart")["members"]!.AsArray().Add(Member("field", "caller", "[CIS.Core]CIS.Logging.LogEventData")); break;
             case "setter": metadata["members"]!.AsArray().Add(Member("method", "set_ApplicationName", "Default generic=0 (String) -> Void", "Public, SpecialName")); break;
             case "property-buffer": metadata["members"]!.AsArray().Add(Member("property", "Buffer", "Default generic=0 () -> Byte[]")); break;
             case "method-buffer": metadata["members"]!.AsArray().Add(Member("method", "GetBuffer", "Default generic=0 () -> Byte[]", "Assembly")); break;

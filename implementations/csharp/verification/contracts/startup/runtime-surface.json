@@ -64,7 +64,33 @@
       "get_Completion": {
         "parameters": {},
         "return": "Task"
-      }
+      },
+      "TryCreate": [
+        {
+          "static": true,
+          "return": "LogStartResult",
+          "parameters": {
+            "runtime": "CoreLogRuntime&"
+          }
+        },
+        {
+          "static": true,
+          "return": "LogStartResult",
+          "parameters": {
+            "writers": "IEnumerable<LogWriterRegistration>",
+            "runtime": "CoreLogRuntime&"
+          }
+        },
+        {
+          "static": true,
+          "return": "LogStartResult",
+          "parameters": {
+            "processing": "LogProcessingOptions",
+            "runtime": "CoreLogRuntime&",
+            "writers": "IEnumerable<LogWriterRegistration>"
+          }
+        }
+      ]
     },
     "CoreLogger": {
       "IsEnabled": {
@@ -73,13 +99,47 @@
           "level": "CoreLogLevel"
         }
       },
-      "Write": {
-        "return": "LogWriteResult",
-        "parameters": {
-          "level": "CoreLogLevel",
-          "data": "LogEventData"
+      "Write": [
+        {
+          "return": "LogWriteResult",
+          "parameters": {
+            "level": "CoreLogLevel",
+            "data": "LogEventData"
+          }
+        },
+        {
+          "return": "LogWriteResult",
+          "parameters": {
+            "level": "CoreLogLevel",
+            "message": "LogInterpolatedStringHandler&"
+          }
+        },
+        {
+          "return": "LogWriteResult",
+          "parameters": {
+            "level": "CoreLogLevel",
+            "message": "LogInterpolatedStringHandler&",
+            "values": "IReadOnlyDictionary<string, LogValue>"
+          }
+        },
+        {
+          "return": "LogWriteResult",
+          "parameters": {
+            "level": "CoreLogLevel",
+            "eventName": "string",
+            "message": "LogInterpolatedStringHandler&",
+            "values": "IReadOnlyDictionary<string, LogValue>"
+          }
+        },
+        {
+          "return": "LogWriteResult",
+          "parameters": {
+            "level": "CoreLogLevel",
+            "message": "LogInterpolatedStringHandler&",
+            "context": "LogEventData"
+          }
         }
-      },
+      ],
       "WriteLazy": {
         "return": "LogWriteResult",
         "parameters": {
@@ -106,6 +166,27 @@
             "data": "LogEventData"
           },
           "return": "LogWriteResult"
+        },
+        {
+          "return": "LogWriteResult",
+          "parameters": {
+            "message": "LogInterpolatedStringHandler&"
+          }
+        },
+        {
+          "return": "LogWriteResult",
+          "parameters": {
+            "message": "LogInterpolatedStringHandler&",
+            "values": "IReadOnlyDictionary<string, LogValue>"
+          }
+        },
+        {
+          "return": "LogWriteResult",
+          "parameters": {
+            "eventName": "string",
+            "message": "LogInterpolatedStringHandler&",
+            "values": "IReadOnlyDictionary<string, LogValue>"
+          }
         }
       ],
       "TraceLazy": {
@@ -133,6 +214,27 @@
             "data": "LogEventData"
           },
           "return": "LogWriteResult"
+        },
+        {
+          "return": "LogWriteResult",
+          "parameters": {
+            "message": "LogInterpolatedStringHandler&"
+          }
+        },
+        {
+          "return": "LogWriteResult",
+          "parameters": {
+            "message": "LogInterpolatedStringHandler&",
+            "values": "IReadOnlyDictionary<string, LogValue>"
+          }
+        },
+        {
+          "return": "LogWriteResult",
+          "parameters": {
+            "eventName": "string",
+            "message": "LogInterpolatedStringHandler&",
+            "values": "IReadOnlyDictionary<string, LogValue>"
+          }
         }
       ],
       "DebugLazy": {
@@ -160,6 +262,27 @@
             "data": "LogEventData"
           },
           "return": "LogWriteResult"
+        },
+        {
+          "return": "LogWriteResult",
+          "parameters": {
+            "message": "LogInterpolatedStringHandler&"
+          }
+        },
+        {
+          "return": "LogWriteResult",
+          "parameters": {
+            "message": "LogInterpolatedStringHandler&",
+            "values": "IReadOnlyDictionary<string, LogValue>"
+          }
+        },
+        {
+          "return": "LogWriteResult",
+          "parameters": {
+            "eventName": "string",
+            "message": "LogInterpolatedStringHandler&",
+            "values": "IReadOnlyDictionary<string, LogValue>"
+          }
         }
       ],
       "InfoLazy": {
@@ -187,6 +310,27 @@
             "data": "LogEventData"
           },
           "return": "LogWriteResult"
+        },
+        {
+          "return": "LogWriteResult",
+          "parameters": {
+            "message": "LogInterpolatedStringHandler&"
+          }
+        },
+        {
+          "return": "LogWriteResult",
+          "parameters": {
+            "message": "LogInterpolatedStringHandler&",
+            "values": "IReadOnlyDictionary<string, LogValue>"
+          }
+        },
+        {
+          "return": "LogWriteResult",
+          "parameters": {
+            "eventName": "string",
+            "message": "LogInterpolatedStringHandler&",
+            "values": "IReadOnlyDictionary<string, LogValue>"
+          }
         }
       ],
       "WarnLazy": {
@@ -214,6 +358,27 @@
             "data": "LogEventData"
           },
           "return": "LogWriteResult"
+        },
+        {
+          "return": "LogWriteResult",
+          "parameters": {
+            "message": "LogInterpolatedStringHandler&"
+          }
+        },
+        {
+          "return": "LogWriteResult",
+          "parameters": {
+            "message": "LogInterpolatedStringHandler&",
+            "values": "IReadOnlyDictionary<string, LogValue>"
+          }
+        },
+        {
+          "return": "LogWriteResult",
+          "parameters": {
+            "eventName": "string",
+            "message": "LogInterpolatedStringHandler&",
+            "values": "IReadOnlyDictionary<string, LogValue>"
+          }
         }
       ],
       "ErrorLazy": {
@@ -241,6 +406,27 @@
             "data": "LogEventData"
           },
           "return": "LogWriteResult"
+        },
+        {
+          "return": "LogWriteResult",
+          "parameters": {
+            "message": "LogInterpolatedStringHandler&"
+          }
+        },
+        {
+          "return": "LogWriteResult",
+          "parameters": {
+            "message": "LogInterpolatedStringHandler&",
+            "values": "IReadOnlyDictionary<string, LogValue>"
+          }
+        },
+        {
+          "return": "LogWriteResult",
+          "parameters": {
+            "eventName": "string",
+            "message": "LogInterpolatedStringHandler&",
+            "values": "IReadOnlyDictionary<string, LogValue>"
+          }
         }
       ],
       "CriticalLazy": {
@@ -291,7 +477,10 @@
       "InvalidEventCount": "long",
       "TruncatedEventCount": "long",
       "Outputs": "IReadOnlyList<LogOutputDrainResult>",
-      "Incoming": "LogIncomingSnapshot?"
+      "Incoming": "LogIncomingSnapshot?",
+      "FrontendBatch": "LogFrontendBatchSnapshot?",
+      "FrontendCaptureStatus": "LogFrontendCaptureStatus",
+      "ErrorCode": "string?"
     },
     "LogStopResult": {
       "Completion": "LogCompletion",
@@ -302,7 +491,8 @@
       "InvalidEventCount": "long",
       "TruncatedEventCount": "long",
       "Outputs": "IReadOnlyList<LogOutputDrainResult>",
-      "Incoming": "LogIncomingSnapshot?"
+      "Incoming": "LogIncomingSnapshot?",
+      "ErrorCode": "string?"
     },
     "LogOutputDrainResult": {
       "OutputName": "string",
@@ -364,7 +554,28 @@
       "RejectedByWriters": "long",
       "Suppressed": "long",
       "DuplicateSuppressed": "long",
-      "DuplicateKeyEvictions": "long"
+      "DuplicateKeyEvictions": "long",
+      "Admitted": "long",
+      "Consumed": "long",
+      "Evicted": "long",
+      "Waiting": "long",
+      "ActivePublishers": "long",
+      "IsSaturated": "bool",
+      "IsExact": "bool",
+      "ErrorCode": "string?"
+    },
+    "LogFrontendBatchSnapshot": {
+      "TargetCount": "long",
+      "Consumed": "long",
+      "Evicted": "long",
+      "Abandoned": "long",
+      "Pending": "long",
+      "IsComplete": "bool",
+      "IsLossless": "bool"
+    },
+    "LogStartResult": {
+      "Succeeded": "bool",
+      "ErrorCode": "string?"
     }
   },
   "enums": {
@@ -385,7 +596,9 @@
     },
     "LogCompletion": {
       "Completed": 0,
-      "TimedOut": 1
+      "TimedOut": 1,
+      "Canceled": 2,
+      "Failed": 3
     },
     "LogOutputState": {
       "Running": 0,
@@ -403,6 +616,10 @@
       "Pending": 1,
       "Succeeded": 2,
       "Failed": 3
+    },
+    "LogFrontendCaptureStatus": {
+      "NoBatchCaptured": 0,
+      "Captured": 1
     }
   },
   "errorCodes": [
@@ -425,12 +642,23 @@
     "WriteFailed",
     "RenderFailed",
     "RenderTooLarge",
-    "FlushFailed"
+    "FlushFailed",
+    "FactoryFailed",
+    "FlushCanceled",
+    "InvalidFlushTimeout",
+    "StopCanceled",
+    "StopFailed",
+    "StopClockFailed",
+    "IncomingWorkerFailed",
+    "IncomingFlushFailed",
+    "StartupConfigurationInvalid",
+    "InvalidStartupInput",
+    "StartupFailed"
   ],
   "providerConstructor": {
     "runtime": "CoreLogRuntime"
   },
   "providerOwnsRuntime": false,
   "publicResultConstructors": false,
-  "counterType": "Nonnegative Int64; accepted sequence starts at 1, empty boundary is 0. Portable fixture counters are exact base-10 strings."
+  "counterType": "Nonnegative Int64 counts, with explicit frontend saturation/inexactness. Positive incoming correlation tickets may repeat at rollover and are not age/prefix boundaries. Output accepted sequences preserve their existing meaning; portable fixture counters are exact decimal strings."
 }

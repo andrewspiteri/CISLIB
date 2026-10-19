@@ -40,11 +40,12 @@ public sealed class DiagnosticsTests
     }
     [TestMethod]
     [DataRow("runtime", "State,AdmissionClosed,ObservedAtUtc,ShutdownStartedAtUtc,InvalidEventCount,TruncatedEventCount,Outputs,LastStopResult,Incoming")]
-    [DataRow("incoming", "Accepted,Processed,Failed,Abandoned,Pending,QueueFull,RejectedByWriters,Suppressed,DuplicateSuppressed,DuplicateKeyEvictions")]
+    [DataRow("incoming", "Accepted,Processed,Failed,Abandoned,Pending,QueueFull,RejectedByWriters,Suppressed,DuplicateSuppressed,DuplicateKeyEvictions,Admitted,Consumed,Evicted,Waiting,ActivePublishers,IsSaturated,IsExact,ErrorCode")]
+    [DataRow("batch", "TargetCount,Consumed,Evicted,Abandoned,Pending,IsComplete,IsLossless")]
     [DataRow("output", "OutputName,State,AcceptedSequence,Filtered,AdmissionAttempts,Accepted,QueueFull,Unavailable,Written,Failed,Abandoned,Pending,InFlight,Buffered,LastFaultCode,LastFaultAtUtc,RecoveredPartialSegment")]
     public void PublicDiagnosticContainersHaveOnlySealedGetterOnlyFacts(string typeName, string fields)
     {
-        Type type = typeName switch { "runtime" => typeof(CoreLogDiagnostics), "incoming" => typeof(LogIncomingSnapshot), _ => typeof(LogOutputDiagnostics) };
+        Type type = typeName switch { "runtime" => typeof(CoreLogDiagnostics), "incoming" => typeof(LogIncomingSnapshot), "batch" => typeof(LogFrontendBatchSnapshot), _ => typeof(LogOutputDiagnostics) };
         Assert.IsTrue(type.IsSealed); Assert.AreEqual(0, type.GetConstructors().Length); Assert.AreEqual(0, type.GetFields(BindingFlags.Instance | BindingFlags.Public).Length);
         PropertyInfo[] properties = type.GetProperties(BindingFlags.Instance | BindingFlags.Public | BindingFlags.DeclaredOnly);
         CollectionAssert.AreEquivalent(fields.Split(','), properties.Select(property => property.Name).ToArray());
@@ -104,7 +105,11 @@ public sealed class DiagnosticsTests
             logger.Write(CoreLogLevel.Information, Data()); await entered.Task.WaitAsync(Limit); logger.Write(CoreLogLevel.Information, Data());
             if (field == "global")
             {
-                foreach (string key in new[] { "invalidEventCount", "truncatedEventCount" }) { typeof(CoreLogRuntime).GetField(key, BindingFlags.Instance | BindingFlags.NonPublic)!.SetValue(runtime, long.MaxValue - 1); }
+                foreach (string key in new[] { "invalidEventCount", "truncatedEventCount" })
+                {
+                    object counter = typeof(CoreLogRuntime).GetField(key, BindingFlags.Instance | BindingFlags.NonPublic)!.GetValue(runtime)!;
+                    counter.GetType().GetField("value", BindingFlags.Instance | BindingFlags.NonPublic)!.SetValue(counter, long.MaxValue - 1);
+                }
                 for (int index = 0; index < 2; index++) { Assert.AreEqual(LogWriteOutcome.InvalidEvent, logger.Write(CoreLogLevel.Information, new LogEventData { EventName = "" }).Outcome); Assert.IsTrue(logger.Write(CoreLogLevel.Information, new LogEventData { EventName = "event", Message = new string('x', 30000) }).IsTruncated); }
                 CoreLogDiagnostics value = runtime.GetDiagnostics(); Assert.AreEqual(long.MaxValue, value.InvalidEventCount); Assert.AreEqual(long.MaxValue, value.TruncatedEventCount); Assert.AreEqual(2L, value.Outputs[0].AcceptedSequence);
             }

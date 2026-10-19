@@ -172,8 +172,9 @@ internal static class Program
             {
                 for (int i = 0; i < 16; i++) { Write("cancel." + i); }
                 using var cancellation = new CancellationTokenSource(); cancellation.Cancel();
-                try { await runtime.StopAsync(cancellation.Token); throw new InvalidOperationException("Cancelled waiter succeeded."); }
-                catch (OperationCanceledException error) when (error.CancellationToken == cancellation.Token) { }
+                LogStopResult detached = await runtime.StopAsync(cancellation.Token);
+                if (detached.Completion != LogCompletion.Canceled || detached.ErrorCode != "StopCanceled")
+                { throw new InvalidOperationException("Cancelled waiter did not return its explicit result."); }
             }
             else if (mode != "disabled") { throw new ArgumentException("Unknown candidate mode."); }
             if (mode == "disabled") { receipts.Add(logger.WriteLazy(CoreLogLevel.Information, () => { factories++; throw new InvalidOperationException("Disabled factory ran."); })); }

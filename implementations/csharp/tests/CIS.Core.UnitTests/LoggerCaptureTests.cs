@@ -30,7 +30,8 @@ public sealed class LoggerCaptureTests
         var output = new LoggerCaptureSources.Output(Enumerable.Repeat(LogOutputWriteStatus.Accepted, 16).ToArray(), 0);
         CoreLogRuntime runtime = Runtime(output);
         string field = truncated ? "truncatedEventCount" : "invalidEventCount";
-        typeof(CoreLogRuntime).GetField(field, BindingFlags.Instance | BindingFlags.NonPublic)!.SetValue(runtime, alreadyFull ? long.MaxValue : long.MaxValue - 1);
+        object counter = typeof(CoreLogRuntime).GetField(field, BindingFlags.Instance | BindingFlags.NonPublic)!.GetValue(runtime)!;
+        counter.GetType().GetField("value", BindingFlags.Instance | BindingFlags.NonPublic)!.SetValue(counter, alreadyFull ? long.MaxValue : long.MaxValue - 1);
         CoreLogger logger = runtime.CreateLogger("Counter");
         LogWriteResult[] results = await Task.WhenAll(Enumerable.Range(0, 16).Select(_ => Task.Run(() => logger.Write(CoreLogLevel.Information, LoggerCaptureSources.Data(truncated ? "long" : "name-empty"))))).WaitAsync(TimeSpan.FromSeconds(20));
         Assert.AreEqual(long.MaxValue, truncated ? runtime.TruncatedEventCount : runtime.InvalidEventCount);

@@ -11,10 +11,10 @@ internal static class ProviderHostStoryExpectations
     internal static void Validate(string mode, JsonObject a, int? expectedPid = null)
     {
         Header(mode, Modes, a, expectedPid);
-        bool concurrent = mode.StartsWith("async-", StringComparison.Ordinal), shutdown = mode is "shutdown" or "shutdown-loss", loss = mode == "shutdown-loss";
+        bool concurrent = mode.StartsWith("async-", StringComparison.Ordinal), shutdown = mode is "shutdown" or "shutdown-loss", loss = mode is "shutdown-loss" or "factory-formatter";
         int count = concurrent ? 9 : mode == "factory-precedence" ? 4 : mode == "factory-formatter" ? 1 : 3;
         int formats = concurrent ? 9 : mode is "factory-lifetime" or "shutdown" or "factory-formatter" ? 2 : 3;
-        Require(Same(a["formatterExceptionPreserved"], JsonValue.Create(mode == "factory-formatter")), "formatter exception identity");
+        Require(Same(a["formatterExceptionPreserved"], "false") && Same(a["formatterFailureContained"], JsonValue.Create(mode == "factory-formatter")), "formatter exception identity");
         Require(Integer(a["formatterCalls"], formats) && Integer(a["arrivals"], concurrent ? 2 : 0), "callbacks and cohort");
         Require(Same(a["sameStopTask"], "true") && Same(a["sameStopResult"], "true") &&
             Same(a["workFinishedAtStop"], JsonValue.Create(shutdown)) && Same(a["ownerAttention"], JsonValue.Create(loss)), "observed stop and attention");

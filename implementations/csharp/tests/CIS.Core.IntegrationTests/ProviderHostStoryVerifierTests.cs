@@ -45,7 +45,7 @@ public sealed class ProviderHostStoryVerifierTests
     {
         switch (control)
         {
-            case "formatter-identity": a["formatterExceptionPreserved"] = false; break;
+            case "formatter-identity": a["formatterExceptionPreserved"] = true; break;
             case "cohort": a["arrivals"] = 1; break;
             case "formatter": a["formatterCalls"] = 10; break;
             case "shared-task": a["sameStopTask"] = false; break;

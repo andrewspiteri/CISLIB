@@ -4,6 +4,20 @@ using CIS.Logging;
 
 internal static class Program
 {
+    // Compiles the new call shapes against the actual Core DLL. Native runtime cases qualify execution.
+    private static LogWriteResult Interpolation(CoreLogger logger)
+    {
+        int id = 42;
+        var values = new Dictionary<string, LogValue> { ["id"] = LogValue.Integer(id) };
+        _ = logger.Trace($"Order {id}");
+        _ = logger.Debug($"Order {id}", values);
+        _ = logger.Warn("order.retry", $"Order {id:D4}", values);
+        _ = logger.Error($"Order {id}");
+        _ = logger.Critical($"Order {id}");
+        _ = logger.Write(CoreLogLevel.Warning, $"Order {id}", context: new LogEventData { EventName = "order.retry" });
+        return logger.Info($"Order {id} accepted", values);
+    }
+
     private static int Main()
     {
         LogValue[] values = [LogValue.Null(), LogValue.Boolean(true), LogValue.String("text"),

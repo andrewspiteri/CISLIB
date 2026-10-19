@@ -20,6 +20,6 @@ public sealed class LogWriteResult
     public string? ErrorCode { get; }
     /// <summary>Whether caller-side capture omitted payload. Later encoding/rendering omissions are reported in diagnostics and flush/stop observations.</summary>
     public bool IsTruncated { get; }
-    /// <summary>The positive incoming acceptance ticket, or null if not admitted. Acceptance does not confirm writer admission or delivery.</summary>
+    /// <summary>A positive incoming correlation ticket, or null if not admitted. It may repeat at finite-range rollover and is not event age or a flush prefix. Acceptance does not confirm delivery.</summary>
     public long? IncomingSequence { get; }
 }

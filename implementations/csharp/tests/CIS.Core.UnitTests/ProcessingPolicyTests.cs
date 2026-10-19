@@ -153,10 +153,10 @@ public sealed class ProcessingPolicyTests
             enabled = logger!.IsEnabled(CoreLogLevel.Information);
             recursive = logger.InfoLazy(() => throw new AssertFailedException("Recursive factory executed"));
             Assert.IsNotNull(Task.Run(runtime!.GetDiagnostics).WaitAsync(Limit).GetAwaiter().GetResult(), "No admission lock may be held around callbacks.");
-            Assert.ThrowsExactly<InvalidOperationException>(() => runtime.FlushAsync(Limit, CancellationToken.None));
-            Assert.ThrowsExactly<InvalidOperationException>(() => runtime.StopAsync(CancellationToken.None));
-            Assert.ThrowsExactly<InvalidOperationException>(() => runtime.FlushAsync(TimeSpan.Zero, CancellationToken.None));
-            Assert.ThrowsExactly<InvalidOperationException>(() => runtime.DisposeAsync());
+            Assert.AreEqual("RecursiveProcessing", runtime.FlushAsync(Limit, CancellationToken.None).GetAwaiter().GetResult().ErrorCode);
+            Assert.AreEqual("RecursiveProcessing", runtime.StopAsync(CancellationToken.None).GetAwaiter().GetResult().ErrorCode);
+            Assert.AreEqual("RecursiveProcessing", runtime.FlushAsync(TimeSpan.Zero, CancellationToken.None).GetAwaiter().GetResult().ErrorCode);
+            Assert.IsTrue(runtime.DisposeAsync().IsCompletedSuccessfully, "The guarded legacy disposal adapter must neither throw nor start shutdown.");
             return new();
         }]
         }, [writer]);
@@ -169,7 +169,7 @@ public sealed class ProcessingPolicyTests
     }
 
     [TestMethod]
-    public async Task StopAbandonsBlockedInterceptionAndPreventsLateWriterAdmission()
+    public async Task StopKeepsBlockedInterceptionConsumedAndPreventsLateWrites()
     {
         var entered = Signal(); var release = Signal(); var writer = new Writer();
         var runtime = Create(new() { Interceptors = [_ => { entered.TrySetResult(); release.Task.WaitAsync(Limit).GetAwaiter().GetResult(); return new(); }] }, [writer], timeout: 100);
@@ -177,9 +177,10 @@ public sealed class ProcessingPolicyTests
         {
             runtime.CreateLogger("Deadline").Info("held"); await entered.Task.WaitAsync(Limit);
             var stopped = await runtime.StopAsync(CancellationToken.None).WaitAsync(Limit);
-            Assert.AreEqual(LogCompletion.TimedOut, stopped.Completion); Assert.AreEqual(1L, stopped.Incoming!.Abandoned);
+            Assert.AreEqual(LogCompletion.TimedOut, stopped.Completion); Assert.AreEqual(0L, stopped.Incoming!.Abandoned);
+            Assert.AreEqual(1L, stopped.Incoming.Consumed); Assert.AreEqual(1L, stopped.Incoming.Pending);
             Assert.IsFalse(runtime.Completion.IsCompleted); release.TrySetResult(); await runtime.Completion.WaitAsync(Limit);
-            Assert.HasCount(0, writer.Lines); Assert.AreEqual(1L, stopped.Incoming.Abandoned);
+            Assert.HasCount(0, writer.Lines); Assert.AreEqual(0L, stopped.Incoming.Abandoned);
         }
         finally { release.TrySetResult(); await runtime.DisposeAsync(); }
     }

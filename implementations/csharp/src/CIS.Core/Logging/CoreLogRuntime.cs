@@ -21,8 +21,8 @@ public sealed partial class CoreLogRuntime : IAsyncDisposable
     private readonly Output[] outputs;
     private bool admissionClosed;
     private DateTimeOffset? shutdownStartedAtUtc;
-    private long invalidEventCount;
-    private long truncatedEventCount;
+    private readonly AtomicLogCounter invalidEventCount = new();
+    private readonly AtomicLogCounter truncatedEventCount = new();
     // The direct internal admission seam remains available for existing focused qualification.
     internal CoreLogRuntime(EventMetadata metadata, LoggingOptions options, ILogOutputAdmission? console, ILogOutputAdmission? file, TimeProvider? timeProvider = null, object? sharedAdmissionGate = null, OutputQueues? queuedOutputs = null, IReadOnlyList<OutputWriterBinding>? writers = null, bool recoveredPartialSegment = false)
     {
@@ -126,16 +126,20 @@ public sealed partial class CoreLogRuntime : IAsyncDisposable
         }
     }
 
-    /// <summary>Starts or joins one shared bounded stop operation through its original accepted boundaries.</summary>
+    /// <summary>Closes frontend enrollment and joins one shared bounded drain operation.</summary>
     /// <param name = "cancellationToken">Cancels only this caller's wait; even an already-cancelled first caller starts shutdown.</param>
-    /// <returns>The same owned immutable observation retained for all joining callers.</returns>
-    /// <exception cref = "OperationCanceledException">The caller cancels its own wait.</exception>
+    /// <returns>The shared immutable observation, or an explicit canceled/failed frontend result for this caller.</returns>
     /// <remarks>The configured overall timeout is frozen at creation. UTC is an observation label; elapsed time is monotonic. At expiry, unstarted accepted records are abandoned. Cancellation of active writes/flushes is requested but is not guaranteed, and no new flush, retry or replacement writer starts. Completed means terminal dispositions, not successful delivery or resource release. A timed-out observation can retain pending I/O; its later completion does not change the cached result.</remarks>
-    /// <exception cref="InvalidOperationException">Called from a processing callback flow, including inherited child tasks, across runtimes.</exception>
     public Task<LogStopResult> StopAsync(CancellationToken cancellationToken)
     {
+        if (incoming is not null)
+        {
+            if (EventProcessing.IsCallbackActive) { return Task.FromResult(new LogStopResult(FrontendFailure("RecursiveProcessing"))); }
+            try { return StopIncomingAsync(cancellationToken); }
+            catch (Exception error) when (error is not (OutOfMemoryException or StackOverflowException))
+            { return Task.FromResult(new LogStopResult(FrontendFailure("StopFailed"))); }
+        }
         if (EventProcessing.IsCallbackActive) { throw new InvalidOperationException("Processing callbacks cannot stop a logging runtime."); }
-        if (incoming is not null) { return StopIncomingAsync(cancellationToken); }
         if (queuedOutputs is null)
         {
             throw new InvalidOperationException("Stop requires actual queued output composition.");
@@ -210,7 +214,6 @@ public sealed partial class CoreLogRuntime : IAsyncDisposable
     /// <summary>Starts or joins the original bounded stop operation without a new drain window.</summary>
     /// <returns>A wait on the same shared operation; unsuccessful draining remains visible in LastStopResult.</returns>
     /// <remarks>Outside processing callback flows, repeated disposal is harmless. At the original deadline this wait may complete while actual I/O and owned cleanup remain pending; no resource is disposed beneath active I/O. Inspect GetDiagnostics().LastStopResult for the immutable drain outcome.</remarks>
-    /// <exception cref="InvalidOperationException">Thrown synchronously from a processing callback flow, including inherited child tasks, across runtimes.</exception>
     public ValueTask DisposeAsync() => new(StopAsync(CancellationToken.None));
     private async Task RunStopAsync(RuntimeFlushBoundary boundary, long started, TaskCompletionSource<LogStopResult> completion)
     {
@@ -284,16 +287,23 @@ public sealed partial class CoreLogRuntime : IAsyncDisposable
         completion.TrySetResult(result);
     }
 
-    /// <summary>Waits through fixed accepted boundaries and confirms each enabled writer's buffer flush.</summary>
+    /// <summary>Captures a fresh frontend batch, then waits for its fixed writer boundaries and buffer flushes.</summary>
     /// <param name = "timeout">One positive finite overall wait budget; every positive TimeSpan is supported.</param>
-    /// <param name = "cancellationToken">Cancels only this caller's wait, preserving shared worker requests.</param>
+    /// <param name = "cancellationToken">Detaches this caller with an explicit canceled frontend result.</param>
     /// <returns>An owned immutable observation, including unresolved work at the deadline.</returns>
-    /// <exception cref = "ArgumentOutOfRangeException">The timeout is zero, negative or infinite.</exception>
-    /// <exception cref = "OperationCanceledException">The caller token is cancelled, including after boundary registration.</exception>
     /// <remarks>UTC labels are system observations; elapsed deadlines use the runtime TimeProvider. Flush does not stop admission or guarantee disk durability. After closure it cannot reopen a writer; a terminal writer returns an unavailable/failed flush even if the original stop flushed successfully. Inspect LastStopResult for that original shutdown outcome.</remarks>
-    /// <exception cref="InvalidOperationException">Called from a processing callback flow, including inherited child tasks across runtimes. This guard precedes timeout validation.</exception>
     public Task<LogFlushResult> FlushAsync(TimeSpan timeout, CancellationToken cancellationToken)
     {
+        if (incoming is not null)
+        {
+            if (EventProcessing.IsCallbackActive) { return Task.FromResult(FrontendFailure("RecursiveProcessing")); }
+            if (timeout.Ticks <= 0) { return Task.FromResult(FrontendFailure("InvalidFlushTimeout")); }
+            if (cancellationToken.IsCancellationRequested)
+            { return Task.FromResult(FrontendFailure("FlushCanceled", LogCompletion.Canceled)); }
+            try { return FlushIncomingAsync(timeout, timeProvider.GetTimestamp(), cancellationToken); }
+            catch (Exception error) when (error is not (OutOfMemoryException or StackOverflowException))
+            { return Task.FromResult(FrontendFailure("FlushFailed")); }
+        }
         if (EventProcessing.IsCallbackActive) { throw new InvalidOperationException("Processing callbacks cannot flush a logging runtime."); }
         if (timeout.Ticks <= 0)
         {
@@ -301,7 +311,6 @@ public sealed partial class CoreLogRuntime : IAsyncDisposable
         }
 
         long started = timeProvider.GetTimestamp();
-        if (incoming is not null) { return FlushIncomingAsync(timeout, started, cancellationToken); }
         RuntimeFlushBoundary boundary = RegisterFlushBoundary(started);
         return ObserveFlushAsync(boundary, started, timeout, cancellationToken);
     }
@@ -372,7 +381,7 @@ public sealed partial class CoreLogRuntime : IAsyncDisposable
         lock (admissionGate)
         {
             // Admission, disposition and loss-counter changes share this gate.
-            return new RuntimeAccounting(admissionClosed, InvalidEventCount, TruncatedEventCount, queuedOutputs.Console?.CaptureAccounting(), queuedOutputs.File?.CaptureAccounting());
+            return new RuntimeAccounting(IsAdmissionClosed, InvalidEventCount, TruncatedEventCount, queuedOutputs.Console?.CaptureAccounting(), queuedOutputs.File?.CaptureAccounting());
         }
     }
 
@@ -383,8 +392,16 @@ public sealed partial class CoreLogRuntime : IAsyncDisposable
         lock (admissionGate)
         {
             RuntimeAccounting counts = CaptureAccounting();
-            var values = queuedOutputs!.Entries.Select(entry => new LogOutputDiagnostics(entry.Name, entry.Queue.CaptureAccounting(),
-                entry.Name == "file" && recoveredPartialSegment)).ToArray();
+            var values = new LogOutputDiagnostics[queuedOutputs!.Entries.Count];
+            for (int index = 0; index < values.Length; index++)
+            {
+                var entry = queuedOutputs.Entries[index];
+                OutputAccounting outputCounts = entry.Queue.CaptureAccounting();
+                // Both arrays follow the same immutable startup writer-binding order.
+                Output? frontend = incoming is null ? null : outputs[index];
+                values[index] = new LogOutputDiagnostics(entry.Name, outputCounts, entry.Name == "file" && recoveredPartialSegment,
+                    frontend?.CallerFiltered ?? 0, frontend?.CallerUnavailable ?? 0);
+            }
 
             CoreLogState state = !counts.AdmissionClosed ? CoreLogState.Running : values.All(value => value.State == LogOutputState.Stopped) ? CoreLogState.Stopped : CoreLogState.Stopping;
             if (incoming is not null && counts.AdmissionClosed && !incoming.Completion.IsCompleted) { state = CoreLogState.Stopping; }
@@ -394,8 +411,8 @@ public sealed partial class CoreLogRuntime : IAsyncDisposable
     }
 
     internal OperationScopeStore Scopes { get; } = new();
-    internal long InvalidEventCount => Interlocked.Read(ref invalidEventCount);
-    internal long TruncatedEventCount => Interlocked.Read(ref truncatedEventCount);
+    internal long InvalidEventCount => invalidEventCount.Value;
+    internal long TruncatedEventCount => truncatedEventCount.Value;
 
     /// <summary>Creates a logger borrowing this runtime, including after admission closes.</summary>
     /// <exception cref = "ArgumentNullException">Component is null.</exception>
@@ -433,10 +450,7 @@ public sealed partial class CoreLogRuntime : IAsyncDisposable
     {
         get
         {
-            lock (admissionGate)
-            {
-                return admissionClosed;
-            }
+            return Volatile.Read(ref admissionClosed) || incoming?.IsClosed == true;
         }
     }
 
@@ -444,6 +458,11 @@ public sealed partial class CoreLogRuntime : IAsyncDisposable
     {
         ValidateLevel(level);
         if (EventProcessing.IsCallbackActive) { return false; }
+        if (incoming is not null)
+        {
+            return !IsAdmissionClosed && !incoming.IsClosed &&
+                outputs.Any(output => Interested(output, level) && !output.Admission.IsFaulted);
+        }
         lock (admissionGate)
         {
             return !admissionClosed && outputs.Any(output => Interested(output, level) && !output.Admission.IsFaulted);
@@ -454,6 +473,7 @@ public sealed partial class CoreLogRuntime : IAsyncDisposable
     {
         ValidateLevel(level);
         if (EventProcessing.IsCallbackActive) { return Invalid("RecursiveProcessing"); }
+        if (incoming is not null) { return WriteIncoming(component, level, data, factory); }
         Output[] preparing;
         lock (admissionGate)
         {
@@ -486,6 +506,7 @@ public sealed partial class CoreLogRuntime : IAsyncDisposable
         {
             return Invalid("InvalidFactoryResult");
         }
+        if (data.Interpolation?.ErrorCode is { } interpolationError) { return Invalid(interpolationError); }
 
         string? eventName = data.EventName;
         string? message = data.Message;
@@ -501,17 +522,11 @@ public sealed partial class CoreLogRuntime : IAsyncDisposable
             return Invalid(CaptureError(eventName, message, template, operationId));
         }
 
-        if (incoming is not null)
+        try
         {
-            lock (admissionGate)
-            {
-                if (facts.IsTruncated) { IncrementLossCounter(ref truncatedEventCount); }
-                if (admissionClosed) { return Stopped(facts.IsTruncated); }
-                long? sequence = incoming.TryAdmit(level, facts);
-                return new LogWriteResult(sequence is null ? LogWriteOutcome.Rejected : LogWriteOutcome.Accepted, [],
-                    sequence is null ? "IncomingQueueFull" : null, facts.IsTruncated, sequence);
-            }
+            facts = facts.Interpolation?.Render(facts) ?? facts;
         }
+        catch (FormatException) when (data.Interpolation is not null) { return Invalid("InterpolationFormatFailed"); }
         try { return PrepareCapturedEvent(facts, level, preparing, fromIncoming: false)(); }
         catch (EventEnvelopeTooLargeException) { return Invalid("EnvelopeTooLarge"); }
     }
@@ -542,8 +557,8 @@ public sealed partial class CoreLogRuntime : IAsyncDisposable
             {
                 if (isTruncated && (!fromIncoming || !originalWasTruncated))
                 {
-                    IncrementLossCounter(ref truncatedEventCount);
-                    if (fromIncoming) { IncrementLossCounter(ref workerTruncated); }
+                    truncatedEventCount.Increment();
+                    if (fromIncoming) { workerTruncated.Increment(); }
                 }
 
                 if (admissionClosed && !fromIncoming)
@@ -573,28 +588,9 @@ public sealed partial class CoreLogRuntime : IAsyncDisposable
 
     private LogWriteResult Invalid(string code)
     {
-        lock (admissionGate)
-        {
-            IncrementLossCounter(ref invalidEventCount);
-            if (processing?.IsOwnCallbackActive == true) { IncrementLossCounter(ref workerInvalid); }
-        }
+        invalidEventCount.Increment();
+        if (processing?.IsOwnCallbackActive == true) { workerInvalid.Increment(); }
         return new LogWriteResult(LogWriteOutcome.InvalidEvent, [], code);
-    }
-
-    // Loss counters retain a nonnegative lower bound once Int64 can no longer represent the total.
-    private static void IncrementLossCounter(ref long counter)
-    {
-        long current = Interlocked.Read(ref counter);
-        while (current != long.MaxValue)
-        {
-            long observed = Interlocked.CompareExchange(ref counter, current + 1, current);
-            if (observed == current)
-            {
-                return;
-            }
-
-            current = observed;
-        }
     }
 
     private LogWriteResult Stopped(bool isTruncated) => new(LogWriteOutcome.Stopped, outputs.Select(output => new LogOutputWriteResult(output.Name, LogOutputWriteStatus.Stopped, null)), isTruncated: isTruncated);
@@ -607,13 +603,13 @@ public sealed partial class CoreLogRuntime : IAsyncDisposable
             if (Interested(output, level))
             {
                 output.Admission.RecordUnavailable();
-                if (output.CallerUnavailable != long.MaxValue) { output.CallerUnavailable++; }
+                output.CallerUnavailableCounter.Increment();
                 status = LogOutputWriteStatus.Faulted;
             }
             else
             {
                 output.Admission.RecordFiltered();
-                if (output.CallerFiltered != long.MaxValue) { output.CallerFiltered++; }
+                output.CallerFilteredCounter.Increment();
                 status = LogOutputWriteStatus.Filtered;
             }
 
@@ -745,7 +741,9 @@ public sealed partial class CoreLogRuntime : IAsyncDisposable
 
     private sealed record Output(string Name, CoreLogLevel Threshold, ILogOutputAdmission Admission, Func<EncodedEvent, RenderedEvent>? Prepare = null)
     {
-        internal long CallerFiltered { get; set; }
-        internal long CallerUnavailable { get; set; }
+        internal AtomicLogCounter CallerFilteredCounter { get; } = new();
+        internal AtomicLogCounter CallerUnavailableCounter { get; } = new();
+        internal long CallerFiltered => CallerFilteredCounter.Value;
+        internal long CallerUnavailable => CallerUnavailableCounter.Value;
     }
 }

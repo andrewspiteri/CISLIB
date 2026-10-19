@@ -8,7 +8,8 @@ namespace CIS.Logging.MicrosoftLogger;
 /// Supplied rendered messages and exceptions enter core capture. Null or empty EventId.Name becomes
 /// log.message; EventId.Id supplies the integer attribute event_id, including zero and negative values.
 /// Structured state preserves {OriginalFormat} without parsing. Core checks interest before invoking
-/// formatter or copying state; full queues remain interested. Formatter exceptions propagate unchanged;
+/// formatter or copying state; full queues remain interested. Public frontend runtimes contain recoverable
+/// formatter failures as one invalid event, without capturing state or admitting an occurrence;
 /// invalid retained payload increments core diagnostics without output admission. Oversized valid payload
 /// is truncated. Disposed, stopped, filtered and all-faulted calls skip both callbacks after argument guards.
 /// Healthy outputs admit independently. Provider-created scopes are copied at BeginScope; borrowed host

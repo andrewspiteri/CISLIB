@@ -40,6 +40,28 @@ internal static class ArchitectureOwnershipPolicy
     {
         Require(Text(facts, "name") == "CIS.Core", "ARCH-OWNERSHIP-ASSEMBLY", Text(facts, "name"));
         Dictionary<string, JsonObject> types = Objects(facts["types"]).ToDictionary(item => Text(item, "name"), StringComparer.Ordinal);
+        if (types.ContainsKey("CIS.Logging.Events.CapturedInterpolation"))
+        {
+            // This closed record is reachable only through the frame's privately copied array.
+            // Its Object slot contains whitelisted boxed scalars or copied text, qualified by
+            // native formatter/mutation/collection tests; it is not a general Object allowance.
+            Require(types.TryGetValue("CIS.Logging.Events.InterpolationPart", out JsonObject? part), "ARCH-INTERPOLATION-PART", "missing interpolation part");
+            var expected = new Dictionary<string, string>(StringComparer.Ordinal)
+            {
+                ["<Literal>k__BackingField"] = "Boolean",
+                ["<Value>k__BackingField"] = "Object",
+                ["<Alignment>k__BackingField"] = "Int32",
+                ["<Format>k__BackingField"] = "String",
+                ["<Omitted>k__BackingField"] = "Boolean"
+            };
+            JsonObject[] fields = Objects(part!["members"]).Where(member => Text(member, "kind") == "field").ToArray();
+            Require(fields.Length == expected.Count, "ARCH-INTERPOLATION-FIELD", "interpolation part field count");
+            foreach (var field in fields)
+            {
+                Require(expected.TryGetValue(Text(field, "name"), out string? signature) && signature == Text(field, "signature"), "ARCH-INTERPOLATION-FIELD", Text(field, "name"));
+                Require(Has(field, "Private") && Has(field, "InitOnly") && !Has(field, "Static"), "ARCH-INTERPOLATION-MUTABLE", Text(field, "name"));
+            }
+        }
         var values = RequiredValues.ToHashSet(StringComparer.Ordinal);
         // New public observation/result shapes and captured payloads cannot silently escape the guard.
         foreach (JsonObject type in types.Values)
@@ -62,7 +84,8 @@ internal static class ArchitectureOwnershipPolicy
                     Require(Has(member, "Literal") || Has(member, "InitOnly"), "ARCH-OWNERSHIP-MUTABLE", context);
                     // The encoder allocates this private buffer; no caller buffer is passed at a public seam.
                     bool encodedBuffer = name == "CIS.Logging.Events.EncodedEvent" && Text(member, "name") == "jsonLine" && signature == "Byte[]" && Has(member, "Private") && !Has(member, "Static");
-                    Require(encodedBuffer || Owned(signature, name == "CIS.Logging.Runtime.AdmittedEvent"), "ARCH-OWNERSHIP-FIELD", context + " " + signature);
+                    bool interpolationBuffer = name == "CIS.Logging.Events.CapturedInterpolation" && Text(member, "name") == "parts" && signature == "[CIS.Core]CIS.Logging.Events.InterpolationPart[]" && Has(member, "Private") && !Has(member, "Static");
+                    Require(encodedBuffer || interpolationBuffer || Owned(signature, name == "CIS.Logging.Runtime.AdmittedEvent"), "ARCH-OWNERSHIP-FIELD", context + " " + signature);
                     Require(!member["publicApi"]!.GetValue<bool>() || Owned(signature, name == "CIS.Logging.Runtime.AdmittedEvent"), "ARCH-OWNERSHIP-EXPOSURE", context);
                 }
                 if (Text(member, "kind") == "method" && Text(member, "name").StartsWith("set_", StringComparison.Ordinal))

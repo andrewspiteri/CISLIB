@@ -78,15 +78,17 @@ internal static class ProviderFoundationFixture
                     var expected = new InvalidOperationException("private formatter failure");
                     try { logger.Log(LogLevel.Information, new EventId(1, "never"), "input", null, (_, _) => { calls++; throw expected; }); }
                     catch (InvalidOperationException actual) { errorPreserved = ReferenceEquals(actual, expected); }
-                    Require(errorPreserved); break;
+                    Require(errorPreserved == !physical); break;
             }
-            LogStopResult stop = await runtime.StopAsync(CancellationToken.None).WaitAsync(Guard); Require(stop.Succeeded && !stop.LossObserved);
-            await runtime.QueuedOutputs!.Completion.WaitAsync(Guard); Require(runtime.GetDiagnostics().InvalidEventCount == 0);
+            bool contained = physical && mode == "formatter-error";
+            LogStopResult stop = await runtime.StopAsync(CancellationToken.None).WaitAsync(Guard); Require(stop.Succeeded && stop.LossObserved == contained);
+            await runtime.QueuedOutputs!.Completion.WaitAsync(Guard); Require(runtime.GetDiagnostics().InvalidEventCount == (contained ? 1 : 0));
             byte[] written = physical ? ReadLive(path!) : bytes.ToArray();
             if (physical) { using var lease = new FileStream(path + ".cis.lock", FileMode.Open, FileAccess.ReadWrite, FileShare.None); }
             JsonObject report = Common(mode); report["physical"] = physical; report["bytes"] = Convert.ToBase64String(written); report["formatterCalls"] = calls;
             report["invalid"] = Number(runtime.GetDiagnostics().InvalidEventCount); report["result"] = StopJoinFixture.Json(stop);
             report["sharedRuntimeLiveAfterProviderDispose"] = ownsRuntime; report["formatterErrorPreserved"] = errorPreserved; report["scopeCopied"] = scopeCopied;
+            report["formatterFailureContained"] = contained;
             report["formatterExceptionReceived"] = exceptionReceived; report["borrowedConsoleOpen"] = bytes.CanWrite; report["leaseReleased"] = physical; return report;
         }
         finally { await runtime.DisposeAsync().AsTask().WaitAsync(Guard); }

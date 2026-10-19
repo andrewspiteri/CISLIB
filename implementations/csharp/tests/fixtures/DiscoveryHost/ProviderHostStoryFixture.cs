@@ -93,7 +93,7 @@ internal static class ProviderHostStoryFixture
             var original = new InvalidOperationException("Controlled original formatter failure.");
             try { typed.Log(LogLevel.Information, new EventId(17, "never"), "state", null, (_, _) => { formatters++; throw original; }); }
             catch (AggregateException error) { formatterExceptionPreserved = error.InnerExceptions.Count == 1 && ReferenceEquals(error.InnerExceptions[0], original); }
-            Require(formatterExceptionPreserved && runtime.GetDiagnostics().InvalidEventCount == 0);
+            Require(!formatterExceptionPreserved && runtime.GetDiagnostics().InvalidEventCount == 1);
             Log(typed, "after.formatter");
         }
         if (mode is "shutdown" or "shutdown-loss")
@@ -132,6 +132,7 @@ internal static class ProviderHostStoryFixture
         using (var lease = new FileStream(path + ".cis.lock", FileMode.Open, FileAccess.ReadWrite, FileShare.None)) { leaseReleased = true; }
         JsonObject report = Common(mode);
         report["formatterExceptionPreserved"] = formatterExceptionPreserved;
+        report["formatterFailureContained"] = mode == "factory-formatter" && !formatterExceptionPreserved;
         report["formatterCalls"] = formatters; report["arrivals"] = arrivals; report["sharedLiveAfterFactoryDispose"] = sharedLive;
         report["disposedGuards"] = disposedGuards; report["workFinishedAtStop"] = workFinishedAtStop; report["sameStopTask"] = sameStopTask;
         report["sameStopResult"] = sameStopResult; report["ownerAttention"] = ownerAttention; report["phases"] = new JsonArray(phases.Select(x => (JsonNode)JsonValue.Create(x)!).ToArray());

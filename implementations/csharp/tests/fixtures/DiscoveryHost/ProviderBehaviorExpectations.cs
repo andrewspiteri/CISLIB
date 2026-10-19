@@ -50,10 +50,11 @@ internal static class ProviderBehaviorExpectations
         Require(Integer(report["formatterCalls"], calls), "formatter calls");
         Require(Integer(report["stateCalls"], states), "state traversal");
         Require(report["enabledBefore"]!.GetValue<bool>() == (mode is not ("filtered" or "no-outputs")) && report["enabledAtProbe"]!.GetValue<bool>() == (mode is not ("filtered" or "no-outputs" or "stopped" or "disposed" or "all-faulted")), "interest gates");
-        int invalid = mode == "rejection" ? 19 : mode == "capture-failure" ? 1 : 0;
+        int invalid = mode == "rejection" ? 19 : mode == "capture-failure" || physical && mode == "formatter-failure" ? 1 : 0;
         Require(report["invalid"]!.GetValue<string>() == Number(invalid) && Integer(report["rejected"], invalid), "invalid accounting");
         Require(report["truncated"]!.GetValue<string>() == (mode == "template-tail" ? "2" : "0"), "truncation accounting");
-        Require(report["exceptionIdentity"]!.GetValue<bool>() == (mode == "formatter-failure"), "formatter exception identity");
+        Require(report["exceptionIdentity"]!.GetValue<bool>() == (mode == "formatter-failure" && !physical) &&
+            report["formatterFailureContained"]!.GetValue<bool>() == (mode == "formatter-failure" && physical), "formatter exception identity");
         string[] names = mode == "no-outputs" ? [] : mode == "partial-fault" ? ["console", "file"] : [physical ? "file" : "console"];
         JsonArray outputs = report["outputs"]!.AsArray();
         Require(Names(outputs).SequenceEqual(names), "output selection");
@@ -69,7 +70,7 @@ internal static class ProviderBehaviorExpectations
         }
         JsonObject result = report["result"]!.AsObject();
         Require(result.Select(pair => pair.Key).ToHashSet(StringComparer.Ordinal).SetEquals(["completion", "succeeded", "loss", "captured", "observed", "outputs"]), "result shape");
-        Require(result["completion"]!.GetValue<string>() == "Completed" && result["succeeded"]!.GetValue<bool>() == (mode is not ("all-faulted" or "partial-fault")) && result["loss"]!.GetValue<bool>() == (mode is "all-faulted" or "partial-fault" or "full" or "template-tail" or "rejection" or "capture-failure"), "stop summary");
+        Require(result["completion"]!.GetValue<string>() == "Completed" && result["succeeded"]!.GetValue<bool>() == (mode is not ("all-faulted" or "partial-fault")) && result["loss"]!.GetValue<bool>() == ((mode is "all-faulted" or "partial-fault" or "full" or "template-tail" or "rejection" or "capture-failure") || physical && mode == "formatter-failure"), "stop summary");
         JsonArray stopped = result["outputs"]!.AsArray();
         Require(Names(stopped).SequenceEqual(names), "stop outputs");
         for (int index = 0; index < outputs.Count; index++)

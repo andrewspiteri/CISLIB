@@ -28,7 +28,7 @@ public sealed partial class CoreLogger
     }
 
     /// <summary>Invokes the factory at most once after early interest checks.</summary>
-    /// <remarks>A caller factory exception propagates unchanged. Null factory results are InvalidEvent.</remarks>
+    /// <remarks>Public frontend runtimes contain recoverable factory exceptions as FactoryFailed results. Null results are InvalidEvent. The callback stays on the caller.</remarks>
     /// <exception cref="ArgumentNullException">The factory is null.</exception>
     /// <exception cref="ArgumentOutOfRangeException">The level is undefined.</exception>
     public LogWriteResult WriteLazy(CoreLogLevel level, Func<LogEventData> factory)

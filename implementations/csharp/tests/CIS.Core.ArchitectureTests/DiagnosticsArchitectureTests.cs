@@ -41,10 +41,14 @@ public sealed class DiagnosticsArchitectureTests
         string name = target.DeclaringType?.FullName ?? "";
         return name switch
         {
-            "CIS.Logging.CoreLogRuntime" => target.Name is "GetDiagnostics" or "CaptureAccounting" or "get_InvalidEventCount" or "get_TruncatedEventCount" || target.Name.StartsWith("<GetDiagnostics>b__", StringComparison.Ordinal),
+            "CIS.Logging.CoreLogRuntime" => target.Name is "GetDiagnostics" or "CaptureAccounting" or "get_IsAdmissionClosed" or "get_InvalidEventCount" or "get_TruncatedEventCount" or "AddLoss" || target.Name.StartsWith("<GetDiagnostics>b__", StringComparison.Ordinal),
             "CIS.Logging.Runtime.OutputQueues" => target.Name is "get_Console" or "get_File" or "get_Entries",
             "CIS.Logging.Runtime.OutputQueues+<>c" => target.Name.StartsWith("<get_Console>b__", StringComparison.Ordinal) || target.Name.StartsWith("<get_File>b__", StringComparison.Ordinal),
-            "CIS.Logging.Runtime.IncomingEventQueue" => target.Name is "Capture" or "get_Completion",
+            "CIS.Logging.Runtime.IncomingEventQueue" => target.Name is "Capture" or "get_Completion" or "get_IsClosed",
+            "CIS.Logging.Runtime.IncomingRingBuffer" => target.Name is "Capture" or "get_ActivePublishers" or "get_IsClosed",
+            "CIS.Logging.Runtime.AtomicLogCounter" => target.Name is "get_Value" or "get_IsSaturated",
+            "CIS.Logging.Runtime.IncomingRingSnapshot" => target.IsConstructor || target.Name.StartsWith("get_", StringComparison.Ordinal),
+            "CIS.Logging.CoreLogRuntime+Output" => target.Name is "get_CallerFiltered" or "get_CallerUnavailable" or "get_CallerFilteredCounter" or "get_CallerUnavailableCounter" or "get_Name",
             "CIS.Logging.Runtime.IncomingFlushBoundary" => target.Name is "get_Observation" or "get_Target" or "get_QueueFull",
             "CIS.Logging.Runtime.IncomingAccounting" or "CIS.Logging.LogIncomingSnapshot" => target.IsConstructor || target.Name.StartsWith("get_", StringComparison.Ordinal),
             "CIS.Logging.Runtime.OutputEventQueue" => target.Name == "CaptureAccounting",

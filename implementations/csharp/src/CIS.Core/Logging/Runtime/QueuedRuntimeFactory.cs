@@ -91,6 +91,7 @@ internal static class QueuedRuntimeFactory
     {
         ArgumentNullException.ThrowIfNull(options);
         CoreLogRuntime.ValidateShutdownTimeout(options.ShutdownTimeoutMilliseconds);
+        options.ValidateIncomingSettings();
         return new LoggingOptions
         {
             ConsoleLevel = options.EffectiveConsoleLevel,
@@ -98,6 +99,14 @@ internal static class QueuedRuntimeFactory
             FilePath = options.FilePath,
             MaxEntryBytes = options.MaxEntryBytes,
             QueueCapacity = options.QueueCapacity,
+            IncomingScanPercentage = options.IncomingScanPercentage,
+            IncomingTraceScanPercentage = options.IncomingTraceScanPercentage,
+            IncomingDebugScanPercentage = options.IncomingDebugScanPercentage,
+            IncomingInformationScanPercentage = options.IncomingInformationScanPercentage,
+            IncomingWarningScanPercentage = options.IncomingWarningScanPercentage,
+            IncomingErrorScanPercentage = options.IncomingErrorScanPercentage,
+            IncomingCriticalScanPercentage = options.IncomingCriticalScanPercentage,
+            IncomingPollIntervalMilliseconds = options.IncomingPollIntervalMilliseconds,
             ConsoleFormat = options.ConsoleFormat,
             ConsoleStream = options.ConsoleStream,
             HumanDetail = options.HumanDetail,
@@ -151,7 +160,7 @@ internal static class QueuedRuntimeFactory
 
             if (incomingPipeline)
             {
-                try { runtime.StartIncoming(selected.QueueCapacity, launchWorker, processing); }
+                try { runtime.StartIncoming(selected.QueueCapacity, launchWorker, processing, selected); }
                 catch { throw new CoreLogInitializationException("incoming", "WorkerInitializationFailed"); }
             }
             Volatile.Write(ref ownershipTransferred, true);

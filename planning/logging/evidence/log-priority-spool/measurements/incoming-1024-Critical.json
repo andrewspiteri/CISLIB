@@ -1,0 +1,101 @@
+{
+  "schema": "cis.logging-frontend-measurements/v1",
+  "runtime": ".NET 10.0.12",
+  "os": "Microsoft Windows 10.0.26200",
+  "architecture": "X64",
+  "capacity": 1024,
+  "level": "Critical",
+  "scanProfile": "20/30/40/50/60/70; fallback 30",
+  "idlePollMilliseconds": 1,
+  "measurements": [
+    {
+      "path": "owned-ring-publication",
+      "mode": "quiet",
+      "producers": 1,
+      "iterationsPerProducer": 4000,
+      "effectiveK": 717,
+      "maximumObservedProbes": 1,
+      "publicationExchanges": 4000,
+      "sourceDerivedLogicalProducerRmw": 24000,
+      "admitted": 4000,
+      "evicted": 0,
+      "consumed": 4000,
+      "observedConsumerDrainPerSecond": 4972650.4226752855,
+      "elapsedMilliseconds": 0.8044,
+      "processCpuMilliseconds": 0,
+      "producerAllocatedBytes": 160000,
+      "latency": {
+        "units": "microseconds",
+        "p50": 0.1,
+        "p95": 0.2,
+        "p99": 0.2,
+        "maximum": 1.1
+      }
+    },
+    {
+      "path": "owned-ring-publication",
+      "mode": "full",
+      "producers": 1,
+      "iterationsPerProducer": 4000,
+      "effectiveK": 717,
+      "maximumObservedProbes": 717,
+      "publicationExchanges": 4000,
+      "sourceDerivedLogicalProducerRmw": 28000,
+      "admitted": 4000,
+      "evicted": 4000,
+      "consumed": 0,
+      "observedConsumerDrainPerSecond": 0,
+      "elapsedMilliseconds": 53.8453,
+      "processCpuMilliseconds": 62.5,
+      "producerAllocatedBytes": 160000,
+      "latency": {
+        "units": "microseconds",
+        "p50": 13.3,
+        "p95": 14.3,
+        "p99": 16.4,
+        "maximum": 28.9
+      }
+    },
+    {
+      "path": "owned-ring-publication",
+      "mode": "contended",
+      "producers": 4,
+      "iterationsPerProducer": 4000,
+      "effectiveK": 717,
+      "maximumObservedProbes": 717,
+      "publicationExchanges": 16000,
+      "sourceDerivedLogicalProducerRmw": 99157,
+      "admitted": 16000,
+      "evicted": 3157,
+      "consumed": 13867,
+      "observedConsumerDrainPerSecond": 493645.65163219534,
+      "elapsedMilliseconds": 28.091,
+      "processCpuMilliseconds": 62.5,
+      "producerAllocatedBytes": 640000,
+      "latency": {
+        "units": "microseconds",
+        "p50": 0.4,
+        "p95": 18.6,
+        "p99": 19.3,
+        "maximum": 135
+      }
+    },
+    {
+      "path": "complete-caller-including-capture",
+      "mode": "full-consumer-paused",
+      "producers": 1,
+      "iterations": 1000,
+      "elapsedMilliseconds": 17.2873,
+      "processCpuMilliseconds": 15.625,
+      "callerAllocatedBytes": 1176000,
+      "latency": {
+        "units": "microseconds",
+        "p50": 15.2,
+        "p95": 19.7,
+        "p99": 29.5,
+        "maximum": 1309.3
+      }
+    }
+  ],
+  "limits": "One Windows/native process observation, not a statistical or release gate. Ring latency excludes payload capture; thread allocation includes occurrence construction. Quiet driver claims after each call; full driver pauses consumption; contended driver uses four producers and one polling consumer of the real ring. Process CPU includes driver/consumer/CLR work. Logical producer RMW counts are derived from actual admissions/evictions and audited source sites (6 per admission plus 1 per eviction), not hardware instruction counters. The separate complete-caller row includes owned capture with the actual runtime consumer paused. Sampling buffers belong to the harness, not production storage. No user callback is supplied."
+}

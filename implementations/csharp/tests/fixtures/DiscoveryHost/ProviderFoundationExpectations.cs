@@ -15,14 +15,16 @@ internal static class ProviderFoundationExpectations
         Require(a["runtime"]!.GetValue<string>() == ".NET 10.0.12", "actual runtime");
         Require(a["pid"] is JsonValue pidValue && pidValue.TryGetValue<int>(out int pid) && pid > 0 && Integer(pidValue, pid) && (expectedPid is null || pid == expectedPid), "actual child PID");
         Require(a["physical"]!.GetValue<bool>() == physical && a["borrowedConsoleOpen"]!.GetValue<bool>() && a["leaseReleased"]!.GetValue<bool>() == physical, "physical lifetime");
-        Require(a["invalid"]!.GetValue<string>() == "0", "core invalid count");
-        Require(a["sharedRuntimeLiveAfterProviderDispose"]!.GetValue<bool>() == (mode == "nonowning") && a["formatterErrorPreserved"]!.GetValue<bool>() == (mode == "formatter-error") && a["scopeCopied"]!.GetValue<bool>() == (mode == "typed-scope"), "provider ownership/error/scope facts");
+        bool contained = physical && mode == "formatter-error";
+        Require(a["invalid"]!.GetValue<string>() == (contained ? "1" : "0"), "core invalid count");
+        Require(a["sharedRuntimeLiveAfterProviderDispose"]!.GetValue<bool>() == (mode == "nonowning") && a["formatterErrorPreserved"]!.GetValue<bool>() == (mode == "formatter-error" && !physical) && a["scopeCopied"]!.GetValue<bool>() == (mode == "typed-scope") &&
+            a["formatterFailureContained"]!.GetValue<bool>() == contained, "provider ownership/error/scope facts");
         Require(a["formatterExceptionReceived"]!.GetValue<bool>() == (mode == "forward"), "formatter exception identity");
         int count = mode is "filtered" or "stopped" or "formatter-error" ? 0 : mode is "categories" or "nonowning" ? 2 : 1;
         Require(Integer(a["formatterCalls"], mode is "forward" or "nonowning" or "typed-scope" or "formatter-error" ? 1 : mode == "categories" ? 2 : 0), "deferred formatter calls");
         JsonObject result = a["result"]!.AsObject();
         Require(result.Select(pair => pair.Key).ToHashSet(StringComparer.Ordinal).SetEquals(["completion", "succeeded", "loss", "captured", "observed", "outputs"]), "result shape");
-        Require(result["completion"]!.GetValue<string>() == "Completed" && result["succeeded"]!.GetValue<bool>() && !result["loss"]!.GetValue<bool>(), "stop summary");
+        Require(result["completion"]!.GetValue<string>() == "Completed" && result["succeeded"]!.GetValue<bool>() && result["loss"]!.GetValue<bool>() == contained, "stop summary");
         JsonArray outputs = result["outputs"]!.AsArray(); Require(outputs.Count == 1 && outputs[0]!["name"]!.GetValue<string>() == (physical ? "file" : "console"), "output selection"); JsonNode output = outputs[0]!;
         Require(output["boundary"]!.GetValue<string>() == count.ToString(CultureInfo.InvariantCulture) && output["written"]!.GetValue<string>() == count.ToString(CultureInfo.InvariantCulture) && output["failed"]!.GetValue<string>() == "0" && output["abandoned"]!.GetValue<string>() == "0" && output["pending"]!.GetValue<string>() == "0" && output["flush"]!.GetValue<string>() == "Succeeded", "core delivery");
         byte[] bytes = Convert.FromBase64String(a["bytes"]!.GetValue<string>());

@@ -96,7 +96,9 @@ internal static class ProviderBehaviorFixture
                     var expected = new InvalidOperationException("Original formatter failure.");
                     try { logger.Log(LogLevel.Information, new EventId(17), state, null, (_, _) => { formatterCalls++; throw expected; }); }
                     catch (InvalidOperationException error) { exceptionIdentity = ReferenceEquals(error, expected); }
-                    Require(exceptionIdentity && runtime.GetDiagnostics().InvalidEventCount == 0 && state.Calls == 0); Log(state, "after-formatter"); break;
+                    Require(exceptionIdentity == !physical && runtime.GetDiagnostics().InvalidEventCount == (physical ? 1 : 0) && state.Calls == 0);
+                    if (physical) { rejected++; }
+                    Log(state, "after-formatter"); break;
             }
             release.TrySetResult(); LogStopResult stop = await runtime.StopAsync(CancellationToken.None).WaitAsync(Guard);
             await Join(runtime.QueuedOutputs!.Completion, fault); bool leaseReleased = false;
@@ -105,6 +107,7 @@ internal static class ProviderBehaviorFixture
             JsonObject report = Common(mode); report["physical"] = physical; report["leaseReleased"] = leaseReleased;
             report["bytes"] = Convert.ToBase64String(bytes); report["fileBytes"] = Convert.ToBase64String(file.ToArray()); report["formatterCalls"] = formatterCalls;
             report["stateCalls"] = state.Calls; report["rejected"] = rejected; report["exceptionIdentity"] = exceptionIdentity;
+            report["formatterFailureContained"] = mode == "formatter-failure" && physical && !exceptionIdentity;
             report["enabledBefore"] = enabledBefore; report["enabledAtProbe"] = enabledAtProbe; report["invalid"] = Number(runtime.GetDiagnostics().InvalidEventCount);
             report["truncated"] = Number(runtime.GetDiagnostics().TruncatedEventCount); report["outputs"] = Diagnostics(runtime); report["result"] = StopJoinFixture.Json(stop); return report;
         }

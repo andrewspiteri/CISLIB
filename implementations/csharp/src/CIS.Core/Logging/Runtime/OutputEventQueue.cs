@@ -399,13 +399,7 @@ internal sealed class OutputEventQueue : ILogOutputAdmission
 
     public bool IsFaulted
     {
-        get
-        {
-            lock (admissionGate)
-            {
-                return faulted;
-            }
-        }
+        get => Volatile.Read(ref faulted);
     }
 
     internal bool TryEnqueue(EncodedEvent captured) => TryAdmit(captured, out _) == LogOutputWriteStatus.Accepted;
@@ -432,6 +426,14 @@ internal sealed class OutputEventQueue : ILogOutputAdmission
             {
                 // No wrap, negative/duplicate ticket or invented acceptance. Exhaustion is terminal.
                 Fault("AdmissionExhausted", timestamp);
+                RecordUnavailable();
+                return LogOutputWriteStatus.Faulted;
+            }
+
+            // A frontend-owned operation may finish preparation after stop expiry. A stale
+            // pre-expiry sample must not admit it after the control side observed expiry.
+            if (stopDeadlineExpired || stopBudget is { } budget && !budget.Contains(timestamp))
+            {
                 RecordUnavailable();
                 return LogOutputWriteStatus.Faulted;
             }

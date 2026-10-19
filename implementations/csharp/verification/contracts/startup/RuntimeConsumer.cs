@@ -8,10 +8,26 @@ using CIS.Logging;
 
 internal static class RuntimeConsumer
 {
+    public static async Task<LogStartResult> SafeStartup()
+    {
+        LogStartResult result = CoreLogRuntime.TryCreate(out CoreLogRuntime? runtime);
+        if (result.Succeeded && runtime is not null)
+        {
+            _ = await runtime.StopAsync(CancellationToken.None);
+            await runtime.DisposeAsync();
+        }
+        return result;
+    }
+
     public static async Task Use(CancellationToken cancellationToken)
     {
         await using CoreLogRuntime runtime = CoreLogRuntime.Create();
         CoreLogger logger = runtime.CreateLogger(component: "Orders");
+        var values = new Dictionary<string, LogValue> { ["order_id"] = LogValue.Integer(42) };
+        int orderId = 42;
+        _ = logger.Info($"Order {orderId:D4} accepted", values);
+        _ = logger.Info(eventName: "order.accepted", message: $"Order {orderId} accepted", values: values);
+        _ = logger.Write(CoreLogLevel.Warning, $"Order {orderId} will retry", context: new LogEventData { EventName = "order.retry" });
         bool enabled = logger.IsEnabled(level: CoreLogLevel.Information);
         using IDisposable scope = runtime.BeginScope(context: new OperationContextData { OperationId = "op-1" });
         LogWriteResult direct = logger.Write(level: CoreLogLevel.Information, data: new LogEventData { EventName = "order.created", Message = "Order created" });
@@ -64,6 +80,9 @@ internal static class RuntimeConsumer
 
     private static void ReadLogFlushResult(LogFlushResult value)
     {
+        LogFrontendCaptureStatus capture = value.FrontendCaptureStatus;
+        LogFrontendBatchSnapshot? batch = value.FrontendBatch;
+        string? errorCode = value.ErrorCode;
         LogCompletion readCompletion = value.Completion;
         bool readSucceeded = value.Succeeded;
         bool readLossObserved = value.LossObserved;
@@ -76,6 +95,7 @@ internal static class RuntimeConsumer
 
     private static void ReadLogStopResult(LogStopResult value)
     {
+        string? errorCode = value.ErrorCode;
         LogCompletion readCompletion = value.Completion;
         bool readSucceeded = value.Succeeded;
         bool readLossObserved = value.LossObserved;

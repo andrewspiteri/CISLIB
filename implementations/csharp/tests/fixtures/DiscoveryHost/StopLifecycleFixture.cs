@@ -107,8 +107,8 @@ internal static class StopLifecycleFixture
                 if (mode == "pre-cancelled")
                 {
                     using var caller = new CancellationTokenSource(); caller.Cancel();
-                    try { await runtime.StopAsync(caller.Token); throw new InvalidOperationException("Cancelled first waiter succeeded."); }
-                    catch (OperationCanceledException error) { Require(error.CancellationToken == caller.Token); cancelled = 1; }
+                    LogStopResult detached = await runtime.StopAsync(caller.Token);
+                    Require(detached.Completion == LogCompletion.Canceled && detached.ErrorCode == "StopCanceled"); cancelled = 1;
                     // No later stop/dispose can conceal a failure of cancelled initiation.
                     Require(runtime.GetDiagnostics().AdmissionClosed && runtime.GetDiagnostics().ShutdownStartedAtUtc is not null); CheckStopped(runtime);
                 }

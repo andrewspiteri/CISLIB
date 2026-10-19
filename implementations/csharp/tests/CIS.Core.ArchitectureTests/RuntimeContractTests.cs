@@ -141,8 +141,10 @@ public sealed class RuntimeContractTests
             foreach (var expected in expectedMethods)
             {
                 JsonProperty[] parameters = expected.Value.GetProperty("parameters").EnumerateObject().ToArray();
-                MethodDefinition method = methods.Single(method => reader.GetString(method.Name) == expected.Name &&
-                    method.DecodeSignature(provider, null).ParameterTypes.SequenceEqual(parameters.Select(parameter => parameter.Value.GetString()!)));
+                MethodDefinition[] matches = methods.Where(method => reader.GetString(method.Name) == expected.Name &&
+                    method.DecodeSignature(provider, null).ParameterTypes.SequenceEqual(parameters.Select(parameter => parameter.Value.GetString()!))).ToArray();
+                Assert.AreEqual(1, matches.Length, contract.Name + "." + expected.Name + "(" + string.Join(", ", parameters.Select(parameter => parameter.Value.GetString())) + ")");
+                MethodDefinition method = matches[0];
                 MethodSignature<string> signature = method.DecodeSignature(provider, null);
                 Assert.AreEqual(expected.Value.GetProperty("return").GetString(), signature.ReturnType, expected.Name);
                 CollectionAssert.AreEqual(parameters.Select(parameter => parameter.Value.GetString()!).ToArray(), signature.ParameterTypes.ToArray(), expected.Name);
@@ -169,7 +171,7 @@ public sealed class RuntimeContractTests
             {
                 Assert.IsTrue(property.GetAccessors().Setter.IsNil);
                 string expected = contract.Value.GetProperty(reader.GetString(property.Name)).GetString()!;
-                if (expected is "string?" or "LogStopResult?" or "LogIncomingSnapshot?")
+                if (expected is "string?" or "LogStopResult?" or "LogIncomingSnapshot?" or "LogFrontendBatchSnapshot?")
                 {
                     expected = expected[..^1]; // Nullable reference annotations are additionally checked by the compiler consumers.
                 }

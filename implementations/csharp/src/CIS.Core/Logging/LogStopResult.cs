@@ -11,6 +11,7 @@ public sealed class LogStopResult
         InvalidEventCount = observation.InvalidEventCount; TruncatedEventCount = observation.TruncatedEventCount;
         Outputs = Array.AsReadOnly(observation.Outputs.ToArray());
         Incoming = observation.Incoming;
+        ErrorCode = observation.ErrorCode;
     }
     /// <summary>Whether covered record dispositions and writer flushes settled; resource cleanup may still be pending.</summary>
     public LogCompletion Completion { get; }
@@ -28,6 +29,8 @@ public sealed class LogStopResult
     public long TruncatedEventCount { get; }
     /// <summary>Owned console, file, then registered-writer fixed-boundary observations; disabled outputs are omitted.</summary>
     public IReadOnlyList<LogOutputDrainResult> Outputs { get; }
-    /// <summary>The original fixed incoming prefix observation, including abandoned processing.</summary>
+    /// <summary>The original lifetime frontend observation, including unresolved publishers and backend work.</summary>
     public LogIncomingSnapshot? Incoming { get; }
+    /// <summary>A fixed safe frontend lifecycle failure/cancellation code, otherwise null.</summary>
+    public string? ErrorCode { get; }
 }

@@ -1,5 +1,9 @@
 # Logging admission, results and runtime ownership
 
+The [C# interpolation API](interpolation.md) adds compiler-backed handler overloads under the existing logger method names. Built-in values are captured for consumer-side invariant formatting; optional typed attributes remain independent structured context. Ordinary string, event-data and legacy callback contracts remain available.
+
+The 19 October 2026 [rotating frontend contract](incoming-pipeline.md) is the current public incoming contract. It replaces full incoming rejection, incoming-prefix flush membership and throwing frontend wait cancellation with bounded P01 eviction, captured batches and explicit lifecycle outcomes. `TryCreate` provides a safe startup result; the established `Create` overloads remain throwing adapters. Backend policy order, writer flushing/delivery meaning, output overflow and ownership remain unchanged. The historical WP02 descriptions below retain their original output-stage/specification context; they do not override this frontend amendment. Execution and remaining qualification are tracked in the [feature record](../../../planning/logging/priority-spool/README.md).
+
 WP02-S03 defines the unpublished runtime contract using the source guide sections 10â€“13 and the [current amendments](../../../planning/logging/plan-amendments.md). [Portable semantics](../../../contracts/logging/v1/runtime-contract.json), [C# signatures](../../../implementations/csharp/verification/contracts/startup/runtime-surface.json) and compiled consumers are the specification. Runtime, capture, workers, outputs and provider are implemented; the task milestones below describe their development sequence. The [feature report](../../../planning/feature-status-2026-10-15.md) records current corrective and release work.
 
 ## API and ownership

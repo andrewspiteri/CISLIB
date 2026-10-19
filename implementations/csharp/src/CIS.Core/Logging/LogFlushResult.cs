@@ -5,7 +5,11 @@ public enum LogCompletion
     /// <summary>Every covered record and writer flush settled before the original monotonic budget expired.</summary>
     Completed = 0,
     /// <summary>Covered work or a writer flush did not settle before the deadline, even if observed terminal later.</summary>
-    TimedOut = 1
+    TimedOut = 1,
+    /// <summary>This frontend caller detached its wait; shared work continues.</summary>
+    Canceled = 2,
+    /// <summary>A frontend lifecycle operation could not complete; inspect ErrorCode.</summary>
+    Failed = 3
 }
 
 /// <summary>The writer-buffer flush disposition for one captured output boundary.</summary>
@@ -21,7 +25,7 @@ public enum LogWriterFlushStatus
     Failed = 3
 }
 
-/// <summary>Owned caller rejection counts at registration plus worker rejections through the covered incoming prefix.</summary>
+/// <summary>Owned caller rejection counts at registration plus worker rejections through the covered incoming work.</summary>
 public sealed class LogOutputRejectionSnapshot
 {
     internal LogOutputRejectionSnapshot(long filtered, long queueFull, long unavailable)
@@ -78,7 +82,9 @@ public sealed class LogOutputDrainResult
 /// <remarks>Writer-buffer confirmation does not acknowledge disk durability or collector receipt.</remarks>
 public sealed class LogFlushResult
 {
-    internal LogFlushResult(DateTimeOffset boundaryCapturedAtUtc, DateTimeOffset observedAtUtc, long invalidEventCount, long truncatedEventCount, IEnumerable<LogOutputDrainResult> outputs, bool deadlineExceeded = false, LogIncomingSnapshot? incoming = null, bool registrationLoss = false)
+    internal LogFlushResult(DateTimeOffset boundaryCapturedAtUtc, DateTimeOffset observedAtUtc, long invalidEventCount, long truncatedEventCount, IEnumerable<LogOutputDrainResult> outputs, bool deadlineExceeded = false, LogIncomingSnapshot? incoming = null, bool registrationLoss = false,
+        LogFrontendBatchSnapshot? frontendBatch = null, bool requireFrontendBatch = false, LogCompletion? completion = null, string? errorCode = null,
+        bool frontendDrainComplete = false)
     {
         BoundaryCapturedAtUtc = boundaryCapturedAtUtc;
         ObservedAtUtc = observedAtUtc;
@@ -86,9 +92,18 @@ public sealed class LogFlushResult
         TruncatedEventCount = truncatedEventCount;
         Outputs = Array.AsReadOnly(outputs.ToArray());
         Incoming = incoming;
-        Completion = !deadlineExceeded && (incoming is null || incoming.Pending == 0) && Outputs.All(output => output.Pending == 0 && output.WriterFlushStatus is LogWriterFlushStatus.Succeeded or LogWriterFlushStatus.Failed) ? LogCompletion.Completed : LogCompletion.TimedOut;
-        Succeeded = Completion == LogCompletion.Completed && (incoming is null || incoming.Failed == 0 && incoming.Abandoned == 0 && incoming.RejectedByWriters == 0) && Outputs.All(output => output.Pending == 0 && output.Failed == 0 && output.Abandoned == 0 && output.WriterFlushSucceeded);
-        LossObserved = registrationLoss || invalidEventCount > 0 || truncatedEventCount > 0 || incoming is { Failed: > 0 } or { Abandoned: > 0 } or { QueueFull: > 0 } or { RejectedByWriters: > 0 } || Outputs.Any(output => output.Failed > 0 || output.Abandoned > 0 || output.Rejections.QueueFull > 0 || output.Rejections.Unavailable > 0 || output.WriterFlushStatus == LogWriterFlushStatus.Failed);
+        FrontendBatch = frontendBatch; ErrorCode = errorCode;
+        bool inputSettled = frontendDrainComplete || (frontendBatch is not null ? frontendBatch.IsComplete :
+            !requireFrontendBatch && (incoming is null || incoming.Pending == 0 && incoming.ActivePublishers == 0));
+        Completion = completion ?? (!deadlineExceeded && inputSettled && Outputs.All(output => output.Pending == 0 && output.WriterFlushStatus is LogWriterFlushStatus.Succeeded or LogWriterFlushStatus.Failed) ? LogCompletion.Completed : LogCompletion.TimedOut);
+        Succeeded = Completion == LogCompletion.Completed && (frontendBatch is null || frontendBatch.IsLossless) &&
+            (incoming is null || incoming.Failed == 0 && incoming.Abandoned == 0 && incoming.RejectedByWriters == 0 &&
+                (frontendBatch is not null || incoming.Evicted == 0)) &&
+            Outputs.All(output => output.Pending == 0 && output.Failed == 0 && output.Abandoned == 0 && output.WriterFlushSucceeded);
+        LossObserved = registrationLoss || invalidEventCount > 0 || truncatedEventCount > 0 ||
+            incoming is { Failed: > 0 } or { Evicted: > 0 } or { Abandoned: > 0 } or { QueueFull: > 0 } or { RejectedByWriters: > 0 } ||
+            frontendBatch is { Evicted: > 0 } or { Abandoned: > 0 } ||
+            Outputs.Any(output => output.Failed > 0 || output.Abandoned > 0 || output.Rejections.QueueFull > 0 || output.Rejections.Unavailable > 0 || output.WriterFlushStatus == LogWriterFlushStatus.Failed);
     }
 
     /// <summary>Whether all covered dispositions settled within the wait.</summary>
@@ -101,12 +116,22 @@ public sealed class LogFlushResult
     public DateTimeOffset BoundaryCapturedAtUtc { get; }
     /// <summary>The system UTC label of this final owned observation; not an elapsed deadline.</summary>
     public DateTimeOffset ObservedAtUtc { get; }
-    /// <summary>The cumulative invalid-event count at registration plus later invalid processing through the covered incoming prefix.</summary>
+    /// <summary>The cumulative invalid-event count at registration plus later invalid processing through the covered incoming work.</summary>
     public long InvalidEventCount { get; }
-    /// <summary>The cumulative truncated-event count at registration plus later truncation through the covered incoming prefix.</summary>
+    /// <summary>The cumulative truncated-event count at registration plus later truncation through the covered incoming work.</summary>
     public long TruncatedEventCount { get; }
     /// <summary>Owned console, file, then registered-writer observations; disabled outputs are omitted.</summary>
     public IReadOnlyList<LogOutputDrainResult> Outputs { get; }
-    /// <summary>Fixed incoming prefix accounting, separate from downstream writer delivery.</summary>
+    /// <summary>Frozen lifetime incoming accounting observed at batch settlement or the wait boundary.</summary>
     public LogIncomingSnapshot? Incoming { get; }
+    /// <summary>Frozen fixed frontend batch counts; null means capture did not complete.</summary>
+    public LogFrontendBatchSnapshot? FrontendBatch { get; }
+    /// <summary>Distinguishes no captured target from a captured empty target.</summary>
+    public LogFrontendCaptureStatus FrontendCaptureStatus => FrontendBatch is null ? LogFrontendCaptureStatus.NoBatchCaptured : LogFrontendCaptureStatus.Captured;
+    /// <summary>A fixed safe frontend lifecycle failure/cancellation code, otherwise null.</summary>
+    public string? ErrorCode { get; }
+
+    internal LogFlushResult WithCompletion(LogCompletion completion, string errorCode) => new(BoundaryCapturedAtUtc,
+        ObservedAtUtc, InvalidEventCount, TruncatedEventCount, Outputs, Completion == LogCompletion.TimedOut,
+        Incoming, LossObserved, FrontendBatch, completion: completion, errorCode: errorCode);
 }

@@ -31,6 +31,29 @@ public enum LogCompletion : int
 {
     Completed = 0,
     TimedOut = 1,
+    Canceled = 2,
+    Failed = 3,
+}
+
+public enum LogFrontendCaptureStatus : int { NoBatchCaptured = 0, Captured = 1 }
+
+public sealed class LogStartResult
+{
+    private LogStartResult() { }
+    public extern bool Succeeded { [MethodImpl(MethodImplOptions.InternalCall)] get; }
+    public extern string? ErrorCode { [MethodImpl(MethodImplOptions.InternalCall)] get; }
+}
+
+public sealed class LogFrontendBatchSnapshot
+{
+    private LogFrontendBatchSnapshot() { }
+    public extern long TargetCount { [MethodImpl(MethodImplOptions.InternalCall)] get; }
+    public extern long Consumed { [MethodImpl(MethodImplOptions.InternalCall)] get; }
+    public extern long Evicted { [MethodImpl(MethodImplOptions.InternalCall)] get; }
+    public extern long Abandoned { [MethodImpl(MethodImplOptions.InternalCall)] get; }
+    public extern long Pending { [MethodImpl(MethodImplOptions.InternalCall)] get; }
+    public extern bool IsComplete { [MethodImpl(MethodImplOptions.InternalCall)] get; }
+    public extern bool IsLossless { [MethodImpl(MethodImplOptions.InternalCall)] get; }
 }
 
 public enum LogOutputState : int
@@ -79,6 +102,14 @@ public sealed class LogIncomingSnapshot
     public extern long Suppressed { [MethodImpl(MethodImplOptions.InternalCall)] get; }
     public extern long DuplicateSuppressed { [MethodImpl(MethodImplOptions.InternalCall)] get; }
     public extern long DuplicateKeyEvictions { [MethodImpl(MethodImplOptions.InternalCall)] get; }
+    public extern long Admitted { [MethodImpl(MethodImplOptions.InternalCall)] get; }
+    public extern long Consumed { [MethodImpl(MethodImplOptions.InternalCall)] get; }
+    public extern long Evicted { [MethodImpl(MethodImplOptions.InternalCall)] get; }
+    public extern long Waiting { [MethodImpl(MethodImplOptions.InternalCall)] get; }
+    public extern long ActivePublishers { [MethodImpl(MethodImplOptions.InternalCall)] get; }
+    public extern bool IsSaturated { [MethodImpl(MethodImplOptions.InternalCall)] get; }
+    public extern bool IsExact { [MethodImpl(MethodImplOptions.InternalCall)] get; }
+    public extern string? ErrorCode { [MethodImpl(MethodImplOptions.InternalCall)] get; }
 }
 
 public sealed class LogOutputWriteResult
@@ -92,6 +123,9 @@ public sealed class LogOutputWriteResult
 public sealed class LogFlushResult
 {
     private LogFlushResult() { }
+    public extern LogFrontendBatchSnapshot? FrontendBatch { [MethodImpl(MethodImplOptions.InternalCall)] get; }
+    public extern LogFrontendCaptureStatus FrontendCaptureStatus { [MethodImpl(MethodImplOptions.InternalCall)] get; }
+    public extern string? ErrorCode { [MethodImpl(MethodImplOptions.InternalCall)] get; }
     public extern LogIncomingSnapshot? Incoming { [MethodImpl(MethodImplOptions.InternalCall)] get; }
     public extern LogCompletion Completion { [MethodImpl(MethodImplOptions.InternalCall)] get; }
     public extern bool Succeeded { [MethodImpl(MethodImplOptions.InternalCall)] get; }
@@ -106,6 +140,7 @@ public sealed class LogFlushResult
 public sealed class LogStopResult
 {
     private LogStopResult() { }
+    public extern string? ErrorCode { [MethodImpl(MethodImplOptions.InternalCall)] get; }
     public extern LogIncomingSnapshot? Incoming { [MethodImpl(MethodImplOptions.InternalCall)] get; }
     public extern LogCompletion Completion { [MethodImpl(MethodImplOptions.InternalCall)] get; }
     public extern bool Succeeded { [MethodImpl(MethodImplOptions.InternalCall)] get; }
@@ -215,6 +250,12 @@ public sealed class CoreLogRuntime : IAsyncDisposable
     public static extern CoreLogRuntime Create(IEnumerable<LogWriterRegistration> writers);
     [MethodImpl(MethodImplOptions.InternalCall)]
     public static extern CoreLogRuntime Create(LogProcessingOptions processing, IEnumerable<LogWriterRegistration>? writers = null);
+    [MethodImpl(MethodImplOptions.InternalCall)]
+    public static extern LogStartResult TryCreate(out CoreLogRuntime? runtime);
+    [MethodImpl(MethodImplOptions.InternalCall)]
+    public static extern LogStartResult TryCreate(IEnumerable<LogWriterRegistration> writers, out CoreLogRuntime? runtime);
+    [MethodImpl(MethodImplOptions.InternalCall)]
+    public static extern LogStartResult TryCreate(LogProcessingOptions processing, out CoreLogRuntime? runtime, IEnumerable<LogWriterRegistration>? writers = null);
     public extern Task Completion { [MethodImpl(MethodImplOptions.InternalCall)] get; }
     [MethodImpl(MethodImplOptions.InternalCall)]
     public extern CoreLogger CreateLogger(string component);
@@ -232,6 +273,50 @@ public sealed class CoreLogRuntime : IAsyncDisposable
 
 public sealed class CoreLogger
 {
+    [MethodImpl(MethodImplOptions.InternalCall)]
+    public extern LogWriteResult Write(CoreLogLevel level, ref LogInterpolatedStringHandler message);
+    [MethodImpl(MethodImplOptions.InternalCall)]
+    public extern LogWriteResult Write(CoreLogLevel level, ref LogInterpolatedStringHandler message, IReadOnlyDictionary<string, LogValue> values);
+    [MethodImpl(MethodImplOptions.InternalCall)]
+    public extern LogWriteResult Write(CoreLogLevel level, string eventName, ref LogInterpolatedStringHandler message, IReadOnlyDictionary<string, LogValue>? values = null);
+    [MethodImpl(MethodImplOptions.InternalCall)]
+    public extern LogWriteResult Write(CoreLogLevel level, ref LogInterpolatedStringHandler message, LogEventData context);
+    [MethodImpl(MethodImplOptions.InternalCall)]
+    public extern LogWriteResult Trace(ref LogInterpolatedStringHandler message);
+    [MethodImpl(MethodImplOptions.InternalCall)]
+    public extern LogWriteResult Trace(ref LogInterpolatedStringHandler message, IReadOnlyDictionary<string, LogValue> values);
+    [MethodImpl(MethodImplOptions.InternalCall)]
+    public extern LogWriteResult Trace(string eventName, ref LogInterpolatedStringHandler message, IReadOnlyDictionary<string, LogValue>? values = null);
+    [MethodImpl(MethodImplOptions.InternalCall)]
+    public extern LogWriteResult Debug(ref LogInterpolatedStringHandler message);
+    [MethodImpl(MethodImplOptions.InternalCall)]
+    public extern LogWriteResult Debug(ref LogInterpolatedStringHandler message, IReadOnlyDictionary<string, LogValue> values);
+    [MethodImpl(MethodImplOptions.InternalCall)]
+    public extern LogWriteResult Debug(string eventName, ref LogInterpolatedStringHandler message, IReadOnlyDictionary<string, LogValue>? values = null);
+    [MethodImpl(MethodImplOptions.InternalCall)]
+    public extern LogWriteResult Info(ref LogInterpolatedStringHandler message);
+    [MethodImpl(MethodImplOptions.InternalCall)]
+    public extern LogWriteResult Info(ref LogInterpolatedStringHandler message, IReadOnlyDictionary<string, LogValue> values);
+    [MethodImpl(MethodImplOptions.InternalCall)]
+    public extern LogWriteResult Info(string eventName, ref LogInterpolatedStringHandler message, IReadOnlyDictionary<string, LogValue>? values = null);
+    [MethodImpl(MethodImplOptions.InternalCall)]
+    public extern LogWriteResult Warn(ref LogInterpolatedStringHandler message);
+    [MethodImpl(MethodImplOptions.InternalCall)]
+    public extern LogWriteResult Warn(ref LogInterpolatedStringHandler message, IReadOnlyDictionary<string, LogValue> values);
+    [MethodImpl(MethodImplOptions.InternalCall)]
+    public extern LogWriteResult Warn(string eventName, ref LogInterpolatedStringHandler message, IReadOnlyDictionary<string, LogValue>? values = null);
+    [MethodImpl(MethodImplOptions.InternalCall)]
+    public extern LogWriteResult Error(ref LogInterpolatedStringHandler message);
+    [MethodImpl(MethodImplOptions.InternalCall)]
+    public extern LogWriteResult Error(ref LogInterpolatedStringHandler message, IReadOnlyDictionary<string, LogValue> values);
+    [MethodImpl(MethodImplOptions.InternalCall)]
+    public extern LogWriteResult Error(string eventName, ref LogInterpolatedStringHandler message, IReadOnlyDictionary<string, LogValue>? values = null);
+    [MethodImpl(MethodImplOptions.InternalCall)]
+    public extern LogWriteResult Critical(ref LogInterpolatedStringHandler message);
+    [MethodImpl(MethodImplOptions.InternalCall)]
+    public extern LogWriteResult Critical(ref LogInterpolatedStringHandler message, IReadOnlyDictionary<string, LogValue> values);
+    [MethodImpl(MethodImplOptions.InternalCall)]
+    public extern LogWriteResult Critical(string eventName, ref LogInterpolatedStringHandler message, IReadOnlyDictionary<string, LogValue>? values = null);
     private CoreLogger() { }
     [MethodImpl(MethodImplOptions.InternalCall)]
     public extern bool IsEnabled(CoreLogLevel level);
@@ -288,6 +373,27 @@ public sealed class CoreLogger
     [MethodImpl(MethodImplOptions.InternalCall)]
     public extern LogWriteResult CriticalLazy(Func<LogEventData> factory);
 
+}
+
+[System.Runtime.CompilerServices.InterpolatedStringHandler]
+public struct LogInterpolatedStringHandler
+{
+    [MethodImpl(MethodImplOptions.InternalCall)]
+    public extern LogInterpolatedStringHandler(int literalLength, int formattedCount);
+    [MethodImpl(MethodImplOptions.InternalCall)]
+    public extern void AppendLiteral(string value);
+    [MethodImpl(MethodImplOptions.InternalCall)]
+    public extern void AppendFormatted<T>(T value);
+    [MethodImpl(MethodImplOptions.InternalCall)]
+    public extern void AppendFormatted<T>(T value, string? format);
+    [MethodImpl(MethodImplOptions.InternalCall)]
+    public extern void AppendFormatted<T>(T value, int alignment);
+    [MethodImpl(MethodImplOptions.InternalCall)]
+    public extern void AppendFormatted<T>(T value, int alignment, string? format);
+    [MethodImpl(MethodImplOptions.InternalCall)]
+    public extern void AppendFormatted(string? value, int alignment = 0, string? format = null);
+    [MethodImpl(MethodImplOptions.InternalCall)]
+    public extern void AppendFormatted(ReadOnlySpan<char> value, int alignment = 0, string? format = null);
 }
 
 public interface ILogWriter : IAsyncDisposable
