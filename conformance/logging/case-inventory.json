@@ -11557,6 +11557,25 @@
       "lanes": [ "windows-x64", "linux-ubuntu2404-x64" ],
       "requirements": [ "REQ-007" ],
       "source": "18 October corrective toolchain/input-provenance migration. Native policy controls preserve local parser smoke gates; full release and offline replay qualification remain separate."
+    },
+    {
+      "id": "ARCH-NATIVE-SOURCE-REPLAY",
+      "family": "architecture",
+      "title": "Native source replay preserves input pins, isolation and actual child failures",
+      "implementation": "Implemented",
+      "method": null,
+      "minimumExecutions": 30,
+      "bindings": [
+        { "method": "CIS.Tests.ArchitectureTests.SourceReplayTests.InventoryRejectsAmbiguousPathsAndInvalidPins", "minimumExecutions": 15 },
+        { "method": "CIS.Tests.ArchitectureTests.SourceReplayTests.EveryMaterializedCopyRetainsTheOriginalPin", "minimumExecutions": 7 },
+        { "method": "CIS.Tests.ArchitectureTests.SourceReplayTests.ExistingReplayOutputsArePreserved", "minimumExecutions": 2 },
+        { "method": "CIS.Tests.ArchitectureTests.SourceReplayTests.ActualWrapperFailureRetainsCopiesAndDoesNotChangeParentEnvironment", "minimumExecutions": 2 },
+        { "method": "CIS.Tests.ArchitectureTests.SourceReplayTests.InvalidProvidedInventoryCannotStartVerification", "minimumExecutions": 3 },
+        { "method": "CIS.Tests.ArchitectureTests.SourceReplayTests.VerificationKeepsProfileLaneAndFreshCacheBoundaries", "minimumExecutions": 1 }
+      ],
+      "lanes": [ "windows-x64", "linux-ubuntu2404-x64" ],
+      "requirements": [ "REQ-007" ],
+      "source": "19 October corrective source-replay migration. Policy and actual wrapper failure controls do not qualify complete clean/offline or historical replay."
     }
   ]
 }

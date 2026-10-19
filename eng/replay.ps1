@@ -1,5 +1,10 @@
-param([ValidateSet('Developer', 'Release')][string] $Profile = 'Release', [string] $InputRoot, [string] $InventoryPath, [string] $Lane = $(if ($IsWindows) { 'windows-x64' } else { 'linux-ubuntu2404-x64' }))
-
+param(
+    [ValidateSet('Developer', 'Release')][string] $Profile = 'Release',
+    [string] $InputRoot,
+    [string] $InventoryPath,
+    [string] $Lane = $(if ($IsWindows) { 'windows-x64' } else { 'linux-ubuntu2404-x64' }),
+    [string] $OutputRoot
+)
 $repositoryRoot = Split-Path $PSScriptRoot -Parent
-& (Join-Path $repositoryRoot 'implementations/csharp/eng/replay.ps1') -Profile $Profile -InputRoot $InputRoot -InventoryPath $InventoryPath -Lane $Lane
+& (Join-Path $repositoryRoot 'implementations/csharp/eng/replay.ps1') -Profile $Profile -InputRoot $InputRoot -InventoryPath $InventoryPath -Lane $Lane -OutputRoot $OutputRoot
 exit $LASTEXITCODE
