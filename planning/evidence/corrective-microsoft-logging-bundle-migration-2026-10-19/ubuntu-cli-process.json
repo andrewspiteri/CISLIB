@@ -1,0 +1,30 @@
+{
+  "lane": "ubuntu",
+  "executable": "wsl.exe",
+  "arguments": [
+    "-d",
+    "Ubuntu-24.04",
+    "-u",
+    "user",
+    "--cd",
+    "/home/user/cislib-verification/ubuntu-developer-396e87d6-archive/source",
+    "--exec",
+    "/usr/bin/env",
+    "DOTNET_ROOT=/home/user/cislib-verification/ubuntu-developer-396e87d6-archive/toolchain/sdk",
+    "PATH=/home/user/cislib-verification/ubuntu-developer-396e87d6-archive/toolchain/powershell:/home/user/cislib-verification/ubuntu-developer-396e87d6-archive/toolchain/sdk:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
+    "UseSharedCompilation=false",
+    "MSBUILDDISABLENODEREUSE=1",
+    "pwsh",
+    "-NoProfile",
+    "-File",
+    "implementations/csharp/eng/write-microsoft-logging-bundle.ps1",
+    "-PackagePath",
+    ".artifacts/csharp/packages/CIS.Core.0.1.0-dev.1.nupkg",
+    "-OutputRoot",
+    ".artifacts/corrective/microsoft-logging-bundle-migration-2026-10-19/ubuntu-draft"
+  ],
+  "pid": 50624,
+  "exitCode": 1,
+  "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "stderrSha256": "372d51f3c0df773d80386fe6e031132a964a04bb240ac1c30f559bc53a0af5e4"
+}

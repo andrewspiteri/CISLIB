@@ -2,12 +2,13 @@ using System.Text.Json;
 using CIS.TestSupport;
 using CIS.Verification;
 
-if (args.Length > 0 && args[0] is "source-replay" or "toolchain-qualification" or "record-toolchain-inputs" or "microsoft-logging-qualification" or "collect-shipping-coverage" or "microsoft-logging-compatibility" or "type-manager-source-inventory" or "type-manager-example-boundaries" or "type-manager-baseline" or "type-manager-frozen-tests" or "type-manager-runtime" or "type-manager-instrumentation" or "type-manager-instrumentation-controls" or "type-manager-inventory" or "type-manager-package" or "type-manager-examples" or "type-manager-mutation-prepare" or "type-manager-mutation-prepare-controls" or "type-manager-measure" or "type-manager-measure-controls")
+if (args.Length > 0 && args[0] is "microsoft-logging-bundle" or "source-replay" or "toolchain-qualification" or "record-toolchain-inputs" or "microsoft-logging-qualification" or "collect-shipping-coverage" or "microsoft-logging-compatibility" or "type-manager-source-inventory" or "type-manager-example-boundaries" or "type-manager-baseline" or "type-manager-frozen-tests" or "type-manager-runtime" or "type-manager-instrumentation" or "type-manager-instrumentation-controls" or "type-manager-inventory" or "type-manager-package" or "type-manager-examples" or "type-manager-mutation-prepare" or "type-manager-mutation-prepare-controls" or "type-manager-measure" or "type-manager-measure-controls")
 {
     try
     {
         return args[0] switch
         {
+            "microsoft-logging-bundle" => await MicrosoftLoggingBundle.RunAsync(args[1..]),
             "source-replay" => await SourceReplay.RunAsync(args[1..]),
             "toolchain-qualification" => await ToolchainQualification.RunAsync(args[1..]),
             "record-toolchain-inputs" => await ToolchainInputs.RunAsync(args[1..]),

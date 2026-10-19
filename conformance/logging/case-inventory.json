@@ -11576,6 +11576,23 @@
       "lanes": [ "windows-x64", "linux-ubuntu2404-x64" ],
       "requirements": [ "REQ-007" ],
       "source": "19 October corrective source-replay migration. Policy and actual wrapper failure controls do not qualify complete clean/offline or historical replay."
+    },
+    {
+      "id": "ARCH-NATIVE-MICROSOFT-LOGGING-BUNDLE",
+      "family": "architecture",
+      "title": "Native provider bundle preserves pinned products, evidence and incomplete status",
+      "implementation": "Implemented",
+      "method": null,
+      "minimumExecutions": 31,
+      "bindings": [
+        { "method": "CIS.Tests.ArchitectureTests.MicrosoftLoggingBundleTests.DraftRequiresOwnedPackageRegistrationAndEvidence", "minimumExecutions": 27 },
+        { "method": "CIS.Tests.ArchitectureTests.MicrosoftLoggingBundleTests.MaintainedSourceInventoryKeepsUnicodeAndExcludesIgnoredAndDeletedFiles", "minimumExecutions": 1 },
+        { "method": "CIS.Tests.ArchitectureTests.MicrosoftLoggingBundleTests.ExistingDraftOutputsArePreserved", "minimumExecutions": 2 },
+        { "method": "CIS.Tests.ArchitectureTests.MicrosoftLoggingBundleTests.MissingGitIdentityDoesNotCreateReleaseDraft", "minimumExecutions": 1 }
+      ],
+      "lanes": [ "windows-x64", "linux-ubuntu2404-x64" ],
+      "requirements": [ "REQ-007" ],
+      "source": "19 October corrective provider bundle migration. Policy fixtures do not claim native mutation execution; indexed development evidence remains an incomplete release draft."
     }
   ]
 }
