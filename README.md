@@ -1,6 +1,6 @@
 # CisLib
 
-CisLib is a reusable, multi-module core library with shared contracts, examples, instructions and agent skills. Logging is the first module, and C# is the first implementation. Additional languages will have their own implementations and build tools while sharing the applicable module contracts and conformance cases.
+CisLib is a reusable, multi-module, multi-language core library planned around the same API and interoperability across language implementations. Logging is the first module, and C# is the first implementation. Additional languages will have their own implementations and build tools, with shared contracts and conformance cases guiding consistent behaviour. Examples, instructions and agent skills accompany the modules as they are qualified.
 
 The repository currently contains tested configuration resolution/validation and the actual [C# EnvironmentOptions startup API](docs/modules/logging/environment-options.md), alongside [typed C# log values](docs/modules/logging/log-values.md), the internal [exception capture foundation](docs/modules/logging/exception-projection.md) and [bounded JSONL event encoding](docs/modules/logging/event-encoding.md), test projects and executable dependency checks. Shared startup/event/runtime contracts remain unpublished. The bounded logging runtime and Microsoft logger integration are implemented and qualified through their runtime/provider stories. Both ship in `CIS.Core`, using the `CIS.Logging` and `CIS.Logging.MicrosoftLogger` namespaces; [Microsoft logging packaging](docs/modules/logging/microsoft-logging-packaging.md) explains the approved dependencies. The [current review corrections](docs/modules/logging/review-contract-2026-10-15.md) document recovery, deadline and provider edge cases. ConsoleHuman is still an example scaffold; runnable package examples, instructions/skills and complete release qualification remain pending.
 
@@ -57,7 +57,11 @@ The [C# assembly policy](docs/architecture/csharp-assembly-policy.md) records ve
 
 Core may use explicitly approved Microsoft-maintained NuGet packages. Third-party runtime dependencies must remain in separate optional integrations. A package prefix alone does not establish its provenance or allow it into Core; the actual dependency graph is checked against the allowlist.
 
-CisLib has its own repository and release process. CIS will consume versioned guidance and reference bundles; the Core runtime does not depend on CIS. The user-created [CISLIB GitHub repository](https://github.com/andrewspiteri/CISLIB) is configured as `origin`. The initial foundation checkpoint is committed as `ea8e9cf`. No push, publication licence or public package release has been created by this setup.
+CisLib has its own [source repository](https://github.com/andrewspiteri/CISLIB) and release process. CIS will consume versioned guidance and reference bundles; the Core runtime does not depend on CIS. Public package release and complete release qualification remain pending.
+
+## Licence and maintenance
+
+CisLib uses the [MIT License](LICENSE.md), matching Change Impact Studio. Andrew Spiteri maintains the official repository, with external contributions and public posting disabled. See the [maintenance and contribution policy](CONTRIBUTING.md). The licence permits use and modification of your own copies; write access to the official repository remains with the maintainer.
 
 WP02-S02 [event/value contracts](docs/modules/logging/event-contract.md) and shared fixtures are defined and checked by development-only C# validation; owned event capture and bounded JSONL encoding are now implemented internally.
 
