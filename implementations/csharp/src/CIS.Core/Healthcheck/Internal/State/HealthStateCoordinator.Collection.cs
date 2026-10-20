@@ -8,6 +8,7 @@ internal sealed partial class HealthStateCoordinator
     // A caller may retain a retired target and its shared drain task. Weak keys avoid a
     // service-lifetime history of completed attachments while preserving that identity.
     private readonly ConditionalWeakTable<HealthCollectionTarget, CollectionAttachment> attachments = new();
+    private readonly HashSet<CollectionAttachment> retiringCollections = [];
 
     public HealthCollectionTarget RegisterCollection(Guid monitorId, Guid collectionRegistrationId, HealthCollectorOptions options)
     {
@@ -24,11 +25,14 @@ internal sealed partial class HealthStateCoordinator
                 SweepDead(effects);
                 if (!active.TryGetValue(monitorId, out var entry))
                 { throw new ArgumentException("Supply an active monitor belonging to this service.", nameof(monitorId)); }
-                if (entry.Collection is not null || active.Values.Any(item => item.Collection?.CollectionRegistrationId == collectionRegistrationId))
+                if (entry.Collection is not null || entry.PendingOperations != 0 ||
+                    active.Values.Any(item => item.Collection?.CollectionRegistrationId == collectionRegistrationId))
                 { throw new InvalidOperationException("The collection is already attached."); }
                 if (entry.Generation == long.MaxValue) { throw new InvalidOperationException("The attachment generation is exhausted."); }
-                var target = new HealthCollectionTarget(monitorId, collectionRegistrationId, ++entry.Generation, options.Interval, options.IsRequired);
-                attachments.Add(target, new CollectionAttachment(entry, target));
+                var retirement = new CancellationTokenSource();
+                var target = new HealthCollectionTarget(monitorId, collectionRegistrationId, ++entry.Generation,
+                    options.Interval, options.IsRequired, retirement.Token);
+                attachments.Add(target, new CollectionAttachment(entry, target, retirement));
                 entry.Collection = target;
                 entry.HasCollectionFacts = true;
                 revision++;
@@ -209,6 +213,15 @@ internal sealed partial class HealthStateCoordinator
         return task;
     }
 
+    public Task WaitForSettlementAsync(HealthCollectionReservation reservation)
+    {
+        lock (gate)
+        {
+            var operation = Resolve(reservation);
+            return operation?.Settlement.Task ?? Task.CompletedTask;
+        }
+    }
+
     private bool IsCurrent(CollectionAttachment attachment) => !attachment.Closed && !attachment.Entry.Withdrawn &&
         ReferenceEquals(attachment.Entry.Collection, attachment.Target) && attachment.Entry.Generation == attachment.Target.Generation;
 
@@ -230,6 +243,8 @@ internal sealed partial class HealthStateCoordinator
     {
         if (attachment.Closed) { return; }
         attachment.Closed = true;
+        retiringCollections.Add(attachment);
+        effects.Retire.Add(attachment);
         if (ReferenceEquals(attachment.Entry.Collection, attachment.Target))
         {
             attachment.Entry.Collection = null;
@@ -237,7 +252,38 @@ internal sealed partial class HealthStateCoordinator
             revision++;
         }
         if (attachment.Operation is { } operation) { RequestCancellation(operation, effects); }
-        else { effects.Complete.Add(attachment.Disposal); }
+    }
+
+    private bool HasPendingCollectionSettlement(HealthMonitorEntry entry) => entry.PendingOperations != 0 ||
+        retiringCollections.Any(attachment => ReferenceEquals(attachment.Entry, entry));
+
+    private void CancelRetirement(CollectionAttachment attachment)
+    {
+        try { attachment.Retirement.Cancel(); }
+        catch (Exception) { /* An internal observer must not prevent retirement or operation settlement. */ }
+        finally
+        {
+            var effects = new Effects();
+            lock (gate)
+            {
+                attachment.RetirementSettled = true;
+                if (attachment.Operation is { } operation) { FinalizeOperationLocked(operation, effects); }
+                FinalizeAttachmentLocked(attachment, effects);
+                if (attachment.Entry.Withdrawn && !HasPendingCollectionSettlement(attachment.Entry))
+                { effects.Complete.Add(attachment.Entry.Disposal); }
+                FinishService(effects);
+            }
+            Dispatch(effects);
+        }
+    }
+
+    private void FinalizeAttachmentLocked(CollectionAttachment attachment, Effects effects)
+    {
+        if (attachment.Finalized || !attachment.Closed || !attachment.RetirementSettled || attachment.Operation is not null) { return; }
+        attachment.Finalized = true;
+        retiringCollections.Remove(attachment);
+        effects.Complete.Add(attachment.Disposal);
+        effects.Dispose.Add(attachment.Retirement);
     }
 
     private static void RequestCancellation(CollectionOperation operation, Effects effects)
@@ -274,25 +320,28 @@ internal sealed partial class HealthStateCoordinator
 
     private void FinalizeOperationLocked(CollectionOperation operation, Effects effects)
     {
-        if (operation.Finalized || !operation.CompletionCalled || (operation.CancellationRequested && !operation.CancellationSettled)) { return; }
+        if (operation.Finalized || !operation.CompletionCalled || (operation.CancellationRequested && !operation.CancellationSettled) ||
+            (operation.Attachment.Closed && !operation.Attachment.RetirementSettled)) { return; }
         operation.Finalized = true;
         operations.Remove(operation.Reservation.OperationId);
         operation.Attachment.Operation = null;
         operation.Entry.PendingOperations--;
         if (!operation.Entry.Withdrawn) { revision++; }
-        if (operation.Attachment.Closed) { effects.Complete.Add(operation.Attachment.Disposal); }
-        if (operation.Entry.Withdrawn && operation.Entry.PendingOperations == 0) { effects.Complete.Add(operation.Entry.Disposal); }
+        effects.Complete.Add(operation.Settlement);
+        FinalizeAttachmentLocked(operation.Attachment, effects);
+        if (operation.Entry.Withdrawn && !HasPendingCollectionSettlement(operation.Entry)) { effects.Complete.Add(operation.Entry.Disposal); }
         effects.Dispose.Add(operation.Cancellation);
         FinishService(effects);
     }
 
-    private sealed class CollectionAttachment(HealthMonitorEntry entry, HealthCollectionTarget target)
+    private sealed class CollectionAttachment(HealthMonitorEntry entry, HealthCollectionTarget target, CancellationTokenSource retirement)
     {
         internal readonly HealthMonitorEntry Entry = entry;
         internal readonly HealthCollectionTarget Target = target;
+        internal readonly CancellationTokenSource Retirement = retirement;
         internal readonly TaskCompletionSource Disposal = new(TaskCreationOptions.RunContinuationsAsynchronously);
         internal CollectionOperation? Operation;
-        internal bool Closed;
+        internal bool Closed, RetirementSettled, Finalized;
     }
 
     private sealed class CollectionOperation(HealthStateCoordinator owner, CollectionAttachment attachment) : IHealthCollectionOperationHandle
@@ -301,6 +350,7 @@ internal sealed partial class HealthStateCoordinator
         internal readonly CollectionAttachment Attachment = attachment;
         internal HealthMonitorEntry Entry => Attachment.Entry;
         internal readonly CancellationTokenSource Cancellation = new();
+        internal readonly TaskCompletionSource Settlement = new(TaskCreationOptions.RunContinuationsAsynchronously);
         internal HealthCollectionReservation Reservation = null!;
         internal bool Entered, CompletionCalled, CancellationRequested, CancellationSettled, Finalized;
         internal HealthCollectionAttempt? Evaluation, Completion;

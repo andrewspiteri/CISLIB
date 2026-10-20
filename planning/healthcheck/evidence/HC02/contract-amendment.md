@@ -1,0 +1,19 @@
+# HC02 internal collection integration addendum
+
+Revision 0.3, applied by the HC02 coordinator against checkpoint `801451fb7b1cef088fa8d427dfc1c9117f1512da`. This is the canonical task addendum to the preserved HC00 revision-0.2 catalog for C04's internal coordination. Public service, collector, lease, registration and runner signatures/defaults are unchanged. The current user authorized HC02 after committing HC00/HC01; the attachments do not authorize the remaining tasks independently.
+
+Real runner integration exposed distinctions the original logical seam did not represent:
+
+| Internal addition | Required behavior |
+| --- | --- |
+| `IHealthCollectionState.Stopping` | Signals terminal service stopping outside the state gate. Queued manual callers retire without waiting for an unrelated noncooperative operation to free capacity. |
+| `WaitForSettlementAsync(reservation)` | Waits for the actual state-owned reservation barrier, including retirement and cancellation handlers. `Complete` records actual callback/lease completion; its synchronous return alone does not certify all cancellation callbacks have returned. Runner capacity remains held until this barrier completes. |
+| `HealthCollectionTarget.Retirement` | Signals attachment closure outside the state gate, including idle monitor withdrawal. Runner observers retain only the runner and detached entry, never the registration/collector/owner graph. Actual attachment, monitor and service barriers include retirement callbacks. |
+| Reattachment guard | A replacement collection cannot attach while a withdrawn prior operation on that monitor remains unsettled. IDs/generations remain non-reusing. |
+| `HealthCollectionExecution` | An explicit execution-flow token containing state identity and IDs detects self-waits on registration, runner, monitor and service barriers. Withdrawal remains allowed. Dispose initiates withdrawal and rejects waiting on itself. Tokens remain active through cleanup and handoff, then deactivate even in escaped child contexts. Detached or context-suppressed user work is outside this detection guarantee. |
+
+All state changes remain in the original single state coordinator. State cancellation, retirement observers and task-source completion run outside its gate. The runner owns one separate scheduling gate; it releases that gate before state calls, owner acquisition, callbacks, cleanup, timer operations or clock sampling. The collection implementation and both test owners received the coordinated additions before final verification. No worker forked the public contract or changed a historical receipt.
+
+The runner acquires a real owner lease after reserving its global slot/state wrapper and before posting callback work. Both dispatcher and posted wrapper suppress ambient caller context; each explicitly installs its own collection token. False/null acquisition is owner-unavailable withdrawal. Contradictory acquisition results and acquisition exceptions are integration diagnostics; every nonnull returned/assigned lease is disposed. Only admitted evaluations use required/optional failure classification. Lifetime cancellation is neutral only when the reservation token is actually canceled.
+
+Every completed manual or periodic run resets an activated periodic registration's next eligibility to actual callback, lease and state settlement plus interval. One timer and a rotating cursor serve coalesced per-registration markers. Idle periodic registrations allocate no capacity-wait task. Checked clock-unit conversion rejects unsupported ranges; a later timestamp overflow retires the registration without wrapping or inventing a health failure. If an injected clock throws during finalization, an actual system UTC sample completes detached bookkeeping and scheduling retirement prevents a stranded reservation or slot. The original clock error remains a bounded diagnostic.

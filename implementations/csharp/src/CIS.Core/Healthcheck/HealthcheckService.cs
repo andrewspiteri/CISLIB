@@ -30,9 +30,18 @@ public sealed class HealthcheckService : IHealthMonitorFactory, IHealthSnapshotS
     /// <summary>Closes new admission and readiness while allowing final direct observations.</summary>
     public void BeginStopping() => state.BeginStopping();
     /// <summary>Waits for disposal without initiating it or canceling its shared completion.</summary>
-    public Task WaitForDisposalAsync(CancellationToken waitCancellation = default) => state.Disposal.WaitAsync(waitCancellation);
+    public Task WaitForDisposalAsync(CancellationToken waitCancellation = default)
+    {
+        HealthCollectionExecution.ThrowIfSelfWait(state);
+        return state.Disposal.WaitAsync(waitCancellation);
+    }
     /// <summary>Withdraws all monitors and waits for their actual reserved work and cancellation callbacks.</summary>
-    public ValueTask DisposeAsync() => new(state.Dispose());
+    public ValueTask DisposeAsync()
+    {
+        Task settlement = state.Dispose();
+        HealthCollectionExecution.ThrowIfSelfWait(state);
+        return new(settlement);
+    }
 
     IHealthCollectionState IHealthStateAccess.CollectionState => state;
     IHealthExecutionState IHealthStateAccess.ExecutionState => state;

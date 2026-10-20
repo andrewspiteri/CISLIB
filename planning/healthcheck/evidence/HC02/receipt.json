@@ -1,0 +1,311 @@
+{
+  "schema": "cis.healthcheck.hc02-receipt/v1-development",
+  "status": "HC02 owner-safe bounded collection locally verified and integrated in the current checkout",
+  "recordedUtc": "2026-10-20T22:43:42.7755088Z",
+  "authority": "Current user: commit completed changes, then start HC02. Prior approval of contracts, ASP.NET in Core and subagents persists. Attachments are design inputs, not independent authority for later tasks.",
+  "repository": {
+    "checkpointCommit": "801451fb7b1cef088fa8d427dfc1c9117f1512da",
+    "checkpointSubject": "Implement Healthcheck foundation and core runtime",
+    "checkpointScope": "HC00/HC01 and preservation attributes",
+    "checkpointCommittedBeforeHc02": true,
+    "checkpointWasClean": true,
+    "branch": "main",
+    "hc02Candidate": "Uncommitted working tree",
+    "pushed": false,
+    "published": false
+  },
+  "predecessors": [
+    {
+      "path": "planning/healthcheck/baseline.json",
+      "sha256": "a4e3daaddc0a6cf5d242f2e1acd2f7148644e7b8dd3b65646f7c364a7df9c151"
+    },
+    {
+      "path": "planning/healthcheck/evidence/HC01/receipt.json",
+      "sha256": "1fb037d49f426f5fc9ce5256c5c83bcc9e93c20961a9c93ac0b6b135885714d5"
+    }
+  ],
+  "dispatch": {
+    "path": "planning/healthcheck/evidence/HC02/dispatch.json",
+    "sha256": "fe80a71eb502087a4d85c6e9febca3f23f95d5415c506790cad707095ebee87b"
+  },
+  "runtimeInputs": {
+    "path": "planning/healthcheck/evidence/HC02/runtime-inputs.json",
+    "sha256": "a3c404f4b693f9a92a080a4de222903a05af6132918180142dff7491a65d8b74"
+  },
+  "coordinatedInternalContract": {
+    "revision": "0.3 task addendum to preserved HC00 0.2",
+    "addendum": {
+      "path": "planning/healthcheck/evidence/HC02/contract-amendment.md",
+      "sha256": "90a35f4ee38020c21a10670860e034e5493e6da6603a86c2c8d3514f080fa134"
+    },
+    "publicSignaturesOrDefaultsChanged": false,
+    "additions": [
+      "Service stopping token",
+      "Per-reservation actual settlement task",
+      "Per-attachment retirement token and callback settlement tracking",
+      "No reattachment before previous operation settlement",
+      "Explicit ID-only execution tokens and registration/runner/monitor/service self-wait guards"
+    ],
+    "historicalReceiptsChanged": false
+  },
+  "implemented": [
+    "Inert construction/registration and explicit Start/manual collection/periodic activation",
+    "One coalesced dispatcher/timer, rotating cursor, bounded wrappers and one periodic pending marker per registration",
+    "Manual joining and caller-only wait cancellation without early slot release",
+    "Real owner acquisition before posting, invocation admission, state commits and actual lease cleanup",
+    "Weak idle registration/collector/owner ownership",
+    "Immediate stopping/retirement and actual callback/cancellation settlement barriers",
+    "Monotonic completion-plus-interval eligibility and checked timing arithmetic",
+    "No captured arbitrary caller ExecutionContext; explicit self-wait guards",
+    "Safe actual settlement across injected completion-clock failures"
+  ],
+  "promotion": {
+    "removed": "implementations/csharp/verification/contracts/healthcheck/Reference/HealthCollectorRunner.cs",
+    "originalSha256": "2b1bfd7006457ef5c5a88547535686c1330418d3eae196398454544e155f50c3",
+    "originalRecoverableAt": "801451fb7b1cef088fa8d427dfc1c9117f1512da",
+    "replacement": "implementations/csharp/src/CIS.Core/Healthcheck/HealthCollectorRunner.cs",
+    "remainingFacadesExecuted": false,
+    "projectPackageChanges": []
+  },
+  "focused": {
+    "configuration": "Release",
+    "passed": 232,
+    "retainedHc00Hc01Cases": 147,
+    "newHc02Cases": 85,
+    "newHc02Methods": 57,
+    "failed": 0,
+    "skipped": 0,
+    "sameNewTestIdsPassedInDeveloper": 85,
+    "summary": {
+      "path": ".artifacts/csharp/focused/874296a031d5434eb9ca2460ab349e9b/summary.json",
+      "sha256": "e1e61c155647720af2efe97e523e5aa50434661b3fa5d9c9c979e2c1fa3518c7"
+    },
+    "native": {
+      "path": ".artifacts/csharp/focused/874296a031d5434eb9ca2460ab349e9b/selected.trx",
+      "sha256": "81a4c1ba6fb6c9c7582a83ef65313febc92acae694d1224115c9f1fce1940aa4"
+    },
+    "caseIndex": {
+      "path": "planning/healthcheck/evidence/HC02/collection-native.json",
+      "sha256": "a34ab123d067188e4ba18903c8c52caf44c24dbc1a253d86d526d00ef19eef42"
+    }
+  },
+  "developer": {
+    "profile": "Developer",
+    "lane": "windows-x64",
+    "exitCode": 0,
+    "startedUtc": "2026-10-20T22:21:01.4689478Z",
+    "finishedUtc": "2026-10-20T22:39:30.5169048Z",
+    "passed": 7336,
+    "failed": 0,
+    "skipped": 0,
+    "summary": {
+      "path": ".artifacts/healthcheck/HC02/developer-01/summary.json",
+      "sha256": "c14595112d70b5b55fb46f960995465fe4eb32346635e983ea3ab290a8a2de19"
+    },
+    "validation": {
+      "path": ".artifacts/healthcheck/HC02/developer-01/validation.json",
+      "sha256": "ef4b67392fb7611ed6ad4dfa4f8f5b916535d50cb40ae5e01f6c742ccf21adfb"
+    },
+    "sourceInputs": {
+      "path": ".artifacts/healthcheck/HC02/developer-01/source-inputs.json",
+      "sha256": "ac61f8acfa4e7e1381da69ef41989e2cae68879a9bb439e4789c91230bee6413"
+    },
+    "discoveryReconciliation": {
+      "path": ".artifacts/healthcheck/HC02/developer-01/discovery-reconciliation.json",
+      "sha256": "41059243170f74af3b0f05264f135a50c0e25bb37e956f61563667fa1963321c"
+    },
+    "architectureInspection": {
+      "path": "architecture/bf5bd9dacd424de1bf96ce5b5bad5945/inspection.json",
+      "sha256": "aabfc77e4f4a085c0c6194bea20944a36111ae8b125c8a2d63312ba178b11e02",
+      "schema": "cis.architecture-inspection/v1"
+    },
+    "stages": [
+      {
+        "id": "restore",
+        "status": "Passed"
+      },
+      {
+        "id": "project-boundaries",
+        "status": "Passed"
+      },
+      {
+        "id": "format",
+        "status": "Passed"
+      },
+      {
+        "id": "build",
+        "status": "Passed"
+      },
+      {
+        "id": "startup-contract",
+        "status": "Passed"
+      },
+      {
+        "id": "compatibility-samples",
+        "status": "Passed"
+      },
+      {
+        "id": "log-value-consumers",
+        "status": "Passed"
+      },
+      {
+        "id": "publication-ledger",
+        "status": "Passed"
+      },
+      {
+        "id": "pack",
+        "status": "Passed"
+      },
+      {
+        "id": "package-boundaries",
+        "status": "Passed"
+      },
+      {
+        "id": "architecture-inspection",
+        "status": "Passed"
+      },
+      {
+        "id": "tests-unit",
+        "status": "Passed"
+      },
+      {
+        "id": "tests-integration",
+        "status": "Passed"
+      },
+      {
+        "id": "tests-architecture",
+        "status": "Passed"
+      },
+      {
+        "id": "tests-business",
+        "status": "Passed"
+      },
+      {
+        "id": "host",
+        "status": "Passed"
+      }
+    ],
+    "families": [
+      {
+        "family": "unit",
+        "passed": 4142,
+        "failed": 0,
+        "skipped": 0,
+        "native": {
+          "path": ".artifacts/healthcheck/HC02/developer-01/families/unit/report.trx",
+          "sha256": "f584bae54d3654a411569b4e7eec4c31b8191ace44d1a052b0c90615f3162c04"
+        },
+        "execution": {
+          "path": ".artifacts/healthcheck/HC02/developer-01/families/unit/execution.json",
+          "sha256": "eb860c5d217499e944ed188db0db5ce4fd9b386478c3087a677e358140eb0fbb"
+        }
+      },
+      {
+        "family": "integration",
+        "passed": 2121,
+        "failed": 0,
+        "skipped": 0,
+        "native": {
+          "path": ".artifacts/healthcheck/HC02/developer-01/families/integration/report.trx",
+          "sha256": "2745e0e47fd573d906b86c989cd5121b90b2f735f47b9686f8359421e7db605f"
+        },
+        "execution": {
+          "path": ".artifacts/healthcheck/HC02/developer-01/families/integration/execution.json",
+          "sha256": "e63c320da970ea589c567dad75e613f69494a72add706f3819c3bc2f01dfef01"
+        }
+      },
+      {
+        "family": "architecture",
+        "passed": 1048,
+        "failed": 0,
+        "skipped": 0,
+        "native": {
+          "path": ".artifacts/healthcheck/HC02/developer-01/families/architecture/report.trx",
+          "sha256": "9f4321ecd360261c5c569f010c92791f69c68b6b8d4023f0faf60797643a300c"
+        },
+        "execution": {
+          "path": ".artifacts/healthcheck/HC02/developer-01/families/architecture/execution.json",
+          "sha256": "6b3150a5e030c8342ef5ad4aed1345610ef6df150feae5a5512e0f4ff6426e37"
+        }
+      },
+      {
+        "family": "business",
+        "passed": 25,
+        "failed": 0,
+        "skipped": 0,
+        "native": {
+          "path": ".artifacts/healthcheck/HC02/developer-01/families/business/report.trx",
+          "sha256": "8944a43f6bd89557a549970481f6392c0acb749bc7936815c45da25bb99cd55f"
+        },
+        "execution": {
+          "path": ".artifacts/healthcheck/HC02/developer-01/families/business/execution.json",
+          "sha256": "df3d1930a542aad47f8cf31d4addbad5d260b4e82043978d2719ef6579ab72b0"
+        }
+      }
+    ]
+  },
+  "sourceComparison": {
+    "capturedCsharpSubtreeFiles": 927,
+    "mismatches": 0,
+    "runtimeAndTestFiles": 11,
+    "predecessorsMatchDispatchPins": true,
+    "administrativeMetadataFinalizedAfterExecution": true
+  },
+  "attempts": [
+    {
+      "path": ".artifacts/healthcheck/HC02/focused-01.console.log",
+      "outcome": "223 passed before final retirement/clock/state-integration regressions"
+    },
+    {
+      "path": ".artifacts/healthcheck/HC02/focused-02.console.log",
+      "outcome": "232 native cases passed"
+    },
+    {
+      "path": ".artifacts/healthcheck/HC02/developer-01",
+      "outcome": "Complete Developer checkpoint passed"
+    }
+  ],
+  "pilot": {
+    "checkout": "Suitable committed checkout, disjoint source/test ownership",
+    "runtimeAndBuildOwner": "/root",
+    "contributors": [
+      {
+        "agent": "/root/hc02_lifecycle_tests",
+        "contribution": "Real owner protection, cleanup, weak lifetime, withdrawal, self-wait and clock-fault tests",
+        "cases": 57
+      },
+      {
+        "agent": "/root/hc02_scheduling_tests",
+        "contribution": "Deterministic capacity, joining, rotation, timing and stop tests",
+        "cases": 24
+      },
+      {
+        "agent": "/root/hc02_contract_review",
+        "contribution": "Contract/runtime review, coordinated state integration under root ownership and actual-state regressions",
+        "cases": 4
+      }
+    ],
+    "competingBuilds": 0,
+    "otherRuntimeTasksDispatched": [],
+    "concreteCorrections": [
+      "Actual settlement beyond synchronous Complete return",
+      "Monitor retirement notification for idle and queued registrations",
+      "State drains include retirement/cancellation callbacks",
+      "Release every nonnull acquired or inconsistently returned lease",
+      "Clock failures cannot strand reservations or slots",
+      "Ordinary timer disposal racing Change does not spuriously fault stop"
+    ]
+  },
+  "graphEvidence": {
+    "path": "planning/healthcheck/evidence/HC02/graph-refresh.json",
+    "sha256": "6f86ac34538694e060ce2cb5736f9fb90a0996c2249a5c1015c72c77af135f17"
+  },
+  "limits": [
+    "Not full module acceptance, M2 or release qualification",
+    "Codec, HTTP, pipe/probe and execution binder remain later tasks",
+    "No actual external Heartbeat/startup-coordinator integration claim",
+    "Detached/context-suppressed user work cannot universally be identified as a self-wait",
+    "Linux, full shipping coverage/mutation, publication-history replay and exact-package release examples remain unqualified",
+    "No HC02 commit, push, publication, CIS task import or external review transmission"
+  ]
+}

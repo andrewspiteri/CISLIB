@@ -17,11 +17,24 @@ internal abstract class HealthMonitorHandle(HealthStateCoordinator owner, Health
         try { Owner.Withdraw(Entry); }
         finally { GC.KeepAlive(this); }
     }
-    public Task WaitForDisposalAsync(CancellationToken waitCancellation = default) => Entry.Disposal.Task.WaitAsync(waitCancellation);
+    public Task WaitForDisposalAsync(CancellationToken waitCancellation = default)
+    {
+        try
+        {
+            HealthCollectionExecution.ThrowIfSelfWait(Owner, monitorId: Entry.Id);
+            return Entry.Disposal.Task.WaitAsync(waitCancellation);
+        }
+        finally { GC.KeepAlive(this); }
+    }
     public ValueTask DisposeAsync()
     {
-        Withdraw();
-        return new(Entry.Disposal.Task);
+        try
+        {
+            Withdraw();
+            HealthCollectionExecution.ThrowIfSelfWait(Owner, monitorId: Entry.Id);
+            return new(Entry.Disposal.Task);
+        }
+        finally { GC.KeepAlive(this); }
     }
     IHealthCollectionState IHealthStateAccess.CollectionState => Owner;
     IHealthExecutionState IHealthStateAccess.ExecutionState => Owner;

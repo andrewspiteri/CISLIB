@@ -11,6 +11,7 @@ internal sealed partial class HealthStateCoordinator : IHealthCollectionState, I
     private readonly Dictionary<Guid, ExecutionBinding> bindings = [];
     private readonly HealthApplicationIdentity application;
     private readonly TaskCompletionSource disposal = new(TaskCreationOptions.RunContinuationsAsynchronously);
+    private readonly CancellationTokenSource stoppingCancellation = new();
     private BigInteger revision, ordinal;
     private bool startupCompleted, stopping, disposalStarted, disposed, runnerClaimed;
 
@@ -47,6 +48,7 @@ internal sealed partial class HealthStateCoordinator : IHealthCollectionState, I
     internal HealthcheckOptions Options { get; }
     internal TimeProvider Clock { get; }
     internal Task Disposal => disposal.Task;
+    public CancellationToken Stopping => stoppingCancellation.Token;
     private DateTimeOffset Now() => Clock.GetUtcNow().ToUniversalTime();
 
     private static void CheckText(string? text, int maximum, string parameter, bool required = false)
@@ -172,6 +174,7 @@ internal sealed partial class HealthStateCoordinator : IHealthCollectionState, I
         if (stopping) { return; }
         stopping = true;
         revision++;
+        effects.SignalStopping = true;
         foreach (var operation in operations.Values) { RequestCancellation(operation, effects); }
     }
 
@@ -216,12 +219,12 @@ internal sealed partial class HealthStateCoordinator : IHealthCollectionState, I
         RetireBindingsLocked(entry);
         foreach (var operation in operations.Values.Where(operation => ReferenceEquals(operation.Entry, entry))) { RequestCancellation(operation, effects); }
         revision++;
-        if (entry.PendingOperations == 0) { effects.Complete.Add(entry.Disposal); }
+        if (!HasPendingCollectionSettlement(entry)) { effects.Complete.Add(entry.Disposal); }
     }
 
     private void FinishService(Effects effects)
     {
-        if (disposalStarted && operations.Count == 0 && !disposed)
+        if (disposalStarted && operations.Count == 0 && retiringCollections.Count == 0 && !disposed)
         { disposed = true; effects.Complete.Add(disposal); }
     }
 
@@ -404,6 +407,8 @@ internal sealed partial class HealthStateCoordinator : IHealthCollectionState, I
 
     private sealed class Effects
     {
+        internal bool SignalStopping;
+        internal readonly List<CollectionAttachment> Retire = [];
         internal readonly List<CollectionOperation> Cancel = [];
         internal readonly List<TaskCompletionSource> Complete = [];
         internal readonly List<CancellationTokenSource> Dispose = [];
@@ -411,6 +416,12 @@ internal sealed partial class HealthStateCoordinator : IHealthCollectionState, I
 
     private void Dispatch(Effects effects)
     {
+        if (effects.SignalStopping)
+        {
+            try { stoppingCancellation.Cancel(); }
+            catch (Exception) { /* An internal observer must not prevent operation cancellation or settlement. */ }
+        }
+        foreach (var attachment in effects.Retire) { CancelRetirement(attachment); }
         foreach (var operation in effects.Cancel) { CancelOperation(operation); }
         foreach (var source in effects.Complete) { source.TrySetResult(); }
         foreach (var source in effects.Dispose) { source.Dispose(); }

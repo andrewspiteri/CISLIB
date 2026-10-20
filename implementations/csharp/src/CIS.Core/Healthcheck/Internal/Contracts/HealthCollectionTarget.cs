@@ -8,13 +8,15 @@ internal sealed class HealthCollectionTarget
         Guid collectionRegistrationId,
         long generation,
         TimeSpan? interval,
-        bool isRequired)
+        bool isRequired,
+        CancellationToken retirement = default)
     {
         MonitorId = monitorId;
         CollectionRegistrationId = collectionRegistrationId;
         Generation = generation;
         Interval = interval;
         IsRequired = isRequired;
+        Retirement = retirement;
     }
 
     internal Guid MonitorId { get; }
@@ -22,4 +24,5 @@ internal sealed class HealthCollectionTarget
     internal long Generation { get; }
     internal TimeSpan? Interval { get; }
     internal bool IsRequired { get; }
+    internal CancellationToken Retirement { get; }
 }
