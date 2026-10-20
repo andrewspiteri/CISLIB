@@ -1,0 +1,224 @@
+{
+  "contractVersion": 1,
+  "status": "Unpublished HC00 foundation; no runtime behavior implied",
+  "resolution": {
+    "entryPoint": "HealthcheckOptions.Resolve(setup = null)",
+    "precedence": [
+      "nonblank environment",
+      "explicit setup",
+      "default"
+    ],
+    "environmentRead": "Each listed key once per explicit Resolve call; trim before parsing; whitespace-only is absent.",
+    "invalidHigherPriority": "Reject with CoreConfigurationException; never use a lower-priority fallback.",
+    "constructor": "Uses supplied settings; does not reread deployment environment.",
+    "validation": "Validate every supplied setting even if disabled; only PipeName requiredness depends on PipeEnabled.",
+    "liveReconfiguration": false
+  },
+  "settings": [
+    {
+      "property": "MaxConcurrentCollections",
+      "environmentKey": "CIS_HEALTHCHECK_MAX_CONCURRENT_COLLECTIONS",
+      "type": "integer",
+      "default": 4,
+      "minimum": 1,
+      "maximum": 64
+    },
+    {
+      "property": "MaxMonitors",
+      "environmentKey": "CIS_HEALTHCHECK_MAX_MONITORS",
+      "type": "integer",
+      "default": 1024,
+      "minimum": 1,
+      "maximum": 65536
+    },
+    {
+      "property": "DetailsEnabled",
+      "environmentKey": "CIS_HEALTHCHECK_DETAILS_ENABLED",
+      "type": "boolean",
+      "default": false,
+      "tokens": "true or false; case-insensitive after trim"
+    },
+    {
+      "property": "PipeEnabled",
+      "environmentKey": "CIS_HEALTHCHECK_PIPE_ENABLED",
+      "type": "boolean",
+      "default": false,
+      "tokens": "true or false; case-insensitive after trim"
+    },
+    {
+      "property": "PipeName",
+      "environmentKey": "CIS_HEALTHCHECK_PIPE_NAME",
+      "type": "string or absent",
+      "default": null,
+      "requiredWhen": "PipeEnabled = true",
+      "minimumLength": 1,
+      "maximumLength": 64,
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$",
+      "reservedCaseInsensitive": [
+        "anonymous"
+      ]
+    },
+    {
+      "property": "PipeMaxClients",
+      "environmentKey": "CIS_HEALTHCHECK_PIPE_MAX_CLIENTS",
+      "type": "integer",
+      "default": 8,
+      "minimum": 1,
+      "maximum": 64
+    },
+    {
+      "property": "PipeRequestTimeoutMs",
+      "environmentKey": "CIS_HEALTHCHECK_PIPE_TIMEOUT_MS",
+      "type": "integer",
+      "default": 1000,
+      "minimum": 50,
+      "maximum": 60000
+    },
+    {
+      "property": "MaxReportBytes",
+      "environmentKey": "CIS_HEALTHCHECK_MAX_REPORT_BYTES",
+      "type": "integer",
+      "default": 4194304,
+      "minimum": 1024,
+      "maximum": 16777216
+    }
+  ],
+  "integerTokens": "Invariant decimal integer with optional leading sign after trim; overflow and non-integer text reject.",
+  "policies": {
+    "common": {
+      "required": [
+        "IsCritical"
+      ],
+      "optional": {
+        "Name": null
+      }
+    },
+    "condition": {
+      "required": [
+        "InitiallyFlagged"
+      ],
+      "optional": {
+        "InitialDiagnostic": null
+      }
+    },
+    "consecutiveFailures": {
+      "required": [
+        "FailureThreshold"
+      ],
+      "minimum": 1,
+      "maximum": 2147483647
+    },
+    "numericThreshold": {
+      "required": [
+        "Comparison",
+        "Threshold",
+        "Unit"
+      ],
+      "comparisons": [
+        "GreaterThan",
+        "GreaterThanOrEqual",
+        "LessThan",
+        "LessThanOrEqual"
+      ],
+      "threshold": "Finite double",
+      "unit": "Nonblank; at most 32 Unicode scalar values"
+    },
+    "availability": {
+      "initialState": "Pending"
+    }
+  },
+  "errorCodes": {
+    "configuration": [
+      "Healthcheck.InvalidValue",
+      "Healthcheck.OutOfRange",
+      "Healthcheck.RequiredValue",
+      "Healthcheck.UnsupportedCombination"
+    ],
+    "capacity": [
+      "Healthcheck.MonitorCapacity"
+    ],
+    "reporting": [
+      "ReportTooLarge",
+      "SerializationFailed",
+      "ReportingUnavailable"
+    ],
+    "httpRouting": [
+      "Forbidden",
+      "NotFound",
+      "MethodNotAllowed"
+    ],
+    "pipe": [
+      "DetailsDisabled",
+      "InvalidView",
+      "UnsupportedVersion",
+      "InvalidRequest",
+      "InvalidFrame"
+    ]
+  },
+  "identity": {
+    "required": [
+      "Name",
+      "InstanceId"
+    ],
+    "nameScalars": {
+      "minimum": 1,
+      "maximum": 255
+    },
+    "optionalBuildVersionScalarsMaximum": 512,
+    "optionalServiceVersionScalarsMaximum": 512,
+    "optionalHostNameScalarsMaximum": 255,
+    "optionalOsDescriptionScalarsMaximum": 1024,
+    "instanceId": "Nonempty Guid",
+    "text": "Valid Unicode scalar text; service validates and copies explicit input."
+  },
+  "limits": {
+    "textLengthUnit": "Unicode scalar values",
+    "monitorName": 128,
+    "diagnosticCode": 64,
+    "diagnosticMessage": 1024,
+    "diagnosticExceptionType": 256,
+    "measurementKey": 128,
+    "measurementString": 1024,
+    "measurementUnit": 32,
+    "measurementsPerMonitor": 32,
+    "errorMessage": 128,
+    "pipeRequestPayloadBytes": 512,
+    "jsonMaximumDepth": 16
+  },
+  "cli": {
+    "command": "cis-health-probe",
+    "options": [
+      {
+        "name": "--pipe",
+        "required": true
+      },
+      {
+        "name": "--view",
+        "default": "health",
+        "values": [
+          "health",
+          "readiness",
+          "details"
+        ]
+      },
+      {
+        "name": "--timeout-ms",
+        "default": 1000,
+        "minimum": 50,
+        "maximum": 60000
+      },
+      {
+        "name": "--max-report-bytes",
+        "default": 4194304,
+        "minimum": 1024,
+        "maximum": 16777216
+      }
+    ],
+    "exitCodes": {
+      "0": "Complete valid selected healthy/ready result",
+      "1": "Complete valid selected unhealthy/not-ready result",
+      "2": "Usage, connection, framing, validation or reporting failure"
+    },
+    "timeout": "One total monotonic budget across connect/request/response; no internal retry."
+  }
+}

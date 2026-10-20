@@ -1,0 +1,23 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:cis:healthcheck:pipe-request:v1",
+  "title": "CIS Healthcheck v1 pipe request (unpublished HC00 contract)",
+  "type": "object",
+  "required": [
+    "protocolVersion",
+    "view"
+  ],
+  "properties": {
+    "protocolVersion": {
+      "const": 1
+    },
+    "view": {
+      "enum": [
+        "health",
+        "readiness",
+        "details"
+      ]
+    }
+  },
+  "$comment": "Validate 1..512 payload bytes, strict UTF-8, no duplicate names and maximum nesting depth 16 before schema acceptance."
+}

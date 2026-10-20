@@ -1,5 +1,9 @@
 # C# dependency boundaries
 
+## Current Healthcheck amendment — 20 October 2026
+
+The user permits ASP.NET inside the single Core package. `CIS.Core` explicitly references `Microsoft.AspNetCore.App`; HTTP types belong in `CIS.Healthcheck.AspNetCore`. All Core-backed hosts now need that shared framework. The earlier convenience-framework prohibition below is historical for the pre-Healthcheck baseline and no longer applies to this exact approved reference. Unapproved frameworks remain rejected. The two approved NuGet dependencies remain, with Core-only package pruning disabled to retain that established closure. Evaluated explicit/implicit framework metadata, duplicates, required entries, pinned compiler origins and the packed net10.0 framework requirement are checked separately. The [HC00 receipt](../../planning/healthcheck/baseline.json) records actual execution; it does not qualify a release.
+
 Implemented for WP01-S02 on 10 October 2026, applying the user's single `CIS.Core` package and Microsoft-maintained runtime dependency decisions.
 
 ## Dependency directions

@@ -76,7 +76,7 @@ internal sealed class DependencyChecks
             foreach (JsonObject reference in Items(evaluation["Items"]!, "ReferencePath"))
             {
                 string id = Text(reference, "Identity");
-                Require(Equal(Optional(reference, "FrameworkReferenceName"), Text(policy, "implicitFramework")) ||
+                Require(ShippingFrameworks().Contains(Optional(reference, "FrameworkReferenceName"), StringComparer.OrdinalIgnoreCase) ||
                     Approved(runtimeAllowed, Optional(reference, "NuGetPackageId"), Optional(reference, "NuGetPackageVersion")), "Unapproved resolved compiler reference: " + id);
                 allowed.Add(Path.GetFileNameWithoutExtension(id));
             }
@@ -116,11 +116,19 @@ internal sealed class DependencyChecks
         var frameworks = new HashSet<string>(StringComparer.OrdinalIgnoreCase) { Text(policy, "implicitFramework") };
         if (role == "example" && project.ContainsKey("additionalImplicitFrameworkReferences"))
         { frameworks.UnionWith(Strings(project, "additionalImplicitFrameworkReferences")); }
+        var explicitFrameworks = Strings(project, "additionalExplicitFrameworkReferences").ToHashSet(StringComparer.OrdinalIgnoreCase);
+        Require(!frameworks.Overlaps(explicitFrameworks), "Framework reference has both implicit and explicit approval: " + relative);
+        var actualFrameworks = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         foreach (JsonObject reference in Items(items, "FrameworkReference"))
         {
             string id = Text(reference, "Identity");
-            Require(frameworks.Contains(id) && Equal(Optional(reference, "IsImplicitlyDefined"), "true"), "Forbidden framework reference from " + relative + ": " + id);
+            bool implicitReference = Equal(Optional(reference, "IsImplicitlyDefined"), "true");
+            bool explicitReference = Optional(reference, "IsImplicitlyDefined") is "" or "false";
+            Require((frameworks.Contains(id) && implicitReference) || (explicitFrameworks.Contains(id) && explicitReference), "Forbidden framework reference from " + relative + ": " + id);
+            Require(actualFrameworks.Add(id), "Duplicate framework reference: " + id);
         }
+        frameworks.UnionWith(explicitFrameworks);
+        Require(actualFrameworks.SetEquals(frameworks), "Framework reference inventory mismatch: " + relative);
         JsonObject[] manual = Items(items, "Reference").ToArray();
         foreach (JsonObject reference in manual)
         {
@@ -241,6 +249,18 @@ internal sealed class DependencyChecks
             Require(matches.Length == 1 && Equal((string?)item.Attribute("version"), Text(matches[0], "version")), "Unapproved packed dependency: " + (string?)item.Attribute("id") + "/" + (string?)item.Attribute("version"));
         }
         Require(ids.SetEquals(direct.Select(item => Text(item, "id"))), "Packed direct dependency set mismatch.");
+        XElement[] frameworkGroups = spec.Descendants().Where(item => item.Name.LocalName == "frameworkReferences").SelectMany(item => item.Elements()).ToArray();
+        Require(frameworkGroups.Length == 1 && frameworkGroups[0].Name.LocalName == "group" &&
+            Equal((string?)frameworkGroups[0].Attribute("targetFramework"), Text(policy, "targetFramework")), "Packed framework reference group mismatch.");
+        XElement[] frameworkReferences = frameworkGroups[0].Elements().ToArray();
+        var frameworkNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        foreach (XElement reference in frameworkReferences)
+        {
+            string name = (string?)reference.Attribute("name") ?? "";
+            Require(reference.Name.LocalName == "frameworkReference" && frameworkNames.Add(name), "Invalid or duplicate packed framework reference: " + name);
+        }
+        string[] expectedFrameworks = Strings(Items(policy, "projects").Single(project => Text(project, "role") == "shipping"), "additionalExplicitFrameworkReferences");
+        Require(frameworkNames.SetEquals(expectedFrameworks), "Packed framework reference inventory mismatch.");
         string packed = Path.Combine(reports, "CIS.Core-" + Guid.NewGuid().ToString("N") + ".dll");
         using (Stream input = archive.GetEntry("lib/net10.0/CIS.Core.dll")!.Open())
         using (Stream output = File.Create(packed)) { input.CopyTo(output); }
@@ -265,6 +285,10 @@ internal sealed class DependencyChecks
         return JsonNode.Parse(result.StandardOutput)!.AsObject();
     }
     private Task<ProcessResult> Run(IEnumerable<string> args) => ProcessRunner.RunAsync("dotnet", args, language, TimeSpan.FromMinutes(2));
+    private IEnumerable<string> ShippingFrameworks() =>
+        new[] { Text(policy, "implicitFramework") }.Concat(Strings(
+            Items(policy, "projects").Single(project => Text(project, "role") == "shipping"),
+            "additionalExplicitFrameworkReferences"));
     private string Absolute(string path) => FullPath(path, language);
     private static string FullPath(string path, string root) => Path.GetFullPath(path.Replace('\\', Path.DirectorySeparatorChar), root);
     private static JsonObject Read(string path) => JsonNode.Parse(File.ReadAllText(path))!.AsObject();

@@ -17,9 +17,12 @@
     <Description>CisLib multi-module core library with bounded logging and Microsoft ILogger integration.</Description>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <EnablePackageValidation>true</EnablePackageValidation>
+    <!-- Retain the explicitly approved package closure alongside the approved ASP.NET shared framework. -->
+    <RestoreEnablePackagePruning>false</RestoreEnablePackagePruning>
     <PackageReadmeFile>README.md</PackageReadmeFile>
   </PropertyGroup>
   <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
     <InternalsVisibleTo Include="CIS.Core.UnitTests" />
     <InternalsVisibleTo Include="CIS.Core.ArchitectureTests" />
     <InternalsVisibleTo Include="CIS.Core.DiscoveryFixture" />

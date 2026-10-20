@@ -95,3 +95,11 @@ planning/evidence/corrective-microsoft-logging-bundle-migration-2026-10-19/*.jso
 planning/evidence/corrective-microsoft-logging-bundle-migration-2026-10-19/*.trx -text -whitespace
 planning/evidence/corrective-microsoft-logging-bundle-migration-2026-10-19/*.bin -text -whitespace
 planning/evidence/corrective-microsoft-logging-bundle-migration-2026-10-19/*.sha256 -text -whitespace
+
+# Preserve Healthcheck's frozen sources, native evidence and byte-pinned inputs.
+# Markdown hard-break spaces in the supplied documents are intentional.
+planning/healthcheck/** -text whitespace=-blank-at-eol,cr-at-eol
+conformance/healthcheck/common/** -text whitespace=cr-at-eol
+implementations/csharp/verification/contracts/healthcheck/** -text whitespace=cr-at-eol
+implementations/csharp/eng/project-boundaries.json -text whitespace=cr-at-eol
+planning/logging/plan-amendments.md -text whitespace=cr-at-eol

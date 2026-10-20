@@ -83,6 +83,7 @@ internal static class ProviderHostFilterFixture
             leaseReleased = true;
         }
         JsonObject report = Common(mode);
+        report["factoryAssemblyPath"] = typeof(LoggerFactory).Assembly.Location;
         report["factoryVersion"] = System.Diagnostics.FileVersionInfo.GetVersionInfo(typeof(LoggerFactory).Assembly.Location).FileVersion;
         report["factorySha256"] = Convert.ToHexStringLower(System.Security.Cryptography.SHA256.HashData(File.ReadAllBytes(typeof(LoggerFactory).Assembly.Location)));
         report["coreDebug"] = coreDebug;

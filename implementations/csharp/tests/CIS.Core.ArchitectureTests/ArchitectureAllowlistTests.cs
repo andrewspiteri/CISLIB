@@ -44,6 +44,11 @@ public sealed class ArchitectureAllowlistTests
     [DataRow("missing-runtime", "ARCH-PACKAGE-CLOSURE")]
     [DataRow("version", "ARCH-PACKAGE-VERSION")]
     [DataRow("framework", "ARCH-FRAMEWORK")]
+    [DataRow("missing-framework", "ARCH-FRAMEWORK")]
+    [DataRow("duplicate-framework", "ARCH-FRAMEWORK")]
+    [DataRow("forged-implicit-framework", "ARCH-FRAMEWORK")]
+    [DataRow("framework-origin", "ARCH-COMPILER-ORIGIN")]
+    [DataRow("framework-version", "ARCH-COMPILER-ORIGIN")]
     [DataRow("project", "ARCH-PROJECT-REFERENCE")]
     [DataRow("build-only", "ARCH-BUILD-ONLY")]
     [DataRow("restored-project", "ARCH-RESTORED-PROJECT")]
@@ -55,6 +60,10 @@ public sealed class ArchitectureAllowlistTests
     [DataRow("type-use", "ARCH-TYPE-DEPENDENCY")]
     [DataRow("packed-origin", "ARCH-PACKED-ORIGIN")]
     [DataRow("package-group", "ARCH-PACKAGE-GROUP")]
+    [DataRow("missing-package-framework", "ARCH-PACKAGE-FRAMEWORK")]
+    [DataRow("changed-package-framework", "ARCH-PACKAGE-FRAMEWORK")]
+    [DataRow("duplicate-package-framework", "ARCH-PACKAGE-FRAMEWORK")]
+    [DataRow("wrong-package-framework-target", "ARCH-PACKAGE-FRAMEWORK")]
     [DataRow("framework-download", "ARCH-FRAMEWORK-DOWNLOAD")]
     [DataRow("manual-reference", "ARCH-MANUAL-REFERENCE")]
     [DataRow("host-reference", "ARCH-SDK-REFERENCE")]
@@ -79,7 +88,17 @@ public sealed class ArchitectureAllowlistTests
                 rid["packages"]!.AsArray().Add(new JsonObject { ["id"] = "NLog", ["version"] = "5.0.0" }); break;
             case "missing-runtime": target["packages"]!.AsArray().RemoveAt(0); break;
             case "version": target["packages"]![0]!["version"] = "10.0.13"; break;
-            case "framework": items["FrameworkReference"]![0]!["Identity"] = "Microsoft.AspNetCore.App"; break;
+            case "framework": items["FrameworkReference"]![0]!["Identity"] = "Unapproved.Framework"; break;
+            case "missing-framework":
+                items["FrameworkReference"]!.AsArray().Remove(items["FrameworkReference"]!.AsArray().Single(item => item!["Identity"]!.GetValue<string>() == "Microsoft.AspNetCore.App")); break;
+            case "duplicate-framework":
+                items["FrameworkReference"]!.AsArray().Add(items["FrameworkReference"]![0]!.DeepClone()); break;
+            case "forged-implicit-framework":
+                items["FrameworkReference"]!.AsArray().Single(item => item!["Identity"]!.GetValue<string>() == "Microsoft.AspNetCore.App")!["IsImplicitlyDefined"] = "true"; break;
+            case "framework-origin":
+                items["ReferencePath"]!.AsArray().OfType<JsonObject>().First(item => item["FrameworkReferenceName"]?.GetValue<string>() == "Microsoft.AspNetCore.App")["Identity"] = typeof(ArchitectureAllowlistTests).Assembly.Location; break;
+            case "framework-version":
+                items["ReferencePath"]!.AsArray().OfType<JsonObject>().First(item => item["FrameworkReferenceName"]?.GetValue<string>() == "Microsoft.AspNetCore.App")["NuGetPackageVersion"] = "10.0.13"; break;
             case "project": items["ProjectReference"]!.AsArray().Add(new JsonObject { ["Identity"] = "../../tests/CIS.Core.UnitTests/CIS.Core.UnitTests.csproj" }); break;
             case "build-only": items["ProjectReference"]![0]!["ReferenceOutputAssembly"] = "true"; break;
             case "restored-project":
@@ -89,15 +108,31 @@ public sealed class ArchitectureAllowlistTests
             case "compiler-origin": items["ReferencePath"]![0]!["Identity"] = typeof(ArchitectureAllowlistTests).Assembly.Location; break;
             case "development-tool-origin": Target(Project(report, "eng/CIS.Discovery.TestLogger/CIS.Discovery.TestLogger.csproj"))["items"]!["ReferencePath"]![0]!["Identity"] = typeof(ArchitectureAllowlistTests).Assembly.Location; break;
             case "wrong-target-asset":
-                JsonObject packageReference = items["ReferencePath"]!.AsArray().OfType<JsonObject>().First(item => item["NuGetPackageId"]?.GetValue<string>() == "Microsoft.Extensions.Logging.Abstractions");
-                string original = packageReference["Identity"]!.GetValue<string>();
-                packageReference["Identity"] = Path.Combine(Path.GetDirectoryName(Path.GetDirectoryName(original))!, "netstandard2.0", Path.GetFileName(original));
-                packageReference["PathInPackage"] = "lib/netstandard2.0/Microsoft.Extensions.Logging.Abstractions.dll"; break;
+                const string packageId = "Microsoft.Extensions.Logging.Abstractions";
+                const string wrongAsset = "lib/netstandard2.0/Microsoft.Extensions.Logging.Abstractions.dll";
+                JsonObject compilerReference = items["ReferencePath"]!.AsArray().OfType<JsonObject>().Single(item => item["AssemblyName"]?.GetValue<string>() == packageId);
+                string version = compilerReference["NuGetPackageVersion"]!.GetValue<string>();
+                JsonObject compileAssets = target["graph"]![packageId + "/" + version]!["compile"]!.AsObject();
+                Assert.IsTrue(compileAssets.ContainsKey("lib/net10.0/Microsoft.Extensions.Logging.Abstractions.dll"));
+                Assert.IsFalse(compileAssets.ContainsKey(wrongAsset));
+                JsonObject restoredAssets = JsonNode.Parse(File.ReadAllText(core["assets"]!["path"]!.GetValue<string>()))!.AsObject();
+                string wrongPath = restoredAssets["packageFolders"]!.AsObject()
+                    .Select(folder => Path.Combine(folder.Key, packageId.ToLowerInvariant(), version, wrongAsset))
+                    .First(File.Exists);
+                // ASP.NET supplies the actual compiler reference; replace its origin with a real but unselected package asset.
+                compilerReference["Identity"] = wrongPath;
+                compilerReference["FrameworkReferenceName"] = "";
+                compilerReference["NuGetPackageId"] = packageId;
+                compilerReference["PathInPackage"] = wrongAsset; break;
             case "compiled-token": assembly["facts"]!["references"]![0]!["publicKeyOrToken"] = "0000000000000000"; break;
-            case "compiled-host": assembly["facts"]!["references"]!.AsArray().Add(new JsonObject { ["name"] = "Microsoft.Extensions.Hosting", ["version"] = "10.0.0.0", ["culture"] = "", ["publicKeyOrToken"] = "adb9793829ddae60", ["flags"] = "0" }); break;
+            case "compiled-host": assembly["facts"]!["references"]!.AsArray().Add(new JsonObject { ["name"] = "Unapproved.Host.Infrastructure", ["version"] = "10.0.0.0", ["culture"] = "", ["publicKeyOrToken"] = "adb9793829ddae60", ["flags"] = "0" }); break;
             case "type-use": assembly["facts"]!["typeUses"]!.AsArray().Add(new JsonObject { ["Assembly"] = "NLog", ["Site"] = "controlled fixture", ["Type"] = "NLog.Logger" }); break;
             case "packed-origin": assembly["project"] = "tests/CIS.Core.UnitTests/CIS.Core.UnitTests.csproj"; break;
             case "package-group": report["packageDependencyGroups"]![0]!["dependencies"]!.AsArray().Add(new JsonObject { ["id"] = "Microsoft.Extensions.Logging", ["version"] = "10.0.12" }); break;
+            case "missing-package-framework": report["packageFrameworkReferences"]!.AsArray().Clear(); break;
+            case "changed-package-framework": report["packageFrameworkReferences"]![0]!["names"]![0] = "Unapproved.Framework"; break;
+            case "duplicate-package-framework": report["packageFrameworkReferences"]![0]!["names"]!.AsArray().Add("Microsoft.AspNetCore.App"); break;
+            case "wrong-package-framework-target": report["packageFrameworkReferences"]![0]!["targetFramework"] = "net9.0"; break;
             case "framework-download": core["restoreFrameworks"]!["net10.0"]!["downloadDependencies"] = new JsonArray(new JsonObject { ["name"] = "unapproved.runtime", ["version"] = "[1.0.0, 1.0.0]" }); break;
             case "manual-reference": items["Reference"]!.AsArray().Add(new JsonObject { ["Identity"] = "NLog", ["HintPath"] = typeof(ArchitectureAllowlistTests).Assembly.Location }); break;
             case "host-reference":

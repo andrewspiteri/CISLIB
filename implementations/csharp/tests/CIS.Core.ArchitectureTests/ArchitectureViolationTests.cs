@@ -170,10 +170,10 @@ internal sealed class ArchitectureViolationFixture : IDisposable
         {
             case "project-inventory": Write("shadow/Shadow.csproj", "<Project Sdk=\"Microsoft.NET.Sdk\" />"); break;
             case "framework":
-                // Keep the normal locked package closure; let the architecture checker diagnose the forbidden framework.
-                AddProjectProperty("RestoreEnablePackagePruning", "false");
-                AddProjectItem(new XElement("FrameworkReference", new XAttribute("Include", "Microsoft.AspNetCore.App")));
-                await RestoreAsync(locked: false); await BuildAndPackAsync(); break;
+                string projectPath = PathAt("src/CIS.Core/CIS.Core.csproj");
+                XDocument project = XDocument.Load(projectPath);
+                project.Descendants("FrameworkReference").Single().SetAttributeValue("IsImplicitlyDefined", "true");
+                project.Save(projectPath); break;
             case "private-runtime-package":
                 AddProjectItem(new XElement("PackageReference", new XAttribute("Include", "Microsoft.Extensions.Logging"), new XAttribute("PrivateAssets", "all")));
                 await RestoreAsync(locked: false); await BuildAndPackAsync(); break;

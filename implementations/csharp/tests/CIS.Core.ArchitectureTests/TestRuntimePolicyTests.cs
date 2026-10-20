@@ -20,8 +20,15 @@ public sealed class TestRuntimePolicyTests
         string configPath = Path.Combine(AppContext.BaseDirectory, typeof(TestRuntimePolicyTests).Assembly.GetName().Name + ".runtimeconfig.json");
         using JsonDocument config = JsonDocument.Parse(File.ReadAllText(configPath));
         JsonElement options = config.RootElement.GetProperty("runtimeOptions");
-        Assert.AreEqual("Microsoft.NETCore.App", options.GetProperty("framework").GetProperty("name").GetString());
-        Assert.AreEqual(runtime, options.GetProperty("framework").GetProperty("version").GetString());
+        Assert.IsFalse(options.TryGetProperty("framework", out _), "Core-backed tests require both approved shared frameworks.");
+        JsonElement[] frameworks = options.GetProperty("frameworks").EnumerateArray().ToArray();
+        Assert.AreEqual(2, frameworks.Length);
+        CollectionAssert.AreEquivalent(new[] { "Microsoft.NETCore.App", "Microsoft.AspNetCore.App" },
+            frameworks.Select(framework => framework.GetProperty("name").GetString()).ToArray());
+        foreach (JsonElement framework in frameworks)
+        {
+            Assert.AreEqual(runtime, framework.GetProperty("version").GetString());
+        }
         Assert.AreEqual("Disable", options.GetProperty("rollForward").GetString());
     }
 }

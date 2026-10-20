@@ -66,6 +66,9 @@
     {
       "path": "src/CIS.Core/CIS.Core.csproj",
       "role": "shipping",
+      "additionalExplicitFrameworkReferences": [
+        "Microsoft.AspNetCore.App"
+      ],
       "projectReferences": [
         "eng/CIS.TypeManager.Build/CIS.TypeManager.Build.csproj"
       ],
@@ -299,6 +302,43 @@
       "packageReferences": [],
       "sdkAssemblyReferences": [
         "Microsoft.VisualStudio.TestPlatform.ObjectModel"
+      ]
+    },
+    {
+      "path": "verification/contracts/healthcheck/Reference/Reference.csproj",
+      "role": "example",
+      "packageReferences": [],
+      "additionalExplicitFrameworkReferences": [
+        "Microsoft.AspNetCore.App"
+      ],
+      "purpose": "Nonshipping HC00 compile-only reference facade",
+      "projectReferences": [
+        "src/CIS.Core/CIS.Core.csproj"
+      ],
+      "frameworkProvidedRuntimePackages": [
+        "Microsoft.Extensions.Logging.Abstractions",
+        "Microsoft.Extensions.DependencyInjection.Abstractions"
+      ]
+    },
+    {
+      "path": "verification/contracts/healthcheck/Consumer/Consumer.csproj",
+      "role": "example",
+      "packageReferences": [],
+      "additionalExplicitFrameworkReferences": [
+        "Microsoft.AspNetCore.App"
+      ],
+      "purpose": "Nonshipping HC00 compile-only usage consumer",
+      "projectReferences": [
+        "src/CIS.Core/CIS.Core.csproj",
+        "verification/contracts/healthcheck/Reference/Reference.csproj"
+      ],
+      "restoredProjectReferences": [
+        "src/CIS.Core/CIS.Core.csproj",
+        "verification/contracts/healthcheck/Reference/Reference.csproj"
+      ],
+      "frameworkProvidedRuntimePackages": [
+        "Microsoft.Extensions.Logging.Abstractions",
+        "Microsoft.Extensions.DependencyInjection.Abstractions"
       ]
     }
   ],

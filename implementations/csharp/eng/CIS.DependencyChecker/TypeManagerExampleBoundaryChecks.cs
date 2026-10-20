@@ -47,10 +47,10 @@ internal static class TypeManagerExampleBoundaryChecks
             await input.Run(name, [tool, "dependencies", isolated, project, "-", "-", "-"], isolated, expectedError: error);
             Passed(name, error);
         }
-        void Framework(string path, bool implicitReference = false)
+        void Framework(string path, bool implicitReference = false, string name = "Microsoft.AspNetCore.App")
         {
             XDocument document = XDocument.Load(path);
-            var reference = new XElement("FrameworkReference", new XAttribute("Include", "Microsoft.AspNetCore.App"));
+            var reference = new XElement("FrameworkReference", new XAttribute("Include", name));
             if (implicitReference) { reference.SetAttributeValue("IsImplicitlyDefined", "true"); }
             document.Root!.Add(new XElement("ItemGroup", reference));
             document.Save(path);
@@ -64,7 +64,16 @@ internal static class TypeManagerExampleBoundaryChecks
             {
                 string path = Path.Combine(isolated, project);
                 byte[] original = File.ReadAllBytes(path);
-                try { Framework(path); await Check("reject-framework-" + Path.GetFileNameWithoutExtension(project), project, Error(project)); }
+                try
+                {
+                    if (project == "src/CIS.Core/CIS.Core.csproj")
+                    {
+                        Framework(path, name: "Unapproved.Framework");
+                        await Check("reject-framework-" + Path.GetFileNameWithoutExtension(project), project,
+                            "Forbidden framework reference from " + project + ": Unapproved.Framework");
+                    }
+                    else { Framework(path); await Check("reject-framework-" + Path.GetFileNameWithoutExtension(project), project, Error(project)); }
+                }
                 finally { File.WriteAllBytes(path, original); }
             }
             string policyPath = Path.Combine(isolated, "eng/project-boundaries.json");
@@ -84,8 +93,13 @@ internal static class TypeManagerExampleBoundaryChecks
                 try
                 {
                     JsonObject policy = Read(policyPath);
-                    policy["projects"]!.AsArray().Single(row => (string?)row!["path"] == project)!["additionalImplicitFrameworkReferences"] = new JsonArray("Microsoft.AspNetCore.App");
+                    JsonObject projectRule = policy["projects"]!.AsArray().Single(row => (string?)row!["path"] == project)!.AsObject();
+                    projectRule["additionalImplicitFrameworkReferences"] = new JsonArray("Microsoft.AspNetCore.App");
+                    projectRule.Remove("additionalExplicitFrameworkReferences");
                     WriteJson(policyPath, policy);
+                    XDocument document = XDocument.Load(path);
+                    document.Descendants("FrameworkReference").Where(reference => (string?)reference.Attribute("Include") == "Microsoft.AspNetCore.App").Remove();
+                    document.Save(path);
                     Framework(path, implicitReference: true);
                     await Check("reject-policy-" + Path.GetFileNameWithoutExtension(project), project, Error(project));
                     if (project == "src/CIS.Core/CIS.Core.csproj")

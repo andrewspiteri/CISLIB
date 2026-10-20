@@ -102,11 +102,13 @@ public sealed class DependencyMigrationTests
         using var fixture = new ProjectFixture(Language);
         string path = Path.Combine(fixture.Path, "src/CIS.Core/CIS.Core.csproj");
         XDocument project = XDocument.Load(path);
+        project.Descendants("FrameworkReference").Where(reference => (string?)reference.Attribute("Include") == "Microsoft.AspNetCore.App").Remove();
         project.Root!.Add(new XElement("ItemGroup", new XElement("FrameworkReference", new XAttribute("Include", "Microsoft.AspNetCore.App"), new XAttribute("IsImplicitlyDefined", "true"))));
         project.Save(path);
         string policyPath = Path.Combine(fixture.Path, "eng/project-boundaries.json");
         JsonObject policy = JsonNode.Parse(File.ReadAllText(policyPath))!.AsObject();
         JsonNode core = policy["projects"]!.AsArray().Single(item => (string?)item!["role"] == "shipping")!;
+        core.AsObject().Remove("additionalExplicitFrameworkReferences");
         core["additionalImplicitFrameworkReferences"] = new JsonArray("Microsoft.AspNetCore.App");
         File.WriteAllText(policyPath, policy.ToJsonString());
         string assets = Path.Combine(fixture.Path, "src/CIS.Core/obj/project.assets.json");

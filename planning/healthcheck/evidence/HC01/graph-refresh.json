@@ -1,0 +1,75 @@
+{
+  "schema": "cis.healthcheck.hc01-graph-refresh/v1-development",
+  "recordedUtc": "2026-10-20T21:05:21.7835586Z",
+  "manifestSchema": 2,
+  "buildId": "sha256:697123fbd9fe95b283eb60fb37a2cf80611b64aed8a87572c23e14f00206759c",
+  "status": "valid",
+  "freshness": "fresh",
+  "nodes": 13962,
+  "edges": 71921,
+  "errors": 0,
+  "warnings": 0,
+  "extractors": [
+    "cis.catalog/1",
+    "cis.markdown.repository-profile/1",
+    "cis.markdown.reference-table/2",
+    "cis.markdown.governance-link/1",
+    "cis.markdown.api-governance/1",
+    "cis.api.state/1",
+    "cis.tracker.state/1",
+    "cis.markdown.decisions/1",
+    "cis.repository-files/1",
+    "cis.source-declarations/2",
+    "cis.csharp.compiler/6",
+    "cis.csharp.semantic-facts/3",
+    "cis.test-declarations/2",
+    "cis.project-dependencies/1",
+    "cis.github-actions/1",
+    "frontend-context/4"
+  ],
+  "compilerCapabilities": {
+    "compiler": "cis.csharp.compiler/6",
+    "semanticFacts": "cis.csharp.semantic-facts/3",
+    "symbols": 9221,
+    "referencedSymbols": 606,
+    "annotations": 4596,
+    "interfaceFacts": 356,
+    "calls": 28587,
+    "limits": "Invocation arguments are privacy-safe shapes; intraprocedural semantic/call facts do not establish runtime outcomes or complete integration coverage."
+  },
+  "runtimeInputs": {
+    "path": "planning/healthcheck/evidence/HC01/runtime-inputs.json",
+    "sha256": "147e06cc98acb3ced9f377ce685c192e04e166c92a6ab6c21834be88591317e0"
+  },
+  "build": {
+    "path": ".artifacts/healthcheck/HC01/graph-build.log",
+    "sha256": "e3fe42c8815b6a9f191429cda8938e7a3bbb53d87790d1ae8c0c1ba725b5f3bf"
+  },
+  "statusReport": {
+    "path": ".artifacts/healthcheck/HC01/graph-status.log",
+    "sha256": "ce676083fd2e21904d9637be7633bf220afe7eab6348ba6fe6d76fc794c27bc9"
+  },
+  "query": {
+    "root": "cislib::symbol::cis-core/project/implementations%2Fcsharp%2Fsrc%2FCIS.Core%2FCIS.Core.csproj/csharp/class/CIS.Healthcheck.HealthcheckService",
+    "result": {
+      "path": ".artifacts/healthcheck/HC01/graph-find-service-exact.log",
+      "sha256": "e58b06a8937b89d3e0a2c8991adcf64ba212ee8b0aa1b4d1b91251e7eb8b4c7f"
+    },
+    "exactRootMatches": 1,
+    "exactRootTruncated": false,
+    "broadTextQuery": {
+      "path": ".artifacts/healthcheck/HC01/graph-find-service-symbols.log",
+      "sha256": "1cce59267a46f57e1d0e805f38aa743e28332f54030fa986741cafe7fe598636"
+    },
+    "broadTextLimit": 5,
+    "broadTextTruncated": true,
+    "initialKindQuery": "A class kind filter returned no match; class is the symbol subtype. The exact symbol ID then matched the canonical Core file at line 7."
+  },
+  "omissions": [
+    "planning",
+    "implementations/csharp/verification",
+    "implementations/csharp/tests/fixtures/DiscoveryHost/historical",
+    "No complete test-binding or native coverage claim from the graph; actual native reports remain completion evidence"
+  ],
+  "graphStateManuallyEdited": false
+}
