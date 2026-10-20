@@ -1,4 +1,5 @@
 using System.Text.Json.Nodes;
+using CIS.TestSupport;
 using CIS.Verification;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -15,7 +16,7 @@ public sealed class ArchitectureAllowlistTests
         if (!string.IsNullOrWhiteSpace(inspection))
         { return JsonNode.Parse(File.ReadAllText(inspection))!.AsObject(); }
         string repository = Directory.GetParent(Directory.GetParent(Root)!.FullName)!.FullName;
-        string reports = Path.Combine(repository, ".artifacts/csharp/verification/Developer");
+        string reports = VerificationCheckpoint.Root(repository);
         JsonObject summary = JsonNode.Parse(File.ReadAllText(Path.Combine(reports, "summary.json")))!.AsObject();
         return JsonNode.Parse(File.ReadAllText(Path.Combine(reports, summary["architectureInspection"]!["path"]!.GetValue<string>())))!.AsObject();
     }

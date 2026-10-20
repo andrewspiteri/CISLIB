@@ -14,6 +14,39 @@ public sealed class FlushBoundaryTests
 {
     private static readonly TimeSpan Limit = TimeSpan.FromSeconds(10);
     private static TaskCompletionSource Signal() => new(TaskCreationOptions.RunContinuationsAsynchronously);
+
+    [TestMethod]
+    public async Task AFlushOnlyCancellableOutputReceivesAndObservesIoCancellation()
+    {
+        var entered = new TaskCompletionSource<CancellationToken>(TaskCreationOptions.RunContinuationsAsynchronously);
+        TaskCompletionSource cancelled = Signal(), release = Signal();
+        async ValueTask Flush(CancellationToken token)
+        {
+            using CancellationTokenRegistration registration = token.Register(() => cancelled.TrySetResult());
+            entered.TrySetResult(token);
+            await release.Task;
+        }
+        var queue = new OutputEventQueue(1, _ => ValueTask.CompletedTask, cancellableFlush: Flush);
+        try
+        {
+            OutputFlushBoundary boundary = queue.RegisterFlushBoundary();
+            CancellationToken token = await entered.Task.WaitAsync(Limit);
+            Assert.IsTrue(token.CanBeCanceled);
+            Assert.IsFalse(token.IsCancellationRequested);
+            queue.RequestIoCancellation();
+            await cancelled.Task.WaitAsync(Limit);
+            Assert.IsTrue(token.IsCancellationRequested);
+            release.TrySetResult();
+            Assert.IsTrue(await boundary.Registration.WriterFlushCompletion.WaitAsync(Limit));
+        }
+        finally
+        {
+            release.TrySetResult();
+            queue.Complete();
+            await queue.Completion.WaitAsync(Limit);
+        }
+    }
+
     [TestMethod]
     [DataRow("empty")]
     [DataRow("both")]

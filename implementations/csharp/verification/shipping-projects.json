@@ -1,12 +1,22 @@
 {
   "schema": "cis.csharp.shipping-verification-matrix/v1",
-  "scope": "Explicit module wiring; task observations are not full release matrix qualification.",
+  "scope": "Shipping assembly inventory and explicit module wiring. Native execution and release disposition are recorded separately.",
   "shippingProjects": [
     {
       "project": "src/CIS.Core/CIS.Core.csproj",
       "packageId": "CIS.Core",
+      "packageEntry": "lib/net10.0/CIS.Core.dll",
       "assembly": "CIS.Core.dll",
       "targetFramework": "net10.0",
+      "sourceRoot": "src/CIS.Core",
+      "mutation": {
+        "command": "core-mutation",
+        "config": "verification/mutation/core-release-config.json",
+        "mutationLevel": "Complete",
+        "strictThreshold": 90,
+        "testProjects": ["tests/CIS.Core.UnitTests/CIS.Core.UnitTests.csproj"],
+        "requiredLanes": ["windows-x64", "linux-ubuntu2404-x64"]
+      },
       "moduleSlices": [
         {
           "id": "logging-microsoft",
@@ -48,7 +58,24 @@
           "releaseExecution": "Pending WP07 full shipping matrix, thresholds/exclusion review and both recorded lanes."
         }
       ]
+    },
+    {
+      "project": "eng/CIS.TypeManager.Build/CIS.TypeManager.Build.csproj",
+      "packageId": "CIS.Core",
+      "packageEntry": "tools/net10.0/CIS.TypeManager.Build.dll",
+      "assembly": "CIS.TypeManager.Build.dll",
+      "targetFramework": "net10.0",
+      "sourceRoot": "eng/CIS.TypeManager.Build",
+      "mutation": {
+        "command": "build-helper-mutation",
+        "config": "verification/mutation/build-helper-config.json",
+        "mutationLevel": "Complete",
+        "strictThreshold": 90,
+        "testSources": ["verification/mutation/build-helper/WriteTypeInventoryTests.cs"],
+        "requiredLanes": ["windows-x64", "linux-ubuntu2404-x64"]
+      },
+      "moduleSlices": []
     }
   ],
-  "otherModuleScope": "This addition inventories the Microsoft adapter slice only. Separately maintained module matrices, including Type Manager, remain authoritative for their own scope; this is not a replacement complete shipping inventory."
+  "otherModuleScope": "The shipping inventory includes both DLLs in the single CIS.Core package. Module-specific matrices and source-bound compiler/filter/child-process dispositions remain authoritative; listing an assembly does not qualify its execution."
 }

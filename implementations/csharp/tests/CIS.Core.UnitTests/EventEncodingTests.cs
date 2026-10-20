@@ -11,7 +11,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 namespace CIS.Tests.UnitTests;
 
 [TestClass]
-public sealed class EventEncodingTests
+public sealed partial class EventEncodingTests
 {
     private const int Minimum = 16384;
 

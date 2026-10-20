@@ -206,6 +206,21 @@ public sealed class TypeManagerCatalogTests
         if (list.Count > 0) { Assert.Throws<NotSupportedException>(() => list[0] = values[0]); }
     }
 
+    [TestMethod]
+    public async Task WarmImplementationQueriesAvoidRepeatedCatalogSizedAllocations()
+    {
+        ITypeManager manager = await Create();
+        Assert.IsTrue(manager.Types.Count >= 64, "The allocation control needs a substantial real catalog.");
+        IReadOnlyList<Type> observed = manager.GetImplementations<object>();
+        for (int warmup = 0; warmup < 32; warmup++) { observed = manager.GetImplementations<object>(); }
+        long before = GC.GetAllocatedBytesForCurrentThread();
+        for (int query = 0; query < 256; query++) { observed = manager.GetImplementations<object>(); }
+        long allocated = GC.GetAllocatedBytesForCurrentThread() - before;
+        GC.KeepAlive(observed);
+        Console.WriteLine($"CIS warm query allocation: {allocated} bytes across 256 queries, {manager.Types.Count} catalog definitions.");
+        Assert.IsTrue(allocated <= 131072, $"Warm queries allocated {allocated} bytes; cached results must not be rebuilt for every call.");
+    }
+
     private Task<ITypeManager> Create() => TypeManager.CreateAsync(new TypeManagerOptions(Host) { AssemblyManifestPath = manifest });
     private static void AssertOrder(IReadOnlyList<Type> types) => CollectionAssert.AreEqual(
         types.OrderBy(type => type.AssemblyQualifiedName, StringComparer.Ordinal).ToArray(), types.ToArray());

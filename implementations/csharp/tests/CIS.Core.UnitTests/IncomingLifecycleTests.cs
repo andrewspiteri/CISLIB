@@ -140,11 +140,16 @@ public sealed class IncomingLifecycleTests
     public async Task FixedBatchReportsStaleTargetsWithoutDoubleCountingAndLaterTrafficCannotExtendIt()
     {
         var start = Signal(); var entered = Signal(); var release = Signal();
+        var laterEntered = Signal(); var laterRelease = Signal();
         var clock = new ManualTimeProvider(DateTimeOffset.UnixEpoch); var writer = new Writer();
         var runtime = Create(writer, clock, start.Task, processing: new()
         {
             Interceptors = [value =>
-            { if (value.Message == "one") { entered.TrySetResult(); release.Task.WaitAsync(Limit).GetAwaiter().GetResult(); } return new(); }]
+            {
+                if (value.Message == "one") { entered.TrySetResult(); release.Task.WaitAsync(Limit).GetAwaiter().GetResult(); }
+                if (value.Message == "four") { laterEntered.TrySetResult(); laterRelease.Task.WaitAsync(Limit).GetAwaiter().GetResult(); }
+                return new();
+            }]
         });
         try
         {
@@ -164,10 +169,15 @@ public sealed class IncomingLifecycleTests
             Assert.AreEqual(2L, full.Outputs.Single().AcceptedSequenceBoundary, "Later batches cannot extend writer coverage.");
             Assert.AreEqual(1L, runtime.GetDiagnostics().Incoming!.Evicted, "Stale classification adds no lifetime eviction.");
             Assert.AreEqual(2L, partial.FrontendBatch.Pending, "The timeout snapshot stays immutable.");
-            LogFlushResult later = await runtime.FlushAsync(Limit, CancellationToken.None).WaitAsync(Limit);
+            await laterEntered.Task.WaitAsync(Limit);
+            // The later batch must not overrun the independent writer queue while its old boundary drains.
+            Task<LogFlushResult> laterWait = runtime.FlushAsync(Limit, CancellationToken.None);
+            laterRelease.TrySetResult();
+            LogFlushResult later = await laterWait.WaitAsync(Limit);
+            Assert.AreEqual(0L, later.Incoming!.RejectedByWriters);
             Assert.IsTrue(later.Succeeded); Assert.IsTrue(later.LossObserved);
         }
-        finally { start.TrySetResult(); release.TrySetResult(); await runtime.DisposeAsync(); }
+        finally { start.TrySetResult(); release.TrySetResult(); laterRelease.TrySetResult(); await runtime.DisposeAsync(); }
     }
 
     [TestMethod]

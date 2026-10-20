@@ -60,4 +60,15 @@ public sealed class IncomingBatchIndexTests
         Assert.AreSame(minimum, sorted.At(0).Item); Assert.AreSame(middle, sorted.At(1).Item); Assert.AreSame(maximum, sorted.At(2).Item);
         Assert.AreEqual(0L, minimum.CreationTimestamp); Assert.AreEqual(DateTimeOffset.MaxValue.UtcTicks, maximum.CreationTimestamp);
     }
+
+    [TestMethod]
+    public void EqualCreationTimesUsePhysicalSlotOrderBeyondSmallSorts()
+    {
+        var ring = new IncomingRingBuffer(64, new LoggingOptions());
+        for (int slot = 0; slot < 64; slot++) { ring.Exchange(slot, Event(slot, 42), 1); }
+        var index = new IncomingBatchIndex(64); index.Capture(ring);
+        Assert.AreEqual(64, index.Count);
+        for (int slot = 0; slot < 64; slot++)
+        { Assert.AreEqual(slot, index.At(slot).Slot); Assert.AreSame(ring.Read(slot), index.At(slot).Item); }
+    }
 }

@@ -1,0 +1,319 @@
+{
+  "publicationRows": 0,
+  "historyStatus": "NoHistoricalPublications",
+  "scope": "Unpublished provider fixture qualification; not historical compatibility or full release",
+  "completed": true,
+  "historicalComparisons": 0,
+  "coreSha256": "d51193aa33d82b0cc802a02476868980d40e63cc4d836c4491ebe972a5de4e22",
+  "sourceInputs": [
+    {
+      "path": "Consumer.csproj.template",
+      "sha256": "324c35d3d46461949bf1b04b9b5681a48db7c4fb9a1bf2818c8a0f4b6bd6ecfe"
+    },
+    {
+      "path": "api-contract.json",
+      "sha256": "a6970365433d0462ce60823ef0266ad0033e9c306fb4f350b7fb9bcb901b16a5"
+    },
+    {
+      "path": "source/Program.cs",
+      "sha256": "edf442026688cfe27ea4cd030fb48ae72faf1144e076ff8eba4750e485942f6c"
+    }
+  ],
+  "runnerSha256": "4aef858b2c90b443471661833295c868e6805a452fe37fa90aa4e19020b57c61",
+  "wrapperSha256": "c9828c0c34131a1e49c58d5dc25156de9a6cac707c85a57632586c1cf5539b51",
+  "toolSha256": "6b34b78aa124e62065a24051336f576b3437b80feff2c903d1d695a53932bdbe",
+  "toolchainSha256": "a464dc9d598100aea5fbb99b4c7e2832a4ea9d4c91390047ca93b3d9f2c39d70",
+  "ledgerSha256": "50d551eea25133497208999dca619c71a96b147aa19f05c1af0742a5ca803a76",
+  "results": [
+    {
+      "id": "Source",
+      "passed": true,
+      "actual": {
+        "contract": "passed",
+        "records": 3,
+        "core": {
+          "path": "/home/user/cislib-verification/release-82540222-20261019/linux-provider-compatibility/source/bin/Release/net10.0/CIS.Core.dll",
+          "identity": "CIS.Core, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null",
+          "sha256": "d51193aa33d82b0cc802a02476868980d40e63cc4d836c4491ebe972a5de4e22"
+        },
+        "consumer": {
+          "path": "/home/user/cislib-verification/release-82540222-20261019/linux-provider-compatibility/source/bin/Release/net10.0/CIS.Logging.ProviderContractConsumer.dll",
+          "identity": "CIS.Logging.ProviderContractConsumer, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null",
+          "sha256": "bc4329896544b2e678e143f2bf642f41106ff47737b9fc9f5422b442d17c81ab"
+        },
+        "logging": {
+          "path": "/home/user/cislib-verification/release-82540222-20261019/linux-provider-compatibility/source/bin/Release/net10.0/Microsoft.Extensions.Logging.Abstractions.dll",
+          "identity": "Microsoft.Extensions.Logging.Abstractions, Version=10.0.0.0, Culture=neutral, PublicKeyToken=adb9793829ddae60",
+          "sha256": "7c242f8ca612fa1acc61f78efd5f8c89e01bd0bd47dc4ecc65e0e6e24f1a1668"
+        },
+        "dependencyInjection": {
+          "path": "/home/user/cislib-verification/release-82540222-20261019/linux-provider-compatibility/source/bin/Release/net10.0/Microsoft.Extensions.DependencyInjection.Abstractions.dll",
+          "identity": "Microsoft.Extensions.DependencyInjection.Abstractions, Version=10.0.0.0, Culture=neutral, PublicKeyToken=adb9793829ddae60",
+          "sha256": "da04edc338d5aa0f38a1f5fa5ff3ee7e36affe9c961daf3ea724a428bd746bc6"
+        },
+        "runtime": "10.0.12",
+        "os": "Ubuntu 24.04.4 LTS",
+        "architecture": "X64",
+        "api": {
+          "type": "CIS.Logging.MicrosoftLogger.CoreLoggerProvider",
+          "isSealed": true,
+          "interfaces": [
+            "Microsoft.Extensions.Logging.ILoggerProvider",
+            "System.IDisposable",
+            "Microsoft.Extensions.Logging.ISupportExternalScope"
+          ],
+          "constructor": {
+            "parameters": [
+              {
+                "name": "runtime",
+                "type": "CIS.Logging.CoreLogRuntime",
+                "optional": false
+              }
+            ]
+          },
+          "methods": [
+            {
+              "name": "CreateLogger",
+              "returns": "Microsoft.Extensions.Logging.ILogger",
+              "signature": {
+                "parameters": [
+                  {
+                    "name": "categoryName",
+                    "type": "System.String",
+                    "optional": false
+                  }
+                ]
+              }
+            },
+            {
+              "name": "SetScopeProvider",
+              "returns": "System.Void",
+              "signature": {
+                "parameters": [
+                  {
+                    "name": "scopeProvider",
+                    "type": "Microsoft.Extensions.Logging.IExternalScopeProvider",
+                    "optional": false
+                  }
+                ]
+              }
+            },
+            {
+              "name": "Dispose",
+              "returns": "System.Void",
+              "signature": {
+                "parameters": []
+              }
+            }
+          ]
+        }
+      },
+      "consumerSha256": "bc4329896544b2e678e143f2bf642f41106ff47737b9fc9f5422b442d17c81ab"
+    },
+    {
+      "id": "CoreReplacement",
+      "passed": true,
+      "actual": {
+        "contract": "passed",
+        "records": 3,
+        "core": {
+          "path": "/home/user/cislib-verification/release-82540222-20261019/linux-provider-compatibility/CoreReplacement/CIS.Core.dll",
+          "identity": "CIS.Core, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null",
+          "sha256": "d51193aa33d82b0cc802a02476868980d40e63cc4d836c4491ebe972a5de4e22"
+        },
+        "consumer": {
+          "path": "/home/user/cislib-verification/release-82540222-20261019/linux-provider-compatibility/CoreReplacement/CIS.Logging.ProviderContractConsumer.dll",
+          "identity": "CIS.Logging.ProviderContractConsumer, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null",
+          "sha256": "bc4329896544b2e678e143f2bf642f41106ff47737b9fc9f5422b442d17c81ab"
+        },
+        "logging": {
+          "path": "/home/user/cislib-verification/release-82540222-20261019/linux-provider-compatibility/CoreReplacement/Microsoft.Extensions.Logging.Abstractions.dll",
+          "identity": "Microsoft.Extensions.Logging.Abstractions, Version=10.0.0.0, Culture=neutral, PublicKeyToken=adb9793829ddae60",
+          "sha256": "7c242f8ca612fa1acc61f78efd5f8c89e01bd0bd47dc4ecc65e0e6e24f1a1668"
+        },
+        "dependencyInjection": {
+          "path": "/home/user/cislib-verification/release-82540222-20261019/linux-provider-compatibility/CoreReplacement/Microsoft.Extensions.DependencyInjection.Abstractions.dll",
+          "identity": "Microsoft.Extensions.DependencyInjection.Abstractions, Version=10.0.0.0, Culture=neutral, PublicKeyToken=adb9793829ddae60",
+          "sha256": "da04edc338d5aa0f38a1f5fa5ff3ee7e36affe9c961daf3ea724a428bd746bc6"
+        },
+        "runtime": "10.0.12",
+        "os": "Ubuntu 24.04.4 LTS",
+        "architecture": "X64",
+        "api": {
+          "type": "CIS.Logging.MicrosoftLogger.CoreLoggerProvider",
+          "isSealed": true,
+          "interfaces": [
+            "Microsoft.Extensions.Logging.ILoggerProvider",
+            "System.IDisposable",
+            "Microsoft.Extensions.Logging.ISupportExternalScope"
+          ],
+          "constructor": {
+            "parameters": [
+              {
+                "name": "runtime",
+                "type": "CIS.Logging.CoreLogRuntime",
+                "optional": false
+              }
+            ]
+          },
+          "methods": [
+            {
+              "name": "CreateLogger",
+              "returns": "Microsoft.Extensions.Logging.ILogger",
+              "signature": {
+                "parameters": [
+                  {
+                    "name": "categoryName",
+                    "type": "System.String",
+                    "optional": false
+                  }
+                ]
+              }
+            },
+            {
+              "name": "SetScopeProvider",
+              "returns": "System.Void",
+              "signature": {
+                "parameters": [
+                  {
+                    "name": "scopeProvider",
+                    "type": "Microsoft.Extensions.Logging.IExternalScopeProvider",
+                    "optional": false
+                  }
+                ]
+              }
+            },
+            {
+              "name": "Dispose",
+              "returns": "System.Void",
+              "signature": {
+                "parameters": []
+              }
+            }
+          ]
+        }
+      },
+      "consumerSha256": "bc4329896544b2e678e143f2bf642f41106ff47737b9fc9f5422b442d17c81ab"
+    },
+    {
+      "id": "CompleteUpgrade",
+      "passed": true,
+      "actual": {
+        "contract": "passed",
+        "records": 3,
+        "core": {
+          "path": "/home/user/cislib-verification/release-82540222-20261019/linux-provider-compatibility/CompleteUpgrade/CIS.Core.dll",
+          "identity": "CIS.Core, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null",
+          "sha256": "d51193aa33d82b0cc802a02476868980d40e63cc4d836c4491ebe972a5de4e22"
+        },
+        "consumer": {
+          "path": "/home/user/cislib-verification/release-82540222-20261019/linux-provider-compatibility/CompleteUpgrade/CIS.Logging.ProviderContractConsumer.dll",
+          "identity": "CIS.Logging.ProviderContractConsumer, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null",
+          "sha256": "bc4329896544b2e678e143f2bf642f41106ff47737b9fc9f5422b442d17c81ab"
+        },
+        "logging": {
+          "path": "/home/user/cislib-verification/release-82540222-20261019/linux-provider-compatibility/CompleteUpgrade/Microsoft.Extensions.Logging.Abstractions.dll",
+          "identity": "Microsoft.Extensions.Logging.Abstractions, Version=10.0.0.0, Culture=neutral, PublicKeyToken=adb9793829ddae60",
+          "sha256": "7c242f8ca612fa1acc61f78efd5f8c89e01bd0bd47dc4ecc65e0e6e24f1a1668"
+        },
+        "dependencyInjection": {
+          "path": "/home/user/cislib-verification/release-82540222-20261019/linux-provider-compatibility/CompleteUpgrade/Microsoft.Extensions.DependencyInjection.Abstractions.dll",
+          "identity": "Microsoft.Extensions.DependencyInjection.Abstractions, Version=10.0.0.0, Culture=neutral, PublicKeyToken=adb9793829ddae60",
+          "sha256": "da04edc338d5aa0f38a1f5fa5ff3ee7e36affe9c961daf3ea724a428bd746bc6"
+        },
+        "runtime": "10.0.12",
+        "os": "Ubuntu 24.04.4 LTS",
+        "architecture": "X64",
+        "api": {
+          "type": "CIS.Logging.MicrosoftLogger.CoreLoggerProvider",
+          "isSealed": true,
+          "interfaces": [
+            "Microsoft.Extensions.Logging.ILoggerProvider",
+            "System.IDisposable",
+            "Microsoft.Extensions.Logging.ISupportExternalScope"
+          ],
+          "constructor": {
+            "parameters": [
+              {
+                "name": "runtime",
+                "type": "CIS.Logging.CoreLogRuntime",
+                "optional": false
+              }
+            ]
+          },
+          "methods": [
+            {
+              "name": "CreateLogger",
+              "returns": "Microsoft.Extensions.Logging.ILogger",
+              "signature": {
+                "parameters": [
+                  {
+                    "name": "categoryName",
+                    "type": "System.String",
+                    "optional": false
+                  }
+                ]
+              }
+            },
+            {
+              "name": "SetScopeProvider",
+              "returns": "System.Void",
+              "signature": {
+                "parameters": [
+                  {
+                    "name": "scopeProvider",
+                    "type": "Microsoft.Extensions.Logging.IExternalScopeProvider",
+                    "optional": false
+                  }
+                ]
+              }
+            },
+            {
+              "name": "Dispose",
+              "returns": "System.Void",
+              "signature": {
+                "parameters": []
+              }
+            }
+          ]
+        }
+      },
+      "consumerSha256": "bc4329896544b2e678e143f2bf642f41106ff47737b9fc9f5422b442d17c81ab"
+    }
+  ],
+  "assetsSha256": "f072a61e8270b3ca4e88cea213ee76e915302b912ba471064abcda173070026f",
+  "runtimePolicySha256": "1e7a7d87169b5d81999239dabbf7821b71d973becf25928ecd6e4a02bcba264f",
+  "frozenInputs": [
+    {
+      "name": "CIS.Logging.ProviderContractConsumer.dll",
+      "sha256": "bc4329896544b2e678e143f2bf642f41106ff47737b9fc9f5422b442d17c81ab"
+    },
+    {
+      "name": "CIS.Logging.ProviderContractConsumer.pdb",
+      "sha256": "76bed2b9071f9a3cae6998e9091f1bb0f27a83594d825c3bf4fdf830f315e988"
+    },
+    {
+      "name": "CIS.Logging.ProviderContractConsumer.deps.json",
+      "sha256": "08d4ab97f53a6851ec4a875e8eae10f19b855d4c0c2ef91cc35fb23a8acf2fb3"
+    },
+    {
+      "name": "CIS.Logging.ProviderContractConsumer.runtimeconfig.json",
+      "sha256": "c6e74389d43492c705ff551b5d5c976dd27cf59bd9277d4d392b27f0a3f3f54b"
+    }
+  ],
+  "runtimeInputs": [
+    {
+      "name": "CIS.Core.dll",
+      "sha256": "d51193aa33d82b0cc802a02476868980d40e63cc4d836c4491ebe972a5de4e22"
+    },
+    {
+      "name": "Microsoft.Extensions.Logging.Abstractions.dll",
+      "sha256": "7c242f8ca612fa1acc61f78efd5f8c89e01bd0bd47dc4ecc65e0e6e24f1a1668"
+    },
+    {
+      "name": "Microsoft.Extensions.DependencyInjection.Abstractions.dll",
+      "sha256": "da04edc338d5aa0f38a1f5fa5ff3ee7e36affe9c961daf3ea724a428bd746bc6"
+    }
+  ],
+  "sameRuntimePayloadForBothScenarios": true
+}

@@ -281,4 +281,46 @@ public sealed class IncomingRingBufferTests
         Assert.AreEqual(IncomingAdmission.Invalid, ring.TryPublish(Event(1) with { Level = CoreLogLevel.None }, out _));
         Assert.AreEqual(0L, ring.Capture().Admitted); Assert.AreEqual(0L, ring.ActivePublishers);
     }
+
+    [TestMethod]
+    public void MaximumCapacityIsInclusiveAndKeepsRoundedBudgets()
+    {
+        var ring = new IncomingRingBuffer(65536, new LoggingOptions());
+        Assert.AreEqual(65536, ring.Capacity);
+        Assert.AreEqual(13108, ring.Budget(CoreLogLevel.Trace));
+        Assert.AreEqual(45876, ring.Budget(CoreLogLevel.Critical));
+    }
+
+    [TestMethod]
+    [DataRow(-1)]
+    [DataRow(0)]
+    [DataRow(65537)]
+    public void InvalidCapacityHasAnExplicitParameterFailure(int capacity)
+    {
+        var error = Assert.ThrowsExactly<ArgumentOutOfRangeException>(() => new IncomingRingBuffer(capacity, new LoggingOptions()));
+        Assert.AreEqual("capacity", error.ParamName);
+    }
+
+    [TestMethod]
+    public void MissingOptionsHasAnExplicitParameterFailure()
+    {
+        var error = Assert.ThrowsExactly<ArgumentNullException>(() => new IncomingRingBuffer(1, null!));
+        Assert.AreEqual("options", error.ParamName);
+    }
+
+    [TestMethod]
+    public void ConditionalAbandonmentAccountsOnlyTheActualExpectedOwner()
+    {
+        var ring = new IncomingRingBuffer(1, FullScan());
+        IncomingEvent expected = Event(1), stale = Event(2);
+        var published = Publish(ring, expected);
+        Assert.IsFalse(ring.TryAbandon(published.Slot, stale));
+        Assert.AreSame(expected, ring.Read(published.Slot));
+        Assert.AreEqual(0L, ring.Capture().Abandoned); Assert.AreEqual(1L, ring.Capture().Waiting);
+        Assert.IsTrue(ring.TryAbandon(published.Slot, expected));
+        Assert.IsNull(ring.Read(published.Slot));
+        Assert.AreEqual(new IncomingRingSnapshot(1, 0, 0, 1, 0, 0, false), ring.Capture());
+        Assert.IsFalse(ring.TryAbandon(published.Slot, expected));
+        Assert.AreEqual(new IncomingRingSnapshot(1, 0, 0, 1, 0, 0, false), ring.Capture());
+    }
 }

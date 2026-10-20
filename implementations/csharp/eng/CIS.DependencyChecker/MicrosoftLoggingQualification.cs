@@ -87,6 +87,7 @@ internal static class MicrosoftLoggingQualification
             }
             else
             {
+                environment["CisMutationTesting"] = "true";
                 string snapshot = Path.Combine(output, "source"), isolated = Path.Combine(snapshot, Prefix);
                 SourceInventoryEntry[] inventory = (await SourceInventory.CaptureAsync(repo))
                     .Where(item => item.Path.StartsWith(Prefix, StringComparison.Ordinal) || item.Path.StartsWith("conformance/logging/", StringComparison.Ordinal) || item.Path == "README.md").ToArray();

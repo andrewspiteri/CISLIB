@@ -1,12 +1,27 @@
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
+#if CIS_MUTATION_TESTS
+[assembly: DoNotParallelize]
+#else
 [assembly: Parallelize(Workers = 4, Scope = ExecutionScope.MethodLevel)]
+#endif
 
 namespace CIS.Tests;
 
 [TestClass]
 public sealed class TestAssemblySetup
 {
+    [TestMethod]
+    public void SchedulingMatchesRequestedMode()
+    {
+        bool requested = Environment.GetEnvironmentVariable("CisMutationTesting") == "true";
+        var attributes = typeof(TestAssemblySetup).Assembly.GetCustomAttributes(inherit: false);
+        bool serialized = attributes.OfType<DoNotParallelizeAttribute>().Any();
+        Assert.AreEqual(requested, serialized, "Mutation test scheduling must match the requested build mode.");
+        Assert.AreEqual(!requested, attributes.OfType<ParallelizeAttribute>().Any());
+        Console.WriteLine(requested ? "CIS mutation scheduling: serialized" : "CIS mutation scheduling: parallel");
+    }
+
     [AssemblyInitialize]
     public static void Initialize(TestContext context)
     {

@@ -11,7 +11,8 @@ public sealed class LogValueQualificationArchitectureTests
     [TestMethod]
     public void ActualCoreConsumerControlsMatchDiagnosticsAndExecuteTheTypedExample()
     {
-        JsonObject report = Read(".artifacts/csharp/verification/Developer/contracts/log-value-consumers/summary.json");
+        string repository = Path.GetFullPath("../..", Path.GetDirectoryName(Find("implementations/csharp/CisLib.slnx"))!);
+        JsonObject report = Read(Path.Combine(CIS.TestSupport.VerificationCheckpoint.Root(repository), "contracts/log-value-consumers/summary.json"));
         Assert.AreEqual(0, report["exitCode"]!.GetValue<int>());
         Assert.AreEqual("Passed", report["status"]!.GetValue<string>());
         Assert.AreEqual(12, report["controls"]!.AsArray().Count);

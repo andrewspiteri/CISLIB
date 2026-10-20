@@ -2,7 +2,8 @@
 param(
     [ValidateSet('Developer', 'Release')][string] $Profile = 'Developer',
     [string] $Lane = $(if ($IsWindows) { 'windows-x64' } else { 'linux-ubuntu2404-x64' }),
-    [ValidateRange(0, 64)][int] $MaxBuildNodes = 0
+    [ValidateRange(0, 64)][int] $MaxBuildNodes = 0,
+    [string] $OutputRoot = ''
 )
 
 $ErrorActionPreference = 'Stop'
@@ -14,7 +15,8 @@ Import-Module (Join-Path $PSScriptRoot 'Evidence.psm1') -Force
 Import-Module (Join-Path $PSScriptRoot 'Verification.psm1') -Force
 $languageRoot = Split-Path $PSScriptRoot -Parent
 $repositoryRoot = Split-Path (Split-Path $languageRoot -Parent) -Parent
-$reportRoot = Join-Path $repositoryRoot ".artifacts/csharp/verification/$Profile"
+$reportRoot = if ($OutputRoot) { [IO.Path]::GetFullPath($OutputRoot) } else { Join-Path $repositoryRoot ".artifacts/csharp/verification/$Profile" }
+if ($OutputRoot -and (Test-Path -LiteralPath $reportRoot)) { throw 'Use a new output directory for retained qualification evidence.' }
 $packageRoot = Join-Path $repositoryRoot '.artifacts/csharp/packages'
 $legacyTests = Join-Path $repositoryRoot '.artifacts/csharp/tests'
 $manifest = Get-Content -Raw -LiteralPath (Join-Path $languageRoot 'verification/families.json') | ConvertFrom-Json -AsHashtable -DateKind String
@@ -37,7 +39,8 @@ function Invoke-Family {
     param([hashtable] $Family, [object] $Entry)
     $directory = Join-Path $reportRoot "families/$($Family.id)"
     $settings = if ($Family.id -eq 'architecture') { 'verification/architecture.runsettings' } else { 'verification/developer.runsettings' }
-    $arguments = @('test', $Family.project, '-c', 'Release', '--no-build', '--no-restore', '--settings', (Join-Path $languageRoot $settings))
+    $arguments = @('test', $Family.project, '-c', 'Release', '--no-build', '--no-restore', '--settings', (Join-Path $languageRoot $settings),
+        '--environment', "CIS_VERIFICATION_ROOT=$reportRoot", '--environment', "CIS_VERIFICATION_REPOSITORY=$repositoryRoot")
     $discoveryNativePath = Join-Path $directory 'discovery-native.json'
     if (Test-Path -LiteralPath $discoveryNativePath) { Remove-Item -LiteralPath $discoveryNativePath }
     $loggerDirectory = Join-Path $PSScriptRoot 'CIS.Discovery.TestLogger/bin/Release/net10.0'
@@ -72,7 +75,7 @@ function Invoke-Family {
 Push-Location $languageRoot
 try {
     $actualLane = if ($IsWindows) { 'windows-x64' } elseif ($IsLinux) { 'linux-ubuntu2404-x64' } else { 'unsupported' }
-    if ($Profile -eq 'Developer' -and ($Lane -ne $actualLane -or [Runtime.InteropServices.RuntimeInformation]::ProcessArchitecture -ne 'X64')) { throw 'Requested lane does not match the actual execution host.' }
+    if ($Lane -ne $actualLane -or [Runtime.InteropServices.RuntimeInformation]::ProcessArchitecture -ne 'X64') { throw 'Requested lane does not match the actual execution host.' }
     foreach ($name in @('DOTNET_CLI_TELEMETRY_OPTOUT', 'TESTINGPLATFORM_TELEMETRY_OPTOUT', 'VSTEST_TELEMETRY_OPTEDOUT')) {
         $previousTelemetry[$name] = [Environment]::GetEnvironmentVariable($name)
         [Environment]::SetEnvironmentVariable($name, '1')
@@ -91,7 +94,7 @@ try {
         $summary.families += [ordered]@{ id = $family.id; status = 'NotRun'; reason = $reason; scope = 'foundation-only'; discovery = New-EvidenceReference $reportRoot $discovery 'cis.discovery/v1'; execution = New-EvidenceReference $reportRoot $execution 'cis.execution/v1'; report = $null }
     }
     Publish-Summary
-    if ($Profile -eq 'Developer') {
+    if ($Profile -in @('Developer', 'Release')) {
         Invoke-VerificationStage $context 'restore' { $null = Invoke-VerificationCommand (Join-Path $reportRoot 'logs/restore.log') @('restore', 'CisLib.slnx', '--locked-mode', '--configfile', 'NuGet.config') }
         Invoke-VerificationStage $context 'project-boundaries' { $null = Invoke-VerificationCommand (Join-Path $reportRoot 'logs/project-boundaries.log') @('-NoProfile', '-File', (Join-Path $PSScriptRoot 'check-dependencies.ps1')) 'pwsh' }
         Invoke-VerificationStage $context 'format' { $null = Invoke-VerificationCommand (Join-Path $reportRoot 'logs/format.log') @('format', 'CisLib.slnx', '--verify-no-changes', '--no-restore') }
@@ -117,7 +120,7 @@ try {
         Invoke-VerificationStage $context 'architecture-inspection' { $null = Invoke-VerificationCommand (Join-Path $reportRoot 'logs/architecture-inspection.log') @((Join-Path $PSScriptRoot 'CIS.DependencyChecker/bin/Release/net10.0/CIS.DependencyChecker.dll'), 'architecture', $languageRoot, (Join-Path $packageRoot "CIS.Core.$version.nupkg"), $architectureRoot) }
         $summary.architectureInspection = New-EvidenceReference $reportRoot (Join-Path $architectureRoot 'inspection.json') 'cis.architecture-inspection/v1'
         Publish-Summary
-        foreach ($family in $manifest.families | Where-Object { $_.developerEnabled }) {
+        foreach ($family in $manifest.families | Where-Object { $_.developerEnabled -or ($Profile -eq 'Release' -and $_.project) }) {
             $entry = $summary.families | Where-Object { $_.id -eq $family.id }
             Invoke-VerificationStage $context "tests-$($family.id)" { Invoke-Family $family $entry }
             Publish-Summary

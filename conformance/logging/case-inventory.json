@@ -3,6 +3,28 @@
   "scope": "Current required native behavior groups plus logging business acceptance bindings and the 19 October rotating frontend amendment (priority-spool-acceptance.json). Original unqualified package/cumulative/release groups remain Planned. User amendments remain authoritative. C# interpolation behavior is bound separately in interpolation-acceptance.json.",
   "cases": [
     {
+      "id": "UT-FIRST-RELEASE-COMPATIBILITY-APPLICABILITY",
+      "family": "unit",
+      "title": "Published history and changed toolchain pins cannot receive first-release control credit",
+      "implementation": "Implemented",
+      "method": "CIS.Tests.UnitTests.FirstReleaseCompatibilityTests.InapplicableFirstReleaseInputsCannotReceiveQualification",
+      "minimumExecutions": 3,
+      "lanes": ["windows-x64", "linux-ubuntu2404-x64"],
+      "requirements": [],
+      "source": "19 October 2026 release qualification. Verifier guard tests only; cumulative COMPAT groups remain Planned."
+    },
+    {
+      "id": "UT-FIRST-RELEASE-COMPATIBILITY-PRESERVE-EVIDENCE",
+      "family": "unit",
+      "title": "A first-release compatibility invocation cannot overwrite existing evidence",
+      "implementation": "Implemented",
+      "method": "CIS.Tests.UnitTests.FirstReleaseCompatibilityTests.ExistingEvidenceCannotBeOverwrittenByAnotherQualificationRun",
+      "minimumExecutions": 1,
+      "lanes": ["windows-x64", "linux-ubuntu2404-x64"],
+      "requirements": [],
+      "source": "19 October 2026 release qualification. Verifier guard tests only; cumulative COMPAT groups remain Planned."
+    },
+    {
       "id": "UT-SEVERITY-NAMES",
       "family": "unit",
       "title": "NamedTokensAndAliasesHaveDefinedValues",

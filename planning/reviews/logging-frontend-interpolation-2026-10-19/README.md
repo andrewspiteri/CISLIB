@@ -4,6 +4,8 @@ The user requested review, permitted Claude, and authorized committing and pushi
 
 The original roadmap remains paused. This review and Developer qualification do not constitute release, Linux, mutation or historical compatibility qualification.
 
+The subsequent user-requested [release qualification](../../qualification/logging-release-2026-10-19/README.md) records Linux, compatibility and mutation execution separately. It does not change this review's original evidence boundary.
+
 ## Exact external review scope
 
 Automatic approval initially rejected transmission because it required the exact payload and destination. Nothing was sent in that attempt. The user then explicitly approved both prepared payloads to Anthropic Claude:

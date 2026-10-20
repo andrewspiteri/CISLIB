@@ -60,7 +60,7 @@ public sealed class AssemblyInspectionTests
     public void DeveloperInventoryIncludesEveryRestoredTargetAndEveryPackageDll()
     {
         string repository = Directory.GetParent(Directory.GetParent(LanguageRoot)!.FullName)!.FullName;
-        string reports = Path.Combine(repository, ".artifacts/csharp/verification/Developer");
+        string reports = VerificationCheckpoint.Root(repository);
         JsonNode summary = JsonNode.Parse(File.ReadAllText(Path.Combine(reports, "summary.json")))!;
         JsonNode reference = summary["architectureInspection"]!;
         string path = Path.Combine(reports, reference["path"]!.GetValue<string>());

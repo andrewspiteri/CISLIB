@@ -4,6 +4,8 @@ The user authorized implementation on 19 October 2026 using C# interpolation and
 
 The later [pre-commit review](../../reviews/logging-frontend-interpolation-2026-10-19/README.md) records scoped Claude reviews, the idle control-wake fix and follow-up qualification. The checkpoint below remains evidence for its original source snapshot.
 
+Subsequent [release qualification](../../qualification/logging-release-2026-10-19/README.md) passed Linux Developer and the executed compatibility controls. Its focused mutation diagnostic failed the 90% threshold at 62.109375% under the strict repository metric; full release qualification remains incomplete.
+
 | Stage | State | Outcome |
 | --- | --- | --- |
 | T0 | Complete | Existing method names, compiler handler overloads by ref, independent typed attributes, invariant formatting and owned built-in snapshots. Compiler compilation preserves existing target-typed event inputs. |

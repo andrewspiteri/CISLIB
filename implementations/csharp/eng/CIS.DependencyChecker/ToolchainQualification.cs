@@ -44,7 +44,9 @@ internal static class ToolchainQualification
             Console.WriteLine("Toolchain: " + name);
             string directory = cwd ?? language, exe = executable ?? inputs.Dotnet;
             // Console diagnostics may contain mixed Windows encodings. Hash and retain the original streams.
-            ProcessResult result = await ProcessRunner.RunAsync(exe, argv, directory, TimeSpan.FromMinutes(45), environment, Encoding.UTF8);
+            var commandEnvironment = new Dictionary<string, string?>(environment);
+            if (name == "mutation") { commandEnvironment["CisMutationTesting"] = "true"; }
+            ProcessResult result = await ProcessRunner.RunAsync(exe, argv, directory, TimeSpan.FromMinutes(45), commandEnvironment, Encoding.UTF8);
             RecordProcess(output, name, result);
             commands.Add(new JsonObject
             {

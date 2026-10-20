@@ -106,7 +106,7 @@ public sealed class StartupContractTests
     [TestMethod]
     public void CompilerControlsUseAReferenceOnlySurfaceWithImmutableOutputsAndFrozenEnums()
     {
-        const string relative = ".artifacts/csharp/verification/Developer/contracts/startup";
+        string relative = Path.Combine(CIS.TestSupport.VerificationCheckpoint.Root(RepositoryRoot), "contracts/startup");
         using JsonDocument report = Read(relative + "/summary.json");
         Assert.AreEqual("Passed", report.RootElement.GetProperty("status").GetString());
         Assert.AreEqual(0, report.RootElement.GetProperty("exitCode").GetInt32());

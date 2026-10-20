@@ -121,6 +121,30 @@ public sealed class TypeManagerManifestTests
     }
 
     [TestMethod]
+    [DataRow("nested\\Host.dll")]
+    [DataRow("./Host.dll")]
+    [DataRow("nested/./Host.dll")]
+    [DataRow("nested//Host.dll")]
+    [DataRow("nested/../Host.dll")]
+    public async Task NonNormalizedPathsAreRejectedEvenWhenTheSelectedAssemblyExists(string relativePath)
+    {
+        string target = Path.GetFullPath(relativePath, directory);
+        Directory.CreateDirectory(Path.GetDirectoryName(target)!);
+        if (!File.Exists(target)) { File.Copy(Host.Location, target); }
+        var json = Valid();
+        json["assemblies"]![0]!["relativePath"] = relativePath;
+        await Save(json);
+
+        var error = await Assert.ThrowsExactlyAsync<TypeManagerInitializationException>(() => AssemblyInventory.ReadAsync(manifestPath, Host, default));
+        Assert.AreEqual(TypeManagerFailureKind.InvalidInventory, error.FailureKind);
+        Assert.IsInstanceOfType<FormatException>(error.InnerException);
+        StringAssert.Contains(error.InnerException.Message, "normalized relative assembly path");
+        Assert.AreEqual(relativePath, error.AssetPath);
+        Assert.AreEqual(Host.FullName, error.AssemblyIdentity);
+        Assert.AreEqual(manifestPath, error.ManifestPath);
+    }
+
+    [TestMethod]
     [DataRow("{")]
     [DataRow("[]")]
     public async Task MalformedOrDuplicateJsonIsNeverAccepted(string json)

@@ -1,0 +1,63 @@
+{
+  "nativeReportSha256": "1747e79123eefaff0bbad2e5fde28b5099f4119ab45dc016d6f1ddc634f782be",
+  "metricAdjusted": false,
+  "complete": true,
+  "testPinsVerified": true,
+  "results": [
+    {
+      "id": "592",
+      "file": "implementations/csharp/src/CIS.Core/Logging/CoreLogRuntime.cs",
+      "originalStatus": "Survived",
+      "disposition": "DetectedBySelectedTests",
+      "originalText": "outputs.Any",
+      "replacement": "outputs.All",
+      "filter": "FullyQualifiedName~EventEncodingTests|FullyQualifiedName~FlushBoundaryTests|FullyQualifiedName~TypeManagerManifestTests|FullyQualifiedName~IncomingFrontendTests|FullyQualifiedName~TestAssemblySetup.SchedulingMatchesRequestedMode",
+      "sourceSha256": "eed9a794cb097426295aa59f08d34afb526ccc5552af0e4fde129a36bc2523d0",
+      "mutantSha256": "081fde0ca9856bc43a38366797eac44e8089b46c44402424e8b8bd597b10caa9"
+    },
+    {
+      "id": "593",
+      "file": "implementations/csharp/src/CIS.Core/Logging/CoreLogRuntime.cs",
+      "originalStatus": "Survived",
+      "disposition": "DetectedBySelectedTests",
+      "originalText": "Interested(output, level) \u0026\u0026 !output.Admission.IsFaulted",
+      "replacement": "Interested(output, level) || !output.Admission.IsFaulted",
+      "filter": "FullyQualifiedName~EventEncodingTests|FullyQualifiedName~FlushBoundaryTests|FullyQualifiedName~TypeManagerManifestTests|FullyQualifiedName~IncomingFrontendTests|FullyQualifiedName~TestAssemblySetup.SchedulingMatchesRequestedMode",
+      "sourceSha256": "eed9a794cb097426295aa59f08d34afb526ccc5552af0e4fde129a36bc2523d0",
+      "mutantSha256": "88138995614e4c9ab07603c212b1f5ab94fea0e1e81d9eaf45b4fe4656bd9641"
+    },
+    {
+      "id": "696",
+      "file": "implementations/csharp/src/CIS.Core/Logging/CoreLogRuntime.cs",
+      "originalStatus": "Survived",
+      "disposition": "SurvivedSelectedTests",
+      "originalText": "output.CallerUnavailableCounter.Increment();",
+      "replacement": ";",
+      "filter": "FullyQualifiedName~EventEncodingTests|FullyQualifiedName~FlushBoundaryTests|FullyQualifiedName~TypeManagerManifestTests|FullyQualifiedName~IncomingFrontendTests|FullyQualifiedName~TestAssemblySetup.SchedulingMatchesRequestedMode",
+      "sourceSha256": "eed9a794cb097426295aa59f08d34afb526ccc5552af0e4fde129a36bc2523d0",
+      "mutantSha256": "33acefe25583fe6253c51d5319444821a4f5daedaf5dcc3da3e03cc31efa2573"
+    },
+    {
+      "id": "1328",
+      "file": "implementations/csharp/src/CIS.Core/Logging/Events/EventByteProjection.cs",
+      "originalStatus": "Survived",
+      "disposition": "DetectedBySelectedTests",
+      "originalText": "attributeSize - 2 \u002B (source.HasProviderEventId \u0026\u0026 retainedAttributes.MapProperties.Count \u003E 0 ? 1 : 0)",
+      "replacement": "attributeSize - 2 - (source.HasProviderEventId \u0026\u0026 retainedAttributes.MapProperties.Count \u003E 0 ? 1 : 0)",
+      "filter": "FullyQualifiedName~EventEncodingTests|FullyQualifiedName~FlushBoundaryTests|FullyQualifiedName~TypeManagerManifestTests|FullyQualifiedName~IncomingFrontendTests|FullyQualifiedName~TestAssemblySetup.SchedulingMatchesRequestedMode",
+      "sourceSha256": "d897cf9e54ddb3e645d4fef221dd7040c8ec19387e76822b8060677646a902e2",
+      "mutantSha256": "bc15ecc512c59c76c1c913a4dd1efbdf4369ab1d7304c804c65468e2fe850c43"
+    },
+    {
+      "id": "1329",
+      "file": "implementations/csharp/src/CIS.Core/Logging/Events/EventByteProjection.cs",
+      "originalStatus": "Survived",
+      "disposition": "DetectedBySelectedTests",
+      "originalText": "attributeSize - 2",
+      "replacement": "attributeSize \u002B 2",
+      "filter": "FullyQualifiedName~EventEncodingTests|FullyQualifiedName~FlushBoundaryTests|FullyQualifiedName~TypeManagerManifestTests|FullyQualifiedName~IncomingFrontendTests|FullyQualifiedName~TestAssemblySetup.SchedulingMatchesRequestedMode",
+      "sourceSha256": "d897cf9e54ddb3e645d4fef221dd7040c8ec19387e76822b8060677646a902e2",
+      "mutantSha256": "79b38be0180289c66e5d0595adab44be2a188a236bb540932aff91dc74fc2e69"
+    }
+  ]
+}

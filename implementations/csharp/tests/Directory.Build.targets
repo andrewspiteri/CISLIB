@@ -1,4 +1,7 @@
 <Project>
+  <PropertyGroup Condition="'$(IsTestProject)' == 'true' and '$(CisMutationTesting)' == 'true'">
+    <DefineConstants>$(DefineConstants);CIS_MUTATION_TESTS</DefineConstants>
+  </PropertyGroup>
   <PropertyGroup Condition="'$(IsTestProject)' == 'true'">
     <UseVSTest>true</UseVSTest>
     <EnableMSTestRunner>false</EnableMSTestRunner>

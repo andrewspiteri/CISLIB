@@ -10,7 +10,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 namespace CIS.Tests.UnitTests;
 
 [TestClass]
-public sealed class InterpolationTests
+public sealed partial class InterpolationTests
 {
     private static readonly TimeSpan Limit = TimeSpan.FromSeconds(10);
 

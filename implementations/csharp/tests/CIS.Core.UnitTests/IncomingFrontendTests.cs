@@ -12,6 +12,27 @@ public sealed class IncomingFrontendTests
     private static readonly TimeSpan Limit = TimeSpan.FromSeconds(10);
 
     [TestMethod]
+    [DataRow(false)]
+    [DataRow(true)]
+    public async Task EnablementNeedsOneInterestedHealthyDestinationAndIgnoresBindingOrder(bool reverse)
+    {
+        var information = new Writer();
+        var errors = new Writer();
+        LogWriterRegistration[] registrations = [new("information", information, CoreLogLevel.Information), new("errors", errors, CoreLogLevel.Error)];
+        if (reverse) { Array.Reverse(registrations); }
+        await using var runtime = QueuedRuntimeFactory.CreateConfiguredQueued(new EventMetadata(),
+            new LoggingOptions { ConsoleLevel = CoreLogLevel.None, FileLevel = CoreLogLevel.None },
+            writers: registrations, incomingPipeline: true);
+        CoreLogger logger = runtime.CreateLogger("Enablement");
+        Assert.IsTrue(logger.IsEnabled(CoreLogLevel.Information));
+        Assert.IsTrue(logger.IsEnabled(CoreLogLevel.Error));
+        Assert.IsFalse(logger.IsEnabled(CoreLogLevel.Trace));
+        Assert.IsFalse(logger.IsEnabled(CoreLogLevel.None));
+        Assert.AreEqual(0, information.Lines.Count);
+        Assert.AreEqual(0, errors.Lines.Count);
+    }
+
+    [TestMethod]
     public async Task EnabledPublicationDisabledAndInvalidPathsDoNotWaitForBackendAdmissionGate()
     {
         var start = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);

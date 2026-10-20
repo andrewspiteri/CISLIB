@@ -1,0 +1,24 @@
+diff --git a/.artifacts/csharp/core-triage-2026-10-20/test-overlay-02/EventEncodingTests.Boundaries.cs b/implementations/csharp/tests/CIS.Core.UnitTests/EventEncodingTests.Boundaries.cs
+index b593eeb4..ecdfa2b7 100644
+--- a/.artifacts/csharp/core-triage-2026-10-20/test-overlay-02/EventEncodingTests.Boundaries.cs
++++ b/implementations/csharp/tests/CIS.Core.UnitTests/EventEncodingTests.Boundaries.cs
+@@ -13,7 +13,8 @@ public sealed partial class EventEncodingTests
+         CapturedEventFacts source = Capture(new LogEventData { EventName = "provider-budget", Message = "message" });
+         LogValue Attributes(int length) => LogValue.Map(new Dictionary<string, LogValue>
+         {
+-            ["event_id"] = LogValue.Integer(7), ["payload"] = LogValue.String(new string('x', length))
++            ["event_id"] = LogValue.Integer(7),
++            ["payload"] = LogValue.String(new string('x', length))
+         });
+         LogValue resource = ProtectedResource(source);
+         int overhead = EventEncoder.Encode(BudgetFacts(source, resource, Attributes(0), provider: true), Minimum).JsonLine.Length;
+@@ -79,7 +80,8 @@ public sealed partial class EventEncodingTests
+         CapturedEventFacts source = Capture(new LogEventData { EventName = "provider-template-budget", Message = "message" });
+         LogValue Attributes(int length) => LogValue.Map(new Dictionary<string, LogValue>
+         {
+-            ["event_id"] = LogValue.Integer(7), ["payload"] = LogValue.String(new string('x', length))
++            ["event_id"] = LogValue.Integer(7),
++            ["payload"] = LogValue.String(new string('x', length))
+         });
+         LogValue resource = ProtectedResource(source);
+         int overhead = EventEncoder.Encode(BudgetFacts(source, resource, Attributes(0), "keep", provider: true), Minimum).JsonLine.Length;

@@ -61,7 +61,7 @@ public sealed class RuntimeContractTests
     [TestMethod]
     public void RuntimeSpecificationHasExactMethodsAndImmutableOutputs()
     {
-        const string relative = ".artifacts/csharp/verification/Developer/contracts/startup";
+        string relative = Path.Combine(CIS.TestSupport.VerificationCheckpoint.Root(RepositoryRoot), "contracts/startup");
         using JsonDocument report = Read(relative + "/summary.json");
         using JsonDocument surface = Read("implementations/csharp/verification/contracts/startup/runtime-surface.json");
         string reference = Path.Combine(RepositoryRoot, relative, report.RootElement.GetProperty("referenceAssembly").GetProperty("path").GetString()!);
