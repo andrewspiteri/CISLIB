@@ -2,6 +2,24 @@ using System.Text.Json;
 using CIS.TestSupport;
 using CIS.Verification;
 
+if (args.Length > 0 && args[0] is "healthcheck-package" or "healthcheck-coverage" or "healthcheck-platform-prepare" or "healthcheck-critical-mutation" or "healthcheck-pipe-identities")
+{
+    try
+    {
+        return args[0] switch
+        {
+            "healthcheck-package" => await HealthcheckPackageVerification.RunAsync(args[1..]),
+            "healthcheck-coverage" => await HealthcheckCoverageVerification.RunAsync(args[1..]),
+            "healthcheck-platform-prepare" => await HealthcheckPlatformPreparation.RunAsync(args[1..]),
+            "healthcheck-pipe-identities" => await HealthcheckPipeIdentityVerification.RunAsync(args[1..]),
+            _ => await HealthcheckCriticalMutationVerification.RunAsync(args[1..])
+        };
+    }
+    catch (ArgumentException error) { Console.Error.WriteLine(error.Message); return 2; }
+    catch (Exception error) when (error is IOException or InvalidDataException or UnauthorizedAccessException or InvalidOperationException or JsonException or System.Xml.XmlException or System.ComponentModel.Win32Exception or TimeoutException)
+    { Console.Error.WriteLine(error.Message); return 1; }
+}
+
 if (args.Length > 0 && args[0] is "logging-mutation" or "core-mutation" or "build-helper-mutation")
 {
     try { return await LoggingMutationQualification.RunAsync(args[1..], args[0] switch { "core-mutation" => "core", "build-helper-mutation" => "helper", _ => "frontend" }); }

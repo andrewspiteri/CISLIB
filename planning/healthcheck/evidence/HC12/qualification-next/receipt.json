@@ -1,0 +1,416 @@
+{
+  "schema": "cis.healthcheck.qualification-followup/v1-development",
+  "baseCommit": "0bf0c4c8d8c0c6646f591c634e66cfa480348aa6",
+  "candidate": "Uncommitted qualification follow-up; exact unpublished package and source snapshots distinguished",
+  "recordedUtc": "2026-10-21T11:00:40.6180195+00:00",
+  "authority": "User requested current changes committed, then remaining Healthcheck tasks in parallel; no publication, deployment or external-review authority inferred",
+  "scope": "Local architecture, initial compatibility, exact-package consumers, Linux focused/identity evidence, measured Healthcheck coverage and scoped mutation controls",
+  "package": {
+    "coreSha256": "fde622b8a3db47f331ea1735896fc92e7b80af11853c94b8e0efcf337eb146ac",
+    "published": false,
+    "sha256": "1d48cfd58d26a2cdf2f694c7996d596ce058427e65837b3c2c565e230c280cc2",
+    "version": "0.1.0-dev.1"
+  },
+  "toolchain": {
+    "strykerRuntime": "8.0.31",
+    "sdk": "10.0.401",
+    "linux": "WSL2 Ubuntu 24.04.4 LTS x64",
+    "coverageAnalyzerRuntime": "10.0.13",
+    "coverageCollector": "Microsoft.CodeCoverage 18.10.1",
+    "stryker": "4.16.0",
+    "windows": "Windows 10.0.26200 x64",
+    "subjectRuntime": "10.0.12"
+  },
+  "runtimeCorrection": {
+    "after": "Bounded TransportOrProtocolFailure, documented exit2; owner recovery succeeds",
+    "before": "Actual Linux nonowner probe raised uncaught SocketException, exit134",
+    "sha256": "e022538f8c4694b3b772625d58886ba9897b6fb8f075a365faf08887878f2f54",
+    "path": "implementations/csharp/src/CIS.Core/Healthcheck/Pipes/HealthProbeClient.cs"
+  },
+  "verification": {
+    "linuxFocused": {
+      "failed": 0,
+      "inputsSha256": "bf02f2c11d3bca249265b4bc7db9476eed6b48d955ef8f51a5ae43144d8ed0c9",
+      "inputsUnchanged": true,
+      "scope": "Five selected native families, not a whole-repository Linux Developer/Release profile",
+      "skipped": 0,
+      "passed": 991,
+      "status": "Passed",
+      "families": {
+        "business": 4,
+        "integration": 137,
+        "unit": 649,
+        "compatibility": 127,
+        "architecture": 74
+      },
+      "inputs": 1284
+    },
+    "linuxIdentities": {
+      "hostUid": 1000,
+      "probeExitsPerLane": [
+        0,
+        2,
+        0
+      ],
+      "permissiveHostUmask": "000",
+      "status": "Passed",
+      "healthCaptureCountsPerLane": [
+        2,
+        2,
+        4
+      ],
+      "socketModes": [
+        "0755",
+        "0777"
+      ],
+      "nonownerUid": 65534,
+      "scope": "Actual ordinary owner/nonowner/owner processes and endpoint stat, including world-writable socket; no root, remote, alternate Windows identity or arbitrary container claim"
+    },
+    "automaticState": {
+      "ignored": 68,
+      "sourceInputs": 1284,
+      "restoredPassed": 650,
+      "scope": "Complete-level state-coordinator source only; compiler rollback/ignored diagnostics and remaining module/child-process mutation qualification outstanding",
+      "compileError": 35,
+      "killed": 196,
+      "strictPercent": 90.3225806451613,
+      "status": "MeasuredThresholdPassed",
+      "sourceInputsUnchanged": true,
+      "completeAutomaticQualification": false,
+      "eligible": 217,
+      "noCoverage": 3,
+      "timeoutsEarnKillCredit": false,
+      "nativePercent": 94.47,
+      "timeout": 9,
+      "strictThreshold": 90,
+      "survived": 9,
+      "baselinePassed": 650
+    },
+    "coverage": {
+      "scope": "Current unchanged exact Core bytes, complete native totals validated before Healthcheck subtree; line OR/branch MAX; final9reason cases not retroactively included",
+      "linesTotal": 2990,
+      "requiredBranchPercent": 90,
+      "linesCovered": 2866,
+      "nativeCases": {
+        "business": 4,
+        "integration": 137,
+        "unit": 640
+      },
+      "branchesTotal": 2184,
+      "linePercent": 95.85284280936455,
+      "status": "MeasuredThresholdPassed",
+      "branchesCoveredLowerBound": 1981,
+      "branchPercentLowerBound": 90.7051282051282,
+      "requiredLinePercent": 95
+    },
+    "packageConsumers": {
+      "scope": "Real package-reference source-copy consumers with assets/runtime/loaded Core proof, not additional MSTest counts",
+      "ownedProcessesPerLane": 25,
+      "linuxObservationRows": 25,
+      "httpResponsesPerLane": 13,
+      "status": "Passed",
+      "windowsObservationRows": 25
+    },
+    "bootstrap": {
+      "linux": {
+        "trx": ".artifacts/healthcheck/qualification-next/linux-bootstrap-native-08/focused/0454541c757f4b0780b04632ca27e622/selected.trx",
+        "failed": 0,
+        "passed": 7,
+        "inputsUnchanged": true,
+        "skipped": 0,
+        "status": "Passed",
+        "inputs": 1284
+      },
+      "windows": {
+        "summary": ".artifacts/csharp/focused/a3e4e2b67ccf43208f471d60f02123ab/summary.json",
+        "skipped": 0,
+        "failed": 0,
+        "passed": 7,
+        "status": "Passed"
+      },
+      "scope": "Unbuilt verifier shell-copy fixture now preserves nested C# sources and excludes bin/obj"
+    },
+    "developer": {
+      "status": "Passed",
+      "lane": "windows-x64",
+      "sourceCommit": "0bf0c4c8d8c0c6646f591c634e66cfa480348aa6",
+      "skipped": 0,
+      "command": "pwsh -NoProfile -File eng/verify.ps1 -Profile Developer -MaxBuildNodes 1 -OutputRoot .artifacts/healthcheck/qualification-next/Developer-windows-04",
+      "stagesPassed": 16,
+      "families": [
+        {
+          "schema": "cis.execution/v1",
+          "family": "unit",
+          "status": "Executed",
+          "executed": 4559,
+          "passed": 4559,
+          "failed": 0,
+          "skipped": 0
+        },
+        {
+          "schema": "cis.execution/v1",
+          "family": "integration",
+          "status": "Executed",
+          "executed": 2258,
+          "passed": 2258,
+          "failed": 0,
+          "skipped": 0
+        },
+        {
+          "schema": "cis.execution/v1",
+          "family": "architecture",
+          "status": "Executed",
+          "executed": 1132,
+          "passed": 1132,
+          "failed": 0,
+          "skipped": 0
+        },
+        {
+          "schema": "cis.execution/v1",
+          "family": "business",
+          "status": "Executed",
+          "executed": 29,
+          "passed": 29,
+          "failed": 0,
+          "skipped": 0
+        }
+      ],
+      "passed": 7978,
+      "artifact": ".artifacts/healthcheck/qualification-next/Developer-windows-04",
+      "profile": "Developer",
+      "failed": 0
+    },
+    "windowsCompatibility": {
+      "passed": 127,
+      "scope": "Current initial API/configuration/frozen wire and negative controls, not published-history replay",
+      "skipped": 0,
+      "summary": ".artifacts/csharp/focused/ef0bb2f026d3443dab14a7cd250f1a6a/summary.json",
+      "status": "Passed",
+      "failed": 0
+    },
+    "criticalControls": {
+      "killed": 20,
+      "baseline": {
+        "integration": 138,
+        "unit": 650
+      },
+      "canonicalInputsUnmodified": true,
+      "restorationPassed": true,
+      "restored": {
+        "integration": 138,
+        "unit": 650
+      },
+      "total": 20,
+      "canonicalInputs": 1134,
+      "status": "Passed",
+      "scope": "Finite cause-specific native assertion controls with actual fixture/probe/Core copies; not full automatic module mutation"
+    },
+    "compilerCollateral": {
+      "coreRestored": true,
+      "restoredPassed": 650,
+      "sourceInputs": 1284,
+      "automaticScoreAdjusted": false,
+      "scope": "Four separate native reproductions of collateral compiler rollback, not a reclassification of the original automatic report",
+      "nativeFailedCases": 6,
+      "sourceDifferences": 0,
+      "ids": [
+        "2089",
+        "2202",
+        "2204",
+        "2221"
+      ],
+      "baselinePassed": 650,
+      "status": "FourIsolatedComparisonsCompiledAndDetected"
+    }
+  },
+  "artifactPins": [
+    {
+      "sha256": "2b577c7a358dde6ac05598bb9e4dc53bd9896a598514d82f691cfba4bb9780fc",
+      "path": ".artifacts/healthcheck/qualification-next/package-provenance-02.json"
+    },
+    {
+      "sha256": "be9b13709839fad10993d3fe65622c72762b7110e13eb5d7926ecc1bd89f05e8",
+      "path": ".artifacts/healthcheck/qualification-next/package-windows-03/results.json"
+    },
+    {
+      "sha256": "244959ab5088d72084f7b4b2534b0b0efcf2f9d7498a1916089096a7716b8a25",
+      "path": ".artifacts/healthcheck/qualification-next/package-linux-02/results.json"
+    },
+    {
+      "sha256": "7f19ddf5503d19170c4565fa300281746bcc719390a7ed6037e779d7eb5caf24",
+      "path": ".artifacts/healthcheck/qualification-next/coverage-windows-02/collection.json"
+    },
+    {
+      "sha256": "ee933c93dbc7f33f70dfadaaf04ce994c1d9ebf716a4b02f206deff4bec47c72",
+      "path": ".artifacts/healthcheck/qualification-next/coverage-analysis-windows-02/results.json"
+    },
+    {
+      "sha256": "a160119631ffc59670c70595df0a2f83a7fa8b8b781020c85af19411aa98fd1c",
+      "path": ".artifacts/healthcheck/qualification-next/identities-linux-default-02/results.json"
+    },
+    {
+      "sha256": "80c473899d376b6ab041119c94bdd5213ddb10fa7aa5d3aceb8b3c8897f09b3c",
+      "path": ".artifacts/healthcheck/qualification-next/identities-linux-permissive-02/results.json"
+    },
+    {
+      "sha256": "5d68d2cab1fb9ce735768e24d717725c39bf8bc96282735f671684d15f3a5aa1",
+      "path": ".artifacts/healthcheck/qualification-next/critical-mutations-windows-04/summary.json"
+    },
+    {
+      "sha256": "cf22c436cae175745414562918318b2e3cd23cb5e307e62c4c4cba9a448aae02",
+      "path": ".artifacts/healthcheck/qualification-next/automatic-state-windows-03/native/reports/mutation-report.json"
+    },
+    {
+      "sha256": "9ec95d6f32142d2f526afd096b2fbc990cfca0846af8d0f7554a2e448a4b7aa9",
+      "path": ".artifacts/healthcheck/qualification-next/automatic-state-windows-03/process-results.json"
+    },
+    {
+      "sha256": "17a80d9a94c2b93ea34ef893728cbd3abe81f5c74340e67ab5dee0242385fd89",
+      "path": ".artifacts/healthcheck/qualification-next/final-snapshot-06/source-inputs.json"
+    },
+    {
+      "sha256": "17a80d9a94c2b93ea34ef893728cbd3abe81f5c74340e67ab5dee0242385fd89",
+      "path": ".artifacts/healthcheck/qualification-next/linux-final-07/source-inputs.json"
+    },
+    {
+      "sha256": "953c1562bdd184a9b1d9a0e282657f656879decaa28f704595fa9f32c831ae0d",
+      "path": ".artifacts/healthcheck/qualification-next/linux-bootstrap-08/source-inputs.json"
+    },
+    {
+      "sha256": "9cf85894fc6ec1d1da4ef355dec3fbfd5150baff866cc17526f6bf6832b5b14c",
+      "path": ".artifacts/healthcheck/qualification-next/linux-native-final-07/source-inputs.after-03.json"
+    },
+    {
+      "sha256": "006defb4e90a52eefd1201b4c07f56e57b97f3897e2268ffb06f5499b1708cad",
+      "path": ".artifacts/healthcheck/qualification-next/docs-stage/bootstrap-input-comparison.json"
+    },
+    {
+      "path": ".artifacts/healthcheck/qualification-next/linux-bootstrap-native-08/source-inputs.after.json",
+      "sha256": "25d4d312608a8eab9e9ae92a366e9ef9569f61bdc7e7f4d835caaa95af187303"
+    },
+    {
+      "path": ".artifacts/healthcheck/qualification-next/linux-bootstrap-native-08/focused/0454541c757f4b0780b04632ca27e622/selected.trx",
+      "sha256": "75e84d33efa079d589ffaa7339b2108afe4fc29ef8e42c62ee1f159d293b511c"
+    },
+    {
+      "path": ".artifacts/healthcheck/qualification-next/linux-bootstrap-native-08/focused/0454541c757f4b0780b04632ca27e622/summary.json",
+      "sha256": "5d9c8e00963f1264647955bf5a7141ca5e988be51844cd375d42c96cdd7e2a2d"
+    },
+    {
+      "path": ".artifacts/healthcheck/qualification-next/Developer-windows-04/summary.json",
+      "sha256": "02d8aabc318e6865917cfdfa5bd3bdbcc39d0f9f1d000cbcd3cd49f5c4703056"
+    },
+    {
+      "path": ".artifacts/healthcheck/qualification-next/Developer-windows-04/validation.json",
+      "sha256": "ef4b67392fb7611ed6ad4dfa4f8f5b916535d50cb40ae5e01f6c742ccf21adfb"
+    },
+    {
+      "path": ".artifacts/healthcheck/qualification-next/Developer-windows-04/source-inputs.json",
+      "sha256": "a71116e0eed32f14a692f7a66c0859aa298c255c2a8c2781aa9314eed2a8823c"
+    },
+    {
+      "path": ".artifacts/healthcheck/qualification-next/Developer-windows-04/discovery-reconciliation.json",
+      "sha256": "e9932e587693efeab6d70363d35296871cc88573467f8634db3c165b994baf4b"
+    }
+  ],
+  "sourceAttribution": "The later SourceInventoryTests fixture-only correction is the sole difference between selected snapshots06/07 and08. Shipping Core, selected Healthcheck logic, package/configuration inputs are unchanged; see bootstrap-input-comparison.json. Final Developer includes that correction. Canonical evidence documentation is generated after native runs and is not retroactively part of their captured snapshots.",
+  "retainedFailures": [
+    "tool-build-01",
+    "package-windows-01",
+    "linux-snapshot-01",
+    "linux-focused-02",
+    "identities-linux-default-01",
+    "critical-mutations-windows-01",
+    "critical-mutations-windows-02",
+    "automatic-state-windows-01 strict",
+    "automatic-state-windows-02 strict",
+    "automatic-state-windows-01 initial SDK11 restoration",
+    "Developer-windows-01",
+    "Developer-windows-02",
+    "Developer-windows-03",
+    "Linux final07 post-inventory stdin/quoting attempts01/02"
+  ],
+  "remaining": [
+    "Complete applicable automatic Healthcheck/required Core mutation closure, including exact compiler rollback and ignored-mutant review and mutated child-process origin proof",
+    "Required complete release profiles/coverage and claimed Windows/Linux release matrix",
+    "Actual external Heartbeat/watchdog activation, OnError, final handoff, owner closure and nonoverlap",
+    "Future real generic IStartable cancellation/aliases/at-most-once coordinator integration"
+  ],
+  "publicationHistory": {
+    "historicalReplayApplicable": false,
+    "ledgerEmpty": true,
+    "initialCompatibilityExecuted": true,
+    "inventedReleasedBaseline": false
+  },
+  "pilot": {
+    "causalSpeedupClaim": false,
+    "agentNativeBuilds": 0,
+    "costTelemetryComplete": false,
+    "matchedSerialBaseline": false,
+    "parallelSubagents": 3,
+    "sharedBuildOwner": "/root"
+  },
+  "fullReleaseQualified": false,
+  "retainedReports": [
+    {
+      "path": "package-provenance.json",
+      "sha256": "2b577c7a358dde6ac05598bb9e4dc53bd9896a598514d82f691cfba4bb9780fc"
+    },
+    {
+      "path": "package-windows.json",
+      "sha256": "be9b13709839fad10993d3fe65622c72762b7110e13eb5d7926ecc1bd89f05e8"
+    },
+    {
+      "path": "package-linux.json",
+      "sha256": "244959ab5088d72084f7b4b2534b0b0efcf2f9d7498a1916089096a7716b8a25"
+    },
+    {
+      "path": "coverage.json",
+      "sha256": "ee933c93dbc7f33f70dfadaaf04ce994c1d9ebf716a4b02f206deff4bec47c72"
+    },
+    {
+      "path": "identity-default.json",
+      "sha256": "a160119631ffc59670c70595df0a2f83a7fa8b8b781020c85af19411aa98fd1c"
+    },
+    {
+      "path": "identity-permissive.json",
+      "sha256": "80c473899d376b6ab041119c94bdd5213ddb10fa7aa5d3aceb8b3c8897f09b3c"
+    },
+    {
+      "path": "critical-controls.json",
+      "sha256": "5d68d2cab1fb9ce735768e24d717725c39bf8bc96282735f671684d15f3a5aa1"
+    },
+    {
+      "path": "automatic-state.json",
+      "sha256": "6531b220ef53f601f9f1186e86a39be80179edf088ce87081a17758dafd4ac1a"
+    },
+    {
+      "path": "compiler-collateral.json",
+      "sha256": "215f8c35b07c7154f2bfd18c705b8af3aa957720a97e2be3f4426b9798b85b70"
+    },
+    {
+      "path": "bootstrap-input-comparison.json",
+      "sha256": "006defb4e90a52eefd1201b4c07f56e57b97f3897e2268ffb06f5499b1708cad"
+    },
+    {
+      "path": "source-inputs-before-bootstrap.json",
+      "sha256": "17a80d9a94c2b93ea34ef893728cbd3abe81f5c74340e67ab5dee0242385fd89"
+    },
+    {
+      "path": "source-inputs.json",
+      "sha256": "953c1562bdd184a9b1d9a0e282657f656879decaa28f704595fa9f32c831ae0d"
+    },
+    {
+      "path": "developer-summary.json",
+      "sha256": "02d8aabc318e6865917cfdfa5bd3bdbcc39d0f9f1d000cbcd3cd49f5c4703056"
+    },
+    {
+      "path": "developer-validation.json",
+      "sha256": "ef4b67392fb7611ed6ad4dfa4f8f5b916535d50cb40ae5e01f6c742ccf21adfb"
+    },
+    {
+      "path": "native-linux.json",
+      "sha256": "d5ecd490b6020f0e20f61a44b5025b1825cedd9534b1045ce5341eb13ec835a0"
+    }
+  ]
+}

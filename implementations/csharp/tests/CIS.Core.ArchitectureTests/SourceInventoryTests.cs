@@ -170,11 +170,18 @@ public sealed class SourceInventoryTests
         }
         foreach (string folder in new[] { "eng/CIS.DependencyChecker", "tests/CIS.Core.TestSupport" })
         {
+            string source = Path.Combine(language.FullName, folder);
             string target = Directory.CreateDirectory(Path.Combine(directory.Path, folder)).FullName;
-            foreach (string file in Directory.EnumerateFiles(Path.Combine(language.FullName, folder)))
+            foreach (string file in Directory.EnumerateFiles(source, "*", SearchOption.AllDirectories))
             {
+                string relative = Path.GetRelativePath(source, file);
+                if (relative.Split(Path.DirectorySeparatorChar).Any(segment => segment is "bin" or "obj")) { continue; }
                 if (Path.GetExtension(file) is ".cs" or ".csproj" || Path.GetFileName(file) == "packages.lock.json")
-                { File.Copy(file, Path.Combine(target, Path.GetFileName(file))); }
+                {
+                    string destination = Path.Combine(target, relative);
+                    Directory.CreateDirectory(Path.GetDirectoryName(destination)!);
+                    File.Copy(file, destination);
+                }
             }
         }
         string input = Directory.CreateDirectory(Path.Combine(directory.Path, "input")).FullName;

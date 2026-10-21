@@ -1,0 +1,169 @@
+{
+  "schema": "cis.healthcheck.isolated-compiler-collateral-observations/v1-development",
+  "status": "Four isolated replacements compiled and were detected by the intended existing native cases",
+  "scope": "Separate manual native observations; original automatic CompileError statuses and automatic score unchanged",
+  "source": "implementations/csharp/src/CIS.Core/Healthcheck/Internal/State/HealthStateCoordinator.cs",
+  "sourceSha256": "7e1462309c085cf952cf0bff034f37eda57108165a1ac7f348fd84142e870c1a",
+  "baselinePassed": 650,
+  "restoredPassed": 650,
+  "controls": [
+    {
+      "trxSha256": "68f4ab74c14242c65b49c18f202dccf1c791cbbeff47747f17651ee3e93e809a",
+      "nativeTestExitCode": 1,
+      "id": "2089",
+      "passed": 0,
+      "sourceSha256": "e404a33903867f7ad6580c852f32a6d241a511c8f1f6eea3f69361f4e1de3841",
+      "coreSha256": "afb3d0fbf076d82f056ce754d515cb21c43e4a4b4dbff37bbdeebbeb46552189",
+      "total": 1,
+      "nativeCases": [
+        {
+          "stackTrace": "   at CIS.Healthcheck.Internal.HealthStateCoordinator.CreateLocked(HealthMonitorOptions options, DateTimeOffset now) in C:\\miscwork\\portfolio\\cislib\\.artifacts\\healthcheck\\qualification-next\\compiler-collateral-01\\source\\implementations\\csharp\\src\\CIS.Core\\Healthcheck\\Internal\\State\\HealthStateCoordinator.cs:line 99\r\n   at CIS.Healthcheck.Internal.HealthStateCoordinator.Create(HealthMonitorOptions options) in C:\\miscwork\\portfolio\\cislib\\.artifacts\\healthcheck\\qualification-next\\compiler-collateral-01\\source\\implementations\\csharp\\src\\CIS.Core\\Healthcheck\\Internal\\State\\HealthStateCoordinator.cs:line 91\r\n   at CIS.Healthcheck.HealthcheckService.CreateCondition(ConditionMonitorOptions options) in C:\\miscwork\\portfolio\\cislib\\.artifacts\\healthcheck\\qualification-next\\compiler-collateral-01\\source\\implementations\\csharp\\src\\CIS.Core\\Healthcheck\\HealthcheckService.cs:line 19\r\n   at CIS.Tests.UnitTests.Healthcheck.HealthcheckServicePolicyTests.CapacityFailureDoesNotEvictAnExistingFailureAndWithdrawalFreesAdmission() in C:\\miscwork\\portfolio\\cislib\\.artifacts\\healthcheck\\qualification-next\\compiler-collateral-01\\source\\implementations\\csharp\\tests\\CIS.Core.UnitTests\\Healthcheck\\Core\\HealthcheckServicePolicyTests.cs:line 506\r\n   at CIS.Tests.UnitTests.Healthcheck.HealthcheckServicePolicyTests.CapacityFailureDoesNotEvictAnExistingFailureAndWithdrawalFreesAdmission() in C:\\miscwork\\portfolio\\cislib\\.artifacts\\healthcheck\\qualification-next\\compiler-collateral-01\\source\\implementations\\csharp\\tests\\CIS.Core.UnitTests\\Healthcheck\\Core\\HealthcheckServicePolicyTests.cs:line 522\r\n   at Microsoft.VisualStudio.TestPlatform.MSTest.TestAdapter.Execution.TestMethodInfo.ExecuteInternalAsync(Object[] arguments, CancellationTokenSource timeoutTokenSource, TestInvocationState invocationState)\r\n",
+          "testId": "12b5b463-5377-8812-b144-5c02828c5130",
+          "testName": "CapacityFailureDoesNotEvictAnExistingFailureAndWithdrawalFreesAdmission",
+          "outcome": "Failed",
+          "message": "Test method CIS.Tests.UnitTests.Healthcheck.HealthcheckServicePolicyTests.CapacityFailureDoesNotEvictAnExistingFailureAndWithdrawalFreesAdmission threw exception:\r\nCIS.Healthcheck.HealthcheckCapacityException: The Healthcheck monitor capacity has been reached."
+        }
+      ],
+      "automaticScoreAdjusted": false,
+      "isolatedBuildExitCode": 0,
+      "failed": 1,
+      "automaticStatus": "CompileError",
+      "testCoreSha256": "afb3d0fbf076d82f056ce754d515cb21c43e4a4b4dbff37bbdeebbeb46552189",
+      "notExecuted": 0,
+      "baselineCoreSha256": "9ab11dc10300f0f2585b55eef3735d2b89e126aba88ca0c5d43680ec19748770"
+    },
+    {
+      "id": "2202",
+      "notExecuted": 0,
+      "passed": 0,
+      "coreSha256": "a595b6afaa809dabea304f3a58a7b2d8e9372b3aa831f84ccb77bdc4179646df",
+      "automaticScoreAdjusted": false,
+      "nativeTestExitCode": 1,
+      "automaticStatus": "CompileError",
+      "nativeCases": [
+        {
+          "outcome": "Failed",
+          "testName": "NoWorkServiceDisposalCompletesEveryExistingWaitBeforeReturning (2)",
+          "testId": "145e39dd-c56c-81ae-a36d-be99e699ee05",
+          "message": "Assertion failed. Expected condition to be true.\r\n\r\nactual: false\r\n\r\nAssert.IsTrue(disposal.IsCompletedSuccessfully)",
+          "stackTrace": "   at CIS.Tests.UnitTests.Healthcheck.HealthcheckLifecycleQualificationTests.NoWorkServiceDisposalCompletesEveryExistingWaitBeforeReturning(Int32 monitorCount) in C:\\miscwork\\portfolio\\cislib\\.artifacts\\healthcheck\\qualification-next\\compiler-collateral-01\\source\\implementations\\csharp\\tests\\CIS.Core.UnitTests\\Healthcheck\\Core\\HealthcheckLifecycleQualificationTests.cs:line 28\r\n   at InvokeStub_HealthcheckLifecycleQualificationTests.NoWorkServiceDisposalCompletesEveryExistingWaitBeforeReturning(Object, Span`1)\r\n   at System.Reflection.MethodBaseInvoker.InvokeWithOneArg(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)"
+        },
+        {
+          "outcome": "Failed",
+          "testName": "NoWorkServiceDisposalCompletesEveryExistingWaitBeforeReturning (0)",
+          "testId": "1c1237ab-4df9-8522-b05a-0e7d44ddd11c",
+          "message": "Assertion failed. Expected condition to be true.\r\n\r\nactual: false\r\n\r\nAssert.IsTrue(disposal.IsCompletedSuccessfully)",
+          "stackTrace": "   at CIS.Tests.UnitTests.Healthcheck.HealthcheckLifecycleQualificationTests.NoWorkServiceDisposalCompletesEveryExistingWaitBeforeReturning(Int32 monitorCount) in C:\\miscwork\\portfolio\\cislib\\.artifacts\\healthcheck\\qualification-next\\compiler-collateral-01\\source\\implementations\\csharp\\tests\\CIS.Core.UnitTests\\Healthcheck\\Core\\HealthcheckLifecycleQualificationTests.cs:line 28\r\n   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)\r\n   at System.Reflection.MethodBaseInvoker.InvokeDirectByRefWithFewArgs(Object obj, Span`1 copyOfArgs, BindingFlags invokeAttr)"
+        }
+      ],
+      "testCoreSha256": "a595b6afaa809dabea304f3a58a7b2d8e9372b3aa831f84ccb77bdc4179646df",
+      "trxSha256": "75aa3c3362ee1c51bba5e104156500c20e541c3fa547cbc7dbc061f0d81e0c44",
+      "baselineCoreSha256": "9ab11dc10300f0f2585b55eef3735d2b89e126aba88ca0c5d43680ec19748770",
+      "sourceSha256": "e75682dd4d1c3d07d16502f4b63cd74b57dcf9bf6dfdf426b3b6e0b8e2906d13",
+      "isolatedBuildExitCode": 0,
+      "total": 2,
+      "failed": 2
+    },
+    {
+      "nativeTestExitCode": 1,
+      "nativeCases": [
+        {
+          "testName": "NoWorkServiceDisposalCompletesEveryExistingWaitBeforeReturning (0)",
+          "outcome": "Failed",
+          "testId": "1c1237ab-4df9-8522-b05a-0e7d44ddd11c",
+          "message": "Assertion failed. Expected condition to be true.\r\n\r\nactual: false\r\n\r\nAssert.IsTrue(disposal.IsCompletedSuccessfully)",
+          "stackTrace": "   at CIS.Tests.UnitTests.Healthcheck.HealthcheckLifecycleQualificationTests.NoWorkServiceDisposalCompletesEveryExistingWaitBeforeReturning(Int32 monitorCount) in C:\\miscwork\\portfolio\\cislib\\.artifacts\\healthcheck\\qualification-next\\compiler-collateral-01\\source\\implementations\\csharp\\tests\\CIS.Core.UnitTests\\Healthcheck\\Core\\HealthcheckLifecycleQualificationTests.cs:line 28\r\n   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)\r\n   at System.Reflection.MethodBaseInvoker.InvokeDirectByRefWithFewArgs(Object obj, Span`1 copyOfArgs, BindingFlags invokeAttr)"
+        },
+        {
+          "testName": "NoWorkServiceDisposalCompletesEveryExistingWaitBeforeReturning (2)",
+          "outcome": "Failed",
+          "testId": "145e39dd-c56c-81ae-a36d-be99e699ee05",
+          "message": "Assertion failed. Expected condition to be true.\r\n\r\nactual: false\r\n\r\nAssert.IsTrue(disposal.IsCompletedSuccessfully)",
+          "stackTrace": "   at CIS.Tests.UnitTests.Healthcheck.HealthcheckLifecycleQualificationTests.NoWorkServiceDisposalCompletesEveryExistingWaitBeforeReturning(Int32 monitorCount) in C:\\miscwork\\portfolio\\cislib\\.artifacts\\healthcheck\\qualification-next\\compiler-collateral-01\\source\\implementations\\csharp\\tests\\CIS.Core.UnitTests\\Healthcheck\\Core\\HealthcheckLifecycleQualificationTests.cs:line 28\r\n   at InvokeStub_HealthcheckLifecycleQualificationTests.NoWorkServiceDisposalCompletesEveryExistingWaitBeforeReturning(Object, Span`1)\r\n   at System.Reflection.MethodBaseInvoker.InvokeWithOneArg(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)"
+        }
+      ],
+      "trxSha256": "e0e1b486e984d984e40c8c20ca0e02fe676eb2663d305bcc4c5f7499b9ca4357",
+      "coreSha256": "94e5e9fc24203c7ee0bd0c473c1d867ce9a8423e37189fc4bdf8ba65c9ad90e5",
+      "notExecuted": 0,
+      "baselineCoreSha256": "9ab11dc10300f0f2585b55eef3735d2b89e126aba88ca0c5d43680ec19748770",
+      "automaticStatus": "CompileError",
+      "isolatedBuildExitCode": 0,
+      "passed": 0,
+      "automaticScoreAdjusted": false,
+      "testCoreSha256": "94e5e9fc24203c7ee0bd0c473c1d867ce9a8423e37189fc4bdf8ba65c9ad90e5",
+      "total": 2,
+      "id": "2204",
+      "failed": 2,
+      "sourceSha256": "51a3bff04d06da70816c80854d9be979b433f229c63396f9ad9f82b1c6d8fc58"
+    },
+    {
+      "sourceSha256": "aea385efe0b1b2b45e763b5ff488f6072956a44a07472bc89b28ba5ee9a9ac82",
+      "id": "2221",
+      "trxSha256": "a64f91a87c0ef93fd033c2e9c90dee6184a772cb8a35b5172b304177164be931",
+      "baselineCoreSha256": "9ab11dc10300f0f2585b55eef3735d2b89e126aba88ca0c5d43680ec19748770",
+      "automaticStatus": "CompileError",
+      "nativeTestExitCode": 1,
+      "total": 1,
+      "coreSha256": "7495190c19fa824270ecd89a5228b50010b64299742d4a2a8069de14362905ad",
+      "failed": 1,
+      "testCoreSha256": "7495190c19fa824270ecd89a5228b50010b64299742d4a2a8069de14362905ad",
+      "nativeCases": [
+        {
+          "stackTrace": "   at CIS.Healthcheck.Internal.HealthStateCoordinator.ReportMeasurement(HealthMonitorEntry entry, HealthMeasurement measurement) in C:\\miscwork\\portfolio\\cislib\\.artifacts\\healthcheck\\qualification-next\\compiler-collateral-01\\source\\implementations\\csharp\\src\\CIS.Core\\Healthcheck\\Internal\\State\\HealthStateCoordinator.cs:line 239\r\n   at CIS.Healthcheck.Internal.HealthMonitorHandle.ReportMeasurement(HealthMeasurement measurement) in C:\\miscwork\\portfolio\\cislib\\.artifacts\\healthcheck\\qualification-next\\compiler-collateral-01\\source\\implementations\\csharp\\src\\CIS.Core\\Healthcheck\\Internal\\Monitors\\HealthMonitorHandles.cs:line 12\r\n   at CIS.Tests.UnitTests.Healthcheck.HealthcheckServicePolicyTests.MeasurementKeyLimitRejectsOnlyNewKeysAndAllowsExistingKeyReplacement() in C:\\miscwork\\portfolio\\cislib\\.artifacts\\healthcheck\\qualification-next\\compiler-collateral-01\\source\\implementations\\csharp\\tests\\CIS.Core.UnitTests\\Healthcheck\\Core\\HealthcheckServicePolicyTests.cs:line 442\r\n   at CIS.Tests.UnitTests.Healthcheck.HealthcheckServicePolicyTests.MeasurementKeyLimitRejectsOnlyNewKeysAndAllowsExistingKeyReplacement() in C:\\miscwork\\portfolio\\cislib\\.artifacts\\healthcheck\\qualification-next\\compiler-collateral-01\\source\\implementations\\csharp\\tests\\CIS.Core.UnitTests\\Healthcheck\\Core\\HealthcheckServicePolicyTests.cs:line 458\r\n   at Microsoft.VisualStudio.TestPlatform.MSTest.TestAdapter.Execution.TestMethodInfo.ExecuteInternalAsync(Object[] arguments, CancellationTokenSource timeoutTokenSource, TestInvocationState invocationState)\r\n",
+          "outcome": "Failed",
+          "testName": "MeasurementKeyLimitRejectsOnlyNewKeysAndAllowsExistingKeyReplacement",
+          "message": "Test method CIS.Tests.UnitTests.Healthcheck.HealthcheckServicePolicyTests.MeasurementKeyLimitRejectsOnlyNewKeysAndAllowsExistingKeyReplacement threw exception:\r\nSystem.ArgumentException: A monitor supports at most 32 metric keys. (Parameter 'measurement')",
+          "testId": "1a78624f-290d-8fc5-9125-d4918472774f"
+        }
+      ],
+      "passed": 0,
+      "automaticScoreAdjusted": false,
+      "isolatedBuildExitCode": 0,
+      "notExecuted": 0
+    }
+  ],
+  "restoration": {
+    "coreRestored": true,
+    "restoredCoreSha256": "9ab11dc10300f0f2585b55eef3735d2b89e126aba88ca0c5d43680ec19748770",
+    "nativeRestoredPassed": 650,
+    "baselineCoreSha256": "9ab11dc10300f0f2585b55eef3735d2b89e126aba88ca0c5d43680ec19748770",
+    "sourceRestored": true,
+    "sourceInputs": 1284,
+    "sourceDifferences": 0
+  },
+  "artifacts": [
+    {
+      "sha256": "628f818f069e7062ebc960999798b7ec56939af8b208c0a8b58386625f7c0896",
+      "path": ".artifacts/healthcheck/qualification-next/compiler-collateral-01/2089/result.json"
+    },
+    {
+      "sha256": "f4cba5c788d77be84f0bbcdd2e1dad9098523717372a08c41acf9061a2c19292",
+      "path": ".artifacts/healthcheck/qualification-next/compiler-collateral-01/2202/result.json"
+    },
+    {
+      "sha256": "ee4424f6537a49c4ed783bc1b4c3e9de2212df301c13955cc6fdc5ba2fb17c2d",
+      "path": ".artifacts/healthcheck/qualification-next/compiler-collateral-01/2204/result.json"
+    },
+    {
+      "sha256": "c0474792df7e13bd238308075a90a2cd477da1b71c0dd0ac794a39e349704dfd",
+      "path": ".artifacts/healthcheck/qualification-next/compiler-collateral-01/2221/result.json"
+    },
+    {
+      "sha256": "953c1562bdd184a9b1d9a0e282657f656879decaa28f704595fa9f32c831ae0d",
+      "path": ".artifacts/healthcheck/qualification-next/compiler-collateral-01/source-inputs.json"
+    },
+    {
+      "sha256": "e33ad274fb64df4e13121d3a2e833df0382b228988162584fc7e2c599b248ed8",
+      "path": ".artifacts/healthcheck/qualification-next/compiler-collateral-01/source-inputs.after.json"
+    },
+    {
+      "sha256": "469562e7be73bdcf980ce9b1c03b1d34bdf9c53bd9ac955a5edbc06f5fed8d33",
+      "path": ".artifacts/healthcheck/qualification-next/compiler-collateral-01/inputs/baseline-pins.json"
+    },
+    {
+      "sha256": "5ad02331184fd2b21067538fd17dbec8d9eed1eee4c272ccb5a6020ea3f5ebf3",
+      "path": ".artifacts/healthcheck/qualification-next/compiler-collateral-01/restoration.json"
+    }
+  ],
+  "remaining": "31 other selected compiler-error cases and68ignored blocks still need source/tool-bound disposition; complete automatic module/child-process mutation qualification remains pending"
+}

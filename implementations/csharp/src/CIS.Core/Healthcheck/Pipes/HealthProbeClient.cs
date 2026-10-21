@@ -1,5 +1,6 @@
 using System.Globalization;
 using System.IO.Pipes;
+using System.Net.Sockets;
 using System.Text;
 using CIS.Healthcheck.Reporting;
 
@@ -47,7 +48,7 @@ internal static class HealthProbeClient
         {
             await WriteErrorAsync(standardError, "TimeoutOrCanceled").ConfigureAwait(false);
         }
-        catch (Exception exception) when (exception is IOException or UnauthorizedAccessException or FormatException or InvalidOperationException or ArgumentException)
+        catch (Exception exception) when (exception is IOException or SocketException or UnauthorizedAccessException or FormatException or InvalidOperationException or ArgumentException)
         {
             await WriteErrorAsync(standardError, "TransportOrProtocolFailure").ConfigureAwait(false);
         }

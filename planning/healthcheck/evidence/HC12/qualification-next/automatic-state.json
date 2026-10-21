@@ -1,0 +1,5812 @@
+{
+  "schema": "cis.healthcheck.automatic-state-observations/v1-development",
+  "scope": "One state-coordinator source only; no all-Healthcheck automatic/release qualification",
+  "sourcePath": "implementations/csharp/src/CIS.Core/Healthcheck/Internal/State/HealthStateCoordinator.cs",
+  "sourceSha256": "7e1462309c085cf952cf0bff034f37eda57108165a1ac7f348fd84142e870c1a",
+  "statuses": {
+    "CompileError": 35,
+    "Ignored": 68,
+    "Killed": 196,
+    "NoCoverage": 3,
+    "Survived": 9,
+    "Timeout": 9
+  },
+  "eligible": 217,
+  "strictKilled": 196,
+  "strictPercent": 90.3225806451613,
+  "strictThreshold": 90,
+  "measuredThresholdPassed": true,
+  "nativePercent": 94.47,
+  "timeoutsEarnKillCredit": false,
+  "compileErrorsAndIgnoredEarnKillCredit": false,
+  "completeAutomaticQualification": false,
+  "outstanding": "Review exact compiler rollback/ignored-mutant diagnostics; retain surviving/timed-out/uncovered cases and qualify remaining module/child-process mutation paths",
+  "baselinePassed": 650,
+  "restoredPassed": 650,
+  "capturedSourceInputs": 1284,
+  "sourceInputsUnchanged": true,
+  "artifacts": [
+    {
+      "path": ".artifacts/healthcheck/qualification-next/automatic-state-windows-03/native/reports/mutation-report.json",
+      "sha256": "cf22c436cae175745414562918318b2e3cd23cb5e307e62c4c4cba9a448aae02"
+    },
+    {
+      "path": ".artifacts/healthcheck/qualification-next/automatic-state-windows-03/process-results.json",
+      "sha256": "9ec95d6f32142d2f526afd096b2fbc990cfca0846af8d0f7554a2e448a4b7aa9"
+    },
+    {
+      "path": ".artifacts/healthcheck/qualification-next/automatic-state-windows-03/invocation.json",
+      "sha256": "1f8728ffafda805723a3b89bcd4b16e7e2afe584c0c536ae56539ef292d88d6d"
+    },
+    {
+      "path": ".artifacts/healthcheck/qualification-next/automatic-state-windows-03/source-inputs.after.json",
+      "sha256": "04722d57c4b9903f19634079927040149f6a5c87076b33f99524ff7ef9e5bf6a"
+    },
+    {
+      "path": ".artifacts/healthcheck/qualification-next/final-snapshot-06/source-inputs.json",
+      "sha256": "17a80d9a94c2b93ea34ef893728cbd3abe81f5c74340e67ab5dee0242385fd89"
+    }
+  ],
+  "mutants": [
+    {
+      "id": "2027",
+      "mutatorName": "Collection expression mutation",
+      "description": null,
+      "replacement": "[default]",
+      "location": {
+        "start": {
+          "line": 9,
+          "column": 68
+        },
+        "end": {
+          "line": 9,
+          "column": 70
+        }
+      },
+      "status": "CompileError",
+      "statusReason": "Mutant caused compile errors"
+    },
+    {
+      "id": "2028",
+      "mutatorName": "Collection expression mutation",
+      "description": null,
+      "replacement": "[default]",
+      "location": {
+        "start": {
+          "line": 10,
+          "column": 73
+        },
+        "end": {
+          "line": 10,
+          "column": 75
+        }
+      },
+      "status": "CompileError",
+      "statusReason": "Mutant caused compile errors"
+    },
+    {
+      "id": "2029",
+      "mutatorName": "Collection expression mutation",
+      "description": null,
+      "replacement": "[default]",
+      "location": {
+        "start": {
+          "line": 11,
+          "column": 68
+        },
+        "end": {
+          "line": 11,
+          "column": 70
+        }
+      },
+      "status": "CompileError",
+      "statusReason": "Mutant caused compile errors"
+    },
+    {
+      "id": "2030",
+      "mutatorName": "Block removal mutation",
+      "description": null,
+      "replacement": "{}",
+      "location": {
+        "start": {
+          "line": 19,
+          "column": 5
+        },
+        "end": {
+          "line": 46,
+          "column": 6
+        }
+      },
+      "status": "Ignored",
+      "statusReason": "Removed by block already covered filter"
+    },
+    {
+      "id": "2031",
+      "mutatorName": "CoalesceAssignmentExpression to SimpleAssignmentExpression mutation",
+      "description": null,
+      "replacement": "identity = new HealthApplicationIdentity\n        {\n            Name = EnvironmentOptions.ApplicationName,\n            BuildVersion = EnvironmentOptions.BuildVersion,\n            ServiceVersion = EnvironmentOptions.ServiceVersion,\n            InstanceId = Guid.Parse(EnvironmentOptions.InstanceId),\n            HostName = EnvironmentOptions.HostName,\n            OsDescription = EnvironmentOptions.OperatingSystemDescription\n        }",
+      "location": {
+        "start": {
+          "line": 22,
+          "column": 9
+        },
+        "end": {
+          "line": 30,
+          "column": 10
+        }
+      },
+      "status": "Killed",
+      "statusReason": null
+    },
+    {
+      "id": "2032",
+      "mutatorName": "Object initializer mutation",
+      "description": null,
+      "replacement": "new HealthApplicationIdentity\n{}",
+      "location": {
+        "start": {
+          "line": 22,
+          "column": 22
+        },
+        "end": {
+          "line": 30,
+          "column": 10
+        }
+      },
+      "status": "CompileError",
+      "statusReason": "Mutant caused compile errors"
+    },
+    {
+      "id": "2033",
+      "mutatorName": "Statement mutation",
+      "description": null,
+      "replacement": ";",
+      "location": {
+        "start": {
+          "line": 31,
+          "column": 9
+        },
+        "end": {
+          "line": 31,
+          "column": 78
+        }
+      },
+      "status": "Killed",
+      "statusReason": null
+    },
+    {
+      "id": "2034",
+      "mutatorName": "Boolean mutation",
+      "description": null,
+      "replacement": "false",
+      "location": {
+        "start": {
+          "line": 31,
+          "column": 72
+        },
+        "end": {
+          "line": 31,
+          "column": 76
+        }
+      },
+      "status": "Killed",
+      "statusReason": null
+    },
+    {
+      "id": "2035",
+      "mutatorName": "Statement mutation",
+      "description": null,
+      "replacement": ";",
+      "location": {
+        "start": {
+          "line": 32,
+          "column": 9
+        },
+        "end": {
+          "line": 32,
+          "column": 78
+        }
+      },
+      "status": "Killed",
+      "statusReason": null
+    },
+    {
+      "id": "2036",
+      "mutatorName": "Statement mutation",
+      "description": null,
+      "replacement": ";",
+      "location": {
+        "start": {
+          "line": 33,
+          "column": 9
+        },
+        "end": {
+          "line": 33,
+          "column": 82
+        }
+      },
+      "status": "Killed",
+      "statusReason": null
+    },
+    {
+      "id": "2037",
+      "mutatorName": "Statement mutation",
+      "description": null,
+      "replacement": ";",
+      "location": {
+        "start": {
+          "line": 34,
+          "column": 9
+        },
+        "end": {
+          "line": 34,
+          "column": 70
+        }
+      },
+      "status": "Killed",
+      "statusReason": null
+    },
+    {
+      "id": "2038",
+      "mutatorName": "Statement mutation",
+      "description": null,
+      "replacement": ";",
+      "location": {
+        "start": {
+          "line": 35,
+          "column": 9
+        },
+        "end": {
+          "line": 35,
+          "column": 81
+        }
+      },
+      "status": "Killed",
+      "statusReason": null
+    },
+    {
+      "id": "2039",
+      "mutatorName": "Equality mutation",
+      "description": null,
+      "replacement": "identity.InstanceId != Guid.Empty",
+      "location": {
+        "start": {
+          "line": 36,
+          "column": 13
+        },
+        "end": {
+          "line": 36,
+          "column": 46
+        }
+      },
+      "status": "Killed",
+      "statusReason": null
+    },
+    {
+      "id": "2040",
+      "mutatorName": "Block removal mutation",
+      "description": null,
+      "replacement": "{}",
+      "location": {
+        "start": {
+          "line": 36,
+          "column": 48
+        },
+        "end": {
+          "line": 36,
+          "column": 147
+        }
+      },
+      "status": "Ignored",
+      "statusReason": "Removed by block already covered filter"
+    },
+    {
+      "id": "2041",
+      "mutatorName": "Statement mutation",
+      "description": null,
+      "replacement": ";",
+      "location": {
+        "start": {
+          "line": 36,
+          "column": 50
+        },
+        "end": {
+          "line": 36,
+          "column": 145
+        }
+      },
+      "status": "Killed",
+      "statusReason": null
+    },
+    {
+      "id": "2042",
+      "mutatorName": "String mutation",
+      "description": null,
+      "replacement": "\"\"",
+      "location": {
+        "start": {
+          "line": 36,
+          "column": 78
+        },
+        "end": {
+          "line": 36,
+          "column": 125
+        }
+      },
+      "status": "Killed",
+      "statusReason": null
+    },
+    {
+      "id": "2043",
+      "mutatorName": "Object initializer mutation",
+      "description": null,
+      "replacement": "new HealthApplicationIdentity\n{}",
+      "location": {
+        "start": {
+          "line": 37,
+          "column": 23
+        },
+        "end": {
+          "line": 45,
+          "column": 10
+        }
+      },
+      "status": "CompileError",
+      "statusReason": "Mutant caused compile errors"
+    },
+    {
+      "id": "2044",
+      "mutatorName": "Block removal mutation",
+      "description": null,
+      "replacement": "{}",
+      "location": {
+        "start": {
+          "line": 55,
+          "column": 5
+        },
+        "end": {
+          "line": 58,
+          "column": 6
+        }
+      },
+      "status": "Ignored",
+      "statusReason": "Removed by block already covered filter"
+    },
+    {
+      "id": "2045",
+      "mutatorName": "Logical mutation",
+      "description": null,
+      "replacement": "(required && string.IsNullOrWhiteSpace(text)) && (text is not null && !UnicodeScalarText.IsValid(text, maximum, allowControls: false))",
+      "location": {
+        "start": {
+          "line": 56,
+          "column": 13
+        },
+        "end": {
+          "line": 56,
+          "column": 147
+        }
+      },
+      "status": "Killed",
+      "statusReason": null
+    },
+    {
+      "id": "2046",
+      "mutatorName": "Negate expression",
+      "description": null,
+      "replacement": "!((required && string.IsNullOrWhiteSpace(text)) || (text is not null && !UnicodeScalarText.IsValid(text, maximum, allowControls: false)))",
+      "location": {
+        "start": {
+          "line": 56,
+          "column": 13
+        },
+        "end": {
+          "line": 56,
+          "column": 147
+        }
+      },
+      "status": "Killed",
+      "statusReason": null
+    },
+    {
+      "id": "2047",
+      "mutatorName": "Logical mutation",
+      "description": null,
+      "replacement": "required || string.IsNullOrWhiteSpace(text)",
+      "location": {
+        "start": {
+          "line": 56,
+          "column": 14
+        },
+        "end": {
+          "line": 56,
+          "column": 57
+        }
+      },
+      "status": "Killed",
+      "statusReason": null
+    },
+    {
+      "id": "2048",
+      "mutatorName": "String mutation",
+      "description": null,
+      "replacement": "(text!=null)",
+      "location": {
+        "start": {
+          "line": 56,
+          "column": 26
+        },
+        "end": {
+          "line": 56,
+          "column": 57
+        }
+      },
+      "status": "Killed",
+      "statusReason": null
+    },
+    {
+      "id": "2049",
+      "mutatorName": "String mutation",
+      "description": null,
+      "replacement": "(text!=\"\")",
+      "location": {
+        "start": {
+          "line": 56,
+          "column": 26
+        },
+        "end": {
+          "line": 56,
+          "column": 57
+        }
+      },
+      "status": "Killed",
+      "statusReason": null
+    },
+    {
+      "id": "2050",
+      "mutatorName": "String mutation",
+      "description": null,
+      "replacement": "(text.Trim()!=\"\")",
+      "location": {
+        "start": {
+          "line": 56,
+          "column": 26
+        },
+        "end": {
+          "line": 56,
+          "column": 57
+        }
+      },
+      "status": "Killed",
+      "statusReason": null
+    },
+    {
+      "id": "2051",
+      "mutatorName": "Logical mutation",
+      "description": null,
+      "replacement": "text is not null || !UnicodeScalarText.IsValid(text, maximum, allowControls: false)",
+      "location": {
+        "start": {
+          "line": 56,
+          "column": 63
+        },
+        "end": {
+          "line": 56,
+          "column": 146
+        }
+      },
+      "status": "Killed",
+      "statusReason": null
+    },
+    {
+      "id": "2052",
+      "mutatorName": "Equality mutation",
+      "description": null,
+      "replacement": "text is null",
+      "location": {
+        "start": {
+          "line": 56,
+          "column": 63
+        },
+        "end": {
+          "line": 56,
+          "column": 79
+        }
+      },
+      "status": "Killed",
+      "statusReason": null
+    },
+    {
+      "id": "2053",
+      "mutatorName": "LogicalNotExpression to un-LogicalNotExpression mutation",
+      "description": null,
+      "replacement": "UnicodeScalarText.IsValid(text, maximum, allowControls: false)",
+      "location": {
+        "start": {
+          "line": 56,
+          "column": 83
+        },
+        "end": {
+          "line": 56,
+          "column": 146
+        }
+      },
+      "status": "Killed",
+      "statusReason": null
+    },
+    {
+      "id": "2054",
+      "mutatorName": "Boolean mutation",
+      "description": null,
+      "replacement": "true",
+      "location": {
+        "start": {
+          "line": 56,
+          "column": 140
+        },
+        "end": {
+          "line": 56,
+          "column": 145
+        }
+      },
+      "status": "Killed",
+      "statusReason": null
+    },
+    {
+      "id": "2055",
+      "mutatorName": "Block removal mutation",
+      "description": null,
+      "replacement": "{}",
+      "location": {
+        "start": {
+          "line": 57,
+          "column": 9
+        },
+        "end": {
+          "line": 57,
+          "column": 117
+        }
+      },
+      "status": "Ignored",
+      "statusReason": "Removed by block already covered filter"
+    },
+    {
+      "id": "2056",
+      "mutatorName": "Statement mutation",
+      "description": null,
+      "replacement": ";",
+      "location": {
+        "start": {
+          "line": 57,
+          "column": 11
+        },
+        "end": {
+          "line": 57,
+          "column": 115
+        }
+      },
+      "status": "Killed",
+      "statusReason": null
+    },
+    {
+      "id": "2057",
+      "mutatorName": "String mutation",
+      "description": null,
+      "replacement": "\"\"",
+      "location": {
+        "start": {
+          "line": 57,
+          "column": 39
+        },
+        "end": {
+          "line": 57,
+          "column": 102
+        }
+      },
+      "status": "Killed",
+      "statusReason": null
+    },
+    {
+      "id": "2058",
+      "mutatorName": "Block removal mutation",
+      "description": null,
+      "replacement": "{}",
+      "location": {
+        "start": {
+          "line": 61,
+          "column": 5
+        },
+        "end": {
+          "line": 78,
+          "column": 6
+        }
+      },
+      "status": "Ignored",
+      "statusReason": "Removed by block already covered filter"
+    },
+    {
+      "id": "2059",
+      "mutatorName": "Statement mutation",
+      "description": null,
+      "replacement": ";",
+      "location": {
+        "start": {
+          "line": 62,
+          "column": 9
+        },
+        "end": {
+          "line": 62,
+          "column": 52
+        }
+      },
+      "status": "Killed",
+      "statusReason": null
+    },
+    {
+      "id": "2060",
+      "mutatorName": "Statement mutation",
+      "description": null,
+      "replacement": ";",
+      "location": {
+        "start": {
+          "line": 63,
+          "column": 9
+        },
+        "end": {
+          "line": 63,
+          "column": 34
+        }
+      },
+      "status": "Killed",
+      "statusReason": null
+    },
+    {
+      "id": "2061",
+      "mutatorName": "Equality mutation",
+      "description": null,
+      "replacement": "failure.FailureThreshold > 1",
+      "location": {
+        "start": {
+          "line": 66,
+          "column": 64
+        },
+        "end": {
+          "line": 66,
+          "column": 92
+        }
+      },
+      "status": "Killed",
+      "statusReason": null
+    },
+    {
+      "id": "2062",
+      "mutatorName": "Equality mutation",
+      "description": null,
+      "replacement": "failure.FailureThreshold <= 1",
+      "location": {
+        "start": {
+          "line": 66,
+          "column": 64
+        },
+        "end": {
+          "line": 66,
+          "column": 92
+        }
+      },
+      "status": "Killed",
+      "statusReason": null
+    },
+    {
+      "id": "2063",
+      "mutatorName": "String mutation",
+      "description": null,
+      "replacement": "\"\"",
+      "location": {
+        "start": {
+          "line": 67,
+          "column": 72
+        },
+        "end": {
+          "line": 67,
+          "column": 111
+        }
+      },
+      "status": "Killed",
+      "statusReason": null
+    },
+    {
+      "id": "2064",
+      "mutatorName": "Logical mutation",
+      "description": null,
+      "replacement": "!Enum.IsDefined(numeric.Comparison) && !double.IsFinite(numeric.Threshold)",
+      "location": {
+        "start": {
+          "line": 69,
+          "column": 21
+        },
+        "end": {
+          "line": 69,
+          "column": 95
+        }
+      },
+      "status": "Killed",
+      "statusReason": null
+    },
+    {
+      "id": "2065",
+      "mutatorName": "Negate expression",
+      "description": null,
+      "replacement": "!(!Enum.IsDefined(numeric.Comparison) || !double.IsFinite(numeric.Threshold))",
+      "location": {
+        "start": {
+          "line": 69,
+          "column": 21
+        },
+        "end": {
+          "line": 69,
+          "column": 95
+        }
+      },
+      "status": "Killed",
+      "statusReason": null
+    },
+    {
+      "id": "2066",
+      "mutatorName": "LogicalNotExpression to un-LogicalNotExpression mutation",
+      "description": null,
+      "replacement": "Enum.IsDefined(numeric.Comparison)",
+      "location": {
+        "start": {
+          "line": 69,
+          "column": 21
+        },
+        "end": {
+          "line": 69,
+          "column": 56
+        }
+      },
+      "status": "Killed",
+      "statusReason": null
+    },
+    {
+      "id": "2067",
+      "mutatorName": "LogicalNotExpression to un-LogicalNotExpression mutation",
+      "description": null,
+      "replacement": "double.IsFinite(numeric.Threshold)",
+      "location": {
+        "start": {
+          "line": 69,
+          "column": 60
+        },
+        "end": {
+          "line": 69,
+          "column": 95
+        }
+      },
+      "status": "Killed",
+      "statusReason": null
+    },
+    {
+      "id": "2068",
+      "mutatorName": "String mutation",
+      "description": null,
+      "replacement": "\"\"",
+      "location": {
+        "start": {
+          "line": 70,
+          "column": 47
+        },
+        "end": {
+          "line": 70,
+          "column": 98
+        }
+      },
+      "status": "Killed",
+      "statusReason": null
+    },
+    {
+      "id": "2069",
+      "mutatorName": "Logical mutation",
+      "description": null,
+      "replacement": "string.IsNullOrWhiteSpace(numeric.Unit) && !UnicodeScalarText.IsValid(numeric.Unit, 32, allowControls: true)",
+      "location": {
+        "start": {
+          "line": 71,
+          "column": 21
+        },
+        "end": {
+          "line": 71,
+          "column": 129
+        }
+      },
+      "status": "Killed",
+      "statusReason": null
+    },
+    {
+      "id": "2070",
+      "mutatorName": "Negate expression",
+      "description": null,
+      "replacement": "!(string.IsNullOrWhiteSpace(numeric.Unit) || !UnicodeScalarText.IsValid(numeric.Unit, 32, allowControls: true))",
+      "location": {
+        "start": {
+          "line": 71,
+          "column": 21
+        },
+        "end": {
+          "line": 71,
+          "column": 129
+        }
+      },
+      "status": "Killed",
+      "statusReason": null
+    },
+    {
+      "id": "2071",
+      "mutatorName": "String mutation",
+      "description": null,
+      "replacement": "(numeric.Unit!=null)",
+      "location": {
+        "start": {
+          "line": 71,
+          "column": 21
+        },
+        "end": {
+          "line": 71,
+          "column": 60
+        }
+      },
+      "status": "Killed",
+      "statusReason": null
+    },
+    {
+      "id": "2072",
+      "mutatorName": "String mutation",
+      "description": null,
+      "replacement": "(numeric.Unit!=\"\")",
+      "location": {
+        "start": {
+          "line": 71,
+          "column": 21
+        },
+        "end": {
+          "line": 71,
+          "column": 60
+        }
+      },
+      "status": "Killed",
+      "statusReason": null
+    },
+    {
+      "id": "2073",
+      "mutatorName": "String mutation",
+      "description": null,
+      "replacement": "(numeric.Unit.Trim()!=\"\")",
+      "location": {
+        "start": {
+          "line": 71,
+          "column": 21
+        },
+        "end": {
+          "line": 71,
+          "column": 60
+        }
+      },
+      "status": "Killed",
+      "statusReason": null
+    },
+    {
+      "id": "2074",
+      "mutatorName": "LogicalNotExpression to un-LogicalNotExpression mutation",
+      "description": null,
+      "replacement": "UnicodeScalarText.IsValid(numeric.Unit, 32, allowControls: true)",
+      "location": {
+        "start": {
+          "line": 71,
+          "column": 64
+        },
+        "end": {
+          "line": 71,
+          "column": 129
+        }
+      },
+      "status": "Killed",
+      "statusReason": null
+    },
+    {
+      "id": "2075",
+      "mutatorName": "Boolean mutation",
+      "description": null,
+      "replacement": "false",
+      "location": {
+        "start": {
+          "line": 71,
+          "column": 124
+        },
+        "end": {
+          "line": 71,
+          "column": 128
+        }
+      },
+      "status": "Killed",
+      "statusReason": null
+    },
+    {
+      "id": "2076",
+      "mutatorName": "String mutation",
+      "description": null,
+      "replacement": "\"\"",
+      "location": {
+        "start": {
+          "line": 72,
+          "column": 47
+        },
+        "end": {
+          "line": 72,
+          "column": 81
+        }
+      },
+      "status": "Killed",
+      "statusReason": null
+    },
+    {
+      "id": "2077",
+      "mutatorName": "Logical mutation",
+      "description": null,
+      "replacement": "ConditionMonitorOptions or ConsecutiveFailureMonitorOptions and AvailabilityMonitorOptions",
+      "location": {
+        "start": {
+          "line": 74,
+          "column": 18
+        },
+        "end": {
+          "line": 74,
+          "column": 107
+        }
+      },
+      "status": "CompileError",
+      "statusReason": "Mutant caused compile errors"
+    },
+    {
+      "id": "2078",
+      "mutatorName": "Logical mutation",
+      "description": null,
+      "replacement": "ConditionMonitorOptions and ConsecutiveFailureMonitorOptions",
+      "location": {
+        "start": {
+          "line": 74,
+          "column": 18
+        },
+        "end": {
+          "line": 74,
+          "column": 77
+        }
+      },
+      "status": "CompileError",
+      "statusReason": "Mutant caused compile errors"
+    },
+    {
+      "id": "2079",
+      "mutatorName": "String mutation",
+      "description": null,
+      "replacement": "\"\"",
+      "location": {
+        "start": {
+          "line": 76,
+          "column": 50
+        },
+        "end": {
+          "line": 76,
+          "column": 86
+        }
+      },
+      "status": "NoCoverage",
+      "statusReason": "Not covered by any test."
+    },
+    {
+      "id": "2080",
+      "mutatorName": "Block removal mutation",
+      "description": null,
+      "replacement": "{}",
+      "location": {
+        "start": {
+          "line": 81,
+          "column": 5
+        },
+        "end": {
+          "line": 95,
+          "column": 6
+        }
+      },
+      "status": "Ignored",
+      "statusReason": "Removed by block already covered filter"
+    },
+    {
+      "id": "2081",
+      "mutatorName": "Statement mutation",
+      "description": null,
+      "replacement": ";",
+      "location": {
+        "start": {
+          "line": 82,
+          "column": 9
+        },
+        "end": {
+          "line": 82,
+          "column": 33
+        }
+      },
+      "status": "Killed",
+      "statusReason": null
+    },
+    {
+      "id": "2082",
+      "mutatorName": "Block removal mutation",
+      "description": null,
+      "replacement": "{}",
+      "location": {
+        "start": {
+          "line": 86,
+          "column": 9
+        },
+        "end": {
+          "line": 93,
+          "column": 10
+        }
+      },
+      "status": "Ignored",
+      "statusReason": "Removed by block already covered filter"
+    },
+    {
+      "id": "2083",
+      "mutatorName": "Block removal mutation",
+      "description": null,
+      "replacement": "{}",
+      "location": {
+        "start": {
+          "line": 88,
+          "column": 13
+        },
+        "end": {
+          "line": 92,
+          "column": 14
+        }
+      },
+      "status": "Ignored",
+      "statusReason": "Removed by block already covered filter"
+    },
+    {
+      "id": "2084",
+      "mutatorName": "Statement mutation",
+      "description": null,
+      "replacement": ";",
+      "location": {
+        "start": {
+          "line": 89,
+          "column": 17
+        },
+        "end": {
+          "line": 89,
+          "column": 35
+        }
+      },
+      "status": "Killed",
+      "statusReason": null
+    },
+    {
+      "id": "2085",
+      "mutatorName": "Statement mutation",
+      "description": null,
+      "replacement": ";",
+      "location": {
+        "start": {
+          "line": 90,
+          "column": 17
+        },
+        "end": {
+          "line": 90,
+          "column": 36
+        }
+      },
+      "status": "Killed",
+      "statusReason": null
+    },
+    {
+      "id": "2086",
+      "mutatorName": "Block removal mutation",
+      "description": null,
+      "replacement": "{}",
+      "location": {
+        "start": {
+          "line": 94,
+          "column": 17
+        },
+        "end": {
+          "line": 94,
+          "column": 39
+        }
+      },
+      "status": "Ignored",
+      "statusReason": "Removed by block already covered filter"
+    },
+    {
+      "id": "2087",
+      "mutatorName": "Statement mutation",
+      "description": null,
+      "replacement": ";",
+      "location": {
+        "start": {
+          "line": 94,
+          "column": 19
+        },
+        "end": {
+          "line": 94,
+          "column": 37
+        }
+      },
+      "status": "Killed",
+      "statusReason": null
+    },
+    {
+      "id": "2088",
+      "mutatorName": "Block removal mutation",
+      "description": null,
+      "replacement": "{}",
+      "location": {
+        "start": {
+          "line": 98,
+          "column": 5
+        },
+        "end": {
+          "line": 133,
+          "column": 6
+        }
+      },
+      "status": "CompileError",
+      "statusReason": "Mutant caused compile errors"
+    },
+    {
+      "id": "2089",
+      "mutatorName": "Equality mutation",
+      "description": null,
+      "replacement": "active.Count < Options.MaxMonitors",
+      "location": {
+        "start": {
+          "line": 99,
+          "column": 13
+        },
+        "end": {
+          "line": 99,
+          "column": 48
+        }
+      },
+      "status": "CompileError",
+      "statusReason": "Mutant caused compile errors"
+    },
+    {
+      "id": "2090",
+      "mutatorName": "Equality mutation",
+      "description": null,
+      "replacement": "active.Count > Options.MaxMonitors",
+      "location": {
+        "start": {
+          "line": 99,
+          "column": 13
+        },
+        "end": {
+          "line": 99,
+          "column": 48
+        }
+      },
+      "status": "Killed",
+      "statusReason": null
+    },
+    {
+      "id": "2091",
+      "mutatorName": "Negate expression",
+      "description": null,
+      "replacement": "!(active.Count >= Options.MaxMonitors)",
+      "location": {
+        "start": {
+          "line": 99,
+          "column": 13
+        },
+        "end": {
+          "line": 99,
+          "column": 48
+        }
+      },
+      "status": "Killed",
+      "statusReason": null
+    },
+    {
+      "id": "2092",
+      "mutatorName": "Linq method mutation (Count() to Sum())",
+      "description": null,
+      "replacement": "active.Sum",
+      "location": {
+        "start": {
+          "line": 99,
+          "column": 13
+        },
+        "end": {
+          "line": 99,
+          "column": 25
+        }
+      },
+      "status": "CompileError",
+      "statusReason": "Mutant caused compile errors"
+    },
+    {
+      "id": "2093",
+      "mutatorName": "Block removal mutation",
+      "description": null,
+      "replacement": "{}",
+      "location": {
+        "start": {
+          "line": 99,
+          "column": 50
+        },
+        "end": {
+          "line": 99,
+          "column": 114
+        }
+      },
+      "status": "Ignored",
+      "statusReason": "Removed by block already covered filter"
+    },
+    {
+      "id": "2094",
+      "mutatorName": "Statement mutation",
+      "description": null,
+      "replacement": ";",
+      "location": {
+        "start": {
+          "line": 99,
+          "column": 52
+        },
+        "end": {
+          "line": 99,
+          "column": 112
+        }
+      },
+      "status": "Killed",
+      "statusReason": null
+    },
+    {
+      "id": "2095",
+      "mutatorName": "Object initializer mutation",
+      "description": null,
+      "replacement": "new HealthMonitorEntry\n{}",
+      "location": {
+        "start": {
+          "line": 100,
+          "column": 21
+        },
+        "end": {
+          "line": 121,
+          "column": 10
+        }
+      },
+      "status": "CompileError",
+      "statusReason": "Mutant caused compile errors"
+    },
+    {
+      "id": "2096",
+      "mutatorName": "PreIncrementExpression to PreDecrementExpression mutation",
+      "description": null,
+      "replacement": "--ordinal",
+      "location": {
+        "start": {
+          "line": 102,
+          "column": 23
+        },
+        "end": {
+          "line": 102,
+          "column": 32
+        }
+      },
+      "status": "Killed",
+      "statusReason": null
+    },
+    {
+      "id": "2097",
+      "mutatorName": "String mutation",
+      "description": null,
+      "replacement": "\"\"",
+      "location": {
+        "start": {
+          "line": 112,
+          "column": 50
+        },
+        "end": {
+          "line": 112,
+          "column": 71
+        }
+      },
+      "status": "NoCoverage",
+      "statusReason": "Not covered by any test."
+    },
+    {
+      "id": "2098",
+      "mutatorName": "Null coalescing mutation (remove left)",
+      "description": null,
+      "replacement": "0",
+      "location": {
+        "start": {
+          "line": 114,
+          "column": 32
+        },
+        "end": {
+          "line": 114,
+          "column": 100
+        }
+      },
+      "status": "Killed",
+      "statusReason": null
+    },
+    {
+      "id": "2099",
+      "mutatorName": "Null coalescing mutation (remove left)",
+      "description": null,
+      "replacement": "default",
+      "location": {
+        "start": {
+          "line": 115,
+          "column": 26
+        },
+        "end": {
+          "line": 115,
+          "column": 92
+        }
+      },
+      "status": "Killed",
+      "statusReason": null
+    },
+    {
+      "id": "2100",
+      "mutatorName": "Null coalescing mutation (remove left)",
+      "description": null,
+      "replacement": "0",
+      "location": {
+        "start": {
+          "line": 116,
+          "column": 25
+        },
+        "end": {
+          "line": 116,
+          "column": 84
+        }
+      },
+      "status": "Killed",
+      "statusReason": null
+    },
+    {
+      "id": "2101",
+      "mutatorName": "Equality mutation",
+      "description": null,
+      "replacement": "options is not ConditionMonitorOptions condition",
+      "location": {
+        "start": {
+          "line": 118,
+          "column": 21
+        },
+        "end": {
+          "line": 118,
+          "column": 65
+        }
+      },
+      "status": "CompileError",
+      "statusReason": "Mutant caused compile errors"
+    },
+    {
+      "id": "2102",
+      "mutatorName": "Conditional (true) mutation",
+      "description": null,
+      "replacement": "(true?MonitorState.Unhealthy :MonitorState.Healthy)",
+      "location": {
+        "start": {
+          "line": 118,
+          "column": 69
+        },
+        "end": {
+          "line": 118,
+          "column": 143
+        }
+      },
+      "status": "Killed",
+      "statusReason": null
+    },
+    {
+      "id": "2103",
+      "mutatorName": "Conditional (false) mutation",
+      "description": null,
+      "replacement": "(false?MonitorState.Unhealthy :MonitorState.Healthy)",
+      "location": {
+        "start": {
+          "line": 118,
+          "column": 69
+        },
+        "end": {
+          "line": 118,
+          "column": 143
+        }
+      },
+      "status": "Killed",
+      "statusReason": null
+    },
+    {
+      "id": "2104",
+      "mutatorName": "Conditional (true) mutation",
+      "description": null,
+      "replacement": "(true?initial.InitialDiagnostic :null)",
+      "location": {
+        "start": {
+          "line": 119,
+          "column": 26
+        },
+        "end": {
+          "line": 119,
+          "column": 130
+        }
+      },
+      "status": "CompileError",
+      "statusReason": "Mutant caused compile errors"
+    },
+    {
+      "id": "2105",
+      "mutatorName": "Conditional (false) mutation",
+      "description": null,
+      "replacement": "(false?initial.InitialDiagnostic :null)",
+      "location": {
+        "start": {
+          "line": 119,
+          "column": 26
+        },
+        "end": {
+          "line": 119,
+          "column": 130
+        }
+      },
+      "status": "CompileError",
+      "statusReason": "Mutant caused compile errors"
+    },
+    {
+      "id": "2106",
+      "mutatorName": "Equality mutation",
+      "description": null,
+      "replacement": "options is not ConditionMonitorOptions { InitiallyFlagged: true } initial",
+      "location": {
+        "start": {
+          "line": 119,
+          "column": 26
+        },
+        "end": {
+          "line": 119,
+          "column": 95
+        }
+      },
+      "status": "CompileError",
+      "statusReason": "Mutant caused compile errors"
+    },
+    {
+      "id": "2107",
+      "mutatorName": "Boolean mutation",
+      "description": null,
+      "replacement": "false",
+      "location": {
+        "start": {
+          "line": 119,
+          "column": 81
+        },
+        "end": {
+          "line": 119,
+          "column": 85
+        }
+      },
+      "status": "CompileError",
+      "statusReason": "Mutant caused compile errors"
+    },
+    {
+      "id": "2108",
+      "mutatorName": "Conditional (true) mutation",
+      "description": null,
+      "replacement": "(true?now :null\n)",
+      "location": {
+        "start": {
+          "line": 120,
+          "column": 31
+        },
+        "end": {
+          "line": 120,
+          "column": 78
+        }
+      },
+      "status": "Killed",
+      "statusReason": null
+    },
+    {
+      "id": "2109",
+      "mutatorName": "Conditional (false) mutation",
+      "description": null,
+      "replacement": "(false?now :null\n)",
+      "location": {
+        "start": {
+          "line": 120,
+          "column": 31
+        },
+        "end": {
+          "line": 120,
+          "column": 78
+        }
+      },
+      "status": "Killed",
+      "statusReason": null
+    },
+    {
+      "id": "2110",
+      "mutatorName": "Statement mutation",
+      "description": null,
+      "replacement": ";",
+      "location": {
+        "start": {
+          "line": 130,
+          "column": 9
+        },
+        "end": {
+          "line": 130,
+          "column": 37
+        }
+      },
+      "status": "Killed",
+      "statusReason": null
+    },
+    {
+      "id": "2111",
+      "mutatorName": "Statement mutation",
+      "description": null,
+      "replacement": ";",
+      "location": {
+        "start": {
+          "line": 131,
+          "column": 9
+        },
+        "end": {
+          "line": 131,
+          "column": 20
+        }
+      },
+      "status": "Killed",
+      "statusReason": null
+    },
+    {
+      "id": "2112",
+      "mutatorName": "PostIncrementExpression to PostDecrementExpression mutation",
+      "description": null,
+      "replacement": "revision--",
+      "location": {
+        "start": {
+          "line": 131,
+          "column": 9
+        },
+        "end": {
+          "line": 131,
+          "column": 19
+        }
+      },
+      "status": "Killed",
+      "statusReason": null
+    },
+    {
+      "id": "2113",
+      "mutatorName": "Block removal mutation",
+      "description": null,
+      "replacement": "{}",
+      "location": {
+        "start": {
+          "line": 136,
+          "column": 5
+        },
+        "end": {
+          "line": 139,
+          "column": 6
+        }
+      },
+      "status": "Ignored",
+      "statusReason": "Removed by block already covered filter"
+    },
+    {
+      "id": "2114",
+      "mutatorName": "Statement mutation",
+      "description": null,
+      "replacement": ";",
+      "location": {
+        "start": {
+          "line": 137,
+          "column": 9
+        },
+        "end": {
+          "line": 137,
+          "column": 86
+        }
+      },
+      "status": "Killed",
+      "statusReason": null
+    },
+    {
+      "id": "2115",
+      "mutatorName": "Negate expression",
+      "description": null,
+      "replacement": "!(stopping)",
+      "location": {
+        "start": {
+          "line": 138,
+          "column": 13
+        },
+        "end": {
+          "line": 138,
+          "column": 21
+        }
+      },
+      "status": "Killed",
+      "statusReason": null
+    },
+    {
+      "id": "2116",
+      "mutatorName": "Block removal mutation",
+      "description": null,
+      "replacement": "{}",
+      "location": {
+        "start": {
+          "line": 138,
+          "column": 23
+        },
+        "end": {
+          "line": 138,
+          "column": 91
+        }
+      },
+      "status": "Ignored",
+      "statusReason": "Removed by block already covered filter"
+    },
+    {
+      "id": "2117",
+      "mutatorName": "Statement mutation",
+      "description": null,
+      "replacement": ";",
+      "location": {
+        "start": {
+          "line": 138,
+          "column": 25
+        },
+        "end": {
+          "line": 138,
+          "column": 89
+        }
+      },
+      "status": "Killed",
+      "statusReason": null
+    },
+    {
+      "id": "2118",
+      "mutatorName": "String mutation",
+      "description": null,
+      "replacement": "\"\"",
+      "location": {
+        "start": {
+          "line": 138,
+          "column": 61
+        },
+        "end": {
+          "line": 138,
+          "column": 87
+        }
+      },
+      "status": "Killed",
+      "statusReason": null
+    },
+    {
+      "id": "2119",
+      "mutatorName": "Block removal mutation",
+      "description": null,
+      "replacement": "{}",
+      "location": {
+        "start": {
+          "line": 142,
+          "column": 5
+        },
+        "end": {
+          "line": 144,
+          "column": 6
+        }
+      },
+      "status": "Ignored",
+      "statusReason": "Removed by block already covered filter"
+    },
+    {
+      "id": "2120",
+      "mutatorName": "Logical mutation",
+      "description": null,
+      "replacement": "disposed || entry.Withdrawn || !active.TryGetValue(entry.Id, out var current) && !ReferenceEquals(current, entry)",
+      "location": {
+        "start": {
+          "line": 143,
+          "column": 41
+        },
+        "end": {
+          "line": 143,
+          "column": 154
+        }
+      },
+      "status": "CompileError",
+      "statusReason": "Mutant caused compile errors"
+    },
+    {
+      "id": "2121",
+      "mutatorName": "Logical mutation",
+      "description": null,
+      "replacement": "disposed || entry.Withdrawn && !active.TryGetValue(entry.Id, out var current)",
+      "location": {
+        "start": {
+          "line": 143,
+          "column": 41
+        },
+        "end": {
+          "line": 143,
+          "column": 118
+        }
+      },
+      "status": "CompileError",
+      "statusReason": "Mutant caused compile errors"
+    },
+    {
+      "id": "2122",
+      "mutatorName": "Logical mutation",
+      "description": null,
+      "replacement": "disposed && entry.Withdrawn",
+      "location": {
+        "start": {
+          "line": 143,
+          "column": 41
+        },
+        "end": {
+          "line": 143,
+          "column": 68
+        }
+      },
+      "status": "Survived",
+      "statusReason": null
+    },
+    {
+      "id": "2123",
+      "mutatorName": "LogicalNotExpression to un-LogicalNotExpression mutation",
+      "description": null,
+      "replacement": "active.TryGetValue(entry.Id, out var current)",
+      "location": {
+        "start": {
+          "line": 143,
+          "column": 72
+        },
+        "end": {
+          "line": 143,
+          "column": 118
+        }
+      },
+      "status": "CompileError",
+      "statusReason": "Mutant caused compile errors"
+    },
+    {
+      "id": "2124",
+      "mutatorName": "LogicalNotExpression to un-LogicalNotExpression mutation",
+      "description": null,
+      "replacement": "ReferenceEquals(current, entry)",
+      "location": {
+        "start": {
+          "line": 143,
+          "column": 122
+        },
+        "end": {
+          "line": 143,
+          "column": 154
+        }
+      },
+      "status": "Killed",
+      "statusReason": null
+    },
+    {
+      "id": "2125",
+      "mutatorName": "Block removal mutation",
+      "description": null,
+      "replacement": "{}",
+      "location": {
+        "start": {
+          "line": 147,
+          "column": 5
+        },
+        "end": {
+          "line": 154,
+          "column": 6
+        }
+      },
+      "status": "Ignored",
+      "statusReason": "Removed by block already covered filter"
+    },
+    {
+      "id": "2126",
+      "mutatorName": "Block removal mutation",
+      "description": null,
+      "replacement": "{}",
+      "location": {
+        "start": {
+          "line": 149,
+          "column": 9
+        },
+        "end": {
+          "line": 153,
+          "column": 10
+        }
+      },
+      "status": "Ignored",
+      "statusReason": "Removed by block already covered filter"
+    },
+    {
+      "id": "2127",
+      "mutatorName": "Statement mutation",
+      "description": null,
+      "replacement": ";",
+      "location": {
+        "start": {
+          "line": 150,
+          "column": 13
+        },
+        "end": {
+          "line": 150,
+          "column": 31
+        }
+      },
+      "status": "Killed",
+      "statusReason": null
+    },
+    {
+      "id": "2128",
+      "mutatorName": "Negate expression",
+      "description": null,
+      "replacement": "!(runnerClaimed)",
+      "location": {
+        "start": {
+          "line": 151,
+          "column": 17
+        },
+        "end": {
+          "line": 151,
+          "column": 30
+        }
+      },
+      "status": "Killed",
+      "statusReason": null
+    },
+    {
+      "id": "2129",
+      "mutatorName": "Block removal mutation",
+      "description": null,
+      "replacement": "{}",
+      "location": {
+        "start": {
+          "line": 151,
+          "column": 32
+        },
+        "end": {
+          "line": 151,
+          "column": 127
+        }
+      },
+      "status": "Ignored",
+      "statusReason": "Removed by block already covered filter"
+    },
+    {
+      "id": "2130",
+      "mutatorName": "Statement mutation",
+      "description": null,
+      "replacement": ";",
+      "location": {
+        "start": {
+          "line": 151,
+          "column": 34
+        },
+        "end": {
+          "line": 151,
+          "column": 125
+        }
+      },
+      "status": "Killed",
+      "statusReason": null
+    },
+    {
+      "id": "2131",
+      "mutatorName": "String mutation",
+      "description": null,
+      "replacement": "\"\"",
+      "location": {
+        "start": {
+          "line": 151,
+          "column": 70
+        },
+        "end": {
+          "line": 151,
+          "column": 123
+        }
+      },
+      "status": "Killed",
+      "statusReason": null
+    },
+    {
+      "id": "2132",
+      "mutatorName": "Boolean mutation",
+      "description": null,
+      "replacement": "false",
+      "location": {
+        "start": {
+          "line": 152,
+          "column": 29
+        },
+        "end": {
+          "line": 152,
+          "column": 33
+        }
+      },
+      "status": "Killed",
+      "statusReason": null
+    },
+    {
+      "id": "2133",
+      "mutatorName": "Block removal mutation",
+      "description": null,
+      "replacement": "{}",
+      "location": {
+        "start": {
+          "line": 157,
+          "column": 5
+        },
+        "end": {
+          "line": 163,
+          "column": 6
+        }
+      },
+      "status": "Ignored",
+      "statusReason": "Removed by block already covered filter"
+    },
+    {
+      "id": "2134",
+      "mutatorName": "Block removal mutation",
+      "description": null,
+      "replacement": "{}",
+      "location": {
+        "start": {
+          "line": 159,
+          "column": 9
+        },
+        "end": {
+          "line": 162,
+          "column": 10
+        }
+      },
+      "status": "Ignored",
+      "statusReason": "Removed by block already covered filter"
+    },
+    {
+      "id": "2135",
+      "mutatorName": "Statement mutation",
+      "description": null,
+      "replacement": ";",
+      "location": {
+        "start": {
+          "line": 160,
+          "column": 13
+        },
+        "end": {
+          "line": 160,
+          "column": 31
+        }
+      },
+      "status": "Killed",
+      "statusReason": null
+    },
+    {
+      "id": "2136",
+      "mutatorName": "LogicalNotExpression to un-LogicalNotExpression mutation",
+      "description": null,
+      "replacement": "startupCompleted",
+      "location": {
+        "start": {
+          "line": 161,
+          "column": 17
+        },
+        "end": {
+          "line": 161,
+          "column": 34
+        }
+      },
+      "status": "Killed",
+      "statusReason": null
+    },
+    {
+      "id": "2137",
+      "mutatorName": "Block removal mutation",
+      "description": null,
+      "replacement": "{}",
+      "location": {
+        "start": {
+          "line": 161,
+          "column": 36
+        },
+        "end": {
+          "line": 161,
+          "column": 76
+        }
+      },
+      "status": "Ignored",
+      "statusReason": "Removed by block already covered filter"
+    },
+    {
+      "id": "2138",
+      "mutatorName": "Boolean mutation",
+      "description": null,
+      "replacement": "false",
+      "location": {
+        "start": {
+          "line": 161,
+          "column": 57
+        },
+        "end": {
+          "line": 161,
+          "column": 61
+        }
+      },
+      "status": "Killed",
+      "statusReason": null
+    },
+    {
+      "id": "2139",
+      "mutatorName": "Statement mutation",
+      "description": null,
+      "replacement": ";",
+      "location": {
+        "start": {
+          "line": 161,
+          "column": 63
+        },
+        "end": {
+          "line": 161,
+          "column": 74
+        }
+      },
+      "status": "Killed",
+      "statusReason": null
+    },
+    {
+      "id": "2140",
+      "mutatorName": "PostIncrementExpression to PostDecrementExpression mutation",
+      "description": null,
+      "replacement": "revision--",
+      "location": {
+        "start": {
+          "line": 161,
+          "column": 63
+        },
+        "end": {
+          "line": 161,
+          "column": 73
+        }
+      },
+      "status": "Killed",
+      "statusReason": null
+    },
+    {
+      "id": "2141",
+      "mutatorName": "Block removal mutation",
+      "description": null,
+      "replacement": "{}",
+      "location": {
+        "start": {
+          "line": 166,
+          "column": 5
+        },
+        "end": {
+          "line": 170,
+          "column": 6
+        }
+      },
+      "status": "Ignored",
+      "statusReason": "Removed by block already covered filter"
+    },
+    {
+      "id": "2142",
+      "mutatorName": "Block removal mutation",
+      "description": null,
+      "replacement": "{}",
+      "location": {
+        "start": {
+          "line": 168,
+          "column": 21
+        },
+        "end": {
+          "line": 168,
+          "column": 45
+        }
+      },
+      "status": "Ignored",
+      "statusReason": "Removed by block already covered filter"
+    },
+    {
+      "id": "2143",
+      "mutatorName": "Statement mutation",
+      "description": null,
+      "replacement": ";",
+      "location": {
+        "start": {
+          "line": 168,
+          "column": 23
+        },
+        "end": {
+          "line": 168,
+          "column": 43
+        }
+      },
+      "status": "Killed",
+      "statusReason": null
+    },
+    {
+      "id": "2144",
+      "mutatorName": "Statement mutation",
+      "description": null,
+      "replacement": ";",
+      "location": {
+        "start": {
+          "line": 169,
+          "column": 9
+        },
+        "end": {
+          "line": 169,
+          "column": 27
+        }
+      },
+      "status": "Killed",
+      "statusReason": null
+    },
+    {
+      "id": "2145",
+      "mutatorName": "Block removal mutation",
+      "description": null,
+      "replacement": "{}",
+      "location": {
+        "start": {
+          "line": 173,
+          "column": 5
+        },
+        "end": {
+          "line": 179,
+          "column": 6
+        }
+      },
+      "status": "Ignored",
+      "statusReason": "Removed by block already covered filter"
+    },
+    {
+      "id": "2146",
+      "mutatorName": "Negate expression",
+      "description": null,
+      "replacement": "!(stopping)",
+      "location": {
+        "start": {
+          "line": 174,
+          "column": 13
+        },
+        "end": {
+          "line": 174,
+          "column": 21
+        }
+      },
+      "status": "Killed",
+      "statusReason": null
+    },
+    {
+      "id": "2147",
+      "mutatorName": "Block removal mutation",
+      "description": null,
+      "replacement": "{}",
+      "location": {
+        "start": {
+          "line": 174,
+          "column": 23
+        },
+        "end": {
+          "line": 174,
+          "column": 34
+        }
+      },
+      "status": "Ignored",
+      "statusReason": "Removed by block already covered filter"
+    },
+    {
+      "id": "2148",
+      "mutatorName": "Statement mutation",
+      "description": null,
+      "replacement": ";",
+      "location": {
+        "start": {
+          "line": 174,
+          "column": 25
+        },
+        "end": {
+          "line": 174,
+          "column": 32
+        }
+      },
+      "status": "Killed",
+      "statusReason": null
+    },
+    {
+      "id": "2149",
+      "mutatorName": "Boolean mutation",
+      "description": null,
+      "replacement": "false",
+      "location": {
+        "start": {
+          "line": 175,
+          "column": 20
+        },
+        "end": {
+          "line": 175,
+          "column": 24
+        }
+      },
+      "status": "Killed",
+      "statusReason": null
+    },
+    {
+      "id": "2150",
+      "mutatorName": "Statement mutation",
+      "description": null,
+      "replacement": ";",
+      "location": {
+        "start": {
+          "line": 176,
+          "column": 9
+        },
+        "end": {
+          "line": 176,
+          "column": 20
+        }
+      },
+      "status": "Killed",
+      "statusReason": null
+    },
+    {
+      "id": "2151",
+      "mutatorName": "PostIncrementExpression to PostDecrementExpression mutation",
+      "description": null,
+      "replacement": "revision--",
+      "location": {
+        "start": {
+          "line": 176,
+          "column": 9
+        },
+        "end": {
+          "line": 176,
+          "column": 19
+        }
+      },
+      "status": "Killed",
+      "statusReason": null
+    },
+    {
+      "id": "2152",
+      "mutatorName": "Boolean mutation",
+      "description": null,
+      "replacement": "false",
+      "location": {
+        "start": {
+          "line": 177,
+          "column": 34
+        },
+        "end": {
+          "line": 177,
+          "column": 38
+        }
+      },
+      "status": "Killed",
+      "statusReason": null
+    },
+    {
+      "id": "2153",
+      "mutatorName": "Block removal mutation",
+      "description": null,
+      "replacement": "{}",
+      "location": {
+        "start": {
+          "line": 178,
+          "column": 54
+        },
+        "end": {
+          "line": 178,
+          "column": 98
+        }
+      },
+      "status": "Ignored",
+      "statusReason": "Removed by block already covered filter"
+    },
+    {
+      "id": "2154",
+      "mutatorName": "Statement mutation",
+      "description": null,
+      "replacement": ";",
+      "location": {
+        "start": {
+          "line": 178,
+          "column": 56
+        },
+        "end": {
+          "line": 178,
+          "column": 96
+        }
+      },
+      "status": "Killed",
+      "statusReason": null
+    },
+    {
+      "id": "2155",
+      "mutatorName": "Block removal mutation",
+      "description": null,
+      "replacement": "{}",
+      "location": {
+        "start": {
+          "line": 182,
+          "column": 5
+        },
+        "end": {
+          "line": 196,
+          "column": 6
+        }
+      },
+      "status": "Ignored",
+      "statusReason": "Removed by block already covered filter"
+    },
+    {
+      "id": "2156",
+      "mutatorName": "Block removal mutation",
+      "description": null,
+      "replacement": "{}",
+      "location": {
+        "start": {
+          "line": 185,
+          "column": 9
+        },
+        "end": {
+          "line": 193,
+          "column": 10
+        }
+      },
+      "status": "Ignored",
+      "statusReason": "Removed by block already covered filter"
+    },
+    {
+      "id": "2157",
+      "mutatorName": "LogicalNotExpression to un-LogicalNotExpression mutation",
+      "description": null,
+      "replacement": "disposalStarted",
+      "location": {
+        "start": {
+          "line": 186,
+          "column": 17
+        },
+        "end": {
+          "line": 186,
+          "column": 33
+        }
+      },
+      "status": "Timeout",
+      "statusReason": null
+    },
+    {
+      "id": "2158",
+      "mutatorName": "Block removal mutation",
+      "description": null,
+      "replacement": "{}",
+      "location": {
+        "start": {
+          "line": 187,
+          "column": 13
+        },
+        "end": {
+          "line": 192,
+          "column": 14
+        }
+      },
+      "status": "Ignored",
+      "statusReason": "Removed by block already covered filter"
+    },
+    {
+      "id": "2159",
+      "mutatorName": "Statement mutation",
+      "description": null,
+      "replacement": ";",
+      "location": {
+        "start": {
+          "line": 188,
+          "column": 17
+        },
+        "end": {
+          "line": 188,
+          "column": 37
+        }
+      },
+      "status": "Killed",
+      "statusReason": null
+    },
+    {
+      "id": "2160",
+      "mutatorName": "Boolean mutation",
+      "description": null,
+      "replacement": "false",
+      "location": {
+        "start": {
+          "line": 189,
+          "column": 35
+        },
+        "end": {
+          "line": 189,
+          "column": 39
+        }
+      },
+      "status": "Timeout",
+      "statusReason": null
+    },
+    {
+      "id": "2161",
+      "mutatorName": "Block removal mutation",
+      "description": null,
+      "replacement": "{}",
+      "location": {
+        "start": {
+          "line": 190,
+          "column": 64
+        },
+        "end": {
+          "line": 190,
+          "column": 99
+        }
+      },
+      "status": "Ignored",
+      "statusReason": "Removed by block already covered filter"
+    },
+    {
+      "id": "2162",
+      "mutatorName": "Statement mutation",
+      "description": null,
+      "replacement": ";",
+      "location": {
+        "start": {
+          "line": 190,
+          "column": 66
+        },
+        "end": {
+          "line": 190,
+          "column": 97
+        }
+      },
+      "status": "Killed",
+      "statusReason": null
+    },
+    {
+      "id": "2163",
+      "mutatorName": "Statement mutation",
+      "description": null,
+      "replacement": ";",
+      "location": {
+        "start": {
+          "line": 191,
+          "column": 17
+        },
+        "end": {
+          "line": 191,
+          "column": 40
+        }
+      },
+      "status": "Killed",
+      "statusReason": null
+    },
+    {
+      "id": "2164",
+      "mutatorName": "Statement mutation",
+      "description": null,
+      "replacement": ";",
+      "location": {
+        "start": {
+          "line": 194,
+          "column": 9
+        },
+        "end": {
+          "line": 194,
+          "column": 27
+        }
+      },
+      "status": "Killed",
+      "statusReason": null
+    },
+    {
+      "id": "2165",
+      "mutatorName": "Block removal mutation",
+      "description": null,
+      "replacement": "{}",
+      "location": {
+        "start": {
+          "line": 199,
+          "column": 5
+        },
+        "end": {
+          "line": 203,
+          "column": 6
+        }
+      },
+      "status": "Ignored",
+      "statusReason": "Removed by block already covered filter"
+    },
+    {
+      "id": "2166",
+      "mutatorName": "Block removal mutation",
+      "description": null,
+      "replacement": "{}",
+      "location": {
+        "start": {
+          "line": 201,
+          "column": 21
+        },
+        "end": {
+          "line": 201,
+          "column": 56
+        }
+      },
+      "status": "Ignored",
+      "statusReason": "Removed by block already covered filter"
+    },
+    {
+      "id": "2167",
+      "mutatorName": "Statement mutation",
+      "description": null,
+      "replacement": ";",
+      "location": {
+        "start": {
+          "line": 201,
+          "column": 23
+        },
+        "end": {
+          "line": 201,
+          "column": 54
+        }
+      },
+      "status": "Killed",
+      "statusReason": null
+    },
+    {
+      "id": "2168",
+      "mutatorName": "Statement mutation",
+      "description": null,
+      "replacement": ";",
+      "location": {
+        "start": {
+          "line": 202,
+          "column": 9
+        },
+        "end": {
+          "line": 202,
+          "column": 27
+        }
+      },
+      "status": "Timeout",
+      "statusReason": null
+    },
+    {
+      "id": "2169",
+      "mutatorName": "Block removal mutation",
+      "description": null,
+      "replacement": "{}",
+      "location": {
+        "start": {
+          "line": 206,
+          "column": 5
+        },
+        "end": {
+          "line": 209,
+          "column": 6
+        }
+      },
+      "status": "Ignored",
+      "statusReason": "Removed by block already covered filter"
+    },
+    {
+      "id": "2170",
+      "mutatorName": "Block removal mutation",
+      "description": null,
+      "replacement": "{}",
+      "location": {
+        "start": {
+          "line": 208,
+          "column": 9
+        },
+        "end": {
+          "line": 208,
+          "column": 87
+        }
+      },
+      "status": "Ignored",
+      "statusReason": "Removed by block already covered filter"
+    },
+    {
+      "id": "2171",
+      "mutatorName": "LogicalNotExpression to un-LogicalNotExpression mutation",
+      "description": null,
+      "replacement": "entry.Handle.TryGetTarget(out _)",
+      "location": {
+        "start": {
+          "line": 208,
+          "column": 15
+        },
+        "end": {
+          "line": 208,
+          "column": 48
+        }
+      },
+      "status": "Killed",
+      "statusReason": null
+    },
+    {
+      "id": "2172",
+      "mutatorName": "Block removal mutation",
+      "description": null,
+      "replacement": "{}",
+      "location": {
+        "start": {
+          "line": 208,
+          "column": 50
+        },
+        "end": {
+          "line": 208,
+          "column": 85
+        }
+      },
+      "status": "Ignored",
+      "statusReason": "Removed by block already covered filter"
+    },
+    {
+      "id": "2173",
+      "mutatorName": "Statement mutation",
+      "description": null,
+      "replacement": ";",
+      "location": {
+        "start": {
+          "line": 208,
+          "column": 52
+        },
+        "end": {
+          "line": 208,
+          "column": 83
+        }
+      },
+      "status": "Killed",
+      "statusReason": null
+    },
+    {
+      "id": "2174",
+      "mutatorName": "Block removal mutation",
+      "description": null,
+      "replacement": "{}",
+      "location": {
+        "start": {
+          "line": 212,
+          "column": 5
+        },
+        "end": {
+          "line": 223,
+          "column": 6
+        }
+      },
+      "status": "Ignored",
+      "statusReason": "Removed by block already covered filter"
+    },
+    {
+      "id": "2175",
+      "mutatorName": "Negate expression",
+      "description": null,
+      "replacement": "!(entry.Withdrawn)",
+      "location": {
+        "start": {
+          "line": 213,
+          "column": 13
+        },
+        "end": {
+          "line": 213,
+          "column": 28
+        }
+      },
+      "status": "Killed",
+      "statusReason": null
+    },
+    {
+      "id": "2176",
+      "mutatorName": "Block removal mutation",
+      "description": null,
+      "replacement": "{}",
+      "location": {
+        "start": {
+          "line": 213,
+          "column": 30
+        },
+        "end": {
+          "line": 213,
+          "column": 41
+        }
+      },
+      "status": "Ignored",
+      "statusReason": "Removed by block already covered filter"
+    },
+    {
+      "id": "2177",
+      "mutatorName": "Statement mutation",
+      "description": null,
+      "replacement": ";",
+      "location": {
+        "start": {
+          "line": 213,
+          "column": 32
+        },
+        "end": {
+          "line": 213,
+          "column": 39
+        }
+      },
+      "status": "Killed",
+      "statusReason": null
+    },
+    {
+      "id": "2178",
+      "mutatorName": "Boolean mutation",
+      "description": null,
+      "replacement": "false",
+      "location": {
+        "start": {
+          "line": 214,
+          "column": 27
+        },
+        "end": {
+          "line": 214,
+          "column": 31
+        }
+      },
+      "status": "Killed",
+      "statusReason": null
+    },
+    {
+      "id": "2179",
+      "mutatorName": "Statement mutation",
+      "description": null,
+      "replacement": ";",
+      "location": {
+        "start": {
+          "line": 215,
+          "column": 9
+        },
+        "end": {
+          "line": 215,
+          "column": 33
+        }
+      },
+      "status": "Killed",
+      "statusReason": null
+    },
+    {
+      "id": "2180",
+      "mutatorName": "Equality mutation",
+      "description": null,
+      "replacement": "entry.Generation > long.MaxValue",
+      "location": {
+        "start": {
+          "line": 216,
+          "column": 13
+        },
+        "end": {
+          "line": 216,
+          "column": 45
+        }
+      },
+      "status": "Survived",
+      "statusReason": null
+    },
+    {
+      "id": "2181",
+      "mutatorName": "Equality mutation",
+      "description": null,
+      "replacement": "entry.Generation <= long.MaxValue",
+      "location": {
+        "start": {
+          "line": 216,
+          "column": 13
+        },
+        "end": {
+          "line": 216,
+          "column": 45
+        }
+      },
+      "status": "Survived",
+      "statusReason": null
+    },
+    {
+      "id": "2182",
+      "mutatorName": "Negate expression",
+      "description": null,
+      "replacement": "!(entry.Generation < long.MaxValue)",
+      "location": {
+        "start": {
+          "line": 216,
+          "column": 13
+        },
+        "end": {
+          "line": 216,
+          "column": 45
+        }
+      },
+      "status": "Survived",
+      "statusReason": null
+    },
+    {
+      "id": "2183",
+      "mutatorName": "Block removal mutation",
+      "description": null,
+      "replacement": "{}",
+      "location": {
+        "start": {
+          "line": 216,
+          "column": 47
+        },
+        "end": {
+          "line": 216,
+          "column": 70
+        }
+      },
+      "status": "Ignored",
+      "statusReason": "Removed by block already covered filter"
+    },
+    {
+      "id": "2184",
+      "mutatorName": "Statement mutation",
+      "description": null,
+      "replacement": ";",
+      "location": {
+        "start": {
+          "line": 216,
+          "column": 49
+        },
+        "end": {
+          "line": 216,
+          "column": 68
+        }
+      },
+      "status": "Survived",
+      "statusReason": null
+    },
+    {
+      "id": "2185",
+      "mutatorName": "PostIncrementExpression to PostDecrementExpression mutation",
+      "description": null,
+      "replacement": "entry.Generation--",
+      "location": {
+        "start": {
+          "line": 216,
+          "column": 49
+        },
+        "end": {
+          "line": 216,
+          "column": 67
+        }
+      },
+      "status": "Survived",
+      "statusReason": null
+    },
+    {
+      "id": "2186",
+      "mutatorName": "Equality mutation",
+      "description": null,
+      "replacement": "entry.Collection is null",
+      "location": {
+        "start": {
+          "line": 217,
+          "column": 13
+        },
+        "end": {
+          "line": 217,
+          "column": 41
+        }
+      },
+      "status": "Killed",
+      "statusReason": null
+    },
+    {
+      "id": "2187",
+      "mutatorName": "Block removal mutation",
+      "description": null,
+      "replacement": "{}",
+      "location": {
+        "start": {
+          "line": 217,
+          "column": 43
+        },
+        "end": {
+          "line": 217,
+          "column": 162
+        }
+      },
+      "status": "Ignored",
+      "statusReason": "Removed by block already covered filter"
+    },
+    {
+      "id": "2188",
+      "mutatorName": "Statement mutation",
+      "description": null,
+      "replacement": ";",
+      "location": {
+        "start": {
+          "line": 217,
+          "column": 45
+        },
+        "end": {
+          "line": 217,
+          "column": 160
+        }
+      },
+      "status": "Killed",
+      "statusReason": null
+    },
+    {
+      "id": "2189",
+      "mutatorName": "Statement mutation",
+      "description": null,
+      "replacement": ";",
+      "location": {
+        "start": {
+          "line": 219,
+          "column": 9
+        },
+        "end": {
+          "line": 219,
+          "column": 37
+        }
+      },
+      "status": "Killed",
+      "statusReason": null
+    },
+    {
+      "id": "2190",
+      "mutatorName": "Block removal mutation",
+      "description": null,
+      "replacement": "{}",
+      "location": {
+        "start": {
+          "line": 220,
+          "column": 114
+        },
+        "end": {
+          "line": 220,
+          "column": 158
+        }
+      },
+      "status": "Ignored",
+      "statusReason": "Removed by block already covered filter"
+    },
+    {
+      "id": "2191",
+      "mutatorName": "Statement mutation",
+      "description": null,
+      "replacement": ";",
+      "location": {
+        "start": {
+          "line": 220,
+          "column": 116
+        },
+        "end": {
+          "line": 220,
+          "column": 156
+        }
+      },
+      "status": "Survived",
+      "statusReason": null
+    },
+    {
+      "id": "2192",
+      "mutatorName": "Statement mutation",
+      "description": null,
+      "replacement": ";",
+      "location": {
+        "start": {
+          "line": 221,
+          "column": 9
+        },
+        "end": {
+          "line": 221,
+          "column": 20
+        }
+      },
+      "status": "Killed",
+      "statusReason": null
+    },
+    {
+      "id": "2193",
+      "mutatorName": "PostIncrementExpression to PostDecrementExpression mutation",
+      "description": null,
+      "replacement": "revision--",
+      "location": {
+        "start": {
+          "line": 221,
+          "column": 9
+        },
+        "end": {
+          "line": 221,
+          "column": 19
+        }
+      },
+      "status": "Killed",
+      "statusReason": null
+    },
+    {
+      "id": "2194",
+      "mutatorName": "LogicalNotExpression to un-LogicalNotExpression mutation",
+      "description": null,
+      "replacement": "HasPendingCollectionSettlement(entry)",
+      "location": {
+        "start": {
+          "line": 222,
+          "column": 13
+        },
+        "end": {
+          "line": 222,
+          "column": 51
+        }
+      },
+      "status": "Killed",
+      "statusReason": null
+    },
+    {
+      "id": "2195",
+      "mutatorName": "Block removal mutation",
+      "description": null,
+      "replacement": "{}",
+      "location": {
+        "start": {
+          "line": 222,
+          "column": 53
+        },
+        "end": {
+          "line": 222,
+          "column": 94
+        }
+      },
+      "status": "Ignored",
+      "statusReason": "Removed by block already covered filter"
+    },
+    {
+      "id": "2196",
+      "mutatorName": "Statement mutation",
+      "description": null,
+      "replacement": ";",
+      "location": {
+        "start": {
+          "line": 222,
+          "column": 55
+        },
+        "end": {
+          "line": 222,
+          "column": 92
+        }
+      },
+      "status": "Killed",
+      "statusReason": null
+    },
+    {
+      "id": "2197",
+      "mutatorName": "Block removal mutation",
+      "description": null,
+      "replacement": "{}",
+      "location": {
+        "start": {
+          "line": 226,
+          "column": 5
+        },
+        "end": {
+          "line": 229,
+          "column": 6
+        }
+      },
+      "status": "Ignored",
+      "statusReason": "Removed by block already covered filter"
+    },
+    {
+      "id": "2198",
+      "mutatorName": "Logical mutation",
+      "description": null,
+      "replacement": "disposalStarted && operations.Count == 0 && retiringCollections.Count == 0 || !disposed",
+      "location": {
+        "start": {
+          "line": 227,
+          "column": 13
+        },
+        "end": {
+          "line": 227,
+          "column": 100
+        }
+      },
+      "status": "Killed",
+      "statusReason": null
+    },
+    {
+      "id": "2199",
+      "mutatorName": "Negate expression",
+      "description": null,
+      "replacement": "!(disposalStarted && operations.Count == 0 && retiringCollections.Count == 0 && !disposed)",
+      "location": {
+        "start": {
+          "line": 227,
+          "column": 13
+        },
+        "end": {
+          "line": 227,
+          "column": 100
+        }
+      },
+      "status": "Killed",
+      "statusReason": null
+    },
+    {
+      "id": "2200",
+      "mutatorName": "Logical mutation",
+      "description": null,
+      "replacement": "disposalStarted && operations.Count == 0 || retiringCollections.Count == 0",
+      "location": {
+        "start": {
+          "line": 227,
+          "column": 13
+        },
+        "end": {
+          "line": 227,
+          "column": 87
+        }
+      },
+      "status": "Killed",
+      "statusReason": null
+    },
+    {
+      "id": "2201",
+      "mutatorName": "Logical mutation",
+      "description": null,
+      "replacement": "disposalStarted || operations.Count == 0",
+      "location": {
+        "start": {
+          "line": 227,
+          "column": 13
+        },
+        "end": {
+          "line": 227,
+          "column": 53
+        }
+      },
+      "status": "Killed",
+      "statusReason": null
+    },
+    {
+      "id": "2202",
+      "mutatorName": "Equality mutation",
+      "description": null,
+      "replacement": "operations.Count != 0",
+      "location": {
+        "start": {
+          "line": 227,
+          "column": 32
+        },
+        "end": {
+          "line": 227,
+          "column": 53
+        }
+      },
+      "status": "CompileError",
+      "statusReason": "Mutant caused compile errors"
+    },
+    {
+      "id": "2203",
+      "mutatorName": "Linq method mutation (Count() to Sum())",
+      "description": null,
+      "replacement": "operations.Sum",
+      "location": {
+        "start": {
+          "line": 227,
+          "column": 32
+        },
+        "end": {
+          "line": 227,
+          "column": 48
+        }
+      },
+      "status": "CompileError",
+      "statusReason": "Mutant caused compile errors"
+    },
+    {
+      "id": "2204",
+      "mutatorName": "Equality mutation",
+      "description": null,
+      "replacement": "retiringCollections.Count != 0",
+      "location": {
+        "start": {
+          "line": 227,
+          "column": 57
+        },
+        "end": {
+          "line": 227,
+          "column": 87
+        }
+      },
+      "status": "CompileError",
+      "statusReason": "Mutant caused compile errors"
+    },
+    {
+      "id": "2205",
+      "mutatorName": "Linq method mutation (Count() to Sum())",
+      "description": null,
+      "replacement": "retiringCollections.Sum",
+      "location": {
+        "start": {
+          "line": 227,
+          "column": 57
+        },
+        "end": {
+          "line": 227,
+          "column": 82
+        }
+      },
+      "status": "CompileError",
+      "statusReason": "Mutant caused compile errors"
+    },
+    {
+      "id": "2206",
+      "mutatorName": "LogicalNotExpression to un-LogicalNotExpression mutation",
+      "description": null,
+      "replacement": "disposed",
+      "location": {
+        "start": {
+          "line": 227,
+          "column": 91
+        },
+        "end": {
+          "line": 227,
+          "column": 100
+        }
+      },
+      "status": "Timeout",
+      "statusReason": null
+    },
+    {
+      "id": "2207",
+      "mutatorName": "Block removal mutation",
+      "description": null,
+      "replacement": "{}",
+      "location": {
+        "start": {
+          "line": 228,
+          "column": 9
+        },
+        "end": {
+          "line": 228,
+          "column": 61
+        }
+      },
+      "status": "Ignored",
+      "statusReason": "Removed by block already covered filter"
+    },
+    {
+      "id": "2208",
+      "mutatorName": "Boolean mutation",
+      "description": null,
+      "replacement": "false",
+      "location": {
+        "start": {
+          "line": 228,
+          "column": 22
+        },
+        "end": {
+          "line": 228,
+          "column": 26
+        }
+      },
+      "status": "Killed",
+      "statusReason": null
+    },
+    {
+      "id": "2209",
+      "mutatorName": "Statement mutation",
+      "description": null,
+      "replacement": ";",
+      "location": {
+        "start": {
+          "line": 228,
+          "column": 28
+        },
+        "end": {
+          "line": 228,
+          "column": 59
+        }
+      },
+      "status": "Timeout",
+      "statusReason": null
+    },
+    {
+      "id": "2210",
+      "mutatorName": "Block removal mutation",
+      "description": null,
+      "replacement": "{}",
+      "location": {
+        "start": {
+          "line": 232,
+          "column": 5
+        },
+        "end": {
+          "line": 242,
+          "column": 6
+        }
+      },
+      "status": "Ignored",
+      "statusReason": "Removed by block already covered filter"
+    },
+    {
+      "id": "2211",
+      "mutatorName": "Statement mutation",
+      "description": null,
+      "replacement": ";",
+      "location": {
+        "start": {
+          "line": 233,
+          "column": 9
+        },
+        "end": {
+          "line": 233,
+          "column": 56
+        }
+      },
+      "status": "Killed",
+      "statusReason": null
+    },
+    {
+      "id": "2212",
+      "mutatorName": "LogicalNotExpression to un-LogicalNotExpression mutation",
+      "description": null,
+      "replacement": "measurement.IsDiagnostic",
+      "location": {
+        "start": {
+          "line": 234,
+          "column": 13
+        },
+        "end": {
+          "line": 234,
+          "column": 38
+        }
+      },
+      "status": "Killed",
+      "statusReason": null
+    },
+    {
+      "id": "2213",
+      "mutatorName": "Block removal mutation",
+      "description": null,
+      "replacement": "{}",
+      "location": {
+        "start": {
+          "line": 234,
+          "column": 40
+        },
+        "end": {
+          "line": 234,
+          "column": 136
+        }
+      },
+      "status": "Ignored",
+      "statusReason": "Removed by block already covered filter"
+    },
+    {
+      "id": "2214",
+      "mutatorName": "Statement mutation",
+      "description": null,
+      "replacement": ";",
+      "location": {
+        "start": {
+          "line": 234,
+          "column": 42
+        },
+        "end": {
+          "line": 234,
+          "column": 134
+        }
+      },
+      "status": "Killed",
+      "statusReason": null
+    },
+    {
+      "id": "2215",
+      "mutatorName": "String mutation",
+      "description": null,
+      "replacement": "\"\"",
+      "location": {
+        "start": {
+          "line": 234,
+          "column": 70
+        },
+        "end": {
+          "line": 234,
+          "column": 111
+        }
+      },
+      "status": "Killed",
+      "statusReason": null
+    },
+    {
+      "id": "2216",
+      "mutatorName": "Block removal mutation",
+      "description": null,
+      "replacement": "{}",
+      "location": {
+        "start": {
+          "line": 236,
+          "column": 9
+        },
+        "end": {
+          "line": 241,
+          "column": 10
+        }
+      },
+      "status": "Ignored",
+      "statusReason": "Removed by block already covered filter"
+    },
+    {
+      "id": "2217",
+      "mutatorName": "Statement mutation",
+      "description": null,
+      "replacement": ";",
+      "location": {
+        "start": {
+          "line": 237,
+          "column": 13
+        },
+        "end": {
+          "line": 237,
+          "column": 33
+        }
+      },
+      "status": "Killed",
+      "statusReason": null
+    },
+    {
+      "id": "2218",
+      "mutatorName": "Logical mutation",
+      "description": null,
+      "replacement": "!entry.Measurements.ContainsKey(measurement.Key) || entry.Measurements.Count == 32",
+      "location": {
+        "start": {
+          "line": 238,
+          "column": 17
+        },
+        "end": {
+          "line": 238,
+          "column": 99
+        }
+      },
+      "status": "Killed",
+      "statusReason": null
+    },
+    {
+      "id": "2219",
+      "mutatorName": "Negate expression",
+      "description": null,
+      "replacement": "!(!entry.Measurements.ContainsKey(measurement.Key) && entry.Measurements.Count == 32)",
+      "location": {
+        "start": {
+          "line": 238,
+          "column": 17
+        },
+        "end": {
+          "line": 238,
+          "column": 99
+        }
+      },
+      "status": "Killed",
+      "statusReason": null
+    },
+    {
+      "id": "2220",
+      "mutatorName": "LogicalNotExpression to un-LogicalNotExpression mutation",
+      "description": null,
+      "replacement": "entry.Measurements.ContainsKey(measurement.Key)",
+      "location": {
+        "start": {
+          "line": 238,
+          "column": 17
+        },
+        "end": {
+          "line": 238,
+          "column": 65
+        }
+      },
+      "status": "Killed",
+      "statusReason": null
+    },
+    {
+      "id": "2221",
+      "mutatorName": "Equality mutation",
+      "description": null,
+      "replacement": "entry.Measurements.Count != 32",
+      "location": {
+        "start": {
+          "line": 238,
+          "column": 69
+        },
+        "end": {
+          "line": 238,
+          "column": 99
+        }
+      },
+      "status": "CompileError",
+      "statusReason": "Mutant caused compile errors"
+    },
+    {
+      "id": "2222",
+      "mutatorName": "Linq method mutation (Count() to Sum())",
+      "description": null,
+      "replacement": "entry.Measurements.Sum",
+      "location": {
+        "start": {
+          "line": 238,
+          "column": 69
+        },
+        "end": {
+          "line": 238,
+          "column": 93
+        }
+      },
+      "status": "CompileError",
+      "statusReason": "Mutant caused compile errors"
+    },
+    {
+      "id": "2223",
+      "mutatorName": "Block removal mutation",
+      "description": null,
+      "replacement": "{}",
+      "location": {
+        "start": {
+          "line": 239,
+          "column": 13
+        },
+        "end": {
+          "line": 239,
+          "column": 112
+        }
+      },
+      "status": "Ignored",
+      "statusReason": "Removed by block already covered filter"
+    },
+    {
+      "id": "2224",
+      "mutatorName": "Statement mutation",
+      "description": null,
+      "replacement": ";",
+      "location": {
+        "start": {
+          "line": 239,
+          "column": 15
+        },
+        "end": {
+          "line": 239,
+          "column": 110
+        }
+      },
+      "status": "Killed",
+      "statusReason": null
+    },
+    {
+      "id": "2225",
+      "mutatorName": "String mutation",
+      "description": null,
+      "replacement": "\"\"",
+      "location": {
+        "start": {
+          "line": 239,
+          "column": 43
+        },
+        "end": {
+          "line": 239,
+          "column": 87
+        }
+      },
+      "status": "Killed",
+      "statusReason": null
+    },
+    {
+      "id": "2226",
+      "mutatorName": "PreIncrementExpression to PreDecrementExpression mutation",
+      "description": null,
+      "replacement": "--revision",
+      "location": {
+        "start": {
+          "line": 240,
+          "column": 68
+        },
+        "end": {
+          "line": 240,
+          "column": 78
+        }
+      },
+      "status": "Killed",
+      "statusReason": null
+    },
+    {
+      "id": "2227",
+      "mutatorName": "Block removal mutation",
+      "description": null,
+      "replacement": "{}",
+      "location": {
+        "start": {
+          "line": 245,
+          "column": 5
+        },
+        "end": {
+          "line": 248,
+          "column": 6
+        }
+      },
+      "status": "Ignored",
+      "statusReason": "Removed by block already covered filter"
+    },
+    {
+      "id": "2228",
+      "mutatorName": "Block removal mutation",
+      "description": null,
+      "replacement": "{}",
+      "location": {
+        "start": {
+          "line": 247,
+          "column": 21
+        },
+        "end": {
+          "line": 247,
+          "column": 92
+        }
+      },
+      "status": "Ignored",
+      "statusReason": "Removed by block already covered filter"
+    },
+    {
+      "id": "2229",
+      "mutatorName": "Statement mutation",
+      "description": null,
+      "replacement": ";",
+      "location": {
+        "start": {
+          "line": 247,
+          "column": 23
+        },
+        "end": {
+          "line": 247,
+          "column": 43
+        }
+      },
+      "status": "Killed",
+      "statusReason": null
+    },
+    {
+      "id": "2230",
+      "mutatorName": "Statement mutation",
+      "description": null,
+      "replacement": ";",
+      "location": {
+        "start": {
+          "line": 247,
+          "column": 44
+        },
+        "end": {
+          "line": 247,
+          "column": 90
+        }
+      },
+      "status": "Killed",
+      "statusReason": null
+    },
+    {
+      "id": "2231",
+      "mutatorName": "Block removal mutation",
+      "description": null,
+      "replacement": "{}",
+      "location": {
+        "start": {
+          "line": 251,
+          "column": 5
+        },
+        "end": {
+          "line": 256,
+          "column": 6
+        }
+      },
+      "status": "Ignored",
+      "statusReason": "Removed by block already covered filter"
+    },
+    {
+      "id": "2232",
+      "mutatorName": "Conditional (true) mutation",
+      "description": null,
+      "replacement": "(true?MonitorState.Unhealthy :MonitorState.Healthy)",
+      "location": {
+        "start": {
+          "line": 252,
+          "column": 23
+        },
+        "end": {
+          "line": 252,
+          "column": 78
+        }
+      },
+      "status": "Killed",
+      "statusReason": null
+    },
+    {
+      "id": "2233",
+      "mutatorName": "Conditional (false) mutation",
+      "description": null,
+      "replacement": "(false?MonitorState.Unhealthy :MonitorState.Healthy)",
+      "location": {
+        "start": {
+          "line": 252,
+          "column": 23
+        },
+        "end": {
+          "line": 252,
+          "column": 78
+        }
+      },
+      "status": "Killed",
+      "statusReason": null
+    },
+    {
+      "id": "2234",
+      "mutatorName": "Logical mutation",
+      "description": null,
+      "replacement": "entry.Policy == HealthPolicyKind.FirstSuccessAvailability || flagged",
+      "location": {
+        "start": {
+          "line": 253,
+          "column": 13
+        },
+        "end": {
+          "line": 253,
+          "column": 81
+        }
+      },
+      "status": "Survived",
+      "statusReason": null
+    },
+    {
+      "id": "2235",
+      "mutatorName": "Negate expression",
+      "description": null,
+      "replacement": "!(entry.Policy == HealthPolicyKind.FirstSuccessAvailability && flagged)",
+      "location": {
+        "start": {
+          "line": 253,
+          "column": 13
+        },
+        "end": {
+          "line": 253,
+          "column": 81
+        }
+      },
+      "status": "Killed",
+      "statusReason": null
+    },
+    {
+      "id": "2236",
+      "mutatorName": "Equality mutation",
+      "description": null,
+      "replacement": "entry.Policy != HealthPolicyKind.FirstSuccessAvailability",
+      "location": {
+        "start": {
+          "line": 253,
+          "column": 13
+        },
+        "end": {
+          "line": 253,
+          "column": 70
+        }
+      },
+      "status": "Killed",
+      "statusReason": null
+    },
+    {
+      "id": "2237",
+      "mutatorName": "Block removal mutation",
+      "description": null,
+      "replacement": "{}",
+      "location": {
+        "start": {
+          "line": 253,
+          "column": 83
+        },
+        "end": {
+          "line": 253,
+          "column": 115
+        }
+      },
+      "status": "Ignored",
+      "statusReason": "Removed by block already covered filter"
+    },
+    {
+      "id": "2238",
+      "mutatorName": "Boolean mutation",
+      "description": null,
+      "replacement": "true",
+      "location": {
+        "start": {
+          "line": 253,
+          "column": 107
+        },
+        "end": {
+          "line": 253,
+          "column": 112
+        }
+      },
+      "status": "Killed",
+      "statusReason": null
+    },
+    {
+      "id": "2239",
+      "mutatorName": "Conditional (true) mutation",
+      "description": null,
+      "replacement": "(true?diagnostic :null)",
+      "location": {
+        "start": {
+          "line": 254,
+          "column": 28
+        },
+        "end": {
+          "line": 254,
+          "column": 55
+        }
+      },
+      "status": "Killed",
+      "statusReason": null
+    },
+    {
+      "id": "2240",
+      "mutatorName": "Conditional (false) mutation",
+      "description": null,
+      "replacement": "(false?diagnostic :null)",
+      "location": {
+        "start": {
+          "line": 254,
+          "column": 28
+        },
+        "end": {
+          "line": 254,
+          "column": 55
+        }
+      },
+      "status": "Killed",
+      "statusReason": null
+    },
+    {
+      "id": "2241",
+      "mutatorName": "Statement mutation",
+      "description": null,
+      "replacement": ";",
+      "location": {
+        "start": {
+          "line": 255,
+          "column": 9
+        },
+        "end": {
+          "line": 255,
+          "column": 29
+        }
+      },
+      "status": "Killed",
+      "statusReason": null
+    },
+    {
+      "id": "2242",
+      "mutatorName": "Block removal mutation",
+      "description": null,
+      "replacement": "{}",
+      "location": {
+        "start": {
+          "line": 259,
+          "column": 5
+        },
+        "end": {
+          "line": 263,
+          "column": 6
+        }
+      },
+      "status": "Ignored",
+      "statusReason": "Removed by block already covered filter"
+    },
+    {
+      "id": "2243",
+      "mutatorName": "LogicalNotExpression to un-LogicalNotExpression mutation",
+      "description": null,
+      "replacement": "double.IsFinite(value)",
+      "location": {
+        "start": {
+          "line": 260,
+          "column": 13
+        },
+        "end": {
+          "line": 260,
+          "column": 36
+        }
+      },
+      "status": "Killed",
+      "statusReason": null
+    },
+    {
+      "id": "2244",
+      "mutatorName": "Block removal mutation",
+      "description": null,
+      "replacement": "{}",
+      "location": {
+        "start": {
+          "line": 260,
+          "column": 38
+        },
+        "end": {
+          "line": 260,
+          "column": 95
+        }
+      },
+      "status": "Ignored",
+      "statusReason": "Removed by block already covered filter"
+    },
+    {
+      "id": "2245",
+      "mutatorName": "Statement mutation",
+      "description": null,
+      "replacement": ";",
+      "location": {
+        "start": {
+          "line": 260,
+          "column": 40
+        },
+        "end": {
+          "line": 260,
+          "column": 93
+        }
+      },
+      "status": "Killed",
+      "statusReason": null
+    },
+    {
+      "id": "2246",
+      "mutatorName": "Block removal mutation",
+      "description": null,
+      "replacement": "{}",
+      "location": {
+        "start": {
+          "line": 262,
+          "column": 21
+        },
+        "end": {
+          "line": 262,
+          "column": 87
+        }
+      },
+      "status": "Ignored",
+      "statusReason": "Removed by block already covered filter"
+    },
+    {
+      "id": "2247",
+      "mutatorName": "Statement mutation",
+      "description": null,
+      "replacement": ";",
+      "location": {
+        "start": {
+          "line": 262,
+          "column": 23
+        },
+        "end": {
+          "line": 262,
+          "column": 43
+        }
+      },
+      "status": "Killed",
+      "statusReason": null
+    },
+    {
+      "id": "2248",
+      "mutatorName": "Statement mutation",
+      "description": null,
+      "replacement": ";",
+      "location": {
+        "start": {
+          "line": 262,
+          "column": 44
+        },
+        "end": {
+          "line": 262,
+          "column": 85
+        }
+      },
+      "status": "Killed",
+      "statusReason": null
+    },
+    {
+      "id": "2249",
+      "mutatorName": "Block removal mutation",
+      "description": null,
+      "replacement": "{}",
+      "location": {
+        "start": {
+          "line": 266,
+          "column": 5
+        },
+        "end": {
+          "line": 278,
+          "column": 6
+        }
+      },
+      "status": "Ignored",
+      "statusReason": "Removed by block already covered filter"
+    },
+    {
+      "id": "2250",
+      "mutatorName": "Equality mutation",
+      "description": null,
+      "replacement": "value < entry.Threshold",
+      "location": {
+        "start": {
+          "line": 271,
+          "column": 46
+        },
+        "end": {
+          "line": 271,
+          "column": 69
+        }
+      },
+      "status": "Killed",
+      "statusReason": null
+    },
+    {
+      "id": "2251",
+      "mutatorName": "Equality mutation",
+      "description": null,
+      "replacement": "value >= entry.Threshold",
+      "location": {
+        "start": {
+          "line": 271,
+          "column": 46
+        },
+        "end": {
+          "line": 271,
+          "column": 69
+        }
+      },
+      "status": "Killed",
+      "statusReason": null
+    },
+    {
+      "id": "2252",
+      "mutatorName": "Equality mutation",
+      "description": null,
+      "replacement": "value < entry.Threshold",
+      "location": {
+        "start": {
+          "line": 272,
+          "column": 53
+        },
+        "end": {
+          "line": 272,
+          "column": 77
+        }
+      },
+      "status": "Killed",
+      "statusReason": null
+    },
+    {
+      "id": "2253",
+      "mutatorName": "Equality mutation",
+      "description": null,
+      "replacement": "value > entry.Threshold",
+      "location": {
+        "start": {
+          "line": 272,
+          "column": 53
+        },
+        "end": {
+          "line": 272,
+          "column": 77
+        }
+      },
+      "status": "Killed",
+      "statusReason": null
+    },
+    {
+      "id": "2254",
+      "mutatorName": "Equality mutation",
+      "description": null,
+      "replacement": "value > entry.Threshold",
+      "location": {
+        "start": {
+          "line": 273,
+          "column": 43
+        },
+        "end": {
+          "line": 273,
+          "column": 66
+        }
+      },
+      "status": "Killed",
+      "statusReason": null
+    },
+    {
+      "id": "2255",
+      "mutatorName": "Equality mutation",
+      "description": null,
+      "replacement": "value <= entry.Threshold",
+      "location": {
+        "start": {
+          "line": 273,
+          "column": 43
+        },
+        "end": {
+          "line": 273,
+          "column": 66
+        }
+      },
+      "status": "Killed",
+      "statusReason": null
+    },
+    {
+      "id": "2256",
+      "mutatorName": "Equality mutation",
+      "description": null,
+      "replacement": "value > entry.Threshold",
+      "location": {
+        "start": {
+          "line": 274,
+          "column": 50
+        },
+        "end": {
+          "line": 274,
+          "column": 74
+        }
+      },
+      "status": "Killed",
+      "statusReason": null
+    },
+    {
+      "id": "2257",
+      "mutatorName": "Equality mutation",
+      "description": null,
+      "replacement": "value < entry.Threshold",
+      "location": {
+        "start": {
+          "line": 274,
+          "column": 50
+        },
+        "end": {
+          "line": 274,
+          "column": 74
+        }
+      },
+      "status": "Killed",
+      "statusReason": null
+    },
+    {
+      "id": "2258",
+      "mutatorName": "String mutation",
+      "description": null,
+      "replacement": "\"\"",
+      "location": {
+        "start": {
+          "line": 275,
+          "column": 54
+        },
+        "end": {
+          "line": 275,
+          "column": 79
+        }
+      },
+      "status": "NoCoverage",
+      "statusReason": "Not covered by any test."
+    },
+    {
+      "id": "2259",
+      "mutatorName": "Statement mutation",
+      "description": null,
+      "replacement": ";",
+      "location": {
+        "start": {
+          "line": 277,
+          "column": 9
+        },
+        "end": {
+          "line": 277,
+          "column": 54
+        }
+      },
+      "status": "Killed",
+      "statusReason": null
+    },
+    {
+      "id": "2260",
+      "mutatorName": "Block removal mutation",
+      "description": null,
+      "replacement": "{}",
+      "location": {
+        "start": {
+          "line": 281,
+          "column": 5
+        },
+        "end": {
+          "line": 284,
+          "column": 6
+        }
+      },
+      "status": "Ignored",
+      "statusReason": "Removed by block already covered filter"
+    },
+    {
+      "id": "2261",
+      "mutatorName": "Block removal mutation",
+      "description": null,
+      "replacement": "{}",
+      "location": {
+        "start": {
+          "line": 283,
+          "column": 21
+        },
+        "end": {
+          "line": 283,
+          "column": 90
+        }
+      },
+      "status": "Ignored",
+      "statusReason": "Removed by block already covered filter"
+    },
+    {
+      "id": "2262",
+      "mutatorName": "Statement mutation",
+      "description": null,
+      "replacement": ";",
+      "location": {
+        "start": {
+          "line": 283,
+          "column": 23
+        },
+        "end": {
+          "line": 283,
+          "column": 43
+        }
+      },
+      "status": "Killed",
+      "statusReason": null
+    },
+    {
+      "id": "2263",
+      "mutatorName": "Statement mutation",
+      "description": null,
+      "replacement": ";",
+      "location": {
+        "start": {
+          "line": 283,
+          "column": 44
+        },
+        "end": {
+          "line": 283,
+          "column": 88
+        }
+      },
+      "status": "Killed",
+      "statusReason": null
+    },
+    {
+      "id": "2264",
+      "mutatorName": "Block removal mutation",
+      "description": null,
+      "replacement": "{}",
+      "location": {
+        "start": {
+          "line": 287,
+          "column": 5
+        },
+        "end": {
+          "line": 314,
+          "column": 6
+        }
+      },
+      "status": "Ignored",
+      "statusReason": "Removed by block already covered filter"
+    },
+    {
+      "id": "2265",
+      "mutatorName": "Statement mutation",
+      "description": null,
+      "replacement": ";",
+      "location": {
+        "start": {
+          "line": 292,
+          "column": 17
+        },
+        "end": {
+          "line": 292,
+          "column": 56
+        }
+      },
+      "status": "Killed",
+      "statusReason": null
+    },
+    {
+      "id": "2266",
+      "mutatorName": "Boolean mutation",
+      "description": null,
+      "replacement": "false",
+      "location": {
+        "start": {
+          "line": 295,
+          "column": 39
+        },
+        "end": {
+          "line": 295,
+          "column": 43
+        }
+      },
+      "status": "Killed",
+      "statusReason": null
+    },
+    {
+      "id": "2267",
+      "mutatorName": "Statement mutation",
+      "description": null,
+      "replacement": ";",
+      "location": {
+        "start": {
+          "line": 300,
+          "column": 17
+        },
+        "end": {
+          "line": 300,
+          "column": 52
+        }
+      },
+      "status": "Killed",
+      "statusReason": null
+    },
+    {
+      "id": "2268",
+      "mutatorName": "Statement mutation",
+      "description": null,
+      "replacement": ";",
+      "location": {
+        "start": {
+          "line": 301,
+          "column": 17
+        },
+        "end": {
+          "line": 301,
+          "column": 65
+        }
+      },
+      "status": "Killed",
+      "statusReason": null
+    },
+    {
+      "id": "2269",
+      "mutatorName": "Conditional (true) mutation",
+      "description": null,
+      "replacement": "(true?(entry.ConsecutiveFailures >= entry.FailureThreshold ? MonitorState.Unhealthy : MonitorState.Healthy)\n:(entry.HasUsableData ? MonitorState.Healthy : MonitorState.Unhealthy))",
+      "location": {
+        "start": {
+          "line": 305,
+          "column": 31
+        },
+        "end": {
+          "line": 307,
+          "column": 92
+        }
+      },
+      "status": "Killed",
+      "statusReason": null
+    },
+    {
+      "id": "2270",
+      "mutatorName": "Conditional (false) mutation",
+      "description": null,
+      "replacement": "(false?(entry.ConsecutiveFailures >= entry.FailureThreshold ? MonitorState.Unhealthy : MonitorState.Healthy)\n:(entry.HasUsableData ? MonitorState.Healthy : MonitorState.Unhealthy))",
+      "location": {
+        "start": {
+          "line": 305,
+          "column": 31
+        },
+        "end": {
+          "line": 307,
+          "column": 92
+        }
+      },
+      "status": "Killed",
+      "statusReason": null
+    },
+    {
+      "id": "2271",
+      "mutatorName": "Equality mutation",
+      "description": null,
+      "replacement": "entry.Policy != HealthPolicyKind.ConsecutiveFailures",
+      "location": {
+        "start": {
+          "line": 305,
+          "column": 31
+        },
+        "end": {
+          "line": 305,
+          "column": 83
+        }
+      },
+      "status": "Killed",
+      "statusReason": null
+    },
+    {
+      "id": "2272",
+      "mutatorName": "Conditional (true) mutation",
+      "description": null,
+      "replacement": "(true?MonitorState.Unhealthy :MonitorState.Healthy)",
+      "location": {
+        "start": {
+          "line": 306,
+          "column": 24
+        },
+        "end": {
+          "line": 306,
+          "column": 123
+        }
+      },
+      "status": "Killed",
+      "statusReason": null
+    },
+    {
+      "id": "2273",
+      "mutatorName": "Conditional (false) mutation",
+      "description": null,
+      "replacement": "(false?MonitorState.Unhealthy :MonitorState.Healthy)",
+      "location": {
+        "start": {
+          "line": 306,
+          "column": 24
+        },
+        "end": {
+          "line": 306,
+          "column": 123
+        }
+      },
+      "status": "Killed",
+      "statusReason": null
+    },
+    {
+      "id": "2274",
+      "mutatorName": "Equality mutation",
+      "description": null,
+      "replacement": "entry.ConsecutiveFailures < entry.FailureThreshold",
+      "location": {
+        "start": {
+          "line": 306,
+          "column": 24
+        },
+        "end": {
+          "line": 306,
+          "column": 75
+        }
+      },
+      "status": "Killed",
+      "statusReason": null
+    },
+    {
+      "id": "2275",
+      "mutatorName": "Equality mutation",
+      "description": null,
+      "replacement": "entry.ConsecutiveFailures > entry.FailureThreshold",
+      "location": {
+        "start": {
+          "line": 306,
+          "column": 24
+        },
+        "end": {
+          "line": 306,
+          "column": 75
+        }
+      },
+      "status": "Killed",
+      "statusReason": null
+    },
+    {
+      "id": "2276",
+      "mutatorName": "Conditional (true) mutation",
+      "description": null,
+      "replacement": "(true?MonitorState.Healthy :MonitorState.Unhealthy)",
+      "location": {
+        "start": {
+          "line": 307,
+          "column": 24
+        },
+        "end": {
+          "line": 307,
+          "column": 91
+        }
+      },
+      "status": "Killed",
+      "statusReason": null
+    },
+    {
+      "id": "2277",
+      "mutatorName": "Conditional (false) mutation",
+      "description": null,
+      "replacement": "(false?MonitorState.Healthy :MonitorState.Unhealthy)",
+      "location": {
+        "start": {
+          "line": 307,
+          "column": 24
+        },
+        "end": {
+          "line": 307,
+          "column": 91
+        }
+      },
+      "status": "Killed",
+      "statusReason": null
+    },
+    {
+      "id": "2278",
+      "mutatorName": "Statement mutation",
+      "description": null,
+      "replacement": ";",
+      "location": {
+        "start": {
+          "line": 309,
+          "column": 50
+        },
+        "end": {
+          "line": 309,
+          "column": 86
+        }
+      },
+      "status": "Killed",
+      "statusReason": null
+    },
+    {
+      "id": "2279",
+      "mutatorName": "Statement mutation",
+      "description": null,
+      "replacement": ";",
+      "location": {
+        "start": {
+          "line": 310,
+          "column": 63
+        },
+        "end": {
+          "line": 310,
+          "column": 108
+        }
+      },
+      "status": "Killed",
+      "statusReason": null
+    },
+    {
+      "id": "2280",
+      "mutatorName": "Statement mutation",
+      "description": null,
+      "replacement": ";",
+      "location": {
+        "start": {
+          "line": 313,
+          "column": 9
+        },
+        "end": {
+          "line": 313,
+          "column": 29
+        }
+      },
+      "status": "Killed",
+      "statusReason": null
+    },
+    {
+      "id": "2281",
+      "mutatorName": "Block removal mutation",
+      "description": null,
+      "replacement": "{}",
+      "location": {
+        "start": {
+          "line": 317,
+          "column": 5
+        },
+        "end": {
+          "line": 317,
+          "column": 110
+        }
+      },
+      "status": "Ignored",
+      "statusReason": "Removed by block already covered filter"
+    },
+    {
+      "id": "2282",
+      "mutatorName": "Equality mutation",
+      "description": null,
+      "replacement": "counter > long.MaxValue",
+      "location": {
+        "start": {
+          "line": 317,
+          "column": 11
+        },
+        "end": {
+          "line": 317,
+          "column": 34
+        }
+      },
+      "status": "Killed",
+      "statusReason": null
+    },
+    {
+      "id": "2283",
+      "mutatorName": "Equality mutation",
+      "description": null,
+      "replacement": "counter <= long.MaxValue",
+      "location": {
+        "start": {
+          "line": 317,
+          "column": 11
+        },
+        "end": {
+          "line": 317,
+          "column": 34
+        }
+      },
+      "status": "Killed",
+      "statusReason": null
+    },
+    {
+      "id": "2284",
+      "mutatorName": "Negate expression",
+      "description": null,
+      "replacement": "!(counter < long.MaxValue)",
+      "location": {
+        "start": {
+          "line": 317,
+          "column": 11
+        },
+        "end": {
+          "line": 317,
+          "column": 34
+        }
+      },
+      "status": "Killed",
+      "statusReason": null
+    },
+    {
+      "id": "2285",
+      "mutatorName": "Block removal mutation",
+      "description": null,
+      "replacement": "{}",
+      "location": {
+        "start": {
+          "line": 317,
+          "column": 36
+        },
+        "end": {
+          "line": 317,
+          "column": 50
+        }
+      },
+      "status": "Ignored",
+      "statusReason": "Removed by block already covered filter"
+    },
+    {
+      "id": "2286",
+      "mutatorName": "Statement mutation",
+      "description": null,
+      "replacement": ";",
+      "location": {
+        "start": {
+          "line": 317,
+          "column": 38
+        },
+        "end": {
+          "line": 317,
+          "column": 48
+        }
+      },
+      "status": "Killed",
+      "statusReason": null
+    },
+    {
+      "id": "2287",
+      "mutatorName": "PostIncrementExpression to PostDecrementExpression mutation",
+      "description": null,
+      "replacement": "counter--",
+      "location": {
+        "start": {
+          "line": 317,
+          "column": 38
+        },
+        "end": {
+          "line": 317,
+          "column": 47
+        }
+      },
+      "status": "Killed",
+      "statusReason": null
+    },
+    {
+      "id": "2288",
+      "mutatorName": "Equality mutation",
+      "description": null,
+      "replacement": "counter != long.MaxValue",
+      "location": {
+        "start": {
+          "line": 317,
+          "column": 55
+        },
+        "end": {
+          "line": 317,
+          "column": 79
+        }
+      },
+      "status": "Killed",
+      "statusReason": null
+    },
+    {
+      "id": "2289",
+      "mutatorName": "Block removal mutation",
+      "description": null,
+      "replacement": "{}",
+      "location": {
+        "start": {
+          "line": 317,
+          "column": 81
+        },
+        "end": {
+          "line": 317,
+          "column": 108
+        }
+      },
+      "status": "Ignored",
+      "statusReason": "Removed by block already covered filter"
+    },
+    {
+      "id": "2290",
+      "mutatorName": "Boolean mutation",
+      "description": null,
+      "replacement": "false",
+      "location": {
+        "start": {
+          "line": 317,
+          "column": 101
+        },
+        "end": {
+          "line": 317,
+          "column": 105
+        }
+      },
+      "status": "Killed",
+      "statusReason": null
+    },
+    {
+      "id": "2291",
+      "mutatorName": "Block removal mutation",
+      "description": null,
+      "replacement": "{}",
+      "location": {
+        "start": {
+          "line": 320,
+          "column": 5
+        },
+        "end": {
+          "line": 320,
+          "column": 72
+        }
+      },
+      "status": "Ignored",
+      "statusReason": "Removed by block already covered filter"
+    },
+    {
+      "id": "2292",
+      "mutatorName": "PreIncrementExpression to PreDecrementExpression mutation",
+      "description": null,
+      "replacement": "--revision",
+      "location": {
+        "start": {
+          "line": 320,
+          "column": 59
+        },
+        "end": {
+          "line": 320,
+          "column": 69
+        }
+      },
+      "status": "Killed",
+      "statusReason": null
+    },
+    {
+      "id": "2293",
+      "mutatorName": "Block removal mutation",
+      "description": null,
+      "replacement": "{}",
+      "location": {
+        "start": {
+          "line": 323,
+          "column": 5
+        },
+        "end": {
+          "line": 361,
+          "column": 6
+        }
+      },
+      "status": "CompileError",
+      "statusReason": "Mutant caused compile errors"
+    },
+    {
+      "id": "2294",
+      "mutatorName": "Block removal mutation",
+      "description": null,
+      "replacement": "{}",
+      "location": {
+        "start": {
+          "line": 333,
+          "column": 9
+        },
+        "end": {
+          "line": 348,
+          "column": 10
+        }
+      },
+      "status": "CompileError",
+      "statusReason": "Mutant caused compile errors"
+    },
+    {
+      "id": "2295",
+      "mutatorName": "Block removal mutation",
+      "description": null,
+      "replacement": "{}",
+      "location": {
+        "start": {
+          "line": 335,
+          "column": 13
+        },
+        "end": {
+          "line": 347,
+          "column": 14
+        }
+      },
+      "status": "CompileError",
+      "statusReason": "Mutant caused compile errors"
+    },
+    {
+      "id": "2296",
+      "mutatorName": "Statement mutation",
+      "description": null,
+      "replacement": ";",
+      "location": {
+        "start": {
+          "line": 336,
+          "column": 17
+        },
+        "end": {
+          "line": 336,
+          "column": 87
+        }
+      },
+      "status": "Killed",
+      "statusReason": null
+    },
+    {
+      "id": "2297",
+      "mutatorName": "Statement mutation",
+      "description": null,
+      "replacement": ";",
+      "location": {
+        "start": {
+          "line": 337,
+          "column": 17
+        },
+        "end": {
+          "line": 337,
+          "column": 36
+        }
+      },
+      "status": "Killed",
+      "statusReason": null
+    },
+    {
+      "id": "2298",
+      "mutatorName": "Linq method mutation (Count() to Sum())",
+      "description": null,
+      "replacement": "active.Values.Sum",
+      "location": {
+        "start": {
+          "line": 339,
+          "column": 32
+        },
+        "end": {
+          "line": 339,
+          "column": 51
+        }
+      },
+      "status": "CompileError",
+      "statusReason": "Mutant caused compile errors"
+    },
+    {
+      "id": "2299",
+      "mutatorName": "Linq method mutation (Count() to Sum())",
+      "description": null,
+      "replacement": "active.Values.Sum",
+      "location": {
+        "start": {
+          "line": 340,
+          "column": 31
+        },
+        "end": {
+          "line": 340,
+          "column": 50
+        }
+      },
+      "status": "CompileError",
+      "statusReason": "Mutant caused compile errors"
+    },
+    {
+      "id": "2300",
+      "mutatorName": "Equality mutation",
+      "description": null,
+      "replacement": "entry.State != MonitorState.Unhealthy",
+      "location": {
+        "start": {
+          "line": 340,
+          "column": 60
+        },
+        "end": {
+          "line": 340,
+          "column": 97
+        }
+      },
+      "status": "Killed",
+      "statusReason": null
+    },
+    {
+      "id": "2301",
+      "mutatorName": "Linq method mutation (Count() to Sum())",
+      "description": null,
+      "replacement": "active.Values.Sum",
+      "location": {
+        "start": {
+          "line": 341,
+          "column": 39
+        },
+        "end": {
+          "line": 341,
+          "column": 58
+        }
+      },
+      "status": "CompileError",
+      "statusReason": "Mutant caused compile errors"
+    },
+    {
+      "id": "2302",
+      "mutatorName": "Logical mutation",
+      "description": null,
+      "replacement": "entry.IsCritical || entry.State == MonitorState.Unhealthy",
+      "location": {
+        "start": {
+          "line": 341,
+          "column": 68
+        },
+        "end": {
+          "line": 341,
+          "column": 125
+        }
+      },
+      "status": "Killed",
+      "statusReason": null
+    },
+    {
+      "id": "2303",
+      "mutatorName": "Equality mutation",
+      "description": null,
+      "replacement": "entry.State != MonitorState.Unhealthy",
+      "location": {
+        "start": {
+          "line": 341,
+          "column": 88
+        },
+        "end": {
+          "line": 341,
+          "column": 125
+        }
+      },
+      "status": "Killed",
+      "statusReason": null
+    },
+    {
+      "id": "2304",
+      "mutatorName": "Linq method mutation (Count() to Sum())",
+      "description": null,
+      "replacement": "active.Sum",
+      "location": {
+        "start": {
+          "line": 342,
+          "column": 30
+        },
+        "end": {
+          "line": 342,
+          "column": 42
+        }
+      },
+      "status": "CompileError",
+      "statusReason": "Mutant caused compile errors"
+    },
+    {
+      "id": "2305",
+      "mutatorName": "Linq method mutation (Count() to Sum())",
+      "description": null,
+      "replacement": "active.Values.Sum",
+      "location": {
+        "start": {
+          "line": 342,
+          "column": 80
+        },
+        "end": {
+          "line": 342,
+          "column": 99
+        }
+      },
+      "status": "CompileError",
+      "statusReason": "Mutant caused compile errors"
+    },
+    {
+      "id": "2306",
+      "mutatorName": "Equality mutation",
+      "description": null,
+      "replacement": "entry.State != MonitorState.Pending",
+      "location": {
+        "start": {
+          "line": 342,
+          "column": 109
+        },
+        "end": {
+          "line": 342,
+          "column": 144
+        }
+      },
+      "status": "Killed",
+      "statusReason": null
+    },
+    {
+      "id": "2307",
+      "mutatorName": "Conditional (true) mutation",
+      "description": null,
+      "replacement": "(true?HealthStatus.Healthy :HealthStatus.Unhealthy)",
+      "location": {
+        "start": {
+          "line": 343,
+          "column": 26
+        },
+        "end": {
+          "line": 343,
+          "column": 94
+        }
+      },
+      "status": "Killed",
+      "statusReason": null
+    },
+    {
+      "id": "2308",
+      "mutatorName": "Conditional (false) mutation",
+      "description": null,
+      "replacement": "(false?HealthStatus.Healthy :HealthStatus.Unhealthy)",
+      "location": {
+        "start": {
+          "line": 343,
+          "column": 26
+        },
+        "end": {
+          "line": 343,
+          "column": 94
+        }
+      },
+      "status": "Killed",
+      "statusReason": null
+    },
+    {
+      "id": "2309",
+      "mutatorName": "Equality mutation",
+      "description": null,
+      "replacement": "criticalFailing != 0",
+      "location": {
+        "start": {
+          "line": 343,
+          "column": 26
+        },
+        "end": {
+          "line": 343,
+          "column": 46
+        }
+      },
+      "status": "Killed",
+      "statusReason": null
+    },
+    {
+      "id": "2310",
+      "mutatorName": "Logical mutation",
+      "description": null,
+      "replacement": "startupCompleted && !stopping || health == HealthStatus.Healthy",
+      "location": {
+        "start": {
+          "line": 344,
+          "column": 25
+        },
+        "end": {
+          "line": 344,
+          "column": 88
+        }
+      },
+      "status": "Killed",
+      "statusReason": null
+    },
+    {
+      "id": "2311",
+      "mutatorName": "Logical mutation",
+      "description": null,
+      "replacement": "startupCompleted || !stopping",
+      "location": {
+        "start": {
+          "line": 344,
+          "column": 25
+        },
+        "end": {
+          "line": 344,
+          "column": 54
+        }
+      },
+      "status": "Killed",
+      "statusReason": null
+    },
+    {
+      "id": "2312",
+      "mutatorName": "LogicalNotExpression to un-LogicalNotExpression mutation",
+      "description": null,
+      "replacement": "stopping",
+      "location": {
+        "start": {
+          "line": 344,
+          "column": 45
+        },
+        "end": {
+          "line": 344,
+          "column": 54
+        }
+      },
+      "status": "Killed",
+      "statusReason": null
+    },
+    {
+      "id": "2313",
+      "mutatorName": "Equality mutation",
+      "description": null,
+      "replacement": "health != HealthStatus.Healthy",
+      "location": {
+        "start": {
+          "line": 344,
+          "column": 58
+        },
+        "end": {
+          "line": 344,
+          "column": 88
+        }
+      },
+      "status": "Killed",
+      "statusReason": null
+    },
+    {
+      "id": "2314",
+      "mutatorName": "Block removal mutation",
+      "description": null,
+      "replacement": "{}",
+      "location": {
+        "start": {
+          "line": 349,
+          "column": 17
+        },
+        "end": {
+          "line": 349,
+          "column": 39
+        }
+      },
+      "status": "Ignored",
+      "statusReason": "Removed by block already covered filter"
+    },
+    {
+      "id": "2315",
+      "mutatorName": "Statement mutation",
+      "description": null,
+      "replacement": ";",
+      "location": {
+        "start": {
+          "line": 349,
+          "column": 19
+        },
+        "end": {
+          "line": 349,
+          "column": 37
+        }
+      },
+      "status": "Timeout",
+      "statusReason": null
+    },
+    {
+      "id": "2316",
+      "mutatorName": "Linq method mutation (OrderBy() to OrderByDescending())",
+      "description": null,
+      "replacement": "copies.OrderByDescending",
+      "location": {
+        "start": {
+          "line": 350,
+          "column": 24
+        },
+        "end": {
+          "line": 350,
+          "column": 38
+        }
+      },
+      "status": "Killed",
+      "statusReason": null
+    },
+    {
+      "id": "2317",
+      "mutatorName": "Object initializer mutation",
+      "description": null,
+      "replacement": "new HealthSnapshotData\n{}",
+      "location": {
+        "start": {
+          "line": 351,
+          "column": 20
+        },
+        "end": {
+          "line": 360,
+          "column": 10
+        }
+      },
+      "status": "CompileError",
+      "statusReason": "Mutant caused compile errors"
+    },
+    {
+      "id": "2318",
+      "mutatorName": "Linq method mutation (OrderBy() to OrderByDescending())",
+      "description": null,
+      "replacement": "data.Measurements.OrderByDescending",
+      "location": {
+        "start": {
+          "line": 376,
+          "column": 24
+        },
+        "end": {
+          "line": 376,
+          "column": 49
+        }
+      },
+      "status": "Killed",
+      "statusReason": null
+    },
+    {
+      "id": "2319",
+      "mutatorName": "Conditional (true) mutation",
+      "description": null,
+      "replacement": "(true?new(new HealthOutcomeSnapshotData\n        {\n            Successful = entry.Successful,\n            Failed = entry.Failed,\n            Skipped = entry.Skipped,\n            ExpectedCanceled = entry.ExpectedCanceled,\n            ConsecutiveFailures = entry.ConsecutiveFailures,\n            CountersSaturated = entry.Saturated,\n            LastOutcome = entry.LastOutcome,\n            LastSuccessAtUtc = entry.LastSuccess,\n            LastFailureAtUtc = entry.LastFailure,\n            LastFailureDiagnostic = entry.LastFailureDiagnostic,\n            Execution = entry.Execution\n        }) :null)",
+      "location": {
+        "start": {
+          "line": 389,
+          "column": 20
+        },
+        "end": {
+          "line": 402,
+          "column": 18
+        }
+      },
+      "status": "Killed",
+      "statusReason": null
+    },
+    {
+      "id": "2320",
+      "mutatorName": "Conditional (false) mutation",
+      "description": null,
+      "replacement": "(false?new(new HealthOutcomeSnapshotData\n        {\n            Successful = entry.Successful,\n            Failed = entry.Failed,\n            Skipped = entry.Skipped,\n            ExpectedCanceled = entry.ExpectedCanceled,\n            ConsecutiveFailures = entry.ConsecutiveFailures,\n            CountersSaturated = entry.Saturated,\n            LastOutcome = entry.LastOutcome,\n            LastSuccessAtUtc = entry.LastSuccess,\n            LastFailureAtUtc = entry.LastFailure,\n            LastFailureDiagnostic = entry.LastFailureDiagnostic,\n            Execution = entry.Execution\n        }) :null)",
+      "location": {
+        "start": {
+          "line": 389,
+          "column": 20
+        },
+        "end": {
+          "line": 402,
+          "column": 18
+        }
+      },
+      "status": "Killed",
+      "statusReason": null
+    },
+    {
+      "id": "2321",
+      "mutatorName": "Equality mutation",
+      "description": null,
+      "replacement": "entry.Policy is not HealthPolicyKind.ConsecutiveFailures or HealthPolicyKind.FirstSuccessAvailability",
+      "location": {
+        "start": {
+          "line": 389,
+          "column": 20
+        },
+        "end": {
+          "line": 389,
+          "column": 117
+        }
+      },
+      "status": "Killed",
+      "statusReason": null
+    },
+    {
+      "id": "2322",
+      "mutatorName": "Logical mutation",
+      "description": null,
+      "replacement": "HealthPolicyKind.ConsecutiveFailures and HealthPolicyKind.FirstSuccessAvailability",
+      "location": {
+        "start": {
+          "line": 389,
+          "column": 36
+        },
+        "end": {
+          "line": 389,
+          "column": 117
+        }
+      },
+      "status": "CompileError",
+      "statusReason": "Mutant caused compile errors"
+    },
+    {
+      "id": "2323",
+      "mutatorName": "Object initializer mutation",
+      "description": null,
+      "replacement": "new HealthOutcomeSnapshotData\n{}",
+      "location": {
+        "start": {
+          "line": 389,
+          "column": 124
+        },
+        "end": {
+          "line": 402,
+          "column": 10
+        }
+      },
+      "status": "Killed",
+      "statusReason": null
+    },
+    {
+      "id": "2324",
+      "mutatorName": "Conditional (true) mutation",
+      "description": null,
+      "replacement": "(true?new(entry.Comparison, entry.Threshold, entry.Unit!, entry.LastValue, entry.LastValueAt) :null)",
+      "location": {
+        "start": {
+          "line": 403,
+          "column": 19
+        },
+        "end": {
+          "line": 403,
+          "column": 165
+        }
+      },
+      "status": "Killed",
+      "statusReason": null
+    },
+    {
+      "id": "2325",
+      "mutatorName": "Conditional (false) mutation",
+      "description": null,
+      "replacement": "(false?new(entry.Comparison, entry.Threshold, entry.Unit!, entry.LastValue, entry.LastValueAt) :null)",
+      "location": {
+        "start": {
+          "line": 403,
+          "column": 19
+        },
+        "end": {
+          "line": 403,
+          "column": 165
+        }
+      },
+      "status": "Killed",
+      "statusReason": null
+    },
+    {
+      "id": "2326",
+      "mutatorName": "Equality mutation",
+      "description": null,
+      "replacement": "entry.Policy != HealthPolicyKind.NumericThreshold",
+      "location": {
+        "start": {
+          "line": 403,
+          "column": 19
+        },
+        "end": {
+          "line": 403,
+          "column": 68
+        }
+      },
+      "status": "Killed",
+      "statusReason": null
+    },
+    {
+      "id": "2327",
+      "mutatorName": "Conditional (true) mutation",
+      "description": null,
+      "replacement": "(true?new(entry.PendingOperations != 0, entry.LastCompleted, entry.CollectionError, entry.CollectionErrorAt) :null)",
+      "location": {
+        "start": {
+          "line": 404,
+          "column": 22
+        },
+        "end": {
+          "line": 404,
+          "column": 158
+        }
+      },
+      "status": "Killed",
+      "statusReason": null
+    },
+    {
+      "id": "2328",
+      "mutatorName": "Conditional (false) mutation",
+      "description": null,
+      "replacement": "(false?new(entry.PendingOperations != 0, entry.LastCompleted, entry.CollectionError, entry.CollectionErrorAt) :null)",
+      "location": {
+        "start": {
+          "line": 404,
+          "column": 22
+        },
+        "end": {
+          "line": 404,
+          "column": 158
+        }
+      },
+      "status": "Killed",
+      "statusReason": null
+    },
+    {
+      "id": "2329",
+      "mutatorName": "Equality mutation",
+      "description": null,
+      "replacement": "entry.PendingOperations == 0",
+      "location": {
+        "start": {
+          "line": 404,
+          "column": 53
+        },
+        "end": {
+          "line": 404,
+          "column": 81
+        }
+      },
+      "status": "Killed",
+      "statusReason": null
+    },
+    {
+      "id": "2330",
+      "mutatorName": "Collection expression mutation",
+      "description": null,
+      "replacement": "[default]",
+      "location": {
+        "start": {
+          "line": 411,
+          "column": 63
+        },
+        "end": {
+          "line": 411,
+          "column": 65
+        }
+      },
+      "status": "Killed",
+      "statusReason": null
+    },
+    {
+      "id": "2331",
+      "mutatorName": "Collection expression mutation",
+      "description": null,
+      "replacement": "[default]",
+      "location": {
+        "start": {
+          "line": 412,
+          "column": 62
+        },
+        "end": {
+          "line": 412,
+          "column": 64
+        }
+      },
+      "status": "Killed",
+      "statusReason": null
+    },
+    {
+      "id": "2332",
+      "mutatorName": "Collection expression mutation",
+      "description": null,
+      "replacement": "[default]",
+      "location": {
+        "start": {
+          "line": 413,
+          "column": 65
+        },
+        "end": {
+          "line": 413,
+          "column": 67
+        }
+      },
+      "status": "Killed",
+      "statusReason": null
+    },
+    {
+      "id": "2333",
+      "mutatorName": "Collection expression mutation",
+      "description": null,
+      "replacement": "[default]",
+      "location": {
+        "start": {
+          "line": 414,
+          "column": 67
+        },
+        "end": {
+          "line": 414,
+          "column": 69
+        }
+      },
+      "status": "Killed",
+      "statusReason": null
+    },
+    {
+      "id": "2334",
+      "mutatorName": "Block removal mutation",
+      "description": null,
+      "replacement": "{}",
+      "location": {
+        "start": {
+          "line": 418,
+          "column": 5
+        },
+        "end": {
+          "line": 428,
+          "column": 6
+        }
+      },
+      "status": "Ignored",
+      "statusReason": "Removed by block already covered filter"
+    },
+    {
+      "id": "2335",
+      "mutatorName": "Negate expression",
+      "description": null,
+      "replacement": "!(effects.SignalStopping)",
+      "location": {
+        "start": {
+          "line": 419,
+          "column": 13
+        },
+        "end": {
+          "line": 419,
+          "column": 35
+        }
+      },
+      "status": "Killed",
+      "statusReason": null
+    },
+    {
+      "id": "2336",
+      "mutatorName": "Block removal mutation",
+      "description": null,
+      "replacement": "{}",
+      "location": {
+        "start": {
+          "line": 420,
+          "column": 9
+        },
+        "end": {
+          "line": 423,
+          "column": 10
+        }
+      },
+      "status": "Ignored",
+      "statusReason": "Removed by block already covered filter"
+    },
+    {
+      "id": "2337",
+      "mutatorName": "Block removal mutation",
+      "description": null,
+      "replacement": "{}",
+      "location": {
+        "start": {
+          "line": 421,
+          "column": 17
+        },
+        "end": {
+          "line": 421,
+          "column": 51
+        }
+      },
+      "status": "Ignored",
+      "statusReason": "Removed by block already covered filter"
+    },
+    {
+      "id": "2338",
+      "mutatorName": "Statement mutation",
+      "description": null,
+      "replacement": ";",
+      "location": {
+        "start": {
+          "line": 421,
+          "column": 19
+        },
+        "end": {
+          "line": 421,
+          "column": 49
+        }
+      },
+      "status": "Killed",
+      "statusReason": null
+    },
+    {
+      "id": "2339",
+      "mutatorName": "Block removal mutation",
+      "description": null,
+      "replacement": "{}",
+      "location": {
+        "start": {
+          "line": 424,
+          "column": 52
+        },
+        "end": {
+          "line": 424,
+          "column": 85
+        }
+      },
+      "status": "Ignored",
+      "statusReason": "Removed by block already covered filter"
+    },
+    {
+      "id": "2340",
+      "mutatorName": "Statement mutation",
+      "description": null,
+      "replacement": ";",
+      "location": {
+        "start": {
+          "line": 424,
+          "column": 54
+        },
+        "end": {
+          "line": 424,
+          "column": 83
+        }
+      },
+      "status": "Timeout",
+      "statusReason": null
+    },
+    {
+      "id": "2341",
+      "mutatorName": "Block removal mutation",
+      "description": null,
+      "replacement": "{}",
+      "location": {
+        "start": {
+          "line": 425,
+          "column": 51
+        },
+        "end": {
+          "line": 425,
+          "column": 82
+        }
+      },
+      "status": "Ignored",
+      "statusReason": "Removed by block already covered filter"
+    },
+    {
+      "id": "2342",
+      "mutatorName": "Statement mutation",
+      "description": null,
+      "replacement": ";",
+      "location": {
+        "start": {
+          "line": 425,
+          "column": 53
+        },
+        "end": {
+          "line": 425,
+          "column": 80
+        }
+      },
+      "status": "Timeout",
+      "statusReason": null
+    },
+    {
+      "id": "2343",
+      "mutatorName": "Block removal mutation",
+      "description": null,
+      "replacement": "{}",
+      "location": {
+        "start": {
+          "line": 426,
+          "column": 50
+        },
+        "end": {
+          "line": 426,
+          "column": 76
+        }
+      },
+      "status": "Ignored",
+      "statusReason": "Removed by block already covered filter"
+    },
+    {
+      "id": "2344",
+      "mutatorName": "Statement mutation",
+      "description": null,
+      "replacement": ";",
+      "location": {
+        "start": {
+          "line": 426,
+          "column": 52
+        },
+        "end": {
+          "line": 426,
+          "column": 74
+        }
+      },
+      "status": "Timeout",
+      "statusReason": null
+    },
+    {
+      "id": "2345",
+      "mutatorName": "Block removal mutation",
+      "description": null,
+      "replacement": "{}",
+      "location": {
+        "start": {
+          "line": 427,
+          "column": 49
+        },
+        "end": {
+          "line": 427,
+          "column": 70
+        }
+      },
+      "status": "Ignored",
+      "statusReason": "Removed by block already covered filter"
+    },
+    {
+      "id": "2346",
+      "mutatorName": "Statement mutation",
+      "description": null,
+      "replacement": ";",
+      "location": {
+        "start": {
+          "line": 427,
+          "column": 51
+        },
+        "end": {
+          "line": 427,
+          "column": 68
+        }
+      },
+      "status": "Survived",
+      "statusReason": null
+    }
+  ]
+}

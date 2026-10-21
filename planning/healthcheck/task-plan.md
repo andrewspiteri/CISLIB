@@ -1,8 +1,8 @@
 # Parallel implementation task plan — Healthcheck pilot
 
-**Revision:** 0.2 · **Status:** HC00 foundation complete and locally verified; HC01–HC13 remain undispatched.
+**Revision:** 0.3 · **Status:** HC00–HC11 local feature candidate committed; HC12/HC13 local qualification follow-up verified, with full mutation/release and real external integrations pending.
 
-The current user approves subagents for the pilot and ASP.NET inclusion in Core. HC04 writes `implementations/csharp/src/CIS.Core/Healthcheck/AspNetCore/**`; there is no separate adapter project/package. HC00 uses disjoint write sets in one clean current checkout with one coordinated build stream. No Git commit is authorized to establish a worktree baseline. Subsequent implementation dispatch will select isolated worktrees when a committed baseline exists. The coordinator owns all project/manifest/verification mutations. See ownership.json and decisions.md.
+The current user approves subagents for the pilot and ASP.NET inclusion in Core. HC04 writes `implementations/csharp/src/CIS.Core/Healthcheck/AspNetCore/**`; there is no separate adapter project/package. Later user-authorized commits supersede the original HC00 no-commit assumption; the transport/application candidate is `0bf0c4c8d8c0c6646f591c634e66cfa480348aa6`. The qualification wave uses disjoint authoring, verified isolated source/output copies and one coordinated canonical build stream. The coordinator owns project/manifest/verification mutations. Current scoped outcomes are in [acceptance-status.json](acceptance-status.json) and [HC12 qualification](evidence/HC12/qualification-next/README.md). See ownership.json and decisions.md.
 
 ## 1. Operating rule
 

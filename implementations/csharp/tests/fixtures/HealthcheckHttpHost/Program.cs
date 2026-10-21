@@ -21,8 +21,8 @@ internal static class Program
         {
             DetailsEnabled = mode != "details-disabled",
             MaxReportBytes = mode == "overflow" ? 1024 : 4194304,
-            PipeEnabled = mode == "parity",
-            PipeName = mode == "parity" ? "cis-parity-" + Guid.NewGuid().ToString("N") : null,
+            PipeEnabled = mode is "parity" or "pipe-live",
+            PipeName = mode is "parity" or "pipe-live" ? "cis-fixture-" + Guid.NewGuid().ToString("N") : null,
         };
         await using var service = new HealthcheckService(options, new HealthApplicationIdentity { Name = "transport-fixture", InstanceId = Guid.Parse("02fc362c-a583-48c3-8f17-2e5743312e54") });
         var monitors = new List<IConditionMonitor>();

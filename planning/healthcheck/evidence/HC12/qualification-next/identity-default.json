@@ -1,0 +1,330 @@
+{
+  "schemaVersion": 1,
+  "complete": true,
+  "passed": true,
+  "scope": "Actual existing Linux identities using the supplied package-bound host/probe and Core hash; no published-package, privileged-root-denial or full-release claim",
+  "platform": "Ubuntu 24.04.4 LTS",
+  "architecture": "X64",
+  "expectedCoreSha256": "fde622b8a3db47f331ea1735896fc92e7b80af11853c94b8e0efcf337eb146ac",
+  "processes": [
+    {
+      "name": "invoking-root",
+      "executable": "/usr/bin/id",
+      "arguments": [
+        "-u"
+      ],
+      "workingDirectory": "/var/tmp/cis-healthcheck-0bf0c4c8-20261021/package-linux-02/consumers/http-host/bin/Release/net10.0",
+      "pid": 415,
+      "startedUtc": "2026-10-21T09:37:13.673726+00:00",
+      "finishedUtc": "2026-10-21T09:37:13.7814958+00:00",
+      "exitCode": 0,
+      "timedOut": false,
+      "forcedTermination": false,
+      "stdoutSha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "owner-user",
+      "executable": "/usr/sbin/runuser",
+      "arguments": [
+        "-u",
+        "user",
+        "--",
+        "/usr/bin/id",
+        "-u"
+      ],
+      "workingDirectory": "/var/tmp/cis-healthcheck-0bf0c4c8-20261021/package-linux-02/consumers/http-host/bin/Release/net10.0",
+      "pid": 421,
+      "startedUtc": "2026-10-21T09:37:13.7860556+00:00",
+      "finishedUtc": "2026-10-21T09:37:13.797641+00:00",
+      "exitCode": 0,
+      "timedOut": false,
+      "forcedTermination": false,
+      "stdoutSha256": "83c02ac2d48c863dab2ccf6870455aadfc2cec073b8db269b517c879d76aa6d9",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "nonowner-nobody",
+      "executable": "/usr/sbin/runuser",
+      "arguments": [
+        "-u",
+        "nobody",
+        "--",
+        "/usr/bin/id",
+        "-u"
+      ],
+      "workingDirectory": "/var/tmp/cis-healthcheck-0bf0c4c8-20261021/package-linux-02/consumers/http-host/bin/Release/net10.0",
+      "pid": 427,
+      "startedUtc": "2026-10-21T09:37:13.7987782+00:00",
+      "finishedUtc": "2026-10-21T09:37:13.8037501+00:00",
+      "exitCode": 0,
+      "timedOut": false,
+      "forcedTermination": false,
+      "stdoutSha256": "d51ff7888ac72e0f7c17de8375caae773b5d1d3c7b342a981e1fdb996f7a515c",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "sdk",
+      "executable": "/var/tmp/cis-healthcheck-0bf0c4c8-20261021/dotnet/dotnet",
+      "arguments": [
+        "--version"
+      ],
+      "workingDirectory": "/var/tmp/cis-healthcheck-0bf0c4c8-20261021/package-linux-02/consumers/http-host/bin/Release/net10.0",
+      "pid": 429,
+      "startedUtc": "2026-10-21T09:37:13.8039598+00:00",
+      "finishedUtc": "2026-10-21T09:37:13.9598821+00:00",
+      "exitCode": 0,
+      "timedOut": false,
+      "forcedTermination": false,
+      "stdoutSha256": "93c11b5221b72e0032ab2d9f93d28c2c9b7a0bb2557effffcdfef45ab739a0da",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "socket-stat",
+      "executable": "/usr/bin/stat",
+      "arguments": [
+        "--format=%u:%g:%a:%F",
+        "--",
+        "/tmp/CoreFxPipe_cis-fixture-7109b55716d84b09986ab4eec2cffb33"
+      ],
+      "workingDirectory": "/var/tmp/cis-healthcheck-0bf0c4c8-20261021/package-linux-02/consumers/http-host/bin/Release/net10.0",
+      "pid": 459,
+      "startedUtc": "2026-10-21T09:37:14.3071282+00:00",
+      "finishedUtc": "2026-10-21T09:37:14.3095048+00:00",
+      "exitCode": 0,
+      "timedOut": false,
+      "forcedTermination": false,
+      "stdoutSha256": "eee1b9b6254809a208dee459056dee15cc40659c4139b5a7437180b352981266",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "same-owner-before",
+      "executable": "/usr/sbin/runuser",
+      "arguments": [
+        "-u",
+        "user",
+        "--",
+        "/var/tmp/cis-healthcheck-0bf0c4c8-20261021/dotnet/dotnet",
+        "exec",
+        "--fx-version",
+        "10.0.12",
+        "--roll-forward",
+        "Disable",
+        "/var/tmp/cis-healthcheck-0bf0c4c8-20261021/package-linux-02/consumers/probe/bin/Release/net10.0/CisHealthProbe.dll",
+        "--pipe",
+        "cis-fixture-7109b55716d84b09986ab4eec2cffb33",
+        "--view",
+        "health",
+        "--timeout-ms",
+        "1000"
+      ],
+      "workingDirectory": "/var/tmp/cis-healthcheck-0bf0c4c8-20261021/package-linux-02/consumers/http-host/bin/Release/net10.0",
+      "pid": 460,
+      "startedUtc": "2026-10-21T09:37:14.4212237+00:00",
+      "finishedUtc": "2026-10-21T09:37:14.6250153+00:00",
+      "exitCode": 0,
+      "timedOut": false,
+      "forcedTermination": false,
+      "stdoutSha256": "ff109ef82d66ef04c33820edae38a037022f89f6b39a6d5ba2b359344319a1a5",
+      "stderrSha256": "fe78077c024969325b6e0d75a4849364b46e7b03d8c5b4cfae8259d5387dbee3"
+    },
+    {
+      "name": "different-user-denied",
+      "executable": "/usr/sbin/runuser",
+      "arguments": [
+        "-u",
+        "nobody",
+        "--",
+        "/var/tmp/cis-healthcheck-0bf0c4c8-20261021/dotnet/dotnet",
+        "exec",
+        "--fx-version",
+        "10.0.12",
+        "--roll-forward",
+        "Disable",
+        "/var/tmp/cis-healthcheck-0bf0c4c8-20261021/package-linux-02/consumers/probe/bin/Release/net10.0/CisHealthProbe.dll",
+        "--pipe",
+        "cis-fixture-7109b55716d84b09986ab4eec2cffb33",
+        "--view",
+        "health",
+        "--timeout-ms",
+        "1000"
+      ],
+      "workingDirectory": "/var/tmp/cis-healthcheck-0bf0c4c8-20261021/package-linux-02/consumers/http-host/bin/Release/net10.0",
+      "pid": 477,
+      "startedUtc": "2026-10-21T09:37:14.6321922+00:00",
+      "finishedUtc": "2026-10-21T09:37:14.7802685+00:00",
+      "exitCode": 2,
+      "timedOut": false,
+      "forcedTermination": false,
+      "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderrSha256": "37b990d9ec66b12bba7cce8f5de0a73f762e801bae4f4fa3b79a70b809e41d7b"
+    },
+    {
+      "name": "same-owner-after",
+      "executable": "/usr/sbin/runuser",
+      "arguments": [
+        "-u",
+        "user",
+        "--",
+        "/var/tmp/cis-healthcheck-0bf0c4c8-20261021/dotnet/dotnet",
+        "exec",
+        "--fx-version",
+        "10.0.12",
+        "--roll-forward",
+        "Disable",
+        "/var/tmp/cis-healthcheck-0bf0c4c8-20261021/package-linux-02/consumers/probe/bin/Release/net10.0/CisHealthProbe.dll",
+        "--pipe",
+        "cis-fixture-7109b55716d84b09986ab4eec2cffb33",
+        "--view",
+        "health",
+        "--timeout-ms",
+        "1000"
+      ],
+      "workingDirectory": "/var/tmp/cis-healthcheck-0bf0c4c8-20261021/package-linux-02/consumers/http-host/bin/Release/net10.0",
+      "pid": 491,
+      "startedUtc": "2026-10-21T09:37:14.7883992+00:00",
+      "finishedUtc": "2026-10-21T09:37:14.9683194+00:00",
+      "exitCode": 0,
+      "timedOut": false,
+      "forcedTermination": false,
+      "stdoutSha256": "e4a16f5e9084b877e7aa0c4e25dbe6d4b77a4da6c71d65f61087ab5e8f885a37",
+      "stderrSha256": "fe78077c024969325b6e0d75a4849364b46e7b03d8c5b4cfae8259d5387dbee3"
+    },
+    {
+      "name": "owner-host",
+      "executable": "/usr/sbin/runuser",
+      "arguments": [
+        "-u",
+        "user",
+        "--",
+        "/var/tmp/cis-healthcheck-0bf0c4c8-20261021/dotnet/dotnet",
+        "exec",
+        "--fx-version",
+        "10.0.12",
+        "--roll-forward",
+        "Disable",
+        "/var/tmp/cis-healthcheck-0bf0c4c8-20261021/package-linux-02/consumers/http-host/bin/Release/net10.0/CIS.Healthcheck.HttpFixture.dll",
+        "pipe-live"
+      ],
+      "workingDirectory": "/var/tmp/cis-healthcheck-0bf0c4c8-20261021/package-linux-02/consumers/http-host/bin/Release/net10.0",
+      "pid": 437,
+      "startedUtc": "2026-10-21T09:37:13.9607256+00:00",
+      "finishedUtc": "2026-10-21T09:37:14.9945266+00:00",
+      "exitCode": 0,
+      "timedOut": false,
+      "forcedTermination": false,
+      "stdoutSha256": "c0db0608343c716ccb4a1dce46c8fe2fceeff78b07f6abf5b59479eb4f48d009",
+      "stderrSha256": "ff0e3730cb48dbcd53e093c92b88553df1390eb6cd635e22841d87f544de0a5a"
+    }
+  ],
+  "hostUmask": "inherited",
+  "verifierSha256": "8b7b60117cb47cf32f3a9082b508534900198ffb67a2c79cb8c1d97693b42441",
+  "host": {
+    "startup": {
+      "status": "ready",
+      "address": "http://127.0.0.1:42515",
+      "pipeName": "cis-fixture-7109b55716d84b09986ab4eec2cffb33",
+      "pid": 438,
+      "runtime": ".NET 10.0.12"
+    },
+    "origin": {
+      "exact": true,
+      "path": "/var/tmp/cis-healthcheck-0bf0c4c8-20261021/package-linux-02/consumers/http-host/bin/Release/net10.0/CIS.Core.dll",
+      "sha256": "fde622b8a3db47f331ea1735896fc92e7b80af11853c94b8e0efcf337eb146ac",
+      "assembly": "CIS.Core, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null",
+      "informationalVersion": "0.1.0-dev.1\u002B0bf0c4c8d8c0c6646f591c634e66cfa480348aa6",
+      "runtime": ".NET 10.0.12",
+      "architecture": "X64"
+    },
+    "actualUidLine": "Uid:\t1000\t1000\t1000\t1000"
+  },
+  "socket": {
+    "path": "/tmp/CoreFxPipe_cis-fixture-7109b55716d84b09986ab4eec2cffb33",
+    "managedMode": "OtherExecute, OtherRead, GroupExecute, GroupRead, UserExecute, UserWrite, UserRead",
+    "managedModeNumeric": 493,
+    "stat": "1000:1000:755:socket"
+  },
+  "before-denial-http": {
+    "status": 200,
+    "bodySha256": "ca7371e40538c5c62735325f4434fbbc6a63bc97d3092f1c2029968102e39357"
+  },
+  "same-owner-before": {
+    "user": "user",
+    "exitCode": 0,
+    "origin": {
+      "exact": true,
+      "path": "/var/tmp/cis-healthcheck-0bf0c4c8-20261021/package-linux-02/consumers/probe/bin/Release/net10.0/CIS.Core.dll",
+      "sha256": "fde622b8a3db47f331ea1735896fc92e7b80af11853c94b8e0efcf337eb146ac",
+      "assembly": "CIS.Core, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null",
+      "informationalVersion": "0.1.0-dev.1\u002B0bf0c4c8d8c0c6646f591c634e66cfa480348aa6",
+      "runtime": ".NET 10.0.12",
+      "architecture": "X64"
+    }
+  },
+  "different-user-denied": {
+    "user": "nobody",
+    "exitCode": 2,
+    "origin": {
+      "exact": true,
+      "path": "/var/tmp/cis-healthcheck-0bf0c4c8-20261021/package-linux-02/consumers/probe/bin/Release/net10.0/CIS.Core.dll",
+      "sha256": "fde622b8a3db47f331ea1735896fc92e7b80af11853c94b8e0efcf337eb146ac",
+      "assembly": "CIS.Core, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null",
+      "informationalVersion": "0.1.0-dev.1\u002B0bf0c4c8d8c0c6646f591c634e66cfa480348aa6",
+      "runtime": ".NET 10.0.12",
+      "architecture": "X64"
+    }
+  },
+  "after-denial-http": {
+    "status": 200,
+    "bodySha256": "7db7450fa82a23763cf43f3dce59e360e3239e72888a27a5666adfb106829737"
+  },
+  "same-owner-after": {
+    "user": "user",
+    "exitCode": 0,
+    "origin": {
+      "exact": true,
+      "path": "/var/tmp/cis-healthcheck-0bf0c4c8-20261021/package-linux-02/consumers/probe/bin/Release/net10.0/CIS.Core.dll",
+      "sha256": "fde622b8a3db47f331ea1735896fc92e7b80af11853c94b8e0efcf337eb146ac",
+      "assembly": "CIS.Core, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null",
+      "informationalVersion": "0.1.0-dev.1\u002B0bf0c4c8d8c0c6646f591c634e66cfa480348aa6",
+      "runtime": ".NET 10.0.12",
+      "architecture": "X64"
+    }
+  },
+  "captureProof": {
+    "beforeOtherIdentity": {
+      "captures": 2,
+      "authorizationCalls": 0,
+      "businessCalls": 0,
+      "revision": "2"
+    },
+    "afterOtherIdentity": {
+      "captures": 2,
+      "authorizationCalls": 0,
+      "businessCalls": 0,
+      "revision": "2"
+    },
+    "afterHealthyHttpAndOwnerRetry": {
+      "captures": 4,
+      "authorizationCalls": 0,
+      "businessCalls": 0,
+      "revision": "2"
+    }
+  },
+  "inputsVerifiedAfter": true,
+  "inputPins": {
+    "/var/tmp/cis-healthcheck-0bf0c4c8-20261021/dotnet/dotnet": "01d89e0a0191052bfea616cd4ce624c8faf13b05bbddf7f64499c23e2a9d9269",
+    "/usr/sbin/runuser": "12131d48e4ef88f0a285146b32db7c316f39d4e2c172d90bf5c3aefb9aa7b1df",
+    "/usr/bin/id": "0e967a87e22a60b330c6dbdc7affe1dda41f342f14d20877725f0486d8777df2",
+    "/usr/bin/stat": "166809d4415b69e598e9ad20539e85223394cb7db38903b0b0a9104a13434739",
+    "/var/tmp/cis-healthcheck-0bf0c4c8-20261021/package-linux-02/consumers/http-host/bin/Release/net10.0/CIS.Healthcheck.HttpFixture.runtimeconfig.json": "7a28d32884b4a5a7729f7b31d908bc6dec115b21fb81ee8a618f1f09b2fac7df",
+    "/var/tmp/cis-healthcheck-0bf0c4c8-20261021/package-linux-02/consumers/http-host/bin/Release/net10.0/CIS.Healthcheck.HttpFixture.dll": "cac936640529c9f984ce2b05b62a2e256d88f9886462078860c5ad675c09dfa3",
+    "/var/tmp/cis-healthcheck-0bf0c4c8-20261021/package-linux-02/consumers/http-host/bin/Release/net10.0/CIS.Healthcheck.HttpFixture.deps.json": "b3cde8f0b0d30313d5383de9e27c1acf2c196c1b267decfa7d956e96fd8c6bc7",
+    "/var/tmp/cis-healthcheck-0bf0c4c8-20261021/package-linux-02/consumers/http-host/bin/Release/net10.0/CIS.Core.dll": "fde622b8a3db47f331ea1735896fc92e7b80af11853c94b8e0efcf337eb146ac",
+    "/var/tmp/cis-healthcheck-0bf0c4c8-20261021/package-linux-02/consumers/probe/bin/Release/net10.0/CisHealthProbe.dll": "3fcc4b7d2a93e87c5c51b80ab2be0056a9e560b8cb8333c7db2f1d2823f277e1",
+    "/var/tmp/cis-healthcheck-0bf0c4c8-20261021/package-linux-02/consumers/probe/bin/Release/net10.0/CisHealthProbe.deps.json": "5ebdc8714a11f4f8d5389e1154cc00970c877641678a2d726cca07b50b4eedd4",
+    "/var/tmp/cis-healthcheck-0bf0c4c8-20261021/package-linux-02/consumers/probe/bin/Release/net10.0/CisHealthProbe.runtimeconfig.json": "7a28d32884b4a5a7729f7b31d908bc6dec115b21fb81ee8a618f1f09b2fac7df",
+    "/var/tmp/cis-healthcheck-0bf0c4c8-20261021/package-linux-02/consumers/probe/bin/Release/net10.0/CIS.Core.dll": "fde622b8a3db47f331ea1735896fc92e7b80af11853c94b8e0efcf337eb146ac"
+  },
+  "exitCode": 0
+}

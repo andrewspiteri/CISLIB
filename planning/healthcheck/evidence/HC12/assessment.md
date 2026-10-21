@@ -1,4 +1,13 @@
-# HC12 qualification gaps for the integrated Healthcheck candidate
+# HC12 qualification assessment
+
+The current follow-up has actual Windows/Linux focused, exact-package consumer,
+ordinary Linux identity, initial compatibility, coverage and mutation-control
+evidence. Developer04 passed 7,978 cases. See the
+[qualification follow-up](qualification-next/README.md) for exact snapshots,
+completed subgates and remaining automatic mutation/release/external obligations.
+This does not award release acceptance.
+
+## Earlier transport-checkpoint assessment, retained as historical context
 
 This assessment does not award release acceptance. The coordinator's exact-input native receipts establish which tests actually executed and passed. Authored test source, successful compilation, source inspection and a Developer checkpoint each provide different evidence and do not replace the required release gates.
 

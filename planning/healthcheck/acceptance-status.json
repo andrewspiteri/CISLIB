@@ -1,378 +1,964 @@
 {
   "schema": "cis.healthcheck.acceptance-status/v1-development",
-  "scope": "HC00 foundation only",
+  "scope": "Local Healthcheck candidate with executed Windows/Linux focused and package/identity, initial compatibility, measured coverage and scoped mutation subgates; complete mutation/release and real external integrations remain pending",
   "definition": "sources/CIS_Healthcheck_Library_Definition_v0_1.md",
+  "traceability": "acceptance-traceability.md",
   "amendments": [
-    "HC-D01 supersedes assembly independence from ASP.NET for HC-AT-57"
+    "HC-D01 supersedes assembly independence from ASP.NET for HC-AT-57; policy/state remain independent of HTTP, DI-container and Heartbeat types"
   ],
+  "evidenceBaselineCommit": "0bf0c4c8d8c0c6646f591c634e66cfa480348aa6",
   "overall": "Pending",
   "completeSourceCases": 0,
+  "completeSourceCasesMeaning": "No all-scope source acceptance is claimed. LocallyVerified records scoped retained Healthcheck behavior; it does not award external integration or release qualification.",
+  "localStatusCounts": {
+    "LocallyVerified": 43,
+    "Partial": 14,
+    "PendingExternal": 1,
+    "PendingPlatform": 0,
+    "PendingRelease": 1
+  },
+  "statusDefinitions": {
+    "LocallyVerified": "Scoped retained actual Windows/Linux native evidence at identified snapshots; no blanket external or release acceptance",
+    "Partial": "Local implementation/native sub-evidence exists with listed real external obligations pending",
+    "PendingExternal": "The actual required external component and its native integration evidence are absent",
+    "PendingPlatform": "The required platform execution is not established by the retained baseline",
+    "PendingRelease": "The complete required release qualification is not established"
+  },
+  "qualificationNext": {
+    "receipt": {
+      "sha256": "bcb4b19d0b44ee8950ca5c33f9d0d3ec46c40bc4dddf7fd50c944ba18f25b5a0",
+      "path": "evidence/HC12/qualification-next/receipt.json"
+    },
+    "integrationReceipt": {
+      "sha256": "6c49846fbac9e3345547b124047dc6c8cd29e026b671c235e14e3626004f672e",
+      "path": "evidence/HC13/qualification-next/receipt.json"
+    },
+    "creditedNativeRuns": [
+      "Developer-windows-04 7978",
+      "WindowsCompatibility127",
+      "LinuxFocused07 991",
+      "Bootstrap Windows7 Linux7",
+      "ExactPackage Windows25 Linux25 observations",
+      "LinuxIdentities0755and0777 owner/nonowner/owner0/2/0",
+      "HealthcheckCoverage95.8528428line90.7051282branchLowerBound",
+      "Critical04 20of20 withcleanrestoration",
+      "AutomaticState03 measuredtool-classifiedstrict196of217",
+      "FourIsolatedCompilerCollateralComparisonsDetectedWithCleanRestoration"
+    ],
+    "scope": "Each gate retains its own source/runtime/configuration/fixture/package identity; observations and overlapping native tests are not additive. Full automatic/release qualification is not claimed.",
+    "status": "CompletedLocalSubgatesWithFullMutationReleaseAndExternalPending"
+  },
+  "retainedEvidence": {
+    "HC00": {
+      "path": "baseline.json",
+      "sha256": "a4e3daaddc0a6cf5d242f2e1acd2f7148644e7b8dd3b65646f7c364a7df9c151"
+    },
+    "HC01": {
+      "path": "evidence/HC01/receipt.json",
+      "sha256": "1fb037d49f426f5fc9ce5256c5c83bcc9e93c20961a9c93ac0b6b135885714d5"
+    },
+    "HC02": {
+      "path": "evidence/HC02/receipt.json",
+      "sha256": "cdb910f76352fa8abef8bd92ac77564d8882773e79f4a8500677d3cece19d13a"
+    },
+    "HC03": {
+      "path": "evidence/HC03/receipt.json",
+      "sha256": "38acb2f9321e8a508f435c325111b42c8f46719b6b764ab44b9eec767ea17136"
+    },
+    "HC06": {
+      "path": "evidence/HC06/receipt.json",
+      "sha256": "155600e7deb09be3aac5d29eacfdffb93a07f6172cec556d0db91ac81b688283"
+    },
+    "HC09": {
+      "path": "evidence/HC09/receipt.json",
+      "sha256": "7dd198818ae35c24b49e734731080636f28e480a2c50652486fdc4d63858c7ca"
+    },
+    "HC10": {
+      "path": "evidence/HC10/receipt.json",
+      "sha256": "5e50334418d19966e8bafee2552e7f5af037783487da25d02da7c8dc976014a7"
+    },
+    "HC12": {
+      "path": "evidence/HC12/receipt.json",
+      "sha256": "257b96c6f3dfcc105372fdec89aed48b8de6865b21ef23dc5b867ccf7ed50e91"
+    },
+    "HC13": {
+      "path": "evidence/HC13/receipt.json",
+      "sha256": "ae44bbb77f09eccd806c0b273bee51fc01ef2da49f6b4bc3e44b8015df0336f1"
+    },
+    "HC13Acceptance": {
+      "path": "evidence/HC13/acceptance-status.md",
+      "sha256": "88dc4f98b570ac0e36f609a4974fecfd45c963ab7a1276551a5924fdc3b5c89f"
+    },
+    "HC13NativeMatch": {
+      "path": "evidence/HC13/native-case-match.json",
+      "sha256": "28e69fec2ce4f0c95a7f0e5fcbd2faf3f9b7317f84a5ce0f7a51b17b76f909ec"
+    },
+    "HC12QualificationNext": {
+      "sha256": "bcb4b19d0b44ee8950ca5c33f9d0d3ec46c40bc4dddf7fd50c944ba18f25b5a0",
+      "path": "evidence/HC12/qualification-next/receipt.json"
+    },
+    "HC13QualificationNext": {
+      "sha256": "6c49846fbac9e3345547b124047dc6c8cd29e026b671c235e14e3626004f672e",
+      "path": "evidence/HC13/qualification-next/receipt.json"
+    }
+  },
+  "retainedNativeScope": {
+    "lane": "windows-x64",
+    "sdk": "10.0.401",
+    "runtime": "10.0.12",
+    "profile": "Developer",
+    "passed": 7839,
+    "failed": 0,
+    "skipped": 0,
+    "nativeFamilies": [
+      "unit",
+      "integration",
+      "architecture",
+      "business"
+    ],
+    "healthcheckCaseIdsMatched": 735,
+    "countsAreSharedEvidenceNotAdditive": true,
+    "receipt": "evidence/HC13/receipt.json",
+    "limitations": "Four native families and compiler/architecture stages do not qualify every required family, coverage, mutation, Linux lane, exact package consumer or external integration."
+  },
   "cases": [
     {
       "id": "HC-AT-01",
-      "status": "Pending",
-      "implementation": "NotImplemented",
-      "evidence": []
+      "status": "LocallyVerified",
+      "implementation": "Implemented",
+      "localEvidence": "Actual factory registrations have distinct identities and independent policy state even with identical options.",
+      "evidence": [
+        "evidence/HC01/core-native.json",
+        "evidence/HC01/receipt.json",
+        "evidence/HC13/native-case-match.json"
+      ],
+      "remaining": []
     },
     {
       "id": "HC-AT-02",
-      "status": "Pending",
-      "implementation": "NotImplemented",
-      "evidence": []
+      "status": "LocallyVerified",
+      "implementation": "Implemented",
+      "localEvidence": "Real monitor state is instance-owned; duplicate names and class identities do not merge registrations.",
+      "evidence": [
+        "evidence/HC01/core-native.json",
+        "evidence/HC01/receipt.json",
+        "evidence/HC13/native-case-match.json"
+      ],
+      "remaining": []
     },
     {
       "id": "HC-AT-03",
-      "status": "Pending",
-      "implementation": "NotImplemented",
-      "evidence": []
+      "status": "LocallyVerified",
+      "implementation": "Implemented",
+      "localEvidence": "Actual active critical unhealthy policies make aggregate health unhealthy in coherent snapshots.",
+      "evidence": [
+        "evidence/HC01/core-native.json",
+        "evidence/HC01/receipt.json",
+        "evidence/HC13/native-case-match.json"
+      ],
+      "remaining": []
     },
     {
       "id": "HC-AT-04",
-      "status": "Pending",
-      "implementation": "NotImplemented",
-      "evidence": []
+      "status": "LocallyVerified",
+      "implementation": "Implemented",
+      "localEvidence": "Actual noncritical failures remain detailed without making aggregate health unhealthy.",
+      "evidence": [
+        "evidence/HC01/core-native.json",
+        "evidence/HC01/receipt.json",
+        "evidence/HC03/native-cases.json",
+        "evidence/HC03/receipt.json",
+        "evidence/HC13/native-case-match.json"
+      ],
+      "remaining": []
     },
     {
       "id": "HC-AT-05",
-      "status": "Pending",
-      "implementation": "NotImplemented",
-      "evidence": []
+      "status": "LocallyVerified",
+      "implementation": "Implemented",
+      "localEvidence": "Pending policies remain visible without invented aggregate failure; incomplete startup prevents readiness.",
+      "evidence": [
+        "evidence/HC01/core-native.json",
+        "evidence/HC01/receipt.json",
+        "evidence/HC03/native-cases.json",
+        "evidence/HC03/receipt.json",
+        "evidence/HC13/native-case-match.json"
+      ],
+      "remaining": []
     },
     {
       "id": "HC-AT-06",
-      "status": "Pending",
-      "implementation": "NotImplemented",
-      "evidence": []
+      "status": "LocallyVerified",
+      "implementation": "Implemented",
+      "localEvidence": "Actual threshold-three policy stays below breach for failures one/two and flags on failure three.",
+      "evidence": [
+        "evidence/HC01/core-native.json",
+        "evidence/HC01/receipt.json",
+        "evidence/HC13/native-case-match.json"
+      ],
+      "remaining": []
     },
     {
       "id": "HC-AT-07",
-      "status": "Pending",
-      "implementation": "NotImplemented",
-      "evidence": []
+      "status": "LocallyVerified",
+      "implementation": "Implemented",
+      "localEvidence": "Actual success resets the consecutive-failure streak and restores the selected policy state.",
+      "evidence": [
+        "evidence/HC01/core-native.json",
+        "evidence/HC01/receipt.json",
+        "evidence/HC13/native-case-match.json"
+      ],
+      "remaining": []
     },
     {
       "id": "HC-AT-08",
-      "status": "Pending",
-      "implementation": "NotImplemented",
-      "evidence": []
+      "status": "LocallyVerified",
+      "implementation": "Implemented",
+      "localEvidence": "Skip and expected cancellation are counted separately without advancing or resetting the failure streak.",
+      "evidence": [
+        "evidence/HC01/core-native.json",
+        "evidence/HC01/receipt.json",
+        "evidence/HC13/native-case-match.json"
+      ],
+      "remaining": []
     },
     {
       "id": "HC-AT-09",
-      "status": "Pending",
-      "implementation": "NotImplemented",
-      "evidence": []
+      "status": "LocallyVerified",
+      "implementation": "Implemented",
+      "localEvidence": "Actual finite numeric comparisons preserve selected equality rules; invalid input publishes no value or revision change.",
+      "evidence": [
+        "evidence/HC01/core-native.json",
+        "evidence/HC01/receipt.json",
+        "evidence/HC03/native-cases.json",
+        "evidence/HC03/receipt.json",
+        "evidence/HC13/native-case-match.json"
+      ],
+      "remaining": []
     },
     {
       "id": "HC-AT-10",
-      "status": "Pending",
-      "implementation": "NotImplemented",
-      "evidence": []
+      "status": "LocallyVerified",
+      "implementation": "Implemented",
+      "localEvidence": "Actual refresh failures retain previously published usable-data availability and remain diagnostic.",
+      "evidence": [
+        "evidence/HC01/core-native.json",
+        "evidence/HC01/receipt.json",
+        "evidence/HC03/native-cases.json",
+        "evidence/HC03/receipt.json",
+        "evidence/HC10/native-cases.json",
+        "evidence/HC10/receipt.json",
+        "evidence/HC13/native-case-match.json"
+      ],
+      "remaining": []
     },
     {
       "id": "HC-AT-11",
-      "status": "Pending",
-      "implementation": "NotImplemented",
-      "evidence": []
+      "status": "LocallyVerified",
+      "implementation": "Implemented",
+      "localEvidence": "Explicit invalidation changes actual availability; new registrations begin without inherited publication success.",
+      "evidence": [
+        "evidence/HC01/core-native.json",
+        "evidence/HC01/receipt.json",
+        "evidence/HC13/native-case-match.json"
+      ],
+      "remaining": []
     },
     {
       "id": "HC-AT-12",
-      "status": "Pending",
-      "implementation": "NotImplemented",
-      "evidence": []
+      "status": "LocallyVerified",
+      "implementation": "Implemented",
+      "localEvidence": "Success or clear affects its selected monitor and leaves an independently flagged critical condition intact.",
+      "evidence": [
+        "evidence/HC01/core-native.json",
+        "evidence/HC01/receipt.json",
+        "evidence/HC10/native-cases.json",
+        "evidence/HC10/receipt.json",
+        "evidence/HC13/native-case-match.json"
+      ],
+      "remaining": []
     },
     {
       "id": "HC-AT-13",
-      "status": "Pending",
-      "implementation": "NotImplemented",
-      "evidence": []
+      "status": "LocallyVerified",
+      "implementation": "Implemented",
+      "localEvidence": "Actual withdrawal/disposal removes the last failing contribution and recomputes aggregate health.",
+      "evidence": [
+        "evidence/HC01/core-native.json",
+        "evidence/HC01/receipt.json",
+        "evidence/HC13/native-case-match.json"
+      ],
+      "remaining": []
     },
     {
       "id": "HC-AT-14",
-      "status": "Pending",
-      "implementation": "NotImplemented",
-      "evidence": []
+      "status": "LocallyVerified",
+      "implementation": "Implemented",
+      "localEvidence": "Snapshot/disposal races observe coherent complete versions on either side of withdrawal.",
+      "evidence": [
+        "evidence/HC01/core-native.json",
+        "evidence/HC01/receipt.json",
+        "evidence/HC13/native-case-match.json"
+      ],
+      "remaining": []
     },
     {
       "id": "HC-AT-15",
-      "status": "Pending",
-      "implementation": "NotImplemented",
-      "evidence": []
+      "status": "LocallyVerified",
+      "implementation": "Implemented",
+      "localEvidence": "Actual withdrawal before admission suppresses collector invocation.",
+      "evidence": [
+        "evidence/HC01/core-native.json",
+        "evidence/HC01/receipt.json",
+        "evidence/HC02/collection-native.json",
+        "evidence/HC02/receipt.json",
+        "evidence/HC13/native-case-match.json"
+      ],
+      "remaining": []
     },
     {
       "id": "HC-AT-16",
-      "status": "Pending",
-      "implementation": "NotImplemented",
-      "evidence": []
+      "status": "LocallyVerified",
+      "implementation": "Implemented",
+      "localEvidence": "Actual posted/running withdrawal removes health contribution, suppresses unentered code and waits for all real wrappers/holds.",
+      "evidence": [
+        "evidence/HC01/core-native.json",
+        "evidence/HC01/receipt.json",
+        "evidence/HC02/collection-native.json",
+        "evidence/HC02/receipt.json",
+        "evidence/HC13/native-case-match.json"
+      ],
+      "remaining": []
     },
     {
       "id": "HC-AT-17",
-      "status": "Pending",
-      "implementation": "NotImplemented",
-      "evidence": []
+      "status": "LocallyVerified",
+      "implementation": "Implemented",
+      "localEvidence": "Stale asynchronous results cannot resurrect withdrawn monitors or overwrite new registrations sharing an old name.",
+      "evidence": [
+        "evidence/HC01/core-native.json",
+        "evidence/HC01/receipt.json",
+        "evidence/HC02/collection-native.json",
+        "evidence/HC02/receipt.json",
+        "evidence/HC13/native-case-match.json"
+      ],
+      "remaining": []
     },
     {
       "id": "HC-AT-18",
-      "status": "Pending",
-      "implementation": "NotImplemented",
-      "evidence": []
+      "status": "LocallyVerified",
+      "implementation": "Implemented",
+      "localEvidence": "Actual weak-lifetime tests remove lost idle registrations without inventing a missing-critical-owner failure.",
+      "evidence": [
+        "evidence/HC01/core-native.json",
+        "evidence/HC01/receipt.json",
+        "evidence/HC02/collection-native.json",
+        "evidence/HC02/receipt.json",
+        "evidence/HC13/native-case-match.json"
+      ],
+      "remaining": []
     },
     {
       "id": "HC-AT-19",
-      "status": "Pending",
-      "implementation": "NotImplemented",
-      "evidence": []
+      "status": "Partial",
+      "implementation": "LocalImplementedExternalPending",
+      "localEvidence": "Actual weak-owner, diagnostic, collector and binding retention cases exercise the local registry boundary.",
+      "evidence": [
+        "evidence/HC01/core-native.json",
+        "evidence/HC01/receipt.json",
+        "evidence/HC02/collection-native.json",
+        "evidence/HC02/receipt.json",
+        "evidence/HC06/native-cases.json",
+        "evidence/HC06/receipt.json",
+        "evidence/HC13/native-case-match.json"
+      ],
+      "remaining": [
+        "RealHeartbeatOwnerClosure"
+      ]
     },
     {
       "id": "HC-AT-20",
-      "status": "Pending",
-      "implementation": "NotImplemented",
-      "evidence": []
+      "status": "LocallyVerified",
+      "implementation": "Implemented",
+      "localEvidence": "Real owner acquisition protects originating dependencies until the actual lease and cleanup settle.",
+      "evidence": [
+        "evidence/HC02/collection-native.json",
+        "evidence/HC02/receipt.json",
+        "evidence/HC13/native-case-match.json"
+      ],
+      "remaining": []
     },
     {
       "id": "HC-AT-21",
-      "status": "Pending",
-      "implementation": "NotImplemented",
-      "evidence": []
+      "status": "LocallyVerified",
+      "implementation": "Implemented",
+      "localEvidence": "Canceled collection/disposal waits do not release actual capacity or permit early dependency disposal.",
+      "evidence": [
+        "evidence/HC02/collection-native.json",
+        "evidence/HC02/receipt.json",
+        "evidence/HC10/native-cases.json",
+        "evidence/HC10/receipt.json",
+        "evidence/HC13/native-case-match.json"
+      ],
+      "remaining": []
     },
     {
       "id": "HC-AT-22",
-      "status": "Pending",
-      "implementation": "NotImplemented",
-      "evidence": []
+      "status": "LocallyVerified",
+      "implementation": "Implemented",
+      "localEvidence": "Concurrent manual requests join one actual evaluation and commit one result.",
+      "evidence": [
+        "evidence/HC02/collection-native.json",
+        "evidence/HC02/receipt.json",
+        "evidence/HC13/native-case-match.json"
+      ],
+      "remaining": []
     },
     {
       "id": "HC-AT-23",
-      "status": "Pending",
-      "implementation": "NotImplemented",
-      "evidence": []
+      "status": "LocallyVerified",
+      "implementation": "Implemented",
+      "localEvidence": "Actual bounded rotating/coalesced admission exercises fairness and retains capacity through real settlement.",
+      "evidence": [
+        "evidence/HC02/collection-native.json",
+        "evidence/HC02/receipt.json",
+        "evidence/HC13/native-case-match.json"
+      ],
+      "remaining": []
     },
     {
       "id": "HC-AT-24",
-      "status": "Pending",
-      "implementation": "NotImplemented",
-      "evidence": []
+      "status": "LocallyVerified",
+      "implementation": "Implemented",
+      "localEvidence": "A newer direct health or per-key observation defeats stale asynchronous publication.",
+      "evidence": [
+        "evidence/HC01/core-native.json",
+        "evidence/HC01/receipt.json",
+        "evidence/HC02/collection-native.json",
+        "evidence/HC02/receipt.json",
+        "evidence/HC13/native-case-match.json"
+      ],
+      "remaining": []
     },
     {
       "id": "HC-AT-25",
-      "status": "Pending",
-      "implementation": "NotImplemented",
-      "evidence": []
+      "status": "LocallyVerified",
+      "implementation": "Implemented",
+      "localEvidence": "Actual optional metric collection failures preserve the prior value/time without independently changing policy health.",
+      "evidence": [
+        "evidence/HC02/collection-native.json",
+        "evidence/HC02/receipt.json",
+        "evidence/HC13/native-case-match.json"
+      ],
+      "remaining": []
     },
     {
       "id": "HC-AT-26",
-      "status": "Pending",
-      "implementation": "NotImplemented",
-      "evidence": []
+      "status": "LocallyVerified",
+      "implementation": "Implemented",
+      "localEvidence": "Required failures, malformed results and recovery use explicit policy mappings; obsolete errors lose to newer direct observations.",
+      "evidence": [
+        "evidence/HC01/core-native.json",
+        "evidence/HC01/receipt.json",
+        "evidence/HC02/collection-native.json",
+        "evidence/HC02/receipt.json",
+        "evidence/HC13/native-case-match.json"
+      ],
+      "remaining": []
     },
     {
       "id": "HC-AT-27",
-      "status": "Pending",
-      "implementation": "NotImplemented",
-      "evidence": []
+      "status": "LocallyVerified",
+      "implementation": "Implemented",
+      "localEvidence": "Actual captures and report requests invoke no collector/dependency check and leave counters and flags unchanged.",
+      "evidence": [
+        "evidence/HC01/core-native.json",
+        "evidence/HC01/receipt.json",
+        "evidence/HC03/native-cases.json",
+        "evidence/HC03/receipt.json",
+        "evidence/HC09/native-cases.json",
+        "evidence/HC09/receipt.json",
+        "evidence/HC13/native-case-match.json"
+      ],
+      "remaining": []
     },
     {
       "id": "HC-AT-28",
-      "status": "Pending",
-      "implementation": "NotImplemented",
-      "evidence": []
+      "status": "LocallyVerified",
+      "implementation": "Implemented",
+      "localEvidence": "Coherent state/formatter cases and actual Kestrel single-capture assertions bind response status/body to one detached snapshot.",
+      "evidence": [
+        "evidence/HC01/core-native.json",
+        "evidence/HC01/receipt.json",
+        "evidence/HC03/native-cases.json",
+        "evidence/HC03/receipt.json",
+        "evidence/HC09/native-cases.json",
+        "evidence/HC09/receipt.json",
+        "evidence/HC13/native-case-match.json"
+      ],
+      "remaining": []
     },
     {
       "id": "HC-AT-29",
-      "status": "Pending",
-      "implementation": "NotImplemented",
-      "evidence": []
+      "status": "LocallyVerified",
+      "implementation": "Implemented",
+      "localEvidence": "Actual snapshot capture timestamps advance without refreshing historical observations.",
+      "evidence": [
+        "evidence/HC01/core-native.json",
+        "evidence/HC01/receipt.json",
+        "evidence/HC03/native-cases.json",
+        "evidence/HC03/receipt.json",
+        "evidence/HC13/native-case-match.json"
+      ],
+      "remaining": []
     },
     {
       "id": "HC-AT-30",
-      "status": "Pending",
-      "implementation": "NotImplemented",
-      "evidence": []
+      "status": "LocallyVerified",
+      "implementation": "Implemented",
+      "localEvidence": "Actual saturation/revision cases prevent wrapping; independent wire fixtures preserve large decimal values.",
+      "evidence": [
+        "evidence/HC01/core-native.json",
+        "evidence/HC01/receipt.json",
+        "evidence/HC03/native-cases.json",
+        "evidence/HC03/receipt.json",
+        "evidence/HC13/native-case-match.json"
+      ],
+      "remaining": []
     },
     {
       "id": "HC-AT-31",
-      "status": "Pending",
-      "implementation": "NotImplemented",
+      "status": "LocallyVerified",
+      "implementation": "Implemented",
+      "localEvidence": "Detached diagnostic/value/snapshot copies retain neither mutable caller collections nor live exception graphs.",
       "evidence": [
-        "HC00 native detached-diagnostic, immutable-value and snapshot-input copying tests; full running-service proof pending"
-      ]
+        "baseline.json",
+        "evidence/HC01/core-native.json",
+        "evidence/HC01/receipt.json",
+        "evidence/HC03/native-cases.json",
+        "evidence/HC03/receipt.json",
+        "evidence/HC13/native-case-match.json"
+      ],
+      "remaining": []
     },
     {
       "id": "HC-AT-32",
-      "status": "Pending",
-      "implementation": "NotImplemented",
-      "evidence": []
+      "status": "Partial",
+      "implementation": "LocalImplementedExternalPending",
+      "localEvidence": "Actual suitability and policy/input validation reject invalid combinations before local binding state changes.",
+      "evidence": [
+        "evidence/HC06/native-cases.json",
+        "evidence/HC06/receipt.json",
+        "evidence/HC13/native-case-match.json"
+      ],
+      "remaining": [
+        "RealHeartbeatBindingAndActivation"
+      ]
     },
     {
       "id": "HC-AT-33",
-      "status": "Pending",
-      "implementation": "NotImplemented",
-      "evidence": []
+      "status": "Partial",
+      "implementation": "LocalImplementedExternalPending",
+      "localEvidence": "Actual receiving bindings deduplicate terminal facts, reject retained contradictions and ignore obsolete history.",
+      "evidence": [
+        "evidence/HC06/native-cases.json",
+        "evidence/HC06/receipt.json",
+        "evidence/HC13/native-case-match.json"
+      ],
+      "remaining": [
+        "RealHeartbeatRegistrationAndNotificationDelivery"
+      ]
     },
     {
       "id": "HC-AT-34",
-      "status": "Pending",
-      "implementation": "NotImplemented",
-      "evidence": []
+      "status": "Partial",
+      "implementation": "LocalImplementedExternalPending",
+      "localEvidence": "Actual receiving bindings preserve detached outcome and handler facts without reclassifying callback results.",
+      "evidence": [
+        "evidence/HC06/native-cases.json",
+        "evidence/HC06/receipt.json",
+        "evidence/HC13/native-case-match.json"
+      ],
+      "remaining": [
+        "RealHeartbeatFalseResultAndOnErrorExecution"
+      ]
     },
     {
       "id": "HC-AT-35",
-      "status": "Pending",
-      "implementation": "NotImplemented",
-      "evidence": []
+      "status": "Partial",
+      "implementation": "LocalImplementedExternalPending",
+      "localEvidence": "Actual bounded records allow matching previous settlement without moving current execution backward or recounting an outcome.",
+      "evidence": [
+        "evidence/HC06/native-cases.json",
+        "evidence/HC06/receipt.json",
+        "evidence/HC13/native-case-match.json"
+      ],
+      "remaining": [
+        "RealHeartbeatOutcomeSettlementOrdering"
+      ]
     },
     {
       "id": "HC-AT-36",
-      "status": "Pending",
-      "implementation": "NotImplemented",
-      "evidence": []
+      "status": "Partial",
+      "implementation": "LocalImplementedExternalPending",
+      "localEvidence": "Actual local integration diagnostics and settlement cases preserve the original outcome and real owner protection.",
+      "evidence": [
+        "evidence/HC06/native-cases.json",
+        "evidence/HC06/receipt.json",
+        "evidence/HC02/collection-native.json",
+        "evidence/HC02/receipt.json",
+        "evidence/HC13/native-case-match.json"
+      ],
+      "remaining": [
+        "RealHeartbeatReportingFaultIsolationAndOwnerHandoff"
+      ]
     },
     {
       "id": "HC-AT-37",
-      "status": "Pending",
-      "implementation": "NotImplemented",
-      "evidence": []
+      "status": "LocallyVerified",
+      "implementation": "Implemented",
+      "localEvidence": "Actual construction/registration is inert; CountryList starts reporting explicitly before its blocked priming and business admission.",
+      "evidence": [
+        "evidence/HC02/collection-native.json",
+        "evidence/HC02/receipt.json",
+        "evidence/HC10/native-cases.json",
+        "evidence/HC10/receipt.json",
+        "evidence/HC13/native-case-match.json"
+      ],
+      "remaining": []
     },
     {
       "id": "HC-AT-38",
-      "status": "Pending",
-      "implementation": "NotImplemented",
-      "evidence": []
+      "status": "Partial",
+      "implementation": "LocalImplementedExternalPending",
+      "localEvidence": "Actual usable-data publication precedes refresh registration; startup completion precedes explicit recurring activation.",
+      "evidence": [
+        "evidence/HC10/native-cases.json",
+        "evidence/HC10/receipt.json",
+        "evidence/HC13/native-case-match.json"
+      ],
+      "remaining": [
+        "RealHeartbeatApplicationActivationBoundary"
+      ]
     },
     {
       "id": "HC-AT-39",
-      "status": "Pending",
-      "implementation": "NotImplemented",
-      "evidence": []
+      "status": "Partial",
+      "implementation": "LocalImplementedExternalPending",
+      "localEvidence": "Actual failed priming creates no refresh registration and retains an independent critical startup failure monitor.",
+      "evidence": [
+        "evidence/HC10/native-cases.json",
+        "evidence/HC10/receipt.json",
+        "evidence/HC13/native-case-match.json"
+      ],
+      "remaining": [
+        "GenericStartupCoordinatorGuarantees"
+      ]
     },
     {
       "id": "HC-AT-40",
-      "status": "Pending",
-      "implementation": "NotImplemented",
-      "evidence": []
+      "status": "Partial",
+      "implementation": "LocalImplementedExternalPending",
+      "localEvidence": "The actual failed-prime story withdraws child availability while independently owned startup failure remains visible.",
+      "evidence": [
+        "evidence/HC10/native-cases.json",
+        "evidence/HC10/receipt.json",
+        "evidence/HC13/native-case-match.json"
+      ],
+      "remaining": [
+        "GenericStartupCoordinatorGuarantees"
+      ]
     },
     {
       "id": "HC-AT-41",
-      "status": "Pending",
-      "implementation": "NotImplemented",
-      "evidence": []
+      "status": "Partial",
+      "implementation": "LocalImplementedExternalPending",
+      "localEvidence": "Actual monitor-capacity and later required response-contract setup failures keep readiness false after usable priming.",
+      "evidence": [
+        "evidence/HC10/native-cases.json",
+        "evidence/HC10/receipt.json",
+        "evidence/HC13/native-case-match.json"
+      ],
+      "remaining": [
+        "GenericStartupCoordinatorGuarantees"
+      ]
     },
     {
       "id": "HC-AT-42",
-      "status": "Pending",
-      "implementation": "NotImplemented",
-      "evidence": []
+      "status": "Partial",
+      "implementation": "LocalImplementedExternalPending",
+      "localEvidence": "Actual blocked priming keeps the application startup task incomplete, readiness false and business admission closed.",
+      "evidence": [
+        "evidence/HC10/native-cases.json",
+        "evidence/HC10/receipt.json",
+        "evidence/HC13/native-case-match.json"
+      ],
+      "remaining": [
+        "GenericStartupCoordinatorGuarantees"
+      ]
     },
     {
       "id": "HC-AT-43",
-      "status": "Pending",
-      "implementation": "NotImplemented",
-      "evidence": []
+      "status": "PendingExternal",
+      "implementation": "ExternalNotImplemented",
+      "localEvidence": "No replacement IStartable coordinator or at-most-once/alias proof is invented by the explicit application example.",
+      "evidence": [
+        "evidence/HC13/acceptance-status.md",
+        "evidence/HC12/assessment.md"
+      ],
+      "remaining": [
+        "RealIStartableCoordinatorFailureCancellationAliasesAtMostOnce"
+      ]
     },
     {
       "id": "HC-AT-44",
-      "status": "Pending",
-      "implementation": "NotImplemented",
-      "evidence": []
+      "status": "LocallyVerified",
+      "implementation": "Implemented",
+      "localEvidence": "Actual Kestrel phase/status requests use one captured snapshot and return required health/readiness results.",
+      "evidence": [
+        "evidence/HC09/native-cases.json",
+        "evidence/HC09/receipt.json",
+        "evidence/HC13/native-case-match.json"
+      ],
+      "remaining": []
     },
     {
       "id": "HC-AT-45",
-      "status": "Pending",
-      "implementation": "NotImplemented",
-      "evidence": []
+      "status": "LocallyVerified",
+      "implementation": "Implemented",
+      "localEvidence": "Actual reserved descendants, unknown paths and unsupported methods bypass business middleware; /_healthcare remains ordinary routing.",
+      "evidence": [
+        "evidence/HC09/native-cases.json",
+        "evidence/HC09/receipt.json",
+        "evidence/HC13/native-case-match.json"
+      ],
+      "remaining": []
     },
     {
       "id": "HC-AT-46",
-      "status": "Pending",
-      "implementation": "NotImplemented",
-      "evidence": []
+      "status": "LocallyVerified",
+      "implementation": "Implemented",
+      "localEvidence": "Actual GET/HEAD, details enablement/authorization and caching cases exercise the complete bounded response decision.",
+      "evidence": [
+        "evidence/HC03/native-cases.json",
+        "evidence/HC03/receipt.json",
+        "evidence/HC09/native-cases.json",
+        "evidence/HC09/receipt.json",
+        "evidence/HC13/native-case-match.json"
+      ],
+      "remaining": []
     },
     {
       "id": "HC-AT-47",
-      "status": "Pending",
-      "implementation": "NotImplemented",
-      "evidence": []
+      "status": "LocallyVerified",
+      "implementation": "Implemented",
+      "localEvidence": "Actual HTTP GET/HEAD and pipe overflow paths fail with complete bounded errors before healthy success commitment.",
+      "evidence": [
+        "evidence/HC03/native-cases.json",
+        "evidence/HC03/receipt.json",
+        "evidence/HC09/native-cases.json",
+        "evidence/HC09/receipt.json",
+        "evidence/HC13/native-case-match.json"
+      ],
+      "remaining": []
     },
     {
       "id": "HC-AT-48",
-      "status": "Pending",
-      "implementation": "NotImplemented",
-      "evidence": []
+      "status": "LocallyVerified",
+      "implementation": "Implemented",
+      "localEvidence": "Three actual endpoint parity cases compare complete health/readiness/details reports from one detached snapshot over HTTP and pipe.",
+      "evidence": [
+        "evidence/HC09/native-cases.json",
+        "evidence/HC09/receipt.json",
+        "evidence/HC13/native-case-match.json"
+      ],
+      "remaining": []
     },
     {
       "id": "HC-AT-49",
-      "status": "Pending",
-      "implementation": "NotImplemented",
-      "evidence": []
+      "status": "LocallyVerified",
+      "implementation": "Implemented",
+      "localEvidence": "Actual probe processes and pipe fixtures exercise fragmented/invalid/contradictory/truncated/timed-out data and exact exits 0/1/2.",
+      "evidence": [
+        "evidence/HC03/native-cases.json",
+        "evidence/HC03/receipt.json",
+        "evidence/HC09/native-cases.json",
+        "evidence/HC09/receipt.json",
+        "evidence/HC13/native-case-match.json"
+      ],
+      "remaining": []
     },
     {
       "id": "HC-AT-50",
-      "status": "Pending",
-      "implementation": "NotImplemented",
-      "evidence": []
+      "status": "LocallyVerified",
+      "implementation": "Implemented",
+      "localEvidence": "Actual many/slow clients exercise bounded admission, total monotonic budgets, malformed-client recovery and real handler drain.",
+      "evidence": [
+        "evidence/HC09/native-cases.json",
+        "evidence/HC09/receipt.json",
+        "evidence/HC13/native-case-match.json"
+      ],
+      "remaining": []
     },
     {
       "id": "HC-AT-51",
-      "status": "Pending",
-      "implementation": "NotImplemented",
-      "evidence": []
+      "status": "LocallyVerified",
+      "implementation": "ImplementedVerifiedLinuxContext",
+      "localEvidence": "Actual Ubuntu24.04.4/.NET10.0.12 matched client/endpoint and exact-package consumers passed. Existing owner/nobody/owner probes exited0/2/0 at socket modes0755 and0777, with no health capture during denial and healthy owner recovery. Kubernetes remains deployment guidance; no native pipe field is invented.",
+      "evidence": [
+        "evidence/HC09/native-cases.json",
+        "evidence/HC09/receipt.json",
+        "evidence/HC13/acceptance-status.md",
+        "evidence/HC12/assessment.md",
+        "evidence/HC12/qualification-next/receipt.json",
+        "evidence/HC12/qualification-next/native-linux.json",
+        "evidence/HC12/qualification-next/identity-default.json",
+        "evidence/HC12/qualification-next/identity-permissive.json"
+      ],
+      "remaining": [],
+      "limits": [
+        "Only actually executed ordinary Linux identities/host context is qualified",
+        "No privileged-root, alternate/elevated Windows user, remote-host or arbitrary container claim",
+        "Complete release platform profiles remain HC-AT-58"
+      ]
     },
     {
       "id": "HC-AT-52",
-      "status": "Pending",
-      "implementation": "NotImplemented",
-      "evidence": []
+      "status": "Partial",
+      "implementation": "LocalImplementedExternalPending",
+      "localEvidence": "Actual local shutdown, final reports, pipe handler accounting and CountryList blocked owner drain are exercised.",
+      "evidence": [
+        "evidence/HC02/collection-native.json",
+        "evidence/HC02/receipt.json",
+        "evidence/HC06/native-cases.json",
+        "evidence/HC06/receipt.json",
+        "evidence/HC09/native-cases.json",
+        "evidence/HC09/receipt.json",
+        "evidence/HC10/native-cases.json",
+        "evidence/HC10/receipt.json",
+        "evidence/HC13/native-case-match.json"
+      ],
+      "remaining": [
+        "RealHeartbeatFinalHandoffAndEnclosingOwnerShutdown"
+      ]
     },
     {
       "id": "HC-AT-53",
-      "status": "Pending",
-      "implementation": "NotImplemented",
-      "evidence": []
+      "status": "LocallyVerified",
+      "implementation": "Implemented",
+      "localEvidence": "Actual repeated/canceled shutdown waits cannot reopen admission or certify nonexistent settlement.",
+      "evidence": [
+        "evidence/HC02/collection-native.json",
+        "evidence/HC02/receipt.json",
+        "evidence/HC09/native-cases.json",
+        "evidence/HC09/receipt.json",
+        "evidence/HC13/native-case-match.json"
+      ],
+      "remaining": []
     },
     {
       "id": "HC-AT-54",
-      "status": "Pending",
-      "implementation": "NotImplemented",
-      "evidence": []
+      "status": "Partial",
+      "implementation": "LocalImplementedExternalPending",
+      "localEvidence": "Healthcheck grants no watchdog authority; actual capacity and owner protection remain held until work settles despite canceled waits.",
+      "evidence": [
+        "evidence/HC02/collection-native.json",
+        "evidence/HC02/receipt.json",
+        "evidence/HC06/native-cases.json",
+        "evidence/HC06/receipt.json",
+        "evidence/HC13/native-case-match.json"
+      ],
+      "remaining": [
+        "RealWatchdogHeartbeatNonoverlapAfterTimeout"
+      ]
     },
     {
       "id": "HC-AT-55",
-      "status": "Pending",
-      "implementation": "NotImplemented",
+      "status": "LocallyVerified",
+      "implementation": "Implemented",
+      "localEvidence": "Actual option precedence, blanks, invalid selections, bounds, copied publication and configuration failures are retained.",
       "evidence": [
-        "HC00 native module options precedence/bounds/invalid-input tests; runtime construction and all integration obligations pending"
-      ]
+        "baseline.json",
+        "evidence/HC01/core-native.json",
+        "evidence/HC01/receipt.json",
+        "evidence/HC13/native-case-match.json"
+      ],
+      "remaining": []
     },
     {
       "id": "HC-AT-56",
-      "status": "Pending",
-      "implementation": "NotImplemented",
-      "evidence": []
+      "status": "LocallyVerified",
+      "implementation": "Implemented",
+      "localEvidence": "Actual capacity rejection preserves existing contributions without partial registration, including rejection after usable application priming.",
+      "evidence": [
+        "evidence/HC01/core-native.json",
+        "evidence/HC01/receipt.json",
+        "evidence/HC10/native-cases.json",
+        "evidence/HC10/receipt.json",
+        "evidence/HC13/native-case-match.json"
+      ],
+      "remaining": []
     },
     {
       "id": "HC-AT-57",
-      "status": "Pending",
-      "implementation": "NotImplemented",
+      "status": "LocallyVerified",
+      "implementation": "Implemented",
+      "localEvidence": "Retained actual dependency/architecture and compiler-consumer stages cover 32 projects, approved ASP.NET and exactly two approved Core runtime NuGets under HC-D01.",
       "evidence": [
-        "HC00 approved framework and dependency baseline; final qualification record in baseline.json"
-      ]
+        "baseline.json",
+        "evidence/HC12/native-cases.json",
+        "evidence/HC12/receipt.json",
+        "evidence/HC13/receipt.json",
+        "evidence/HC13/native-case-match.json",
+        "evidence/HC12/qualification-next/receipt.json"
+      ],
+      "remaining": []
     },
     {
       "id": "HC-AT-58",
-      "status": "Pending",
-      "implementation": "NotImplemented",
-      "evidence": []
+      "status": "PendingRelease",
+      "implementation": "QualificationIncompleteWithCompletedLocalSubgates",
+      "localEvidence": "Developer04 passed7978 actual native cases, compatibility127, Linux selected991, exact-package consumers on both systems, measured Healthcheck95/90coverage and20critical controls passed. Automatic state tool-classified strict score196/217 andfour independent collateral comparisons are recorded; complete automatic/release qualification remains pending.",
+      "evidence": [
+        "evidence/HC13/receipt.json",
+        "evidence/HC13/acceptance-status.md",
+        "evidence/HC12/assessment.md",
+        "evidence/HC12/qualification-next/receipt.json",
+        "evidence/HC13/qualification-next/receipt.json"
+      ],
+      "remaining": [
+        "CompleteRequiredAutomaticHealthcheckAndCoreMutationClosureWithCompilerRollbackIgnoredAndChildProcessOriginDisposition",
+        "RequiredCompleteReleaseProfilesCoverageAndClaimedWindowsLinuxMatrix",
+        "RequiredRealExternalIntegrationAcceptanceMatrices"
+      ],
+      "publicationHistory": "Actual ledger empty; initial frozen API/config/wire checks executed; released-history replay not applicable until real history exists"
     },
     {
       "id": "HC-AT-59",
-      "status": "Pending",
-      "implementation": "NotImplemented",
-      "evidence": []
+      "status": "Partial",
+      "implementation": "LocalImplementedExternalPending",
+      "localEvidence": "Actual owned/external binding cases exercise local retirement, real settlement and preservation of caller-owned external monitors.",
+      "evidence": [
+        "evidence/HC06/native-cases.json",
+        "evidence/HC06/receipt.json",
+        "evidence/HC13/native-case-match.json"
+      ],
+      "remaining": [
+        "RealHeartbeatUnregisterAutomaticRetirementOwnerClosureShutdown"
+      ]
     }
   ],
   "external": [
-    "Real Heartbeat HC-AT-32..36,38,52,54,59 portions",
-    "Future startup coordinator HC-AT-43 and general lifecycle guarantees",
-    "Both-platform six-family release qualification HC-AT-58"
+    "HC-AT-19,32..36,38,52,54,59: actual Heartbeat/watchdog activation, delivery, final handoff and owner closure",
+    "HC-AT-39..43: future generic IStartable coordinator guarantees; explicit CountryList supplies local sub-evidence only",
+    "HC-AT-51: real Linux matched client, endpoint and permission execution; access claims limited to actually exercised identities/hosts",
+    "HC-AT-58: complete required families, coverage/mutation, applicable compatibility, claimed release platforms and exact package consumers"
   ],
-  "publicationHistory": "Empty actual ledger; no historical replay pass claimed"
+  "publicationHistory": "Empty actual ledger; no released Healthcheck baseline or historical replay pass is invented",
+  "scopeLimits": [
+    "Original source/traceability and historical HC00/HC01/HC02/HC03/HC06/HC09/HC10/HC12/HC13 receipts remain unchanged",
+    "Retained native counts describe their recorded inputs and are not current qualification-next candidate passes",
+    "Local statuses are not blanket acceptance of all 59 cases or module release qualification",
+    "No push, publication, deployment or external review authority is inferred"
+  ]
 }
