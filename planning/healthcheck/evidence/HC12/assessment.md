@@ -1,5 +1,11 @@
 # HC12 qualification assessment
 
+The latest [mutation and Release continuation](release-next/README.md) records
+the full unit/runtime automatic matrix, independent compiler/ignored replay and
+current exact-package coverage. Both automatic unit/runtime lanes fail the
+unchanged 90% threshold. Supplemental proofs and harness fixes do not award
+release acceptance or change frozen earlier outcomes.
+
 The current follow-up has actual Windows/Linux focused, exact-package consumer,
 ordinary Linux identity, initial compatibility, coverage and mutation-control
 evidence. Developer04 passed 7,978 cases. See the

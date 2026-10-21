@@ -1,0 +1,77 @@
+{
+  "schemaVersion": 1,
+  "status": "Read-only installed input help/type metadata inspection; no Stryker command, build, discovery, test or mutation execution",
+  "toolPackage": "dotnet-stryker",
+  "packageVersion": "4.16.0",
+  "toolManifest": {
+    "path": "implementations/csharp/.config/dotnet-tools.json",
+    "sha256": "d9149c5d4822ee02f6232a0f1c4d9591e0642ad93dbcdcaa662d357ff5b37db7"
+  },
+  "binaries": [
+    {
+      "packageRelativePath": "tools/net8.0/any/Stryker.CLI.dll",
+      "sha256": "1d5fbd3df14f3ab0425421c597a36a5cbdd474ad9804a0bd4e212e5b0320eba9",
+      "assemblyVersion": "4.16.0.0"
+    },
+    {
+      "packageRelativePath": "tools/net8.0/any/Stryker.Configuration.dll",
+      "sha256": "c14ea83f16cf3956f6093b4bd8033eea795961c1183a3aaa3e9c6d798d75092b",
+      "assemblyVersion": "4.16.0.0"
+    },
+    {
+      "packageRelativePath": "tools/net8.0/any/Stryker.Core.dll",
+      "sha256": "bf02f78d3725e1243edb7a32d88dc1a02c88f1f9f74b60b18730636073f234d7",
+      "assemblyVersion": "4.16.0.0"
+    }
+  ],
+  "options": [
+    {
+      "type": "Stryker.Configuration.Options.Inputs.CoverageAnalysisInput",
+      "default": "perTest",
+      "help": "Use coverage info to speed up execution. Possible values are: off, perTest, all, perTestInIsolation.\n\t- off: Coverage data is not captured. Every mutant is tested against all test. Slowest, use in case of doubt.\n\t- perTest: Capture mutations covered by each test. Mutations are tested against covering tests (or flagged NoCoverage if no test cover them). Fastest option.\n\t- all: Capture the list of mutations covered by some test. Test only these mutations, other are flagged as NoCoverage. Fast option.\n\t- perTestInIsolation: 'perTest' but coverage of each test is captured in isolation. Increase coverage accuracy at the expense of a slow init phase.\n | default: 'perTest'",
+      "allowed": "",
+      "suppliedInputType": "System.String"
+    },
+    {
+      "type": "Stryker.Configuration.Options.Inputs.TestProjectsInput",
+      "default": [],
+      "help": "Specify the test projects. | default: []",
+      "allowed": "",
+      "suppliedInputType": "System.Collections.Generic.IEnumerable`1[System.String]"
+    },
+    {
+      "type": "Stryker.Configuration.Options.Inputs.MutationLevelInput",
+      "default": "Standard",
+      "help": "Specify which mutation levels to place. Every higher level includes the mutations from the lower levels. | default: 'Standard' | allowed: Basic, Standard, Advanced, Complete",
+      "allowed": " | allowed: Basic, Standard, Advanced, Complete",
+      "suppliedInputType": "System.String"
+    },
+    {
+      "type": "Stryker.Configuration.Options.Inputs.DisableBailInput",
+      "default": false,
+      "help": "Disable abort unit testrun as soon as the first unit test fails. | default: 'False'",
+      "allowed": "",
+      "suppliedInputType": "System.Nullable`1[System.Boolean]"
+    },
+    {
+      "type": "Stryker.Configuration.Options.Inputs.ConcurrencyInput",
+      "default": 10,
+      "help": "By default Stryker tries to make the most of your CPU, by spawning as many parallel processes as you have CPU cores.\nThis setting allows you to override this default behavior.\nReasons you might want to lower this setting:\n\n    - Your test runner starts a browser (another CPU-intensive process)\n    - You're running on a shared server\n    - You are running stryker in the background while doing other work | default: '10'",
+      "allowed": "",
+      "suppliedInputType": "System.Nullable`1[System.Int32]"
+    },
+    {
+      "type": "Stryker.Configuration.Options.Inputs.TestCaseFilterInput",
+      "default": "",
+      "help": "Filters out tests in the project using the given expression.\nUses the syntax for dotnet test --filter option and vstest.console.exe --testcasefilter option.\nFor more information on running selective tests, see https://docs.microsoft.com/en-us/dotnet/core/testing/selective-unit-tests. | default: ''",
+      "allowed": "",
+      "suppliedInputType": "System.String"
+    }
+  ],
+  "schemaBasis": [
+    "The existing implementations/csharp/verification/mutation/core-release-config.json uses the same project/test-projects/test-case-filter/mutate/mutation-level/reporters/concurrency/disable-bail/thresholds property spelling.",
+    "Installed Stryker.Configuration.Options.Inputs help/type metadata confirms Complete, default perTest, explicit off, multiple test projects and VSTest-compatible filter syntax.",
+    "Existing HealthcheckChildMutationVerification.ValidateConfiguration requires explicit coverage-analysis off and the actual integration test project for child proof."
+  ],
+  "nativeConfigurationValidation": "Pending coordinator execution; metadata inspection is not native parser acceptance or test discovery evidence."
+}

@@ -1,6 +1,6 @@
 # Healthcheck development
 
-HC00–HC03 and HC06 are committed through `f73ec92`. HTTP reporting, protected local pipes and the matching probe, transport tests, and the CountryList application example are now implemented in the next combined candidate. Its focused Windows runs passed 137 transport cases and four application lifecycle cases, with zero failures or skips. The complete Developer checkpoint passed 7,839 native cases with zero failures or skips; see [current integration evidence](evidence/HC13/README.md).
+Monitor state, collection, serialization, HTTP reporting, protected local pipes, the matching probe, execution binding and the CountryList example are implemented. The feature wave is committed as `0bf0c4c8`, followed by qualification work in `8fc2f9c`. Historical [integration evidence](evidence/HC13/README.md) retains the earlier checkpoint's exact inputs and counts.
 
 * [Technical Intent](technical-intent.md), [contract catalog](contract-catalog.md), [concrete HC00 surface](foundation-surface.md), and [execution-fact validation](execution-facts.md).
 * [User decisions and reconciliation](decisions.md), [task plan](task-plan.md), and [acceptance traceability](acceptance-traceability.md).
@@ -8,4 +8,4 @@ HC00–HC03 and HC06 are committed through `f73ec92`. HTTP reporting, protected 
 * [Original attachments and source register](sources/source-register.md).
 * [HC00 evidence and limits](evidence/HC00/README.md).
 
-The [API and deployment guides](../../docs/modules/healthcheck/README.md) describe the implemented runtime. Frozen task receipts preserve what each earlier candidate actually established; their historical status text is not the current task status. Real Heartbeat/startup-coordinator integration, Linux execution and full module release qualification remain pending. The current candidate is uncommitted and unpublished.
+The [API and deployment guides](../../docs/modules/healthcheck/README.md) describe the implemented runtime. Frozen receipts preserve each earlier candidate's evidence. The preceding qualification wave is committed as `8fc2f9c`; the [mutation and Release continuation](evidence/HC12/release-next/README.md) records current native Windows/Ubuntu results, exact-package consumers, coverage and remaining mutation deficits. Real Heartbeat/startup-coordinator integration and full module release qualification remain pending. This continuation is uncommitted and unpublished.

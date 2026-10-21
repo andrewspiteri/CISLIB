@@ -4,6 +4,7 @@ using System.Text;
 using System.Text.Json.Nodes;
 using CIS.Healthcheck;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using MutationChildren = CIS.Verification.HealthcheckMutationChildren.HealthcheckMutationChildSupport;
 
 namespace CIS.Tests.IntegrationTests.Healthcheck.Reporting;
 
@@ -17,17 +18,32 @@ public sealed class HealthcheckProbeProcessTests
         internal Probe(IEnumerable<string> arguments)
         {
             child = Process.Start(TransportTestSupport.StartInfo("healthcheck-probe", "CisHealthProbe", arguments))!;
+            MutationChildren.ObserveStarted(child);
             stdout = child.StandardOutput.ReadToEndAsync(); stderr = child.StandardError.ReadToEndAsync();
         }
         internal async Task<(int Exit, string Output, string Error)> Finish()
         {
-            await child.WaitForExitAsync().WaitAsync(TransportTestSupport.Limit);
+            try { await child.WaitForExitAsync().WaitAsync(TransportTestSupport.Limit); }
+            catch (TimeoutException) { MutationChildren.MarkTimeout(child, "probe-finish"); throw; }
             string output = await stdout, error = await stderr;
             Assert.IsTrue(error.Length <= 1024, "CLI error text remains bounded.");
             Assert.IsFalse(output.StartsWith('\uFEFF'));
             return (child.ExitCode, output, error);
         }
-        public async ValueTask DisposeAsync() { try { if (!child.HasExited) { child.Kill(entireProcessTree: true); } await child.WaitForExitAsync().WaitAsync(TransportTestSupport.Limit); } finally { child.Dispose(); } }
+        public async ValueTask DisposeAsync()
+        {
+            try
+            {
+                if (!child.HasExited)
+                {
+                    MutationChildren.MarkForcedStop(child, "cleanup");
+                    child.Kill(entireProcessTree: true);
+                }
+                await child.WaitForExitAsync().WaitAsync(TransportTestSupport.Limit);
+            }
+            catch (TimeoutException) { MutationChildren.MarkTimeout(child, "probe-stop"); throw; }
+            finally { try { MutationChildren.CompleteLifecycle(child); } finally { child.Dispose(); } }
+        }
     }
 
     [TestMethod]

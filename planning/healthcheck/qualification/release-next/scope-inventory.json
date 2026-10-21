@@ -1,0 +1,605 @@
+{
+  "schemaVersion": 1,
+  "status": "Authored inputs; no native execution or qualification credit",
+  "referenceCommit": "8fc2f9ccb78ba948f9794cfb4c0ea37cfd2956eb",
+  "referenceCommitMeaning": "Coordinator-provided committed base; current source bytes are pinned below. This is not a whole-harness or clean-worktree attestation.",
+  "workingDirectory": "implementations/csharp/src/CIS.Core",
+  "sourceScope": "All current Healthcheck .cs shipping sources, partitioned exactly once. Tests, child helpers, project graph, toolchain and fixtures require a separate frozen execution manifest.",
+  "sourceCount": 46,
+  "declarationOnlyCount": 8,
+  "executableSourceCount": 38,
+  "intentionalExecutableExclusions": [],
+  "ignoredMutationKinds": [],
+  "ignoredMethods": [],
+  "fullHealthcheckMutationQualified": false,
+  "releaseQualified": false,
+  "normalizedScopeDigest": {
+    "algorithm": "SHA-256 of UTF-8 (no BOM); ordinal repository path + TAB + normalizedLfSha256 + TAB + configuration + LF for each source",
+    "sha256": "03b4f2cbd9c622d77cd63888a3c0b353aab2c2bcd6cd8e339fabb2b1a303a719"
+  },
+  "rawSourceDigest": {
+    "algorithm": "SHA-256 of UTF-8 (no BOM); ordinal repository path + TAB + raw byte sha256 + LF for each source",
+    "sha256": "7caa32740dad5c39bb13a5de5608b2c4d3da8b11f5c84d6903d5d599f5f65ab8"
+  },
+  "normalization": "Repository/project paths use forward slash and ordinal case-sensitive comparison. normalizedLfSha256 hashes decoded UTF-8 source after CRLF-to-LF normalization; sha256 hashes original file bytes. Normalize only line endings when comparing a native Linux checkout; retain its actual raw hashes separately.",
+  "configurations": [
+    {
+      "id": "unit-runtime",
+      "path": "planning/healthcheck/qualification/release-next/unit-runtime.json",
+      "sha256": "331bb05cfce76e8bd5d861daf7f6f15c5566c3bc88a6a9d603e8c61e04de2118",
+      "sourceCount": 41,
+      "testProjects": [
+        "../../tests/CIS.Core.UnitTests/CIS.Core.UnitTests.csproj"
+      ],
+      "testCaseFilter": "FullyQualifiedName~CIS.Tests.UnitTests.Healthcheck.|FullyQualifiedName~CIS.Tests.UnitTests.HealthcheckValueContractTests.|FullyQualifiedName=CIS.Tests.TestAssemblySetup.SchedulingMatchesRequestedMode",
+      "coverageAnalysis": "perTest (installed 4.16 default; option omitted)",
+      "expectedBaselineTests": 650,
+      "baselineCountStatus": "Historical 649 Healthcheck plus one scheduling control; current run must confirm.",
+      "nativeExecution": "Pending",
+      "childProofRequired": false,
+      "requiredChildKind": null,
+      "mutate": [
+        "Healthcheck/Contracts/Collection/HealthCollectionAttempt.cs",
+        "Healthcheck/Contracts/Collection/HealthCollectionResult.cs",
+        "Healthcheck/Contracts/Collection/HealthCollectorOptions.cs",
+        "Healthcheck/Contracts/Collection/IHealthCollector.cs",
+        "Healthcheck/Contracts/Execution/HealthExecutionBindingOptions.cs",
+        "Healthcheck/Contracts/Execution/HealthExecutionEnums.cs",
+        "Healthcheck/Contracts/Execution/HealthExecutionFact.cs",
+        "Healthcheck/Contracts/Execution/HealthExecutionSnapshot.cs",
+        "Healthcheck/Contracts/Execution/IHealthExecutionBinding.cs",
+        "Healthcheck/Contracts/HealthApplicationIdentity.cs",
+        "Healthcheck/Contracts/HealthDiagnostic.cs",
+        "Healthcheck/Contracts/HealthEnums.cs",
+        "Healthcheck/Contracts/HealthMeasurement.cs",
+        "Healthcheck/Contracts/HealthMonitorContracts.cs",
+        "Healthcheck/Contracts/HealthReportBuffer.cs",
+        "Healthcheck/Contracts/HealthSnapshot.cs",
+        "Healthcheck/Contracts/Options/HealthcheckCapacityException.cs",
+        "Healthcheck/Contracts/Options/HealthcheckOptions.cs",
+        "Healthcheck/Contracts/Options/MonitorOptions.cs",
+        "Healthcheck/Execution/ExecutionFactRecord.cs",
+        "Healthcheck/Execution/ExecutionFactValidation.cs",
+        "Healthcheck/Execution/HealthExecutionBinder.cs",
+        "Healthcheck/HealthcheckService.cs",
+        "Healthcheck/HealthCollectorRunner.cs",
+        "Healthcheck/Internal/Collection/HealthCollectionExecution.cs",
+        "Healthcheck/Internal/Contracts/BindingRequest.cs",
+        "Healthcheck/Internal/Contracts/BindingTarget.cs",
+        "Healthcheck/Internal/Contracts/HealthCollectionReservation.cs",
+        "Healthcheck/Internal/Contracts/HealthCollectionTarget.cs",
+        "Healthcheck/Internal/Contracts/HealthSnapshotData.cs",
+        "Healthcheck/Internal/Contracts/IHealthCollectionState.cs",
+        "Healthcheck/Internal/Contracts/IHealthExecutionState.cs",
+        "Healthcheck/Internal/Contracts/IHealthStateAccess.cs",
+        "Healthcheck/Internal/Monitors/HealthMonitorHandles.cs",
+        "Healthcheck/Internal/State/HealthMonitorEntry.cs",
+        "Healthcheck/Internal/State/HealthStateCoordinator.Collection.cs",
+        "Healthcheck/Internal/State/HealthStateCoordinator.cs",
+        "Healthcheck/Internal/State/HealthStateCoordinator.Execution.cs",
+        "Healthcheck/Reporting/BoundedHealthBuffer.cs",
+        "Healthcheck/Reporting/HealthReportFormatter.cs",
+        "Healthcheck/Reporting/HealthReportProtocol.cs"
+      ],
+      "legacyNamespaceClass": "CIS.Tests.UnitTests.HealthcheckValueContractTests"
+    },
+    {
+      "id": "aspnet",
+      "path": "planning/healthcheck/qualification/release-next/aspnet.json",
+      "sha256": "a85df9629c2ae0a09780e4f498cf45b4bee83e7df75b856a177b6e6c8bc04926",
+      "sourceCount": 1,
+      "testProjects": [
+        "../../tests/CIS.Core.IntegrationTests/CIS.Core.IntegrationTests.csproj"
+      ],
+      "testCaseFilter": "FullyQualifiedName~CIS.Tests.IntegrationTests.Healthcheck.Reporting.HealthcheckHttpTransportTests.|FullyQualifiedName=CIS.Tests.TestAssemblySetup.SchedulingMatchesRequestedMode",
+      "coverageAnalysis": "off",
+      "expectedBaselineTests": 46,
+      "baselineCountStatus": "Historical 45 exact HTTP integration cases plus one scheduling control. Current native baseline and child proof must confirm.",
+      "nativeExecution": "Pending",
+      "childProofRequired": true,
+      "requiredChildKind": "http-host",
+      "mutate": [
+        "Healthcheck/AspNetCore/HealthcheckApplicationBuilderExtensions.cs"
+      ]
+    },
+    {
+      "id": "pipes",
+      "path": "planning/healthcheck/qualification/release-next/pipes.json",
+      "sha256": "1a8f81da060bbcfd22a58fe5ea99aa2307a33c6a466700a5c9a2103a1baff532",
+      "sourceCount": 4,
+      "testProjects": [
+        "../../tests/CIS.Core.IntegrationTests/CIS.Core.IntegrationTests.csproj",
+        "../../tests/CIS.Core.UnitTests/CIS.Core.UnitTests.csproj"
+      ],
+      "testCaseFilter": "FullyQualifiedName~CIS.Tests.IntegrationTests.Healthcheck.Reporting.HealthcheckPipeTransportTests.|FullyQualifiedName~CIS.Tests.IntegrationTests.Healthcheck.Reporting.HealthcheckProbeProcessTests.|FullyQualifiedName~CIS.Tests.UnitTests.Healthcheck.HealthReportProtocolTests.|FullyQualifiedName~CIS.Tests.UnitTests.Healthcheck.HealthReportFormatterTests.|FullyQualifiedName=CIS.Tests.TestAssemblySetup.SchedulingMatchesRequestedMode",
+      "coverageAnalysis": "off",
+      "expectedBaselineTests": 276,
+      "baselineCountStatus": "Historical integration 37 pipe +55 probe +1 scheduling =93; Unit protocol152 +formatter30 +1 scheduling =183. Combined expected276; current native discovery per project and child proof must confirm.",
+      "nativeExecution": "Pending",
+      "childProofRequired": true,
+      "requiredChildKind": "probe",
+      "mutate": [
+        "Healthcheck/Pipes/HealthPipeBudget.cs",
+        "Healthcheck/Pipes/HealthPipeEndpoint.cs",
+        "Healthcheck/Pipes/HealthPipeServer.cs",
+        "Healthcheck/Pipes/HealthProbeClient.cs"
+      ]
+    }
+  ],
+  "sources": [
+    {
+      "path": "implementations/csharp/src/CIS.Core/Healthcheck/AspNetCore/HealthcheckApplicationBuilderExtensions.cs",
+      "projectRelativePath": "Healthcheck/AspNetCore/HealthcheckApplicationBuilderExtensions.cs",
+      "configuration": "aspnet",
+      "sha256": "d81256db1acc93e948d72bdc7c6df713cc6f9e436b02d3b9f3b22a8d7f66efa4",
+      "normalizedLfSha256": "d81256db1acc93e948d72bdc7c6df713cc6f9e436b02d3b9f3b22a8d7f66efa4",
+      "bytes": 5814,
+      "declarationOnly": false,
+      "mutationTreatment": "Included in mutate list with Complete/default mutation operators; native generated and omitted outcomes must be audited."
+    },
+    {
+      "path": "implementations/csharp/src/CIS.Core/Healthcheck/Contracts/Collection/HealthCollectionAttempt.cs",
+      "projectRelativePath": "Healthcheck/Contracts/Collection/HealthCollectionAttempt.cs",
+      "configuration": "unit-runtime",
+      "sha256": "571fb62281d4f6210faaa209f07b5857e7e766ed54a2c7d8a6582b6b0dc6357c",
+      "normalizedLfSha256": "571fb62281d4f6210faaa209f07b5857e7e766ed54a2c7d8a6582b6b0dc6357c",
+      "bytes": 1429,
+      "declarationOnly": false,
+      "mutationTreatment": "Included in mutate list with Complete/default mutation operators; native generated and omitted outcomes must be audited."
+    },
+    {
+      "path": "implementations/csharp/src/CIS.Core/Healthcheck/Contracts/Collection/HealthCollectionResult.cs",
+      "projectRelativePath": "Healthcheck/Contracts/Collection/HealthCollectionResult.cs",
+      "configuration": "unit-runtime",
+      "sha256": "245a7c84b20541ac1d3dd69d7301aa7dab9103f17c11d27fe23a021fee046209",
+      "normalizedLfSha256": "245a7c84b20541ac1d3dd69d7301aa7dab9103f17c11d27fe23a021fee046209",
+      "bytes": 6058,
+      "declarationOnly": false,
+      "mutationTreatment": "Included in mutate list with Complete/default mutation operators; native generated and omitted outcomes must be audited."
+    },
+    {
+      "path": "implementations/csharp/src/CIS.Core/Healthcheck/Contracts/Collection/HealthCollectorOptions.cs",
+      "projectRelativePath": "Healthcheck/Contracts/Collection/HealthCollectorOptions.cs",
+      "configuration": "unit-runtime",
+      "sha256": "689b6e8ee8ffe5e8d511650d680dc6a6c764f744597d86969277bf416930633a",
+      "normalizedLfSha256": "689b6e8ee8ffe5e8d511650d680dc6a6c764f744597d86969277bf416930633a",
+      "bytes": 494,
+      "declarationOnly": false,
+      "mutationTreatment": "Included in mutate list with Complete/default mutation operators; native generated and omitted outcomes must be audited."
+    },
+    {
+      "path": "implementations/csharp/src/CIS.Core/Healthcheck/Contracts/Collection/IHealthCollector.cs",
+      "projectRelativePath": "Healthcheck/Contracts/Collection/IHealthCollector.cs",
+      "configuration": "unit-runtime",
+      "sha256": "5b2e45d468dad1ac512ed2a17731fc958fb3915f213a039a46a1cf51d35458a5",
+      "normalizedLfSha256": "5b2e45d468dad1ac512ed2a17731fc958fb3915f213a039a46a1cf51d35458a5",
+      "bytes": 1921,
+      "declarationOnly": true,
+      "mutationTreatment": "Included in mutate list. Declaration-only classification is inventory metadata, never a mutation exclusion."
+    },
+    {
+      "path": "implementations/csharp/src/CIS.Core/Healthcheck/Contracts/Execution/HealthExecutionBindingOptions.cs",
+      "projectRelativePath": "Healthcheck/Contracts/Execution/HealthExecutionBindingOptions.cs",
+      "configuration": "unit-runtime",
+      "sha256": "6ef4530bcab4bd6813a46f019c3640aedd5707730d1c7a7b32d4960424e25c05",
+      "normalizedLfSha256": "6ef4530bcab4bd6813a46f019c3640aedd5707730d1c7a7b32d4960424e25c05",
+      "bytes": 983,
+      "declarationOnly": false,
+      "mutationTreatment": "Included in mutate list with Complete/default mutation operators; native generated and omitted outcomes must be audited."
+    },
+    {
+      "path": "implementations/csharp/src/CIS.Core/Healthcheck/Contracts/Execution/HealthExecutionEnums.cs",
+      "projectRelativePath": "Healthcheck/Contracts/Execution/HealthExecutionEnums.cs",
+      "configuration": "unit-runtime",
+      "sha256": "16eb3eb24b45ec5ff7e05871b87df6ad7caf6a2ab22fab9d65793d4af8188aca",
+      "normalizedLfSha256": "16eb3eb24b45ec5ff7e05871b87df6ad7caf6a2ab22fab9d65793d4af8188aca",
+      "bytes": 3400,
+      "declarationOnly": true,
+      "mutationTreatment": "Included in mutate list. Declaration-only classification is inventory metadata, never a mutation exclusion."
+    },
+    {
+      "path": "implementations/csharp/src/CIS.Core/Healthcheck/Contracts/Execution/HealthExecutionFact.cs",
+      "projectRelativePath": "Healthcheck/Contracts/Execution/HealthExecutionFact.cs",
+      "configuration": "unit-runtime",
+      "sha256": "4db0fc3e7550866b3da220004ce2da3cf34da18ebf388f19cbcda7126d42ce92",
+      "normalizedLfSha256": "4db0fc3e7550866b3da220004ce2da3cf34da18ebf388f19cbcda7126d42ce92",
+      "bytes": 4556,
+      "declarationOnly": false,
+      "mutationTreatment": "Included in mutate list with Complete/default mutation operators; native generated and omitted outcomes must be audited."
+    },
+    {
+      "path": "implementations/csharp/src/CIS.Core/Healthcheck/Contracts/Execution/HealthExecutionSnapshot.cs",
+      "projectRelativePath": "Healthcheck/Contracts/Execution/HealthExecutionSnapshot.cs",
+      "configuration": "unit-runtime",
+      "sha256": "ffdd6d54739744b80d81673ad7bb11d933a9d8d550dc44d842f994dc1d0dcc55",
+      "normalizedLfSha256": "ffdd6d54739744b80d81673ad7bb11d933a9d8d550dc44d842f994dc1d0dcc55",
+      "bytes": 6746,
+      "declarationOnly": false,
+      "mutationTreatment": "Included in mutate list with Complete/default mutation operators; native generated and omitted outcomes must be audited."
+    },
+    {
+      "path": "implementations/csharp/src/CIS.Core/Healthcheck/Contracts/Execution/IHealthExecutionBinding.cs",
+      "projectRelativePath": "Healthcheck/Contracts/Execution/IHealthExecutionBinding.cs",
+      "configuration": "unit-runtime",
+      "sha256": "2c35a40e5363db838a89ac1658078fd9122ccc3dfe59cbdf8e2f6bf8674033cd",
+      "normalizedLfSha256": "2c35a40e5363db838a89ac1658078fd9122ccc3dfe59cbdf8e2f6bf8674033cd",
+      "bytes": 959,
+      "declarationOnly": true,
+      "mutationTreatment": "Included in mutate list. Declaration-only classification is inventory metadata, never a mutation exclusion."
+    },
+    {
+      "path": "implementations/csharp/src/CIS.Core/Healthcheck/Contracts/HealthApplicationIdentity.cs",
+      "projectRelativePath": "Healthcheck/Contracts/HealthApplicationIdentity.cs",
+      "configuration": "unit-runtime",
+      "sha256": "1054240288c29ccdcff54b39e9276bf60501c3ff86c2867dd911946ff574a6c9",
+      "normalizedLfSha256": "1054240288c29ccdcff54b39e9276bf60501c3ff86c2867dd911946ff574a6c9",
+      "bytes": 848,
+      "declarationOnly": false,
+      "mutationTreatment": "Included in mutate list with Complete/default mutation operators; native generated and omitted outcomes must be audited."
+    },
+    {
+      "path": "implementations/csharp/src/CIS.Core/Healthcheck/Contracts/HealthDiagnostic.cs",
+      "projectRelativePath": "Healthcheck/Contracts/HealthDiagnostic.cs",
+      "configuration": "unit-runtime",
+      "sha256": "6ab0405911c39f7f2e0b5e77c3ce80ac31fd7f946996dfbdbc7dded0cb5deaf7",
+      "normalizedLfSha256": "6ab0405911c39f7f2e0b5e77c3ce80ac31fd7f946996dfbdbc7dded0cb5deaf7",
+      "bytes": 4888,
+      "declarationOnly": false,
+      "mutationTreatment": "Included in mutate list with Complete/default mutation operators; native generated and omitted outcomes must be audited."
+    },
+    {
+      "path": "implementations/csharp/src/CIS.Core/Healthcheck/Contracts/HealthEnums.cs",
+      "projectRelativePath": "Healthcheck/Contracts/HealthEnums.cs",
+      "configuration": "unit-runtime",
+      "sha256": "b116889483e362275486d0e995045445746f28d6ddabda87ab4426f96c74a7eb",
+      "normalizedLfSha256": "b116889483e362275486d0e995045445746f28d6ddabda87ab4426f96c74a7eb",
+      "bytes": 3218,
+      "declarationOnly": true,
+      "mutationTreatment": "Included in mutate list. Declaration-only classification is inventory metadata, never a mutation exclusion."
+    },
+    {
+      "path": "implementations/csharp/src/CIS.Core/Healthcheck/Contracts/HealthMeasurement.cs",
+      "projectRelativePath": "Healthcheck/Contracts/HealthMeasurement.cs",
+      "configuration": "unit-runtime",
+      "sha256": "d78555eb1ccfda8400d3d2e4e77b766ce3e45204f3577c870305c9d5f20745da",
+      "normalizedLfSha256": "d78555eb1ccfda8400d3d2e4e77b766ce3e45204f3577c870305c9d5f20745da",
+      "bytes": 5568,
+      "declarationOnly": false,
+      "mutationTreatment": "Included in mutate list with Complete/default mutation operators; native generated and omitted outcomes must be audited."
+    },
+    {
+      "path": "implementations/csharp/src/CIS.Core/Healthcheck/Contracts/HealthMonitorContracts.cs",
+      "projectRelativePath": "Healthcheck/Contracts/HealthMonitorContracts.cs",
+      "configuration": "unit-runtime",
+      "sha256": "276f47fc4a5c852c136afb93e4d6a56dcc12b3a322341a4919122820e3e7359d",
+      "normalizedLfSha256": "276f47fc4a5c852c136afb93e4d6a56dcc12b3a322341a4919122820e3e7359d",
+      "bytes": 4468,
+      "declarationOnly": true,
+      "mutationTreatment": "Included in mutate list. Declaration-only classification is inventory metadata, never a mutation exclusion."
+    },
+    {
+      "path": "implementations/csharp/src/CIS.Core/Healthcheck/Contracts/HealthReportBuffer.cs",
+      "projectRelativePath": "Healthcheck/Contracts/HealthReportBuffer.cs",
+      "configuration": "unit-runtime",
+      "sha256": "80057014e4ae34e03548a21c3dec93578707584d811dac33e18a7d77de3d2e12",
+      "normalizedLfSha256": "80057014e4ae34e03548a21c3dec93578707584d811dac33e18a7d77de3d2e12",
+      "bytes": 978,
+      "declarationOnly": false,
+      "mutationTreatment": "Included in mutate list with Complete/default mutation operators; native generated and omitted outcomes must be audited."
+    },
+    {
+      "path": "implementations/csharp/src/CIS.Core/Healthcheck/Contracts/HealthSnapshot.cs",
+      "projectRelativePath": "Healthcheck/Contracts/HealthSnapshot.cs",
+      "configuration": "unit-runtime",
+      "sha256": "e4c2d7f152e2978435e6bdad353b3f401946c435e002dbfa95e73c965777b37b",
+      "normalizedLfSha256": "e4c2d7f152e2978435e6bdad353b3f401946c435e002dbfa95e73c965777b37b",
+      "bytes": 11132,
+      "declarationOnly": false,
+      "mutationTreatment": "Included in mutate list with Complete/default mutation operators; native generated and omitted outcomes must be audited."
+    },
+    {
+      "path": "implementations/csharp/src/CIS.Core/Healthcheck/Contracts/Options/HealthcheckCapacityException.cs",
+      "projectRelativePath": "Healthcheck/Contracts/Options/HealthcheckCapacityException.cs",
+      "configuration": "unit-runtime",
+      "sha256": "65c3c638410a3cc2b44acd470cabf639235ba7508d25c2756cb601f54effcb96",
+      "normalizedLfSha256": "65c3c638410a3cc2b44acd470cabf639235ba7508d25c2756cb601f54effcb96",
+      "bytes": 801,
+      "declarationOnly": false,
+      "mutationTreatment": "Included in mutate list with Complete/default mutation operators; native generated and omitted outcomes must be audited."
+    },
+    {
+      "path": "implementations/csharp/src/CIS.Core/Healthcheck/Contracts/Options/HealthcheckOptions.cs",
+      "projectRelativePath": "Healthcheck/Contracts/Options/HealthcheckOptions.cs",
+      "configuration": "unit-runtime",
+      "sha256": "75d3e327b107682e5321b65991825fd51b7c5a6c12f7c539aded2dd758d8d419",
+      "normalizedLfSha256": "75d3e327b107682e5321b65991825fd51b7c5a6c12f7c539aded2dd758d8d419",
+      "bytes": 7428,
+      "declarationOnly": false,
+      "mutationTreatment": "Included in mutate list with Complete/default mutation operators; native generated and omitted outcomes must be audited."
+    },
+    {
+      "path": "implementations/csharp/src/CIS.Core/Healthcheck/Contracts/Options/MonitorOptions.cs",
+      "projectRelativePath": "Healthcheck/Contracts/Options/MonitorOptions.cs",
+      "configuration": "unit-runtime",
+      "sha256": "3d3233f74648d598a662f901654fece450fc5fc4be96218f5d7eafe5ff0b4cc9",
+      "normalizedLfSha256": "3d3233f74648d598a662f901654fece450fc5fc4be96218f5d7eafe5ff0b4cc9",
+      "bytes": 2256,
+      "declarationOnly": false,
+      "mutationTreatment": "Included in mutate list with Complete/default mutation operators; native generated and omitted outcomes must be audited."
+    },
+    {
+      "path": "implementations/csharp/src/CIS.Core/Healthcheck/Execution/ExecutionFactRecord.cs",
+      "projectRelativePath": "Healthcheck/Execution/ExecutionFactRecord.cs",
+      "configuration": "unit-runtime",
+      "sha256": "2397055d90836c77cb4817e422abb6127e164e94c00dff8b7ce074026ac5c454",
+      "normalizedLfSha256": "2397055d90836c77cb4817e422abb6127e164e94c00dff8b7ce074026ac5c454",
+      "bytes": 6894,
+      "declarationOnly": false,
+      "mutationTreatment": "Included in mutate list with Complete/default mutation operators; native generated and omitted outcomes must be audited."
+    },
+    {
+      "path": "implementations/csharp/src/CIS.Core/Healthcheck/Execution/ExecutionFactValidation.cs",
+      "projectRelativePath": "Healthcheck/Execution/ExecutionFactValidation.cs",
+      "configuration": "unit-runtime",
+      "sha256": "1b86f97a94ea81c54dd2f34b1e611ac1114d2a471c92a7fbef1670c38eea82bb",
+      "normalizedLfSha256": "1b86f97a94ea81c54dd2f34b1e611ac1114d2a471c92a7fbef1670c38eea82bb",
+      "bytes": 11077,
+      "declarationOnly": false,
+      "mutationTreatment": "Included in mutate list with Complete/default mutation operators; native generated and omitted outcomes must be audited."
+    },
+    {
+      "path": "implementations/csharp/src/CIS.Core/Healthcheck/Execution/HealthExecutionBinder.cs",
+      "projectRelativePath": "Healthcheck/Execution/HealthExecutionBinder.cs",
+      "configuration": "unit-runtime",
+      "sha256": "1854defb571eb52d4066f53a994d5fcd5125f359660fd33ef5ccd486926aef6a",
+      "normalizedLfSha256": "1854defb571eb52d4066f53a994d5fcd5125f359660fd33ef5ccd486926aef6a",
+      "bytes": 10345,
+      "declarationOnly": false,
+      "mutationTreatment": "Included in mutate list with Complete/default mutation operators; native generated and omitted outcomes must be audited."
+    },
+    {
+      "path": "implementations/csharp/src/CIS.Core/Healthcheck/HealthCollectorRunner.cs",
+      "projectRelativePath": "Healthcheck/HealthCollectorRunner.cs",
+      "configuration": "unit-runtime",
+      "sha256": "9a5f0f709e227efa7b88533b3505c787f43b954cf649e1b06a612a187b375a6b",
+      "normalizedLfSha256": "9a5f0f709e227efa7b88533b3505c787f43b954cf649e1b06a612a187b375a6b",
+      "bytes": 27225,
+      "declarationOnly": false,
+      "mutationTreatment": "Included in mutate list with Complete/default mutation operators; native generated and omitted outcomes must be audited."
+    },
+    {
+      "path": "implementations/csharp/src/CIS.Core/Healthcheck/HealthcheckService.cs",
+      "projectRelativePath": "Healthcheck/HealthcheckService.cs",
+      "configuration": "unit-runtime",
+      "sha256": "d2db8425685ee203d077eed9b477fc528f994670b667a73d19829d28a8148730",
+      "normalizedLfSha256": "d2db8425685ee203d077eed9b477fc528f994670b667a73d19829d28a8148730",
+      "bytes": 3227,
+      "declarationOnly": false,
+      "mutationTreatment": "Included in mutate list with Complete/default mutation operators; native generated and omitted outcomes must be audited."
+    },
+    {
+      "path": "implementations/csharp/src/CIS.Core/Healthcheck/Internal/Collection/HealthCollectionExecution.cs",
+      "projectRelativePath": "Healthcheck/Internal/Collection/HealthCollectionExecution.cs",
+      "configuration": "unit-runtime",
+      "sha256": "637dc19c4e178986fb52b6c7cf2f7e849ab154ca574c786a43e95ba55ba8eb41",
+      "normalizedLfSha256": "637dc19c4e178986fb52b6c7cf2f7e849ab154ca574c786a43e95ba55ba8eb41",
+      "bytes": 2377,
+      "declarationOnly": false,
+      "mutationTreatment": "Included in mutate list with Complete/default mutation operators; native generated and omitted outcomes must be audited."
+    },
+    {
+      "path": "implementations/csharp/src/CIS.Core/Healthcheck/Internal/Contracts/BindingRequest.cs",
+      "projectRelativePath": "Healthcheck/Internal/Contracts/BindingRequest.cs",
+      "configuration": "unit-runtime",
+      "sha256": "fcabbc28ac307475cf70f258bd577f63f1cc16149e78c65f1255c07d2aee2e57",
+      "normalizedLfSha256": "fcabbc28ac307475cf70f258bd577f63f1cc16149e78c65f1255c07d2aee2e57",
+      "bytes": 2291,
+      "declarationOnly": false,
+      "mutationTreatment": "Included in mutate list with Complete/default mutation operators; native generated and omitted outcomes must be audited."
+    },
+    {
+      "path": "implementations/csharp/src/CIS.Core/Healthcheck/Internal/Contracts/BindingTarget.cs",
+      "projectRelativePath": "Healthcheck/Internal/Contracts/BindingTarget.cs",
+      "configuration": "unit-runtime",
+      "sha256": "3864966e3150547e723cb4dc59e3e17b9fc9e3a3295f0815996cbeb2782501dc",
+      "normalizedLfSha256": "3864966e3150547e723cb4dc59e3e17b9fc9e3a3295f0815996cbeb2782501dc",
+      "bytes": 1170,
+      "declarationOnly": false,
+      "mutationTreatment": "Included in mutate list with Complete/default mutation operators; native generated and omitted outcomes must be audited."
+    },
+    {
+      "path": "implementations/csharp/src/CIS.Core/Healthcheck/Internal/Contracts/HealthCollectionReservation.cs",
+      "projectRelativePath": "Healthcheck/Internal/Contracts/HealthCollectionReservation.cs",
+      "configuration": "unit-runtime",
+      "sha256": "fde5c11926a166516452a797ab1f58f6436da4febbd452520881c310a322cd76",
+      "normalizedLfSha256": "fde5c11926a166516452a797ab1f58f6436da4febbd452520881c310a322cd76",
+      "bytes": 4554,
+      "declarationOnly": false,
+      "mutationTreatment": "Included in mutate list with Complete/default mutation operators; native generated and omitted outcomes must be audited."
+    },
+    {
+      "path": "implementations/csharp/src/CIS.Core/Healthcheck/Internal/Contracts/HealthCollectionTarget.cs",
+      "projectRelativePath": "Healthcheck/Internal/Contracts/HealthCollectionTarget.cs",
+      "configuration": "unit-runtime",
+      "sha256": "a21661cb0a5d64d76d7b7a54a7815f039ff8c219bcc109915f1d7f79aa7f4d1b",
+      "normalizedLfSha256": "a21661cb0a5d64d76d7b7a54a7815f039ff8c219bcc109915f1d7f79aa7f4d1b",
+      "bytes": 894,
+      "declarationOnly": false,
+      "mutationTreatment": "Included in mutate list with Complete/default mutation operators; native generated and omitted outcomes must be audited."
+    },
+    {
+      "path": "implementations/csharp/src/CIS.Core/Healthcheck/Internal/Contracts/HealthSnapshotData.cs",
+      "projectRelativePath": "Healthcheck/Internal/Contracts/HealthSnapshotData.cs",
+      "configuration": "unit-runtime",
+      "sha256": "1b8431cb6586546e017b1d2a0c14b086f9954f911bc852f9407eda240be7ed35",
+      "normalizedLfSha256": "1b8431cb6586546e017b1d2a0c14b086f9954f911bc852f9407eda240be7ed35",
+      "bytes": 2052,
+      "declarationOnly": false,
+      "mutationTreatment": "Included in mutate list with Complete/default mutation operators; native generated and omitted outcomes must be audited."
+    },
+    {
+      "path": "implementations/csharp/src/CIS.Core/Healthcheck/Internal/Contracts/IHealthCollectionState.cs",
+      "projectRelativePath": "Healthcheck/Internal/Contracts/IHealthCollectionState.cs",
+      "configuration": "unit-runtime",
+      "sha256": "1005bdbf6820b5ceb01edd8ee886e471686ab61ead85c6f126effad46d158b2c",
+      "normalizedLfSha256": "1005bdbf6820b5ceb01edd8ee886e471686ab61ead85c6f126effad46d158b2c",
+      "bytes": 3452,
+      "declarationOnly": true,
+      "mutationTreatment": "Included in mutate list. Declaration-only classification is inventory metadata, never a mutation exclusion."
+    },
+    {
+      "path": "implementations/csharp/src/CIS.Core/Healthcheck/Internal/Contracts/IHealthExecutionState.cs",
+      "projectRelativePath": "Healthcheck/Internal/Contracts/IHealthExecutionState.cs",
+      "configuration": "unit-runtime",
+      "sha256": "a7d45d27a59f504900daa273f51cb780e222cf5e086a5f26cde9efdfbefd5c27",
+      "normalizedLfSha256": "a7d45d27a59f504900daa273f51cb780e222cf5e086a5f26cde9efdfbefd5c27",
+      "bytes": 1693,
+      "declarationOnly": true,
+      "mutationTreatment": "Included in mutate list. Declaration-only classification is inventory metadata, never a mutation exclusion."
+    },
+    {
+      "path": "implementations/csharp/src/CIS.Core/Healthcheck/Internal/Contracts/IHealthStateAccess.cs",
+      "projectRelativePath": "Healthcheck/Internal/Contracts/IHealthStateAccess.cs",
+      "configuration": "unit-runtime",
+      "sha256": "1d09b7c0a81c4cc236c4b72dbba0a9c047b66a8a2f65deec16beee9fba45ec5f",
+      "normalizedLfSha256": "1d09b7c0a81c4cc236c4b72dbba0a9c047b66a8a2f65deec16beee9fba45ec5f",
+      "bytes": 833,
+      "declarationOnly": true,
+      "mutationTreatment": "Included in mutate list. Declaration-only classification is inventory metadata, never a mutation exclusion."
+    },
+    {
+      "path": "implementations/csharp/src/CIS.Core/Healthcheck/Internal/Monitors/HealthMonitorHandles.cs",
+      "projectRelativePath": "Healthcheck/Internal/Monitors/HealthMonitorHandles.cs",
+      "configuration": "unit-runtime",
+      "sha256": "36480c013f4493ebe4fdc49482bf9fc8f85f63cf3267a32a8a3e30320fd68454",
+      "normalizedLfSha256": "36480c013f4493ebe4fdc49482bf9fc8f85f63cf3267a32a8a3e30320fd68454",
+      "bytes": 3909,
+      "declarationOnly": false,
+      "mutationTreatment": "Included in mutate list with Complete/default mutation operators; native generated and omitted outcomes must be audited."
+    },
+    {
+      "path": "implementations/csharp/src/CIS.Core/Healthcheck/Internal/State/HealthMonitorEntry.cs",
+      "projectRelativePath": "Healthcheck/Internal/State/HealthMonitorEntry.cs",
+      "configuration": "unit-runtime",
+      "sha256": "9b6e1bf9a0f5272a02cb75f9c30de84b2938f990e31c3b8f1c7444d46d55d079",
+      "normalizedLfSha256": "9b6e1bf9a0f5272a02cb75f9c30de84b2938f990e31c3b8f1c7444d46d55d079",
+      "bytes": 1976,
+      "declarationOnly": false,
+      "mutationTreatment": "Included in mutate list with Complete/default mutation operators; native generated and omitted outcomes must be audited."
+    },
+    {
+      "path": "implementations/csharp/src/CIS.Core/Healthcheck/Internal/State/HealthStateCoordinator.Collection.cs",
+      "projectRelativePath": "Healthcheck/Internal/State/HealthStateCoordinator.Collection.cs",
+      "configuration": "unit-runtime",
+      "sha256": "a4d9049a2a1304a40d487584c708e85749f2e6a9f9305855bb690afa48315240",
+      "normalizedLfSha256": "a4d9049a2a1304a40d487584c708e85749f2e6a9f9305855bb690afa48315240",
+      "bytes": 18622,
+      "declarationOnly": false,
+      "mutationTreatment": "Included in mutate list with Complete/default mutation operators; native generated and omitted outcomes must be audited."
+    },
+    {
+      "path": "implementations/csharp/src/CIS.Core/Healthcheck/Internal/State/HealthStateCoordinator.Execution.cs",
+      "projectRelativePath": "Healthcheck/Internal/State/HealthStateCoordinator.Execution.cs",
+      "configuration": "unit-runtime",
+      "sha256": "e56bd396a62d75da7ea188c8b48f628a285c1237e6e53ee6ee1a01f5ce71f0f8",
+      "normalizedLfSha256": "e56bd396a62d75da7ea188c8b48f628a285c1237e6e53ee6ee1a01f5ce71f0f8",
+      "bytes": 18052,
+      "declarationOnly": false,
+      "mutationTreatment": "Included in mutate list with Complete/default mutation operators; native generated and omitted outcomes must be audited."
+    },
+    {
+      "path": "implementations/csharp/src/CIS.Core/Healthcheck/Internal/State/HealthStateCoordinator.cs",
+      "projectRelativePath": "Healthcheck/Internal/State/HealthStateCoordinator.cs",
+      "configuration": "unit-runtime",
+      "sha256": "7e1462309c085cf952cf0bff034f37eda57108165a1ac7f348fd84142e870c1a",
+      "normalizedLfSha256": "7e1462309c085cf952cf0bff034f37eda57108165a1ac7f348fd84142e870c1a",
+      "bytes": 19440,
+      "declarationOnly": false,
+      "mutationTreatment": "Included in mutate list with Complete/default mutation operators; native generated and omitted outcomes must be audited."
+    },
+    {
+      "path": "implementations/csharp/src/CIS.Core/Healthcheck/Pipes/HealthPipeBudget.cs",
+      "projectRelativePath": "Healthcheck/Pipes/HealthPipeBudget.cs",
+      "configuration": "pipes",
+      "sha256": "fd0add01dd455a7d9ef94286c50484f5797e80a1917fbf7f9f44478ba3ab1d7f",
+      "normalizedLfSha256": "fd0add01dd455a7d9ef94286c50484f5797e80a1917fbf7f9f44478ba3ab1d7f",
+      "bytes": 1428,
+      "declarationOnly": false,
+      "mutationTreatment": "Included in mutate list with Complete/default mutation operators; native generated and omitted outcomes must be audited."
+    },
+    {
+      "path": "implementations/csharp/src/CIS.Core/Healthcheck/Pipes/HealthPipeEndpoint.cs",
+      "projectRelativePath": "Healthcheck/Pipes/HealthPipeEndpoint.cs",
+      "configuration": "pipes",
+      "sha256": "1e39973ca242e5ef08b49f8efc696fb9b6e8d9ab5cc98173cdda5f674c820b9e",
+      "normalizedLfSha256": "1e39973ca242e5ef08b49f8efc696fb9b6e8d9ab5cc98173cdda5f674c820b9e",
+      "bytes": 3683,
+      "declarationOnly": false,
+      "mutationTreatment": "Included in mutate list with Complete/default mutation operators; native generated and omitted outcomes must be audited."
+    },
+    {
+      "path": "implementations/csharp/src/CIS.Core/Healthcheck/Pipes/HealthPipeServer.cs",
+      "projectRelativePath": "Healthcheck/Pipes/HealthPipeServer.cs",
+      "configuration": "pipes",
+      "sha256": "9e13abc26b5ffa33dd3c06000506b22cccd821411450ebdf357a6687b65e7a2c",
+      "normalizedLfSha256": "9e13abc26b5ffa33dd3c06000506b22cccd821411450ebdf357a6687b65e7a2c",
+      "bytes": 13169,
+      "declarationOnly": false,
+      "mutationTreatment": "Included in mutate list with Complete/default mutation operators; native generated and omitted outcomes must be audited."
+    },
+    {
+      "path": "implementations/csharp/src/CIS.Core/Healthcheck/Pipes/HealthProbeClient.cs",
+      "projectRelativePath": "Healthcheck/Pipes/HealthProbeClient.cs",
+      "configuration": "pipes",
+      "sha256": "e022538f8c4694b3b772625d58886ba9897b6fb8f075a365faf08887878f2f54",
+      "normalizedLfSha256": "e022538f8c4694b3b772625d58886ba9897b6fb8f075a365faf08887878f2f54",
+      "bytes": 5618,
+      "declarationOnly": false,
+      "mutationTreatment": "Included in mutate list with Complete/default mutation operators; native generated and omitted outcomes must be audited."
+    },
+    {
+      "path": "implementations/csharp/src/CIS.Core/Healthcheck/Reporting/BoundedHealthBuffer.cs",
+      "projectRelativePath": "Healthcheck/Reporting/BoundedHealthBuffer.cs",
+      "configuration": "unit-runtime",
+      "sha256": "e34b0f0a266d2dc131f27da9cc0c368e1ddfacb3a6a55b7b24ede47f9a10ed83",
+      "normalizedLfSha256": "e34b0f0a266d2dc131f27da9cc0c368e1ddfacb3a6a55b7b24ede47f9a10ed83",
+      "bytes": 1532,
+      "declarationOnly": false,
+      "mutationTreatment": "Included in mutate list with Complete/default mutation operators; native generated and omitted outcomes must be audited."
+    },
+    {
+      "path": "implementations/csharp/src/CIS.Core/Healthcheck/Reporting/HealthReportFormatter.cs",
+      "projectRelativePath": "Healthcheck/Reporting/HealthReportFormatter.cs",
+      "configuration": "unit-runtime",
+      "sha256": "2212fab9434e643001d11ae1463085ba6e587753f2091f15f7cec8347a587735",
+      "normalizedLfSha256": "2212fab9434e643001d11ae1463085ba6e587753f2091f15f7cec8347a587735",
+      "bytes": 14036,
+      "declarationOnly": false,
+      "mutationTreatment": "Included in mutate list with Complete/default mutation operators; native generated and omitted outcomes must be audited."
+    },
+    {
+      "path": "implementations/csharp/src/CIS.Core/Healthcheck/Reporting/HealthReportProtocol.cs",
+      "projectRelativePath": "Healthcheck/Reporting/HealthReportProtocol.cs",
+      "configuration": "unit-runtime",
+      "sha256": "5f259f7f6e51d992211eda1f30555692f85bbe98bec792fd38da04a75754be6b",
+      "normalizedLfSha256": "5f259f7f6e51d992211eda1f30555692f85bbe98bec792fd38da04a75754be6b",
+      "bytes": 23855,
+      "declarationOnly": false,
+      "mutationTreatment": "Included in mutate list with Complete/default mutation operators; native generated and omitted outcomes must be audited."
+    }
+  ],
+  "qualificationRequirements": [
+    "Execute all three exact configurations on independently pinned current source/toolchain inputs; preserve native configuration, baselines, reports, logs and restoration evidence.",
+    "Keep each configuration result independent; no reduced scope/native perTest report is relabeled full Healthcheck qualification.",
+    "Strict score is Killed/(Killed+Survived+Timeout+NoCoverage); require at least 90 percent and classify all native outcomes without timeout/ignored/compile-error kill credit.",
+    "Review every compile rollback, omitted/ignored/generated mutant and source membership against the full input inventory; retain explicit dispositions and corrective executions where required.",
+    "For ASP.NET and Pipes, coverage analysis stays off and actual child session/audit proves the real child loaded its parent instrumented Core and selected mutant; selector, origin and normal lifecycle failures cannot supply credited kills.",
+    "Verify passing current baselines, serialized scheduling controls, source before/after equality, restored builds/tests and canonical source preservation.",
+    "Broader whole-Core Release, publication history, external Heartbeat/IStartable and other unexecuted matrices remain separate pending obligations."
+  ],
+  "publicationHistory": "No released Healthcheck baseline is invented. Initial candidate controls do not claim historical replay.",
+  "testClassInventory": {
+    "path": "planning/healthcheck/qualification/release-next/test-class-inventory.json",
+    "sha256": "f70dc62b2e0767bf5c1f74b27eff565a93deb72caa75aa01e977a86707ba8b27"
+  }
+}

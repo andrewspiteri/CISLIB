@@ -2,7 +2,7 @@ using System.Text.Json;
 using CIS.TestSupport;
 using CIS.Verification;
 
-if (args.Length > 0 && args[0] is "healthcheck-package" or "healthcheck-coverage" or "healthcheck-platform-prepare" or "healthcheck-critical-mutation" or "healthcheck-pipe-identities")
+if (args.Length > 0 && args[0] is "healthcheck-package" or "healthcheck-coverage" or "healthcheck-platform-prepare" or "healthcheck-critical-mutation" or "healthcheck-pipe-identities" or "healthcheck-rollback-mutation" or "healthcheck-mutation-children" or "healthcheck-child-audit-controls")
 {
     try
     {
@@ -12,6 +12,9 @@ if (args.Length > 0 && args[0] is "healthcheck-package" or "healthcheck-coverage
             "healthcheck-coverage" => await HealthcheckCoverageVerification.RunAsync(args[1..]),
             "healthcheck-platform-prepare" => await HealthcheckPlatformPreparation.RunAsync(args[1..]),
             "healthcheck-pipe-identities" => await HealthcheckPipeIdentityVerification.RunAsync(args[1..]),
+            "healthcheck-rollback-mutation" => await HealthcheckRollbackMutationVerification.RunAsync(args[1..]),
+            "healthcheck-mutation-children" => await HealthcheckChildMutationVerification.RunAsync(args[1..]),
+            "healthcheck-child-audit-controls" => await HealthcheckChildAuditControls.RunAsync(args[1..]),
             _ => await HealthcheckCriticalMutationVerification.RunAsync(args[1..])
         };
     }

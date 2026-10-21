@@ -27,6 +27,7 @@ internal static class TransportTestSupport
             StandardOutputEncoding = new UTF8Encoding(false, true),
             StandardErrorEncoding = new UTF8Encoding(false, true),
         };
+        path = CIS.Verification.HealthcheckMutationChildren.HealthcheckMutationChildSupport.Prepare(path, start);
         foreach (string argument in new[] { "exec", "--fx-version", "10.0.12", "--roll-forward", "Disable", path }.Concat(arguments)) { start.ArgumentList.Add(argument); }
         return start;
     }

@@ -1,0 +1,218 @@
+{
+  "schema": "cis.healthcheck.release-continuation/v1-development",
+  "baseCommit": "8fc2f9ccb78ba948f9794cfb4c0ea37cfd2956eb",
+  "scope": "Uncommitted CSharp qualification/test/tool overlay; completed local subgates and measured failures, not a qualified release",
+  "overall": "Pending",
+  "qualified": false,
+  "shippingCoreSourceChanged": false,
+  "parallelOwnership": [
+    "State rollback and detector review",
+    "Child-origin proof and lifecycle verification",
+    "Native compatibility and release matrix audit"
+  ],
+  "nativeExecutionOwner": "Root coordinator; independent frozen sources/output streams; agents performed no native builds",
+  "toolchain": {
+    "sdk": "10.0.401",
+    "subjectRuntime": "10.0.12",
+    "stryker": "4.16.0",
+    "strykerHost": "8.0.31",
+    "mutation": "Complete",
+    "thresholdBreak": 90
+  },
+  "sealedPackage": {
+    "archiveSha256": "37961c7cd75a7c7e5af47087496f087c5f50ade228c9616be0cfc251e49bcdea",
+    "coreSha256": "039007b8920929bb62e096590789325f874ec5cac969f2d5a95f29a31967e980",
+    "scope": "Original clean8fc Windows producer; later native profile packages have their own distinct hashes",
+    "consumerWindows": {
+      "observations": 25,
+      "ownedProcesses": 25,
+      "httpObservations": 13
+    },
+    "consumerUbuntu": {
+      "observations": 25,
+      "ownedProcesses": 25,
+      "httpObservations": 13
+    }
+  },
+  "coverage": {
+    "qualifiedForSealedHealthcheckCore": true,
+    "linesCovered": 2882,
+    "linesTotal": 2990,
+    "linePercent": 96.3879598662207,
+    "branchLowerCovered": 1993,
+    "branchesTotal": 2184,
+    "branchLowerPercent": 91.2545787545788,
+    "requiredLines": 95,
+    "requiredBranches": 90,
+    "scope": "Healthcheck only; no blanket whole-shipping qualification"
+  },
+  "frozenReleaseV2": {
+    "harnessProtocol": "v2-development",
+    "windowsCases": 8235,
+    "ubuntuCases": 8237,
+    "nativeFamilies": 5,
+    "passedStagesEach": 17,
+    "failedCases": 0,
+    "notExecutedCases": 0,
+    "finalExitEach": 2,
+    "validatorIssuesEach": 26,
+    "missingReleaseGates": 8,
+    "missingUniquePlannedCaseIds": 9,
+    "mutationFamily": "NotRun",
+    "scope": "Frozen older overlay; no full-profile pass assigned to the later owner-schema4 working tree"
+  },
+  "automaticMutation": [
+    {
+      "lane": "WindowsUnitRuntime02",
+      "sources": 41,
+      "killed": 1843,
+      "survived": 649,
+      "timeout": 75,
+      "noCoverage": 128,
+      "compileError": 362,
+      "ignored": 589,
+      "strictNumerator": 1843,
+      "strictDenominator": 2695,
+      "strictPercent": 68.3858998144712,
+      "qualified": false
+    },
+    {
+      "lane": "UbuntuUnitRuntime01",
+      "sources": 41,
+      "killed": 1844,
+      "survived": 648,
+      "timeout": 75,
+      "noCoverage": 128,
+      "compileError": 362,
+      "ignored": 589,
+      "strictNumerator": 1844,
+      "strictDenominator": 2695,
+      "strictPercent": 68.4230055658627,
+      "qualified": false
+    },
+    {
+      "lane": "WindowsPipes01",
+      "sources": 4,
+      "killed": 89,
+      "survived": 114,
+      "timeout": 25,
+      "noCoverage": 0,
+      "compileError": 60,
+      "ignored": 75,
+      "strictNumerator": 89,
+      "strictDenominator": 228,
+      "strictPercent": 39.0350877192982,
+      "childAudit": "InvalidChildEvidence271",
+      "qualified": false
+    },
+    {
+      "lane": "UbuntuAspNet01",
+      "sources": 1,
+      "killed": 21,
+      "survived": 3,
+      "timeout": 0,
+      "noCoverage": 0,
+      "compileError": 72,
+      "ignored": 5,
+      "strictNumerator": 21,
+      "strictDenominator": 24,
+      "strictPercent": 87.5,
+      "childProtocol": "v3-development",
+      "childAudit": "QualifiedChildPropagation1125",
+      "additionalNativeTimeoutMs": 300000,
+      "qualified": false
+    },
+    {
+      "lane": "WindowsAspNetOwnerShortRoot",
+      "sources": 1,
+      "killed": 21,
+      "survived": 3,
+      "timeout": 0,
+      "noCoverage": 0,
+      "compileError": 72,
+      "ignored": 5,
+      "strictNumerator": 21,
+      "strictDenominator": 24,
+      "strictPercent": 87.5,
+      "childProtocol": "v4-development",
+      "childAudit": "QualifiedChildPropagation1125",
+      "additionalNativeTimeoutMs": 750000,
+      "childTimeoutSeconds": 15,
+      "qualified": false
+    }
+  ],
+  "stateReplay": {
+    "attempts": 103,
+    "independentCompileError": 43,
+    "killed": 30,
+    "survived": 4,
+    "timeout": 17,
+    "unresolved": 9,
+    "conservativeSupplementNumerator": 226,
+    "conservativeSupplementDenominator": 277,
+    "strictPercent": 81.5884476534296,
+    "qualified": false,
+    "laterResourceSurvivor2346": "KilledSeparately652Cases",
+    "laterAssertionIds": [
+      2107,
+      2210,
+      2216
+    ],
+    "laterAssertions": "KilledSeparately652Cases",
+    "frozenRawStatusesUnchanged": true
+  },
+  "currentChildProof": {
+    "protocol": "v4-development",
+    "windowsActualRoot": ".artifacts/hcc/c1",
+    "ubuntuActualRoot": ".artifacts/healthcheck/release-next/conditional-v5-linux-01",
+    "nativeConditionalKillsEach": 4,
+    "auditedLaunchesEach": 100,
+    "instrumentedLaunchesEach": 80,
+    "normalExactRestoration": true,
+    "derivativeParserControlsEach": 9,
+    "parserControlsAreNativeExecutions": false,
+    "canonicalIntegrationCases": 145,
+    "scope": "Finite supplement and parser controls; broad automatic/release qualification not implied"
+  },
+  "retainedFailures": [
+    "Incorrect first unit namespace filter omitted28 cases; run stopped and not credited",
+    "Initial full Release attempts failed87 inherited compatibility fixture cases each",
+    "Linux exact package consumer rejected line-ending mismatch before exact-producer retry",
+    "First fresh standalone proof mishandled real Stryker backup; later native fix verified",
+    "Working-directory initialization failures retained separately",
+    "Old v1 lifecycle and stage-key collision failures not reclassified",
+    "Schema3 Windows300s full AspNet run had five invalid lifecycle rows",
+    "Deep owner-aware Windows baselines rejected executable path identity before mutation; short-root retries retained separately"
+  ],
+  "pending": [
+    "UnitRuntime survivor/uncovered/timeout/compiler/ignored closure",
+    "Pipes survivor/timeout/compiler/ignored closure and full nativeUbuntu automatic run",
+    "AspNet three survivors plus72compiler and5ignored omissions; no equivalence waiver",
+    "Current working-tree full required profile and eight global release gates including mutation dispatcher/validator",
+    "Actual Heartbeat/watchdog/genericIStartable integration",
+    "Publication history remains empty; publication not authorized"
+  ],
+  "supportingFiles": [
+    "source-changes.json",
+    "artifact-pins.json",
+    "restoration.json",
+    "matrix/native-release.md",
+    "matrix/unit-runtime-native.md",
+    "matrix/pipes-native.md",
+    "matrix/child-origin.md",
+    "matrix/child-owner.md",
+    "state-dispositions/native-replay.md",
+    "matrix/aspnet-native.md",
+    "next-work.md"
+  ],
+  "notPerformed": [
+    "Push",
+    "Publication",
+    "Deployment",
+    "New external review payload",
+    "Threshold reduction",
+    "Timeout kill credit",
+    "Historical receipt rewrite",
+    "Paused logging roadmap resumption"
+  ]
+}

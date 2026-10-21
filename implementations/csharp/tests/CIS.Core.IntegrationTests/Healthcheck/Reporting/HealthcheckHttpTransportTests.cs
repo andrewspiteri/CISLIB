@@ -1,22 +1,124 @@
 using System.Diagnostics;
 using System.Net;
 using System.Text.Json.Nodes;
+using CIS.Healthcheck;
+using CIS.Healthcheck.AspNetCore;
+using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Http.Features;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using MutationChildren = CIS.Verification.HealthcheckMutationChildren.HealthcheckMutationChildSupport;
 
 namespace CIS.Tests.IntegrationTests.Healthcheck.Reporting;
 
 [TestClass]
 public sealed class HealthcheckHttpTransportTests
 {
+    [TestMethod]
+    [DataRow("app")]
+    [DataRow("source")]
+    [DataRow("options")]
+    public void RegistrationRejectsNullRequiredArgumentsAtTheReceivingBoundary(string argument)
+    {
+        using var services = new ServiceCollection().BuildServiceProvider();
+        IApplicationBuilder app = new ApplicationBuilder(services);
+        var source = new ObservingSnapshotSource(() => throw new InvalidOperationException("Registration must not capture a snapshot."));
+        var options = new HealthcheckOptions { DetailsEnabled = false };
+        ArgumentNullException error = Assert.ThrowsExactly<ArgumentNullException>(() => HealthcheckApplicationBuilderExtensions.UseCisHealthcheck(
+            argument == "app" ? null! : app, argument == "source" ? null! : source, argument == "options" ? null! : options));
+        Assert.AreEqual(argument, error.ParamName);
+        Assert.AreEqual(0, source.Captures);
+    }
+
+    [TestMethod]
+    public void EnabledDetailsRequiresAuthorizationDuringRegistration()
+    {
+        using var services = new ServiceCollection().BuildServiceProvider();
+        IApplicationBuilder app = new ApplicationBuilder(services);
+        var source = new ObservingSnapshotSource(() => throw new InvalidOperationException("Rejected registration must not capture a snapshot."));
+        ArgumentException error = Assert.ThrowsExactly<ArgumentException>(() => app.UseCisHealthcheck(source,
+            new HealthcheckOptions { DetailsEnabled = true }));
+        Assert.AreEqual("authorizeDetails", error.ParamName);
+        Assert.AreEqual(0, source.Captures);
+    }
+
+    [TestMethod]
+    public async Task DisabledDetailsAcceptsOmittedAuthorizationAndStillReservesItsRoute()
+    {
+        using var services = new ServiceCollection().BuildServiceProvider();
+        IApplicationBuilder app = new ApplicationBuilder(services);
+        var source = new ObservingSnapshotSource(() => throw new InvalidOperationException("Disabled details must not capture a snapshot."));
+        Assert.AreSame(app, app.UseCisHealthcheck(source, new HealthcheckOptions { DetailsEnabled = false }));
+        int businessCalls = 0;
+        app.Run(_ => { businessCalls++; return Task.CompletedTask; });
+        var context = new DefaultHttpContext();
+        context.Request.Path = "/_health/details";
+        context.Request.Method = HttpMethods.Get;
+        using var body = new MemoryStream();
+        context.Response.Body = body;
+        await app.Build()(context).WaitAsync(TransportTestSupport.Limit);
+        Assert.AreEqual(StatusCodes.Status404NotFound, context.Response.StatusCode);
+        TransportTestSupport.ValidateError(JsonNode.Parse(body.ToArray())!.AsObject(), "NotFound");
+        Assert.AreEqual(0, source.Captures);
+        Assert.AreEqual(0, businessCalls);
+    }
+
+    [TestMethod]
+    [DataRow("GET")]
+    [DataRow("HEAD")]
+    public async Task CancellationAfterCaptureAbortsBeforeChangingResponseMetadataOrWriting(string method)
+    {
+        using var services = new ServiceCollection().BuildServiceProvider();
+        using var cancellation = new CancellationTokenSource();
+        var options = new HealthcheckOptions { DetailsEnabled = false };
+        await using var service = new HealthcheckService(options,
+            new HealthApplicationIdentity { Name = "canceled-http-write", InstanceId = Guid.Parse("f3d654a2-6113-4e92-8c7e-7ea747197131") });
+        service.MarkStartupCompleted();
+        var source = new ObservingSnapshotSource(() =>
+        {
+            HealthSnapshot snapshot = service.CaptureSnapshot();
+            cancellation.Cancel();
+            return snapshot;
+        });
+        IApplicationBuilder app = new ApplicationBuilder(services);
+        app.UseCisHealthcheck(source, options);
+        int businessCalls = 0;
+        app.Run(_ => { businessCalls++; return Task.CompletedTask; });
+        var context = new DefaultHttpContext();
+        var lifetime = new ObservingRequestLifetime { RequestAborted = cancellation.Token };
+        context.Features.Set<IHttpRequestLifetimeFeature>(lifetime);
+        context.Request.Path = "/_health";
+        context.Request.Method = method;
+        context.Response.StatusCode = StatusCodes.Status202Accepted;
+        using var body = new MemoryStream();
+        context.Response.Body = body;
+
+        await app.Build()(context).WaitAsync(TransportTestSupport.Limit);
+
+        Assert.AreEqual(1, source.Captures, "Cancellation must occur after the real snapshot read, beyond the entry cancellation guard.");
+        Assert.IsTrue(cancellation.IsCancellationRequested);
+        Assert.IsTrue(lifetime.Aborted, "The actual middleware must terminate the canceled request.");
+        Assert.AreEqual(StatusCodes.Status202Accepted, context.Response.StatusCode);
+        Assert.IsNull(context.Response.ContentType);
+        Assert.IsNull(context.Response.ContentLength);
+        Assert.IsFalse(context.Response.Headers.ContainsKey("Cache-Control"));
+        Assert.IsFalse(context.Response.Headers.ContainsKey("Pragma"));
+        Assert.IsFalse(context.Response.Headers.ContainsKey("Expires"));
+        Assert.AreEqual(0L, body.Length);
+        Assert.AreEqual(0, businessCalls);
+    }
+
     private sealed class Host : IAsyncDisposable
     {
         private readonly Process child;
         private readonly Task<string> stderr;
-        internal HttpClient Client { get; } = new() { Timeout = TransportTestSupport.Limit };
+        private readonly HttpClient client = new() { Timeout = TransportTestSupport.Limit };
         internal string? PipeName { get; private set; }
         private Host(string mode)
         {
             child = Process.Start(TransportTestSupport.StartInfo("healthcheck-http-host", "CIS.Healthcheck.HttpFixture", [mode]))!;
+            MutationChildren.ObserveStarted(child);
             stderr = child.StandardError.ReadToEndAsync();
         }
         internal static async Task<Host> Start(string mode = "normal")
@@ -28,7 +130,7 @@ public sealed class HealthcheckHttpTransportTests
                 Assert.AreEqual("ready", (string?)ready["status"]);
                 Assert.AreEqual(".NET 10.0.12", (string?)ready["runtime"]);
                 Assert.AreEqual(host.child.Id, (int?)ready["pid"]);
-                host.Client.BaseAddress = new Uri((string)ready["address"]!);
+                host.client.BaseAddress = new Uri((string)ready["address"]!);
                 host.PipeName = (string?)ready["pipeName"];
                 return host;
             }
@@ -40,15 +142,32 @@ public sealed class HealthcheckHttpTransportTests
             await child.StandardInput.FlushAsync();
             return await Read();
         }
+        internal Task<HttpResponseMessage> GetAsync(string path) => ObserveHttpAsync(() => client.GetAsync(path));
+        internal Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken = default)
+            => ObserveHttpAsync(() => client.SendAsync(request, cancellationToken));
+        internal async Task<string> GetStringAsync(string path)
+        {
+            using HttpResponseMessage response = await GetAsync(path);
+            response.EnsureSuccessStatusCode();
+            return await response.Content.ReadAsStringAsync();
+        }
+        private async Task<HttpResponseMessage> ObserveHttpAsync(Func<Task<HttpResponseMessage>> operation)
+        {
+            try { return await operation(); }
+            catch (OperationCanceledException error) when (error.InnerException is TimeoutException)
+            { MutationChildren.MarkTimeout(child, "http-request"); throw; }
+        }
         private async Task<JsonObject> Read()
         {
-            string? line = await child.StandardOutput.ReadLineAsync().WaitAsync(TransportTestSupport.Limit);
+            string? line;
+            try { line = await child.StandardOutput.ReadLineAsync().WaitAsync(TransportTestSupport.Limit); }
+            catch (TimeoutException) { MutationChildren.MarkTimeout(child, "host-read"); throw; }
             Assert.IsNotNull(line, "HTTP host ended before its observation.");
             return JsonNode.Parse(line)!.AsObject();
         }
         public async ValueTask DisposeAsync()
         {
-            Client.Dispose();
+            client.Dispose();
             try
             {
                 if (!child.HasExited)
@@ -59,7 +178,20 @@ public sealed class HealthcheckHttpTransportTests
                 Assert.AreEqual(0, child.ExitCode);
                 Assert.AreEqual("", await stderr.WaitAsync(TransportTestSupport.Limit));
             }
-            finally { if (!child.HasExited) { child.Kill(entireProcessTree: true); await child.WaitForExitAsync(); } child.Dispose(); }
+            catch (TimeoutException) { MutationChildren.MarkTimeout(child, "host-stop"); throw; }
+            finally
+            {
+                try
+                {
+                    if (!child.HasExited)
+                    {
+                        MutationChildren.MarkForcedStop(child, "cleanup");
+                        child.Kill(entireProcessTree: true);
+                        await child.WaitForExitAsync();
+                    }
+                }
+                finally { try { MutationChildren.CompleteLifecycle(child); } finally { child.Dispose(); } }
+            }
         }
     }
 
@@ -74,7 +206,7 @@ public sealed class HealthcheckHttpTransportTests
     {
         await using var host = await Host.Start();
         JsonObject before = await host.Command();
-        using HttpResponseMessage response = await host.Client.GetAsync(path);
+        using HttpResponseMessage response = await host.GetAsync(path);
         Assert.AreEqual(HttpStatusCode.OK, response.StatusCode);
         JsonObject snapshot = JsonNode.Parse(await response.Content.ReadAsStringAsync())!.AsObject();
         TransportTestSupport.ValidateSnapshot(snapshot, view, true, true);
@@ -94,7 +226,7 @@ public sealed class HealthcheckHttpTransportTests
     public async Task SelectedHealthOrReadinessMapsTo500(string mode, string path, bool healthy, bool ready)
     {
         await using var host = await Host.Start(mode);
-        using HttpResponseMessage response = await host.Client.GetAsync(path);
+        using HttpResponseMessage response = await host.GetAsync(path);
         Assert.AreEqual(HttpStatusCode.InternalServerError, response.StatusCode);
         TransportTestSupport.ValidateSnapshot(JsonNode.Parse(await response.Content.ReadAsStringAsync())!.AsObject(), path.EndsWith("details", StringComparison.Ordinal) ? "details" : "health", healthy, ready);
         Headers(response);
@@ -113,7 +245,7 @@ public sealed class HealthcheckHttpTransportTests
     {
         await using var host = await Host.Start(mode);
         using var request = new HttpRequestMessage(HttpMethod.Head, path);
-        using HttpResponseMessage response = await host.Client.SendAsync(request);
+        using HttpResponseMessage response = await host.SendAsync(request);
         Assert.AreEqual(status, (int)response.StatusCode);
         Assert.AreEqual(0, (await response.Content.ReadAsByteArrayAsync()).Length);
         Headers(response);
@@ -133,7 +265,7 @@ public sealed class HealthcheckHttpTransportTests
         await using var host = await Host.Start();
         using var request = new HttpRequestMessage(new HttpMethod(method), path);
         request.Headers.Add("X-Auth", "throw");
-        using HttpResponseMessage response = await host.Client.SendAsync(request);
+        using HttpResponseMessage response = await host.SendAsync(request);
         Assert.AreEqual(status, (int)response.StatusCode);
         TransportTestSupport.ValidateError(JsonNode.Parse(await response.Content.ReadAsStringAsync())!.AsObject(), code);
         Headers(response);
@@ -153,8 +285,9 @@ public sealed class HealthcheckHttpTransportTests
         await using var host = await Host.Start("details-disabled");
         using var request = new HttpRequestMessage(new HttpMethod(method), "/_health/details?details=true&view=details");
         request.Headers.Add("X-Auth", "throw");
-        using HttpResponseMessage response = await host.Client.SendAsync(request);
+        using HttpResponseMessage response = await host.SendAsync(request);
         Assert.AreEqual(HttpStatusCode.NotFound, response.StatusCode);
+        Headers(response);
         if (method == "HEAD") { Assert.AreEqual("", await response.Content.ReadAsStringAsync()); }
         else { TransportTestSupport.ValidateError(JsonNode.Parse(await response.Content.ReadAsStringAsync())!.AsObject(), "NotFound"); }
         JsonObject state = await host.Command();
@@ -173,7 +306,7 @@ public sealed class HealthcheckHttpTransportTests
         await using var host = await Host.Start();
         using var request = new HttpRequestMessage(new HttpMethod(method), "/_health/details");
         request.Headers.Add("X-Auth", authorization);
-        using HttpResponseMessage response = await host.Client.SendAsync(request);
+        using HttpResponseMessage response = await host.SendAsync(request);
         Assert.AreEqual(status, (int)response.StatusCode);
         if (method == "HEAD") { Assert.AreEqual("", await response.Content.ReadAsStringAsync()); }
         else { TransportTestSupport.ValidateError(JsonNode.Parse(await response.Content.ReadAsStringAsync())!.AsObject(), code); }
@@ -191,7 +324,7 @@ public sealed class HealthcheckHttpTransportTests
     public async Task ReportingFailuresReturnCompleteBoundedJsonWithoutMonitorFailures(string mode, string path, string code)
     {
         await using var host = await Host.Start(mode);
-        using HttpResponseMessage response = await host.Client.GetAsync(path);
+        using HttpResponseMessage response = await host.GetAsync(path);
         Assert.AreEqual(HttpStatusCode.InternalServerError, response.StatusCode);
         byte[] bytes = await response.Content.ReadAsByteArrayAsync();
         Assert.IsTrue(bytes.Length <= 1024);
@@ -206,7 +339,7 @@ public sealed class HealthcheckHttpTransportTests
     public async Task SimilarPrefixContinuesNormalApplicationPipeline(string path)
     {
         await using var host = await Host.Start();
-        Assert.AreEqual("business:" + path, await host.Client.GetStringAsync(path));
+        Assert.AreEqual("business:" + path, await host.GetStringAsync(path));
         JsonObject state = await host.Command();
         Assert.AreEqual(1, (int?)state["businessCalls"]);
         Assert.AreEqual(0, (int?)state["captures"]);
@@ -218,7 +351,7 @@ public sealed class HealthcheckHttpTransportTests
         await using var host = await Host.Start("alternating");
         for (int i = 0; i < 8; i++)
         {
-            using HttpResponseMessage response = await host.Client.GetAsync("/_health");
+            using HttpResponseMessage response = await host.GetAsync("/_health");
             JsonObject snapshot = JsonNode.Parse(await response.Content.ReadAsStringAsync())!.AsObject();
             bool healthy = (string?)snapshot["healthStatus"] == "Healthy";
             Assert.AreEqual(healthy ? HttpStatusCode.OK : HttpStatusCode.InternalServerError, response.StatusCode);
@@ -233,11 +366,11 @@ public sealed class HealthcheckHttpTransportTests
         await using var host = await Host.Start();
         using var request = new HttpRequestMessage(HttpMethod.Get, "/_health/details"); request.Headers.Add("X-Auth", "block");
         using var cancellation = new CancellationTokenSource();
-        Task<HttpResponseMessage> blocked = host.Client.SendAsync(request, cancellation.Token);
+        Task<HttpResponseMessage> blocked = host.SendAsync(request, cancellation.Token);
         await WaitForAuthorization(host);
         cancellation.Cancel();
         await Assert.ThrowsAsync<OperationCanceledException>(async () => { using HttpResponseMessage unexpected = await blocked; });
-        using HttpResponseMessage healthy = await host.Client.GetAsync("/_health");
+        using HttpResponseMessage healthy = await host.GetAsync("/_health");
         Assert.AreEqual(HttpStatusCode.OK, healthy.StatusCode);
         JsonObject state = await host.Command();
         Assert.AreEqual(1, (int?)state["captures"]); Assert.AreEqual(0, (int?)state["businessCalls"]);
@@ -248,9 +381,9 @@ public sealed class HealthcheckHttpTransportTests
     {
         await using var host = await Host.Start();
         using var request = new HttpRequestMessage(HttpMethod.Get, "/_health/details"); request.Headers.Add("X-Auth", "cancel");
-        try { using HttpResponseMessage unexpected = await host.Client.SendAsync(request); Assert.Fail("A canceled authorization must not produce a health response."); }
+        try { using HttpResponseMessage unexpected = await host.SendAsync(request); Assert.Fail("A canceled authorization must not produce a health response."); }
         catch (Exception error) when (error is HttpRequestException or OperationCanceledException) { }
-        using HttpResponseMessage healthy = await host.Client.GetAsync("/_health"); Assert.AreEqual(HttpStatusCode.OK, healthy.StatusCode);
+        using HttpResponseMessage healthy = await host.GetAsync("/_health"); Assert.AreEqual(HttpStatusCode.OK, healthy.StatusCode);
         JsonObject state = await host.Command(); Assert.AreEqual(1, (int?)state["captures"]); Assert.AreEqual(0, (int?)state["businessCalls"]);
     }
 
@@ -258,13 +391,13 @@ public sealed class HealthcheckHttpTransportTests
     public async Task ExplicitStartupAndStoppingAffectReadinessWhileHealthRemainsHealthy()
     {
         await using var host = await Host.Start("not-ready");
-        using (HttpResponseMessage health = await host.Client.GetAsync("/_health")) { Assert.AreEqual(HttpStatusCode.OK, health.StatusCode); }
-        using (HttpResponseMessage readiness = await host.Client.GetAsync("/_health/ready")) { Assert.AreEqual(HttpStatusCode.InternalServerError, readiness.StatusCode); }
+        using (HttpResponseMessage health = await host.GetAsync("/_health")) { Assert.AreEqual(HttpStatusCode.OK, health.StatusCode); }
+        using (HttpResponseMessage readiness = await host.GetAsync("/_health/ready")) { Assert.AreEqual(HttpStatusCode.InternalServerError, readiness.StatusCode); }
         await host.Command("startup");
-        using (HttpResponseMessage readiness = await host.Client.GetAsync("/_health/ready")) { Assert.AreEqual(HttpStatusCode.OK, readiness.StatusCode); }
+        using (HttpResponseMessage readiness = await host.GetAsync("/_health/ready")) { Assert.AreEqual(HttpStatusCode.OK, readiness.StatusCode); }
         await host.Command("begin-stopping");
-        using (HttpResponseMessage readiness = await host.Client.GetAsync("/_health/ready")) { Assert.AreEqual(HttpStatusCode.InternalServerError, readiness.StatusCode); }
-        using (HttpResponseMessage health = await host.Client.GetAsync("/_health")) { Assert.AreEqual(HttpStatusCode.OK, health.StatusCode); }
+        using (HttpResponseMessage readiness = await host.GetAsync("/_health/ready")) { Assert.AreEqual(HttpStatusCode.InternalServerError, readiness.StatusCode); }
+        using (HttpResponseMessage health = await host.GetAsync("/_health")) { Assert.AreEqual(HttpStatusCode.OK, health.StatusCode); }
         Assert.AreEqual(0, (int?)(await host.Command())["businessCalls"]);
     }
 
@@ -276,7 +409,7 @@ public sealed class HealthcheckHttpTransportTests
     {
         await using var host = await Host.Start("parity");
         Assert.IsNotNull(host.PipeName);
-        using HttpResponseMessage response = await host.Client.GetAsync(path);
+        using HttpResponseMessage response = await host.GetAsync(path);
         Assert.AreEqual(HttpStatusCode.OK, response.StatusCode);
         string httpJson = await response.Content.ReadAsStringAsync();
         JsonObject envelope = await TransportTestSupport.RequestAsync(host.PipeName, "{\"protocolVersion\":1,\"view\":\"" + view + "\"}");
@@ -296,5 +429,21 @@ public sealed class HealthcheckHttpTransportTests
         Assert.AreEqual("application/json", response.Content.Headers.ContentType?.MediaType);
         Assert.IsTrue(response.Headers.CacheControl?.NoStore == true);
         Assert.IsTrue(response.Headers.CacheControl?.NoCache == true);
+        CollectionAssert.AreEqual(new[] { "no-cache" }, response.Headers.Pragma.Select(value => value.ToString()).ToArray());
+        Assert.IsTrue(response.Content.Headers.TryGetValues("Expires", out IEnumerable<string>? expires));
+        CollectionAssert.AreEqual(new[] { "0" }, expires!.ToArray());
+    }
+
+    private sealed class ObservingSnapshotSource(Func<HealthSnapshot> capture) : IHealthSnapshotSource
+    {
+        internal int Captures { get; private set; }
+        public HealthSnapshot CaptureSnapshot() { Captures++; return capture(); }
+    }
+
+    private sealed class ObservingRequestLifetime : IHttpRequestLifetimeFeature
+    {
+        public CancellationToken RequestAborted { get; set; }
+        internal bool Aborted { get; private set; }
+        public void Abort() => Aborted = true;
     }
 }

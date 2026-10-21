@@ -1,0 +1,35 @@
+{
+  "stryker-config": {
+    "project": "CIS.Core.csproj",
+    "test-projects": [
+      "../../tests/CIS.Core.IntegrationTests/CIS.Core.IntegrationTests.csproj",
+      "../../tests/CIS.Core.UnitTests/CIS.Core.UnitTests.csproj"
+    ],
+    "test-case-filter": "FullyQualifiedName~CIS.Tests.IntegrationTests.Healthcheck.Reporting.HealthcheckPipeTransportTests.|FullyQualifiedName~CIS.Tests.IntegrationTests.Healthcheck.Reporting.HealthcheckProbeProcessTests.|FullyQualifiedName~CIS.Tests.UnitTests.Healthcheck.HealthReportProtocolTests.|FullyQualifiedName~CIS.Tests.UnitTests.Healthcheck.HealthReportFormatterTests.|FullyQualifiedName=CIS.Tests.TestAssemblySetup.SchedulingMatchesRequestedMode",
+    "test-runner": "vstest",
+    "target-framework": "net10.0",
+    "configuration": "Release",
+    "mutate": [
+      "Healthcheck/Pipes/HealthPipeBudget.cs",
+      "Healthcheck/Pipes/HealthPipeEndpoint.cs",
+      "Healthcheck/Pipes/HealthPipeServer.cs",
+      "Healthcheck/Pipes/HealthProbeClient.cs"
+    ],
+    "mutation-level": "Complete",
+    "reporters": [
+      "json",
+      "html",
+      "progress",
+      "cleartext"
+    ],
+    "coverage-analysis": "off",
+    "concurrency": 2,
+    "disable-bail": true,
+    "additional-timeout": 10000,
+    "thresholds": {
+      "high": 100,
+      "low": 90,
+      "break": 90
+    }
+  }
+}

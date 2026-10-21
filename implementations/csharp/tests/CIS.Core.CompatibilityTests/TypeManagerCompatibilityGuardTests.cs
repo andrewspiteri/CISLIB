@@ -1,3 +1,5 @@
+using System.IO.Compression;
+using System.Security.Cryptography;
 using System.Text.Json.Nodes;
 using CIS.TestSupport;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -8,6 +10,79 @@ namespace CIS.Tests.CompatibilityTests;
 [TestClass]
 public sealed class TypeManagerCompatibilityGuardTests
 {
+    [TestMethod]
+    [DataRow("Microsoft.Extensions.Logging.Abstractions")]
+    [DataRow("Microsoft.Extensions.DependencyInjection.Abstractions")]
+    public void ApprovedDependencyComesFromTheExactLockedArchive(string packageId)
+    {
+        using var directory = new TemporaryDirectory();
+        (string source, string archive, JsonObject locked) = DependencyPackage(directory.Path, packageId);
+        ApprovedDependency dependency = DependencyAsset(directory.Path, packageId, locked);
+        Assert.AreEqual(source, dependency.SourcePath);
+        Assert.AreEqual(archive, dependency.ArchivePath);
+        Assert.AreEqual(Hash(source), dependency.Sha256);
+        Assert.AreEqual(Hash(archive), dependency.ArchiveSha256);
+        Assert.AreEqual(locked["contentHash"]!.GetValue<string>(), dependency.ContentHash);
+        Assert.AreEqual(Hash(dependency.RestoreMetadataPath), dependency.RestoreMetadataSha256);
+        Assert.AreEqual(Hash(dependency.ArchiveSha512Path), dependency.ArchiveSha512FileSha256);
+    }
+
+    [TestMethod]
+    [DataRow("version")]
+    [DataRow("archive-hash")]
+    [DataRow("restore-metadata")]
+    [DataRow("source-content")]
+    [DataRow("missing-entry")]
+    [DataRow("duplicate-entry")]
+    [DataRow("assembly-identity")]
+    public void ApprovedDependencyRejectsWrongOriginOrChangedBytes(string corruption)
+    {
+        using var directory = new TemporaryDirectory();
+        const string packageId = "Microsoft.Extensions.Logging.Abstractions";
+        (string source, string archive, JsonObject locked) = DependencyPackage(directory.Path, packageId);
+        if (corruption == "version") { locked["resolved"] = "10.0.13"; }
+        else if (corruption == "archive-hash") { File.WriteAllText(archive + ".sha512", "wrong"); }
+        else if (corruption == "restore-metadata") { locked["contentHash"] = "wrong"; }
+        else if (corruption == "source-content") { File.AppendAllText(source, "changed"); }
+        else
+        {
+            if (corruption == "assembly-identity") { File.Copy(typeof(TypeManagerCompatibilityGuardTests).Assembly.Location, source, true); }
+            File.Delete(archive);
+            using (var zip = ZipFile.Open(archive, ZipArchiveMode.Create))
+            {
+                string entry = corruption == "missing-entry" ? "lib/net9.0/" + packageId + ".dll" : "lib/net10.0/" + packageId + ".dll";
+                zip.CreateEntryFromFile(source, entry);
+                if (corruption == "duplicate-entry") { zip.CreateEntryFromFile(source, entry); }
+            }
+            locked["contentHash"] = Convert.ToBase64String(SHA512.HashData(File.ReadAllBytes(archive)));
+            DependencyRestoreMetadata(archive, locked);
+        }
+        Assert.ThrowsExactly<InvalidDataException>(() => DependencyAsset(directory.Path, packageId, locked));
+    }
+
+    private static (string Source, string Archive, JsonObject Locked) DependencyPackage(string packages, string packageId)
+    {
+        string directory = Path.Combine(packages, packageId.ToLowerInvariant(), "10.0.12");
+        Directory.CreateDirectory(Path.Combine(directory, "lib", "net10.0"));
+        string source = Path.Combine(directory, "lib", "net10.0", packageId + ".dll");
+        string seed = packageId == "Microsoft.Extensions.Logging.Abstractions"
+            ? typeof(Microsoft.Extensions.Logging.ILogger).Assembly.Location
+            : typeof(Microsoft.Extensions.DependencyInjection.IServiceCollection).Assembly.Location;
+        File.Copy(seed, source);
+        string archive = Path.Combine(directory, packageId.ToLowerInvariant() + ".10.0.12.nupkg");
+        using (var zip = ZipFile.Open(archive, ZipArchiveMode.Create)) { zip.CreateEntryFromFile(source, "lib/net10.0/" + packageId + ".dll"); }
+        var locked = new JsonObject { ["resolved"] = "10.0.12", ["contentHash"] = Convert.ToBase64String(SHA512.HashData(File.ReadAllBytes(archive))) };
+        DependencyRestoreMetadata(archive, locked);
+        return (source, archive, locked);
+    }
+
+    private static void DependencyRestoreMetadata(string archive, JsonObject locked)
+    {
+        File.WriteAllText(archive + ".sha512", Convert.ToBase64String(SHA512.HashData(File.ReadAllBytes(archive))));
+        File.WriteAllText(Path.Combine(Path.GetDirectoryName(archive)!, ".nupkg.metadata"),
+            new JsonObject { ["version"] = 2, ["contentHash"] = locked["contentHash"]!.DeepClone() }.ToJsonString());
+    }
+
     [TestMethod]
     [DataRow("true", "1")]
     [DataRow("false", "0")]

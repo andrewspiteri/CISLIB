@@ -347,6 +347,13 @@ planning/healthcheck/evidence/HC11/**
 
 ### HC12 — Qualify architecture, mutation, compatibility, and release evidence
 
+Current continuation: the preceding wave is committed as `8fc2f9c`.
+[Native mutation and Release evidence](evidence/HC12/release-next/README.md)
+records the parallel rollback, child-process and compatibility work. Full
+unit/runtime mutation fails 90% on both native platforms; HC12 and M4 remain
+incomplete. Completed local subgates do not waive the global Release or external
+integration obligations below.
+
 **Role:** Qualification owner  
 **Start prerequisites:** HC00  
 **Contract inputs:** C01, C02, C03, C04, C05, C06, C07, C08, C09.

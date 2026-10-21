@@ -1,0 +1,109 @@
+{
+  "schema": "cis.healthcheck.native-restoration/v1-development",
+  "scope": "Independent native clean-source rebuilds and source verification; overlapping cases are not additive",
+  "runs": [
+    {
+      "id": "unit-windows",
+      "trx": ".artifacts/healthcheck/release-next/unit-runtime-windows-02/restored-native/restored.trx",
+      "sha256": "0ebf98386e52da8aadb0257690cc113c4bf25a38e56a6c3f71358aeab5064194",
+      "total": 650,
+      "passed": 650,
+      "failed": 0,
+      "notExecuted": 0
+    },
+    {
+      "id": "unit-linux",
+      "trx": ".artifacts/healthcheck/release-next/unit-runtime-linux-01/restored-native/restored.trx",
+      "sha256": "ab8f32b2184753ccf5058639b629eb0da107c7f2fcc763b6a152e54e91c689b2",
+      "total": 650,
+      "passed": 650,
+      "failed": 0,
+      "notExecuted": 0
+    },
+    {
+      "id": "pipes-integration-windows",
+      "trx": ".artifacts/healthcheck/release-next/pipes-windows-01/restored-native/IntegrationTests-restored.trx",
+      "sha256": "a627019590b11c2678dbb6f46b556b179f1100cd3d51857f3e66536d232c20cf",
+      "total": 93,
+      "passed": 93,
+      "failed": 0,
+      "notExecuted": 0
+    },
+    {
+      "id": "pipes-unit-windows",
+      "trx": ".artifacts/healthcheck/release-next/pipes-windows-01/restored-native/UnitTests-restored.trx",
+      "sha256": "a84eeb1e969a2b16e7f8f3711d020e21023ecffc579f29e9d243062730ece48c",
+      "total": 183,
+      "passed": 183,
+      "failed": 0,
+      "notExecuted": 0
+    },
+    {
+      "id": "finite-v3-post-windows",
+      "trx": ".artifacts/healthcheck/release-next/v4-restored-windows-01/restored.trx",
+      "sha256": "dc8839fd45e9ea047bb11dad2258574fb0d727db4befa1b8633492c4c8a2301d",
+      "total": 145,
+      "passed": 145,
+      "failed": 0,
+      "notExecuted": 0
+    },
+    {
+      "id": "finite-v3-post-linux",
+      "trx": ".artifacts/healthcheck/release-next/v4-restored-linux-01/restored.trx",
+      "sha256": "cd9bee635a8420c04e3ddb3a791ca1481462ef4f2672bab57a00e66f4974e8a6",
+      "total": 145,
+      "passed": 145,
+      "failed": 0,
+      "notExecuted": 0
+    },
+    {
+      "id": "current-v4-owner-normal-windows",
+      "trx": ".artifacts/csharp/focused/ef3116b5edb04e2daab0e3d8e3e82ad7/selected.trx",
+      "sha256": "6ee3df7e920b303e408d60af2f322d64978daf2801d2464c28ea51f23447d14f",
+      "total": 145,
+      "passed": 145,
+      "failed": 0,
+      "notExecuted": 0
+    },
+    {
+      "id": "owner-aspnet-full-post-windows",
+      "trx": ".artifacts/hcc/a1/restored-native/restored.trx",
+      "sha256": "d50b0bfab0c08d745e5c690651013f20da36b3ce31bbf8257f4f2da5d36cb5d3",
+      "total": 145,
+      "passed": 145,
+      "failed": 0,
+      "notExecuted": 0
+    }
+  ],
+  "sourceChecks": [
+    {
+      "id": "unit-windows",
+      "before": ".artifacts/healthcheck/release-next/unit-runtime-inputs-02/preparation.json",
+      "after": ".artifacts/healthcheck/release-next/unit-runtime-restored-inputs-windows-01/preparation.json",
+      "inputCount": 1253,
+      "sourceInputsSha256": "6436cd714eb4a63de1be21e1d16d7a63da1ee638a8b923ac14732bd340e12f33",
+      "unchanged": true
+    },
+    {
+      "id": "unit-linux",
+      "before": ".artifacts/healthcheck/release-next/unit-runtime-inputs-02/preparation.json",
+      "after": ".artifacts/healthcheck/release-next/unit-runtime-restored-inputs-linux-01/preparation.json",
+      "inputCount": 1253,
+      "sourceInputsSha256": "6436cd714eb4a63de1be21e1d16d7a63da1ee638a8b923ac14732bd340e12f33",
+      "unchanged": true
+    },
+    {
+      "id": "pipes-windows",
+      "before": ".artifacts/healthcheck/release-next/pipes-inputs-01/preparation.json",
+      "after": ".artifacts/healthcheck/release-next/pipes-restored-inputs-windows-01/preparation.json",
+      "inputCount": 1321,
+      "sourceInputsSha256": "5335dcafb18de94028db398161f31232fb131045cf26100aa686b7b5f3590acb",
+      "unchanged": true
+    }
+  ],
+  "limits": [
+    "The wide automatic unit/Pipes runs did not capture an independent before-run binary receipt. The two inspected Windows fresh build/test copies agree, but differ from retained Stryker backups; this receipt does not award exact historical binary restoration or infer why those build bytes differ.",
+    "The independent state replay and finite proofs separately require and record their own exact original/normal-restoration hashes.",
+    "All rows refer to their actual frozen source copies, not one blanket final package or release snapshot."
+  ]
+}
