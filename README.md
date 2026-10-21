@@ -6,7 +6,7 @@ The repository currently contains tested configuration resolution/validation and
 
 ## Start with C#
 
-Healthcheck's service, four monitor policies and coherent state are implemented in [HC01](planning/healthcheck/evidence/HC01/README.md), building on the frozen HC00 foundation. [HC02](planning/healthcheck/evidence/HC02/README.md) adds bounded owner-safe collection. Reporting transports and execution-fact binding remain later tasks.
+Healthcheck's service, four monitor policies and coherent state are implemented in [HC01](planning/healthcheck/evidence/HC01/README.md), building on the frozen HC00 foundation. [HC02](planning/healthcheck/evidence/HC02/README.md) adds bounded owner-safe collection. [HC03](planning/healthcheck/evidence/HC03/README.md) adds bounded reporting and protocol helpers; [HC06](planning/healthcheck/evidence/HC06/README.md) adds execution-fact binding. HTTP/pipe adapters and actual external scheduler integration remain later tasks.
 
 Install .NET SDK **10.0.401** and PowerShell 7. Core now requires the **Microsoft.AspNetCore.App** shared framework as well as Microsoft.NETCore.App; the pinned qualification runtime is **10.0.12**. The user approved this foundation dependency for [Healthcheck and future integrations](planning/healthcheck/decisions.md). Run from the repository root:
 

@@ -1,0 +1,323 @@
+{
+  "schema": "cis.healthcheck.task-receipt/v1-development",
+  "task": "HC06",
+  "status": "Implemented and locally verified in the combined HC03/HC06 candidate; transport/module/release acceptance remains separate",
+  "recordedUtc": "2026-10-20T23:47:00.6308542Z",
+  "authority": "Current user requested local HC02 commit and parallel task work. Prior contract/ASP.NET/subagent authorization persists; attached plans are design inputs, not independent authorization.",
+  "repository": {
+    "baseCommit": "c5fd9db646aaa33c998ad93a79ce00c4dfc153dc",
+    "baseSubject": "Implement bounded Healthcheck collection runner",
+    "baseCommittedBeforeParallelDispatch": true,
+    "checkoutWasClean": true,
+    "branch": "main",
+    "candidate": "Uncommitted working tree",
+    "pushed": false,
+    "published": false
+  },
+  "predecessors": [
+    {
+      "path": "planning/healthcheck/baseline.json",
+      "sha256": "a4e3daaddc0a6cf5d242f2e1acd2f7148644e7b8dd3b65646f7c364a7df9c151"
+    },
+    {
+      "path": "planning/healthcheck/evidence/HC01/receipt.json",
+      "sha256": "1fb037d49f426f5fc9ce5256c5c83bcc9e93c20961a9c93ac0b6b135885714d5"
+    },
+    {
+      "path": "planning/healthcheck/evidence/HC02/receipt.json",
+      "sha256": "cdb910f76352fa8abef8bd92ac77564d8882773e79f4a8500677d3cece19d13a"
+    }
+  ],
+  "dispatch": {
+    "path": "planning/healthcheck/evidence/HC06/dispatch.json",
+    "sha256": "7e0a44fa696754fdf1cefcc8fe4403c395cd1b03268babac68ee8706568f06a1"
+  },
+  "runtimeInputs": {
+    "path": "planning/healthcheck/evidence/HC06/runtime-inputs.json",
+    "sha256": "3edcbf66bd0ce6ada47fb9945ef82a6a2150970c881e3361b908e7fbe1d641ca"
+  },
+  "review": {
+    "path": "planning/healthcheck/evidence/HC06/review.json",
+    "sha256": "9eee48bdc4f1b8c8cdc3a47314e5b5779916e6d681ae5aa98f1fb93c1b46351c"
+  },
+  "subject": "Real shipping Core implementation and real native tests; remaining reference facades were not executed.",
+  "promotion": {
+    "removed": "implementations/csharp/verification/contracts/healthcheck/Reference/HealthExecutionBinder.cs",
+    "originalRecoverableAt": "c5fd9db646aaa33c998ad93a79ce00c4dfc153dc",
+    "replacement": "implementations/csharp/src/CIS.Core/Healthcheck/Execution/HealthExecutionBinder.cs",
+    "projectPackageChanges": []
+  },
+  "focused": {
+    "configuration": "Release",
+    "passed": 584,
+    "failed": 0,
+    "skipped": 0,
+    "retainedHc00Hc01Hc02Cases": 232,
+    "newCombinedCases": 352,
+    "taskCases": 170,
+    "taskMethods": 52,
+    "summary": {
+      "path": ".artifacts/csharp/focused/d3d8e26d860044b289b2fa3d825b6cdc/summary.json",
+      "sha256": "dc80ce55e39499a9acc62204c091a94e3ed6287183cc098512542b2e6b156cfd"
+    },
+    "native": {
+      "path": ".artifacts/csharp/focused/d3d8e26d860044b289b2fa3d825b6cdc/selected.trx",
+      "sha256": "f4fc2dc5fcf52ad3deaaca6318024609951a31c26d6df57d7af499a9467cb953"
+    },
+    "caseIndex": {
+      "path": "planning/healthcheck/evidence/HC06/native-cases.json",
+      "sha256": "1af2272f49c66f20b5e89476dbe633581a758542ef8b0319b4bf69611b9701bf"
+    },
+    "sameIdsPassedInDeveloper": {
+      "path": "planning/healthcheck/evidence/HC06/developer-unit-match.json",
+      "sha256": "0f365ab9d58e3a91fc7e2390683b37fd8af96a580146bc1c8fa2e582a017f03f"
+    }
+  },
+  "developer": {
+    "profile": "Developer",
+    "lane": "windows-x64",
+    "exitCode": 0,
+    "startedUtc": "2026-10-20T23:24:45.5868654Z",
+    "finishedUtc": "2026-10-20T23:43:27.3807012Z",
+    "passed": 7688.0,
+    "failed": 0,
+    "skipped": 0,
+    "sdk": "10.0.401",
+    "testRuntime": "10.0.12 with RollForward=Disable",
+    "summary": {
+      "path": ".artifacts/healthcheck/HC03-HC06/developer-03/summary.json",
+      "sha256": "9376a820d94ddc4b554e9238d9bcdc8c0f94bd3665d4e813282ec3c9517d0e56"
+    },
+    "validation": {
+      "path": ".artifacts/healthcheck/HC03-HC06/developer-03/validation.json",
+      "sha256": "ef4b67392fb7611ed6ad4dfa4f8f5b916535d50cb40ae5e01f6c742ccf21adfb"
+    },
+    "sourceInputs": {
+      "path": ".artifacts/healthcheck/HC03-HC06/developer-03/source-inputs.json",
+      "sha256": "e2237cc72247fc6530578102e49883352b48537efe958be9ed1adeb2d0e324cc"
+    },
+    "discoveryReconciliation": {
+      "path": ".artifacts/healthcheck/HC03-HC06/developer-03/discovery-reconciliation.json",
+      "sha256": "4e7c4740cf4576606c4e0a4f62db26f83319005c1662920a06b9d7d7cab4946c"
+    },
+    "architectureInspection": {
+      "path": "architecture/adac236946c748df8088193ade1c23cd/inspection.json",
+      "sha256": "b0b08edc962c597c7a1a207fcd9a65b22db07d9bceb96fae9fa6a645716446d8",
+      "schema": "cis.architecture-inspection/v1"
+    },
+    "stages": [
+      {
+        "id": "restore",
+        "status": "Passed"
+      },
+      {
+        "id": "project-boundaries",
+        "status": "Passed"
+      },
+      {
+        "id": "format",
+        "status": "Passed"
+      },
+      {
+        "id": "build",
+        "status": "Passed"
+      },
+      {
+        "id": "startup-contract",
+        "status": "Passed"
+      },
+      {
+        "id": "compatibility-samples",
+        "status": "Passed"
+      },
+      {
+        "id": "log-value-consumers",
+        "status": "Passed"
+      },
+      {
+        "id": "publication-ledger",
+        "status": "Passed"
+      },
+      {
+        "id": "pack",
+        "status": "Passed"
+      },
+      {
+        "id": "package-boundaries",
+        "status": "Passed"
+      },
+      {
+        "id": "architecture-inspection",
+        "status": "Passed"
+      },
+      {
+        "id": "tests-unit",
+        "status": "Passed"
+      },
+      {
+        "id": "tests-integration",
+        "status": "Passed"
+      },
+      {
+        "id": "tests-architecture",
+        "status": "Passed"
+      },
+      {
+        "id": "tests-business",
+        "status": "Passed"
+      },
+      {
+        "id": "host",
+        "status": "Passed"
+      }
+    ],
+    "families": [
+      {
+        "family": "unit",
+        "passed": 4494,
+        "failed": 0,
+        "skipped": 0,
+        "native": {
+          "path": ".artifacts/healthcheck/HC03-HC06/developer-03/families/unit/report.trx",
+          "sha256": "bcb7728374d5ed30c788a78d47d7c84d0c2cacf963225301bddba486c0ae035a"
+        },
+        "execution": {
+          "path": ".artifacts/healthcheck/HC03-HC06/developer-03/families/unit/execution.json",
+          "sha256": "2438a85392a56709637067b28ec5371b7950e4dc8aeead8b6e7a40cf1cd01cef"
+        }
+      },
+      {
+        "family": "integration",
+        "passed": 2121,
+        "failed": 0,
+        "skipped": 0,
+        "native": {
+          "path": ".artifacts/healthcheck/HC03-HC06/developer-03/families/integration/report.trx",
+          "sha256": "b199025158599e970e6862be4b5606a532a85ae395ae32bf115d129ea3d6e6f5"
+        },
+        "execution": {
+          "path": ".artifacts/healthcheck/HC03-HC06/developer-03/families/integration/execution.json",
+          "sha256": "e63c320da970ea589c567dad75e613f69494a72add706f3819c3bc2f01dfef01"
+        }
+      },
+      {
+        "family": "architecture",
+        "passed": 1048,
+        "failed": 0,
+        "skipped": 0,
+        "native": {
+          "path": ".artifacts/healthcheck/HC03-HC06/developer-03/families/architecture/report.trx",
+          "sha256": "dcf3855434deb570881d4a13af3794afc6a5defd5bf071ebd99538362abc660e"
+        },
+        "execution": {
+          "path": ".artifacts/healthcheck/HC03-HC06/developer-03/families/architecture/execution.json",
+          "sha256": "6b3150a5e030c8342ef5ad4aed1345610ef6df150feae5a5512e0f4ff6426e37"
+        }
+      },
+      {
+        "family": "business",
+        "passed": 25,
+        "failed": 0,
+        "skipped": 0,
+        "native": {
+          "path": ".artifacts/healthcheck/HC03-HC06/developer-03/families/business/report.trx",
+          "sha256": "3a589a2214f004c2152dedfa485a10b38c64d14582f3c43b3145a139e009fb80"
+        },
+        "execution": {
+          "path": ".artifacts/healthcheck/HC03-HC06/developer-03/families/business/execution.json",
+          "sha256": "df3d1930a542aad47f8cf31d4addbad5d260b4e82043978d2719ef6579ab72b0"
+        }
+      }
+    ]
+  },
+  "sourceComparison": {
+    "capturedCsharpSubtreeFiles": 935,
+    "mismatches": 0,
+    "taskSourceAndTestFiles": 7,
+    "historicalReceiptsChanged": false,
+    "administrativeEvidenceFinalizedAfterExecution": true
+  },
+  "attempts": [
+    {
+      "path": ".artifacts/healthcheck/HC03-HC06/focused-01.console.log",
+      "outcome": "Build failed on MSTEST0017 assertion argument analyzer; fixed before native execution."
+    },
+    {
+      "path": ".artifacts/healthcheck/HC03-HC06/focused-02.console.log",
+      "outcome": "582 cases passed before final formatting."
+    },
+    {
+      "path": ".artifacts/healthcheck/HC03-HC06/format-01.console.log",
+      "outcome": "Directory-targeted whitespace command formatted no files."
+    },
+    {
+      "path": ".artifacts/healthcheck/HC03-HC06/format-02.console.log",
+      "outcome": "Include-targeted whitespace command formatted no files."
+    },
+    {
+      "path": ".artifacts/healthcheck/HC03-HC06/developer-01",
+      "outcome": "Restore/boundaries passed; formatting failed; no complete checkpoint credited."
+    },
+    {
+      "path": ".artifacts/healthcheck/HC03-HC06/format-03.console.log",
+      "outcome": "Solution formatter corrected four task files; no unrelated files changed."
+    },
+    {
+      "path": ".artifacts/healthcheck/HC03-HC06/focused-03.console.log",
+      "outcome": "582 cases passed after formatting."
+    },
+    {
+      "path": ".artifacts/healthcheck/HC03-HC06/developer-02",
+      "outcome": "Pre-test stages and 4492 unit cases passed; coordinator stopped run to fix two definite reader-policy contradictions. No full candidate pass credited."
+    },
+    {
+      "path": ".artifacts/healthcheck/HC03-HC06/focused-04.console.log",
+      "outcome": "584 cases passed on final candidate."
+    },
+    {
+      "path": ".artifacts/healthcheck/HC03-HC06/developer-03",
+      "outcome": "Complete final Developer checkpoint passed."
+    }
+  ],
+  "pilot": {
+    "concurrentImplementationTasks": [
+      "HC03",
+      "HC06"
+    ],
+    "owners": [
+      {
+        "task": "HC03",
+        "implementation": "/root",
+        "tests": "/root/hc03_tests"
+      },
+      {
+        "task": "HC06",
+        "implementation": "/root/hc06_binder",
+        "tests": "/root/hc06_tests"
+      }
+    ],
+    "checkout": "Current committed checkout, disjoint writes, serialized coordinated integration/builds",
+    "buildOwner": "/root",
+    "agentBuilds": 0,
+    "competingBuilds": 0,
+    "matchedSpeedupComparisonAvailable": false
+  },
+  "graphEvidence": {
+    "path": "planning/healthcheck/evidence/HC06/graph-refresh.json",
+    "sha256": "5ad534f1720346ec31351b229339a9c7c1ab4c6457772cec962b3fdc48760b2b"
+  },
+  "limits": [
+    "Not complete module/M1/M2 acceptance or release qualification.",
+    "HTTP adapter, actual pipe/server/probe transport behavior and external Heartbeat/startup integration remain pending.",
+    "No Linux, coverage/mutation, genuine publication-history replay or exact-package release-example qualification.",
+    "New HC03/HC06 changes remain uncommitted; no push, publication, CIS task import or external review transmission."
+  ],
+  "coordinatedInternalContract": {
+    "revision": "0.4",
+    "addendum": {
+      "path": "planning/healthcheck/evidence/HC06/contract-amendment.md",
+      "sha256": "007ba407fbbb464e98f58b84c8b23b335aed18f62aca2590057775a6c4305fd3"
+    },
+    "publicSignaturesOrDefaultsChanged": false
+  }
+}

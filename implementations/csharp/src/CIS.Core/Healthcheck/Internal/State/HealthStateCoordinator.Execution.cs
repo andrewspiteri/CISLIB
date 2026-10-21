@@ -131,9 +131,9 @@ internal sealed partial class HealthStateCoordinator
     {
         ExecutionBinding binding = GetBinding(target);
         ValidateStateFact(binding, fact);
-        if (fact.Kind == HealthExecutionFactKind.Outcome || fact.Outcome is not null)
+        if (fact.Kind != HealthExecutionFactKind.Outcome && fact.Outcome is not null)
         {
-            throw new ArgumentException("Execution outcomes use the atomic outcome commit.", nameof(fact));
+            throw new ArgumentException("Only outcome facts carry an outcome.", nameof(fact));
         }
         var effects = new Effects();
         try
@@ -221,6 +221,16 @@ internal sealed partial class HealthStateCoordinator
         && active.TryGetValue(binding.Entry.Id, out var entry) && ReferenceEquals(entry, binding.Entry)
         && bindings.TryGetValue(binding.RegistrationId, out var current) && ReferenceEquals(current, binding);
 
+    public bool IsActive(BindingTarget target)
+    {
+        try
+        {
+            ExecutionBinding binding = GetBinding(target);
+            lock (gate) { return IsBindingActive(binding); }
+        }
+        finally { GC.KeepAlive(target); }
+    }
+
     public Task ReleaseBinding(BindingTarget target)
     {
         ExecutionBinding binding = GetBinding(target);
@@ -294,7 +304,9 @@ internal sealed partial class HealthStateCoordinator
             HealthExecutionFactKind.ErrorHandlingStarted or HealthExecutionFactKind.ErrorHandlingCompleted => HealthExecutionPhase.ErrorHandling,
             HealthExecutionFactKind.CleanupCompleted => HealthExecutionPhase.Cleanup,
             HealthExecutionFactKind.Settled => HealthExecutionPhase.Settled,
-            _ => fact.SourcePhase ?? previous?.Phase ?? HealthExecutionPhase.Registered
+            // Diagnostic origin is not a lifecycle transition. In particular, an
+            // IntegrationFault cannot invent actual settlement or retirement.
+            _ => previous?.Phase ?? HealthExecutionPhase.Registered
         };
         if (previous is not null && (int)previous.Phase > (int)phase) { phase = previous.Phase; }
         return new HealthExecutionSnapshot(new HealthExecutionSnapshotData
