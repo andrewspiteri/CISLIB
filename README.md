@@ -6,7 +6,7 @@ The repository currently contains tested configuration resolution/validation and
 
 ## Start with C#
 
-Healthcheck's service, four monitor policies and coherent state are implemented in [HC01](planning/healthcheck/evidence/HC01/README.md), building on the frozen HC00 foundation. [HC02](planning/healthcheck/evidence/HC02/README.md) adds bounded owner-safe collection. [HC03](planning/healthcheck/evidence/HC03/README.md) adds bounded reporting and protocol helpers; [HC06](planning/healthcheck/evidence/HC06/README.md) adds execution-fact binding. HTTP/pipe adapters and actual external scheduler integration remain later tasks.
+Healthcheck's service, four monitor policies and coherent state are implemented in [HC01](planning/healthcheck/evidence/HC01/README.md), building on the frozen HC00 foundation. [HC02](planning/healthcheck/evidence/HC02/README.md) adds bounded owner-safe collection. [HC03](planning/healthcheck/evidence/HC03/README.md) adds bounded reporting and protocol helpers; [HC06](planning/healthcheck/evidence/HC06/README.md) adds execution-fact binding. HTTP reporting, protected local pipes, the matching probe and the CountryList development example are now implemented; see the [Healthcheck guides](docs/modules/healthcheck/README.md) and [combined candidate evidence](planning/healthcheck/evidence/HC13/README.md). Actual external scheduler/startup integration, Linux execution and full release qualification remain pending.
 
 Install .NET SDK **10.0.401** and PowerShell 7. Core now requires the **Microsoft.AspNetCore.App** shared framework as well as Microsoft.NETCore.App; the pinned qualification runtime is **10.0.12**. The user approved this foundation dependency for [Healthcheck and future integrations](planning/healthcheck/decisions.md). Run from the repository root:
 
@@ -14,7 +14,7 @@ Install .NET SDK **10.0.401** and PowerShell 7. Core now requires the **Microsof
 pwsh -NoProfile -File eng/verify.ps1 -Profile Developer
 ```
 
-The developer check restores locked dependencies, evaluates project/package boundaries, checks formatting, builds Release, inspects built/packed assembly references, runs the populated unit, integration and architecture suites and starts the console host. This verifies the foundation, not the complete logging release suite. Run the individual steps from `implementations/csharp` when working in an IDE:
+The developer check restores locked dependencies, evaluates project/package boundaries, checks formatting, builds Release, inspects built/packed assembly references, runs the populated unit, integration, architecture and business suites and starts the console host. This verifies the foundation, not the complete logging release suite. Run the individual steps from `implementations/csharp` when working in an IDE:
 
 ```powershell
 dotnet restore CisLib.slnx --locked-mode

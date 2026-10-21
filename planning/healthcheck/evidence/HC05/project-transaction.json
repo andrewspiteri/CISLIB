@@ -1,0 +1,57 @@
+{
+  "schema": "cis.healthcheck.build-transaction/v1-development",
+  "baseCommit": "f73ec9224c9263c3ca2e3bf929fcbac0e6d655fc",
+  "requesters": [
+    "HC04",
+    "HC05",
+    "HC09",
+    "HC11"
+  ],
+  "coordinator": "/root",
+  "status": "Validated by complete Developer-02:32projects,38target graphs,2approved Core runtime packages,all16stages passed",
+  "originalBoundaryManifestSha256": "f4b5a65ea8429a2dd1ed24d03e4f8457eef2454c6bbc8bf45134e0fb60f73ed3",
+  "changes": [
+    "Nonpackable CisHealthProbe executable with Core friend access for shared strict reader",
+    "Pinned-runtime real Kestrel process fixture and build-only integration copies",
+    "Source-reference CountryList Web example and build-only business fixture copy",
+    "Solution/project boundaries/lockfiles coordinated together"
+  ],
+  "newRuntimeNuGets": [],
+  "newShippingLibraryAssemblies": [],
+  "existingApprovedFramework": "Microsoft.AspNetCore.App",
+  "dependencyRoleForProbe": "Existing nonpackable example/application-consumer category; no checker gates changed.",
+  "validation": {
+    "restore": {
+      "command": "dotnet restore CisLib.slnx --force-evaluate --configfile NuGet.config",
+      "log": ".artifacts/healthcheck/transports/restore-01.console.log",
+      "exitCode": 0
+    },
+    "build": {
+      "command": "dotnet build CisLib.slnx -c Release --no-restore -maxcpucount:1",
+      "log": ".artifacts/healthcheck/transports/build-01.console.log",
+      "exitCode": 0,
+      "warnings": 0,
+      "errors": 0
+    },
+    "combinedBoundary": {
+      "log": ".artifacts/healthcheck/transports/developer-01/logs/project-boundaries.log",
+      "evaluatedProjects": 32,
+      "approvedCoreRuntimePackages": 2,
+      "passed": true
+    },
+    "existingLockfiles": {
+      "count": 27,
+      "change": "Force evaluation rewrote CRLF only; exact committed LF bytes restored after equality check. No semantic dependency changes."
+    },
+    "newLockfiles": [
+      "tools/CisHealthProbe/packages.lock.json",
+      "tests/fixtures/HealthcheckHttpHost/packages.lock.json",
+      "examples/healthcheck/CountryList/packages.lock.json"
+    ]
+  },
+  "architectureRepair": [
+    "Scoped example/process-fixture framework-provided role parity",
+    "Actual resolved framework compiler origins for the explicitly declared fixture",
+    "Ten positive/negative native architecture cases; no runtime/project/dependency expansion"
+  ]
+}

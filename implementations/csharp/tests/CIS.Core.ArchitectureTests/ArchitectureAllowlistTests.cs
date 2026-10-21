@@ -37,6 +37,64 @@ public sealed class ArchitectureAllowlistTests
     }
 
     [TestMethod]
+    public void RealHealthcheckHttpProcessFixtureUsesExplicitFrameworkAndExactPrunedClosure()
+    {
+        const string path = "tests/fixtures/HealthcheckHttpHost/HealthcheckHttpHost.csproj";
+        JsonObject report = Current();
+        JsonObject fixture = Project(report, path);
+        Assert.AreEqual("process-fixture", fixture["role"]!.GetValue<string>());
+        Assert.IsTrue(fixture["targets"]!.AsArray().Count > 0);
+        JsonObject rule = Read("eng/project-boundaries.json")["projects"]!.AsArray().OfType<JsonObject>().Single(item => item["path"]!.GetValue<string>() == path);
+        CollectionAssert.AreEquivalent(
+            new[] { "Microsoft.Extensions.Logging.Abstractions", "Microsoft.Extensions.DependencyInjection.Abstractions" },
+            rule["frameworkProvidedRuntimePackages"]!.AsArray().Select(item => item!.GetValue<string>()).ToArray());
+        CollectionAssert.AreEqual(new[] { "Microsoft.AspNetCore.App" }, rule["additionalExplicitFrameworkReferences"]!.AsArray().Select(item => item!.GetValue<string>()).ToArray());
+        foreach (JsonObject target in fixture["targets"]!.AsArray().OfType<JsonObject>())
+        {
+            JsonObject reference = target["items"]!["FrameworkReference"]!.AsArray().OfType<JsonObject>().Single(item => item["Identity"]!.GetValue<string>() == "Microsoft.AspNetCore.App");
+            Assert.IsTrue(reference["IsImplicitlyDefined"]?.GetValue<string>() is null or "" or "false");
+            Assert.AreEqual(0, target["packages"]!.AsArray().Count, "Only the two approved framework-provided runtime packages may be pruned.");
+            Assert.IsTrue(target["items"]!["ReferencePath"]!.AsArray().OfType<JsonObject>().Any(item => item["FrameworkReferenceName"]?.GetValue<string>() == "Microsoft.AspNetCore.App"), "The actual compiler must resolve the installed ASP.NET reference pack.");
+        }
+        Assert.AreEqual(0, ArchitecturePolicy.Assert(Root, report)["violations"]!.GetValue<int>());
+    }
+
+    [TestMethod]
+    [DataRow("missing-framework", "ARCH-FRAMEWORK")]
+    [DataRow("duplicate-framework", "ARCH-FRAMEWORK")]
+    [DataRow("forged-implicit", "ARCH-FRAMEWORK")]
+    [DataRow("unapproved-framework", "ARCH-FRAMEWORK")]
+    [DataRow("unapproved-package", "ARCH-PACKAGE-CLOSURE")]
+    [DataRow("framework-runtime-package", "ARCH-PACKAGE-CLOSURE")]
+    [DataRow("wrong-package-version", "ARCH-PACKAGE-CLOSURE")]
+    [DataRow("framework-origin", "ARCH-COMPILER-ORIGIN")]
+    [DataRow("framework-version", "ARCH-COMPILER-ORIGIN")]
+    public void HttpProcessFixtureAllowanceRejectsIndependentObservedFactViolations(string mutation, string diagnostic)
+    {
+        JsonObject report = Current();
+        _ = ArchitecturePolicy.Assert(Root, report);
+        JsonObject target = Target(Project(report, "tests/fixtures/HealthcheckHttpHost/HealthcheckHttpHost.csproj"));
+        JsonNode items = target["items"]!;
+        JsonArray frameworks = items["FrameworkReference"]!.AsArray();
+        JsonObject aspNet = frameworks.OfType<JsonObject>().Single(item => item["Identity"]!.GetValue<string>() == "Microsoft.AspNetCore.App");
+        switch (mutation)
+        {
+            case "missing-framework": frameworks.Remove(aspNet); break;
+            case "duplicate-framework": frameworks.Add(aspNet.DeepClone()); break;
+            case "forged-implicit": aspNet["IsImplicitlyDefined"] = "true"; break;
+            case "unapproved-framework": aspNet["Identity"] = "Unapproved.Framework"; break;
+            case "unapproved-package": target["packages"]!.AsArray().Add(new JsonObject { ["id"] = "NLog", ["version"] = "5.0.0" }); break;
+            case "framework-runtime-package": target["packages"]!.AsArray().Add(new JsonObject { ["id"] = "Microsoft.Extensions.Logging.Abstractions", ["version"] = "10.0.12" }); break;
+            case "wrong-package-version": target["packages"]!.AsArray().Add(new JsonObject { ["id"] = "Microsoft.Extensions.DependencyInjection.Abstractions", ["version"] = "10.0.13" }); break;
+            case "framework-origin": items["ReferencePath"]!.AsArray().OfType<JsonObject>().First(item => item["FrameworkReferenceName"]?.GetValue<string>() == "Microsoft.AspNetCore.App")["Identity"] = typeof(ArchitectureAllowlistTests).Assembly.Location; break;
+            case "framework-version": items["ReferencePath"]!.AsArray().OfType<JsonObject>().First(item => item["FrameworkReferenceName"]?.GetValue<string>() == "Microsoft.AspNetCore.App")["NuGetPackageVersion"] = "10.0.13"; break;
+            default: Assert.Fail("Unknown fixture mutation."); break;
+        }
+        InvalidDataException error = Assert.Throws<InvalidDataException>(() => ArchitecturePolicy.Assert(Root, report));
+        StringAssert.StartsWith(error.Message, diagnostic + ":");
+    }
+
+    [TestMethod]
     [DataRow("shipping-identity", "ARCH-SHIPPING-IDENTITY")]
     [DataRow("private-package", "ARCH-PACKAGE-REFERENCE")]
     [DataRow("framework-pruned-closure", "ARCH-PACKAGE-CLOSURE")]

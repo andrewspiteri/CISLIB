@@ -74,7 +74,8 @@ internal static class ArchitectureInspection
                 }
                 Require(effectiveLock.Count(item => item.Value!["type"]!.GetValue<string>() != "Project") == packages.Count, $"Locked package inventory mismatch: {relative} {targetName}");
                 JsonObject context = await Evaluate(languageRoot, path, framework, rid);
-                if (role is "shipping" or "build-tool")
+                if (role is "shipping" or "build-tool"
+                    || role == "process-fixture" && matches[0]["frameworkProvidedRuntimePackages"] is JsonArray { Count: > 0 })
                 {
                     JsonObject resolved = await Evaluate(languageRoot, path, framework, rid, resolve: true);
                     context["Items"]!["ReferencePath"] = resolved["Items"]!["ReferencePath"]!.DeepClone();

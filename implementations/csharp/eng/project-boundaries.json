@@ -99,12 +99,23 @@
       "projectReferences": [
         "src/CIS.Core/CIS.Core.csproj",
         "tests/CIS.Core.TestSupport/CIS.Core.TestSupport.csproj",
-        "tests/fixtures/DiscoveryHost/CIS.Core.DiscoveryFixture.csproj"
+        "tests/fixtures/DiscoveryHost/CIS.Core.DiscoveryFixture.csproj",
+        "tests/fixtures/HealthcheckHttpHost/HealthcheckHttpHost.csproj",
+        "tools/CisHealthProbe/CisHealthProbe.csproj"
       ],
       "packageReferences": [
         "Microsoft.NET.Test.Sdk",
         "MSTest.TestFramework",
         "MSTest.TestAdapter"
+      ],
+      "buildOnlyProjectReferences": [
+        "tests/fixtures/HealthcheckHttpHost/HealthcheckHttpHost.csproj",
+        "tools/CisHealthProbe/CisHealthProbe.csproj"
+      ],
+      "restoredProjectReferences": [
+        "src/CIS.Core/CIS.Core.csproj",
+        "tests/CIS.Core.TestSupport/CIS.Core.TestSupport.csproj",
+        "tests/fixtures/DiscoveryHost/CIS.Core.DiscoveryFixture.csproj"
       ]
     },
     {
@@ -139,12 +150,21 @@
       "projectReferences": [
         "src/CIS.Core/CIS.Core.csproj",
         "tests/CIS.Core.TestSupport/CIS.Core.TestSupport.csproj",
-        "tests/fixtures/DiscoveryHost/CIS.Core.DiscoveryFixture.csproj"
+        "tests/fixtures/DiscoveryHost/CIS.Core.DiscoveryFixture.csproj",
+        "examples/healthcheck/CountryList/CountryList.csproj"
       ],
       "packageReferences": [
         "Microsoft.NET.Test.Sdk",
         "MSTest.TestFramework",
         "MSTest.TestAdapter"
+      ],
+      "buildOnlyProjectReferences": [
+        "examples/healthcheck/CountryList/CountryList.csproj"
+      ],
+      "restoredProjectReferences": [
+        "src/CIS.Core/CIS.Core.csproj",
+        "tests/CIS.Core.TestSupport/CIS.Core.TestSupport.csproj",
+        "tests/fixtures/DiscoveryHost/CIS.Core.DiscoveryFixture.csproj"
       ]
     },
     {
@@ -340,6 +360,45 @@
         "Microsoft.Extensions.Logging.Abstractions",
         "Microsoft.Extensions.DependencyInjection.Abstractions"
       ]
+    },
+    {
+      "path": "tools/CisHealthProbe/CisHealthProbe.csproj",
+      "role": "example",
+      "purpose": "Nonpackable application executable for the local Healthcheck probe; consumes the approved Core closure.",
+      "projectReferences": [
+        "src/CIS.Core/CIS.Core.csproj"
+      ],
+      "packageReferences": []
+    },
+    {
+      "path": "tests/fixtures/HealthcheckHttpHost/HealthcheckHttpHost.csproj",
+      "role": "process-fixture",
+      "projectReferences": [
+        "src/CIS.Core/CIS.Core.csproj"
+      ],
+      "additionalExplicitFrameworkReferences": [
+        "Microsoft.AspNetCore.App"
+      ],
+      "frameworkProvidedRuntimePackages": [
+        "Microsoft.Extensions.Logging.Abstractions",
+        "Microsoft.Extensions.DependencyInjection.Abstractions"
+      ],
+      "packageReferences": []
+    },
+    {
+      "path": "examples/healthcheck/CountryList/CountryList.csproj",
+      "role": "example",
+      "projectReferences": [
+        "src/CIS.Core/CIS.Core.csproj"
+      ],
+      "additionalImplicitFrameworkReferences": [
+        "Microsoft.AspNetCore.App"
+      ],
+      "frameworkProvidedRuntimePackages": [
+        "Microsoft.Extensions.Logging.Abstractions",
+        "Microsoft.Extensions.DependencyInjection.Abstractions"
+      ],
+      "packageReferences": []
     }
   ],
   "moduleRules": [
