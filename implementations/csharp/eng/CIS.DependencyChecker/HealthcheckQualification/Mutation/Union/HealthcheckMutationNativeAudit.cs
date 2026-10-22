@@ -26,8 +26,8 @@ internal static partial class HealthcheckMutationNativeAudit
     private static readonly Regex ParentMonitor = new(@"Monitoring parent process with id: '(?<pid>\d+)'", RegexOptions.CultureInvariant, TimeSpan.FromSeconds(1));
 
     internal static NativeAuditResult Audit(JsonObject report, JsonObject config, IReadOnlyList<string> logPaths, string objectModelPath,
-        string? originalReportSha256 = null, Definition[]? sourceCheckedDefinitions = null)
-        => AuditCore(report, config, logPaths, objectModelPath, originalReportSha256, sourceCheckedDefinitions, AbortedTailCase.Unit18Selector1904);
+        string? originalReportSha256 = null, Definition[]? sourceCheckedDefinitions = null, Source[]? reviewedSources = null)
+        => AuditCore(report, config, logPaths, objectModelPath, originalReportSha256, sourceCheckedDefinitions, AbortedTailCase.Unit18Selector1904, reviewedSources);
 
     // Receiving seam: explicit synthetic case data cannot enter
     // the maintained Audit entry point, which uses only the fixed reviewed case.
@@ -36,7 +36,7 @@ internal static partial class HealthcheckMutationNativeAudit
         => AuditCore(report, config, logPaths, objectModelPath, reportSha256, definitions, receivingCase);
 
     private static NativeAuditResult AuditCore(JsonObject report, JsonObject config, IReadOnlyList<string> logPaths, string objectModelPath,
-        string? originalReportSha256, Definition[]? sourceCheckedDefinitions, AbortedTailCase abortedTailCase)
+        string? originalReportSha256, Definition[]? sourceCheckedDefinitions, AbortedTailCase abortedTailCase, Source[]? reviewedSources = null)
     {
         var state = new AuditState();
         try
@@ -56,7 +56,7 @@ internal static partial class HealthcheckMutationNativeAudit
             };
             Dictionary<string, NativeDefinition> definitions = Definitions(report);
             Dictionary<string, TestIdentity> tests = Tests(report, options);
-            HealthcheckMutationSemanticProofs.Context? semantic = HealthcheckMutationSemanticProofs.CreateContext(report, originalReportSha256, sourceCheckedDefinitions);
+            HealthcheckMutationSemanticProofs.Context? semantic = HealthcheckMutationSemanticProofs.CreateContext(report, originalReportSha256, sourceCheckedDefinitions, reviewedSources);
             Require(definitions.Values.All(definition => definition.KilledBy.All(tests.ContainsKey)), "Reported killedBy contains a GUID outside the declared report tests.");
             string filter = Text(options, "test-case-filter");
             var controllers = new List<string>();

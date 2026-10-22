@@ -6,17 +6,142 @@ wave. The changes and executions below are a separate, unpublished gate-closure
 wave. The requested mutation threshold remains 90%; writing detectors or a
 diagnostic config does not establish a passing gate.
 
-Latest continuation (22 October): the approved complete, source-checked
-three-report Healthcheck union35 is complete and unqualified. Its qualified
-score is1543/3065 (50.34%), up from49.26%, against the90% gate. The raw
-conservative score remains2659/3102 (85.72%). All three original reports,
-restoration cohorts and remaining failures are retained. The maintained
-reader's817 receiving controls pass; Developer26 passes all16 stages and9574
-native cases. Independent physical/input/cohort/accounting reviews pass for
-both executions. The earlier zero-adjustment union33 remains unchanged.
-The [closed continuation receipt](parallel-continuation-2026-10-22.json) records
-the actual adjustments and exact evidence pins. No release is qualified.
+Latest continuation (22 October, after commit `76c309ba`): the approved complete,
+source-checked three-report Healthcheck union40 is complete and unqualified.
+Its qualified score is 1,591/3,065 (51.91%), up from 50.34%, against the 90% gate.
+The raw conservative score remains 2,659/3,102 (85.72%). All three original
+reports, restoration cohorts and unrelated failures remain retained. The
+receiving suite passes 1,103 native cases; normal Developer28 passes all 16
+stages and 9,832 native cases. Independent physical/input/cohort/accounting
+reviews pass for both executions. The earlier union35 and zero-adjustment
+union33 remain unchanged. The
+[closed continuation receipt](parallel-continuation-2026-10-22-02.json) records
+the exact executions, adjustments and evidence pins. No release is qualified.
 Historical observations below retain their original source snapshots and dates.
+
+## Parallel continuation after commit 76c309ba
+
+The Unit/runtime lane adds 45 exact original observations in two fixed catalogs.
+Twelve cover admitted option endpoints and pipe names, public retirement facts,
+and valid wire-array boundaries. Another 33 cover the existing public binding
+facts -> captured snapshot -> detailed pipe formatter -> parser route. Every
+case binds the original report, complete source tuple and killedBy set, actual
+receiving GUID/FQN and source, complete message/stack hashes, and its individual
+causal review. Other inputs, deadlines and incomplete hosts remain held. The
+native reader's normal-host and OS-exit requirements still precede these proofs.
+
+The Pipes lane independently verifies four supplied-stdout failures for
+3023/3025/3026/3027 across eight normal hosts and all 70 failed identities.
+The exact source-owned IOException route is bound; repeated asynchronous unwind
+frames are not treated as cleanup proof. Raw replacement text remains definition
+identity, without a standalone reparsing or syntax-tree claim. Three definitions
+already have direct witnesses; only 3027 raises the unique Pipes numerator,
+from 110 to 111. The component audit removes exactly four non-direct rows and
+that one missing-witness issue. All 80 aborted/completion/incomplete contexts,
+the statistics failure, 336 child failures and unknown-selector global hold
+remain unchanged.
+
+The ASP.NET lane admits 13 exact ordinary receiving observations for
+202/204/228/229/272/280. Eight observe unexpected HTTP 404 responses on valid
+business routes; these do not claim a Core-origin throw. Five observe the
+adapter passing an invalid error format/code to the actual formatter. The new
+matcher requires the source-checked formatter and protocol bodies as well as
+the adapter; the context clones the read-only source inventory. All six IDs
+already have direct witnesses, so this work adds no ASP.NET numerator. Its
+standalone native issue count changes from 323 to 310, with no unrelated issue
+changed. After the existing four-definition finite proof is composed, 102
+ASP.NET issues remain, including all 35 remaining milestone-deadline rows.
+
+The actual complete consumer also composes the two previously maintained Unit
+finite profiles with the ASP.NET profile: original Timeout1896 and incomplete-
+host Killed1904 each receive one strictly validated assertion-rerun adjustment.
+The three profiles produce six definition adjustments and four unique numerator
+contributions in total; the ASP.NET profile already supplied two of those in
+union35. Metadata relocation creates a new basis with four metadata files and
+756 hash-checked retained copies, preserving every observed original input.
+Current-only body observations are not retroactive loaded-module claims.
+
+Union40 ran on the authorized Ubuntu server under `/data` and closed with
+`complete:true`, `qualified:false` and actual exit 1. Its score increases by
+48 qualified kills: 45 Unit ordinary observations, one Pipes observation and
+two Unit finite reruns. The denominator remains 3,065; the 37 individual
+equivalents and eight noncritical records are unchanged. Per-group results are
+1,408/2,757 Unit, 111/228 Pipes and 72/80 ASP.NET. There are 1,466 unresolved
+mutants and 93,780 integrity issues. Independent review rehashes 10,861
+maintained inputs, replays all 51 typed adjustments and 62 new native semantic
+rows, and verifies the exact remaining issue multiset. It preserves all
+unrelated/global failures and applies no independent kill credit. This is an
+independent consistency review, not a second wholesale native classification.
+
+The 1,103-case receiving cohort includes all 845 prior selected GUID/FQN pairs
+and 258 new cases (73/78/56/51 across the two Unit, ASP.NET and Pipes classes).
+Normal Developer28 independently executes 5,237 Unit, 2,322 Integration, 2,244
+Architecture and 29 Business cases with no failures or skips. Its immediate
+23-file binary/source/README capture and independent review pass. Actual Core
+bytes agree across the package and four test families:
+`173ed90910d89973b0267a8d84800eff48f90ac850047c0384e803eaa528d103`.
+Developer does not execute the Mutation/Compatibility families or approve a
+whole-Core release.
+
+Failed focused39 aliases and Developer27's full-format failure remain retained.
+After correction, a Roslyn review proves that the six formatting-changed C#
+files preserve the same using-declaration multiset, other syntax tokens and
+directives. All 146 shipping sources remain byte-identical. Frozen checker40
+and source34 remain their actual consumer snapshot; Developer28 uses source35
+(1,507 physical inputs, 1,456 common Git inputs and 51 explicit pycache inputs).
+This section, latest-status paragraph and new continuation receipt were written
+after checkpoint capture/review; the captured README retains its exact version.
+
+The separate [bounded diagnostic continuation](parallel-diagnostics-2026-10-22.json)
+records the actual follow-up trials. The Ubuntu Unit pilot tests exactly seven
+reviewed formatter string mutations with mixing disabled and the original full
+test filter and 10,000 ms additional timeout. Initial and fresh cohorts each pass
+1,328 cases; all nine execution hosts and one discovery host complete normally,
+with actual kernel exits joined. All seven raw results are Killed, but the
+direct-only reader admits 48 assertion rows for six definitions. Definition 3378
+has only missing-field exceptions; all 84 non-direct rows and its missing-witness
+issue remain held. Actual Core DLL restoration is verified before the fresh
+build. Source and test Core PDB copies differ before that build; both actual
+copies are retained without a loaded-symbol or CodeView-parity claim.
+
+The private ASP.NET phase 1 proposal passes five focused cases and the complete
+82-case cohort both before and after a fresh rebuild. Its only source35 overlay
+is the HTTP test file; all 146 Core sources remain unchanged. Exact GUID/FQN sets
+and executable bodies agree. Failed attempt 42 remains retained: its private
+helper compared signed-package content hashes with raw ZIP hashes before tests
+ran. The corrected helper independently verifies all 14 NuGet content hashes
+against lock/assets/metadata and archive hashes against physical sidecars.
+Phase 2 and a new ASP.NET mutation report remain unexecuted.
+
+The private Pipes recorder trial uses the explicitly older 1,439-input source
+basis plus three recorder replacements and one new Capture source, not the
+current 1,507-input checkpoint. All 146 Core sources and five selected probe,
+fixture and build inputs match current code. After the first launcher selected
+the system runtime and failed before discovery, a new pinned-runtime attempt
+passes 34 recorder controls and initial/fresh two-case baselines. Actual 3031
+survives; the Probe source's 10 CompileError and 84 Ignored definitions remain
+visible, and the native below-break exit is retained. The child audit passes
+for two version 1 intent/launch chains. Core DLLs match their actual backup
+before the fresh build; the Integration copy-local Core PDB remains instrumented
+until that build. This retained difference prevents an all-body immediate-
+restoration claim. The original 336 failed children remain unchanged. No private
+candidate is adopted and no finite or union adjustment is applied; the closed
+union40 score remains 51.91%.
+
+A redundant local toolchain transfer archive was reclaimed only after the
+identical Ubuntu archive was verified. Later cold storage removes only the 5,412
+verified materialized log copies under the old09, full14, full18 and Pipes20 log
+trees. All four compressed originals remain hash-identical locally and on
+Ubuntu; reports, source and body captures remain retained. The actual free-space
+gain is 13,812,957,184 bytes, leaving 19,680,854,016 bytes available. This remains
+below the proposed 20 GB full-Unit planning target; no full rerun has started.
+Historical consumers must first restore the exact original log paths and verify
+the entire retained member inventory. The diagnostic receipt pins the action,
+durable deletion journal, local archive postcheck and exact restoration commands.
+Final staging removes one empty line at EOF from the nonshipping Pipes output
+catalog. A direct normalized-character comparison verifies that every preceding
+character is unchanged; source35 and all native captures retain their original
+bytes. No native execution or gate credit is inferred from this formatting edit.
 
 ## Parallel reader continuation after commit e53c3ef9
 

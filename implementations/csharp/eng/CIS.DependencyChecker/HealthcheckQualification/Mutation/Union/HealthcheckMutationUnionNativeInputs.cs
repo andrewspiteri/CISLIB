@@ -28,7 +28,7 @@ internal static partial class HealthcheckMutationUnionVerification
         string objectModel = files.Pin(Item(descriptor["objectModel"]));
         string[] logs = ReadLogs(files, descriptor);
         Definition[] definitions = ParseReport(report, group, reportHash, nativeRoot, sources);
-        NativeAuditResult audit = HealthcheckMutationNativeAudit.Audit(report, config, logs, objectModel, reportHash, definitions);
+        NativeAuditResult audit = HealthcheckMutationNativeAudit.Audit(report, config, logs, objectModel, reportHash, definitions, sources);
         var issues = audit.Issues.ToList();
         VerifyRestoration(files, descriptor, sources, group, report);
         if (group is "pipes" or "aspnet")

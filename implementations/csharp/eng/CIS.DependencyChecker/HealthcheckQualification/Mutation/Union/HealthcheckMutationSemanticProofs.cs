@@ -24,26 +24,32 @@ internal static class HealthcheckMutationSemanticProofs
 
     internal sealed class Context
     {
-        internal Context(string reportSha256, Definition[] definitions, JsonObject report)
+        internal Context(string reportSha256, Definition[] definitions, JsonObject report, Source[]? reviewedSources = null)
         {
             ReportSha256 = reportSha256;
             Definitions = definitions.ToDictionary(value => value.Id, value => value with { KilledBy = value.KilledBy.ToArray() }, StringComparer.Ordinal);
             Report = report.DeepClone().AsObject();
+            // The union CLI supplies its complete source-checked Healthcheck
+            // inventory. Records contain immutable strings; copy the records
+            // and array so later caller mutations cannot change this context.
+            ReviewedSources = Array.AsReadOnly((reviewedSources ?? []).Select(value => value with { }).ToArray());
         }
 
         internal string ReportSha256 { get; }
         internal Dictionary<string, Definition> Definitions { get; }
         internal JsonObject Report { get; }
+        internal IReadOnlyList<Source> ReviewedSources { get; }
     }
 
-    internal static Context? CreateContext(JsonObject report, string? originalReportSha256, Definition[]? sourceCheckedDefinitions)
+    internal static Context? CreateContext(JsonObject report, string? originalReportSha256, Definition[]? sourceCheckedDefinitions,
+        Source[]? reviewedSources = null)
     {
         if (originalReportSha256 is null && sourceCheckedDefinitions is null) { return null; }
         if (originalReportSha256 is null || sourceCheckedDefinitions is null || sourceCheckedDefinitions.Length == 0
             || originalReportSha256.Length != 64 || !originalReportSha256.All(Uri.IsHexDigit)
             || sourceCheckedDefinitions.Select(value => value.Id).Distinct(StringComparer.Ordinal).Count() != sourceCheckedDefinitions.Length)
         { throw new InvalidDataException("Semantic native review requires the pinned original report SHA and unique source-checked definitions together."); }
-        return new Context(originalReportSha256, sourceCheckedDefinitions, report);
+        return new Context(originalReportSha256, sourceCheckedDefinitions, report, reviewedSources);
     }
 
     internal static bool TryMatch(Context? context, string mutantId, string guid, string method, string codeFile,
@@ -57,6 +63,10 @@ internal static class HealthcheckMutationSemanticProofs
         }
         return HealthcheckMutationRequiredFieldProofs.TryMatch(context, mutantId, guid, method, codeFile, message, stack, out witness)
             || HealthcheckMutationAdditionalUnitSemanticProofs.TryMatch(context, mutantId, guid, method, codeFile, message, stack, out witness)
+            || HealthcheckMutationUnitContinuationProofs.TryMatch(context, mutantId, guid, method, codeFile, message, stack, out witness)
+            || HealthcheckMutationUnitContinuation2Proofs.TryMatch(context, mutantId, guid, method, codeFile, message, stack, out witness)
+            || HealthcheckMutationAspNetSemanticProofs.TryMatch(context, mutantId, guid, method, codeFile, message, stack, out witness)
+            || HealthcheckMutationPipeOutputProofs.TryMatch(context, mutantId, guid, method, codeFile, message, stack, out witness)
             || HealthcheckMutationPipeGuardProofs.TryMatch(context, mutantId, guid, method, codeFile, message, stack, out witness);
     }
 
