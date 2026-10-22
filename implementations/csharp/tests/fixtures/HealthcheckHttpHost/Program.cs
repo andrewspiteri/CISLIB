@@ -1,3 +1,5 @@
+using System.ComponentModel;
+using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Text.Json;
 using CIS.Healthcheck;
@@ -17,12 +19,31 @@ internal static class Program
     private static async Task Main(string[] args)
     {
         string mode = args.Length == 0 ? "normal" : args[0];
+        if (mode == "pipe-pin-release")
+        {
+            try { await ObserveWindowsPipePinRelease(); }
+            catch (Exception error) when (IsAttributedPipeResourceFailure(error))
+            {
+                Write(new
+                {
+                    status = "resource-error",
+                    diagnostic = "pipe-pin-release",
+                    error = error.GetType().Name,
+                    pid = Environment.ProcessId,
+                    runtime = RuntimeInformation.FrameworkDescription
+                });
+            }
+            return;
+        }
         var options = new HealthcheckOptions
         {
             DetailsEnabled = mode != "details-disabled",
             MaxReportBytes = mode == "overflow" ? 1024 : 4194304,
             PipeEnabled = mode is "parity" or "pipe-live",
             PipeName = mode is "parity" or "pipe-live" ? "cis-fixture-" + Guid.NewGuid().ToString("N") : null,
+            // Parity checks complete payload equality within the functional test's
+            // 15-second limit; its pipe exchange is not a default-deadline test.
+            PipeRequestTimeoutMs = mode == "parity" ? 15_000 : 1000,
         };
         await using var service = new HealthcheckService(options, new HealthApplicationIdentity { Name = "transport-fixture", InstanceId = Guid.Parse("02fc362c-a583-48c3-8f17-2e5743312e54") });
         var monitors = new List<IConditionMonitor>();
@@ -78,6 +99,73 @@ internal static class Program
     }
 
     private static void Write(object value) { Console.WriteLine(JsonSerializer.Serialize(value)); }
+
+    // Only this diagnostic normalizes an expected public resource failure. An
+    // unrelated BCL/runtime/observer failure must retain its abnormal termination.
+    private static bool IsAttributedPipeResourceFailure(Exception error)
+    {
+        if (error is not Win32Exception and not ArgumentException and not InvalidOperationException and not IOException) { return false; }
+        var method = new StackTrace(error, fNeedFileInfo: false).GetFrame(0)?.GetMethod();
+        if (method?.Module != typeof(HealthPipeServer).Module) { return false; }
+        Type? declaringType = method.DeclaringType;
+        while (declaringType?.DeclaringType is { } outer) { declaringType = outer; }
+        return declaringType == typeof(HealthPipeServer)
+            || declaringType?.FullName == "CIS.Healthcheck.Pipes.HealthPipeEndpoint";
+    }
+
+    // A separate real-process diagnostic keeps the public GC observation free of
+    // concurrent tests. The integration test, rather than this fixture, decides
+    // whether the observed retained pin count satisfies the resource lifetime.
+    private static async Task ObserveWindowsPipePinRelease()
+    {
+        if (!OperatingSystem.IsWindows())
+        {
+            Write(new { status = "inapplicable", diagnostic = "pipe-pin-release", platform = "non-Windows" });
+            return;
+        }
+        const int WarmupServers = 8, MeasuredServers = 32;
+        await using var service = new HealthcheckService(new HealthcheckOptions(),
+            new HealthApplicationIdentity { Name = "pipe-pin-release", InstanceId = Guid.NewGuid() });
+        await SettlePipeServers(service, WarmupServers);
+        long before = ObservePinnedObjectsAfterFullCollection();
+        await SettlePipeServers(service, MeasuredServers);
+        long after = ObservePinnedObjectsAfterFullCollection();
+        Write(new
+        {
+            status = "observed",
+            diagnostic = "pipe-pin-release",
+            platform = "Windows",
+            pid = Environment.ProcessId,
+            runtime = RuntimeInformation.FrameworkDescription,
+            warmupServers = WarmupServers,
+            measuredServers = MeasuredServers,
+            pinnedBefore = before,
+            pinnedAfter = after
+        });
+    }
+
+    private static async Task SettlePipeServers(IHealthSnapshotSource source, int count)
+    {
+        for (int index = 0; index < count; index++)
+        {
+            await using var server = new HealthPipeServer(source, new HealthcheckOptions
+            {
+                PipeEnabled = true,
+                PipeName = "cis-pin-release-" + Guid.NewGuid().ToString("N"),
+                PipeMaxClients = 1
+            });
+            await server.StartAsync();
+            await server.StopAsync();
+        }
+    }
+
+    private static long ObservePinnedObjectsAfterFullCollection()
+    {
+        GC.Collect(GC.MaxGeneration, GCCollectionMode.Forced, blocking: true, compacting: true);
+        GC.WaitForPendingFinalizers();
+        GC.Collect(GC.MaxGeneration, GCCollectionMode.Forced, blocking: true, compacting: true);
+        return GC.GetGCMemoryInfo().PinnedObjectsCount;
+    }
 
     private sealed class CountingSource(HealthcheckService service, IConditionMonitor monitor, string mode) : IHealthSnapshotSource
     {

@@ -1,0 +1,3071 @@
+{
+  "schema": "cis.healthcheck.pipes-historical-dispositions/v1-development",
+  "scope": "Read-only source-bound review of exactly 114 Survived and 25 Timeout records from the retained initial Windows Pipes report; no status rewrite, denominator waiver, native execution or automatic qualification.",
+  "rawReport": {
+    "path": ".artifacts/healthcheck/release-next/pipes-windows-01/native/reports/mutation-report.json",
+    "sha256": "29424c1ebfea6a595163a04c67941d2ae71ddf7321fb6e798f61eb0aa17fd8fb"
+  },
+  "rawConfig": {
+    "path": ".artifacts/healthcheck/release-next/pipes-windows-01/config.json",
+    "sha256": "1a8f81da060bbcfd22a58fe5ea99aa2307a33c6a466700a5c9a2103a1baff532"
+  },
+  "rawAllStatuses": {
+    "Killed": 89,
+    "Survived": 114,
+    "Timeout": 25,
+    "CompileError": 60,
+    "Ignored": 75
+  },
+  "oldChildAudit": "Invalid: 165 private-stage collision failures, 105 missing terminal files and one temporary artifact. Even the native Killed labels are not blanket credited.",
+  "reviewedStatuses": {
+    "Survived": 114,
+    "Timeout": 25
+  },
+  "reviewedByFile": {
+    "Healthcheck/Pipes/HealthPipeBudget.cs": 5,
+    "Healthcheck/Pipes/HealthPipeEndpoint.cs": 14,
+    "Healthcheck/Pipes/HealthPipeServer.cs": 84,
+    "Healthcheck/Pipes/HealthProbeClient.cs": 36
+  },
+  "embeddedSourceHashDefinition": "SHA-256 over UTF-8 bytes of the JSON-decoded source string, retaining that string's original line endings.",
+  "embeddedSources": [
+    {
+      "reportPath": "C:\\miscwork\\portfolio\\cislib\\.artifacts\\healthcheck\\release-next\\pipes-inputs-01\\source\\implementations\\csharp\\src\\CIS.Core\\Healthcheck\\Pipes\\HealthPipeBudget.cs",
+      "embeddedSourceSha256": "fd0add01dd455a7d9ef94286c50484f5797e80a1917fbf7f9f44478ba3ab1d7f",
+      "statuses": [
+        {
+          "status": "Ignored",
+          "count": 3
+        },
+        {
+          "status": "Killed",
+          "count": 4
+        },
+        {
+          "status": "Survived",
+          "count": 5
+        }
+      ]
+    },
+    {
+      "reportPath": "C:\\miscwork\\portfolio\\cislib\\.artifacts\\healthcheck\\release-next\\pipes-inputs-01\\source\\implementations\\csharp\\src\\CIS.Core\\Healthcheck\\Pipes\\HealthPipeEndpoint.cs",
+      "embeddedSourceSha256": "1e39973ca242e5ef08b49f8efc696fb9b6e8d9ab5cc98173cdda5f674c820b9e",
+      "statuses": [
+        {
+          "status": "CompileError",
+          "count": 1
+        },
+        {
+          "status": "Ignored",
+          "count": 6
+        },
+        {
+          "status": "Killed",
+          "count": 13
+        },
+        {
+          "status": "Survived",
+          "count": 13
+        },
+        {
+          "status": "Timeout",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "reportPath": "C:\\miscwork\\portfolio\\cislib\\.artifacts\\healthcheck\\release-next\\pipes-inputs-01\\source\\implementations\\csharp\\src\\CIS.Core\\Healthcheck\\Pipes\\HealthPipeServer.cs",
+      "embeddedSourceSha256": "9e13abc26b5ffa33dd3c06000506b22cccd821411450ebdf357a6687b65e7a2c",
+      "statuses": [
+        {
+          "status": "CompileError",
+          "count": 49
+        },
+        {
+          "status": "Ignored",
+          "count": 54
+        },
+        {
+          "status": "Killed",
+          "count": 34
+        },
+        {
+          "status": "Survived",
+          "count": 61
+        },
+        {
+          "status": "Timeout",
+          "count": 23
+        }
+      ]
+    },
+    {
+      "reportPath": "C:\\miscwork\\portfolio\\cislib\\.artifacts\\healthcheck\\release-next\\pipes-inputs-01\\source\\implementations\\csharp\\src\\CIS.Core\\Healthcheck\\Pipes\\HealthProbeClient.cs",
+      "embeddedSourceSha256": "e022538f8c4694b3b772625d58886ba9897b6fb8f075a365faf08887878f2f54",
+      "statuses": [
+        {
+          "status": "CompileError",
+          "count": 10
+        },
+        {
+          "status": "Ignored",
+          "count": 12
+        },
+        {
+          "status": "Killed",
+          "count": 38
+        },
+        {
+          "status": "Survived",
+          "count": 35
+        },
+        {
+          "status": "Timeout",
+          "count": 1
+        }
+      ]
+    }
+  ],
+  "coordinates": "Exact native report location: one-based line/column; end is exclusive. Original is sliced from the embedded historical source at that location, not from the changed current candidate.",
+  "reconciliation": "Match future records by source hash/path/span, mutation kind and replacement. Numeric IDs alone do not establish identity after source changes.",
+  "authoredDetectorLimit": "detector-authored means a meaningful assertion was added/proposed in this wave, not that this historical mutant was executed and killed. Snapshot03 Pipes baseline passed117/117; the later disposal case and root's new unit cases have separate evidence needs.",
+  "sourceVersionLimit": "Historical parser true-return survivors relied on the then-initialized default settings. The new nullable-out cleanup is an intentional source change, so later managed null-settings failures must meet the exact source/Core/selector/MVID/async-frame positive and negative attribution controls before any credit. Historical definitions remain unchanged.",
+  "noCreditRules": [
+    "No Timeout or compiler/infrastructure failure is counted as Killed.",
+    "No private English-message or cosmetic CLI prefix assertion is introduced to improve score.",
+    "No unsupported caller-context-affinity contract is invented.",
+    "No equivalent-candidate assessment removes a native record or waives the strict90% gate.",
+    "No Windows survival establishes a Linux-only branch."
+  ],
+  "primarySources": [
+    {
+      "url": "https://raw.githubusercontent.com/dotnet/runtime/v10.0.12/src/libraries/System.Private.CoreLib/src/System/Threading/ThreadPoolWorkQueue.cs",
+      "scope": "Pinned successful generic UnsafeQueueUserWorkItem return behavior at lines1569–1595; queue exceptions remain possible."
+    },
+    {
+      "url": "https://raw.githubusercontent.com/dotnet/runtime/v10.0.12/src/libraries/System.Net.Primitives/src/System/Net/SocketException.cs",
+      "scope": "SocketException inheritance; it is not covered merely by IOException."
+    }
+  ],
+  "assessments": [
+    {
+      "file": "Healthcheck/Pipes/HealthPipeBudget.cs",
+      "id": "2705",
+      "status": "Survived",
+      "span": {
+        "start": {
+          "line": 25,
+          "column": 9
+        },
+        "end": {
+          "line": 25,
+          "column": 46
+        }
+      },
+      "mutator": "Statement mutation",
+      "original": "Token.ThrowIfCancellationRequested();",
+      "replacement": ";",
+      "assessment": "detector-authored",
+      "reason": "Removing the token check permits an externally canceled request while elapsed monotonic time is still below its limit. The elapsed-time comparison does not dominate caller cancellation.",
+      "nextEvidence": "Root internal budget cancellation case; new mutation evidence pending."
+    },
+    {
+      "file": "Healthcheck/Pipes/HealthPipeBudget.cs",
+      "id": "2707",
+      "status": "Survived",
+      "span": {
+        "start": {
+          "line": 28,
+          "column": 13
+        },
+        "end": {
+          "line": 28,
+          "column": 53
+        }
+      },
+      "mutator": "Equality mutation",
+      "original": "clock.GetElapsedTime(started) >= timeout",
+      "replacement": "clock.GetElapsedTime(started) > timeout",
+      "assessment": "detector-authored",
+      "reason": "Strict greater-than accepts the exact total deadline. Delayed timer callbacks make equality observable independently of cancellation delivery.",
+      "nextEvidence": "New real-server 999/1000/1001 cases and internal 49/50/51 cases; fresh mutation result required."
+    },
+    {
+      "file": "Healthcheck/Pipes/HealthPipeBudget.cs",
+      "id": "2711",
+      "status": "Survived",
+      "span": {
+        "start": {
+          "line": 30,
+          "column": 50
+        },
+        "end": {
+          "line": 30,
+          "column": 90
+        }
+      },
+      "mutator": "String mutation",
+      "original": "\"The Healthcheck pipe deadline expired.\"",
+      "replacement": "\"\"",
+      "assessment": "diagnostic-text-candidate",
+      "reason": "The exception still carries cancellation type and token. No adopted public contract fixes this internal English deadline sentence; emptying it has no identified transport/exit difference.",
+      "nextEvidence": "Do not add exact private-message assertions; retain raw status and denominator."
+    },
+    {
+      "file": "Healthcheck/Pipes/HealthPipeBudget.cs",
+      "id": "2713",
+      "status": "Survived",
+      "span": {
+        "start": {
+          "line": 36,
+          "column": 9
+        },
+        "end": {
+          "line": 36,
+          "column": 26
+        }
+      },
+      "mutator": "Statement mutation",
+      "original": "linked.Dispose();",
+      "replacement": ";",
+      "assessment": "detector-authored",
+      "reason": "The linked cancellation source owns a materializable wait handle and caller-token registrations. Stopping the connection alone does not establish their disposal.",
+      "nextEvidence": "Root internal test materializes the linked token handle, verifies closure, and preserves caller-owned handle."
+    },
+    {
+      "file": "Healthcheck/Pipes/HealthPipeBudget.cs",
+      "id": "2714",
+      "status": "Survived",
+      "span": {
+        "start": {
+          "line": 37,
+          "column": 9
+        },
+        "end": {
+          "line": 37,
+          "column": 28
+        }
+      },
+      "mutator": "Statement mutation",
+      "original": "deadline.Dispose();",
+      "replacement": ";",
+      "assessment": "detector-authored",
+      "reason": "Removing deadline disposal retains the actual TimeProvider-owned timer even after request settlement.",
+      "nextEvidence": "New real server timer ownership test plus root internal timer disposal case; no inferred mutation kill."
+    },
+    {
+      "file": "Healthcheck/Pipes/HealthPipeEndpoint.cs",
+      "id": "2718",
+      "status": "Survived",
+      "span": {
+        "start": {
+          "line": 18,
+          "column": 13
+        },
+        "end": {
+          "line": 18,
+          "column": 128
+        }
+      },
+      "mutator": "Bitwise mutation",
+      "original": "PipeOptions.Asynchronous | PipeOptions.CurrentUserOnly | (first ? PipeOptions.FirstPipeInstance : PipeOptions.None)",
+      "replacement": "PipeOptions.Asynchronous | PipeOptions.CurrentUserOnly & (first ? PipeOptions.FirstPipeInstance : PipeOptions.None)",
+      "assessment": "platform-gap",
+      "reason": "Replacing the second OR with AND drops CurrentUserOnly from the Unix options expression and may drop first-instance protection. Windows executes CreateWindows instead, so its surviving status cannot qualify this branch.",
+      "nextEvidence": "Exact-source Linux different-UID lane, especially permissive0777 mode; retain identity/origin/exit/capture evidence."
+    },
+    {
+      "file": "Healthcheck/Pipes/HealthPipeEndpoint.cs",
+      "id": "2719",
+      "status": "Survived",
+      "span": {
+        "start": {
+          "line": 18,
+          "column": 13
+        },
+        "end": {
+          "line": 18,
+          "column": 67
+        }
+      },
+      "mutator": "Bitwise mutation",
+      "original": "PipeOptions.Asynchronous | PipeOptions.CurrentUserOnly",
+      "replacement": "PipeOptions.Asynchronous & PipeOptions.CurrentUserOnly",
+      "assessment": "platform-gap",
+      "reason": "Asynchronous and CurrentUserOnly are disjoint option bits; AND removes both. The old Windows lane does not execute this Unix constructor.",
+      "nextEvidence": "Real Linux peer-UID denial and async/deadline behavior; no inferred Windows coverage."
+    },
+    {
+      "file": "Healthcheck/Pipes/HealthPipeEndpoint.cs",
+      "id": "2720",
+      "status": "Survived",
+      "span": {
+        "start": {
+          "line": 18,
+          "column": 71
+        },
+        "end": {
+          "line": 18,
+          "column": 127
+        }
+      },
+      "mutator": "Conditional (true) mutation",
+      "original": "first ? PipeOptions.FirstPipeInstance : PipeOptions.None",
+      "replacement": "(true?PipeOptions.FirstPipeInstance :PipeOptions.None)",
+      "assessment": "platform-gap",
+      "reason": "Always marking every Unix stream first can reject the second configured slot instead of starting the configured capacity.",
+      "nextEvidence": "Linux multi-slot server baseline and source-matched replay; Windows survival is irrelevant to this branch."
+    },
+    {
+      "file": "Healthcheck/Pipes/HealthPipeEndpoint.cs",
+      "id": "2721",
+      "status": "Survived",
+      "span": {
+        "start": {
+          "line": 18,
+          "column": 71
+        },
+        "end": {
+          "line": 18,
+          "column": 127
+        }
+      },
+      "mutator": "Conditional (false) mutation",
+      "original": "first ? PipeOptions.FirstPipeInstance : PipeOptions.None",
+      "replacement": "(false?PipeOptions.FirstPipeInstance :PipeOptions.None)",
+      "assessment": "platform-gap",
+      "reason": "Never marking the Unix first instance removes explicit name ownership protection. A full duplicate server can still fail for capacity, masking the difference.",
+      "nextEvidence": "Proposed direct real endpoint test: first:true twice with maximumClients2 while spare instance capacity remains."
+    },
+    {
+      "file": "Healthcheck/Pipes/HealthPipeEndpoint.cs",
+      "id": "2723",
+      "status": "Survived",
+      "span": {
+        "start": {
+          "line": 28,
+          "column": 75
+        },
+        "end": {
+          "line": 28,
+          "column": 113
+        }
+      },
+      "mutator": "String mutation",
+      "original": "\"The local pipe owner is unavailable.\"",
+      "replacement": "\"\"",
+      "assessment": "exceptional-path",
+      "reason": "The fallback is reached only if the actual Windows identity has no owner. Ordinary owner-present execution cannot test this reason, and an exact English sentence is not an adopted public contract.",
+      "nextEvidence": "Retain as unexercised identity-failure diagnostic; no synthetic identity override or exact-message detector."
+    },
+    {
+      "file": "Healthcheck/Pipes/HealthPipeEndpoint.cs",
+      "id": "2724",
+      "status": "Survived",
+      "span": {
+        "start": {
+          "line": 30,
+          "column": 9
+        },
+        "end": {
+          "line": 30,
+          "column": 34
+        }
+      },
+      "mutator": "Statement mutation",
+      "original": "security.SetOwner(owner);",
+      "replacement": ";",
+      "assessment": "platform-context-candidate",
+      "reason": "Omitting SetOwner may retain the same kernel-default owner under the ordinary token. That observation does not prove equality for every supported token default-owner configuration.",
+      "nextEvidence": "Real token/ACL owner evidence in an applicable Windows identity context; no universal equivalence claim."
+    },
+    {
+      "file": "Healthcheck/Pipes/HealthPipeEndpoint.cs",
+      "id": "2727",
+      "status": "Survived",
+      "span": {
+        "start": {
+          "line": 31,
+          "column": 82
+        },
+        "end": {
+          "line": 31,
+          "column": 87
+        }
+      },
+      "mutator": "Boolean mutation",
+      "original": "false",
+      "replacement": "true",
+      "assessment": "source-equivalent-in-scope",
+      "reason": "The PipeSecurity object is freshly constructed and has no inherited ACEs before this call. Preserving inherited rules therefore has none to retain; the explicit owner ACE is added afterward.",
+      "nextEvidence": "Source-bound equivalence reasoning only; do not rewrite native status or waive denominator."
+    },
+    {
+      "file": "Healthcheck/Pipes/HealthPipeEndpoint.cs",
+      "id": "2735",
+      "status": "Survived",
+      "span": {
+        "start": {
+          "line": 49,
+          "column": 42
+        },
+        "end": {
+          "line": 49,
+          "column": 67
+        }
+      },
+      "mutator": "Conditional (false) mutation",
+      "original": "first ? FirstInstance : 0",
+      "replacement": "(false?FirstInstance :0)",
+      "assessment": "observable-gap",
+      "reason": "Removing Windows FirstInstance can permit a second claimant while native instance capacity remains. Public duplicate full servers can fail later for capacity in both variants.",
+      "nextEvidence": "Proposed direct real endpoint first:true ownership detector with maximumClients2 and one initial instance."
+    },
+    {
+      "file": "Healthcheck/Pipes/HealthPipeEndpoint.cs",
+      "id": "2738",
+      "status": "Survived",
+      "span": {
+        "start": {
+          "line": 54,
+          "column": 17
+        },
+        "end": {
+          "line": 54,
+          "column": 34
+        }
+      },
+      "mutator": "Statement mutation",
+      "original": "handle.Dispose();",
+      "replacement": ";",
+      "assessment": "invalid-handle-candidate",
+      "reason": "This disposal is guarded by handle.IsInvalid, so it closes no valid OS pipe handle. Managed SafeHandle state/finalization can still differ; no valid-handle leak is proved by this removal.",
+      "nextEvidence": "Retain narrow invalid-handle candidate; no private bookkeeping assertion or blanket leak claim."
+    },
+    {
+      "file": "Healthcheck/Pipes/HealthPipeEndpoint.cs",
+      "id": "2739",
+      "status": "Survived",
+      "span": {
+        "start": {
+          "line": 55,
+          "column": 17
+        },
+        "end": {
+          "line": 55,
+          "column": 110
+        }
+      },
+      "mutator": "Statement mutation",
+      "original": "throw new Win32Exception(error, \"The protected local Healthcheck pipe could not be opened.\");",
+      "replacement": ";",
+      "assessment": "exceptional-path",
+      "reason": "Native pipe creation failure would fall through to wrapping an invalid SafePipeHandle rather than throwing the retained Win32 error. The wrapper may still reject it, but exception/cleanup equivalence has not been established.",
+      "nextEvidence": "Actual bounded OS creation-failure case and exact outcome/cleanup; do not invent a native error or call it killed."
+    },
+    {
+      "file": "Healthcheck/Pipes/HealthPipeEndpoint.cs",
+      "id": "2742",
+      "status": "Survived",
+      "span": {
+        "start": {
+          "line": 58,
+          "column": 19
+        },
+        "end": {
+          "line": 58,
+          "column": 33
+        }
+      },
+      "mutator": "Statement mutation",
+      "original": "pinned.Free();",
+      "replacement": ";",
+      "assessment": "resource-gap",
+      "reason": "The successful Windows creation path pins the descriptor with GCHandle.Alloc. Removing Free leaves that actual pinned handle allocated; ordinary successful replies do not observe its lifetime.",
+      "nextEvidence": "A trustworthy bounded process-local pin/resource detector is still needed; no private reflection or noisy global counter claim."
+    },
+    {
+      "file": "Healthcheck/Pipes/HealthPipeEndpoint.cs",
+      "id": "2744",
+      "status": "Timeout",
+      "span": {
+        "start": {
+          "line": 61,
+          "column": 76
+        },
+        "end": {
+          "line": 61,
+          "column": 80
+        }
+      },
+      "mutator": "Boolean mutation",
+      "original": "true",
+      "replacement": "false",
+      "assessment": "native-timeout-uncredited",
+      "reason": "The mutated true is the Windows BCL wrapper's isAsync argument, not isConnected (which is already false). The native handle was created overlapped; wrapping it as synchronous changes I/O mode/state and can invalidate actual async accept/I/O behavior. Native Timeout remains uncredited.",
+      "nextEvidence": "Fresh real Windows endpoint replay with actual async handle/wrapper behavior and complete bounded lifecycle receipts."
+    },
+    {
+      "file": "Healthcheck/Pipes/HealthPipeEndpoint.cs",
+      "id": "2747",
+      "status": "Survived",
+      "span": {
+        "start": {
+          "line": 65,
+          "column": 13
+        },
+        "end": {
+          "line": 65,
+          "column": 30
+        }
+      },
+      "mutator": "Statement mutation",
+      "original": "handle.Dispose();",
+      "replacement": ";",
+      "assessment": "exceptional-path",
+      "reason": "The owned valid native handle must be disposed if BCL wrapper construction throws. Current valid fixed arguments ordinarily succeed; resource cleanup on an exceptional wrapper failure remains unproved.",
+      "nextEvidence": "Real reachable constructor failure required; do not force arbitrary private exceptions or claim impossibility globally."
+    },
+    {
+      "file": "Healthcheck/Pipes/HealthPipeEndpoint.cs",
+      "id": "2748",
+      "status": "Survived",
+      "span": {
+        "start": {
+          "line": 66,
+          "column": 13
+        },
+        "end": {
+          "line": 66,
+          "column": 19
+        }
+      },
+      "mutator": "Statement mutation",
+      "original": "throw;",
+      "replacement": ";",
+      "assessment": "exceptional-path",
+      "reason": "Swallowing a wrapper-construction failure changes propagation to the following control path, but actual valid-handle wrapping failure was not demonstrated in the retained run.",
+      "nextEvidence": "Inspect actual generated compile/control flow and reachable OS failure; preserve status without invented outcome."
+    },
+    {
+      "file": "Healthcheck/Pipes/HealthPipeServer.cs",
+      "id": "2749",
+      "status": "Survived",
+      "span": {
+        "start": {
+          "line": 19,
+          "column": 28
+        },
+        "end": {
+          "line": 19,
+          "column": 30
+        }
+      },
+      "mutator": "Collection expression mutation",
+      "original": "[]",
+      "replacement": "[default]",
+      "assessment": "detector-authored",
+      "reason": "A default/null Slot in the initial array can break stop-before-start traversal; construction is required to be inert and pre-start stop terminal and safe.",
+      "nextEvidence": "New stop-before-start/repeated disposal test; fresh native mutation evidence pending."
+    },
+    {
+      "file": "Healthcheck/Pipes/HealthPipeServer.cs",
+      "id": "2751",
+      "status": "Survived",
+      "span": {
+        "start": {
+          "line": 26,
+          "column": 9
+        },
+        "end": {
+          "line": 26,
+          "column": 51
+        }
+      },
+      "mutator": "Statement mutation",
+      "original": "ArgumentNullException.ThrowIfNull(source);",
+      "replacement": ";",
+      "assessment": "detector-authored",
+      "reason": "Removing the receiving null guard replaces the documented ArgumentNullException/ParamName boundary with a later failure or permits invalid source retention.",
+      "nextEvidence": "New public constructor null-source/null-options rows assert typed exception and parameter."
+    },
+    {
+      "file": "Healthcheck/Pipes/HealthPipeServer.cs",
+      "id": "2752",
+      "status": "Survived",
+      "span": {
+        "start": {
+          "line": 27,
+          "column": 9
+        },
+        "end": {
+          "line": 27,
+          "column": 52
+        }
+      },
+      "mutator": "Statement mutation",
+      "original": "ArgumentNullException.ThrowIfNull(options);",
+      "replacement": ";",
+      "assessment": "detector-authored",
+      "reason": "Removing the receiving null guard replaces the documented ArgumentNullException/ParamName boundary with a later failure or permits invalid source retention.",
+      "nextEvidence": "New public constructor null-source/null-options rows assert typed exception and parameter."
+    },
+    {
+      "file": "Healthcheck/Pipes/HealthPipeServer.cs",
+      "id": "2755",
+      "status": "Survived",
+      "span": {
+        "start": {
+          "line": 31,
+          "column": 13
+        },
+        "end": {
+          "line": 31,
+          "column": 42
+        }
+      },
+      "mutator": "Equality mutation",
+      "original": "clock.TimestampFrequency <= 0",
+      "replacement": "clock.TimestampFrequency < 0",
+      "assessment": "detector-authored",
+      "reason": "A zero or negative clock frequency cannot support valid monotonic elapsed-time arithmetic. Removing or weakening validation changes the public constructor boundary before any endpoint opens.",
+      "nextEvidence": "New zero/-1 TimeProvider frequency rows assert ArgumentException and timeProvider parameter."
+    },
+    {
+      "file": "Healthcheck/Pipes/HealthPipeServer.cs",
+      "id": "2758",
+      "status": "Survived",
+      "span": {
+        "start": {
+          "line": 33,
+          "column": 13
+        },
+        "end": {
+          "line": 33,
+          "column": 118
+        }
+      },
+      "mutator": "Statement mutation",
+      "original": "throw new ArgumentException(\"The clock must have a positive timestamp frequency.\", nameof(timeProvider));",
+      "replacement": ";",
+      "assessment": "detector-authored",
+      "reason": "A zero or negative clock frequency cannot support valid monotonic elapsed-time arithmetic. Removing or weakening validation changes the public constructor boundary before any endpoint opens.",
+      "nextEvidence": "New zero/-1 TimeProvider frequency rows assert ArgumentException and timeProvider parameter."
+    },
+    {
+      "file": "Healthcheck/Pipes/HealthPipeServer.cs",
+      "id": "2759",
+      "status": "Survived",
+      "span": {
+        "start": {
+          "line": 33,
+          "column": 41
+        },
+        "end": {
+          "line": 33,
+          "column": 94
+        }
+      },
+      "mutator": "String mutation",
+      "original": "\"The clock must have a positive timestamp frequency.\"",
+      "replacement": "\"\"",
+      "assessment": "diagnostic-text-candidate",
+      "reason": "The clock exception type and parameter survive this string mutation. No adopted contract fixes the internal English reason sentence.",
+      "nextEvidence": "Do not assert exact private sentence for score; retain native status and any broader descriptive-reason contract separately."
+    },
+    {
+      "file": "Healthcheck/Pipes/HealthPipeServer.cs",
+      "id": "2764",
+      "status": "Survived",
+      "span": {
+        "start": {
+          "line": 44,
+          "column": 13
+        },
+        "end": {
+          "line": 44,
+          "column": 61
+        }
+      },
+      "mutator": "Statement mutation",
+      "original": "ObjectDisposedException.ThrowIf(disposed, this);",
+      "replacement": ";",
+      "assessment": "detector-authored",
+      "reason": "A disposed server is a different receiving boundary from a merely stopped server. Removing this guard can return InvalidOperationException instead of ObjectDisposedException.",
+      "nextEvidence": "New repeated disposal then StartAsync test asserts the documented disposed exception."
+    },
+    {
+      "file": "Healthcheck/Pipes/HealthPipeServer.cs",
+      "id": "2768",
+      "status": "Survived",
+      "span": {
+        "start": {
+          "line": 45,
+          "column": 65
+        },
+        "end": {
+          "line": 45,
+          "column": 106
+        }
+      },
+      "mutator": "String mutation",
+      "original": "\"The Healthcheck pipe server is stopped.\"",
+      "replacement": "\"\"",
+      "assessment": "diagnostic-text-candidate",
+      "reason": "Stop still rejects StartAsync with InvalidOperationException after removal of this English message. The exact internal sentence is not fixed by the adopted contract.",
+      "nextEvidence": "No cosmetic exact-message detector; retain the outcome as reported."
+    },
+    {
+      "file": "Healthcheck/Pipes/HealthPipeServer.cs",
+      "id": "2769",
+      "status": "Timeout",
+      "span": {
+        "start": {
+          "line": 46,
+          "column": 17
+        },
+        "end": {
+          "line": 46,
+          "column": 24
+        }
+      },
+      "mutator": "Negate expression",
+      "original": "started",
+      "replacement": "!(started)",
+      "assessment": "native-timeout-uncredited",
+      "reason": "Inverting started makes the first StartAsync return the uncompleted startCompletion task without starting endpoints. This violates inert-then-explicit-start behavior, but the retained tool recorded Timeout.",
+      "nextEvidence": "Require a new successful bounded public assertion diagnosis, not timeout-to-kill conversion."
+    },
+    {
+      "file": "Healthcheck/Pipes/HealthPipeServer.cs",
+      "id": "2772",
+      "status": "Timeout",
+      "span": {
+        "start": {
+          "line": 49,
+          "column": 9
+        },
+        "end": {
+          "line": 49,
+          "column": 21
+        }
+      },
+      "mutator": "Statement mutation",
+      "original": "StartCore();",
+      "replacement": ";",
+      "assessment": "native-timeout-uncredited",
+      "reason": "Removing StartCore leaves startCompletion pending. A native timeout plausibly follows but is still uncredited.",
+      "nextEvidence": "Fresh bounded start behavior proof with actual test outcome and lifecycle audit."
+    },
+    {
+      "file": "Healthcheck/Pipes/HealthPipeServer.cs",
+      "id": "2774",
+      "status": "Timeout",
+      "span": {
+        "start": {
+          "line": 57,
+          "column": 9
+        },
+        "end": {
+          "line": 57,
+          "column": 21
+        }
+      },
+      "mutator": "Statement mutation",
+      "original": "BeginStop();",
+      "replacement": ";",
+      "assessment": "native-timeout-uncredited",
+      "reason": "StopAsync no longer initiates terminal admission closure/cancellation and can wait forever on the not-yet-started stop barrier.",
+      "nextEvidence": "Do not grant kill for timeout; retain exact stop liveness obligation."
+    },
+    {
+      "file": "Healthcheck/Pipes/HealthPipeServer.cs",
+      "id": "2776",
+      "status": "Timeout",
+      "span": {
+        "start": {
+          "line": 64,
+          "column": 9
+        },
+        "end": {
+          "line": 64,
+          "column": 21
+        }
+      },
+      "mutator": "Statement mutation",
+      "original": "BeginStop();",
+      "replacement": ";",
+      "assessment": "native-timeout-uncredited",
+      "reason": "DisposeAsync no longer initiates stop before awaiting the shared settlement barrier.",
+      "nextEvidence": "New pending-disposal detector checks the distinct await requirement; this initiation mutation still needs actual bounded successful failure evidence."
+    },
+    {
+      "file": "Healthcheck/Pipes/HealthPipeServer.cs",
+      "id": "2777",
+      "status": "Survived",
+      "span": {
+        "start": {
+          "line": 65,
+          "column": 9
+        },
+        "end": {
+          "line": 65,
+          "column": 57
+        }
+      },
+      "mutator": "Statement mutation",
+      "original": "await stopCompletion.Task.ConfigureAwait(false);",
+      "replacement": ";",
+      "assessment": "detector-authored",
+      "reason": "Removing the settlement await lets DisposeAsync release its resources and finish while a synchronous report source is still actually executing. Existing Stop-only tests release that source before disposal and miss this difference.",
+      "nextEvidence": "Approved new DisposalWaitsForAnActuallyRunningSnapshotSource case; authored after snapshot03 and awaits its own baseline/mutation replay."
+    },
+    {
+      "file": "Healthcheck/Pipes/HealthPipeServer.cs",
+      "id": "2778",
+      "status": "Survived",
+      "span": {
+        "start": {
+          "line": 65,
+          "column": 50
+        },
+        "end": {
+          "line": 65,
+          "column": 55
+        }
+      },
+      "mutator": "Boolean mutation",
+      "original": "false",
+      "replacement": "true",
+      "assessment": "context-affinity-candidate",
+      "reason": "ConfigureAwait(true) may resume disposal on a caller SynchronizationContext. There is no adopted promise that callers need not pump their context; a no-pump test would invent a scheduler guarantee. It is not globally equivalent for arbitrary callers.",
+      "nextEvidence": "No scheduler-only detector or credited timeout; preserve as contract-domain equivalence candidate."
+    },
+    {
+      "file": "Healthcheck/Pipes/HealthPipeServer.cs",
+      "id": "2780",
+      "status": "Survived",
+      "span": {
+        "start": {
+          "line": 67,
+          "column": 33
+        },
+        "end": {
+          "line": 67,
+          "column": 42
+        }
+      },
+      "mutator": "LogicalNotExpression to un-LogicalNotExpression mutation",
+      "original": "!disposed",
+      "replacement": "disposed",
+      "assessment": "resource-gap",
+      "reason": "Inverting the first-disposal release condition skips disposal of server-owned cancellation/semaphore resources or disposes them on a repeated call. Ordinary health output alone does not observe private resource lifetime.",
+      "nextEvidence": "Existing idempotent disposal checks are relevant, but a real ownership/lifecycle observation is still needed for any surviving variant."
+    },
+    {
+      "file": "Healthcheck/Pipes/HealthPipeServer.cs",
+      "id": "2781",
+      "status": "Survived",
+      "span": {
+        "start": {
+          "line": 67,
+          "column": 55
+        },
+        "end": {
+          "line": 67,
+          "column": 59
+        }
+      },
+      "mutator": "Boolean mutation",
+      "original": "true",
+      "replacement": "false",
+      "assessment": "detector-authored",
+      "reason": "Leaving disposed false after successful disposal loses the documented disposed receiving boundary on subsequent StartAsync, even though stopping stays true.",
+      "nextEvidence": "New stop/dispose/idempotence case asserts ObjectDisposedException after actual disposal."
+    },
+    {
+      "file": "Healthcheck/Pipes/HealthPipeServer.cs",
+      "id": "2782",
+      "status": "Survived",
+      "span": {
+        "start": {
+          "line": 68,
+          "column": 13
+        },
+        "end": {
+          "line": 68,
+          "column": 20
+        }
+      },
+      "mutator": "Negate expression",
+      "original": "release",
+      "replacement": "!(release)",
+      "assessment": "resource-gap",
+      "reason": "Inverting the first-disposal release condition skips disposal of server-owned cancellation/semaphore resources or disposes them on a repeated call. Ordinary health output alone does not observe private resource lifetime.",
+      "nextEvidence": "Existing idempotent disposal checks are relevant, but a real ownership/lifecycle observation is still needed for any surviving variant."
+    },
+    {
+      "file": "Healthcheck/Pipes/HealthPipeServer.cs",
+      "id": "2784",
+      "status": "Survived",
+      "span": {
+        "start": {
+          "line": 68,
+          "column": 24
+        },
+        "end": {
+          "line": 68,
+          "column": 49
+        }
+      },
+      "mutator": "Statement mutation",
+      "original": "stoppingSource.Dispose();",
+      "replacement": ";",
+      "assessment": "resource-gap",
+      "reason": "The removed operation disposes an actual server-owned synchronization resource after settlement. Cancellation or garbage collection is not itself evidence of deterministic disposal.",
+      "nextEvidence": "No reflection/private counter assertion; retain explicit server-resource lifetime gap until a meaningful public observation is available."
+    },
+    {
+      "file": "Healthcheck/Pipes/HealthPipeServer.cs",
+      "id": "2785",
+      "status": "Survived",
+      "span": {
+        "start": {
+          "line": 68,
+          "column": 50
+        },
+        "end": {
+          "line": 68,
+          "column": 76
+        }
+      },
+      "mutator": "Statement mutation",
+      "original": "endpointChanges.Dispose();",
+      "replacement": ";",
+      "assessment": "resource-gap",
+      "reason": "The removed operation disposes an actual server-owned synchronization resource after settlement. Cancellation or garbage collection is not itself evidence of deterministic disposal.",
+      "nextEvidence": "No reflection/private counter assertion; retain explicit server-resource lifetime gap until a meaningful public observation is available."
+    },
+    {
+      "file": "Healthcheck/Pipes/HealthPipeServer.cs",
+      "id": "2787",
+      "status": "Survived",
+      "span": {
+        "start": {
+          "line": 73,
+          "column": 38
+        },
+        "end": {
+          "line": 73,
+          "column": 86
+        }
+      },
+      "mutator": "Conditional (true) mutation",
+      "original": "options.PipeEnabled ? options.PipeMaxClients : 0",
+      "replacement": "(true?options.PipeMaxClients :0)",
+      "assessment": "source-equivalent-in-scope",
+      "reason": "The condition only selects the initial capacity of a growable List<Slot>. The subsequent creation loop, actual elements, slot count and admission behavior are unchanged in successful allocation.",
+      "nextEvidence": "No allocation-microbenchmark detector; record normal-domain equivalence without changing denominator or pretending catastrophic allocation is covered."
+    },
+    {
+      "file": "Healthcheck/Pipes/HealthPipeServer.cs",
+      "id": "2788",
+      "status": "Survived",
+      "span": {
+        "start": {
+          "line": 73,
+          "column": 38
+        },
+        "end": {
+          "line": 73,
+          "column": 86
+        }
+      },
+      "mutator": "Conditional (false) mutation",
+      "original": "options.PipeEnabled ? options.PipeMaxClients : 0",
+      "replacement": "(false?options.PipeMaxClients :0)",
+      "assessment": "source-equivalent-in-scope",
+      "reason": "The condition only selects the initial capacity of a growable List<Slot>. The subsequent creation loop, actual elements, slot count and admission behavior are unchanged in successful allocation.",
+      "nextEvidence": "No allocation-microbenchmark detector; record normal-domain equivalence without changing denominator or pretending catastrophic allocation is covered."
+    },
+    {
+      "file": "Healthcheck/Pipes/HealthPipeServer.cs",
+      "id": "2789",
+      "status": "Survived",
+      "span": {
+        "start": {
+          "line": 74,
+          "column": 26
+        },
+        "end": {
+          "line": 74,
+          "column": 31
+        }
+      },
+      "mutator": "Boolean mutation",
+      "original": "false",
+      "replacement": "true",
+      "assessment": "race-or-exception-gap",
+      "reason": "Starting published true changes cleanup if stop wins before publication or endpoint creation fails before successful publication. Ordinary successful creation overwrites it with true, masking the variant.",
+      "nextEvidence": "Meaningful controlled public start/stop or real partial-creation failure race needed; no synthetic callback seam added."
+    },
+    {
+      "file": "Healthcheck/Pipes/HealthPipeServer.cs",
+      "id": "2802",
+      "status": "Timeout",
+      "span": {
+        "start": {
+          "line": 91,
+          "column": 33
+        },
+        "end": {
+          "line": 91,
+          "column": 37
+        }
+      },
+      "mutator": "Boolean mutation",
+      "original": "true",
+      "replacement": "false",
+      "assessment": "native-timeout-uncredited",
+      "reason": "Changing the successful publication flag to false skips queued slot workers and selects unpublished cleanup although remaining was populated; settlement can be stranded.",
+      "nextEvidence": "Retain timeout uncredited; new source run must diagnose actual public start/request/stop failure."
+    },
+    {
+      "file": "Healthcheck/Pipes/HealthPipeServer.cs",
+      "id": "2806",
+      "status": "Timeout",
+      "span": {
+        "start": {
+          "line": 101,
+          "column": 21
+        },
+        "end": {
+          "line": 103,
+          "column": 22
+        }
+      },
+      "mutator": "Block removal mutation",
+      "original": "{\n                        _ = value.Owner.RunSlotAsync(value.Slot);\n                    }",
+      "replacement": "{}",
+      "assessment": "native-timeout-uncredited",
+      "reason": "Removing the real ThreadPool callback body queues no RunSlotAsync work, leaving published slots and drain accounting without handlers.",
+      "nextEvidence": "Actual public request/start failure can be meaningful; old native Timeout is not credited."
+    },
+    {
+      "file": "Healthcheck/Pipes/HealthPipeServer.cs",
+      "id": "2807",
+      "status": "Survived",
+      "span": {
+        "start": {
+          "line": 103,
+          "column": 64
+        },
+        "end": {
+          "line": 103,
+          "column": 69
+        }
+      },
+      "mutator": "Boolean mutation",
+      "original": "false",
+      "replacement": "true",
+      "assessment": "scheduling-policy-candidate",
+      "reason": "preferLocal changes the runtime queue placement policy. It does not promise a public health/pipe scheduling order or fairness metric, and callbacks still represent the same fixed slots.",
+      "nextEvidence": "No scheduler-order assertion solely to kill it; retain a scoped scheduling candidate."
+    },
+    {
+      "file": "Healthcheck/Pipes/HealthPipeServer.cs",
+      "id": "2810",
+      "status": "Survived",
+      "span": {
+        "start": {
+          "line": 104,
+          "column": 38
+        },
+        "end": {
+          "line": 104,
+          "column": 126
+        }
+      },
+      "mutator": "Statement mutation",
+      "original": "throw new InvalidOperationException(\"The Healthcheck pipe worker could not be queued.\");",
+      "replacement": ";",
+      "assessment": "pinned-runtime-unreachable",
+      "reason": "Pinned runtime10.0.12 UnsafeQueueUserWorkItem<TState> returns true after successful enqueue on both its ordinary and special-callback branches. The accepted=false throw cannot be reached by a successfully returning call. Queue operations can still throw, so partial-enqueue cleanup remains real.",
+      "nextEvidence": "Source proof is restricted to pinned runtime; preserve native status/denominator and do not remove exception accounting."
+    },
+    {
+      "file": "Healthcheck/Pipes/HealthPipeServer.cs",
+      "id": "2811",
+      "status": "Survived",
+      "span": {
+        "start": {
+          "line": 104,
+          "column": 74
+        },
+        "end": {
+          "line": 104,
+          "column": 124
+        }
+      },
+      "mutator": "String mutation",
+      "original": "\"The Healthcheck pipe worker could not be queued.\"",
+      "replacement": "\"\"",
+      "assessment": "pinned-runtime-unreachable",
+      "reason": "Pinned runtime10.0.12 UnsafeQueueUserWorkItem<TState> returns true after successful enqueue on both its ordinary and special-callback branches. The accepted=false throw cannot be reached by a successfully returning call. Queue operations can still throw, so partial-enqueue cleanup remains real.",
+      "nextEvidence": "Source proof is restricted to pinned runtime; preserve native status/denominator and do not remove exception accounting."
+    },
+    {
+      "file": "Healthcheck/Pipes/HealthPipeServer.cs",
+      "id": "2812",
+      "status": "Timeout",
+      "span": {
+        "start": {
+          "line": 105,
+          "column": 21
+        },
+        "end": {
+          "line": 105,
+          "column": 30
+        }
+      },
+      "mutator": "Statement mutation",
+      "original": "queued++;",
+      "replacement": ";",
+      "assessment": "native-timeout-uncredited",
+      "reason": "Removing or reversing queued accounting makes partial-queue cleanup treat actually queued workers as unqueued and adjust remaining incorrectly, potentially disposing live streams or stranding/early-finishing the drain.",
+      "nextEvidence": "Native Timeout remains uncredited; require new actual bounded lifecycle outcome."
+    },
+    {
+      "file": "Healthcheck/Pipes/HealthPipeServer.cs",
+      "id": "2813",
+      "status": "Timeout",
+      "span": {
+        "start": {
+          "line": 105,
+          "column": 21
+        },
+        "end": {
+          "line": 105,
+          "column": 29
+        }
+      },
+      "mutator": "PostIncrementExpression to PostDecrementExpression mutation",
+      "original": "queued++",
+      "replacement": "queued--",
+      "assessment": "native-timeout-uncredited",
+      "reason": "Removing or reversing queued accounting makes partial-queue cleanup treat actually queued workers as unqueued and adjust remaining incorrectly, potentially disposing live streams or stranding/early-finishing the drain.",
+      "nextEvidence": "Native Timeout remains uncredited; require new actual bounded lifecycle outcome."
+    },
+    {
+      "file": "Healthcheck/Pipes/HealthPipeServer.cs",
+      "id": "2814",
+      "status": "Timeout",
+      "span": {
+        "start": {
+          "line": 108,
+          "column": 13
+        },
+        "end": {
+          "line": 108,
+          "column": 44
+        }
+      },
+      "mutator": "Statement mutation",
+      "original": "startCompletion.TrySetResult();",
+      "replacement": ";",
+      "assessment": "native-timeout-uncredited",
+      "reason": "Successful explicit startup no longer completes its shared startCompletion task, even if actual endpoint workers run.",
+      "nextEvidence": "Actual bounded StartAsync contract failure required; not a timeout kill."
+    },
+    {
+      "file": "Healthcheck/Pipes/HealthPipeServer.cs",
+      "id": "2816",
+      "status": "Survived",
+      "span": {
+        "start": {
+          "line": 112,
+          "column": 13
+        },
+        "end": {
+          "line": 112,
+          "column": 56
+        }
+      },
+      "mutator": "Statement mutation",
+      "original": "startCompletion.TrySetException(exception);",
+      "replacement": ";",
+      "assessment": "exceptional-path",
+      "reason": "If actual endpoint creation or queuing throws, StartAsync must fault its retained task. Removing TrySetException instead leaves the startup task pending.",
+      "nextEvidence": "Real reachable creation failure can exercise it; no fake production queue/error injection added."
+    },
+    {
+      "file": "Healthcheck/Pipes/HealthPipeServer.cs",
+      "id": "2817",
+      "status": "Survived",
+      "span": {
+        "start": {
+          "line": 113,
+          "column": 13
+        },
+        "end": {
+          "line": 113,
+          "column": 25
+        }
+      },
+      "mutator": "Statement mutation",
+      "original": "BeginStop();",
+      "replacement": ";",
+      "assessment": "exceptional-path",
+      "reason": "An actual startup failure must terminally stop/close already-created or queued endpoint work. Removing BeginStop can leave partial admission or unsettled ownership.",
+      "nextEvidence": "Real partial-creation/queue failure observation needed; not proved equivalent by successful baseline."
+    },
+    {
+      "file": "Healthcheck/Pipes/HealthPipeServer.cs",
+      "id": "2827",
+      "status": "Survived",
+      "span": {
+        "start": {
+          "line": 123,
+          "column": 42
+        },
+        "end": {
+          "line": 123,
+          "column": 63
+        }
+      },
+      "mutator": "Equality mutation",
+      "original": "index < created.Count",
+      "replacement": "index <= created.Count",
+      "assessment": "exceptional-path",
+      "reason": "These mutations affect cleanup only when publication occurred but queuing did not complete for all created slots. A successful pinned queue call never returns false, but allocation/queue exceptions can interrupt later enqueues; the path is not globally impossible.",
+      "nextEvidence": "Retain exceptional-path obligation; no arbitrary injected private queue fault or false-return assumption."
+    },
+    {
+      "file": "Healthcheck/Pipes/HealthPipeServer.cs",
+      "id": "2829",
+      "status": "Survived",
+      "span": {
+        "start": {
+          "line": 123,
+          "column": 65
+        },
+        "end": {
+          "line": 123,
+          "column": 72
+        }
+      },
+      "mutator": "PostIncrementExpression to PostDecrementExpression mutation",
+      "original": "index++",
+      "replacement": "index--",
+      "assessment": "exceptional-path",
+      "reason": "These mutations affect cleanup only when publication occurred but queuing did not complete for all created slots. A successful pinned queue call never returns false, but allocation/queue exceptions can interrupt later enqueues; the path is not globally impossible.",
+      "nextEvidence": "Retain exceptional-path obligation; no arbitrary injected private queue fault or false-return assumption."
+    },
+    {
+      "file": "Healthcheck/Pipes/HealthPipeServer.cs",
+      "id": "2833",
+      "status": "Survived",
+      "span": {
+        "start": {
+          "line": 124,
+          "column": 31
+        },
+        "end": {
+          "line": 124,
+          "column": 66
+        }
+      },
+      "mutator": "SubtractAssignmentExpression to AddAssignmentExpression mutation",
+      "original": "remaining -= created.Count - queued",
+      "replacement": "remaining += created.Count - queued",
+      "assessment": "exceptional-path",
+      "reason": "These mutations affect cleanup only when publication occurred but queuing did not complete for all created slots. A successful pinned queue call never returns false, but allocation/queue exceptions can interrupt later enqueues; the path is not globally impossible.",
+      "nextEvidence": "Retain exceptional-path obligation; no arbitrary injected private queue fault or false-return assumption."
+    },
+    {
+      "file": "Healthcheck/Pipes/HealthPipeServer.cs",
+      "id": "2837",
+      "status": "Timeout",
+      "span": {
+        "start": {
+          "line": 126,
+          "column": 38
+        },
+        "end": {
+          "line": 126,
+          "column": 43
+        }
+      },
+      "mutator": "Boolean mutation",
+      "original": "false",
+      "replacement": "true",
+      "assessment": "native-timeout-uncredited",
+      "reason": "Leaving starting true prevents the shared stop barrier from declaring actual startup finished, even after endpoint workers leave.",
+      "nextEvidence": "Fresh bounded assertion evidence needed; old Timeout remains in conservative denominator."
+    },
+    {
+      "file": "Healthcheck/Pipes/HealthPipeServer.cs",
+      "id": "2838",
+      "status": "Survived",
+      "span": {
+        "start": {
+          "line": 127,
+          "column": 13
+        },
+        "end": {
+          "line": 127,
+          "column": 30
+        }
+      },
+      "mutator": "Statement mutation",
+      "original": "SignalProgress();",
+      "replacement": ";",
+      "assessment": "lifecycle-signal-gap",
+      "reason": "Removing the final startup progress signal can strand stop when it races startup or a disabled/empty startup has no worker to issue a later signal.",
+      "nextEvidence": "Stop-before-start/disabled and repeated start-stop cases are relevant, but require source-matched actual diagnosis for this survivor."
+    },
+    {
+      "file": "Healthcheck/Pipes/HealthPipeServer.cs",
+      "id": "2845",
+      "status": "Survived",
+      "span": {
+        "start": {
+          "line": 140,
+          "column": 94
+        },
+        "end": {
+          "line": 140,
+          "column": 99
+        }
+      },
+      "mutator": "Boolean mutation",
+      "original": "false",
+      "replacement": "true",
+      "assessment": "context-affinity-candidate",
+      "reason": "The accept loop is launched by UnsafeQueueUserWorkItem rather than a caller-affine TaskScheduler. Capture normally finds no special context; this is not a global proof if callbacks or future code install one.",
+      "nextEvidence": "No unpublished scheduler guarantee; retain exact source-domain candidate."
+    },
+    {
+      "file": "Healthcheck/Pipes/HealthPipeServer.cs",
+      "id": "2847",
+      "status": "Survived",
+      "span": {
+        "start": {
+          "line": 146,
+          "column": 21
+        },
+        "end": {
+          "line": 146,
+          "column": 30
+        }
+      },
+      "mutator": "Statement mutation",
+      "original": "continue;",
+      "replacement": ";",
+      "assessment": "platform-gap",
+      "reason": "After Unix CurrentUserOnly rejects another UID, the rejected socket is already closed and this slot must continue accepting. Removing continue falls into recovery/outer exception handling and can close admission.",
+      "nextEvidence": "Existing real same-owner/other-owner/same-owner Linux qualification is a meaningful exact-source replay detector."
+    },
+    {
+      "file": "Healthcheck/Pipes/HealthPipeServer.cs",
+      "id": "2848",
+      "status": "Survived",
+      "span": {
+        "start": {
+          "line": 148,
+          "column": 43
+        },
+        "end": {
+          "line": 148,
+          "column": 82
+        }
+      },
+      "mutator": "LogicalNotExpression to un-LogicalNotExpression mutation",
+      "original": "!stoppingSource.IsCancellationRequested",
+      "replacement": "stoppingSource.IsCancellationRequested",
+      "assessment": "recovery-path-gap",
+      "reason": "Inverting the accept IOException filter suppresses peer-churn recovery when the server is running and changes which stop exceptions are handled locally.",
+      "nextEvidence": "Actual Windows connect-close accept race must be observed; generic churn passing does not prove this exact recovery branch executed."
+    },
+    {
+      "file": "Healthcheck/Pipes/HealthPipeServer.cs",
+      "id": "2850",
+      "status": "Survived",
+      "span": {
+        "start": {
+          "line": 154,
+          "column": 25
+        },
+        "end": {
+          "line": 154,
+          "column": 76
+        }
+      },
+      "mutator": "LogicalNotExpression to un-LogicalNotExpression mutation",
+      "original": "!await RecoverSlotAsync(slot).ConfigureAwait(false)",
+      "replacement": "await RecoverSlotAsync(slot).ConfigureAwait(false)",
+      "assessment": "recovery-path-gap",
+      "reason": "These mutations change recovery's success/failure continuation: a repaired slot can exit or an unrepaired stream can fall through to handling. Stable ordinary accepts do not exercise the difference.",
+      "nextEvidence": "Real accept IOException followed by demonstrated recovery and later valid request/capacity, with no synthetic native exception."
+    },
+    {
+      "file": "Healthcheck/Pipes/HealthPipeServer.cs",
+      "id": "2851",
+      "status": "Survived",
+      "span": {
+        "start": {
+          "line": 154,
+          "column": 70
+        },
+        "end": {
+          "line": 154,
+          "column": 75
+        }
+      },
+      "mutator": "Boolean mutation",
+      "original": "false",
+      "replacement": "true",
+      "assessment": "context-affinity-candidate",
+      "reason": "These slot-loop continuations normally run from a ThreadPool-launched worker. A false-to-true ConfigureAwait change is unobserved with the default context; arbitrary user callback effects prevent an unconditional global equivalence proof.",
+      "nextEvidence": "Do not add no-pump/context-only tests absent an adopted contract; retain scoped candidate."
+    },
+    {
+      "file": "Healthcheck/Pipes/HealthPipeServer.cs",
+      "id": "2853",
+      "status": "Survived",
+      "span": {
+        "start": {
+          "line": 154,
+          "column": 80
+        },
+        "end": {
+          "line": 154,
+          "column": 86
+        }
+      },
+      "mutator": "Statement mutation",
+      "original": "break;",
+      "replacement": ";",
+      "assessment": "dominated-terminal-candidate",
+      "reason": "RecoverSlotAsync returns false only when stopping already won publication; the replacement was disposed and no stream was published. Omitting break can add another loop/error-routing step before the same terminal finally, but cannot authorize normal recovery success. A source-wide public equivalence proof beyond this state is not claimed.",
+      "nextEvidence": "Treat as a stop-path domination candidate, not an automatically credited kill or a demand for private exception assertions."
+    },
+    {
+      "file": "Healthcheck/Pipes/HealthPipeServer.cs",
+      "id": "2854",
+      "status": "Survived",
+      "span": {
+        "start": {
+          "line": 155,
+          "column": 21
+        },
+        "end": {
+          "line": 155,
+          "column": 30
+        }
+      },
+      "mutator": "Statement mutation",
+      "original": "continue;",
+      "replacement": ";",
+      "assessment": "recovery-path-gap",
+      "reason": "These mutations change recovery's success/failure continuation: a repaired slot can exit or an unrepaired stream can fall through to handling. Stable ordinary accepts do not exercise the difference.",
+      "nextEvidence": "Real accept IOException followed by demonstrated recovery and later valid request/capacity, with no synthetic native exception."
+    },
+    {
+      "file": "Healthcheck/Pipes/HealthPipeServer.cs",
+      "id": "2855",
+      "status": "Survived",
+      "span": {
+        "start": {
+          "line": 157,
+          "column": 17
+        },
+        "end": {
+          "line": 157,
+          "column": 69
+        }
+      },
+      "mutator": "Statement mutation",
+      "original": "stoppingSource.Token.ThrowIfCancellationRequested();",
+      "replacement": ";",
+      "assessment": "cancellation-order-gap",
+      "reason": "The explicit post-accept guard stops handler/budget setup after stop wins the accept race. Linked cancellation and later budget checks can still prevent report capture, but extra allocation/order differences are not fully proved dominated.",
+      "nextEvidence": "Need a real controlled accept/stop observation; no kill or global equivalence inferred."
+    },
+    {
+      "file": "Healthcheck/Pipes/HealthPipeServer.cs",
+      "id": "2858",
+      "status": "Survived",
+      "span": {
+        "start": {
+          "line": 161,
+          "column": 76
+        },
+        "end": {
+          "line": 161,
+          "column": 81
+        }
+      },
+      "mutator": "Boolean mutation",
+      "original": "false",
+      "replacement": "true",
+      "assessment": "context-affinity-candidate",
+      "reason": "These slot-loop continuations normally run from a ThreadPool-launched worker. A false-to-true ConfigureAwait change is unobserved with the default context; arbitrary user callback effects prevent an unconditional global equivalence proof.",
+      "nextEvidence": "Do not add no-pump/context-only tests absent an adopted contract; retain scoped candidate."
+    },
+    {
+      "file": "Healthcheck/Pipes/HealthPipeServer.cs",
+      "id": "2865",
+      "status": "Survived",
+      "span": {
+        "start": {
+          "line": 167,
+          "column": 63
+        },
+        "end": {
+          "line": 167,
+          "column": 69
+        }
+      },
+      "mutator": "Statement mutation",
+      "original": "break;",
+      "replacement": ";",
+      "assessment": "cancellation-order-gap",
+      "reason": "Removing the post-handler cancellation break may run Disconnect during stop; the outer loop checks cancellation later. This often still terminates, but exception/recovery ordering can differ.",
+      "nextEvidence": "Source-dominated normal-stop candidate only; real stop/disconnect edge remains unqualified."
+    },
+    {
+      "file": "Healthcheck/Pipes/HealthPipeServer.cs",
+      "id": "2868",
+      "status": "Survived",
+      "span": {
+        "start": {
+          "line": 169,
+          "column": 43
+        },
+        "end": {
+          "line": 169,
+          "column": 82
+        }
+      },
+      "mutator": "LogicalNotExpression to un-LogicalNotExpression mutation",
+      "original": "!stoppingSource.IsCancellationRequested",
+      "replacement": "stoppingSource.IsCancellationRequested",
+      "assessment": "recovery-path-gap",
+      "reason": "Inverting the Disconnect IOException guard changes running peer-failure recovery and stop exception routing.",
+      "nextEvidence": "Actual disconnect failure and subsequent capacity/terminal state required; ordinary closed clients do not establish this exact path."
+    },
+    {
+      "file": "Healthcheck/Pipes/HealthPipeServer.cs",
+      "id": "2870",
+      "status": "Survived",
+      "span": {
+        "start": {
+          "line": 171,
+          "column": 25
+        },
+        "end": {
+          "line": 171,
+          "column": 76
+        }
+      },
+      "mutator": "LogicalNotExpression to un-LogicalNotExpression mutation",
+      "original": "!await RecoverSlotAsync(slot).ConfigureAwait(false)",
+      "replacement": "await RecoverSlotAsync(slot).ConfigureAwait(false)",
+      "assessment": "recovery-path-gap",
+      "reason": "A recovered connected slot may be discarded, or an unsuccessful recovery may continue instead of leaving. The affected branch requires an actual Disconnect IOException.",
+      "nextEvidence": "Bounded real OS recovery scenario and observed next-request/stop outcome."
+    },
+    {
+      "file": "Healthcheck/Pipes/HealthPipeServer.cs",
+      "id": "2871",
+      "status": "Survived",
+      "span": {
+        "start": {
+          "line": 171,
+          "column": 70
+        },
+        "end": {
+          "line": 171,
+          "column": 75
+        }
+      },
+      "mutator": "Boolean mutation",
+      "original": "false",
+      "replacement": "true",
+      "assessment": "context-affinity-candidate",
+      "reason": "These slot-loop continuations normally run from a ThreadPool-launched worker. A false-to-true ConfigureAwait change is unobserved with the default context; arbitrary user callback effects prevent an unconditional global equivalence proof.",
+      "nextEvidence": "Do not add no-pump/context-only tests absent an adopted contract; retain scoped candidate."
+    },
+    {
+      "file": "Healthcheck/Pipes/HealthPipeServer.cs",
+      "id": "2873",
+      "status": "Survived",
+      "span": {
+        "start": {
+          "line": 171,
+          "column": 80
+        },
+        "end": {
+          "line": 171,
+          "column": 86
+        }
+      },
+      "mutator": "Statement mutation",
+      "original": "break;",
+      "replacement": ";",
+      "assessment": "dominated-terminal-candidate",
+      "reason": "False recovery already means stopping prevented replacement publication and disposed the replacement. Omitting this break can add another loop/error-routing step before the terminal finally; it does not convert failed publication into a retained endpoint.",
+      "nextEvidence": "Keep as a bounded terminal-domination candidate; no unknown exception or timeout credit."
+    },
+    {
+      "file": "Healthcheck/Pipes/HealthPipeServer.cs",
+      "id": "2874",
+      "status": "Survived",
+      "span": {
+        "start": {
+          "line": 175,
+          "column": 43
+        },
+        "end": {
+          "line": 175,
+          "column": 124
+        }
+      },
+      "mutator": "Equality mutation",
+      "original": "exception is IOException or OperationCanceledException or ObjectDisposedException",
+      "replacement": "exception is not IOException or OperationCanceledException or ObjectDisposedException",
+      "assessment": "source-equivalent-in-scope",
+      "reason": "The mutation redistributes IOException versus other exceptions between the conditional terminal catch and catch-all. Both call BeginStop when cancellation is not yet signaled. When it is signaled, the private source can only have been canceled after stopping was set, so an extra BeginStop immediately returns. The same finally/drain path remains.",
+      "nextEvidence": "Source-bound equivalence restricted to this private cancellation ownership/control flow; retain raw status and denominator, not a waiver."
+    },
+    {
+      "file": "Healthcheck/Pipes/HealthPipeServer.cs",
+      "id": "2878",
+      "status": "Survived",
+      "span": {
+        "start": {
+          "line": 179,
+          "column": 17
+        },
+        "end": {
+          "line": 179,
+          "column": 56
+        }
+      },
+      "mutator": "LogicalNotExpression to un-LogicalNotExpression mutation",
+      "original": "!stoppingSource.IsCancellationRequested",
+      "replacement": "stoppingSource.IsCancellationRequested",
+      "assessment": "infrastructure-terminal-gap",
+      "reason": "An endpoint or clock failure outside normal per-client catches must close all admission. These changes can suppress BeginStop or call it in the wrong state; normal malformed frames are not infrastructure failures.",
+      "nextEvidence": "A real bounded endpoint/clock failure with actual terminal admission and settlement observation is still needed."
+    },
+    {
+      "file": "Healthcheck/Pipes/HealthPipeServer.cs",
+      "id": "2880",
+      "status": "Survived",
+      "span": {
+        "start": {
+          "line": 179,
+          "column": 60
+        },
+        "end": {
+          "line": 179,
+          "column": 72
+        }
+      },
+      "mutator": "Statement mutation",
+      "original": "BeginStop();",
+      "replacement": ";",
+      "assessment": "infrastructure-terminal-gap",
+      "reason": "An endpoint or clock failure outside normal per-client catches must close all admission. These changes can suppress BeginStop or call it in the wrong state; normal malformed frames are not infrastructure failures.",
+      "nextEvidence": "A real bounded endpoint/clock failure with actual terminal admission and settlement observation is still needed."
+    },
+    {
+      "file": "Healthcheck/Pipes/HealthPipeServer.cs",
+      "id": "2882",
+      "status": "Survived",
+      "span": {
+        "start": {
+          "line": 185,
+          "column": 13
+        },
+        "end": {
+          "line": 185,
+          "column": 25
+        }
+      },
+      "mutator": "Statement mutation",
+      "original": "BeginStop();",
+      "replacement": ";",
+      "assessment": "infrastructure-terminal-gap",
+      "reason": "An endpoint or clock failure outside normal per-client catches must close all admission. These changes can suppress BeginStop or call it in the wrong state; normal malformed frames are not infrastructure failures.",
+      "nextEvidence": "A real bounded endpoint/clock failure with actual terminal admission and settlement observation is still needed."
+    },
+    {
+      "file": "Healthcheck/Pipes/HealthPipeServer.cs",
+      "id": "2885",
+      "status": "Survived",
+      "span": {
+        "start": {
+          "line": 191,
+          "column": 13
+        },
+        "end": {
+          "line": 191,
+          "column": 30
+        }
+      },
+      "mutator": "Statement mutation",
+      "original": "close?.Dispose();",
+      "replacement": ";",
+      "assessment": "resource-gap",
+      "reason": "The departing slot owns any still-retained stream. BeginStop often already disposed it, but recovery/unexpected exit ownership is not universally discharged by that earlier close.",
+      "nextEvidence": "Actual exceptional departure/resource observation needed; do not label redundant merely because Dispose is idempotent."
+    },
+    {
+      "file": "Healthcheck/Pipes/HealthPipeServer.cs",
+      "id": "2887",
+      "status": "Timeout",
+      "span": {
+        "start": {
+          "line": 192,
+          "column": 27
+        },
+        "end": {
+          "line": 192,
+          "column": 39
+        }
+      },
+      "mutator": "Statement mutation",
+      "original": "remaining--;",
+      "replacement": ";",
+      "assessment": "native-timeout-uncredited",
+      "reason": "Removing or incrementing the departing worker count prevents remaining from reaching its required settled value (or corrupts it).",
+      "nextEvidence": "Old Timeout is not a credited kill; fresh actual lifecycle diagnosis needed."
+    },
+    {
+      "file": "Healthcheck/Pipes/HealthPipeServer.cs",
+      "id": "2888",
+      "status": "Timeout",
+      "span": {
+        "start": {
+          "line": 192,
+          "column": 27
+        },
+        "end": {
+          "line": 192,
+          "column": 38
+        }
+      },
+      "mutator": "PostDecrementExpression to PostIncrementExpression mutation",
+      "original": "remaining--",
+      "replacement": "remaining++",
+      "assessment": "native-timeout-uncredited",
+      "reason": "Removing or incrementing the departing worker count prevents remaining from reaching its required settled value (or corrupts it).",
+      "nextEvidence": "Old Timeout is not a credited kill; fresh actual lifecycle diagnosis needed."
+    },
+    {
+      "file": "Healthcheck/Pipes/HealthPipeServer.cs",
+      "id": "2889",
+      "status": "Timeout",
+      "span": {
+        "start": {
+          "line": 193,
+          "column": 13
+        },
+        "end": {
+          "line": 193,
+          "column": 30
+        }
+      },
+      "mutator": "Statement mutation",
+      "original": "SignalProgress();",
+      "replacement": ";",
+      "assessment": "native-timeout-uncredited",
+      "reason": "The last actual worker can leave after BeginStop's earlier signal; omitting this final signal can leave the stop barrier pending.",
+      "nextEvidence": "Preserve native Timeout and require a bounded actual public assertion result."
+    },
+    {
+      "file": "Healthcheck/Pipes/HealthPipeServer.cs",
+      "id": "2891",
+      "status": "Survived",
+      "span": {
+        "start": {
+          "line": 202,
+          "column": 9
+        },
+        "end": {
+          "line": 202,
+          "column": 85
+        }
+      },
+      "mutator": "Statement mutation",
+      "original": "await endpointChanges.WaitAsync(stoppingSource.Token).ConfigureAwait(false);",
+      "replacement": ";",
+      "assessment": "recovery-race-gap",
+      "reason": "Removing the semaphore wait allows simultaneous stream removal/recreation and invalidates first-instance/name/capacity coordination. A normal run with no overlapping recovery will not distinguish it.",
+      "nextEvidence": "Concurrent actual recoveries with bounded capacity/ownership proof needed; no timing-only or artificial private call ordering."
+    },
+    {
+      "file": "Healthcheck/Pipes/HealthPipeServer.cs",
+      "id": "2892",
+      "status": "Survived",
+      "span": {
+        "start": {
+          "line": 202,
+          "column": 78
+        },
+        "end": {
+          "line": 202,
+          "column": 83
+        }
+      },
+      "mutator": "Boolean mutation",
+      "original": "false",
+      "replacement": "true",
+      "assessment": "context-affinity-candidate",
+      "reason": "Recovery is invoked from the ThreadPool slot loop and normally has no caller context to capture. Future/user-installed contexts prevent a universal equivalence assertion.",
+      "nextEvidence": "No scheduler-only detector; retain scoped candidate."
+    },
+    {
+      "file": "Healthcheck/Pipes/HealthPipeServer.cs",
+      "id": "2895",
+      "status": "Survived",
+      "span": {
+        "start": {
+          "line": 207,
+          "column": 13
+        },
+        "end": {
+          "line": 207,
+          "column": 33
+        }
+      },
+      "mutator": "Statement mutation",
+      "original": "previous?.Dispose();",
+      "replacement": ";",
+      "assessment": "resource-and-capacity-gap",
+      "reason": "The removed previous-stream Dispose releases the actual native instance before replacement. Omitting it can retain capacity/name ownership even though slot.Stream was nulled.",
+      "nextEvidence": "Real recovery branch followed by successful replacement and eventual handle settlement."
+    },
+    {
+      "file": "Healthcheck/Pipes/HealthPipeServer.cs",
+      "id": "2896",
+      "status": "Survived",
+      "span": {
+        "start": {
+          "line": 208,
+          "column": 13
+        },
+        "end": {
+          "line": 208,
+          "column": 65
+        }
+      },
+      "mutator": "Statement mutation",
+      "original": "stoppingSource.Token.ThrowIfCancellationRequested();",
+      "replacement": ";",
+      "assessment": "cancellation-order-gap",
+      "reason": "Removing the recovery cancellation guard can create a replacement endpoint after stop, although publication later rejects and disposes it. No healthy response may escape, but transient creation/failure and ownership differ.",
+      "nextEvidence": "Do not prove global equivalence from final output; actual stop/recovery race remains open."
+    },
+    {
+      "file": "Healthcheck/Pipes/HealthPipeServer.cs",
+      "id": "2899",
+      "status": "Survived",
+      "span": {
+        "start": {
+          "line": 210,
+          "column": 36
+        },
+        "end": {
+          "line": 210,
+          "column": 45
+        }
+      },
+      "mutator": "Linq method mutation (Any() to All())",
+      "original": "slots.Any",
+      "replacement": "slots.All",
+      "assessment": "recovery-ownership-gap",
+      "reason": "Changing Any to All or nonnull to null changes whether replacement must be the first name claimant. With multiple slots some configurations coincide, but one/mixed-slot recovery need not.",
+      "nextEvidence": "Actual single-slot and mixed-slot recovery/name ownership observations required."
+    },
+    {
+      "file": "Healthcheck/Pipes/HealthPipeServer.cs",
+      "id": "2900",
+      "status": "Survived",
+      "span": {
+        "start": {
+          "line": 210,
+          "column": 54
+        },
+        "end": {
+          "line": 210,
+          "column": 77
+        }
+      },
+      "mutator": "Equality mutation",
+      "original": "item.Stream is not null",
+      "replacement": "item.Stream is null",
+      "assessment": "recovery-ownership-gap",
+      "reason": "Changing Any to All or nonnull to null changes whether replacement must be the first name claimant. With multiple slots some configurations coincide, but one/mixed-slot recovery need not.",
+      "nextEvidence": "Actual single-slot and mixed-slot recovery/name ownership observations required."
+    },
+    {
+      "file": "Healthcheck/Pipes/HealthPipeServer.cs",
+      "id": "2902",
+      "status": "Survived",
+      "span": {
+        "start": {
+          "line": 217,
+          "column": 27
+        },
+        "end": {
+          "line": 217,
+          "column": 36
+        }
+      },
+      "mutator": "LogicalNotExpression to un-LogicalNotExpression mutation",
+      "original": "!stopping",
+      "replacement": "stopping",
+      "assessment": "recovery-publication-gap",
+      "reason": "These changes publish a replacement in the wrong stopping state, omit its retained slot, or dispose a published replacement. They can lose capacity, leak an untracked endpoint or accept after terminal stop.",
+      "nextEvidence": "Actual recovery followed by valid request and stop/endpoint closure required; ordinary accept tests do not force the path."
+    },
+    {
+      "file": "Healthcheck/Pipes/HealthPipeServer.cs",
+      "id": "2903",
+      "status": "Survived",
+      "span": {
+        "start": {
+          "line": 218,
+          "column": 21
+        },
+        "end": {
+          "line": 218,
+          "column": 28
+        }
+      },
+      "mutator": "Negate expression",
+      "original": "publish",
+      "replacement": "!(publish)",
+      "assessment": "recovery-publication-gap",
+      "reason": "These changes publish a replacement in the wrong stopping state, omit its retained slot, or dispose a published replacement. They can lose capacity, leak an untracked endpoint or accept after terminal stop.",
+      "nextEvidence": "Actual recovery followed by valid request and stop/endpoint closure required; ordinary accept tests do not force the path."
+    },
+    {
+      "file": "Healthcheck/Pipes/HealthPipeServer.cs",
+      "id": "2904",
+      "status": "Survived",
+      "span": {
+        "start": {
+          "line": 218,
+          "column": 30
+        },
+        "end": {
+          "line": 218,
+          "column": 60
+        }
+      },
+      "mutator": "Block removal mutation",
+      "original": "{ slot.Stream = replacement; }",
+      "replacement": "{}",
+      "assessment": "recovery-publication-gap",
+      "reason": "These changes publish a replacement in the wrong stopping state, omit its retained slot, or dispose a published replacement. They can lose capacity, leak an untracked endpoint or accept after terminal stop.",
+      "nextEvidence": "Actual recovery followed by valid request and stop/endpoint closure required; ordinary accept tests do not force the path."
+    },
+    {
+      "file": "Healthcheck/Pipes/HealthPipeServer.cs",
+      "id": "2905",
+      "status": "Survived",
+      "span": {
+        "start": {
+          "line": 220,
+          "column": 17
+        },
+        "end": {
+          "line": 220,
+          "column": 25
+        }
+      },
+      "mutator": "LogicalNotExpression to un-LogicalNotExpression mutation",
+      "original": "!publish",
+      "replacement": "publish",
+      "assessment": "recovery-publication-gap",
+      "reason": "These changes publish a replacement in the wrong stopping state, omit its retained slot, or dispose a published replacement. They can lose capacity, leak an untracked endpoint or accept after terminal stop.",
+      "nextEvidence": "Actual recovery followed by valid request and stop/endpoint closure required; ordinary accept tests do not force the path."
+    },
+    {
+      "file": "Healthcheck/Pipes/HealthPipeServer.cs",
+      "id": "2907",
+      "status": "Survived",
+      "span": {
+        "start": {
+          "line": 220,
+          "column": 29
+        },
+        "end": {
+          "line": 220,
+          "column": 51
+        }
+      },
+      "mutator": "Statement mutation",
+      "original": "replacement.Dispose();",
+      "replacement": ";",
+      "assessment": "resource-gap",
+      "reason": "When stop wins before replacement publication, the new native endpoint is not in slots. Only this disposal closes it; BeginStop cannot close an untracked replacement.",
+      "nextEvidence": "Real stop/recovery race plus bounded endpoint closure/resource evidence."
+    },
+    {
+      "file": "Healthcheck/Pipes/HealthPipeServer.cs",
+      "id": "2909",
+      "status": "Survived",
+      "span": {
+        "start": {
+          "line": 223,
+          "column": 19
+        },
+        "end": {
+          "line": 223,
+          "column": 45
+        }
+      },
+      "mutator": "Statement mutation",
+      "original": "endpointChanges.Release();",
+      "replacement": ";",
+      "assessment": "recovery-liveness-gap",
+      "reason": "Failure to release the semaphore can block subsequent recovery workers even though the first repaired request succeeds.",
+      "nextEvidence": "Demonstrated repeated real recovery, not merely repeated ordinary connections; timeouts uncredited."
+    },
+    {
+      "file": "Healthcheck/Pipes/HealthPipeServer.cs",
+      "id": "2944",
+      "status": "Timeout",
+      "span": {
+        "start": {
+          "line": 280,
+          "column": 17
+        },
+        "end": {
+          "line": 280,
+          "column": 25
+        }
+      },
+      "mutator": "Negate expression",
+      "original": "stopping",
+      "replacement": "!(stopping)",
+      "assessment": "native-timeout-uncredited",
+      "reason": "Inverting stopping skips the first real stop operation and enters repeated-stop work in the wrong state.",
+      "nextEvidence": "Old Timeout uncredited; public terminal lifecycle assertion still required."
+    },
+    {
+      "file": "Healthcheck/Pipes/HealthPipeServer.cs",
+      "id": "2946",
+      "status": "Survived",
+      "span": {
+        "start": {
+          "line": 280,
+          "column": 29
+        },
+        "end": {
+          "line": 280,
+          "column": 36
+        }
+      },
+      "mutator": "Statement mutation",
+      "original": "return;",
+      "replacement": ";",
+      "assessment": "detector-authored",
+      "reason": "Without the repeated-stop early return, a later DisposeAsync can call Cancel on the already-disposed private CancellationTokenSource. Repeated disposal is a documented harmless terminal operation; ordinary pre-disposal repeated Stop alone can mask this difference.",
+      "nextEvidence": "New StoppingBeforeStartIsTerminalAndDisposalIsIdempotent invokes DisposeAsync twice after actual settlement; fresh mutation evidence required."
+    },
+    {
+      "file": "Healthcheck/Pipes/HealthPipeServer.cs",
+      "id": "2947",
+      "status": "Timeout",
+      "span": {
+        "start": {
+          "line": 281,
+          "column": 24
+        },
+        "end": {
+          "line": 281,
+          "column": 28
+        }
+      },
+      "mutator": "Boolean mutation",
+      "original": "true",
+      "replacement": "false",
+      "assessment": "native-timeout-uncredited",
+      "reason": "Leaving stopping false loses terminal admission and makes SignalProgress's stopping predicate false even after work drains.",
+      "nextEvidence": "Preserve Timeout; fresh lifecycle outcome required."
+    },
+    {
+      "file": "Healthcheck/Pipes/HealthPipeServer.cs",
+      "id": "2948",
+      "status": "Timeout",
+      "span": {
+        "start": {
+          "line": 282,
+          "column": 13
+        },
+        "end": {
+          "line": 282,
+          "column": 23
+        }
+      },
+      "mutator": "Statement mutation",
+      "original": "closing++;",
+      "replacement": ";",
+      "assessment": "native-timeout-uncredited",
+      "reason": "The closing guard must account for in-progress physical cancellation/stream closing before stop completion. Missing or reversed increments can permit premature completion or leave an impossible negative count.",
+      "nextEvidence": "Actual stop-boundary assertion required; timeout is not killed."
+    },
+    {
+      "file": "Healthcheck/Pipes/HealthPipeServer.cs",
+      "id": "2949",
+      "status": "Timeout",
+      "span": {
+        "start": {
+          "line": 282,
+          "column": 13
+        },
+        "end": {
+          "line": 282,
+          "column": 22
+        }
+      },
+      "mutator": "PostIncrementExpression to PostDecrementExpression mutation",
+      "original": "closing++",
+      "replacement": "closing--",
+      "assessment": "native-timeout-uncredited",
+      "reason": "The closing guard must account for in-progress physical cancellation/stream closing before stop completion. Missing or reversed increments can permit premature completion or leave an impossible negative count.",
+      "nextEvidence": "Actual stop-boundary assertion required; timeout is not killed."
+    },
+    {
+      "file": "Healthcheck/Pipes/HealthPipeServer.cs",
+      "id": "2951",
+      "status": "Survived",
+      "span": {
+        "start": {
+          "line": 287,
+          "column": 13
+        },
+        "end": {
+          "line": 287,
+          "column": 37
+        }
+      },
+      "mutator": "Statement mutation",
+      "original": "stoppingSource.Cancel();",
+      "replacement": ";",
+      "assessment": "cancellation-order-gap",
+      "reason": "Disposing streams often wakes actual pipe I/O without cancellation, but removal also loses the lifetime token signal used by loop admission, linked budgets and exception filters. Neither action is globally proved to dominate the other.",
+      "nextEvidence": "Real cancellation/handler settlement observation; no blanket equivalence."
+    },
+    {
+      "file": "Healthcheck/Pipes/HealthPipeServer.cs",
+      "id": "2953",
+      "status": "Survived",
+      "span": {
+        "start": {
+          "line": 288,
+          "column": 45
+        },
+        "end": {
+          "line": 288,
+          "column": 62
+        }
+      },
+      "mutator": "Statement mutation",
+      "original": "stream.Dispose();",
+      "replacement": ";",
+      "assessment": "resource-and-settlement-gap",
+      "reason": "Cancellation can finish BCL async I/O, but removing physical stream disposal leaves ownership/admission closure dependent on workers and their actual settlement, including blocked source work.",
+      "nextEvidence": "Pending source stop/disposal cases apply; exact source replay must establish terminal endpoint behavior."
+    },
+    {
+      "file": "Healthcheck/Pipes/HealthPipeServer.cs",
+      "id": "2956",
+      "status": "Timeout",
+      "span": {
+        "start": {
+          "line": 292,
+          "column": 27
+        },
+        "end": {
+          "line": 292,
+          "column": 37
+        }
+      },
+      "mutator": "Statement mutation",
+      "original": "closing--;",
+      "replacement": ";",
+      "assessment": "native-timeout-uncredited",
+      "reason": "Missing or reversed closing decrement prevents the actual close operation's completion from satisfying the shared stop barrier.",
+      "nextEvidence": "Retain actual Timeout and no kill credit."
+    },
+    {
+      "file": "Healthcheck/Pipes/HealthPipeServer.cs",
+      "id": "2957",
+      "status": "Timeout",
+      "span": {
+        "start": {
+          "line": 292,
+          "column": 27
+        },
+        "end": {
+          "line": 292,
+          "column": 36
+        }
+      },
+      "mutator": "PostDecrementExpression to PostIncrementExpression mutation",
+      "original": "closing--",
+      "replacement": "closing++",
+      "assessment": "native-timeout-uncredited",
+      "reason": "Missing or reversed closing decrement prevents the actual close operation's completion from satisfying the shared stop barrier.",
+      "nextEvidence": "Retain actual Timeout and no kill credit."
+    },
+    {
+      "file": "Healthcheck/Pipes/HealthPipeServer.cs",
+      "id": "2958",
+      "status": "Timeout",
+      "span": {
+        "start": {
+          "line": 293,
+          "column": 13
+        },
+        "end": {
+          "line": 293,
+          "column": 30
+        }
+      },
+      "mutator": "Statement mutation",
+      "original": "SignalProgress();",
+      "replacement": ";",
+      "assessment": "native-timeout-uncredited",
+      "reason": "Stop-before-start or stop after all workers have already left relies on the final close-operation signal to complete the stop barrier.",
+      "nextEvidence": "New stop-before-start case is relevant; native Timeout remains uncredited until a new actual result."
+    },
+    {
+      "file": "Healthcheck/Pipes/HealthPipeServer.cs",
+      "id": "2964",
+      "status": "Timeout",
+      "span": {
+        "start": {
+          "line": 300,
+          "column": 45
+        },
+        "end": {
+          "line": 300,
+          "column": 54
+        }
+      },
+      "mutator": "LogicalNotExpression to un-LogicalNotExpression mutation",
+      "original": "!starting",
+      "replacement": "starting",
+      "assessment": "native-timeout-uncredited",
+      "reason": "The shared barrier must require startup finished and no close operation in progress. Mutating these predicates can strand settlement or complete it before actual ownership ends.",
+      "nextEvidence": "Do not translate native Timeout into a passing assertion kill."
+    },
+    {
+      "file": "Healthcheck/Pipes/HealthPipeServer.cs",
+      "id": "2966",
+      "status": "Timeout",
+      "span": {
+        "start": {
+          "line": 300,
+          "column": 76
+        },
+        "end": {
+          "line": 300,
+          "column": 88
+        }
+      },
+      "mutator": "Equality mutation",
+      "original": "closing == 0",
+      "replacement": "closing != 0",
+      "assessment": "native-timeout-uncredited",
+      "reason": "The shared barrier must require startup finished and no close operation in progress. Mutating these predicates can strand settlement or complete it before actual ownership ends.",
+      "nextEvidence": "Do not translate native Timeout into a passing assertion kill."
+    },
+    {
+      "file": "Healthcheck/Pipes/HealthPipeServer.cs",
+      "id": "2969",
+      "status": "Timeout",
+      "span": {
+        "start": {
+          "line": 301,
+          "column": 24
+        },
+        "end": {
+          "line": 301,
+          "column": 54
+        }
+      },
+      "mutator": "Statement mutation",
+      "original": "stopCompletion.TrySetResult();",
+      "replacement": ";",
+      "assessment": "native-timeout-uncredited",
+      "reason": "Removing stopCompletion completion strands every actual terminal waiter after the conditions have settled.",
+      "nextEvidence": "Fresh bounded lifecycle diagnosis required; raw Timeout preserved."
+    },
+    {
+      "file": "Healthcheck/Pipes/HealthProbeClient.cs",
+      "id": "2971",
+      "status": "Survived",
+      "span": {
+        "start": {
+          "line": 15,
+          "column": 9
+        },
+        "end": {
+          "line": 15,
+          "column": 54
+        }
+      },
+      "mutator": "Statement mutation",
+      "original": "ArgumentNullException.ThrowIfNull(arguments);",
+      "replacement": ";",
+      "assessment": "detector-authored",
+      "reason": "These are internal probe receiving guards for caller resources. The executable always supplies nonnull arguments and console resources, so child-only tests cannot exercise them.",
+      "nextEvidence": "Root new internal unit rows assert ArgumentNullException/ParamName and no output/connection."
+    },
+    {
+      "file": "Healthcheck/Pipes/HealthProbeClient.cs",
+      "id": "2972",
+      "status": "Survived",
+      "span": {
+        "start": {
+          "line": 16,
+          "column": 9
+        },
+        "end": {
+          "line": 16,
+          "column": 59
+        }
+      },
+      "mutator": "Statement mutation",
+      "original": "ArgumentNullException.ThrowIfNull(standardOutput);",
+      "replacement": ";",
+      "assessment": "detector-authored",
+      "reason": "These are internal probe receiving guards for caller resources. The executable always supplies nonnull arguments and console resources, so child-only tests cannot exercise them.",
+      "nextEvidence": "Root new internal unit rows assert ArgumentNullException/ParamName and no output/connection."
+    },
+    {
+      "file": "Healthcheck/Pipes/HealthProbeClient.cs",
+      "id": "2973",
+      "status": "Survived",
+      "span": {
+        "start": {
+          "line": 17,
+          "column": 9
+        },
+        "end": {
+          "line": 17,
+          "column": 58
+        }
+      },
+      "mutator": "Statement mutation",
+      "original": "ArgumentNullException.ThrowIfNull(standardError);",
+      "replacement": ";",
+      "assessment": "detector-authored",
+      "reason": "These are internal probe receiving guards for caller resources. The executable always supplies nonnull arguments and console resources, so child-only tests cannot exercise them.",
+      "nextEvidence": "Root new internal unit rows assert ArgumentNullException/ParamName and no output/connection."
+    },
+    {
+      "file": "Healthcheck/Pipes/HealthProbeClient.cs",
+      "id": "2977",
+      "status": "Survived",
+      "span": {
+        "start": {
+          "line": 20,
+          "column": 50
+        },
+        "end": {
+          "line": 20,
+          "column": 68
+        }
+      },
+      "mutator": "String mutation",
+      "original": "\"InvalidArguments\"",
+      "replacement": "\"\"",
+      "assessment": "detector-authored",
+      "reason": "Removing the entire local invalid-argument reason leaves only the current optional program label. The CLI contract requires bounded useful stderr, while the label alone is not a reason.",
+      "nextEvidence": "Refined ErrorResult strips an optional existing label and requires a nonempty reason without pinning exact cosmetic line."
+    },
+    {
+      "file": "Healthcheck/Pipes/HealthProbeClient.cs",
+      "id": "2978",
+      "status": "Timeout",
+      "span": {
+        "start": {
+          "line": 20,
+          "column": 85
+        },
+        "end": {
+          "line": 20,
+          "column": 90
+        }
+      },
+      "mutator": "Boolean mutation",
+      "original": "false",
+      "replacement": "true",
+      "assessment": "native-timeout-uncredited",
+      "reason": "This ConfigureAwait change only affects invalid-argument diagnostic output continuation. The real console writer/default CLI context usually yields the same observable result; the old Timeout supplies no causal scheduler proof.",
+      "nextEvidence": "Retain Timeout uncredited; no invented no-pump context contract."
+    },
+    {
+      "file": "Healthcheck/Pipes/HealthProbeClient.cs",
+      "id": "2981",
+      "status": "Survived",
+      "span": {
+        "start": {
+          "line": 27,
+          "column": 17
+        },
+        "end": {
+          "line": 27,
+          "column": 71
+        }
+      },
+      "mutator": "Bitwise mutation",
+      "original": "PipeOptions.Asynchronous | PipeOptions.CurrentUserOnly",
+      "replacement": "PipeOptions.Asynchronous & PipeOptions.CurrentUserOnly",
+      "assessment": "platform-gap",
+      "reason": "AND removes asynchronous and CurrentUserOnly option bits from the client. Ordinary same-owner Windows replies do not prove server peer-identity validation or async equivalence.",
+      "nextEvidence": "Real applicable Linux/Windows identity and deadline observations, not a same-owner success-only claim."
+    },
+    {
+      "file": "Healthcheck/Pipes/HealthProbeClient.cs",
+      "id": "2983",
+      "status": "Survived",
+      "span": {
+        "start": {
+          "line": 28,
+          "column": 68
+        },
+        "end": {
+          "line": 28,
+          "column": 73
+        }
+      },
+      "mutator": "Boolean mutation",
+      "original": "false",
+      "replacement": "true",
+      "assessment": "context-affinity-candidate",
+      "reason": "The actual matching executable begins on the default context. Capturing it at connect/write/read ordinarily does not change documented wire/exit behavior; arbitrary internal callers may still provide a context.",
+      "nextEvidence": "No global equivalence or scheduler-only detector; preserve CLI-domain candidate."
+    },
+    {
+      "file": "Healthcheck/Pipes/HealthProbeClient.cs",
+      "id": "2984",
+      "status": "Survived",
+      "span": {
+        "start": {
+          "line": 29,
+          "column": 13
+        },
+        "end": {
+          "line": 29,
+          "column": 37
+        }
+      },
+      "mutator": "Statement mutation",
+      "original": "budget.ThrowIfExpired();",
+      "replacement": ";",
+      "assessment": "deadline-stage-gap",
+      "reason": "Later checks may still stop a late healthy result, but this post-connect guard also prevents request construction/transmission after the total budget has expired while timer delivery is late.",
+      "nextEvidence": "Exact delayed-timer stage observation would be needed; System time probe has no approved private clock hook."
+    },
+    {
+      "file": "Healthcheck/Pipes/HealthProbeClient.cs",
+      "id": "2988",
+      "status": "Survived",
+      "span": {
+        "start": {
+          "line": 31,
+          "column": 107
+        },
+        "end": {
+          "line": 31,
+          "column": 112
+        }
+      },
+      "mutator": "Boolean mutation",
+      "original": "false",
+      "replacement": "true",
+      "assessment": "context-affinity-candidate",
+      "reason": "The actual matching executable begins on the default context. Capturing it at connect/write/read ordinarily does not change documented wire/exit behavior; arbitrary internal callers may still provide a context.",
+      "nextEvidence": "No global equivalence or scheduler-only detector; preserve CLI-domain candidate."
+    },
+    {
+      "file": "Healthcheck/Pipes/HealthProbeClient.cs",
+      "id": "2989",
+      "status": "Survived",
+      "span": {
+        "start": {
+          "line": 32,
+          "column": 13
+        },
+        "end": {
+          "line": 32,
+          "column": 37
+        }
+      },
+      "mutator": "Statement mutation",
+      "original": "budget.ThrowIfExpired();",
+      "replacement": ";",
+      "assessment": "deadline-stage-gap",
+      "reason": "Later response/read checks can prevent healthy output, but the post-write elapsed check prevents proceeding into response reception after the same total deadline.",
+      "nextEvidence": "Keep stage-admission gap distinct from final-exit equivalence; no extra production test seam added."
+    },
+    {
+      "file": "Healthcheck/Pipes/HealthProbeClient.cs",
+      "id": "2990",
+      "status": "Survived",
+      "span": {
+        "start": {
+          "line": 33,
+          "column": 135
+        },
+        "end": {
+          "line": 33,
+          "column": 140
+        }
+      },
+      "mutator": "Boolean mutation",
+      "original": "false",
+      "replacement": "true",
+      "assessment": "context-affinity-candidate",
+      "reason": "The actual matching executable begins on the default context. Capturing it at connect/write/read ordinarily does not change documented wire/exit behavior; arbitrary internal callers may still provide a context.",
+      "nextEvidence": "No global equivalence or scheduler-only detector; preserve CLI-domain candidate."
+    },
+    {
+      "file": "Healthcheck/Pipes/HealthProbeClient.cs",
+      "id": "2991",
+      "status": "Survived",
+      "span": {
+        "start": {
+          "line": 34,
+          "column": 13
+        },
+        "end": {
+          "line": 34,
+          "column": 37
+        }
+      },
+      "mutator": "Statement mutation",
+      "original": "budget.ThrowIfExpired();",
+      "replacement": ";",
+      "assessment": "deadline-stage-gap",
+      "reason": "The post-read guard prevents parsing an already-late complete response. The later guard may still suppress stdout, so absence can change bounded processing rather than final health output.",
+      "nextEvidence": "Need a trustworthy stage-boundary observation; no sleep-only detector or implied kill."
+    },
+    {
+      "file": "Healthcheck/Pipes/HealthProbeClient.cs",
+      "id": "2992",
+      "status": "Survived",
+      "span": {
+        "start": {
+          "line": 36,
+          "column": 13
+        },
+        "end": {
+          "line": 36,
+          "column": 37
+        }
+      },
+      "mutator": "Statement mutation",
+      "original": "budget.ThrowIfExpired();",
+      "replacement": ";",
+      "assessment": "deadline-stage-gap",
+      "reason": "Parsing is synchronous and can consume remaining time after the preceding guard. Stdout operations use caller cancellation rather than the budget token, so this final guard can prevent a late successful result.",
+      "nextEvidence": "Real complete-response parse crossing the actual budget required; total-deadline tests alone do not prove this individual guard."
+    },
+    {
+      "file": "Healthcheck/Pipes/HealthProbeClient.cs",
+      "id": "2996",
+      "status": "Survived",
+      "span": {
+        "start": {
+          "line": 39,
+          "column": 88
+        },
+        "end": {
+          "line": 39,
+          "column": 93
+        }
+      },
+      "mutator": "Boolean mutation",
+      "original": "false",
+      "replacement": "true",
+      "assessment": "context-affinity-candidate",
+      "reason": "These final diagnostic/stdout continuations normally execute in the matching CLI's default context. Internal caller-affinity may differ, but no adopted no-context-capture contract exists.",
+      "nextEvidence": "Retain scoped candidate without synthetic scheduler assertions or timeouts-as-kills."
+    },
+    {
+      "file": "Healthcheck/Pipes/HealthProbeClient.cs",
+      "id": "2998",
+      "status": "Survived",
+      "span": {
+        "start": {
+          "line": 42,
+          "column": 100
+        },
+        "end": {
+          "line": 42,
+          "column": 105
+        }
+      },
+      "mutator": "Boolean mutation",
+      "original": "false",
+      "replacement": "true",
+      "assessment": "context-affinity-candidate",
+      "reason": "These final diagnostic/stdout continuations normally execute in the matching CLI's default context. Internal caller-affinity may differ, but no adopted no-context-capture contract exists.",
+      "nextEvidence": "Retain scoped candidate without synthetic scheduler assertions or timeouts-as-kills."
+    },
+    {
+      "file": "Healthcheck/Pipes/HealthProbeClient.cs",
+      "id": "2999",
+      "status": "Survived",
+      "span": {
+        "start": {
+          "line": 43,
+          "column": 13
+        },
+        "end": {
+          "line": 43,
+          "column": 104
+        }
+      },
+      "mutator": "Statement mutation",
+      "original": "await standardOutput.WriteAsync(\"\\n\"u8.ToArray(), cancellationToken).ConfigureAwait(false);",
+      "replacement": ";",
+      "assessment": "detector-authored",
+      "reason": "Removing the output newline changes a complete JSON-line CLI result although JSON parsing alone still succeeds.",
+      "nextEvidence": "Strengthened actual child success checks require exact received snapshot plus one newline, with no envelope leak."
+    },
+    {
+      "file": "Healthcheck/Pipes/HealthProbeClient.cs",
+      "id": "3000",
+      "status": "Survived",
+      "span": {
+        "start": {
+          "line": 43,
+          "column": 97
+        },
+        "end": {
+          "line": 43,
+          "column": 102
+        }
+      },
+      "mutator": "Boolean mutation",
+      "original": "false",
+      "replacement": "true",
+      "assessment": "context-affinity-candidate",
+      "reason": "These final diagnostic/stdout continuations normally execute in the matching CLI's default context. Internal caller-affinity may differ, but no adopted no-context-capture contract exists.",
+      "nextEvidence": "Retain scoped candidate without synthetic scheduler assertions or timeouts-as-kills."
+    },
+    {
+      "file": "Healthcheck/Pipes/HealthProbeClient.cs",
+      "id": "3001",
+      "status": "Survived",
+      "span": {
+        "start": {
+          "line": 44,
+          "column": 13
+        },
+        "end": {
+          "line": 44,
+          "column": 86
+        }
+      },
+      "mutator": "Statement mutation",
+      "original": "await standardOutput.FlushAsync(cancellationToken).ConfigureAwait(false);",
+      "replacement": ";",
+      "assessment": "caller-output-gap",
+      "reason": "Console standard output may be unbuffered enough that the missing flush is unobservable. The internal method accepts a caller-owned Stream that can require flushing, so global equivalence is not proved.",
+      "nextEvidence": "Potential root internal test should observe actual buffered bytes becoming readable, not merely count a Flush call."
+    },
+    {
+      "file": "Healthcheck/Pipes/HealthProbeClient.cs",
+      "id": "3002",
+      "status": "Survived",
+      "span": {
+        "start": {
+          "line": 44,
+          "column": 79
+        },
+        "end": {
+          "line": 44,
+          "column": 84
+        }
+      },
+      "mutator": "Boolean mutation",
+      "original": "false",
+      "replacement": "true",
+      "assessment": "context-affinity-candidate",
+      "reason": "These final diagnostic/stdout continuations normally execute in the matching CLI's default context. Internal caller-affinity may differ, but no adopted no-context-capture contract exists.",
+      "nextEvidence": "Retain scoped candidate without synthetic scheduler assertions or timeouts-as-kills."
+    },
+    {
+      "file": "Healthcheck/Pipes/HealthProbeClient.cs",
+      "id": "3007",
+      "status": "Survived",
+      "span": {
+        "start": {
+          "line": 49,
+          "column": 50
+        },
+        "end": {
+          "line": 49,
+          "column": 69
+        }
+      },
+      "mutator": "String mutation",
+      "original": "\"TimeoutOrCanceled\"",
+      "replacement": "\"\"",
+      "assessment": "detector-authored",
+      "reason": "Removing the local timeout/canceled reason leaves no useful scenario reason after an optional program label.",
+      "nextEvidence": "Refined real CLI ErrorResult requires bounded nonempty reason; root internal cancellation case also checks the actual cancellation category."
+    },
+    {
+      "file": "Healthcheck/Pipes/HealthProbeClient.cs",
+      "id": "3008",
+      "status": "Survived",
+      "span": {
+        "start": {
+          "line": 49,
+          "column": 86
+        },
+        "end": {
+          "line": 49,
+          "column": 91
+        }
+      },
+      "mutator": "Boolean mutation",
+      "original": "false",
+      "replacement": "true",
+      "assessment": "context-affinity-candidate",
+      "reason": "These final diagnostic/stdout continuations normally execute in the matching CLI's default context. Internal caller-affinity may differ, but no adopted no-context-capture contract exists.",
+      "nextEvidence": "Retain scoped candidate without synthetic scheduler assertions or timeouts-as-kills."
+    },
+    {
+      "file": "Healthcheck/Pipes/HealthProbeClient.cs",
+      "id": "3013",
+      "status": "Survived",
+      "span": {
+        "start": {
+          "line": 51,
+          "column": 56
+        },
+        "end": {
+          "line": 51,
+          "column": 117
+        }
+      },
+      "mutator": "Logical mutation",
+      "original": "IOException or SocketException or UnauthorizedAccessException",
+      "replacement": "IOException or SocketException and UnauthorizedAccessException",
+      "assessment": "exception-filter-candidate",
+      "reason": "C# and-pattern precedence groups SocketException and UnauthorizedAccessException together, an impossible pair for these unrelated classes. The alternative therefore effectively narrows this span to IOException, removing both standalone SocketException and UnauthorizedAccessException paths. SocketException is not an IOException.",
+      "nextEvidence": "Source-matched real Linux socket error or applicable actual authorization failure, with exact Core/selector and complete terminal attribution; do not assume the narrower filter catches either type."
+    },
+    {
+      "file": "Healthcheck/Pipes/HealthProbeClient.cs",
+      "id": "3017",
+      "status": "Survived",
+      "span": {
+        "start": {
+          "line": 53,
+          "column": 50
+        },
+        "end": {
+          "line": 53,
+          "column": 78
+        }
+      },
+      "mutator": "String mutation",
+      "original": "\"TransportOrProtocolFailure\"",
+      "replacement": "\"\"",
+      "assessment": "detector-authored",
+      "reason": "Emptying the local transport/protocol reason removes useful failure information while leaving a cosmetic label.",
+      "nextEvidence": "Refined actual ErrorResult and root internal failed stdout case cover meaningful bounded reason without pinning the whole line."
+    },
+    {
+      "file": "Healthcheck/Pipes/HealthProbeClient.cs",
+      "id": "3018",
+      "status": "Survived",
+      "span": {
+        "start": {
+          "line": 53,
+          "column": 95
+        },
+        "end": {
+          "line": 53,
+          "column": 100
+        }
+      },
+      "mutator": "Boolean mutation",
+      "original": "false",
+      "replacement": "true",
+      "assessment": "context-affinity-candidate",
+      "reason": "These final diagnostic/stdout continuations normally execute in the matching CLI's default context. Internal caller-affinity may differ, but no adopted no-context-capture contract exists.",
+      "nextEvidence": "Retain scoped candidate without synthetic scheduler assertions or timeouts-as-kills."
+    },
+    {
+      "file": "Healthcheck/Pipes/HealthProbeClient.cs",
+      "id": "3020",
+      "status": "Survived",
+      "span": {
+        "start": {
+          "line": 60,
+          "column": 38
+        },
+        "end": {
+          "line": 60,
+          "column": 50
+        }
+      },
+      "mutator": "String mutation",
+      "original": "string.Empty",
+      "replacement": "\"Stryker was here!\"",
+      "assessment": "historical-source-equivalent",
+      "reason": "The historical initial ProbeSettings allocation is discarded on false parsing and overwritten on every successful parse. Its default empty-name field is never used by unmutated control flow.",
+      "nextEvidence": "Approved current source removes this unused allocation via nullable out settings; historical mutant definition/status remains unchanged."
+    },
+    {
+      "file": "Healthcheck/Pipes/HealthProbeClient.cs",
+      "id": "3032",
+      "status": "Survived",
+      "span": {
+        "start": {
+          "line": 68,
+          "column": 78
+        },
+        "end": {
+          "line": 68,
+          "column": 83
+        }
+      },
+      "mutator": "Boolean mutation",
+      "original": "false",
+      "replacement": "true",
+      "assessment": "historical-equivalence-candidate",
+      "reason": "In the historical source, early true returns use the initialized default ProbeSettings with an empty pipe name. Constructing that client fails and the documented public malformed-input exit is still2; unpublished local reason can differ. This reasoning is version-bound: the current approved null out initialization may instead create a managed null-settings failure.",
+      "nextEvidence": "Keep old parser definitions unchanged. Current-source unknown/NRE termination gets no credit until exact Core/selector/MVID/async-frame attribution and positive/negative controls prove a genuine managed production failure."
+    },
+    {
+      "file": "Healthcheck/Pipes/HealthProbeClient.cs",
+      "id": "3036",
+      "status": "Survived",
+      "span": {
+        "start": {
+          "line": 73,
+          "column": 78
+        },
+        "end": {
+          "line": 73,
+          "column": 83
+        }
+      },
+      "mutator": "Boolean mutation",
+      "original": "false",
+      "replacement": "true",
+      "assessment": "historical-equivalence-candidate",
+      "reason": "In the historical source, early true returns use the initialized default ProbeSettings with an empty pipe name. Constructing that client fails and the documented public malformed-input exit is still2; unpublished local reason can differ. This reasoning is version-bound: the current approved null out initialization may instead create a managed null-settings failure.",
+      "nextEvidence": "Keep old parser definitions unchanged. Current-source unknown/NRE termination gets no credit until exact Core/selector/MVID/async-frame attribution and positive/negative controls prove a genuine managed production failure."
+    },
+    {
+      "file": "Healthcheck/Pipes/HealthProbeClient.cs",
+      "id": "3041",
+      "status": "Survived",
+      "span": {
+        "start": {
+          "line": 82,
+          "column": 41
+        },
+        "end": {
+          "line": 82,
+          "column": 46
+        }
+      },
+      "mutator": "Boolean mutation",
+      "original": "false",
+      "replacement": "true",
+      "assessment": "historical-equivalence-candidate",
+      "reason": "In the historical source, early true returns use the initialized default ProbeSettings with an empty pipe name. Constructing that client fails and the documented public malformed-input exit is still2; unpublished local reason can differ. This reasoning is version-bound: the current approved null out initialization may instead create a managed null-settings failure.",
+      "nextEvidence": "Keep old parser definitions unchanged. Current-source unknown/NRE termination gets no credit until exact Core/selector/MVID/async-frame attribution and positive/negative controls prove a genuine managed production failure."
+    },
+    {
+      "file": "Healthcheck/Pipes/HealthProbeClient.cs",
+      "id": "3044",
+      "status": "Survived",
+      "span": {
+        "start": {
+          "line": 86,
+          "column": 75
+        },
+        "end": {
+          "line": 86,
+          "column": 80
+        }
+      },
+      "mutator": "Boolean mutation",
+      "original": "false",
+      "replacement": "true",
+      "assessment": "historical-equivalence-candidate",
+      "reason": "In the historical source, early true returns use the initialized default ProbeSettings with an empty pipe name. Constructing that client fails and the documented public malformed-input exit is still2; unpublished local reason can differ. This reasoning is version-bound: the current approved null out initialization may instead create a managed null-settings failure.",
+      "nextEvidence": "Keep old parser definitions unchanged. Current-source unknown/NRE termination gets no credit until exact Core/selector/MVID/async-frame attribution and positive/negative controls prove a genuine managed production failure."
+    },
+    {
+      "file": "Healthcheck/Pipes/HealthProbeClient.cs",
+      "id": "3047",
+      "status": "Survived",
+      "span": {
+        "start": {
+          "line": 89,
+          "column": 80
+        },
+        "end": {
+          "line": 89,
+          "column": 85
+        }
+      },
+      "mutator": "Boolean mutation",
+      "original": "false",
+      "replacement": "true",
+      "assessment": "historical-equivalence-candidate",
+      "reason": "In the historical source, early true returns use the initialized default ProbeSettings with an empty pipe name. Constructing that client fails and the documented public malformed-input exit is still2; unpublished local reason can differ. This reasoning is version-bound: the current approved null out initialization may instead create a managed null-settings failure.",
+      "nextEvidence": "Keep old parser definitions unchanged. Current-source unknown/NRE termination gets no credit until exact Core/selector/MVID/async-frame attribution and positive/negative controls prove a genuine managed production failure."
+    },
+    {
+      "file": "Healthcheck/Pipes/HealthProbeClient.cs",
+      "id": "3048",
+      "status": "Survived",
+      "span": {
+        "start": {
+          "line": 91,
+          "column": 33
+        },
+        "end": {
+          "line": 91,
+          "column": 38
+        }
+      },
+      "mutator": "Boolean mutation",
+      "original": "false",
+      "replacement": "true",
+      "assessment": "historical-equivalence-candidate",
+      "reason": "In the historical source, early true returns use the initialized default ProbeSettings with an empty pipe name. Constructing that client fails and the documented public malformed-input exit is still2; unpublished local reason can differ. This reasoning is version-bound: the current approved null out initialization may instead create a managed null-settings failure.",
+      "nextEvidence": "Keep old parser definitions unchanged. Current-source unknown/NRE termination gets no credit until exact Core/selector/MVID/async-frame attribution and positive/negative controls prove a genuine managed production failure."
+    },
+    {
+      "file": "Healthcheck/Pipes/HealthProbeClient.cs",
+      "id": "3051",
+      "status": "Survived",
+      "span": {
+        "start": {
+          "line": 94,
+          "column": 40
+        },
+        "end": {
+          "line": 94,
+          "column": 45
+        }
+      },
+      "mutator": "Boolean mutation",
+      "original": "false",
+      "replacement": "true",
+      "assessment": "historical-equivalence-candidate",
+      "reason": "In the historical source, early true returns use the initialized default ProbeSettings with an empty pipe name. Constructing that client fails and the documented public malformed-input exit is still2; unpublished local reason can differ. This reasoning is version-bound: the current approved null out initialization may instead create a managed null-settings failure.",
+      "nextEvidence": "Keep old parser definitions unchanged. Current-source unknown/NRE termination gets no credit until exact Core/selector/MVID/async-frame attribution and positive/negative controls prove a genuine managed production failure."
+    },
+    {
+      "file": "Healthcheck/Pipes/HealthProbeClient.cs",
+      "id": "3058",
+      "status": "Survived",
+      "span": {
+        "start": {
+          "line": 99,
+          "column": 133
+        },
+        "end": {
+          "line": 99,
+          "column": 150
+        }
+      },
+      "mutator": "Equality mutation",
+      "original": "number <= maximum",
+      "replacement": "number < maximum",
+      "assessment": "detector-authored",
+      "reason": "Replacing inclusive maximum with strict maximum rejects valid documented upper CLI settings, even when the actual response is small and otherwise valid.",
+      "nextEvidence": "New actual child timeout60000 and max-report-bytes16777216 success rows."
+    },
+    {
+      "file": "Healthcheck/Pipes/HealthProbeClient.cs",
+      "id": "3062",
+      "status": "Survived",
+      "span": {
+        "start": {
+          "line": 106,
+          "column": 43
+        },
+        "end": {
+          "line": 106,
+          "column": 63
+        }
+      },
+      "mutator": "String mutation",
+      "original": "\"cis-health-probe: \"",
+      "replacement": "\"\"",
+      "assessment": "cosmetic-label-candidate",
+      "reason": "Removing only the program-name prefix leaves the bounded scenario reason and documented exit behavior. No adopted CLI contract fixes that exact cosmetic prefix.",
+      "nextEvidence": "ErrorResult intentionally accepts this variation; no assertion added solely to kill it."
+    },
+    {
+      "file": "Healthcheck/Pipes/HealthProbeClient.cs",
+      "id": "3063",
+      "status": "Survived",
+      "span": {
+        "start": {
+          "line": 106,
+          "column": 87
+        },
+        "end": {
+          "line": 106,
+          "column": 92
+        }
+      },
+      "mutator": "Boolean mutation",
+      "original": "false",
+      "replacement": "true",
+      "assessment": "context-affinity-candidate",
+      "reason": "These final diagnostic/stdout continuations normally execute in the matching CLI's default context. Internal caller-affinity may differ, but no adopted no-context-capture contract exists.",
+      "nextEvidence": "Retain scoped candidate without synthetic scheduler assertions or timeouts-as-kills."
+    },
+    {
+      "file": "Healthcheck/Pipes/HealthProbeClient.cs",
+      "id": "3064",
+      "status": "Survived",
+      "span": {
+        "start": {
+          "line": 107,
+          "column": 43
+        },
+        "end": {
+          "line": 107,
+          "column": 94
+        }
+      },
+      "mutator": "Equality mutation",
+      "original": "exception is IOException or ObjectDisposedException",
+      "replacement": "exception is not IOException or ObjectDisposedException",
+      "assessment": "detector-authored",
+      "reason": "Changing the stderr failure filter can let actual IOException/ObjectDisposedException escape rather than preserving documented error exit2; it can also suppress unrelated failures.",
+      "nextEvidence": "Root internal actual unavailable TextWriter cases verify exit2/no stdout without leaking private error text."
+    }
+  ]
+}

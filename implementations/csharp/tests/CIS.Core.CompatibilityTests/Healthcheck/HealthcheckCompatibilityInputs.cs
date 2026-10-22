@@ -13,6 +13,8 @@ internal static class HealthcheckCompatibilityInputs
 {
     internal const string Hc00Hash = "a4e3daaddc0a6cf5d242f2e1acd2f7148644e7b8dd3b65646f7c364a7df9c151";
     internal const string FixtureHash = "56a2baf3c69744e7f1e79fae21480647583dc6033c9000bf5f99afb4d6336b00";
+    internal const string HistoricalDirectory = "compatibility/csharp/healthcheck/hc00-originals";
+    private const string HistoricalMapHash = "5d2451aad8ad296f54662d983b0f6da7e12225481e3af3e106536ade19b6a3db";
     internal static readonly Assembly Core = typeof(HealthcheckService).Assembly;
     private static readonly NullabilityInfoContext Nullability = new();
     internal static string Repository()
@@ -38,15 +40,25 @@ internal static class HealthcheckCompatibilityInputs
 
     internal static void FrozenInputs()
     {
-        string baselinePath = Path.Combine(Repository(), "planning/healthcheck/baseline.json");
+        string repository = Repository();
+        string baselinePath = Path.Combine(repository, "planning/healthcheck/baseline.json");
         Require(Hash(baselinePath) == Hc00Hash, "The selected HC00 receipt changed.");
         Require(Api()["hc00ReceiptSha256"]!.GetValue<string>() == Hc00Hash, "The API fixture selected a different HC00 contract.");
+        IReadOnlyDictionary<string, string> historical = HistoricalInputs(repository);
+        var observedHistorical = new HashSet<string>(StringComparer.Ordinal);
         foreach (JsonNode? item in Read(baselinePath)["frozenInputs"]!["wireAndFixtures"]!.AsArray())
         {
             string relative = item!["path"]!.GetValue<string>();
-            string actual = Hash(Path.Combine(Repository(), relative));
+            string selected = Path.Combine(repository, relative);
+            if (historical.TryGetValue(relative, out string? original))
+            {
+                selected = original;
+                observedHistorical.Add(relative);
+            }
+            string actual = Hash(selected);
             Require(actual == item["sha256"]!.GetValue<string>(), "An original HC00 schema/wire fixture changed: " + relative);
         }
+        Require(observedHistorical.SetEquals(historical.Keys), "A historical mapping is not selected by the HC00 receipt.");
         Require(Hash(Fixture("baseline-hashes.json")) == FixtureHash, "The initial-candidate fixture manifest changed.");
         JsonArray entries = Read(Fixture("baseline-hashes.json"))["files"]!.AsArray();
         var names = new HashSet<string>(StringComparer.Ordinal);
@@ -57,6 +69,38 @@ internal static class HealthcheckCompatibilityInputs
             Require(Hash(Fixture(name)) == item["sha256"]!.GetValue<string>(), "A selected initial-candidate fixture changed: " + name);
         }
         Require(names.SetEquals(["api.json", "configuration.json"]), "The fixture inventory differs.");
+    }
+
+    // Only the four explicitly amended canonical files use historical mirrors. Missing
+    // mirrors, a changed map or a changed byte fail; current files are never a fallback.
+    internal static IReadOnlyDictionary<string, string> HistoricalInputs(string repository)
+    {
+        string directory = Path.Combine(repository, HistoricalDirectory);
+        string manifestPath = Path.Combine(directory, "path-map.json");
+        Require(File.Exists(manifestPath) && Hash(manifestPath) == HistoricalMapHash, "The explicit HC00 historical path map changed or is missing.");
+        JsonObject manifest = Read(manifestPath);
+        Require(manifest["schemaVersion"]!.GetValue<int>() == 1 && manifest["hc00ReceiptSha256"]!.GetValue<string>() == Hc00Hash,
+            "The historical map selected a different HC00 receipt or schema.");
+        var expected = new Dictionary<string, string>(StringComparer.Ordinal)
+        {
+            ["contracts/healthcheck/v1/report.schema.json"] = "report.schema.json",
+            ["conformance/healthcheck/common/fixtures.json"] = "fixtures.json",
+            ["contracts/healthcheck/v1/README.md"] = "contract.README.md",
+            ["conformance/healthcheck/common/README.md"] = "common.README.md"
+        };
+        var selected = new Dictionary<string, string>(StringComparer.Ordinal);
+        foreach (JsonNode? item in manifest["files"]!.AsArray())
+        {
+            string original = item!["originalPath"]!.GetValue<string>();
+            string mirror = item["mirror"]!.GetValue<string>();
+            Require(expected.TryGetValue(original, out string? filename) && mirror == filename && !selected.ContainsKey(original),
+                "The historical map contains an unapproved, redirected or duplicate path.");
+            string path = Path.Combine(directory, mirror);
+            Require(File.Exists(path) && Hash(path) == item["sha256"]!.GetValue<string>(), "An immutable HC00 historical input changed or is missing: " + original);
+            selected.Add(original, path);
+        }
+        Require(selected.Keys.ToHashSet(StringComparer.Ordinal).SetEquals(expected.Keys), "The historical map omits an approved HC00 original.");
+        return selected;
     }
 
     // A backward-compatible addition is allowed. Every selected member must retain its

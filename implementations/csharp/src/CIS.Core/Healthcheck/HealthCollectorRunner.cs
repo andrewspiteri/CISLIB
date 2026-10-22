@@ -346,8 +346,9 @@ public sealed class HealthCollectorRunner : IAsyncDisposable
                             {
                                 int index = (cursor + examined) % entries.Count;
                                 var entry = entries[index];
-                                if (!entry.Pending || entry.Current is not null || !entry.Handle.TryGetTarget(out var handle)) { continue; }
-                                operation = new Operation(entry, handle, entry.ManualCompletion ?? new(TaskCreationOptions.RunContinuationsAsynchronously));
+                                Registration? handle = null;
+                                if (!entry.Pending || entry.Current is not null || !entry.Handle.TryGetTarget(out handle)) { continue; }
+                                operation = new Operation(entry, handle!, entry.ManualCompletion ?? new(TaskCreationOptions.RunContinuationsAsynchronously));
                                 entry.ManualCompletion = null;
                                 entry.Pending = false;
                                 entry.Due = null;

@@ -31,11 +31,14 @@ internal static class HealthcheckChildMutationVerification
 
     private static void Prepare(Dictionary<string, string> options)
     {
-        Only(options, "language-root", "config", "stryker-core", "dotnet", "output", "phase");
+        Only(options, "language-root", "config", "stryker-core", "dotnet", "output", "phase", "source-replay-control");
         string language = Full(options, "language-root"), config = Full(options, "config"), tool = Full(options, "stryker-core");
         string dotnet = Full(options, "dotnet"), output = Empty(options);
         string phase = options.GetValueOrDefault("phase", "automatic");
-        Require(phase is "automatic" or "instrumented", "Unknown child proof phase.");
+        Require(phase is "automatic" or "instrumented" or "source-replay", "Unknown child proof phase.");
+        Require((phase == "source-replay") == options.ContainsKey("source-replay-control"), "Source replay requires its explicit phase and control together.");
+        SourceReplayControl? sourceReplay = phase == "source-replay" ? Read<SourceReplayControl>(Full(options, "source-replay-control")) : null;
+        if (sourceReplay is not null) { ValidateSourceReplay(language, sourceReplay); }
         Require(!Under(output, language) && !Under(language, output), "Keep child proof output separate from maintained language inputs.");
         Require(RuntimeInformation.FrameworkDescription == ".NET 10.0.12", "Run this proof producer on the pinned target runtime 10.0.12.");
         ValidateConfiguration(config);
@@ -64,7 +67,8 @@ internal static class HealthcheckChildMutationVerification
         string coreLibrary = typeof(object).Assembly.Location;
         var session = new Session(Schema, language, output, config, Hash(config), tool, Hash(tool), Digest(selectorSource),
             dotnet, Hash(dotnet), coreLibrary, Hash(coreLibrary), sources, DateTimeOffset.UtcNow,
-            CoverageAnalysisOff: true, AllowInitialUninstrumentedBaseline: phase == "automatic");
+            CoverageAnalysisOff: true, AllowInitialUninstrumentedBaseline: phase is "automatic" or "source-replay", SourceReplay: sourceReplay,
+            RequireWindowsErrorMode: OperatingSystem.IsWindows());
         Write(Path.Combine(output, "session.json"), session);
         File.WriteAllText(Path.Combine(output, "pinned-MutantControl.cs.txt"), selectorSource);
         Directory.CreateDirectory(Path.Combine(output, "launches"));
@@ -74,10 +78,13 @@ internal static class HealthcheckChildMutationVerification
 
     private static void Audit(Dictionary<string, string> options)
     {
-        Only(options, "session", "output", "require-kind", "require-active");
+        Only(options, "session", "output", "require-kind", "require-active", "phase");
         string sessionPath = Full(options, "session"), output = Empty(options);
         Session session = Read<Session>(sessionPath);
         Require(session.Schema == Schema && session.CoverageAnalysisOff, "Unknown or coverage-selected child proof session.");
+        string phase = options.GetValueOrDefault("phase", "automatic");
+        Require((phase is "automatic" or "source-replay") && (phase == "source-replay") == (session.SourceReplay is not null),
+            "Automatic and manual source-replay child audits cannot substitute for one another.");
         Require(!Under(session.OutputRoot, output) && !Under(output, session.OutputRoot), "Audit output must be separate from child receipts.");
         var failures = new List<string>();
         var rows = new List<object>();
@@ -88,6 +95,7 @@ internal static class HealthcheckChildMutationVerification
         int? requiredActive = options.TryGetValue("require-active", out string? value)
             ? int.Parse(value, NumberStyles.None, CultureInfo.InvariantCulture) : null;
         Require(requiredActive is null or >= 0, "A required active mutant must be nonnegative.");
+        Require(session.SourceReplay is null || requiredActive is null, "Manual source replay has no Stryker active-mutant selector.");
         Check(() =>
         {
             ValidateConfiguration(session.ConfigurationPath);
@@ -98,6 +106,7 @@ internal static class HealthcheckChildMutationVerification
             FilePin[] currentSources = SourceInputs(session.LanguageRoot);
             Require(currentSources.SequenceEqual(session.SourceInputs), "The exact maintained source/structural input set changed during the child proof.");
             AuditLaunchSites(session.LanguageRoot);
+            if (session.SourceReplay is { } sourceReplay) { ValidateSourceReplay(session.LanguageRoot, sourceReplay); }
         });
         string[] directories = Directory.GetDirectories(Path.Combine(session.OutputRoot, "launches"));
         Require(directories.Length is > 0 and <= 200000, "No bounded actual child launch evidence was retained.");
@@ -116,6 +125,8 @@ internal static class HealthcheckChildMutationVerification
                 ParentExitReceipt parent = Read<ParentExitReceipt>(Path.Combine(directory, "parent-exit.json"));
                 ExitReceipt? exit = files.Contains("exit.json") ? Read<ExitReceipt>(Path.Combine(directory, "exit.json")) : null;
                 bool managed = files.Contains("managed-failure.json");
+                string terminalKind = "normal";
+                Require(session.SourceReplay is null || !managed, "Manual source replay requires complete normal parent/child exits.");
                 Require(launch.Schema == Schema && receipt.Schema == Schema && launch.Id == Path.GetFileName(directory)
                     && receipt.LaunchId == launch.Id && receipt.LaunchSha256 == Hash(launchPath), "Mismatched child receipt identity.");
                 Require(string.Equals(Path.GetFullPath(launch.SessionPath), sessionPath, PathComparison) && launch.SessionSha256 == Hash(sessionPath),
@@ -127,6 +138,16 @@ internal static class HealthcheckChildMutationVerification
                     && parent.ObservedStartedUtc >= launch.CreatedUtc && parent.ObservedStartedUtc <= parent.ObservedUtc
                     && parent.StartedUtc <= parent.ExitedUtc && parent.ExitedUtc >= receipt.ObservedUtc && parent.ObservedUtc >= parent.ExitedUtc,
                     "Invalid actual child process lifecycle receipt.");
+                if (session.RequireWindowsErrorMode)
+                {
+                    WindowsErrorModeReceipt? errorMode = receipt.WindowsErrorMode;
+                    Require(errorMode is not null && errorMode.Pid == receipt.Pid
+                        && errorMode.Before == errorMode.SetReturnedPrevious
+                        && errorMode.Requested == (errorMode.Before | NoWindowsErrorReporting)
+                        && errorMode.After == errorMode.Requested
+                        && errorMode.ObservedUtc >= launch.CreatedUtc && errorMode.ObservedUtc <= receipt.ObservedUtc,
+                        WindowsErrorModeError);
+                }
                 Require(string.Equals(parent.FileName, session.DotnetPath, PathComparison)
                     && string.Equals(parent.WorkingDirectory, launch.Stage.Directory, PathComparison)
                     && parent.Arguments.Length >= 6 && parent.Arguments.Take(5).SequenceEqual(["exec", "--fx-version", "10.0.12", "--roll-forward", "Disable"])
@@ -140,16 +161,21 @@ internal static class HealthcheckChildMutationVerification
                 if (managed)
                 {
                     ManagedFailureReceipt failure = Read<ManagedFailureReceipt>(Path.Combine(directory, "managed-failure.json"));
+                    bool http = launch.Stage.AssemblyFile == "CIS.Healthcheck.HttpFixture.dll" && failure.ExceptionType == typeof(ArgumentException).FullName;
+                    bool probe = launch.Stage.AssemblyFile == "CisHealthProbe.dll" && failure.ExceptionType == typeof(NullReferenceException).FullName;
+                    Require(http || probe, "The managed failure kind/exception is not one of the two exact Core boundaries.");
                     Require(failure.Schema == Schema && failure.LaunchId == launch.Id && failure.LaunchSha256 == Hash(launchPath)
                         && failure.OriginReceiptSha256 == Hash(Path.Combine(directory, "receipt.json")) && failure.Pid == parent.Pid
-                        && failure.IsTerminating && failure.ExceptionType == typeof(ArgumentException).FullName && failure.FrameIndex == 0
+                        && failure.IsTerminating && failure.FrameIndex == 0
                         && launch.Instrumented && launch.ActiveMutant >= 0 && failure.ActiveMutant == launch.ActiveMutant
-                        && launch.Stage.AssemblyFile == "CIS.Healthcheck.HttpFixture.dll" && parent.ExitCode != 0
+                        && parent.ExitCode != 0
                         && failure.ObservedUtc >= receipt.ObservedUtc && parent.ExitedUtc >= failure.ObservedUtc
                         && string.Equals(failure.CorePath, receipt.CorePath, PathComparison)
                         && failure.CoreSha256 == receipt.CoreSha256 && failure.CoreMvid == receipt.CoreMvid,
-                        "The managed failure does not completely attribute the actual terminating Core registration exception.");
-                    VerifyRegistrationFrame(failure.CorePath, failure.CoreMvid, failure.MetadataToken, failure.DeclaringType, failure.MethodName);
+                        "The managed failure does not completely attribute the actual terminating Core exception.");
+                    if (http) { VerifyRegistrationFrame(failure.CorePath, failure.CoreMvid, failure.MetadataToken, failure.DeclaringType, failure.MethodName); }
+                    else { VerifyProbeNullFrame(failure.CorePath, failure.CoreMvid, failure.MetadataToken, failure.DeclaringType, failure.MethodName); }
+                    terminalKind = probe ? "managed-core-probe-null" : "managed-core-registration";
                 }
                 else { Require(exit is not null, "Normal completion requires both actual parent and child exit receipts."); }
                 Require(receipt.Runtime == ".NET 10.0.12" && receipt.DotnetSha256 == session.DotnetSha256
@@ -161,6 +187,12 @@ internal static class HealthcheckChildMutationVerification
                     "The selected child Core/controller/selector differs from its actual parent.");
                 Require(launch.Instrumented == (launch.ControllerType is not null) && launch.ActiveMutant >= -1,
                     "Unknown child instrumentation/baseline phase.");
+                if (session.SourceReplay is { } control)
+                {
+                    Require(!launch.Instrumented && launch.ControllerType is null && launch.ActiveMutant == -1
+                        && launch.ParentCoreSha256 == control.CoreSha256 && launch.ParentCoreMvid == control.CoreMvid,
+                        "Manual source replay did not load its exact pinned uninstrumented Core.");
+                }
                 Require(Guid.TryParseExact(launch.StageOwnerId, "N", out Guid stageOwner) && stageOwner != Guid.Empty
                     && launch.StageOwnerId == stageOwner.ToString("N"), "Invalid child stage owner identity.");
                 string ownerRoot = Path.Combine(session.OutputRoot, "stages", launch.ParentPid.ToString(CultureInfo.InvariantCulture), launch.StageOwnerId);
@@ -200,8 +232,9 @@ internal static class HealthcheckChildMutationVerification
                     receipt.EntryAssemblyName,
                     receipt.EntryAssemblySha256,
                     receipt.Runtime,
+                    receipt.WindowsErrorMode,
                     parent.ExitCode,
-                    terminalKind = managed ? "managed-core-registration" : "normal",
+                    terminalKind,
                     receipt.Arguments,
                     launch.CreatedUtc,
                     parent.ExitedUtc
@@ -210,15 +243,25 @@ internal static class HealthcheckChildMutationVerification
         }
         Check(() =>
         {
-            Launch[] instrumented = launches.Where(launch => launch.Instrumented).ToArray();
-            Require(instrumented.Length > 0, "No actual child loaded an instrumented Core.");
-            DateTimeOffset firstInstrumented = instrumented.Min(launch => launch.CreatedUtc);
-            Require(launches.Where(launch => !launch.Instrumented).All(launch => session.AllowInitialUninstrumentedBaseline
-                && launch.ActiveMutant == -1 && launch.CreatedUtc < firstInstrumented), "Uninstrumented/unknown child baseline after mutation instrumentation began.");
-            foreach (string kind in requiredKind == "both" ? new[] { "http-host", "probe" } : [requiredKind])
+            if (session.SourceReplay is { } control)
             {
-                Require(instrumented.Any(launch => Kind(launch) == kind && launch.ActiveMutant >= 0
-                    && (requiredActive is null || launch.ActiveMutant == requiredActive)), "No selected actual instrumented child of required kind: " + kind);
+                Require(launches.Count > 0 && launches.All(launch => !launch.Instrumented && launch.ControllerType is null && launch.ActiveMutant == -1
+                    && launch.ParentCoreSha256 == control.CoreSha256 && launch.ParentCoreMvid == control.CoreMvid), "No complete exact-Core manual source-replay children.");
+                foreach (string kind in requiredKind == "both" ? new[] { "http-host", "probe" } : [requiredKind])
+                { Require(launches.Any(launch => Kind(launch) == kind), "No actual source-replay child of required kind: " + kind); }
+            }
+            else
+            {
+                Launch[] instrumented = launches.Where(launch => launch.Instrumented).ToArray();
+                Require(instrumented.Length > 0, "No actual child loaded an instrumented Core.");
+                DateTimeOffset firstInstrumented = instrumented.Min(launch => launch.CreatedUtc);
+                Require(launches.Where(launch => !launch.Instrumented).All(launch => session.AllowInitialUninstrumentedBaseline
+                    && launch.ActiveMutant == -1 && launch.CreatedUtc < firstInstrumented), "Uninstrumented/unknown child baseline after mutation instrumentation began.");
+                foreach (string kind in requiredKind == "both" ? new[] { "http-host", "probe" } : [requiredKind])
+                {
+                    Require(instrumented.Any(launch => Kind(launch) == kind && launch.ActiveMutant >= 0
+                        && (requiredActive is null || launch.ActiveMutant == requiredActive)), "No selected actual instrumented child of required kind: " + kind);
+                }
             }
             Require(launches.GroupBy(launch => (launch.ParentPid, launch.StageOwnerId))
                 .All(group => group.Select(launch => launch.ParentCoreSha256).Distinct(StringComparer.Ordinal).Count() == 1),
@@ -227,14 +270,18 @@ internal static class HealthcheckChildMutationVerification
         Write(Path.Combine(output, "results.json"), new
         {
             schema = Schema,
-            scope = "Actual real child Core/selector/runtime/dependency propagation; no native kill score or release claim.",
-            status = failures.Count == 0 ? "QualifiedChildPropagation" : "InvalidChildEvidence",
+            scope = session.SourceReplay is null ? "Actual real child Core/selector/runtime/dependency propagation; no native kill score or release claim."
+                : "Actual manual source-replay Core/runtime/dependency/lifecycle propagation; no Stryker selector, automatic kill score or release claim.",
+            status = failures.Count == 0 ? session.SourceReplay is null ? "QualifiedChildPropagation" : "SourceReplayChildPropagation" : "InvalidChildEvidence",
             exitCode = failures.Count == 0 ? 0 : 1,
             sessionPath,
             sessionSha256 = Hash(sessionPath),
             coverageAnalysis = "off; all selected native tests must run for every mutant",
             requiredKind,
             requiredActive,
+            phase,
+            session.RequireWindowsErrorMode,
+            sourceReplayControl = session.SourceReplay,
             launches = rows.Count,
             instrumentedLaunches = launches.Count(launch => launch.Instrumented),
             selectedLaunches = launches.Count(launch => launch.ActiveMutant >= 0),
@@ -242,7 +289,8 @@ internal static class HealthcheckChildMutationVerification
             failures
         });
         Require(failures.Count == 0, string.Join(Environment.NewLine, failures));
-        Console.WriteLine("Qualified actual child propagation; native mutation outcomes must be assessed separately.");
+        Console.WriteLine(session.SourceReplay is null ? "Qualified actual child propagation; native mutation outcomes must be assessed separately."
+            : "Verified actual source-replay child propagation; native assertion outcomes remain separate.");
 
         void Check(Action action)
         {
@@ -257,6 +305,57 @@ internal static class HealthcheckChildMutationVerification
         "CisHealthProbe.dll" => "probe",
         _ => throw new InvalidOperationException("Unknown real child executable.")
     };
+
+    private static void ValidateSourceReplay(string language, SourceReplayControl control)
+    {
+        Require(control.Kind is "mutant" or "historical-baseline" or "canonical-baseline", "Unknown manual source-replay control kind.");
+        Require(new[] { control.ReportSha256, control.OriginalSourceSha256, control.CanonicalSourceSha256, control.CurrentSourceSha256, control.CoreSha256 }
+            .All(hash => hash.Length == 64 && hash.All(character => character is >= '0' and <= '9' or >= 'a' and <= 'f')),
+            "Manual source-replay pins must be exact lower-case SHA-256 values.");
+        Require(control.SourcePath == "src/CIS.Core/Healthcheck/AspNetCore/HealthcheckApplicationBuilderExtensions.cs",
+            "The manual source-replay phase is bounded to the reviewed ASP.NET source.");
+        Require(new FileInfo(control.ReportPath).Length <= 32 * 1024 * 1024 && Hash(control.ReportPath) == control.ReportSha256,
+            "The immutable manual source-replay report changed.");
+        using JsonDocument report = JsonDocument.Parse(File.ReadAllText(control.ReportPath));
+        JsonProperty[] files = report.RootElement.GetProperty("files").EnumerateObject()
+            .Where(file => file.Name.Replace('\\', '/').EndsWith("/" + control.SourcePath, StringComparison.Ordinal)).ToArray();
+        Require(files.Length == 1, "The manual source-replay report source is ambiguous or missing.");
+        string original = files[0].Value.GetProperty("source").GetString() ?? throw new InvalidOperationException("Missing original replay source.");
+        Require(Digest(original) == control.OriginalSourceSha256 && Hash(Input(language, control.SourcePath)) == control.CurrentSourceSha256,
+            "The exact manual original/current source pin changed.");
+        if (control.Kind == "mutant")
+        {
+            JsonElement[] definitions = files[0].Value.GetProperty("mutants").EnumerateArray()
+                .Where(row => row.GetProperty("id").GetString() == control.OriginalId).ToArray();
+            Require(definitions.Length == 1 && (definitions[0].GetProperty("status").GetString() is "CompileError" or "Ignored"),
+                "The manual source replacement is not an exact original compiler/filter omission.");
+            JsonElement row = definitions[0], location = row.GetProperty("location");
+            int start = Offset(location.GetProperty("start")), end = Offset(location.GetProperty("end"));
+            Require(end > start && control.Offset == start && original[start..end] == control.OriginalText
+                && row.GetProperty("replacement").GetString() == control.Replacement && control.OriginalText != control.Replacement
+                && Digest(original[..start] + control.Replacement + original[end..]) == control.CurrentSourceSha256,
+                "The manual single-replacement source does not reproduce its exact native definition.");
+        }
+        else
+        {
+            Require(control.OriginalId.Length == 0 && control.Offset == 0 && control.OriginalText.Length == 0 && control.Replacement.Length == 0
+                && control.CurrentSourceSha256 == (control.Kind == "historical-baseline" ? control.OriginalSourceSha256 : control.CanonicalSourceSha256),
+                "The explicit manual baseline source identity changed.");
+        }
+        Require(File.Exists(control.CorePath) && (File.GetAttributes(control.CorePath) & FileAttributes.ReparsePoint) == 0
+            && Path.GetFileName(control.CorePath) == "CIS.Core.dll" && Hash(control.CorePath) == control.CoreSha256
+            && control.CoreMvid != Guid.Empty && Mvid(control.CorePath) == control.CoreMvid, "The actually built manual Core bytes/MVID changed.");
+
+        int Offset(JsonElement point)
+        {
+            int line = point.GetProperty("line").GetInt32(), column = point.GetProperty("column").GetInt32(), offset = 0;
+            Require(line > 0 && column > 0, "Manual native source locations are one-based.");
+            for (int current = 1; current < line; current++) { int next = original.IndexOf('\n', offset); Require(next >= 0, "Manual source line exceeds its source."); offset = next + 1; }
+            int end = original.IndexOf('\n', offset); if (end < 0) { end = original.Length; }
+            Require(column - 1 <= end - offset, "Manual source column exceeds its line.");
+            return offset + column - 1;
+        }
+    }
 
     private static void ValidateConfiguration(string path)
     {
@@ -275,6 +374,7 @@ internal static class HealthcheckChildMutationVerification
         var expected = new Dictionary<string, string>(StringComparer.Ordinal)
         {
             ["HealthcheckHttpTransportTests.cs"] = "Process.Start(TransportTestSupport.StartInfo(\"healthcheck-http-host\", \"CIS.Healthcheck.HttpFixture\", [mode]))",
+            ["HealthcheckPipeTransportTests.cs"] = "Process.Start(TransportTestSupport.StartInfo(\"healthcheck-http-host\", \"CIS.Healthcheck.HttpFixture\", [\"pipe-pin-release\"]))",
             ["HealthcheckProbeProcessTests.cs"] = "Process.Start(TransportTestSupport.StartInfo(\"healthcheck-probe\", \"CisHealthProbe\", arguments))"
         };
         foreach (string path in Directory.EnumerateFiles(Path.Combine(language, "tests"), "*.cs", SearchOption.AllDirectories)

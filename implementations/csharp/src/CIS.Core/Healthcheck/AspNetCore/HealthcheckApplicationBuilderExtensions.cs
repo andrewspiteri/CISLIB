@@ -29,10 +29,10 @@ public static class HealthcheckApplicationBuilderExtensions
 
         return app.Use(next => context =>
         {
-            string path = context.Request.Path.Value ?? string.Empty;
-            bool reserved = path.Equals("/_health", StringComparison.OrdinalIgnoreCase)
-                || path.StartsWith("/_health/", StringComparison.OrdinalIgnoreCase);
-            return reserved ? HandleAsync(context, path, source, settings, authorizeDetails) : next(context);
+            PathString path = context.Request.Path;
+            return path.StartsWithSegments("/_health", StringComparison.OrdinalIgnoreCase)
+                ? HandleAsync(context, path.Value!, source, settings, authorizeDetails)
+                : next(context);
         });
     }
 
@@ -61,40 +61,53 @@ public static class HealthcheckApplicationBuilderExtensions
             }
             if (view == HealthReportView.Details)
             {
-                bool authorized;
-                try { authorized = await authorizeDetails!(context).ConfigureAwait(false); }
-                catch (OperationCanceledException) { context.Abort(); return; }
-                catch (Exception)
-                {
-                    await WriteAsync(context, HealthReportFormatter.FormatError("ReportingUnavailable", pipe: false), StatusCodes.Status500InternalServerError).ConfigureAwait(false);
-                    return;
-                }
+                DetailsAuthorization authorization = await AuthorizeDetailsAsync(context, authorizeDetails!).ConfigureAwait(false);
+                if (authorization == DetailsAuthorization.Handled) { return; }
                 context.RequestAborted.ThrowIfCancellationRequested();
-                if (!authorized)
+                if (authorization == DetailsAuthorization.Denied)
                 {
                     await WriteAsync(context, HealthReportFormatter.FormatError("Forbidden", pipe: false), StatusCodes.Status403Forbidden).ConfigureAwait(false);
                     return;
                 }
             }
 
-            HealthReportBuffer report;
-            try
-            {
-                HealthSnapshot snapshot = source.CaptureSnapshot();
-                report = HealthReportFormatter.FormatSnapshot(snapshot, view.Value, options);
-            }
-            catch (OperationCanceledException) when (context.RequestAborted.IsCancellationRequested) { context.Abort(); return; }
-            catch (Exception)
-            {
-                report = HealthReportFormatter.FormatError("ReportingUnavailable", pipe: false);
-            }
+            HealthReportBuffer report = CaptureReport(context, source, view.Value, options);
             int status = report.SelectedHealthy ? StatusCodes.Status200OK : StatusCodes.Status500InternalServerError;
             await WriteAsync(context, report, status).ConfigureAwait(false);
         }
         catch (OperationCanceledException) { context.Abort(); }
     }
 
-    private static async Task WriteAsync(HttpContext context, HealthReportBuffer report, int status)
+    private static async ValueTask<DetailsAuthorization> AuthorizeDetailsAsync(HttpContext context,
+        Func<HttpContext, ValueTask<bool>> authorize)
+    {
+        try { return await authorize(context).ConfigureAwait(false) ? DetailsAuthorization.Allowed : DetailsAuthorization.Denied; }
+        catch (OperationCanceledException) { context.Abort(); return DetailsAuthorization.Handled; }
+        catch (Exception)
+        {
+            await WriteAsync(context, HealthReportFormatter.FormatError("ReportingUnavailable", pipe: false), StatusCodes.Status500InternalServerError).ConfigureAwait(false);
+            return DetailsAuthorization.Handled;
+        }
+    }
+
+    private enum DetailsAuthorization { Allowed, Denied, Handled }
+
+    private static HealthReportBuffer CaptureReport(HttpContext context, IHealthSnapshotSource source,
+        HealthReportView view, HealthcheckOptions options)
+    {
+        try
+        {
+            HealthSnapshot snapshot = source.CaptureSnapshot();
+            return HealthReportFormatter.FormatSnapshot(snapshot, view, options);
+        }
+        catch (OperationCanceledException) when (context.RequestAborted.IsCancellationRequested) { throw; }
+        catch (Exception)
+        {
+            return HealthReportFormatter.FormatError("ReportingUnavailable", pipe: false);
+        }
+    }
+
+    private static Task WriteAsync(HttpContext context, HealthReportBuffer report, int status)
     {
         context.RequestAborted.ThrowIfCancellationRequested();
         context.Response.StatusCode = status;
@@ -103,9 +116,8 @@ public static class HealthcheckApplicationBuilderExtensions
         context.Response.Headers.CacheControl = "no-store, no-cache";
         context.Response.Headers.Pragma = "no-cache";
         context.Response.Headers.Expires = "0";
-        if (!HttpMethods.IsHead(context.Request.Method))
-        {
-            await context.Response.Body.WriteAsync(report.Utf8Bytes, context.RequestAborted).ConfigureAwait(false);
-        }
+        return HttpMethods.IsHead(context.Request.Method)
+            ? Task.CompletedTask
+            : context.Response.Body.WriteAsync(report.Utf8Bytes, context.RequestAborted).AsTask();
     }
 }

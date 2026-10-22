@@ -25,6 +25,7 @@ internal sealed class HealthMonitorSnapshotData
     internal DateTimeOffset RegisteredAtUtc { get; init; }
     internal DateTimeOffset? LastObservationAtUtc { get; init; }
     internal HealthDiagnostic? Diagnostic { get; init; }
+    internal HealthDiagnostic? RegistrationDiagnostic { get; init; }
     internal HealthOutcomeSnapshot? Outcomes { get; init; }
     internal HealthCollectionSnapshot? Collection { get; init; }
     internal HealthNumericSnapshot? Numeric { get; init; }

@@ -1,0 +1,372 @@
+{
+  "schema": "cis.healthcheck.pin-release-finite-evidence/v1-development",
+  "recordedOn": "2026-10-21",
+  "scope": "Windows-only supplemental native StatementMutator resource-lifetime detector, frozen inputs06. No broad automatic, Linux, package or release qualification; no retroactive kill credit.",
+  "status": "FiniteNativeProofAndScopedChildAuditPassed",
+  "qualification": {
+    "broadAutomaticGate": false,
+    "release": false,
+    "linux": false,
+    "retroactiveKillCredit": 0
+  },
+  "source06": {
+    "inputCount": 1410,
+    "inputsSha256": "312a5d39a6b3c64faffa87f08b89e14ea5d33302fbf9a74294d9d6d585bb8814",
+    "preparation": {
+      "path": ".artifacts/hcg/inputs-06/preparation.json",
+      "sha256": "491272496d8614940d15a0d1de3b896211ace2700fd33dc1655af814e61a56b4",
+      "bytes": 13862
+    },
+    "manifest": {
+      "path": ".artifacts/hcg/inputs-06/source-inputs.json",
+      "sha256": "72d0b404f334ed9d5149761ce83758f158c2c846665553ac666dd61735f6c54e",
+      "bytes": 297242
+    },
+    "globalJson": {
+      "path": ".artifacts/hcg/inputs-06/source/implementations/csharp/global.json",
+      "sha256": "86746c523b75c3e560cab3938c5c6c7c65c33dc9fbe298a554f90c724f2ef30e",
+      "bytes": 145
+    },
+    "fixture": {
+      "path": ".artifacts/hcg/inputs-06/source/implementations/csharp/tests/fixtures/HealthcheckHttpHost/Program.cs",
+      "sha256": "8ee68dbe2e4002cb5fa2d2c88f432a77069f91944180a4fcd3767afc166aec39",
+      "bytes": 7550
+    },
+    "integrationTest": {
+      "path": ".artifacts/hcg/inputs-06/source/implementations/csharp/tests/CIS.Core.IntegrationTests/Healthcheck/Reporting/HealthcheckPipeTransportTests.cs",
+      "sha256": "a1b40e9f36941ba12b353855ba4f948df2e0fec2dfd728f7adf86bf772353ca2",
+      "bytes": 39843
+    },
+    "productionEndpoint": {
+      "path": ".artifacts/hcg/inputs-06/source/implementations/csharp/src/CIS.Core/Healthcheck/Pipes/HealthPipeEndpoint.cs",
+      "sha256": "1e39973ca242e5ef08b49f8efc696fb9b6e8d9ab5cc98173cdda5f674c820b9e",
+      "bytes": 3683
+    },
+    "maintainedAdapter": {
+      "path": ".artifacts/hcg/inputs-06/source/implementations/csharp/verification/mutation/healthcheck/conditional-proof/Program.cs",
+      "sha256": "e9af64c584fd1cfc8ded6b58501c200b29f4e78bc53e97b41ddbb39c91c49c7d",
+      "bytes": 26596
+    }
+  },
+  "detector": {
+    "fullyQualifiedTest": "CIS.Tests.IntegrationTests.Healthcheck.Reporting.HealthcheckPipeTransportTests.WindowsPipeEndpointDescriptorsReleasePinsAfterActualSettlement",
+    "realFixtureMode": "pipe-pin-release",
+    "warmupServers": 8,
+    "measuredServers": 32,
+    "pipeMaxClients": 1,
+    "settlement": "Every unique real public HealthPipeServer starts, StopAsync settles, and await-using DisposeAsync settles before the measurement helper returns.",
+    "observation": "Blocking maximum-generation collection, pending-finalizer settlement, then another blocking maximum-generation collection before each public GC.GetGCMemoryInfo().PinnedObjectsCount read.",
+    "assertion": "pinnedAfter <= pinnedBefore; no added tolerance",
+    "deadlineSeconds": 15,
+    "successfulBaselineNumericCountsInThisReceipt": false,
+    "evidenceLimit": "Four one-case native passes establish this sampled baseline. Per-GC numeric counts are not invented or independently reconstructed here."
+  },
+  "baseline06": [
+    {
+      "name": "pin-baseline-06a",
+      "log": {
+        "path": ".artifacts/hcg/pin-baseline-06a.log",
+        "sha256": "a75ea51c6e0a136158b4ecefee0d6a7b9388632469b9741bb810b1915180d6cf",
+        "bytes": 3285
+      },
+      "trx": {
+        "path": ".artifacts/hcg/inputs-06/source/.artifacts/csharp/focused/00f0fb8e4d17483681c5198dcaad9441/selected.trx",
+        "sha256": "f8279ad93b7b976357b5c86b3b5d30cc91b64a20bec917c8755f634f6da287a2",
+        "bytes": 2675
+      },
+      "total": 1,
+      "passed": 1,
+      "failed": 0,
+      "notExecuted": 0,
+      "timeout": 0
+    },
+    {
+      "name": "pin-baseline-06b",
+      "log": {
+        "path": ".artifacts/hcg/pin-baseline-06b.log",
+        "sha256": "bf2e2a01bf9c361f915cad3a87419bf507b6a1227d2ce629469df019a3e1ceb5",
+        "bytes": 2190
+      },
+      "trx": {
+        "path": ".artifacts/hcg/inputs-06/source/.artifacts/csharp/focused/03bdea91d03e4410a51e5ac76012312c/selected.trx",
+        "sha256": "8c3de28945955743ee878d4fe0390b806b30bc1630a1a6d84d0ca1b74b573f79",
+        "bytes": 2675
+      },
+      "total": 1,
+      "passed": 1,
+      "failed": 0,
+      "notExecuted": 0,
+      "timeout": 0
+    },
+    {
+      "name": "pin-baseline-06c",
+      "log": {
+        "path": ".artifacts/hcg/pin-baseline-06c.log",
+        "sha256": "9f7de74948459d605d72eb0def06fccc3abf64a5a6faa20e30afa99e08765e72",
+        "bytes": 2190
+      },
+      "trx": {
+        "path": ".artifacts/hcg/inputs-06/source/.artifacts/csharp/focused/01337357088a4a81b7a0e05621aaf859/selected.trx",
+        "sha256": "ad24babea93d79664d7079a8cca42e7682bab875a8ab04fd0e65b7b1b3d03be5",
+        "bytes": 2675
+      },
+      "total": 1,
+      "passed": 1,
+      "failed": 0,
+      "notExecuted": 0,
+      "timeout": 0
+    },
+    {
+      "name": "pin-baseline-06d",
+      "log": {
+        "path": ".artifacts/hcg/pin-baseline-06d.log",
+        "sha256": "d46051c03a8801657fef02566d7f00bc3a4742c41439d39e7457a5db681add07",
+        "bytes": 2190
+      },
+      "trx": {
+        "path": ".artifacts/hcg/inputs-06/source/.artifacts/csharp/focused/0db3b4a9f40e4686bf718a114c3cb020/selected.trx",
+        "sha256": "8d738cd5c3f0b7aee700b375a1d411400caca7aee974b1b54b581a1e8147637c",
+        "bytes": 2675
+      },
+      "total": 1,
+      "passed": 1,
+      "failed": 0,
+      "notExecuted": 0,
+      "timeout": 0
+    }
+  ],
+  "launcher": {
+    "used": "conditional-launcher-03",
+    "sdk": "10.0.401",
+    "runtime": ".NET 10.0.12",
+    "stryker": "4.16.0",
+    "source": {
+      "path": ".artifacts/hcg/conditional-launcher-03/Program.cs",
+      "sha256": "e9af64c584fd1cfc8ded6b58501c200b29f4e78bc53e97b41ddbb39c91c49c7d",
+      "bytes": 26596
+    },
+    "project": {
+      "path": ".artifacts/hcg/conditional-launcher-03/Launcher.csproj",
+      "sha256": "ae184d8b1f5116cbc5c8ef831c2f35dbb3efaea30e1efff6861888144189600e",
+      "bytes": 1257
+    },
+    "assembly": {
+      "path": ".artifacts/hcg/conditional-launcher-03/bin/Release/net10.0/CIS.Healthcheck.ConditionalProof.dll",
+      "sha256": "410ee53320397ac2086f5bc38c439deaf5b41e0d8e1502a64749876abc1a208c",
+      "bytes": 54784
+    },
+    "runtimeConfig": {
+      "path": ".artifacts/hcg/conditional-launcher-03/bin/Release/net10.0/CIS.Healthcheck.ConditionalProof.runtimeconfig.json",
+      "sha256": "64f6e92559a3ff326652a277bceee9745d0fe35cde800954bec2d5e16aae7fdd",
+      "bytes": 374
+    },
+    "buildLog": {
+      "path": ".artifacts/hcg/conditional-build-03.log",
+      "sha256": "f80e00b8cf91b3ecbc51fa17bd17092e5b74baef32fdb48e6a4bec343fb62218",
+      "bytes": 369
+    },
+    "sdkMetadata": {
+      "path": ".artifacts/hcg/conditional-launcher-03/obj/Launcher.csproj.nuget.dgspec.json",
+      "sha256": "db0813ec4ea4550b5cb5d32038ace1b3b10c55a7b7c94f46257dd299b95ff650",
+      "bytes": 22179
+    },
+    "sdkRuntimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\10.0.401/PortableRuntimeIdentifierGraph.json",
+    "unusedPreviewBuild": {
+      "log": {
+        "path": ".artifacts/hcg/conditional-build-02.log",
+        "sha256": "b77e2c8ae412587bef528948a2333cde32ec1f034c43d48ee6b1f69d1a0197a4",
+        "bytes": 699
+      },
+      "sdk": "11.0.100-rc.2.26504.105",
+      "usedForThisProof": false
+    },
+    "toolPins": {
+      "StrykerCoreSha256": "bf02f78d3725e1243edb7a32d88dc1a02c88f1f9f74b60b18730636073f234d7",
+      "SelectorSourceSha256": "8b6bcf99503e313227f4436db335cf8fa01406d2633387a6c77a911c3f11eaf5",
+      "DotnetPath": "C:\\Program Files\\dotnet\\dotnet.exe",
+      "DotnetSha256": "07678ce60dd20ed36f1d25b88f6f51d8bf5a880442680a664690154ebe976ad9",
+      "CoreLibraryPath": "C:\\Program Files\\dotnet\\shared\\Microsoft.NETCore.App\\10.0.12\\System.Private.CoreLib.dll",
+      "CoreLibrarySha256": "1125acc8106c43fc8bad2d203c4c4485df6182d292846c2fff415c1040c54678"
+    }
+  },
+  "finiteMutation": {
+    "configuration": {
+      "path": ".artifacts/hcg/pin-release-06.json",
+      "sha256": "0c707fcf3fb65d907da73b48c68a8236381334b052773e80580175679a8d2ce2",
+      "bytes": 885
+    },
+    "session": {
+      "path": ".artifacts/hcg/p2/session.json",
+      "sha256": "65e5a6e1309dae795308ca4212b358f9624fa9df81ffed4d48bc4bec2b4bdcb7",
+      "bytes": 156965
+    },
+    "generated": {
+      "path": ".artifacts/hcg/p2-proof/generated.json",
+      "sha256": "586d15ec4d85622436aa38e0efdbc23f18b7b500e3f7622c068a6bc73524343d",
+      "bytes": 392
+    },
+    "nativeReport": {
+      "path": ".artifacts/hcg/p2-proof/native/reports/mutation-report.json",
+      "sha256": "838679dbc491061ada917fa80b562b4210e72e345b1cc23059e8e3ce7843935d",
+      "bytes": 1348664
+    },
+    "results": {
+      "path": ".artifacts/hcg/p2-proof/results.json",
+      "sha256": "03889dd696309c766326ba7aa3b7c41a360761a3519011de3375bf0ed3cdf1e9",
+      "bytes": 2023
+    },
+    "log": {
+      "path": ".artifacts/hcg/pin-proof-06.log",
+      "sha256": "df813df1beae1348cf16be60791a97624f46ff6cbda981346206381c8d369385",
+      "bytes": 1895
+    },
+    "mode": "--pin-release",
+    "mutator": "real pinned Stryker StatementMutator",
+    "id": 0,
+    "file": "Healthcheck/Pipes/HealthPipeEndpoint.cs",
+    "line": 58,
+    "startColumn": 19,
+    "endColumn": 33,
+    "offset": 2844,
+    "length": 14,
+    "original": "pinned.Free();",
+    "replacement": ";",
+    "nativeStatuses": {
+      "Killed": 1,
+      "Survived": 0,
+      "Timeout": 0,
+      "CompileError": 0,
+      "Ignored": 0,
+      "NoCoverage": 0
+    },
+    "nativeRestoration": true,
+    "originalCoreSha256": "ef13374a7a01cca8e5c005f191396e4cc7174008d026fd5f8a7ef1c3b96fc0b3",
+    "instrumentedCoreSha256": "7a6bf16344587308ae36266924856a37462ee67df77685f9d8ce2eab0ec3c3a5",
+    "restoredCoreSha256": "ef13374a7a01cca8e5c005f191396e4cc7174008d026fd5f8a7ef1c3b96fc0b3",
+    "thresholdBreak": 90,
+    "coverageAnalysis": "off",
+    "additionalTimeoutMilliseconds": 10000,
+    "nativeElapsed": "00:02:48.4209515",
+    "selectedCases": 2,
+    "compilerRollbackAccepted": false
+  },
+  "childAudit": {
+    "results": {
+      "path": ".artifacts/hcg/p2-audit-http/results.json",
+      "sha256": "77f04dda0c687a08c456415afa309f5f1e3f3a20cb579abd3904b1c12a55c32d",
+      "bytes": 3472
+    },
+    "log": {
+      "path": ".artifacts/hcg/pin-audit-06-http.log",
+      "sha256": "4ada43bf0679901250210d79c12657eb8317456f9c87f28b1483eacb667006f9",
+      "bytes": 91
+    },
+    "status": "QualifiedChildPropagation",
+    "requireKind": "http-host",
+    "requireActive": 0,
+    "launches": 2,
+    "baselineLaunches": 1,
+    "instrumentedLaunches": 1,
+    "selectedLaunches": 1,
+    "normalExitCodes": [
+      0,
+      0
+    ],
+    "failures": [],
+    "guardScope": "Exact staged Core/dependency/runtime/selector/owner and actual parent-child terminal agreement; Windows process-local error-mode witness required.",
+    "retainedWrongScopeAudit": {
+      "results": {
+        "path": ".artifacts/hcg/p2-audit/results.json",
+        "sha256": "21db7cb4f7d658bdbe3ad44268fab34764eb042a5a957784b0d7c9e2b64466a6",
+        "bytes": 3538
+      },
+      "log": {
+        "path": ".artifacts/hcg/pin-audit-06.log",
+        "sha256": "715f2d146e1443d91b3ef1f8269822fc28f8cea166fbbc59b358c9ecbd58ef87",
+        "bytes": 912
+      },
+      "status": "InvalidChildEvidence",
+      "requireKind": "both",
+      "failure": "No selected actual instrumented child of required kind: probe",
+      "rewritten": false
+    }
+  },
+  "laterSource07": {
+    "scope": "Separate later canonical ordinary baseline; not a repeat of the frozen06 finite mutation proof. Selected canonical fixture/test bytes match inputs07.",
+    "inputCount": 1413,
+    "inputsSha256": "e9f9129d6cf8cf540c62aa43966754a7ef8b4634d358e234f6e33bd659a4f56e",
+    "preparation": {
+      "path": ".artifacts/hcg/inputs-07/preparation.json",
+      "sha256": "432259e075d4c925d70ba3e689f9b1ed9a318081d1a3201a7a7498b8e9279b0a",
+      "bytes": 13862
+    },
+    "manifest": {
+      "path": ".artifacts/hcg/inputs-07/source-inputs.json",
+      "sha256": "f7f5c8f8b7e6f251bfe5ea3bf3165fee2bacd74c5911a5b5d9c53101a22ed6d1",
+      "bytes": 297957
+    },
+    "fixture": {
+      "path": ".artifacts/hcg/inputs-07/source/implementations/csharp/tests/fixtures/HealthcheckHttpHost/Program.cs",
+      "sha256": "8ee68dbe2e4002cb5fa2d2c88f432a77069f91944180a4fcd3767afc166aec39",
+      "bytes": 7550
+    },
+    "integrationTest": {
+      "path": ".artifacts/hcg/inputs-07/source/implementations/csharp/tests/CIS.Core.IntegrationTests/Healthcheck/Reporting/HealthcheckPipeTransportTests.cs",
+      "sha256": "01cb5c54356d7d2c06491f8f027cc3f74ed2ad9c7a85fdce7d62680ba551f877",
+      "bytes": 47341
+    },
+    "baseline": {
+      "name": "pipes-baseline-08",
+      "log": {
+        "path": ".artifacts/hcg/pipes-baseline-08.log",
+        "sha256": "46cf8c380c3847ee38f09c97dc8dc730fd51baf800f433b3e4f71458ebec54d0",
+        "bytes": 1870
+      },
+      "trx": {
+        "path": ".artifacts/csharp/focused/f3d180aa8fc4419a93b0ca3b3fa3da31/selected.trx",
+        "sha256": "b7d4a4d0605a74142524c8405ecf883ac160d7d34a9148a4307e2a49a10ffc01",
+        "bytes": 176775
+      },
+      "total": 121,
+      "passed": 121,
+      "failed": 0,
+      "notExecuted": 0,
+      "timeout": 0
+    },
+    "focusedDetectors": {
+      "name": "pipes-detectors-08",
+      "log": {
+        "path": ".artifacts/hcg/pipes-detectors-08.log",
+        "sha256": "5764022256a340f8457d52766c848e43f0423999878a67987d69e7df104c5bf3",
+        "bytes": 1867
+      },
+      "trx": {
+        "path": ".artifacts/csharp/focused/3aed99b298ce4e50bf8876f443fd67a4/selected.trx",
+        "sha256": "e7aeb00d3b59d74f27c6eebc78dddca0cf0337ac5927cc10f7950babeefde8d3",
+        "bytes": 6873
+      },
+      "total": 4,
+      "passed": 4,
+      "failed": 0,
+      "notExecuted": 0,
+      "timeout": 0
+    },
+    "retainedEarlierExchangeFailure": {
+      "log": {
+        "path": ".artifacts/hcg/pipes-detectors-07.log",
+        "sha256": "54587c66f4c86f97d031c832e6e614922aae4461a08ca3b584be6347a180c0d5",
+        "bytes": 4150
+      },
+      "trx": {
+        "path": ".artifacts/csharp/focused/04597ec041264aa5bfe8463c2548e03a/selected.trx",
+        "sha256": "9e17bd5d913997b47ed40a6db967262865bb1997ff6054048d54c970f7037bf7",
+        "bytes": 9256
+      },
+      "total": 4,
+      "passed": 3,
+      "failed": 1,
+      "reason": "Occupied-owner fixture exchange awaited Windows pipe write completion before posting its matching read. Corrected test posts both operations before awaiting under the unchanged 15-second token."
+    }
+  }
+}
+

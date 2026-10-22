@@ -44,13 +44,29 @@ public sealed class HealthcheckHttpTransportTests
     }
 
     [TestMethod]
-    public async Task DisabledDetailsAcceptsOmittedAuthorizationAndStillReservesItsRoute()
+    [DataRow(false, false)]
+    [DataRow(false, true)]
+    [DataRow(true, true)]
+    public async Task ValidDetailsAndAuthorizationCombinationsInstallBeforeTheReservedBranch(bool detailsEnabled, bool suppliesPredicate)
     {
+        var options = new HealthcheckOptions { DetailsEnabled = detailsEnabled };
+        HealthSnapshot snapshot = await CaptureSettledHttpSnapshotAsync(options);
         using var services = new ServiceCollection().BuildServiceProvider();
         IApplicationBuilder app = new ApplicationBuilder(services);
-        var source = new ObservingSnapshotSource(() => throw new InvalidOperationException("Disabled details must not capture a snapshot."));
-        Assert.AreSame(app, app.UseCisHealthcheck(source, new HealthcheckOptions { DetailsEnabled = false }));
-        int businessCalls = 0;
+        var source = new ObservingSnapshotSource(() => snapshot);
+        int authorizationCalls = 0, businessCalls = 0;
+        Func<HttpContext, ValueTask<bool>>? predicate = suppliesPredicate
+            ? _ => { authorizationCalls++; return ValueTask.FromResult(true); }
+        : null;
+        IApplicationBuilder? installed = null;
+        try { installed = app.UseCisHealthcheck(source, options, predicate); }
+        catch (ArgumentException error)
+        {
+            Assert.Fail($"A valid details/predicate combination must install successfully; actual exception type {error.GetType().Name}, parameter {error.ParamName}.");
+        }
+        Assert.AreSame(app, installed);
+        Assert.AreEqual(0, source.Captures, "Installation must not capture application state.");
+        Assert.AreEqual(0, authorizationCalls, "Installation must not run application authorization.");
         app.Run(_ => { businessCalls++; return Task.CompletedTask; });
         var context = new DefaultHttpContext();
         context.Request.Path = "/_health/details";
@@ -58,10 +74,108 @@ public sealed class HealthcheckHttpTransportTests
         using var body = new MemoryStream();
         context.Response.Body = body;
         await app.Build()(context).WaitAsync(TransportTestSupport.Limit);
-        Assert.AreEqual(StatusCodes.Status404NotFound, context.Response.StatusCode);
-        TransportTestSupport.ValidateError(JsonNode.Parse(body.ToArray())!.AsObject(), "NotFound");
-        Assert.AreEqual(0, source.Captures);
+        Assert.AreEqual(detailsEnabled ? StatusCodes.Status200OK : StatusCodes.Status404NotFound, context.Response.StatusCode);
+        Assert.AreEqual(detailsEnabled ? 1 : 0, source.Captures);
+        Assert.AreEqual(detailsEnabled ? 1 : 0, authorizationCalls);
         Assert.AreEqual(0, businessCalls);
+        JsonObject response = JsonNode.Parse(body.ToArray())!.AsObject();
+        if (detailsEnabled) { TransportTestSupport.ValidateSnapshot(response, "details", true, true, active: 0); }
+        else { TransportTestSupport.ValidateError(response, "NotFound"); }
+    }
+
+    [TestMethod]
+    [DataRow("GET", "/_health", "health")]
+    [DataRow("HEAD", "/_health", "health")]
+    [DataRow("GET", "/_health/ready", "readiness")]
+    [DataRow("HEAD", "/_health/ready", "readiness")]
+    [DataRow("GET", "/_health/details", "details")]
+    [DataRow("HEAD", "/_health/details", "details")]
+    public async Task CancellationOnEntryAbortsBeforeSourceAuthorizationOrResponseChanges(string method, string path, string view)
+    {
+        using var services = new ServiceCollection().BuildServiceProvider();
+        using var cancellation = new CancellationTokenSource();
+        var options = new HealthcheckOptions { DetailsEnabled = true };
+        await using var service = new HealthcheckService(options,
+            new HealthApplicationIdentity { Name = "canceled-http-entry", InstanceId = Guid.Parse("4a81a808-dcb2-4220-9d33-97792c89152c") });
+        service.MarkStartupCompleted();
+        HealthSnapshot before = service.CaptureSnapshot();
+        var source = new ObservingSnapshotSource(service.CaptureSnapshot);
+        int authorizationCalls = 0, businessCalls = 0;
+        HttpContext? authorizedContext = null;
+        IApplicationBuilder app = new ApplicationBuilder(services);
+        app.UseCisHealthcheck(source, options, context =>
+        {
+            authorizationCalls++;
+            authorizedContext = context;
+            return ValueTask.FromResult(true);
+        });
+        app.Run(_ => { businessCalls++; return Task.CompletedTask; });
+        RequestDelegate middleware = app.Build();
+        var canceled = new DefaultHttpContext();
+        var canceledLifetime = new ObservingRequestLifetime { RequestAborted = cancellation.Token };
+        canceled.Features.Set<IHttpRequestLifetimeFeature>(canceledLifetime);
+        canceled.Request.Method = method;
+        canceled.Request.Path = path;
+        canceled.Response.StatusCode = StatusCodes.Status202Accepted;
+        canceled.Response.ContentType = "text/plain; charset=utf-8";
+        canceled.Response.ContentLength = 7;
+        canceled.Response.Headers.CacheControl = "private";
+        canceled.Response.Headers.Pragma = "prior-pragma";
+        canceled.Response.Headers.Expires = "prior-expires";
+        canceled.Response.Headers.Allow = "POST";
+        canceled.Response.Headers["X-Existing"] = "preserved";
+        Dictionary<string, string> originalHeaders = canceled.Response.Headers.ToDictionary(pair => pair.Key, pair => pair.Value.ToString());
+        using var canceledBody = new MemoryStream();
+        canceled.Response.Body = canceledBody;
+        cancellation.Cancel();
+
+        await middleware(canceled).WaitAsync(TransportTestSupport.Limit);
+
+        Assert.IsTrue(cancellation.IsCancellationRequested);
+        Assert.IsTrue(canceledLifetime.Aborted);
+        Assert.AreEqual(0, source.Captures, "An already canceled request must not call the real snapshot source.");
+        Assert.AreEqual(0, authorizationCalls, "An already canceled details request must not invoke application authorization.");
+        Assert.IsNull(authorizedContext);
+        Assert.AreEqual(0, businessCalls);
+        Assert.AreEqual(StatusCodes.Status202Accepted, canceled.Response.StatusCode);
+        Assert.AreEqual("text/plain; charset=utf-8", canceled.Response.ContentType);
+        Assert.AreEqual(7L, canceled.Response.ContentLength);
+        CollectionAssert.AreEquivalent(originalHeaders.Keys.ToArray(), canceled.Response.Headers.Keys.ToArray());
+        foreach ((string name, string value) in originalHeaders) { Assert.AreEqual(value, canceled.Response.Headers[name].ToString()); }
+        Assert.IsFalse(canceled.Response.HasStarted);
+        Assert.AreEqual(0L, canceledBody.Length);
+
+        // The same installed middleware must still perform its real callbacks and
+        // GET/HEAD response behavior for an uncanceled request to the same route.
+        var positive = new DefaultHttpContext();
+        var positiveLifetime = new ObservingRequestLifetime();
+        positive.Features.Set<IHttpRequestLifetimeFeature>(positiveLifetime);
+        positive.Request.Method = method;
+        positive.Request.Path = path;
+        using var positiveBody = new MemoryStream();
+        positive.Response.Body = positiveBody;
+
+        await middleware(positive).WaitAsync(TransportTestSupport.Limit);
+
+        Assert.IsFalse(positiveLifetime.Aborted);
+        Assert.AreEqual(1, source.Captures);
+        Assert.AreEqual(view == "details" ? 1 : 0, authorizationCalls);
+        if (view == "details") { Assert.AreSame(positive, authorizedContext); }
+        else { Assert.IsNull(authorizedContext); }
+        Assert.AreEqual(0, businessCalls);
+        Assert.AreEqual(StatusCodes.Status200OK, positive.Response.StatusCode);
+        Assert.AreEqual("application/json; charset=utf-8", positive.Response.ContentType);
+        Assert.IsTrue(positive.Response.ContentLength is > 0);
+        Assert.AreEqual("no-store, no-cache", positive.Response.Headers.CacheControl.ToString());
+        Assert.AreEqual("no-cache", positive.Response.Headers.Pragma.ToString());
+        Assert.AreEqual("0", positive.Response.Headers.Expires.ToString());
+        if (method == "HEAD") { Assert.AreEqual(0L, positiveBody.Length); }
+        else
+        {
+            Assert.AreEqual(positive.Response.ContentLength, positiveBody.Length);
+            TransportTestSupport.ValidateSnapshot(JsonNode.Parse(positiveBody.ToArray())!.AsObject(), view, true, true, active: 0);
+        }
+        Assert.AreEqual(before.Revision, service.CaptureSnapshot().Revision);
     }
 
     [TestMethod]
@@ -107,6 +221,404 @@ public sealed class HealthcheckHttpTransportTests
         Assert.IsFalse(context.Response.Headers.ContainsKey("Expires"));
         Assert.AreEqual(0L, body.Length);
         Assert.AreEqual(0, businessCalls);
+    }
+
+    [TestMethod]
+    [DataRow("GET")]
+    [DataRow("HEAD")]
+    public async Task CanceledAuthorizationReturnsBeforeAnyResponseOrSnapshotWork(string method)
+    {
+        using var services = new ServiceCollection().BuildServiceProvider();
+        using var cancellation = new CancellationTokenSource();
+        var source = new ObservingSnapshotSource(() => throw new InvalidOperationException("Canceled authorization must not read health."));
+        var context = new DefaultHttpContext();
+        var lifetime = new ObservingRequestLifetime { RequestAborted = cancellation.Token };
+        context.Features.Set<IHttpRequestLifetimeFeature>(lifetime);
+        context.Request.Path = "/_health/details";
+        context.Request.Method = method;
+        Dictionary<string, string> originalHeaders = PreserveResponseBeforeCancellation(context);
+        using var body = new MemoryStream();
+        context.Response.Body = body;
+        int authorizationCalls = 0, businessCalls = 0;
+        IApplicationBuilder app = new ApplicationBuilder(services);
+        app.UseCisHealthcheck(source, new HealthcheckOptions { DetailsEnabled = true }, received =>
+        {
+            Assert.AreSame(context, received);
+            authorizationCalls++;
+            return ValueTask.FromException<bool>(new OperationCanceledException("secret authorization cancellation"));
+        });
+        app.Run(_ => { businessCalls++; return Task.CompletedTask; });
+
+        await app.Build()(context).WaitAsync(TransportTestSupport.Limit);
+
+        Assert.IsFalse(cancellation.IsCancellationRequested, "A predicate cancellation terminates its request even when RequestAborted has not been signaled.");
+        Assert.IsTrue(lifetime.Aborted);
+        Assert.AreEqual(1, authorizationCalls);
+        Assert.AreEqual(0, source.Captures);
+        Assert.AreEqual(0, businessCalls);
+        AssertCanceledResponseWasUntouched(context, body, originalHeaders);
+    }
+
+    [TestMethod]
+    [DataRow("GET")]
+    [DataRow("HEAD")]
+    public async Task SuccessfulAuthorizationRechecksRequestCancellationBeforeSnapshotCapture(string method)
+    {
+        using var services = new ServiceCollection().BuildServiceProvider();
+        using var cancellation = new CancellationTokenSource();
+        var options = new HealthcheckOptions { DetailsEnabled = true };
+        await using var service = new HealthcheckService(options,
+            new HealthApplicationIdentity { Name = "canceled-http-authorization", InstanceId = Guid.Parse("dd143719-cbc6-40f2-a404-61af20318e08") });
+        service.MarkStartupCompleted();
+        HealthSnapshot before = service.CaptureSnapshot();
+        var source = new ObservingSnapshotSource(service.CaptureSnapshot);
+        var context = new DefaultHttpContext();
+        var lifetime = new ObservingRequestLifetime { RequestAborted = cancellation.Token };
+        context.Features.Set<IHttpRequestLifetimeFeature>(lifetime);
+        context.Request.Path = "/_health/details";
+        context.Request.Method = method;
+        Dictionary<string, string> originalHeaders = PreserveResponseBeforeCancellation(context);
+        using var body = new MemoryStream();
+        context.Response.Body = body;
+        var authorization = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+        int authorizationCalls = 0, businessCalls = 0;
+        IApplicationBuilder app = new ApplicationBuilder(services);
+        app.UseCisHealthcheck(source, options, received =>
+        {
+            Assert.AreSame(context, received);
+            authorizationCalls++;
+            return new ValueTask<bool>(authorization.Task);
+        });
+        app.Run(_ => { businessCalls++; return Task.CompletedTask; });
+        Task request = app.Build()(context);
+        try
+        {
+            Assert.AreEqual(1, authorizationCalls);
+            Assert.IsFalse(request.IsCompleted);
+            Assert.AreEqual(0, source.Captures);
+            cancellation.Cancel();
+            authorization.TrySetResult(true);
+            await request.WaitAsync(TransportTestSupport.Limit);
+
+            Assert.IsTrue(lifetime.Aborted);
+            Assert.AreEqual(1, authorizationCalls);
+            Assert.AreEqual(0, source.Captures, "A successful authorization must not permit capture after this request was canceled.");
+            Assert.AreEqual(0, businessCalls);
+            AssertCanceledResponseWasUntouched(context, body, originalHeaders);
+            Assert.AreEqual(before.Revision, service.CaptureSnapshot().Revision);
+        }
+        finally { authorization.TrySetResult(true); }
+    }
+
+    [TestMethod]
+    [DataRow("GET")]
+    [DataRow("HEAD")]
+    public async Task CanceledSnapshotCaptureTerminatesOnlyItsRequestWithoutPublishingAnError(string method)
+    {
+        using var services = new ServiceCollection().BuildServiceProvider();
+        using var cancellation = new CancellationTokenSource();
+        var options = new HealthcheckOptions { DetailsEnabled = false };
+        HealthSnapshot snapshot = await CaptureSettledHttpSnapshotAsync(options);
+        int reads = 0, businessCalls = 0;
+        var source = new ObservingSnapshotSource(() =>
+        {
+            if (++reads == 1)
+            {
+                cancellation.Cancel();
+                throw new OperationCanceledException("secret snapshot cancellation", cancellation.Token);
+            }
+            return snapshot;
+        });
+        IApplicationBuilder app = new ApplicationBuilder(services);
+        app.UseCisHealthcheck(source, options);
+        app.Run(_ => { businessCalls++; return Task.CompletedTask; });
+        RequestDelegate middleware = app.Build();
+        var context = new DefaultHttpContext();
+        var lifetime = new ObservingRequestLifetime { RequestAborted = cancellation.Token };
+        context.Features.Set<IHttpRequestLifetimeFeature>(lifetime);
+        context.Request.Path = "/_health";
+        context.Request.Method = method;
+        Dictionary<string, string> originalHeaders = PreserveResponseBeforeCancellation(context);
+        using var body = new MemoryStream();
+        context.Response.Body = body;
+
+        try { await middleware(context).WaitAsync(TransportTestSupport.Limit); }
+        catch (NullReferenceException error)
+        {
+            Assert.Fail($"Matching request cancellation during capture must complete without escaping {error.GetType().Name}.");
+        }
+
+        Assert.IsTrue(cancellation.IsCancellationRequested);
+        Assert.IsTrue(lifetime.Aborted);
+        Assert.AreEqual(1, source.Captures);
+        AssertCanceledResponseWasUntouched(context, body, originalHeaders);
+
+        var positive = new DefaultHttpContext();
+        var positiveLifetime = new ObservingRequestLifetime();
+        positive.Features.Set<IHttpRequestLifetimeFeature>(positiveLifetime);
+        positive.Request.Path = "/_health";
+        positive.Request.Method = HttpMethods.Get;
+        using var positiveBody = new MemoryStream();
+        positive.Response.Body = positiveBody;
+        await middleware(positive).WaitAsync(TransportTestSupport.Limit);
+
+        Assert.IsFalse(positiveLifetime.Aborted);
+        Assert.AreEqual(StatusCodes.Status200OK, positive.Response.StatusCode);
+        Assert.AreEqual(positiveBody.Length, positive.Response.ContentLength);
+        JsonObject positiveSnapshot = JsonNode.Parse(positiveBody.ToArray())!.AsObject();
+        TransportTestSupport.ValidateSnapshot(positiveSnapshot, "health", true, true, active: 0);
+        Assert.AreEqual(snapshot.Revision.ToString(System.Globalization.CultureInfo.InvariantCulture), (string?)positiveSnapshot["revision"]);
+        Assert.AreEqual(2, source.Captures);
+        Assert.AreEqual(0, businessCalls);
+    }
+
+    [TestMethod]
+    [DataRow("authorization")]
+    [DataRow("source")]
+    [DataRow("unexpected-source-cancellation")]
+    public async Task ReportingFailuresPublishHttpErrorsAndHeadUsesTheSameCompleteRepresentation(string failureOrigin)
+    {
+        using var services = new ServiceCollection().BuildServiceProvider();
+        int authorizationCalls = 0, businessCalls = 0;
+        var source = new ObservingSnapshotSource(() =>
+        {
+            if (failureOrigin == "unexpected-source-cancellation") { throw new OperationCanceledException("secret unexpected source cancellation"); }
+            throw new IOException("secret snapshot failure");
+        });
+        IApplicationBuilder app = new ApplicationBuilder(services);
+        app.UseCisHealthcheck(source, new HealthcheckOptions { DetailsEnabled = true }, _ =>
+        {
+            authorizationCalls++;
+            return ValueTask.FromException<bool>(new InvalidOperationException("secret authorization failure"));
+        });
+        app.Run(_ => { businessCalls++; return Task.CompletedTask; });
+        RequestDelegate middleware = app.Build();
+        long getLength = 0;
+        foreach (string method in new[] { HttpMethods.Get, HttpMethods.Head })
+        {
+            var context = new DefaultHttpContext();
+            var lifetime = new ObservingRequestLifetime();
+            context.Features.Set<IHttpRequestLifetimeFeature>(lifetime);
+            context.Request.Path = failureOrigin == "authorization" ? "/_health/details" : "/_health";
+            context.Request.Method = method;
+            using var body = new MemoryStream();
+            context.Response.Body = body;
+
+            await middleware(context).WaitAsync(TransportTestSupport.Limit);
+
+            Assert.IsFalse(lifetime.Aborted, "An uncanceled reporting failure produces one complete HTTP error.");
+            Assert.AreEqual(StatusCodes.Status500InternalServerError, context.Response.StatusCode);
+            Assert.AreEqual("application/json; charset=utf-8", context.Response.ContentType);
+            Assert.AreEqual("no-store, no-cache", context.Response.Headers.CacheControl.ToString());
+            Assert.AreEqual("no-cache", context.Response.Headers.Pragma.ToString());
+            Assert.AreEqual("0", context.Response.Headers.Expires.ToString());
+            if (method == HttpMethods.Get)
+            {
+                getLength = body.Length;
+                Assert.IsTrue(getLength is > 0 and <= 1024);
+                JsonObject error = JsonNode.Parse(body.ToArray())!.AsObject();
+                TransportTestSupport.ValidateError(error, "ReportingUnavailable");
+                Assert.AreEqual(1, (int?)error["schemaVersion"]);
+                Assert.IsFalse(error.ContainsKey("protocolVersion"), "HTTP errors do not use the local-pipe protocol envelope.");
+                Assert.IsFalse(error.ContainsKey("view"), "The nullable pipe request view does not belong to the HTTP error document.");
+            }
+            else { Assert.AreEqual(0L, body.Length, "HEAD must suppress the actual middleware body write."); }
+            Assert.AreEqual(getLength, context.Response.ContentLength, "HEAD retains the complete GET representation's length.");
+        }
+        Assert.AreEqual(failureOrigin == "authorization" ? 2 : 0, authorizationCalls);
+        Assert.AreEqual(failureOrigin == "authorization" ? 0 : 2, source.Captures);
+        Assert.AreEqual(0, businessCalls);
+    }
+
+    [TestMethod]
+    public async Task ForbiddenResponseStreamFailureRemainsOutsideTheAuthorizationExceptionBoundary()
+    {
+        using var services = new ServiceCollection().BuildServiceProvider();
+        var source = new ObservingSnapshotSource(() => throw new InvalidOperationException("Denied authorization must not capture health."));
+        IApplicationBuilder app = new ApplicationBuilder(services);
+        int authorizationCalls = 0, businessCalls = 0;
+        app.UseCisHealthcheck(source, new HealthcheckOptions { DetailsEnabled = true }, _ =>
+        {
+            authorizationCalls++;
+            return ValueTask.FromResult(false);
+        });
+        app.Run(_ => { businessCalls++; return Task.CompletedTask; });
+        var context = new DefaultHttpContext();
+        var lifetime = new ObservingRequestLifetime();
+        context.Features.Set<IHttpRequestLifetimeFeature>(lifetime);
+        context.Request.Path = "/_health/details";
+        context.Request.Method = HttpMethods.Get;
+        using var body = new GatedBodyStream();
+        context.Response.Body = body;
+        Task request = app.Build()(context);
+        try
+        {
+            await body.Entered.WaitAsync(TransportTestSupport.Limit);
+            Assert.IsFalse(request.IsCompleted);
+            Assert.AreEqual(StatusCodes.Status403Forbidden, context.Response.StatusCode);
+            TransportTestSupport.ValidateError(JsonNode.Parse(body.RequestedBytes)!.AsObject(), "Forbidden");
+            var failure = new IOException("secret denied-response stream failure");
+            body.Fail(failure);
+            IOException observed = await Assert.ThrowsExactlyAsync<IOException>(() => request.WaitAsync(TransportTestSupport.Limit));
+
+            Assert.AreSame(failure, observed);
+            Assert.AreEqual(1, body.Writes, "A response-stream fault must not trigger a second ReportingUnavailable response.");
+            Assert.AreEqual(StatusCodes.Status403Forbidden, context.Response.StatusCode);
+            Assert.AreEqual(1, authorizationCalls);
+            Assert.AreEqual(0, source.Captures);
+            Assert.AreEqual(0, businessCalls);
+            Assert.IsFalse(lifetime.Aborted);
+        }
+        finally { body.Complete(); }
+    }
+
+    [TestMethod]
+    [DataRow(null)]
+    [DataRow("")]
+    [DataRow("/")]
+    [DataRow("/_health-other")]
+    [DataRow("/_healthcare")]
+    [DataRow("/business")]
+    public async Task UnreservedPathsPreserveTheBusinessContextAndItsPendingCompletion(string? path)
+    {
+        using var services = new ServiceCollection().BuildServiceProvider();
+        var source = new ObservingSnapshotSource(() => throw new InvalidOperationException("Business requests must not capture health."));
+        IApplicationBuilder app = new ApplicationBuilder(services);
+        app.UseCisHealthcheck(source, new HealthcheckOptions { DetailsEnabled = false });
+        var context = new DefaultHttpContext();
+        context.Request.Path = new PathString(path);
+        context.Request.Method = HttpMethods.Post;
+        string? originalPath = context.Request.Path.Value;
+        var completed = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        int businessCalls = 0;
+        app.Run(received =>
+        {
+            Assert.AreSame(context, received);
+            Assert.AreEqual(originalPath, received.Request.Path.Value);
+            businessCalls++;
+            received.Response.StatusCode = StatusCodes.Status202Accepted;
+            received.Response.ContentType = "text/plain";
+            received.Response.Headers["X-Business"] = "preserved";
+            return completed.Task;
+        });
+        Task request = app.Build()(context);
+        try
+        {
+            Assert.AreEqual(1, businessCalls);
+            Assert.AreEqual(0, source.Captures);
+            Assert.IsFalse(request.IsCompleted, "The health branch must preserve the actual downstream completion.");
+            Assert.AreEqual(StatusCodes.Status202Accepted, context.Response.StatusCode);
+            Assert.AreEqual("text/plain", context.Response.ContentType);
+            Assert.AreEqual("preserved", context.Response.Headers["X-Business"].ToString());
+            Assert.IsFalse(context.Response.Headers.ContainsKey("Cache-Control"));
+            Assert.IsFalse(context.Response.Headers.ContainsKey("Pragma"));
+            Assert.IsFalse(context.Response.Headers.ContainsKey("Expires"));
+        }
+        finally { completed.TrySetResult(); }
+        await request.WaitAsync(TransportTestSupport.Limit);
+        Assert.AreEqual(1, businessCalls);
+        Assert.AreEqual(0, source.Captures);
+    }
+
+    [TestMethod]
+    [DataRow("complete")]
+    [DataRow("fault")]
+    [DataRow("cancel")]
+    public async Task ActualBodyWriteCompletionFaultAndCancellationGovernTheHealthRequest(string outcome)
+    {
+        using var services = new ServiceCollection().BuildServiceProvider();
+        using var cancellation = new CancellationTokenSource();
+        var options = new HealthcheckOptions { DetailsEnabled = false };
+        await using var service = new HealthcheckService(options,
+            new HealthApplicationIdentity { Name = "http-body-completion", InstanceId = Guid.Parse("2079eb46-0f80-4d18-8d0d-c7b80bba1e42") });
+        service.MarkStartupCompleted();
+        HealthSnapshot before = service.CaptureSnapshot();
+        var source = new ObservingSnapshotSource(service.CaptureSnapshot);
+        IApplicationBuilder app = new ApplicationBuilder(services);
+        app.UseCisHealthcheck(source, options);
+        int businessCalls = 0;
+        app.Run(_ => { businessCalls++; return Task.CompletedTask; });
+        var context = new DefaultHttpContext();
+        var lifetime = new ObservingRequestLifetime { RequestAborted = cancellation.Token };
+        context.Features.Set<IHttpRequestLifetimeFeature>(lifetime);
+        context.Request.Path = "/_HeAlTh/";
+        context.Request.Method = HttpMethods.Get;
+        using var body = new GatedBodyStream();
+        context.Response.Body = body;
+        Task request = app.Build()(context);
+        try
+        {
+            await body.Entered.WaitAsync(TransportTestSupport.Limit);
+            Assert.IsFalse(request.IsCompleted, "The actual body write remains outstanding.");
+            Assert.AreEqual(1, body.Writes);
+            Assert.AreEqual(cancellation.Token, body.Cancellation);
+            Assert.AreEqual(1, source.Captures);
+            Assert.AreEqual(0, businessCalls);
+            Assert.AreEqual(StatusCodes.Status200OK, context.Response.StatusCode);
+            Assert.AreEqual("application/json; charset=utf-8", context.Response.ContentType);
+            Assert.AreEqual((long)body.RequestedBytes.Length, context.Response.ContentLength);
+            TransportTestSupport.ValidateSnapshot(JsonNode.Parse(body.RequestedBytes)!.AsObject(), "health", true, true, active: 0);
+
+            if (outcome == "fault")
+            {
+                var failure = new IOException("Controlled response-stream failure.");
+                body.Fail(failure);
+                IOException observed = await Assert.ThrowsExactlyAsync<IOException>(() => request.WaitAsync(TransportTestSupport.Limit));
+                Assert.AreSame(failure, observed);
+                Assert.IsFalse(lifetime.Aborted);
+            }
+            else if (outcome == "cancel")
+            {
+                cancellation.Cancel();
+                body.Cancel(cancellation.Token);
+                await request.WaitAsync(TransportTestSupport.Limit);
+                Assert.IsTrue(lifetime.Aborted);
+            }
+            else
+            {
+                body.Complete();
+                await request.WaitAsync(TransportTestSupport.Limit);
+                Assert.IsFalse(lifetime.Aborted);
+            }
+            Assert.AreEqual(1, source.Captures);
+            Assert.AreEqual(0, businessCalls);
+            Assert.AreEqual(before.Revision, service.CaptureSnapshot().Revision);
+        }
+        finally { body.Complete(); }
+    }
+
+    [TestMethod]
+    public async Task HeadMiddlewareFormatsItsSnapshotAndNeverWritesToTheActualResponseBody()
+    {
+        using var services = new ServiceCollection().BuildServiceProvider();
+        var options = new HealthcheckOptions { DetailsEnabled = false };
+        await using var service = new HealthcheckService(options,
+            new HealthApplicationIdentity { Name = "http-head-body", InstanceId = Guid.Parse("44772f4c-e069-4c91-8d4c-9202e96a3d65") });
+        service.MarkStartupCompleted();
+        HealthSnapshot before = service.CaptureSnapshot();
+        var source = new ObservingSnapshotSource(service.CaptureSnapshot);
+        IApplicationBuilder app = new ApplicationBuilder(services);
+        app.UseCisHealthcheck(source, options);
+        int businessCalls = 0;
+        app.Run(_ => { businessCalls++; return Task.CompletedTask; });
+        var context = new DefaultHttpContext();
+        context.Request.Path = "/_health";
+        context.Request.Method = HttpMethods.Head;
+        using var body = new MemoryStream();
+        context.Response.Body = body;
+
+        await app.Build()(context).WaitAsync(TransportTestSupport.Limit);
+
+        Assert.AreEqual(StatusCodes.Status200OK, context.Response.StatusCode);
+        Assert.AreEqual("application/json; charset=utf-8", context.Response.ContentType);
+        Assert.IsTrue(context.Response.ContentLength is > 0, "HEAD still makes the complete encoded report length decision.");
+        Assert.AreEqual("no-store, no-cache", context.Response.Headers.CacheControl.ToString());
+        Assert.AreEqual("no-cache", context.Response.Headers.Pragma.ToString());
+        Assert.AreEqual("0", context.Response.Headers.Expires.ToString());
+        Assert.AreEqual(0L, body.Length, "The middleware itself must suppress HEAD writes before the server's wire behavior.");
+        Assert.AreEqual(1, source.Captures);
+        Assert.AreEqual(0, businessCalls);
+        Assert.AreEqual(before.Revision, service.CaptureSnapshot().Revision);
     }
 
     private sealed class Host : IAsyncDisposable
@@ -335,6 +847,7 @@ public sealed class HealthcheckHttpTransportTests
     [TestMethod]
     [DataRow("/_healthcare")]
     [DataRow("/_healthcare/ready")]
+    [DataRow("/_health-other")]
     [DataRow("/business")]
     public async Task SimilarPrefixContinuesNormalApplicationPipeline(string path)
     {
@@ -418,6 +931,43 @@ public sealed class HealthcheckHttpTransportTests
         JsonObject state = await host.Command(); Assert.AreEqual(2, (int?)state["captures"]); Assert.AreEqual(0, (int?)state["businessCalls"]);
     }
 
+    private static async Task<HealthSnapshot> CaptureSettledHttpSnapshotAsync(HealthcheckOptions options)
+    {
+        var service = new HealthcheckService(options,
+            new HealthApplicationIdentity { Name = "detached-http-receiving", InstanceId = Guid.Parse("b007fa8e-4587-4b15-afda-a36972815f0a") });
+        try
+        {
+            service.MarkStartupCompleted();
+            return service.CaptureSnapshot();
+        }
+        finally { await service.DisposeAsync().AsTask().WaitAsync(TransportTestSupport.Limit); }
+    }
+
+    private static Dictionary<string, string> PreserveResponseBeforeCancellation(HttpContext context)
+    {
+        context.Response.StatusCode = StatusCodes.Status202Accepted;
+        context.Response.ContentType = "text/plain; charset=utf-8";
+        context.Response.ContentLength = 7;
+        context.Response.Headers.CacheControl = "private";
+        context.Response.Headers.Pragma = "prior-pragma";
+        context.Response.Headers.Expires = "prior-expires";
+        context.Response.Headers.Allow = "POST";
+        context.Response.Headers["X-Existing"] = "preserved";
+        return context.Response.Headers.ToDictionary(pair => pair.Key, pair => pair.Value.ToString());
+    }
+
+    private static void AssertCanceledResponseWasUntouched(HttpContext context, MemoryStream body,
+        IReadOnlyDictionary<string, string> originalHeaders)
+    {
+        Assert.AreEqual(StatusCodes.Status202Accepted, context.Response.StatusCode);
+        Assert.AreEqual("text/plain; charset=utf-8", context.Response.ContentType);
+        Assert.AreEqual(7L, context.Response.ContentLength);
+        CollectionAssert.AreEquivalent(originalHeaders.Keys.ToArray(), context.Response.Headers.Keys.ToArray());
+        foreach ((string name, string value) in originalHeaders) { Assert.AreEqual(value, context.Response.Headers[name].ToString()); }
+        Assert.IsFalse(context.Response.HasStarted);
+        Assert.AreEqual(0L, body.Length);
+    }
+
     private static async Task WaitForAuthorization(Host host)
     {
         using var timeout = new CancellationTokenSource(TransportTestSupport.Limit);
@@ -438,6 +988,27 @@ public sealed class HealthcheckHttpTransportTests
     {
         internal int Captures { get; private set; }
         public HealthSnapshot CaptureSnapshot() { Captures++; return capture(); }
+    }
+
+    private sealed class GatedBodyStream : MemoryStream
+    {
+        private readonly TaskCompletionSource entered = new(TaskCreationOptions.RunContinuationsAsynchronously);
+        private readonly TaskCompletionSource completion = new(TaskCreationOptions.RunContinuationsAsynchronously);
+        internal Task Entered => entered.Task;
+        internal int Writes { get; private set; }
+        internal byte[] RequestedBytes { get; private set; } = [];
+        internal CancellationToken Cancellation { get; private set; }
+        public override ValueTask WriteAsync(ReadOnlyMemory<byte> buffer, CancellationToken cancellationToken = default)
+        {
+            Writes++;
+            RequestedBytes = buffer.ToArray();
+            Cancellation = cancellationToken;
+            entered.TrySetResult();
+            return new ValueTask(completion.Task);
+        }
+        internal void Complete() => completion.TrySetResult();
+        internal void Fail(Exception error) => completion.TrySetException(error);
+        internal void Cancel(CancellationToken cancellationToken) => completion.TrySetCanceled(cancellationToken);
     }
 
     private sealed class ObservingRequestLifetime : IHttpRequestLifetimeFeature

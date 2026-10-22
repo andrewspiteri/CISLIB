@@ -215,6 +215,7 @@ internal static class HealthReportProtocol
         Timestamp(Required(monitor, "registeredAtUtc"));
         OptionalTimestamp(monitor, "lastObservationAtUtc");
         OptionalDiagnostic(monitor, "diagnostic");
+        OptionalDiagnostic(monitor, "registrationDiagnostic");
         bool hasNumeric = monitor.TryGetProperty("numeric", out var numeric);
         if (hasNumeric != (policy == "NumericThreshold")) { throw Invalid(); }
         if (hasNumeric)

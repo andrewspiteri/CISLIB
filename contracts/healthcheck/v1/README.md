@@ -1,5 +1,7 @@
 # Healthcheck v1 contracts
 
+User-approved additive amendment (21 October 2026): detailed monitors may contain optional `registrationDiagnostic`, using the existing bounded diagnostic shape. Absence remains valid; explicit null is invalid. It records the monitor lifetime's latest accepted registration-scoped integration error in state commit order, independently of the health reason, collection error and execution-scoped errors. Success and unbinding an external monitor retain it. An identical normalized registration diagnostic event is Duplicate without another revision; a distinct accepted event replaces it. No public constructor, schema version or required field changes. Existing readers that ignore unknown optional fields remain compatible.
+
 These are unpublished HC00 foundation contracts authored from the reviewed Healthcheck catalog. They are inputs for implementation and native verification. They are not evidence that a service, serializer, HTTP adapter, pipe server or probe has executed.
 
 `report.schema.json`, `pipe-request.schema.json` and `pipe-response.schema.json` use JSON Schema draft 2020-12. Register all three schemas by their declared URNs in a local validator; the pipe response references the report URN. Validation requires no network resource. Unknown optional fields are accepted, while known fields retain their declared types and rules.

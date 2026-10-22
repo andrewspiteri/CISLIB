@@ -11,6 +11,32 @@ namespace CIS.Tests.ArchitectureTests;
 public sealed class HealthcheckCoverageQualificationTests
 {
     [TestMethod]
+    [DataRow("{}")]
+    [DataRow("{\"complete\":true}")]
+    public void LegacyAbsenceAndExplicitCompletedCollectionRemainEligibleForNativeValidation(string json)
+    {
+        ValidateCollectionCompletion(JsonNode.Parse(json)!.AsObject());
+    }
+
+    [TestMethod]
+    [DataRow("false")]
+    [DataRow("null")]
+    [DataRow("\"true\"")]
+    [DataRow("\"false\"")]
+    [DataRow("0")]
+    [DataRow("[]")]
+    [DataRow("{}")]
+    public void IncompleteOrMalformedCompletionCannotBeOverriddenByPassingFamilyExits(string completion)
+    {
+        JsonObject collection = JsonNode.Parse("{\"complete\":" + completion + "}")!.AsObject();
+        var families = new JsonArray();
+        foreach (string name in new[] { "unit", "integration", "business" })
+        { families.Add(new JsonObject { ["name"] = name, ["exitCode"] = 0 }); }
+        collection["families"] = families;
+        Assert.ThrowsExactly<InvalidDataException>(() => ValidateCollectionCompletion(collection));
+    }
+
+    [TestMethod]
     public void NativeTotalsIncludeUnrelatedCoreBeforeHealthcheckIsSelected()
     {
         using var fixture = new NativeFixture();

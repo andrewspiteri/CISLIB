@@ -25,14 +25,14 @@
     "minimumBranchCoverage": 0.9
   },
   "productionPins": [
-    {"path": "Healthcheck/Internal/State/HealthStateCoordinator.cs", "sha256": "7e1462309c085cf952cf0bff034f37eda57108165a1ac7f348fd84142e870c1a"},
+    {"path": "Healthcheck/Internal/State/HealthStateCoordinator.cs", "sha256": "3e3a89690b99a372eb4ca75b0e34ddea98551696794b8a43ca8823c26d1dbe04"},
     {"path": "Healthcheck/Internal/State/HealthStateCoordinator.Collection.cs", "sha256": "a4d9049a2a1304a40d487584c708e85749f2e6a9f9305855bb690afa48315240"},
-    {"path": "Healthcheck/HealthCollectorRunner.cs", "sha256": "9a5f0f709e227efa7b88533b3505c787f43b954cf649e1b06a612a187b375a6b"},
+    {"path": "Healthcheck/HealthCollectorRunner.cs", "sha256": "1844d21ec74d5a9efe1cf9f54ca203eb1b69f8a14636959ea449f62f5fa0a2f0"},
     {"path": "Healthcheck/Execution/HealthExecutionBinder.cs", "sha256": "1854defb571eb52d4066f53a994d5fcd5125f359660fd33ef5ccd486926aef6a"},
     {"path": "Healthcheck/Pipes/HealthPipeBudget.cs", "sha256": "fd0add01dd455a7d9ef94286c50484f5797e80a1917fbf7f9f44478ba3ab1d7f"},
-    {"path": "Healthcheck/Pipes/HealthPipeServer.cs", "sha256": "9e13abc26b5ffa33dd3c06000506b22cccd821411450ebdf357a6687b65e7a2c"},
-    {"path": "Healthcheck/Pipes/HealthProbeClient.cs", "sha256": "e022538f8c4694b3b772625d58886ba9897b6fb8f075a365faf08887878f2f54"},
-    {"path": "Healthcheck/Reporting/HealthReportProtocol.cs", "sha256": "5f259f7f6e51d992211eda1f30555692f85bbe98bec792fd38da04a75754be6b"},
+    {"path": "Healthcheck/Pipes/HealthPipeServer.cs", "sha256": "809ba1a493d6176e354f84209ea556ae21eb726e626b35eb7cc777956cdba12f"},
+    {"path": "Healthcheck/Pipes/HealthProbeClient.cs", "sha256": "ad5afc9bf1f19fddcbd478efd88616607c87262061c75da6cf97407a2994a512"},
+    {"path": "Healthcheck/Reporting/HealthReportProtocol.cs", "sha256": "7161117a6783177bdbd94173148902b4288b687ba80e6c78f5a009d861d5bebf"},
     {"path": "Healthcheck/Reporting/BoundedHealthBuffer.cs", "sha256": "e34b0f0a266d2dc131f27da9cc0c368e1ddfacb3a6a55b7b24ede47f9a10ed83"}
   ],
   "assertionSources": {
@@ -69,9 +69,9 @@
     "HC-M15": [{"source":"formatter","line":324,"anchor":"Assert.AreEqual(\"ReportTooLarge\", belowLimit.ErrorCode);","kind":"equal","expected":"ReportTooLarge","actual":"null"}],
     "HC-M16": [{"source":"protocol","line":654,"anchor":"CollectionAssert.AreEqual(payload, actual);","kind":"array"}],
     "HC-M17": [{"source":"protocol","line":65,"anchor":"Assert.IsFalse(HealthReportProtocol.TryParseRequest(HealthReportFormatterTests.ReadFixture(\"invalid\", \"duplicate-properties-request.txt\"), out _, out string? errorCode));","kind":"false"}],
-    "HC-M18": [{"source":"pipe","line":325,"anchor":"Assert.Fail(\"An expired total budget cannot commit any late complete reply.\");","kind":"fail","message":"An expired total budget cannot commit any late complete reply."}],
-    "HC-M19": [{"source":"probe","line":52,"anchor":"Assert.AreEqual(exit, result.Exit, result.Error);","expression":"Assert.AreEqual(exit, result.Exit)","kind":"equal","expected":"1","actual":"0","casePattern":"^ActualProbeProcessExitsExactlyForSelectedCompleteView \\((\"health\",True,True,True,1|\"readiness\",False,False,True,1|\"readiness\",True,True,True,1|\"details\",True,True,True,1)\\)$"}],
-    "HC-M20": [{"source":"probe","line":124,"anchor":"Assert.AreEqual(expectedExit, result.Exit, result.Error);","expression":"Assert.AreEqual(expectedExit, result.Exit)","kind":"equal","expected":"2","actual":"0","casePattern":"^RealProbeIndependentlyValidatesFragmentedWireResponses \\(\"inconsistent-ready\",2\\)$"}]
+    "HC-M18": [{"source":"pipe","line":550,"anchor":"Assert.Fail(\"An expired total budget cannot commit any late complete reply.\");","kind":"fail","message":"An expired total budget cannot commit any late complete reply."}],
+    "HC-M19": [{"source":"probe","line":68,"anchor":"Assert.AreEqual(exit, result.Exit, result.Error);","expression":"Assert.AreEqual(exit, result.Exit)","kind":"equal","expected":"1","actual":"0","casePattern":"^ActualProbeProcessExitsExactlyForSelectedCompleteView \\((\"health\",True,True,True,1|\"readiness\",False,False,True,1|\"readiness\",True,True,True,1|\"details\",True,True,True,1)\\)$"}],
+    "HC-M20": [{"source":"probe","line":140,"anchor":"Assert.AreEqual(expectedExit, result.Exit, result.Error);","expression":"Assert.AreEqual(expectedExit, result.Exit)","kind":"equal","expected":"2","actual":"0","casePattern":"^RealProbeIndependentlyValidatesFragmentedWireResponses \\(\"inconsistent-ready\",2\\)$"}]
   },
   "mutations": [
     {

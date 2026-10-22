@@ -55,9 +55,9 @@ internal static class HealthProbeClient
         return 2;
     }
 
-    private static bool TryParseArguments(string[] arguments, out ProbeSettings settings)
+    private static bool TryParseArguments(string[] arguments, [System.Diagnostics.CodeAnalysis.NotNullWhen(true)] out ProbeSettings? settings)
     {
-        settings = new ProbeSettings(string.Empty, HealthReportView.Health, 1000, 4194304);
+        settings = null;
         var seen = new HashSet<string>(StringComparer.Ordinal);
         string? pipeName = null;
         HealthReportView view = HealthReportView.Health;

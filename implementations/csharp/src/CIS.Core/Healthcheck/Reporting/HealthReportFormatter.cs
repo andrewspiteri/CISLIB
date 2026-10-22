@@ -126,6 +126,7 @@ public static class HealthReportFormatter
         WriteTime(writer, "registeredAtUtc", monitor.RegisteredAtUtc);
         WriteTime(writer, "lastObservationAtUtc", monitor.LastObservationAtUtc);
         WriteDiagnostic(writer, "diagnostic", monitor.Diagnostic);
+        WriteDiagnostic(writer, "registrationDiagnostic", monitor.RegistrationDiagnostic);
         if (monitor.Outcomes is { } outcomes)
         {
             writer.WriteStartObject("outcomes");

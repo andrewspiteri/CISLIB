@@ -15,13 +15,13 @@ internal static class HealthcheckChildAuditControls
 
     private static async Task<int> Run(string[] args)
     {
-        Require(args.Length == 4, "Expected --session <actual-v4-session.json> --output <empty-root>.");
+        Require(args.Length is 4 or 6, "Expected --session <actual-v4-session.json> --output <empty-root> [--managed-probe true].");
         var options = new Dictionary<string, string>(StringComparer.Ordinal);
         for (int index = 0; index < args.Length; index += 2)
         {
-            Require(args[index] is "--session" or "--output" && options.TryAdd(args[index], args[index + 1]), "Unknown or repeated audit-control option.");
+            Require((args[index] is "--session" or "--output" or "--managed-probe") && options.TryAdd(args[index], args[index + 1]), "Unknown or repeated audit-control option.");
         }
-        Require(options.Count == 2, "Both session and output are required.");
+        Require(options.ContainsKey("--session") && options.ContainsKey("--output"), "Both session and output are required.");
         string sessionPath = Path.GetFullPath(options["--session"]), output = Path.GetFullPath(options["--output"]);
         Session session = Read<Session>(sessionPath);
         Require(session.Schema == Schema && session.CoverageAnalysisOff, "Audit controls require an actual current v4 child session.");
@@ -32,6 +32,11 @@ internal static class HealthcheckChildAuditControls
         }
         Require(!Directory.Exists(output) || !Directory.EnumerateFileSystemEntries(output).Any(), "Audit controls require an empty output root.");
         Directory.CreateDirectory(output);
+        if (options.TryGetValue("--managed-probe", out string? managedProbe))
+        {
+            Require(managedProbe == "true" && session.SourceReplay is null, "Managed probe controls require an actual automatic session and --managed-probe true.");
+            return await ManagedProbeControls(sessionPath, output, session);
+        }
 
         string[] directories = Directory.GetDirectories(Path.Combine(session.OutputRoot, "launches"));
         Require(directories.Length is > 0 and <= 200000, "No bounded actual child launch inventory exists.");
@@ -70,6 +75,7 @@ internal static class HealthcheckChildAuditControls
 
         var rows = new List<object>();
         var failures = new List<string>();
+        int expectedCases = session.RequireWindowsErrorMode ? 10 : 9;
         try
         {
             await Control("positive", null, null);
@@ -102,6 +108,14 @@ internal static class HealthcheckChildAuditControls
                 Replace(originPath, Read<Receipt>(originPath) with { LaunchSha256 = reboundHash });
                 Replace(Path.Combine(copy.LaunchDirectory, "parent-exit.json"), copy.Parent with { LaunchSha256 = reboundHash });
             });
+            if (session.RequireWindowsErrorMode)
+            {
+                await Control("missing-windows-error-mode", WindowsErrorModeError, copy =>
+                {
+                    string path = Path.Combine(copy.LaunchDirectory, "receipt.json");
+                    Replace(path, RemoveWindowsErrorModeBit(Read<Receipt>(path)));
+                });
+            }
         }
         catch (Exception error) { failures.Add(error.ToString()); }
         finally
@@ -113,12 +127,14 @@ internal static class HealthcheckChildAuditControls
             }
             Write(Path.Combine(output, "results.json"), new
             {
-                schema = "cis.healthcheck.child-audit-controls/v2-development",
+                schema = "cis.healthcheck.child-audit-controls/v3-development",
                 childProtocol = Schema,
                 scope = "Rebased copies of one actual selected normal child launch; parser rejection controls only, no process execution or mutation/release credit.",
                 nativeExecution = false,
-                status = failures.Count == 0 && rows.Count == 9 ? "AuditControlsPassed" : "AuditControlsFailed",
-                exitCode = failures.Count == 0 && rows.Count == 9 ? 0 : 1,
+                expectedCases,
+                session.RequireWindowsErrorMode,
+                status = failures.Count == 0 && rows.Count == expectedCases ? "AuditControlsPassed" : "AuditControlsFailed",
+                exitCode = failures.Count == 0 && rows.Count == expectedCases ? 0 : 1,
                 originalSessionPath = sessionPath,
                 originalSessionSha256 = originals[sessionPath],
                 originalLaunchDirectory,
@@ -131,7 +147,7 @@ internal static class HealthcheckChildAuditControls
                 failures
             });
         }
-        return failures.Count == 0 && rows.Count == 9 ? 0 : 1;
+        return failures.Count == 0 && rows.Count == expectedCases ? 0 : 1;
 
         async Task Control(string name, string? expectedFailure, Action<Copy>? mutate)
         {
@@ -215,8 +231,142 @@ internal static class HealthcheckChildAuditControls
         }
     }
 
+    private static async Task<int> ManagedProbeControls(string sessionPath, string output, Session session)
+    {
+        string? actual = null;
+        Launch? selected = null;
+        foreach (string directory in Directory.GetDirectories(Path.Combine(session.OutputRoot, "launches")).Order(StringComparer.Ordinal))
+        {
+            if (!File.Exists(Path.Combine(directory, "managed-failure.json")) || !File.Exists(Path.Combine(directory, "parent-exit.json"))
+                || !File.Exists(Path.Combine(directory, "receipt.json"))) { continue; }
+            Launch launch = Read<Launch>(Path.Combine(directory, "launch.json"));
+            ManagedFailureReceipt failure = Read<ManagedFailureReceipt>(Path.Combine(directory, "managed-failure.json"));
+            if (launch.Instrumented && launch.ActiveMutant >= 0 && launch.Stage.AssemblyFile == "CisHealthProbe.dll"
+                && failure.ExceptionType == typeof(NullReferenceException).FullName)
+            { actual = directory; selected = launch; break; }
+        }
+        Require(actual is not null && selected is not null, "An actual selected instrumented probe null-failure launch is required; no crash receipt is manufactured.");
+        string originalDirectory = actual!;
+        Launch original = selected!;
+        Receipt origin = Read<Receipt>(Path.Combine(originalDirectory, "receipt.json"));
+        ParentExitReceipt parent = Read<ParentExitReceipt>(Path.Combine(originalDirectory, "parent-exit.json"));
+        ManagedFailureReceipt managed = Read<ManagedFailureReceipt>(Path.Combine(originalDirectory, "managed-failure.json"));
+        Require(original.Id == Path.GetFileName(originalDirectory) && Under(Path.Combine(session.OutputRoot, "launches"), originalDirectory),
+            "The actual managed probe receipt escaped its session.");
+        VerifyFiles(original.Stage.Directory, original.Stage.DeployedFiles);
+        var pins = new Dictionary<string, string>(StringComparer.Ordinal) { [sessionPath] = Hash(sessionPath) };
+        foreach (string path in Directory.GetFiles(originalDirectory)) { pins.Add(path, Hash(path)); }
+        foreach (FilePin pin in original.Stage.DeployedFiles)
+        { string path = Input(original.Stage.Directory, pin.Path); pins.Add(path, Hash(path)); }
+        var rows = new List<object>();
+        var failures = new List<string>();
+        int expectedCases = session.RequireWindowsErrorMode ? 4 : 3;
+        try
+        {
+            await Control("managed-probe-positive", null, null);
+            await Control("wrong-mapped-method-token", ProbeFrameError, failure => failure with
+            { MetadataToken = ProbeRunAsyncToken(origin.CorePath) });
+            await Control("wrong-probe-exception-kind", "The managed failure kind/exception is not one of the two exact Core boundaries.",
+                failure => failure with { ExceptionType = typeof(ArgumentException).FullName! });
+            if (session.RequireWindowsErrorMode)
+            {
+                await Control("missing-windows-error-mode", WindowsErrorModeError, null, RemoveWindowsErrorModeBit);
+            }
+        }
+        catch (Exception error) { failures.Add(error.ToString()); }
+        finally
+        {
+            foreach ((string path, string hash) in pins)
+            { if (!File.Exists(path) || Hash(path) != hash) { failures.Add("Original actual evidence changed: " + path); } }
+            Write(Path.Combine(output, "results.json"), new
+            {
+                schema = "cis.healthcheck.child-audit-controls/probe-managed-v2-development",
+                childProtocol = Schema,
+                scope = "Derivative parser controls copied from one actual managed probe launch; no native process or mutation score is created.",
+                nativeExecution = false,
+                expectedCases,
+                session.RequireWindowsErrorMode,
+                status = failures.Count == 0 && rows.Count == expectedCases ? "AuditControlsPassed" : "AuditControlsFailed",
+                exitCode = failures.Count == 0 && rows.Count == expectedCases ? 0 : 1,
+                originalSessionPath = sessionPath,
+                originalSessionSha256 = pins[sessionPath],
+                originalLaunchDirectory = originalDirectory,
+                original.Id,
+                original.ActiveMutant,
+                original.StageOwnerId,
+                originalEvidence = pins.Select(pin => new { path = pin.Key, sha256 = pin.Value }).ToArray(),
+                rows,
+                failures
+            });
+        }
+        return failures.Count == 0 && rows.Count == expectedCases ? 0 : 1;
+
+        async Task Control(string name, string? expectedFailure, Func<ManagedFailureReceipt, ManagedFailureReceipt>? change,
+            Func<Receipt, Receipt>? changeOrigin = null)
+        {
+            string root = Path.Combine(output, name, "derived-session"), copiedSession = Path.Combine(root, "session.json");
+            Write(copiedSession, session with { OutputRoot = root });
+            string stage = Path.GetFullPath(Path.Combine(root, Path.GetRelativePath(session.OutputRoot, original.Stage.Directory)));
+            Require(Under(Path.Combine(root, "stages"), stage), "Derivative managed probe stage escaped its root.");
+            foreach (FilePin pin in original.Stage.DeployedFiles)
+            {
+                string destination = Path.GetFullPath(Path.Combine(stage, pin.Path));
+                Require(Under(stage, destination), "Derivative managed probe dependency escaped its stage.");
+                Directory.CreateDirectory(Path.GetDirectoryName(destination)!);
+                File.Copy(Input(original.Stage.Directory, pin.Path), destination, overwrite: false);
+            }
+            VerifyFiles(stage, original.Stage.DeployedFiles);
+            string launchDirectory = Path.Combine(root, "launches", original.Id), launchPath = Path.Combine(launchDirectory, "launch.json");
+            Write(launchPath, original with { SessionPath = copiedSession, SessionSha256 = Hash(copiedSession), Stage = original.Stage with { Directory = stage } });
+            string launchHash = Hash(launchPath), receiptPath = Path.Combine(launchDirectory, "receipt.json");
+            Receipt copiedOrigin = origin with
+            {
+                LaunchSha256 = launchHash,
+                EntryAssemblyPath = Rebase(origin.EntryAssemblyPath),
+                CorePath = Rebase(origin.CorePath),
+                Arguments = origin.Arguments.Select(Rebase).ToArray()
+            };
+            Write(receiptPath, changeOrigin is null ? copiedOrigin : changeOrigin(copiedOrigin));
+            Write(Path.Combine(launchDirectory, "parent-exit.json"), parent with
+            {
+                LaunchSha256 = launchHash,
+                WorkingDirectory = Rebase(parent.WorkingDirectory),
+                Arguments = parent.Arguments.Select(Rebase).ToArray()
+            });
+            ManagedFailureReceipt copied = managed with { LaunchSha256 = launchHash, OriginReceiptSha256 = Hash(receiptPath), CorePath = Rebase(managed.CorePath) };
+            Write(Path.Combine(launchDirectory, "managed-failure.json"), change is null ? copied : change(copied));
+            if (File.Exists(Path.Combine(originalDirectory, "exit.json")))
+            { Write(Path.Combine(launchDirectory, "exit.json"), Read<ExitReceipt>(Path.Combine(originalDirectory, "exit.json"))); }
+            string auditRoot = Path.Combine(output, name, "audit");
+            string[] arguments = ["audit", "--session", copiedSession, "--output", auditRoot, "--require-kind", "probe",
+                "--require-active", original.ActiveMutant.ToString(CultureInfo.InvariantCulture)];
+            int code = await HealthcheckChildMutationVerification.RunAsync(arguments);
+            string resultPath = Path.Combine(auditRoot, "results.json");
+            using JsonDocument result = JsonDocument.Parse(File.ReadAllText(resultPath));
+            string[] rejected = result.RootElement.GetProperty("failures").EnumerateArray().Select(item => item.GetString()!).ToArray();
+            bool passed = expectedFailure is null
+                ? code == 0 && result.RootElement.GetProperty("status").GetString() == "QualifiedChildPropagation" && rejected.Length == 0
+                    && result.RootElement.GetProperty("rows").GetArrayLength() == 1
+                    && result.RootElement.GetProperty("rows")[0].GetProperty("terminalKind").GetString() == "managed-core-probe-null"
+                : code == 1 && result.RootElement.GetProperty("status").GetString() == "InvalidChildEvidence"
+                    && rejected.Any(reason => reason.StartsWith(expectedFailure, StringComparison.Ordinal))
+                    && rejected.All(reason => reason.StartsWith(expectedFailure, StringComparison.Ordinal) || reason == "No actual child loaded an instrumented Core.");
+            rows.Add(new { name, derivativeParserControl = true, expectedFailure, passed, arguments, actualExitCode = code, resultPath, resultSha256 = Hash(resultPath) });
+            Require(passed, "The managed probe parser control did not reach its required result: " + name);
+
+            string Rebase(string value) => !Path.IsPathRooted(value) ? value : Same(value, original.Stage.Directory) ? stage
+                : Under(original.Stage.Directory, value) ? Path.GetFullPath(Path.Combine(stage, Path.GetRelativePath(original.Stage.Directory, value))) : value;
+        }
+    }
+
     private static bool Same(string left, string right) => string.Equals(Path.TrimEndingDirectorySeparator(Path.GetFullPath(left)),
         Path.TrimEndingDirectorySeparator(Path.GetFullPath(right)), PathComparison);
+    private static Receipt RemoveWindowsErrorModeBit(Receipt receipt)
+    {
+        WindowsErrorModeReceipt mode = receipt.WindowsErrorMode
+            ?? throw new InvalidOperationException("The actual child has no Windows error mode witness to derive a control from.");
+        return receipt with { WindowsErrorMode = mode with { After = mode.After & ~NoWindowsErrorReporting } };
+    }
     private static void Replace<T>(string path, T value) => File.WriteAllText(path, JsonSerializer.Serialize(value, JsonOptions) + "\n");
     private sealed record Copy(string SessionPath, string LaunchDirectory, string StageDirectory, ParentExitReceipt Parent);
 }

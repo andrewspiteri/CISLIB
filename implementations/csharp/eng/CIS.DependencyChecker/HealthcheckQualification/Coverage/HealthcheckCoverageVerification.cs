@@ -61,6 +61,7 @@ internal static partial class HealthcheckCoverageVerification
             Require(Pin(canonicalCore, pins) == coreHash, "Canonical Core output differs from the exact candidate package.");
             string collectionPath = Path.Combine(reports, "collection.json");
             string collectionHash = Pin(collectionPath, pins); JsonObject collection = Read(collectionPath);
+            ValidateCollectionCompletion(collection);
             Require((string?)collection["collectorVersion"] == "18.10.1" && (string?)collection["packageSha256"] == packageHash
                 && (string?)collection["coreSha256"] == coreHash, "Native collection metadata differs from exact tool/package/Core pins.");
             JsonObject tool = collection["collectorPackage"]!.AsObject();
@@ -217,6 +218,14 @@ internal static partial class HealthcheckCoverageVerification
             Require((string?)copy["sha256"] == coreHash && Pin(path, pins) == coreHash, "Native host/child Core bytes differ from candidate.");
         }
         Require(expected.SetEquals(observed), "Missing exact Core copy for a native family/child process.");
+    }
+
+    internal static void ValidateCollectionCompletion(JsonObject collection)
+    {
+        // Older native receipts predate this field; an explicit completion claim must be true.
+        if (!collection.TryGetPropertyValue("complete", out JsonNode? status)) { return; }
+        Require(status is JsonValue value && value.TryGetValue<bool>(out bool complete) && complete,
+            "Native collection completion must be JSON Boolean true when present.");
     }
 
     internal static (long Passed, string CoveragePath) ValidateTrx(string path, string directory)

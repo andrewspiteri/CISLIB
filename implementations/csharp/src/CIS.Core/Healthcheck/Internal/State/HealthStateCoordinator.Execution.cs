@@ -143,14 +143,25 @@ internal sealed partial class HealthStateCoordinator
                 if (!IsBindingActive(binding)) { return HealthFactDisposition.Retired; }
                 if (fact.Kind == HealthExecutionFactKind.Retired)
                 {
-                    binding.RegistrationDiagnostic = fact.IntegrationError ?? binding.RegistrationDiagnostic;
+                    if (fact.IntegrationError is { } retirementDiagnostic)
+                    { binding.Entry.RegistrationDiagnostic = retirementDiagnostic; }
                     RetireBindingLocked(binding, effects);
                     return HealthFactDisposition.Recorded;
                 }
                 if (fact.ExecutionId is null)
                 {
                     // Registration-lifetime diagnostics do not invent an execution record or health outcome.
-                    binding.RegistrationDiagnostic = fact.IntegrationError ?? binding.RegistrationDiagnostic;
+                    if (fact.IntegrationError is { } diagnostic)
+                    {
+                        DateTimeOffset observedAt = fact.OccurredAtUtc.ToUniversalTime();
+                        if (binding.RegistrationDiagnosticAt == observedAt && binding.RegistrationDiagnosticPhase == fact.SourcePhase
+                            && SameRegistrationDiagnostic(binding.RegistrationDiagnostic, diagnostic))
+                        { return HealthFactDisposition.Duplicate; }
+                        binding.RegistrationDiagnostic = diagnostic;
+                        binding.RegistrationDiagnosticAt = observedAt;
+                        binding.RegistrationDiagnosticPhase = fact.SourcePhase;
+                        binding.Entry.RegistrationDiagnostic = diagnostic;
+                    }
                 }
                 else
                 {
@@ -204,6 +215,10 @@ internal sealed partial class HealthStateCoordinator
             }
         }
     }
+
+    private static bool SameRegistrationDiagnostic(HealthDiagnostic? retained, HealthDiagnostic supplied) =>
+        ReferenceEquals(retained, supplied) || retained is not null && retained.Code == supplied.Code
+        && retained.Message == supplied.Message && retained.ExceptionType == supplied.ExceptionType && retained.IsTruncated == supplied.IsTruncated;
 
     private ExecutionBinding GetBinding(BindingTarget target)
     {
@@ -348,6 +363,8 @@ internal sealed partial class HealthStateCoordinator
         internal HealthExecutionSnapshot? Current;
         internal HealthExecutionSnapshot? Previous;
         internal HealthDiagnostic? RegistrationDiagnostic;
+        internal DateTimeOffset? RegistrationDiagnosticAt;
+        internal HealthExecutionPhase? RegistrationDiagnosticPhase;
     }
 
     private sealed class ExecutionReportingHandle(HealthStateCoordinator state, ExecutionBinding binding, IHealthMonitor monitor)

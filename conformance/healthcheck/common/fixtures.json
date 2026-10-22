@@ -77,6 +77,15 @@
       "file": "valid/pipe-additive-request.json",
       "schema": "urn:cis:healthcheck:pipe-request:v1",
       "reason": "Unknown optional fields remain subject to depth and duplicate validation."
+    },
+    {
+      "id": "HC-WIRE-010",
+      "file": "valid/registration-diagnostic-details.json",
+      "schema": "urn:cis:healthcheck:report:v1",
+      "view": "details",
+      "selectedHealthy": true,
+      "expectedProbeExit": 0,
+      "reason": "A separate bounded registration integration diagnostic does not invent an execution or health failure."
     }
   ],
   "invalid": [
@@ -136,6 +145,15 @@
       "reason": "PrematureEndOfFrame",
       "expectedErrorCode": "InvalidFrame",
       "framing": "Prefix with a little-endian length one greater than this file's actual UTF-8 byte length; deliver the fixture bytes then EOF. An error response is optional when connection damage prevents replying.",
+      "expectedProbeExit": 2
+    },
+    {
+      "id": "HC-WIRE-108",
+      "file": "invalid/registration-diagnostic-null.json",
+      "schema": "urn:cis:healthcheck:report:v1",
+      "validationStage": "schema",
+      "requestView": "details",
+      "reason": "NullRegistrationDiagnostic",
       "expectedProbeExit": 2
     }
   ],

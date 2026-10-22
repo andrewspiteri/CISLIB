@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
@@ -78,6 +79,127 @@ internal static class SourceInventory
         return result.StandardOutput.Split('\0', StringSplitOptions.RemoveEmptyEntries);
     }
 
-    private static Task<ProcessResult> GitAsync(string root, params string[] arguments) =>
-        ProcessRunner.RunAsync("git", ["-C", root, .. arguments], root, TimeSpan.FromSeconds(30), outputEncoding: new UTF8Encoding(false, true));
+    private static Task<ProcessResult> GitAsync(string root, params string[] arguments)
+    {
+        string? diagnostics = Environment.GetEnvironmentVariable("CIS_SOURCE_INVENTORY_DIAGNOSTICS");
+        return string.IsNullOrWhiteSpace(diagnostics)
+            ? RunGitAsync(root, arguments)
+            : TraceGitAsync(root, arguments, Path.GetFullPath(diagnostics));
+    }
+
+    private static Task<ProcessResult> RunGitAsync(string root, string[] arguments) =>
+        ProcessRunner.RunAsync("git", ["-C", root, .. arguments], root, TimeSpan.FromMinutes(2), outputEncoding: new UTF8Encoding(false, true));
+
+    private static async Task<ProcessResult> TraceGitAsync(string root, string[] arguments, string path)
+    {
+        string operation = arguments switch
+        {
+            ["rev-parse", "--show-prefix"] => "repository-prefix",
+            ["ls-files", "-z", "--cached", "--others", "--exclude-standard"] => "tracked-and-untracked-inputs",
+            ["ls-files", "-z", "--deleted"] => "deleted-tracked-inputs",
+            _ => "unknown-git-query"
+        };
+        string attempt = Guid.NewGuid().ToString("N");
+        string[] argv = ["-C", root, .. arguments];
+        string? candidate = PathGitCandidate();
+        var clock = Stopwatch.StartNew();
+        Trace(new
+        {
+            schema = "cis.source-inventory-git-diagnostics/v1",
+            @event = "started",
+            attempt,
+            operation,
+            utc = DateTimeOffset.UtcNow,
+            toolProcessId = Environment.ProcessId,
+            executable = "git",
+            argv,
+            workingDirectory = root,
+            timeoutMilliseconds = 120_000,
+            pathExecutableCandidate = candidate,
+            executableResolution = "First existing PATH candidate; actual child image is not exposed by ProcessRunner.",
+            processId = (int?)null,
+            standardOutputBytes = (int?)null,
+            standardErrorBytes = (int?)null
+        });
+        try
+        {
+            ProcessResult result = await RunGitAsync(root, arguments).ConfigureAwait(false);
+            Trace(new
+            {
+                schema = "cis.source-inventory-git-diagnostics/v1",
+                @event = "completed",
+                attempt,
+                operation,
+                utc = DateTimeOffset.UtcNow,
+                toolProcessId = Environment.ProcessId,
+                executable = "git",
+                argv,
+                workingDirectory = root,
+                elapsedMilliseconds = clock.ElapsedMilliseconds,
+                processId = result.ProcessId,
+                exitCode = result.ExitCode,
+                standardOutputBytes = result.StandardOutputBytes.Length,
+                standardErrorBytes = result.StandardErrorBytes.Length
+            });
+            return result;
+        }
+        catch (Exception error)
+        {
+            Trace(new
+            {
+                schema = "cis.source-inventory-git-diagnostics/v1",
+                @event = error is TimeoutException ? "timeout" : "failed",
+                attempt,
+                operation,
+                utc = DateTimeOffset.UtcNow,
+                toolProcessId = Environment.ProcessId,
+                executable = "git",
+                argv,
+                workingDirectory = root,
+                elapsedMilliseconds = clock.ElapsedMilliseconds,
+                processId = (int?)null,
+                exitCode = (int?)null,
+                standardOutputBytes = (int?)null,
+                standardErrorBytes = (int?)null,
+                unavailable = "ProcessRunner returns child PID and captured byte counts only on successful completion; timeout process/drain state is not exposed.",
+                exceptionType = error.GetType().FullName,
+                exceptionMessage = error.Message,
+                exceptionStackTrace = error.StackTrace,
+                innerExceptionType = error.InnerException?.GetType().FullName,
+                innerExceptionMessage = error.InnerException?.Message,
+                innerExceptionStackTrace = error.InnerException?.StackTrace
+            });
+            throw;
+        }
+
+        void Trace(object entry)
+        {
+            try
+            {
+                string? directory = Path.GetDirectoryName(path);
+                if (directory is not null) { Directory.CreateDirectory(directory); }
+                File.AppendAllText(path, JsonSerializer.Serialize(entry) + "\n", new UTF8Encoding(false));
+            }
+            catch (Exception error) when (error is IOException or UnauthorizedAccessException or ArgumentException or NotSupportedException)
+            {
+                // Opt-in diagnostics must neither pollute JSON stdout nor replace the Git outcome.
+                Console.Error.WriteLine("Source inventory diagnostic write failed: " + error.Message);
+            }
+        }
+    }
+
+    private static string? PathGitCandidate()
+    {
+        string filename = OperatingSystem.IsWindows() ? "git.exe" : "git";
+        foreach (string directory in (Environment.GetEnvironmentVariable("PATH") ?? "").Split(Path.PathSeparator))
+        {
+            try
+            {
+                string candidate = Path.GetFullPath(Path.Combine(directory.Trim('"'), filename));
+                if (File.Exists(candidate)) { return candidate; }
+            }
+            catch (Exception error) when (error is ArgumentException or NotSupportedException or PathTooLongException) { }
+        }
+        return null;
+    }
 }

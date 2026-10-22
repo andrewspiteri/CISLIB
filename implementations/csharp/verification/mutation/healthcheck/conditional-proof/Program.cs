@@ -31,8 +31,8 @@ internal static class Program
     internal static readonly JsonSerializerOptions Json = new() { WriteIndented = true };
     private static async Task<int> Main(string[] args)
     {
-        Require(args.Length == 4 || args.Length == 5 && args[4] == "--registration",
-            "Expected language-root, actual config, empty output, pinned Stryker tool directory, optionally --registration.");
+        Require(args.Length == 4 || args.Length == 5 && args[4] is "--registration" or "--probe-null" or "--pin-release",
+            "Expected language-root, actual config, empty output, pinned Stryker tool directory, optionally --registration, --probe-null or --pin-release.");
         string tools = Path.GetFullPath(args[3]);
         AssemblyLoadContext.Default.Resolving += (_, name) =>
         {
@@ -46,17 +46,27 @@ internal static class Program
     private static async Task<int> Run(string[] args)
     {
         string language = Path.GetFullPath(args[0]), configPath = Path.GetFullPath(args[1]), output = Path.GetFullPath(args[2]);
-        bool registration = args.Length == 5;
-        int expected = registration ? 3 : 4;
+        bool registration = args.Length == 5 && args[4] == "--registration";
+        bool probeNull = args.Length == 5 && args[4] == "--probe-null";
+        bool pinRelease = args.Length == 5 && args[4] == "--pin-release";
+        int expected = probeNull || pinRelease ? 1 : registration ? 3 : 4;
         Require(!Directory.Exists(output) || !Directory.EnumerateFileSystemEntries(output).Any(), "Use an empty proof output.");
         Require(!Within(language, output) && !Within(output, language), "Keep proof artifacts separate from source inputs.");
         Directory.CreateDirectory(output);
         Directory.CreateDirectory(Path.Combine(output, "native"));
         using JsonDocument configDocument = JsonDocument.Parse(File.ReadAllText(configPath));
         JsonElement config = configDocument.RootElement.GetProperty("stryker-config");
-        int additionalTimeout = registration ? 60000 : 10000;
+        int additionalTimeout = registration || probeNull ? 60000 : 10000;
         Require(config.GetProperty("additional-timeout").GetInt32() == additionalTimeout,
-            "Use the recorded finite timeout: 10 seconds for conditional proof or 60 seconds for one-case registration proof.");
+            "Use the recorded finite timeout: 10 seconds for conditional/pin-release proof or 60 seconds for registration/probe-null proof.");
+        if (probeNull || pinRelease)
+        {
+            string[] paths = config.GetProperty("mutate").EnumerateArray().Select(item => item.GetString()!).ToArray();
+            string expectedPath = pinRelease ? "Healthcheck/Pipes/HealthPipeEndpoint.cs" : "Healthcheck/Pipes/HealthProbeClient.cs";
+            Require(paths.Length == 1 && paths[0].Replace('\\', '/') == expectedPath,
+                "The single-mutant mode permits only its actual production source file.");
+            Require(!pinRelease || OperatingSystem.IsWindows(), "Pin-release proof applies only to actual Windows native endpoint creation.");
+        }
         string sessionPath = Environment.GetEnvironmentVariable("CIS_HEALTHCHECK_MUTATION_SESSION") ?? throw new InvalidOperationException("A prepared child proof session is required.");
         using JsonDocument sessionDocument = JsonDocument.Parse(File.ReadAllText(sessionPath));
         JsonElement session = sessionDocument.RootElement;
@@ -85,7 +95,7 @@ internal static class Program
         inputs.MutateInput.SuppliedInput = config.GetProperty("mutate").EnumerateArray().Select(item => item.GetString()!).ToArray();
         inputs.ReportersInput.SuppliedInput = ["json", "cleartext", "progress"];
         inputs.ThresholdHighInput.SuppliedInput = 100; inputs.ThresholdLowInput.SuppliedInput = 90; inputs.ThresholdBreakInput.SuppliedInput = 90;
-        var adapter = new ConditionalProcess(language, output, registration);
+        var adapter = new ConditionalProcess(language, output, registration, probeNull, pinRelease);
         var services = new ServiceCollection();
         services.AddStrykerCore(); services.AddLogging(builder => builder.AddProvider(new NativeLog()));
         services.AddSingleton<IMutationProcess>(adapter);
@@ -118,10 +128,14 @@ internal static class Program
             catch (Exception error) { failures.Add(error.ToString()); }
             File.WriteAllText(Path.Combine(output, "results.json"), JsonSerializer.Serialize(new
             {
-                scope = registration
+                scope = pinRelease
+                    ? "One actual pinned-Stryker Windows native descriptor pinned.Free statement mutant; supplemental finite diagnostic, not broad automatic/release qualification."
+                    : probeNull
+                    ? "One actual pinned-Stryker missing-pipe false-to-true Boolean mutant; supplemental finite diagnostic, not broad automatic/release qualification."
+                    : registration
                     ? "Three actual pinned-Stryker registration-guard mutants; supplemental finite diagnostic, not broad automatic/release qualification."
                     : "Four actual pinned-Stryker conditional mutants; supplemental finite diagnostic, not broad automatic/release qualification.",
-                finiteMode = registration ? "registration" : "conditional", expectedMutants = expected, additionalTimeout,
+                finiteMode = pinRelease ? "pin-release" : probeNull ? "probe-null" : registration ? "registration" : "conditional", expectedMutants = expected, additionalTimeout,
                 status = failures.Count == 0 ? "FiniteNativeProofPassed" : "FiniteNativeProofFailed", exitCode = failures.Count == 0 ? 0 : 1,
                 sessionPath, sessionSha256 = Hash(sessionPath), configPath, configSha256 = Hash(configPath),
                 strykerCoreSha256 = Hash(typeof(StrykerRunner).Assembly.Location), score, reportPath,
@@ -136,7 +150,7 @@ internal static class Program
     internal static bool Within(string root, string path) => Path.GetFullPath(path).StartsWith(Path.TrimEndingDirectorySeparator(Path.GetFullPath(root))
         + Path.DirectorySeparatorChar, OperatingSystem.IsWindows() ? StringComparison.OrdinalIgnoreCase : StringComparison.Ordinal);
 
-    private sealed class ConditionalProcess(string language, string output, bool registration) : IMutationProcess
+    private sealed class ConditionalProcess(string language, string output, bool registration, bool probeNull, bool pinRelease) : IMutationProcess
     {
         private readonly Dictionary<string, byte[]> originals = new(StringComparer.Ordinal);
         private readonly Dictionary<string, string> instrumented = new(StringComparer.Ordinal);
@@ -170,7 +184,7 @@ internal static class Program
             mutationInput = input;
             var root = (ProjectComponent)input.SourceProjectInfo.ProjectContents;
             var compiler = new CsharpCompilingProcess(input, options: actualOptions);
-            IMutator[] mutators = registration ? [new BoundedRegistration()] : [new BoundedConditional()];
+            IMutator[] mutators = pinRelease ? [new BoundedPinRelease()] : probeNull ? [new BoundedProbeNull()] : registration ? [new BoundedRegistration()] : [new BoundedConditional()];
             var orchestrator = new CsharpMutantOrchestrator(new MutantPlacer(input.SourceProjectInfo.CodeInjector), mutators, actualOptions);
             var files = root.GetAllFiles().OfType<CsharpFileLeaf>().ToDictionary(file => file, file => compiler.GetSemanticModel(file.SyntaxTree));
             foreach (var pair in files)
@@ -181,7 +195,9 @@ internal static class Program
                 compiler.ReplaceSyntaxTree(file.SyntaxTree, file.MutatedSyntaxTree);
             }
             IMutant[] mutants = root.Mutants.ToArray();
-            if (registration) { BoundedRegistration.Verify(mutants); }
+            if (pinRelease) { BoundedPinRelease.Verify(mutants); }
+            else if (probeNull) { BoundedProbeNull.Verify(mutants); }
+            else if (registration) { BoundedRegistration.Verify(mutants); }
             else
             {
                 Require(mutants.Length == 4 && mutants.All(mutant => mutant.Mutation.Type == Mutator.Conditional && mutant.ResultStatus == MutantStatus.Pending),
@@ -195,6 +211,7 @@ internal static class Program
             {
                 mutant.Id, mutant.Mutation.DisplayName, source = mutant.Mutation.OriginalNode.SyntaxTree.FilePath,
                 start = mutant.Mutation.OriginalNode.Span.Start, length = mutant.Mutation.OriginalNode.Span.Length,
+                original = mutant.Mutation.OriginalNode.ToString(),
                 replacement = mutant.Mutation.ReplacementNode.ToFullString(), controllerNamespace = input.SourceProjectInfo.HelperNamespace
             }), Json) + "\n");
             using var bytes = new MemoryStream();
@@ -213,7 +230,7 @@ internal static class Program
             var filter = MutantFilterFactory.Create(options!, input);
             foreach (var file in ((ProjectComponent)input.SourceProjectInfo.ProjectContents).GetAllFiles())
             { _ = filter.FilterMutants(file.Mutants.Where(mutant => mutant.ResultStatus == MutantStatus.Pending), file, options!).ToArray(); }
-            Require(input.SourceProjectInfo.ProjectContents.Mutants.Count(mutant => mutant.ResultStatus == MutantStatus.Pending) == (registration ? 3 : 4),
+            Require(input.SourceProjectInfo.ProjectContents.Mutants.Count(mutant => mutant.ResultStatus == MutantStatus.Pending) == (probeNull || pinRelease ? 1 : registration ? 3 : 4),
                 "The actual normal Stryker filters did not retain exactly the expected finite mutants.");
         }
         internal bool RestoreAndVerify()
@@ -243,6 +260,52 @@ internal static class Program
                 && text == "report.SelectedHealthy ? StatusCodes.Status200OK : StatusCodes.Status500InternalServerError";
             bool probe = path.EndsWith("/Healthcheck/Pipes/HealthProbeClient.cs", StringComparison.Ordinal) && text == "parsed.SelectedHealthy ? 0 : 1";
             return http || probe ? new ConditionalExpressionMutator().Mutate(node, semanticModel, options) : [];
+        }
+    }
+
+    private sealed class BoundedProbeNull : IMutator
+    {
+        public IEnumerable<Mutation> Mutate(SyntaxNode node, SemanticModel semanticModel, IStrykerOptions options)
+        {
+            if (!IsTarget(node)) { return []; }
+            return new BooleanMutator().Mutate(node, semanticModel, options);
+        }
+
+        private static bool IsTarget(SyntaxNode node) =>
+            node.SyntaxTree.FilePath.Replace('\\', '/').EndsWith("/Healthcheck/Pipes/HealthProbeClient.cs", StringComparison.Ordinal)
+            && node is LiteralExpressionSyntax && node.ToString() == "false"
+            && node.Parent is ReturnStatementSyntax statement && ReferenceEquals(statement.Expression, node)
+            && statement.Parent is BlockSyntax block && block.Statements.Count == 1
+            && block.Parent is IfStatementSyntax guard && guard.Condition.ToString() == "pipeName is null" && guard.Else is null
+            && node.Ancestors().OfType<MethodDeclarationSyntax>().FirstOrDefault()?.Identifier.ValueText == "TryParseArguments";
+
+        internal static void Verify(IMutant[] mutants)
+        {
+            Require(mutants.Length == 1 && mutants[0].ResultStatus == MutantStatus.Pending
+                && mutants[0].Mutation.DisplayName == "Boolean mutation"
+                && IsTarget(mutants[0].Mutation.OriginalNode)
+                && mutants[0].Mutation.OriginalNode.ToString() == "false" && mutants[0].Mutation.ReplacementNode.ToString() == "true",
+                "Probe-null mode requires exactly the native false-to-true Boolean mutation of the missing-pipe return guard.");
+        }
+    }
+
+    private sealed class BoundedPinRelease : IMutator
+    {
+        public IEnumerable<Mutation> Mutate(SyntaxNode node, SemanticModel semanticModel, IStrykerOptions options) =>
+            IsTarget(node) ? new StatementMutator().Mutate(node, semanticModel, options) : [];
+
+        private static bool IsTarget(SyntaxNode node) =>
+            node.SyntaxTree.FilePath.Replace('\\', '/').EndsWith("/Healthcheck/Pipes/HealthPipeEndpoint.cs", StringComparison.Ordinal)
+            && node is ExpressionStatementSyntax && node.ToString() == "pinned.Free();"
+            && node.Parent is BlockSyntax block && block.Statements.Count == 1 && block.Parent is FinallyClauseSyntax
+            && node.Ancestors().OfType<MethodDeclarationSyntax>().FirstOrDefault()?.Identifier.ValueText == "CreateWindows";
+
+        internal static void Verify(IMutant[] mutants)
+        {
+            Require(mutants.Length == 1 && mutants[0].ResultStatus == MutantStatus.Pending
+                && mutants[0].Mutation.Type == Mutator.Statement && mutants[0].Mutation.DisplayName == "Statement mutation"
+                && IsTarget(mutants[0].Mutation.OriginalNode) && mutants[0].Mutation.ReplacementNode.ToString() == ";",
+                "Pin-release mode requires exactly the native pinned.Free statement-to-empty-statement mutation in CreateWindows finally.");
         }
     }
 

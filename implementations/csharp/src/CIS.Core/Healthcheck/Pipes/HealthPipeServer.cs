@@ -225,43 +225,7 @@ public sealed class HealthPipeServer : IAsyncDisposable
 
     private async Task HandleClientAsync(NamedPipeServerStream stream, HealthPipeBudget budget)
     {
-        HealthReportBuffer response;
-        HealthReportView? selected = null;
-        try
-        {
-            byte[] request = await HealthReportProtocol.ReadFrameAsync(stream, 512, budget.Token).ConfigureAwait(false);
-            budget.ThrowIfExpired();
-            if (!HealthReportProtocol.TryParseRequest(request, out var view, out string? errorCode))
-            {
-                response = HealthReportFormatter.FormatError(errorCode!, pipe: true);
-            }
-            else
-            {
-                selected = view;
-                if (view == HealthReportView.Details && !options.DetailsEnabled)
-                {
-                    response = HealthReportFormatter.FormatError("DetailsDisabled", pipe: true, view);
-                }
-                else
-                {
-                    try
-                    {
-                        var snapshot = source.CaptureSnapshot();
-                        budget.ThrowIfExpired();
-                        response = HealthReportFormatter.FormatPipeResponse(snapshot, view, options);
-                    }
-                    catch (OperationCanceledException) when (budget.Token.IsCancellationRequested) { throw; }
-                    catch (Exception)
-                    {
-                        response = HealthReportFormatter.FormatError("ReportingUnavailable", pipe: true, view);
-                    }
-                }
-            }
-        }
-        catch (FormatException)
-        {
-            response = HealthReportFormatter.FormatError("InvalidFrame", pipe: true, selected);
-        }
+        HealthReportBuffer response = await ReadResponseAsync(stream, budget).ConfigureAwait(false);
         budget.ThrowIfExpired();
         await HealthReportProtocol.WriteFrameAsync(stream, response.Utf8Bytes, options.MaxReportBytes, budget.Token).ConfigureAwait(false);
         budget.ThrowIfExpired();
@@ -270,6 +234,46 @@ public sealed class HealthPipeServer : IAsyncDisposable
         // read, sends unexpected extra input, or exhausts the same deadline.
         // This avoids an uncancelable synchronous WaitForPipeDrain call.
         await stream.ReadAsync(new byte[1], budget.Token).ConfigureAwait(false);
+    }
+
+    private async Task<HealthReportBuffer> ReadResponseAsync(NamedPipeServerStream stream, HealthPipeBudget budget)
+    {
+        HealthReportView? selected = null;
+        try
+        {
+            byte[] request = await HealthReportProtocol.ReadFrameAsync(stream, 512, budget.Token).ConfigureAwait(false);
+            budget.ThrowIfExpired();
+            if (!HealthReportProtocol.TryParseRequest(request, out var view, out string? errorCode))
+            {
+                return HealthReportFormatter.FormatError(errorCode!, pipe: true);
+            }
+            else
+            {
+                selected = view;
+                if (view == HealthReportView.Details && !options.DetailsEnabled)
+                {
+                    return HealthReportFormatter.FormatError("DetailsDisabled", pipe: true, view);
+                }
+                else
+                {
+                    try
+                    {
+                        var snapshot = source.CaptureSnapshot();
+                        budget.ThrowIfExpired();
+                        return HealthReportFormatter.FormatPipeResponse(snapshot, view, options);
+                    }
+                    catch (OperationCanceledException) when (budget.Token.IsCancellationRequested) { throw; }
+                    catch (Exception)
+                    {
+                        return HealthReportFormatter.FormatError("ReportingUnavailable", pipe: true, view);
+                    }
+                }
+            }
+        }
+        catch (FormatException)
+        {
+            return HealthReportFormatter.FormatError("InvalidFrame", pipe: true, selected);
+        }
     }
 
     private void BeginStop()

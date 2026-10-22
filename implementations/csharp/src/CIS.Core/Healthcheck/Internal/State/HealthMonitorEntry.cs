@@ -20,6 +20,7 @@ internal sealed class HealthMonitorEntry
     internal WeakReference<IHealthMonitor> Handle = null!;
     internal MonitorState State;
     internal HealthDiagnostic? Diagnostic;
+    internal HealthDiagnostic? RegistrationDiagnostic;
     internal DateTimeOffset? LastObservation;
     internal BigInteger HealthRevision;
     internal readonly Dictionary<string, HealthMetricEntry> Measurements = new(StringComparer.Ordinal);

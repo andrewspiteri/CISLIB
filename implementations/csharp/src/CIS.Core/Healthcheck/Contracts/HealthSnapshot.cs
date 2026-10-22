@@ -130,6 +130,7 @@ public sealed class HealthMonitorSnapshot
         RegisteredAtUtc = data.RegisteredAtUtc.ToUniversalTime();
         LastObservationAtUtc = data.LastObservationAtUtc?.ToUniversalTime();
         Diagnostic = data.Diagnostic;
+        RegistrationDiagnostic = data.RegistrationDiagnostic;
         Outcomes = data.Outcomes;
         Collection = data.Collection;
         Numeric = data.Numeric;
@@ -159,6 +160,11 @@ public sealed class HealthMonitorSnapshot
 
     /// <summary>The latest applicable detached health reason, cleared on success or clear.</summary>
     public HealthDiagnostic? Diagnostic { get; }
+
+    /// <summary>The latest accepted registration-level integration diagnostic, retained independently of health observations.</summary>
+    /// <remarks>Multiple bindings share this monitor-lifetime last-observation slot. State commit order selects the latest diagnostic.
+    /// Successful observations and external unbinding retain it; withdrawal removes the monitor from current snapshots.</remarks>
+    public HealthDiagnostic? RegistrationDiagnostic { get; }
 
     /// <summary>Outcome facts where this policy or binding actually has outcomes.</summary>
     public HealthOutcomeSnapshot? Outcomes { get; }

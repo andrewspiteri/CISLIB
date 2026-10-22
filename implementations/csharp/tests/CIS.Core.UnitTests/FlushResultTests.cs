@@ -82,6 +82,9 @@ public sealed class FlushResultTests
         internal readonly TaskCompletionSource DisposalStarted = new(TaskCreationOptions.RunContinuationsAsynchronously);
         internal readonly ManualResetEventSlim ReleaseCallback = new();
         internal int Disposed, GuardExpired;
+        // Caller cancellation completes this join-focused test. Freeze logical time so setup
+        // cannot expire the budget before the actual system timer is armed and observed.
+        public override long GetTimestamp() => 0;
         public override ITimer CreateTimer(TimerCallback callback, object? state, TimeSpan dueTime, TimeSpan period)
         {
             ITimer actual = TimeProvider.System.CreateTimer(_ =>

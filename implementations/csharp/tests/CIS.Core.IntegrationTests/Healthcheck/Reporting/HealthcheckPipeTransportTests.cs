@@ -1,3 +1,5 @@
+using System.ComponentModel;
+using System.Diagnostics;
 using System.IO.Pipes;
 using System.Security.AccessControl;
 using System.Security.Principal;
@@ -5,18 +7,197 @@ using System.Text;
 using System.Text.Json.Nodes;
 using CIS.Healthcheck;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using MutationChildren = CIS.Verification.HealthcheckMutationChildren.HealthcheckMutationChildSupport;
 
 namespace CIS.Tests.IntegrationTests.Healthcheck.Reporting;
 
 [TestClass]
 public sealed class HealthcheckPipeTransportTests
 {
+    [TestMethod]
+    public async Task WindowsPipeEndpointDescriptorsReleasePinsAfterActualSettlement()
+    {
+        if (!OperatingSystem.IsWindows())
+        {
+            Console.WriteLine("Windows native pipe security-descriptor pin lifetime is inapplicable on this platform.");
+            return;
+        }
+        Process child = Process.Start(TransportTestSupport.StartInfo("healthcheck-http-host", "CIS.Healthcheck.HttpFixture", ["pipe-pin-release"]))!;
+        try
+        {
+            MutationChildren.ObserveStarted(child);
+            Task<string> stdout = child.StandardOutput.ReadToEndAsync(), stderr = child.StandardError.ReadToEndAsync();
+            try { await child.WaitForExitAsync().WaitAsync(TransportTestSupport.Limit); }
+            catch (TimeoutException) { MutationChildren.MarkTimeout(child, "pipe-pin-release-observation"); throw; }
+            string output = await stdout, error = await stderr;
+            Assert.AreEqual(0, child.ExitCode, error);
+            Assert.AreEqual("", error, "The resource observation must finish without a child error.");
+            Assert.IsTrue(output.Length is > 0 and <= 1024, "The isolated observation is one bounded JSON record.");
+            string[] lines = output.Split(['\r', '\n'], StringSplitOptions.RemoveEmptyEntries);
+            Assert.HasCount(1, lines);
+            JsonObject observation = JsonNode.Parse(lines[0])!.AsObject();
+            Assert.AreEqual("observed", (string?)observation["status"]);
+            Assert.AreEqual("pipe-pin-release", (string?)observation["diagnostic"]);
+            Assert.AreEqual("Windows", (string?)observation["platform"]);
+            Assert.AreEqual(child.Id, (int?)observation["pid"]);
+            Assert.AreEqual(".NET 10.0.12", (string?)observation["runtime"]);
+            Assert.AreEqual(8, (int?)observation["warmupServers"]);
+            Assert.AreEqual(32, (int?)observation["measuredServers"]);
+            long before = (long?)observation["pinnedBefore"] ?? throw new AssertFailedException("Missing initial pin count.");
+            long after = (long?)observation["pinnedAfter"] ?? throw new AssertFailedException("Missing final pin count.");
+            Assert.IsTrue(before >= 0 && after >= 0);
+            Assert.IsTrue(after <= before,
+                $"Actually stopped and disposed pipe endpoints retained pins after full collection: before={before}, after={after}.");
+        }
+        finally
+        {
+            try
+            {
+                if (!child.HasExited)
+                {
+                    MutationChildren.MarkForcedStop(child, "pipe-pin-release-cleanup");
+                    child.Kill(entireProcessTree: true);
+                }
+                await child.WaitForExitAsync().WaitAsync(TransportTestSupport.Limit);
+            }
+            catch (TimeoutException) { MutationChildren.MarkTimeout(child, "pipe-pin-release-stop"); throw; }
+            finally { try { MutationChildren.CompleteLifecycle(child); } finally { child.Dispose(); } }
+        }
+    }
+
     private static (HealthcheckService Service, IConditionMonitor Monitor) Create(bool unhealthy = false, bool startup = true)
     {
         var service = new HealthcheckService(new HealthcheckOptions(), new HealthApplicationIdentity { Name = "pipe-fixture", InstanceId = Guid.NewGuid() });
         IConditionMonitor monitor = service.CreateCondition(new ConditionMonitorOptions { IsCritical = true, InitiallyFlagged = unhealthy, Name = "critical" });
         if (startup) { service.MarkStartupCompleted(); }
         return (service, monitor);
+    }
+
+    [TestMethod]
+    public async Task AnOccupiedEndpointFaultsPublicStartAndTheOriginalOwnerRemainsUsable()
+    {
+        var (service, monitor) = Create();
+        await using (service)
+        {
+            string pipe = TransportTestSupport.NewPipeName();
+            // Leave a spare OS instance: failure must respect the existing name,
+            // rather than depend solely on exhausting its instance capacity.
+            await using var owner = new NamedPipeServerStream(pipe, PipeDirection.InOut, 2,
+                PipeTransmissionMode.Byte, PipeOptions.Asynchronous | PipeOptions.CurrentUserOnly);
+            var source = new CountingSource(service);
+            var server = new HealthPipeServer(source, new HealthcheckOptions { PipeEnabled = true, PipeName = pipe, PipeMaxClients = 2 });
+            Task? stopping = null, disposing = null;
+            try
+            {
+                if (OperatingSystem.IsWindows())
+                {
+                    await Assert.ThrowsExactlyAsync<Win32Exception>(() => server.StartAsync().WaitAsync(TransportTestSupport.Limit));
+                }
+                else
+                {
+                    await Assert.ThrowsExactlyAsync<UnauthorizedAccessException>(() => server.StartAsync().WaitAsync(TransportTestSupport.Limit));
+                }
+                Assert.ThrowsExactly<InvalidOperationException>(() => server.StartAsync(), "A failed start must already have closed admission.");
+                Assert.AreEqual(0, source.Captures);
+                stopping = server.StopAsync();
+                await stopping.WaitAsync(TransportTestSupport.Limit);
+                disposing = server.DisposeAsync().AsTask();
+                await disposing.WaitAsync(TransportTestSupport.Limit);
+
+                using var cancellation = new CancellationTokenSource(TransportTestSupport.Limit);
+                Task accepted = owner.WaitForConnectionAsync(cancellation.Token);
+                await using var peer = new NamedPipeClientStream(".", pipe, PipeDirection.InOut, PipeOptions.Asynchronous);
+                await peer.ConnectAsync(cancellation.Token);
+                await accepted.WaitAsync(TransportTestSupport.Limit);
+                byte[] received = new byte[1];
+                // This BCL constructor requests zero-sized pipe buffers. Post the
+                // matching read before awaiting a Windows write's completion.
+                await Task.WhenAll(owner.ReadExactlyAsync(received, cancellation.Token).AsTask(),
+                    peer.WriteAsync(new byte[] { 0x5a }, cancellation.Token).AsTask());
+                Assert.AreEqual((byte)0x5a, received[0], "Failed start and cleanup must leave the real original endpoint usable.");
+            }
+            finally
+            {
+                try
+                {
+                    if (stopping is null) { stopping = server.StopAsync(); await stopping.WaitAsync(TransportTestSupport.Limit); }
+                }
+                finally
+                {
+                    if (disposing is null)
+                    {
+                        disposing = server.DisposeAsync().AsTask();
+                        if (stopping?.IsCompleted == true) { await disposing.WaitAsync(TransportTestSupport.Limit); }
+                    }
+                }
+            }
+            GC.KeepAlive(monitor);
+        }
+    }
+
+    [TestMethod]
+    public async Task AnActualRequestTimerCreationFailureClosesAdmissionWithoutReadingOrChangingHealth()
+    {
+        var (service, monitor) = Create();
+        await using (service)
+        {
+            string pipe = TransportTestSupport.NewPipeName();
+            var clock = new FailingTimerClock();
+            var source = new CountingSource(service);
+            var server = new HealthPipeServer(source,
+                new HealthcheckOptions { PipeEnabled = true, PipeName = pipe, PipeMaxClients = 1 }, clock);
+            Task? stopping = null, disposing = null;
+            try
+            {
+                await server.StartAsync();
+                HealthSnapshot before = service.CaptureSnapshot();
+                using var cancellation = new CancellationTokenSource(TransportTestSupport.Limit);
+                await using (var peer = new NamedPipeClientStream(".", pipe, PipeDirection.InOut, PipeOptions.Asynchronous))
+                {
+                    await peer.ConnectAsync(cancellation.Token);
+                    await clock.Attempted.Task.WaitAsync(TransportTestSupport.Limit);
+                    try { Assert.AreEqual(0, await peer.ReadAsync(new byte[1], cancellation.Token), "A failed clock cannot manufacture a response."); }
+                    catch (IOException) { /* The actual endpoint may close with a broken-pipe error. */ }
+                }
+                // Peer closure follows the worker's infrastructure-failure handling.
+                // Inspect admission before a caller's Stop could conceal a missing stop.
+                Assert.ThrowsExactly<InvalidOperationException>(() => server.StartAsync());
+                Assert.AreEqual(1, clock.Attempts);
+                Assert.AreEqual(0, source.Captures);
+                HealthSnapshot after = service.CaptureSnapshot();
+                Assert.AreEqual(before.Revision, after.Revision);
+                Assert.AreEqual(before.HealthStatus, after.HealthStatus);
+                Assert.AreEqual(before.Ready, after.Ready);
+                Assert.AreEqual(before.Application.IsStopping, after.Application.IsStopping);
+                stopping = server.StopAsync();
+                await stopping.WaitAsync(TransportTestSupport.Limit);
+                disposing = server.DisposeAsync().AsTask();
+                await disposing.WaitAsync(TransportTestSupport.Limit);
+
+                await using var replacement = new HealthPipeServer(service,
+                    new HealthcheckOptions { PipeEnabled = true, PipeName = pipe, PipeMaxClients = 1 });
+                await replacement.StartAsync();
+                TransportTestSupport.ValidateSnapshotEnvelope(await TransportTestSupport.RequestAsync(pipe,
+                    "{\"protocolVersion\":1,\"view\":\"health\"}"), "health", true, true);
+                await replacement.StopAsync().WaitAsync(TransportTestSupport.Limit);
+            }
+            finally
+            {
+                try
+                {
+                    if (stopping is null) { stopping = server.StopAsync(); await stopping.WaitAsync(TransportTestSupport.Limit); }
+                }
+                finally
+                {
+                    if (disposing is null)
+                    {
+                        disposing = server.DisposeAsync().AsTask();
+                        if (stopping?.IsCompleted == true) { await disposing.WaitAsync(TransportTestSupport.Limit); }
+                    }
+                }
+            }
+            GC.KeepAlive(monitor);
+        }
     }
 
     [TestMethod]
@@ -201,7 +382,9 @@ public sealed class HealthcheckPipeTransportTests
         await using (service)
         {
             string pipe = TransportTestSupport.NewPipeName(); var source = new CountingSource(service);
-            await using var server = new HealthPipeServer(source, new HealthcheckOptions { PipeEnabled = true, PipeName = pipe, PipeMaxClients = 2, PipeRequestTimeoutMs = 1000 }); await server.StartAsync();
+            // This case proves concurrent settlement rather than a one-second latency promise.
+            // Dedicated deadline cases retain their short and exact-boundary budgets.
+            await using var server = new HealthPipeServer(source, new HealthcheckOptions { PipeEnabled = true, PipeName = pipe, PipeMaxClients = 2, PipeRequestTimeoutMs = 5000 }); await server.StartAsync();
             JsonObject[] replies = await Task.WhenAll(Enumerable.Range(0, 24).Select(_ => TransportTestSupport.RequestAsync(pipe, "{\"protocolVersion\":1,\"view\":\"health\"}")));
             foreach (JsonObject reply in replies) { TransportTestSupport.ValidateSnapshotEnvelope(reply, "health", true, true); }
             Assert.AreEqual(24, source.Captures); await server.StopAsync(); await server.StopAsync();
@@ -232,6 +415,48 @@ public sealed class HealthcheckPipeTransportTests
                 catch (OperationCanceledException) { }
             }
             finally { release.Set(); try { await request; } catch (Exception error) when (error is IOException or OperationCanceledException) { } }
+            GC.KeepAlive(monitor);
+        }
+    }
+
+    [TestMethod]
+    public async Task DisposalWaitsForAnActuallyRunningSnapshotSource()
+    {
+        var (service, monitor) = Create();
+        await using (service)
+        {
+            string pipe = TransportTestSupport.NewPipeName();
+            var entered = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+            using var release = new ManualResetEventSlim();
+            var server = new HealthPipeServer(new BlockingSource(service, entered, release),
+                new HealthcheckOptions { PipeEnabled = true, PipeName = pipe });
+            Task<JsonObject>? request = null;
+            Task? disposal = null;
+            try
+            {
+                await server.StartAsync();
+                request = TransportTestSupport.RequestAsync(pipe, "{\"protocolVersion\":1,\"view\":\"health\"}");
+                await entered.Task.WaitAsync(TransportTestSupport.Limit);
+                disposal = server.DisposeAsync().AsTask();
+                Assert.IsFalse(disposal.IsCompleted, "Disposal must await the source that has entered and whose release gate is still closed.");
+                release.Set();
+                await disposal.WaitAsync(TransportTestSupport.Limit);
+                await server.StopAsync().WaitAsync(TransportTestSupport.Limit);
+                try { await request; Assert.Fail("A pending reply cannot succeed after disposal closes admission."); }
+                catch (IOException) { }
+                catch (OperationCanceledException) { }
+            }
+            finally
+            {
+                release.Set();
+                await server.StopAsync().WaitAsync(TransportTestSupport.Limit);
+                await (disposal ?? server.DisposeAsync().AsTask()).WaitAsync(TransportTestSupport.Limit);
+                if (request is not null)
+                {
+                    try { await request; }
+                    catch (Exception error) when (error is IOException or OperationCanceledException) { }
+                }
+            }
             GC.KeepAlive(monitor);
         }
     }
@@ -332,6 +557,160 @@ public sealed class HealthcheckPipeTransportTests
     }
 
     [TestMethod]
+    [DataRow("source")]
+    [DataRow("options")]
+    public async Task RequiredConstructorInputsAreRejectedBeforeOpeningAnEndpoint(string parameter)
+    {
+        var (service, monitor) = Create();
+        await using (service)
+        {
+            var options = new HealthcheckOptions { PipeEnabled = true, PipeName = TransportTestSupport.NewPipeName() };
+            ArgumentNullException error = Assert.ThrowsExactly<ArgumentNullException>(() => new HealthPipeServer(
+                parameter == "source" ? null! : service, parameter == "options" ? null! : options));
+            Assert.AreEqual(parameter, error.ParamName);
+            GC.KeepAlive(monitor);
+        }
+    }
+
+    [TestMethod]
+    [DataRow(0L)]
+    [DataRow(-1L)]
+    public async Task NonpositiveClockFrequencyCannotCreateAReportingServer(long frequency)
+    {
+        var (service, monitor) = Create();
+        await using (service)
+        {
+            ArgumentException error = Assert.ThrowsExactly<ArgumentException>(() => new HealthPipeServer(service,
+                new HealthcheckOptions(), new FrequencyClock(frequency)));
+            Assert.AreEqual("timeProvider", error.ParamName);
+            GC.KeepAlive(monitor);
+        }
+    }
+
+    [TestMethod]
+    public async Task StoppingBeforeStartIsTerminalAndDisposalIsIdempotent()
+    {
+        var (service, monitor) = Create();
+        await using (service)
+        {
+            var server = new HealthPipeServer(service, new HealthcheckOptions());
+            await server.StopAsync().WaitAsync(TransportTestSupport.Limit);
+            await server.StopAsync().WaitAsync(TransportTestSupport.Limit);
+            Assert.ThrowsExactly<InvalidOperationException>(() => server.StartAsync());
+            await server.DisposeAsync().AsTask().WaitAsync(TransportTestSupport.Limit);
+            await server.DisposeAsync().AsTask().WaitAsync(TransportTestSupport.Limit);
+            Assert.ThrowsExactly<ObjectDisposedException>(() => server.StartAsync());
+            GC.KeepAlive(monitor);
+        }
+    }
+
+    [TestMethod]
+    [DataRow(999, true)]
+    [DataRow(1000, false)]
+    [DataRow(1001, false)]
+    public async Task ATotalBudgetIsExpiredAtItsExactMonotonicBoundary(int elapsedMilliseconds, bool replyAllowed)
+    {
+        var (service, monitor) = Create();
+        await using (service)
+        {
+            string pipe = TransportTestSupport.NewPipeName(); var clock = new DelayedCallbackClock();
+            var source = new AdvancingSource(service, clock, elapsedMilliseconds);
+            await using var server = new HealthPipeServer(source, new HealthcheckOptions
+            { PipeEnabled = true, PipeName = pipe, PipeMaxClients = 1, PipeRequestTimeoutMs = 1000 }, clock);
+            await server.StartAsync();
+            using var timeout = new CancellationTokenSource(TransportTestSupport.Limit);
+            byte[]? payload = null;
+            await using (var client = new NamedPipeClientStream(".", pipe, PipeDirection.InOut, PipeOptions.Asynchronous))
+            {
+                await client.ConnectAsync(timeout.Token);
+                await clock.TimerCreated.Task.WaitAsync(TransportTestSupport.Limit);
+                await TransportTestSupport.WriteFrameAsync(client, Encoding.UTF8.GetBytes("{\"protocolVersion\":1,\"view\":\"health\"}"), cancellation: timeout.Token);
+                try { payload = await TransportTestSupport.ReadFrameAsync(client, timeout.Token); }
+                catch (IOException) { }
+            }
+            if (replyAllowed)
+            {
+                Assert.IsNotNull(payload, "A complete reply is permitted strictly before the total deadline.");
+                TransportTestSupport.ValidateSnapshotEnvelope(JsonNode.Parse(payload)!.AsObject(), "health", true, true);
+            }
+            else { Assert.IsNull(payload, "A delayed timer callback cannot authorize a reply at or beyond the elapsed-time deadline."); }
+            Assert.AreEqual(1, source.Captures);
+            TransportTestSupport.ValidateSnapshotEnvelope(await TransportTestSupport.RequestAsync(pipe, "{\"protocolVersion\":1,\"view\":\"health\"}"), "health", true, true);
+            Assert.AreEqual(2, source.Captures);
+            GC.KeepAlive(monitor);
+        }
+    }
+
+    [TestMethod]
+    [DataRow(1, 0)]
+    [DataRow(3, 0)]
+    [DataRow(4, 0)]
+    [DataRow(4, 7)]
+    public async Task TruncatedRequestHeaderOrBodyReleasesCapacityWithoutCapturing(int headerBytes, int bodyBytes)
+    {
+        var (service, monitor) = Create();
+        await using (service)
+        {
+            string pipe = TransportTestSupport.NewPipeName(); var source = new CountingSource(service);
+            await using var server = new HealthPipeServer(source, new HealthcheckOptions
+            { PipeEnabled = true, PipeName = pipe, PipeMaxClients = 1 });
+            await server.StartAsync();
+            using var timeout = new CancellationTokenSource(TransportTestSupport.Limit);
+            await using (var abandoned = new NamedPipeClientStream(".", pipe, PipeDirection.InOut, PipeOptions.Asynchronous))
+            {
+                await abandoned.ConnectAsync(timeout.Token);
+                byte[] header = new byte[4];
+                System.Buffers.Binary.BinaryPrimitives.WriteUInt32LittleEndian(header, 40);
+                await abandoned.WriteAsync(header.AsMemory(0, headerBytes), timeout.Token);
+                if (bodyBytes > 0) { await abandoned.WriteAsync(Encoding.UTF8.GetBytes("{\"proto").AsMemory(0, bodyBytes), timeout.Token); }
+                await abandoned.FlushAsync(timeout.Token);
+            }
+            TransportTestSupport.ValidateSnapshotEnvelope(await TransportTestSupport.RequestAsync(pipe, "{\"protocolVersion\":1,\"view\":\"health\"}"), "health", true, true);
+            Assert.AreEqual(1, source.Captures, "Only the later complete valid request may read the source.");
+            GC.KeepAlive(monitor);
+        }
+    }
+
+    [TestMethod]
+    [DataRow("cancellation")]
+    [DataRow("format")]
+    public async Task ASourceFailureCannotBeConfusedWithPeerFramingOrServerCancellation(string failure)
+    {
+        var (service, monitor) = Create();
+        await using (service)
+        {
+            string pipe = TransportTestSupport.NewPipeName();
+            Exception error = failure == "cancellation" ? new OperationCanceledException("private-source") : new FormatException("private-source");
+            var source = new FaultingOnceSource(service, error);
+            await using var server = new HealthPipeServer(source, new HealthcheckOptions { PipeEnabled = true, PipeName = pipe });
+            await server.StartAsync();
+            TransportTestSupport.ValidateError(await TransportTestSupport.RequestAsync(pipe, "{\"protocolVersion\":1,\"view\":\"health\"}"), "ReportingUnavailable");
+            TransportTestSupport.ValidateSnapshotEnvelope(await TransportTestSupport.RequestAsync(pipe, "{\"protocolVersion\":1,\"view\":\"health\"}"), "health", true, true);
+            Assert.AreEqual(2, source.Captures);
+            GC.KeepAlive(monitor);
+        }
+    }
+
+    [TestMethod]
+    public async Task ACompletedRequestReleasesItsOwnedTimerBeforeServerStopSettles()
+    {
+        var (service, monitor) = Create();
+        await using (service)
+        {
+            string pipe = TransportTestSupport.NewPipeName(); var clock = new ObservingTimerClock();
+            await using var server = new HealthPipeServer(service, new HealthcheckOptions
+            { PipeEnabled = true, PipeName = pipe, PipeMaxClients = 1 }, clock);
+            await server.StartAsync();
+            TransportTestSupport.ValidateSnapshotEnvelope(await TransportTestSupport.RequestAsync(pipe,
+                "{\"protocolVersion\":1,\"view\":\"health\"}"), "health", true, true);
+            await server.StopAsync().WaitAsync(TransportTestSupport.Limit);
+            Assert.AreEqual(1, clock.CreatedTimers);
+            Assert.AreEqual(1, clock.DisposedTimers, "A settled request must release its actual TimeProvider timer before stopping completes.");
+            GC.KeepAlive(monitor);
+        }
+    }
+
+    [TestMethod]
     public async Task EndpointHasCurrentUserBoundaryOnTheExecutedPlatform()
     {
         var (service, monitor) = Create();
@@ -378,11 +757,53 @@ public sealed class HealthcheckPipeTransportTests
     {
         public HealthSnapshot CaptureSnapshot() { entered.TrySetResult(); release.Wait(TransportTestSupport.Limit); return service.CaptureSnapshot(); }
     }
-    private sealed class AdvancingSource(HealthcheckService service, DelayedCallbackClock clock) : IHealthSnapshotSource
+    private sealed class FaultingOnceSource(HealthcheckService service, Exception failure) : IHealthSnapshotSource
     {
         private int captures;
         internal int Captures => Volatile.Read(ref captures);
-        public HealthSnapshot CaptureSnapshot() { if (Interlocked.Increment(ref captures) == 1) { clock.Advance(600); } return service.CaptureSnapshot(); }
+        public HealthSnapshot CaptureSnapshot() { if (Interlocked.Increment(ref captures) == 1) { throw failure; } return service.CaptureSnapshot(); }
+    }
+    private sealed class FrequencyClock(long frequency) : TimeProvider
+    {
+        public override long TimestampFrequency => frequency;
+    }
+    private sealed class FailingTimerClock : TimeProvider
+    {
+        private int attempts;
+        internal int Attempts => Volatile.Read(ref attempts);
+        internal TaskCompletionSource Attempted { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
+        public override ITimer CreateTimer(TimerCallback callback, object? state, TimeSpan dueTime, TimeSpan period)
+        {
+            Interlocked.Increment(ref attempts);
+            Attempted.TrySetResult();
+            throw new InvalidOperationException("actual-test-clock-timer-failure");
+        }
+    }
+    private sealed class ObservingTimerClock : TimeProvider
+    {
+        private int created, disposed;
+        internal int CreatedTimers => Volatile.Read(ref created);
+        internal int DisposedTimers => Volatile.Read(ref disposed);
+        public override long TimestampFrequency => 1000;
+        public override long GetTimestamp() => 0;
+        public override ITimer CreateTimer(TimerCallback callback, object? state, TimeSpan dueTime, TimeSpan period)
+        {
+            Interlocked.Increment(ref created);
+            return new ObservedTimer(() => Interlocked.Increment(ref disposed));
+        }
+        private sealed class ObservedTimer(Action dispose) : ITimer
+        {
+            private int disposed;
+            public bool Change(TimeSpan dueTime, TimeSpan period) => Volatile.Read(ref disposed) == 0;
+            public void Dispose() { if (Interlocked.Exchange(ref disposed, 1) == 0) { dispose(); } }
+            public ValueTask DisposeAsync() { Dispose(); return ValueTask.CompletedTask; }
+        }
+    }
+    private sealed class AdvancingSource(HealthcheckService service, DelayedCallbackClock clock, long firstCaptureAdvance = 600) : IHealthSnapshotSource
+    {
+        private int captures;
+        internal int Captures => Volatile.Read(ref captures);
+        public HealthSnapshot CaptureSnapshot() { if (Interlocked.Increment(ref captures) == 1) { clock.Advance(firstCaptureAdvance); } return service.CaptureSnapshot(); }
     }
     private sealed class DelayedCallbackClock : TimeProvider
     {

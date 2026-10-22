@@ -57,30 +57,44 @@ internal static class HealthcheckMutationChildObserver
             string runtime = RuntimeInformation.FrameworkDescription;
             Require(runtime == ".NET 10.0.12" && Hash(typeof(object).Assembly.Location) == session.CoreLibrarySha256,
                 "The child did not use the pinned actual CLR/runtime.");
+            WindowsErrorModeReceipt? errorMode = null;
+            if (session.RequireWindowsErrorMode)
+            {
+                Require(OperatingSystem.IsWindows(), "Windows error mode was requested for a non-Windows mutation child.");
+                uint before = GetErrorMode();
+                uint requested = before | NoWindowsErrorReporting;
+                uint previous = SetErrorMode(requested);
+                uint after = GetErrorMode();
+                Require(previous == before && after == requested, WindowsErrorModeError);
+                errorMode = new WindowsErrorModeReceipt(Environment.ProcessId, before, previous, requested, after, DateTimeOffset.UtcNow);
+            }
             Write(receiptPath, new Receipt(Schema, launch.Id, Hash(launchPath), DateTimeOffset.UtcNow, Environment.ProcessId,
                 entry.Location, entry.GetName().Name!, Hash(entry.Location), core.Location, coreHash, mvid, controller?.FullName,
                 active, controller is not null, runtime, processPath, Hash(processPath), Hash(typeof(object).Assembly.Location),
-                Environment.GetCommandLineArgs(), null));
+                Environment.GetCommandLineArgs(), null, errorMode));
             AppDomain.CurrentDomain.UnhandledException += (_, failure) =>
             {
                 try
                 {
-                    Require(failure.IsTerminating && failure.ExceptionObject is ArgumentException
-                        && failure.ExceptionObject.GetType() == typeof(ArgumentException), "Only an exact terminating ArgumentException is attributed.");
-                    var exception = (ArgumentException)failure.ExceptionObject;
+                    Require(failure.IsTerminating && failure.ExceptionObject is Exception, "Only an exact allowed terminating Core exception is attributed.");
+                    var exception = (Exception)failure.ExceptionObject;
+                    bool http = launch.Stage.AssemblyFile == "CIS.Healthcheck.HttpFixture.dll" && exception.GetType() == typeof(ArgumentException);
+                    bool probe = launch.Stage.AssemblyFile == "CisHealthProbe.dll" && exception.GetType() == typeof(NullReferenceException);
+                    Require(http || probe, "The managed failure kind/exception is not one of the two exact Core boundaries.");
                     MethodBase method = new StackTrace(exception, fNeedFileInfo: false).GetFrame(0)?.GetMethod()
                         ?? throw new InvalidOperationException("Missing first managed throw frame.");
-                    Require(launch.Instrumented && launch.ActiveMutant >= 0 && launch.Stage.AssemblyFile == "CIS.Healthcheck.HttpFixture.dll"
+                    Require(launch.Instrumented && launch.ActiveMutant >= 0
                         && method.Module.Assembly == core && method.Module.ModuleVersionId == mvid
                         && string.Equals(method.Module.Assembly.Location, core.Location, PathComparison),
-                        "The actual first throw frame is not the selected verified Core HTTP fixture.");
+                        "The actual first throw frame is not the selected verified Core child.");
                     Require(Hash(core.Location) == coreHash && Active(controller!) == launch.ActiveMutant, "The terminating Core origin/selector changed.");
                     string type = method.DeclaringType?.FullName ?? "";
-                    VerifyRegistrationFrame(core.Location, mvid, method.MetadataToken, type, method.Name);
+                    if (http) { VerifyRegistrationFrame(core.Location, mvid, method.MetadataToken, type, method.Name); }
+                    else { VerifyProbeNullFrame(core.Location, mvid, method.MetadataToken, type, method.Name); }
                     VerifyFiles(launch.Stage.Directory, launch.Stage.DeployedFiles);
                     Write(Path.Combine(Path.GetDirectoryName(launchPath)!, "managed-failure.json"), new ManagedFailureReceipt(
                         Schema, launch.Id, Hash(launchPath), Hash(receiptPath), Environment.ProcessId, DateTimeOffset.UtcNow,
-                        failure.IsTerminating, typeof(ArgumentException).FullName!, core.Location, coreHash, mvid,
+                        failure.IsTerminating, exception.GetType().FullName!, core.Location, coreHash, mvid,
                         method.MetadataToken, type, method.Name, 0, launch.ActiveMutant));
                 }
                 catch (Exception error)
@@ -109,6 +123,12 @@ internal static class HealthcheckMutationChildObserver
             throw;
         }
     }
+
+    [DllImport("kernel32.dll", ExactSpelling = true)]
+    private static extern uint GetErrorMode();
+
+    [DllImport("kernel32.dll", ExactSpelling = true)]
+    private static extern uint SetErrorMode(uint mode);
 
     private static void ValidateRuntimeConfiguration(string assembly)
     {

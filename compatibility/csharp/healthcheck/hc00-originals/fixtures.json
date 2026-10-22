@@ -1,0 +1,144 @@
+{
+  "contractVersion": 1,
+  "status": "Authored HC00 contract fixtures; not observations from a running service or transport.",
+  "textEncoding": "UTF-8 without BOM; JSON examples use a final newline.",
+  "valid": [
+    {
+      "id": "HC-WIRE-001",
+      "file": "valid/pending-health.json",
+      "schema": "urn:cis:healthcheck:report:v1",
+      "view": "health",
+      "selectedHealthy": true,
+      "expectedProbeExit": 0,
+      "reason": "A pending critical monitor is visible but is not an invented aggregate failure."
+    },
+    {
+      "id": "HC-WIRE-002",
+      "file": "valid/pending-readiness.json",
+      "schema": "urn:cis:healthcheck:report:v1",
+      "view": "readiness",
+      "selectedHealthy": false,
+      "expectedProbeExit": 1,
+      "reason": "Startup has not completed."
+    },
+    {
+      "id": "HC-WIRE-003",
+      "file": "valid/healthy-after-startup-details.json",
+      "schema": "urn:cis:healthcheck:report:v1",
+      "view": "details",
+      "selectedHealthy": true,
+      "expectedProbeExit": 0,
+      "preparation": {
+        "condition": "critical, initially clear",
+        "consecutiveFailures": "noncritical, FailureThreshold=3; report three failures",
+        "numericThreshold": "noncritical, GreaterThan 10 items; report 10",
+        "availability": "critical; publish once then report a refresh failure"
+      },
+      "reason": "A noncritical threshold failure and failed refresh remain visible while aggregate health/readiness stay healthy/ready."
+    },
+    {
+      "id": "HC-WIRE-004",
+      "file": "valid/unhealthy-health.json",
+      "schema": "urn:cis:healthcheck:report:v1",
+      "view": "health",
+      "selectedHealthy": false,
+      "expectedProbeExit": 1
+    },
+    {
+      "id": "HC-WIRE-005",
+      "file": "valid/report-too-large.json",
+      "schema": "urn:cis:healthcheck:report:v1",
+      "expectedErrorCode": "ReportTooLarge",
+      "selectedHealthy": false,
+      "expectedProbeExit": 2
+    },
+    {
+      "id": "HC-WIRE-006",
+      "file": "valid/pipe-readiness-response.json",
+      "schema": "urn:cis:healthcheck:pipe-response:v1",
+      "requestView": "readiness",
+      "expectedProbeExit": 1
+    },
+    {
+      "id": "HC-WIRE-007",
+      "file": "valid/pipe-invalid-request-response.json",
+      "schema": "urn:cis:healthcheck:pipe-response:v1",
+      "requestDisposition": "invalid",
+      "expectedErrorCode": "InvalidRequest",
+      "expectedProbeExit": 2
+    },
+    {
+      "id": "HC-WIRE-008",
+      "file": "valid/pipe-readiness-request.json",
+      "schema": "urn:cis:healthcheck:pipe-request:v1"
+    },
+    {
+      "id": "HC-WIRE-009",
+      "file": "valid/pipe-additive-request.json",
+      "schema": "urn:cis:healthcheck:pipe-request:v1",
+      "reason": "Unknown optional fields remain subject to depth and duplicate validation."
+    }
+  ],
+  "invalid": [
+    {
+      "id": "HC-WIRE-101",
+      "file": "invalid/ready-contradiction.json",
+      "schema": "urn:cis:healthcheck:report:v1",
+      "validationStage": "semantic",
+      "reason": "ReadyPredicateMismatch",
+      "expectedProbeExit": 2
+    },
+    {
+      "id": "HC-WIRE-102",
+      "file": "invalid/noncanonical-revision.json",
+      "schema": "urn:cis:healthcheck:report:v1",
+      "validationStage": "schema",
+      "reason": "NoncanonicalRevision",
+      "expectedProbeExit": 2
+    },
+    {
+      "id": "HC-WIRE-103",
+      "file": "invalid/aggregate-contradiction.json",
+      "schema": "urn:cis:healthcheck:report:v1",
+      "validationStage": "semantic",
+      "reason": "CriticalFailingAggregateMismatch",
+      "expectedProbeExit": 2
+    },
+    {
+      "id": "HC-WIRE-104",
+      "file": "invalid/unsupported-version-request.json",
+      "schema": "urn:cis:healthcheck:pipe-request:v1",
+      "validationStage": "schema",
+      "reason": "UnsupportedProtocolVersion",
+      "expectedErrorCode": "UnsupportedVersion"
+    },
+    {
+      "id": "HC-WIRE-105",
+      "file": "invalid/view-mismatch-response.json",
+      "schema": "urn:cis:healthcheck:pipe-response:v1",
+      "validationStage": "semantic",
+      "requestView": "readiness",
+      "reason": "ResponseViewMismatch",
+      "expectedProbeExit": 2
+    },
+    {
+      "id": "HC-WIRE-106",
+      "file": "invalid/duplicate-properties-request.txt",
+      "validationStage": "bounded-parser",
+      "reason": "DuplicatePropertyInUnknownObject",
+      "expectedErrorCode": "InvalidRequest",
+      "framing": "Use a complete frame whose declared payload length equals this file's UTF-8 byte length."
+    },
+    {
+      "id": "HC-WIRE-107",
+      "file": "invalid/truncated-request.txt",
+      "validationStage": "framing",
+      "reason": "PrematureEndOfFrame",
+      "expectedErrorCode": "InvalidFrame",
+      "framing": "Prefix with a little-endian length one greater than this file's actual UTF-8 byte length; deliver the fixture bytes then EOF. An error response is optional when connection damage prevents replying.",
+      "expectedProbeExit": 2
+    }
+  ],
+  "reasonNames": "Fixture classification labels; they are not new public library or protocol error codes.",
+  "schemaScope": "Structural validation only; semantic/parser cases can satisfy schemas and still must be rejected."
+}

@@ -66,7 +66,7 @@ public sealed class HealthcheckProbeProcessTests
         await using var server = new HealthPipeServer(service, options); await server.StartAsync();
         await using var probe = new Probe(["--pipe", pipe, "--view", view, "--timeout-ms", "3000"]);
         var result = await probe.Finish(); Assert.AreEqual(exit, result.Exit, result.Error);
-        if (exit == 2) { Assert.AreEqual("", result.Output); Assert.IsFalse(string.IsNullOrWhiteSpace(result.Error)); }
+        if (exit == 2) { ErrorResult(result, "DetailsDisabled"); }
         else { TransportTestSupport.ValidateSnapshot(JsonNode.Parse(result.Output)!.AsObject(), view, !unhealthy, startup && !unhealthy); Assert.AreEqual("", result.Error); }
     }
 
@@ -94,14 +94,14 @@ public sealed class HealthcheckProbeProcessTests
     public async Task InvalidCliNeverPrintsSnapshotOrReturnsHealthSuccess(string arguments)
     {
         await using var probe = new Probe(arguments.Split(' ', StringSplitOptions.RemoveEmptyEntries));
-        var result = await probe.Finish(); Assert.AreEqual(2, result.Exit); Assert.AreEqual("", result.Output); Assert.IsFalse(string.IsNullOrWhiteSpace(result.Error));
+        ErrorResult(await probe.Finish(), "InvalidArguments");
     }
 
     [TestMethod]
     public async Task MissingLocalEndpointIsExit2WithoutRetryOrSnapshot()
     {
         await using var probe = new Probe(["--pipe", TransportTestSupport.NewPipeName(), "--timeout-ms", "50"]);
-        var result = await probe.Finish(); Assert.AreEqual(2, result.Exit); Assert.AreEqual("", result.Output); Assert.IsFalse(string.IsNullOrWhiteSpace(result.Error));
+        ErrorResult(await probe.Finish(), "TimeoutOrCanceled");
     }
 
     [TestMethod]
@@ -138,8 +138,15 @@ public sealed class HealthcheckProbeProcessTests
         string response = Response(mutation);
         await TransportTestSupport.WriteFrameAsync(rawServer, Encoding.UTF8.GetBytes(response), fragmented: true, cancellation: timeout.Token);
         var result = await probe.Finish(); Assert.AreEqual(expectedExit, result.Exit, result.Error);
-        if (expectedExit == 2) { Assert.AreEqual("", result.Output); Assert.IsFalse(string.IsNullOrWhiteSpace(result.Error)); }
-        else { JsonObject actual = JsonNode.Parse(result.Output)!.AsObject(); Assert.AreEqual(mutation == "unhealthy" ? "Unhealthy" : "Healthy", (string?)actual["healthStatus"]); Assert.AreEqual("", result.Error); }
+        if (expectedExit == 2) { ErrorResult(result, mutation == "error" ? "ReportingUnavailable" : "TransportOrProtocolFailure"); }
+        else
+        {
+            JsonObject actual = JsonNode.Parse(result.Output)!.AsObject();
+            Assert.AreEqual(mutation == "unhealthy" ? "Unhealthy" : "Healthy", (string?)actual["healthStatus"]);
+            Assert.AreEqual(JsonNode.Parse(response)!["snapshot"]!.ToJsonString() + "\n", result.Output,
+                "Stdout is exactly the received complete snapshot plus one newline, without its transport envelope.");
+            Assert.AreEqual("", result.Error);
+        }
     }
 
     [TestMethod]
@@ -147,6 +154,9 @@ public sealed class HealthcheckProbeProcessTests
     [DataRow("oversize")]
     [DataRow("truncated")]
     [DataRow("utf8")]
+    [DataRow("missing-header")]
+    [DataRow("partial-header-1")]
+    [DataRow("partial-header-3")]
     public async Task InvalidResponseFramesCannotReachStdoutOrHealthExit(string mode)
     {
         string pipe = TransportTestSupport.NewPipeName();
@@ -154,11 +164,20 @@ public sealed class HealthcheckProbeProcessTests
         await using var probe = new Probe(["--pipe", pipe, "--timeout-ms", "1000", "--max-report-bytes", "1024"]);
         using var timeout = new CancellationTokenSource(TransportTestSupport.Limit);
         await rawServer.WaitForConnectionAsync(timeout.Token); await TransportTestSupport.ReadFrameAsync(rawServer, timeout.Token);
-        byte[] payload = mode == "utf8" ? [0xff] : [];
-        uint? size = mode switch { "zero" => 0, "oversize" => uint.MaxValue, "truncated" => 100, _ => null };
-        await TransportTestSupport.WriteFrameAsync(rawServer, payload, announcedLength: size, cancellation: timeout.Token);
-        if (mode == "truncated") { rawServer.Disconnect(); }
-        var result = await probe.Finish(); Assert.AreEqual(2, result.Exit); Assert.AreEqual("", result.Output); Assert.IsFalse(string.IsNullOrWhiteSpace(result.Error));
+        if (mode is "missing-header" or "partial-header-1" or "partial-header-3")
+        {
+            int count = mode == "missing-header" ? 0 : mode == "partial-header-1" ? 1 : 3;
+            if (count > 0) { await rawServer.WriteAsync(new byte[count], timeout.Token); await rawServer.FlushAsync(timeout.Token); }
+            rawServer.Disconnect();
+        }
+        else
+        {
+            byte[] payload = mode == "utf8" ? [0xff] : [];
+            uint? size = mode switch { "zero" => 0, "oversize" => uint.MaxValue, "truncated" => 100, _ => null };
+            await TransportTestSupport.WriteFrameAsync(rawServer, payload, announcedLength: size, cancellation: timeout.Token);
+            if (mode == "truncated") { rawServer.Disconnect(); }
+        }
+        ErrorResult(await probe.Finish(), "TransportOrProtocolFailure");
     }
 
     [TestMethod]
@@ -176,6 +195,69 @@ public sealed class HealthcheckProbeProcessTests
         await Task.Delay(500, timeout.Token);
         try { await rawServer.WriteAsync(payload, timeout.Token); await rawServer.FlushAsync(timeout.Token); } catch (IOException) { }
         var result = await probe.Finish(); Assert.AreEqual(2, result.Exit, "A fresh per-read timeout would incorrectly accept the delayed complete response."); Assert.AreEqual("", result.Output);
+        ErrorResult(result, "TimeoutOrCanceled");
+    }
+
+    [TestMethod]
+    [DataRow("", "")]
+    [DataRow("--timeout-ms", "60000")]
+    [DataRow("--max-report-bytes", "16777216")]
+    public async Task OmittedViewAndValidUpperCliLimitsStillRequestAndEmitHealth(string option, string value)
+    {
+        string pipe = TransportTestSupport.NewPipeName();
+        await using var rawServer = NewRawServer(pipe);
+        string[] arguments = option.Length == 0 ? ["--pipe", pipe] : ["--pipe", pipe, option, value];
+        await using var probe = new Probe(arguments);
+        using var timeout = new CancellationTokenSource(TransportTestSupport.Limit);
+        await rawServer.WaitForConnectionAsync(timeout.Token);
+        byte[] request = await TransportTestSupport.ReadFrameAsync(rawServer, timeout.Token);
+        Assert.AreEqual("{\"protocolVersion\":1,\"view\":\"health\"}", Encoding.UTF8.GetString(request));
+        string response = Response("healthy");
+        await TransportTestSupport.WriteFrameAsync(rawServer, Encoding.UTF8.GetBytes(response), cancellation: timeout.Token);
+        var result = await probe.Finish();
+        Assert.AreEqual(0, result.Exit, result.Error);
+        Assert.AreEqual(JsonNode.Parse(response)!["snapshot"]!.ToJsonString() + "\n", result.Output);
+        Assert.AreEqual("", result.Error);
+    }
+
+    [TestMethod]
+    [DataRow(1023, 0)]
+    [DataRow(1024, 0)]
+    [DataRow(1025, 2)]
+    public async Task CompleteResponsePayloadRespectsTheExactConfiguredByteLimit(int payloadBytes, int expectedExit)
+    {
+        string pipe = TransportTestSupport.NewPipeName();
+        await using var rawServer = NewRawServer(pipe);
+        await using var probe = new Probe(["--pipe", pipe, "--timeout-ms", "3000", "--max-report-bytes", "1024"]);
+        using var timeout = new CancellationTokenSource(TransportTestSupport.Limit);
+        await rawServer.WaitForConnectionAsync(timeout.Token);
+        await TransportTestSupport.ReadFrameAsync(rawServer, timeout.Token);
+        string response = Response("healthy").PadRight(payloadBytes);
+        byte[] payload = Encoding.UTF8.GetBytes(response);
+        Assert.AreEqual(payloadBytes, payload.Length);
+        try { await TransportTestSupport.WriteFrameAsync(rawServer, payload, cancellation: timeout.Token); }
+        catch (IOException) when (expectedExit == 2) { }
+        var result = await probe.Finish();
+        Assert.AreEqual(expectedExit, result.Exit, result.Error);
+        if (expectedExit == 2) { ErrorResult(result, "TransportOrProtocolFailure"); }
+        else
+        {
+            Assert.AreEqual(JsonNode.Parse(response)!["snapshot"]!.ToJsonString() + "\n", result.Output);
+            Assert.AreEqual("", result.Error);
+        }
+    }
+
+    private static void ErrorResult((int Exit, string Output, string Error) result, string code)
+    {
+        Assert.AreEqual(2, result.Exit);
+        Assert.AreEqual("", result.Output);
+        Assert.IsTrue(result.Error.Length <= 1024);
+        string reason = result.Error.Trim();
+        const string currentProgramLabel = "cis-health-probe:";
+        if (reason.StartsWith(currentProgramLabel, StringComparison.Ordinal)) { reason = reason[currentProgramLabel.Length..].Trim(); }
+        Assert.IsFalse(string.IsNullOrWhiteSpace(reason), "The failure must have a reason beyond an optional program label: " + code);
+        if (code is "DetailsDisabled" or "ReportingUnavailable") { StringAssert.Contains(reason, code); }
+        Assert.IsFalse(result.Error.Contains("private-server-detail", StringComparison.Ordinal), "Untrusted remote error text must not be copied to stderr.");
     }
 
     private static NamedPipeServerStream NewRawServer(string pipe) => new(pipe, PipeDirection.InOut, 1, PipeTransmissionMode.Byte, PipeOptions.Asynchronous | PipeOptions.CurrentUserOnly);
@@ -213,7 +295,7 @@ public sealed class HealthcheckProbeProcessTests
             case "duplicate-root": return envelope.ToJsonString().Insert(1, "\"protocolVersion\":1,");
             case "duplicate-unknown": return envelope.ToJsonString().Insert(1, "\"future\":{\"x\":1,\"x\":2},");
             case "excess-depth": JsonNode node = new JsonObject(); for (int i = 0; i < 17; i++) { node = new JsonObject { ["x"] = node }; } envelope["future"] = node; break;
-            case "error": envelope.Remove("snapshot"); envelope["kind"] = "error"; envelope["error"] = new JsonObject { ["code"] = "ReportingUnavailable" }; break;
+            case "error": envelope.Remove("snapshot"); envelope["kind"] = "error"; envelope["error"] = new JsonObject { ["code"] = "ReportingUnavailable", ["message"] = "private-server-detail" }; break;
             case "missing-snapshot": envelope.Remove("snapshot"); break;
             case "both-branches": envelope["error"] = new JsonObject { ["code"] = "ReportingUnavailable" }; break;
             default: throw new ArgumentOutOfRangeException(nameof(mutation));

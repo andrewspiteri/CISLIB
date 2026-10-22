@@ -370,6 +370,7 @@ internal sealed partial class HealthStateCoordinator : IHealthCollectionState, I
         RegisteredAtUtc = data.RegisteredAtUtc,
         LastObservationAtUtc = data.LastObservationAtUtc,
         Diagnostic = data.Diagnostic,
+        RegistrationDiagnostic = data.RegistrationDiagnostic,
         Outcomes = data.Outcomes,
         Collection = data.Collection,
         Numeric = data.Numeric,
@@ -386,6 +387,7 @@ internal sealed partial class HealthStateCoordinator : IHealthCollectionState, I
         RegisteredAtUtc = entry.RegisteredAt,
         LastObservationAtUtc = entry.LastObservation,
         Diagnostic = entry.Diagnostic,
+        RegistrationDiagnostic = entry.RegistrationDiagnostic,
         Outcomes = entry.Policy is HealthPolicyKind.ConsecutiveFailures or HealthPolicyKind.FirstSuccessAvailability ? new(new HealthOutcomeSnapshotData
         {
             Successful = entry.Successful,

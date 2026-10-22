@@ -2,6 +2,8 @@
 
 Both transports read one immutable snapshot, use the shared bounded formatter, and expose recorded facts. They do not invoke collectors, retry business work, mutate a monitor, or reclassify failures. A legitimate unhealthy report is distinct from a transport/formatting error.
 
+Detailed monitors can include optional `registrationDiagnostic`, using the existing diagnostic object (`code` up to 64 Unicode scalars, `message` up to 1024, `exceptionType` up to 256 and required Boolean `isTruncated`). It represents a separate registration-level integration observation, not a health failure or an execution error. Compact views omit monitor details. Older v1 payloads without this field remain valid; a present field must be an object and cannot be null. The amendment adds no schema version or required field.
+
 ## ASP.NET Core
 
 ```csharp

@@ -1,3 +1,4 @@
+using System.Collections.Immutable;
 using System.Reflection;
 using System.Reflection.Metadata;
 using System.Reflection.PortableExecutable;
@@ -12,6 +13,10 @@ internal static class HealthcheckMutationChildProtocol
     internal const string Schema = "cis.healthcheck.stryker-children/v4-development";
     internal const string RegistrationType = "CIS.Healthcheck.AspNetCore.HealthcheckApplicationBuilderExtensions";
     internal const string RegistrationMethod = "UseCisHealthcheck";
+    internal const string ProbeType = "CIS.Healthcheck.Pipes.HealthProbeClient";
+    internal const string ProbeFrameError = "The probe failure frame is not the exact mapped Core RunAsync async MoveNext.";
+    internal const uint NoWindowsErrorReporting = 0x0002;
+    internal const string WindowsErrorModeError = "Missing or invalid mutation-child Windows error mode witness.";
     internal const string SessionVariable = "CIS_HEALTHCHECK_MUTATION_SESSION";
     internal const string LaunchVariable = "CIS_HEALTHCHECK_MUTATION_CHILD_LAUNCH";
     internal const string SelectorVariable = "CIS_HEALTHCHECK_MUTATION_CHILD_ID";
@@ -98,6 +103,112 @@ internal static class HealthcheckMutationChildProtocol
             "The recorded failure frame token does not identify the actual public Core registration method.");
     }
 
+    internal static void VerifyProbeNullFrame(string path, Guid mvid, int token, string type, string method)
+    {
+        Require(method == "MoveNext" && (token & unchecked((int)0xff000000)) == 0x06000000, ProbeFrameError);
+        using FileStream stream = File.OpenRead(path);
+        using var pe = new PEReader(stream);
+        MetadataReader metadata = pe.GetMetadataReader();
+        Require(metadata.GetGuid(metadata.GetModuleDefinition().Mvid) == mvid, ProbeFrameError);
+        MethodDefinition moveNext = metadata.GetMethodDefinition(System.Reflection.Metadata.Ecma335.MetadataTokens.MethodDefinitionHandle(token & 0x00ffffff));
+        TypeDefinitionHandle stateHandle = moveNext.GetDeclaringType();
+        TypeDefinition state = metadata.GetTypeDefinition(stateHandle);
+        var provider = new ProbeSignatureProvider();
+        MethodSignature<string> moveSignature = moveNext.DecodeSignature(provider, null);
+        Require(TypeName(metadata, stateHandle) == type && metadata.GetString(moveNext.Name) == "MoveNext"
+            && (moveNext.Attributes & MethodAttributes.MemberAccessMask) == MethodAttributes.Private
+            && !moveNext.Attributes.HasFlag(MethodAttributes.Static) && moveSignature.Header.IsInstance
+            && moveSignature.Header.CallingConvention == SignatureCallingConvention.Default
+            && moveSignature.GenericParameterCount == 0 && moveSignature.ParameterTypes.Length == 0 && moveSignature.ReturnType == "Void"
+            && !state.GetDeclaringType().IsNil && TypeName(metadata, state.GetDeclaringType()) == ProbeType, ProbeFrameError);
+        MethodDefinition run = ProbeRunAsync(metadata);
+        Require(run.GetDeclaringType() == state.GetDeclaringType()
+            && state.GetInterfaceImplementations().Any(handle => FrameworkTypeName(metadata, metadata.GetInterfaceImplementation(handle).Interface)
+                == "System.Runtime.CompilerServices.IAsyncStateMachine"), ProbeFrameError);
+        CustomAttribute[] mappings = run.GetCustomAttributes().Select(metadata.GetCustomAttribute).Where(attribute =>
+        {
+            if (attribute.Constructor.Kind != HandleKind.MemberReference) { return false; }
+            MemberReference constructor = metadata.GetMemberReference((MemberReferenceHandle)attribute.Constructor);
+            if (metadata.GetString(constructor.Name) != ".ctor" || constructor.Parent.Kind != HandleKind.TypeReference
+                || FrameworkTypeName(metadata, constructor.Parent) != "System.Runtime.CompilerServices.AsyncStateMachineAttribute") { return false; }
+            MethodSignature<string> signature = constructor.DecodeMethodSignature(provider, null);
+            return signature.Header.IsInstance && signature.GenericParameterCount == 0 && signature.ReturnType == "Void"
+                && signature.ParameterTypes.SequenceEqual(["System.Type"], StringComparer.Ordinal);
+        }).ToArray();
+        Require(mappings.Length == 1, ProbeFrameError);
+        BlobReader value = metadata.GetBlobReader(mappings[0].Value);
+        Require(value.ReadUInt16() == 1, ProbeFrameError);
+        string mapped = value.ReadSerializedString() ?? throw new InvalidOperationException(ProbeFrameError);
+        string[] identity = mapped.Split(',', 2);
+        Require(identity[0] == type && (identity.Length == 1 || new AssemblyName(identity[1].Trim()).FullName == AssemblyName.GetAssemblyName(path).FullName)
+            && value.ReadUInt16() == 0 && value.RemainingBytes == 0, ProbeFrameError);
+    }
+
+    internal static int ProbeRunAsyncToken(string path)
+    {
+        using FileStream stream = File.OpenRead(path);
+        using var pe = new PEReader(stream);
+        MetadataReader metadata = pe.GetMetadataReader();
+        _ = ProbeRunAsync(metadata);
+        return System.Reflection.Metadata.Ecma335.MetadataTokens.GetToken(ProbeRunAsyncHandle(metadata));
+    }
+
+    private static MethodDefinition ProbeRunAsync(MetadataReader metadata)
+    {
+        MethodDefinition run = metadata.GetMethodDefinition(ProbeRunAsyncHandle(metadata));
+        MethodSignature<string> signature = run.DecodeSignature(new ProbeSignatureProvider(), null);
+        Require((run.Attributes & MethodAttributes.MemberAccessMask) == MethodAttributes.Assembly && run.Attributes.HasFlag(MethodAttributes.Static)
+            && !signature.Header.IsInstance && signature.Header.CallingConvention == SignatureCallingConvention.Default && signature.GenericParameterCount == 0
+            && signature.ReturnType == "System.Threading.Tasks.Task`1<Int32>"
+            && signature.ParameterTypes.SequenceEqual(["String[]", "System.IO.Stream", "System.IO.TextWriter", "System.Threading.CancellationToken"], StringComparer.Ordinal), ProbeFrameError);
+        return run;
+    }
+
+    private static MethodDefinitionHandle ProbeRunAsyncHandle(MetadataReader metadata)
+    {
+        MethodDefinitionHandle[] matches = metadata.MethodDefinitions.Where(handle =>
+        {
+            MethodDefinition method = metadata.GetMethodDefinition(handle);
+            return metadata.GetString(method.Name) == "RunAsync" && TypeName(metadata, method.GetDeclaringType()) == ProbeType;
+        }).ToArray();
+        Require(matches.Length == 1, ProbeFrameError);
+        return matches[0];
+    }
+
+    private static string TypeName(MetadataReader metadata, TypeDefinitionHandle handle)
+    {
+        TypeDefinition type = metadata.GetTypeDefinition(handle);
+        return type.GetDeclaringType().IsNil ? metadata.GetString(type.Namespace) + "." + metadata.GetString(type.Name)
+            : TypeName(metadata, type.GetDeclaringType()) + "+" + metadata.GetString(type.Name);
+    }
+
+    private static string FrameworkTypeName(MetadataReader metadata, EntityHandle handle)
+    {
+        Require(handle.Kind == HandleKind.TypeReference, ProbeFrameError);
+        TypeReference type = metadata.GetTypeReference((TypeReferenceHandle)handle);
+        Require(type.ResolutionScope.Kind == HandleKind.AssemblyReference
+            && (metadata.GetString(metadata.GetAssemblyReference((AssemblyReferenceHandle)type.ResolutionScope).Name) is "System.Runtime" or "System.Private.CoreLib"), ProbeFrameError);
+        return metadata.GetString(type.Namespace) + "." + metadata.GetString(type.Name);
+    }
+
+    private sealed class ProbeSignatureProvider : ISignatureTypeProvider<string, object?>
+    {
+        public string GetPrimitiveType(PrimitiveTypeCode code) => code.ToString();
+        public string GetSZArrayType(string elementType) => elementType + "[]";
+        public string GetGenericInstantiation(string genericType, ImmutableArray<string> typeArguments) => genericType + "<" + string.Join(",", typeArguments) + ">";
+        public string GetTypeFromReference(MetadataReader metadata, TypeReferenceHandle handle, byte rawTypeKind) => FrameworkTypeName(metadata, handle);
+        public string GetTypeFromSpecification(MetadataReader metadata, object? context, TypeSpecificationHandle handle, byte rawTypeKind) => metadata.GetTypeSpecification(handle).DecodeSignature(this, context);
+        public string GetTypeFromDefinition(MetadataReader metadata, TypeDefinitionHandle handle, byte rawTypeKind) => throw new InvalidOperationException(ProbeFrameError);
+        public string GetArrayType(string elementType, ArrayShape shape) => throw new InvalidOperationException(ProbeFrameError);
+        public string GetByReferenceType(string elementType) => throw new InvalidOperationException(ProbeFrameError);
+        public string GetFunctionPointerType(MethodSignature<string> signature) => throw new InvalidOperationException(ProbeFrameError);
+        public string GetGenericMethodParameter(object? context, int index) => throw new InvalidOperationException(ProbeFrameError);
+        public string GetGenericTypeParameter(object? context, int index) => throw new InvalidOperationException(ProbeFrameError);
+        public string GetModifiedType(string modifier, string unmodifiedType, bool isRequired) => throw new InvalidOperationException(ProbeFrameError);
+        public string GetPinnedType(string elementType) => throw new InvalidOperationException(ProbeFrameError);
+        public string GetPointerType(string elementType) => throw new InvalidOperationException(ProbeFrameError);
+    }
+
     internal static Type? Controller(Assembly core)
     {
         Type[] matches = core.GetTypes().Where(type => type.Name == "MutantControl" && type.Namespace?.StartsWith("Stryker", StringComparison.Ordinal) == true).ToArray();
@@ -124,7 +235,11 @@ internal static class HealthcheckMutationChildProtocol
     internal sealed record Session(string Schema, string LanguageRoot, string OutputRoot, string ConfigurationPath,
         string ConfigurationSha256, string StrykerCorePath, string StrykerCoreSha256, string SelectorSourceSha256,
         string DotnetPath, string DotnetSha256, string CoreLibraryPath, string CoreLibrarySha256, FilePin[] SourceInputs,
-        DateTimeOffset CreatedUtc, bool CoverageAnalysisOff, bool AllowInitialUninstrumentedBaseline);
+        DateTimeOffset CreatedUtc, bool CoverageAnalysisOff, bool AllowInitialUninstrumentedBaseline,
+        SourceReplayControl? SourceReplay = null, bool RequireWindowsErrorMode = false);
+    internal sealed record SourceReplayControl(string Kind, string ReportPath, string ReportSha256, string OriginalId,
+        string SourcePath, string OriginalSourceSha256, string CanonicalSourceSha256, string CurrentSourceSha256,
+        int Offset, string OriginalText, string Replacement, string CorePath, string CoreSha256, Guid CoreMvid);
     internal sealed record Stage(string Directory, string OriginalDirectory, string AssemblyFile, string AssemblyName,
         string CoreSha256, Guid CoreMvid, string? ControllerType, FilePin[] OriginalFiles, FilePin[] DeployedFiles);
     internal sealed record Launch(string Schema, string Id, string SessionPath, string SessionSha256, DateTimeOffset CreatedUtc,
@@ -134,7 +249,10 @@ internal static class HealthcheckMutationChildProtocol
     internal sealed record Receipt(string Schema, string LaunchId, string LaunchSha256, DateTimeOffset ObservedUtc,
         int Pid, string EntryAssemblyPath, string EntryAssemblyName, string EntryAssemblySha256, string CorePath,
         string CoreSha256, Guid CoreMvid, string? ControllerType, int ActiveMutant, bool Instrumented, string Runtime,
-        string DotnetPath, string DotnetSha256, string CoreLibrarySha256, string[] Arguments, string? Failure);
+        string DotnetPath, string DotnetSha256, string CoreLibrarySha256, string[] Arguments, string? Failure,
+        WindowsErrorModeReceipt? WindowsErrorMode = null);
+    internal sealed record WindowsErrorModeReceipt(int Pid, uint Before, uint SetReturnedPrevious, uint Requested,
+        uint After, DateTimeOffset ObservedUtc);
     internal sealed record ExitReceipt(string LaunchId, int Pid, int ExitCode, DateTimeOffset ExitedUtc);
     internal sealed record ParentExitReceipt(string Schema, string LaunchId, string LaunchSha256, int ParentPid, int Pid,
         string FileName, string WorkingDirectory, string[] Arguments, DateTimeOffset StartedUtc, DateTimeOffset ObservedStartedUtc,

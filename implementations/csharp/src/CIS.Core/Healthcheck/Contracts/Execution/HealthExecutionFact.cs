@@ -83,5 +83,6 @@ public sealed class HealthExecutionFact
     public HealthDiagnostic? CleanupError { get; init; }
 
     /// <summary>Gets a detached integration diagnostic without replacing the actual execution outcome.</summary>
+    /// <remarks>Without an execution ID, IntegrationFault and Retired publish the monitor's separate registration diagnostic.</remarks>
     public HealthDiagnostic? IntegrationError { get; init; }
 }
