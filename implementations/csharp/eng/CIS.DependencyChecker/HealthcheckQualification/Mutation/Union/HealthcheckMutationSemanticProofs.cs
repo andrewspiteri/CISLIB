@@ -55,7 +55,9 @@ internal static class HealthcheckMutationSemanticProofs
         {
             if (MatchReviewedCase(review, context, mutantId, guid, method, codeFile, message, stack, out witness)) { return true; }
         }
-        return HealthcheckMutationRequiredFieldProofs.TryMatch(context, mutantId, guid, method, codeFile, message, stack, out witness);
+        return HealthcheckMutationRequiredFieldProofs.TryMatch(context, mutantId, guid, method, codeFile, message, stack, out witness)
+            || HealthcheckMutationAdditionalUnitSemanticProofs.TryMatch(context, mutantId, guid, method, codeFile, message, stack, out witness)
+            || HealthcheckMutationPipeGuardProofs.TryMatch(context, mutantId, guid, method, codeFile, message, stack, out witness);
     }
 
     // The typed case parameter is an independent receiving-test seam. Shipping

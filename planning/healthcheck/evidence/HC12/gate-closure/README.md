@@ -6,15 +6,74 @@ wave. The changes and executions below are a separate, unpublished gate-closure
 wave. The requested mutation threshold remains 90%; writing detectors or a
 diagnostic config does not establish a passing gate.
 
-Latest continuation (22 October): the user approved the complete, source-checked
-three-report Healthcheck union. Its first actual Ubuntu evaluation is complete
-and unqualified: raw conservative85.72%, reviewed-witness49.26%, against the90%
-gate. All three original reports and their complete restoration cohorts are
-present; actual mutation/child failures remain visible. The maintained reader's
-latest586 receiving controls pass. Developer24 also passes all16 stages and
-9315 native cases. Finite proofs and reviewed dispositions are separate from
-the zero-adjustment mutation baseline. No release is qualified.
+Latest continuation (22 October): the approved complete, source-checked
+three-report Healthcheck union35 is complete and unqualified. Its qualified
+score is1543/3065 (50.34%), up from49.26%, against the90% gate. The raw
+conservative score remains2659/3102 (85.72%). All three original reports,
+restoration cohorts and remaining failures are retained. The maintained
+reader's817 receiving controls pass; Developer26 passes all16 stages and9574
+native cases. Independent physical/input/cohort/accounting reviews pass for
+both executions. The earlier zero-adjustment union33 remains unchanged.
+The [closed continuation receipt](parallel-continuation-2026-10-22.json) records
+the actual adjustments and exact evidence pins. No release is qualified.
 Historical observations below retain their original source snapshots and dates.
+
+## Parallel reader continuation after commit e53c3ef9
+
+Commit `e53c3ef9` records the preceding diagnostic and qualification changes.
+The next parallel wave adds maintained, exact-source readers for thirteen
+additional Unit/runtime semantic observations and four Pipes argument guards.
+The Pipes review covers295 non-direct rows for definitions2766/2768/2773/2777;
+those four definitions already have direct witnesses, so this review cannot
+increase their numerator. The ASP.NET finite adapter separately validates the
+actual195/196/197/278 experiment, its own six-case cohort and symbol/restoration
+closure. It preserves the empty finite child evidence and other original
+failures;196/197 already have original qualified witnesses.
+
+The disposition catalog also contains37 individual Ubuntu equivalents:15 Unit
+definitions independently rebound from original14 to original18 by full source,
+span, operator and replacement, plus22 exact Pipes Windows-body definitions
+behind the unchanged false Ubuntu guard. The Unit records preserve14 original
+Survived statuses and one NoCoverage; all22 Pipes statuses remain Survived.
+Each record requires the fixed physical caller/contract and independent review
+pins. These are individual denominator adjustments, never new killed entries,
+Windows approvals, file exclusions or unrelated integrity waivers. The earlier
+raw reports and unaccepted proposal records remain unchanged.
+
+The integrated receiving suite now passes817 native cases with zero failures,
+skips, build warnings or errors (combined-union-37-focused). After the final
+CLI-only portable-path correction, the pinned SDK build also passes without
+warnings or errors. Frozen checker SHA-256:
+`6387846433c04d45ee457cfc3aafddc867d4128d4d52fbc9306891b7537aac56`.
+The preceding793-case checker remains frozen separately. Its complete Unit
+component replay validates3664 definitions and1631 logs: thirteen new semantic
+IDs,1361 unique qualified witnesses and92634 retained issues,26 fewer than the
+prior audit. Its complete Pipes replay validates364 definitions and508 logs:
+exactly295 issues removed,1144 retained, and the same110 unique qualified kills.
+Neither component replay evaluates a union or waives child failures.
+
+The first actual ASP primitive rejected a fractional TRX finish compared to a
+whole-second shell completion marker. The corrected ASP-only reader treats the
+raw shell value as a one-second interval, requires finish strictly before its
+exclusive end, and retains the original precision and phase order. Eight
+receiving controls cover the observed fraction, final fractional tick, exclusive
+boundary, reversal and invented precision. Developer25 was interrupted before
+a complete summary/exit was produced; its incomplete files and the primitive's
+failed positive plus seven rejecting controls remain preserved.
+The actual-file replay also exposed the earlier recorder's missing selector
+field and ordinary ISO timestamps with trimmed trailing fractional zeroes.
+The final ASP-only reader binds the exact33-row pre-native shape and34-row
+post-native/fresh shape, independently inspects retained Core selector metadata,
+and parses zero-to-seven UTC fractional digits without inventing precision.
+It preserves the old shapes and raw text. Copied derivatives and receiving
+controls reject changed shapes, non-UTC values and overprecision. The standalone
+reader also pins all146 current Core sources before accepting a supplement;
+the complete CLI independently validates that shipping closure.
+Complete original-report replays and the next Developer checkpoint remain
+separate evidence. Authored readers and records alone do not establish a new
+score or the90% gate. The first integration compile failure and three
+receiving-fixture failures are retained under combined-union-35; no failed
+attempt is relabeled as a pass.
 
 ## Frozen inputs and passing baselines
 
@@ -2907,3 +2966,68 @@ accepted proof could add at most two numerator entries, with no denominator
 change. No adapter acceptance or credit is applied by this data-only review.
 Proposal SHA-256:
 `8f760c9903da7ce1c2c41513435424a1a20fbb86dbf93c1b236ba70e1472ff12`.
+
+## Closed continuation35 and Developer26
+
+Commit `e53c3ef9` precedes this parallel continuation. The final checker37
+implements the separately reviewed Unit/runtime, Pipes and ASP.NET readers and
+all37 exact Ubuntu equivalence records. Its817 native receiving cases pass.
+The actual complete Ubuntu consumer then closes with exit1, complete=true and
+qualified=false. All49 adjustments were validated:37 equivalents reduce only
+their individual denominators, eight noncritical misses retain their denominator
+and add no kills, and four exact ASP finite assertion supplements add only two
+new numerator entries after deduplication. The thirteen new Unit semantic
+witnesses supply the other thirteen added numerator entries. Unit1896/1904
+finite readers remain maintained but are not included in this evaluation.
+
+The effective partitions are Unit1361/2757, Pipes110/228 and ASP72/80. Raw
+statuses remain2659 Killed,72 Timeout,336 Survived,35 NoCoverage,306 CompileError
+and719 Ignored. Remaining deficits are1116 unqualified raw Killed labels,
+292 unresolved survivors,34 uncovered definitions and72 timeouts. The final
+93894 integrity issues retain the global unknown child selector and all336
+Pipes child failures. The ASP finite supplement removes exactly208 solely owned
+issues; all115 other ASP issues match the prior records. No global or unrelated
+issue is waived. The full result SHA-256 is
+`89c8c3427d56553b5315cc5a089a56afafddd02565f47ecd84a82fc37839c982`.
+
+The independent union review rehashes5758 maintained inputs and41653 total
+physical pins,1439 original source inputs,146 Core sources,46 Healthcheck
+sources and2225 native logs. It verifies the1975-case original/fresh restoration
+cohorts and16839 successful child-origin/body records, then re-executes the
+strict45 disposition documents and four-definition ASP supplement. This is
+an independent consistency and strict-reader review, not a second complete
+native protocol audit or wholesale reclassification of raw Killed labels.
+Its review SHA-256 is
+`049e4ca25b0eb6d423e6df1660cd41368758f76e70d1bf13f855a2e8a9949d12`.
+
+The normal Windows Developer26 checkpoint separately passes all16 stages and
+9574 native cases:5237 Unit,2322 Integration,1986 Architecture and29 Business,
+with zero failed or skipped cases and no build warnings/errors. Mutation
+scheduling is disabled; Integration and Architecture close within their existing
+deadlines. The actual23 post-checkpoint binary/source observation files were
+captured before any subsequent canonical edit or shared build. The independent
+review rehashes52118 repository inputs,1494 selected physical inputs and1443
+common inputs, checks all native discovery/result/catalog GUID/FQN joins, and
+matches the exact package and all four test-family Core bodies. The source33
+manifest SHA-256 is
+`e62bd3408f7269300b2d0ff6f5678fe43cb4aa6d7cfd814bc1c46418ab5e0c80`;
+Developer26 summary:
+`323fba6e91dcdbf1996ee1bc408c63e8f6966e7df4c4c02a1deb40fb0035c7ab`;
+actual-body capture:
+`dddda6ac51b8defcc2498b4af5a09f8e27c45326b706e7317d684074abaf3171`;
+independent review:
+`93b7c6c15a66cf7737a31d24c51c14e9f2af33269ec3d800322275a1a5a81e35`.
+
+The focused817-case filter excludes28 unchanged discovery-ownership receiving
+cases included in the full checkpoint. Comparing the actual GUID/FQN sets also
+identifies one renamed existing case and259 added cases. The earlier private
+reviewer preparation's lower expected count is retained; the corrected review
+uses the exact native scope, without changing the checkpoint or subject code.
+Developer25 remains an interrupted attempt, and all earlier receiving/primitive
+failures remain retained. This section, latest-status paragraph and continuation
+receipt are post-checkpoint evidence summaries; the captured README preserves
+the exact checkpoint version. Before the next commit, one extra EOF blank line
+was removed from the live Pipes guard catalog; the source33 and checker37
+bodies remain unchanged. No executable logic changed after the source33 snapshot.
+Developer does not execute the Mutation/Compatibility families and does not
+qualify the remaining Healthcheck or whole-Core release gates.

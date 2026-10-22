@@ -9,22 +9,27 @@ namespace CIS.Verification;
 internal static partial class HealthcheckMutationUnionVerification
 {
     private sealed record FiniteAssertionRecord(JsonObject Document, Source[] Sources, Dictionary<string, string> Paths,
-        string[] Logs, string CaptureRoot, JsonObject? CurrentCapture, bool CurrentCancellation = false);
+        string[] Logs, string CaptureRoot, JsonObject? CurrentCapture, bool CurrentCancellation = false, bool AspNetCancellation = false);
 
     private static FiniteAssertionRecord[] ReadFiniteAssertionReferences(PinnedInputs files, JsonObject manifest, Source[] sources, string lane)
     {
         if (!manifest.TryGetPropertyValue("assertionReruns", out JsonNode? node)) { return []; }
         Need(node is JsonArray, "Optional assertionReruns must be a non-null reference array.");
         var records = new List<FiniteAssertionRecord>(); var references = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        var identities = new HashSet<string>(StringComparer.Ordinal);
         foreach (JsonNode? value in node!.AsArray())
         {
             var reference = HealthcheckMutationDispositionValidation.ReadReference(Item(value));
             string path = files.Pin(HealthcheckMutationDispositionValidation.Reference(reference));
-            Need(references.Add(Path.GetFullPath(path)) && records.Count < 2, "Duplicate/conflicting finite assertion reference.");
+            Need(references.Add(Path.GetFullPath(path)) && records.Count < 3, "Duplicate/conflicting finite assertion reference.");
             files.GuardRoot(Path.GetDirectoryName(path)!);
             JsonObject document = files.ReadDocument(path);
-            string identity = String(Item(document["original"]), "definitionIdentity");
-            Need(records.All(record => String(Item(record.Document["original"]), "definitionIdentity") != identity), "Duplicate finite proof for one original definition.");
+            bool aspnet = (string?)document["schema"] == HealthcheckMutationFiniteAspNetCatalog.Schema;
+            string[] proofIdentities = aspnet
+                ? Items(Item(document["original"]), "definitionIdentities").Select(value => value!.GetValue<string>()).ToArray()
+                : [String(Item(document["original"]), "definitionIdentity")];
+            Need(proofIdentities.Length > 0 && proofIdentities.All(identities.Add), "Duplicate finite proof for one original definition.");
+            if (aspnet) { records.Add(ReadFiniteAspNet(files, document, sources, lane)); continue; }
             if ((string?)document["schema"] == HealthcheckMutationFiniteCancellationEvidence.Schema)
             { records.Add(ReadFiniteCancellation(files, document, sources, lane)); continue; }
             Finite.Spec spec = HealthcheckMutationFiniteAssertionCatalog.IdleWithdrawal;
@@ -89,6 +94,8 @@ internal static partial class HealthcheckMutationUnionVerification
         var adjustments = new List<Adjustment>(); Finite.Spec spec = HealthcheckMutationFiniteAssertionCatalog.IdleWithdrawal;
         foreach (FiniteAssertionRecord record in records)
         {
+            if (record.AspNetCancellation)
+            { adjustments.AddRange(CompleteFiniteAspNet(record, originals, observations)); continue; }
             if (record.CurrentCancellation)
             { Adjustment? cancellation = CompleteFiniteCancellation(record, originals, observations); if (cancellation is not null) { adjustments.Add(cancellation); } continue; }
             Dictionary<string, string> paths = record.Paths; Partition original = originals.Single(value => value.Group == "unit-runtime");

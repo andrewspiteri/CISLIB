@@ -187,12 +187,13 @@ public sealed class HealthcheckMutationDispositionTests
     }
 
     [TestMethod]
-    public void MaintainedCatalogRetainsOnlyReviewedOriginalSurvivorsWithoutEquivalentExclusions()
+    public void MaintainedNoncriticalCatalogRetainsItsEightOriginalSurvivors()
     {
-        Assert.HasCount(8, HealthcheckMutationDispositionCatalog.Entries);
+        Validation.Review[] noncritical = HealthcheckMutationDispositionCatalog.Entries.Where(entry => entry.Kind == "ReviewedNoncritical").ToArray();
+        Assert.HasCount(8, noncritical);
         CollectionAssert.AreEquivalent(new[] { "200", "230", "241", "245", "255", "260", "267", "274" },
-            HealthcheckMutationDispositionCatalog.Entries.Select(entry => entry.Definition.Id).ToArray());
-        Assert.IsTrue(HealthcheckMutationDispositionCatalog.Entries.All(entry => entry.Kind == "ReviewedNoncritical"
+            noncritical.Select(entry => entry.Definition.Id).ToArray());
+        Assert.IsTrue(noncritical.All(entry => entry.Kind == "ReviewedNoncritical"
             && entry.Definition.Status == "Survived" && entry.Definition.KilledBy.Length == 0));
         Validation.Review review = HealthcheckMutationDispositionCatalog.Entries[0];
         Assert.AreEqual("ReviewedNoncritical", review.Kind);

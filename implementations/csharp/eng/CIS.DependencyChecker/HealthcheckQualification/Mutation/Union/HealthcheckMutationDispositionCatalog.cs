@@ -28,5 +28,7 @@ internal static class HealthcheckMutationDispositionCatalog
                 "ArgumentException type, authorizeDetails parameter and throw before app.Use remain. The published explicit-predicate " +
                 "requirement is preserved; exact explanatory prose is not specified. Diagnostic wording loss is real and is not equivalence. " +
                 "Keep the raw Survived entry, its denominator and zero numerator; no other survivor or native integrity failure is classified.")
-        }.Concat(HealthcheckMutationAspNetAwaitDispositionCatalog.Entries).ToArray());
+        }.Concat(HealthcheckMutationAspNetAwaitDispositionCatalog.Entries)
+        .Concat(HealthcheckMutationPipeEquivalentDispositionCatalog.Entries)
+        .Concat(HealthcheckMutationUnitEquivalentDispositionCatalog.Entries).ToArray());
 }
