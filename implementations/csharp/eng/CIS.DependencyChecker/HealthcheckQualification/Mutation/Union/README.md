@@ -25,6 +25,59 @@ The input schema is `cis.healthcheck.mutation-union-inputs/v1-development`:
   `Pending`. Pending objects require `report: null`. A closed object requires a
   `report` pin and its original absolute `nativeSourceRoot`, even when another
   group is pending.
+- A complete Unit campaign may add `disable-mix-mutants: true` to its native
+  configuration. With that Boolean option, its `additional-timeout` may also be
+  the exact integer `300000` or `4500000` instead of the maintained `10000`. Every other
+  setting must equal the maintained Unit configuration, including its complete
+  source scope and test filter. This isolates mutant execution and permits a
+  longer bounded host run; it grants no kill credit and does not qualify an
+  aborted or incomplete host. The larger Unit budget accounts for the reviewed
+  complete cohort's startup and cleanup watchdog sum; it promises no settlement.
+- A complete Pipes campaign may use `disable-mix-mutants: true` together with
+  exactly `additional-timeout: 2100000`. It must preserve the complete maintained
+  source/cohort configuration, coverage off and every other setting. This budget
+  accounts for the serialized receiving watchdog sum. The maintained budget
+  preimage must remain the exact integer `10000` for all three groups; matching
+  rewritten or incorrectly typed maintained/native budgets cannot self-approve.
+  Unknown/cross-group values, missing/non-Boolean mixing options and additional
+  scope/filter/tool changes are rejected. ASP.NET still requires exact maintained
+  equality. These configuration allowances supply no host, assertion or release
+  proof. The [execution repair record](../../../../../../../planning/healthcheck/evidence/HC12/execution-repair-2026-10-23/README.md)
+  links the separate Unit/Pipes source budgets and actual executions. A finite
+  range or reduced test filter cannot enter as a complete campaign.
+- An Ubuntu Unit partition may optionally pin a `kernelManifest` with schema
+  `cis.healthcheck.native-kernel-inventory/v1-development`. It inventories every
+  original `actual-process.<PID>` trace, pins the physical dotnet executable and
+  records its original native path plus the physical/native log-root mapping.
+  A complete process/thread creation chain and natural exit0 may replace only
+  an absent standard discovery-host exit callback. Bad or duplicate callbacks,
+  incomplete discovery, and execution-host exits retain their existing checks.
+  The receipt records a separate kernel discovery proof, with no loaded-image
+  claim or mutation outcome credit.
+- The explicit `cis.healthcheck.native-kernel-inventory/v2-process-projection`
+  variant adds exactly one `projection` object to the v1 inventory. Its exact
+  fields are `sourceRoot`, `nativeRoot`, `results`, `sink`, `capture`,
+  `sourceManifest` and `origins`. The five document fields are physical file
+  pins, not supplied validation flags. The reader binds their original roles,
+  validates every compressed primary member and both full raw-stream passes,
+  and independently regenerates every derived process byte and selected-origin
+  index row. Only the fixed reviewed, completed producer profiles are accepted;
+  incomplete, forced, mixed, repinned or extra inputs fail closed. Invalid v2
+  input never falls back to v1. The typed result can supply the same standard
+  discovery-only natural-exit proof as v1, retaining its verified process-origin
+  provenance. It adds no execution-host normality, kill credit, loaded-image or
+  whole-IPC claim. The actual closed pilot and rejection controls are recorded
+  in the [Capture72 evidence](../../../../../../../planning/healthcheck/evidence/HC12/execution-repair-2026-10-23/capture72/README.md).
+- A separately reviewed completed direct assertion before a later host abort may
+  supply credit only through the maintained source-bound catalog. The initial
+  entry is exact original Unit18 definition296 and its pinned synchronous
+  enum-validation test. The reader checks its report/source/body/GUID/selector,
+  lifecycle and result chronology, exact assertion payload, completion statistics
+  and parent exit. A GUID cannot be both returned and still active. The receipt
+  exposes `completedBeforeAbortKilledIds` separately and composes its credit once
+  with normal-host categories. Host normality, abort/incomplete/global issues,
+  raw statuses, denominator and the 90% threshold remain unchanged. This is not
+  a general crash or timeout allowance, and it accepts no supplied approval flag.
 - `proposals`: pins for proposed disposition evidence. They are retained as
   **unapplied proposals**. This reader does not accept approval booleans or manual
   adjustment files.
@@ -91,6 +144,16 @@ When all groups close, each partition additionally requires:
   containing relative file pins. Every physical file under that root must be
   inventoried, including controller/host `.txt` diagnostics. Inventories and
   hashes are checked before and after validation.
+- Optional `kernelManifest` for Ubuntu Unit discovery when VSTest omits its
+  asynchronous host-exit callback. The schema is
+  `cis.healthcheck.native-kernel-inventory/v1-development`, with `root`,
+  `nativeLogRoot`, `dotnet` (`file` pin and `nativePath`) and `files` containing
+  every top-level `actual-process.<pid>` trace pin. The reader checks the exact
+  executable arguments, diagnostic paths, requested assembly, process creation,
+  controller thread ancestry and complete natural exits from the original
+  traces. This supplies separately reported OS-exit evidence for standard
+  discovery only. It cannot override a bad callback, missing protocol completion
+  or an execution abort, and adds no mutation credit.
 - A `restorationManifest` pin with schema
   `cis.healthcheck.mutation-restoration/v1-development`, `actualBackup` and
   `preFreshObservation` and `nativeCaptureInventory` pins, `actualBackupOrigin`

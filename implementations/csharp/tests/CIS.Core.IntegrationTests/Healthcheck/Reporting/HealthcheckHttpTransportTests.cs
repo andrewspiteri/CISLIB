@@ -451,15 +451,18 @@ public sealed class HealthcheckHttpTransportTests
         using var body = new GatedBodyStream();
         context.Response.Body = body;
         Task request = app.Build()(context);
+        Exception? firstFailure = null;
+        Exception? observedTerminalFault = null;
         try
         {
-            await body.Entered.WaitAsync(TransportTestSupport.Limit);
+            await ObserveBodyEntryOrRequestCompletionAsync(body.Entered, request);
             Assert.IsFalse(request.IsCompleted);
             Assert.AreEqual(StatusCodes.Status403Forbidden, context.Response.StatusCode);
             TransportTestSupport.ValidateError(JsonNode.Parse(body.RequestedBytes)!.AsObject(), "Forbidden");
             var failure = new IOException("secret denied-response stream failure");
             body.Fail(failure);
             IOException observed = await Assert.ThrowsExactlyAsync<IOException>(() => request.WaitAsync(TransportTestSupport.Limit));
+            observedTerminalFault = observed;
 
             Assert.AreSame(failure, observed);
             Assert.AreEqual(1, body.Writes, "A response-stream fault must not trigger a second ReportingUnavailable response.");
@@ -469,7 +472,8 @@ public sealed class HealthcheckHttpTransportTests
             Assert.AreEqual(0, businessCalls);
             Assert.IsFalse(lifetime.Aborted);
         }
-        finally { body.Complete(); }
+        catch (Exception failure) { firstFailure = failure; }
+        await ReleaseAndJoinBodyRequestAsync(body, request, firstFailure, observedTerminalFault);
     }
 
     [TestMethod]
@@ -546,9 +550,11 @@ public sealed class HealthcheckHttpTransportTests
         using var body = new GatedBodyStream();
         context.Response.Body = body;
         Task request = app.Build()(context);
+        Exception? firstFailure = null;
+        Exception? observedTerminalFault = null;
         try
         {
-            await body.Entered.WaitAsync(TransportTestSupport.Limit);
+            await ObserveBodyEntryOrRequestCompletionAsync(body.Entered, request);
             Assert.IsFalse(request.IsCompleted, "The actual body write remains outstanding.");
             Assert.AreEqual(1, body.Writes);
             Assert.AreEqual(cancellation.Token, body.Cancellation);
@@ -564,6 +570,7 @@ public sealed class HealthcheckHttpTransportTests
                 var failure = new IOException("Controlled response-stream failure.");
                 body.Fail(failure);
                 IOException observed = await Assert.ThrowsExactlyAsync<IOException>(() => request.WaitAsync(TransportTestSupport.Limit));
+                observedTerminalFault = observed;
                 Assert.AreSame(failure, observed);
                 Assert.IsFalse(lifetime.Aborted);
             }
@@ -584,7 +591,8 @@ public sealed class HealthcheckHttpTransportTests
             Assert.AreEqual(0, businessCalls);
             Assert.AreEqual(before.Revision, service.CaptureSnapshot().Revision);
         }
-        finally { body.Complete(); }
+        catch (Exception failure) { firstFailure = failure; }
+        await ReleaseAndJoinBodyRequestAsync(body, request, firstFailure, observedTerminalFault);
     }
 
     [TestMethod]
@@ -990,6 +998,50 @@ public sealed class HealthcheckHttpTransportTests
         public HealthSnapshot CaptureSnapshot() { Captures++; return capture(); }
     }
 
+    // The receiving inputs have a synchronous snapshot and completed predicate.
+    // Observe the actual write or the actual invocation's earlier completion;
+    // never wait only for a callback that the selected mutation can omit.
+    private static async Task ObserveBodyEntryOrRequestCompletionAsync(Task entered, Task request)
+    {
+        await Task.WhenAny(entered, request).WaitAsync(TransportTestSupport.Limit);
+        Assert.IsTrue(entered.IsCompletedSuccessfully,
+            "The actual reserved GET must reach its supplied response body before settling.");
+    }
+
+    private static async Task ReleaseAndJoinBodyRequestAsync(GatedBodyStream body, Task request,
+        Exception? firstFailure, Exception? observedTerminalFault)
+    {
+        body.Complete();
+        Exception? terminalFailure = null;
+        try { await request.WaitAsync(TransportTestSupport.Limit); }
+        catch (Exception failure)
+        {
+            if (!request.IsCompleted)
+            {
+                // A cleanup deadline is an explicit unqualified harness failure;
+                // it cannot masquerade as the earlier receiving assertion.
+                if (firstFailure is null)
+                {
+                    System.Runtime.ExceptionServices.ExceptionDispatchInfo.Capture(failure).Throw();
+                }
+                throw new AggregateException(
+                    "The actual owned middleware request did not settle after releasing its body.", firstFailure, failure);
+            }
+            if (!ReferenceEquals(failure, observedTerminalFault)) { terminalFailure = failure; }
+        }
+        if (firstFailure is not null)
+        {
+            if (terminalFailure is not null)
+            {
+                Console.WriteLine("Observed terminal owned-request failure after receiving assertion: " + terminalFailure);
+            }
+            System.Runtime.ExceptionServices.ExceptionDispatchInfo.Capture(firstFailure).Throw();
+        }
+        if (terminalFailure is not null)
+        {
+            System.Runtime.ExceptionServices.ExceptionDispatchInfo.Capture(terminalFailure).Throw();
+        }
+    }
     private sealed class GatedBodyStream : MemoryStream
     {
         private readonly TaskCompletionSource entered = new(TaskCreationOptions.RunContinuationsAsynchronously);

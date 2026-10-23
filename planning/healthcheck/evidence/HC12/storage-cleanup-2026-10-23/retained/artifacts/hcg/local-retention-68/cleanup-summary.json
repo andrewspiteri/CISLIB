@@ -1,0 +1,45 @@
+{
+  "schema": "cis.local-artifact-cleanup-summary/v1",
+  "complete": true,
+  "date": "2026-10-23",
+  "workspace": "C:/miscwork/portfolio/cislib",
+  "removedRegularFiles": 56482,
+  "removedLogicalBytes": 17336841447,
+  "logicalBytesAreNotAllocatedDiskBytes": true,
+  "operations": [
+    {
+      "kind": "Archive-backed extracted Unit50b duplicate",
+      "removedFiles": 19170,
+      "removedLogicalBytes": 1775196386,
+      "receipt": "extracted-cleanup/cleanup.json",
+      "receiptSha256": "a544b21f8ec952949a69c174c60ba8b4dc4713cb330ee2c6fd962c1fde4df1d0",
+      "restoration": "The verified compressed original and complete import manifest remain under .artifacts/hcg/unit-full-nomix-50b/retention61/local-copy62. Historical extracted-path replay requires same-path restoration."
+    },
+    {
+      "kind": "Archive-backed extracted Unit18 and Pipes20 logs",
+      "removedFiles": 2138,
+      "removedLogicalBytes": 8897826592,
+      "receipt": "logtree-review/cleanup-01/results.json",
+      "receiptSha256": "d2dce9134bbb954d740496c01a6e785c2de900c8f297e406a74269344260bcca",
+      "restoration": "The pinned compressed archives, member manifests and original reports remain. The exact296 small host remains at its original path; the large controller is archived. Re-running whole old audits requires restoring the complete original log sets.",
+      "restoreCommand": "dotnet exec --fx-version 10.0.12 --roll-forward Disable .artifacts/hcg/local-retention-68/logtree-review/bin-ready-01/LogTrees.dll restore C:/miscwork/portfolio/cislib 7bc9b43d5d02c162cf1b181f03aa9ed3448b5d7693eae2eecb535fc2f5fb6e5d"
+    },
+    {
+      "kind": "117 isolated package, HTTP and CLI cache folders from 39 completed replay runs",
+      "removedFiles": 35174,
+      "removedLogicalBytes": 6663818469,
+      "receipt": "replay-cache-cleanup/cleanup01.json",
+      "receiptSha256": "559df82f2b154af0d08dce3ff67c7b03b920ae84bc7770b1c14be41eedabc0e5",
+      "restoration": "Rebuildable caches can be restored using preserved work trees and lockfiles, with package feeds or a separately retained package source. Exact old cache bytes are not archived."
+    }
+  ],
+  "preserved": [
+    "All current Ubuntu Unit, Pipes and ASP.NET mutation campaigns and their source/capture roots",
+    "Verified compressed originals and original mutation reports",
+    "Historical replay source/input/work snapshots, inventories, logs, test reports and generated package evidence",
+    "Historical failures and all outstanding qualification holds"
+  ],
+  "furtherRetentionFinding": "Much of the remaining size consists of historical reports and replay/source snapshots. A broad bin/obj or snapshot deletion is unsafe because some folders contain pinned mutation backups or original evidence.",
+  "canonicalSourceChangedByCleanup": false,
+  "qualificationOrMutationScoreChangedByCleanup": false
+}

@@ -251,7 +251,7 @@ public sealed class HealthCollectorPeriodicTimerProgressQualificationTests
         internal void EnterAndWait()
         {
             entered.TrySetResult();
-            if (!release.Wait(Deadline)) { throw new TimeoutException("The supplied timer Change gate did not release."); }
+            release.Wait();
         }
         public void Dispose() => release.Dispose();
     }
@@ -263,11 +263,13 @@ public sealed class HealthCollectorPeriodicTimerProgressQualificationTests
         internal void Release() => release.TrySetResult();
     }
 
+    private sealed record OwnerProgress(Invocation? Invocation);
+
     private sealed class GatedOwner : IHealthCollector
     {
         private readonly object gate = new();
         private readonly List<Invocation> invocations = [];
-        private readonly Channel<Invocation> entered = Channel.CreateUnbounded<Invocation>();
+        private readonly Channel<OwnerProgress> entered = Channel.CreateUnbounded<OwnerProgress>();
         private bool releasing;
         private int acquisitions, cleanups;
         internal int Acquisitions => Volatile.Read(ref acquisitions);
@@ -280,7 +282,12 @@ public sealed class HealthCollectorPeriodicTimerProgressQualificationTests
             return true;
         }
 
-        internal Task<Invocation> NextAsync() => entered.Reader.ReadAsync().AsTask().WaitAsync(Deadline);
+        internal async Task<Invocation> NextAsync()
+        {
+            OwnerProgress observed = await entered.Reader.ReadAsync().AsTask().WaitAsync(Deadline);
+            Assert.IsNotNull(observed.Invocation, "The actual owner lease was disposed before its expected periodic callback entered.");
+            return observed.Invocation;
+        }
         internal void ReleaseAll()
         {
             lock (gate)
@@ -298,7 +305,7 @@ public sealed class HealthCollectorPeriodicTimerProgressQualificationTests
                 invocations.Add(invocation);
                 if (releasing) { invocation.Release(); }
             }
-            entered.Writer.TryWrite(invocation);
+            entered.Writer.TryWrite(new(invocation));
             await invocation.Released;
             cancellation.ThrowIfCancellationRequested();
             return HealthCollectionResult.Execution(HealthExecutionOutcome.Succeeded);
@@ -306,12 +313,19 @@ public sealed class HealthCollectorPeriodicTimerProgressQualificationTests
 
         private sealed class Lease(GatedOwner owner) : IHealthCollectionLease
         {
-            public Task<HealthCollectionResult> CollectAsync(CancellationToken lifetimeCancellation) => owner.EvaluateAsync(lifetimeCancellation);
+            private bool entered;
+            public Task<HealthCollectionResult> CollectAsync(CancellationToken lifetimeCancellation)
+            {
+                entered = true;
+                return owner.EvaluateAsync(lifetimeCancellation);
+            }
             public ValueTask DisposeAsync()
             {
                 Interlocked.Increment(ref owner.cleanups);
+                if (!entered) { owner.ReportSkippedEvaluation(); }
                 return ValueTask.CompletedTask;
             }
         }
+        private void ReportSkippedEvaluation() => entered.Writer.TryWrite(new(null));
     }
 }

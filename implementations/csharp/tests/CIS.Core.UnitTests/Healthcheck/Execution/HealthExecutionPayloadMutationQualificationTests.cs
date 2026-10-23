@@ -236,6 +236,17 @@ public sealed class HealthExecutionPayloadMutationQualificationTests
         internal PayloadScope() => Binding = HealthExecutionBinder.Bind(Service,
             new ConsecutiveFailureMonitorOptions { FailureThreshold = 1, IsCritical = true },
             new HealthExecutionBindingOptions { RegistrationId = Id });
-        public async ValueTask DisposeAsync() { await Binding.DisposeAsync(); await Service.DisposeAsync(); }
+        public async ValueTask DisposeAsync()
+        {
+            try
+            {
+                Task disposal = Binding.DisposeAsync().AsTask();
+                if (disposal.IsCompleted) { await disposal; }
+            }
+            finally
+            {
+                await Service.DisposeAsync().AsTask().WaitAsync(TimeSpan.FromSeconds(5));
+            }
+        }
     }
 }

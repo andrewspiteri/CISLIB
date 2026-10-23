@@ -24,7 +24,7 @@ public sealed class HealthCollectionMutationQualificationTests
 
         Assert.AreEqual(before.Revision, scope.Service.CaptureSnapshot().Revision);
         Assert.IsNull(scope.Snapshot(second).Collection);
-        await scope.State.WithdrawCollection(original);
+        await scope.State.WithdrawCollection(original).WaitAsync(TimeSpan.FromSeconds(10));
         HealthCollectionTarget replacement = scope.Attach(second, registration);
         Assert.AreEqual(registration, replacement.CollectionRegistrationId);
         Assert.AreEqual(second.MonitorId, replacement.MonitorId);
@@ -58,7 +58,7 @@ public sealed class HealthCollectionMutationQualificationTests
         scope.Complete(operation);
         HealthSnapshot settled = scope.Service.CaptureSnapshot();
         Assert.IsTrue(settled.Revision > published.Revision);
-        await scope.State.WithdrawCollection(target);
+        await scope.State.WithdrawCollection(target).WaitAsync(TimeSpan.FromSeconds(10));
         Assert.IsTrue(scope.Service.CaptureSnapshot().Revision > settled.Revision);
         Assert.IsTrue(published.Monitors.Single().Collection!.InProgress);
     }
@@ -239,8 +239,14 @@ public sealed class HealthCollectionMutationQualificationTests
         AssertRetired(local.State.CommitResult(operation, HealthCollectionResult.Condition(true)));
         AssertRetired(local.State.CommitEvaluationFailure(operation, new HealthDiagnostic("Foreign")));
         AssertRetired(local.State.Complete(operation, new(HealthCollectionCompletionReason.OwnerUnavailable, Epoch)));
-        await local.State.WaitForSettlementAsync(operation);
-        await local.State.WithdrawCollection(target);
+        Task foreignSettlement = local.State.WaitForSettlementAsync(operation);
+        Assert.IsTrue(foreignSettlement.IsCompletedSuccessfully,
+            "A foreign reservation has no settlement work in the receiving state.");
+        await foreignSettlement;
+        Task foreignWithdrawal = local.State.WithdrawCollection(target);
+        Assert.IsTrue(foreignWithdrawal.IsCompletedSuccessfully,
+            "A foreign target has no withdrawal work in the receiving state.");
+        await foreignWithdrawal;
 
         Assert.AreEqual(before.Revision, local.Service.CaptureSnapshot().Revision);
         Assert.AreEqual(MonitorState.Healthy, local.Snapshot(localMonitor).State);

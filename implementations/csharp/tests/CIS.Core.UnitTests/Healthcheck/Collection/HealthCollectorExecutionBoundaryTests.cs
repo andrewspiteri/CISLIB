@@ -32,16 +32,16 @@ public sealed class HealthCollectorExecutionBoundaryTests
             {
                 switch (barrier)
                 {
-                    case "monitor-dispose": await otherMonitor.DisposeAsync(); break;
-                    case "monitor-wait": otherMonitor.Withdraw(); await otherMonitor.WaitForDisposalAsync(); break;
-                    case "registration-dispose": await otherRegistration.DisposeAsync(); break;
-                    case "registration-wait": otherRegistration.Withdraw(); await otherRegistration.WaitForDisposalAsync(); break;
-                    case "foreign-service-dispose": await foreign.Service.DisposeAsync(); break;
+                    case "monitor-dispose": await otherMonitor.DisposeAsync().AsTask().WaitAsync(Deadline); break;
+                    case "monitor-wait": otherMonitor.Withdraw(); await otherMonitor.WaitForDisposalAsync().WaitAsync(Deadline); break;
+                    case "registration-dispose": await otherRegistration.DisposeAsync().AsTask().WaitAsync(Deadline); break;
+                    case "registration-wait": otherRegistration.Withdraw(); await otherRegistration.WaitForDisposalAsync().WaitAsync(Deadline); break;
+                    case "foreign-service-dispose": await foreign.Service.DisposeAsync().AsTask().WaitAsync(Deadline); break;
                     case "foreign-service-wait":
-                        await foreign.Service.DisposeAsync();
-                        await foreign.Service.WaitForDisposalAsync();
+                        await foreign.Service.DisposeAsync().AsTask().WaitAsync(Deadline);
+                        await foreign.Service.WaitForDisposalAsync().WaitAsync(Deadline);
                         break;
-                    default: await foreign.Runner.StopAsync(); break;
+                    default: await foreign.Runner.StopAsync().WaitAsync(Deadline); break;
                 }
                 Interlocked.Increment(ref barrierCompleted);
                 return HealthCollectionResult.Execution(HealthExecutionOutcome.Succeeded);
@@ -146,10 +146,10 @@ public sealed class HealthCollectorExecutionBoundaryTests
                     await releaseChild.Task;
                     switch (barrier)
                     {
-                        case "registration": await registration!.DisposeAsync(); break;
-                        case "monitor": await monitor.DisposeAsync(); break;
-                        case "runner": await scope.Runner.StopAsync(); break;
-                        default: await scope.Service.DisposeAsync(); break;
+                        case "registration": await registration!.DisposeAsync().AsTask().WaitAsync(Deadline); break;
+                        case "monitor": await monitor.DisposeAsync().AsTask().WaitAsync(Deadline); break;
+                        case "runner": await scope.Runner.StopAsync().WaitAsync(Deadline); break;
+                        default: await scope.Service.DisposeAsync().AsTask().WaitAsync(Deadline); break;
                     }
                     Interlocked.Increment(ref completed);
                 });
@@ -161,11 +161,12 @@ public sealed class HealthCollectorExecutionBoundaryTests
         {
             await scope.Runner.StartAsync().WaitAsync(Deadline);
             HealthCollectionAttempt attempt = await registration.CollectAsync().WaitAsync(Deadline);
+            Assert.AreEqual(HealthCollectionDisposition.Committed, attempt.Disposition);
+            Assert.IsFalse(attempt.EvaluationFailed);
+            Assert.AreEqual(1, owner.Evaluations);
             await childEntered.Task.WaitAsync(Deadline);
             Assert.IsNotNull(child);
             Assert.IsFalse(child.IsCompleted);
-            Assert.AreEqual(HealthCollectionDisposition.Committed, attempt.Disposition);
-            Assert.IsFalse(attempt.EvaluationFailed);
             Assert.AreEqual(1, owner.Cleanups);
             Assert.AreEqual(1L, scope.Snapshot(monitor).Outcomes!.Successful);
 
@@ -211,10 +212,21 @@ public sealed class HealthCollectorExecutionBoundaryTests
         internal HealthMonitorSnapshot Snapshot(IHealthMonitor monitor) => Service.CaptureSnapshot().Monitors.Single(item => item.MonitorId == monitor.MonitorId);
         public async ValueTask DisposeAsync()
         {
-            foreach (IHealthCollectionRegistration registration in registrations) { registration.Withdraw(); }
-            await Runner.DisposeAsync().AsTask().WaitAsync(Deadline);
-            await Service.DisposeAsync().AsTask().WaitAsync(Deadline);
-            GC.KeepAlive(monitors);
+            Task runner = DrainRunnerAsync();
+            Task service = DrainServiceAsync();
+            Task drains = Task.WhenAll([runner, service, .. registrations.Select(RequestWithdrawal)]);
+            try { await drains.WaitAsync(Deadline); }
+            catch (Exception error) when (error is not TimeoutException && drains.Exception is not null)
+            { throw drains.Exception; }
+            finally { GC.KeepAlive(monitors); }
+
+            async Task DrainRunnerAsync() => await Runner.DisposeAsync();
+            async Task DrainServiceAsync() => await Service.DisposeAsync();
+            static Task RequestWithdrawal(IHealthCollectionRegistration registration)
+            {
+                try { registration.Withdraw(); return Task.CompletedTask; }
+                catch (Exception error) { return Task.FromException(error); }
+            }
         }
     }
 

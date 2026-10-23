@@ -104,38 +104,75 @@ public sealed class HealthcheckLifecycleQualificationTests
     [TestMethod]
     [DataRow(false)]
     [DataRow(true)]
-    public void WithdrawingMonitorReleasesBindingRegistrationBeforeAnyOldBindingCall(bool dispose)
+    public async Task WithdrawingMonitorReleasesBindingRegistrationBeforeAnyOldBindingCall(bool dispose)
     {
         HealthcheckService service = CreateService();
-        IConsecutiveFailureMonitor first = Failures(service);
-        Guid registration = Guid.NewGuid();
-        var options = new HealthExecutionBindingOptions { RegistrationId = registration };
-        IHealthExecutionBinding old = HealthExecutionBinder.Bind(first, options);
-
-        if (dispose) { Assert.IsTrue(first.DisposeAsync().IsCompletedSuccessfully); }
-        else { first.Withdraw(); }
-        Assert.IsTrue(first.WaitForDisposalAsync().IsCompletedSuccessfully);
-
-        // Do not call the old binding first: its lazy observation/release could
-        // repair a missing eager retirement and mask stale registration retention.
-        IConsecutiveFailureMonitor replacement = Failures(service);
-        IHealthExecutionBinding current = HealthExecutionBinder.Bind(replacement, options);
-        Assert.AreEqual(registration, current.RegistrationId);
-        Assert.AreNotEqual(old.MonitorId, current.MonitorId);
-        Assert.AreEqual(replacement.MonitorId, service.CaptureSnapshot().Monitors.Single().MonitorId);
-        Assert.AreEqual(HealthFactDisposition.Retired, old.Report(new HealthExecutionFact
+        IConsecutiveFailureMonitor? first = null;
+        IConsecutiveFailureMonitor? replacement = null;
+        IHealthExecutionBinding? old = null;
+        IHealthExecutionBinding? current = null;
+        try
         {
-            RegistrationId = registration,
-            Kind = HealthExecutionFactKind.Registered,
-            OccurredAtUtc = DateTimeOffset.UtcNow
-        }));
-        Assert.IsTrue(old.DisposeAsync().IsCompletedSuccessfully);
-        Assert.IsTrue(current.DisposeAsync().IsCompletedSuccessfully);
-        replacement.ReportSuccess();
-        Assert.AreEqual(1L, service.CaptureSnapshot().Monitors.Single().Outcomes!.Successful);
-        Assert.IsTrue(service.DisposeAsync().IsCompletedSuccessfully);
-        GC.KeepAlive(first);
-        GC.KeepAlive(replacement);
+            first = Failures(service);
+            Guid registration = Guid.NewGuid();
+            var options = new HealthExecutionBindingOptions { RegistrationId = registration };
+            old = HealthExecutionBinder.Bind(first, options);
+
+            if (dispose) { Assert.IsTrue(first.DisposeAsync().IsCompletedSuccessfully); }
+            else { first.Withdraw(); }
+            Assert.IsTrue(first.WaitForDisposalAsync().IsCompletedSuccessfully);
+
+            // Do not call the old binding first: its lazy observation/release could
+            // repair a missing eager retirement and mask stale registration retention.
+            replacement = Failures(service);
+            current = HealthExecutionBinder.Bind(replacement, options);
+            Assert.AreEqual(registration, current.RegistrationId);
+            Assert.AreNotEqual(old.MonitorId, current.MonitorId);
+            HealthSnapshot replacementBound = service.CaptureSnapshot();
+            Assert.AreEqual(1, replacementBound.MonitorCounts.Active);
+            Assert.AreEqual(1, replacementBound.Monitors.Count);
+            Assert.AreEqual(replacement.MonitorId, replacementBound.Monitors.Single().MonitorId);
+            Assert.AreEqual(HealthFactDisposition.Retired, old.Report(new HealthExecutionFact
+            {
+                RegistrationId = registration,
+                Kind = HealthExecutionFactKind.Registered,
+                OccurredAtUtc = DateTimeOffset.UtcNow
+            }));
+            await old.DisposeAsync().AsTask().WaitAsync(Deadline);
+            await current.DisposeAsync().AsTask().WaitAsync(Deadline);
+            replacement.ReportSuccess();
+            HealthSnapshot usable = service.CaptureSnapshot();
+            Assert.AreEqual(1, usable.MonitorCounts.Active);
+            Assert.AreEqual(1, usable.Monitors.Count);
+            var retained = usable.Monitors.Single();
+            Assert.IsNotNull(retained.Outcomes);
+            Assert.AreEqual(1L, retained.Outcomes.Successful);
+            Assert.IsTrue(service.DisposeAsync().IsCompletedSuccessfully);
+        }
+        finally
+        {
+            try
+            {
+                // Both release requests start even if either implementation throws
+                // synchronously; each async observer captures that fault in its Task.
+                await Task.WhenAll(ObserveCompletedBindingRelease(old), ObserveCompletedBindingRelease(current));
+            }
+            finally
+            {
+                await service.DisposeAsync().AsTask().WaitAsync(Deadline);
+                GC.KeepAlive(first);
+                GC.KeepAlive(replacement);
+            }
+        }
+    }
+
+    private static async Task ObserveCompletedBindingRelease(IHealthExecutionBinding? binding)
+    {
+        if (binding is null) { return; }
+        Task completion = binding.DisposeAsync().AsTask();
+        // Pure cleanup does not assert or claim completion of a pending private
+        // wrapper task. The actual service lifetime is always joined separately.
+        if (completion.IsCompleted) { await completion; }
     }
 
     [TestMethod]
@@ -151,7 +188,9 @@ public sealed class HealthcheckLifecycleQualificationTests
         {
             await runner.StartAsync().WaitAsync(Deadline);
             collection = registration.CollectAsync();
-            await owner.Entered.Task.WaitAsync(Deadline);
+            await Task.WhenAny(owner.Entered.Task, owner.CleanupEntered.Task, collection).WaitAsync(Deadline);
+            Assert.IsTrue(owner.Entered.Task.IsCompletedSuccessfully, "The actual collection must invoke its callback before cleanup or settlement.");
+            Assert.IsFalse(collection.IsCompleted, "The actual collection must remain pending while its evaluation gate is held.");
             Task monitorWait = monitor.WaitForDisposalAsync();
             ValueTask monitorDisposal = monitor.DisposeAsync();
             Assert.AreEqual(0, service.CaptureSnapshot().MonitorCounts.Active);

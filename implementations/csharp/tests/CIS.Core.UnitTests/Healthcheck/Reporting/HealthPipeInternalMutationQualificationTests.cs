@@ -8,6 +8,8 @@ namespace CIS.Tests.UnitTests.Healthcheck;
 [TestClass]
 public sealed class HealthPipeInternalMutationQualificationTests
 {
+    private static readonly TimeSpan Deadline = TimeSpan.FromSeconds(15);
+
     [TestMethod]
     public void FirstInstanceProtectionRejectsAnExistingEndpointEvenWhenItHasSpareCapacity()
     {
@@ -66,40 +68,56 @@ public sealed class HealthPipeInternalMutationQualificationTests
     [TestMethod]
     public async Task FailedStandardOutputIsReportedAsTransportFailureWithoutLeakingTheException()
     {
-        await using var service = new HealthcheckService(new HealthcheckOptions(),
+        var service = new HealthcheckService(new HealthcheckOptions(),
             new HealthApplicationIdentity { Name = "probe-output-owner", InstanceId = Guid.NewGuid() });
         service.MarkStartupCompleted();
         string pipe = "hc-" + Guid.NewGuid().ToString("N");
-        await using var server = new HealthPipeServer(service, new HealthcheckOptions { PipeEnabled = true, PipeName = pipe });
-        await server.StartAsync();
-        using var output = new UnavailableStream();
-        using var error = new StringWriter();
-        int exit = await HealthProbeClient.RunAsync(["--pipe", pipe], output, error);
-        Assert.AreEqual(2, exit);
-        StringAssert.Contains(error.ToString(), "TransportOrProtocolFailure");
-        Assert.IsFalse(error.ToString().Contains("private output path", StringComparison.Ordinal));
-        Assert.AreEqual(1, output.Attempts);
+        var server = new HealthPipeServer(service, new HealthcheckOptions { PipeEnabled = true, PipeName = pipe });
+        try
+        {
+            await server.StartAsync().WaitAsync(Deadline);
+            using var output = new UnavailableStream();
+            using var error = new StringWriter();
+            int exit = await HealthProbeClient.RunAsync(["--pipe", pipe], output, error).WaitAsync(Deadline);
+            Assert.AreEqual(2, exit);
+            StringAssert.Contains(error.ToString(), "TransportOrProtocolFailure");
+            Assert.IsFalse(error.ToString().Contains("private output path", StringComparison.Ordinal));
+            Assert.AreEqual(1, output.Attempts);
+        }
+        finally
+        {
+            try { await StopAndDisposeAsync(server); }
+            finally { await service.DisposeAsync().AsTask().WaitAsync(Deadline); }
+        }
     }
 
     [TestMethod]
     public async Task SuccessfulProbeDeliversBufferedOutputBeforeReturningItsHealthExit()
     {
-        await using var service = new HealthcheckService(new HealthcheckOptions(),
+        var service = new HealthcheckService(new HealthcheckOptions(),
             new HealthApplicationIdentity { Name = "buffered-probe-owner", InstanceId = Guid.NewGuid() });
         service.MarkStartupCompleted();
         string pipe = "hc-" + Guid.NewGuid().ToString("N");
-        await using var server = new HealthPipeServer(service, new HealthcheckOptions { PipeEnabled = true, PipeName = pipe });
-        await server.StartAsync();
-        using var delivered = new MemoryStream();
-        using var buffered = new BufferedStream(delivered, 65536);
-        using var error = new StringWriter();
-        Assert.AreEqual(0, await HealthProbeClient.RunAsync(["--pipe", pipe], buffered, error));
-        byte[] actual = delivered.ToArray();
-        Assert.IsTrue(actual.Length > 1);
-        Assert.AreEqual((byte)'\n', actual[^1]);
-        using var json = System.Text.Json.JsonDocument.Parse(actual.AsMemory(0, actual.Length - 1));
-        Assert.AreEqual("buffered-probe-owner", json.RootElement.GetProperty("application").GetProperty("name").GetString());
-        Assert.AreEqual(string.Empty, error.ToString());
+        var server = new HealthPipeServer(service, new HealthcheckOptions { PipeEnabled = true, PipeName = pipe });
+        try
+        {
+            await server.StartAsync().WaitAsync(Deadline);
+            using var delivered = new MemoryStream();
+            using var buffered = new BufferedStream(delivered, 65536);
+            using var error = new StringWriter();
+            Assert.AreEqual(0, await HealthProbeClient.RunAsync(["--pipe", pipe], buffered, error).WaitAsync(Deadline));
+            byte[] actual = delivered.ToArray();
+            Assert.IsTrue(actual.Length > 1);
+            Assert.AreEqual((byte)'\n', actual[^1]);
+            using var json = System.Text.Json.JsonDocument.Parse(actual.AsMemory(0, actual.Length - 1));
+            Assert.AreEqual("buffered-probe-owner", json.RootElement.GetProperty("application").GetProperty("name").GetString());
+            Assert.AreEqual(string.Empty, error.ToString());
+        }
+        finally
+        {
+            try { await StopAndDisposeAsync(server); }
+            finally { await service.DisposeAsync().AsTask().WaitAsync(Deadline); }
+        }
     }
 
     [TestMethod]
@@ -138,6 +156,22 @@ public sealed class HealthPipeInternalMutationQualificationTests
         Assert.IsTrue(ownedWait.SafeWaitHandle.IsClosed);
         Assert.IsTrue(clock.TimerDisposed);
         Assert.IsFalse(callerWait.SafeWaitHandle.IsClosed);
+    }
+
+    private static async Task StopAndDisposeAsync(HealthPipeServer server)
+    {
+        Task stopping;
+        try { stopping = server.StopAsync(); }
+        catch (Exception error) { stopping = Task.FromException(error); }
+        Task disposing;
+        try { disposing = server.DisposeAsync().AsTask(); }
+        catch (Exception error) { disposing = Task.FromException(error); }
+        Task drains = Task.WhenAll(stopping, disposing);
+        try { await drains.WaitAsync(Deadline); }
+        catch (Exception error) when (error is not TimeoutException && drains.Exception is not null)
+        {
+            throw drains.Exception;
+        }
     }
 
     private sealed class UnavailableWriter(bool disposed) : StringWriter

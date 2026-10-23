@@ -1,0 +1,57 @@
+{
+  "schema": "cis.healthcheck.current-unit-receiving-await-diagnosis/v1-no-credit",
+  "projectionSha256": "13ad516dd428e8f6821776846cae650948f5f9f2dcf2f0de4c2713eeebf9fc20",
+  "mergedInventoryPath": "../../unit-runner-inventory-51/merged-inventory01.json",
+  "mergedInventorySha256": "96e6a020a9257730d00e5b2da92962d90b872ccc251340b26c9c11d6e195546f",
+  "source": "Healthcheck/HealthCollectorRunner.cs",
+  "sourceSha256": "386c3d5cd7e681ed58a2d6be564ad3c813b598b377921ff5057a61419067fec8",
+  "receivingSource": "implementations/csharp/tests/CIS.Core.UnitTests/Healthcheck/Collection/HealthCollectorRunnerSchedulingTests.cs",
+  "receivingSourceSha256": "8a8d1558558d060d76dee34484131d21ab92283dd04ae439a7689f2e2b253f5c",
+  "receivingFqn": "CIS.Tests.UnitTests.Healthcheck.HealthCollectorRunnerSchedulingTests.ManualCollectionBeforeStartRejectsWithoutAcquiringTheOwner",
+  "receivingGuid": "12dfb71e-23d4-8640-9287-c025d0cd3fba",
+  "receivingLine": 21,
+  "observations": [
+    {
+      "actualRequestSelector": "1195",
+      "hostPid": 1189729,
+      "completedResultsBeforeAbort": 108,
+      "completedDurationSeconds": 1.5153892,
+      "startUtf16": 9056,
+      "endUtf16": 9064,
+      "mutatorName": "LogicalNotExpression to un-LogicalNotExpression mutation",
+      "original": "!started",
+      "replacement": "started",
+      "static": false
+    },
+    {
+      "actualRequestSelector": "1197",
+      "hostPid": 1189764,
+      "completedResultsBeforeAbort": 0,
+      "completedDurationSeconds": 0,
+      "startUtf16": 9068,
+      "endUtf16": 9141,
+      "mutatorName": "Statement mutation",
+      "original": "throw new InvalidOperationException(\"Start the collector runner first.\");",
+      "replacement": ";",
+      "static": false
+    }
+  ],
+  "actualInstrumentedLogObservation": {
+    "origin": "/data/cis-healthcheck-20261021-01a15a72/unit-full-nomix55/native/logs/log-20261023.txt",
+    "creationLines": [11955, 11957],
+    "collectMethodContextLines": [13548, 13562],
+    "instrumentedSelectorLines": [13561, 13562],
+    "observationOnly": true,
+    "activeWholeFileShaClaim": false,
+    "loadedImageClaim": false
+  },
+  "causalFinding": "Both exact current mutations bypass the not-started rejection in Collect. The receiving test awaits Assert.ThrowsAsync on CollectAsync without an outer bound before it calls StartAsync. A returned pending collection task can therefore prevent the assertion from returning and prevent scope cleanup from starting. RunnerScope.DisposeAsync itself is already bounded at lines658-664.",
+  "proposedLaterReceivingCorrection": "Bound the assertion task externally and retain a genuine TimeoutException if it fails to settle. Do not place the watchdog inside Assert.ThrowsAsync, which could reclassify timeout as a direct assertion. Any actual pending collection and cleanup still require honest bounded drainage.",
+  "limits": [
+    "Diagnosis only; no test/source/config changes or new subject runs.",
+    "Actual native creation and instrumented method lines corroborate source tuples; the final full report is still pending.",
+    "Tiny inventory origin IDs/statuses are not transferred to this campaign.",
+    "Both host aborts and all remaining lifecycle evidence remain unqualified."
+  ],
+  "appliedKillCredit": 0
+}

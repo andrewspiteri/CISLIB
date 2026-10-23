@@ -1,0 +1,1634 @@
+{
+  "schema": "cis.healthcheck.native-timeout-consistency-controls/v1-synthetic",
+  "cases": 25,
+  "allExpectedOutcomes": true,
+  "syntheticOnly": true,
+  "sourceCalculatorCopiedUnchanged": true,
+  "hiddenStopwatchMeasured": false,
+  "qualificationAcceptance": false,
+  "appliedKillCredit": 0,
+  "results": [
+    {
+      "name": "perTest-different-T-is-valid",
+      "expectedRejected": false,
+      "actualRejected": false,
+      "failure": null,
+      "input": {
+        "Group": "unit-runtime",
+        "Additional": 4500000,
+        "Initial": [
+          {
+            "Guid": "00000001-0000-0000-0000-000000000000",
+            "Fqn": "Case.One",
+            "Source": "/unit.dll",
+            "DurationTicks": 10010000
+          },
+          {
+            "Guid": "00000002-0000-0000-0000-000000000000",
+            "Fqn": "Case.Two",
+            "Source": "/unit.dll",
+            "DurationTicks": 10180000
+          }
+        ],
+        "Requests": [
+          {
+            "MutantId": "11",
+            "Source": "/unit.dll",
+            "RunAll": false,
+            "TimeoutMs": 4516473,
+            "Selected": [
+              {
+                "Guid": "00000001-0000-0000-0000-000000000000",
+                "Fqn": "Case.One",
+                "Source": "/unit.dll"
+              }
+            ]
+          },
+          {
+            "MutantId": "22",
+            "Source": "/unit.dll",
+            "RunAll": false,
+            "TimeoutMs": 4516498,
+            "Selected": [
+              {
+                "Guid": "00000002-0000-0000-0000-000000000000",
+                "Fqn": "Case.Two",
+                "Source": "/unit.dll"
+              }
+            ]
+          }
+        ],
+        "Using": [
+          4516473,
+          4516498
+        ],
+        "Lower": 11990,
+        "Upper": 12010
+      },
+      "result": {
+        "AggregateInitialMilliseconds": 2019,
+        "LoggedElapsedLowerMs": 11990,
+        "LoggedElapsedUpperMs": 12010,
+        "AlgebraicInitializationWitnessMs": 9981,
+        "Requests": [
+          {
+            "MutantId": "11",
+            "Source": "/unit.dll",
+            "RunAll": false,
+            "SelectedCount": 1,
+            "SelectedEstimatedMilliseconds": 1001,
+            "ActualTimeoutMs": 4516473,
+            "FormulaMinimumMs": 4516458,
+            "FormulaMaximumMs": 4516488,
+            "AlgebraicInitializationWitnessMs": 9981
+          },
+          {
+            "MutantId": "22",
+            "Source": "/unit.dll",
+            "RunAll": false,
+            "SelectedCount": 1,
+            "SelectedEstimatedMilliseconds": 1018,
+            "ActualTimeoutMs": 4516498,
+            "FormulaMinimumMs": 4516483,
+            "FormulaMaximumMs": 4516513,
+            "AlgebraicInitializationWitnessMs": 9981
+          }
+        ],
+        "HiddenStopwatchMeasured": false,
+        "WallClockContinuityIndependentlyProven": false,
+        "QualificationAcceptance": false,
+        "AppliedKillCredit": 0
+      }
+    },
+    {
+      "name": "DefaultTimeout-uniform-is-valid",
+      "expectedRejected": false,
+      "actualRejected": false,
+      "failure": null,
+      "input": {
+        "Group": "pipes",
+        "Additional": 2100000,
+        "Initial": [
+          {
+            "Guid": "00000001-0000-0000-0000-000000000000",
+            "Fqn": "Case.One",
+            "Source": "/unit.dll",
+            "DurationTicks": 10010000
+          },
+          {
+            "Guid": "00000002-0000-0000-0000-000000000000",
+            "Fqn": "Case.Two",
+            "Source": "/integration.dll",
+            "DurationTicks": 10180000
+          }
+        ],
+        "Requests": [
+          {
+            "MutantId": "11",
+            "Source": "/unit.dll",
+            "RunAll": true,
+            "TimeoutMs": 2118000,
+            "Selected": [
+              {
+                "Guid": "00000001-0000-0000-0000-000000000000",
+                "Fqn": "Case.One",
+                "Source": "/unit.dll"
+              }
+            ]
+          },
+          {
+            "MutantId": "11",
+            "Source": "/integration.dll",
+            "RunAll": true,
+            "TimeoutMs": 2118000,
+            "Selected": [
+              {
+                "Guid": "00000002-0000-0000-0000-000000000000",
+                "Fqn": "Case.Two",
+                "Source": "/integration.dll"
+              }
+            ]
+          },
+          {
+            "MutantId": "22",
+            "Source": "/unit.dll",
+            "RunAll": true,
+            "TimeoutMs": 2118000,
+            "Selected": [
+              {
+                "Guid": "00000001-0000-0000-0000-000000000000",
+                "Fqn": "Case.One",
+                "Source": "/unit.dll"
+              }
+            ]
+          },
+          {
+            "MutantId": "22",
+            "Source": "/integration.dll",
+            "RunAll": true,
+            "TimeoutMs": 2118000,
+            "Selected": [
+              {
+                "Guid": "00000002-0000-0000-0000-000000000000",
+                "Fqn": "Case.Two",
+                "Source": "/integration.dll"
+              }
+            ]
+          }
+        ],
+        "Using": [
+          2118000
+        ],
+        "Lower": 11990,
+        "Upper": 12010
+      },
+      "result": {
+        "AggregateInitialMilliseconds": 2019,
+        "LoggedElapsedLowerMs": 11990,
+        "LoggedElapsedUpperMs": 12010,
+        "AlgebraicInitializationWitnessMs": 9981,
+        "Requests": [
+          {
+            "MutantId": "11",
+            "Source": "/unit.dll",
+            "RunAll": true,
+            "SelectedCount": 1,
+            "SelectedEstimatedMilliseconds": 2019,
+            "ActualTimeoutMs": 2118000,
+            "FormulaMinimumMs": 2117985,
+            "FormulaMaximumMs": 2118015,
+            "AlgebraicInitializationWitnessMs": 9981
+          },
+          {
+            "MutantId": "11",
+            "Source": "/integration.dll",
+            "RunAll": true,
+            "SelectedCount": 1,
+            "SelectedEstimatedMilliseconds": 2019,
+            "ActualTimeoutMs": 2118000,
+            "FormulaMinimumMs": 2117985,
+            "FormulaMaximumMs": 2118015,
+            "AlgebraicInitializationWitnessMs": 9981
+          },
+          {
+            "MutantId": "22",
+            "Source": "/unit.dll",
+            "RunAll": true,
+            "SelectedCount": 1,
+            "SelectedEstimatedMilliseconds": 2019,
+            "ActualTimeoutMs": 2118000,
+            "FormulaMinimumMs": 2117985,
+            "FormulaMaximumMs": 2118015,
+            "AlgebraicInitializationWitnessMs": 9981
+          },
+          {
+            "MutantId": "22",
+            "Source": "/integration.dll",
+            "RunAll": true,
+            "SelectedCount": 1,
+            "SelectedEstimatedMilliseconds": 2019,
+            "ActualTimeoutMs": 2118000,
+            "FormulaMinimumMs": 2117985,
+            "FormulaMaximumMs": 2118015,
+            "AlgebraicInitializationWitnessMs": 9981
+          }
+        ],
+        "HiddenStopwatchMeasured": false,
+        "WallClockContinuityIndependentlyProven": false,
+        "QualificationAcceptance": false,
+        "AppliedKillCredit": 0
+      }
+    },
+    {
+      "name": "zero-initialization-max-branch-is-valid",
+      "expectedRejected": false,
+      "actualRejected": false,
+      "failure": null,
+      "input": {
+        "Group": "unit-runtime",
+        "Additional": 4500000,
+        "Initial": [
+          {
+            "Guid": "00000001-0000-0000-0000-000000000000",
+            "Fqn": "Case.One",
+            "Source": "/unit.dll",
+            "DurationTicks": 10010000
+          },
+          {
+            "Guid": "00000002-0000-0000-0000-000000000000",
+            "Fqn": "Case.Two",
+            "Source": "/unit.dll",
+            "DurationTicks": 10180000
+          }
+        ],
+        "Requests": [
+          {
+            "MutantId": "11",
+            "Source": "/unit.dll",
+            "RunAll": false,
+            "TimeoutMs": 4501501,
+            "Selected": [
+              {
+                "Guid": "00000001-0000-0000-0000-000000000000",
+                "Fqn": "Case.One",
+                "Source": "/unit.dll"
+              }
+            ]
+          },
+          {
+            "MutantId": "22",
+            "Source": "/unit.dll",
+            "RunAll": false,
+            "TimeoutMs": 4501527,
+            "Selected": [
+              {
+                "Guid": "00000002-0000-0000-0000-000000000000",
+                "Fqn": "Case.Two",
+                "Source": "/unit.dll"
+              }
+            ]
+          }
+        ],
+        "Using": [
+          4501501,
+          4501527
+        ],
+        "Lower": 900,
+        "Upper": 1100
+      },
+      "result": {
+        "AggregateInitialMilliseconds": 2019,
+        "LoggedElapsedLowerMs": 900,
+        "LoggedElapsedUpperMs": 1100,
+        "AlgebraicInitializationWitnessMs": 0,
+        "Requests": [
+          {
+            "MutantId": "11",
+            "Source": "/unit.dll",
+            "RunAll": false,
+            "SelectedCount": 1,
+            "SelectedEstimatedMilliseconds": 1001,
+            "ActualTimeoutMs": 4501501,
+            "FormulaMinimumMs": 4501501,
+            "FormulaMaximumMs": 4501501,
+            "AlgebraicInitializationWitnessMs": 0
+          },
+          {
+            "MutantId": "22",
+            "Source": "/unit.dll",
+            "RunAll": false,
+            "SelectedCount": 1,
+            "SelectedEstimatedMilliseconds": 1018,
+            "ActualTimeoutMs": 4501527,
+            "FormulaMinimumMs": 4501527,
+            "FormulaMaximumMs": 4501527,
+            "AlgebraicInitializationWitnessMs": 0
+          }
+        ],
+        "HiddenStopwatchMeasured": false,
+        "WallClockContinuityIndependentlyProven": false,
+        "QualificationAcceptance": false,
+        "AppliedKillCredit": 0
+      }
+    },
+    {
+      "name": "fractional-original-durations-use-pinned-casts",
+      "expectedRejected": false,
+      "actualRejected": false,
+      "failure": null,
+      "input": {
+        "Group": "unit-runtime",
+        "Additional": 4500000,
+        "Initial": [
+          {
+            "Guid": "00000001-0000-0000-0000-000000000000",
+            "Fqn": "Case.One",
+            "Source": "/unit.dll",
+            "DurationTicks": 10010001
+          },
+          {
+            "Guid": "00000002-0000-0000-0000-000000000000",
+            "Fqn": "Case.Two",
+            "Source": "/unit.dll",
+            "DurationTicks": 10189999
+          }
+        ],
+        "Requests": [
+          {
+            "MutantId": "11",
+            "Source": "/unit.dll",
+            "RunAll": false,
+            "TimeoutMs": 4516471,
+            "Selected": [
+              {
+                "Guid": "00000001-0000-0000-0000-000000000000",
+                "Fqn": "Case.One",
+                "Source": "/unit.dll"
+              }
+            ]
+          },
+          {
+            "MutantId": "22",
+            "Source": "/unit.dll",
+            "RunAll": false,
+            "TimeoutMs": 4516497,
+            "Selected": [
+              {
+                "Guid": "00000002-0000-0000-0000-000000000000",
+                "Fqn": "Case.Two",
+                "Source": "/unit.dll"
+              }
+            ]
+          }
+        ],
+        "Using": [
+          4516471,
+          4516497
+        ],
+        "Lower": 11990,
+        "Upper": 12010
+      },
+      "result": {
+        "AggregateInitialMilliseconds": 2020,
+        "LoggedElapsedLowerMs": 11990,
+        "LoggedElapsedUpperMs": 12010,
+        "AlgebraicInitializationWitnessMs": 9980,
+        "Requests": [
+          {
+            "MutantId": "11",
+            "Source": "/unit.dll",
+            "RunAll": false,
+            "SelectedCount": 1,
+            "SelectedEstimatedMilliseconds": 1001,
+            "ActualTimeoutMs": 4516471,
+            "FormulaMinimumMs": 4516456,
+            "FormulaMaximumMs": 4516486,
+            "AlgebraicInitializationWitnessMs": 9980
+          },
+          {
+            "MutantId": "22",
+            "Source": "/unit.dll",
+            "RunAll": false,
+            "SelectedCount": 1,
+            "SelectedEstimatedMilliseconds": 1018,
+            "ActualTimeoutMs": 4516497,
+            "FormulaMinimumMs": 4516482,
+            "FormulaMaximumMs": 4516512,
+            "AlgebraicInitializationWitnessMs": 9980
+          }
+        ],
+        "HiddenStopwatchMeasured": false,
+        "WallClockContinuityIndependentlyProven": false,
+        "QualificationAcceptance": false,
+        "AppliedKillCredit": 0
+      }
+    },
+    {
+      "name": "perTest-changed-one-T-conflicts",
+      "expectedRejected": true,
+      "actualRejected": true,
+      "failure": "Different requests imply conflicting initialization state for the one immutable native calculator.",
+      "input": {
+        "Group": "unit-runtime",
+        "Additional": 4500000,
+        "Initial": [
+          {
+            "Guid": "00000001-0000-0000-0000-000000000000",
+            "Fqn": "Case.One",
+            "Source": "/unit.dll",
+            "DurationTicks": 10010000
+          },
+          {
+            "Guid": "00000002-0000-0000-0000-000000000000",
+            "Fqn": "Case.Two",
+            "Source": "/unit.dll",
+            "DurationTicks": 10180000
+          }
+        ],
+        "Requests": [
+          {
+            "MutantId": "11",
+            "Source": "/unit.dll",
+            "RunAll": false,
+            "TimeoutMs": 4516476,
+            "Selected": [
+              {
+                "Guid": "00000001-0000-0000-0000-000000000000",
+                "Fqn": "Case.One",
+                "Source": "/unit.dll"
+              }
+            ]
+          },
+          {
+            "MutantId": "22",
+            "Source": "/unit.dll",
+            "RunAll": false,
+            "TimeoutMs": 4516498,
+            "Selected": [
+              {
+                "Guid": "00000002-0000-0000-0000-000000000000",
+                "Fqn": "Case.Two",
+                "Source": "/unit.dll"
+              }
+            ]
+          }
+        ],
+        "Using": [
+          4516476,
+          4516498
+        ],
+        "Lower": 11990,
+        "Upper": 12010
+      },
+      "result": null
+    },
+    {
+      "name": "DefaultTimeout-differing-T-rejected",
+      "expectedRejected": true,
+      "actualRejected": true,
+      "failure": "Different requests imply conflicting initialization state for the one immutable native calculator.",
+      "input": {
+        "Group": "pipes",
+        "Additional": 2100000,
+        "Initial": [
+          {
+            "Guid": "00000001-0000-0000-0000-000000000000",
+            "Fqn": "Case.One",
+            "Source": "/unit.dll",
+            "DurationTicks": 10010000
+          },
+          {
+            "Guid": "00000002-0000-0000-0000-000000000000",
+            "Fqn": "Case.Two",
+            "Source": "/integration.dll",
+            "DurationTicks": 10180000
+          }
+        ],
+        "Requests": [
+          {
+            "MutantId": "11",
+            "Source": "/unit.dll",
+            "RunAll": true,
+            "TimeoutMs": 2118003,
+            "Selected": [
+              {
+                "Guid": "00000001-0000-0000-0000-000000000000",
+                "Fqn": "Case.One",
+                "Source": "/unit.dll"
+              }
+            ]
+          },
+          {
+            "MutantId": "11",
+            "Source": "/integration.dll",
+            "RunAll": true,
+            "TimeoutMs": 2118000,
+            "Selected": [
+              {
+                "Guid": "00000002-0000-0000-0000-000000000000",
+                "Fqn": "Case.Two",
+                "Source": "/integration.dll"
+              }
+            ]
+          },
+          {
+            "MutantId": "22",
+            "Source": "/unit.dll",
+            "RunAll": true,
+            "TimeoutMs": 2118000,
+            "Selected": [
+              {
+                "Guid": "00000001-0000-0000-0000-000000000000",
+                "Fqn": "Case.One",
+                "Source": "/unit.dll"
+              }
+            ]
+          },
+          {
+            "MutantId": "22",
+            "Source": "/integration.dll",
+            "RunAll": true,
+            "TimeoutMs": 2118000,
+            "Selected": [
+              {
+                "Guid": "00000002-0000-0000-0000-000000000000",
+                "Fqn": "Case.Two",
+                "Source": "/integration.dll"
+              }
+            ]
+          }
+        ],
+        "Using": [
+          2118003,
+          2118000
+        ],
+        "Lower": 11990,
+        "Upper": 12010
+      },
+      "result": null
+    },
+    {
+      "name": "unknown-selected-guid",
+      "expectedRejected": true,
+      "actualRejected": true,
+      "failure": "Selected GUID/FQN/source differs from original initial case, or is duplicated.",
+      "input": {
+        "Group": "unit-runtime",
+        "Additional": 4500000,
+        "Initial": [
+          {
+            "Guid": "00000001-0000-0000-0000-000000000000",
+            "Fqn": "Case.One",
+            "Source": "/unit.dll",
+            "DurationTicks": 10010000
+          },
+          {
+            "Guid": "00000002-0000-0000-0000-000000000000",
+            "Fqn": "Case.Two",
+            "Source": "/unit.dll",
+            "DurationTicks": 10180000
+          }
+        ],
+        "Requests": [
+          {
+            "MutantId": "11",
+            "Source": "/unit.dll",
+            "RunAll": false,
+            "TimeoutMs": 4516473,
+            "Selected": [
+              {
+                "Guid": "99999999-0000-0000-0000-000000000000",
+                "Fqn": "Case.One",
+                "Source": "/unit.dll"
+              }
+            ]
+          },
+          {
+            "MutantId": "22",
+            "Source": "/unit.dll",
+            "RunAll": false,
+            "TimeoutMs": 4516498,
+            "Selected": [
+              {
+                "Guid": "00000002-0000-0000-0000-000000000000",
+                "Fqn": "Case.Two",
+                "Source": "/unit.dll"
+              }
+            ]
+          }
+        ],
+        "Using": [
+          4516473,
+          4516498
+        ],
+        "Lower": 11990,
+        "Upper": 12010
+      },
+      "result": null
+    },
+    {
+      "name": "wrong-selected-fqn",
+      "expectedRejected": true,
+      "actualRejected": true,
+      "failure": "Selected GUID/FQN/source differs from original initial case, or is duplicated.",
+      "input": {
+        "Group": "unit-runtime",
+        "Additional": 4500000,
+        "Initial": [
+          {
+            "Guid": "00000001-0000-0000-0000-000000000000",
+            "Fqn": "Case.One",
+            "Source": "/unit.dll",
+            "DurationTicks": 10010000
+          },
+          {
+            "Guid": "00000002-0000-0000-0000-000000000000",
+            "Fqn": "Case.Two",
+            "Source": "/unit.dll",
+            "DurationTicks": 10180000
+          }
+        ],
+        "Requests": [
+          {
+            "MutantId": "11",
+            "Source": "/unit.dll",
+            "RunAll": false,
+            "TimeoutMs": 4516473,
+            "Selected": [
+              {
+                "Guid": "00000001-0000-0000-0000-000000000000",
+                "Fqn": "Other.Method",
+                "Source": "/unit.dll"
+              }
+            ]
+          },
+          {
+            "MutantId": "22",
+            "Source": "/unit.dll",
+            "RunAll": false,
+            "TimeoutMs": 4516498,
+            "Selected": [
+              {
+                "Guid": "00000002-0000-0000-0000-000000000000",
+                "Fqn": "Case.Two",
+                "Source": "/unit.dll"
+              }
+            ]
+          }
+        ],
+        "Using": [
+          4516473,
+          4516498
+        ],
+        "Lower": 11990,
+        "Upper": 12010
+      },
+      "result": null
+    },
+    {
+      "name": "wrong-selected-source",
+      "expectedRejected": true,
+      "actualRejected": true,
+      "failure": "Selected GUID/FQN/source differs from original initial case, or is duplicated.",
+      "input": {
+        "Group": "unit-runtime",
+        "Additional": 4500000,
+        "Initial": [
+          {
+            "Guid": "00000001-0000-0000-0000-000000000000",
+            "Fqn": "Case.One",
+            "Source": "/unit.dll",
+            "DurationTicks": 10010000
+          },
+          {
+            "Guid": "00000002-0000-0000-0000-000000000000",
+            "Fqn": "Case.Two",
+            "Source": "/unit.dll",
+            "DurationTicks": 10180000
+          }
+        ],
+        "Requests": [
+          {
+            "MutantId": "11",
+            "Source": "/unit.dll",
+            "RunAll": false,
+            "TimeoutMs": 4516473,
+            "Selected": [
+              {
+                "Guid": "00000001-0000-0000-0000-000000000000",
+                "Fqn": "Case.One",
+                "Source": "/other.dll"
+              }
+            ]
+          },
+          {
+            "MutantId": "22",
+            "Source": "/unit.dll",
+            "RunAll": false,
+            "TimeoutMs": 4516498,
+            "Selected": [
+              {
+                "Guid": "00000002-0000-0000-0000-000000000000",
+                "Fqn": "Case.Two",
+                "Source": "/unit.dll"
+              }
+            ]
+          }
+        ],
+        "Using": [
+          4516473,
+          4516498
+        ],
+        "Lower": 11990,
+        "Upper": 12010
+      },
+      "result": null
+    },
+    {
+      "name": "duplicate-selected-guid",
+      "expectedRejected": true,
+      "actualRejected": true,
+      "failure": "Selected GUID/FQN/source differs from original initial case, or is duplicated.",
+      "input": {
+        "Group": "unit-runtime",
+        "Additional": 4500000,
+        "Initial": [
+          {
+            "Guid": "00000001-0000-0000-0000-000000000000",
+            "Fqn": "Case.One",
+            "Source": "/unit.dll",
+            "DurationTicks": 10010000
+          },
+          {
+            "Guid": "00000002-0000-0000-0000-000000000000",
+            "Fqn": "Case.Two",
+            "Source": "/unit.dll",
+            "DurationTicks": 10180000
+          }
+        ],
+        "Requests": [
+          {
+            "MutantId": "11",
+            "Source": "/unit.dll",
+            "RunAll": false,
+            "TimeoutMs": 4516473,
+            "Selected": [
+              {
+                "Guid": "00000001-0000-0000-0000-000000000000",
+                "Fqn": "Case.One",
+                "Source": "/unit.dll"
+              },
+              {
+                "Guid": "00000001-0000-0000-0000-000000000000",
+                "Fqn": "Case.One",
+                "Source": "/unit.dll"
+              }
+            ]
+          },
+          {
+            "MutantId": "22",
+            "Source": "/unit.dll",
+            "RunAll": false,
+            "TimeoutMs": 4516498,
+            "Selected": [
+              {
+                "Guid": "00000002-0000-0000-0000-000000000000",
+                "Fqn": "Case.Two",
+                "Source": "/unit.dll"
+              }
+            ]
+          }
+        ],
+        "Using": [
+          4516473,
+          4516498
+        ],
+        "Lower": 11990,
+        "Upper": 12010
+      },
+      "result": null
+    },
+    {
+      "name": "missing-actual-UsingT",
+      "expectedRejected": true,
+      "actualRejected": true,
+      "failure": "Actual controller T set differs from pinned same-invocation calculator UsingT observations.",
+      "input": {
+        "Group": "unit-runtime",
+        "Additional": 4500000,
+        "Initial": [
+          {
+            "Guid": "00000001-0000-0000-0000-000000000000",
+            "Fqn": "Case.One",
+            "Source": "/unit.dll",
+            "DurationTicks": 10010000
+          },
+          {
+            "Guid": "00000002-0000-0000-0000-000000000000",
+            "Fqn": "Case.Two",
+            "Source": "/unit.dll",
+            "DurationTicks": 10180000
+          }
+        ],
+        "Requests": [
+          {
+            "MutantId": "11",
+            "Source": "/unit.dll",
+            "RunAll": false,
+            "TimeoutMs": 4516473,
+            "Selected": [
+              {
+                "Guid": "00000001-0000-0000-0000-000000000000",
+                "Fqn": "Case.One",
+                "Source": "/unit.dll"
+              }
+            ]
+          },
+          {
+            "MutantId": "22",
+            "Source": "/unit.dll",
+            "RunAll": false,
+            "TimeoutMs": 4516498,
+            "Selected": [
+              {
+                "Guid": "00000002-0000-0000-0000-000000000000",
+                "Fqn": "Case.Two",
+                "Source": "/unit.dll"
+              }
+            ]
+          }
+        ],
+        "Using": [
+          4516473
+        ],
+        "Lower": 11990,
+        "Upper": 12010
+      },
+      "result": null
+    },
+    {
+      "name": "extra-actual-UsingT",
+      "expectedRejected": true,
+      "actualRejected": true,
+      "failure": "Actual controller T set differs from pinned same-invocation calculator UsingT observations.",
+      "input": {
+        "Group": "unit-runtime",
+        "Additional": 4500000,
+        "Initial": [
+          {
+            "Guid": "00000001-0000-0000-0000-000000000000",
+            "Fqn": "Case.One",
+            "Source": "/unit.dll",
+            "DurationTicks": 10010000
+          },
+          {
+            "Guid": "00000002-0000-0000-0000-000000000000",
+            "Fqn": "Case.Two",
+            "Source": "/unit.dll",
+            "DurationTicks": 10180000
+          }
+        ],
+        "Requests": [
+          {
+            "MutantId": "11",
+            "Source": "/unit.dll",
+            "RunAll": false,
+            "TimeoutMs": 4516473,
+            "Selected": [
+              {
+                "Guid": "00000001-0000-0000-0000-000000000000",
+                "Fqn": "Case.One",
+                "Source": "/unit.dll"
+              }
+            ]
+          },
+          {
+            "MutantId": "22",
+            "Source": "/unit.dll",
+            "RunAll": false,
+            "TimeoutMs": 4516498,
+            "Selected": [
+              {
+                "Guid": "00000002-0000-0000-0000-000000000000",
+                "Fqn": "Case.Two",
+                "Source": "/unit.dll"
+              }
+            ]
+          }
+        ],
+        "Using": [
+          4516473,
+          4516498,
+          123
+        ],
+        "Lower": 11990,
+        "Upper": 12010
+      },
+      "result": null
+    },
+    {
+      "name": "impossible-native-integer-cast-result",
+      "expectedRejected": true,
+      "actualRejected": true,
+      "failure": "Actual T cannot result from the pinned integer-input multiply/cast formula.",
+      "input": {
+        "Group": "unit-runtime",
+        "Additional": 4500000,
+        "Initial": [
+          {
+            "Guid": "00000001-0000-0000-0000-000000000000",
+            "Fqn": "Case.One",
+            "Source": "/unit.dll",
+            "DurationTicks": 10010000
+          },
+          {
+            "Guid": "00000002-0000-0000-0000-000000000000",
+            "Fqn": "Case.Two",
+            "Source": "/unit.dll",
+            "DurationTicks": 10180000
+          }
+        ],
+        "Requests": [
+          {
+            "MutantId": "11",
+            "Source": "/unit.dll",
+            "RunAll": false,
+            "TimeoutMs": 4516475,
+            "Selected": [
+              {
+                "Guid": "00000001-0000-0000-0000-000000000000",
+                "Fqn": "Case.One",
+                "Source": "/unit.dll"
+              }
+            ]
+          },
+          {
+            "MutantId": "22",
+            "Source": "/unit.dll",
+            "RunAll": false,
+            "TimeoutMs": 4516498,
+            "Selected": [
+              {
+                "Guid": "00000002-0000-0000-0000-000000000000",
+                "Fqn": "Case.Two",
+                "Source": "/unit.dll"
+              }
+            ]
+          }
+        ],
+        "Using": [
+          4516475,
+          4516498
+        ],
+        "Lower": 11990,
+        "Upper": 12010
+      },
+      "result": null
+    },
+    {
+      "name": "actual-T-outside-independent-logged-window",
+      "expectedRejected": true,
+      "actualRejected": true,
+      "failure": "Actual T is outside source-formula bounds from same-native initial timing/results.",
+      "input": {
+        "Group": "unit-runtime",
+        "Additional": 4500000,
+        "Initial": [
+          {
+            "Guid": "00000001-0000-0000-0000-000000000000",
+            "Fqn": "Case.One",
+            "Source": "/unit.dll",
+            "DurationTicks": 10010000
+          },
+          {
+            "Guid": "00000002-0000-0000-0000-000000000000",
+            "Fqn": "Case.Two",
+            "Source": "/unit.dll",
+            "DurationTicks": 10180000
+          }
+        ],
+        "Requests": [
+          {
+            "MutantId": "11",
+            "Source": "/unit.dll",
+            "RunAll": false,
+            "TimeoutMs": 4517973,
+            "Selected": [
+              {
+                "Guid": "00000001-0000-0000-0000-000000000000",
+                "Fqn": "Case.One",
+                "Source": "/unit.dll"
+              }
+            ]
+          },
+          {
+            "MutantId": "22",
+            "Source": "/unit.dll",
+            "RunAll": false,
+            "TimeoutMs": 4517998,
+            "Selected": [
+              {
+                "Guid": "00000002-0000-0000-0000-000000000000",
+                "Fqn": "Case.Two",
+                "Source": "/unit.dll"
+              }
+            ]
+          }
+        ],
+        "Using": [
+          4517973,
+          4517998
+        ],
+        "Lower": 11990,
+        "Upper": 12010
+      },
+      "result": null
+    },
+    {
+      "name": "wrong-additional-budget",
+      "expectedRejected": true,
+      "actualRejected": true,
+      "failure": "Exact group additional budget required.",
+      "input": {
+        "Group": "unit-runtime",
+        "Additional": 4500001,
+        "Initial": [
+          {
+            "Guid": "00000001-0000-0000-0000-000000000000",
+            "Fqn": "Case.One",
+            "Source": "/unit.dll",
+            "DurationTicks": 10010000
+          },
+          {
+            "Guid": "00000002-0000-0000-0000-000000000000",
+            "Fqn": "Case.Two",
+            "Source": "/unit.dll",
+            "DurationTicks": 10180000
+          }
+        ],
+        "Requests": [
+          {
+            "MutantId": "11",
+            "Source": "/unit.dll",
+            "RunAll": false,
+            "TimeoutMs": 4516473,
+            "Selected": [
+              {
+                "Guid": "00000001-0000-0000-0000-000000000000",
+                "Fqn": "Case.One",
+                "Source": "/unit.dll"
+              }
+            ]
+          },
+          {
+            "MutantId": "22",
+            "Source": "/unit.dll",
+            "RunAll": false,
+            "TimeoutMs": 4516498,
+            "Selected": [
+              {
+                "Guid": "00000002-0000-0000-0000-000000000000",
+                "Fqn": "Case.Two",
+                "Source": "/unit.dll"
+              }
+            ]
+          }
+        ],
+        "Using": [
+          4516473,
+          4516498
+        ],
+        "Lower": 11990,
+        "Upper": 12010
+      },
+      "result": null
+    },
+    {
+      "name": "fourth-attempt-rejected",
+      "expectedRejected": true,
+      "actualRejected": true,
+      "failure": "Each actual target/source needs1..3 ordinary attempts.",
+      "input": {
+        "Group": "unit-runtime",
+        "Additional": 4500000,
+        "Initial": [
+          {
+            "Guid": "00000001-0000-0000-0000-000000000000",
+            "Fqn": "Case.One",
+            "Source": "/unit.dll",
+            "DurationTicks": 10010000
+          },
+          {
+            "Guid": "00000002-0000-0000-0000-000000000000",
+            "Fqn": "Case.Two",
+            "Source": "/unit.dll",
+            "DurationTicks": 10180000
+          }
+        ],
+        "Requests": [
+          {
+            "MutantId": "11",
+            "Source": "/unit.dll",
+            "RunAll": false,
+            "TimeoutMs": 4516473,
+            "Selected": [
+              {
+                "Guid": "00000001-0000-0000-0000-000000000000",
+                "Fqn": "Case.One",
+                "Source": "/unit.dll"
+              }
+            ]
+          },
+          {
+            "MutantId": "22",
+            "Source": "/unit.dll",
+            "RunAll": false,
+            "TimeoutMs": 4516498,
+            "Selected": [
+              {
+                "Guid": "00000002-0000-0000-0000-000000000000",
+                "Fqn": "Case.Two",
+                "Source": "/unit.dll"
+              }
+            ]
+          },
+          {
+            "MutantId": "11",
+            "Source": "/unit.dll",
+            "RunAll": false,
+            "TimeoutMs": 4516473,
+            "Selected": [
+              {
+                "Guid": "00000001-0000-0000-0000-000000000000",
+                "Fqn": "Case.One",
+                "Source": "/unit.dll"
+              }
+            ]
+          },
+          {
+            "MutantId": "11",
+            "Source": "/unit.dll",
+            "RunAll": false,
+            "TimeoutMs": 4516473,
+            "Selected": [
+              {
+                "Guid": "00000001-0000-0000-0000-000000000000",
+                "Fqn": "Case.One",
+                "Source": "/unit.dll"
+              }
+            ]
+          },
+          {
+            "MutantId": "11",
+            "Source": "/unit.dll",
+            "RunAll": false,
+            "TimeoutMs": 4516473,
+            "Selected": [
+              {
+                "Guid": "00000001-0000-0000-0000-000000000000",
+                "Fqn": "Case.One",
+                "Source": "/unit.dll"
+              }
+            ]
+          }
+        ],
+        "Using": [
+          4516473,
+          4516498
+        ],
+        "Lower": 11990,
+        "Upper": 12010
+      },
+      "result": null
+    },
+    {
+      "name": "changed-retry-selection-rejected",
+      "expectedRejected": true,
+      "actualRejected": true,
+      "failure": "Retry changed actual selection/mode or its calculator timeout.",
+      "input": {
+        "Group": "unit-runtime",
+        "Additional": 4500000,
+        "Initial": [
+          {
+            "Guid": "00000001-0000-0000-0000-000000000000",
+            "Fqn": "Case.One",
+            "Source": "/unit.dll",
+            "DurationTicks": 10010000
+          },
+          {
+            "Guid": "00000002-0000-0000-0000-000000000000",
+            "Fqn": "Case.Two",
+            "Source": "/unit.dll",
+            "DurationTicks": 10180000
+          }
+        ],
+        "Requests": [
+          {
+            "MutantId": "11",
+            "Source": "/unit.dll",
+            "RunAll": false,
+            "TimeoutMs": 4516473,
+            "Selected": [
+              {
+                "Guid": "00000001-0000-0000-0000-000000000000",
+                "Fqn": "Case.One",
+                "Source": "/unit.dll"
+              }
+            ]
+          },
+          {
+            "MutantId": "22",
+            "Source": "/unit.dll",
+            "RunAll": false,
+            "TimeoutMs": 4516498,
+            "Selected": [
+              {
+                "Guid": "00000002-0000-0000-0000-000000000000",
+                "Fqn": "Case.Two",
+                "Source": "/unit.dll"
+              }
+            ]
+          },
+          {
+            "MutantId": "11",
+            "Source": "/unit.dll",
+            "RunAll": false,
+            "TimeoutMs": 4516498,
+            "Selected": [
+              {
+                "Guid": "00000002-0000-0000-0000-000000000000",
+                "Fqn": "Case.Two",
+                "Source": "/unit.dll"
+              }
+            ]
+          }
+        ],
+        "Using": [
+          4516473,
+          4516498
+        ],
+        "Lower": 11990,
+        "Upper": 12010
+      },
+      "result": null
+    },
+    {
+      "name": "changed-retry-order-rejected",
+      "expectedRejected": true,
+      "actualRejected": true,
+      "failure": "Retry changed actual selection/mode or its calculator timeout.",
+      "input": {
+        "Group": "unit-runtime",
+        "Additional": 4500000,
+        "Initial": [
+          {
+            "Guid": "00000001-0000-0000-0000-000000000000",
+            "Fqn": "Case.One",
+            "Source": "/unit.dll",
+            "DurationTicks": 10010000
+          },
+          {
+            "Guid": "00000002-0000-0000-0000-000000000000",
+            "Fqn": "Case.Two",
+            "Source": "/unit.dll",
+            "DurationTicks": 10180000
+          }
+        ],
+        "Requests": [
+          {
+            "MutantId": "11",
+            "Source": "/unit.dll",
+            "RunAll": false,
+            "TimeoutMs": 4518000,
+            "Selected": [
+              {
+                "Guid": "00000001-0000-0000-0000-000000000000",
+                "Fqn": "Case.One",
+                "Source": "/unit.dll"
+              },
+              {
+                "Guid": "00000002-0000-0000-0000-000000000000",
+                "Fqn": "Case.Two",
+                "Source": "/unit.dll"
+              }
+            ]
+          },
+          {
+            "MutantId": "22",
+            "Source": "/unit.dll",
+            "RunAll": false,
+            "TimeoutMs": 4516498,
+            "Selected": [
+              {
+                "Guid": "00000002-0000-0000-0000-000000000000",
+                "Fqn": "Case.Two",
+                "Source": "/unit.dll"
+              }
+            ]
+          },
+          {
+            "MutantId": "11",
+            "Source": "/unit.dll",
+            "RunAll": false,
+            "TimeoutMs": 4518000,
+            "Selected": [
+              {
+                "Guid": "00000002-0000-0000-0000-000000000000",
+                "Fqn": "Case.Two",
+                "Source": "/unit.dll"
+              },
+              {
+                "Guid": "00000001-0000-0000-0000-000000000000",
+                "Fqn": "Case.One",
+                "Source": "/unit.dll"
+              }
+            ]
+          }
+        ],
+        "Using": [
+          4518000,
+          4516498
+        ],
+        "Lower": 11990,
+        "Upper": 12010
+      },
+      "result": null
+    },
+    {
+      "name": "unknown-target-rejected",
+      "expectedRejected": true,
+      "actualRejected": true,
+      "failure": "Unknown actual target/source or empty selection.",
+      "input": {
+        "Group": "unit-runtime",
+        "Additional": 4500000,
+        "Initial": [
+          {
+            "Guid": "00000001-0000-0000-0000-000000000000",
+            "Fqn": "Case.One",
+            "Source": "/unit.dll",
+            "DurationTicks": 10010000
+          },
+          {
+            "Guid": "00000002-0000-0000-0000-000000000000",
+            "Fqn": "Case.Two",
+            "Source": "/unit.dll",
+            "DurationTicks": 10180000
+          }
+        ],
+        "Requests": [
+          {
+            "MutantId": "999",
+            "Source": "/unit.dll",
+            "RunAll": false,
+            "TimeoutMs": 4516473,
+            "Selected": [
+              {
+                "Guid": "00000001-0000-0000-0000-000000000000",
+                "Fqn": "Case.One",
+                "Source": "/unit.dll"
+              }
+            ]
+          },
+          {
+            "MutantId": "22",
+            "Source": "/unit.dll",
+            "RunAll": false,
+            "TimeoutMs": 4516498,
+            "Selected": [
+              {
+                "Guid": "00000002-0000-0000-0000-000000000000",
+                "Fqn": "Case.Two",
+                "Source": "/unit.dll"
+              }
+            ]
+          }
+        ],
+        "Using": [
+          4516473,
+          4516498
+        ],
+        "Lower": 11990,
+        "Upper": 12010
+      },
+      "result": null
+    },
+    {
+      "name": "missing-target-rejected",
+      "expectedRejected": true,
+      "actualRejected": true,
+      "failure": "Each actual target/source needs1..3 ordinary attempts.",
+      "input": {
+        "Group": "unit-runtime",
+        "Additional": 4500000,
+        "Initial": [
+          {
+            "Guid": "00000001-0000-0000-0000-000000000000",
+            "Fqn": "Case.One",
+            "Source": "/unit.dll",
+            "DurationTicks": 10010000
+          },
+          {
+            "Guid": "00000002-0000-0000-0000-000000000000",
+            "Fqn": "Case.Two",
+            "Source": "/unit.dll",
+            "DurationTicks": 10180000
+          }
+        ],
+        "Requests": [
+          {
+            "MutantId": "11",
+            "Source": "/unit.dll",
+            "RunAll": false,
+            "TimeoutMs": 4516473,
+            "Selected": [
+              {
+                "Guid": "00000001-0000-0000-0000-000000000000",
+                "Fqn": "Case.One",
+                "Source": "/unit.dll"
+              }
+            ]
+          }
+        ],
+        "Using": [
+          4516473
+        ],
+        "Lower": 11990,
+        "Upper": 12010
+      },
+      "result": null
+    },
+    {
+      "name": "reversed-logged-bounds-rejected",
+      "expectedRejected": true,
+      "actualRejected": true,
+      "failure": "Two actual targets and finite correctly ordered logged bounds required.",
+      "input": {
+        "Group": "unit-runtime",
+        "Additional": 4500000,
+        "Initial": [
+          {
+            "Guid": "00000001-0000-0000-0000-000000000000",
+            "Fqn": "Case.One",
+            "Source": "/unit.dll",
+            "DurationTicks": 10010000
+          },
+          {
+            "Guid": "00000002-0000-0000-0000-000000000000",
+            "Fqn": "Case.Two",
+            "Source": "/unit.dll",
+            "DurationTicks": 10180000
+          }
+        ],
+        "Requests": [
+          {
+            "MutantId": "11",
+            "Source": "/unit.dll",
+            "RunAll": false,
+            "TimeoutMs": 4516473,
+            "Selected": [
+              {
+                "Guid": "00000001-0000-0000-0000-000000000000",
+                "Fqn": "Case.One",
+                "Source": "/unit.dll"
+              }
+            ]
+          },
+          {
+            "MutantId": "22",
+            "Source": "/unit.dll",
+            "RunAll": false,
+            "TimeoutMs": 4516498,
+            "Selected": [
+              {
+                "Guid": "00000002-0000-0000-0000-000000000000",
+                "Fqn": "Case.Two",
+                "Source": "/unit.dll"
+              }
+            ]
+          }
+        ],
+        "Using": [
+          4516473,
+          4516498
+        ],
+        "Lower": 12001,
+        "Upper": 12000
+      },
+      "result": null
+    },
+    {
+      "name": "unchanged-original-projection",
+      "expectedRejected": false,
+      "actualRejected": false,
+      "failure": null,
+      "original": {
+        "Duration": "00:00:00.1234567",
+        "Outcome": 1,
+        "StartTime": "2026-10-23T12:00:00\u002B00:00",
+        "EndTime": "2026-10-23T12:00:01\u002B00:00",
+        "TestCase": {
+          "Id": "00000001-0000-0000-0000-000000000000",
+          "FullyQualifiedName": "Case.One",
+          "Source": "/unit.dll",
+          "ExecutorUri": "executor://MSTestAdapter/v4"
+        }
+      },
+      "projection": {
+        "Guid": "00000001-0000-0000-0000-000000000000",
+        "Fqn": "Case.One",
+        "Source": "/unit.dll",
+        "RawDuration": "00:00:00.1234567",
+        "Ticks": 1234567,
+        "Outcome": 1,
+        "StartTime": "2026-10-23T12:00:00\u002B00:00",
+        "EndTime": "2026-10-23T12:00:01\u002B00:00"
+      }
+    },
+    {
+      "name": "changed-duration-ticks",
+      "expectedRejected": true,
+      "actualRejected": true,
+      "failure": "Initial projection GUID/source/duration/outcome/time conflicts with actual original result.",
+      "original": {
+        "Duration": "00:00:00.1234567",
+        "Outcome": 1,
+        "StartTime": "2026-10-23T12:00:00\u002B00:00",
+        "EndTime": "2026-10-23T12:00:01\u002B00:00",
+        "TestCase": {
+          "Id": "00000001-0000-0000-0000-000000000000",
+          "FullyQualifiedName": "Case.One",
+          "Source": "/unit.dll",
+          "ExecutorUri": "executor://MSTestAdapter/v4"
+        }
+      },
+      "projection": {
+        "Guid": "00000001-0000-0000-0000-000000000000",
+        "Fqn": "Case.One",
+        "Source": "/unit.dll",
+        "RawDuration": "00:00:00.1234567",
+        "Ticks": 1234568,
+        "Outcome": 1,
+        "StartTime": "2026-10-23T12:00:00\u002B00:00",
+        "EndTime": "2026-10-23T12:00:01\u002B00:00"
+      }
+    },
+    {
+      "name": "changed-duration-text",
+      "expectedRejected": true,
+      "actualRejected": true,
+      "failure": "Initial projection GUID/source/duration/outcome/time conflicts with actual original result.",
+      "original": {
+        "Duration": "00:00:00.1234567",
+        "Outcome": 1,
+        "StartTime": "2026-10-23T12:00:00\u002B00:00",
+        "EndTime": "2026-10-23T12:00:01\u002B00:00",
+        "TestCase": {
+          "Id": "00000001-0000-0000-0000-000000000000",
+          "FullyQualifiedName": "Case.One",
+          "Source": "/unit.dll",
+          "ExecutorUri": "executor://MSTestAdapter/v4"
+        }
+      },
+      "projection": {
+        "Guid": "00000001-0000-0000-0000-000000000000",
+        "Fqn": "Case.One",
+        "Source": "/unit.dll",
+        "RawDuration": "00:00:00.2234567",
+        "Ticks": 1234567,
+        "Outcome": 1,
+        "StartTime": "2026-10-23T12:00:00\u002B00:00",
+        "EndTime": "2026-10-23T12:00:01\u002B00:00"
+      }
+    },
+    {
+      "name": "conflicting-original-outcome",
+      "expectedRejected": true,
+      "actualRejected": true,
+      "failure": "Initial projection GUID/source/duration/outcome/time conflicts with actual original result.",
+      "original": {
+        "Duration": "00:00:00.1234567",
+        "Outcome": 1,
+        "StartTime": "2026-10-23T12:00:00\u002B00:00",
+        "EndTime": "2026-10-23T12:00:01\u002B00:00",
+        "TestCase": {
+          "Id": "00000001-0000-0000-0000-000000000000",
+          "FullyQualifiedName": "Case.One",
+          "Source": "/unit.dll",
+          "ExecutorUri": "executor://MSTestAdapter/v4"
+        }
+      },
+      "projection": {
+        "Guid": "00000001-0000-0000-0000-000000000000",
+        "Fqn": "Case.One",
+        "Source": "/unit.dll",
+        "RawDuration": "00:00:00.1234567",
+        "Ticks": 1234567,
+        "Outcome": 2,
+        "StartTime": "2026-10-23T12:00:00\u002B00:00",
+        "EndTime": "2026-10-23T12:00:01\u002B00:00"
+      }
+    }
+  ]
+}

@@ -28,15 +28,22 @@ public sealed class HealthCollectorDelayedCancellationSettlementTests
         }
         await scope.Runner.StartAsync().WaitAsync(Deadline);
         Task<HealthCollectionAttempt> collection = registration.CollectAsync();
+        await Task.WhenAny(owner.EvaluationEntered.Task, collection).WaitAsync(Deadline);
+        Assert.IsFalse(collection.IsCompleted, "The actual uncanceled caller cannot settle before its gated owner evaluation is released.");
         await owner.EvaluationEntered.Task.WaitAsync(Deadline);
         Task<HealthCollectionAttempt>? queued = nextRegistration?.CollectAsync();
         Task withdrawal = Task.Run(registration.Withdraw);
         Task? stop = null;
         try
         {
+            await Task.WhenAny(owner.CancellationEntered.Task, collection, withdrawal).WaitAsync(Deadline);
+            Assert.IsFalse(collection.IsCompleted, "The actual caller must retain the evaluation and cancellation observer until both are released.");
+            Assert.IsFalse(withdrawal.IsCompleted, "The actual withdrawal must retain its still-running cancellation observer.");
             await owner.CancellationEntered.Task.WaitAsync(Deadline);
             Assert.IsTrue(owner.LifetimeCancellation.IsCancellationRequested);
             owner.ReleaseEvaluation.TrySetResult();
+            await Task.WhenAny(owner.CleanupFinished.Task, collection).WaitAsync(Deadline);
+            Assert.IsFalse(collection.IsCompleted, "Lease cleanup cannot release the caller while its cancellation observer is still gated.");
             await owner.CleanupFinished.Task.WaitAsync(Deadline);
 
             Assert.AreEqual(1, owner.Evaluations);
@@ -70,17 +77,19 @@ public sealed class HealthCollectorDelayedCancellationSettlementTests
 
             owner.ReleaseCancellation.Set();
             await withdrawal.WaitAsync(Deadline);
-            HealthCollectionAttempt attempt = await collection.WaitAsync(Deadline);
-            await drain.WaitAsync(Deadline);
-
             Assert.IsTrue(owner.CancellationFinished);
             Assert.IsTrue(owner.CallbackReleased);
             Assert.AreEqual(1, owner.CancellationCalls);
+
+            HealthCollectionAttempt attempt = await collection.WaitAsync(Deadline);
             Assert.AreEqual(HealthCollectionDisposition.Retired, attempt.Disposition);
             Assert.IsFalse(attempt.EvaluationFailed);
             Assert.IsNull(attempt.Diagnostic);
+            await drain.WaitAsync(Deadline);
             if (queueAnotherOwner)
             {
+                await Task.WhenAny(nextOwner.EvaluationEntered.Task, queued!).WaitAsync(Deadline);
+                Assert.IsFalse(queued!.IsCompleted, "The queued caller cannot settle before its own gated evaluation is released.");
                 await nextOwner.EvaluationEntered.Task.WaitAsync(Deadline);
                 Assert.AreEqual(1, nextOwner.Acquisitions);
                 Assert.AreEqual(1, nextOwner.ActiveLeases);
@@ -151,16 +160,27 @@ public sealed class HealthCollectorDelayedCancellationSettlementTests
         public async ValueTask DisposeAsync()
         {
             foreach (Owner owner in owners) { owner.ReleaseCancellation.Set(); owner.ReleaseEvaluation.TrySetResult(); }
-            foreach (IHealthCollectionRegistration registration in registrations) { registration.Withdraw(); }
+            Task runner = DrainRunnerAsync();
+            Task service = DrainServiceAsync();
+            Task drains = Task.WhenAll([runner, service, .. registrations.Select(RequestWithdrawal)]);
             try
             {
-                await Runner.DisposeAsync().AsTask().WaitAsync(Deadline);
-                await Service.DisposeAsync().AsTask().WaitAsync(Deadline);
+                try { await drains.WaitAsync(Deadline); }
+                catch (Exception error) when (error is not TimeoutException && drains.Exception is not null)
+                { throw drains.Exception; }
             }
             finally
             {
                 foreach (Owner owner in owners) { owner.Dispose(); }
                 GC.KeepAlive(monitors);
+            }
+
+            async Task DrainRunnerAsync() => await Runner.DisposeAsync();
+            async Task DrainServiceAsync() => await Service.DisposeAsync();
+            static Task RequestWithdrawal(IHealthCollectionRegistration registration)
+            {
+                try { registration.Withdraw(); return Task.CompletedTask; }
+                catch (Exception error) { return Task.FromException(error); }
             }
         }
     }
@@ -206,7 +226,8 @@ public sealed class HealthCollectorDelayedCancellationSettlementTests
                     {
                         Interlocked.Increment(ref owner.cancellationCalls);
                         owner.CancellationEntered.TrySetResult();
-                        owner.CallbackReleased = owner.ReleaseCancellation.Wait(Deadline);
+                        owner.ReleaseCancellation.Wait();
+                        owner.CallbackReleased = true;
                         Volatile.Write(ref owner.cancellationFinished, 1);
                     });
                 }

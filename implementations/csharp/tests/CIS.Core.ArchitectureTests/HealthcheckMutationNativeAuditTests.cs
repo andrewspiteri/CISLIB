@@ -442,6 +442,8 @@ public sealed class HealthcheckMutationNativeAuditTests
     private static void AssertRejected(NativeAuditResult result)
     {
         Assert.HasCount(0, result.AssertionKilledIds);
+        Assert.HasCount(0, result.CompletedBeforeAbortKilledIds);
+        Assert.HasCount(0, result.QualifiedKilledIds);
         Assert.IsGreaterThan(0, result.Issues.Length);
     }
 

@@ -10,6 +10,58 @@ namespace CIS.Tests.ArchitectureTests;
 public sealed class HealthcheckMutationUnionQualificationTests
 {
     [TestMethod]
+    public void CompletedBeforeAbortCreditDefaultsToEmptyAndDeduplicatesTheOtherWitnessCategories()
+    {
+        var legacy = new NativeAuditResult(["296"], [], 1, 1, new JsonObject());
+        Assert.HasCount(0, legacy.CompletedBeforeAbortKilledIds);
+        CollectionAssert.AreEqual(new[] { "296" }, legacy.QualifiedKilledIds);
+
+        NativeAuditResult repeated = legacy with
+        {
+            ReviewedSemanticKilledIds = ["296"],
+            CompletedBeforeAbortKilledIds = ["296"]
+        };
+        CollectionAssert.AreEqual(new[] { "296" }, repeated.QualifiedKilledIds);
+        CollectionAssert.AreEqual(legacy.AssertionKilledIds, repeated.AssertionKilledIds);
+        Assert.AreEqual(legacy.HostCount, repeated.HostCount);
+        Assert.AreEqual(legacy.NormalHostCount, repeated.NormalHostCount);
+    }
+
+    [TestMethod]
+    [DataRow("NativeHostAborted")]
+    [DataRow("NativeCompletionAborted")]
+    [DataRow("NativeResultSetIncomplete")]
+    [DataRow("NativeControllerMalformed")]
+    public void ACompletedEarlierAssertionChangesTheNumeratorOnceAndPreservesEachReleaseHold(string issueCode)
+    {
+        var fixture = new UnionFixture(10);
+        Partition unit = fixture.Partitions[0];
+        string id = unit.Definitions[0].Id;
+        IntegrityIssue[] held = [new(issueCode, "Explicit synthetic unresolved native failure.", issueCode == "NativeControllerMalformed" ? [] : [id])];
+        var beforeAudit = new NativeAuditResult(unit.QualifiedKilledIds.Skip(1).ToArray(), held, 1, 0, new JsonObject());
+        fixture.Partitions[0] = unit with { QualifiedKilledIds = beforeAudit.QualifiedKilledIds, IntegrityIssues = beforeAudit.Issues };
+        JsonObject before = Evaluate(fixture.Sources, fixture.Partitions, []);
+
+        NativeAuditResult afterAudit = beforeAudit with { CompletedBeforeAbortKilledIds = [id] };
+        fixture.Partitions[0] = unit with { QualifiedKilledIds = afterAudit.QualifiedKilledIds, IntegrityIssues = afterAudit.Issues };
+        JsonObject after = Evaluate(fixture.Sources, fixture.Partitions, []);
+
+        Assert.AreEqual(29L, (long?)before["aggregate"]!["numerator"]);
+        Assert.AreEqual(30L, (long?)after["aggregate"]!["numerator"]);
+        Assert.AreEqual(30L, (long?)before["aggregate"]!["denominator"]);
+        Assert.AreEqual(30L, (long?)after["aggregate"]!["denominator"]);
+        Assert.IsTrue(JsonNode.DeepEquals(before["rawCounts"], after["rawCounts"]));
+        Assert.AreEqual(1L, (long?)before["effectiveCounts"]!["UnqualifiedKilled"]);
+        Assert.AreEqual(0L, (long?)after["effectiveCounts"]!["UnqualifiedKilled"]);
+        Assert.AreEqual(true, (bool?)after["aggregate"]!["thresholdMet"]);
+        Assert.AreEqual(false, (bool?)after["qualified"]);
+        Assert.HasCount(1, after["issues"]!.AsArray());
+        Assert.IsTrue(JsonNode.DeepEquals(before["issues"], after["issues"]));
+        Assert.AreEqual(0, afterAudit.NormalHostCount);
+        Assert.AreSame(beforeAudit.Issues, afterAudit.Issues);
+    }
+
+    [TestMethod]
     [DataRow(27L, 30L, true)]
     [DataRow(26L, 30L, false)]
     [DataRow(899L, 1000L, false)]

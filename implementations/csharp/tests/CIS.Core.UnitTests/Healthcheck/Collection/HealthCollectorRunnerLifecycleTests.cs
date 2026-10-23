@@ -52,7 +52,7 @@ public sealed class HealthCollectorRunnerLifecycleTests
         Assert.Throws<InvalidOperationException>(() => scope.Runner.Register(monitor, owner, new HealthCollectorOptions()));
 
         Assert.AreEqual(0, owner.Acquisitions);
-        await scope.Runner.StartAsync();
+        await scope.Runner.StartAsync().WaitAsync(Deadline);
         Assert.AreEqual(HealthCollectionDisposition.Committed, (await first.CollectAsync().WaitAsync(Deadline)).Disposition);
         Assert.AreEqual(1, owner.Callbacks);
     }
@@ -62,7 +62,7 @@ public sealed class HealthCollectorRunnerLifecycleTests
     {
         await using var scope = new Scope();
         Assert.Throws<InvalidOperationException>(() => new HealthCollectorRunner(scope.Service));
-        await scope.Runner.DisposeAsync();
+        await scope.Runner.DisposeAsync().AsTask().WaitAsync(Deadline);
         Assert.Throws<InvalidOperationException>(() => new HealthCollectorRunner(scope.Service));
     }
 
@@ -77,7 +77,7 @@ public sealed class HealthCollectorRunnerLifecycleTests
         IHealthMonitor monitor = scope.Policy(policy);
         Owner owner = scope.Owner(HealthyResult(policy));
         IHealthCollectionRegistration registration = scope.Runner.Register(monitor, owner, new HealthCollectorOptions());
-        await scope.Runner.StartAsync();
+        await scope.Runner.StartAsync().WaitAsync(Deadline);
         scope.Clock.Advance(TimeSpan.FromSeconds(3));
 
         HealthCollectionAttempt attempt = await registration.CollectAsync().WaitAsync(Deadline);
@@ -120,7 +120,7 @@ public sealed class HealthCollectorRunnerLifecycleTests
             _ => Task.FromException<HealthCollectionResult>(new OperationCanceledException("unexpected cancellation"))
         };
         IHealthCollectionRegistration registration = scope.Runner.Register(monitor, owner, new HealthCollectorOptions());
-        await scope.Runner.StartAsync();
+        await scope.Runner.StartAsync().WaitAsync(Deadline);
 
         HealthCollectionAttempt attempt = await registration.CollectAsync().WaitAsync(Deadline);
 
@@ -147,7 +147,7 @@ public sealed class HealthCollectorRunnerLifecycleTests
         Owner owner = scope.Owner(HealthCollectionResult.Execution(HealthExecutionOutcome.Succeeded));
         owner.Evaluate = _ => Task.FromResult<HealthCollectionResult>(null!);
         IHealthCollectionRegistration registration = scope.Runner.Register(monitor, owner, new HealthCollectorOptions());
-        await scope.Runner.StartAsync();
+        await scope.Runner.StartAsync().WaitAsync(Deadline);
 
         Assert.IsTrue((await registration.CollectAsync().WaitAsync(Deadline)).EvaluationFailed);
         Assert.AreEqual(1L, scope.Only().Outcomes!.Failed);
@@ -182,7 +182,7 @@ public sealed class HealthCollectorRunnerLifecycleTests
         };
         IHealthCollectionRegistration registration = scope.Runner.Register(monitor, owner,
             new HealthCollectorOptions { IsRequired = false });
-        await scope.Runner.StartAsync();
+        await scope.Runner.StartAsync().WaitAsync(Deadline);
         scope.Clock.Advance(TimeSpan.FromMinutes(2));
 
         HealthCollectionAttempt attempt = await registration.CollectAsync().WaitAsync(Deadline);
@@ -206,7 +206,7 @@ public sealed class HealthCollectorRunnerLifecycleTests
         Owner owner = scope.Owner(HealthCollectionResult.Diagnostics([HealthMeasurement.Integer("count", 9, observed)]));
         IHealthCollectionRegistration registration = scope.Runner.Register(monitor, owner,
             new HealthCollectorOptions { IsRequired = false });
-        await scope.Runner.StartAsync();
+        await scope.Runner.StartAsync().WaitAsync(Deadline);
 
         HealthCollectionAttempt attempt = await registration.CollectAsync().WaitAsync(Deadline);
 
@@ -214,6 +214,7 @@ public sealed class HealthCollectorRunnerLifecycleTests
         Assert.AreEqual(MonitorState.Pending, scope.Only().State);
         Assert.IsNull(scope.Only().LastObservationAtUtc);
         Assert.AreEqual(0L, scope.Only().Outcomes!.Successful);
+        Assert.HasCount(1, scope.Only().Measurements, "The optional collection must publish its diagnostic measurement while leaving policy state pending.");
         Assert.AreEqual(observed, scope.Only().Measurements.Single().ObservedAtUtc);
         GC.KeepAlive(monitor);
     }
@@ -228,7 +229,7 @@ public sealed class HealthCollectorRunnerLifecycleTests
         Owner owner = scope.Owner(HealthCollectionResult.Number(3));
         owner.Evaluate = _ => Task.FromException<HealthCollectionResult>(new InvalidOperationException("numeric read failed"));
         IHealthCollectionRegistration registration = scope.Runner.Register(monitor, owner, new HealthCollectorOptions());
-        await scope.Runner.StartAsync();
+        await scope.Runner.StartAsync().WaitAsync(Deadline);
         scope.Clock.Advance(TimeSpan.FromSeconds(1));
 
         await registration.CollectAsync().WaitAsync(Deadline);
@@ -249,7 +250,7 @@ public sealed class HealthCollectorRunnerLifecycleTests
         var monitor = (IAvailabilityMonitor)scope.Policy(3);
         Owner owner = scope.Owner(HealthCollectionResult.AvailabilityPublished());
         IHealthCollectionRegistration registration = scope.Runner.Register(monitor, owner, new HealthCollectorOptions());
-        await scope.Runner.StartAsync();
+        await scope.Runner.StartAsync().WaitAsync(Deadline);
         await registration.CollectAsync().WaitAsync(Deadline);
         owner.Evaluate = _ => Task.FromResult(HealthCollectionResult.AvailabilityRefreshFailed(new HealthDiagnostic("RefreshFailed")));
 
@@ -276,9 +277,9 @@ public sealed class HealthCollectorRunnerLifecycleTests
         if (observation == 2)
         { owner.Evaluate = _ => Task.FromException<HealthCollectionResult>(new InvalidOperationException("stale error")); }
         IHealthCollectionRegistration registration = scope.Runner.Register(monitor, owner, new HealthCollectorOptions());
-        await scope.Runner.StartAsync();
+        await scope.Runner.StartAsync().WaitAsync(Deadline);
         Task<HealthCollectionAttempt> pending = registration.CollectAsync();
-        await owner.CallbackEntered.WaitAsync(Deadline);
+        await WaitForOwnedGateAsync(owner.CallbackEntered, pending, owner.CleanupEntered);
         scope.Clock.Advance(TimeSpan.FromSeconds(1));
         var reason = new HealthDiagnostic("DirectWinner");
         monitor.Flag(reason);
@@ -303,9 +304,9 @@ public sealed class HealthCollectorRunnerLifecycleTests
         Owner owner = scope.Owner(HealthCollectionResult.Condition(true).WithMeasurements(
         [HealthMeasurement.Integer("shared", 2, Epoch), HealthMeasurement.Integer("other", 3, Epoch)]), blockCallback: true);
         IHealthCollectionRegistration registration = scope.Runner.Register(monitor, owner, new HealthCollectorOptions());
-        await scope.Runner.StartAsync();
+        await scope.Runner.StartAsync().WaitAsync(Deadline);
         Task<HealthCollectionAttempt> pending = registration.CollectAsync();
-        await owner.CallbackEntered.WaitAsync(Deadline);
+        await WaitForOwnedGateAsync(owner.CallbackEntered, pending, owner.CleanupEntered);
         monitor.ReportMeasurement(HealthMeasurement.Integer("shared", 99, Epoch.AddSeconds(1)));
         owner.ReleaseCallback();
 
@@ -326,7 +327,7 @@ public sealed class HealthCollectorRunnerLifecycleTests
         Owner owner = scope.Owner(HealthCollectionResult.Execution(HealthExecutionOutcome.Succeeded));
         await owner.BeginOwnerDisposal().WaitAsync(Deadline);
         IHealthCollectionRegistration registration = scope.Runner.Register(monitor, owner, new HealthCollectorOptions());
-        await scope.Runner.StartAsync();
+        await scope.Runner.StartAsync().WaitAsync(Deadline);
 
         HealthCollectionAttempt attempt = await registration.CollectAsync().WaitAsync(Deadline);
 
@@ -348,7 +349,7 @@ public sealed class HealthCollectorRunnerLifecycleTests
         Owner owner = scope.Owner(HealthCollectionResult.Execution(HealthExecutionOutcome.Succeeded));
         owner.AcquisitionFault = new InvalidOperationException("lease acquisition failed");
         IHealthCollectionRegistration registration = scope.Runner.Register(monitor, owner, new HealthCollectorOptions());
-        await scope.Runner.StartAsync();
+        await scope.Runner.StartAsync().WaitAsync(Deadline);
 
         HealthCollectionAttempt attempt = await registration.CollectAsync().WaitAsync(Deadline);
 
@@ -373,7 +374,7 @@ public sealed class HealthCollectorRunnerLifecycleTests
         Owner owner = scope.Owner(HealthCollectionResult.Execution(HealthExecutionOutcome.Succeeded));
         owner.AcquisitionProtocol = protocol;
         IHealthCollectionRegistration registration = scope.Runner.Register(monitor, owner, new HealthCollectorOptions());
-        await scope.Runner.StartAsync();
+        await scope.Runner.StartAsync().WaitAsync(Deadline);
 
         HealthCollectionAttempt attempt = await registration.CollectAsync().WaitAsync(Deadline);
 
@@ -395,7 +396,7 @@ public sealed class HealthCollectorRunnerLifecycleTests
         Owner owner = scope.Owner(HealthCollectionResult.Execution(HealthExecutionOutcome.Succeeded));
         owner.CleanupFault = new InvalidOperationException("lease cleanup failed");
         IHealthCollectionRegistration registration = scope.Runner.Register(monitor, owner, new HealthCollectorOptions());
-        await scope.Runner.StartAsync();
+        await scope.Runner.StartAsync().WaitAsync(Deadline);
 
         HealthCollectionAttempt attempt = await registration.CollectAsync().WaitAsync(Deadline);
 
@@ -417,10 +418,10 @@ public sealed class HealthCollectorRunnerLifecycleTests
         Owner owner = scope.Owner(HealthCollectionResult.Condition(true), blockCleanup: true);
         IHealthCollectionRegistration registration = scope.Runner.Register(monitor, owner, new HealthCollectorOptions());
         owner.AfterAcquisition = registration.Withdraw;
-        await scope.Runner.StartAsync();
+        await scope.Runner.StartAsync().WaitAsync(Deadline);
 
         Task<HealthCollectionAttempt> pending = registration.CollectAsync();
-        await owner.CleanupEntered.WaitAsync(Deadline);
+        await WaitForOwnedGateAsync(owner.CleanupEntered, pending);
         Task disposal = registration.WaitForDisposalAsync();
         Assert.AreEqual(0, owner.Callbacks);
         Assert.AreEqual(1, owner.ActiveLeases);
@@ -443,9 +444,9 @@ public sealed class HealthCollectorRunnerLifecycleTests
         IConditionMonitor monitor = scope.Condition();
         Owner owner = scope.Owner(HealthCollectionResult.Condition(true), blockCallback: true, blockCleanup: true);
         IHealthCollectionRegistration registration = scope.Runner.Register(monitor, owner, new HealthCollectorOptions());
-        await scope.Runner.StartAsync();
+        await scope.Runner.StartAsync().WaitAsync(Deadline);
         Task<HealthCollectionAttempt> pending = registration.CollectAsync();
-        await owner.CallbackEntered.WaitAsync(Deadline);
+        await WaitForOwnedGateAsync(owner.CallbackEntered, pending, owner.CleanupEntered);
         Task dependencyDisposal = owner.BeginOwnerDisposal();
 
         registration.Withdraw();
@@ -456,7 +457,7 @@ public sealed class HealthCollectorRunnerLifecycleTests
         Assert.IsFalse(pending.IsCompleted);
         monitor.Flag(new HealthDiagnostic("FinalOwnerReport"));
         owner.ReleaseCallback();
-        await owner.CleanupEntered.WaitAsync(Deadline);
+        await WaitForOwnedGateAsync(owner.CleanupEntered, pending);
         Assert.IsFalse(dependencyDisposal.IsCompleted);
         Assert.IsFalse(registrationDisposal.IsCompleted);
         Assert.IsFalse(pending.IsCompleted);
@@ -476,9 +477,9 @@ public sealed class HealthCollectorRunnerLifecycleTests
         IConditionMonitor monitor = scope.Condition(initiallyFlagged: true);
         Owner owner = scope.Owner(HealthCollectionResult.Condition(false), blockCallback: true, blockCleanup: true);
         IHealthCollectionRegistration registration = scope.Runner.Register(monitor, owner, new HealthCollectorOptions());
-        await scope.Runner.StartAsync();
+        await scope.Runner.StartAsync().WaitAsync(Deadline);
         Task<HealthCollectionAttempt> pending = registration.CollectAsync();
-        await owner.CallbackEntered.WaitAsync(Deadline);
+        await WaitForOwnedGateAsync(owner.CallbackEntered, pending, owner.CleanupEntered);
 
         monitor.Withdraw();
         await owner.LifetimeCanceled.WaitAsync(Deadline);
@@ -487,7 +488,7 @@ public sealed class HealthCollectorRunnerLifecycleTests
         Assert.AreEqual(HealthStatus.Healthy, scope.Service.CaptureSnapshot().HealthStatus);
         Assert.IsFalse(disposal.IsCompleted);
         owner.ReleaseCallback();
-        await owner.CleanupEntered.WaitAsync(Deadline);
+        await WaitForOwnedGateAsync(owner.CleanupEntered, pending);
         Assert.IsFalse(disposal.IsCompleted);
         owner.ReleaseCleanup();
 
@@ -525,9 +526,9 @@ public sealed class HealthCollectorRunnerLifecycleTests
         Owner queuedOwner = scope.Owner(HealthCollectionResult.Condition(true));
         IHealthCollectionRegistration first = scope.Runner.Register(blockerMonitor, blocker, new HealthCollectorOptions());
         IHealthCollectionRegistration queued = scope.Runner.Register(queuedMonitor, queuedOwner, new HealthCollectorOptions());
-        await scope.Runner.StartAsync();
+        await scope.Runner.StartAsync().WaitAsync(Deadline);
         Task<HealthCollectionAttempt> firstAttempt = first.CollectAsync();
-        await blocker.CallbackEntered.WaitAsync(Deadline);
+        await WaitForOwnedGateAsync(blocker.CallbackEntered, firstAttempt, blocker.CleanupEntered);
         Task<HealthCollectionAttempt> pending = queued.CollectAsync();
         Assert.IsFalse(pending.IsCompleted);
 
@@ -550,9 +551,9 @@ public sealed class HealthCollectorRunnerLifecycleTests
         Owner owner = scope.Owner(HealthCollectionResult.Condition(true), blockCallback: true, blockCleanup: true);
         IHealthCollectionRegistration registration = scope.Runner.Register(monitor, owner,
             new HealthCollectorOptions { Interval = TimeSpan.FromSeconds(1) });
-        await scope.Runner.StartAsync();
+        await scope.Runner.StartAsync().WaitAsync(Deadline);
         registration.ActivatePeriodic();
-        await owner.CallbackEntered.WaitAsync(Deadline);
+        await WaitForOwnedGateAsync(owner.CallbackEntered, null, owner.CleanupEntered);
 
         monitor.Withdraw();
         Task registrationDisposal = registration.WaitForDisposalAsync();
@@ -583,7 +584,7 @@ public sealed class HealthCollectorRunnerLifecycleTests
         Owner owner = scope.Owner(HealthCollectionResult.Condition(true));
         owner.AfterCleanup = () => clock.Arm(failTimestamp);
         IHealthCollectionRegistration registration = scope.Runner.Register(monitor, owner, new HealthCollectorOptions());
-        await scope.Runner.StartAsync();
+        await scope.Runner.StartAsync().WaitAsync(Deadline);
 
         HealthCollectionAttempt attempt = await registration.CollectAsync().WaitAsync(Deadline);
 
@@ -604,16 +605,16 @@ public sealed class HealthCollectorRunnerLifecycleTests
         IConditionMonitor monitor = scope.Condition();
         Owner owner = scope.Owner(HealthCollectionResult.Condition(true), blockCallback: true, blockCleanup: true);
         IHealthCollectionRegistration registration = scope.Runner.Register(monitor, owner, new HealthCollectorOptions());
-        await scope.Runner.StartAsync();
+        await scope.Runner.StartAsync().WaitAsync(Deadline);
         Task<HealthCollectionAttempt> pending = registration.CollectAsync();
-        await owner.CallbackEntered.WaitAsync(Deadline);
+        await WaitForOwnedGateAsync(owner.CallbackEntered, pending, owner.CleanupEntered);
         monitor.Withdraw();
 
         Task disposal = scope.Service.DisposeAsync().AsTask();
         Assert.IsFalse(disposal.IsCompleted);
         Assert.IsTrue(scope.Service.CaptureSnapshot().Application.IsStopping);
         owner.ReleaseCallback();
-        await owner.CleanupEntered.WaitAsync(Deadline);
+        await WaitForOwnedGateAsync(owner.CleanupEntered, pending);
         Assert.IsFalse(disposal.IsCompleted);
         owner.ReleaseCleanup();
 
@@ -631,16 +632,16 @@ public sealed class HealthCollectorRunnerLifecycleTests
         Owner owner = scope.Owner(HealthCollectionResult.Execution(HealthExecutionOutcome.Succeeded), blockCallback: true, blockCleanup: true);
         owner.Evaluate = token => Task.FromException<HealthCollectionResult>(new OperationCanceledException(token));
         IHealthCollectionRegistration registration = scope.Runner.Register(monitor, owner, new HealthCollectorOptions());
-        await scope.Runner.StartAsync();
+        await scope.Runner.StartAsync().WaitAsync(Deadline);
         Task<HealthCollectionAttempt> pending = registration.CollectAsync();
-        await owner.CallbackEntered.WaitAsync(Deadline);
+        await WaitForOwnedGateAsync(owner.CallbackEntered, pending, owner.CleanupEntered);
 
         Task stop = scope.Runner.StopAsync();
         await owner.LifetimeCanceled.WaitAsync(Deadline);
         Assert.IsFalse(stop.IsCompleted);
         Assert.IsFalse(pending.IsCompleted);
         owner.ReleaseCallback();
-        await owner.CleanupEntered.WaitAsync(Deadline);
+        await WaitForOwnedGateAsync(owner.CleanupEntered, pending);
         Assert.IsFalse(stop.IsCompleted);
         owner.ReleaseCleanup();
         await Task.WhenAll(stop, pending).WaitAsync(Deadline);
@@ -661,9 +662,9 @@ public sealed class HealthCollectorRunnerLifecycleTests
         Owner owner = scope.Owner(HealthCollectionResult.Condition(true), blockCallback: true);
         owner.Evaluate = token => Task.FromException<HealthCollectionResult>(new OperationCanceledException(token));
         IHealthCollectionRegistration registration = scope.Runner.Register(monitor, owner, new HealthCollectorOptions());
-        await scope.Runner.StartAsync();
+        await scope.Runner.StartAsync().WaitAsync(Deadline);
         Task<HealthCollectionAttempt> pending = registration.CollectAsync();
-        await owner.CallbackEntered.WaitAsync(Deadline);
+        await WaitForOwnedGateAsync(owner.CallbackEntered, pending, owner.CleanupEntered);
 
         scope.Service.BeginStopping();
         await owner.LifetimeCanceled.WaitAsync(Deadline);
@@ -681,7 +682,7 @@ public sealed class HealthCollectorRunnerLifecycleTests
     public async Task TheIdleRunnerAndServiceDoNotRetainARegistrationCollectorOrOwnerGraph()
     {
         await using var scope = new Scope();
-        await scope.Runner.StartAsync();
+        await scope.Runner.StartAsync().WaitAsync(Deadline);
         WeakReference[] references = RegisterAbandonedOwner(scope.Service, scope.Runner);
 
         CollectUntilDead(references);
@@ -710,32 +711,32 @@ public sealed class HealthCollectorRunnerLifecycleTests
             {
                 case 0:
                     registration.Withdraw();
-                    await Assert.ThrowsAsync<InvalidOperationException>(() => registration.WaitForDisposalAsync());
+                    await Assert.ThrowsAsync<InvalidOperationException>(() => registration.WaitForDisposalAsync()).WaitAsync(Deadline);
                     break;
                 case 1:
                     monitor.Withdraw();
-                    await Assert.ThrowsAsync<InvalidOperationException>(() => monitor.WaitForDisposalAsync());
+                    await Assert.ThrowsAsync<InvalidOperationException>(() => monitor.WaitForDisposalAsync()).WaitAsync(Deadline);
                     break;
                 case 2:
                     scope.Service.BeginStopping();
-                    await Assert.ThrowsAsync<InvalidOperationException>(() => scope.Service.WaitForDisposalAsync());
+                    await Assert.ThrowsAsync<InvalidOperationException>(() => scope.Service.WaitForDisposalAsync()).WaitAsync(Deadline);
                     break;
                 case 3:
-                    await Assert.ThrowsAsync<InvalidOperationException>(() => registration.DisposeAsync().AsTask());
+                    await Assert.ThrowsAsync<InvalidOperationException>(() => registration.DisposeAsync().AsTask()).WaitAsync(Deadline);
                     break;
                 case 4:
-                    await Assert.ThrowsAsync<InvalidOperationException>(() => monitor.DisposeAsync().AsTask());
+                    await Assert.ThrowsAsync<InvalidOperationException>(() => monitor.DisposeAsync().AsTask()).WaitAsync(Deadline);
                     break;
                 case 5:
-                    await Assert.ThrowsAsync<InvalidOperationException>(() => scope.Service.DisposeAsync().AsTask());
+                    await Assert.ThrowsAsync<InvalidOperationException>(() => scope.Service.DisposeAsync().AsTask()).WaitAsync(Deadline);
                     break;
                 default:
-                    await Assert.ThrowsAsync<InvalidOperationException>(() => scope.Runner.DisposeAsync().AsTask());
+                    await Assert.ThrowsAsync<InvalidOperationException>(() => scope.Runner.DisposeAsync().AsTask()).WaitAsync(Deadline);
                     break;
             }
             return HealthCollectionResult.Condition(false);
         };
-        await scope.Runner.StartAsync();
+        await scope.Runner.StartAsync().WaitAsync(Deadline);
 
         HealthCollectionAttempt attempt = await registration.CollectAsync().WaitAsync(Deadline);
 
@@ -755,16 +756,45 @@ public sealed class HealthCollectorRunnerLifecycleTests
         IHealthCollectionRegistration registration = scope.Runner.Register(monitor, owner, new HealthCollectorOptions());
         owner.Evaluate = async _ =>
         {
-            await Assert.ThrowsAsync<InvalidOperationException>(() => scope.Runner.StopAsync());
+            await Assert.ThrowsAsync<InvalidOperationException>(() => scope.Runner.StopAsync()).WaitAsync(Deadline);
             return HealthCollectionResult.Condition(false);
         };
-        await scope.Runner.StartAsync();
+        await scope.Runner.StartAsync().WaitAsync(Deadline);
 
         await registration.CollectAsync().WaitAsync(Deadline);
         await scope.Runner.StopAsync().WaitAsync(Deadline);
 
         Assert.AreEqual(1, owner.Cleanups);
         GC.KeepAlive(monitor);
+    }
+
+    private static async Task WaitForOwnedGateAsync(AsyncSignal entered, Task<HealthCollectionAttempt>? actualCaller,
+        AsyncSignal? cleanupEntered = null)
+    {
+        // The receiving test holds the owner's callback or cleanup gate closed.
+        // Lease cleanup without the expected callback is also observable progress
+        // when cleanup itself is gated and the actual caller remains pending.
+        // Returning the collection result before releasing that gate violates
+        // the actual-operation barrier even if the owner was never entered.
+        using var entryWait = new CancellationTokenSource();
+        Task entry = entered.WaitAsync(Deadline, entryWait.Token);
+        try
+        {
+            Task cleanup = cleanupEntered?.WaitAsync(Deadline, entryWait.Token) ?? entry;
+            await Task.WhenAny(entry, actualCaller ?? entry, cleanup).WaitAsync(Deadline);
+            if (cleanupEntered?.IsSet == true)
+            {
+                Assert.IsTrue(entered.IsSet,
+                    "The owner cannot begin lease cleanup before its expected callback was invoked.");
+            }
+            if (actualCaller is not null)
+            {
+                Assert.IsFalse(actualCaller.IsCompleted,
+                    "The actual collection settled before its owned callback or cleanup gate was released.");
+            }
+            await entry;
+        }
+        finally { entryWait.Cancel(); }
     }
 
     private static HealthCollectionResult HealthyResult(int policy) => policy switch
@@ -842,8 +872,15 @@ public sealed class HealthCollectorRunnerLifecycleTests
         {
             // Release both barriers even if an assertion failed before the callback/cleanup reached it.
             foreach (Owner owner in owners) { owner.ReleaseCallback(); owner.ReleaseCleanup(); }
-            try { await Runner.DisposeAsync().AsTask().WaitAsync(Deadline); }
-            finally { await Service.DisposeAsync().AsTask().WaitAsync(Deadline); }
+            // Both actual drains start after every owner gate has been released.
+            // Capture synchronous failures independently so neither can prevent
+            // the other disposal from being attempted; retain the same watchdog.
+            Task runner = DrainRunnerAsync();
+            Task service = DrainServiceAsync();
+            await Task.WhenAll(runner, service).WaitAsync(Deadline);
+
+            async Task DrainRunnerAsync() => await Runner.DisposeAsync();
+            async Task DrainServiceAsync() => await Service.DisposeAsync();
         }
     }
 
@@ -853,8 +890,8 @@ public sealed class HealthCollectorRunnerLifecycleTests
     private sealed class Owner : IHealthCollector
     {
         private readonly object gate = new();
-        private readonly AsyncSignal callbackRelease = new();
-        private readonly AsyncSignal cleanupRelease = new();
+        private readonly TaskCompletionSource callbackRelease = new(TaskCreationOptions.RunContinuationsAsynchronously);
+        private readonly TaskCompletionSource cleanupRelease = new(TaskCreationOptions.RunContinuationsAsynchronously);
         private readonly TaskCompletionSource ownerDisposed = new(TaskCreationOptions.RunContinuationsAsynchronously);
         private int acquisitions, callbacks, cleanups, activeLeases;
         private bool accepting = true, dependenciesDisposed;
@@ -862,8 +899,8 @@ public sealed class HealthCollectorRunnerLifecycleTests
         internal Owner(HealthCollectionResult result, bool blockCallback, bool blockCleanup)
         {
             Evaluate = _ => Task.FromResult(result);
-            if (!blockCallback) { callbackRelease.Set(); }
-            if (!blockCleanup) { cleanupRelease.Set(); }
+            if (!blockCallback) { callbackRelease.TrySetResult(); }
+            if (!blockCleanup) { cleanupRelease.TrySetResult(); }
         }
 
         internal object Dependencies { get; } = new();
@@ -911,8 +948,8 @@ public sealed class HealthCollectorRunnerLifecycleTests
             return ownerDisposed.Task;
         }
 
-        internal void ReleaseCallback() => callbackRelease.Set();
-        internal void ReleaseCleanup() => cleanupRelease.Set();
+        internal void ReleaseCallback() => callbackRelease.TrySetResult();
+        internal void ReleaseCleanup() => cleanupRelease.TrySetResult();
 
         private sealed class Lease(Owner owner) : IHealthCollectionLease
         {
@@ -927,7 +964,10 @@ public sealed class HealthCollectorRunnerLifecycleTests
                 }
                 using CancellationTokenRegistration cancellation = lifetimeCancellation.Register(owner.LifetimeCanceled.Set);
                 owner.CallbackEntered.Set();
-                await owner.callbackRelease.WaitAsync(Deadline);
+                // Only the receiving test releases this gate. Its entry/result
+                // watchdogs remain bounded, and Scope.DisposeAsync releases it
+                // even when an assertion fails before owner entry.
+                await owner.callbackRelease.Task;
                 lock (owner.gate) { Assert.IsFalse(owner.dependenciesDisposed); }
                 return await owner.Evaluate(lifetimeCancellation);
             }
@@ -936,7 +976,7 @@ public sealed class HealthCollectorRunnerLifecycleTests
             {
                 Assert.AreEqual(0, Interlocked.Exchange(ref disposed, 1), "A lease must be disposed exactly once.");
                 owner.CleanupEntered.Set();
-                await owner.cleanupRelease.WaitAsync(Deadline);
+                await owner.cleanupRelease.Task;
                 bool complete;
                 lock (owner.gate)
                 {

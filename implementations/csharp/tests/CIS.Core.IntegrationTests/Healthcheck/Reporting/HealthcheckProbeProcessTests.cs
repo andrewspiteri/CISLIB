@@ -63,7 +63,9 @@ public sealed class HealthcheckProbeProcessTests
         await using var service = new HealthcheckService(options, new HealthApplicationIdentity { Name = "probe-fixture", InstanceId = Guid.NewGuid() });
         await using IConditionMonitor monitor = service.CreateCondition(new ConditionMonitorOptions { IsCritical = true, InitiallyFlagged = unhealthy });
         if (startup) { service.MarkStartupCompleted(); }
-        await using var server = new HealthPipeServer(service, options); await server.StartAsync();
+        var server = new HealthPipeServer(service, options);
+        await using var serverCleanup = new TransportTestSupport.PipeServerCleanup(server);
+        await TransportTestSupport.StartServerAsync(server, pipe);
         await using var probe = new Probe(["--pipe", pipe, "--view", view, "--timeout-ms", "3000"]);
         var result = await probe.Finish(); Assert.AreEqual(exit, result.Exit, result.Error);
         if (exit == 2) { ErrorResult(result, "DetailsDisabled"); }

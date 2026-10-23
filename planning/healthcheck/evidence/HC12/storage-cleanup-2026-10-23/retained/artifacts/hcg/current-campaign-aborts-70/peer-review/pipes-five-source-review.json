@@ -1,0 +1,74 @@
+{
+  "schema": "cis.healthcheck.pipes-current-aborts70-peer-review/v1-readonly-source-analysis",
+  "completeBoundedReview": true,
+  "observedUtc": "2026-10-23T06:08:18.1492043+00:00",
+  "scope": "Five current Pipes66 selectors only; eight already-aborted hosts in actual01 remain present in actual02. This is source and diagnostic analysis, not a maintained qualification result.",
+  "diagnosticInputs": [
+    { "path": ".artifacts/hcg/current-campaign-aborts-70/actual01/observations.json", "sha256": "a974d6b476375b747b7982c3a25801dfd25d8f10bfd26b997b4b272849a0a239" },
+    { "path": ".artifacts/hcg/current-campaign-aborts-70/actual02/observations.json", "sha256": "13ad516dd428e8f6821776846cae650948f5f9f2dcf2f0de4c2713eeebf9fc20" }
+  ],
+  "frozenSource": {
+    "root": ".artifacts/hcg/inputs-current-62/source",
+    "manifest": ".artifacts/hcg/inputs-current-62/source-inputs.json",
+    "manifestSha256": "2d8d9425feea1eaa548dbc43517737057e5c9071d0917eac2acdb121860cbf08",
+    "server": { "path": "implementations/csharp/src/CIS.Core/Healthcheck/Pipes/HealthPipeServer.cs", "sha256": "809ba1a493d6176e354f84209ea556ae21eb726e626b35eb7cc777956cdba12f" },
+    "unitFixture": { "path": "implementations/csharp/tests/CIS.Core.UnitTests/Healthcheck/Reporting/HealthPipeInternalMutationQualificationTests.cs", "sha256": "115c483734dc6600331daa5d4d4cff43a75dcf40ae6af69c41c7c66e89ab7691" },
+    "integrationFixture": { "path": "implementations/csharp/tests/CIS.Core.IntegrationTests/Healthcheck/Reporting/HealthcheckPipeTransportTests.cs", "sha256": "01cb5c54356d7d2c06491f8f027cc3f74ed2ad9c7a85fdce7d62680ba551f877" },
+    "transportSupport": { "path": "implementations/csharp/tests/CIS.Core.IntegrationTests/Healthcheck/Reporting/TransportTestSupport.cs", "sha256": "6f7bd637aee999fe0ac874e6bc7b95b5107d12b72e4b1bb71860406082f38ddc" }
+  },
+  "currentInstrumentedLogObservation": {
+    "nativePath": "/data/cis-healthcheck-20261021-01a15a72/pipes-full-current66/native/logs/log-20261023.txt",
+    "source": "Actual read-only grep/sed observations of the still-running campaign's retained log; line numbers below refer to that read. The original log remains retained remotely. No full active-file SHA, final mutation report, or historical loaded-image claim is invented.",
+    "evidence": [
+      { "id": "2784", "creationLine": 24293, "instrumentedSourceLine": 25078, "createdAtUtc": "2026-10-23T02:50:48.1786762+00:00", "original": "started", "replacement": "!(started)", "debugMutatorType": "Stryker.Core.Mutators.NegateConditionMutator", "utf16Start": 2403, "utf16End": 2410, "route": "StartAsync: if (IsActive(2784) ? !(started) : started) returns the unchanged startCompletion wait before StartCore on a fresh server." },
+      { "id": "2787", "creationLine": 24296, "instrumentedSourceLine": 25082, "createdAtUtc": "2026-10-23T02:50:48.1803051+00:00", "original": "StartCore();", "replacement": ";", "debugMutatorType": "Stryker.Core.Mutators.StatementMutator", "utf16Start": 2530, "utf16End": 2542, "route": "StartAsync sets started=starting=true, omits StartCore, and returns an unsettled startCompletion wait." },
+      { "id": "2791", "creationLine": 24309, "instrumentedSourceLine": 25099, "createdAtUtc": "2026-10-23T02:50:48.1846676+00:00", "original": "BeginStop();", "replacement": ";", "debugMutatorType": "Stryker.Core.Mutators.StatementMutator", "utf16Start": 3197, "utf16End": 3209, "route": "This is DisposeAsync's BeginStop, not StopAsync's. Disposal waits stopCompletion without initiating terminal stop." },
+      { "id": "2806", "creationLine": 24413, "instrumentedSourceLine": 25117, "createdAtUtc": "2026-10-23T02:50:48.1982602+00:00", "original": "options.PipeEnabled", "replacement": "!(options.PipeEnabled)", "debugMutatorType": "Stryker.Core.Mutators.NegateConditionMutator", "utf16Start": 3653, "utf16End": 3672, "route": "Enabled server skips endpoint creation, publishes zero slots, and can settle startup without an endpoint." },
+      { "id": "2808", "creationLine": 24420, "instrumentedSourceLine": 25124, "createdAtUtc": "2026-10-23T02:50:48.1995372+00:00", "original": "index < options.PipeMaxClients", "replacement": "index > options.PipeMaxClients", "debugMutatorType": "Stryker.Core.Mutators.BinaryExpressionMutator", "utf16Start": 3724, "utf16End": 3754, "route": "Initial index0 with positive PipeMaxClients skips all endpoint creation; zero slots can be published and startup settled." }
+    ]
+  },
+  "findings": [
+    {
+      "ids": ["2784", "2787"],
+      "kind": "Actual mutated startup nonprogress exposed by unbounded fixture await",
+      "fixtures": [
+        "Unit HealthPipeInternalMutationQualificationTests.FailedStandardOutputIsReportedAsTransportFailureWithoutLeakingTheException: await server.StartAsync() at75 has no caller watchdog; await-using server disposal is also unbounded.",
+        "Integration HealthcheckPipeTransportTests.AnActualRequestTimerCreationFailureClosesAdmissionWithoutReadingOrChangingHealth: await server.StartAsync() at154 precedes its bounded connection/timer assertions. A pending startup never reaches those receiving assertions."
+      ],
+      "admissionAndCleanup": "Both fixtures construct their own enabled local server and perform public startup; no supplied owner gate is required to explain the reachable pending task. For2787, starting remains true and even terminal stop can remain unsettled. Bound existing waits and attempt actual cleanup in a future controlled fixture increment; retain nontermination/deadline failures, not fabricated direct assertions.",
+      "hostPids": [1171185, 1172479, 1173920, 1174985],
+      "limit": "Current protocol projection proves these hosts aborted, not the precise suspended managed await. Source reachability corroborates a concrete unbounded await; lastActive alone is not treated as proof of the blocked phase."
+    },
+    {
+      "ids": ["2791"],
+      "kind": "Actual mutated terminal-disposal nonprogress exposed by implicit fixture cleanup",
+      "fixtures": [
+        "Unit FailedStandardOutputIsReportedAsTransportFailureWithoutLeakingTheException may reach its probe/output assertions, then implicit await-using HealthPipeServer.DisposeAsync without a prior explicit Stop or cleanup watchdog.",
+        "Integration InvalidRequestsReceiveBoundedErrorsAndNeverCapture owns an await-using server; its bounded request operation does not bound terminal server disposal."
+      ],
+      "admissionAndCleanup": "Removing BeginStop from DisposeAsync leaves actual accepting handlers and stopCompletion pending when no earlier Stop initiated shutdown. A future cleanup correction must distinguish a test of terminal Dispose itself from ancillary cleanup in a transport-response test; unconditionally calling Stop first can conceal this specific Dispose contract failure.",
+      "hostPids": [1175383, 1176920],
+      "limit": "No claim that either body completed before abort; the protocol contains no returned result for the active method."
+    },
+    {
+      "ids": ["2806", "2808"],
+      "kind": "Repeated bounded connection-cancellation cost exhausts host budget",
+      "hosts": [
+        { "pid": 1184781, "id": "2806", "completed": 23, "completedDurationSeconds": 300.7160448, "literalTimeoutExceptionRows": 0, "sessionTimeoutMs": 311140, "lastThreeDurations": [15.0118445, 15.0131983, 15.0365662] },
+        { "pid": 1185861, "id": "2808", "completed": 23, "completedDurationSeconds": 300.6539884, "literalTimeoutExceptionRows": 0, "sessionTimeoutMs": 311140, "lastThreeDurations": [15.0210744, 15.0166019, 15.0252021] }
+      ],
+      "actualFailure": "All six last-three results are System.OperationCanceledException from NamedPipeClientStream.ConnectInternal; own receiving frames are TransportTestSupport.RequestAsync61/65 or HealthcheckPipeTransportTests.InvalidFramesAreRejectedBeforeSnapshotAndDoNotPoisonTheEndpoint279. TransportTestSupport.Limit is15seconds and RequestAsync owns a CancellationTokenSource(Limit).",
+      "guids": ["195c99fa-0946-8f42-80e4-1e86d446e477", "11e9c5ef-144b-82fb-a2dd-d0a99ec4d750", "1f327cb9-d108-8041-bcc1-670e7bddbf24"],
+      "limit": "Literal TimeoutException count0 is only a type-string observation. It is not absence of deadline/watchdog cost. These are real connection failures under the selected mutations; the aggregate does not prove a permanent single-case fixture hang or a direct assertion kill."
+    }
+  ],
+  "holds": [
+    "All original aborted/completion/unfinished and child-capture issues remain unresolved; no host is reclassified as normal.",
+    "The full current Pipes report and maintained receiving/qualification audit must close before final source/report/status binding or any score assessment.",
+    "No timeout budget, configuration, source, subject process or canonical file was changed. No bare crash, deadline, OperationCanceledException or cleanup timeout is granted assertion credit."
+  ],
+  "qualificationCredit": 0,
+  "newSubjectRuns": 0,
+  "builds": 0,
+  "canonicalEdits": false
+}

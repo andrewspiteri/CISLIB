@@ -28,7 +28,8 @@ internal static partial class HealthcheckMutationUnionVerification
         string objectModel = files.Pin(Item(descriptor["objectModel"]));
         string[] logs = ReadLogs(files, descriptor);
         Definition[] definitions = ParseReport(report, group, reportHash, nativeRoot, sources);
-        NativeAuditResult audit = HealthcheckMutationNativeAudit.Audit(report, config, logs, objectModel, reportHash, definitions, sources);
+        HealthcheckMutationNativeKernelEvidence? kernel = ReadKernelInputs(files, descriptor, lane);
+        NativeAuditResult audit = HealthcheckMutationNativeAudit.Audit(report, config, logs, objectModel, reportHash, definitions, sources, kernel);
         var issues = audit.Issues.ToList();
         VerifyRestoration(files, descriptor, sources, group, report);
         if (group is "pipes" or "aspnet")
@@ -48,8 +49,11 @@ internal static partial class HealthcheckMutationUnionVerification
             ["nativeExit"] = exit,
             ["hostCount"] = audit.HostCount,
             ["normalHostCount"] = audit.NormalHostCount,
+            ["completedBeforeAbortKilledIds"] = new JsonArray(audit.CompletedBeforeAbortKilledIds.Select(id => (JsonNode?)JsonValue.Create(id)).ToArray()),
             ["details"] = audit.Observations.DeepClone()
         };
+        // QualifiedKilledIds explicitly deduplicates normal direct, reviewed semantic and
+        // reviewed completed-before-abort categories. Every native/child issue remains.
         return (new Partition(group, reportHash, sources.Where(s => s.Group == group).ToArray(), definitions,
             audit.QualifiedKilledIds, issues.ToArray()), observation);
     }

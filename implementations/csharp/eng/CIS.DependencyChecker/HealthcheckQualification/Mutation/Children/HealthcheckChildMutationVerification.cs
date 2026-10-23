@@ -5,6 +5,7 @@ using System.Reflection.PortableExecutable;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Text.Json;
+using CIS.Verification.HealthcheckMutationChildren;
 using static CIS.Verification.HealthcheckMutationChildren.HealthcheckMutationChildProtocol;
 
 namespace CIS.Verification;
@@ -62,13 +63,15 @@ internal static class HealthcheckChildMutationVerification
             "tests/CIS.Core.IntegrationTests/Healthcheck/Reporting/HealthcheckHttpTransportTests.cs",
             "tests/CIS.Core.IntegrationTests/Healthcheck/Reporting/HealthcheckProbeProcessTests.cs",
             "eng/CIS.DependencyChecker/HealthcheckQualification/Mutation/Children/HealthcheckMutationChildSupport.cs",
+            "eng/CIS.DependencyChecker/HealthcheckQualification/Mutation/Children/HealthcheckMutationChildCapture.cs",
             "eng/CIS.DependencyChecker/HealthcheckQualification/Mutation/Children/HealthcheckMutationChildObserver.cs"
         }.All(required => sources.Any(pin => pin.Path == required)), "Child proof source inventory omitted a required maintained input.");
         string coreLibrary = typeof(object).Assembly.Location;
         var session = new Session(Schema, language, output, config, Hash(config), tool, Hash(tool), Digest(selectorSource),
             dotnet, Hash(dotnet), coreLibrary, Hash(coreLibrary), sources, DateTimeOffset.UtcNow,
             CoverageAnalysisOff: true, AllowInitialUninstrumentedBaseline: phase is "automatic" or "source-replay", SourceReplay: sourceReplay,
-            RequireWindowsErrorMode: OperatingSystem.IsWindows());
+            RequireWindowsErrorMode: OperatingSystem.IsWindows(), BoundIntentVersion: HealthcheckMutationChildCapture.Version);
+        HealthcheckMutationChildCapture.PrepareRoots(output);
         Write(Path.Combine(output, "session.json"), session);
         File.WriteAllText(Path.Combine(output, "pinned-MutantControl.cs.txt"), selectorSource);
         Directory.CreateDirectory(Path.Combine(output, "launches"));
@@ -109,7 +112,14 @@ internal static class HealthcheckChildMutationVerification
             if (session.SourceReplay is { } sourceReplay) { ValidateSourceReplay(session.LanguageRoot, sourceReplay); }
         });
         string[] directories = Directory.GetDirectories(Path.Combine(session.OutputRoot, "launches"));
-        Require(directories.Length is > 0 and <= 200000, "No bounded actual child launch evidence was retained.");
+        Require(directories.Length <= 200000 && (directories.Length > 0 || session.BoundIntentVersion == HealthcheckMutationChildCapture.Version),
+            "No bounded actual child launch evidence was retained.");
+        HealthcheckMutationChildCapture.AuditResult? captureAudit = null;
+        Check(() =>
+        {
+            captureAudit = HealthcheckMutationChildCapture.Audit(session, sessionPath, directories);
+            failures.AddRange(captureAudit.Failures);
+        });
         foreach (string directory in directories.Order(StringComparer.Ordinal))
         {
             Check(() =>
@@ -282,6 +292,7 @@ internal static class HealthcheckChildMutationVerification
             phase,
             session.RequireWindowsErrorMode,
             sourceReplayControl = session.SourceReplay,
+            boundIntentCapture = captureAudit,
             launches = rows.Count,
             instrumentedLaunches = launches.Count(launch => launch.Instrumented),
             selectedLaunches = launches.Count(launch => launch.ActiveMutant >= 0),

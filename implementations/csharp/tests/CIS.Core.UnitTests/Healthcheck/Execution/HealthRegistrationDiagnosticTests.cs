@@ -11,6 +11,7 @@ namespace CIS.Tests.UnitTests.Healthcheck;
 [TestClass]
 public sealed class HealthRegistrationDiagnosticTests
 {
+    private static readonly TimeSpan Deadline = TimeSpan.FromSeconds(10);
     private static readonly DateTimeOffset Epoch = new(2026, 10, 22, 17, 0, 0, TimeSpan.Zero);
 
     [TestMethod]
@@ -171,7 +172,7 @@ public sealed class HealthRegistrationDiagnosticTests
         Assert.AreSame(withReason ? reason : first, retired.Monitors.Single().RegistrationDiagnostic);
         Assert.AreSame(first, prior.Monitors.Single().RegistrationDiagnostic);
         Assert.AreEqual(HealthFactDisposition.Retired, binding.Report(Fault(binding, new HealthDiagnostic("Late"))));
-        await binding.DisposeAsync();
+        await DisposeExternalAssociationAsync(binding);
         Assert.AreEqual(retired.Revision, scope.Service.CaptureSnapshot().Revision);
         scope.Monitor.ReportSuccess();
         Assert.AreSame(withReason ? reason : first, scope.Snapshot().RegistrationDiagnostic);
@@ -181,42 +182,79 @@ public sealed class HealthRegistrationDiagnosticTests
     public async Task OwnedRetirementWithdrawsCurrentStateAndPreservesTheEarlierImmutableDiagnostic()
     {
         await using var service = new HealthcheckService(new(), Identity(), new ManualTimeProvider(Epoch));
-        await using IHealthExecutionBinding binding = HealthExecutionBinder.Bind(service,
+        IHealthExecutionBinding binding = HealthExecutionBinder.Bind(service,
             new ConsecutiveFailureMonitorOptions { IsCritical = false, FailureThreshold = 1 }, new() { RegistrationId = Guid.NewGuid() });
-        var first = new HealthDiagnostic("Owned");
-        Assert.AreEqual(HealthFactDisposition.Recorded, binding.Report(Fault(binding, first)));
-        HealthSnapshot prior = service.CaptureSnapshot();
-        Assert.AreEqual(HealthFactDisposition.Recorded, binding.Report(new HealthExecutionFact
-        { RegistrationId = binding.RegistrationId, Kind = HealthExecutionFactKind.Retired, OccurredAtUtc = Epoch, IntegrationError = new HealthDiagnostic("FinalOwned") }));
-        Assert.AreEqual(0, service.CaptureSnapshot().MonitorCounts.Active);
-        Assert.AreSame(first, prior.Monitors.Single().RegistrationDiagnostic);
-        Assert.AreEqual(HealthFactDisposition.Retired, binding.Report(Fault(binding, new HealthDiagnostic("Late"))));
+        try
+        {
+            var first = new HealthDiagnostic("Owned");
+            Assert.AreEqual(HealthFactDisposition.Recorded, binding.Report(Fault(binding, first)));
+            HealthSnapshot prior = service.CaptureSnapshot();
+            Assert.AreEqual(HealthFactDisposition.Recorded, binding.Report(new HealthExecutionFact
+            { RegistrationId = binding.RegistrationId, Kind = HealthExecutionFactKind.Retired, OccurredAtUtc = Epoch, IntegrationError = new HealthDiagnostic("FinalOwned") }));
+            Assert.AreEqual(0, service.CaptureSnapshot().MonitorCounts.Active);
+            Assert.AreSame(first, prior.Monitors.Single().RegistrationDiagnostic);
+            Assert.AreEqual(HealthFactDisposition.Retired, binding.Report(Fault(binding, new HealthDiagnostic("Late"))));
+            await binding.DisposeAsync().AsTask().WaitAsync(TimeSpan.FromSeconds(5));
+        }
+        finally
+        {
+            Task disposal = binding.DisposeAsync().AsTask();
+            if (disposal.IsCompleted) { await disposal; }
+        }
     }
 
     [TestMethod]
     public async Task RegistrationExternalUnbindingAndOptionalCollectionNeverClearTheRegistrationDiagnostic()
     {
-        await using var scope = new Scope();
-        IHealthExecutionBinding binding = scope.Bind();
-        var diagnostic = new HealthDiagnostic("Retained");
-        Assert.AreEqual(HealthFactDisposition.Recorded, binding.Report(Fault(binding, diagnostic)));
-        var registered = new HealthExecutionFact { RegistrationId = binding.RegistrationId, Kind = HealthExecutionFactKind.Registered, OccurredAtUtc = Epoch };
-        Assert.AreEqual(HealthFactDisposition.Recorded, binding.Report(registered));
-        HealthSnapshot prior = scope.Service.CaptureSnapshot();
-        Assert.AreEqual(HealthFactDisposition.Duplicate, binding.Report(registered));
-        Assert.AreEqual(prior.Revision, scope.Service.CaptureSnapshot().Revision);
-        await binding.DisposeAsync();
-        Assert.AreSame(diagnostic, scope.Snapshot().RegistrationDiagnostic);
+        var scope = new Scope();
+        HealthCollectorRunner? runner = null;
+        IHealthCollectionRegistration? collection = null;
+        Exception? primary = null;
+        try
+        {
+            IHealthExecutionBinding binding = scope.Bind();
+            var diagnostic = new HealthDiagnostic("Retained");
+            Assert.AreEqual(HealthFactDisposition.Recorded, binding.Report(Fault(binding, diagnostic)));
+            var registered = new HealthExecutionFact { RegistrationId = binding.RegistrationId, Kind = HealthExecutionFactKind.Registered, OccurredAtUtc = Epoch };
+            Assert.AreEqual(HealthFactDisposition.Recorded, binding.Report(registered));
+            HealthSnapshot prior = scope.Service.CaptureSnapshot();
+            Assert.AreEqual(HealthFactDisposition.Duplicate, binding.Report(registered));
+            Assert.AreEqual(prior.Revision, scope.Service.CaptureSnapshot().Revision);
+            await DisposeExternalAssociationAsync(binding);
+            Assert.AreSame(diagnostic, scope.Snapshot().RegistrationDiagnostic);
 
-        await using var runner = new HealthCollectorRunner(scope.Service);
-        await using IHealthCollectionRegistration collection = runner.Register(scope.Monitor, new FailingCollector(), new() { IsRequired = false });
-        await runner.StartAsync();
-        await collection.CollectAsync();
-        HealthMonitorSnapshot after = scope.Snapshot();
-        Assert.AreEqual("Healthcheck.CollectionEvaluation", after.Collection!.LastError!.Code);
-        Assert.AreSame(diagnostic, after.RegistrationDiagnostic);
-        Assert.IsNull(after.Diagnostic);
-        Assert.IsNull(after.Outcomes!.Execution);
+            runner = new HealthCollectorRunner(scope.Service);
+            collection = runner.Register(scope.Monitor, new FailingCollector(), new() { IsRequired = false });
+            await runner.StartAsync().WaitAsync(Deadline);
+            await collection.CollectAsync().WaitAsync(Deadline);
+            HealthMonitorSnapshot after = scope.Snapshot();
+            Assert.IsNotNull(after.Collection);
+            Assert.IsNotNull(after.Collection.LastError, "The failing optional collection must retain its own evaluation diagnostic.");
+            Assert.AreEqual("Healthcheck.CollectionEvaluation", after.Collection.LastError.Code);
+            Assert.AreSame(diagnostic, after.RegistrationDiagnostic);
+            Assert.IsNull(after.Diagnostic);
+            Assert.IsNull(after.Outcomes!.Execution);
+        }
+        catch (Exception error) { primary = error; throw; }
+        finally
+        {
+            Task registration = DrainRegistrationAsync();
+            Task collector = DrainRunnerAsync();
+            Task state = DrainScopeAsync();
+            Task drains = Task.WhenAll(registration, collector, state);
+            try
+            {
+                await drains.WaitAsync(Deadline);
+            }
+            catch (Exception cleanup) when (primary is not null)
+            { throw new AggregateException("The receiving body failed and actual cleanup did not complete successfully.", primary, drains.Exception ?? cleanup); }
+            catch (Exception cleanup) when (cleanup is not TimeoutException && drains.Exception is not null)
+            { throw drains.Exception; }
+
+            async Task DrainRegistrationAsync() { if (collection is not null) { await collection.DisposeAsync(); } }
+            async Task DrainRunnerAsync() { if (runner is not null) { await runner.DisposeAsync(); } }
+            async Task DrainScopeAsync() => await scope.DisposeAsync();
+        }
     }
 
     [TestMethod]
@@ -331,6 +369,14 @@ public sealed class HealthRegistrationDiagnosticTests
     private static HealthParsedResponse Parse(JsonObject envelope) => HealthReportProtocol.ParseResponse(Encoding.UTF8.GetBytes(envelope.ToJsonString()), HealthReportView.Details, 4_194_304);
     private static void Reject(JsonObject envelope) => Assert.ThrowsExactly<FormatException>(() => Parse(envelope));
 
+    private static async Task DisposeExternalAssociationAsync(IHealthExecutionBinding binding)
+    {
+        // Request release without assuming a synchronous wrapper completion.
+        // Scope.DisposeAsync always joins the actual service drain separately.
+        Task disposal = binding.DisposeAsync().AsTask();
+        if (disposal.IsCompleted) { await disposal; }
+    }
+
     private sealed class Scope : IAsyncDisposable
     {
         private readonly List<IHealthExecutionBinding> bindings = [];
@@ -351,9 +397,12 @@ public sealed class HealthRegistrationDiagnosticTests
         internal HealthMonitorSnapshot Snapshot() => Service.CaptureSnapshot().Monitors.Single();
         public async ValueTask DisposeAsync()
         {
-            foreach (IHealthExecutionBinding binding in bindings) { await binding.DisposeAsync(); }
-            await Service.DisposeAsync();
-            GC.KeepAlive(Monitor);
+            try { await Task.WhenAll(bindings.Select(DisposeExternalAssociationAsync)); }
+            finally
+            {
+                try { await Service.DisposeAsync().AsTask().WaitAsync(TimeSpan.FromSeconds(5)); }
+                finally { GC.KeepAlive(Monitor); }
+            }
         }
     }
 

@@ -1,0 +1,31 @@
+{
+  "stryker-config": {
+    "project": "CIS.Core.csproj",
+    "test-projects": [
+      "../../tests/CIS.Core.UnitTests/CIS.Core.UnitTests.csproj"
+    ],
+    "test-case-filter": "FullyQualifiedName~CIS.Tests.UnitTests.Healthcheck.HealthCollectorManualIntervalBoundaryTests.|FullyQualifiedName=CIS.Tests.TestAssemblySetup.SchedulingMatchesRequestedMode",
+    "test-runner": "vstest",
+    "target-framework": "net10.0",
+    "configuration": "Release",
+    "mutate": [
+      "Healthcheck/HealthCollectorRunner.cs{23556..23618}"
+    ],
+    "mutation-level": "Complete",
+    "reporters": [
+      "json",
+      "html",
+      "progress",
+      "cleartext"
+    ],
+    "concurrency": 2,
+    "disable-bail": true,
+    "additional-timeout": 300000,
+    "thresholds": {
+      "high": 100,
+      "low": 90,
+      "break": 90
+    },
+    "disable-mix-mutants": true
+  }
+}

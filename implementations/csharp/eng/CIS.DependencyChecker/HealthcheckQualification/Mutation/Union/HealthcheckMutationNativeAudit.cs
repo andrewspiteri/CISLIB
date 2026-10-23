@@ -26,8 +26,9 @@ internal static partial class HealthcheckMutationNativeAudit
     private static readonly Regex ParentMonitor = new(@"Monitoring parent process with id: '(?<pid>\d+)'", RegexOptions.CultureInvariant, TimeSpan.FromSeconds(1));
 
     internal static NativeAuditResult Audit(JsonObject report, JsonObject config, IReadOnlyList<string> logPaths, string objectModelPath,
-        string? originalReportSha256 = null, Definition[]? sourceCheckedDefinitions = null, Source[]? reviewedSources = null)
-        => AuditCore(report, config, logPaths, objectModelPath, originalReportSha256, sourceCheckedDefinitions, AbortedTailCase.Unit18Selector1904, reviewedSources);
+        string? originalReportSha256 = null, Definition[]? sourceCheckedDefinitions = null, Source[]? reviewedSources = null,
+        HealthcheckMutationNativeKernelEvidence? kernelEvidence = null)
+        => AuditCore(report, config, logPaths, objectModelPath, originalReportSha256, sourceCheckedDefinitions, AbortedTailCase.Unit18Selector1904, reviewedSources, kernelEvidence);
 
     // Receiving seam: explicit synthetic case data cannot enter
     // the maintained Audit entry point, which uses only the fixed reviewed case.
@@ -36,7 +37,8 @@ internal static partial class HealthcheckMutationNativeAudit
         => AuditCore(report, config, logPaths, objectModelPath, reportSha256, definitions, receivingCase);
 
     private static NativeAuditResult AuditCore(JsonObject report, JsonObject config, IReadOnlyList<string> logPaths, string objectModelPath,
-        string? originalReportSha256, Definition[]? sourceCheckedDefinitions, AbortedTailCase abortedTailCase, Source[]? reviewedSources = null)
+        string? originalReportSha256, Definition[]? sourceCheckedDefinitions, AbortedTailCase abortedTailCase, Source[]? reviewedSources = null,
+        HealthcheckMutationNativeKernelEvidence? kernelEvidence = null)
     {
         var state = new AuditState();
         try
@@ -90,7 +92,7 @@ internal static partial class HealthcheckMutationNativeAudit
             string[] discoveryHostPaths = hosts.Where(IsDiscoveryHost).ToArray();
             foreach (string path in discoveryHostPaths)
             {
-                ReadDiscoveryHost(path, tests, filter, outcomes, discoveries, requests, exits, discoveryHosts, state, ownership);
+                ReadDiscoveryHost(path, tests, filter, outcomes, discoveries, requests, exits, discoveryHosts, state, ownership, kernelEvidence);
             }
             ResolveLinkedDiscoveryOwnership(tests, discoveries, ownership, state);
             foreach (string path in controllers.Except(discoveryControllers, StringComparer.Ordinal))
@@ -126,7 +128,10 @@ internal static partial class HealthcheckMutationNativeAudit
 
             foreach (NativeDefinition definition in definitions.Values.Where(value => value.Status == "Killed"))
             {
-                if (!state.AssertionKilled.Contains(definition.Id) && !state.ReviewedSemanticKilled.Contains(definition.Id))
+                // The fixed reviewed completed-before-abort category is separate from normal
+                // hosts. Unreviewed missing witnesses retain their existing normal-host rule.
+                if (!state.AssertionKilled.Contains(definition.Id) && !state.ReviewedSemanticKilled.Contains(definition.Id)
+                    && !state.CompletedBeforeAbortKilled.Contains(definition.Id))
                 {
                     state.Issue("NativeAssertionWitnessMissing", "Raw Killed has no exact reported-and-declared GUID direct assertion or source-bound reviewed semantic failure in a complete normal host.", [definition.Id]);
                 }
@@ -254,6 +259,7 @@ internal static partial class HealthcheckMutationNativeAudit
         JsonArray? finalActive = null;
         var parents = new HashSet<int>();
         var results = new Dictionary<string, NativeResult>(StringComparer.OrdinalIgnoreCase);
+        var completedBeforeAbort = new CompletedBeforeAbortProgress();
         bool malformed = false, diagnosticsNormal = true;
         string? runtime = null;
         try
@@ -262,7 +268,10 @@ internal static partial class HealthcheckMutationNativeAudit
             {
                 lineNumber++;
                 CheckLine(line);
+                completedBeforeAbort.ObserveLifecycle(line, lineNumber, pid);
                 int linePid = LinePid(line);
+                if (linePid <= 0 && (line.Contains(ReceiveMarker, StringComparison.Ordinal) || line.Contains(SendMarker, StringComparison.Ordinal)))
+                { completedBeforeAbort.UnknownTypedMessage = true; }
                 if (lineNumber == 1)
                 {
                     pid = linePid;
@@ -299,9 +308,10 @@ internal static partial class HealthcheckMutationNativeAudit
                         Require(request is not null && request.Run.SameAs(hostRun), "Actual parent and host request/selector/test identities disagree.");
                     }
                     else if (type == "TestSession.Terminate") { terminates++; terminateLine = lineNumber; }
-                    else if (type == "TestExecution.Abort") { aborts++; }
+                    else if (type == "TestExecution.Abort") { aborts++; completedBeforeAbort.FirstAbortLine = completedBeforeAbort.FirstAbortLine == 0 ? lineNumber : completedBeforeAbort.FirstAbortLine; }
                     else if (type == "TestExecution.Cancel") { cancels++; }
                     else if (type == "TestDiscovery.Start") { throw Invalid("Mixed discovery and mutation execution in one host."); }
+                    else if (type is not ("ProtocolVersion" or "TestExecution.Initialize")) { completedBeforeAbort.UnknownTypedMessage = true; }
                 }
 
                 int send = line.IndexOf(SendMarker, StringComparison.Ordinal);
@@ -314,7 +324,11 @@ internal static partial class HealthcheckMutationNativeAudit
                     else { diagnosticsNormal = false; }
                     continue;
                 }
-                if (sentType is not ("TestExecution.StatsChange" or "TestExecution.Completed")) { continue; }
+                if (sentType is not ("TestExecution.StatsChange" or "TestExecution.Completed"))
+                {
+                    if (sentType != "ProtocolVersion") { completedBeforeAbort.UnknownTypedMessage = true; }
+                    continue;
+                }
                 Require(starts == 1 && hostRun is not null && completions == 0, "Result is outside a unique active native execution.");
                 JsonObject sentPayload = Obj(sent["Payload"]);
                 JsonObject batch;
@@ -335,6 +349,7 @@ internal static partial class HealthcheckMutationNativeAudit
                     Require(hostRun.Selected.Contains(id), "Result GUID was not requested for this native host.");
                     int outcome = Outcome(result["Outcome"], outcomes);
                     Require(results.TryAdd(id, new NativeResult(outcome, OptionalText(result, "ErrorMessage"), OptionalText(result, "ErrorStackTrace"))), "Duplicate native GUID result across StatsChange/Completed.");
+                    completedBeforeAbort.ResultLines.Add(id, lineNumber);
                 }
             }
         }
@@ -422,7 +437,13 @@ internal static partial class HealthcheckMutationNativeAudit
         }
         Check(hostRun is not null && hostRun.Selected.SetEquals(results.Keys), "NativeResultSetIncomplete", "Actual unique results must equal the requested GUID set.");
 
-        if (!normal || hostRun is null) { return; }
+        if (!normal || hostRun is null)
+        {
+            ObserveCompletedDirectAssertionBeforeLaterAbort(completedBeforeAbort, semantic, path, pid, request, hostRun, parents,
+                runtime, malformed, diagnosticsNormal, starts, completions, aborts, cancels, completeLine, terminateLine, exitingLine,
+                terminates, exiting, completion, finalActive, results, tests, definitions, outcomes, actualExit, state);
+            return;
+        }
         state.NormalHostCount++;
         if (ids.Length == 0)
         {
@@ -536,7 +557,8 @@ internal static partial class HealthcheckMutationNativeAudit
 
     private static void ReadDiscoveryHost(string path, Dictionary<string, TestIdentity> tests, string filter, OutcomeMetadata outcomes,
         Dictionary<int, DiscoveryRequest> discoveries, Dictionary<int, NativeRequest> requests,
-        Dictionary<int, NativeExit> exits, HashSet<int> observed, AuditState state, Dictionary<string, string> ownership)
+        Dictionary<int, NativeExit> exits, HashSet<int> observed, AuditState state, Dictionary<string, string> ownership,
+        HealthcheckMutationNativeKernelEvidence? kernelEvidence)
     {
         int pid = 0, lineNumber = 0, starts = 0, completions = 0, completeLine = 0, terminates = 0, terminateLine = 0, exiting = 0, exitingLine = 0;
         string? runtime = null;
@@ -619,9 +641,19 @@ internal static partial class HealthcheckMutationNativeAudit
             Require(parents.Count == 1 && discoveries.TryGetValue(parents.Single(), out request) && request.Trusted
                 && (!request.SequentialControllerClosureRequired || request.ControllerClosed), "Discovery has no unique trusted typed parent request with required sequential closure.");
             Require(spec is not null && spec.Sources.IsSubsetOf(request.Spec.Sources), "Discovery source origins differ from its actual parent.");
-            Require(request.LaunchLines.Count > 0 && exits.TryGetValue(pid, out NativeExit? exit)
-                && exit.ControllerPid == request.ControllerPid && exit.Path == request.Path && exit.Line > request.LaunchLines.Min()
-                && exit.Code == 0 && exit.Error.Length == 0, "Discovery has no actual standard launch and matching parent OS-exit0.");
+            Require(request.LaunchLines.Count > 0, "Discovery has no actual standard launch.");
+            JsonObject? kernelProof = null;
+            if (exits.TryGetValue(pid, out NativeExit? exit))
+            {
+                Require(exit.ControllerPid == request.ControllerPid && exit.Path == request.Path && exit.Line > request.LaunchLines.Min()
+                    && exit.Code == 0 && exit.Error.Length == 0, "Discovery actual parent OS-exit callback is contradictory.");
+            }
+            else
+            {
+                Require(!request.SequentialControllerClosureRequired && request.LaunchLines.Count == 1 && kernelEvidence is not null && runtime is not null
+                    && kernelEvidence.TryConfirmDiscoveryHost(pid, request.ControllerPid, path, request.Path, spec.Sources, runtime, out kernelProof),
+                    "Discovery lacks both its parent OS-exit callback and a complete pinned standard-discovery kernel exit proof.");
+            }
             Require(runtime is not null && (runtime.EndsWith("/Microsoft.NETCore.App/10.0.12", StringComparison.Ordinal)
                 || runtime.EndsWith("\\Microsoft.NETCore.App\\10.0.12", StringComparison.Ordinal)), "Discovery subject runtime is not observed10.0.12.");
             Require(starts == 1 && completions == 1 && complete is not null && !Boolean(complete, "IsAborted")
@@ -636,6 +668,7 @@ internal static partial class HealthcheckMutationNativeAudit
             { Require(ownership.TryAdd(guid, origin), "A declared discovery GUID has duplicate or ambiguous project ownership."); }
             request.ObservedSources.UnionWith(spec.Sources); request.HostCount++;
             state.NormalDiscoveryHostCount++;
+            if (kernelProof is not null) { state.KernelDiscoveryExitProofs.Add(kernelProof); }
             state.DiscoveredGuidCount += found.Count;
         }
         catch (Exception error) when (EvidenceError(error))
@@ -936,12 +969,15 @@ internal static partial class HealthcheckMutationNativeAudit
     {
         internal readonly HashSet<string> AssertionKilled = new(StringComparer.Ordinal);
         internal readonly HashSet<string> ReviewedSemanticKilled = new(StringComparer.Ordinal);
+        internal readonly HashSet<string> CompletedBeforeAbortKilled = new(StringComparer.Ordinal);
         internal readonly HashSet<string> RuntimeLocations = new(StringComparer.Ordinal);
         internal readonly HashSet<int> ControllerProcesses = [];
         internal readonly List<IntegrityIssue> Issues = [];
         internal readonly JsonArray WitnessSamples = [];
         internal readonly JsonArray SemanticWitnessSamples = [];
         internal readonly JsonArray AbortedTailSamples = [];
+        internal readonly JsonArray KernelDiscoveryExitProofs = [];
+        internal readonly JsonArray CompletedBeforeAbortWitnesses = [];
         internal JsonObject? OutcomeMetadata;
         internal int HostCount, NormalHostCount, WitnessCount, SemanticWitnessCount, DiscoveryHostCount, NormalDiscoveryHostCount, DiscoveredGuidCount, InformationalMessageCount;
 
@@ -960,7 +996,7 @@ internal static partial class HealthcheckMutationNativeAudit
                     ["reviewedSemanticWitnessCount"] = SemanticWitnessCount,
                     ["directAssertionKilledDefinitionCount"] = AssertionKilled.Count,
                     ["reviewedSemanticKilledDefinitionCount"] = ReviewedSemanticKilled.Count,
-                    ["qualifiedKilledDefinitionCount"] = AssertionKilled.Union(ReviewedSemanticKilled, StringComparer.Ordinal).Count(),
+                    ["qualifiedKilledDefinitionCount"] = AssertionKilled.Union(ReviewedSemanticKilled, StringComparer.Ordinal).Union(CompletedBeforeAbortKilled, StringComparer.Ordinal).Count(),
                     ["discoveryHostCount"] = DiscoveryHostCount,
                     ["normalDiscoveryHostCount"] = NormalDiscoveryHostCount,
                     ["discoveredGuidCount"] = DiscoveredGuidCount,
@@ -972,10 +1008,18 @@ internal static partial class HealthcheckMutationNativeAudit
                     ["witnessSamples"] = WitnessSamples,
                     ["reviewedSemanticWitnessSamples"] = SemanticWitnessSamples,
                     ["reviewedUnqualifiedAbortedTails"] = AbortedTailSamples,
+                    ["kernelDiscoveryExitProofCount"] = KernelDiscoveryExitProofs.Count,
+                    ["kernelDiscoveryExitProofs"] = KernelDiscoveryExitProofs,
+                    ["completedBeforeAbortWitnessCount"] = CompletedBeforeAbortWitnesses.Count,
+                    ["completedBeforeAbortKilledDefinitionCount"] = CompletedBeforeAbortKilled.Count,
+                    ["completedBeforeAbortWitnesses"] = CompletedBeforeAbortWitnesses,
                     ["rawReportsRewritten"] = false,
                     ["scoreComputed"] = false
                 })
-            { ReviewedSemanticKilledIds = ReviewedSemanticKilled.Order(StringComparer.Ordinal).ToArray() };
+            {
+                ReviewedSemanticKilledIds = ReviewedSemanticKilled.Order(StringComparer.Ordinal).ToArray(),
+                CompletedBeforeAbortKilledIds = CompletedBeforeAbortKilled.Order(StringComparer.Ordinal).ToArray()
+            };
         }
     }
 }

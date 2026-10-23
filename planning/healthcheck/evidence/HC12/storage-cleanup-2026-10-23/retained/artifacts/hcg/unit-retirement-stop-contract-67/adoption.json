@@ -1,0 +1,24 @@
+{
+  "schema": "cis.healthcheck.fixture-adoption/v1",
+  "complete": true,
+  "date": "2026-10-23",
+  "path": "implementations/csharp/tests/CIS.Core.UnitTests/Healthcheck/Collection/HealthCollectorRetirementAdmissionRaceQualificationTests.cs",
+  "beforeSha256": "2e944a0684d141c5c1ebaee6f9a54e61f655dbb3081be8ed0bd9eaf3e1d023ec",
+  "afterSha256": "eb69554ceddae2902179536b21fae87557789f9c9eba2f2bdafa5115bc86eaf8",
+  "change": "Await actual observerStop completion within the existing deadline instead of requiring synchronous successful completion after Register returns.",
+  "contract": "C04 requires StopAsync to await actual owned work without a synchronous successful-completion promise. The negative pending assertion inside the in-flight registration observer remains.",
+  "focused": {
+    "exitCode": 0,
+    "passed": 1,
+    "failed": 0,
+    "skipped": 0,
+    "log": "canonical-focused01.log",
+    "trx": "../../csharp/focused/d5575917b2a14bd78b7a136e68cca03c/selected.trx"
+  },
+  "developer55PredatesThisCorrection": true,
+  "currentFullUbuntuUnit55SnapshotAlreadyContainsCorrection": true,
+  "currentFullSnapshotManifestSha256": "df5c9e7d2dc4d87605242fe914648eb9251ada1975c55dcad46d76e5d0b54ccf",
+  "productionSourceChanged": false,
+  "timeoutsPromotedToAssertions": false,
+  "mutationCredit": 0
+}

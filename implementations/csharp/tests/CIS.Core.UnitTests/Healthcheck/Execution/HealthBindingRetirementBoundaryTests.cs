@@ -13,7 +13,7 @@ public sealed class HealthBindingRetirementBoundaryTests
     [DataRow(false, true)]
     [DataRow(true, false)]
     [DataRow(true, true)]
-    public async Task RetirementWithoutOutstandingWorkCompletesTheBindingBarrierBeforeAnyAwait(bool owned, bool availability)
+    public async Task RetirementWithoutOutstandingWorkCompletesTheSharedBindingBarrier(bool owned, bool availability)
     {
         await using var service = Service();
         var options = new HealthExecutionBindingOptions { RegistrationId = Guid.NewGuid(), SuccessPublishesUsableData = true };
@@ -36,65 +36,109 @@ public sealed class HealthBindingRetirementBoundaryTests
             Task first = binding.DisposeAsync().AsTask();
             Task second = binding.DisposeAsync().AsTask();
 
-            Assert.IsTrue(first.IsCompletedSuccessfully, "An already retired binding without outstanding work must have a completed actual-settlement barrier.");
             Assert.AreSame(first, second);
+            await Task.WhenAll(first, second).WaitAsync(Deadline);
             Assert.AreEqual(retired.Revision, service.CaptureSnapshot().Revision);
             Assert.AreEqual(HealthFactDisposition.Retired, binding.Report(null!));
             if (external is IAvailabilityMonitor published) { published.ReportPublished(); }
             if (external is IConsecutiveFailureMonitor failures) { failures.ReportSuccess(); }
-            if (!owned) { Assert.AreEqual(1L, service.CaptureSnapshot().Monitors.Single().Outcomes!.Successful); }
+            if (!owned)
+            {
+                HealthSnapshot usable = service.CaptureSnapshot();
+                Assert.AreEqual(1, usable.MonitorCounts.Active);
+                Assert.AreEqual(1, usable.Monitors.Count);
+                var retained = usable.Monitors.Single();
+                Assert.IsNotNull(retained.Outcomes);
+                Assert.AreEqual(1L, retained.Outcomes.Successful);
+            }
         }
         finally
         {
-            // With a release-suppression mutant the binder's private completion can remain pending even though
-            // the actual state has already retired it. Do not await that incorrect task and hide the assertion.
-            Task completion = binding.DisposeAsync().AsTask();
-            if (completion.IsCompleted) { await completion; }
-            if (external is not null) { await external.DisposeAsync().AsTask().WaitAsync(Deadline); }
-            GC.KeepAlive(external);
+            try
+            {
+                // The body awaits the actual disposal task with its existing deadline.
+                // Cleanup requests release and observes completed faults without
+                // asserting or claiming completion of a pending private barrier.
+                Task completion = binding.DisposeAsync().AsTask();
+                if (completion.IsCompleted) { await completion; }
+            }
+            finally
+            {
+                if (external is not null) { await external.DisposeAsync().AsTask().WaitAsync(Deadline); }
+                GC.KeepAlive(external);
+            }
         }
     }
 
     [TestMethod]
     public async Task DisposingTheActuallyExecutingMonitorRejectsItsOwnWaitBeforeReturningATask()
     {
-        await using var service = Service();
-        IConsecutiveFailureMonitor monitor = service.CreateConsecutiveFailures(new() { IsCritical = true, FailureThreshold = 1 });
-        Exception? observed = null;
-        Task? incorrectlyReturnedBarrier = null;
-        bool incompleteWhenReturned = false;
-        var owner = new ObservingOwner(() =>
+        var service = Service();
+        HealthCollectorRunner? runner = null;
+        IHealthCollectionRegistration? registration = null;
+        IConsecutiveFailureMonitor? ownedMonitor = null;
+        Exception? primary = null;
+        try
         {
+            IConsecutiveFailureMonitor monitor = service.CreateConsecutiveFailures(new() { IsCritical = true, FailureThreshold = 1 });
+            ownedMonitor = monitor;
+            Exception? observed = null;
+            Task? incorrectlyReturnedBarrier = null;
+            bool incompleteWhenReturned = false;
+            var owner = new ObservingOwner(() =>
+            {
+                try
+                {
+                    incorrectlyReturnedBarrier = monitor.DisposeAsync().AsTask();
+                    incompleteWhenReturned = !incorrectlyReturnedBarrier.IsCompleted;
+                }
+                catch (Exception error) { observed = error; }
+            });
+            runner = new HealthCollectorRunner(service);
+            registration = runner.Register(monitor, owner, new());
+            await runner.StartAsync().WaitAsync(Deadline);
+
+            HealthCollectionAttempt attempt = await registration.CollectAsync().WaitAsync(Deadline);
+
+            Assert.IsNotNull(observed);
+            Assert.AreEqual(typeof(InvalidOperationException), observed.GetType());
+            Assert.IsNull(incorrectlyReturnedBarrier, "Own disposal must reject the self-containing wait synchronously after requesting withdrawal.");
+            Assert.IsFalse(incompleteWhenReturned);
+            Assert.AreEqual(0, service.CaptureSnapshot().MonitorCounts.Active);
+            Assert.AreEqual(HealthCollectionDisposition.Retired, attempt.Disposition);
+            Assert.AreEqual(1, owner.Acquisitions);
+            Assert.AreEqual(1, owner.Evaluations);
+            Assert.AreEqual(1, owner.Cleanups);
+            Assert.IsTrue(monitor.WaitForDisposalAsync().IsCompletedSuccessfully);
+            GC.KeepAlive(monitor);
+        }
+        catch (Exception error) { primary = error; throw; }
+        finally
+        {
+            Task association = DrainRegistrationAsync();
+            Task collector = DrainRunnerAsync();
+            Task state = DrainServiceAsync();
+            Task drains = Task.WhenAll(association, collector, state);
             try
             {
-                incorrectlyReturnedBarrier = monitor.DisposeAsync().AsTask();
-                incompleteWhenReturned = !incorrectlyReturnedBarrier.IsCompleted;
+                await drains.WaitAsync(Deadline);
             }
-            catch (Exception error) { observed = error; }
-        });
-        await using var runner = new HealthCollectorRunner(service);
-        await using IHealthCollectionRegistration registration = runner.Register(monitor, owner, new());
-        await runner.StartAsync().WaitAsync(Deadline);
+            catch (Exception cleanup) when (primary is not null)
+            { throw new AggregateException("The receiving body failed and actual cleanup did not complete successfully.", primary, drains.Exception ?? cleanup); }
+            catch (Exception cleanup) when (cleanup is not TimeoutException && drains.Exception is not null)
+            { throw drains.Exception; }
+            finally { GC.KeepAlive(ownedMonitor); }
 
-        HealthCollectionAttempt attempt = await registration.CollectAsync().WaitAsync(Deadline);
-
-        Assert.IsNotNull(observed);
-        Assert.AreEqual(typeof(InvalidOperationException), observed.GetType());
-        Assert.IsNull(incorrectlyReturnedBarrier, "Own disposal must reject the self-containing wait synchronously after requesting withdrawal.");
-        Assert.IsFalse(incompleteWhenReturned);
-        Assert.AreEqual(0, service.CaptureSnapshot().MonitorCounts.Active);
-        Assert.AreEqual(HealthCollectionDisposition.Retired, attempt.Disposition);
-        Assert.AreEqual(1, owner.Acquisitions);
-        Assert.AreEqual(1, owner.Evaluations);
-        Assert.AreEqual(1, owner.Cleanups);
-        Assert.IsTrue(monitor.WaitForDisposalAsync().IsCompletedSuccessfully);
-        GC.KeepAlive(monitor);
+            async Task DrainRegistrationAsync() { if (registration is not null) { await registration.DisposeAsync(); } }
+            async Task DrainRunnerAsync() { if (runner is not null) { await runner.DisposeAsync(); } }
+            async Task DrainServiceAsync() => await service.DisposeAsync();
+        }
     }
 
     [TestMethod]
     [DataRow(false)]
     [DataRow(true)]
-    public async Task ConcurrentWithdrawalAndFactDeliveryLeaveTheExternalBindingReleasedWithoutAWait(bool outcome)
+    public async Task ConcurrentWithdrawalAndFactDeliveryReleaseTheExternalBinding(bool outcome)
     {
         await using var service = Service();
         for (int round = 0; round < 16; round++)
@@ -123,7 +167,7 @@ public sealed class HealthBindingRetirementBoundaryTests
 
                 Assert.IsTrue(report.Result is HealthFactDisposition.Recorded or HealthFactDisposition.Retired);
                 Task completion = binding.DisposeAsync().AsTask();
-                Assert.IsTrue(completion.IsCompletedSuccessfully, "Every valid report/withdrawal ordering must release an externally owned binding without waiting for monitor work.");
+                await completion.WaitAsync(Deadline);
                 HealthSnapshot after = service.CaptureSnapshot();
                 Assert.AreEqual(0, after.MonitorCounts.Active);
                 Assert.AreEqual(HealthFactDisposition.Retired, binding.Report(null!));
@@ -132,9 +176,12 @@ public sealed class HealthBindingRetirementBoundaryTests
             finally
             {
                 start.Set();
-                Task completion = binding.DisposeAsync().AsTask();
-                if (completion.IsCompleted) { await completion; }
-                await monitor.DisposeAsync().AsTask().WaitAsync(Deadline);
+                try
+                {
+                    Task completion = binding.DisposeAsync().AsTask();
+                    if (completion.IsCompleted) { await completion; }
+                }
+                finally { await monitor.DisposeAsync().AsTask().WaitAsync(Deadline); }
             }
         }
     }

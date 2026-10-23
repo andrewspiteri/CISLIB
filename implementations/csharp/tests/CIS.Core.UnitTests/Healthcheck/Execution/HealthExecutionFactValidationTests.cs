@@ -654,8 +654,15 @@ public sealed class HealthExecutionFactValidationTests
 
         public async ValueTask DisposeAsync()
         {
-            await Binding.DisposeAsync();
-            await Service.DisposeAsync();
+            try
+            {
+                Task disposal = Binding.DisposeAsync().AsTask();
+                if (disposal.IsCompleted) { await disposal; }
+            }
+            finally
+            {
+                await Service.DisposeAsync().AsTask().WaitAsync(TimeSpan.FromSeconds(5));
+            }
         }
     }
 

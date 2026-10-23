@@ -72,9 +72,16 @@ public sealed class HealthExecutionSparseFactQualificationTests
         Assert.AreEqual(before.Revision, service.CaptureSnapshot().Revision);
         Assert.AreEqual(0, service.CaptureSnapshot().MonitorCounts.Active);
         string accepted = string.Concat(Enumerable.Repeat("\U0001F680", 128));
-        await using IHealthExecutionBinding binding = HealthExecutionBinder.Bind(service,
+        IHealthExecutionBinding binding = HealthExecutionBinder.Bind(service,
             new AvailabilityMonitorOptions { IsCritical = false, Name = accepted }, options);
-        Assert.AreEqual(accepted, service.CaptureSnapshot().Monitors.Single().Name);
+        try
+        {
+            Assert.AreEqual(accepted, service.CaptureSnapshot().Monitors.Single().Name);
+        }
+        finally
+        {
+            await DisposeNoCollectionBindingAsync(binding);
+        }
     }
 
     [TestMethod]
@@ -83,54 +90,61 @@ public sealed class HealthExecutionSparseFactQualificationTests
     public async Task SparseLateIntegrationFactsRetainActualSettlementDurationStatusAndAllEarlierErrors(double duration)
     {
         await using var service = Service();
-        await using IHealthExecutionBinding binding = HealthExecutionBinder.Bind(service,
+        IHealthExecutionBinding binding = HealthExecutionBinder.Bind(service,
             new ConsecutiveFailureMonitorOptions { IsCritical = true, FailureThreshold = 1 }, new() { RegistrationId = Guid.NewGuid() });
-        var original = new HealthDiagnostic("Work");
-        var cleanup = new HealthDiagnostic("Cleanup");
-        var integration = new HealthDiagnostic("LateObserver");
-        Assert.AreEqual(HealthFactDisposition.Recorded, binding.Report(Outcome(binding.RegistrationId, 1, original)));
-        Assert.AreEqual(HealthFactDisposition.Recorded, binding.Report(new HealthExecutionFact
+        try
         {
-            RegistrationId = binding.RegistrationId,
-            ExecutionId = 1,
-            Kind = HealthExecutionFactKind.CleanupCompleted,
-            OccurredAtUtc = Epoch.AddSeconds(1),
-            CleanupCompletedAtUtc = Epoch.AddSeconds(1),
-            CleanupStatus = HealthExecutionStepStatus.Failed,
-            CleanupError = cleanup
-        }));
-        Assert.AreEqual(HealthFactDisposition.Recorded, binding.Report(new HealthExecutionFact
+            var original = new HealthDiagnostic("Work");
+            var cleanup = new HealthDiagnostic("Cleanup");
+            var integration = new HealthDiagnostic("LateObserver");
+            Assert.AreEqual(HealthFactDisposition.Recorded, binding.Report(Outcome(binding.RegistrationId, 1, original)));
+            Assert.AreEqual(HealthFactDisposition.Recorded, binding.Report(new HealthExecutionFact
+            {
+                RegistrationId = binding.RegistrationId,
+                ExecutionId = 1,
+                Kind = HealthExecutionFactKind.CleanupCompleted,
+                OccurredAtUtc = Epoch.AddSeconds(1),
+                CleanupCompletedAtUtc = Epoch.AddSeconds(1),
+                CleanupStatus = HealthExecutionStepStatus.Failed,
+                CleanupError = cleanup
+            }));
+            Assert.AreEqual(HealthFactDisposition.Recorded, binding.Report(new HealthExecutionFact
+            {
+                RegistrationId = binding.RegistrationId,
+                ExecutionId = 1,
+                Kind = HealthExecutionFactKind.Settled,
+                OccurredAtUtc = Epoch.AddSeconds(2),
+                SettledAtUtc = Epoch.AddSeconds(2),
+                TotalDurationMilliseconds = duration,
+                ErrorHandlingStatus = HealthExecutionStepStatus.NotApplicable,
+                CleanupStatus = HealthExecutionStepStatus.Failed
+            }));
+            HealthSnapshot settled = service.CaptureSnapshot();
+
+            Assert.AreEqual(HealthFactDisposition.Recorded, binding.Report(new HealthExecutionFact
+            { RegistrationId = binding.RegistrationId, ExecutionId = 1, Kind = HealthExecutionFactKind.IntegrationFault, OccurredAtUtc = Epoch.AddSeconds(3), IntegrationError = integration }));
+
+            HealthMonitorSnapshot monitor = service.CaptureSnapshot().Monitors.Single();
+            HealthExecutionSnapshot execution = monitor.Outcomes!.Execution!;
+            Assert.AreEqual(duration, execution.TotalDurationMilliseconds);
+            Assert.AreEqual(HealthExecutionPhase.Settled, execution.Phase);
+            Assert.AreEqual(Epoch.AddSeconds(2), execution.SettledAtUtc);
+            Assert.AreEqual(Epoch.AddSeconds(1), execution.CleanupCompletedAtUtc);
+            Assert.AreEqual(HealthExecutionStepStatus.Failed, execution.CleanupStatus);
+            Assert.AreEqual(HealthExecutionStepStatus.NotApplicable, execution.ErrorHandlingStatus);
+            Assert.AreSame(original, execution.OriginalError);
+            Assert.AreSame(cleanup, execution.CleanupError);
+            Assert.AreSame(integration, execution.IntegrationError);
+            Assert.IsNull(settled.Monitors.Single().Outcomes!.Execution!.IntegrationError);
+            Assert.AreEqual(1L, monitor.Outcomes.Failed);
+            Assert.AreEqual(0L, monitor.Outcomes.Successful);
+            Assert.AreEqual(Epoch, monitor.LastObservationAtUtc);
+            Assert.AreEqual(MonitorState.Unhealthy, monitor.State);
+        }
+        finally
         {
-            RegistrationId = binding.RegistrationId,
-            ExecutionId = 1,
-            Kind = HealthExecutionFactKind.Settled,
-            OccurredAtUtc = Epoch.AddSeconds(2),
-            SettledAtUtc = Epoch.AddSeconds(2),
-            TotalDurationMilliseconds = duration,
-            ErrorHandlingStatus = HealthExecutionStepStatus.NotApplicable,
-            CleanupStatus = HealthExecutionStepStatus.Failed
-        }));
-        HealthSnapshot settled = service.CaptureSnapshot();
-
-        Assert.AreEqual(HealthFactDisposition.Recorded, binding.Report(new HealthExecutionFact
-        { RegistrationId = binding.RegistrationId, ExecutionId = 1, Kind = HealthExecutionFactKind.IntegrationFault, OccurredAtUtc = Epoch.AddSeconds(3), IntegrationError = integration }));
-
-        HealthMonitorSnapshot monitor = service.CaptureSnapshot().Monitors.Single();
-        HealthExecutionSnapshot execution = monitor.Outcomes!.Execution!;
-        Assert.AreEqual(duration, execution.TotalDurationMilliseconds);
-        Assert.AreEqual(HealthExecutionPhase.Settled, execution.Phase);
-        Assert.AreEqual(Epoch.AddSeconds(2), execution.SettledAtUtc);
-        Assert.AreEqual(Epoch.AddSeconds(1), execution.CleanupCompletedAtUtc);
-        Assert.AreEqual(HealthExecutionStepStatus.Failed, execution.CleanupStatus);
-        Assert.AreEqual(HealthExecutionStepStatus.NotApplicable, execution.ErrorHandlingStatus);
-        Assert.AreSame(original, execution.OriginalError);
-        Assert.AreSame(cleanup, execution.CleanupError);
-        Assert.AreSame(integration, execution.IntegrationError);
-        Assert.IsNull(settled.Monitors.Single().Outcomes!.Execution!.IntegrationError);
-        Assert.AreEqual(1L, monitor.Outcomes.Failed);
-        Assert.AreEqual(0L, monitor.Outcomes.Successful);
-        Assert.AreEqual(Epoch, monitor.LastObservationAtUtc);
-        Assert.AreEqual(MonitorState.Unhealthy, monitor.State);
+            await DisposeNoCollectionBindingAsync(binding);
+        }
     }
 
     [TestMethod]
@@ -138,30 +152,37 @@ public sealed class HealthExecutionSparseFactQualificationTests
     {
         await using var service = Service();
         IConsecutiveFailureMonitor monitor = service.CreateConsecutiveFailures(new() { IsCritical = false, FailureThreshold = 1 });
-        await using IHealthExecutionBinding first = HealthExecutionBinder.Bind(monitor, new() { RegistrationId = Guid.NewGuid() });
-        await using IHealthExecutionBinding second = HealthExecutionBinder.Bind(monitor, new() { RegistrationId = Guid.NewGuid() });
-        Assert.AreEqual(HealthFactDisposition.Recorded, first.Report(Outcome(first.RegistrationId, 1)));
-        Assert.AreEqual(HealthFactDisposition.Recorded, first.Report(Outcome(first.RegistrationId, 2)));
-        Assert.AreEqual(HealthFactDisposition.Recorded, second.Report(Outcome(second.RegistrationId, 1)));
-        HealthSnapshot before = service.CaptureSnapshot();
-
-        Assert.AreEqual(HealthFactDisposition.Recorded, first.Report(new HealthExecutionFact
+        IHealthExecutionBinding first = HealthExecutionBinder.Bind(monitor, new() { RegistrationId = Guid.NewGuid() });
+        IHealthExecutionBinding second = HealthExecutionBinder.Bind(monitor, new() { RegistrationId = Guid.NewGuid() });
+        try
         {
-            RegistrationId = first.RegistrationId,
-            ExecutionId = 1,
-            Kind = HealthExecutionFactKind.CleanupCompleted,
-            OccurredAtUtc = Epoch.AddSeconds(1),
-            CleanupCompletedAtUtc = Epoch.AddSeconds(1),
-            CleanupStatus = HealthExecutionStepStatus.Succeeded
-        }));
+            Assert.AreEqual(HealthFactDisposition.Recorded, first.Report(Outcome(first.RegistrationId, 1)));
+            Assert.AreEqual(HealthFactDisposition.Recorded, first.Report(Outcome(first.RegistrationId, 2)));
+            Assert.AreEqual(HealthFactDisposition.Recorded, second.Report(Outcome(second.RegistrationId, 1)));
+            HealthSnapshot before = service.CaptureSnapshot();
 
-        HealthMonitorSnapshot after = service.CaptureSnapshot().Monitors.Single();
-        Assert.AreEqual(second.RegistrationId, after.Outcomes!.Execution!.RegistrationId);
-        Assert.AreEqual(1L, after.Outcomes.Execution.ExecutionId);
-        Assert.AreEqual(3L, after.Outcomes.Failed);
-        Assert.IsNull(after.Outcomes.Execution.CleanupCompletedAtUtc);
-        Assert.AreSame(before.Monitors.Single().Outcomes!.Execution, after.Outcomes.Execution);
-        GC.KeepAlive(monitor);
+            Assert.AreEqual(HealthFactDisposition.Recorded, first.Report(new HealthExecutionFact
+            {
+                RegistrationId = first.RegistrationId,
+                ExecutionId = 1,
+                Kind = HealthExecutionFactKind.CleanupCompleted,
+                OccurredAtUtc = Epoch.AddSeconds(1),
+                CleanupCompletedAtUtc = Epoch.AddSeconds(1),
+                CleanupStatus = HealthExecutionStepStatus.Succeeded
+            }));
+
+            HealthMonitorSnapshot after = service.CaptureSnapshot().Monitors.Single();
+            Assert.AreEqual(second.RegistrationId, after.Outcomes!.Execution!.RegistrationId);
+            Assert.AreEqual(1L, after.Outcomes.Execution.ExecutionId);
+            Assert.AreEqual(3L, after.Outcomes.Failed);
+            Assert.IsNull(after.Outcomes.Execution.CleanupCompletedAtUtc);
+            Assert.AreSame(before.Monitors.Single().Outcomes!.Execution, after.Outcomes.Execution);
+            GC.KeepAlive(monitor);
+        }
+        finally
+        {
+            await Task.WhenAll(DisposeNoCollectionBindingAsync(first), DisposeNoCollectionBindingAsync(second));
+        }
     }
 
     [TestMethod]
@@ -208,4 +229,10 @@ public sealed class HealthExecutionSparseFactQualificationTests
     };
     private static HealthExecutionFact Started(Guid registration, long execution) => new()
     { RegistrationId = registration, ExecutionId = execution, Kind = HealthExecutionFactKind.CallbackStarted, OccurredAtUtc = Epoch, CallbackStartedAtUtc = Epoch };
+
+    private static async Task DisposeNoCollectionBindingAsync(IHealthExecutionBinding binding)
+    {
+        Task disposal = binding.DisposeAsync().AsTask();
+        if (disposal.IsCompleted) { await disposal; }
+    }
 }

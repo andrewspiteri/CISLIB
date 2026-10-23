@@ -99,19 +99,19 @@ public sealed class HealthCollectorAdmissionAndSettlementQualificationTests
         IHealthCollectionRegistration following = scope.Register(witnessMonitor, witness);
         await scope.Runner.StartAsync().WaitAsync(Deadline);
         Task<HealthCollectionAttempt> first = blocking.CollectAsync();
-        await blocker.EvaluationEntered.Task.WaitAsync(Deadline);
+        await WaitForBlockedEvaluationAsync(blocker, first);
         using var cancellation = new CancellationTokenSource();
         cancellation.Cancel();
         HealthSnapshot before = scope.Service.CaptureSnapshot();
 
-        OperationCanceledException error = await Assert.ThrowsAsync<OperationCanceledException>(() => canceled.CollectAsync(cancellation.Token));
+        OperationCanceledException error = await Assert.ThrowsAsync<OperationCanceledException>(() => canceled.CollectAsync(cancellation.Token)).WaitAsync(Deadline);
 
         Assert.AreEqual(cancellation.Token, error.CancellationToken);
         Assert.AreEqual(before.Revision, scope.Service.CaptureSnapshot().Revision);
         Assert.AreEqual(0, canceledOwner.Acquisitions);
         Task<HealthCollectionAttempt> progress = following.CollectAsync();
         blocker.Release();
-        await witness.EvaluationEntered.Task.WaitAsync(Deadline);
+        await WaitForBlockedEvaluationAsync(witness, progress);
 
         // With one occupied slot, this later registered owner is a real dispatcher
         // progress witness; the canceled request cannot hide behind an immediate race.
@@ -203,17 +203,25 @@ public sealed class HealthCollectorAdmissionAndSettlementQualificationTests
         public async ValueTask DisposeAsync()
         {
             foreach (Owner owner in owners) { owner.Release(); }
-            try { await Runner.DisposeAsync().AsTask().WaitAsync(Deadline); }
+            Task runner = DrainRunnerAsync();
+            Task service = DrainServiceAsync();
+            try { await Task.WhenAll(runner, service).WaitAsync(Deadline); }
             finally
             {
-                try { await Service.DisposeAsync().AsTask().WaitAsync(Deadline); }
-                finally
-                {
-                    foreach (Owner owner in owners) { owner.DisposeReleasedResource(); }
-                    GC.KeepAlive(monitors);
-                }
+                foreach (Owner owner in owners) { owner.DisposeReleasedResource(); }
+                GC.KeepAlive(monitors);
             }
+
+            async Task DrainRunnerAsync() => await Runner.DisposeAsync();
+            async Task DrainServiceAsync() => await Service.DisposeAsync();
         }
+    }
+
+    private static async Task WaitForBlockedEvaluationAsync(Owner owner, Task<HealthCollectionAttempt> actualCaller)
+    {
+        await Task.WhenAny(owner.EvaluationEntered.Task, owner.CleanupEntered.Task, actualCaller).WaitAsync(Deadline);
+        Assert.IsTrue(owner.EvaluationEntered.Task.IsCompletedSuccessfully, "The actual collection must invoke its callback before lease cleanup or settlement.");
+        Assert.IsFalse(actualCaller.IsCompleted, "The actual collection cannot settle while its evaluation gate remains held.");
     }
 
     private sealed class Owner : IHealthCollector
@@ -229,6 +237,7 @@ public sealed class HealthCollectorAdmissionAndSettlementQualificationTests
         internal Action? Evaluating { get; set; }
         internal Action? Cleaning { get; set; }
         internal TaskCompletionSource EvaluationEntered { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
+        internal TaskCompletionSource CleanupEntered { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
         internal int Acquisitions => Volatile.Read(ref acquisitions);
         internal int Evaluations => Volatile.Read(ref evaluations);
         internal int Cleanups => Volatile.Read(ref cleanups);
@@ -260,6 +269,7 @@ public sealed class HealthCollectorAdmissionAndSettlementQualificationTests
             }
             public ValueTask DisposeAsync()
             {
+                owner.CleanupEntered.TrySetResult();
                 try { owner.Cleaning?.Invoke(); }
                 finally
                 {

@@ -236,7 +236,7 @@ internal static class HealthcheckMutationChildProtocol
         string ConfigurationSha256, string StrykerCorePath, string StrykerCoreSha256, string SelectorSourceSha256,
         string DotnetPath, string DotnetSha256, string CoreLibraryPath, string CoreLibrarySha256, FilePin[] SourceInputs,
         DateTimeOffset CreatedUtc, bool CoverageAnalysisOff, bool AllowInitialUninstrumentedBaseline,
-        SourceReplayControl? SourceReplay = null, bool RequireWindowsErrorMode = false);
+        SourceReplayControl? SourceReplay = null, bool RequireWindowsErrorMode = false, int BoundIntentVersion = 0);
     internal sealed record SourceReplayControl(string Kind, string ReportPath, string ReportSha256, string OriginalId,
         string SourcePath, string OriginalSourceSha256, string CanonicalSourceSha256, string CurrentSourceSha256,
         int Offset, string OriginalText, string Replacement, string CorePath, string CoreSha256, Guid CoreMvid);

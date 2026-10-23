@@ -60,8 +60,7 @@ public sealed class HealthCollectorRetirementAdmissionRaceQualificationTests
             Assert.IsTrue(stopPendingInsideObserver,
                 "The actual registration call remains owned work while its state-return retirement observer runs.");
             Assert.IsNotNull(observerStop);
-            Assert.IsTrue(observerStop.IsCompletedSuccessfully,
-                "After rejected publication retires its temporary attachment and Register returns, this unstarted runner has no remaining owned work.");
+            await observerStop.WaitAsync(Deadline);
             Assert.AreEqual(0, owner.Acquisitions);
             HealthSnapshot snapshot = service.CaptureSnapshot();
             Assert.AreEqual(1, snapshot.MonitorCounts.Active);

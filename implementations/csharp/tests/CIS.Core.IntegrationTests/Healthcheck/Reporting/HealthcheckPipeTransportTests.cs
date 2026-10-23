@@ -91,11 +91,11 @@ public sealed class HealthcheckPipeTransportTests
             {
                 if (OperatingSystem.IsWindows())
                 {
-                    await Assert.ThrowsExactlyAsync<Win32Exception>(() => server.StartAsync().WaitAsync(TransportTestSupport.Limit));
+                    await Assert.ThrowsExactlyAsync<Win32Exception>(() => server.StartAsync()).WaitAsync(TransportTestSupport.Limit);
                 }
                 else
                 {
-                    await Assert.ThrowsExactlyAsync<UnauthorizedAccessException>(() => server.StartAsync().WaitAsync(TransportTestSupport.Limit));
+                    await Assert.ThrowsExactlyAsync<UnauthorizedAccessException>(() => server.StartAsync()).WaitAsync(TransportTestSupport.Limit);
                 }
                 Assert.ThrowsExactly<InvalidOperationException>(() => server.StartAsync(), "A failed start must already have closed admission.");
                 Assert.AreEqual(0, source.Captures);
@@ -118,18 +118,7 @@ public sealed class HealthcheckPipeTransportTests
             }
             finally
             {
-                try
-                {
-                    if (stopping is null) { stopping = server.StopAsync(); await stopping.WaitAsync(TransportTestSupport.Limit); }
-                }
-                finally
-                {
-                    if (disposing is null)
-                    {
-                        disposing = server.DisposeAsync().AsTask();
-                        if (stopping?.IsCompleted == true) { await disposing.WaitAsync(TransportTestSupport.Limit); }
-                    }
-                }
+                await new TransportTestSupport.PipeServerCleanup(server).DisposeAsync();
             }
             GC.KeepAlive(monitor);
         }
@@ -149,7 +138,7 @@ public sealed class HealthcheckPipeTransportTests
             Task? stopping = null, disposing = null;
             try
             {
-                await server.StartAsync();
+                await TransportTestSupport.StartServerAsync(server, pipe);
                 HealthSnapshot before = service.CaptureSnapshot();
                 using var cancellation = new CancellationTokenSource(TransportTestSupport.Limit);
                 await using (var peer = new NamedPipeClientStream(".", pipe, PipeDirection.InOut, PipeOptions.Asynchronous))
@@ -174,27 +163,17 @@ public sealed class HealthcheckPipeTransportTests
                 disposing = server.DisposeAsync().AsTask();
                 await disposing.WaitAsync(TransportTestSupport.Limit);
 
-                await using var replacement = new HealthPipeServer(service,
+                var replacement = new HealthPipeServer(service,
                     new HealthcheckOptions { PipeEnabled = true, PipeName = pipe, PipeMaxClients = 1 });
-                await replacement.StartAsync();
+                await using var replacementCleanup = new TransportTestSupport.PipeServerCleanup(replacement);
+                await TransportTestSupport.StartServerAsync(replacement, pipe);
                 TransportTestSupport.ValidateSnapshotEnvelope(await TransportTestSupport.RequestAsync(pipe,
                     "{\"protocolVersion\":1,\"view\":\"health\"}"), "health", true, true);
                 await replacement.StopAsync().WaitAsync(TransportTestSupport.Limit);
             }
             finally
             {
-                try
-                {
-                    if (stopping is null) { stopping = server.StopAsync(); await stopping.WaitAsync(TransportTestSupport.Limit); }
-                }
-                finally
-                {
-                    if (disposing is null)
-                    {
-                        disposing = server.DisposeAsync().AsTask();
-                        if (stopping?.IsCompleted == true) { await disposing.WaitAsync(TransportTestSupport.Limit); }
-                    }
-                }
+                await new TransportTestSupport.PipeServerCleanup(server).DisposeAsync();
             }
             GC.KeepAlive(monitor);
         }
@@ -214,17 +193,18 @@ public sealed class HealthcheckPipeTransportTests
         {
             string pipe = TransportTestSupport.NewPipeName();
             var source = new CountingSource(service);
-            await using var server = new HealthPipeServer(source, new HealthcheckOptions { PipeEnabled = true, PipeName = pipe, DetailsEnabled = true });
+            var server = new HealthPipeServer(source, new HealthcheckOptions { PipeEnabled = true, PipeName = pipe, DetailsEnabled = true });
+            await using var serverCleanup = new TransportTestSupport.PipeServerCleanup(server);
             Assert.AreEqual(0, source.Captures);
-            await server.StartAsync();
-            await server.StartAsync();
+            await TransportTestSupport.StartServerAsync(server, pipe);
+            await TransportTestSupport.StartServerAsync(server, pipe);
             string revision = service.CaptureSnapshot().Revision.ToString(System.Globalization.CultureInfo.InvariantCulture);
             JsonObject envelope = await TransportTestSupport.RequestAsync(pipe, "{\"protocolVersion\":1,\"view\":\"" + view + "\"}", fragmented);
             JsonObject snapshot = TransportTestSupport.ValidateSnapshotEnvelope(envelope, view, !unhealthy, startup && !unhealthy);
             Assert.AreEqual(revision, (string?)snapshot["revision"]);
             Assert.AreEqual(1, source.Captures);
             Assert.AreEqual(revision, service.CaptureSnapshot().Revision.ToString(System.Globalization.CultureInfo.InvariantCulture));
-            await server.StopAsync();
+            await server.StopAsync().WaitAsync(TransportTestSupport.Limit);
             GC.KeepAlive(monitor);
         }
     }
@@ -248,8 +228,9 @@ public sealed class HealthcheckPipeTransportTests
         await using (service)
         {
             string pipe = TransportTestSupport.NewPipeName(); var source = new CountingSource(service);
-            await using var server = new HealthPipeServer(source, new HealthcheckOptions { PipeEnabled = true, PipeName = pipe });
-            await server.StartAsync();
+            var server = new HealthPipeServer(source, new HealthcheckOptions { PipeEnabled = true, PipeName = pipe });
+            await using var serverCleanup = new TransportTestSupport.PipeServerCleanup(server);
+            await TransportTestSupport.StartServerAsync(server, pipe);
             JsonObject response = await TransportTestSupport.RequestAsync(pipe, request, fragmented: true);
             TransportTestSupport.ValidateError(response, code);
             Assert.AreEqual(1, (int?)response["protocolVersion"]);
@@ -272,8 +253,9 @@ public sealed class HealthcheckPipeTransportTests
         await using (service)
         {
             string pipe = TransportTestSupport.NewPipeName(); var source = new CountingSource(service);
-            await using var server = new HealthPipeServer(source, new HealthcheckOptions { PipeEnabled = true, PipeName = pipe, PipeRequestTimeoutMs = 100 });
-            await server.StartAsync();
+            var server = new HealthPipeServer(source, new HealthcheckOptions { PipeEnabled = true, PipeName = pipe, PipeRequestTimeoutMs = 100 });
+            await using var serverCleanup = new TransportTestSupport.PipeServerCleanup(server);
+            await TransportTestSupport.StartServerAsync(server, pipe);
             using var timeout = new CancellationTokenSource(TransportTestSupport.Limit);
             await using var client = new NamedPipeClientStream(".", pipe, PipeDirection.InOut, PipeOptions.Asynchronous);
             await client.ConnectAsync(timeout.Token);
@@ -300,7 +282,8 @@ public sealed class HealthcheckPipeTransportTests
         await using (service)
         {
             string pipe = TransportTestSupport.NewPipeName();
-            await using var server = new HealthPipeServer(service, new HealthcheckOptions { PipeEnabled = true, PipeName = pipe }); await server.StartAsync();
+            var server = new HealthPipeServer(service, new HealthcheckOptions { PipeEnabled = true, PipeName = pipe });
+            await using var serverCleanup = new TransportTestSupport.PipeServerCleanup(server); await TransportTestSupport.StartServerAsync(server, pipe);
             string nested = "0";
             for (int i = 0; i < 16; i++) { nested = "{\"x\":" + nested + "}"; }
             TransportTestSupport.ValidateError(await TransportTestSupport.RequestAsync(pipe, "{\"protocolVersion\":1,\"view\":\"health\",\"unknown\":" + nested + "}"), "InvalidRequest");
@@ -320,7 +303,8 @@ public sealed class HealthcheckPipeTransportTests
             var extra = new List<IConditionMonitor>();
             for (int i = 0; i < 30; i++) { extra.Add(service.CreateCondition(new ConditionMonitorOptions { IsCritical = false, InitiallyFlagged = false, Name = new string('x', 128) })); }
             string pipe = TransportTestSupport.NewPipeName();
-            await using var server = new HealthPipeServer(service, new HealthcheckOptions { PipeEnabled = true, PipeName = pipe, DetailsEnabled = detailsEnabled, MaxReportBytes = 1024 }); await server.StartAsync();
+            var server = new HealthPipeServer(service, new HealthcheckOptions { PipeEnabled = true, PipeName = pipe, DetailsEnabled = detailsEnabled, MaxReportBytes = 1024 });
+            await using var serverCleanup = new TransportTestSupport.PipeServerCleanup(server); await TransportTestSupport.StartServerAsync(server, pipe);
             TransportTestSupport.ValidateError(await TransportTestSupport.RequestAsync(pipe, "{\"protocolVersion\":1,\"view\":\"details\"}"), detailsEnabled ? "ReportTooLarge" : "DetailsDisabled");
             TransportTestSupport.ValidateSnapshotEnvelope(await TransportTestSupport.RequestAsync(pipe, "{\"protocolVersion\":1,\"view\":\"health\"}"), "health", true, true, 31);
             GC.KeepAlive(extra); GC.KeepAlive(monitor);
@@ -334,7 +318,8 @@ public sealed class HealthcheckPipeTransportTests
         await using (service)
         {
             string pipe = TransportTestSupport.NewPipeName(); var source = new CountingSource(service) { Throw = true };
-            await using var server = new HealthPipeServer(source, new HealthcheckOptions { PipeEnabled = true, PipeName = pipe }); await server.StartAsync();
+            var server = new HealthPipeServer(source, new HealthcheckOptions { PipeEnabled = true, PipeName = pipe });
+            await using var serverCleanup = new TransportTestSupport.PipeServerCleanup(server); await TransportTestSupport.StartServerAsync(server, pipe);
             TransportTestSupport.ValidateError(await TransportTestSupport.RequestAsync(pipe, "{\"protocolVersion\":1,\"view\":\"health\"}"), "ReportingUnavailable");
             source.Throw = false;
             TransportTestSupport.ValidateSnapshotEnvelope(await TransportTestSupport.RequestAsync(pipe, "{\"protocolVersion\":1,\"view\":\"health\"}"), "health", true, true);
@@ -349,7 +334,8 @@ public sealed class HealthcheckPipeTransportTests
         await using (service)
         {
             string pipe = TransportTestSupport.NewPipeName(); var source = new CountingSource(service);
-            await using var server = new HealthPipeServer(source, new HealthcheckOptions { PipeEnabled = true, PipeName = pipe }); await server.StartAsync();
+            var server = new HealthPipeServer(source, new HealthcheckOptions { PipeEnabled = true, PipeName = pipe });
+            await using var serverCleanup = new TransportTestSupport.PipeServerCleanup(server); await TransportTestSupport.StartServerAsync(server, pipe);
             using var timeout = new CancellationTokenSource(TransportTestSupport.Limit);
             await using var client = new NamedPipeClientStream(".", pipe, PipeDirection.InOut, PipeOptions.Asynchronous); await client.ConnectAsync(timeout.Token);
             await TransportTestSupport.WriteFrameAsync(client, Encoding.UTF8.GetBytes("{\"protocolVersion\":1,\"view\":\"health\"}"), cancellation: timeout.Token);
@@ -365,7 +351,8 @@ public sealed class HealthcheckPipeTransportTests
         await using (service)
         {
             string pipe = TransportTestSupport.NewPipeName(); var source = new CountingSource(service);
-            await using var server = new HealthPipeServer(source, new HealthcheckOptions { PipeEnabled = true, PipeName = pipe, PipeMaxClients = 1, PipeRequestTimeoutMs = 100 }); await server.StartAsync();
+            var server = new HealthPipeServer(source, new HealthcheckOptions { PipeEnabled = true, PipeName = pipe, PipeMaxClients = 1, PipeRequestTimeoutMs = 100 });
+            await using var serverCleanup = new TransportTestSupport.PipeServerCleanup(server); await TransportTestSupport.StartServerAsync(server, pipe);
             using var timeout = new CancellationTokenSource(TransportTestSupport.Limit);
             await using var client = new NamedPipeClientStream(".", pipe, PipeDirection.InOut, PipeOptions.Asynchronous); await client.ConnectAsync(timeout.Token);
             await client.WriteAsync(new byte[] { 32 }, timeout.Token); await client.FlushAsync(timeout.Token);
@@ -384,11 +371,12 @@ public sealed class HealthcheckPipeTransportTests
             string pipe = TransportTestSupport.NewPipeName(); var source = new CountingSource(service);
             // This case proves concurrent settlement rather than a one-second latency promise.
             // Dedicated deadline cases retain their short and exact-boundary budgets.
-            await using var server = new HealthPipeServer(source, new HealthcheckOptions { PipeEnabled = true, PipeName = pipe, PipeMaxClients = 2, PipeRequestTimeoutMs = 5000 }); await server.StartAsync();
+            var server = new HealthPipeServer(source, new HealthcheckOptions { PipeEnabled = true, PipeName = pipe, PipeMaxClients = 2, PipeRequestTimeoutMs = 5000 });
+            await using var serverCleanup = new TransportTestSupport.PipeServerCleanup(server); await TransportTestSupport.StartServerAsync(server, pipe);
             JsonObject[] replies = await Task.WhenAll(Enumerable.Range(0, 24).Select(_ => TransportTestSupport.RequestAsync(pipe, "{\"protocolVersion\":1,\"view\":\"health\"}")));
             foreach (JsonObject reply in replies) { TransportTestSupport.ValidateSnapshotEnvelope(reply, "health", true, true); }
-            Assert.AreEqual(24, source.Captures); await server.StopAsync(); await server.StopAsync();
-            await Assert.ThrowsExactlyAsync<InvalidOperationException>(() => server.StartAsync()); GC.KeepAlive(monitor);
+            Assert.AreEqual(24, source.Captures); await server.StopAsync().WaitAsync(TransportTestSupport.Limit); await server.StopAsync().WaitAsync(TransportTestSupport.Limit);
+            await Assert.ThrowsExactlyAsync<InvalidOperationException>(() => server.StartAsync()).WaitAsync(TransportTestSupport.Limit); GC.KeepAlive(monitor);
         }
     }
 
@@ -401,13 +389,14 @@ public sealed class HealthcheckPipeTransportTests
             string pipe = TransportTestSupport.NewPipeName(); using var release = new ManualResetEventSlim();
             var entered = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
             var source = new BlockingSource(service, entered, release);
-            await using var server = new HealthPipeServer(source, new HealthcheckOptions { PipeEnabled = true, PipeName = pipe, PipeMaxClients = 1 }); await server.StartAsync();
+            var server = new HealthPipeServer(source, new HealthcheckOptions { PipeEnabled = true, PipeName = pipe, PipeMaxClients = 1 });
+            await using var serverCleanup = new TransportTestSupport.PipeServerCleanup(server); await TransportTestSupport.StartServerAsync(server, pipe);
             Task<JsonObject> request = TransportTestSupport.RequestAsync(pipe, "{\"protocolVersion\":1,\"view\":\"health\"}");
             try
             {
                 await entered.Task.WaitAsync(TransportTestSupport.Limit);
                 using var canceled = new CancellationTokenSource(); canceled.Cancel();
-                await Assert.ThrowsAsync<OperationCanceledException>(() => server.StopAsync(canceled.Token));
+                await Assert.ThrowsAsync<OperationCanceledException>(() => server.StopAsync(canceled.Token)).WaitAsync(TransportTestSupport.Limit);
                 Task actualStop = server.StopAsync(); Assert.IsFalse(actualStop.IsCompleted, "Stop must include actual source settlement.");
                 release.Set(); await actualStop.WaitAsync(TransportTestSupport.Limit);
                 try { await request; Assert.Fail("Closed stop admission must not produce a successful pending reply."); }
@@ -434,7 +423,7 @@ public sealed class HealthcheckPipeTransportTests
             Task? disposal = null;
             try
             {
-                await server.StartAsync();
+                await TransportTestSupport.StartServerAsync(server, pipe);
                 request = TransportTestSupport.RequestAsync(pipe, "{\"protocolVersion\":1,\"view\":\"health\"}");
                 await entered.Task.WaitAsync(TransportTestSupport.Limit);
                 disposal = server.DisposeAsync().AsTask();
@@ -449,12 +438,18 @@ public sealed class HealthcheckPipeTransportTests
             finally
             {
                 release.Set();
-                await server.StopAsync().WaitAsync(TransportTestSupport.Limit);
-                await (disposal ?? server.DisposeAsync().AsTask()).WaitAsync(TransportTestSupport.Limit);
-                if (request is not null)
+                Task serverDrain = new TransportTestSupport.PipeServerCleanup(server).DisposeAsync().AsTask();
+                Task requestDrain = DrainRequestAsync();
+                await Task.WhenAll(serverDrain, requestDrain).WaitAsync(TransportTestSupport.Limit);
+
+                async Task DrainRequestAsync()
                 {
-                    try { await request; }
-                    catch (Exception error) when (error is IOException or OperationCanceledException) { }
+                    if (request is not null)
+                    {
+                        try { await request.WaitAsync(TransportTestSupport.Limit); }
+                        catch (Exception error) when (error is IOException or OperationCanceledException) { }
+                    }
+                    if (disposal is not null) { await disposal.WaitAsync(TransportTestSupport.Limit); }
                 }
             }
             GC.KeepAlive(monitor);
@@ -468,7 +463,8 @@ public sealed class HealthcheckPipeTransportTests
         await using (service)
         {
             string pipe = TransportTestSupport.NewPipeName();
-            await using var server = new HealthPipeServer(service, new HealthcheckOptions { PipeEnabled = false, PipeName = pipe }); await server.StartAsync();
+            var server = new HealthPipeServer(service, new HealthcheckOptions { PipeEnabled = false, PipeName = pipe });
+            await using var serverCleanup = new TransportTestSupport.PipeServerCleanup(server); await TransportTestSupport.StartServerAsync(server, pipe, enabled: false);
             using var cancellation = new CancellationTokenSource(100);
             await using var client = new NamedPipeClientStream(".", pipe, PipeDirection.InOut, PipeOptions.Asynchronous);
             await Assert.ThrowsAsync<OperationCanceledException>(() => client.ConnectAsync(cancellation.Token)); GC.KeepAlive(monitor);
@@ -482,13 +478,14 @@ public sealed class HealthcheckPipeTransportTests
         await using (service)
         {
             string pipe = TransportTestSupport.NewPipeName();
-            await using var server = new HealthPipeServer(service, new HealthcheckOptions { PipeEnabled = true, PipeName = pipe });
+            var server = new HealthPipeServer(service, new HealthcheckOptions { PipeEnabled = true, PipeName = pipe });
+            await using var serverCleanup = new TransportTestSupport.PipeServerCleanup(server);
             using var canceled = new CancellationTokenSource(); canceled.Cancel();
-            await Assert.ThrowsAsync<OperationCanceledException>(() => server.StartAsync(canceled.Token));
+            await Assert.ThrowsAsync<OperationCanceledException>(() => server.StartAsync(canceled.Token)).WaitAsync(TransportTestSupport.Limit);
             using var timeout = new CancellationTokenSource(100);
             await using var client = new NamedPipeClientStream(".", pipe, PipeDirection.InOut, PipeOptions.Asynchronous);
             await Assert.ThrowsAsync<OperationCanceledException>(() => client.ConnectAsync(timeout.Token));
-            await server.StartAsync();
+            await TransportTestSupport.StartServerAsync(server, pipe);
             TransportTestSupport.ValidateSnapshotEnvelope(await TransportTestSupport.RequestAsync(pipe, "{\"protocolVersion\":1,\"view\":\"health\"}"), "health", true, true); GC.KeepAlive(monitor);
         }
     }
@@ -500,7 +497,8 @@ public sealed class HealthcheckPipeTransportTests
         await using (service)
         {
             string pipe = TransportTestSupport.NewPipeName();
-            await using var server = new HealthPipeServer(service, new HealthcheckOptions { PipeEnabled = true, PipeName = pipe }); await server.StartAsync();
+            var server = new HealthPipeServer(service, new HealthcheckOptions { PipeEnabled = true, PipeName = pipe });
+            await using var serverCleanup = new TransportTestSupport.PipeServerCleanup(server); await TransportTestSupport.StartServerAsync(server, pipe);
             const string request = "{\"protocolVersion\":1,\"view\":\"health\"}";
             TransportTestSupport.ValidateSnapshotEnvelope(await TransportTestSupport.RequestAsync(pipe, request.PadRight(512)), "health", true, true);
             GC.KeepAlive(monitor);
@@ -516,7 +514,8 @@ public sealed class HealthcheckPipeTransportTests
         await using (service)
         {
             string pipe = TransportTestSupport.NewPipeName(); var source = new CountingSource(service);
-            await using var server = new HealthPipeServer(source, new HealthcheckOptions { PipeEnabled = true, PipeName = pipe, PipeMaxClients = capacity }); await server.StartAsync();
+            var server = new HealthPipeServer(source, new HealthcheckOptions { PipeEnabled = true, PipeName = pipe, PipeMaxClients = capacity });
+            await using var serverCleanup = new TransportTestSupport.PipeServerCleanup(server); await TransportTestSupport.StartServerAsync(server, pipe);
             using var timeout = new CancellationTokenSource(TransportTestSupport.Limit);
             for (int i = 0; i < 32; i++)
             {
@@ -537,7 +536,8 @@ public sealed class HealthcheckPipeTransportTests
         {
             string pipe = TransportTestSupport.NewPipeName(); var clock = new DelayedCallbackClock();
             var source = new AdvancingSource(service, clock);
-            await using var server = new HealthPipeServer(source, new HealthcheckOptions { PipeEnabled = true, PipeName = pipe, PipeMaxClients = 1, PipeRequestTimeoutMs = 1000 }, clock); await server.StartAsync();
+            var server = new HealthPipeServer(source, new HealthcheckOptions { PipeEnabled = true, PipeName = pipe, PipeMaxClients = 1, PipeRequestTimeoutMs = 1000 }, clock);
+            await using var serverCleanup = new TransportTestSupport.PipeServerCleanup(server); await TransportTestSupport.StartServerAsync(server, pipe);
             using var timeout = new CancellationTokenSource(TransportTestSupport.Limit);
             await using (var client = new NamedPipeClientStream(".", pipe, PipeDirection.InOut, PipeOptions.Asynchronous))
             {
@@ -594,6 +594,7 @@ public sealed class HealthcheckPipeTransportTests
         await using (service)
         {
             var server = new HealthPipeServer(service, new HealthcheckOptions());
+            await using var serverCleanup = new TransportTestSupport.PipeServerCleanup(server);
             await server.StopAsync().WaitAsync(TransportTestSupport.Limit);
             await server.StopAsync().WaitAsync(TransportTestSupport.Limit);
             Assert.ThrowsExactly<InvalidOperationException>(() => server.StartAsync());
@@ -615,9 +616,10 @@ public sealed class HealthcheckPipeTransportTests
         {
             string pipe = TransportTestSupport.NewPipeName(); var clock = new DelayedCallbackClock();
             var source = new AdvancingSource(service, clock, elapsedMilliseconds);
-            await using var server = new HealthPipeServer(source, new HealthcheckOptions
+            var server = new HealthPipeServer(source, new HealthcheckOptions
             { PipeEnabled = true, PipeName = pipe, PipeMaxClients = 1, PipeRequestTimeoutMs = 1000 }, clock);
-            await server.StartAsync();
+            await using var serverCleanup = new TransportTestSupport.PipeServerCleanup(server);
+            await TransportTestSupport.StartServerAsync(server, pipe);
             using var timeout = new CancellationTokenSource(TransportTestSupport.Limit);
             byte[]? payload = null;
             await using (var client = new NamedPipeClientStream(".", pipe, PipeDirection.InOut, PipeOptions.Asynchronous))
@@ -652,9 +654,10 @@ public sealed class HealthcheckPipeTransportTests
         await using (service)
         {
             string pipe = TransportTestSupport.NewPipeName(); var source = new CountingSource(service);
-            await using var server = new HealthPipeServer(source, new HealthcheckOptions
+            var server = new HealthPipeServer(source, new HealthcheckOptions
             { PipeEnabled = true, PipeName = pipe, PipeMaxClients = 1 });
-            await server.StartAsync();
+            await using var serverCleanup = new TransportTestSupport.PipeServerCleanup(server);
+            await TransportTestSupport.StartServerAsync(server, pipe);
             using var timeout = new CancellationTokenSource(TransportTestSupport.Limit);
             await using (var abandoned = new NamedPipeClientStream(".", pipe, PipeDirection.InOut, PipeOptions.Asynchronous))
             {
@@ -682,8 +685,9 @@ public sealed class HealthcheckPipeTransportTests
             string pipe = TransportTestSupport.NewPipeName();
             Exception error = failure == "cancellation" ? new OperationCanceledException("private-source") : new FormatException("private-source");
             var source = new FaultingOnceSource(service, error);
-            await using var server = new HealthPipeServer(source, new HealthcheckOptions { PipeEnabled = true, PipeName = pipe });
-            await server.StartAsync();
+            var server = new HealthPipeServer(source, new HealthcheckOptions { PipeEnabled = true, PipeName = pipe });
+            await using var serverCleanup = new TransportTestSupport.PipeServerCleanup(server);
+            await TransportTestSupport.StartServerAsync(server, pipe);
             TransportTestSupport.ValidateError(await TransportTestSupport.RequestAsync(pipe, "{\"protocolVersion\":1,\"view\":\"health\"}"), "ReportingUnavailable");
             TransportTestSupport.ValidateSnapshotEnvelope(await TransportTestSupport.RequestAsync(pipe, "{\"protocolVersion\":1,\"view\":\"health\"}"), "health", true, true);
             Assert.AreEqual(2, source.Captures);
@@ -698,9 +702,10 @@ public sealed class HealthcheckPipeTransportTests
         await using (service)
         {
             string pipe = TransportTestSupport.NewPipeName(); var clock = new ObservingTimerClock();
-            await using var server = new HealthPipeServer(service, new HealthcheckOptions
+            var server = new HealthPipeServer(service, new HealthcheckOptions
             { PipeEnabled = true, PipeName = pipe, PipeMaxClients = 1 }, clock);
-            await server.StartAsync();
+            await using var serverCleanup = new TransportTestSupport.PipeServerCleanup(server);
+            await TransportTestSupport.StartServerAsync(server, pipe);
             TransportTestSupport.ValidateSnapshotEnvelope(await TransportTestSupport.RequestAsync(pipe,
                 "{\"protocolVersion\":1,\"view\":\"health\"}"), "health", true, true);
             await server.StopAsync().WaitAsync(TransportTestSupport.Limit);
@@ -717,7 +722,8 @@ public sealed class HealthcheckPipeTransportTests
         await using (service)
         {
             string pipe = TransportTestSupport.NewPipeName();
-            await using var server = new HealthPipeServer(service, new HealthcheckOptions { PipeEnabled = true, PipeName = pipe }); await server.StartAsync();
+            var server = new HealthPipeServer(service, new HealthcheckOptions { PipeEnabled = true, PipeName = pipe });
+            await using var serverCleanup = new TransportTestSupport.PipeServerCleanup(server); await TransportTestSupport.StartServerAsync(server, pipe);
             using var timeout = new CancellationTokenSource(TransportTestSupport.Limit);
             await using var client = new NamedPipeClientStream(".", pipe, PipeDirection.InOut, PipeOptions.Asynchronous); await client.ConnectAsync(timeout.Token);
             if (OperatingSystem.IsWindows())

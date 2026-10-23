@@ -16,6 +16,11 @@ namespace CIS.Tests.HealthcheckHttpHost;
 
 internal static class Program
 {
+    // The parent allows fifteen seconds for this local fixture process. A
+    // nonprogressing pipe phase and its real cleanup each get five seconds,
+    // leaving headroom for process startup and failure propagation.
+    private static readonly TimeSpan PipeLifecycleLimit = TimeSpan.FromSeconds(5);
+
     private static async Task Main(string[] args)
     {
         string mode = args.Length == 0 ? "normal" : args[0];
@@ -56,8 +61,9 @@ internal static class Program
         if (mode != "not-ready") { service.MarkStartupCompleted(); }
         if (mode == "stopping") { service.BeginStopping(); }
         var source = new CountingSource(service, monitor, mode);
-        await using var pipeServer = new HealthPipeServer(source, options);
-        await pipeServer.StartAsync();
+        var pipeServer = new HealthPipeServer(source, options);
+        await using var pipeCleanup = new PipeServerCleanup(pipeServer);
+        await pipeServer.StartAsync().WaitAsync(PipeLifecycleLimit);
         int authorizationCalls = 0, businessCalls = 0;
         WebApplicationBuilder builder = WebApplication.CreateBuilder();
         builder.Logging.ClearProviders();
@@ -148,14 +154,37 @@ internal static class Program
     {
         for (int index = 0; index < count; index++)
         {
-            await using var server = new HealthPipeServer(source, new HealthcheckOptions
+            var server = new HealthPipeServer(source, new HealthcheckOptions
             {
                 PipeEnabled = true,
                 PipeName = "cis-pin-release-" + Guid.NewGuid().ToString("N"),
                 PipeMaxClients = 1
             });
-            await server.StartAsync();
-            await server.StopAsync();
+            await using var cleanup = new PipeServerCleanup(server);
+            await server.StartAsync().WaitAsync(PipeLifecycleLimit);
+            await server.StopAsync().WaitAsync(PipeLifecycleLimit);
+        }
+    }
+
+    private sealed class PipeServerCleanup(HealthPipeServer server) : IAsyncDisposable
+    {
+        public async ValueTask DisposeAsync()
+        {
+            // Attempt both actual drains even if one call faults. Keeping the
+            // watchdog outside preserves a timeout rather than claiming that
+            // an unresolved resource has settled.
+            Task stopping;
+            try { stopping = server.StopAsync(); }
+            catch (Exception error) { stopping = Task.FromException(error); }
+            Task disposing;
+            try { disposing = server.DisposeAsync().AsTask(); }
+            catch (Exception error) { disposing = Task.FromException(error); }
+            Task drains = Task.WhenAll(stopping, disposing);
+            try { await drains.WaitAsync(PipeLifecycleLimit); }
+            catch (Exception error) when (error is not TimeoutException && drains.Exception is not null)
+            {
+                throw drains.Exception;
+            }
         }
     }
 

@@ -1,12 +1,125 @@
 # Healthcheck mutation gate closure
 
+23 October 2026 storage cleanup: the user explicitly requested removal of all
+contents of the local `.artifacts` folder only. Read the
+[current summary and handoff](../storage-cleanup-2026-10-23/SUMMARY.md) before
+using artifact paths below. Small source/metadata copies were retained with
+hashes; historical local raw artifacts are being removed. Earlier path/hash
+observations are not a promise that those files remain available. Current Ubuntu
+originals are separate. No qualification hold or score is changed by cleanup.
+
+The subsequent [23 October execution repair](../execution-repair-2026-10-23/README.md)
+closes the identified Unit/Pipes execution and capture regressions (point1):
+4/4 Unit and6/6 Pipes execution hosts closed normally, all actual result joins
+and closed captures passed review, and original/fresh1354 Unit and596 Pipes
+baseline controls passed. Both actual timeout source-consistency reviews and
+all25 receiving controls passed; the two original failed timeout-policy receipts
+remain unchanged. These finite two-definition diagnostics add no kill credit.
+Survivor/assertion work and complete three-report qualification toward90% remain
+open. This does not replace the latest complete union or reopen the unrelated
+paused roadmap.
+
+## Earlier checkpoint narrative
+
 This work follows commit `46aff4a1` (`Record Healthcheck native mutation and
 release qualification evidence`). That commit records the previous qualification
 wave. The changes and executions below are a separate, unpublished gate-closure
 wave. The requested mutation threshold remains 90%; writing detectors or a
 diagnostic config does not establish a passing gate.
 
-Latest continuation (22 October, after commit `76c309ba`): the approved complete,
+The execution/capture continuation after `a884e2ed` is in progress. The latest
+closed complete union remains union40 at 1,591/3,065 (51.91%), unqualified.
+The new diagnostic campaigns and detector trials below do not replace that
+report or contribute automatic qualification credit. The current checkout also
+fixes a reproduced concurrent startup/shutdown defect. The stopped source50
+campaign preserves its earlier shipping basis and cannot qualify that later fix.
+
+The latest focused checkpoint passes all 1,354 Healthcheck Unit cases, with no
+failures or skips, after adopting five behavior cases and the additional manual
+interval case below. Full solution
+formatting verification also passes. The cases check stopping-signal admission,
+pending timer disposal, and acceptance of valid diagnostic inputs. The finite
+Windows trials produce direct assertions in normal hosts for three original
+Runner survivors (1166/1191/1248), and for diagnostic definitions
+353/371/383/396 that previously crashed. These observations are not a complete
+Unit result or Ubuntu qualification credit. The exact adoption is recorded in
+`.artifacts/hcg/adoption-wave-64/adoption.json`
+(`ad07ace1e48bb5ca90d3b4c7f1a0dc04bcb3c21c2653c0297596c7701f008379`);
+the focused run is
+`.artifacts/hcg/adoption-wave-64/canonical-healthcheck01.log`, with native TRX
+`.artifacts/csharp/focused/86449a0b34354d708a553d75b84420e5/selected.trx`.
+Developer55 subsequently passes all sixteen stages and 10,013 native cases:
+5,262 Unit, 2,322 Integration, 2,400 Architecture and 29 Business, with no
+failures or skips. Its summary is `.artifacts/hcg/developer-55/summary.json`
+(`7d954bc057426f2be21c47be3fd12dce925f401477289bd54bae0153e74e9427`).
+The 23 original Core/test runtime-role files were captured immediately after
+the checkpoint, before another canonical build, in
+`.artifacts/hcg/developer-55-originals.json`
+(`3e6ead83336a5549f08e4e8fcc1d65fdcc91d7f4a43d2956acabada82685ed82`).
+Developer55 does not execute mutation or compatibility qualification.
+
+One later fixture correction awaits the actual retirement observer's Stop task
+instead of requiring synchronous successful completion after Register returns.
+C04 requires actual shutdown completion, without promising synchronous success.
+The assertion that Stop remains pending inside the in-flight registration
+observer is retained. The corrected case passes a focused native run, with
+TRX `.artifacts/csharp/focused/d5575917b2a14bd78b7a136e68cca03c/selected.trx`.
+Developer55 predates this one-assertion correction. The current full Ubuntu Unit
+snapshot already contains it and its 1,353-case original control passes.
+
+An additional manual-interval case verifies that a configured but unactivated
+periodic interval cannot retire later manual collection by calculating an
+unnecessary overflowing future due time. The original private one-case control
+passes, and canonical adoption passes the complete maintained 1,354-case filter
+and full solution formatting. An earlier namespace-only selection passed 1,325
+cases; it omitted the value-contract and scheduling controls and is not used as
+the complete selection. The adoption record is
+`.artifacts/hcg/unit-manual-interval-boundary-69/adoption.json`; the complete
+native TRX is
+`.artifacts/csharp/focused/f613b345c42e4de7ac00c78581248510/selected.trx`.
+Developer55 and the running full Ubuntu Unit55 snapshot predate this new case.
+The separate finite Windows69 trial reports three Killed, one Survived and one
+NoCoverage, retaining native exit two. Both requested old survivors 1511/1513
+map by exact source definition to Killed; original and fresh two-case controls
+pass. The unexecuted NoCoverage sibling remains an explicit gap. Its full
+definition/cohort/restoration record is
+`.artifacts/hcg/unit-manual-interval-boundary-69/finite/execution/index.json`.
+These finite Windows observations do not change the complete union score.
+
+The finite Ubuntu detector trial65 closes with 16 Killed and four Survived
+definitions, zero Timeout/NoCoverage and twenty normal target hosts. All seven
+requested Runner/diagnostic definitions have direct assertion witnesses; the
+four surviving siblings remain unresolved. Six-case original and fresh controls
+pass. Selector joins, actual parent callbacks and independent kernel host exits
+were reviewed; the native below-threshold exit remains retained. This is a
+finite observation, not a complete Unit campaign or union score. Its completion
+record is `.artifacts/hcg/unit-new-detectors-linux-65/completion.json`
+(`14665025061f32080913a5247631e98b0a3510ebb60ebc6fda91c5053d8454aa`),
+and the manual review is
+`.artifacts/hcg/unit-new-detectors-linux-65/imported/manual-native-review.json`
+(`d49d8bcc5124d35732f0ead7eb3e365d058007f96902956ae44acf606cb75da9`).
+
+Three complete Ubuntu campaigns are now executing against frozen source:
+Unit55 with corrected staging67, Pipes66 and ASP.NET62. Their original controls
+pass; complete reports, restoration, capture and semantic qualification remain
+pending. Unit and Pipes have already produced actual aborted hosts, retained
+without normal-host credit. The complete-launch index is
+`.artifacts/hcg/current-complete-launch-67/index.json`
+(`f2988342acea3f6b2e47ada57e0b73b26841a469392ec9ae63c61026ee60e2a7`).
+The latest closed complete union therefore remains the unqualified 51.91%.
+
+The user-requested local storage cleanup removes 17,336,841,447 logical bytes:
+verified archive-backed extracted Unit50b, Unit18 and Pipes20 duplicates, plus
+117 isolated cache directories from 39 completed replay runs. All compressed
+originals, reports, replay input/work snapshots, inventories, generated package
+evidence and historical failures remain retained. Re-running old Unit18,
+Pipes20 or union40 log audits requires same-path archive restoration first;
+the retained small exact296 host is not a substitute for the whole log set.
+The cleanup and restoration record is
+`.artifacts/hcg/local-retention-68/cleanup-summary.json`. Current Ubuntu capture
+roots are outside the cleanup scope; the cleanup changes no qualification fact.
+
+Previous closed continuation (22 October, after commit `76c309ba`): the approved complete,
 source-checked three-report Healthcheck union40 is complete and unqualified.
 Its qualified score is 1,591/3,065 (51.91%), up from 50.34%, against the 90% gate.
 The raw conservative score remains 2,659/3,102 (85.72%). All three original
@@ -18,6 +131,434 @@ union33 remain unchanged. The
 [closed continuation receipt](parallel-continuation-2026-10-22-02.json) records
 the exact executions, adjustments and evidence pins. No release is qualified.
 Historical observations below retain their original source snapshots and dates.
+
+## Unit execution and capture continuation after a884e2ed
+
+The Unit campaign was losing results to its aggregate host budget: several
+sequential receiving tests each used a legitimate 10- or 15-second watchdog.
+Disabling mixing alone did not prevent aborts. The original six-definition
+Ubuntu diagnostic with 10,000 ms additional timeout had four aborted mutant
+hosts; 60,000 ms left three; 300,000 ms left one. The latter completed five
+mutant hosts normally, but only 1057/1796/1804 had direct assertion witnesses.
+Normal 1067/1180 still had only watchdog/cleanup failures, and 1769 remained
+aborted. Original reports, failed checks and actual abnormal hosts are retained
+in `.artifacts/hcg/unit-isolated-state-pilot-48/index.json`
+(`3498b0a0b53cae8309307147db9fa8353184fa1a7260937a93d717878a167862`).
+
+Real fixture faults compounded that cost. Four binder assertions could throw
+after entering an operation but before its guaranteed completion block. Related
+withdrawal assertions had the same cleanup issue. Those assertions now execute
+inside cleanup regions, and the affected state/disposal waits are finite. Owner
+release gates are explicitly controlled by the test and released in cleanup.
+Entry checks observe the actual caller and the owner's real cleanup stage:
+skipping the expected callback can enter gated cleanup while leaving the caller
+pending. That wrong lifecycle order is asserted directly. Periodic-only checks
+retain periodic activation as their sole trigger. Child-context tests inspect
+the returned collection result before waiting for a child that a wrong result
+may never have created. Genuine deadline failures are not caught or relabeled.
+
+The first corrected source49 diagnostic still cut 1769 at 130/183 results after
+about 321 seconds. Its 26 completed watchdog failures consumed 275.44 seconds.
+That retained failure motivated the additional observed-cleanup checks above.
+The source50 Ubuntu pilot then completes all 183 cases normally in 102.33 seconds:
+175 fail, 165 by direct assertion and ten by retained non-direct exceptions.
+Both complete 1,342-case controls pass. Its index is
+`.artifacts/hcg/unit-current-state-pilot-50/index.json`
+(`87aa87d5048a658bd790252cbd503049a5de739ba6c3edabb50585d81aafd713`).
+Complete Unit configurations may use no mixing and the exact 300,000 ms extra
+budget; every other maintained setting, source scope and threshold is preserved.
+Seventy-two configuration receiving cases cover that profile and reject other
+deltas.
+
+Nine subsequent fixture refinements observe actual lease disposal before an
+expected callback, race an actual blocked caller against callback entry, release
+the supplied timer Change gates explicitly in cleanup, and assert required
+measurement/diagnostic presence before dereferencing it. Their private Windows
+1769 diagnostic retains the full Healthcheck filter and unchanged shipping
+source50. All 183 cases complete normally in 1.257 seconds: 175 direct assertions,
+eight passes and zero other exception rows. Both 1,342-case Release controls
+pass. The read-only review calls the frozen maintained assertion classifier and
+joins all requested/started/completed/failed identities, killedBy, selector,
+host/controller messages, natural host exit zero and failed-test console exit
+one. Review SHA-256:
+`99a08539835779de0eeec36f69412f106b40e00e6fa0f3fb8a70cbf86cb1520a`.
+The nine byte-checked refinements are adopted; Linux validation of this later
+fixture version remains separate. Failed preparation/controller attempts are
+retained, including a premature private-copy edit rejected by preparation,
+inherited SDK selectors rejected before native mutation, and an incorrect
+required role path rejected after the initial control. None is a successful
+campaign or supplies mutation credit.
+
+Capture now distinguishes native restoration from controller repair. The
+diagnostic controllers retain raw DLL/PDB copies, validate the clean portable
+PDB against the actual PE debug identity/checksum, explicitly restore the stale
+test-copy Core PDB, and retain the corrected pre-fresh and fresh copies. This
+does not claim that Stryker restored the PDB or establish historical loaded
+symbols. A separately pinned kernel inventory can prove a standard Ubuntu Unit
+discovery host's natural exit when VSTest omits its exit callback. It cannot
+override a bad callback or excuse any execution abort. The source48 replay
+checks all 982 actual process traces, including the observed nonreturning
+`exit_group` form; 45 receiving cases cover that parser and its rejection paths.
+
+New behavioral tests cover interval admission during clock failure, periodic
+fairness after retiring the running registration, abandoned attachment reuse,
+cancellation/retirement settlement, overlapping monitor disposal, and UTC
+calendar endpoints under non-UTC local offsets. Private Windows finite trials
+produce direct assertions for original survivors 1939 and 4265 and the earlier
+1329/1381/1949 targets; all actual sibling outcomes remain retained. These are
+diagnostic observations, not Ubuntu adjustments or transferred report credit.
+The timezone premise is independently exercised in real Ubuntu processes with
+offsets +14 and -12 through the actual report parser.
+
+A later receiving test exercises a large positive detached revision through both
+public formatter APIs. For a 1 KiB report budget, three warmed synchronous
+samples allocate about 6.2 KiB each. Removing the exact original 3123 early
+rejection instead allocates 91,112/91,144 bytes, exceeding the generous 64 KiB
+bound before returning the same bounded error. Both actual covering rows fail
+directly, their host completes normally, and both three-case controls pass.
+This checks the published allocation-order requirement rather than elapsed
+time. The 52b receipt is
+`.artifacts/hcg/formatter-revision-allocation-52b/final/index.json`
+(`319789be9299f335505b0ad6e703d93b13bcc91df42dc41d299b9a5d782774ab`).
+The two-row test is adopted. The earlier unnecessarily large 52 attempt remains
+Timeout, with no credit; neither finite diagnostic replaces a complete report.
+
+The Pipes child recorder now durably writes a bound launch intent before starting
+launch-directory or child work. Five receiving phases bind the actual parent,
+selector, Core body and child termination. The verifier rejects missing, orphaned,
+corrupt and downgraded chains; physical recorder metadata distinguishes the new
+format from genuine legacy bodies. The private 3031 diagnostic has fourteen
+intents, fourteen launched children and fourteen complete chains, with no child
+audit issues. This repairs capture, and supplies no new kill: 3031 was already
+Killed. The old 336 child issues remain unchanged. Thirty-four receiving controls
+are now maintained architecture tests. The HTTP fixture also observes actual
+request completion before waiting for body entry and releases and joins the real
+request in cleanup. Its four diagnostic targets were already Killed; the two
+observed continuation-policy survivors remain Survived.
+
+After adopting those capture/HTTP changes and the revision-allocation test,
+native checks pass 34 capture controls, 82 HTTP/scheduling cases, two allocation
+cases and all 1,346 Healthcheck unit cases, with no failures, skips, warnings or
+errors. Scoped formatting verification passes. The actual source pins, native
+GUID/FQN joins and post-run physical bodies are retained in
+`.artifacts/hcg/adoption-wave-52/final/receipt.json`
+(`4b4aa079d013b25879c5280f758f8d9238c6181fffd9bd70246fc8803d47d613`).
+This is a combined focused checkpoint, not a new complete Developer or mutation
+qualification result.
+
+Two further receiving rows check the adopted depth-before-object-allocation
+obligation through the shared response parser. A complete otherwise valid pipe
+response includes an unknown array/object field with a large string below depth
+17; the same shapes at depth 16 are accepted. The original rejects the deeper
+input with about 4.7/8.0 KiB of warmed thread allocations. Removing the exact
+original 3634 early reader-depth bound instead allocates over 500 KiB before the
+later rejection. Both actual rows fail the generous 64 KiB per-input bound
+directly in a normally completed host, and both three-case controls pass. The
+new fixture is adopted from
+`.artifacts/hcg/protocol-depth-preallocation-53/final/index.json`
+(`181d3b28bd1fc2d329e60a2f95495d361533c18af51416eceeec6c2d2df660bd`).
+This asserts materialization order for these inputs, not a universal parser heap
+limit. The raw post-native test-copy Core PDB mismatch remains retained and
+unrepaired; the receiving test DLL/PDB binding is checked. No loaded-symbol,
+Ubuntu or complete-report credit is inferred from this Windows diagnostic.
+
+Normal Developer50 closes with exit 0, all 16 stages and 9,963 native cases:
+5,251 Unit, 2,322 Integration, 2,361 Architecture and 29 Business; there are no
+failures, skips or validation issues. Mutation and Compatibility remain NotRun.
+Its immediate 23-body/source/README capture is retained in
+`.artifacts/hcg/developer-50-originals.json`
+(`5cde174530dc6d2658836ed50754ec5c5e9e9f70bad1bb524616a9ad766dcda2`).
+The absent outer exit file is disclosed separately from the observed process
+exit and closed native summary. Developer49's earlier 9,960-case checkpoint and
+its capture remain unchanged. Developer50 and the immutable source50 manifest
+precede the nine further fixture refinements and the runtime correction below.
+
+Concurrent `StopAsync` could reserve an unsettled timer barrier while the real
+`CreateTimer` call was in progress. If that factory subsequently threw, the
+startup catch cleared `starting`, but the already-stopping path never settled
+the absent timer. A private public-API regression reproduces a failure after
+joining the actual factory worker; its successful-factory control passes. The
+original regression converted a bounded wait into an assertion and supplies no
+direct mutation-kill evidence. The catch now settles the timer barrier under the same lock
+when no timer was created. The same two regression rows pass with the correction,
+alongside all 1,344 Healthcheck cases and 67 focused runner/resource cases.
+Original and corrected source/binary observations are separately pinned in
+`.artifacts/hcg/collector-start-stop-race-51/final/index.json`
+(`01ad739dc44bb5f84ecbc5db84e46d408014714619275c659fcc872c5cf45e2a`).
+The correction and regression are adopted. They change shipping source after
+Developer50 and source50; no earlier report or body observation is transferred
+to that newer implementation.
+
+The complete Ubuntu source50 campaign selects 2,742 mutants over all maintained
+41 Unit paths, with the complete 1,342-case baseline passing. Two early diagnostic
+construction mutants, 370/373, abort after 72/223 and 65/213 completed cases.
+Each has eleven completed watchdog failures accounting for about 290 seconds;
+their actual stranded operations, abnormal hosts and remaining cases stay
+unqualified. The original scope, budget and space guards remain recorded. The
+campaign was subsequently stopped as described below and supplies no complete
+report. A later complete campaign must separately bind the current shipping
+source and regenerated definition inventory.
+
+By 22 October 22:48 UTC, the same campaign also exposes nine binding-retirement
+aborts, for eleven observed aborts in total. The binding hosts complete their
+earlier cases in fractions of a second and then wait indefinitely in generated
+binding disposal. Those rows have no actual collection work to drain. The first
+private two-definition correction directly asserts the missing managed completion
+barrier and lets both hosts complete all fifteen selected cases; the remaining
+withdrawal cleanup exceptions are still retained. The combined nine-definition
+Windows trial then completes all nine selector-bound hosts normally, with exact
+request/result/killedBy joins. The selected direct-assertion witnesses were
+subsequently rejected by contract review: two body assertions and seven cleanup
+assertions required synchronous binding disposal, which the public contract does
+not guarantee. None of those nine selected witnesses supplies accepted contract
+credit. Sixteen completed TimeoutException rows also remain visible; they are
+neither waived nor converted to assertions. Both 1,342-case controls pass. The
+retained observational manual review, superseded for witness eligibility, is
+`.artifacts/hcg/unit-execution-merged-56/manual-review-v2.json`
+(`3efb68618973a42113e64fd3b429ea4b10b54b33b0f97c8510fb22d5d1ea83d6`).
+Eight related factory/retirement, fact, payload, diagnostic and report fixture
+changes were initially adopted. Cleanup distinguishes a fact-only owned binding, an external
+association and an actual collection reservation; real reservation/service work
+is still joined. Adoption separately preserves the earlier explicit Collection
+and LastError assertions that were absent from the frozen trial's older template.
+All 1,348 current Healthcheck unit cases pass after integration, including the
+current Runner correction and both allocation regressions. These diagnostics
+grant no score credit and do not repair the running source50 campaign
+retroactively.
+
+A corrected private nine-file proposal has completed against the current
+shipping source and is adopted. Pure cleanup requests binding retirement and observes completed
+faults, while the actual service/monitor/reservation cleanup still joins real
+work. It does not claim that a pending private binding barrier has settled.
+Dedicated disposal tests retain bounded actual awaits and genuine timeout
+failures. The ninth correction removes the startup regression's deadline-to-
+assertion conversion and awaits its actual stop task with the same five-second
+bound. No public synchronous-completion promise or timeout promotion is added.
+Proposal: `.artifacts/hcg/unit-binding-contract-59/proposal-v2.json`
+(`f3d215068477f0ae7c33465b3bacd4b419eeed21435b23f6a1a928cf6eca5327`).
+The earlier raw trials and their source bytes remain unchanged.
+
+Both private controls pass the same 1,348 GUID/FQN/display identities, all nine
+selector-bound hosts complete normally, and the native run exits zero. Review
+distinguishes 48 assertion-prefix rows from 76 genuine TimeoutException rows.
+Forty-four assertions impose unsupported immediate completion in two older
+fixtures; those witnesses remain held and the separate two-file correction
+below supersedes them. Four body-state candidates instead assert synchronous monitor
+withdrawal before rejecting a self-containing disposal wait. No automatic kill
+credit is applied to any row. The private result is
+`.artifacts/hcg/unit-binding-contract-59/execution/results.json`
+(`44fb2215060cefc54ab9e923d0b65f0f5aed053c453eb30236fbbda86b3db431`).
+The checked nine-file adoption verifies all 1,115 compiled/configuration inputs
+before and after copying; it changes no shipping code. Its receipt is
+`.artifacts/hcg/adoption-wave-59/adoption.json`
+(`21a854063819b15b17705d29b6c56a9d15f7cd4dbef4e4d0d3700335249e5a55`).
+The subsequent canonical focused check also passes all 1,348 cases with zero
+failures, skips, warnings or errors; its actual TRX is
+`.artifacts/csharp/focused/a1459913fdb6445bbe27c9fd3de11f7e/selected.trx`.
+
+The remaining two binding fixtures now use actual bounded awaits as well. They
+preserve registration-ID reuse before any old-binding call, synchronous
+withdrawal, shared task identity and external monitor retention. Both release
+requests start even if one throws synchronously; actual service/monitor work
+remains joined. Six renamed case identities are reconciled within the new
+cohort. Original/fresh controls again pass all 1,348 exact GUID/FQN/display
+identities, and all nine target hosts finish normally. All 124 failed rows are
+now four supported body-state assertions and 120 genuine TimeoutException rows
+(112 dedicated disposal-body waits and eight cleanup waits). There are zero
+remaining assertions imposing synchronous public binding completion in these
+fixtures. All deadline rows remain held and receive no assertion credit. The
+native/source review is
+`.artifacts/hcg/unit-binding-contract-60/manual-native-source-review.json`
+(`89c76b4cf2f0b02941137152e1d4e36a6c709d175585ee845634276f84d42286`).
+The two-fixture adoption checks all 1,115 compiled/configuration inputs before
+and after copying; its receipt is
+`.artifacts/hcg/adoption-wave-60/adoption.json`
+(`7d67ff33bc66621c584a29546ecce840e18d221e2bc5afe400387e1f2ef20549`).
+It changes no shipping code and applies no mutation credit. A new complete
+Developer checkpoint must verify this current canonical closure.
+
+Four collector fixture scopes now release their actual owner gates first and
+independently start Runner, service and explicitly owned monitor drains under
+one unchanged watchdog. A synchronous Runner failure can no longer prevent
+service cleanup from being attempted. Initial and fresh 1,342-case controls pass.
+The private diagnostic reduces repeated cleanup cost, but 370/373 still abort
+after 76/223 and 69/213 cases, with fourteen watchdog failures each. Sibling 371
+crashes, and one controller request line is physically truncated/spliced.
+Those failures and raw symbol mismatch remain retained; no normal-host or score
+credit is claimed. The four scope changes are adopted for cleanup correctness;
+the bounded negative-result receipt is
+`.artifacts/hcg/collector-concurrent-drain-54/final-bounded-02/index.json`
+(`8af7a676e6cea1115a8b3e5ac91c596f6dc999219dd52f272e5a1ce7036d8675`).
+
+The current Runner's native inventory contains 521 definitions, three more than
+the original implementation. A source-checked merge with the forty physically
+unchanged Unit files yields 3,667 ID-free expected definitions for a later current
+campaign. It preserves every original status as origin metadata only; neither
+old IDs nor statuses become new results. The merged inventory is retained in
+`.artifacts/hcg/unit-runner-inventory-51/merged-inventory01.json`
+(`96e6a020a9257730d00e5b2da92962d90b872ccc251340b26c9c11d6e195546f`).
+
+Developer51 stopped at the formatting stage with three adopted fixtures using
+CRLF where the repository requires LF. No native test family ran and no
+successful-checkpoint body capture was produced. The failed native summary,
+outer exit 1 and diagnostics remain in `.artifacts/hcg/developer-51` and its
+adjacent log/exit files. The earlier scoped format invocation incorrectly used
+absolute include paths and matched no files; its zero exit is not evidence for
+those fixtures. A solution-relative formatter invocation corrects only
+ENDOFLINE diagnostics in the sparse-fact and two formatter qualification files.
+The earlier private diagnostic source bytes remain unchanged. A new full
+format verification and separately named Developer checkpoint must validate
+the normalized current checkout before it becomes a new campaign input.
+
+Developer52 failed before source inventory/test execution because its launcher
+left empty SDK selector variables. Removing those variables through PowerShell's
+environment provider restores SDK 10.0.401 resolution and the evidence-tool
+build passes. The failed attempt remains retained. Developer53 then closes with
+exit 0, all 16 stages, zero issues and 10,003 passed native cases: 5,257 Unit,
+2,322 Integration, 2,395 Architecture and 29 Business, without failures/skips.
+Mutation and Compatibility remain NotRun. Its summary is
+`.artifacts/hcg/developer-53/summary.json`
+(`51eb211e8ff1cd13bea4b99356d498ca08443a9101a8a9d4da4cb314b818cf28`),
+and the immediate 23-body/source/README capture is
+`.artifacts/hcg/developer-53-originals.json`
+(`a9b5bdc8149720e4d036b33fe12f3e2098d00e12454d6deaedcbd2c42032d9ac`).
+This checkpoint precedes adoption of the nine contract corrections above; a
+normal pass does not validate those earlier immediacy assertions as contracts.
+
+Developer54 validates the subsequently adopted eleven fixture corrections with
+exit zero, all sixteen stages and 10,003 passing cases: 5,257 Unit, 2,322
+Integration, 2,395 Architecture and 29 Business, with no failures/skips or
+validation issues. Mutation and Compatibility remain NotRun. The successful
+summary is `.artifacts/hcg/developer-54/summary.json`
+(`50c7a3ec552435e471259090a38a1488e0dc163174423a67bc512d92f140ce85`).
+Its immediate 23-file capture starts before any further canonical edit/build
+and closes successfully at
+`.artifacts/hcg/developer-54-originals.json`
+(`e8bfa2ddbb69060e4c618577d7fe5a3eb8e9dd5c290129f772752aa96273a74a`).
+The captured Core bytes agree across the source and four test families. The
+1,473-input current62 campaign snapshot separately matches the actual
+checkpoint inventory and all 1,115 compiled/configuration pins from the final
+two-fixture diagnostic; this is input currency, not mutation qualification.
+
+The VSTest capture investigation finds an actual lost/spliced Windows request
+record near the logger's rolling threshold. Pinned logger and runtime IL explain
+why Linux behaves differently: its StreamWriter.WriteLine bypasses the virtual
+Write overloads used by the logger's byte tally, so the large message bodies do
+not increment that tally. The two actual Linux parent logs retain their original
+headers; closed-prefix checks observe about 3.30/2.53 MB of header bytes and zero
+bare prefixes. No Linux rollover loss or guaranteed future logging bound is
+claimed. No supported threshold or runner-recycling knob was found; the raw
+Windows record is not repaired or waived. The investigation is retained in
+`.artifacts/hcg/vstest-capture-framing-55/final-supplement-01/receipt.json`
+(`45d2d4898e0f77c64bfa46a43bec1cc1ea85c0b69a3d75f23e54ac051cd6b049`).
+
+A bounded alternative now captures the owned tracer's unmodified output through
+a sibling FIFO sink into numbered gzip members with byte/hash/EOF receipts.
+Six utility controls include storage/finalization failures that must invalidate
+capture while continuing to drain. An actual Ubuntu `/usr/bin/true` control
+closes both processes at exit zero and recovers the exact raw bytes. A finite
+source-bound 296 experiment closes with the original full Healthcheck
+filter, Complete mutation level, default per-test coverage, two workers,
+disabled mixing and 300,000 ms additional budget. Its whole new footprint is
+bounded at 4 GB with a 2 GB volume reserve and 45-minute outer limit. Both
+1,348-case controls pass, and the controller records complete execution with
+all owned processes gone. The sibling sink records EOF without a capture
+failure: five closed gzip members contain 552,913,184 raw bytes in 99,724,857
+compressed bytes. Independent physical review verifies every gzip member,
+both source trees, both GUID/FQN cohorts, all ten corrected/fresh roles and
+their actual PE/PDB bindings. Protocol/frame completeness remains unproved.
+The physical review is
+`.artifacts/hcg/vstest-wire-pilot-61/independent-review-01/results.json`
+(`db6b873da139aa13c74b371cf17e83bd789bdc985308655591f628573b9b838b`).
+This
+measures capture completeness and overhead; it supplies no full-scope result,
+kernel-parser acceptance or gate credit. The source/control readiness review is
+`.artifacts/hcg/vstest-wire-pilot-61/final-review-01/review.json`
+(`f736aeeba9a17d4a7cef46ed3db5b5cda1b9d49175f4ae9ae389c3906ad59327`).
+
+The actual Ubuntu foreign-user Pipes experiment closes normally. Its exact
+original 2859 statement deletion removes `continue` after rejecting a foreign
+peer. Four real worker EOF exchanges are bound to the original/native/fresh
+roles, with the worker running as UID 65534 and the subject as UID 1000. The
+native target is Killed by a direct receiving assertion when the legitimate
+owner's next healthy probe instead exits 2. The selector-bound host completes
+both requested rows, terminates normally and has its actual parent exit-zero
+callback. Initial/fresh two-case controls pass, original source/tool pins and
+actual backup/restoration captures match, and the receiving Unit PE/PDB pair is
+checked. This is new diagnostic behavior evidence on immutable source50, not
+automatic current-source union credit. Raw report SHA-256 is
+`723fae66454432b0b4e3f755f8a12d4122ef5e2e2ead8f19993a65a0d3185274`;
+the closed run result is
+`6ffce7b9baddc9c2131c3827b0f400eb1a290aa229d3a19ae884380f62c238c4`.
+The callback reports the test host's exit zero; the failed-test VSTest console
+itself exits one. The final physical review is
+`.artifacts/hcg/pipes-rejected-peer-linux-57d/manual-review-final-v2.json`
+(`b553115673fb4f19952a7acf88c18d61c301c4ec3d5185c8d07d33ef530a37d1`).
+Failed setup/output-ownership/pin preparations remain retained separately.
+
+The obsolete source50 full campaign is now retired. A single reviewed pidfd
+SIGINT targets its exact CLI identity; native exit 130 and outer exit one are
+retained. All 16,573 observed kernel traces terminate, with no missing creation
+edges or surviving recorded process identities. Its final 730 progress strings
+are not a complete mutation report. Native DLL restoration fails before symbol
+repair or the fresh baseline; raw instrumented DLL/PDB bytes and the actual
+original backup remain separately captured. Explicit manual recovery then
+restores exactly the isolated test Core DLL from that backup and its PDB from
+the physically validated clean source symbols. All 1,342 original GUID/FQN cases
+pass without rebuilding or restoring packages; all eleven corrected role hashes
+and all 1,519 source pins remain unchanged during that baseline. The 33 role
+copies, actual TRX and recovery receipts are imported and checked. This is manual
+recovery of old runtime files, with no native-restoration, loaded-symbol or
+current-source qualification claim. Its index is
+`.artifacts/hcg/unit-full-nomix-50b/manual-recovery/index.json`
+(`7e3913bf2e12610df3eef66faf77b3bd21a6c9faebbf70d3befd8a5d9f4b9539`).
+The retirement index is
+`.artifacts/hcg/unit-full-nomix-50b/retirement-index.json`
+(`466de768f23d0fd1c77b7df62ce6f1df3e267040e82b3c152933383a34afbecc`).
+
+The closed source50 root is preserved in independently verified local and
+off-data archives with SHA-256
+`8bd04068d68b87ecd92655d14bbec404e0c869760e2de788484ecdb5f62664a6`.
+After rechecking every member, inode, archive and retired process identity,
+the bounded reclaimer removes only the 19,170 duplicate regular files and 317
+empty directories in that root. Its 38,340 durable intent/completion records
+match the full manifest. Actual free space rises from 17,255,194,624 to
+19,094,183,936 bytes; the old transient socket/FIFO root remains retained.
+The closure index and exact CreateNew same-path restoration command are in
+`.artifacts/hcg/unit-full-nomix-50b/retention61/index.json`
+(`902c421f0526a2a3245926e89372da589699c058e7720e84ca99c5987cdc71e3`).
+Retention does not change the campaign's incomplete or manual-recovery status.
+
+A separate read-only review observes complete assertion results before later
+aborts in sixteen original Unit18 examples. Only the first pure synchronous
+enum-rejection body (original 296) has been causally reviewed so far. A private
+prototype may expose this as a separate diagnostic category; it does not change
+qualified IDs, normal-host counts, original statuses or any abnormal/incomplete
+hold. The proposal is retained in
+`.artifacts/hcg/completed-assertion-before-abort-review-58/review-05.json`
+(`5079a0ceca84cb386ade623ef93ad1e42b51344cade6089c913db6c3d0486ce4`).
+On 23 October the user explicitly approves eligibility for individually
+source-proven completed assertions before a later host abort, preserving the
+90% threshold and all unresolved abort/unfinished-work release holds. The
+maintained accounting change is adopted for exact original 296 only. Its
+separate completed-before-abort category composes qualified credit once without
+inflating normal-host counts. Thirty-six parser controls and the actual
+source-checked 296 subset give 37 successful comparisons; three private
+accounting controls also pass. The actual subset retains normal-host count zero
+and removes only the missing-assertion-witness issue for 296 (3,227 to 3,226);
+every other issue remains identical and in the same order. An already-returned
+GUID listed as still active rejects the new category. The exact review is
+`.artifacts/hcg/completed-assertion-before-abort-qualification-63b/final-review-01/review.json`
+(`48567934d76094413580a05b9af80e64982b76aca64fc5eb9efda8e906c89883`),
+and adoption is `.artifacts/hcg/adoption-wave-66/adoption.json`
+(`2e3a0287d710fe6f0b7f2a160066089b3be25ff83d7c184143d283ffd5677802`).
+Canonical receiving verification passes all 223 selected native accounting and
+parser cases, including five added accounting cases and strengthened rejection
+checks, with zero failures, skips, warnings or errors. Its native TRX is
+`.artifacts/csharp/focused/32a3d5f4950f485e93d87129af9a178c/selected.trx`.
+No complete union has been
+reevaluated by this change. Host normality, unfinished results and unrelated
+issues are not reclassified. No bare crash or deadline receives assertion credit.
 
 ## Parallel continuation after commit 76c309ba
 

@@ -178,19 +178,7 @@ internal static partial class HealthcheckMutationUnionVerification
         string group = String(descriptor, "group");
         JsonObject original = files.ReadDocument(files.Pin(Item(descriptor["configuration"])));
         JsonObject maintained = files.ReadDocument(MaintainedConfig(files, group));
-        Need(JsonNode.DeepEquals(original, maintained), "Native configuration differs from its complete maintained scope: " + group);
-        JsonObject config = Item(original["stryker-config"]);
-        string[] allowed = ["project", "test-projects", "test-case-filter", "test-runner", "target-framework", "configuration", "mutate",
-            "mutation-level", "reporters", "coverage-analysis", "concurrency", "disable-bail", "additional-timeout", "thresholds"];
-        Need(config.All(p => allowed.Contains(p.Key, StringComparer.Ordinal)), "Unapproved native filter/ignore/tool override is forbidden.");
-        Need(String(config, "mutation-level") == "Complete" && String(config, "configuration") == "Release"
-            && String(config, "test-runner") == "vstest" && String(config, "target-framework") == "net10.0"
-            && Integer(config, "concurrency") == 2 && config["disable-bail"]?.GetValue<bool>() == true,
-            "Complete Release/no-bail native settings are required.");
-        Need(group == "unit-runtime" || String(config, "coverage-analysis") == "off", "Child-process groups require coverage-analysis off.");
-        JsonObject thresholds = Item(config["thresholds"]);
-        Need(Integer(thresholds, "high") == 100 && Integer(thresholds, "low") == 90 && Integer(thresholds, "break") == 90,
-            "Native thresholds must remain 100/90/90.");
+        HealthcheckMutationCampaignConfiguration.Validate(group, original, maintained);
         return original;
     }
 

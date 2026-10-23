@@ -1,0 +1,2956 @@
+{
+  "schema": "cis.healthcheck.unit-runner-source-watchdog-envelope/v1-review-data",
+  "observedUtc": "2026-10-23T09:59:49.0944474+00:00",
+  "scope": "Current unchanged shipping Runner; all explicit Unit Healthcheck Runner.Start sites joined to one actual passed native baseline",
+  "executionClaims": {
+    "mutationCampaignExecuted": false,
+    "newTestsExecuted": false,
+    "mutationSelectionClaim": false,
+    "normalHostClaim": false,
+    "qualificationCredit": 0
+  },
+  "baseline": {
+    "path": ".artifacts/csharp/focused/a195c6ceeff04490943e716ca6d359c5/selected.trx",
+    "sha256": "da19f11ca10cf3aaeb0e53671edd1337b3538de2f629b40dddd6f46cf475bc06",
+    "bytes": 1934111,
+    "total": 1354,
+    "passed": 1354,
+    "failed": 0,
+    "skipped": 0,
+    "resultDurationSumSeconds": 5.27,
+    "mode": "Local ordinary baseline with assembly parallelization; not a mutation-mode runtime bound",
+    "outsideStartAssociatedEnvelopeCases": 1196
+  },
+  "sourceCoverage": {
+    "explicitMethods": 90,
+    "syntacticStartSites": 96,
+    "nativeGuidCount": 158,
+    "missingNativeMethodJoins": 0,
+    "shippingCsFiles": 146,
+    "testFiles": 22
+  },
+  "runner": {
+    "path": "implementations/csharp/src/CIS.Core/Healthcheck/HealthCollectorRunner.cs",
+    "sha256": "386c3d5cd7e681ed58a2d6be564ad3c813b598b377921ff5057a61419067fec8",
+    "sourcePaths": [
+      {
+        "observedAlias": "1055",
+        "line": 47,
+        "premise": "if (started) becomes if (!started)",
+        "effect": "A fresh uncanceled Start returns the pending startCompletion.Task before creating a timer or scheduling real work. A later Stop can settle because starting remains false."
+      },
+      {
+        "observedAlias": "1060",
+        "line": 58,
+        "premise": "Post-success starting = false becomes starting = true",
+        "effect": "Start still completes at line64. Stop/Dispose cannot satisfy !starting at line298; cleanup remains an actual unresolved lifetime barrier."
+      }
+    ],
+    "aliasCaveat": "These labels identify the reviewed current source paths, not transferable definition identities for any future report."
+  },
+  "budget": {
+    "recommendedAdditionalTimeoutMilliseconds": 4500000,
+    "legacyAdditionalTimeoutMilliseconds": 300000,
+    "firstBlockingObservationSeconds": 1608,
+    "cleanupAllowanceSeconds": 2183,
+    "sourceEnvelopeSeconds": 3791,
+    "remainingHeadroomSeconds": 709,
+    "formula": "Sum over all158 Start-associated baseline cases of first blocking source observation plus conservative family cleanup allowances;4500s =3791s +709s.",
+    "preserved": "Unchanged Complete/perTest/default coverage/full filter/concurrency2/noMix/no-bail/source scope. No public synchronous-success contract and no timeout-to-assertion conversion.",
+    "restrictions": [
+      "This is a source-derived planning allowance for only the reviewed1055/1060 paths, not a hard universal wall-clock bound.",
+      "It deliberately includes unaffected/expected-rejection rows and mutually exclusive sequential cleanup bounds.",
+      "The1196 other native cases retain ordinary work plus scheduling/IO overhead headroom; the5.27s local parallel result sum does not bound remote mutation execution.",
+      "Synchronous calls that never return, genuine blocked product work, unhandled process faults, and unrelated mutants are not made finite by WaitAsync.",
+      "Current reader accepts300000 only; any4500000 profile needs separately reviewed exact configuration acceptance and actual native capture.",
+      "A host can still abort; actual result chronology/lifecycle/kernel/unfinished-work evidence and all gate holds remain mandatory."
+    ]
+  },
+  "excludedOrPartialPaths": [
+    {
+      "class": "HealthCollectorRunnerSchedulingTests",
+      "method": "StopBeforeStartIsTerminalAndRepeatedStopDoesNotWithdrawTheMonitor",
+      "reason": "EnsureAdmission rejects a stopped runner before either reviewed source path; included conservatively."
+    },
+    {
+      "class": "HealthCollectorRunnerMutationQualificationTests",
+      "method": "DisposedRunnerRejectsNewWorkWithTheDisposedObjectContract",
+      "reason": "EnsureAdmission rejects disposed runner before either path; included conservatively."
+    },
+    {
+      "class": "HealthCollectorRunnerMutationQualificationTests",
+      "method": "TimerCreationFailureClosesAdmissionAndSettlesStop",
+      "reason": "Normal factory failure precedes successful-start1060 assignment;1055 can still strand its expected startup observation."
+    },
+    {
+      "class": "HealthCollectorIntervalValidationBoundaryTests",
+      "method": "TimerCreationFailureClosesRegistrationBeforeAnyExplicitStop",
+      "reason": "Factory failure bypasses1060 success assignment;1055 can still strand the expected startup observation."
+    },
+    {
+      "class": "HealthCollectorPartialStartStopTests",
+      "method": "StopIncludesAConcurrentTimerFactoryFailureWithoutRetainingAnUnsettledResource",
+      "nativeCaseId": "191dc211-7af6-844d-a7e5-75d34040c76f",
+      "reason": "True factory-failure row bypasses1060 success assignment. Both5s body and concurrent5s actual drains are included."
+    },
+    {
+      "class": "HealthCollectorRunnerSchedulingTests",
+      "method": "PreCanceledStartDoesNotEnableManualOrPeriodicAdmission",
+      "reason": "Pre-canceled initial call bypasses both paths, but this same receiving row later performs a fresh uncanceled Start and remains included."
+    }
+  ],
+  "families": [
+    {
+      "class": "HealthBindingRetirementBoundaryTests",
+      "methods": 1,
+      "cases": 1,
+      "cleanup": "Concurrent registration/runner/service",
+      "firstBlockingObservationSeconds": 10,
+      "cleanupAllowanceSeconds": 10,
+      "weightedAllowanceSeconds": 20
+    },
+    {
+      "class": "HealthcheckErrorReasonQualificationTests",
+      "methods": 1,
+      "cases": 1,
+      "cleanup": "Concurrent runner/service",
+      "firstBlockingObservationSeconds": 10,
+      "cleanupAllowanceSeconds": 10,
+      "weightedAllowanceSeconds": 20
+    },
+    {
+      "class": "HealthcheckLifecycleQualificationTests",
+      "methods": 1,
+      "cases": 1,
+      "cleanup": "Concurrent runner/service/actual collection",
+      "firstBlockingObservationSeconds": 3,
+      "cleanupAllowanceSeconds": 3,
+      "weightedAllowanceSeconds": 6
+    },
+    {
+      "class": "HealthCollectionCapacityAndFairnessBoundaryTests",
+      "methods": 2,
+      "cases": 5,
+      "cleanup": "Concurrent runner/service/registrations/monitors",
+      "firstBlockingObservationSeconds": 10,
+      "cleanupAllowanceSeconds": 10,
+      "weightedAllowanceSeconds": 100
+    },
+    {
+      "class": "HealthCollectorAbandonedPendingCallerQualificationTests",
+      "methods": 1,
+      "cases": 1,
+      "cleanup": "Sequential Stop, actual callers, Runner, Service",
+      "firstBlockingObservationSeconds": 15,
+      "cleanupAllowanceSeconds": 60,
+      "weightedAllowanceSeconds": 75
+    },
+    {
+      "class": "HealthCollectorAbandonmentAndRetirementSettlementTests",
+      "methods": 1,
+      "cases": 1,
+      "cleanup": "Sequential actual callers, timer, Service, conditional Stop and Runner",
+      "firstBlockingObservationSeconds": 15,
+      "cleanupAllowanceSeconds": 75,
+      "weightedAllowanceSeconds": 90
+    },
+    {
+      "class": "HealthCollectorAdmissionAndSettlementQualificationTests",
+      "methods": 3,
+      "cases": 14,
+      "cleanup": "Concurrent runner/service",
+      "firstBlockingObservationSeconds": 10,
+      "cleanupAllowanceSeconds": 10,
+      "weightedAllowanceSeconds": 280
+    },
+    {
+      "class": "HealthCollectorDelayedCancellationSettlementTests",
+      "methods": 1,
+      "cases": 2,
+      "cleanup": "Concurrent Runner/Service and retained withdrawal requests under one existing 10s bound",
+      "firstBlockingObservationSeconds": 10,
+      "cleanupAllowanceSeconds": 10,
+      "weightedAllowanceSeconds": 40
+    },
+    {
+      "class": "HealthCollectorExecutionBoundaryTests",
+      "methods": 3,
+      "cases": 17,
+      "cleanup": "At most two Scope drains, or child join plus Scope; each 10s",
+      "firstBlockingObservationSeconds": 10,
+      "cleanupAllowanceSeconds": 20,
+      "weightedAllowanceSeconds": 510
+    },
+    {
+      "class": "HealthCollectorIntervalValidationBoundaryTests",
+      "methods": 1,
+      "cases": 1,
+      "cleanup": "Sequential Runner then Service, each 15s",
+      "firstBlockingObservationSeconds": 15,
+      "cleanupAllowanceSeconds": 30,
+      "weightedAllowanceSeconds": 45
+    },
+    {
+      "class": "HealthCollectorManualIntervalBoundaryTests",
+      "methods": 1,
+      "cases": 1,
+      "cleanup": "Sequential Runner then Service, each 15s",
+      "firstBlockingObservationSeconds": 15,
+      "cleanupAllowanceSeconds": 30,
+      "weightedAllowanceSeconds": 45
+    },
+    {
+      "class": "HealthCollectorPartialStartStopTests",
+      "methods": 1,
+      "cases": 2,
+      "cleanup": "Concurrent start observer/runner/service",
+      "firstBlockingObservationSeconds": 5,
+      "cleanupAllowanceSeconds": 5,
+      "weightedAllowanceSeconds": 20
+    },
+    {
+      "class": "HealthCollectorPeriodicTimerProgressQualificationTests",
+      "methods": 1,
+      "cases": 2,
+      "cleanup": "Sequential Runner then Service, each 15s",
+      "firstBlockingObservationSeconds": 15,
+      "cleanupAllowanceSeconds": 30,
+      "weightedAllowanceSeconds": 90
+    },
+    {
+      "class": "HealthCollectorReceivingAndDueSelectionQualificationTests",
+      "methods": 1,
+      "cases": 1,
+      "cleanup": "Sequential Runner then Service, each 15s",
+      "firstBlockingObservationSeconds": 15,
+      "cleanupAllowanceSeconds": 30,
+      "weightedAllowanceSeconds": 45
+    },
+    {
+      "class": "HealthCollectorResourceBoundaryTests",
+      "methods": 4,
+      "cases": 7,
+      "cleanup": "Concurrent Runner/Service and retained withdrawal requests under one existing 10s bound",
+      "firstBlockingObservationSeconds": 10,
+      "cleanupAllowanceSeconds": 10,
+      "weightedAllowanceSeconds": 140
+    },
+    {
+      "class": "HealthCollectorRetiredCurrentFairnessTests",
+      "methods": 1,
+      "cases": 1,
+      "cleanup": "Stop, four registrations, Runner, Service, each 15s",
+      "firstBlockingObservationSeconds": 15,
+      "cleanupAllowanceSeconds": 105,
+      "weightedAllowanceSeconds": 120
+    },
+    {
+      "class": "HealthCollectorRunnerLifecycleTests",
+      "methods": 26,
+      "cases": 54,
+      "cleanup": "Concurrent runner/service after releasing all owner gates",
+      "firstBlockingObservationSeconds": 10,
+      "cleanupAllowanceSeconds": 10,
+      "weightedAllowanceSeconds": 1080
+    },
+    {
+      "class": "HealthCollectorRunnerMutationQualificationTests",
+      "methods": 12,
+      "cases": 17,
+      "cleanup": "Concurrent runner/service",
+      "firstBlockingObservationSeconds": 10,
+      "cleanupAllowanceSeconds": 10,
+      "weightedAllowanceSeconds": 340
+    },
+    {
+      "class": "HealthCollectorRunnerSchedulingTests",
+      "methods": 24,
+      "cases": 24,
+      "cleanup": "Concurrent runner/service/monitors after releasing all owner gates",
+      "firstBlockingObservationSeconds": 10,
+      "cleanupAllowanceSeconds": 10,
+      "weightedAllowanceSeconds": 480
+    },
+    {
+      "class": "HealthCollectorStoppingAdmissionBoundaryTests",
+      "methods": 2,
+      "cases": 3,
+      "cleanup": "Stop, returned caller, registration, Runner, Service, each 10s",
+      "firstBlockingObservationSeconds": 10,
+      "cleanupAllowanceSeconds": 50,
+      "weightedAllowanceSeconds": 180
+    },
+    {
+      "class": "HealthCollectorUtcOutageQualificationTests",
+      "methods": 1,
+      "cases": 1,
+      "cleanup": "Sequential Runner then Service, each 15s",
+      "firstBlockingObservationSeconds": 15,
+      "cleanupAllowanceSeconds": 30,
+      "weightedAllowanceSeconds": 45
+    },
+    {
+      "class": "HealthRegistrationDiagnosticTests",
+      "methods": 1,
+      "cases": 1,
+      "cleanup": "Concurrent registration/runner/Scope; existing Scope Service 5s retained",
+      "firstBlockingObservationSeconds": 10,
+      "cleanupAllowanceSeconds": 10,
+      "weightedAllowanceSeconds": 20
+    }
+  ],
+  "methods": [
+    {
+      "class": "HealthBindingRetirementBoundaryTests",
+      "method": "DisposingTheActuallyExecutingMonitorRejectsItsOwnWaitBeforeReturningATask",
+      "declarationLine": 74,
+      "source": "implementations/csharp/tests/CIS.Core.UnitTests/Healthcheck/Execution/HealthBindingRetirementBoundaryTests.cs",
+      "deadlineSeconds": 10,
+      "startLines": [
+        99
+      ],
+      "nativeCaseCount": 1,
+      "nativeCases": [
+        {
+          "id": "1b4ddc3c-21d5-8bf3-9c93-66a44adcde4a",
+          "name": "DisposingTheActuallyExecutingMonitorRejectsItsOwnWaitBeforeReturningATask"
+        }
+      ]
+    },
+    {
+      "class": "HealthcheckErrorReasonQualificationTests",
+      "method": "ASecondRunnerClaimReportsAReasonAndPreservesTheFirstRunner",
+      "declarationLine": 86,
+      "source": "implementations/csharp/tests/CIS.Core.UnitTests/Healthcheck/Core/HealthcheckErrorReasonQualificationTests.cs",
+      "deadlineSeconds": 10,
+      "startLines": [
+        96
+      ],
+      "nativeCaseCount": 1,
+      "nativeCases": [
+        {
+          "id": "1f7d03ca-07d4-88c0-8d92-85c2a1e74060",
+          "name": "ASecondRunnerClaimReportsAReasonAndPreservesTheFirstRunner"
+        }
+      ]
+    },
+    {
+      "class": "HealthcheckLifecycleQualificationTests",
+      "method": "MonitorAndServiceDisposalWaitForActualCanceledCollectionAndLeaseCleanup",
+      "declarationLine": 179,
+      "source": "implementations/csharp/tests/CIS.Core.UnitTests/Healthcheck/Core/HealthcheckLifecycleQualificationTests.cs",
+      "deadlineSeconds": 3,
+      "startLines": [
+        189
+      ],
+      "nativeCaseCount": 1,
+      "nativeCases": [
+        {
+          "id": "1afe9000-59ba-819f-b824-412aaace92ad",
+          "name": "MonitorAndServiceDisposalWaitForActualCanceledCollectionAndLeaseCleanup"
+        }
+      ]
+    },
+    {
+      "class": "HealthCollectionCapacityAndFairnessBoundaryTests",
+      "method": "FullMetricCapacityDistinguishesUpdatesFromEntirelyNewKeys",
+      "declarationLine": 17,
+      "source": "implementations/csharp/tests/CIS.Core.UnitTests/Healthcheck/Collection/HealthCollectionCapacityAndFairnessBoundaryTests.cs",
+      "deadlineSeconds": 10,
+      "startLines": [
+        37
+      ],
+      "nativeCaseCount": 4,
+      "nativeCases": [
+        {
+          "id": "150cb59c-8a3d-8aad-89d9-f034ec82f2d8",
+          "name": "FullMetricCapacityDistinguishesUpdatesFromEntirelyNewKeys (False,False)"
+        },
+        {
+          "id": "185e4a86-88e9-80b4-b48f-ff7cdde3fa30",
+          "name": "FullMetricCapacityDistinguishesUpdatesFromEntirelyNewKeys (False,True)"
+        },
+        {
+          "id": "1dfbae71-d3ae-8185-a80f-f52c49d982c5",
+          "name": "FullMetricCapacityDistinguishesUpdatesFromEntirelyNewKeys (True,True)"
+        },
+        {
+          "id": "1fd70a80-f519-89b3-adc6-4d253e51113c",
+          "name": "FullMetricCapacityDistinguishesUpdatesFromEntirelyNewKeys (True,False)"
+        }
+      ]
+    },
+    {
+      "class": "HealthCollectionCapacityAndFairnessBoundaryTests",
+      "method": "RemovingTheNextQueuedPeriodicRegistrationDoesNotServeThePreviousHotOwnerAgainFirst",
+      "declarationLine": 74,
+      "source": "implementations/csharp/tests/CIS.Core.UnitTests/Healthcheck/Collection/HealthCollectionCapacityAndFairnessBoundaryTests.cs",
+      "deadlineSeconds": 10,
+      "startLines": [
+        93
+      ],
+      "nativeCaseCount": 1,
+      "nativeCases": [
+        {
+          "id": "1a3170c7-adf6-87eb-9808-9f3d98121e6d",
+          "name": "RemovingTheNextQueuedPeriodicRegistrationDoesNotServeThePreviousHotOwnerAgainFirst"
+        }
+      ]
+    },
+    {
+      "class": "HealthCollectorAbandonedPendingCallerQualificationTests",
+      "method": "ACollectedQueuedRegistrationReleasesItsCallerBeforeTheNextRealOwnerIsAdmitted",
+      "declarationLine": 14,
+      "source": "implementations/csharp/tests/CIS.Core.UnitTests/Healthcheck/Collection/HealthCollectorAbandonedPendingCallerQualificationTests.cs",
+      "deadlineSeconds": 15,
+      "startLines": [
+        22
+      ],
+      "nativeCaseCount": 1,
+      "nativeCases": [
+        {
+          "id": "13ce1bf9-f2c3-8777-be0b-bd9ceb1ed94a",
+          "name": "ACollectedQueuedRegistrationReleasesItsCallerBeforeTheNextRealOwnerIsAdmitted"
+        }
+      ]
+    },
+    {
+      "class": "HealthCollectorAbandonmentAndRetirementSettlementTests",
+      "method": "SweptQueuedRegistrationReleasesItsAttachmentForAReplacementOwner",
+      "declarationLine": 16,
+      "source": "implementations/csharp/tests/CIS.Core.UnitTests/Healthcheck/Collection/HealthCollectorAbandonmentAndRetirementSettlementTests.cs",
+      "deadlineSeconds": 15,
+      "startLines": [
+        43
+      ],
+      "nativeCaseCount": 1,
+      "nativeCases": [
+        {
+          "id": "1d2cca33-2b0d-8f3f-8b8f-c0a38baa7e41",
+          "name": "SweptQueuedRegistrationReleasesItsAttachmentForAReplacementOwner"
+        }
+      ]
+    },
+    {
+      "class": "HealthCollectorAdmissionAndSettlementQualificationTests",
+      "method": "AFailedCompletionUtcSampleRetainsItsDiagnosticAlongsideTheAlreadyCommittedSuccess",
+      "declarationLine": 137,
+      "source": "implementations/csharp/tests/CIS.Core.UnitTests/Healthcheck/Collection/HealthCollectorAdmissionAndSettlementQualificationTests.cs",
+      "deadlineSeconds": 10,
+      "startLines": [
+        145
+      ],
+      "nativeCaseCount": 1,
+      "nativeCases": [
+        {
+          "id": "13fe6c68-b341-81a2-b826-6bb67b055256",
+          "name": "AFailedCompletionUtcSampleRetainsItsDiagnosticAlongsideTheAlreadyCommittedSuccess"
+        }
+      ]
+    },
+    {
+      "class": "HealthCollectorAdmissionAndSettlementQualificationTests",
+      "method": "OwnerCallbacksRejectTheirOwnPendingBarrierWithoutAwaitingTheReturnedTask",
+      "declarationLine": 26,
+      "source": "implementations/csharp/tests/CIS.Core.UnitTests/Healthcheck/Collection/HealthCollectorAdmissionAndSettlementQualificationTests.cs",
+      "deadlineSeconds": 10,
+      "startLines": [
+        59
+      ],
+      "nativeCaseCount": 12,
+      "nativeCases": [
+        {
+          "id": "1023aec1-5830-8e80-b907-723f4b7c16c3",
+          "name": "OwnerCallbacksRejectTheirOwnPendingBarrierWithoutAwaitingTheReturnedTask (\"acquisition\",\"runner-stop\")"
+        },
+        {
+          "id": "1119547f-ce82-8771-8693-c3d74281b838",
+          "name": "OwnerCallbacksRejectTheirOwnPendingBarrierWithoutAwaitingTheReturnedTask (\"evaluation\",\"runner-dispose\")"
+        },
+        {
+          "id": "123ab3f8-50be-8713-aa67-c0b5b83b89e4",
+          "name": "OwnerCallbacksRejectTheirOwnPendingBarrierWithoutAwaitingTheReturnedTask (\"acquisition\",\"collection\")"
+        },
+        {
+          "id": "12a13050-3662-84cc-851e-af2324d07230",
+          "name": "OwnerCallbacksRejectTheirOwnPendingBarrierWithoutAwaitingTheReturnedTask (\"acquisition\",\"registration-dispose\")"
+        },
+        {
+          "id": "12bca052-00fb-87da-885f-c60906e10946",
+          "name": "OwnerCallbacksRejectTheirOwnPendingBarrierWithoutAwaitingTheReturnedTask (\"evaluation\",\"runner-stop\")"
+        },
+        {
+          "id": "14302517-b6ec-8980-a51e-9df833387849",
+          "name": "OwnerCallbacksRejectTheirOwnPendingBarrierWithoutAwaitingTheReturnedTask (\"acquisition\",\"runner-dispose\")"
+        },
+        {
+          "id": "17016c3f-8a90-8550-86fa-6ebb4bc28516",
+          "name": "OwnerCallbacksRejectTheirOwnPendingBarrierWithoutAwaitingTheReturnedTask (\"cleanup\",\"registration-dispose\")"
+        },
+        {
+          "id": "17d48b3a-66f2-85c0-be10-c3c1502c93ac",
+          "name": "OwnerCallbacksRejectTheirOwnPendingBarrierWithoutAwaitingTheReturnedTask (\"evaluation\",\"collection\")"
+        },
+        {
+          "id": "1997a45d-173c-8dbb-9a66-54180145cb43",
+          "name": "OwnerCallbacksRejectTheirOwnPendingBarrierWithoutAwaitingTheReturnedTask (\"cleanup\",\"runner-dispose\")"
+        },
+        {
+          "id": "1aa1827a-69f3-8ef6-a7b7-2cf5b1b9d069",
+          "name": "OwnerCallbacksRejectTheirOwnPendingBarrierWithoutAwaitingTheReturnedTask (\"cleanup\",\"collection\")"
+        },
+        {
+          "id": "1b44bbaa-b3ae-8ab7-90db-7a4362ecfd66",
+          "name": "OwnerCallbacksRejectTheirOwnPendingBarrierWithoutAwaitingTheReturnedTask (\"evaluation\",\"registration-dispose\")"
+        },
+        {
+          "id": "1c27ff89-f3d9-83bc-a993-38de4d99f56a",
+          "name": "OwnerCallbacksRejectTheirOwnPendingBarrierWithoutAwaitingTheReturnedTask (\"cleanup\",\"runner-stop\")"
+        }
+      ]
+    },
+    {
+      "class": "HealthCollectorAdmissionAndSettlementQualificationTests",
+      "method": "PreCanceledQueuedRequestCannotCreateWorkBeforeARealFollowingDispatcherWitness",
+      "declarationLine": 88,
+      "source": "implementations/csharp/tests/CIS.Core.UnitTests/Healthcheck/Collection/HealthCollectorAdmissionAndSettlementQualificationTests.cs",
+      "deadlineSeconds": 10,
+      "startLines": [
+        100
+      ],
+      "nativeCaseCount": 1,
+      "nativeCases": [
+        {
+          "id": "1525da00-7bb8-8b22-9aae-9c71ef887c79",
+          "name": "PreCanceledQueuedRequestCannotCreateWorkBeforeARealFollowingDispatcherWitness"
+        }
+      ]
+    },
+    {
+      "class": "HealthCollectorDelayedCancellationSettlementTests",
+      "method": "FinishedLeaseCleanupDoesNotReleaseStateSettlementWhileItsCancellationObserverStillRuns",
+      "declarationLine": 15,
+      "source": "implementations/csharp/tests/CIS.Core.UnitTests/Healthcheck/Collection/HealthCollectorDelayedCancellationSettlementTests.cs",
+      "deadlineSeconds": 10,
+      "startLines": [
+        29
+      ],
+      "nativeCaseCount": 2,
+      "nativeCases": [
+        {
+          "id": "1a8b31ab-614f-831c-8d88-46c202715e0e",
+          "name": "FinishedLeaseCleanupDoesNotReleaseStateSettlementWhileItsCancellationObserverStillRuns (True)"
+        },
+        {
+          "id": "1c9d3757-32aa-8212-8bca-88b95f720f12",
+          "name": "FinishedLeaseCleanupDoesNotReleaseStateSettlementWhileItsCancellationObserverStillRuns (False)"
+        }
+      ]
+    },
+    {
+      "class": "HealthCollectorExecutionBoundaryTests",
+      "method": "AChildContextCapturedByTheOwnerCanDisposeAfterTheActualOperationSettles",
+      "declarationLine": 130,
+      "source": "implementations/csharp/tests/CIS.Core.UnitTests/Healthcheck/Collection/HealthCollectorExecutionBoundaryTests.cs",
+      "deadlineSeconds": 10,
+      "startLines": [
+        162
+      ],
+      "nativeCaseCount": 4,
+      "nativeCases": [
+        {
+          "id": "130cc719-229b-8641-bead-bd30e69d56e2",
+          "name": "AChildContextCapturedByTheOwnerCanDisposeAfterTheActualOperationSettles (\"monitor\")"
+        },
+        {
+          "id": "1341b18f-e30e-88ed-b134-31bbc9c71cc4",
+          "name": "AChildContextCapturedByTheOwnerCanDisposeAfterTheActualOperationSettles (\"service\")"
+        },
+        {
+          "id": "16b0329f-9380-8763-9b50-b4dd658538c3",
+          "name": "AChildContextCapturedByTheOwnerCanDisposeAfterTheActualOperationSettles (\"registration\")"
+        },
+        {
+          "id": "1c2bda43-41c9-87a4-b4c1-4a9fdeaea017",
+          "name": "AChildContextCapturedByTheOwnerCanDisposeAfterTheActualOperationSettles (\"runner\")"
+        }
+      ]
+    },
+    {
+      "class": "HealthCollectorExecutionBoundaryTests",
+      "method": "ACollectorCanAwaitBarriersThatDoNotContainItsOwnOperation",
+      "declarationLine": 20,
+      "source": "implementations/csharp/tests/CIS.Core.UnitTests/Healthcheck/Collection/HealthCollectorExecutionBoundaryTests.cs",
+      "deadlineSeconds": 10,
+      "startLines": [
+        51
+      ],
+      "nativeCaseCount": 7,
+      "nativeCases": [
+        {
+          "id": "10111bbf-ad00-8bd7-8f76-0038626866d4",
+          "name": "ACollectorCanAwaitBarriersThatDoNotContainItsOwnOperation (\"foreign-service-dispose\")"
+        },
+        {
+          "id": "1221da4b-4f02-85f4-8451-e90c1fdf6229",
+          "name": "ACollectorCanAwaitBarriersThatDoNotContainItsOwnOperation (\"foreign-service-wait\")"
+        },
+        {
+          "id": "13303efd-3351-8453-b579-83c1aed0e4cc",
+          "name": "ACollectorCanAwaitBarriersThatDoNotContainItsOwnOperation (\"monitor-wait\")"
+        },
+        {
+          "id": "1b239230-5062-8057-85af-07c377625889",
+          "name": "ACollectorCanAwaitBarriersThatDoNotContainItsOwnOperation (\"foreign-runner-stop\")"
+        },
+        {
+          "id": "1c5207c5-af10-85e7-ba2d-ea74d4f61b78",
+          "name": "ACollectorCanAwaitBarriersThatDoNotContainItsOwnOperation (\"registration-dispose\")"
+        },
+        {
+          "id": "1d850406-a090-8e04-ae0c-3df191bd5a18",
+          "name": "ACollectorCanAwaitBarriersThatDoNotContainItsOwnOperation (\"monitor-dispose\")"
+        },
+        {
+          "id": "1f5d3900-2423-851e-bbdb-fa23795f0f57",
+          "name": "ACollectorCanAwaitBarriersThatDoNotContainItsOwnOperation (\"registration-wait\")"
+        }
+      ]
+    },
+    {
+      "class": "HealthCollectorExecutionBoundaryTests",
+      "method": "ActualAcquisitionAndLeaseCleanupCannotWaitForTheirOwnLifetime",
+      "declarationLine": 76,
+      "source": "implementations/csharp/tests/CIS.Core.UnitTests/Healthcheck/Collection/HealthCollectorExecutionBoundaryTests.cs",
+      "deadlineSeconds": 10,
+      "startLines": [
+        108
+      ],
+      "nativeCaseCount": 6,
+      "nativeCases": [
+        {
+          "id": "1119ff00-16e7-859c-93cc-295d72fc3451",
+          "name": "ActualAcquisitionAndLeaseCleanupCannotWaitForTheirOwnLifetime (\"cleanup\",\"service\")"
+        },
+        {
+          "id": "1153aa68-1fca-86bb-8289-7c44b1cbd4a3",
+          "name": "ActualAcquisitionAndLeaseCleanupCannotWaitForTheirOwnLifetime (\"acquisition\",\"registration\")"
+        },
+        {
+          "id": "16ae1c04-b78f-8c80-b703-857a8557f825",
+          "name": "ActualAcquisitionAndLeaseCleanupCannotWaitForTheirOwnLifetime (\"cleanup\",\"monitor\")"
+        },
+        {
+          "id": "18c40cfa-bcc5-8c10-82a7-96922667ef5b",
+          "name": "ActualAcquisitionAndLeaseCleanupCannotWaitForTheirOwnLifetime (\"acquisition\",\"service\")"
+        },
+        {
+          "id": "1bc2f39a-0104-810c-83ad-27480a43f640",
+          "name": "ActualAcquisitionAndLeaseCleanupCannotWaitForTheirOwnLifetime (\"acquisition\",\"monitor\")"
+        },
+        {
+          "id": "1f999de2-13ff-898b-bbd0-e234dc650076",
+          "name": "ActualAcquisitionAndLeaseCleanupCannotWaitForTheirOwnLifetime (\"cleanup\",\"registration\")"
+        }
+      ]
+    },
+    {
+      "class": "HealthCollectorIntervalValidationBoundaryTests",
+      "method": "TimerCreationFailureClosesRegistrationBeforeAnyExplicitStop",
+      "declarationLine": 67,
+      "source": "implementations/csharp/tests/CIS.Core.UnitTests/Healthcheck/Collection/HealthCollectorIntervalValidationBoundaryTests.cs",
+      "deadlineSeconds": 15,
+      "startLines": [
+        73
+      ],
+      "nativeCaseCount": 1,
+      "nativeCases": [
+        {
+          "id": "19e85c8e-96d1-81bd-9a9e-89f2889b2043",
+          "name": "TimerCreationFailureClosesRegistrationBeforeAnyExplicitStop"
+        }
+      ]
+    },
+    {
+      "class": "HealthCollectorManualIntervalBoundaryTests",
+      "method": "AnUnactivatedPeriodicIntervalCannotRetireManualCollectionWhenAFutureDueTimeWouldOverflow",
+      "declarationLine": 13,
+      "source": "implementations/csharp/tests/CIS.Core.UnitTests/Healthcheck/Collection/HealthCollectorManualIntervalBoundaryTests.cs",
+      "deadlineSeconds": 15,
+      "startLines": [
+        18
+      ],
+      "nativeCaseCount": 1,
+      "nativeCases": [
+        {
+          "id": "1438901a-32f5-8642-9052-8e43378c88a9",
+          "name": "AnUnactivatedPeriodicIntervalCannotRetireManualCollectionWhenAFutureDueTimeWouldOverflow"
+        }
+      ]
+    },
+    {
+      "class": "HealthCollectorPartialStartStopTests",
+      "method": "StopIncludesAConcurrentTimerFactoryFailureWithoutRetainingAnUnsettledResource",
+      "declarationLine": 14,
+      "source": "implementations/csharp/tests/CIS.Core.UnitTests/Healthcheck/Collection/HealthCollectorPartialStartStopTests.cs",
+      "deadlineSeconds": 5,
+      "startLines": [
+        24
+      ],
+      "nativeCaseCount": 2,
+      "nativeCases": [
+        {
+          "id": "124bbb6f-83d6-81ce-b95a-e1448e795968",
+          "name": "StopIncludesAConcurrentTimerFactoryFailureWithoutRetainingAnUnsettledResource (False)"
+        },
+        {
+          "id": "191dc211-7af6-844d-a7e5-75d34040c76f",
+          "name": "StopIncludesAConcurrentTimerFactoryFailureWithoutRetainingAnUnsettledResource (True)"
+        }
+      ]
+    },
+    {
+      "class": "HealthCollectorPeriodicTimerProgressQualificationTests",
+      "method": "CompletionWhileTimerChangesArePendingSchedulesTheEarliestRealPeriodicEligibility",
+      "declarationLine": 18,
+      "source": "implementations/csharp/tests/CIS.Core.UnitTests/Healthcheck/Collection/HealthCollectorPeriodicTimerProgressQualificationTests.cs",
+      "deadlineSeconds": 15,
+      "startLines": [
+        22
+      ],
+      "nativeCaseCount": 2,
+      "nativeCases": [
+        {
+          "id": "14178997-85b9-8b7f-a0e8-297c0d5f5699",
+          "name": "CompletionWhileTimerChangesArePendingSchedulesTheEarliestRealPeriodicEligibility (False)"
+        },
+        {
+          "id": "1835e7ac-563f-869c-b4e4-fc932e629dea",
+          "name": "CompletionWhileTimerChangesArePendingSchedulesTheEarliestRealPeriodicEligibility (True)"
+        }
+      ]
+    },
+    {
+      "class": "HealthCollectorReceivingAndDueSelectionQualificationTests",
+      "method": "CopyingALocalMonitorIdentityDoesNotTransferTheRegisteredHandlesOwnership",
+      "declarationLine": 16,
+      "source": "implementations/csharp/tests/CIS.Core.UnitTests/Healthcheck/Collection/HealthCollectorReceivingAndDueSelectionQualificationTests.cs",
+      "deadlineSeconds": 15,
+      "startLines": [
+        38
+      ],
+      "nativeCaseCount": 1,
+      "nativeCases": [
+        {
+          "id": "19727511-2261-8a07-b749-921d53a5c6f2",
+          "name": "CopyingALocalMonitorIdentityDoesNotTransferTheRegisteredHandlesOwnership"
+        }
+      ]
+    },
+    {
+      "class": "HealthCollectorResourceBoundaryTests",
+      "method": "ADisposedTimerExceptionDuringAnActualRequestedStopIsHarmless",
+      "declarationLine": 86,
+      "source": "implementations/csharp/tests/CIS.Core.UnitTests/Healthcheck/Collection/HealthCollectorResourceBoundaryTests.cs",
+      "deadlineSeconds": 10,
+      "startLines": [
+        95
+      ],
+      "nativeCaseCount": 1,
+      "nativeCases": [
+        {
+          "id": "1e97c415-8555-8ac7-9264-7f49f6f523da",
+          "name": "ADisposedTimerExceptionDuringAnActualRequestedStopIsHarmless"
+        }
+      ]
+    },
+    {
+      "class": "HealthCollectorResourceBoundaryTests",
+      "method": "PeriodicCompletionAcceptsTheLastRepresentableDueTimeAndRetiresOnOverflow",
+      "declarationLine": 15,
+      "source": "implementations/csharp/tests/CIS.Core.UnitTests/Healthcheck/Collection/HealthCollectorResourceBoundaryTests.cs",
+      "deadlineSeconds": 10,
+      "startLines": [
+        23
+      ],
+      "nativeCaseCount": 2,
+      "nativeCases": [
+        {
+          "id": "1b2c81d9-1ce7-8bd3-9f19-ce14fc27274b",
+          "name": "PeriodicCompletionAcceptsTheLastRepresentableDueTimeAndRetiresOnOverflow (True)"
+        },
+        {
+          "id": "1e3c05f4-d28d-8d73-9d3d-bc5c378f4f44",
+          "name": "PeriodicCompletionAcceptsTheLastRepresentableDueTimeAndRetiresOnOverflow (False)"
+        }
+      ]
+    },
+    {
+      "class": "HealthCollectorResourceBoundaryTests",
+      "method": "ThrowingOwnerCancellationAndAnUnavailableDiagnosticClockCannotStrandLeaseSettlement",
+      "declarationLine": 110,
+      "source": "implementations/csharp/tests/CIS.Core.UnitTests/Healthcheck/Collection/HealthCollectorResourceBoundaryTests.cs",
+      "deadlineSeconds": 10,
+      "startLines": [
+        115
+      ],
+      "nativeCaseCount": 2,
+      "nativeCases": [
+        {
+          "id": "12238bb2-4edd-8053-9a5a-a3610d238cb4",
+          "name": "ThrowingOwnerCancellationAndAnUnavailableDiagnosticClockCannotStrandLeaseSettlement (True)"
+        },
+        {
+          "id": "1d63c19a-be9a-8e35-bd0f-2d3944c59420",
+          "name": "ThrowingOwnerCancellationAndAnUnavailableDiagnosticClockCannotStrandLeaseSettlement (False)"
+        }
+      ]
+    },
+    {
+      "class": "HealthCollectorResourceBoundaryTests",
+      "method": "UnexpectedTimerChangeFailureStopsAdmissionAndReportsActualResourceFailure",
+      "declarationLine": 63,
+      "source": "implementations/csharp/tests/CIS.Core.UnitTests/Healthcheck/Collection/HealthCollectorResourceBoundaryTests.cs",
+      "deadlineSeconds": 10,
+      "startLines": [
+        71,
+        79
+      ],
+      "nativeCaseCount": 2,
+      "nativeCases": [
+        {
+          "id": "1dcdba41-0cc7-8f01-97d5-4fa4593e79b3",
+          "name": "UnexpectedTimerChangeFailureStopsAdmissionAndReportsActualResourceFailure (True)"
+        },
+        {
+          "id": "1e35a825-3300-8217-9aa9-39bc365f727e",
+          "name": "UnexpectedTimerChangeFailureStopsAdmissionAndReportsActualResourceFailure (False)"
+        }
+      ]
+    },
+    {
+      "class": "HealthCollectorRetiredCurrentFairnessTests",
+      "method": "RemovingTheRunningRegistrationPreservesTheNextWaitingOwnersTurn",
+      "declarationLine": 13,
+      "source": "implementations/csharp/tests/CIS.Core.UnitTests/Healthcheck/Collection/HealthCollectorRetiredCurrentFairnessTests.cs",
+      "deadlineSeconds": 15,
+      "startLines": [
+        32
+      ],
+      "nativeCaseCount": 1,
+      "nativeCases": [
+        {
+          "id": "10bdd5c8-782a-8ffd-9f3c-068971f8143c",
+          "name": "RemovingTheRunningRegistrationPreservesTheNextWaitingOwnersTurn"
+        }
+      ]
+    },
+    {
+      "class": "HealthCollectorRunnerLifecycleTests",
+      "method": "AClockFailureAfterActualLeaseCleanupCannotStrandCollectionOrDisposal",
+      "declarationLine": 579,
+      "source": "implementations/csharp/tests/CIS.Core.UnitTests/Healthcheck/Collection/HealthCollectorRunnerLifecycleTests.cs",
+      "deadlineSeconds": 10,
+      "startLines": [
+        587
+      ],
+      "nativeCaseCount": 2,
+      "nativeCases": [
+        {
+          "id": "1237c9ab-0f3f-8ffe-a46f-b076f7c88473",
+          "name": "AClockFailureAfterActualLeaseCleanupCannotStrandCollectionOrDisposal (False)"
+        },
+        {
+          "id": "193a3a7d-06d7-8faa-9ee3-4849916993ef",
+          "name": "AClockFailureAfterActualLeaseCleanupCannotStrandCollectionOrDisposal (True)"
+        }
+      ]
+    },
+    {
+      "class": "HealthCollectorRunnerLifecycleTests",
+      "method": "ACollectorCannotAwaitADisposalBarrierContainingItsOwnLease",
+      "declarationLine": 702,
+      "source": "implementations/csharp/tests/CIS.Core.UnitTests/Healthcheck/Collection/HealthCollectorRunnerLifecycleTests.cs",
+      "deadlineSeconds": 10,
+      "startLines": [
+        739
+      ],
+      "nativeCaseCount": 7,
+      "nativeCases": [
+        {
+          "id": "1050701f-4da5-8956-9bba-2cbed3053ebf",
+          "name": "ACollectorCannotAwaitADisposalBarrierContainingItsOwnLease (5)"
+        },
+        {
+          "id": "11ca3311-1dab-866b-a3f8-179c943d96ac",
+          "name": "ACollectorCannotAwaitADisposalBarrierContainingItsOwnLease (1)"
+        },
+        {
+          "id": "11d3c2bb-4924-88ab-a672-ca0e8406f834",
+          "name": "ACollectorCannotAwaitADisposalBarrierContainingItsOwnLease (0)"
+        },
+        {
+          "id": "13110c84-22c3-803c-ae3b-dfb9ec15dc12",
+          "name": "ACollectorCannotAwaitADisposalBarrierContainingItsOwnLease (6)"
+        },
+        {
+          "id": "1743956e-d364-8b4e-b80b-991fdf89fb07",
+          "name": "ACollectorCannotAwaitADisposalBarrierContainingItsOwnLease (2)"
+        },
+        {
+          "id": "1e18b89a-2f83-858b-bcc8-b15de6b93d04",
+          "name": "ACollectorCannotAwaitADisposalBarrierContainingItsOwnLease (3)"
+        },
+        {
+          "id": "1ff67d84-c033-8176-bbb1-95a4bea7b535",
+          "name": "ACollectorCannotAwaitADisposalBarrierContainingItsOwnLease (4)"
+        }
+      ]
+    },
+    {
+      "class": "HealthCollectorRunnerLifecycleTests",
+      "method": "ACollectorCannotAwaitItsOwnRunnerStopBarrier",
+      "declarationLine": 751,
+      "source": "implementations/csharp/tests/CIS.Core.UnitTests/Healthcheck/Collection/HealthCollectorRunnerLifecycleTests.cs",
+      "deadlineSeconds": 10,
+      "startLines": [
+        762
+      ],
+      "nativeCaseCount": 1,
+      "nativeCases": [
+        {
+          "id": "15706f9c-d1e4-86fc-9b25-283e65fa0662",
+          "name": "ACollectorCannotAwaitItsOwnRunnerStopBarrier"
+        }
+      ]
+    },
+    {
+      "class": "HealthCollectorRunnerLifecycleTests",
+      "method": "ANewerDirectObservationDefeatsBothStaleResultsAndStaleEvaluationErrors",
+      "declarationLine": 272,
+      "source": "implementations/csharp/tests/CIS.Core.UnitTests/Healthcheck/Collection/HealthCollectorRunnerLifecycleTests.cs",
+      "deadlineSeconds": 10,
+      "startLines": [
+        280
+      ],
+      "nativeCaseCount": 3,
+      "nativeCases": [
+        {
+          "id": "1ce8238b-beac-802a-a274-7cb9a1c2555d",
+          "name": "ANewerDirectObservationDefeatsBothStaleResultsAndStaleEvaluationErrors (2)"
+        },
+        {
+          "id": "1f36e0c4-8186-8c09-8119-acab68e3c014",
+          "name": "ANewerDirectObservationDefeatsBothStaleResultsAndStaleEvaluationErrors (1)"
+        },
+        {
+          "id": "1f382db4-cb50-877f-87e1-c9f1ee309687",
+          "name": "ANewerDirectObservationDefeatsBothStaleResultsAndStaleEvaluationErrors (0)"
+        }
+      ]
+    },
+    {
+      "class": "HealthCollectorRunnerLifecycleTests",
+      "method": "AQueuedMonitorWithdrawalReleasesItsPendingManualCallerWhileAnotherLeaseStillOccupiesCapacity",
+      "declarationLine": 520,
+      "source": "implementations/csharp/tests/CIS.Core.UnitTests/Healthcheck/Collection/HealthCollectorRunnerLifecycleTests.cs",
+      "deadlineSeconds": 10,
+      "startLines": [
+        529
+      ],
+      "nativeCaseCount": 1,
+      "nativeCases": [
+        {
+          "id": "14ff01c3-7864-80a2-b1d6-f14f597f3fa9",
+          "name": "AQueuedMonitorWithdrawalReleasesItsPendingManualCallerWhileAnotherLeaseStillOccupiesCapacity"
+        }
+      ]
+    },
+    {
+      "class": "HealthCollectorRunnerLifecycleTests",
+      "method": "AStaleMetricDoesNotDiscardTheFreshHealthResultOrOtherMetricKeys",
+      "declarationLine": 299,
+      "source": "implementations/csharp/tests/CIS.Core.UnitTests/Healthcheck/Collection/HealthCollectorRunnerLifecycleTests.cs",
+      "deadlineSeconds": 10,
+      "startLines": [
+        307
+      ],
+      "nativeCaseCount": 1,
+      "nativeCases": [
+        {
+          "id": "198da0b1-b9bc-8964-906b-ad09bedca7fe",
+          "name": "AStaleMetricDoesNotDiscardTheFreshHealthResultOrOtherMetricKeys"
+        }
+      ]
+    },
+    {
+      "class": "HealthCollectorRunnerLifecycleTests",
+      "method": "AvailabilityRefreshFailurePreservesDataPublishedByAnEarlierCollection",
+      "declarationLine": 247,
+      "source": "implementations/csharp/tests/CIS.Core.UnitTests/Healthcheck/Collection/HealthCollectorRunnerLifecycleTests.cs",
+      "deadlineSeconds": 10,
+      "startLines": [
+        253
+      ],
+      "nativeCaseCount": 1,
+      "nativeCases": [
+        {
+          "id": "1025a87a-4bd7-8df5-b8a5-16c32e59bf6e",
+          "name": "AvailabilityRefreshFailurePreservesDataPublishedByAnEarlierCollection"
+        }
+      ]
+    },
+    {
+      "class": "HealthCollectorRunnerLifecycleTests",
+      "method": "FailedRequiredNumericReadRetainsTheLastGoodValueAndRecoversFromARealCollection",
+      "declarationLine": 223,
+      "source": "implementations/csharp/tests/CIS.Core.UnitTests/Healthcheck/Collection/HealthCollectorRunnerLifecycleTests.cs",
+      "deadlineSeconds": 10,
+      "startLines": [
+        232
+      ],
+      "nativeCaseCount": 1,
+      "nativeCases": [
+        {
+          "id": "18ea97ba-2714-86cc-979b-b125cf9e924f",
+          "name": "FailedRequiredNumericReadRetainsTheLastGoodValueAndRecoversFromARealCollection"
+        }
+      ]
+    },
+    {
+      "class": "HealthCollectorRunnerLifecycleTests",
+      "method": "InvalidForeignAndDuplicateAttachmentsAreRejectedWithoutOwnerInvocation",
+      "declarationLine": 36,
+      "source": "implementations/csharp/tests/CIS.Core.UnitTests/Healthcheck/Collection/HealthCollectorRunnerLifecycleTests.cs",
+      "deadlineSeconds": 10,
+      "startLines": [
+        55
+      ],
+      "nativeCaseCount": 1,
+      "nativeCases": [
+        {
+          "id": "1700a342-12c0-894d-a3cc-361e85d998e8",
+          "name": "InvalidForeignAndDuplicateAttachmentsAreRejectedWithoutOwnerInvocation"
+        }
+      ]
+    },
+    {
+      "class": "HealthCollectorRunnerLifecycleTests",
+      "method": "LeaseAcquisitionExceptionIsAnIntegrationDiagnosticAndLeavesPolicyCountersUntouched",
+      "declarationLine": 345,
+      "source": "implementations/csharp/tests/CIS.Core.UnitTests/Healthcheck/Collection/HealthCollectorRunnerLifecycleTests.cs",
+      "deadlineSeconds": 10,
+      "startLines": [
+        352
+      ],
+      "nativeCaseCount": 1,
+      "nativeCases": [
+        {
+          "id": "1a7e090b-00e0-85fc-9768-ad5139631a52",
+          "name": "LeaseAcquisitionExceptionIsAnIntegrationDiagnosticAndLeavesPolicyCountersUntouched"
+        }
+      ]
+    },
+    {
+      "class": "HealthCollectorRunnerLifecycleTests",
+      "method": "LeaseCleanupFaultCannotTurnOneSuccessfulResultIntoASecondFailedOutcome",
+      "declarationLine": 392,
+      "source": "implementations/csharp/tests/CIS.Core.UnitTests/Healthcheck/Collection/HealthCollectorRunnerLifecycleTests.cs",
+      "deadlineSeconds": 10,
+      "startLines": [
+        399
+      ],
+      "nativeCaseCount": 1,
+      "nativeCases": [
+        {
+          "id": "1a2f4ea6-299a-838a-a876-670fe41ba037",
+          "name": "LeaseCleanupFaultCannotTurnOneSuccessfulResultIntoASecondFailedOutcome"
+        }
+      ]
+    },
+    {
+      "class": "HealthCollectorRunnerLifecycleTests",
+      "method": "MalformedLeaseAcquisitionIsAnIntegrationFaultAndEveryAcquiredLeaseIsReleased",
+      "declarationLine": 370,
+      "source": "implementations/csharp/tests/CIS.Core.UnitTests/Healthcheck/Collection/HealthCollectorRunnerLifecycleTests.cs",
+      "deadlineSeconds": 10,
+      "startLines": [
+        377
+      ],
+      "nativeCaseCount": 3,
+      "nativeCases": [
+        {
+          "id": "152afa74-97bc-83f3-a734-8d637922f269",
+          "name": "MalformedLeaseAcquisitionIsAnIntegrationFaultAndEveryAcquiredLeaseIsReleased (3)"
+        },
+        {
+          "id": "1bfd7394-9903-837b-b200-e0919177c290",
+          "name": "MalformedLeaseAcquisitionIsAnIntegrationFaultAndEveryAcquiredLeaseIsReleased (2)"
+        },
+        {
+          "id": "1c0f3f5d-7d2a-85ca-b214-6cba5f25aa4b",
+          "name": "MalformedLeaseAcquisitionIsAnIntegrationFaultAndEveryAcquiredLeaseIsReleased (1)"
+        }
+      ]
+    },
+    {
+      "class": "HealthCollectorRunnerLifecycleTests",
+      "method": "ManualEvaluationUsesItsRealOwnerLeaseAndTheSelectedPolicy",
+      "declarationLine": 74,
+      "source": "implementations/csharp/tests/CIS.Core.UnitTests/Healthcheck/Collection/HealthCollectorRunnerLifecycleTests.cs",
+      "deadlineSeconds": 10,
+      "startLines": [
+        80
+      ],
+      "nativeCaseCount": 4,
+      "nativeCases": [
+        {
+          "id": "1045a662-56db-8798-ad18-daa8858c3554",
+          "name": "ManualEvaluationUsesItsRealOwnerLeaseAndTheSelectedPolicy (1)"
+        },
+        {
+          "id": "12048480-99fb-82a0-ac76-1ebf203900c3",
+          "name": "ManualEvaluationUsesItsRealOwnerLeaseAndTheSelectedPolicy (2)"
+        },
+        {
+          "id": "14494eb3-2c52-8e8a-ad1b-2bf004169669",
+          "name": "ManualEvaluationUsesItsRealOwnerLeaseAndTheSelectedPolicy (0)"
+        },
+        {
+          "id": "1658f19e-5828-86d8-9376-198a89baaeec",
+          "name": "ManualEvaluationUsesItsRealOwnerLeaseAndTheSelectedPolicy (3)"
+        }
+      ]
+    },
+    {
+      "class": "HealthCollectorRunnerLifecycleTests",
+      "method": "MonitorWithdrawalRemovesItsContributionImmediatelyAndDrainsTheActualLease",
+      "declarationLine": 474,
+      "source": "implementations/csharp/tests/CIS.Core.UnitTests/Healthcheck/Collection/HealthCollectorRunnerLifecycleTests.cs",
+      "deadlineSeconds": 10,
+      "startLines": [
+        480
+      ],
+      "nativeCaseCount": 1,
+      "nativeCases": [
+        {
+          "id": "152abf51-5926-8054-b633-913d8f7e676a",
+          "name": "MonitorWithdrawalRemovesItsContributionImmediatelyAndDrainsTheActualLease"
+        }
+      ]
+    },
+    {
+      "class": "HealthCollectorRunnerLifecycleTests",
+      "method": "NullRequiredResultBecomesOneEvaluationFailureAndCanRecoverOnTheNextAttempt",
+      "declarationLine": 143,
+      "source": "implementations/csharp/tests/CIS.Core.UnitTests/Healthcheck/Collection/HealthCollectorRunnerLifecycleTests.cs",
+      "deadlineSeconds": 10,
+      "startLines": [
+        150
+      ],
+      "nativeCaseCount": 1,
+      "nativeCases": [
+        {
+          "id": "1f186dee-7402-884b-9fe6-323e8353c0f6",
+          "name": "NullRequiredResultBecomesOneEvaluationFailureAndCanRecoverOnTheNextAttempt"
+        }
+      ]
+    },
+    {
+      "class": "HealthCollectorRunnerLifecycleTests",
+      "method": "OptionalEvaluationErrorsPreserveHealthAndTheLastMeasurementValueAndTime",
+      "declarationLine": 169,
+      "source": "implementations/csharp/tests/CIS.Core.UnitTests/Healthcheck/Collection/HealthCollectorRunnerLifecycleTests.cs",
+      "deadlineSeconds": 10,
+      "startLines": [
+        185
+      ],
+      "nativeCaseCount": 4,
+      "nativeCases": [
+        {
+          "id": "117d7c33-3d71-8190-a906-642d05369435",
+          "name": "OptionalEvaluationErrorsPreserveHealthAndTheLastMeasurementValueAndTime (2)"
+        },
+        {
+          "id": "158f329b-52a2-8fcb-966e-4d782ec36578",
+          "name": "OptionalEvaluationErrorsPreserveHealthAndTheLastMeasurementValueAndTime (0)"
+        },
+        {
+          "id": "1bcd6e2a-e79c-8837-adaa-c509e53a093c",
+          "name": "OptionalEvaluationErrorsPreserveHealthAndTheLastMeasurementValueAndTime (3)"
+        },
+        {
+          "id": "1e6763ce-ded8-8426-af28-2ede122c664c",
+          "name": "OptionalEvaluationErrorsPreserveHealthAndTheLastMeasurementValueAndTime (1)"
+        }
+      ]
+    },
+    {
+      "class": "HealthCollectorRunnerLifecycleTests",
+      "method": "OptionalMeasurementsNeverSupplyAnImplicitHealthObservation",
+      "declarationLine": 201,
+      "source": "implementations/csharp/tests/CIS.Core.UnitTests/Healthcheck/Collection/HealthCollectorRunnerLifecycleTests.cs",
+      "deadlineSeconds": 10,
+      "startLines": [
+        209
+      ],
+      "nativeCaseCount": 1,
+      "nativeCases": [
+        {
+          "id": "1ad30fcd-0a76-8b8b-997d-fd59d02724e0",
+          "name": "OptionalMeasurementsNeverSupplyAnImplicitHealthObservation"
+        }
+      ]
+    },
+    {
+      "class": "HealthCollectorRunnerLifecycleTests",
+      "method": "OwnerRefusalWithdrawsOnlyItsMonitorWithoutInventingAnEvaluationFailure",
+      "declarationLine": 322,
+      "source": "implementations/csharp/tests/CIS.Core.UnitTests/Healthcheck/Collection/HealthCollectorRunnerLifecycleTests.cs",
+      "deadlineSeconds": 10,
+      "startLines": [
+        330
+      ],
+      "nativeCaseCount": 1,
+      "nativeCases": [
+        {
+          "id": "17c7334a-5e9d-8415-a200-68324fff603e",
+          "name": "OwnerRefusalWithdrawsOnlyItsMonitorWithoutInventingAnEvaluationFailure"
+        }
+      ]
+    },
+    {
+      "class": "HealthCollectorRunnerLifecycleTests",
+      "method": "RegistrationWithdrawalCancelsButDoesNotDisposeDependenciesBeforeCallbackAndCleanupSettle",
+      "declarationLine": 441,
+      "source": "implementations/csharp/tests/CIS.Core.UnitTests/Healthcheck/Collection/HealthCollectorRunnerLifecycleTests.cs",
+      "deadlineSeconds": 10,
+      "startLines": [
+        447
+      ],
+      "nativeCaseCount": 1,
+      "nativeCases": [
+        {
+          "id": "150b1def-e854-817a-8190-98ef64ea8e8f",
+          "name": "RegistrationWithdrawalCancelsButDoesNotDisposeDependenciesBeforeCallbackAndCleanupSettle"
+        }
+      ]
+    },
+    {
+      "class": "HealthCollectorRunnerLifecycleTests",
+      "method": "RequiredExceptionMalformedResultAndUnexpectedCancellationApplyOnePolicyFailure",
+      "declarationLine": 111,
+      "source": "implementations/csharp/tests/CIS.Core.UnitTests/Healthcheck/Collection/HealthCollectorRunnerLifecycleTests.cs",
+      "deadlineSeconds": 10,
+      "startLines": [
+        123
+      ],
+      "nativeCaseCount": 12,
+      "nativeCases": [
+        {
+          "id": "1228c648-13b2-861a-9cdd-60a4cfe21829",
+          "name": "RequiredExceptionMalformedResultAndUnexpectedCancellationApplyOnePolicyFailure (1,1)"
+        },
+        {
+          "id": "15001e1f-ee8a-87fd-83c1-0fd01a7ddcfb",
+          "name": "RequiredExceptionMalformedResultAndUnexpectedCancellationApplyOnePolicyFailure (3,0)"
+        },
+        {
+          "id": "15a8368f-8861-84e9-b56c-52b7d0c2b451",
+          "name": "RequiredExceptionMalformedResultAndUnexpectedCancellationApplyOnePolicyFailure (2,2)"
+        },
+        {
+          "id": "17162ff9-a1c8-8001-b39a-3a1e5c1914f3",
+          "name": "RequiredExceptionMalformedResultAndUnexpectedCancellationApplyOnePolicyFailure (1,0)"
+        },
+        {
+          "id": "188f5d5e-85e6-8498-af1a-ce2f0b347119",
+          "name": "RequiredExceptionMalformedResultAndUnexpectedCancellationApplyOnePolicyFailure (2,0)"
+        },
+        {
+          "id": "18ed3213-668a-8766-9e86-36d522a2bfa0",
+          "name": "RequiredExceptionMalformedResultAndUnexpectedCancellationApplyOnePolicyFailure (1,2)"
+        },
+        {
+          "id": "19cba30f-533e-84cf-9ffc-c306f9ed4673",
+          "name": "RequiredExceptionMalformedResultAndUnexpectedCancellationApplyOnePolicyFailure (0,0)"
+        },
+        {
+          "id": "1b0411d3-b44b-84ab-8ca8-63069e1c946f",
+          "name": "RequiredExceptionMalformedResultAndUnexpectedCancellationApplyOnePolicyFailure (3,2)"
+        },
+        {
+          "id": "1b0a5761-fca3-8797-8e2e-40c3c945e680",
+          "name": "RequiredExceptionMalformedResultAndUnexpectedCancellationApplyOnePolicyFailure (2,1)"
+        },
+        {
+          "id": "1b144a71-2d4e-80c5-977a-1f2253a353c0",
+          "name": "RequiredExceptionMalformedResultAndUnexpectedCancellationApplyOnePolicyFailure (0,2)"
+        },
+        {
+          "id": "1e883ebc-7fdf-897f-b34e-12296128308c",
+          "name": "RequiredExceptionMalformedResultAndUnexpectedCancellationApplyOnePolicyFailure (3,1)"
+        },
+        {
+          "id": "1efd559c-3d27-82e4-bdf0-8c5a7c31e0d0",
+          "name": "RequiredExceptionMalformedResultAndUnexpectedCancellationApplyOnePolicyFailure (0,1)"
+        }
+      ]
+    },
+    {
+      "class": "HealthCollectorRunnerLifecycleTests",
+      "method": "RunnerStopCancellationIsNeutralAndKeepsTheExternalMonitorAvailableForFinalReports",
+      "declarationLine": 627,
+      "source": "implementations/csharp/tests/CIS.Core.UnitTests/Healthcheck/Collection/HealthCollectorRunnerLifecycleTests.cs",
+      "deadlineSeconds": 10,
+      "startLines": [
+        635
+      ],
+      "nativeCaseCount": 1,
+      "nativeCases": [
+        {
+          "id": "11e75069-98c6-8358-8e90-6c227607a98f",
+          "name": "RunnerStopCancellationIsNeutralAndKeepsTheExternalMonitorAvailableForFinalReports"
+        }
+      ]
+    },
+    {
+      "class": "HealthCollectorRunnerLifecycleTests",
+      "method": "ServiceDisposalIncludesWorkOfAMonitorWithdrawnBeforeServiceDisposalStarted",
+      "declarationLine": 602,
+      "source": "implementations/csharp/tests/CIS.Core.UnitTests/Healthcheck/Collection/HealthCollectorRunnerLifecycleTests.cs",
+      "deadlineSeconds": 10,
+      "startLines": [
+        608
+      ],
+      "nativeCaseCount": 1,
+      "nativeCases": [
+        {
+          "id": "1e046f79-dbcf-8711-aea6-9cc07938fafa",
+          "name": "ServiceDisposalIncludesWorkOfAMonitorWithdrawnBeforeServiceDisposalStarted"
+        }
+      ]
+    },
+    {
+      "class": "HealthCollectorRunnerLifecycleTests",
+      "method": "ServiceStoppingSignalsLifetimeCancellationWithoutRequiringRunnerStopFirst",
+      "declarationLine": 658,
+      "source": "implementations/csharp/tests/CIS.Core.UnitTests/Healthcheck/Collection/HealthCollectorRunnerLifecycleTests.cs",
+      "deadlineSeconds": 10,
+      "startLines": [
+        665
+      ],
+      "nativeCaseCount": 1,
+      "nativeCases": [
+        {
+          "id": "19fee14f-d031-8373-97e2-a640e4773e0b",
+          "name": "ServiceStoppingSignalsLifetimeCancellationWithoutRequiringRunnerStopFirst"
+        }
+      ]
+    },
+    {
+      "class": "HealthCollectorRunnerLifecycleTests",
+      "method": "TheIdleRunnerAndServiceDoNotRetainARegistrationCollectorOrOwnerGraph",
+      "declarationLine": 682,
+      "source": "implementations/csharp/tests/CIS.Core.UnitTests/Healthcheck/Collection/HealthCollectorRunnerLifecycleTests.cs",
+      "deadlineSeconds": 10,
+      "startLines": [
+        685
+      ],
+      "nativeCaseCount": 1,
+      "nativeCases": [
+        {
+          "id": "1b300bb3-f456-8867-a6f7-d6ad7b33ae13",
+          "name": "TheIdleRunnerAndServiceDoNotRetainARegistrationCollectorOrOwnerGraph"
+        }
+      ]
+    },
+    {
+      "class": "HealthCollectorRunnerLifecycleTests",
+      "method": "WithdrawalFromLeaseAcquisitionSuppressesInvocationButStillAwaitsAcquiredLeaseCleanup",
+      "declarationLine": 414,
+      "source": "implementations/csharp/tests/CIS.Core.UnitTests/Healthcheck/Collection/HealthCollectorRunnerLifecycleTests.cs",
+      "deadlineSeconds": 10,
+      "startLines": [
+        421
+      ],
+      "nativeCaseCount": 1,
+      "nativeCases": [
+        {
+          "id": "1b9526da-f241-82af-a49d-f1bbb30f397e",
+          "name": "WithdrawalFromLeaseAcquisitionSuppressesInvocationButStillAwaitsAcquiredLeaseCleanup"
+        }
+      ]
+    },
+    {
+      "class": "HealthCollectorRunnerLifecycleTests",
+      "method": "WithdrawingAPeriodicMonitorDrainsItsRegistrationAndPreventsFurtherAcquisition",
+      "declarationLine": 547,
+      "source": "implementations/csharp/tests/CIS.Core.UnitTests/Healthcheck/Collection/HealthCollectorRunnerLifecycleTests.cs",
+      "deadlineSeconds": 10,
+      "startLines": [
+        554
+      ],
+      "nativeCaseCount": 1,
+      "nativeCases": [
+        {
+          "id": "1d2f39ba-1792-8f67-94f8-20c1a5a93ebb",
+          "name": "WithdrawingAPeriodicMonitorDrainsItsRegistrationAndPreventsFurtherAcquisition"
+        }
+      ]
+    },
+    {
+      "class": "HealthCollectorRunnerMutationQualificationTests",
+      "method": "AcquisitionExceptionRetainsItsDiagnosticCategoryAndExceptionTypeWithoutAnOutcome",
+      "declarationLine": 250,
+      "source": "implementations/csharp/tests/CIS.Core.UnitTests/Healthcheck/Collection/HealthCollectorRunnerMutationQualificationTests.cs",
+      "deadlineSeconds": 10,
+      "startLines": [
+        255
+      ],
+      "nativeCaseCount": 1,
+      "nativeCases": [
+        {
+          "id": "164eb1da-80c3-8b33-a1e1-8eb08b61a841",
+          "name": "AcquisitionExceptionRetainsItsDiagnosticCategoryAndExceptionTypeWithoutAnOutcome"
+        }
+      ]
+    },
+    {
+      "class": "HealthCollectorRunnerMutationQualificationTests",
+      "method": "AcquisitionProtocolFaultsAreIntegrationDiagnosticsAndStillReleaseEveryReturnedLease",
+      "declarationLine": 231,
+      "source": "implementations/csharp/tests/CIS.Core.UnitTests/Healthcheck/Collection/HealthCollectorRunnerMutationQualificationTests.cs",
+      "deadlineSeconds": 10,
+      "startLines": [
+        236
+      ],
+      "nativeCaseCount": 2,
+      "nativeCases": [
+        {
+          "id": "161e2ed0-30d8-8e6f-8320-caf6c9b454da",
+          "name": "AcquisitionProtocolFaultsAreIntegrationDiagnosticsAndStillReleaseEveryReturnedLease (False)"
+        },
+        {
+          "id": "1793a4e1-a671-8787-9178-781194e93caf",
+          "name": "AcquisitionProtocolFaultsAreIntegrationDiagnosticsAndStillReleaseEveryReturnedLease (True)"
+        }
+      ]
+    },
+    {
+      "class": "HealthCollectorRunnerMutationQualificationTests",
+      "method": "ActualCleanupErrorTakesPrecedenceOverASecondClockFailure",
+      "declarationLine": 267,
+      "source": "implementations/csharp/tests/CIS.Core.UnitTests/Healthcheck/Collection/HealthCollectorRunnerMutationQualificationTests.cs",
+      "deadlineSeconds": 10,
+      "startLines": [
+        279
+      ],
+      "nativeCaseCount": 1,
+      "nativeCases": [
+        {
+          "id": "181a2650-ac1a-8a5c-9236-b9a7cbf3a957",
+          "name": "ActualCleanupErrorTakesPrecedenceOverASecondClockFailure"
+        }
+      ]
+    },
+    {
+      "class": "HealthCollectorRunnerMutationQualificationTests",
+      "method": "APostCleanupTimestampFailurePreservesTheActualEvaluationAndRetiresFurtherCollection",
+      "declarationLine": 296,
+      "source": "implementations/csharp/tests/CIS.Core.UnitTests/Healthcheck/Collection/HealthCollectorRunnerMutationQualificationTests.cs",
+      "deadlineSeconds": 10,
+      "startLines": [
+        306
+      ],
+      "nativeCaseCount": 2,
+      "nativeCases": [
+        {
+          "id": "16661865-1fea-8be3-86d8-644b64952cca",
+          "name": "APostCleanupTimestampFailurePreservesTheActualEvaluationAndRetiresFurtherCollection (True)"
+        },
+        {
+          "id": "1a966828-5a45-8417-a341-4c74809b3219",
+          "name": "APostCleanupTimestampFailurePreservesTheActualEvaluationAndRetiresFurtherCollection (False)"
+        }
+      ]
+    },
+    {
+      "class": "HealthCollectorRunnerMutationQualificationTests",
+      "method": "DisposedRunnerRejectsNewWorkWithTheDisposedObjectContract",
+      "declarationLine": 116,
+      "source": "implementations/csharp/tests/CIS.Core.UnitTests/Healthcheck/Collection/HealthCollectorRunnerMutationQualificationTests.cs",
+      "deadlineSeconds": 10,
+      "startLines": [
+        121
+      ],
+      "nativeCaseCount": 1,
+      "nativeCases": [
+        {
+          "id": "117d3ca7-5af5-8dd9-9836-fb78b14a7e08",
+          "name": "DisposedRunnerRejectsNewWorkWithTheDisposedObjectContract"
+        }
+      ]
+    },
+    {
+      "class": "HealthCollectorRunnerMutationQualificationTests",
+      "method": "EvaluationFaultsHaveStableDiagnosticCategoriesAndExactlyOnePolicyFailure",
+      "declarationLine": 200,
+      "source": "implementations/csharp/tests/CIS.Core.UnitTests/Healthcheck/Collection/HealthCollectorRunnerMutationQualificationTests.cs",
+      "deadlineSeconds": 10,
+      "startLines": [
+        214
+      ],
+      "nativeCaseCount": 4,
+      "nativeCases": [
+        {
+          "id": "107ec40f-39cb-8718-98d5-fcb6162a5f0c",
+          "name": "EvaluationFaultsHaveStableDiagnosticCategoriesAndExactlyOnePolicyFailure (0)"
+        },
+        {
+          "id": "18b2d980-dc6b-887c-a920-e87573dd93f2",
+          "name": "EvaluationFaultsHaveStableDiagnosticCategoriesAndExactlyOnePolicyFailure (3)"
+        },
+        {
+          "id": "18c7a746-935c-8e80-8595-5e859ca02c8b",
+          "name": "EvaluationFaultsHaveStableDiagnosticCategoriesAndExactlyOnePolicyFailure (1)"
+        },
+        {
+          "id": "1bc9551f-69db-88e6-bf74-3019ab9e8000",
+          "name": "EvaluationFaultsHaveStableDiagnosticCategoriesAndExactlyOnePolicyFailure (2)"
+        }
+      ]
+    },
+    {
+      "class": "HealthCollectorRunnerMutationQualificationTests",
+      "method": "PeriodicActivationAlsoChecksFutureTimestampOverflow",
+      "declarationLine": 182,
+      "source": "implementations/csharp/tests/CIS.Core.UnitTests/Healthcheck/Collection/HealthCollectorRunnerMutationQualificationTests.cs",
+      "deadlineSeconds": 10,
+      "startLines": [
+        186
+      ],
+      "nativeCaseCount": 1,
+      "nativeCases": [
+        {
+          "id": "1cb2ab3f-870c-8923-be40-b4d1043efccc",
+          "name": "PeriodicActivationAlsoChecksFutureTimestampOverflow"
+        }
+      ]
+    },
+    {
+      "class": "HealthCollectorRunnerMutationQualificationTests",
+      "method": "RepeatedStartCreatesOnlyOneInitiallyInertTimer",
+      "declarationLine": 29,
+      "source": "implementations/csharp/tests/CIS.Core.UnitTests/Healthcheck/Collection/HealthCollectorRunnerMutationQualificationTests.cs",
+      "deadlineSeconds": 10,
+      "startLines": [
+        33,
+        34
+      ],
+      "nativeCaseCount": 1,
+      "nativeCases": [
+        {
+          "id": "1a404029-8976-8309-a4e8-3d2a905b5a79",
+          "name": "RepeatedStartCreatesOnlyOneInitiallyInertTimer"
+        }
+      ]
+    },
+    {
+      "class": "HealthCollectorRunnerMutationQualificationTests",
+      "method": "StopAndDisposeBothWaitForActualAsynchronousTimerDisposal",
+      "declarationLine": 82,
+      "source": "implementations/csharp/tests/CIS.Core.UnitTests/Healthcheck/Collection/HealthCollectorRunnerMutationQualificationTests.cs",
+      "deadlineSeconds": 10,
+      "startLines": [
+        85
+      ],
+      "nativeCaseCount": 1,
+      "nativeCases": [
+        {
+          "id": "18983c42-5d46-8506-9fb4-826ee6550ac4",
+          "name": "StopAndDisposeBothWaitForActualAsynchronousTimerDisposal"
+        }
+      ]
+    },
+    {
+      "class": "HealthCollectorRunnerMutationQualificationTests",
+      "method": "StopDuringTimerCreationWaitsForTheTimerThatHasNotYetBeenPublished",
+      "declarationLine": 57,
+      "source": "implementations/csharp/tests/CIS.Core.UnitTests/Healthcheck/Collection/HealthCollectorRunnerMutationQualificationTests.cs",
+      "deadlineSeconds": 10,
+      "startLines": [
+        70
+      ],
+      "nativeCaseCount": 1,
+      "nativeCases": [
+        {
+          "id": "18c29245-5079-8034-bf78-ae3fe4759042",
+          "name": "StopDuringTimerCreationWaitsForTheTimerThatHasNotYetBeenPublished"
+        }
+      ]
+    },
+    {
+      "class": "HealthCollectorRunnerMutationQualificationTests",
+      "method": "TimerCreationFailureClosesAdmissionAndSettlesStop",
+      "declarationLine": 42,
+      "source": "implementations/csharp/tests/CIS.Core.UnitTests/Healthcheck/Collection/HealthCollectorRunnerMutationQualificationTests.cs",
+      "deadlineSeconds": 10,
+      "startLines": [
+        47,
+        51
+      ],
+      "nativeCaseCount": 1,
+      "nativeCases": [
+        {
+          "id": "130ab8d7-7595-81b2-a5dd-50b71b32d927",
+          "name": "TimerCreationFailureClosesAdmissionAndSettlesStop"
+        }
+      ]
+    },
+    {
+      "class": "HealthCollectorRunnerMutationQualificationTests",
+      "method": "TimerDisposalFailureIsReportedInsteadOfAcknowledgingSuccessfulStop",
+      "declarationLine": 102,
+      "source": "implementations/csharp/tests/CIS.Core.UnitTests/Healthcheck/Collection/HealthCollectorRunnerMutationQualificationTests.cs",
+      "deadlineSeconds": 10,
+      "startLines": [
+        107
+      ],
+      "nativeCaseCount": 1,
+      "nativeCases": [
+        {
+          "id": "143b9763-6368-83da-9472-c56e707d2ca6",
+          "name": "TimerDisposalFailureIsReportedInsteadOfAcknowledgingSuccessfulStop"
+        }
+      ]
+    },
+    {
+      "class": "HealthCollectorRunnerSchedulingTests",
+      "method": "ASlotRemainsOccupiedUntilTheAcquiredLeasesCleanupActuallySettles",
+      "declarationLine": 407,
+      "source": "implementations/csharp/tests/CIS.Core.UnitTests/Healthcheck/Collection/HealthCollectorRunnerSchedulingTests.cs",
+      "deadlineSeconds": 10,
+      "startLines": [
+        413
+      ],
+      "nativeCaseCount": 1,
+      "nativeCases": [
+        {
+          "id": "11c71329-0795-8b4b-b83f-4e73a7b25c87",
+          "name": "ASlotRemainsOccupiedUntilTheAcquiredLeasesCleanupActuallySettles"
+        }
+      ]
+    },
+    {
+      "class": "HealthCollectorRunnerSchedulingTests",
+      "method": "CanceledStopWaitLeavesTheRealCallbackAndCleanupBarrierOutstanding",
+      "declarationLine": 515,
+      "source": "implementations/csharp/tests/CIS.Core.UnitTests/Healthcheck/Collection/HealthCollectorRunnerSchedulingTests.cs",
+      "deadlineSeconds": 10,
+      "startLines": [
+        520
+      ],
+      "nativeCaseCount": 1,
+      "nativeCases": [
+        {
+          "id": "180bd8cd-d397-8ec8-9c9c-f67e7b2e2787",
+          "name": "CanceledStopWaitLeavesTheRealCallbackAndCleanupBarrierOutstanding"
+        }
+      ]
+    },
+    {
+      "class": "HealthCollectorRunnerSchedulingTests",
+      "method": "CancelingOneManualWaitDoesNotCancelWorkOrReleaseItsCapacitySlot",
+      "declarationLine": 432,
+      "source": "implementations/csharp/tests/CIS.Core.UnitTests/Healthcheck/Collection/HealthCollectorRunnerSchedulingTests.cs",
+      "deadlineSeconds": 10,
+      "startLines": [
+        437
+      ],
+      "nativeCaseCount": 1,
+      "nativeCases": [
+        {
+          "id": "1b94a200-c904-80ac-93c0-2f4dec2d5be1",
+          "name": "CancelingOneManualWaitDoesNotCancelWorkOrReleaseItsCapacitySlot"
+        }
+      ]
+    },
+    {
+      "class": "HealthCollectorRunnerSchedulingTests",
+      "method": "ConcurrentManualCallersJoinOneActualEvaluationAndOnePolicyOutcome",
+      "declarationLine": 243,
+      "source": "implementations/csharp/tests/CIS.Core.UnitTests/Healthcheck/Collection/HealthCollectorRunnerSchedulingTests.cs",
+      "deadlineSeconds": 10,
+      "startLines": [
+        247
+      ],
+      "nativeCaseCount": 1,
+      "nativeCases": [
+        {
+          "id": "1c7dba10-2b4c-8e5a-b492-977fecdf183a",
+          "name": "ConcurrentManualCallersJoinOneActualEvaluationAndOnePolicyOutcome"
+        }
+      ]
+    },
+    {
+      "class": "HealthCollectorRunnerSchedulingTests",
+      "method": "FirstPeriodicAttemptIsDueImmediatelyWithoutAdvancingTime",
+      "declarationLine": 93,
+      "source": "implementations/csharp/tests/CIS.Core.UnitTests/Healthcheck/Collection/HealthCollectorRunnerSchedulingTests.cs",
+      "deadlineSeconds": 10,
+      "startLines": [
+        97
+      ],
+      "nativeCaseCount": 1,
+      "nativeCases": [
+        {
+          "id": "1a502607-9060-8091-9f11-54847173c32c",
+          "name": "FirstPeriodicAttemptIsDueImmediatelyWithoutAdvancingTime"
+        }
+      ]
+    },
+    {
+      "class": "HealthCollectorRunnerSchedulingTests",
+      "method": "GlobalCapacityBoundsActualOwnerLeasesAcrossDifferentMonitors",
+      "declarationLine": 311,
+      "source": "implementations/csharp/tests/CIS.Core.UnitTests/Healthcheck/Collection/HealthCollectorRunnerSchedulingTests.cs",
+      "deadlineSeconds": 10,
+      "startLines": [
+        317
+      ],
+      "nativeCaseCount": 1,
+      "nativeCases": [
+        {
+          "id": "1a6df786-d8de-84fe-b20a-80f8b98dad21",
+          "name": "GlobalCapacityBoundsActualOwnerLeasesAcrossDifferentMonitors"
+        }
+      ]
+    },
+    {
+      "class": "HealthCollectorRunnerSchedulingTests",
+      "method": "ManualCollectionBeforeStartRejectsWithoutAcquiringTheOwner",
+      "declarationLine": 16,
+      "source": "implementations/csharp/tests/CIS.Core.UnitTests/Healthcheck/Collection/HealthCollectorRunnerSchedulingTests.cs",
+      "deadlineSeconds": 10,
+      "startLines": [
+        23
+      ],
+      "nativeCaseCount": 1,
+      "nativeCases": [
+        {
+          "id": "12dfb71e-23d4-8640-9287-c025d0cd3fba",
+          "name": "ManualCollectionBeforeStartRejectsWithoutAcquiringTheOwner"
+        }
+      ]
+    },
+    {
+      "class": "HealthCollectorRunnerSchedulingTests",
+      "method": "ManualCompletionResetsAnActivatedPeriodicRegistrationsNextEligibility",
+      "declarationLine": 213,
+      "source": "implementations/csharp/tests/CIS.Core.UnitTests/Healthcheck/Collection/HealthCollectorRunnerSchedulingTests.cs",
+      "deadlineSeconds": 10,
+      "startLines": [
+        218
+      ],
+      "nativeCaseCount": 1,
+      "nativeCases": [
+        {
+          "id": "1dadc754-1904-8b55-b02f-e4e56544fa62",
+          "name": "ManualCompletionResetsAnActivatedPeriodicRegistrationsNextEligibility"
+        }
+      ]
+    },
+    {
+      "class": "HealthCollectorRunnerSchedulingTests",
+      "method": "ManualRequestsQueuedBehindCapacityShareOneFutureEvaluation",
+      "declarationLine": 338,
+      "source": "implementations/csharp/tests/CIS.Core.UnitTests/Healthcheck/Collection/HealthCollectorRunnerSchedulingTests.cs",
+      "deadlineSeconds": 10,
+      "startLines": [
+        343
+      ],
+      "nativeCaseCount": 1,
+      "nativeCases": [
+        {
+          "id": "14a68024-e9ef-871d-b4ee-fe9dcb97d197",
+          "name": "ManualRequestsQueuedBehindCapacityShareOneFutureEvaluation"
+        }
+      ]
+    },
+    {
+      "class": "HealthCollectorRunnerSchedulingTests",
+      "method": "ManyMissedPeriodsProduceOnePendingAttemptPerWaitingRegistration",
+      "declarationLine": 483,
+      "source": "implementations/csharp/tests/CIS.Core.UnitTests/Healthcheck/Collection/HealthCollectorRunnerSchedulingTests.cs",
+      "deadlineSeconds": 10,
+      "startLines": [
+        488
+      ],
+      "nativeCaseCount": 1,
+      "nativeCases": [
+        {
+          "id": "17e5d916-ca47-80ea-863f-2c75b32d9c54",
+          "name": "ManyMissedPeriodsProduceOnePendingAttemptPerWaitingRegistration"
+        }
+      ]
+    },
+    {
+      "class": "HealthCollectorRunnerSchedulingTests",
+      "method": "MissedPeriodsCoalesceWhileAnActualOperationIsOutstanding",
+      "declarationLine": 187,
+      "source": "implementations/csharp/tests/CIS.Core.UnitTests/Healthcheck/Collection/HealthCollectorRunnerSchedulingTests.cs",
+      "deadlineSeconds": 10,
+      "startLines": [
+        192
+      ],
+      "nativeCaseCount": 1,
+      "nativeCases": [
+        {
+          "id": "1d451f9a-606f-89a6-886e-8495555af25b",
+          "name": "MissedPeriodsCoalesceWhileAnActualOperationIsOutstanding"
+        }
+      ]
+    },
+    {
+      "class": "HealthCollectorRunnerSchedulingTests",
+      "method": "NextPeriodicAttemptUsesCompletionPlusIntervalInsteadOfStartPlusInterval",
+      "declarationLine": 109,
+      "source": "implementations/csharp/tests/CIS.Core.UnitTests/Healthcheck/Collection/HealthCollectorRunnerSchedulingTests.cs",
+      "deadlineSeconds": 10,
+      "startLines": [
+        114
+      ],
+      "nativeCaseCount": 1,
+      "nativeCases": [
+        {
+          "id": "12497048-98d7-8e2c-b15c-d3a6bda36759",
+          "name": "NextPeriodicAttemptUsesCompletionPlusIntervalInsteadOfStartPlusInterval"
+        }
+      ]
+    },
+    {
+      "class": "HealthCollectorRunnerSchedulingTests",
+      "method": "PeriodicActivationRequiresBothStartAndAnExplicitInterval",
+      "declarationLine": 72,
+      "source": "implementations/csharp/tests/CIS.Core.UnitTests/Healthcheck/Collection/HealthCollectorRunnerSchedulingTests.cs",
+      "deadlineSeconds": 10,
+      "startLines": [
+        79
+      ],
+      "nativeCaseCount": 1,
+      "nativeCases": [
+        {
+          "id": "13efdf31-b18c-89fa-962b-72c0260e1748",
+          "name": "PeriodicActivationRequiresBothStartAndAnExplicitInterval"
+        }
+      ]
+    },
+    {
+      "class": "HealthCollectorRunnerSchedulingTests",
+      "method": "PeriodicEligibilityUsesMonotonicTimeAcrossUtcClockChanges",
+      "declarationLine": 162,
+      "source": "implementations/csharp/tests/CIS.Core.UnitTests/Healthcheck/Collection/HealthCollectorRunnerSchedulingTests.cs",
+      "deadlineSeconds": 10,
+      "startLines": [
+        166
+      ],
+      "nativeCaseCount": 1,
+      "nativeCases": [
+        {
+          "id": "1bae6acd-3cc4-8a69-b5fd-ce06ff653348",
+          "name": "PeriodicEligibilityUsesMonotonicTimeAcrossUtcClockChanges"
+        }
+      ]
+    },
+    {
+      "class": "HealthCollectorRunnerSchedulingTests",
+      "method": "PeriodicRecurrenceWaitsForActualLeaseCleanupBeforeStartingItsInterval",
+      "declarationLine": 134,
+      "source": "implementations/csharp/tests/CIS.Core.UnitTests/Healthcheck/Collection/HealthCollectorRunnerSchedulingTests.cs",
+      "deadlineSeconds": 10,
+      "startLines": [
+        139
+      ],
+      "nativeCaseCount": 1,
+      "nativeCases": [
+        {
+          "id": "150d3ec4-0af5-8335-8f41-8998fd4ad21a",
+          "name": "PeriodicRecurrenceWaitsForActualLeaseCleanupBeforeStartingItsInterval"
+        }
+      ]
+    },
+    {
+      "class": "HealthCollectorRunnerSchedulingTests",
+      "method": "PreCanceledJoinDoesNotDisturbTheAlreadyAdmittedOperation",
+      "declarationLine": 291,
+      "source": "implementations/csharp/tests/CIS.Core.UnitTests/Healthcheck/Collection/HealthCollectorRunnerSchedulingTests.cs",
+      "deadlineSeconds": 10,
+      "startLines": [
+        295
+      ],
+      "nativeCaseCount": 1,
+      "nativeCases": [
+        {
+          "id": "18a737f1-6bc0-8a09-90c4-e10eb1549874",
+          "name": "PreCanceledJoinDoesNotDisturbTheAlreadyAdmittedOperation"
+        }
+      ]
+    },
+    {
+      "class": "HealthCollectorRunnerSchedulingTests",
+      "method": "PreCanceledManualWaitCreatesNoPendingMarkerOrOwnerLease",
+      "declarationLine": 272,
+      "source": "implementations/csharp/tests/CIS.Core.UnitTests/Healthcheck/Collection/HealthCollectorRunnerSchedulingTests.cs",
+      "deadlineSeconds": 10,
+      "startLines": [
+        276
+      ],
+      "nativeCaseCount": 1,
+      "nativeCases": [
+        {
+          "id": "10575545-bc35-8b22-996a-3c1a821ad943",
+          "name": "PreCanceledManualWaitCreatesNoPendingMarkerOrOwnerLease"
+        }
+      ]
+    },
+    {
+      "class": "HealthCollectorRunnerSchedulingTests",
+      "method": "PreCanceledStartDoesNotEnableManualOrPeriodicAdmission",
+      "declarationLine": 31,
+      "source": "implementations/csharp/tests/CIS.Core.UnitTests/Healthcheck/Collection/HealthCollectorRunnerSchedulingTests.cs",
+      "deadlineSeconds": 10,
+      "startLines": [
+        38,
+        43
+      ],
+      "nativeCaseCount": 1,
+      "nativeCases": [
+        {
+          "id": "19ebbedf-6113-88e8-bcc1-0f9573860d35",
+          "name": "PreCanceledStartDoesNotEnableManualOrPeriodicAdmission"
+        }
+      ]
+    },
+    {
+      "class": "HealthCollectorRunnerSchedulingTests",
+      "method": "RepeatedStartIsHarmlessAndDoesNotActivateConfiguredPeriods",
+      "declarationLine": 52,
+      "source": "implementations/csharp/tests/CIS.Core.UnitTests/Healthcheck/Collection/HealthCollectorRunnerSchedulingTests.cs",
+      "deadlineSeconds": 10,
+      "startLines": [
+        57,
+        58
+      ],
+      "nativeCaseCount": 1,
+      "nativeCases": [
+        {
+          "id": "1020f034-1c66-8f7a-b002-5ca1822c7f5d",
+          "name": "RepeatedStartIsHarmlessAndDoesNotActivateConfiguredPeriods"
+        }
+      ]
+    },
+    {
+      "class": "HealthCollectorRunnerSchedulingTests",
+      "method": "RotatingSelectionServesEveryDueRegistrationBeforeReturningToTheFirst",
+      "declarationLine": 459,
+      "source": "implementations/csharp/tests/CIS.Core.UnitTests/Healthcheck/Collection/HealthCollectorRunnerSchedulingTests.cs",
+      "deadlineSeconds": 10,
+      "startLines": [
+        464
+      ],
+      "nativeCaseCount": 1,
+      "nativeCases": [
+        {
+          "id": "177e6343-c327-86b1-9d64-9ef2ef7fff4f",
+          "name": "RotatingSelectionServesEveryDueRegistrationBeforeReturningToTheFirst"
+        }
+      ]
+    },
+    {
+      "class": "HealthCollectorRunnerSchedulingTests",
+      "method": "ServiceStoppingRetiresQueuedCallersWithoutWaitingForAnotherBlockedOwner",
+      "declarationLine": 386,
+      "source": "implementations/csharp/tests/CIS.Core.UnitTests/Healthcheck/Collection/HealthCollectorRunnerSchedulingTests.cs",
+      "deadlineSeconds": 10,
+      "startLines": [
+        391
+      ],
+      "nativeCaseCount": 1,
+      "nativeCases": [
+        {
+          "id": "1562425d-bde9-8dfa-b9f2-2f21c29dbaea",
+          "name": "ServiceStoppingRetiresQueuedCallersWithoutWaitingForAnotherBlockedOwner"
+        }
+      ]
+    },
+    {
+      "class": "HealthCollectorRunnerSchedulingTests",
+      "method": "StopBeforeStartIsTerminalAndRepeatedStopDoesNotWithdrawTheMonitor",
+      "declarationLine": 543,
+      "source": "implementations/csharp/tests/CIS.Core.UnitTests/Healthcheck/Collection/HealthCollectorRunnerSchedulingTests.cs",
+      "deadlineSeconds": 10,
+      "startLines": [
+        550
+      ],
+      "nativeCaseCount": 1,
+      "nativeCases": [
+        {
+          "id": "14efc9fe-2fd6-8a99-8c14-a9087b19d80a",
+          "name": "StopBeforeStartIsTerminalAndRepeatedStopDoesNotWithdrawTheMonitor"
+        }
+      ]
+    },
+    {
+      "class": "HealthCollectorRunnerSchedulingTests",
+      "method": "StoppingRunnerClosesCollectionAdmissionButAllowsFinalDirectReports",
+      "declarationLine": 558,
+      "source": "implementations/csharp/tests/CIS.Core.UnitTests/Healthcheck/Collection/HealthCollectorRunnerSchedulingTests.cs",
+      "deadlineSeconds": 10,
+      "startLines": [
+        562,
+        565
+      ],
+      "nativeCaseCount": 1,
+      "nativeCases": [
+        {
+          "id": "1ec95704-b8e0-86fc-aacd-aa443bb3d3b5",
+          "name": "StoppingRunnerClosesCollectionAdmissionButAllowsFinalDirectReports"
+        }
+      ]
+    },
+    {
+      "class": "HealthCollectorRunnerSchedulingTests",
+      "method": "WithdrawingAQueuedRegistrationRetiresItsCallersWithoutAcquiringALease",
+      "declarationLine": 364,
+      "source": "implementations/csharp/tests/CIS.Core.UnitTests/Healthcheck/Collection/HealthCollectorRunnerSchedulingTests.cs",
+      "deadlineSeconds": 10,
+      "startLines": [
+        369
+      ],
+      "nativeCaseCount": 1,
+      "nativeCases": [
+        {
+          "id": "18ffc044-8395-82fc-a794-ffed17819d3e",
+          "name": "WithdrawingAQueuedRegistrationRetiresItsCallersWithoutAcquiringALease"
+        }
+      ]
+    },
+    {
+      "class": "HealthCollectorStoppingAdmissionBoundaryTests",
+      "method": "RepeatedStopCannotAcknowledgeATimerStillBeingDisposedAfterConcurrentStart",
+      "declarationLine": 85,
+      "source": "implementations/csharp/tests/CIS.Core.UnitTests/Healthcheck/Collection/HealthCollectorStoppingAdmissionBoundaryTests.cs",
+      "deadlineSeconds": 10,
+      "startLines": [
+        94
+      ],
+      "nativeCaseCount": 1,
+      "nativeCases": [
+        {
+          "id": "1e6e1404-c531-866c-983b-f0e8f8007221",
+          "name": "RepeatedStopCannotAcknowledgeATimerStillBeingDisposedAfterConcurrentStart"
+        }
+      ]
+    },
+    {
+      "class": "HealthCollectorStoppingAdmissionBoundaryTests",
+      "method": "TheStoppingSignalClosesCollectorAdmissionBeforeItsObserversRun",
+      "declarationLine": 15,
+      "source": "implementations/csharp/tests/CIS.Core.UnitTests/Healthcheck/Collection/HealthCollectorStoppingAdmissionBoundaryTests.cs",
+      "deadlineSeconds": 10,
+      "startLines": [
+        30
+      ],
+      "nativeCaseCount": 2,
+      "nativeCases": [
+        {
+          "id": "1a7baac2-9e05-8f64-8453-7541d4bb90ef",
+          "name": "TheStoppingSignalClosesCollectorAdmissionBeforeItsObserversRun (True)"
+        },
+        {
+          "id": "1c5a1895-844f-8535-9c01-dbca3a4eaaf1",
+          "name": "TheStoppingSignalClosesCollectorAdmissionBeforeItsObserversRun (False)"
+        }
+      ]
+    },
+    {
+      "class": "HealthCollectorUtcOutageQualificationTests",
+      "method": "AnActualUtcProviderOutageCannotStrandTheLeaseOrInventAPolicyOutcome",
+      "declarationLine": 13,
+      "source": "implementations/csharp/tests/CIS.Core.UnitTests/Healthcheck/Collection/HealthCollectorUtcOutageQualificationTests.cs",
+      "deadlineSeconds": 15,
+      "startLines": [
+        29
+      ],
+      "nativeCaseCount": 1,
+      "nativeCases": [
+        {
+          "id": "135bd7c8-3634-88f1-b2b4-6471192444a9",
+          "name": "AnActualUtcProviderOutageCannotStrandTheLeaseOrInventAPolicyOutcome"
+        }
+      ]
+    },
+    {
+      "class": "HealthRegistrationDiagnosticTests",
+      "method": "RegistrationExternalUnbindingAndOptionalCollectionNeverClearTheRegistrationDiagnostic",
+      "declarationLine": 207,
+      "source": "implementations/csharp/tests/CIS.Core.UnitTests/Healthcheck/Execution/HealthRegistrationDiagnosticTests.cs",
+      "deadlineSeconds": 10,
+      "startLines": [
+        228
+      ],
+      "nativeCaseCount": 1,
+      "nativeCases": [
+        {
+          "id": "1b79c957-2ca0-80fb-808e-d2986ce95bb5",
+          "name": "RegistrationExternalUnbindingAndOptionalCollectionNeverClearTheRegistrationDiagnostic"
+        }
+      ]
+    }
+  ],
+  "testSourcePins": [
+    {
+      "path": "implementations/csharp/tests/CIS.Core.UnitTests/Healthcheck/Collection/HealthCollectionCapacityAndFairnessBoundaryTests.cs",
+      "sha256": "eb836152bd088491bd5570cbf7323e58a8138c60862a432e03c585e34a0ce315",
+      "bytes": 11230
+    },
+    {
+      "path": "implementations/csharp/tests/CIS.Core.UnitTests/Healthcheck/Collection/HealthCollectorAbandonedPendingCallerQualificationTests.cs",
+      "sha256": "9fd510449f3bff2100b163825a66d10ab5aa810ed7d155e84a0026ce2eab7692",
+      "bytes": 10885
+    },
+    {
+      "path": "implementations/csharp/tests/CIS.Core.UnitTests/Healthcheck/Collection/HealthCollectorAbandonmentAndRetirementSettlementTests.cs",
+      "sha256": "0e07336684947b9ebe6c66be40f7885bea907c527302d84aadbc3d51aace3dbd",
+      "bytes": 14564
+    },
+    {
+      "path": "implementations/csharp/tests/CIS.Core.UnitTests/Healthcheck/Collection/HealthCollectorAdmissionAndSettlementQualificationTests.cs",
+      "sha256": "4b7958b2b77aa800627e5cb7ece137ef4e0289c4dbf1e3b664626c0ad72d782d",
+      "bytes": 15274
+    },
+    {
+      "path": "implementations/csharp/tests/CIS.Core.UnitTests/Healthcheck/Collection/HealthCollectorDelayedCancellationSettlementTests.cs",
+      "sha256": "ec805a0bccf75be44b064e84d94e5a4c6f356c24aba10f027f714bc0711d7401",
+      "bytes": 13527
+    },
+    {
+      "path": "implementations/csharp/tests/CIS.Core.UnitTests/Healthcheck/Collection/HealthCollectorExecutionBoundaryTests.cs",
+      "sha256": "891c1addb834d2ef8637d41fde5c54371a62384b4f9591b4f3897f3efc22c965",
+      "bytes": 12173
+    },
+    {
+      "path": "implementations/csharp/tests/CIS.Core.UnitTests/Healthcheck/Collection/HealthCollectorIntervalValidationBoundaryTests.cs",
+      "sha256": "2526d58653f4da74e09b413d6e3eda4f7a7f0f5b9f28184916895278848d1d2f",
+      "bytes": 6008
+    },
+    {
+      "path": "implementations/csharp/tests/CIS.Core.UnitTests/Healthcheck/Collection/HealthCollectorManualIntervalBoundaryTests.cs",
+      "sha256": "662e5599ab62b94f5719f1a4502b0b1ba41bc6c7b43e2671df1c2ca7beb9d56a",
+      "bytes": 7995
+    },
+    {
+      "path": "implementations/csharp/tests/CIS.Core.UnitTests/Healthcheck/Collection/HealthCollectorPartialStartStopTests.cs",
+      "sha256": "f551416d07fb5af128d7ee29bd4a5c3972b41669ce4aff279e9b9a47144b29f3",
+      "bytes": 4848
+    },
+    {
+      "path": "implementations/csharp/tests/CIS.Core.UnitTests/Healthcheck/Collection/HealthCollectorPeriodicTimerProgressQualificationTests.cs",
+      "sha256": "3693416be50ba6fb67ee19c7b20d5af0d83117e5808a7effd61ed82a5375c09f",
+      "bytes": 15289
+    },
+    {
+      "path": "implementations/csharp/tests/CIS.Core.UnitTests/Healthcheck/Collection/HealthCollectorReceivingAndDueSelectionQualificationTests.cs",
+      "sha256": "683f6e9105adfdba9fcb205010929e4065412c153e61bc4b36fc7c2562ca2930",
+      "bytes": 9792
+    },
+    {
+      "path": "implementations/csharp/tests/CIS.Core.UnitTests/Healthcheck/Collection/HealthCollectorResourceBoundaryTests.cs",
+      "sha256": "39dfd9effc283eeebaf1b594148d261763f0fb4f84ede2e5acfef306327ea9d9",
+      "bytes": 16310
+    },
+    {
+      "path": "implementations/csharp/tests/CIS.Core.UnitTests/Healthcheck/Collection/HealthCollectorRetiredCurrentFairnessTests.cs",
+      "sha256": "69ccd0e8f43347793889a5608f23dff2ddeed3f499c66705aad5461089d26d3e",
+      "bytes": 6858
+    },
+    {
+      "path": "implementations/csharp/tests/CIS.Core.UnitTests/Healthcheck/Collection/HealthCollectorRunnerLifecycleTests.cs",
+      "sha256": "b3709dfad0c467910d35f2a74d9985beba7dcc096eb6e41a73e1c17a355b877f",
+      "bytes": 52536
+    },
+    {
+      "path": "implementations/csharp/tests/CIS.Core.UnitTests/Healthcheck/Collection/HealthCollectorRunnerMutationQualificationTests.cs",
+      "sha256": "dbef885fd5deeb0dca5237c3258b4bd705f0f167110483e68682343d877f2166",
+      "bytes": 20574
+    },
+    {
+      "path": "implementations/csharp/tests/CIS.Core.UnitTests/Healthcheck/Collection/HealthCollectorRunnerSchedulingTests.cs",
+      "sha256": "83a20a16e7e239487e23b25915c1cf784ac786aa683465d19a291254cdf856ea",
+      "bytes": 39795
+    },
+    {
+      "path": "implementations/csharp/tests/CIS.Core.UnitTests/Healthcheck/Collection/HealthCollectorStoppingAdmissionBoundaryTests.cs",
+      "sha256": "0e7ff83c38ac523e0238775e48d61fd2da623ca8a970bf7b7829edf06b276f13",
+      "bytes": 7476
+    },
+    {
+      "path": "implementations/csharp/tests/CIS.Core.UnitTests/Healthcheck/Collection/HealthCollectorUtcOutageQualificationTests.cs",
+      "sha256": "b8acbab6157da6e0bae931803a87e3a306b02ca03647865b9583073c34f576a9",
+      "bytes": 7268
+    },
+    {
+      "path": "implementations/csharp/tests/CIS.Core.UnitTests/Healthcheck/Core/HealthcheckErrorReasonQualificationTests.cs",
+      "sha256": "c0ce3eadb6357bf727d12d42b0d075208dcdba64093a19b16e9df280b488fac6",
+      "bytes": 9630
+    },
+    {
+      "path": "implementations/csharp/tests/CIS.Core.UnitTests/Healthcheck/Core/HealthcheckLifecycleQualificationTests.cs",
+      "sha256": "1831e9cadf03d9acd9d6d7a52f2a78888074632d14806cb82cf3a520c67060ed",
+      "bytes": 13750
+    },
+    {
+      "path": "implementations/csharp/tests/CIS.Core.UnitTests/Healthcheck/Execution/HealthBindingRetirementBoundaryTests.cs",
+      "sha256": "a415a809dbf6cadcf5f388445a20983ed7a392c9288994113632992ae4e0d198",
+      "bytes": 10518
+    },
+    {
+      "path": "implementations/csharp/tests/CIS.Core.UnitTests/Healthcheck/Execution/HealthRegistrationDiagnosticTests.cs",
+      "sha256": "269faaa619bf4e0d3375636fa47cd296e810b299a70cde035c8a226eed7e6000",
+      "bytes": 23589
+    }
+  ],
+  "shippingSourcePins": [
+    {
+      "path": "implementations/csharp/src/CIS.Core/Environment/EnvironmentKind.cs",
+      "sha256": "7ab76b25987f4ab48d380646bc0251a3af30cf333a9a7b59eeb17bbbaa8de04a",
+      "bytes": 393
+    },
+    {
+      "path": "implementations/csharp/src/CIS.Core/Environment/EnvironmentOptions.cs",
+      "sha256": "47e39efbe61a5016f39f58a068dfe2318e5bc875d6ac813504049582bb816bbc",
+      "bytes": 6516
+    },
+    {
+      "path": "implementations/csharp/src/CIS.Core/Environment/EnvironmentOverrides.cs",
+      "sha256": "843552a9dc9458bf8fdde9a167014045b91e769ea437830649dbd83ab992ece6",
+      "bytes": 9199
+    },
+    {
+      "path": "implementations/csharp/src/CIS.Core/Environment/Resolution/ConfigurationIssue.cs",
+      "sha256": "69aaa25c4fc1464562ff8244ed8aed31f32a4c515e95a879052be057acc4c1eb",
+      "bytes": 1139
+    },
+    {
+      "path": "implementations/csharp/src/CIS.Core/Environment/Resolution/ConfigurationIssueCodes.cs",
+      "sha256": "9e66a8e9c9486afa599ad34b3ace7dc043f8466600fcd60312f101ca30f8260d",
+      "bytes": 1159
+    },
+    {
+      "path": "implementations/csharp/src/CIS.Core/Environment/Resolution/CoreConfigurationException.cs",
+      "sha256": "d7eab634c0a679a97effa52239846f1a1e50c1c6c5996f5711354d11830b4d0d",
+      "bytes": 1280
+    },
+    {
+      "path": "implementations/csharp/src/CIS.Core/Healthcheck/AspNetCore/HealthcheckApplicationBuilderExtensions.cs",
+      "sha256": "8c89ad2f2992b4d0c63c83d372ebb198059ca27d83813fc5a883bec1c9f3870e",
+      "bytes": 6372
+    },
+    {
+      "path": "implementations/csharp/src/CIS.Core/Healthcheck/Contracts/Collection/HealthCollectionAttempt.cs",
+      "sha256": "571fb62281d4f6210faaa209f07b5857e7e766ed54a2c7d8a6582b6b0dc6357c",
+      "bytes": 1429
+    },
+    {
+      "path": "implementations/csharp/src/CIS.Core/Healthcheck/Contracts/Collection/HealthCollectionResult.cs",
+      "sha256": "245a7c84b20541ac1d3dd69d7301aa7dab9103f17c11d27fe23a021fee046209",
+      "bytes": 6058
+    },
+    {
+      "path": "implementations/csharp/src/CIS.Core/Healthcheck/Contracts/Collection/HealthCollectorOptions.cs",
+      "sha256": "689b6e8ee8ffe5e8d511650d680dc6a6c764f744597d86969277bf416930633a",
+      "bytes": 494
+    },
+    {
+      "path": "implementations/csharp/src/CIS.Core/Healthcheck/Contracts/Collection/IHealthCollector.cs",
+      "sha256": "5b2e45d468dad1ac512ed2a17731fc958fb3915f213a039a46a1cf51d35458a5",
+      "bytes": 1921
+    },
+    {
+      "path": "implementations/csharp/src/CIS.Core/Healthcheck/Contracts/Execution/HealthExecutionBindingOptions.cs",
+      "sha256": "6ef4530bcab4bd6813a46f019c3640aedd5707730d1c7a7b32d4960424e25c05",
+      "bytes": 983
+    },
+    {
+      "path": "implementations/csharp/src/CIS.Core/Healthcheck/Contracts/Execution/HealthExecutionEnums.cs",
+      "sha256": "16eb3eb24b45ec5ff7e05871b87df6ad7caf6a2ab22fab9d65793d4af8188aca",
+      "bytes": 3400
+    },
+    {
+      "path": "implementations/csharp/src/CIS.Core/Healthcheck/Contracts/Execution/HealthExecutionFact.cs",
+      "sha256": "b24142cde21e9376f4f4813bfa50eea56f05d5d1b4e8ff36400b9ea27ebc8198",
+      "bytes": 4693
+    },
+    {
+      "path": "implementations/csharp/src/CIS.Core/Healthcheck/Contracts/Execution/HealthExecutionSnapshot.cs",
+      "sha256": "ffdd6d54739744b80d81673ad7bb11d933a9d8d550dc44d842f994dc1d0dcc55",
+      "bytes": 6746
+    },
+    {
+      "path": "implementations/csharp/src/CIS.Core/Healthcheck/Contracts/Execution/IHealthExecutionBinding.cs",
+      "sha256": "2c35a40e5363db838a89ac1658078fd9122ccc3dfe59cbdf8e2f6bf8674033cd",
+      "bytes": 959
+    },
+    {
+      "path": "implementations/csharp/src/CIS.Core/Healthcheck/Contracts/HealthApplicationIdentity.cs",
+      "sha256": "1054240288c29ccdcff54b39e9276bf60501c3ff86c2867dd911946ff574a6c9",
+      "bytes": 848
+    },
+    {
+      "path": "implementations/csharp/src/CIS.Core/Healthcheck/Contracts/HealthDiagnostic.cs",
+      "sha256": "6ab0405911c39f7f2e0b5e77c3ce80ac31fd7f946996dfbdbc7dded0cb5deaf7",
+      "bytes": 4888
+    },
+    {
+      "path": "implementations/csharp/src/CIS.Core/Healthcheck/Contracts/HealthEnums.cs",
+      "sha256": "b116889483e362275486d0e995045445746f28d6ddabda87ab4426f96c74a7eb",
+      "bytes": 3218
+    },
+    {
+      "path": "implementations/csharp/src/CIS.Core/Healthcheck/Contracts/HealthMeasurement.cs",
+      "sha256": "d78555eb1ccfda8400d3d2e4e77b766ce3e45204f3577c870305c9d5f20745da",
+      "bytes": 5568
+    },
+    {
+      "path": "implementations/csharp/src/CIS.Core/Healthcheck/Contracts/HealthMonitorContracts.cs",
+      "sha256": "276f47fc4a5c852c136afb93e4d6a56dcc12b3a322341a4919122820e3e7359d",
+      "bytes": 4468
+    },
+    {
+      "path": "implementations/csharp/src/CIS.Core/Healthcheck/Contracts/HealthReportBuffer.cs",
+      "sha256": "80057014e4ae34e03548a21c3dec93578707584d811dac33e18a7d77de3d2e12",
+      "bytes": 978
+    },
+    {
+      "path": "implementations/csharp/src/CIS.Core/Healthcheck/Contracts/HealthSnapshot.cs",
+      "sha256": "1ceebb13053b88dd4034282c494dbaae0d9f721f1f01f0a8b47ca09c338c263e",
+      "bytes": 11660
+    },
+    {
+      "path": "implementations/csharp/src/CIS.Core/Healthcheck/Contracts/Options/HealthcheckCapacityException.cs",
+      "sha256": "65c3c638410a3cc2b44acd470cabf639235ba7508d25c2756cb601f54effcb96",
+      "bytes": 801
+    },
+    {
+      "path": "implementations/csharp/src/CIS.Core/Healthcheck/Contracts/Options/HealthcheckOptions.cs",
+      "sha256": "75d3e327b107682e5321b65991825fd51b7c5a6c12f7c539aded2dd758d8d419",
+      "bytes": 7428
+    },
+    {
+      "path": "implementations/csharp/src/CIS.Core/Healthcheck/Contracts/Options/MonitorOptions.cs",
+      "sha256": "3d3233f74648d598a662f901654fece450fc5fc4be96218f5d7eafe5ff0b4cc9",
+      "bytes": 2256
+    },
+    {
+      "path": "implementations/csharp/src/CIS.Core/Healthcheck/Execution/ExecutionFactRecord.cs",
+      "sha256": "2397055d90836c77cb4817e422abb6127e164e94c00dff8b7ce074026ac5c454",
+      "bytes": 6894
+    },
+    {
+      "path": "implementations/csharp/src/CIS.Core/Healthcheck/Execution/ExecutionFactValidation.cs",
+      "sha256": "1b86f97a94ea81c54dd2f34b1e611ac1114d2a471c92a7fbef1670c38eea82bb",
+      "bytes": 11077
+    },
+    {
+      "path": "implementations/csharp/src/CIS.Core/Healthcheck/Execution/HealthExecutionBinder.cs",
+      "sha256": "1854defb571eb52d4066f53a994d5fcd5125f359660fd33ef5ccd486926aef6a",
+      "bytes": 10345
+    },
+    {
+      "path": "implementations/csharp/src/CIS.Core/Healthcheck/HealthcheckService.cs",
+      "sha256": "d2db8425685ee203d077eed9b477fc528f994670b667a73d19829d28a8148730",
+      "bytes": 3227
+    },
+    {
+      "path": "implementations/csharp/src/CIS.Core/Healthcheck/HealthCollectorRunner.cs",
+      "sha256": "386c3d5cd7e681ed58a2d6be564ad3c813b598b377921ff5057a61419067fec8",
+      "bytes": 27617
+    },
+    {
+      "path": "implementations/csharp/src/CIS.Core/Healthcheck/Internal/Collection/HealthCollectionExecution.cs",
+      "sha256": "637dc19c4e178986fb52b6c7cf2f7e849ab154ca574c786a43e95ba55ba8eb41",
+      "bytes": 2377
+    },
+    {
+      "path": "implementations/csharp/src/CIS.Core/Healthcheck/Internal/Contracts/BindingRequest.cs",
+      "sha256": "fcabbc28ac307475cf70f258bd577f63f1cc16149e78c65f1255c07d2aee2e57",
+      "bytes": 2291
+    },
+    {
+      "path": "implementations/csharp/src/CIS.Core/Healthcheck/Internal/Contracts/BindingTarget.cs",
+      "sha256": "3864966e3150547e723cb4dc59e3e17b9fc9e3a3295f0815996cbeb2782501dc",
+      "bytes": 1170
+    },
+    {
+      "path": "implementations/csharp/src/CIS.Core/Healthcheck/Internal/Contracts/HealthCollectionReservation.cs",
+      "sha256": "fde5c11926a166516452a797ab1f58f6436da4febbd452520881c310a322cd76",
+      "bytes": 4554
+    },
+    {
+      "path": "implementations/csharp/src/CIS.Core/Healthcheck/Internal/Contracts/HealthCollectionTarget.cs",
+      "sha256": "a21661cb0a5d64d76d7b7a54a7815f039ff8c219bcc109915f1d7f79aa7f4d1b",
+      "bytes": 894
+    },
+    {
+      "path": "implementations/csharp/src/CIS.Core/Healthcheck/Internal/Contracts/HealthSnapshotData.cs",
+      "sha256": "e17b1afa98f90757bccf2cf56dc0c49a58adec18e964bcd730e117cc396ce514",
+      "bytes": 2121
+    },
+    {
+      "path": "implementations/csharp/src/CIS.Core/Healthcheck/Internal/Contracts/IHealthCollectionState.cs",
+      "sha256": "1005bdbf6820b5ceb01edd8ee886e471686ab61ead85c6f126effad46d158b2c",
+      "bytes": 3452
+    },
+    {
+      "path": "implementations/csharp/src/CIS.Core/Healthcheck/Internal/Contracts/IHealthExecutionState.cs",
+      "sha256": "a7d45d27a59f504900daa273f51cb780e222cf5e086a5f26cde9efdfbefd5c27",
+      "bytes": 1693
+    },
+    {
+      "path": "implementations/csharp/src/CIS.Core/Healthcheck/Internal/Contracts/IHealthStateAccess.cs",
+      "sha256": "1d09b7c0a81c4cc236c4b72dbba0a9c047b66a8a2f65deec16beee9fba45ec5f",
+      "bytes": 833
+    },
+    {
+      "path": "implementations/csharp/src/CIS.Core/Healthcheck/Internal/Monitors/HealthMonitorHandles.cs",
+      "sha256": "36480c013f4493ebe4fdc49482bf9fc8f85f63cf3267a32a8a3e30320fd68454",
+      "bytes": 3909
+    },
+    {
+      "path": "implementations/csharp/src/CIS.Core/Healthcheck/Internal/State/HealthMonitorEntry.cs",
+      "sha256": "f2c997dc9449d4907c3d4c55590918c7ff6e17946c44f06b8095b479b0596603",
+      "bytes": 2031
+    },
+    {
+      "path": "implementations/csharp/src/CIS.Core/Healthcheck/Internal/State/HealthStateCoordinator.Collection.cs",
+      "sha256": "a4d9049a2a1304a40d487584c708e85749f2e6a9f9305855bb690afa48315240",
+      "bytes": 18622
+    },
+    {
+      "path": "implementations/csharp/src/CIS.Core/Healthcheck/Internal/State/HealthStateCoordinator.cs",
+      "sha256": "3e3a89690b99a372eb4ca75b0e34ddea98551696794b8a43ca8823c26d1dbe04",
+      "bytes": 19565
+    },
+    {
+      "path": "implementations/csharp/src/CIS.Core/Healthcheck/Internal/State/HealthStateCoordinator.Execution.cs",
+      "sha256": "52e25e34d5f3cfeb2bebf7facc820b3d2ce6a39a6bab179950b9f51298a66f6a",
+      "bytes": 19279
+    },
+    {
+      "path": "implementations/csharp/src/CIS.Core/Healthcheck/Pipes/HealthPipeBudget.cs",
+      "sha256": "fd0add01dd455a7d9ef94286c50484f5797e80a1917fbf7f9f44478ba3ab1d7f",
+      "bytes": 1428
+    },
+    {
+      "path": "implementations/csharp/src/CIS.Core/Healthcheck/Pipes/HealthPipeEndpoint.cs",
+      "sha256": "1e39973ca242e5ef08b49f8efc696fb9b6e8d9ab5cc98173cdda5f674c820b9e",
+      "bytes": 3683
+    },
+    {
+      "path": "implementations/csharp/src/CIS.Core/Healthcheck/Pipes/HealthPipeServer.cs",
+      "sha256": "809ba1a493d6176e354f84209ea556ae21eb726e626b35eb7cc777956cdba12f",
+      "bytes": 13342
+    },
+    {
+      "path": "implementations/csharp/src/CIS.Core/Healthcheck/Pipes/HealthProbeClient.cs",
+      "sha256": "ad5afc9bf1f19fddcbd478efd88616607c87262061c75da6cf97407a2994a512",
+      "bytes": 5604
+    },
+    {
+      "path": "implementations/csharp/src/CIS.Core/Healthcheck/Reporting/BoundedHealthBuffer.cs",
+      "sha256": "e34b0f0a266d2dc131f27da9cc0c368e1ddfacb3a6a55b7b24ede47f9a10ed83",
+      "bytes": 1532
+    },
+    {
+      "path": "implementations/csharp/src/CIS.Core/Healthcheck/Reporting/HealthReportFormatter.cs",
+      "sha256": "82e9b67bc17492fba6d445f63404ce82ac2ffe116fb5144c35342295dcd81665",
+      "bytes": 14127
+    },
+    {
+      "path": "implementations/csharp/src/CIS.Core/Healthcheck/Reporting/HealthReportProtocol.cs",
+      "sha256": "7161117a6783177bdbd94173148902b4288b687ba80e6c78f5a009d861d5bebf",
+      "bytes": 23918
+    },
+    {
+      "path": "implementations/csharp/src/CIS.Core/Logging/Configuration/LoggingFilePath.cs",
+      "sha256": "40ffa9331c2d1c56536fa974b0082d32b3982e36608fd671df1707f62efe7bd8",
+      "bytes": 2598
+    },
+    {
+      "path": "implementations/csharp/src/CIS.Core/Logging/Configuration/SeverityTokenParser.cs",
+      "sha256": "71ba6dc96e467100b74e28ad6d1cbbc011a2adf88ce39bda8ec8fda215b5584f",
+      "bytes": 1104
+    },
+    {
+      "path": "implementations/csharp/src/CIS.Core/Logging/CoreLogDiagnostics.cs",
+      "sha256": "79be5af4aa4e93c1e58419c18e671e68709e5556c1684d948c46cf99cfbaf994",
+      "bytes": 2325
+    },
+    {
+      "path": "implementations/csharp/src/CIS.Core/Logging/CoreLogger.Convenience.cs",
+      "sha256": "cbd5307443631bb6349badbbecb2bb5e4d54603801f5314d138ec356b43ec865",
+      "bytes": 5217
+    },
+    {
+      "path": "implementations/csharp/src/CIS.Core/Logging/CoreLogger.cs",
+      "sha256": "ced48413de9def29f8ebf230a72603382ec727eb8bcb4707915ea2909dfd4794",
+      "bytes": 2018
+    },
+    {
+      "path": "implementations/csharp/src/CIS.Core/Logging/CoreLogger.Interpolation.cs",
+      "sha256": "7baed63cde258e14bcd45d5f4c675a71fe3643b7422d95374ab5a1cfc6975d00",
+      "bytes": 6957
+    },
+    {
+      "path": "implementations/csharp/src/CIS.Core/Logging/CoreLogInitializationException.cs",
+      "sha256": "52e3096c04627c53651374768a8e6ba66cc3d9f9ef59127a01a0ba89296f8089",
+      "bytes": 682
+    },
+    {
+      "path": "implementations/csharp/src/CIS.Core/Logging/CoreLogLevel.cs",
+      "sha256": "f00846ed540faf9ae4241b899813cec8d9a7124e5ddc697dc0740d574b8d4d53",
+      "bytes": 485
+    },
+    {
+      "path": "implementations/csharp/src/CIS.Core/Logging/CoreLogRuntime.cs",
+      "sha256": "eed9a794cb097426295aa59f08d34afb526ccc5552af0e4fde129a36bc2523d0",
+      "bytes": 37566
+    },
+    {
+      "path": "implementations/csharp/src/CIS.Core/Logging/CoreLogRuntime.Incoming.cs",
+      "sha256": "6014f9cdc612864d433cc68c93e9f9d4d85870cb296e67ed0aa2c24896ca0821",
+      "bytes": 17032
+    },
+    {
+      "path": "implementations/csharp/src/CIS.Core/Logging/CoreLogRuntime.Start.cs",
+      "sha256": "7f05c6c627cb31b97a0578a18d8a533707f359124e45da0cf12195032b647dec",
+      "bytes": 1876
+    },
+    {
+      "path": "implementations/csharp/src/CIS.Core/Logging/CoreLogState.cs",
+      "sha256": "a43312db03f4f3302c5ad8b8c9e09119da04d2889fff82bcb06735a7cecaf94c",
+      "bytes": 450
+    },
+    {
+      "path": "implementations/csharp/src/CIS.Core/Logging/EventMetadata.cs",
+      "sha256": "db00ef8aff6cb1452ceba7ff395f80628061db3e97968fd182c2f45edb88cedb",
+      "bytes": 8621
+    },
+    {
+      "path": "implementations/csharp/src/CIS.Core/Logging/Events/CapturedEventFacts.cs",
+      "sha256": "4d3f110fff2a292dd257361976de08289ce2a170a4e2d395fa80b1888e551d26",
+      "bytes": 2123
+    },
+    {
+      "path": "implementations/csharp/src/CIS.Core/Logging/Events/CapturedInterpolation.cs",
+      "sha256": "54005b860e31026fc9741fbede7337093a88ec1966245eb015d7fa58cb456fd0",
+      "bytes": 3780
+    },
+    {
+      "path": "implementations/csharp/src/CIS.Core/Logging/Events/EncodedEvent.cs",
+      "sha256": "a15135e15bd5a7914186bf6e350ef24f4abc47c6a05c505a01232bc957edab62",
+      "bytes": 436
+    },
+    {
+      "path": "implementations/csharp/src/CIS.Core/Logging/Events/EventByteProjection.cs",
+      "sha256": "d897cf9e54ddb3e645d4fef221dd7040c8ec19387e76822b8060677646a902e2",
+      "bytes": 8524
+    },
+    {
+      "path": "implementations/csharp/src/CIS.Core/Logging/Events/EventEncoder.cs",
+      "sha256": "b6d0474273bc1b1178b75a47bc72728bef6b2a60f27c2c1e08b97f68927a0e05",
+      "bytes": 1565
+    },
+    {
+      "path": "implementations/csharp/src/CIS.Core/Logging/Events/EventProjection.cs",
+      "sha256": "1b0d630499c2158c95397ee17292710be473947362c7d716cb135d667fd3c55e",
+      "bytes": 8843
+    },
+    {
+      "path": "implementations/csharp/src/CIS.Core/Logging/Events/EventWireFormat.cs",
+      "sha256": "459577a0f003382b9d9b9adf8db1d5455eb1a78e939753fa656468b27fba353a",
+      "bytes": 8345
+    },
+    {
+      "path": "implementations/csharp/src/CIS.Core/Logging/Events/InterpolationCapture.cs",
+      "sha256": "45a663d22404ffcdccf903a8800ef799d2ab14cbc8381c0854d087ad388b20f2",
+      "bytes": 5054
+    },
+    {
+      "path": "implementations/csharp/src/CIS.Core/Logging/Events/JsonTextBytes.cs",
+      "sha256": "36c3dbd7a533efa418e2b0d12d3e1e613ac9dd0c4faf29d1c41cfc11155dbb0b",
+      "bytes": 1982
+    },
+    {
+      "path": "implementations/csharp/src/CIS.Core/Logging/Exceptions/CapturedException.cs",
+      "sha256": "c7a1afb38d64c279ea7a28f1f459290c9b07dd60a6fca3d98fec2a0f9c1ae5e4",
+      "bytes": 1294
+    },
+    {
+      "path": "implementations/csharp/src/CIS.Core/Logging/Exceptions/ExceptionProjection.cs",
+      "sha256": "286b1b67537ea14fbd7352265b8dcd8391d8846cc32f56d30d1147c28e861afd",
+      "bytes": 2099
+    },
+    {
+      "path": "implementations/csharp/src/CIS.Core/Logging/ILogWriter.cs",
+      "sha256": "546f389291fda0106c06b8cf57d4eecfe34043ca1c0f6fd13db250a484044fa1",
+      "bytes": 736
+    },
+    {
+      "path": "implementations/csharp/src/CIS.Core/Logging/LogEventData.cs",
+      "sha256": "45cefb9ebe65a29846c008f0a374fe490f11ffdc3d3580b5a859cd24879ea4e8",
+      "bytes": 1600
+    },
+    {
+      "path": "implementations/csharp/src/CIS.Core/Logging/LogFlushResult.cs",
+      "sha256": "a5c1a36b4bd388bce52e9c5ea26c1ffb2d897d76fe5a1fd31d992851bf43639c",
+      "bytes": 8556
+    },
+    {
+      "path": "implementations/csharp/src/CIS.Core/Logging/LogFrontendBatchSnapshot.cs",
+      "sha256": "b8856c155a0750e3048a6ff01434f28760230623b865a800c0ec2d955603e21e",
+      "bytes": 1732
+    },
+    {
+      "path": "implementations/csharp/src/CIS.Core/Logging/LoggingOptions.cs",
+      "sha256": "368c82e3b6dc80a2be5d2793705f87f3413e1aa57e991702845800e708e74320",
+      "bytes": 10526
+    },
+    {
+      "path": "implementations/csharp/src/CIS.Core/Logging/LoggingOutputEnums.cs",
+      "sha256": "de3834c4136325f560653029470309411a10d086427bf64f45f93804e5a0e2dc",
+      "bytes": 635
+    },
+    {
+      "path": "implementations/csharp/src/CIS.Core/Logging/LogIncomingSnapshot.cs",
+      "sha256": "a58938722ff0f2fa8c3aeb62b3fd5eeb60b9ec5e87eb9945f38e0e780b3d1016",
+      "bytes": 3531
+    },
+    {
+      "path": "implementations/csharp/src/CIS.Core/Logging/LogInterpolatedStringHandler.cs",
+      "sha256": "6cdb7665bf493a4fb5c7e647dfea0a374187ebaff7be871f8ceaf189ea162268",
+      "bytes": 2330
+    },
+    {
+      "path": "implementations/csharp/src/CIS.Core/Logging/LogOutputDiagnostics.cs",
+      "sha256": "9a725c0c033f0137f0d3ec1401a1894d8bc51f2b798baace77f86597e31c73b3",
+      "bytes": 3681
+    },
+    {
+      "path": "implementations/csharp/src/CIS.Core/Logging/LogOutputState.cs",
+      "sha256": "785f6ccabf7c4d9e9e19827615e5bfb5de1f5783d78c8c473c11cfede5680119",
+      "bytes": 540
+    },
+    {
+      "path": "implementations/csharp/src/CIS.Core/Logging/LogOutputWriteResult.cs",
+      "sha256": "c7ef3f8991f78318184a29a9b79bca9f33aff08028492f86b039642c5e2e4063",
+      "bytes": 735
+    },
+    {
+      "path": "implementations/csharp/src/CIS.Core/Logging/LogProcessingEvent.cs",
+      "sha256": "6d1daaa38566d0f793f8de515b9afd91747ad9e52fbc1b4850340724975324d7",
+      "bytes": 1173
+    },
+    {
+      "path": "implementations/csharp/src/CIS.Core/Logging/LogProcessingOptions.cs",
+      "sha256": "fab5cbfd1b274299514a7205ec6c9f459974c0621c15d8c1f5001384f8a059ec",
+      "bytes": 3940
+    },
+    {
+      "path": "implementations/csharp/src/CIS.Core/Logging/LogStartResult.cs",
+      "sha256": "b261921e93f895a952bc7fdca945230f725f423a99367355b81e0d6d8b3948c0",
+      "bytes": 522
+    },
+    {
+      "path": "implementations/csharp/src/CIS.Core/Logging/LogStopResult.cs",
+      "sha256": "2b6cd52edb9ee11f9981841a03a9dae3b721ae15d2152e4bea1bf97788d40068",
+      "bytes": 2375
+    },
+    {
+      "path": "implementations/csharp/src/CIS.Core/Logging/LogValue.cs",
+      "sha256": "9aeaf7726a52b571d8d172c374d080b0dce831c1c5ead5fe63b566ec1d7a5001",
+      "bytes": 8924
+    },
+    {
+      "path": "implementations/csharp/src/CIS.Core/Logging/LogValueKind.cs",
+      "sha256": "4b7cd9cc98e86801c45db36b1997df247f43ae0a9e4b688ed8b644fb2d4b4699",
+      "bytes": 1098
+    },
+    {
+      "path": "implementations/csharp/src/CIS.Core/Logging/LogWriteOutcome.cs",
+      "sha256": "de9d30a1d8fd63346db3804a7dc89a17f1448b6c9ab7a7bdb9f696a6d86da9ad",
+      "bytes": 1677
+    },
+    {
+      "path": "implementations/csharp/src/CIS.Core/Logging/LogWriteResult.cs",
+      "sha256": "da9367c72fff7642eb273eb45ffe66b739e3476844f3157a52c591c0a26548e0",
+      "bytes": 1433
+    },
+    {
+      "path": "implementations/csharp/src/CIS.Core/Logging/LogWriterRegistration.cs",
+      "sha256": "54d72dd016f9c62aa107993250f6d184195f40938771dd989b3301957995421e",
+      "bytes": 1863
+    },
+    {
+      "path": "implementations/csharp/src/CIS.Core/Logging/MicrosoftLogger/CoreLoggerProvider.cs",
+      "sha256": "6e4e85156173fa8f24c4e220b429ab69fc462c68bc8a112d1f3f69bad28fb113",
+      "bytes": 5673
+    },
+    {
+      "path": "implementations/csharp/src/CIS.Core/Logging/MicrosoftLogger/ProviderScopeCapture.cs",
+      "sha256": "d5abf895b36ba128f9547b9549c0c0a5494a8b7c38ab855115b25c8d1c4183ce",
+      "bytes": 1222
+    },
+    {
+      "path": "implementations/csharp/src/CIS.Core/Logging/MicrosoftLogger/ProviderStateCapture.cs",
+      "sha256": "94ea3553160dc4cec8dcce29d47ab458ac12e326ea2011ab7b6161eba1663b0f",
+      "bytes": 7665
+    },
+    {
+      "path": "implementations/csharp/src/CIS.Core/Logging/OperationContextData.cs",
+      "sha256": "d66670917376217ccdcc27a07792d55637aad2cd69bec1665a5ae6f354921db8",
+      "bytes": 939
+    },
+    {
+      "path": "implementations/csharp/src/CIS.Core/Logging/Rendering/EventRenderer.cs",
+      "sha256": "09fe595a8c8e5cdc67215e92fa18943229c0d2f1fd12225034f1349cc0f6a3ee",
+      "bytes": 1359
+    },
+    {
+      "path": "implementations/csharp/src/CIS.Core/Logging/Rendering/HumanRenderer.cs",
+      "sha256": "869e3d2a3b01b0a06e302a6f066e1d2121b20982d1d1e54f552c9ef148fd8450",
+      "bytes": 4768
+    },
+    {
+      "path": "implementations/csharp/src/CIS.Core/Logging/Rendering/HumanText.cs",
+      "sha256": "b910cdbac62fcc6ff56db742dde1b570c5c06ad73214a768c471e0d4c5260026",
+      "bytes": 5398
+    },
+    {
+      "path": "implementations/csharp/src/CIS.Core/Logging/Rendering/RenderedEvent.cs",
+      "sha256": "8ce8d6ef6c8869c41290858eaab4d66ddc6cc8201f6bd4a29b0c0710e16afe03",
+      "bytes": 398
+    },
+    {
+      "path": "implementations/csharp/src/CIS.Core/Logging/Rendering/RenderedHumanEvent.cs",
+      "sha256": "3c3ca9ba309bad15eff6e5c6ba2d328e022aa0c62f5f6050eb8942e839c2a873",
+      "bytes": 436
+    },
+    {
+      "path": "implementations/csharp/src/CIS.Core/Logging/Runtime/AdmittedEvent.cs",
+      "sha256": "35352744efbfaa57fb416df136835f235d141a58489bab10fc260a7f15c18cb0",
+      "bytes": 295
+    },
+    {
+      "path": "implementations/csharp/src/CIS.Core/Logging/Runtime/AtomicLogCounter.cs",
+      "sha256": "bdbe91208376682d5fc26ad41b72b0a27ea919d5c0739eb2b02d0939697ad668",
+      "bytes": 808
+    },
+    {
+      "path": "implementations/csharp/src/CIS.Core/Logging/Runtime/ConsoleOutputWriter.cs",
+      "sha256": "84f05f14c44feb1bfc20a2a852d12311f01929a84084d9cab52bd4aff87b4fcc",
+      "bytes": 1731
+    },
+    {
+      "path": "implementations/csharp/src/CIS.Core/Logging/Runtime/ElapsedBudget.cs",
+      "sha256": "dca4f29689a4dc2be7d15ef0b3a666a1ee0cbfb6831b7df1f5b32a7a4fb58242",
+      "bytes": 380
+    },
+    {
+      "path": "implementations/csharp/src/CIS.Core/Logging/Runtime/EventProcessing.cs",
+      "sha256": "9fb1fe8838e539d0eaf5d19b37801af9da286effe6075532c40ec83492c358f8",
+      "bytes": 6754
+    },
+    {
+      "path": "implementations/csharp/src/CIS.Core/Logging/Runtime/FileGroupInventory.cs",
+      "sha256": "83a86471abd73dc6f48f54358cc0f61dcaeb8ec7461fa2ad8df4d59fae0534f6",
+      "bytes": 11866
+    },
+    {
+      "path": "implementations/csharp/src/CIS.Core/Logging/Runtime/FileGroupTransition.cs",
+      "sha256": "d3151e23f7ea5de4caf1681d5aea8f4f87c871c6b42894afbf3b139dbcb4483f",
+      "bytes": 15116
+    },
+    {
+      "path": "implementations/csharp/src/CIS.Core/Logging/Runtime/FileMetadataPublication.cs",
+      "sha256": "23f1357a5ad6a56145275e60caf2fc99c1b38de56b8afa2835f8b3428ce225ba",
+      "bytes": 2407
+    },
+    {
+      "path": "implementations/csharp/src/CIS.Core/Logging/Runtime/FileOutputOwner.cs",
+      "sha256": "5012ef15a6260a9838c59a7afc2cb0bce582a97bc244d16add996b64dd419921",
+      "bytes": 8602
+    },
+    {
+      "path": "implementations/csharp/src/CIS.Core/Logging/Runtime/FileOutputWriteException.cs",
+      "sha256": "f62315ef1af2d3a85e3b2d2dc6b087b1c3fc1d8122be0f4a5af4de8901b94d8b",
+      "bytes": 633
+    },
+    {
+      "path": "implementations/csharp/src/CIS.Core/Logging/Runtime/FileOutputWriter.cs",
+      "sha256": "ebbec2c746294662df3d0c450043784aeb276b287ab04cb58f2c624b8037e9ac",
+      "bytes": 4781
+    },
+    {
+      "path": "implementations/csharp/src/CIS.Core/Logging/Runtime/FlushBoundary.cs",
+      "sha256": "777d2ec8771582b4a2bd31546d836d9b79e2127f01c4e31f7fee587ee403c337",
+      "bytes": 2905
+    },
+    {
+      "path": "implementations/csharp/src/CIS.Core/Logging/Runtime/FlushDeadline.cs",
+      "sha256": "ba92369cca39cc5f73f0f955bbcc74a999d7fa35494ab0bccdbb42872158917b",
+      "bytes": 3801
+    },
+    {
+      "path": "implementations/csharp/src/CIS.Core/Logging/Runtime/ILogOutputAdmission.cs",
+      "sha256": "52d4278d6d316c87eb0ae4b428dc86c714445e571d661edeeeddf11ba920d6af",
+      "bytes": 538
+    },
+    {
+      "path": "implementations/csharp/src/CIS.Core/Logging/Runtime/IncomingBatchIndex.cs",
+      "sha256": "ef509ae8799149bd2bc0997677ffbca06ae71ef67093840a8e9e08e15d97f66e",
+      "bytes": 1268
+    },
+    {
+      "path": "implementations/csharp/src/CIS.Core/Logging/Runtime/IncomingEventQueue.cs",
+      "sha256": "72dc453578c920de9678daaa2b89ee68b2cba6ce2b6c4905d542c3bac0309f02",
+      "bytes": 13974
+    },
+    {
+      "path": "implementations/csharp/src/CIS.Core/Logging/Runtime/IncomingRingBuffer.cs",
+      "sha256": "64d8f928011d2cccf5e641920be3a1db93368d59875cf2c042003b7e377fcac1",
+      "bytes": 6172
+    },
+    {
+      "path": "implementations/csharp/src/CIS.Core/Logging/Runtime/JsonlRecordBoundary.cs",
+      "sha256": "feac487e389c4827354edc90249f6072fe400a241d5ea0b3acce43bfc2471021",
+      "bytes": 3328
+    },
+    {
+      "path": "implementations/csharp/src/CIS.Core/Logging/Runtime/OutputAccounting.cs",
+      "sha256": "23342ef26ec1e8371483a4cf6d7604fef4b457b957b6e2fd074c11325ce34dec",
+      "bytes": 731
+    },
+    {
+      "path": "implementations/csharp/src/CIS.Core/Logging/Runtime/OutputEventQueue.cs",
+      "sha256": "88fa64370fd35ecad94e6c79e26de5a7c1257ef069dc1b84592cb37f860eeb27",
+      "bytes": 30028
+    },
+    {
+      "path": "implementations/csharp/src/CIS.Core/Logging/Runtime/OutputQueues.cs",
+      "sha256": "1c32875ef4e984339d24e8681943c67d0e6f5e18d3998160244bf31c96e3515f",
+      "bytes": 6643
+    },
+    {
+      "path": "implementations/csharp/src/CIS.Core/Logging/Runtime/OutputWriterBinding.cs",
+      "sha256": "6a0d75bf1e978256744f116585260ac827476162fb3f2e414df11425ded0016f",
+      "bytes": 644
+    },
+    {
+      "path": "implementations/csharp/src/CIS.Core/Logging/Runtime/QueuedRuntimeFactory.cs",
+      "sha256": "1904711165ceee268448d6e99bb5550364e431581fd49ce8f055d18b0577c5cb",
+      "bytes": 12736
+    },
+    {
+      "path": "implementations/csharp/src/CIS.Core/Logging/Runtime/RuntimeAccounting.cs",
+      "sha256": "39befe2f7faa929bc09d6cc08db6bc8bc597e260bd33632b5228bbc3d2696fa1",
+      "bytes": 303
+    },
+    {
+      "path": "implementations/csharp/src/CIS.Core/Logging/Scopes/CapturedOperationContext.cs",
+      "sha256": "e6e9b89d1dd6f5dfe02495c46ce68879765d09a3464cf612199dc750658c0778",
+      "bytes": 1802
+    },
+    {
+      "path": "implementations/csharp/src/CIS.Core/Logging/Scopes/CapturedScopeContext.cs",
+      "sha256": "a5b40b47ec3c186a7dd442ff8abd28f51cb75a9e0eed0fb71dc9044596a2675d",
+      "bytes": 2807
+    },
+    {
+      "path": "implementations/csharp/src/CIS.Core/Logging/Scopes/OperationScopeFrame.cs",
+      "sha256": "7c3f20896086fd4c90b76a95e76b2dcb15ea7bf7e3a10707336eadf929e9e2aa",
+      "bytes": 503
+    },
+    {
+      "path": "implementations/csharp/src/CIS.Core/Logging/Scopes/OperationScopeStore.cs",
+      "sha256": "c2eeb578f2ffcee6c0440b7d9c1e8e5d1c5d3e59e95ca0fcfceef5e06555e36f",
+      "bytes": 2615
+    },
+    {
+      "path": "implementations/csharp/src/CIS.Core/Logging/Values/LogValueProjection.cs",
+      "sha256": "9916f9fc3329875b299dc0aac250eafe98742c6dfde20fc0be2013f5c6602374",
+      "bytes": 2531
+    },
+    {
+      "path": "implementations/csharp/src/CIS.Core/Logging/Values/LogValueScalar.cs",
+      "sha256": "4cca812b3dc9698d881be4597bcdd2ddd2cf13f13d7b88f773135f8d54da2bea",
+      "bytes": 525
+    },
+    {
+      "path": "implementations/csharp/src/CIS.Core/Logging/Values/LogValueText.cs",
+      "sha256": "afab019389f20ce6503ed9e40932c5fb1abe8c8389a3f76edba7abfa087b01f2",
+      "bytes": 1500
+    },
+    {
+      "path": "implementations/csharp/src/CIS.Core/Text/UnicodeScalarText.cs",
+      "sha256": "797e4f18cba035d086195d279551d52b16dfd500d47da22b90bd75e455423ac7",
+      "bytes": 1469
+    },
+    {
+      "path": "implementations/csharp/src/CIS.Core/TypeManagement/AssemblyInventory.cs",
+      "sha256": "5c1e1e37e2bc4df8105822e78bd43eccbf794a3aefb772ca68794f19d3bf64ac",
+      "bytes": 10710
+    },
+    {
+      "path": "implementations/csharp/src/CIS.Core/TypeManagement/ITypeManager.cs",
+      "sha256": "a0d7da061212a24ed8053d7fe28d57a575bd1e05a4bf1069980ecab06933b6ae",
+      "bytes": 2464
+    },
+    {
+      "path": "implementations/csharp/src/CIS.Core/TypeManagement/PreparationInputs.cs",
+      "sha256": "f97bfcc5ac35c1fe822582052cb410fe37d6fd4714e4f49358f23d918ac9e500",
+      "bytes": 3183
+    },
+    {
+      "path": "implementations/csharp/src/CIS.Core/TypeManagement/SelectedAssemblyLoader.cs",
+      "sha256": "032dd7ce1d564fa41035ec4bfc9768a97a09b2d7cd47bb42e05882374795158a",
+      "bytes": 8258
+    },
+    {
+      "path": "implementations/csharp/src/CIS.Core/TypeManagement/TypeManager.cs",
+      "sha256": "bdc7a127e9e4e012709c2a7144f41a54e45a546b8b65cabdfdf71598b23a2368",
+      "bytes": 9343
+    },
+    {
+      "path": "implementations/csharp/src/CIS.Core/TypeManagement/TypeManagerFailureKind.cs",
+      "sha256": "d95aea678fb2d64f0d52a7db4fd36d06dc57f2dbe3734b492463c6bc41e3c4da",
+      "bytes": 767
+    },
+    {
+      "path": "implementations/csharp/src/CIS.Core/TypeManagement/TypeManagerInitializationException.cs",
+      "sha256": "dd32c20600fc0eb7ae6bcaf04eabe32c576a420dba9124c1acc7c6dbda6c360a",
+      "bytes": 2503
+    },
+    {
+      "path": "implementations/csharp/src/CIS.Core/TypeManagement/TypeManagerOptions.cs",
+      "sha256": "5e1027abea845e63e26dfe29c6b239584299fd15a4a58884e8144715b50bcee4",
+      "bytes": 967
+    },
+    {
+      "path": "implementations/csharp/src/CIS.Core/TypeManagement/TypeManagerPreparationReport.cs",
+      "sha256": "c40cdfad0084bdc65fec491d4a8215f9ff716bc29307ea4278b1337622f4fe26",
+      "bytes": 1720
+    }
+  ]
+}

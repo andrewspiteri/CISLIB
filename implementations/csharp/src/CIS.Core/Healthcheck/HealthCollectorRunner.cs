@@ -66,7 +66,14 @@ public sealed class HealthCollectorRunner : IAsyncDisposable
         }
         catch (Exception exception)
         {
-            lock (gate) { starting = false; }
+            lock (gate)
+            {
+                starting = false;
+                // Concurrent stop may have reserved a pending timer-settlement
+                // barrier while CreateTimer was running. A failed factory
+                // leaves no timer whose disposal could settle that barrier.
+                if (created is null) { timerSettled = true; }
+            }
             startCompletion.TrySetException(new InvalidOperationException(HealthDiagnostic.FromException(exception).Message));
             BeginStop();
             if (created is not null) { _ = DisposeTimerAsync(created); }

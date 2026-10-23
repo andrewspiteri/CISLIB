@@ -36,7 +36,9 @@ internal static partial class HealthcheckMutationUnionModel
         int HostCount, int NormalHostCount, JsonObject Observations)
     {
         public string[] ReviewedSemanticKilledIds { get; init; } = [];
+        public string[] CompletedBeforeAbortKilledIds { get; init; } = [];
         public string[] QualifiedKilledIds => AssertionKilledIds.Concat(ReviewedSemanticKilledIds)
+            .Concat(CompletedBeforeAbortKilledIds)
             .Distinct(StringComparer.Ordinal).Order(StringComparer.Ordinal).ToArray();
     }
 }

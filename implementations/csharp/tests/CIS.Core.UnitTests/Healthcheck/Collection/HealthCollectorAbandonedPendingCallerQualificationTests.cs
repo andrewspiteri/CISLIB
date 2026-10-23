@@ -22,7 +22,7 @@ public sealed class HealthCollectorAbandonedPendingCallerQualificationTests
         await scope.Runner.StartAsync().WaitAsync(Deadline);
         Task<HealthCollectionAttempt> occupiedCaller = occupied.CollectAsync();
         scope.TrackActualCaller(occupiedCaller);
-        Invocation occupiedInvocation = await scope.OccupiedOwner.NextAsync();
+        Invocation occupiedInvocation = await scope.OccupiedOwner.NextAsync(occupiedCaller);
 
         AbandonedCaller abandoned = CreateAbandonedPendingCaller(scope.Runner, abandonedMonitor, scope.UninvokedOwner);
         CollectRegistrationHandle(abandoned.Handle);
@@ -32,7 +32,7 @@ public sealed class HealthCollectorAbandonedPendingCallerQualificationTests
         Task<HealthCollectionAttempt> sentinelCaller = sentinel.CollectAsync();
         scope.TrackActualCaller(sentinelCaller);
         occupiedInvocation.Release();
-        Invocation sentinelInvocation = await scope.SentinelOwner.NextAsync();
+        Invocation sentinelInvocation = await scope.SentinelOwner.NextAsync(sentinelCaller);
 
         // The actual next lease cannot enter until the sole occupied slot is
         // released. The dispatcher scans its dead registrations before selecting
@@ -171,7 +171,18 @@ public sealed class HealthCollectorAbandonedPendingCallerQualificationTests
             lease = new Lease(this);
             return true;
         }
-        internal Task<Invocation> NextAsync() => entered.Reader.ReadAsync().AsTask().WaitAsync(Deadline);
+        internal async Task<Invocation> NextAsync(Task<HealthCollectionAttempt> actualCaller)
+        {
+            using var entryWait = new CancellationTokenSource();
+            Task<Invocation> entry = entered.Reader.ReadAsync(entryWait.Token).AsTask();
+            try
+            {
+                await Task.WhenAny(entry, actualCaller).WaitAsync(Deadline);
+                Assert.IsFalse(actualCaller.IsCompleted, "The actual collection cannot settle before its expected blocked callback enters.");
+                return await entry.WaitAsync(Deadline);
+            }
+            finally { entryWait.Cancel(); }
+        }
         internal void ReleaseAll()
         {
             lock (gate)

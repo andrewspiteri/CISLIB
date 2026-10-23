@@ -1,0 +1,36 @@
+{
+  "schema": "cis.healthcheck.remaining-ipc-capture-contract/v1-private-proposal",
+  "scope": "The independently verifiable process projection does not require a whole FD-table or IPC completeness claim.",
+  "existingPrimaryDisposition": {
+    "closed61": "Preserve the eight observed, paired typed frames and all raw hashes as bounded observations only.",
+    "current55": "Do not mutate the active capture or infer missing syscalls. A complete producer/native exit remains mandatory for maintained union eligibility.",
+    "wholeIpcCompleteness": false,
+    "reason": "The retained trace does not capture unshare. Static CLONE_FILES ancestry cannot prove the absence of later table splitting."
+  },
+  "primarySources": [
+    {
+      "url": "https://raw.githubusercontent.com/strace/strace/v6.8/src/linux/x86_64/syscallent.h",
+      "observation": "syscall272 unshare has flag0. It is outside the process, network and descriptor classes in this table. The source tag explains the filter; it is not a loaded-image hash claim."
+    },
+    {
+      "url": "https://man7.org/linux/man-pages/man2/unshare.2.html",
+      "observation": "A successful CLONE_FILES unshare disassociates the calling thread's file-descriptor table."
+    },
+    {
+      "url": "https://man7.org/linux/man-pages/man2/execve.2.html",
+      "observation": "Successful exec also changes descriptor-table sharing and closes descriptors marked close-on-exec."
+    }
+  ],
+  "nextCaptureOnly": {
+    "launchAuthorizedByThisFile": false,
+    "minimumFilterDelta": "Append explicit unshare to the existing reviewed one-tracer syscall list. %process,%network,%desc alone still omits unshare in the pinned x86_64 table.",
+    "preserve": ["one tracer", "owned process tree only", "primary raw gzip with EOF and per-member physical pins", "existing concurrency/filter/budgets", "all original traces"],
+    "doNotExpandDescWithoutMeasurement": true,
+    "firstDecoderPolicy": "Reject any successful target-active unshare/close_range-UNSHARE/exec table transition until its exact semantics have been modeled and controlled. Failed calls change no table. Do not treat observed absence in an incomplete filter as evidence of absence.",
+    "targetedProof": "One tiny owned C# socket and thread probe can verify revised capture of successful and failed unshare, shared sibling identity, descriptor reuse and explicit rejection. No subject mutation or full campaign is needed for that capture contract probe.",
+    "receivingCases": ["successful split", "failed split", "old sibling table remains distinct", "dup and close after split", "FD number reuse", "missing or wrong resume", "unknown flags", "successful exec with CLOEXEC aliases"]
+  },
+  "qualificationCredit": 0,
+  "newSubjectRuns": 0,
+  "canonicalChanges": false
+}

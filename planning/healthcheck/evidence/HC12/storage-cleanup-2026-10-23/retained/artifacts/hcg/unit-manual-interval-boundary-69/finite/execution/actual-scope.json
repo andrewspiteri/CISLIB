@@ -1,0 +1,156 @@
+{
+  "nativeExit": 2,
+  "reportSha256": "8af192667503054dbde3103b84df782c8340e8a9693f61631f915e2eb725c731",
+  "requestedSurvivorIds": [
+    "1511",
+    "1513"
+  ],
+  "definitions": [
+    {
+      "originalId": "1511",
+      "relative": "Healthcheck/HealthCollectorRunner.cs",
+      "first": 23556,
+      "last": 23618,
+      "original": "!retire \u0026\u0026 operation.Entry.Periodic \u0026\u0026 !operation.Entry.Closed",
+      "actual": {
+        "id": "1514",
+        "mutatorName": "Logical mutation",
+        "replacement": "!retire \u0026\u0026 operation.Entry.Periodic || !operation.Entry.Closed",
+        "location": {
+          "start": {
+            "line": 524,
+            "column": 21
+          },
+          "end": {
+            "line": 524,
+            "column": 83
+          }
+        },
+        "status": "Killed",
+        "static": false,
+        "coveredBy": [
+          "1438901a-32f5-8642-9052-8e43378c88a9"
+        ],
+        "killedBy": [
+          "1438901a-32f5-8642-9052-8e43378c88a9"
+        ]
+      }
+    },
+    {
+      "originalId": "1512",
+      "relative": "Healthcheck/HealthCollectorRunner.cs",
+      "first": 23556,
+      "last": 23618,
+      "original": "!retire \u0026\u0026 operation.Entry.Periodic \u0026\u0026 !operation.Entry.Closed",
+      "actual": {
+        "id": "1515",
+        "mutatorName": "Negate expression",
+        "replacement": "!(!retire \u0026\u0026 operation.Entry.Periodic \u0026\u0026 !operation.Entry.Closed)",
+        "location": {
+          "start": {
+            "line": 524,
+            "column": 21
+          },
+          "end": {
+            "line": 524,
+            "column": 83
+          }
+        },
+        "status": "Killed",
+        "static": false,
+        "coveredBy": [
+          "1438901a-32f5-8642-9052-8e43378c88a9"
+        ],
+        "killedBy": [
+          "1438901a-32f5-8642-9052-8e43378c88a9"
+        ]
+      }
+    },
+    {
+      "originalId": "1513",
+      "relative": "Healthcheck/HealthCollectorRunner.cs",
+      "first": 23556,
+      "last": 23591,
+      "original": "!retire \u0026\u0026 operation.Entry.Periodic",
+      "actual": {
+        "id": "1516",
+        "mutatorName": "Logical mutation",
+        "replacement": "!retire || operation.Entry.Periodic",
+        "location": {
+          "start": {
+            "line": 524,
+            "column": 21
+          },
+          "end": {
+            "line": 524,
+            "column": 56
+          }
+        },
+        "status": "Killed",
+        "static": false,
+        "coveredBy": [
+          "1438901a-32f5-8642-9052-8e43378c88a9"
+        ],
+        "killedBy": [
+          "1438901a-32f5-8642-9052-8e43378c88a9"
+        ]
+      }
+    },
+    {
+      "originalId": "1514",
+      "relative": "Healthcheck/HealthCollectorRunner.cs",
+      "first": 23556,
+      "last": 23563,
+      "original": "!retire",
+      "actual": {
+        "id": "1517",
+        "mutatorName": "LogicalNotExpression to un-LogicalNotExpression mutation",
+        "replacement": "retire",
+        "location": {
+          "start": {
+            "line": 524,
+            "column": 21
+          },
+          "end": {
+            "line": 524,
+            "column": 28
+          }
+        },
+        "status": "Survived",
+        "static": false,
+        "coveredBy": [
+          "1438901a-32f5-8642-9052-8e43378c88a9"
+        ],
+        "killedBy": []
+      }
+    },
+    {
+      "originalId": "1515",
+      "relative": "Healthcheck/HealthCollectorRunner.cs",
+      "first": 23595,
+      "last": 23618,
+      "original": "!operation.Entry.Closed",
+      "actual": {
+        "id": "1518",
+        "mutatorName": "LogicalNotExpression to un-LogicalNotExpression mutation",
+        "replacement": "operation.Entry.Closed",
+        "location": {
+          "start": {
+            "line": 524,
+            "column": 60
+          },
+          "end": {
+            "line": 524,
+            "column": 83
+          }
+        },
+        "status": "NoCoverage",
+        "statusReason": "Not covered by any test.",
+        "static": false,
+        "coveredBy": [],
+        "killedBy": []
+      }
+    }
+  ],
+  "mutationCredit": 0
+}

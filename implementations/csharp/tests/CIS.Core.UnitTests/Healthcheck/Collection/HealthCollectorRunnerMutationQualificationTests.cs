@@ -44,11 +44,11 @@ public sealed class HealthCollectorRunnerMutationQualificationTests
         await using var scope = new Scope();
         scope.Clock.CreationError = new ClockException();
 
-        await Assert.ThrowsExactlyAsync<InvalidOperationException>(() => scope.Runner.StartAsync().WaitAsync(Deadline));
+        await Assert.ThrowsExactlyAsync<InvalidOperationException>(() => scope.Runner.StartAsync()).WaitAsync(Deadline);
         await scope.Runner.StopAsync().WaitAsync(Deadline);
 
         Assert.AreEqual(1, scope.Clock.TimerCreations);
-        await Assert.ThrowsExactlyAsync<InvalidOperationException>(() => scope.Runner.StartAsync());
+        await Assert.ThrowsExactlyAsync<InvalidOperationException>(() => scope.Runner.StartAsync()).WaitAsync(Deadline);
         Assert.ThrowsExactly<InvalidOperationException>(() => scope.Register(new Collector()));
         Assert.AreEqual(0, scope.Clock.Timer.Disposals);
     }
@@ -82,7 +82,7 @@ public sealed class HealthCollectorRunnerMutationQualificationTests
     public async Task StopAndDisposeBothWaitForActualAsynchronousTimerDisposal()
     {
         await using var scope = new Scope();
-        await scope.Runner.StartAsync();
+        await scope.Runner.StartAsync().WaitAsync(Deadline);
         scope.Clock.Timer.BlockDisposal = true;
         Task stop = scope.Runner.StopAsync();
         Task disposal = scope.Runner.DisposeAsync().AsTask();
@@ -104,19 +104,19 @@ public sealed class HealthCollectorRunnerMutationQualificationTests
         await using var scope = new Scope();
         scope.ExpectedStopFailure = true;
         scope.Clock.Timer.DisposalError = new TimerDisposalException();
-        await scope.Runner.StartAsync();
+        await scope.Runner.StartAsync().WaitAsync(Deadline);
 
-        await Assert.ThrowsExactlyAsync<InvalidOperationException>(() => scope.Runner.StopAsync().WaitAsync(Deadline));
+        await Assert.ThrowsExactlyAsync<InvalidOperationException>(() => scope.Runner.StopAsync()).WaitAsync(Deadline);
 
         Assert.AreEqual(1, scope.Clock.Timer.Disposals);
-        await Assert.ThrowsExactlyAsync<InvalidOperationException>(() => scope.Runner.DisposeAsync().AsTask().WaitAsync(Deadline));
+        await Assert.ThrowsExactlyAsync<InvalidOperationException>(() => scope.Runner.DisposeAsync().AsTask()).WaitAsync(Deadline);
     }
 
     [TestMethod]
     public async Task DisposedRunnerRejectsNewWorkWithTheDisposedObjectContract()
     {
         await using var scope = new Scope();
-        await scope.Runner.DisposeAsync();
+        await scope.Runner.DisposeAsync().AsTask().WaitAsync(Deadline);
 
         Assert.ThrowsExactly<ObjectDisposedException>(() => scope.Runner.StartAsync());
         Assert.ThrowsExactly<ObjectDisposedException>(() => scope.Register(new Collector()));
@@ -183,7 +183,7 @@ public sealed class HealthCollectorRunnerMutationQualificationTests
     {
         await using var scope = new Scope();
         IHealthCollectionRegistration registration = scope.Register(new Collector(), TimeSpan.FromTicks(1));
-        await scope.Runner.StartAsync();
+        await scope.Runner.StartAsync().WaitAsync(Deadline);
         scope.Clock.Timestamp = long.MaxValue;
 
         Assert.ThrowsExactly<OverflowException>(registration.ActivatePeriodic);
@@ -211,7 +211,7 @@ public sealed class HealthCollectorRunnerMutationQualificationTests
             }
         };
         IHealthCollectionRegistration registration = scope.Register(collector);
-        await scope.Runner.StartAsync();
+        await scope.Runner.StartAsync().WaitAsync(Deadline);
 
         HealthCollectionAttempt attempt = await registration.CollectAsync().WaitAsync(Deadline);
 
@@ -233,7 +233,7 @@ public sealed class HealthCollectorRunnerMutationQualificationTests
         await using var scope = new Scope();
         var collector = new Collector { Acquired = !returnsLease, ReturnLease = returnsLease };
         IHealthCollectionRegistration registration = scope.Register(collector);
-        await scope.Runner.StartAsync();
+        await scope.Runner.StartAsync().WaitAsync(Deadline);
 
         HealthCollectionAttempt attempt = await registration.CollectAsync().WaitAsync(Deadline);
 
@@ -252,7 +252,7 @@ public sealed class HealthCollectorRunnerMutationQualificationTests
         await using var scope = new Scope();
         var collector = new Collector { AcquisitionError = new AcquisitionException() };
         IHealthCollectionRegistration registration = scope.Register(collector);
-        await scope.Runner.StartAsync();
+        await scope.Runner.StartAsync().WaitAsync(Deadline);
 
         HealthCollectionAttempt result = await registration.CollectAsync().WaitAsync(Deadline);
 
@@ -276,7 +276,7 @@ public sealed class HealthCollectorRunnerMutationQualificationTests
             }
         };
         IHealthCollectionRegistration registration = scope.Register(collector);
-        await scope.Runner.StartAsync();
+        await scope.Runner.StartAsync().WaitAsync(Deadline);
 
         HealthCollectionAttempt result = await registration.CollectAsync().WaitAsync(Deadline);
 
@@ -303,7 +303,7 @@ public sealed class HealthCollectorRunnerMutationQualificationTests
             Cleanup = scope.Clock.FailNextTimestampOnThisThread
         };
         IHealthCollectionRegistration registration = scope.Register(collector);
-        await scope.Runner.StartAsync();
+        await scope.Runner.StartAsync().WaitAsync(Deadline);
 
         HealthCollectionAttempt result = await registration.CollectAsync().WaitAsync(Deadline);
 
@@ -340,10 +340,17 @@ public sealed class HealthCollectorRunnerMutationQualificationTests
         public async ValueTask DisposeAsync()
         {
             Clock.Timer.Release();
-            try { await Runner.DisposeAsync().AsTask().WaitAsync(Deadline); }
-            catch (InvalidOperationException) when (ExpectedStopFailure) { }
-            await Service.DisposeAsync().AsTask().WaitAsync(Deadline);
-            GC.KeepAlive(Monitor);
+            Task runner = DrainRunnerAsync();
+            Task service = DrainServiceAsync();
+            try { await Task.WhenAll(runner, service).WaitAsync(Deadline); }
+            finally { GC.KeepAlive(Monitor); }
+
+            async Task DrainRunnerAsync()
+            {
+                try { await Runner.DisposeAsync(); }
+                catch (InvalidOperationException) when (ExpectedStopFailure) { }
+            }
+            async Task DrainServiceAsync() => await Service.DisposeAsync();
         }
     }
 

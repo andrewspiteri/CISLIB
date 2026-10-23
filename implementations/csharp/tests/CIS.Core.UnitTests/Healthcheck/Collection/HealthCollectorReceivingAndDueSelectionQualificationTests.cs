@@ -37,7 +37,7 @@ public sealed class HealthCollectorReceivingAndDueSelectionQualificationTests
         IHealthCollectionRegistration actual = scope.Runner.Register(monitor, owner, new());
         await scope.Runner.StartAsync().WaitAsync(Deadline);
         Task<HealthCollectionAttempt> collecting = actual.CollectAsync();
-        Invocation invocation = await owner.NextAsync();
+        Invocation invocation = await owner.NextAsync(collecting);
         invocation.Release();
         Assert.AreEqual(HealthCollectionDisposition.Committed, (await collecting.WaitAsync(Deadline)).Disposition);
         Assert.AreEqual(1L, scope.Snapshot(monitor).Outcomes!.Successful);
@@ -168,7 +168,18 @@ public sealed class HealthCollectorReceivingAndDueSelectionQualificationTests
             lease = new Lease(this);
             return true;
         }
-        internal Task<Invocation> NextAsync() => entered.Reader.ReadAsync().AsTask().WaitAsync(Deadline);
+        internal async Task<Invocation> NextAsync(Task<HealthCollectionAttempt> actualCaller)
+        {
+            using var entryWait = new CancellationTokenSource();
+            Task<Invocation> entry = entered.Reader.ReadAsync(entryWait.Token).AsTask();
+            try
+            {
+                await Task.WhenAny(entry, actualCaller).WaitAsync(Deadline);
+                Assert.IsFalse(actualCaller.IsCompleted, "The actual collection cannot settle before its expected blocked callback enters.");
+                return await entry.WaitAsync(Deadline);
+            }
+            finally { entryWait.Cancel(); }
+        }
         internal void ReleaseAll()
         {
             lock (gate)

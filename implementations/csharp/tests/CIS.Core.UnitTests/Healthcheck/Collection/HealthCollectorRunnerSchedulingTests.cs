@@ -18,11 +18,11 @@ public sealed class HealthCollectorRunnerSchedulingTests
         await using var scope = new RunnerScope();
         Registration registration = scope.Add("manual");
 
-        await Assert.ThrowsAsync<InvalidOperationException>(() => registration.Handle.CollectAsync());
+        await Assert.ThrowsAsync<InvalidOperationException>(() => registration.Handle.CollectAsync()).WaitAsync(Deadline);
         Assert.AreEqual(0, registration.Collector.Acquisitions);
-        await scope.Runner.StartAsync();
+        await scope.Runner.StartAsync().WaitAsync(Deadline);
         Task<HealthCollectionAttempt> wait = registration.Handle.CollectAsync();
-        Invocation invocation = await scope.NextAsync();
+        Invocation invocation = await scope.NextForPendingCallerAsync(wait);
         invocation.Complete();
         Assert.AreEqual(HealthCollectionDisposition.Committed, (await wait.WaitAsync(Deadline)).Disposition);
     }
@@ -35,12 +35,12 @@ public sealed class HealthCollectorRunnerSchedulingTests
         using var canceled = new CancellationTokenSource();
         canceled.Cancel();
 
-        await Assert.ThrowsAsync<OperationCanceledException>(() => scope.Runner.StartAsync(canceled.Token));
-        await Assert.ThrowsAsync<InvalidOperationException>(() => registration.Handle.CollectAsync());
+        await Assert.ThrowsAsync<OperationCanceledException>(() => scope.Runner.StartAsync(canceled.Token)).WaitAsync(Deadline);
+        await Assert.ThrowsAsync<InvalidOperationException>(() => registration.Handle.CollectAsync()).WaitAsync(Deadline);
         Assert.ThrowsExactly<InvalidOperationException>(registration.Handle.ActivatePeriodic);
         Assert.AreEqual(0, registration.Collector.Acquisitions);
 
-        await scope.Runner.StartAsync();
+        await scope.Runner.StartAsync().WaitAsync(Deadline);
         registration.Handle.ActivatePeriodic();
         Invocation invocation = await scope.NextAsync();
         Task<HealthCollectionAttempt> wait = registration.Handle.CollectAsync();
@@ -54,14 +54,14 @@ public sealed class HealthCollectorRunnerSchedulingTests
         await using var scope = new RunnerScope();
         Registration registration = scope.Add("explicit", TimeSpan.FromSeconds(2));
 
-        await scope.Runner.StartAsync();
-        await scope.Runner.StartAsync();
+        await scope.Runner.StartAsync().WaitAsync(Deadline);
+        await scope.Runner.StartAsync().WaitAsync(Deadline);
         scope.Clock.Advance(TimeSpan.FromDays(1));
         Assert.AreEqual(0, registration.Collector.Acquisitions);
         Assert.IsFalse(scope.Snapshot(registration).Collection!.InProgress);
 
         Task<HealthCollectionAttempt> wait = registration.Handle.CollectAsync();
-        Invocation invocation = await scope.NextAsync();
+        Invocation invocation = await scope.NextForPendingCallerAsync(wait);
         invocation.Complete();
         await wait.WaitAsync(Deadline);
         scope.Clock.Advance(TimeSpan.FromDays(1));
@@ -76,7 +76,7 @@ public sealed class HealthCollectorRunnerSchedulingTests
         Registration manual = scope.Add("manual");
 
         Assert.ThrowsExactly<InvalidOperationException>(periodic.Handle.ActivatePeriodic);
-        await scope.Runner.StartAsync();
+        await scope.Runner.StartAsync().WaitAsync(Deadline);
         Assert.ThrowsExactly<InvalidOperationException>(manual.Handle.ActivatePeriodic);
         periodic.Handle.ActivatePeriodic();
         periodic.Handle.ActivatePeriodic();
@@ -94,7 +94,7 @@ public sealed class HealthCollectorRunnerSchedulingTests
     {
         await using var scope = new RunnerScope();
         Registration registration = scope.Add("first", TimeSpan.FromHours(1));
-        await scope.Runner.StartAsync();
+        await scope.Runner.StartAsync().WaitAsync(Deadline);
 
         registration.Handle.ActivatePeriodic();
         Invocation invocation = await scope.NextAsync();
@@ -111,7 +111,7 @@ public sealed class HealthCollectorRunnerSchedulingTests
         await using var scope = new RunnerScope();
         TimeSpan interval = TimeSpan.FromSeconds(10);
         Registration registration = scope.Add("completion", interval);
-        await scope.Runner.StartAsync();
+        await scope.Runner.StartAsync().WaitAsync(Deadline);
         registration.Handle.ActivatePeriodic();
         Invocation first = await scope.NextAsync();
         Task<HealthCollectionAttempt> joined = registration.Handle.CollectAsync();
@@ -136,7 +136,7 @@ public sealed class HealthCollectorRunnerSchedulingTests
         await using var scope = new RunnerScope();
         Registration registration = scope.Add("cleanup", TimeSpan.FromSeconds(10));
         registration.Collector.BlockCleanup = true;
-        await scope.Runner.StartAsync();
+        await scope.Runner.StartAsync().WaitAsync(Deadline);
         registration.Handle.ActivatePeriodic();
         Invocation first = await scope.NextAsync();
         Task<HealthCollectionAttempt> joined = registration.Handle.CollectAsync();
@@ -163,7 +163,7 @@ public sealed class HealthCollectorRunnerSchedulingTests
     {
         await using var scope = new RunnerScope();
         Registration registration = scope.Add("monotonic", TimeSpan.FromSeconds(10));
-        await scope.Runner.StartAsync();
+        await scope.Runner.StartAsync().WaitAsync(Deadline);
         registration.Handle.ActivatePeriodic();
         Invocation first = await scope.NextAsync();
         Task<HealthCollectionAttempt> joined = registration.Handle.CollectAsync();
@@ -189,7 +189,7 @@ public sealed class HealthCollectorRunnerSchedulingTests
         await using var scope = new RunnerScope();
         TimeSpan interval = TimeSpan.FromSeconds(1);
         Registration registration = scope.Add("coalesced", interval);
-        await scope.Runner.StartAsync();
+        await scope.Runner.StartAsync().WaitAsync(Deadline);
         registration.Handle.ActivatePeriodic();
         Invocation first = await scope.NextAsync();
         Task<HealthCollectionAttempt> joined = registration.Handle.CollectAsync();
@@ -215,7 +215,7 @@ public sealed class HealthCollectorRunnerSchedulingTests
         await using var scope = new RunnerScope();
         TimeSpan interval = TimeSpan.FromSeconds(10);
         Registration registration = scope.Add("manual-reset", interval);
-        await scope.Runner.StartAsync();
+        await scope.Runner.StartAsync().WaitAsync(Deadline);
         registration.Handle.ActivatePeriodic();
         Invocation first = await scope.NextAsync();
         Task<HealthCollectionAttempt> firstWait = registration.Handle.CollectAsync();
@@ -225,7 +225,7 @@ public sealed class HealthCollectorRunnerSchedulingTests
 
         scope.Clock.Advance(TimeSpan.FromSeconds(4));
         Task<HealthCollectionAttempt> manualWait = registration.Handle.CollectAsync();
-        Invocation manual = await scope.NextAsync();
+        Invocation manual = await scope.NextForPendingCallerAsync(manualWait);
         manual.Complete();
         await manualWait.WaitAsync(Deadline);
         await scope.Clock.WaitForDueAsync(TimeSpan.FromSeconds(14).Ticks);
@@ -244,7 +244,7 @@ public sealed class HealthCollectorRunnerSchedulingTests
     {
         await using var scope = new RunnerScope();
         Registration registration = scope.Add("joined");
-        await scope.Runner.StartAsync();
+        await scope.Runner.StartAsync().WaitAsync(Deadline);
         const int callers = 24;
         var start = new AsyncBarrier(callers + 1);
         var submitted = new AsyncBarrier(callers + 1);
@@ -273,15 +273,15 @@ public sealed class HealthCollectorRunnerSchedulingTests
     {
         await using var scope = new RunnerScope();
         Registration registration = scope.Add("pre-canceled");
-        await scope.Runner.StartAsync();
+        await scope.Runner.StartAsync().WaitAsync(Deadline);
         using var canceled = new CancellationTokenSource();
         canceled.Cancel();
 
-        await Assert.ThrowsAsync<OperationCanceledException>(() => registration.Handle.CollectAsync(canceled.Token));
+        await Assert.ThrowsAsync<OperationCanceledException>(() => registration.Handle.CollectAsync(canceled.Token)).WaitAsync(Deadline);
         Assert.AreEqual(0, registration.Collector.Acquisitions);
         Assert.IsFalse(scope.Snapshot(registration).Collection!.InProgress);
         Task<HealthCollectionAttempt> wait = registration.Handle.CollectAsync();
-        Invocation invocation = await scope.NextAsync();
+        Invocation invocation = await scope.NextForPendingCallerAsync(wait);
         invocation.Complete();
         await wait.WaitAsync(Deadline);
         Assert.AreEqual(1, registration.Collector.Acquisitions);
@@ -292,13 +292,13 @@ public sealed class HealthCollectorRunnerSchedulingTests
     {
         await using var scope = new RunnerScope();
         Registration registration = scope.Add("pre-canceled-join");
-        await scope.Runner.StartAsync();
+        await scope.Runner.StartAsync().WaitAsync(Deadline);
         Task<HealthCollectionAttempt> original = registration.Handle.CollectAsync();
-        Invocation invocation = await scope.NextAsync();
+        Invocation invocation = await scope.NextForPendingCallerAsync(original);
         using var canceled = new CancellationTokenSource();
         canceled.Cancel();
 
-        await Assert.ThrowsAsync<OperationCanceledException>(() => registration.Handle.CollectAsync(canceled.Token));
+        await Assert.ThrowsAsync<OperationCanceledException>(() => registration.Handle.CollectAsync(canceled.Token)).WaitAsync(Deadline);
         Assert.IsFalse(original.IsCompleted);
         Assert.IsFalse(invocation.LifetimeCancellation.IsCancellationRequested);
         invocation.Complete();
@@ -314,17 +314,17 @@ public sealed class HealthCollectorRunnerSchedulingTests
         Registration first = scope.Add("one");
         Registration second = scope.Add("two");
         Registration third = scope.Add("three");
-        await scope.Runner.StartAsync();
+        await scope.Runner.StartAsync().WaitAsync(Deadline);
         Task<HealthCollectionAttempt> firstWait = first.Handle.CollectAsync();
         Task<HealthCollectionAttempt> secondWait = second.Handle.CollectAsync();
-        Invocation one = await scope.NextAsync();
-        Invocation two = await scope.NextAsync();
+        Invocation one = await scope.NextForPendingCallerAsync(firstWait);
+        Invocation two = await scope.NextForPendingCallerAsync(secondWait);
         Task<HealthCollectionAttempt> thirdWait = third.Handle.CollectAsync();
 
         Assert.AreEqual(2, scope.ActiveLeases);
         Assert.AreEqual(0, third.Collector.Acquisitions);
         one.Complete();
-        Invocation three = await scope.NextAsync();
+        Invocation three = await scope.NextForPendingCallerAsync(thirdWait);
         Assert.AreEqual("three", three.Name);
         Assert.IsFalse(secondWait.IsCompleted && firstWait.IsCompleted);
         Assert.AreEqual(2, scope.PeakLeases);
@@ -340,16 +340,16 @@ public sealed class HealthCollectorRunnerSchedulingTests
         await using var scope = new RunnerScope(capacity: 1);
         Registration occupied = scope.Add("occupied");
         Registration pending = scope.Add("one-pending-marker");
-        await scope.Runner.StartAsync();
+        await scope.Runner.StartAsync().WaitAsync(Deadline);
         Task<HealthCollectionAttempt> occupiedWait = occupied.Handle.CollectAsync();
-        Invocation first = await scope.NextAsync();
+        Invocation first = await scope.NextForPendingCallerAsync(occupiedWait);
         Task<HealthCollectionAttempt>[] joins = Enumerable.Range(0, 32)
             .Select(_ => pending.Handle.CollectAsync()).ToArray();
 
         Assert.AreEqual(0, pending.Collector.Acquisitions);
         Assert.IsTrue(joins.All(wait => !wait.IsCompleted));
         first.Complete();
-        Invocation admitted = await scope.NextAsync();
+        Invocation admitted = await scope.NextForPendingCallerAsync(joins[0]);
         Assert.AreEqual("one-pending-marker", admitted.Name);
         admitted.Complete();
         HealthCollectionAttempt[] attempts = await Task.WhenAll(joins).WaitAsync(Deadline);
@@ -366,9 +366,9 @@ public sealed class HealthCollectorRunnerSchedulingTests
         await using var scope = new RunnerScope(capacity: 1);
         Registration occupied = scope.Add("occupied");
         Registration pending = scope.Add("withdrawn-pending");
-        await scope.Runner.StartAsync();
+        await scope.Runner.StartAsync().WaitAsync(Deadline);
         Task<HealthCollectionAttempt> occupiedWait = occupied.Handle.CollectAsync();
-        Invocation first = await scope.NextAsync();
+        Invocation first = await scope.NextForPendingCallerAsync(occupiedWait);
         Task<HealthCollectionAttempt> pendingWait = pending.Handle.CollectAsync();
 
         pending.Handle.Withdraw();
@@ -388,9 +388,9 @@ public sealed class HealthCollectorRunnerSchedulingTests
         await using var scope = new RunnerScope(capacity: 1);
         Registration occupied = scope.Add("ignores-cancellation");
         Registration pending = scope.Add("service-stopping-pending");
-        await scope.Runner.StartAsync();
+        await scope.Runner.StartAsync().WaitAsync(Deadline);
         Task<HealthCollectionAttempt> occupiedWait = occupied.Handle.CollectAsync();
-        Invocation first = await scope.NextAsync();
+        Invocation first = await scope.NextForPendingCallerAsync(occupiedWait);
         Task<HealthCollectionAttempt> pendingWait = pending.Handle.CollectAsync();
 
         scope.Service.BeginStopping();
@@ -410,9 +410,9 @@ public sealed class HealthCollectorRunnerSchedulingTests
         Registration first = scope.Add("cleanup-slot");
         Registration next = scope.Add("waiting");
         first.Collector.BlockCleanup = true;
-        await scope.Runner.StartAsync();
+        await scope.Runner.StartAsync().WaitAsync(Deadline);
         Task<HealthCollectionAttempt> firstWait = first.Handle.CollectAsync();
-        Invocation invocation = await scope.NextAsync();
+        Invocation invocation = await scope.NextForPendingCallerAsync(firstWait);
         invocation.Complete();
         await invocation.CleanupStarted.WaitAsync(Deadline);
         Task<HealthCollectionAttempt> nextWait = next.Handle.CollectAsync();
@@ -421,7 +421,7 @@ public sealed class HealthCollectorRunnerSchedulingTests
         Assert.AreEqual(0, next.Collector.Acquisitions);
         Assert.IsFalse(firstWait.IsCompleted);
         invocation.ReleaseCleanup();
-        Invocation admitted = await scope.NextAsync();
+        Invocation admitted = await scope.NextForPendingCallerAsync(nextWait);
         Assert.AreEqual("waiting", admitted.Name);
         admitted.Complete();
         await Task.WhenAll(firstWait, nextWait).WaitAsync(Deadline);
@@ -434,7 +434,7 @@ public sealed class HealthCollectorRunnerSchedulingTests
         await using var scope = new RunnerScope(capacity: 1);
         Registration first = scope.Add("wait-canceled");
         Registration next = scope.Add("after-real-settlement");
-        await scope.Runner.StartAsync();
+        await scope.Runner.StartAsync().WaitAsync(Deadline);
         using var caller = new CancellationTokenSource();
         Task<HealthCollectionAttempt> canceledWait = first.Handle.CollectAsync(caller.Token);
         Invocation invocation = await scope.NextAsync();
@@ -442,7 +442,7 @@ public sealed class HealthCollectorRunnerSchedulingTests
         Task<HealthCollectionAttempt> nextWait = next.Handle.CollectAsync();
         caller.Cancel();
 
-        await Assert.ThrowsAsync<OperationCanceledException>(() => canceledWait);
+        await Assert.ThrowsAsync<OperationCanceledException>(() => canceledWait).WaitAsync(Deadline);
         Assert.IsFalse(invocation.LifetimeCancellation.IsCancellationRequested);
         Assert.IsFalse(survivingJoin.IsCompleted);
         Assert.AreEqual(0, next.Collector.Acquisitions);
@@ -461,7 +461,7 @@ public sealed class HealthCollectorRunnerSchedulingTests
         await using var scope = new RunnerScope(capacity: 1);
         Registration[] registrations = Enumerable.Range(0, 6)
             .Select(index => scope.Add($"fair-{index}", TimeSpan.FromSeconds(1))).ToArray();
-        await scope.Runner.StartAsync();
+        await scope.Runner.StartAsync().WaitAsync(Deadline);
         foreach (Registration registration in registrations) { registration.Handle.ActivatePeriodic(); }
 
         var seen = new HashSet<string>(StringComparer.Ordinal);
@@ -485,7 +485,7 @@ public sealed class HealthCollectorRunnerSchedulingTests
         await using var scope = new RunnerScope(capacity: 1);
         Registration[] registrations = Enumerable.Range(0, 32)
             .Select(index => scope.Add($"pending-{index}", TimeSpan.FromSeconds(1))).ToArray();
-        await scope.Runner.StartAsync();
+        await scope.Runner.StartAsync().WaitAsync(Deadline);
         foreach (Registration registration in registrations) { registration.Handle.ActivatePeriodic(); }
         Invocation first = await scope.NextAsync();
         scope.Clock.Advance(TimeSpan.FromDays(30));
@@ -517,14 +517,14 @@ public sealed class HealthCollectorRunnerSchedulingTests
         await using var scope = new RunnerScope();
         Registration registration = scope.Add("stop-wait");
         registration.Collector.BlockCleanup = true;
-        await scope.Runner.StartAsync();
+        await scope.Runner.StartAsync().WaitAsync(Deadline);
         Task<HealthCollectionAttempt> collection = registration.Handle.CollectAsync();
         Invocation invocation = await scope.NextAsync();
         using var caller = new CancellationTokenSource();
         Task canceledStop = scope.Runner.StopAsync(caller.Token);
         caller.Cancel();
 
-        await Assert.ThrowsAsync<OperationCanceledException>(() => canceledStop);
+        await Assert.ThrowsAsync<OperationCanceledException>(() => canceledStop).WaitAsync(Deadline);
         await invocation.CancellationObserved.WaitAsync(Deadline);
         Task actualStop = scope.Runner.StopAsync();
         Task disposal = scope.Runner.DisposeAsync().AsTask();
@@ -545,9 +545,9 @@ public sealed class HealthCollectorRunnerSchedulingTests
         await using var scope = new RunnerScope();
         Registration registration = scope.Add("stopped");
 
-        await scope.Runner.StopAsync();
-        await scope.Runner.StopAsync();
-        await Assert.ThrowsAsync<InvalidOperationException>(() => scope.Runner.StartAsync());
+        await scope.Runner.StopAsync().WaitAsync(Deadline);
+        await scope.Runner.StopAsync().WaitAsync(Deadline);
+        await Assert.ThrowsAsync<InvalidOperationException>(() => scope.Runner.StartAsync()).WaitAsync(Deadline);
         registration.Monitor.ReportSuccess();
         Assert.AreEqual(MonitorState.Healthy, scope.Snapshot(registration).State);
         Assert.AreEqual(1L, scope.Snapshot(registration).Outcomes!.Successful);
@@ -559,11 +559,11 @@ public sealed class HealthCollectorRunnerSchedulingTests
     {
         await using var scope = new RunnerScope();
         Registration registration = scope.Add("final-report", TimeSpan.FromSeconds(1));
-        await scope.Runner.StartAsync();
-        await scope.Runner.StopAsync();
+        await scope.Runner.StartAsync().WaitAsync(Deadline);
+        await scope.Runner.StopAsync().WaitAsync(Deadline);
 
-        await Assert.ThrowsAsync<InvalidOperationException>(() => scope.Runner.StartAsync());
-        Assert.AreEqual(HealthCollectionDisposition.Retired, (await registration.Handle.CollectAsync()).Disposition);
+        await Assert.ThrowsAsync<InvalidOperationException>(() => scope.Runner.StartAsync()).WaitAsync(Deadline);
+        Assert.AreEqual(HealthCollectionDisposition.Retired, (await registration.Handle.CollectAsync().WaitAsync(Deadline)).Disposition);
         Assert.ThrowsExactly<ObjectDisposedException>(registration.Handle.ActivatePeriodic);
         registration.Monitor.ReportFailure(new HealthDiagnostic("final", "Final owner report."));
         Assert.AreEqual(MonitorState.Unhealthy, scope.Snapshot(registration).State);
@@ -577,7 +577,7 @@ public sealed class HealthCollectorRunnerSchedulingTests
     private sealed class RunnerScope : IAsyncDisposable
     {
         private readonly List<Registration> registrations = [];
-        private readonly Channel<Invocation> started = Channel.CreateUnbounded<Invocation>();
+        private readonly Channel<Invocation> ownerProgress = Channel.CreateUnbounded<Invocation>();
         private int activeLeases;
         private int peakLeases;
 
@@ -613,7 +613,33 @@ public sealed class HealthCollectorRunnerSchedulingTests
             return registration;
         }
 
-        internal Task<Invocation> NextAsync() => started.Reader.ReadAsync().AsTask().WaitAsync(Deadline);
+        internal async Task<Invocation> NextAsync()
+        {
+            Invocation invocation = await ownerProgress.Reader.ReadAsync().AsTask().WaitAsync(Deadline);
+            Assert.IsTrue(invocation.EvaluationEntered,
+                "The actual owner lease reached cleanup before the expected evaluation was entered.");
+            return invocation;
+        }
+
+        internal async Task<Invocation> NextForPendingCallerAsync(Task<HealthCollectionAttempt> actualCaller)
+        {
+            // Each ProbeCollector lease remains gated until the receiving test
+            // calls Complete. A real caller settling before that gate is released
+            // is a public result failure, even when the owner was never entered.
+            using var entryRead = new CancellationTokenSource();
+            Task<Invocation> entry = ownerProgress.Reader.ReadAsync(entryRead.Token).AsTask().WaitAsync(Deadline);
+            try
+            {
+                await Task.WhenAny(entry, actualCaller).WaitAsync(Deadline);
+                Assert.IsFalse(actualCaller.IsCompleted,
+                    "The actual manual caller settled before its owned evaluation gate was released.");
+                Invocation invocation = await entry;
+                Assert.IsTrue(invocation.EvaluationEntered,
+                    "The actual owner lease reached cleanup before the expected evaluation was entered.");
+                return invocation;
+            }
+            finally { entryRead.Cancel(); }
+        }
 
         internal HealthMonitorSnapshot Snapshot(Registration registration) => Service.CaptureSnapshot().Monitors
             .Single(monitor => monitor.MonitorId == registration.Monitor.MonitorId);
@@ -627,14 +653,19 @@ public sealed class HealthCollectorRunnerSchedulingTests
         }
 
         internal void Released() => Interlocked.Decrement(ref activeLeases);
-        internal void Started(Invocation invocation) => started.Writer.TryWrite(invocation);
+        internal void ObserveOwnerProgress(Invocation invocation) => ownerProgress.Writer.TryWrite(invocation);
 
         public async ValueTask DisposeAsync()
         {
             foreach (Registration registration in registrations) { registration.Collector.ReleaseAll(); }
-            await Runner.DisposeAsync().AsTask().WaitAsync(Deadline);
-            foreach (Registration registration in registrations) { await registration.Monitor.DisposeAsync().AsTask().WaitAsync(Deadline); }
-            await Service.DisposeAsync().AsTask().WaitAsync(Deadline);
+            Task runner = DrainRunnerAsync();
+            Task service = DrainServiceAsync();
+            Task[] monitors = registrations.Select(registration => DrainMonitorAsync(registration.Monitor)).ToArray();
+            await Task.WhenAll([runner, service, .. monitors]).WaitAsync(Deadline);
+
+            async Task DrainRunnerAsync() => await Runner.DisposeAsync();
+            async Task DrainServiceAsync() => await Service.DisposeAsync();
+            static async Task DrainMonitorAsync(IHealthMonitor monitor) => await monitor.DisposeAsync();
         }
     }
 
@@ -675,17 +706,20 @@ public sealed class HealthCollectorRunnerSchedulingTests
         private readonly TaskCompletionSource cleanup = new(TaskCreationOptions.RunContinuationsAsynchronously);
         private CancellationTokenRegistration cancellationRegistration;
         private int disposed;
+        private int evaluationEntered;
 
         internal string Name { get; } = name;
         internal AsyncSignal CleanupStarted { get; } = new();
         internal AsyncSignal CancellationObserved { get; } = new();
         internal CancellationToken LifetimeCancellation { get; private set; }
+        internal bool EvaluationEntered => Volatile.Read(ref evaluationEntered) != 0;
 
         public Task<HealthCollectionResult> CollectAsync(CancellationToken lifetimeCancellation)
         {
+            Interlocked.Exchange(ref evaluationEntered, 1);
             LifetimeCancellation = lifetimeCancellation;
             cancellationRegistration = lifetimeCancellation.Register(CancellationObserved.Set);
-            scope.Started(this);
+            scope.ObserveOwnerProgress(this);
             return result.Task;
         }
 
@@ -695,6 +729,10 @@ public sealed class HealthCollectorRunnerSchedulingTests
         public async ValueTask DisposeAsync()
         {
             if (Interlocked.Exchange(ref disposed, 1) != 0) { return; }
+            // Every Next call expects evaluation before the test releases its
+            // gate. Actual cleanup without that callback is an observable
+            // alternate owner milestone, including a periodic first attempt.
+            if (!EvaluationEntered) { scope.ObserveOwnerProgress(this); }
             CleanupStarted.Set();
             if (blockCleanup) { await cleanup.Task; }
             cancellationRegistration.Dispose();

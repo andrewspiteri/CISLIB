@@ -7,6 +7,9 @@ namespace CIS.Verification.HealthcheckMutationChildren;
 
 internal static class HealthcheckMutationChildSupport
 {
+    // Read from the exact parent recorder PE by the auditor. Removing mutable
+    // session fields/directories cannot downgrade a body compiled for capture1.
+    internal const int RequiredBoundIntentVersion = 1;
     private static readonly object Gate = new();
     private static readonly string StageOwnerId = Guid.NewGuid().ToString("N");
     private static readonly Dictionary<string, Stage> Stages = new(StringComparer.Ordinal);
@@ -65,6 +68,7 @@ internal static class HealthcheckMutationChildSupport
         private readonly Process child;
         private readonly string path, directory;
         private readonly Launch launch;
+        private readonly HealthcheckMutationChildCapture.Journal capture;
         private readonly EventHandler handler;
         private readonly int pid;
         private readonly DateTimeOffset started, observedStarted;
@@ -73,6 +77,8 @@ internal static class HealthcheckMutationChildSupport
         {
             this.child = child; this.path = path; this.launch = launch; directory = Path.GetDirectoryName(path)!;
             pid = child.Id; started = child.StartTime.ToUniversalTime(); observedStarted = observedStartedUtc;
+            capture = HealthcheckMutationChildCapture.Open(Read<Session>(launch.SessionPath), launch);
+            capture.Append("process-started", childPid: pid, childStartedUtc: started, observedUtc: observedStartedUtc);
             handler = (_, _) =>
             {
                 lock (gate)
@@ -97,13 +103,19 @@ internal static class HealthcheckMutationChildSupport
                 if (kind == "forced-stop") { forced = true; } else { timedOut = true; }
                 string marker = Path.Combine(directory, kind + ".json");
                 if (!File.Exists(marker)) { Write(marker, new { schema = Schema, launchId = launch.Id, pid, reason, observedUtc = DateTimeOffset.UtcNow }); }
+                capture.Append(kind, marker, Hash(marker), childPid: pid, failure: reason);
             }
         }
         internal void Complete()
         {
             lock (gate)
             {
-                try { Require(child.HasExited, "The parent disposed a live child without a completed bounded exit."); RecordExit(); }
+                try
+                {
+                    Require(child.HasExited, "The parent disposed a live child without a completed bounded exit."); RecordExit();
+                    string parentExit = Path.Combine(directory, "parent-exit.json");
+                    capture.Append("lifecycle-completed", parentExit, Hash(parentExit), childPid: pid, exitCode: child.ExitCode);
+                }
                 catch (Exception error) { Failure(error); throw; }
                 finally { completed = true; child.Exited -= handler; }
             }
@@ -115,12 +127,15 @@ internal static class HealthcheckMutationChildSupport
                 Environment.ProcessId, pid, child.StartInfo.FileName, child.StartInfo.WorkingDirectory,
                 child.StartInfo.ArgumentList.ToArray(), started, observedStarted, child.ExitTime.ToUniversalTime(), DateTimeOffset.UtcNow,
                 child.ExitCode, forced, timedOut));
+            string parentExit = Path.Combine(directory, "parent-exit.json");
+            capture.Append("parent-exit", parentExit, Hash(parentExit), childPid: pid, exitCode: child.ExitCode);
             recorded = true;
         }
         private void Failure(Exception error)
         {
             string failure = Path.Combine(directory, "parent-observer-failure.json");
             if (!File.Exists(failure)) { Write(failure, new { error = error.ToString(), pid }); }
+            capture.Append("observer-failed", failure, Hash(failure), childPid: pid, failure: error.ToString());
         }
     }
 
@@ -136,11 +151,12 @@ internal static class HealthcheckMutationChildSupport
         }
 
         Session session = Read<Session>(sessionPath);
-        string id = Guid.NewGuid().ToString("N");
-        string launchDirectory = Path.Combine(session.OutputRoot, "launches", id);
-        Directory.CreateDirectory(launchDirectory);
+        HealthcheckMutationChildCapture.Journal? capture = null;
+        string? launchDirectory = null;
         try
         {
+            Require(session.BoundIntentVersion == HealthcheckMutationChildCapture.Version,
+                "New child launchers require source/selector/Core-bound capture intents.");
             Require(session.Schema == Schema && session.CoverageAnalysisOff, "Invalid or coverage-selected child qualification session.");
             Require(Environment.GetEnvironmentVariable("CisMutationTesting") == "true", "Child qualification requires serialized mutation tests.");
             Require(Under(session.OutputRoot, sessionPath) && Path.GetFileName(sessionPath) == "session.json", "Unexpected child session location.");
@@ -161,6 +177,14 @@ internal static class HealthcheckMutationChildSupport
             string coreHash = Hash(core.Location);
             Guid mvid = Mvid(core.Location);
             Require(mvid == core.ManifestModule.ModuleVersionId, "The loaded parent Core differs from its on-disk origin.");
+            capture = HealthcheckMutationChildCapture.Begin(sessionPath, session, core, StageOwnerId, controller,
+                active, selectorName, selectorValue, assemblyPath);
+            Require(capture.Binding.ParentCoreSha256 == coreHash && capture.Binding.ParentCoreMvid == mvid,
+                "The actual parent Core changed while binding the launch intent.");
+            string id = capture.Id;
+            launchDirectory = Path.Combine(session.OutputRoot, "launches", id);
+            Require(!Directory.Exists(launchDirectory) && !File.Exists(launchDirectory), "A new launch directory is required.");
+            Directory.CreateDirectory(launchDirectory);
             Stage stage;
             lock (Gate)
             {
@@ -172,12 +196,14 @@ internal static class HealthcheckMutationChildSupport
                 }
                 VerifyFiles(stage.Directory, stage.DeployedFiles);
             }
+            capture.Append("stage-ready", stage.Directory, Digest(System.Text.Json.JsonSerializer.Serialize(stage, JsonOptions)));
             var launch = new Launch(Schema, id, Path.GetFullPath(sessionPath), Hash(sessionPath), DateTimeOffset.UtcNow,
                 Environment.ProcessId, StageOwnerId, typeof(HealthcheckMutationChildSupport).Assembly.Location,
                 Hash(typeof(HealthcheckMutationChildSupport).Assembly.Location), core.Location, coreHash, mvid, controller?.FullName,
                 active, selectorName, selectorValue, controller is not null, stage);
             string launchPath = Path.Combine(launchDirectory, "launch.json");
             Write(launchPath, launch);
+            capture.Append("launch-ready", launchPath, Hash(launchPath));
             // Never alter the parent environment. Every process receives one immutable selector.
             start.Environment.Remove("STRYKER_MUTANT_FILE");
             start.Environment.Remove("STRYKER_COVERAGE_FILE");
@@ -190,7 +216,14 @@ internal static class HealthcheckMutationChildSupport
         }
         catch (Exception error)
         {
-            Write(Path.Combine(launchDirectory, "parent-failure.json"), new { id, error = error.ToString(), parentPid = Environment.ProcessId });
+            // No unbound launch directory is created on the pre-intent path.
+            // Bound failures retain attribution but never qualify as children.
+            if (capture is not null)
+            {
+                string? failure = launchDirectory is null ? null : Path.Combine(launchDirectory, "parent-failure.json");
+                if (failure is not null) { Write(failure, new { id = capture.Id, error = error.ToString(), parentPid = Environment.ProcessId }); }
+                capture.Append("preparation-failed", failure, failure is null ? null : Hash(failure), failure: error.ToString());
+            }
             throw;
         }
     }

@@ -74,40 +74,47 @@ public sealed class HealthReportFormatterBoundaryQualificationTests
     {
         await using var service = new HealthcheckService(new HealthcheckOptions(), new HealthApplicationIdentity { Name = "zero duration", InstanceId = Guid.NewGuid() }, new ManualTimeProvider(Epoch));
         IConsecutiveFailureMonitor monitor = service.CreateConsecutiveFailures(new() { IsCritical = true, FailureThreshold = 1 });
-        await using IHealthExecutionBinding binding = HealthExecutionBinder.Bind(monitor, new() { RegistrationId = Registration });
-        Assert.AreEqual(HealthFactDisposition.Recorded, binding.Report(new HealthExecutionFact
+        IHealthExecutionBinding binding = HealthExecutionBinder.Bind(monitor, new() { RegistrationId = Registration });
+        try
         {
-            RegistrationId = Registration,
-            ExecutionId = 1,
-            Kind = HealthExecutionFactKind.Outcome,
-            OccurredAtUtc = Epoch,
-            Outcome = HealthExecutionOutcome.Failed,
-            SourcePhase = HealthExecutionPhase.Callback,
-            OriginalError = new HealthDiagnostic("ActualError"),
-            EligibleAtUtc = Epoch,
-            AdmittedAtUtc = Epoch,
-            ConditionStartedAtUtc = Epoch,
-            CallbackStartedAtUtc = Epoch,
-            WorkCompletedAtUtc = Epoch,
-            QueueDelayMilliseconds = 0,
-            ConditionDurationMilliseconds = 0,
-            CallbackDurationMilliseconds = 0
-        }));
-        Assert.AreEqual(HealthFactDisposition.Recorded, binding.Report(new HealthExecutionFact
-        { RegistrationId = Registration, ExecutionId = 1, Kind = HealthExecutionFactKind.ErrorHandlingCompleted, OccurredAtUtc = Epoch, ErrorHandlingCompletedAtUtc = Epoch, ErrorHandlingStatus = HealthExecutionStepStatus.Succeeded, ErrorHandlingDurationMilliseconds = 0 }));
-        Assert.AreEqual(HealthFactDisposition.Recorded, binding.Report(new HealthExecutionFact
-        { RegistrationId = Registration, ExecutionId = 1, Kind = HealthExecutionFactKind.CleanupCompleted, OccurredAtUtc = Epoch, CleanupCompletedAtUtc = Epoch, CleanupStatus = HealthExecutionStepStatus.Succeeded, CleanupDurationMilliseconds = 0 }));
-        Assert.AreEqual(HealthFactDisposition.Recorded, binding.Report(new HealthExecutionFact
-        { RegistrationId = Registration, ExecutionId = 1, Kind = HealthExecutionFactKind.Settled, OccurredAtUtc = Epoch, SettledAtUtc = Epoch, ErrorHandlingStatus = HealthExecutionStepStatus.Succeeded, CleanupStatus = HealthExecutionStepStatus.Succeeded, TotalDurationMilliseconds = 0 }));
+            Assert.AreEqual(HealthFactDisposition.Recorded, binding.Report(new HealthExecutionFact
+            {
+                RegistrationId = Registration,
+                ExecutionId = 1,
+                Kind = HealthExecutionFactKind.Outcome,
+                OccurredAtUtc = Epoch,
+                Outcome = HealthExecutionOutcome.Failed,
+                SourcePhase = HealthExecutionPhase.Callback,
+                OriginalError = new HealthDiagnostic("ActualError"),
+                EligibleAtUtc = Epoch,
+                AdmittedAtUtc = Epoch,
+                ConditionStartedAtUtc = Epoch,
+                CallbackStartedAtUtc = Epoch,
+                WorkCompletedAtUtc = Epoch,
+                QueueDelayMilliseconds = 0,
+                ConditionDurationMilliseconds = 0,
+                CallbackDurationMilliseconds = 0
+            }));
+            Assert.AreEqual(HealthFactDisposition.Recorded, binding.Report(new HealthExecutionFact
+            { RegistrationId = Registration, ExecutionId = 1, Kind = HealthExecutionFactKind.ErrorHandlingCompleted, OccurredAtUtc = Epoch, ErrorHandlingCompletedAtUtc = Epoch, ErrorHandlingStatus = HealthExecutionStepStatus.Succeeded, ErrorHandlingDurationMilliseconds = 0 }));
+            Assert.AreEqual(HealthFactDisposition.Recorded, binding.Report(new HealthExecutionFact
+            { RegistrationId = Registration, ExecutionId = 1, Kind = HealthExecutionFactKind.CleanupCompleted, OccurredAtUtc = Epoch, CleanupCompletedAtUtc = Epoch, CleanupStatus = HealthExecutionStepStatus.Succeeded, CleanupDurationMilliseconds = 0 }));
+            Assert.AreEqual(HealthFactDisposition.Recorded, binding.Report(new HealthExecutionFact
+            { RegistrationId = Registration, ExecutionId = 1, Kind = HealthExecutionFactKind.Settled, OccurredAtUtc = Epoch, SettledAtUtc = Epoch, ErrorHandlingStatus = HealthExecutionStepStatus.Succeeded, CleanupStatus = HealthExecutionStepStatus.Succeeded, TotalDurationMilliseconds = 0 }));
 
-        HealthReportBuffer report = Format(service.CaptureSnapshot(), pipe);
+            HealthReportBuffer report = Format(service.CaptureSnapshot(), pipe);
 
-        Assert.IsFalse(report.IsError);
-        using JsonDocument document = JsonDocument.Parse(report.Utf8Bytes);
-        JsonElement execution = Root(document, pipe).GetProperty("monitors")[0].GetProperty("outcomes").GetProperty("execution");
-        foreach (string field in new[] { "queueDelayMs", "conditionDurationMs", "callbackDurationMs", "errorHandlingDurationMs", "cleanupDurationMs", "totalDurationMs" })
-        { Assert.AreEqual(0d, execution.GetProperty(field).GetDouble(), field); }
-        GC.KeepAlive(monitor);
+            Assert.IsFalse(report.IsError);
+            using JsonDocument document = JsonDocument.Parse(report.Utf8Bytes);
+            JsonElement execution = Root(document, pipe).GetProperty("monitors")[0].GetProperty("outcomes").GetProperty("execution");
+            foreach (string field in new[] { "queueDelayMs", "conditionDurationMs", "callbackDurationMs", "errorHandlingDurationMs", "cleanupDurationMs", "totalDurationMs" })
+            { Assert.AreEqual(0d, execution.GetProperty(field).GetDouble(), field); }
+            GC.KeepAlive(monitor);
+        }
+        finally
+        {
+            await DisposeNoCollectionBindingAsync(binding);
+        }
     }
 
     public static IEnumerable<object[]> DurationFields()
@@ -243,5 +250,11 @@ public sealed class HealthReportFormatterBoundaryQualificationTests
         Assert.AreEqual("SerializationFailed", document.RootElement.GetProperty("error").GetProperty("code").GetString());
         Assert.IsFalse(document.RootElement.TryGetProperty("snapshot", out _));
         if (pipe) { Assert.IsTrue(HealthReportProtocol.ParseResponse(report.Utf8Bytes, HealthReportView.Details, 1024).IsError); }
+    }
+
+    private static async Task DisposeNoCollectionBindingAsync(IHealthExecutionBinding binding)
+    {
+        Task disposal = binding.DisposeAsync().AsTask();
+        if (disposal.IsCompleted) { await disposal; }
     }
 }

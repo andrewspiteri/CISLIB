@@ -6,6 +6,7 @@ namespace CIS.Tests.UnitTests.Healthcheck;
 [TestClass]
 public sealed class HealthcheckErrorReasonQualificationTests
 {
+    private static readonly TimeSpan Deadline = TimeSpan.FromSeconds(10);
     private static readonly DateTimeOffset Observed = new(2026, 10, 21, 12, 0, 0, TimeSpan.Zero);
 
     [TestMethod]
@@ -84,13 +85,36 @@ public sealed class HealthcheckErrorReasonQualificationTests
     [TestMethod]
     public async Task ASecondRunnerClaimReportsAReasonAndPreservesTheFirstRunner()
     {
-        await using var service = Service();
-        await using var first = new HealthCollectorRunner(service);
-        InvalidOperationException error = Assert.ThrowsExactly<InvalidOperationException>(() => new HealthCollectorRunner(service));
-        Assert.IsFalse(string.IsNullOrWhiteSpace(error.Message), "The second claimant must receive an explanation rather than an empty error.");
-        await first.StartAsync();
-        await first.StopAsync();
-        Assert.AreEqual(0, service.CaptureSnapshot().MonitorCounts.Active);
+        var service = Service();
+        HealthCollectorRunner? first = null;
+        Exception? primary = null;
+        try
+        {
+            first = new HealthCollectorRunner(service);
+            InvalidOperationException error = Assert.ThrowsExactly<InvalidOperationException>(() => new HealthCollectorRunner(service));
+            Assert.IsFalse(string.IsNullOrWhiteSpace(error.Message), "The second claimant must receive an explanation rather than an empty error.");
+            await first.StartAsync().WaitAsync(Deadline);
+            await first.StopAsync().WaitAsync(Deadline);
+            Assert.AreEqual(0, service.CaptureSnapshot().MonitorCounts.Active);
+        }
+        catch (Exception error) { primary = error; throw; }
+        finally
+        {
+            Task runner = DrainRunnerAsync();
+            Task state = DrainServiceAsync();
+            Task drains = Task.WhenAll(runner, state);
+            try
+            {
+                await drains.WaitAsync(Deadline);
+            }
+            catch (Exception cleanup) when (primary is not null)
+            { throw new AggregateException("The receiving body failed and actual cleanup did not complete successfully.", primary, drains.Exception ?? cleanup); }
+            catch (Exception cleanup) when (cleanup is not TimeoutException && drains.Exception is not null)
+            { throw drains.Exception; }
+
+            async Task DrainRunnerAsync() { if (first is not null) { await first.DisposeAsync(); } }
+            async Task DrainServiceAsync() => await service.DisposeAsync();
+        }
     }
 
     [TestMethod]

@@ -4,6 +4,7 @@ using System.IO.Pipes;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Nodes;
+using CIS.Healthcheck;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace CIS.Tests.IntegrationTests.Healthcheck.Reporting;
@@ -12,6 +13,42 @@ internal static class TransportTestSupport
 {
     internal static readonly TimeSpan Limit = TimeSpan.FromSeconds(15);
     internal static string NewPipeName() => "cis-health-test-" + Guid.NewGuid().ToString("N");
+
+    internal static async Task StartServerAsync(HealthPipeServer server, string pipe, bool enabled = true)
+    {
+        await server.StartAsync().WaitAsync(TransportTestSupport.Limit);
+        if (enabled && !OperatingSystem.IsWindows())
+        {
+            // Completed startup must have published the real Unix endpoint.
+            // Observe it without opening an extra connection or creating a
+            // request timer. Missing endpoints should fail here rather than
+            // consume a connection watchdog in every later receiving case.
+            Assert.IsTrue(File.Exists(Path.Combine(Path.GetTempPath(), "CoreFxPipe_" + pipe)),
+                "Successful enabled startup must publish its actual local pipe endpoint.");
+        }
+    }
+
+    internal sealed class PipeServerCleanup(HealthPipeServer server) : IAsyncDisposable
+    {
+        public async ValueTask DisposeAsync()
+        {
+            // These are ancillary owners. Tests of terminal Dispose itself
+            // make their assertions before this fallback starts Stop. Initiate
+            // both real drains even if one call throws, with one total bound.
+            Task stopping;
+            try { stopping = server.StopAsync(); }
+            catch (Exception error) { stopping = Task.FromException(error); }
+            Task disposing;
+            try { disposing = server.DisposeAsync().AsTask(); }
+            catch (Exception error) { disposing = Task.FromException(error); }
+            Task drains = Task.WhenAll(stopping, disposing);
+            try { await drains.WaitAsync(TransportTestSupport.Limit); }
+            catch (Exception error) when (error is not TimeoutException && drains.Exception is not null)
+            {
+                throw drains.Exception;
+            }
+        }
+    }
 
     internal static ProcessStartInfo StartInfo(string subdirectory, string assembly, IEnumerable<string> arguments)
     {

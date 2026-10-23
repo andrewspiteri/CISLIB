@@ -32,13 +32,24 @@ public sealed class HealthExecutionWithdrawalObservationTests
             Assert.AreEqual(HealthFactDisposition.Retired, disposition, "Withdrawal is terminal before an irrelevant late notification is validated.");
             Assert.AreEqual(withdrawn.Revision, service.CaptureSnapshot().Revision);
             Assert.AreEqual(0, service.CaptureSnapshot().MonitorCounts.Active);
-            Assert.IsTrue(binding.DisposeAsync().IsCompletedSuccessfully);
+            await binding.DisposeAsync().AsTask().WaitAsync(Deadline);
             Assert.AreEqual(HealthFactDisposition.Retired, binding.Report(null!));
         }
         finally
         {
-            await binding.DisposeAsync().AsTask().WaitAsync(Deadline);
-            await monitor.DisposeAsync().AsTask().WaitAsync(Deadline);
+            try
+            {
+                await monitor.DisposeAsync().AsTask().WaitAsync(Deadline);
+                await service.DisposeAsync().AsTask().WaitAsync(Deadline);
+            }
+            finally
+            {
+                // The body awaited the binding barrier with its existing
+                // bound. Join actual monitor/service state before observing
+                // completed faults without repeating a failed private wait.
+                Task disposal = binding.DisposeAsync().AsTask();
+                if (disposal.IsCompleted) { await disposal; }
+            }
         }
     }
 
@@ -56,10 +67,12 @@ public sealed class HealthExecutionWithdrawalObservationTests
         IHealthCollectionState collections = ((IHealthStateAccess)service).CollectionState;
         HealthCollectionTarget collection = collections.RegisterCollection(binding.MonitorId, Guid.NewGuid(), new());
         HealthCollectionReservation reservation = collections.TryReserve(collection).Reservation!;
-        Assert.IsTrue(collections.TryEnter(reservation));
         Task? serviceDisposal = null;
+        Task? bindingDisposal = null;
+        bool assertionsPassed = false;
         try
         {
+            Assert.IsTrue(collections.TryEnter(reservation));
             serviceDisposal = service.DisposeAsync().AsTask();
             Assert.IsFalse(serviceDisposal.IsCompleted, "The real admitted operation still belongs to service shutdown.");
             HealthSnapshot withdrawn = service.CaptureSnapshot();
@@ -67,21 +80,40 @@ public sealed class HealthExecutionWithdrawalObservationTests
             Assert.IsTrue(reservation.LifetimeCancellation.IsCancellationRequested);
 
             Assert.AreEqual(HealthFactDisposition.Retired, binding.Report(null!));
-            Task bindingDisposal = binding.DisposeAsync().AsTask();
+            bindingDisposal = binding.DisposeAsync().AsTask();
 
-            Assert.AreEqual(!owned, bindingDisposal.IsCompletedSuccessfully,
-                "An owned binding shares monitor settlement; an external binding releases only its association.");
+            if (owned)
+            {
+                Assert.IsFalse(bindingDisposal.IsCompleted,
+                    "An owned binding still includes the actual admitted monitor operation.");
+            }
+            else
+            {
+                // This must settle while the external operation is still
+                // deliberately held, without requiring synchronous completion.
+                await bindingDisposal.WaitAsync(Deadline);
+            }
             Assert.AreEqual(withdrawn.Revision, service.CaptureSnapshot().Revision,
                 "Observing an association already retired by service withdrawal must not commit another state transition.");
             Assert.IsFalse(serviceDisposal.IsCompleted);
+            assertionsPassed = true;
         }
         finally
         {
             collections.Complete(reservation, new(HealthCollectionCompletionReason.Settled, DateTimeOffset.UtcNow));
             await collections.WaitForSettlementAsync(reservation).WaitAsync(Deadline);
             if (serviceDisposal is not null) { await serviceDisposal.WaitAsync(Deadline); }
-            await binding.DisposeAsync().AsTask().WaitAsync(Deadline);
-            if (external is not null) { await external.DisposeAsync().AsTask().WaitAsync(Deadline); }
+            try
+            {
+                bindingDisposal ??= binding.DisposeAsync().AsTask();
+                if (bindingDisposal.IsCompleted) { await bindingDisposal; }
+                // Owned bindings may finish through an asynchronous actual
+                // monitor-settlement continuation. Retain that ordinary join
+                // after a successful body; a failed body has already observed
+                // the broken barrier after all real resources were released.
+                else if (assertionsPassed) { await bindingDisposal.WaitAsync(Deadline); }
+            }
+            finally { if (external is not null) { await external.DisposeAsync().AsTask().WaitAsync(Deadline); } }
             GC.KeepAlive(external);
         }
     }

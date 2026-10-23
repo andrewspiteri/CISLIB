@@ -571,8 +571,8 @@ public sealed class HealthcheckStateSeamTests
         using var canceled = new CancellationTokenSource();
         canceled.Cancel();
 
-        await Assert.ThrowsAsync<OperationCanceledException>(() => scope.Service.WaitForDisposalAsync(canceled.Token));
-        await Assert.ThrowsAsync<OperationCanceledException>(() => monitor.WaitForDisposalAsync(canceled.Token));
+        await Assert.ThrowsAsync<OperationCanceledException>(() => scope.Service.WaitForDisposalAsync(canceled.Token)).WaitAsync(TimeSpan.FromSeconds(5));
+        await Assert.ThrowsAsync<OperationCanceledException>(() => monitor.WaitForDisposalAsync(canceled.Token)).WaitAsync(TimeSpan.FromSeconds(5));
         Assert.IsFalse(firstDisposal.IsCompleted);
         Assert.IsFalse(secondDisposal.IsCompleted);
         Assert.IsFalse(monitor.WaitForDisposalAsync().IsCompleted);
@@ -1063,7 +1063,7 @@ public sealed class HealthcheckStateSeamTests
             {
                 if (!finished.Contains(reservation.OperationId)) { Finish(reservation); }
             }
-            await Service.DisposeAsync();
+            await Service.DisposeAsync().AsTask().WaitAsync(TimeSpan.FromSeconds(10));
         }
     }
 }

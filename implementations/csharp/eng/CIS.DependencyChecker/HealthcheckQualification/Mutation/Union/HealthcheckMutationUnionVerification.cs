@@ -49,6 +49,7 @@ internal static partial class HealthcheckMutationUnionVerification
             // the union is pending. Incomplete qualification never authorizes
             // writing a receipt into an original native log/child directory.
             if (descriptor["logsManifest"] is not null) { ReadLogs(files, descriptor); }
+            if (descriptor["kernelManifest"] is not null) { ReadKernelInputs(files, descriptor, lane); }
             foreach (string name in new[] { "restorationManifest", "childSession" })
             {
                 if (descriptor[name] is not null)
