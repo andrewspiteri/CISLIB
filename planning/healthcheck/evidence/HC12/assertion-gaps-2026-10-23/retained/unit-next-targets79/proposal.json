@@ -1,0 +1,412 @@
+{
+  "schema": "cis.healthcheck.unit-next-targets79/v1-read-only-proposal",
+  "observedUtc": "2026-10-23T15:39:09.3586581+00:00",
+  "source": {
+    "path": "implementations/csharp/src/CIS.Core/Healthcheck/HealthCollectorRunner.cs",
+    "sha256": "386c3d5cd7e681ed58a2d6be564ad3c813b598b377921ff5057a61419067fec8",
+    "bytes": 27617
+  },
+  "currentInventory": {
+    "path": ".artifacts/hcg/unit-fault-origin77-controller-proposal/runner-inventory.json",
+    "sha256": "7fad03957504f96e209f0ad8cc0fcb323f43fe074982ff56b65bc07638ca3c75",
+    "completeDefinitionCount": 521,
+    "sourcePhysicallyMatched": true,
+    "originalReportPath": "/data/cis-healthcheck-20261021-01a15a72/unit-execution72-run01/native/reports/mutation-report.json",
+    "originalReportSha256": "cd55de4e785d74b36351e3aeb62b188fc15232a491199852fd3313e0b58e997f",
+    "physicalOriginalReportReadByThisProposal": false
+  },
+  "ranges": [
+    {
+      "startUtf16": 3723,
+      "endUtf16": 3735,
+      "cluster": "interval-and-start-admission"
+    },
+    {
+      "startUtf16": 4644,
+      "endUtf16": 4719,
+      "cluster": "interval-and-start-admission"
+    },
+    {
+      "startUtf16": 4735,
+      "endUtf16": 4837,
+      "cluster": "interval-and-start-admission"
+    },
+    {
+      "startUtf16": 10224,
+      "endUtf16": 10251,
+      "cluster": "fair-removal"
+    },
+    {
+      "startUtf16": 23556,
+      "endUtf16": 23618,
+      "cluster": "manual-and-periodic-separation"
+    }
+  ],
+  "containedTupleCount": 20,
+  "focalBehaviorQuestionCount": 9,
+  "allContainedSiblingsIncluded": true,
+  "allInventoryStatusesIncludedWithoutFiltering": true,
+  "legacyNativeIdsOrStatusesTransferred": false,
+  "nativeStatusesObserved": false,
+  "tuples": [
+    {
+      "path": "Healthcheck/HealthCollectorRunner.cs",
+      "sourceSha256": "386c3d5cd7e681ed58a2d6be564ad3c813b598b377921ff5057a61419067fec8",
+      "startUtf16": 3723,
+      "endUtf16": 3735,
+      "original": "BeginStop();",
+      "mutatorName": "Statement mutation",
+      "replacement": ";",
+      "static": false,
+      "cluster": "interval-and-start-admission",
+      "focalBehaviorQuestion": true
+    },
+    {
+      "path": "Healthcheck/HealthCollectorRunner.cs",
+      "sourceSha256": "386c3d5cd7e681ed58a2d6be564ad3c813b598b377921ff5057a61419067fec8",
+      "startUtf16": 4644,
+      "endUtf16": 4669,
+      "original": "interval <= TimeSpan.Zero",
+      "mutatorName": "Equality mutation",
+      "replacement": "interval < TimeSpan.Zero",
+      "static": false,
+      "cluster": "interval-and-start-admission",
+      "focalBehaviorQuestion": true
+    },
+    {
+      "path": "Healthcheck/HealthCollectorRunner.cs",
+      "sourceSha256": "386c3d5cd7e681ed58a2d6be564ad3c813b598b377921ff5057a61419067fec8",
+      "startUtf16": 4644,
+      "endUtf16": 4669,
+      "original": "interval <= TimeSpan.Zero",
+      "mutatorName": "Equality mutation",
+      "replacement": "interval > TimeSpan.Zero",
+      "static": false,
+      "cluster": "interval-and-start-admission",
+      "focalBehaviorQuestion": false
+    },
+    {
+      "path": "Healthcheck/HealthCollectorRunner.cs",
+      "sourceSha256": "386c3d5cd7e681ed58a2d6be564ad3c813b598b377921ff5057a61419067fec8",
+      "startUtf16": 4644,
+      "endUtf16": 4719,
+      "original": "interval <= TimeSpan.Zero || interval.TotalMilliseconds > uint.MaxValue - 1",
+      "mutatorName": "Logical mutation",
+      "replacement": "interval <= TimeSpan.Zero && interval.TotalMilliseconds > uint.MaxValue - 1",
+      "static": false,
+      "cluster": "interval-and-start-admission",
+      "focalBehaviorQuestion": true
+    },
+    {
+      "path": "Healthcheck/HealthCollectorRunner.cs",
+      "sourceSha256": "386c3d5cd7e681ed58a2d6be564ad3c813b598b377921ff5057a61419067fec8",
+      "startUtf16": 4644,
+      "endUtf16": 4719,
+      "original": "interval <= TimeSpan.Zero || interval.TotalMilliseconds > uint.MaxValue - 1",
+      "mutatorName": "Negate expression",
+      "replacement": "!(interval <= TimeSpan.Zero || interval.TotalMilliseconds > uint.MaxValue - 1)",
+      "static": false,
+      "cluster": "interval-and-start-admission",
+      "focalBehaviorQuestion": false
+    },
+    {
+      "path": "Healthcheck/HealthCollectorRunner.cs",
+      "sourceSha256": "386c3d5cd7e681ed58a2d6be564ad3c813b598b377921ff5057a61419067fec8",
+      "startUtf16": 4673,
+      "endUtf16": 4719,
+      "original": "interval.TotalMilliseconds > uint.MaxValue - 1",
+      "mutatorName": "Equality mutation",
+      "replacement": "interval.TotalMilliseconds < uint.MaxValue - 1",
+      "static": false,
+      "cluster": "interval-and-start-admission",
+      "focalBehaviorQuestion": false
+    },
+    {
+      "path": "Healthcheck/HealthCollectorRunner.cs",
+      "sourceSha256": "386c3d5cd7e681ed58a2d6be564ad3c813b598b377921ff5057a61419067fec8",
+      "startUtf16": 4673,
+      "endUtf16": 4719,
+      "original": "interval.TotalMilliseconds > uint.MaxValue - 1",
+      "mutatorName": "Equality mutation",
+      "replacement": "interval.TotalMilliseconds >= uint.MaxValue - 1",
+      "static": false,
+      "cluster": "interval-and-start-admission",
+      "focalBehaviorQuestion": false
+    },
+    {
+      "path": "Healthcheck/HealthCollectorRunner.cs",
+      "sourceSha256": "386c3d5cd7e681ed58a2d6be564ad3c813b598b377921ff5057a61419067fec8",
+      "startUtf16": 4702,
+      "endUtf16": 4719,
+      "original": "uint.MaxValue - 1",
+      "mutatorName": "Arithmetic mutation",
+      "replacement": "uint.MaxValue + 1",
+      "static": false,
+      "cluster": "interval-and-start-admission",
+      "focalBehaviorQuestion": false
+    },
+    {
+      "path": "Healthcheck/HealthCollectorRunner.cs",
+      "sourceSha256": "386c3d5cd7e681ed58a2d6be564ad3c813b598b377921ff5057a61419067fec8",
+      "startUtf16": 4735,
+      "endUtf16": 4837,
+      "original": "throw new ArgumentException(\"Supply a positive, representable collection interval.\", nameof(options));",
+      "mutatorName": "Statement mutation",
+      "replacement": ";",
+      "static": false,
+      "cluster": "interval-and-start-admission",
+      "focalBehaviorQuestion": true
+    },
+    {
+      "path": "Healthcheck/HealthCollectorRunner.cs",
+      "sourceSha256": "386c3d5cd7e681ed58a2d6be564ad3c813b598b377921ff5057a61419067fec8",
+      "startUtf16": 4763,
+      "endUtf16": 4818,
+      "original": "\"Supply a positive, representable collection interval.\"",
+      "mutatorName": "String mutation",
+      "replacement": "\"\"",
+      "static": false,
+      "cluster": "interval-and-start-admission",
+      "focalBehaviorQuestion": false
+    },
+    {
+      "path": "Healthcheck/HealthCollectorRunner.cs",
+      "sourceSha256": "386c3d5cd7e681ed58a2d6be564ad3c813b598b377921ff5057a61419067fec8",
+      "startUtf16": 10224,
+      "endUtf16": 10238,
+      "original": "index < cursor",
+      "mutatorName": "Equality mutation",
+      "replacement": "index <= cursor",
+      "static": false,
+      "cluster": "fair-removal",
+      "focalBehaviorQuestion": false
+    },
+    {
+      "path": "Healthcheck/HealthCollectorRunner.cs",
+      "sourceSha256": "386c3d5cd7e681ed58a2d6be564ad3c813b598b377921ff5057a61419067fec8",
+      "startUtf16": 10224,
+      "endUtf16": 10238,
+      "original": "index < cursor",
+      "mutatorName": "Equality mutation",
+      "replacement": "index > cursor",
+      "static": false,
+      "cluster": "fair-removal",
+      "focalBehaviorQuestion": true
+    },
+    {
+      "path": "Healthcheck/HealthCollectorRunner.cs",
+      "sourceSha256": "386c3d5cd7e681ed58a2d6be564ad3c813b598b377921ff5057a61419067fec8",
+      "startUtf16": 10224,
+      "endUtf16": 10238,
+      "original": "index < cursor",
+      "mutatorName": "Negate expression",
+      "replacement": "!(index < cursor)",
+      "static": false,
+      "cluster": "fair-removal",
+      "focalBehaviorQuestion": false
+    },
+    {
+      "path": "Healthcheck/HealthCollectorRunner.cs",
+      "sourceSha256": "386c3d5cd7e681ed58a2d6be564ad3c813b598b377921ff5057a61419067fec8",
+      "startUtf16": 10242,
+      "endUtf16": 10250,
+      "original": "cursor--",
+      "mutatorName": "PostDecrementExpression to PostIncrementExpression mutation",
+      "replacement": "cursor++",
+      "static": false,
+      "cluster": "fair-removal",
+      "focalBehaviorQuestion": true
+    },
+    {
+      "path": "Healthcheck/HealthCollectorRunner.cs",
+      "sourceSha256": "386c3d5cd7e681ed58a2d6be564ad3c813b598b377921ff5057a61419067fec8",
+      "startUtf16": 10242,
+      "endUtf16": 10251,
+      "original": "cursor--;",
+      "mutatorName": "Statement mutation",
+      "replacement": ";",
+      "static": false,
+      "cluster": "fair-removal",
+      "focalBehaviorQuestion": true
+    },
+    {
+      "path": "Healthcheck/HealthCollectorRunner.cs",
+      "sourceSha256": "386c3d5cd7e681ed58a2d6be564ad3c813b598b377921ff5057a61419067fec8",
+      "startUtf16": 23556,
+      "endUtf16": 23563,
+      "original": "!retire",
+      "mutatorName": "LogicalNotExpression to un-LogicalNotExpression mutation",
+      "replacement": "retire",
+      "static": false,
+      "cluster": "manual-and-periodic-separation",
+      "focalBehaviorQuestion": false
+    },
+    {
+      "path": "Healthcheck/HealthCollectorRunner.cs",
+      "sourceSha256": "386c3d5cd7e681ed58a2d6be564ad3c813b598b377921ff5057a61419067fec8",
+      "startUtf16": 23556,
+      "endUtf16": 23591,
+      "original": "!retire && operation.Entry.Periodic",
+      "mutatorName": "Logical mutation",
+      "replacement": "!retire || operation.Entry.Periodic",
+      "static": false,
+      "cluster": "manual-and-periodic-separation",
+      "focalBehaviorQuestion": true
+    },
+    {
+      "path": "Healthcheck/HealthCollectorRunner.cs",
+      "sourceSha256": "386c3d5cd7e681ed58a2d6be564ad3c813b598b377921ff5057a61419067fec8",
+      "startUtf16": 23556,
+      "endUtf16": 23618,
+      "original": "!retire && operation.Entry.Periodic && !operation.Entry.Closed",
+      "mutatorName": "Logical mutation",
+      "replacement": "!retire && operation.Entry.Periodic || !operation.Entry.Closed",
+      "static": false,
+      "cluster": "manual-and-periodic-separation",
+      "focalBehaviorQuestion": true
+    },
+    {
+      "path": "Healthcheck/HealthCollectorRunner.cs",
+      "sourceSha256": "386c3d5cd7e681ed58a2d6be564ad3c813b598b377921ff5057a61419067fec8",
+      "startUtf16": 23556,
+      "endUtf16": 23618,
+      "original": "!retire && operation.Entry.Periodic && !operation.Entry.Closed",
+      "mutatorName": "Negate expression",
+      "replacement": "!(!retire && operation.Entry.Periodic && !operation.Entry.Closed)",
+      "static": false,
+      "cluster": "manual-and-periodic-separation",
+      "focalBehaviorQuestion": false
+    },
+    {
+      "path": "Healthcheck/HealthCollectorRunner.cs",
+      "sourceSha256": "386c3d5cd7e681ed58a2d6be564ad3c813b598b377921ff5057a61419067fec8",
+      "startUtf16": 23595,
+      "endUtf16": 23618,
+      "original": "!operation.Entry.Closed",
+      "mutatorName": "LogicalNotExpression to un-LogicalNotExpression mutation",
+      "replacement": "operation.Entry.Closed",
+      "static": false,
+      "cluster": "manual-and-periodic-separation",
+      "focalBehaviorQuestion": false
+    }
+  ],
+  "testProject": "implementations/csharp/tests/CIS.Core.UnitTests/CIS.Core.UnitTests.csproj",
+  "expectedCases": 14,
+  "caseCountBasis": "Current source attributes; not an executed discovery result",
+  "testCaseFilter": "FullyQualifiedName=CIS.Tests.UnitTests.Healthcheck.HealthCollectorIntervalValidationBoundaryTests.InvalidIntervalsRejectTheOptionsBeforeReadingAnUnavailableClock|FullyQualifiedName=CIS.Tests.UnitTests.Healthcheck.HealthCollectorIntervalValidationBoundaryTests.AValidIntervalActuallyReachesTheUnavailableClockBeforeAttaching|FullyQualifiedName=CIS.Tests.UnitTests.Healthcheck.HealthCollectorIntervalValidationBoundaryTests.PositiveRepresentableIntervalEndpointsAttachWithoutStartingTheOwner|FullyQualifiedName=CIS.Tests.UnitTests.Healthcheck.HealthCollectorIntervalValidationBoundaryTests.TimerCreationFailureClosesRegistrationBeforeAnyExplicitStop|FullyQualifiedName=CIS.Tests.UnitTests.Healthcheck.HealthCollectionCapacityAndFairnessBoundaryTests.RemovingTheNextQueuedPeriodicRegistrationDoesNotServeThePreviousHotOwnerAgainFirst|FullyQualifiedName=CIS.Tests.UnitTests.Healthcheck.HealthCollectorRetiredCurrentFairnessTests.RemovingTheRunningRegistrationPreservesTheNextWaitingOwnersTurn|FullyQualifiedName=CIS.Tests.UnitTests.Healthcheck.HealthCollectorManualIntervalBoundaryTests.AnUnactivatedPeriodicIntervalCannotRetireManualCollectionWhenAFutureDueTimeWouldOverflow|FullyQualifiedName=CIS.Tests.UnitTests.Healthcheck.HealthCollectorPeriodicTimerProgressQualificationTests.CompletionWhileTimerChangesArePendingSchedulesTheEarliestRealPeriodicEligibility|FullyQualifiedName=CIS.Tests.TestAssemblySetup.SchedulingMatchesRequestedMode",
+  "methodCaseMap": [
+    {
+      "method": "CIS.Tests.UnitTests.Healthcheck.HealthCollectorIntervalValidationBoundaryTests.InvalidIntervalsRejectTheOptionsBeforeReadingAnUnavailableClock",
+      "expectedCases": 4,
+      "dataRows": [
+        "0",
+        "-1",
+        "42949672950000",
+        "long.MaxValue"
+      ],
+      "fixture": "implementations/csharp/tests/CIS.Core.UnitTests/Healthcheck/Collection/HealthCollectorIntervalValidationBoundaryTests.cs"
+    },
+    {
+      "method": "CIS.Tests.UnitTests.Healthcheck.HealthCollectorIntervalValidationBoundaryTests.AValidIntervalActuallyReachesTheUnavailableClockBeforeAttaching",
+      "expectedCases": 1,
+      "dataRows": [],
+      "fixture": "implementations/csharp/tests/CIS.Core.UnitTests/Healthcheck/Collection/HealthCollectorIntervalValidationBoundaryTests.cs"
+    },
+    {
+      "method": "CIS.Tests.UnitTests.Healthcheck.HealthCollectorIntervalValidationBoundaryTests.PositiveRepresentableIntervalEndpointsAttachWithoutStartingTheOwner",
+      "expectedCases": 2,
+      "dataRows": [
+        "1",
+        "42949672940000"
+      ],
+      "fixture": "implementations/csharp/tests/CIS.Core.UnitTests/Healthcheck/Collection/HealthCollectorIntervalValidationBoundaryTests.cs"
+    },
+    {
+      "method": "CIS.Tests.UnitTests.Healthcheck.HealthCollectorIntervalValidationBoundaryTests.TimerCreationFailureClosesRegistrationBeforeAnyExplicitStop",
+      "expectedCases": 1,
+      "dataRows": [],
+      "fixture": "implementations/csharp/tests/CIS.Core.UnitTests/Healthcheck/Collection/HealthCollectorIntervalValidationBoundaryTests.cs"
+    },
+    {
+      "method": "CIS.Tests.UnitTests.Healthcheck.HealthCollectionCapacityAndFairnessBoundaryTests.RemovingTheNextQueuedPeriodicRegistrationDoesNotServeThePreviousHotOwnerAgainFirst",
+      "expectedCases": 1,
+      "dataRows": [],
+      "fixture": "implementations/csharp/tests/CIS.Core.UnitTests/Healthcheck/Collection/HealthCollectionCapacityAndFairnessBoundaryTests.cs"
+    },
+    {
+      "method": "CIS.Tests.UnitTests.Healthcheck.HealthCollectorRetiredCurrentFairnessTests.RemovingTheRunningRegistrationPreservesTheNextWaitingOwnersTurn",
+      "expectedCases": 1,
+      "dataRows": [],
+      "fixture": "implementations/csharp/tests/CIS.Core.UnitTests/Healthcheck/Collection/HealthCollectorRetiredCurrentFairnessTests.cs"
+    },
+    {
+      "method": "CIS.Tests.UnitTests.Healthcheck.HealthCollectorManualIntervalBoundaryTests.AnUnactivatedPeriodicIntervalCannotRetireManualCollectionWhenAFutureDueTimeWouldOverflow",
+      "expectedCases": 1,
+      "dataRows": [],
+      "fixture": "implementations/csharp/tests/CIS.Core.UnitTests/Healthcheck/Collection/HealthCollectorManualIntervalBoundaryTests.cs"
+    },
+    {
+      "method": "CIS.Tests.UnitTests.Healthcheck.HealthCollectorPeriodicTimerProgressQualificationTests.CompletionWhileTimerChangesArePendingSchedulesTheEarliestRealPeriodicEligibility",
+      "expectedCases": 2,
+      "dataRows": [
+        "false",
+        "true"
+      ],
+      "fixture": "implementations/csharp/tests/CIS.Core.UnitTests/Healthcheck/Collection/HealthCollectorPeriodicTimerProgressQualificationTests.cs"
+    },
+    {
+      "method": "CIS.Tests.TestAssemblySetup.SchedulingMatchesRequestedMode",
+      "expectedCases": 1,
+      "dataRows": [],
+      "fixture": "implementations/csharp/tests/TestAssembly.cs"
+    }
+  ],
+  "fixturePins": [
+    {
+      "path": "implementations/csharp/tests/CIS.Core.UnitTests/Healthcheck/Collection/HealthCollectionCapacityAndFairnessBoundaryTests.cs",
+      "sha256": "eb836152bd088491bd5570cbf7323e58a8138c60862a432e03c585e34a0ce315",
+      "bytes": 11230
+    },
+    {
+      "path": "implementations/csharp/tests/CIS.Core.UnitTests/Healthcheck/Collection/HealthCollectorIntervalValidationBoundaryTests.cs",
+      "sha256": "2526d58653f4da74e09b413d6e3eda4f7a7f0f5b9f28184916895278848d1d2f",
+      "bytes": 6008
+    },
+    {
+      "path": "implementations/csharp/tests/CIS.Core.UnitTests/Healthcheck/Collection/HealthCollectorManualIntervalBoundaryTests.cs",
+      "sha256": "662e5599ab62b94f5719f1a4502b0b1ba41bc6c7b43e2671df1c2ca7beb9d56a",
+      "bytes": 7995
+    },
+    {
+      "path": "implementations/csharp/tests/CIS.Core.UnitTests/Healthcheck/Collection/HealthCollectorPeriodicTimerProgressQualificationTests.cs",
+      "sha256": "3693416be50ba6fb67ee19c7b20d5af0d83117e5808a7effd61ed82a5375c09f",
+      "bytes": 15289
+    },
+    {
+      "path": "implementations/csharp/tests/CIS.Core.UnitTests/Healthcheck/Collection/HealthCollectorRetiredCurrentFairnessTests.cs",
+      "sha256": "69ccd0e8f43347793889a5608f23dff2ddeed3f499c66705aad5461089d26d3e",
+      "bytes": 6858
+    },
+    {
+      "path": "implementations/csharp/tests/TestAssembly.cs",
+      "sha256": "fe6d5fcbedfa9d02834a41b1d2d804d5252b55d0ac897d371a680683905b3674",
+      "bytes": 2490
+    }
+  ],
+  "existingAssertionsOnly": true,
+  "executedDiscovery": false,
+  "executedTests": false,
+  "executedMutation": false,
+  "newCodeOrTests": false,
+  "newController": false,
+  "qualificationClaim": false,
+  "appliedKillCredit": 0,
+  "limitations": [
+    "The historical Unit18 report suggested behavior questions; its IDs, status and credit are not transferred to the current521 source.",
+    "Current complete inventory is ID/status-free: all20 contained tuples are retained without status filtering; no native outcome is invented.",
+    "Existing assertions require actual normal-host completion and direct-witness validation under new source-bound native output.",
+    "One contained tuple mutates private English text; no cosmetic-message assertion is proposed. The uint.MaxValue+1 mutation may be CompileError; retain its actual outcome.",
+    "The14-case declaration is not GUID/discovery evidence. Exact current native discovery and original/fresh controls would still be required for any finite run.",
+    "This proposal is not another finite controller or a substitute for the maintained complete Unit/runtime campaign and90percent union gate."
+  ]
+}

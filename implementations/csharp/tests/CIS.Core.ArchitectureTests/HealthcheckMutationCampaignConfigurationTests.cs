@@ -8,6 +8,60 @@ namespace CIS.Tests.ArchitectureTests;
 public sealed class HealthcheckMutationCampaignConfigurationTests
 {
     [TestMethod]
+    [DataRow("unit-runtime", 10000)]
+    [DataRow("pipes", 10000)]
+    [DataRow("aspnet", 750000)]
+    public void ActualMaintainedCampaignFilesRemainAcceptedWithTheirExistingExactBudgets(string group, int expectedBudget)
+    {
+        DirectoryInfo? root = new(AppContext.BaseDirectory);
+        while (root is not null && !File.Exists(Path.Combine(root.FullName, "planning", "healthcheck", "qualification", "gate-closure", group + ".json")))
+        { root = root.Parent; }
+        Assert.IsNotNull(root, "The maintained campaign file must exist in the repository checkout.");
+        string path = Path.Combine(root.FullName, "planning", "healthcheck", "qualification", "gate-closure", group + ".json");
+        JsonObject maintained = JsonNode.Parse(File.ReadAllBytes(path))!.AsObject();
+        Assert.AreEqual(expectedBudget, (int?)Options(maintained)["additional-timeout"]);
+        JsonObject native = (JsonObject)maintained.DeepClone();
+        string maintainedBefore = maintained.ToJsonString(), nativeBefore = native.ToJsonString();
+        HealthcheckMutationCampaignConfiguration.Validate(group, native, maintained);
+        Assert.AreEqual(maintainedBefore, maintained.ToJsonString());
+        Assert.AreEqual(nativeBefore, native.ToJsonString());
+    }
+
+    [TestMethod]
+    [DataRow("10000", false)]
+    [DataRow("10000", true)]
+    [DataRow("750001", false)]
+    [DataRow("750001", true)]
+    [DataRow("\"750000\"", false)]
+    [DataRow("\"750000\"", true)]
+    [DataRow("750000.0", false)]
+    [DataRow("750000.0", true)]
+    [DataRow("null", false)]
+    [DataRow("null", true)]
+    [DataRow("missing", false)]
+    [DataRow("missing", true)]
+    public void AspNetBudgetCannotBeRewrittenOrApprovedByMatchingTheSameWrongPreimage(string literal, bool rewriteMaintained)
+    {
+        JsonObject maintained = Configuration("aspnet"), native = (JsonObject)maintained.DeepClone();
+        foreach (JsonObject document in rewriteMaintained ? new[] { maintained, native } : new[] { native })
+        {
+            if (literal == "missing") { Options(document).Remove("additional-timeout"); }
+            else { Options(document)["additional-timeout"] = JsonNode.Parse(literal); }
+        }
+        Assert.ThrowsExactly<InvalidDataException>(() => HealthcheckMutationCampaignConfiguration.Validate("aspnet", native, maintained));
+    }
+
+    [TestMethod]
+    [DataRow("unit-runtime")]
+    [DataRow("pipes")]
+    public void ADecimalNativeBudgetCannotPassNumericDeepEqualityWithItsMaintainedInteger(string group)
+    {
+        JsonObject maintained = Configuration(group), native = (JsonObject)maintained.DeepClone();
+        Options(native)["additional-timeout"] = JsonNode.Parse("10000.0");
+        Assert.ThrowsExactly<InvalidDataException>(() => HealthcheckMutationCampaignConfiguration.Validate(group, native, maintained));
+    }
+
+    [TestMethod]
     [DataRow("unit-runtime")]
     [DataRow("pipes")]
     [DataRow("aspnet")]
@@ -172,8 +226,8 @@ public sealed class HealthcheckMutationCampaignConfigurationTests
     [DataRow("pipes", "\"10000\"")]
     [DataRow("pipes", "10000.0")]
     [DataRow("pipes", "null")]
-    [DataRow("aspnet", "\"10000\"")]
-    [DataRow("aspnet", "10000.0")]
+    [DataRow("aspnet", "\"750000\"")]
+    [DataRow("aspnet", "750000.0")]
     [DataRow("aspnet", "null")]
     public void MatchingMaintainedBudgetsWithWrongJsonTypesCannotApproveThemselves(string group, string literal)
     {
@@ -398,6 +452,7 @@ public sealed class HealthcheckMutationCampaignConfigurationTests
             "additional-timeout":10000,"thresholds":{"high":100,"low":90,"break":90}}}
             """)!.AsObject();
         if (group != "unit-runtime") { Options(result)["coverage-analysis"] = "off"; }
+        if (group == "aspnet") { Options(result)["additional-timeout"] = 750000; }
         return result;
     }
 }

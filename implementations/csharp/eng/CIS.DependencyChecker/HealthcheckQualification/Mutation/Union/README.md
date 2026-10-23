@@ -37,7 +37,7 @@ The input schema is `cis.healthcheck.mutation-union-inputs/v1-development`:
   exactly `additional-timeout: 2100000`. It must preserve the complete maintained
   source/cohort configuration, coverage off and every other setting. This budget
   accounts for the serialized receiving watchdog sum. The maintained budget
-  preimage must remain the exact integer `10000` for all three groups; matching
+  preimage must remain the exact integer `10000` for Unit/Pipes and `750000` for ASP.NET; matching
   rewritten or incorrectly typed maintained/native budgets cannot self-approve.
   Unknown/cross-group values, missing/non-Boolean mixing options and additional
   scope/filter/tool changes are rejected. ASP.NET still requires exact maintained

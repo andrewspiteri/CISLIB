@@ -1,0 +1,45 @@
+diff --git "a/C:\\miscwork\\portfolio\\cislib\\.artifacts\\hcg\\aspnet-capture-issues80\\HealthcheckHttpTransportTests.before.cs.txt" "b/C:\\miscwork\\portfolio\\cislib\\implementations\\csharp\\tests\\CIS.Core.IntegrationTests\\Healthcheck\\Reporting\\HealthcheckHttpTransportTests.cs"
+index 2454ace3..e78a37ad 100644
+--- "a/C:\\miscwork\\portfolio\\cislib\\.artifacts\\hcg\\aspnet-capture-issues80\\HealthcheckHttpTransportTests.before.cs.txt"
++++ "b/C:\\miscwork\\portfolio\\cislib\\implementations\\csharp\\tests\\CIS.Core.IntegrationTests\\Healthcheck\\Reporting\\HealthcheckHttpTransportTests.cs"
+@@ -212,7 +212,8 @@ public sealed class HealthcheckHttpTransportTests
+         using var body = new MemoryStream();
+         context.Response.Body = body;
+ 
+-        await app.Build()(context).WaitAsync(TransportTestSupport.Limit);
++        Task request = app.Build()(context);
++        await ObserveCompletedHttpRequestAsync(request);
+ 
+         Assert.AreEqual(1, source.Captures, "Cancellation must occur after the real snapshot read, beyond the entry cancellation guard.");
+         Assert.IsTrue(cancellation.IsCancellationRequested);
+@@ -225,6 +226,7 @@ public sealed class HealthcheckHttpTransportTests
+         Assert.IsFalse(context.Response.Headers.ContainsKey("Expires"));
+         Assert.AreEqual(0L, body.Length);
+         Assert.AreEqual(0, businessCalls);
++        await request.WaitAsync(TransportTestSupport.Limit);
+     }
+ 
+     [TestMethod]
+@@ -621,8 +623,10 @@ public sealed class HealthcheckHttpTransportTests
+         using var body = new MemoryStream();
+         context.Response.Body = body;
+ 
+-        await app.Build()(context).WaitAsync(TransportTestSupport.Limit);
++        Task request = app.Build()(context);
++        await ObserveCompletedHttpRequestAsync(request);
+ 
++        Assert.AreEqual(1, source.Captures, "HEAD must capture its selected snapshot before making the complete response decision.");
+         Assert.AreEqual(StatusCodes.Status200OK, context.Response.StatusCode);
+         Assert.AreEqual("application/json; charset=utf-8", context.Response.ContentType);
+         Assert.IsTrue(context.Response.ContentLength is > 0, "HEAD still makes the complete encoded report length decision.");
+@@ -630,9 +634,9 @@ public sealed class HealthcheckHttpTransportTests
+         Assert.AreEqual("no-cache", context.Response.Headers.Pragma.ToString());
+         Assert.AreEqual("0", context.Response.Headers.Expires.ToString());
+         Assert.AreEqual(0L, body.Length, "The middleware itself must suppress HEAD writes before the server's wire behavior.");
+-        Assert.AreEqual(1, source.Captures);
+         Assert.AreEqual(0, businessCalls);
+         Assert.AreEqual(before.Revision, service.CaptureSnapshot().Revision);
++        await request.WaitAsync(TransportTestSupport.Limit);
+     }
+ 
+     private static IApplicationBuilder InstallValidHealthcheck(IApplicationBuilder app, IHealthSnapshotSource source,

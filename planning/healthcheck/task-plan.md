@@ -347,12 +347,14 @@ planning/healthcheck/evidence/HC11/**
 
 ### HC12 — Qualify architecture, mutation, compatibility, and release evidence
 
-Current continuation: the preceding wave is committed as `8fc2f9c`.
-[Native mutation and Release evidence](evidence/HC12/release-next/README.md)
-records the parallel rollback, child-process and compatibility work. Full
-unit/runtime mutation fails 90% on both native platforms; HC12 and M4 remain
-incomplete. Completed local subgates do not waive the global Release or external
-integration obligations below.
+Qualification and identified execution/capture repairs are committed through
+`d88cb846`. The current [assertion-gap continuation](evidence/HC12/assertion-gaps-2026-10-23/README.md)
+records direct native assertion evidence and the complete Unit/Pipes/ASP.NET campaigns.
+The [earlier mutation and Release evidence](evidence/HC12/release-next/README.md)
+retains rollback, child-process and compatibility work. The latest complete
+conservative union is 51.908646%, below 90%; HC12 and M4 remain incomplete.
+Completed local subgates do not waive the global Release or external integration
+obligations below.
 
 **Role:** Qualification owner  
 **Start prerequisites:** HC00  

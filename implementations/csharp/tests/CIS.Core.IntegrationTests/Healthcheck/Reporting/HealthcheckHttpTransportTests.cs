@@ -73,14 +73,16 @@ public sealed class HealthcheckHttpTransportTests
         context.Request.Method = HttpMethods.Get;
         using var body = new MemoryStream();
         context.Response.Body = body;
-        await app.Build()(context).WaitAsync(TransportTestSupport.Limit);
+        Task request = app.Build()(context);
+        await ObserveCompletedHttpRequestAsync(request);
         Assert.AreEqual(detailsEnabled ? StatusCodes.Status200OK : StatusCodes.Status404NotFound, context.Response.StatusCode);
         Assert.AreEqual(detailsEnabled ? 1 : 0, source.Captures);
         Assert.AreEqual(detailsEnabled ? 1 : 0, authorizationCalls);
         Assert.AreEqual(0, businessCalls);
-        JsonObject response = JsonNode.Parse(body.ToArray())!.AsObject();
+        JsonObject response = RequiredHttpJson(body.ToArray());
         if (detailsEnabled) { TransportTestSupport.ValidateSnapshot(response, "details", true, true, active: 0); }
         else { TransportTestSupport.ValidateError(response, "NotFound"); }
+        await request.WaitAsync(TransportTestSupport.Limit);
     }
 
     [TestMethod]
@@ -103,7 +105,7 @@ public sealed class HealthcheckHttpTransportTests
         int authorizationCalls = 0, businessCalls = 0;
         HttpContext? authorizedContext = null;
         IApplicationBuilder app = new ApplicationBuilder(services);
-        app.UseCisHealthcheck(source, options, context =>
+        InstallValidHealthcheck(app, source, options, context =>
         {
             authorizationCalls++;
             authorizedContext = context;
@@ -155,7 +157,8 @@ public sealed class HealthcheckHttpTransportTests
         using var positiveBody = new MemoryStream();
         positive.Response.Body = positiveBody;
 
-        await middleware(positive).WaitAsync(TransportTestSupport.Limit);
+        Task positiveRequest = middleware(positive);
+        await ObserveCompletedHttpRequestAsync(positiveRequest);
 
         Assert.IsFalse(positiveLifetime.Aborted);
         Assert.AreEqual(1, source.Captures);
@@ -173,8 +176,9 @@ public sealed class HealthcheckHttpTransportTests
         else
         {
             Assert.AreEqual(positive.Response.ContentLength, positiveBody.Length);
-            TransportTestSupport.ValidateSnapshot(JsonNode.Parse(positiveBody.ToArray())!.AsObject(), view, true, true, active: 0);
+            TransportTestSupport.ValidateSnapshot(RequiredHttpJson(positiveBody.ToArray()), view, true, true, active: 0);
         }
+        await positiveRequest.WaitAsync(TransportTestSupport.Limit);
         Assert.AreEqual(before.Revision, service.CaptureSnapshot().Revision);
     }
 
@@ -196,7 +200,7 @@ public sealed class HealthcheckHttpTransportTests
             return snapshot;
         });
         IApplicationBuilder app = new ApplicationBuilder(services);
-        app.UseCisHealthcheck(source, options);
+        InstallValidHealthcheck(app, source, options);
         int businessCalls = 0;
         app.Run(_ => { businessCalls++; return Task.CompletedTask; });
         var context = new DefaultHttpContext();
@@ -208,7 +212,8 @@ public sealed class HealthcheckHttpTransportTests
         using var body = new MemoryStream();
         context.Response.Body = body;
 
-        await app.Build()(context).WaitAsync(TransportTestSupport.Limit);
+        Task request = app.Build()(context);
+        await ObserveCompletedHttpRequestAsync(request);
 
         Assert.AreEqual(1, source.Captures, "Cancellation must occur after the real snapshot read, beyond the entry cancellation guard.");
         Assert.IsTrue(cancellation.IsCancellationRequested);
@@ -221,6 +226,7 @@ public sealed class HealthcheckHttpTransportTests
         Assert.IsFalse(context.Response.Headers.ContainsKey("Expires"));
         Assert.AreEqual(0L, body.Length);
         Assert.AreEqual(0, businessCalls);
+        await request.WaitAsync(TransportTestSupport.Limit);
     }
 
     [TestMethod]
@@ -241,7 +247,7 @@ public sealed class HealthcheckHttpTransportTests
         context.Response.Body = body;
         int authorizationCalls = 0, businessCalls = 0;
         IApplicationBuilder app = new ApplicationBuilder(services);
-        app.UseCisHealthcheck(source, new HealthcheckOptions { DetailsEnabled = true }, received =>
+        InstallValidHealthcheck(app, source, new HealthcheckOptions { DetailsEnabled = true }, received =>
         {
             Assert.AreSame(context, received);
             authorizationCalls++;
@@ -283,7 +289,7 @@ public sealed class HealthcheckHttpTransportTests
         var authorization = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
         int authorizationCalls = 0, businessCalls = 0;
         IApplicationBuilder app = new ApplicationBuilder(services);
-        app.UseCisHealthcheck(source, options, received =>
+        InstallValidHealthcheck(app, source, options, received =>
         {
             Assert.AreSame(context, received);
             authorizationCalls++;
@@ -330,7 +336,7 @@ public sealed class HealthcheckHttpTransportTests
             return snapshot;
         });
         IApplicationBuilder app = new ApplicationBuilder(services);
-        app.UseCisHealthcheck(source, options);
+        InstallValidHealthcheck(app, source, options);
         app.Run(_ => { businessCalls++; return Task.CompletedTask; });
         RequestDelegate middleware = app.Build();
         var context = new DefaultHttpContext();
@@ -386,7 +392,7 @@ public sealed class HealthcheckHttpTransportTests
             throw new IOException("secret snapshot failure");
         });
         IApplicationBuilder app = new ApplicationBuilder(services);
-        app.UseCisHealthcheck(source, new HealthcheckOptions { DetailsEnabled = true }, _ =>
+        InstallValidHealthcheck(app, source, new HealthcheckOptions { DetailsEnabled = true }, _ =>
         {
             authorizationCalls++;
             return ValueTask.FromException<bool>(new InvalidOperationException("secret authorization failure"));
@@ -404,7 +410,8 @@ public sealed class HealthcheckHttpTransportTests
             using var body = new MemoryStream();
             context.Response.Body = body;
 
-            await middleware(context).WaitAsync(TransportTestSupport.Limit);
+            Task request = middleware(context);
+            await ObserveCompletedHttpRequestAsync(request);
 
             Assert.IsFalse(lifetime.Aborted, "An uncanceled reporting failure produces one complete HTTP error.");
             Assert.AreEqual(StatusCodes.Status500InternalServerError, context.Response.StatusCode);
@@ -416,7 +423,7 @@ public sealed class HealthcheckHttpTransportTests
             {
                 getLength = body.Length;
                 Assert.IsTrue(getLength is > 0 and <= 1024);
-                JsonObject error = JsonNode.Parse(body.ToArray())!.AsObject();
+                JsonObject error = RequiredHttpJson(body.ToArray());
                 TransportTestSupport.ValidateError(error, "ReportingUnavailable");
                 Assert.AreEqual(1, (int?)error["schemaVersion"]);
                 Assert.IsFalse(error.ContainsKey("protocolVersion"), "HTTP errors do not use the local-pipe protocol envelope.");
@@ -424,6 +431,7 @@ public sealed class HealthcheckHttpTransportTests
             }
             else { Assert.AreEqual(0L, body.Length, "HEAD must suppress the actual middleware body write."); }
             Assert.AreEqual(getLength, context.Response.ContentLength, "HEAD retains the complete GET representation's length.");
+            await request.WaitAsync(TransportTestSupport.Limit);
         }
         Assert.AreEqual(failureOrigin == "authorization" ? 2 : 0, authorizationCalls);
         Assert.AreEqual(failureOrigin == "authorization" ? 0 : 2, source.Captures);
@@ -437,7 +445,7 @@ public sealed class HealthcheckHttpTransportTests
         var source = new ObservingSnapshotSource(() => throw new InvalidOperationException("Denied authorization must not capture health."));
         IApplicationBuilder app = new ApplicationBuilder(services);
         int authorizationCalls = 0, businessCalls = 0;
-        app.UseCisHealthcheck(source, new HealthcheckOptions { DetailsEnabled = true }, _ =>
+        InstallValidHealthcheck(app, source, new HealthcheckOptions { DetailsEnabled = true }, _ =>
         {
             authorizationCalls++;
             return ValueTask.FromResult(false);
@@ -488,7 +496,7 @@ public sealed class HealthcheckHttpTransportTests
         using var services = new ServiceCollection().BuildServiceProvider();
         var source = new ObservingSnapshotSource(() => throw new InvalidOperationException("Business requests must not capture health."));
         IApplicationBuilder app = new ApplicationBuilder(services);
-        app.UseCisHealthcheck(source, new HealthcheckOptions { DetailsEnabled = false });
+        InstallValidHealthcheck(app, source, new HealthcheckOptions { DetailsEnabled = false });
         var context = new DefaultHttpContext();
         context.Request.Path = new PathString(path);
         context.Request.Method = HttpMethods.Post;
@@ -539,7 +547,7 @@ public sealed class HealthcheckHttpTransportTests
         HealthSnapshot before = service.CaptureSnapshot();
         var source = new ObservingSnapshotSource(service.CaptureSnapshot);
         IApplicationBuilder app = new ApplicationBuilder(services);
-        app.UseCisHealthcheck(source, options);
+        InstallValidHealthcheck(app, source, options);
         int businessCalls = 0;
         app.Run(_ => { businessCalls++; return Task.CompletedTask; });
         var context = new DefaultHttpContext();
@@ -606,7 +614,7 @@ public sealed class HealthcheckHttpTransportTests
         HealthSnapshot before = service.CaptureSnapshot();
         var source = new ObservingSnapshotSource(service.CaptureSnapshot);
         IApplicationBuilder app = new ApplicationBuilder(services);
-        app.UseCisHealthcheck(source, options);
+        InstallValidHealthcheck(app, source, options);
         int businessCalls = 0;
         app.Run(_ => { businessCalls++; return Task.CompletedTask; });
         var context = new DefaultHttpContext();
@@ -615,8 +623,10 @@ public sealed class HealthcheckHttpTransportTests
         using var body = new MemoryStream();
         context.Response.Body = body;
 
-        await app.Build()(context).WaitAsync(TransportTestSupport.Limit);
+        Task request = app.Build()(context);
+        await ObserveCompletedHttpRequestAsync(request);
 
+        Assert.AreEqual(1, source.Captures, "HEAD must capture its selected snapshot before making the complete response decision.");
         Assert.AreEqual(StatusCodes.Status200OK, context.Response.StatusCode);
         Assert.AreEqual("application/json; charset=utf-8", context.Response.ContentType);
         Assert.IsTrue(context.Response.ContentLength is > 0, "HEAD still makes the complete encoded report length decision.");
@@ -624,10 +634,83 @@ public sealed class HealthcheckHttpTransportTests
         Assert.AreEqual("no-cache", context.Response.Headers.Pragma.ToString());
         Assert.AreEqual("0", context.Response.Headers.Expires.ToString());
         Assert.AreEqual(0L, body.Length, "The middleware itself must suppress HEAD writes before the server's wire behavior.");
-        Assert.AreEqual(1, source.Captures);
         Assert.AreEqual(0, businessCalls);
         Assert.AreEqual(before.Revision, service.CaptureSnapshot().Revision);
+        await request.WaitAsync(TransportTestSupport.Limit);
     }
+
+    private static IApplicationBuilder InstallValidHealthcheck(IApplicationBuilder app, IHealthSnapshotSource source,
+        HealthcheckOptions options, Func<HttpContext, ValueTask<bool>>? authorizeDetails = null)
+    {
+        IApplicationBuilder installed;
+        try { installed = app.UseCisHealthcheck(source, options, authorizeDetails); }
+        catch (ArgumentException error)
+        {
+            Assert.Fail($"The admitted application, source, options and authorization combination must install; rejected parameter {error.ParamName}, type {error.GetType().Name}.");
+            throw;
+        }
+        Assert.AreSame(app, installed, "Registration must return the supplied application pipeline.");
+        return installed;
+    }
+
+    private static void AssertValidHostRegistration(string mode)
+    {
+        using var services = new ServiceCollection().BuildServiceProvider();
+        IApplicationBuilder app = new ApplicationBuilder(services);
+        var source = new ObservingSnapshotSource(() =>
+        {
+            Assert.Fail("Registration must not invoke the supplied snapshot source.");
+            return null!;
+        });
+        int authorizationCalls = 0;
+        var options = new HealthcheckOptions
+        {
+            DetailsEnabled = mode != "details-disabled",
+            MaxReportBytes = mode == "overflow" ? 1024 : 4194304,
+            PipeEnabled = mode is "parity" or "pipe-live",
+            PipeName = mode is "parity" or "pipe-live" ? "cis-fixture-" + Guid.NewGuid().ToString("N") : null,
+            PipeRequestTimeoutMs = mode == "parity" ? 15_000 : 1000,
+        };
+        // Exercise the actual public registration obligation before an invalid
+        // implementation can crash a child during otherwise valid host setup.
+        // The real child still uses its original capture and lifecycle path.
+        InstallValidHealthcheck(app, source, options, _ =>
+        {
+            authorizationCalls++;
+            Assert.Fail("Registration must not invoke application authorization.");
+            return ValueTask.FromResult(true);
+        });
+        Assert.AreEqual(0, source.Captures);
+        Assert.AreEqual(0, authorizationCalls);
+    }
+
+    private static async Task ObserveCompletedHttpRequestAsync(Task request)
+    {
+        // Observe actual settlement without unwrapping a reporting fault before
+        // the caller can assert the required HTTP status/body. Real watchdog or
+        // cancellation failures retain their original unqualified exception.
+        await Task.WhenAny(request).WaitAsync(TransportTestSupport.Limit);
+        if (request.IsCanceled || request.Exception?.Flatten().InnerExceptions
+            .Any(error => error is TimeoutException or OperationCanceledException) == true)
+        {
+            await request;
+        }
+        if (request.IsFaulted)
+        {
+            Console.WriteLine("Observed completed middleware fault before required HTTP response assertions: " + request.Exception);
+        }
+    }
+
+    private static JsonObject RequiredHttpJson(byte[] bytes)
+    {
+        Assert.IsTrue(bytes.Length > 0, "A GET response must publish its complete selected JSON representation.");
+        JsonNode? document = JsonNode.Parse(bytes);
+        Assert.IsInstanceOfType<JsonObject>(document, "The HTTP response representation must be a JSON object.");
+        return (JsonObject)document!;
+    }
+
+    private static async Task<JsonObject> ReadRequiredHttpJsonAsync(HttpResponseMessage response)
+        => RequiredHttpJson(await response.Content.ReadAsByteArrayAsync());
 
     private sealed class Host : IAsyncDisposable
     {
@@ -643,6 +726,7 @@ public sealed class HealthcheckHttpTransportTests
         }
         internal static async Task<Host> Start(string mode = "normal")
         {
+            AssertValidHostRegistration(mode);
             var host = new Host(mode);
             try
             {
@@ -668,7 +752,8 @@ public sealed class HealthcheckHttpTransportTests
         internal async Task<string> GetStringAsync(string path)
         {
             using HttpResponseMessage response = await GetAsync(path);
-            response.EnsureSuccessStatusCode();
+            Assert.AreEqual(HttpStatusCode.OK, response.StatusCode,
+                "This business request must receive its successful application response.");
             return await response.Content.ReadAsStringAsync();
         }
         private async Task<HttpResponseMessage> ObserveHttpAsync(Func<Task<HttpResponseMessage>> operation)
@@ -728,7 +813,7 @@ public sealed class HealthcheckHttpTransportTests
         JsonObject before = await host.Command();
         using HttpResponseMessage response = await host.GetAsync(path);
         Assert.AreEqual(HttpStatusCode.OK, response.StatusCode);
-        JsonObject snapshot = JsonNode.Parse(await response.Content.ReadAsStringAsync())!.AsObject();
+        JsonObject snapshot = await ReadRequiredHttpJsonAsync(response);
         TransportTestSupport.ValidateSnapshot(snapshot, view, true, true);
         Headers(response);
         JsonObject after = await host.Command();
@@ -748,7 +833,7 @@ public sealed class HealthcheckHttpTransportTests
         await using var host = await Host.Start(mode);
         using HttpResponseMessage response = await host.GetAsync(path);
         Assert.AreEqual(HttpStatusCode.InternalServerError, response.StatusCode);
-        TransportTestSupport.ValidateSnapshot(JsonNode.Parse(await response.Content.ReadAsStringAsync())!.AsObject(), path.EndsWith("details", StringComparison.Ordinal) ? "details" : "health", healthy, ready);
+        TransportTestSupport.ValidateSnapshot(await ReadRequiredHttpJsonAsync(response), path.EndsWith("details", StringComparison.Ordinal) ? "details" : "health", healthy, ready);
         Headers(response);
         Assert.AreEqual(0, (int?)(await host.Command())["businessCalls"]);
     }
@@ -787,7 +872,7 @@ public sealed class HealthcheckHttpTransportTests
         request.Headers.Add("X-Auth", "throw");
         using HttpResponseMessage response = await host.SendAsync(request);
         Assert.AreEqual(status, (int)response.StatusCode);
-        TransportTestSupport.ValidateError(JsonNode.Parse(await response.Content.ReadAsStringAsync())!.AsObject(), code);
+        TransportTestSupport.ValidateError(await ReadRequiredHttpJsonAsync(response), code);
         Headers(response);
         if (status == 405) { CollectionAssert.AreEquivalent(new[] { "GET", "HEAD" }, response.Content.Headers.Allow.ToArray()); }
         JsonObject state = await host.Command();
@@ -809,7 +894,7 @@ public sealed class HealthcheckHttpTransportTests
         Assert.AreEqual(HttpStatusCode.NotFound, response.StatusCode);
         Headers(response);
         if (method == "HEAD") { Assert.AreEqual("", await response.Content.ReadAsStringAsync()); }
-        else { TransportTestSupport.ValidateError(JsonNode.Parse(await response.Content.ReadAsStringAsync())!.AsObject(), "NotFound"); }
+        else { TransportTestSupport.ValidateError(await ReadRequiredHttpJsonAsync(response), "NotFound"); }
         JsonObject state = await host.Command();
         Assert.AreEqual(0, (int?)state["authorizationCalls"]);
         Assert.AreEqual(0, (int?)state["captures"]);
@@ -829,7 +914,7 @@ public sealed class HealthcheckHttpTransportTests
         using HttpResponseMessage response = await host.SendAsync(request);
         Assert.AreEqual(status, (int)response.StatusCode);
         if (method == "HEAD") { Assert.AreEqual("", await response.Content.ReadAsStringAsync()); }
-        else { TransportTestSupport.ValidateError(JsonNode.Parse(await response.Content.ReadAsStringAsync())!.AsObject(), code); }
+        else { TransportTestSupport.ValidateError(await ReadRequiredHttpJsonAsync(response), code); }
         Headers(response);
         JsonObject state = await host.Command();
         Assert.AreEqual(1, (int?)state["authorizationCalls"]);
@@ -848,7 +933,7 @@ public sealed class HealthcheckHttpTransportTests
         Assert.AreEqual(HttpStatusCode.InternalServerError, response.StatusCode);
         byte[] bytes = await response.Content.ReadAsByteArrayAsync();
         Assert.IsTrue(bytes.Length <= 1024);
-        TransportTestSupport.ValidateError(JsonNode.Parse(bytes)!.AsObject(), code);
+        TransportTestSupport.ValidateError(RequiredHttpJson(bytes), code);
         Headers(response);
     }
 
@@ -873,7 +958,7 @@ public sealed class HealthcheckHttpTransportTests
         for (int i = 0; i < 8; i++)
         {
             using HttpResponseMessage response = await host.GetAsync("/_health");
-            JsonObject snapshot = JsonNode.Parse(await response.Content.ReadAsStringAsync())!.AsObject();
+            JsonObject snapshot = await ReadRequiredHttpJsonAsync(response);
             bool healthy = (string?)snapshot["healthStatus"] == "Healthy";
             Assert.AreEqual(healthy ? HttpStatusCode.OK : HttpStatusCode.InternalServerError, response.StatusCode);
             Assert.AreEqual((i & 1) == 0, healthy);
@@ -933,6 +1018,7 @@ public sealed class HealthcheckHttpTransportTests
         using HttpResponseMessage response = await host.GetAsync(path);
         Assert.AreEqual(HttpStatusCode.OK, response.StatusCode);
         string httpJson = await response.Content.ReadAsStringAsync();
+        Assert.IsTrue(httpJson.Length > 0, "The GET response must publish its complete selected snapshot.");
         JsonObject envelope = await TransportTestSupport.RequestAsync(host.PipeName, "{\"protocolVersion\":1,\"view\":\"" + view + "\"}");
         JsonObject pipeSnapshot = TransportTestSupport.ValidateSnapshotEnvelope(envelope, view, true, true);
         Assert.IsTrue(JsonNode.DeepEquals(JsonNode.Parse(httpJson), pipeSnapshot), "The same detached source must produce the same complete selected view on both real transports.");

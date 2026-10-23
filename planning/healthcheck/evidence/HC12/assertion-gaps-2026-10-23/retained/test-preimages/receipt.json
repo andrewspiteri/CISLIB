@@ -1,0 +1,39 @@
+{
+  "schema": "cis.healthcheck.aspnet80-capture-assertion-order/v1",
+  "source": "implementations/csharp/tests/CIS.Core.IntegrationTests/Healthcheck/Reporting/HealthcheckHttpTransportTests.cs",
+  "beforeSha256": "7ec10cfed9f54adb8dbdcf61abc9a33f1d49d9e7158f9b8c2d5430c765bef676",
+  "afterSha256": "5ad60bbc994c0111e206e278d2344637159ede64702c0d88ce74c2b6499d0de7",
+  "preimage": "HealthcheckHttpTransportTests.before.cs.txt",
+  "onlyMethodsChanged": [
+    "CancellationAfterCaptureAbortsBeforeChangingResponseMetadataOrWriting(GET/HEAD)",
+    "HeadMiddlewareFormatsItsSnapshotAndNeverWritesToTheActualResponseBody"
+  ],
+  "actualIssue": {
+    "auditSha256": "bf37eacc456e37ef6f35d6b5abdb8740447f523867b8339d8e97e6bd05d2428e",
+    "nativeReportSha256": "cec959b47e92023f0db58b0467efeae40ca2258e990055f1860b78bdb937dcb1",
+    "nonDirectGuidHints": [
+      "1f3df50d-9972-8ca8-96c4-ba319fe58bb1",
+      "114204f2-3cee-880d-b2fa-763b1cd12873",
+      "1f1b557a-20e5-8793-ab3b-888641088c91"
+    ],
+    "oldActualSourceTarget": "CaptureReport body removal currentASPsource8c89ad2f..., no ID/status transfer",
+    "failureMechanism": "Each directly awaited completed middleware task before independent capture/HTTP assertions, exposing NRE before those assertions could execute"
+  },
+  "change": "Use existing completed-request observer; check actual capture count before HEAD metadata; after successful independent contract assertions await the actual request normally",
+  "unchangedObserverBehavior": "A real deadline/cancellation propagates; completed reporting exception is observed/logged; no generic exception-to-Assert.Fail conversion added",
+  "cleanup": "Existing service/body scopes and all lifecycle behavior retained",
+  "testsClaim": false,
+  "nativeMutationClaim": false,
+  "appliedKillCredit": 0,
+  "freshSnapshotAndNativeProofRequired": true,
+  "graphBeforeEdit": {
+    "fresh": true,
+    "buildId": "sha256:95af6961eb1a06190871f12fb4952f82f8ca5ceddf4772e36e99d2a24f19aae0",
+    "nodes": 19683,
+    "edges": 108525,
+    "errors": 0,
+    "warnings": 0,
+    "refreshAfterCombinedEdits": "Root coordinated"
+  },
+  "scope": "Only the two actual failing test methods in the authorized canonical fixture edited; no shipping/qualification/old77 evidence changed"
+}

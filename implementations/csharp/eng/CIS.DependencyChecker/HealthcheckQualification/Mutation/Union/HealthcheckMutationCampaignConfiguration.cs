@@ -14,8 +14,11 @@ internal static class HealthcheckMutationCampaignConfiguration
             "Complete native and maintained Stryker configurations are required.");
         JsonObject config = (JsonObject)native["stryker-config"]!;
         JsonObject maintainedOptions = (JsonObject)maintained["stryker-config"]!;
-        Need(Number(maintainedOptions, "additional-timeout") == 10000,
-            "Reviewed complete profiles require the unchanged maintained 10000 ms budget.");
+        int maintainedBudget = group == "aspnet" ? 750000 : 10000;
+        Need(Number(maintainedOptions, "additional-timeout") == maintainedBudget,
+            "Reviewed complete profiles require the unchanged maintained budget for their group.");
+        Need(Number(config, "additional-timeout") is not null,
+            "The native additional timeout must be represented as an exact JSON integer.");
         if (config.ContainsKey("disable-mix-mutants"))
         {
             Need(group is "unit-runtime" or "pipes" && config["disable-mix-mutants"] is JsonValue value
