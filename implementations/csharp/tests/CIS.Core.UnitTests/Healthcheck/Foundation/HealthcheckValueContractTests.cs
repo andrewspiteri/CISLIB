@@ -12,7 +12,12 @@ public sealed class HealthcheckValueContractTests
     [TestMethod]
     public void EmptyDiagnosticDoesNotInventOptionalValues()
     {
-        var diagnostic = new HealthDiagnostic();
+        HealthDiagnostic? diagnostic = null;
+        ArgumentException? rejection = null;
+        try { diagnostic = new HealthDiagnostic(); }
+        catch (ArgumentException error) { rejection = error; }
+        Assert.IsNull(rejection, "Omitted optional diagnostic values must be accepted.");
+        Assert.IsNotNull(diagnostic);
 
         Assert.IsNull(diagnostic.Code);
         Assert.IsNull(diagnostic.Message);
@@ -26,7 +31,12 @@ public sealed class HealthcheckValueContractTests
         string code = string.Concat(Enumerable.Repeat("\U0001F600", 64));
         string exceptionType = string.Concat(Enumerable.Repeat("\U0001F600", 256));
         string message = string.Concat(Enumerable.Repeat("\U0001F600", 1_024));
-        var exact = new HealthDiagnostic(code, message, exceptionType);
+        HealthDiagnostic? exact = null;
+        ArgumentException? rejection = null;
+        try { exact = new HealthDiagnostic(code, message, exceptionType); }
+        catch (ArgumentException error) { rejection = error; }
+        Assert.IsNull(rejection, "Valid diagnostic text at the exact scalar bounds must be accepted.");
+        Assert.IsNotNull(exact);
 
         Assert.AreEqual(code, exact.Code);
         Assert.AreEqual(exceptionType, exact.ExceptionType);
@@ -62,7 +72,12 @@ public sealed class HealthcheckValueContractTests
     public void RuntimeExceptionProjectionReplacesUnmatchedSurrogatesAndRetainsOnlyBoundedText()
     {
         var source = new InvalidOperationException("before\uD800middle\uDC00after");
-        var diagnostic = HealthDiagnostic.FromException(source, code: "EvaluationFailed");
+        HealthDiagnostic? diagnostic = null;
+        ArgumentException? rejection = null;
+        try { diagnostic = HealthDiagnostic.FromException(source, code: "EvaluationFailed"); }
+        catch (ArgumentException error) { rejection = error; }
+        Assert.IsNull(rejection, "Valid caller code and malformed runtime exception text must produce a sanitized diagnostic.");
+        Assert.IsNotNull(diagnostic);
 
         Assert.AreEqual("EvaluationFailed", diagnostic.Code);
         Assert.AreEqual("before\uFFFDmiddle\uFFFDafter", diagnostic.Message);
@@ -70,7 +85,13 @@ public sealed class HealthcheckValueContractTests
         Assert.IsTrue(diagnostic.IsTruncated);
 
         string retained = string.Concat(Enumerable.Repeat("\U0001F600", 1_024));
-        var bounded = HealthDiagnostic.FromException(new Exception(retained + "extra"));
+        var boundedSource = new Exception(retained + "extra");
+        HealthDiagnostic? bounded = null;
+        ArgumentException? boundedRejection = null;
+        try { bounded = HealthDiagnostic.FromException(boundedSource); }
+        catch (ArgumentException error) { boundedRejection = error; }
+        Assert.IsNull(boundedRejection, "Oversized valid runtime exception text must produce a scalar-bounded diagnostic.");
+        Assert.IsNotNull(bounded);
         Assert.AreEqual(retained, bounded.Message);
         Assert.IsTrue(bounded.IsTruncated);
     }
@@ -79,7 +100,12 @@ public sealed class HealthcheckValueContractTests
     public void ExplicitExceptionMessageUsesDirectTextValidationAndMayOverrideRuntimeMessage()
     {
         var source = new Exception("runtime\uD800message");
-        var diagnostic = HealthDiagnostic.FromException(source, message: "Owner supplied reason.");
+        HealthDiagnostic? diagnostic = null;
+        ArgumentException? rejection = null;
+        try { diagnostic = HealthDiagnostic.FromException(source, message: "Owner supplied reason."); }
+        catch (ArgumentException error) { rejection = error; }
+        Assert.IsNull(rejection, "A valid explicit caller message must override malformed runtime exception text.");
+        Assert.IsNotNull(diagnostic);
 
         Assert.AreEqual("Owner supplied reason.", diagnostic.Message);
         Assert.IsFalse(diagnostic.IsTruncated);
@@ -92,7 +118,12 @@ public sealed class HealthcheckValueContractTests
     public void RuntimeExceptionMessageGetterFailureIsOmittedAndExplicitTextAvoidsThatGetter()
     {
         var source = new ThrowingMessageException();
-        var omitted = HealthDiagnostic.FromException(source, code: "EvaluationFailed");
+        HealthDiagnostic? omitted = null;
+        ArgumentException? rejection = null;
+        try { omitted = HealthDiagnostic.FromException(source, code: "EvaluationFailed"); }
+        catch (ArgumentException error) { rejection = error; }
+        Assert.IsNull(rejection, "Valid caller code must permit projection when the runtime message getter fails.");
+        Assert.IsNotNull(omitted);
 
         Assert.AreEqual("EvaluationFailed", omitted.Code);
         Assert.IsNull(omitted.Message);
@@ -100,7 +131,12 @@ public sealed class HealthcheckValueContractTests
         Assert.IsTrue(omitted.IsTruncated);
         Assert.AreEqual(1, source.MessageReadCount);
 
-        var supplied = HealthDiagnostic.FromException(source, message: "Detached fallback.");
+        HealthDiagnostic? supplied = null;
+        ArgumentException? suppliedRejection = null;
+        try { supplied = HealthDiagnostic.FromException(source, message: "Detached fallback."); }
+        catch (ArgumentException error) { suppliedRejection = error; }
+        Assert.IsNull(suppliedRejection, "A valid explicit message must permit projection without the runtime message getter.");
+        Assert.IsNotNull(supplied);
         Assert.AreEqual("Detached fallback.", supplied.Message);
         Assert.IsFalse(supplied.IsTruncated);
         Assert.AreEqual(1, source.MessageReadCount);
@@ -228,7 +264,12 @@ public sealed class HealthcheckValueContractTests
     [TestMethod]
     public void CollectionFactoriesRepresentExactlyTheirSelectedPolicyObservation()
     {
-        var diagnostic = new HealthDiagnostic("RefreshFailed", "The refresh failed.");
+        HealthDiagnostic? diagnostic = null;
+        ArgumentException? rejection = null;
+        try { diagnostic = new HealthDiagnostic("RefreshFailed", "The refresh failed."); }
+        catch (ArgumentException error) { rejection = error; }
+        Assert.IsNull(rejection, "A valid refresh diagnostic code and message must be accepted.");
+        Assert.IsNotNull(diagnostic);
         var condition = HealthCollectionResult.Condition(true, diagnostic);
         Assert.AreEqual(HealthCollectionResultKind.Condition, condition.Kind);
         Assert.AreEqual(true, condition.IsFlagged);
@@ -336,7 +377,12 @@ public sealed class HealthcheckValueContractTests
     [TestMethod]
     public void WithMeasurementsCopiesReplacementWithoutChangingPriorPolicyResult()
     {
-        var diagnostic = new HealthDiagnostic("Failed");
+        HealthDiagnostic? diagnostic = null;
+        ArgumentException? rejection = null;
+        try { diagnostic = new HealthDiagnostic("Failed"); }
+        catch (ArgumentException error) { rejection = error; }
+        Assert.IsNull(rejection, "A valid execution diagnostic code must be accepted.");
+        Assert.IsNotNull(diagnostic);
         var original = HealthCollectionResult.Execution(HealthExecutionOutcome.Failed, diagnostic);
         var first = HealthMeasurement.Integer("first", 1, Observation);
         var second = HealthMeasurement.Integer("second", 2, Observation);
@@ -360,7 +406,12 @@ public sealed class HealthcheckValueContractTests
     public void ExecutionSnapshotNormalizesActualTimesWithoutInventingMissingFactsOrDurations()
     {
         Guid registrationId = Guid.NewGuid();
-        var originalError = new HealthDiagnostic("CallbackFailed");
+        HealthDiagnostic? originalError = null;
+        ArgumentException? rejection = null;
+        try { originalError = new HealthDiagnostic("CallbackFailed"); }
+        catch (ArgumentException error) { rejection = error; }
+        Assert.IsNull(rejection, "A valid callback diagnostic code must be accepted.");
+        Assert.IsNotNull(originalError);
         var snapshot = new HealthExecutionSnapshot(new HealthExecutionSnapshotData
         {
             RegistrationId = registrationId,
@@ -493,7 +544,13 @@ public sealed class HealthcheckValueContractTests
             new WeakReference(outer.Data),
             new WeakReference(attachment)
         };
-        return (HealthDiagnostic.FromException(outer), references);
+        HealthDiagnostic? diagnostic = null;
+        ArgumentException? rejection = null;
+        try { diagnostic = HealthDiagnostic.FromException(outer); }
+        catch (ArgumentException error) { rejection = error; }
+        Assert.IsNull(rejection, "A valid runtime exception graph must produce a detached diagnostic.");
+        Assert.IsNotNull(diagnostic);
+        return (diagnostic, references);
     }
 
     private sealed class ThrowingMessageException : Exception

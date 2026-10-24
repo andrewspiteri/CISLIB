@@ -340,7 +340,7 @@ public sealed class HealthExecutionBinderTests
             binding.Report(Outcome(id, 1, HealthExecutionOutcome.Failed));
             Assert.AreEqual(MonitorState.Unhealthy, Only(service).State);
             binding.Report(Outcome(id, 2, HealthExecutionOutcome.Succeeded));
-            binding.Report(Outcome(id, 3, HealthExecutionOutcome.Failed, diagnostic: new HealthDiagnostic("Refresh")));
+            binding.Report(Outcome(id, 3, HealthExecutionOutcome.Failed, diagnostic: AcceptedDiagnostic("Refresh")));
 
             HealthMonitorSnapshot monitor = Only(service);
             Assert.AreEqual(MonitorState.Healthy, monitor.State);
@@ -362,7 +362,7 @@ public sealed class HealthExecutionBinderTests
         IHealthExecutionBinding binding = HealthExecutionBinder.Bind(service, Failures(), Options(id));
         try
         {
-            binding.Report(Outcome(id, 7, HealthExecutionOutcome.Failed, diagnostic: new HealthDiagnostic("Original", new string('x', 1024))));
+            binding.Report(Outcome(id, 7, HealthExecutionOutcome.Failed, diagnostic: AcceptedDiagnostic("Original", new string('x', 1024))));
             HealthSnapshot before = service.CaptureSnapshot();
 
             InvalidOperationException error = Assert.ThrowsExactly<InvalidOperationException>(() =>
@@ -389,10 +389,10 @@ public sealed class HealthExecutionBinderTests
         IHealthExecutionBinding binding = HealthExecutionBinder.Bind(service, Failures(), Options(id));
         try
         {
-            binding.Report(Outcome(id, 1, HealthExecutionOutcome.Failed, diagnostic: new HealthDiagnostic("Failed", "reason", "Type")));
+            binding.Report(Outcome(id, 1, HealthExecutionOutcome.Failed, diagnostic: AcceptedDiagnostic("Failed", "reason", "Type")));
             HealthSnapshot before = service.CaptureSnapshot();
             Assert.AreEqual(HealthFactDisposition.Duplicate, binding.Report(Outcome(id, 1, HealthExecutionOutcome.Failed,
-                diagnostic: new HealthDiagnostic("Failed", "reason", "Type"), time: Epoch.ToOffset(TimeSpan.FromHours(-4)))));
+                diagnostic: AcceptedDiagnostic("Failed", "reason", "Type"), time: Epoch.ToOffset(TimeSpan.FromHours(-4)))));
             Assert.AreEqual(before.Revision, service.CaptureSnapshot().Revision);
         }
         finally
@@ -541,7 +541,7 @@ public sealed class HealthExecutionBinderTests
                 RegistrationId = id,
                 Kind = HealthExecutionFactKind.Retired,
                 OccurredAtUtc = Epoch,
-                IntegrationError = new HealthDiagnostic("OwnerUnavailable")
+                IntegrationError = AcceptedDiagnostic("OwnerUnavailable")
             };
             Assert.AreEqual(HealthFactDisposition.Recorded, binding.Report(retirement));
             Assert.AreEqual(0, service.CaptureSnapshot().MonitorCounts.Active);
@@ -925,4 +925,15 @@ public sealed class HealthExecutionBinderTests
         public INumericThresholdMonitor CreateNumericThreshold(NumericThresholdMonitorOptions options) { Calls++; throw new AssertFailedException("Foreign factory must not be invoked."); }
         public IAvailabilityMonitor CreateAvailability(AvailabilityMonitorOptions options) { Calls++; throw new AssertFailedException("Foreign factory must not be invoked."); }
     }
+    private static HealthDiagnostic AcceptedDiagnostic(string? code = null, string? message = null, string? exceptionType = null)
+    {
+        HealthDiagnostic? diagnostic = null;
+        ArgumentException? rejection = null;
+        try { diagnostic = new HealthDiagnostic(code, message, exceptionType); }
+        catch (ArgumentException error) { rejection = error; }
+        Assert.IsNull(rejection, "Valid diagnostic constructor arguments must produce a detached diagnostic.");
+        Assert.IsNotNull(diagnostic);
+        return diagnostic;
+    }
+
 }

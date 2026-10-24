@@ -136,7 +136,19 @@ public sealed class HealthCollectorAdmissionAndSettlementQualificationTests
     [TestMethod]
     public async Task AFailedCompletionUtcSampleRetainsItsDiagnosticAlongsideTheAlreadyCommittedSuccess()
     {
-        var clock = new CompletionFaultClock();
+        var clockFailure = new CompletionClockException();
+        HealthDiagnostic? projected = null;
+        ArgumentException? rejection = null;
+        try { projected = HealthDiagnostic.FromException(clockFailure, "Healthcheck.CollectionClock"); }
+        catch (ArgumentException error) { rejection = error; }
+        Assert.IsNull(rejection, "The actual completion-clock exception must support its valid diagnostic projection before collection begins.");
+        Assert.IsNotNull(projected);
+        Assert.AreEqual("Healthcheck.CollectionClock", projected.Code);
+        Assert.AreEqual(clockFailure.Message, projected.Message);
+        Assert.AreEqual(typeof(CompletionClockException).FullName, projected.ExceptionType);
+        Assert.IsFalse(projected.IsTruncated);
+
+        var clock = new CompletionFaultClock { Failure = clockFailure };
         await using var scope = new Scope(clock);
         IConsecutiveFailureMonitor monitor = scope.Monitor();
         Owner owner = scope.Owner();
@@ -285,6 +297,7 @@ public sealed class HealthCollectorAdmissionAndSettlementQualificationTests
     {
         private readonly ManualTimeProvider inner = new(Epoch);
         private int armedThread, armed, faults;
+        internal CompletionClockException? Failure { get; init; }
         internal int Faults => Volatile.Read(ref faults);
         internal void FailNextUtcOnThisThread()
         {
@@ -298,7 +311,7 @@ public sealed class HealthCollectorAdmissionAndSettlementQualificationTests
             if (Environment.CurrentManagedThreadId == Volatile.Read(ref armedThread) && Interlocked.Exchange(ref armed, 0) != 0)
             {
                 Interlocked.Increment(ref faults);
-                throw new CompletionClockException();
+                throw Failure ?? new CompletionClockException();
             }
             return inner.GetUtcNow();
         }

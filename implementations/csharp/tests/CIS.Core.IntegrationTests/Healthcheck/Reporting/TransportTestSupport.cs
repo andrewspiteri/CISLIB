@@ -122,7 +122,12 @@ internal static class TransportTestSupport
         Assert.IsNotNull((string?)snapshot["revision"]);
         Assert.IsTrue(((string)snapshot["capturedAtUtc"]!).EndsWith('Z'));
         Assert.AreEqual(active, (int?)snapshot["monitorCounts"]!["active"]);
-        if (view == "details") { Assert.AreEqual(active, snapshot["monitors"]!.AsArray().Count); }
+        if (view == "details")
+        {
+            JsonNode? monitors = snapshot["monitors"];
+            Assert.IsInstanceOfType<JsonArray>(monitors, "The details snapshot must contain its monitor array.");
+            Assert.AreEqual(active, ((JsonArray)monitors!).Count);
+        }
         else { Assert.IsFalse(snapshot.ContainsKey("monitors")); }
     }
 

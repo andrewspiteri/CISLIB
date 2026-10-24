@@ -31,8 +31,24 @@ public sealed class HealthCollectionSettlementMilestoneTests
             Assert.IsTrue(scope.State.TryEnter(operation));
             scope.State.CommitResult(operation, HealthCollectionResult.Execution(HealthExecutionOutcome.Succeeded));
         }
-        var acquisitionError = mode == "acquisition-fault" ? new HealthDiagnostic("Owner.Acquisition", "A bounded acquisition fault.") : null;
-        var cleanupError = mode == "cleanup-fault" ? new HealthDiagnostic("Owner.Cleanup", "A bounded cleanup fault.") : null;
+        HealthDiagnostic? acquisitionError = null;
+        if (mode == "acquisition-fault")
+        {
+            ArgumentException? acquisitionRejection = null;
+            try { acquisitionError = new HealthDiagnostic("Owner.Acquisition", "A bounded acquisition fault."); }
+            catch (ArgumentException error) { acquisitionRejection = error; }
+            Assert.IsNull(acquisitionRejection, "Valid acquisition diagnostic text must be accepted.");
+            Assert.IsNotNull(acquisitionError);
+        }
+        HealthDiagnostic? cleanupError = null;
+        if (mode == "cleanup-fault")
+        {
+            ArgumentException? cleanupRejection = null;
+            try { cleanupError = new HealthDiagnostic("Owner.Cleanup", "A bounded cleanup fault."); }
+            catch (ArgumentException error) { cleanupRejection = error; }
+            Assert.IsNull(cleanupRejection, "Valid cleanup diagnostic text must be accepted.");
+            Assert.IsNotNull(cleanupError);
+        }
         DateTimeOffset completedAt = Epoch.AddSeconds(7);
 
         HealthCollectionAttempt attempt = scope.State.Complete(operation, new(
@@ -191,8 +207,14 @@ public sealed class HealthCollectionSettlementMilestoneTests
             Assert.AreEqual(1L, completed.Monitors.Single().Outcomes!.Successful);
             Assert.AreEqual(0L, completed.Monitors.Single().Outcomes!.Failed);
 
+            HealthDiagnostic? lateDiagnostic = null;
+            ArgumentException? lateRejection = null;
+            try { lateDiagnostic = new HealthDiagnostic("Late.Completion"); }
+            catch (ArgumentException error) { lateRejection = error; }
+            Assert.IsNull(lateRejection, "A valid late-completion diagnostic code must be accepted.");
+            Assert.IsNotNull(lateDiagnostic);
             HealthCollectionAttempt duplicate = scope.State.Complete(operation,
-                new(HealthCollectionCompletionReason.LeaseAcquisitionFault, Epoch.AddDays(1), new HealthDiagnostic("Late.Completion")));
+                new(HealthCollectionCompletionReason.LeaseAcquisitionFault, Epoch.AddDays(1), lateDiagnostic));
 
             Assert.AreEqual(first.Disposition, duplicate.Disposition);
             Assert.AreEqual(first.EvaluationFailed, duplicate.EvaluationFailed);

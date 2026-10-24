@@ -101,8 +101,14 @@ public sealed class HealthCollectionMutationQualificationTests
         Assert.IsTrue(scope.State.TryEnter(operation));
         HealthMeasurement[] values = [HealthMeasurement.Integer("key-00", 101, Epoch.AddMinutes(1)), HealthMeasurement.Integer("overflow", 102, Epoch.AddMinutes(2))];
 
-        HealthCollectionAttempt attempt = scope.State.CommitResult(operation, required
-            ? HealthCollectionResult.Condition(true).WithMeasurements(values) : HealthCollectionResult.Diagnostics(values));
+        HealthCollectionResult result = required
+            ? HealthCollectionResult.Condition(true).WithMeasurements(values) : HealthCollectionResult.Diagnostics(values);
+        HealthCollectionAttempt? attempt = null;
+        ArgumentException? rejection = null;
+        try { attempt = scope.State.CommitResult(operation, result); }
+        catch (ArgumentException error) { rejection = error; }
+        Assert.IsNull(rejection, "The actual valid result must return its bounded retained-metric capacity diagnostic.");
+        Assert.IsNotNull(attempt);
 
         Assert.AreEqual(HealthCollectionDisposition.Committed, attempt.Disposition);
         Assert.AreEqual(!required, attempt.EvaluationFailed);
@@ -143,7 +149,12 @@ public sealed class HealthCollectionMutationQualificationTests
         IConsecutiveFailureMonitor monitor = scope.Failures();
         HealthCollectionReservation operation = scope.Reserve(scope.Attach(monitor)).Reservation!;
         Assert.IsTrue(scope.State.TryEnter(operation));
-        var firstDiagnostic = new HealthDiagnostic("FirstEvaluation", "actual first result");
+        HealthDiagnostic? firstDiagnostic = null;
+        ArgumentException? firstRejection = null;
+        try { firstDiagnostic = new HealthDiagnostic("FirstEvaluation", "actual first result"); }
+        catch (ArgumentException error) { firstRejection = error; }
+        Assert.IsNull(firstRejection, "Valid first-evaluation diagnostic text must be accepted.");
+        Assert.IsNotNull(firstDiagnostic);
         HealthCollectionAttempt first = firstIsFailure
             ? scope.State.CommitEvaluationFailure(operation, firstDiagnostic)
             : scope.State.CommitResult(operation, HealthCollectionResult.Execution(HealthExecutionOutcome.Succeeded));
@@ -176,7 +187,12 @@ public sealed class HealthCollectionMutationQualificationTests
         Assert.IsTrue(scope.State.TryEnter(operation));
         monitor.ReportSuccess();
         HealthSnapshot before = scope.Service.CaptureSnapshot();
-        var reason = new HealthDiagnostic("ObsoleteEvaluation");
+        HealthDiagnostic? reason = null;
+        ArgumentException? reasonRejection = null;
+        try { reason = new HealthDiagnostic("ObsoleteEvaluation"); }
+        catch (ArgumentException error) { reasonRejection = error; }
+        Assert.IsNull(reasonRejection, "A valid obsolete-evaluation diagnostic code must be accepted.");
+        Assert.IsNotNull(reason);
 
         HealthCollectionAttempt result = scope.State.CommitEvaluationFailure(operation, reason);
 
@@ -206,7 +222,13 @@ public sealed class HealthCollectionMutationQualificationTests
         {
             HealthCollectionAttempt early = scope.State.CommitResult(operation, HealthCollectionResult.Condition(true));
             AssertRetired(early);
-            AssertRetired(scope.State.CommitEvaluationFailure(operation, new HealthDiagnostic("BeforeEntry")));
+            HealthDiagnostic? beforeEntryDiagnostic = null;
+            ArgumentException? beforeEntryRejection = null;
+            try { beforeEntryDiagnostic = new HealthDiagnostic("BeforeEntry"); }
+            catch (ArgumentException error) { beforeEntryRejection = error; }
+            Assert.IsNull(beforeEntryRejection, "A valid before-entry diagnostic code must be accepted.");
+            Assert.IsNotNull(beforeEntryDiagnostic);
+            AssertRetired(scope.State.CommitEvaluationFailure(operation, beforeEntryDiagnostic));
         }
         HealthCollectionAttempt completion = scope.State.Complete(operation,
             new(entered ? HealthCollectionCompletionReason.Settled : HealthCollectionCompletionReason.RetiredBeforeInvocation, Epoch.AddSeconds(7)));
@@ -216,7 +238,13 @@ public sealed class HealthCollectionMutationQualificationTests
         HealthSnapshot beforeLateFacts = scope.Service.CaptureSnapshot();
         Assert.IsFalse(scope.State.TryEnter(operation));
         AssertRetired(scope.State.CommitResult(operation, HealthCollectionResult.Condition(true)));
-        AssertRetired(scope.State.CommitEvaluationFailure(operation, new HealthDiagnostic("AfterCompletion")));
+        HealthDiagnostic? afterCompletionDiagnostic = null;
+        ArgumentException? afterCompletionRejection = null;
+        try { afterCompletionDiagnostic = new HealthDiagnostic("AfterCompletion"); }
+        catch (ArgumentException error) { afterCompletionRejection = error; }
+        Assert.IsNull(afterCompletionRejection, "A valid after-completion diagnostic code must be accepted.");
+        Assert.IsNotNull(afterCompletionDiagnostic);
+        AssertRetired(scope.State.CommitEvaluationFailure(operation, afterCompletionDiagnostic));
         scope.State.Complete(operation, new(HealthCollectionCompletionReason.OwnerUnavailable, Epoch.AddYears(1)));
         Assert.AreEqual(beforeLateFacts.Revision, scope.Service.CaptureSnapshot().Revision);
         Assert.AreEqual(MonitorState.Healthy, scope.Snapshot(monitor).State);
@@ -237,7 +265,13 @@ public sealed class HealthCollectionMutationQualificationTests
         Assert.AreEqual(HealthCollectionReservationDisposition.Retired, local.State.TryReserve(target).Disposition);
         Assert.IsFalse(local.State.TryEnter(operation));
         AssertRetired(local.State.CommitResult(operation, HealthCollectionResult.Condition(true)));
-        AssertRetired(local.State.CommitEvaluationFailure(operation, new HealthDiagnostic("Foreign")));
+        HealthDiagnostic? foreignDiagnostic = null;
+        ArgumentException? foreignRejection = null;
+        try { foreignDiagnostic = new HealthDiagnostic("Foreign"); }
+        catch (ArgumentException error) { foreignRejection = error; }
+        Assert.IsNull(foreignRejection, "A valid foreign-evaluation diagnostic code must be accepted.");
+        Assert.IsNotNull(foreignDiagnostic);
+        AssertRetired(local.State.CommitEvaluationFailure(operation, foreignDiagnostic));
         AssertRetired(local.State.Complete(operation, new(HealthCollectionCompletionReason.OwnerUnavailable, Epoch)));
         Task foreignSettlement = local.State.WaitForSettlementAsync(operation);
         Assert.IsTrue(foreignSettlement.IsCompletedSuccessfully,

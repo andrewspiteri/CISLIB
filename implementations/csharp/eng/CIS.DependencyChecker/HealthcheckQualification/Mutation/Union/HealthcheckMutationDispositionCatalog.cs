@@ -30,5 +30,6 @@ internal static class HealthcheckMutationDispositionCatalog
                 "Keep the raw Survived entry, its denominator and zero numerator; no other survivor or native integrity failure is classified.")
         }.Concat(HealthcheckMutationAspNetAwaitDispositionCatalog.Entries)
         .Concat(HealthcheckMutationPipeEquivalentDispositionCatalog.Entries)
-        .Concat(HealthcheckMutationUnitEquivalentDispositionCatalog.Entries).ToArray());
+        .Concat(HealthcheckMutationUnitEquivalentDispositionCatalog.Entries)
+        .Concat(HealthcheckMutationAspNet93DispositionCatalog.Entries).ToArray());
 }

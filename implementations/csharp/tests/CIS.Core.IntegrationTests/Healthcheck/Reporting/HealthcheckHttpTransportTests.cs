@@ -1,5 +1,6 @@
 using System.Diagnostics;
 using System.Net;
+using System.Text.Json;
 using System.Text.Json.Nodes;
 using CIS.Healthcheck;
 using CIS.Healthcheck.AspNetCore;
@@ -704,7 +705,12 @@ public sealed class HealthcheckHttpTransportTests
     private static JsonObject RequiredHttpJson(byte[] bytes)
     {
         Assert.IsTrue(bytes.Length > 0, "A GET response must publish its complete selected JSON representation.");
-        JsonNode? document = JsonNode.Parse(bytes);
+        JsonNode? document = null;
+        try { document = JsonNode.Parse(bytes); }
+        catch (JsonException error)
+        {
+            Assert.Fail("The HTTP response must contain one complete valid JSON representation: " + error.Message);
+        }
         Assert.IsInstanceOfType<JsonObject>(document, "The HTTP response representation must be a JSON object.");
         return (JsonObject)document!;
     }
@@ -973,7 +979,7 @@ public sealed class HealthcheckHttpTransportTests
         using var request = new HttpRequestMessage(HttpMethod.Get, "/_health/details"); request.Headers.Add("X-Auth", "block");
         using var cancellation = new CancellationTokenSource();
         Task<HttpResponseMessage> blocked = host.SendAsync(request, cancellation.Token);
-        await WaitForAuthorization(host);
+        await WaitForAuthorization(host, blocked);
         cancellation.Cancel();
         await Assert.ThrowsAsync<OperationCanceledException>(async () => { using HttpResponseMessage unexpected = await blocked; });
         using HttpResponseMessage healthy = await host.GetAsync("/_health");
@@ -1017,11 +1023,10 @@ public sealed class HealthcheckHttpTransportTests
         Assert.IsNotNull(host.PipeName);
         using HttpResponseMessage response = await host.GetAsync(path);
         Assert.AreEqual(HttpStatusCode.OK, response.StatusCode);
-        string httpJson = await response.Content.ReadAsStringAsync();
-        Assert.IsTrue(httpJson.Length > 0, "The GET response must publish its complete selected snapshot.");
+        JsonObject httpSnapshot = await ReadRequiredHttpJsonAsync(response);
         JsonObject envelope = await TransportTestSupport.RequestAsync(host.PipeName, "{\"protocolVersion\":1,\"view\":\"" + view + "\"}");
         JsonObject pipeSnapshot = TransportTestSupport.ValidateSnapshotEnvelope(envelope, view, true, true);
-        Assert.IsTrue(JsonNode.DeepEquals(JsonNode.Parse(httpJson), pipeSnapshot), "The same detached source must produce the same complete selected view on both real transports.");
+        Assert.IsTrue(JsonNode.DeepEquals(httpSnapshot, pipeSnapshot), "The same detached source must produce the same complete selected view on both real transports.");
         JsonObject state = await host.Command(); Assert.AreEqual(2, (int?)state["captures"]); Assert.AreEqual(0, (int?)state["businessCalls"]);
     }
 
@@ -1062,10 +1067,23 @@ public sealed class HealthcheckHttpTransportTests
         Assert.AreEqual(0L, body.Length);
     }
 
-    private static async Task WaitForAuthorization(Host host)
+    private static async Task WaitForAuthorization(Host host, Task<HttpResponseMessage> blocked)
     {
         using var timeout = new CancellationTokenSource(TransportTestSupport.Limit);
-        while ((int?)(await host.Command())["authorizationCalls"] == 0) { await Task.Delay(10, timeout.Token); }
+        while (true)
+        {
+            int? authorizationCalls = (int?)(await host.Command())["authorizationCalls"];
+            if (blocked.IsCompleted)
+            {
+                // A real request fault or timeout must retain its own failure.
+                using HttpResponseMessage unexpected = await blocked;
+                Assert.AreEqual(1, authorizationCalls, "The details request must invoke application authorization before completing.");
+                Assert.Fail("The blocking authorization predicate must not complete its response before client cancellation.");
+            }
+            if (authorizationCalls == 1) { return; }
+            Assert.AreEqual(0, authorizationCalls, "The pending details request must have a valid observed authorization count.");
+            await Task.Delay(10, timeout.Token);
+        }
     }
 
     private static void Headers(HttpResponseMessage response)

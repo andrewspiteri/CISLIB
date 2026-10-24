@@ -10,6 +10,9 @@ namespace CIS.Verification;
 // toolchains, mutate source, or claim an exact-package/release source replay.
 internal static class HealthcheckPlatformPreparation
 {
+    private const string ArchiveProfile = "omit-archived-healthcheck-evidence-v1";
+    private const string ArchivePrefix = "planning/healthcheck/evidence/";
+    private const string ArchiveSuffix = ".tar.gz";
     private sealed record InputFile(
         [property: JsonPropertyName("path")] string Path,
         [property: JsonPropertyName("sha256")] string Sha256,
@@ -40,6 +43,19 @@ internal static class HealthcheckPlatformPreparation
     internal static async Task<int> RunAsync(string[] args)
     {
         Dictionary<string, string> options = Parse(args);
+        bool omitArchives = options.ContainsKey("source-profile");
+        string policyDefinition = JsonSerializer.Serialize(new
+        {
+            schema = "cis.healthcheck.source-selection-policy/v1",
+            profile = omitArchives ? ArchiveProfile : "default",
+            omitArchivedEvidence = omitArchives,
+            pathPrefix = ArchivePrefix,
+            fileSuffix = ArchiveSuffix,
+            comparison = "Ordinal",
+            arbitraryPathExclusions = false,
+            requiredTreesAndFilesUnchanged = true
+        });
+        string policySha = Convert.ToHexStringLower(SHA256.HashData(Encoding.UTF8.GetBytes(policyDefinition)));
         string repo = Path.TrimEndingDirectorySeparator(Path.GetFullPath(options["repo-root"]));
         string output = Path.TrimEndingDirectorySeparator(Path.GetFullPath(options["output-root"]));
         Require(Directory.Exists(repo), "The repository root does not exist.");
@@ -56,6 +72,7 @@ internal static class HealthcheckPlatformPreparation
         string snapshot = Path.Combine(output, "source");
         string manifestPath = Path.Combine(output, "source-inputs.json");
         string reportPath = Path.Combine(output, "preparation.json");
+        string archiveOmissionsPath = Path.Combine(output, "archive-omissions.json");
         var omissions = new List<Omission>();
         var report = new Dictionary<string, object?>
         {
@@ -69,6 +86,8 @@ internal static class HealthcheckPlatformPreparation
             ["preparedOn"] = RuntimeInformation.OSDescription,
             ["preparerAssemblySha256"] = await HashAsync(typeof(HealthcheckPlatformPreparation).Assembly.Location),
             ["selection"] = new { requiredTrees = RequiredTrees, requiredFiles = RequiredFiles, optionalTrees = OptionalTrees },
+            ["selectionPolicy"] = JsonSerializer.Deserialize<JsonElement>(policyDefinition),
+            ["selectionPolicySha256"] = policySha,
             ["excludedDirectoryNames"] = ExcludedDirectories.Order(StringComparer.Ordinal).ToArray(),
             ["outsideSelection"] = new[]
             {
@@ -82,8 +101,24 @@ internal static class HealthcheckPlatformPreparation
         await WriteJsonAsync(reportPath, report, createNew: true);
         try
         {
-            InputFile[] before = await CaptureAsync(repo, omissions);
+            var archiveBefore = new List<InputFile>();
+            InputFile[] before = await CaptureAsync(repo, omissions, omitArchives, archiveBefore);
             Require(before.Length > 0, "The selected snapshot is empty.");
+            await WriteJsonAsync(archiveOmissionsPath, new
+            {
+                schema = "cis.healthcheck.archive-source-omissions/v1-development",
+                selectionPolicy = JsonSerializer.Deserialize<JsonElement>(policyDefinition),
+                selectionPolicySha256 = policySha,
+                files = archiveBefore,
+                omittedFileCount = archiveBefore.Count,
+                omittedBytes = archiveBefore.Sum(file => file.Bytes),
+                omittedInputsSha256 = Digest(archiveBefore),
+                sourceModificationOrDeletionPerformedByPolicy = false
+            }, createNew: true);
+            string archiveManifestPin = await HashAsync(archiveOmissionsPath);
+            report["archiveOmissionsManifestSha256"] = archiveManifestPin;
+            report["omittedArchiveCount"] = archiveBefore.Count;
+            report["omittedArchiveBytes"] = archiveBefore.Sum(file => file.Bytes);
             string selectedDigest = Digest(before);
             await WriteJsonAsync(manifestPath, new
             {
@@ -117,11 +152,15 @@ internal static class HealthcheckPlatformPreparation
                     "Input or destination changed while copying: " + file.Path);
             }
 
-            InputFile[] after = await CaptureAsync(repo, []);
+            var archiveAfter = new List<InputFile>();
+            InputFile[] after = await CaptureAsync(repo, [], omitArchives, archiveAfter);
             Require(before.SequenceEqual(after), "The selected source file set or bytes changed during preparation.");
+            Require(archiveBefore.SequenceEqual(archiveAfter), "The exact omitted archive set or bytes changed during preparation.");
             InputFile[] copied = await CaptureDestinationAsync(snapshot);
             Require(before.SequenceEqual(copied), "The copied source file set or bytes differ from the immutable source manifest.");
             Require(await HashAsync(manifestPath) == manifestPin, "The immutable source-input manifest changed during preparation.");
+            Require(await HashAsync(archiveOmissionsPath) == archiveManifestPin, "The immutable archive-omissions manifest changed during preparation.");
+            report["omittedArchivesVerifiedAgainstSourceBeforeAndAfterCopy"] = true;
             report["sourceVerifiedAfterCopy"] = true;
             report["destinationVerifiedAgainstSourceManifest"] = true;
             report["destinationInputsSha256"] = Digest(copied);
@@ -144,14 +183,17 @@ internal static class HealthcheckPlatformPreparation
         var options = new Dictionary<string, string>(StringComparer.Ordinal);
         for (int i = 0; i < args.Length; i += 2)
         {
-            RequireArgument(i + 1 < args.Length && (args[i] is "--repo-root" or "--output-root"), "Use --repo-root <path> --output-root <new-or-empty-path>.");
+            RequireArgument(i + 1 < args.Length && (args[i] is "--repo-root" or "--output-root" or "--source-profile"), "Use --repo-root <path> --output-root <new-or-empty-path> [--source-profile omit-archived-healthcheck-evidence-v1].");
             RequireArgument(!string.IsNullOrWhiteSpace(args[i + 1]) && options.TryAdd(args[i][2..], args[i + 1]), "Use each named option once with a nonblank value.");
         }
-        RequireArgument(options.Count == 2, "Both --repo-root and --output-root are required.");
+        RequireArgument(options.ContainsKey("repo-root") && options.ContainsKey("output-root") && options.Count is 2 or 3,
+            "Both --repo-root and --output-root are required; only the fixed optional source profile is supported.");
+        RequireArgument(!options.TryGetValue("source-profile", out string? profile) || profile == ArchiveProfile,
+            "Only the explicit omit-archived-healthcheck-evidence-v1 source profile is supported; arbitrary trimming is forbidden.");
         return options;
     }
 
-    private static async Task<InputFile[]> CaptureAsync(string repo, List<Omission> omissions)
+    private static async Task<InputFile[]> CaptureAsync(string repo, List<Omission> omissions, bool omitArchives, List<InputFile> archiveOmissions)
     {
         var paths = new List<string>();
         foreach (string file in RequiredFiles)
@@ -179,7 +221,12 @@ internal static class HealthcheckPlatformPreparation
             Require(names.Add(path), "Duplicate or case-colliding snapshot path: " + path);
             string full = Contained(repo, path);
             EnsureNoLinks(full);
-            result.Add(new(path, await HashAsync(full), new FileInfo(full).Length));
+            var captured = new InputFile(path, await HashAsync(full), new FileInfo(full).Length);
+            if (omitArchives && path.StartsWith(ArchivePrefix, StringComparison.Ordinal) && path.EndsWith(ArchiveSuffix, StringComparison.Ordinal))
+            {
+                archiveOmissions.Add(captured);
+            }
+            else { result.Add(captured); }
         }
         return result.ToArray();
     }

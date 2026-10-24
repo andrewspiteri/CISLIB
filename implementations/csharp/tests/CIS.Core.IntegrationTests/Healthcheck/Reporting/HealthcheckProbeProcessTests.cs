@@ -9,21 +9,30 @@ using MutationChildren = CIS.Verification.HealthcheckMutationChildren.Healthchec
 namespace CIS.Tests.IntegrationTests.Healthcheck.Reporting;
 
 [TestClass]
-public sealed class HealthcheckProbeProcessTests
+public sealed partial class HealthcheckProbeProcessTests
 {
     private sealed class Probe : IAsyncDisposable
     {
         private readonly Process child;
         private readonly Task<string> stdout, stderr;
-        internal Probe(IEnumerable<string> arguments)
+        private readonly bool captureExit;
+        private Task? observedExit;
+        internal Process ActualChild => child;
+        internal Task<string> ActualOutput => stdout;
+        internal Task<string> ActualError => stderr;
+        internal Task? ActualExit => observedExit;
+        internal Probe(IEnumerable<string> arguments, bool captureExit = false)
         {
+            this.captureExit = captureExit;
             child = Process.Start(TransportTestSupport.StartInfo("healthcheck-probe", "CisHealthProbe", arguments))!;
             MutationChildren.ObserveStarted(child);
             stdout = child.StandardOutput.ReadToEndAsync(); stderr = child.StandardError.ReadToEndAsync();
         }
         internal async Task<(int Exit, string Output, string Error)> Finish()
         {
-            try { await child.WaitForExitAsync().WaitAsync(TransportTestSupport.Limit); }
+            Task exiting = child.WaitForExitAsync();
+            if (captureExit) { observedExit = exiting; }
+            try { await exiting.WaitAsync(TransportTestSupport.Limit); }
             catch (TimeoutException) { MutationChildren.MarkTimeout(child, "probe-finish"); throw; }
             string output = await stdout, error = await stderr;
             Assert.IsTrue(error.Length <= 1024, "CLI error text remains bounded.");
@@ -56,20 +65,11 @@ public sealed class HealthcheckProbeProcessTests
     [DataRow("details", false, true, true, 0)]
     [DataRow("details", true, true, true, 1)]
     [DataRow("details", false, true, false, 2)]
-    public async Task ActualProbeProcessExitsExactlyForSelectedCompleteView(string view, bool unhealthy, bool startup, bool details, int exit)
+    public Task ActualProbeProcessExitsExactlyForSelectedCompleteView(string view, bool unhealthy, bool startup, bool details, int exit)
     {
-        string pipe = TransportTestSupport.NewPipeName();
-        var options = new HealthcheckOptions { PipeEnabled = true, PipeName = pipe, DetailsEnabled = details };
-        await using var service = new HealthcheckService(options, new HealthApplicationIdentity { Name = "probe-fixture", InstanceId = Guid.NewGuid() });
-        await using IConditionMonitor monitor = service.CreateCondition(new ConditionMonitorOptions { IsCritical = true, InitiallyFlagged = unhealthy });
-        if (startup) { service.MarkStartupCompleted(); }
-        var server = new HealthPipeServer(service, options);
-        await using var serverCleanup = new TransportTestSupport.PipeServerCleanup(server);
-        await TransportTestSupport.StartServerAsync(server, pipe);
-        await using var probe = new Probe(["--pipe", pipe, "--view", view, "--timeout-ms", "3000"]);
-        var result = await probe.Finish(); Assert.AreEqual(exit, result.Exit, result.Error);
-        if (exit == 2) { ErrorResult(result, "DetailsDisabled"); }
-        else { TransportTestSupport.ValidateSnapshot(JsonNode.Parse(result.Output)!.AsObject(), view, !unhealthy, startup && !unhealthy); Assert.AreEqual("", result.Error); }
+        ProbeProcessObservation observed = RunProbeProcessScenario(view, unhealthy, startup, details, exit);
+        ReviewProbeProcessScenario(observed);
+        return Task.CompletedTask;
     }
 
     [TestMethod]

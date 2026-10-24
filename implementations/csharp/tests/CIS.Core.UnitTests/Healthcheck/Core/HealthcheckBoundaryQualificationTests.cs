@@ -128,13 +128,13 @@ public sealed class HealthcheckBoundaryQualificationTests
         var clock = new ManualTimeProvider(new DateTimeOffset(2026, 10, 21, 12, 0, 0, TimeSpan.Zero));
         await using var service = Service(clock: clock);
         await using INumericThresholdMonitor monitor = service.CreateNumericThreshold(Numeric("ms"));
-        var previous = new HealthDiagnostic("SlowDependency", "The previous sample breached the threshold.");
+        var previous = AcceptedDiagnostic("SlowDependency", "The previous sample breached the threshold.");
         monitor.ReportValue(20, previous);
         HealthMonitorSnapshot failed = service.CaptureSnapshot().Monitors.Single();
         Assert.AreEqual(MonitorState.Unhealthy, failed.State);
         Assert.AreSame(previous, failed.Diagnostic);
         clock.Advance(TimeSpan.FromSeconds(1));
-        monitor.ReportValue(2, new HealthDiagnostic("UnusedHealthyReason", "A clear sample does not retain a failure reason."));
+        monitor.ReportValue(2, AcceptedDiagnostic("UnusedHealthyReason", "A clear sample does not retain a failure reason."));
         HealthSnapshot recovered = service.CaptureSnapshot();
         HealthMonitorSnapshot actual = recovered.Monitors.Single();
         Assert.AreEqual(MonitorState.Healthy, actual.State);
@@ -245,4 +245,15 @@ public sealed class HealthcheckBoundaryQualificationTests
         IConditionMonitor monitor = service.CreateCondition(new ConditionMonitorOptions { IsCritical = true, InitiallyFlagged = true });
         return (new WeakReference(monitor), monitor.WaitForDisposalAsync(), monitor.MonitorId);
     }
+    private static HealthDiagnostic AcceptedDiagnostic(string? code = null, string? message = null, string? exceptionType = null)
+    {
+        HealthDiagnostic? diagnostic = null;
+        ArgumentException? rejection = null;
+        try { diagnostic = new HealthDiagnostic(code, message, exceptionType); }
+        catch (ArgumentException error) { rejection = error; }
+        Assert.IsNull(rejection, "Valid diagnostic constructor arguments must produce a detached diagnostic.");
+        Assert.IsNotNull(diagnostic);
+        return diagnostic;
+    }
+
 }

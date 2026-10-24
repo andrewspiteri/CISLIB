@@ -1,4 +1,5 @@
 using System.IO.Pipes;
+using System.Runtime.CompilerServices;
 using System.Runtime.ExceptionServices;
 using System.Text;
 using System.Text.Json;
@@ -10,14 +11,21 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 namespace CIS.Tests.UnitTests.Healthcheck;
 
 [TestClass]
-public sealed class HealthPipeActiveCancellationBoundaryTests
+public sealed partial class HealthPipeActiveCancellationBoundaryTests
 {
     private static readonly TimeSpan Deadline = TimeSpan.FromSeconds(15);
 
     [TestMethod]
     [DataRow("stop")]
     [DataRow("dispose")]
-    public async Task ClosingTheTransportPrecedesSettlementOfItsActuallyRunningSource(string operation)
+    public void ClosingTheTransportPrecedesSettlementOfItsActuallyRunningSource(string operation)
+    {
+        ActiveSettlementObservation observed = RunConnectedSourceScenario(operation);
+        ReviewActualActiveSettlement(observed);
+    }
+
+    [MethodImpl(MethodImplOptions.NoInlining)]
+    private static ActiveSettlementObservation RunConnectedSourceScenario(string operation)
     {
         var service = new HealthcheckService(new(), new HealthApplicationIdentity
         {
@@ -27,26 +35,31 @@ public sealed class HealthPipeActiveCancellationBoundaryTests
         service.MarkStartupCompleted();
         using var release = new ManualResetEventSlim();
         var source = new GatedSource(service.CaptureSnapshot(), release);
+        var clock = new ObservedBudgetClock();
         string pipe = "hc-active-stop-" + Guid.NewGuid().ToString("N");
-        var server = new HealthPipeServer(source, new HealthcheckOptions
+        var options = new HealthcheckOptions
         {
             PipeEnabled = true,
             PipeName = pipe,
             PipeMaxClients = 1,
             PipeRequestTimeoutMs = 60000
-        });
-        using var client = new NamedPipeClientStream(".", pipe, PipeDirection.InOut, PipeOptions.Asynchronous);
+        };
+        HealthPipeServer? server = null;
+        NamedPipeClientStream? client = null;
         using var setup = new CancellationTokenSource(Deadline);
         Task<int>? reading = null;
         Task? terminal = null;
         Exception? failure = null;
         try
         {
-            await server.StartAsync().WaitAsync(Deadline);
-            await client.ConnectAsync(setup.Token);
-            await HealthReportProtocol.WriteFrameAsync(client,
-                Encoding.UTF8.GetBytes("{\"protocolVersion\":1,\"view\":\"health\"}"), 512, setup.Token);
-            await source.Entered.WaitAsync(Deadline);
+            // No actual client exists until the fresh endpoint's startup has
+            // succeeded and its concrete startup owner can be handed to us.
+            server = CreateStartedServer(source, options, clock);
+            client = new NamedPipeClientStream(".", pipe, PipeDirection.InOut, PipeOptions.Asynchronous);
+            JoinActual(client.ConnectAsync(setup.Token));
+            JoinActual(HealthReportProtocol.WriteFrameAsync(client,
+                Encoding.UTF8.GetBytes("{\"protocolVersion\":1,\"view\":\"health\"}"), 512, setup.Token));
+            JoinActual(source.Entered);
 
             // The actual request is inside CaptureSnapshot. No response byte
             // can be generated until this source's owned release gate opens.
@@ -56,7 +69,7 @@ public sealed class HealthPipeActiveCancellationBoundaryTests
             Assert.IsFalse(terminal.IsCompleted, "The transport still owns the source invocation that has entered.");
             try
             {
-                Assert.AreEqual(0, await reading.WaitAsync(Deadline), "Closing a pending response cannot emit a successful prefix.");
+                Assert.AreEqual(0, JoinActual(reading), "Closing a pending response cannot emit a successful prefix.");
             }
             catch (IOException)
             {
@@ -73,30 +86,7 @@ public sealed class HealthPipeActiveCancellationBoundaryTests
         }
         catch (Exception error) { failure = error; }
 
-        await FinishPreservingFailureAsync(failure, async () =>
-        {
-            // Release the actual callback before joining any transport drain.
-            // Disposing the client also releases its real read on a mutant.
-            release.Set();
-            client.Dispose();
-            try
-            {
-                if (reading is not null)
-                {
-                    try { _ = await reading.WaitAsync(Deadline); }
-                    catch (Exception error) when (error is IOException or ObjectDisposedException) { }
-                }
-            }
-            finally
-            {
-                try { await (terminal ?? server.StopAsync()).WaitAsync(Deadline); }
-                finally
-                {
-                    try { await server.DisposeAsync().AsTask().WaitAsync(Deadline); }
-                    finally { await service.DisposeAsync().AsTask().WaitAsync(Deadline); }
-                }
-            }
-        });
+        return ReleaseAndObserveActualActiveOwners(server, source, clock, service, release, client, reading, terminal, failure);
     }
 
     [TestMethod]
@@ -166,15 +156,29 @@ public sealed class HealthPipeActiveCancellationBoundaryTests
     private sealed class GatedSource(HealthSnapshot snapshot, ManualResetEventSlim release) : IHealthSnapshotSource
     {
         private readonly TaskCompletionSource entered = new(TaskCreationOptions.RunContinuationsAsynchronously);
-        private int captures;
+        private readonly TaskCompletionSource returned = new(TaskCreationOptions.RunContinuationsAsynchronously);
+        private int captures, returns;
+        private Exception? actualFailure;
         internal Task Entered => entered.Task;
         internal int Captures => Volatile.Read(ref captures);
+        internal int Returns => Volatile.Read(ref returns);
+        internal Task Returned => returned.Task;
+        internal Exception? ActualFailure => Volatile.Read(ref actualFailure);
         public HealthSnapshot CaptureSnapshot()
         {
             Interlocked.Increment(ref captures);
             entered.TrySetResult();
-            if (!release.Wait(TimeSpan.FromSeconds(30))) { throw new TimeoutException("The owned source was not released during cleanup."); }
-            return snapshot;
+            try
+            {
+                if (!release.Wait(TimeSpan.FromSeconds(30))) { throw new TimeoutException("The owned source was not released during cleanup."); }
+                return snapshot;
+            }
+            catch (Exception error)
+            {
+                Interlocked.CompareExchange(ref actualFailure, error, null);
+                throw;
+            }
+            finally { Interlocked.Increment(ref returns); returned.TrySetResult(); }
         }
     }
 }

@@ -1,0 +1,13 @@
+# Unit143 deadline-closure receipt peer
+
+Bounded read-only review of exactly five files in `execution183-unit143-closure-readback01/execution183-unit143-closure01`; not a full native/capture/kernel audit. Root retained original2840-byte packet SHA-256 `7a4a6f02a491bcaa78662af7e7b02b49fbe1b1d71758127dae468726eb3ab8dc`.
+
+The actual controller ended incomplete at its reviewed whole-campaign deadline. Physical `results.json` SHA-256 `2634c4442b9495169d0e19b10fa29ad5e2ebe13db7ec2d0d37a5c843b192e167` records `completeExecution=false`, `guardViolation=ReviewedCompleteCampaignDeadline`, maximum720minutes, elapsed43213.4664726seconds and `nativeExit=null`. This is a controller budget failure, not a completed mutant/report outcome or a confirmed subject nontermination disposition.
+
+`failed-process.json` SHA-256 `ccc02b400dd0152d6f4dfe84c810f66d70be5aa35d0bdd6c670e2aad751732ef` records the owned native-phase strace process PID1751311, begun03:01:40.098434UTC, forcibly stopped14:59:59.900163UTC, actual exit137, `forcedStop=true`, and no recorded stop/drain failure. That process receipt does not independently prove every descendant's kernel lifetime or supply the missing raw native completion code. The wrapper console announces the same native PID/deadline exception and final result hash; wrapper exit is1 and finished marker is `2026-10-24T15:00:04Z`.
+
+Results explicitly leave `scopeValidated=false`, `actualShutdownCaptureValidated=false`, `nativeCoreDllRestorationVerifiedBeforeFresh=false`, emitted budget null and `unresolvedAuditIssuesRetained=null`. These are incomplete/unperformed closure obligations, not zero issues. `receivingFailure=null` is not evidence of a successful receiving audit. The actual configured shutdown5000ms and successful strace preflight/initial build/original process records do not establish later all-host normality, restored images, fresh controls or campaign qualification. Configured cohort1389/41source files remains declared scope, not a completed result count in these five receipts.
+
+Previously independently observed seven143 aborted sessions remain held; these compact final receipts neither re-audit nor clear them. Whole originals remain necessary for later source/report/capture/restoration review. No raw statuses, classifier/exclusions, policy, accepted score or kill credit changed; complete partition and whole union/gate remain false.
+
+Remaining physical receipt hashes: console `9ad55ad6d3530cea34cf32ffe5b6eb180c9ebd70e0bc7b0a69c12a0dec0481ec`; wrapper exit `4355a46b19d348dc2f57c046f8ef63d4538ebb936000f3c9ee954a27460dd865`; finished marker `86c2df356764485cce2467912f1db41c3309d26ff135a422ab75ea080815c100`. No helper/build/test/SSH/full-tree processing was performed by this reviewer.

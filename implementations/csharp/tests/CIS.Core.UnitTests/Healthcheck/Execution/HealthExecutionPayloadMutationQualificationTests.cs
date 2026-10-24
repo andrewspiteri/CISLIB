@@ -82,17 +82,17 @@ public sealed class HealthExecutionPayloadMutationQualificationTests
     public async Task DetachedDiagnosticEqualityUsesEveryPublishedFieldAndRejectsContradictionsAtomically(string slot, string changed)
     {
         await using var scope = new PayloadScope();
-        var original = new HealthDiagnostic("code", new string('x', 1024), "exception-type");
+        var original = AcceptedDiagnostic("code", new string('x', 1024), "exception-type");
         Assert.AreEqual(HealthFactDisposition.Recorded, scope.Binding.Report(DiagnosticOutcome(scope.Id, slot, original)));
         HealthSnapshot before = scope.Service.CaptureSnapshot();
         Assert.AreEqual(HealthFactDisposition.Duplicate, scope.Binding.Report(DiagnosticOutcome(scope.Id, slot,
-            new HealthDiagnostic("code", new string('x', 1024), "exception-type"))));
+            AcceptedDiagnostic("code", new string('x', 1024), "exception-type"))));
         HealthDiagnostic conflicting = changed switch
         {
-            "code" => new("changed", original.Message, original.ExceptionType),
-            "message" => new(original.Code, "changed", original.ExceptionType),
-            "type" => new(original.Code, original.Message, "changed"),
-            "truncated" => new(original.Code, new string('x', 1025), original.ExceptionType),
+            "code" => AcceptedDiagnostic("changed", original.Message, original.ExceptionType),
+            "message" => AcceptedDiagnostic(original.Code, "changed", original.ExceptionType),
+            "type" => AcceptedDiagnostic(original.Code, original.Message, "changed"),
+            "truncated" => AcceptedDiagnostic(original.Code, new string('x', 1025), original.ExceptionType),
             _ => throw new AssertFailedException("Unknown diagnostic field.")
         };
         Assert.ThrowsExactly<InvalidOperationException>(() => scope.Binding.Report(DiagnosticOutcome(scope.Id, slot, conflicting)));
@@ -117,7 +117,7 @@ public sealed class HealthExecutionPayloadMutationQualificationTests
             ExecutionId = 1,
             Kind = HealthExecutionFactKind.IntegrationFault,
             OccurredAtUtc = Epoch,
-            IntegrationError = new HealthDiagnostic(code)
+            IntegrationError = AcceptedDiagnostic(code)
         };
         Assert.AreEqual(HealthFactDisposition.Recorded, scope.Binding.Report(Fault("first")));
         Assert.AreEqual(HealthFactDisposition.Recorded, scope.Binding.Report(Outcome(scope.Id)));
@@ -136,7 +136,7 @@ public sealed class HealthExecutionPayloadMutationQualificationTests
             WorkCompletedAtUtc = Epoch,
             SourcePhase = HealthExecutionPhase.Callback,
             Outcome = HealthExecutionOutcome.Failed,
-            IntegrationError = new("first")
+            IntegrationError = AcceptedDiagnostic("first")
         }));
         HealthSnapshot replaced = scope.Service.CaptureSnapshot();
         Assert.AreEqual("first", replaced.Monitors.Single().Outcomes!.Execution!.IntegrationError!.Code);
@@ -161,7 +161,7 @@ public sealed class HealthExecutionPayloadMutationQualificationTests
             Kind = HealthExecutionFactKind.IntegrationFault,
             OccurredAtUtc = Epoch,
             ErrorHandlingStartedAtUtc = Epoch,
-            IntegrationError = new("observer")
+            IntegrationError = AcceptedDiagnostic("observer")
         };
         if (hasRetainedContext) { Assert.ThrowsExactly<InvalidOperationException>(() => scope.Binding.Report(incomplete)); }
         else { Assert.ThrowsExactly<ArgumentException>(() => scope.Binding.Report(incomplete)); }
@@ -179,6 +179,17 @@ public sealed class HealthExecutionPayloadMutationQualificationTests
             ErrorHandlingStatus = HealthExecutionStepStatus.Running
         }));
         Assert.AreEqual(Epoch, scope.Service.CaptureSnapshot().Monitors.Single().Outcomes!.Execution!.ErrorHandlingStartedAtUtc);
+    }
+
+    private static HealthDiagnostic AcceptedDiagnostic(string? code = null, string? message = null, string? exceptionType = null)
+    {
+        HealthDiagnostic? diagnostic = null;
+        ArgumentException? rejection = null;
+        try { diagnostic = new HealthDiagnostic(code, message, exceptionType); }
+        catch (ArgumentException error) { rejection = error; }
+        Assert.IsNull(rejection, "Valid diagnostic constructor arguments must produce a detached diagnostic.");
+        Assert.IsNotNull(diagnostic);
+        return diagnostic;
     }
 
     private static HealthExecutionFact Outcome(Guid id, string? field = null) => new()
@@ -205,10 +216,10 @@ public sealed class HealthExecutionPayloadMutationQualificationTests
         ErrorHandlingStatus = field == "handler-start" ? HealthExecutionStepStatus.Running
             : field is "handler-end" or "handler-duration" or "handler-error" ? HealthExecutionStepStatus.Failed : null,
         CleanupStatus = field is "cleanup-end" or "cleanup-duration" or "cleanup-error" ? HealthExecutionStepStatus.Failed : null,
-        OriginalError = field == "original-error" ? new("owned-reason") : null,
-        ErrorHandlingError = field == "handler-error" ? new("owned-reason") : null,
-        CleanupError = field == "cleanup-error" ? new("owned-reason") : null,
-        IntegrationError = field == "integration-error" ? new("owned-reason") : null
+        OriginalError = field == "original-error" ? AcceptedDiagnostic("owned-reason") : null,
+        ErrorHandlingError = field == "handler-error" ? AcceptedDiagnostic("owned-reason") : null,
+        CleanupError = field == "cleanup-error" ? AcceptedDiagnostic("owned-reason") : null,
+        IntegrationError = field == "integration-error" ? AcceptedDiagnostic("owned-reason") : null
     };
 
     private static HealthExecutionFact DiagnosticOutcome(Guid id, string slot, HealthDiagnostic diagnostic) => new()

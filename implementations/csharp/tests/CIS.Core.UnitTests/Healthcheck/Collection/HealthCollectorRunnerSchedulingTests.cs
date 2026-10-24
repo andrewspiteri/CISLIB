@@ -565,7 +565,7 @@ public sealed class HealthCollectorRunnerSchedulingTests
         await Assert.ThrowsAsync<InvalidOperationException>(() => scope.Runner.StartAsync()).WaitAsync(Deadline);
         Assert.AreEqual(HealthCollectionDisposition.Retired, (await registration.Handle.CollectAsync().WaitAsync(Deadline)).Disposition);
         Assert.ThrowsExactly<ObjectDisposedException>(registration.Handle.ActivatePeriodic);
-        registration.Monitor.ReportFailure(new HealthDiagnostic("final", "Final owner report."));
+        registration.Monitor.ReportFailure(AcceptedDiagnostic("final", "Final owner report."));
         Assert.AreEqual(MonitorState.Unhealthy, scope.Snapshot(registration).State);
         Assert.IsFalse(scope.Service.CaptureSnapshot().Application.IsStopping);
         Assert.AreEqual(0, registration.Collector.Acquisitions);
@@ -822,4 +822,15 @@ public sealed class HealthCollectorRunnerSchedulingTests
             }
         }
     }
+    private static HealthDiagnostic AcceptedDiagnostic(string? code = null, string? message = null, string? exceptionType = null)
+    {
+        HealthDiagnostic? diagnostic = null;
+        ArgumentException? rejection = null;
+        try { diagnostic = new HealthDiagnostic(code, message, exceptionType); }
+        catch (ArgumentException error) { rejection = error; }
+        Assert.IsNull(rejection, "Valid diagnostic constructor arguments must produce a detached diagnostic.");
+        Assert.IsNotNull(diagnostic);
+        return diagnostic;
+    }
+
 }

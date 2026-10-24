@@ -94,9 +94,9 @@ public sealed class HealthExecutionSparseFactQualificationTests
             new ConsecutiveFailureMonitorOptions { IsCritical = true, FailureThreshold = 1 }, new() { RegistrationId = Guid.NewGuid() });
         try
         {
-            var original = new HealthDiagnostic("Work");
-            var cleanup = new HealthDiagnostic("Cleanup");
-            var integration = new HealthDiagnostic("LateObserver");
+            var original = AcceptedDiagnostic("Work");
+            var cleanup = AcceptedDiagnostic("Cleanup");
+            var integration = AcceptedDiagnostic("LateObserver");
             Assert.AreEqual(HealthFactDisposition.Recorded, binding.Report(Outcome(binding.RegistrationId, 1, original)));
             Assert.AreEqual(HealthFactDisposition.Recorded, binding.Report(new HealthExecutionFact
             {
@@ -235,4 +235,15 @@ public sealed class HealthExecutionSparseFactQualificationTests
         Task disposal = binding.DisposeAsync().AsTask();
         if (disposal.IsCompleted) { await disposal; }
     }
+    private static HealthDiagnostic AcceptedDiagnostic(string? code = null, string? message = null, string? exceptionType = null)
+    {
+        HealthDiagnostic? diagnostic = null;
+        ArgumentException? rejection = null;
+        try { diagnostic = new HealthDiagnostic(code, message, exceptionType); }
+        catch (ArgumentException error) { rejection = error; }
+        Assert.IsNull(rejection, "Valid diagnostic constructor arguments must produce a detached diagnostic.");
+        Assert.IsNotNull(diagnostic);
+        return diagnostic;
+    }
+
 }

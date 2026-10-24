@@ -1,0 +1,9 @@
+# Pipes180 source-plan clarification
+
+This addendum preserves the original source plan `pipes-complete-current-source-execution-plan01.md`, SHA-256 `61791a4ffbe2e3de5a39b22a9c9c002e1ed31dfcc81dc5b7ea1bf54a45940a60`. Root approved the prospective 180 roots and strict scope/capture/source/zero-issue/finite-budget design, pending actual current family binding and resource capacity. No controller, staging or campaign is supplied here.
+
+The complete Pipes configuration explicitly retains coverage analysis off. References in the original plan to "default perTest observation semantics" or "every perTest RunAll/RunSelected request" must therefore be read as actual native protocol observation for that exact coverage-off configuration. The future controller/helper must derive and validate the actual emitted RunAll and RunSelected requests, emitted RunSettings timeout, matching invocation/Using-T records, real requested/declared/completed identities and source-family ownership. It must not import the Unit default-perTest configuration or its selector assumptions, force a RunSelected request, fabricate a selection formula, or change the Pipes configuration to fit a reused helper. Unknown, missing, foreign or incoherent actual observations remain holds.
+
+Current Unit176 has closed with a complete fresh 1,389-case baseline containing the 500 current Unit Pipes identities. Developer179 is still executing; the complete current Integration Pipes filter identities and count remain unbound until its closed discovery/execution report is joined to the actual current fixture source/PDB. The narrow 56-case transport fixture cannot supply that complete-family count. No old 499/121/620 population or outcome transfer is permitted.
+
+Authoring the prospective complete Pipes controller remains dependent on root's actual complete-family input and capacity decision. Canonical files, shared outputs, Core builds, SSH and all campaign launches remain root-owned.

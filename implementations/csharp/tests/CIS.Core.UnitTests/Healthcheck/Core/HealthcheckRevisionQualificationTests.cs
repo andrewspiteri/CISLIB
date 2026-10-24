@@ -22,7 +22,7 @@ public sealed class HealthcheckRevisionQualificationTests
         {
             IsCritical = true,
             InitiallyFlagged = flagged,
-            InitialDiagnostic = flagged ? new HealthDiagnostic("InitialFlag") : null
+            InitialDiagnostic = flagged ? AcceptedDiagnostic("InitialFlag") : null
         });
         clock.Advance(TimeSpan.FromSeconds(11));
 
@@ -136,10 +136,10 @@ public sealed class HealthcheckRevisionQualificationTests
         IConditionMonitor monitor = service.CreateCondition(new ConditionMonitorOptions { IsCritical = true, InitiallyFlagged = false });
         HealthSnapshot initial = service.CaptureSnapshot();
         clock.Advance(TimeSpan.FromSeconds(1));
-        monitor.Flag(new HealthDiagnostic("First"));
+        monitor.Flag(AcceptedDiagnostic("First"));
         HealthSnapshot first = service.CaptureSnapshot();
         clock.Advance(TimeSpan.FromSeconds(1));
-        monitor.Flag(new HealthDiagnostic("Second"));
+        monitor.Flag(AcceptedDiagnostic("Second"));
         HealthSnapshot second = service.CaptureSnapshot();
         clock.Advance(TimeSpan.FromSeconds(1));
         monitor.Clear();
@@ -202,4 +202,15 @@ public sealed class HealthcheckRevisionQualificationTests
         HealthPolicyKind.FirstSuccessAvailability => service.CreateAvailability(new AvailabilityMonitorOptions { IsCritical = false }),
         _ => throw new ArgumentOutOfRangeException(nameof(policy))
     };
+    private static HealthDiagnostic AcceptedDiagnostic(string? code = null, string? message = null, string? exceptionType = null)
+    {
+        HealthDiagnostic? diagnostic = null;
+        ArgumentException? rejection = null;
+        try { diagnostic = new HealthDiagnostic(code, message, exceptionType); }
+        catch (ArgumentException error) { rejection = error; }
+        Assert.IsNull(rejection, "Valid diagnostic constructor arguments must produce a detached diagnostic.");
+        Assert.IsNotNull(diagnostic);
+        return diagnostic;
+    }
+
 }

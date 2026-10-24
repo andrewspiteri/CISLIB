@@ -1,4 +1,5 @@
 using System.IO.Pipes;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Text.Json;
 using CIS.Healthcheck;
@@ -9,7 +10,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 namespace CIS.Tests.UnitTests.Healthcheck;
 
 [TestClass]
-public sealed class HealthPipeReceivingBoundaryQualificationTests
+public sealed partial class HealthPipeReceivingBoundaryQualificationTests
 {
     private static readonly TimeSpan Deadline = TimeSpan.FromSeconds(15);
 
@@ -17,18 +18,27 @@ public sealed class HealthPipeReceivingBoundaryQualificationTests
     [DataRow("health", HealthReportView.Health)]
     [DataRow("readiness", HealthReportView.Readiness)]
     [DataRow("details", HealthReportView.Details)]
-    public async Task ASourceFailureRetainsTheCompleteSelectedPipeErrorEnvelope(string wireView, HealthReportView view)
+    public void ASourceFailureRetainsTheCompleteSelectedPipeErrorEnvelope(string wireView, HealthReportView view)
+    {
+        ReviewReceivingOwners(RunSourceErrorScenario(wireView, view));
+    }
+
+    [MethodImpl(MethodImplOptions.NoInlining)]
+    private static ReceivingObservation RunSourceErrorScenario(string wireView, HealthReportView view)
     {
         var service = CreateService();
         var source = new SnapshotSource(service, failFirstCapture: true);
         var options = ServerOptions();
-        var server = new HealthPipeServer(source, options);
-        using var cancellation = new CancellationTokenSource(Deadline);
+        var clock = new ReceivingSystemClock();
+        HealthPipeServer? server = null;
+        var cancellation = new CancellationTokenSource(Deadline);
+        var actualClients = new List<Task>();
+        Exception? failure = null;
         try
         {
-            await server.StartAsync().WaitAsync(Deadline);
+            server = CreateStartedServer(source, options, clock);
             HealthSnapshot before = service.CaptureSnapshot();
-            byte[] payload = await RequestAsync(options.PipeName!, wireView, cancellation.Token);
+            byte[] payload = RequestAndJoin(options.PipeName!, wireView, cancellation.Token, actualClients);
             using (JsonDocument response = JsonDocument.Parse(payload))
             {
                 JsonElement root = response.RootElement;
@@ -58,31 +68,38 @@ public sealed class HealthPipeReceivingBoundaryQualificationTests
             Assert.AreEqual(before.Application.IsStopping, after.Application.IsStopping);
 
             // A genuine source exception must leave the endpoint reusable.
-            byte[] recovered = await RequestAsync(options.PipeName!, wireView, cancellation.Token);
+            byte[] recovered = RequestAndJoin(options.PipeName!, wireView, cancellation.Token, actualClients);
             HealthParsedResponse success = HealthReportProtocol.ParseResponse(recovered, view, options.MaxReportBytes);
             Assert.IsFalse(success.IsError);
             Assert.IsTrue(success.SelectedHealthy);
             Assert.AreEqual(2, source.Captures);
         }
-        finally
-        {
-            await CloseAsync(server, service);
-        }
+        catch (Exception error) { failure = error; }
+        return ReleaseReceivingOwners(server, service, source, clock, options, cancellation, actualClients, ReceivingScenario.SourceError, failure);
     }
 
     [TestMethod]
     [DataRow("--timeout-ms", "-1")]
     [DataRow("--max-report-bytes", "1023")]
-    public async Task AnOutOfRangeCliNumberCannotBecomeACompleteHealthyExchange(string option, string invalidValue)
+    public void AnOutOfRangeCliNumberCannotBecomeACompleteHealthyExchange(string option, string invalidValue)
+    {
+        ReviewReceivingOwners(RunInvalidCliScenario(option, invalidValue));
+    }
+
+    [MethodImpl(MethodImplOptions.NoInlining)]
+    private static ReceivingObservation RunInvalidCliScenario(string option, string invalidValue)
     {
         var service = CreateService();
         var source = new SnapshotSource(service, failFirstCapture: false);
         var options = ServerOptions();
-        var server = new HealthPipeServer(source, options);
-        using var cancellation = new CancellationTokenSource(Deadline);
+        var clock = new ReceivingSystemClock();
+        HealthPipeServer? server = null;
+        var cancellation = new CancellationTokenSource(Deadline);
+        var actualClients = new List<Task>();
+        Exception? failure = null;
         try
         {
-            await server.StartAsync().WaitAsync(Deadline);
+            server = CreateStartedServer(source, options, clock);
             // The deliberately small, valid report fits the invalid 1023-byte
             // value. A size failure must not conceal acceptance of bad CLI input.
             HealthReportBuffer encoded = HealthReportFormatter.FormatPipeResponse(service.CaptureSnapshot(), HealthReportView.Health, options);
@@ -90,7 +107,7 @@ public sealed class HealthPipeReceivingBoundaryQualificationTests
             using (var primeOutput = new MemoryStream())
             using (var primeError = new StringWriter())
             {
-                int prime = await HealthProbeClient.RunAsync(["--pipe", options.PipeName!], primeOutput, primeError, cancellation.Token).WaitAsync(Deadline);
+                int prime = ProbeAndJoin(["--pipe", options.PipeName!], primeOutput, primeError, cancellation.Token, actualClients);
                 Assert.AreEqual(0, prime, "The real endpoint must first serve a complete healthy response.");
                 Assert.IsTrue(primeOutput.Length > 0);
                 Assert.AreEqual(string.Empty, primeError.ToString());
@@ -99,8 +116,8 @@ public sealed class HealthPipeReceivingBoundaryQualificationTests
             HealthSnapshot before = service.CaptureSnapshot();
             using var output = new MemoryStream();
             using var error = new StringWriter();
-            int exit = await HealthProbeClient.RunAsync(["--pipe", options.PipeName!, option, invalidValue],
-                output, error, cancellation.Token).WaitAsync(Deadline);
+            int exit = ProbeAndJoin(["--pipe", options.PipeName!, option, invalidValue],
+                output, error, cancellation.Token, actualClients);
             Assert.AreEqual(2, exit, "C08 rejects out-of-range numbers even when a healthy endpoint exists.");
             Assert.AreEqual(0L, output.Length, "Rejected input cannot print a selected health snapshot.");
             Assert.AreEqual(capturesBefore, source.Captures, "Argument rejection must not start a reporting exchange.");
@@ -110,47 +127,34 @@ public sealed class HealthPipeReceivingBoundaryQualificationTests
             Assert.AreEqual(before.HealthStatus, after.HealthStatus);
             Assert.AreEqual(before.Ready, after.Ready);
         }
-        finally
-        {
-            await CloseAsync(server, service);
-        }
+        catch (Exception error) { failure = error; }
+        return ReleaseReceivingOwners(server, service, source, clock, options, cancellation, actualClients, ReceivingScenario.InvalidCli, failure);
     }
 
     [TestMethod]
-    public async Task ARequestCompletedAtTheTotalDeadlineCannotEnterTheSnapshotSource()
+    public void ARequestCompletedAtTheTotalDeadlineCannotEnterTheSnapshotSource()
+    {
+        ReviewReceivingOwners(RunDeadlineScenario());
+    }
+
+    [MethodImpl(MethodImplOptions.NoInlining)]
+    private static ReceivingObservation RunDeadlineScenario()
     {
         var service = CreateService();
         var source = new SnapshotSource(service, failFirstCapture: false);
         var options = ServerOptions();
         var clock = new DelayedCallbackClock();
-        var server = new HealthPipeServer(source, options, clock);
-        using var cancellation = new CancellationTokenSource(Deadline);
+        HealthPipeServer? server = null;
+        var cancellation = new CancellationTokenSource(Deadline);
+        var actualClients = new List<Task>();
+        Exception? failure = null;
         try
         {
-            await server.StartAsync().WaitAsync(Deadline);
+            server = CreateStartedServer(source, options, clock);
             HealthSnapshot before = service.CaptureSnapshot();
-            using (var client = new NamedPipeClientStream(".", options.PipeName!, PipeDirection.InOut,
-                PipeOptions.Asynchronous | PipeOptions.CurrentUserOnly))
-            {
-                await client.ConnectAsync(cancellation.Token);
-                await clock.TimerCreated.Task.WaitAsync(Deadline);
-                byte[] request = Encoding.UTF8.GetBytes("{\"protocolVersion\":1,\"view\":\"health\"}");
-                byte[] framed = HealthReportProtocol.EncodeFrame(request, 512);
-                await client.WriteAsync(framed.AsMemory(0, framed.Length - 1), cancellation.Token);
-                await client.FlushAsync(cancellation.Token);
-                // This is a valid monotonic clock whose timer callback is late,
-                // matching the existing deadline tests. Advance before the last
-                // byte exists: a complete valid request cannot precede expiry.
-                clock.Advance(options.PipeRequestTimeoutMs);
-                await client.WriteAsync(framed.AsMemory(framed.Length - 1), cancellation.Token);
-                await client.FlushAsync(cancellation.Token);
-                try
-                {
-                    int received = await client.ReadAsync(new byte[1], cancellation.Token);
-                    Assert.AreEqual(0, received, "An expired request cannot advertise a response prefix.");
-                }
-                catch (IOException) { /* Actual close may be reported as a broken pipe. */ }
-            }
+            Task expired = RunExpiredClientAsync(options.PipeName!, options.PipeRequestTimeoutMs, clock, cancellation.Token);
+            actualClients.Add(expired);
+            JoinReceiving(expired);
             // Peer closure establishes that request processing finished. The
             // later post-capture budget check also closes an expired exchange;
             // verify that it was rejected before entering the snapshot source.
@@ -160,14 +164,12 @@ public sealed class HealthPipeReceivingBoundaryQualificationTests
             Assert.AreEqual(before.HealthStatus, after.HealthStatus);
             Assert.AreEqual(before.Ready, after.Ready);
 
-            byte[] recovered = await RequestAsync(options.PipeName!, "health", cancellation.Token);
+            byte[] recovered = RequestAndJoin(options.PipeName!, "health", cancellation.Token, actualClients);
             Assert.IsTrue(HealthReportProtocol.ParseResponse(recovered, HealthReportView.Health, options.MaxReportBytes).SelectedHealthy);
             Assert.AreEqual(1, source.Captures);
         }
-        finally
-        {
-            await CloseAsync(server, service);
-        }
+        catch (Exception error) { failure = error; }
+        return ReleaseReceivingOwners(server, service, source, clock, options, cancellation, actualClients, ReceivingScenario.Deadline, failure);
     }
 
     private static HealthcheckService CreateService()
@@ -196,47 +198,101 @@ public sealed class HealthPipeReceivingBoundaryQualificationTests
         return await HealthReportProtocol.ReadFrameAsync(client, 1024, cancellation);
     }
 
-    private static async Task CloseAsync(HealthPipeServer server, HealthcheckService service)
+    private static async Task RunExpiredClientAsync(string pipe, int timeoutMilliseconds, DelayedCallbackClock clock, CancellationToken cancellation)
     {
-        try
+        using (var client = new NamedPipeClientStream(".", pipe, PipeDirection.InOut,
+            PipeOptions.Asynchronous | PipeOptions.CurrentUserOnly))
         {
-            try { await server.StopAsync().WaitAsync(Deadline); }
-            finally { await server.DisposeAsync().AsTask().WaitAsync(Deadline); }
+            await client.ConnectAsync(cancellation);
+            await clock.TimerCreated.Task.WaitAsync(Deadline);
+            byte[] request = Encoding.UTF8.GetBytes("{\"protocolVersion\":1,\"view\":\"health\"}");
+            byte[] framed = HealthReportProtocol.EncodeFrame(request, 512);
+            await client.WriteAsync(framed.AsMemory(0, framed.Length - 1), cancellation);
+            await client.FlushAsync(cancellation);
+            // This is a valid monotonic clock whose timer callback is late,
+            // matching the existing deadline tests. Advance before the last
+            // byte exists: a complete valid request cannot precede expiry.
+            clock.Advance(timeoutMilliseconds);
+            await client.WriteAsync(framed.AsMemory(framed.Length - 1), cancellation);
+            await client.FlushAsync(cancellation);
+            try
+            {
+                int received = await client.ReadAsync(new byte[1], cancellation);
+                Assert.AreEqual(0, received, "An expired request cannot advertise a response prefix.");
+            }
+            catch (IOException) { /* Actual close may be reported as a broken pipe. */ }
         }
-        finally { await service.DisposeAsync().AsTask().WaitAsync(Deadline); }
+    }
+
+    private static byte[] RequestAndJoin(string pipe, string wireView, CancellationToken cancellation, List<Task> actualClients)
+    {
+        Task<byte[]> actual = RequestAsync(pipe, wireView, cancellation);
+        actualClients.Add(actual);
+        return JoinReceiving(actual);
+    }
+    private static int ProbeAndJoin(string[] arguments, Stream output, TextWriter error, CancellationToken cancellation, List<Task> actualClients)
+    {
+        Task<int> actual = HealthProbeClient.RunAsync(arguments, output, error, cancellation);
+        actualClients.Add(actual);
+        return JoinReceiving(actual);
     }
 
     private sealed class SnapshotSource(HealthcheckService service, bool failFirstCapture) : IHealthSnapshotSource
     {
-        private int captures;
-        internal int Captures => Volatile.Read(ref captures);
+        internal ReceivingSourcePhase Phase { get; } = new();
+        internal int Captures => Volatile.Read(ref Phase.Captures);
         public HealthSnapshot CaptureSnapshot()
         {
-            int current = Interlocked.Increment(ref captures);
-            if (failFirstCapture && current == 1) { throw new InvalidOperationException("private-source-detail"); }
-            return service.CaptureSnapshot();
+            int current = Interlocked.Increment(ref Phase.Captures);
+            try
+            {
+                if (failFirstCapture && current == 1)
+                {
+                    var actual = new InvalidOperationException("private-source-detail");
+                    Phase.RecordProduced(actual, current);
+                    throw actual;
+                }
+                return service.CaptureSnapshot();
+            }
+            catch (Exception error) { Phase.RecordFailure(error); throw; }
+            finally { Interlocked.Increment(ref Phase.Exits); }
         }
     }
 
-    private sealed class DelayedCallbackClock : TimeProvider
+    private sealed class DelayedCallbackClock() : ReceivingClock(manual: true)
     {
         private long timestamp;
         public override long TimestampFrequency => 1000;
         public override long GetTimestamp() => Volatile.Read(ref timestamp);
         internal TaskCompletionSource TimerCreated { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
-        internal void Advance(long milliseconds) => Interlocked.Add(ref timestamp, milliseconds);
+        internal void Advance(long milliseconds)
+        {
+            Interlocked.Increment(ref Phase.Advances);
+            Interlocked.Add(ref Phase.AdvancedMilliseconds, milliseconds);
+            Interlocked.Add(ref timestamp, milliseconds);
+        }
         public override ITimer CreateTimer(TimerCallback callback, object? state, TimeSpan dueTime, TimeSpan period)
         {
             TimerCreated.TrySetResult();
-            return new DelayedTimer();
+            // Preserve the original intentionally delayed timer: no callback
+            // or state is retained or invoked by this private manual timer.
+            var timer = new DelayedTimer();
+            RecordActualTimer(timer);
+            return timer;
         }
-
-        private sealed class DelayedTimer : ITimer
+        private sealed class DelayedTimer : ReceivingTimer
         {
             private int disposed;
-            public bool Change(TimeSpan dueTime, TimeSpan period) => Volatile.Read(ref disposed) == 0;
-            public void Dispose() => Interlocked.Exchange(ref disposed, 1);
-            public ValueTask DisposeAsync() { Dispose(); return ValueTask.CompletedTask; }
+            public override bool Change(TimeSpan dueTime, TimeSpan period) => Volatile.Read(ref disposed) == 0;
+            public override void Dispose()
+            {
+                Interlocked.Increment(ref DisposalRequests);
+                Interlocked.Exchange(ref disposed, 1);
+                Interlocked.Increment(ref DisposalReturns);
+                Returned.TrySetResult();
+            }
+            public override ValueTask DisposeAsync() { Dispose(); return ValueTask.CompletedTask; }
+            internal override void JoinActualDisposal() => JoinReceiving(Returned.Task);
         }
     }
 }

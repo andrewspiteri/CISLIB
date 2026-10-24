@@ -13,7 +13,22 @@ public sealed class HealthCollectorPartialStartStopTests
     [DataRow(true)]
     public async Task StopIncludesAConcurrentTimerFactoryFailureWithoutRetainingAnUnsettledResource(bool timerFactoryFails)
     {
-        using var clock = new GatedTimerProvider(timerFactoryFails);
+        ControlledTimerFactoryException? factoryFailure = timerFactoryFails ? new() : null;
+        if (factoryFailure is not null)
+        {
+            HealthDiagnostic? projected = null;
+            ArgumentException? rejection = null;
+            try { projected = HealthDiagnostic.FromException(factoryFailure); }
+            catch (ArgumentException error) { rejection = error; }
+            Assert.IsNull(rejection, "The actual timer-factory exception must support its valid diagnostic projection before startup begins.");
+            Assert.IsNotNull(projected);
+            Assert.IsNull(projected.Code);
+            Assert.AreEqual(factoryFailure.Message, projected.Message);
+            Assert.AreEqual(typeof(ControlledTimerFactoryException).FullName, projected.ExceptionType);
+            Assert.IsFalse(projected.IsTruncated);
+        }
+
+        using var clock = new GatedTimerProvider(timerFactoryFails, factoryFailure);
         var service = new HealthcheckService(new(), new() { Name = "partial-start-stop", InstanceId = Guid.NewGuid() }, clock);
         var runner = new HealthCollectorRunner(service);
         Task? start = null;
@@ -69,7 +84,7 @@ public sealed class HealthCollectorPartialStartStopTests
         }
     }
 
-    private sealed class GatedTimerProvider(bool fails) : TimeProvider, IDisposable
+    private sealed class GatedTimerProvider(bool fails, ControlledTimerFactoryException? failure = null) : TimeProvider, IDisposable
     {
         private readonly ManualResetEventSlim release = new();
         private int creations, timerDisposals;
@@ -84,7 +99,7 @@ public sealed class HealthCollectorPartialStartStopTests
             Interlocked.Increment(ref creations);
             Entered.TrySetResult();
             release.Wait();
-            if (fails) { throw new ControlledTimerFactoryException(); }
+            if (fails) { throw failure ?? new ControlledTimerFactoryException(); }
             return new Timer(this);
         }
         internal void Release() => release.Set();

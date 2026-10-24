@@ -76,7 +76,22 @@ public sealed class HealthCollectorFaultOriginAndRecoveryTests
     [DataRow(true)]
     public async Task LeaseCleanupKeepsItsOwnExceptionOriginWithoutReplacingTheAcceptedEvaluationOutcome(bool evaluationFails)
     {
-        var scope = new Scope { Fault = evaluationFails ? "evaluation" : null, CleanupFails = true };
+        var cleanupFailure = new OwnerCleanupException();
+        HealthDiagnostic? projected = null;
+        ArgumentException? rejection = null;
+        try { projected = HealthDiagnostic.FromException(cleanupFailure, "Healthcheck.LeaseCleanup"); }
+        catch (ArgumentException error) { rejection = error; }
+        // The real lease returns this same fault, and Runner detaches it using
+        // this exact public code/default-message call. Prove valid-input
+        // acceptance before constructing any owner, registration or worker.
+        Assert.IsNull(rejection, "A valid lease cleanup exception and diagnostic code must produce a detached diagnostic.");
+        Assert.IsNotNull(projected);
+        Assert.AreEqual("Healthcheck.LeaseCleanup", projected.Code);
+        Assert.AreEqual(cleanupFailure.Message, projected.Message);
+        Assert.AreEqual(cleanupFailure.GetType().FullName, projected.ExceptionType);
+        Assert.IsFalse(projected.IsTruncated);
+
+        var scope = new Scope { Fault = evaluationFails ? "evaluation" : null, CleanupFails = true, CleanupFailure = cleanupFailure };
         Exception? primary = null;
         try
         {
@@ -141,6 +156,7 @@ public sealed class HealthCollectorFaultOriginAndRecoveryTests
         }
         internal string? Fault { get; set; }
         internal bool CleanupFails { get; set; }
+        internal OwnerCleanupException? CleanupFailure { get; init; }
         internal ManualTimeProvider Clock { get; } = new(Epoch);
         internal HealthcheckService Service { get; }
         internal IConsecutiveFailureMonitor Monitor { get; }
@@ -180,11 +196,11 @@ public sealed class HealthCollectorFaultOriginAndRecoveryTests
         public bool TryAcquire(out IHealthCollectionLease? lease)
         {
             Interlocked.Increment(ref acquisitions);
-            lease = new Lease(this, scope.Fault, scope.CleanupFails);
+            lease = new Lease(this, scope.Fault, scope.CleanupFails, scope.CleanupFailure);
             return true;
         }
 
-        private sealed class Lease(Owner owner, string? fault, bool cleanupFails) : IHealthCollectionLease
+        private sealed class Lease(Owner owner, string? fault, bool cleanupFails, OwnerCleanupException? cleanupFailure) : IHealthCollectionLease
         {
             public Task<HealthCollectionResult> CollectAsync(CancellationToken lifetimeCancellation)
             {
@@ -201,7 +217,7 @@ public sealed class HealthCollectorFaultOriginAndRecoveryTests
             public ValueTask DisposeAsync()
             {
                 Interlocked.Increment(ref owner.cleanups);
-                return cleanupFails ? ValueTask.FromException(new OwnerCleanupException()) : ValueTask.CompletedTask;
+                return cleanupFails ? ValueTask.FromException(cleanupFailure ?? new OwnerCleanupException()) : ValueTask.CompletedTask;
             }
         }
     }

@@ -115,13 +115,13 @@ public sealed class HealthcheckStateSeamTests
         HealthCollectionReservation reservation = scope.Reserve(scope.Attach(monitor));
         Assert.IsTrue(scope.Collections.TryEnter(reservation));
         scope.Clock.Advance(TimeSpan.FromSeconds(1));
-        var directReason = new HealthDiagnostic("Direct", "The newer direct observation wins.");
+        var directReason = AcceptedDiagnostic("Direct", "The newer direct observation wins.");
         monitor.Flag(directReason);
         HealthMonitorSnapshot direct = Only(scope);
         HealthSnapshot before = scope.Service.CaptureSnapshot();
 
         HealthCollectionAttempt attempt = scope.Collections.CommitResult(
-            reservation, HealthCollectionResult.Condition(staleFlag, new HealthDiagnostic("Old")));
+            reservation, HealthCollectionResult.Condition(staleFlag, AcceptedDiagnostic("Old")));
 
         Assert.AreEqual(HealthCollectionDisposition.Obsolete, attempt.Disposition);
         Assert.AreEqual(before.Revision, scope.Service.CaptureSnapshot().Revision);
@@ -184,7 +184,7 @@ public sealed class HealthcheckStateSeamTests
         IConditionMonitor monitor = scope.Condition();
         HealthCollectionReservation reservation = scope.Reserve(scope.Attach(monitor));
         Assert.IsTrue(scope.Collections.TryEnter(reservation));
-        monitor.Flag(new HealthDiagnostic("Direct"));
+        monitor.Flag(AcceptedDiagnostic("Direct"));
         DateTimeOffset healthTime = Only(scope).LastObservationAtUtc!.Value;
 
         scope.Collections.CommitResult(reservation, HealthCollectionResult.Condition(false).WithMeasurements(
@@ -238,9 +238,13 @@ public sealed class HealthcheckStateSeamTests
             HealthMeasurement.Integer("new-key", 123, Epoch.AddMinutes(1))
         ];
 
-        scope.Collections.CommitResult(reservation, required
+        HealthCollectionResult result = required
             ? HealthCollectionResult.Condition(true).WithMeasurements(measurements)
-            : HealthCollectionResult.Diagnostics(measurements));
+            : HealthCollectionResult.Diagnostics(measurements);
+        ArgumentException? rejection = null;
+        try { _ = scope.Collections.CommitResult(reservation, result); }
+        catch (ArgumentException error) { rejection = error; }
+        Assert.IsNull(rejection, "A valid capacity-overflow batch must return its detached diagnostic without propagating an argument error.");
 
         HealthMonitorSnapshot after = Only(scope);
         Assert.AreEqual(required ? MonitorState.Unhealthy : MonitorState.Healthy, after.State);
@@ -266,9 +270,19 @@ public sealed class HealthcheckStateSeamTests
         Assert.IsTrue(scope.Collections.TryEnter(reservation));
         scope.Clock.Advance(TimeSpan.FromMinutes(1));
 
-        HealthCollectionAttempt attempt = mismatchedResult
-            ? scope.Collections.CommitResult(reservation, HealthCollectionResult.Execution(HealthExecutionOutcome.Failed))
-            : scope.Collections.CommitEvaluationFailure(reservation, new HealthDiagnostic("OptionalReadFailed"));
+        HealthCollectionAttempt attempt;
+        if (mismatchedResult)
+        {
+            HealthCollectionResult result = HealthCollectionResult.Execution(HealthExecutionOutcome.Failed);
+            HealthCollectionAttempt? accepted = null;
+            ArgumentException? rejection = null;
+            try { accepted = scope.Collections.CommitResult(reservation, result); }
+            catch (ArgumentException error) { rejection = error; }
+            Assert.IsNull(rejection, "An incompatible optional result must return one evaluation failure without propagating an argument error.");
+            Assert.IsNotNull(accepted);
+            attempt = accepted;
+        }
+        else { attempt = scope.Collections.CommitEvaluationFailure(reservation, AcceptedDiagnostic("OptionalReadFailed")); }
 
         Assert.AreEqual(HealthCollectionDisposition.Committed, attempt.Disposition);
         Assert.IsTrue(attempt.EvaluationFailed);
@@ -289,7 +303,7 @@ public sealed class HealthcheckStateSeamTests
         await using var scope = new StateScope();
         IConditionMonitor monitor = scope.Condition();
         HealthCollectionTarget target = scope.Attach(monitor);
-        var diagnostic = new HealthDiagnostic("RequiredReadFailed");
+        var diagnostic = AcceptedDiagnostic("RequiredReadFailed");
         HealthCollectionReservation failed = scope.Reserve(target);
         Assert.IsTrue(scope.Collections.TryEnter(failed));
 
@@ -326,7 +340,7 @@ public sealed class HealthcheckStateSeamTests
         Assert.IsTrue(scope.Collections.TryEnter(failed));
         scope.Clock.Advance(TimeSpan.FromMinutes(1));
 
-        scope.Collections.CommitEvaluationFailure(failed, new HealthDiagnostic("RequiredReadFailed"));
+        scope.Collections.CommitEvaluationFailure(failed, AcceptedDiagnostic("RequiredReadFailed"));
 
         Assert.AreEqual(MonitorState.Unhealthy, Only(scope).State);
         Assert.AreEqual(5d, Only(scope).Numeric!.LastValue);
@@ -350,7 +364,7 @@ public sealed class HealthcheckStateSeamTests
         {
             HealthCollectionReservation reservation = scope.Reserve(target);
             Assert.IsTrue(scope.Collections.TryEnter(reservation));
-            scope.Collections.CommitEvaluationFailure(reservation, new HealthDiagnostic("RequiredReadFailed"));
+            scope.Collections.CommitEvaluationFailure(reservation, AcceptedDiagnostic("RequiredReadFailed"));
             scope.Finish(reservation);
             HealthMonitorSnapshot captured = Only(scope);
             Assert.AreEqual((long)failure, captured.Outcomes!.Failed);
@@ -370,7 +384,7 @@ public sealed class HealthcheckStateSeamTests
         HealthCollectionReservation reservation = scope.Reserve(scope.Attach(monitor));
         Assert.IsTrue(scope.Collections.TryEnter(reservation));
 
-        HealthCollectionAttempt attempt = scope.Collections.CommitEvaluationFailure(reservation, new HealthDiagnostic("ReadFailed"));
+        HealthCollectionAttempt attempt = scope.Collections.CommitEvaluationFailure(reservation, AcceptedDiagnostic("ReadFailed"));
 
         Assert.IsTrue(attempt.EvaluationFailed);
         HealthMonitorSnapshot captured = Only(scope);
@@ -389,8 +403,13 @@ public sealed class HealthcheckStateSeamTests
         HealthCollectionReservation reservation = scope.Reserve(scope.Attach(monitor));
         Assert.IsTrue(scope.Collections.TryEnter(reservation));
 
-        HealthCollectionAttempt attempt = scope.Collections.CommitResult(
-            reservation, nullResult ? null! : HealthCollectionResult.Number(12));
+        HealthCollectionResult? result = nullResult ? null : HealthCollectionResult.Number(12);
+        HealthCollectionAttempt? attempt = null;
+        ArgumentException? rejection = null;
+        try { attempt = scope.Collections.CommitResult(reservation, result!); }
+        catch (ArgumentException error) { rejection = error; }
+        Assert.IsNull(rejection, "A null or incompatible required result must return one evaluation failure without propagating an argument error.");
+        Assert.IsNotNull(attempt);
 
         Assert.AreEqual(HealthCollectionDisposition.Committed, attempt.Disposition);
         Assert.IsTrue(attempt.EvaluationFailed);
@@ -410,7 +429,7 @@ public sealed class HealthcheckStateSeamTests
         monitor.ReportSuccess();
         HealthSnapshot before = scope.Service.CaptureSnapshot();
 
-        HealthCollectionAttempt attempt = scope.Collections.CommitEvaluationFailure(reservation, new HealthDiagnostic("OldError"));
+        HealthCollectionAttempt attempt = scope.Collections.CommitEvaluationFailure(reservation, AcceptedDiagnostic("OldError"));
 
         Assert.AreEqual(HealthCollectionDisposition.Obsolete, attempt.Disposition);
         Assert.AreEqual(before.Revision, scope.Service.CaptureSnapshot().Revision);
@@ -466,7 +485,7 @@ public sealed class HealthcheckStateSeamTests
         Assert.IsTrue(reservation.LifetimeCancellation.IsCancellationRequested);
         Assert.IsFalse(scope.Collections.TryEnter(reservation));
         Assert.AreEqual(HealthCollectionDisposition.Retired,
-            scope.Collections.CommitEvaluationFailure(reservation, new HealthDiagnostic("Late")).Disposition);
+            scope.Collections.CommitEvaluationFailure(reservation, AcceptedDiagnostic("Late")).Disposition);
         Assert.ThrowsExactly<ObjectDisposedException>(() => monitor.Clear());
         scope.Finish(reservation, HealthCollectionCompletionReason.RetiredBeforeInvocation);
         await disposal.WaitAsync(TimeSpan.FromSeconds(5));
@@ -522,7 +541,10 @@ public sealed class HealthcheckStateSeamTests
             () => throw new InvalidOperationException("A cancellation observer failed."));
         scope.Clock.Advance(TimeSpan.FromHours(2));
 
-        scope.Service.BeginStopping();
+        ArgumentException? rejection = null;
+        try { scope.Service.BeginStopping(); }
+        catch (ArgumentException error) { rejection = error; }
+        Assert.IsNull(rejection, "The actual cancellation observer failure must become a detached integration diagnostic without propagating an argument error.");
 
         HealthMonitorSnapshot after = Only(scope);
         Assert.AreEqual(MonitorState.Pending, after.State);
@@ -612,7 +634,7 @@ public sealed class HealthcheckStateSeamTests
         await using var scope = new StateScope();
         IConsecutiveFailureMonitor monitor = scope.Failures(threshold: 1);
         HealthCollectionReservation reservation = scope.Reserve(scope.Attach(monitor));
-        var error = new HealthDiagnostic("AcquireFailed");
+        var error = AcceptedDiagnostic("AcquireFailed");
 
         HealthCollectionAttempt attempt = scope.Finish(reservation,
             HealthCollectionCompletionReason.LeaseAcquisitionFault, acquisitionError: error);
@@ -635,7 +657,7 @@ public sealed class HealthcheckStateSeamTests
         HealthCollectionReservation reservation = scope.Reserve(scope.Attach(monitor));
         Assert.IsTrue(scope.Collections.TryEnter(reservation));
         scope.Collections.CommitResult(reservation, HealthCollectionResult.Execution(HealthExecutionOutcome.Succeeded));
-        var cleanup = new HealthDiagnostic("CleanupFailed");
+        var cleanup = AcceptedDiagnostic("CleanupFailed");
 
         scope.Finish(reservation, cleanupError: cleanup);
 
@@ -784,7 +806,7 @@ public sealed class HealthcheckStateSeamTests
         IConsecutiveFailureMonitor monitor = scope.Failures(threshold: 1);
         BindingTarget target = scope.Executions.Bind(BindingRequest.ForMonitor(monitor.MonitorId, BindingOptions(Guid.NewGuid())));
         DateTimeOffset reportedTime = Epoch.ToOffset(TimeSpan.FromHours(2));
-        var original = new HealthDiagnostic("CallbackFailed", "A real detached failure reason.");
+        var original = AcceptedDiagnostic("CallbackFailed", "A real detached failure reason.");
         HealthSnapshot before = scope.Service.CaptureSnapshot();
         var fact = new HealthExecutionFact
         {
@@ -832,7 +854,7 @@ public sealed class HealthcheckStateSeamTests
         Assert.AreEqual(HealthFactDisposition.Recorded,
             scope.Executions.ApplyOutcome(target, Outcome(target, 1, HealthExecutionOutcome.Failed)));
         HealthMonitorSnapshot before = Only(scope);
-        var cleanupError = new HealthDiagnostic("CleanupFailed");
+        var cleanupError = AcceptedDiagnostic("CleanupFailed");
         DateTimeOffset settlementTime = Epoch.AddMinutes(-5);
         var settled = new HealthExecutionFact
         {
@@ -883,7 +905,7 @@ public sealed class HealthcheckStateSeamTests
             SettledAtUtc = Epoch.AddSeconds(10),
             ErrorHandlingStatus = HealthExecutionStepStatus.NotApplicable,
             CleanupStatus = HealthExecutionStepStatus.Failed,
-            CleanupError = new HealthDiagnostic("PreviousCleanup"),
+            CleanupError = AcceptedDiagnostic("PreviousCleanup"),
             TotalDurationMilliseconds = 19
         };
 
@@ -1065,5 +1087,15 @@ public sealed class HealthcheckStateSeamTests
             }
             await Service.DisposeAsync().AsTask().WaitAsync(TimeSpan.FromSeconds(10));
         }
+    }
+    private static HealthDiagnostic AcceptedDiagnostic(string code, string? message = null)
+    {
+        HealthDiagnostic? diagnostic = null;
+        ArgumentException? rejection = null;
+        try { diagnostic = new HealthDiagnostic(code, message); }
+        catch (ArgumentException error) { rejection = error; }
+        Assert.IsNull(rejection, "Valid diagnostic constructor arguments must produce the actual detached reason.");
+        Assert.IsNotNull(diagnostic);
+        return diagnostic;
     }
 }

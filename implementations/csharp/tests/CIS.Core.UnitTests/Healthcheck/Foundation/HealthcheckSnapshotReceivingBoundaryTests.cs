@@ -86,7 +86,7 @@ public sealed class HealthcheckSnapshotReceivingBoundaryTests
     [TestMethod]
     public void AnUnavailableRuntimeExceptionMessageRemainsAnObservableDetachedDiagnostic()
     {
-        HealthDiagnostic diagnostic = HealthDiagnostic.FromException(new UnavailableMessageException(), "Unavailable");
+        HealthDiagnostic diagnostic = ProjectedDiagnostic(new UnavailableMessageException(), "Unavailable");
         Assert.AreEqual("Unavailable", diagnostic.Code);
         Assert.IsNull(diagnostic.Message);
         Assert.AreEqual(typeof(UnavailableMessageException).FullName, diagnostic.ExceptionType);
@@ -99,4 +99,15 @@ public sealed class HealthcheckSnapshotReceivingBoundaryTests
     {
         public override string Message => throw new InvalidOperationException("This runtime accessor is unavailable.");
     }
+    private static HealthDiagnostic ProjectedDiagnostic(Exception exception, string? code = null, string? message = null)
+    {
+        HealthDiagnostic? diagnostic = null;
+        ArgumentException? rejection = null;
+        try { diagnostic = HealthDiagnostic.FromException(exception, code, message); }
+        catch (ArgumentException error) { rejection = error; }
+        Assert.IsNull(rejection, "Valid exception projection arguments must produce a detached diagnostic.");
+        Assert.IsNotNull(diagnostic);
+        return diagnostic;
+    }
+
 }

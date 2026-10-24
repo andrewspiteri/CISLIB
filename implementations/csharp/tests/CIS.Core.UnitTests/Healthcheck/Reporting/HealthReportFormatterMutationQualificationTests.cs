@@ -37,10 +37,10 @@ public sealed class HealthReportFormatterMutationQualificationTests
         IHealthExecutionBinding binding = HealthExecutionBinder.Bind(monitor, new HealthExecutionBindingOptions { RegistrationId = Guid.NewGuid() });
         try
         {
-            var original = new HealthDiagnostic("Original", new string('x', 1025), "Original.Error");
-            var handler = new HealthDiagnostic("Handler", "handler reason", "Handler.Error");
-            var cleanup = new HealthDiagnostic("Cleanup", "cleanup reason", "Cleanup.Error");
-            var integration = new HealthDiagnostic("Integration", "integration reason", "Integration.Error");
+            var original = AcceptedDiagnostic("Original", new string('x', 1025), "Original.Error");
+            var handler = AcceptedDiagnostic("Handler", "handler reason", "Handler.Error");
+            var cleanup = AcceptedDiagnostic("Cleanup", "cleanup reason", "Cleanup.Error");
+            var integration = AcceptedDiagnostic("Integration", "integration reason", "Integration.Error");
             Assert.AreEqual(HealthFactDisposition.Recorded, binding.Report(new HealthExecutionFact
             {
                 RegistrationId = binding.RegistrationId,
@@ -117,9 +117,10 @@ public sealed class HealthReportFormatterMutationQualificationTests
             IHealthCollectionState state = ((IHealthStateAccess)service).CollectionState;
             HealthCollectionTarget target = state.RegisterCollection(monitor.MonitorId, Guid.NewGuid(), new HealthCollectorOptions { IsRequired = false });
             HealthCollectionReservation reservation = state.TryReserve(target).Reservation!;
-            var collection = new HealthDiagnostic("Collection", "optional reason", "Collection.Error");
+            HealthDiagnostic collection;
             try
             {
+                collection = AcceptedDiagnostic("Collection", "optional reason", "Collection.Error");
                 Assert.IsTrue(state.TryEnter(reservation));
                 state.CommitEvaluationFailure(reservation, collection);
             }
@@ -275,4 +276,15 @@ public sealed class HealthReportFormatterMutationQualificationTests
         Task disposal = binding.DisposeAsync().AsTask();
         if (disposal.IsCompleted) { await disposal; }
     }
+    private static HealthDiagnostic AcceptedDiagnostic(string? code = null, string? message = null, string? exceptionType = null)
+    {
+        HealthDiagnostic? diagnostic = null;
+        ArgumentException? rejection = null;
+        try { diagnostic = new HealthDiagnostic(code, message, exceptionType); }
+        catch (ArgumentException error) { rejection = error; }
+        Assert.IsNull(rejection, "Valid diagnostic constructor arguments must produce a detached diagnostic.");
+        Assert.IsNotNull(diagnostic);
+        return diagnostic;
+    }
+
 }

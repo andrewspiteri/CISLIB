@@ -23,7 +23,7 @@ public sealed class HealthcheckContractMutationQualificationTests
     [TestMethod]
     public void RuntimeDiagnosticReplacementAndTruncationBothRemainObservable()
     {
-        var diagnostic = HealthDiagnostic.FromException(new Exception("\uD800" + new string('x', 1024)));
+        var diagnostic = ProjectedDiagnostic(new Exception("\uD800" + new string('x', 1024)));
         Assert.AreEqual("\uFFFD" + new string('x', 1023), diagnostic.Message);
         Assert.IsTrue(diagnostic.IsTruncated);
         Assert.AreEqual(typeof(Exception).FullName, diagnostic.ExceptionType);
@@ -53,7 +53,7 @@ public sealed class HealthcheckContractMutationQualificationTests
     public void DiagnosticIdentifiersAcceptValidControlScalarsWithoutInventingTruncation(bool exceptionType)
     {
         const string text = "owned\0\t\r\nreason";
-        var diagnostic = exceptionType ? new HealthDiagnostic(exceptionType: text) : new HealthDiagnostic(code: text);
+        var diagnostic = exceptionType ? AcceptedDiagnostic(exceptionType: text) : AcceptedDiagnostic(code: text);
         Assert.AreEqual(text, exceptionType ? diagnostic.ExceptionType : diagnostic.Code);
         Assert.IsFalse(diagnostic.IsTruncated);
     }
@@ -62,8 +62,30 @@ public sealed class HealthcheckContractMutationQualificationTests
     public void ExplicitExceptionProjectionAcceptsValidCallerControlScalars()
     {
         const string message = "owned\0\t\r\nreason";
-        var diagnostic = HealthDiagnostic.FromException(new Exception("discarded runtime message"), message: message);
+        var diagnostic = ProjectedDiagnostic(new Exception("discarded runtime message"), message: message);
         Assert.AreEqual(message, diagnostic.Message);
         Assert.IsFalse(diagnostic.IsTruncated);
     }
+    private static HealthDiagnostic AcceptedDiagnostic(string? code = null, string? message = null, string? exceptionType = null)
+    {
+        HealthDiagnostic? diagnostic = null;
+        ArgumentException? rejection = null;
+        try { diagnostic = new HealthDiagnostic(code, message, exceptionType); }
+        catch (ArgumentException error) { rejection = error; }
+        Assert.IsNull(rejection, "Valid diagnostic constructor arguments must produce a detached diagnostic.");
+        Assert.IsNotNull(diagnostic);
+        return diagnostic;
+    }
+
+    private static HealthDiagnostic ProjectedDiagnostic(Exception exception, string? code = null, string? message = null)
+    {
+        HealthDiagnostic? diagnostic = null;
+        ArgumentException? rejection = null;
+        try { diagnostic = HealthDiagnostic.FromException(exception, code, message); }
+        catch (ArgumentException error) { rejection = error; }
+        Assert.IsNull(rejection, "Valid exception projection arguments must produce a detached diagnostic.");
+        Assert.IsNotNull(diagnostic);
+        return diagnostic;
+    }
+
 }

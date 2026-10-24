@@ -140,18 +140,48 @@ public sealed class HealthcheckMutationNativeKernelEvidenceTests
         Assert.AreEqual(0, (int)audit.Observations["normalHostCount"]!);
     }
 
+    [TestMethod]
+    [DataRow("unit-runtime")]
+    [DataRow("pipes")]
+    [DataRow("aspnet")]
+    public void StandardSingleFamilyDiscoveryKeepsItsActualSourceOwnershipAndProtocolForEveryGroup(string group)
+    {
+        using var fixture = new KernelFixture(group);
+        Assert.IsTrue(fixture.Confirm(out JsonObject? proof));
+        Assert.IsNotNull(proof);
+        Assert.AreEqual(0, (int)proof["executionOutcomeCredit"]!);
+        var audit = fixture.Audit();
+        Assert.HasCount(0, audit.Issues);
+        CollectionAssert.AreEqual(new[] { "1" }, audit.AssertionKilledIds);
+        Assert.AreEqual(1, (int)audit.Observations["normalDiscoveryHostCount"]!);
+        Assert.AreEqual(1, (int)audit.Observations["kernelDiscoveryExitProofCount"]!);
+        Assert.AreEqual(1, (int)audit.Observations["normalHostCount"]!);
+    }
+
+    [TestMethod]
+    [DataRow("pipes")]
+    [DataRow("aspnet")]
+    public void IntegrationDiscoveryProofCannotReplaceItsExecutionHostCallback(string group)
+    {
+        using var fixture = new KernelFixture(group);
+        fixture.Change("missing-execution-callback");
+        var audit = fixture.Audit();
+        Assert.IsNotEmpty(audit.Issues);
+        Assert.HasCount(0, audit.AssertionKilledIds);
+        Assert.AreEqual(1, (int)audit.Observations["normalDiscoveryHostCount"]!);
+        Assert.AreEqual(1, (int)audit.Observations["kernelDiscoveryExitProofCount"]!);
+        Assert.AreEqual(0, (int)audit.Observations["normalHostCount"]!);
+    }
+
     // Literal parser controls, never native process evidence. Only ObjectModel enum
     // decoding uses an actual installed test-platform assembly in these controls.
     private sealed class KernelFixture : IDisposable
     {
         private const string GuidText = "11111111-1111-4111-8111-111111111111";
-        private const string Method = "CIS.Tests.UnitTests.Healthcheck.NativeKernelFixture.Direct";
-        private const string CodeFile = "/synthetic/implementations/csharp/tests/CIS.Core.UnitTests/Healthcheck/Fixture.cs";
-        private const string Dll = "/synthetic/implementations/csharp/tests/CIS.Core.UnitTests/bin/Release/net10.0/CIS.Core.UnitTests.dll";
+        private readonly string Method, CodeFile, Dll, Filter;
         private const string Dotnet = "/synthetic/dotnet/dotnet";
         private const string Runtime = "/synthetic/dotnet/shared/Microsoft.NETCore.App/10.0.12";
         private const string NativeLogs = "/synthetic/native/logs";
-        private const string Filter = "FullyQualifiedName~CIS.Tests.UnitTests.Healthcheck.";
         private const string DiscoveryName = "SpecificTestDiscoverer-log.txt";
         private const string DiscoveryHostName = "SpecificTestDiscoverer-log.host.synthetic.txt";
         private readonly TemporaryDirectory temporary = new();
@@ -160,8 +190,20 @@ public sealed class HealthcheckMutationNativeKernelEvidenceTests
         private readonly JsonObject report, configuration;
         private string? change;
 
-        internal KernelFixture()
+        internal KernelFixture(string group = "unit-runtime")
         {
+            string family = group == "unit-runtime" ? "UnitTests" : "IntegrationTests";
+            string fixture = group switch
+            {
+                "unit-runtime" => "NativeKernelFixture",
+                "pipes" => "HealthcheckProbeProcessTests",
+                "aspnet" => "HealthcheckHttpTransportTests",
+                _ => throw new InvalidDataException("Unknown synthetic kernel fixture group.")
+            };
+            Method = "CIS.Tests." + family + ".Healthcheck." + (group == "unit-runtime" ? "" : "Reporting.") + fixture + ".Direct";
+            CodeFile = "/synthetic/implementations/csharp/tests/CIS.Core." + family + "/Healthcheck/" + (group == "unit-runtime" ? "Fixture.cs" : "Reporting/" + fixture + ".cs");
+            Dll = "/synthetic/implementations/csharp/tests/CIS.Core." + family + "/bin/Release/net10.0/CIS.Core." + family + ".dll";
+            Filter = "FullyQualifiedName~CIS.Tests." + family + ".Healthcheck.";
             string stem = Dll[..^4];
             traces[30] = [Exec("1.0", [Dotnet, "/synthetic/tools/vstest.console.dll", "/diag:" + NativeLogs + "/" + DiscoveryName + ";tracelevel=Verbose"]),
                 "1.1 clone3({flags=CLONE_VM|CLONE_THREAD, exit_signal=0}, 88) = 31", "4.0 exit_group(0) = ?", "4.2 +++ exited with 0 +++"];
@@ -173,7 +215,7 @@ public sealed class HealthcheckMutationNativeKernelEvidenceTests
                 ["testFiles"] = new JsonObject { [CodeFile] = new JsonObject { ["tests"] = new JsonArray(new JsonObject { ["id"] = GuidText, ["name"] = Method }) } },
                 ["files"] = new JsonObject { ["/synthetic/Core.cs"] = new JsonObject { ["mutants"] = new JsonArray(new JsonObject { ["id"] = "1", ["status"] = "Killed", ["killedBy"] = new JsonArray(GuidText) }) } }
             };
-            configuration = new JsonObject { ["stryker-config"] = new JsonObject { ["target-framework"] = "net10.0", ["configuration"] = "Release", ["test-case-filter"] = Filter, ["test-projects"] = new JsonArray("../../tests/CIS.Core.UnitTests/CIS.Core.UnitTests.csproj") } };
+            configuration = new JsonObject { ["stryker-config"] = new JsonObject { ["target-framework"] = "net10.0", ["configuration"] = "Release", ["test-case-filter"] = Filter, ["test-projects"] = new JsonArray("../../tests/CIS.Core." + family + "/CIS.Core." + family + ".csproj") } };
             string settings = "<RunSettings><RunConfiguration><TargetFrameworkVersion>net10.0</TargetFrameworkVersion><TestCaseFilter>" + Filter + "</TestCaseFilter></RunConfiguration></RunSettings>";
             string executionSettings = settings.Replace("</RunSettings>", "<InProcDataCollectionRunSettings><InProcDataCollectors><InProcDataCollector><Configuration><Parameters><Mutant id=\"1\" tests=\"" + GuidText + "\"/><MutantControl name=\"StrykerSynthetic.MutantControl\"/></Parameters></Configuration></InProcDataCollector></InProcDataCollectors></InProcDataCollectionRunSettings></RunSettings>", StringComparison.Ordinal);
             controller.AddRange([Line(10, true, "Version: synthetic"), ControllerMessage(10, "TestExecution.GetTestRunnerProcessStartInfoForRunSelected", new JsonObject { ["RunSettings"] = executionSettings, ["TestCases"] = new JsonArray(TestCase()) }), ControllerMessage(10, "TestExecution.CustomTestHostLaunchCallback", new JsonObject { ["HostProcessId"] = 20, ["ErrorMessage"] = null }), Callback(10, 20, 0)]);
@@ -254,7 +296,7 @@ public sealed class HealthcheckMutationNativeKernelEvidenceTests
         private string Path(string name) => System.IO.Path.Combine(temporary.Path, name);
         private static HealthcheckMutationNativeKernelEvidence.Pin Pin(string path) { using FileStream file = File.OpenRead(path); return new(path, Convert.ToHexStringLower(SHA256.HashData(file)), file.Length); }
         private static string Exec(string time, string[] arguments) => time + " execve(" + JsonSerializer.Serialize(Dotnet) + ", [" + string.Join(", ", arguments.Select(argument => JsonSerializer.Serialize(argument))) + "], 0x1 /* environment */) = 0";
-        private static JsonObject TestCase() => new() { ["Id"] = GuidText, ["FullyQualifiedName"] = Method, ["Source"] = Dll, ["CodeFilePath"] = CodeFile };
+        private JsonObject TestCase() => new() { ["Id"] = GuidText, ["FullyQualifiedName"] = Method, ["Source"] = Dll, ["CodeFilePath"] = CodeFile };
         private static string Line(int pid, bool isController, string text) => "TpTrace Information: 0 : " + pid + ", 1, synthetic, " + (isController ? "vstest.console.dll, " : "testhost.dll, ") + text;
         private static string Message(string type, JsonNode? payload) => new JsonObject { ["MessageType"] = type, ["Payload"] = payload }.ToJsonString();
         private static string ControllerMessage(int pid, string type, JsonNode? payload) => Line(pid, true, "DesignModeClient.ProcessRequests: Processing Message: (" + type + ") -> " + Message(type, payload));

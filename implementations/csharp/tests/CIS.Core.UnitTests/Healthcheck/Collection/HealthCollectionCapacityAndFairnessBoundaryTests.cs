@@ -52,6 +52,7 @@ public sealed class HealthCollectionCapacityAndFairnessBoundaryTests
             }
             if (onlyNew)
             {
+                Assert.IsNotNull(attempt.Diagnostic);
                 Assert.AreEqual("Healthcheck.MeasurementCapacity", attempt.Diagnostic!.Code);
                 Assert.AreSame(attempt.Diagnostic, snapshot.Collection!.LastError);
             }

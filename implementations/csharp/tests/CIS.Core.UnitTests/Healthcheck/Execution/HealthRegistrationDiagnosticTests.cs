@@ -20,9 +20,9 @@ public sealed class HealthRegistrationDiagnosticTests
         await using var scope = new Scope();
         IHealthExecutionBinding binding = scope.Bind();
         HealthSnapshot initial = scope.Service.CaptureSnapshot();
-        HealthDiagnostic registration = HealthDiagnostic.FromException(new InvalidOperationException("\uD800" + new string('x', 1_025)), "Registration");
+        HealthDiagnostic registration = ProjectedDiagnostic(new InvalidOperationException("\uD800" + new string('x', 1_025)), "Registration");
 
-        Assert.AreEqual(HealthFactDisposition.Recorded, binding.Report(Fault(binding, registration)));
+        Assert.AreEqual(HealthFactDisposition.Recorded, ReportValidFact(binding, Fault(binding, registration)));
 
         HealthSnapshot observed = scope.Service.CaptureSnapshot();
         HealthMonitorSnapshot monitor = observed.Monitors.Single();
@@ -40,9 +40,9 @@ public sealed class HealthRegistrationDiagnosticTests
         Assert.AreEqual(0L, monitor.Outcomes.Successful);
         Assert.AreEqual(0L, monitor.Outcomes.Failed);
 
-        var policy = new HealthDiagnostic("Policy");
-        var execution = new HealthDiagnostic("ExecutionIntegration");
-        Assert.AreEqual(HealthFactDisposition.Recorded, binding.Report(new HealthExecutionFact
+        var policy = AcceptedDiagnostic("Policy");
+        var execution = AcceptedDiagnostic("ExecutionIntegration");
+        Assert.AreEqual(HealthFactDisposition.Recorded, ReportValidFact(binding, new HealthExecutionFact
         {
             RegistrationId = binding.RegistrationId,
             ExecutionId = 1,
@@ -53,7 +53,7 @@ public sealed class HealthRegistrationDiagnosticTests
             Outcome = HealthExecutionOutcome.Failed,
             OriginalError = policy
         }));
-        Assert.AreEqual(HealthFactDisposition.Recorded, binding.Report(new HealthExecutionFact
+        Assert.AreEqual(HealthFactDisposition.Recorded, ReportValidFact(binding, new HealthExecutionFact
         {
             RegistrationId = binding.RegistrationId,
             ExecutionId = 1,
@@ -87,24 +87,24 @@ public sealed class HealthRegistrationDiagnosticTests
     {
         await using var scope = new Scope();
         IHealthExecutionBinding binding = scope.Bind();
-        var first = new HealthDiagnostic("code", new string('x', 1_024), "type");
-        Assert.AreEqual(HealthFactDisposition.Recorded, binding.Report(Fault(binding, first)));
+        var first = AcceptedDiagnostic("code", new string('x', 1_024), "type");
+        Assert.AreEqual(HealthFactDisposition.Recorded, ReportValidFact(binding, Fault(binding, first)));
         HealthSnapshot before = scope.Service.CaptureSnapshot();
 
-        Assert.AreEqual(HealthFactDisposition.Duplicate, binding.Report(Fault(binding,
-            new HealthDiagnostic("code", new string('x', 1_024), "type"), Epoch.ToOffset(TimeSpan.FromHours(2)))));
+        Assert.AreEqual(HealthFactDisposition.Duplicate, ReportValidFact(binding, Fault(binding,
+            AcceptedDiagnostic("code", new string('x', 1_024), "type"), Epoch.ToOffset(TimeSpan.FromHours(2)))));
         Assert.AreEqual(before.Revision, scope.Service.CaptureSnapshot().Revision);
 
-        var changed = new HealthDiagnostic(changedField == "code" ? "changed" : "code",
+        var changed = AcceptedDiagnostic(changedField == "code" ? "changed" : "code",
             changedField == "message" ? "changed" : new string('x', changedField == "truncated" ? 1_025 : 1_024),
             changedField == "type" ? "changed" : "type");
         HealthExecutionFact next = Fault(binding, changed, changedField == "time" ? Epoch.AddTicks(-1) : Epoch,
             changedField == "origin" ? HealthExecutionPhase.Registered : null);
-        Assert.AreEqual(HealthFactDisposition.Recorded, binding.Report(next));
+        Assert.AreEqual(HealthFactDisposition.Recorded, ReportValidFact(binding, next));
         Assert.AreEqual(before.Revision + 1, scope.Service.CaptureSnapshot().Revision);
         Assert.AreSame(changed, scope.Snapshot().RegistrationDiagnostic);
         Assert.AreSame(first, before.Monitors.Single().RegistrationDiagnostic);
-        Assert.AreEqual(HealthFactDisposition.Duplicate, binding.Report(next));
+        Assert.AreEqual(HealthFactDisposition.Duplicate, ReportValidFact(binding, next));
         Assert.AreEqual(before.Revision + 1, scope.Service.CaptureSnapshot().Revision);
         Assert.AreEqual(0L, scope.Snapshot().Outcomes!.Failed);
         Assert.IsNull(scope.Snapshot().LastObservationAtUtc);
@@ -115,18 +115,18 @@ public sealed class HealthRegistrationDiagnosticTests
     {
         await using var scope = new Scope();
         IHealthExecutionBinding binding = scope.Bind();
-        var empty = new HealthDiagnostic();
-        Assert.AreEqual(HealthFactDisposition.Recorded, binding.Report(Fault(binding, empty)));
+        var empty = AcceptedDiagnostic();
+        Assert.AreEqual(HealthFactDisposition.Recorded, ReportValidFact(binding, Fault(binding, empty)));
         HealthSnapshot first = scope.Service.CaptureSnapshot();
-        Assert.AreEqual(HealthFactDisposition.Duplicate, binding.Report(Fault(binding, new HealthDiagnostic())));
+        Assert.AreEqual(HealthFactDisposition.Duplicate, ReportValidFact(binding, Fault(binding, AcceptedDiagnostic())));
         Assert.AreEqual(first.Revision, scope.Service.CaptureSnapshot().Revision);
         Assert.AreSame(empty, scope.Snapshot().RegistrationDiagnostic);
 
-        var truncated = new HealthDiagnostic(message: new string('x', 1_025));
-        Assert.AreEqual(HealthFactDisposition.Recorded, binding.Report(Fault(binding, truncated)));
+        var truncated = AcceptedDiagnostic(message: new string('x', 1_025));
+        Assert.AreEqual(HealthFactDisposition.Recorded, ReportValidFact(binding, Fault(binding, truncated)));
         HealthSnapshot second = scope.Service.CaptureSnapshot();
-        Assert.AreEqual(HealthFactDisposition.Duplicate, binding.Report(Fault(binding,
-            new HealthDiagnostic(message: new string('x', 2_048)), Epoch.ToOffset(TimeSpan.FromHours(-3)))));
+        Assert.AreEqual(HealthFactDisposition.Duplicate, ReportValidFact(binding, Fault(binding,
+            AcceptedDiagnostic(message: new string('x', 2_048)), Epoch.ToOffset(TimeSpan.FromHours(-3)))));
         Assert.AreEqual(second.Revision, scope.Service.CaptureSnapshot().Revision);
         Assert.AreSame(truncated, scope.Snapshot().RegistrationDiagnostic);
     }
@@ -136,17 +136,17 @@ public sealed class HealthRegistrationDiagnosticTests
     {
         await using var scope = new Scope();
         IHealthExecutionBinding a = scope.Bind(), b = scope.Bind();
-        Assert.AreEqual(HealthFactDisposition.Recorded, a.Report(Fault(a, new HealthDiagnostic("A"), Epoch.AddDays(1))));
-        var second = new HealthDiagnostic("B");
-        Assert.AreEqual(HealthFactDisposition.Recorded, b.Report(Fault(b, second, Epoch.AddDays(-1))));
+        Assert.AreEqual(HealthFactDisposition.Recorded, ReportValidFact(a, Fault(a, AcceptedDiagnostic("A"), Epoch.AddDays(1))));
+        var second = AcceptedDiagnostic("B");
+        Assert.AreEqual(HealthFactDisposition.Recorded, ReportValidFact(b, Fault(b, second, Epoch.AddDays(-1))));
         HealthSnapshot before = scope.Service.CaptureSnapshot();
         Assert.AreSame(second, before.Monitors.Single().RegistrationDiagnostic);
 
-        Assert.AreEqual(HealthFactDisposition.Duplicate, a.Report(Fault(a, new HealthDiagnostic("A"), Epoch.AddDays(1))));
+        Assert.AreEqual(HealthFactDisposition.Duplicate, ReportValidFact(a, Fault(a, AcceptedDiagnostic("A"), Epoch.AddDays(1))));
         Assert.AreEqual(before.Revision, scope.Service.CaptureSnapshot().Revision);
         Assert.AreSame(second, scope.Snapshot().RegistrationDiagnostic);
-        var last = new HealthDiagnostic("C");
-        Assert.AreEqual(HealthFactDisposition.Recorded, a.Report(Fault(a, last, Epoch.AddDays(-2))));
+        var last = AcceptedDiagnostic("C");
+        Assert.AreEqual(HealthFactDisposition.Recorded, ReportValidFact(a, Fault(a, last, Epoch.AddDays(-2))));
         Assert.AreEqual(before.Revision + 1, scope.Service.CaptureSnapshot().Revision);
         Assert.AreSame(last, scope.Snapshot().RegistrationDiagnostic);
         Assert.AreSame(second, before.Monitors.Single().RegistrationDiagnostic);
@@ -159,11 +159,11 @@ public sealed class HealthRegistrationDiagnosticTests
     {
         await using var scope = new Scope();
         IHealthExecutionBinding binding = scope.Bind();
-        var first = new HealthDiagnostic("Initial");
-        var reason = new HealthDiagnostic("Retirement");
-        Assert.AreEqual(HealthFactDisposition.Recorded, binding.Report(Fault(binding, first)));
+        var first = AcceptedDiagnostic("Initial");
+        var reason = AcceptedDiagnostic("Retirement");
+        Assert.AreEqual(HealthFactDisposition.Recorded, ReportValidFact(binding, Fault(binding, first)));
         HealthSnapshot prior = scope.Service.CaptureSnapshot();
-        Assert.AreEqual(HealthFactDisposition.Recorded, binding.Report(new HealthExecutionFact
+        Assert.AreEqual(HealthFactDisposition.Recorded, ReportValidFact(binding, new HealthExecutionFact
         { RegistrationId = binding.RegistrationId, Kind = HealthExecutionFactKind.Retired, OccurredAtUtc = Epoch, IntegrationError = withReason ? reason : null }));
 
         HealthSnapshot retired = scope.Service.CaptureSnapshot();
@@ -171,7 +171,7 @@ public sealed class HealthRegistrationDiagnosticTests
         Assert.AreEqual(1, retired.MonitorCounts.Active);
         Assert.AreSame(withReason ? reason : first, retired.Monitors.Single().RegistrationDiagnostic);
         Assert.AreSame(first, prior.Monitors.Single().RegistrationDiagnostic);
-        Assert.AreEqual(HealthFactDisposition.Retired, binding.Report(Fault(binding, new HealthDiagnostic("Late"))));
+        Assert.AreEqual(HealthFactDisposition.Retired, ReportValidFact(binding, Fault(binding, AcceptedDiagnostic("Late"))));
         await DisposeExternalAssociationAsync(binding);
         Assert.AreEqual(retired.Revision, scope.Service.CaptureSnapshot().Revision);
         scope.Monitor.ReportSuccess();
@@ -186,14 +186,14 @@ public sealed class HealthRegistrationDiagnosticTests
             new ConsecutiveFailureMonitorOptions { IsCritical = false, FailureThreshold = 1 }, new() { RegistrationId = Guid.NewGuid() });
         try
         {
-            var first = new HealthDiagnostic("Owned");
-            Assert.AreEqual(HealthFactDisposition.Recorded, binding.Report(Fault(binding, first)));
+            var first = AcceptedDiagnostic("Owned");
+            Assert.AreEqual(HealthFactDisposition.Recorded, ReportValidFact(binding, Fault(binding, first)));
             HealthSnapshot prior = service.CaptureSnapshot();
-            Assert.AreEqual(HealthFactDisposition.Recorded, binding.Report(new HealthExecutionFact
-            { RegistrationId = binding.RegistrationId, Kind = HealthExecutionFactKind.Retired, OccurredAtUtc = Epoch, IntegrationError = new HealthDiagnostic("FinalOwned") }));
+            Assert.AreEqual(HealthFactDisposition.Recorded, ReportValidFact(binding, new HealthExecutionFact
+            { RegistrationId = binding.RegistrationId, Kind = HealthExecutionFactKind.Retired, OccurredAtUtc = Epoch, IntegrationError = AcceptedDiagnostic("FinalOwned") }));
             Assert.AreEqual(0, service.CaptureSnapshot().MonitorCounts.Active);
             Assert.AreSame(first, prior.Monitors.Single().RegistrationDiagnostic);
-            Assert.AreEqual(HealthFactDisposition.Retired, binding.Report(Fault(binding, new HealthDiagnostic("Late"))));
+            Assert.AreEqual(HealthFactDisposition.Retired, ReportValidFact(binding, Fault(binding, AcceptedDiagnostic("Late"))));
             await binding.DisposeAsync().AsTask().WaitAsync(TimeSpan.FromSeconds(5));
         }
         finally
@@ -213,12 +213,12 @@ public sealed class HealthRegistrationDiagnosticTests
         try
         {
             IHealthExecutionBinding binding = scope.Bind();
-            var diagnostic = new HealthDiagnostic("Retained");
-            Assert.AreEqual(HealthFactDisposition.Recorded, binding.Report(Fault(binding, diagnostic)));
+            var diagnostic = AcceptedDiagnostic("Retained");
+            Assert.AreEqual(HealthFactDisposition.Recorded, ReportValidFact(binding, Fault(binding, diagnostic)));
             var registered = new HealthExecutionFact { RegistrationId = binding.RegistrationId, Kind = HealthExecutionFactKind.Registered, OccurredAtUtc = Epoch };
-            Assert.AreEqual(HealthFactDisposition.Recorded, binding.Report(registered));
+            Assert.AreEqual(HealthFactDisposition.Recorded, ReportValidFact(binding, registered));
             HealthSnapshot prior = scope.Service.CaptureSnapshot();
-            Assert.AreEqual(HealthFactDisposition.Duplicate, binding.Report(registered));
+            Assert.AreEqual(HealthFactDisposition.Duplicate, ReportValidFact(binding, registered));
             Assert.AreEqual(prior.Revision, scope.Service.CaptureSnapshot().Revision);
             await DisposeExternalAssociationAsync(binding);
             Assert.AreSame(diagnostic, scope.Snapshot().RegistrationDiagnostic);
@@ -266,8 +266,8 @@ public sealed class HealthRegistrationDiagnosticTests
         IHealthExecutionBinding binding = scope.Bind();
         using (JsonDocument before = JsonDocument.Parse(Format(scope.Service.CaptureSnapshot(), pipe).Utf8Bytes))
         { Assert.IsFalse(Root(before, pipe).GetProperty("monitors")[0].TryGetProperty("registrationDiagnostic", out _)); }
-        HealthDiagnostic diagnostic = HealthDiagnostic.FromException(new InvalidOperationException("\uD800" + new string('x', 1_025)), "RegistrationIssue");
-        Assert.AreEqual(HealthFactDisposition.Recorded, binding.Report(Fault(binding, diagnostic)));
+        HealthDiagnostic diagnostic = ProjectedDiagnostic(new InvalidOperationException("\uD800" + new string('x', 1_025)), "RegistrationIssue");
+        Assert.AreEqual(HealthFactDisposition.Recorded, ReportValidFact(binding, Fault(binding, diagnostic)));
         HealthReportBuffer report = Format(scope.Service.CaptureSnapshot(), pipe);
         Assert.IsFalse(report.IsError);
         using JsonDocument document = JsonDocument.Parse(report.Utf8Bytes);
@@ -351,6 +351,21 @@ public sealed class HealthRegistrationDiagnosticTests
         Assert.IsFalse(Parse(boundedEmpty).IsError);
     }
 
+    private static HealthFactDisposition ReportValidFact(IHealthExecutionBinding binding, HealthExecutionFact fact)
+    {
+        // Every call site constructs a defined registration-lifetime or execution
+        // fact for this binding's actual identity. Execution facts carry their
+        // positive ID and complete outcome identity; valid late/duplicate facts
+        // retain the existing explicit disposition assertions at their call sites.
+        ArgumentException? unexpectedRejection = null;
+        HealthFactDisposition? disposition = null;
+        try { disposition = binding.Report(fact); }
+        catch (ArgumentException error) { unexpectedRejection = error; }
+        Assert.IsNull(unexpectedRejection, "A source-proven valid registration or execution fact must be accepted by its matching binding.");
+        Assert.IsTrue(disposition.HasValue);
+        return disposition.GetValueOrDefault();
+    }
+
     private static HealthExecutionFact Fault(IHealthExecutionBinding binding, HealthDiagnostic diagnostic, DateTimeOffset? at = null, HealthExecutionPhase? origin = null)
         => new() { RegistrationId = binding.RegistrationId, Kind = HealthExecutionFactKind.IntegrationFault, OccurredAtUtc = at ?? Epoch, SourcePhase = origin, IntegrationError = diagnostic };
     private static HealthApplicationIdentity Identity() => new() { Name = "registration diagnostics", InstanceId = Guid.NewGuid() };
@@ -416,4 +431,26 @@ public sealed class HealthRegistrationDiagnosticTests
             public ValueTask DisposeAsync() => ValueTask.CompletedTask;
         }
     }
+    private static HealthDiagnostic AcceptedDiagnostic(string? code = null, string? message = null, string? exceptionType = null)
+    {
+        HealthDiagnostic? diagnostic = null;
+        ArgumentException? rejection = null;
+        try { diagnostic = new HealthDiagnostic(code, message, exceptionType); }
+        catch (ArgumentException error) { rejection = error; }
+        Assert.IsNull(rejection, "Valid diagnostic constructor arguments must produce a detached diagnostic.");
+        Assert.IsNotNull(diagnostic);
+        return diagnostic;
+    }
+
+    private static HealthDiagnostic ProjectedDiagnostic(Exception exception, string? code = null, string? message = null)
+    {
+        HealthDiagnostic? diagnostic = null;
+        ArgumentException? rejection = null;
+        try { diagnostic = HealthDiagnostic.FromException(exception, code, message); }
+        catch (ArgumentException error) { rejection = error; }
+        Assert.IsNull(rejection, "Valid exception projection arguments must produce a detached diagnostic.");
+        Assert.IsNotNull(diagnostic);
+        return diagnostic;
+    }
+
 }

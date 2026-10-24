@@ -1,4 +1,5 @@
 using System.IO.Pipes;
+using System.Runtime.CompilerServices;
 using System.Text;
 using CIS.Healthcheck;
 using CIS.Healthcheck.Pipes;
@@ -8,42 +9,46 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 namespace CIS.Tests.UnitTests.Healthcheck;
 
 [TestClass]
-public sealed class HealthPipeStartupCompletionQualificationTests
+public sealed partial class HealthPipeStartupCompletionQualificationTests
 {
     private static readonly TimeSpan Deadline = TimeSpan.FromSeconds(15);
 
     [TestMethod]
-    public async Task AnActualSuccessfulSingleSlotExchangeConfirmsTheSavedStartCompletion()
+    public void AnActualSuccessfulSingleSlotExchangeConfirmsTheSavedStartCompletion()
+    {
+        ReviewSavedStartOwners(RunSavedStartScenario());
+    }
+
+    [MethodImpl(MethodImplOptions.NoInlining)]
+    private static SavedStartObservation RunSavedStartScenario()
     {
         var service = new HealthcheckService(new(), new HealthApplicationIdentity { Name = "startup-proof", InstanceId = Guid.NewGuid() });
         service.MarkStartupCompleted();
         var source = new CountingSource(service);
+        var clock = new SavedStartBudgetClock();
         string pipe = "hc-start-" + Guid.NewGuid().ToString("N");
-        var server = new HealthPipeServer(source, new HealthcheckOptions
+        var options = new HealthcheckOptions
         {
             PipeEnabled = true,
             PipeName = pipe,
             PipeMaxClients = 1,
             PipeRequestTimeoutMs = 1000
-        });
-        using var cancellation = new CancellationTokenSource(Deadline);
+        };
+        HealthPipeServer? server = null;
+        var cancellation = new CancellationTokenSource(Deadline);
+        Task? exchange = null, savedStart = null;
+        Exception? failure = null;
         try
         {
             HealthSnapshot before = service.CaptureSnapshot();
-            Task started = server.StartAsync();
+            StartedOwner owned = CreateServerWithUnjoinedStartup(source, options, clock);
+            server = owned.Server;
+            Task started = owned.Started;
+            savedStart = started;
             // Do not await this task before the independent real milestone:
             // omission of TrySetResult must reach an assertion, not an await timeout.
-            using (var client = new NamedPipeClientStream(".", pipe, PipeDirection.InOut,
-                PipeOptions.Asynchronous | PipeOptions.CurrentUserOnly))
-            {
-                await client.ConnectAsync(cancellation.Token);
-                await HealthReportProtocol.WriteFrameAsync(client,
-                    Encoding.UTF8.GetBytes("{\"protocolVersion\":1,\"view\":\"health\"}"), 512, cancellation.Token);
-                byte[] reply = await HealthReportProtocol.ReadFrameAsync(client, 4194304, cancellation.Token);
-                HealthParsedResponse parsed = HealthReportProtocol.ParseResponse(reply, HealthReportView.Health, 4194304);
-                Assert.IsFalse(parsed.IsError);
-                Assert.IsTrue(parsed.SelectedHealthy);
-            }
+            exchange = ExchangeAsync(pipe, cancellation.Token);
+            JoinSavedStart(exchange);
             Assert.AreEqual(1, source.Captures);
             // With one actual slot, a complete valid response demonstrates that
             // the sole endpoint was published and its worker admitted. This
@@ -56,23 +61,35 @@ public sealed class HealthPipeStartupCompletionQualificationTests
             Assert.AreEqual(before.Ready, after.Ready);
             Assert.AreEqual(before.Application.IsStopping, after.Application.IsStopping);
         }
-        finally
+        catch (Exception error) { failure = error; }
+        return ReleaseSavedStartOwners(server, service, source, clock, options, cancellation, exchange, savedStart, failure);
+    }
+
+    private static async Task ExchangeAsync(string pipe, CancellationToken cancellation)
+    {
+        using (var client = new NamedPipeClientStream(".", pipe, PipeDirection.InOut,
+            PipeOptions.Asynchronous | PipeOptions.CurrentUserOnly))
         {
-            // The saved startup task is deliberately not joined: the exact
-            // omission leaves only that notification pending, not owned work.
-            try
-            {
-                try { await server.StopAsync().WaitAsync(Deadline); }
-                finally { await server.DisposeAsync().AsTask().WaitAsync(Deadline); }
-            }
-            finally { await service.DisposeAsync().AsTask().WaitAsync(Deadline); }
+            await client.ConnectAsync(cancellation);
+            await HealthReportProtocol.WriteFrameAsync(client,
+                Encoding.UTF8.GetBytes("{\"protocolVersion\":1,\"view\":\"health\"}"), 512, cancellation);
+            byte[] reply = await HealthReportProtocol.ReadFrameAsync(client, 4194304, cancellation);
+            HealthParsedResponse parsed = HealthReportProtocol.ParseResponse(reply, HealthReportView.Health, 4194304);
+            Assert.IsFalse(parsed.IsError);
+            Assert.IsTrue(parsed.SelectedHealthy);
         }
     }
 
     private sealed class CountingSource(HealthcheckService service) : IHealthSnapshotSource
     {
-        private int captures;
-        internal int Captures => Volatile.Read(ref captures);
-        public HealthSnapshot CaptureSnapshot() { Interlocked.Increment(ref captures); return service.CaptureSnapshot(); }
+        internal SavedStartSourcePhase Phase { get; } = new();
+        internal int Captures => Volatile.Read(ref Phase.Captures);
+        public HealthSnapshot CaptureSnapshot()
+        {
+            Interlocked.Increment(ref Phase.Captures);
+            try { return service.CaptureSnapshot(); }
+            catch (Exception error) { Phase.RecordFailure(error); throw; }
+            finally { Interlocked.Increment(ref Phase.Exits); }
+        }
     }
 }

@@ -128,7 +128,7 @@ public sealed class HealthcheckServicePolicyTests
 
         Assert.AreNotEqual(Guid.Empty, first.MonitorId);
         Assert.AreNotEqual(first.MonitorId, second.MonitorId);
-        first.Flag(new HealthDiagnostic("FirstOnly"));
+        first.Flag(AcceptedDiagnostic("FirstOnly"));
         HealthSnapshot snapshot = service.CaptureSnapshot();
         Assert.AreEqual(MonitorState.Unhealthy, Find(snapshot, first).State);
         Assert.AreEqual(MonitorState.Healthy, Find(snapshot, second).State);
@@ -148,7 +148,7 @@ public sealed class HealthcheckServicePolicyTests
         {
             IsCritical = true,
             InitiallyFlagged = false,
-            InitialDiagnostic = new HealthDiagnostic("UnusedInitialReason")
+            InitialDiagnostic = AcceptedDiagnostic("UnusedInitialReason")
         });
         HealthMonitorSnapshot initial = Find(service.CaptureSnapshot(), condition);
         Assert.AreEqual(MonitorState.Healthy, initial.State);
@@ -214,7 +214,7 @@ public sealed class HealthcheckServicePolicyTests
         {
             IsCritical = true,
             InitiallyFlagged = true,
-            InitialDiagnostic = new HealthDiagnostic("PrimingFailed")
+            InitialDiagnostic = AcceptedDiagnostic("PrimingFailed")
         });
         service.MarkStartupCompleted();
         HealthSnapshot first = service.CaptureSnapshot();
@@ -235,7 +235,7 @@ public sealed class HealthcheckServicePolicyTests
         var clock = new ManualTimeProvider(InitialTime);
         await using HealthcheckService service = CreateService(clock);
         IConsecutiveFailureMonitor monitor = service.CreateConsecutiveFailures(new ConsecutiveFailureMonitorOptions { IsCritical = true, FailureThreshold = 3 });
-        var failure = new HealthDiagnostic("RefreshFailed");
+        var failure = AcceptedDiagnostic("RefreshFailed");
 
         for (int count = 1; count <= 3; count++)
         {
@@ -271,7 +271,7 @@ public sealed class HealthcheckServicePolicyTests
     {
         await using HealthcheckService service = CreateService();
         IConsecutiveFailureMonitor monitor = service.CreateConsecutiveFailures(new ConsecutiveFailureMonitorOptions { IsCritical = true, FailureThreshold = 2 });
-        monitor.ReportFailure(new HealthDiagnostic("OriginalFailure"));
+        monitor.ReportFailure(AcceptedDiagnostic("OriginalFailure"));
         monitor.ReportSkipped();
         monitor.ReportExpectedCancellation();
         HealthMonitorSnapshot neutral = Find(service.CaptureSnapshot(), monitor);
@@ -311,7 +311,7 @@ public sealed class HealthcheckServicePolicyTests
         await using HealthcheckService service = CreateService(clock);
         INumericThresholdMonitor monitor = service.CreateNumericThreshold(NumericOptions(comparison));
         clock.Advance(TimeSpan.FromSeconds(2));
-        monitor.ReportValue(value, new HealthDiagnostic("Observation"));
+        monitor.ReportValue(value, AcceptedDiagnostic("Observation"));
         HealthMonitorSnapshot observed = Find(service.CaptureSnapshot(), monitor);
 
         Assert.AreEqual(breached ? MonitorState.Unhealthy : MonitorState.Healthy, observed.State);
@@ -331,7 +331,7 @@ public sealed class HealthcheckServicePolicyTests
     {
         await using HealthcheckService service = CreateService();
         INumericThresholdMonitor monitor = service.CreateNumericThreshold(NumericOptions());
-        monitor.ReportValue(11, new HealthDiagnostic("TooSlow"));
+        monitor.ReportValue(11, AcceptedDiagnostic("TooSlow"));
         HealthSnapshot accepted = service.CaptureSnapshot();
         foreach (double invalid in new[] { double.NaN, double.PositiveInfinity, double.NegativeInfinity })
         {
@@ -356,11 +356,11 @@ public sealed class HealthcheckServicePolicyTests
     {
         await using HealthcheckService service = CreateService();
         IAvailabilityMonitor monitor = service.CreateAvailability(new AvailabilityMonitorOptions { IsCritical = true });
-        monitor.ReportRefreshFailure(new HealthDiagnostic("InitialFailure"));
+        monitor.ReportRefreshFailure(AcceptedDiagnostic("InitialFailure"));
         Assert.AreEqual(MonitorState.Unhealthy, Find(service.CaptureSnapshot(), monitor).State);
         monitor.ReportPublished();
         Assert.AreEqual(MonitorState.Healthy, Find(service.CaptureSnapshot(), monitor).State);
-        monitor.ReportRefreshFailure(new HealthDiagnostic("RefreshFailure"));
+        monitor.ReportRefreshFailure(AcceptedDiagnostic("RefreshFailure"));
         monitor.ReportRefreshFailure();
         HealthMonitorSnapshot usable = Find(service.CaptureSnapshot(), monitor);
         Assert.AreEqual(MonitorState.Healthy, usable.State);
@@ -369,7 +369,7 @@ public sealed class HealthcheckServicePolicyTests
         Assert.AreEqual(2L, usable.Outcomes.ConsecutiveFailures);
         Assert.AreEqual(HealthStatus.Healthy, service.CaptureSnapshot().HealthStatus);
 
-        monitor.Invalidate(new HealthDiagnostic("CacheInvalid"));
+        monitor.Invalidate(AcceptedDiagnostic("CacheInvalid"));
         HealthMonitorSnapshot invalid = Find(service.CaptureSnapshot(), monitor);
         Assert.AreEqual(MonitorState.Unhealthy, invalid.State);
         Assert.AreEqual("CacheInvalid", invalid.Diagnostic!.Code);
@@ -464,7 +464,7 @@ public sealed class HealthcheckServicePolicyTests
         var clock = new ManualTimeProvider(InitialTime);
         await using HealthcheckService service = CreateService(clock);
         IConditionMonitor monitor = service.CreateCondition(new ConditionMonitorOptions { IsCritical = true, InitiallyFlagged = false });
-        monitor.Flag(new HealthDiagnostic("Fault"));
+        monitor.Flag(AcceptedDiagnostic("Fault"));
         HealthSnapshot before = service.CaptureSnapshot();
         clock.Advance(TimeSpan.FromDays(1));
         HealthSnapshot after = service.CaptureSnapshot();
@@ -725,12 +725,13 @@ public sealed class HealthcheckServicePolicyTests
         var withdrawalStart = new AsyncBarrier(2);
         var withdrawn = new AsyncSignal();
         Guid monitorId = monitor.MonitorId;
+        HealthDiagnostic failureReason = AcceptedDiagnostic("ConcurrentFailure");
 
         Task writer = Task.Run(async () =>
         {
             for (int round = 0; round < rounds; round++)
             {
-                monitor.ReportFailure(new HealthDiagnostic("ConcurrentFailure"));
+                monitor.ReportFailure(failureReason);
                 await starts[round].SignalAndWaitAsync(deadline);
                 monitor.ReportSuccess();
                 await finishes[round].SignalAndWaitAsync(deadline);
@@ -894,7 +895,7 @@ public sealed class HealthcheckServicePolicyTests
     [MethodImpl(MethodImplOptions.NoInlining)]
     private static void ReportConditionOnTemporaryMonitor(HealthcheckService service) =>
         service.CreateCondition(new ConditionMonitorOptions { IsCritical = true, InitiallyFlagged = false })
-            .Flag(new HealthDiagnostic("CommittedAfterClock"));
+            .Flag(AcceptedDiagnostic("CommittedAfterClock"));
 
     private sealed class ReentrantGcTimeProvider : TimeProvider
     {
@@ -915,5 +916,15 @@ public sealed class HealthcheckServicePolicyTests
         IConditionMonitor monitor = service.CreateCondition(new ConditionMonitorOptions { IsCritical = true, InitiallyFlagged = true });
         Assert.AreEqual(HealthStatus.Unhealthy, service.CaptureSnapshot().HealthStatus);
         return new WeakReference(monitor);
+    }
+    private static HealthDiagnostic AcceptedDiagnostic(string code, string? message = null)
+    {
+        HealthDiagnostic? diagnostic = null;
+        ArgumentException? rejection = null;
+        try { diagnostic = new HealthDiagnostic(code, message); }
+        catch (ArgumentException error) { rejection = error; }
+        Assert.IsNull(rejection, "Valid diagnostic constructor arguments must produce the actual detached reason.");
+        Assert.IsNotNull(diagnostic);
+        return diagnostic;
     }
 }

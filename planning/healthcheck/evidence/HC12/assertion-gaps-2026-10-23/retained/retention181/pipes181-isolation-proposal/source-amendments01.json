@@ -1,0 +1,15 @@
+{
+  "schema": "cis.healthcheck.developer179-method-isolation/v1-source-only",
+  "originalMainSha256": "ae3ac56e75818a8fda4c5526dcddc290db90eb716324c423344b120e05042464",
+  "minimalMainSha256": "5ada71dd85638d91260f7ba3694889501bff87af64b4668de15db1e5838358e3",
+  "fourScenarioMainSha256": "d0c4bfe869e16a3b7f1dad83c1a0462b6202b6477e37fe59d32e4ec4a094ba73",
+  "minimalMethods": [ "ManyConcurrentClientsSettleAndStopIsTerminal" ],
+  "fourScenarioMethods": [ "OneConnectionIsClosedAfterExactlyOneResponse", "ManyConcurrentClientsSettleAndStopIsTerminal", "StopWaitCancellationDoesNotCertifyBlockedHandlerSettlement", "DisposalWaitsForAnActuallyRunningSnapshotSource" ],
+  "beforeTemplate": "    [TestMethod]\n    public void {METHOD}()",
+  "afterTemplate": "    [TestMethod]\n    [DoNotParallelize]\n    public void {METHOD}()",
+  "newFixtureCompiled": false,
+  "newSubjectInvoked": false,
+  "oldEofCauseProven": false,
+  "oldFailedRunRetained": true,
+  "appliedKillCredit": 0
+}

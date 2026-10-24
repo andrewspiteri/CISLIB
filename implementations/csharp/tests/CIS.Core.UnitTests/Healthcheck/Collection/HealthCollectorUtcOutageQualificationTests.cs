@@ -12,6 +12,26 @@ public sealed class HealthCollectorUtcOutageQualificationTests
     [TestMethod]
     public async Task AnActualUtcProviderOutageCannotStrandTheLeaseOrInventAPolicyOutcome()
     {
+        // These resource-free public prerequisites use representative exceptions.
+        // Actual unavailable UTC reads below still allocate their own new errors.
+        HealthDiagnostic? evaluationProjection = null;
+        ArgumentException? evaluationRejection = null;
+        try { evaluationProjection = HealthDiagnostic.FromException(new UtcUnavailableException(), "Healthcheck.CollectionEvaluation"); }
+        catch (ArgumentException error) { evaluationRejection = error; }
+        Assert.IsNull(evaluationRejection, "The valid UTC outage error must support the evaluation diagnostic before dispatch.");
+        Assert.IsNotNull(evaluationProjection);
+        Assert.AreEqual("Healthcheck.CollectionEvaluation", evaluationProjection.Code);
+        Assert.AreEqual(typeof(UtcUnavailableException).FullName, evaluationProjection.ExceptionType);
+
+        HealthDiagnostic? integrationProjection = null;
+        ArgumentException? integrationRejection = null;
+        try { integrationProjection = HealthDiagnostic.FromException(new UtcUnavailableException(), "Healthcheck.CollectionIntegration"); }
+        catch (ArgumentException error) { integrationRejection = error; }
+        Assert.IsNull(integrationRejection, "The valid UTC outage error must support the integration diagnostic before dispatch.");
+        Assert.IsNotNull(integrationProjection);
+        Assert.AreEqual("Healthcheck.CollectionIntegration", integrationProjection.Code);
+        Assert.AreEqual(typeof(UtcUnavailableException).FullName, integrationProjection.ExceptionType);
+
         var clock = new OutageClock();
         var service = new HealthcheckService(new() { MaxConcurrentCollections = 1 },
             new HealthApplicationIdentity { Name = "collection UTC provider outage", InstanceId = Guid.NewGuid() }, clock);

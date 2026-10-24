@@ -155,8 +155,8 @@ public sealed class HealthExecutionFactValidationTests
             case "callback-skip": input.Outcome = HealthExecutionOutcome.Skipped; break;
             case "premature-settlement-time": input.SettledAtUtc = Epoch; break;
             case "premature-total-duration": input.TotalDurationMilliseconds = 0; break;
-            case "success-original-error": input.Outcome = HealthExecutionOutcome.Succeeded; input.OriginalError = new("Unexpected"); break;
-            case "skip-original-error": input.Outcome = HealthExecutionOutcome.Skipped; input.SourcePhase = HealthExecutionPhase.Condition; input.OriginalError = new("Unexpected"); break;
+            case "success-original-error": input.Outcome = HealthExecutionOutcome.Succeeded; input.OriginalError = AcceptedDiagnostic("Unexpected"); break;
+            case "skip-original-error": input.Outcome = HealthExecutionOutcome.Skipped; input.SourcePhase = HealthExecutionPhase.Condition; input.OriginalError = AcceptedDiagnostic("Unexpected"); break;
             case "condition-callback-time": input.SourcePhase = HealthExecutionPhase.Condition; input.CallbackStartedAtUtc = Epoch; break;
             case "condition-callback-duration": input.SourcePhase = HealthExecutionPhase.Condition; input.CallbackDurationMilliseconds = 1; break;
             default: throw new AssertFailedException("Unknown outcome case.");
@@ -234,14 +234,14 @@ public sealed class HealthExecutionFactValidationTests
         {
             case "registered-time": input = new(scope.Id, HealthExecutionFactKind.Registered) { EligibleAtUtc = Epoch }; break;
             case "registered-duration": input = new(scope.Id, HealthExecutionFactKind.Registered) { QueueDelayMilliseconds = 0 }; break;
-            case "registered-diagnostic": input = new(scope.Id, HealthExecutionFactKind.Registered) { IntegrationError = new("Unexpected") }; break;
+            case "registered-diagnostic": input = new(scope.Id, HealthExecutionFactKind.Registered) { IntegrationError = AcceptedDiagnostic("Unexpected") }; break;
             case "registered-status": input = new(scope.Id, HealthExecutionFactKind.Registered) { CleanupStatus = HealthExecutionStepStatus.NotStarted }; break;
             case "retired-time": input = new(scope.Id, HealthExecutionFactKind.Retired) { WorkCompletedAtUtc = Epoch }; break;
-            case "retired-original-error": input = new(scope.Id, HealthExecutionFactKind.Retired) { OriginalError = new("Unexpected") }; break;
+            case "retired-original-error": input = new(scope.Id, HealthExecutionFactKind.Retired) { OriginalError = AcceptedDiagnostic("Unexpected") }; break;
             case "retired-status": input = new(scope.Id, HealthExecutionFactKind.Retired) { ErrorHandlingStatus = HealthExecutionStepStatus.NotApplicable }; break;
-            case "registration-fault-time": input = new(scope.Id, HealthExecutionFactKind.IntegrationFault) { IntegrationError = new("Integration"), EligibleAtUtc = Epoch }; break;
-            case "registration-fault-status": input = new(scope.Id, HealthExecutionFactKind.IntegrationFault) { IntegrationError = new("Integration"), CleanupStatus = HealthExecutionStepStatus.NotInvoked }; break;
-            case "registration-fault-original-error": input = new(scope.Id, HealthExecutionFactKind.IntegrationFault) { IntegrationError = new("Integration"), OriginalError = new("Unexpected") }; break;
+            case "registration-fault-time": input = new(scope.Id, HealthExecutionFactKind.IntegrationFault) { IntegrationError = AcceptedDiagnostic("Integration"), EligibleAtUtc = Epoch }; break;
+            case "registration-fault-status": input = new(scope.Id, HealthExecutionFactKind.IntegrationFault) { IntegrationError = AcceptedDiagnostic("Integration"), CleanupStatus = HealthExecutionStepStatus.NotInvoked }; break;
+            case "registration-fault-original-error": input = new(scope.Id, HealthExecutionFactKind.IntegrationFault) { IntegrationError = AcceptedDiagnostic("Integration"), OriginalError = AcceptedDiagnostic("Unexpected") }; break;
             case "integration-fault-without-error": input = new(scope.Id, HealthExecutionFactKind.IntegrationFault); break;
             case "eligible-with-source": input = ValidFact(scope.Id, HealthExecutionFactKind.Eligible); input.SourcePhase = HealthExecutionPhase.Condition; break;
             case "cleanup-with-source": input = ValidFact(scope.Id, HealthExecutionFactKind.CleanupCompleted); input.SourcePhase = HealthExecutionPhase.Cleanup; break;
@@ -377,7 +377,7 @@ public sealed class HealthExecutionFactValidationTests
     {
         await using var scope = new FactScope();
         var outcome = ValidOutcome(scope.Id);
-        outcome.OriginalError = new("Original", "work failed");
+        outcome.OriginalError = AcceptedDiagnostic("Original", "work failed");
         scope.Binding.Report(outcome.Build());
         DateTimeOffset? observation = scope.Monitor.LastObservationAtUtc;
         var handler = ValidFact(scope.Id, HealthExecutionFactKind.ErrorHandlingCompleted);
@@ -385,13 +385,13 @@ public sealed class HealthExecutionFactValidationTests
         scope.Binding.Report(handler.Build());
         var cleanup = ValidFact(scope.Id, HealthExecutionFactKind.CleanupCompleted);
         cleanup.CleanupStatus = HealthExecutionStepStatus.Failed;
-        cleanup.CleanupError = new("Cleanup", "cleanup failed");
+        cleanup.CleanupError = AcceptedDiagnostic("Cleanup", "cleanup failed");
         scope.Binding.Report(cleanup.Build());
         var fault = new Inputs(scope.Id, HealthExecutionFactKind.IntegrationFault)
         {
             ExecutionId = 1,
             SourcePhase = HealthExecutionPhase.Cleanup,
-            IntegrationError = new("Reporting", "integration observer failed")
+            IntegrationError = AcceptedDiagnostic("Reporting", "integration observer failed")
         };
         scope.Binding.Report(fault.Build());
         var settled = ValidFact(scope.Id, HealthExecutionFactKind.Settled);
@@ -421,7 +421,7 @@ public sealed class HealthExecutionFactValidationTests
         await using var scope = new FactScope();
         Assert.AreEqual(HealthFactDisposition.Recorded, scope.Binding.Report(new Inputs(scope.Id, HealthExecutionFactKind.IntegrationFault)
         {
-            IntegrationError = new("ScheduleFault"),
+            IntegrationError = AcceptedDiagnostic("ScheduleFault"),
             SourcePhase = HealthExecutionPhase.Registered
         }.Build()));
         Assert.AreEqual(MonitorState.Pending, scope.Monitor.State);
@@ -447,7 +447,7 @@ public sealed class HealthExecutionFactValidationTests
         {
             ExecutionId = 1,
             SourcePhase = origin,
-            IntegrationError = new("Observer", "Diagnostic origin is not a settlement notification.")
+            IntegrationError = AcceptedDiagnostic("Observer", "Diagnostic origin is not a settlement notification.")
         };
 
         Assert.AreEqual(HealthFactDisposition.Recorded, scope.Binding.Report(fault.Build()));
@@ -479,14 +479,14 @@ public sealed class HealthExecutionFactValidationTests
         var first = ValidOutcome(scope.Id);
         first.CallbackStartedAtUtc = Epoch.AddTicks(-2);
         first.CallbackDurationMilliseconds = 2;
-        first.OriginalError = new("Original");
+        first.OriginalError = AcceptedDiagnostic("Original");
         first.ErrorHandlingStatus = HealthExecutionStepStatus.Failed;
         first.CleanupStatus = HealthExecutionStepStatus.Succeeded;
         scope.Binding.Report(first.Build());
         var contradiction = ValidOutcome(scope.Id);
         contradiction.CallbackStartedAtUtc = first.CallbackStartedAtUtc;
         contradiction.CallbackDurationMilliseconds = first.CallbackDurationMilliseconds;
-        contradiction.OriginalError = new("Original");
+        contradiction.OriginalError = AcceptedDiagnostic("Original");
         contradiction.ErrorHandlingStatus = first.ErrorHandlingStatus;
         contradiction.CleanupStatus = first.CleanupStatus;
         switch (field)
@@ -495,7 +495,7 @@ public sealed class HealthExecutionFactValidationTests
             case "duration": contradiction.CallbackDurationMilliseconds = 3; break;
             case "terminal-handler": contradiction.ErrorHandlingStatus = HealthExecutionStepStatus.Succeeded; break;
             case "terminal-cleanup": contradiction.CleanupStatus = HealthExecutionStepStatus.Failed; break;
-            case "original-error": contradiction.OriginalError = new("Changed"); break;
+            case "original-error": contradiction.OriginalError = AcceptedDiagnostic("Changed"); break;
             default: throw new AssertFailedException("Unknown immutable-context case.");
         }
         HealthSnapshot before = scope.Service.CaptureSnapshot();
@@ -534,7 +534,7 @@ public sealed class HealthExecutionFactValidationTests
         var reopening = new Inputs(scope.Id, HealthExecutionFactKind.IntegrationFault)
         {
             ExecutionId = 1,
-            IntegrationError = new("Observer")
+            IntegrationError = AcceptedDiagnostic("Observer")
         };
         if (step == "handler") { reopening.ErrorHandlingStatus = HealthExecutionStepStatus.Running; }
         else { reopening.CleanupStatus = HealthExecutionStepStatus.Running; }
@@ -551,9 +551,9 @@ public sealed class HealthExecutionFactValidationTests
         var enriched = ValidOutcome(scope.Id);
         enriched.CallbackDurationMilliseconds = 3.5;
         enriched.ErrorHandlingStatus = HealthExecutionStepStatus.Failed;
-        enriched.ErrorHandlingError = new("Handler");
+        enriched.ErrorHandlingError = AcceptedDiagnostic("Handler");
         enriched.CleanupStatus = HealthExecutionStepStatus.NotInvoked;
-        enriched.CleanupError = new("OwnerUnavailable");
+        enriched.CleanupError = AcceptedDiagnostic("OwnerUnavailable");
 
         Assert.AreEqual(HealthFactDisposition.Duplicate, scope.Binding.Report(enriched.Build()));
 
@@ -564,6 +564,17 @@ public sealed class HealthExecutionFactValidationTests
         Assert.AreEqual("OwnerUnavailable", execution.CleanupError!.Code);
         Assert.AreEqual(1L, scope.Monitor.Outcomes.Failed);
         Assert.AreEqual(0L, scope.Monitor.Outcomes.Successful);
+    }
+
+    private static HealthDiagnostic AcceptedDiagnostic(string? code = null, string? message = null, string? exceptionType = null)
+    {
+        HealthDiagnostic? diagnostic = null;
+        ArgumentException? rejection = null;
+        try { diagnostic = new HealthDiagnostic(code, message, exceptionType); }
+        catch (ArgumentException error) { rejection = error; }
+        Assert.IsNull(rejection, "Valid diagnostic constructor arguments must produce a detached diagnostic.");
+        Assert.IsNotNull(diagnostic);
+        return diagnostic;
     }
 
     private static void AssertRejectedWithoutMutation(FactScope scope, HealthExecutionFact fact)
@@ -612,7 +623,7 @@ public sealed class HealthExecutionFactValidationTests
                 input.ErrorHandlingStatus = HealthExecutionStepStatus.Succeeded;
                 input.CleanupStatus = HealthExecutionStepStatus.Succeeded;
                 break;
-            case HealthExecutionFactKind.IntegrationFault: input.IntegrationError = new("Integration"); break;
+            case HealthExecutionFactKind.IntegrationFault: input.IntegrationError = AcceptedDiagnostic("Integration"); break;
         }
         return input;
     }

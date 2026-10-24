@@ -1,0 +1,9 @@
+# Withdrawal150 physical receiving supplement
+
+This supplements the bounded source/control review `withdrawal-argument150-independent-review01.md` (`6691db0c7c6529938891965d64aee21bb44f46ae1b558596459a4c7141d2f474`). Finding: **clear within the same narrow scope**. The reviewer read the complete final Verify.cs and `verification-receipt01.json` (`71de4b6b101b7e075cec1feb05658c7d844a9b026a9c6075638905e0c1c32f3f`); no verifier, build, native/control run or canonical edit was performed by the reviewer.
+
+The unchanged proposed source remains `07beb1b76f480182c6972242f5f097bf01247268df0c962d21a71937ddd5f34d`. The reader binds the exact one-call inverse and byte-identical entire Finish, the five frozen147 Core sources/all146 document checksums with exact single diagnostic tuple derivation, full portable PE/PDB identity and checksum entries, ordinary original Core equality, fixture/control/verifier source/PE/PDB identities, actual two original GUID/FQN/display passes and their counters, and all eight completed real async-row controls/classifier receipts already reviewed. The four copied variant Core DLL/PDB pairs must match the frozen originals.
+
+Final fixture DLL/PDB pins: `5aa14264afa8db9927dda4a0f7960b71f2ca91ba5dc0edeba6f237b52538050b` / `47625f33368178a91f82d783517c00af23485b3a4705e275f604fc708f06db42`. Ordinary TRX pin: `2e8a1d6f3efc40565b1657c3dd23d7766962f814b0eb55201ee1de53b0bc785d`.
+
+The receipt explicitly distinguishes source proof of unknown-error/cleanup retention from an unexecuted unknown-error or cleanup-negative control. It also discloses the private cached restore's disabled vulnerability audit and makes no security/release qualification claim. This supplement does not promote that private build to audited release evidence, run missing controls, alter original campaign errors, or grant mutation credit. Existing unknown/cleanup/abnormal-host holds and all zero-credit boundaries remain.

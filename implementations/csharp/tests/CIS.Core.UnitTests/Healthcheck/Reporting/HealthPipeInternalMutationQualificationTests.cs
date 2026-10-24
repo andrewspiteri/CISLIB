@@ -1,4 +1,5 @@
 using System.ComponentModel;
+using System.Runtime.CompilerServices;
 using CIS.Healthcheck;
 using CIS.Healthcheck.Pipes;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -6,7 +7,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 namespace CIS.Tests.UnitTests.Healthcheck;
 
 [TestClass]
-public sealed class HealthPipeInternalMutationQualificationTests
+public sealed partial class HealthPipeInternalMutationQualificationTests
 {
     private static readonly TimeSpan Deadline = TimeSpan.FromSeconds(15);
 
@@ -66,46 +67,67 @@ public sealed class HealthPipeInternalMutationQualificationTests
     }
 
     [TestMethod]
-    public async Task FailedStandardOutputIsReportedAsTransportFailureWithoutLeakingTheException()
+    public void FailedStandardOutputIsReportedAsTransportFailureWithoutLeakingTheException()
+    {
+        ReviewInternalProbeOwners(RunFailedOutputScenario());
+    }
+
+    [MethodImpl(MethodImplOptions.NoInlining)]
+    private static InternalProbeObservation RunFailedOutputScenario()
     {
         var service = new HealthcheckService(new HealthcheckOptions(),
             new HealthApplicationIdentity { Name = "probe-output-owner", InstanceId = Guid.NewGuid() });
         service.MarkStartupCompleted();
         string pipe = "hc-" + Guid.NewGuid().ToString("N");
-        var server = new HealthPipeServer(service, new HealthcheckOptions { PipeEnabled = true, PipeName = pipe });
+        var source = new StartupCountingSource(service);
+        var options = new HealthcheckOptions { PipeEnabled = true, PipeName = pipe };
+        var clock = new InternalBudgetClock();
+        HealthPipeServer? server = null;
+        Task<int>? probe = null;
+        Exception? failure = null;
         try
         {
-            await server.StartAsync().WaitAsync(Deadline);
+            server = CreateStartedServer(source, options, clock);
             using var output = new UnavailableStream();
             using var error = new StringWriter();
-            int exit = await HealthProbeClient.RunAsync(["--pipe", pipe], output, error).WaitAsync(Deadline);
+            probe = HealthProbeClient.RunAsync(["--pipe", pipe], output, error);
+            int exit = JoinInternal(probe);
             Assert.AreEqual(2, exit);
             StringAssert.Contains(error.ToString(), "TransportOrProtocolFailure");
             Assert.IsFalse(error.ToString().Contains("private output path", StringComparison.Ordinal));
             Assert.AreEqual(1, output.Attempts);
         }
-        finally
-        {
-            try { await StopAndDisposeAsync(server); }
-            finally { await service.DisposeAsync().AsTask().WaitAsync(Deadline); }
-        }
+        catch (Exception error) { failure = error; }
+        return ReleaseInternalProbeOwners(server, service, source, clock, options, probe, failure);
     }
 
     [TestMethod]
-    public async Task SuccessfulProbeDeliversBufferedOutputBeforeReturningItsHealthExit()
+    public void SuccessfulProbeDeliversBufferedOutputBeforeReturningItsHealthExit()
+    {
+        ReviewInternalProbeOwners(RunBufferedOutputScenario());
+    }
+
+    [MethodImpl(MethodImplOptions.NoInlining)]
+    private static InternalProbeObservation RunBufferedOutputScenario()
     {
         var service = new HealthcheckService(new HealthcheckOptions(),
             new HealthApplicationIdentity { Name = "buffered-probe-owner", InstanceId = Guid.NewGuid() });
         service.MarkStartupCompleted();
         string pipe = "hc-" + Guid.NewGuid().ToString("N");
-        var server = new HealthPipeServer(service, new HealthcheckOptions { PipeEnabled = true, PipeName = pipe });
+        var source = new StartupCountingSource(service);
+        var options = new HealthcheckOptions { PipeEnabled = true, PipeName = pipe };
+        var clock = new InternalBudgetClock();
+        HealthPipeServer? server = null;
+        Task<int>? probe = null;
+        Exception? failure = null;
         try
         {
-            await server.StartAsync().WaitAsync(Deadline);
+            server = CreateStartedServer(source, options, clock);
             using var delivered = new MemoryStream();
             using var buffered = new BufferedStream(delivered, 65536);
             using var error = new StringWriter();
-            Assert.AreEqual(0, await HealthProbeClient.RunAsync(["--pipe", pipe], buffered, error).WaitAsync(Deadline));
+            probe = HealthProbeClient.RunAsync(["--pipe", pipe], buffered, error);
+            Assert.AreEqual(0, JoinInternal(probe));
             byte[] actual = delivered.ToArray();
             Assert.IsTrue(actual.Length > 1);
             Assert.AreEqual((byte)'\n', actual[^1]);
@@ -113,11 +135,8 @@ public sealed class HealthPipeInternalMutationQualificationTests
             Assert.AreEqual("buffered-probe-owner", json.RootElement.GetProperty("application").GetProperty("name").GetString());
             Assert.AreEqual(string.Empty, error.ToString());
         }
-        finally
-        {
-            try { await StopAndDisposeAsync(server); }
-            finally { await service.DisposeAsync().AsTask().WaitAsync(Deadline); }
-        }
+        catch (Exception failureValue) { failure = failureValue; }
+        return ReleaseInternalProbeOwners(server, service, source, clock, options, probe, failure);
     }
 
     [TestMethod]
@@ -158,19 +177,16 @@ public sealed class HealthPipeInternalMutationQualificationTests
         Assert.IsFalse(callerWait.SafeWaitHandle.IsClosed);
     }
 
-    private static async Task StopAndDisposeAsync(HealthPipeServer server)
+    private sealed class StartupCountingSource(HealthcheckService service) : IHealthSnapshotSource
     {
-        Task stopping;
-        try { stopping = server.StopAsync(); }
-        catch (Exception error) { stopping = Task.FromException(error); }
-        Task disposing;
-        try { disposing = server.DisposeAsync().AsTask(); }
-        catch (Exception error) { disposing = Task.FromException(error); }
-        Task drains = Task.WhenAll(stopping, disposing);
-        try { await drains.WaitAsync(Deadline); }
-        catch (Exception error) when (error is not TimeoutException && drains.Exception is not null)
+        internal InternalSourcePhase Phase { get; } = new();
+        internal int Captures => Volatile.Read(ref Phase.Captures);
+        public HealthSnapshot CaptureSnapshot()
         {
-            throw drains.Exception;
+            Interlocked.Increment(ref Phase.Captures);
+            try { return service.CaptureSnapshot(); }
+            catch (Exception error) { Phase.RecordFailure(error); throw; }
+            finally { Interlocked.Increment(ref Phase.Exits); }
         }
     }
 

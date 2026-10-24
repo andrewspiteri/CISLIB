@@ -189,7 +189,8 @@ public sealed class HealthcheckMutationDispositionTests
     [TestMethod]
     public void MaintainedNoncriticalCatalogRetainsItsEightOriginalSurvivors()
     {
-        Validation.Review[] noncritical = HealthcheckMutationDispositionCatalog.Entries.Where(entry => entry.Kind == "ReviewedNoncritical").ToArray();
+        Validation.Review[] noncritical = HealthcheckMutationDispositionCatalog.Entries.Where(entry => entry.Kind == "ReviewedNoncritical"
+            && entry.ReportSha256 == "5f15348728dd4443acbfc6d5fd5392fb3c7fbbed45ba9d4405075436d21549c4").ToArray();
         Assert.HasCount(8, noncritical);
         CollectionAssert.AreEquivalent(new[] { "200", "230", "241", "245", "255", "260", "267", "274" },
             noncritical.Select(entry => entry.Definition.Id).ToArray());
@@ -218,6 +219,119 @@ public sealed class HealthcheckMutationDispositionTests
         Validation.Review review = fixture.Review with { Evidence = evidence };
         Assert.ThrowsExactly<InvalidDataException>(() => Validation.Bind(fixture.Document, "ubuntu", fixture.Sources, [review]));
     }
+
+    [TestMethod]
+    public void CurrentAspNetCatalogAddsExactlyEightFreshReportBoundNoncriticalReviews()
+    {
+        Validation.Review[] current = HealthcheckMutationDispositionCatalog.Entries.Where(review => review.ReportSha256 == HealthcheckMutationAspNet93DispositionCatalog.ReportSha256).ToArray();
+        Assert.HasCount(8, current);
+        CollectionAssert.AreEquivalent(new[] { "200", "230", "241", "245", "255", "260", "267", "274" }, current.Select(review => review.Definition.Id).ToArray());
+        Assert.IsTrue(current.All(review => review.Kind == "ReviewedNoncritical" && review.Lane == "ubuntu" && review.Group == "aspnet"
+            && review.Id.StartsWith("aspnet93.", StringComparison.Ordinal) && review.Definition.Status == "Survived" && review.Definition.KilledBy.Length == 0
+            && review.Closure.Length == 8 && review.Evidence.Length == 2 && review.Evidence[0].Sha256 != review.Evidence[1].Sha256));
+        Assert.AreEqual(8, HealthcheckMutationDispositionCatalog.Entries.Count(review => review.Kind == "ReviewedNoncritical"
+            && review.ReportSha256 == "5f15348728dd4443acbfc6d5fd5392fb3c7fbbed45ba9d4405075436d21549c4"));
+    }
+
+    [TestMethod]
+    [DataRow("200")]
+    [DataRow("230")]
+    [DataRow("241")]
+    [DataRow("245")]
+    [DataRow("255")]
+    [DataRow("260")]
+    [DataRow("267")]
+    [DataRow("274")]
+    public void CurrentAspNetReviewBindsItsExactSourceAndCurrentOriginalReportOnly(string id)
+    {
+        Validation.Review current = HealthcheckMutationAspNet93DispositionCatalog.Entries.Single(review => review.Definition.Id == id);
+        Source source = CurrentAspNetSource(current);
+        JsonObject document = MaintainedRecord(current);
+        Validation.BoundRecord bound = Validation.Bind(document, "ubuntu", [source], HealthcheckMutationDispositionCatalog.Entries);
+        Adjustment adjustment = Validation.Complete(bound, ReportBindingControl(current, current.ReportSha256));
+        Assert.AreEqual("ReviewedNoncritical", adjustment.Kind);
+        Assert.AreEqual("Survived", adjustment.OriginalStatus);
+        Assert.AreEqual(current.Definition.Identity, adjustment.DefinitionIdentity);
+        Assert.ThrowsExactly<InvalidDataException>(() => Validation.Complete(bound, ReportBindingControl(current,
+            "5f15348728dd4443acbfc6d5fd5392fb3c7fbbed45ba9d4405075436d21549c4")));
+    }
+
+    [TestMethod]
+    [DataRow("200")]
+    [DataRow("230")]
+    [DataRow("241")]
+    [DataRow("245")]
+    [DataRow("255")]
+    [DataRow("260")]
+    [DataRow("267")]
+    [DataRow("274")]
+    public void HistoricalAspNetReviewCannotBeReusedOrRelabeledForTheCurrentReport(string id)
+    {
+        Validation.Review historical = HealthcheckMutationDispositionCatalog.Entries.Single(review => review.Kind == "ReviewedNoncritical"
+            && review.ReportSha256 == "5f15348728dd4443acbfc6d5fd5392fb3c7fbbed45ba9d4405075436d21549c4" && review.Definition.Id == id);
+        JsonObject document = MaintainedRecord(historical);
+        Source source = CurrentAspNetSource(historical);
+        Validation.BoundRecord bound = Validation.Bind(document, "ubuntu", [source], HealthcheckMutationDispositionCatalog.Entries);
+        Assert.ThrowsExactly<InvalidDataException>(() => Validation.Complete(bound, ReportBindingControl(historical, HealthcheckMutationAspNet93DispositionCatalog.ReportSha256)));
+        document["target"]!["reportSha256"] = HealthcheckMutationAspNet93DispositionCatalog.ReportSha256;
+        Assert.ThrowsExactly<InvalidDataException>(() => Validation.Bind(document, "ubuntu", [source], HealthcheckMutationDispositionCatalog.Entries));
+    }
+
+    // Typed receiving controls use exact reviewed source/report identities. The
+    // two empty companion partitions supply no native execution or gate proof.
+    private static Partition[] ReportBindingControl(Validation.Review review, string report) =>
+    [
+        new("unit-runtime", Hash('b'), [], [], [], []),
+        new("pipes", Hash('c'), [], [], [], []),
+        new("aspnet", report, [CurrentAspNetSource(review)], [review.Definition], [], [])
+    ];
+
+    private static Source CurrentAspNetSource(Validation.Review review)
+    {
+        const string relative = "implementations/csharp/src/CIS.Core/Healthcheck/AspNetCore/HealthcheckApplicationBuilderExtensions.cs";
+        for (DirectoryInfo? directory = new(AppContext.BaseDirectory); directory is not null; directory = directory.Parent)
+        {
+            string path = Path.Combine(directory.FullName, relative);
+            if (!File.Exists(path)) { continue; }
+            byte[] bytes = File.ReadAllBytes(path);
+            Assert.AreEqual(review.Definition.SourceSha256, Convert.ToHexStringLower(SHA256.HashData(bytes)));
+            return new(review.Definition.SourcePath, review.Definition.SourceSha256, "aspnet", File.ReadAllText(path));
+        }
+        throw new InvalidDataException("Current reviewed ASP.NET source root was not found.");
+    }
+
+    private static JsonObject MaintainedRecord(Validation.Review review)
+    {
+        Definition definition = review.Definition;
+        return new JsonObject
+        {
+            ["schema"] = Validation.Schema,
+            ["reviewId"] = review.Id,
+            ["kind"] = review.Kind,
+            ["osLane"] = review.Lane,
+            ["target"] = new JsonObject
+            {
+                ["group"] = review.Group,
+                ["reportSha256"] = review.ReportSha256,
+                ["definition"] = new JsonObject
+                {
+                    ["id"] = definition.Id,
+                    ["identity"] = definition.Identity,
+                    ["sourcePath"] = definition.SourcePath,
+                    ["sourceSha256"] = definition.SourceSha256,
+                    ["start"] = definition.Start,
+                    ["end"] = definition.End,
+                    ["mutator"] = definition.Mutator,
+                    ["original"] = definition.Original,
+                    ["replacement"] = definition.Replacement,
+                    ["status"] = definition.Status
+                }
+            },
+            ["closure"] = new JsonArray(review.Closure.Select(pin => (JsonNode)Validation.Reference(pin)).ToArray()),
+            ["evidence"] = new JsonArray(review.Evidence.Select(pin => (JsonNode)Validation.Reference(pin)).ToArray())
+        };
+    }
+
 
     private static string Hash(char value) => new(value, 64);
     private static string Sha(string value) => Convert.ToHexStringLower(SHA256.HashData(Encoding.UTF8.GetBytes(value)));

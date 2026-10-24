@@ -84,7 +84,7 @@ public sealed class HealthExecutionNormalizationMutationQualificationTests
     [TestMethod]
     public void DetachedNormalizationPreservesEveryActualInstantAndDurationWithoutReconstructingElapsedTime()
     {
-        var diagnostic = new HealthDiagnostic("observed", "owned text", "detached-type");
+        var diagnostic = AcceptedDiagnostic("observed", "owned text", "detached-type");
         var input = new HealthExecutionFact
         {
             RegistrationId = Registration,
@@ -134,6 +134,17 @@ public sealed class HealthExecutionNormalizationMutationQualificationTests
         Assert.IsNull(normalized.SourcePhase);
     }
 
+    private static HealthDiagnostic AcceptedDiagnostic(string? code = null, string? message = null, string? exceptionType = null)
+    {
+        HealthDiagnostic? diagnostic = null;
+        ArgumentException? rejection = null;
+        try { diagnostic = new HealthDiagnostic(code, message, exceptionType); }
+        catch (ArgumentException error) { rejection = error; }
+        Assert.IsNull(rejection, "Valid diagnostic constructor arguments must produce a detached diagnostic.");
+        Assert.IsNotNull(diagnostic);
+        return diagnostic;
+    }
+
     private static HealthExecutionFact Settled(string field, double value) => new()
     {
         RegistrationId = Registration,
@@ -178,8 +189,8 @@ public sealed class HealthExecutionNormalizationMutationQualificationTests
         ErrorHandlingCompletedAtUtc = scenario == "handler-notstarted-complete" ? Occurred : null,
         ErrorHandlingDurationMilliseconds = scenario is "handler-notapplicable-duration" or "handler-notstarted-duration" ? 0 : null,
         CleanupDurationMilliseconds = scenario == "cleanup-notapplicable-duration" ? 0 : null,
-        ErrorHandlingError = scenario.StartsWith("handler-error-", StringComparison.Ordinal) ? new("handler") : null,
-        CleanupError = scenario.StartsWith("cleanup-error-", StringComparison.Ordinal) ? new("cleanup") : null,
-        IntegrationError = new("receiver")
+        ErrorHandlingError = scenario.StartsWith("handler-error-", StringComparison.Ordinal) ? AcceptedDiagnostic("handler") : null,
+        CleanupError = scenario.StartsWith("cleanup-error-", StringComparison.Ordinal) ? AcceptedDiagnostic("cleanup") : null,
+        IntegrationError = AcceptedDiagnostic("receiver")
     };
 }

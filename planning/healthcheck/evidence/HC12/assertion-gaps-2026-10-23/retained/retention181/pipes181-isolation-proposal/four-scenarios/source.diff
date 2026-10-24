@@ -1,0 +1,36 @@
+diff --git a/.artifacts/hcg/pipes179-isolation-proposal01/preimage/HealthcheckPipeTransportTests.original.cs.txt b/.artifacts/hcg/pipes179-isolation-proposal01/four-scenarios/HealthcheckPipeTransportTests.proposed.cs
+index efaf56a0..554fab14 100644
+--- a/.artifacts/hcg/pipes179-isolation-proposal01/preimage/HealthcheckPipeTransportTests.original.cs.txt
++++ b/.artifacts/hcg/pipes179-isolation-proposal01/four-scenarios/HealthcheckPipeTransportTests.proposed.cs
+@@ -197,6 +197,7 @@ public sealed partial class HealthcheckPipeTransportTests
+     }
+ 
+     [TestMethod]
++    [DoNotParallelize]
+     public void OneConnectionIsClosedAfterExactlyOneResponse()
+     {
+         SingleConnectionObservation observed = RunSingleConnectionScenario();
+@@ -212,6 +213,7 @@ public sealed partial class HealthcheckPipeTransportTests
+     }
+ 
+     [TestMethod]
++    [DoNotParallelize]
+     public void ManyConcurrentClientsSettleAndStopIsTerminal()
+     {
+         ConcurrentObservation observed = RunConcurrentScenario();
+@@ -219,6 +221,7 @@ public sealed partial class HealthcheckPipeTransportTests
+     }
+ 
+     [TestMethod]
++    [DoNotParallelize]
+     public void StopWaitCancellationDoesNotCertifyBlockedHandlerSettlement()
+     {
+         IntegrationStopObservation observed = RunStopCancellationScenario();
+@@ -226,6 +229,7 @@ public sealed partial class HealthcheckPipeTransportTests
+     }
+ 
+     [TestMethod]
++    [DoNotParallelize]
+     public void DisposalWaitsForAnActuallyRunningSnapshotSource()
+     {
+         PendingDisposeObservation observed = RunPendingDisposeScenario();

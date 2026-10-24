@@ -7,9 +7,12 @@ internal static partial class HealthcheckMutationUnionVerification
     private static HealthcheckMutationNativeKernelEvidence? ReadKernelInputs(PinnedInputs files, JsonObject descriptor, string lane)
     {
         if (!descriptor.TryGetPropertyValue("kernelManifest", out JsonNode? reference)) { return null; }
-        Need(reference is JsonObject && lane == "ubuntu" && String(descriptor, "group") == "unit-runtime", "Optional kernel evidence currently supports only standard Ubuntu Unit discovery.");
+        Need(reference is JsonObject && lane == "ubuntu" && String(descriptor, "group") is "unit-runtime" or "pipes" or "aspnet",
+            "Optional kernel evidence supports only standard discovery for the three configured Ubuntu Healthcheck groups.");
         JsonObject document = files.ReadDocument(files.Pin(Item(reference)));
         bool projected = String(document, "schema") == "cis.healthcheck.native-kernel-inventory/v2-process-projection";
+        Need(!projected || String(descriptor, "group") == "unit-runtime",
+            "Process-projected kernel evidence supports only its reviewed Ubuntu Unit producer profiles.");
         string[] fields = projected ? ["schema", "root", "nativeLogRoot", "dotnet", "files", "projection"] : ["schema", "root", "nativeLogRoot", "dotnet", "files"];
         Need(document.Count == fields.Length && document.Select(pair => pair.Key).ToHashSet(StringComparer.Ordinal).SetEquals(fields)
             && (projected || String(document, "schema") == "cis.healthcheck.native-kernel-inventory/v1-development"), "Unsupported native kernel inventory.");

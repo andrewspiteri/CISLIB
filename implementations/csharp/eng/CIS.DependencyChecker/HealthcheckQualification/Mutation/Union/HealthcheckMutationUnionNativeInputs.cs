@@ -79,11 +79,12 @@ internal static partial class HealthcheckMutationUnionVerification
         string marker = files.Pin(Item(restoration["preFreshObservation"]));
         Need(inventory.Values.Contains(Hash(marker), StringComparer.Ordinal), "The original pre-fresh observation is absent from the native capture inventory.");
         string markerText = File.ReadAllText(marker).Trim();
-        // Accept the original native UTC marker, or the original richer JSON
-        // observation. Do not replace it with a newly asserted approval flag.
-        string observedText = markerText.StartsWith('{') ? String(files.ReadDocument(marker), "observedBeforeFreshUtc") : markerText;
-        Need(HealthcheckMutationUtcObservation.TryRead(observedText, out HealthcheckMutationUtcObservation.Observation observed),
-            "Original pre-fresh capture observation is missing.");
+        // Read the original pinned bytes, including the two source-proven79
+        // writer shapes. Flags never replace body/MVID or fresh-order checks.
+        var parsedMarker = HealthcheckMutationPreFreshMarker.Read(markerText,
+            markerText.StartsWith('{') ? files.ReadDocument(marker) : null, group, String(descriptor, "nativeSourceRoot"));
+        HealthcheckMutationPreFreshMarker.RequireInventoryPin(parsedMarker, inventory, Hash(marker));
+        HealthcheckMutationUtcObservation.Observation observed = parsedMarker.Observation;
         JsonObject[] pairs = Items(restoration, "binaries").Select(Item).ToArray();
         string[] required = group switch { "unit-runtime" => ["unit"], "pipes" => ["unit", "integration"], _ => ["integration"] };
         Need(pairs.Length >= 2 && pairs.Select(p => String(p, "role")).Distinct(StringComparer.Ordinal).Count() == pairs.Length,

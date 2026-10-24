@@ -1,3 +1,4 @@
+using System.Runtime.CompilerServices;
 using System.Runtime.ExceptionServices;
 using System.Text.Json;
 using System.Threading.Channels;
@@ -10,7 +11,7 @@ namespace CIS.Tests.UnitTests.Healthcheck;
 // Two finite receiving-boundary observations, not a promise about every
 // context, output implementation or continuation in CIS.Core.
 [TestClass]
-public sealed class HealthProbeCallerCompletionQualificationTests
+public sealed partial class HealthProbeCallerCompletionQualificationTests
 {
     private static readonly TimeSpan Deadline = TimeSpan.FromSeconds(15);
 
@@ -59,7 +60,13 @@ public sealed class HealthProbeCallerCompletionQualificationTests
     }
 
     [TestMethod]
-    public async Task AnActuallyPendingConnectionCompletesAfterTheRealEndpointServesItsResponse()
+    public void AnActuallyPendingConnectionCompletesAfterTheRealEndpointServesItsResponse()
+    {
+        ReviewPendingProbeOwners(RunPendingProbeScenario());
+    }
+
+    [MethodImpl(MethodImplOptions.NoInlining)]
+    private static PendingProbeObservation RunPendingProbeScenario()
     {
         var service = new HealthcheckService(new(), new HealthApplicationIdentity
         {
@@ -68,11 +75,13 @@ public sealed class HealthProbeCallerCompletionQualificationTests
         });
         service.MarkStartupCompleted();
         string pipe = "hc-context-" + Guid.NewGuid().ToString("N");
-        using var cancellation = new CancellationTokenSource(Deadline);
-        using var output = new MemoryStream();
-        using var error = new StringWriter();
+        var cancellation = new CancellationTokenSource(Deadline);
+        var output = new MemoryStream();
+        var error = new StringWriter();
         var context = new QueuedCallerContext();
         HealthPipeServer? server = null;
+        ProbeStartupSource? source = null;
+        ProbeStartupClock? clock = null;
         bool endpointStarted = false;
         Task<int>? running = null;
         Exception? failure = null;
@@ -87,20 +96,21 @@ public sealed class HealthProbeCallerCompletionQualificationTests
             Assert.IsFalse(running.IsCompleted, "A missing unique endpoint establishes an actual pending connection.");
             Assert.IsFalse(context.FirstPost.IsCompleted);
 
-            server = new HealthPipeServer(service, new HealthcheckOptions
+            source = new ProbeStartupSource(service);
+            clock = new ProbeStartupClock();
+            server = CreateServerWhileProbeIsPending(source, new HealthcheckOptions
             {
                 PipeEnabled = true,
                 PipeName = pipe,
                 PipeMaxClients = 1,
                 PipeRequestTimeoutMs = 5000
-            });
-            await server.StartAsync().WaitAsync(Deadline);
+            }, clock, context, running, cancellation);
             endpointStarted = true;
-            _ = await Task.WhenAny(context.FirstPost, running).WaitAsync(Deadline);
+            _ = JoinPendingProbe(Task.WhenAny(context.FirstPost, running));
             Assert.IsFalse(context.FirstPost.IsCompleted,
                 "Making the actual endpoint available must permit this pending exchange to complete without servicing a caller continuation queue.");
             Assert.IsTrue(running.IsCompletedSuccessfully);
-            Assert.AreEqual(0, await running);
+            Assert.AreEqual(0, JoinPendingProbe(running));
             Assert.AreEqual(string.Empty, error.ToString());
             byte[] written = output.ToArray();
             Assert.IsTrue(written.Length > 1);
@@ -121,39 +131,7 @@ public sealed class HealthProbeCallerCompletionQualificationTests
         }
         catch (Exception exception) { failure = exception; }
 
-        await FinishPreservingFailureAsync(failure, async () =>
-        {
-            try
-            {
-                if (!endpointStarted) { cancellation.Cancel(); }
-                if (running is not null) { await context.DrainUntilCompletedAsync(running, Deadline); }
-            }
-            finally
-            {
-                cancellation.Cancel();
-                try
-                {
-                    if (server is not null) { await server.StopAsync().WaitAsync(Deadline); }
-                }
-                finally
-                {
-                    try
-                    {
-                        // Also join after actual closure if an infrastructure
-                        // failure interrupted the initial normal drain.
-                        if (running is not null) { await context.DrainUntilCompletedAsync(running, Deadline); }
-                    }
-                    finally
-                    {
-                        try
-                        {
-                            if (server is not null) { await server.DisposeAsync().AsTask().WaitAsync(Deadline); }
-                        }
-                        finally { await service.DisposeAsync().AsTask().WaitAsync(Deadline); }
-                    }
-                }
-            }
-        });
+        return ReleasePendingProbeOwners(server, service, source, clock, context, running, endpointStarted, cancellation, output, error, failure);
     }
 
     private static Task<int> InvokeUnderContext(QueuedCallerContext context, Func<Task<int>> operation)
@@ -200,14 +178,23 @@ public sealed class HealthProbeCallerCompletionQualificationTests
             = Channel.CreateUnbounded<(SendOrPostCallback, object?)>();
         private readonly TaskCompletionSource firstPost = new(TaskCreationOptions.RunContinuationsAsynchronously);
         internal Task FirstPost => firstPost.Task;
+        internal PendingProbeContextPhase Phase { get; } = new();
+        internal bool HasQueuedWork => callbacks.Reader.TryPeek(out _);
+        internal WeakReference[] WeakGraph() => [new(this), new(callbacks), new(firstPost)];
 
         public override SynchronizationContext CreateCopy() => this;
         public override void Post(SendOrPostCallback callback, object? state)
         {
             // A real queue, not a throwing trap. Every callback remains available
             // for cleanup and is invoked with the context it was posted to.
-            callbacks.Writer.TryWrite((callback, state));
-            firstPost.TrySetResult();
+            Interlocked.Increment(ref Phase.PostEntries);
+            try
+            {
+                if (callbacks.Writer.TryWrite((callback, state))) { Interlocked.Increment(ref Phase.Enqueued); }
+                firstPost.TrySetResult();
+            }
+            catch (Exception error) { Phase.RecordFailure(error); throw; }
+            finally { Interlocked.Increment(ref Phase.PostReturns); }
         }
 
         internal async Task DrainUntilCompletedAsync(Task running, TimeSpan timeout)
@@ -238,8 +225,10 @@ public sealed class HealthProbeCallerCompletionQualificationTests
             {
                 SynchronizationContext? previous = Current;
                 SetSynchronizationContext(this);
+                Interlocked.Increment(ref Phase.CallbackEntries);
                 try { work.Callback(work.State); }
-                finally { SetSynchronizationContext(previous); }
+                catch (Exception error) { Phase.RecordFailure(error); throw; }
+                finally { Interlocked.Increment(ref Phase.CallbackReturns); SetSynchronizationContext(previous); }
             }
         }
     }

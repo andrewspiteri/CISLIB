@@ -1,0 +1,15 @@
+# Complete Unit143 bounded source review
+
+Clear for the reviewed prospective scope. This is an independent source/receipt review; the reviewer did not build, enter the controller, launch native tests, use SSH or edit canonical source.
+
+Physical Program SHA-256 is `01b78553ff61b74fa248ff23f0eafdb46f22ebd56f446838ce0ce6b308a0b1a6`; actual controller DLL receipt binds `035e58b027055993ab67bbf9fc8b940177a002d5de2d0faae5204955cf72c7c0`. Budget source is `fed038053e919817abe2a13926691aedfc4cd4c7816ea05190350db261cbc7e7`, complete capture helper is `60d9fb42961076eabce5aea7a7e61211c4e29dd7c520ede87e7d2a382e073e9e`, configuration is `676a510a8f653277a9bb1da174fee908b9d9598a6d7917f71bc24060dc83a215`.
+
+The complete source campaign binds all41 maintained Unit mutate paths, all146 shipping files and report-derived current source tuples/statuses. No finite521 target population, historical definition count or old ID/status is transferred. Original/fresh/native declarations require1389 case identities including the scheduling row; actual perTest requests remain source-bound nonempty subsets. The only configuration amendments are non-mixing and4500000 additional timeout; default perTest remains unchanged.
+
+The closed input enforces720minutes,4000000000 owned bytes,2000000000 free reserve and5000ms supported host-close propagation. Explicit guards cover receiving entry/exit, parsing boundaries, final success and ordinary process loops. The compact profile has three phase checks and requires the actual pinned preparation/omission evidence; six snapshot fields and the complete selected-source binding remain pending root preparation. No stale finite cohort/target bounds were found.
+
+The actual supported role-aware capture helper retains discovery/execution/idle distinctions; its narrow complete-profile config/path/SHA binding is explicit. Every execution/discovery host must be normal and every maintained audit issue is a receiving hold. Original source/role bodies, native DLL restoration, separate PDB correction and fresh controls remain required. Deadline/normal-host observations award no kill credit.
+
+The final amendment since initial Program5d5442cb adds the physical report and configuration to the same audit before/after hash inventory. This addresses the review suggestion and changes no classifier, input ordering or policy. Read the author's44 compiled-method controls: six budget positives,26 budget rejections, one idle-protocol positive and11 idle rejections. These are synthetic controls, with no complete idle kernel positive or mutation qualification claimed. The author's seal records seven actual source checksums/full controller PE/PDB plus controls source/PE/PDB; the reviewer read that receipt and did not rerun it.
+
+No additional source blocker found. Root must still bind the actual post-adoption snapshot, perform the declared native campaign and retain all actual outcomes. Synchronous reflected audit pre/post guards reject over-bound success but do not claim preemption inside the maintained audit.

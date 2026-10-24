@@ -37,7 +37,7 @@ public sealed class HealthExecutionStateMutationQualificationTests
         Assert.IsNull(scope.Snapshot().Outcomes!.Execution);
         Assert.AreEqual(0L, scope.Snapshot().Outcomes!.Successful);
         Assert.AreEqual(0L, scope.Snapshot().Outcomes!.Failed);
-        Assert.AreEqual(HealthFactDisposition.Recorded, scope.Commit(target, DurationFact(target.RegistrationId, field, 0, outcome), outcome));
+        Assert.AreEqual(HealthFactDisposition.Recorded, AcceptValidDurationFact(scope, target, field, 0, outcome));
     }
 
     [TestMethod]
@@ -51,10 +51,10 @@ public sealed class HealthExecutionStateMutationQualificationTests
     {
         await using var scope = new Scope();
         BindingTarget target = scope.Bind();
-        Assert.AreEqual(HealthFactDisposition.Recorded, scope.State.UpdateLifecycle(target, DurationFact(target.RegistrationId, field, 0, false)));
-        Assert.AreEqual(0d, Duration(scope.Snapshot().Outcomes!.Execution!, field));
-        Assert.AreEqual(HealthFactDisposition.Recorded, scope.State.UpdateLifecycle(target, DurationFact(target.RegistrationId, field, 0.125, false)));
-        Assert.AreEqual(0.125, Duration(scope.Snapshot().Outcomes!.Execution!, field));
+        Assert.AreEqual(HealthFactDisposition.Recorded, AcceptValidDurationFact(scope, target, field, 0, false));
+        Assert.AreEqual(0d, Duration(ObservedExecution(scope), field));
+        Assert.AreEqual(HealthFactDisposition.Recorded, AcceptValidDurationFact(scope, target, field, 0.125, false));
+        Assert.AreEqual(0.125, Duration(ObservedExecution(scope), field));
         Assert.AreEqual(0L, scope.Snapshot().Outcomes!.Successful);
         Assert.AreEqual(0L, scope.Snapshot().Outcomes!.Failed);
     }
@@ -166,7 +166,7 @@ public sealed class HealthExecutionStateMutationQualificationTests
     {
         await using var scope = new Scope();
         BindingTarget target = scope.Bind();
-        var diagnostic = new HealthDiagnostic("AdapterFault");
+        var diagnostic = AcceptedDiagnostic("AdapterFault");
         HealthSnapshot before = scope.Service.CaptureSnapshot();
 
         Assert.AreEqual(HealthFactDisposition.Recorded, scope.State.UpdateLifecycle(target, new HealthExecutionFact
@@ -255,6 +255,35 @@ public sealed class HealthExecutionStateMutationQualificationTests
         CleanupStatus = HealthExecutionStepStatus.Succeeded
     };
 
+    private static HealthFactDisposition AcceptValidDurationFact(Scope scope, BindingTarget target, string field, double value, bool outcome)
+    {
+        // This is only the admitted finite/nonnegative half of the receiving
+        // boundary. Invalid facts still use the actual throwing Commit path.
+        Assert.IsTrue(double.IsFinite(value) && value >= 0);
+        HealthExecutionFact fact = DurationFact(target.RegistrationId, field, value, outcome);
+        ArgumentException? unexpectedRejection = null;
+        HealthFactDisposition? disposition = null;
+        try { disposition = scope.Commit(target, fact, outcome); }
+        catch (ArgumentException error)
+        {
+            // State issued this target; the matching identity, positive execution
+            // ID, defined kind/statuses, UTC times and duration are all valid.
+            // Argument-family rejection therefore contradicts input acceptance.
+            unexpectedRejection = error;
+        }
+        Assert.IsNull(unexpectedRejection, "A state-issued target and finite nonnegative duration fact must be accepted.");
+        Assert.IsTrue(disposition.HasValue);
+        return disposition.GetValueOrDefault();
+    }
+
+    private static HealthExecutionSnapshot ObservedExecution(Scope scope)
+    {
+        HealthMonitorSnapshot monitor = scope.Snapshot();
+        Assert.IsNotNull(monitor.Outcomes, "A consecutive-failure monitor retains its published outcome view.");
+        Assert.IsNotNull(monitor.Outcomes.Execution, "An accepted execution-scoped duration fact must publish its execution snapshot.");
+        return monitor.Outcomes.Execution;
+    }
+
     private static double? Duration(HealthExecutionSnapshot execution, string field) => field switch
     {
         "queue" => execution.QueueDelayMilliseconds,
@@ -292,4 +321,15 @@ public sealed class HealthExecutionStateMutationQualificationTests
             GC.KeepAlive(Monitor);
         }
     }
+    private static HealthDiagnostic AcceptedDiagnostic(string? code = null, string? message = null, string? exceptionType = null)
+    {
+        HealthDiagnostic? diagnostic = null;
+        ArgumentException? rejection = null;
+        try { diagnostic = new HealthDiagnostic(code, message, exceptionType); }
+        catch (ArgumentException error) { rejection = error; }
+        Assert.IsNull(rejection, "Valid diagnostic constructor arguments must produce a detached diagnostic.");
+        Assert.IsNotNull(diagnostic);
+        return diagnostic;
+    }
+
 }

@@ -85,7 +85,7 @@ public sealed class HealthReportFormatterBoundaryQualificationTests
                 OccurredAtUtc = Epoch,
                 Outcome = HealthExecutionOutcome.Failed,
                 SourcePhase = HealthExecutionPhase.Callback,
-                OriginalError = new HealthDiagnostic("ActualError"),
+                OriginalError = AcceptedDiagnostic("ActualError"),
                 EligibleAtUtc = Epoch,
                 AdmittedAtUtc = Epoch,
                 ConditionStartedAtUtc = Epoch,
@@ -257,4 +257,15 @@ public sealed class HealthReportFormatterBoundaryQualificationTests
         Task disposal = binding.DisposeAsync().AsTask();
         if (disposal.IsCompleted) { await disposal; }
     }
+    private static HealthDiagnostic AcceptedDiagnostic(string? code = null, string? message = null, string? exceptionType = null)
+    {
+        HealthDiagnostic? diagnostic = null;
+        ArgumentException? rejection = null;
+        try { diagnostic = new HealthDiagnostic(code, message, exceptionType); }
+        catch (ArgumentException error) { rejection = error; }
+        Assert.IsNull(rejection, "Valid diagnostic constructor arguments must produce a detached diagnostic.");
+        Assert.IsNotNull(diagnostic);
+        return diagnostic;
+    }
+
 }

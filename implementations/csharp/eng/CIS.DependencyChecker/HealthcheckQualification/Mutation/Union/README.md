@@ -45,7 +45,7 @@ The input schema is `cis.healthcheck.mutation-union-inputs/v1-development`:
   proof. The [execution repair record](../../../../../../../planning/healthcheck/evidence/HC12/execution-repair-2026-10-23/README.md)
   links the separate Unit/Pipes source budgets and actual executions. A finite
   range or reduced test filter cannot enter as a complete campaign.
-- An Ubuntu Unit partition may optionally pin a `kernelManifest` with schema
+- Each configured Ubuntu partition may optionally pin a direct `kernelManifest` with schema
   `cis.healthcheck.native-kernel-inventory/v1-development`. It inventories every
   original `actual-process.<PID>` trace, pins the physical dotnet executable and
   records its original native path plus the physical/native log-root mapping.
@@ -68,6 +68,9 @@ The input schema is `cis.healthcheck.mutation-union-inputs/v1-development`:
   provenance. It adds no execution-host normality, kill credit, loaded-image or
   whole-IPC claim. The actual closed pilot and rejection controls are recorded
   in the [Capture72 evidence](../../../../../../../planning/healthcheck/evidence/HC12/execution-repair-2026-10-23/capture72/README.md).
+  This projected v2 format remains Unit-only because its reviewed producer
+  profiles are Unit captures. Pipes/ASP.NET accept the original direct v1 trace
+  inventory; no projected transport producer is approved by this routing change.
 - A separately reviewed completed direct assertion before a later host abort may
   supply credit only through the maintained source-bound catalog. The initial
   entry is exact original Unit18 definition296 and its pinned synchronous
@@ -87,12 +90,24 @@ The input schema is `cis.healthcheck.mutation-union-inputs/v1-development`:
   full definition tuple, production/contract closure and independently authored
   review evidence. Every physical pin is rechecked. Supported kinds are
   `Equivalent` and `ReviewedNoncritical`; unimplemented rerun/termination proof
-  modes are rejected. The maintained catalog contains Ubuntu ASP.NET24b200,
+  modes are rejected. The historical catalog retains Ubuntu ASP.NET24b200,
   a setup-error wording change, and seven separately reviewed continuation-policy
   survivors230/241/245/255/260/267/274. These noncritical decisions disclose real
   scheduling/progress differences and retain every denominator entry with zero
   numerator. An adopted-contract violation reopens the corresponding decision.
-  There is no equivalent entry.
+  A separate current ASP93 catalog binds its completed original report
+  c532d6558aae3c9231f9bd7dee57c32c1682900107c84d6ee8b2365772ff9c16
+  and all eight current Survived tuples200/230/241/245/255/260/267/274 to
+  fresh primary and independently authored peer reviews plus the current eight-file
+  production/options/contract/fixture closure. These ReviewedNoncritical entries
+  retain all eight denominator contributions and supply zero numerator credit.
+  They are not equivalent and do not waive supported context/cancellation behavior.
+  Historical24b entries remain unchanged; neither report's record applies to the
+  other report, even where source identities match. No full-union qualification
+  or native-integrity waiver follows from catalog binding alone.
+  The additional Unit/Pipes equivalent catalogs bind exact original report,
+  source and caller/contract premises. Their earlier accepted exclusions do not
+  transfer automatically to a fresh report, changed source or another OS lane.
   Pending unions pin and validate these records but apply none. Put each
   immutable record/evidence collection in a directory separate from output.
 - Optional `assertionReruns`: pins for strict
@@ -144,7 +159,7 @@ When all groups close, each partition additionally requires:
   containing relative file pins. Every physical file under that root must be
   inventoried, including controller/host `.txt` diagnostics. Inventories and
   hashes are checked before and after validation.
-- Optional `kernelManifest` for Ubuntu Unit discovery when VSTest omits its
+- Optional direct-v1 `kernelManifest` for standard Ubuntu discovery when VSTest omits its
   asynchronous host-exit callback. The schema is
   `cis.healthcheck.native-kernel-inventory/v1-development`, with `root`,
   `nativeLogRoot`, `dotnet` (`file` pin and `nativePath`) and `files` containing
@@ -166,6 +181,27 @@ When all groups close, each partition additionally requires:
   format and must include the backup, pre-fresh marker and role-specific native
   source/test Core paths. Core metadata is checked without loading code. A
   passing subset cannot substitute for the original test cohort.
+- Original pre-fresh markers may retain the legacy plain UTC or rich
+  `observedBeforeFreshUtc` spelling. The complete79 controllers instead write
+  `observedUtc` with one of two exact source-proven five-field shapes: Unit uses
+  `actualNativeCoreDllRestorationVerified`, `explicitControllerPdbCorrection`
+  and `historicalLoadedSymbolClaim`; Pipes/ASP.NET use
+  `nativeCoreDllRestorationVerified`, `explicitControllerSymbolRepair` and
+  `historicalLoadedSymbolsClaim`. Each also includes integer `nativeExit` 0/2.
+  Both timestamp spellings together, altered fixed fields/types and extra fields
+  reject. These booleans identify the writer format; actual body/MVID,
+  original backup, source and strict marker-before-fresh checks still establish
+  restoration. The original marker's physical hash must bind its exact native
+  `<run>/before-fresh-marker.json` origin, derived from the native Core root.
+  Never rewrite an original marker to make a receiving format match.
+- A controller capture may require a post-closure address index derived from
+  its original backup metadata and phase-specific `roles.json` observations.
+  Label that index and any scalar exit projection from original `process.json`
+  as derived now. Their creation time supplies no pre-fresh proof. Preserve the
+  original metadata/body/process pins, use distinct pre-repair and after-fresh
+  Core copies, and reject conflicting origin hashes. An explicit PDB correction
+  is separate from native DLL restoration. The v1 inventory reader checks
+  origin/hash membership; it does not prove when an address index was created.
 - Pipes/ASP.NET require `childSession`, a pin for actual original child receipts.
   The maintained child auditor runs again against their original paths and
   retained stage bodies. An imported success flag cannot replace this audit.

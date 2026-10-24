@@ -104,7 +104,7 @@ public sealed class HealthReportFormatterTests
         await using HealthcheckService service = CreateService();
         IAvailabilityMonitor monitor = service.CreateAvailability(new AvailabilityMonitorOptions { IsCritical = true });
         monitor.ReportPublished();
-        monitor.ReportRefreshFailure(new HealthDiagnostic("RefreshFailed", "Old usable data remains available."));
+        monitor.ReportRefreshFailure(AcceptedDiagnostic("RefreshFailed", "Old usable data remains available."));
         service.MarkStartupCompleted();
         HealthSnapshot snapshot = service.CaptureSnapshot();
         HealthReportBuffer result = HealthReportFormatter.FormatSnapshot(snapshot, HealthReportView.Details, new HealthcheckOptions());
@@ -200,7 +200,7 @@ public sealed class HealthReportFormatterTests
         const string text = "quote\" slash\\ newline\n tab\t control\u0001 globe\U0001F30D <&>";
         await using HealthcheckService service = CreateService();
         IConditionMonitor monitor = service.CreateCondition(new ConditionMonitorOptions { IsCritical = true, InitiallyFlagged = false, Name = text });
-        monitor.Flag(new HealthDiagnostic(code: "Failure", message: text, exceptionType: "Detached.Type"));
+        monitor.Flag(AcceptedDiagnostic(code: "Failure", message: text, exceptionType: "Detached.Type"));
         monitor.ReportMeasurement(HealthMeasurement.String("text", text, Captured));
         HealthReportBuffer result = HealthReportFormatter.FormatSnapshot(service.CaptureSnapshot(), HealthReportView.Details, new HealthcheckOptions());
         string utf8 = new UTF8Encoding(false, true).GetString(result.Utf8Bytes.Span);
@@ -334,12 +334,12 @@ public sealed class HealthReportFormatterTests
     [TestMethod]
     public async Task FormattingFrozenSnapshotAfterMutationAndDisposalPreservesItsOriginalBytes()
     {
-        HealthcheckService service = CreateService();
+        await using HealthcheckService service = CreateService();
         IConditionMonitor monitor = service.CreateCondition(new ConditionMonitorOptions { IsCritical = true, InitiallyFlagged = false });
         HealthSnapshot snapshot = service.CaptureSnapshot();
         HealthReportBuffer before = HealthReportFormatter.FormatSnapshot(snapshot, HealthReportView.Details, new HealthcheckOptions());
         byte[] original = before.Utf8Bytes.ToArray();
-        monitor.Flag(new HealthDiagnostic("LaterFailure"));
+        monitor.Flag(AcceptedDiagnostic("LaterFailure"));
         service.MarkStartupCompleted();
         await service.DisposeAsync();
         HealthReportBuffer after = HealthReportFormatter.FormatSnapshot(snapshot, HealthReportView.Details, new HealthcheckOptions());
@@ -456,4 +456,15 @@ public sealed class HealthReportFormatterTests
 
     private static HealthReportBuffer Format(HealthSnapshot snapshot, HealthReportView view, HealthcheckOptions options, bool pipe)
         => pipe ? HealthReportFormatter.FormatPipeResponse(snapshot, view, options) : HealthReportFormatter.FormatSnapshot(snapshot, view, options);
+    private static HealthDiagnostic AcceptedDiagnostic(string? code = null, string? message = null, string? exceptionType = null)
+    {
+        HealthDiagnostic? diagnostic = null;
+        ArgumentException? rejection = null;
+        try { diagnostic = new HealthDiagnostic(code, message, exceptionType); }
+        catch (ArgumentException error) { rejection = error; }
+        Assert.IsNull(rejection, "Valid diagnostic constructor arguments must produce a detached diagnostic.");
+        Assert.IsNotNull(diagnostic);
+        return diagnostic;
+    }
+
 }
