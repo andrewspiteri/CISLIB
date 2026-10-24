@@ -1,5 +1,9 @@
 # Unit startup investigation, 24 October 2026
 
+The [25 October binding/periodic continuation](../binding-periodic-repair-2026-10-25/README.md)
+records subsequent source-specific repairs and isolated controls. This record's
+old189 snapshot, raw outcomes and qualification holds remain historical.
+
 The timeout/parallelism changes were committed as `bc08eec1`. Investigation then
 found a substantial regression in usable results with eight traced workers and
 short adaptive session budgets. This is execution evidence, not a new mutation

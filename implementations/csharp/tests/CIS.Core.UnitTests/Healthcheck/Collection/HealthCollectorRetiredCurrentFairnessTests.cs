@@ -14,6 +14,7 @@ public sealed class HealthCollectorRetiredCurrentFairnessTests
     {
         var service = new HealthcheckService(new() { MaxConcurrentCollections = 1 },
             new HealthApplicationIdentity { Name = "retired current collection fairness", InstanceId = Guid.NewGuid() }, new AdvancingClock());
+        var clock = (AdvancingClock)service.Clock;
         var runner = new HealthCollectorRunner(service);
         var entered = Channel.CreateUnbounded<OwnerProgress>(new UnboundedChannelOptions { SingleReader = true });
         var monitors = new List<IConditionMonitor>();
@@ -29,8 +30,16 @@ public sealed class HealthCollectorRetiredCurrentFairnessTests
                 owners.Add(owner);
                 registrations.Add(runner.Register(monitor, owner, new() { Interval = TimeSpan.FromTicks(1) }));
             }
+            Task<TimeSpan> startupChange = clock.NextChangeAsync();
             await runner.StartAsync().WaitAsync(Deadline);
+            await startupChange;
+            Assert.AreEqual(0, owners.Sum(owner => owner.Acquisitions),
+                "Actual startup must leave every unactivated periodic owner inert.");
+            Task<TimeSpan> activatedChange = clock.NextChangeAsync();
             registrations[0].ActivatePeriodic();
+            await activatedChange;
+            Assert.AreEqual(1, owners[0].Acquisitions,
+                "Actual activation must acquire A before installing its next idle timer request.");
             Invocation current = await NextInvocationAsync(entered.Reader);
             Assert.AreEqual("A", current.Name);
             for (int index = 1; index < registrations.Count; index++) { registrations[index].ActivatePeriodic(); }
@@ -77,8 +86,29 @@ public sealed class HealthCollectorRetiredCurrentFairnessTests
     private sealed class AdvancingClock : TimeProvider
     {
         private long timestamp;
+        private TaskCompletionSource<TimeSpan>? nextChange;
         public override long TimestampFrequency => TimeSpan.TicksPerSecond;
         public override long GetTimestamp() => Interlocked.Increment(ref timestamp);
+        internal Task<TimeSpan> NextChangeAsync()
+        {
+            var next = new TaskCompletionSource<TimeSpan>(TaskCreationOptions.RunContinuationsAsynchronously);
+            if (Interlocked.CompareExchange(ref nextChange, next, null) is not null)
+            { throw new InvalidOperationException("The previous actual timer Change observation is still armed."); }
+            return next.Task.WaitAsync(Deadline);
+        }
+        public override ITimer CreateTimer(TimerCallback callback, object? state, TimeSpan dueTime, TimeSpan period)
+            => new ObservedTimer(base.CreateTimer(callback, state, dueTime, period), this);
+        private sealed class ObservedTimer(ITimer inner, AdvancingClock clock) : ITimer
+        {
+            public bool Change(TimeSpan dueTime, TimeSpan period)
+            {
+                bool changed = inner.Change(dueTime, period);
+                if (changed) { Interlocked.Exchange(ref clock.nextChange, null)?.TrySetResult(dueTime); }
+                return changed;
+            }
+            public void Dispose() => inner.Dispose();
+            public ValueTask DisposeAsync() => inner.DisposeAsync();
+        }
     }
 
     private static async Task<Invocation> NextInvocationAsync(ChannelReader<OwnerProgress> progress)

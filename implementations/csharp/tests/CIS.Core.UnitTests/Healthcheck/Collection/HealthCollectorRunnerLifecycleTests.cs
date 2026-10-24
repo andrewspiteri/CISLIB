@@ -409,13 +409,20 @@ public sealed class HealthCollectorRunnerLifecycleTests
     [TestMethod]
     public async Task WithdrawingAPeriodicMonitorDrainsItsRegistrationAndPreventsFurtherAcquisition()
     {
-        await using var scope = new Scope();
+        await using var scope = new Scope(observePeriodicDispatch: true);
         IConditionMonitor monitor = scope.Condition();
         Owner owner = scope.Owner(HealthCollectionResult.Condition(true), blockCallback: true, blockCleanup: true);
         IHealthCollectionRegistration registration = scope.Runner.Register(monitor, owner,
             new HealthCollectorOptions { Interval = TimeSpan.FromSeconds(1) });
+        Task<TimeSpan> startupChange = scope.DispatchClock!.NextChangeAsync();
         await scope.Runner.StartAsync().WaitAsync(Deadline);
+        await startupChange;
+        Assert.AreEqual(0, owner.Acquisitions, "Actual startup must leave the unactivated periodic owner inert.");
+        Task<TimeSpan> activatedChange = scope.DispatchClock.NextChangeAsync();
         registration.ActivatePeriodic();
+        await activatedChange;
+        Assert.AreEqual(1, owner.Acquisitions,
+            "Actual activation must acquire its due owner before the next idle timer request.");
         await WaitForOwnedGateAsync(owner.CallbackEntered, null, owner.CleanupEntered);
 
         monitor.Withdraw();
@@ -1170,6 +1177,34 @@ public sealed class HealthCollectorRunnerLifecycleTests
         internal WeakReference[] WeakGraph() => [new(this), new(actual!)];
     }
 
+    private sealed class PeriodicDispatchClock(ManualTimeProvider inner) : TimeProvider
+    {
+        private TaskCompletionSource<TimeSpan>? nextChange;
+        public override long TimestampFrequency => inner.TimestampFrequency;
+        public override long GetTimestamp() => inner.GetTimestamp();
+        public override DateTimeOffset GetUtcNow() => inner.GetUtcNow();
+        internal Task<TimeSpan> NextChangeAsync()
+        {
+            var next = new TaskCompletionSource<TimeSpan>(TaskCreationOptions.RunContinuationsAsynchronously);
+            if (Interlocked.CompareExchange(ref nextChange, next, null) is not null)
+            { throw new InvalidOperationException("The previous actual timer Change observation is still armed."); }
+            return next.Task.WaitAsync(Deadline);
+        }
+        public override ITimer CreateTimer(TimerCallback callback, object? state, TimeSpan dueTime, TimeSpan period)
+            => new ObservedTimer(inner.CreateTimer(callback, state, dueTime, period), this);
+        private sealed class ObservedTimer(ITimer timer, PeriodicDispatchClock clock) : ITimer
+        {
+            public bool Change(TimeSpan dueTime, TimeSpan period)
+            {
+                bool changed = timer.Change(dueTime, period);
+                if (changed) { Interlocked.Exchange(ref clock.nextChange, null)?.TrySetResult(dueTime); }
+                return changed;
+            }
+            public void Dispose() => timer.Dispose();
+            public ValueTask DisposeAsync() => timer.DisposeAsync();
+        }
+    }
+
     private sealed class Scope : IAsyncDisposable
     {
         private readonly List<Owner> owners = [];
@@ -1177,6 +1212,7 @@ public sealed class HealthCollectorRunnerLifecycleTests
         internal ManualTimeProvider Clock { get; } = new(Epoch);
         internal HealthcheckService Service { get; }
         internal HealthCollectorRunner Runner { get; }
+        internal PeriodicDispatchClock? DispatchClock { get; }
 
         internal TrackingClock? OwnershipClock { get; }
         internal ProducerSite ExpectedProducerSite { get; }
@@ -1185,7 +1221,7 @@ public sealed class HealthCollectorRunnerLifecycleTests
         private readonly List<IHealthCollectionRegistration> registrations = [];
         internal void RetainRegistration(IHealthCollectionRegistration registration) => registrations.Add(registration);
 
-        internal Scope(int concurrency = 4, TimeProvider? timeProvider = null, bool trackOwnership = false, ProducerSite expectedProducerSite = ProducerSite.None, int expectedProducerCount = 0)
+        internal Scope(int concurrency = 4, TimeProvider? timeProvider = null, bool trackOwnership = false, ProducerSite expectedProducerSite = ProducerSite.None, int expectedProducerCount = 0, bool observePeriodicDispatch = false)
         {
             if (trackOwnership)
             {
@@ -1194,7 +1230,12 @@ public sealed class HealthCollectorRunnerLifecycleTests
             }
             ExpectedProducerSite = expectedProducerSite;
             ExpectedProducerCount = expectedProducerCount;
-            Service = new HealthcheckService(new HealthcheckOptions { MaxConcurrentCollections = concurrency }, timeProvider: timeProvider ?? (TimeProvider?)OwnershipClock ?? Clock);
+            if (observePeriodicDispatch)
+            {
+                if (timeProvider is not null || trackOwnership) { throw new InvalidOperationException("Periodic dispatch observation requires the original private manual clock."); }
+                DispatchClock = new(Clock);
+            }
+            Service = new HealthcheckService(new HealthcheckOptions { MaxConcurrentCollections = concurrency }, timeProvider: timeProvider ?? (TimeProvider?)OwnershipClock ?? (TimeProvider?)DispatchClock ?? Clock);
             Runner = new HealthCollectorRunner(Service);
         }
 

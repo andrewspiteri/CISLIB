@@ -40,8 +40,14 @@ public sealed class HealthCollectorRunnerSchedulingTests
         Assert.ThrowsExactly<InvalidOperationException>(registration.Handle.ActivatePeriodic);
         Assert.AreEqual(0, registration.Collector.Acquisitions);
 
+        Task<TimeSpan> startupChange = scope.Clock.NextChangeAsync();
         await scope.Runner.StartAsync().WaitAsync(Deadline);
+        await startupChange;
+        Assert.AreEqual(0, scope.Acquisitions, "Actual startup must leave unactivated periodic owners inert.");
+        Task<TimeSpan> activatedChange = scope.Clock.NextChangeAsync();
         registration.Handle.ActivatePeriodic();
+        await activatedChange;
+        Assert.AreEqual(1, scope.Acquisitions, "Actual activation must acquire its first due owner before the next idle Change.");
         Invocation invocation = await scope.NextAsync();
         Task<HealthCollectionAttempt> wait = registration.Handle.CollectAsync();
         invocation.Complete();
@@ -76,10 +82,16 @@ public sealed class HealthCollectorRunnerSchedulingTests
         Registration manual = scope.Add("manual");
 
         Assert.ThrowsExactly<InvalidOperationException>(periodic.Handle.ActivatePeriodic);
+        Task<TimeSpan> startupChange = scope.Clock.NextChangeAsync();
         await scope.Runner.StartAsync().WaitAsync(Deadline);
+        await startupChange;
+        Assert.AreEqual(0, scope.Acquisitions, "Actual startup must leave unactivated periodic owners inert.");
         Assert.ThrowsExactly<InvalidOperationException>(manual.Handle.ActivatePeriodic);
+        Task<TimeSpan> activatedChange = scope.Clock.NextChangeAsync();
         periodic.Handle.ActivatePeriodic();
         periodic.Handle.ActivatePeriodic();
+        await activatedChange;
+        Assert.AreEqual(1, scope.Acquisitions, "Actual activation must acquire its first due owner before the next idle Change.");
         Invocation invocation = await scope.NextAsync();
         Assert.AreEqual("periodic", invocation.Name);
         Assert.AreEqual(1, periodic.Collector.Acquisitions);
@@ -94,9 +106,15 @@ public sealed class HealthCollectorRunnerSchedulingTests
     {
         await using var scope = new RunnerScope();
         Registration registration = scope.Add("first", TimeSpan.FromHours(1));
+        Task<TimeSpan> startupChange = scope.Clock.NextChangeAsync();
         await scope.Runner.StartAsync().WaitAsync(Deadline);
+        await startupChange;
+        Assert.AreEqual(0, scope.Acquisitions, "Actual startup must leave unactivated periodic owners inert.");
 
+        Task<TimeSpan> activatedChange = scope.Clock.NextChangeAsync();
         registration.Handle.ActivatePeriodic();
+        await activatedChange;
+        Assert.AreEqual(1, scope.Acquisitions, "Actual activation must acquire its first due owner before the next idle Change.");
         Invocation invocation = await scope.NextAsync();
         Assert.AreEqual(0L, scope.Clock.GetTimestamp());
         Task<HealthCollectionAttempt> wait = registration.Handle.CollectAsync();
@@ -111,8 +129,14 @@ public sealed class HealthCollectorRunnerSchedulingTests
         await using var scope = new RunnerScope();
         TimeSpan interval = TimeSpan.FromSeconds(10);
         Registration registration = scope.Add("completion", interval);
+        Task<TimeSpan> startupChange = scope.Clock.NextChangeAsync();
         await scope.Runner.StartAsync().WaitAsync(Deadline);
+        await startupChange;
+        Assert.AreEqual(0, scope.Acquisitions, "Actual startup must leave unactivated periodic owners inert.");
+        Task<TimeSpan> activatedChange = scope.Clock.NextChangeAsync();
         registration.Handle.ActivatePeriodic();
+        await activatedChange;
+        Assert.AreEqual(1, scope.Acquisitions, "Actual activation must acquire its first due owner before the next idle Change.");
         Invocation first = await scope.NextAsync();
         Task<HealthCollectionAttempt> joined = registration.Handle.CollectAsync();
 
@@ -136,8 +160,14 @@ public sealed class HealthCollectorRunnerSchedulingTests
         await using var scope = new RunnerScope();
         Registration registration = scope.Add("cleanup", TimeSpan.FromSeconds(10));
         registration.Collector.BlockCleanup = true;
+        Task<TimeSpan> startupChange = scope.Clock.NextChangeAsync();
         await scope.Runner.StartAsync().WaitAsync(Deadline);
+        await startupChange;
+        Assert.AreEqual(0, scope.Acquisitions, "Actual startup must leave unactivated periodic owners inert.");
+        Task<TimeSpan> activatedChange = scope.Clock.NextChangeAsync();
         registration.Handle.ActivatePeriodic();
+        await activatedChange;
+        Assert.AreEqual(1, scope.Acquisitions, "Actual activation must acquire its first due owner before the next idle Change.");
         Invocation first = await scope.NextAsync();
         Task<HealthCollectionAttempt> joined = registration.Handle.CollectAsync();
         first.Complete();
@@ -163,8 +193,14 @@ public sealed class HealthCollectorRunnerSchedulingTests
     {
         await using var scope = new RunnerScope();
         Registration registration = scope.Add("monotonic", TimeSpan.FromSeconds(10));
+        Task<TimeSpan> startupChange = scope.Clock.NextChangeAsync();
         await scope.Runner.StartAsync().WaitAsync(Deadline);
+        await startupChange;
+        Assert.AreEqual(0, scope.Acquisitions, "Actual startup must leave unactivated periodic owners inert.");
+        Task<TimeSpan> activatedChange = scope.Clock.NextChangeAsync();
         registration.Handle.ActivatePeriodic();
+        await activatedChange;
+        Assert.AreEqual(1, scope.Acquisitions, "Actual activation must acquire its first due owner before the next idle Change.");
         Invocation first = await scope.NextAsync();
         Task<HealthCollectionAttempt> joined = registration.Handle.CollectAsync();
         first.Complete();
@@ -189,8 +225,14 @@ public sealed class HealthCollectorRunnerSchedulingTests
         await using var scope = new RunnerScope();
         TimeSpan interval = TimeSpan.FromSeconds(1);
         Registration registration = scope.Add("coalesced", interval);
+        Task<TimeSpan> startupChange = scope.Clock.NextChangeAsync();
         await scope.Runner.StartAsync().WaitAsync(Deadline);
+        await startupChange;
+        Assert.AreEqual(0, scope.Acquisitions, "Actual startup must leave unactivated periodic owners inert.");
+        Task<TimeSpan> activatedChange = scope.Clock.NextChangeAsync();
         registration.Handle.ActivatePeriodic();
+        await activatedChange;
+        Assert.AreEqual(1, scope.Acquisitions, "Actual activation must acquire its first due owner before the next idle Change.");
         Invocation first = await scope.NextAsync();
         Task<HealthCollectionAttempt> joined = registration.Handle.CollectAsync();
 
@@ -215,8 +257,14 @@ public sealed class HealthCollectorRunnerSchedulingTests
         await using var scope = new RunnerScope();
         TimeSpan interval = TimeSpan.FromSeconds(10);
         Registration registration = scope.Add("manual-reset", interval);
+        Task<TimeSpan> startupChange = scope.Clock.NextChangeAsync();
         await scope.Runner.StartAsync().WaitAsync(Deadline);
+        await startupChange;
+        Assert.AreEqual(0, scope.Acquisitions, "Actual startup must leave unactivated periodic owners inert.");
+        Task<TimeSpan> activatedChange = scope.Clock.NextChangeAsync();
         registration.Handle.ActivatePeriodic();
+        await activatedChange;
+        Assert.AreEqual(1, scope.Acquisitions, "Actual activation must acquire its first due owner before the next idle Change.");
         Invocation first = await scope.NextAsync();
         Task<HealthCollectionAttempt> firstWait = registration.Handle.CollectAsync();
         first.Complete();
@@ -461,8 +509,14 @@ public sealed class HealthCollectorRunnerSchedulingTests
         await using var scope = new RunnerScope(capacity: 1);
         Registration[] registrations = Enumerable.Range(0, 6)
             .Select(index => scope.Add($"fair-{index}", TimeSpan.FromSeconds(1))).ToArray();
+        Task<TimeSpan> startupChange = scope.Clock.NextChangeAsync();
         await scope.Runner.StartAsync().WaitAsync(Deadline);
+        await startupChange;
+        Assert.AreEqual(0, scope.Acquisitions, "Actual startup must leave unactivated periodic owners inert.");
+        Task<TimeSpan> activatedChange = scope.Clock.NextChangeAsync();
         foreach (Registration registration in registrations) { registration.Handle.ActivatePeriodic(); }
+        await activatedChange;
+        Assert.AreEqual(1, scope.Acquisitions, "The real capacity-one dispatcher must acquire its first gated owner before the next idle Change.");
 
         var seen = new HashSet<string>(StringComparer.Ordinal);
         for (int index = 0; index < registrations.Length; index++)
@@ -485,8 +539,14 @@ public sealed class HealthCollectorRunnerSchedulingTests
         await using var scope = new RunnerScope(capacity: 1);
         Registration[] registrations = Enumerable.Range(0, 32)
             .Select(index => scope.Add($"pending-{index}", TimeSpan.FromSeconds(1))).ToArray();
+        Task<TimeSpan> startupChange = scope.Clock.NextChangeAsync();
         await scope.Runner.StartAsync().WaitAsync(Deadline);
+        await startupChange;
+        Assert.AreEqual(0, scope.Acquisitions, "Actual startup must leave unactivated periodic owners inert.");
+        Task<TimeSpan> activatedChange = scope.Clock.NextChangeAsync();
         foreach (Registration registration in registrations) { registration.Handle.ActivatePeriodic(); }
+        await activatedChange;
+        Assert.AreEqual(1, scope.Acquisitions, "The real capacity-one dispatcher must acquire its first gated owner before the next idle Change.");
         Invocation first = await scope.NextAsync();
         scope.Clock.Advance(TimeSpan.FromDays(30));
         Assert.AreEqual(1, registrations.Sum(item => item.Collector.Acquisitions));
@@ -597,6 +657,7 @@ public sealed class HealthCollectorRunnerSchedulingTests
         internal HealthCollectorRunner Runner { get; }
         internal int ActiveLeases => Volatile.Read(ref activeLeases);
         internal int PeakLeases => Volatile.Read(ref peakLeases);
+        internal int Acquisitions => registrations.Sum(registration => registration.Collector.Acquisitions);
 
         internal Registration Add(string name, TimeSpan? interval = null)
         {
@@ -749,12 +810,20 @@ public sealed class HealthCollectorRunnerSchedulingTests
         private readonly ManualTimeProvider manual = new(Epoch);
         private readonly Dictionary<ObservedTimer, long?> dueTimes = [];
         private TaskCompletionSource changed = NewSignal();
+        private TaskCompletionSource<TimeSpan>? nextChange;
 
         public override long TimestampFrequency => manual.TimestampFrequency;
         public override long GetTimestamp() => manual.GetTimestamp();
         public override DateTimeOffset GetUtcNow() => manual.GetUtcNow();
         internal void Advance(TimeSpan elapsed) => manual.Advance(elapsed);
         internal void SetUtcNow(DateTimeOffset value) => manual.SetUtcNow(value);
+        internal Task<TimeSpan> NextChangeAsync()
+        {
+            var next = new TaskCompletionSource<TimeSpan>(TaskCreationOptions.RunContinuationsAsynchronously);
+            if (Interlocked.CompareExchange(ref nextChange, next, null) is not null)
+            { throw new InvalidOperationException("The previous actual timer Change observation is still armed."); }
+            return next.Task.WaitAsync(Deadline);
+        }
 
         public override ITimer CreateTimer(TimerCallback callback, object? state, TimeSpan dueTime, TimeSpan period)
         {
@@ -809,7 +878,11 @@ public sealed class HealthCollectorRunnerSchedulingTests
             public bool Change(TimeSpan dueTime, TimeSpan period)
             {
                 bool changed = inner.Change(dueTime, period);
-                if (changed) { owner.Record(this, dueTime); }
+                if (changed)
+                {
+                    owner.Record(this, dueTime);
+                    Interlocked.Exchange(ref owner.nextChange, null)?.TrySetResult(dueTime);
+                }
                 return changed;
             }
 

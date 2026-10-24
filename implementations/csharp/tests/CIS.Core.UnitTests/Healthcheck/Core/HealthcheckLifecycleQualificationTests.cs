@@ -1,5 +1,8 @@
+using System.Runtime.CompilerServices;
+using System.Runtime.ExceptionServices;
 using CIS.Healthcheck;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using static CIS.Tests.UnitTests.Healthcheck.HealthBindingRetirementBoundaryTests;
 
 namespace CIS.Tests.UnitTests.Healthcheck;
 
@@ -104,13 +107,24 @@ public sealed class HealthcheckLifecycleQualificationTests
     [TestMethod]
     [DataRow(false)]
     [DataRow(true)]
-    public async Task WithdrawingMonitorReleasesBindingRegistrationBeforeAnyOldBindingCall(bool dispose)
+    public Task WithdrawingMonitorReleasesBindingRegistrationBeforeAnyOldBindingCall(bool dispose)
+    {
+        RetirementObservation observed = WithdrawAndReplaceBindingThenReleaseActualOwners(dispose);
+        ReviewRetiredBinding(observed);
+        return observed.First!;
+    }
+
+    [MethodImpl(MethodImplOptions.NoInlining)]
+    private static RetirementObservation WithdrawAndReplaceBindingThenReleaseActualOwners(bool dispose)
     {
         HealthcheckService service = CreateService();
-        IConsecutiveFailureMonitor? first = null;
-        IConsecutiveFailureMonitor? replacement = null;
-        IHealthExecutionBinding? old = null;
-        IHealthExecutionBinding? current = null;
+        IConsecutiveFailureMonitor? first = null, replacement = null;
+        IHealthExecutionBinding? old = null, current = null;
+        Task? oldCompletion = null, oldCleanupCompletion = null, currentCleanupCompletion = null;
+        BindingPhase? oldPhase = null, currentPhase = null;
+        Exception? primary = null;
+        var holds = new List<Exception>();
+        bool bodyReturned = false, sourceReleaseJoined = false, missingSignalPhase = false;
         try
         {
             first = Failures(service);
@@ -122,8 +136,7 @@ public sealed class HealthcheckLifecycleQualificationTests
             else { first.Withdraw(); }
             Assert.IsTrue(first.WaitForDisposalAsync().IsCompletedSuccessfully);
 
-            // Do not call the old binding first: its lazy observation/release could
-            // repair a missing eager retirement and mask stale registration retention.
+            // No old binding call is allowed before the actual replacement bind.
             replacement = Failures(service);
             current = HealthExecutionBinder.Bind(replacement, options);
             Assert.AreEqual(registration, current.RegistrationId);
@@ -138,8 +151,23 @@ public sealed class HealthcheckLifecycleQualificationTests
                 Kind = HealthExecutionFactKind.Registered,
                 OccurredAtUtc = DateTimeOffset.UtcNow
             }));
-            await old.DisposeAsync().AsTask().WaitAsync(Deadline);
-            await current.DisposeAsync().AsTask().WaitAsync(Deadline);
+            oldCompletion = old.DisposeAsync().AsTask();
+            oldPhase = ReadActualRetirement(old, first, service, owned: false, expectedWithdrawn: true);
+            JoinLifecycleOperation(oldPhase.StateRelease);
+            JoinLifecycleOperation(oldPhase.EntryDisposal);
+            JoinLifecycleOperation(oldPhase.MonitorDisposal);
+            sourceReleaseJoined = true;
+            if (oldCompletion.IsCompleted) { JoinLifecycleOperation(oldCompletion); }
+            else
+            {
+                if (!oldPhase.Retired || !oldPhase.ReleaseStarted || oldPhase.ActualSettlement is not null)
+                { throw new InvalidOperationException("The old withdrawn binding has no proved missing-release phase; actual state work or observer may remain active."); }
+                missingSignalPhase = true;
+            }
+            Task currentCompletion = current.DisposeAsync().AsTask();
+            JoinLifecycleOperation(currentCompletion);
+            currentPhase = ReadActualRetirement(current, replacement, service, owned: false, expectedWithdrawn: false);
+            JoinLifecycleOperation(currentPhase.StateRelease);
             replacement.ReportSuccess();
             HealthSnapshot usable = service.CaptureSnapshot();
             Assert.AreEqual(1, usable.MonitorCounts.Active);
@@ -148,28 +176,74 @@ public sealed class HealthcheckLifecycleQualificationTests
             Assert.IsNotNull(retained.Outcomes);
             Assert.AreEqual(1L, retained.Outcomes.Successful);
             Assert.IsTrue(service.DisposeAsync().IsCompletedSuccessfully);
+            bodyReturned = true;
         }
+        catch (Exception error) { primary = error; }
         finally
         {
-            try
+            // Preserve both original real observers and their actual Task.WhenAll.
+            // The captured values are the actual SUT tasks, not observer-task aliases.
+            Task oldObserver = ObserveCompletedBindingRelease(old, actual => oldCleanupCompletion = actual);
+            Task currentObserver = ObserveCompletedBindingRelease(current, actual => currentCleanupCompletion = actual);
+            Task actualObservers = Task.WhenAll(oldObserver, currentObserver);
+            try { JoinLifecycleOperation(actualObservers); }
+            catch (Exception error) { holds.Add(actualObservers.Exception ?? error); }
+            if (oldCleanupCompletion is not null)
             {
-                // Both release requests start even if either implementation throws
-                // synchronously; each async observer captures that fault in its Task.
-                await Task.WhenAll(ObserveCompletedBindingRelease(old), ObserveCompletedBindingRelease(current));
+                bool provedPrivatePromise = primary is null && bodyReturned && sourceReleaseJoined && missingSignalPhase
+                    && ReferenceEquals(oldCleanupCompletion, oldCompletion) && oldPhase is { Retired: true, ReleaseStarted: true, ActualSettlement: null };
+                if (!oldCleanupCompletion.IsCompleted && !provedPrivatePromise)
+                {
+                    try { JoinLifecycleOperation(oldCleanupCompletion); }
+                    catch (Exception error) { holds.Add(error); }
+                }
             }
-            finally
+            if (currentCleanupCompletion is not null && !currentCleanupCompletion.IsCompleted)
             {
-                await service.DisposeAsync().AsTask().WaitAsync(Deadline);
-                GC.KeepAlive(first);
-                GC.KeepAlive(replacement);
+                try { JoinLifecycleOperation(currentCleanupCompletion); }
+                catch (Exception error) { holds.Add(error); }
             }
+            try { JoinLifecycleOperation(service.DisposeAsync().AsTask()); }
+            catch (Exception error) { holds.Add(error); }
+            try { JoinLifecycleOperation(service.WaitForDisposalAsync()); }
+            catch (Exception error) { holds.Add(error); }
+            foreach (BindingPhase? phase in new[] { oldPhase, currentPhase })
+            {
+                if (phase is null) { continue; }
+                try { JoinLifecycleOperation(phase.EntryDisposal); }
+                catch (Exception error) { holds.Add(error); }
+                try { JoinLifecycleOperation(phase.MonitorDisposal); }
+                catch (Exception error) { holds.Add(error); }
+            }
+            if (first is not null)
+            {
+                try { JoinLifecycleOperation(first.WaitForDisposalAsync()); }
+                catch (Exception error) { holds.Add(error); }
+            }
+            if (replacement is not null)
+            {
+                try { JoinLifecycleOperation(replacement.WaitForDisposalAsync()); }
+                catch (Exception error) { holds.Add(error); }
+            }
+            GC.KeepAlive(first);
+            GC.KeepAlive(replacement);
         }
+        if (holds.Count > 0)
+        {
+            if (primary is not null) { holds.Insert(0, primary); }
+            throw new AggregateException("The replacement body or actual binding/monitor/state cleanup did not settle successfully.", holds);
+        }
+        if (primary is not null) { ExceptionDispatchInfo.Capture(primary).Throw(); }
+        return new(null, oldCompletion, oldCleanupCompletion, missingSignalPhase,
+            oldPhase!.Graph.Concat(currentPhase!.Graph).ToArray());
     }
 
-    private static async Task ObserveCompletedBindingRelease(IHealthExecutionBinding? binding)
+    private static void JoinLifecycleOperation(Task actual) => actual.WaitAsync(Deadline).GetAwaiter().GetResult();
+    private static async Task ObserveCompletedBindingRelease(IHealthExecutionBinding? binding, Action<Task>? capture = null)
     {
         if (binding is null) { return; }
         Task completion = binding.DisposeAsync().AsTask();
+        capture?.Invoke(completion);
         // Pure cleanup does not assert or claim completion of a pending private
         // wrapper task. The actual service lifetime is always joined separately.
         if (completion.IsCompleted) { await completion; }

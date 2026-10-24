@@ -24,19 +24,23 @@ public sealed class HealthCollectorPeriodicTimerProgressQualificationTests
         TimerRequest startupRequest = await scope.Clock.NextChangeAsync();
         Assert.IsTrue(startupRequest.Changed);
         Assert.AreEqual(Timeout.InfiniteTimeSpan, startupRequest.DueTime);
+        Assert.AreEqual(0, scope.ShortOwner.Acquisitions,
+            "The startup dispatcher must leave the unactivated short owner inert.");
+        Assert.AreEqual(0, scope.LaterOwner.Acquisitions,
+            "The startup dispatcher must leave the unactivated later owner inert.");
 
         // Pause the actual dispatcher outside Core's gate. Activation records a
         // wake on that dispatcher, so its next Change follows real admission.
         ChangePause shortOccupiedPause = scope.Clock.PauseNextChange();
         scope.ShortRegistration.ActivatePeriodic();
         startupPause.Release();
-        Invocation shortFirst = await scope.ShortOwner.NextAsync();
         await shortOccupiedPause.Entered.WaitAsync(Deadline);
         TimerRequest shortOccupiedRequest = await scope.Clock.NextChangeAsync();
         Assert.IsTrue(shortOccupiedRequest.Changed);
         Assert.AreEqual(Timeout.InfiniteTimeSpan, shortOccupiedRequest.DueTime);
         Assert.AreEqual(1, scope.ShortOwner.Acquisitions);
         Assert.AreEqual(0, scope.ShortOwner.Cleanups);
+        Invocation shortFirst = await scope.ShortOwner.NextAsync();
 
         // The join records WakeRequested while the sole dispatcher is paused.
         // Awaiting it proves real cleanup/settlement, Due publication and actual
@@ -69,13 +73,13 @@ public sealed class HealthCollectorPeriodicTimerProgressQualificationTests
             laterRegistration.ActivatePeriodic();
             ChangePause laterOccupiedPause = scope.Clock.PauseNextChange();
             shortEligibilityPause.Release();
-            Invocation laterFirst = await scope.LaterOwner.NextAsync();
             await laterOccupiedPause.Entered.WaitAsync(Deadline);
             TimerRequest laterOccupiedRequest = await scope.Clock.NextChangeAsync();
             Assert.IsTrue(laterOccupiedRequest.Changed);
             Assert.AreEqual(Timeout.InfiniteTimeSpan, laterOccupiedRequest.DueTime);
             Assert.AreEqual(1, scope.LaterOwner.Acquisitions);
             Assert.AreEqual(0, scope.LaterOwner.Cleanups);
+            Invocation laterFirst = await scope.LaterOwner.NextAsync();
 
             Task<HealthCollectionAttempt> laterJoined = laterRegistration.CollectAsync();
             Assert.IsFalse(laterJoined.IsCompleted);

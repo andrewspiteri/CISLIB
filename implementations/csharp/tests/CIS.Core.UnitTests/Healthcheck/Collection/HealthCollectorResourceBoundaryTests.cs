@@ -23,8 +23,16 @@ public sealed class HealthCollectorResourceBoundaryTests
             TimestampAfterCleanup = overflow ? long.MaxValue : long.MaxValue - 1
         };
         IHealthCollectionRegistration registration = scope.Register(owner, TimeSpan.FromTicks(1));
+        Task<TimeSpan> startupChange = scope.Clock.Timer.NextChangeAsync();
         await scope.Runner.StartAsync().WaitAsync(Deadline);
+        await startupChange;
+        Assert.AreEqual(0, owner.Acquisitions,
+            "An inert periodic registration must not acquire its owner before explicit activation.");
+        Task<TimeSpan> activatedChange = scope.Clock.Timer.NextChangeAsync();
         registration.ActivatePeriodic();
+        await activatedChange;
+        Assert.AreEqual(1, owner.Acquisitions,
+            "The actual activation dispatcher must acquire its due owner before installing its next idle timer request.");
         await WaitForOwnedGateAsync(owner.EvaluationEntered.Task, null, owner.CleanupEntered.Task);
         Task<HealthCollectionAttempt> joined = registration.CollectAsync();
         owner.ReleaseEvaluation.TrySetResult();
@@ -343,6 +351,7 @@ public sealed class HealthCollectorResourceBoundaryTests
     private sealed class TimerResource : ITimer
     {
         private int disposals, disposalReturns;
+        private TaskCompletionSource<TimeSpan>? nextChange;
         internal Action? DuringChange { get; set; }
         internal int Disposals => Volatile.Read(ref disposals);
         internal int DisposalReturns => Volatile.Read(ref disposalReturns);
@@ -350,12 +359,20 @@ public sealed class HealthCollectorResourceBoundaryTests
         internal TaskCompletionSource ChangeFinished { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
         internal TaskCompletionSource Scheduled { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
         internal TimeSpan ScheduledDue { get; private set; }
+        internal Task<TimeSpan> NextChangeAsync()
+        {
+            var next = new TaskCompletionSource<TimeSpan>(TaskCreationOptions.RunContinuationsAsynchronously);
+            if (Interlocked.CompareExchange(ref nextChange, next, null) is not null)
+            { throw new InvalidOperationException("The previous actual timer Change observation is still armed."); }
+            return next.Task.WaitAsync(Deadline);
+        }
         public bool Change(TimeSpan dueTime, TimeSpan period)
         {
             try
             {
                 DuringChange?.Invoke();
                 if (dueTime != Timeout.InfiniteTimeSpan) { ScheduledDue = dueTime; Scheduled.TrySetResult(); }
+                Interlocked.Exchange(ref nextChange, null)?.TrySetResult(dueTime);
                 return true;
             }
             finally { ChangeFinished.TrySetResult(); }
