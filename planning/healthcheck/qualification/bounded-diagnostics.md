@@ -2,6 +2,13 @@
 
 User direction on24 October2026: diagnose failures with small, bounded experiments, justify time budgets, then repair specific assertion gaps before scheduling more broad reruns. The90% conservative gate, original evidence and unresolved runtime/resource holds remain unchanged.
 
+Later user direction on24 October2026 requests much shorter mutation iterations.
+The [short profiles](gate-closure/short/README.md) replace the75/35-minute added
+allowances with1,000ms. The pinned tool remains adaptive: earlier measurements
+imply roughly20–35 seconds for Unit requests and191 seconds for complete Pipes
+requests, plus cancellation/shutdown. These are not hard15-second limits. Old
+run inputs remain immutable; explicitly stopped runs stay incomplete and uncredited.
+
 ## Working sequence
 
 1. Read the actual closed failure and bind its source, case and phase. Review each new failure family after20 minutes of initial triage; choose a concrete experiment or record the obstruction instead of repeating unchanged controls.

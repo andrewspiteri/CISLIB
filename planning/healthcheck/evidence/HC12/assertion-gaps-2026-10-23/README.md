@@ -2,7 +2,15 @@
 
 The preceding execution/capture repair was committed as `d88cb8462391aa298e7950152251ef330d3159bc`. This continuation targets actual assertion evidence and surviving behavior mutations in parallel. Shipping Core sources and the 90% threshold are unchanged. The latest complete conservative union remains **1,591/3,065 = 51.908646%**, unqualified; none of these finite trials updates that aggregate.
 
-## Latest checkpoint — bounded diagnostics183, 24 October 2026
+## Latest checkpoint — eight-worker campaigns187, 24 October 2026
+
+The [parallel-worker checkpoint187](../parallel-workers-2026-10-24/README.md) records the user's later speed-up request: eight workers per Unit/Pipes campaign,16total, with existing1,000ms added allowances and the90% gate. All16 runner processes were observed. Focused220PASS; complete Developer18710,315PASS/0F/0skip. The stopped185attempts were retained before their closed remote roots were removed. Unit sessions also show actual expiries/aborted completions; those remain held and no score improvement is claimed.
+
+## Historical checkpoint — short mutation timeouts185, 24 October 2026
+
+The user requested much shorter iterations. [Short-timeout checkpoint185](../short-timeouts-2026-10-24/README.md) records the exact 1,000 ms added allowance, stopped incomplete170/180 attempts, verified cold retention/remote cleanup and newly launched1390/622-case campaigns. Developer185 passed all10,270 ordinary cases and the focused configuration suite passed175/175. The accepted historical51.908646% remains unchanged pending complete audited reports. The new profiles do not claim a hard15-second cap.
+
+## Historical checkpoint — bounded diagnostics183, 24 October 2026
 
 The [bounded-diagnostic workflow](../../../qualification/bounded-diagnostics.md) now separates baseline, assertion, real cleanup, process reap and log drain. The [deduplicated score ledger](reviews/execution183-score-and-failure-ledger.md) explains the old51.908646%:1,591 accepted kills,1,069 held kills,300 survivors,34 uncovered definitions and71 timeouts out of3,065. The held definitions comprise804 abnormal/incomplete-only,242 non-direct-only and23 in both categories. This is the old complete union, not a live campaign score; recovering every held definition would still leave99 additional accepted kills needed at that denominator.
 

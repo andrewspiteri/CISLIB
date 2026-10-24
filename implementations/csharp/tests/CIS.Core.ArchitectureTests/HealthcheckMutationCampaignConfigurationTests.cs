@@ -123,6 +123,221 @@ public sealed class HealthcheckMutationCampaignConfigurationTests
     }
 
     [TestMethod]
+    [DataRow("unit-runtime")]
+    [DataRow("pipes")]
+    public void CompleteNonMixingCampaignMayUseTheExactShortAdditionalBudgetWithoutRewritingMaintainedInputs(string group)
+    {
+        JsonObject maintained = Configuration(group), native = ReviewedBudget(maintained, 1000);
+        string maintainedBefore = maintained.ToJsonString(), nativeBefore = native.ToJsonString();
+        HealthcheckMutationCampaignConfiguration.Validate(group, native, maintained);
+        Assert.AreEqual(maintainedBefore, maintained.ToJsonString());
+        Assert.AreEqual(nativeBefore, native.ToJsonString());
+        Assert.AreEqual(10000, (int?)Options(maintained)["additional-timeout"]);
+        Assert.AreEqual(1000, (int?)Options(native)["additional-timeout"]);
+        Assert.AreEqual(true, (bool?)Options(native)["disable-mix-mutants"]);
+        Assert.IsTrue(JsonNode.DeepEquals(Options(maintained)["coverage-analysis"], Options(native)["coverage-analysis"]));
+    }
+
+    [TestMethod]
+    [DataRow("unit-runtime")]
+    [DataRow("pipes")]
+    public void ExactShortNonMixingCampaignMayUseEightWorkersWithItsMaintainedTwoWorkerReferenceUnchanged(string group)
+    {
+        JsonObject maintained = Configuration(group), native = ReviewedBudget(maintained, 1000);
+        Options(native)["concurrency"] = 8;
+        string maintainedBefore = maintained.ToJsonString(), nativeBefore = native.ToJsonString();
+        HealthcheckMutationCampaignConfiguration.Validate(group, native, maintained);
+        Assert.AreEqual(maintainedBefore, maintained.ToJsonString());
+        Assert.AreEqual(nativeBefore, native.ToJsonString());
+        Assert.AreEqual(2, (int?)Options(maintained)["concurrency"]);
+        Assert.AreEqual(8, (int?)Options(native)["concurrency"]);
+        Assert.AreEqual(10000, (int?)Options(maintained)["additional-timeout"]);
+        Assert.AreEqual(1000, (int?)Options(native)["additional-timeout"]);
+        Assert.AreEqual(true, (bool?)Options(native)["disable-mix-mutants"]);
+    }
+
+    [TestMethod]
+    [DataRow("unit-runtime", "7")]
+    [DataRow("unit-runtime", "9")]
+    [DataRow("unit-runtime", "\"8\"")]
+    [DataRow("unit-runtime", "8.0")]
+    [DataRow("unit-runtime", "null")]
+    [DataRow("unit-runtime", "missing")]
+    [DataRow("pipes", "7")]
+    [DataRow("pipes", "9")]
+    [DataRow("pipes", "\"8\"")]
+    [DataRow("pipes", "8.0")]
+    [DataRow("pipes", "null")]
+    [DataRow("pipes", "missing")]
+    public void ShortParallelCampaignAcceptsOnlyTheExactReviewedWorkerInteger(string group, string literal)
+    {
+        JsonObject maintained = Configuration(group), native = ReviewedBudget(maintained, 1000);
+        if (literal == "missing") { Options(native).Remove("concurrency"); }
+        else { Options(native)["concurrency"] = JsonNode.Parse(literal); }
+        Assert.ThrowsExactly<InvalidDataException>(() => HealthcheckMutationCampaignConfiguration.Validate(group, native, maintained));
+    }
+
+    [TestMethod]
+    [DataRow("unit-runtime", 10000)]
+    [DataRow("unit-runtime", 300000)]
+    [DataRow("unit-runtime", 4500000)]
+    [DataRow("pipes", 10000)]
+    [DataRow("pipes", 2100000)]
+    [DataRow("aspnet", 1000)]
+    [DataRow("aspnet", 750000)]
+    public void EightWorkersCannotChangeHistoricalOrAspNetProfileAcceptance(string group, int budget)
+    {
+        JsonObject maintained = Configuration(group), native = ReviewedBudget(maintained, budget);
+        Options(native)["concurrency"] = 8;
+        Assert.ThrowsExactly<InvalidDataException>(() => HealthcheckMutationCampaignConfiguration.Validate(group, native, maintained));
+    }
+
+    [TestMethod]
+    [DataRow("unit-runtime", "missing")]
+    [DataRow("unit-runtime", "false")]
+    [DataRow("unit-runtime", "\"true\"")]
+    [DataRow("pipes", "missing")]
+    [DataRow("pipes", "false")]
+    [DataRow("pipes", "\"true\"")]
+    public void EightWorkersRequireTheExactShortNonMixingProfile(string group, string literal)
+    {
+        JsonObject maintained = Configuration(group), native = ReviewedBudget(maintained, 1000);
+        Options(native)["concurrency"] = 8;
+        if (literal == "missing") { Options(native).Remove("disable-mix-mutants"); }
+        else { Options(native)["disable-mix-mutants"] = JsonNode.Parse(literal); }
+        Assert.ThrowsExactly<InvalidDataException>(() => HealthcheckMutationCampaignConfiguration.Validate(group, native, maintained));
+    }
+
+    [TestMethod]
+    [DataRow("unit-runtime", "8")]
+    [DataRow("unit-runtime", "\"2\"")]
+    [DataRow("unit-runtime", "2.0")]
+    [DataRow("pipes", "8")]
+    [DataRow("pipes", "\"2\"")]
+    [DataRow("pipes", "2.0")]
+    public void EightWorkersCannotSelfApproveAChangedMaintainedReference(string group, string literal)
+    {
+        JsonObject maintained = Configuration(group), native = ReviewedBudget(maintained, 1000);
+        Options(native)["concurrency"] = 8;
+        Options(maintained)["concurrency"] = JsonNode.Parse(literal);
+        Assert.ThrowsExactly<InvalidDataException>(() => HealthcheckMutationCampaignConfiguration.Validate(group, native, maintained));
+    }
+
+    [TestMethod]
+    [DataRow("unit-runtime", "filter")]
+    [DataRow("unit-runtime", "source")]
+    [DataRow("unit-runtime", "coverage")]
+    [DataRow("unit-runtime", "threshold")]
+    [DataRow("unit-runtime", "bail")]
+    [DataRow("unit-runtime", "timeout-factor")]
+    [DataRow("pipes", "filter")]
+    [DataRow("pipes", "source")]
+    [DataRow("pipes", "coverage")]
+    [DataRow("pipes", "threshold")]
+    [DataRow("pipes", "bail")]
+    [DataRow("pipes", "timeout-factor")]
+    public void EightWorkersCannotConcealAnotherScopeOrExecutionSettingChange(string group, string changed)
+    {
+        JsonObject maintained = Configuration(group), native = ReviewedBudget(maintained, 1000), options = Options(native);
+        options["concurrency"] = 8;
+        switch (changed)
+        {
+            case "filter": options["test-case-filter"] = "FullyQualifiedName=Only.One.Test"; break;
+            case "source": options["mutate"]!.AsArray().RemoveAt(1); break;
+            case "coverage": options["coverage-analysis"] = group == "unit-runtime" ? "off" : "perTest"; break;
+            case "threshold": options["thresholds"]!["break"] = 0; break;
+            case "bail": options["disable-bail"] = false; break;
+            case "timeout-factor": options["timeout-factor"] = 0; break;
+            default: throw new InvalidOperationException("Unknown parallel short-profile receiving control.");
+        }
+        Assert.ThrowsExactly<InvalidDataException>(() => HealthcheckMutationCampaignConfiguration.Validate(group, native, maintained));
+    }
+
+    [TestMethod]
+    [DataRow("unit-runtime", "999")]
+    [DataRow("unit-runtime", "1001")]
+    [DataRow("unit-runtime", "15000")]
+    [DataRow("unit-runtime", "\"1000\"")]
+    [DataRow("unit-runtime", "1000.0")]
+    [DataRow("pipes", "999")]
+    [DataRow("pipes", "1001")]
+    [DataRow("pipes", "15000")]
+    [DataRow("pipes", "\"1000\"")]
+    [DataRow("pipes", "1000.0")]
+    public void ShortAdditionalBudgetIsOneExactIntegerRatherThanAnArbitraryTimeoutOverride(string group, string literal)
+    {
+        JsonObject maintained = Configuration(group), native = ReviewedBudget(maintained, 1000);
+        Options(native)["additional-timeout"] = JsonNode.Parse(literal);
+        Assert.ThrowsExactly<InvalidDataException>(() => HealthcheckMutationCampaignConfiguration.Validate(group, native, maintained));
+    }
+
+    [TestMethod]
+    [DataRow("unit-runtime", "missing")]
+    [DataRow("unit-runtime", "false")]
+    [DataRow("unit-runtime", "\"true\"")]
+    [DataRow("pipes", "missing")]
+    [DataRow("pipes", "false")]
+    [DataRow("pipes", "\"true\"")]
+    public void ShortAdditionalBudgetRequiresAnExplicitLiteralTrueNonMixingOption(string group, string literal)
+    {
+        JsonObject maintained = Configuration(group), native = ReviewedBudget(maintained, 1000);
+        if (literal == "missing") { Options(native).Remove("disable-mix-mutants"); }
+        else { Options(native)["disable-mix-mutants"] = JsonNode.Parse(literal); }
+        Assert.ThrowsExactly<InvalidDataException>(() => HealthcheckMutationCampaignConfiguration.Validate(group, native, maintained));
+    }
+
+    [TestMethod]
+    [DataRow("unit-runtime", "filter")]
+    [DataRow("unit-runtime", "source")]
+    [DataRow("unit-runtime", "coverage")]
+    [DataRow("unit-runtime", "concurrency")]
+    [DataRow("unit-runtime", "threshold")]
+    [DataRow("unit-runtime", "bail")]
+    [DataRow("pipes", "filter")]
+    [DataRow("pipes", "source")]
+    [DataRow("pipes", "coverage")]
+    [DataRow("pipes", "concurrency")]
+    [DataRow("pipes", "threshold")]
+    [DataRow("pipes", "bail")]
+    public void ShortAdditionalBudgetCannotConcealAChangedCompleteScopeOrExecutionPolicy(string group, string changed)
+    {
+        JsonObject maintained = Configuration(group), native = ReviewedBudget(maintained, 1000), options = Options(native);
+        switch (changed)
+        {
+            case "filter": options["test-case-filter"] = "FullyQualifiedName=Only.One.Test"; break;
+            case "source": options["mutate"]!.AsArray().RemoveAt(1); break;
+            case "coverage": options["coverage-analysis"] = group == "unit-runtime" ? "off" : "perTest"; break;
+            case "concurrency": options["concurrency"] = 1; break;
+            case "threshold": options["thresholds"]!["break"] = 0; break;
+            case "bail": options["disable-bail"] = false; break;
+            default: throw new InvalidOperationException("Unknown short-budget receiving control.");
+        }
+        Assert.ThrowsExactly<InvalidDataException>(() => HealthcheckMutationCampaignConfiguration.Validate(group, native, maintained));
+    }
+
+    [TestMethod]
+    [DataRow("unit-runtime")]
+    [DataRow("pipes")]
+    public void ShortAdditionalBudgetCannotSelfApproveAnUnsupportedTimeoutFactorOrMaintainedBudget(string group)
+    {
+        JsonObject maintained = Configuration(group), native = ReviewedBudget(maintained, 1000);
+        Options(maintained)["timeout-factor"] = 0;
+        Options(native)["timeout-factor"] = 0;
+        Assert.ThrowsExactly<InvalidDataException>(() => HealthcheckMutationCampaignConfiguration.Validate(group, native, maintained));
+        Options(maintained).Remove("timeout-factor");
+        Options(native).Remove("timeout-factor");
+        Options(maintained)["additional-timeout"] = 1000;
+        Assert.ThrowsExactly<InvalidDataException>(() => HealthcheckMutationCampaignConfiguration.Validate(group, native, maintained));
+    }
+
+    [TestMethod]
+    public void ShortAdditionalBudgetDoesNotAlterAspNetCampaignAcceptance()
+    {
+        JsonObject maintained = Configuration("aspnet"), native = ReviewedBudget(maintained, 1000);
+        Assert.ThrowsExactly<InvalidDataException>(() => HealthcheckMutationCampaignConfiguration.Validate("aspnet", native, maintained));
+    }
+
+    [TestMethod]
     [DataRow("unit-runtime", "4500001")]
     [DataRow("unit-runtime", "2100000")]
     [DataRow("unit-runtime", "\"4500000\"")]
