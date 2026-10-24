@@ -52,6 +52,15 @@ public sealed partial class HealthPipeActiveCancellationBoundaryTests
         Exception? failure = null;
         try
         {
+            // Verify the real detached settings prerequisite before creating
+            // any server or client. This extra copy owns no runtime resources;
+            // the original options still go through the real server constructor.
+            HealthcheckOptions detached = options.ValidatedCopy();
+            Assert.IsNotNull(detached, "Valid transport settings must produce their detached copy.");
+            Assert.IsTrue(detached.PipeEnabled, "The detached transport settings must retain enabled admission before real startup.");
+            Assert.AreEqual(pipe, detached.PipeName, "The detached transport settings must retain the requested local endpoint.");
+            Assert.AreEqual(1, detached.PipeMaxClients, "The detached transport settings must retain the one-client scenario.");
+            Assert.AreEqual(60000, detached.PipeRequestTimeoutMs, "The detached transport settings must retain the configured request budget.");
             // No actual client exists until the fresh endpoint's startup has
             // succeeded and its concrete startup owner can be handed to us.
             server = CreateStartedServer(source, options, clock);

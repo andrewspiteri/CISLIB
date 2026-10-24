@@ -1,6 +1,51 @@
 # Healthcheck pause handoff — 23 October 2026, 19:20 UTC
 
-## Latest checkpoint — eight-worker campaigns187
+## Latest checkpoint — Unit execution investigation189
+
+The timeout/parallelism batch is committed as `bc08eec1`. Read the
+[startup investigation](../unit-startup-investigation-2026-10-24/README.md) first.
+The187 prefix contains611 aborted/798 received completion frames versus1/553
+in closed185; these are request counts, not mutant scores. Exact1370 requested
+151 cases with20,390 ms and aborted with zero completed results during startup.
+Both187 native trees were stopped at20:18:53 UTC; incomplete/restoration holds
+remain preserved, with the whole archive copied and hash-checked.
+
+Corrected cached-TestCase controls passed16/16: one result/completion each,
+pinned runtime10.0.12, no source discovery or cleanup holds. Plain batch17.336s,
+BPF11.308s; fixed20,390 ms single-case evidence does not license8/1000 adaptive
+full campaigns. The source-request discovery confound and selected01 wrong
+runtime setup failure remain retained separately.
+
+Unit189 instead restores2 workers/maintained10,000 ms additional allowance,
+noMix and BPF, without a canonical policy change. Source/PDB/current1171 guards
+and all2015 uploaded files passed. Launched20:44:05 UTC, wrapper2004496,
+controller2004499, strace2005197/Stryker2005202, input9afc176e… . Fresh original
+baseline1390 passed. Snapshot/families187 are reused with exact current C#
+continuity at launch. Pipes188 remains unlaunched:187 has44/45
+Integration completion frames aborted after58–90 cases, cause unresolved.
+The later immutable189 prefix has285 positive-mutant requests:283 completed,
+281 complete requested result sets, two aborted and two open. Exact closed
+hosts identify433's failed-count reader leaving its peer at a30s barrier,
+and494's defaulted disabled-pipe options causing15s client setup waits. These
+are fixture-progress failures after264/730 completed cases; collector startup
+723/776ms. Both fixes are adopted locally:433 original1PASS50.913ms,
+negative1intendedcountassertion45.979ms; privateunknownIOException34.534ms
+remainsruntime.494 original2PASS54.997/5.542ms andnegative2intendedenabled
+assertions26.143/0.654ms. Allsubjects natural/reaped/drained/noholds; both
+source/actualpeers clear. Maintainedfocused1390PASS0F/skip/0W/E. Full
+Developer189 PASSED10315/0F/0skip/0issues at21:39:14UTC. Freshfreeze/bind0,
+all1171current/972C#/3pairs/642docs, newUnit501c95436f6…/Int1214ff41bbd…,
+origin a3fd7752…; independentmetadatapeerclear. FrozenUbuntu189 stillhasoldfixtures. Four later
+binding-retirement hosts prove skippedRelease leavesprivateDisposepromise
+pending, not startupfailure. Those andlaterliveaborts remain unresolved;
+no point1/allhostcompletion claim. Preserve4GBguard/rawcapture andmonitor
+growth. At21:41:28UTC old189mainhas784dispatch/102actualabortlines (notdistinct
+mutantcounts),~2.010GBowned/6.849GBdatafree; later1334/1336hostsabortduring
+periodiccollector/timerprogresscases too. Nextretirementone-row996planis
+source-only; no newfixture/subjects implemented. No new score:
+historical1591/3065=51.908646%, unqualified.
+
+## Historical checkpoint — eight-worker campaigns187
 
 Read [parallel-worker checkpoint187](../parallel-workers-2026-10-24/README.md) first. Userrequestedmoreparallelism/RAM; server32logical/16physicalcores,125GiB/121available,87–89%idle at2+2workers. CPU/memorycgroup/process/.NETheapuncapped. New187profiles8workersEACH,1000ms/noMix/unchangedcoverage/cohorts/scopes/90%; old2profilesunchanged. Focused220PASS; fullDeveloper18710,315PASS/0F/0skip at19:17:06; all1171C#inputsstable. Fresh187wholeorigin3ee01ff5…/972C#; Unit501 e634cbea…/Int12104bcb282…; complete642PDBdocs/3pairfreeze. All sources/stagers/manifestssourcepeerclearandactualselfreview/stagingpassed.
 

@@ -1,5 +1,10 @@
 # Eight-worker campaigns, 24 October 2026
 
+Subsequent investigation found substantial startup aborts. Both187 campaigns
+were stopped at22:18:53 Europe/Malta with their incomplete outcomes retained.
+See the [startup investigation](../unit-startup-investigation-2026-10-24/README.md)
+for the current state; the launch observations below are historical.
+
 User direction requests more parallel runs and available memory. The new
 [profiles](../../../qualification/gate-closure/short/parallel8/README.md) set
 **eight workers per Unit/runtime and Pipes campaign**, up to 16 across both.

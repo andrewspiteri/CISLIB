@@ -713,78 +713,126 @@ public sealed class HealthcheckServicePolicyTests
     {
         const int rounds = 32;
         TimeSpan deadline = TimeSpan.FromSeconds(30);
-        await using HealthcheckService service = CreateService();
-        IConsecutiveFailureMonitor monitor = service.CreateConsecutiveFailures(new ConsecutiveFailureMonitorOptions
+        var failures = new List<Exception>();
+        using var peerFailure = new CancellationTokenSource();
+        HealthcheckService service = CreateService();
+        Task? writer = null;
+        Task? reader = null;
+        try
         {
-            IsCritical = true,
-            FailureThreshold = 1
-        });
-        service.MarkStartupCompleted();
-        var starts = Enumerable.Range(0, rounds).Select(_ => new AsyncBarrier(2)).ToArray();
-        var finishes = Enumerable.Range(0, rounds).Select(_ => new AsyncBarrier(2)).ToArray();
-        var withdrawalStart = new AsyncBarrier(2);
-        var withdrawn = new AsyncSignal();
-        Guid monitorId = monitor.MonitorId;
-        HealthDiagnostic failureReason = AcceptedDiagnostic("ConcurrentFailure");
-
-        Task writer = Task.Run(async () =>
-        {
-            for (int round = 0; round < rounds; round++)
+            IConsecutiveFailureMonitor monitor = service.CreateConsecutiveFailures(new ConsecutiveFailureMonitorOptions
             {
-                monitor.ReportFailure(failureReason);
-                await starts[round].SignalAndWaitAsync(deadline);
-                monitor.ReportSuccess();
-                await finishes[round].SignalAndWaitAsync(deadline);
-            }
+                IsCritical = true,
+                FailureThreshold = 1
+            });
+            service.MarkStartupCompleted();
+            var starts = Enumerable.Range(0, rounds).Select(_ => new AsyncBarrier(2)).ToArray();
+            var finishes = Enumerable.Range(0, rounds).Select(_ => new AsyncBarrier(2)).ToArray();
+            var withdrawalStart = new AsyncBarrier(2);
+            var withdrawn = new AsyncSignal();
+            Guid monitorId = monitor.MonitorId;
+            HealthDiagnostic failureReason = AcceptedDiagnostic("ConcurrentFailure");
 
-            await withdrawalStart.SignalAndWaitAsync(deadline);
-            monitor.Withdraw();
-            withdrawn.Set();
-        });
-        Task reader = Task.Run(async () =>
-        {
-            BigInteger lastRevision = BigInteger.Zero;
-            for (int round = 0; round < rounds; round++)
+            writer = Task.Run(() => RunParticipantAsync(async () =>
             {
-                // The failure is accepted before this barrier. Success races the
-                // captures after both participants are released together.
-                await starts[round].SignalAndWaitAsync(deadline);
-                for (int capture = 0; capture < 2; capture++)
+                for (int round = 0; round < rounds; round++)
                 {
-                    HealthSnapshot snapshot = service.CaptureSnapshot();
-                    Assert.IsTrue(snapshot.Revision >= lastRevision);
-                    lastRevision = snapshot.Revision;
-                    AssertCompleteConcurrentVersion(snapshot, monitorId);
+                    monitor.ReportFailure(failureReason);
+                    if (!await JoinFixtureWaitAsync(starts[round].SignalAndWaitAsync(deadline, peerFailure.Token))) { return; }
+                    monitor.ReportSuccess();
+                    if (!await JoinFixtureWaitAsync(finishes[round].SignalAndWaitAsync(deadline, peerFailure.Token))) { return; }
                 }
 
-                await finishes[round].SignalAndWaitAsync(deadline);
-            }
-
-            HealthSnapshot beforeWithdrawal = service.CaptureSnapshot();
-            AssertCompleteConcurrentVersion(beforeWithdrawal, monitorId);
-            Assert.AreEqual((long)rounds, beforeWithdrawal.Monitors.Single().Outcomes!.Successful);
-            Assert.AreEqual((long)rounds, beforeWithdrawal.Monitors.Single().Outcomes!.Failed);
-            Assert.IsTrue(beforeWithdrawal.Ready);
-            await withdrawalStart.SignalAndWaitAsync(deadline);
-            HealthSnapshot racingWithdrawal = service.CaptureSnapshot();
-            if (racingWithdrawal.Monitors.Count == 0)
+                if (!await JoinFixtureWaitAsync(withdrawalStart.SignalAndWaitAsync(deadline, peerFailure.Token))) { return; }
+                monitor.Withdraw();
+                withdrawn.Set();
+            }));
+            reader = Task.Run(() => RunParticipantAsync(async () =>
             {
-                AssertCounts(racingWithdrawal, active: 0, critical: 0, failing: 0, criticalFailing: 0, pending: 0);
-                Assert.AreEqual(HealthStatus.Healthy, racingWithdrawal.HealthStatus);
-                Assert.IsTrue(racingWithdrawal.Ready);
+                BigInteger lastRevision = BigInteger.Zero;
+                for (int round = 0; round < rounds; round++)
+                {
+                    // The failure is accepted before this barrier. Success races the
+                    // captures after both participants are released together.
+                    if (!await JoinFixtureWaitAsync(starts[round].SignalAndWaitAsync(deadline, peerFailure.Token))) { return; }
+                    for (int capture = 0; capture < 2; capture++)
+                    {
+                        HealthSnapshot snapshot = service.CaptureSnapshot();
+                        Assert.IsTrue(snapshot.Revision >= lastRevision);
+                        lastRevision = snapshot.Revision;
+                        AssertCompleteConcurrentVersion(snapshot, monitorId);
+                    }
+
+                    if (!await JoinFixtureWaitAsync(finishes[round].SignalAndWaitAsync(deadline, peerFailure.Token))) { return; }
+                }
+
+                HealthSnapshot beforeWithdrawal = service.CaptureSnapshot();
+                AssertCompleteConcurrentVersion(beforeWithdrawal, monitorId);
+                Assert.AreEqual((long)rounds, beforeWithdrawal.Monitors.Single().Outcomes!.Successful);
+                Assert.AreEqual((long)rounds, beforeWithdrawal.Monitors.Single().Outcomes!.Failed);
+                Assert.IsTrue(beforeWithdrawal.Ready);
+                if (!await JoinFixtureWaitAsync(withdrawalStart.SignalAndWaitAsync(deadline, peerFailure.Token))) { return; }
+                HealthSnapshot racingWithdrawal = service.CaptureSnapshot();
+                if (racingWithdrawal.Monitors.Count == 0)
+                {
+                    AssertCounts(racingWithdrawal, active: 0, critical: 0, failing: 0, criticalFailing: 0, pending: 0);
+                    Assert.AreEqual(HealthStatus.Healthy, racingWithdrawal.HealthStatus);
+                    Assert.IsTrue(racingWithdrawal.Ready);
+                }
+                else { AssertCompleteConcurrentVersion(racingWithdrawal, monitorId); }
+
+                if (!await JoinFixtureWaitAsync(withdrawn.WaitAsync(deadline, peerFailure.Token))) { return; }
+                HealthSnapshot afterWithdrawal = service.CaptureSnapshot();
+                AssertCounts(afterWithdrawal, active: 0, critical: 0, failing: 0, criticalFailing: 0, pending: 0);
+                Assert.AreEqual(0, afterWithdrawal.Monitors.Count);
+                Assert.AreEqual(HealthStatus.Healthy, afterWithdrawal.HealthStatus);
+                Assert.IsTrue(afterWithdrawal.Ready);
+                Assert.IsTrue(afterWithdrawal.Revision > beforeWithdrawal.Revision);
+            }));
+        }
+        catch (Exception failure) { RecordFailure(failure); }
+        finally
+        {
+            // Cancel only fixture coordination after a real failure. Both
+            // actual Task.Run delegates still have to return before disposal.
+            Task[] actual = new[] { writer, reader }.OfType<Task>().ToArray();
+            try { await Task.WhenAll(actual); }
+            catch (Exception failure) { RecordFailure(failure); }
+            try { await service.DisposeAsync(); }
+            catch (Exception failure) { RecordFailure(failure); }
+        }
+
+        Exception[] retained;
+        lock (failures) { retained = [.. failures]; }
+        if (retained.Length > 1) { throw new AggregateException("The actual concurrent participants or service cleanup failed.", retained); }
+        if (retained.Length == 1) { System.Runtime.ExceptionServices.ExceptionDispatchInfo.Capture(retained[0]).Throw(); }
+
+        async Task RunParticipantAsync(Func<Task> body)
+        {
+            try { await body(); }
+            catch (Exception failure) { RecordFailure(failure); }
+        }
+
+        async Task<bool> JoinFixtureWaitAsync(Task actualWait)
+        {
+            try { await actualWait; return true; }
+            catch (OperationCanceledException canceled) when (peerFailure.IsCancellationRequested
+                && canceled.CancellationToken == peerFailure.Token && HasRecordedFailure())
+            {
+                // This helper receives only the seven explicit fixture
+                // barrier/signal waits. No SUT operation receives this token.
+                return false;
             }
-            else { AssertCompleteConcurrentVersion(racingWithdrawal, monitorId); }
+        }
 
-            await withdrawn.WaitAsync(deadline);
-            HealthSnapshot afterWithdrawal = service.CaptureSnapshot();
-            AssertCounts(afterWithdrawal, active: 0, critical: 0, failing: 0, criticalFailing: 0, pending: 0);
-            Assert.AreEqual(0, afterWithdrawal.Monitors.Count);
-            Assert.AreEqual(HealthStatus.Healthy, afterWithdrawal.HealthStatus);
-            Assert.IsTrue(afterWithdrawal.Ready);
-            Assert.IsTrue(afterWithdrawal.Revision > beforeWithdrawal.Revision);
-        });
+        bool HasRecordedFailure() { lock (failures) { return failures.Count > 0; } }
 
-        await Task.WhenAll(writer, reader);
+        void RecordFailure(Exception failure)
+        {
+            lock (failures) { failures.Add(failure); }
+            try { peerFailure.Cancel(); }
+            catch (Exception cancellationFailure) { lock (failures) { failures.Add(cancellationFailure); } }
+        }
     }
 
     private static HealthcheckService CreateService(ManualTimeProvider? clock = null, int capacity = 1024) =>

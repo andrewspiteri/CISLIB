@@ -11,6 +11,17 @@ run inputs remain immutable; explicitly stopped runs stay incomplete and uncredi
 
 ## Working sequence
 
+The [24 October startup investigation](../evidence/HC12/unit-startup-investigation-2026-10-24/README.md)
+found that short adaptive budgets with eight traced workers can expire during
+instrumented host initialization. Diagnose those separately from fixture-body
+hangs. A control must match the actual selected-test request path: SDK source
+requests add whole-assembly discovery and can introduce unrelated fixture errors.
+Corrected cached-test controls passed8/8 with each tracing mode; the optimized
+batch took11.308 seconds versus17.336 seconds. That fixed-budget single-case
+control does not license eight adaptive1,000 ms workers. The new complete Unit
+run instead uses the [maintained-budget two-worker profile](gate-closure/stable/README.md),
+with optimized tracing and all existing qualification guards.
+
 1. Read the actual closed failure and bind its source, case and phase. Review each new failure family after20 minutes of initial triage; choose a concrete experiment or record the obstruction instead of repeating unchanged controls.
 2. Select one public test and one exact source change. Require a fresh original positive before the negative. Retain new outputs for both; do not retry an unchanged failure.
 3. Preserve genuine work and cleanup. A failed assertion must survive actual resource cleanup; unknown exceptions, pending tasks, live owners and failed cleanup remain holds. A shorter expiry supplies no kill credit.
