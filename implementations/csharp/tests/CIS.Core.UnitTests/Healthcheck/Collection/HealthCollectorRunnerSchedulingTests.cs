@@ -1,4 +1,5 @@
 using System.Collections.Concurrent;
+using System.Runtime.ExceptionServices;
 using System.Threading.Channels;
 using CIS.Healthcheck;
 using CIS.TestSupport;
@@ -23,8 +24,15 @@ public sealed class HealthCollectorRunnerSchedulingTests
         await scope.Runner.StartAsync().WaitAsync(Deadline);
         Task<HealthCollectionAttempt> wait = registration.Handle.CollectAsync();
         Invocation invocation = await scope.NextForPendingCallerAsync(wait);
+        // A caller joining the gated callback observes the actual operation,
+        // independently of the first queued caller's completion notification.
+        Task<HealthCollectionAttempt> coalesced = registration.Handle.CollectAsync();
         invocation.Complete();
-        Assert.AreEqual(HealthCollectionDisposition.Committed, (await wait.WaitAsync(Deadline)).Disposition);
+        await coalesced.WaitAsync(Deadline);
+        await scope.DisposeAsync();
+        Assert.IsTrue(wait.IsCompleted,
+            "The original queued caller must complete after its actual operation and resources have settled.");
+        Assert.AreEqual(HealthCollectionDisposition.Committed, (await wait).Disposition);
     }
 
     [TestMethod]
@@ -68,10 +76,14 @@ public sealed class HealthCollectorRunnerSchedulingTests
 
         Task<HealthCollectionAttempt> wait = registration.Handle.CollectAsync();
         Invocation invocation = await scope.NextForPendingCallerAsync(wait);
+        Task<HealthCollectionAttempt> coalesced = registration.Handle.CollectAsync();
         invocation.Complete();
-        await wait.WaitAsync(Deadline);
+        await coalesced.WaitAsync(Deadline);
         scope.Clock.Advance(TimeSpan.FromDays(1));
         Assert.AreEqual(1, registration.Collector.Acquisitions);
+        await scope.DisposeAsync();
+        await AssertOriginalQueuedCallersCompleteAsync(wait);
+        await wait.WaitAsync(Deadline);
     }
 
     [TestMethod]
@@ -274,8 +286,9 @@ public sealed class HealthCollectorRunnerSchedulingTests
         scope.Clock.Advance(TimeSpan.FromSeconds(4));
         Task<HealthCollectionAttempt> manualWait = registration.Handle.CollectAsync();
         Invocation manual = await scope.NextForPendingCallerAsync(manualWait);
+        Task<HealthCollectionAttempt> manualJoined = registration.Handle.CollectAsync();
         manual.Complete();
-        await manualWait.WaitAsync(Deadline);
+        await manualJoined.WaitAsync(Deadline);
         await scope.Clock.WaitForDueAsync(TimeSpan.FromSeconds(14).Ticks);
         scope.Clock.Advance(TimeSpan.FromSeconds(6));
         Assert.AreEqual(2, registration.Collector.Acquisitions);
@@ -285,6 +298,9 @@ public sealed class HealthCollectorRunnerSchedulingTests
         periodic.Complete();
         await periodicWait.WaitAsync(Deadline);
         Assert.AreEqual(3, registration.Collector.Acquisitions);
+        await scope.DisposeAsync();
+        await AssertOriginalQueuedCallersCompleteAsync(manualWait);
+        await manualWait.WaitAsync(Deadline);
     }
 
     [TestMethod]
@@ -296,22 +312,42 @@ public sealed class HealthCollectorRunnerSchedulingTests
         const int callers = 24;
         var start = new AsyncBarrier(callers + 1);
         var submitted = new AsyncBarrier(callers + 1);
-        Task<HealthCollectionAttempt>[] waits = Enumerable.Range(0, callers).Select(async _ =>
+        Task<Task<HealthCollectionAttempt>>[] participants = Enumerable.Range(0, callers).Select(async _ =>
         {
             await start.SignalAndWaitAsync(Deadline);
             Task<HealthCollectionAttempt> wait = registration.Handle.CollectAsync();
             await submitted.SignalAndWaitAsync(Deadline);
-            return await wait.WaitAsync(Deadline);
+            return wait;
         }).ToArray();
 
-        await start.SignalAndWaitAsync(Deadline);
-        await submitted.SignalAndWaitAsync(Deadline);
+        List<Exception> submissionErrors = [];
+        try
+        {
+            await start.SignalAndWaitAsync(Deadline);
+            await submitted.SignalAndWaitAsync(Deadline);
+        }
+        catch (Exception error) { submissionErrors.Add(error); }
+        Task<Task<HealthCollectionAttempt>[]> participantsJoined = Task.WhenAll(participants);
+        Task<HealthCollectionAttempt>[] waits = [];
+        try { waits = await participantsJoined.WaitAsync(Deadline); }
+        catch (Exception error)
+        {
+            if (participantsJoined.Exception is { } failures) { submissionErrors.AddRange(failures.InnerExceptions); }
+            else { submissionErrors.Add(error); }
+        }
+        if (submissionErrors.Count == 1) { ExceptionDispatchInfo.Capture(submissionErrors[0]).Throw(); }
+        if (submissionErrors.Count > 1) { throw new AggregateException("The actual manual-call participants failed.", submissionErrors); }
         Invocation invocation = await scope.NextAsync();
         Assert.AreEqual(1, registration.Collector.Acquisitions);
+        Task<HealthCollectionAttempt> coalesced = registration.Handle.CollectAsync();
         invocation.Complete();
+        await coalesced.WaitAsync(Deadline);
+        long successful = scope.Snapshot(registration).Outcomes!.Successful;
+        await scope.DisposeAsync();
+        await AssertOriginalQueuedCallersCompleteAsync(waits);
         HealthCollectionAttempt[] attempts = await Task.WhenAll(waits).WaitAsync(Deadline);
         Assert.IsTrue(attempts.All(attempt => attempt.Disposition == HealthCollectionDisposition.Committed && !attempt.EvaluationFailed));
-        Assert.AreEqual(1L, scope.Snapshot(registration).Outcomes!.Successful);
+        Assert.AreEqual(1L, successful);
         Assert.AreEqual(1, registration.Collector.Acquisitions);
         Assert.AreEqual(1, registration.Collector.ReleasedLeases);
     }
@@ -330,9 +366,14 @@ public sealed class HealthCollectorRunnerSchedulingTests
         Assert.IsFalse(scope.Snapshot(registration).Collection!.InProgress);
         Task<HealthCollectionAttempt> wait = registration.Handle.CollectAsync();
         Invocation invocation = await scope.NextForPendingCallerAsync(wait);
+        Task<HealthCollectionAttempt> coalesced = registration.Handle.CollectAsync();
         invocation.Complete();
-        await wait.WaitAsync(Deadline);
+        await coalesced.WaitAsync(Deadline);
         Assert.AreEqual(1, registration.Collector.Acquisitions);
+        await scope.DisposeAsync();
+        Assert.IsTrue(wait.IsCompleted,
+            "The original queued caller must complete after its actual operation and resources have settled.");
+        Assert.AreEqual(HealthCollectionDisposition.Committed, (await wait).Disposition);
     }
 
     [TestMethod]
@@ -349,10 +390,15 @@ public sealed class HealthCollectorRunnerSchedulingTests
         await Assert.ThrowsAsync<OperationCanceledException>(() => registration.Handle.CollectAsync(canceled.Token)).WaitAsync(Deadline);
         Assert.IsFalse(original.IsCompleted);
         Assert.IsFalse(invocation.LifetimeCancellation.IsCancellationRequested);
+        Task<HealthCollectionAttempt> coalesced = registration.Handle.CollectAsync();
         invocation.Complete();
-        await original.WaitAsync(Deadline);
+        await coalesced.WaitAsync(Deadline);
         Assert.AreEqual(1, registration.Collector.Acquisitions);
         Assert.AreEqual(1L, scope.Snapshot(registration).Outcomes!.Successful);
+        await scope.DisposeAsync();
+        Assert.IsTrue(original.IsCompleted,
+            "The original queued caller must complete after its actual operation and resources have settled.");
+        Assert.AreEqual(HealthCollectionDisposition.Committed, (await original).Disposition);
     }
 
     [TestMethod]
@@ -367,6 +413,8 @@ public sealed class HealthCollectorRunnerSchedulingTests
         Task<HealthCollectionAttempt> secondWait = second.Handle.CollectAsync();
         Invocation one = await scope.NextForPendingCallerAsync(firstWait);
         Invocation two = await scope.NextForPendingCallerAsync(secondWait);
+        Task<HealthCollectionAttempt> firstJoined = first.Handle.CollectAsync();
+        Task<HealthCollectionAttempt> secondJoined = second.Handle.CollectAsync();
         Task<HealthCollectionAttempt> thirdWait = third.Handle.CollectAsync();
 
         Assert.AreEqual(2, scope.ActiveLeases);
@@ -374,10 +422,14 @@ public sealed class HealthCollectorRunnerSchedulingTests
         one.Complete();
         Invocation three = await scope.NextForPendingCallerAsync(thirdWait);
         Assert.AreEqual("three", three.Name);
+        Task<HealthCollectionAttempt> thirdJoined = third.Handle.CollectAsync();
         Assert.IsFalse(secondWait.IsCompleted && firstWait.IsCompleted);
         Assert.AreEqual(2, scope.PeakLeases);
         two.Complete();
         three.Complete();
+        await Task.WhenAll(firstJoined, secondJoined, thirdJoined).WaitAsync(Deadline);
+        await scope.DisposeAsync();
+        await AssertOriginalQueuedCallersCompleteAsync(firstWait, secondWait, thirdWait);
         await Task.WhenAll(firstWait, secondWait, thirdWait).WaitAsync(Deadline);
         Assert.AreEqual(0, scope.ActiveLeases);
     }
@@ -391,6 +443,7 @@ public sealed class HealthCollectorRunnerSchedulingTests
         await scope.Runner.StartAsync().WaitAsync(Deadline);
         Task<HealthCollectionAttempt> occupiedWait = occupied.Handle.CollectAsync();
         Invocation first = await scope.NextForPendingCallerAsync(occupiedWait);
+        Task<HealthCollectionAttempt> occupiedJoined = occupied.Handle.CollectAsync();
         Task<HealthCollectionAttempt>[] joins = Enumerable.Range(0, 32)
             .Select(_ => pending.Handle.CollectAsync()).ToArray();
 
@@ -399,12 +452,17 @@ public sealed class HealthCollectorRunnerSchedulingTests
         first.Complete();
         Invocation admitted = await scope.NextForPendingCallerAsync(joins[0]);
         Assert.AreEqual("one-pending-marker", admitted.Name);
+        Task<HealthCollectionAttempt> pendingJoined = pending.Handle.CollectAsync();
         admitted.Complete();
+        await Task.WhenAll(occupiedJoined, pendingJoined).WaitAsync(Deadline);
+        long successful = scope.Snapshot(pending).Outcomes!.Successful;
+        await scope.DisposeAsync();
+        await AssertOriginalQueuedCallersCompleteAsync([occupiedWait, .. joins]);
         HealthCollectionAttempt[] attempts = await Task.WhenAll(joins).WaitAsync(Deadline);
         await occupiedWait.WaitAsync(Deadline);
         Assert.IsTrue(attempts.All(attempt => attempt.Disposition == HealthCollectionDisposition.Committed));
         Assert.AreEqual(1, pending.Collector.Acquisitions);
-        Assert.AreEqual(1L, scope.Snapshot(pending).Outcomes!.Successful);
+        Assert.AreEqual(1L, successful);
         Assert.AreEqual(1, scope.PeakLeases);
     }
 
@@ -417,6 +475,7 @@ public sealed class HealthCollectorRunnerSchedulingTests
         await scope.Runner.StartAsync().WaitAsync(Deadline);
         Task<HealthCollectionAttempt> occupiedWait = occupied.Handle.CollectAsync();
         Invocation first = await scope.NextForPendingCallerAsync(occupiedWait);
+        Task<HealthCollectionAttempt> occupiedJoined = occupied.Handle.CollectAsync();
         Task<HealthCollectionAttempt> pendingWait = pending.Handle.CollectAsync();
 
         pending.Handle.Withdraw();
@@ -427,6 +486,9 @@ public sealed class HealthCollectorRunnerSchedulingTests
         pending.Monitor.ReportSuccess();
         Assert.AreEqual(MonitorState.Healthy, scope.Snapshot(pending).State);
         first.Complete();
+        await occupiedJoined.WaitAsync(Deadline);
+        await scope.DisposeAsync();
+        await AssertOriginalQueuedCallersCompleteAsync(occupiedWait);
         await occupiedWait.WaitAsync(Deadline);
     }
 
@@ -439,6 +501,7 @@ public sealed class HealthCollectorRunnerSchedulingTests
         await scope.Runner.StartAsync().WaitAsync(Deadline);
         Task<HealthCollectionAttempt> occupiedWait = occupied.Handle.CollectAsync();
         Invocation first = await scope.NextForPendingCallerAsync(occupiedWait);
+        Task<HealthCollectionAttempt> occupiedJoined = occupied.Handle.CollectAsync();
         Task<HealthCollectionAttempt> pendingWait = pending.Handle.CollectAsync();
 
         scope.Service.BeginStopping();
@@ -448,6 +511,9 @@ public sealed class HealthCollectorRunnerSchedulingTests
         Assert.AreEqual(0, pending.Collector.Acquisitions);
         Assert.AreEqual(1, scope.ActiveLeases);
         first.Complete();
+        await occupiedJoined.WaitAsync(Deadline);
+        await scope.DisposeAsync();
+        await AssertOriginalQueuedCallersCompleteAsync(occupiedWait);
         await occupiedWait.WaitAsync(Deadline);
     }
 
@@ -461,6 +527,7 @@ public sealed class HealthCollectorRunnerSchedulingTests
         await scope.Runner.StartAsync().WaitAsync(Deadline);
         Task<HealthCollectionAttempt> firstWait = first.Handle.CollectAsync();
         Invocation invocation = await scope.NextForPendingCallerAsync(firstWait);
+        Task<HealthCollectionAttempt> firstJoined = first.Handle.CollectAsync();
         invocation.Complete();
         await invocation.CleanupStarted.WaitAsync(Deadline);
         Task<HealthCollectionAttempt> nextWait = next.Handle.CollectAsync();
@@ -471,7 +538,11 @@ public sealed class HealthCollectorRunnerSchedulingTests
         invocation.ReleaseCleanup();
         Invocation admitted = await scope.NextForPendingCallerAsync(nextWait);
         Assert.AreEqual("waiting", admitted.Name);
+        Task<HealthCollectionAttempt> nextJoined = next.Handle.CollectAsync();
         admitted.Complete();
+        await Task.WhenAll(firstJoined, nextJoined).WaitAsync(Deadline);
+        await scope.DisposeAsync();
+        await AssertOriginalQueuedCallersCompleteAsync(firstWait, nextWait);
         await Task.WhenAll(firstWait, nextWait).WaitAsync(Deadline);
         Assert.AreEqual(1, scope.PeakLeases);
     }
@@ -497,9 +568,15 @@ public sealed class HealthCollectorRunnerSchedulingTests
         Assert.AreEqual(1, scope.ActiveLeases);
         invocation.Complete();
         Invocation admitted = await scope.NextAsync();
+        Assert.AreEqual("after-real-settlement", admitted.Name);
+        Task<HealthCollectionAttempt> nextJoined = next.Handle.CollectAsync();
         admitted.Complete();
+        await Task.WhenAll(survivingJoin, nextJoined).WaitAsync(Deadline);
+        long successful = scope.Snapshot(first).Outcomes!.Successful;
+        await scope.DisposeAsync();
+        await AssertOriginalQueuedCallersCompleteAsync(survivingJoin, nextWait);
         await Task.WhenAll(survivingJoin, nextWait).WaitAsync(Deadline);
-        Assert.AreEqual(1L, scope.Snapshot(first).Outcomes!.Successful);
+        Assert.AreEqual(1L, successful);
         Assert.AreEqual(1, scope.PeakLeases);
     }
 
@@ -580,6 +657,7 @@ public sealed class HealthCollectorRunnerSchedulingTests
         await scope.Runner.StartAsync().WaitAsync(Deadline);
         Task<HealthCollectionAttempt> collection = registration.Handle.CollectAsync();
         Invocation invocation = await scope.NextAsync();
+        Task<HealthCollectionAttempt> coalesced = registration.Handle.CollectAsync();
         using var caller = new CancellationTokenSource();
         Task canceledStop = scope.Runner.StopAsync(caller.Token);
         caller.Cancel();
@@ -595,6 +673,9 @@ public sealed class HealthCollectorRunnerSchedulingTests
         Assert.IsFalse(actualStop.IsCompleted);
         Assert.IsFalse(disposal.IsCompleted);
         invocation.ReleaseCleanup();
+        await Task.WhenAll(actualStop, disposal, coalesced).WaitAsync(Deadline);
+        await scope.DisposeAsync();
+        await AssertOriginalQueuedCallersCompleteAsync(collection);
         await Task.WhenAll(actualStop, disposal, collection).WaitAsync(Deadline);
         Assert.AreEqual(0, scope.ActiveLeases);
     }
@@ -629,6 +710,22 @@ public sealed class HealthCollectorRunnerSchedulingTests
         Assert.AreEqual(MonitorState.Unhealthy, scope.Snapshot(registration).State);
         Assert.IsFalse(scope.Service.CaptureSnapshot().Application.IsStopping);
         Assert.AreEqual(0, registration.Collector.Acquisitions);
+    }
+
+    private static async Task AssertOriginalQueuedCallersCompleteAsync(params Task<HealthCollectionAttempt>[] callers)
+    {
+        List<Exception> failures = [];
+        foreach (Task<HealthCollectionAttempt> caller in callers)
+        {
+            if (!caller.IsCompleted) { continue; }
+            try { await caller; }
+            catch (Exception error) { failures.Add(error); }
+        }
+        if (failures.Count == 1) { ExceptionDispatchInfo.Capture(failures[0]).Throw(); }
+        if (failures.Count > 1) { throw new AggregateException("The original queued callers failed after actual settlement.", failures); }
+        Assert.IsTrue(callers.All(caller => caller.IsCompleted),
+            "The original queued callers must complete after all actual operations and resources have settled.");
+        await Task.WhenAll(callers);
     }
 
     private sealed record Registration(string Name, IConsecutiveFailureMonitor Monitor,

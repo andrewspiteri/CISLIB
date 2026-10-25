@@ -340,7 +340,8 @@ public sealed class HealthCollectorRunnerMutationQualificationTests
 
         Assert.AreEqual(HealthCollectionDisposition.Committed, result.Disposition);
         Assert.AreEqual(evaluationFailed, result.EvaluationFailed);
-        Assert.AreEqual(evaluationFailed ? "Healthcheck.CollectionEvaluation" : "Healthcheck.CollectionClock", result.Diagnostic!.Code);
+        Assert.IsNotNull(result.Diagnostic);
+        Assert.AreEqual(evaluationFailed ? "Healthcheck.CollectionEvaluation" : "Healthcheck.CollectionClock", result.Diagnostic.Code);
         Assert.AreEqual(1, scope.Clock.TimestampFaults);
         HealthCollectionAttempt retired = await registration.CollectAsync().WaitAsync(Deadline);
         Assert.AreEqual(HealthCollectionDisposition.Retired, retired.Disposition);

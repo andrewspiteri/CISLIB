@@ -112,7 +112,8 @@ public sealed class HealthCollectionMutationQualificationTests
 
         Assert.AreEqual(HealthCollectionDisposition.Committed, attempt.Disposition);
         Assert.AreEqual(!required, attempt.EvaluationFailed);
-        Assert.AreEqual("Healthcheck.MeasurementCapacity", attempt.Diagnostic!.Code);
+        Assert.IsNotNull(attempt.Diagnostic);
+        Assert.AreEqual("Healthcheck.MeasurementCapacity", attempt.Diagnostic.Code);
         HealthMonitorSnapshot snapshot = scope.Snapshot(monitor);
         Assert.HasCount(32, snapshot.Measurements);
         Assert.AreEqual(0L, snapshot.Measurements.Single(value => value.Key == "key-00").IntegerValue);

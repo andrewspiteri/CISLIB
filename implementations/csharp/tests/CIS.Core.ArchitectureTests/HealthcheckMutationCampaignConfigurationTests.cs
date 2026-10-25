@@ -331,9 +331,76 @@ public sealed class HealthcheckMutationCampaignConfigurationTests
     }
 
     [TestMethod]
-    public void ShortAdditionalBudgetDoesNotAlterAspNetCampaignAcceptance()
+    public void CompleteNonMixingAspNetMayUseOnlyItsExactShortProfileWithoutChangingTheMaintainedReference()
     {
         JsonObject maintained = Configuration("aspnet"), native = ReviewedBudget(maintained, 1000);
+        string maintainedBefore = maintained.ToJsonString(), nativeBefore = native.ToJsonString();
+        HealthcheckMutationCampaignConfiguration.Validate("aspnet", native, maintained);
+        Assert.AreEqual(maintainedBefore, maintained.ToJsonString());
+        Assert.AreEqual(nativeBefore, native.ToJsonString());
+        Assert.AreEqual(750000, (int?)Options(maintained)["additional-timeout"]);
+        Assert.AreEqual(1000, (int?)Options(native)["additional-timeout"]);
+        Assert.AreEqual(2, (int?)Options(native)["concurrency"]);
+        Assert.AreEqual(true, (bool?)Options(native)["disable-mix-mutants"]);
+    }
+
+    [TestMethod]
+    public void ActualShortAspNetProfileRetainsTheCompleteMaintainedSourceAndTestScope()
+    {
+        DirectoryInfo? root = new(AppContext.BaseDirectory);
+        while (root is not null && !File.Exists(Path.Combine(root.FullName, "planning", "healthcheck", "qualification", "gate-closure", "aspnet.json")))
+        { root = root.Parent; }
+        Assert.IsNotNull(root);
+        string directory = Path.Combine(root.FullName, "planning", "healthcheck", "qualification", "gate-closure");
+        JsonObject maintained = JsonNode.Parse(File.ReadAllBytes(Path.Combine(directory, "aspnet.json")))!.AsObject();
+        JsonObject native = JsonNode.Parse(File.ReadAllBytes(Path.Combine(directory, "short", "aspnet.json")))!.AsObject();
+        HealthcheckMutationCampaignConfiguration.Validate("aspnet", native, maintained);
+        JsonObject expected = ReviewedBudget(maintained, 1000);
+        Assert.IsTrue(JsonNode.DeepEquals(expected, native));
+    }
+
+    [TestMethod]
+    [DataRow("budget-string")]
+    [DataRow("budget-decimal")]
+    [DataRow("budget-other")]
+    [DataRow("missing-no-mix")]
+    [DataRow("false-no-mix")]
+    [DataRow("string-no-mix")]
+    [DataRow("one-worker")]
+    [DataRow("eight-workers")]
+    [DataRow("worker-string")]
+    [DataRow("worker-decimal")]
+    [DataRow("filter")]
+    [DataRow("source")]
+    [DataRow("coverage")]
+    [DataRow("bail")]
+    [DataRow("threshold")]
+    [DataRow("timeout-factor")]
+    [DataRow("maintained-budget")]
+    public void AspNetShortProfileRejectsAnyOtherBudgetRepresentationOrCompleteExecutionPolicy(string changed)
+    {
+        JsonObject maintained = Configuration("aspnet"), native = ReviewedBudget(maintained, 1000), options = Options(native);
+        switch (changed)
+        {
+            case "budget-string": options["additional-timeout"] = "1000"; break;
+            case "budget-decimal": options["additional-timeout"] = JsonNode.Parse("1000.0"); break;
+            case "budget-other": options["additional-timeout"] = 1001; break;
+            case "missing-no-mix": options.Remove("disable-mix-mutants"); break;
+            case "false-no-mix": options["disable-mix-mutants"] = false; break;
+            case "string-no-mix": options["disable-mix-mutants"] = "true"; break;
+            case "one-worker": options["concurrency"] = 1; break;
+            case "eight-workers": options["concurrency"] = 8; break;
+            case "worker-string": options["concurrency"] = "2"; break;
+            case "worker-decimal": options["concurrency"] = JsonNode.Parse("2.0"); break;
+            case "filter": options["test-case-filter"] = "FullyQualifiedName=Only.One.Test"; break;
+            case "source": options["mutate"]!.AsArray().RemoveAt(1); break;
+            case "coverage": options["coverage-analysis"] = "perTest"; break;
+            case "bail": options["disable-bail"] = false; break;
+            case "threshold": options["thresholds"]!["break"] = 0; break;
+            case "timeout-factor": options["timeout-factor"] = 0; break;
+            case "maintained-budget": Options(maintained)["additional-timeout"] = 1000; break;
+            default: throw new InvalidOperationException("Unknown ASP short-profile control.");
+        }
         Assert.ThrowsExactly<InvalidDataException>(() => HealthcheckMutationCampaignConfiguration.Validate("aspnet", native, maintained));
     }
 

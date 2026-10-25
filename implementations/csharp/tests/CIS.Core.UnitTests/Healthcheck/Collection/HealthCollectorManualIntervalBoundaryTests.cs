@@ -12,41 +12,60 @@ public sealed class HealthCollectorManualIntervalBoundaryTests
     [TestMethod]
     public async Task AnUnactivatedPeriodicIntervalCannotRetireManualCollectionWhenAFutureDueTimeWouldOverflow()
     {
-        await using var scope = new Scope();
-        IHealthCollectionRegistration registration = scope.Runner.Register(scope.Monitor, scope.Owner,
-            new() { Interval = TimeSpan.FromTicks(1) });
-        await scope.Runner.StartAsync().WaitAsync(Deadline);
+        Task<HealthCollectionAttempt> firstCaller;
+        Task<HealthCollectionAttempt> secondCaller;
+        await using (var scope = new Scope())
+        {
+            IHealthCollectionRegistration registration = scope.Runner.Register(scope.Monitor, scope.Owner,
+                new() { Interval = TimeSpan.FromTicks(1) });
+            await scope.Runner.StartAsync().WaitAsync(Deadline);
 
-        // An interval configures possible recurrence. This owner never activates
-        // it: both attempts below are actual manual requests after runner start.
-        Task<HealthCollectionAttempt> firstCaller = registration.CollectAsync();
-        await WaitForCallbackAsync(scope.Owner.First.Entered.Task, firstCaller);
-        scope.Owner.First.ReleaseEvaluation();
-        await scope.Owner.First.CleanupEntered.Task.WaitAsync(Deadline);
-        Assert.IsFalse(firstCaller.IsCompleted,
-            "A held owner lease remains actual work even after its evaluation returns.");
-        scope.Owner.First.ReleaseCleanup();
-        AssertCommitted(await firstCaller.WaitAsync(Deadline));
-        Assert.AreEqual(long.MaxValue, scope.Clock.GetTimestamp());
-        Assert.AreEqual(1, scope.Owner.Cleanups);
+            // An interval configures possible recurrence. This owner never activates
+            // it: both attempts below are actual manual requests after runner start.
+            firstCaller = registration.CollectAsync();
+            await WaitForCallbackAsync(scope.Owner.First.Entered.Task, firstCaller);
+            // The first real evaluation is held, so this joins its actual Current
+            // operation independently of the originally queued caller's signal.
+            Task<HealthCollectionAttempt> firstOperation = registration.CollectAsync();
+            scope.Owner.First.ReleaseEvaluation();
+            await scope.Owner.First.CleanupEntered.Task.WaitAsync(Deadline);
+            Assert.IsFalse(firstCaller.IsCompleted,
+                "A held owner lease remains actual work even after its evaluation returns.");
+            scope.Owner.First.ReleaseCleanup();
+            AssertCommitted(await firstOperation.WaitAsync(Deadline));
+            Assert.AreEqual(long.MaxValue, scope.Clock.GetTimestamp());
+            Assert.AreEqual(1, scope.Owner.Cleanups);
 
-        // First completion has joined cleanup and removed its shared operation.
-        // Race the second real callback against its caller's terminal result so
-        // wrongful retirement fails on Retired rather than a missing-entry timeout.
-        Task<HealthCollectionAttempt> secondCaller = registration.CollectAsync();
-        await WaitForCallbackAsync(scope.Owner.Second.Entered.Task, secondCaller);
-        Assert.AreEqual(2, scope.Owner.Acquisitions);
-        scope.Owner.Second.ReleaseEvaluation();
-        await scope.Owner.Second.CleanupEntered.Task.WaitAsync(Deadline);
-        scope.Owner.Second.ReleaseCleanup();
-        AssertCommitted(await secondCaller.WaitAsync(Deadline));
+            // First completion has joined cleanup and removed its shared operation.
+            // Race the second real callback against its caller's terminal result so
+            // wrongful retirement fails on Retired rather than a missing-entry timeout.
+            secondCaller = registration.CollectAsync();
+            await WaitForCallbackAsync(scope.Owner.Second.Entered.Task, secondCaller);
+            Task<HealthCollectionAttempt> secondOperation = registration.CollectAsync();
+            Assert.AreEqual(2, scope.Owner.Acquisitions);
+            scope.Owner.Second.ReleaseEvaluation();
+            await scope.Owner.Second.CleanupEntered.Task.WaitAsync(Deadline);
+            scope.Owner.Second.ReleaseCleanup();
+            AssertCommitted(await secondOperation.WaitAsync(Deadline));
 
-        Assert.AreEqual(2, scope.Owner.Cleanups);
-        HealthMonitorSnapshot snapshot = scope.Service.CaptureSnapshot().Monitors.Single();
-        Assert.AreEqual(2L, snapshot.Outcomes!.Successful);
-        Assert.AreEqual(0L, snapshot.Outcomes.Failed);
-        Assert.IsNull(snapshot.Collection!.LastError);
-        GC.KeepAlive(registration);
+            Assert.AreEqual(2, scope.Owner.Cleanups);
+            HealthMonitorSnapshot snapshot = scope.Service.CaptureSnapshot().Monitors.Single();
+            Assert.AreEqual(2L, snapshot.Outcomes!.Successful);
+            Assert.AreEqual(0L, snapshot.Outcomes.Failed);
+            Assert.IsNull(snapshot.Collection!.LastError);
+            GC.KeepAlive(registration);
+        }
+
+        // Both actual operations, owner cleanups, Runner and Service have joined.
+        // A fault or cancellation is an actual error, never a missing-signal assertion.
+        if (firstCaller.IsFaulted || firstCaller.IsCanceled) { await firstCaller; }
+        if (secondCaller.IsFaulted || secondCaller.IsCanceled) { await secondCaller; }
+        Assert.IsTrue(firstCaller.IsCompleted,
+            "The first queued manual caller must receive its actual settled operation's completion.");
+        Assert.IsTrue(secondCaller.IsCompleted,
+            "The second queued manual caller must receive its actual settled operation's completion.");
+        AssertCommitted(await firstCaller);
+        AssertCommitted(await secondCaller);
     }
 
     private static async Task WaitForCallbackAsync(Task entered, Task<HealthCollectionAttempt> caller)

@@ -23,11 +23,13 @@ internal static class HealthcheckMutationCampaignConfiguration
             "The native additional timeout must be represented as an exact JSON integer.");
         bool reviewedParallel = (group is "unit-runtime" or "pipes") && Number(config, "additional-timeout") == 1000
             && Boolean(config, "disable-mix-mutants") && Number(config, "concurrency") == 8;
+        bool reviewedAspNetShort = group == "aspnet" && Number(config, "additional-timeout") == 1000
+            && Boolean(config, "disable-mix-mutants") && Number(config, "concurrency") == 2;
         if (config.ContainsKey("disable-mix-mutants"))
         {
-            Need(group is "unit-runtime" or "pipes" && config["disable-mix-mutants"] is JsonValue value
+            Need((group is "unit-runtime" or "pipes" || reviewedAspNetShort) && config["disable-mix-mutants"] is JsonValue value
                 && value.TryGetValue(out bool disabled) && disabled,
-                "Only reviewed complete Unit/Pipes campaigns may add disable-mix-mutants as JSON Boolean true.");
+                "Only reviewed complete profiles may add disable-mix-mutants as JSON Boolean true.");
             Need(group != "pipes" || Number(config, "additional-timeout") is 1000 or 2100000,
                 "Non-mixing Pipes campaigns require their exact reviewed short or aggregate additional budget.");
         }
@@ -36,12 +38,12 @@ internal static class HealthcheckMutationCampaignConfiguration
         {
             JsonObject comparison = (JsonObject)native.DeepClone();
             JsonObject comparisonOptions = (JsonObject)comparison["stryker-config"]!;
-            Need(group is "unit-runtime" or "pipes" && Boolean(config, "disable-mix-mutants"),
-                "Only complete non-mixing Unit/Pipes campaigns may use the reviewed configuration delta.");
+            Need((group is "unit-runtime" or "pipes" || reviewedAspNetShort) && Boolean(config, "disable-mix-mutants"),
+                "Only reviewed complete non-mixing profiles may use the configuration delta.");
             if (!maintainedOptions.ContainsKey("disable-mix-mutants")) { comparisonOptions.Remove("disable-mix-mutants"); }
             bool reviewedBudget = group == "unit-runtime" && Number(config, "additional-timeout") is 1000 or 300000 or 4500000
-                || group == "pipes" && Number(config, "additional-timeout") is 1000 or 2100000;
-            if (reviewedBudget && Number(maintainedOptions, "additional-timeout") == 10000)
+                || group == "pipes" && Number(config, "additional-timeout") is 1000 or 2100000 || reviewedAspNetShort;
+            if (reviewedBudget && Number(maintainedOptions, "additional-timeout") == maintainedBudget)
             { comparisonOptions["additional-timeout"] = maintainedOptions["additional-timeout"]!.DeepClone(); }
             if (reviewedParallel) { comparisonOptions["concurrency"] = maintainedOptions["concurrency"]!.DeepClone(); }
             Need(JsonNode.DeepEquals(comparison, maintained),

@@ -12,6 +12,22 @@ The [API and deployment guides](../../docs/modules/healthcheck/README.md) descri
 
 The [25 October binding/periodic repair](evidence/HC12/binding-periodic-repair-2026-10-25/README.md)
 records the known missing-release and first-admission waits, exact isolated
-controls and current ordinary verification. The accepted historical mutation
-union remains 51.908646%, unqualified; new complete campaigns and their capture
-audits remain necessary.
+controls and current ordinary verification. Its historical mutation union was
+51.908646%, unqualified; the continuation below records the new complete campaigns.
+
+The [current-source parallel continuation](evidence/HC12/parallel-campaigns-2026-10-25/README.md)
+records commit `150e99f5`, the approved Ubuntu storage cleanup, the fresh
+10,333-case Developer pass and three full-scope mutation campaigns. ASP.NET
+has closed at 72 direct assertion kills / 80 eligible definitions (90.00%),
+with a clean partition audit; its failed earlier startup is retained separately.
+All three controllers have closed. The source-checked Ubuntu union is
+**2,111/3,104 = 68.009021%, unqualified**, up 16.100375 percentage points from
+the historical score, with a different denominator. Unit and Pipes retain
+execution/capture holds; Pipes also failed its child-evidence audit. The full
+Pipes raw archive and final audit packet passed receiving on both operating
+systems; all three raw campaign archives have verified Windows readbacks.
+The final current-source Developer checkpoint passed all 10,333 cases; its later fixture changes supply
+no credit to these frozen mutation reports. The mandatory joined gate completed
+and preserves all original Unit/Pipes holds with `joinedHC12Qualified=false`.
+Next priorities are the remaining Unit queued-caller/exception/self-wait
+controls, Pipes preparation/child closure, then source-matched survivor tests.
