@@ -29,11 +29,41 @@ pwsh -NoProfile -File eng/test.ps1 -Project IntegrationTests -Class DiscoveryPro
 
 `-Project` accepts a registered family short name, full project name, or its language-root-relative path. Omit the selector to run that entire project. `-Class` uses native FullyQualifiedName containment followed by a dot; give the full class name when short names are ambiguous. `-Category` uses native TestCategory equality. Use `-Filter` for combined VSTest expressions; the launcher does not implement a filter language. Choose at most one selector. `-TimeoutSeconds` defaults to 300 and bounds each native build/test child; timeout is a failure.
 
-The thin PowerShell entry builds the existing development checker. Normal incremental build servers remain enabled; coordinate shared checkout builds rather than running a focused command concurrently with a checkpoint. Its C# command incrementally builds only the selected project and dependencies, then uses ordinary `dotnet test --no-build --no-restore`. Each invocation owns a fresh `.artifacts/csharp/focused/<id>/` directory with command arguments, build/test logs, native `selected.trx` and `summary.json`. A successful summary contains the actual native case names, method identities, sources and outcomes. Empty selection, missing/malformed/stale native results, failed or skipped cases, inconsistent counters/identities, timeout or nonzero tool exit fail the command. A failed run retains native logs/reports where produced, without crediting a partial case list as passing.
+The thin PowerShell entry builds the existing development checker. Normal incremental build servers remain enabled; coordinate shared checkout builds rather than running a focused command concurrently with a checkpoint. Its C# command incrementally builds only the selected project and dependencies, then uses ordinary `dotnet test --no-build --no-restore`. Each invocation owns a fresh `.artifacts/csharp/focused/<id>/` directory. After validating a passing run, it keeps only `summary.json` with command arguments, selected count, actual native case names, method identities, sources, outcomes and timings; build/test logs, native `selected.trx` and test attachments are disposable and removed. The summary marks those artifacts as cleaned, rather than advertising a locally available native report. Empty selection, missing/malformed/stale native results, failed or skipped cases, inconsistent counters/identities, timeout or nonzero tool exit fail the command.
+
+A failed run retains available diagnostics for investigation: process capture keeps at most 64 KiB per output stream, preserving the beginning and end and recording total byte counts and truncation flags. Logs mark omitted content explicitly, including bounded partial output on timeout. Native TRX is limited to 8 MiB; an oversized TRX fails validation and is discarded with an explicit unavailable state. Other native attachments are disposable. The summary never credits a partial case list as passing. Cleanup covers only that invocation's new GUID directory and never prunes other runs, sources or caches. Failed diagnostics remain transient: remove them explicitly when fixed or superseded; the runner does not infer that a later pass resolved an earlier issue.
 
 The summary measures selected-project build and combined native discovery/execution/report time separately. Tool bootstrap and PowerShell startup are outside that timer; compare total command wall time separately, on the same host, and label cold setup versus an unchanged incremental run. Native VSTest discovers and executes the selection; this command does not claim an independent discovery census or release evidence reconciliation.
 
 Unselected cases and families, package/API and architecture checkpoint prerequisites, coverage, mutation, performance and release qualification remain unexecuted. Do not run the comprehensive Developer profile after every small edit. Run it at a coherent checkpoint, and retain all required release gates. The subsequent native verification migration retired maintained Python scripts; historical snapshots remain preserved.
+
+## Healthcheck mutation assembly
+
+An isolated Healthcheck Unit mutation build can set both `CisMutationTesting=true`
+and `CisHealthcheckMutationCohort=true`. The Unit project then compiles its whole
+`Healthcheck/` tree plus the shared, later-linked `TestAssembly.cs`, retaining
+the existing Core/TestSupport references and package closure. Ordinary builds
+keep their complete source set. Use a separate source/output tree for this mode;
+its assembly is the selected Healthcheck family rather than the ordinary Unit
+family consumed by full-checkpoint `--no-build` runs.
+
+The initial private validation matched all1,396 frozen Healthcheck case
+identities and passed every case. It also checked all105 Unit,149 Core and12
+TestSupport PDB documents and the exact100 Healthcheck source files plus shared
+assembly setup. This establishes the selected compilation's correctness; cold
+Stryker collector startup and completed-host throughput still need calibration
+on the selected mutation host. The property does not select mutants, alter an
+assertion, set a timeout or satisfy mutation/release qualification.
+
+The Integration project supports the same two properties. It retains the
+whole `Healthcheck/` tree, the three existing child-recorder links,
+`JsonlInputSelector` and the later-linked assembly setup. A private build and
+unfiltered discovery preserved the frozen 121 Pipes and 61 ASP.NET identities,
+181 unique cases sharing one scheduling witness. Its default 202 compile
+items remained byte-identical; the opt-in compilation has 34 items. All 203
+Integration/Core/TestSupport/receiver PDB documents matched their sources.
+These are build and discovery checks; Linux execution and performance still
+need their own evidence. Use isolated outputs for both opt-in projects.
 
 ## Tests with explicit checkpoint prerequisites
 

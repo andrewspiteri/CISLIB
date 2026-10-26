@@ -1,0 +1,725 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:cis:healthcheck:report:v1",
+  "title": "CIS Healthcheck v1 report (unpublished HC00 contract)",
+  "description": "Structural reader schema. Unknown optional fields are accepted. Apply README.md semantic and bounded-parser obligations before accepting a report.",
+  "oneOf": [
+    {
+      "$ref": "#/$defs/snapshot"
+    },
+    {
+      "$ref": "#/$defs/httpError"
+    }
+  ],
+  "$defs": {
+    "utcTimestamp": {
+      "type": "string",
+      "format": "date-time",
+      "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}(?:\\.[0-9]{1,7})?Z$"
+    },
+    "guid": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+      "not": {
+        "const": "00000000-0000-0000-0000-000000000000"
+      }
+    },
+    "revision": {
+      "type": "string",
+      "pattern": "^(?:0|[1-9][0-9]*)$"
+    },
+    "nonnegativeInt64": {
+      "type": "string",
+      "pattern": "^(?:0|[1-9][0-9]{0,17}|[1-8][0-9]{18}|9[0-1][0-9]{17}|92[0-1][0-9]{16}|922[0-2][0-9]{15}|9223[0-2][0-9]{14}|92233[0-6][0-9]{13}|922337[0-1][0-9]{12}|92233720[0-2][0-9]{10}|922337203[0-5][0-9]{9}|9223372036[0-7][0-9]{8}|92233720368[0-4][0-9]{7}|922337203685[0-3][0-9]{6}|9223372036854[0-6][0-9]{5}|92233720368547[0-6][0-9]{4}|922337203685477[0-4][0-9]{3}|9223372036854775[0-7][0-9]{2}|922337203685477580[0-6]|9223372036854775807)$"
+    },
+    "positiveInt64": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/nonnegativeInt64"
+        },
+        {
+          "not": {
+            "const": "0"
+          }
+        }
+      ]
+    },
+    "signedInt64": {
+      "type": "string",
+      "pattern": "^(?:(?:0|[1-9][0-9]{0,17}|[1-8][0-9]{18}|9[0-1][0-9]{17}|92[0-1][0-9]{16}|922[0-2][0-9]{15}|9223[0-2][0-9]{14}|92233[0-6][0-9]{13}|922337[0-1][0-9]{12}|92233720[0-2][0-9]{10}|922337203[0-5][0-9]{9}|9223372036[0-7][0-9]{8}|92233720368[0-4][0-9]{7}|922337203685[0-3][0-9]{6}|9223372036854[0-6][0-9]{5}|92233720368547[0-6][0-9]{4}|922337203685477[0-4][0-9]{3}|9223372036854775[0-7][0-9]{2}|922337203685477580[0-6]|9223372036854775807)|-(?:[1-9][0-9]{0,17}|[1-8][0-9]{18}|9[0-1][0-9]{17}|92[0-1][0-9]{16}|922[0-2][0-9]{15}|9223[0-2][0-9]{14}|92233[0-6][0-9]{13}|922337[0-1][0-9]{12}|92233720[0-2][0-9]{10}|922337203[0-5][0-9]{9}|9223372036[0-7][0-9]{8}|92233720368[0-4][0-9]{7}|922337203685[0-3][0-9]{6}|9223372036854[0-6][0-9]{5}|92233720368547[0-6][0-9]{4}|922337203685477[0-4][0-9]{3}|9223372036854775[0-7][0-9]{2}|922337203685477580[0-7]|9223372036854775808))$"
+    },
+    "durationMs": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 1.7976931348623157e+308
+    },
+    "finiteNumber": {
+      "type": "number",
+      "minimum": -1.7976931348623157e+308,
+      "maximum": 1.7976931348623157e+308
+    },
+    "application": {
+      "type": "object",
+      "required": [
+        "name",
+        "instanceId",
+        "startupCompleted",
+        "isStopping"
+      ],
+      "properties": {
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 255
+        },
+        "buildVersion": {
+          "type": "string",
+          "maxLength": 512
+        },
+        "serviceVersion": {
+          "type": "string",
+          "maxLength": 512
+        },
+        "instanceId": {
+          "$ref": "#/$defs/guid"
+        },
+        "hostName": {
+          "type": "string",
+          "maxLength": 255
+        },
+        "osDescription": {
+          "type": "string",
+          "maxLength": 1024
+        },
+        "startupCompleted": {
+          "type": "boolean"
+        },
+        "isStopping": {
+          "type": "boolean"
+        }
+      }
+    },
+    "monitorCounts": {
+      "type": "object",
+      "required": [
+        "active",
+        "critical",
+        "failing",
+        "criticalFailing",
+        "pending"
+      ],
+      "properties": {
+        "active": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 65536
+        },
+        "critical": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 65536
+        },
+        "failing": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 65536
+        },
+        "criticalFailing": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 65536
+        },
+        "pending": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 65536
+        }
+      }
+    },
+    "snapshot": {
+      "type": "object",
+      "required": [
+        "schemaVersion",
+        "revision",
+        "capturedAtUtc",
+        "application",
+        "healthStatus",
+        "ready",
+        "monitorCounts"
+      ],
+      "not": {
+        "required": [
+          "kind"
+        ]
+      },
+      "properties": {
+        "schemaVersion": {
+          "const": 1
+        },
+        "revision": {
+          "$ref": "#/$defs/revision"
+        },
+        "capturedAtUtc": {
+          "$ref": "#/$defs/utcTimestamp"
+        },
+        "application": {
+          "$ref": "#/$defs/application"
+        },
+        "healthStatus": {
+          "enum": [
+            "Healthy",
+            "Unhealthy"
+          ]
+        },
+        "ready": {
+          "type": "boolean"
+        },
+        "monitorCounts": {
+          "$ref": "#/$defs/monitorCounts"
+        },
+        "monitors": {
+          "type": "array",
+          "maxItems": 65536,
+          "items": {
+            "$ref": "#/$defs/monitor"
+          }
+        }
+      }
+    },
+    "diagnostic": {
+      "type": "object",
+      "required": [
+        "isTruncated"
+      ],
+      "properties": {
+        "code": {
+          "type": "string",
+          "maxLength": 64
+        },
+        "message": {
+          "type": "string",
+          "maxLength": 1024
+        },
+        "exceptionType": {
+          "type": "string",
+          "maxLength": 256
+        },
+        "isTruncated": {
+          "type": "boolean"
+        }
+      }
+    },
+    "measurement": {
+      "type": "object",
+      "required": [
+        "key",
+        "valueKind",
+        "observedAtUtc",
+        "isDiagnostic"
+      ],
+      "properties": {
+        "key": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "\\S"
+        },
+        "valueKind": {
+          "enum": [
+            "Unavailable",
+            "String",
+            "Boolean",
+            "Integer",
+            "Number"
+          ]
+        },
+        "unit": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 32,
+          "pattern": "\\S"
+        },
+        "observedAtUtc": {
+          "$ref": "#/$defs/utcTimestamp"
+        },
+        "isDiagnostic": {
+          "const": true
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "valueKind": {
+                "const": "Unavailable"
+              }
+            }
+          },
+          "then": {
+            "not": {
+              "required": [
+                "value"
+              ]
+            }
+          },
+          "else": {
+            "required": [
+              "value"
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "valueKind": {
+                "const": "String"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "value": {
+                "type": "string",
+                "maxLength": 1024
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "valueKind": {
+                "const": "Boolean"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "value": {
+                "type": "boolean"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "valueKind": {
+                "const": "Integer"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "value": {
+                "$ref": "#/$defs/signedInt64"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "valueKind": {
+                "const": "Number"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "value": {
+                "$ref": "#/$defs/finiteNumber"
+              }
+            }
+          }
+        }
+      ]
+    },
+    "numeric": {
+      "type": "object",
+      "required": [
+        "comparison",
+        "threshold",
+        "unit"
+      ],
+      "properties": {
+        "comparison": {
+          "enum": [
+            "GreaterThan",
+            "GreaterThanOrEqual",
+            "LessThan",
+            "LessThanOrEqual"
+          ]
+        },
+        "threshold": {
+          "$ref": "#/$defs/finiteNumber"
+        },
+        "unit": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 32,
+          "pattern": "\\S"
+        },
+        "lastValue": {
+          "$ref": "#/$defs/finiteNumber"
+        },
+        "lastValueAtUtc": {
+          "$ref": "#/$defs/utcTimestamp"
+        }
+      },
+      "dependentRequired": {
+        "lastValue": [
+          "lastValueAtUtc"
+        ],
+        "lastValueAtUtc": [
+          "lastValue"
+        ]
+      }
+    },
+    "collection": {
+      "type": "object",
+      "required": [
+        "inProgress"
+      ],
+      "properties": {
+        "inProgress": {
+          "type": "boolean"
+        },
+        "lastCompletedAtUtc": {
+          "$ref": "#/$defs/utcTimestamp"
+        },
+        "lastError": {
+          "$ref": "#/$defs/diagnostic"
+        },
+        "lastErrorAtUtc": {
+          "$ref": "#/$defs/utcTimestamp"
+        }
+      }
+    },
+    "outcomes": {
+      "type": "object",
+      "required": [
+        "successful",
+        "failed",
+        "skipped",
+        "expectedCanceled",
+        "consecutiveFailures",
+        "countersSaturated"
+      ],
+      "properties": {
+        "successful": {
+          "$ref": "#/$defs/nonnegativeInt64"
+        },
+        "failed": {
+          "$ref": "#/$defs/nonnegativeInt64"
+        },
+        "skipped": {
+          "$ref": "#/$defs/nonnegativeInt64"
+        },
+        "expectedCanceled": {
+          "$ref": "#/$defs/nonnegativeInt64"
+        },
+        "consecutiveFailures": {
+          "$ref": "#/$defs/nonnegativeInt64"
+        },
+        "countersSaturated": {
+          "type": "boolean"
+        },
+        "lastOutcome": {
+          "enum": [
+            "Succeeded",
+            "Failed",
+            "Skipped",
+            "ExpectedCancellation"
+          ]
+        },
+        "lastSuccessAtUtc": {
+          "$ref": "#/$defs/utcTimestamp"
+        },
+        "lastFailureAtUtc": {
+          "$ref": "#/$defs/utcTimestamp"
+        },
+        "lastFailureDiagnostic": {
+          "$ref": "#/$defs/diagnostic"
+        },
+        "execution": {
+          "$ref": "#/$defs/execution"
+        }
+      }
+    },
+    "execution": {
+      "type": "object",
+      "required": [
+        "registrationId",
+        "executionId",
+        "phase",
+        "errorHandlingStatus",
+        "cleanupStatus"
+      ],
+      "properties": {
+        "registrationId": {
+          "$ref": "#/$defs/guid"
+        },
+        "executionId": {
+          "$ref": "#/$defs/positiveInt64"
+        },
+        "phase": {
+          "enum": [
+            "Registered",
+            "Eligible",
+            "Admitted",
+            "Condition",
+            "Callback",
+            "ErrorHandling",
+            "Cleanup",
+            "Settled",
+            "Retired"
+          ]
+        },
+        "eligibleAtUtc": {
+          "$ref": "#/$defs/utcTimestamp"
+        },
+        "admittedAtUtc": {
+          "$ref": "#/$defs/utcTimestamp"
+        },
+        "conditionStartedAtUtc": {
+          "$ref": "#/$defs/utcTimestamp"
+        },
+        "callbackStartedAtUtc": {
+          "$ref": "#/$defs/utcTimestamp"
+        },
+        "workCompletedAtUtc": {
+          "$ref": "#/$defs/utcTimestamp"
+        },
+        "errorHandlingStartedAtUtc": {
+          "$ref": "#/$defs/utcTimestamp"
+        },
+        "errorHandlingCompletedAtUtc": {
+          "$ref": "#/$defs/utcTimestamp"
+        },
+        "cleanupCompletedAtUtc": {
+          "$ref": "#/$defs/utcTimestamp"
+        },
+        "settledAtUtc": {
+          "$ref": "#/$defs/utcTimestamp"
+        },
+        "queueDelayMs": {
+          "$ref": "#/$defs/durationMs"
+        },
+        "conditionDurationMs": {
+          "$ref": "#/$defs/durationMs"
+        },
+        "callbackDurationMs": {
+          "$ref": "#/$defs/durationMs"
+        },
+        "errorHandlingDurationMs": {
+          "$ref": "#/$defs/durationMs"
+        },
+        "cleanupDurationMs": {
+          "$ref": "#/$defs/durationMs"
+        },
+        "totalDurationMs": {
+          "$ref": "#/$defs/durationMs"
+        },
+        "errorHandlingStatus": {
+          "$ref": "#/$defs/stepStatus"
+        },
+        "cleanupStatus": {
+          "$ref": "#/$defs/stepStatus"
+        },
+        "originalError": {
+          "$ref": "#/$defs/diagnostic"
+        },
+        "errorHandlingError": {
+          "$ref": "#/$defs/diagnostic"
+        },
+        "cleanupError": {
+          "$ref": "#/$defs/diagnostic"
+        },
+        "integrationError": {
+          "$ref": "#/$defs/diagnostic"
+        }
+      }
+    },
+    "stepStatus": {
+      "enum": [
+        "NotStarted",
+        "Running",
+        "Succeeded",
+        "Failed",
+        "ExpectedCancellation",
+        "NotApplicable",
+        "NotInvoked"
+      ]
+    },
+    "monitor": {
+      "type": "object",
+      "required": [
+        "monitorId",
+        "policy",
+        "isCritical",
+        "state",
+        "registeredAtUtc",
+        "measurements"
+      ],
+      "properties": {
+        "monitorId": {
+          "$ref": "#/$defs/guid"
+        },
+        "name": {
+          "type": "string",
+          "maxLength": 128
+        },
+        "policy": {
+          "enum": [
+            "Condition",
+            "ConsecutiveFailures",
+            "NumericThreshold",
+            "FirstSuccessAvailability"
+          ]
+        },
+        "isCritical": {
+          "type": "boolean"
+        },
+        "state": {
+          "enum": [
+            "Pending",
+            "Healthy",
+            "Unhealthy"
+          ]
+        },
+        "registeredAtUtc": {
+          "$ref": "#/$defs/utcTimestamp"
+        },
+        "lastObservationAtUtc": {
+          "$ref": "#/$defs/utcTimestamp"
+        },
+        "diagnostic": {
+          "$ref": "#/$defs/diagnostic"
+        },
+        "outcomes": {
+          "$ref": "#/$defs/outcomes"
+        },
+        "collection": {
+          "$ref": "#/$defs/collection"
+        },
+        "numeric": {
+          "$ref": "#/$defs/numeric"
+        },
+        "measurements": {
+          "type": "array",
+          "maxItems": 32,
+          "items": {
+            "$ref": "#/$defs/measurement"
+          }
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "policy": {
+                "const": "NumericThreshold"
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "numeric"
+            ]
+          },
+          "else": {
+            "not": {
+              "required": [
+                "numeric"
+              ]
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "policy": {
+                "const": "Condition"
+              }
+            }
+          },
+          "then": {
+            "not": {
+              "required": [
+                "outcomes"
+              ]
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "policy": {
+                "enum": [
+                  "ConsecutiveFailures",
+                  "FirstSuccessAvailability"
+                ]
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "outcomes"
+            ]
+          }
+        }
+      ]
+    },
+    "reportingErrorCode": {
+      "enum": [
+        "ReportTooLarge",
+        "SerializationFailed",
+        "ReportingUnavailable"
+      ]
+    },
+    "httpError": {
+      "type": "object",
+      "required": [
+        "kind",
+        "schemaVersion",
+        "error"
+      ],
+      "not": {
+        "required": [
+          "snapshot"
+        ]
+      },
+      "properties": {
+        "kind": {
+          "const": "error"
+        },
+        "schemaVersion": {
+          "const": 1
+        },
+        "error": {
+          "type": "object",
+          "required": [
+            "code"
+          ],
+          "properties": {
+            "code": {
+              "enum": [
+                "ReportTooLarge",
+                "SerializationFailed",
+                "ReportingUnavailable",
+                "Forbidden",
+                "NotFound",
+                "MethodNotAllowed"
+              ]
+            },
+            "message": {
+              "type": "string",
+              "maxLength": 128
+            }
+          }
+        }
+      }
+    }
+  }
+}

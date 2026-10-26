@@ -1,0 +1,90 @@
+{
+  "schema": "cis.healthcheck.task-graph-refresh/v1-development",
+  "tasks": [
+    "HC04",
+    "HC05",
+    "HC09",
+    "HC10",
+    "HC11",
+    "HC12",
+    "HC13"
+  ],
+  "recordedUtc": "2026-10-21T08:04:09.6435119+00:00",
+  "manifestSchema": 2,
+  "buildId": "sha256:75f0f6765ee7b666e27bb3535623c28e40283c1996868f232c59d086c242edb7",
+  "freshness": "fresh",
+  "status": "valid",
+  "nodes": 15146,
+  "edges": 81014,
+  "errors": 0,
+  "warnings": 0,
+  "extractors": [
+    "cis.catalog/1",
+    "cis.markdown.repository-profile/1",
+    "cis.markdown.reference-table/2",
+    "cis.markdown.governance-link/1",
+    "cis.markdown.api-governance/1",
+    "cis.api.state/1",
+    "cis.tracker.state/1",
+    "cis.markdown.decisions/1",
+    "cis.repository-files/1",
+    "cis.source-declarations/2",
+    "cis.csharp.compiler/6",
+    "cis.csharp.semantic-facts/3",
+    "cis.test-declarations/2",
+    "cis.project-dependencies/1",
+    "cis.github-actions/1",
+    "frontend-context/4"
+  ],
+  "compilerCapabilities": {
+    "compiler": "cis.csharp.compiler/6",
+    "semanticFacts": "cis.csharp.semantic-facts/3",
+    "symbols": 10147,
+    "referencedSymbols": 650,
+    "annotations": 5121,
+    "interfaceFacts": 393,
+    "calls": 31793,
+    "limits": "Privacy-safe invocation shapes and intraprocedural facts do not establish runtime outcomes or complete semantic/test-binding coverage."
+  },
+  "runtimeInputs": {
+    "path": "planning/healthcheck/evidence/HC13/runtime-inputs.json",
+    "sha256": "a283bd73a9a47fe6a046ed083057ff513ffa6a90889702b9bbd73ba7062f346e"
+  },
+  "build": {
+    "path": ".artifacts/healthcheck/transports/graph-build-01.log",
+    "sha256": "04b62c57d9572dd96acc8622c73d41cfb5927620a9c9e18157350e6cbb6b31ca"
+  },
+  "statusReport": {
+    "path": ".artifacts/healthcheck/transports/graph-status-01.log",
+    "sha256": "1cc182173a7672b0ead7923cce98d65ea929b1098f5b2e59186474713d7a9d69"
+  },
+  "queries": [
+    {
+      "name": "pipe",
+      "root": "cislib::symbol::cis-core/project/implementations%2Fcsharp%2Fsrc%2FCIS.Core%2FCIS.Core.csproj/csharp/class/CIS.Healthcheck.HealthPipeServer",
+      "report": {
+        "path": ".artifacts/healthcheck/transports/graph-find-pipe.log",
+        "sha256": "a313d943c6cf9942174b68b629533549503d357b44722d5b2b6caab8fbb4895b"
+      },
+      "matches": 1,
+      "truncated": false
+    },
+    {
+      "name": "http",
+      "root": "cislib::symbol::cis-core/project/implementations%2Fcsharp%2Fsrc%2FCIS.Core%2FCIS.Core.csproj/csharp/class/CIS.Healthcheck.AspNetCore.HealthcheckApplicationBuilderExtensions",
+      "report": {
+        "path": ".artifacts/healthcheck/transports/graph-find-http.log",
+        "sha256": "6446bcfb4bee018aacfd98ca7cb74bb563459696bb54f5f253448b0b951263ba"
+      },
+      "matches": 1,
+      "truncated": false
+    }
+  ],
+  "omissions": [
+    "planning",
+    "implementations/csharp/verification",
+    "implementations/csharp/tests/fixtures/DiscoveryHost/historical",
+    "Native reports remain execution evidence; no complete semantic/test binding claim."
+  ],
+  "graphStateManuallyEdited": false
+}

@@ -1,0 +1,23 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net10.0</TargetFramework>
+    <AssemblyName>CIS.Healthcheck.MutationInventory</AssemblyName>
+    <RootNamespace>CIS.Verification.HealthcheckMutationInventory</RootNamespace>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <IsPackable>false</IsPackable>
+    <RuntimeFrameworkVersion>10.0.12</RuntimeFrameworkVersion>
+    <RollForward>Disable</RollForward>
+    <RestorePackagesWithLockFile>false</RestorePackagesWithLockFile>
+    <Deterministic>true</Deterministic>
+  </PropertyGroup>
+  <Target Name="RequireExistingPinnedStryker" BeforeTargets="ResolveReferences">
+    <Error Condition="'$(StrykerToolDirectory)' == '' Or !Exists('$(StrykerToolDirectory)/Stryker.Core.dll')" Text="Supply the existing pinned dotnet-stryker 4.16.0 tools/net8.0/any directory as StrykerToolDirectory." />
+  </Target>
+  <ItemGroup>
+    <Reference Include="$(StrykerToolDirectory)/*.dll" Private="true" />
+    <None Include="$(StrykerToolDirectory)/runtimes/**/*" Link="runtimes/%(RecursiveDir)%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+</Project>

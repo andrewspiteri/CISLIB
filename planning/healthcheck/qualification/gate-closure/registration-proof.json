@@ -1,0 +1,31 @@
+{
+  "stryker-config": {
+    "project": "CIS.Core.csproj",
+    "test-projects": [
+      "../../tests/CIS.Core.IntegrationTests/CIS.Core.IntegrationTests.csproj"
+    ],
+    "test-case-filter": "FullyQualifiedName=CIS.Tests.IntegrationTests.Healthcheck.Reporting.HealthcheckHttpTransportTests.StatusAndPayloadComeFromOneCapturedVersionEvenWhenSourceChangesAfterCapture|FullyQualifiedName=CIS.Tests.TestAssemblySetup.SchedulingMatchesRequestedMode",
+    "test-runner": "vstest",
+    "target-framework": "net10.0",
+    "configuration": "Release",
+    "mutate": [
+      "Healthcheck/AspNetCore/HealthcheckApplicationBuilderExtensions.cs{1194..1245}"
+    ],
+    "mutation-level": "Complete",
+    "reporters": [
+      "json",
+      "html",
+      "progress",
+      "cleartext"
+    ],
+    "coverage-analysis": "off",
+    "concurrency": 2,
+    "disable-bail": true,
+    "additional-timeout": 60000,
+    "thresholds": {
+      "high": 100,
+      "low": 90,
+      "break": 90
+    }
+  }
+}

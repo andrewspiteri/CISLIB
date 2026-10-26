@@ -1,0 +1,21 @@
+{
+  "stryker-config": {
+    "project": "CIS.Core.csproj",
+    "test-projects": [
+      "../../tests/CIS.Core.UnitTests/CIS.Core.UnitTests.csproj"
+    ],
+    "test-case-filter": "FullyQualifiedName~Healthcheck|FullyQualifiedName~CIS.Tests.TestAssemblySetup.SchedulingMatchesRequestedMode",
+    "test-runner": "vstest",
+    "target-framework": "net10.0",
+    "configuration": "Release",
+    "mutate": [
+      "Healthcheck/Internal/State/HealthStateCoordinator.cs"
+    ],
+    "mutation-level": "Complete",
+    "reporters": ["json", "html", "progress", "cleartext"],
+    "concurrency": 2,
+    "disable-bail": true,
+    "additional-timeout": 10000,
+    "thresholds": {"high": 100, "low": 90, "break": 90}
+  }
+}

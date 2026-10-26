@@ -1,0 +1,121 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:cis:healthcheck:pipe-response:v1",
+  "title": "CIS Healthcheck v1 pipe response (unpublished HC00 contract)",
+  "type": "object",
+  "required": [
+    "protocolVersion",
+    "schemaVersion",
+    "view",
+    "kind"
+  ],
+  "properties": {
+    "protocolVersion": {
+      "const": 1
+    },
+    "schemaVersion": {
+      "const": 1
+    },
+    "view": {
+      "enum": [
+        "health",
+        "readiness",
+        "details",
+        null
+      ]
+    },
+    "kind": {
+      "enum": [
+        "snapshot",
+        "error"
+      ]
+    },
+    "snapshot": {
+      "$ref": "urn:cis:healthcheck:report:v1#/$defs/snapshot"
+    },
+    "error": {
+      "type": "object",
+      "required": [
+        "code"
+      ],
+      "properties": {
+        "code": {
+          "enum": [
+            "DetailsDisabled",
+            "InvalidView",
+            "UnsupportedVersion",
+            "InvalidRequest",
+            "InvalidFrame",
+            "ReportTooLarge",
+            "SerializationFailed",
+            "ReportingUnavailable"
+          ]
+        },
+        "message": {
+          "type": "string",
+          "maxLength": 128
+        }
+      }
+    }
+  },
+  "oneOf": [
+    {
+      "properties": {
+        "kind": {
+          "const": "snapshot"
+        },
+        "view": {
+          "enum": [
+            "health",
+            "readiness",
+            "details"
+          ]
+        }
+      },
+      "required": [
+        "snapshot"
+      ],
+      "not": {
+        "required": [
+          "error"
+        ]
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "view": {
+                "const": "details"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "snapshot": {
+                "required": [
+                  "monitors"
+                ]
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "properties": {
+        "kind": {
+          "const": "error"
+        }
+      },
+      "required": [
+        "error"
+      ],
+      "not": {
+        "required": [
+          "snapshot"
+        ]
+      }
+    }
+  ],
+  "$comment": "Compare view to the actual request. Null view is permitted only for an invalid/unparseable request. Enforce framing, depth, duplicates and snapshot semantic consistency. Compact writers omit monitors; compact readers may accept an additive complete monitors field."
+}

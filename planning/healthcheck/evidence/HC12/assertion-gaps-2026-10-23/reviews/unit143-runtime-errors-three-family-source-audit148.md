@@ -1,0 +1,58 @@
+# Three-family source audit of the49 remaining runtime-error records
+
+This is a bounded source-only plan. No test/implementation code, reader policy, selected cases, credit, logs or reports were changed; no build, tests, controls, native run or SSH was performed. It does not replace the exact original25 earlier assertion-shaped records, eight LeaseCleanup timeout/cleanup holds or four fatal host holds. The actual complete143 report was unavailable during this audit.
+
+## Actual scope and selection
+
+The immutable projection `unit143-earlier-assertion147-review01/actual-output01/actual-earlier-completed-records01.json`, SHA256 `cf111a59795c90a31fce444d4098fbdae43ba3a1f42e15cc65876e21633a69a6`, contains82 completed error records from the four closed host logs within open campaign prefixes. Subtracting25 assertion-shaped records and eight LeaseCleanup timeout/cleanup records leaves49 runtime-error records. Exactly21 of those49 belong to `CIS.Tests.UnitTests.HealthcheckValueContractTests`; the other28 belong to collection/cancellation/runtime tests. Calling all49 Foundation errors would be inaccurate.
+
+The largest method has eight records. Six other methods tie at four records each, including four Foundation methods. This review selects the largest method plus two tied Foundation methods with direct, fully specified public calls and no owned resources. Other methods have not been semantically reviewed here.
+
+| Reviewed original method | Original GUIDs | Actual records | Recommendation |
+|---|---|---:|---|
+|HealthCancellationObservationBoundaryTests.AWithdrawnAttachmentFinalizesAfterItsActualCancellationAndCompletionCallsReturn|13ccea9e-4dfe-81ac-9271-da6ebfea698b (False);1b7df328-42be-8ea0-b3de-8645250b53d1 (True)|8|Keep runtime hold; internal state/owned-work boundary needs its own fixture proof. No pure public-API wrapper shortcut.|
+|HealthcheckValueContractTests.RuntimeExceptionProjectionReplacesUnmatchedSurrogatesAndRetainsOnlyBoundedText|1bd0a5fc-a991-8eee-8523-02ee4b6e9ad4|4|Meaningful explicit positive assertion around each exact public FromException call is source-justified, if later authorized.|
+|HealthcheckValueContractTests.ExplicitExceptionMessageUsesDirectTextValidationAndMayOverrideRuntimeMessage|1fb5c89e-aad6-8d0f-b29d-5d56d0739086|4|Meaningful explicit positive assertion around its first exact public FromException call is source-justified, preserving explicit invalid-input tests.|
+
+Each selected GUID appears once per actual host associated diagnostically with353/371/383/396. The numeric selectors are not source identities or future report credit. Every full error, stack, exact host PID, GUID/FQN/display, physical input pin and ordered lifecycle/send line is retained in the original forensic projection.
+
+## Frozen source and valid-input premises
+
+The reviewed frozen input root is `.artifacts/hcg/unit-complete-partition143-payload01/snapshot/source`, not newly adopted147/148 fixtures. Its source-inputs manifest SHA256 is `8042f22ef81a2c96fa9c5f805c94ce7fad24e150c006647e535b85c9ff4bbcbd`. Actual physical hashes match its exact entries:
+
+* Foundation tests: `e95e0791d50d8435287faf3511f8eedd00326f77e49011db4df49a91ab211498`.
+* CancellationObservation tests: `8b99bcdb7f25412ee8a736d741d658d87249c35da2b8b196f6c5fde6cd877088`.
+* Public HealthDiagnostic: `6ab0405911c39f7f2e0b5e77c3ce80ac31fd7f946996dfbdbc7dded0cb5deaf7`.
+* Published healthcheck v1 README: `9a094b107b807d8ceeb0694c1eb27aaad9aab45e7aac1f9dc50570a7e3794354`.
+
+HealthDiagnostic's public FromException XML contract says runtime exception text is projected to bounded owned text, malformed runtime text is replaced with U+FFFD, and explicit message text must be valid Unicode. The public code validates optional code, validates an explicit nonnull message, catches a runtime Message getter failure, sanitizes/bounds runtime text and uses a private detached constructor. The published contract likewise distinguishes valid direct text/structural identifiers from sanitized runtime exception text. These are concrete positive guarantees for these fixed calls, not a promise that arbitrary API calls or arbitrary environmental failures never throw.
+
+### 1. Largest family: withdrawal runtime error, eight records
+
+The frozen method issues a real reservation, enters it, registers one synchronous lifetime-cancellation observer which deliberately throws `CancellationObserverException`, and then calls internal `IHealthCollectionState.WithdrawCollection(target)` at physical source line156. The target came from this same service; the operation is real and pending. This is not a direct public HealthDiagnostic call with a detached input fixture.
+
+The actual captured error occurs on that withdrawal call through `HealthStateCoordinator.WithdrawCollection`→`Dispatch`→`CancelOperation`→`HealthDiagnostic.FromException`. The captured selector353 diagnostic error is ArgumentException parameter message;371 is ArgumentException parameter code;383/396 are ArgumentOutOfRangeException parameter start. They are source-linked subject failures, not untraceable noise, but the returned native results are still runtime exceptions. No cancellation/finalization/settlement success may be inferred merely because the method later emitted RecordEnd.
+
+The fixture's catch stores the primary runtime error and `FinishScenarioAsync` then performs the sole state Complete if necessary, disposes the real cancellation registration and initiates/joins actual monitor/service/observed drains. Here the withdrawal-call-return flag is false; the fixture's narrow pending-managed-signal skip therefore cannot apply. The actual plain error rethrow shows that its existing explicit cleanup did not add an Aggregate failure. It does not transform the INTERNAL withdrawal operation into a resource-free public projection test or prove unobserved body assertions. Preserve all eight runtime holds. Any later strengthening must preserve the exact original observer fault, actual control-call-return milestone, real state completion/callback disposal and cleanup error history. Unit agent owns that separate fixture remedy. A catch-all “no throw” wrapper around the whole method or its finally would mask precisely those distinctions.
+
+### 2. Runtime exception projection: four records, direct public positive guarantee
+
+The first frozen call at physical line65 is `HealthDiagnostic.FromException(source, code: "EvaluationFailed")`, where `source` is the already-constructed `InvalidOperationException("before\uD800middle\uDC00after")`. The exception is nonnull; the code is a short valid ASCII structural identifier; explicit message is omitted, which is allowed. The malformed surrogate text is RUNTIME exception text, not invalid direct caller message text. Sanitizing that text is the exact advertised API behavior. An ArgumentException rejecting those supplied inputs, or an out-of-range error indexing this text, violates that public positive behavior.
+
+The second frozen call at physical line73 is `HealthDiagnostic.FromException(new Exception(retained + "extra"))`, where retained consists of exactly1024valid emoji scalar values. Optional code/message are omitted. Oversized free runtime text is supposed to be scalar-truncated, not rejected. Original assertions on exact retained text, replacement characters, type/code and IsTruncated must remain after the positive-call assertion. The second call and its assertions were not reached in the four captured failures, which stopped at the FIRST call; do not invent their execution.
+
+All four actual errors identify the first FromException call:353 rejects message;371 rejects code;383/396 throw out-of-range start during runtime projection. This method is synchronous and owns only ordinary exception/string/diagnostic values. It has no timer, runner, lease, service, IO, async body or cleanup finally whose failure could be relabeled. An explicit positive assertion for that precise public call would expose its advertised valid-input rejection as an assertion without hiding resource settlement.
+
+If later implemented, keep argument construction outside the positive-call assertion and keep the call count/order unchanged. A narrow ArgumentException-family capture at this exact subject call can include the actual type/parameter/details in a direct assertion, because all input preconditions are independently fixed and valid here; ArgumentOutOfRangeException is in that family. Do not catch arbitrary Exception, wrap unrelated setup/assertions, or convert memory/runtime/cancellation/unknown errors. Existing value assertions still test the returned result. No helper API name or new framework abstraction is prescribed by this source-only plan.
+
+### 3. Explicit message override: four records, direct public positive guarantee
+
+The first frozen call at physical line82 is `HealthDiagnostic.FromException(source, message: "Owner supplied reason.")`, after constructing `new Exception("runtime\uD800message")`. The exception is nonnull; code is omitted and optional; explicit message is valid short ASCII text. The public override contract requires the supplied valid direct text to replace the malformed runtime message and produce IsTruncated=false. No malformed direct input is passed at this positive call. The four actual captured errors again occur there, before the later validation tests:353 rejects message;371 rejects optional code;383/396 fail runtime projection indexing. Native instrumented stack lines are retained as observed (line81 for this call); that instrumented mapping is not substituted for physical frozen source line82, and no new instrumented PDB/source claim is made.
+
+The later existing `ThrowsExactly<ArgumentException>` cases for explicit `"bad\uD800"` and a65character code, and `ThrowsExactly<ArgumentNullException>` for null exception, are deliberate INVALID-input tests. They must remain unchanged and outside any positive nonthrow assertion. The positive call and its existing exact Message/IsTruncated assertions are synchronous detached public API work with no owned resource/cleanup path. The same narrow subject ArgumentException-family assertion boundary as family2 is justified; a catch-all around the method would incorrectly turn intentional validation checks or unrelated failures into another classification.
+
+## Acceptance and limits
+
+For the two selected Foundation methods, positive assertions would be real contract checks: valid supplied inputs must reach their exact result assertions, and unexpected ArgumentException-family rejection is a subject violation. This differs from rewriting old runtime results, granting semantic waivers or ignoring errors because another GUID killed the definition. No implementation has been authorized/executed by this note, and no claim is made that these changes would eliminate every remaining nondirect failure or make a complete campaign clean. The other13 Foundation records and other reviewed/unreviewed runtime families still require their own bounded analysis.
+
+The maintained normal-host loop checks each failed row independently. After a normal host has one qualified kill, a different nondirect row for that same definition can still emit NativeFailureNotDirectAssertion; Unit143 requires zero issues. Conversely, these actual four hosts are abnormal and the current reader returns before ordinary per-result witness processing. This audit does not claim it actually emitted49 such issues from the prefixes. There is no current final report/rawKilled/killedBy binding and no eligibility/credit adjustment. All25 earlier assertion candidates, eight cleanup holds and four aborts retain their existing separate dispositions.

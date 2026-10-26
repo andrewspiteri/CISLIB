@@ -1,0 +1,15 @@
+# Closed Unit controls: independent C# receiver source peer
+
+SOURCE CLEAR for the two fixed metadata-only entries. No reviewer build, receiver, subject or auditor entry occurred; actual compiled/output evidence remains a separate review.
+
+Read `unit192-closed-controls-csharp-receiving-proposal/Receive.cs` SHA `b36424aa319d2209ea5f417d03ada235c03225cb0054d2426622d6b996556bd3`, its project and full derivation against the reviewed delayed receiver. The two modes are confined to the preserved full-current and three-hold input roots. New output must be absent and below the separate tool's `runs` directory; no frozen source, raw record or prior receipt is written.
+
+The source independently rehashes all 1,171 old private source/config rows in full mode, or the exact three final candidates and unchanged Formatter companion in three mode. It reads actual raw TRXs and native console result streams, rejects missing/duplicate cases, joins GUID/FQN/display/Source/outcome/error/stack, binds the exact current family and historical 1,390 identities, and distinguishes four genuine new cases from outcome history. Both full original/negative identity sets must agree. Three mode requires the exact three known identities.
+
+Normal typed completion and actual process closure are independent checks: complete selected count, not aborted/canceled, null Error; natural CLI 0/1 with reap/drain and no expiry/kill attempt/holds; one actual host, normal exit-0 callback with matching PID header, and equal actual host/console completed bodies. These are bounded closed-control receiving checks, not a general kernel or complete native-role capture auditor.
+
+Raw results are written before invoking unchanged compiled `DirectAssertion`. Full mode demands 128 failed rows with 125 direct decisions, retaining all three non-direct rows, raw errors/stacks and the runtime-hold count. Three mode demands three direct failures. No subtraction, exception normalization, old outcome transfer or qualification credit is introduced. The final actual review must check that the full output's held identities/errors remain the known three timeouts, rather than relying only on the count.
+
+Both complete 145-file inventories are recomputed with no extras; only the exact reviewed original/reused Core pair can differ. Seven actual PE/PDB pairs are checked, including the receiver itself, with expected complete physical source-document totals 668/330. The existing maintained `Read` method checks pair content identity/checksum; C# then independently enumerates every PDB document and verifies its actual physical checksum, exact count, known path resolution and stable binary pair. The pinned old JSON supplies only generated-source path mappings, never trusted result/verification booleans.
+
+The separate receiver preserves the earlier PowerShell inspection records as non-authoritative history. It executes no subject or checker Main, modifies no policy or classifier, and cannot confer retrospective 191 score or qualification credit. No concrete source blocker found.

@@ -164,7 +164,6 @@ internal sealed class TypeManagerExamplesVerification
         string[] folders = assets["packageFolders"]!.AsObject().Select(p => Path.GetFullPath(p.Key)).ToArray(), sources = assets["project"]!["restore"]!["sources"]!.AsObject().Select(p => Path.GetFullPath(p.Key)).ToArray();
         Require(folders.Length == 1 && SamePath(folders[0], Path.Combine(root, "packages")) && sources.Length == 1 && SamePath(sources[0], feed), name + " used an unexpected NuGet package folder or source");
         var expected = new HashSet<string>([hostName, "CIS.Core", "CIS.TypeManager.Examples.Contracts", "CIS.TypeManager.Examples.Unused"], StringComparer.Ordinal);
-        if (host == "Console") { expected.UnionWith(["Microsoft.Extensions.Logging.Abstractions", "Microsoft.Extensions.DependencyInjection.Abstractions"]); }
         JsonArray entries = manifest["assemblies"]!.AsArray();
         Require(entries.Count == expected.Count && entries.Select(n => ((string)n!["assemblyName"]!).Split(',')[0]).ToHashSet(StringComparer.Ordinal).SetEquals(expected), name + " selected an incomplete or unexpected inventory");
         string actualCore = Hash(Path.Combine(directory, "CIS.Core.dll"));
@@ -183,7 +182,7 @@ internal sealed class TypeManagerExamplesVerification
         JsonObject deps = Read(Path.Combine(directory, hostName + ".deps.json"));
         Require(!deps["libraries"]!.AsObject().Any(p => p.Key.Contains("Microsoft.Build", StringComparison.Ordinal) || p.Key.Contains("CIS.TypeManager.Build", StringComparison.Ordinal)) && !File.Exists(Path.Combine(directory, "CIS.TypeManager.Build.dll")), name + " deployed build tooling");
         JsonNode runtime = Read(Path.Combine(directory, hostName + ".runtimeconfig.json"))["runtimeOptions"]!; JsonArray frameworks = runtime["frameworks"]?.AsArray() ?? new JsonArray(runtime["framework"]!.DeepClone());
-        Require(frameworks.Select(f => (string)f!["name"]!).ToHashSet(StringComparer.Ordinal).SetEquals(host == "Web" ? ["Microsoft.NETCore.App", "Microsoft.AspNetCore.App"] : ["Microsoft.NETCore.App"]), name + " has an unexpected shared framework requirement");
+        Require(frameworks.Select(f => (string)f!["name"]!).ToHashSet(StringComparer.Ordinal).SetEquals(["Microsoft.NETCore.App", "Microsoft.AspNetCore.App"]), name + " has an unexpected shared framework requirement");
         return new JsonObject { ["coreSha256"] = actualCore, ["manifest"] = manifest, ["observed"] = observed };
     }
     private static bool SamePath(string left, string right) => string.Equals(Path.TrimEndingDirectorySeparator(Path.GetFullPath(left)), Path.TrimEndingDirectorySeparator(Path.GetFullPath(right)), OperatingSystem.IsWindows() ? StringComparison.OrdinalIgnoreCase : StringComparison.Ordinal);

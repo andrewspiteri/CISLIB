@@ -1,3 +1,4 @@
+using System.IO.Compression;
 using System.Reflection.Metadata;
 using System.Reflection.PortableExecutable;
 using System.Security.Cryptography;
@@ -7,12 +8,51 @@ namespace CIS.Tests.CompatibilityTests;
 
 internal static class TypeManagerCompatibilityInputs
 {
+    internal sealed record ApprovedDependency(string FileName, string PackageId, string PackageVersion,
+        string SourcePath, string ArchivePath, string ContentHash, string Sha256, string ArchiveSha256,
+        string RestoreMetadataPath, string RestoreMetadataSha256, string ArchiveSha512Path, string ArchiveSha512FileSha256,
+        string RawArchiveSha512);
+
     internal const string OriginalHash = "4fd1124533971344d0ca362056450553c5eb0cea2c46e28780cc6301d1ed49d1";
     internal const string BehaviorHash = "d5d26e9f528b3306b8437b9564da6797d660a191dc1f04162d5475ac283e4228";
     internal static string Hash(string path) => Convert.ToHexStringLower(SHA256.HashData(File.ReadAllBytes(path)));
     internal static JsonObject Read(string path) => JsonNode.Parse(File.ReadAllText(path))!.AsObject();
     internal static void Require(bool condition, string message)
     { if (!condition) { throw new InvalidDataException(message); } }
+
+    internal static ApprovedDependency DependencyAsset(string packages, string packageId, JsonObject locked)
+    {
+        Require(packageId is "Microsoft.Extensions.Logging.Abstractions" or "Microsoft.Extensions.DependencyInjection.Abstractions",
+            "Unapproved compatibility dependency: " + packageId);
+        const string version = "10.0.12";
+        Require(locked["resolved"]?.GetValue<string>() == version, "Approved compatibility dependency version changed: " + packageId);
+        string contentHash = locked["contentHash"]!.GetValue<string>();
+        string id = packageId.ToLowerInvariant(), fileName = packageId + ".dll";
+        string root = Path.GetFullPath(Path.Combine(packages, id, version));
+        string source = Path.Combine(root, "lib", "net10.0", fileName), archive = Path.Combine(root, id + "." + version + ".nupkg");
+        string metadataPath = Path.Combine(root, ".nupkg.metadata"), sha512Path = archive + ".sha512";
+        byte[] archiveBytes = File.ReadAllBytes(archive), metadataBytes = File.ReadAllBytes(metadataPath), sha512Bytes = File.ReadAllBytes(sha512Path);
+        JsonObject restored = JsonNode.Parse(metadataBytes)!.AsObject();
+        // Signed NuGet package content hashes differ from raw archive hashes.
+        // The pinned locked-restore metadata is the selected restore attestation;
+        // this fixture does not recompute the signed-package content hash.
+        Require(restored["version"]?.GetValue<int>() == 2 && restored["contentHash"]?.GetValue<string>() == contentHash,
+            "Dependency restore attestation differs from the lock: " + packageId);
+        string rawArchiveSha512 = Convert.ToBase64String(SHA512.HashData(archiveBytes));
+        Require(rawArchiveSha512 == File.ReadAllText(sha512Path).Trim(), "Dependency archive differs from its restored SHA-512: " + packageId);
+        using var zip = new ZipArchive(new MemoryStream(archiveBytes), ZipArchiveMode.Read);
+        ZipArchiveEntry[] entries = zip.Entries.Where(entry => entry.FullName == "lib/net10.0/" + fileName).ToArray();
+        Require(entries.Length == 1, "Expected exactly one approved dependency asset: " + packageId);
+        using Stream assetStream = entries[0].Open();
+        string expected = Convert.ToHexStringLower(SHA256.HashData(assetStream));
+        Require(Hash(source) == expected, "Dependency asset differs from its locked archive: " + packageId);
+        var identity = System.Reflection.AssemblyName.GetAssemblyName(source);
+        Require(identity.Name == packageId && identity.Version == new Version(10, 0, 0, 0)
+            && Convert.ToHexStringLower(identity.GetPublicKeyToken() ?? []) == "adb9793829ddae60", "Unexpected approved dependency assembly identity: " + packageId);
+        return new(fileName, packageId, version, source, archive, contentHash, expected,
+            Convert.ToHexStringLower(SHA256.HashData(archiveBytes)), metadataPath, Convert.ToHexStringLower(SHA256.HashData(metadataBytes)),
+            sha512Path, Convert.ToHexStringLower(SHA256.HashData(sha512Bytes)), rawArchiveSha512);
+    }
 
     internal static string Within(string root, string relative)
     {

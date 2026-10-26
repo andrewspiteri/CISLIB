@@ -38,9 +38,17 @@ internal static class ArchitecturePolicy
                     foreach ((string key, JsonNode? value) in policy["shippingIdentity"]!.AsObject())
                     { Require(Text(properties, key) == value!.GetValue<string>(), "ARCH-SHIPPING-IDENTITY", context + " " + key); }
                 }
-                string[] frameworks = new[] { Text(policy, "implicitFramework") }.Concat(Strings(rule["additionalImplicitFrameworkReferences"])).ToArray();
+                string[] implicitFrameworks = new[] { Text(policy, "implicitFramework") }
+                    .Concat(role == "example" ? Strings(rule["additionalImplicitFrameworkReferences"]) : []).ToArray();
+                string[] explicitFrameworks = Strings(rule["additionalExplicitFrameworkReferences"]).ToArray();
+                string[] frameworks = [.. implicitFrameworks, .. explicitFrameworks];
+                Require(frameworks.Length == frameworks.Distinct(StringComparer.Ordinal).Count(), "ARCH-FRAMEWORK", context);
                 Same(Objects(items["FrameworkReference"]).Select(item => Text(item, "Identity")), frameworks, "ARCH-FRAMEWORK", context);
-                Require(Objects(items["FrameworkReference"]).All(item => Text(item, "IsImplicitlyDefined") == "true"), "ARCH-FRAMEWORK", context);
+                foreach (JsonObject reference in Objects(items["FrameworkReference"]))
+                {
+                    string id = Text(reference, "Identity"), implicitFlag = Text(reference, "IsImplicitlyDefined");
+                    Require(implicitFrameworks.Contains(id, StringComparer.Ordinal) ? implicitFlag == "true" : implicitFlag is "" or "false", "ARCH-FRAMEWORK", context);
+                }
                 JsonObject[] references = Objects(items["ProjectReference"]).ToArray();
                 Same(references.Select(item => Relative(root, Path.GetFullPath(Text(item, "Identity"), Path.GetDirectoryName(Path.Combine(root, path))!))), Strings(rule["projectReferences"]), "ARCH-PROJECT-REFERENCE", context);
                 foreach (JsonObject reference in references)
@@ -68,7 +76,7 @@ internal static class ArchitecturePolicy
                 }
                 foreach (string id in Strings(rule["frameworkProvidedRuntimePackages"]))
                 {
-                    Require(role == "example" && frameworks.Contains("Microsoft.AspNetCore.App", StringComparer.Ordinal) && expected.Remove(id), "ARCH-FRAMEWORK-PROVIDED", context + " " + id);
+                    Require(role is "example" or "process-fixture" && frameworks.Contains("Microsoft.AspNetCore.App", StringComparer.Ordinal) && expected.Remove(id), "ARCH-FRAMEWORK-PROVIDED", context + " " + id);
                 }
                 if (role == "test")
                 {
@@ -97,6 +105,8 @@ internal static class ArchitecturePolicy
                 CheckExplicitAssemblies(context, rule, items, properties, assets, development);
                 if (role is "shipping" or "build-tool")
                 { compilerReferences.Add(context, CompilerReferences(target, rule, runtimePackages, toolchain)); }
+                if (role == "process-fixture" && Strings(rule["frameworkProvidedRuntimePackages"]).Any())
+                { CheckFrameworkCompilerOrigins(target, rule, toolchain); }
             }
             foreach (JsonObject framework in project["restoreFrameworks"]!.AsObject().Select(item => item.Value!.AsObject()))
             {
@@ -113,6 +123,10 @@ internal static class ArchitecturePolicy
         Same(Objects(groups[0]["dependencies"]).Select(item => Text(item, "id")), directRuntime.Select(item => Text(item, "id")), "ARCH-PACKAGE-GROUP", "Core");
         foreach (JsonObject dependency in Objects(groups[0]["dependencies"]))
         { Require(Text(dependency, "version") == runtimePackages[Text(dependency, "id")], "ARCH-PACKAGE-VERSION", "Core nuspec"); }
+        JsonObject[] frameworkGroups = Objects(report["packageFrameworkReferences"]).ToArray();
+        Require(frameworkGroups.Length == 1 && Text(frameworkGroups[0], "targetFramework") == Text(runtime, "target_framework"), "ARCH-PACKAGE-FRAMEWORK", "Core nuspec");
+        JsonObject shippingRule = registered.Values.Single(rule => Text(rule, "role") == "shipping");
+        Same(Strings(frameworkGroups[0]["names"]), Strings(shippingRule["additionalExplicitFrameworkReferences"]), "ARCH-PACKAGE-FRAMEWORK", "Core nuspec");
         JsonObject[] assemblies = Objects(report["assemblies"]).ToArray();
         JsonObject[] packed = Objects(policy["packagedAssemblies"]).ToArray();
         Same(assemblies.Select(item => Text(item, "packageEntry")), packed.Select(item => Text(item, "path")), "ARCH-PACKED-ASSEMBLY", "Core");
@@ -169,18 +183,39 @@ internal static class ArchitecturePolicy
         }
     }
 
+    private static void CheckFrameworkCompilerOrigins(JsonObject target, JsonObject rule, JsonObject toolchain)
+    {
+        JsonNode properties = target["properties"]!;
+        string sdk = SelectedSdk(properties);
+        Require(Text(properties, "NETCoreSdkVersion") == Text(toolchain, "sdk"), "ARCH-SDK-VERSION", sdk);
+        string dotnet = Directory.GetParent(Directory.GetParent(sdk)!.FullName)!.FullName;
+        string[] frameworks = ["Microsoft.NETCore.App", .. Strings(rule["additionalExplicitFrameworkReferences"])];
+        var observed = new HashSet<string>(StringComparer.Ordinal);
+        foreach (JsonObject reference in Objects(target["items"]!["ReferencePath"]).Where(item => Text(item, "FrameworkReferenceName").Length > 0))
+        {
+            string name = Text(reference, "FrameworkReferenceName");
+            string frameworkRoot = Path.Combine(dotnet, "packs", name + ".Ref", Text(toolchain, "targetRuntime"), "ref", Text(properties, "TargetFramework"));
+            Require(frameworks.Contains(name, StringComparer.Ordinal) && Under(Text(reference, "Identity"), frameworkRoot)
+                && Text(reference, "NuGetPackageVersion") == Text(toolchain, "targetRuntime"), "ARCH-COMPILER-ORIGIN", Text(reference, "Identity"));
+            observed.Add(name);
+        }
+        Same(observed, frameworks, "ARCH-COMPILER-ORIGIN", Text(rule, "path"));
+    }
+
     private static Dictionary<string, AssemblyName> CompilerReferences(JsonObject target, JsonObject rule, Dictionary<string, string> runtime, JsonObject toolchain)
     {
         JsonNode properties = target["properties"]!;
         string sdk = SelectedSdk(properties), framework = Text(properties, "TargetFramework");
         Require(Text(properties, "NETCoreSdkVersion") == Text(toolchain, "sdk"), "ARCH-SDK-VERSION", sdk);
         string dotnet = Directory.GetParent(Directory.GetParent(sdk)!.FullName)!.FullName;
-        string frameworkRoot = Path.Combine(dotnet, "packs", "Microsoft.NETCore.App.Ref", Text(toolchain, "targetRuntime"), "ref", framework);
+        string[] frameworks = ["Microsoft.NETCore.App", .. Strings(rule["additionalExplicitFrameworkReferences"])];
         var allowed = new Dictionary<string, AssemblyName>(StringComparer.Ordinal);
         foreach (JsonObject reference in Objects(target["items"]!["ReferencePath"]))
         {
             string path = Text(reference, "Identity"), id = Text(reference, "NuGetPackageId"), version = Text(reference, "NuGetPackageVersion");
-            bool approved = Text(reference, "FrameworkReferenceName") == "Microsoft.NETCore.App" && Under(path, frameworkRoot) && version == Text(toolchain, "targetRuntime");
+            string frameworkName = Text(reference, "FrameworkReferenceName");
+            string frameworkRoot = Path.Combine(dotnet, "packs", frameworkName + ".Ref", Text(toolchain, "targetRuntime"), "ref", framework);
+            bool approved = frameworks.Contains(frameworkName, StringComparer.Ordinal) && Under(path, frameworkRoot) && version == Text(toolchain, "targetRuntime");
             if (!approved && Text(rule, "role") == "shipping" && runtime.TryGetValue(id, out string? expected) && expected == version)
             {
                 // The resolved origin must be one of NuGet's restored package roots, with the exact selected asset.

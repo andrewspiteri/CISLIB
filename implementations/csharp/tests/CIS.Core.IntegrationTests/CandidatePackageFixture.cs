@@ -19,6 +19,7 @@ internal sealed class CandidatePackageFixture
     internal string Root { get; }
     internal string Host => Path.Combine(Root, "app", "bin", "Release", "net10.0", "CIS.Logging.CandidateConsumer.dll");
     internal readonly Dictionary<string, string> AssemblyHashes = new(StringComparer.Ordinal);
+    private readonly Dictionary<string, string> assemblyPaths = new(StringComparer.Ordinal);
     private int nextChild;
     private CandidatePackageFixture(string repository) => Root = Path.Combine(repository, ".artifacts", "csharp", "candidate-consumers", Guid.NewGuid().ToString("N"));
     internal static string Repository()
@@ -28,6 +29,18 @@ internal sealed class CandidatePackageFixture
         throw new DirectoryNotFoundException("Repository root is required.");
     }
     internal static string Hash(string path) => Convert.ToHexStringLower(SHA256.HashData(File.ReadAllBytes(path)));
+    private static string SelectedAspNetDirectory()
+    {
+        // Resolve from the executing test host's selected Core runtime, never from a child-reported origin.
+        var runtime = new DirectoryInfo(Path.GetDirectoryName(typeof(object).Assembly.Location)!);
+        Assert.AreEqual("10.0.12", runtime.Name, "Candidate verification requires the pinned test-host runtime.");
+        Assert.AreEqual("Microsoft.NETCore.App", runtime.Parent?.Name, "The selected runtime must come from its shared framework.");
+        DirectoryInfo? shared = runtime.Parent?.Parent;
+        Assert.IsNotNull(shared);
+        string selected = Path.Combine(shared.FullName, "Microsoft.AspNetCore.App", "10.0.12");
+        Assert.IsTrue(Directory.Exists(selected), "The selected runtime installation must contain the pinned ASP.NET shared framework.");
+        return selected;
+    }
     internal static async Task<CandidatePackageFixture> Prepare()
     {
         string repository = Repository(), language = Path.Combine(repository, "implementations/csharp");
@@ -56,11 +69,13 @@ internal sealed class CandidatePackageFixture
             using Stream nuspec = zip.GetEntry("CIS.Core.nuspec")!.Open();
             Assert.AreEqual(version, XDocument.Load(nuspec).Descendants().Single(e => e.Name.LocalName == "version").Value);
         }
+        fixture.assemblyPaths["core"] = Path.Combine(Path.GetDirectoryName(fixture.Host)!, "CIS.Core.dll");
         string localPackage = Path.Combine(fixture.Root, "feed", Path.GetFileName(package));
         if (package != localPackage) { File.Copy(package, localPackage); }
         JsonObject assets = JsonNode.Parse(File.ReadAllBytes(Path.Combine(language, "src/CIS.Core/obj/project.assets.json")))!.AsObject();
         JsonObject policy = JsonNode.Parse(File.ReadAllBytes(Path.Combine(language, "eng/runtime-dependencies.json")))!.AsObject();
         var packageHashes = new JsonObject { [Path.GetFileName(package)] = Hash(package) };
+        var packageAssemblyHashes = new JsonObject();
         foreach (JsonNode? dependency in policy["packages"]!.AsArray())
         {
             string id = dependency!["id"]!.GetValue<string>(), v = dependency["version"]!.GetValue<string>(), lower = id.ToLowerInvariant();
@@ -68,7 +83,21 @@ internal sealed class CandidatePackageFixture
             string destination = Path.Combine(fixture.Root, "feed", Path.GetFileName(source)); File.Copy(source, destination); packageHashes[Path.GetFileName(source)] = Hash(source);
             string role = id.Contains("Logging", StringComparison.Ordinal) ? "logging" : "di";
             using ZipArchive zip = ZipFile.OpenRead(source);
-            using Stream dll = zip.GetEntry("lib/net10.0/" + id + ".dll")!.Open(); fixture.AssemblyHashes[role] = Convert.ToHexStringLower(SHA256.HashData(dll));
+            using Stream dll = zip.GetEntry("lib/net10.0/" + id + ".dll")!.Open(); packageAssemblyHashes[role] = Convert.ToHexStringLower(SHA256.HashData(dll));
+        }
+        // Core still has its exact approved package closure. At execution, the selected ASP.NET
+        // shared framework supplies these abstraction assemblies instead of private NuGet copies.
+        string sharedFrameworkDirectory = SelectedAspNetDirectory();
+        foreach ((string role, string name) in new[]
+        {
+            ("logging", "Microsoft.Extensions.Logging.Abstractions.dll"),
+            ("di", "Microsoft.Extensions.DependencyInjection.Abstractions.dll")
+        })
+        {
+            string path = Path.Combine(sharedFrameworkDirectory, name);
+            Assert.IsTrue(File.Exists(path), "The selected ASP.NET runtime must supply " + name);
+            fixture.assemblyPaths[role] = path;
+            fixture.AssemblyHashes[role] = Hash(path);
         }
         foreach (string name in new[] { "Directory.Build.props", "Directory.Build.targets", "Directory.Packages.props" }) { File.WriteAllText(Path.Combine(fixture.Root, name), "<Project />"); }
         File.Copy(Path.Combine(language, "global.json"), Path.Combine(fixture.Root, "global.json"));
@@ -100,10 +129,13 @@ internal sealed class CandidatePackageFixture
             ["packageVersion"] = version,
             ["packageSha256"] = Hash(package),
             ["packages"] = packageHashes,
+            ["packageAssemblyHashes"] = packageAssemblyHashes,
+            ["sharedFrameworkDirectory"] = sharedFrameworkDirectory,
             ["programSha256"] = Hash(Path.Combine(fixture.Root, "app/Program.cs")),
             ["projectSha256"] = Hash(Path.Combine(fixture.Root, "app/Consumer.csproj")),
             ["restoredAssetsSha256"] = Hash(Path.Combine(fixture.Root, "app/obj/project.assets.json")),
             ["lockSha256"] = Hash(Path.Combine(fixture.Root, "app/packages.lock.json")),
+            ["assemblyPaths"] = new JsonObject(fixture.assemblyPaths.Select(pair => new KeyValuePair<string, JsonNode?>(pair.Key, JsonValue.Create(pair.Value)))),
             ["assemblyHashes"] = new JsonObject(fixture.AssemblyHashes.Select(pair => new KeyValuePair<string, JsonNode?>(pair.Key, JsonValue.Create(pair.Value))))
         }.ToJsonString());
         return fixture;
@@ -140,9 +172,8 @@ internal sealed class CandidatePackageFixture
         Assert.AreEqual(System.Runtime.InteropServices.RuntimeInformation.ProcessArchitecture.ToString(), (string?)report["architecture"]);
         foreach (var item in AssemblyHashes)
         {
+            Assert.AreEqual(assemblyPaths[item.Key], (string?)report[item.Key]!["path"]);
             Assert.AreEqual(item.Value, (string?)report[item.Key]!["sha256"]);
-            string name = item.Key switch { "core" => "CIS.Core.dll", "logging" => "Microsoft.Extensions.Logging.Abstractions.dll", _ => "Microsoft.Extensions.DependencyInjection.Abstractions.dll" };
-            Assert.AreEqual(Path.Combine(Path.GetDirectoryName(Host)!, name), (string?)report[item.Key]!["path"]);
         }
         Assert.AreEqual(Host, (string?)report["consumer"]!["path"]); Assert.AreEqual(Hash(Host), (string?)report["consumer"]!["sha256"]);
     }

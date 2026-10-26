@@ -1,5 +1,7 @@
 # Amendments to the supplied logging plans
 
+Current cross-module amendment, 20 October 2026: the user permits `Microsoft.AspNetCore.App` in the single `CIS.Core` package for Healthcheck and future needs. Earlier convenience-framework negatives must reject an unapproved framework rather than this approved identity. Preserve existing Logging behavior, two-NuGet closure and historical evidence. See [Healthcheck foundation decisions](../healthcheck/decisions.md).
+
 Effective 10 October 2026. The user's architecture and dependency decisions override the corresponding design choices in the source guide/plan/backlog. Original files and their hashes remain unchanged; this record preserves their provenance without executing conflicting instructions.
 
 | Source area | Current direction |

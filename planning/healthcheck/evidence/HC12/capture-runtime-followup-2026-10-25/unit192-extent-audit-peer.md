@@ -1,0 +1,22 @@
+# Capture peer: retained Unit192 native audit replay
+
+Bounded recorded-evidence and physical-binding review is CLEAR for diagnostic use. This review did not invoke an auditor, a control Main, a subject, a build, or the 7.8 GB replay again. The original Unit192 controller remains incomplete with capture false; all original runtime and ownership holds remain applicable. No score, joined qualification or mutation credit is established.
+
+I read the private retained-input route, fixed Replay.cs, the complete control source, all 18 recorded raw control outcomes, their receipt, the replay receipt, the retained file manifest and the completed Windows receiving record. The controls distinguish successful execution of a rejection assertion from acceptance of the underlying malformed evidence: aborted-host and missing-callback cases execute successfully only after checking that the compiled auditor returns zero assertion IDs and issues. Synthetic parser cases deliberately lack kernel evidence; the separate five-argument retained-extent route requires real kernel evidence. The old eight-argument route remains separately exercised, including its historical bare-typed-row behavior.
+
+The new route reads explicit ordered original physical extents, keeps original active paths, checks complete physical membership and framing, and adds the complete PID-prefix requirement before interpreting parent ownership records. The replay supplies the actual original kernel evidence, configuration, report and source/runtime identities. Its raw audit is written before receipt interpretation. It rechecks selected original bodies afterwards; this peer inspected that source and its frozen records without repeating those multi-gigabyte checks.
+
+The actual retained replay receipt records 2,754 physical log files / 7,834,843,660 bytes and 56,289 kernel files; 2,056 recorded direct assertion IDs versus 1,756 in the original audit; 2,747 execution hosts / 2,415 normal; and 66,573 issue records. These counts describe restored diagnostic access to the original bytes. They do not erase the separately established 331 typed aborts or turn the failed original campaign into a qualified result.
+
+I independently invoked only the existing C# Proof.Pair metadata method, checking complete content IDs, PE/PDB checksums and every physical source document for the final private checker, replay driver and controls: three pairs / 118 documents, zero mismatches. The raw returned C# metadata is outside the frozen author root in `unit192-native-extent-replay-capture-physical-peer01/{PrivateChecker,Replay,Controls}.json`. Their SHA-256 values are respectively `fe77b36385e3f47692f9e3743c91b6b4fd8cd70269fa96d494abd0ee806fcbf8`, `707fa335be6d430b5e161b46e8a03791361e3c28174f229f99b00b86d0430bef`, and `2e48d781631bc162f3d37106e31313a5a3e456e3d52daceabd1bc34c5fcf5407`. Document counts are 110 + 4 + 4, with no exclusions.
+
+Key immutable bindings:
+
+- Final private checker DLL: `1b3e922cad2f0586c4bafec5e4077a3627680724d7c893d0184f09df4619d101`.
+- Controls receipt: `df6f6a4d41bf11c482451f70178fe91ae774a6a462e39945419255ef89cbe348`, 18 matched actual cases. Failed mixed-separator entry01 and its source/binary/raw history remain retained.
+- Replay source: `0ba7333612ff7547c2f329967c890fa6c487fe3a1284f66f1dac6a352c3ec475`; replay DLL: `cb2256e239b53cfc7160df976fbcad6f276a0d7ef77b3b2af70d175fba006f70`.
+- Original full retention manifest: `9e691a070d6ddf841c7c38d13f32a45360c59b7b82415810c1804449037f66da`; fresh explicit map: `7d8944c25ddccbd3c08c150a18ca87ee4fc5878371503995c747dd8d7de6986b`.
+- Actual replay receipt: `e4b745109b81f07760f0f2ccc6a6b7c1eb2c9559831448c582c906f313fdd73b`; raw audit: `7a6148e9868f6e6e8564105b7c42f0e14ca480e3fef15946c79e0875afc90cd8`.
+- Complete output/operations manifest: `f5bf991f9d83a21f8f0912df91c9741283da81aa4e45b687502066d7bb795ee4`, 21 files / 22,630,009 bytes. Existing C# Windows receiving reports true / zero extras; archive `124c84b48ad9c7b56ea5c7b82592cef6472b872b9662f8cb4dbc168dd3ce2af9` is retained.
+
+The receipt hash above is the physically rehashed body and manifest value (`e4b745...`); earlier coordination text saying `e4b744...` was a transcription error. The author ACTUAL_CONTROLS01.md now separately corrects its raw-audit prose typo. Neither authoritative raw body nor receipt was changed by these corrections. All qualification flags in the actual replay receipt remain false and applied credit remains zero.

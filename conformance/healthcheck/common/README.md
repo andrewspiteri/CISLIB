@@ -1,0 +1,11 @@
+# Healthcheck common wire fixtures
+
+The user-approved additive registration-diagnostic amendment adds `registration-diagnostic-details.json` and its explicit-null rejection control. Earlier fixtures remain unchanged and omit the optional field. The new field is a registration-lifetime integration reason, independent of policy state and execution/collection diagnostics, using the same bounded diagnostic object. These are authored inputs; adding them claims no executed conformance pass.
+
+These small authored examples pin HC00 report and pipe shapes for future native tests. They are not generated service observations. `fixtures.json` names each input, selected view, expected result and validation stage. Expected reason labels classify cases; only expectedErrorCode values are public protocol codes.
+
+Pending health and readiness fixtures deliberately have identical report bytes. Health selects Healthy and exits 0; readiness selects false and exits 1 because startup is incomplete. The details fixture records all four policies, a noncritical failure at threshold three, finite numeric equality under GreaterThan, all five diagnostic measurement kinds, published availability retained through a failed refresh, and an authored settled execution record. Its monitor/metric arrays use the required ordering. Preparation metadata in the manifest states the intended configured threshold because the frozen report DTO does not expose that setup input.
+
+Invalid ready/count/view cases are structurally valid JSON and may satisfy the schemas. Consumers must reject them through semantic checks. The duplicate-property input is a raw .txt file so a JSON normalizer cannot silently remove the duplicate; its nested unknown extension also remains subject to duplicate detection. The truncated .txt file is a framing input: prefix it with a declared byte count one greater than its actual UTF-8 bytes, deliver those bytes and EOF. Test truncation at framing, rather than attempting to describe it with a schema. Connection damage may prevent an error reply; the probe must still fail.
+
+Load schemas locally from ../../../contracts/healthcheck/v1 by their declared URNs. Further native runtime, concurrency, transport, lifetime and Heartbeat integration evidence belongs to the subsequent tasks. Merely parsing these files does not qualify those behaviors.

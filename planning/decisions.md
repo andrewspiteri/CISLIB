@@ -1,5 +1,9 @@
 # Recorded foundation decisions
 
+## Current Healthcheck foundation — 20 October 2026
+
+The user approved the supplied Healthcheck Technical Intent/contracts as a working baseline, explicitly permitted ASP.NET inclusion, and selected subagents beginning with HC00. `CIS.Core` now explicitly references `Microsoft.AspNetCore.App`; HTTP integration remains in that package under `CIS.Healthcheck.AspNetCore`. This supersedes the former assembly-wide convenience-framework prohibition for this exact approved dependency. Existing approved runtime NuGets remain, with Core-only package pruning disabled to preserve their closure. Module-owned `HealthcheckOptions.Resolve` is explicit and leaves the readonly static EnvironmentOptions mechanics unchanged. [HC00 decisions and evidence](healthcheck/README.md) distinguish shipping value/configuration contracts, nonshipping compiler facades, actual native tests and pending runtime/transport/external integration. No commit, publication or resumption of the old logging roadmap is authorized.
+
 Recorded 10 October 2026 from the user's directions in the preparation conversation.
 
 | Decision | State | Direction |

@@ -1,0 +1,9 @@
+# Developer179 immutable failure portable
+
+The archive `developer179-failure-portable01.tar.gz` is 15,950,898 bytes, SHA-256 `2b782bf0f93985430a4237365b09984971c35a6e332535377903e78724c60c62`. C# read back every one of its 1,791 unique regular entries and verified each length/hash. It contains all 1,754 files from the immutable failure freeze, all 36 packing-tool/source/build ledger files, and its complete source-pin manifest. No input files were omitted or filtered; the archive and detached completion outputs sit outside both selected input roots.
+
+The retained evidence includes the entire observed Integration fixture, entire closed Developer179 profile and console, all 537 subject source documents, the freeze tool and packing tool's complete actual PE/PDB/source identity, commands and completed build logs. The packer verified all original/copied inventories before and after packing. Uncompressed selected inputs total 109,541,352 bytes.
+
+Detached manifest: `developer179-failure-portable-source-pins01.json`, SHA-256 `9bc18f93e4af03297f97254ad86dccfc4135fbd98d5bee0d3bace39c99bcba39`. Completed C# receipt: `developer179-failure-portable-receipt01.json`, SHA-256 `0566334a7f9ff9075f3e826dabfc5fd2fd253411b02051a88c3742457c2ba94e`. The separate wrapper ledger records one post-pack shell exit-file path error; its actual stdout and successful completed receipt are preserved without rerunning the packer or subjects. These detached completion files cannot be included in the archive they describe.
+
+This preserves the failed Developer profile: 5,298 Unit passes, 2,322 Integration passes and one EOF failure; later Architecture/Business execution remains absent. The fixture/source identities are postrun-observed, with no retroactive loaded-image hash claim. No native replay, Core/shared build, assertion/deadline/scheduling/policy change or qualification credit is supplied. Existing originals remain unchanged.

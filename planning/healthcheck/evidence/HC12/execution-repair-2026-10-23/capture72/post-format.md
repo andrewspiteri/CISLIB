@@ -1,0 +1,5 @@
+# Canonical integration after the frozen Capture72 proof
+
+The coordinator added the new linked reader to the Architecture test project and applied the repository whitespace formatter. The frozen `proof-index.json`, its indexed README, driver04/proposed source pins and `adoption.json` remain unchanged. The formatted canonical reader is SHA-256 `69566969d046deb865a2ba794b0130ec6fdbe133dba5ea97020d79b832c2ccd1`; the formatted receiving class is `cfcb9bc53c03e11b8b7c002fd910adab847186977788a92e4a3813e7a3e0ebad`. Independent full diff review finds whitespace/object-initializer layout changes only. The canonical kernel reader and wrapper remain the exact adopted bodies.
+
+The post-format focused run `.artifacts/csharp/focused/d9ebec3be6694088bd4cb8e71b9239c2` passed all **262** process-projection, kernel, union and campaign-configuration receiving cases with zero failures or skips. This is a native receiving test run, not a second replay of the 552.9 MB primary or a mutation qualification. The actual replay remains tied to its exact frozen private source and binary closure.

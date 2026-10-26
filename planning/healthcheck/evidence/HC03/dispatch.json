@@ -1,0 +1,17 @@
+{
+  "schema": "cis.healthcheck.task-dispatch/v1-development",
+  "task": "HC03",
+  "authority": "Current user requested committing HC02 and starting parallel task work; HC03 reporting and HC06 binding dispatched together.",
+  "baseCommit": "c5fd9db646aaa33c998ad93a79ce00c4dfc153dc",
+  "hc00BaselineSha256": "a4e3daaddc0a6cf5d242f2e1acd2f7148644e7b8dd3b65646f7c364a7df9c151",
+  "productionOwner": "/root",
+  "testOwner": "/root/hc03_tests",
+  "productionWriteSet": ["implementations/csharp/src/CIS.Core/Healthcheck/Reporting/**"],
+  "testWriteSet": ["implementations/csharp/tests/CIS.Core.UnitTests/Healthcheck/Reporting/**"],
+  "coordinatorChanges": ["Promote formatter facade", "Shared evidence/README integration"],
+  "checkout": "Current committed checkout with disjoint source/test ownership and one serialized build stream",
+  "concurrentTask": "HC06",
+  "buildOwner": "/root",
+  "projectPackageChanges": [],
+  "scope": "Bounded complete report/envelope writer, strict protocol reader and framing helpers; actual transports remain separate tasks."
+}

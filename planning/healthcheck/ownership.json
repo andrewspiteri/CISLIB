@@ -1,0 +1,253 @@
+{
+  "schema": "cis.healthcheck.ownership/v1-development",
+  "baselineCommit": "5f36bbcb6fb26c1818c868bfb06ad701895bef1b",
+  "execution": "HC00 disjoint authoring in one current checkout; one coordinator build stream",
+  "status": "HC00 complete and locally verified; HC01-HC13 not dispatched",
+  "coordinator": "/root",
+  "protectedPatterns": [
+    "**/*.csproj",
+    "**/*.slnx",
+    "**/packages.lock.json",
+    "**/Directory.*",
+    "**/global.json",
+    "**/NuGet.config",
+    "**/AssemblyInfo.cs",
+    "**/GlobalUsings.cs",
+    "implementations/csharp/eng/*.json",
+    "implementations/csharp/eng/CIS.DependencyChecker/Program.cs",
+    "implementations/csharp/eng/CIS.DependencyChecker/DependencyChecks.cs",
+    "implementations/csharp/eng/CIS.DependencyChecker/ArchitecturePolicy.cs",
+    "implementations/csharp/eng/CIS.DependencyChecker/ArchitectureInspection.cs",
+    "implementations/csharp/verification/*.json",
+    "implementations/csharp/verification/coverage/**",
+    "implementations/csharp/verification/mutation/**"
+  ],
+  "hc00Assignments": [
+    {
+      "owner": "/root/hc00_value_contracts",
+      "writePatterns": [
+        "implementations/csharp/src/CIS.Core/Healthcheck/Contracts/*.cs",
+        "contracts/healthcheck/v1/**",
+        "conformance/healthcheck/common/**"
+      ],
+      "excludes": [
+        "implementations/csharp/src/CIS.Core/Healthcheck/Contracts/Options/**",
+        "implementations/csharp/src/CIS.Core/Healthcheck/Contracts/Collection/**",
+        "implementations/csharp/src/CIS.Core/Healthcheck/Contracts/Execution/**"
+      ],
+      "handoffs": [
+        "HealthSnapshot.cs and HealthDiagnostic.cs transferred to coordinator after authored submission; schemas/fixtures transferred after independent review"
+      ]
+    },
+    {
+      "owner": "/root/hc00_async_contracts",
+      "writePatterns": [
+        "implementations/csharp/src/CIS.Core/Healthcheck/Contracts/Collection/**",
+        "implementations/csharp/src/CIS.Core/Healthcheck/Contracts/Execution/**",
+        "implementations/csharp/src/CIS.Core/Healthcheck/Internal/Contracts/**",
+        "implementations/csharp/tests/CIS.Core.UnitTests/Healthcheck/Foundation/HealthcheckValueContractTests.cs"
+      ],
+      "excludes": [
+        "implementations/csharp/src/CIS.Core/Healthcheck/Internal/Contracts/HealthSnapshotData.cs"
+      ],
+      "handoffs": [
+        "Execution enum transferred to coordinator after final review for NotInvoked; other paths remain read-only after integration"
+      ]
+    },
+    {
+      "owner": "/root/hc00_reference",
+      "writePatterns": [
+        "implementations/csharp/verification/contracts/healthcheck/Reference/*.cs",
+        "implementations/csharp/verification/contracts/healthcheck/Consumer/*.cs",
+        "implementations/csharp/verification/contracts/healthcheck/README.md"
+      ],
+      "excludes": [
+        "**/*.csproj",
+        "**/packages.lock.json"
+      ],
+      "sharedChangeTransactions": [
+        "HC00-BUILD-02"
+      ],
+      "handoffs": [
+        "Consumer/ExecutionConsumer.cs transferred to coordinator for final validation-matrix alignment"
+      ]
+    },
+    {
+      "owner": "/root",
+      "writePatterns": [
+        "implementations/csharp/src/CIS.Core/Healthcheck/Contracts/Options/**",
+        "implementations/csharp/src/CIS.Core/Healthcheck/Internal/Contracts/HealthSnapshotData.cs",
+        "implementations/csharp/tests/CIS.Core.UnitTests/Healthcheck/Foundation/HealthcheckOptionsTests.cs",
+        "planning/healthcheck/**"
+      ],
+      "sharedChangeTransactions": [
+        "HC00-BUILD-01",
+        "HC00-BUILD-02",
+        "HC00-BUILD-03",
+        "HC00-BUILD-04",
+        "HC00-BUILD-05",
+        "HC00-BUILD-06"
+      ]
+    }
+  ],
+  "nextTasks": [
+    {
+      "id": "HC01",
+      "status": "NotDispatched",
+      "writePatterns": [
+        "implementations/csharp/src/CIS.Core/Healthcheck/HealthcheckService.cs",
+        "implementations/csharp/src/CIS.Core/Healthcheck/Internal/State/**",
+        "implementations/csharp/src/CIS.Core/Healthcheck/Internal/Monitors/**",
+        "planning/healthcheck/evidence/HC01/**"
+      ]
+    },
+    {
+      "id": "HC02",
+      "status": "NotDispatched",
+      "writePatterns": [
+        "implementations/csharp/src/CIS.Core/Healthcheck/HealthCollectorRunner.cs",
+        "implementations/csharp/src/CIS.Core/Healthcheck/Internal/Collection/**",
+        "planning/healthcheck/evidence/HC02/**"
+      ]
+    },
+    {
+      "id": "HC03",
+      "status": "NotDispatched",
+      "writePatterns": [
+        "implementations/csharp/src/CIS.Core/Healthcheck/Reporting/**",
+        "planning/healthcheck/evidence/HC03/**"
+      ]
+    },
+    {
+      "id": "HC04",
+      "status": "NotDispatched",
+      "writePatterns": [
+        "implementations/csharp/src/CIS.Core/Healthcheck/AspNetCore/**",
+        "planning/healthcheck/evidence/HC04/**"
+      ]
+    },
+    {
+      "id": "HC05",
+      "status": "NotDispatched",
+      "writePatterns": [
+        "implementations/csharp/src/CIS.Core/Healthcheck/Pipes/**",
+        "implementations/csharp/tools/CisHealthProbe/**",
+        "planning/healthcheck/evidence/HC05/**"
+      ]
+    },
+    {
+      "id": "HC06",
+      "status": "NotDispatched",
+      "writePatterns": [
+        "implementations/csharp/src/CIS.Core/Healthcheck/Execution/**",
+        "implementations/csharp/src/CIS.Core/Heartbeat/HealthcheckIntegration/**",
+        "planning/healthcheck/evidence/HC06/**"
+      ]
+    },
+    {
+      "id": "HC07",
+      "status": "NotDispatched",
+      "writePatterns": [
+        "implementations/csharp/tests/CIS.Core.UnitTests/Healthcheck/Core/**",
+        "conformance/healthcheck/core/**",
+        "planning/healthcheck/evidence/HC07/**"
+      ]
+    },
+    {
+      "id": "HC08",
+      "status": "NotDispatched",
+      "writePatterns": [
+        "implementations/csharp/tests/CIS.Core.UnitTests/Healthcheck/Collection/**",
+        "implementations/csharp/tests/CIS.Core.IntegrationTests/Healthcheck/Collection/**",
+        "conformance/healthcheck/collection/**",
+        "planning/healthcheck/evidence/HC08/**"
+      ]
+    },
+    {
+      "id": "HC09",
+      "status": "NotDispatched",
+      "writePatterns": [
+        "implementations/csharp/tests/CIS.Core.UnitTests/Healthcheck/Reporting/**",
+        "implementations/csharp/tests/CIS.Core.IntegrationTests/Healthcheck/Reporting/**",
+        "implementations/csharp/tests/fixtures/HealthcheckHttpHost/Program.cs",
+        "conformance/healthcheck/reporting/**",
+        "planning/healthcheck/evidence/HC09/**"
+      ]
+    },
+    {
+      "id": "HC10",
+      "status": "NotDispatched",
+      "writePatterns": [
+        "implementations/csharp/tests/CIS.Core.UnitTests/Healthcheck/Execution/**",
+        "implementations/csharp/tests/CIS.Core.IntegrationTests/Healthcheck/Execution/**",
+        "implementations/csharp/tests/CIS.Core.BusinessCases/Healthcheck/**",
+        "conformance/healthcheck/execution/**",
+        "conformance/healthcheck/business/**",
+        "planning/healthcheck/evidence/HC10/**"
+      ]
+    },
+    {
+      "id": "HC11",
+      "status": "NotDispatched",
+      "writePatterns": [
+        "docs/modules/healthcheck/**",
+        "implementations/csharp/examples/healthcheck/CountryList/**",
+        "planning/healthcheck/evidence/HC11/**"
+      ]
+    },
+    {
+      "id": "HC12",
+      "status": "NotDispatched",
+      "writePatterns": [
+        "implementations/csharp/tests/CIS.Core.ArchitectureTests/Healthcheck/**",
+        "implementations/csharp/tests/CIS.Core.CompatibilityTests/Healthcheck/**",
+        "implementations/csharp/eng/CIS.DependencyChecker/HealthcheckQualification/**",
+        "compatibility/csharp/healthcheck/**",
+        "planning/healthcheck/qualification/**",
+        "planning/healthcheck/evidence/HC12/**"
+      ]
+    },
+    {
+      "id": "HC13",
+      "status": "NotDispatched",
+      "writePatterns": [
+        "planning/healthcheck/integration/**",
+        "planning/healthcheck/pilot-results/**",
+        "planning/healthcheck/acceptance-status.json",
+        "planning/healthcheck/evidence/HC13/**"
+      ]
+    }
+  ],
+  "resources": {
+    "buildOutputs": "Existing normal project output layouts; coordinator only, no concurrent builds",
+    "nativeResults": "Unique .artifacts/csharp/focused run IDs",
+    "checkpoint": "Unique .artifacts/healthcheck/HC00/developer-NN directories",
+    "portsAndPipes": "No HC00 health listener or collector is started",
+    "git": "No commit, ref update, worktree creation, push or merge performed"
+  },
+  "review": "Paths normalized using repository-relative forward slashes; active claims reviewed for Windows case collisions and protected-file exceptions. Future globs are proposals, not granted live write leases. This file does not implement a distributed lock or CIS import schema.",
+  "coordinatorSharedDocumentation": [
+    "README.md",
+    "docs/architecture/csharp-dependency-policy.md",
+    "planning/decisions.md",
+    "planning/logging/plan-amendments.md"
+  ],
+  "integrationHandoff": "After all three HC00 authors submitted and completed read-only review, the coordinator owns final corrections and the freeze receipt; no parallel writers remain.",
+  "finalCorrectionHandoffs": [
+    {
+      "owner": "/root/hc00_reference",
+      "path": "implementations/csharp/tests/CIS.Core.IntegrationTests/ProviderReportProcess.cs",
+      "status": "Submitted; exclusive write grant returned to coordinator"
+    },
+    {
+      "owner": "/root/hc00_async_contracts",
+      "path": "implementations/csharp/tests/CIS.Core.IntegrationTests/CandidatePackageFixture.cs",
+      "status": "Submitted; exclusive write grant returned to coordinator"
+    },
+    {
+      "owner": "/root/hc00_reference",
+      "path": "implementations/csharp/tests/CIS.Core.ArchitectureTests/ArchitectureAllowlistTests.cs",
+      "status": "Submitted; exclusive write grant returned to coordinator"
+    }
+  ]
+}

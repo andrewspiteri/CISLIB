@@ -1,0 +1,141 @@
+using System.Buffers.Binary;
+using System.Diagnostics;
+using System.IO.Pipes;
+using System.Text;
+using System.Text.Json;
+using System.Text.Json.Nodes;
+using CIS.Healthcheck;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+
+namespace CIS.Tests.IntegrationTests.Healthcheck.Reporting;
+
+internal static class TransportTestSupport
+{
+    internal static readonly TimeSpan Limit = TimeSpan.FromSeconds(15);
+    internal static string NewPipeName() => "cis-health-test-" + Guid.NewGuid().ToString("N");
+
+    internal static async Task StartServerAsync(HealthPipeServer server, string pipe, bool enabled = true)
+    {
+        await server.StartAsync().WaitAsync(TransportTestSupport.Limit);
+        if (enabled && !OperatingSystem.IsWindows())
+        {
+            // Completed startup must have published the real Unix endpoint.
+            // Observe it without opening an extra connection or creating a
+            // request timer. Missing endpoints should fail here rather than
+            // consume a connection watchdog in every later receiving case.
+            Assert.IsTrue(File.Exists(Path.Combine(Path.GetTempPath(), "CoreFxPipe_" + pipe)),
+                "Successful enabled startup must publish its actual local pipe endpoint.");
+        }
+    }
+
+    internal sealed class PipeServerCleanup(HealthPipeServer server) : IAsyncDisposable
+    {
+        public async ValueTask DisposeAsync()
+        {
+            // These are ancillary owners. Tests of terminal Dispose itself
+            // make their assertions before this fallback starts Stop. Initiate
+            // both real drains even if one call throws, with one total bound.
+            Task stopping;
+            try { stopping = server.StopAsync(); }
+            catch (Exception error) { stopping = Task.FromException(error); }
+            Task disposing;
+            try { disposing = server.DisposeAsync().AsTask(); }
+            catch (Exception error) { disposing = Task.FromException(error); }
+            Task drains = Task.WhenAll(stopping, disposing);
+            try { await drains.WaitAsync(TransportTestSupport.Limit); }
+            catch (Exception error) when (error is not TimeoutException && drains.Exception is not null)
+            {
+                throw drains.Exception;
+            }
+        }
+    }
+
+    internal static ProcessStartInfo StartInfo(string subdirectory, string assembly, IEnumerable<string> arguments)
+    {
+        string path = Path.Combine(AppContext.BaseDirectory, subdirectory, assembly + ".dll");
+        Assert.IsTrue(File.Exists(path), "The real fixture must be built and copied: " + path);
+        var start = new ProcessStartInfo("dotnet")
+        {
+            UseShellExecute = false,
+            CreateNoWindow = true,
+            RedirectStandardInput = true,
+            RedirectStandardOutput = true,
+            RedirectStandardError = true,
+            StandardOutputEncoding = new UTF8Encoding(false, true),
+            StandardErrorEncoding = new UTF8Encoding(false, true),
+        };
+        path = CIS.Verification.HealthcheckMutationChildren.HealthcheckMutationChildSupport.Prepare(path, start);
+        foreach (string argument in new[] { "exec", "--fx-version", "10.0.12", "--roll-forward", "Disable", path }.Concat(arguments)) { start.ArgumentList.Add(argument); }
+        return start;
+    }
+
+    internal static async Task<byte[]> ReadFrameAsync(Stream stream, CancellationToken cancellation = default)
+    {
+        byte[] header = new byte[4];
+        await stream.ReadExactlyAsync(header, cancellation);
+        uint size = BinaryPrimitives.ReadUInt32LittleEndian(header);
+        Assert.IsTrue(size is > 0 and <= 16777216, "Response frame bounds.");
+        byte[] payload = new byte[checked((int)size)];
+        await stream.ReadExactlyAsync(payload, cancellation);
+        return payload;
+    }
+
+    internal static async Task WriteFrameAsync(Stream stream, byte[] payload, bool fragmented = false, uint? announcedLength = null, CancellationToken cancellation = default)
+    {
+        byte[] header = new byte[4];
+        BinaryPrimitives.WriteUInt32LittleEndian(header, announcedLength ?? checked((uint)payload.Length));
+        if (fragmented)
+        {
+            foreach (byte value in header.Concat(payload)) { await stream.WriteAsync(new[] { value }, cancellation); await stream.FlushAsync(cancellation); }
+        }
+        else { await stream.WriteAsync(header, cancellation); await stream.WriteAsync(payload, cancellation); await stream.FlushAsync(cancellation); }
+    }
+
+    internal static async Task<JsonObject> RequestAsync(string pipe, string json, bool fragmented = false)
+    {
+        using var timeout = new CancellationTokenSource(Limit);
+        await using var client = new NamedPipeClientStream(".", pipe, PipeDirection.InOut, PipeOptions.Asynchronous);
+        await client.ConnectAsync(timeout.Token);
+        await WriteFrameAsync(client, Encoding.UTF8.GetBytes(json), fragmented, cancellation: timeout.Token);
+        byte[] payload = await ReadFrameAsync(client, timeout.Token);
+        Assert.AreNotEqual((byte)0xef, payload[0], "No UTF-8 BOM.");
+        return JsonNode.Parse(payload)!.AsObject();
+    }
+
+    internal static JsonObject ValidateSnapshotEnvelope(JsonObject envelope, string view, bool healthy, bool ready, int active = 1)
+    {
+        Assert.AreEqual(1, (int?)envelope["protocolVersion"]);
+        Assert.AreEqual(1, (int?)envelope["schemaVersion"]);
+        Assert.AreEqual(view, (string?)envelope["view"]);
+        Assert.AreEqual("snapshot", (string?)envelope["kind"]);
+        Assert.IsFalse(envelope.ContainsKey("error"));
+        JsonObject snapshot = envelope["snapshot"]!.AsObject();
+        ValidateSnapshot(snapshot, view, healthy, ready, active);
+        return snapshot;
+    }
+
+    internal static void ValidateSnapshot(JsonObject snapshot, string view, bool healthy, bool ready, int active = 1)
+    {
+        Assert.AreEqual(1, (int?)snapshot["schemaVersion"]);
+        Assert.AreEqual(healthy ? "Healthy" : "Unhealthy", (string?)snapshot["healthStatus"]);
+        Assert.AreEqual(ready, (bool?)snapshot["ready"]);
+        Assert.IsNotNull((string?)snapshot["revision"]);
+        Assert.IsTrue(((string)snapshot["capturedAtUtc"]!).EndsWith('Z'));
+        Assert.AreEqual(active, (int?)snapshot["monitorCounts"]!["active"]);
+        if (view == "details")
+        {
+            JsonNode? monitors = snapshot["monitors"];
+            Assert.IsInstanceOfType<JsonArray>(monitors, "The details snapshot must contain its monitor array.");
+            Assert.AreEqual(active, ((JsonArray)monitors!).Count);
+        }
+        else { Assert.IsFalse(snapshot.ContainsKey("monitors")); }
+    }
+
+    internal static void ValidateError(JsonObject response, string code)
+    {
+        Assert.AreEqual("error", (string?)response["kind"]);
+        Assert.AreEqual(code, (string?)response["error"]!["code"]);
+        Assert.IsFalse(response.ContainsKey("snapshot"));
+        Assert.IsFalse(response.ToJsonString().Contains("secret", StringComparison.Ordinal));
+    }
+}

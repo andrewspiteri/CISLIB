@@ -115,6 +115,6 @@ public sealed class DeterministicSupportTests
     public async Task HungOwnedChildIsStoppedAtTheFiniteDeadline()
     {
         using var directory = new TemporaryDirectory();
-        await Assert.ThrowsExactlyAsync<TimeoutException>(() => ProcessRunner.RunAsync("pwsh", ["-NoProfile", "-Command", "[System.Threading.ManualResetEvent]::new($false).WaitOne()"], directory.Path, TimeSpan.FromMilliseconds(500)));
+        await Assert.ThrowsExactlyAsync<ProcessTimeoutException>(() => ProcessRunner.RunAsync("pwsh", ["-NoProfile", "-Command", "[System.Threading.ManualResetEvent]::new($false).WaitOne()"], directory.Path, TimeSpan.FromMilliseconds(500)));
     }
 }

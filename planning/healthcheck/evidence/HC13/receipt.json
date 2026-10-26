@@ -1,0 +1,158 @@
+{
+  "schema": "cis.healthcheck.combined-task-receipt/v1-development",
+  "status": "Local Windows candidate integrated and verified; external and release work pending",
+  "recordedUtc": "2026-10-21T09:57:15.642075+02:00",
+  "authority": "Current user requested HC03/HC06 commit followed by remaining parallel work. Attachments are design inputs; no publication or external review authority inferred.",
+  "repository": {
+    "baseCommit": "f73ec9224c9263c3ca2e3bf929fcbac0e6d655fc",
+    "committedScope": "HC00/HC01/HC02/HC03/HC06",
+    "newCandidate": "Uncommitted current checkout",
+    "branch": "main",
+    "pushed": false,
+    "published": false
+  },
+  "tasks": [
+    "HC04",
+    "HC05",
+    "HC07",
+    "HC08",
+    "HC09",
+    "HC10",
+    "HC11",
+    "HC12",
+    "HC13"
+  ],
+  "hc00Baseline": {
+    "path": "planning/healthcheck/baseline.json",
+    "sha256": "a4e3daaddc0a6cf5d242f2e1acd2f7148644e7b8dd3b65646f7c364a7df9c151"
+  },
+  "runtimeInputs": {
+    "path": "planning/healthcheck/evidence/HC13/runtime-inputs.json",
+    "sha256": "a283bd73a9a47fe6a046ed083057ff513ffa6a90889702b9bbd73ba7062f346e"
+  },
+  "sourceComparison": {
+    "path": "planning/healthcheck/evidence/HC13/source-comparison.json",
+    "sha256": "a13739a47c0bfef76acb5bc33dada7ba137658eec6e54a7ed24fda7acab3a27f"
+  },
+  "nativeCaseMatch": {
+    "path": "planning/healthcheck/evidence/HC13/native-case-match.json",
+    "sha256": "28e69fec2ce4f0c95a7f0e5fcbd2faf3f9b7317f84a5ce0f7a51b17b76f909ec"
+  },
+  "verification": {
+    "command": "pwsh -NoProfile -File eng/verify.ps1 -Profile Developer -MaxBuildNodes 1 -OutputRoot .artifacts/healthcheck/transports/developer-02",
+    "profile": "Developer",
+    "lane": "windows-x64",
+    "sdk": "10.0.401",
+    "runtime": "10.0.12",
+    "summary": {
+      "path": ".artifacts/healthcheck/transports/developer-02/summary.json",
+      "sha256": "166db52622c772943582dc2c847f73804e99463c461bc4d3f9fa459aa0fd2dad"
+    },
+    "validation": {
+      "path": ".artifacts/healthcheck/transports/developer-02/validation.json",
+      "sha256": "ef4b67392fb7611ed6ad4dfa4f8f5b916535d50cb40ae5e01f6c742ccf21adfb"
+    },
+    "startedUtc": "2026-10-21T07:30:26.7262309Z",
+    "finishedUtc": "2026-10-21T07:53:47.8617992Z",
+    "stagesPassed": 16,
+    "nativePassed": 7839,
+    "failed": 0,
+    "skipped": 0,
+    "families": [
+      {
+        "family": "unit",
+        "passed": 4494,
+        "failed": 0,
+        "skipped": 0,
+        "native": {
+          "path": ".artifacts/healthcheck/transports/developer-02/families/unit/report.trx",
+          "sha256": "d913c78b7133137426bee66d02c3e35d600b0a6c6c53d0cfbea3d1a6530554c2"
+        },
+        "execution": {
+          "path": ".artifacts/healthcheck/transports/developer-02/families/unit/execution.json",
+          "sha256": "2438a85392a56709637067b28ec5371b7950e4dc8aeead8b6e7a40cf1cd01cef"
+        }
+      },
+      {
+        "family": "integration",
+        "passed": 2258,
+        "failed": 0,
+        "skipped": 0,
+        "native": {
+          "path": ".artifacts/healthcheck/transports/developer-02/families/integration/report.trx",
+          "sha256": "acfe831c8dc7fd92b67d58d065927597981893f9e66110066303f23bc1266890"
+        },
+        "execution": {
+          "path": ".artifacts/healthcheck/transports/developer-02/families/integration/execution.json",
+          "sha256": "0f300d936ef0621489ea9fc68e6870f0530f40f97eb2d41baf184f1352a24d75"
+        }
+      },
+      {
+        "family": "architecture",
+        "passed": 1058,
+        "failed": 0,
+        "skipped": 0,
+        "native": {
+          "path": ".artifacts/healthcheck/transports/developer-02/families/architecture/report.trx",
+          "sha256": "4385b6e443e07164668cfd5909821ad7943a55257100c22158c6b6cb6c7b059d"
+        },
+        "execution": {
+          "path": ".artifacts/healthcheck/transports/developer-02/families/architecture/execution.json",
+          "sha256": "d8e5a9287e1573eace66430d3d62b32e778afc8c97097f534710d925b88a9e08"
+        }
+      },
+      {
+        "family": "business",
+        "passed": 29,
+        "failed": 0,
+        "skipped": 0,
+        "native": {
+          "path": ".artifacts/healthcheck/transports/developer-02/families/business/report.trx",
+          "sha256": "8e3830010285acc78df5952c91b334ea521ba692342e112b51d0aa273d85fba7"
+        },
+        "execution": {
+          "path": ".artifacts/healthcheck/transports/developer-02/families/business/execution.json",
+          "sha256": "13cf05f54c8ad55e2a132a9d198c5caa58a54bf5a55ea306fbdced7498b5c120"
+        }
+      }
+    ],
+    "newHealthcheckCases": 151,
+    "retainedHealthcheckCases": 584
+  },
+  "reviews": {
+    "path": "planning/healthcheck/evidence/HC13/review.json",
+    "sha256": "c0360d5ef776215525bd046f782d243c585e6423d7e70d290adac4c90ad81df4"
+  },
+  "attempts": {
+    "path": "planning/healthcheck/evidence/HC13/attempts.json",
+    "sha256": "16f6407a45d31e6f83fafe908dac791982fadbe5052a6543cfd5ce731bf51297"
+  },
+  "acceptance": "Scoped local evidence; see acceptance-status.md. No blanket acceptance of all HC-AT obligations.",
+  "pilot": {
+    "contributors": 4,
+    "parallelAuthoring": [
+      "HC04",
+      "HC05",
+      "HC09",
+      "HC11"
+    ],
+    "architectureTestFollowupOwner": "/root/hc09_transport_tests",
+    "sharedBuildOwner": "/root",
+    "agentBuilds": 0,
+    "competingBuilds": 0,
+    "checkout": "Existing committed checkout; disjoint ownership and serialized structural mutations/builds",
+    "matchedSpeedupComparisonAvailable": false,
+    "tokenCostTelemetryAvailable": false
+  },
+  "limits": [
+    "Developer profile executes four native families; required coverage/mutation/compatibility/release-platform gates remain pending.",
+    "Linux endpoint/permission execution, real remote-host and alternate/elevated-identity rejection remain unexecuted.",
+    "Real Heartbeat adapter/scheduler and future IStartable coordinator remain absent external integrations.",
+    "CountryList and probe are nonpackable source-reference development executables; exact-package release examples and actual publication history are not qualified.",
+    "Current wave remains uncommitted; no push, publication, deployment or external review transmission."
+  ],
+  "graphEvidence": {
+    "path": "planning/healthcheck/evidence/HC13/graph-refresh.json",
+    "sha256": "2a212072cbdd0de20b4f9b90bc95d3c838f495fa58808cb1a5379e86d4beee9b"
+  }
+}

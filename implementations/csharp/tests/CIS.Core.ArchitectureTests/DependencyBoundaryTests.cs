@@ -47,7 +47,7 @@ public sealed class DependencyBoundaryTests
 
     [TestMethod]
     [DataRow("ProjectReference", "../../../tests/CIS.Core.TestSupport/CIS.Core.TestSupport.csproj", "Forbidden project reference")]
-    [DataRow("FrameworkReference", "Microsoft.AspNetCore.App", "Forbidden framework reference")]
+    [DataRow("FrameworkReference", "Unapproved.Framework", "Forbidden framework reference")]
     [DataRow("PackageReference", "Unapproved.Logger", "Unapproved explicit package")]
     [DataRow("PackageReference", "Microsoft.Extensions.Logging", "Unapproved explicit package")]
     public async Task EvaluatedCoreProjectRejectsForbiddenDependencies(string element, string dependency, string expectedRule)
@@ -128,6 +128,7 @@ public sealed class DependencyBoundaryTests
     [TestMethod]
     [DataRow("ProjectReference")]
     [DataRow("PackageReference")]
+    [DataRow("FrameworkReference")]
     public async Task DuplicateEvaluatedReferencesAreRejected(string kind)
     {
         using var fixture = new ProjectFixture(LanguageRoot);
@@ -135,7 +136,28 @@ public sealed class DependencyBoundaryTests
         XDocument project = XDocument.Load(coreProject);
         project.Root!.Add(new XElement("ItemGroup", new XElement(project.Descendants(kind).Single())));
         project.Save(coreProject);
-        AssertRejected(await RunProjectCheck(fixture.Path), kind == "ProjectReference" ? "Duplicate project reference" : "Duplicate package reference");
+        string expected = kind switch
+        {
+            "ProjectReference" => "Duplicate project reference",
+            "PackageReference" => "Duplicate package reference",
+            _ => "Duplicate framework reference",
+        };
+        AssertRejected(await RunProjectCheck(fixture.Path), expected);
+    }
+
+    [TestMethod]
+    [DataRow("missing", "Framework reference inventory mismatch")]
+    [DataRow("forged-implicit", "Forbidden framework reference")]
+    public async Task ApprovedExplicitFrameworkMustBePresentAndExplicit(string mode, string rule)
+    {
+        using var fixture = new ProjectFixture(LanguageRoot);
+        string coreProject = Path.Combine(fixture.Path, "src/CIS.Core/CIS.Core.csproj");
+        XDocument project = XDocument.Load(coreProject);
+        XElement framework = project.Descendants("FrameworkReference").Single();
+        if (mode == "missing") { framework.Remove(); }
+        else { framework.SetAttributeValue("IsImplicitlyDefined", "true"); }
+        project.Save(coreProject);
+        AssertRejected(await RunProjectCheck(fixture.Path), rule);
     }
 
     [TestMethod]
@@ -156,6 +178,30 @@ public sealed class DependencyBoundaryTests
             spec.Save(output);
         }
         AssertRejected(await RunProjectCheck(LanguageRoot, "-PackagePath", packagePath), "Duplicate packed dependency");
+    }
+
+    [TestMethod]
+    [DataRow("missing", "Packed framework reference inventory mismatch")]
+    [DataRow("changed", "Packed framework reference inventory mismatch")]
+    [DataRow("duplicate", "Invalid or duplicate packed framework reference")]
+    public async Task PackageFrameworkRequirementIsExact(string mode, string rule)
+    {
+        using var directory = new TemporaryDirectory();
+        string packagePath = CopyCorePackage(directory.Path);
+        using (ZipArchive archive = ZipFile.Open(packagePath, ZipArchiveMode.Update))
+        {
+            ZipArchiveEntry entry = archive.GetEntry("CIS.Core.nuspec")!;
+            XDocument spec;
+            using (Stream data = entry.Open()) { spec = XDocument.Load(data); }
+            XElement framework = spec.Descendants().Single(element => element.Name.LocalName == "frameworkReference");
+            if (mode == "missing") { framework.Remove(); }
+            else if (mode == "changed") { framework.SetAttributeValue("name", "Unapproved.Framework"); }
+            else { framework.AddAfterSelf(new XElement(framework)); }
+            entry.Delete();
+            using Stream output = archive.CreateEntry("CIS.Core.nuspec").Open();
+            spec.Save(output);
+        }
+        AssertRejected(await RunProjectCheck(LanguageRoot, "-PackagePath", packagePath), rule);
     }
 
     private static string CopyCorePackage(string root)

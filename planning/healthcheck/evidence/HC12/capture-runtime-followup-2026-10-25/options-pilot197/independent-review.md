@@ -1,0 +1,30 @@
+# Closed197 Options pilot: actual evidence and retained holds
+
+The changed guidance and early-return scenarios now have normal-host assertion evidence. The pilot remains **incomplete and unqualified**: five hosts aborted, and all other receiving issues remain retained. No historical result was repaired, classifier/audit replayed, or campaign credit assigned by this review.
+
+Root's full Windows receiving is verified zero/noextras:9,548 regular files/1,202,421,696 bytes, manifest `70684b6c208a41d00665a7b6708d3a9247b06734d653d12f94848e701efa7f98`, archive `3858f1da5c53e50f690ab591a079b9073005780bc16f127d44a8e5025a36aac7`, no exclusions/nonregular entries and original-post comparison zero. All six compact bodies independently match the closed compact hash record before and after review: results038d0b9e, audit003049b2, scope1041a8a3, capture90279d76, budgetff4cd79f, report40da1056. Selected raw host, baseline and source bodies were independently matched to manifested lengths/hashes and rechecked.
+
+Actual counts are120 definitions:96 raw Killed,6 CompileError and18 Ignored; zero Survived/Timeout/NoCoverage. The audit records917 direct row witnesses covering91 distinct eligible definitions, with zero semantic or completed-before-abort definitions. Five eligible raw Killed definitions lack a direct witness: current IDs494/499/500/526/527. They are exactly the five actual abort owners (Abort1/Cancel0 each). There are98 execution hosts,93 normal, plus one normal discovery host. The audit's field named QualifiedKilledIds contains91; that field does not qualify this incomplete pilot or a union/gate.
+
+There are5,190 issue observations:5 each abort/cancel, missing assertion witness, completion failure and incomplete result set;5,167 NativeFailureNotDirectAssertion; and one each malformed host, statistics mismatch and missing termination. The5,167 non-direct observations concern31 distinct definitions, all of which also have a direct assertion elsewhere. They are not5,167 definitions or the five missing-witness definitions. Unit's separately scanned raw ledger was read and its exact5,167 unique host/GUID key set was joined to the audit; regrouping its retained errors agrees with4,283 CoreConfigurationException,789 NullReferenceException,93 Single-more-than-one and2 PlatformNotSupportedException. That full raw census was performed by the Unit peer, not repeated here. Its sealed review is `unit197-options-nondirect-review01/README.md` (`add40f8d…`), ledger `baa17a37…`. Pipes' separate five-host timing review is `unit197-options-abnormal-host-review01/README.md` (`387428a3…`); none of those holds is waived here.
+
+Both ordinary original and fresh TRX controls independently join1,396 passed/zero nonpass counters and identical full GUID/FQN/display maps. The native-initial receipt retains two normally completed1,396-case hosts. Actual source bodies hash Options75d3, caller fixturefb30 and OptionsTestsec86. Scope/capture/restoration validations are true; all seven process phases exit0. Capture records exact known-role membership, one discovery/four execution parents,99 launches and zero host termination-signal attempts. Structural capture success does not make the five aborted hosts normal. CompleteExecution=false is the explicit all-host-normality rejection; receivingFailure is null.
+
+All120 old/new definitions were joined by the complete eight-field mutation tuple. Every new tuple was also independently rederived from the current raw report's exact Options source (`75d3e327…`), UTF-16 location, original text, mutator, replacement and static flag. Numeric IDs below are labels observed only after those matches.
+
+| Guidance empty-string mutation | Actual span | New expected assertion rows |
+| --- | --- | --- |
+| Invariant integer guidance (479) |4067–4125|4 in host2981370|
+| Boolean guidance (487) |4559–4582|3 in host2981483|
+| Missing enabled name guidance (518) |6061–6119|1 in host2982102|
+| Invalid pipe name guidance (524) |6305–6433|7 in host2982190|
+
+Each actual row begins with the expected assertion prefix, contains the new nonblank-guidance message and actual receiving test method in its stack. Each host normally completes, and each matched definition belongs to the current direct set. All four were raw Survived in the prior pilot; this is a fresh observation after an exact tuple join, not status transfer.
+
+The eleven earlier caller-hang tuples (current labels543/545/547/549/551/556/557/558/559/560/564) likewise each return exactly one expected valid-request early assertion from CallerCancellationAfterARealRequestDoesNotWaitForThePeerToSendAResponse, in eleven normally completed hosts. Their actual messages are not Aggregate/cancellation wrappers. All eleven matched definitions belong to the current direct set. The retained attribution file contains all26 target observations and the15 exact host pins; the audit's global32-row sample cap alone could not establish these scenario-specific facts.
+
+Across the complete tuple join,56 definitions retain direct acceptance,35 newly acquire it and one formerly accepted definition (current label526) is now held;28 have neither-era acceptance. The profile, timeout and fixture changes coexist, so these aggregate transitions do not isolate a performance cause or guarantee future normal closure. The scenario-specific raw messages above directly establish that the intended assertions fired.
+
+This run uses four workers/additional10,000ms, takes802.518s, and records actual adaptive session budgets19,529–32,185ms across96 active requests plus two initial requests. Those values are not per-test ceilings or a15-second promise. Peak owned bytes1,123,605,017/minimum free14,817,611,776 are within the reviewed bounds with no guard violation. Applied credit remains zero.
+
+Supporting immutable data: `actual-summary01.json` (`3e8ae3d2…`), `compact-tuple-facts01.json` (`c19f9704…`), `actual-target-attribution01.json` (`0c23aa13…`), and `actual-positive-source-joins01.json` (`2d2b4416…`). Review work was read-only metadata/source attribution; no new tool, SUT/native run, classifier or audit invocation occurred.

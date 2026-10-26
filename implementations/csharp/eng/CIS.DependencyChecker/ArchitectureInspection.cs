@@ -74,7 +74,8 @@ internal static class ArchitectureInspection
                 }
                 Require(effectiveLock.Count(item => item.Value!["type"]!.GetValue<string>() != "Project") == packages.Count, $"Locked package inventory mismatch: {relative} {targetName}");
                 JsonObject context = await Evaluate(languageRoot, path, framework, rid);
-                if (role is "shipping" or "build-tool")
+                if (role is "shipping" or "build-tool"
+                    || role == "process-fixture" && matches[0]["frameworkProvidedRuntimePackages"] is JsonArray { Count: > 0 })
                 {
                     JsonObject resolved = await Evaluate(languageRoot, path, framework, rid, resolve: true);
                     context["Items"]!["ReferencePath"] = resolved["Items"]!["ReferencePath"]!.DeepClone();
@@ -88,7 +89,7 @@ internal static class ArchitectureInspection
         Require(packable.Length == 1, "Expected the selected single packable Core project.");
         var assemblyFacts = new List<object>();
         var packageAssets = new List<object>();
-        object[] dependencyGroups;
+        object[] dependencyGroups, frameworkReferences;
         using (ZipArchive archive = ZipFile.OpenRead(packagePath))
         {
             Require(archive.Entries.Select(entry => entry.FullName).Distinct(StringComparer.OrdinalIgnoreCase).Count() == archive.Entries.Count, "ARCH-PACKAGE-ASSET: Duplicate package asset paths.");
@@ -105,6 +106,12 @@ internal static class ArchitectureInspection
             dependencyGroups = metadata.Elements().Where(element => element.Name.LocalName == "dependencies").SelectMany(element => element.Elements())
                 .Select(group => group.Name.LocalName == "group" ? (object)new { framework = (string?)group.Attribute("targetFramework") ?? "", dependencies = group.Elements().Select(Dependency).ToArray() } :
                     new { framework = "", dependencies = new[] { Dependency(group) } }).ToArray();
+            frameworkReferences = metadata.Elements().Where(element => element.Name.LocalName == "frameworkReferences").SelectMany(element => element.Elements())
+                .Select(group => (object)new
+                {
+                    targetFramework = group.Name.LocalName == "group" ? (string?)group.Attribute("targetFramework") ?? "" : "",
+                    names = group.Elements().Select(element => element.Name.LocalName == "frameworkReference" ? (string?)element.Attribute("name") ?? "" : "").ToArray(),
+                }).ToArray();
             foreach (ZipArchiveEntry entry in archive.Entries.Where(entry => entry.FullName.EndsWith(".dll", StringComparison.OrdinalIgnoreCase)))
             {
                 string binary = Path.Combine(outputRoot, $"assembly-{assemblyFacts.Count}.dll"), inspectionPath = Path.Combine(outputRoot, $"assembly-{assemblyFacts.Count}.json");
@@ -134,6 +141,7 @@ internal static class ArchitectureInspection
             projects,
             packageAssets,
             packageDependencyGroups = dependencyGroups,
+            packageFrameworkReferences = frameworkReferences,
             assemblies = assemblyFacts,
             levels = new[] { "evaluated-project-framework-references", "all-locked-target-graphs", "package-groups-and-assets", "compiled-references-and-public-api", "internal-type-namespace-uses" },
             scope = "Observed static architecture facts and locked-input consistency. Exact amended dependency allowlists execute here. Ownership, separation and package guards execute here; isolated source/package/binary negative controls execute through the normal checker in WP07-S02-T04. Not a full release qualification."

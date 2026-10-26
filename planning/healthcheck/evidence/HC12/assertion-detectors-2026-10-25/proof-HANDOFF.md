@@ -1,0 +1,7 @@
+# Three assertion experiments: complete retained proof
+
+`proofs01.tar.gz` is253539336bytes, SHA256 e4323501d29bec7105960f6c95ee4813f638dbbe3d7d0361edb746c5537b1f25. It contains all six frozen author/independent-review roots and six external source/actual peer notes, including the failed and superseded attempts. C# file manifest b8f9497cf0fa336950e4c287e8e992b97ba4d4f547f4dc06d667e2c17da22ed9 binds22341files/1284734607bytes. Native member list479aaccf4949c22590dfba55d7c7c3e33a77e4ad49e0aa31973f757cf0d375f7. No files were excluded from those selected roots.
+
+Native archive/extraction both closed0. Fresh complete C# readback closed0, with exact paths/lengths/hashes and no extra files or directories. A second complete original-source preparation after archiving also closed0, with byte-identical manifest and member-list hashes. All original roots remain frozen. Canonical adoption, its brace-only derivative, official focused runs, coherent Developer checkpoint and later source-only reviews are separate evidence, not silently added to this already frozen archive.
+
+The archive preserves repository-relative `.artifacts/hcg/...` paths. It is a review packet, not a relocated replay bundle: original immutable metadata readers/classifier/report inputs referenced by the receipts retain their separately recorded source/byte identities. Receipt metadata does not claim runtime-loaded images, campaign capture completeness or mutation credit.

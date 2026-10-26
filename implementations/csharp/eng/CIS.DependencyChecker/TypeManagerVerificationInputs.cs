@@ -44,6 +44,11 @@ internal sealed class TypeManagerVerificationInputs
             ["executable"] = Dotnet,
             ["arguments"] = JsonSerializer.SerializeToNode(command),
             ["exitCode"] = child.ExitCode,
+            ["stdoutTotalBytes"] = child.StandardOutputTotalBytes,
+            ["stderrTotalBytes"] = child.StandardErrorTotalBytes,
+            ["stdoutTruncated"] = child.StandardOutputTruncated,
+            ["stderrTruncated"] = child.StandardErrorTruncated,
+            ["outputDrained"] = child.OutputDrained,
             ["stdoutSha256"] = Digest(Encoding.UTF8.GetBytes(child.StandardOutput)),
             ["stderrSha256"] = Digest(Encoding.UTF8.GetBytes(child.StandardError))
         });

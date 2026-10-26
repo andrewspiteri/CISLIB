@@ -5,6 +5,9 @@
     <IsPackable>false</IsPackable>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="../../eng/CIS.DependencyChecker/HealthcheckQualification/Mutation/Children/HealthcheckMutationChildProtocol.cs" Link="Healthcheck/Mutation/HealthcheckMutationChildProtocol.cs" />
+    <Compile Include="../../eng/CIS.DependencyChecker/HealthcheckQualification/Mutation/Children/HealthcheckMutationChildSupport.cs" Link="Healthcheck/Mutation/HealthcheckMutationChildSupport.cs" />
+    <Compile Include="../../eng/CIS.DependencyChecker/HealthcheckQualification/Mutation/Children/HealthcheckMutationChildCapture.cs" Link="Healthcheck/Mutation/HealthcheckMutationChildCapture.cs" />
     <Compile Include="../../eng/CIS.DependencyChecker/JsonlInputSelector.cs" Link="JsonlInputSelector.cs" />
     <Compile Include="../fixtures/DiscoveryHost/ProviderReportChecks.cs" Link="Discovery/ProviderReportChecks.cs" />
     <None Include="../../../../contracts/logging/v1/configuration.json" Link="discovery-configuration.json" CopyToOutputDirectory="PreserveNewest" />
@@ -36,6 +39,8 @@
     <Compile Include="../fixtures/DiscoveryHost/ConfigurationReadExpectations.cs" Link="ConfigurationReadExpectations.cs" />
     <ProjectReference Include="../CIS.Core.TestSupport/CIS.Core.TestSupport.csproj" />
     <ProjectReference Include="../fixtures/DiscoveryHost/CIS.Core.DiscoveryFixture.csproj" />
+    <ProjectReference Include="../fixtures/HealthcheckHttpHost/HealthcheckHttpHost.csproj" ReferenceOutputAssembly="false" Private="false" PrivateAssets="all" />
+    <ProjectReference Include="../../tools/CisHealthProbe/CisHealthProbe.csproj" ReferenceOutputAssembly="false" Private="false" PrivateAssets="all" />
     <Compile Include="../fixtures/DiscoveryHost/ExceptionQualificationExpectations.cs" Link="ExceptionQualificationExpectations.cs" />
     <Compile Include="../fixtures/DiscoveryHost/ExceptionBoundaryExpectations.cs" Link="ExceptionBoundaryExpectations.cs" />
     <Compile Include="../fixtures/DiscoveryHost/ExceptionBoundarySources.cs" Link="ExceptionBoundarySources.cs" />
@@ -85,4 +90,20 @@
     </ItemGroup>
     <Copy SourceFiles="@(DiscoveryFixtureFiles)" DestinationFolder="$(TargetDir)discovery-fixture" />
   </Target>
+  <Target Name="CopyHealthcheckFixtures" AfterTargets="Build">
+    <ItemGroup>
+      <HealthcheckHttpFiles Include="../fixtures/HealthcheckHttpHost/bin/$(Configuration)/$(TargetFramework)/*" />
+      <HealthcheckProbeFiles Include="../../tools/CisHealthProbe/bin/$(Configuration)/$(TargetFramework)/*" />
+    </ItemGroup>
+    <Copy SourceFiles="@(HealthcheckHttpFiles)" DestinationFolder="$(TargetDir)healthcheck-http-host" />
+    <Copy SourceFiles="@(HealthcheckProbeFiles)" DestinationFolder="$(TargetDir)healthcheck-probe" />
+  </Target>
+  <ItemGroup Condition="'$(CisMutationTesting)' == 'true' and '$(CisHealthcheckMutationCohort)' == 'true'">
+    <Compile Remove="@(Compile)" />
+    <Compile Include="Healthcheck/**/*.cs" />
+    <Compile Include="../../eng/CIS.DependencyChecker/HealthcheckQualification/Mutation/Children/HealthcheckMutationChildProtocol.cs" Link="Healthcheck/Mutation/HealthcheckMutationChildProtocol.cs" />
+    <Compile Include="../../eng/CIS.DependencyChecker/HealthcheckQualification/Mutation/Children/HealthcheckMutationChildSupport.cs" Link="Healthcheck/Mutation/HealthcheckMutationChildSupport.cs" />
+    <Compile Include="../../eng/CIS.DependencyChecker/HealthcheckQualification/Mutation/Children/HealthcheckMutationChildCapture.cs" Link="Healthcheck/Mutation/HealthcheckMutationChildCapture.cs" />
+    <Compile Include="../../eng/CIS.DependencyChecker/JsonlInputSelector.cs" Link="JsonlInputSelector.cs" />
+  </ItemGroup>
 </Project>

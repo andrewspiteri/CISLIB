@@ -1,0 +1,5 @@
+# Delayed cancellation proof retention
+
+This packet selects the complete closed private proposal, its three independent peer notes, the pinned preserved original source map, and the existing maintained reader/classifier binary/PDB. The C# receiver's exact complete Before/After comparison supplies the authority for omitting only 143 duplicate negative fixture files; their retained baseline paths, byte lengths and hashes are listed individually. Both negative Core files remain selected. No originals are deleted. No frozen 2018 repository or new dependency download tree is duplicated.
+
+All raw original01 setup failure records, original02 and negative01 test records, strict build failures, source preimage/candidate, authoritative C# source/receipts/binaries and superseded non-authoritative PowerShell attempts remain selected. Empty-directory metadata records the files-only tar limitation; all selected regular files are hashed and verified by the existing unchanged C# Retention tool. The final proof is zero qualification/191 credit and contains no new subject entry.

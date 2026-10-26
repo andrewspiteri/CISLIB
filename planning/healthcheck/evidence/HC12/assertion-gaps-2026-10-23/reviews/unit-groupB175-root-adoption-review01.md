@@ -1,0 +1,11 @@
+# GroupB175 root adoption review
+
+Root read the complete two-source diffs, original approved plan, actual88/44 receiving and final independent peer d020001291a24ddaff8103527b8aa5591b7ce143951b3bd3d571db8f397325cc. Canonical preimages and sealed proposed bytes were hash-checked before any copy; resulting sources were checked after adoption. ServicePolicy is331ce6dbe8cfe2f152a532b0a532adedce2a3922363a715c563849bf3053a64d and StateSeam b572164e6e87ed16104006fc20d8fdf663bf0a467e5c1343297e74f7b80fe816.
+
+The28 valid constructor sites use two class-local constructor-only acceptance helpers at original phases. Four additional narrow boundaries assert non-propagation from actual CommitResult/BeginStopping calls for six actual conversion rows; original argument factories remain outside their catches and no failed call receives an invented result. Actual invalid subjects, policy/state/error-time assertions and StateScope Finish/Dispose remain unchanged. Unknown errors and real cleanup failures still hold. The NoInlining temporary-monitor chain retains its actual receiver lifetime.
+
+The expressly approved concurrent amendment creates one actual immutable ConcurrentFailure reason after original setup and before either worker, using that same reason in all32 original reports. All original worker/barrier/snapshot/withdrawal/round/deadline and Task.WhenAll behavior remains. This removes the source-proven possibility of launching a sibling whose barrier cannot be reached after a constructor rejection; no fake release or body-wide catch is added.
+
+Actual complete ordinary88/88 passed180ms; all44 whole original public identifier147 calls joined with real cleanup and direct raw-first assertion outcomes. Complete inverse and all146 existing Core/TestSupport/fixture/tool source+PE/PDB bindings passed receiving aeb7561b990a5f82e38e850d920f422fca57e61c14edb6b61d6959a09135f7fd. The final peer and10,701,240-byte portable09e1528d8f817fe40b394c676f2c75febd1684e80c61d411e2cbaaac2dfad217 are retained.
+
+Adoption awaits the combined current-source full1389 discovery/ordinary baseline and one complete diagnostic176 after C177 is sealed/adopted. The historical168 results and earlier canonical165 pass are not relabelled. No source-built Core, policy relaxation, native mutation outcome transfer or qualification credit is supplied.

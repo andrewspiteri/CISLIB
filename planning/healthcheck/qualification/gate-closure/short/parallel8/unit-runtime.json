@@ -1,0 +1,71 @@
+{
+  "stryker-config": {
+    "project": "CIS.Core.csproj",
+    "test-projects": [
+      "../../tests/CIS.Core.UnitTests/CIS.Core.UnitTests.csproj"
+    ],
+    "test-case-filter": "FullyQualifiedName~CIS.Tests.UnitTests.Healthcheck.|FullyQualifiedName~CIS.Tests.UnitTests.HealthcheckValueContractTests.|FullyQualifiedName=CIS.Tests.TestAssemblySetup.SchedulingMatchesRequestedMode",
+    "test-runner": "vstest",
+    "target-framework": "net10.0",
+    "configuration": "Release",
+    "mutate": [
+      "Healthcheck/Contracts/Collection/HealthCollectionAttempt.cs",
+      "Healthcheck/Contracts/Collection/HealthCollectionResult.cs",
+      "Healthcheck/Contracts/Collection/HealthCollectorOptions.cs",
+      "Healthcheck/Contracts/Collection/IHealthCollector.cs",
+      "Healthcheck/Contracts/Execution/HealthExecutionBindingOptions.cs",
+      "Healthcheck/Contracts/Execution/HealthExecutionEnums.cs",
+      "Healthcheck/Contracts/Execution/HealthExecutionFact.cs",
+      "Healthcheck/Contracts/Execution/HealthExecutionSnapshot.cs",
+      "Healthcheck/Contracts/Execution/IHealthExecutionBinding.cs",
+      "Healthcheck/Contracts/HealthApplicationIdentity.cs",
+      "Healthcheck/Contracts/HealthDiagnostic.cs",
+      "Healthcheck/Contracts/HealthEnums.cs",
+      "Healthcheck/Contracts/HealthMeasurement.cs",
+      "Healthcheck/Contracts/HealthMonitorContracts.cs",
+      "Healthcheck/Contracts/HealthReportBuffer.cs",
+      "Healthcheck/Contracts/HealthSnapshot.cs",
+      "Healthcheck/Contracts/Options/HealthcheckCapacityException.cs",
+      "Healthcheck/Contracts/Options/HealthcheckOptions.cs",
+      "Healthcheck/Contracts/Options/MonitorOptions.cs",
+      "Healthcheck/Execution/ExecutionFactRecord.cs",
+      "Healthcheck/Execution/ExecutionFactValidation.cs",
+      "Healthcheck/Execution/HealthExecutionBinder.cs",
+      "Healthcheck/HealthcheckService.cs",
+      "Healthcheck/HealthCollectorRunner.cs",
+      "Healthcheck/Internal/Collection/HealthCollectionExecution.cs",
+      "Healthcheck/Internal/Contracts/BindingRequest.cs",
+      "Healthcheck/Internal/Contracts/BindingTarget.cs",
+      "Healthcheck/Internal/Contracts/HealthCollectionReservation.cs",
+      "Healthcheck/Internal/Contracts/HealthCollectionTarget.cs",
+      "Healthcheck/Internal/Contracts/HealthSnapshotData.cs",
+      "Healthcheck/Internal/Contracts/IHealthCollectionState.cs",
+      "Healthcheck/Internal/Contracts/IHealthExecutionState.cs",
+      "Healthcheck/Internal/Contracts/IHealthStateAccess.cs",
+      "Healthcheck/Internal/Monitors/HealthMonitorHandles.cs",
+      "Healthcheck/Internal/State/HealthMonitorEntry.cs",
+      "Healthcheck/Internal/State/HealthStateCoordinator.Collection.cs",
+      "Healthcheck/Internal/State/HealthStateCoordinator.cs",
+      "Healthcheck/Internal/State/HealthStateCoordinator.Execution.cs",
+      "Healthcheck/Reporting/BoundedHealthBuffer.cs",
+      "Healthcheck/Reporting/HealthReportFormatter.cs",
+      "Healthcheck/Reporting/HealthReportProtocol.cs"
+    ],
+    "mutation-level": "Complete",
+    "reporters": [
+      "json",
+      "html",
+      "progress",
+      "cleartext"
+    ],
+    "concurrency": 8,
+    "disable-bail": true,
+    "additional-timeout": 1000,
+    "disable-mix-mutants": true,
+    "thresholds": {
+      "high": 100,
+      "low": 90,
+      "break": 90
+    }
+  }
+}

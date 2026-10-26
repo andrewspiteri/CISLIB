@@ -1,0 +1,183 @@
+{
+  "schemaVersion": 1,
+  "revision": "12",
+  "capturedAtUtc": "2026-10-20T08:03:00.0000000Z",
+  "application": {
+    "name": "healthcheck-foundation-fixture",
+    "buildVersion": "0.1.0-dev.1",
+    "serviceVersion": "pilot",
+    "instanceId": "10000000-0000-0000-0000-000000000001",
+    "startupCompleted": true,
+    "isStopping": false
+  },
+  "healthStatus": "Healthy",
+  "ready": true,
+  "monitorCounts": {
+    "active": 4,
+    "critical": 2,
+    "failing": 1,
+    "criticalFailing": 0,
+    "pending": 0
+  },
+  "monitors": [
+    {
+      "monitorId": "20000000-0000-0000-0000-000000000001",
+      "name": "configuration",
+      "policy": "Condition",
+      "isCritical": true,
+      "state": "Healthy",
+      "registeredAtUtc": "2026-10-20T08:00:00.0000000Z",
+      "lastObservationAtUtc": "2026-10-20T08:01:00.0000000Z",
+      "measurements": []
+    },
+    {
+      "monitorId": "20000000-0000-0000-0000-000000000002",
+      "name": "optional-refresh-threshold-three",
+      "policy": "ConsecutiveFailures",
+      "isCritical": false,
+      "state": "Unhealthy",
+      "registeredAtUtc": "2026-10-20T08:00:00.0000000Z",
+      "lastObservationAtUtc": "2026-10-20T08:03:00.0000000Z",
+      "diagnostic": {
+        "code": "RefreshFailed",
+        "message": "Failure three meets the explicit threshold of three.",
+        "isTruncated": false
+      },
+      "outcomes": {
+        "successful": "0",
+        "failed": "3",
+        "skipped": "0",
+        "expectedCanceled": "0",
+        "consecutiveFailures": "3",
+        "countersSaturated": false,
+        "lastOutcome": "Failed",
+        "lastFailureAtUtc": "2026-10-20T08:03:00.0000000Z",
+        "lastFailureDiagnostic": {
+          "code": "RefreshFailed",
+          "message": "Failure three meets the explicit threshold of three.",
+          "isTruncated": false
+        },
+        "execution": {
+          "registrationId": "30000000-0000-0000-0000-000000000001",
+          "executionId": "3",
+          "phase": "Settled",
+          "eligibleAtUtc": "2026-10-20T08:02:00.0000000Z",
+          "admittedAtUtc": "2026-10-20T08:02:00.0000000Z",
+          "callbackStartedAtUtc": "2026-10-20T08:02:00.0000000Z",
+          "workCompletedAtUtc": "2026-10-20T08:03:00.0000000Z",
+          "cleanupCompletedAtUtc": "2026-10-20T08:03:00.0000000Z",
+          "settledAtUtc": "2026-10-20T08:03:00.0000000Z",
+          "queueDelayMs": 0,
+          "callbackDurationMs": 60000,
+          "cleanupDurationMs": 0,
+          "totalDurationMs": 60000,
+          "errorHandlingStatus": "NotApplicable",
+          "cleanupStatus": "Succeeded",
+          "originalError": {
+            "code": "RefreshFailed",
+            "message": "The callback returned false.",
+            "isTruncated": false
+          }
+        }
+      },
+      "measurements": [
+        {
+          "key": "attempt",
+          "valueKind": "Integer",
+          "value": "9223372036854775807",
+          "unit": "count",
+          "observedAtUtc": "2026-10-20T08:03:00.0000000Z",
+          "isDiagnostic": true
+        },
+        {
+          "key": "status",
+          "valueKind": "String",
+          "value": "waiting for another refresh",
+          "observedAtUtc": "2026-10-20T08:03:00.0000000Z",
+          "isDiagnostic": true
+        }
+      ]
+    },
+    {
+      "monitorId": "20000000-0000-0000-0000-000000000003",
+      "name": "queue-size",
+      "policy": "NumericThreshold",
+      "isCritical": false,
+      "state": "Healthy",
+      "registeredAtUtc": "2026-10-20T08:00:00.0000000Z",
+      "lastObservationAtUtc": "2026-10-20T08:02:00.0000000Z",
+      "numeric": {
+        "comparison": "GreaterThan",
+        "threshold": 10,
+        "unit": "items",
+        "lastValue": 10,
+        "lastValueAtUtc": "2026-10-20T08:02:00.0000000Z"
+      },
+      "measurements": [
+        {
+          "key": "connected",
+          "valueKind": "Boolean",
+          "value": true,
+          "observedAtUtc": "2026-10-20T08:02:00.0000000Z",
+          "isDiagnostic": true
+        },
+        {
+          "key": "optional-latency",
+          "valueKind": "Unavailable",
+          "unit": "ms",
+          "observedAtUtc": "2026-10-20T08:02:00.0000000Z",
+          "isDiagnostic": true
+        },
+        {
+          "key": "ratio",
+          "valueKind": "Number",
+          "value": 0.5,
+          "unit": "ratio",
+          "observedAtUtc": "2026-10-20T08:02:00.0000000Z",
+          "isDiagnostic": true
+        }
+      ]
+    },
+    {
+      "monitorId": "20000000-0000-0000-0000-000000000004",
+      "name": "required-cache",
+      "policy": "FirstSuccessAvailability",
+      "isCritical": true,
+      "state": "Healthy",
+      "registeredAtUtc": "2026-10-20T08:00:00.0000000Z",
+      "lastObservationAtUtc": "2026-10-20T08:03:00.0000000Z",
+      "diagnostic": {
+        "code": "RefreshFailed",
+        "message": "The previous usable data remains available.",
+        "isTruncated": false
+      },
+      "outcomes": {
+        "successful": "1",
+        "failed": "1",
+        "skipped": "0",
+        "expectedCanceled": "0",
+        "consecutiveFailures": "1",
+        "countersSaturated": false,
+        "lastOutcome": "Failed",
+        "lastSuccessAtUtc": "2026-10-20T08:01:00.0000000Z",
+        "lastFailureAtUtc": "2026-10-20T08:03:00.0000000Z",
+        "lastFailureDiagnostic": {
+          "code": "RefreshFailed",
+          "message": "The previous usable data remains available.",
+          "isTruncated": false
+        }
+      },
+      "collection": {
+        "inProgress": false,
+        "lastCompletedAtUtc": "2026-10-20T08:03:00.0000000Z",
+        "lastError": {
+          "code": "RefreshFailed",
+          "message": "The previous usable data remains available.",
+          "isTruncated": false
+        },
+        "lastErrorAtUtc": "2026-10-20T08:03:00.0000000Z"
+      },
+      "measurements": []
+    }
+  ]
+}

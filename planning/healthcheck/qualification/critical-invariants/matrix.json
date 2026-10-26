@@ -1,0 +1,226 @@
+{
+  "schema": "cis.healthcheck.critical-invariant-mutation-plan/v1-development",
+  "status": "Authored; no mutations or native tests executed by this plan",
+  "baseCommit": "0bf0c4c8d8c0c6646f591c634e66cfa480348aa6",
+  "productionRoot": "implementations/csharp/src/CIS.Core/",
+  "unitNamespace": "CIS.Tests.UnitTests.Healthcheck.",
+  "integrationNamespace": "CIS.Tests.IntegrationTests.Healthcheck.Reporting.",
+  "acceptance": {
+    "sourcePinAndUniqueAnchorRequired": true,
+    "oneMutationAtATimeInIsolatedWorkspace": true,
+    "restoreExactSourceBytesAfterEveryRow": true,
+    "freshSelectedProjectBuildBeforeEveryNativeMutant": true,
+    "finalFreshBuildAndFullUnmutatedBaselineRequired": true,
+    "baselineMustPass": true,
+    "mutantMustFailNamedNativeAssertion": true,
+    "onlyIntendedSourceLineValueAndDataRowAssertionEarnsKill": true,
+    "childExecutableDepsAndPinnedRuntimeConfigurationRequired": true,
+    "nativeSequencePointsExplicitPerAssertion": true,
+    "nativePrintedAssertionExpressionRequired": true,
+    "compilerFailureIsKill": false,
+    "timeoutIsKill": false,
+    "zeroTestsIsKill": false,
+    "minimumAutomaticMutationScore": 0.9,
+    "minimumLineCoverage": 0.95,
+    "minimumBranchCoverage": 0.9
+  },
+  "productionPins": [
+    {"path": "Healthcheck/Internal/State/HealthStateCoordinator.cs", "sha256": "3e3a89690b99a372eb4ca75b0e34ddea98551696794b8a43ca8823c26d1dbe04"},
+    {"path": "Healthcheck/Internal/State/HealthStateCoordinator.Collection.cs", "sha256": "a4d9049a2a1304a40d487584c708e85749f2e6a9f9305855bb690afa48315240"},
+    {"path": "Healthcheck/HealthCollectorRunner.cs", "sha256": "1844d21ec74d5a9efe1cf9f54ca203eb1b69f8a14636959ea449f62f5fa0a2f0"},
+    {"path": "Healthcheck/Execution/HealthExecutionBinder.cs", "sha256": "1854defb571eb52d4066f53a994d5fcd5125f359660fd33ef5ccd486926aef6a"},
+    {"path": "Healthcheck/Pipes/HealthPipeBudget.cs", "sha256": "fd0add01dd455a7d9ef94286c50484f5797e80a1917fbf7f9f44478ba3ab1d7f"},
+    {"path": "Healthcheck/Pipes/HealthPipeServer.cs", "sha256": "809ba1a493d6176e354f84209ea556ae21eb726e626b35eb7cc777956cdba12f"},
+    {"path": "Healthcheck/Pipes/HealthProbeClient.cs", "sha256": "ad5afc9bf1f19fddcbd478efd88616607c87262061c75da6cf97407a2994a512"},
+    {"path": "Healthcheck/Reporting/HealthReportProtocol.cs", "sha256": "7161117a6783177bdbd94173148902b4288b687ba80e6c78f5a009d861d5bebf"},
+    {"path": "Healthcheck/Reporting/BoundedHealthBuffer.cs", "sha256": "e34b0f0a266d2dc131f27da9cc0c368e1ddfacb3a6a55b7b24ede47f9a10ed83"}
+  ],
+  "assertionSources": {
+    "policy": "tests/CIS.Core.UnitTests/Healthcheck/Core/HealthcheckServicePolicyTests.cs",
+    "state": "tests/CIS.Core.UnitTests/Healthcheck/Core/HealthcheckStateSeamTests.cs",
+    "scheduling": "tests/CIS.Core.UnitTests/Healthcheck/Collection/HealthCollectorRunnerSchedulingTests.cs",
+    "lifecycle": "tests/CIS.Core.UnitTests/Healthcheck/Collection/HealthCollectorRunnerLifecycleTests.cs",
+    "facts": "tests/CIS.Core.UnitTests/Healthcheck/Execution/HealthExecutionFactValidationTests.cs",
+    "binder": "tests/CIS.Core.UnitTests/Healthcheck/Execution/HealthExecutionBinderTests.cs",
+    "formatter": "tests/CIS.Core.UnitTests/Healthcheck/Reporting/HealthReportFormatterTests.cs",
+    "protocol": "tests/CIS.Core.UnitTests/Healthcheck/Reporting/HealthReportProtocolTests.cs",
+    "pipe": "tests/CIS.Core.IntegrationTests/Healthcheck/Reporting/HealthcheckPipeTransportTests.cs",
+    "probe": "tests/CIS.Core.IntegrationTests/Healthcheck/Reporting/HealthcheckProbeProcessTests.cs"
+  },
+  "expectedFailures": {
+    "HC-M01": [{"source":"policy","line":168,"nativeLines":[167,168],"anchor":"Assert.AreEqual(HealthStatus.Healthy, noncriticalFailure.HealthStatus);","kind":"equal","expected":"Healthy","actual":"Unhealthy"}],
+    "HC-M02": [{"source":"policy","line":31,"anchor":"Assert.IsFalse(snapshot.Ready);","kind":"false"}],
+    "HC-M03": [{"source":"policy","line":634,"anchor":"Assert.IsFalse(finalReport.Ready);","kind":"false"}],
+    "HC-M04": [{"source":"policy","line":247,"anchor":"Assert.AreEqual(count == 3 ? MonitorState.Unhealthy : MonitorState.Healthy, observed.State);","kind":"equal","expected":"Unhealthy","actual":"Healthy"}],
+    "HC-M05": [{"source":"policy","line":259,"anchor":"Assert.AreEqual(0L, recovered.Outcomes.ConsecutiveFailures);","kind":"equal","expected":"0","actual":"1"}],
+    "HC-M06": [{"source":"policy","line":366,"anchor":"Assert.AreEqual(MonitorState.Healthy, usable.State);","kind":"equal","expected":"Healthy","actual":"Unhealthy"}],
+    "HC-M07": [{"source":"policy","line":558,"nativeLines":[556,558],"anchor":"Assert.AreEqual(0, after.Monitors.Count);","kind":"equal","expected":"0","actual":"1"}],
+    "HC-M08": [{"source":"state","line":126,"nativeLines":[123,126],"anchor":"Assert.AreEqual(HealthCollectionDisposition.Obsolete, attempt.Disposition);","kind":"equal","expected":"Obsolete","actual":"Committed"}],
+    "HC-M09": [{"source":"state","line":415,"nativeLines":[413,415],"anchor":"Assert.AreEqual(HealthCollectionDisposition.Obsolete, attempt.Disposition);","kind":"equal","expected":"Obsolete","actual":"Committed"}],
+    "HC-M10": [
+      {"source":"scheduling","line":324,"anchor":"Assert.AreEqual(2, scope.ActiveLeases);","kind":"equal","expected":"2","actual":"3"},
+      {"source":"scheduling","line":325,"anchor":"Assert.AreEqual(0, third.Collector.Acquisitions);","kind":"equal","expected":"0","actual":"1"},
+      {"source":"scheduling","line":330,"anchor":"Assert.AreEqual(2, scope.PeakLeases);","kind":"equal","expected":"2","actual":"3"}
+    ],
+    "HC-M11": [{"source":"lifecycle","line":462,"anchor":"Assert.IsFalse(pending.IsCompleted);","kind":"false"}],
+    "HC-M12": [{"source":"lifecycle","line":425,"anchor":"Assert.AreEqual(0, owner.Callbacks);","kind":"equal","expected":"0","actual":"1"}],
+    "HC-M13": [{"source":"facts","line":565,"anchor":"Assert.AreEqual(1L, scope.Monitor.Outcomes.Failed);","kind":"equal","expected":"1","actual":"2"}],
+    "HC-M14": [{"source":"binder","line":344,"nativeLines":[342,344],"anchor":"Assert.AreEqual(HealthFactDisposition.Obsolete, binding.Report(Outcome(id, 10, HealthExecutionOutcome.Failed)));","kind":"equal","expected":"Obsolete","actual":"Recorded"}],
+    "HC-M15": [{"source":"formatter","line":324,"anchor":"Assert.AreEqual(\"ReportTooLarge\", belowLimit.ErrorCode);","kind":"equal","expected":"ReportTooLarge","actual":"null"}],
+    "HC-M16": [{"source":"protocol","line":654,"anchor":"CollectionAssert.AreEqual(payload, actual);","kind":"array"}],
+    "HC-M17": [{"source":"protocol","line":65,"anchor":"Assert.IsFalse(HealthReportProtocol.TryParseRequest(HealthReportFormatterTests.ReadFixture(\"invalid\", \"duplicate-properties-request.txt\"), out _, out string? errorCode));","kind":"false"}],
+    "HC-M18": [{"source":"pipe","line":550,"anchor":"Assert.Fail(\"An expired total budget cannot commit any late complete reply.\");","kind":"fail","message":"An expired total budget cannot commit any late complete reply."}],
+    "HC-M19": [{"source":"probe","line":68,"anchor":"Assert.AreEqual(exit, result.Exit, result.Error);","expression":"Assert.AreEqual(exit, result.Exit)","kind":"equal","expected":"1","actual":"0","casePattern":"^ActualProbeProcessExitsExactlyForSelectedCompleteView \\((\"health\",True,True,True,1|\"readiness\",False,False,True,1|\"readiness\",True,True,True,1|\"details\",True,True,True,1)\\)$"}],
+    "HC-M20": [{"source":"probe","line":140,"anchor":"Assert.AreEqual(expectedExit, result.Exit, result.Error);","expression":"Assert.AreEqual(expectedExit, result.Exit)","kind":"equal","expected":"2","actual":"0","casePattern":"^RealProbeIndependentlyValidatesFragmentedWireResponses \\(\"inconsistent-ready\",2\\)$"}]
+  },
+  "mutations": [
+    {
+      "id": "HC-M01", "invariant": "Only active critical unhealthy monitors control aggregate health", "project": "UnitTests",
+      "path": "Healthcheck/Internal/State/HealthStateCoordinator.cs",
+      "find": "int criticalFailing = active.Values.Count(entry => entry.IsCritical && entry.State == MonitorState.Unhealthy);",
+      "replace": "int criticalFailing = active.Values.Count(entry => entry.State == MonitorState.Unhealthy);",
+      "test": "HealthcheckServicePolicyTests.CriticalFailureAloneControlsTheAggregateAndReadiness"
+    },
+    {
+      "id": "HC-M02", "invariant": "Readiness requires explicit successful startup", "project": "UnitTests",
+      "path": "Healthcheck/Internal/State/HealthStateCoordinator.cs",
+      "find": "ready = startupCompleted && !stopping && health == HealthStatus.Healthy;",
+      "replace": "ready = !stopping && health == HealthStatus.Healthy;",
+      "test": "HealthcheckServicePolicyTests.ConstructionPublishesAnEmptyHealthyApplicationBeforeStartup"
+    },
+    {
+      "id": "HC-M03", "invariant": "Stopping permanently closes readiness without manufacturing health failure", "project": "UnitTests",
+      "path": "Healthcheck/Internal/State/HealthStateCoordinator.cs",
+      "find": "ready = startupCompleted && !stopping && health == HealthStatus.Healthy;",
+      "replace": "ready = startupCompleted && health == HealthStatus.Healthy;",
+      "test": "HealthcheckServicePolicyTests.StoppingClosesAdmissionWhileExistingMonitorsAcceptFinalReports"
+    },
+    {
+      "id": "HC-M04", "invariant": "Consecutive failure policy breaches exactly at its explicit threshold", "project": "UnitTests",
+      "path": "Healthcheck/Internal/State/HealthStateCoordinator.cs",
+      "find": "entry.ConsecutiveFailures >= entry.FailureThreshold",
+      "replace": "entry.ConsecutiveFailures > entry.FailureThreshold",
+      "test": "HealthcheckServicePolicyTests.ConsecutiveFailuresBreachAtTheThresholdAndSuccessResetsOnlyTheStreak"
+    },
+    {
+      "id": "HC-M05", "invariant": "Actual success resets the failure streak to zero", "project": "UnitTests",
+      "path": "Healthcheck/Internal/State/HealthStateCoordinator.cs",
+      "find": "entry.ConsecutiveFailures = 0;", "replace": "entry.ConsecutiveFailures = 1;",
+      "test": "HealthcheckServicePolicyTests.ConsecutiveFailuresBreachAtTheThresholdAndSuccessResetsOnlyTheStreak"
+    },
+    {
+      "id": "HC-M06", "invariant": "Published availability survives subsequent refresh failure", "project": "UnitTests",
+      "path": "Healthcheck/Internal/State/HealthStateCoordinator.cs",
+      "find": ": (entry.HasUsableData ? MonitorState.Healthy : MonitorState.Unhealthy);",
+      "replace": ": MonitorState.Unhealthy;",
+      "test": "HealthcheckServicePolicyTests.AvailabilitySurvivesRefreshFailureUntilExplicitInvalidation"
+    },
+    {
+      "id": "HC-M07", "invariant": "Withdrawal removes the monitor contribution immediately", "project": "UnitTests",
+      "path": "Healthcheck/Internal/State/HealthStateCoordinator.cs",
+      "find": "active.Remove(entry.Id);", "replace": "active.ContainsKey(entry.Id);",
+      "test": "HealthcheckServicePolicyTests.WithdrawalRemovesContributionImmediatelyAndKeepsOnlyIdentityReadable"
+    },
+    {
+      "id": "HC-M08", "invariant": "Newer direct health observations defeat stale collection success", "project": "UnitTests",
+      "path": "Healthcheck/Internal/State/HealthStateCoordinator.Collection.cs",
+      "find": "bool healthFresh = operation.Attachment.Target.IsRequired && entry.HealthRevision == reservation.HealthObservationRevision;",
+      "replace": "bool healthFresh = operation.Attachment.Target.IsRequired;",
+      "test": "HealthcheckStateSeamTests.NewerDirectObservationDefeatsStaleCollectionSuccessAndFailure"
+    },
+    {
+      "id": "HC-M09", "invariant": "Newer direct success defeats stale required evaluation failure", "project": "UnitTests",
+      "path": "Healthcheck/Internal/State/HealthStateCoordinator.Collection.cs",
+      "find": "if (entry.HealthRevision != operation.Reservation.HealthObservationRevision)",
+      "replace": "if (entry.HealthRevision < operation.Reservation.HealthObservationRevision)",
+      "test": "HealthcheckStateSeamTests.StaleRequiredEvaluationErrorCannotReplaceANewerDirectSuccess"
+    },
+    {
+      "id": "HC-M10", "invariant": "Actual owner leases stay within global collector capacity", "project": "UnitTests",
+      "path": "Healthcheck/HealthCollectorRunner.cs",
+      "find": "if (operations.Count < capacity)\n                        {\n                            for (int examined",
+      "replace": "if (operations.Count <= capacity)\n                        {\n                            for (int examined",
+      "test": "HealthCollectorRunnerSchedulingTests.GlobalCapacityBoundsActualOwnerLeasesAcrossDifferentMonitors"
+    },
+    {
+      "id": "HC-M11", "invariant": "Collection attempt completion waits for actual lease cleanup", "project": "UnitTests",
+      "path": "Healthcheck/HealthCollectorRunner.cs",
+      "find": "try { await operation.Lease.DisposeAsync().ConfigureAwait(false); }",
+      "replace": "try { operation.Completion.TrySetResult(operation.Attempt ?? Retired()); await operation.Lease.DisposeAsync().ConfigureAwait(false); }",
+      "test": "HealthCollectorRunnerLifecycleTests.RegistrationWithdrawalCancelsButDoesNotDisposeDependenciesBeforeCallbackAndCleanupSettle"
+    },
+    {
+      "id": "HC-M12", "invariant": "The wrapper rejects retired reservations before invoking owner evaluation", "project": "UnitTests",
+      "path": "Healthcheck/HealthCollectorRunner.cs",
+      "find": "if (!state.TryEnter(operation.Reservation)) { operation.Reason = HealthCollectionCompletionReason.RetiredBeforeInvocation; }",
+      "replace": "if (operation.Reservation is null) { operation.Reason = HealthCollectionCompletionReason.RetiredBeforeInvocation; }",
+      "test": "HealthCollectorRunnerLifecycleTests.WithdrawalFromLeaseAcquisitionSuppressesInvocationButStillAwaitsAcquiredLeaseCleanup"
+    },
+    {
+      "id": "HC-M13", "invariant": "Concurrent identical execution outcomes count once", "project": "UnitTests",
+      "path": "Healthcheck/Execution/HealthExecutionBinder.cs",
+      "find": "HealthFactDisposition accepted = normalized.Kind == HealthExecutionFactKind.Outcome && !repeatedOutcome",
+      "replace": "HealthFactDisposition accepted = normalized.Kind == HealthExecutionFactKind.Outcome",
+      "test": "HealthExecutionFactValidationTests.DuplicateOutcomeMayEnrichAbsentContextWithoutIncrementingPolicyAgain",
+      "note": "Use the enriching duplicate case because exact repeats return earlier and cannot exercise this application guard."
+    },
+    {
+      "id": "HC-M14", "invariant": "Late first outcome below accepted high-water cannot rewind health", "project": "UnitTests",
+      "path": "Healthcheck/Execution/HealthExecutionBinder.cs",
+      "find": "executionId <= outcomeHighWater", "replace": "executionId < 0",
+      "test": "HealthExecutionBinderTests.FirstLateOutcomeBelowAcceptedHighWaterCannotRewindTheHealthObservation"
+    },
+    {
+      "id": "HC-M15", "invariant": "Committed formatter bytes cannot exceed the complete payload budget", "project": "UnitTests",
+      "path": "Healthcheck/Reporting/BoundedHealthBuffer.cs",
+      "find": "if (count > maximumBytes - output.WrittenCount) { throw new HealthReportTooLargeException(); }",
+      "replace": "if (count > maximumBytes) { throw new HealthReportTooLargeException(); }",
+      "test": "HealthReportFormatterTests.ExactEncodedBoundaryIncludesPipeEnvelopeAndEscapedBytes"
+    },
+    {
+      "id": "HC-M16", "invariant": "Framing reassembles the complete body before interpretation", "project": "UnitTests",
+      "path": "Healthcheck/Reporting/HealthReportProtocol.cs",
+      "find": "await stream.ReadExactlyAsync(payload, cancellationToken).ConfigureAwait(false);",
+      "replace": "if (await stream.ReadAsync(payload, cancellationToken).ConfigureAwait(false) == 0) { throw Invalid(); }",
+      "test": "HealthReportProtocolTests.FrameReaderReassemblesArbitraryPrefixAndBodyFragments"
+    },
+    {
+      "id": "HC-M17", "invariant": "Duplicate properties in unknown additive objects remain invalid", "project": "UnitTests",
+      "path": "Healthcheck/Reporting/HealthReportProtocol.cs",
+      "find": "!UnicodeScalarText.IsValid(name, int.MaxValue, allowControls: true) || !objects.Peek().Add(name)",
+      "replace": "!UnicodeScalarText.IsValid(name, int.MaxValue, allowControls: true)",
+      "test": "HealthReportProtocolTests.DuplicatePropertyInUnknownObjectIsRejectedUsingTheIndependentFixture"
+    },
+    {
+      "id": "HC-M18", "invariant": "A delayed timer callback cannot certify a late synchronous snapshot as success", "project": "IntegrationTests",
+      "path": "Healthcheck/Pipes/HealthPipeBudget.cs",
+      "find": "if (clock.GetElapsedTime(started) >= timeout)",
+      "replace": "if (clock.GetElapsedTime(started) >= TimeSpan.MaxValue)",
+      "test": "HealthcheckPipeTransportTests.ServerBudgetIncludesRequestAndSynchronousSnapshotWhenTimerCallbackIsDelayed",
+      "childMutation": false
+    },
+    {
+      "id": "HC-M19", "invariant": "A valid unhealthy selected report exits one and never falls through to zero", "project": "IntegrationTests",
+      "path": "Healthcheck/Pipes/HealthProbeClient.cs",
+      "find": "return parsed.SelectedHealthy ? 0 : 1;", "replace": "return 0;",
+      "test": "HealthcheckProbeProcessTests.ActualProbeProcessExitsExactlyForSelectedCompleteView",
+      "childMutation": true,
+      "requiredBuiltProject": "implementations/csharp/tools/CisHealthProbe/CisHealthProbe.csproj"
+    },
+    {
+      "id": "HC-M20", "invariant": "Probe rejects contradictory readiness even when JSON and framing are complete", "project": "IntegrationTests",
+      "path": "Healthcheck/Reporting/HealthReportProtocol.cs",
+      "find": "if (ready != (startup && !stopping && health == \"Healthy\")) { throw Invalid(); }",
+      "replace": "if (ready && !startup) { throw Invalid(); }",
+      "test": "HealthcheckProbeProcessTests.RealProbeIndependentlyValidatesFragmentedWireResponses",
+      "childMutation": true,
+      "requiredBuiltProject": "implementations/csharp/tools/CisHealthProbe/CisHealthProbe.csproj"
+    }
+  ],
+  "explicitRemainingBoundaries": [
+    "Actual external Heartbeat integration and generic IStartable coordinator do not exist in this candidate.",
+    "Full automatic Healthcheck mutation closure beyond the first selected state source remains unexecuted.",
+    "The CLI and HTTP fixture must load the mutated Core copy before child-process mutation results receive credit.",
+    "Linux permissions and platform lane, exact-package qualification, release six-family gates and real publication history remain separate."
+  ]
+}

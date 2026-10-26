@@ -9,6 +9,9 @@ namespace CIS.Tests.IntegrationTests;
 // Physical process observations shared by logging fixture tests.
 internal static class FixtureProcessChecks
 {
+    // Aggregate/cap fixtures emit complete native JSON reports up to 2.91 MB.
+    // Keep that authoritative stdout bounded independently from stderr diagnostics.
+    private const int MaximumStandardOutputBytes = 4 * 1024 * 1024;
     internal static string Family => OperatingSystem.IsWindows() ? "windows" : "linux";
     internal static string Lane => OperatingSystem.IsWindows() ? "windows-x64" : "linux-ubuntu2404-x64";
 
@@ -43,12 +46,15 @@ internal static class FixtureProcessChecks
         string parentDirectory = Directory.GetCurrentDirectory();
         Dictionary<string, string?> parent = ParentEnvironment();
         string[] command = ["exec", "--fx-version", "10.0.12", "--roll-forward", "Disable", host, .. arguments];
-        ProcessResult child = await ProcessRunner.RunAsync("dotnet", command, directory, timeout ?? TimeSpan.FromSeconds(15), environment, new UTF8Encoding(false, true));
+        ProcessResult child = await ProcessRunner.RunAsync("dotnet", command, directory, timeout ?? TimeSpan.FromSeconds(15), environment, new UTF8Encoding(false, true),
+            maximumCapturedStandardOutputBytes: MaximumStandardOutputBytes);
         Assert.AreEqual(parentDirectory, Directory.GetCurrentDirectory());
         Dictionary<string, string?> after = ParentEnvironment();
         CollectionAssert.AreEquivalent(parent.Keys.ToArray(), after.Keys.ToArray());
         Assert.IsTrue(parent.All(pair => after[pair.Key] == pair.Value), "Parent environment changed.");
         Assert.AreEqual(0, child.ExitCode, child.StandardOutput + child.StandardError);
+        Assert.IsFalse(child.CaptureTruncated, "A partial native stream cannot supply an authoritative fixture report.");
+        Assert.IsTrue(child.OutputDrained, "The native fixture pipes must be completely drained.");
         Assert.IsTrue(child.StandardOutputBytes.Length >= minimumStdoutBytes, "Stdout pipe pressure was not exercised.");
         Assert.IsTrue(child.StandardErrorBytes.Length >= minimumStderrBytes, "Stderr pipe pressure was not exercised.");
         JsonObject report;
@@ -76,8 +82,8 @@ internal static class FixtureProcessChecks
         }
         context.WriteLine("Physical logging fixture command: " + string.Join(" ", command));
         context.WriteLine("Physical child PID: " + child.ProcessId);
-        context.WriteLine(child.StandardOutput);
-        if (physicalStreams) { context.WriteLine(child.StandardError); }
+        context.WriteLine($"Physical child capture: stdoutBytes={child.StandardOutputTotalBytes}, stderrBytes={child.StandardErrorTotalBytes}, stdoutTruncated={child.StandardOutputTruncated}, stderrTruncated={child.StandardErrorTruncated}, outputDrained={child.OutputDrained}, stdoutBudgetBytes={MaximumStandardOutputBytes}.");
+        context.WriteLine($"Physical child inputs: fixtureSha256={hostHash}, coreSha256={coreHash}, inputsSha256={inputHash}.");
         return (report, child.ProcessId);
     }
 

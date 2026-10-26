@@ -1,0 +1,81 @@
+{
+  "schema": "cis.healthcheck.task-graph-refresh/v1-development",
+  "task": "HC06",
+  "recordedUtc": "2026-10-20T23:47:00.6203893Z",
+  "manifestSchema": 2,
+  "buildId": "sha256:294bcc395e461181989f362d0956e9bc5727df100d19c90f497488f37de33ff8",
+  "freshness": "fresh",
+  "status": "valid",
+  "nodes": 14885,
+  "edges": 79212,
+  "errors": 0,
+  "warnings": 0,
+  "extractors": [
+    "cis.catalog/1",
+    "cis.markdown.repository-profile/1",
+    "cis.markdown.reference-table/2",
+    "cis.markdown.governance-link/1",
+    "cis.markdown.api-governance/1",
+    "cis.api.state/1",
+    "cis.tracker.state/1",
+    "cis.markdown.decisions/1",
+    "cis.repository-files/1",
+    "cis.source-declarations/2",
+    "cis.csharp.compiler/6",
+    "cis.csharp.semantic-facts/3",
+    "cis.test-declarations/2",
+    "cis.project-dependencies/1",
+    "cis.github-actions/1",
+    "frontend-context/4"
+  ],
+  "compilerCapabilities": {
+    "compiler": "cis.csharp.compiler/6",
+    "semanticFacts": "cis.csharp.semantic-facts/3",
+    "symbols": 9951,
+    "referencedSymbols": 626,
+    "annotations": 5003,
+    "interfaceFacts": 377,
+    "calls": 31162,
+    "limits": "Privacy-safe invocation argument shapes and intraprocedural facts do not establish runtime outcomes or complete test bindings."
+  },
+  "runtimeInputs": {
+    "path": "planning/healthcheck/evidence/HC06/runtime-inputs.json",
+    "sha256": "3edcbf66bd0ce6ada47fb9945ef82a6a2150970c881e3361b908e7fbe1d641ca"
+  },
+  "build": {
+    "path": ".artifacts/healthcheck/HC03-HC06/graph-build-02.log",
+    "sha256": "28053f6ea765aa15cdd37ea7fb4cf01412b96169ace807601a4fca8568dbf2ee"
+  },
+  "statusReport": {
+    "path": ".artifacts/healthcheck/HC03-HC06/graph-status.log",
+    "sha256": "745f2137bdabd56f0c7f9af76a1ca75d12f6440348bcc7a4bd1d9d38d970960f"
+  },
+  "query": {
+    "root": "cislib::symbol::cis-core/project/implementations%2Fcsharp%2Fsrc%2FCIS.Core%2FCIS.Core.csproj/csharp/class/CIS.Healthcheck.HealthExecutionBinder",
+    "report": {
+      "path": ".artifacts/healthcheck/HC03-HC06/graph-find-binder.log",
+      "sha256": "4c210adf87f427b730ab2b4709d751dcf34efaf03a4f30250447ebd2f4b9a1dd"
+    },
+    "matches": 1,
+    "truncated": false
+  },
+  "omissions": [
+    "planning",
+    "implementations/csharp/verification",
+    "implementations/csharp/tests/fixtures/DiscoveryHost/historical",
+    "No complete semantic/test-binding coverage claim; native reports remain execution evidence."
+  ],
+  "initialGraphBuild": "sha256:cb738ddb8ac325ad00e23212505d66875ea52dea84008a46370aa92f8ae94763",
+  "initialStatus": "Fresh before dispatch; an editing-time service lookup reported expected staleness after new files were authored.",
+  "attempts": [
+    {
+      "path": ".artifacts/healthcheck/HC03-HC06/graph-build.log",
+      "outcome": "Sandbox denied generated-cache atomic rename; no valid refreshed graph credited."
+    },
+    {
+      "path": ".artifacts/healthcheck/HC03-HC06/graph-build-02.log",
+      "outcome": "Same local command outside sandbox passed."
+    }
+  ],
+  "graphStateManuallyEdited": false
+}

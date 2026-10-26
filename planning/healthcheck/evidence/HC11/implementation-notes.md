@@ -1,0 +1,52 @@
+# HC11 authoring and acceptance gap audit
+
+Authoring baseline: commit `f73ec9224c9263c3ca2e3bf929fcbac0e6d655fc`, containing HC03/HC06, with parallel HC04/HC05/HC09 work in the same checkout. Current user requested the preceding commit and remaining parallel work. Historical planning text saying no commit was authorized is an earlier snapshot, not current authority. This file records authored work and a read-only acceptance review; it does not mark any source case, task or release complete.
+
+## Owned artifacts
+
+- `docs/modules/healthcheck/README.md`, `usage.md`, `lifetime.md`, `transports.md`, and `country-list.md`.
+- `implementations/csharp/examples/healthcheck/CountryList/Program.cs` and `CountryCatalog.cs`.
+- This implementation note only under HC11 evidence. The coordinator owns the executable project, lockfile, solution, build policies, runtime execution and final receipts.
+
+The desired build transaction is a `net10.0` Web SDK executable with a source reference to the existing Core project, no new NuGets, and `Microsoft.AspNetCore.App` supplied by the Web SDK. It is a development source-reference example, not an exact-package reference consumer.
+
+The source uses actual `HealthcheckService`, `HealthExecutionBinder`, `HealthCollectorRunner`, `UseCisHealthcheck` and `HealthPipeServer` APIs. Reporting starts before explicit priming; the prime binding publishes critical usable-data availability. Only successful priming is followed by noncritical threshold-three refresh registration. Application startup completion is explicit, and normal periodic activation follows it. Failed priming retains an independent live critical startup condition and leaves reporting available without a recurring registration. Required refresh setup failure similarly retains a startup condition and prevents startup completion.
+
+The catalog's concrete lease protects the same owning source dependency until actual work and cleanup settle. Failed fetches retain the previously validated country array. Shutdown readiness is published from application stopping and again at explicit cleanup; owner work drains before dependency disposal and reporting shutdown. No replacement scope, generic startup coordinator, or invented Heartbeat implementation is supplied.
+
+Finite `--self-test` paths support success, `--fail-prime`, `--fail-refresh-registration` and `--fail-later-startup`. They assert actual Kestrel responses, business gating before/during actual in-progress priming, actual fact/collection updates, retained usable data after three failed refreshes, independent critical flag/clear, terminal stopping, and blocked-work owner/lease settlement. A registration fault uses actual monitor capacity; a later required response-contract step faults after usable publication. Failed priming additionally disposes its child availability monitor before checking that the independent startup failure remains. The deliberately blocked fetches are released by the self-test; they demonstrate actual completion boundaries without promising forced abortion. The JSON includes actual detached stage observations, owner drain observations and runtime description for independent native process assertions. The self-test does not execute the probe subprocess; separate native transport/process tests must do that.
+
+No compilation, test runner, graph build, Git operation, or protected-file mutation was run by the HC11 owner. All execution claims must come from the coordinator's actual candidate receipts. At authoring time HC04/HC05 source and tests are still being integrated; source review of newly appearing tests is not credited as execution.
+
+## Documentation checks
+
+Guidance follows C01–C09 and the preserved startup/country-list/shutdown requirements. It documents explicit environment resolution/defaults/bounds, stable errors, weak ownership, owner-held registrations, actual leases, no early slot release, manual versus periodic startup, binding ownership and fact limitations, HTTP details authorization/early reserved branch, bounded report errors, pipe framing/version/schema validation, one total monotonic budget, 0/1/2 probe exits, same-user/endpoint permissions, and HTTP/exec Kubernetes examples.
+
+Deployment details were checked against primary [Kubernetes probe documentation](https://kubernetes.io/docs/concepts/workloads/pods/probes/), [ASP.NET middleware documentation](https://learn.microsoft.com/en-us/aspnet/core/fundamentals/middleware/?view=aspnetcore-10.0) and [PipeOptions documentation](https://learn.microsoft.com/en-us/dotnet/api/system.io.pipes.pipeoptions?view=net-10.0). These sources support platform API/deployment guidance, not an executed repository/container/platform claim. No Linux success is inferred from .NET's `CurrentUserOnly` option or from Windows behavior.
+
+## Read-only acceptance audit
+
+Reviewed the preserved definition's HC-AT-01–59 table, current `acceptance-traceability.md`, task assignments, HC03/HC06 receipts/readmes, actual public source and representative native test declarations. The traceability/status files still describe the original foundation-only planning state; they require a new coordinator-owned evidence reconciliation rather than rewriting original source or historical receipts. Some search output was bounded/truncated; this review does not claim a complete automated test-binding map. Coordinator owns graph freshness and the final per-case native-ID evidence index.
+
+| Cases | Available local basis / remaining boundary |
+| --- | --- |
+| HC-AT-01–14, 17–18, 24–26, 29–31, 55–56 | Real policies/state/snapshot/configuration/collection implementations and retained HC00–HC03 native evidence exist. Map specific executed IDs and candidate hashes before changing acceptance status; source names alone are not proof. |
+| HC-AT-15–16, 19–23 | Real runner/state/binding lifetime tests exist, including withdrawal, leases, capacity, joins and weak ownership. CountryList adds a concrete originating-owner example; its execution must be recorded separately. |
+| HC-AT-27–28 | Snapshot/formatter evidence exists; newly authored HTTP/pipe tests must execute the actual combined candidate. Preserve one-response snapshot/status consistency and no collection-on-read evidence. |
+| HC-AT-32–36 | HC06 real monitor/binder sub-evidence exists. Full cases still need the actual Heartbeat adapter/scheduler: suitability before activation, successful duplicate registration reuse, false-versus-OnError behavior, final handoff isolation and actual owner protection. A direct fact producer cannot prove those scheduler behaviors. |
+| HC-AT-37 | Constructors/registers are inert in actual runtime tests; CountryList source contains no fetch/activation during container construction. Record actual example pre-prime HTTP/business assertions. |
+| HC-AT-38 | Explicit example ordering and runner activation can be demonstrated locally. Full source acceptance still requires real Heartbeat registration/activation gating. |
+| HC-AT-39–40 | Failed-prime example asserts no recurring registration, retained independent startup failure, no business admission and disposed-child removal. Execute it; generic coordinator integration remains external. |
+| HC-AT-41–42 | Example source handles actual monitor-capacity rejection during required refresh setup and a later required response-contract failure after usable priming. A source barrier keeps the actual prime task incomplete while HTTP readiness/business rejection is observed. Execute all four controlled modes and independently assert their actual stage records; a normal success record alone is insufficient. |
+| HC-AT-43 | Explicit external dependency: actual future IStartable coordinator instance identity/aliases, ordered invocation and at-most-once through faults/cancellation. Do not implement or silently waive it here. |
+| HC-AT-44–50 | HC04/HC05/HC09 authoring must be followed by actual Kestrel, local server and probe-process execution: complete GET/HEAD limits, error branch/cache behavior, snapshot equivalence, fragmented/invalid/timeout responses, capacity and handler drain. Helper codec passes do not qualify transports. |
+| HC-AT-51 | Linux matched-client/server endpoint and same/different-user permission context remain unexecuted until a real Linux lane runs. Kubernetes snippets are documentation, not evidence. |
+| HC-AT-52–53 | Real local collection/state drain sub-evidence exists; actual adapter-handler drain and CountryList owner lifetime must execute on the combined candidate. Final real Heartbeat owner handoff remains external. Canceled waits cannot close that evidence gap. |
+| HC-AT-54 | Local no-watchdog-authority and actual retained-capacity tests can qualify Healthcheck's side. Real external execution control plus Heartbeat nonoverlap after timeout remains external. |
+| HC-AT-57 | Apply the user-approved ASP.NET-in-Core amendment: assert the exact approved framework/dependency closure and policy/state independence from HTTP/DI/Heartbeat, not an assembly-wide ASP.NET prohibition. Run actual architecture/package checks on the final candidate. |
+| HC-AT-58 | Full six-family release evidence, measured coverage/mutation, claimed Windows/Linux lanes and exact-package examples remain separate. Empty publication history is not an executed historical compatibility pass. No publication is authorized. |
+| HC-AT-59 | Local owned/external binding retirement and actual settlement are implemented/tested in HC06. Full real unregister, automatic retirement, owner closure and scheduler shutdown causes remain dependent on actual Heartbeat integration. |
+
+Specific HC-AT-59 local anchors are `OwnedRetirementWithdrawsSynchronouslyAndAllSubsequentFactsReturnRetired`, `ExternalRetirementReleasesAssociationWithoutWithdrawingTheCallerOwnedMonitor`, `ExplicitDisposalWithdrawsOnlyAnOwnedMonitorAndIsIdempotent`, `RetiredOwnedBindingDisposalSharesTheActualCollectionSettlementBarrier`, `ExternalBindingDisposalDoesNotWaitForOrCancelExternalCollectionWork`, and `ExistingBindingAcceptsFinalOutcomeAndSettlementAfterStoppingClosesNewBindingAdmission` in `HealthExecutionBinderTests`. HC06's retained receipt identifies 170 new binding cases and the Developer checkpoint. These prove the receiving binding and ownership seam on that candidate, not an absent external scheduler.
+
+The remaining qualification work must preserve this split: implementation, authored tests/docs, actually executed local candidate, external integration acceptance, and release qualification are separate states.

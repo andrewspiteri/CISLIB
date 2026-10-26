@@ -7,7 +7,7 @@ namespace CIS.Tests.UnitTests;
 
 [TestClass]
 [TestCategory("FocusedLoop")]
-public sealed class FocusedTestsTests
+public sealed partial class FocusedTestsTests
 {
     private static readonly XNamespace Ns = "http://microsoft.com/schemas/VisualStudio/TeamTest/2010";
 

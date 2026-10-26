@@ -1,0 +1,241 @@
+{
+  "schema": "cis.healthcheck.shared-changes/v1-development",
+  "coordination": "One coordinator applies semantic shared edits; no whole-repository lock",
+  "baselineCommit": "5f36bbcb6fb26c1818c868bfb06ad701895bef1b",
+  "transactions": [
+    {
+      "id": "HC00-BUILD-01",
+      "status": "Applied",
+      "reason": "Current explicit user permits ASP.NET in the single Core package",
+      "paths": [
+        "implementations/csharp/src/CIS.Core/CIS.Core.csproj",
+        "implementations/csharp/eng/project-boundaries.json"
+      ],
+      "change": "Add explicit Microsoft.AspNetCore.App; retain approved two-NuGet closure via Core-only RestoreEnablePackagePruning=false",
+      "observation": "First Core locked restore failed NU1510 before the scoped pruning choice; subsequent locked restore passed",
+      "inputAndOutputIdentities": [
+        {
+          "path": "implementations/csharp/src/CIS.Core/CIS.Core.csproj",
+          "expectedBaseBlob": "7fe774bd2c9e7315f682c6a49517c45a41c7ccb3",
+          "appliedSha256": "3221ca1f66f9551e98f49aa5cd0af26b3d158f91abca43c7be48aa4f1d3b4a79"
+        },
+        {
+          "path": "implementations/csharp/eng/project-boundaries.json",
+          "expectedBaseBlob": "ad93eae76a77e0ef2fe297950a6c019aa5ea7ca3",
+          "appliedSha256": "f4b5a65ea8429a2dd1ed24d03e4f8457eef2454c6bbc8bf45134e0fb60f73ed3"
+        }
+      ]
+    },
+    {
+      "id": "HC00-BUILD-02",
+      "status": "Applied",
+      "reason": "Keep exact dependency rejection and reference origins coherent with the approved framework",
+      "writer": "/root/hc00_reference under exclusive coordinator grant, then coordinator review",
+      "paths": [
+        "implementations/csharp/eng/CIS.DependencyChecker/DependencyChecks.cs",
+        "implementations/csharp/eng/CIS.DependencyChecker/ArchitectureInspection.cs",
+        "implementations/csharp/eng/CIS.DependencyChecker/ArchitecturePolicy.cs",
+        "implementations/csharp/eng/CIS.DependencyChecker/TypeManagerExampleBoundaryChecks.cs",
+        "implementations/csharp/eng/CIS.DependencyChecker/TypeManagerExamplesVerification.cs",
+        "implementations/csharp/tests/CIS.Core.ArchitectureTests/ArchitectureAllowlistTests.cs",
+        "implementations/csharp/tests/CIS.Core.ArchitectureTests/ArchitectureViolationTests.cs",
+        "implementations/csharp/tests/CIS.Core.ArchitectureTests/DependencyBoundaryTests.cs",
+        "implementations/csharp/tests/CIS.Core.ArchitectureTests/DependencyMigrationTests.cs"
+      ],
+      "change": "Exact implicit/explicit metadata, presence/duplicates, pinned ASP ref origins, packed framework group and rejection controls; Core-backed host runtimeconfig expectations updated",
+      "observation": "Compiled checker passed all 29 evaluated projects; full checkpoint outcomes recorded in evidence",
+      "inputAndOutputIdentities": [
+        {
+          "path": "implementations/csharp/eng/CIS.DependencyChecker/DependencyChecks.cs",
+          "expectedBaseBlob": "231c42a13d68cf319799ae39304dcb62dac7befd",
+          "appliedSha256": "cb9a77329eeb78cd3e379e1404b1f9401daaf99f1b7b2bce0d23825474c87d46"
+        },
+        {
+          "path": "implementations/csharp/eng/CIS.DependencyChecker/ArchitectureInspection.cs",
+          "expectedBaseBlob": "cec80b4bb6dea84bc8f7d6abd156ae7945258fe6",
+          "appliedSha256": "599313c485e6c01f8496829d07a148a7b86f0adea98ae6d66705336d159c1835"
+        },
+        {
+          "path": "implementations/csharp/eng/CIS.DependencyChecker/ArchitecturePolicy.cs",
+          "expectedBaseBlob": "6592407b0b4ef2feebe0029b4ba2a7bd01c5e907",
+          "appliedSha256": "c0b5eb8ce345b333ad2b5f4431f1ed110424c2296c72abcf1c59624da9f1660b"
+        },
+        {
+          "path": "implementations/csharp/eng/CIS.DependencyChecker/TypeManagerExampleBoundaryChecks.cs",
+          "expectedBaseBlob": "265af5fbe5a3d531c3fb76f161d90a3df51cb855",
+          "appliedSha256": "d201986c3b55e24e6e795aaaae76b1cc75954555c09831ca7645f73885f6711b"
+        },
+        {
+          "path": "implementations/csharp/eng/CIS.DependencyChecker/TypeManagerExamplesVerification.cs",
+          "expectedBaseBlob": "747446c9e0191679886f95d0be3740d3247b4b20",
+          "appliedSha256": "0f466b5b9b88161074b06c66819f65694c17f575da4239021a67344dd8838691"
+        },
+        {
+          "path": "implementations/csharp/tests/CIS.Core.ArchitectureTests/ArchitectureAllowlistTests.cs",
+          "expectedBaseBlob": "6d5e95eb3431de1f7f4957af111f3ce88e091abf",
+          "appliedSha256": "ba765f7af9902f6db6f8b361f890cd46d055ff6464d2320897b136948c65b1b2"
+        },
+        {
+          "path": "implementations/csharp/tests/CIS.Core.ArchitectureTests/ArchitectureViolationTests.cs",
+          "expectedBaseBlob": "ea79171e8a1df8388f20318711162cba22bac054",
+          "appliedSha256": "138aa08e6fd71c6d33d2c9c1cc8d9f7f0081beebb66db5136734b472857c69f1"
+        },
+        {
+          "path": "implementations/csharp/tests/CIS.Core.ArchitectureTests/DependencyBoundaryTests.cs",
+          "expectedBaseBlob": "05d9ef09847567f652028badae6053f39cf00d40",
+          "appliedSha256": "82312787c2925959825dc5be818cc6a836a7d110df059aa919a0b7a7c35731b1"
+        },
+        {
+          "path": "implementations/csharp/tests/CIS.Core.ArchitectureTests/DependencyMigrationTests.cs",
+          "expectedBaseBlob": "63c856dd78ee2bfc1388be23351cedc0748c53f6",
+          "appliedSha256": "eddde0764598a94b2125436b4a2840cd54db7cb6aedf1af773c570b1f7639d96"
+        }
+      ]
+    },
+    {
+      "id": "HC00-BUILD-03",
+      "status": "Applied",
+      "reason": "Compile missing runtime API shapes without shipping placeholder behavior",
+      "paths": [
+        "implementations/csharp/CisLib.slnx",
+        "implementations/csharp/eng/project-boundaries.json",
+        "implementations/csharp/verification/contracts/healthcheck/Reference/Reference.csproj",
+        "implementations/csharp/verification/contracts/healthcheck/Reference/packages.lock.json",
+        "implementations/csharp/verification/contracts/healthcheck/Consumer/Consumer.csproj",
+        "implementations/csharp/verification/contracts/healthcheck/Consumer/packages.lock.json"
+      ],
+      "change": "Two nonpackable class libraries with explicit approved framework references; source consumers have no executable entry point; exact pruned package graphs registered",
+      "observation": "Locked solution restore and Debug consumer compilation passed; facade methods never executed",
+      "inputAndOutputIdentities": [
+        {
+          "path": "implementations/csharp/CisLib.slnx",
+          "expectedBaseBlob": "b486cc566c4e7901e81ac6665e3f0be9fc64998e",
+          "appliedSha256": "05d29bc314a9230d416b6d49f82668262122610889919c31cfdd1a43a8069a7e"
+        },
+        {
+          "path": "implementations/csharp/eng/project-boundaries.json",
+          "expectedBaseBlob": "ad93eae76a77e0ef2fe297950a6c019aa5ea7ca3",
+          "appliedSha256": "f4b5a65ea8429a2dd1ed24d03e4f8457eef2454c6bbc8bf45134e0fb60f73ed3"
+        },
+        {
+          "path": "implementations/csharp/verification/contracts/healthcheck/Reference/Reference.csproj",
+          "expectedBaseBlob": null,
+          "appliedSha256": "77dcaba7b1e8de00b77f6cef5a1d6462a83d1f5dd110b12da1fcf3beabc38e7b"
+        },
+        {
+          "path": "implementations/csharp/verification/contracts/healthcheck/Reference/packages.lock.json",
+          "expectedBaseBlob": null,
+          "appliedSha256": "68a751ab404d92e8caef12289bc7ac691e719d40ca65f5554c4824f4d0f12d22"
+        },
+        {
+          "path": "implementations/csharp/verification/contracts/healthcheck/Consumer/Consumer.csproj",
+          "expectedBaseBlob": null,
+          "appliedSha256": "b6174a2297a6dc133fd9fb53332fecf7b9eb9d54d78b52fe78e8941e34f7fd15"
+        },
+        {
+          "path": "implementations/csharp/verification/contracts/healthcheck/Consumer/packages.lock.json",
+          "expectedBaseBlob": null,
+          "appliedSha256": "381b758f3a6f1aa1d6a1e5ace49976e92283bad52952bc6a609131a188e15abb"
+        }
+      ]
+    },
+    {
+      "id": "HC00-BUILD-04",
+      "status": "Applied",
+      "reason": "Preserve exact-runtime child qualification after adding the transitive ASP.NET framework",
+      "paths": [
+        "implementations/csharp/tests/fixtures/DiscoveryHost/CIS.Core.DiscoveryFixture.csproj"
+      ],
+      "change": "Pin RuntimeFrameworkVersion=10.0.12 and RollForward=Disable for both generated shared-framework entries",
+      "observation": "Developer-04 integration exposed an ASP.NET 10.0.0 bootstrap requirement; 33 focused native integration cases pass after the correction",
+      "inputAndOutputIdentities": [
+        {
+          "path": "implementations/csharp/tests/fixtures/DiscoveryHost/CIS.Core.DiscoveryFixture.csproj",
+          "expectedBaseBlob": "9d29993e717ed28261e1df8e4b9e92e229a3e90f",
+          "appliedSha256": "77577f6a9173d7ced68e92b7e532ee23eb7448a5566e97b7a6dfdef8d4cf82bb"
+        }
+      ]
+    },
+    {
+      "id": "HC00-BUILD-05",
+      "status": "Applied",
+      "reason": "Verify actual shared-framework assembly identity and exact runtime in existing child-process fixtures",
+      "writer": "Two exclusive agent file grants followed by coordinator integration; no concurrent builds",
+      "paths": [
+        "implementations/csharp/tests/CIS.Core.IntegrationTests/ProviderReportProcess.cs",
+        "implementations/csharp/tests/CIS.Core.IntegrationTests/CandidatePackageFixture.cs",
+        "implementations/csharp/tests/fixtures/DiscoveryHost/ProviderHostFilterFixture.cs",
+        "implementations/csharp/verification/consumers/logging-candidate/Consumer.csproj.template"
+      ],
+      "change": "Report and verify LoggerFactory absolute shared-framework origin/hash/version; qualify candidate logging/DI against trusted pinned runtime bytes while retaining NuGet evidence and exact Core/package checks; pin both candidate frameworks to 10.0.12 with Disable roll-forward",
+      "observation": "Developer-05 exposed 47 fixture assumption failures after 2074 integration passes; all 64 selected native regressions passed after correction at .artifacts/csharp/focused/87ccb7c4205f4f898005e4b07c36ddcf",
+      "inputAndOutputIdentities": [
+        {
+          "path": "implementations/csharp/tests/CIS.Core.IntegrationTests/ProviderReportProcess.cs",
+          "expectedBaseBlob": "797ad631f0f188f2195cd698dec503e3520679c8",
+          "appliedSha256": "711f6c16ad3e9e0110ddac393c3d259f86784516b3ecbfd90fc89b5378c9662e"
+        },
+        {
+          "path": "implementations/csharp/tests/CIS.Core.IntegrationTests/CandidatePackageFixture.cs",
+          "expectedBaseBlob": "88241a2abea5f26266e1e7c8f79ae41c610d771d",
+          "appliedSha256": "23636b15547802f7184073b487c96bfc614f4931c553ba9be9817b4f07cb1a1c"
+        },
+        {
+          "path": "implementations/csharp/tests/fixtures/DiscoveryHost/ProviderHostFilterFixture.cs",
+          "expectedBaseBlob": "1c4401a5628b45b97f04af71474ab5e809e276e2",
+          "appliedSha256": "d6a7bc1552542e465dc0addc371bb18aa0828885e9f19f32481e25abc9bc2b75"
+        },
+        {
+          "path": "implementations/csharp/verification/consumers/logging-candidate/Consumer.csproj.template",
+          "expectedBaseBlob": "e99026768787c6c7ec3afeb2d8961764192608cf",
+          "appliedSha256": "201fa03009491819e58dae9ead0df7024d3f547c5dbe07c49a0d5d5b3d13fcfd"
+        }
+      ]
+    },
+    {
+      "id": "HC00-BUILD-06",
+      "status": "Applied",
+      "reason": "Update two remaining native architecture fixture assumptions for the exact approved shared frameworks",
+      "writer": "Coordinator runtime-policy edit plus exclusive hc00_reference negative-fixture grant",
+      "paths": [
+        "implementations/csharp/tests/CIS.Core.ArchitectureTests/TestRuntimePolicyTests.cs",
+        "implementations/csharp/tests/CIS.Core.ArchitectureTests/ArchitectureAllowlistTests.cs"
+      ],
+      "change": "Require exact NETCore+ASP runtimeconfig entries at the pinned version with Disable roll-forward; use an installed same-version but unselected target asset to retain the ARCH-COMPILER-ORIGIN negative control",
+      "observation": "All 39 selected architecture/runtime-policy cases passed; final Developer-09 passed all 7163 native cases with no failures/skips, including 1048 architecture cases",
+      "inputAndOutputIdentities": [
+        {
+          "path": "implementations/csharp/tests/CIS.Core.ArchitectureTests/TestRuntimePolicyTests.cs",
+          "expectedBaseBlob": "c7b4a54d21cf5b30a07752abe22168bacca18b96",
+          "expectedWorkingSha256": "589da92b4afbfea356f21b362e8be50e5feabb8c8cbf31e0472afb4a22a0d0e6",
+          "appliedSha256": "d71aeb1c0b803729a5b8096a56f972bf9d9ebf7d14fc6562ffae6a548cf7c3b4"
+        },
+        {
+          "path": "implementations/csharp/tests/CIS.Core.ArchitectureTests/ArchitectureAllowlistTests.cs",
+          "expectedBaseBlob": "6d5e95eb3431de1f7f4957af111f3ce88e091abf",
+          "expectedWorkingSha256": "290689404aebcb827ff52ddda62fe1041deddeee0a1bf38ce9e90d4aa5a89002",
+          "appliedSha256": "ba765f7af9902f6db6f8b361f890cd46d055ff6464d2320897b136948c65b1b2"
+        }
+      ]
+    }
+  ],
+  "contractChangesBeforeFreeze": [
+    "v0.1 attachment reconciled to working v0.2 with current ASP.NET/package/configuration decisions",
+    "Concrete value factories, scalar text limits, explicit identity bounds and immutable named snapshot construction fixed",
+    "Atomic collector attachment/reservation/settlement and execution binding state seams made concrete",
+    "ExecutionId decimal encoding, per-kind fact validation, NotInvoked status and terminal retirement rules fixed",
+    "Availability streak interpreted as outcome diagnostic independently of availability health; fixture corrected",
+    "Fixture rejection isolation and client-versus-writer ordering responsibilities clarified",
+    "Final independent review froze IHealthStateAccess with stable collection/execution state identities and binder/runner validation rules (C01/C04/C05); Developer-06 stopped before corrected candidate verification"
+  ],
+  "outOfScopeWrites": [],
+  "notPerformed": [
+    "CIS task import",
+    "new orchestration engine",
+    "external review payload",
+    "commit",
+    "push",
+    "publication",
+    "HC01-HC13 dispatch"
+  ]
+}

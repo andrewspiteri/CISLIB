@@ -30,6 +30,7 @@ internal sealed class TypeManagerCompatibilityFixture
     private static readonly string[] Dependencies = ["Microsoft.Extensions.Logging.Abstractions.dll", "Microsoft.Extensions.DependencyInjection.Abstractions.dll"];
     private readonly Dictionary<string, string?> environment;
     private readonly Dictionary<string, string> immutable = new(StringComparer.Ordinal);
+    private readonly Dictionary<string, ApprovedDependency> dependencies = new(StringComparer.Ordinal);
     private readonly Dictionary<string, Task<string>> builds = new(StringComparer.Ordinal);
     private readonly JsonObject report;
     private readonly JsonObject policy;
@@ -79,7 +80,25 @@ internal sealed class TypeManagerCompatibilityFixture
         foreach (string path in new[] { Core, Path.Combine(Language, "eng/toolchain.json"), Path.Combine(Language, "global.json"), Path.Combine(Root, "candidate-producer.json") }) { Pin(path); }
         if (producerPath is not null) { immutable.Add(Path.GetFullPath(producerPath), Convert.ToHexStringLower(SHA256.HashData(producerBytes!))); }
         else { Pin(Path.ChangeExtension(Core, ".pdb")); }
-        foreach (string name in Dependencies) { Pin(Path.Combine(Path.GetDirectoryName(Core)!, name)); }
+        // ASP.NET can satisfy these references from its shared framework instead of
+        // copying NuGet assets beside Core. Frozen consumers still receive only the
+        // independently locked NuGet bytes through their external dependency manifest.
+        string lockPath = Path.Combine(Language, "src/CIS.Core/packages.lock.json");
+        Pin(lockPath);
+        JsonObject locked = Read(lockPath)["dependencies"]!["net10.0"]!.AsObject();
+        string packages = Environment.GetEnvironmentVariable("NUGET_PACKAGES") ?? Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), ".nuget/packages");
+        foreach (string name in Dependencies)
+        {
+            string packageId = Path.GetFileNameWithoutExtension(name);
+            ApprovedDependency dependency = DependencyAsset(packages, packageId, locked[packageId]!.AsObject());
+            dependencies.Add(name, dependency);
+            Pin(dependency.SourcePath); Pin(dependency.ArchivePath);
+            Pin(dependency.RestoreMetadataPath); Pin(dependency.ArchiveSha512Path);
+            Require(immutable[dependency.SourcePath] == dependency.Sha256 && immutable[dependency.ArchivePath] == dependency.ArchiveSha256
+                && immutable[dependency.RestoreMetadataPath] == dependency.RestoreMetadataSha256
+                && immutable[dependency.ArchiveSha512Path] == dependency.ArchiveSha512FileSha256,
+                "Approved dependency changed while its inputs were pinned.");
+        }
         foreach (string relative in sources.Keys) { Pin(Path.Combine(Language, "src/CIS.Core", relative)); }
         foreach (string path in Directory.GetFiles(Path.Combine(Language, "tests/CIS.Core.CompatibilityTests"), "*.cs")) { Pin(path); }
         report = new JsonObject
@@ -91,6 +110,8 @@ internal sealed class TypeManagerCompatibilityFixture
             ["apiRuntime"] = policy["toolHostRuntime"]!.DeepClone(),
             ["originalBaselineManifestSha256"] = OriginalHash,
             ["behaviorBaselineManifestSha256"] = BehaviorHash,
+            ["approvedDependencies"] = JsonSerializer.SerializeToNode(dependencies.Values),
+            ["dependencyAttestation"] = "Locked NuGet restore metadata; separately checked raw archive SHA-512 and exact DLL ZIP entry. Signed-package content hash is not independently recomputed.",
             ["inputs"] = JsonSerializer.SerializeToNode(immutable),
             ["results"] = new JsonArray(),
             ["commands"] = new JsonArray()
@@ -172,7 +193,7 @@ internal sealed class TypeManagerCompatibilityFixture
         Require(Hash(candidate) == Hash(Path.Combine(directory, "CIS.Core.dll")), "Candidate copy differs.");
         foreach (string name in Dependencies)
         {
-            string source = Path.Combine(Path.GetDirectoryName(Core)!, name);
+            string source = dependencies[name].SourcePath;
             File.Copy(source, Path.Combine(directory, name), true);
             Require(Hash(Path.Combine(directory, name)) == immutable[source], "Dependency copy differs.");
         }
