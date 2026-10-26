@@ -1,5 +1,6 @@
 using System.Diagnostics;
 using System.IO.Pipes;
+using System.Runtime.ExceptionServices;
 using System.Text;
 using System.Text.Json.Nodes;
 using CIS.Healthcheck;
@@ -41,17 +42,79 @@ public sealed partial class HealthcheckProbeProcessTests
         }
         public async ValueTask DisposeAsync()
         {
+            var failures = new List<Exception>();
+            var actualDrains = new List<Task> { stdout, stderr };
+            bool exited = false;
             try
             {
-                if (!child.HasExited)
-                {
-                    MutationChildren.MarkForcedStop(child, "cleanup");
-                    child.Kill(entireProcessTree: true);
-                }
-                await child.WaitForExitAsync().WaitAsync(TransportTestSupport.Limit);
+                Task actualExit = child.WaitForExitAsync();
+                actualDrains.Add(actualExit);
+                // A body can fail while the probe is already completing its
+                // documented error exit. Join that real operation before
+                // asking to terminate an otherwise normally exiting child.
+                await actualExit.WaitAsync(TransportTestSupport.Limit);
+                exited = true;
             }
-            catch (TimeoutException) { MutationChildren.MarkTimeout(child, "probe-stop"); throw; }
-            finally { try { MutationChildren.CompleteLifecycle(child); } finally { child.Dispose(); } }
+            catch (TimeoutException error)
+            {
+                Add(error);
+                try { MutationChildren.MarkTimeout(child, "probe-cleanup-exit"); }
+                catch (Exception markerError) { Add(markerError); }
+            }
+            catch (Exception error) { Add(error); }
+            if (!exited)
+            {
+                bool needsStop = true;
+                try { needsStop = !child.HasExited; }
+                catch (Exception error) { Add(error); }
+                if (needsStop)
+                {
+                    try { MutationChildren.MarkForcedStop(child, "cleanup"); }
+                    catch (Exception error) { Add(error); }
+                    try { child.Kill(entireProcessTree: true); }
+                    catch (Exception error) { Add(error); }
+                }
+                try
+                {
+                    Task actualReap = child.WaitForExitAsync();
+                    actualDrains.Add(actualReap);
+                    await actualReap.WaitAsync(TransportTestSupport.Limit);
+                }
+                catch (Exception error) { Add(error); }
+            }
+            try { await Task.WhenAll(stdout, stderr).WaitAsync(TransportTestSupport.Limit); }
+            catch (TimeoutException error)
+            {
+                Add(error);
+                try { MutationChildren.MarkTimeout(child, "probe-cleanup-output"); }
+                catch (Exception markerError) { Add(markerError); }
+            }
+            catch (Exception error) { Add(error); }
+            try { MutationChildren.CompleteLifecycle(child); }
+            catch (Exception error) { Add(error); }
+            try { child.Dispose(); }
+            catch (Exception error) { Add(error); }
+            // Final cleanup may itself publish a reader failure. Observe every
+            // now-completed task AFTER both final attempts, without awaiting
+            // any still-pending task or certifying missing work as done.
+            foreach (Task actual in actualDrains)
+            {
+                if (actual.IsFaulted)
+                {
+                    foreach (Exception error in actual.Exception!.Flatten().InnerExceptions) { Add(error); }
+                }
+                else if (actual.IsCanceled)
+                {
+                    try { await actual; } catch (Exception error) { Add(error); }
+                }
+            }
+            if (failures.Count == 1) { ExceptionDispatchInfo.Capture(failures[0]).Throw(); }
+            if (failures.Count > 1) { throw new AggregateException("Actual probe cleanup did not settle normally.", failures); }
+
+            void Add(Exception error)
+            {
+                if (!failures.Any(existing => ReferenceEquals(existing, error))) { failures.Add(error); }
+            }
         }
     }
 
@@ -207,19 +270,137 @@ public sealed partial class HealthcheckProbeProcessTests
     public async Task OmittedViewAndValidUpperCliLimitsStillRequestAndEmitHealth(string option, string value)
     {
         string pipe = TransportTestSupport.NewPipeName();
-        await using var rawServer = NewRawServer(pipe);
+        var rawServer = NewRawServer(pipe);
         string[] arguments = option.Length == 0 ? ["--pipe", pipe] : ["--pipe", pipe, option, value];
-        await using var probe = new Probe(arguments);
-        using var timeout = new CancellationTokenSource(TransportTestSupport.Limit);
-        await rawServer.WaitForConnectionAsync(timeout.Token);
-        byte[] request = await TransportTestSupport.ReadFrameAsync(rawServer, timeout.Token);
-        Assert.AreEqual("{\"protocolVersion\":1,\"view\":\"health\"}", Encoding.UTF8.GetString(request));
-        string response = Response("healthy");
-        await TransportTestSupport.WriteFrameAsync(rawServer, Encoding.UTF8.GetBytes(response), cancellation: timeout.Token);
-        var result = await probe.Finish();
-        Assert.AreEqual(0, result.Exit, result.Error);
-        Assert.AreEqual(JsonNode.Parse(response)!["snapshot"]!.ToJsonString() + "\n", result.Output);
-        Assert.AreEqual("", result.Error);
+        using var timeout = new CancellationTokenSource();
+        using var connectionCancellation = CancellationTokenSource.CreateLinkedTokenSource(timeout.Token);
+        Probe? probe = null;
+        Task? childExit = null, connecting = null, fixtureCanceledConnection = null;
+        var actualDrains = new List<Task>();
+        var failures = new List<Exception>();
+        bool validArgumentsRejectedBeforeConnection = false;
+        try
+        {
+            probe = new Probe(arguments);
+            timeout.CancelAfter(TransportTestSupport.Limit);
+            childExit = probe.ActualChild.WaitForExitAsync();
+            actualDrains.AddRange([childExit, probe.ActualOutput, probe.ActualError]);
+            connecting = rawServer.WaitForConnectionAsync(connectionCancellation.Token);
+            actualDrains.Add(connecting);
+            if (await AwaitRequestProgress(connecting))
+            {
+                Task<byte[]> reading = TransportTestSupport.ReadFrameAsync(rawServer, timeout.Token);
+                actualDrains.Add(reading);
+                await AwaitRequestProgress(reading);
+                byte[] request = await reading;
+                Assert.AreEqual("{\"protocolVersion\":1,\"view\":\"health\"}", Encoding.UTF8.GetString(request));
+                string response = Response("healthy");
+                Task writing = TransportTestSupport.WriteFrameAsync(rawServer, Encoding.UTF8.GetBytes(response), cancellation: timeout.Token);
+                actualDrains.Add(writing);
+                await writing;
+                Task<(int Exit, string Output, string Error)> finishing = probe.Finish();
+                actualDrains.Add(finishing);
+                var result = await finishing;
+                Assert.AreEqual(0, result.Exit, result.Error);
+                Assert.AreEqual(JsonNode.Parse(response)!["snapshot"]!.ToJsonString() + "\n", result.Output);
+                Assert.AreEqual("", result.Error);
+            }
+        }
+        catch (Exception error) { Add(error); }
+
+        // Preserve every error already completed before fixture cancellation.
+        await ObserveCompleted();
+        if (validArgumentsRejectedBeforeConnection && failures.Count == 0
+            && connecting is { IsCompleted: false } && !timeout.IsCancellationRequested)
+        {
+            try
+            {
+                // Only this private token is canceled here. The server is still
+                // undisposed; its internal disposal token cannot cause this join.
+                connectionCancellation.Cancel();
+                await connecting.WaitAsync(TransportTestSupport.Limit);
+            }
+            catch (OperationCanceledException) when (connecting.IsCanceled
+                && connectionCancellation.IsCancellationRequested && !timeout.IsCancellationRequested)
+            {
+                // Exact fixture-created BCL connection wait only. Core frame,
+                // child, output and disposal tasks never use this exception rule.
+                fixtureCanceledConnection = connecting;
+            }
+            catch (Exception error) { Add(error); }
+        }
+        if (probe is not null)
+        {
+            try
+            {
+                Task disposingProbe = probe.DisposeAsync().AsTask();
+                actualDrains.Add(disposingProbe);
+                await disposingProbe.WaitAsync(TransportTestSupport.Limit);
+            }
+            catch (Exception error) { Add(error); }
+        }
+        try
+        {
+            Task disposingServer = rawServer.DisposeAsync().AsTask();
+            actualDrains.Add(disposingServer);
+            await disposingServer.WaitAsync(TransportTestSupport.Limit);
+        }
+        catch (Exception error) { Add(error); }
+        Task drains = Task.WhenAll(actualDrains.Where(actual => !ReferenceEquals(actual, fixtureCanceledConnection)));
+        try { await drains.WaitAsync(TransportTestSupport.Limit); }
+        catch (Exception error) { Add(error); }
+        // Final disposal can publish an original reader/task error. Observe it
+        // after both owners' cleanup, without treating pending work as complete.
+        await ObserveCompleted();
+        if (failures.Count == 1) { ExceptionDispatchInfo.Capture(failures[0]).Throw(); }
+        if (failures.Count > 1) { throw new AggregateException("The valid-request body or its actual child/server cleanup did not settle.", failures); }
+        if (validArgumentsRejectedBeforeConnection)
+        {
+            Assert.Fail("The documented valid default or inclusive upper CLI limit must be accepted and send its request before a response.");
+        }
+
+        async Task<bool> AwaitRequestProgress(Task progress)
+        {
+            await Task.WhenAny(progress, childExit!).WaitAsync(TransportTestSupport.Limit);
+            if (progress.IsCompleted) { await progress; return true; }
+            await childExit!;
+            await Task.WhenAll(probe!.ActualOutput, probe.ActualError).WaitAsync(TransportTestSupport.Limit);
+            if (progress.IsCompleted) { await progress; return true; }
+            string output = await probe.ActualOutput, error = await probe.ActualError;
+            string reason = error.Trim();
+            const string currentProgramLabel = "cis-health-probe:";
+            if (reason.StartsWith(currentProgramLabel, StringComparison.Ordinal)) { reason = reason[currentProgramLabel.Length..].Trim(); }
+            if (ReferenceEquals(progress, connecting) && probe.ActualChild.ExitCode == 2
+                && output.Length == 0 && error.Length <= 1024 && reason == "InvalidArguments")
+            {
+                validArgumentsRejectedBeforeConnection = true;
+                return false;
+            }
+            // No assertion promotion for EOF, a frame cancellation, unknown
+            // child failure or a timeout/transport diagnostic.
+            throw new InvalidOperationException("The actual probe exited before its pending request operation completed; exit=" + probe.ActualChild.ExitCode + "; stderr=" + error);
+        }
+
+        async Task ObserveCompleted()
+        {
+            foreach (Task actual in actualDrains)
+            {
+                if (actual.IsFaulted)
+                {
+                    foreach (Exception error in actual.Exception!.Flatten().InnerExceptions) { Add(error); }
+                }
+                else if (actual.IsCanceled
+                    && !(ReferenceEquals(actual, fixtureCanceledConnection) && !timeout.IsCancellationRequested))
+                {
+                    try { await actual; } catch (Exception error) { Add(error); }
+                }
+            }
+        }
+
+        void Add(Exception error)
+        {
+            if (!failures.Any(existing => ReferenceEquals(existing, error))) { failures.Add(error); }
+        }
     }
 
     [TestMethod]

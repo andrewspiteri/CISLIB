@@ -1,0 +1,7 @@
+# Capture source peer: selected493 cold-host control
+
+SOURCE CLEAR for Program.cs 7aafc852e39d016c9388f57fbe2e302160a3af735c0ef10e4748a56ecd31ccdf and SelectedNative.cs 5fcedd7a3ca1279b3108405856fff8d4fcc2133437e402c3d87e348afb917e31 in unit194-selected493-control-proposal. Complete two-source read, no reviewer build, metadata entry, Core invocation or native/subject launch.
+
+The fixed retained protocol7 frame and all19 ordered cached property bags are preserved by the stock serializer, with only Source rebound. Settings retain12275, the actual helper and collector identity; only selector(-1/493) and physical collector codebase change. Both outer and worker493 routes require the completed healthy19P receipt with the same external input SHA. The fresh wrapper and single exact-dotnet custom-host ownership retain120-second outer ownership,15/15 reap/drain, actual hostexit0 and error holds. Whole147 fixture/612 runner/collector manifests are checked before and after, with only the reviewed Unit pair changed. The actual instrumented Core SHA and instruction-aligned493 call to the static bool IsActive(int32) MethodDef are metadata-bound without loading/invoking Core.
+
+No concrete launch blocker found. Complete packet receiving additionally pins the probe/client sidecars. Metadata control success is distinct from future Linux outcomes. This source review makes no startup-causation, matching instrumented PDB, native kill-credit or historical proof-transfer claim.

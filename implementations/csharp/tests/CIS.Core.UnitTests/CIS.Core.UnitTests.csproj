@@ -133,4 +133,8 @@
     <Compile Include="../fixtures/DiscoveryHost/FlushCoordinationExpectations.cs" Link="FlushCoordinationExpectations.cs" />
     <Compile Include="../fixtures/DiscoveryHost/FlushCoordinationFixture.cs" Link="FlushCoordinationFixture.cs" />
   </ItemGroup>
+  <ItemGroup Condition="'$(CisMutationTesting)' == 'true' and '$(CisHealthcheckMutationCohort)' == 'true'">
+    <Compile Remove="@(Compile)" />
+    <Compile Include="Healthcheck/**/*.cs" />
+  </ItemGroup>
 </Project>

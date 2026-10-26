@@ -98,4 +98,12 @@
     <Copy SourceFiles="@(HealthcheckHttpFiles)" DestinationFolder="$(TargetDir)healthcheck-http-host" />
     <Copy SourceFiles="@(HealthcheckProbeFiles)" DestinationFolder="$(TargetDir)healthcheck-probe" />
   </Target>
+  <ItemGroup Condition="'$(CisMutationTesting)' == 'true' and '$(CisHealthcheckMutationCohort)' == 'true'">
+    <Compile Remove="@(Compile)" />
+    <Compile Include="Healthcheck/**/*.cs" />
+    <Compile Include="../../eng/CIS.DependencyChecker/HealthcheckQualification/Mutation/Children/HealthcheckMutationChildProtocol.cs" Link="Healthcheck/Mutation/HealthcheckMutationChildProtocol.cs" />
+    <Compile Include="../../eng/CIS.DependencyChecker/HealthcheckQualification/Mutation/Children/HealthcheckMutationChildSupport.cs" Link="Healthcheck/Mutation/HealthcheckMutationChildSupport.cs" />
+    <Compile Include="../../eng/CIS.DependencyChecker/HealthcheckQualification/Mutation/Children/HealthcheckMutationChildCapture.cs" Link="Healthcheck/Mutation/HealthcheckMutationChildCapture.cs" />
+    <Compile Include="../../eng/CIS.DependencyChecker/JsonlInputSelector.cs" Link="JsonlInputSelector.cs" />
+  </ItemGroup>
 </Project>

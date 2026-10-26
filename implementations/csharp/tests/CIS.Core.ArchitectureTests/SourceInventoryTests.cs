@@ -135,6 +135,7 @@ public sealed class SourceInventoryTests
     public async Task NativeCommandWritesJsonAndRejectsMissingRoots()
     {
         using var directory = new TemporaryDirectory();
+        using var diagnostics = new TemporaryDirectory();
         DirectoryInfo? language = new(AppContext.BaseDirectory);
         while (language is not null && !File.Exists(Path.Combine(language.FullName, "CisLib.slnx"))) { language = language.Parent; }
         Assert.IsNotNull(language);
@@ -142,12 +143,27 @@ public sealed class SourceInventoryTests
         string checker = Path.Combine(language.FullName, "eng", "CIS.DependencyChecker", "bin", configuration, "net10.0", "CIS.DependencyChecker.dll");
         Assert.IsTrue(File.Exists(checker), "Build the native checker before running its command control.");
         File.WriteAllText(Path.Combine(directory.Path, "input.txt"), "native command");
-        ProcessResult positive = await ProcessRunner.RunAsync("dotnet", [checker, "source-inventory", directory.Path], language.FullName, TimeSpan.FromSeconds(30));
+        string tracePath = Path.Combine(diagnostics.Path, "git.jsonl");
+        ProcessResult positive = await ProcessRunner.RunAsync("dotnet", [checker, "source-inventory", directory.Path], language.FullName, TimeSpan.FromSeconds(30),
+            environment: new Dictionary<string, string?> { ["CIS_SOURCE_INVENTORY_DIAGNOSTICS"] = tracePath });
         Assert.AreEqual(0, positive.ExitCode, positive.StandardError);
         using JsonDocument output = JsonDocument.Parse(positive.StandardOutput);
         Assert.AreEqual(1, output.RootElement.GetArrayLength());
         Assert.AreEqual("input.txt", output.RootElement[0].GetProperty("path").GetString());
         Assert.AreEqual(Convert.ToHexStringLower(SHA256.HashData(Encoding.UTF8.GetBytes("native command"))), output.RootElement[0].GetProperty("sha256").GetString());
+        string[] trace = File.ReadAllLines(tracePath);
+        Assert.HasCount(2, trace);
+        using JsonDocument started = JsonDocument.Parse(trace[0]);
+        Assert.AreEqual(8 * 1024 * 1024, started.RootElement.GetProperty("maximumCapturedStandardOutputBytes").GetInt32());
+        using JsonDocument completed = JsonDocument.Parse(trace[1]);
+        JsonElement capture = completed.RootElement;
+        Assert.AreEqual("completed", capture.GetProperty("event").GetString());
+        Assert.IsTrue(capture.GetProperty("processId").GetInt32() > 0);
+        Assert.AreEqual(capture.GetProperty("standardOutputBytes").GetInt64(), capture.GetProperty("standardOutputTotalBytes").GetInt64());
+        Assert.AreEqual(capture.GetProperty("standardErrorBytes").GetInt64(), capture.GetProperty("standardErrorTotalBytes").GetInt64());
+        Assert.IsFalse(capture.GetProperty("standardOutputTruncated").GetBoolean());
+        Assert.IsFalse(capture.GetProperty("standardErrorTruncated").GetBoolean());
+        Assert.IsTrue(capture.GetProperty("outputDrained").GetBoolean());
 
         ProcessResult negative = await ProcessRunner.RunAsync("dotnet", [checker, "source-inventory", Path.Combine(directory.Path, "missing")], language.FullName, TimeSpan.FromSeconds(30));
         Assert.AreEqual(1, negative.ExitCode, negative.StandardError);

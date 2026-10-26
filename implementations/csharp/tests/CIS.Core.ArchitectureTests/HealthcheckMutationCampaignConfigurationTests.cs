@@ -5,7 +5,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 namespace CIS.Tests.ArchitectureTests;
 
 [TestClass]
-public sealed class HealthcheckMutationCampaignConfigurationTests
+public sealed partial class HealthcheckMutationCampaignConfigurationTests
 {
     [TestMethod]
     [DataRow("unit-runtime", 10000)]

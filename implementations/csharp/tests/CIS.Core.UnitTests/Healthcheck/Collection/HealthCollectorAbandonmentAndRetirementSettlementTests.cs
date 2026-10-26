@@ -1,4 +1,5 @@
 using System.Runtime.CompilerServices;
+using System.Runtime.ExceptionServices;
 using System.Threading.Channels;
 using CIS.Healthcheck;
 using CIS.Healthcheck.Internal;
@@ -25,6 +26,7 @@ public sealed class HealthCollectorAbandonmentAndRetirementSettlementTests
         var unusedOwner = new RefusingOwner();
         var monitors = new List<IConsecutiveFailureMonitor>();
         var callers = new List<Task<HealthCollectionAttempt>>();
+        var operations = new List<Task<HealthCollectionAttempt>>();
         bool assertionsCompleted = false;
         IHealthCollectionRegistration? occupied = null, sentinel = null, replacement = null;
         try
@@ -44,6 +46,7 @@ public sealed class HealthCollectorAbandonmentAndRetirementSettlementTests
             Task<HealthCollectionAttempt> occupiedCaller = occupied.CollectAsync();
             callers.Add(occupiedCaller);
             Invocation occupiedInvocation = await occupiedOwner.NextForPendingCallerAsync(occupiedCaller);
+            operations.Add(occupied.CollectAsync());
 
             AbandonedCaller abandoned = QueueAndForgetRegistration(runner, retainedMonitor, unusedOwner);
             for (int attempt = 0; attempt < 10 && abandoned.Handle.IsAlive; attempt++)
@@ -57,6 +60,7 @@ public sealed class HealthCollectorAbandonmentAndRetirementSettlementTests
             callers.Add(sentinelCaller);
             occupiedInvocation.Release();
             Invocation sentinelInvocation = await sentinelOwner.NextForPendingCallerAsync(sentinelCaller);
+            operations.Add(sentinel.CollectAsync());
             Assert.IsTrue(abandoned.Caller.IsCompletedSuccessfully, "The next real owner enters only after the dispatcher sweeps the lost queued registration.");
             Assert.AreEqual(HealthCollectionDisposition.Retired, abandoned.Caller.Result.Disposition);
             Assert.AreEqual(0, unusedOwner.Acquisitions);
@@ -70,9 +74,9 @@ public sealed class HealthCollectorAbandonmentAndRetirementSettlementTests
             callers.Add(replacementCaller);
             sentinelInvocation.Release();
             Invocation replacementInvocation = await replacementOwner.NextForPendingCallerAsync(replacementCaller);
+            operations.Add(replacement.CollectAsync());
             replacementInvocation.Release();
-            HealthCollectionAttempt[] results = await Task.WhenAll(callers).WaitAsync(Deadline);
-            Assert.IsTrue(results.All(result => result.Disposition == HealthCollectionDisposition.Committed));
+            await Task.WhenAll(operations).WaitAsync(Deadline);
             Assert.AreEqual(1, replacementOwner.Acquisitions);
             Assert.AreEqual(1, replacementOwner.Cleanups);
             HealthMonitorSnapshot observed = service.CaptureSnapshot().Monitors.Single(monitor => monitor.MonitorId == retainedMonitor.MonitorId);
@@ -88,21 +92,24 @@ public sealed class HealthCollectorAbandonmentAndRetirementSettlementTests
             // the tested omission strands the runner's managed closing counter.
             Task stop = runner.StopAsync();
             foreach (GatedOwner owner in new[] { occupiedOwner, sentinelOwner, replacementOwner }) { owner.ReleaseAll(); }
-            await Task.WhenAll(callers).WaitAsync(Deadline);
+            await Task.WhenAll(operations).WaitAsync(Deadline);
             await clock.TimerDisposed.Task.WaitAsync(Deadline);
-            foreach (GatedOwner owner in new[] { occupiedOwner, sentinelOwner, replacementOwner })
-            { Assert.AreEqual(owner.Acquisitions, owner.Cleanups, "Every actually acquired owner lease must be cleaned up."); }
             await service.DisposeAsync().AsTask().WaitAsync(Deadline);
             if (assertionsCompleted || stop.IsCompleted)
             {
                 await stop.WaitAsync(Deadline);
                 await runner.DisposeAsync().AsTask().WaitAsync(Deadline);
             }
+            await ObserveCompletedCallersAsync(callers);
+            foreach (GatedOwner owner in new[] { occupiedOwner, sentinelOwner, replacementOwner })
+            { Assert.AreEqual(owner.Acquisitions, owner.Cleanups, "Every actually acquired owner lease must be cleaned up."); }
             GC.KeepAlive(occupied);
             GC.KeepAlive(sentinel);
             GC.KeepAlive(replacement);
             GC.KeepAlive(monitors);
         }
+        HealthCollectionAttempt[] results = await AssertOriginalCallersCompleteAsync(callers);
+        Assert.IsTrue(results.All(result => result.Disposition == HealthCollectionDisposition.Committed));
     }
 
     [TestMethod]
@@ -191,6 +198,26 @@ public sealed class HealthCollectorAbandonmentAndRetirementSettlementTests
         return result;
     }
     private sealed record AbandonedCaller(WeakReference Handle, Task<HealthCollectionAttempt> Caller);
+    private static async Task<HealthCollectionAttempt[]> AssertOriginalCallersCompleteAsync(IEnumerable<Task<HealthCollectionAttempt>> callers)
+    {
+        Task<HealthCollectionAttempt>[] original = callers.ToArray();
+        await ObserveCompletedCallersAsync(original);
+        Assert.IsTrue(original.All(caller => caller.IsCompleted),
+            "The original queued callers must complete after all actual operations and resources have settled.");
+        return await Task.WhenAll(original);
+    }
+    private static async Task ObserveCompletedCallersAsync(IEnumerable<Task<HealthCollectionAttempt>> original)
+    {
+        var errors = new List<Exception>();
+        foreach (Task<HealthCollectionAttempt> caller in original)
+        {
+            if (!caller.IsCompleted) { continue; }
+            try { await caller; }
+            catch (Exception error) { errors.Add(error); }
+        }
+        if (errors.Count == 1) { ExceptionDispatchInfo.Capture(errors[0]).Throw(); }
+        if (errors.Count > 1) { throw new AggregateException("The original queued callers failed after actual settlement.", errors); }
+    }
     private sealed class Invocation
     {
         internal TaskCompletionSource Released { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);

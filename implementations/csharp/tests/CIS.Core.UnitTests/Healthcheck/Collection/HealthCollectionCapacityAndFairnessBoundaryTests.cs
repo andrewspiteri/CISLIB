@@ -1,3 +1,6 @@
+using System.Diagnostics;
+using System.Runtime.CompilerServices;
+using System.Runtime.ExceptionServices;
 using System.Threading.Channels;
 using CIS.Healthcheck;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -10,19 +13,41 @@ public sealed class HealthCollectionCapacityAndFairnessBoundaryTests
     private static readonly TimeSpan Deadline = TimeSpan.FromSeconds(10);
 
     [TestMethod]
-    [DataRow(false, false)]
-    [DataRow(false, true)]
-    [DataRow(true, false)]
-    [DataRow(true, true)]
-    public async Task FullMetricCapacityDistinguishesUpdatesFromEntirelyNewKeys(bool required, bool onlyNew)
+    public async Task FullMetricCapacityDistinguishesUpdatesFromEntirelyNewKeys()
     {
-        var service = Service();
+        CapacityStartupOwnershipPrerequisite.AssertSettledStart();
+        foreach ((bool required, bool onlyNew) in new[] { (false, false), (false, true), (true, false), (true, true) })
+        {
+            CapacityObservation observation = RunAndReleaseCapacityScenario(required, onlyNew);
+            AssertCapacityOwnersReleased(observation);
+            await AssertCapacityObservationAsync(observation, required, onlyNew);
+        }
+    }
+
+    [MethodImpl(MethodImplOptions.NoInlining)]
+    private static CapacityObservation RunAndReleaseCapacityScenario(bool required, bool onlyNew)
+        => RunCapacityScenarioAsync(required, onlyNew).GetAwaiter().GetResult();
+
+    private static async Task<CapacityObservation> RunCapacityScenarioAsync(bool required, bool onlyNew)
+    {
+        var clock = new CompletionPhaseClock();
+        var service = Service(clock);
+        List<WeakReference> owners = [new(clock), new(service)];
         IConditionMonitor? monitor = null;
         HealthCollectorRunner? runner = null;
         IHealthCollectionRegistration? registration = null;
+        FixedOwner? owner = null;
+        Task<HealthCollectionAttempt>? queued = null;
+        Task<HealthCollectionAttempt>? operation = null;
+        Task? startup = null;
+        Task? cleanup = null;
+        Task[] actualDrains = [];
+        List<Task> publicDrains = [];
+        Exception? primary = null;
         try
         {
             monitor = service.CreateCondition(new() { IsCritical = true, InitiallyFlagged = false });
+            owners.Add(new(monitor));
             DateTimeOffset beforeAt = DateTimeOffset.UtcNow;
             for (int index = 0; index < 32; index++)
             { monitor.ReportMeasurement(HealthMeasurement.Integer(Key(index), index, beforeAt)); }
@@ -33,47 +58,188 @@ public sealed class HealthCollectionCapacityAndFairnessBoundaryTests
             HealthCollectionResult result = required ? HealthCollectionResult.Condition(true).WithMeasurements(measurements)
                 : HealthCollectionResult.Diagnostics(measurements);
             runner = new HealthCollectorRunner(service);
-            registration = runner.Register(monitor, new FixedOwner(result), new() { IsRequired = required });
-            await runner.StartAsync().WaitAsync(Deadline);
+            owners.Add(new(runner));
+            owner = new FixedOwner(result, clock);
+            owners.Add(new(owner));
+            registration = runner.Register(monitor, owner, new() { IsRequired = required });
+            owners.Add(new(registration));
+            startup = runner.StartAsync();
+            await startup.WaitAsync(Deadline);
 
-            HealthCollectionAttempt attempt = await registration.CollectAsync().WaitAsync(Deadline);
+            queued = registration.CollectAsync();
+            await Task.WhenAny(owner.Entered.Task, queued).WaitAsync(Deadline);
+            if (queued.IsCompleted)
+            {
+                await queued;
+                Assert.Fail("The manual collection cannot complete before its actual evaluation is released.");
+            }
+            await owner.Entered.Task.WaitAsync(Deadline);
+            operation = registration.CollectAsync();
+            owner.Release();
+            // The real lease arms only its own execution flow. In the pinned
+            // runner the next timestamp on that flow follows actual state
+            // settlement. Observe it before any withdrawal can repair a
+            // missing finalization; cleanup cannot satisfy this body wait.
+            await clock.AfterActualSettlement.Task.WaitAsync(Deadline);
 
             HealthMonitorSnapshot snapshot = service.CaptureSnapshot().Monitors.Single();
-            Assert.AreEqual(HealthCollectionDisposition.Committed, attempt.Disposition);
-            Assert.AreEqual(onlyNew && !required, attempt.EvaluationFailed);
-            Assert.AreEqual(32, snapshot.Measurements.Count);
-            Assert.AreEqual(required ? MonitorState.Unhealthy : MonitorState.Healthy, snapshot.State);
-            Assert.IsFalse(snapshot.Measurements.Any(measurement => measurement.Key == "new-only"));
-            foreach (int index in Enumerable.Range(0, 32))
-            {
-                HealthMeasurement observed = snapshot.Measurements.Single(measurement => measurement.Key == Key(index));
-                Assert.AreEqual(onlyNew ? (long)index : 1_000L + index, observed.IntegerValue);
-                Assert.AreEqual(onlyNew ? beforeAt : afterAt, observed.ObservedAtUtc);
-            }
-            if (onlyNew)
-            {
-                Assert.IsNotNull(attempt.Diagnostic);
-                Assert.AreEqual("Healthcheck.MeasurementCapacity", attempt.Diagnostic!.Code);
-                Assert.AreSame(attempt.Diagnostic, snapshot.Collection!.LastError);
-            }
-            else
-            {
-                Assert.IsNull(attempt.Diagnostic);
-                Assert.IsNull(snapshot.Collection!.LastError);
-            }
-            if (!required) { Assert.AreEqual(before.Monitors.Single().LastObservationAtUtc, snapshot.LastObservationAtUtc); }
-            Assert.IsTrue(before.Monitors.Single().Measurements.All(measurement => measurement.ObservedAtUtc == beforeAt));
-            GC.KeepAlive(monitor);
+            await CleanupAsync();
+            // Only detached snapshots, original notification Tasks and weak
+            // references escape this completed async task/NoInlining capsule.
+            return new(queued, operation, snapshot, before, beforeAt, afterAt, owners.ToArray());
         }
+        catch (Exception error) { primary = error; throw; }
         finally
         {
-            await DrainAsync(service, runner, registration is null ? [] : [registration], monitor is null ? [] : [monitor]);
+            owner?.Release();
+            List<Exception> errors = primary is null ? [] : [primary];
+            Task ownedCleanup = CleanupAsync();
+            try { await ownedCleanup; }
+            catch (Exception error) { RecordTaskError(ownedCleanup, error); }
+            foreach (Task actual in actualDrains.Concat(publicDrains).Concat(startup is null ? [] : new[] { startup }))
+            {
+                if (!actual.IsCompleted) { continue; }
+                try { await actual; }
+                catch (Exception error) { RecordTaskError(actual, error); }
+            }
+            foreach (Task caller in new Task?[] { queued, operation }.OfType<Task>())
+            {
+                if (!caller.IsCompleted) { continue; }
+                try { await caller; }
+                catch (Exception error) { RecordTaskError(caller, error); }
+            }
+            GC.KeepAlive(monitor);
+            if (errors.Count == 1) { ExceptionDispatchInfo.Capture(errors[0]).Throw(); }
+            if (errors.Count > 1) { throw new AggregateException("The actual capacity scenario, caller or cleanup failed.", errors); }
+
+            void RecordTaskError(Task actual, Exception error)
+            {
+                if (error is TimeoutException) { Add(error); }
+                if (actual.Exception is { } aggregate) { foreach (Exception inner in aggregate.InnerExceptions) { Add(inner); } }
+                else { Add(error); }
+            }
+            void Add(Exception error) { if (!errors.Any(existing => ReferenceEquals(existing, error))) { errors.Add(error); } }
         }
+
+        Task CleanupAsync() => cleanup ??= DrainOnceAsync();
+        async Task DrainOnceAsync()
+        {
+            // Own each actual public shutdown once. Re-entering finally observes this same
+            // bounded attempt; an incomplete shutdown remains a timeout, never settlement.
+            Task collector = DrainRunnerAsync();
+            Task state = DrainServiceAsync();
+            Task association = DrainRegistrationAsync();
+            Task source = DrainMonitorAsync();
+            // Public caller notifications are checked after these actual
+            // resource barriers; a lost notification cannot fence itself.
+            actualDrains = [collector, state, association, source];
+            await Task.WhenAll(actualDrains).WaitAsync(Deadline);
+        }
+        async Task DrainRunnerAsync()
+        {
+            if (runner is null) { return; }
+            Task actual = runner.DisposeAsync().AsTask();
+            publicDrains.Add(actual);
+            await actual;
+        }
+        async Task DrainServiceAsync()
+        {
+            Task actual = service.DisposeAsync().AsTask();
+            publicDrains.Add(actual);
+            await actual;
+        }
+        async Task DrainRegistrationAsync()
+        {
+            if (registration is null) { return; }
+            Task actual = registration.DisposeAsync().AsTask();
+            publicDrains.Add(actual);
+            await actual;
+        }
+        async Task DrainMonitorAsync()
+        {
+            if (monitor is null) { return; }
+            Task actual = monitor.DisposeAsync().AsTask();
+            publicDrains.Add(actual);
+            await actual;
+        }
+    }
+
+    private sealed record CapacityObservation(Task<HealthCollectionAttempt> Queued, Task<HealthCollectionAttempt> Follower,
+        HealthMonitorSnapshot Snapshot, HealthSnapshot Before, DateTimeOffset BeforeAt, DateTimeOffset AfterAt, WeakReference[] Owners);
+
+    private static void AssertCapacityOwnersReleased(CapacityObservation observation)
+    {
+        List<Exception> errors = [];
+        try
+        {
+            var elapsed = Stopwatch.StartNew();
+            while (observation.Owners.Any(owner => owner.IsAlive) && elapsed.Elapsed < Deadline)
+            {
+                GC.Collect();
+                GC.WaitForPendingFinalizers();
+                GC.Collect();
+                Thread.Sleep(1);
+            }
+            if (observation.Owners.Any(owner => owner.IsAlive))
+            {
+                throw new InvalidOperationException("The actual capacity execution owner graph remains live after successful resource cleanup.");
+            }
+        }
+        catch (Exception error) { errors.Add(error); }
+        // Preserve original caller errors even if owner death itself failed.
+        // Never wait for a pending notification while observing those errors.
+        foreach (Task caller in new Task[] { observation.Queued, observation.Follower })
+        {
+            if (!caller.IsCompleted) { continue; }
+            try { caller.GetAwaiter().GetResult(); }
+            catch (Exception error)
+            {
+                if (caller.Exception is { } aggregate) { foreach (Exception inner in aggregate.InnerExceptions) { Add(inner); } }
+                else { Add(error); }
+            }
+        }
+        if (errors.Count == 1) { ExceptionDispatchInfo.Capture(errors[0]).Throw(); }
+        if (errors.Count > 1) { throw new AggregateException("Actual capacity owner or original caller failures remain unresolved.", errors); }
+        void Add(Exception error) { if (!errors.Any(existing => ReferenceEquals(existing, error))) { errors.Add(error); } }
+    }
+
+    private static async Task AssertCapacityObservationAsync(CapacityObservation observation, bool required, bool onlyNew)
+    {
+        await AssertOriginalCallersCompleteAsync(observation.Queued, observation.Follower);
+        HealthCollectionAttempt attempt = await observation.Queued;
+        HealthMonitorSnapshot snapshot = observation.Snapshot;
+        HealthSnapshot before = observation.Before;
+        DateTimeOffset beforeAt = observation.BeforeAt, afterAt = observation.AfterAt;
+        Assert.AreEqual(HealthCollectionDisposition.Committed, attempt.Disposition);
+        Assert.AreEqual(onlyNew && !required, attempt.EvaluationFailed);
+        Assert.AreEqual(32, snapshot.Measurements.Count);
+        Assert.AreEqual(required ? MonitorState.Unhealthy : MonitorState.Healthy, snapshot.State);
+        Assert.IsFalse(snapshot.Measurements.Any(measurement => measurement.Key == "new-only"));
+        foreach (int index in Enumerable.Range(0, 32))
+        {
+            HealthMeasurement observed = snapshot.Measurements.Single(measurement => measurement.Key == Key(index));
+            Assert.AreEqual(onlyNew ? (long)index : 1_000L + index, observed.IntegerValue);
+            Assert.AreEqual(onlyNew ? beforeAt : afterAt, observed.ObservedAtUtc);
+        }
+        if (onlyNew)
+        {
+            Assert.IsNotNull(attempt.Diagnostic);
+            Assert.AreEqual("Healthcheck.MeasurementCapacity", attempt.Diagnostic!.Code);
+            Assert.AreSame(attempt.Diagnostic, snapshot.Collection!.LastError);
+        }
+        else
+        {
+            Assert.IsNull(attempt.Diagnostic);
+            Assert.IsNull(snapshot.Collection!.LastError);
+        }
+        if (!required) { Assert.AreEqual(before.Monitors.Single().LastObservationAtUtc, snapshot.LastObservationAtUtc); }
+        Assert.IsTrue(before.Monitors.Single().Measurements.All(measurement => measurement.ObservedAtUtc == beforeAt));
     }
 
     [TestMethod]
     public async Task RemovingTheNextQueuedPeriodicRegistrationDoesNotServeThePreviousHotOwnerAgainFirst()
     {
+        CapacityStartupOwnershipPrerequisite.AssertSettledStart();
         var clock = new AdvancingClock();
         var service = Service(clock);
         HealthCollectorRunner? runner = null;
@@ -184,13 +350,62 @@ public sealed class HealthCollectionCapacityAndFairnessBoundaryTests
         }
     }
 
-    private sealed class FixedOwner(HealthCollectionResult result) : IHealthCollector
+    private static async Task AssertOriginalCallersCompleteAsync(params Task[] callers)
     {
-        public bool TryAcquire(out IHealthCollectionLease? lease) { lease = new Lease(result); return true; }
-        private sealed class Lease(HealthCollectionResult result) : IHealthCollectionLease
+        List<Exception> errors = [];
+        foreach (Task caller in callers)
         {
-            public Task<HealthCollectionResult> CollectAsync(CancellationToken lifetimeCancellation) => Task.FromResult(result);
-            public ValueTask DisposeAsync() => ValueTask.CompletedTask;
+            if (!caller.IsCompleted) { continue; }
+            try { await caller; }
+            catch (Exception error) { if (!errors.Any(existing => ReferenceEquals(existing, error))) { errors.Add(error); } }
+        }
+        if (errors.Count == 1) { ExceptionDispatchInfo.Capture(errors[0]).Throw(); }
+        if (errors.Count > 1) { throw new AggregateException("Original capacity callers faulted after actual ownership cleanup.", errors); }
+        Assert.IsTrue(callers.All(caller => caller.IsCompleted),
+            "Every original capacity caller must receive completion after actual state settlement and resource cleanup.");
+    }
+
+    private sealed class CompletionPhaseClock : TimeProvider
+    {
+        private readonly AsyncLocal<object?> actualLease = new();
+        internal TaskCompletionSource AfterActualSettlement { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
+        internal void ObserveActualLeaseDisposal(object lease)
+        {
+            if (actualLease.Value is not null) { throw new InvalidOperationException("An actual lease observation is already armed on this flow."); }
+            actualLease.Value = lease;
+        }
+        public override long GetTimestamp()
+        {
+            long sample = base.GetTimestamp();
+            if (actualLease.Value is not null)
+            {
+                actualLease.Value = null;
+                AfterActualSettlement.TrySetResult();
+            }
+            return sample;
+        }
+    }
+
+    private sealed class FixedOwner(HealthCollectionResult result, CompletionPhaseClock clock) : IHealthCollector
+    {
+        private readonly TaskCompletionSource released = new(TaskCreationOptions.RunContinuationsAsynchronously);
+        internal TaskCompletionSource Entered { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
+        internal void Release() => released.TrySetResult();
+        private void ObserveActualLeaseDisposal(object lease) => clock.ObserveActualLeaseDisposal(lease);
+        public bool TryAcquire(out IHealthCollectionLease? lease) { lease = new Lease(this, result); return true; }
+        private sealed class Lease(FixedOwner owner, HealthCollectionResult result) : IHealthCollectionLease
+        {
+            public async Task<HealthCollectionResult> CollectAsync(CancellationToken lifetimeCancellation)
+            {
+                owner.Entered.TrySetResult();
+                await owner.released.Task;
+                return result;
+            }
+            public ValueTask DisposeAsync()
+            {
+                owner.ObserveActualLeaseDisposal(this);
+                return ValueTask.CompletedTask;
+            }
         }
     }
 

@@ -6,7 +6,6 @@ namespace CIS.Verification;
 
 internal static partial class HealthcheckMutationUnionVerification
 {
-    private const string InputSchema = "cis.healthcheck.mutation-union-inputs/v1-development";
     private const string CorePrefix = "implementations/csharp/src/CIS.Core/";
     private static readonly JsonSerializerOptions OutputOptions = new() { WriteIndented = true };
 
@@ -17,7 +16,7 @@ internal static partial class HealthcheckMutationUnionVerification
         var files = new PinnedInputs(inputs.PathOf("repo-root"), inputs.Output);
         string manifestPath = inputs.PathOf("manifest");
         JsonObject manifest = files.ReadDocument(manifestPath);
-        Need(String(manifest, "schema") == InputSchema, "Unsupported union input schema.");
+        NativeAuditPolicy policy = HealthcheckMutationOutcomePolicy.Read(manifest);
         string lane = String(manifest, "osLane");
         Need(lane is "windows" or "ubuntu", "Use one explicit Windows or Ubuntu lane; pooling is forbidden.");
         Source[] sources = ReadSources(files, manifest);
@@ -44,13 +43,18 @@ internal static partial class HealthcheckMutationUnionVerification
             string state = String(descriptor, "state");
             Need(state is "Closed" or "Pending", "Unknown native report state.");
             Need(String(descriptor, "osLane") == lane, "Cross-platform report pooling is forbidden.");
-            ValidateConfiguration(files, descriptor);
+            ValidateConfiguration(files, descriptor, policy);
             // Optional retained inputs still protect their physical roots while
             // the union is pending. Incomplete qualification never authorizes
             // writing a receipt into an original native log/child directory.
-            if (descriptor["logsManifest"] is not null) { ReadLogs(files, descriptor); }
+            if (descriptor["logsManifest"] is not null)
+            {
+                string[] logs = ReadLogs(files, descriptor);
+                ReadRetainedDiagnosticInputs(files, descriptor, logs, lane);
+            }
+            else { Need(!descriptor.ContainsKey("parentExtentManifest"), "Explicit parent extents require the complete log inventory."); }
             if (descriptor["kernelManifest"] is not null) { ReadKernelInputs(files, descriptor, lane); }
-            foreach (string name in new[] { "restorationManifest", "childSession" })
+            foreach (string name in new[] { "restorationManifest", "childSession", "parentExtentManifest" })
             {
                 if (descriptor[name] is not null)
                 { files.GuardRoot(Path.GetDirectoryName(files.Pin(Item(descriptor[name])))!); }
@@ -96,7 +100,7 @@ internal static partial class HealthcheckMutationUnionVerification
             var audits = new JsonArray();
             foreach (JsonObject descriptor in descriptors)
             {
-                (Partition partition, JsonObject observation) = await ReadPartitionAsync(files, descriptor, sources, lane, inputs.Output);
+                (Partition partition, JsonObject observation) = await ReadPartitionAsync(files, descriptor, sources, lane, inputs.Output, policy);
                 partitions.Add(partition); audits.Add(observation);
             }
             validatedAdjustments = CompleteDispositions(dispositionRecords, partitions.ToArray(), dispositionObservations)
@@ -106,6 +110,11 @@ internal static partial class HealthcheckMutationUnionVerification
         }
         files.VerifyAgain();
         if (pending.Length > 0) { inputs.EmptyOutput(); }
+        if (policy == NativeAuditPolicy.CisNativeCompletedV1)
+        {
+            result["schema"] = "cis.healthcheck.mutation-union/v2-native-completed";
+        }
+        result["outcomePolicy"] = HealthcheckMutationOutcomePolicy.Name(policy);
         result["osLane"] = lane;
         result["proposals"] = proposals;
         result["appliedAdjustments"] = validatedAdjustments.Length;

@@ -1,0 +1,7 @@
+# Final Developer03 proof selection
+
+This fixed packet includes the COMPLETE closed Developer03 profile, its COMPLETE entry03 argv/stdout/stderr/exit, the COMPLETE final adoption02 preimages/guards/official scoped-format records, and this producer metadata. No regular file is excluded. Earlier Developer01/02 attempts and archives remain separate and unchanged.
+
+The maintained Developer summary/validation record exit0 at 2026-10-25T12:33:01.4042555Z, with Unit5304, Integration2323, Architecture2682 and Business29 passed (10338 total), zero failed/skipped and strict build0W/E. Mutation and compatibility are explicitly NotRun by this ordinary Developer profile; no cumulative qualification or mutation score follows. The five final adopted test sources remain byte-identical after the official scoped formatter, as the original record states. The adoption record's then-pending C#receiving field remains historical; later authoritative C#receiver evidence is retained separately.
+
+Existing unchanged C# Retention performs prepare/verify; native filelist tar/extract uses new paths. A second C#prepare after tar must reproduce the exact original file manifest/list. Empty-directory names are recorded separately because the existing helper/archive records regular file bodies only. No source, build, subject, original archive or graph is changed by this retention task.

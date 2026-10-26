@@ -1,5 +1,47 @@
 # Bounded Healthcheck mutation diagnostics
 
+## Prospective CIS outcome policy — 26 October 2026
+
+The user approved adopting CIS's shared native-outcome rule for future Healthcheck
+campaigns. CIS now provides `cis test mutation run` with target profiles, bounded
+execution/storage, explicit diagnostic versus qualification results, profile-pinned
+target environment, and minimal transient capture. Use that common workflow rather
+than introducing another module-specific mutation controller or proof catalogue.
+
+New union inputs select `schema: cis.healthcheck.mutation-union-inputs/v2-native-completed`
+and `outcomePolicy: cis-native-completed/v1`. Existing v1 inputs retain their original
+classification; adding an outcome-policy field to v1 is rejected. Historical
+reports and their recorded scores remain unchanged. The output identifies its policy.
+Use newly captured campaign inputs; do not relabel retained historical reports as v2.
+
+Under the prospective rule, an exact, completed native failed test can detect its
+reported mutant, including an ordinary product exception before an assertion.
+It does not need approved assertion wording or a per-mutant semantic proof. Source,
+definition, requested test GUID, selector ownership, native outcome and completed
+execution must still agree. Native timeouts, framework deadline/cancel diagnostics,
+initialization/cleanup failures, crashes and unresolved process or protocol failures
+remain holds. A product exception's type name alone does not establish infrastructure
+failure.
+
+The prospective configuration may enable native first-failure bail with explicit
+`disable-bail: false`, preserving the complete mutation scope, selected cohort and
+100/90/90 thresholds. Omitted results alone do not prove intentional stopping: use
+the pinned runner's actual intent record, exact completed failure and terminal
+cleanup. Do not infer intent from any abort or cancellation. The 90% full-scope
+conservative gate, no timeout credit, genuine unfinished-work holds, survivor
+dispositions and separate platform lanes remain unchanged.
+
+The small native Windows control verified completed product exceptions, original
+engine intent, subject cancellation and normal cleanup against the maintained
+verifier. However, the pinned MSTest 4.5.1 adapter still completed all three queued
+cases after cancellation. Actual omitted-case work savings were not demonstrated;
+the incomplete-result receiving controls do not claim that runtime observation.
+Measure selected-cohort cost before expanding a campaign. These workflow controls
+provide no Healthcheck mutation credit.
+
+The dated investigations below describe their recorded snapshots and legacy policy.
+They are not instructions to recreate large evidence bundles or repeat old runs.
+
 User direction on24 October2026: diagnose failures with small, bounded experiments, justify time budgets, then repair specific assertion gaps before scheduling more broad reruns. The90% conservative gate, original evidence and unresolved runtime/resource holds remain unchanged.
 
 Later user direction on24 October2026 requests much shorter mutation iterations.

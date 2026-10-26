@@ -53,7 +53,7 @@ public sealed class HealthCollectorUtcOutageQualificationTests
             // publication paths and the completion UTC request. Monotonic time,
             // timers, the service's state and its ownership handles are untouched.
             HealthCollectionAttempt completed;
-            try { completed = await registration.CollectAsync().WaitAsync(Deadline); }
+            try { completed = await CollectWithOwnedAcquisitionAsync(registration, owner); }
             finally { clock.Restore(); }
 
             Assert.AreEqual(HealthCollectionDisposition.Committed, completed.Disposition);
@@ -83,7 +83,7 @@ public sealed class HealthCollectorUtcOutageQualificationTests
             // A subsequent real acquisition also demonstrates that the sole
             // runner slot and state operation were released, without waiting on
             // a canceled caller or treating a timeout as successful settlement.
-            HealthCollectionAttempt recovered = await registration.CollectAsync().WaitAsync(Deadline);
+            HealthCollectionAttempt recovered = await CollectWithOwnedAcquisitionAsync(registration, owner);
             Assert.AreEqual(HealthCollectionDisposition.Committed, recovered.Disposition);
             Assert.IsFalse(recovered.EvaluationFailed);
             Assert.AreEqual(2, owner.Acquisitions);
@@ -99,6 +99,7 @@ public sealed class HealthCollectorUtcOutageQualificationTests
         }
         finally
         {
+            owner.ReleaseAcquisitions();
             clock.Restore();
             try { await runner.DisposeAsync().AsTask().WaitAsync(Deadline); }
             finally
@@ -107,6 +108,36 @@ public sealed class HealthCollectorUtcOutageQualificationTests
                 finally { GC.KeepAlive(monitor); }
             }
         }
+    }
+
+    private static async Task<HealthCollectionAttempt> CollectWithOwnedAcquisitionAsync(
+        IHealthCollectionRegistration registration, ResourceOwner owner)
+    {
+        AcquisitionHold hold = owner.HoldNextAcquisition();
+        try
+        {
+            Task<HealthCollectionAttempt> caller = registration.CollectAsync();
+            await Task.WhenAny(hold.Entered.Task, caller).WaitAsync(Deadline);
+            if (caller.IsCompleted)
+            {
+                await caller;
+                Assert.Fail("The queued caller cannot settle before its actual acquisition is released.");
+            }
+            await hold.Entered.Task.WaitAsync(Deadline);
+            Task<HealthCollectionAttempt> operation = registration.CollectAsync();
+            hold.Released.TrySetResult();
+            await operation.WaitAsync(Deadline);
+            if (caller.IsFaulted || caller.IsCanceled) { await caller; }
+            Assert.IsTrue(caller.IsCompleted, "The original queued caller must complete after its actual operation has settled.");
+            return await caller;
+        }
+        finally { hold.Released.TrySetResult(); }
+    }
+
+    private sealed class AcquisitionHold
+    {
+        internal TaskCompletionSource Entered { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
+        internal TaskCompletionSource Released { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
     }
 
     private sealed class OutageClock : TimeProvider
@@ -128,14 +159,41 @@ public sealed class HealthCollectorUtcOutageQualificationTests
 
     private sealed class ResourceOwner(OutageClock clock) : IHealthCollector
     {
+        private readonly object acquisitionGate = new();
+        private readonly List<AcquisitionHold> acquisitionHolds = [];
+        private AcquisitionHold? nextAcquisition;
+        private bool releasingAcquisitions;
         private int acquisitions, evaluations, cleanups;
         internal int Acquisitions => Volatile.Read(ref acquisitions);
         internal int Evaluations => Volatile.Read(ref evaluations);
         internal int Cleanups => Volatile.Read(ref cleanups);
         internal MemoryStream? LastResource { get; private set; }
         private void BeginOutage() => clock.BeginOutage();
+        internal AcquisitionHold HoldNextAcquisition()
+        {
+            lock (acquisitionGate)
+            {
+                if (nextAcquisition is not null) { throw new InvalidOperationException("The fixture already holds an acquisition."); }
+                var hold = new AcquisitionHold();
+                acquisitionHolds.Add(hold);
+                nextAcquisition = hold;
+                if (releasingAcquisitions) { hold.Released.TrySetResult(); }
+                return hold;
+            }
+        }
+        internal void ReleaseAcquisitions()
+        {
+            lock (acquisitionGate)
+            {
+                releasingAcquisitions = true;
+                foreach (AcquisitionHold hold in acquisitionHolds) { hold.Released.TrySetResult(); }
+            }
+        }
         public bool TryAcquire(out IHealthCollectionLease? lease)
         {
+            AcquisitionHold? hold;
+            lock (acquisitionGate) { hold = nextAcquisition; nextAcquisition = null; }
+            if (hold is not null) { hold.Entered.TrySetResult(); hold.Released.Task.GetAwaiter().GetResult(); }
             int ordinal = Interlocked.Increment(ref acquisitions);
             var resource = new MemoryStream();
             LastResource = resource;

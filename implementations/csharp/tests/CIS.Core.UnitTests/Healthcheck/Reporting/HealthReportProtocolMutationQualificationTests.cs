@@ -270,7 +270,7 @@ public sealed class HealthReportProtocolMutationQualificationTests
                 Assert.IsTrue(error.IsError);
                 Assert.IsFalse(error.SelectedHealthy);
                 Assert.AreEqual(pipe, document.RootElement.TryGetProperty("protocolVersion", out _));
-                if (pipe) { Assert.AreEqual(code, HealthReportProtocol.ParseResponse(error.Utf8Bytes, HealthReportView.Health, 1024).ErrorCode); }
+                if (pipe) { Assert.AreEqual(code, ParseAccepted(error.Utf8Bytes, HealthReportView.Health, 1024).ErrorCode); }
             }
         }
     }
@@ -355,8 +355,22 @@ public sealed class HealthReportProtocolMutationQualificationTests
     }
 
     private static JsonObject Diagnostic() => new() { ["code"] = "Observed", ["message"] = "Detached reason", ["isTruncated"] = false };
-    private static HealthParsedResponse Parse(JsonObject envelope) => HealthReportProtocol.ParseResponse(Encoding.UTF8.GetBytes(envelope.ToJsonString()), HealthReportView.Details, 4_194_304);
-    private static void Reject(JsonObject envelope, string reason) => Assert.ThrowsExactly<FormatException>(() => Parse(envelope), reason);
+    private static HealthParsedResponse Parse(JsonObject envelope)
+        => ParseAccepted(Encoding.UTF8.GetBytes(envelope.ToJsonString()), HealthReportView.Details, 4_194_304);
+
+    private static HealthParsedResponse ParseAccepted(ReadOnlyMemory<byte> payload, HealthReportView view, int maximum)
+    {
+        FormatException? rejection = null;
+        HealthParsedResponse? result = null;
+        try { result = HealthReportProtocol.ParseResponse(payload, view, maximum); }
+        catch (FormatException error) when (error.GetType() == typeof(FormatException)) { rejection = error; }
+        Assert.IsNull(rejection, "The actual complete valid protocol response must be accepted before inspecting its returned observation.");
+        Assert.IsNotNull(result);
+        return result;
+    }
+
+    private static void Reject(JsonObject envelope, string reason) => Assert.ThrowsExactly<FormatException>(() =>
+        HealthReportProtocol.ParseResponse(Encoding.UTF8.GetBytes(envelope.ToJsonString()), HealthReportView.Details, 4_194_304), reason);
     private static JsonNode Node(JsonObject envelope, string path)
     {
         JsonNode current = envelope["snapshot"]!;

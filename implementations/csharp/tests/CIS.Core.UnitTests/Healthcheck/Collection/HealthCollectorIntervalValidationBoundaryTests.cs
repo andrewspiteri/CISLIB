@@ -73,8 +73,13 @@ public sealed class HealthCollectorIntervalValidationBoundaryTests
 
     private static void PositiveRepresentableIntervalEndpointsAttachWithoutStartingTheOwner(Scope scope, long ticks)
     {
-        IHealthCollectionRegistration registration = scope.Runner.Register(scope.Monitor, scope.Owner,
-            new() { Interval = TimeSpan.FromTicks(ticks) });
+        var options = new HealthCollectorOptions { Interval = TimeSpan.FromTicks(ticks) };
+        IHealthCollectionRegistration? registration = null;
+        ArgumentException? rejection = null;
+        try { registration = scope.Runner.Register(scope.Monitor, scope.Owner, options); }
+        catch (ArgumentException error) when (error.GetType() == typeof(ArgumentException) && error.ParamName == "options") { rejection = error; }
+        Assert.IsNull(rejection, "The actual positive representable interval must be admitted by Register.");
+        Assert.IsNotNull(registration);
         try
         {
             Assert.AreEqual(1, scope.Clock.Reads);

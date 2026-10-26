@@ -61,8 +61,21 @@ public sealed class HealthReportFormatterBoundaryQualificationTests
         Assert.IsFalse(report.IsError);
         using JsonDocument document = JsonDocument.Parse(report.Utf8Bytes);
         JsonElement root = Root(document, pipe);
-        Assert.AreEqual(5d, root.GetProperty("monitors")[0].GetProperty("numeric").GetProperty("lastValue").GetDouble());
-        Assert.AreEqual(Utc(Epoch), root.GetProperty("monitors")[0].GetProperty("numeric").GetProperty("lastValueAtUtc").GetString());
+        JsonElement detail = root.GetProperty("monitors")[0];
+        Assert.IsTrue(detail.TryGetProperty("numeric", out JsonElement numeric));
+        Assert.AreEqual(JsonValueKind.Object, numeric.ValueKind);
+        foreach (string field in new[] { "comparison", "threshold", "unit", "lastValue", "lastValueAtUtc" })
+        { Assert.IsTrue(numeric.TryGetProperty(field, out _), field); }
+        Assert.AreEqual(JsonValueKind.String, numeric.GetProperty("comparison").ValueKind);
+        Assert.AreEqual("GreaterThan", numeric.GetProperty("comparison").GetString());
+        Assert.AreEqual(JsonValueKind.Number, numeric.GetProperty("threshold").ValueKind);
+        Assert.AreEqual(10d, numeric.GetProperty("threshold").GetDouble());
+        Assert.AreEqual(JsonValueKind.String, numeric.GetProperty("unit").ValueKind);
+        Assert.AreEqual("items", numeric.GetProperty("unit").GetString());
+        Assert.AreEqual(JsonValueKind.Number, numeric.GetProperty("lastValue").ValueKind);
+        Assert.AreEqual(5d, numeric.GetProperty("lastValue").GetDouble());
+        Assert.AreEqual(JsonValueKind.String, numeric.GetProperty("lastValueAtUtc").ValueKind);
+        Assert.AreEqual(Utc(Epoch), numeric.GetProperty("lastValueAtUtc").GetString());
         Assert.AreEqual(Utc(Epoch.AddHours(1)), root.GetProperty("capturedAtUtc").GetString());
         GC.KeepAlive(monitor);
     }

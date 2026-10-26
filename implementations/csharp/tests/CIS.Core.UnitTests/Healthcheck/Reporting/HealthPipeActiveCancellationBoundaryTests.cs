@@ -109,18 +109,31 @@ public sealed partial class HealthPipeActiveCancellationBoundaryTests
         using var caller = new CancellationTokenSource();
         using var setup = new CancellationTokenSource(Deadline);
         Task<int>? running = null;
+        Task? connecting = null;
+        Task<byte[]>? reading = null;
         Exception? failure = null;
         try
         {
             running = HealthProbeClient.RunAsync(["--pipe", pipe, "--timeout-ms", "60000"], output, error, caller.Token);
-            await peer.WaitForConnectionAsync(setup.Token);
-            byte[] request = await HealthReportProtocol.ReadFrameAsync(peer, 512, setup.Token);
+            if (running.IsCompleted)
+            {
+                // Observe a real early fault or cancellation before asserting
+                // that the valid probe must progress to its actual request.
+                _ = await running;
+                Assert.Fail("The valid probe must deliver its actual request and await this silent peer before caller cancellation.");
+            }
+            connecting = peer.WaitForConnectionAsync(setup.Token);
+            await AwaitActualRequestProgressAsync(connecting, running);
+            reading = HealthReportProtocol.ReadFrameAsync(peer, 512, setup.Token);
+            await AwaitActualRequestProgressAsync(reading, running);
+            byte[] request = await reading;
             using (JsonDocument json = JsonDocument.Parse(request))
             {
                 Assert.AreEqual(1, json.RootElement.GetProperty("protocolVersion").GetInt32());
                 Assert.AreEqual("health", json.RootElement.GetProperty("view").GetString());
             }
             Assert.IsFalse(caller.IsCancellationRequested);
+            if (running.IsCompleted) { _ = await running; }
             Assert.IsFalse(running.IsCompleted, "This actual server has received the request and deliberately sends no response.");
 
             caller.Cancel();
@@ -138,28 +151,79 @@ public sealed partial class HealthPipeActiveCancellationBoundaryTests
         }
         catch (Exception errorValue) { failure = errorValue; }
 
-        await FinishPreservingFailureAsync(failure, async () =>
-        {
-            caller.Cancel();
-            // Close the real peer before joining a faulty noncancelable read.
-            // The original assertion survives; normal cleanup failures are not suppressed.
-            peer.Dispose();
-            if (running is not null) { _ = await running.WaitAsync(Deadline); }
-        });
+        await FinishProbeOwnersAsync(failure, setup, caller, peer, connecting, reading, running);
     }
 
-    private static async Task FinishPreservingFailureAsync(Exception? failure, Func<Task> cleanup)
+    private static async Task AwaitActualRequestProgressAsync(Task progress, Task<int> running)
     {
-        try { await cleanup(); }
-        catch (Exception cleanupFailure)
+        await Task.WhenAny(progress, running).WaitAsync(Deadline);
+        if (running.IsCompleted)
         {
-            if (failure is not null)
-            {
-                throw new AggregateException("The receiving assertion and actual owned-operation cleanup both failed.", failure, cleanupFailure);
-            }
-            throw;
+            // Observe the original probe's fault or cancellation before asserting
+            // that a valid request cannot finish while its peer sends no response.
+            _ = await running;
+            Assert.Fail("The valid probe must deliver its actual request and await this silent peer before caller cancellation.");
         }
-        if (failure is not null) { ExceptionDispatchInfo.Capture(failure).Throw(); }
+        await progress;
+    }
+
+    private static async Task FinishProbeOwnersAsync(Exception? failure, CancellationTokenSource setup,
+        CancellationTokenSource caller, NamedPipeServerStream peer, Task? connecting, Task<byte[]>? reading, Task<int>? running)
+    {
+        var failures = new List<Exception>();
+        Task[] actual = new Task?[] { connecting, reading, running }.OfType<Task>().ToArray();
+        var observed = new HashSet<Task>();
+        bool cleanupCanceledSetup = false;
+        if (failure is not null) { Record(failure); }
+        ObserveCompleted();
+        cleanupCanceledSetup = !setup.IsCancellationRequested;
+        Attempt(setup.Cancel);
+        Attempt(caller.Cancel);
+        // Cancel setup first, then close the real peer to release any faulty
+        // noncancelable read. All original tasks share one cleanup watchdog.
+        Attempt(peer.Dispose);
+        Task joined = Task.WhenAll(actual);
+        try { await joined.WaitAsync(Deadline); }
+        catch (Exception error)
+        {
+            // Completed tasks' individual errors are observed below, including
+            // faults hidden behind a sibling which remains pending.
+            if (error is TimeoutException || !joined.IsCompleted) { Record(error); }
+        }
+        ObserveCompleted();
+        if (failures.Count == 1) { ExceptionDispatchInfo.Capture(failures[0]).Throw(); }
+        if (failures.Count > 1) { throw new AggregateException("The receiving assertion and actual owned-operation cleanup failed.", failures); }
+
+        void Attempt(Action action)
+        {
+            try { action(); }
+            catch (Exception error) { Record(error); }
+        }
+
+        void ObserveCompleted()
+        {
+            foreach (Task task in actual)
+            {
+                if (!task.IsCompleted || !observed.Add(task)) { continue; }
+                try { task.GetAwaiter().GetResult(); }
+                catch (OperationCanceledException error) when (cleanupCanceledSetup && task.IsCanceled
+                    && !ReferenceEquals(task, running) && error.CancellationToken == setup.Token)
+                {
+                    // Only cancellation requested by this cleanup on its own
+                    // connection/frame token is expected.
+                }
+                catch (Exception error) { Record(task.Exception ?? error); }
+            }
+        }
+
+        void Record(Exception error)
+        {
+            if (error is AggregateException aggregate)
+            {
+                foreach (Exception inner in aggregate.InnerExceptions) { Record(inner); }
+            }
+            else if (!failures.Any(existing => ReferenceEquals(existing, error))) { failures.Add(error); }
+        }
     }
 
     private sealed class GatedSource(HealthSnapshot snapshot, ManualResetEventSlim release) : IHealthSnapshotSource

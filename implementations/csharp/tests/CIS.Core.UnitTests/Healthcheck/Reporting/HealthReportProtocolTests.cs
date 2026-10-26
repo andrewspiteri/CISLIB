@@ -55,7 +55,7 @@ public sealed class HealthReportProtocolTests
     [DataRow("{\"protocolVersion\":1,\"view\":\"health\"}{}", "InvalidRequest")]
     public void RequestReaderRejectsInvalidVersionsTypesDuplicatesAndMalformedJson(string json, string expectedCode)
     {
-        Assert.IsFalse(HealthReportProtocol.TryParseRequest(Encoding.UTF8.GetBytes(json), out _, out string? errorCode));
+        Assert.IsFalse(ParseRequestWithoutFormatEscape(Encoding.UTF8.GetBytes(json), out _, out string? errorCode));
         Assert.AreEqual(expectedCode, errorCode);
     }
 
@@ -90,7 +90,7 @@ public sealed class HealthReportProtocolTests
     public void ResponseReaderAcceptsTheIndependentCompactFixtureAndSelectsReadiness()
     {
         byte[] payload = HealthReportFormatterTests.ReadFixture("valid", "pipe-readiness-response.json");
-        HealthParsedResponse result = HealthReportProtocol.ParseResponse(payload, HealthReportView.Readiness, 4_194_304);
+        HealthParsedResponse result = ParseAccepted(payload, HealthReportView.Readiness, 4_194_304);
         using JsonDocument snapshot = JsonDocument.Parse(result.SnapshotUtf8);
         using JsonDocument expected = JsonDocument.Parse(HealthReportFormatterTests.ReadFixture("valid", "pending-readiness.json"));
 
@@ -104,7 +104,7 @@ public sealed class HealthReportProtocolTests
     public void ResponseReaderAcceptsCompleteIndependentDetailsWithEveryPolicyAndScalarKind()
     {
         JsonObject envelope = DetailsEnvelope();
-        HealthParsedResponse result = Parse(envelope, HealthReportView.Details);
+        HealthParsedResponse result = ParseAccepted(envelope, HealthReportView.Details);
         using JsonDocument snapshot = JsonDocument.Parse(result.SnapshotUtf8);
 
         Assert.IsFalse(result.IsError);
@@ -474,7 +474,7 @@ public sealed class HealthReportProtocolTests
         snapshot["monitorCounts"]!["pending"] = 1;
         if (policy == "failures") { snapshot["monitorCounts"]!["failing"] = 0; }
 
-        HealthParsedResponse result = Parse(envelope, HealthReportView.Details);
+        HealthParsedResponse result = ParseAccepted(envelope, HealthReportView.Details);
         Assert.IsFalse(result.IsError);
         Assert.IsTrue(result.SelectedHealthy);
     }
@@ -491,7 +491,7 @@ public sealed class HealthReportProtocolTests
         monitor["numeric"]!.AsObject().Remove("lastValueAtUtc");
         snapshot["monitorCounts"]!["failing"] = 2;
 
-        HealthParsedResponse result = Parse(envelope, HealthReportView.Details);
+        HealthParsedResponse result = ParseAccepted(envelope, HealthReportView.Details);
         Assert.IsFalse(result.IsError);
         Assert.IsTrue(result.SelectedHealthy);
     }
@@ -523,7 +523,7 @@ public sealed class HealthReportProtocolTests
         envelope["snapshot"]!["revision"] = revision;
         envelope["unknown"] = new JsonObject { ["extra"] = new JsonArray(1, 2, 3) };
         envelope["snapshot"]!["capturedAtUtc"] = "2026-10-20T08:01:00Z";
-        HealthParsedResponse result = Parse(envelope, HealthReportView.Readiness);
+        HealthParsedResponse result = ParseAccepted(envelope, HealthReportView.Readiness);
         using JsonDocument snapshot = JsonDocument.Parse(result.SnapshotUtf8);
 
         Assert.AreEqual(revision, snapshot.RootElement.GetProperty("revision").GetString());
@@ -539,7 +539,7 @@ public sealed class HealthReportProtocolTests
         numeric["state"] = "Unhealthy";
         numeric["diagnostic"] = new JsonObject { ["code"] = "EvaluationFailed", ["isTruncated"] = false };
         snapshot["monitorCounts"]!["failing"] = 2;
-        HealthParsedResponse result = Parse(envelope, HealthReportView.Details);
+        HealthParsedResponse result = ParseAccepted(envelope, HealthReportView.Details);
         using JsonDocument document = JsonDocument.Parse(result.SnapshotUtf8);
 
         Assert.IsTrue(result.SelectedHealthy, "This numeric monitor is noncritical; the complete aggregate remains healthy.");
@@ -553,7 +553,7 @@ public sealed class HealthReportProtocolTests
     public void EveryValidErrorResponseSelectsFailureAndReturnsNoSnapshot()
     {
         byte[] payload = HealthReportFormatterTests.ReadFixture("valid", "pipe-invalid-request-response.json");
-        HealthParsedResponse result = HealthReportProtocol.ParseResponse(payload, HealthReportView.Health, 4_194_304);
+        HealthParsedResponse result = ParseAccepted(payload, HealthReportView.Health, 4_194_304);
 
         Assert.IsTrue(result.IsError);
         Assert.AreEqual("InvalidRequest", result.ErrorCode);
@@ -585,6 +585,20 @@ public sealed class HealthReportProtocolTests
     }
 
     [TestMethod]
+    public void ResponsePayloadAtExactlyTheConfiguredMaximumRetainsTheAcceptedSnapshot()
+    {
+        byte[] payload = HealthReportFormatterTests.ReadFixture("valid", "pipe-readiness-response.json");
+        HealthParsedResponse result = ParseAccepted(payload, HealthReportView.Readiness, payload.Length);
+        using JsonDocument snapshot = JsonDocument.Parse(result.SnapshotUtf8);
+        using JsonDocument expected = JsonDocument.Parse(HealthReportFormatterTests.ReadFixture("valid", "pending-readiness.json"));
+
+        Assert.IsFalse(result.IsError);
+        Assert.IsNull(result.ErrorCode);
+        Assert.IsFalse(result.SelectedHealthy);
+        Assert.IsTrue(JsonElement.DeepEquals(expected.RootElement, snapshot.RootElement));
+    }
+
+    [TestMethod]
     public void RequestLengthBoundsAreFramingErrorsBeforeJsonInterpretation()
     {
         Assert.IsFalse(HealthReportProtocol.TryParseRequest(ReadOnlyMemory<byte>.Empty, out _, out string? emptyCode));
@@ -608,7 +622,7 @@ public sealed class HealthReportProtocolTests
     public void ParsedSnapshotOwnsItsBytesAfterTheInputBufferIsOverwritten()
     {
         byte[] payload = HealthReportFormatterTests.ReadFixture("valid", "pipe-readiness-response.json");
-        HealthParsedResponse result = HealthReportProtocol.ParseResponse(payload, HealthReportView.Readiness, 4_194_304);
+        HealthParsedResponse result = ParseAccepted(payload, HealthReportView.Readiness, 4_194_304);
         byte[] original = result.SnapshotUtf8.ToArray();
         Array.Fill(payload, (byte)'x');
 
@@ -729,8 +743,38 @@ public sealed class HealthReportProtocolTests
         Assert.AreEqual(0L, write.Length);
     }
 
+    private static bool ParseRequestWithoutFormatEscape(ReadOnlyMemory<byte> payload, out HealthReportView view, out string? errorCode)
+    {
+        Exception? escaped = null;
+        bool accepted = false;
+        view = default;
+        errorCode = null;
+        try { accepted = HealthReportProtocol.TryParseRequest(payload, out view, out errorCode); }
+        catch (FormatException error) when (error.GetType() == typeof(FormatException)) { escaped = error; }
+        catch (InvalidOperationException error) when (error.GetType() == typeof(InvalidOperationException)) { escaped = error; }
+        catch (JsonException error) when (error.GetType().FullName == "System.Text.Json.JsonReaderException"
+            && error.GetType().Assembly == typeof(JsonException).Assembly)
+        { escaped = error; }
+        Assert.IsNull(escaped, "TryParseRequest must return its error disposition for these malformed request bytes without leaking a known parsing rejection.");
+        return accepted;
+    }
+
     private static HealthParsedResponse Parse(JsonObject envelope, HealthReportView view)
         => HealthReportProtocol.ParseResponse(Encoding.UTF8.GetBytes(envelope.ToJsonString()), view, 4_194_304);
+
+    private static HealthParsedResponse ParseAccepted(JsonObject envelope, HealthReportView view)
+        => ParseAccepted(Encoding.UTF8.GetBytes(envelope.ToJsonString()), view, 4_194_304);
+
+    private static HealthParsedResponse ParseAccepted(ReadOnlyMemory<byte> payload, HealthReportView view, int maximum)
+    {
+        FormatException? rejection = null;
+        HealthParsedResponse? result = null;
+        try { result = HealthReportProtocol.ParseResponse(payload, view, maximum); }
+        catch (FormatException error) when (error.GetType() == typeof(FormatException)) { rejection = error; }
+        Assert.IsNull(rejection, "The actual complete valid protocol response must be accepted before inspecting its returned observation.");
+        Assert.IsNotNull(result);
+        return result;
+    }
 
     private static JsonObject CompactEnvelope()
         => JsonNode.Parse(HealthReportFormatterTests.ReadFixture("valid", "pipe-readiness-response.json"))!.AsObject();

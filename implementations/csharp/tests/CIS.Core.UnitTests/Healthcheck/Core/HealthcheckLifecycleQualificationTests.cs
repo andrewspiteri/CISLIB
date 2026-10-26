@@ -258,6 +258,9 @@ public sealed class HealthcheckLifecycleQualificationTests
         var owner = new GatedOwner();
         IHealthCollectionRegistration registration = runner.Register(monitor, owner, new HealthCollectorOptions());
         Task<HealthCollectionAttempt>? collection = null;
+        Task<HealthCollectionAttempt>? operation = null;
+        Task? monitorWait = null, monitorDisposalTask = null, serviceWait = null, serviceDisposalTask = null;
+        Exception? primary = null;
         try
         {
             await runner.StartAsync().WaitAsync(Deadline);
@@ -265,8 +268,10 @@ public sealed class HealthcheckLifecycleQualificationTests
             await Task.WhenAny(owner.Entered.Task, owner.CleanupEntered.Task, collection).WaitAsync(Deadline);
             Assert.IsTrue(owner.Entered.Task.IsCompletedSuccessfully, "The actual collection must invoke its callback before cleanup or settlement.");
             Assert.IsFalse(collection.IsCompleted, "The actual collection must remain pending while its evaluation gate is held.");
-            Task monitorWait = monitor.WaitForDisposalAsync();
+            operation = registration.CollectAsync();
+            monitorWait = monitor.WaitForDisposalAsync();
             ValueTask monitorDisposal = monitor.DisposeAsync();
+            monitorDisposalTask = monitorDisposal.AsTask();
             Assert.AreEqual(0, service.CaptureSnapshot().MonitorCounts.Active);
             Assert.IsFalse(monitorDisposal.IsCompleted);
             Assert.IsFalse(monitorWait.IsCompleted);
@@ -282,30 +287,60 @@ public sealed class HealthcheckLifecycleQualificationTests
             Assert.IsFalse(monitorWait.IsCompleted);
             Assert.AreEqual(0, owner.CleanupCount);
 
-            Task serviceWait = service.WaitForDisposalAsync();
+            serviceWait = service.WaitForDisposalAsync();
             ValueTask serviceDisposal = service.DisposeAsync();
+            serviceDisposalTask = serviceDisposal.AsTask();
             Assert.IsFalse(serviceDisposal.IsCompleted);
             Assert.IsFalse(serviceWait.IsCompleted);
             owner.ReleaseCleanup.TrySetResult();
 
-            await Task.WhenAll(collection, monitorDisposal.AsTask(), serviceDisposal.AsTask()).WaitAsync(Deadline);
-            Assert.AreEqual(HealthCollectionDisposition.Retired, collection.Result.Disposition);
+            await Task.WhenAll(operation, monitorDisposalTask, serviceDisposalTask).WaitAsync(Deadline);
             Assert.IsTrue(monitorWait.IsCompletedSuccessfully);
             Assert.IsTrue(serviceWait.IsCompletedSuccessfully);
             Assert.AreEqual(1, owner.CleanupCount);
             Assert.IsTrue(monitor.DisposeAsync().IsCompletedSuccessfully);
             Assert.IsTrue(service.DisposeAsync().IsCompletedSuccessfully);
         }
+        catch (Exception error) { primary = error; throw; }
         finally
         {
             owner.ReleaseWork.TrySetResult();
             owner.ReleaseCleanup.TrySetResult();
-            Task[] cleanup = [runner.DisposeAsync().AsTask(), service.DisposeAsync().AsTask()];
-            if (collection is not null) { cleanup = [.. cleanup, collection]; }
-            await Task.WhenAll(cleanup).WaitAsync(Deadline);
+            Task[] cleanup = [DrainRegistrationAsync(), DrainRunnerAsync(), DrainServiceAsync()];
+            cleanup = [.. cleanup, .. new[] { operation, monitorWait, monitorDisposalTask, serviceWait, serviceDisposalTask }.OfType<Task>()];
+            Task drains = Task.WhenAll(cleanup);
+            List<Exception> errors = primary is null ? [] : [primary];
+            try { await drains.WaitAsync(Deadline); }
+            catch (Exception error) { RecordTaskError(drains, error); }
+            foreach (Task actual in cleanup)
+            {
+                if (!actual.IsCompleted) { continue; }
+                try { await actual; }
+                catch (Exception error) { RecordTaskError(actual, error); }
+            }
+            if (collection is { IsCompleted: true })
+            {
+                try { await collection; }
+                catch (Exception error) { RecordTaskError(collection, error); }
+            }
             GC.KeepAlive(monitor);
             GC.KeepAlive(registration);
+            if (errors.Count == 1) { ExceptionDispatchInfo.Capture(errors[0]).Throw(); }
+            if (errors.Count > 1) { throw new AggregateException("The actual canceled collection, original caller or resource cleanup failed.", errors); }
+
+            void RecordTaskError(Task actual, Exception error)
+            {
+                if (error is TimeoutException) { Add(error); }
+                if (actual.Exception is { } aggregate) { foreach (Exception inner in aggregate.InnerExceptions) { Add(inner); } }
+                else { Add(error); }
+            }
+            void Add(Exception error) { if (!errors.Any(existing => ReferenceEquals(existing, error))) { errors.Add(error); } }
+            async Task DrainRegistrationAsync() => await registration.DisposeAsync();
+            async Task DrainRunnerAsync() => await runner.DisposeAsync();
+            async Task DrainServiceAsync() => await service.DisposeAsync();
         }
+        Assert.IsTrue(collection!.IsCompleted, "The original queued caller must complete after actual canceled work, lease cleanup and resource drains have settled.");
+        Assert.AreEqual(HealthCollectionDisposition.Retired, (await collection!).Disposition);
     }
 
     private static HealthcheckService CreateService() => new(new HealthcheckOptions(), new HealthApplicationIdentity

@@ -1,3 +1,4 @@
+using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using System.Runtime.ExceptionServices;
@@ -53,12 +54,17 @@ public sealed class HealthCollectorExecutionBoundaryTests
         IConsecutiveFailureMonitor otherMonitor = local.Monitor();
         var idleOwner = new Owner();
         IHealthCollectionRegistration otherRegistration = local.Register(otherMonitor, idleOwner);
+        var evaluationEntered = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        var releaseEvaluation = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        local.OwnedEvaluationReleases.Enqueue(releaseEvaluation);
         int barrierCompleted = 0;
         ExceptionDispatchInfo? foreignFailure = null;
         var owner = new Owner
         {
             Evaluate = async _ =>
             {
+                evaluationEntered.TrySetResult();
+                await releaseEvaluation.Task;
                 switch (barrier)
                 {
                     case "monitor-dispose": await otherMonitor.DisposeAsync().AsTask().WaitAsync(Deadline); break;
@@ -89,10 +95,32 @@ public sealed class HealthCollectorExecutionBoundaryTests
             }
         };
         IHealthCollectionRegistration registration = local.Register(actor, owner);
-        await local.Runner.StartAsync().WaitAsync(Deadline);
-
-        local.BeforeCollection?.Invoke();
-        HealthCollectionAttempt attempt = await registration.CollectAsync().WaitAsync(Deadline);
+        HealthCollectionAttempt attempt;
+        try
+        {
+            Task startup = local.Runner.StartAsync();
+            local.OriginalCalls.Enqueue(startup);
+            await startup.WaitAsync(Deadline);
+            local.BeforeCollection?.Invoke();
+            Task<HealthCollectionAttempt> caller = registration.CollectAsync();
+            local.OriginalCalls.Enqueue(caller);
+            await Task.WhenAny(evaluationEntered.Task, caller).WaitAsync(Deadline);
+            if (caller.IsCompleted)
+            {
+                await caller;
+                Assert.Fail("The original manual caller cannot complete successfully before its actual held evaluation is released.");
+            }
+            await evaluationEntered.Task.WaitAsync(Deadline);
+            Task<HealthCollectionAttempt> operation = registration.CollectAsync();
+            local.OriginalCalls.Enqueue(operation);
+            releaseEvaluation.TrySetResult();
+            await operation.WaitAsync(Deadline);
+            Task registrationDisposal = registration.DisposeAsync().AsTask();
+            local.OriginalCalls.Enqueue(registrationDisposal);
+            await registrationDisposal.WaitAsync(Deadline);
+            attempt = await AssertSettledCallerAsync(caller);
+        }
+        finally { releaseEvaluation.TrySetResult(); }
         // Runner reports evaluator failures as collection diagnostics. Preserve
         // the actual foreign proof failure after the real operation and lease
         // join so a local milestone assertion cannot mask an ownership hold.
@@ -118,6 +146,9 @@ public sealed class HealthCollectorExecutionBoundaryTests
         IHealthCollectionRegistration? registration = null;
         Exception? observed = null;
         Task? incorrectlyAdmittedWait = null;
+        var evaluationEntered = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        var releaseEvaluation = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        scope.OwnedEvaluationReleases.Enqueue(releaseEvaluation);
         int attempts = 0;
         void TryOwnWait()
         {
@@ -130,12 +161,19 @@ public sealed class HealthCollectorExecutionBoundaryTests
                     "registration" => registration!.WaitForDisposalAsync(),
                     _ => scope.Service.WaitForDisposalAsync()
                 };
+                scope.OriginalCalls.Enqueue(incorrectlyAdmittedWait);
             }
             catch (Exception error) { observed = error; }
         }
         var owner = new Owner
         {
             DuringAcquisition = phase == "acquisition" ? TryOwnWait : null,
+            Evaluate = async _ =>
+            {
+                evaluationEntered.TrySetResult();
+                await releaseEvaluation.Task;
+                return HealthCollectionResult.Execution(HealthExecutionOutcome.Succeeded);
+            },
             Cleanup = () =>
             {
                 if (phase == "cleanup") { TryOwnWait(); }
@@ -143,9 +181,31 @@ public sealed class HealthCollectorExecutionBoundaryTests
             }
         };
         registration = scope.Register(monitor, owner);
-        await scope.Runner.StartAsync().WaitAsync(Deadline);
-
-        HealthCollectionAttempt attempt = await registration.CollectAsync().WaitAsync(Deadline);
+        HealthCollectionAttempt attempt;
+        try
+        {
+            Task startup = scope.Runner.StartAsync();
+            scope.OriginalCalls.Enqueue(startup);
+            await startup.WaitAsync(Deadline);
+            Task<HealthCollectionAttempt> caller = registration.CollectAsync();
+            scope.OriginalCalls.Enqueue(caller);
+            await Task.WhenAny(evaluationEntered.Task, caller).WaitAsync(Deadline);
+            if (caller.IsCompleted)
+            {
+                await caller;
+                Assert.Fail("The original manual caller cannot complete successfully before its actual held evaluation is released.");
+            }
+            await evaluationEntered.Task.WaitAsync(Deadline);
+            Task<HealthCollectionAttempt> operation = registration.CollectAsync();
+            scope.OriginalCalls.Enqueue(operation);
+            releaseEvaluation.TrySetResult();
+            await operation.WaitAsync(Deadline);
+            Task registrationDisposal = registration.DisposeAsync().AsTask();
+            scope.OriginalCalls.Enqueue(registrationDisposal);
+            await registrationDisposal.WaitAsync(Deadline);
+            attempt = await AssertSettledCallerAsync(caller);
+        }
+        finally { releaseEvaluation.TrySetResult(); }
 
         Assert.AreEqual(1, attempts);
         Assert.IsNotNull(observed);
@@ -165,14 +225,15 @@ public sealed class HealthCollectorExecutionBoundaryTests
         IConsecutiveFailureMonitor monitor = scope.Monitor();
         IHealthCollectionRegistration? registration = null;
         var childEntered = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        var releaseEvaluation = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
         var releaseChild = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
-        Task? child = null;
+        scope.OwnedEvaluationReleases.Enqueue(releaseEvaluation);
         int completed = 0;
         var owner = new Owner
         {
-            Evaluate = _ =>
+            Evaluate = async _ =>
             {
-                child = Task.Run(async () =>
+                Task child = Task.Run(async () =>
                 {
                     childEntered.TrySetResult();
                     await releaseChild.Task;
@@ -185,44 +246,91 @@ public sealed class HealthCollectorExecutionBoundaryTests
                             // returning this exact barrier task. The real child
                             // makes that call and joins here; completion of the
                             // same public task is asserted after real cleanup.
-                            scope.ChildRunnerStops.Add(scope.Runner.StopAsync());
+                            Task stop = scope.Runner.StopAsync();
+                            lock (scope.ChildRunnerStops) { scope.ChildRunnerStops.Add(stop); }
                             return;
                         default: await scope.Service.DisposeAsync().AsTask().WaitAsync(Deadline); break;
                     }
                     Interlocked.Increment(ref completed);
                 });
-                return Task.FromResult(HealthCollectionResult.Execution(HealthExecutionOutcome.Succeeded));
+                scope.Children.Enqueue(child);
+                await releaseEvaluation.Task;
+                return HealthCollectionResult.Execution(HealthExecutionOutcome.Succeeded);
             }
         };
         registration = scope.Register(monitor, owner);
+        var failures = new List<Exception>();
         try
         {
-            await scope.Runner.StartAsync().WaitAsync(Deadline);
-            HealthCollectionAttempt attempt = await registration.CollectAsync().WaitAsync(Deadline);
+            Task startup = scope.Runner.StartAsync();
+            scope.OriginalCalls.Enqueue(startup);
+            await startup.WaitAsync(Deadline);
+            Task<HealthCollectionAttempt> caller = registration.CollectAsync();
+            scope.OriginalCalls.Enqueue(caller);
+            await Task.WhenAny(childEntered.Task, caller).WaitAsync(Deadline);
+            if (caller.IsCompleted)
+            {
+                await caller;
+                Assert.Fail("The original manual caller cannot complete successfully before its held evaluation creates the actual child.");
+            }
+            await childEntered.Task.WaitAsync(Deadline);
+            // The actual callback is still held, so this follower joins Current
+            // independently of the originally queued caller's notification.
+            Task<HealthCollectionAttempt> operation = registration.CollectAsync();
+            scope.OriginalCalls.Enqueue(operation);
+            releaseEvaluation.TrySetResult();
+            await operation.WaitAsync(Deadline);
+            // Close admission and join every real operation before any captured
+            // child may dispose. A faulty scheduler must not replace our child
+            // reference with a new invocation whose execution scope is active.
+            Task registrationDisposal = registration.DisposeAsync().AsTask();
+            scope.OriginalCalls.Enqueue(registrationDisposal);
+            await registrationDisposal.WaitAsync(Deadline);
+            HealthCollectionAttempt attempt = await AssertSettledCallerAsync(caller);
             Assert.AreEqual(HealthCollectionDisposition.Committed, attempt.Disposition);
             Assert.IsFalse(attempt.EvaluationFailed);
-            Assert.AreEqual(1, owner.Evaluations);
-            await childEntered.Task.WaitAsync(Deadline);
-            Assert.IsNotNull(child);
-            Assert.IsFalse(child.IsCompleted);
-            Assert.AreEqual(1, owner.Cleanups);
+            Assert.IsFalse(scope.Children.IsEmpty);
+            Assert.IsTrue(scope.Children.All(child => !child.IsCompleted));
             Assert.AreEqual(1L, scope.Snapshot(monitor).Outcomes!.Successful);
 
             beforeChildRelease?.Invoke();
-            releaseChild.TrySetResult();
-            await child.WaitAsync(Deadline);
-
-            if (barrier == "runner") { Assert.AreEqual(1, scope.ChildRunnerStops.Count, "The actual child must make exactly one runner Stop call."); }
-            else { Assert.AreEqual(1, completed); }
-            Assert.AreEqual(1, owner.Acquisitions);
-            Assert.AreEqual(1, owner.Evaluations);
-            Assert.AreEqual(1, owner.Cleanups);
         }
+        catch (Exception error) { failures.Add(error); }
         finally
         {
+            releaseEvaluation.TrySetResult();
+            try
+            {
+                Task cleanupRegistration = registration.DisposeAsync().AsTask();
+                scope.OriginalCalls.Enqueue(cleanupRegistration);
+                await cleanupRegistration.WaitAsync(Deadline);
+            }
+            catch (Exception error) { failures.Add(error); }
             releaseChild.TrySetResult();
-            if (child is not null) { await child.WaitAsync(Deadline); }
+            try { await JoinChildrenAsync(scope.Children); }
+            catch (Exception error) { failures.Add(error); }
         }
+        if (failures.Count == 1) { ExceptionDispatchInfo.Capture(failures[0]).Throw(); }
+        if (failures.Count > 1) { throw new AggregateException("The child-context body and actual cleanup failed.", failures); }
+        if (barrier == "runner") { Assert.AreEqual(1, scope.ChildRunnerStops.Count, "The actual child must make exactly one runner Stop call."); }
+        else { Assert.AreEqual(1, completed); }
+        Assert.AreEqual(1, owner.Acquisitions);
+        Assert.AreEqual(1, owner.Evaluations);
+        Assert.AreEqual(1, owner.Cleanups);
+    }
+
+    private static async Task<HealthCollectionAttempt> AssertSettledCallerAsync(Task<HealthCollectionAttempt> caller)
+    {
+        if (caller.IsFaulted || caller.IsCanceled) { await caller; }
+        Assert.IsTrue(caller.IsCompleted, "The original queued caller must observe its settled operation's completion.");
+        return await caller;
+    }
+
+    private static async Task JoinChildrenAsync(IEnumerable<Task> children)
+    {
+        Task joined = Task.WhenAll(children);
+        try { await joined.WaitAsync(Deadline); }
+        catch when (joined.Exception is { }) { throw joined.Exception; }
     }
 
     private enum Scenario { OtherBarrier, OwnBarrier, ChildBarrier }
@@ -336,10 +444,11 @@ public sealed class HealthCollectorExecutionBoundaryTests
         Scope? foreign = scenario == Scenario.OtherBarrier && first != "foreign-runner-stop" ? new Scope() : null;
         Scope[] scopes = foreign is null ? [local] : [local, foreign];
         Exception? primary = null;
+        Task? body = null;
         try
         {
             initialize?.Invoke(local);
-            Task body = scenario switch
+            body = scenario switch
             {
                 Scenario.OtherBarrier => ACollectorCanAwaitBarriersThatDoNotContainItsOwnOperation(local, foreign, first, local.ForeignRunnerProof),
                 Scenario.OwnBarrier => ActualAcquisitionAndLeaseCleanupCannotWaitForTheirOwnLifetime(local, first, second),
@@ -353,6 +462,13 @@ public sealed class HealthCollectorExecutionBoundaryTests
         }
         catch (Exception error) { primary = error; }
 
+        // The method's synchronous prefix registers this real gate before its
+        // body Task is returned. Outer timeout cleanup can release it even if
+        // the body's own finally has not resumed yet.
+        if (primary is not null)
+        {
+            foreach (TaskCompletionSource release in scopes.SelectMany(scope => scope.OwnedEvaluationReleases)) { release.TrySetResult(); }
+        }
         var actual = new List<(string Name, Task Task)>();
         for (int index = 0; index < scopes.Length; index++)
         {
@@ -364,10 +480,6 @@ public sealed class HealthCollectorExecutionBoundaryTests
         for (int index = 0; index < scopes.Length; index++)
         {
             Scope scope = scopes[index];
-            for (int child = 0; child < scope.ChildRunnerStops.Count; child++)
-            {
-                actual.Add(($"scope{index}.ChildRunnerStop{child}", scope.ChildRunnerStops[child]));
-            }
             actual.Add(($"scope{index}.RunnerDispose", Begin(() => scope.Runner.DisposeAsync().AsTask())));
             for (int registration = 0; registration < scope.Registrations.Count; registration++)
             {
@@ -386,6 +498,18 @@ public sealed class HealthCollectorExecutionBoundaryTests
             // Actual state disposal is an independent mandatory join. Ghost
             // State settlement cannot become a graph-completion assertion.
             Observe(Task.WhenAll(services));
+            // Stop/state disposal has now closed real callback admission. Join
+            // every child captured by any invocation, including an unexpected
+            // extra invocation, before claiming that the graph is released.
+            Observe(JoinChildrenAsync(scopes.SelectMany(scope => scope.Children)));
+            for (int index = 0; index < scopes.Length; index++)
+            {
+                Scope scope = scopes[index];
+                for (int child = 0; child < scope.ChildRunnerStops.Count; child++)
+                {
+                    actual.Add(($"scope{index}.ChildRunnerStop{child}", scope.ChildRunnerStops[child]));
+                }
+            }
             bool provenForeignPrimary = primary is not null && scopes.Any(scope => scope.KnownForeignAssertions.Any(known => ReferenceEquals(known, primary)));
             bool candidate = (primary is null || provenForeignPrimary) && owners.All(owner => owner.ActualWorkReturned)
                 && timers.All(timer => Volatile.Read(ref timer.CallbackEntries) == 0 && Volatile.Read(ref timer.CallbackReturns) == 0);
@@ -394,16 +518,45 @@ public sealed class HealthCollectorExecutionBoundaryTests
                 observers = actual.Select(item => ObserveCompletion(item.Task, completion, item.Name)).ToArray();
                 graph = scopes.SelectMany(scope => scope.WeakGraph()).ToArray();
             }
-            else { Observe(Task.WhenAll(actual.Select(item => item.Task).Concat(services))); }
+            else { Observe(Task.WhenAll(actual.Select(item => item.Task).Concat(services).Concat(body is { IsCompleted: false } ? new[] { body } : []))); }
         }
         catch (Exception cleanup)
         {
             primary = primary is null ? cleanup : new AggregateException("The original execution-boundary body and actual cleanup both failed.", primary, cleanup);
         }
+        // A watchdog wrapper may fail before the original body. Keep its real
+        // later failure, and every completed retained public call, without ever
+        // waiting a pending original notification or renewing a phase budget.
+        primary = PreserveCompletedCallFailures(primary, scopes.SelectMany(scope => scope.OriginalCalls).Concat(body is null ? [] : new[] { body })
+            .Concat(actual.Select(item => item.Task)).Concat(services));
         primary = PreserveOwnerFailures(primary, owners, timers, scopes.SelectMany(scope => scope.KnownForeignAssertions).ToArray());
         Exception? provenAssertion = graph.Length != 0 && primary is not null && scopes.Any(scope => scope.KnownForeignAssertions.Any(known => ReferenceEquals(known, primary))) ? primary : null;
         return new(primary is null ? null : ExceptionDispatchInfo.Capture(primary), graph, completion,
             observers, owners, timers, actual.Select(item => item.Name).ToArray(), ExpectedTimerCount: 1, ProvenForeignAssertion: provenAssertion);
+    }
+
+    private static Exception? PreserveCompletedCallFailures(Exception? primary, IEnumerable<Task> calls)
+    {
+        var seen = new HashSet<Task>(ReferenceEqualityComparer.Instance);
+        foreach (Task call in calls)
+        {
+            if (!seen.Add(call) || !call.IsCompleted) { continue; }
+            try { call.GetAwaiter().GetResult(); }
+            catch (Exception error)
+            {
+                if (call.Exception is { } aggregate) { foreach (Exception actual in aggregate.InnerExceptions) { Add(actual); } }
+                else { Add(error); }
+            }
+        }
+        return primary;
+
+        void Add(Exception error)
+        {
+            if (primary is null) { primary = error; }
+            else if (!Contains(primary, error)) { primary = new AggregateException("The original execution scenario and a retained actual task failed.", primary, error); }
+        }
+        static bool Contains(Exception present, Exception sought) => ReferenceEquals(present, sought)
+            || present is AggregateException aggregate && aggregate.InnerExceptions.Any(inner => Contains(inner, sought));
     }
 
     private static Exception? PreserveOwnerFailures(Exception? primary, OwnerCounters[] owners, TimerCounters[] timers, Exception[] provenForeignAssertions)
@@ -471,6 +624,9 @@ public sealed class HealthCollectorExecutionBoundaryTests
         internal List<IHealthCollectionRegistration> Registrations { get; } = [];
         internal List<Owner> Owners { get; } = [];
         internal List<Task> ChildRunnerStops { get; } = [];
+        internal ConcurrentQueue<Task> Children { get; } = new();
+        internal ConcurrentQueue<Task> OriginalCalls { get; } = new();
+        internal ConcurrentQueue<TaskCompletionSource> OwnedEvaluationReleases { get; } = new();
         internal List<Exception> KnownForeignAssertions { get; } = [];
         internal Action? BeforeCollection { get; set; }
         internal Action? ForeignRunnerProof { get; set; }

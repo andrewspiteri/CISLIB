@@ -9,6 +9,10 @@ internal static partial class HealthcheckMutationUnionModel
 {
     internal static readonly string[] Groups = ["unit-runtime", "pipes", "aspnet"];
 
+    // Old manifests keep their original evidence rule. Prospective manifests must
+    // explicitly select the shared CIS native completed-result policy.
+    internal enum NativeAuditPolicy { LegacySourceProofs = 1, CisNativeCompletedV1 = 2 }
+
     internal sealed record Source(string Path, string Sha256, string Group, string Text);
 
     internal sealed record Definition(string Id, string SourcePath, string SourceSha256,
@@ -37,8 +41,10 @@ internal static partial class HealthcheckMutationUnionModel
     {
         public string[] ReviewedSemanticKilledIds { get; init; } = [];
         public string[] CompletedBeforeAbortKilledIds { get; init; } = [];
+        public string[] NativeFailedKilledIds { get; init; } = [];
         public string[] QualifiedKilledIds => AssertionKilledIds.Concat(ReviewedSemanticKilledIds)
             .Concat(CompletedBeforeAbortKilledIds)
+            .Concat(NativeFailedKilledIds)
             .Distinct(StringComparer.Ordinal).Order(StringComparer.Ordinal).ToArray();
     }
 }

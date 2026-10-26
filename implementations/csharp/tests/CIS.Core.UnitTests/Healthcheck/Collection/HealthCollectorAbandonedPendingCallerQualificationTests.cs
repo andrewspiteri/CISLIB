@@ -1,4 +1,5 @@
 using System.Runtime.CompilerServices;
+using System.Runtime.ExceptionServices;
 using System.Threading.Channels;
 using CIS.Healthcheck;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -21,8 +22,10 @@ public sealed class HealthCollectorAbandonedPendingCallerQualificationTests
         IHealthCollectionRegistration sentinel = scope.Runner.Register(sentinelMonitor, scope.SentinelOwner, new());
         await scope.Runner.StartAsync().WaitAsync(Deadline);
         Task<HealthCollectionAttempt> occupiedCaller = occupied.CollectAsync();
-        scope.TrackActualCaller(occupiedCaller);
+        scope.TrackOriginalCaller(occupiedCaller);
         Invocation occupiedInvocation = await scope.OccupiedOwner.NextAsync(occupiedCaller);
+        Task<HealthCollectionAttempt> occupiedOperation = occupied.CollectAsync();
+        scope.TrackActualOperation(occupiedOperation);
 
         AbandonedCaller abandoned = CreateAbandonedPendingCaller(scope.Runner, abandonedMonitor, scope.UninvokedOwner);
         CollectRegistrationHandle(abandoned.Handle);
@@ -30,9 +33,11 @@ public sealed class HealthCollectorAbandonedPendingCallerQualificationTests
             "Only the real queued registration handle must be lost; the test still owns its monitor, collector and returned caller Task.");
 
         Task<HealthCollectionAttempt> sentinelCaller = sentinel.CollectAsync();
-        scope.TrackActualCaller(sentinelCaller);
+        scope.TrackOriginalCaller(sentinelCaller);
         occupiedInvocation.Release();
         Invocation sentinelInvocation = await scope.SentinelOwner.NextAsync(sentinelCaller);
+        Task<HealthCollectionAttempt> sentinelOperation = sentinel.CollectAsync();
+        scope.TrackActualOperation(sentinelOperation);
 
         // The actual next lease cannot enter until the sole occupied slot is
         // released. The dispatcher scans its dead registrations before selecting
@@ -61,11 +66,13 @@ public sealed class HealthCollectorAbandonedPendingCallerQualificationTests
             .Single(item => item.MonitorId == abandonedMonitor.MonitorId).State);
 
         sentinelInvocation.Release();
-        await Task.WhenAll(occupiedCaller, sentinelCaller).WaitAsync(Deadline);
+        await Task.WhenAll(occupiedOperation, sentinelOperation).WaitAsync(Deadline);
         Assert.AreEqual(1, scope.OccupiedOwner.Acquisitions);
         Assert.AreEqual(1, scope.OccupiedOwner.Cleanups);
         Assert.AreEqual(1, scope.SentinelOwner.Acquisitions);
         Assert.AreEqual(1, scope.SentinelOwner.Cleanups);
+        await scope.DisposeAsync();
+        await AssertOriginalCallersCompleteAsync(occupiedCaller, sentinelCaller);
         GC.KeepAlive(occupied);
         GC.KeepAlive(sentinel);
     }
@@ -94,10 +101,32 @@ public sealed class HealthCollectorAbandonedPendingCallerQualificationTests
 
     private sealed record AbandonedCaller(WeakReference Handle, Task<HealthCollectionAttempt> Caller);
 
+    private static async Task AssertOriginalCallersCompleteAsync(params Task<HealthCollectionAttempt>[] callers)
+    {
+        await ObserveCompletedCallersAsync(callers);
+        Assert.IsTrue(callers.All(caller => caller.IsCompleted),
+            "The original queued callers must complete after all actual operations and resources have settled.");
+        await Task.WhenAll(callers);
+    }
+
+    private static async Task ObserveCompletedCallersAsync(IEnumerable<Task<HealthCollectionAttempt>> callers)
+    {
+        var errors = new List<Exception>();
+        foreach (Task<HealthCollectionAttempt> caller in callers)
+        {
+            if (!caller.IsCompleted) { continue; }
+            try { await caller; }
+            catch (Exception error) { errors.Add(error); }
+        }
+        if (errors.Count == 1) { ExceptionDispatchInfo.Capture(errors[0]).Throw(); }
+        if (errors.Count > 1) { throw new AggregateException("The original queued callers failed after actual settlement.", errors); }
+    }
+
     private sealed class Scope : IAsyncDisposable
     {
         private readonly List<IConsecutiveFailureMonitor> monitors = [];
-        private readonly List<Task<HealthCollectionAttempt>> actualCallers = [];
+        private readonly List<Task<HealthCollectionAttempt>> actualOperations = [];
+        private readonly List<Task<HealthCollectionAttempt>> originalCallers = [];
         internal Scope()
         {
             Service = new(new() { MaxConcurrentCollections = 1 },
@@ -120,7 +149,8 @@ public sealed class HealthCollectorAbandonedPendingCallerQualificationTests
             monitors.Add(monitor);
             return monitor;
         }
-        internal void TrackActualCaller(Task<HealthCollectionAttempt> caller) => actualCallers.Add(caller);
+        internal void TrackActualOperation(Task<HealthCollectionAttempt> operation) => actualOperations.Add(operation);
+        internal void TrackOriginalCaller(Task<HealthCollectionAttempt> caller) => originalCallers.Add(caller);
         public async ValueTask DisposeAsync()
         {
             // These owners represent actual invoked work. Mark/release every
@@ -131,7 +161,7 @@ public sealed class HealthCollectorAbandonedPendingCallerQualificationTests
             try
             {
                 await Runner.StopAsync().WaitAsync(Deadline);
-                await Task.WhenAll(actualCallers).WaitAsync(Deadline);
+                await Task.WhenAll(actualOperations).WaitAsync(Deadline);
             }
             finally
             {
@@ -142,6 +172,7 @@ public sealed class HealthCollectorAbandonedPendingCallerQualificationTests
                     finally { GC.KeepAlive(monitors); }
                 }
             }
+            await ObserveCompletedCallersAsync(originalCallers);
             // Do not await AbandonedCaller here after an assertion failure. Its
             // missing notification is exactly the tested omission, not an active
             // lease. Omitted actual retirement/closing settlement instead fails

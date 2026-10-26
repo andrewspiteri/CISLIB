@@ -22,7 +22,7 @@ public sealed class HealthCollectorRunner : IAsyncDisposable
     private bool started, starting, stopping, disposed, pumpScheduled, wakeRequested;
     private bool timerSettled = true;
     private int cursor, registering, closing;
-    private string? resourceError;
+    private HealthDiagnostic? resourceError;
 
     /// <summary>Claims the service's sole collector runner without starting a dispatcher or evaluation.</summary>
     public HealthCollectorRunner(HealthcheckService service)
@@ -237,8 +237,8 @@ public sealed class HealthCollectorRunner : IAsyncDisposable
         try { await state.WithdrawCollection(entry.Target).ConfigureAwait(false); }
         catch (Exception exception)
         {
-            string? message = HealthDiagnostic.FromException(exception).Message;
-            lock (gate) { resourceError ??= message; }
+            HealthDiagnostic diagnostic = HealthDiagnostic.FromException(exception);
+            lock (gate) { resourceError ??= diagnostic; }
         }
         finally
         {
@@ -278,8 +278,8 @@ public sealed class HealthCollectorRunner : IAsyncDisposable
         try { await retiringTimer.DisposeAsync().ConfigureAwait(false); }
         catch (Exception exception)
         {
-            string? message = HealthDiagnostic.FromException(exception).Message;
-            lock (gate) { resourceError ??= message; }
+            HealthDiagnostic diagnostic = HealthDiagnostic.FromException(exception);
+            lock (gate) { resourceError ??= diagnostic; }
         }
         finally
         {
@@ -291,7 +291,7 @@ public sealed class HealthCollectorRunner : IAsyncDisposable
     private void SignalProgress(RegistrationEntry? entry = null)
     {
         bool entrySettled, runnerSettled;
-        string? error;
+        HealthDiagnostic? error;
         lock (gate)
         {
             entrySettled = entry is { Closed: true, StateSettled: true, Current: null };
@@ -302,7 +302,7 @@ public sealed class HealthCollectorRunner : IAsyncDisposable
         if (runnerSettled)
         {
             if (error is null) { stopCompletion.TrySetResult(); }
-            else { stopCompletion.TrySetException(new InvalidOperationException(error)); }
+            else { stopCompletion.TrySetException(new InvalidOperationException(error.Message)); }
         }
     }
 
@@ -391,8 +391,8 @@ public sealed class HealthCollectorRunner : IAsyncDisposable
         }
         catch (Exception exception)
         {
-            string? message = HealthDiagnostic.FromException(exception).Message;
-            lock (gate) { resourceError ??= message; }
+            HealthDiagnostic diagnostic = HealthDiagnostic.FromException(exception);
+            lock (gate) { resourceError ??= diagnostic; }
             BeginStop();
         }
         finally

@@ -1,3 +1,4 @@
+using System.Runtime.ExceptionServices;
 using CIS.Healthcheck;
 using CIS.TestSupport;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -58,7 +59,7 @@ public sealed class HealthCollectorAdmissionAndSettlementQualificationTests
         else { owner.Cleaning = ObserveOwnBarrier; }
         await scope.Runner.StartAsync().WaitAsync(Deadline);
 
-        HealthCollectionAttempt result = await registration.CollectAsync().WaitAsync(Deadline);
+        HealthCollectionAttempt result = await CollectWithOwnedAcquisitionAsync(registration, owner);
 
         Assert.AreEqual(1, observations);
         Assert.IsNotNull(rejected, "A known executing owner must be rejected before it can wait for its own pending operation.");
@@ -100,6 +101,7 @@ public sealed class HealthCollectorAdmissionAndSettlementQualificationTests
         await scope.Runner.StartAsync().WaitAsync(Deadline);
         Task<HealthCollectionAttempt> first = blocking.CollectAsync();
         await WaitForBlockedEvaluationAsync(blocker, first);
+        Task<HealthCollectionAttempt> firstOperation = blocking.CollectAsync();
         using var cancellation = new CancellationTokenSource();
         cancellation.Cancel();
         HealthSnapshot before = scope.Service.CaptureSnapshot();
@@ -112,6 +114,7 @@ public sealed class HealthCollectorAdmissionAndSettlementQualificationTests
         Task<HealthCollectionAttempt> progress = following.CollectAsync();
         blocker.Release();
         await WaitForBlockedEvaluationAsync(witness, progress);
+        Task<HealthCollectionAttempt> progressOperation = following.CollectAsync();
 
         // With one occupied slot, this later registered owner is a real dispatcher
         // progress witness; the canceled request cannot hide behind an immediate race.
@@ -121,9 +124,11 @@ public sealed class HealthCollectorAdmissionAndSettlementQualificationTests
         Assert.IsFalse(scope.Snapshot(canceledMonitor).Collection!.InProgress);
         Assert.AreEqual(0L, scope.Snapshot(canceledMonitor).Outcomes!.Successful);
         witness.Release();
-        await Task.WhenAll(first, progress).WaitAsync(Deadline);
+        await Task.WhenAll(firstOperation, progressOperation).WaitAsync(Deadline);
+        await AssertOriginalCallersCompleteAsync(first, progress);
+        await Task.WhenAll(first, progress);
 
-        HealthCollectionAttempt actual = await canceled.CollectAsync().WaitAsync(Deadline);
+        HealthCollectionAttempt actual = await CollectWithOwnedAcquisitionAsync(canceled, canceledOwner);
 
         Assert.AreEqual(HealthCollectionDisposition.Committed, actual.Disposition);
         Assert.IsFalse(actual.EvaluationFailed);
@@ -156,7 +161,7 @@ public sealed class HealthCollectorAdmissionAndSettlementQualificationTests
         IHealthCollectionRegistration registration = scope.Register(monitor, owner);
         await scope.Runner.StartAsync().WaitAsync(Deadline);
 
-        HealthCollectionAttempt result = await registration.CollectAsync().WaitAsync(Deadline);
+        HealthCollectionAttempt result = await CollectWithOwnedAcquisitionAsync(registration, owner);
 
         Assert.AreEqual(HealthCollectionDisposition.Committed, result.Disposition);
         Assert.IsFalse(result.EvaluationFailed);
@@ -176,12 +181,56 @@ public sealed class HealthCollectorAdmissionAndSettlementQualificationTests
         Assert.AreEqual(0, owner.ActiveLeases);
 
         owner.Cleaning = null;
-        HealthCollectionAttempt next = await registration.CollectAsync().WaitAsync(Deadline);
+        HealthCollectionAttempt next = await CollectWithOwnedAcquisitionAsync(registration, owner);
         Assert.AreEqual(HealthCollectionDisposition.Committed, next.Disposition);
         Assert.IsFalse(next.EvaluationFailed);
         Assert.AreEqual(2L, scope.Snapshot(monitor).Outcomes!.Successful);
         Assert.AreEqual(1, clock.Faults);
         Assert.AreEqual(2, owner.Cleanups);
+    }
+
+    private static async Task<HealthCollectionAttempt> CollectWithOwnedAcquisitionAsync(
+        IHealthCollectionRegistration registration, Owner owner)
+    {
+        AcquisitionHold hold = owner.HoldNextAcquisition();
+        try
+        {
+            Task<HealthCollectionAttempt> caller = registration.CollectAsync();
+            await Task.WhenAny(hold.Entered.Task, caller).WaitAsync(Deadline);
+            if (caller.IsCompleted)
+            {
+                await caller;
+                Assert.Fail("The queued caller cannot settle before its actual acquisition is released.");
+            }
+            await hold.Entered.Task.WaitAsync(Deadline);
+            Task<HealthCollectionAttempt> operation = registration.CollectAsync();
+            hold.Released.TrySetResult();
+            await operation.WaitAsync(Deadline);
+            if (caller.IsFaulted || caller.IsCanceled) { await caller; }
+            Assert.IsTrue(caller.IsCompleted, "The original queued caller must complete after its actual operation has settled.");
+            return await caller;
+        }
+        finally { hold.Released.TrySetResult(); }
+    }
+
+    private static async Task AssertOriginalCallersCompleteAsync(params Task<HealthCollectionAttempt>[] callers)
+    {
+        List<Exception> errors = [];
+        foreach (Task<HealthCollectionAttempt> caller in callers)
+        {
+            if (!caller.IsCompleted) { continue; }
+            try { await caller; }
+            catch (Exception error) { errors.Add(error); }
+        }
+        if (errors.Count == 1) { ExceptionDispatchInfo.Capture(errors[0]).Throw(); }
+        if (errors.Count > 1) { throw new AggregateException("The original collection callers failed.", errors); }
+        Assert.IsTrue(callers.All(caller => caller.IsCompleted), "Every original queued caller must complete after its actual operation has settled.");
+    }
+
+    private sealed class AcquisitionHold
+    {
+        internal TaskCompletionSource Entered { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
+        internal TaskCompletionSource Released { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
     }
 
     private sealed class Scope : IAsyncDisposable
@@ -214,7 +263,7 @@ public sealed class HealthCollectorAdmissionAndSettlementQualificationTests
         internal HealthMonitorSnapshot Snapshot(IHealthMonitor monitor) => Service.CaptureSnapshot().Monitors.Single(item => item.MonitorId == monitor.MonitorId);
         public async ValueTask DisposeAsync()
         {
-            foreach (Owner owner in owners) { owner.Release(); }
+            foreach (Owner owner in owners) { owner.ReleaseAcquisitions(); owner.Release(); }
             Task runner = DrainRunnerAsync();
             Task service = DrainServiceAsync();
             try { await Task.WhenAll(runner, service).WaitAsync(Deadline); }
@@ -238,6 +287,10 @@ public sealed class HealthCollectorAdmissionAndSettlementQualificationTests
 
     private sealed class Owner : IHealthCollector
     {
+        private readonly object acquisitionGate = new();
+        private readonly List<AcquisitionHold> acquisitionHolds = [];
+        private AcquisitionHold? nextAcquisition;
+        private bool releasingAcquisitions;
         private readonly MemoryStream resource = new();
         private readonly TaskCompletionSource release = new(TaskCreationOptions.RunContinuationsAsynchronously);
         private int acquisitions, evaluations, cleanups, active;
@@ -255,8 +308,31 @@ public sealed class HealthCollectorAdmissionAndSettlementQualificationTests
         internal int Cleanups => Volatile.Read(ref cleanups);
         internal int ActiveLeases => Volatile.Read(ref active);
         internal bool ResourceDisposed => !resource.CanWrite;
+        internal AcquisitionHold HoldNextAcquisition()
+        {
+            lock (acquisitionGate)
+            {
+                if (nextAcquisition is not null) { throw new InvalidOperationException("The fixture already holds an acquisition."); }
+                var hold = new AcquisitionHold();
+                acquisitionHolds.Add(hold);
+                nextAcquisition = hold;
+                if (releasingAcquisitions) { hold.Released.TrySetResult(); }
+                return hold;
+            }
+        }
+        internal void ReleaseAcquisitions()
+        {
+            lock (acquisitionGate)
+            {
+                releasingAcquisitions = true;
+                foreach (AcquisitionHold hold in acquisitionHolds) { hold.Released.TrySetResult(); }
+            }
+        }
         public bool TryAcquire(out IHealthCollectionLease? lease)
         {
+            AcquisitionHold? hold;
+            lock (acquisitionGate) { hold = nextAcquisition; nextAcquisition = null; }
+            if (hold is not null) { hold.Entered.TrySetResult(); hold.Released.Task.GetAwaiter().GetResult(); }
             Interlocked.Increment(ref acquisitions);
             Interlocked.Increment(ref active);
             lease = new Lease(this);

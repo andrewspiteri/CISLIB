@@ -173,12 +173,13 @@ internal static partial class HealthcheckMutationUnionVerification
             or "implementations/csharp/Directory.Build.targets" or "implementations/csharp/Directory.Packages.props"
             or "implementations/csharp/NuGet.config" or ".editorconfig";
 
-    private static JsonObject ValidateConfiguration(PinnedInputs files, JsonObject descriptor)
+    private static JsonObject ValidateConfiguration(PinnedInputs files, JsonObject descriptor,
+        NativeAuditPolicy policy = NativeAuditPolicy.LegacySourceProofs)
     {
         string group = String(descriptor, "group");
         JsonObject original = files.ReadDocument(files.Pin(Item(descriptor["configuration"])));
         JsonObject maintained = files.ReadDocument(MaintainedConfig(files, group));
-        HealthcheckMutationCampaignConfiguration.Validate(group, original, maintained);
+        HealthcheckMutationCampaignConfiguration.Validate(group, original, maintained, policy);
         return original;
     }
 

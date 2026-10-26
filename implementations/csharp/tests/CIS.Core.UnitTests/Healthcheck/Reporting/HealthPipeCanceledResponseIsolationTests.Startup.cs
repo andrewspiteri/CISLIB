@@ -86,6 +86,14 @@ public sealed partial class HealthPipeCanceledResponseIsolationTests
             }
             Assert.IsNull(startupFailure, "Enabled startup of this fresh local endpoint must succeed. Actual startup failure:\n"
                 + startupFailure + (ownedOriginalFault is null ? "" : "\nObserved original owned startup fault:\n" + ownedOriginalFault));
+            if (options.PipeEnabled && !OperatingSystem.IsWindows())
+            {
+                bool endpointPublished = true;
+                try { _ = File.GetAttributes(Path.Combine(Path.GetTempPath(), "CoreFxPipe_" + options.PipeName)); }
+                catch (FileNotFoundException) { endpointPublished = false; }
+                Assert.IsTrue(endpointPublished,
+                    "Successful enabled startup must publish its actual local pipe endpoint before any client is created.");
+            }
             return new(server, null, null, null, []);
         }
         catch (Exception error) { primary = error; }

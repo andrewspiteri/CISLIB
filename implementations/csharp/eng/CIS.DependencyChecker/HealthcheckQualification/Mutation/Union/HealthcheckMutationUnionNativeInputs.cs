@@ -10,7 +10,8 @@ namespace CIS.Verification;
 internal static partial class HealthcheckMutationUnionVerification
 {
     private static async Task<(Partition Partition, JsonObject Observation)> ReadPartitionAsync(
-        PinnedInputs files, JsonObject descriptor, Source[] sources, string lane, string output)
+        PinnedInputs files, JsonObject descriptor, Source[] sources, string lane, string output,
+        NativeAuditPolicy policy = NativeAuditPolicy.LegacySourceProofs)
     {
         string group = String(descriptor, "group"), nativeRoot = String(descriptor, "nativeSourceRoot");
         Need(lane == "ubuntu" ? nativeRoot.StartsWith('/') : nativeRoot.Length > 2 && char.IsAsciiLetter(nativeRoot[0]) && nativeRoot[1] == ':',
@@ -18,7 +19,7 @@ internal static partial class HealthcheckMutationUnionVerification
         string reportPath = files.Pin(Item(descriptor["report"]));
         string reportHash = String(Item(descriptor["report"]), "sha256");
         JsonObject report = files.ReadDocument(reportPath);
-        JsonObject config = ValidateConfiguration(files, descriptor);
+        JsonObject config = ValidateConfiguration(files, descriptor, policy);
         string core = files.Pin(Item(descriptor["strykerCore"]));
         Need(Hash(core) == "bf02f78d3725e1243edb7a32d88dc1a02c88f1f9f74b60b18730636073f234d7",
             "The selected native Stryker implementation must be the pinned 4.16.0 tool.");
@@ -29,7 +30,12 @@ internal static partial class HealthcheckMutationUnionVerification
         string[] logs = ReadLogs(files, descriptor);
         Definition[] definitions = ParseReport(report, group, reportHash, nativeRoot, sources);
         HealthcheckMutationNativeKernelEvidence? kernel = ReadKernelInputs(files, descriptor, lane);
-        NativeAuditResult audit = HealthcheckMutationNativeAudit.Audit(report, config, logs, objectModel, reportHash, definitions, sources, kernel);
+        RetainedDiagnosticInputs? retained = ReadRetainedDiagnosticInputs(files, descriptor, logs, lane);
+        Need(retained is null || kernel is not null, "Explicit retained diagnostic inputs require native kernel evidence.");
+        NativeAuditResult audit = retained is null
+            ? HealthcheckMutationNativeAudit.Audit(report, config, logs, objectModel, reportHash, definitions, sources, kernel, policy)
+            : HealthcheckMutationNativeAudit.AuditRetainedDiagnosticExtentsWithContext(report, config, retained,
+                objectModel, reportHash, definitions, sources, kernel!, policy);
         var issues = audit.Issues.ToList();
         VerifyRestoration(files, descriptor, sources, group, report);
         if (group is "pipes" or "aspnet")
@@ -49,6 +55,8 @@ internal static partial class HealthcheckMutationUnionVerification
             ["nativeExit"] = exit,
             ["hostCount"] = audit.HostCount,
             ["normalHostCount"] = audit.NormalHostCount,
+            ["outcomePolicy"] = HealthcheckMutationOutcomePolicy.Name(policy),
+            ["nativeFailedKilledIds"] = new JsonArray(audit.NativeFailedKilledIds.Select(id => (JsonNode?)JsonValue.Create(id)).ToArray()),
             ["completedBeforeAbortKilledIds"] = new JsonArray(audit.CompletedBeforeAbortKilledIds.Select(id => (JsonNode?)JsonValue.Create(id)).ToArray()),
             ["details"] = audit.Observations.DeepClone()
         };

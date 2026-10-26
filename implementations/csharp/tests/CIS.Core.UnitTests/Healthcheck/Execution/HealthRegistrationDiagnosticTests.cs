@@ -1,3 +1,4 @@
+using System.Runtime.ExceptionServices;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Nodes;
@@ -209,6 +210,9 @@ public sealed class HealthRegistrationDiagnosticTests
         var scope = new Scope();
         HealthCollectorRunner? runner = null;
         IHealthCollectionRegistration? collection = null;
+        var owner = new FailingCollector();
+        Task<HealthCollectionAttempt>? caller = null;
+        Task<HealthCollectionAttempt>? operation = null;
         Exception? primary = null;
         try
         {
@@ -224,9 +228,13 @@ public sealed class HealthRegistrationDiagnosticTests
             Assert.AreSame(diagnostic, scope.Snapshot().RegistrationDiagnostic);
 
             runner = new HealthCollectorRunner(scope.Service);
-            collection = runner.Register(scope.Monitor, new FailingCollector(), new() { IsRequired = false });
+            collection = runner.Register(scope.Monitor, owner, new() { IsRequired = false });
             await runner.StartAsync().WaitAsync(Deadline);
-            await collection.CollectAsync().WaitAsync(Deadline);
+            caller = collection.CollectAsync();
+            await owner.Entered.Task.WaitAsync(Deadline);
+            operation = collection.CollectAsync();
+            owner.Release.TrySetResult();
+            await operation.WaitAsync(Deadline);
             HealthMonitorSnapshot after = scope.Snapshot();
             Assert.IsNotNull(after.Collection);
             Assert.IsNotNull(after.Collection.LastError, "The failing optional collection must retain its own evaluation diagnostic.");
@@ -238,23 +246,43 @@ public sealed class HealthRegistrationDiagnosticTests
         catch (Exception error) { primary = error; throw; }
         finally
         {
+            owner.Release.TrySetResult();
             Task registration = DrainRegistrationAsync();
             Task collector = DrainRunnerAsync();
             Task state = DrainScopeAsync();
-            Task drains = Task.WhenAll(registration, collector, state);
-            try
+            Task[] actualDrains = operation is null ? [registration, collector, state] : [registration, collector, state, operation];
+            Task drains = Task.WhenAll(actualDrains);
+            List<Exception> errors = primary is null ? [] : [primary];
+            try { await drains.WaitAsync(Deadline); }
+            catch (Exception error) { RecordTaskError(drains, error); }
+            foreach (Task actual in actualDrains)
             {
-                await drains.WaitAsync(Deadline);
+                if (!actual.IsCompleted) { continue; }
+                try { await actual; }
+                catch (Exception error) { RecordTaskError(actual, error); }
             }
-            catch (Exception cleanup) when (primary is not null)
-            { throw new AggregateException("The receiving body failed and actual cleanup did not complete successfully.", primary, drains.Exception ?? cleanup); }
-            catch (Exception cleanup) when (cleanup is not TimeoutException && drains.Exception is not null)
-            { throw drains.Exception; }
+            if (caller is { IsCompleted: true })
+            {
+                try { await caller; }
+                catch (Exception error) { RecordTaskError(caller, error); }
+            }
+            if (errors.Count == 1) { ExceptionDispatchInfo.Capture(errors[0]).Throw(); }
+            if (errors.Count > 1) { throw new AggregateException("The actual optional collection, original caller or resource cleanup failed.", errors); }
+
+            void RecordTaskError(Task actual, Exception error)
+            {
+                if (error is TimeoutException) { Add(error); }
+                if (actual.Exception is { } aggregate) { foreach (Exception inner in aggregate.InnerExceptions) { Add(inner); } }
+                else { Add(error); }
+            }
+            void Add(Exception error) { if (!errors.Any(existing => ReferenceEquals(existing, error))) { errors.Add(error); } }
 
             async Task DrainRegistrationAsync() { if (collection is not null) { await collection.DisposeAsync(); } }
             async Task DrainRunnerAsync() { if (runner is not null) { await runner.DisposeAsync(); } }
             async Task DrainScopeAsync() => await scope.DisposeAsync();
         }
+        Assert.IsTrue(caller!.IsCompleted, "The original queued optional caller must complete after its actual operation and resource drains have settled.");
+        await caller!;
     }
 
     [TestMethod]
@@ -423,11 +451,17 @@ public sealed class HealthRegistrationDiagnosticTests
 
     private sealed class FailingCollector : IHealthCollector
     {
-        public bool TryAcquire(out IHealthCollectionLease? lease) { lease = new Lease(); return true; }
-        private sealed class Lease : IHealthCollectionLease
+        internal TaskCompletionSource Entered { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
+        internal TaskCompletionSource Release { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
+        public bool TryAcquire(out IHealthCollectionLease? lease) { lease = new Lease(this); return true; }
+        private sealed class Lease(FailingCollector owner) : IHealthCollectionLease
         {
-            public Task<HealthCollectionResult> CollectAsync(CancellationToken lifetimeCancellation)
-                => Task.FromException<HealthCollectionResult>(new InvalidOperationException("optional read"));
+            public async Task<HealthCollectionResult> CollectAsync(CancellationToken lifetimeCancellation)
+            {
+                owner.Entered.TrySetResult();
+                await owner.Release.Task;
+                throw new InvalidOperationException("optional read");
+            }
             public ValueTask DisposeAsync() => ValueTask.CompletedTask;
         }
     }

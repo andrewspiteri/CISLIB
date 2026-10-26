@@ -278,7 +278,12 @@ public sealed class HealthcheckValueContractTests
         Assert.AreSame(diagnostic, condition.Diagnostic);
         Assert.IsEmpty(condition.Measurements);
 
-        var execution = HealthCollectionResult.Execution(HealthExecutionOutcome.ExpectedCancellation);
+        HealthCollectionResult? execution = null;
+        ArgumentOutOfRangeException? executionRejection = null;
+        try { execution = HealthCollectionResult.Execution(HealthExecutionOutcome.ExpectedCancellation); }
+        catch (ArgumentOutOfRangeException error) when (error.GetType() == typeof(ArgumentOutOfRangeException) && error.ParamName == "outcome") { executionRejection = error; }
+        Assert.IsNull(executionRejection, "The defined expected-cancellation outcome must be accepted by the actual execution factory.");
+        Assert.IsNotNull(execution);
         Assert.AreEqual(HealthCollectionResultKind.Execution, execution.Kind);
         Assert.AreEqual(HealthExecutionOutcome.ExpectedCancellation, execution.Outcome);
         Assert.IsNull(execution.IsFlagged);
@@ -383,7 +388,12 @@ public sealed class HealthcheckValueContractTests
         catch (ArgumentException error) { rejection = error; }
         Assert.IsNull(rejection, "A valid execution diagnostic code must be accepted.");
         Assert.IsNotNull(diagnostic);
-        var original = HealthCollectionResult.Execution(HealthExecutionOutcome.Failed, diagnostic);
+        HealthCollectionResult? original = null;
+        ArgumentOutOfRangeException? executionRejection = null;
+        try { original = HealthCollectionResult.Execution(HealthExecutionOutcome.Failed, diagnostic); }
+        catch (ArgumentOutOfRangeException error) when (error.GetType() == typeof(ArgumentOutOfRangeException) && error.ParamName == "outcome") { executionRejection = error; }
+        Assert.IsNull(executionRejection, "The defined failed outcome and admitted diagnostic must be accepted by the actual execution factory.");
+        Assert.IsNotNull(original);
         var first = HealthMeasurement.Integer("first", 1, Observation);
         var second = HealthMeasurement.Integer("second", 2, Observation);
         HealthMeasurement[] supplied = [first];

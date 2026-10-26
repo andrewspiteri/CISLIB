@@ -1,4 +1,5 @@
 using System.Runtime.CompilerServices;
+using System.Runtime.ExceptionServices;
 using CIS.Healthcheck;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -59,6 +60,7 @@ public sealed class HealthCollectorDisposedOwnershipTests
         var runner = new HealthCollectorRunner(service);
         var owner = new CountingOwner();
         IHealthCollectionRegistration? registration = null;
+        Task<HealthCollectionAttempt>? caller = null;
         Exception? primary = null;
         try
         {
@@ -66,24 +68,72 @@ public sealed class HealthCollectorDisposedOwnershipTests
             {
                 registration = runner.Register(monitor, owner, new());
                 runner.StartAsync().WaitAsync(Deadline).GetAwaiter().GetResult();
-                HealthCollectionAttempt attempt = registration.CollectAsync().WaitAsync(Deadline).GetAwaiter().GetResult();
-                Assert.AreEqual(HealthCollectionDisposition.Committed, attempt.Disposition);
-                Assert.IsFalse(attempt.EvaluationFailed);
-                Assert.IsNull(attempt.Diagnostic);
+                caller = registration.CollectAsync();
+                Task.WhenAny(owner.AcquisitionEntered.Task, caller).WaitAsync(Deadline).GetAwaiter().GetResult();
+                if (caller.IsCompleted)
+                {
+                    caller.GetAwaiter().GetResult();
+                    Assert.Fail("The queued caller cannot settle before its actual acquisition is released.");
+                }
+                owner.AcquisitionEntered.Task.WaitAsync(Deadline).GetAwaiter().GetResult();
+                Task<HealthCollectionAttempt> operation = registration.CollectAsync();
+                owner.ReleaseAcquisition();
+                operation.WaitAsync(Deadline).GetAwaiter().GetResult();
             }
         }
         catch (Exception error) { primary = error; throw; }
         finally
         {
+            owner.ReleaseAcquisition();
             // Initiate every actual drain before observing one; synchronous
             // disposal faults cannot suppress the other owner's cleanup.
             Task registrationDrain = DrainRegistration(registration);
             Task runnerDrain = DrainRunner(runner);
             Task all = Task.WhenAll(registrationDrain, runnerDrain);
+            List<Exception> errors = [];
+            if (primary is not null) { errors.Add(primary); }
             try { all.WaitAsync(Deadline).GetAwaiter().GetResult(); }
-            catch (Exception error) when (primary is not null)
-            { throw new AggregateException("The collection control and actual runner cleanup both failed.", primary, all.Exception ?? error); }
+            catch (Exception error)
+            {
+                IEnumerable<Exception> actualErrors = all.Exception is { } aggregate ? aggregate.InnerExceptions : [error];
+                foreach (Exception actual in actualErrors)
+                {
+                    if (!errors.Any(existing => ReferenceEquals(existing, actual))) { errors.Add(actual); }
+                }
+            }
             finally { GC.KeepAlive(monitor); GC.KeepAlive(service); }
+            foreach (Task drain in new[] { registrationDrain, runnerDrain })
+            {
+                if (!drain.IsCompleted) { continue; }
+                try { drain.GetAwaiter().GetResult(); }
+                catch (Exception error)
+                {
+                    IEnumerable<Exception> actualErrors = drain.Exception is { } aggregate ? aggregate.InnerExceptions : [error];
+                    foreach (Exception actual in actualErrors)
+                    {
+                        if (!errors.Any(existing => ReferenceEquals(existing, actual))) { errors.Add(actual); }
+                    }
+                }
+            }
+            if (caller is not null && (caller.IsFaulted || caller.IsCanceled))
+            {
+                try { caller.GetAwaiter().GetResult(); }
+                catch (Exception error)
+                {
+                    if (!errors.Any(existing => ReferenceEquals(existing, error))) { errors.Add(error); }
+                }
+            }
+            if (errors.Count == 1) { ExceptionDispatchInfo.Capture(errors[0]).Throw(); }
+            if (errors.Count > 1) { throw new AggregateException("The actual collection, original caller or runner cleanup failed.", errors); }
+        }
+        if (caller is not null)
+        {
+            if (caller.IsFaulted || caller.IsCanceled) { caller.GetAwaiter().GetResult(); }
+            Assert.IsTrue(caller.IsCompleted, "The original queued caller must complete after its actual operation and runner drains have settled.");
+            HealthCollectionAttempt attempt = caller.GetAwaiter().GetResult();
+            Assert.AreEqual(HealthCollectionDisposition.Committed, attempt.Disposition);
+            Assert.IsFalse(attempt.EvaluationFailed);
+            Assert.IsNull(attempt.Diagnostic);
         }
         return new(new WeakReference(runner), owner.Acquisitions, owner.Evaluations, owner.Cleanups, owner.ActiveLeases);
     }
@@ -120,13 +170,18 @@ public sealed class HealthCollectorDisposedOwnershipTests
 
     private sealed class CountingOwner : IHealthCollector
     {
+        private readonly TaskCompletionSource releaseAcquisition = new(TaskCreationOptions.RunContinuationsAsynchronously);
+        internal TaskCompletionSource AcquisitionEntered { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
         internal int Acquisitions;
         internal int Evaluations;
         internal int Cleanups;
         internal int ActiveLeases;
+        internal void ReleaseAcquisition() => releaseAcquisition.TrySetResult();
 
         public bool TryAcquire(out IHealthCollectionLease? lease)
         {
+            AcquisitionEntered.TrySetResult();
+            releaseAcquisition.Task.GetAwaiter().GetResult();
             Interlocked.Increment(ref Acquisitions);
             Interlocked.Increment(ref ActiveLeases);
             lease = new Lease(this);

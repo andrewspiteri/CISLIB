@@ -13,6 +13,9 @@ internal sealed record SourceInventoryEntry(
 
 internal static class SourceInventory
 {
+    // The complete repository path list currently exceeds 5 MiB. Keep its
+    // authoritative stdout bounded independently from ordinary Git diagnostics.
+    private const int MaximumGitStandardOutputBytes = 8 * 1024 * 1024;
     private static readonly HashSet<string> ExcludedDirectories = new(StringComparer.OrdinalIgnoreCase)
     { ".git", ".artifacts", "bin", "obj", ".vs" };
 
@@ -88,7 +91,8 @@ internal static class SourceInventory
     }
 
     private static Task<ProcessResult> RunGitAsync(string root, string[] arguments) =>
-        ProcessRunner.RunAsync("git", ["-C", root, .. arguments], root, TimeSpan.FromMinutes(2), outputEncoding: new UTF8Encoding(false, true));
+        ProcessRunner.RunAsync("git", ["-C", root, .. arguments], root, TimeSpan.FromMinutes(2), outputEncoding: new UTF8Encoding(false, true),
+            maximumCapturedStandardOutputBytes: MaximumGitStandardOutputBytes);
 
     private static async Task<ProcessResult> TraceGitAsync(string root, string[] arguments, string path)
     {
@@ -115,6 +119,7 @@ internal static class SourceInventory
             argv,
             workingDirectory = root,
             timeoutMilliseconds = 120_000,
+            maximumCapturedStandardOutputBytes = MaximumGitStandardOutputBytes,
             pathExecutableCandidate = candidate,
             executableResolution = "First existing PATH candidate; actual child image is not exposed by ProcessRunner.",
             processId = (int?)null,
@@ -139,12 +144,23 @@ internal static class SourceInventory
                 processId = result.ProcessId,
                 exitCode = result.ExitCode,
                 standardOutputBytes = result.StandardOutputBytes.Length,
-                standardErrorBytes = result.StandardErrorBytes.Length
+                standardErrorBytes = result.StandardErrorBytes.Length,
+                standardOutputTotalBytes = result.StandardOutputTotalBytes,
+                standardErrorTotalBytes = result.StandardErrorTotalBytes,
+                standardOutputTruncated = result.StandardOutputTruncated,
+                standardErrorTruncated = result.StandardErrorTruncated,
+                outputDrained = result.OutputDrained
             });
             return result;
         }
         catch (Exception error)
         {
+            ProcessResult? capture = error switch
+            {
+                ProcessTimeoutException timeout => timeout.Result,
+                ProcessOutputLimitException limit => limit.Result,
+                _ => null
+            };
             Trace(new
             {
                 schema = "cis.source-inventory-git-diagnostics/v1",
@@ -157,11 +173,17 @@ internal static class SourceInventory
                 argv,
                 workingDirectory = root,
                 elapsedMilliseconds = clock.ElapsedMilliseconds,
-                processId = (int?)null,
-                exitCode = (int?)null,
-                standardOutputBytes = (int?)null,
-                standardErrorBytes = (int?)null,
-                unavailable = "ProcessRunner returns child PID and captured byte counts only on successful completion; timeout process/drain state is not exposed.",
+                processId = capture?.ProcessId,
+                exitCode = capture?.ExitCode,
+                standardOutputBytes = capture?.StandardOutputBytes.Length,
+                standardErrorBytes = capture?.StandardErrorBytes.Length,
+                standardOutputTotalBytes = capture?.StandardOutputTotalBytes,
+                standardErrorTotalBytes = capture?.StandardErrorTotalBytes,
+                standardOutputTruncated = capture?.StandardOutputTruncated,
+                standardErrorTruncated = capture?.StandardErrorTruncated,
+                outputDrained = capture?.OutputDrained,
+                cleanupCompleted = (error as ProcessTimeoutException)?.CleanupCompleted,
+                unavailable = capture is null ? "No child capture is available for this failure." : null,
                 exceptionType = error.GetType().FullName,
                 exceptionMessage = error.Message,
                 exceptionStackTrace = error.StackTrace,

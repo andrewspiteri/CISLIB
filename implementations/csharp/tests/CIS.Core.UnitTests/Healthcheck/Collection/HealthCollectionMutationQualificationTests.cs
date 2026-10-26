@@ -158,10 +158,10 @@ public sealed class HealthCollectionMutationQualificationTests
         Assert.IsNotNull(firstDiagnostic);
         HealthCollectionAttempt first = firstIsFailure
             ? scope.State.CommitEvaluationFailure(operation, firstDiagnostic)
-            : scope.State.CommitResult(operation, HealthCollectionResult.Execution(HealthExecutionOutcome.Succeeded));
+            : scope.State.CommitResult(operation, AcceptedExecution(HealthExecutionOutcome.Succeeded));
         HealthSnapshot retained = scope.Service.CaptureSnapshot();
 
-        HealthCollectionAttempt second = scope.State.CommitResult(operation, HealthCollectionResult.Execution(HealthExecutionOutcome.Failed));
+        HealthCollectionAttempt second = scope.State.CommitResult(operation, AcceptedExecution(HealthExecutionOutcome.Failed));
         HealthCollectionAttempt third = scope.State.CommitEvaluationFailure(operation, new HealthDiagnostic("LaterEvaluation"));
 
         Assert.AreEqual(first.Disposition, second.Disposition);
@@ -311,6 +311,17 @@ public sealed class HealthCollectionMutationQualificationTests
         Assert.AreEqual(before.Revision, scope.Service.CaptureSnapshot().Revision);
         Assert.IsTrue(scope.State.TryEnter(operation));
         Assert.AreEqual(HealthCollectionDisposition.Committed, scope.State.CommitResult(operation, HealthCollectionResult.Condition(true)).Disposition);
+    }
+
+    private static HealthCollectionResult AcceptedExecution(HealthExecutionOutcome outcome)
+    {
+        HealthCollectionResult? result = null;
+        ArgumentOutOfRangeException? rejection = null;
+        try { result = HealthCollectionResult.Execution(outcome); }
+        catch (ArgumentOutOfRangeException error) when (error.GetType() == typeof(ArgumentOutOfRangeException) && error.ParamName == "outcome") { rejection = error; }
+        Assert.IsNull(rejection, "The actual defined execution outcome must be accepted before committing the reserved collection.");
+        Assert.IsNotNull(result);
+        return result;
     }
 
     private static void AssertRetired(HealthCollectionAttempt result)

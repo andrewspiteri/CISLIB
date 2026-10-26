@@ -37,7 +37,7 @@ public sealed class HealthcheckOptionsTests
             ["CIS_HEALTHCHECK_MAX_REPORT_BYTES"] = "8192"
         };
         var setup = new HealthcheckOptions { MaxConcurrentCollections = 2, PipeName = "setup", DetailsEnabled = false };
-        HealthcheckOptions selected = HealthcheckOptions.Resolve(setup, key =>
+        HealthcheckOptions selected = AcceptedResolution(setup, key =>
         {
             reads[key] = reads.GetValueOrDefault(key) + 1;
             return values.GetValueOrDefault(key);
@@ -78,7 +78,9 @@ public sealed class HealthcheckOptionsTests
         CoreConfigurationException error = Assert.ThrowsExactly<CoreConfigurationException>(() =>
             HealthcheckOptions.Resolve(new HealthcheckOptions { MaxMonitors = 37 }, key =>
                 key == "CIS_HEALTHCHECK_MAX_MONITORS" ? invalid : null));
+        Assert.AreEqual(1, error.Issues.Count, "One malformed integer with otherwise valid settings must produce exactly one configuration issue.");
         Assert.IsTrue(error.Issues.Any(issue => issue.Code == "Healthcheck.InvalidValue" && issue.Key == "CIS_HEALTHCHECK_MAX_MONITORS"));
+        Assert.IsFalse(string.IsNullOrWhiteSpace(error.Issues.Single().Explanation), "An invalid integer must retain guidance for correcting its configuration.");
         Assert.IsFalse(error.Message.Contains(invalid, StringComparison.Ordinal));
         Assert.IsFalse(error.Issues.Any(issue => issue.Explanation.Contains(invalid, StringComparison.Ordinal)));
     }
@@ -109,7 +111,9 @@ public sealed class HealthcheckOptionsTests
     {
         CoreConfigurationException error = Assert.ThrowsExactly<CoreConfigurationException>(() =>
             HealthcheckOptions.Resolve(null, key => key == "CIS_HEALTHCHECK_DETAILS_ENABLED" ? value : null));
+        Assert.AreEqual(1, error.Issues.Count, "One malformed boolean with otherwise valid settings must produce exactly one configuration issue.");
         Assert.AreEqual("Healthcheck.InvalidValue", error.Issues.Single().Code);
+        Assert.IsFalse(string.IsNullOrWhiteSpace(error.Issues.Single().Explanation), "An invalid boolean must retain guidance for correcting its configuration.");
     }
 
     [TestMethod]
@@ -124,7 +128,9 @@ public sealed class HealthcheckOptionsTests
     {
         CoreConfigurationException error = Assert.ThrowsExactly<CoreConfigurationException>(() =>
             new HealthcheckOptions { PipeName = name }.ValidatedCopy());
+        Assert.AreEqual(1, error.Issues.Count, "One invalid pipe name with otherwise valid settings must produce exactly one configuration issue.");
         Assert.AreEqual("CIS_HEALTHCHECK_PIPE_NAME", error.Issues.Single().Key);
+        Assert.IsFalse(string.IsNullOrWhiteSpace(error.Issues.Single().Explanation), "An invalid pipe name must retain guidance for correcting its configuration.");
     }
 
     [TestMethod]
@@ -132,22 +138,24 @@ public sealed class HealthcheckOptionsTests
     {
         CoreConfigurationException error = Assert.ThrowsExactly<CoreConfigurationException>(() =>
             HealthcheckOptions.Resolve(new HealthcheckOptions { PipeEnabled = true }, _ => null));
+        Assert.AreEqual(1, error.Issues.Count, "One missing enabled pipe name with otherwise valid settings must produce exactly one configuration issue.");
         Assert.AreEqual("Healthcheck.RequiredValue", error.Issues.Single().Code);
+        Assert.IsFalse(string.IsNullOrWhiteSpace(error.Issues.Single().Explanation), "A missing enabled pipe name must retain guidance for completing its configuration.");
         Assert.IsFalse(new HealthcheckOptions().PipeEnabled);
     }
 
     [TestMethod]
     public void InclusiveLimitsAndPortableMaximumPipeNameAreAccepted()
     {
-        HealthcheckOptions low = new HealthcheckOptions
+        HealthcheckOptions low = AcceptedCopy(new HealthcheckOptions
         {
             MaxConcurrentCollections = 1,
             MaxMonitors = 1,
             PipeMaxClients = 1,
             PipeRequestTimeoutMs = 50,
             MaxReportBytes = 1024
-        }.ValidatedCopy();
-        HealthcheckOptions high = new HealthcheckOptions
+        });
+        HealthcheckOptions high = AcceptedCopy(new HealthcheckOptions
         {
             MaxConcurrentCollections = 64,
             MaxMonitors = 65536,
@@ -156,7 +164,7 @@ public sealed class HealthcheckOptionsTests
             MaxReportBytes = 16777216,
             PipeEnabled = true,
             PipeName = "A" + new string('-', 63)
-        }.ValidatedCopy();
+        });
         Assert.AreEqual(1, low.MaxMonitors);
         Assert.AreEqual(65536, high.MaxMonitors);
         Assert.AreEqual(64, high.PipeName!.Length);
@@ -184,7 +192,33 @@ public sealed class HealthcheckOptionsTests
     {
         CoreConfigurationException error = Assert.ThrowsExactly<CoreConfigurationException>(() =>
             new HealthcheckOptions { MaxMonitors = 0, PipeMaxClients = 0, PipeEnabled = true }.ValidatedCopy());
-        CollectionAssert.AreEquivalent(new[] { "CIS_HEALTHCHECK_MAX_MONITORS", "CIS_HEALTHCHECK_PIPE_MAX_CLIENTS", "CIS_HEALTHCHECK_PIPE_NAME" },
-            error.Issues.Select(issue => issue.Key).ToArray());
+        Assert.AreEqual(3, error.Issues.Count);
+        foreach (string key in new[] { "CIS_HEALTHCHECK_MAX_MONITORS", "CIS_HEALTHCHECK_PIPE_MAX_CLIENTS", "CIS_HEALTHCHECK_PIPE_NAME" })
+        {
+            Assert.AreEqual(1, error.Issues.Count(issue => issue.Key == key),
+                "Each independently invalid setting must retain exactly one structured issue.");
+        }
+    }
+
+    private static HealthcheckOptions AcceptedResolution(HealthcheckOptions setup, Func<string, string?> readEnvironment)
+    {
+        HealthcheckOptions? selected = null;
+        CoreConfigurationException? rejection = null;
+        try { selected = HealthcheckOptions.Resolve(setup, readEnvironment); }
+        catch (CoreConfigurationException error) { rejection = error; }
+        Assert.IsNull(rejection, "Documented valid environment options must resolve without configuration rejection.");
+        Assert.IsNotNull(selected);
+        return selected;
+    }
+
+    private static HealthcheckOptions AcceptedCopy(HealthcheckOptions setup)
+    {
+        HealthcheckOptions? selected = null;
+        CoreConfigurationException? rejection = null;
+        try { selected = setup.ValidatedCopy(); }
+        catch (CoreConfigurationException error) { rejection = error; }
+        Assert.IsNull(rejection, "Documented valid option boundaries must produce a validated copy.");
+        Assert.IsNotNull(selected);
+        return selected;
     }
 }

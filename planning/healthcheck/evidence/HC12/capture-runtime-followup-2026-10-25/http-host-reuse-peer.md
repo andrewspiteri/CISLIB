@@ -1,0 +1,9 @@
+# Capture-role HTTP host reuse source peer
+
+SOURCE CLEAR for candidate `b800977a11889fc592188339cb23bd5ef148b603a1cea72c036708d148af4dce` against actual canonical `1c4fd5c4c40dd5e7d8aa4877b32fb15ae62ac3eab31011ed7a1f31991d746b8c`. Read the full diff and relevant request/host ownership context. No reviewer build, native run, canonical change or variant control occurred.
+
+Only six same-mode real-host methods change. Their exact27 former DataRow request tuples now run sequentially within six actual host lifetimes: known views6, reserved errors7, disabled details3, authorization4, similar prefixes4 and HTTP/pipe parity3. Each original status/body/schema/header/Allow/authorization/capture/business/revision/parity assertion remains. Counters now assert the exact cumulative per-request value; requests/responses are disposed inside each iteration and await-using still owns genuine final host cleanup. Any failed assertion or real error still fails the method and enters the existing host cleanup. No catch, timeout increase or error normalization was added.
+
+Different modes, alternating behavior, cancellation, lifecycle methods and the adopted1c in-process route prerequisite remain byte-identical. The shared parity source and sequential operations support exact detached snapshot comparison. Existing health revision and counter observations are retained after every request. The source change removes21 separate case identities/child startups; actual focused discovery and coherent checkpoints must establish the new total. Old82-case campaign identities/outcomes remain historical and cannot automatically transfer to this new grouping.
+
+This source review supports Root's guarded adoption and official full-class check. It does not establish a passing outcome, new campaign qualification or mutation credit.

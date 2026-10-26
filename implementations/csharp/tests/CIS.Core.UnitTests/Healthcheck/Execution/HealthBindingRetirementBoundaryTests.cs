@@ -32,6 +32,9 @@ public sealed class HealthBindingRetirementBoundaryTests
         HealthCollectorRunner? runner = null;
         IHealthCollectionRegistration? registration = null;
         IConsecutiveFailureMonitor? ownedMonitor = null;
+        ObservingOwner? owner = null;
+        Task<HealthCollectionAttempt>? caller = null;
+        Task<HealthCollectionAttempt>? operation = null;
         Exception? primary = null;
         try
         {
@@ -40,7 +43,7 @@ public sealed class HealthBindingRetirementBoundaryTests
             Exception? observed = null;
             Task? incorrectlyReturnedBarrier = null;
             bool incompleteWhenReturned = false;
-            var owner = new ObservingOwner(() =>
+            owner = new ObservingOwner(() =>
             {
                 try
                 {
@@ -53,14 +56,17 @@ public sealed class HealthBindingRetirementBoundaryTests
             registration = runner.Register(monitor, owner, new());
             await runner.StartAsync().WaitAsync(Deadline);
 
-            HealthCollectionAttempt attempt = await registration.CollectAsync().WaitAsync(Deadline);
+            caller = registration.CollectAsync();
+            await owner.Entered.Task.WaitAsync(Deadline);
+            operation = registration.CollectAsync();
+            owner.Release.TrySetResult();
+            await operation.WaitAsync(Deadline);
 
             Assert.IsNotNull(observed);
             Assert.AreEqual(typeof(InvalidOperationException), observed.GetType());
             Assert.IsNull(incorrectlyReturnedBarrier, "Own disposal must reject the self-containing wait synchronously after requesting withdrawal.");
             Assert.IsFalse(incompleteWhenReturned);
             Assert.AreEqual(0, service.CaptureSnapshot().MonitorCounts.Active);
-            Assert.AreEqual(HealthCollectionDisposition.Retired, attempt.Disposition);
             Assert.AreEqual(1, owner.Acquisitions);
             Assert.AreEqual(1, owner.Evaluations);
             Assert.AreEqual(1, owner.Cleanups);
@@ -70,24 +76,45 @@ public sealed class HealthBindingRetirementBoundaryTests
         catch (Exception error) { primary = error; throw; }
         finally
         {
+            owner?.Release.TrySetResult();
             Task association = DrainRegistrationAsync();
             Task collector = DrainRunnerAsync();
             Task state = DrainServiceAsync();
-            Task drains = Task.WhenAll(association, collector, state);
-            try
+            Task[] actualDrains = operation is null ? [association, collector, state] : [association, collector, state, operation];
+            Task drains = Task.WhenAll(actualDrains);
+            List<Exception> errors = primary is null ? [] : [primary];
+            try { await drains.WaitAsync(Deadline); }
+            catch (Exception error) { RecordTaskError(drains, error); }
+            foreach (Task actual in actualDrains)
             {
-                await drains.WaitAsync(Deadline);
+                if (!actual.IsCompleted) { continue; }
+                try { await actual; }
+                catch (Exception error) { RecordTaskError(actual, error); }
             }
-            catch (Exception cleanup) when (primary is not null)
-            { throw new AggregateException("The receiving body failed and actual cleanup did not complete successfully.", primary, drains.Exception ?? cleanup); }
-            catch (Exception cleanup) when (cleanup is not TimeoutException && drains.Exception is not null)
-            { throw drains.Exception; }
-            finally { GC.KeepAlive(ownedMonitor); }
+            if (caller is { IsCompleted: true })
+            {
+                try { await caller; }
+                catch (Exception error) { RecordTaskError(caller, error); }
+            }
+            GC.KeepAlive(ownedMonitor);
+            if (errors.Count == 1) { ExceptionDispatchInfo.Capture(errors[0]).Throw(); }
+            if (errors.Count > 1) { throw new AggregateException("The actual self-disposal scenario, original caller or cleanup failed.", errors); }
+
+            void RecordTaskError(Task actual, Exception error)
+            {
+                if (error is TimeoutException) { Add(error); }
+                if (actual.Exception is { } aggregate) { foreach (Exception inner in aggregate.InnerExceptions) { Add(inner); } }
+                else { Add(error); }
+            }
+            void Add(Exception error) { if (!errors.Any(existing => ReferenceEquals(existing, error))) { errors.Add(error); } }
 
             async Task DrainRegistrationAsync() { if (registration is not null) { await registration.DisposeAsync(); } }
             async Task DrainRunnerAsync() { if (runner is not null) { await runner.DisposeAsync(); } }
             async Task DrainServiceAsync() => await service.DisposeAsync();
         }
+        Assert.IsTrue(caller!.IsCompleted, "The original queued caller must complete after its actual self-disposing operation and resource drains have settled.");
+        HealthCollectionAttempt attempt = await caller!;
+        Assert.AreEqual(HealthCollectionDisposition.Retired, attempt.Disposition);
     }
 
     [TestMethod]
@@ -413,6 +440,8 @@ public sealed class HealthBindingRetirementBoundaryTests
 
     private sealed class ObservingOwner(Action evaluate) : IHealthCollector
     {
+        internal TaskCompletionSource Entered { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
+        internal TaskCompletionSource Release { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
         private int acquisitions, evaluations, cleanups;
         internal int Acquisitions => Volatile.Read(ref acquisitions);
         internal int Evaluations => Volatile.Read(ref evaluations);
@@ -422,10 +451,12 @@ public sealed class HealthBindingRetirementBoundaryTests
         private void Evaluate() { Interlocked.Increment(ref evaluations); evaluate(); }
         private sealed class Lease(ObservingOwner owner) : IHealthCollectionLease
         {
-            public Task<HealthCollectionResult> CollectAsync(CancellationToken lifetimeCancellation)
+            public async Task<HealthCollectionResult> CollectAsync(CancellationToken lifetimeCancellation)
             {
+                owner.Entered.TrySetResult();
+                await owner.Release.Task;
                 owner.Evaluate();
-                return Task.FromResult(HealthCollectionResult.Execution(HealthExecutionOutcome.Succeeded));
+                return HealthCollectionResult.Execution(HealthExecutionOutcome.Succeeded);
             }
             public ValueTask DisposeAsync()
             { Interlocked.Increment(ref owner.cleanups); return ValueTask.CompletedTask; }

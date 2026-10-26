@@ -1,0 +1,9 @@
+# Both coherent Unit192 Developer attempts — complete file retention
+
+This files-only selection includes both entire Developer output folders and both entire entry folders. No regular file is excluded, compacted, rewritten or deduplicated: failed `unit192-coherent-developer01`, successful `unit192-coherent-developer02`, and exact entry01/02 stdout/stderr/exits. All original source inventories, discovery/reconciliation records, validation issues, format/build/test logs, native TRXs, architecture/contracts outputs and generated metadata remain.
+
+Developer01 failed at its format stage before the four test families ran. Its original StageFailure/FailedStage and MissingFamilyExecution issues remain intact. Developer02 completed0 with10,337passed/0failed/0skipped across its four actual native family TRXs; its validation is0/issues[]. These are distinct attempts and source inventories. The passing result does not rewrite the failed one or qualify an old mutation report.
+
+The existing unmodified C# Retention helper b688dc9f prepares a complete file manifest/list; native tar creates/extracts that exact list; the same helper verifies every path/length/SHA and no extra file/directory. A second prepare after extraction must reproduce the original manifest byte-for-byte. All producer argv/log/exit records, archive pin and receiving receipt remain outside the selected roots to avoid circular hashes. The selection schema is explicitly files-only; original empty directory paths, if any, are recorded in `empty-directory-metadata01.json` rather than represented as file bodies or unexpected extracted directories.
+
+No subject, build, classifier or graph operation is part of this retention. Originals remain intact. Canonical copies are created only at absent target paths; pre-existing identical proof archives are independently matched and reused without overwrite. The shared frozen Retention producer closure/reference is retained alongside the proof sidecars.

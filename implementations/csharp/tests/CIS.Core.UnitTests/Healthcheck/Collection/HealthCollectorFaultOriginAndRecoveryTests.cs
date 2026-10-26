@@ -22,7 +22,7 @@ public sealed class HealthCollectorFaultOriginAndRecoveryTests
         {
             await scope.Runner.StartAsync().WaitAsync(Deadline);
 
-            HealthCollectionAttempt failed = await scope.Registration.CollectAsync().WaitAsync(Deadline);
+            HealthCollectionAttempt failed = await CollectWithOwnedAcquisitionAsync(scope);
 
             Assert.AreEqual(HealthCollectionDisposition.Committed, failed.Disposition);
             Assert.IsTrue(failed.EvaluationFailed);
@@ -49,7 +49,7 @@ public sealed class HealthCollectorFaultOriginAndRecoveryTests
 
             scope.Fault = null;
             scope.Clock.Advance(TimeSpan.FromSeconds(1));
-            HealthCollectionAttempt recovered = await scope.Registration.CollectAsync().WaitAsync(Deadline);
+            HealthCollectionAttempt recovered = await CollectWithOwnedAcquisitionAsync(scope);
 
             Assert.AreEqual(HealthCollectionDisposition.Committed, recovered.Disposition);
             Assert.IsFalse(recovered.EvaluationFailed);
@@ -97,7 +97,7 @@ public sealed class HealthCollectorFaultOriginAndRecoveryTests
         {
             await scope.Runner.StartAsync().WaitAsync(Deadline);
 
-            HealthCollectionAttempt attempt = await scope.Registration.CollectAsync().WaitAsync(Deadline);
+            HealthCollectionAttempt attempt = await CollectWithOwnedAcquisitionAsync(scope);
 
             Assert.AreEqual(HealthCollectionDisposition.Committed, attempt.Disposition);
             Assert.AreEqual(evaluationFails, attempt.EvaluationFailed);
@@ -129,7 +129,7 @@ public sealed class HealthCollectorFaultOriginAndRecoveryTests
 
             scope.Fault = null;
             scope.CleanupFails = false;
-            HealthCollectionAttempt next = await scope.Registration.CollectAsync().WaitAsync(Deadline);
+            HealthCollectionAttempt next = await CollectWithOwnedAcquisitionAsync(scope);
             Assert.AreEqual(HealthCollectionDisposition.Committed, next.Disposition);
             Assert.IsFalse(next.EvaluationFailed);
             Assert.IsNull(next.Diagnostic);
@@ -142,6 +142,35 @@ public sealed class HealthCollectorFaultOriginAndRecoveryTests
         }
         catch (Exception error) { primary = error; throw; }
         finally { await scope.DrainAsync(primary); }
+    }
+
+    private static async Task<HealthCollectionAttempt> CollectWithOwnedAcquisitionAsync(Scope scope)
+    {
+        AcquisitionHold hold = scope.Owner.HoldNextAcquisition();
+        try
+        {
+            Task<HealthCollectionAttempt> caller = scope.Registration.CollectAsync();
+            await Task.WhenAny(hold.Entered.Task, caller).WaitAsync(Deadline);
+            if (caller.IsCompleted)
+            {
+                await caller;
+                Assert.Fail("The queued caller cannot settle before its actual acquisition is released.");
+            }
+            await hold.Entered.Task.WaitAsync(Deadline);
+            Task<HealthCollectionAttempt> operation = scope.Registration.CollectAsync();
+            hold.Released.TrySetResult();
+            await operation.WaitAsync(Deadline);
+            if (caller.IsFaulted || caller.IsCanceled) { await caller; }
+            Assert.IsTrue(caller.IsCompleted, "The original queued caller must complete after its actual operation has settled.");
+            return await caller;
+        }
+        finally { hold.Released.TrySetResult(); }
+    }
+
+    private sealed class AcquisitionHold
+    {
+        internal TaskCompletionSource Entered { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
+        internal TaskCompletionSource Released { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
     }
 
     private sealed class Scope
@@ -167,6 +196,7 @@ public sealed class HealthCollectorFaultOriginAndRecoveryTests
 
         internal async Task DrainAsync(Exception? primary)
         {
+            Owner.ReleaseAcquisitions();
             // Start all actual drains even when one cannot complete. The watchdog
             // remains a real timeout and never substitutes for owner settlement.
             Task runner = DrainRunnerAsync();
@@ -188,13 +218,40 @@ public sealed class HealthCollectorFaultOriginAndRecoveryTests
 
     private sealed class Owner(Scope scope) : IHealthCollector
     {
+        private readonly object acquisitionGate = new();
+        private readonly List<AcquisitionHold> acquisitionHolds = [];
+        private AcquisitionHold? nextAcquisition;
+        private bool releasingAcquisitions;
         private int acquisitions, evaluations, cleanups;
         internal int Acquisitions => Volatile.Read(ref acquisitions);
         internal int Evaluations => Volatile.Read(ref evaluations);
         internal int Cleanups => Volatile.Read(ref cleanups);
         internal bool CancellationWasRequested { get; private set; }
+        internal AcquisitionHold HoldNextAcquisition()
+        {
+            lock (acquisitionGate)
+            {
+                if (nextAcquisition is not null) { throw new InvalidOperationException("The fixture already holds an acquisition."); }
+                var hold = new AcquisitionHold();
+                acquisitionHolds.Add(hold);
+                nextAcquisition = hold;
+                if (releasingAcquisitions) { hold.Released.TrySetResult(); }
+                return hold;
+            }
+        }
+        internal void ReleaseAcquisitions()
+        {
+            lock (acquisitionGate)
+            {
+                releasingAcquisitions = true;
+                foreach (AcquisitionHold hold in acquisitionHolds) { hold.Released.TrySetResult(); }
+            }
+        }
         public bool TryAcquire(out IHealthCollectionLease? lease)
         {
+            AcquisitionHold? hold;
+            lock (acquisitionGate) { hold = nextAcquisition; nextAcquisition = null; }
+            if (hold is not null) { hold.Entered.TrySetResult(); hold.Released.Task.GetAwaiter().GetResult(); }
             Interlocked.Increment(ref acquisitions);
             lease = new Lease(this, scope.Fault, scope.CleanupFails, scope.CleanupFailure);
             return true;

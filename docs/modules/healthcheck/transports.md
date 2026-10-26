@@ -40,6 +40,14 @@ The formatter never sends partial successful JSON when the complete payload exce
 
 ## Local pipe and matching probe
 
+Keep the Unix endpoint's temporary directory short and writable in both
+processes. In the Ubuntu qualification run, a long `TMPDIR` produced a
+135-byte socket path and the runtime rejected it against its reported
+108-byte limit; a short shared root allowed all 61 baseline cases to pass.
+See the [retained diagnosis](../../../planning/healthcheck/evidence/HC12/capture-runtime-followup-2026-10-25/current194-closure.md).
+
+The .NET pipe APIs are cross-platform. On Linux, this transport uses a Unix domain socket; the Windows native ACL code runs only in the Windows branch. Kubernetes can run the matching probe as an exec command inside the application container, or use the HTTP routes above. See [Microsoft's Linux implementation note](https://learn.microsoft.com/en-us/dotnet/standard/io/how-to-use-named-pipes-for-network-interprocess-communication).
+
 ```csharp
 HealthcheckOptions options = HealthcheckOptions.Resolve(new HealthcheckOptions
 {
@@ -79,7 +87,7 @@ The protocol is four-byte unsigned little-endian payload length followed by UTF-
 
 ## Kubernetes fragments
 
-These are deployment examples, not executed Linux/container qualification or an exact-package image. Publish the app and probe from the same verified candidate, include the ASP.NET Core runtime, and verify identity/permissions in the actual image before rollout. Configure supervisor periods, startup allowance and restart policy explicitly. Kubernetes supports HTTP and exec probes; it has no native named-pipe probe field. A startup probe suppresses liveness/readiness probes until startup succeeds. See [Kubernetes probe behavior](https://kubernetes.io/docs/concepts/workloads/pods/probes/).
+These are deployment examples. The [25 October Linux container check](../../../planning/healthcheck/evidence/HC12/linux-container-2026-10-25/README.md) exercised the real matching probe with a non-root host in one .NET 10.0.12 container; it did not execute Kubernetes or qualify a published application image. Publish the app and probe from the same verified candidate, include the ASP.NET Core runtime, and verify identity/permissions in the actual image before rollout. Configure supervisor periods, startup allowance and restart policy explicitly. Kubernetes supports HTTP and exec probes; it has no native named-pipe probe field. A startup probe suppresses liveness/readiness probes until startup succeeds. See [Kubernetes probe behavior](https://kubernetes.io/docs/concepts/workloads/pods/probes/).
 
 HTTP container fragment (choose a listener reachable from the kubelet):
 
@@ -146,4 +154,4 @@ readinessProbe:
   failureThreshold: 1
 ```
 
-Add a startup exec probe with view readiness and an intentional startup allowance; select health for liveness only if that restart policy is desired. Kubernetes treats both exits 1 and 2 as probe failures; operational diagnostics can distinguish legitimate NotReady from endpoint/protocol failure. Allow process-start overhead in `timeoutSeconds` beyond the client's single 1000 ms budget. Use the actual installed executable path or `dotnet` plus its matching DLL, and verify the required runtime is present. Linux same-user, different-user rejection, endpoint permissions, concurrent-client and container exec behavior remain platform evidence requirements until actually executed.
+Add a startup exec probe with view readiness and an intentional startup allowance; select health for liveness only if that restart policy is desired. Kubernetes treats both exits 1 and 2 as probe failures; operational diagnostics can distinguish legitimate NotReady from endpoint/protocol failure. Allow process-start overhead in `timeoutSeconds` beyond the client's single 1000 ms budget. Use the actual installed executable path or `dotnet` plus its matching DLL, and verify the required runtime is present. The application and exec probe need the same UID and reachable endpoint filesystem context. The container check used a writable `/tmp` containing the real socket; a read-only root filesystem therefore needs an appropriate writable endpoint location. Actual application-image, kubelet, concurrency and deployment-policy qualification remain separate from that bounded check.

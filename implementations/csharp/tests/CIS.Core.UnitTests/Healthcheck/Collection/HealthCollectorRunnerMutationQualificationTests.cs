@@ -28,6 +28,34 @@ public sealed class HealthCollectorRunnerMutationQualificationTests
     }
 
     [TestMethod]
+    [DataRow(1L)]
+    [DataRow(TimeSpan.TicksPerSecond)]
+    [DataRow(long.MaxValue)]
+    public async Task PositiveTimestampFrequencyAllowsAnInertRunnerToDisposeWithoutCreatingATimer(long frequency)
+    {
+        var clock = new Clock(frequency);
+        var service = new HealthcheckService(new HealthcheckOptions(), Identity(), clock);
+        HealthCollectorRunner? runner = null;
+        ArgumentException? rejection = null;
+        try
+        {
+            try { runner = new HealthCollectorRunner(service); }
+            catch (ArgumentException error) when (error.GetType() == typeof(ArgumentException) && error.ParamName == "service") { rejection = error; }
+        }
+        finally
+        {
+            Task? runnerDisposal = runner?.DisposeAsync().AsTask();
+            Task serviceDisposal = service.DisposeAsync().AsTask();
+            if (runnerDisposal is null) { await serviceDisposal.WaitAsync(Deadline); }
+            else { await Task.WhenAll(runnerDisposal, serviceDisposal).WaitAsync(Deadline); }
+        }
+
+        Assert.IsNull(rejection, "An actual positive-frequency clock must admit an inert runner before genuine terminal disposal.");
+        Assert.IsNotNull(runner);
+        Assert.AreEqual(0, clock.TimerCreations, "Construction and unstarted disposal must not create a timer.");
+    }
+
+    [TestMethod]
     public void RepeatedStartCreatesOnlyOneInitiallyInertTimer()
     {
         AssertRepeatedStart(RunAndReleaseRepeatedStart());
@@ -208,7 +236,7 @@ public sealed class HealthCollectorRunnerMutationQualificationTests
         IHealthCollectionRegistration registration = scope.Register(collector);
         await scope.Runner.StartAsync().WaitAsync(Deadline);
 
-        HealthCollectionAttempt attempt = await registration.CollectAsync().WaitAsync(Deadline);
+        HealthCollectionAttempt attempt = await CollectWithOwnedAcquisitionAsync(registration, collector);
 
         Assert.AreEqual(HealthCollectionDisposition.Committed, attempt.Disposition);
         Assert.IsTrue(attempt.EvaluationFailed);
@@ -237,7 +265,7 @@ public sealed class HealthCollectorRunnerMutationQualificationTests
         IHealthCollectionRegistration registration = scope.Register(collector);
         await scope.Runner.StartAsync().WaitAsync(Deadline);
 
-        HealthCollectionAttempt attempt = await registration.CollectAsync().WaitAsync(Deadline);
+        HealthCollectionAttempt attempt = await CollectWithOwnedAcquisitionAsync(registration, collector);
 
         Assert.AreEqual(HealthCollectionDisposition.Committed, attempt.Disposition);
         Assert.IsFalse(attempt.EvaluationFailed);
@@ -264,7 +292,7 @@ public sealed class HealthCollectorRunnerMutationQualificationTests
         IHealthCollectionRegistration registration = scope.Register(collector);
         await scope.Runner.StartAsync().WaitAsync(Deadline);
 
-        HealthCollectionAttempt result = await registration.CollectAsync().WaitAsync(Deadline);
+        HealthCollectionAttempt result = await CollectWithOwnedAcquisitionAsync(registration, collector);
 
         Assert.IsFalse(result.EvaluationFailed);
         Assert.AreEqual("Healthcheck.LeaseAcquisition", scope.Snapshot().Collection!.LastError!.Code);
@@ -296,7 +324,7 @@ public sealed class HealthCollectorRunnerMutationQualificationTests
         IHealthCollectionRegistration registration = scope.Register(collector);
         await scope.Runner.StartAsync().WaitAsync(Deadline);
 
-        HealthCollectionAttempt result = await registration.CollectAsync().WaitAsync(Deadline);
+        HealthCollectionAttempt result = await CollectWithOwnedAcquisitionAsync(registration, collector);
 
         Assert.AreEqual(HealthCollectionDisposition.Committed, result.Disposition);
         Assert.IsFalse(result.EvaluationFailed);
@@ -336,7 +364,7 @@ public sealed class HealthCollectorRunnerMutationQualificationTests
         IHealthCollectionRegistration registration = scope.Register(collector);
         await scope.Runner.StartAsync().WaitAsync(Deadline);
 
-        HealthCollectionAttempt result = await registration.CollectAsync().WaitAsync(Deadline);
+        HealthCollectionAttempt result = await CollectWithOwnedAcquisitionAsync(registration, collector);
 
         Assert.AreEqual(HealthCollectionDisposition.Committed, result.Disposition);
         Assert.AreEqual(evaluationFailed, result.EvaluationFailed);
@@ -571,8 +599,39 @@ public sealed class HealthCollectorRunnerMutationQualificationTests
 
     private static HealthApplicationIdentity Identity() => new() { Name = "collector mutation qualification", InstanceId = Guid.NewGuid() };
 
+    private static async Task<HealthCollectionAttempt> CollectWithOwnedAcquisitionAsync(
+        IHealthCollectionRegistration registration, Collector collector)
+    {
+        AcquisitionHold hold = collector.HoldNextAcquisition();
+        try
+        {
+            Task<HealthCollectionAttempt> caller = registration.CollectAsync();
+            await Task.WhenAny(hold.Entered.Task, caller).WaitAsync(Deadline);
+            if (caller.IsCompleted)
+            {
+                await caller;
+                Assert.Fail("The queued caller cannot settle before its actual acquisition is released.");
+            }
+            await hold.Entered.Task.WaitAsync(Deadline);
+            Task<HealthCollectionAttempt> operation = registration.CollectAsync();
+            hold.Released.TrySetResult();
+            await operation.WaitAsync(Deadline);
+            if (caller.IsFaulted || caller.IsCanceled) { await caller; }
+            Assert.IsTrue(caller.IsCompleted, "The original queued caller must complete after its actual operation has settled.");
+            return await caller;
+        }
+        finally { hold.Released.TrySetResult(); }
+    }
+
+    private sealed class AcquisitionHold
+    {
+        internal TaskCompletionSource Entered { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
+        internal TaskCompletionSource Released { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
+    }
+
     private sealed class Scope : IAsyncDisposable
     {
+        private readonly List<Collector> collectors = [];
         internal Scope(Clock? clock = null)
         {
             Clock = clock ?? new Clock(TimeSpan.TicksPerSecond);
@@ -585,10 +644,16 @@ public sealed class HealthCollectorRunnerMutationQualificationTests
         internal IConsecutiveFailureMonitor Monitor { get; }
         internal HealthCollectorRunner Runner { get; }
         internal bool ExpectedStopFailure { get; set; }
-        internal IHealthCollectionRegistration Register(Collector collector, TimeSpan? interval = null) => Runner.Register(Monitor, collector, new() { Interval = interval });
+        internal IHealthCollectionRegistration Register(Collector collector, TimeSpan? interval = null)
+        {
+            IHealthCollectionRegistration registration = Runner.Register(Monitor, collector, new() { Interval = interval });
+            collectors.Add(collector);
+            return registration;
+        }
         internal HealthMonitorSnapshot Snapshot() => Service.CaptureSnapshot().Monitors.Single();
         public async ValueTask DisposeAsync()
         {
+            foreach (Collector collector in collectors) { collector.ReleaseAcquisitions(); }
             Clock.Timer.Release();
             Task runner = DrainRunnerAsync();
             Task service = DrainServiceAsync();
@@ -664,6 +729,10 @@ public sealed class HealthCollectorRunnerMutationQualificationTests
 
     private sealed class Collector : IHealthCollector
     {
+        private readonly object acquisitionGate = new();
+        private readonly List<AcquisitionHold> acquisitionHolds = [];
+        private AcquisitionHold? nextAcquisition;
+        private bool releasingAcquisitions;
         private int acquisitions, evaluations, cleanups;
         internal bool Acquired { get; set; } = true;
         internal bool ReturnLease { get; set; } = true;
@@ -673,8 +742,31 @@ public sealed class HealthCollectorRunnerMutationQualificationTests
         internal int Acquisitions => Volatile.Read(ref acquisitions);
         internal int Evaluations => Volatile.Read(ref evaluations);
         internal int Cleanups => Volatile.Read(ref cleanups);
+        internal AcquisitionHold HoldNextAcquisition()
+        {
+            lock (acquisitionGate)
+            {
+                if (nextAcquisition is not null) { throw new InvalidOperationException("The fixture already holds an acquisition."); }
+                var hold = new AcquisitionHold();
+                acquisitionHolds.Add(hold);
+                nextAcquisition = hold;
+                if (releasingAcquisitions) { hold.Released.TrySetResult(); }
+                return hold;
+            }
+        }
+        internal void ReleaseAcquisitions()
+        {
+            lock (acquisitionGate)
+            {
+                releasingAcquisitions = true;
+                foreach (AcquisitionHold hold in acquisitionHolds) { hold.Released.TrySetResult(); }
+            }
+        }
         public bool TryAcquire(out IHealthCollectionLease? lease)
         {
+            AcquisitionHold? hold;
+            lock (acquisitionGate) { hold = nextAcquisition; nextAcquisition = null; }
+            if (hold is not null) { hold.Entered.TrySetResult(); hold.Released.Task.GetAwaiter().GetResult(); }
             Interlocked.Increment(ref acquisitions);
             if (AcquisitionError is not null) { throw AcquisitionError; }
             lease = ReturnLease ? new Lease(this) : null;

@@ -8,7 +8,7 @@ using static CIS.Verification.HealthcheckMutationUnionModel;
 namespace CIS.Tests.ArchitectureTests;
 
 [TestClass]
-public sealed class HealthcheckMutationNativeAuditTests
+public sealed partial class HealthcheckMutationNativeAuditTests
 {
     [TestMethod]
     [DataRow("AreEqual", false)]
@@ -484,7 +484,7 @@ public sealed class HealthcheckMutationNativeAuditTests
 
     // These literals are synthetic protocol inputs, not fabricated native evidence.
     // The reader still inspects the actual installed ObjectModel metadata.
-    private sealed class TraceFixture : IDisposable
+    private sealed partial class TraceFixture : IDisposable
     {
         private readonly TemporaryDirectory temporary = new();
         internal JsonObject Report { get; }

@@ -38,9 +38,15 @@ public sealed class HealthCollectorReceivingAndDueSelectionQualificationTests
         await scope.Runner.StartAsync().WaitAsync(Deadline);
         Task<HealthCollectionAttempt> collecting = actual.CollectAsync();
         Invocation invocation = await owner.NextAsync(collecting);
+        Task<HealthCollectionAttempt> operation = actual.CollectAsync();
         invocation.Release();
-        Assert.AreEqual(HealthCollectionDisposition.Committed, (await collecting.WaitAsync(Deadline)).Disposition);
-        Assert.AreEqual(1L, scope.Snapshot(monitor).Outcomes!.Successful);
+        await operation.WaitAsync(Deadline);
+        long successful = scope.Snapshot(monitor).Outcomes!.Successful;
+        await scope.DisposeAsync();
+        Assert.IsTrue(collecting.IsCompleted,
+            "The queued caller must receive completion after its actual operation and resources have settled.");
+        Assert.AreEqual(HealthCollectionDisposition.Committed, (await collecting).Disposition);
+        Assert.AreEqual(1L, successful);
     }
 
     [TestMethod]

@@ -15,7 +15,7 @@ public sealed class HealthcheckContractMutationQualificationTests
     [DataRow("a0")]
     public void PortablePipeNamesAcceptTheirInclusiveMinimumAndEachAllowedSeparator(string name)
     {
-        HealthcheckOptions options = new HealthcheckOptions { PipeEnabled = true, PipeName = name }.ValidatedCopy();
+        HealthcheckOptions options = AcceptedCopy(new HealthcheckOptions { PipeEnabled = true, PipeName = name });
         Assert.AreEqual(name, options.PipeName);
         Assert.IsTrue(options.PipeEnabled);
     }
@@ -43,6 +43,7 @@ public sealed class HealthcheckContractMutationQualificationTests
     public void InvalidPortablePipeNamesRetainTheStructuredIssueIdentity(string name)
     {
         CoreConfigurationException error = Assert.ThrowsExactly<CoreConfigurationException>(() => new HealthcheckOptions { PipeName = name }.ValidatedCopy());
+        Assert.AreEqual(1, error.Issues.Count, "One invalid portable pipe name with otherwise valid settings must produce exactly one configuration issue.");
         Assert.AreEqual("CIS_HEALTHCHECK_PIPE_NAME", error.Issues.Single().Key);
         Assert.AreEqual("Healthcheck.InvalidValue", error.Issues.Single().Code);
     }
@@ -66,6 +67,17 @@ public sealed class HealthcheckContractMutationQualificationTests
         Assert.AreEqual(message, diagnostic.Message);
         Assert.IsFalse(diagnostic.IsTruncated);
     }
+    private static HealthcheckOptions AcceptedCopy(HealthcheckOptions setup)
+    {
+        HealthcheckOptions? selected = null;
+        CoreConfigurationException? rejection = null;
+        try { selected = setup.ValidatedCopy(); }
+        catch (CoreConfigurationException error) { rejection = error; }
+        Assert.IsNull(rejection, "Documented portable pipe names must produce a validated copy.");
+        Assert.IsNotNull(selected);
+        return selected;
+    }
+
     private static HealthDiagnostic AcceptedDiagnostic(string? code = null, string? message = null, string? exceptionType = null)
     {
         HealthDiagnostic? diagnostic = null;

@@ -160,6 +160,7 @@ public sealed class HealthCollectorResourceBoundaryTests
             Observe(scope.Runner.StartAsync());
             Task<HealthCollectionAttempt> collection = registration.CollectAsync();
             Observe(WaitForOwnedGateAsync(owner.EvaluationEntered.Task, collection, owner.CleanupEntered.Task));
+            Task<HealthCollectionAttempt> operation = registration.CollectAsync();
 
             registration.Withdraw();
             Task drain = registration.WaitForDisposalAsync();
@@ -179,8 +180,12 @@ public sealed class HealthCollectorResourceBoundaryTests
             Assert.IsFalse(collection.IsCompleted);
             owner.ReleaseCleanup.TrySetResult();
 
-            HealthCollectionAttempt attempt = Observe(collection);
+            Observe(operation);
             Observe(drain);
+            if (collection.IsFaulted || collection.IsCanceled) { Observe(collection); }
+            Assert.IsTrue(collection.IsCompleted,
+                "The original queued caller must complete after its actual operation and registration have settled.");
+            HealthCollectionAttempt attempt = Observe(collection);
 
             Assert.AreEqual(HealthCollectionDisposition.Retired, attempt.Disposition);
             Assert.IsFalse(attempt.EvaluationFailed);

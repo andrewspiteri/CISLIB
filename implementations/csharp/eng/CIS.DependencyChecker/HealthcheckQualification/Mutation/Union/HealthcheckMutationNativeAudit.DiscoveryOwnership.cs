@@ -8,9 +8,9 @@ internal static partial class HealthcheckMutationNativeAudit
     // Classify by the actual typed protocol, never by a friendly file name.
     // The complete controller is still parsed in its assigned phase; mixed-role
     // or malformed records therefore cannot disappear through classification.
-    private static bool ContainsDiscoveryRequest(string path)
+    private static bool ContainsDiscoveryRequest(string path, RetainedDiagnosticInputs? retained = null)
     {
-        foreach (string line in File.ReadLines(path))
+        foreach (string line in retained?.ReadLines(path) ?? File.ReadLines(path))
         {
             CheckLine(line);
             int marker = line.IndexOf(RequestMarker, StringComparison.Ordinal);

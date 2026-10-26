@@ -718,6 +718,39 @@ public sealed class HealthcheckHttpTransportTests
     private static async Task<JsonObject> ReadRequiredHttpJsonAsync(HttpResponseMessage response)
         => RequiredHttpJson(await response.Content.ReadAsByteArrayAsync());
 
+    private static async Task AssertKnownEnabledDetailsRouteBeforeChildAsync()
+    {
+        using var services = new ServiceCollection().BuildServiceProvider();
+        var options = new HealthcheckOptions { DetailsEnabled = true };
+        HealthSnapshot snapshot = await CaptureSettledHttpSnapshotAsync(options);
+        var source = new ObservingSnapshotSource(() => snapshot);
+        int authorizationCalls = 0, businessCalls = 0;
+        IApplicationBuilder app = new ApplicationBuilder(services);
+        InstallValidHealthcheck(app, source, options, _ =>
+        {
+            authorizationCalls++;
+            return ValueTask.FromResult(true);
+        });
+        app.Run(_ => { businessCalls++; return Task.CompletedTask; });
+        var context = new DefaultHttpContext();
+        context.Request.Path = "/_health/details";
+        context.Request.Method = HttpMethods.Get;
+        using var body = new MemoryStream();
+        context.Response.Body = body;
+
+        // This separate, fully admitted request establishes the public route
+        // before allocating a real child. It is independent of the child's
+        // later mode, authorization behavior and source/cancellation scenario.
+        Task request = app.Build()(context);
+        await request.WaitAsync(TransportTestSupport.Limit);
+        Assert.AreEqual(StatusCodes.Status200OK, context.Response.StatusCode,
+            "A known enabled details route with successful authorization must be admitted before starting a child host.");
+        Assert.AreEqual(1, authorizationCalls);
+        Assert.AreEqual(1, source.Captures);
+        Assert.AreEqual(0, businessCalls);
+        TransportTestSupport.ValidateSnapshot(RequiredHttpJson(body.ToArray()), "details", true, true, active: 0);
+    }
+
     private sealed class Host : IAsyncDisposable
     {
         private readonly Process child;
@@ -733,6 +766,7 @@ public sealed class HealthcheckHttpTransportTests
         internal static async Task<Host> Start(string mode = "normal")
         {
             AssertValidHostRegistration(mode);
+            await AssertKnownEnabledDetailsRouteBeforeChildAsync();
             var host = new Host(mode);
             try
             {
@@ -807,31 +841,48 @@ public sealed class HealthcheckHttpTransportTests
     }
 
     [TestMethod]
-    [DataRow("/_health", "health")]
-    [DataRow("/_HeAlTh/", "health")]
-    [DataRow("/_health/ready", "readiness")]
-    [DataRow("/_HEALTH/READY/", "readiness")]
-    [DataRow("/_health/details", "details")]
-    [DataRow("/_health/DETAILS/?view=readiness", "details")]
-    public async Task RealKestrelServesKnownViewsWithCachePreventionAndNoBusinessEffects(string path, string view)
+    public async Task RealKestrelServesKnownViewsWithCachePreventionAndNoBusinessEffects()
     {
         await using var host = await Host.Start();
         JsonObject before = await host.Command();
-        using HttpResponseMessage response = await host.GetAsync(path);
-        Assert.AreEqual(HttpStatusCode.OK, response.StatusCode);
-        JsonObject snapshot = await ReadRequiredHttpJsonAsync(response);
-        TransportTestSupport.ValidateSnapshot(snapshot, view, true, true);
-        Headers(response);
-        JsonObject after = await host.Command();
-        Assert.AreEqual(1, (int?)after["captures"]);
-        Assert.AreEqual(0, (int?)after["businessCalls"]);
-        Assert.AreEqual((string?)before["revision"], (string?)after["revision"], "Reading must not mutate health.");
+        int captures = 0;
+        foreach ((string path, string view) in new[]
+        {
+            ("/_health", "health"), ("/_HeAlTh/", "health"),
+            ("/_health/ready", "readiness"), ("/_HEALTH/READY/", "readiness"),
+            ("/_health/details", "details"), ("/_health/DETAILS/?view=readiness", "details"),
+        })
+        {
+            using HttpResponseMessage response = await host.GetAsync(path);
+            Assert.AreEqual(HttpStatusCode.OK, response.StatusCode, path);
+            JsonObject snapshot = await ReadRequiredHttpJsonAsync(response);
+            TransportTestSupport.ValidateSnapshot(snapshot, view, true, true);
+            Headers(response);
+            JsonObject after = await host.Command();
+            Assert.AreEqual(++captures, (int?)after["captures"], path);
+            Assert.AreEqual(0, (int?)after["businessCalls"], path);
+            Assert.AreEqual((string?)before["revision"], (string?)after["revision"], "Reading must not mutate health: " + path);
+        }
     }
 
     [TestMethod]
-    [DataRow("unhealthy", "/_health", false, false)]
-    [DataRow("unhealthy", "/_health/ready", false, false)]
-    [DataRow("unhealthy", "/_health/details", false, false)]
+    public async Task UnhealthyKnownViewsMapTo500WithoutBusinessEffects()
+    {
+        await using var host = await Host.Start("unhealthy");
+        int captures = 0;
+        foreach (string path in new[] { "/_health", "/_health/ready", "/_health/details" })
+        {
+            using HttpResponseMessage response = await host.GetAsync(path);
+            Assert.AreEqual(HttpStatusCode.InternalServerError, response.StatusCode, path);
+            TransportTestSupport.ValidateSnapshot(await ReadRequiredHttpJsonAsync(response), path.EndsWith("details", StringComparison.Ordinal) ? "details" : "health", false, false);
+            Headers(response);
+            JsonObject state = await host.Command();
+            Assert.AreEqual(++captures, (int?)state["captures"], path);
+            Assert.AreEqual(0, (int?)state["businessCalls"], path);
+        }
+    }
+
+    [TestMethod]
     [DataRow("not-ready", "/_health/ready", true, false)]
     [DataRow("stopping", "/_health/ready", true, false)]
     public async Task SelectedHealthOrReadinessMapsTo500(string mode, string path, bool healthy, bool ready)
@@ -864,68 +915,74 @@ public sealed class HealthcheckHttpTransportTests
     }
 
     [TestMethod]
-    [DataRow("/_health/unknown", "GET", 404, "NotFound")]
-    [DataRow("/_health//", "GET", 404, "NotFound")]
-    [DataRow("/_health/ready//", "POST", 404, "NotFound")]
-    [DataRow("/_health/details/more", "DELETE", 404, "NotFound")]
-    [DataRow("/_health", "POST", 405, "MethodNotAllowed")]
-    [DataRow("/_health/ready", "OPTIONS", 405, "MethodNotAllowed")]
-    [DataRow("/_health/details", "PATCH", 405, "MethodNotAllowed")]
-    public async Task ReservedErrorsDoNotCaptureAuthorizeOrInvokeBusiness(string path, string method, int status, string code)
+    public async Task ReservedErrorsDoNotCaptureAuthorizeOrInvokeBusiness()
     {
         await using var host = await Host.Start();
-        using var request = new HttpRequestMessage(new HttpMethod(method), path);
-        request.Headers.Add("X-Auth", "throw");
-        using HttpResponseMessage response = await host.SendAsync(request);
-        Assert.AreEqual(status, (int)response.StatusCode);
-        TransportTestSupport.ValidateError(await ReadRequiredHttpJsonAsync(response), code);
-        Headers(response);
-        if (status == 405) { CollectionAssert.AreEquivalent(new[] { "GET", "HEAD" }, response.Content.Headers.Allow.ToArray()); }
-        JsonObject state = await host.Command();
-        Assert.AreEqual(0, (int?)state["captures"]);
-        Assert.AreEqual(0, (int?)state["authorizationCalls"]);
-        Assert.AreEqual(0, (int?)state["businessCalls"]);
+        foreach ((string path, string method, int status, string code) in new[]
+        {
+            ("/_health/unknown", "GET", 404, "NotFound"), ("/_health//", "GET", 404, "NotFound"),
+            ("/_health/ready//", "POST", 404, "NotFound"), ("/_health/details/more", "DELETE", 404, "NotFound"),
+            ("/_health", "POST", 405, "MethodNotAllowed"), ("/_health/ready", "OPTIONS", 405, "MethodNotAllowed"),
+            ("/_health/details", "PATCH", 405, "MethodNotAllowed"),
+        })
+        {
+            using var request = new HttpRequestMessage(new HttpMethod(method), path);
+            request.Headers.Add("X-Auth", "throw");
+            using HttpResponseMessage response = await host.SendAsync(request);
+            Assert.AreEqual(status, (int)response.StatusCode, method + " " + path);
+            TransportTestSupport.ValidateError(await ReadRequiredHttpJsonAsync(response), code);
+            Headers(response);
+            if (status == 405) { CollectionAssert.AreEquivalent(new[] { "GET", "HEAD" }, response.Content.Headers.Allow.ToArray()); }
+            JsonObject state = await host.Command();
+            Assert.AreEqual(0, (int?)state["captures"]);
+            Assert.AreEqual(0, (int?)state["authorizationCalls"]);
+            Assert.AreEqual(0, (int?)state["businessCalls"]);
+        }
     }
 
     [TestMethod]
-    [DataRow("GET")]
-    [DataRow("POST")]
-    [DataRow("HEAD")]
-    public async Task DisabledDetailsStays404AndCannotBeEnabledByQueryOrAuthorization(string method)
+    public async Task DisabledDetailsStays404AndCannotBeEnabledByQueryOrAuthorization()
     {
         await using var host = await Host.Start("details-disabled");
-        using var request = new HttpRequestMessage(new HttpMethod(method), "/_health/details?details=true&view=details");
-        request.Headers.Add("X-Auth", "throw");
-        using HttpResponseMessage response = await host.SendAsync(request);
-        Assert.AreEqual(HttpStatusCode.NotFound, response.StatusCode);
-        Headers(response);
-        if (method == "HEAD") { Assert.AreEqual("", await response.Content.ReadAsStringAsync()); }
-        else { TransportTestSupport.ValidateError(await ReadRequiredHttpJsonAsync(response), "NotFound"); }
-        JsonObject state = await host.Command();
-        Assert.AreEqual(0, (int?)state["authorizationCalls"]);
-        Assert.AreEqual(0, (int?)state["captures"]);
-        Assert.AreEqual(0, (int?)state["businessCalls"]);
+        foreach (string method in new[] { "GET", "POST", "HEAD" })
+        {
+            using var request = new HttpRequestMessage(new HttpMethod(method), "/_health/details?details=true&view=details");
+            request.Headers.Add("X-Auth", "throw");
+            using HttpResponseMessage response = await host.SendAsync(request);
+            Assert.AreEqual(HttpStatusCode.NotFound, response.StatusCode, method);
+            Headers(response);
+            if (method == "HEAD") { Assert.AreEqual("", await response.Content.ReadAsStringAsync()); }
+            else { TransportTestSupport.ValidateError(await ReadRequiredHttpJsonAsync(response), "NotFound"); }
+            JsonObject state = await host.Command();
+            Assert.AreEqual(0, (int?)state["authorizationCalls"]);
+            Assert.AreEqual(0, (int?)state["captures"]);
+            Assert.AreEqual(0, (int?)state["businessCalls"]);
+        }
     }
 
     [TestMethod]
-    [DataRow("deny", "GET", 403, "Forbidden")]
-    [DataRow("throw", "GET", 500, "ReportingUnavailable")]
-    [DataRow("deny", "HEAD", 403, "Forbidden")]
-    [DataRow("throw", "HEAD", 500, "ReportingUnavailable")]
-    public async Task DetailsAuthorizationIsIsolatedAndBounded(string authorization, string method, int status, string code)
+    public async Task DetailsAuthorizationIsIsolatedAndBounded()
     {
         await using var host = await Host.Start();
-        using var request = new HttpRequestMessage(new HttpMethod(method), "/_health/details");
-        request.Headers.Add("X-Auth", authorization);
-        using HttpResponseMessage response = await host.SendAsync(request);
-        Assert.AreEqual(status, (int)response.StatusCode);
-        if (method == "HEAD") { Assert.AreEqual("", await response.Content.ReadAsStringAsync()); }
-        else { TransportTestSupport.ValidateError(await ReadRequiredHttpJsonAsync(response), code); }
-        Headers(response);
-        JsonObject state = await host.Command();
-        Assert.AreEqual(1, (int?)state["authorizationCalls"]);
-        Assert.AreEqual(0, (int?)state["captures"]);
-        Assert.AreEqual(0, (int?)state["businessCalls"]);
+        int authorizationCalls = 0;
+        foreach ((string authorization, string method, int status, string code) in new[]
+        {
+            ("deny", "GET", 403, "Forbidden"), ("throw", "GET", 500, "ReportingUnavailable"),
+            ("deny", "HEAD", 403, "Forbidden"), ("throw", "HEAD", 500, "ReportingUnavailable"),
+        })
+        {
+            using var request = new HttpRequestMessage(new HttpMethod(method), "/_health/details");
+            request.Headers.Add("X-Auth", authorization);
+            using HttpResponseMessage response = await host.SendAsync(request);
+            Assert.AreEqual(status, (int)response.StatusCode, authorization + " " + method);
+            if (method == "HEAD") { Assert.AreEqual("", await response.Content.ReadAsStringAsync()); }
+            else { TransportTestSupport.ValidateError(await ReadRequiredHttpJsonAsync(response), code); }
+            Headers(response);
+            JsonObject state = await host.Command();
+            Assert.AreEqual(++authorizationCalls, (int?)state["authorizationCalls"]);
+            Assert.AreEqual(0, (int?)state["captures"]);
+            Assert.AreEqual(0, (int?)state["businessCalls"]);
+        }
     }
 
     [TestMethod]
@@ -944,17 +1001,17 @@ public sealed class HealthcheckHttpTransportTests
     }
 
     [TestMethod]
-    [DataRow("/_healthcare")]
-    [DataRow("/_healthcare/ready")]
-    [DataRow("/_health-other")]
-    [DataRow("/business")]
-    public async Task SimilarPrefixContinuesNormalApplicationPipeline(string path)
+    public async Task SimilarPrefixContinuesNormalApplicationPipeline()
     {
         await using var host = await Host.Start();
-        Assert.AreEqual("business:" + path, await host.GetStringAsync(path));
-        JsonObject state = await host.Command();
-        Assert.AreEqual(1, (int?)state["businessCalls"]);
-        Assert.AreEqual(0, (int?)state["captures"]);
+        int businessCalls = 0;
+        foreach (string path in new[] { "/_healthcare", "/_healthcare/ready", "/_health-other", "/business" })
+        {
+            Assert.AreEqual("business:" + path, await host.GetStringAsync(path));
+            JsonObject state = await host.Command();
+            Assert.AreEqual(++businessCalls, (int?)state["businessCalls"], path);
+            Assert.AreEqual(0, (int?)state["captures"], path);
+        }
     }
 
     [TestMethod]
@@ -1014,20 +1071,22 @@ public sealed class HealthcheckHttpTransportTests
     }
 
     [TestMethod]
-    [DataRow("health", "/_health")]
-    [DataRow("readiness", "/_health/ready")]
-    [DataRow("details", "/_health/details")]
-    public async Task ActualHttpAndPipePublishTheExactSameDetachedSnapshot(string view, string path)
+    public async Task ActualHttpAndPipePublishTheExactSameDetachedSnapshot()
     {
         await using var host = await Host.Start("parity");
         Assert.IsNotNull(host.PipeName);
-        using HttpResponseMessage response = await host.GetAsync(path);
-        Assert.AreEqual(HttpStatusCode.OK, response.StatusCode);
-        JsonObject httpSnapshot = await ReadRequiredHttpJsonAsync(response);
-        JsonObject envelope = await TransportTestSupport.RequestAsync(host.PipeName, "{\"protocolVersion\":1,\"view\":\"" + view + "\"}");
-        JsonObject pipeSnapshot = TransportTestSupport.ValidateSnapshotEnvelope(envelope, view, true, true);
-        Assert.IsTrue(JsonNode.DeepEquals(httpSnapshot, pipeSnapshot), "The same detached source must produce the same complete selected view on both real transports.");
-        JsonObject state = await host.Command(); Assert.AreEqual(2, (int?)state["captures"]); Assert.AreEqual(0, (int?)state["businessCalls"]);
+        int captures = 0;
+        foreach ((string view, string path) in new[] { ("health", "/_health"), ("readiness", "/_health/ready"), ("details", "/_health/details") })
+        {
+            using HttpResponseMessage response = await host.GetAsync(path);
+            Assert.AreEqual(HttpStatusCode.OK, response.StatusCode, path);
+            JsonObject httpSnapshot = await ReadRequiredHttpJsonAsync(response);
+            JsonObject envelope = await TransportTestSupport.RequestAsync(host.PipeName, "{\"protocolVersion\":1,\"view\":\"" + view + "\"}");
+            JsonObject pipeSnapshot = TransportTestSupport.ValidateSnapshotEnvelope(envelope, view, true, true);
+            Assert.IsTrue(JsonNode.DeepEquals(httpSnapshot, pipeSnapshot), "The same detached source must produce the same complete selected view on both real transports: " + view);
+            captures += 2;
+            JsonObject state = await host.Command(); Assert.AreEqual(captures, (int?)state["captures"], view); Assert.AreEqual(0, (int?)state["businessCalls"], view);
+        }
     }
 
     private static async Task<HealthSnapshot> CaptureSettledHttpSnapshotAsync(HealthcheckOptions options)
