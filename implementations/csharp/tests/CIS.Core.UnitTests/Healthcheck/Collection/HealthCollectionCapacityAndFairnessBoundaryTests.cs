@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using System.Collections.Concurrent;
 using System.Runtime.CompilerServices;
 using System.Runtime.ExceptionServices;
 using System.Threading.Channels;
@@ -10,7 +11,7 @@ namespace CIS.Tests.UnitTests.Healthcheck;
 [TestClass]
 public sealed class HealthCollectionCapacityAndFairnessBoundaryTests
 {
-    private static readonly TimeSpan Deadline = TimeSpan.FromSeconds(10);
+    private static readonly TimeSpan Deadline = TimeSpan.FromSeconds(3);
 
     [TestMethod]
     public async Task FullMetricCapacityDistinguishesUpdatesFromEntirelyNewKeys()
@@ -42,7 +43,7 @@ public sealed class HealthCollectionCapacityAndFairnessBoundaryTests
         Task? startup = null;
         Task? cleanup = null;
         Task[] actualDrains = [];
-        List<Task> publicDrains = [];
+        ConcurrentBag<Task> publicDrains = [];
         Exception? primary = null;
         try
         {
@@ -66,7 +67,7 @@ public sealed class HealthCollectionCapacityAndFairnessBoundaryTests
             startup = runner.StartAsync();
             await startup.WaitAsync(Deadline);
 
-            queued = registration.CollectAsync();
+            queued = await HealthCollectorTestCleanup.EnterAsync(Deadline, () => registration.CollectAsync());
             await Task.WhenAny(owner.Entered.Task, queued).WaitAsync(Deadline);
             if (queued.IsCompleted)
             {
@@ -74,7 +75,7 @@ public sealed class HealthCollectionCapacityAndFairnessBoundaryTests
                 Assert.Fail("The manual collection cannot complete before its actual evaluation is released.");
             }
             await owner.Entered.Task.WaitAsync(Deadline);
-            operation = registration.CollectAsync();
+            operation = await HealthCollectorTestCleanup.EnterAsync(Deadline, () => registration.CollectAsync());
             owner.Release();
             // The real lease arms only its own execution flow. In the pinned
             // runner the next timestamp on that flow follows actual state
@@ -126,10 +127,10 @@ public sealed class HealthCollectionCapacityAndFairnessBoundaryTests
         {
             // Own each actual public shutdown once. Re-entering finally observes this same
             // bounded attempt; an incomplete shutdown remains a timeout, never settlement.
-            Task collector = DrainRunnerAsync();
-            Task state = DrainServiceAsync();
-            Task association = DrainRegistrationAsync();
-            Task source = DrainMonitorAsync();
+            Task collector = Task.Run(DrainRunnerAsync);
+            Task state = Task.Run(DrainServiceAsync);
+            Task association = Task.Run(DrainRegistrationAsync);
+            Task source = Task.Run(DrainMonitorAsync);
             // Public caller notifications are checked after these actual
             // resource barriers; a lost notification cannot fence itself.
             actualDrains = [collector, state, association, source];
@@ -247,6 +248,7 @@ public sealed class HealthCollectionCapacityAndFairnessBoundaryTests
         var monitors = new List<IConditionMonitor>();
         var owners = new List<GatedOwner>();
         var registrations = new List<IHealthCollectionRegistration>();
+        Exception? primary = null;
         try
         {
             runner = new HealthCollectorRunner(service);
@@ -259,24 +261,25 @@ public sealed class HealthCollectionCapacityAndFairnessBoundaryTests
                 registrations.Add(runner.Register(monitor, owner, new() { Interval = TimeSpan.FromTicks(1) }));
             }
             Task<TimeSpan> startupChange = clock.NextChangeAsync();
-            await runner.StartAsync().WaitAsync(Deadline);
-            await startupChange;
+            await Task.Run(() => runner.StartAsync()).WaitAsync(Deadline);
+            await startupChange.WaitAsync(Deadline);
             foreach (GatedOwner owner in owners)
             {
                 Assert.AreEqual(0, owner.Acquisitions, "The actual startup dispatcher must leave every unactivated periodic owner inert.");
             }
             Task<TimeSpan> activatedChange = clock.NextChangeAsync();
-            registrations[0].ActivatePeriodic();
-            await activatedChange;
+            await Task.Run(() => registrations[0].ActivatePeriodic()).WaitAsync(Deadline);
+            await activatedChange.WaitAsync(Deadline);
             Assert.AreEqual(1, owners[0].Acquisitions,
                 "The actual activation dispatcher must acquire A before installing its next idle timer request.");
             Invocation first = await NextInvocationAsync(entered.Reader);
             Assert.AreEqual("A", first.Name);
-            for (int index = 1; index < registrations.Count; index++) { registrations[index].ActivatePeriodic(); }
+            for (int index = 1; index < registrations.Count; index++)
+            { await Task.Run(() => registrations[index].ActivatePeriodic()).WaitAsync(Deadline); }
             // A owns the sole actual slot, so B remains the next queued position. Its removal must not
             // rewind the scan to A. The public monotonic clock advances by one tick on each read, so
             // completion+one tick is certainly due at the following pump observation.
-            registrations[1].Withdraw();
+            await Task.Run(() => registrations[1].Withdraw()).WaitAsync(Deadline);
             first.Release.TrySetResult();
 
             foreach (string expected in new[] { "C", "D" })
@@ -292,30 +295,29 @@ public sealed class HealthCollectionCapacityAndFairnessBoundaryTests
             Assert.AreEqual(1, owners[2].Acquisitions);
             Assert.AreEqual(1, owners[3].Acquisitions);
         }
+        catch (Exception error) { primary = error; throw; }
         finally
         {
-            Task drain = DrainAsync(service, runner, registrations, monitors);
+            Task drain = DrainAsync(service, runner, registrations, monitors, primary);
             foreach (GatedOwner owner in owners) { owner.ReleaseAll(); }
             await drain;
             GC.KeepAlive(monitors);
         }
     }
 
-    private static async Task DrainAsync(HealthcheckService service, HealthCollectorRunner? runner,
-        IEnumerable<IHealthCollectionRegistration> registrations, IEnumerable<IHealthMonitor> monitors)
+    private static Task DrainAsync(HealthcheckService service, HealthCollectorRunner? runner,
+        IEnumerable<IHealthCollectionRegistration> registrations, IEnumerable<IHealthMonitor> monitors, Exception? primary)
     {
         // Start every real shutdown even if another resource cannot settle. The
         // outer watchdog is a genuine timeout, never an assertion or settlement.
-        Task runnerDrain = DrainRunnerAsync();
-        Task serviceDrain = DrainServiceAsync();
-        Task[] registrationDrains = registrations.Select(DrainRegistrationAsync).ToArray();
-        Task[] monitorDrains = monitors.Select(DrainMonitorAsync).ToArray();
-        await Task.WhenAll([runnerDrain, serviceDrain, .. registrationDrains, .. monitorDrains]).WaitAsync(Deadline);
-
-        async Task DrainRunnerAsync() { if (runner is not null) { await runner.DisposeAsync(); } }
-        async Task DrainServiceAsync() => await service.DisposeAsync();
-        static async Task DrainRegistrationAsync(IHealthCollectionRegistration registration) => await registration.DisposeAsync();
-        static async Task DrainMonitorAsync(IHealthMonitor monitor) => await monitor.DisposeAsync();
+        var operations = new List<Func<Task>>
+        {
+            () => runner?.DisposeAsync().AsTask() ?? Task.CompletedTask,
+            () => service.DisposeAsync().AsTask(),
+        };
+        foreach (var registration in registrations) { operations.Add(() => registration.DisposeAsync().AsTask()); }
+        foreach (var monitor in monitors) { operations.Add(() => monitor.DisposeAsync().AsTask()); }
+        return HealthCollectorTestCleanup.DrainAsync(Deadline, primary, [], operations.ToArray());
     }
 
     private static string Key(int index) => "key-" + index.ToString("D2", System.Globalization.CultureInfo.InvariantCulture);

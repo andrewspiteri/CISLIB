@@ -8,7 +8,7 @@ namespace CIS.Tests.UnitTests.Healthcheck;
 [TestClass]
 public sealed class HealthCollectorRetirementAdmissionRaceQualificationTests
 {
-    private static readonly TimeSpan Deadline = TimeSpan.FromSeconds(15);
+    private static readonly TimeSpan Deadline = TimeSpan.FromSeconds(3);
 
     [TestMethod]
     public async Task ActualAbandonedAttachmentRetirementCanCloseAdmissionBeforeANewRunnerHandleIsPublished()
@@ -29,6 +29,7 @@ public sealed class HealthCollectorRetirementAdmissionRaceQualificationTests
         bool stopPendingInsideObserver = false;
         Task? observerStop = null;
         IHealthCollectionRegistration? unexpected = null;
+        Exception? primary = null;
         CancellationTokenRegistration observer = abandoned.Target.Retirement.Register(() =>
         {
             Interlocked.Increment(ref retirementCallbacks);
@@ -72,25 +73,21 @@ public sealed class HealthCollectorRetirementAdmissionRaceQualificationTests
             destination.ReportSuccess();
             Assert.AreEqual(MonitorState.Healthy, service.CaptureSnapshot().Monitors.Single().State);
         }
+        catch (Exception error) { primary = error; throw; }
         finally
         {
-            // Both admission-OR and erased-throw mutants can return an actual
-            // unexpected handle. Retire that handle before joining normal runner
-            // shutdown; the test never abandons an accidentally published owner.
-            unexpected?.Withdraw();
-            try { await runner.DisposeAsync().AsTask().WaitAsync(Deadline); }
-            finally
+            try
             {
-                try { await service.DisposeAsync().AsTask().WaitAsync(Deadline); }
-                finally
-                {
-                    observer.Dispose();
-                    GC.KeepAlive(destination);
-                }
+                // Start every actual drain independently. A blocked lifecycle
+                // entry must not prevent another owner from beginning cleanup.
+                await HealthCollectorTestCleanup.DrainAsync(Deadline, primary,
+                    observerStop is null ? [] : [observerStop],
+                    () => unexpected?.DisposeAsync().AsTask() ?? Task.CompletedTask,
+                    () => runner.DisposeAsync().AsTask(),
+                    () => service.DisposeAsync().AsTask(),
+                    () => { observer.Dispose(); return Task.CompletedTask; });
             }
-            // A bookkeeping-underflow mutant may make the cleanup barrier fail.
-            // Such a timeout is an explicit cleanup/infrastructure failure, not
-            // an assertion-backed mutation kill or a successful restoration.
+            finally { GC.KeepAlive(destination); }
         }
     }
 

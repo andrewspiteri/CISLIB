@@ -9,12 +9,18 @@ namespace CIS.Tests.UnitTests.Healthcheck;
 [TestClass]
 public sealed class HealthCollectorAbandonedPendingCallerQualificationTests
 {
-    private static readonly TimeSpan Deadline = TimeSpan.FromSeconds(15);
+    private static readonly TimeSpan Deadline = TimeSpan.FromSeconds(3);
 
     [TestMethod]
     public async Task ACollectedQueuedRegistrationReleasesItsCallerBeforeTheNextRealOwnerIsAdmitted()
     {
         await using var scope = new Scope();
+        try { await RunScenarioAsync(scope); }
+        catch (Exception error) { scope.Primary = error; throw; }
+    }
+
+    private static async Task RunScenarioAsync(Scope scope)
+    {
         IConsecutiveFailureMonitor occupiedMonitor = scope.CreateMonitor("occupied");
         IConsecutiveFailureMonitor abandonedMonitor = scope.CreateMonitor("abandoned registration only");
         IConsecutiveFailureMonitor sentinelMonitor = scope.CreateMonitor("real following owner");
@@ -127,6 +133,7 @@ public sealed class HealthCollectorAbandonedPendingCallerQualificationTests
         private readonly List<IConsecutiveFailureMonitor> monitors = [];
         private readonly List<Task<HealthCollectionAttempt>> actualOperations = [];
         private readonly List<Task<HealthCollectionAttempt>> originalCallers = [];
+        private Task? cleanup;
         internal Scope()
         {
             Service = new(new() { MaxConcurrentCollections = 1 },
@@ -135,6 +142,7 @@ public sealed class HealthCollectorAbandonedPendingCallerQualificationTests
         }
         internal HealthcheckService Service { get; }
         internal HealthCollectorRunner Runner { get; }
+        internal Exception? Primary { get; set; }
         internal GatedOwner OccupiedOwner { get; } = new();
         internal GatedOwner SentinelOwner { get; } = new();
         internal RefusingOwner UninvokedOwner { get; } = new();
@@ -151,7 +159,9 @@ public sealed class HealthCollectorAbandonedPendingCallerQualificationTests
         }
         internal void TrackActualOperation(Task<HealthCollectionAttempt> operation) => actualOperations.Add(operation);
         internal void TrackOriginalCaller(Task<HealthCollectionAttempt> caller) => originalCallers.Add(caller);
-        public async ValueTask DisposeAsync()
+        public ValueTask DisposeAsync() => new(cleanup ??= DrainOnceAsync());
+
+        private async Task DrainOnceAsync()
         {
             // These owners represent actual invoked work. Mark/release every
             // existing or concurrently acquired lease even when the direct
@@ -160,23 +170,15 @@ public sealed class HealthCollectorAbandonedPendingCallerQualificationTests
             SentinelOwner.ReleaseAll();
             try
             {
-                await Runner.StopAsync().WaitAsync(Deadline);
-                await Task.WhenAll(actualOperations).WaitAsync(Deadline);
+                await HealthCollectorTestCleanup.DrainAsync(Deadline, Primary, originalCallers,
+                    () => Runner.DisposeAsync().AsTask(),
+                    () => Service.DisposeAsync().AsTask(),
+                    () => Task.WhenAll(actualOperations));
             }
-            finally
-            {
-                try { await Runner.DisposeAsync().AsTask().WaitAsync(Deadline); }
-                finally
-                {
-                    try { await Service.DisposeAsync().AsTask().WaitAsync(Deadline); }
-                    finally { GC.KeepAlive(monitors); }
-                }
-            }
+            finally { GC.KeepAlive(monitors); }
             await ObserveCompletedCallersAsync(originalCallers);
-            // Do not await AbandonedCaller here after an assertion failure. Its
-            // missing notification is exactly the tested omission, not an active
-            // lease. Omitted actual retirement/closing settlement instead fails
-            // bounded cleanup and cannot qualify as an assertion-backed kill.
+            // The orphaned notification is asserted separately. Actual owner,
+            // state and runner drains above still have to finish successfully.
         }
     }
 

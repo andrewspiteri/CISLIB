@@ -10,7 +10,7 @@ namespace CIS.Tests.UnitTests.Healthcheck;
 [TestClass]
 public sealed class HealthCollectorAbandonmentAndRetirementSettlementTests
 {
-    private static readonly TimeSpan Deadline = TimeSpan.FromSeconds(15);
+    private static readonly TimeSpan Deadline = TimeSpan.FromSeconds(3);
     private static readonly DateTimeOffset Epoch = new(2026, 10, 22, 12, 0, 0, TimeSpan.Zero);
 
     [TestMethod]
@@ -27,7 +27,7 @@ public sealed class HealthCollectorAbandonmentAndRetirementSettlementTests
         var monitors = new List<IConsecutiveFailureMonitor>();
         var callers = new List<Task<HealthCollectionAttempt>>();
         var operations = new List<Task<HealthCollectionAttempt>>();
-        bool assertionsCompleted = false;
+        Exception? primary = null;
         IHealthCollectionRegistration? occupied = null, sentinel = null, replacement = null;
         try
         {
@@ -83,30 +83,28 @@ public sealed class HealthCollectorAbandonmentAndRetirementSettlementTests
             Assert.AreEqual(1L, observed.Outcomes!.Successful);
             Assert.AreEqual(0L, observed.Outcomes.Failed);
             Assert.AreEqual(MonitorState.Healthy, observed.State);
-            assertionsCompleted = true;
         }
+        catch (Exception error) { primary = error; throw; }
         finally
         {
-            // The test clock owns no worker. Independently join every actual
-            // lease/caller, dispose the timer and drain the real state even when
-            // the tested omission strands the runner's managed closing counter.
-            Task stop = runner.StopAsync();
             foreach (GatedOwner owner in new[] { occupiedOwner, sentinelOwner, replacementOwner }) { owner.ReleaseAll(); }
-            await Task.WhenAll(operations).WaitAsync(Deadline);
-            await clock.TimerDisposed.Task.WaitAsync(Deadline);
-            await service.DisposeAsync().AsTask().WaitAsync(Deadline);
-            if (assertionsCompleted || stop.IsCompleted)
+            try
             {
-                await stop.WaitAsync(Deadline);
-                await runner.DisposeAsync().AsTask().WaitAsync(Deadline);
+                await HealthCollectorTestCleanup.DrainAsync(Deadline, primary, callers,
+                    () => runner.DisposeAsync().AsTask(),
+                    () => service.DisposeAsync().AsTask(),
+                    () => Task.WhenAll(operations),
+                    () => clock.TimerWasCreated ? clock.TimerDisposed.Task : Task.CompletedTask);
+                foreach (GatedOwner owner in new[] { occupiedOwner, sentinelOwner, replacementOwner })
+                { Assert.AreEqual(owner.Acquisitions, owner.Cleanups, "Every actually acquired owner lease must be cleaned up."); }
             }
-            await ObserveCompletedCallersAsync(callers);
-            foreach (GatedOwner owner in new[] { occupiedOwner, sentinelOwner, replacementOwner })
-            { Assert.AreEqual(owner.Acquisitions, owner.Cleanups, "Every actually acquired owner lease must be cleaned up."); }
-            GC.KeepAlive(occupied);
-            GC.KeepAlive(sentinel);
-            GC.KeepAlive(replacement);
-            GC.KeepAlive(monitors);
+            finally
+            {
+                GC.KeepAlive(occupied);
+                GC.KeepAlive(sentinel);
+                GC.KeepAlive(replacement);
+                GC.KeepAlive(monitors);
+            }
         }
         HealthCollectionAttempt[] results = await AssertOriginalCallersCompleteAsync(callers);
         Assert.IsTrue(results.All(result => result.Disposition == HealthCollectionDisposition.Committed));
@@ -290,8 +288,11 @@ public sealed class HealthCollectorAbandonmentAndRetirementSettlementTests
     }
     private sealed class InertTimerClock : TimeProvider
     {
+        private bool timerWasCreated;
+        internal bool TimerWasCreated => Volatile.Read(ref timerWasCreated);
         internal TaskCompletionSource TimerDisposed { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
-        public override ITimer CreateTimer(TimerCallback callback, object? state, TimeSpan dueTime, TimeSpan period) => new Timer(TimerDisposed);
+        public override ITimer CreateTimer(TimerCallback callback, object? state, TimeSpan dueTime, TimeSpan period)
+        { Volatile.Write(ref timerWasCreated, true); return new Timer(TimerDisposed); }
         private sealed class Timer(TaskCompletionSource disposed) : ITimer
         {
             public bool Change(TimeSpan dueTime, TimeSpan period) => true;
