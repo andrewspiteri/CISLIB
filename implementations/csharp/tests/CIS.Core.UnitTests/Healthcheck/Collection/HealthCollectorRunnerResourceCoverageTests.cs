@@ -116,9 +116,12 @@ public sealed class HealthCollectorRunnerResourceCoverageTests
 
                 withdrawing.Thread.Interrupt();
                 interruption.Thrown.Task.WaitAsync(Deadline).GetAwaiter().GetResult();
-                withdrawing.JoinAsync().GetAwaiter().GetResult();
+                Assert.IsTrue(SpinWait.SpinUntil(() => withdrawing.Returned.Task.IsCompleted ||
+                    (withdrawing.Thread.ThreadState & ThreadState.WaitSleepJoin) != 0, Deadline));
+                Assert.IsFalse(stop.IsCompleted, "The earlier timer failure cannot release an unsettled state withdrawal.");
             });
 
+            await withdrawing.JoinAsync().WaitAsync(Deadline);
             Assert.IsTrue(await withdrawing.Returned.Task.WaitAsync(Deadline));
             Assert.IsNotNull(stop);
             actualStopFailure = await Assert.ThrowsExactlyAsync<InvalidOperationException>(() => stop).WaitAsync(Deadline);
@@ -154,6 +157,95 @@ public sealed class HealthCollectorRunnerResourceCoverageTests
         {
             try { await runner.DisposeAsync(); }
             catch (InvalidOperationException error) when (ReferenceEquals(error, actualStopFailure)) { }
+        }
+    }
+
+    [TestMethod]
+    [DataRow(false)]
+    [DataRow(true)]
+    public async Task InterruptedWithdrawalCannotPublishDisposalBeforeTheRealAttachmentRetires(bool requestDispose)
+    {
+        var service = new HealthcheckService(new(), new() { Name = "interrupted collection retirement", InstanceId = Guid.NewGuid() });
+        var monitor = service.CreateConsecutiveFailures(new() { IsCritical = true, FailureThreshold = 1 });
+        var runner = new HealthCollectorRunner(service);
+        var registration = runner.Register(monitor, new UnavailableOwner(), new());
+        HealthCollectionTarget target = ReadTarget(runner, monitor.MonitorId);
+        IHealthCollectionState state = ((IHealthStateAccess)service).CollectionState;
+        var withdrawing = new OwnedCall<Task>(() =>
+        {
+            if (requestDispose) { return registration.DisposeAsync().AsTask(); }
+            registration.Withdraw();
+            return Task.CompletedTask;
+        });
+        using var observation = new ObservedInterruption(withdrawing.Thread);
+        Task? disposal = null, stop = null, requestedDisposal = null;
+        InvalidOperationException? expectedStopFailure = null;
+        IHealthCollectionRegistration? replacement = null;
+        Exception? primary = null;
+        try
+        {
+            InGate(ReadField(state, "gate"), () =>
+            {
+                withdrawing.Start();
+                withdrawing.WaitUntilBlocked();
+                disposal = registration.WaitForDisposalAsync();
+                Assert.IsFalse(disposal.IsCompleted);
+
+                withdrawing.Thread.Interrupt();
+                var interrupted = observation.Thrown.Task.WaitAsync(Deadline).GetAwaiter().GetResult();
+                Assert.IsNotNull(interrupted.StackTrace);
+                StringAssert.Contains(interrupted.StackTrace, "HealthStateCoordinator.WithdrawCollection",
+                    "Only interruption at the real coordinator's withdrawal admission is the intended boundary.");
+                Assert.IsTrue(SpinWait.SpinUntil(() => withdrawing.Returned.Task.IsCompleted ||
+                    (withdrawing.Thread.ThreadState & ThreadState.WaitSleepJoin) != 0, Deadline));
+                Assert.IsFalse(disposal.IsCompleted, "A failed admission cannot acknowledge registration disposal.");
+            });
+
+            requestedDisposal = await withdrawing.Returned.Task.WaitAsync(Deadline);
+            await withdrawing.JoinAsync().WaitAsync(Deadline);
+            await requestedDisposal.WaitAsync(Deadline);
+            await disposal!.WaitAsync(Deadline);
+            Assert.IsTrue(target.Retirement.IsCancellationRequested,
+                "The actual state-issued retirement token must close before its registration acknowledges disposal.");
+
+            // A falsely acknowledged retirement leaves the still-active monitor
+            // attached and rejects this new public registration on the same runner.
+            replacement = runner.Register(monitor, new UnavailableOwner(), new());
+            monitor.ReportSuccess();
+            Assert.AreEqual(1, service.CaptureSnapshot().MonitorCounts.Active);
+            Assert.IsFalse(service.CaptureSnapshot().Application.IsStopping);
+
+            stop = HealthCollectorTestCleanup.EnterAsync(Deadline, () => runner.StopAsync()).GetAwaiter().GetResult();
+            expectedStopFailure = await Assert.ThrowsExactlyAsync<InvalidOperationException>(() => stop).WaitAsync(Deadline);
+            Assert.AreEqual(observation.Thrown.Task.Result.Message, expectedStopFailure.Message,
+                "Successful retry must preserve the original resource diagnostic.");
+        }
+        catch (Exception error) { primary = error; throw; }
+        finally
+        {
+            await HealthCollectorTestCleanup.DrainAsync(Deadline, primary, [],
+                () => withdrawing.JoinAsync(),
+                async () => await (requestedDisposal ?? await withdrawing.Returned.Task),
+                () => registration.DisposeAsync().AsTask(),
+                ObserveStopAsync,
+                ObserveRunnerAsync,
+                () => replacement?.DisposeAsync().AsTask() ?? Task.CompletedTask,
+                () => monitor.DisposeAsync().AsTask(),
+                () => service.DisposeAsync().AsTask());
+            GC.KeepAlive(registration);
+            GC.KeepAlive(monitor);
+        }
+
+        async Task ObserveStopAsync()
+        {
+            if (stop is null) { return; }
+            try { await stop; }
+            catch (InvalidOperationException error) when (ReferenceEquals(error, expectedStopFailure)) { }
+        }
+        async Task ObserveRunnerAsync()
+        {
+            try { await runner.DisposeAsync(); }
+            catch (InvalidOperationException error) when (ReferenceEquals(error, expectedStopFailure)) { }
         }
     }
 

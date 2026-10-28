@@ -35,6 +35,8 @@ On normal completion, the runner ends the collector's execution scope before rel
 
 Withdrawal before the coordinated invocation boundary suppresses user collection, including already-posted wrappers. After invocation, tracked completion includes callback work, result/error handoff, actual lease disposal and state settlement. Owner refusal retires collection and withdraws its associated monitor as owner-unavailable, without inventing an unhealthy observation. Acquisition contract violations or exceptions are integration errors; they are not admitted callback outcomes. Every acquired nonnull lease is disposed.
 
+Temporary interruption while requesting withdrawal does not complete disposal. The runner retains retirement ownership until the actual state drain and retirement-signal subscription finish.
+
 Required collection must return a result matching the monitor policy; an admitted exception or malformed required result becomes one policy evaluation failure. Optional diagnostic collection does not change policy health and retains earlier values on failure. Expected lifetime cancellation is neutral for the failure streak. A result superseded by a newer applicable observation is discarded instead of overwriting it.
 
 An executing collector may request withdrawal. It must not await its own registration, monitor, runner or service disposal barrier. The implementation rejects established self-waits using its explicit execution token. It cannot discover every detached task/async-flow dependency a caller may construct.

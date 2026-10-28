@@ -242,17 +242,32 @@ public sealed class HealthCollectorRunner : IAsyncDisposable
 
     private async Task RetireAsync(RegistrationEntry entry)
     {
-        try { await state.WithdrawCollection(entry.Target).ConfigureAwait(false); }
-        catch (Exception exception)
+        Task retirement;
+        while (true)
+        {
+            try { retirement = state.WithdrawCollection(entry.Target); break; }
+            catch (ThreadInterruptedException exception)
+            {
+                RememberFailure(exception);
+                // A request interrupted before state admission has not retired the
+                // attachment. Re-enter its idempotent withdrawal and retain ownership
+                // of the actual drain; a returned faulted task is not retried.
+            }
+            catch (Exception exception) { RememberFailure(exception); return; }
+        }
+        try
+        {
+            await retirement.ConfigureAwait(false);
+            await entry.RetirementRegistration.DisposeAsync().ConfigureAwait(false);
+            lock (gate) { entry.StateSettled = true; closing--; }
+        }
+        catch (Exception exception) { RememberFailure(exception); return; }
+        SignalProgress(entry);
+
+        void RememberFailure(Exception exception)
         {
             HealthDiagnostic diagnostic = HealthDiagnostic.FromException(exception);
             lock (gate) { resourceError ??= diagnostic; }
-        }
-        finally
-        {
-            lock (gate) { entry.StateSettled = true; closing--; }
-            entry.RetirementRegistration.Dispose();
-            SignalProgress(entry);
         }
     }
 
