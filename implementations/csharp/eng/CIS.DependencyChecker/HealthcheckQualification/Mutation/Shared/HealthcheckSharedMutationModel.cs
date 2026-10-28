@@ -41,13 +41,18 @@ internal static class HealthcheckSharedMutationModel
                 "Verified rerun credit must bind distinct original Timeout definitions.");
         }
         Need(reviews.Select(review => (review.DefinitionIdentity, review.OriginalReportSha256)).Distinct().Count() == reviews.Length,
-            "Duplicate survivor dispositions are forbidden.");
+            "Duplicate definition dispositions are forbidden.");
         foreach (Review review in reviews)
         {
-            Need(review.Kind is "Equivalent" or "ReviewedNoncritical", "Unsupported survivor disposition.");
+            Need(review.Kind is "Equivalent" or "ReviewedNoncritical" or "NonTermination", "Unsupported definition disposition.");
             Need(batches.Any(batch => batch.ReportSha256 == review.OriginalReportSha256
                 && batch.Definitions.Any(definition => definition.Identity == review.DefinitionIdentity
-                    && definition.Status is "Survived" or "NoCoverage")), "A disposition has a stale or foreign original binding.");
+                    && (review.Kind == "NonTermination" ? definition.Status == "Timeout" : definition.Status is "Survived" or "NoCoverage"))),
+                "A disposition has a stale, foreign or ineligible original binding.");
+            Need(review.Kind != "NonTermination" || !batches.Any(batch => batch.ReportSha256 == review.OriginalReportSha256
+                && batch.Definitions.Any(definition => definition.Identity == review.DefinitionIdentity
+                    && batch.VerifiedTimeoutKilledIds.Contains(definition.Id, StringComparer.Ordinal))),
+                "One original Timeout cannot receive conflicting kill and nontermination dispositions.");
         }
         string[] missing = expected.Keys.Except(bySource.Keys, StringComparer.Ordinal).Order(StringComparer.Ordinal).ToArray();
         if (missing.Length > 0)

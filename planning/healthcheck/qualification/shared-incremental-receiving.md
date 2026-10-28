@@ -59,16 +59,24 @@ report hash, native ID and source-bound definition identity while assigning
 separate in-memory composite IDs for arithmetic.
 
 At complete scope, the conservative union must reach 90%. Each partition need not
-independently reach 90%. An original Timeout remains a miss unless an explicit,
-current rerun verifies the exact definition as Killed; expiry itself receives no
-credit. Current completed native failures follow the approved prospective outcome
-policy. Genuine execution, cleanup and child-origin failures remain holds.
+independently reach 90%. An original Timeout stays in the denominator and receives
+no kill credit. An explicit, current rerun that verifies the exact definition as
+Killed can supply separate credit. A source-bound confirmed `NonTermination`
+disposition can resolve the unexplained-timeout finding, while preserving the raw
+and effective Timeout as a conservative miss. It adds no kills and removes no
+denominator entry. An unexplained timeout remains unresolved. Current completed
+native failures follow the approved prospective outcome policy. Genuine execution,
+cleanup and child-origin failures remain holds under either disposition.
 
 Every remaining Survived or NoCoverage definition needs a source-bound
 disposition. Reviewed noncritical misses stay in the denominator; an equivalent
 disposition needs its own reviewed justification. Supplied approval booleans are
-not evidence. The pure arithmetic model tests these rules, but the physical
-loading and validation of review files is still outstanding.
+not evidence. A `NonTermination` review must identify the exact original Timeout,
+source-bound definition and report, with evidence from an isolated rerun using a
+relaxed timeout. It cannot classify another native status or conflict with kill
+credit for that definition. The pure arithmetic model supports these rules; the
+physical loading and validation of review files, including nontermination evidence,
+is still outstanding. No review is approved by this document or by a supplied flag.
 
 ## Running and retaining a check
 

@@ -186,6 +186,127 @@ public sealed class HealthcheckSharedMutationQualificationTests
     }
 
     [TestMethod]
+    public void ConfirmedNonterminationResolvesOnlyTheDispositionWhileRetainingTheConservativeMiss()
+    {
+        var fixture = new Fixture(definitionsPerSource: 10);
+        fixture.Status(0, 0, "Timeout");
+        string original = JsonSerializer.Serialize(fixture.Batches);
+        JsonObject before = Shared.Evaluate(fixture.Sources, fixture.Batches, []);
+
+        JsonObject result = Shared.Evaluate(fixture.Sources, fixture.Batches, [fixture.Review(0, 0, "NonTermination")]);
+
+        Assert.AreEqual(false, (bool?)before["qualified"]);
+        Assert.HasCount(1, before["unresolved"]!.AsArray());
+        Assert.AreEqual(true, (bool?)result["qualified"]);
+        Assert.HasCount(0, result["unresolved"]!.AsArray());
+        Assert.AreEqual(29L, (long?)result["aggregate"]!["numerator"]);
+        Assert.AreEqual(30L, (long?)result["aggregate"]!["denominator"]);
+        Assert.AreEqual(1L, (long?)result["rawCounts"]!["Timeout"]);
+        Assert.AreEqual(1L, (long?)result["effectiveCounts"]!["Timeout"]);
+        Assert.AreEqual(30L, (long?)result["rawAggregate"]!["nativeDetected"]);
+        Assert.IsTrue(JsonNode.DeepEquals(before["rawCounts"], result["rawCounts"]));
+        Assert.IsTrue(JsonNode.DeepEquals(before["aggregate"], result["aggregate"]));
+        Assert.HasCount(0, fixture.Batches[0].VerifiedTimeoutKilledIds);
+        Assert.AreEqual(original, JsonSerializer.Serialize(fixture.Batches));
+    }
+
+    [TestMethod]
+    public void ConfirmedNonterminationCannotLiftAConservativePopulationBelowNinety()
+    {
+        var fixture = new Fixture(definitionsPerSource: 10);
+        for (int index = 0; index < 4; index++) { fixture.Status(0, index, "Timeout"); }
+        Shared.Review[] reviews = Enumerable.Range(0, 4).Select(index => fixture.Review(0, index, "NonTermination")).ToArray();
+
+        JsonObject result = Shared.Evaluate(fixture.Sources, fixture.Batches, reviews);
+
+        Assert.AreEqual(false, (bool?)result["qualified"]);
+        Assert.AreEqual(false, (bool?)result["aggregate"]!["thresholdMet"]);
+        Assert.AreEqual(26L, (long?)result["aggregate"]!["numerator"]);
+        Assert.AreEqual(30L, (long?)result["aggregate"]!["denominator"]);
+        Assert.AreEqual(4L, (long?)result["effectiveCounts"]!["Timeout"]);
+        Assert.HasCount(0, result["unresolved"]!.AsArray());
+    }
+
+    [TestMethod]
+    [DataRow("Killed")]
+    [DataRow("Survived")]
+    [DataRow("NoCoverage")]
+    [DataRow("RuntimeError")]
+    [DataRow("Pending")]
+    [DataRow("CompileError")]
+    [DataRow("Ignored")]
+    public void NonterminationDispositionCanOnlyBindAnOriginalNativeTimeout(string status)
+    {
+        var fixture = new Fixture();
+        fixture.Status(0, 0, status);
+
+        Assert.ThrowsExactly<InvalidDataException>(() => Shared.Evaluate(fixture.Sources, fixture.Batches,
+            [fixture.Review(0, 0, "NonTermination")]));
+    }
+
+    [TestMethod]
+    [DataRow("stale-report")]
+    [DataRow("changed-source")]
+    [DataRow("changed-span")]
+    [DataRow("duplicate")]
+    [DataRow("conflicting-rerun")]
+    public void NonterminationRequiresOneExactCurrentSourceAndOriginalReportBinding(string defect)
+    {
+        var fixture = new Fixture();
+        fixture.Status(0, 0, "Timeout");
+        Shared.Review review = fixture.Review(0, 0, "NonTermination");
+        Definition definition = fixture.Batches[0].Definitions[0];
+        Shared.Review[] reviews = defect switch
+        {
+            "stale-report" => [review with { OriginalReportSha256 = Digest("earlier timeout report") }],
+            "changed-source" => [review with { DefinitionIdentity = (definition with { SourceSha256 = Digest("earlier source") }).Identity }],
+            "changed-span" => [review with { DefinitionIdentity = (definition with { Start = definition.Start + 1 }).Identity }],
+            "duplicate" => [review, review],
+            "conflicting-rerun" => [review],
+            _ => throw new InvalidOperationException("Unknown nontermination receiving control.")
+        };
+        if (defect == "conflicting-rerun") { fixture.Batches[0] = fixture.Batches[0] with { VerifiedTimeoutKilledIds = ["0"] }; }
+
+        Assert.ThrowsExactly<InvalidDataException>(() => Shared.Evaluate(fixture.Sources, fixture.Batches, reviews));
+    }
+
+    [TestMethod]
+    [DataRow("MissingSharedChildEvidence")]
+    [DataRow("NativeCleanupFailed")]
+    [DataRow("NativeExecutionAborted")]
+    public void ConfirmedNonterminationCannotResolveExecutionCleanupOrChildEvidenceHolds(string code)
+    {
+        var fixture = new Fixture(definitionsPerSource: 10);
+        fixture.Status(0, 0, "Timeout");
+        fixture.Batches[0] = fixture.Batches[0] with { Issues = [new(code, "Unresolved original ownership failure.", ["0"])] };
+
+        JsonObject result = Shared.Evaluate(fixture.Sources, fixture.Batches, [fixture.Review(0, 0, "NonTermination")]);
+
+        Assert.AreEqual(true, (bool?)result["aggregate"]!["thresholdMet"]);
+        Assert.AreEqual(false, (bool?)result["qualified"]);
+        Assert.AreEqual(29L, (long?)result["aggregate"]!["numerator"]);
+        Assert.AreEqual(30L, (long?)result["aggregate"]!["denominator"]);
+        Assert.IsTrue(Objects(result, "issues").Any(issue => (string?)issue["code"] == code));
+        JsonObject hold = Objects(result, "receiverHolds").Single();
+        Assert.AreEqual(code, (string?)hold["code"]);
+        Assert.AreEqual("0", (string?)hold["nativeIds"]![0]);
+    }
+
+    [TestMethod]
+    public void NonterminationReviewCannotReplaceMissingOriginalSourceEvidence()
+    {
+        var fixture = new Fixture();
+        fixture.Status(0, 0, "Timeout");
+
+        JsonObject result = Shared.Evaluate(fixture.Sources, fixture.Batches[..^1], [fixture.Review(0, 0, "NonTermination")]);
+
+        Assert.AreEqual(false, (bool?)result["complete"]);
+        Assert.AreEqual(false, (bool?)result["qualified"]);
+        Assert.IsNull(result["aggregate"]);
+        Assert.HasCount(1, result["missingSources"]!.AsArray());
+    }
+
+    [TestMethod]
     [DataRow("MissingChildEvidence", false)]
     [DataRow("NativeCleanupFailed", false)]
     [DataRow("NativeExecutionAborted", true)]
