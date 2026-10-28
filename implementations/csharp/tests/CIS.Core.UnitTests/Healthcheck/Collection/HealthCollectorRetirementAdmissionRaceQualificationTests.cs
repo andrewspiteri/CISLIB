@@ -47,13 +47,15 @@ public sealed class HealthCollectorRetirementAdmissionRaceQualificationTests
             Assert.IsFalse(abandoned.MonitorDrain.IsCompleted);
             Assert.AreEqual(0, retirementCallbacks);
 
-            Assert.ThrowsExactly<InvalidOperationException>(() =>
+            InvalidOperationException rejection = Assert.ThrowsExactly<InvalidOperationException>(() =>
             {
                 // State admission sweeps the actually lost handle, attaches the
                 // destination and dispatches old retirement before returning its
                 // new target. The observer stops this actual in-flight Register.
                 unexpected = runner.Register(destination, owner, new());
             });
+            Assert.IsFalse(string.IsNullOrWhiteSpace(rejection.Message),
+                "An admission rejected during state publication must retain the module's reason for the caller.");
 
             Assert.AreEqual(1, retirementCallbacks);
             Assert.IsTrue(abandoned.Target.Retirement.IsCancellationRequested);

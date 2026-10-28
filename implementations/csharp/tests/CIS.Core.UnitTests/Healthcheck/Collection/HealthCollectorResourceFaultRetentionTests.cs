@@ -8,7 +8,7 @@ namespace CIS.Tests.UnitTests.Healthcheck;
 [TestClass]
 public sealed class HealthCollectorResourceFaultRetentionTests
 {
-    private static readonly TimeSpan Deadline = TimeSpan.FromSeconds(10);
+    private static readonly TimeSpan Deadline = TimeSpan.FromSeconds(3);
 
     [TestMethod]
     public async Task AnUnavailableLaterTimerErrorCannotEraseAnActualTimerChangeFailure()
@@ -35,26 +35,27 @@ public sealed class HealthCollectorResourceFaultRetentionTests
         Task? sutUnderlyingDrain = null, fixtureOwnedDrain = null;
         bool sutDrainSucceededBeforeFallback = false;
 
-        Task Remember(Task actual)
+        async Task ObserveAsync(Func<Task> begin)
         {
+            Task actual = await HealthCollectorTestCleanup.EnterAsync(Deadline, begin);
             actualOperations.Add(actual);
-            return actual;
+            await actual.WaitAsync(Deadline);
         }
 
         try
         {
             service = new(new(), new() { Name = "resource fault retention", InstanceId = Guid.NewGuid() }, clock);
             runner = new(service);
-            await Remember(runner.StartAsync()).WaitAsync(Deadline);
+            await ObserveAsync(() => runner.StartAsync());
 
             // Only automatic BeginStop after the real failing Change can call
             // this timer's DisposeAsync. No caller Stop has yet been invoked.
             await clock.DisposalEntered.Task.WaitAsync(Deadline);
-            try { await Remember(runner.StopAsync()).WaitAsync(Deadline); }
+            try { await ObserveAsync(() => runner.StopAsync()); }
             catch (InvalidOperationException error) when (error.GetType() == typeof(InvalidOperationException))
             { actualTerminalFault = error; }
 
-            try { await Remember(runner.StartAsync()).WaitAsync(Deadline); }
+            try { await ObserveAsync(() => runner.StartAsync()); }
             catch (InvalidOperationException error) when (error.GetType() == typeof(InvalidOperationException))
             { actualAdmissionRejection = error; }
         }
@@ -67,7 +68,7 @@ public sealed class HealthCollectorResourceFaultRetentionTests
             // accepted only by reference; other cleanup errors stay visible.
             void Begin(Func<Task> operation)
             {
-                try { actualOperations.Add(operation()); }
+                try { actualOperations.Add(Task.Run(operation)); }
                 catch (Exception error) { Record(error); }
             }
             if (runner is not null)
@@ -106,7 +107,7 @@ public sealed class HealthCollectorResourceFaultRetentionTests
                 // attempt, without changing the saved SUT facts or histories.
                 try
                 {
-                    fixtureOwnedDrain = ownedTimer.DisposeFixtureOwnedTimerAsync();
+                    fixtureOwnedDrain = Task.Run(ownedTimer.DisposeFixtureOwnedTimerAsync);
                     await fixtureOwnedDrain.WaitAsync(Deadline);
                 }
                 catch (Exception error) { Record(error); }

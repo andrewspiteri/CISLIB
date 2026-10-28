@@ -9,7 +9,7 @@ namespace CIS.Tests.UnitTests.Healthcheck;
 [TestClass]
 public sealed class HealthCollectorResourceBoundaryTests
 {
-    private static readonly TimeSpan Deadline = TimeSpan.FromSeconds(10);
+    private static readonly TimeSpan Deadline = TimeSpan.FromSeconds(3);
     private static readonly DateTimeOffset Epoch = new(2026, 10, 22, 19, 0, 0, TimeSpan.Zero);
 
     [TestMethod]
@@ -24,7 +24,7 @@ public sealed class HealthCollectorResourceBoundaryTests
         };
         IHealthCollectionRegistration registration = scope.Register(owner, TimeSpan.FromTicks(1));
         Task<TimeSpan> startupChange = scope.Clock.Timer.NextChangeAsync();
-        await scope.Runner.StartAsync().WaitAsync(Deadline);
+        await AwaitAsync(() => scope.Runner.StartAsync());
         await startupChange;
         Assert.AreEqual(0, owner.Acquisitions,
             "An inert periodic registration must not acquire its owner before explicit activation.");
@@ -88,20 +88,22 @@ public sealed class HealthCollectorResourceBoundaryTests
         Assert.AreEqual(timerFailure.GetType().FullName, projected.ExceptionType);
         Assert.IsFalse(projected.IsTruncated);
 
-        await using var scope = new Scope { ExpectedStopFailure = true };
+        await using var scope = new Scope();
         scope.Clock.Timer.DuringChange = () => throw timerFailure;
-        await scope.Runner.StartAsync().WaitAsync(Deadline);
-        // Automatic timer disposal proves the failing pump has already requested
-        // stop, avoiding a caller-induced stop racing the ObjectDisposed guard.
-        await scope.Clock.Timer.DisposalEntered.Task.WaitAsync(Deadline);
-
-        await Assert.ThrowsExactlyAsync<InvalidOperationException>(() => scope.Runner.StopAsync()).WaitAsync(Deadline);
-
-        Assert.AreEqual(1, scope.Clock.Timer.Disposals);
-        await Assert.ThrowsExactlyAsync<InvalidOperationException>(() => scope.Runner.StartAsync()).WaitAsync(Deadline);
-        Assert.ThrowsExactly<InvalidOperationException>(() => scope.Register(new GatedOwner(scope.Clock)));
-        scope.Monitor.ReportSuccess();
-        Assert.AreEqual(1L, scope.Service.CaptureSnapshot().Monitors.Single().Outcomes!.Successful);
+        try
+        {
+            await AwaitAsync(() => scope.Runner.StartAsync());
+            // Automatic timer disposal proves the failing pump requested stop;
+            // the caller does not race the ObjectDisposed guard by stopping it.
+            await scope.Clock.Timer.DisposalEntered.Task.WaitAsync(Deadline);
+            scope.ExpectedStopFailure = await Assert.ThrowsExactlyAsync<InvalidOperationException>(() => AwaitAsync(() => scope.Runner.StopAsync()));
+            Assert.AreEqual(1, scope.Clock.Timer.Disposals);
+            await Assert.ThrowsExactlyAsync<InvalidOperationException>(() => AwaitAsync(() => scope.Runner.StartAsync()));
+            Assert.ThrowsExactly<InvalidOperationException>(() => scope.Register(new GatedOwner(scope.Clock)));
+            scope.Monitor.ReportSuccess();
+            Assert.AreEqual(1L, scope.Service.CaptureSnapshot().Monitors.Single().Outcomes!.Successful);
+        }
+        catch (Exception error) { scope.Primary = error; throw; }
     }
 
     [TestMethod]
@@ -114,12 +116,12 @@ public sealed class HealthCollectorResourceBoundaryTests
             stop = scope.Runner.StopAsync();
             throw new ObjectDisposedException("owner-timer");
         };
-        await scope.Runner.StartAsync().WaitAsync(Deadline);
+        await AwaitAsync(() => scope.Runner.StartAsync());
         await scope.Clock.Timer.ChangeFinished.Task.WaitAsync(Deadline);
         Assert.IsNotNull(stop);
 
         await stop.WaitAsync(Deadline);
-        await scope.Runner.DisposeAsync().AsTask().WaitAsync(Deadline);
+        await AwaitAsync(() => scope.Runner.DisposeAsync().AsTask());
 
         Assert.AreEqual(1, scope.Clock.Timer.Disposals);
         scope.Monitor.ReportSuccess();
@@ -157,12 +159,12 @@ public sealed class HealthCollectorResourceBoundaryTests
         {
             var owner = new GatedOwner(scope.Clock) { ThrowDuringCancellation = true, FailClockDuringCancellation = clockFails };
             IHealthCollectionRegistration registration = scope.Register(owner);
-            Observe(scope.Runner.StartAsync());
-            Task<HealthCollectionAttempt> collection = registration.CollectAsync();
+            ObserveCall(() => scope.Runner.StartAsync());
+            Task<HealthCollectionAttempt> collection = HealthCollectorTestCleanup.EnterAsync(Deadline, () => registration.CollectAsync()).GetAwaiter().GetResult();
             Observe(WaitForOwnedGateAsync(owner.EvaluationEntered.Task, collection, owner.CleanupEntered.Task));
-            Task<HealthCollectionAttempt> operation = registration.CollectAsync();
+            Task<HealthCollectionAttempt> operation = HealthCollectorTestCleanup.EnterAsync(Deadline, () => registration.CollectAsync()).GetAwaiter().GetResult();
 
-            registration.Withdraw();
+            Task.Run(registration.Withdraw).WaitAsync(Deadline).GetAwaiter().GetResult();
             Task drain = registration.WaitForDisposalAsync();
 
             Assert.IsTrue(owner.LifetimeCancellation.IsCancellationRequested);
@@ -174,7 +176,7 @@ public sealed class HealthCollectorResourceBoundaryTests
             Assert.IsNull(scope.Service.CaptureSnapshot().Monitors.Single().Collection!.LastError);
             owner.ReleaseEvaluation.TrySetResult();
             Observe(WaitForOwnedGateAsync(owner.CleanupEntered.Task, collection));
-            Task stop = scope.Runner.StopAsync();
+            Task stop = HealthCollectorTestCleanup.EnterAsync(Deadline, () => scope.Runner.StopAsync()).GetAwaiter().GetResult();
             Assert.IsFalse(stop.IsCompleted);
             Assert.IsFalse(drain.IsCompleted);
             Assert.IsFalse(collection.IsCompleted);
@@ -211,13 +213,13 @@ public sealed class HealthCollectorResourceBoundaryTests
             // Join every actual resource/state owner before considering a managed
             // terminal signal. A pending actual collection/State settlement never
             // reaches this branch, and every earlier failure uses strict cleanup.
-            Observe(registration.DisposeAsync().AsTask());
-            Observe(scope.Monitor.DisposeAsync().AsTask());
-            Observe(scope.Service.DisposeAsync().AsTask());
+            ObserveCall(() => registration.DisposeAsync().AsTask());
+            ObserveCall(() => scope.Monitor.DisposeAsync().AsTask());
+            ObserveCall(() => scope.Service.DisposeAsync().AsTask());
             if (stop.IsFaulted || stop.IsCanceled) { Observe(stop); }
             if (stop.IsCompletedSuccessfully)
             {
-                Observe(scope.Runner.DisposeAsync().AsTask());
+                ObserveCall(() => scope.Runner.DisposeAsync().AsTask());
                 return new(stop, []);
             }
 
@@ -245,6 +247,12 @@ public sealed class HealthCollectorResourceBoundaryTests
 
     private static void Observe(Task actual) => actual.WaitAsync(Deadline).GetAwaiter().GetResult();
     private static T Observe<T>(Task<T> actual) => actual.WaitAsync(Deadline).GetAwaiter().GetResult();
+    private static void ObserveCall(Func<Task> begin) => Observe(HealthCollectorTestCleanup.EnterAsync(Deadline, begin).GetAwaiter().GetResult());
+    private static async Task AwaitAsync(Func<Task> begin)
+    {
+        Task actual = await HealthCollectorTestCleanup.EnterAsync(Deadline, begin);
+        await actual.WaitAsync(Deadline);
+    }
 
     private static void CollectReleasedGraph(WeakReference[] graph)
     {
@@ -300,7 +308,8 @@ public sealed class HealthCollectorResourceBoundaryTests
         internal HealthcheckService Service { get; }
         internal IConsecutiveFailureMonitor Monitor { get; }
         internal HealthCollectorRunner Runner { get; }
-        internal bool ExpectedStopFailure { get; init; }
+        internal InvalidOperationException? ExpectedStopFailure { get; set; }
+        internal Exception? Primary { get; set; }
         internal IHealthCollectionRegistration Register(GatedOwner owner, TimeSpan? interval = null)
         {
             owners.Add(owner);
@@ -311,24 +320,15 @@ public sealed class HealthCollectorResourceBoundaryTests
         public async ValueTask DisposeAsync()
         {
             foreach (GatedOwner owner in owners) { owner.ReleaseEvaluation.TrySetResult(); owner.ReleaseCleanup.TrySetResult(); }
-            Task runner = DrainRunnerAsync();
-            Task service = DrainServiceAsync();
-            Task drains = Task.WhenAll([runner, service, .. registrations.Select(RequestWithdrawal)]);
-            try { await drains.WaitAsync(Deadline); }
-            catch (Exception error) when (error is not TimeoutException && drains.Exception is not null)
-            { throw drains.Exception; }
+            Func<Task>[] drains = [DrainRunnerAsync, () => Service.DisposeAsync().AsTask(),
+                .. registrations.Select(registration => (Func<Task>)(() => registration.DisposeAsync().AsTask()))];
+            try { await HealthCollectorTestCleanup.DrainAsync(Deadline, Primary, [], drains); }
             finally { GC.KeepAlive(Monitor); }
 
             async Task DrainRunnerAsync()
             {
                 try { await Runner.DisposeAsync(); }
-                catch (InvalidOperationException) when (ExpectedStopFailure) { }
-            }
-            async Task DrainServiceAsync() => await Service.DisposeAsync();
-            static Task RequestWithdrawal(IHealthCollectionRegistration registration)
-            {
-                try { registration.Withdraw(); return Task.CompletedTask; }
-                catch (Exception error) { return Task.FromException(error); }
+                catch (InvalidOperationException error) when (ReferenceEquals(error, ExpectedStopFailure)) { }
             }
         }
     }

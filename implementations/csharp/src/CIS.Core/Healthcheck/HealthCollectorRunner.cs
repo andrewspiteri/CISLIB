@@ -48,6 +48,7 @@ public sealed class HealthCollectorRunner : IAsyncDisposable
             started = starting = true;
         }
         ITimer? created = null;
+        bool transferred = false;
         try
         {
             created = clock.CreateTimer(static value => ((HealthCollectorRunner)value!).Wake(), this,
@@ -57,26 +58,32 @@ public sealed class HealthCollectorRunner : IAsyncDisposable
             {
                 starting = false;
                 closeTimer = stopping;
-                if (!closeTimer) { timer = created; }
+                if (!closeTimer) { timer = created; transferred = true; }
                 timerSettled = !closeTimer;
             }
-            if (closeTimer) { _ = DisposeTimerAsync(created); }
+            if (closeTimer) { transferred = true; _ = DisposeTimerAsync(created); }
             startCompletion.TrySetResult();
             Wake();
         }
         catch (Exception exception)
         {
+            ITimer? failedTimer = null;
             lock (gate)
             {
                 starting = false;
-                // Concurrent stop may have reserved a pending timer-settlement
-                // barrier while CreateTimer was running. A failed factory
-                // leaves no timer whose disposal could settle that barrier.
-                if (created is null) { timerSettled = true; }
+                if (!transferred)
+                {
+                    if (created is null) { timerSettled = true; }
+                    // A returned timer still belongs to startup if publication
+                    // failed. Transfer it once to stop, or retain the existing
+                    // stop barrier until its actual disposal settles.
+                    else if (!stopping) { timer = created; }
+                    else { timerSettled = false; failedTimer = created; }
+                }
             }
             startCompletion.TrySetException(new InvalidOperationException(HealthDiagnostic.FromException(exception).Message));
             BeginStop();
-            if (created is not null) { _ = DisposeTimerAsync(created); }
+            if (failedTimer is not null) { _ = DisposeTimerAsync(failedTimer); }
         }
         SignalProgress();
         return startCompletion.Task.WaitAsync(waitCancellation);
@@ -499,9 +506,22 @@ public sealed class HealthCollectorRunner : IAsyncDisposable
                         completedAt = DateTimeOffset.UtcNow;
                         cleanupError ??= HealthDiagnostic.FromException(exception, "Healthcheck.CollectionClock");
                     }
-                    operation.Attempt = state.Complete(operation.Reservation,
-                        new(operation.Reason, completedAt, operation.AcquisitionError, cleanupError));
-                    await state.WaitForSettlementAsync(operation.Reservation).ConfigureAwait(false);
+                    while (true)
+                    {
+                        try
+                        {
+                            operation.Attempt = state.Complete(operation.Reservation,
+                                new(operation.Reason, completedAt, operation.AcquisitionError, cleanupError));
+                            await state.WaitForSettlementAsync(operation.Reservation).ConfigureAwait(false);
+                            break;
+                        }
+                        catch (ThreadInterruptedException)
+                        {
+                            // Completion is idempotent. Interruption while waiting
+                            // for the coordinator gate does not release ownership
+                            // of its actual operation or the runner's capacity.
+                        }
+                    }
                 }
                 catch (Exception exception)
                 {

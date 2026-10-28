@@ -8,7 +8,7 @@ namespace CIS.Tests.UnitTests.Healthcheck;
 [TestClass]
 public sealed class HealthCollectorRunnerMutationQualificationTests
 {
-    private static readonly TimeSpan Deadline = TimeSpan.FromSeconds(10);
+    private static readonly TimeSpan Deadline = TimeSpan.FromSeconds(3);
     private static readonly DateTimeOffset Epoch = new(2026, 10, 22, 13, 0, 0, TimeSpan.Zero);
 
     [TestMethod]
@@ -37,17 +37,18 @@ public sealed class HealthCollectorRunnerMutationQualificationTests
         var service = new HealthcheckService(new HealthcheckOptions(), Identity(), clock);
         HealthCollectorRunner? runner = null;
         ArgumentException? rejection = null;
+        Exception? primary = null;
         try
         {
             try { runner = new HealthCollectorRunner(service); }
             catch (ArgumentException error) when (error.GetType() == typeof(ArgumentException) && error.ParamName == "service") { rejection = error; }
         }
+        catch (Exception error) { primary = error; throw; }
         finally
         {
-            Task? runnerDisposal = runner?.DisposeAsync().AsTask();
-            Task serviceDisposal = service.DisposeAsync().AsTask();
-            if (runnerDisposal is null) { await serviceDisposal.WaitAsync(Deadline); }
-            else { await Task.WhenAll(runnerDisposal, serviceDisposal).WaitAsync(Deadline); }
+            await HealthCollectorTestCleanup.DrainAsync(Deadline, primary, [],
+                () => runner?.DisposeAsync().AsTask() ?? Task.CompletedTask,
+                () => service.DisposeAsync().AsTask());
         }
 
         Assert.IsNull(rejection, "An actual positive-frequency clock must admit an inert runner before genuine terminal disposal.");
@@ -68,7 +69,7 @@ public sealed class HealthCollectorRunnerMutationQualificationTests
         scope.Clock.CreationError = new ClockException();
 
         await Assert.ThrowsExactlyAsync<InvalidOperationException>(() => scope.Runner.StartAsync()).WaitAsync(Deadline);
-        await scope.Runner.StopAsync().WaitAsync(Deadline);
+        await AwaitAsync(() => scope.Runner.StopAsync());
 
         Assert.AreEqual(1, scope.Clock.TimerCreations);
         await Assert.ThrowsExactlyAsync<InvalidOperationException>(() => scope.Runner.StartAsync()).WaitAsync(Deadline);
@@ -85,12 +86,12 @@ public sealed class HealthCollectorRunnerMutationQualificationTests
         scope.Clock.Timer.BlockDisposal = true;
         scope.Clock.DuringCreation = () =>
         {
-            stop = scope.Runner.StopAsync();
+            stop = HealthCollectorTestCleanup.EnterAsync(Deadline, () => scope.Runner.StopAsync()).GetAwaiter().GetResult();
             completedInsideCreation = stop.IsCompleted;
         };
         try
         {
-            await scope.Runner.StartAsync().WaitAsync(Deadline);
+            await AwaitAsync(() => scope.Runner.StartAsync());
 
             Assert.IsFalse(completedInsideCreation, "A timer still being created remains actual unsettled runner work.");
             Assert.IsNotNull(stop);
@@ -105,16 +106,16 @@ public sealed class HealthCollectorRunnerMutationQualificationTests
     public async Task StopAndDisposeBothWaitForActualAsynchronousTimerDisposal()
     {
         await using var scope = new Scope();
-        await scope.Runner.StartAsync().WaitAsync(Deadline);
+        await AwaitAsync(() => scope.Runner.StartAsync());
         scope.Clock.Timer.BlockDisposal = true;
-        Task stop = scope.Runner.StopAsync();
-        Task disposal = scope.Runner.DisposeAsync().AsTask();
+        Task stop = await HealthCollectorTestCleanup.EnterAsync(Deadline, () => scope.Runner.StopAsync());
+        Task disposal = await HealthCollectorTestCleanup.EnterAsync(Deadline, () => scope.Runner.DisposeAsync().AsTask());
         try
         {
             Assert.AreEqual(1, scope.Clock.Timer.Disposals);
             Assert.IsFalse(stop.IsCompleted);
             Assert.IsFalse(disposal.IsCompleted);
-            Assert.AreSame(stop, scope.Runner.StopAsync());
+            Assert.AreSame(stop, await HealthCollectorTestCleanup.EnterAsync(Deadline, () => scope.Runner.StopAsync()));
         }
         finally { scope.Clock.Timer.Release(); }
         await Task.WhenAll(stop, disposal).WaitAsync(Deadline);
@@ -125,21 +126,23 @@ public sealed class HealthCollectorRunnerMutationQualificationTests
     public async Task TimerDisposalFailureIsReportedInsteadOfAcknowledgingSuccessfulStop()
     {
         await using var scope = new Scope();
-        scope.ExpectedStopFailure = true;
         scope.Clock.Timer.DisposalError = new TimerDisposalException();
-        await scope.Runner.StartAsync().WaitAsync(Deadline);
-
-        await Assert.ThrowsExactlyAsync<InvalidOperationException>(() => scope.Runner.StopAsync()).WaitAsync(Deadline);
-
-        Assert.AreEqual(1, scope.Clock.Timer.Disposals);
-        await Assert.ThrowsExactlyAsync<InvalidOperationException>(() => scope.Runner.DisposeAsync().AsTask()).WaitAsync(Deadline);
+        try
+        {
+            await AwaitAsync(() => scope.Runner.StartAsync());
+            scope.ExpectedStopFailure = await Assert.ThrowsExactlyAsync<InvalidOperationException>(() => AwaitAsync(() => scope.Runner.StopAsync()));
+            Assert.AreEqual(1, scope.Clock.Timer.Disposals);
+            InvalidOperationException repeated = await Assert.ThrowsExactlyAsync<InvalidOperationException>(() => AwaitAsync(() => scope.Runner.DisposeAsync().AsTask()));
+            Assert.AreSame(scope.ExpectedStopFailure, repeated, "Every observer must receive the same terminal resource failure.");
+        }
+        catch (Exception error) { scope.Primary = error; throw; }
     }
 
     [TestMethod]
     public async Task DisposedRunnerRejectsNewWorkWithTheDisposedObjectContract()
     {
         await using var scope = new Scope();
-        await scope.Runner.DisposeAsync().AsTask().WaitAsync(Deadline);
+        await AwaitAsync(() => scope.Runner.DisposeAsync().AsTask());
 
         Assert.ThrowsExactly<ObjectDisposedException>(() => scope.Runner.StartAsync());
         Assert.ThrowsExactly<ObjectDisposedException>(() => scope.Register(new Collector()));
@@ -206,7 +209,7 @@ public sealed class HealthCollectorRunnerMutationQualificationTests
     {
         await using var scope = new Scope();
         IHealthCollectionRegistration registration = scope.Register(new Collector(), TimeSpan.FromTicks(1));
-        await scope.Runner.StartAsync().WaitAsync(Deadline);
+        await AwaitAsync(() => scope.Runner.StartAsync());
         scope.Clock.Timestamp = long.MaxValue;
 
         Assert.ThrowsExactly<OverflowException>(registration.ActivatePeriodic);
@@ -234,7 +237,7 @@ public sealed class HealthCollectorRunnerMutationQualificationTests
             }
         };
         IHealthCollectionRegistration registration = scope.Register(collector);
-        await scope.Runner.StartAsync().WaitAsync(Deadline);
+        await AwaitAsync(() => scope.Runner.StartAsync());
 
         HealthCollectionAttempt attempt = await CollectWithOwnedAcquisitionAsync(registration, collector);
 
@@ -263,7 +266,7 @@ public sealed class HealthCollectorRunnerMutationQualificationTests
         await using var scope = new Scope();
         var collector = new Collector { Acquired = !returnsLease, ReturnLease = returnsLease };
         IHealthCollectionRegistration registration = scope.Register(collector);
-        await scope.Runner.StartAsync().WaitAsync(Deadline);
+        await AwaitAsync(() => scope.Runner.StartAsync());
 
         HealthCollectionAttempt attempt = await CollectWithOwnedAcquisitionAsync(registration, collector);
 
@@ -290,7 +293,7 @@ public sealed class HealthCollectorRunnerMutationQualificationTests
         await using var scope = new Scope();
         var collector = new Collector { AcquisitionError = acquisitionFailure };
         IHealthCollectionRegistration registration = scope.Register(collector);
-        await scope.Runner.StartAsync().WaitAsync(Deadline);
+        await AwaitAsync(() => scope.Runner.StartAsync());
 
         HealthCollectionAttempt result = await CollectWithOwnedAcquisitionAsync(registration, collector);
 
@@ -322,7 +325,7 @@ public sealed class HealthCollectorRunnerMutationQualificationTests
             }
         };
         IHealthCollectionRegistration registration = scope.Register(collector);
-        await scope.Runner.StartAsync().WaitAsync(Deadline);
+        await AwaitAsync(() => scope.Runner.StartAsync());
 
         HealthCollectionAttempt result = await CollectWithOwnedAcquisitionAsync(registration, collector);
 
@@ -362,7 +365,7 @@ public sealed class HealthCollectorRunnerMutationQualificationTests
             Cleanup = scope.Clock.FailNextTimestampOnThisThread
         };
         IHealthCollectionRegistration registration = scope.Register(collector);
-        await scope.Runner.StartAsync().WaitAsync(Deadline);
+        await AwaitAsync(() => scope.Runner.StartAsync());
 
         HealthCollectionAttempt result = await CollectWithOwnedAcquisitionAsync(registration, collector);
 
@@ -391,10 +394,10 @@ public sealed class HealthCollectorRunnerMutationQualificationTests
         {
             configure?.Invoke(scope);
             Interlocked.Increment(ref facts.StartCalls);
-            first = scope.Runner.StartAsync();
+            first = HealthCollectorTestCleanup.EnterAsync(Deadline, () => scope.Runner.StartAsync()).GetAwaiter().GetResult();
             Interlocked.Increment(ref facts.StartReturns);
             Interlocked.Increment(ref facts.StartCalls);
-            second = scope.Runner.StartAsync();
+            second = HealthCollectorTestCleanup.EnterAsync(Deadline, () => scope.Runner.StartAsync()).GetAwaiter().GetResult();
             Interlocked.Increment(ref facts.StartReturns);
         }
         catch (Exception error) { facts.Record(error); }
@@ -421,7 +424,7 @@ public sealed class HealthCollectorRunnerMutationQualificationTests
             Interlocked.Increment(ref calls);
             try
             {
-                Task task = call();
+                Task task = HealthCollectorTestCleanup.EnterAsync(Deadline, call).GetAwaiter().GetResult();
                 Interlocked.Increment(ref returns);
                 return task;
             }
@@ -599,13 +602,19 @@ public sealed class HealthCollectorRunnerMutationQualificationTests
 
     private static HealthApplicationIdentity Identity() => new() { Name = "collector mutation qualification", InstanceId = Guid.NewGuid() };
 
+    private static async Task AwaitAsync(Func<Task> begin)
+    {
+        Task actual = await HealthCollectorTestCleanup.EnterAsync(Deadline, begin);
+        await actual.WaitAsync(Deadline);
+    }
+
     private static async Task<HealthCollectionAttempt> CollectWithOwnedAcquisitionAsync(
         IHealthCollectionRegistration registration, Collector collector)
     {
         AcquisitionHold hold = collector.HoldNextAcquisition();
         try
         {
-            Task<HealthCollectionAttempt> caller = registration.CollectAsync();
+            Task<HealthCollectionAttempt> caller = await HealthCollectorTestCleanup.EnterAsync(Deadline, () => registration.CollectAsync());
             await Task.WhenAny(hold.Entered.Task, caller).WaitAsync(Deadline);
             if (caller.IsCompleted)
             {
@@ -613,7 +622,7 @@ public sealed class HealthCollectorRunnerMutationQualificationTests
                 Assert.Fail("The queued caller cannot settle before its actual acquisition is released.");
             }
             await hold.Entered.Task.WaitAsync(Deadline);
-            Task<HealthCollectionAttempt> operation = registration.CollectAsync();
+            Task<HealthCollectionAttempt> operation = await HealthCollectorTestCleanup.EnterAsync(Deadline, () => registration.CollectAsync());
             hold.Released.TrySetResult();
             await operation.WaitAsync(Deadline);
             if (caller.IsFaulted || caller.IsCanceled) { await caller; }
@@ -643,29 +652,30 @@ public sealed class HealthCollectorRunnerMutationQualificationTests
         internal HealthcheckService Service { get; }
         internal IConsecutiveFailureMonitor Monitor { get; }
         internal HealthCollectorRunner Runner { get; }
-        internal bool ExpectedStopFailure { get; set; }
+        internal InvalidOperationException? ExpectedStopFailure { get; set; }
+        internal Exception? Primary { get; set; }
         internal IHealthCollectionRegistration Register(Collector collector, TimeSpan? interval = null)
         {
-            IHealthCollectionRegistration registration = Runner.Register(Monitor, collector, new() { Interval = interval });
             collectors.Add(collector);
-            return registration;
+            return Runner.Register(Monitor, collector, new() { Interval = interval });
         }
         internal HealthMonitorSnapshot Snapshot() => Service.CaptureSnapshot().Monitors.Single();
         public async ValueTask DisposeAsync()
         {
             foreach (Collector collector in collectors) { collector.ReleaseAcquisitions(); }
             Clock.Timer.Release();
-            Task runner = DrainRunnerAsync();
-            Task service = DrainServiceAsync();
-            try { await Task.WhenAll(runner, service).WaitAsync(Deadline); }
+            try
+            {
+                await HealthCollectorTestCleanup.DrainAsync(Deadline, Primary, [],
+                    DrainRunnerAsync, () => Service.DisposeAsync().AsTask());
+            }
             finally { GC.KeepAlive(Monitor); }
 
             async Task DrainRunnerAsync()
             {
                 try { await Runner.DisposeAsync(); }
-                catch (InvalidOperationException) when (ExpectedStopFailure) { }
+                catch (InvalidOperationException error) when (ReferenceEquals(error, ExpectedStopFailure)) { }
             }
-            async Task DrainServiceAsync() => await Service.DisposeAsync();
         }
     }
 
