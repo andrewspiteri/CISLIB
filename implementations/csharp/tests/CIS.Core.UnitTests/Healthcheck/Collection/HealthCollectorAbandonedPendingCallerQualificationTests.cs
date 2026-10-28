@@ -19,6 +19,75 @@ public sealed class HealthCollectorAbandonedPendingCallerQualificationTests
         catch (Exception error) { scope.Primary = error; throw; }
     }
 
+    [TestMethod]
+    public async Task WithdrawalSweepsAnAbandonedPendingCallerBeforeItsOccupiedLeaseSettles()
+    {
+        using var clock = new WithdrawalHandoffClock();
+        await using var scope = new Scope(clock);
+        try
+        {
+            IConsecutiveFailureMonitor occupiedMonitor = scope.CreateMonitor("occupied through withdrawal");
+            IConsecutiveFailureMonitor abandonedMonitor = scope.CreateMonitor("abandoned pending registration");
+            IHealthCollectionRegistration occupied = scope.Runner.Register(occupiedMonitor, scope.OccupiedOwner, new());
+            await scope.Runner.StartAsync().WaitAsync(Deadline);
+            Task<HealthCollectionAttempt> occupiedCaller = occupied.CollectAsync();
+            scope.TrackOriginalCaller(occupiedCaller);
+            Invocation occupiedInvocation = await scope.OccupiedOwner.NextAsync(occupiedCaller);
+            Task<HealthCollectionAttempt> occupiedOperation = occupied.CollectAsync();
+            scope.TrackActualOperation(occupiedOperation);
+
+            clock.PauseNextTimestamp();
+            AbandonedCaller abandoned = CreatePendingCallerAfterItsWakeWasConsumed(scope.Runner, abandonedMonitor, scope.UninvokedOwner, clock);
+            scope.TrackOriginalCaller(abandoned.Caller);
+            CollectRegistrationHandle(abandoned.Handle);
+            Assert.IsFalse(abandoned.Handle.IsAlive,
+                "Only the queued registration handle is abandoned; its monitor, collector and actual caller remain owned.");
+            Assert.IsFalse(abandoned.Caller.IsCompleted);
+            Assert.IsFalse(occupiedOperation.IsCompleted);
+
+            occupied.Withdraw();
+            Assert.IsFalse(occupiedOperation.IsCompleted, "Cancellation does not release the owner's held callback and lease.");
+            clock.ReleaseChange();
+            HealthCollectionAttempt retired = await abandoned.Caller.WaitAsync(Deadline);
+
+            Assert.AreEqual(HealthCollectionDisposition.Retired, retired.Disposition);
+            Assert.IsFalse(retired.EvaluationFailed);
+            Assert.IsNull(retired.Diagnostic);
+            Assert.IsFalse(occupiedOperation.IsCompleted,
+                "The abandoned caller must retire independently of the still-occupied operation's later completion wake.");
+            Assert.AreEqual(0, scope.OccupiedOwner.Cleanups);
+            Assert.AreEqual(0, scope.UninvokedOwner.Acquisitions);
+            Assert.AreEqual(2, scope.Service.CaptureSnapshot().MonitorCounts.Active,
+                "Withdrawing collection and abandoning its registration must preserve the separately retained monitors.");
+
+            occupiedInvocation.Release();
+            await occupiedOperation.WaitAsync(Deadline);
+            await scope.DisposeAsync();
+            await AssertOriginalCallersCompleteAsync(occupiedCaller, abandoned.Caller);
+            GC.KeepAlive(occupied);
+        }
+        catch (Exception error) { scope.Primary = error; throw; }
+        finally { clock.ReleaseAll(); }
+    }
+
+    [MethodImpl(MethodImplOptions.NoInlining)]
+    private static AbandonedCaller CreatePendingCallerAfterItsWakeWasConsumed(HealthCollectorRunner runner,
+        IHealthMonitor retainedMonitor, IHealthCollector retainedCollector, WithdrawalHandoffClock clock)
+    {
+        IHealthCollectionRegistration registration = runner.Register(retainedMonitor, retainedCollector, new());
+        Task<HealthCollectionAttempt> caller = registration.CollectAsync();
+        clock.TimestampEntered.Task.WaitAsync(Deadline).GetAwaiter().GetResult();
+        clock.PauseNextChange();
+        clock.ReleaseTimestamp();
+        clock.ChangeEntered.Task.WaitAsync(Deadline).GetAwaiter().GetResult();
+        // The real selection ran after this request's timestamp gate and consumed
+        // its wake while the handle was retained. Its no-inlining live snapshot
+        // has returned before the timer boundary, so it cannot root this handle.
+        var abandoned = new AbandonedCaller(new WeakReference(registration), caller);
+        GC.KeepAlive(registration);
+        return abandoned;
+    }
+
     private static async Task RunScenarioAsync(Scope scope)
     {
         IConsecutiveFailureMonitor occupiedMonitor = scope.CreateMonitor("occupied");
@@ -134,10 +203,10 @@ public sealed class HealthCollectorAbandonedPendingCallerQualificationTests
         private readonly List<Task<HealthCollectionAttempt>> actualOperations = [];
         private readonly List<Task<HealthCollectionAttempt>> originalCallers = [];
         private Task? cleanup;
-        internal Scope()
+        internal Scope(TimeProvider? timeProvider = null)
         {
             Service = new(new() { MaxConcurrentCollections = 1 },
-                new HealthApplicationIdentity { Name = "abandoned queued caller", InstanceId = Guid.NewGuid() });
+                new HealthApplicationIdentity { Name = "abandoned queued caller", InstanceId = Guid.NewGuid() }, timeProvider);
             Runner = new(Service);
         }
         internal HealthcheckService Service { get; }
@@ -257,6 +326,57 @@ public sealed class HealthCollectorAbandonedPendingCallerQualificationTests
             Interlocked.Increment(ref acquisitions);
             lease = null;
             return false;
+        }
+    }
+
+    private sealed class WithdrawalHandoffClock : TimeProvider, IDisposable
+    {
+        private readonly ManualResetEventSlim timestampRelease = new();
+        private readonly ManualResetEventSlim changeRelease = new();
+        private int pauseTimestamp, pauseChange;
+        private ITimer? timer;
+        internal TaskCompletionSource TimestampEntered { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
+        internal TaskCompletionSource ChangeEntered { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
+        internal void PauseNextTimestamp() => Volatile.Write(ref pauseTimestamp, 1);
+        internal void PauseNextChange() => Volatile.Write(ref pauseChange, 1);
+        internal void ReleaseTimestamp() => timestampRelease.Set();
+        internal void ReleaseChange() => changeRelease.Set();
+        internal void ReleaseAll() { ReleaseTimestamp(); ReleaseChange(); }
+        public override long TimestampFrequency => TimeProvider.System.TimestampFrequency;
+        public override long GetTimestamp()
+        {
+            if (Interlocked.Exchange(ref pauseTimestamp, 0) != 0)
+            {
+                TimestampEntered.TrySetResult();
+                if (!timestampRelease.Wait(Deadline)) { throw new TimeoutException("The owned dispatcher timestamp was not released."); }
+            }
+            return TimeProvider.System.GetTimestamp();
+        }
+        public override ITimer CreateTimer(TimerCallback callback, object? state, TimeSpan dueTime, TimeSpan period)
+        {
+            timer = TimeProvider.System.CreateTimer(callback, state, dueTime, period);
+            return new Timer(this, timer);
+        }
+        public void Dispose()
+        {
+            ReleaseAll();
+            timer?.Dispose();
+            timestampRelease.Dispose();
+            changeRelease.Dispose();
+        }
+        private sealed class Timer(WithdrawalHandoffClock owner, ITimer actual) : ITimer
+        {
+            public bool Change(TimeSpan dueTime, TimeSpan period)
+            {
+                if (Interlocked.Exchange(ref owner.pauseChange, 0) != 0)
+                {
+                    owner.ChangeEntered.TrySetResult();
+                    if (!owner.changeRelease.Wait(Deadline)) { throw new TimeoutException("The owned dispatcher timer change was not released."); }
+                }
+                return actual.Change(dueTime, period);
+            }
+            public void Dispose() => actual.Dispose();
+            public ValueTask DisposeAsync() => actual.DisposeAsync();
         }
     }
 }
