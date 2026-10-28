@@ -1,4 +1,5 @@
 using System.Numerics;
+using System.Runtime.CompilerServices;
 using CIS.Healthcheck.Internal;
 
 namespace CIS.Healthcheck;
@@ -344,39 +345,7 @@ public sealed class HealthCollectorRunner : IAsyncDisposable
                     stop = stopping;
                     if (!stop)
                     {
-                        foreach (var entry in entries.ToArray())
-                        {
-                            if (!entry.Handle.TryGetTarget(out _))
-                            {
-                                var pending = CloseLocked(entry);
-                                if (pending is not null) { abandoned.Add(pending); }
-                                dead.Add(entry);
-                            }
-                            else if (entry.Periodic && entry.Current is null && entry.Due <= now) { entry.Pending = true; }
-                        }
-                        if (operations.Count < capacity)
-                        {
-                            for (int examined = 0; examined < entries.Count; examined++)
-                            {
-                                int index = (cursor + examined) % entries.Count;
-                                var entry = entries[index];
-                                Registration? handle = null;
-                                if (!entry.Pending || entry.Current is not null || !entry.Handle.TryGetTarget(out handle)) { continue; }
-                                operation = new Operation(entry, handle!, entry.ManualCompletion ?? new(TaskCreationOptions.RunContinuationsAsynchronously));
-                                entry.ManualCompletion = null;
-                                entry.Pending = false;
-                                entry.Due = null;
-                                entry.Current = operation;
-                                operations.Add(operation);
-                                cursor = (index + 1) % entries.Count;
-                                break;
-                            }
-                        }
-                        if (operation is null && operations.Count < capacity)
-                        {
-                            long? next = entries.Where(entry => entry.Periodic && entry.Current is null).Select(entry => entry.Due).Min();
-                            if (next.HasValue) { delay = TimerDelay((BigInteger)next.Value - now); }
-                        }
+                        operation = SelectOperationLocked(now, dead, abandoned, out delay);
                     }
                     currentTimer = timer;
                 }
@@ -411,9 +380,56 @@ public sealed class HealthCollectorRunner : IAsyncDisposable
         }
     }
 
+    // End the transient strong-handle snapshot before calling any owner, timer
+    // or external clock. Only the chosen operation retains its actual owner.
+    [MethodImpl(MethodImplOptions.NoInlining)]
+    private Operation? SelectOperationLocked(long now, List<RegistrationEntry> dead,
+        List<TaskCompletionSource<HealthCollectionAttempt>> abandoned, out TimeSpan delay)
+    {
+        delay = Timeout.InfiniteTimeSpan;
+        List<(RegistrationEntry Entry, Registration Handle)> live = new(entries.Count);
+        for (int index = 0; index < entries.Count;)
+        {
+            RegistrationEntry entry = entries[index];
+            if (!entry.Handle.TryGetTarget(out Registration? handle))
+            {
+                var pending = CloseLocked(entry);
+                if (pending is not null) { abandoned.Add(pending); }
+                dead.Add(entry);
+            }
+            else
+            {
+                if (entry.Periodic && entry.Current is null && entry.Due <= now) { entry.Pending = true; }
+                live.Add((entry, handle));
+                index++;
+            }
+        }
+        if (operations.Count >= capacity) { return null; }
+        // The linear sweep preserves entry order and adjusts cursor on every
+        // removal. Selection does not mutate either ordered collection.
+        for (int examined = 0; examined < live.Count; examined++)
+        {
+            int index = (cursor + examined) % live.Count;
+            var (entry, handle) = live[index];
+            if (!entry.Pending || entry.Current is not null) { continue; }
+            var operation = new Operation(entry, handle, entry.ManualCompletion ?? new(TaskCreationOptions.RunContinuationsAsynchronously));
+            entry.ManualCompletion = null;
+            entry.Pending = false;
+            entry.Due = null;
+            entry.Current = operation;
+            operations.Add(operation);
+            cursor = (index + 1) % live.Count;
+            return operation;
+        }
+        // Every due live entry was marked pending and would have been selected.
+        // With capacity available and no selection, only future due times remain.
+        long? next = entries.Where(entry => entry.Periodic && entry.Current is null).Select(entry => entry.Due).Min();
+        if (next.HasValue) { delay = TimerDelay((BigInteger)next.Value - now); }
+        return null;
+    }
+
     private TimeSpan TimerDelay(BigInteger units)
     {
-        if (units <= 0) { return TimeSpan.Zero; }
         BigInteger ticks = (units * TimeSpan.TicksPerSecond + frequency - 1) / frequency;
         long bounded = (long)BigInteger.Min(ticks, (BigInteger)(uint.MaxValue - 1) * TimeSpan.TicksPerMillisecond);
         return TimeSpan.FromTicks(Math.Max(TimeSpan.TicksPerMillisecond, bounded));
@@ -453,51 +469,70 @@ public sealed class HealthCollectorRunner : IAsyncDisposable
     }
 
     private void Post(Operation operation) => ThreadPool.UnsafeQueueUserWorkItem(
-        static item => { _ = item.Runner.ExecuteAsync(item.Operation); }, (Runner: this, Operation: operation), preferLocal: false);
+        static item =>
+        {
+            // Publish the actual execution task only after its cleanup and
+            // execution scope have exited. A bookkeeping fault must fault the
+            // caller while retaining the operation's unsettled ownership.
+            _ = item.Runner.ExecuteAsync(item.Operation).ContinueWith(
+                static (completed, value) => ((Operation)value!).Completion.TrySetFromTask(completed),
+                item.Operation, CancellationToken.None, TaskContinuationOptions.ExecuteSynchronously, TaskScheduler.Default);
+        }, (Runner: this, Operation: operation), preferLocal: false);
 
-    private async Task ExecuteAsync(Operation operation)
+    private async Task<HealthCollectionAttempt> ExecuteAsync(Operation operation)
     {
         var target = operation.Entry.Target;
-        using var execution = HealthCollectionExecution.Enter(state, target.MonitorId, target.CollectionRegistrationId, runnerId);
-        HealthDiagnostic? cleanupError = null;
-        try
+        using (HealthCollectionExecution.Enter(state, target.MonitorId, target.CollectionRegistrationId, runnerId))
         {
             if (operation.Joined && operation.Reservation is not null)
             {
-                await state.WaitForSettlementAsync(operation.Reservation).ConfigureAwait(false);
-            }
-            else if (operation.Reservation is not null && operation.Reason == HealthCollectionCompletionReason.Settled)
-            {
-                if (!state.TryEnter(operation.Reservation)) { operation.Reason = HealthCollectionCompletionReason.RetiredBeforeInvocation; }
-                else
+                while (true)
                 {
                     try
                     {
-                        Task<HealthCollectionResult>? evaluation = operation.Lease!.CollectAsync(operation.Reservation.LifetimeCancellation);
-                        if (evaluation is null) { throw new InvalidOperationException("The owner returned no evaluation task."); }
-                        HealthCollectionResult result = await evaluation.ConfigureAwait(false);
-                        operation.Attempt = state.CommitResult(operation.Reservation, result);
+                        await state.WaitForSettlementAsync(operation.Reservation).ConfigureAwait(false);
+                        break;
                     }
-                    catch (OperationCanceledException) when (operation.Reservation.LifetimeCancellation.IsCancellationRequested) { }
-                    catch (Exception exception)
+                    catch (ThreadInterruptedException)
                     {
-                        operation.Attempt = state.CommitEvaluationFailure(operation.Reservation,
-                            HealthDiagnostic.FromException(exception, "Healthcheck.CollectionEvaluation"));
+                        // Joining retains the runner's slot until the existing
+                        // state-owned operation actually settles too.
                     }
                 }
             }
-        }
-        catch (Exception exception) { cleanupError = HealthDiagnostic.FromException(exception, "Healthcheck.CollectionIntegration"); }
-        finally
-        {
-            if (operation.Lease is not null)
+            HealthDiagnostic? cleanupError = null;
+            try
             {
-                try { await operation.Lease.DisposeAsync().ConfigureAwait(false); }
-                catch (Exception exception) { cleanupError = HealthDiagnostic.FromException(exception, "Healthcheck.LeaseCleanup"); }
+                if (!operation.Joined && operation.Reservation is not null && operation.Reason == HealthCollectionCompletionReason.Settled)
+                {
+                    if (!state.TryEnter(operation.Reservation)) { operation.Reason = HealthCollectionCompletionReason.RetiredBeforeInvocation; }
+                    else
+                    {
+                        try
+                        {
+                            Task<HealthCollectionResult>? evaluation = operation.Lease!.CollectAsync(operation.Reservation.LifetimeCancellation);
+                            if (evaluation is null) { throw new InvalidOperationException("The owner returned no evaluation task."); }
+                            HealthCollectionResult result = await evaluation.ConfigureAwait(false);
+                            operation.Attempt = state.CommitResult(operation.Reservation, result);
+                        }
+                        catch (OperationCanceledException) when (operation.Reservation.LifetimeCancellation.IsCancellationRequested) { }
+                        catch (Exception exception)
+                        {
+                            operation.Attempt = state.CommitEvaluationFailure(operation.Reservation,
+                                HealthDiagnostic.FromException(exception, "Healthcheck.CollectionEvaluation"));
+                        }
+                    }
+                }
             }
-            if (operation.Reservation is not null && !operation.Joined)
+            catch (Exception exception) { cleanupError = HealthDiagnostic.FromException(exception, "Healthcheck.CollectionIntegration"); }
+            finally
             {
-                try
+                if (operation.Lease is not null)
+                {
+                    try { await operation.Lease.DisposeAsync().ConfigureAwait(false); }
+                    catch (Exception exception) { cleanupError = HealthDiagnostic.FromException(exception, "Healthcheck.LeaseCleanup"); }
+                }
+                if (operation.Reservation is not null && !operation.Joined)
                 {
                     DateTimeOffset completedAt;
                     try { completedAt = clock.GetUtcNow(); }
@@ -523,45 +558,40 @@ public sealed class HealthCollectorRunner : IAsyncDisposable
                         }
                     }
                 }
+                bool retire = false;
+                long now = 0;
+                try { now = clock.GetTimestamp(); }
                 catch (Exception exception)
                 {
-                    operation.Attempt = new(HealthCollectionDisposition.Retired, false,
-                        HealthDiagnostic.FromException(exception, "Healthcheck.CollectionSettlement"));
+                    retire = true;
+                    var previous = operation.Attempt ?? Retired();
+                    operation.Attempt = new(previous.Disposition, previous.EvaluationFailed,
+                        previous.Diagnostic ?? HealthDiagnostic.FromException(exception, "Healthcheck.CollectionClock"));
                 }
-            }
-            bool retire = false;
-            long now = 0;
-            try { now = clock.GetTimestamp(); }
-            catch (Exception exception)
-            {
-                retire = true;
-                var previous = operation.Attempt ?? Retired();
-                operation.Attempt = new(previous.Disposition, previous.EvaluationFailed,
-                    previous.Diagnostic ?? HealthDiagnostic.FromException(exception, "Healthcheck.CollectionClock"));
-            }
-            lock (gate)
-            {
-                if (!retire && operation.Entry.Periodic && !operation.Entry.Closed)
+                lock (gate)
                 {
-                    try { operation.Entry.Due = checked(now + operation.Entry.IntervalUnits); }
-                    catch (OverflowException) { retire = true; }
+                    if (!retire && operation.Entry.Periodic && !operation.Entry.Closed)
+                    {
+                        try { operation.Entry.Due = checked(now + operation.Entry.IntervalUnits); }
+                        catch (OverflowException) { retire = true; }
+                    }
                 }
+                if (operation.Attempt?.Disposition == HealthCollectionDisposition.OwnerUnavailable) { retire = true; }
+                if (retire) { Withdraw(operation.Entry); }
             }
-            if (operation.Attempt?.Disposition == HealthCollectionDisposition.OwnerUnavailable) { retire = true; }
-            if (retire) { Withdraw(operation.Entry); }
-            operation.Handle = null;
-            operation.Lease = null;
-            lock (gate)
-            {
-                operation.Entry.Current = null;
-                operations.Remove(operation);
-            }
-            // Deactivate before waking callers; escaped child contexts no longer identify settled work as active.
-            execution.Dispose();
-            operation.Completion.TrySetResult(operation.Attempt ?? Retired());
-            SignalProgress(operation.Entry);
-            Wake();
         }
+        // End the component's execution scope before making settled ownership
+        // visible to this or any concurrent progress publisher.
+        operation.Handle = null;
+        operation.Lease = null;
+        lock (gate)
+        {
+            operation.Entry.Current = null;
+            operations.Remove(operation);
+        }
+        SignalProgress(operation.Entry);
+        Wake();
+        return operation.Attempt ?? Retired();
     }
 
     private static HealthCollectionAttempt Retired() => new(HealthCollectionDisposition.Retired, false, null);
