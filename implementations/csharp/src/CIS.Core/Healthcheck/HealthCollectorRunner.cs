@@ -338,20 +338,15 @@ public sealed class HealthCollectorRunner : IAsyncDisposable
                 Operation? operation = null;
                 ITimer? currentTimer;
                 TimeSpan delay = Timeout.InfiniteTimeSpan;
-                bool stop;
                 lock (gate)
                 {
                     wakeRequested = false;
-                    stop = stopping;
-                    if (!stop)
-                    {
-                        operation = SelectOperationLocked(now, dead, abandoned, out delay);
-                    }
+                    if (stopping) { pumpScheduled = false; break; }
+                    operation = SelectOperationLocked(now, dead, abandoned, out delay);
                     currentTimer = timer;
                 }
                 foreach (var waiter in abandoned) { waiter.TrySetResult(Retired()); }
                 foreach (var entry in dead) { _ = RetireAsync(entry); }
-                if (stop) { return; }
                 if (operation is not null) { AcquireAndPost(operation); continue; }
                 try { currentTimer?.Change(delay, Timeout.InfiniteTimeSpan); }
                 catch (ObjectDisposedException)
@@ -361,7 +356,11 @@ public sealed class HealthCollectorRunner : IAsyncDisposable
                 lock (gate)
                 {
                     if (wakeRequested && !stopping) { continue; }
-                    return;
+                    // Release dispatcher ownership in the same decision that
+                    // observes no further wake. A later requester queues its
+                    // own dispatcher; this one never clears that new ownership.
+                    pumpScheduled = false;
+                    break;
                 }
             }
         }
@@ -370,14 +369,11 @@ public sealed class HealthCollectorRunner : IAsyncDisposable
             HealthDiagnostic diagnostic = HealthDiagnostic.FromException(exception);
             lock (gate) { resourceError ??= diagnostic; }
             BeginStop();
+            // BeginStop has closed admission, so no new dispatcher can own this
+            // flag while the faulted dispatcher releases it.
+            lock (gate) { pumpScheduled = false; }
         }
-        finally
-        {
-            bool again;
-            lock (gate) { pumpScheduled = false; again = wakeRequested && !stopping; }
-            SignalProgress();
-            if (again) { Wake(); }
-        }
+        SignalProgress();
     }
 
     // End the transient strong-handle snapshot before calling any owner, timer

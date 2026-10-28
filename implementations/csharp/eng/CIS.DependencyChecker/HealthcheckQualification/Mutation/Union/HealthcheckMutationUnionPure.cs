@@ -13,6 +13,18 @@ internal static partial class HealthcheckMutationUnionModel
 
     internal static Definition[] ParseReport(JsonObject report, string group, string reportSha256,
         string nativeSourceRoot, Source[] expectedSources)
+        => ParseReportCore(report, group, reportSha256, nativeSourceRoot, expectedSources,
+            expectedSources.Where(source => source.Group == group).Select(source => source.Path).ToHashSet(StringComparer.Ordinal));
+
+    internal static Definition[] ParseFileReport(JsonObject report, string group, string reportSha256,
+        string nativeSourceRoot, Source[] expectedSources, string sourcePath)
+    {
+        Require(expectedSources.Any(source => source.Group == group && source.Path == sourcePath), "Foreign per-file source scope.");
+        return ParseReportCore(report, group, reportSha256, nativeSourceRoot, expectedSources, new(StringComparer.Ordinal) { sourcePath });
+    }
+
+    private static Definition[] ParseReportCore(JsonObject report, string group, string reportSha256,
+        string nativeSourceRoot, Source[] expectedSources, HashSet<string> reportSources)
     {
         Require(Groups.Contains(group, StringComparer.Ordinal) && IsHash(reportSha256), "Unknown partition or malformed original report hash.");
         Require(Text(report, "schemaVersion") == "2", "Unsupported native mutation schema.");
@@ -33,7 +45,7 @@ internal static partial class HealthcheckMutationUnionModel
             Require(node is JsonObject, "Native file must be an object.");
             JsonObject file = node!.AsObject();
             JsonArray mutants = Array(file, "mutants");
-            if (!expected.TryGetValue(relative, out Source? source) || source.Group != group)
+            if (!expected.TryGetValue(relative, out Source? source) || source.Group != group || !reportSources.Contains(relative))
             {
                 Require(mutants.Count == 0 && Text(file, "source") == "File ignored by mutate filter", "A report contains definitions or source outside its disjoint configured scope.");
                 continue;
@@ -72,7 +84,7 @@ internal static partial class HealthcheckMutationUnionModel
                 definitions.Add(definition);
             }
         }
-        Require(seen.SetEquals(expected.Values.Where(s => s.Group == group).Select(s => s.Path)), "A configured shipping source is missing from the native report.");
+        Require(seen.SetEquals(reportSources), "A configured shipping source is missing from the native report.");
         return definitions.ToArray();
     }
 

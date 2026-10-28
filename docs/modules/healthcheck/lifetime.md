@@ -29,6 +29,8 @@ Construction and registration are inert. Start the runner explicitly before manu
 
 Manual callers join an in-flight attempt. A pre-canceled wait creates no work; cancellation of one later wait affects only that waiter. A stalled callback or lease disposal retains its actual slot and owner lease. Neither a timeout wrapper nor expected cancellation proves that work ended or permits overlap. Healthcheck does not force-abort work.
 
+Once started, the runner coalesces manual requests and timer wakes through one dispatcher. At an idle handoff, it checks for another wake and releases dispatcher ownership in the same synchronized decision. An admitted pending request stays visible to the current dispatcher or queues its successor; the exiting dispatcher cannot clear the successor's ownership.
+
 On normal completion, the runner ends the collector's execution scope before releasing its slot or publishing collection and disposal completion. An unexpected failure in internal settlement bookkeeping faults the collection task and leaves the operation's capacity reserved. A faulted collection task does not certify that tracked work or disposal has settled.
 
 Withdrawal before the coordinated invocation boundary suppresses user collection, including already-posted wrappers. After invocation, tracked completion includes callback work, result/error handoff, actual lease disposal and state settlement. Owner refusal retires collection and withdraws its associated monitor as owner-unavailable, without inventing an unhealthy observation. Acquisition contract violations or exceptions are integration errors; they are not admitted callback outcomes. Every acquired nonnull lease is disposed.

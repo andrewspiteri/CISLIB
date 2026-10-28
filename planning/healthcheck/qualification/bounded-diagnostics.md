@@ -8,6 +8,10 @@ execution/storage, explicit diagnostic versus qualification results, profile-pin
 target environment, and minimal transient capture. Use that common workflow rather
 than introducing another module-specific mutation controller or proof catalogue.
 
+The [shared incremental receiver](shared-incremental-receiving.md) describes the
+new saved-result protocol and its current limitations. It does not grant
+qualification credit to stale campaigns or replace child-process evidence.
+
 New union inputs select `schema: cis.healthcheck.mutation-union-inputs/v2-native-completed`
 and `outcomePolicy: cis-native-completed/v1`. Existing v1 inputs retain their original
 classification; adding an outcome-policy field to v1 is rejected. Historical
