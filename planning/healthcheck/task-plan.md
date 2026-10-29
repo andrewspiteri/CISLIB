@@ -2,6 +2,8 @@
 
 **Revision:** 0.3 · **Status:** HC00–HC11 local feature candidate committed; HC12/HC13 local qualification follow-up verified, with full mutation/release and real external integrations pending.
 
+**29 October 2026 execution pause:** Mutation campaigns are paused at the user's request while shared CIS execution, evidence and CISLIB's ordinary test workflow are corrected. The proposed [verification remediation plan](../cis/verification-remediation-plan.md) defines that work and the pilot required before broad Healthcheck qualification resumes. The historical task outcomes below remain scoped to their original candidates.
+
 The current user approves subagents for the pilot and ASP.NET inclusion in Core. HC04 writes `implementations/csharp/src/CIS.Core/Healthcheck/AspNetCore/**`; there is no separate adapter project/package. Later user-authorized commits supersede the original HC00 no-commit assumption; the transport/application candidate is `0bf0c4c8d8c0c6646f591c634e66cfa480348aa6`. The qualification wave uses disjoint authoring, verified isolated source/output copies and one coordinated canonical build stream. The coordinator owns project/manifest/verification mutations. Current scoped outcomes are in [acceptance-status.json](acceptance-status.json) and [HC12 qualification](evidence/HC12/qualification-next/README.md). See ownership.json and decisions.md.
 
 ## 1. Operating rule
