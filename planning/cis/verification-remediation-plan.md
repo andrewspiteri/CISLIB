@@ -32,6 +32,8 @@ Mutation execution remains paused. This plan starts no campaigns, changes no app
 
 Existing native reports retain their original sources, inputs and policy. Review pending changes before committing them. Preserve unrelated work in either repository, including the existing shared CIS graph changes; do not stage it as part of this plan without ownership review.
 
+**29 October publication checkpoint:** Removed transient Healthcheck archive payloads from unpublished history before pushing; preserved the original commits and all 364 current archives locally without copying their 6.6 GB of data. Source, tests, documents and native report metadata remain unchanged by that filtering. Historical receipts that reference those archives require the local payloads for replay; a fresh checkout alone cannot replay them. This storage correction does not revalidate or qualify historical results.
+
 ## Work order and ownership
 
 | Work | Owner | Depends on | Deliverable |
