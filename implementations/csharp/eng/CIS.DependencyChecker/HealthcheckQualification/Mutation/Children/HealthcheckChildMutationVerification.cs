@@ -101,15 +101,7 @@ internal static class HealthcheckChildMutationVerification
         Require(session.SourceReplay is null || requiredActive is null, "Manual source replay has no Stryker active-mutant selector.");
         Check(() =>
         {
-            ValidateConfiguration(session.ConfigurationPath);
-            Require(Hash(session.ConfigurationPath) == session.ConfigurationSha256 && Hash(session.StrykerCorePath) == session.StrykerCoreSha256
-                && Digest(SelectorSource(session.StrykerCorePath)) == session.SelectorSourceSha256, "The native tool/config selector inputs changed.");
-            Require(Hash(session.DotnetPath) == session.DotnetSha256 && Hash(session.CoreLibraryPath) == session.CoreLibrarySha256,
-                "The pinned native host/runtime changed.");
-            FilePin[] currentSources = SourceInputs(session.LanguageRoot);
-            Require(currentSources.SequenceEqual(session.SourceInputs), "The exact maintained source/structural input set changed during the child proof.");
-            AuditLaunchSites(session.LanguageRoot);
-            if (session.SourceReplay is { } sourceReplay) { ValidateSourceReplay(session.LanguageRoot, sourceReplay); }
+            ValidateCurrentSession(session);
         });
         string[] directories = Directory.GetDirectories(Path.Combine(session.OutputRoot, "launches"));
         Require(directories.Length <= 200000 && (directories.Length > 0 || session.BoundIntentVersion == HealthcheckMutationChildCapture.Version),
@@ -308,6 +300,22 @@ internal static class HealthcheckChildMutationVerification
             try { action(); }
             catch (Exception error) { failures.Add(error.Message); }
         }
+    }
+
+    // Shared per-file receiving also needs these unchanged source/launch-site
+    // guards when a versioned capture is genuinely empty and all native killers
+    // are Unit tests. That is not a successful full child-propagation audit.
+    internal static void ValidateCurrentSession(Session session)
+    {
+        ValidateConfiguration(session.ConfigurationPath);
+        Require(Hash(session.ConfigurationPath) == session.ConfigurationSha256 && Hash(session.StrykerCorePath) == session.StrykerCoreSha256
+            && Digest(SelectorSource(session.StrykerCorePath)) == session.SelectorSourceSha256, "The native tool/config selector inputs changed.");
+        Require(Hash(session.DotnetPath) == session.DotnetSha256 && Hash(session.CoreLibraryPath) == session.CoreLibrarySha256,
+            "The pinned native host/runtime changed.");
+        FilePin[] currentSources = SourceInputs(session.LanguageRoot);
+        Require(currentSources.SequenceEqual(session.SourceInputs), "The exact maintained source/structural input set changed during the child proof.");
+        AuditLaunchSites(session.LanguageRoot);
+        if (session.SourceReplay is { } sourceReplay) { ValidateSourceReplay(session.LanguageRoot, sourceReplay); }
     }
 
     private static string Kind(Launch launch) => launch.Stage.AssemblyFile switch

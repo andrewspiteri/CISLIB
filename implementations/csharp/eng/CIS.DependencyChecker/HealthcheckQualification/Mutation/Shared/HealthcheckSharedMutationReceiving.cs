@@ -13,13 +13,14 @@ internal static partial class HealthcheckMutationUnionVerification
         var options = new TypeManagerVerificationInputs(arguments, ["repo-root", "manifest", "output-root"], []);
         var files = new PinnedInputs(options.PathOf("repo-root"), options.Output);
         JsonObject manifest = files.ReadDocument(options.PathOf("manifest"));
-        SharedFields(manifest, ["schema", "outcomePolicy", "osLane", "verifier", "profiles"]);
+        SharedFields(manifest, ["schema", "outcomePolicy", "osLane", "verifier", "profiles"], ["dispositions"]);
         Need(String(manifest, "schema") == "cis.healthcheck.shared-mutation-inputs/v1"
             && String(manifest, "outcomePolicy") == "cis-native-completed/v1", "Select the prospective shared native-completed input policy.");
         string lane = String(manifest, "osLane");
         Need(lane == (OperatingSystem.IsWindows() ? "windows" : "ubuntu")
             && (OperatingSystem.IsWindows() || OperatingSystem.IsLinux()), "Verify each native OS lane on its own host.");
         Source[] sources = ReadSharedSources(files);
+        var dispositionRecords = ReadSharedDispositionReferences(files, manifest, sources, lane);
         JsonObject verifier = Item(manifest["verifier"]);
         SharedFields(verifier, ["dotnet", "assembly", "testingAssembly", "helperAssembly"]);
         string dotnet = files.Pin(Item(verifier["dotnet"]));
@@ -37,10 +38,12 @@ internal static partial class HealthcheckMutationUnionVerification
         options.EmptyOutput();
         var batches = new List<HealthcheckSharedMutationModel.Batch>();
         var observations = new JsonArray();
+        var currentComparisons = new JsonArray();
+        var childEvidence = new List<HealthcheckSharedMutationChildren.Result>();
         var pending = new JsonArray();
         foreach (JsonObject descriptor in descriptors)
         {
-            SharedFields(descriptor, ["snapshotRoot", "profile"], ["refinementProfiles"]);
+            SharedFields(descriptor, ["snapshotRoot", "profile"], ["refinementProfiles", "currentProfile", "childEvidence"]);
             string snapshot = files.Resolve(String(descriptor, "snapshotRoot"));
             files.GuardRoot(snapshot);
             string profilePath = files.Pin(Item(descriptor["profile"]));
@@ -95,7 +98,10 @@ internal static partial class HealthcheckMutationUnionVerification
                 "Cross-platform evidence cannot be pooled.");
             var inputRecords = HealthcheckSharedMutationProtocol.Validate(receipt, requested.ToArray(), snapshot,
                 testing, Hash(testing), helper, Hash(helper), lane, started, finished);
-            string[] stale = CheckSharedCurrentInputs(files, snapshot, inputRecords, String(profile, "strykerConfigFile"));
+            SharedCurrentComparison? comparison = descriptor.ContainsKey("currentProfile")
+                ? await CompareSharedCurrentPlanAsync(files, snapshot, descriptor, profilePath, profile, receipt, inputRecords, dotnet, assembly) : null;
+            if (comparison is not null) { currentComparisons.Add(comparison.Observation); }
+            string[] stale = CheckSharedCurrentInputs(files, snapshot, inputRecords, String(profile, "strykerConfigFile"), comparison is not null);
             if (stale.Length > 0)
             {
                 pending.Add(new JsonObject
@@ -111,6 +117,21 @@ internal static partial class HealthcheckMutationUnionVerification
                 && verified.Length == sourceFiles.Length, "Shared receipt is incomplete or duplicates its declared sources.");
             foreach (JsonObject batch in verified)
             {
+                if (comparison is not null)
+                {
+                    var decision = comparison.Decisions.Single(item => item.SourceFile == String(batch, "sourceFile"));
+                    if (!decision.Reusable)
+                    {
+                        pending.Add(new JsonObject
+                        {
+                            ["profileSha256"] = Hash(profilePath),
+                            ["sourceFile"] = decision.SourceFile,
+                            ["reason"] = "The current complete target plan does not reproduce this saved batch.",
+                            ["differences"] = JsonSerializer.SerializeToNode(decision.Reasons)
+                        });
+                        continue;
+                    }
+                }
                 Need(batch["fullFile"]?.GetValue<bool>() == true && batch["fullPostflightReceiptVerified"]?.GetValue<bool>() == true,
                     "Qualification requires full-file native work and verified full-filter postflight receipts.");
                 Source source = sources.Single(source => CorePrefix + source.Path == String(batch, "sourceFile"));
@@ -126,11 +147,11 @@ internal static partial class HealthcheckMutationUnionVerification
                 string[] nativeKills = definitions.Where(definition => definition.Status == "Killed").Select(definition => definition.Id).ToArray();
                 if (source.Group is "pipes" or "aspnet")
                 {
-                    // Parent completion cannot attest a child loaded or activated
-                    // the mutated body. Missing receiving support is an explicit
-                    // hold, never a synthetic success or an assertion-text rule.
-                    issues.Add(new("MissingSharedChildEvidence", "Current child-origin/body/terminal receipts are required for this process boundary.", []));
-                    nativeKills = [];
+                    var child = await ReadSharedChildEvidenceAsync(files, snapshot, descriptor, profile, batch,
+                        source, definitions, report, options.Output);
+                    childEvidence.Add(child);
+                    issues.AddRange(child.Issues);
+                    if (!child.Verified) { nativeKills = []; }
                     Need(rerunKills.Length == 0, "Child refinement credit needs verified child evidence.");
                 }
                 batches.Add(new(source, Hash(report), definitions, nativeKills, rerunKills, issues.ToArray()));
@@ -158,11 +179,17 @@ internal static partial class HealthcheckMutationUnionVerification
                 ["historicalPostflightXmlRetained"] = false
             });
         }
-        JsonObject result = HealthcheckSharedMutationModel.Evaluate(sources, batches.ToArray(), []);
+        var receivedBatches = HealthcheckSharedMutationChildren.ApplyAggregateHolds(batches.ToArray(), childEvidence.ToArray());
+        var dispositionObservations = new JsonArray();
+        var dispositions = HealthcheckSharedMutationDispositions.Bind(dispositionRecords, receivedBatches, dispositionObservations);
+        JsonObject result = HealthcheckSharedMutationModel.Evaluate(sources, receivedBatches, dispositions);
         if (pending.Count > 0) { result["qualified"] = false; }
         result["osLane"] = lane;
         result["pendingProfiles"] = pending;
         result["sharedVerifications"] = observations;
+        result["currentComparisons"] = currentComparisons;
+        result["childEvidence"] = new JsonArray(childEvidence.Select(child => (JsonNode?)child.Observation.DeepClone()).ToArray());
+        result["dispositions"] = dispositionObservations;
         result["verifiedInputs"] = files.Inventory();
         result["scope"] = "Current HC12 mutation union only; no whole-Core or release approval.";
         result["createdUtc"] = DateTimeOffset.UtcNow.ToString("O");
@@ -175,6 +202,8 @@ internal static partial class HealthcheckMutationUnionVerification
 
     private static void ValidateSharedConfiguration(PinnedInputs files, string snapshot, JsonObject profile, Source[] sources)
     {
+        Need(profile.All(field => !field.Key.Equals("rerunAdditionalTimeoutMilliseconds", StringComparison.OrdinalIgnoreCase) || field.Value is null),
+            "An original qualification profile cannot apply the explicit-rerun-only additional timeout override.");
         string[] paths = Items(profile, "sourceFiles").Select(node => node!.GetValue<string>()[CorePrefix.Length..]).ToArray();
         string[] groups = paths.Select(path => sources.Single(source => source.Path == path).Group).Distinct(StringComparer.Ordinal).ToArray();
         Need(groups.Length == 1, "One incremental profile must belong to one qualification partition.");
@@ -210,7 +239,8 @@ internal static partial class HealthcheckMutationUnionVerification
         return sources.ToArray();
     }
 
-    private static string[] CheckSharedCurrentInputs(PinnedInputs files, string snapshot, HealthcheckSharedMutationProtocol.Input[] inputs, string nativeTemplate)
+    private static string[] CheckSharedCurrentInputs(PinnedInputs files, string snapshot, HealthcheckSharedMutationProtocol.Input[] inputs,
+        string nativeTemplate, bool exactCurrentPlan = false)
     {
         var stale = new List<string>();
         foreach (var input in inputs)
@@ -220,6 +250,11 @@ internal static partial class HealthcheckMutationUnionVerification
             files.Pin(new JsonObject { ["path"] = original, ["sha256"] = expected, ["bytes"] = new FileInfo(original).Length });
             if (!input.CompareCurrent || (path == nativeTemplate && input.Roles.Contains("configuration", StringComparer.Ordinal)
                 && input.Roles.All(role => role is "configuration" or "dependency"))) { continue; }
+            // Only a freshly reproduced full target selection can establish that
+            // a changed C# input is outside this batch. Build/configuration and
+            // non-C# dependency pins retain the original global currency rule.
+            if (exactCurrentPlan && path.EndsWith(".cs", StringComparison.Ordinal)
+                && !input.Roles.Contains("configuration", StringComparer.Ordinal)) { continue; }
             Need(!Path.IsPathFullyQualified(path), "Source/test/configuration closure must be repository-relative.");
             string current = files.Resolve(path);
             if (!File.Exists(current) || Hash(current) != expected) { stale.Add(path); continue; }

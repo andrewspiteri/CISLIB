@@ -2,7 +2,7 @@ using System.Text.Json;
 using CIS.TestSupport;
 using CIS.Verification;
 
-if (args.Length > 0 && args[0] is "healthcheck-package" or "healthcheck-coverage" or "healthcheck-platform-prepare" or "healthcheck-critical-mutation" or "healthcheck-pipe-identities" or "healthcheck-rollback-mutation" or "healthcheck-mutation-children" or "healthcheck-child-audit-controls" or "healthcheck-aspnet-omission-replay" or "healthcheck-mutation-union" or "healthcheck-shared-mutation")
+if (args.Length > 0 && args[0] is "healthcheck-package" or "healthcheck-coverage" or "healthcheck-platform-prepare" or "healthcheck-critical-mutation" or "healthcheck-pipe-identities" or "healthcheck-rollback-mutation" or "healthcheck-mutation-children" or "healthcheck-mutation-run" or "healthcheck-child-audit-controls" or "healthcheck-aspnet-omission-replay" or "healthcheck-mutation-union" or "healthcheck-shared-mutation")
 {
     try
     {
@@ -14,6 +14,7 @@ if (args.Length > 0 && args[0] is "healthcheck-package" or "healthcheck-coverage
             "healthcheck-pipe-identities" => await HealthcheckPipeIdentityVerification.RunAsync(args[1..]),
             "healthcheck-rollback-mutation" => await HealthcheckRollbackMutationVerification.RunAsync(args[1..]),
             "healthcheck-mutation-children" => await HealthcheckChildMutationVerification.RunAsync(args[1..]),
+            "healthcheck-mutation-run" => await HealthcheckMutationNativeRun.RunAsync(args[1..], HealthcheckChildMutationVerification.RunAsync),
             "healthcheck-child-audit-controls" => await HealthcheckChildAuditControls.RunAsync(args[1..]),
             "healthcheck-aspnet-omission-replay" => await HealthcheckAspNetOmissionReplayVerification.RunAsync(args[1..]),
             "healthcheck-mutation-union" => await HealthcheckMutationUnionVerification.RunAsync(args[1..]),

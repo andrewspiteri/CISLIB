@@ -5,10 +5,12 @@ without merging or rewriting native reports. Its command is
 `healthcheck-shared-mutation` in `CIS.DependencyChecker`. This is an HC12 mutation
 check, not whole-Core or release approval.
 
-The command is still being validated. In particular, it deliberately holds Pipes
-and ASP.NET results until child-process evidence receiving is implemented, and it
-does not yet load and validate survivor-review files from disk. A development profile passing
-90% therefore cannot qualify the module through this receiver yet.
+The command has opt-in child-process evidence receiving through `childEvidence`.
+Component checks pass; an actual captured native trial and adoption remain pending.
+Missing or invalid child evidence holds Pipes and ASP.NET results. Optional
+disposition references use the existing strict maintained review reader; supplying
+a reference does not approve a new review. A development profile passing 90%
+alone cannot qualify the module.
 
 ## Current inputs and saved work
 
@@ -25,17 +27,37 @@ read-only verification of saved work; it does not schedule tests or mutations.
 The original native reports remain the outcome authority. The shared receipt
 binds their commands, inputs, test identities, recovery and postflight results.
 
-The receiving checkout supplies the current maintained source inventory and
+The `--repo-root` checkout supplies the current maintained source inventory and
 configuration. Relevant source, test and build inputs must still match that
 checkout. A completed result from an older snapshot is pending when those inputs
 changed. An unchanged source file alone does not establish a current result.
 
-The first implementation compares the receipt's entire declared input inventory.
-It therefore holds a whole profile if one of those inputs changed, including a
-declared test outside a particular batch's selected closure. Reusing a subset
-across different snapshots still needs a comparison with the current graph's
-selection, including newly added tests. Checking only the old closure's members
-would miss new dependencies and is not sufficient.
+Without `currentProfile`, the receiver compares the receipt's entire declared
+input inventory and holds a whole profile when any relevant input changed. A
+descriptor may instead pin a `currentProfile` file under `--repo-root`, using the
+same path/SHA-256/byte-count object as its original `profile` pin. That file must
+be byte-identical to the original profile. Stage it and its unchanged template
+explicitly before verification; the receiver creates neither file.
+
+This optional path invokes the pinned current shared CIS planner against the
+current target. Both graphs must be complete and fresh. The receiver pins their
+databases and manifests, checks their build identities, and checks every current
+and original maintained test-project C# source against its graph inventory.
+The complete test-file path inventories must agree. A new or deleted test file
+therefore holds reuse, even if it is absent from the old selected closure.
+
+Each batch must reproduce its exact unit and mutation fingerprints, selected
+tests, dependency paths, native filter and current source/test/dependency hashes.
+Those fingerprints also bind current edges, graph schema/extractors, profile,
+configuration, tools, producers and environment. Configuration and non-C# build
+dependencies retain the global currency check. A changed C# file outside a
+freshly reproduced batch closure may differ; checking only old closure members
+cannot establish this independence. Older selector fingerprints are never
+rewritten or relabeled as current. Failed comparisons remain explicit per-source
+pending entries, and missing sources still prevent a qualification aggregate.
+
+Select the frozen qualification candidate with `--repo-root`; later verification
+tool edits in another checkout do not redefine that candidate.
 
 Each accepted original profile must cover complete files with Complete mutation
 level and the maintained cohort filter. Reviewed execution settings may differ
@@ -44,6 +66,11 @@ line-only diagnostics, native since/baseline selection and foreign scope cannot
 qualify. A generated configuration template is compared structurally with the
 maintained configuration rather than requiring that transient path in the current
 checkout.
+
+An original qualification profile cannot set a nonnull
+`rerunAdditionalTimeoutMilliseconds`. Explicit refinement profiles may use the
+shared verifier's bounded rerun-only override. This cannot change the original
+native Timeout or award credit to a timed-out or incomplete rerun.
 
 Historical reports and their scores retain their original policy. A producer
 revalidation records a reviewed equivalent tooling change; it does not make
@@ -61,22 +88,25 @@ separate in-memory composite IDs for arithmetic.
 At complete scope, the conservative union must reach 90%. Each partition need not
 independently reach 90%. An original Timeout stays in the denominator and receives
 no kill credit. An explicit, current rerun that verifies the exact definition as
-Killed can supply separate credit. A source-bound confirmed `NonTermination`
-disposition can resolve the unexplained-timeout finding, while preserving the raw
-and effective Timeout as a conservative miss. It adds no kills and removes no
-denominator entry. An unexplained timeout remains unresolved. Current completed
+Killed can supply separate credit. The maintained model supports source-bound
+confirmed `NonTermination` dispositions without kill credit or denominator removal,
+but this shared receiver does not yet bind those physical review records. Timeouts
+therefore remain unresolved here unless an eligible exact-definition rerun closes
+them. Current completed
 native failures follow the approved prospective outcome policy. Genuine execution,
 cleanup and child-origin failures remain holds under either disposition.
 
 Every remaining Survived or NoCoverage definition needs a source-bound
 disposition. Reviewed noncritical misses stay in the denominator; an equivalent
 disposition needs its own reviewed justification. Supplied approval booleans are
-not evidence. A `NonTermination` review must identify the exact original Timeout,
-source-bound definition and report, with evidence from an isolated rerun using a
-relaxed timeout. It cannot classify another native status or conflict with kill
-credit for that definition. The pure arithmetic model supports these rules; the
-physical loading and validation of review files, including nontermination evidence,
-is still outstanding. No review is approved by this document or by a supplied flag.
+not evidence. Optional manifest `dispositions` references currently accept only
+`Equivalent` or `ReviewedNoncritical` records for Survived or NoCoverage definitions;
+they reject `NonTermination`. References must match existing maintained records
+and their current physical evidence closure.
+The adapter then binds each record to the exact accepted original report,
+source, native ID, status and full definition. It cannot approve an unknown
+record, turn a review into kill credit, or remove execution and child holds.
+No review is approved by this document or by a supplied flag.
 
 ## Running and retaining a check
 
@@ -90,6 +120,9 @@ The command writes `results.json`. Exit zero means its mutation qualification
 rules passed; exit one includes incomplete scope or an unresolved hold. Invalid
 inputs fail rather than producing a passing result. Coverage, applicable test
 families, package/compatibility checks and platform qualification remain separate.
+`currentComparisons` records the bounded plan identity and each source's reuse
+decision. `dispositions` records accepted or held review bindings. An absent
+current comparison or review does not imply success.
 
 Retain the small receiving result, input manifest and saved native reports while
 needed for the active gate or a failure investigation. Reverification also needs
