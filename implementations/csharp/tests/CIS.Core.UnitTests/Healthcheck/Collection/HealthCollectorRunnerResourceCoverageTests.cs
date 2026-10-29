@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Reflection;
 using System.Runtime.ExceptionServices;
+using System.Security.Cryptography;
 using System.Threading.Tasks.Sources;
 using CIS.Healthcheck;
 using CIS.Healthcheck.Internal;
@@ -15,6 +16,81 @@ namespace CIS.Tests.UnitTests.Healthcheck;
 public sealed class HealthCollectorRunnerResourceCoverageTests
 {
     private static readonly TimeSpan Deadline = TimeSpan.FromSeconds(3);
+
+    public TestContext TestContext { get; set; } = null!;
+
+    [TestMethod]
+    public async Task RepeatingACompletedWithdrawalCannotStartClockWorkOrFaultTerminalStop()
+    {
+        var assembly = typeof(HealthCollectorRunner).Assembly;
+        TestContext.WriteLine($"CIS_CORE_BODY {Convert.ToHexStringLower(SHA256.HashData(File.ReadAllBytes(assembly.Location)))} {assembly.ManifestModule.ModuleVersionId:D}");
+        using var clock = new ResourceClock();
+        var service = new HealthcheckService(new(), timeProvider: clock);
+        var runner = new HealthCollectorRunner(service);
+        IConsecutiveFailureMonitor monitor = service.CreateConsecutiveFailures(new() { IsCritical = true, FailureThreshold = 1 });
+        var owner = new UnavailableOwner();
+        IHealthCollectionRegistration? registration = null;
+        InvalidOperationException? actualStopFailure = null;
+        Exception? primary = null;
+        int unexpectedSamples = 0;
+        try
+        {
+            registration = runner.Register(monitor, owner, new());
+            await runner.StartAsync().WaitAsync(Deadline);
+            await clock.TimerChanged.Task.WaitAsync(Deadline);
+            registration.Withdraw();
+            await registration.WaitForDisposalAsync().WaitAsync(Deadline);
+            object gate = ReadField(runner, "gate");
+            Assert.IsTrue(SpinWait.SpinUntil(() =>
+            {
+                if (!Monitor.TryEnter(gate)) { return false; }
+                try { return ReadField(runner, "pumpScheduled") is false; }
+                finally { Monitor.Exit(gate); }
+            }, Deadline), "The actual withdrawal dispatcher must relinquish ownership before testing an inert repeat.");
+
+            // No periodic registration or operation remains. Only an erroneous
+            // new dispatcher can read this clock after the completed withdrawal.
+            clock.TimestampReading = () =>
+            {
+                Interlocked.Increment(ref unexpectedSamples);
+                throw new InvalidOperationException("An already withdrawn registration requested new clock work.");
+            };
+            registration.Withdraw();
+            Task stop = await HealthCollectorTestCleanup.EnterAsync(Deadline, () => runner.StopAsync());
+            try { await stop.WaitAsync(Deadline); }
+            catch (InvalidOperationException error) { actualStopFailure = error; }
+            await clock.ActualTimerDrain.WaitAsync(Deadline);
+
+            Assert.IsNull(actualStopFailure,
+                "Repeating a completed withdrawal must leave terminal Stop successful.");
+            Assert.AreEqual(0, Volatile.Read(ref unexpectedSamples));
+            Assert.AreEqual(0, owner.Acquisitions);
+            Assert.AreEqual(1, clock.SutTimerDisposals);
+            Assert.AreEqual(1, clock.SutTimerDisposalExits);
+            monitor.ReportSuccess();
+            Assert.AreEqual(MonitorState.Healthy, service.CaptureSnapshot().Monitors.Single().State);
+        }
+        catch (Exception error) { primary = error; throw; }
+        finally
+        {
+            clock.TimestampReading = null;
+            clock.ReleaseFactory();
+            clock.ReleaseDisposal();
+            try
+            {
+                await HealthCollectorTestCleanup.DrainAsync(Deadline, primary, [],
+                    DrainRunnerAsync, () => service.DisposeAsync().AsTask(), () => clock.DisposeFixtureTimerAsync());
+            }
+            finally { GC.KeepAlive(monitor); }
+        }
+
+        async Task DrainRunnerAsync()
+        {
+            try { await runner.DisposeAsync(); }
+            catch (InvalidOperationException error) when (ReferenceEquals(error, actualStopFailure))
+            { /* The body already asserts this exact terminal error; actual timer disposal is separately joined. */ }
+        }
+    }
 
     [TestMethod]
     [DataRow(false)]
@@ -468,8 +544,13 @@ public sealed class HealthCollectorRunnerResourceCoverageTests
         internal int SutTimerDisposals => Volatile.Read(ref sutTimerDisposals);
         internal int SutTimerDisposalExits => Volatile.Read(ref sutTimerDisposalExits);
         internal Action? UtcReading { get; set; }
+        internal Action? TimestampReading { get; set; }
         public override long TimestampFrequency => TimeProvider.System.TimestampFrequency;
-        public override long GetTimestamp() => TimeProvider.System.GetTimestamp();
+        public override long GetTimestamp()
+        {
+            TimestampReading?.Invoke();
+            return TimeProvider.System.GetTimestamp();
+        }
         public override DateTimeOffset GetUtcNow()
         {
             UtcReading?.Invoke();
@@ -512,7 +593,10 @@ public sealed class HealthCollectorRunnerResourceCoverageTests
 
     private sealed class UnavailableOwner : IHealthCollector
     {
-        public bool TryAcquire(out IHealthCollectionLease? lease) { lease = null; return false; }
+        private int acquisitions;
+        internal int Acquisitions => Volatile.Read(ref acquisitions);
+        public bool TryAcquire(out IHealthCollectionLease? lease)
+        { Interlocked.Increment(ref acquisitions); lease = null; return false; }
     }
 
     private sealed class HeldCleanupOwner : IHealthCollector

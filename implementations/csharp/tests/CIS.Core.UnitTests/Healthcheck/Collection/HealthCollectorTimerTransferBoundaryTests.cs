@@ -54,10 +54,10 @@ public sealed class HealthCollectorTimerTransferBoundaryTests
                 context.PostExited.Task.WaitAsync(Deadline).GetAwaiter().GetResult();
                 starting.WaitUntilBlocked();
                 starting.Thread.Interrupt();
-                ThreadInterruptedException actual = interruption.Thrown.Task.WaitAsync(Deadline).GetAwaiter().GetResult();
-                string? trace = actual.StackTrace;
-                Assert.IsNotNull(trace);
-                StringAssert.Contains(trace, "HealthCollectorRunner.StartAsync",
+                MethodBase?[] frames = interruption.Thrown.Task.WaitAsync(Deadline).GetAwaiter().GetResult();
+                MethodInfo? expected = typeof(HealthCollectorRunner).GetMethod(nameof(HealthCollectorRunner.StartAsync), [typeof(CancellationToken)]);
+                Assert.IsNotNull(expected);
+                Assert.IsTrue(frames.Any(frame => Equals(frame, expected)),
                     "The completed public start must still own the interrupted call after the successful transfer; private helper frames may be inlined.");
             });
 
@@ -186,12 +186,19 @@ public sealed class HealthCollectorTimerTransferBoundaryTests
         {
             observer = (_, eventArgs) =>
             {
-                if (ReferenceEquals(Thread.CurrentThread, owned) && eventArgs.Exception is ThreadInterruptedException actual)
-                { Thrown.TrySetResult(actual); }
+                if (ReferenceEquals(Thread.CurrentThread, owned) && eventArgs.Exception is ThreadInterruptedException)
+                {
+                    // FirstChance runs while the runtime is still building the exception's
+                    // own trace frame by frame. Capture this live owned call stack before
+                    // publishing; another thread must not inspect a still-changing trace.
+                    MethodBase?[] frames = new System.Diagnostics.StackTrace(fNeedFileInfo: false)
+                        .GetFrames().Select(frame => frame.GetMethod()).ToArray();
+                    Thrown.TrySetResult(frames);
+                }
             };
             AppDomain.CurrentDomain.FirstChanceException += observer;
         }
-        internal TaskCompletionSource<ThreadInterruptedException> Thrown { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
+        internal TaskCompletionSource<MethodBase?[]> Thrown { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
         public void Dispose() => AppDomain.CurrentDomain.FirstChanceException -= observer;
     }
 

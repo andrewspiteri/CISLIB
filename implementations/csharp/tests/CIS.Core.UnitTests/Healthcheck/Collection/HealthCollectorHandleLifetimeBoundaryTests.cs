@@ -1,5 +1,6 @@
 using System.Reflection;
 using System.Runtime.CompilerServices;
+using System.Runtime.ExceptionServices;
 using System.Security.Cryptography;
 using CIS.Healthcheck;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -21,6 +22,51 @@ public sealed class HealthCollectorHandleLifetimeBoundaryTests
         var assembly = typeof(HealthCollectorRunner).Assembly;
         string hash = Convert.ToHexStringLower(SHA256.HashData(File.ReadAllBytes(assembly.Location)));
         TestContext.WriteLine($"CIS_CORE_BODY {hash} {assembly.ManifestModule.ModuleVersionId:D}");
+        WriteSourceVariantObservationIfRequested(assembly);
+    }
+
+    private void WriteSourceVariantObservationIfRequested(Assembly subject)
+    {
+        string? path = Environment.GetEnvironmentVariable("CIS_SOURCE_VARIANT_HELPER_PATH");
+        string? expected = Environment.GetEnvironmentVariable("CIS_SOURCE_VARIANT_HELPER_SHA256");
+        if (path is null && expected is null) { return; }
+        if (path is null || expected is null || !Path.IsPathFullyQualified(path)
+            || expected.Length != 64 || !expected.All(char.IsAsciiHexDigit))
+        { throw new InvalidOperationException("Source-variant capture requires one explicit absolute helper path and its SHA256 together."); }
+        string helperPath = Path.GetFullPath(path);
+        var file = new FileInfo(helperPath);
+        if (!file.Exists || file.Length is <= 0 or > 16777216)
+        { throw new InvalidOperationException("The pinned source-variant capture helper is missing or exceeds 16 MiB."); }
+        for (string? entry = helperPath; entry is not null; entry = Path.GetDirectoryName(entry))
+        {
+            if ((File.GetAttributes(entry) & FileAttributes.ReparsePoint) != 0)
+            { throw new InvalidOperationException("The explicit source-variant capture helper cannot use linked paths."); }
+        }
+        string actual = Convert.ToHexStringLower(SHA256.HashData(File.ReadAllBytes(helperPath)));
+        if (!actual.Equals(expected, StringComparison.OrdinalIgnoreCase))
+        { throw new InvalidOperationException("The source-variant capture helper differs from its explicit SHA256."); }
+        Assembly helper = Assembly.LoadFrom(helperPath);
+        StringComparison comparison = OperatingSystem.IsWindows() ? StringComparison.OrdinalIgnoreCase : StringComparison.Ordinal;
+        if (!Path.GetFullPath(helper.Location).Equals(helperPath, comparison)
+            || Convert.ToHexStringLower(SHA256.HashData(File.ReadAllBytes(helper.Location))) != actual)
+        { throw new InvalidOperationException("The loaded source-variant capture helper differs from the selected physical body."); }
+        Type capture = helper.GetType("Cis.Abstractions.SourceVariantBodyCapture", throwOnError: true)!;
+        MethodInfo? encode = capture.GetMethod("Encode", BindingFlags.Public | BindingFlags.Static, binder: null,
+            types: [typeof(Assembly), typeof(string), typeof(Assembly), typeof(string)], modifiers: null);
+        if (encode?.ReturnType != typeof(string))
+        { throw new InvalidOperationException("The pinned helper has no supported source-variant capture method."); }
+        try
+        {
+            string marker = (string)encode.Invoke(null, [subject,
+                "implementations/csharp/src/CIS.Core/Healthcheck/HealthCollectorRunner.cs", GetType().Assembly,
+                "implementations/csharp/tests/CIS.Core.UnitTests/Healthcheck/Collection/HealthCollectorHandleLifetimeBoundaryTests.cs"])!;
+            if (!marker.StartsWith("CIS_SOURCE_VARIANT_BODY_V1:", StringComparison.Ordinal) || marker.Length > 32768
+                || marker.Contains('\r') || marker.Contains('\n'))
+            { throw new InvalidOperationException("The pinned helper returned an invalid or excessive source-variant observation."); }
+            TestContext.WriteLine(marker);
+        }
+        catch (TargetInvocationException error) when (error.InnerException is not null)
+        { ExceptionDispatchInfo.Capture(error.InnerException).Throw(); throw; }
     }
 
     [TestMethod]
