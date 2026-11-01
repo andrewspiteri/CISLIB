@@ -8,7 +8,9 @@ namespace CIS.Tests.UnitTests;
 [TestClass]
 public sealed class QueueBurstTests
 {
-    public static IEnumerable<object[]> Rows => Catalog()["cases"]!.AsArray().Select(row => new object[] { row!["id"]!.GetValue<string>() });
+    private static readonly Lazy<LoggingFixtureInputs> Inputs = new(() => new("queue-burst-cases.json"));
+
+    public static IEnumerable<object[]> Rows => Inputs.Value.Ids.Select(id => new object[] { id });
     [TestMethod]
     [DynamicData(nameof(Rows))]
     public async Task ProducerCohortsPreserveBoundedWorkersTicketsAndThresholds(string id)
@@ -53,6 +55,6 @@ public sealed class QueueBurstTests
         foreach (int capacity in new[] { 1, 2, 8 }) { Assert.AreEqual(3, rows.Count(row => row!["capacity"]!.GetValue<int>() == capacity && row["id"]!.GetValue<string>().EndsWith("-" + capacity, StringComparison.Ordinal))); }
         foreach (string id in new[] { "BURST-FILE-THEN-CONSOLE", "BURST-CONSOLE-THEN-FILE", "BURST-DISABLED", "BURST-NONE", "BURST-FILE-THRESHOLD", "BURST-CONSOLE-THRESHOLD" }) { Assert.IsTrue(rows.Any(row => row!["id"]!.GetValue<string>() == id)); }
     }
-    private static JsonObject Catalog() => JsonNode.Parse(File.ReadAllText(Path.Combine(Path.GetDirectoryName(ConfigurationFixtureAdapter.FindFixture())!, "queue-burst-cases.json")))!.AsObject();
-    private static JsonObject Row(string id) => Catalog()["cases"]!.AsArray().Single(row => row!["id"]!.GetValue<string>() == id)!.AsObject();
+    private static JsonObject Catalog() => Inputs.Value.Catalog();
+    private static JsonObject Row(string id) => Inputs.Value.Row(id);
 }

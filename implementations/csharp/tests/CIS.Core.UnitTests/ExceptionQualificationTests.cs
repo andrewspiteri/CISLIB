@@ -10,8 +10,10 @@ namespace CIS.Tests.UnitTests;
 [TestClass]
 public sealed class ExceptionQualificationTests
 {
-    public static IEnumerable<object[]> Rows => LogValueTests.Read("exception-qualification-cases.json")["cases"]!.AsArray()
-        .SelectMany(row => new[] { "en-US", "fr-FR", "ar-SA" }.Select(culture => new object[] { row!["id"]!.GetValue<string>(), culture }));
+    private static readonly Lazy<(string[] Ids, Dictionary<string, string> Rows, string Bindings)> Inputs = new(ReadInputs);
+
+    public static IEnumerable<object[]> Rows => Inputs.Value.Ids
+        .SelectMany(id => new[] { "en-US", "fr-FR", "ar-SA" }.Select(culture => new object[] { id, culture }));
 
     [TestMethod]
     [DynamicData(nameof(Rows))]
@@ -223,8 +225,17 @@ public sealed class ExceptionQualificationTests
         Assert.AreEqual("Expected exception and error members are required.", error.Message);
     }
 
-    private static JsonObject NativeBindings() => LogValueTests.Read("exception-qualification-cases.json")["adapterObservations"]!["csharp"]!.AsObject();
+    private static JsonObject NativeBindings() => JsonNode.Parse(Inputs.Value.Bindings)!.AsObject();
 
-    internal static JsonObject Row(string id) => LogValueTests.Read("exception-qualification-cases.json")["cases"]!.AsArray()
-        .Single(row => row!["id"]!.GetValue<string>() == id)!.AsObject();
+    internal static JsonObject Row(string id) => JsonNode.Parse(Inputs.Value.Rows[id])!.AsObject();
+
+    private static (string[] Ids, Dictionary<string, string> Rows, string Bindings) ReadInputs()
+    {
+        JsonObject source = LogValueTests.Read("exception-qualification-cases.json");
+        JsonObject[] rows = source["cases"]!.AsArray().Select(row => row!.AsObject()).ToArray();
+        // Share only immutable input text; each use owns its mutable row and bindings.
+        return (rows.Select(row => row["id"]!.GetValue<string>()).ToArray(),
+            rows.ToDictionary(row => row["id"]!.GetValue<string>(), row => row.ToJsonString(), StringComparer.Ordinal),
+            source["adapterObservations"]!["csharp"]!.ToJsonString());
+    }
 }

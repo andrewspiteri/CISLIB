@@ -8,6 +8,12 @@ namespace CIS.Tests.UnitTests;
 [TestClass]
 public sealed class ProviderBehaviorVerifierTests
 {
+#if !CIS_MUTATION_TESTS
+    // Retain only text from a real capture after its cleanup has completed.
+    private static readonly Dictionary<string, Lazy<Task<string>>> Observations = ProviderBehaviorFixture.Modes.ToDictionary(
+        mode => mode, mode => new Lazy<Task<string>>(async () => (await ProviderBehaviorFixture.ExecuteAsync(mode)).ToJsonString()), StringComparer.Ordinal);
+#endif
+
     [TestMethod]
     [DataRow("pid", "float", "actual child PID")]
     [DataRow("lifetime", "float", "physical lifetime")]
@@ -35,7 +41,11 @@ public sealed class ProviderBehaviorVerifierTests
     [DataRow("result-shape", "float", "result shape")]
     public async Task CorruptedReportsFailAtTheCorrespondingAssertion(string control, string mode, string reason)
     {
+#if CIS_MUTATION_TESTS
         JsonObject good = await ProviderBehaviorFixture.ExecuteAsync(mode);
+#else
+        JsonObject good = JsonNode.Parse(await Observations[mode].Value)!.AsObject();
+#endif
         int pid = System.Environment.ProcessId;
         ProviderBehaviorExpectations.Validate(mode, good, pid);
         JsonObject bad = good.DeepClone().AsObject();

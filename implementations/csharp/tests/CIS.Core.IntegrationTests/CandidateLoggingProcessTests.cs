@@ -8,7 +8,6 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 namespace CIS.Tests.IntegrationTests;
 
 [TestClass]
-[DoNotParallelize]
 public sealed class CandidateLoggingProcessTests
 {
     private static CandidatePackageFixture fixture = null!;

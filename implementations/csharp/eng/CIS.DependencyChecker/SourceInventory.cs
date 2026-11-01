@@ -18,20 +18,76 @@ internal static class SourceInventory
     private const int MaximumGitStandardOutputBytes = 8 * 1024 * 1024;
     private static readonly HashSet<string> ExcludedDirectories = new(StringComparer.OrdinalIgnoreCase)
     { ".git", ".artifacts", "bin", "obj", ".vs" };
+    internal const string VerificationScope = "maintained-csharp-verification-inputs/v1";
+    private static readonly string[] VerificationRoots =
+        ["implementations/csharp", "eng", "contracts", "conformance", "compatibility/csharp", "docs"];
+    private static readonly string[] VerificationRootFiles =
+        ["README.md", "AGENTS.md", ".gitignore", ".gitattributes", ".editorconfig", ".globalconfig", "global.json", "Directory.Build.props", "Directory.Build.targets", "Directory.Build.rsp", "Directory.Packages.props", "NuGet.config",
+            "planning/logging/plan-amendments.md",
+            "planning/logging/sources/core-library-implementation-guide-v1.md", "planning/logging/sources/core-library-implementation-plan-v1.md",
+            "planning/logging/sources/core-library-backlog-v1.json", "planning/healthcheck/baseline.json", "planning/logging/evidence/wp01-s03/unit-tests.trx"];
+    private static readonly HashSet<string> VerificationOutputDirectories = new(StringComparer.OrdinalIgnoreCase)
+        { ".git", ".artifacts", "bin", "obj", ".vs", "TestResults", "StrykerOutput", ".stryker-tmp", "__pycache__" };
 
     internal static async Task<int> RunAsync(string[] args)
     {
-        if (args.Length != 1) { Console.Error.WriteLine("Usage: source-inventory <root>"); return 2; }
+        if (args.Length is < 1 or > 2 || (args.Length == 2 && args[1] != "--verification-inputs"))
+        { Console.Error.WriteLine("Usage: source-inventory <root> [--verification-inputs]"); return 2; }
         try
         {
-            Console.WriteLine(JsonSerializer.Serialize(await CaptureAsync(args[0])));
+            Console.WriteLine(JsonSerializer.Serialize(args.Length == 2 ? CaptureVerificationInputs(args[0]) : await CaptureAsync(args[0])));
             return 0;
         }
-        catch (Exception error) when (error is IOException or UnauthorizedAccessException or ArgumentException
+        catch (Exception error) when (error is IOException or InvalidDataException or UnauthorizedAccessException or ArgumentException
             or InvalidOperationException or System.ComponentModel.Win32Exception or TimeoutException)
         {
             Console.Error.WriteLine("Source inventory failed: " + error.Message);
             return 1;
+        }
+    }
+
+    // Current preparation and coverage bind executable inputs, not retained
+    // historical archives. The general repository inventory/replay route
+    // deliberately retains its complete, Git-aware semantics.
+    internal static SourceInventoryEntry[] CaptureVerificationInputs(string root) =>
+        VerificationPaths(root).Select(path =>
+        {
+            using FileStream stream = File.OpenRead(Path.Combine(root, path));
+            return new SourceInventoryEntry(path, Convert.ToHexStringLower(SHA256.HashData(stream)));
+        }).ToArray();
+
+    internal static string[] VerificationPaths(string root)
+    {
+        root = Path.TrimEndingDirectorySeparator(Path.GetFullPath(root));
+        if (!Directory.Exists(root)) { throw new DirectoryNotFoundException("Source root does not exist: " + root); }
+        var paths = new List<string>();
+        foreach (string relative in VerificationRoots)
+        {
+            string directory = Path.Combine(root, relative);
+            if (Directory.Exists(directory)) { Walk(directory); }
+        }
+        foreach (string relative in VerificationRootFiles)
+        {
+            string path = Path.Combine(root, relative);
+            if (File.Exists(path)) { Add(path); }
+        }
+        return paths.Order(StringComparer.Ordinal).ToArray();
+
+        void Add(string path)
+        {
+            if ((File.GetAttributes(path) & FileAttributes.ReparsePoint) != 0)
+            { throw new InvalidDataException("Maintained verification input contains a linked file: " + path); }
+            paths.Add(Path.GetRelativePath(root, path).Replace('\\', '/'));
+        }
+
+        void Walk(string directory)
+        {
+            if ((File.GetAttributes(directory) & FileAttributes.ReparsePoint) != 0)
+            { throw new InvalidDataException("Maintained verification input contains a linked directory: " + directory); }
+            foreach (string path in Directory.EnumerateFiles(directory))
+            { if (!path.EndsWith(".user", StringComparison.OrdinalIgnoreCase)) { Add(path); } }
+            foreach (string child in Directory.EnumerateDirectories(directory))
+            { if (!VerificationOutputDirectories.Contains(Path.GetFileName(child))) { Walk(child); } }
         }
     }
 

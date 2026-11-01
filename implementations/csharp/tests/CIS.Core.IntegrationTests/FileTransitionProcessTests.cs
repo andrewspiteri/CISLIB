@@ -1,3 +1,4 @@
+using System.Collections.Concurrent;
 using System.Text;
 using System.Text.Json.Nodes;
 using CIS.Tests.DiscoveryFixture;
@@ -9,6 +10,9 @@ namespace CIS.Tests.IntegrationTests;
 [TestClass]
 public sealed class FileTransitionProcessTests
 {
+#if !CIS_MUTATION_TESTS
+    private static readonly ConcurrentDictionary<string, Lazy<Task<string>>> ReaderPositives = new(StringComparer.Ordinal);
+#endif
     public TestContext TestContext { get; set; } = null!;
     public static IEnumerable<object[]> Modes => FileTransitionExpectations.Modes.Select(mode => new object[] { mode });
 
@@ -33,7 +37,8 @@ public sealed class FileTransitionProcessTests
     public async Task OriginalTransitionReaderCorruptionsAreRejectedAfterPhysicalPositive(string key)
     {
         string mode = key is "code" or "failure-growth" ? "ambiguous-both" : "recovery-renamed";
-        using var root = new TemporaryDirectory(); JsonObject report = await Run(mode, root.Path); const string active = "logs/Ω-🙂.log";
+        JsonObject report = await ReadPositive(mode); const string active = "logs/Ω-🙂.log";
+        FileTransitionExpectations.Validate(mode, report);
         void Edit(JsonNode container, string field, Action<JsonObject> mutate)
         { JsonObject value = JsonNode.Parse(Convert.FromBase64String((string)container[field]!))!.AsObject(); mutate(value); container[field] = Convert.ToBase64String(Encoding.UTF8.GetBytes(value.ToJsonString() + "\n")); }
         switch (key)
@@ -67,6 +72,26 @@ public sealed class FileTransitionProcessTests
         Assert.AreEqual(reason, Assert.ThrowsExactly<InvalidDataException>(() => FileTransitionExpectations.Validate(mode, report)).Message);
         TestContext.WriteLine("Rejected original transition control: " + key);
     }
+
+    private async Task<JsonObject> ReadPositive(string mode)
+    {
+#if CIS_MUTATION_TESTS
+        using var root = new TemporaryDirectory();
+        return await Run(mode, root.Path);
+#else
+        string text = await ReaderPositives.GetOrAdd(mode, value => new Lazy<Task<string>>(() => CapturePositive(value))).Value;
+        return JsonNode.Parse(text)!.AsObject();
+#endif
+    }
+
+#if !CIS_MUTATION_TESTS
+    private async Task<string> CapturePositive(string mode)
+    {
+        JsonObject report;
+        using (var root = new TemporaryDirectory()) { report = await Run(mode, root.Path); }
+        return report.ToJsonString();
+    }
+#endif
 
     private async Task<JsonObject> Run(string mode, string root)
     {

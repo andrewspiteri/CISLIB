@@ -1,5 +1,9 @@
 # Flush stress qualification
 
+Current execution strategy, 29 October 2026: all eight scenarios and their native readers/corruption controls remain in the explicitly invoked direct stress suite. Only the concurrent producer/flush scenario repeats in an exact-runtime child to check isolated-root cleanup and terminal process lifetime. Seven duplicate child stress executions are retired. The complete 15,000-call retention probe executes once per selected platform, and historical counts below retain their original scope.
+
+The direct class has category `ExtendedStress`. Run its complete selection with `pwsh -NoProfile -File eng/test.ps1 -Project UnitTests -Category ExtendedStress -TimeoutSeconds 300` from the repository root. The explicit command uses the existing five-minute ceiling for each build/test child; this is a budget, not a measured duration. Ordinary regression can exclude this category while retaining the bounded concurrent child control. Complete Developer/release obligations still include the stress selection.
+
 WP05-S08-T04 qualifies the actual public FlushAsync method through internally composed Core queues and writers. It adds development tests, a shared acceptance map and an independent native report reader; it changes no shipping implementation or public API.
 
 Each enabled destination has its own in-memory event queue and single awaited worker. These stress scenarios compose actual Core queues, workers and flush coordination through the internal CreateQueued seam with controlled MemoryStream writer callbacks. Concrete ConsoleOutputWriter/FileOutputWriter preparation is covered by earlier composition tasks; current physical result/boundary regression lanes cover file ownership and userspace visibility. Production composition prepares bounded bytes before queue admission, then its worker invokes the selected concrete writer for WriteAsync and FlushAsync. The runtime fields do not introduce a second direct output path.

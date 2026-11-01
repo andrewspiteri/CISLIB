@@ -1,6 +1,5 @@
 using System.Collections;
 using System.Reflection;
-using System.Runtime.CompilerServices;
 using System.Text.Json.Nodes;
 using CIS.Logging;
 using CIS.Logging.Events;
@@ -12,16 +11,23 @@ namespace CIS.Tests.UnitTests;
 
 [TestClass]
 [DoNotParallelize]
-public sealed class EventProjectionTests
+public sealed partial class EventProjectionTests
 {
-    public static IEnumerable<object[]> Rows => Catalog()["cases"]!.AsArray().Select(row => new object[] { row!["id"]!.GetValue<string>() });
+    private static readonly Lazy<LoggingFixtureInputs> Inputs = new(() => new("event-projection-cases.json"));
+    private static readonly Lazy<(string Metadata, string Bindings)> SharedInputs = new(() =>
+    {
+        JsonObject catalog = Catalog();
+        return (catalog["cases"]![0]!["input"]!["metadata"]!.ToJsonString(), catalog["nativeBindings"]!.ToJsonString());
+    });
+
+    public static IEnumerable<object[]> Rows => Inputs.Value.Ids.Select(id => new object[] { id });
     [TestMethod]
     [DynamicData(nameof(Rows))]
     public void EverySharedProjectionExecutesAgainstOwnedCoreFacts(string id)
     {
-        JsonObject catalog = Catalog();
-        JsonObject row = catalog["cases"]!.AsArray().Single(row => row!["id"]!.GetValue<string>() == id)!.AsObject();
-        EventProjectionExpectations.Validate(row, catalog["nativeBindings"]!.AsObject(), EventProjectionFixture.Execute(row));
+        JsonObject row = Inputs.Value.Row(id);
+        JsonObject bindings = JsonNode.Parse(SharedInputs.Value.Bindings)!.AsObject();
+        EventProjectionExpectations.Validate(row, bindings, EventProjectionFixture.Execute(row));
     }
 
     [TestMethod]
@@ -77,41 +83,6 @@ public sealed class EventProjectionTests
         Assert.AreEqual("original", captured.Exception!.Message);
         Assert.AreEqual("event-id", captured.OperationId);
         Assert.AreEqual(LogValueKind.Null, captured.Attributes.MapProperties["explicit"].Kind);
-    }
-
-    [TestMethod]
-    public void EventFactsDoNotRetainStartupInputsConfigurationCallerExceptionOrScopeStore()
-    {
-        (CapturedEventFacts facts, WeakReference[] sources) = CreateCollectibleInputs();
-        for (int pass = 0; pass < 8 && sources.Any(source => source.IsAlive); pass++)
-        {
-            GC.Collect(); GC.WaitForPendingFinalizers(); GC.Collect();
-        }
-        Assert.IsTrue(sources.All(source => !source.IsAlive));
-        Assert.AreEqual("message", facts.Message);
-        Assert.AreEqual("boom", facts.Exception!.Message);
-        GC.KeepAlive(facts);
-    }
-
-    [MethodImpl(MethodImplOptions.NoInlining)]
-    private static (CapturedEventFacts, WeakReference[]) CreateCollectibleInputs()
-    {
-        EventMetadata snapshot = EventProjectionFixtureSources.Create(Metadata(), out JsonObject source);
-        var attributes = new Dictionary<string, LogValue> { ["value"] = LogValue.Null() };
-        var exception = new Exception("boom");
-        var attachment = new object(); exception.Data["attachment"] = attachment;
-        var data = new LogEventData { EventName = "event", Message = "message", Attributes = attributes, Exception = exception };
-        var store = new OperationScopeStore();
-        CapturedEventFacts facts;
-        using (store.BeginScope(new OperationContextData { OperationId = "scope" }))
-        {
-            facts = EventProjection.Capture(snapshot, store.Capture(), "Component", CoreLogLevel.Information, data)!;
-        }
-        WeakReference[] references = new object[] { snapshot, EnvironmentStoreTestData.Values.Logging, source, data, attributes, exception, attachment, store }
-            .Select(value => new WeakReference(value)).ToArray();
-        // Caller replaces its store reference; the captured event must not retain the old settings.
-        EnvironmentStoreTestData.Values.Logging = new LoggingOptions();
-        return (facts, references);
     }
 
     [TestMethod]
@@ -351,8 +322,8 @@ public sealed class EventProjectionTests
         Assert.ThrowsExactly<InvalidDataException>(() => EventProjectionExpectations.Validate(row, catalog["nativeBindings"]!.AsObject(), actual));
     }
 
-    private static JsonObject Catalog() => LogValueTests.Read("event-projection-cases.json");
-    private static JsonObject Metadata() => Catalog()["cases"]![0]!["input"]!["metadata"]!.DeepClone().AsObject();
+    private static JsonObject Catalog() => QualificationFixtureInputs.ReadLogging("event-projection-cases.json");
+    private static JsonObject Metadata() => JsonNode.Parse(SharedInputs.Value.Metadata)!.AsObject();
     private static EventMetadata Snapshot() => EventProjectionFixtureSources.Create(Metadata(), out _);
     private static CapturedEventFacts Capture(LogEventData data) => EventProjection.Capture(Snapshot(), new OperationScopeStore().Capture(), "Component", CoreLogLevel.Information, data)!;
     private sealed class MutableException : Exception { internal string Text { get; set; } = ""; public override string Message => Text; }

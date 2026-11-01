@@ -1,3 +1,4 @@
+using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.Security.Cryptography;
 using System.Text;
@@ -11,6 +12,9 @@ namespace CIS.Tests.IntegrationTests;
 [TestClass]
 public sealed class FileRestartProcessTests
 {
+#if !CIS_MUTATION_TESTS
+    private static readonly ConcurrentDictionary<string, Lazy<Task<string>>> ReaderPositives = new(StringComparer.Ordinal);
+#endif
     public TestContext TestContext { get; set; } = null!;
     private static readonly TimeSpan Limit = TimeSpan.FromSeconds(30);
 
@@ -49,7 +53,8 @@ public sealed class FileRestartProcessTests
     public async Task OriginalRestartReaderCorruptionsRejectAfterPhysicalPositive(string key)
     {
         string mode = key.StartsWith("failure", StringComparison.Ordinal) ? "collision-file" : key == "probe" ? "rotation-published" : "recovery-intent";
-        using var root = new TemporaryDirectory(); (JsonObject seed, JsonObject resume, JsonObject? probe) = await Scenario(mode, root.Path);
+        (JsonObject seed, JsonObject resume, JsonObject? probe) = await ReadPositive(mode);
+        FileRestartExpectations.Validate(mode, seed, resume, probe);
         void Edit(JsonNode container, string name, Action<JsonObject> mutation)
         { JsonObject value = JsonNode.Parse(Convert.FromBase64String((string)container[name]!))!.AsObject(); mutation(value); container[name] = Convert.ToBase64String(Encoding.UTF8.GetBytes(value.ToJsonString() + "\n")); }
         const string active = FileRestartExpectations.Active;
@@ -72,6 +77,27 @@ public sealed class FileRestartProcessTests
         string reason = key switch { "original" or "record" => "actual record producer", "stage" => "literal stage preimage", "pending" => "pending identity", "failure-code" => "safe failure", "failure-growth" => "unchanged restart failure", "lease" => "owned process/lease", "accounting" => "current accounting", "inventory" => "next inventory", "probe" => "held probe preservation", _ => "exact restart transition" };
         Assert.AreEqual(reason, error.Message); TestContext.WriteLine("Rejected original restart control: " + key);
     }
+
+    private async Task<(JsonObject Seed, JsonObject Resume, JsonObject? Probe)> ReadPositive(string mode)
+    {
+#if CIS_MUTATION_TESTS
+        using var root = new TemporaryDirectory();
+        return await Scenario(mode, root.Path);
+#else
+        string text = await ReaderPositives.GetOrAdd(mode, value => new Lazy<Task<string>>(() => CapturePositive(value))).Value;
+        JsonObject reports = JsonNode.Parse(text)!.AsObject();
+        return (reports["seed"]!.AsObject(), reports["resume"]!.AsObject(), reports["probe"]?.AsObject());
+#endif
+    }
+
+#if !CIS_MUTATION_TESTS
+    private async Task<string> CapturePositive(string mode)
+    {
+        (JsonObject seed, JsonObject resume, JsonObject? probe) reports;
+        using (var root = new TemporaryDirectory()) { reports = await Scenario(mode, root.Path); }
+        return new JsonObject { ["seed"] = reports.seed, ["resume"] = reports.resume, ["probe"] = reports.probe }.ToJsonString();
+    }
+#endif
 
     private async Task<(JsonObject Seed, JsonObject Resume, JsonObject? Probe)> Scenario(string mode, string root)
     {

@@ -10,7 +10,13 @@ namespace CIS.Tests.IntegrationTests;
 public sealed class EventQualificationProcessTests
 {
     public TestContext TestContext { get; set; } = null!;
-    public static IEnumerable<object[]> Rows => FixtureProcessChecks.Cases("event-qualification-cases.json", 23).Select(row => new object[] { (string)row!["id"]! });
+    // All 23 actual capture/encoding outputs and their schema run in-process.
+    // Keep real child controls for the entry/JSON boundary, ambient-context
+    // capture lifetime and bounded aggregate output.
+    public static IEnumerable<object[]> Rows => new[]
+    {
+        "EVENT-QUAL-INFORMATION", "EVENT-QUAL-DELAYED", "EVENT-QUAL-AGGREGATE-MIN"
+    }.Select(id => new object[] { id });
     [TestMethod]
     [DynamicData(nameof(Rows))]
     public async Task CompleteEventsRunInAnIsolatedExactRuntimeChild(string id)

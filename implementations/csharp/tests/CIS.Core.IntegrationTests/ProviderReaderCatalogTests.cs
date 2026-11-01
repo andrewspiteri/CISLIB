@@ -35,8 +35,7 @@ public sealed class ProviderReaderCatalogTests
     [DataRow("provider-host-story", "async-owned")]
     public async Task EquivalentAttributePropertyOrderIsAccepted(string family, string mode)
     {
-        ProviderReportCapture captured = await ProviderReportProcess.RunAsync(family, mode, TestContext);
-        Validate(family, mode, captured.Report, captured.ConsoleText, captured.ProcessId);
+        ProviderReportCapture captured = await ProviderReaderFixture.GetAsync(family, mode, TestContext);
         JsonObject reordered = captured.Report.DeepClone().AsObject();
         Wire(reordered, row =>
         {
@@ -57,8 +56,7 @@ public sealed class ProviderReaderCatalogTests
     [DataRow("provider-host-story", "factory-precedence", "version", true)]
     public async Task ProtectedIdentityMustRemainPresentAndNonNull(string family, string mode, string field, bool remove)
     {
-        ProviderReportCapture captured = await ProviderReportProcess.RunAsync(family, mode, TestContext);
-        Validate(family, mode, captured.Report, captured.ConsoleText, captured.ProcessId);
+        ProviderReportCapture captured = await ProviderReaderFixture.GetAsync(family, mode, TestContext);
         JsonObject changed = captured.Report.DeepClone().AsObject();
         Wire(changed, row => { if (remove) { row.Remove(field); } else { row[field] = null; } });
         string reason = family == "provider-operation" ? "protected identity and Activity" : "protected Activity and identity";

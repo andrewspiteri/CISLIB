@@ -54,6 +54,7 @@ internal sealed partial class HealthcheckPackageVerification
 
     internal static async Task<int> RunAsync(string[] arguments)
     {
+        if (arguments.Length > 0 && arguments[0] == "prepared-inputs") { return WritePreparedInputs(arguments[1..]); }
         var input = new TypeManagerVerificationInputs(arguments,
             ["language-root", "package", "dependency-cache", "provenance", "output"], []);
         string output = input.PathOf("output"), language = input.PathOf("language-root");
@@ -92,9 +93,10 @@ internal sealed partial class HealthcheckPackageVerification
                 Require(provenanceHash.Length == 64 && Hash(provenance) == provenanceHash, "Producer provenance changed during qualification.");
                 foreach ((string path, string hash) in originals) { Require(Hash(path) == hash, "Original input changed during qualification: " + path); }
                 foreach ((string path, string hash) in staged) { Require(Hash(path) == hash, "Staged input changed during qualification: " + path); }
+                ValidatePreparedProducer(Read(provenance), language, package);
                 report["inputsVerifiedAfter"] = true;
             }
-            catch (Exception error) when (error is IOException or InvalidDataException or UnauthorizedAccessException)
+            catch (Exception error) when (error is IOException or InvalidDataException or UnauthorizedAccessException or ArgumentException or InvalidOperationException or JsonException or System.Xml.XmlException)
             {
                 report["integrityFailure"] = error.ToString(); report["complete"] = false; exit = 1;
             }
@@ -120,6 +122,8 @@ internal sealed partial class HealthcheckPackageVerification
             using Stream data = core.Open(); coreHash = Convert.ToHexStringLower(SHA256.HashData(data));
         }
         JsonObject producer = Read(provenance);
+        if ((string?)producer["schema"] == PreparedInputSchema) { ValidatePreparedOutput(language, root); }
+        ValidatePreparedProducer(producer, language, package);
         Require((string?)producer["packageSha256"] == packageHash && (string?)producer["coreSha256"] == coreHash, "Producer provenance does not identify the supplied package and Core asset.");
         JsonArray pins = producer["sourceInputs"]?.AsArray() ?? throw new InvalidDataException("Producer provenance has no sourceInputs.");
         var expected = Directory.EnumerateFiles(Path.Combine(language, "src", "CIS.Core"), "*.cs", SearchOption.AllDirectories)

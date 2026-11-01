@@ -65,6 +65,10 @@ internal static class ShippingCoverage
                 relativeFiles.Add(relative);
                 string key = SourceKey(language, file);
                 string? reason = nonExecutable[relative]?.GetValue<string>();
+                if (!string.IsNullOrEmpty(reason) && name == "CIS.Core" && relative.StartsWith("Healthcheck/", StringComparison.Ordinal))
+                {
+                    HealthcheckCoverageVerification.ValidateDeclarationOnly(Slashes(Path.GetRelativePath(language, file)), File.ReadAllText(file));
+                }
                 sources.Add(key, new Source(key, Hash(file), reason));
                 owners.Add(key, name);
             }

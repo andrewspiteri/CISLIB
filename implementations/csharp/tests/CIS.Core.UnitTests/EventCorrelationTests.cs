@@ -1,7 +1,6 @@
 using System.Diagnostics;
 using System.Globalization;
 using System.Reflection;
-using System.Runtime.CompilerServices;
 using System.Text.Json.Nodes;
 using CIS.Logging;
 using CIS.Logging.Events;
@@ -13,9 +12,12 @@ namespace CIS.Tests.UnitTests;
 
 [TestClass]
 [DoNotParallelize]
-public sealed class EventCorrelationTests
+public sealed partial class EventCorrelationTests
 {
-    public static IEnumerable<object[]> Rows => Catalog()["cases"]!.AsArray().Select(row => new object[] { row!["id"]!.GetValue<string>() });
+    private static readonly Lazy<LoggingFixtureInputs> Inputs = new(() => new("event-correlation-cases.json"));
+    private static readonly Lazy<LoggingFixtureInputs> OriginalInputs = new(() => new("event-capture-expectations.json"));
+    private static readonly Lazy<string> MetadataText = new(() => Catalog()["cases"]![0]!["input"]!["metadata"]!.ToJsonString());
+    public static IEnumerable<object[]> Rows => Inputs.Value.Ids.Select(id => new object[] { id });
     [TestMethod]
     [DynamicData(nameof(Rows))]
     public void LiteralClockAndActualActivityObserveOwnedFacts(string id)
@@ -141,23 +143,6 @@ public sealed class EventCorrelationTests
         Assert.ThrowsExactly<InvalidDataException>(() => EventCorrelationExpectations.Validate(row, actual));
     }
     [TestMethod]
-    public void OwnedFactsDoNotKeepActivityOrClockAlive()
-    {
-        (CapturedEventFacts facts, WeakReference activity, WeakReference clock) = CaptureCollectible();
-        for (int attempt = 0; attempt < 10 && (activity.IsAlive || clock.IsAlive); attempt++) { GC.Collect(); GC.WaitForPendingFinalizers(); GC.Collect(); }
-        Assert.IsFalse(activity.IsAlive); Assert.IsFalse(clock.IsAlive); Assert.IsNotNull(facts.TraceId); Assert.IsNotNull(facts.SpanId);
-        GC.KeepAlive(facts);
-    }
-    [MethodImpl(MethodImplOptions.NoInlining)]
-    private static (CapturedEventFacts, WeakReference, WeakReference) CaptureCollectible()
-    {
-        Activity? previous = Activity.Current; Activity.Current = null;
-        using var activity = new Activity("collectible").SetIdFormat(ActivityIdFormat.W3C).Start();
-        var clock = new EventCorrelationFixture.MutableClock(DateTimeOffset.MinValue);
-        try { return (Capture(clock: clock), new WeakReference(activity), new WeakReference(clock)); }
-        finally { activity.Stop(); Activity.Current = previous; }
-    }
-    [TestMethod]
     [DataRow(false)]
     [DataRow(true)]
     public async Task ActualInheritedOrSuppressedChildCapturesItsOwnCurrentPair(bool suppress)
@@ -190,8 +175,7 @@ public sealed class EventCorrelationTests
     [TestMethod]
     public void OriginalReservedCorrelationVectorUsesAnExplicitCurrentSpanBinding()
     {
-        JsonObject original = LogValueTests.Read("event-capture-expectations.json")["cases"]!.AsArray()
-            .Single(row => row!["id"]!.GetValue<string>() == "CAPTURE-RESERVED-CORRELATION")!.AsObject();
+        JsonObject original = OriginalInputs.Value.Row("CAPTURE-RESERVED-CORRELATION");
         JsonObject row = Row("ACTIVITY-PROTECTED-FREEFORM"); JsonObject input = row["input"]!.AsObject();
         input["metadata"]!["service"] = original["expected"]!["service"]!.DeepClone();
         input["event"]!["operationId"] = original["inputs"]!["event"]!["operationId"]!.DeepClone();
@@ -207,8 +191,8 @@ public sealed class EventCorrelationTests
         // Original supplied span is a parent-span input in the public CLR binding; full wire vector is T05.
     }
     private static CapturedEventFacts Capture(LogEventData? data = null, TimeProvider? clock = null) => EventProjection.Capture(
-        EventProjectionFixtureSources.Create(Catalog()["cases"]![0]!["input"]!["metadata"]!.AsObject(), out _),
+        EventProjectionFixtureSources.Create(JsonNode.Parse(MetadataText.Value)!.AsObject(), out _),
         new OperationScopeStore().Capture(), "Component", CoreLogLevel.Information, data ?? new LogEventData { EventName = "event", Message = "" }, clock)!;
-    private static JsonObject Row(string id) => Catalog()["cases"]!.AsArray().Single(row => row!["id"]!.GetValue<string>() == id)!.DeepClone().AsObject();
-    private static JsonObject Catalog() => LogValueTests.Read("event-correlation-cases.json");
+    private static JsonObject Row(string id) => Inputs.Value.Row(id);
+    private static JsonObject Catalog() => QualificationFixtureInputs.ReadLogging("event-correlation-cases.json");
 }

@@ -11,6 +11,41 @@ namespace CIS.Tests.ArchitectureTests;
 public sealed class SourceInventoryTests
 {
     [TestMethod]
+    public async Task CurrentVerificationBindsMaintainedDirtyInputsWithoutReadingHistoricalArchives()
+    {
+        using var directory = new TemporaryDirectory();
+        string[] maintained = ["README.md", ".editorconfig", "implementations/csharp/global.json", "implementations/csharp/tests/new.cs",
+            "eng/verify.ps1", "contracts/healthcheck.json", "conformance/healthcheck/cases.json", "compatibility/csharp/baseline.json", "docs/current.md",
+            "planning/healthcheck/baseline.json", "planning/logging/plan-amendments.md", "planning/logging/evidence/wp01-s03/unit-tests.trx"];
+        string[] unrelated = ["planning/healthcheck/evidence/archive.zip", "planning/history.md", "implementations/csharp/tests/bin/generated.dll",
+            "implementations/csharp/tests/obj/cache.json", "implementations/csharp/tests/TestResults/old.trx", "implementations/csharp/test.csproj.user"];
+        foreach (string relative in maintained.Concat(unrelated))
+        {
+            string path = Path.Combine(directory.Path, relative);
+            Directory.CreateDirectory(Path.GetDirectoryName(path)!);
+            File.WriteAllText(path, relative);
+        }
+        // An exclusive archive handle makes accidental archive hashing observable.
+        using (FileStream archive = File.Open(Path.Combine(directory.Path, unrelated[0]), FileMode.Open, FileAccess.ReadWrite, FileShare.None))
+        {
+            SourceInventoryEntry[] before = SourceInventory.CaptureVerificationInputs(directory.Path);
+            CollectionAssert.AreEqual(maintained.Order(StringComparer.Ordinal).ToArray(), before.Select(pin => pin.Path).ToArray());
+            AssertDigests(directory.Path, before);
+            string changed = Path.Combine(directory.Path, maintained[3]);
+            File.AppendAllText(changed, " dirty change");
+            SourceInventoryEntry[] after = SourceInventory.CaptureVerificationInputs(directory.Path);
+            Assert.AreNotEqual(before.Single(pin => pin.Path == maintained[3]).Sha256, after.Single(pin => pin.Path == maintained[3]).Sha256);
+            string added = Path.Combine(directory.Path, "implementations/csharp/tests/added.cs");
+            File.WriteAllText(added, "new source");
+            CollectionAssert.Contains(SourceInventory.VerificationPaths(directory.Path), "implementations/csharp/tests/added.cs");
+            File.Delete(changed);
+            CollectionAssert.DoesNotContain(SourceInventory.VerificationPaths(directory.Path), maintained[3]);
+        }
+        // Historical inventory remains available with its original broader meaning.
+        CollectionAssert.Contains((await SourceInventory.CaptureAsync(directory.Path)).Select(pin => pin.Path).ToArray(), unrelated[0]);
+    }
+
+    [TestMethod]
     public async Task WorkingTreeInventoryIncludesCurrentInputsWithoutStagingDeletions()
     {
         using var directory = new TemporaryDirectory();
@@ -172,13 +207,15 @@ public sealed class SourceInventoryTests
     }
 
     [TestMethod]
-    public async Task ShellBridgeBootstrapsAnUnbuiltToolCopyWithoutPollutingJson()
+    [DataRow("Verification")]
+    [DataRow("Evidence")]
+    public async Task ShellBridgeBootstrapsAnUnbuiltToolCopyWithoutPollutingJson(string bridge)
     {
         using var directory = new TemporaryDirectory();
         DirectoryInfo? language = new(AppContext.BaseDirectory);
         while (language is not null && !File.Exists(Path.Combine(language.FullName, "CisLib.slnx"))) { language = language.Parent; }
         Assert.IsNotNull(language);
-        foreach (string file in new[] { "Directory.Build.props", "Directory.Packages.props", "global.json", "NuGet.config", "eng/Verification.psm1" })
+        foreach (string file in new[] { "Directory.Build.props", "Directory.Packages.props", "global.json", "NuGet.config", "eng/Verification.psm1", "eng/Evidence.psm1" })
         {
             string target = Path.Combine(directory.Path, file);
             Directory.CreateDirectory(Path.GetDirectoryName(target)!);
@@ -204,14 +241,26 @@ public sealed class SourceInventoryTests
         File.WriteAllText(Path.Combine(input, "input.txt"), "bootstrap");
         string script = Path.Combine(directory.Path, "bridge.ps1");
         File.WriteAllText(script, """
+            param([ValidateSet('Verification', 'Evidence')][string] $Bridge)
             $ErrorActionPreference = 'Stop'
-            Import-Module (Join-Path $PSScriptRoot 'eng/Verification.psm1') -Force
-            @(Get-SourceInventory (Join-Path $PSScriptRoot 'input')) | ConvertTo-Json -AsArray -Compress
+            $inputRoot = Join-Path $PSScriptRoot 'input'
+            if ($Bridge -eq 'Evidence') {
+                Import-Module (Join-Path $PSScriptRoot 'eng/Evidence.psm1') -Force
+                $tool = Get-EvidenceTool
+                $json = @(& dotnet $tool source-inventory $inputRoot)
+                if ($LASTEXITCODE -ne 0) { throw 'The bootstrapped evidence tool failed.' }
+                ($json -join [Environment]::NewLine | ConvertFrom-Json) | ConvertTo-Json -AsArray -Compress
+            }
+            else {
+                Import-Module (Join-Path $PSScriptRoot 'eng/Verification.psm1') -Force
+                @(Get-SourceInventory $inputRoot) | ConvertTo-Json -AsArray -Compress
+            }
             """);
         string checker = Path.Combine(directory.Path, "eng/CIS.DependencyChecker/bin/Release/net10.0/CIS.DependencyChecker.dll");
         Assert.IsFalse(File.Exists(checker));
 
-        ProcessResult result = await ProcessRunner.RunAsync("pwsh", ["-NoProfile", "-File", script], directory.Path, TimeSpan.FromSeconds(120));
+        ProcessResult result = await ProcessRunner.RunAsync("pwsh", ["-NoProfile", "-File", script, "-Bridge", bridge], directory.Path, TimeSpan.FromSeconds(120),
+            environment: new Dictionary<string, string?> { ["CIS_VERIFICATION_CHECKER"] = null });
 
         Assert.AreEqual(0, result.ExitCode, result.StandardOutput + result.StandardError);
         Assert.IsTrue(File.Exists(checker));
@@ -219,6 +268,48 @@ public sealed class SourceInventoryTests
         Assert.AreEqual(1, output.RootElement.GetArrayLength());
         Assert.AreEqual("input.txt", output.RootElement[0].GetProperty("path").GetString());
         Assert.AreEqual(Convert.ToHexStringLower(SHA256.HashData(Encoding.UTF8.GetBytes("bootstrap"))), output.RootElement[0].GetProperty("sha256").GetString());
+    }
+
+    [TestMethod]
+    public async Task ExplicitCheckerRuntimeAvoidsBootstrapAndRejectsMissingCompanions()
+    {
+        using var directory = new TemporaryDirectory();
+        DirectoryInfo? language = new(AppContext.BaseDirectory);
+        while (language is not null && !File.Exists(Path.Combine(language.FullName, "CisLib.slnx"))) { language = language.Parent; }
+        Assert.IsNotNull(language);
+        string configuration = new DirectoryInfo(AppContext.BaseDirectory).Parent!.Name;
+        string compiled = Path.Combine(language.FullName, "eng/CIS.DependencyChecker/bin", configuration, "net10.0");
+        string runtime = Directory.CreateDirectory(Path.Combine(directory.Path, "runtime")).FullName;
+        foreach (string name in new[] { "CIS.DependencyChecker.dll", "CIS.DependencyChecker.deps.json", "CIS.DependencyChecker.runtimeconfig.json", "CIS.Core.TestSupport.dll" })
+        { File.Copy(Path.Combine(compiled, name), Path.Combine(runtime, name)); }
+        foreach (string name in new[] { "Evidence.psm1", "Verification.psm1" })
+        { File.Copy(Path.Combine(language.FullName, "eng", name), Path.Combine(directory.Path, name)); }
+        string input = Directory.CreateDirectory(Path.Combine(directory.Path, "input")).FullName;
+        File.WriteAllText(Path.Combine(input, "input.txt"), "prepared runtime");
+        string script = Path.Combine(directory.Path, "bridge.ps1");
+        File.WriteAllText(script, """
+            $ErrorActionPreference = 'Stop'
+            Import-Module (Join-Path $PSScriptRoot 'Evidence.psm1') -Force
+            if ((Get-EvidenceTool) -cne $env:CIS_VERIFICATION_CHECKER) { throw 'Wrong selected checker.' }
+            Import-Module (Join-Path $PSScriptRoot 'Verification.psm1') -Force
+            @(Get-SourceInventory (Join-Path $PSScriptRoot 'input')) | ConvertTo-Json -AsArray -Compress
+            """);
+        var environment = new Dictionary<string, string?>
+        {
+            ["CIS_VERIFICATION_CHECKER"] = Path.Combine(runtime, "CIS.DependencyChecker.dll"),
+            ["CIS_SOURCE_INVENTORY_DIAGNOSTICS"] = null
+        };
+        // This isolated bridge has no project or source tree it could bootstrap.
+        ProcessResult positive = await ProcessRunner.RunAsync("pwsh", ["-NoProfile", "-File", script], directory.Path, TimeSpan.FromSeconds(30), environment);
+        Assert.AreEqual(0, positive.ExitCode, positive.StandardOutput + positive.StandardError);
+        using JsonDocument report = JsonDocument.Parse(positive.StandardOutput);
+        Assert.AreEqual("input.txt", report.RootElement[0].GetProperty("path").GetString());
+        Assert.IsFalse(Directory.EnumerateFiles(directory.Path, "*.csproj", SearchOption.AllDirectories).Any());
+        File.Delete(Path.Combine(runtime, "CIS.Core.TestSupport.dll"));
+        ProcessResult negative = await ProcessRunner.RunAsync("pwsh", ["-NoProfile", "-File", script], directory.Path, TimeSpan.FromSeconds(30), environment);
+        Assert.AreNotEqual(0, negative.ExitCode);
+        StringAssert.Contains(negative.StandardError, "CIS_VERIFICATION_CHECKER runtime is incomplete");
+        StringAssert.Contains(negative.StandardError, "CIS.Core.TestSupport.dll");
     }
 
     private static void AssertDigests(string root, SourceInventoryEntry[] inventory)

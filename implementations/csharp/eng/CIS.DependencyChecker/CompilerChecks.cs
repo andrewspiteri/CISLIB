@@ -6,7 +6,7 @@ using CIS.TestSupport;
 
 namespace CIS.Verification;
 
-internal static class CompilerChecks
+internal static partial class CompilerChecks
 {
     private static readonly JsonSerializerOptions JsonOptions = new() { WriteIndented = true };
     private static readonly string[] Surfaces = ["PublicSurface.cs", "EventSurface.cs", "RuntimeSurface.cs", "ProviderSurface.cs"];
@@ -94,19 +94,25 @@ internal static class CompilerChecks
         report["source"] = Inputs(language, source, true);
         string directory = Path.Combine(output, "reference");
         CopySurface(source, directory);
-        await Build(language, output, report, "reference-only-specification", Path.Combine(directory, "Reference.csproj"), logging);
+        string referenceWorkspace = Path.Combine(output, "compiler/reference");
+        CopySurface(source, referenceWorkspace);
+        PreparedCompiler referenceCompiler = await PrepareCompiler(language, output, report, "reference", referenceWorkspace, "Reference.csproj", logging);
+        await CompilePrepared(language, output, report, referenceCompiler, "reference-only-specification", directory, Surfaces);
         report["referenceAssembly"] = Reference(output, Path.Combine(directory, "bin/Release/net10.0/CIS.Core.ContractSpecification.dll"), "dotnet.reference-assembly/v1");
+        string consumerWorkspace = Path.Combine(output, "compiler/consumer");
+        CopyConsumer(source, consumerWorkspace, "Consumer.cs");
+        PreparedCompiler consumerCompiler = await PrepareCompiler(language, output, report, "consumer", consumerWorkspace, "Consumer.csproj", logging);
         foreach ((string id, string file) in new[] { ("positive-consumer", "Consumer.cs"), ("event-consumer", "EventConsumer.cs"), ("runtime-consumer", "RuntimeConsumer.cs"), ("provider-consumer", "ProviderConsumer.cs") })
         {
             string consumer = Path.Combine(output, id == "positive-consumer" ? "positive" : id);
             CopyConsumer(source, consumer, file);
-            await Build(language, output, report, id, Path.Combine(consumer, "Consumer.csproj"), logging);
+            await CompilePrepared(language, output, report, consumerCompiler, id, consumer, ["Consumer.cs"]);
         }
         foreach (JsonNode? item in JsonNode.Parse(File.ReadAllText(Path.Combine(source, "negative-cases.json")))!.AsArray())
         {
             string id = Text(item!, "id"), consumer = Path.Combine(output, id);
             CopyConsumer(source, consumer, Text(item!, "file"));
-            await Build(language, output, report, id, Path.Combine(consumer, "Consumer.csproj"), logging, diagnostic: Text(item!, "expectedDiagnostic"));
+            await CompilePrepared(language, output, report, consumerCompiler, id, consumer, ["Consumer.cs"], Text(item!, "expectedDiagnostic"));
         }
     }
 
@@ -128,6 +134,15 @@ internal static class CompilerChecks
         string source = Path.Combine(language, "verification/compatibility/samples"), surface = Path.Combine(language, "verification/contracts/startup");
         report["source"] = Inputs(language, source, true);
         JsonObject catalog = Read(Path.Combine(source, "catalog.json"));
+        string referenceWorkspace = Path.Combine(output, "compiler/reference");
+        CopySurface(surface, referenceWorkspace);
+        PreparedCompiler referenceCompiler = await PrepareCompiler(language, output, report, "reference", referenceWorkspace, "Reference.csproj", logging);
+        string consumerWorkspace = Path.Combine(output, "compiler/consumer");
+        CopyConsumer(source, consumerWorkspace, Text(catalog["sources"]!.AsArray()[0]!, "file"));
+        string stagedReference = Path.Combine(consumerWorkspace, "reference/CIS.Core.ContractSpecification.dll");
+        Directory.CreateDirectory(Path.GetDirectoryName(stagedReference)!);
+        File.Copy(baseline, stagedReference, true);
+        PreparedCompiler consumerCompiler = await PrepareCompiler(language, output, report, "consumer", consumerWorkspace, "Consumer.csproj", logging, stagedReference);
         foreach (JsonNode? consumer in catalog["sources"]!.AsArray())
         {
             await Consumer(Text(consumer!, "id"), Text(consumer!, "file"), baseline, null);
@@ -147,7 +162,7 @@ internal static class CompilerChecks
                 ["consumerId"] = Text(sample!, "consumerId"),
                 ["expectedDiagnostic"] = Text(sample!, "expectedDiagnostic")
             });
-            await Build(language, output, report, id + "-reference", Path.Combine(directory, "Reference.csproj"), logging, rebuild: true);
+            await CompilePrepared(language, output, report, referenceCompiler, id + "-reference", directory, Surfaces);
             JsonNode consumer = catalog["sources"]!.AsArray().Single(item => Text(item!, "id") == Text(sample!, "consumerId"))!;
             await Consumer(id, Text(consumer, "file"), Path.Combine(directory, "bin/Release/net10.0/CIS.Core.ContractSpecification.dll"), Text(sample!, "expectedDiagnostic"));
         }
@@ -156,7 +171,9 @@ internal static class CompilerChecks
         {
             string directory = Path.Combine(output, id);
             CopyConsumer(source, directory, file);
-            await Build(language, output, report, id, Path.Combine(directory, "Consumer.csproj"), logging, reference, diagnostic, true);
+            File.Copy(reference, stagedReference, true);
+            Require(Hash(reference) == Hash(stagedReference), "The staged compiler reference differs from this control's actual reference assembly.");
+            await CompilePrepared(language, output, report, consumerCompiler, id, directory, ["Consumer.cs"], diagnostic, reference);
         }
     }
 
@@ -218,17 +235,9 @@ internal static class CompilerChecks
         Require(Hash(core) == coreHash, "Core changed during consumer qualification.");
     }
 
-    private static async Task Build(string language, string output, JsonObject report, string id, string project, string logging, string? reference = null, string? diagnostic = null, bool rebuild = false)
+    private static async Task<JsonObject> Compile(string language, string output, JsonObject report, string id, string directory, IEnumerable<string> arguments, string? diagnostic, bool executableControl = false, string? workingDirectory = null)
     {
-        List<string> arguments = ["build", project, "-c", "Release", "-v", "minimal", "-p:RestoreConfigFile=" + Path.Combine(language, "NuGet.config"), "-p:MicrosoftLoggingAbstractionsPath=" + logging];
-        if (rebuild) { arguments.Add("-t:Rebuild"); }
-        if (reference is not null) { arguments.Add("-p:CompatibilityReferencePath=" + reference); }
-        await Compile(language, output, report, id, Path.GetDirectoryName(project)!, arguments, diagnostic);
-    }
-
-    private static async Task<JsonObject> Compile(string language, string output, JsonObject report, string id, string directory, IEnumerable<string> arguments, string? diagnostic, bool executableControl = false)
-    {
-        ProcessResult result = await Run(language, arguments);
+        ProcessResult result = await Run(workingDirectory ?? language, arguments);
         string log = Path.Combine(directory, "compiler.log"), text = Output(result);
         File.WriteAllText(log, text);
         bool matched = Matches(result.ExitCode, text, diagnostic);

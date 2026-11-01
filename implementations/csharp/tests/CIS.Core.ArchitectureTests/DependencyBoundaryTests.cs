@@ -20,7 +20,7 @@ public sealed class DependencyBoundaryTests
     public async Task ReleaseCorePassesTheEvaluatedCompiledReferencePolicy()
     {
         string core = Path.Combine(LanguageRoot, "src", "CIS.Core", "bin", "Release", "net10.0", "CIS.Core.dll");
-        ProcessResult result = await RunProjectCheck(LanguageRoot, "-AssemblyPath", core);
+        DependencyCheckRunner.CheckResult result = await RunProjectCheck(LanguageRoot, "-AssemblyPath", core);
         Assert.AreEqual(0, result.ExitCode, result.StandardOutput + result.StandardError);
     }
 
@@ -58,7 +58,7 @@ public sealed class DependencyBoundaryTests
         project.Root!.Add(new XElement("ItemGroup", new XElement(element, new XAttribute("Include", dependency))));
         project.Save(coreProject);
 
-        ProcessResult result = await RunProjectCheck(fixture.Path);
+        DependencyCheckRunner.CheckResult result = await RunProjectCheck(fixture.Path);
 
         AssertRejected(result, expectedRule);
     }
@@ -80,31 +80,17 @@ public sealed class DependencyBoundaryTests
     [DataRow("Microsoft.Extensions.Logging.Abstractions/10.0.999")]
     public async Task RestoredGraphRejectsUnapprovedIdentityOrVersion(string identity)
     {
-        using var directory = new TemporaryDirectory();
-        string assetsPath = Path.Combine(LanguageRoot, "src", "CIS.Core", "obj", "project.assets.json");
-        JsonObject assets = JsonNode.Parse(File.ReadAllText(assetsPath))!.AsObject();
-        assets["targets"]!["net10.0"]!.AsObject()[identity] = new JsonObject { ["type"] = "package" };
-        string modified = Path.Combine(directory.Path, "project.assets.json");
-        File.WriteAllText(modified, assets.ToJsonString());
-
-        AssertRejected(await RunProjectCheck(LanguageRoot, "-AssetsPath", modified), "Unapproved shipping package dependency");
+        DependencyCheckRunner.CheckResult result = await DependencyCheckRunner.MetadataResult(LanguageRoot, typeof(DependencyBoundaryTests),
+            nameof(RestoredGraphRejectsUnapprovedIdentityOrVersion), [identity], check => RestoredGraphRejectsUnapprovedIdentityOrVersionInputs(identity, check));
+        AssertRejected(result, "Unapproved shipping package dependency");
     }
 
     [TestMethod]
     public async Task PackageRejectsBundledTestAssembly()
     {
-        using var directory = new TemporaryDirectory();
-        string packagePath = Path.Combine(directory.Path, "fixture.nupkg");
-        string core = Path.Combine(LanguageRoot, "src", "CIS.Core", "bin", "Release", "net10.0", "CIS.Core.dll");
-        string packageVersion = System.Diagnostics.FileVersionInfo.GetVersionInfo(core).ProductVersion!.Split('+', 2)[0];
-        File.Copy(Path.Combine(RepositoryRoot, ".artifacts", "csharp", "packages", $"CIS.Core.{packageVersion}.nupkg"), packagePath);
-        using (ZipArchive archive = ZipFile.Open(packagePath, ZipArchiveMode.Update))
-        {
-            using var writer = new StreamWriter(archive.CreateEntry("lib/net10.0/CIS.Core.TestSupport.dll").Open());
-            writer.Write("explicitly forbidden synthetic asset");
-        }
-
-        AssertRejected(await RunProjectCheck(LanguageRoot, "-PackagePath", packagePath), "Unexpected packed asset");
+        DependencyCheckRunner.CheckResult result = await DependencyCheckRunner.MetadataResult(LanguageRoot, typeof(DependencyBoundaryTests),
+            nameof(PackageRejectsBundledTestAssembly), [], check => PackageRejectsBundledTestAssemblyInputs(check));
+        AssertRejected(result, "Unexpected packed asset");
     }
 
     [TestMethod]
@@ -115,14 +101,9 @@ public sealed class DependencyBoundaryTests
     [DataRow("PACKAGE/services/metadata/core-properties/foreign.psmdcp", "Unexpected packed asset")]
     public async Task PackageNamesAreExactAndCannotRepeatIgnoringCase(string extra, string rule)
     {
-        using var directory = new TemporaryDirectory();
-        string packagePath = CopyCorePackage(directory.Path);
-        using (ZipArchive archive = ZipFile.Open(packagePath, ZipArchiveMode.Update))
-        {
-            using var writer = new StreamWriter(archive.CreateEntry(extra).Open());
-            writer.Write("synthetic extra asset");
-        }
-        AssertRejected(await RunProjectCheck(LanguageRoot, "-PackagePath", packagePath), rule);
+        DependencyCheckRunner.CheckResult result = await DependencyCheckRunner.MetadataResult(LanguageRoot, typeof(DependencyBoundaryTests),
+            nameof(PackageNamesAreExactAndCannotRepeatIgnoringCase), [extra, rule], check => PackageNamesAreExactAndCannotRepeatIgnoringCaseInputs(extra, check));
+        AssertRejected(result, rule);
     }
 
     [TestMethod]
@@ -163,6 +144,76 @@ public sealed class DependencyBoundaryTests
     [TestMethod]
     public async Task DuplicateNuspecDependenciesAreRejected()
     {
+        DependencyCheckRunner.CheckResult result = await DependencyCheckRunner.MetadataResult(LanguageRoot, typeof(DependencyBoundaryTests),
+            nameof(DuplicateNuspecDependenciesAreRejected), [], check => DuplicateNuspecDependenciesAreRejectedInputs(check));
+        AssertRejected(result, "Duplicate packed dependency");
+    }
+
+    [TestMethod]
+    [DataRow("missing", "Packed framework reference inventory mismatch")]
+    [DataRow("changed", "Packed framework reference inventory mismatch")]
+    [DataRow("duplicate", "Invalid or duplicate packed framework reference")]
+    public async Task PackageFrameworkRequirementIsExact(string mode, string rule)
+    {
+        DependencyCheckRunner.CheckResult result = await DependencyCheckRunner.MetadataResult(LanguageRoot, typeof(DependencyBoundaryTests),
+            nameof(PackageFrameworkRequirementIsExact), [mode, rule], check => PackageFrameworkRequirementIsExactInputs(mode, check));
+        AssertRejected(result, rule);
+    }
+
+    internal static void AddMetadataBatchCases(List<DependencyCheckRunner.MetadataCase> cases)
+    {
+        DependencyCheckRunner.AddMetadataCases(cases, typeof(DependencyBoundaryTests), nameof(RestoredGraphRejectsUnapprovedIdentityOrVersion),
+            (values, check) => RestoredGraphRejectsUnapprovedIdentityOrVersionInputs(values[0], check), 1);
+        DependencyCheckRunner.AddMetadataCases(cases, typeof(DependencyBoundaryTests), nameof(PackageRejectsBundledTestAssembly),
+            (values, check) => PackageRejectsBundledTestAssemblyInputs(check), 1);
+        DependencyCheckRunner.AddMetadataCases(cases, typeof(DependencyBoundaryTests), nameof(PackageNamesAreExactAndCannotRepeatIgnoringCase),
+            (values, check) => PackageNamesAreExactAndCannotRepeatIgnoringCaseInputs(values[0], check), 1);
+        DependencyCheckRunner.AddMetadataCases(cases, typeof(DependencyBoundaryTests), nameof(DuplicateNuspecDependenciesAreRejected),
+            (values, check) => DuplicateNuspecDependenciesAreRejectedInputs(check), 1);
+        DependencyCheckRunner.AddMetadataCases(cases, typeof(DependencyBoundaryTests), nameof(PackageFrameworkRequirementIsExact),
+            (values, check) => PackageFrameworkRequirementIsExactInputs(values[0], check), 1);
+    }
+
+    private static async Task<DependencyCheckRunner.CheckResult> RestoredGraphRejectsUnapprovedIdentityOrVersionInputs(string identity, Func<string[], Task<DependencyCheckRunner.CheckResult>> check)
+    {
+        using var directory = new TemporaryDirectory();
+        string assetsPath = Path.Combine(LanguageRoot, "src", "CIS.Core", "obj", "project.assets.json");
+        JsonObject assets = JsonNode.Parse(File.ReadAllText(assetsPath))!.AsObject();
+        assets["targets"]!["net10.0"]!.AsObject()[identity] = new JsonObject { ["type"] = "package" };
+        string modified = Path.Combine(directory.Path, "project.assets.json");
+        File.WriteAllText(modified, assets.ToJsonString());
+
+        return await check(["-AssetsPath", modified]);
+    }
+
+    private static async Task<DependencyCheckRunner.CheckResult> PackageRejectsBundledTestAssemblyInputs(Func<string[], Task<DependencyCheckRunner.CheckResult>> check)
+    {
+        using var directory = new TemporaryDirectory();
+        string packagePath = Path.Combine(directory.Path, "fixture.nupkg");
+        File.Copy(VerificationCheckpoint.Package(RepositoryRoot), packagePath);
+        using (ZipArchive archive = ZipFile.Open(packagePath, ZipArchiveMode.Update))
+        {
+            using var writer = new StreamWriter(archive.CreateEntry("lib/net10.0/CIS.Core.TestSupport.dll").Open());
+            writer.Write("explicitly forbidden synthetic asset");
+        }
+
+        return await check(["-PackagePath", packagePath]);
+    }
+
+    private static async Task<DependencyCheckRunner.CheckResult> PackageNamesAreExactAndCannotRepeatIgnoringCaseInputs(string extra, Func<string[], Task<DependencyCheckRunner.CheckResult>> check)
+    {
+        using var directory = new TemporaryDirectory();
+        string packagePath = CopyCorePackage(directory.Path);
+        using (ZipArchive archive = ZipFile.Open(packagePath, ZipArchiveMode.Update))
+        {
+            using var writer = new StreamWriter(archive.CreateEntry(extra).Open());
+            writer.Write("synthetic extra asset");
+        }
+        return await check(["-PackagePath", packagePath]);
+    }
+
+    private static async Task<DependencyCheckRunner.CheckResult> DuplicateNuspecDependenciesAreRejectedInputs(Func<string[], Task<DependencyCheckRunner.CheckResult>> check)
+    {
         using var directory = new TemporaryDirectory();
         string packagePath = CopyCorePackage(directory.Path);
         using (ZipArchive archive = ZipFile.Open(packagePath, ZipArchiveMode.Update))
@@ -177,14 +228,10 @@ public sealed class DependencyBoundaryTests
             using Stream output = archive.CreateEntry("CIS.Core.nuspec").Open();
             spec.Save(output);
         }
-        AssertRejected(await RunProjectCheck(LanguageRoot, "-PackagePath", packagePath), "Duplicate packed dependency");
+        return await check(["-PackagePath", packagePath]);
     }
 
-    [TestMethod]
-    [DataRow("missing", "Packed framework reference inventory mismatch")]
-    [DataRow("changed", "Packed framework reference inventory mismatch")]
-    [DataRow("duplicate", "Invalid or duplicate packed framework reference")]
-    public async Task PackageFrameworkRequirementIsExact(string mode, string rule)
+    private static async Task<DependencyCheckRunner.CheckResult> PackageFrameworkRequirementIsExactInputs(string mode, Func<string[], Task<DependencyCheckRunner.CheckResult>> check)
     {
         using var directory = new TemporaryDirectory();
         string packagePath = CopyCorePackage(directory.Path);
@@ -201,23 +248,21 @@ public sealed class DependencyBoundaryTests
             using Stream output = archive.CreateEntry("CIS.Core.nuspec").Open();
             spec.Save(output);
         }
-        AssertRejected(await RunProjectCheck(LanguageRoot, "-PackagePath", packagePath), rule);
+        return await check(["-PackagePath", packagePath]);
     }
 
     private static string CopyCorePackage(string root)
     {
-        string core = Path.Combine(LanguageRoot, "src/CIS.Core/bin/Release/net10.0/CIS.Core.dll");
-        string version = System.Diagnostics.FileVersionInfo.GetVersionInfo(core).ProductVersion!.Split('+', 2)[0];
         string target = Path.Combine(root, "fixture.nupkg");
-        File.Copy(Path.Combine(RepositoryRoot, ".artifacts/csharp/packages", $"CIS.Core.{version}.nupkg"), target);
+        File.Copy(VerificationCheckpoint.Package(RepositoryRoot), target);
         return target;
     }
-    private static Task<ProcessResult> RunProjectCheck(string root, params string[] extraArguments)
+    private static Task<DependencyCheckRunner.CheckResult> RunProjectCheck(string root, params string[] extraArguments)
     {
         return DependencyCheckRunner.Run(LanguageRoot, root, "src/CIS.Core/CIS.Core.csproj", extraArguments);
     }
 
-    private static void AssertRejected(ProcessResult result, string expectedRule)
+    private static void AssertRejected(DependencyCheckRunner.CheckResult result, string expectedRule)
     {
         Assert.AreNotEqual(0, result.ExitCode, result.StandardOutput + result.StandardError);
         StringAssert.Contains(result.StandardError, expectedRule);

@@ -24,6 +24,10 @@ internal static class DependencyRoleControl
             File.Copy(Path.Combine(canonical, "NuGet.config"), Path.Combine(root, "NuGet.config"));
             string changed = Path.Combine(root, "DependencyChecks.cs");
             File.WriteAllText(changed, source.Replace(anchor, "", StringComparison.Ordinal));
+            string prepared = Path.Combine(canonical, "eng/CIS.DependencyChecker/DependencyChecks.Prepared.cs");
+            string preparedCopy = Path.Combine(root, "DependencyChecks.Prepared.cs");
+            File.Copy(prepared, preparedCopy);
+            Require(Hash(prepared) == Hash(preparedCopy), "The unchanged dependency evaluation source copy differs.");
             foreach (string name in new[] { "ProcessRunner", "AssemblyReferences" })
             { File.Copy(Path.Combine(canonical, "tests/CIS.Core.TestSupport", name + ".cs"), Path.Combine(root, name + ".cs")); }
             File.WriteAllText(Path.Combine(root, "Program.cs"), "return await CIS.Verification.DependencyChecks.RunAsync(args);");
@@ -42,7 +46,7 @@ internal static class DependencyRoleControl
             ProcessResult result = await ProcessRunner.RunAsync("dotnet", [Path.Combine(root, "bin/Release/net10.0/Mutant.dll"), isolated, args[2], "-", "-", "-"], isolated, TimeSpan.FromMinutes(1));
             File.WriteAllText(Path.Combine(root, "check.log"), result.StandardOutput + result.StandardError);
             Require(result.ExitCode == 0, "Role-gate control is masked by another rejection; inspect the mutant log.");
-            Console.WriteLine(JsonSerializer.Serialize(new { roleGuardMutationObserved = true, sourceSha256 = Hash(path), mutantSourceSha256 = Hash(changed) }));
+            Console.WriteLine(JsonSerializer.Serialize(new { roleGuardMutationObserved = true, sourceSha256 = Hash(path), mutantSourceSha256 = Hash(changed), preparedSourceSha256 = Hash(prepared), preparedCopySha256 = Hash(preparedCopy) }));
             return 0;
         }
         catch (Exception error) when (error is IOException or InvalidDataException or UnauthorizedAccessException or ArgumentException or InvalidOperationException or TimeoutException or System.ComponentModel.Win32Exception)

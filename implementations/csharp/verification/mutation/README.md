@@ -1,5 +1,16 @@
 # Mutation verification
 
+For new Healthcheck recovery candidates, use the [grouped native route](healthcheck/README.md).
+Its compact candidate-bound receiving rules supersede prospective per-file proof
+catalogues. Historical commands and reports below retain their original scope.
+
+The old Healthcheck Union/Shared, critical/rollback/omission drivers and their
+workflow tests require an explicit rebuild with `-p:CisHistoricalVerification=true`.
+They are excluded from default checker/test compilation after the grouped native
+route was proved. Current product tests, child propagation controls and release
+families remain active. Independent historical diagnostic projects/templates are
+manual tools; this property does not change their source or reinterpret reports.
+
 Mutation is the sixth family. Stryker is a pinned development CLI restored through the language-local tool manifest and dedicated tool source mapping. Core, its lockfile and its packed dependencies contain no Stryker reference.
 
 Run from the repository root:

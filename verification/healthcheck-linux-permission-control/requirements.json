@@ -1,0 +1,100 @@
+{
+  "schema": "cis.healthcheck.linux-permission-requirements/v1",
+  "scope": "Six bounded native Unix permission controls; no module mutation scope or score credit",
+  "obligations": [
+    {
+      "obligation": "unixEndpointOuterOptions",
+      "requirement": "HC-C08/unixEndpointOuterOptions",
+      "source": "Healthcheck/Pipes/HealthPipeEndpoint.cs",
+      "sourceSha256": "1e39973ca242e5ef08b49f8efc696fb9b6e8d9ab5cc98173cdda5f674c820b9e",
+      "operator": "Bitwise mutation",
+      "relativeStart": 0,
+      "length": 115,
+      "original": "PipeOptions.Asynchronous | PipeOptions.CurrentUserOnly | (first ? PipeOptions.FirstPipeInstance : PipeOptions.None)",
+      "replacement": "PipeOptions.Asynchronous | PipeOptions.CurrentUserOnly & (first ? PipeOptions.FirstPipeInstance : PipeOptions.None)",
+      "definitionIdentity": "0b7652eacb2fcc6951ba34bb1094d6dc55a8d6c89bd98cbeb56c88289c438d26",
+      "witnessNames": [
+        "CIS.Tests.UnitTests.Healthcheck.HealthPipeInternalMutationQualificationTests.FirstInstanceProtectionRejectsAnExistingEndpointEvenWhenItHasSpareCapacity",
+        "CIS.Tests.UnitTests.Healthcheck.HealthPipePublicLifecycleBoundaryTests.ActualFirstAndAdditionalEndpointsSupportAsynchronousDuplexTransport",
+        "CIS.Tests.UnitTests.Healthcheck.HealthPipeForeignOwnerBoundaryTests.ForeignPeerRejectionPreservesTheActualOwnersAdmission"
+      ]
+    },
+    {
+      "obligation": "unixEndpointInnerOptions",
+      "requirement": "HC-C08/unixEndpointInnerOptions",
+      "source": "Healthcheck/Pipes/HealthPipeEndpoint.cs",
+      "sourceSha256": "1e39973ca242e5ef08b49f8efc696fb9b6e8d9ab5cc98173cdda5f674c820b9e",
+      "operator": "Bitwise mutation",
+      "relativeStart": 0,
+      "length": 54,
+      "original": "PipeOptions.Asynchronous | PipeOptions.CurrentUserOnly",
+      "replacement": "PipeOptions.Asynchronous & PipeOptions.CurrentUserOnly",
+      "definitionIdentity": "9ecc9e2122cc190d334e088b172315051a01f1e095f325f5694f8d6a2b45cfd9",
+      "witnessNames": [
+        "CIS.Tests.UnitTests.Healthcheck.HealthPipePublicLifecycleBoundaryTests.ActualFirstAndAdditionalEndpointsSupportAsynchronousDuplexTransport",
+        "CIS.Tests.UnitTests.Healthcheck.HealthPipeForeignOwnerBoundaryTests.ForeignPeerRejectionPreservesTheActualOwnersAdmission"
+      ]
+    },
+    {
+      "obligation": "unixEndpointAlwaysFirst",
+      "requirement": "HC-C08/unixEndpointAlwaysFirst",
+      "source": "Healthcheck/Pipes/HealthPipeEndpoint.cs",
+      "sourceSha256": "1e39973ca242e5ef08b49f8efc696fb9b6e8d9ab5cc98173cdda5f674c820b9e",
+      "operator": "Conditional (true) mutation",
+      "relativeStart": 58,
+      "length": 56,
+      "original": "first ? PipeOptions.FirstPipeInstance : PipeOptions.None",
+      "replacement": "(true?PipeOptions.FirstPipeInstance :PipeOptions.None)",
+      "definitionIdentity": "58eb9fcf9e10f2d1ac1c1b754bf7fbab8b8fcd8b39107119b20a69dc153f0aeb",
+      "witnessNames": [
+        "CIS.Tests.UnitTests.Healthcheck.HealthPipeInternalMutationQualificationTests.FirstInstanceProtectionRejectsAnExistingEndpointEvenWhenItHasSpareCapacity",
+        "CIS.Tests.UnitTests.Healthcheck.HealthPipePublicLifecycleBoundaryTests.ActualFirstAndAdditionalEndpointsSupportAsynchronousDuplexTransport"
+      ]
+    },
+    {
+      "obligation": "unixEndpointNeverFirst",
+      "requirement": "HC-C08/unixEndpointNeverFirst",
+      "source": "Healthcheck/Pipes/HealthPipeEndpoint.cs",
+      "sourceSha256": "1e39973ca242e5ef08b49f8efc696fb9b6e8d9ab5cc98173cdda5f674c820b9e",
+      "operator": "Conditional (false) mutation",
+      "relativeStart": 58,
+      "length": 56,
+      "original": "first ? PipeOptions.FirstPipeInstance : PipeOptions.None",
+      "replacement": "(false?PipeOptions.FirstPipeInstance :PipeOptions.None)",
+      "definitionIdentity": "127639143f7d2b097d2b2c6dc12635f890d09f7e4ff0a659e7955fd2a4bdf8e2",
+      "witnessNames": [
+        "CIS.Tests.UnitTests.Healthcheck.HealthPipeInternalMutationQualificationTests.FirstInstanceProtectionRejectsAnExistingEndpointEvenWhenItHasSpareCapacity"
+      ]
+    },
+    {
+      "obligation": "unixServerForeignPeerRecovery",
+      "requirement": "HC-C08/unixServerForeignPeerRecovery",
+      "source": "Healthcheck/Pipes/HealthPipeServer.cs",
+      "sourceSha256": "eff4b352ce9aedc4d6d00fb557759e0c0f4e897c11816478ee6b925fa16538ba",
+      "operator": "Statement mutation",
+      "relativeStart": 0,
+      "length": 9,
+      "original": "continue;",
+      "replacement": ";",
+      "definitionIdentity": "836eb7a78a9cc851b5b48f2174e5ca4d718516402ce282c4285ab2a869b62173",
+      "witnessNames": [
+        "CIS.Tests.UnitTests.Healthcheck.HealthPipeForeignOwnerBoundaryTests.ForeignPeerRejectionPreservesTheActualOwnersAdmission"
+      ]
+    },
+    {
+      "obligation": "unixProbeForeignOwner",
+      "requirement": "HC-C08/unixProbeForeignOwner",
+      "source": "Healthcheck/Pipes/HealthProbeClient.cs",
+      "sourceSha256": "abfccfc3bea7c467f7b0ab6e7e3c00cc5430d6ef753e738a1091cac278d98e11",
+      "operator": "Bitwise mutation",
+      "relativeStart": 0,
+      "length": 54,
+      "original": "PipeOptions.Asynchronous | PipeOptions.CurrentUserOnly",
+      "replacement": "PipeOptions.Asynchronous & PipeOptions.CurrentUserOnly",
+      "definitionIdentity": "0657ac6bcd814b1b43a0dd6c2cdcf5f697dbc07ddee1f6ed33d64e3e4dd96c1e",
+      "witnessNames": [
+        "CIS.Tests.UnitTests.Healthcheck.HealthPipeForeignOwnerBoundaryTests.CurrentUserOnlyRejectsAnAccessibleForeignOwnerBeforeSendingARequest"
+      ]
+    }
+  ]
+}

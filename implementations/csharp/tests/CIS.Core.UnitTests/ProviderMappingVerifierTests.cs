@@ -8,6 +8,12 @@ namespace CIS.Tests.UnitTests;
 [TestClass]
 public sealed class ProviderMappingVerifierTests
 {
+#if !CIS_MUTATION_TESTS
+    // Retain only text from a real capture after its cleanup has completed.
+    private static readonly Dictionary<string, Lazy<Task<string>>> Observations = ProviderMappingFixture.Modes.ToDictionary(
+        mode => mode, mode => new Lazy<Task<string>>(async () => (await ProviderMappingFixture.ExecuteAsync(mode)).ToJsonString()), StringComparer.Ordinal);
+#endif
+
     [TestMethod]
     [DataRow("pid", "levels", "actual child PID")]
     [DataRow("runtime", "levels", "actual runtime")]
@@ -47,7 +53,11 @@ public sealed class ProviderMappingVerifierTests
     [DataRow("event-id-float", "ids", "numeric event ID")]
     public async Task CorruptedReportsFailAtTheCorrespondingAssertion(string control, string mode, string reason)
     {
+#if CIS_MUTATION_TESTS
         JsonObject good = await ProviderMappingFixture.ExecuteAsync(mode);
+#else
+        JsonObject good = JsonNode.Parse(await Observations[mode].Value)!.AsObject();
+#endif
         int pid = System.Environment.ProcessId;
         ProviderMappingExpectations.Validate(mode, good, pid);
         JsonObject bad = good.DeepClone().AsObject();
@@ -112,7 +122,11 @@ public sealed class ProviderMappingVerifierTests
     [TestMethod]
     public async Task EquivalentStructuredPropertyOrderIsAccepted()
     {
+#if CIS_MUTATION_TESTS
         JsonObject report = await ProviderMappingFixture.ExecuteAsync("structured");
+#else
+        JsonObject report = JsonNode.Parse(await Observations["structured"].Value)!.AsObject();
+#endif
         Wire(report, row =>
         {
             JsonObject attributes = row["attributes"]!.AsObject();

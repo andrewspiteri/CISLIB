@@ -8,13 +8,13 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace CIS.Tests.IntegrationTests;
 
-internal sealed record ProviderReportCapture(JsonObject Report, string ConsoleText, int ProcessId);
+internal sealed record ProviderReportCapture(JsonObject Report, string ConsoleText, int ProcessId, string Evidence);
 
 internal static class ProviderReportProcess
 {
     private const string RuntimeVersion = "10.0.12";
 
-    internal static async Task<ProviderReportCapture> RunAsync(string family, string mode, TestContext context)
+    internal static async Task<ProviderReportCapture> RunAsync(string family, string mode, TestContext? context = null)
     {
         using var root = new TemporaryDirectory();
         var environment = System.Environment.GetEnvironmentVariables().Keys.Cast<string>()
@@ -53,15 +53,20 @@ internal static class ProviderReportProcess
         byte[] actual = exists ? File.ReadAllBytes(file) : [];
         if (exists || family != "provider-behavior") { CollectionAssert.AreEqual(actual, Convert.FromBase64String(report[family == "provider-host-filter" ? "fileBytes" : "bytes"]!.GetValue<string>())); }
         if (exists) { using var lease = new FileStream(file + ".cis.lock", FileMode.Open, FileAccess.ReadWrite, FileShare.None); }
-        context.WriteLine("Physical provider command: " + string.Join(" ", arguments));
-        context.WriteLine("Physical child PID: " + child.ProcessId);
-        context.WriteLine("Physical file SHA-256: " + Convert.ToHexStringLower(SHA256.HashData(actual)));
-        context.WriteLine("Original stdout SHA-256: " + Convert.ToHexStringLower(SHA256.HashData(child.StandardOutputBytes.Span)));
-        context.WriteLine("Original stderr SHA-256: " + Convert.ToHexStringLower(SHA256.HashData(child.StandardErrorBytes.Span)));
-        context.WriteLine("Physical file exists/lease reacquired: " + exists);
-        context.WriteLine("Physical provider report: " + report.ToJsonString());
-        if (family == "provider-host-filter") { context.WriteLine("Physical console bytes (base64): " + Convert.ToBase64String(child.StandardErrorBytes.Span)); }
-        return new(report, child.StandardError, child.ProcessId);
+        string[] evidence =
+        [
+            "Physical provider command: " + string.Join(" ", arguments),
+            "Physical child PID: " + child.ProcessId,
+            "Physical file SHA-256: " + Convert.ToHexStringLower(SHA256.HashData(actual)),
+            "Original stdout SHA-256: " + Convert.ToHexStringLower(SHA256.HashData(child.StandardOutputBytes.Span)),
+            "Original stderr SHA-256: " + Convert.ToHexStringLower(SHA256.HashData(child.StandardErrorBytes.Span)),
+            "Physical file exists/lease reacquired: " + exists,
+            "Physical provider report: " + report.ToJsonString()
+        ];
+        string proof = string.Join(Environment.NewLine, evidence);
+        if (family == "provider-host-filter") { proof += Environment.NewLine + "Physical console bytes (base64): " + Convert.ToBase64String(child.StandardErrorBytes.Span); }
+        context?.WriteLine(proof);
+        return new(report, child.StandardError, child.ProcessId, proof);
     }
 
     private static string FrameworkFactoryPath()

@@ -292,18 +292,5 @@ public sealed class LogValueTests
         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
     }
 
-    internal static JsonObject Read(string name = "event-value-cases.json")
-    {
-        DirectoryInfo? directory = new(AppContext.BaseDirectory);
-        while (directory is not null)
-        {
-            string path = Path.Combine(directory.FullName, "conformance", "logging", name);
-            if (File.Exists(path))
-            {
-                return JsonNode.Parse(File.ReadAllText(path))!.AsObject();
-            }
-            directory = directory.Parent;
-        }
-        throw new FileNotFoundException("Cannot find portable value fixtures.");
-    }
+    internal static JsonObject Read(string name = "event-value-cases.json") => QualificationFixtureInputs.ReadLogging(name);
 }

@@ -155,13 +155,7 @@ internal static class HealthcheckMutationChildProtocol
 
     private static MethodDefinition ProbeRunAsync(MetadataReader metadata)
     {
-        MethodDefinition run = metadata.GetMethodDefinition(ProbeRunAsyncHandle(metadata));
-        MethodSignature<string> signature = run.DecodeSignature(new ProbeSignatureProvider(), null);
-        Require((run.Attributes & MethodAttributes.MemberAccessMask) == MethodAttributes.Assembly && run.Attributes.HasFlag(MethodAttributes.Static)
-            && !signature.Header.IsInstance && signature.Header.CallingConvention == SignatureCallingConvention.Default && signature.GenericParameterCount == 0
-            && signature.ReturnType == "System.Threading.Tasks.Task`1<Int32>"
-            && signature.ParameterTypes.SequenceEqual(["String[]", "System.IO.Stream", "System.IO.TextWriter", "System.Threading.CancellationToken"], StringComparer.Ordinal), ProbeFrameError);
-        return run;
+        return metadata.GetMethodDefinition(ProbeRunAsyncHandle(metadata));
     }
 
     private static MethodDefinitionHandle ProbeRunAsyncHandle(MetadataReader metadata)
@@ -171,8 +165,24 @@ internal static class HealthcheckMutationChildProtocol
             MethodDefinition method = metadata.GetMethodDefinition(handle);
             return metadata.GetString(method.Name) == "RunAsync" && TypeName(metadata, method.GetDeclaringType()) == ProbeType;
         }).ToArray();
-        Require(matches.Length == 1, ProbeFrameError);
-        return matches[0];
+        Require(matches.Length is 1 or 2, ProbeFrameError);
+        string[] facade = ["String[]", "System.IO.Stream", "System.IO.TextWriter", "System.Threading.CancellationToken"];
+        string[] worker = ["String[]", "System.IO.Stream", "System.IO.TextWriter", "System.TimeProvider",
+            "System.Func`4<Byte[],CIS.Healthcheck.HealthReportView,Int32,CIS.Healthcheck.Reporting.HealthParsedResponse>", "System.Threading.CancellationToken"];
+        var signatures = matches.Select(handle =>
+        {
+            MethodDefinition method = metadata.GetMethodDefinition(handle);
+            MethodSignature<string> signature = method.DecodeSignature(new ProbeSignatureProvider(), null);
+            Require((method.Attributes & MethodAttributes.MemberAccessMask) == MethodAttributes.Assembly && method.Attributes.HasFlag(MethodAttributes.Static)
+                && !signature.Header.IsInstance && signature.Header.CallingConvention == SignatureCallingConvention.Default && signature.GenericParameterCount == 0
+                && signature.ReturnType == "System.Threading.Tasks.Task`1<Int32>", ProbeFrameError);
+            return (Handle: handle, Parameters: signature.ParameterTypes);
+        }).ToArray();
+        Require(signatures.Count(item => item.Parameters.SequenceEqual(facade, StringComparer.Ordinal)) == 1, ProbeFrameError);
+        if (matches.Length == 1) { return matches[0]; } // Historical four-argument Core body.
+        var workers = signatures.Where(item => item.Parameters.SequenceEqual(worker, StringComparer.Ordinal)).ToArray();
+        Require(workers.Length == 1, ProbeFrameError);
+        return workers[0].Handle; // Current actual async body, rather than its forwarding facade.
     }
 
     private static string TypeName(MetadataReader metadata, TypeDefinitionHandle handle)
@@ -198,7 +208,12 @@ internal static class HealthcheckMutationChildProtocol
         public string GetGenericInstantiation(string genericType, ImmutableArray<string> typeArguments) => genericType + "<" + string.Join(",", typeArguments) + ">";
         public string GetTypeFromReference(MetadataReader metadata, TypeReferenceHandle handle, byte rawTypeKind) => FrameworkTypeName(metadata, handle);
         public string GetTypeFromSpecification(MetadataReader metadata, object? context, TypeSpecificationHandle handle, byte rawTypeKind) => metadata.GetTypeSpecification(handle).DecodeSignature(this, context);
-        public string GetTypeFromDefinition(MetadataReader metadata, TypeDefinitionHandle handle, byte rawTypeKind) => throw new InvalidOperationException(ProbeFrameError);
+        public string GetTypeFromDefinition(MetadataReader metadata, TypeDefinitionHandle handle, byte rawTypeKind)
+        {
+            string name = TypeName(metadata, handle);
+            Require(name is "CIS.Healthcheck.HealthReportView" or "CIS.Healthcheck.Reporting.HealthParsedResponse", ProbeFrameError);
+            return name;
+        }
         public string GetArrayType(string elementType, ArrayShape shape) => throw new InvalidOperationException(ProbeFrameError);
         public string GetByReferenceType(string elementType) => throw new InvalidOperationException(ProbeFrameError);
         public string GetFunctionPointerType(MethodSignature<string> signature) => throw new InvalidOperationException(ProbeFrameError);

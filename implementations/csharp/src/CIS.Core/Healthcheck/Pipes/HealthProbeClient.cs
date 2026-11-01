@@ -11,10 +11,19 @@ internal static class HealthProbeClient
 {
     internal static async Task<int> RunAsync(string[] arguments, Stream standardOutput, TextWriter standardError,
         CancellationToken cancellationToken = default)
+        => await RunAsync(arguments, standardOutput, standardError, TimeProvider.System,
+            static (payload, view, maximum) => HealthReportProtocol.ParseResponse(payload, view, maximum),
+            cancellationToken).ConfigureAwait(false);
+
+    internal static async Task<int> RunAsync(string[] arguments, Stream standardOutput, TextWriter standardError,
+        TimeProvider clock, Func<byte[], HealthReportView, int, HealthParsedResponse> responseParser,
+        CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(arguments);
         ArgumentNullException.ThrowIfNull(standardOutput);
         ArgumentNullException.ThrowIfNull(standardError);
+        ArgumentNullException.ThrowIfNull(clock);
+        ArgumentNullException.ThrowIfNull(responseParser);
         if (!TryParseArguments(arguments, out var settings))
         {
             await WriteErrorAsync(standardError, "InvalidArguments").ConfigureAwait(false);
@@ -22,7 +31,7 @@ internal static class HealthProbeClient
         }
         try
         {
-            using var budget = new HealthPipeBudget(TimeProvider.System, settings.TimeoutMilliseconds, cancellationToken);
+            using var budget = new HealthPipeBudget(clock, settings.TimeoutMilliseconds, cancellationToken);
             using var client = new NamedPipeClientStream(".", settings.PipeName, PipeDirection.InOut,
                 PipeOptions.Asynchronous | PipeOptions.CurrentUserOnly);
             await client.ConnectAsync(budget.Token).ConfigureAwait(false);
@@ -32,7 +41,7 @@ internal static class HealthProbeClient
             budget.ThrowIfExpired();
             byte[] response = await HealthReportProtocol.ReadFrameAsync(client, settings.MaxReportBytes, budget.Token).ConfigureAwait(false);
             budget.ThrowIfExpired();
-            var parsed = HealthReportProtocol.ParseResponse(response, settings.View, settings.MaxReportBytes);
+            HealthParsedResponse parsed = responseParser(response, settings.View, settings.MaxReportBytes);
             budget.ThrowIfExpired();
             if (parsed.IsError)
             {

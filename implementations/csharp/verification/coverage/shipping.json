@@ -20,7 +20,15 @@
         "Logging/LogWriteOutcome.cs": "Enum declarations only; no executable method body.",
         "Logging/Runtime/ILogOutputAdmission.cs": "Interface declarations only; no default implementations.",
         "Logging/ILogWriter.cs": "Interface declarations only; no default implementations.",
-        "TypeManagement/TypeManagerFailureKind.cs": "Enum declarations only; no executable method body."
+        "TypeManagement/TypeManagerFailureKind.cs": "Enum declarations only; no executable method body.",
+        "Healthcheck/Contracts/HealthEnums.cs": "Reviewed declaration-only enums; normalized source hash is enforced by the shared Healthcheck authority.",
+        "Healthcheck/Contracts/Execution/HealthExecutionEnums.cs": "Reviewed declaration-only enums; normalized source hash is enforced by the shared Healthcheck authority.",
+        "Healthcheck/Contracts/HealthMonitorContracts.cs": "Reviewed declaration-only interfaces; normalized source hash is enforced by the shared Healthcheck authority.",
+        "Healthcheck/Contracts/Execution/IHealthExecutionBinding.cs": "Reviewed declaration-only interface; normalized source hash is enforced by the shared Healthcheck authority.",
+        "Healthcheck/Contracts/Collection/IHealthCollector.cs": "Reviewed declaration-only interfaces; normalized source hash is enforced by the shared Healthcheck authority.",
+        "Healthcheck/Internal/Contracts/IHealthStateAccess.cs": "Reviewed declaration-only interface; normalized source hash is enforced by the shared Healthcheck authority.",
+        "Healthcheck/Internal/Contracts/IHealthExecutionState.cs": "Reviewed declaration-only interface; normalized source hash is enforced by the shared Healthcheck authority.",
+        "Healthcheck/Internal/Contracts/IHealthCollectionState.cs": "Reviewed declaration-only interface; normalized source hash is enforced by the shared Healthcheck authority."
       }
     },
     {
@@ -31,6 +39,15 @@
       "nonExecutable": {}
     }
   ],
+  "collectionProfile": "core-and-build-helper-four-families/v2",
+  "testSelection": {
+    "unitFilter": "FullyQualifiedName!=CIS.Tests.UnitTests.IncomingMeasurementsTests.RecordQuietFullContendedAndCompleteCallerCosts",
+    "excludedMethod": "CIS.Tests.UnitTests.IncomingMeasurementsTests.RecordQuietFullContendedAndCompleteCallerCosts",
+    "expectedExcludedRows": 18,
+    "uninstrumentedFilter": "TestCategory=PerformanceObservation|TestCategory=ExtendedStress",
+    "uninstrumentedBudgetSeconds": 300,
+    "uninstrumentedExpectedRows": 52
+  },
   "families": {
     "unit": "UnitTests",
     "integration": "IntegrationTests",

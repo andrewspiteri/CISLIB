@@ -48,7 +48,7 @@ internal sealed class CandidatePackageFixture
         Directory.CreateDirectory(Path.Combine(fixture.Root, "feed")); Directory.CreateDirectory(Path.Combine(fixture.Root, "app"));
         string core = typeof(CoreLogRuntime).Assembly.Location;
         string version = FileVersionInfo.GetVersionInfo(core).ProductVersion!.Split('+')[0];
-        string package = Path.Combine(repository, ".artifacts/csharp/packages", "CIS.Core." + version + ".nupkg");
+        string package;
         // Test Explorer normally builds Debug. Give that development run its own package;
         // checkpoint/release runs still consume and verify the previously selected Release package.
         if (typeof(CoreLogRuntime).Assembly.GetCustomAttributes(typeof(System.Reflection.AssemblyConfigurationAttribute), false)
@@ -61,6 +61,7 @@ internal sealed class CandidatePackageFixture
             Assert.AreEqual(0, packed.ExitCode, packed.StandardOutput + packed.StandardError);
             package = Path.Combine(feed, "CIS.Core." + version + ".nupkg");
         }
+        else { package = VerificationCheckpoint.Package(repository); }
         using (ZipArchive zip = ZipFile.OpenRead(package))
         {
             using Stream dll = zip.GetEntry("lib/net10.0/CIS.Core.dll")!.Open();

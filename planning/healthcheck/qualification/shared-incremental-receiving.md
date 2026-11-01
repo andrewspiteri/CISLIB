@@ -1,5 +1,16 @@
 # Receiving saved incremental mutation results
 
+29 October 2026: this document now describes the historical shared-incremental
+route. New recovery candidates use the [grouped native receiver](../../../implementations/csharp/verification/mutation/healthcheck/README.md),
+which accepts compact candidate-bound reviews without per-mutant C# catalogues
+or historical capture chains. Complete scope, the conservative 90% gate, no
+timeout kill credit and actual infrastructure/child-lifecycle holds are retained.
+
+Historical checker commands and workflow tests require an explicit rebuild with
+`-p:CisHistoricalVerification=true`; the default build gives a clear refusal.
+Use only matching historical records. This opt-in does not convert those records
+into current grouped acceptance.
+
 The prospective receiver accepts current, source-bound results from shared CIS
 without merging or rewriting native reports. Its command is
 `healthcheck-shared-mutation` in `CIS.DependencyChecker`. This is an HC12 mutation

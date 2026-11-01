@@ -79,7 +79,7 @@ public sealed class DependencyMigrationTests
     {
         using var fixture = new ProjectFixture(Language);
         if (mode == "unregistered-project") { File.WriteAllText(Path.Combine(fixture.Path, "Foreign.csproj"), "<Project />"); }
-        ProcessResult result = await DependencyCheckRunner.Run(Language, fixture.Path, mode == "unknown-selection" ? "Foreign.csproj" : "-");
+        DependencyCheckRunner.CheckResult result = await DependencyCheckRunner.Run(Language, fixture.Path, mode == "unknown-selection" ? "Foreign.csproj" : "-");
         Reject(result, mode == "unknown-selection" ? "Unknown project requested" : "Unregistered C# project");
     }
 
@@ -121,8 +121,8 @@ public sealed class DependencyMigrationTests
         StringAssert.Contains(mutant.StandardOutput, "\"roleGuardMutationObserved\":true");
     }
 
-    private static Task<ProcessResult> Check(string root) => DependencyCheckRunner.Run(Language, root, "src/CIS.Core/CIS.Core.csproj");
-    private static void Reject(ProcessResult result, string reason)
+    private static Task<DependencyCheckRunner.CheckResult> Check(string root) => DependencyCheckRunner.Run(Language, root, "src/CIS.Core/CIS.Core.csproj");
+    private static void Reject(DependencyCheckRunner.CheckResult result, string reason)
     {
         Assert.AreEqual(1, result.ExitCode, result.StandardOutput + result.StandardError);
         StringAssert.Contains(result.StandardError, reason);

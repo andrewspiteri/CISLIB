@@ -12,7 +12,35 @@ namespace CIS.Tests.ArchitectureTests;
 public sealed class ArchitectureOwnershipTests
 {
     private static readonly string Root = FindRoot();
+    private sealed record PositiveObservation(JsonObject Report, JsonObject Policy);
+#if !CIS_MUTATION_TESTS
+    private static readonly Lazy<PositiveObservation> Positive = new(ObservePositive);
+#endif
+    private static PositiveObservation ObservePositive()
+    {
+        JsonObject report = ReadCurrent();
+        return new(report, ArchitectureOwnershipPolicy.Assert(Root, report));
+    }
+    private static PositiveObservation Observation()
+    {
+#if CIS_MUTATION_TESTS
+        return ObservePositive();
+#else
+        return Positive.Value;
+#endif
+    }
+    // Keep the genuine positive immutable and isolate every negative case's edits.
     private static JsonObject Current()
+    {
+        JsonObject report = Observation().Report;
+        return new JsonObject
+        {
+            ["package"] = report["package"]!.DeepClone(),
+            ["packageAssets"] = report["packageAssets"]!.DeepClone(),
+            ["assemblies"] = report["assemblies"]!.DeepClone()
+        };
+    }
+    private static JsonObject ReadCurrent()
     {
         string? inspection = System.Environment.GetEnvironmentVariable("CIS_ARCHITECTURE_INSPECTION");
         if (!string.IsNullOrWhiteSpace(inspection)) { return JsonNode.Parse(File.ReadAllText(inspection))!.AsObject(); }
@@ -29,8 +57,9 @@ public sealed class ArchitectureOwnershipTests
     [TestMethod]
     public void ActualNativePackageAndImmutableGraphsPassWithTheApprovedSetupInputs()
     {
-        JsonObject report = Current();
-        JsonObject result = ArchitectureOwnershipPolicy.Assert(Root, report);
+        PositiveObservation observation = Observation();
+        JsonObject report = observation.Report;
+        JsonObject result = observation.Policy;
         Assert.AreEqual(0, result["violations"]!.GetValue<int>());
         Assert.IsTrue(result["immutableTypes"]!.GetValue<int>() >= 20);
         Assert.IsTrue(result["checkedContractUses"]!.GetValue<int>() > 100);
@@ -74,8 +103,7 @@ public sealed class ArchitectureOwnershipTests
     [DataRow("contract-nested-runtime", "ARCH-CONTRACT-OUTPUT")]
     public void CompiledFactControlsRejectEachOwnershipAndSeparationViolation(string change, string code)
     {
-        JsonObject facts = Facts(Current());
-        _ = ArchitectureOwnershipPolicy.AssertAssembly(facts);
+        JsonObject facts = Facts(Observation().Report).DeepClone().AsObject();
         JsonObject metadata = Type(facts, "CIS.Logging.EventMetadata"), environment = Type(facts, "CIS.EnvironmentOptions");
         switch (change)
         {
@@ -137,7 +165,6 @@ public sealed class ArchitectureOwnershipTests
     public void ActualPackageCopiesRejectUnexpectedOrAlteredAssets(string change, string code)
     {
         JsonObject report = Current();
-        _ = ArchitectureOwnershipPolicy.AssertPackage(Root, report);
         using var temporary = new TemporaryDirectory();
         string path = Path.Combine(temporary.Path, "candidate.nupkg");
         File.Copy(report["package"]!["path"]!.GetValue<string>(), path);

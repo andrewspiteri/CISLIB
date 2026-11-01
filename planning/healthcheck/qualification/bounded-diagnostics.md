@@ -1,5 +1,7 @@
 # Bounded Healthcheck mutation diagnostics
 
+Current recovery route, 29 October 2026: use the [grouped native producer and compact receiver](../../../implementations/csharp/verification/mutation/healthcheck/README.md) with its correctness pilot and explicit budgets. The shared incremental/per-file route, per-mutant capture dependencies and early-bail proposal described below are historical. Their retained reports keep their original interpretation; they do not govern new grouped candidates. The current grouped route keeps native first-failure bail disabled until actual adapter-path evidence qualifies a change.
+
 ## Prospective CIS outcome policy — 26 October 2026
 
 The user approved adopting CIS's shared native-outcome rule for future Healthcheck

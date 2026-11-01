@@ -66,10 +66,11 @@ internal static class ExceptionBoundarySources
             _ => throw new InvalidDataException("Unknown scalar pattern.")
         };
         Rune[] runes = token.EnumerateRunes().ToArray();
+        string[] pieces = runes.Select(rune => rune.ToString()).ToArray();
         var text = new StringBuilder();
         for (int index = 0; index < scalars; index++)
         {
-            text.Append(runes[index % runes.Length].ToString());
+            text.Append(pieces[index % runes.Length]);
         }
         return text.ToString();
     }

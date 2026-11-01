@@ -123,7 +123,10 @@ public sealed partial class HealthcheckMutationNativeAuditTests
         string checkerPath = Path.Combine(language.FullName, "eng", "CIS.DependencyChecker", "bin", configuration, "net10.0", "CIS.DependencyChecker.dll");
         Assert.IsTrue(File.Exists(checkerPath), "Build the maintained checker in the test configuration before this metadata control.");
         Assembly checker = Assembly.LoadFrom(checkerPath);
-        Assert.AreEqual(Path.GetFullPath(checkerPath), checker.Location);
+        // A project reference may already have loaded the copy-local checker
+        // with this identity. Require the actual maintained bytes in either location.
+        Assert.AreEqual(Convert.ToHexStringLower(SHA256.HashData(File.ReadAllBytes(checkerPath))),
+            Convert.ToHexStringLower(SHA256.HashData(File.ReadAllBytes(checker.Location))));
         Type union = checker.GetType("CIS.Verification.HealthcheckMutationUnionVerification", true)!;
         Type pinnedType = union.GetNestedType("PinnedInputs", BindingFlags.NonPublic)!;
         object pinned = Activator.CreateInstance(pinnedType, BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic,

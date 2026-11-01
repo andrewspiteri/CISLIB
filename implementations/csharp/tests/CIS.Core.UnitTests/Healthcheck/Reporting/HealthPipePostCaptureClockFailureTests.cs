@@ -7,7 +7,9 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace CIS.Tests.UnitTests.Healthcheck;
 
+// Forced collections for lifetime checks must not overlap other real pipe deadlines.
 [TestClass]
+[DoNotParallelize]
 public sealed partial class HealthPipePostCaptureClockFailureTests
 {
     private static readonly TimeSpan Deadline = TimeSpan.FromSeconds(15);

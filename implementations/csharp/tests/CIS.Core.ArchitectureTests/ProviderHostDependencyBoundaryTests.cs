@@ -19,6 +19,13 @@ public sealed class ProviderHostDependencyBoundaryTests
         using var fixture = new ProjectFixture(language);
         Directory.CreateDirectory(Path.Combine(fixture.Path, "tests"));
         File.Copy(Path.Combine(language, "tests", "Directory.Build.targets"), Path.Combine(fixture.Path, "tests", "Directory.Build.targets"));
+        if (mode == "test-package")
+        {
+            // Preserve the real Unit project's maintained imports during its
+            // isolated dependency evaluation.
+            foreach (string name in new[] { "UnitFixtures.props", "VerificationSuites.props" })
+            { File.Copy(Path.Combine(language, "tests", name), Path.Combine(fixture.Path, "tests", name)); }
+        }
         string relative = mode == "test-package" ? "tests/CIS.Core.UnitTests/CIS.Core.UnitTests.csproj" : "tests/fixtures/DiscoveryHost/CIS.Core.DiscoveryFixture.csproj";
         string projectPath = Path.Combine(fixture.Path, relative);
         Directory.CreateDirectory(Path.GetDirectoryName(projectPath)!);
@@ -45,7 +52,7 @@ public sealed class ProviderHostDependencyBoundaryTests
         string assetsPath = Path.Combine(Path.GetDirectoryName(projectPath)!, "obj", "project.assets.json");
         Directory.CreateDirectory(Path.GetDirectoryName(assetsPath)!);
         File.WriteAllText(assetsPath, assets.ToJsonString());
-        ProcessResult positive = await Check();
+        DependencyCheckRunner.CheckResult positive = await Check();
         Assert.AreEqual(0, positive.ExitCode, positive.StandardOutput + positive.StandardError);
         if (mode == "private-assets")
         {
@@ -58,10 +65,10 @@ public sealed class ProviderHostDependencyBoundaryTests
             target[id] = new JsonObject { ["type"] = "package" };
             File.WriteAllText(assetsPath, assets.ToJsonString());
         }
-        ProcessResult negative = await Check();
+        DependencyCheckRunner.CheckResult negative = await Check();
         Assert.AreNotEqual(0, negative.ExitCode, negative.StandardOutput + negative.StandardError);
         StringAssert.Contains(negative.StandardError, expected);
-        Task<ProcessResult> Check() => DependencyCheckRunner.Run(language, fixture.Path, relative);
+        Task<DependencyCheckRunner.CheckResult> Check() => DependencyCheckRunner.Run(language, fixture.Path, relative);
     }
 
     private static string FindRoot()

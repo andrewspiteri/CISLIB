@@ -10,7 +10,9 @@ namespace CIS.Tests.UnitTests;
 [TestClass]
 public sealed class OutputAccountingTests
 {
-    public static IEnumerable<object[]> Rows => Catalog()["cases"]!.AsArray().Select(row => new object[] { row!["id"]!.GetValue<string>() });
+    private static readonly Lazy<LoggingFixtureInputs> Inputs = new(() => new("output-accounting-cases.json"));
+
+    public static IEnumerable<object[]> Rows => Inputs.Value.Ids.Select(id => new object[] { id });
     [TestMethod]
     [DynamicData(nameof(Rows))]
     public async Task ActualWorkersKeepCumulativeCountsAndUnresolvedGauges(string id)
@@ -96,6 +98,6 @@ public sealed class OutputAccountingTests
         }
         finally { release.TrySetResult(); runtime.CloseAdmission(); await runtime.QueuedOutputs.Completion.WaitAsync(TimeSpan.FromSeconds(10)); }
     }
-    private static JsonObject Catalog() => JsonNode.Parse(File.ReadAllText(Path.Combine(Path.GetDirectoryName(ConfigurationFixtureAdapter.FindFixture())!, "output-accounting-cases.json")))!.AsObject();
-    private static JsonObject Row(string id) => Catalog()["cases"]!.AsArray().Single(row => row!["id"]!.GetValue<string>() == id)!.AsObject();
+    private static JsonObject Catalog() => Inputs.Value.Catalog();
+    private static JsonObject Row(string id) => Inputs.Value.Row(id);
 }

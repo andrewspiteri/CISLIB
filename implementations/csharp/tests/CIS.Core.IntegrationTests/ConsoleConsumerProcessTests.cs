@@ -1,3 +1,4 @@
+using System.Collections.Concurrent;
 using System.Text.Json.Nodes;
 using CIS.Tests.DiscoveryFixture;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -7,6 +8,9 @@ namespace CIS.Tests.IntegrationTests;
 [TestClass]
 public sealed class ConsoleConsumerProcessTests
 {
+#if !CIS_MUTATION_TESTS
+    private static readonly ConcurrentDictionary<string, Lazy<Task<string>>> ReaderPositives = new(StringComparer.Ordinal);
+#endif
     public TestContext TestContext { get; set; } = null!;
     public static IEnumerable<object[]> Rows => ConsoleProcessChecks.Cases("consumer", 38);
     [TestMethod]
@@ -28,7 +32,7 @@ public sealed class ConsoleConsumerProcessTests
     [DataRow("records", "Consumer record count differs.")]
     public async Task ConsumerComparerRejectsSpecificCorruption(string fault, string reason)
     {
-        (JsonObject catalog, JsonObject row, JsonObject actual) = await Run("CONSUMER-BLOCK-JSONL-STDERR");
+        (JsonObject catalog, JsonObject row, JsonObject actual) = await ReadPositive("CONSUMER-BLOCK-JSONL-STDERR");
         ConsoleConsumerExpectations.Damage(actual, fault);
         InvalidDataException error = Assert.ThrowsExactly<InvalidDataException>(() => ConsoleConsumerExpectations.Validate(catalog, row, actual, physicalBytes: true));
         Assert.AreEqual(reason, error.Message);
@@ -44,6 +48,30 @@ public sealed class ConsoleConsumerProcessTests
         }
         Assert.AreEqual(38, identities.Count);
     }
+
+    private async Task<(JsonObject Catalog, JsonObject Row, JsonObject Actual)> ReadPositive(string id)
+    {
+#if CIS_MUTATION_TESTS
+        return await Run(id);
+#else
+        string text = await ReaderPositives.GetOrAdd(id, value => new Lazy<Task<string>>(() => CapturePositive(value))).Value;
+        JsonObject reports = JsonNode.Parse(text)!.AsObject(), catalog = reports["catalog"]!.AsObject(), actual = reports["actual"]!.AsObject();
+        JsonObject row = catalog["cases"]!.AsArray().Single(item => (string?)item!["id"] == id)!.AsObject();
+        ConsoleConsumerExpectations.Validate(catalog, row, actual, physicalBytes: true);
+        JsonNode observed = actual["observed"]!;
+        Assert.AreEqual((string?)observed["operatingSystem"], (string?)actual["resource"]!["os_family"]);
+        Assert.AreEqual(observed["processId"]!.GetValue<int>(), actual["resource"]!["process_id"]!.GetValue<int>());
+        return (catalog, row, actual);
+#endif
+    }
+
+#if !CIS_MUTATION_TESTS
+    private async Task<string> CapturePositive(string id)
+    {
+        (JsonObject catalog, _, JsonObject actual) = await Run(id);
+        return new JsonObject { ["catalog"] = catalog, ["actual"] = actual }.ToJsonString();
+    }
+#endif
 
     private async Task<(JsonObject Catalog, JsonObject Row, JsonObject Actual)> Run(string id)
     {

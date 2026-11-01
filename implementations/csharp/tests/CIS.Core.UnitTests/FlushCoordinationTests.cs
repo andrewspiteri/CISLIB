@@ -7,22 +7,9 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 namespace CIS.Tests.UnitTests;
 
 [TestClass]
-public sealed class FlushCoordinationTests
+public sealed partial class FlushCoordinationTests
 {
     private static readonly TimeSpan Limit = TimeSpan.FromSeconds(10);
-    [TestMethod]
-    [DataRow("write-cancel")]
-    [DataRow("write-deadline")]
-    [DataRow("flush-cancel")]
-    [DataRow("flush-deadline")]
-    [DataRow("cohort")]
-    [DataRow("dual")]
-    [DataRow("pre-cancel")]
-    [DataRow("fault")]
-    [DataRow("complete-race")]
-    public async Task ActualBlockedWritersRetainOnlyTargetsAndLiveCallerAttachments(string mode)
-    { using var root = new TemporaryDirectory(); FlushCoordinationExpectations.Validate(mode, await FlushCoordinationFixture.ExecuteAsync(mode, root.Path)); }
-
     [TestMethod]
     [DataRow(false)]
     [DataRow(true)]

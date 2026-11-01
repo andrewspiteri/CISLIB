@@ -1,3 +1,5 @@
+using CIS.Healthcheck.Reporting;
+
 namespace CIS.Healthcheck.Pipes;
 
 /// <summary>One connection deadline; neither progress nor successive protocol stages reset it.</summary>
@@ -19,6 +21,12 @@ internal sealed class HealthPipeBudget : IDisposable
     }
 
     internal CancellationToken Token => linked.Token;
+
+    internal Task WriteFrameAsync(Stream stream, ReadOnlyMemory<byte> payload, int maximumPayloadBytes)
+    {
+        ThrowIfExpired();
+        return HealthReportProtocol.WriteFrameAsync(stream, payload, maximumPayloadBytes, Token);
+    }
 
     internal void ThrowIfExpired()
     {

@@ -15,7 +15,7 @@ public sealed class PresentationProcessTests
     public async Task ExplicitPresentationRunsWithRedirectedStreamsInExactRuntimeChildren(string id)
     {
         string input = FixtureProcessChecks.Find("presentation-cases.json");
-        JsonObject actual = await JsonlReuseProcessTests.Capture("presentation", input, id, TestContext);
+        JsonObject actual = await LoggerFoundationProcessTests.Capture("presentation", input, id, TestContext);
         JsonObject catalog = LogValueProcessTests.Read("presentation-cases.json");
         JsonObject row = catalog["cases"]!.AsArray().Single(item => (string?)item!["id"] == id)!.AsObject();
         PresentationExpectations.Validate(row, actual);

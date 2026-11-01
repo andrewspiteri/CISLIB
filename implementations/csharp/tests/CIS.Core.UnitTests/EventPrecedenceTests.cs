@@ -12,14 +12,18 @@ namespace CIS.Tests.UnitTests;
 [DoNotParallelize]
 public sealed class EventPrecedenceTests
 {
-    public static IEnumerable<object[]> Rows => Catalog()["cases"]!.AsArray().Select(row => new object[] { row!["id"]!.GetValue<string>() });
+    private static readonly Lazy<LoggingFixtureInputs> Inputs = new(() => new("event-precedence-cases.json"));
+    private static readonly Lazy<LoggingFixtureInputs> OriginalInputs = new(() => new("event-capture-expectations.json"));
+    private static readonly Lazy<string> BindingsText = new(() => Catalog()["nativeBindings"]!.ToJsonString());
+    private static readonly Lazy<string> MetadataText = new(() => Catalog()["cases"]![0]!["input"]!["metadata"]!.ToJsonString());
+    public static IEnumerable<object[]> Rows => Inputs.Value.Ids.Select(id => new object[] { id });
     [TestMethod]
     [DynamicData(nameof(Rows))]
     public void LiteralSharedPrecedenceUsesActualOwnedCoreFacts(string id)
     {
-        JsonObject catalog = Catalog();
-        JsonObject row = catalog["cases"]!.AsArray().Single(row => row!["id"]!.GetValue<string>() == id)!.AsObject();
-        EventProjectionExpectations.Validate(row, catalog["nativeBindings"]!.AsObject(), EventPrecedenceFixture.Execute(row));
+        JsonObject row = Inputs.Value.Row(id);
+        JsonObject bindings = Bindings();
+        EventProjectionExpectations.Validate(row, bindings, EventPrecedenceFixture.Execute(row));
     }
 
     [TestMethod]
@@ -117,8 +121,7 @@ public sealed class EventPrecedenceTests
     [DataRow("CAPTURE-BLANK-IDS")]
     public void OriginalPrecedenceVectorsExecuteAgainstActualScopeAndEventFacts(string id)
     {
-        JsonObject row = LogValueTests.Read("event-capture-expectations.json")["cases"]!.AsArray()
-            .Single(row => row!["id"]!.GetValue<string>() == id)!.AsObject();
+        JsonObject row = OriginalInputs.Value.Row(id);
         JsonObject input = row["inputs"]!.AsObject();
         var store = new OperationScopeStore(); var owners = new List<IDisposable>();
         try
@@ -159,9 +162,9 @@ public sealed class EventPrecedenceTests
     [DataRow("trace-promotion", "PRECEDENCE-FREE-ID-ABSENT")]
     public void PrecedenceComparatorRejectsWrongWinnersAndFreeFormPromotion(string mutation, string id)
     {
-        JsonObject catalog = Catalog();
-        JsonObject row = catalog["cases"]!.AsArray().Single(row => row!["id"]!.GetValue<string>() == id)!.AsObject();
-        JsonObject actual = EventProjectionExpectations.Expected(row, catalog["nativeBindings"]!.AsObject());
+        JsonObject row = Inputs.Value.Row(id);
+        JsonObject bindings = Bindings();
+        JsonObject actual = EventProjectionExpectations.Expected(row, bindings);
         JsonObject projection = actual["projection"]!.AsObject(); JsonObject attributes = projection["attributes"]!.AsObject();
         switch (mutation)
         {
@@ -175,7 +178,7 @@ public sealed class EventPrecedenceTests
             case "trace-promotion": projection["trace_id"] = attributes["trace_id"]!.DeepClone(); break;
             default: throw new InvalidDataException("Unknown comparator mutation.");
         }
-        Assert.ThrowsExactly<InvalidDataException>(() => EventProjectionExpectations.Validate(row, catalog["nativeBindings"]!.AsObject(), actual));
+        Assert.ThrowsExactly<InvalidDataException>(() => EventProjectionExpectations.Validate(row, bindings, actual));
     }
 
     [TestMethod]
@@ -213,6 +216,7 @@ public sealed class EventPrecedenceTests
 
     private static Dictionary<string, LogValue> Strings(JsonObject values) => values.ToDictionary(pair => pair.Key,
         pair => LogValue.String(pair.Value!.GetValue<string>()), StringComparer.Ordinal);
-    private static JsonObject Catalog() => LogValueTests.Read("event-precedence-cases.json");
-    private static EventMetadata Snapshot() => EventProjectionFixtureSources.Create(Catalog()["cases"]![0]!["input"]!["metadata"]!.DeepClone().AsObject(), out _);
+    private static JsonObject Catalog() => QualificationFixtureInputs.ReadLogging("event-precedence-cases.json");
+    private static JsonObject Bindings() => JsonNode.Parse(BindingsText.Value)!.AsObject();
+    private static EventMetadata Snapshot() => EventProjectionFixtureSources.Create(JsonNode.Parse(MetadataText.Value)!.AsObject(), out _);
 }

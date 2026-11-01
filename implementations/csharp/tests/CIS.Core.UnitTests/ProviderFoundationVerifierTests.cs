@@ -8,6 +8,12 @@ namespace CIS.Tests.UnitTests;
 [TestClass]
 public sealed class ProviderFoundationVerifierTests
 {
+#if !CIS_MUTATION_TESTS
+    // Retain only text from a real capture after its cleanup has completed.
+    private static readonly Dictionary<string, Lazy<Task<string>>> Observations = ProviderFoundationFixture.Modes.ToDictionary(
+        mode => mode, mode => new Lazy<Task<string>>(async () => (await ProviderFoundationFixture.ExecuteAsync(mode)).ToJsonString()), StringComparer.Ordinal);
+#endif
+
     [TestMethod]
     [DataRow("pid", "forward", "actual child PID")]
     [DataRow("exception-identity", "forward", "formatter exception identity")]
@@ -39,7 +45,11 @@ public sealed class ProviderFoundationVerifierTests
     [DataRow("pid-kind", "forward", "actual child PID")]
     public async Task CorruptedReportsFailAtTheCorrespondingAssertion(string control, string mode, string reason)
     {
+#if CIS_MUTATION_TESTS
         JsonObject good = await ProviderFoundationFixture.ExecuteAsync(mode);
+#else
+        JsonObject good = JsonNode.Parse(await Observations[mode].Value)!.AsObject();
+#endif
         int pid = System.Environment.ProcessId;
         ProviderFoundationExpectations.Validate(mode, good, pid);
         JsonObject bad = good.DeepClone().AsObject();

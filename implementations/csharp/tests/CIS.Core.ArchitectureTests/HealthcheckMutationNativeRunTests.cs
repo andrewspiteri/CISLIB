@@ -20,6 +20,89 @@ public sealed class HealthcheckMutationNativeRunTests
     }
 
     [TestMethod]
+    public void OneNativeAttemptBindsEverySourceInACompleteGroup()
+    {
+        using var fixture = new Fixture();
+        string second = Path.Combine(Path.GetDirectoryName(fixture.Source)!, "Endpoint.cs");
+        File.WriteAllText(second, "class Endpoint { }");
+        fixture.Configuration["stryker-config"]!["mutate"] = new JsonArray("Healthcheck/Pipes/Budget.cs", "Healthcheck/Pipes/Endpoint.cs");
+        fixture.Save();
+        Wrapper.Request request = Wrapper.Read(fixture.Arguments());
+        CollectionAssert.AreEqual(new[] { fixture.Source, second }, request.Sources);
+        Assert.IsFalse(Directory.Exists(fixture.ChildRoot));
+    }
+
+    [TestMethod]
+    public void AGroupedAttemptCannotOmitAnInputOrRepeatASource()
+    {
+        using var fixture = new Fixture();
+        fixture.Configuration["stryker-config"]!["mutate"] = new JsonArray("Healthcheck/Pipes/Budget.cs", "Healthcheck/Pipes/Missing.cs");
+        fixture.Save();
+        Assert.ThrowsExactly<InvalidDataException>(() => Wrapper.Read(fixture.Arguments()));
+        fixture.Configuration["stryker-config"]!["mutate"] = new JsonArray("Healthcheck/Pipes/Budget.cs", "Healthcheck/Pipes/Budget.cs");
+        fixture.Save();
+        Assert.ThrowsExactly<InvalidDataException>(() => Wrapper.Read(fixture.Arguments()));
+    }
+
+    [TestMethod]
+    public void BoundedChildControlPinsTwoBaseFilesAndExplicitUtf16OffsetsWithoutCreatingOutput()
+    {
+        using var fixture = new Fixture();
+        File.WriteAllText(fixture.Source, "// \U0001f4a1\r\nclass Budget { }");
+        string second = Path.Combine(Path.GetDirectoryName(fixture.Source)!, "Endpoint.cs");
+        File.WriteAllText(second, "class Endpoint { }");
+        fixture.Configuration["stryker-config"]!["mutate"] = new JsonArray("Healthcheck/Pipes/Budget.cs{3..5}", "Healthcheck/Pipes/Endpoint.cs{0..18}");
+        fixture.Save();
+        Wrapper.Request request = Wrapper.Read(fixture.Arguments());
+        CollectionAssert.AreEqual(new[] { fixture.Source, second }, request.Sources);
+        Assert.AreEqual(new Wrapper.Selection("Healthcheck/Pipes/Budget.cs", 3, 5), request.Selections[0]);
+        Assert.AreEqual(18, request.Selections[1].End);
+        Assert.IsFalse(Directory.Exists(fixture.ChildRoot));
+    }
+
+    [TestMethod]
+    [DataRow("Healthcheck/Pipes/Budget.cs{-1..2}")]
+    [DataRow("Healthcheck/Pipes/Budget.cs{01..2}")]
+    [DataRow("Healthcheck/Pipes/Budget.cs{2..2}")]
+    [DataRow("Healthcheck/Pipes/Budget.cs{3..2}")]
+    [DataRow("Healthcheck/Pipes/Budget.cs{0..100}")]
+    [DataRow("Healthcheck/Pipes/Budget.cs{0..2147483648}")]
+    [DataRow("Healthcheck/Pipes/Budget.cs{0 ..2}")]
+    [DataRow("Healthcheck/Pipes/Budget.cs{0..2}{3..4}")]
+    [DataRow("Healthcheck/Pipes/../Budget.cs{0..2}")]
+    [DataRow("Healthcheck/Pipes/*.cs{0..2}")]
+    [DataRow("Healthcheck/Pipes/Budget.cs")]
+    public void AmbiguousUnboundedOrMixedChildSpansCannotBeExecuted(string first)
+    {
+        using var fixture = new Fixture();
+        File.WriteAllText(Path.Combine(Path.GetDirectoryName(fixture.Source)!, "Endpoint.cs"), "class Endpoint { }");
+        fixture.Configuration["stryker-config"]!["mutate"] = new JsonArray(first, "Healthcheck/Pipes/Endpoint.cs{0..5}");
+        fixture.Save();
+        Assert.ThrowsExactly<InvalidDataException>(() => Wrapper.Read(fixture.Arguments()));
+    }
+
+    [TestMethod]
+    public void TwoSpansCannotRepeatOneBaseSource()
+    {
+        using var fixture = new Fixture();
+        fixture.Configuration["stryker-config"]!["mutate"] = new JsonArray("Healthcheck/Pipes/Budget.cs{0..5}", "Healthcheck/Pipes/Budget.cs{6..10}");
+        fixture.Save();
+        Assert.ThrowsExactly<InvalidDataException>(() => Wrapper.Read(fixture.Arguments()));
+    }
+
+    [TestMethod]
+    [DataRow("--mutate")]
+    [DataRow("--mutate=Healthcheck/Pipes/Budget.cs")]
+    [DataRow("-mHealthcheck/Pipes/Budget.cs")]
+    [DataRow("-fother.json")]
+    [DataRow("--config-file=other.json")]
+    public void HiddenNativeSourceOrConfigurationOverridesCannotChangeTheBoundSelection(string option)
+    {
+        using var fixture = new Fixture();
+        Assert.ThrowsExactly<InvalidDataException>(() => Wrapper.Read([.. fixture.Arguments(), option]));
+    }
+
+    [TestMethod]
     public void NativeArgumentsAndReportLocationRemainUnchangedExceptForTheIdenticalConfigurationCopy()
     {
         using var fixture = new Fixture();

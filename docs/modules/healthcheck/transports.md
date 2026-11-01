@@ -85,6 +85,43 @@ Only a valid selected snapshot is written to stdout; errors use bounded stderr. 
 
 The protocol is four-byte unsigned little-endian payload length followed by UTF-8 JSON, one request/response per connection. Request payloads are 1–512 bytes; responses are 1–`MaxReportBytes`, including their envelope. The framing length prefix is outside that payload. The matching client checks complete framing, UTF-8, depth 16, duplicate properties, versions, selected view, required fields, exact scalar types, counts and readiness consistency. Compact views cannot prove omitted per-monitor detail consistency; details verifies the complete list/count relationship. Unknown optional properties do not waive depth/duplicate validation. See [C06–C08](../../../planning/healthcheck/contract-catalog.md) for the exact schema.
 
+## Native transport verification
+
+The ordinary behavioral matrices invoke the shipping methods in the test
+process. `HealthcheckHttpTransportTests` builds `UseCisHealthcheck` into an
+`ApplicationBuilder`, invokes its `RequestDelegate` with `DefaultHttpContext`,
+and observes the actual response stream. Its fixture adapts HTTP containers;
+route selection, authorization, status, formatting and cancellation still run
+inside Core. `HealthProbeClientTransportTests` invokes the existing internal
+`HealthProbeClient.RunAsync` with caller-owned output/error streams. Its wire
+tests use real OS pipes and belong to the explicit component suite.
+
+| Previous expensive obligation | Maintained test and execution boundary |
+| --- | --- |
+| HTTP case/trailing-slash/query matching, reserved errors, method allowance, disabled details and business isolation | Existing `HealthcheckHttpTransportTests` matrices through the shipping RequestDelegate. The real Kestrel known-view control also checks actual listener/header behavior. |
+| Healthy/unhealthy/readiness, startup/stopping, complete HEAD decisions, bounded reporting/authorization errors and one-snapshot coherence | Same HTTP assertions and inputs through the in-process pipeline; no host process per mode/data row. |
+| Request cancellation, authorization/source cancellation, actual body write completion/failure and later-request isolation | Direct cancellation/body-stream tests plus `ClientCancellationOfAuthorizationDoesNotAffectLaterHealthOrBusiness` against a real Kestrel process. |
+| HTTP/pipe detached snapshot equality | `ActualHttpAndPipePublishTheExactSameDetachedSnapshot` invokes the shipping HTTP pipeline and a real `HealthPipeServer` against the same frozen source. Pipe framing still crosses the OS endpoint. |
+| Probe CLI argument rejection, numeric boundaries, malformed/fragmented DTOs, frame limits and one total timeout | `HealthProbeClientTransportTests`, preserving the complete independent wire DTO, exact stdout/stderr/exit assertions and OS I/O. `HealthProbeArgumentClassificationBoundaryTests` retains the cheap pre-canceled argument boundary cases. |
+| Probe executable entrypoint, health/readiness/details exits 0/1/2, disabled details, default view, stdout/stderr and natural child shutdown | `HealthcheckProbeProcessTests` retains the nine selected-view process rows, one default-view process row and one invalid-argument entrypoint control. |
+| Endpoint ACL/identity isolation, connection/server lifetime, shutdown and resource settlement | Existing `HealthcheckPipeTransportTests` and the retained process/lifetime controls. Windows and Linux execution remain separate qualification lanes. |
+
+Each direct test keeps its 15-second failure watchdog; the probe total-budget
+case deliberately spends about one second to distinguish a single deadline
+from per-read resets. Run the transport component/regression selection with a
+two-minute budget after build, and report any overrun rather than increasing
+that budget implicitly. Extended forced-GC, identity/container and package
+qualification remain explicitly selected work with their own recorded budgets.
+
+Prospective grouped mutation must include the direct probe class in its selected
+test project. Those cases prove mutation of shipping logic in their test host.
+The retained real Kestrel/probe controls supply the bounded child boundary where
+child activation is required: retain the existing source/session/selector and
+terminal lifecycle audit for those actual launches. A direct test pass does not
+establish mutation inside a child, and a child running unchanged copied Core
+does not supply mutation credit. Historical report and proof interpretations
+remain tied to their original candidate and test inputs.
+
 ## Kubernetes fragments
 
 These are deployment examples. The [25 October Linux container check](../../../planning/healthcheck/evidence/HC12/linux-container-2026-10-25/README.md) exercised the real matching probe with a non-root host in one .NET 10.0.12 container; it did not execute Kubernetes or qualify a published application image. Publish the app and probe from the same verified candidate, include the ASP.NET Core runtime, and verify identity/permissions in the actual image before rollout. Configure supervisor periods, startup allowance and restart policy explicitly. Kubernetes supports HTTP and exec probes; it has no native named-pipe probe field. A startup probe suppresses liveness/readiness probes until startup succeeds. See [Kubernetes probe behavior](https://kubernetes.io/docs/concepts/workloads/pods/probes/).

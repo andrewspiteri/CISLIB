@@ -12,7 +12,9 @@ namespace CIS.Tests.UnitTests;
 [TestClass]
 public sealed class QueuedFanoutTests
 {
-    public static IEnumerable<object[]> Rows => Catalog()["cases"]!.AsArray().Select(row => new object[] { row!["id"]!.GetValue<string>() });
+    private static readonly Lazy<LoggingFixtureInputs> Inputs = new(() => new("queued-fanout-cases.json"));
+
+    public static IEnumerable<object[]> Rows => Inputs.Value.Ids.Select(id => new object[] { id });
     [TestMethod]
     [DynamicData(nameof(Rows))]
     public async Task RealRuntimeFanoutPublishesTicketsBeforeIndependentWriterWork(string id)
@@ -191,7 +193,7 @@ public sealed class QueuedFanoutTests
     public void CatalogDeclaresAllActualRuntimePhasesWithoutClaimingPhysicalDestinations()
     { JsonArray rows = Catalog()["cases"]!.AsArray(); Assert.AreEqual(12, rows.Count); Assert.AreEqual(rows.Count, rows.Select(row => row!["id"]!.GetValue<string>()).Distinct(StringComparer.Ordinal).Count()); CollectionAssert.AreEquivalent(new[] { "basic", "union", "saturation", "independent", "late-close", "late-fault", "early-fault", "mutate", "multi" }, rows.Select(row => row!["mode"]!.GetValue<string>()).Distinct().ToArray()); }
     private static EncodedEvent Event(int label) => new(Encoding.UTF8.GetBytes("{\"input\":" + label + "}\n"), false);
-    private static JsonObject Row(string id) => Catalog()["cases"]!.AsArray().Single(row => row!["id"]!.GetValue<string>() == id)!.AsObject();
+    private static JsonObject Row(string id) => Inputs.Value.Row(id);
     private static OutputAccounting Counts(OutputAccounting value) => value with { State = LogOutputState.Running, LastFaultCode = null, LastFaultAtUtc = null };
-    private static JsonObject Catalog() => JsonNode.Parse(File.ReadAllText(Path.Combine(Path.GetDirectoryName(ConfigurationFixtureAdapter.FindFixture())!, "queued-fanout-cases.json")))!.AsObject();
+    private static JsonObject Catalog() => Inputs.Value.Catalog();
 }

@@ -24,6 +24,16 @@ internal static class Program
     private static async Task Main(string[] args)
     {
         string mode = args.Length == 0 ? "normal" : args[0];
+        if (mode == "raw-foreign-owner")
+        {
+            await ForeignOwnerRawServer.RunAsync(args[1..]);
+            return;
+        }
+        if (mode == "raw-foreign-client")
+        {
+            await ForeignOwnerRawClient.RunAsync(args[1..]);
+            return;
+        }
         if (mode == "pipe-pin-release")
         {
             try { await ObserveWindowsPipePinRelease(); }

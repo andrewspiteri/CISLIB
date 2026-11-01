@@ -8,19 +8,23 @@ The repository currently contains tested configuration resolution/validation and
 
 Healthcheck's service, four monitor policies and coherent state are implemented in [HC01](planning/healthcheck/evidence/HC01/README.md), building on the frozen HC00 foundation. [HC02](planning/healthcheck/evidence/HC02/README.md) adds bounded owner-safe collection. [HC03](planning/healthcheck/evidence/HC03/README.md) adds bounded reporting and protocol helpers; [HC06](planning/healthcheck/evidence/HC06/README.md) adds execution-fact binding. HTTP reporting, protected local pipes, the matching probe and the CountryList development example are now implemented; see the [Healthcheck guides](docs/modules/healthcheck/README.md) and [combined candidate evidence](planning/healthcheck/evidence/HC13/README.md). Actual external scheduler/startup integration, Linux execution and full release qualification remain pending.
 
-Install .NET SDK **10.0.401** and PowerShell 7. Core now requires the **Microsoft.AspNetCore.App** shared framework as well as Microsoft.NETCore.App; the pinned qualification runtime is **10.0.12**. The user approved this foundation dependency for [Healthcheck and future integrations](planning/healthcheck/decisions.md). Run from the repository root:
-
-```powershell
-pwsh -NoProfile -File eng/verify.ps1 -Profile Developer
-```
-
-The developer check restores locked dependencies, evaluates project/package boundaries, checks formatting, builds Release, inspects built/packed assembly references, runs the populated unit, integration, architecture and business suites and starts the console host. This verifies the foundation, not the complete logging release suite. Run the individual steps from `implementations/csharp` when working in an IDE:
+Install .NET SDK **10.0.401** and PowerShell 7. Core now requires the **Microsoft.AspNetCore.App** shared framework as well as Microsoft.NETCore.App; the pinned qualification runtime is **10.0.12**. The user approved this foundation dependency for [Healthcheck and future integrations](planning/healthcheck/decisions.md). For ordinary development, run from `implementations/csharp` so its pinned SDK is selected:
 
 ```powershell
 dotnet restore CisLib.slnx --locked-mode
-dotnet build CisLib.slnx -c Release --no-restore
-dotnet run --project examples/logging/ConsoleHuman -c Release --no-build
+dotnet test CisLib.slnx -c Debug -m:1
+dotnet test CisLib.slnx -c Release -m:1
 ```
+
+Run All in this solution selects self-contained fast product tests and fast architecture rules, without an earlier checkpoint or package. Complete suites are explicit in [CisLib.Verification.slnx](implementations/csharp/verification/CisLib.Verification.slnx). From the repository root, run the current-platform non-mutation regression at a coherent checkpoint:
+
+```powershell
+pwsh -NoProfile -File eng/regression.ps1
+```
+
+Regression preflights its pinned tools, prepares one matching build/package/compiler candidate and executes the complete product/component/checker projects once. Observations, extended stress, coverage, mutation and release qualification have explicit additional scope. The existing `eng/verify.ps1 -Profile Developer` retains its checkpoint contract; Release retains all six required families. `-PrepareOnly -OutputRoot <new-directory>` prepares inputs without granting a test pass. Read the [focused-test guide](docs/architecture/csharp-focused-tests.md) and [current recovery status](planning/cis/verification-remediation-plan.md) for measured results and budgets.
+
+Current preparation and coverage declare their maintained C# input scope: implementation/tests/build configuration, invocation glue, contracts, conformance, compatibility, documentation, relevant root files and the small explicit plan/baseline/native fixtures read by current tests. They hash dirty and new inputs without traversing historical archives. The general source-inventory and historical replay commands preserve their broader semantics. Complete nonmutation verification on the current Linux server uses `eng/regression.ps1 -NativeWorkers 1 -NativeBudgetSeconds 1500`; the five-minute engineering target remains separately reported. Ordinary launchers use one frozen checker runtime; isolated controls retain actual bootstrap and copied-reader checks. Additional project workers require a suitable measured host.
 
 The separate toolchain qualification command uses a fresh source copy, CLI home and NuGet cache, executes Microsoft coverage and isolated Stryker, checks API compatibility controls, and retains native reports and prerequisite archives:
 
@@ -30,7 +34,7 @@ pwsh -File implementations/csharp/eng/verify-toolchain.ps1
 
 It also requires .NET runtimes **10.0.12** and **8.0.31**, Git, and HTTPS access to NuGet. Read [C# toolchain qualification](docs/architecture/csharp-toolchain.md) for exact pins, scope and retention limits.
 
-Open [CisLib.slnx](implementations/csharp/CisLib.slnx) for the C# solution. The root [eng/verify.ps1](eng/verify.ps1) dispatches to the initial C# verification lane.
+Open [CisLib.slnx](implementations/csharp/CisLib.slnx) for ordinary C# work. The [grouped Healthcheck mutation route](implementations/csharp/verification/mutation/healthcheck/README.md) uses one immutable candidate, unchanged native reports and a conservative complete-scope gate. Its bounded correctness pilot must pass before expansion.
 
 The [verification and source replay guide](docs/architecture/csharp-verification.md) explains structured reports, all six family slots and the required-case inventory. Validate existing Developer evidence with `pwsh -File eng/check-release.ps1 -Profile Developer`, or rebuild it with isolated caches using `pwsh -File eng/replay.ps1 -Profile Developer`. Release verification and replay remain nonzero until their required implementation and evidence exist.
 

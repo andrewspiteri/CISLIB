@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System.IO.Compression;
 using System.Runtime.InteropServices;
 using System.Security.Cryptography;
@@ -9,15 +10,30 @@ using static CIS.Verification.TypeManagerVerificationInputs;
 namespace CIS.Verification;
 
 // Collect native reports only from the exact packaged binaries and successful Developer inputs.
-internal static class ShippingCoverageCollection
+internal static partial class ShippingCoverageCollection
 {
     internal static async Task<int> RunAsync(string[] args)
     {
-        var inputs = new TypeManagerVerificationInputs(args, ["repo-root", "output-root"], []);
+        var inputs = new TypeManagerVerificationInputs(args, ["repo-root", "output-root", "verification-root", "package"], ["budget-seconds"]);
+        Require(int.TryParse(inputs.Optional("budget-seconds") ?? "1800", System.Globalization.NumberStyles.None,
+            System.Globalization.CultureInfo.InvariantCulture, out int budget) && budget is > 0 and <= 3600, "Coverage budget-seconds must be between 1 and 3600.");
+        var clock = Stopwatch.StartNew();
+        DateTimeOffset collectionStarted = DateTimeOffset.UtcNow, deadline = collectionStarted.AddSeconds(budget);
         RequireNewOutput(inputs.Output, Environment.GetEnvironmentVariable("CIS_ARCHITECTURE_INSPECTION"));
         string language = inputs.Language, repo = inputs.PathOf("repo-root"), output = inputs.Output;
+        string preparedRoot = inputs.PathOf("verification-root"), package = inputs.PathOf("package");
+        Require(File.Exists(package) && File.Exists(Path.Combine(preparedRoot, "summary.json")),
+            "Coverage needs the explicitly prepared package and verification summary before collection.");
         Directory.CreateDirectory(output);
-        SourceInventoryEntry[] before = await SourceInventory.CaptureAsync(repo);
+        SourceInventoryEntry[] before = SourceInventory.CaptureVerificationInputs(repo);
+        JsonObject preparation = Read(Path.Combine(preparedRoot, "summary.json"));
+        Require((string?)preparation["source"]?["inputScope"] == SourceInventory.VerificationScope,
+            "Coverage requires preparation with the declared maintained C# verification input scope.");
+        string sourceManifest = Contained(preparedRoot, preparation["source"]!["inputInventory"]!["path"]!.GetValue<string>());
+        Require(Hash(sourceManifest) == (string?)preparation["source"]!["inputInventory"]!["sha256"], "Prepared source manifest changed.");
+        SourceInventoryEntry[] preparedInputs = JsonSerializer.Deserialize<SourceInventoryEntry[]>(File.ReadAllBytes(sourceManifest))
+            ?? throw new InvalidDataException("Prepared source input manifest is empty.");
+        RequireSameSources(preparedInputs, before);
         WriteArray(Path.Combine(output, "source-inputs.json"), before);
         JsonObject policy = Read(Path.Combine(language, "verification/coverage/shipping.json"));
         ValidatePolicy(language, policy);
@@ -40,60 +56,144 @@ internal static class ShippingCoverageCollection
         foreach ((_, JsonNode? family) in policy["families"]!.AsObject())
         { paths.Add($"tests/CIS.Core.{family}/bin/Release/net10.0/CIS.Core.{family}.dll"); }
         paths.AddRange(before.Select(item => Path.Combine(repo, item.Path)));
-        paths.AddRange(DeveloperInputs(repo));
+        paths.AddRange(DeveloperInputs(repo, preparedRoot));
+        paths.Add(sourceManifest);
         SourceInventoryEntry[] pins = PinInputs(language, paths);
         WriteArray(Path.Combine(output, "inputs.json"), pins);
 
-        var environment = new Dictionary<string, string?> { ["MSBUILDDISABLENODEREUSE"] = "1" };
-        ProcessResult sdk = await inputs.Run("sdk", ["--version"], language, environment: environment);
+        var environment = new Dictionary<string, string?>
+        {
+            ["MSBUILDDISABLENODEREUSE"] = "1",
+            ["CIS_VERIFICATION_ROOT"] = preparedRoot,
+            ["CIS_VERIFICATION_REPOSITORY"] = repo,
+            ["CIS_VERIFICATION_PACKAGE"] = package,
+            ["CIS_ARCHITECTURE_INSPECTION"] = null
+        };
+        ProcessResult sdk = await inputs.Run("sdk", ["--version"], language, environment: environment,
+            timeout: TimeSpan.FromSeconds(Math.Min(30, FamilyTimeoutSeconds(budget, clock.Elapsed.TotalSeconds))));
         string expectedSdk = Read(Path.Combine(language, "eng/toolchain.json"))["sdk"]!.GetValue<string>();
         Require(sdk.StandardOutput.Trim() == expectedSdk, "Selected SDK differs from the pin.");
-        ProcessResult git = await ProcessRunner.RunAsync("git", ["-C", language, "rev-parse", "HEAD"], language, TimeSpan.FromSeconds(30));
-        Require(git.ExitCode == 0, "Unable to read repository HEAD.");
+        ProcessResult git = await ProcessRunner.RunAsync("git", ["-C", language, "rev-parse", "HEAD"], language,
+            TimeSpan.FromSeconds(Math.Min(30, FamilyTimeoutSeconds(budget, clock.Elapsed.TotalSeconds))));
+        Require(git.ExitCode == 0 || !(Directory.Exists(Path.Combine(repo, ".git")) || File.Exists(Path.Combine(repo, ".git"))),
+            "Unable to read repository HEAD.");
         WriteJson(Path.Combine(output, "environment.json"), new JsonObject
         {
             ["os"] = RuntimeInformation.OSDescription,
             ["processArchitecture"] = RuntimeInformation.ProcessArchitecture.ToString(),
             ["sdk"] = sdk.StandardOutput.Trim(),
-            ["sourceCommit"] = git.StandardOutput.Trim()
+            ["sourceCommit"] = git.ExitCode == 0 ? git.StandardOutput.Trim() : null,
+            ["sourceInputIdentity"] = Digest(JsonSerializer.SerializeToUtf8Bytes(before)),
+            ["sourceInputScope"] = SourceInventory.VerificationScope
         });
-        ProcessResult version = await inputs.Run("version", ["msbuild", "src/CIS.Core/CIS.Core.csproj", "-p:Configuration=Release", "-getProperty:Version"], language, environment: environment);
-        string package = Path.Combine(repo, ".artifacts/csharp/packages", "CIS.Core." + version.StandardOutput.Trim() + ".nupkg");
         string packageHash = Hash(package);
+        string inspectedPackage = Read(Contained(preparedRoot, preparation["architectureInspection"]!["path"]!.GetValue<string>()))["package"]!["sha256"]!.GetValue<string>();
+        Require(packageHash == inspectedPackage, "The explicit coverage package differs from the prepared inspection candidate.");
         string[] loadedCopies = ValidateCandidate(language, policy, package);
+        ValidateReceiptPolicy(policy);
+        string collectorPackage = FindCollectorPackage(language, policy["families"]!.AsObject().Select(family => family.Value!.GetValue<string>()));
+        JsonObject collection = CreateReceipt(language, policy, package, collectorPackage);
+        collection["budgetSeconds"] = budget; collection["startedUtc"] = collectionStarted.ToString("O");
+        collection["deadlineUtc"] = deadline.ToString("O"); collection["elapsedSeconds"] = clock.Elapsed.TotalSeconds;
+        string collectionPath = Path.Combine(output, "collection.json");
+        WriteJson(collectionPath, collection);
         // Include all copies actually present in no-build test hosts in the immutable input pins.
-        pins = pins.Concat(PinInputs(language, loadedCopies.Append(package))).DistinctBy(item => item.Path, StringComparer.Ordinal).ToArray();
+        string[] coreCopies = collection["families"]!.AsArray().SelectMany(family => family!["coreCopies"]!.AsArray()).Select(pin => pin!["path"]!.GetValue<string>()).ToArray();
+        pins = pins.Concat(PinInputs(language, loadedCopies.Concat(coreCopies).Append(package).Append(collectorPackage))).DistinctBy(item => item.Path, StringComparer.Ordinal).ToArray();
         WriteArray(Path.Combine(output, "inputs.json"), pins);
         WriteJson(Path.Combine(output, "candidate.json"), new JsonObject { ["path"] = Slashes(Path.GetRelativePath(repo, package)), ["sha256"] = packageHash });
 
         var commands = new JsonArray(); var results = new List<string>();
-        foreach ((string family, JsonNode? suffix) in policy["families"]!.AsObject())
+        int collectionExit = 1;
+        try
         {
-            string directory = Path.Combine(output, family);
-            string[] arguments = CollectorArguments(suffix!.GetValue<string>(), policy["settings"]!.GetValue<string>(), directory);
-            Console.WriteLine("Collecting shipping coverage: " + family);
-            string started = DateTimeOffset.UtcNow.ToString("O");
-            ProcessResult child = await inputs.Run(family, arguments, language, environment: environment, timeout: TimeSpan.FromMinutes(30), requireSuccess: false);
-            // Preserve the original family log location as well as the structured process record.
-            Write(Path.Combine(output, family + ".log"), child.StandardOutput + child.StandardError);
-            commands.Add(new JsonObject
+            foreach ((string family, JsonNode? suffix) in policy["families"]!.AsObject())
             {
-                ["family"] = family,
-                ["executable"] = inputs.Dotnet,
-                ["argv"] = JsonSerializer.SerializeToNode(arguments),
-                ["workingDirectory"] = language,
-                ["startedUtc"] = started,
-                ["finishedUtc"] = DateTimeOffset.UtcNow.ToString("O"),
-                ["exitCode"] = child.ExitCode
+                JsonObject row = collection["families"]!.AsArray().OfType<JsonObject>().Single(item => (string?)item["name"] == family);
+                string directory = Path.Combine(output, family);
+                string[] arguments = CollectorArguments(suffix!.GetValue<string>(), policy["settings"]!.GetValue<string>(), directory);
+                Console.WriteLine("Collecting shipping coverage: " + family);
+                DateTimeOffset started = DateTimeOffset.UtcNow;
+                double remaining = FamilyTimeoutSeconds(budget, clock.Elapsed.TotalSeconds);
+                row["timeoutSeconds"] = remaining;
+                row["status"] = "Running"; row["startedUtc"] = started.ToString("O");
+                WriteJson(collectionPath, collection);
+                ProcessResult? child = null;
+                try
+                {
+                    remaining = FamilyTimeoutSeconds(budget, clock.Elapsed.TotalSeconds);
+                    row["timeoutSeconds"] = remaining;
+                    child = await inputs.Run(family, arguments, language, environment: environment, timeout: TimeSpan.FromSeconds(remaining), requireSuccess: false);
+                    row["exitCode"] = child.ExitCode; row["outputDrained"] = child.OutputDrained;
+                    Require(child.ExitCode == 0 && child.OutputDrained, $"Coverage test family {family} failed ({child.ExitCode}); see its retained log.");
+                    string trx = Path.Combine(directory, "report.trx");
+                    FocusedTests.NativeCase[] nativeCases = FocusedTests.ReadResults(trx, started);
+                    if (family == "unit")
+                    { ValidateUnitSelection(nativeCases, Path.Combine(language, "tests/CIS.Core.UnitTests/bin/Release/net10.0/CIS.Core.UnitTests.dll")); }
+                    row["trxSha256"] = Hash(trx); row["status"] = "Passed";
+                    results.Add(directory);
+                }
+                catch (ProcessTimeoutException error)
+                { child = error.Result; row["exitCode"] = child.ExitCode; row["timedOut"] = true; row["cleanupCompleted"] = error.CleanupCompleted; row["status"] = "Failed"; throw; }
+                catch (ProcessOutputLimitException error)
+                { child = error.Result; row["exitCode"] = child.ExitCode; row["status"] = "Failed"; throw; }
+                catch (TimeoutException error)
+                { row["status"] = "NotRun"; row["failure"] = error.Message; throw; }
+                catch (Exception error) when (error is IOException or InvalidDataException or InvalidOperationException or System.ComponentModel.Win32Exception or System.Xml.XmlException)
+                { row["status"] = "Failed"; row["failure"] = error.Message; throw; }
+                finally
+                {
+                    row["finishedUtc"] = DateTimeOffset.UtcNow.ToString("O");
+                    collection["elapsedSeconds"] = clock.Elapsed.TotalSeconds;
+                    if (child is not null) { Write(Path.Combine(output, family + ".log"), child.StandardOutput + child.StandardError); }
+                    commands.Add(new JsonObject
+                    {
+                        ["family"] = family,
+                        ["executable"] = inputs.Dotnet,
+                        ["argv"] = JsonSerializer.SerializeToNode(arguments),
+                        ["workingDirectory"] = language,
+                        ["startedUtc"] = started.ToString("O"),
+                        ["finishedUtc"] = row["finishedUtc"]!.DeepClone(),
+                        ["exitCode"] = child?.ExitCode
+                    });
+                    WriteArray(Path.Combine(output, "commands.json"), commands); WriteJson(collectionPath, collection);
+                }
+            }
+            Require(Hash(package) == packageHash, "Candidate package changed during coverage.");
+            RequireSameSources(before, SourceInventory.CaptureVerificationInputs(repo));
+            RequireUnchangedInputs(language, pins);
+            collection["commands"] = new JsonObject { ["path"] = "commands.json", ["sha256"] = Hash(Path.Combine(output, "commands.json")) };
+            _ = FamilyTimeoutSeconds(budget, clock.Elapsed.TotalSeconds);
+            foreach (JsonObject family in collection["families"]!.AsArray().OfType<JsonObject>())
+            { Require(JsonNode.DeepEquals(family["coreCopies"], CoreCopies(language, family["name"]!.GetValue<string>(), collection["coreSha256"]!.GetValue<string>())), "Native Core copy membership changed during coverage."); }
+            JsonObject analyzed = await ShippingCoverage.SummarizeAsync(language, results, async project =>
+            {
+                double left = Math.Min(60, FamilyTimeoutSeconds(budget, clock.Elapsed.TotalSeconds));
+                ProcessResult evaluated = await inputs.Run("coverage-inventory-" + Path.GetFileNameWithoutExtension(project),
+                    ["msbuild", project, "-getItem:Compile", "-p:Configuration=Release", "-p:TargetFramework=net10.0", "-nologo"],
+                    language, environment: environment, timeout: TimeSpan.FromSeconds(left));
+                return evaluated.StandardOutput;
             });
-            Write(Path.Combine(output, "commands.json"), commands.ToJsonString(new JsonSerializerOptions { WriteIndented = true }) + "\n");
-            Require(child.ExitCode == 0, $"Coverage test family {family} failed ({child.ExitCode}); see its retained log.");
-            results.Add(directory);
+            WriteJson(Path.Combine(output, "coverage.json"), analyzed);
+            int exit = analyzed["qualified"]!.GetValue<bool>() ? 0 : 2;
+            collection["shippingAnalysisExitCode"] = exit;
+            Require(clock.Elapsed.TotalSeconds <= budget, "The overall shipping coverage deadline expired during analysis.");
+            if (exit is 0 or 2 && File.Exists(Path.Combine(output, "coverage.json")))
+            {
+                collection["shippingCoverage"] = new JsonObject { ["path"] = "coverage.json", ["sha256"] = Hash(Path.Combine(output, "coverage.json")) };
+                collection["complete"] = true;
+            }
+            collectionExit = exit;
         }
-        Require(Hash(package) == packageHash, "Candidate package changed during coverage.");
-        RequireSameSources(before, await SourceInventory.CaptureAsync(repo));
-        RequireUnchangedInputs(language, pins);
-        return await ShippingCoverage.RunAsync([language, Path.Combine(output, "coverage.json"), .. results]);
+        catch (Exception error) { collection["failure"] = error.Message; throw; }
+        finally
+        {
+            double elapsed = clock.Elapsed.TotalSeconds;
+            collection["elapsedSeconds"] = elapsed; collection["budgetMet"] = elapsed <= budget;
+            if (elapsed > budget) { collection["complete"] = false; collection["failure"] ??= "The overall shipping coverage deadline expired."; }
+            WriteJson(collectionPath, collection);
+        }
+        return (bool?)collection["complete"] == true && (bool?)collection["budgetMet"] == true ? collectionExit : 1;
     }
 
     internal static void RequireNewOutput(string output, string? focusedInspection)
@@ -120,20 +220,25 @@ internal static class ShippingCoverageCollection
         Require(families.Count > 0 && families.All(item => SimpleName(item.Key) && SimpleName(item.Value!.GetValue<string>())), "Invalid coverage family.");
     }
 
-    internal static string[] DeveloperInputs(string repo)
+    internal static string[] DeveloperInputs(string repo, string preparedRoot)
     {
-        string root = Path.Combine(repo, ".artifacts/csharp/verification/Developer");
+        string root = Path.GetFullPath(preparedRoot);
         string summaryPath = Path.Combine(root, "summary.json");
         JsonObject summary = Read(summaryPath);
-        Require((int?)summary["exitCode"] == 0 && (string?)summary["profile"] == "Developer", "Coverage requires a successful Developer checkpoint.");
+        Require((int?)summary["exitCode"] == 0 && ((string?)summary["profile"] == "Developer" ||
+            (string?)summary["profile"] == "Preparation" && (string?)summary["scope"] == "prepared-inputs"),
+            "Coverage requires successful current preparation or a matching Developer checkpoint.");
         string inspectionPath = Contained(root, summary["architectureInspection"]!["path"]!.GetValue<string>());
         JsonObject inspection = ReadPinned(inspectionPath, summary["architectureInspection"]!["sha256"]!.GetValue<string>(), "Developer inspection differs from its recorded pin.");
         string startupRoot = Path.Combine(root, "contracts/startup"), startupPath = Path.Combine(startupRoot, "summary.json");
         JsonObject startup = Read(startupPath);
         string reference = Contained(startupRoot, startup["referenceAssembly"]!["path"]!.GetValue<string>());
         Require(Hash(reference) == (string?)startup["referenceAssembly"]!["sha256"], "Startup reference assembly differs from its recorded pin.");
-        string package = Contained(repo, inspection["package"]!["path"]!.GetValue<string>());
-        Require(Hash(package) == (string?)inspection["package"]!["sha256"], "Developer package differs from its recorded pin.");
+        Require(summary["candidatePackage"] is JsonObject, "Preparation must explicitly identify its candidate package.");
+        string package = CompilerChecks.VerifiedReference(root, summary["candidatePackage"]!);
+        string inspectedPackage = Path.GetFullPath(inspection["package"]!["path"]!.GetValue<string>(), repo);
+        Require(string.Equals(package, inspectedPackage, OperatingSystem.IsWindows() ? StringComparison.OrdinalIgnoreCase : StringComparison.Ordinal)
+            && Hash(package) == (string?)inspection["package"]!["sha256"], "Prepared package differs from its inspection or recorded pin.");
         return [summaryPath, inspectionPath, package, startupPath, reference];
     }
 
@@ -174,9 +279,19 @@ internal static class ShippingCoverageCollection
     internal static void RequireSameSources(IEnumerable<SourceInventoryEntry> before, IEnumerable<SourceInventoryEntry> after) =>
         Require(before.OrderBy(item => item.Path, StringComparer.Ordinal).SequenceEqual(after.OrderBy(item => item.Path, StringComparer.Ordinal)), "Repository inputs changed during coverage.");
 
-    internal static string[] CollectorArguments(string suffix, string settings, string directory) =>
-        ["test", $"tests/CIS.Core.{suffix}/CIS.Core.{suffix}.csproj", "-c", "Release", "--no-build", "--no-restore", "--settings", settings,
+    internal static string[] CollectorArguments(string suffix, string settings, string directory)
+    {
+        string[] arguments = ["test", $"tests/CIS.Core.{suffix}/CIS.Core.{suffix}.csproj", "-c", "Release", "--no-build", "--no-restore", "--settings", settings,
             "--collect", "Code Coverage;Format=cobertura", "--results-directory", directory, "--logger", "trx;LogFileName=report.trx"];
+        return suffix == "UnitTests" ? [.. arguments, "--filter", UnitFilter] : arguments;
+    }
+
+    internal static double FamilyTimeoutSeconds(int budget, double elapsedSeconds)
+    {
+        double remaining = budget - elapsedSeconds;
+        if (remaining <= 0) { throw new TimeoutException("The overall shipping coverage deadline expired before child admission."); }
+        return Math.Min(1800, remaining);
+    }
 
     private static string Binary(string language, JsonNode assembly) =>
         Path.GetFullPath(Path.Combine(language, Path.GetDirectoryName(assembly["project"]!.GetValue<string>())!, "bin/Release/net10.0", assembly["name"] + ".dll"));

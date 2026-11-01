@@ -9,6 +9,14 @@ function Write-VerificationJson {
 }
 
 function Get-EvidenceTool {
+    if (-not [string]::IsNullOrWhiteSpace($env:CIS_VERIFICATION_CHECKER)) {
+        if (-not [IO.Path]::IsPathFullyQualified($env:CIS_VERIFICATION_CHECKER)) { throw 'CIS_VERIFICATION_CHECKER must name an absolute checker DLL path.' }
+        $selected = [IO.Path]::GetFullPath($env:CIS_VERIFICATION_CHECKER)
+        foreach ($required in @($selected, [IO.Path]::ChangeExtension($selected, '.deps.json'), [IO.Path]::ChangeExtension($selected, '.runtimeconfig.json'), (Join-Path (Split-Path $selected -Parent) 'CIS.Core.TestSupport.dll'))) {
+            if (-not (Test-Path -LiteralPath $required -PathType Leaf)) { throw "CIS_VERIFICATION_CHECKER runtime is incomplete:`nMissing companion: $([IO.Path]::GetFileName($required))`nPath: $required" }
+        }
+        return $selected
+    }
     if ($script:evidenceTool) { return $script:evidenceTool }
     $copied = Join-Path $PSScriptRoot '.evidence-tool'
     if (Test-Path -LiteralPath $copied) {

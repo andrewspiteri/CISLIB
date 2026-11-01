@@ -11,6 +11,20 @@ namespace CIS.Tests.UnitTests;
 [TestClass]
 public sealed class FileFailureTests
 {
+#if !CIS_MUTATION_TESTS
+    // These six cases test the comparator's rejections. Their physical input
+    // can be shared only after its real workers, handles and temp tree close.
+    private static readonly Lazy<Task<string>> ReaderInput = new(CaptureReaderInput);
+
+    private static async Task<string> CaptureReaderInput()
+    {
+        using var root = new TemporaryDirectory();
+        const string mode = "delete-jsonl-directory";
+        JsonObject actual = await FileFailureFixture.ExecuteAsync(mode, root.Path);
+        FileFailureExpectations.Validate(mode, actual);
+        return actual.ToJsonString();
+    }
+#endif
     [TestMethod]
     [DataRow("delete-jsonl-directory")]
     [DataRow("delete-jsonl-damaged-directory")]
@@ -38,7 +52,14 @@ public sealed class FileFailureTests
     [DataRow("private")]
     public async Task FailureMatcherRejectsLostPolicyFacts(string corruption)
     {
-        using var root = new TemporaryDirectory(); const string mode = "delete-jsonl-directory"; JsonObject actual = await FileFailureFixture.ExecuteAsync(mode, root.Path); FileFailureExpectations.Validate(mode, actual);
+        const string mode = "delete-jsonl-directory";
+#if CIS_MUTATION_TESTS
+        using var root = new TemporaryDirectory();
+        JsonObject actual = await FileFailureFixture.ExecuteAsync(mode, root.Path);
+#else
+        JsonObject actual = JsonNode.Parse(await ReaderInput.Value)!.AsObject();
+#endif
+        FileFailureExpectations.Validate(mode, actual);
         switch (corruption)
         {
             case "code": actual["fault"]!["outputs"]![1]!["faultCode"] = "WriteFailed"; break;

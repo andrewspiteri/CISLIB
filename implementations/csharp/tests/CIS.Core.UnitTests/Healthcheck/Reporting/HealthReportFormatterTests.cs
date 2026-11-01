@@ -407,17 +407,7 @@ public sealed class HealthReportFormatterTests
         Assert.IsTrue(result.Utf8Bytes.Length <= 1_024);
     }
 
-    internal static byte[] ReadFixture(string category, string name)
-    {
-        DirectoryInfo? directory = new(AppContext.BaseDirectory);
-        while (directory is not null)
-        {
-            string path = Path.Combine(directory.FullName, "conformance", "healthcheck", "common", category, name);
-            if (File.Exists(path)) { return File.ReadAllBytes(path); }
-            directory = directory.Parent;
-        }
-        throw new FileNotFoundException("The repository Healthcheck fixture is required.", name);
-    }
+    internal static byte[] ReadFixture(string category, string name) => QualificationFixtureInputs.ReadHealthcheck(category, name);
 
     internal static HealthSnapshot PendingSnapshot()
     {

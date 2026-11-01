@@ -243,7 +243,8 @@ public sealed class VerificationEvidenceTests
             [Console]::OutputEncoding = [Text.UTF8Encoding]::new($false)
             Read-NativeTrx $Trx | ConvertTo-Json -Depth 8
             """);
-        ProcessResult read = await ProcessRunner.RunAsync("pwsh", ["-NoProfile", "-File", script, Path.Combine(directory.Path, "Evidence.psm1"), trx], directory.Path, TimeSpan.FromSeconds(30), outputEncoding: new UTF8Encoding(false, true));
+        ProcessResult read = await ProcessRunner.RunAsync("pwsh", ["-NoProfile", "-File", script, Path.Combine(directory.Path, "Evidence.psm1"), trx], directory.Path, TimeSpan.FromSeconds(30),
+            environment: new Dictionary<string, string?> { ["CIS_VERIFICATION_CHECKER"] = null }, outputEncoding: new UTF8Encoding(false, true));
         Assert.AreEqual(0, read.ExitCode, read.StandardOutput + read.StandardError);
         JsonObject expected = VerificationEvidence.ReadTrx(trx), actual = JsonNode.Parse(read.StandardOutput)!.AsObject();
         foreach (string counter in new[] { "total", "passed", "failed", "skipped" })

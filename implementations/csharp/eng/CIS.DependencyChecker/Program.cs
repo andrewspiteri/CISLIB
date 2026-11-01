@@ -2,6 +2,27 @@ using System.Text.Json;
 using CIS.TestSupport;
 using CIS.Verification;
 
+if (args.Length > 0 && args[0] == "process-capture-fixture")
+{
+    return ProcessCaptureFixture.Run(args[1..]);
+}
+
+if (args.Length > 0 && args[0] is "fast-tests" or "regression-tests" or "capture-prepared-native-inputs")
+{
+    try { return args[0] == "fast-tests" ? await FastTests.RunAsync(args[1..]) : args[0] == "regression-tests" ? await RegressionTests.RunAsync(args[1..]) : RegressionTests.CapturePreparedNativeInputs(args[1..]); }
+    catch (ArgumentException error) { Console.Error.WriteLine(error.Message); return 2; }
+    catch (Exception error) when (error is IOException or InvalidDataException or UnauthorizedAccessException or InvalidOperationException or JsonException or System.Xml.XmlException or System.ComponentModel.Win32Exception or TimeoutException)
+    { Console.Error.WriteLine(error.Message); return 1; }
+}
+
+if (args.Length > 0 && args[0] == "healthcheck-grouped-mutation")
+{
+    try { return await HealthcheckGroupedMutation.RunAsync(args[1..]); }
+    catch (ArgumentException error) { Console.Error.WriteLine(error.Message); return 2; }
+    catch (Exception error) when (error is IOException or InvalidDataException or UnauthorizedAccessException or InvalidOperationException or JsonException or System.Xml.XmlException or System.ComponentModel.Win32Exception or TimeoutException)
+    { Console.Error.WriteLine(error.Message); return 1; }
+}
+
 if (args.Length > 0 && args[0] is "healthcheck-package" or "healthcheck-coverage" or "healthcheck-platform-prepare" or "healthcheck-critical-mutation" or "healthcheck-pipe-identities" or "healthcheck-rollback-mutation" or "healthcheck-mutation-children" or "healthcheck-mutation-run" or "healthcheck-child-audit-controls" or "healthcheck-aspnet-omission-replay" or "healthcheck-mutation-union" or "healthcheck-shared-mutation")
 {
     try
@@ -12,14 +33,20 @@ if (args.Length > 0 && args[0] is "healthcheck-package" or "healthcheck-coverage
             "healthcheck-coverage" => await HealthcheckCoverageVerification.RunAsync(args[1..]),
             "healthcheck-platform-prepare" => await HealthcheckPlatformPreparation.RunAsync(args[1..]),
             "healthcheck-pipe-identities" => await HealthcheckPipeIdentityVerification.RunAsync(args[1..]),
-            "healthcheck-rollback-mutation" => await HealthcheckRollbackMutationVerification.RunAsync(args[1..]),
             "healthcheck-mutation-children" => await HealthcheckChildMutationVerification.RunAsync(args[1..]),
             "healthcheck-mutation-run" => await HealthcheckMutationNativeRun.RunAsync(args[1..], HealthcheckChildMutationVerification.RunAsync),
             "healthcheck-child-audit-controls" => await HealthcheckChildAuditControls.RunAsync(args[1..]),
+#if CIS_HISTORICAL_VERIFICATION
+            "healthcheck-rollback-mutation" => await HealthcheckRollbackMutationVerification.RunAsync(args[1..]),
             "healthcheck-aspnet-omission-replay" => await HealthcheckAspNetOmissionReplayVerification.RunAsync(args[1..]),
             "healthcheck-mutation-union" => await HealthcheckMutationUnionVerification.RunAsync(args[1..]),
             "healthcheck-shared-mutation" => await HealthcheckMutationUnionVerification.RunSharedAsync(args[1..]),
-            _ => await HealthcheckCriticalMutationVerification.RunAsync(args[1..])
+            "healthcheck-critical-mutation" => await HealthcheckCriticalMutationVerification.RunAsync(args[1..]),
+#else
+            "healthcheck-rollback-mutation" or "healthcheck-aspnet-omission-replay" or "healthcheck-mutation-union" or "healthcheck-shared-mutation" or "healthcheck-critical-mutation"
+                => throw new ArgumentException("This historical Healthcheck verifier requires an explicit rebuild with -p:CisHistoricalVerification=true. Use healthcheck-grouped-mutation for current candidates; historical reports keep their original interpretation."),
+#endif
+            _ => throw new ArgumentException("Unknown Healthcheck verification command.")
         };
     }
     catch (ArgumentException error) { Console.Error.WriteLine(error.Message); return 2; }
@@ -123,9 +150,19 @@ if (args.Length > 0 && args[0] == "focused-test")
     return await FocusedTests.RunAsync(args[1..]);
 }
 
-if (args.Length == 4 && args[0] == "architecture")
+if (args.Length == 6 && args[0] == "architecture-prepared")
 {
-    try { await ArchitectureInspection.Write(args[1], args[2], args[3]); return 0; }
+    try { ArchitectureInspection.WritePrepared(args[1], args[2], args[3], args[4], args[5]); return 0; }
+    catch (Exception exception) when (exception is IOException or InvalidDataException or BadImageFormatException or InvalidOperationException or ArgumentException or JsonException or System.Xml.XmlException)
+    {
+        Console.Error.WriteLine("Architecture inspection failed: " + exception.Message);
+        return 1;
+    }
+}
+
+if (args.Length == 4 && args[0] is "architecture" or "architecture-prepare")
+{
+    try { await ArchitectureInspection.Write(args[1], args[2], args[3], prepareProjectFacts: args[0] == "architecture-prepare"); return 0; }
     catch (Exception exception) when (exception is IOException or InvalidDataException or BadImageFormatException or InvalidOperationException or ArgumentException or JsonException or System.Xml.XmlException)
     {
         Console.Error.WriteLine("Architecture inspection failed: " + exception.Message);

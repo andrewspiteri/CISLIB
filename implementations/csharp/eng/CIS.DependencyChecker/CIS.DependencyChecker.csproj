@@ -3,8 +3,19 @@
     <OutputType>Exe</OutputType>
     <RootNamespace>CIS.Verification</RootNamespace>
     <IsPackable>false</IsPackable>
+    <CisHistoricalVerification Condition="'$(CisHistoricalVerification)' == ''">false</CisHistoricalVerification>
+    <DefineConstants Condition="'$(CisHistoricalVerification)' == 'true'">$(DefineConstants);CIS_HISTORICAL_VERIFICATION</DefineConstants>
   </PropertyGroup>
+  <ItemGroup Condition="'$(CisHistoricalVerification)' != 'true'">
+    <Compile Remove="HealthcheckQualification/Mutation/Union/**/*.cs;HealthcheckQualification/Mutation/Shared/**/*.cs" />
+    <Compile Remove="HealthcheckQualification/Mutation/HealthcheckCriticalMutationVerification.cs;HealthcheckQualification/Mutation/Rollback/**/*.cs;HealthcheckQualification/Mutation/AspNet/**/*.cs" />
+  </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="../../tests/CIS.Core.TestSupport/CIS.Core.TestSupport.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <InternalsVisibleTo Include="CIS.Core.FastTests" />
+    <InternalsVisibleTo Include="CIS.Core.FastArchitectureTests" />
+    <InternalsVisibleTo Include="CIS.Verification.Tests" />
   </ItemGroup>
 </Project>

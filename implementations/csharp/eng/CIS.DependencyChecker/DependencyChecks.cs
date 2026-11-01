@@ -9,17 +9,22 @@ using CIS.TestSupport;
 
 namespace CIS.Verification;
 
-internal sealed class DependencyChecks
+internal sealed partial class DependencyChecks
 {
     private readonly string language, sdk;
     private readonly JsonObject policy, runtime, development;
     private readonly Dictionary<string, string> runtimeAllowed, developmentAllowed, testAllowed;
+    private readonly TextWriter output;
+    private readonly PreparedEvaluation? prepared;
+    private EvaluationDeadline? deadline;
     private static readonly StringComparer PathComparer = OperatingSystem.IsWindows() ? StringComparer.OrdinalIgnoreCase : StringComparer.Ordinal;
     private static readonly StringComparison PathComparison = OperatingSystem.IsWindows() ? StringComparison.OrdinalIgnoreCase : StringComparison.Ordinal;
 
-    private DependencyChecks(string language)
+    private DependencyChecks(string language, TextWriter? output = null, PreparedEvaluation? prepared = null)
     {
         this.language = Path.GetFullPath(language);
+        this.output = output ?? Console.Out;
+        this.prepared = prepared;
         policy = Read(Path.Combine(language, "eng/project-boundaries.json"));
         runtime = Read(Path.Combine(language, "eng/runtime-dependencies.json"));
         development = Read(Path.Combine(language, "eng/development-dependencies.json"));
@@ -86,7 +91,7 @@ internal sealed class DependencyChecks
             if (assembly != "-") { CheckAssembly(assembly, allowed); }
             if (package != "-") { await CheckPackage(package, assembly, allowed, reports); }
         }
-        Console.WriteLine($"Dependency boundaries passed for {projects.Length} evaluated projects; Core runtime inventory: {runtimeAllowed.Count} approved packages.");
+        output.WriteLine($"Dependency boundaries passed for {projects.Length} evaluated projects; Core runtime inventory: {runtimeAllowed.Count} approved packages.");
     }
 
     private void CheckEvaluation(JsonObject project, JsonObject evaluation, string path)
@@ -228,9 +233,15 @@ internal sealed class DependencyChecks
         foreach (string name in required) { Require(archive.GetEntry(name) is not null, "Type Manager package asset is missing or duplicated: " + name); }
         foreach ((string name, string source) in assets)
         { Require(EntryHash(archive.GetEntry(name)!) == Hash(Absolute(source)), "Packed Type Manager build asset differs from source: " + name); }
-        ProcessResult result = await Run(["msbuild", "eng/CIS.TypeManager.Build/CIS.TypeManager.Build.csproj", "-p:Configuration=Release", "-getProperty:TargetPath", "-nologo"]);
-        string helper = result.StandardOutput.Trim();
-        Require(result.ExitCode == 0 && File.Exists(helper), "Build the Release Type Manager helper before inspecting its package.");
+        string helper;
+        if (prepared is not null) { helper = prepared.Helper; }
+        else
+        {
+            ProcessResult result = await Run(["msbuild", "eng/CIS.TypeManager.Build/CIS.TypeManager.Build.csproj", "-p:Configuration=Release", "-getProperty:TargetPath", "-nologo"]);
+            helper = result.StandardOutput.Trim();
+            Require(result.ExitCode == 0, "Build the Release Type Manager helper before inspecting its package.");
+        }
+        Require(File.Exists(helper), "Build the Release Type Manager helper before inspecting its package.");
         Require(EntryHash(archive.GetEntry("tools/net10.0/CIS.TypeManager.Build.dll")!) == Hash(helper), "Packed Type Manager helper differs from the checked Release tool.");
         ZipArchiveEntry? specEntry = archive.GetEntry("CIS.Core.nuspec");
         Require(specEntry is not null, "Core package manifest is missing.");
@@ -268,23 +279,25 @@ internal sealed class DependencyChecks
         Require(assembly == "-" || Hash(assembly) == Hash(packed), "Packed Core DLL differs from the checked Release assembly.");
     }
 
-    private static void CheckAssembly(string path, HashSet<string> allowed)
+    private void CheckAssembly(string path, HashSet<string> allowed)
     {
         Require(AssemblyName.GetAssemblyName(path).Name == "CIS.Core", "Unexpected compiled shipping assembly identity.");
         IReadOnlyList<string> unexpected = AssemblyReferences.FindUnexpected(path, allowed);
         Require(unexpected.Count == 0, "Unapproved compiled assembly reference: " + string.Join(", ", unexpected));
-        Console.WriteLine(JsonSerializer.Serialize(new { Assembly = path, References = AssemblyReferences.Read(path) }));
+        output.WriteLine(JsonSerializer.Serialize(new { Assembly = path, References = AssemblyReferences.Read(path) }));
     }
     private async Task<JsonObject> Evaluate(string path, bool resolve = false)
     {
+        if (prepared is not null) { return prepared.Evaluation(path, resolve); }
         string[] arguments = resolve
-            ? ["msbuild", path, "-t:ResolveReferences", "-p:BuildProjectReferences=false", "-getItem:ReferencePath"]
-            : ["msbuild", path, "-getItem:ProjectReference,PackageReference,FrameworkReference,Reference", "-getProperty:TargetFramework,IsPackable,IsTestProject,AssemblyName,PackageId,RootNamespace,OutputType,MSBuildBinPath,MSBuildSDKsPath,NETCoreSdkBundledVersionsProps,NetCoreRoot,NETCoreSdkVersion"];
+            ? ["msbuild", path, "-t:ResolveReferences", "-p:BuildProjectReferences=false", "-getItem:ReferencePath", "-getProperty:MSBuildAllProjects"]
+            : ["msbuild", path, "-getItem:ProjectReference,PackageReference,FrameworkReference,Reference", "-getProperty:TargetFramework,IsPackable,IsTestProject,AssemblyName,PackageId,RootNamespace,OutputType,MSBuildBinPath,MSBuildSDKsPath,NETCoreSdkBundledVersionsProps,NetCoreRoot,NETCoreSdkVersion,MSBuildAllProjects"];
         ProcessResult result = await Run(arguments);
         Require(result.ExitCode == 0, "Project evaluation failed: " + path + Environment.NewLine + result.StandardOutput + result.StandardError);
         return JsonNode.Parse(result.StandardOutput)!.AsObject();
     }
-    private Task<ProcessResult> Run(IEnumerable<string> args) => ProcessRunner.RunAsync("dotnet", args, language, TimeSpan.FromMinutes(2));
+    private Task<ProcessResult> Run(IEnumerable<string> args) => ProcessRunner.RunAsync("dotnet", args, language,
+        deadline?.Remaining() ?? TimeSpan.FromMinutes(2), null, null, 1048576, false, null, deadline?.Token ?? CancellationToken.None);
     private IEnumerable<string> ShippingFrameworks() =>
         new[] { Text(policy, "implicitFramework") }.Concat(Strings(
             Items(policy, "projects").Single(project => Text(project, "role") == "shipping"),

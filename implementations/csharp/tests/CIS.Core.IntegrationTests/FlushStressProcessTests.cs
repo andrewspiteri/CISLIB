@@ -7,13 +7,9 @@ public sealed class FlushStressProcessTests
 {
     public TestContext TestContext { get; set; } = null!;
     [TestMethod]
-    [DataRow("repeat-write")]
-    [DataRow("repeat-flush")]
-    [DataRow("repeat-progress")]
-    [DataRow("saturation")]
-    [DataRow("cohort")]
-    [DataRow("failed-flush")]
+    // All eight distinct stress/ownership cases run directly in FlushStressTests.
+    // This concurrent child control additionally proves clean process exit,
+    // isolated-root cleanup and exact-runtime execution.
     [DataRow("concurrent")]
-    [DataRow("deadline-race")]
-    public async Task ActualPublicFlushStressRunsInAnExactRuntimeChild(string mode) => await LifecycleProcessChecks.Run("flush-stress", mode, TestContext);
+    public async Task ActualPublicFlushStressRunsInAnExactRuntimeChild(string mode) => await LifecycleProcessChecks.RunFunctionalFlush("flush-stress", mode, TestContext);
 }

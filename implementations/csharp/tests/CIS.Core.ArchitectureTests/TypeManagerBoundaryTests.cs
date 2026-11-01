@@ -16,7 +16,7 @@ public sealed class TypeManagerBoundaryTests
     [TestMethod]
     public async Task PinnedSdkBuildToolPassesWithoutRuntimePackages()
     {
-        ProcessResult result = await RunCheck(LanguageRoot, ToolProject);
+        DependencyCheckRunner.CheckResult result = await RunCheck(LanguageRoot, ToolProject);
         Assert.AreEqual(0, result.ExitCode, result.StandardOutput + result.StandardError);
     }
 
@@ -31,7 +31,7 @@ public sealed class TypeManagerBoundaryTests
         project.Descendants("Reference").First().SetAttributeValue(attribute, value);
         project.Save(Path.Combine(fixture.Path, ToolProject));
 
-        ProcessResult result = await RunCheck(fixture.Path, ToolProject);
+        DependencyCheckRunner.CheckResult result = await RunCheck(fixture.Path, ToolProject);
 
         Assert.AreNotEqual(0, result.ExitCode);
         StringAssert.Contains(result.StandardError, "Unapproved pinned-SDK build-tool reference");
@@ -50,7 +50,7 @@ public sealed class TypeManagerBoundaryTests
         targets.Descendants("ProjectReference").Single().SetAttributeValue(attribute, "true");
         targets.Save(Path.Combine(fixture.Path, BuildTargets));
 
-        ProcessResult result = await RunCheck(fixture.Path, HostProject);
+        DependencyCheckRunner.CheckResult result = await RunCheck(fixture.Path, HostProject);
 
         Assert.AreNotEqual(0, result.ExitCode);
         StringAssert.Contains(result.StandardError, "Build-only project must not become a runtime reference");
@@ -68,7 +68,7 @@ public sealed class TypeManagerBoundaryTests
         project.Descendants("ProjectReference").Single().SetAttributeValue(attribute, "true");
         project.Save(Path.Combine(fixture.Path, core));
 
-        ProcessResult result = await RunCheck(fixture.Path, core);
+        DependencyCheckRunner.CheckResult result = await RunCheck(fixture.Path, core);
 
         Assert.AreNotEqual(0, result.ExitCode);
         StringAssert.Contains(result.StandardError, "Build-only project must not become a runtime reference");
@@ -83,11 +83,31 @@ public sealed class TypeManagerBoundaryTests
     [DataRow("changed-version", "Type Manager SDK and runtime package versions differ")]
     public async Task PackageRejectsMissingOrChangedTypeManagerBuildAssets(string change, string expected)
     {
+        DependencyCheckRunner.CheckResult result = await DependencyCheckRunner.MetadataResult(LanguageRoot, typeof(TypeManagerBoundaryTests),
+            nameof(PackageRejectsMissingOrChangedTypeManagerBuildAssets), [change, expected], check => PackageRejectsMissingOrChangedTypeManagerBuildAssetsInputs(change, check));
+
+        if (change == "unchanged")
+        {
+            Assert.AreEqual(0, result.ExitCode, result.StandardOutput + result.StandardError);
+            return;
+        }
+        Assert.AreNotEqual(0, result.ExitCode);
+        StringAssert.Contains(result.StandardError, expected);
+    }
+
+    internal static void AddMetadataBatchCases(List<DependencyCheckRunner.MetadataCase> cases)
+    {
+        DependencyCheckRunner.AddMetadataCases(cases, typeof(TypeManagerBoundaryTests), nameof(PackageRejectsMissingOrChangedTypeManagerBuildAssets),
+            (values, check) => PackageRejectsMissingOrChangedTypeManagerBuildAssetsInputs(values[0], check), 1);
+    }
+
+    private static async Task<DependencyCheckRunner.CheckResult> PackageRejectsMissingOrChangedTypeManagerBuildAssetsInputs(string change,
+        Func<string[], Task<DependencyCheckRunner.CheckResult>> check)
+    {
         using var directory = new TemporaryDirectory();
         string core = Path.Combine(LanguageRoot, "src", "CIS.Core", "bin", "Release", "net10.0", "CIS.Core.dll");
-        string version = System.Diagnostics.FileVersionInfo.GetVersionInfo(core).ProductVersion!.Split('+', 2)[0];
         string package = Path.Combine(directory.Path, "candidate.nupkg");
-        File.Copy(Path.Combine(LanguageRoot, "..", "..", ".artifacts", "csharp", "packages", $"CIS.Core.{version}.nupkg"), package);
+        File.Copy(VerificationCheckpoint.Package(Path.GetFullPath("../..", LanguageRoot)), package);
         if (change != "unchanged")
         {
             using var archive = ZipFile.Open(package, ZipArchiveMode.Update);
@@ -116,18 +136,10 @@ public sealed class TypeManagerBoundaryTests
                     : "deliberately changed package asset");
             }
         }
-        ProcessResult result = await DependencyCheckRunner.Run(LanguageRoot, LanguageRoot, "src/CIS.Core/CIS.Core.csproj", "-PackagePath", package, "-AssemblyPath", core);
-
-        if (change == "unchanged")
-        {
-            Assert.AreEqual(0, result.ExitCode, result.StandardOutput + result.StandardError);
-            return;
-        }
-        Assert.AreNotEqual(0, result.ExitCode);
-        StringAssert.Contains(result.StandardError, expected);
+        return await check(["-PackagePath", package, "-AssemblyPath", core]);
     }
 
-    private static Task<ProcessResult> RunCheck(string root, string project)
+    private static Task<DependencyCheckRunner.CheckResult> RunCheck(string root, string project)
     {
         return DependencyCheckRunner.Run(LanguageRoot, root, project);
     }

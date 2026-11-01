@@ -21,11 +21,40 @@ public sealed class MicrosoftLoggingPackageBoundaryTests
     [DataRow("missing-transitive", "Core runtime closure differs from the approved inventory")]
     public async Task CopiedRestoreGraphRejectsTransitiveLeakage(string mutation, string reason)
     {
+        DependencyCheckRunner.CheckResult result = await DependencyCheckRunner.MetadataResult(LanguageRoot, typeof(MicrosoftLoggingPackageBoundaryTests),
+            nameof(CopiedRestoreGraphRejectsTransitiveLeakage), [mutation, reason], check => CopiedRestoreGraphRejectsTransitiveLeakageInputs(mutation, check));
+        AssertRejected(result, reason);
+    }
+
+    [TestMethod]
+    [DataRow("factory-dll", "Unexpected packed asset")]
+    [DataRow("third-party-dll", "Unexpected packed asset")]
+    [DataRow("factory-dependency", "Unapproved packed dependency")]
+    [DataRow("extra-dependency", "Packed direct dependency inventory mismatch")]
+    [DataRow("dependency-version", "Unapproved packed dependency")]
+    [DataRow("dependency-exact-range", "Unapproved packed dependency")]
+    public async Task CopiedPackageRejectsFactoryAndThirdPartyLeakage(string mutation, string reason)
+    {
+        DependencyCheckRunner.CheckResult result = await DependencyCheckRunner.MetadataResult(LanguageRoot, typeof(MicrosoftLoggingPackageBoundaryTests),
+            nameof(CopiedPackageRejectsFactoryAndThirdPartyLeakage), [mutation, reason], check => CopiedPackageRejectsFactoryAndThirdPartyLeakageInputs(mutation, check));
+        AssertRejected(result, reason);
+    }
+
+    internal static void AddMetadataBatchCases(List<DependencyCheckRunner.MetadataCase> cases)
+    {
+        DependencyCheckRunner.AddMetadataCases(cases, typeof(MicrosoftLoggingPackageBoundaryTests), nameof(CopiedRestoreGraphRejectsTransitiveLeakage),
+            (values, check) => CopiedRestoreGraphRejectsTransitiveLeakageInputs(values[0], check), 2);
+        DependencyCheckRunner.AddMetadataCases(cases, typeof(MicrosoftLoggingPackageBoundaryTests), nameof(CopiedPackageRejectsFactoryAndThirdPartyLeakage),
+            (values, check) => CopiedPackageRejectsFactoryAndThirdPartyLeakageInputs(values[0], check), 2);
+    }
+
+    private static async Task<DependencyCheckRunner.CheckResult> CopiedRestoreGraphRejectsTransitiveLeakageInputs(string mutation, Func<string[], Task<DependencyCheckRunner.CheckResult>> check)
+    {
         using var root = new TemporaryDirectory();
         string path = Path.Combine(root.Path, "project.assets.json");
         JsonObject assets = JsonNode.Parse(File.ReadAllText(Path.Combine(LanguageRoot, "src", "CIS.Core", "obj", "project.assets.json")))!.AsObject();
         File.WriteAllText(path, assets.ToJsonString());
-        AssertPassed(await Check("-AssetsPath", path));
+        AssertPassed(await check(["-AssetsPath", path]));
         JsonObject target = assets["targets"]!["net10.0"]!.AsObject();
         string approved = "Microsoft.Extensions.DependencyInjection.Abstractions/10.0.12";
         if (mutation == "missing-transitive") { target.Remove(approved); }
@@ -38,24 +67,15 @@ public sealed class MicrosoftLoggingPackageBoundaryTests
             target[mutation] = new JsonObject { ["type"] = "package" };
         }
         File.WriteAllText(path, assets.ToJsonString());
-        AssertRejected(await Check("-AssetsPath", path), reason);
+        return await check(["-AssetsPath", path]);
     }
 
-    [TestMethod]
-    [DataRow("factory-dll", "Unexpected packed asset")]
-    [DataRow("third-party-dll", "Unexpected packed asset")]
-    [DataRow("factory-dependency", "Unapproved packed dependency")]
-    [DataRow("extra-dependency", "Packed direct dependency inventory mismatch")]
-    [DataRow("dependency-version", "Unapproved packed dependency")]
-    [DataRow("dependency-exact-range", "Unapproved packed dependency")]
-    public async Task CopiedPackageRejectsFactoryAndThirdPartyLeakage(string mutation, string reason)
+    private static async Task<DependencyCheckRunner.CheckResult> CopiedPackageRejectsFactoryAndThirdPartyLeakageInputs(string mutation, Func<string[], Task<DependencyCheckRunner.CheckResult>> check)
     {
         using var root = new TemporaryDirectory();
-        string core = Path.Combine(LanguageRoot, "src", "CIS.Core", "bin", "Release", "net10.0", "CIS.Core.dll");
-        string version = FileVersionInfo.GetVersionInfo(core).ProductVersion!.Split('+', 2)[0];
         string path = Path.Combine(root.Path, "candidate.nupkg");
-        File.Copy(Path.Combine(RepositoryRoot, ".artifacts", "csharp", "packages", $"CIS.Core.{version}.nupkg"), path);
-        AssertPassed(await Check("-PackagePath", path));
+        File.Copy(VerificationCheckpoint.Package(RepositoryRoot), path);
+        AssertPassed(await check(["-PackagePath", path]));
         using (ZipArchive archive = ZipFile.Open(path, ZipArchiveMode.Update))
         {
             if (mutation is "factory-dll" or "third-party-dll")
@@ -78,12 +98,12 @@ public sealed class MicrosoftLoggingPackageBoundaryTests
                 using Stream output = archive.CreateEntry("CIS.Core.nuspec").Open(); manifest.Save(output);
             }
         }
-        AssertRejected(await Check("-PackagePath", path), reason);
+        return await check(["-PackagePath", path]);
     }
 
-    private static Task<ProcessResult> Check(params string[] extra) => DependencyCheckRunner.Run(LanguageRoot, LanguageRoot, "src/CIS.Core/CIS.Core.csproj", extra);
-    private static void AssertPassed(ProcessResult result) => Assert.AreEqual(0, result.ExitCode, result.StandardOutput + result.StandardError);
-    private static void AssertRejected(ProcessResult result, string reason)
+    private static Task<DependencyCheckRunner.CheckResult> Check(params string[] extra) => DependencyCheckRunner.Run(LanguageRoot, LanguageRoot, "src/CIS.Core/CIS.Core.csproj", extra);
+    private static void AssertPassed(DependencyCheckRunner.CheckResult result) => Assert.AreEqual(0, result.ExitCode, result.StandardOutput + result.StandardError);
+    private static void AssertRejected(DependencyCheckRunner.CheckResult result, string reason)
     {
         Assert.AreNotEqual(0, result.ExitCode, result.StandardOutput + result.StandardError);
         StringAssert.Contains(result.StandardError, reason);

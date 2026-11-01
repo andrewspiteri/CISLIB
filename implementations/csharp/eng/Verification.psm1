@@ -1,13 +1,24 @@
 Set-StrictMode -Version Latest
 
 function Get-SourceInventory {
-    param([string] $Root)
-    $project = Join-Path $PSScriptRoot 'CIS.DependencyChecker/CIS.DependencyChecker.csproj'
-    # Bootstrap before the profile build, including on a fresh checkout. Keep build output outside the JSON pipeline.
-    $build = @(& dotnet build $project -c Release -p:RestoreLockedMode=true --nologo --verbosity quiet 2>&1)
-    if ($LASTEXITCODE -ne 0) { throw "Unable to build source inventory tool: $($build -join [Environment]::NewLine)" }
-    $checker = Join-Path $PSScriptRoot 'CIS.DependencyChecker/bin/Release/net10.0/CIS.DependencyChecker.dll'
-    $output = @(& dotnet $checker source-inventory $Root)
+    param([string] $Root, [switch] $VerificationInputs)
+    if (-not [string]::IsNullOrWhiteSpace($env:CIS_VERIFICATION_CHECKER)) {
+        if (-not [IO.Path]::IsPathFullyQualified($env:CIS_VERIFICATION_CHECKER)) { throw 'CIS_VERIFICATION_CHECKER must name an absolute checker DLL path.' }
+        $checker = [IO.Path]::GetFullPath($env:CIS_VERIFICATION_CHECKER)
+        foreach ($required in @($checker, [IO.Path]::ChangeExtension($checker, '.deps.json'), [IO.Path]::ChangeExtension($checker, '.runtimeconfig.json'), (Join-Path (Split-Path $checker -Parent) 'CIS.Core.TestSupport.dll'))) {
+            if (-not (Test-Path -LiteralPath $required -PathType Leaf)) { throw "CIS_VERIFICATION_CHECKER runtime is incomplete:`nMissing companion: $([IO.Path]::GetFileName($required))`nPath: $required" }
+        }
+    }
+    else {
+        $project = Join-Path $PSScriptRoot 'CIS.DependencyChecker/CIS.DependencyChecker.csproj'
+        # Bootstrap before the profile build, including on a fresh checkout. Keep build output outside the JSON pipeline.
+        $build = @(& dotnet build $project -c Release -p:RestoreLockedMode=true --nologo --verbosity quiet 2>&1)
+        if ($LASTEXITCODE -ne 0) { throw "Unable to build source inventory tool: $($build -join [Environment]::NewLine)" }
+        $checker = Join-Path $PSScriptRoot 'CIS.DependencyChecker/bin/Release/net10.0/CIS.DependencyChecker.dll'
+    }
+    $arguments = @($checker, 'source-inventory', $Root)
+    if ($VerificationInputs) { $arguments += '--verification-inputs' }
+    $output = @(& dotnet @arguments)
     if ($LASTEXITCODE -ne 0) { throw 'Unable to capture source inventory.' }
     return ($output -join [Environment]::NewLine | ConvertFrom-Json -AsHashtable)
 }

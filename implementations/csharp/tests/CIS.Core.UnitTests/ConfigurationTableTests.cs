@@ -10,13 +10,17 @@ namespace CIS.Tests.UnitTests;
 [DoNotParallelize]
 public sealed class ConfigurationTableTests
 {
-    public static IEnumerable<object[]> Cases => Read()["cases"]!.AsArray().Select(row => new object[] { ConfigurationFixtureAdapter.Text(row!, "id")! });
+    private static readonly Lazy<LoggingFixtureInputs> Inputs = new(() => new("configuration-resolution-cases.json"));
+    private static readonly Lazy<Dictionary<string, string>> PropertyByKey = new(() => Contract()["settings"]!.AsArray()
+        .ToDictionary(setting => setting!["key"]!.GetValue<string>(), setting => setting!["property"]!.GetValue<string>(), StringComparer.Ordinal));
+
+    public static IEnumerable<object[]> Cases => Inputs.Value.Ids.Select(id => new object[] { id });
 
     [TestMethod]
     [DynamicData(nameof(Cases))]
     public void SelectedConfigurationMatchesTheSharedTable(string id)
     {
-        JsonObject row = ConfigurationFixtureAdapter.Case(Read(), id);
+        JsonObject row = Inputs.Value.Row(id);
         JsonObject input = row["inputs"]!.AsObject();
         JsonNode before = input.DeepClone();
         using var directory = new TemporaryDirectory();
@@ -41,7 +45,7 @@ public sealed class ConfigurationTableTests
             {
                 string key = setting!["key"]!.GetValue<string>();
                 JsonNode? wanted = setting["value"];
-                string property = Contract()["settings"]!.AsArray().Single(row => row!["key"]!.GetValue<string>() == key)!["property"]!.GetValue<string>();
+                string property = PropertyByKey.Value[key];
                 if (key == "CORE_LOG_FILE_PATH" && wanted is not null)
                 {
                     wanted = JsonValue.Create(Path.GetFullPath(wanted.GetValue<string>(), directory.Path));

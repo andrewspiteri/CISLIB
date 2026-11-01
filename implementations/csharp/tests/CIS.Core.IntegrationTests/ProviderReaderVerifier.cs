@@ -10,8 +10,7 @@ internal static class ProviderReaderVerifier
     internal static async Task CheckAsync(string family, string mode, string control, string reason, TestContext context,
         Func<JsonObject, string, bool> change)
     {
-        ProviderReportCapture captured = await ProviderReportProcess.RunAsync(family, mode, context);
-        Validate(family, mode, captured.Report, captured.ConsoleText, captured.ProcessId);
+        ProviderReportCapture captured = await ProviderReaderFixture.GetAsync(family, mode, context);
         JsonObject bad = captured.Report.DeepClone().AsObject();
         string key = family == "provider-host-filter" ? "fileBytes" : "bytes";
         switch (control)

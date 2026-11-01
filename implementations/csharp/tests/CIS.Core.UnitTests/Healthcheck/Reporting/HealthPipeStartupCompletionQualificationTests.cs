@@ -9,6 +9,8 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 namespace CIS.Tests.UnitTests.Healthcheck;
 
 [TestClass]
+// Forced GC and lifetime probes require isolation from unrelated tests.
+[DoNotParallelize]
 public sealed partial class HealthPipeStartupCompletionQualificationTests
 {
     private static readonly TimeSpan Deadline = TimeSpan.FromSeconds(15);

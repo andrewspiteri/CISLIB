@@ -15,8 +15,13 @@ internal static class HealthcheckMutationNativeRun
     private static readonly JsonSerializerOptions Json = new(JsonSerializerDefaults.Web) { WriteIndented = true };
     private static StringComparison Comparison => OperatingSystem.IsWindows() ? StringComparison.OrdinalIgnoreCase : StringComparison.Ordinal;
     internal sealed record Pin(string Path, string Sha256, long Bytes);
+    internal sealed record Selection(string Source, int? Start, int? End);
     internal sealed record Request(string LanguageRoot, string ProfileId, string Dotnet, string Cli, string Core,
-        string ChildRoot, string AttemptId, string Output, string Configuration, string Source, string[] Arguments, long MaximumChildBytes);
+        string ChildRoot, string AttemptId, string Output, string Configuration, string Source, string[] Arguments, long MaximumChildBytes)
+    {
+        internal string[] Sources { get; init; } = [Source];
+        internal Selection[] Selections { get; init; } = [];
+    }
 
     internal static async Task<int> RunAsync(string[] arguments, Func<string[], Task<int>> prepare)
     {
@@ -38,7 +43,10 @@ internal static class HealthcheckMutationNativeRun
         Need(prepared == 0, "The maintained child session producer failed; native Stryker was not started.");
         string sessionPath = Path.Combine(sessionRoot, "session.json");
         NoLinks(sessionPath);
-        Pin configPin = Pinned(configuration), sessionPin = Pinned(sessionPath), sourcePin = Pinned(request.Source);
+        Pin configPin = Pinned(configuration), sessionPin = Pinned(sessionPath);
+        Pin[] sourcePins = request.Sources.Select(Pinned).ToArray();
+        Pin? sourcePin = sourcePins.Length == 1 ? sourcePins[0] : null;
+        int version = request.Selections.Any(selection => selection.Start is not null) ? 3 : sourcePins.Length == 1 ? 1 : 2;
         var tools = new
         {
             dotnet = Pinned(request.Dotnet),
@@ -52,9 +60,9 @@ internal static class HealthcheckMutationNativeRun
         string[] nativeArguments = ReplaceConfiguration(request.Arguments, request.Configuration, configuration);
         string[] command = [request.Dotnet, request.Cli, .. nativeArguments];
         string preparedPath = Path.Combine(attempt, "prepared.json");
-        WriteNew(preparedPath, new
+        JsonObject preparation = JsonSerializer.SerializeToNode(new
         {
-            schema = "cis.healthcheck.shared-child-attempt-prepared/v1",
+            schema = "cis.healthcheck.shared-child-attempt-prepared/v" + version,
             request.ProfileId,
             request.AttemptId,
             phase = "mutation",
@@ -64,10 +72,13 @@ internal static class HealthcheckMutationNativeRun
             config = configPin,
             session = sessionPin,
             source = sourcePin,
+            sources = sourcePins,
             tools,
             command,
             createdUtc = DateTimeOffset.UtcNow,
-        });
+        }, Json)!.AsObject();
+        if (version == 3) { preparation["selection"] = JsonSerializer.SerializeToNode(request.Selections, Json); }
+        WriteNew(preparedPath, preparation);
         CheckBytes(request.ChildRoot, request.MaximumChildBytes);
         var start = new ProcessStartInfo(request.Dotnet)
         {
@@ -98,7 +109,7 @@ internal static class HealthcheckMutationNativeRun
         await Task.WhenAll(stdout, stderr);
         DateTimeOffset finishedUtc = process.ExitTime.ToUniversalTime();
         int exitCode = process.ExitCode;
-        Need(Pinned(configuration) == configPin && Pinned(sessionPath) == sessionPin && Pinned(request.Source) == sourcePin,
+        Need(Pinned(configuration) == configPin && Pinned(sessionPath) == sessionPin && request.Sources.Select(Pinned).SequenceEqual(sourcePins),
             "The copied configuration, session or source changed during native mutation.");
         Need(Pinned(request.Dotnet) == tools.dotnet && Pinned(request.Cli) == tools.strykerCli && Pinned(request.Core) == tools.strykerCore
             && Pinned(typeof(HealthcheckMutationNativeRun).Assembly.Location) == tools.wrapper
@@ -109,9 +120,9 @@ internal static class HealthcheckMutationNativeRun
         string report = Path.Combine(request.Output, "reports", "mutation-report.json");
         Pin? reportPin = File.Exists(report) ? Pinned(report) : null;
         string binding = Path.Combine(attempt, "binding.json");
-        WriteNew(binding, new
+        JsonObject completed = JsonSerializer.SerializeToNode(new
         {
-            schema = "cis.healthcheck.shared-child-attempt/v1",
+            schema = "cis.healthcheck.shared-child-attempt/v" + version,
             request.ProfileId,
             request.AttemptId,
             phase = "mutation",
@@ -121,6 +132,7 @@ internal static class HealthcheckMutationNativeRun
             config = configPin,
             session = sessionPin,
             source = sourcePin,
+            sources = sourcePins,
             tools,
             phases = new { prepared = Pinned(preparedPath), started = Pinned(startedPath) },
             native = new
@@ -134,7 +146,9 @@ internal static class HealthcheckMutationNativeRun
                 reportBytes = reportPin?.Bytes,
             },
             capture = new { root = request.ChildRoot, sessionRoot, bytesBeforeBinding = bytes, maximumBytes = request.MaximumChildBytes },
-        });
+        }, Json)!.AsObject();
+        if (version == 3) { completed["selection"] = JsonSerializer.SerializeToNode(request.Selections, Json); }
+        WriteNew(binding, completed);
         CheckBytes(request.ChildRoot, request.MaximumChildBytes);
         Console.Error.WriteLine("Child attempt binding: " + binding);
         return exitCode;
@@ -163,6 +177,7 @@ internal static class HealthcheckMutationNativeRun
         Need(Same(childRoot, Path.Combine(profileRoot, "child-evidence")), "Child evidence must use the selected profile's owned retained root.");
         string[] native = arguments[(separator + 1)..];
         Need(native.All(value => value.Length <= 32768 && !value.Contains('\0')), "Native arguments are invalid or excessive.");
+        NoSelectionOverrides(native);
         string config = Full(Option(native, "--config-file")), output = Full(Option(native, "--output"));
         string attempt = Path.GetFileName(Path.TrimEndingDirectorySeparator(output));
         Need(Regex.IsMatch(attempt, @"\A[a-f0-9]{12}\z", RegexOptions.CultureInvariant)
@@ -180,13 +195,10 @@ internal static class HealthcheckMutationNativeRun
             && settings.ValueKind == JsonValueKind.Object && settings.TryGetProperty("mutate", out JsonElement mutate) && mutate.ValueKind == JsonValueKind.Array,
             "A rendered native source inventory is required.");
         JsonElement sourceArray = document.RootElement.GetProperty("stryker-config").GetProperty("mutate");
-        Need(sourceArray.GetArrayLength() == 1 && sourceArray[0].ValueKind == JsonValueKind.String, "One rendered native source is required.");
-        string[] sources = sourceArray.EnumerateArray().Select(item => item.GetString() ?? "").ToArray();
-        Need(sources.Length == 1 && sources[0].Split('/').All(part => part.Length > 0 && part is not ("." or ".."))
-            && !sources[0].Any(character => character is '\\' or ':' or '*' or '?' or '{' or '}'), "The rendered configuration must select one complete portable source file.");
-        string source = Path.GetFullPath(Path.Combine(language, "src", "CIS.Core", sources[0]));
-        NoLinks(source);
-        Need(File.Exists(source) && new FileInfo(source).Length is > 0 and <= 16777216, "The rendered native source is missing or exceeds16MiB.");
+        Need(sourceArray.GetArrayLength() is > 0 and <= 128 && sourceArray.EnumerateArray().All(item => item.ValueKind == JsonValueKind.String), "A bounded rendered native source list is required.");
+        Selection[] selections = ReadSelections(sourceArray.EnumerateArray().Select(item => item.GetString() ?? "").ToArray(), Path.Combine(language, "src/CIS.Core"));
+        if (selections.Any(selection => selection.Start is not null)) { BoundedControlArguments(native); }
+        string[] fullSources = selections.Select(selection => Path.GetFullPath(Path.Combine(language, "src/CIS.Core", selection.Source))).ToArray();
         long maximum = options.TryGetValue("--maximum-child-bytes", out string? text)
             && long.TryParse(text, NumberStyles.None, CultureInfo.InvariantCulture, out long parsed) ? parsed : 268435456;
         Need(maximum is > 0 and <= 1073741824 && (!options.ContainsKey("--maximum-child-bytes") || text == maximum.ToString(CultureInfo.InvariantCulture)),
@@ -194,7 +206,62 @@ internal static class HealthcheckMutationNativeRun
         Need(!Directory.Exists(Path.Combine(childRoot, attempt)) && !File.Exists(Path.Combine(childRoot, attempt)),
             "A child attempt already exists; use a fresh CIS output attempt.");
         if (Directory.Exists(childRoot)) { CheckOwnedAttempts(childRoot, id); }
-        return new(language, id, dotnet, cli, core, childRoot, attempt, output, config, source, native, maximum);
+        return new(language, id, dotnet, cli, core, childRoot, attempt, output, config, fullSources[0], native, maximum) { Sources = fullSources, Selections = selections };
+    }
+
+    internal static Selection[] ReadSelections(string[] patterns, string coreRoot)
+    {
+        Need(patterns.Length is > 0 and <= 128, "A bounded native source list is required.");
+        Selection[] selected = patterns.Select(pattern =>
+        {
+            string source = pattern;
+            int? start = null, end = null;
+            if (pattern.Contains('{') || pattern.Contains('}'))
+            {
+                Match span = Regex.Match(pattern, @"\A(?<source>[^{}]+)\{(?<start>0|[1-9][0-9]*)\.\.(?<end>0|[1-9][0-9]*)\}\z", RegexOptions.CultureInvariant);
+                Need(span.Success && int.TryParse(span.Groups["start"].Value, NumberStyles.None, CultureInfo.InvariantCulture, out _)
+                    && int.TryParse(span.Groups["end"].Value, NumberStyles.None, CultureInfo.InvariantCulture, out _), "Use one exact bounded UTF-16 {start..end} span per child-control source.");
+                source = span.Groups["source"].Value;
+                start = int.Parse(span.Groups["start"].Value, CultureInfo.InvariantCulture);
+                end = int.Parse(span.Groups["end"].Value, CultureInfo.InvariantCulture);
+            }
+            Need(source.Split('/').All(part => part.Length > 0 && part is not ("." or ".."))
+                && !source.Any(character => char.IsControl(character) || character is '\\' or ':' or '*' or '?' or '{' or '}' or '!' or '[' or ']'),
+                "Select unique portable source files without globbing or traversal.");
+            string path = Path.GetFullPath(Path.Combine(coreRoot, source));
+            NoLinks(path);
+            Need(File.Exists(path) && new FileInfo(path).Length is > 0 and <= 16777216, "A rendered native source is missing or exceeds16MiB.");
+            if (start is not null)
+            {
+                Need(source.EndsWith(".cs", StringComparison.Ordinal) && source.Split('/').All(part => !part.EndsWith(' ') && !part.EndsWith('.')),
+                    "A child span must identify an exact portable C# source file.");
+                Need(start >= 0 && start < end && end <= File.ReadAllText(path).Length, "Child-control UTF-16 span exceeds its actual source or is empty/reversed.");
+            }
+            return new Selection(source, start, end);
+        }).ToArray();
+        Need(selected.Select(selection => selection.Source).Distinct(OperatingSystem.IsWindows() ? StringComparer.OrdinalIgnoreCase : StringComparer.Ordinal).Count() == selected.Length,
+            "A native source cannot be repeated, including separate spans of the same file.");
+        Need(!selected.Any(selection => selection.Start is not null) || selected.Length == 2 && selected.All(selection => selection.Start is not null),
+            "A bounded child span control requires exactly two unique source files, each with one explicit span.");
+        return selected;
+    }
+
+    internal static void NoSelectionOverrides(string[] arguments) => Need(!arguments.Any(value => value.StartsWith("--mutate", StringComparison.Ordinal)
+        || value.StartsWith("-m", StringComparison.Ordinal) || value.StartsWith("-f", StringComparison.Ordinal)
+        || value.StartsWith("--config-file", StringComparison.Ordinal) && value != "--config-file"),
+        "Native source selection must come only from the exact copied configuration, without command-line overrides.");
+
+    internal static void BoundedControlArguments(string[] arguments)
+    {
+        var flags = new HashSet<string>(StringComparer.Ordinal);
+        for (int index = 0; index < arguments.Length; index++)
+        {
+            string option = arguments[index];
+            Need(flags.Add(option), "Duplicate bounded child-control native option.");
+            if (option is "--config-file" or "--output") { Need(++index < arguments.Length, "Missing bounded child-control native option value."); }
+            else { Need(option is "--skip-version-check" or "--log-to-file", "Bounded child-control options must be declared in the pinned configuration."); }
+        }
+        Need(flags.Contains("--config-file") && flags.Contains("--output"), "Bounded child control requires exact configuration and output options.");
     }
 
     internal static string[] ReplaceConfiguration(string[] arguments, string original, string retained)
@@ -236,7 +303,7 @@ internal static class HealthcheckMutationNativeRun
             using JsonDocument document = JsonDocument.Parse(File.ReadAllBytes(prepared));
             JsonElement record = document.RootElement;
             Need(record.ValueKind == JsonValueKind.Object && record.TryGetProperty("schema", out JsonElement schema) && schema.ValueKind == JsonValueKind.String
-                && schema.GetString() == "cis.healthcheck.shared-child-attempt-prepared/v1" && record.TryGetProperty("profileId", out JsonElement profile)
+                && schema.GetString() is "cis.healthcheck.shared-child-attempt-prepared/v1" or "cis.healthcheck.shared-child-attempt-prepared/v2" or "cis.healthcheck.shared-child-attempt-prepared/v3" && record.TryGetProperty("profileId", out JsonElement profile)
                 && profile.ValueKind == JsonValueKind.String && profile.GetString() == profileId && record.TryGetProperty("attemptId", out JsonElement attempt)
                 && attempt.ValueKind == JsonValueKind.String && attempt.GetString() == id,
                 "An existing child attempt belongs to another producer/profile.");

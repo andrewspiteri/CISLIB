@@ -11,6 +11,12 @@ namespace CIS.Tests.UnitTests;
 public sealed class TypeManagerInputTests
 {
     private static Assembly Host => typeof(TypeManagerInputTests).Assembly;
+#if CIS_MUTATION_TESTS
+    private static Task<ITypeManager> QueryManager => CreateManager();
+#else
+    private static readonly Lazy<Task<ITypeManager>> SharedQueryManager = new(CreateManager);
+    private static Task<ITypeManager> QueryManager => SharedQueryManager.Value;
+#endif
 
     [TestMethod]
     public void NullArgumentsFailSynchronouslyBeforeReadingAnyInventory()
@@ -78,7 +84,7 @@ public sealed class TypeManagerInputTests
         };
         Assert.Throws<ArgumentException>(() => PreparationInputs.ValidateContract(type));
         Assert.Throws<ArgumentException>(() => TypeManager.CreateAsync(new TypeManagerOptions(Host) { PrecomputedContracts = [type] }));
-        var manager = await CreateManager();
+        var manager = await QueryManager;
         var queryError = Assert.ThrowsExactly<ArgumentException>(() => manager.GetImplementations(type));
         Assert.AreEqual("contractType", queryError.ParamName);
         Assert.IsNotNull(manager.GetImplementations<object>());
@@ -95,7 +101,7 @@ public sealed class TypeManagerInputTests
             Assert.Throws<ArgumentException>(() => PreparationInputs.ValidateContract(foreignType));
             Assert.Throws<ArgumentException>(() => PreparationInputs.ValidateContract(typeof(IEnumerable<>).MakeGenericType(foreignType)));
             Assert.Throws<ArgumentException>(() => TypeManager.CreateAsync(new TypeManagerOptions(foreignAssembly)));
-            var manager = await CreateManager();
+            var manager = await QueryManager;
             Assert.ThrowsExactly<ArgumentException>(() => manager.GetImplementations(foreignType));
             Assert.ThrowsExactly<ArgumentException>(() => manager.GetImplementations(typeof(IEnumerable<>).MakeGenericType(foreignType)));
         }
@@ -109,7 +115,7 @@ public sealed class TypeManagerInputTests
         var dynamicType = assembly.DefineDynamicModule("Main").DefineType("DynamicType", TypeAttributes.Public).CreateType()!;
         Assert.Throws<ArgumentException>(() => PreparationInputs.ValidateContract(dynamicType));
         Assert.Throws<ArgumentException>(() => TypeManager.CreateAsync(new TypeManagerOptions(assembly)));
-        var manager = await CreateManager();
+        var manager = await QueryManager;
         Assert.ThrowsExactly<ArgumentException>(() => manager.GetImplementations(dynamicType));
     }
 

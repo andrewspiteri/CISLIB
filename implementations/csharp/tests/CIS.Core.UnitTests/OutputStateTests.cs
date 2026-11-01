@@ -11,8 +11,10 @@ namespace CIS.Tests.UnitTests;
 [TestClass]
 public sealed class OutputStateTests
 {
+    private static readonly Lazy<LoggingFixtureInputs> Inputs = new(() => new("output-state-cases.json"));
+
     private static readonly TimeSpan Limit = TimeSpan.FromSeconds(10);
-    public static IEnumerable<object[]> Rows => Catalog()["cases"]!.AsArray().Select(row => new object[] { row!["id"]!.GetValue<string>() });
+    public static IEnumerable<object[]> Rows => Inputs.Value.Ids.Select(id => new object[] { id });
     [TestMethod]
     [DynamicData(nameof(Rows))]
     public async Task RealOutputTransitionsRetainSafeFaultsAndIsolateHealthyWorkers(string id)
@@ -113,8 +115,8 @@ public sealed class OutputStateTests
         Assert.AreEqual(4, Enum.GetValues<LogOutputState>().Length);
     }
     private static EncodedEvent Event() => new("{\"event\":1}\n"u8.ToArray(), false);
-    private static JsonObject Catalog() => JsonNode.Parse(File.ReadAllText(Path.Combine(Path.GetDirectoryName(ConfigurationFixtureAdapter.FindFixture())!, "output-state-cases.json")))!.AsObject();
-    private static JsonObject Row(string id) => Catalog()["cases"]!.AsArray().Single(row => row!["id"]!.GetValue<string>() == id)!.AsObject();
+    private static JsonObject Catalog() => Inputs.Value.Catalog();
+    private static JsonObject Row(string id) => Inputs.Value.Row(id);
     [TestMethod]
     public async Task RenamingANullFaultCannotPreserveTheStateFieldSet()
     {

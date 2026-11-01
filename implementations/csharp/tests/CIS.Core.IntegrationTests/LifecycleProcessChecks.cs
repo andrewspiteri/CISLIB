@@ -1,3 +1,4 @@
+using System.Collections.Concurrent;
 using System.Text.Json.Nodes;
 using CIS.Tests.DiscoveryFixture;
 using CIS.TestSupport;
@@ -7,6 +8,24 @@ namespace CIS.Tests.IntegrationTests;
 
 internal static class LifecycleProcessChecks
 {
+#if !CIS_MUTATION_TESTS
+    private static readonly ConcurrentDictionary<(string Command, string Mode), string> CompletedFlushReaderInputs = new();
+#endif
+
+    internal static async Task RunFunctionalFlush(string command, string mode, TestContext context)
+    {
+        JsonObject report = await Run(command, mode, context);
+#if !CIS_MUTATION_TESTS
+        // Run has completed every physical assertion and disposed its temporary root.
+        CompletedFlushReaderInputs.TryAdd((command, mode), report.ToJsonString());
+#endif
+    }
+
+#if !CIS_MUTATION_TESTS
+    internal static bool TryGetCompletedFlushReaderInput(string command, string mode, out string? text)
+        => CompletedFlushReaderInputs.TryGetValue((command, mode), out text);
+#endif
+
     internal static IEnumerable<object[]> Modes(string command, string[] modes)
     {
         JsonArray cases = LogValueProcessTests.Read(command + "-cases.json")["cases"]!.AsArray();

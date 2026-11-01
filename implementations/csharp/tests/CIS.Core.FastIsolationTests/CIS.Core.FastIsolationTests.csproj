@@ -1,0 +1,20 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <RootNamespace>CIS.Tests.UnitTests</RootNamespace>
+    <IsTestProject>true</IsTestProject>
+    <IsPackable>false</IsPackable>
+    <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
+    <RunSettingsFilePath>$(MSBuildThisFileDirectory)../../verification/fast.runsettings</RunSettingsFilePath>
+  </PropertyGroup>
+  <Import Project="../VerificationSuites.props" />
+  <Import Project="../UnitFixtures.props" />
+  <ItemGroup>
+    <Compile Include="@(FastIsolationSource)" />
+    <Compile Include="../CIS.Core.UnitTests/EnvironmentStoreTestData.cs" />
+    <Compile Include="../CIS.Core.UnitTests/Discovery/EnvironmentVariableStub.cs" />
+    <Compile Include="../CIS.Core.UnitTests/Discovery/InitializationTimeProvider.cs" />
+    <Compile Include="../CIS.Core.UnitTests/QualificationFixtureInputs.cs" />
+    <ProjectReference Include="../../src/CIS.Core/CIS.Core.csproj" />
+    <ProjectReference Include="../CIS.Core.TestSupport/CIS.Core.TestSupport.csproj" />
+  </ItemGroup>
+</Project>

@@ -7,7 +7,9 @@ namespace CIS.Tests.UnitTests;
 [TestClass]
 public sealed class LoggerOutcomeTests
 {
-    public static IEnumerable<object[]> Rows => Catalog()["cases"]!.AsArray().Select(row => new object[] { row!["id"]!.GetValue<string>() });
+    private static readonly Lazy<(string Catalog, string[] Ids, Dictionary<string, string> Rows)> Inputs = new(ReadInputs);
+
+    public static IEnumerable<object[]> Rows => Inputs.Value.Ids.Select(id => new object[] { id });
     [TestMethod]
     [DynamicData(nameof(Rows))]
     public void CompleteOutcomeTableMatchesRealLoggerInterestAndAdmission(string id)
@@ -102,6 +104,15 @@ public sealed class LoggerOutcomeTests
         }
         Assert.ThrowsExactly<AssertFailedException>(() => ValidateCatalog(catalog));
     }
-    private static JsonObject Row(string id) => Catalog()["cases"]!.AsArray().Single(row => row!["id"]!.GetValue<string>() == id)!.AsObject();
-    private static JsonObject Catalog() => JsonNode.Parse(File.ReadAllText(Path.Combine(Path.GetDirectoryName(ConfigurationFixtureAdapter.FindFixture())!, "logger-outcome-cases.json")))!.AsObject();
+    private static JsonObject Row(string id) => JsonNode.Parse(Inputs.Value.Rows[id])!.AsObject();
+    private static JsonObject Catalog() => JsonNode.Parse(Inputs.Value.Catalog)!.AsObject();
+
+    private static (string Catalog, string[] Ids, Dictionary<string, string> Rows) ReadInputs()
+    {
+        string text = File.ReadAllText(Path.Combine(Path.GetDirectoryName(ConfigurationFixtureAdapter.FindFixture())!, "logger-outcome-cases.json"));
+        JsonObject[] rows = JsonNode.Parse(text)!["cases"]!.AsArray().Select(row => row!.AsObject()).ToArray();
+        // Captures still run per case; only static input text is shared.
+        return (text, rows.Select(row => row["id"]!.GetValue<string>()).ToArray(),
+            rows.ToDictionary(row => row["id"]!.GetValue<string>(), row => row.ToJsonString(), StringComparer.Ordinal));
+    }
 }

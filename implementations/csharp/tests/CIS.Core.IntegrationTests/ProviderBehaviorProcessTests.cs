@@ -11,7 +11,10 @@ namespace CIS.Tests.IntegrationTests;
 public sealed class ProviderBehaviorProcessTests
 {
     public TestContext TestContext { get; set; } = null!;
-    public static IEnumerable<object[]> Modes => ProviderBehaviorExpectations.Modes.Select(mode => new object[] { mode });
+    // Pure admission/rejection matrices already execute against Core in
+    // ProviderBehaviorTests. Retain every physical writer/lease/lifetime mode.
+    public static IEnumerable<object[]> Modes => ProviderBehaviorExpectations.Modes
+        .Where(ProviderBehaviorExpectations.IsPhysicalMode).Select(mode => new object[] { mode });
     [TestMethod]
     [DynamicData(nameof(Modes))]
     public async Task ProviderInterestAndRejectionUseActualCore(string mode)

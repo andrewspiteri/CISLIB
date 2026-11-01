@@ -12,7 +12,9 @@ namespace CIS.Tests.UnitTests;
 [TestClass]
 public sealed class HumanRenderingTests
 {
-    public static IEnumerable<object[]> Rows => Catalog()["cases"]!.AsArray().Select(row => new object[] { row!["id"]!.GetValue<string>() });
+    private static readonly Lazy<LoggingFixtureInputs> Inputs = new(() => new("human-rendering-cases.json"));
+
+    public static IEnumerable<object[]> Rows => Inputs.Value.Ids.Select(id => new object[] { id });
     [TestMethod]
     [DynamicData(nameof(Rows))]
     public void NormalAndVerbosePreservePromisedInformationAndEscapeCallerText(string id)
@@ -121,6 +123,6 @@ public sealed class HumanRenderingTests
         var impossible = new EncodedEvent(Encoding.UTF8.GetBytes(record.ToJsonString() + "\n"), false);
         Assert.ThrowsExactly<EventEnvelopeTooLargeException>(() => HumanRenderer.Render(impossible, HumanOutputDetail.Normal, 16384));
     }
-    private static JsonObject Row(string id) => Catalog()["cases"]!.AsArray().Single(row => row!["id"]!.GetValue<string>() == id)!.AsObject();
-    private static JsonObject Catalog() => JsonNode.Parse(File.ReadAllText(Path.Combine(Path.GetDirectoryName(ConfigurationFixtureAdapter.FindFixture())!, "human-rendering-cases.json")))!.AsObject();
+    private static JsonObject Row(string id) => Inputs.Value.Row(id);
+    private static JsonObject Catalog() => Inputs.Value.Catalog();
 }

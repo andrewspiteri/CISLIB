@@ -35,6 +35,7 @@ internal static class TypeManagerExampleBoundaryChecks
             ["verifierSha256"] = Hash(Path.Combine(input.Language, "eng/CIS.DependencyChecker/TypeManagerExampleBoundaryChecks.cs")),
             ["checkerSha256"] = Hash(Path.Combine(input.Language, "eng/check-dependencies.ps1")),
             ["nativeCheckerSha256"] = Hash(Path.Combine(input.Language, "eng/CIS.DependencyChecker/DependencyChecks.cs")),
+            ["nativeCheckerPreparedSourceSha256"] = Hash(Path.Combine(input.Language, "eng/CIS.DependencyChecker/DependencyChecks.Prepared.cs")),
             ["toolSha256"] = Hash(tool),
             ["results"] = new JsonArray()
         };

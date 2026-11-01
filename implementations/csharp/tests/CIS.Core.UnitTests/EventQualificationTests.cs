@@ -1,5 +1,7 @@
 using System.Text;
+using System.Text.Json;
 using System.Text.Json.Nodes;
+using CIS.Tests.ArchitectureTests.Contracts;
 using CIS.Tests.DiscoveryFixture;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -16,7 +18,23 @@ public sealed class EventQualificationTests
     {
         JsonObject catalog = Catalog();
         JsonObject row = Find(catalog, id);
-        EventQualificationExpectations.Validate(catalog, row, await EventQualificationFixture.ExecuteAsync(row));
+        JsonObject actual = await EventQualificationFixture.ExecuteAsync(row);
+        EventQualificationExpectations.Validate(catalog, row, actual);
+        ValidateSchema(actual, row["input"]!["maxEntryBytes"]!.GetValue<int>());
+    }
+
+    private static void ValidateSchema(JsonObject actual, int cap)
+    {
+        string root = Path.GetFullPath(Path.Combine(Path.GetDirectoryName(ConfigurationFixtureAdapter.FindFixture())!, "../.."));
+        using JsonDocument schema = JsonDocument.Parse(File.ReadAllText(Path.Combine(root, "contracts/logging/v1/event.schema.json")));
+        using JsonDocument contract = JsonDocument.Parse(File.ReadAllText(Path.Combine(root, "contracts/logging/v1/event-contract.json")));
+        var validator = new EventRecordValidator(schema.RootElement, contract.RootElement);
+        foreach (JsonNode? record in actual["records"]!.AsArray())
+        {
+            var transport = new JsonObject { ["mode"] = "producer", ["maxEntryBytes"] = cap, ["wire"] = record!["wire"]!.DeepClone() };
+            using JsonDocument fixture = JsonDocument.Parse(transport.ToJsonString());
+            Assert.IsTrue(validator.Accepts(fixture.RootElement), "Actual wire violates the producer contract.");
+        }
     }
 
     [TestMethod]

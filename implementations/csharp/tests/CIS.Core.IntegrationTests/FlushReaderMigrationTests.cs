@@ -1,3 +1,4 @@
+using System.Collections.Concurrent;
 using System.Text.Json.Nodes;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -6,6 +7,9 @@ namespace CIS.Tests.IntegrationTests;
 [TestClass]
 public sealed class FlushReaderMigrationTests
 {
+#if !CIS_MUTATION_TESTS
+    private static readonly ConcurrentDictionary<(string Command, string Mode), Lazy<Task<string>>> ReaderPositives = new();
+#endif
     public TestContext TestContext { get; set; } = null!;
     public static IEnumerable<object[]> Controls =>
     [
@@ -103,8 +107,9 @@ public sealed class FlushReaderMigrationTests
     [DynamicData(nameof(Controls))]
     public async Task OriginalFlushReaderCorruptionsAreRejectedAfterPositivePhysicalOutput(string command, string mode, string fault, string reason)
     {
-        JsonObject original = await LifecycleProcessChecks.Run(command, mode, TestContext);
+        JsonObject original = await ReadPositive(command, mode);
         int pid = original["pid"]!.GetValue<int>();
+        LifecycleProcessChecks.Validate(command, mode, original, pid);
         JsonObject a = original.DeepClone().AsObject();
         switch ((command, fault))
         {
@@ -202,5 +207,24 @@ public sealed class FlushReaderMigrationTests
             ? Assert.ThrowsExactly<InvalidOperationException>(() => LifecycleProcessChecks.Validate(command, mode, a, pid))
             : Assert.ThrowsExactly<InvalidDataException>(() => LifecycleProcessChecks.Validate(command, mode, a, pid));
         Assert.AreEqual(reason, error.Message, command + "/" + fault);
+    }
+
+    private async Task<JsonObject> ReadPositive(string command, string mode)
+    {
+#if CIS_MUTATION_TESTS
+        return await LifecycleProcessChecks.Run(command, mode, TestContext);
+#else
+        // Use only a completed physical capture; never wait for a functional case.
+        string text = await ReaderPositives.GetOrAdd((command, mode), key => new Lazy<Task<string>>(async () =>
+        {
+            if (LifecycleProcessChecks.TryGetCompletedFlushReaderInput(key.Command, key.Mode, out string? completed)
+                && completed is not null)
+            {
+                return completed;
+            }
+            return (await LifecycleProcessChecks.Run(key.Command, key.Mode, TestContext)).ToJsonString();
+        })).Value;
+        return JsonNode.Parse(text)!.AsObject();
+#endif
     }
 }

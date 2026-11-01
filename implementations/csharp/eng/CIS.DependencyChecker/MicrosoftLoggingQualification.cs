@@ -89,8 +89,7 @@ internal static class MicrosoftLoggingQualification
             {
                 environment["CisMutationTesting"] = "true";
                 string snapshot = Path.Combine(output, "source"), isolated = Path.Combine(snapshot, Prefix);
-                SourceInventoryEntry[] inventory = (await SourceInventory.CaptureAsync(repo))
-                    .Where(item => item.Path.StartsWith(Prefix, StringComparison.Ordinal) || item.Path.StartsWith("conformance/logging/", StringComparison.Ordinal) || item.Path == "README.md").ToArray();
+                SourceInventoryEntry[] inventory = SourceInventory.CaptureVerificationInputs(repo);
                 Require(inventory.Any(item => item.Path == "README.md"), "Mutation snapshot requires the root README.");
                 foreach (SourceInventoryEntry pin in inventory) { Copy(Path.Combine(repo, pin.Path), Path.Combine(snapshot, pin.Path), pin.Sha256); }
                 Array(output, "snapshot-inputs.json", inventory);

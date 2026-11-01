@@ -56,7 +56,9 @@ public sealed class HealthCollectorReservationJoinCoverageTests
             using var cancellation = new CancellationTokenSource();
             Task<HealthCollectionAttempt> canceledCaller = await HealthCollectorTestCleanup.EnterAsync(Deadline,
                 () => actualRegistration.CollectAsync(cancellation.Token));
-            cancellation.CancelAfter(TimeSpan.FromMilliseconds(200));
+            // Both real waits are issued before cancellation; arranging this
+            // boundary does not require a thread-pool timer to run first.
+            cancellation.Cancel();
             OperationCanceledException canceled = await Assert.ThrowsAsync<OperationCanceledException>(() => canceledCaller).WaitAsync(Deadline);
             Assert.AreEqual(cancellation.Token, canceled.CancellationToken);
             Assert.IsFalse(actualSettlement.IsCompleted, "Canceling one joined caller must preserve the actual state reservation.");

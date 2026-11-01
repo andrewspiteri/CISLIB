@@ -11,6 +11,8 @@ namespace CIS.Tests.UnitTests.Healthcheck;
 // Two finite receiving-boundary observations, not a promise about every
 // context, output implementation or continuation in CIS.Core.
 [TestClass]
+// Forced GC and lifetime probes require isolation from unrelated tests.
+[DoNotParallelize]
 public sealed partial class HealthProbeCallerCompletionQualificationTests
 {
     private static readonly TimeSpan Deadline = TimeSpan.FromSeconds(15);

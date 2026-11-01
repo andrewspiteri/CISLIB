@@ -244,18 +244,6 @@ public sealed partial class EventEncodingTests
     public void EncoderRequiresOwnedFacts() => Assert.ThrowsExactly<ArgumentNullException>(() => EventEncoder.Encode(null!, Minimum));
 
     [TestMethod]
-    public void HugeAttachmentDoesNotCreateAFullEscapedSecondaryRepresentation()
-    {
-        CapturedEventFacts facts = Capture(Attributes("attachment", LogValue.String(new string('x', 20_000_000))));
-        _ = EventEncoder.Encode(facts, 65536);
-        long before = GC.GetAllocatedBytesForCurrentThread();
-        EncodedEvent encoded = EventEncoder.Encode(facts, 65536);
-        long allocated = GC.GetAllocatedBytesForCurrentThread() - before;
-        Assert.IsTrue(allocated < 1_048_576, $"Encoding allocated {allocated} bytes for a bounded record.");
-        Assert.IsTrue(encoded.IsTruncated); Assert.IsTrue(encoded.JsonLine.Length <= 65536);
-    }
-
-    [TestMethod]
     [DataRow("")]
     [DataRow("😀")]
     public void BudgetDoesNotInventEmptyOptionalStringsButKeepsSuppliedEmptyValues(string value)

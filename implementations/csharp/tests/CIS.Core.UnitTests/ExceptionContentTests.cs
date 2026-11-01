@@ -6,7 +6,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 namespace CIS.Tests.UnitTests;
 
 [TestClass]
-public sealed class ExceptionContentTests
+public sealed partial class ExceptionContentTests
 {
     public static IEnumerable<object[]> MarkerCases => ExceptionContentSources.MarkerCases.Select(id => new object[] { id });
 
@@ -28,21 +28,6 @@ public sealed class ExceptionContentTests
         JsonObject result = ExceptionContentFixture.Execute("data-" + kind);
         ExceptionContentExpectations.Verify("data-" + kind, result);
         Assert.IsFalse(result.ToJsonString().Contains(ExceptionContentSources.PrivateSentinel, StringComparison.Ordinal));
-    }
-
-    [TestMethod]
-    [DataRow("single", 4)]
-    [DataRow("inner", 7)]
-    [DataRow("aggregate", 10)]
-    public void CallerExceptionsCyclicDataPayloadsAndHeadersAreCollectibleWhileCaptureLives(string kind, int references)
-    {
-        ExceptionRetention state = ExceptionRetentionFixture.Create(kind);
-        Assert.AreEqual(references, state.CallerReferences.Length);
-        Assert.IsTrue(ExceptionRetentionFixture.Collect(state));
-        string id = "data-" + kind;
-        JsonObject result = ExceptionBoundaryFixture.Observe(id, state.Captured);
-        Assert.IsTrue(JsonNode.DeepEquals(ExceptionContentExpectations.Tree(id), result["exception"]));
-        GC.KeepAlive(state.Captured);
     }
 
     [TestMethod]

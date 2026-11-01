@@ -1,5 +1,16 @@
 # Complete Healthcheck mutation inputs
 
+29 October 2026: these are historical authored selections. New recovery
+candidates use the dynamically inventoried [grouped native route](../../../../implementations/csharp/verification/mutation/healthcheck/README.md).
+Its pilot report is eligible for the final disjoint union when candidate inputs
+remain unchanged. The historical counts and child-per-mutant execution strategy
+below do not govern new in-process transport mutation.
+
+The former checker receivers/workflow tests now require the explicit
+`CisHistoricalVerification=true` build opt-in. Independent diagnostic projects
+and templates remain manual historical tools. Their retained native reports
+keep their original candidate and policy meaning.
+
 These are authored Stryker.NET 4.16.0 inputs, with no native execution or
 qualification credit. The [scope inventory](scope-inventory.json) partitions all
 46 current shipping Healthcheck C# files exactly once: 41 in

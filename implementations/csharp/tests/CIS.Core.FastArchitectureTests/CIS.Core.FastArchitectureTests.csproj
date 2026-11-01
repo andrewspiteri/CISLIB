@@ -1,0 +1,16 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <RootNamespace>CIS.Tests.ArchitectureTests</RootNamespace>
+    <IsTestProject>true</IsTestProject>
+    <IsPackable>false</IsPackable>
+    <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
+    <RunSettingsFilePath>$(MSBuildThisFileDirectory)../../verification/fast.runsettings</RunSettingsFilePath>
+  </PropertyGroup>
+  <Import Project="../VerificationSuites.props" />
+  <ItemGroup>
+    <Compile Include="@(FastArchitectureSource)" />
+    <Compile Include="../CIS.Core.ArchitectureTests/Contracts/*.cs" />
+    <ProjectReference Include="../../src/CIS.Core/CIS.Core.csproj" />
+    <ProjectReference Include="../CIS.Core.TestSupport/CIS.Core.TestSupport.csproj" />
+  </ItemGroup>
+</Project>

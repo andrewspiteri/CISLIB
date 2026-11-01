@@ -9,8 +9,41 @@ namespace CIS.Tests.ArchitectureTests;
 public sealed class ArchitectureAllowlistTests
 {
     private static readonly string Root = FindRoot();
+    private sealed record PositiveObservation(JsonObject Report, JsonObject Policy, string NegativeInputs);
+#if !CIS_MUTATION_TESTS
+    private static readonly Lazy<PositiveObservation> Positive = new(ObservePositive);
+#endif
+    private static PositiveObservation ObservePositive()
+    {
+        JsonObject report = ReadCurrent();
+        JsonObject policy = ArchitecturePolicy.Assert(Root, report);
+        var inputs = new JsonObject();
+        // Retain every fact consumed by the allowlist policy. Ownership-only
+        // member/dependency graphs remain in the full positive observation.
+        foreach (string section in new[] { "projects", "packageDependencyGroups", "packageFrameworkReferences", "assemblies" })
+        { inputs[section] = report[section]!.DeepClone(); }
+        foreach (JsonObject assembly in inputs["assemblies"]!.AsArray().OfType<JsonObject>())
+        {
+            JsonObject facts = assembly["facts"]!.AsObject();
+            facts.Remove("types");
+            facts.Remove("internalDependencies");
+            facts.Remove("namespaceDependencies");
+        }
+        return new(report, policy, inputs.ToJsonString());
+    }
+    private static PositiveObservation Observation()
+    {
+#if CIS_MUTATION_TESTS
+        return ObservePositive();
+#else
+        return Positive.Value;
+#endif
+    }
     private static JsonObject Read(string path) => JsonNode.Parse(File.ReadAllText(Path.Combine(Root, path)))!.AsObject();
-    private static JsonObject Current()
+    // Parse private mutable policy inputs, leaving unvisited JSON lazy. Cloning
+    // the fully materialized inspection needlessly copies unrelated graphs.
+    private static JsonObject Current() => JsonNode.Parse(Observation().NegativeInputs)!.AsObject();
+    private static JsonObject ReadCurrent()
     {
         string? inspection = System.Environment.GetEnvironmentVariable("CIS_ARCHITECTURE_INSPECTION");
         if (!string.IsNullOrWhiteSpace(inspection))
@@ -27,8 +60,9 @@ public sealed class ArchitectureAllowlistTests
     [TestMethod]
     public void CurrentNativeInspectionPassesTheAmendedDependencyPolicy()
     {
-        JsonObject report = Current();
-        JsonObject result = ArchitecturePolicy.Assert(Root, report);
+        PositiveObservation observation = Observation();
+        JsonObject report = observation.Report;
+        JsonObject result = observation.Policy;
         Assert.AreEqual(0, result["violations"]!.GetValue<int>());
         Assert.AreEqual(2, result["runtimePackages"]!.GetValue<int>());
         Assert.AreEqual(2, result["packagedAssemblies"]!.GetValue<int>());
@@ -56,7 +90,7 @@ public sealed class ArchitectureAllowlistTests
             Assert.AreEqual(0, target["packages"]!.AsArray().Count, "Only the two approved framework-provided runtime packages may be pruned.");
             Assert.IsTrue(target["items"]!["ReferencePath"]!.AsArray().OfType<JsonObject>().Any(item => item["FrameworkReferenceName"]?.GetValue<string>() == "Microsoft.AspNetCore.App"), "The actual compiler must resolve the installed ASP.NET reference pack.");
         }
-        Assert.AreEqual(0, ArchitecturePolicy.Assert(Root, report)["violations"]!.GetValue<int>());
+        Assert.AreEqual(0, Observation().Policy["violations"]!.GetValue<int>());
     }
 
     [TestMethod]
@@ -72,7 +106,6 @@ public sealed class ArchitectureAllowlistTests
     public void HttpProcessFixtureAllowanceRejectsIndependentObservedFactViolations(string mutation, string diagnostic)
     {
         JsonObject report = Current();
-        _ = ArchitecturePolicy.Assert(Root, report);
         JsonObject target = Target(Project(report, "tests/fixtures/HealthcheckHttpHost/HealthcheckHttpHost.csproj"));
         JsonNode items = target["items"]!;
         JsonArray frameworks = items["FrameworkReference"]!.AsArray();
@@ -131,7 +164,6 @@ public sealed class ArchitectureAllowlistTests
     public void PolicyRejectsIsolatedObservedFactViolations(string kind, string diagnostic)
     {
         JsonObject report = Current();
-        _ = ArchitecturePolicy.Assert(Root, report); // Each negative starts with the real positive observation.
         JsonObject core = Core(report), target = Target(core);
         JsonNode items = target["items"]!;
         JsonNode assembly = report["assemblies"]![0]!;
@@ -210,7 +242,6 @@ public sealed class ArchitectureAllowlistTests
     public void HostMsbuildDirectoryDoesNotChooseTheSdkReferenceOrigin()
     {
         JsonObject report = Current();
-        _ = ArchitecturePolicy.Assert(Root, report);
         foreach (JsonNode? project in report["projects"]!.AsArray())
         {
             foreach (JsonNode? target in project!["targets"]!.AsArray())

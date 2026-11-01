@@ -18,9 +18,7 @@ internal static class LoggingMutationQualification
         input.EmptyOutput();
         string repo = input.PathOf("repo-root"), output = input.Output;
         const string prefix = "implementations/csharp/";
-        SourceInventoryEntry[] inventory = (await SourceInventory.CaptureAsync(repo)).Where(item =>
-            item.Path.StartsWith(prefix, StringComparison.Ordinal) || item.Path.StartsWith("conformance/", StringComparison.Ordinal) || item.Path.StartsWith("contracts/", StringComparison.Ordinal) ||
-            item.Path.StartsWith("compatibility/csharp/", StringComparison.Ordinal) || item.Path == "README.md").ToArray();
+        SourceInventoryEntry[] inventory = SourceInventory.CaptureVerificationInputs(repo);
         string snapshot = Path.Combine(output, "source"), language = Path.Combine(snapshot, prefix);
         foreach (var pin in inventory) { Copy(Path.Combine(repo, pin.Path), Path.Combine(snapshot, pin.Path), pin.Sha256); }
         Write(Path.Combine(output, "snapshot-inputs.json"), JsonSerializer.Serialize(inventory, new JsonSerializerOptions { WriteIndented = true }));

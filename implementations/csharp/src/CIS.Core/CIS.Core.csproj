@@ -28,10 +28,15 @@
     <InternalsVisibleTo Include="CIS.Core.ArchitectureTests" />
     <InternalsVisibleTo Include="CIS.Core.DiscoveryFixture" />
     <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" />
-    <ProjectReference Include="../../eng/CIS.TypeManager.Build/CIS.TypeManager.Build.csproj"
-                      ReferenceOutputAssembly="false" Private="false" PrivateAssets="all"
-                      GlobalPropertiesToRemove="RuntimeIdentifier;SelfContained;PublishSingleFile;PublishTrimmed;PublishAot;OutputPath;OutDir;_CommandLineDefinedOutputPath;CisTypeManagerEnabled" />
+    <ProjectReference Include="../../eng/CIS.TypeManager.Build/CIS.TypeManager.Build.csproj" ReferenceOutputAssembly="false" Private="false" PrivateAssets="all" GlobalPropertiesToRemove="RuntimeIdentifier;SelfContained;PublishSingleFile;PublishTrimmed;PublishAot;OutputPath;OutDir;_CommandLineDefinedOutputPath;CisTypeManagerEnabled" />
     <None Include="../../../../README.md" Pack="true" PackagePath="README.md" />
   </ItemGroup>
   <Import Project="../../build/type-manager/package/CIS.TypeManager.Pack.targets" />
+  <ItemGroup>
+    <InternalsVisibleTo Include="CIS.Core.FastTests" />
+    <InternalsVisibleTo Include="CIS.Core.FastLoggingTests" />
+    <InternalsVisibleTo Include="CIS.Core.FastIsolationTests" />
+    <InternalsVisibleTo Include="CIS.Core.FastArchitectureTests" />
+    <InternalsVisibleTo Include="CIS.Verification.Tests" />
+  </ItemGroup>
 </Project>

@@ -1,21 +1,235 @@
 using System.Diagnostics;
+using System.IO.Pipes;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Runtime.ExceptionServices;
 using CIS.Healthcheck;
+using CIS.Healthcheck.Pipes;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Microsoft.Win32.SafeHandles;
 
 namespace CIS.Tests.UnitTests.Healthcheck;
 
 [TestClass]
+// Forced GC and lifetime probes require isolation from unrelated tests.
+[DoNotParallelize]
 public sealed class HealthPipeStartupOwnershipBoundaryTests
 {
     private static readonly TimeSpan Deadline = TimeSpan.FromSeconds(10);
+    private static readonly TimeSpan UnrequestedTerminalDeadline = TimeSpan.FromSeconds(3);
 
     [TestMethod]
     public void EnabledStartupSucceedsAndReleasesItsActualQueuedOwnerWhenStopped()
     {
-        StartupObservation observed = StartStopAndRelease();
+        ReviewStartupObservation(StartStopAndRelease());
+    }
+
+    [TestMethod]
+    public void StopDuringActualEndpointConstructionWaitsForStartupAndReleasesItsOwner()
+    {
+        ReviewStartupObservation(StartStopAndRelease(stopDuringConstruction: true));
+    }
+
+    [TestMethod]
+    public void ARealSecondEndpointCreationFailureClosesTheFirstAndSettlesTerminalCalls()
+    {
+        ReviewStartupObservation(ObservePartialCreationFailure());
+    }
+
+    [TestMethod]
+    public void StopDuringActualInitialCreationClosesTheUnpublishedHandleBeforeCollection()
+    {
+        ReviewStartupObservation(ObserveUnpublishedInitialHandle());
+    }
+
+    [MethodImpl(MethodImplOptions.NoInlining)]
+    private static StartupObservation ObservePartialCreationFailure()
+    {
+        var source = new UnrequestedSource();
+        var clock = new NoRequestClock();
+        NamedPipeServerStream? firstEndpoint = null;
+        SafePipeHandle? firstHandle = null;
+        int attempts = 0;
+        string pipeName = "hc-partial-start-" + Guid.NewGuid().ToString("N");
+        const int maximumClients = 2;
+        var server = new HealthPipeServer(source, new HealthcheckOptions
+        {
+            PipeEnabled = true,
+            PipeName = pipeName,
+            PipeMaxClients = maximumClients
+        }, clock, CreateActualEndpoint);
+        Exception? primary = null;
+        try
+        {
+            Task starting = server.StartAsync();
+            if (OperatingSystem.IsWindows()) { Assert.ThrowsExactly<System.ComponentModel.Win32Exception>(() => Observe(starting)); }
+            else { Assert.ThrowsExactly<UnauthorizedAccessException>(() => Observe(starting)); }
+            Assert.AreEqual(2, attempts, "The first real endpoint must exist before the second actual creation fails.");
+            Assert.IsNotNull(firstEndpoint);
+            if (OperatingSystem.IsWindows())
+            {
+                Assert.IsNotNull(firstHandle);
+                Assert.IsTrue(firstHandle.IsClosed, "The failed partial startup must close its actual first endpoint before returning its failure.");
+            }
+            Assert.Throws<InvalidOperationException>(() => server.StartAsync());
+        }
+        catch (Exception error) { primary = error; }
+        return FinishPhysicalStartupObservation(server, source, clock, pipeName, maximumClients, firstEndpoint, firstHandle, primary);
+
+        NamedPipeServerStream CreateActualEndpoint(string name, int maximumClients, bool first)
+        {
+            int attempt = Interlocked.Increment(ref attempts);
+            // The deliberate second first-instance request produces the same
+            // genuine native collision exercised by the endpoint boundary test.
+            // It models an actual factory I/O failure after partial allocation;
+            // no exception or endpoint is fabricated by the fixture.
+            NamedPipeServerStream endpoint = HealthPipeEndpoint.Create(name, maximumClients, first: true);
+            if (attempt == 1)
+            {
+                firstEndpoint = endpoint;
+                if (OperatingSystem.IsWindows())
+                {
+                    firstHandle = endpoint.SafePipeHandle;
+                    Assert.IsFalse(firstHandle.IsClosed);
+                }
+                return endpoint;
+            }
+            endpoint.Dispose();
+            Assert.Fail("A second protected first-instance creation must collide with the actual first endpoint.");
+            throw new InvalidOperationException("The actual creation collision was not enforced.");
+        }
+    }
+
+    [MethodImpl(MethodImplOptions.NoInlining)]
+    private static StartupObservation ObserveUnpublishedInitialHandle()
+    {
+        var source = new UnrequestedSource();
+        var clock = new NoRequestClock();
+        using var created = new ManualResetEventSlim();
+        using var release = new ManualResetEventSlim();
+        NamedPipeServerStream? endpoint = null;
+        SafePipeHandle? handle = null;
+        string pipeName = "hc-unpublished-start-" + Guid.NewGuid().ToString("N");
+        const int maximumClients = 1;
+        var server = new HealthPipeServer(source, new HealthcheckOptions
+        {
+            PipeEnabled = true,
+            PipeName = pipeName,
+            PipeMaxClients = maximumClients
+        }, clock, CreateActualHeldEndpoint);
+        var returned = new TaskCompletionSource<Task>(TaskCreationOptions.RunContinuationsAsynchronously);
+        var starter = new Thread(() =>
+        {
+            try { returned.SetResult(server.StartAsync()); }
+            catch (Exception error) { returned.SetException(error); }
+        })
+        { IsBackground = true, Name = "Healthcheck unpublished initial endpoint" };
+        Exception? primary = null;
+        Task? stopping = null;
+        bool started = false;
+        try
+        {
+            starter.Start(); started = true;
+            Assert.IsTrue(created.Wait(Deadline), "The real endpoint must be held before publication.");
+            Assert.IsNotNull(endpoint);
+            if (OperatingSystem.IsWindows())
+            {
+                Assert.IsNotNull(handle);
+                Assert.IsFalse(handle.IsClosed);
+            }
+            stopping = StartStop(server);
+            Assert.IsFalse(stopping.IsCompleted, "Stop must retain the actual in-progress creation owner.");
+        }
+        catch (Exception error) { primary = error; }
+        finally
+        {
+            release.Set();
+            if (started && !starter.Join(Deadline))
+            {
+                primary = AddPhysicalStartupFailure(primary, new TimeoutException("The actual initial creation thread did not return."));
+            }
+            if (returned.Task.IsCompletedSuccessfully)
+            {
+                try { Observe(returned.Task.Result); }
+                catch (Exception error) { primary = AddPhysicalStartupFailure(primary, error); }
+            }
+            else if (returned.Task.Exception is { } error) { primary = AddPhysicalStartupFailure(primary, error); }
+        }
+        return FinishPhysicalStartupObservation(server, source, clock, pipeName, maximumClients, endpoint, handle, primary, stopping);
+
+        NamedPipeServerStream CreateActualHeldEndpoint(string name, int maximumClients, bool first)
+        {
+            endpoint = HealthPipeEndpoint.Create(name, maximumClients, first);
+            if (OperatingSystem.IsWindows()) { handle = endpoint.SafePipeHandle; }
+            created.Set();
+            if (!release.Wait(Deadline)) { endpoint.Dispose(); throw new TimeoutException("Actual initial creation was not released."); }
+            return endpoint;
+        }
+    }
+
+    [MethodImpl(MethodImplOptions.NoInlining)]
+    private static StartupObservation FinishPhysicalStartupObservation(HealthPipeServer server, UnrequestedSource source, NoRequestClock clock,
+        string pipeName, int maximumClients, NamedPipeServerStream? observedEndpoint, SafePipeHandle? observedHandle,
+        Exception? primary, Task? stopping = null)
+    {
+        stopping ??= StartStop(server);
+        Task disposing = StartDispose(server);
+        var cleanup = new CleanupObservation();
+        WeakReference<Task>[] observers = [ObserveWhenCompleted(stopping, cleanup, isDispose: false),
+            ObserveWhenCompleted(disposing, cleanup, isDispose: true)];
+        Task terminals = Task.WhenAll(stopping, disposing);
+        try
+        {
+            // This guard is specific to a returned factory/start call with no
+            // request and closed real endpoints. It is not an inline-completion
+            // promise for general Stop/Dispose. One combined guard stays below
+            // the native mutation runner's additional ten-second allowance.
+            terminals.WaitAsync(UnrequestedTerminalDeadline).GetAwaiter().GetResult();
+        }
+        catch (TimeoutException error)
+        {
+            primary = AddPhysicalStartupFailure(primary, new AssertFailedException(
+                "After actual no-request startup work returns, Stop and Dispose must settle within this bounded control.", error));
+        }
+        catch (Exception error) { primary = AddPhysicalStartupFailure(primary, terminals.Exception ?? error); }
+        try
+        {
+            Assert.IsNotNull(observedEndpoint);
+            if (OperatingSystem.IsWindows())
+            {
+                Assert.IsNotNull(observedHandle);
+                Assert.IsTrue(observedHandle.IsClosed,
+                    "The actual unpublished endpoint must be closed before terminal completion; later collection is not ownership release.");
+            }
+            else
+            {
+                // Unix has no accepted SafePipeHandle yet. A protected first
+                // instance can be rebound only after the real listener owner
+                // releases this name. Keep its original stream strongly alive
+                // until after this OS ownership assertion, before rescue or GC.
+                using NamedPipeServerStream rebound = HealthPipeEndpoint.Create(pipeName, maximumClients, first: true);
+            }
+            Assert.AreEqual(0, source.Captures);
+            Assert.AreEqual(0, clock.TimerCreations);
+        }
+        catch (Exception error) { primary = AddPhysicalStartupFailure(primary, error); }
+        finally
+        {
+            // This strong observer is used after the product assertion, so GC
+            // cannot close a missing-disposal mutant before it is observed.
+            // Fixture rescue never erases that saved ownership failure.
+            try { observedEndpoint?.Dispose(); }
+            catch (Exception error) { primary = AddPhysicalStartupFailure(primary, error); }
+        }
+        return new(primary is null ? null : ExceptionDispatchInfo.Capture(primary), new WeakReference(server), cleanup, observers,
+            primary is null, source, clock);
+    }
+
+    private static Exception AddPhysicalStartupFailure(Exception? primary, Exception failure)
+        => primary is null ? failure : new AggregateException("The actual startup ownership control and cleanup failed.", primary, failure);
+
+    private static void ReviewStartupObservation(StartupObservation observed)
+    {
         if (observed.QueuedOrAcceptingOwner is { } owner)
         {
             CollectUntilDead(owner);
@@ -69,16 +283,21 @@ public sealed class HealthPipeStartupOwnershipBoundaryTests
     // server. A queued RunSlot callback or pending RunSlotAsync accept must
     // still root it. The caller observes collection only after this returns.
     [MethodImpl(MethodImplOptions.NoInlining)]
-    private static StartupObservation StartStopAndRelease()
+    private static StartupObservation StartStopAndRelease(bool stopDuringConstruction = false)
     {
         var source = new UnrequestedSource();
         var clock = new NoRequestClock();
-        var server = new HealthPipeServer(source, new()
+        var options = new HealthcheckOptions
         {
             PipeEnabled = true,
             PipeName = "hc-startup-owner-" + Guid.NewGuid().ToString("N"),
             PipeMaxClients = 1,
-        }, clock);
+        };
+        using var created = new ManualResetEventSlim();
+        using var release = new ManualResetEventSlim();
+        var server = stopDuringConstruction
+            ? new HealthPipeServer(source, options, clock, CreateActualHeldEndpoint)
+            : new HealthPipeServer(source, options, clock);
         Exception? primary = null;
         bool observedStartupFailure = false;
         WeakReference? queuedOrAcceptingOwner = null;
@@ -90,7 +309,7 @@ public sealed class HealthPipeStartupOwnershipBoundaryTests
             Exception? startupFailure = null;
             string? originalOwnedQueueFailure = null;
             Task? starting = null;
-            try { starting = server.StartAsync(); }
+            try { starting = stopDuringConstruction ? StartWhileHoldingActualConstruction(server, created, release) : server.StartAsync(); }
             catch (NullReferenceException error)
             {
                 // A genuinely accepted worker can clear its own slot while the
@@ -162,6 +381,44 @@ public sealed class HealthPipeStartupOwnershipBoundaryTests
         }
         return new(primary is null ? null : ExceptionDispatchInfo.Capture(primary), queuedOrAcceptingOwner,
             cleanupObservation, cleanupObservers, requireSuccessfulTerminalCompletion, source, clock);
+
+        NamedPipeServerStream CreateActualHeldEndpoint(string name, int maximumClients, bool first)
+        {
+            NamedPipeServerStream endpoint = HealthPipeEndpoint.Create(name, maximumClients, first);
+            try
+            {
+                created.Set();
+                if (!release.Wait(Deadline)) { throw new TimeoutException("The actual endpoint construction was not released."); }
+                return endpoint;
+            }
+            catch { endpoint.Dispose(); throw; }
+        }
+    }
+
+    private static Task StartWhileHoldingActualConstruction(HealthPipeServer server, ManualResetEventSlim created,
+        ManualResetEventSlim release)
+    {
+        var returned = new TaskCompletionSource<Task>(TaskCreationOptions.RunContinuationsAsynchronously);
+        var starter = new Thread(() =>
+        {
+            try { returned.SetResult(server.StartAsync()); }
+            catch (Exception error) { returned.SetException(error); }
+        })
+        { IsBackground = true, Name = "Healthcheck actual startup boundary" };
+        starter.Start();
+        try
+        {
+            Assert.IsTrue(created.Wait(Deadline), "Startup must actually create its owned OS endpoint before this observation.");
+            Task stopping = server.StopAsync();
+            Assert.IsFalse(stopping.IsCompleted, "Terminal completion must await the actual in-progress endpoint construction.");
+            Assert.Throws<InvalidOperationException>(() => server.StartAsync());
+        }
+        finally
+        {
+            release.Set();
+            if (!starter.Join(Deadline)) { throw new TimeoutException("The actual startup thread did not leave endpoint construction."); }
+        }
+        return returned.Task.GetAwaiter().GetResult();
     }
 
     private static void Observe(Task actual) => actual.WaitAsync(Deadline).GetAwaiter().GetResult();

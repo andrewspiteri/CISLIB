@@ -5,6 +5,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 namespace CIS.Tests.UnitTests;
 
 [TestClass]
+[TestCategory("ExtendedStress")]
 public sealed class FlushStressTests
 {
     [TestMethod]

@@ -12,6 +12,7 @@ public sealed class HealthPipeServer : IAsyncDisposable
     private readonly IHealthSnapshotSource source;
     private readonly HealthcheckOptions options;
     private readonly TimeProvider clock;
+    private readonly Func<string, int, bool, NamedPipeServerStream> createEndpoint;
     private readonly SemaphoreSlim endpointChanges = new(1, 1);
     private readonly CancellationTokenSource stoppingSource = new();
     private readonly TaskCompletionSource startCompletion = new(TaskCreationOptions.RunContinuationsAsynchronously);
@@ -22,11 +23,19 @@ public sealed class HealthPipeServer : IAsyncDisposable
 
     /// <summary>Copies and validates transport settings without opening an endpoint or starting any work.</summary>
     public HealthPipeServer(IHealthSnapshotSource source, HealthcheckOptions options, TimeProvider? timeProvider = null)
+        : this(source, options, timeProvider, HealthPipeEndpoint.Create)
+    {
+    }
+
+    internal HealthPipeServer(IHealthSnapshotSource source, HealthcheckOptions options, TimeProvider? timeProvider,
+        Func<string, int, bool, NamedPipeServerStream> createEndpoint)
     {
         ArgumentNullException.ThrowIfNull(source);
         ArgumentNullException.ThrowIfNull(options);
+        ArgumentNullException.ThrowIfNull(createEndpoint);
         this.source = source;
         this.options = options.ValidatedCopy();
+        this.createEndpoint = createEndpoint;
         clock = timeProvider ?? TimeProvider.System;
         if (clock.TimestampFrequency <= 0)
         {
@@ -79,7 +88,7 @@ public sealed class HealthPipeServer : IAsyncDisposable
             {
                 for (int index = 0; index < options.PipeMaxClients; index++)
                 {
-                    created.Add(new Slot(HealthPipeEndpoint.Create(options.PipeName!, options.PipeMaxClients, first: index == 0)));
+                    created.Add(new Slot(createEndpoint(options.PipeName!, options.PipeMaxClients, index == 0)));
                 }
             }
             lock (gate)
@@ -210,7 +219,7 @@ public sealed class HealthPipeServer : IAsyncDisposable
             lock (gate) { first = !slots.Any(item => item.Stream is not null); }
             // Creation/permission failures deliberately escape and terminally
             // close admission. They are infrastructure errors, not peer churn.
-            var replacement = HealthPipeEndpoint.Create(options.PipeName!, options.PipeMaxClients, first);
+            var replacement = createEndpoint(options.PipeName!, options.PipeMaxClients, first);
             bool publish;
             lock (gate)
             {
@@ -226,8 +235,7 @@ public sealed class HealthPipeServer : IAsyncDisposable
     private async Task HandleClientAsync(NamedPipeServerStream stream, HealthPipeBudget budget)
     {
         HealthReportBuffer response = await ReadResponseAsync(stream, budget).ConfigureAwait(false);
-        budget.ThrowIfExpired();
-        await HealthReportProtocol.WriteFrameAsync(stream, response.Utf8Bytes, options.MaxReportBytes, budget.Token).ConfigureAwait(false);
+        await budget.WriteFrameAsync(stream, response.Utf8Bytes, options.MaxReportBytes).ConfigureAwait(false);
         budget.ThrowIfExpired();
         // DisconnectNamedPipe discards unread response bytes on Windows. Keep
         // this actual slot until the matched client closes after its complete

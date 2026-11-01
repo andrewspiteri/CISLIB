@@ -9,6 +9,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 namespace CIS.Tests.UnitTests;
 
 [TestClass]
+[TestCategory("PerformanceObservation")]
 [DoNotParallelize]
 public sealed class InterpolationMeasurementsTests
 {

@@ -11,16 +11,21 @@ namespace CIS.Tests.UnitTests;
 [DoNotParallelize]
 public sealed class ConfigurationValidationVectorTests
 {
-    public static IEnumerable<object[]> CombinedCases => Read("passive-configuration-validation-cases.json")["cases"]!.AsArray().Select(row => new object[] { Text(row!, "id") });
-    public static IEnumerable<object[]> PerKeyCases => Read("configuration-cases.json")["cases"]!.AsArray()
-        .Where(row => row!["lanes"] is not JsonArray lanes || lanes.Any(lane => lane!.GetValue<string>() == (OperatingSystem.IsWindows() ? "windows-x64" : "linux-ubuntu2404-x64")))
-        .Select(row => new object[] { Text(row!, "id") });
+    private static readonly Lazy<(string[] Ids, Dictionary<string, string> Rows)> CombinedInputs =
+        new(() => ReadInputs("passive-configuration-validation-cases.json"));
+    private static readonly Lazy<(string[] Ids, Dictionary<string, string> Rows)> PerKeyInputs =
+        new(() => ReadInputs("configuration-cases.json", applicableOnly: true));
+    private static readonly Lazy<Dictionary<string, string>> Properties = new(() => Read("configuration.json")["settings"]!.AsArray()
+        .ToDictionary(setting => Text(setting!, "key"), setting => Text(setting!, "property"), StringComparer.Ordinal));
+
+    public static IEnumerable<object[]> CombinedCases => CombinedInputs.Value.Ids.Select(id => new object[] { id });
+    public static IEnumerable<object[]> PerKeyCases => PerKeyInputs.Value.Ids.Select(id => new object[] { id });
 
     [TestMethod]
     [DynamicData(nameof(CombinedCases))]
     public void CompleteValidationMatchesCombinedBoundaryPriorityAndSafeErrorFixtures(string id)
     {
-        JsonObject row = ConfigurationFixtureAdapter.Case(Read("passive-configuration-validation-cases.json"), id);
+        JsonObject row = JsonNode.Parse(CombinedInputs.Value.Rows[id])!.AsObject();
         using var owned = new TemporaryDirectory();
         (PreparedConfiguration? snapshot, CoreConfigurationException? error, EnvironmentVariableStub source) = Execute(row["inputs"]!.AsObject(), owned.Path);
         JsonObject projected = ConfigurationValidationAdapter.Project(snapshot, error, owned.Path);
@@ -52,7 +57,7 @@ public sealed class ConfigurationValidationVectorTests
     [DynamicData(nameof(PerKeyCases))]
     public void EveryApplicablePerKeyVectorPassesThroughCompleteValidation(string id)
     {
-        JsonObject row = ConfigurationFixtureAdapter.Case(Read("configuration-cases.json"), id);
+        JsonObject row = JsonNode.Parse(PerKeyInputs.Value.Rows[id])!.AsObject();
         JsonObject input = row["inputs"]!.DeepClone().AsObject();
         // Option-only rows omit discovery facts; explicit null remains a missing identity.
         if (!input["discovery"]!.AsObject().ContainsKey("applicationName"))
@@ -81,7 +86,7 @@ public sealed class ConfigurationValidationVectorTests
         {
             Assert.IsNull(error, id);
             JsonNode? actual = Text(row, "key") == "CORE_LOG_FILE_PATH" ? JsonValue.Create(snapshot!.Logging.FilePath)
-                : ConfigurationFixtureAdapter.Values(snapshot!)[Read("configuration.json")["settings"]!.AsArray().Single(setting => Text(setting!, "key") == Text(row, "key"))!["property"]!.GetValue<string>()];
+                : ConfigurationFixtureAdapter.Values(snapshot!)[Properties.Value[Text(row, "key")]];
             JsonNode? wanted = Text(row, "key") == "CORE_LOG_FILE_PATH" ? JsonValue.Create(ExpectedPath(initial, expected["value"])) : expected["value"];
             Assert.IsTrue(JsonNode.DeepEquals(wanted, actual), id);
         }
@@ -91,7 +96,7 @@ public sealed class ConfigurationValidationVectorTests
     [TestMethod]
     public void ActualAggregatedIssuesRemainOwnedAndImmutableAcrossLaterValidation()
     {
-        JsonObject row = ConfigurationFixtureAdapter.Case(Read("passive-configuration-validation-cases.json"), "CFG-VALIDATE-ALL-DISABLED-COMPLETE-ERRORS");
+        JsonObject row = JsonNode.Parse(CombinedInputs.Value.Rows["CFG-VALIDATE-ALL-DISABLED-COMPLETE-ERRORS"])!.AsObject();
         using var owned = new TemporaryDirectory();
         (_, CoreConfigurationException? error, _) = Execute(row["inputs"]!.AsObject(), owned.Path);
         Assert.IsNotNull(error);
@@ -100,7 +105,7 @@ public sealed class ConfigurationValidationVectorTests
         var list = (IList<ConfigurationIssue>)error.Issues;
         Assert.ThrowsExactly<NotSupportedException>(() => list.Clear());
         Assert.ThrowsExactly<NotSupportedException>(() => list[0] = new("other", "other", "other"));
-        row["inputs"] = ConfigurationFixtureAdapter.Case(Read("passive-configuration-validation-cases.json"), "CFG-VALIDATE-DEFAULTS")["inputs"]!.DeepClone();
+        row["inputs"] = JsonNode.Parse(CombinedInputs.Value.Rows["CFG-VALIDATE-DEFAULTS"])!["inputs"]!.DeepClone();
         (PreparedConfiguration? valid, CoreConfigurationException? nextError, _) = Execute(row["inputs"]!.AsObject(), owned.Path);
         Assert.IsNotNull(valid);
         Assert.IsNull(nextError);
@@ -154,5 +159,14 @@ public sealed class ConfigurationValidationVectorTests
         }
     }
     private static string Text(JsonNode node, string key) => node[key]!.GetValue<string>();
+    private static (string[] Ids, Dictionary<string, string> Rows) ReadInputs(string name, bool applicableOnly = false)
+    {
+        JsonObject[] rows = Read(name)["cases"]!.AsArray()
+            .Where(row => !applicableOnly || row!["lanes"] is not JsonArray lanes || lanes.Any(lane => lane!.GetValue<string>() == (OperatingSystem.IsWindows() ? "windows-x64" : "linux-ubuntu2404-x64")))
+            .Select(row => row!.AsObject()).ToArray();
+        // The shared index owns only text; every execution receives fresh mutable input.
+        return (rows.Select(row => Text(row, "id")).ToArray(),
+            rows.ToDictionary(row => Text(row, "id"), row => row.ToJsonString(), StringComparer.Ordinal));
+    }
     private static JsonObject Read(string name) => ConfigurationFixtureAdapter.ReadDocument(name == "configuration.json" ? Path.Combine(Path.GetDirectoryName(ConfigurationValidationAdapter.FindFixture())!, "..", "..", "contracts", "logging", "v1", name) : Path.Combine(Path.GetDirectoryName(ConfigurationValidationAdapter.FindFixture())!, name));
 }

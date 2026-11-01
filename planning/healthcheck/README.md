@@ -1,5 +1,9 @@
 # Healthcheck development
 
+The [29 October development recovery](../cis/verification-remediation-plan.md) is the current execution sequence. Ordinary work uses the fast C# solution; complete regression and grouped native mutation are explicit commands. New candidates use the [compact grouped receiver](../../implementations/csharp/verification/mutation/healthcheck/README.md). Historical campaigns below retain their exact inputs and interpretation. Current implementation, named-platform checks and full release qualification are separate statuses; actual Heartbeat/startup-coordinator providers remain pending.
+
+The grouped route's bounded native pilot has proved healthy baseline/restoration, a genuine product kill, actual async settlement-path kill, known survivor and rejection of a real native initialization failure. The superseded Union/Shared/three-driver proof paths and their workflow tests are outside default compilation; `CisHistoricalVerification=true` explicitly rebuilds historical access. Every current product suite and the six release families remain required. See the recovery table for the exact executed candidate and remaining scope.
+
 Monitor state, collection, serialization, HTTP reporting, protected local pipes, the matching probe, execution binding and the CountryList example are implemented. The feature wave is committed as `0bf0c4c8`, followed by qualification work in `8fc2f9c`. Historical [integration evidence](evidence/HC13/README.md) retains the earlier checkpoint's exact inputs and counts.
 
 * [Technical Intent](technical-intent.md), [contract catalog](contract-catalog.md), [concrete HC00 surface](foundation-surface.md), and [execution-fact validation](execution-facts.md).

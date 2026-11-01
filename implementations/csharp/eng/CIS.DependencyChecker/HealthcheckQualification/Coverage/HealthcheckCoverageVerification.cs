@@ -24,7 +24,7 @@ internal static partial class HealthcheckCoverageVerification
         ["Internal/Contracts/IHealthCollectionState.cs"] = "1005bdbf6820b5ceb01edd8ee886e471686ab61ead85c6f126effad46d158b2c"
     };
 
-    internal static Task<int> RunAsync(string[] arguments)
+    internal static async Task<int> RunAsync(string[] arguments)
     {
         var input = new TypeManagerVerificationInputs(arguments, ["language-root", "package", "provenance", "reports", "output"], []);
         string language = input.PathOf("language-root"), package = input.PathOf("package"), provenance = input.PathOf("provenance");
@@ -48,12 +48,16 @@ internal static partial class HealthcheckCoverageVerification
         };
         int exit = 1;
         HashSet<string>? sourcePaths = null;
+        JsonObject? producerInputs = null;
         try
         {
             Require(RuntimeInformation.ProcessArchitecture == Architecture.X64 && (OperatingSystem.IsWindows() || OperatingSystem.IsLinux()), "Coverage analysis requires its actual supported x64 platform lane.");
             string packageHash = Pin(package, pins), provenanceHash = Pin(provenance, pins);
             string coreHash = PackageCoreHash(package);
             JsonObject producer = Read(provenance);
+            producerInputs = producer;
+            if ((string?)producer["schema"] == HealthcheckPackageVerification.PreparedInputSchema) { HealthcheckPackageVerification.ValidatePreparedOutput(language, output); }
+            HealthcheckPackageVerification.ValidatePreparedProducer(producer, language, package);
             Require((string?)producer["packageSha256"] == packageHash && (string?)producer["coreSha256"] == coreHash, "Coverage producer provenance identifies different package/Core bytes.");
             Dictionary<string, Source> sources = SourceInventory(language, producer, pins);
             sourcePaths = sources.Keys.ToHashSet(StringComparer.Ordinal);
@@ -62,16 +66,15 @@ internal static partial class HealthcheckCoverageVerification
             string collectionPath = Path.Combine(reports, "collection.json");
             string collectionHash = Pin(collectionPath, pins); JsonObject collection = Read(collectionPath);
             ValidateCollectionCompletion(collection);
+            bool shipping = ValidateCollectionProfile(collection);
+            ValidateProducerProfile(shipping, producer);
             Require((string?)collection["collectorVersion"] == "18.10.1" && (string?)collection["packageSha256"] == packageHash
                 && (string?)collection["coreSha256"] == coreHash, "Native collection metadata differs from exact tool/package/Core pins.");
-            JsonObject tool = collection["collectorPackage"]!.AsObject();
-            string toolPath = Path.GetFullPath((string)tool["path"]!, reports), toolHash = Pin(toolPath, pins);
-            Require((string?)tool["sha256"] == toolHash, "Collector package checksum differs.");
-            ValidateCollectorPackage(toolPath);
-            JsonObject settings = collection["settings"]!.AsObject();
+            string toolPath = ValidateCollectorReference(collection, reports, pins), toolHash = Pin(toolPath, pins);
+            JsonObject settings = collection["settings"]?.AsObject() ?? throw new InvalidDataException("Missing actual coverage settings pin.");
             string settingsPath = Path.GetFullPath((string)settings["path"]!, reports), settingsHash = Pin(settingsPath, pins);
             Require((string?)settings["sha256"] == settingsHash, "Collection settings checksum differs.");
-            ValidateSettings(ReadXml(settingsPath));
+            ValidateSettings(ReadXml(settingsPath), shipping);
             result["candidate"] = new JsonObject
             {
                 ["packageSha256"] = packageHash,
@@ -83,40 +86,46 @@ internal static partial class HealthcheckCoverageVerification
                 ["originScope"] = "Supplied producer pins, canonical/copy-local Core bytes, native PDB source paths and retained no-build collection receipt"
             };
             JsonArray families = collection["families"]!.AsArray();
-            Require(families.Count == 3 && families.Select(family => (string)family!["name"]!).ToHashSet(StringComparer.Ordinal).SetEquals(["unit", "integration", "business"]),
-                "Coverage requires exactly unit, integration and business native families.");
-            var observations = new List<NativeReport>(); var familyResults = new JsonArray();
-            foreach (JsonNode? familyNode in families)
+            if (shipping)
             {
-                JsonObject family = familyNode!.AsObject(); string name = (string)family["name"]!;
-                Require((int?)family["exitCode"] == 0, "Native coverage family process failed: " + name);
-                ValidateCopies(language, name, family["coreCopies"]!.AsArray(), coreHash, pins);
-                string expectedTrx = name + "/report.trx";
-                Require(((string)family["trx"]!).Replace('\\', '/') == expectedTrx, "Native family TRX must use its own retained report path.");
-                string trx = SourceReplay.InputPath(reports, expectedTrx); string trxHash = Pin(trx, pins);
-                (long passed, string nativePath) = ValidateTrx(trx, Path.GetDirectoryName(trx)!);
-                string nativeHash = Pin(nativePath, pins);
-                NativeReport native = ParseCoverage(ReadXml(nativePath), language, sources); observations.Add(native);
-                familyResults.Add(new JsonObject
-                {
-                    ["family"] = name,
-                    ["testsPassed"] = passed,
-                    ["trx"] = trx,
-                    ["trxSha256"] = trxHash,
-                    ["cobertura"] = nativePath,
-                    ["coberturaSha256"] = nativeHash,
-                    ["completeNativeTotals"] = new JsonObject
-                    {
-                        ["linesCovered"] = native.LinesCovered,
-                        ["linesTotal"] = native.LinesTotal,
-                        ["branchesCovered"] = native.BranchesCovered,
-                        ["branchesTotal"] = native.BranchesTotal
-                    }
-                });
+                JsonObject observation = await AnalyzeShippingCollection(language, package, reports, collection, sources, coreHash, pins);
+                foreach ((string key, JsonNode? value) in observation) { result[key] = value?.DeepClone(); }
             }
-            result["families"] = familyResults;
-            JsonObject summary = Summarize(sources, Aggregate(observations));
-            foreach ((string key, JsonNode? value) in summary) { result[key] = value?.DeepClone(); }
+            else
+            {
+                var observations = new List<NativeReport>(); var familyResults = new JsonArray();
+                foreach (JsonNode? familyNode in families)
+                {
+                    JsonObject family = familyNode!.AsObject(); string name = (string)family["name"]!;
+                    Require((int?)family["exitCode"] == 0, "Native coverage family process failed: " + name);
+                    ValidateCopies(language, name, family["coreCopies"]!.AsArray(), coreHash, pins);
+                    string expectedTrx = name + "/report.trx";
+                    Require(((string)family["trx"]!).Replace('\\', '/') == expectedTrx, "Native family TRX must use its own retained report path.");
+                    string trx = SourceReplay.InputPath(reports, expectedTrx); string trxHash = Pin(trx, pins);
+                    (long passed, string nativePath) = ValidateTrx(trx, Path.GetDirectoryName(trx)!);
+                    string nativeHash = Pin(nativePath, pins);
+                    NativeReport native = ParseCoverage(ReadXml(nativePath), language, sources); observations.Add(native);
+                    familyResults.Add(new JsonObject
+                    {
+                        ["family"] = name,
+                        ["testsPassed"] = passed,
+                        ["trx"] = trx,
+                        ["trxSha256"] = trxHash,
+                        ["cobertura"] = nativePath,
+                        ["coberturaSha256"] = nativeHash,
+                        ["completeNativeTotals"] = new JsonObject
+                        {
+                            ["linesCovered"] = native.LinesCovered,
+                            ["linesTotal"] = native.LinesTotal,
+                            ["branchesCovered"] = native.BranchesCovered,
+                            ["branchesTotal"] = native.BranchesTotal
+                        }
+                    });
+                }
+                result["families"] = familyResults;
+                JsonObject summary = Summarize(sources, Aggregate(observations));
+                foreach ((string key, JsonNode? value) in summary) { result[key] = value?.DeepClone(); }
+            }
             result["complete"] = true;
             exit = (bool)result["qualified"]! ? 0 : 2;
         }
@@ -128,6 +137,7 @@ internal static partial class HealthcheckCoverageVerification
             try
             {
                 foreach ((string path, string hash) in pins) { Require(Hash(path) == hash, "Coverage analysis input changed: " + path); }
+                if (producerInputs is not null) { HealthcheckPackageVerification.ValidatePreparedProducer(producerInputs, language, package); }
                 if (sourcePaths is not null)
                 {
                     string[] current = Directory.EnumerateFiles(Path.Combine(language, "src", "CIS.Core"), "*.cs", SearchOption.AllDirectories)
@@ -137,13 +147,13 @@ internal static partial class HealthcheckCoverageVerification
                 }
                 result["inputsVerifiedAfter"] = true;
             }
-            catch (Exception error) when (error is IOException or InvalidDataException or UnauthorizedAccessException)
+            catch (Exception error) when (error is IOException or InvalidDataException or UnauthorizedAccessException or ArgumentException or InvalidOperationException or JsonException or XmlException or FormatException or OverflowException)
             { result["integrityFailure"] = error.ToString(); result["complete"] = false; result["qualified"] = false; exit = 1; }
             result["inputPins"] = JsonSerializer.SerializeToNode(pins); result["exitCode"] = exit;
             WriteJson(Path.Combine(output, "results.json"), result);
         }
         Console.WriteLine(new JsonObject { ["complete"] = result["complete"]!.DeepClone(), ["qualified"] = result["qualified"]!.DeepClone(), ["aggregate"] = result["aggregate"]?.DeepClone(), ["exitCode"] = exit }.ToJsonString());
-        return Task.FromResult(exit);
+        return exit;
     }
 
     private static Dictionary<string, Source> SourceInventory(string language, JsonObject producer, Dictionary<string, string> pins)
@@ -162,10 +172,10 @@ internal static partial class HealthcheckCoverageVerification
             if (relative.Split('/').Any(part => part is "bin" or "obj")) { continue; }
             Require(producerPaths.Contains(relative), "Producer provenance omits actual Core C# source: " + relative);
             string hash = Pin(path, pins); bool healthcheck = relative.StartsWith(HealthcheckPrefix, StringComparison.Ordinal); string? reason = null;
-            if (healthcheck && DeclarationOnly.TryGetValue(relative[HealthcheckPrefix.Length..], out string? declarationHash))
+            if (healthcheck && DeclarationOnly.ContainsKey(relative[HealthcheckPrefix.Length..]))
             {
                 string normalized = File.ReadAllText(path).Replace("\r\n", "\n", StringComparison.Ordinal);
-                Require(Digest(Encoding.UTF8.GetBytes(normalized)) == declarationHash, "Reviewed declaration-only source changed; executable exclusions are forbidden: " + relative);
+                ValidateDeclarationOnly(relative, normalized);
                 reason = "Reviewed declaration-only enum/interface file; normalized source hash pinned; no executable code excluded";
             }
             sources.Add(relative, new Source(relative, hash, healthcheck, reason));
@@ -176,7 +186,15 @@ internal static partial class HealthcheckCoverageVerification
         return sources;
     }
 
-    internal static void ValidateSettings(XDocument document)
+    internal static void ValidateDeclarationOnly(string languageRelativePath, string text)
+    {
+        Require(languageRelativePath.StartsWith(HealthcheckPrefix, StringComparison.Ordinal)
+            && DeclarationOnly.TryGetValue(languageRelativePath[HealthcheckPrefix.Length..], out string? expected)
+            && Digest(Encoding.UTF8.GetBytes(text.Replace("\r\n", "\n", StringComparison.Ordinal))) == expected,
+            "Unknown or changed reviewed Healthcheck declaration-only source: " + languageRelativePath);
+    }
+
+    internal static void ValidateSettings(XDocument document, bool shipping = false)
     {
         XElement[] collectors = document.Descendants("DataCollector").ToArray();
         Require(collectors.Length == 1 && (string?)collectors[0].Attribute("friendlyName") == "Code Coverage"
@@ -188,8 +206,10 @@ internal static partial class HealthcheckCoverageVerification
         XElement coverage = config.Element("CodeCoverage") ?? throw new InvalidDataException("Missing CodeCoverage settings.");
         Require(coverage.Elements().Select(element => element.Name).Distinct().Count() == coverage.Elements().Count(), "Duplicate coverage settings cannot override the validated configuration.");
         XElement modules = coverage.Element("ModulePaths") ?? throw new InvalidDataException("Missing full Core module inclusion.");
-        Require((string?)modules.Attribute("mergeDefaults") == "False" && modules.Element("Include")?.Elements("ModulePath").Count() == 1
-            && modules.Element("Include")!.Element("ModulePath")!.Value == @".*[\\/]CIS\.Core\.dll$"
+        string[] expectedModules = shipping ? [@".*[\\/]CIS\.Core\.dll$", @".*[\\/]CIS\.TypeManager\.Build\.dll$"] : [@".*[\\/]CIS\.Core\.dll$"];
+        string[] actualModules = modules.Element("Include")?.Elements("ModulePath").Select(element => element.Value).ToArray() ?? [];
+        Require((string?)modules.Attribute("mergeDefaults") == "False" && actualModules.Length == expectedModules.Length
+            && actualModules.Order(StringComparer.Ordinal).SequenceEqual(expectedModules.Order(StringComparer.Ordinal), StringComparer.Ordinal)
             && modules.Element("Exclude") is { } moduleExclusions && !moduleExclusions.HasElements && string.IsNullOrWhiteSpace(moduleExclusions.Value), "Only the complete Core module may be selected.");
         foreach (string name in new[] { "Sources", "Functions", "Attributes", "CompanyNames", "PublicKeyTokens" })
         {
@@ -253,11 +273,21 @@ internal static partial class HealthcheckCoverageVerification
         Require(entries.Length == 1, "Expected exactly one net10.0 Core package DLL.");
         using Stream stream = entries[0].Open(); return Convert.ToHexStringLower(SHA256.HashData(stream));
     }
-    private static void ValidateCollectorPackage(string path)
+    internal static void ValidateCollectorPackage(string path)
     {
         using ZipArchive package = ZipFile.OpenRead(path); XElement metadata = PackageMetadata(package);
         Require(metadata.Elements().Single(element => element.Name.LocalName == "id").Value.Equals("Microsoft.CodeCoverage", StringComparison.OrdinalIgnoreCase)
             && metadata.Elements().Single(element => element.Name.LocalName == "version").Value == "18.10.1", "Collector package identity/version differs.");
+    }
+    internal static string ValidateCollectorReference(JsonObject collection, string reports, Dictionary<string, string> pins)
+    {
+        JsonObject tool = collection["collectorPackage"]?.AsObject() ?? throw new InvalidDataException("Missing actual collector package pin.");
+        Require((string?)tool["path"] is { Length: > 0 } && (string?)tool["sha256"] is { Length: 64 }, "Collector package pin is incomplete.");
+        string path = Path.GetFullPath((string)tool["path"]!, reports);
+        Require(File.Exists(path), "Pinned collector package is missing.");
+        Require(Pin(path, pins) == (string?)tool["sha256"], "Collector package checksum differs.");
+        ValidateCollectorPackage(path);
+        return path;
     }
     private static XElement PackageMetadata(ZipArchive package)
     {

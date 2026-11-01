@@ -10,7 +10,9 @@ namespace CIS.Tests.UnitTests;
 [TestClass]
 public sealed class QueueOverflowTests
 {
-    public static IEnumerable<object[]> Rows => Catalog()["cases"]!.AsArray().Select(row => new object[] { row!["id"]!.GetValue<string>() });
+    private static readonly Lazy<LoggingFixtureInputs> Inputs = new(() => new("queue-overflow-cases.json"));
+
+    public static IEnumerable<object[]> Rows => Inputs.Value.Ids.Select(id => new object[] { id });
     [TestMethod]
     [DynamicData(nameof(Rows))]
     public async Task SaturationPreservesAcceptedWorkAndIndependentResults(string id)
@@ -73,6 +75,6 @@ public sealed class QueueOverflowTests
         JsonArray rows = Catalog()["cases"]!.AsArray(); Assert.AreEqual(12, rows.Count); Assert.AreEqual(12, rows.Select(row => row!["id"]!.GetValue<string>()).Distinct(StringComparer.Ordinal).Count());
         CollectionAssert.AreEquivalent(new[] { "basic", "file-fault-overflow", "console-fault-overflow", "independent-file", "recover-console", "recover-file" }, rows.Select(row => row!["mode"]!.GetValue<string>()).Distinct().ToArray());
     }
-    private static JsonObject Catalog() => JsonNode.Parse(File.ReadAllText(Path.Combine(Path.GetDirectoryName(ConfigurationFixtureAdapter.FindFixture())!, "queue-overflow-cases.json")))!.AsObject();
-    private static JsonObject Row(string id) => Catalog()["cases"]!.AsArray().Single(row => row!["id"]!.GetValue<string>() == id)!.AsObject();
+    private static JsonObject Catalog() => Inputs.Value.Catalog();
+    private static JsonObject Row(string id) => Inputs.Value.Row(id);
 }

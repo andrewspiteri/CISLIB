@@ -1,3 +1,4 @@
+using System.Collections.Concurrent;
 using System.Text.Json.Nodes;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -6,6 +7,9 @@ namespace CIS.Tests.IntegrationTests;
 [TestClass]
 public sealed class StopReaderMigrationTests
 {
+#if !CIS_MUTATION_TESTS
+    private static readonly ConcurrentDictionary<(string Command, string Mode), Lazy<Task<string>>> ReaderPositives = new();
+#endif
     public TestContext TestContext { get; set; } = null!;
     public static IEnumerable<object[]> Controls =>
     [
@@ -131,12 +135,25 @@ public sealed class StopReaderMigrationTests
     [DynamicData(nameof(Controls))]
     public async Task MigratedShutdownReaderRejectsTheOriginalCorruption(string command, string mode, string fault, string reason)
     {
-        JsonObject actual = await LifecycleProcessChecks.Run(command, mode, TestContext);
+        JsonObject actual = await ReadPositive(command, mode);
         int pid = actual["pid"]!.GetValue<int>();
+        LifecycleProcessChecks.Validate(command, mode, actual, pid);
         JsonObject damaged = actual.DeepClone().AsObject();
         Damage(command, fault, damaged, pid);
         InvalidOperationException error = Assert.ThrowsExactly<InvalidOperationException>(() => LifecycleProcessChecks.Validate(command, mode, damaged, pid));
         Assert.AreEqual(reason, error.Message, command + "/" + fault);
+    }
+
+    private async Task<JsonObject> ReadPositive(string command, string mode)
+    {
+#if CIS_MUTATION_TESTS
+        return await LifecycleProcessChecks.Run(command, mode, TestContext);
+#else
+        // Run the real physical control through cleanup before sharing its text.
+        string text = await ReaderPositives.GetOrAdd((command, mode), key => new Lazy<Task<string>>(async () =>
+            (await LifecycleProcessChecks.Run(key.Command, key.Mode, TestContext)).ToJsonString())).Value;
+        return JsonNode.Parse(text)!.AsObject();
+#endif
     }
 
     private static void Damage(string command, string fault, JsonObject a, int pid)

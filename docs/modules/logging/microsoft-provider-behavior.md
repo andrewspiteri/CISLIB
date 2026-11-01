@@ -1,5 +1,7 @@
 # Microsoft provider interest and rejection
 
+Current execution strategy, 29 October 2026: the full 14-mode behavior matrix runs directly against Core. Ten physical writer modes also run in exact-runtime children with actual bytes, child PID and lease-release checks. The four controlled no-output/full/fault modes no longer repeat in children because they add no OS or lifetime boundary. The direct argument guards and all physical corruption controls remain.
+
 ILogger.IsEnabled delegates to Core after validating the level. None, no interested output, closed admission, a disposed provider, and all interested outputs faulted return false. A full queue remains interested: Log still formats and captures once, then Core counts each full output without admitting a ticket. Each healthy interested output admits independently; a faulted output does not prevent another output from accepting the same capture. There is no automatic writer retry or replacement.
 
 Log validates the formatter before the level, even after disposal or shutdown. Before either callback, Core applies closure/interest/fault gates. Filtered calls, including Log(None), update existing output filtered counts; all-faulted interested calls update unavailable counts; stopped and disposed calls perform no capture. Provider disposal disables its loggers and leaves application runtime ownership intact. Concurrent disposal/closure after the first check follows the existing Core capture/admission race contract.

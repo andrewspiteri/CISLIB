@@ -1,3 +1,4 @@
+using System.Collections.Concurrent;
 using System.Runtime.InteropServices;
 using System.Security;
 using System.Security.Cryptography;
@@ -31,7 +32,12 @@ internal sealed class TypeManagerCompatibilityFixture
     private readonly Dictionary<string, string?> environment;
     private readonly Dictionary<string, string> immutable = new(StringComparer.Ordinal);
     private readonly Dictionary<string, ApprovedDependency> dependencies = new(StringComparer.Ordinal);
-    private readonly Dictionary<string, Task<string>> builds = new(StringComparer.Ordinal);
+    private readonly ConcurrentDictionary<string, Lazy<Task<string>>> builds = new(StringComparer.Ordinal);
+    private sealed record ModuleCompiler(string Workspace, string Compiler, string Response, string Output,
+        string[] Arguments, Dictionary<string, string> FixedInputs);
+    private readonly Lazy<Task<ModuleCompiler>> modulePreparation;
+    private readonly object reportGate = new();
+    private readonly string coreSha256;
     private readonly JsonObject report;
     private readonly JsonObject policy;
     internal string Root { get; }
@@ -101,11 +107,12 @@ internal sealed class TypeManagerCompatibilityFixture
         }
         foreach (string relative in sources.Keys) { Pin(Path.Combine(Language, "src/CIS.Core", relative)); }
         foreach (string path in Directory.GetFiles(Path.Combine(Language, "tests/CIS.Core.CompatibilityTests"), "*.cs")) { Pin(path); }
+        coreSha256 = Hash(Core);
         report = new JsonObject
         {
             ["scope"] = "Unpublished development compatibility; not released historical behavior",
             ["platform"] = RuntimeInformation.OSDescription,
-            ["coreSha256"] = Hash(Core),
+            ["coreSha256"] = coreSha256,
             ["consumerRuntime"] = policy["targetRuntime"]!.DeepClone(),
             ["apiRuntime"] = policy["toolHostRuntime"]!.DeepClone(),
             ["originalBaselineManifestSha256"] = OriginalHash,
@@ -126,6 +133,8 @@ internal sealed class TypeManagerCompatibilityFixture
             ["DOTNET_CLI_TELEMETRY_OPTOUT"] = "1",
             ["DOTNET_NOLOGO"] = "1",
             ["MSBUILDDISABLENODEREUSE"] = "1",
+            ["UseSharedCompilation"] = "false",
+            ["DOTNET_CLI_USE_MSBUILD_SERVER"] = "0",
             ["DOTNET_GENERATE_ASPNET_CERTIFICATE"] = "false",
             ["DOTNET_ADD_GLOBAL_TOOLS_TO_PATH"] = "false",
             ["DOTNET_CLI_WORKLOAD_UPDATE_NOTIFY_DISABLE"] = "true"
@@ -135,6 +144,7 @@ internal sealed class TypeManagerCompatibilityFixture
         File.WriteAllText(Path.Combine(Root, "Directory.Build.props"), "<Project><PropertyGroup><RestoreConfigFile>" + SecurityElement.Escape(Path.Combine(Root, "NuGet.Config")) + "</RestoreConfigFile></PropertyGroup></Project>");
         File.WriteAllText(Path.Combine(Root, "Directory.Build.rsp"), "");
         File.WriteAllText(Path.Combine(Root, "NuGet.Config"), "<configuration><packageSources><clear/></packageSources><fallbackPackageFolders><clear/></fallbackPackageFolders><auditSources><clear/></auditSources></configuration>");
+        modulePreparation = new(PrepareModuleCompiler);
         Save();
     }
 
@@ -142,48 +152,53 @@ internal sealed class TypeManagerCompatibilityFixture
     {
         string sdk = (await Run("sdk", ["--version"])).Trim();
         Require(sdk == policy["sdk"]!.GetValue<string>(), "Wrong SDK.");
-        report["sdk"] = sdk;
-        Save();
+        lock (reportGate) { report["sdk"] = sdk; Save(); }
     }
 
-    private void Pin(string path) => immutable.Add(Path.GetFullPath(path), Hash(path));
+    private void Pin(string path) { lock (reportGate) { immutable.Add(Path.GetFullPath(path), Hash(path)); } }
     private void BaselineCheck() { Baseline(Original, OriginalHash); Baseline(Baseline, BehaviorHash); }
     internal void Unchanged()
     {
         BaselineCheck();
-        foreach ((string path, string hash) in immutable) { Require(Hash(path) == hash, "Qualification modified an input: " + path); }
-        Producer(Read(Path.Combine(Root, "candidate-producer.json")), Core, report["coreSha256"]!.GetValue<string>(), ModuleSources(Language));
+        KeyValuePair<string, string>[] inputs;
+        lock (reportGate) { inputs = immutable.ToArray(); }
+        foreach ((string path, string hash) in inputs) { Require(Hash(path) == hash, "Qualification modified an input: " + path); }
+        Producer(Read(Path.Combine(Root, "candidate-producer.json")), Core, coreSha256, ModuleSources(Language));
     }
     private void Save()
     {
-        report["inputs"] = JsonSerializer.SerializeToNode(immutable);
-        File.WriteAllText(Path.Combine(Root, "results.json"), report.ToJsonString(new JsonSerializerOptions { WriteIndented = true }));
+        lock (reportGate)
+        {
+            report["inputs"] = JsonSerializer.SerializeToNode(immutable);
+            File.WriteAllText(Path.Combine(Root, "results.json"), report.ToJsonString(new JsonSerializerOptions { WriteIndented = true }));
+        }
     }
     internal void Passed(string name, JsonObject? details = null)
     {
         Unchanged();
         details ??= new(); details["case"] = name; details["passed"] = true;
-        report["results"]!.AsArray().Add(details); Save();
+        lock (reportGate) { report["results"]!.AsArray().Add(details); Save(); }
     }
 
-    internal async Task<string> Run(string name, string[] arguments, string[]? errors = null, bool api = false, bool additionalDependencies = true)
+    internal async Task<string> Run(string name, string[] arguments, string[]? errors = null, bool api = false, bool additionalDependencies = true, string? workingDirectory = null)
     {
         string executable = api ? Environment.GetEnvironmentVariable("CIS_COMPAT_API_DOTNET") ?? dotnet : dotnet;
         string supplemental = Path.Combine(Path.GetDirectoryName(arguments[0]) ?? Root, "approved-dependencies.deps.json");
         string[] dependencyArguments = !api && additionalDependencies && File.Exists(supplemental) ? ["--additional-deps", supplemental] : [];
         string[] command = arguments[0].EndsWith(".dll", StringComparison.Ordinal) ? ["exec", "--fx-version", policy[api ? "toolHostRuntime" : "targetRuntime"]!.GetValue<string>(), "--roll-forward", "Disable", .. dependencyArguments, .. arguments] : arguments;
         var entry = new JsonObject { ["name"] = name, ["executable"] = executable, ["arguments"] = JsonSerializer.SerializeToNode(command), ["expectedErrors"] = JsonSerializer.SerializeToNode(errors) };
-        report["commands"]!.AsArray().Add(entry); Save();
+        lock (reportGate) { report["commands"]!.AsArray().Add(entry); Save(); }
         try
         {
-            ProcessResult child = await ProcessRunner.RunAsync(executable, command, Path.Combine(Root, "cwd"), TimeSpan.FromSeconds(180), environment, Encoding.UTF8);
+            ProcessResult child = await ProcessRunner.RunAsync(executable, command, workingDirectory ?? Path.Combine(Root, "cwd"), TimeSpan.FromSeconds(180), environment, Encoding.UTF8);
+            Require(child.OutputDrained, "The compatibility child output did not drain: " + name);
             string output = child.StandardOutput + child.StandardError;
             File.WriteAllText(Path.Combine(Root, "logs", name + ".log"), output);
-            entry["exitCode"] = child.ExitCode; entry["processId"] = child.ProcessId; Save();
+            lock (reportGate) { entry["exitCode"] = child.ExitCode; entry["processId"] = child.ProcessId; Save(); }
             Require(errors is null ? child.ExitCode == 0 : child.ExitCode != 0 && errors.All(text => output.Contains(text, StringComparison.Ordinal)), name + " failed or did not fail for the specified defect; inspect " + Path.Combine(Root, "logs", name + ".log"));
             return child.StandardOutput;
         }
-        catch (Exception error) { entry["error"] = error.Message; Save(); throw; }
+        catch (Exception error) { lock (reportGate) { entry["error"] = error.Message; Save(); } throw; }
     }
 
     private void Runtime(string directory, string candidate)
@@ -195,7 +210,7 @@ internal sealed class TypeManagerCompatibilityFixture
         {
             string source = dependencies[name].SourcePath;
             File.Copy(source, Path.Combine(directory, name), true);
-            Require(Hash(Path.Combine(directory, name)) == immutable[source], "Dependency copy differs.");
+            Require(Hash(Path.Combine(directory, name)) == dependencies[name].Sha256, "Dependency copy differs.");
         }
         // The first frozen consumer predates Core's approved Microsoft dependency closure.
         // Deploy those exact bytes via an external host manifest; never rewrite the frozen deps file.
@@ -213,8 +228,7 @@ internal sealed class TypeManagerCompatibilityFixture
 
     internal Task<string> Source(string name, string source, string candidate, bool historical = false, string[]? errors = null)
     {
-        if (!builds.TryGetValue(name, out Task<string>? task)) { builds.Add(name, task = Build()); }
-        return task;
+        return builds.GetOrAdd("source:" + name, _ => new Lazy<Task<string>>(Build)).Value;
         async Task<string> Build()
         {
             string directory = Path.Combine(Root, name); Directory.CreateDirectory(directory);
@@ -238,8 +252,7 @@ internal sealed class TypeManagerCompatibilityFixture
 
     internal Task<string> Module(string name, Mutation[] changes)
     {
-        if (!builds.TryGetValue(name, out Task<string>? task)) { builds.Add(name, task = Build()); }
-        return task;
+        return builds.GetOrAdd("module:" + name, _ => new Lazy<Task<string>>(Build)).Value;
         async Task<string> Build()
         {
             Unchanged();
@@ -259,24 +272,179 @@ internal sealed class TypeManagerCompatibilityFixture
                 string destination = Path.Combine(directory, Path.GetRelativePath(module, file)); Directory.CreateDirectory(Path.GetDirectoryName(destination)!); File.WriteAllText(destination, text);
             }
             Require(hits.All(count => count > 0), "Mutation anchor was not found.");
-            string project = Path.Combine(directory, "Core.csproj");
-            File.WriteAllText(project, "<Project Sdk=\"Microsoft.NET.Sdk\"><PropertyGroup><TargetFramework>net10.0</TargetFramework><AssemblyName>CIS.Core</AssemblyName><AssemblyVersion>1.0.0.0</AssemblyVersion><ImplicitUsings>enable</ImplicitUsings><Nullable>enable</Nullable><TreatWarningsAsErrors>true</TreatWarningsAsErrors></PropertyGroup></Project>");
-            await Run(name + "-build", ["build", project, "-c", "Release", "-m:1", "--nologo"]);
+            ModuleCompiler seed = await modulePreparation.Value;
+            ModuleCompiler compiler = PrivateModuleCompiler(seed, name);
+            foreach ((string path, string hash) in compiler.FixedInputs) { Require(Hash(path) == hash, "Prepared module compiler input changed: " + path); }
+            var sourcePins = new JsonObject();
+            foreach (string file in Directory.EnumerateFiles(directory, "*.cs", SearchOption.AllDirectories))
+            {
+                string staged = Path.Combine(compiler.Workspace, Path.GetRelativePath(directory, file));
+                Directory.CreateDirectory(Path.GetDirectoryName(staged)!); File.Copy(file, staged, true);
+                sourcePins[file] = Hash(file);
+                Require(Hash(staged) == Hash(file), "A module control's actual source differs from its compiler input.");
+                compiler.FixedInputs[staged] = Hash(file);
+            }
+            File.Delete(compiler.Output);
+            File.Delete(Path.ChangeExtension(compiler.Output, ".pdb"));
+            await Run(name + "-compile", [compiler.Compiler, "/noconfig", "@" + compiler.Response], workingDirectory: compiler.Workspace);
+            Require(File.Exists(compiler.Output), "The real compiler did not emit the module control assembly.");
             string binary = Path.Combine(directory, "bin/Release/net10.0/CIS.Core.dll");
-            report["controls"] ??= new JsonObject();
-            report["controls"]![name] = new JsonObject { ["binarySha256"] = Hash(binary), ["mutations"] = JsonSerializer.SerializeToNode(changes), ["occurrences"] = JsonSerializer.SerializeToNode(hits) }; Save();
+            Directory.CreateDirectory(Path.GetDirectoryName(binary)!); File.Copy(compiler.Output, binary);
+            Require(Hash(binary) == Hash(compiler.Output), "The emitted module control copy differs.");
+            string pdb = Path.ChangeExtension(compiler.Output, ".pdb");
+            if (File.Exists(pdb))
+            {
+                string destination = Path.ChangeExtension(binary, ".pdb"); File.Copy(pdb, destination);
+                Require(Hash(pdb) == Hash(destination), "The emitted module debug-symbol copy differs.");
+            }
+            foreach ((string path, string hash) in compiler.FixedInputs) { Require(Hash(path) == hash, "Prepared module compiler input changed during compilation: " + path); }
+            foreach ((string path, JsonNode? hash) in sourcePins)
+            {
+                string expected = hash!.GetValue<string>();
+                Require(Hash(path) == expected && Hash(Path.Combine(compiler.Workspace, Path.GetRelativePath(directory, path))) == expected,
+                    "A module control source changed during compilation.");
+            }
+            var controlRecord = new JsonObject
+            {
+                ["binarySha256"] = Hash(binary),
+                ["mutations"] = JsonSerializer.SerializeToNode(changes),
+                ["occurrences"] = JsonSerializer.SerializeToNode(hits),
+                ["sourceInputs"] = sourcePins,
+                ["compilerWorkspace"] = compiler.Workspace,
+                ["compilerResponseSha256"] = Hash(compiler.Response),
+                ["compilerSha256"] = Hash(compiler.Compiler)
+            };
+            lock (reportGate)
+            {
+                report["controls"] ??= new JsonObject();
+                report["controls"]![name] = controlRecord;
+                Save();
+            }
             return binary;
         }
     }
 
+    private async Task<ModuleCompiler> PrepareModuleCompiler()
+    {
+        string workspace = Path.Combine(Root, "module-compiler");
+        string module = Path.Combine(Language, "src/CIS.Core/TypeManagement");
+        foreach (string source in Directory.EnumerateFiles(module, "*.cs", SearchOption.AllDirectories))
+        {
+            string target = Path.Combine(workspace, Path.GetRelativePath(module, source));
+            Directory.CreateDirectory(Path.GetDirectoryName(target)!); File.Copy(source, target);
+        }
+        string project = Path.Combine(workspace, "Core.csproj");
+        File.WriteAllText(project, "<Project Sdk=\"Microsoft.NET.Sdk\"><PropertyGroup><TargetFramework>net10.0</TargetFramework><AssemblyName>CIS.Core</AssemblyName><AssemblyVersion>1.0.0.0</AssemblyVersion><ImplicitUsings>enable</ImplicitUsings><Nullable>enable</Nullable><TreatWarningsAsErrors>true</TreatWarningsAsErrors></PropertyGroup></Project>");
+        string capture = await Run("module-compiler-prepare", ["msbuild", project, "-restore", "-t:Compile", "-p:Configuration=Release",
+            "-p:SkipCompilerExecution=true", "-p:ProvideCommandLineArgs=true", "-getTargetResult:CoreCompile",
+            "-getProperty:NETCoreSdkVersion,RoslynTargetsPath,CscToolPath,CscToolExe", "-nologo", "-v:quiet"], workingDirectory: workspace);
+        string capturePath = Path.Combine(workspace, "compiler-command.json"); File.WriteAllText(capturePath, capture);
+        JsonObject command = JsonNode.Parse(capture)!.AsObject(), properties = command["Properties"]!.AsObject();
+        Require(properties["NETCoreSdkVersion"]!.GetValue<string>() == policy["sdk"]!.GetValue<string>()
+            && string.IsNullOrEmpty((string?)properties["CscToolPath"]) && string.IsNullOrEmpty((string?)properties["CscToolExe"]), "The module capture must use the pinned SDK's managed compiler.");
+        string compiler = Path.Combine(properties["RoslynTargetsPath"]!.GetValue<string>(), "bincore/csc.dll");
+        JsonObject compile = command["TargetResults"]!["CoreCompile"]!.AsObject();
+        Require((string?)compile["Result"] == "Success", "The SDK did not capture its actual module compiler command.");
+        string[] arguments = compile["Items"]!.AsArray().Select(item => item!["Identity"]!.GetValue<string>()).ToArray();
+        Require(arguments.Length > 0 && arguments.All(value => !value.Contains('\r') && !value.Contains('\n'))
+            && arguments.Count(value => value == "/noconfig") == 1 && arguments.Contains("/nullable:enable", StringComparer.Ordinal)
+            && arguments.Contains("/warnaserror+", StringComparer.Ordinal) && arguments.Contains("/deterministic+", StringComparer.Ordinal), "The captured module compiler options are incomplete.");
+        string response = Path.Combine(workspace, "compiler.rsp");
+        File.WriteAllText(response, string.Join(Environment.NewLine, arguments.Where(value => value != "/noconfig")) + Environment.NewLine, new UTF8Encoding(false));
+        string output = Path.GetFullPath(arguments.Single(value => value.StartsWith("/out:", StringComparison.OrdinalIgnoreCase))[5..].Trim('"'), workspace);
+        Require(output.StartsWith(workspace + Path.DirectorySeparatorChar, OperatingSystem.IsWindows() ? StringComparison.OrdinalIgnoreCase : StringComparison.Ordinal), "The captured compiler output escapes its owned workspace.");
+        foreach (string prefix in new[] { "/out:", "/refout:", "/pdb:" })
+        {
+            foreach (string argument in arguments.Where(value => value.StartsWith(prefix, StringComparison.OrdinalIgnoreCase)))
+            {
+                string path = Path.GetFullPath(argument[prefix.Length..].Trim('"'), workspace);
+                Require(path.StartsWith(workspace + Path.DirectorySeparatorChar, OperatingSystem.IsWindows() ? StringComparison.OrdinalIgnoreCase : StringComparison.Ordinal), "A compiler output escapes its owned workspace.");
+                Directory.CreateDirectory(Path.GetDirectoryName(path)!);
+            }
+        }
+        var fixedInputs = new Dictionary<string, string>(StringComparer.Ordinal)
+        { [project] = Hash(project), [compiler] = Hash(compiler), [response] = Hash(response), [capturePath] = Hash(capturePath) };
+        foreach (string generated in Directory.EnumerateFiles(Path.Combine(workspace, "obj"), "*", SearchOption.AllDirectories)
+            .Where(path => Path.GetExtension(path) is ".cs" or ".editorconfig")) { fixedInputs.Add(generated, Hash(generated)); }
+        foreach (string prefix in new[] { "/reference:", "/analyzer:", "/analyzerconfig:", "/additionalfile:" })
+        {
+            foreach (string argument in arguments.Where(value => value.StartsWith(prefix, StringComparison.OrdinalIgnoreCase)))
+            {
+                string path = Path.GetFullPath(argument[prefix.Length..].Trim('"'), workspace);
+                fixedInputs.TryAdd(path, Hash(path));
+            }
+        }
+        foreach (string source in Directory.EnumerateFiles(module, "*.cs", SearchOption.AllDirectories))
+        {
+            string staged = Path.Combine(workspace, Path.GetRelativePath(module, source));
+            Require(Hash(staged) == Hash(source), "The captured module source differs from its actual input.");
+            fixedInputs.Add(staged, Hash(staged));
+        }
+        lock (reportGate)
+        {
+            report["moduleCompilerPreparation"] = new JsonObject
+            {
+                ["scope"] = "One actual SDK compiler command; every distinct positive/negative module still emits a fresh real assembly in a private compiler workspace and executes its original consumers/API checks.",
+                ["sdk"] = properties["NETCoreSdkVersion"]!.DeepClone(),
+                ["fixedInputs"] = JsonSerializer.SerializeToNode(fixedInputs),
+                ["argumentCount"] = arguments.Length,
+                ["capturePath"] = capturePath,
+                ["responsePath"] = response
+            };
+            Save();
+        }
+        return new(workspace, compiler, response, output, arguments, fixedInputs);
+    }
+
+    private ModuleCompiler PrivateModuleCompiler(ModuleCompiler seed, string name)
+    {
+        foreach ((string path, string hash) in seed.FixedInputs) { Require(Hash(path) == hash, "Prepared module compiler input changed: " + path); }
+        string workspace = Path.Combine(Root, "module-compilers", name);
+        Require(!Directory.Exists(workspace), "A module compiler workspace must be fresh.");
+        foreach (string file in Directory.EnumerateFiles(seed.Workspace, "*", SearchOption.AllDirectories))
+        {
+            string target = Path.Combine(workspace, Path.GetRelativePath(seed.Workspace, file));
+            Directory.CreateDirectory(Path.GetDirectoryName(target)!); File.Copy(file, target);
+            Require(Hash(target) == Hash(file), "The private compiler workspace differs from its captured seed.");
+        }
+        StringComparison comparison = OperatingSystem.IsWindows() ? StringComparison.OrdinalIgnoreCase : StringComparison.Ordinal;
+        string[] arguments = seed.Arguments.Select(argument => argument.Replace(seed.Workspace, workspace, comparison)).ToArray();
+        Require(arguments.Select(argument => argument.Replace(workspace, seed.Workspace, comparison)).SequenceEqual(seed.Arguments, StringComparer.Ordinal),
+            "The private module compiler changed options beyond its owned workspace paths.");
+        string response = Path.Combine(workspace, Path.GetRelativePath(seed.Workspace, seed.Response));
+        File.WriteAllText(response, string.Join(Environment.NewLine, arguments.Where(value => value != "/noconfig")) + Environment.NewLine, new UTF8Encoding(false));
+        foreach (string prefix in new[] { "/out:", "/refout:", "/pdb:" })
+        {
+            foreach (string argument in arguments.Where(value => value.StartsWith(prefix, StringComparison.OrdinalIgnoreCase)))
+            {
+                string path = Path.GetFullPath(argument[prefix.Length..].Trim('"'), workspace);
+                Require(path.StartsWith(workspace + Path.DirectorySeparatorChar, comparison), "A private compiler output escapes its owned workspace.");
+                Directory.CreateDirectory(Path.GetDirectoryName(path)!);
+            }
+        }
+        var fixedInputs = new Dictionary<string, string>(StringComparer.Ordinal);
+        foreach ((string path, string hash) in seed.FixedInputs)
+        {
+            string relative = Path.GetRelativePath(seed.Workspace, path);
+            bool local = !Path.IsPathRooted(relative) && relative != ".." && !relative.StartsWith(".." + Path.DirectorySeparatorChar, StringComparison.Ordinal);
+            string target = local ? Path.Combine(workspace, relative) : path;
+            string expected = path == seed.Response ? Hash(response) : hash;
+            Require(Hash(target) == expected, "A private module compiler input differs from its captured input.");
+            fixedInputs.Add(target, expected);
+        }
+        foreach ((string path, string hash) in seed.FixedInputs) { Require(Hash(path) == hash, "Prepared module compiler input changed during cloning: " + path); }
+        return new(workspace, seed.Compiler, response, Path.Combine(workspace, Path.GetRelativePath(seed.Workspace, seed.Output)), arguments, fixedInputs);
+    }
+
     internal async Task Behavior(string name, string binaries, string candidate, string caseId, string? field = null, JsonNode? value = null)
     {
-        JsonNode item = Cases.Single(c => c!["id"]!.GetValue<string>() == caseId)!;
-        string caseName = name + "-" + caseId, directory = Path.Combine(Root, "runs", caseName);
+        JsonNode item;
+        lock (reportGate) { item = Cases.Single(c => c!["id"]!.GetValue<string>() == caseId)!.DeepClone(); }
+        string caseName = name + "-" + caseId, runRoot = Path.Combine(Root, "runs", caseName), directory = Path.Combine(runRoot, "consumer");
         Directory.CreateDirectory(directory);
         foreach (string file in new[] { "CIS.TypeManager.BehaviorConsumer.dll", "CIS.TypeManager.BehaviorConsumer.deps.json", "CIS.TypeManager.BehaviorConsumer.runtimeconfig.json", "CIS.TypeManager.BehaviorExtra.dll" }) { File.Copy(Path.Combine(binaries, file), Path.Combine(directory, file)); }
         if (item["assetMode"]?.GetValue<string>() == "bad-image") { File.WriteAllText(Path.Combine(directory, "CIS.TypeManager.BehaviorExtra.dll"), "Not a managed assembly"); }
-        if (caseId == "path-traversal") { File.Copy(Path.Combine(directory, "CIS.TypeManager.BehaviorConsumer.dll"), Path.Combine(Root, "runs/Outside.dll"), true); }
+        if (caseId == "path-traversal") { File.Copy(Path.Combine(directory, "CIS.TypeManager.BehaviorConsumer.dll"), Path.Combine(runRoot, "Outside.dll"), true); }
         Runtime(directory, candidate);
         string mode = item["mode"]!.GetValue<string>(), manifest = Path.Combine(directory, mode == "default" ? "CIS.TypeManager.BehaviorConsumer.types.json" : "input.types.json");
         if (item["input"] is not null) { File.Copy(Within(Path.Combine(Baseline, "cases"), item["input"]!.GetValue<string>()), manifest); }
@@ -323,7 +491,10 @@ internal sealed class TypeManagerCompatibilityFixture
         string tool = Environment.GetEnvironmentVariable("CIS_COMPAT_API_TOOL") ?? Path.Combine(Environment.GetEnvironmentVariable("NUGET_PACKAGES") ?? Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), ".nuget/packages"), "microsoft.dotnet.apicompat.tool/10.0.401/tools/net8.0/any/Microsoft.DotNet.ApiCompat.Tool.dll");
         Require(File.Exists(tool), "Restore the pinned ApiCompat tool or set CIS_COMPAT_API_TOOL to its entry DLL.");
         tool = Path.GetFullPath(tool);
-        if (!immutable.ContainsKey(tool)) { Pin(tool); report["apiToolSha256"] = Hash(tool); }
+        lock (reportGate)
+        {
+            if (!immutable.ContainsKey(tool)) { Pin(tool); report["apiToolSha256"] = immutable[tool]; Save(); }
+        }
         string version = (await Run(name + "-version", [tool, "--version"], api: true)).Trim();
         Require(version.StartsWith("10.0.401+", StringComparison.Ordinal), "Wrong API compatibility tool.");
         await Run(name, [tool, "-l", Path.Combine(Original, "reference/CIS.Core.dll"), "-r", candidate, "--enable-rule-cannot-change-parameter-name", "--enable-rule-attributes-must-match"], negative ? ["AssemblyManifestPath"] : null, api: true);

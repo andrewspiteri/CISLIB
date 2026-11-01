@@ -16,7 +16,7 @@ internal static class ToolchainQualification
         string repo = inputs.PathOf("repo-root"), output = inputs.Output;
         MicrosoftLoggingQualification.RequireNewOutput(output);
         Console.WriteLine("Toolchain: inventory maintained source");
-        SourceInventoryEntry[] inventory = await SourceInventory.CaptureAsync(repo);
+        SourceInventoryEntry[] inventory = SourceInventory.CaptureVerificationInputs(repo);
         Require(inventory.Length > 0, "Unable to enumerate repository source.");
         inputs.EmptyOutput();
         string source = Path.Combine(output, "source"), language = Path.Combine(source, "implementations/csharp");
@@ -70,6 +70,7 @@ internal static class ToolchainQualification
         {
             ["schemaVersion"] = 1,
             ["task"] = "WP01-S03",
+            ["sourceInputScope"] = SourceInventory.VerificationScope,
             ["runRoot"] = output,
             ["recordedUtc"] = DateTimeOffset.UtcNow,
             ["sdk"] = policy["sdk"]!.DeepClone(),
@@ -89,7 +90,7 @@ internal static class ToolchainQualification
             string[] stryker = ToolArguments(policy, cache, "dotnet-stryker"), api = ToolArguments(policy, cache, "Microsoft.DotNet.ApiCompat.Tool");
             await Run("stryker-help", [.. stryker, "--help"]);
             await Run("apicompat-version", [.. api, "--version"]);
-            await Run("locked-restore", ["restore", "CisLib.slnx", "--locked-mode", "--configfile", "NuGet.config", "--no-http-cache"]);
+            await Run("locked-restore", ["restore", "verification/CisLib.Verification.slnx", "--locked-mode", "--configfile", "NuGet.config", "--no-http-cache"]);
             ProcessResult git = await Run("git-version", ["--version"], executable: "git");
             ToolchainInputs.Record(output, language, cache, inputs.Get("powershell-version"), git.StandardOutput.Trim());
             await Run("developer-verification", ["-NoProfile", "-File", "eng/verify.ps1", "-MaxBuildNodes", "4"], executable: powershell);

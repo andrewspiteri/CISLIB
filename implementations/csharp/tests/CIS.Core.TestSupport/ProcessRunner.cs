@@ -54,7 +54,8 @@ public static class ProcessRunner
         Encoding? outputEncoding = null,
         int maximumCapturedBytesPerStream = 1_048_576,
         bool allowTruncatedOutput = false,
-        int? maximumCapturedStandardOutputBytes = null)
+        int? maximumCapturedStandardOutputBytes = null,
+        CancellationToken cancellationToken = default)
     {
         if (timeout <= TimeSpan.Zero || timeout.TotalMilliseconds > uint.MaxValue - 1)
         {
@@ -93,7 +94,8 @@ public static class ProcessRunner
         }
 
         using var process = new Process { StartInfo = startInfo };
-        using var deadline = new CancellationTokenSource(timeout);
+        using var deadline = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+        deadline.CancelAfter(timeout);
         using var readers = new CancellationTokenSource();
         process.Start();
         var stdout = new BoundedCapture(maximumCapturedStandardOutputBytes ?? maximumCapturedBytesPerStream);
@@ -112,7 +114,8 @@ public static class ProcessRunner
         catch (OperationCanceledException exception) when (deadline.IsCancellationRequested)
         {
             bool cleanupCompleted = await StopAndObserveAsync(process, output, error, readers).ConfigureAwait(false);
-            throw new ProcessTimeoutException($"Child process exceeded its {timeout} deadline: {executable}", exception,
+            string reason = cancellationToken.IsCancellationRequested ? "Child process was canceled by its owner" : $"Child process exceeded its {timeout} deadline";
+            throw new ProcessTimeoutException($"{reason}: {executable}", exception,
                 Result(cleanupCompleted), cleanupCompleted);
         }
 

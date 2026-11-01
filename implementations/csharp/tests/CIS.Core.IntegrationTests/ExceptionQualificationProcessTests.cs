@@ -8,7 +8,14 @@ namespace CIS.Tests.IntegrationTests;
 public sealed class ExceptionQualificationProcessTests
 {
     public TestContext TestContext { get; set; } = null!;
-    public static IEnumerable<object[]> Rows => FixtureProcessChecks.Cases("exception-qualification-cases.json", 68).Select(row => new object[] { (string)row!["id"]! });
+    // The complete 68-row descriptor/bounds matrix runs directly against Core in
+    // ExceptionQualificationTests (including all three cultures). These children
+    // retain the distinct exact-runtime/JSON transport boundary: ordered trees,
+    // native malformed text failure and Unicode/control escaping.
+    public static IEnumerable<object[]> Rows => new[]
+    {
+        "EXCEPTION-AGGREGATE-ORDER", "EXCEPTION-MESSAGE-UTF16-RETAINED-HIGH", "EXCEPTION-MESSAGE-CONTROLS"
+    }.Select(id => new object[] { id });
 
     [TestMethod]
     [DynamicData(nameof(Rows))]

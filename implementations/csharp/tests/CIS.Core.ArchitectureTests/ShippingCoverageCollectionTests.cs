@@ -11,6 +11,16 @@ namespace CIS.Tests.ArchitectureTests;
 public sealed class ShippingCoverageCollectionTests
 {
     [TestMethod]
+    public void ExplicitPreparationMayOwnItsPackageOutsideTheRepository()
+    {
+        using var external = new TemporaryDirectory();
+        using var fixture = new Fixture(Path.Combine(external.Path, "preparation"));
+        string[] inputs = ShippingCoverageCollection.DeveloperInputs(fixture.Root, Path.GetDirectoryName(fixture.Summary)!);
+        CollectionAssert.Contains(inputs, fixture.Package);
+        Assert.AreEqual("..", Path.GetRelativePath(fixture.Root, fixture.Package).Split(Path.DirectorySeparatorChar)[0]);
+    }
+
+    [TestMethod]
     [DataRow("valid")]
     [DataRow("missing-dll")]
     [DataRow("extra-dll")]
@@ -49,7 +59,7 @@ public sealed class ShippingCoverageCollectionTests
     public void DeveloperEvidenceAndStartupReferenceRemainPinnedAndContained(string mode)
     {
         using var fixture = new Fixture();
-        Assert.HasCount(5, ShippingCoverageCollection.DeveloperInputs(fixture.Root));
+        Assert.HasCount(5, ShippingCoverageCollection.DeveloperInputs(fixture.Root, Path.GetDirectoryName(fixture.Summary)!));
         JsonObject summary = Read(fixture.Summary), inspection = Read(fixture.Inspection), startup = Read(fixture.Startup);
         if (mode == "failed") { summary["exitCode"] = 1; }
         if (mode == "wrong-profile") { summary["profile"] = "Release"; }
@@ -62,8 +72,8 @@ public sealed class ShippingCoverageCollectionTests
         if (mode != "inspection-escape") { summary["architectureInspection"]!["sha256"] = Hash(fixture.Inspection); }
         if (mode == "inspection-pin") { summary["architectureInspection"]!["sha256"] = "changed"; }
         WriteJson(fixture.Summary, summary);
-        if (mode == "valid") { Assert.HasCount(5, ShippingCoverageCollection.DeveloperInputs(fixture.Root)); }
-        else { Assert.ThrowsExactly<InvalidDataException>(() => ShippingCoverageCollection.DeveloperInputs(fixture.Root)); }
+        if (mode == "valid") { Assert.HasCount(5, ShippingCoverageCollection.DeveloperInputs(fixture.Root, Path.GetDirectoryName(fixture.Summary)!)); }
+        else { Assert.ThrowsExactly<InvalidDataException>(() => ShippingCoverageCollection.DeveloperInputs(fixture.Root, Path.GetDirectoryName(fixture.Summary)!)); }
     }
 
     [TestMethod]
@@ -164,8 +174,21 @@ public sealed class ShippingCoverageCollectionTests
         {
             "test", "tests/CIS.Core.UnitTests/CIS.Core.UnitTests.csproj", "-c", "Release", "--no-build", "--no-restore",
             "--settings", "coverage.runsettings", "--collect", "Code Coverage;Format=cobertura",
-            "--results-directory", "output with spaces", "--logger", "trx;LogFileName=report.trx"
+            "--results-directory", "output with spaces", "--logger", "trx;LogFileName=report.trx",
+            "--filter", "FullyQualifiedName!=CIS.Tests.UnitTests.IncomingMeasurementsTests.RecordQuietFullContendedAndCompleteCallerCosts"
         }, ShippingCoverageCollection.CollectorArguments("UnitTests", "coverage.runsettings", "output with spaces"));
+    }
+
+    [TestMethod]
+    [DataRow("IntegrationTests")]
+    [DataRow("ArchitectureTests")]
+    [DataRow("BusinessCases")]
+    public void OtherShippingFamiliesRemainUnfiltered(string suffix)
+    {
+        string[] arguments = ShippingCoverageCollection.CollectorArguments(suffix, "coverage.runsettings", "native");
+        Assert.IsFalse(arguments.Contains("--filter", StringComparer.Ordinal));
+        Assert.IsTrue(arguments.Contains("--no-build", StringComparer.Ordinal));
+        Assert.IsTrue(arguments.Contains("--no-restore", StringComparer.Ordinal));
     }
 
     private sealed class Fixture : IDisposable
@@ -184,10 +207,11 @@ public sealed class ShippingCoverageCollectionTests
         internal Dictionary<string, string> PackageEntries { get; } = new(StringComparer.Ordinal);
         internal bool DuplicateEntry { get; set; }
 
-        internal Fixture()
+        internal Fixture(string? preparationRoot = null)
         {
+            string dev = preparationRoot ?? Path.Combine(Root, ".artifacts/csharp/verification/Developer");
             Language = Path.Combine(Root, "implementations/csharp");
-            Package = Path.Combine(Root, ".artifacts/csharp/packages/CIS.Core.fixture.nupkg");
+            Package = Path.Combine(dev, "packages/CIS.Core.fixture.nupkg");
             Policy = new JsonObject
             {
                 ["settings"] = "coverage.runsettings",
@@ -204,13 +228,18 @@ public sealed class ShippingCoverageCollectionTests
             Write(CoreCopy, File.ReadAllText(Core)); Write(HelperCopy, File.ReadAllText(helper));
             PackageEntries.Add("lib/net10.0/CIS.Core.dll", File.ReadAllText(Core)); PackageEntries.Add("tools/net10.0/CIS.TypeManager.Build.dll", File.ReadAllText(helper));
             SavePackage();
-            string dev = Path.Combine(Root, ".artifacts/csharp/verification/Developer");
             Summary = Path.Combine(dev, "summary.json"); Inspection = Path.Combine(dev, "architecture.json");
             Startup = Path.Combine(dev, "contracts/startup/summary.json");
             string reference = Path.Combine(dev, "contracts/startup/reference.dll"); Write(reference, "opaque reference fixture");
             WriteJson(Startup, new JsonObject { ["referenceAssembly"] = new JsonObject { ["path"] = "reference.dll", ["sha256"] = Hash(reference) } });
             WriteJson(Inspection, new JsonObject { ["package"] = new JsonObject { ["path"] = Package, ["sha256"] = Hash(Package) } });
-            WriteJson(Summary, new JsonObject { ["exitCode"] = 0, ["profile"] = "Developer", ["architectureInspection"] = new JsonObject { ["path"] = "architecture.json", ["sha256"] = Hash(Inspection) } });
+            WriteJson(Summary, new JsonObject
+            {
+                ["exitCode"] = 0,
+                ["profile"] = "Developer",
+                ["candidatePackage"] = new JsonObject { ["path"] = "packages/CIS.Core.fixture.nupkg", ["sha256"] = Hash(Package) },
+                ["architectureInspection"] = new JsonObject { ["path"] = "architecture.json", ["sha256"] = Hash(Inspection) }
+            });
         }
         internal void SavePackage()
         {

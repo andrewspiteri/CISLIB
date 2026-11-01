@@ -1,0 +1,5 @@
+# Legacy child operator evidence
+
+The active guarded entry point is the [version-4 operator](../healthcheck-child-control-v4/README.md), with the separately qualified [composite acceptance recipe](../healthcheck-grouped-acceptance/README.md). Version 3 required a healthy whole Pipes group; its original interpretation is unchanged.
+
+Version-3 source, project, portable DLL/PDB, actual Windows producer receipt and build diagnostics remain in the [retained recovery archive](../../.artifacts/csharp/recovery/windows-native-20261029/native-working/child-operator-v3-build-01/child-operator-v3-portable-windows-build.zip), SHA-256 `4f4ac0da929cbbe6617502effff41ec982b16344197c1af8cd018ab8a54e423b`. This is preserved compile/readiness evidence, not a native child-control pass or a clean-checkout build dependency. All original reports and native archives retain their original identities. Use the separately pinned version-4 source, build and actual execution manifest for current child qualification; neither version supplies module mutation scope or score credit.

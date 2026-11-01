@@ -1,3 +1,4 @@
+using System.Collections.Concurrent;
 using System.Security.Cryptography;
 using System.Text.Json.Nodes;
 using CIS.Tests.DiscoveryFixture;
@@ -9,6 +10,9 @@ namespace CIS.Tests.IntegrationTests;
 [TestClass]
 public sealed class FileIntervalProcessTests
 {
+#if !CIS_MUTATION_TESTS
+    private static readonly ConcurrentDictionary<string, Lazy<Task<string>>> ReaderPositives = new(StringComparer.Ordinal);
+#endif
     public TestContext TestContext { get; set; } = null!;
     public static IEnumerable<object[]> Modes => FileIntervalExpectations.Modes.Select(m => new object[] { m });
     [TestMethod]
@@ -31,7 +35,8 @@ public sealed class FileIntervalProcessTests
     public async Task OriginalTimerReaderCorruptionsRejectAfterPhysicalPositive(string key)
     {
         FileTimerReaderControls.Control control = FileTimerReaderControls.Interval.Single(c => c.Id == key);
-        using var root = new TemporaryDirectory(); JsonObject report = await Run(control.Mode, root.Path); int pid = report["pid"]!.GetValue<int>();
+        JsonObject report = await ReadPositive(control.Mode); int pid = report["pid"]!.GetValue<int>();
+        FileIntervalExpectations.Validate(control.Mode, report, pid);
         control.Mutate(report);
         InvalidDataException error = Assert.ThrowsExactly<InvalidDataException>(() => FileIntervalExpectations.Validate(control.Mode, report, pid));
         Assert.AreEqual(control.Reason, error.Message); TestContext.WriteLine("Rejected original interval timer control: " + key);
@@ -50,5 +55,23 @@ public sealed class FileIntervalProcessTests
         if (mode is "configured" or "env") { CollectionAssert.AreEqual(Convert.FromBase64String((string)report["bytes"]!), File.ReadAllBytes(Path.Combine(root, "owned", "events.jsonl"))); }
         return report;
     }
+    private async Task<JsonObject> ReadPositive(string mode)
+    {
+#if CIS_MUTATION_TESTS
+        using var root = new TemporaryDirectory();
+        return await Run(mode, root.Path);
+#else
+        string text = await ReaderPositives.GetOrAdd(mode, value => new Lazy<Task<string>>(() => CapturePositive(value))).Value;
+        return JsonNode.Parse(text)!.AsObject();
+#endif
+    }
+
+#if !CIS_MUTATION_TESTS
+    private async Task<string> CapturePositive(string mode)
+    {
+        using var root = new TemporaryDirectory();
+        return (await Run(mode, root.Path)).ToJsonString();
+    }
+#endif
     private static string Hash(string path) => Convert.ToHexStringLower(SHA256.HashData(File.ReadAllBytes(path)));
 }

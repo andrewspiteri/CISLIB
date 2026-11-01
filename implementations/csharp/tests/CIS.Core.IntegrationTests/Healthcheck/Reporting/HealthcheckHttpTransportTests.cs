@@ -14,7 +14,7 @@ using MutationChildren = CIS.Verification.HealthcheckMutationChildren.Healthchec
 namespace CIS.Tests.IntegrationTests.Healthcheck.Reporting;
 
 [TestClass]
-public sealed class HealthcheckHttpTransportTests
+public sealed partial class HealthcheckHttpTransportTests
 {
     [TestMethod]
     [DataRow("app")]
@@ -868,7 +868,7 @@ public sealed class HealthcheckHttpTransportTests
     [TestMethod]
     public async Task UnhealthyKnownViewsMapTo500WithoutBusinessEffects()
     {
-        await using var host = await Host.Start("unhealthy");
+        await using var host = await Pipeline.Start("unhealthy");
         int captures = 0;
         foreach (string path in new[] { "/_health", "/_health/ready", "/_health/details" })
         {
@@ -887,7 +887,7 @@ public sealed class HealthcheckHttpTransportTests
     [DataRow("stopping", "/_health/ready", true, false)]
     public async Task SelectedHealthOrReadinessMapsTo500(string mode, string path, bool healthy, bool ready)
     {
-        await using var host = await Host.Start(mode);
+        await using var host = await Pipeline.Start(mode);
         using HttpResponseMessage response = await host.GetAsync(path);
         Assert.AreEqual(HttpStatusCode.InternalServerError, response.StatusCode);
         TransportTestSupport.ValidateSnapshot(await ReadRequiredHttpJsonAsync(response), path.EndsWith("details", StringComparison.Ordinal) ? "details" : "health", healthy, ready);
@@ -905,7 +905,7 @@ public sealed class HealthcheckHttpTransportTests
     [DataRow("source-cancel", "/_health", 500)]
     public async Task HeadCapturesOnceAndMakesCompleteStatusDecisionWithoutBody(string mode, string path, int status)
     {
-        await using var host = await Host.Start(mode);
+        await using var host = await Pipeline.Start(mode);
         using var request = new HttpRequestMessage(HttpMethod.Head, path);
         using HttpResponseMessage response = await host.SendAsync(request);
         Assert.AreEqual(status, (int)response.StatusCode);
@@ -917,7 +917,7 @@ public sealed class HealthcheckHttpTransportTests
     [TestMethod]
     public async Task ReservedErrorsDoNotCaptureAuthorizeOrInvokeBusiness()
     {
-        await using var host = await Host.Start();
+        await using var host = await Pipeline.Start();
         foreach ((string path, string method, int status, string code) in new[]
         {
             ("/_health/unknown", "GET", 404, "NotFound"), ("/_health//", "GET", 404, "NotFound"),
@@ -943,7 +943,7 @@ public sealed class HealthcheckHttpTransportTests
     [TestMethod]
     public async Task DisabledDetailsStays404AndCannotBeEnabledByQueryOrAuthorization()
     {
-        await using var host = await Host.Start("details-disabled");
+        await using var host = await Pipeline.Start("details-disabled");
         foreach (string method in new[] { "GET", "POST", "HEAD" })
         {
             using var request = new HttpRequestMessage(new HttpMethod(method), "/_health/details?details=true&view=details");
@@ -963,7 +963,7 @@ public sealed class HealthcheckHttpTransportTests
     [TestMethod]
     public async Task DetailsAuthorizationIsIsolatedAndBounded()
     {
-        await using var host = await Host.Start();
+        await using var host = await Pipeline.Start();
         int authorizationCalls = 0;
         foreach ((string authorization, string method, int status, string code) in new[]
         {
@@ -991,7 +991,7 @@ public sealed class HealthcheckHttpTransportTests
     [DataRow("source-cancel", "/_health", "ReportingUnavailable")]
     public async Task ReportingFailuresReturnCompleteBoundedJsonWithoutMonitorFailures(string mode, string path, string code)
     {
-        await using var host = await Host.Start(mode);
+        await using var host = await Pipeline.Start(mode);
         using HttpResponseMessage response = await host.GetAsync(path);
         Assert.AreEqual(HttpStatusCode.InternalServerError, response.StatusCode);
         byte[] bytes = await response.Content.ReadAsByteArrayAsync();
@@ -1003,7 +1003,7 @@ public sealed class HealthcheckHttpTransportTests
     [TestMethod]
     public async Task SimilarPrefixContinuesNormalApplicationPipeline()
     {
-        await using var host = await Host.Start();
+        await using var host = await Pipeline.Start();
         int businessCalls = 0;
         foreach (string path in new[] { "/_healthcare", "/_healthcare/ready", "/_health-other", "/business" })
         {
@@ -1017,7 +1017,7 @@ public sealed class HealthcheckHttpTransportTests
     [TestMethod]
     public async Task StatusAndPayloadComeFromOneCapturedVersionEvenWhenSourceChangesAfterCapture()
     {
-        await using var host = await Host.Start("alternating");
+        await using var host = await Pipeline.Start("alternating");
         for (int i = 0; i < 8; i++)
         {
             using HttpResponseMessage response = await host.GetAsync("/_health");
@@ -1048,7 +1048,7 @@ public sealed class HealthcheckHttpTransportTests
     [TestMethod]
     public async Task AuthorizationCancellationAbortsOnlyItsRequestAndLaterHealthStillWorks()
     {
-        await using var host = await Host.Start();
+        await using var host = await Pipeline.Start();
         using var request = new HttpRequestMessage(HttpMethod.Get, "/_health/details"); request.Headers.Add("X-Auth", "cancel");
         try { using HttpResponseMessage unexpected = await host.SendAsync(request); Assert.Fail("A canceled authorization must not produce a health response."); }
         catch (Exception error) when (error is HttpRequestException or OperationCanceledException) { }
@@ -1059,7 +1059,7 @@ public sealed class HealthcheckHttpTransportTests
     [TestMethod]
     public async Task ExplicitStartupAndStoppingAffectReadinessWhileHealthRemainsHealthy()
     {
-        await using var host = await Host.Start("not-ready");
+        await using var host = await Pipeline.Start("not-ready");
         using (HttpResponseMessage health = await host.GetAsync("/_health")) { Assert.AreEqual(HttpStatusCode.OK, health.StatusCode); }
         using (HttpResponseMessage readiness = await host.GetAsync("/_health/ready")) { Assert.AreEqual(HttpStatusCode.InternalServerError, readiness.StatusCode); }
         await host.Command("startup");
@@ -1073,7 +1073,7 @@ public sealed class HealthcheckHttpTransportTests
     [TestMethod]
     public async Task ActualHttpAndPipePublishTheExactSameDetachedSnapshot()
     {
-        await using var host = await Host.Start("parity");
+        await using var host = await Pipeline.Start("parity");
         Assert.IsNotNull(host.PipeName);
         int captures = 0;
         foreach ((string view, string path) in new[] { ("health", "/_health"), ("readiness", "/_health/ready"), ("details", "/_health/details") })

@@ -16,5 +16,5 @@ public sealed class FlushCoordinationProcessTests
     [DataRow("pre-cancel")]
     [DataRow("fault")]
     [DataRow("complete-race")]
-    public async Task ActualCallerDetachmentRunsInAnExactRuntimeChild(string mode) => await LifecycleProcessChecks.Run("flush-coordination", mode, TestContext);
+    public async Task ActualCallerDetachmentRunsInAnExactRuntimeChild(string mode) => await LifecycleProcessChecks.RunFunctionalFlush("flush-coordination", mode, TestContext);
 }

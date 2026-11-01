@@ -12,6 +12,7 @@ namespace CIS.Tests.UnitTests;
 
 // Observations of real implementation paths; no latency/CPU/allocation pass threshold is invented.
 [TestClass]
+[TestCategory("PerformanceObservation")]
 [DoNotParallelize]
 public sealed class IncomingMeasurementsTests
 {

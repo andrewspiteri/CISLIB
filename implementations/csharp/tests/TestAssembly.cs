@@ -1,3 +1,5 @@
+using System.Diagnostics;
+using System.Text.Json;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 #if CIS_MUTATION_TESTS
@@ -20,6 +22,16 @@ public sealed class TestAssemblySetup
         Assert.AreEqual(requested, serialized, "Mutation test scheduling must match the requested build mode.");
         Assert.AreEqual(!requested, attributes.OfType<ParallelizeAttribute>().Any());
         Console.WriteLine(requested ? "CIS mutation scheduling: serialized" : "CIS mutation scheduling: parallel");
+        if (Environment.GetEnvironmentVariable("CIS_TEST_HOST_IDENTITY") == "1")
+        {
+            using Process process = Process.GetCurrentProcess();
+            Console.WriteLine("CIS test host identity: " + JsonSerializer.Serialize(new
+            {
+                processId = process.Id,
+                startedUtc = process.StartTime.ToUniversalTime().ToString("O"),
+                assembly = typeof(TestAssemblySetup).Assembly.Location
+            }));
+        }
     }
 
     [AssemblyInitialize]

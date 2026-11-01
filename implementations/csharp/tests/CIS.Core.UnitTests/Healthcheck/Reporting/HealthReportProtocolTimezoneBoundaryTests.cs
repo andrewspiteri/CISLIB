@@ -32,7 +32,7 @@ public sealed class HealthReportProtocolTimezoneBoundaryTests
                     "The Linux process must observe the requested local offset for this receiving boundary.");
             }
 
-            JsonNode snapshot = JsonNode.Parse(HealthReportFormatterTests.ReadFixture("valid", "pending-readiness.json"))!;
+            JsonNode snapshot = JsonNode.Parse(QualificationFixtureInputs.ReadHealthcheck("valid", "pending-readiness.json"))!;
             snapshot["capturedAtUtc"] = timestamp;
             var envelope = new JsonObject
             {

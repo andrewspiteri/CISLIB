@@ -5,7 +5,6 @@ using static CIS.Tests.CompatibilityTests.TypeManagerCompatibilityInputs;
 namespace CIS.Tests.CompatibilityTests;
 
 [TestClass]
-[DoNotParallelize]
 public sealed class TypeManagerCompatibilityTests
 {
     private static readonly Lazy<Task<TypeManagerCompatibilityFixture>> Shared = new(async () =>

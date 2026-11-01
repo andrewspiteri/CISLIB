@@ -7,6 +7,8 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 namespace CIS.Tests.UnitTests.Healthcheck;
 
 [TestClass]
+// Forced GC and held dispatcher clocks must not overlap unrelated tests.
+[DoNotParallelize]
 public sealed class HealthCollectorAbandonedPendingCallerQualificationTests
 {
     private static readonly TimeSpan Deadline = TimeSpan.FromSeconds(3);

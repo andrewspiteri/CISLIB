@@ -76,7 +76,7 @@ public sealed class OperationScopeQualificationTests
         Assert.AreSame(worker, error.InnerExceptions[1]);
     }
 
-    private static JsonObject Catalog() => LogValueTests.Read("scope-qualification-cases.json");
+    private static JsonObject Catalog() => QualificationFixtureInputs.ReadLogging("scope-qualification-cases.json");
     private static JsonObject Row(JsonObject catalog, string id) => catalog["cases"]!.AsArray()
         .Single(row => row!["id"]!.GetValue<string>() == id)!.AsObject();
 }

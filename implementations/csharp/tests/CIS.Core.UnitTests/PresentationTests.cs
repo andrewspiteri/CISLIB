@@ -11,7 +11,9 @@ namespace CIS.Tests.UnitTests;
 [TestClass]
 public sealed class PresentationTests
 {
-    public static IEnumerable<object[]> Rows => Catalog()["cases"]!.AsArray().Select(row => new object[] { row!["id"]!.GetValue<string>() });
+    private static readonly Lazy<LoggingFixtureInputs> Inputs = new(() => new("presentation-cases.json"));
+
+    public static IEnumerable<object[]> Rows => Inputs.Value.Ids.Select(id => new object[] { id });
     [TestMethod]
     [DynamicData(nameof(Rows))]
     public void FormatDetailAndStreamDoNotChangeAdmissionOrCapturedMeaning(string id)
@@ -86,6 +88,6 @@ public sealed class PresentationTests
         Assert.ThrowsExactly<InvalidOperationException>(() => EventRenderer.Render(captured, LogOutputFormat.JsonLines, HumanOutputDetail.Normal, 16384));
     }
     private static JsonObject HumanRow(string id) => JsonNode.Parse(File.ReadAllText(Path.Combine(Path.GetDirectoryName(ConfigurationFixtureAdapter.FindFixture())!, "human-rendering-cases.json")))!["cases"]!.AsArray().Single(row => row!["id"]!.GetValue<string>() == id)!.AsObject();
-    private static JsonObject Row(string id) => Catalog()["cases"]!.AsArray().Single(row => row!["id"]!.GetValue<string>() == id)!.AsObject();
-    private static JsonObject Catalog() => JsonNode.Parse(File.ReadAllText(Path.Combine(Path.GetDirectoryName(ConfigurationFixtureAdapter.FindFixture())!, "presentation-cases.json")))!.AsObject();
+    private static JsonObject Row(string id) => Inputs.Value.Row(id);
+    private static JsonObject Catalog() => Inputs.Value.Catalog();
 }

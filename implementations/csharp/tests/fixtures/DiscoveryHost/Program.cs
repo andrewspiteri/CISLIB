@@ -11,6 +11,7 @@ internal static class Program
 {
     private static int Main(string[] args)
     {
+        if (args.Length == 3 && args[0] == "logger-matrix") { return LoggerFoundationProcessFixture.RunBatch(args[1], args[2]); }
         if (args.Length == 3 && args[0] == "process-streams") { return ProcessStreamFixture.Run(args[1], args[2]); }
         if (args.Length == 1 && args[0] == "process-stream-pressure") { return ProcessStreamFixture.Pressure(); }
         if (args.Length == 3 && args[0] == "logging-review") { return LoggingReviewFixture.Run(args[1], args[2]); }
@@ -109,6 +110,10 @@ internal static class Program
         {
             return ConstructorOptionsProcessFixture.Run(args[1]);
         }
+        if (args.Length == 3 && args[0] == "event-projection-matrix")
+        {
+            return EventProjectionProcessFixture.RunBatch(args[1], args[2]);
+        }
         if (args.Length == 3 && args[0] == "event-correlation")
         {
             return EventCorrelationProcessFixture.Run(args[1], args[2]);
@@ -158,6 +163,11 @@ internal static class Program
         if (args.Length == 2 && args[0] == "exception-projection")
         {
             return ExceptionProjectionProcessFixture.Run(args[1]);
+        }
+
+        if (args.Length == 3 && args[0] == "log-value-matrix")
+        {
+            return LogValueProcessFixture.RunBatch(args[1], args[2]);
         }
 
         if (args.Length == 3 && args[0] == "log-qualification")

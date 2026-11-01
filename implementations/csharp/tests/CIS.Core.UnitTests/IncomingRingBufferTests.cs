@@ -13,8 +13,11 @@ public sealed class IncomingRingBufferTests
 {
     private static readonly TimeSpan Limit = TimeSpan.FromSeconds(10);
     private static IncomingEvent Event(int number, CoreLogLevel level = CoreLogLevel.Information, int? created = null)
+        => Event(new EventMetadata(), new OperationScopeStore().Capture(), number, level, created);
+
+    private static IncomingEvent Event(EventMetadata metadata, CapturedScopeContext scope, int number, CoreLogLevel level = CoreLogLevel.Information, int? created = null)
     {
-        var facts = EventProjection.Capture(new EventMetadata(), new OperationScopeStore().Capture(), "Ring", level,
+        var facts = EventProjection.Capture(metadata, scope, "Ring", level,
             new LogEventData { EventName = "event" + number, Message = "owned" }, TimeProvider.System)!;
         var owned = new CapturedEventFacts(DateTimeOffset.UnixEpoch.AddTicks(created ?? number), facts.TraceId,
             facts.SpanId, facts.Status, facts.EventName, facts.Message, facts.MessageTemplate, facts.OperationId,
@@ -52,7 +55,9 @@ public sealed class IncomingRingBufferTests
     public void RepeatedWrapPublishesEveryEventAndAccountsForActualRemovals(int capacity)
     {
         var ring = new IncomingRingBuffer(capacity, FullScan());
-        for (int index = 1; index <= 2000; index++) { Publish(ring, Event(index)); }
+        var metadata = new EventMetadata();
+        CapturedScopeContext scope = new OperationScopeStore().Capture();
+        for (int index = 1; index <= 2000; index++) { Publish(ring, Event(metadata, scope, index)); }
         IncomingRingSnapshot counts = ring.Capture();
         Assert.AreEqual(2000L, counts.Admitted);
         Assert.AreEqual(2000L - capacity, counts.Evicted);
@@ -187,6 +192,8 @@ public sealed class IncomingRingBufferTests
     {
         const int producers = 4, eventsPerProducer = 1500;
         var ring = new IncomingRingBuffer(7, new LoggingOptions());
+        var metadata = new EventMetadata();
+        CapturedScopeContext scope = new OperationScopeStore().Capture();
         var removed = new System.Collections.Concurrent.ConcurrentDictionary<IncomingEvent, byte>(ReferenceEqualityComparer.Instance);
         int done = 0;
         using var start = new Barrier(producers + 1);
@@ -197,7 +204,7 @@ public sealed class IncomingRingBufferTests
                 Assert.IsTrue(start.SignalAndWait(Limit));
                 for (int index = 1; index <= eventsPerProducer; index++)
                 {
-                    IncomingPublication result = Publish(ring, Event(producer * eventsPerProducer + index, (CoreLogLevel)(index % 6)));
+                    IncomingPublication result = Publish(ring, Event(metadata, scope, producer * eventsPerProducer + index, (CoreLogLevel)(index % 6)));
                     if (result.Displaced is { } old) { Assert.IsTrue(removed.TryAdd(old, 0)); }
                 }
             }

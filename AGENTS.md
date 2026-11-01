@@ -17,7 +17,9 @@
 
 ## Verification and examples
 
+- The ordinary development solution is `implementations/csharp/CisLib.slnx` (FastTests, FastLoggingTests, FastIsolationTests and FastArchitectureTests); full suites are explicit in `implementations/csharp/verification/CisLib.Verification.slnx`. Do not require a historical checkpoint for the ordinary loop. Follow the four-batch recovery and cadence in `planning/cis/verification-remediation-plan.md`.
 - During an edit, run selected native tests with `pwsh -File eng/test.ps1 -Project UnitTests -Class <class>` (or `-Category` / `-Filter`). This incrementally builds that project and rejects empty, failed or skipped native results. See `docs/architecture/csharp-focused-tests.md` for prerequisites and scope.
+- Run the complete ordinary fast selection with `pwsh -NoProfile -File eng/test.ps1 -Fast -Configuration Release`; use `-NoBuild` after that configuration has been built. The C# runner invokes the pinned test platform once per assembly and requires four distinct native test hosts. Plain Debug/Release `dotnet test CisLib.slnx` remains supported.
 - Run `pwsh -File eng/verify.ps1` at a coherent checkpoint and the required release profile before release qualification. A focused pass does not satisfy unexecuted families, coverage, mutation or release gates. Coordinate shared build/output directories with other active chats.
 - Add tests when real behavior is implemented. Follow the six verification families in the logging plan and keep development tools outside shipping dependencies.
 - Keep developer source-reference examples explicit. Release reference examples must consume the exact verified packages.

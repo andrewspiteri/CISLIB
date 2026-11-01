@@ -5,19 +5,25 @@ namespace CIS.Tests.DiscoveryFixture;
 // Independent contract-based expectation; this is nonshipping test code.
 internal static class ConfigurationReadExpectations
 {
+    private sealed record Setting(string Key, IReadOnlyList<string> Aliases);
+    private static readonly Lazy<IReadOnlyList<Setting>> Settings = new(() => Array.AsReadOnly(Catalog()["settings"]!.AsArray()
+        .Select(setting => new Setting(setting!["key"]!.GetValue<string>(),
+            Array.AsReadOnly((setting["aliases"]?.AsArray() ?? []).Select(alias => alias!.GetValue<string>()).ToArray())))
+        .ToArray()));
+
     internal static string[] Expected(JsonObject input)
     {
         JsonObject environment = input["environment"] as JsonObject ?? input;
         var names = new List<string>();
-        foreach (JsonNode? setting in Catalog()["settings"]!.AsArray())
+        foreach (Setting setting in Settings.Value)
         {
-            string key = setting!["key"]!.GetValue<string>();
+            string key = setting.Key;
             names.Add(key);
             if (string.IsNullOrWhiteSpace(environment[key]?.GetValue<string>()))
             {
-                foreach (JsonNode? alias in setting["aliases"]?.AsArray() ?? [])
+                foreach (string alias in setting.Aliases)
                 {
-                    names.Add(alias!.GetValue<string>());
+                    names.Add(alias);
                 }
             }
         }

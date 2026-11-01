@@ -9,7 +9,9 @@ namespace CIS.Tests.UnitTests;
 [TestClass]
 public sealed class DeliveryObservationTests
 {
-    public static IEnumerable<object[]> Rows => Catalog()["cases"]!.AsArray().Select(row => new object[] { row!["id"]!.GetValue<string>() });
+    private static readonly Lazy<LoggingFixtureInputs> Inputs = new(() => new("delivery-observation-cases.json"));
+
+    public static IEnumerable<object[]> Rows => Inputs.Value.Ids.Select(id => new object[] { id });
     [TestMethod]
     [DynamicData(nameof(Rows))]
     public async Task CompletePartialAndUnresolvedStreamsKeepTruthfulBoundaries(string id)
@@ -102,6 +104,6 @@ public sealed class DeliveryObservationTests
         }
         finally { go.TrySetResult(); release.TrySetResult(); runtime.CloseAdmission(); await Task.WhenAll(producers).WaitAsync(TimeSpan.FromSeconds(10)); await runtime.QueuedOutputs!.Completion.WaitAsync(TimeSpan.FromSeconds(10)); }
     }
-    private static JsonObject Catalog() => JsonNode.Parse(File.ReadAllText(Path.Combine(Path.GetDirectoryName(ConfigurationFixtureAdapter.FindFixture())!, "delivery-observation-cases.json")))!.AsObject();
-    private static JsonObject Row(string id) => Catalog()["cases"]!.AsArray().Single(row => row!["id"]!.GetValue<string>() == id)!.AsObject();
+    private static JsonObject Catalog() => Inputs.Value.Catalog();
+    private static JsonObject Row(string id) => Inputs.Value.Row(id);
 }

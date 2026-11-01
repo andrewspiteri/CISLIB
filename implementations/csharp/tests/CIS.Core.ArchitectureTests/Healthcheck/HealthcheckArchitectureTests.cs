@@ -120,6 +120,40 @@ public sealed class HealthcheckArchitectureTests
             [Path.Combine(directory.FullName, "eng/CIS.DependencyChecker/bin/Release/net10.0/CIS.DependencyChecker.dll"),
                 "inspect", typeof(HealthcheckService).Assembly.Location, output], directory.FullName, TimeSpan.FromSeconds(30));
         Assert.AreEqual(0, result.ExitCode, result.StandardOutput + result.StandardError);
-        return JsonNode.Parse(await File.ReadAllTextAsync(output))!.AsObject();
+        JsonObject actual = JsonNode.Parse(await File.ReadAllTextAsync(output))!.AsObject();
+        HealthcheckArchitecturePolicy.Assert(actual);
+        // Every control starts from the same real, accepted PE facts. The policy
+        // reads these fields only; unrelated Core metadata need not be cloned
+        // and traversed again for every independent negative control.
+        return new JsonObject
+        {
+            ["schema"] = actual["schema"]!.DeepClone(),
+            ["name"] = actual["name"]!.DeepClone(),
+            ["types"] = new JsonArray(HealthcheckArchitecturePolicy.Objects(actual["types"])
+                .Where(type => Text(type, "name").StartsWith(HealthcheckArchitecturePolicy.Prefix, StringComparison.Ordinal))
+                .Select(type => (JsonNode)new JsonObject
+                {
+                    ["name"] = type["name"]!.DeepClone(),
+                    ["attributes"] = type["attributes"]!.DeepClone(),
+                    ["publicApi"] = type["publicApi"]!.DeepClone(),
+                    ["members"] = new JsonArray(HealthcheckArchitecturePolicy.Objects(type["members"])
+                        .Select(member => (JsonNode)new JsonObject
+                        {
+                            ["kind"] = member["kind"]!.DeepClone(),
+                            ["name"] = member["name"]!.DeepClone(),
+                            ["publicApi"] = member["publicApi"]!.DeepClone(),
+                            ["attributes"] = member["attributes"]?.DeepClone(),
+                            ["signature"] = member["signature"]?.DeepClone()
+                        }).ToArray())
+                }).ToArray()),
+            ["typeUses"] = new JsonArray(HealthcheckArchitecturePolicy.Objects(actual["typeUses"])
+                .Where(use => Text(use, "Site").Split(':')[0].StartsWith(HealthcheckArchitecturePolicy.Prefix, StringComparison.Ordinal))
+                .Select(use => (JsonNode)new JsonObject
+                {
+                    ["Site"] = use["Site"]!.DeepClone(),
+                    ["Namespace"] = use["Namespace"]!.DeepClone(),
+                    ["Type"] = use["Type"]!.DeepClone()
+                }).ToArray())
+        };
     }
 }

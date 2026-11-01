@@ -12,9 +12,8 @@ public sealed class VerificationCheckpointTests
         using var repository = new TemporaryDirectory(); using var isolated = new TemporaryDirectory();
         string selected = Path.Combine(isolated.Path, "release-evidence");
         Assert.AreEqual(selected, VerificationCheckpoint.Resolve(repository.Path, selected, repository.Path + Path.DirectorySeparatorChar));
-        string fallback = Path.Combine(isolated.Path, ".artifacts/csharp/verification/Developer");
-        Assert.AreEqual(fallback, VerificationCheckpoint.Resolve(isolated.Path, selected, repository.Path));
-        Assert.AreEqual(fallback, VerificationCheckpoint.Resolve(isolated.Path, selected, null));
-        Assert.AreEqual(fallback, VerificationCheckpoint.Resolve(isolated.Path, null, isolated.Path));
+        Assert.ThrowsExactly<InvalidOperationException>(() => VerificationCheckpoint.Resolve(isolated.Path, selected, repository.Path));
+        Assert.ThrowsExactly<InvalidOperationException>(() => VerificationCheckpoint.Resolve(isolated.Path, selected, null));
+        Assert.ThrowsExactly<InvalidOperationException>(() => VerificationCheckpoint.Resolve(isolated.Path, null, isolated.Path));
     }
 }

@@ -74,6 +74,19 @@ public sealed class ShippingCoverageTests
     }
 
     [TestMethod]
+    [DataRow("Contracts/HealthEnums.cs")]
+    [DataRow("Contracts/Unreviewed.cs")]
+    public async Task HealthcheckDeclarationLabelsCannotHideChangedOrUnknownExecutableSource(string relative)
+    {
+        using var fixture = new Fixture();
+        string source = fixture.AddSource("src/CIS.Core/Healthcheck/" + relative);
+        File.WriteAllText(source, "namespace CIS.Healthcheck; public static class HiddenCode { public static int Run() => 42; }");
+        fixture.Policy["assemblies"]![0]!["nonExecutable"]!["Healthcheck/" + relative] = "Declaration-only label.";
+        fixture.Save();
+        await Assert.ThrowsExactlyAsync<InvalidDataException>(() => fixture.Summarize());
+    }
+
+    [TestMethod]
     [DataRow("empty-tests")]
     [DataRow("failed-tests")]
     [DataRow("skipped-tests")]
@@ -177,7 +190,8 @@ public sealed class ShippingCoverageTests
         Assert.IsNotNull(root);
         string output = Path.Combine(directory.Path, "untouched");
         ProcessResult result = await ProcessRunner.RunAsync("pwsh",
-            ["-NoProfile", "-File", Path.Combine(root.FullName, "implementations/csharp/eng/verify-shipping-coverage.ps1"), "-OutputRoot", output],
+            ["-NoProfile", "-File", Path.Combine(root.FullName, "implementations/csharp/eng/verify-shipping-coverage.ps1"), "-OutputRoot", output,
+                "-VerificationRoot", Path.Combine(directory.Path, "unprepared"), "-PackagePath", Path.Combine(directory.Path, "unprepared.nupkg")],
             root.FullName, TimeSpan.FromSeconds(30), new Dictionary<string, string?> { ["CIS_ARCHITECTURE_INSPECTION"] = "arbitrary-focused-fixture.json" });
         Assert.AreNotEqual(0, result.ExitCode);
         StringAssert.Contains(result.StandardError, "CIS_ARCHITECTURE_INSPECTION is only for focused tests.");

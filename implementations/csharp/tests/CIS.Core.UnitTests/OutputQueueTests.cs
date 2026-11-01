@@ -11,7 +11,9 @@ namespace CIS.Tests.UnitTests;
 [TestClass]
 public sealed class OutputQueueTests
 {
-    public static IEnumerable<object[]> Rows => Catalog()["cases"]!.AsArray().Select(row => new object[] { row!["id"]!.GetValue<string>() });
+    private static readonly Lazy<LoggingFixtureInputs> Inputs = new(() => new("output-queue-cases.json"));
+
+    public static IEnumerable<object[]> Rows => Inputs.Value.Ids.Select(id => new object[] { id });
     [TestMethod]
     [DynamicData(nameof(Rows))]
     public async Task ActualQueuesKeepBoundedSequentialIndependentWorkers(string id)
@@ -180,6 +182,6 @@ public sealed class OutputQueueTests
         Assert.AreEqual(1, rows.Count(row => row!["expected"]!["workers"]!.GetValue<int>() == 0));
     }
     private static EncodedEvent Event(int index) => new(System.Text.Encoding.UTF8.GetBytes("{\"index\":" + index + "}\n"), false);
-    private static JsonObject Row(string id) => Catalog()["cases"]!.AsArray().Single(row => row!["id"]!.GetValue<string>() == id)!.AsObject();
-    private static JsonObject Catalog() => JsonNode.Parse(File.ReadAllText(Path.Combine(Path.GetDirectoryName(ConfigurationFixtureAdapter.FindFixture())!, "output-queue-cases.json")))!.AsObject();
+    private static JsonObject Row(string id) => Inputs.Value.Row(id);
+    private static JsonObject Catalog() => Inputs.Value.Catalog();
 }

@@ -1,4 +1,5 @@
 using System.Reflection;
+using System.Text.Json;
 using System.Text.Json.Nodes;
 using CIS.Logging;
 using CIS.Logging.Runtime;
@@ -11,11 +12,12 @@ namespace CIS.Tests.UnitTests;
 public sealed class DiagnosticsTests
 {
     private static readonly TimeSpan Limit = TimeSpan.FromSeconds(10);
-    public static IEnumerable<object[]> Rows => Catalog()["cases"]!.AsArray().Select(row => new object[] { row!["id"]!.GetValue<string>() });
+    private static readonly Lazy<InputRows> Inputs = new(() => new InputRows());
+    public static IEnumerable<object[]> Rows => Inputs.Value.Ids.Select(id => new object[] { id });
     [TestMethod]
     [DynamicData(nameof(Rows))]
     public async Task PublicOwnedSnapshotsQualifyTheActualAccountingFaultAndPartialWriteStory(string id)
-    { JsonObject row = Row(id); DiagnosticsExpectations.Validate(row, await DiagnosticsFixture.ExecuteAsync(Folder(), row)); }
+    { JsonObject row = Row(id); DiagnosticsExpectations.Validate(row, await DiagnosticsFixture.ExecuteAsync(Folder(), row, Inputs.Value.SourceRow(id))); }
     [TestMethod]
     [DataRow("extra-output")]
     [DataRow("runtime-state")]
@@ -32,7 +34,7 @@ public sealed class DiagnosticsTests
     [DataRow("fault-retention")]
     public async Task DiagnosticsMatcherRejectsInventedCountersLostFaultsAndRewrittenSnapshots(string fault)
     {
-        JsonObject row = Row("DIAGNOSTICS-STATE-ISOLATE-CONSOLE"), actual = await DiagnosticsFixture.ExecuteAsync(Folder(), row);
+        JsonObject row = Row("DIAGNOSTICS-STATE-ISOLATE-CONSOLE"), actual = await DiagnosticsFixture.ExecuteAsync(Folder(), row, Inputs.Value.SourceRow("DIAGNOSTICS-STATE-ISOLATE-CONSOLE"));
         DiagnosticsExpectations.Validate(row, actual);
         if (fault == "extra-output") { actual["source"]!["diagnostics"]![0]!["outputs"]![0]!["invented"] = true; }
         else { DiagnosticsExpectations.Damage(actual, fault); }
@@ -156,12 +158,42 @@ public sealed class DiagnosticsTests
     { Assert.AreEqual(0, (int)CoreLogState.Running); Assert.AreEqual(1, (int)CoreLogState.Stopping); Assert.AreEqual(2, (int)CoreLogState.Stopped); Assert.AreEqual(3, Enum.GetValues<CoreLogState>().Length); }
     private static LogEventData Data() => new() { EventName = "event", Message = "record" };
     private static string Folder() => Path.GetDirectoryName(ConfigurationFixtureAdapter.FindFixture())!;
-    private static JsonObject Catalog() => JsonNode.Parse(File.ReadAllText(Path.Combine(Folder(), "diagnostics-cases.json")))!.AsObject();
-    private static JsonObject Row(string id) => Catalog()["cases"]!.AsArray().Single(row => row!["id"]!.GetValue<string>() == id)!.AsObject();
+    private static JsonObject Row(string id) => Inputs.Value.Row(id);
+    private sealed class InputRows
+    {
+        private readonly Dictionary<string, (string Row, string Source)> rows = new(StringComparer.Ordinal);
+        internal IReadOnlyList<string> Ids { get; }
+
+        internal InputRows()
+        {
+            string folder = Folder();
+            using JsonDocument catalog = JsonDocument.Parse(File.ReadAllText(Path.Combine(folder, "diagnostics-cases.json")));
+            var sources = new Dictionary<string, Dictionary<string, string>>(StringComparer.Ordinal);
+            var ids = new List<string>();
+            foreach (JsonElement row in catalog.RootElement.GetProperty("cases").EnumerateArray())
+            {
+                string sourceName = row.GetProperty("sourceCatalog").GetString()!;
+                if (!sources.TryGetValue(sourceName, out Dictionary<string, string>? sourceRows))
+                {
+                    using JsonDocument source = JsonDocument.Parse(File.ReadAllText(Path.Combine(folder, sourceName)));
+                    sourceRows = source.RootElement.GetProperty("cases").EnumerateArray().ToDictionary(
+                        item => item.GetProperty("id").GetString()!, item => item.GetRawText(), StringComparer.Ordinal);
+                    sources.Add(sourceName, sourceRows);
+                }
+                string id = row.GetProperty("id").GetString()!;
+                rows.Add(id, (row.GetRawText(), sourceRows[row.GetProperty("sourceCaseId").GetString()!]));
+                ids.Add(id);
+            }
+            Ids = ids.AsReadOnly();
+        }
+
+        internal JsonObject Row(string id) => JsonNode.Parse(rows[id].Row)!.AsObject();
+        internal JsonObject SourceRow(string id) => JsonNode.Parse(rows[id].Source)!.AsObject();
+    }
     [TestMethod]
     public async Task RenamingANullFaultCannotPreserveTheDiagnosticFieldSet()
     {
-        JsonObject row = Row("DIAGNOSTICS-STATE-ISOLATE-CONSOLE"), actual = await DiagnosticsFixture.ExecuteAsync(Folder(), row);
+        JsonObject row = Row("DIAGNOSTICS-STATE-ISOLATE-CONSOLE"), actual = await DiagnosticsFixture.ExecuteAsync(Folder(), row, Inputs.Value.SourceRow("DIAGNOSTICS-STATE-ISOLATE-CONSOLE"));
         DiagnosticsExpectations.Validate(row, actual);
         JsonObject output = actual["source"]!["diagnostics"]![0]!["outputs"]![0]!.AsObject();
         Assert.IsTrue(output.ContainsKey("fault")); Assert.IsNull(output["fault"]);

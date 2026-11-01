@@ -1,4 +1,5 @@
 using CIS.TestSupport;
+using CIS.Verification;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace CIS.Tests.UnitTests;
@@ -104,7 +105,11 @@ public sealed class DeterministicSupportTests
         const string name = "CIS_TEST_CHILD_ENVIRONMENT";
         string? parentValue = Environment.GetEnvironmentVariable(name);
         using var directory = new TemporaryDirectory();
-        ProcessResult result = await ProcessRunner.RunAsync("pwsh", ["-NoProfile", "-Command", "[Console]::Out.Write($env:CIS_TEST_CHILD_ENVIRONMENT)"], directory.Path, Deadline, new Dictionary<string, string?> { [name] = "child-only" });
+        ProcessResult result = await ProcessRunner.RunAsync("dotnet",
+            ["exec", "--fx-version", "10.0.12", "--roll-forward", "Disable",
+                Environment.GetEnvironmentVariable("CIS_VERIFICATION_CHECKER") ?? typeof(SourceInventory).Assembly.Location,
+                "process-capture-fixture", "environment", name],
+            directory.Path, Deadline, new Dictionary<string, string?> { [name] = "child-only" });
 
         Assert.AreEqual(0, result.ExitCode);
         Assert.AreEqual("child-only", result.StandardOutput);

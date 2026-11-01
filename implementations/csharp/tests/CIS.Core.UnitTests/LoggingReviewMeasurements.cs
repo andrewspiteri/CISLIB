@@ -12,6 +12,7 @@ namespace CIS.Tests.UnitTests;
 
 // Small reproducible observations, not statistical benchmarks or release performance gates.
 [TestClass]
+[TestCategory("PerformanceObservation")]
 [DoNotParallelize]
 public sealed class LoggingReviewMeasurements
 {

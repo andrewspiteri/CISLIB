@@ -25,15 +25,15 @@ public sealed class TypeManagerFreshAssemblyTests
     [TestInitialize]
     public void Initialize()
     {
-        directory = Path.GetFullPath(Path.Combine(TestContext.TestRunDirectory!, "cis-type-manager-fresh", Guid.NewGuid().ToString("N")));
+        directory = Path.GetFullPath(Path.Combine(Path.GetTempPath(), "cis-type-manager-fresh", Guid.NewGuid().ToString("N")));
         Directory.CreateDirectory(directory);
         File.Copy(Host.Location, Path.Combine(directory, "Host.dll"));
         manifest = Path.Combine(directory, "host.types.json");
     }
 
     // Default-context assemblies stay mapped until the test host exits.
-    // Files accumulate under test output across runs; remove cis-type-manager-fresh
-    // only after every test host using that output has exited.
+    // Files accumulate under transient temp across runs; remove cis-type-manager-fresh
+    // only after every test host using those files has exited.
 
     [TestMethod]
     public async Task NewPhysicalAssetIsPublishedAndThenReusedWithoutActivation()
