@@ -11,6 +11,51 @@ namespace CIS.Tests.Verification;
 public sealed class RegressionPreparedNativeInputsTests
 {
     [TestMethod]
+    public void OnlyIntegrationUsesAnOwnedEightWorkerCopyWithoutChangingOtherSettings()
+    {
+        using var directory = new TemporaryDirectory();
+        string language = directory.Path;
+        Directory.CreateDirectory(Path.Combine(language, "verification"));
+        string canonical = Path.Combine(language, "verification/regression.runsettings");
+        const string settings = "<?xml version=\"1.0\" encoding=\"utf-8\"?>\r\n<RunSettings><!-- retained -->"
+            + "<RunConfiguration><MaxCpuCount>3</MaxCpuCount></RunConfiguration><MSTest><Parallelize>"
+            + "<Workers>4</Workers><Scope>MethodLevel</Scope></Parallelize><TestTimeout>12345</TestTimeout></MSTest></RunSettings>\r\n";
+        var utf8 = new System.Text.UTF8Encoding(true, true);
+        byte[] original = [.. utf8.GetPreamble(), .. utf8.GetBytes(settings)];
+        File.WriteAllBytes(canonical, original);
+        string integration = Directory.CreateDirectory(Path.Combine(language, "integration-results")).FullName;
+        string copy = RegressionTests.WriteSettings(language, integration, "CIS.Core.IntegrationTests");
+        Assert.AreEqual(Path.Combine(integration, "integration.runsettings"), copy);
+        CollectionAssert.AreEqual(original, File.ReadAllBytes(canonical));
+        CollectionAssert.AreEqual(new byte[] { 239, 187, 191 }.Concat(utf8.GetBytes(settings.Replace("<Workers>4</Workers>", "<Workers>8</Workers>", StringComparison.Ordinal))).ToArray(),
+            File.ReadAllBytes(copy));
+        Assert.AreEqual(8, RegressionTests.MethodWorkers("CIS.Core.IntegrationTests"));
+
+        foreach (string project in new[] { "CIS.Core.UnitTests", "CIS.Core.ArchitectureTests", "CIS.Core.CompatibilityTests", "CIS.Verification.Tests", "CIS.Core.BusinessCases" })
+        {
+            string unused = Path.Combine(language, project);
+            Assert.AreEqual(canonical, RegressionTests.WriteSettings(language, unused, project));
+            Assert.IsFalse(Directory.Exists(unused), "A default host must use the maintained settings without a new copy.");
+            Assert.AreEqual(4, RegressionTests.MethodWorkers(project));
+        }
+        string fastCanonical = Path.Combine(language, "verification/fast.runsettings");
+        File.WriteAllBytes(fastCanonical, original);
+        foreach ((string project, int expected) in new[] { ("CIS.Core.FastTests", 22), ("CIS.Core.FastLoggingTests", 4), ("CIS.Core.FastIsolationTests", 8), ("CIS.Core.FastArchitectureTests", 4) })
+        {
+            string results = Directory.CreateDirectory(Path.Combine(language, project)).FullName;
+            string fast = RegressionTests.WriteSettings(language, results, project);
+            Assert.AreEqual(Path.Combine(results, "fast.runsettings"), fast);
+            StringAssert.Contains(File.ReadAllText(fast), "<Workers>" + expected + "</Workers>");
+            Assert.AreEqual(expected, RegressionTests.MethodWorkers(project));
+        }
+        CollectionAssert.AreEqual(original, File.ReadAllBytes(fastCanonical));
+        File.WriteAllBytes(canonical, [.. utf8.GetPreamble(), .. utf8.GetBytes(settings.Replace("<Workers>4</Workers>", "<Workers>4</Workers><Workers>4</Workers>", StringComparison.Ordinal))]);
+        string rejected = Directory.CreateDirectory(Path.Combine(language, "rejected-results")).FullName;
+        Assert.ThrowsExactly<InvalidDataException>(() => RegressionTests.WriteSettings(language, rejected, "CIS.Core.IntegrationTests"));
+        Assert.IsFalse(File.Exists(Path.Combine(rejected, "integration.runsettings")));
+    }
+
+    [TestMethod]
     [DataRow(true, 290d, 300, 295d, true, true, true)]
     [DataRow(true, 290d, 300, 305d, true, true, false)]
     [DataRow(true, 320d, 1500, 335d, true, false, false)]

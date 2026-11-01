@@ -66,6 +66,11 @@ public sealed class ArchitectureViolationTests
     }
 
     [TestMethod]
+    [DataRow("compiled-reference", "ARCH-COMPILED-REFERENCE", "CIS.Core -> NLog")]
+    [DataRow("contract-output", "ARCH-CONTRACT-OUTPUT", "CIS.Logging.EventMetadata:method:ArchitectureBoundaryViolation:")]
+    [DataRow("mutable-inheritance", "ARCH-OWNERSHIP-SHAPE", "CIS.Logging.EventMetadata")]
+    [DataRow("environment-storage", "ARCH-ENVIRONMENT-MUTABLE", "architectureApplicationName")]
+    [DataRow("nested-caller-state", "ARCH-RUNTIME-CALLER-STATE", "CIS.Logging.CoreLogRuntime+ArchitectureCallerState:Caller")]
     [DataRow("project-inventory", "ARCH-PROJECT-INVENTORY", "Discovered project count differs from the registered inventory.")]
     [DataRow("framework", "ARCH-FRAMEWORK", "src/CIS.Core/CIS.Core.csproj net10.0")]
     [DataRow("private-runtime-package", "ARCH-PACKAGE-REFERENCE", "src/CIS.Core/CIS.Core.csproj net10.0")]
@@ -75,11 +80,6 @@ public sealed class ArchitectureViolationTests
     [DataRow("duplicate-asset", "ARCH-PACKAGE-ASSET", "Duplicate package asset paths.")]
     [DataRow("disguised-test-binary", "ARCH-PACKED-ORIGIN", "Packed assembly has no unique evaluated project origin: CIS.Core.ArchitectureTests")]
     [DataRow("packed-content", "ARCH-PACKED-CONTENT", "Packed assembly differs from evaluated Release output: CIS.Core")]
-    [DataRow("compiled-reference", "ARCH-COMPILED-REFERENCE", "CIS.Core -> NLog")]
-    [DataRow("contract-output", "ARCH-CONTRACT-OUTPUT", "CIS.Logging.EventMetadata:method:ArchitectureBoundaryViolation:")]
-    [DataRow("mutable-inheritance", "ARCH-OWNERSHIP-SHAPE", "CIS.Logging.EventMetadata")]
-    [DataRow("environment-storage", "ARCH-ENVIRONMENT-MUTABLE", "architectureApplicationName")]
-    [DataRow("nested-caller-state", "ARCH-RUNTIME-CALLER-STATE", "CIS.Logging.CoreLogRuntime+ArchitectureCallerState:Caller")]
     public Task NormalInspectorRejectsRealIsolatedViolations(string scenario, string diagnostic, string expectedContext) => RunScenario(async () =>
     {
         using ArchitectureViolationFixture fixture = candidate.CopyForScenario(scenario);

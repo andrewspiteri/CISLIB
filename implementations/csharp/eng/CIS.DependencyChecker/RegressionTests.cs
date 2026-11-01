@@ -23,6 +23,35 @@ internal static class RegressionTests
         "CIS.Core.UnitTests", "CIS.Core.IntegrationTests", "CIS.Core.ArchitectureTests",
         "CIS.Core.CompatibilityTests", "CIS.Verification.Tests", "CIS.Core.BusinessCases"
     ];
+    internal static int MethodWorkers(string project) => FastTests.Projects.Contains(project, StringComparer.Ordinal)
+        ? FastTests.Workers(project) : project == "CIS.Core.IntegrationTests" ? 8 : 4;
+
+    internal static string WriteSettings(string language, string directory, string project)
+    {
+        if (FastTests.Projects.Contains(project, StringComparer.Ordinal)) { return FastTests.WriteSettings(language, directory, project); }
+        string canonical = Path.Combine(language, "verification/regression.runsettings");
+        if (project != "CIS.Core.IntegrationTests") { return canonical; }
+
+        byte[] original = File.ReadAllBytes(canonical);
+        var utf8 = new System.Text.UTF8Encoding(false, true);
+        string text = utf8.GetString(original);
+        XElement? parallel = XDocument.Load(canonical).Root?.Element("MSTest")?.Element("Parallelize");
+        XElement[] workers = parallel?.Elements("Workers").ToArray() ?? [];
+        Require(workers.Length == 1 && workers[0].Value == "4" && (string?)parallel?.Element("Scope") == "MethodLevel",
+            "Integration settings require the canonical four-worker MethodLevel profile.");
+        const string before = "<Workers>4</Workers>", after = "<Workers>8</Workers>";
+        int at = text.IndexOf(before, StringComparison.Ordinal);
+        Require(at >= 0 && text.IndexOf(before, at + before.Length, StringComparison.Ordinal) < 0,
+            "Integration settings require one exact canonical worker element.");
+        string changed = text.Replace(before, after, StringComparison.Ordinal);
+        Require(changed.Replace(after, before, StringComparison.Ordinal) == text,
+            "Integration settings may change only the canonical worker value.");
+        string path = Path.Combine(directory, "integration.runsettings");
+        File.WriteAllBytes(path, utf8.GetBytes(changed));
+        Require(File.ReadAllBytes(canonical).SequenceEqual(original), "Canonical regression settings changed while copying the Integration profile.");
+        return path;
+    }
+
     private const string NativeInputsSchema = "cis.prepared-regression-native-inputs/v1";
     private static JsonObject OrdinaryBuildProperties() => new()
     {
@@ -339,7 +368,8 @@ internal static class RegressionTests
             ["preparationRoot"] = preparation,
             ["preparationReused"] = reusePreparation,
             ["nativeWorkers"] = nativeWorkers,
-            ["residualTestWorkersPerProject"] = 4,
+            ["defaultResidualTestWorkersPerProject"] = 4,
+            ["residualMethodWorkerProfiles"] = JsonSerializer.SerializeToNode(Projects.ToDictionary(project => project, MethodWorkers, StringComparer.Ordinal)),
             ["fastMethodWorkerProfiles"] = JsonSerializer.SerializeToNode(FastTests.Projects.ToDictionary(project => project, FastTests.Workers, StringComparer.Ordinal)),
             ["testSettings"] = "verification/regression.runsettings",
             ["bootstrapSeconds"] = double.Parse(input.Optional("bootstrap-seconds") ?? "0", CultureInfo.InvariantCulture),
@@ -460,7 +490,7 @@ internal static class RegressionTests
             {
                 string project = suite["project"]!.GetValue<string>();
                 suite["filter"] = filters[project];
-                suite["methodWorkers"] = FastTests.Projects.Contains(project, StringComparer.Ordinal) ? FastTests.Workers(project) : 4;
+                suite["methodWorkers"] = MethodWorkers(project);
             }
             summary["layout"] = "fresh-Fast-plus-residual";
             summary["partition"] = partitions;
@@ -571,10 +601,12 @@ internal static class RegressionTests
                     NativeTestRunner.ValidateAssembly(assembly);
                     Require(Hash(testConsole) == testConsoleSha256, "The selected SDK test platform changed before native launch.");
                     bool fast = FastTests.Projects.Contains(name, StringComparer.Ordinal);
-                    string settings = fast ? FastTests.WriteSettings(language, results, name) : testSettings;
+                    string settings = WriteSettings(language, results, name);
+                    suite["settingsPath"] = settings;
                     suite["settingsSha256"] = Hash(settings);
                     ProcessResult process = await Run(name, input.Dotnet,
                         [.. NativeTestRunner.Arguments(testConsole, assembly, settings, results, filters[name]), "/Logger:console;verbosity=normal"], remaining, requireSuccess: false);
+                    Require(Hash(settings) == (string?)suite["settingsSha256"], "Native host settings changed during execution.");
                     ReadCounts(report, suite);
                     Require(process.ExitCode == 0 && process.OutputDrained, "Native suite failed or did not drain process output.");
                     FocusedTests.NativeCase[] cases = FocusedTests.ReadResults(report, started);
