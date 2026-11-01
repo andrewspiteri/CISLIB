@@ -42,7 +42,11 @@ internal static class DependencyCheckRunner
             int code = await DependencyChecks.RunPreparedAsync([root, project, assets, assembly, package], prepared, stdout, stderr, Remaining(clock));
             return new(code, stdout.ToString(), stderr.ToString());
         }
+#if CIS_MUTATION_TESTS
         return await RunFresh(language, root, project, assets, assembly, package);
+#else
+        return await RunInProcessFresh(root, project, assets, assembly, package, Remaining(clock));
+#endif
     }
 
     internal static Task<DependencyChecks.PreparedEvaluation> Prepare(string language, TimeSpan timeout)
@@ -53,6 +57,16 @@ internal static class DependencyCheckRunner
         string tool = Path.Combine(language, "eng/CIS.DependencyChecker/bin/Release/net10.0/CIS.DependencyChecker.dll");
         ProcessResult result = await ProcessRunner.RunAsync("dotnet", [tool, "dependencies", root, project, assets, assembly, package], root, TimeSpan.FromMinutes(1));
         return new(result.ExitCode, result.StandardOutput, result.StandardError);
+    }
+
+    internal static async Task<CheckResult> RunInProcessFresh(string root, string project, string assets = "-", string assembly = "-", string package = "-", TimeSpan? timeout = null)
+    {
+        // Keep every actual fresh SDK query and validator. Only the redundant
+        // checker host is removed; requests never share results or writers.
+        using var stdout = new StringWriter(CultureInfo.InvariantCulture);
+        using var stderr = new StringWriter(CultureInfo.InvariantCulture);
+        int code = await DependencyChecks.RunFreshAsync([root, project, assets, assembly, package], stdout, stderr, timeout ?? TimeSpan.FromMinutes(1));
+        return new(code, stdout.ToString(), stderr.ToString());
     }
 
     internal sealed record MetadataCase(Type Owner, string Method, string[] Arguments,

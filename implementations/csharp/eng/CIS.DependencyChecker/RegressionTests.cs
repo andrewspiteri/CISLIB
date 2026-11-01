@@ -331,6 +331,10 @@ internal static class RegressionTests
             ["nativeBudgetSeconds"] = nativeBudget,
             ["nativeTargetSeconds"] = NativeTargetSeconds,
             ["nativeTargetMet"] = false,
+            ["correctnessComplete"] = false,
+            ["nativeBudgetMet"] = false,
+            ["commandTargetSeconds"] = NativeTargetSeconds,
+            ["commandTargetMet"] = false,
             ["preparationBudgetSeconds"] = preparationBudget,
             ["preparationRoot"] = preparation,
             ["preparationReused"] = reusePreparation,
@@ -383,9 +387,12 @@ internal static class RegressionTests
                     ["-NoProfile", "-File", Path.Combine(language, "eng/verify.ps1"), "-PrepareOnly", "-OutputRoot", preparation], preparationBudget);
             }
             summary["preparationSeconds"] = preparationClock.Elapsed.TotalSeconds;
+            summary["preparationSecondsThisCommand"] = summary["preparationSeconds"]!.DeepClone();
             JsonObject prepared = Read(Path.Combine(preparation, "summary.json"));
             Require((string?)prepared["profile"] == "Preparation" && (string?)prepared["scope"] == "prepared-inputs" && (int?)prepared["exitCode"] == 0,
                 "Preparation did not produce a successful explicit prepared-inputs summary.");
+            summary["preparedCandidateRecordedSeconds"] = (DateTimeOffset.Parse((string)prepared["finishedUtc"]!, CultureInfo.InvariantCulture) -
+                DateTimeOffset.Parse((string)prepared["startedUtc"]!, CultureInfo.InvariantCulture)).TotalSeconds;
             Require((string?)prepared["source"]?["inputScope"] == SourceInventory.VerificationScope,
                 "Preparation must declare its maintained C# verification input scope.");
             Require(prepared["stages"]!.AsArray().All(stage => (string?)stage!["status"] == "Passed"), "A candidate preparation stage did not pass.");
@@ -406,6 +413,8 @@ internal static class RegressionTests
                 string path = Path.Combine(preparation, "contracts", name, "summary.json");
                 JsonObject compiler = Read(path);
                 Require((int?)compiler["exitCode"] == 0, "Missing/failed prepared compiler inputs: " + path);
+                if (name is "startup" or "compatibility-samples")
+                { CompilerChecks.ValidatePreparedGroup(language, Path.GetDirectoryName(path)!, name == "startup" ? "startup" : "samples"); }
                 if (name == "log-value-consumers") { Require((string?)compiler["coreSha256"] == Hash(core), "Compiler controls identify another Core assembly."); }
             }
             string sourceManifest = CompilerChecks.VerifiedReference(preparation,
@@ -521,6 +530,7 @@ internal static class RegressionTests
                 }
                 foreach (JsonObject suite in pending) { suite["reason"] = "The same shared native deadline expired before this required host could launch."; }
             }
+            nativeClock.Stop();
             summary["maximumActiveProjectTasks"] = maximumActive;
             summary["nativeSeconds"] = nativeClock.Elapsed.TotalSeconds;
             summary["nativeBudgetMet"] = nativeClock.Elapsed.TotalSeconds <= nativeBudget;
@@ -608,10 +618,15 @@ internal static class RegressionTests
             }
         }
         catch (Exception error) when (Expected(error)) { summary["failure"] = error.Message; Console.Error.WriteLine(error.Message); }
+        nativeClock.Stop();
         if ((string?)summary["preparation"] == "Running") { summary["preparation"] = "Failed"; }
         summary["passed"] = passed;
         summary["finishedUtc"] = DateTimeOffset.UtcNow.ToString("O");
         summary["totalSecondsExcludingBootstrap"] = clock.Elapsed.TotalSeconds;
+        RecordMeasurements(summary, (bool?)summary["allSuitesPassed"] == true,
+            nativeClock.Elapsed.TotalSeconds, nativeBudget,
+            clock.Elapsed.TotalSeconds + (double)summary["bootstrapSeconds"]!);
+        summary["commandMeasurement"] = "Checker wall plus launcher bootstrap; the supported launcher records its complete invocation wall time after checker postflight.";
         summary["fullSolutionBuilds"] = reusePreparation ? 0 : (string?)summary["preparation"] == "Passed" ? 1 : (string?)summary["preparation"] == "NotRun" ? 0 : null;
         summary["nativeProjectInvocations"] = commands.Count(command => hostProjects.Contains(command!["phase"]!.GetValue<string>(), StringComparer.Ordinal));
         summary["counts"] = new JsonObject
@@ -629,7 +644,7 @@ internal static class RegressionTests
             ["complete"] = suites.Where(suite => (string?)suite!["logicalFamily"] == project).All(suite => (string?)suite!["status"] == "Passed")
         }).ToArray());
         WriteJson(Path.Combine(output, "summary.json"), summary);
-        Console.WriteLine($"Non-mutation regression {(passed ? "passed" : "failed/incomplete")}; native hosts {summary["nativeProjectInvocations"]}/10; {NativeTargetSeconds}-second target met: {summary["nativeTargetMet"]}. Summary: {Path.Combine(output, "summary.json")}");
+        Console.WriteLine($"Non-mutation regression {(passed ? "passed" : "failed/incomplete")}; correctness complete: {summary["correctnessComplete"]}; native budget met: {summary["nativeBudgetMet"]}; native {NativeTargetSeconds}-second target met: {summary["nativeTargetMet"]}; command target met: {summary["commandTargetMet"]}. Summary: {Path.Combine(output, "summary.json")}");
         return passed ? 0 : 1;
 
         int Seconds(string key, int fallback)
@@ -685,6 +700,20 @@ internal static class RegressionTests
             Require(result.OutputDrained && (!requireSuccess || result.ExitCode == 0), phase + " failed; see its bounded native log.");
             return result;
         }
+    }
+
+    internal static void RecordMeasurements(JsonObject summary, bool correctnessComplete, double nativeSeconds, int nativeBudgetSeconds, double commandSeconds)
+    {
+        Require(double.IsFinite(nativeSeconds) && nativeSeconds >= 0 && double.IsFinite(commandSeconds) && commandSeconds >= nativeSeconds,
+            "Regression timings must be finite and command time must include native execution.");
+        summary["correctnessComplete"] = correctnessComplete;
+        summary["nativeSeconds"] = nativeSeconds;
+        summary["nativeBudgetMet"] = nativeSeconds <= nativeBudgetSeconds;
+        summary["nativeTargetSeconds"] = NativeTargetSeconds;
+        summary["nativeTargetMet"] = correctnessComplete && nativeSeconds <= NativeTargetSeconds;
+        summary["commandSeconds"] = commandSeconds;
+        summary["commandTargetSeconds"] = NativeTargetSeconds;
+        summary["commandTargetMet"] = correctnessComplete && commandSeconds <= NativeTargetSeconds;
     }
 
     private static bool HasRuntime(string text, string name, string version) => text.Split('\n').Any(line => line.StartsWith(name + " " + version + " [", StringComparison.Ordinal));

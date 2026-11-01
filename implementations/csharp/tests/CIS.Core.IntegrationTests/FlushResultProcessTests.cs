@@ -24,5 +24,5 @@ public sealed class FlushResultProcessTests
     [DataRow("dual")]
     [DataRow("long-timeout")]
     [DataRow("system-timeout")]
-    public async Task ActualPublicFlushRunsInAnExactRuntimeChild(string mode) => await LifecycleProcessChecks.RunFunctionalFlush("flush-results", mode, TestContext);
+    public async Task ActualPublicFlushRunsInAnExactRuntimeChild(string mode) => await LifecycleProcessChecks.RunFunctional("flush-results", mode, TestContext);
 }

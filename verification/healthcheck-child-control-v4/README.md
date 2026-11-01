@@ -1,5 +1,50 @@
 # Child control operator v4
 
+## Current-candidate mode
+
+Supply the seven common existing pairs (`candidate-root`, `task-root`, `checker`,
+`operator-source-root`, `operator-build-receipt`, `output-root`, `temporary-root`)
+plus `--current-policy <absolute candidate-root/workspace/implementations/csharp/verification/mutation/healthcheck/composite-policy.json>`.
+Do not supply the historical acceptance-validator, Windows or permission proof
+pairs in this mode. Both platform proofs remain mandatory at the final maintained
+composite union; neither is a technical prerequisite for independent HTTP/probe
+activation.
+
+The producer validates the actual frozen candidate/source/toolchain/policy and
+loaded checker/helper. Its own source/project/README must be captured candidate
+inputs and match the original successful build's portable outputs and DLL/PDB
+source checksum. The existing build-receipt schema accepts `linux-x64` for this
+mode, with actual SDK10.0.401/runtime10.0.12 compiler/runtime inputs rehashed and
+matched to the candidate toolchain. No unchecked caller hash or historical
+acceptance consumer is used.
+
+An independent locked restore and clean Integration/fixture build establishes the
+real Core/fixture/adapter byte baseline. The HTTP cohort context explicitly uses
+`CisMutationTesting=true`, `CisHealthcheckMutationCohort=true`,
+`CisHealthcheckPilotCohort=false`, `CisLinuxIdentityQualification=false`; it does not
+require UID0 merely because the separate Unix permission control does. The
+three actual baseline/restored cases and two selected source statements come
+from captured policy. Existing native invocation/session binding, two real child
+activation audits, byte restoration and process/temp cleanup remain mandatory.
+The 600-second total, 90-second restoration reserve, two workers, coverage off,
+2-GiB owned/free reserve, 128-MiB child and 256-MiB retained limits are unchanged.
+
+On success, `composite-child-controls.json` uses
+`cis.healthcheck.composite-child-controls/v1`, retaining current candidate,
+producer/helper/policy hashes, observed build properties/environment, the two
+existing control rows, and `baselineContext`/`restoredContext` objects with actual
+TRX path/hash and original command. The separate `restored` boolean remains a
+health witness. The envelope also retains actual execution time, fixed budgets,
+cleanup and failures. It grants no module population or kill credit.
+
+This prospective path requires the next candidate to capture these producer
+inputs and the maintained receiver to read the distinct `*Context` fields. The
+initial Source36 receiver's conflicting `restored` field is a known receiving
+gap until that narrow follow-up and its focused controls pass. No current native
+child or final acceptance result is implied by this implementation.
+
+## Historical invocation
+
 This explicit supplemental version preserves the v3 source and compiled evidence. It accepts a validated whole Windows Pipes proof and the separately validated bounded six-tuple Linux permission control as its transport prerequisite. It does not accept or relabel failed whole-Linux-Pipes evidence.
 
 Build with the approved private SDK10.0.401 and retain its exact source, project, README, compiler, runtime, arguments and portable assembly/PDB pins. The project has no product, checker or helper references. The runtime loads the frozen checker/helper and the separately pinned supplemental acceptance validator. The actual successful Windows producer receipt uses `cis.healthcheck.child-operator-build/v4`; portable source/output and DLL/PDB source identity are checked live, while foreign compiler/runtime paths remain explicitly observed Windows provenance.

@@ -9,21 +9,21 @@ namespace CIS.Tests.IntegrationTests;
 internal static class LifecycleProcessChecks
 {
 #if !CIS_MUTATION_TESTS
-    private static readonly ConcurrentDictionary<(string Command, string Mode), string> CompletedFlushReaderInputs = new();
+    private static readonly ConcurrentDictionary<(string Command, string Mode), string> CompletedReaderInputs = new();
 #endif
 
-    internal static async Task RunFunctionalFlush(string command, string mode, TestContext context)
+    internal static async Task RunFunctional(string command, string mode, TestContext context)
     {
         JsonObject report = await Run(command, mode, context);
 #if !CIS_MUTATION_TESTS
         // Run has completed every physical assertion and disposed its temporary root.
-        CompletedFlushReaderInputs.TryAdd((command, mode), report.ToJsonString());
+        CompletedReaderInputs.TryAdd((command, mode), report.ToJsonString());
 #endif
     }
 
 #if !CIS_MUTATION_TESTS
-    internal static bool TryGetCompletedFlushReaderInput(string command, string mode, out string? text)
-        => CompletedFlushReaderInputs.TryGetValue((command, mode), out text);
+    internal static bool TryGetCompletedReaderInput(string command, string mode, out string? text)
+        => CompletedReaderInputs.TryGetValue((command, mode), out text);
 #endif
 
     internal static IEnumerable<object[]> Modes(string command, string[] modes)

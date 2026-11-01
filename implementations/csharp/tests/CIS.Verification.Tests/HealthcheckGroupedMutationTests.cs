@@ -679,6 +679,76 @@ public sealed class HealthcheckGroupedMutationTests
         Assert.ThrowsExactly<InvalidDataException>(() => Grouped.ResolveStorageVolume(file));
     }
 
+    [TestMethod]
+    public void CompositePilotCanContributeLaterWithoutAnInventedPartialScore()
+    {
+        Grouped.Candidate candidate = Candidate(["Healthcheck/A.cs", "Healthcheck/B.cs", "Healthcheck/Empty.cs"]);
+        Grouped.Definition first = Definition("Healthcheck/A.cs", "0", "Killed"), second = Definition("Healthcheck/B.cs", "1", "Killed");
+        Grouped.Assessment pilot = Grouped.Assess(candidate, [first.Source], [first], [], new("none", []));
+        Grouped.Assessment partial = Grouped.SumCompositeAssessments(candidate, [first.Source], [first], [pilot], []);
+        Assert.IsFalse(partial.SourceInventoryComplete);
+        Assert.IsFalse(partial.CompleteScope);
+        Assert.IsFalse(partial.Qualified);
+        Assert.IsNull(partial.ConservativeScore);
+        Grouped.Assessment remaining = Grouped.Assess(candidate, [second.Source, "Healthcheck/Empty.cs"], [second], [], new("none", []));
+        Grouped.Assessment complete = Grouped.SumCompositeAssessments(candidate, candidate.Sources, [first, second], [pilot, remaining], []);
+        Assert.IsTrue(complete.CompleteScope);
+        Assert.IsTrue(complete.Qualified);
+        Assert.AreEqual(2, complete.Killed);
+        Assert.AreEqual(100m, complete.ConservativeScore);
+        Assert.AreEqual("zero definitions", complete.SourcePopulations.Single(row => row.Source == "Healthcheck/Empty.cs").Population);
+    }
+
+    [TestMethod]
+    public void CompositeSummationRetainsRawTimeoutsAndMissingPhysicalPrerequisites()
+    {
+        Grouped.Candidate candidate = Candidate(["Healthcheck/A.cs"]);
+        Grouped.Definition killed = Definition("Healthcheck/A.cs", "0", "Killed"), timeout = Definition("Healthcheck/A.cs", "1", "Timeout");
+        var review = new Grouped.Review(candidate.Identity, timeout.Identity, "Timeout", "actual requirement", "ReviewedTimeout", "reviewer",
+            "The actual bounded native timeout remains in the full denominator without kill credit.", "2026-11-01T00:00:00Z");
+        Grouped.Assessment native = Grouped.Assess(candidate, candidate.Sources, [killed, timeout], [review], new("Maintained authority", ["reviewer"]));
+        Grouped.Assessment total = Grouped.SumCompositeAssessments(candidate, candidate.Sources, [killed, timeout], [native], ["Current Linux permission proof remains missing."]);
+        Assert.IsTrue(total.CompleteScope);
+        Assert.IsFalse(total.Qualified);
+        Assert.AreEqual(1, total.Killed);
+        Assert.AreEqual(1, total.Timeout);
+        Assert.AreEqual(2, total.RawEligibleDenominator);
+        Assert.AreEqual(2, total.EffectiveDenominator);
+        Assert.AreEqual(50m, total.RawConservativeScore);
+        Assert.AreEqual(50m, total.ConservativeScore);
+        Assert.Contains("Current Linux permission proof remains missing.", total.Holds);
+    }
+
+    [TestMethod]
+    [DataRow("duplicate")]
+    [DataRow("wrong-platform")]
+    [DataRow("unknown-group")]
+    public void CompositeOriginsCannotChooseTheBetterPlatformPerOutcome(string change)
+    {
+        JsonArray origins = new(new JsonObject { ["group"] = "pilot", ["platform"] = "linux" });
+        Grouped.ValidateCompositeSelection(origins);
+        if (change == "duplicate") { origins.Add(new JsonObject { ["group"] = "pilot", ["platform"] = "linux" }); }
+        else if (change == "wrong-platform") { origins[0]!["platform"] = "windows"; }
+        else { origins[0]!["group"] = "preferred-results"; }
+        Assert.ThrowsExactly<InvalidDataException>(() => Grouped.ValidateCompositeSelection(origins));
+    }
+
+    [TestMethod]
+    public void CompositeSummationCannotHideAnInfrastructureFailureBehindAnotherKilledOrigin()
+    {
+        Grouped.Candidate candidate = Candidate(["Healthcheck/A.cs", "Healthcheck/B.cs"]);
+        Grouped.Definition killed = Definition("Healthcheck/A.cs", "0", "Killed"), failed = Definition("Healthcheck/B.cs", "1", "RuntimeError");
+        Grouped.Assessment first = Grouped.Assess(candidate, [killed.Source], [killed], [], new("none", []));
+        Grouped.Assessment second = Grouped.Assess(candidate, [failed.Source], [failed], [], new("none", []));
+        Grouped.Assessment total = Grouped.SumCompositeAssessments(candidate, candidate.Sources, [killed, failed], [first, second], []);
+        Assert.IsTrue(total.SourceInventoryComplete, "Complete source coverage remains distinct from unhealthy execution.");
+        Assert.IsFalse(total.CompleteScope);
+        Assert.IsFalse(total.Qualified);
+        Assert.IsNull(total.ConservativeScore);
+        Assert.AreEqual(1, total.RuntimeError);
+        Assert.IsTrue(total.Holds.Any(hold => hold.Contains("infrastructure", StringComparison.Ordinal)));
+    }
+
     private static Task<ProcessResult> StartWaitingChild(string directory, CancellationToken cancellation)
     {
         const string script = "[IO.File]::WriteAllText($env:CIS_GROUPED_CHILD_READY, 'ready'); [Console]::Out.Write('ready'); [Console]::Out.Flush(); [Threading.ManualResetEvent]::new($false).WaitOne()";

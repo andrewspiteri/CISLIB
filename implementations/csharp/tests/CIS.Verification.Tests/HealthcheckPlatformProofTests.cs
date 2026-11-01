@@ -227,6 +227,120 @@ public sealed class HealthcheckPlatformProofTests
         else { Assert.ThrowsExactly<InvalidDataException>(() => G.ValidatePlatformContext(run, group, identity)); }
     }
 
+    [TestMethod]
+    [DataRow("valid-current-membership")]
+    [DataRow("changed-input")]
+    [DataRow("reordered-inputs")]
+    [DataRow("wrong-producer")]
+    [DataRow("wrong-original-digest")]
+    [DataRow("missing-sid")]
+    public void CompositePortableHeaderBindsCurrentMembershipWithoutAHistoricalCountOrRewritingItsDigest(string change)
+    {
+        G.Candidate anchor = Candidate();
+        G.Candidate foreign = anchor with { Identity = "foreign-candidate", Platform = "Microsoft Windows 10.0.26100; X64; .NET 10.0.12", Host = "windows-host" };
+        string digest = Convert.ToHexStringLower(SHA256.HashData(JsonSerializer.SerializeToUtf8Bytes(foreign.Inputs, new JsonSerializerOptions(Json) { NewLine = "\r\n" })));
+        G.PlatformProof proof = Proof() with
+        {
+            CommonInputsSha256 = digest,
+            Platform = foreign.Platform,
+            ExecutionIdentity = new JsonObject { ["operatingSystem"] = "windows", ["userSid"] = "S-1-5-21-control", ["ownerSid"] = "S-1-5-21-control" }
+        };
+        if (change == "changed-input") { foreign = foreign with { Inputs = [foreign.Inputs[0] with { Sha256 = "changed" }, foreign.Inputs[1]] }; }
+        if (change == "reordered-inputs") { foreign = foreign with { Inputs = foreign.Inputs.Reverse().ToArray() }; }
+        if (change == "wrong-producer") { proof = proof with { ProducerSha256 = "caller-provided-other-checker" }; }
+        if (change == "wrong-original-digest") { proof = proof with { CommonInputsSha256 = "caller-provided-digest" }; }
+        if (change == "missing-sid") { proof.ExecutionIdentity.Remove("ownerSid"); }
+        if (change == "valid-current-membership")
+        {
+            Assert.AreNotEqual(1580, anchor.Inputs.Length);
+            G.ValidateCompositeWindowsHeader(proof, foreign, anchor, "checker-hash", "helper-hash");
+            Assert.AreEqual(digest, proof.CommonInputsSha256);
+        }
+        else { Assert.ThrowsExactly<InvalidDataException>(() => G.ValidateCompositeWindowsHeader(proof, foreign, anchor, "checker-hash", "helper-hash")); }
+    }
+
+    [TestMethod]
+    [DataRow("valid-reviewed-policy")]
+    [DataRow("missing-unix")]
+    [DataRow("missing-windows")]
+    [DataRow("timeout-credit")]
+    [DataRow("lower-threshold")]
+    [DataRow("changed-source")]
+    [DataRow("uncaptured-witness")]
+    [DataRow("same-count-unix-role")]
+    [DataRow("same-count-windows-role")]
+    [DataRow("same-count-source-swap")]
+    [DataRow("same-count-method-swap")]
+    [DataRow("same-count-witness-swap")]
+    [DataRow("same-count-witness-source-swap")]
+    [DataRow("same-count-child-case-swap")]
+    public void CompositePolicyRetainsAllCurrentSourceBoundObligationsAndConservativeRules(string change)
+    {
+        string language = LanguageRoot();
+        JsonObject policy = JsonNode.Parse(File.ReadAllText(Path.Combine(language, "verification/mutation/healthcheck/composite-policy.json")))!.AsObject();
+        JsonNode[] obligations = policy["linuxPermissionObligations"]!.AsArray().Concat(policy["windowsRequiredControls"]!.AsArray()).Select(row => row!).ToArray();
+        string[] paths = obligations.Select(row => "src/CIS.Core/" + (string)row["source"]!)
+            .Concat(obligations.SelectMany(row => row["allowedWitnesses"]!.AsArray()).Select(witness => (string)witness!["source"]!))
+            .Distinct(StringComparer.Ordinal).ToArray();
+        var candidate = Candidate() with
+        {
+            Inputs = paths.Select(path => new G.Input("implementations/csharp/" + path,
+            Convert.ToHexStringLower(SHA256.HashData(File.ReadAllBytes(Path.Combine(language, path)))))).ToArray()
+        };
+        if (change == "missing-unix") { policy["linuxPermissionObligations"]!.AsArray().RemoveAt(0); }
+        if (change == "missing-windows") { policy["windowsRequiredControls"]!.AsArray().RemoveAt(0); }
+        if (change == "timeout-credit") { policy["timeoutKillCredit"] = true; }
+        if (change == "lower-threshold") { policy["conservativeThreshold"] = 89; }
+        if (change == "changed-source") { policy["linuxPermissionObligations"]![0]!["sourceSha256"] = "changed"; }
+        if (change == "uncaptured-witness") { policy["windowsRequiredControls"]![0]!["allowedWitnesses"]![0]!["source"] = "tests/Other.cs"; }
+        if (change == "same-count-unix-role") { policy["linuxPermissionObligations"]![0]!["obligation"] = "easierUnixControl"; }
+        if (change == "same-count-windows-role") { policy["windowsRequiredControls"]![0]!["obligation"] = "easierWindowsControl"; }
+        if (change == "same-count-source-swap")
+        {
+            JsonNode other = policy["linuxPermissionObligations"]![4]!;
+            policy["linuxPermissionObligations"]![0]!["source"] = other["source"]!.DeepClone();
+            policy["linuxPermissionObligations"]![0]!["sourceSha256"] = other["sourceSha256"]!.DeepClone();
+        }
+        if (change == "same-count-method-swap") { policy["windowsRequiredControls"]![0]!["location"] = policy["windowsRequiredControls"]![2]!["location"]!.DeepClone(); }
+        if (change == "same-count-witness-swap") { policy["windowsRequiredControls"]![0]!["allowedWitnesses"] = policy["windowsRequiredControls"]![1]!["allowedWitnesses"]!.DeepClone(); }
+        if (change == "same-count-witness-source-swap") { policy["windowsRequiredControls"]![0]!["allowedWitnesses"]![0]!["source"] = policy["windowsRequiredControls"]![1]!["allowedWitnesses"]![0]!["source"]!.DeepClone(); }
+        if (change == "same-count-child-case-swap") { policy["childCases"]![0] = policy["childCases"]![2]!.DeepClone(); }
+        string ReadSource(string relative) => File.ReadAllText(Path.Combine(language, relative["implementations/csharp/".Length..]));
+        if (change == "valid-reviewed-policy") { G.ValidateCompositePolicy(candidate, policy, ReadSource); }
+        else { Assert.ThrowsExactly<InvalidDataException>(() => G.ValidateCompositePolicy(candidate, policy, ReadSource)); }
+    }
+
+    [TestMethod]
+    [DataRow("distinct-contexts")]
+    [DataRow("legacy-key-collision")]
+    [DataRow("missing-context")]
+    public void CompositeChildPassingContextsRemainDistinctFromRestorationHealth(string change)
+    {
+        // Shape admission only; these synthetic records claim no actual TRX execution.
+        JsonObject baseline = new() { ["path"] = "/synthetic/baseline.trx", ["command"] = new JsonObject { ["name"] = "baseline-CIS.Core.IntegrationTests" } };
+        JsonObject restored = new() { ["path"] = "/synthetic/restored.trx", ["command"] = new JsonObject { ["name"] = "restored-CIS.Core.IntegrationTests" } };
+        JsonObject context = new() { ["restored"] = true, ["baselineContext"] = baseline, ["restoredContext"] = restored };
+        if (change == "legacy-key-collision")
+        {
+            context.Remove("restoredContext"); context["restored"] = restored;
+        }
+        if (change == "missing-context") { context.Remove("restoredContext"); }
+        if (change == "distinct-contexts")
+        {
+            Assert.AreSame(baseline, G.CompositeChildPassingContext(context, "baseline"));
+            Assert.AreSame(restored, G.CompositeChildPassingContext(context, "restored"));
+            Assert.IsTrue(context["restored"]!.GetValue<bool>());
+        }
+        else { Assert.ThrowsExactly<InvalidDataException>(() => G.CompositeChildPassingContext(context, "baseline")); }
+    }
+
+    private static string LanguageRoot()
+    {
+        for (DirectoryInfo? directory = new(AppContext.BaseDirectory); directory is not null; directory = directory.Parent)
+        { if (File.Exists(Path.Combine(directory.FullName, "CisLib.slnx"))) { return directory.FullName; } }
+        throw new DirectoryNotFoundException("Run the maintained Tool tests inside the C# checkout.");
+    }
+
     private static G.Candidate Candidate() => new("cis.healthcheck.grouped-candidate/v1", "candidate", "Ubuntu; X64; .NET 10.0.12", "host",
         [new("implementations/csharp/src/CIS.Core/" + Source, "source-hash"), new("implementations/csharp/" + WitnessSource, Convert.ToHexStringLower(SHA256.HashData(Encoding.UTF8.GetBytes(TestText))))], [Source], "archive-hash");
     private static G.Definition Definition(string status) => new(Source, "source-hash", "1", "definition", "Statement mutation", Location, ";", status);

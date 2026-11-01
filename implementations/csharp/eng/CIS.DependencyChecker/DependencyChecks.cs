@@ -36,18 +36,28 @@ internal sealed partial class DependencyChecks
             .ToDictionary(item => Text(item, "id"), item => Text(item, "version"), StringComparer.OrdinalIgnoreCase);
     }
 
-    internal static async Task<int> RunAsync(string[] args)
+    internal static Task<int> RunAsync(string[] args) => RunCoreAsync(args, Console.Out, Console.Error, null);
+
+    internal static async Task<int> RunFreshAsync(string[] args, TextWriter output, TextWriter error, TimeSpan timeout)
+    {
+        using var budget = new EvaluationDeadline(timeout);
+        return await RunCoreAsync(args, output, error, budget);
+    }
+
+    private static async Task<int> RunCoreAsync(string[] args, TextWriter output, TextWriter error, EvaluationDeadline? budget)
     {
         try
         {
             if (args.Length != 5) { throw new ArgumentException("Usage: dependencies <language-root> <project|-> <assets|-> <assembly|-> <package|->"); }
-            var check = new DependencyChecks(args[0]);
+            _ = budget?.Remaining();
+            var check = new DependencyChecks(args[0], output) { deadline = budget };
             await check.Verify(args[1], args[2], args[3], args[4]);
+            _ = budget?.Remaining();
             return 0;
         }
-        catch (Exception error) when (error is IOException or InvalidDataException or UnauthorizedAccessException or InvalidOperationException or ArgumentException or JsonException or System.Xml.XmlException or BadImageFormatException or TimeoutException or System.ComponentModel.Win32Exception)
+        catch (Exception failure) when (failure is IOException or InvalidDataException or UnauthorizedAccessException or InvalidOperationException or ArgumentException or JsonException or System.Xml.XmlException or BadImageFormatException or TimeoutException or OperationCanceledException or System.ComponentModel.Win32Exception)
         {
-            Console.Error.WriteLine(error.Message);
+            error.WriteLine(failure.Message);
             return 1;
         }
     }

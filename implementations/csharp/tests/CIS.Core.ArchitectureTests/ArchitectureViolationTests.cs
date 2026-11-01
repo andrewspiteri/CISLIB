@@ -624,7 +624,7 @@ internal sealed class ArchitectureViolationFixture : IDisposable
     internal async Task PrepareSourceCompilerAsync()
     {
         // The real positive candidate stays immutable. Only this separate owned
-        // compiler copy receives the four source-only controls, one at a time.
+        // compiler copy receives the genuine source controls, one at a time.
         ArchitectureViolationFixture shadow = CopyForScenario("compiler-preparation");
         try
         {
@@ -671,16 +671,16 @@ internal sealed class ArchitectureViolationFixture : IDisposable
         catch { shadow.Dispose(); throw; }
     }
 
-    private async Task CompileSourceViolationAsync()
+    private async Task CompileSourceViolationAsync(string[]? additionalReferences = null)
     {
-        // These four controls deliberately use the same genuine SDK compiler
+        // These source controls deliberately use the same genuine SDK compiler
         // capture. Keep its mutate/compile/restore transaction exclusive.
         await work.CompilerTurn.WaitAsync();
-        try { await CompileSourceViolationCoreAsync(); }
+        try { await CompileSourceViolationCoreAsync(additionalReferences ?? []); }
         finally { work.CompilerTurn.Release(); }
     }
 
-    private async Task CompileSourceViolationCoreAsync()
+    private async Task CompileSourceViolationCoreAsync(string[] additionalReferences)
     {
         CoreCompiler compiler = sourceCompiler ?? throw new InvalidOperationException("Prepare the genuine Core compiler context first.");
         foreach ((string path, string hash) in compiler.FixedInputs) { Assert.AreEqual(hash, Hash(path), "Prepared compiler input changed: " + path); }
@@ -688,6 +688,7 @@ internal sealed class ArchitectureViolationFixture : IDisposable
         string[] sources = SourceFiles(core).Select(path => Path.GetRelativePath(core, path)).Order(StringComparer.Ordinal).ToArray();
         Assert.IsTrue(compiler.Sources.All(relative => sources.Contains(relative, StringComparer.Ordinal)), "A source control removed a captured Core input.");
         string[] added = sources.Except(compiler.Sources, StringComparer.Ordinal).ToArray();
+        var referencePins = additionalReferences.ToDictionary(Path.GetFullPath, path => Hash(path), StringComparer.Ordinal);
         var sourcePins = new Dictionary<string, string>(StringComparer.Ordinal);
         try
         {
@@ -699,6 +700,7 @@ internal sealed class ArchitectureViolationFixture : IDisposable
             }
             string response = Path.Combine(compiler.Directory, "control.rsp");
             File.WriteAllText(response, string.Join(Environment.NewLine, compiler.Arguments.Where(value => value != "/noconfig")
+                .Concat(referencePins.Keys.Select(path => "/reference:\"" + path + "\""))
                 .Concat(added.Select(relative => "\"" + relative + "\""))) + Environment.NewLine, new UTF8Encoding(false));
             string responseHash = Hash(response);
             var outputs = new Dictionary<string, string>(StringComparer.Ordinal);
@@ -721,6 +723,7 @@ internal sealed class ArchitectureViolationFixture : IDisposable
             foreach ((string relative, string hash) in sourcePins)
             { Assert.AreEqual(hash, Hash(Path.Combine(core, relative))); Assert.AreEqual(hash, Hash(Path.Combine(compiler.Directory, relative))); }
             foreach ((string path, string hash) in compiler.FixedInputs) { Assert.AreEqual(hash, Hash(path), "Prepared compiler input changed during execution: " + path); }
+            foreach ((string path, string hash) in referencePins) { Assert.AreEqual(hash, Hash(path), "The genuine added compiler reference changed during execution."); }
             string output = outputs["/out:"];
             Assert.IsTrue(File.Exists(output), "The genuine compiler did not emit the changed Core PE.");
             string bin = Path.Combine(core, "bin/Release/net10.0"); Directory.CreateDirectory(bin);
@@ -757,12 +760,11 @@ internal sealed class ArchitectureViolationFixture : IDisposable
         File.WriteAllText(project, "<Project Sdk=\"Microsoft.NET.Sdk\"><PropertyGroup><TargetFramework>net10.0</TargetFramework><AssemblyName>NLog</AssemblyName><TreatWarningsAsErrors>true</TreatWarningsAsErrors><RestorePackagesWithLockFile>true</RestorePackagesWithLockFile><RuntimeFrameworkVersion>10.0.12</RuntimeFrameworkVersion><TargetLatestRuntimePatch>false</TargetLatestRuntimePatch></PropertyGroup></Project>");
         File.WriteAllText(Path.Combine(foreign, "Marker.cs"), "namespace NLog; public sealed class Marker {}\n");
         await RequireAsync("dotnet", ["build", project, "-c", "Release", "-m:1", "--nologo"], foreign);
-        byte[] original = File.ReadAllBytes(PathAt(CoreProject));
-        AddProjectItem(new XElement("Reference", new XAttribute("Include", "NLog"), new XElement("HintPath", Path.Combine(foreign, "bin/Release/net10.0/NLog.dll")), new XElement("Private", "false")));
         Write("src/CIS.Core/ArchitectureExternalDependency.cs", "namespace CIS.Logging; internal static class ArchitectureExternalDependency { internal static NLog.Marker Create() => new(); }\n");
-        await BuildAndPackAsync();
-        // An undeclared compiled reference must be detected from the actual PE, even after its build-time reference item is removed.
-        File.WriteAllBytes(PathAt(CoreProject), original);
+        // Keep the actual foreign SDK build and genuine changed Core compilation.
+        // The existing captured Csc context avoids another full Core build/pack;
+        // the inspector must still detect the undeclared reference in the real PE.
+        await CompileSourceViolationAsync([Path.Combine(foreign, "bin/Release/net10.0/NLog.dll")]);
     }
 
     private Task RestoreAsync(bool locked) => RequireAsync("dotnet", ["restore", CoreProject, locked ? "--locked-mode" : "--force-evaluate", "-m:1", "--nologo"]);

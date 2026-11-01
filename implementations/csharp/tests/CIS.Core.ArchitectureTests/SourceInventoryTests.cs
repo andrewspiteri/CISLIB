@@ -16,9 +16,14 @@ public sealed class SourceInventoryTests
         using var directory = new TemporaryDirectory();
         string[] maintained = ["README.md", ".editorconfig", "implementations/csharp/global.json", "implementations/csharp/tests/new.cs",
             "eng/verify.ps1", "contracts/healthcheck.json", "conformance/healthcheck/cases.json", "compatibility/csharp/baseline.json", "docs/current.md",
-            "planning/healthcheck/baseline.json", "planning/logging/plan-amendments.md", "planning/logging/evidence/wp01-s03/unit-tests.trx"];
+            "planning/healthcheck/baseline.json", "planning/logging/plan-amendments.md", "planning/logging/evidence/wp01-s03/unit-tests.trx",
+            "verification/healthcheck-linux-permission-control/Program.cs", "verification/healthcheck-linux-permission-control/LinuxPermissionControl.csproj",
+            "verification/healthcheck-linux-permission-control/requirements.json", "verification/healthcheck-linux-permission-control/README.md",
+            "verification/healthcheck-child-control-v4/Program.cs", "verification/healthcheck-child-control-v4/ChildOperator.csproj", "verification/healthcheck-child-control-v4/README.md"];
         string[] unrelated = ["planning/healthcheck/evidence/archive.zip", "planning/history.md", "implementations/csharp/tests/bin/generated.dll",
-            "implementations/csharp/tests/obj/cache.json", "implementations/csharp/tests/TestResults/old.trx", "implementations/csharp/test.csproj.user"];
+            "implementations/csharp/tests/obj/cache.json", "implementations/csharp/tests/TestResults/old.trx", "implementations/csharp/test.csproj.user",
+            "verification/healthcheck-grouped-acceptance/FrozenNativeEvidence.cs", "verification/unrelated/Program.cs",
+            "verification/healthcheck-child-control-v4/bin/Release/generated.dll"];
         foreach (string relative in maintained.Concat(unrelated))
         {
             string path = Path.Combine(directory.Path, relative);

@@ -33,7 +33,9 @@ internal static partial class HealthcheckGroupedMutation
 
     private static async Task<int> ReceiveAsync(string[] args)
     {
-        var input = new TypeManagerVerificationInputs(args, ["repo-root", "candidate-root", "output-root"], ["reviews", "review-authority", "groups", "child-controls"]);
+        var input = new TypeManagerVerificationInputs(args, ["repo-root", "candidate-root", "output-root"], ["reviews", "review-authority", "groups", "child-controls", "composite-manifest", "policy"]);
+        if (input.Optional("composite-manifest") is not null) { return await ReceiveCompositeAsync(input); }
+        Require(input.Optional("policy") is null, "A composite policy requires an explicit composite manifest.");
         input.EmptyOutput();
         string root = input.PathOf("candidate-root"), repo = input.PathOf("repo-root");
         Require(Path.GetFullPath(input.Output).StartsWith(Path.TrimEndingDirectorySeparator(root) + Path.DirectorySeparatorChar,

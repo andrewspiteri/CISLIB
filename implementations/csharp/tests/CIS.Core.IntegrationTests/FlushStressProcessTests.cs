@@ -11,5 +11,5 @@ public sealed class FlushStressProcessTests
     // This concurrent child control additionally proves clean process exit,
     // isolated-root cleanup and exact-runtime execution.
     [DataRow("concurrent")]
-    public async Task ActualPublicFlushStressRunsInAnExactRuntimeChild(string mode) => await LifecycleProcessChecks.RunFunctionalFlush("flush-stress", mode, TestContext);
+    public async Task ActualPublicFlushStressRunsInAnExactRuntimeChild(string mode) => await LifecycleProcessChecks.RunFunctional("flush-stress", mode, TestContext);
 }

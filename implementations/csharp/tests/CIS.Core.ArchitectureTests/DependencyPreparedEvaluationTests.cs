@@ -16,11 +16,34 @@ public sealed class DependencyPreparedEvaluationTests
         string language = Language();
         string assets = Path.Combine(language, "src/CIS.Core/obj/project.assets.json");
         DependencyCheckRunner.CheckResult fresh = await DependencyCheckRunner.RunFresh(language, language, CoreProject, assets);
+        DependencyCheckRunner.CheckResult direct = await DependencyCheckRunner.RunInProcessFresh(language, CoreProject, assets);
         DependencyCheckRunner.CheckResult prepared = await DependencyCheckRunner.Run(language, language, CoreProject, "-AssetsPath", assets);
         Assert.AreEqual(0, fresh.ExitCode, fresh.StandardOutput + fresh.StandardError);
         Assert.AreEqual(fresh.ExitCode, prepared.ExitCode, prepared.StandardOutput + prepared.StandardError);
         Assert.AreEqual(fresh.StandardOutput, prepared.StandardOutput);
         Assert.AreEqual(fresh.StandardError, prepared.StandardError);
+        Assert.AreEqual(fresh, direct, "The real fresh validators must preserve CLI output and exit semantics without another checker process.");
+    }
+
+    [TestMethod]
+    [DataRow("unknown-project")]
+    [DataRow("invalid-assets")]
+    public async Task FreshPrivateWritersRetainTheActualCliRejection(string fault)
+    {
+        string language = Language();
+        using var directory = new TemporaryDirectory();
+        string project = fault == "unknown-project" ? "Foreign.csproj" : CoreProject;
+        string assets = "-";
+        if (fault == "invalid-assets")
+        {
+            assets = Path.Combine(directory.Path, "invalid-assets.json");
+            File.WriteAllText(assets, "This is not an assets document.");
+        }
+        DependencyCheckRunner.CheckResult cli = await DependencyCheckRunner.RunFresh(language, language, project, assets);
+        DependencyCheckRunner.CheckResult direct = await DependencyCheckRunner.RunInProcessFresh(language, project, assets);
+        Assert.AreEqual(1, cli.ExitCode);
+        Assert.AreNotEqual("", cli.StandardError);
+        Assert.AreEqual(cli, direct);
     }
 
     [TestMethod]

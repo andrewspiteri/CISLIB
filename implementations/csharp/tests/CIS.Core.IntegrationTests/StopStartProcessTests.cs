@@ -9,5 +9,5 @@ public sealed class StopStartProcessTests
     public static IEnumerable<object[]> Modes => LifecycleProcessChecks.Modes("stop-start", CIS.Tests.DiscoveryFixture.StopStartExpectations.Modes);
     [TestMethod]
     [DynamicData(nameof(Modes))]
-    public async Task ActualSharedStopRunsInAnExactRuntimeChild(string mode) => await LifecycleProcessChecks.Run("stop-start", mode, TestContext);
+    public async Task ActualSharedStopRunsInAnExactRuntimeChild(string mode) => await LifecycleProcessChecks.RunFunctional("stop-start", mode, TestContext);
 }

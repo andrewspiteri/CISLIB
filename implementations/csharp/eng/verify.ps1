@@ -4,6 +4,7 @@ param(
     [string] $Lane = $(if ($IsWindows) { 'windows-x64' } else { 'linux-ubuntu2404-x64' }),
     [ValidateRange(0, 64)][int] $MaxBuildNodes = 0,
     [string] $OutputRoot = '',
+    [string] $CompilerPreparationRoot = '',
     [switch] $PrepareOnly
 )
 
@@ -143,8 +144,16 @@ try {
             $null = Invoke-VerificationCommand (Join-Path $reportRoot 'logs/build-fast.log') $fastBuildArguments
         }
         $core = Join-Path $languageRoot 'src/CIS.Core/bin/Release/net10.0/CIS.Core.dll'
-        Invoke-VerificationStage $context 'startup-contract' { $null = Invoke-VerificationCommand (Join-Path $reportRoot 'logs/startup-contract.log') @('-NoProfile', '-File', (Join-Path $PSScriptRoot 'check-startup-contract.ps1'), '-OutputRoot', (Join-Path $reportRoot 'contracts/startup')) 'pwsh' }
-        Invoke-VerificationStage $context 'compatibility-samples' { $null = Invoke-VerificationCommand (Join-Path $reportRoot 'logs/compatibility-samples.log') @('-NoProfile', '-File', (Join-Path $PSScriptRoot 'check-compatibility-samples.ps1'), '-StartupRoot', (Join-Path $reportRoot 'contracts/startup'), '-OutputRoot', (Join-Path $reportRoot 'contracts/compatibility-samples')) 'pwsh' }
+        Invoke-VerificationStage $context 'startup-contract' {
+            $arguments = @('-NoProfile', '-File', (Join-Path $PSScriptRoot 'check-startup-contract.ps1'), '-OutputRoot', (Join-Path $reportRoot 'contracts/startup'))
+            if ($CompilerPreparationRoot) { $arguments += @('-ReuseRoot', (Join-Path $CompilerPreparationRoot 'contracts/startup')) }
+            $null = Invoke-VerificationCommand (Join-Path $reportRoot 'logs/startup-contract.log') $arguments 'pwsh'
+        }
+        Invoke-VerificationStage $context 'compatibility-samples' {
+            $arguments = @('-NoProfile', '-File', (Join-Path $PSScriptRoot 'check-compatibility-samples.ps1'), '-StartupRoot', (Join-Path $reportRoot 'contracts/startup'), '-OutputRoot', (Join-Path $reportRoot 'contracts/compatibility-samples'))
+            if ($CompilerPreparationRoot) { $arguments += @('-ReuseRoot', (Join-Path $CompilerPreparationRoot 'contracts/compatibility-samples')) }
+            $null = Invoke-VerificationCommand (Join-Path $reportRoot 'logs/compatibility-samples.log') $arguments 'pwsh'
+        }
         Invoke-VerificationStage $context 'log-value-consumers' { $null = Invoke-VerificationCommand (Join-Path $reportRoot 'logs/log-value-consumers.log') @('-NoProfile', '-File', (Join-Path $PSScriptRoot 'check-log-value-consumers.ps1'), '-OutputRoot', (Join-Path $reportRoot 'contracts/log-value-consumers')) 'pwsh' }
         Invoke-VerificationStage $context 'publication-ledger' {
             $publicationReport = Join-Path $reportRoot 'contracts/publications/validation.json'

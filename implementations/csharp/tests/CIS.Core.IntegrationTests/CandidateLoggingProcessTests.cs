@@ -234,6 +234,9 @@ public sealed class CandidateLoggingProcessTests
         using var root = new TemporaryDirectory();
         await using var child = fixture.Start(deadline ? "deadline" : "burst", root.Path, new Dictionary<string, string?> { ["CORE_LOG_CONSOLE_LEVEL"] = "Information", ["CORE_LOG_CONSOLE_STREAM"] = "stdout", ["CORE_LOG_FILE_LEVEL"] = "None", ["CORE_LOG_QUEUE_CAPACITY"] = "1", ["CORE_LOG_SHUTDOWN_TIMEOUT_MS"] = deadline ? "100" : "5000" });
         JsonObject blocked = await child.Read(); Assert.AreEqual("blocked", (string?)blocked["stage"]); JsonObject held = Output(blocked, "console");
+        Assert.AreEqual("TimedOut", (string?)blocked["flush"]!["completion"]);
+        JsonObject boundary = Output(blocked, "console", "flush");
+        Assert.IsTrue(Count(boundary, "pending") > 0); Assert.AreEqual("Pending", (string?)boundary["writerFlushStatus"]);
         Assert.IsTrue(Count(held, "queueFull") > 0); Assert.IsTrue(Count(held, "pending") is >= 1 and <= 2); Assert.AreEqual(Count(held, "accepted"), Count(held, "written") + Count(held, "pending"));
         JsonObject? expired = deadline ? await child.Read() : null;
         if (expired is not null)

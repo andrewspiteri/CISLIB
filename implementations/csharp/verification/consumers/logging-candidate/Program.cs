@@ -70,15 +70,18 @@ internal static class Program
     private static async Task BlockedPipe()
     {
         // The parent deliberately holds stdout unread; a separate BCL pipe carries control replies.
-        // No elapsed sleep is used to declare pressure: a registered flush must time out with pending work.
+        // Require a captured writer boundary, then qualify and publish the same post-origin diagnostics snapshot.
         for (int round = 0; round < 64; round++)
         {
             for (int i = 0; i < 32; i++) { Write("burst." + round + "." + i, 15000); }
             LogFlushResult flush = await runtime!.FlushAsync(TimeSpan.FromMilliseconds(20), CancellationToken.None);
-            LogOutputDiagnostics output = runtime.GetDiagnostics().Outputs.Single();
-            if (flush.Completion == LogCompletion.TimedOut && output.Pending > 0 && output.QueueFull > 0)
+            LogOutputDrainResult? boundary = flush.Outputs.SingleOrDefault(output => output.OutputName == "console");
+            if (flush.Completion != LogCompletion.TimedOut || boundary is null || boundary.Pending <= 0 || boundary.WriterFlushStatus != LogWriterFlushStatus.Pending) { continue; }
+            JsonObject held = Observe("blocked");
+            JsonObject output = held["diagnostics"]!["outputs"]!.AsArray().Single(value => (string?)value!["outputName"] == "console")!.AsObject();
+            if (output["pending"]!.GetValue<long>() > 0 && output["queueFull"]!.GetValue<long>() > 0)
             {
-                JsonObject held = Observe("blocked"); held["flush"] = JsonSerializer.SerializeToNode(flush, Json); Publish(held);
+                held["flush"] = JsonSerializer.SerializeToNode(flush, Json); Publish(held);
                 if (mode == "deadline") { Publish(await Stop()); }
                 if (await pipeInput!.ReadLineAsync().WaitAsync(TimeSpan.FromSeconds(15)) != "drain") { throw new InvalidDataException("Missing drain signal."); }
                 if (mode == "burst") { Publish(await Stop()); }

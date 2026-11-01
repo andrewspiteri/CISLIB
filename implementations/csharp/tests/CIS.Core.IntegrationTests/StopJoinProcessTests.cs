@@ -9,5 +9,5 @@ public sealed class StopJoinProcessTests
     public static IEnumerable<object[]> Modes => LifecycleProcessChecks.Modes("stop-join", CIS.Tests.DiscoveryFixture.StopJoinExpectations.Modes);
     [TestMethod]
     [DynamicData(nameof(Modes))]
-    public async Task ActualSharedStopRunsInAnExactRuntimeChild(string mode) => await LifecycleProcessChecks.Run("stop-join", mode, TestContext);
+    public async Task ActualSharedStopRunsInAnExactRuntimeChild(string mode) => await LifecycleProcessChecks.RunFunctional("stop-join", mode, TestContext);
 }

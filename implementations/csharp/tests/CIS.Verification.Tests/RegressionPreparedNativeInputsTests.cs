@@ -11,6 +11,24 @@ namespace CIS.Tests.Verification;
 public sealed class RegressionPreparedNativeInputsTests
 {
     [TestMethod]
+    [DataRow(true, 290d, 300, 295d, true, true, true)]
+    [DataRow(true, 290d, 300, 305d, true, true, false)]
+    [DataRow(true, 320d, 1500, 335d, true, false, false)]
+    [DataRow(true, 305d, 300, 315d, false, false, false)]
+    [DataRow(false, 100d, 300, 115d, true, false, false)]
+    public void CorrectnessBudgetAndBothPerformanceTargetsHaveIndependentOutcomes(bool correct, double nativeSeconds,
+        int budgetSeconds, double commandSeconds, bool budgetMet, bool nativeTargetMet, bool commandTargetMet)
+    {
+        var summary = new JsonObject();
+        RegressionTests.RecordMeasurements(summary, correct, nativeSeconds, budgetSeconds, commandSeconds);
+        Assert.AreEqual(correct, (bool)summary["correctnessComplete"]!);
+        Assert.AreEqual(budgetMet, (bool)summary["nativeBudgetMet"]!);
+        Assert.AreEqual(nativeTargetMet, (bool)summary["nativeTargetMet"]!);
+        Assert.AreEqual(commandTargetMet, (bool)summary["commandTargetMet"]!);
+        Assert.AreEqual(commandSeconds, (double)summary["commandSeconds"]!);
+    }
+
+    [TestMethod]
     public void PreparationBindsEveryNativeOutputIncludingRuntimeConfigurationAndNestedDependencies()
     {
         using var fixture = new Fixture();

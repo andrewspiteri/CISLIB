@@ -149,9 +149,14 @@ public sealed class StopReaderMigrationTests
 #if CIS_MUTATION_TESTS
         return await LifecycleProcessChecks.Run(command, mode, TestContext);
 #else
-        // Run the real physical control through cleanup before sharing its text.
+        // Reuse only a completed physical control, including its cleanup. A
+        // reader never waits for a functional case or shares mutable JSON.
         string text = await ReaderPositives.GetOrAdd((command, mode), key => new Lazy<Task<string>>(async () =>
-            (await LifecycleProcessChecks.Run(key.Command, key.Mode, TestContext)).ToJsonString())).Value;
+        {
+            if (LifecycleProcessChecks.TryGetCompletedReaderInput(key.Command, key.Mode, out string? completed)
+                && completed is not null) { return completed; }
+            return (await LifecycleProcessChecks.Run(key.Command, key.Mode, TestContext)).ToJsonString();
+        })).Value;
         return JsonNode.Parse(text)!.AsObject();
 #endif
     }

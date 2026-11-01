@@ -9,5 +9,5 @@ public sealed class StopCleanupProcessTests
     public static IEnumerable<object[]> Modes => LifecycleProcessChecks.Modes("stop-cleanup", CIS.Tests.DiscoveryFixture.StopCleanupExpectations.Modes);
     [TestMethod]
     [DynamicData(nameof(Modes))]
-    public async Task ActualSharedStopRunsInAnExactRuntimeChild(string mode) => await LifecycleProcessChecks.Run("stop-cleanup", mode, TestContext);
+    public async Task ActualSharedStopRunsInAnExactRuntimeChild(string mode) => await LifecycleProcessChecks.RunFunctional("stop-cleanup", mode, TestContext);
 }

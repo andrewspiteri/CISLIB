@@ -31,7 +31,7 @@ internal static class PermissionControl
     private static readonly BindingFlags Instance = BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic;
     private static readonly JsonSerializerOptions Json = new(JsonSerializerDefaults.Web) { WriteIndented = true };
     private sealed record Pin(string Path, string Sha256, long Bytes);
-    private sealed record Requirement(string Obligation, string Source, string Operator, JsonObject Location, string Replacement, string DefinitionIdentity, string[] WitnessNames);
+    private sealed record Requirement(string Obligation, string Source, string Operator, JsonObject Location, string Replacement, string DefinitionIdentity, string[] WitnessNames, string? RequirementCode = null);
 
     internal static async Task<int> RunAsync(string[] args)
     {
@@ -44,7 +44,8 @@ internal static class PermissionControl
             else { Need(options.TryAdd(args[index], args[index + 1]), "Duplicate control option."); }
         }
         string[] required = ["--candidate-root", "--task-root", "--checker", "--operator-source-root", "--output-root", "--temporary-root", "--operator-build-receipt"];
-        Need(required.All(options.ContainsKey) && options.Keys.All(required.Contains), "Missing or unknown control option.");
+        bool current = options.ContainsKey("--current-policy");
+        Need(required.All(options.ContainsKey) && options.Keys.All(key => required.Contains(key) || key == "--current-policy"), "Missing or unknown control option.");
         string root = Full(options["--candidate-root"]), taskRoot = Full(options["--task-root"]), output = Full(options["--output-root"]);
         string sourceRoot = Full(options["--operator-source-root"]), checker = Full(options["--checker"]), temporary = Full(options["--temporary-root"]);
         string buildReceiptPath = Full(options["--operator-build-receipt"]);
@@ -54,8 +55,15 @@ internal static class PermissionControl
         Need(!Under(root, sourceRoot) && !Under(root, temporary) && !Directory.Exists(temporary) && !File.Exists(temporary) && temporary.Length <= 65,
             "Use a separate pinned operator source and fresh short owned temporary directory.");
         string helper = Path.Combine(Path.GetDirectoryName(checker)!, "CIS.Core.TestSupport.dll");
-        Need(Hash(checker) == CheckerHash && Hash(helper) == HelperHash && Hash(typeof(ProcessRunner).Assembly.Location) == HelperHash,
-            "The original frozen guard and the relocated executed helper must retain their exact qualified bytes.");
+        if (!current) { Need(Hash(checker) == CheckerHash && Hash(helper) == HelperHash && Hash(typeof(ProcessRunner).Assembly.Location) == HelperHash,
+            "The original frozen guard and the relocated executed helper must retain their exact qualified bytes."); }
+        else
+        {
+            JsonArray toolPins = Read(Path.Combine(root, "toolchain.json"))["files"]!.AsArray();
+            foreach (string file in new[] { checker, helper })
+            { Need(toolPins.Count(pin => Same((string)pin!["path"]!, file) && (string?)pin["sha256"] == Hash(file)) == 1, "The actual current checker/helper is not uniquely pinned in the candidate toolchain."); }
+            Need(Hash(typeof(ProcessRunner).Assembly.Location) == Hash(helper), "The executed relocated helper differs from the candidate's actual helper.");
+        }
         Assembly frozen = AssemblyLoadContext.Default.LoadFromAssemblyPath(checker);
         Type grouped = frozen.GetType("CIS.Verification.HealthcheckGroupedMutation", true)!;
         object candidate = Call(grouped, "CandidateAt", root)!;
@@ -63,6 +71,19 @@ internal static class PermissionControl
         object tools = Call(grouped, "ReadToolchain", root, candidate)!;
         string workspace = Path.Combine(root, "workspace"), language = Path.Combine(workspace, "implementations/csharp");
         JsonObject candidateJson = Read(Path.Combine(root, "candidate.json")), toolchainJson = Read(Path.Combine(root, "toolchain.json"));
+        string? currentPolicyPath = current ? Full(options["--current-policy"]) : null;
+        JsonObject? currentPolicy = null;
+        if (current)
+        {
+            Call(grouped, "ValidateCompositeTools", tools);
+            const string policyRelative = "implementations/csharp/verification/mutation/healthcheck/composite-policy.json";
+            Need(Same(currentPolicyPath!, Path.Combine(workspace, policyRelative))
+                && candidateJson["inputs"]!.AsArray().Any(pin => (string?)pin!["path"] == policyRelative && (string?)pin["sha256"] == Hash(currentPolicyPath!)), "Use the policy actually frozen in this current candidate.");
+            currentPolicy = Read(currentPolicyPath!);
+            Call(grouped, "ValidateCompositePolicy", candidate, currentPolicy, (Func<string, string>)ReadSource);
+            Need(((IEnumerable)Call(grouped, "Capture", workspace)!).Cast<object>().Select(pin => Text(pin, "Path") + ":" + Text(pin, "Sha256"))
+                .SequenceEqual(candidateJson["inputs"]!.AsArray().Select(pin => (string?)pin!["path"] + ":" + (string?)pin["sha256"])), "Current producer/source/policy inventory differs from the candidate.");
+        }
         string actualPlatform = RuntimeInformation.OSDescription + "; " + RuntimeInformation.ProcessArchitecture + "; " + RuntimeInformation.FrameworkDescription;
         Need(actualPlatform == (string?)candidateJson["platform"] && Environment.MachineName == (string?)candidateJson["host"], "The actual operator platform/host differs from its frozen native candidate.");
         string dotnet = (string)toolchainJson["subjectDotnet"]!, cli = toolchainJson["files"]!.AsArray().Single(pin => Path.GetFileName((string)pin!["path"]!) == "Stryker.CLI.dll")!["path"]!.GetValue<string>();
@@ -74,16 +95,22 @@ internal static class PermissionControl
         var pins = toolchainJson["files"]!.AsArray().Select(pin => Pinned((string)pin!["path"]!)).ToList();
         pins.AddRange(new[] { "candidate.json", "candidate.zip", "toolchain.json" }.Select(name => Pinned(Path.Combine(root, name))));
         pins.AddRange(new[] { "Program.cs", "LinuxPermissionControl.csproj", "requirements.json", "README.md" }.Select(name => Pinned(Path.Combine(sourceRoot, name))));
+        if (current)
+        {
+            foreach (string name in new[] { "Program.cs", "LinuxPermissionControl.csproj", "requirements.json", "README.md" })
+            { Need(candidateJson["inputs"]!.AsArray().Any(pin => (string?)pin!["path"] == "verification/healthcheck-linux-permission-control/" + name && (string?)pin["sha256"] == Hash(Path.Combine(sourceRoot, name))), "Current operator build sources are not the reviewed captured candidate inputs."); }
+            pins.Add(Pinned(currentPolicyPath!));
+        }
         string assembly = typeof(PermissionControl).Assembly.Location;
         pins.AddRange(new[] { assembly, Path.ChangeExtension(assembly, ".deps.json"), Path.ChangeExtension(assembly, ".runtimeconfig.json"), Path.ChangeExtension(assembly, ".pdb"), typeof(ProcessRunner).Assembly.Location, buildReceiptPath }.Select(Pinned));
         string requirementsPath = Path.Combine(sourceRoot, "requirements.json"), copiedRequirements = Path.Combine(AppContext.BaseDirectory, "requirements.json");
         Need(Hash(requirementsPath) == Hash(copiedRequirements), "The deployed control recipe differs from its compiled source inputs."); pins.Add(Pinned(copiedRequirements));
-        ValidateBuildReceipt(buildReceiptPath, sourceRoot, assembly);
+        ValidateBuildReceipt(buildReceiptPath, sourceRoot, assembly, current, toolchainJson);
         AssertPins();
         Need(external.All(Directory.Exists), "Every declared external owned root must exist.");
         string[] roots = new[] { taskRoot }.Concat(external).Append(temporary).Distinct(StringComparer.Ordinal).ToArray();
         roots = roots.Where(path => !roots.Any(other => path != other && Under(other, path))).ToArray();
-        Need(roots.Length == 27, "Retain the actual27-root owned scope; nest the new short TMP under an existing counted root.");
+        if (!current) { Need(roots.Length == 27, "Retain the actual27-root owned scope; nest the new short TMP under an existing counted root."); }
         object[] volumes = roots.Select(path => Call(grouped, "ResolveStorageVolume", path)!).ToArray();
         long peak = 0;
         long Bytes(string path) => Directory.Exists(path) ? (long)Call(grouped, "CountOwnedScopeBytes", path, path)! : 0;
@@ -107,7 +134,7 @@ internal static class PermissionControl
         string integration = Path.Combine(language, "tests/CIS.Core.IntegrationTests/CIS.Core.IntegrationTests.csproj");
         string[] projects = [unit, integration];
         string filter = string.Join('|', TestNames.Select(name => "FullyQualifiedName=" + name));
-        (string[] selectors, Requirement[] requirements) = Selection(language, requirementsPath);
+        (string[] selectors, Requirement[] requirements) = current ? PolicySelection(language, currentPolicy!, grouped) : Selection(language, requirementsPath);
         string config = Path.Combine(output, "stryker-config.json"), nativeOutput = Path.Combine(output, "native");
         var commands = new List<object>(); var failures = new List<string>(); var baselinePins = new List<Pin>();
         JsonObject? binding = null, journals = null; ProcessResult? native = null;
@@ -209,7 +236,8 @@ internal static class PermissionControl
 
         string ReadSource(string relative) => File.ReadAllText(Path.Combine(workspace, relative));
         void AssertPins() { foreach (Pin pin in pins) { Need(File.Exists(pin.Path) && Hash(pin.Path) == pin.Sha256 && new FileInfo(pin.Path).Length == pin.Bytes, "Pinned supplemental/native input changed: " + pin.Path); } }
-        void Capacity() { long size = Aggregate(); peak = Math.Max(peak, size); Need(size <= Limit && Free() >= Limit, "Actual all27-root capacity/free reserve failed."); }
+        void Capacity() { long size = Aggregate(); peak = Math.Max(peak, size); Need(size <= Limit && Free() >= Limit,
+            current ? "Actual declared-root capacity/free reserve failed." : "Actual all27-root capacity/free reserve failed."); }
         async Task<ProcessResult> IdentityRun(string name, string[] command, string cwd, string executable) => await Run(name, command, reserve: 90, executable: executable, cwd: cwd);
         async Task<ProcessResult> Run(string name, string[] command, int reserve = 90, bool nativeCeiling = false, string? executable = null, string? cwd = null)
         {
@@ -281,6 +309,27 @@ internal static class PermissionControl
         }
     }
 
+    private static (string[], Requirement[]) PolicySelection(string language, JsonObject policy, Type grouped)
+    {
+        JsonArray rows = policy["linuxPermissionObligations"]!.AsArray();
+        var ranges = new Dictionary<string, (int Start, int End)>(StringComparer.Ordinal);
+        var requirements = new List<Requirement>();
+        foreach (JsonNode? row in rows)
+        {
+            string source = (string)row!["source"]!, path = Path.Combine(language, "src/CIS.Core", source), text = File.ReadAllText(path);
+            Need(Sources.Contains(source) && Hash(path) == (string?)row["sourceSha256"], "A current policy source differs from its actual candidate input.");
+            JsonObject location = JsonNode.Parse((string)row["location"]!)!.AsObject();
+            int start = (int)Call(grouped, "CompositePoint", text, location, "start")!, end = (int)Call(grouped, "CompositePoint", text, location, "end")!;
+            Need(start < end, "A current policy definition has an empty/reversed source span.");
+            ranges[source] = ranges.TryGetValue(source, out var previous) ? (Math.Min(previous.Start, start), Math.Max(previous.End, end)) : (start, end);
+            string[] witnesses = row["allowedWitnesses"]!.AsArray().Select(witness => (string)witness!["name"]!).ToArray();
+            Need(witnesses.All(TestNames.Contains), "A current permission witness escaped the five physical cases.");
+            requirements.Add(new((string)row["obligation"]!, source, (string)row["operator"]!, location, (string)row["replacement"]!, (string)row["definitionIdentity"]!, witnesses, (string)row["requirement"]!));
+        }
+        Need(requirements.Count == 6 && ranges.Keys.Order(StringComparer.Ordinal).SequenceEqual(Sources.Order(StringComparer.Ordinal)), "All six current policy definitions and their three sources are required.");
+        return (Sources.Select(source => source + "{" + ranges[source].Start + ".." + ranges[source].End + "}").ToArray(), requirements.ToArray());
+    }
+
     private static (string[], Requirement[]) Selection(string language, string requirementsPath)
     {
         string endpoint = File.ReadAllText(Path.Combine(language, "src/CIS.Core", Sources[0]));
@@ -338,7 +387,7 @@ internal static class PermissionControl
                     "A native witness differs from current source, is ambiguous, or lacks the same UUID/FQName in both passing native TRXs.");
             }
             var chosen = witnesses[0]; string witnessSource = normalizeTestPath(chosen.File.Key);
-            claims.Add(new JsonObject { ["obligation"] = requirement.Obligation, ["requirement"] = "HC-C08/" + requirement.Obligation, ["definitionIdentity"] = Text(definition, "Identity"), ["source"] = requirement.Source,
+            claims.Add(new JsonObject { ["obligation"] = requirement.Obligation, ["requirement"] = requirement.RequirementCode ?? "HC-C08/" + requirement.Obligation, ["definitionIdentity"] = Text(definition, "Identity"), ["source"] = requirement.Source,
                 ["sourceSha256"] = Text(definition, "SourceSha256"), ["operator"] = requirement.Operator, ["location"] = requirement.Location.DeepClone(), ["replacement"] = requirement.Replacement,
                 ["status"] = "Killed", ["nativeId"] = Text(definition, "NativeId"), ["witnessSource"] = witnessSource, ["witnessName"] = (string?)chosen.Test["name"],
                 ["killedBy"] = new JsonArray(witnesses.Select(item => item.Test["id"]!.DeepClone()).ToArray()),
@@ -364,10 +413,10 @@ internal static class PermissionControl
         return document.Descendants(ns + "UnitTest").ToDictionary(test => (string)test.Attribute("id")!, test => {
             var method = test.Element(ns + "TestMethod")!; return (string?)method.Attribute("className") + "." + (string?)method.Attribute("name"); }, StringComparer.Ordinal);
     }
-    private static void ValidateBuildReceipt(string path, string sourceRoot, string assembly)
+    private static void ValidateBuildReceipt(string path, string sourceRoot, string assembly, bool current, JsonObject toolchain)
     {
         JsonObject receipt = Read(path);
-        Need((string?)receipt["schema"] == "cis.healthcheck.linux-permission-operator-build/v1" && (string?)receipt["compilerPlatform"] == "windows-x64"
+        Need((string?)receipt["schema"] == "cis.healthcheck.linux-permission-operator-build/v1" && (string?)receipt["compilerPlatform"] == (current ? "linux-x64" : "windows-x64")
             && (string?)receipt["sdk"] == "10.0.401" && (string?)receipt["actualCompileHostRuntime"] == "10.0.12"
             && (int?)receipt["exitCode"] == 0 && (bool?)receipt["outputDrained"] == true && (bool?)receipt["privateRuntime10_0_12Observed"] == true
             && (bool?)receipt["timedOut"] == false && (bool?)receipt["capacityHold"] == false
@@ -381,7 +430,15 @@ internal static class PermissionControl
         { Need(receipt["portableOutputPins"]!.AsArray().Count(pin => (string?)pin!["name"] == Path.GetFileName(file) && (string?)pin["sha256"] == Hash(file)) == 1, "The deployed operator/helper/data bytes differ from the actual producer build."); }
         foreach (string name in new[] { "MSBuild.dll", "csc.dll", "Microsoft.CodeAnalysis.CSharp.dll" })
         { Need(receipt["compilerPins"]!.AsArray().Any(pin => ((string)pin!["path"]!).Replace('\\', '/').EndsWith("/" + name, StringComparison.Ordinal)), "The observed producer compiler closure omits " + name); }
-        Need(receipt["runtimePins"] is JsonArray { Count: > 0 } && (string?)receipt["foreignToolPinSemantics"] == "Observed actual Windows producer bytes; not live-rehashed from Linux", "The actual foreign producer runtime provenance must remain explicit.");
+        Need(receipt["runtimePins"] is JsonArray { Count: > 0 }
+            && (current || (string?)receipt["foreignToolPinSemantics"] == "Observed actual Windows producer bytes; not live-rehashed from Linux"), "The actual producer runtime provenance must remain explicit.");
+        if (current)
+        {
+            foreach (JsonNode? pin in receipt["compilerPins"]!.AsArray().Concat(receipt["runtimePins"]!.AsArray()))
+            { Need(Path.IsPathFullyQualified((string)pin!["path"]!) && Hash((string)pin["path"]!) == (string?)pin["sha256"]
+                && toolchain["files"]!.AsArray().Count(tool => Same((string)tool!["path"]!, (string)pin["path"]!) && (string?)tool["sha256"] == (string?)pin["sha256"]) == 1,
+                "The actual current producer compiler/runtime input changed or escaped the frozen toolchain."); }
+        }
         using var stream = File.OpenRead(Path.ChangeExtension(assembly, ".pdb"));
         using MetadataReaderProvider provider = MetadataReaderProvider.FromPortablePdbStream(stream);
         MetadataReader reader = provider.GetMetadataReader();

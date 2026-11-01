@@ -14,5 +14,5 @@ public sealed class FlushBoundaryProcessTests
     [DataRow("closed")]
     [DataRow("concurrent")]
     [DataRow("physical")]
-    public async Task RegisteredBoundaryFixtureRunsActualCoreInASeparateExactRuntime(string mode) => await LifecycleProcessChecks.RunFunctionalFlush("flush-boundary", mode, TestContext);
+    public async Task RegisteredBoundaryFixtureRunsActualCoreInASeparateExactRuntime(string mode) => await LifecycleProcessChecks.RunFunctional("flush-boundary", mode, TestContext);
 }

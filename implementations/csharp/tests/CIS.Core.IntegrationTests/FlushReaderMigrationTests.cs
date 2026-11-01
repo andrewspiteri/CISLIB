@@ -217,7 +217,7 @@ public sealed class FlushReaderMigrationTests
         // Use only a completed physical capture; never wait for a functional case.
         string text = await ReaderPositives.GetOrAdd((command, mode), key => new Lazy<Task<string>>(async () =>
         {
-            if (LifecycleProcessChecks.TryGetCompletedFlushReaderInput(key.Command, key.Mode, out string? completed)
+            if (LifecycleProcessChecks.TryGetCompletedReaderInput(key.Command, key.Mode, out string? completed)
                 && completed is not null)
             {
                 return completed;

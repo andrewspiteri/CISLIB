@@ -36,17 +36,19 @@ internal static class Operator
             if (args[index] == "--external-owned-root") { external.Add(Full(args[index + 1])); }
             else { Need(options.TryAdd(args[index], args[index + 1]), "Duplicate operator option."); }
         }
-        string[] required = ["--candidate-root", "--task-root", "--checker", "--operator-source-root", "--output-root", "--temporary-root",
+        bool current = options.ContainsKey("--current-policy");
+        string[] common = ["--candidate-root", "--task-root", "--checker", "--operator-source-root", "--output-root", "--temporary-root", "--operator-build-receipt"];
+        string[] required = current ? [.. common, "--current-policy"] : ["--candidate-root", "--task-root", "--checker", "--operator-source-root", "--output-root", "--temporary-root",
             "--acceptance-validator", "--windows-pipes-proof", "--linux-permission-proof", "--acceptance-policy", "--acceptance-source-root", "--acceptance-build-receipt", "--operator-build-receipt"];
         Need(required.All(options.ContainsKey) && options.Keys.All(key => required.Contains(key, StringComparer.Ordinal)), "Unknown or missing operator argument.");
         string candidateRoot = Full(options["--candidate-root"]), taskRoot = Full(options["--task-root"]);
         string checker = Full(options["--checker"]), sourceRoot = Full(options["--operator-source-root"]);
         string output = Full(options["--output-root"]), temporary = Full(options["--temporary-root"]);
-        string validatorPath = Full(options["--acceptance-validator"]), windowsProof = Full(options["--windows-pipes-proof"]);
-        string linuxProof = Full(options["--linux-permission-proof"]), policy = Full(options["--acceptance-policy"]);
-        string validatorSource = Full(options["--acceptance-source-root"]), validatorBuild = Full(options["--acceptance-build-receipt"]);
+        string validatorPath = current ? "" : Full(options["--acceptance-validator"]), windowsProof = current ? "" : Full(options["--windows-pipes-proof"]);
+        string linuxProof = current ? "" : Full(options["--linux-permission-proof"]), policy = Full(options[current ? "--current-policy" : "--acceptance-policy"]);
+        string validatorSource = current ? "" : Full(options["--acceptance-source-root"]), validatorBuild = current ? "" : Full(options["--acceptance-build-receipt"]);
         string operatorBuild = Full(options["--operator-build-receipt"]);
-        Need(OperatingSystem.IsLinux() && Native.getuid() == 0 && Native.geteuid() == 0, "The explicit v4 permission-control route requires the actual Linux UID0/effectiveUID0 actor.");
+        Need(OperatingSystem.IsLinux() && (current || Native.getuid() == 0 && Native.geteuid() == 0), "The historical v4 permission-control route requires the actual Linux UID0/effectiveUID0 actor.");
         Need(AtOrUnder(taskRoot, candidateRoot) && AtOrUnder(taskRoot, output) && !AtOrUnder(candidateRoot, output), "Operator output must be a separate owned task subroot.");
         Need(!Directory.Exists(output) && !File.Exists(output), "Use fresh operator output.");
         Need(!Directory.Exists(temporary) && !File.Exists(temporary) && temporary.Length <= 65, "Use a fresh short owned temporary root (at most65characters).");
@@ -62,9 +64,10 @@ internal static class Operator
         pins.AddRange(new[] { "Program.cs", "ChildOperator.csproj", "README.md" }.Select(name => Pinned(Path.Combine(sourceRoot, name))));
         string assemblyPath = typeof(Operator).Assembly.Location;
         pins.AddRange(new[] { assemblyPath, Path.ChangeExtension(assemblyPath, ".deps.json"), Path.ChangeExtension(assemblyPath, ".runtimeconfig.json"), Path.ChangeExtension(assemblyPath, ".pdb"), operatorBuild }.Select(Pinned));
-        ValidateBuildReceipt(operatorBuild, sourceRoot, assemblyPath);
-        pins.AddRange(new[] { validatorPath, Path.ChangeExtension(validatorPath, ".deps.json"), Path.ChangeExtension(validatorPath, ".runtimeconfig.json"), Path.ChangeExtension(validatorPath, ".pdb"),
-            validatorBuild, windowsProof, linuxProof, policy }.Select(Pinned));
+        ValidateBuildReceipt(operatorBuild, sourceRoot, assemblyPath, current, toolchainJson);
+        if (!current) { pins.AddRange(new[] { validatorPath, Path.ChangeExtension(validatorPath, ".deps.json"), Path.ChangeExtension(validatorPath, ".runtimeconfig.json"), Path.ChangeExtension(validatorPath, ".pdb"),
+            validatorBuild, windowsProof, linuxProof, policy }.Select(Pinned)); }
+        else { pins.Add(Pinned(policy)); }
         AssertPins();
         AssemblyLoadContext.Default.LoadFromAssemblyPath(helper);
         Assembly frozen = AssemblyLoadContext.Default.LoadFromAssemblyPath(checker);
@@ -80,47 +83,62 @@ internal static class Operator
         string workspace = Path.Combine(candidateRoot, "workspace"), language = Path.Combine(workspace, "implementations/csharp");
         Call(grouped, "VerifyInputs", workspace, candidate);
         using var lease = new FileStream(Path.Combine(candidateRoot, "active.lock"), FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.None);
-        Assembly validator = AssemblyLoadContext.Default.LoadFromAssemblyPath(validatorPath);
-        Type prerequisites = validator.GetType("CIS.Recovery.HealthcheckAcceptance.TransportPrerequisites", true)!;
-        MethodInfo validatePrerequisites = prerequisites.GetMethod("Validate", BindingFlags.Public | BindingFlags.Static)!;
-        Need(validatePrerequisites.GetParameters().Length == 7 && validatePrerequisites.GetParameters().All(parameter => parameter.ParameterType == typeof(string))
-            && validatePrerequisites.ReturnType == typeof(JsonObject), "The explicit supplemental transport-prerequisite validator API changed.");
-        JsonObject prerequisiteReceipt = (JsonObject)Invoke(validatePrerequisites, null, [checker, candidateRoot, windowsProof, linuxProof, policy, validatorSource, validatorBuild])!;
-        JsonObject consumer = prerequisiteReceipt["consumer"]!.AsObject();
-        pins.AddRange(consumer["sourcePins"]!.AsArray().Select(pin => Pinned(Path.Combine(validatorSource, (string)pin!["path"]!))));
-        string consumerRuntime = (string)consumer["actualCoreLib"]!;
-        Need(Hash(consumerRuntime) == (string?)consumer["actualCoreLibSha256"] && (string?)consumer["actualFramework"] == ".NET 10.0.12", "The admitted analysis consumer did not retain the actual executor runtime identity.");
-        pins.Add(Pinned(consumerRuntime));
-        string consumerHost = (string)consumer["actualDotnetHost"]!;
-        Need(Same(consumerHost, dotnet) && Hash(consumerHost) == (string?)consumer["actualDotnetHostSha256"], "The admitted consumer executor host differs from the frozen private dotnet host."); pins.Add(Pinned(consumerHost));
-        string priorRun = linuxProof;
-        JsonObject priorContext = Read(priorRun);
-        Call(grouped, "ValidateSdkMsBuildEnvironment", priorContext, toolchain);
-        JsonObject buildProperties = priorContext["buildProperties"]!.AsObject();
+        MethodInfo? validatePrerequisites = null;
+        JsonObject prerequisiteReceipt;
         var expectedProperties = new Dictionary<string, string> {
             ["CisMutationTesting"] = "true", ["CisHealthcheckMutationCohort"] = "true",
-            ["CisHealthcheckPilotCohort"] = "false", ["CisLinuxIdentityQualification"] = OperatingSystem.IsLinux() ? "true" : "false" };
-        Need(buildProperties.Count == expectedProperties.Count && expectedProperties.All(property => (string?)buildProperties[property.Key] == property.Value),
-            "The prerequisite bounded Linux permission build must declare the exact current four-property context.");
-        pins.Add(Pinned(priorRun));
-        // Candidate output binaries are intentionally mutated and then rebuilt.
-        // The shared validator checks them before/after; immutable proof files
-        // outside the workspace remain pinned during every intermediate phase.
-        pins.AddRange(priorContext["files"]!.AsArray().Select(pin => (string)pin!["path"]!).Where(path => !AtOrUnder(workspace, path)).Select(Pinned));
+            ["CisHealthcheckPilotCohort"] = "false", ["CisLinuxIdentityQualification"] = !current && OperatingSystem.IsLinux() ? "true" : "false" };
+        JsonObject buildProperties;
+        JsonObject? currentPolicy = null;
+        if (!current)
+        {
+            Assembly validator = AssemblyLoadContext.Default.LoadFromAssemblyPath(validatorPath);
+            Type prerequisites = validator.GetType("CIS.Recovery.HealthcheckAcceptance.TransportPrerequisites", true)!;
+            validatePrerequisites = prerequisites.GetMethod("Validate", BindingFlags.Public | BindingFlags.Static)!;
+            Need(validatePrerequisites.GetParameters().Length == 7 && validatePrerequisites.GetParameters().All(parameter => parameter.ParameterType == typeof(string))
+                && validatePrerequisites.ReturnType == typeof(JsonObject), "The explicit supplemental transport-prerequisite validator API changed.");
+            prerequisiteReceipt = (JsonObject)Invoke(validatePrerequisites, null, [checker, candidateRoot, windowsProof, linuxProof, policy, validatorSource, validatorBuild])!;
+            JsonObject consumer = prerequisiteReceipt["consumer"]!.AsObject();
+            pins.AddRange(consumer["sourcePins"]!.AsArray().Select(pin => Pinned(Path.Combine(validatorSource, (string)pin!["path"]!))));
+            string consumerRuntime = (string)consumer["actualCoreLib"]!;
+            Need(Hash(consumerRuntime) == (string?)consumer["actualCoreLibSha256"] && (string?)consumer["actualFramework"] == ".NET 10.0.12", "The admitted analysis consumer did not retain the actual executor runtime identity.");
+            pins.Add(Pinned(consumerRuntime));
+            string consumerHost = (string)consumer["actualDotnetHost"]!;
+            Need(Same(consumerHost, dotnet) && Hash(consumerHost) == (string?)consumer["actualDotnetHostSha256"], "The admitted consumer executor host differs from the frozen private dotnet host."); pins.Add(Pinned(consumerHost));
+            string priorRun = linuxProof;
+            JsonObject priorContext = Read(priorRun);
+            Call(grouped, "ValidateSdkMsBuildEnvironment", priorContext, toolchain);
+            buildProperties = priorContext["buildProperties"]!.AsObject();
+            Need(buildProperties.Count == expectedProperties.Count && expectedProperties.All(property => (string?)buildProperties[property.Key] == property.Value),
+                "The prerequisite bounded Linux permission build must declare the exact current four-property context.");
+            pins.Add(Pinned(priorRun));
+            // Candidate output binaries are intentionally mutated and then rebuilt.
+            // The shared validator checks them before/after; immutable proof files
+            // outside the workspace remain pinned during every intermediate phase.
+            pins.AddRange(priorContext["files"]!.AsArray().Select(pin => (string)pin!["path"]!).Where(path => !AtOrUnder(workspace, path)).Select(Pinned));
+        }
+        else
+        {
+            Need((string?)candidateJson["platform"] == RuntimeInformation.OSDescription + "; " + RuntimeInformation.ProcessArchitecture + "; " + RuntimeInformation.FrameworkDescription
+                && (string?)candidateJson["host"] == Environment.MachineName, "The actual child producer platform/host differs from the frozen candidate.");
+            const string policyRelative = "implementations/csharp/verification/mutation/healthcheck/composite-policy.json";
+            Need(Same(policy, Path.Combine(workspace, policyRelative))
+                && candidateJson["inputs"]!.AsArray().Any(pin => (string?)pin!["path"] == policyRelative && (string?)pin["sha256"] == Hash(policy)), "Use the policy actually frozen in this current candidate.");
+            foreach (string name in new[] { "Program.cs", "ChildOperator.csproj", "README.md" })
+            { Need(candidateJson["inputs"]!.AsArray().Any(pin => (string?)pin!["path"] == "verification/healthcheck-child-control-v4/" + name && (string?)pin["sha256"] == Hash(Path.Combine(sourceRoot, name))), "Current child producer source/project inputs are not captured in the reviewed candidate."); }
+            currentPolicy = Read(policy);
+            buildProperties = JsonSerializer.SerializeToNode(expectedProperties, Json)!.AsObject();
+            prerequisiteReceipt = CurrentPrerequisites();
+        }
         string canonicalCore = Path.Combine(language, "src/CIS.Core/bin/Release/net10.0/CIS.Core.dll");
         string testBin = Path.Combine(language, "tests/CIS.Core.IntegrationTests/bin/Release/net10.0");
         string[] coreCopies = [Path.Combine(testBin, "CIS.Core.dll"), Path.Combine(testBin, "healthcheck-http-host/CIS.Core.dll"), Path.Combine(testBin, "healthcheck-probe/CIS.Core.dll")];
-        Need(coreCopies.All(copy => Hash(copy) == Hash(canonicalCore)), "Prerequisite restored Integration/fixture Core copies disagree.");
-        Pin[] baselineBinaries = new[] { canonicalCore, Path.Combine(testBin, "CIS.Core.IntegrationTests.dll"), Path.Combine(testBin, "healthcheck-http-host/CIS.Healthcheck.HttpFixture.dll"),
-            Path.Combine(testBin, "healthcheck-probe/CisHealthProbe.dll") }.Concat(coreCopies).Select(Pinned).ToArray();
-        foreach (JsonNode? adapter in toolchainJson["adapters"]!.AsArray()) {
-            Need(Hash(Path.Combine(testBin, (string)adapter!["path"]!)) == (string)adapter["sha256"]!, "Integration adapter differs from frozen native payload.");
-        }
+        Pin[] baselineBinaries = current ? [] : CaptureBaseline();
         string profile = "hc-child-v4-" + Guid.NewGuid().ToString("N")[..8], attempt = Guid.NewGuid().ToString("N")[..12];
         string profileRoot = Path.Combine(workspace, ".cis/local/testing/incremental", profile), nativeOutput = Path.Combine(profileRoot, "work", attempt);
         string configuration = Path.Combine(nativeOutput, "stryker-config.json"), childRoot = Path.Combine(profileRoot, "child-evidence");
         string project = Path.Combine(language, "tests/CIS.Core.IntegrationTests/CIS.Core.IntegrationTests.csproj");
-        var statements = new[] {
+        var statements = current ? currentPolicy!["childSelections"]!.AsArray().Select(row => (Source: (string)row!["source"]!, Statement: (string)row["statement"]!)).ToArray() : new[] {
             (Source: "Healthcheck/AspNetCore/HealthcheckApplicationBuilderExtensions.cs", Statement: "context.Response.Headers.CacheControl = \"no-store, no-cache\";"),
             (Source: "Healthcheck/Pipes/HealthProbeClient.cs", Statement: "return parsed.SelectedHealthy ? 0 : 1;") };
         string[] selectors = statements.Select(s => {
@@ -130,6 +148,7 @@ internal static class Operator
             Need(start >= 0 && start == text.LastIndexOf(s.Statement, StringComparison.Ordinal), "Reviewed control statement changed/ambiguous.");
             return s.Source + "{" + start + ".." + (start + s.Statement.Length) + "}";
         }).ToArray();
+        string filter = current ? string.Join('|', currentPolicy!["childCases"]!.Deserialize<string[]>(Json)!.Select(name => "FullyQualifiedName=" + name)) : Filter;
         Need(external.All(Directory.Exists), "Every explicitly named external owned root must exist.");
         var roots = new[] { taskRoot }.Concat(external).Append(temporary).Distinct(OperatingSystem.IsWindows() ? StringComparer.OrdinalIgnoreCase : StringComparer.Ordinal).ToArray();
         roots = roots.Where(root => !roots.Any(other => !Same(root, other) && AtOrUnder(other, root))).ToArray();
@@ -152,16 +171,25 @@ internal static class Operator
             ["PATH"] = Path.GetDirectoryName(dotnet)! + Path.PathSeparator + (Environment.GetEnvironmentVariable("PATH") ?? ""),
             ["RestoreLockedMode"] = "true", ["TEMP"] = temporary, ["TMP"] = temporary, ["TMPDIR"] = temporary,
             ["CIS_HEALTHCHECK_MUTATION_SESSION"] = null, ["CIS_HEALTHCHECK_IDENTITY_MANIFEST"] = null };
+        if (current)
+        {
+            environment["DOTNET_CLI_HOME"] = Path.Combine(output, "dotnet-home"); environment["DOTNET_ROOT"] = Path.GetDirectoryName(dotnet);
+            environment["DOTNET_ROOT_X64"] = Path.GetDirectoryName(dotnet); environment["DOTNET_HOST_PATH"] = dotnet;
+            environment["DOTNET_MULTILEVEL_LOOKUP"] = "0"; environment["DOTNET_SKIP_FIRST_TIME_EXPERIENCE"] = "1";
+            environment["DOTNET_CLI_TELEMETRY_OPTOUT"] = "1"; environment["DOTNET_GENERATE_ASPNET_CERTIFICATE"] = "false";
+        }
         foreach ((string name, string value) in expectedProperties) { environment[name] = value; }
+        if (current) { Call(grouped, "ValidateSdkMsBuildEnvironment", new JsonObject { ["environment"] = JsonSerializer.SerializeToNode(environment, Json) }, toolchain); }
         var settings = new Dictionary<string, object> {
             ["project"] = "CIS.Core.csproj", ["test-projects"] = new[] { "../../tests/CIS.Core.IntegrationTests/CIS.Core.IntegrationTests.csproj" },
-            ["test-case-filter"] = Filter, ["mutate"] = selectors, ["mutation-level"] = "Complete", ["test-runner"] = "vstest",
+            ["test-case-filter"] = filter, ["mutate"] = selectors, ["mutation-level"] = "Complete", ["test-runner"] = "vstest",
             ["target-framework"] = "net10.0", ["configuration"] = "Release", ["coverage-analysis"] = "off", ["disable-bail"] = true,
             ["concurrency"] = 2, ["additional-timeout"] = 10000, ["reporters"] = new[] { "json", "progress", "cleartext" },
             ["thresholds"] = new { high = 100, low = 90, @break = 0 } };
         var commandLog = new List<JsonObject>();
         var failures = new List<string>();
         var failureRecords = new List<Pin>();
+        var completedControls = new List<object>();
         Pin? beforePrerequisiteRecord = null, afterPrerequisiteRecord = null;
         bool restored = false, cleanupHealthy = true, nativeCompleted = false;
         string temporaryCleanup = "not attempted";
@@ -169,17 +197,24 @@ internal static class Operator
         try
         {
             Directory.CreateDirectory(temporary); Directory.CreateDirectory(nativeOutput);
+            if (current)
+            {
+                Directory.CreateDirectory(environment["DOTNET_CLI_HOME"]!);
+                await Run("restore-current-CIS.Core.IntegrationTests", ["restore", project, "--locked-mode", "-m:1", "-nr:false"]);
+                await Run("build-current-CIS.Core.IntegrationTests", ["build", project, "-c", "Release", "--no-restore", "-m:1", "-nr:false"]);
+                baselineBinaries = CaptureBaseline();
+            }
             string beforePath = Path.Combine(output, "transport-prerequisites-before.json");
             Write(beforePath, prerequisiteReceipt); beforePrerequisiteRecord = Pinned(beforePath);
             Write(Path.Combine(temporary, "owner.json"), new { candidateIdentity = (string?)candidateJson["identity"], operatorOutput = output });
             Write(configuration, new Dictionary<string, object> { ["stryker-config"] = settings }); pins.Add(Pinned(configuration));
             Write(Path.Combine(output, "prepared.json"), new { schema = "cis.recovery.child-operator-prepared/v4", recordRevision = 2, candidateIdentity = (string?)candidateJson["identity"],
                 args, pins, baselineBinaries, buildProperties, operatorSourceRoot = sourceRoot, operatorBuildReceiptPath = operatorBuild, operatorBuildReceiptSha256 = Hash(operatorBuild),
-                priorContextValidated = "explicit validated whole Windows Pipes proof plus bounded six-tuple Linux permission proof; all four declared properties and pinned SDK MSBuild",
-                transportPrerequisites = PrerequisiteSummary(prerequisiteReceipt), transportPrerequisitesRecord = beforePrerequisiteRecord,
+                priorContextValidated = current ? "current candidate/tool/policy inputs and independent clean Integration/fixture build; no prior platform kill credit" : "explicit validated whole Windows Pipes proof plus bounded six-tuple Linux permission proof; all four declared properties and pinned SDK MSBuild",
+                transportPrerequisites = current ? prerequisiteReceipt : PrerequisiteSummary(prerequisiteReceipt), transportPrerequisitesRecord = beforePrerequisiteRecord,
                 sdk = (string?)toolchainJson["sdk"], actualRuntime = RuntimeInformation.FrameworkDescription, actualHost = Environment.ProcessPath,
                 compilerPins = pins.Where(pin => Path.GetFileName(pin.Path) is "csc.dll" or "Microsoft.CodeAnalysis.CSharp.dll" or "MSBuild.dll").ToArray(),
-                environment, selectors, filter = Filter, budgetSeconds = 600, restorationReserveSeconds = 90, roots, volumePins,
+                environment, selectors, filter, budgetSeconds = 600, restorationReserveSeconds = 90, roots, volumePins,
                 aggregateLimitBytes = AggregateLimit, freeReserveBytes = AggregateLimit, childLimitBytes = ChildLimit, retainedLimitBytes = RetainedLimit,
                 frozenGuardAssembly = Pinned(checker), guardMethods = new[] { "MonitorCapacityAsync", "CountOwnedScopeBytes", "ResolveStorageVolume", "DeleteOwned", "SdkMsBuildPath", "ValidateSdkMsBuildEnvironment" },
                 noUnionScopeOrScoreCredit = true });
@@ -199,7 +234,7 @@ internal static class Operator
                 AssertPins(); Call(grouped, "VerifyInputs", workspace, candidate);
                 await Run("restored-build", ["build", project, "-c", "Release", "--no-restore", "--no-incremental"]);
                 Need(coreCopies.All(copy => Hash(copy) == Hash(canonicalCore)), "A restored test/child copy still differs from clean Core.");
-                Need(baselineBinaries.All(pin => Hash(pin.Path) == pin.Sha256), "Restored shipping/test/fixture binaries differ from the verified pre-control build context.");
+                Need(baselineBinaries.Length > 0 && baselineBinaries.All(pin => Hash(pin.Path) == pin.Sha256), "Restored shipping/test/fixture binaries differ from the verified pre-control build context.");
                 await Tests("restored"); restored = true;
             }
             catch (Exception error) { RecordFailure("restoration", error); }
@@ -231,12 +266,13 @@ internal static class Operator
                         definitionIdentity = Text(definition, "Identity"), nativeBinding = binding, nativeBindingSha256 = Hash(binding) });
                 }
                 Write(Path.Combine(output, "child-controls.json"), controls);
+                completedControls = controls;
             }
             catch (Exception error) { RecordFailure("actual-child-audit-control-admission", error); }
         }
         JsonObject? postflightPrerequisites = null;
         try { AssertPins(); Call(grouped, "VerifyInputs", workspace, candidate); _ = Call(grouped, "ReadToolchain", candidateRoot, candidate);
-            postflightPrerequisites = (JsonObject)Invoke(validatePrerequisites, null, [checker, candidateRoot, windowsProof, linuxProof, policy, validatorSource, validatorBuild])!;
+            postflightPrerequisites = current ? CurrentPrerequisites() : (JsonObject)Invoke(validatePrerequisites!, null, [checker, candidateRoot, windowsProof, linuxProof, policy, validatorSource, validatorBuild])!;
             Need(JsonNode.DeepEquals(prerequisiteReceipt, postflightPrerequisites), "Transport prerequisite observations changed during the child transaction.");
             string afterPath = Path.Combine(output, "transport-prerequisites-after.json");
             Write(afterPath, postflightPrerequisites); afterPrerequisiteRecord = Pinned(afterPath); }
@@ -249,8 +285,9 @@ internal static class Operator
         long retained = 0;
         try {
             retained = checked((long)Call(grouped, "OwnedBytes", candidateRoot, true)! + Bytes(profileRoot) + Bytes(output));
-            Need(retained + 2 * 262144 <= RetainedLimit, "Aggregate retained candidate/control evidence exceeds256MiB (including both terminal-record allowances).");
-            Need(Aggregate() + 2 * 262144 <= AggregateLimit && Free() >= AggregateLimit + 2 * 262144, "Postflight aggregate/free reserve, including terminal records, failed.");
+            long terminalAllowance = (current ? 3L : 2L) * 262144;
+            Need(retained + terminalAllowance <= RetainedLimit, "Aggregate retained candidate/control evidence exceeds256MiB (including terminal-record allowances).");
+            Need(Aggregate() + terminalAllowance <= AggregateLimit && Free() >= AggregateLimit + terminalAllowance, "Postflight aggregate/free reserve, including terminal records, failed.");
         } catch (Exception error) { RecordFailure("postflight-capacity", error); }
         bool complete = nativeCompleted && restored && cleanupHealthy && failures.Count == 0 && clock.Elapsed.TotalSeconds <= 600;
         string executionPath = Path.Combine(output, "execution-record.json");
@@ -261,14 +298,31 @@ internal static class Operator
             seconds = clock.Elapsed.TotalSeconds, peakOwnedBytes = peak, peakChildBytes = peakChild, retainedBytesBeforeManifest = retained,
             aggregateLimitBytes = AggregateLimit, freeReserveBytes = AggregateLimit, childLimitBytes = ChildLimit, retainedLimitBytes = RetainedLimit });
         Pin executionRecord = Pinned(executionPath);
+        if (current && complete)
+        {
+            object PassingContext(string phase)
+            {
+                string name = phase + "-CIS.Core.IntegrationTests", trx = Path.Combine(output, name + ".trx");
+                return new { path = trx, sha256 = Hash(trx), command = commandLog.Single(command => (string?)command["name"] == name) };
+            }
+            Write(Path.Combine(output, "composite-child-controls.json"), new
+            {
+                schema = "cis.healthcheck.composite-child-controls/v1", candidateIdentity = (string?)candidateJson["identity"],
+                producerSha256 = Hash(checker), helperSha256 = Hash(helper), policySha256 = Hash(policy),
+                operatorBuildReceiptPath = operatorBuild, operatorBuildReceiptSha256 = Hash(operatorBuild), buildProperties, environment,
+                controls = completedControls, baselineContext = PassingContext("baseline"), restoredContext = PassingContext("restored"),
+                budgetSeconds = 600, restorationReserveSeconds = 90, seconds = clock.Elapsed.TotalSeconds,
+                restored, processCleanupHealthy = cleanupHealthy, temporaryCleanup, failures, noUnionScopeOrScoreCredit = true
+            });
+        }
         string[] dynamicFiles = Directory.GetFiles(output, "*", SearchOption.AllDirectories).Concat(new[] { configuration,
             Path.Combine(nativeOutput, "reports/mutation-report.json"), Path.Combine(childRoot, attempt, "prepared.json"), Path.Combine(childRoot, attempt, "started.json"),
             Path.Combine(childRoot, attempt, "binding.json"), Path.Combine(childRoot, attempt, "session/session.json") }).Where(File.Exists).Distinct(StringComparer.Ordinal).ToArray();
         Write(Path.Combine(output, "manifest.json"), new { schema = "cis.recovery.child-operator/v4", recordRevision = 2, candidateIdentity = (string?)candidateJson["identity"], args, buildProperties,
-            transportPrerequisites = PrerequisiteSummary(prerequisiteReceipt), postflightTransportPrerequisites = postflightPrerequisites is null ? null : PrerequisiteSummary(postflightPrerequisites),
+            transportPrerequisites = current ? prerequisiteReceipt : PrerequisiteSummary(prerequisiteReceipt), postflightTransportPrerequisites = postflightPrerequisites is null ? null : current ? postflightPrerequisites : PrerequisiteSummary(postflightPrerequisites),
             transportPrerequisitesRecord = beforePrerequisiteRecord, postflightTransportPrerequisitesRecord = afterPrerequisiteRecord, executionRecord, failureRecords,
             operatorSourceRoot = sourceRoot, operatorBuildReceiptPath = operatorBuild, operatorBuildReceiptSha256 = Hash(operatorBuild), nativeConcurrency = 2, coverageAnalysis = "off", selectedNativeCases = 3, selectedSourceSpans = 2,
-            supplementalPins = pins, baselineBinaries, frozenCheckerAndSourcesMandatory = true, noUnionScopeOrScoreCredit = true, environment, selectors, filter = Filter,
+            supplementalPins = pins, baselineBinaries, frozenCheckerAndSourcesMandatory = true, noUnionScopeOrScoreCredit = true, environment, selectors, filter,
             commandLog, nativeCompleted, restored, processCleanupHealthy = cleanupHealthy, temporaryCleanup, failures, complete,
             budgetSeconds = 600, restorationReserveSeconds = 90, seconds = clock.Elapsed.TotalSeconds,
             cleanupDeadlinePerCanceledCommandSeconds = 5, cleanupOverrunGrantsNoBudgetCredit = true, aggregateRoots = roots,
@@ -276,6 +330,27 @@ internal static class Operator
             childControls = File.Exists(Path.Combine(output, "child-controls.json")) ? Pinned(Path.Combine(output, "child-controls.json")) : null });
         Console.WriteLine("Child operator complete=" + complete + "; " + clock.Elapsed.TotalSeconds.ToString("F2", System.Globalization.CultureInfo.InvariantCulture) + "s; " + output);
         return complete ? 0 : 1;
+
+        Pin[] CaptureBaseline()
+        {
+            Need(coreCopies.All(copy => Hash(copy) == Hash(canonicalCore)), "Prerequisite restored Integration/fixture Core copies disagree.");
+            foreach (JsonNode? adapter in toolchainJson["adapters"]!.AsArray())
+            { Need(Hash(Path.Combine(testBin, (string)adapter!["path"]!)) == (string)adapter["sha256"]!, "Integration adapter differs from frozen native payload."); }
+            return new[] { canonicalCore, Path.Combine(testBin, "CIS.Core.IntegrationTests.dll"), Path.Combine(testBin, "healthcheck-http-host/CIS.Healthcheck.HttpFixture.dll"),
+                Path.Combine(testBin, "healthcheck-probe/CisHealthProbe.dll") }.Concat(coreCopies).Select(Pinned).ToArray();
+        }
+
+        JsonObject CurrentPrerequisites()
+        {
+            Call(grouped, "VerifyInputs", workspace, candidate); Call(grouped, "ReadToolchain", candidateRoot, candidate);
+            Call(grouped, "ValidateCompositeTools", toolchain);
+            Call(grouped, "ValidateCompositePolicy", candidate, currentPolicy!, (Func<string, string>)(relative => File.ReadAllText(Path.Combine(workspace, relative))));
+            Need(((IEnumerable)Call(grouped, "Capture", workspace)!).Cast<object>().Select(pin => Text(pin, "Path") + ":" + Text(pin, "Sha256"))
+                .SequenceEqual(candidateJson["inputs"]!.AsArray().Select(pin => (string?)pin!["path"] + ":" + (string?)pin["sha256"])), "Current child producer/source/policy inventory differs from its candidate.");
+            return new JsonObject { ["schema"] = "cis.healthcheck.current-child-inputs/v1", ["candidateIdentity"] = (string?)candidateJson["identity"],
+                ["commonInputsSha256"] = (string)Call(grouped, "CommonInputs", candidate)!, ["toolchainSha256"] = Hash(Path.Combine(candidateRoot, "toolchain.json")),
+                ["policySha256"] = Hash(policy), ["producerSha256"] = Hash(checker), ["helperSha256"] = Hash(helper), ["priorPlatformExecutionCredit"] = false };
+        }
 
         void RecordFailure(string phase, Exception error)
         {
@@ -347,16 +422,16 @@ internal static class Operator
         }
         async Task Tests(string phase) {
             string name = phase + "-CIS.Core.IntegrationTests";
-            await Run(name, ["test", project, "-c", "Release", "--no-build", "--no-restore", "--filter", Filter,
+            await Run(name, ["test", project, "-c", "Release", "--no-build", "--no-restore", "--filter", filter,
                 "--logger", "trx;LogFileName=" + name + ".trx", "--results-directory", output]);
             Need((int)Call(grouped, "PassingTrx", Path.Combine(output, name + ".trx"))! == 3, "Selected actual baseline/postflight must pass exactly3cases.");
         }
     }
 
-    private static void ValidateBuildReceipt(string path, string sourceRoot, string assembly)
+    private static void ValidateBuildReceipt(string path, string sourceRoot, string assembly, bool current, JsonObject toolchain)
     {
         JsonObject receipt = Read(path);
-        Need((string?)receipt["schema"] == "cis.healthcheck.child-operator-build/v4" && (string?)receipt["compilerPlatform"] == "windows-x64"
+        Need((string?)receipt["schema"] == "cis.healthcheck.child-operator-build/v4" && (string?)receipt["compilerPlatform"] == (current ? "linux-x64" : "windows-x64")
             && (string?)receipt["sdk"] == "10.0.401" && (string?)receipt["actualCompileHostRuntime"] == "10.0.12"
             && (int?)receipt["exitCode"] == 0 && (bool?)receipt["outputDrained"] == true && (bool?)receipt["privateRuntime10_0_12Observed"] == true
             && (bool?)receipt["timedOut"] == false && (bool?)receipt["capacityHold"] == false
@@ -370,7 +445,15 @@ internal static class Operator
         { Need(receipt["portableOutputPins"]!.AsArray().Count(pin => (string?)pin!["name"] == Path.GetFileName(file) && (string?)pin["sha256"] == Hash(file)) == 1, "The deployed operator/helper/data bytes differ from the actual producer build."); }
         foreach (string name in new[] { "MSBuild.dll", "csc.dll", "Microsoft.CodeAnalysis.CSharp.dll" })
         { Need(receipt["compilerPins"]!.AsArray().Any(pin => ((string)pin!["path"]!).Replace('\\', '/').EndsWith("/" + name, StringComparison.Ordinal)), "The observed producer compiler closure omits " + name); }
-        Need(receipt["runtimePins"] is JsonArray { Count: > 0 } && (string?)receipt["foreignToolPinSemantics"] == "Observed actual Windows producer bytes; not live-rehashed from Linux", "The actual foreign producer runtime provenance must remain explicit.");
+        Need(receipt["runtimePins"] is JsonArray { Count: > 0 }
+            && (current || (string?)receipt["foreignToolPinSemantics"] == "Observed actual Windows producer bytes; not live-rehashed from Linux"), "The actual producer runtime provenance must remain explicit.");
+        if (current)
+        {
+            foreach (JsonNode? pin in receipt["compilerPins"]!.AsArray().Concat(receipt["runtimePins"]!.AsArray()))
+            { Need(Path.IsPathFullyQualified((string)pin!["path"]!) && Hash((string)pin["path"]!) == (string?)pin["sha256"]
+                && toolchain["files"]!.AsArray().Count(tool => Same((string)tool!["path"]!, (string)pin["path"]!) && (string?)tool["sha256"] == (string?)pin["sha256"]) == 1,
+                "The actual current producer compiler/runtime input changed or escaped the frozen toolchain."); }
+        }
         using var stream = File.OpenRead(Path.ChangeExtension(assembly, ".pdb"));
         using MetadataReaderProvider provider = MetadataReaderProvider.FromPortablePdbStream(stream);
         MetadataReader reader = provider.GetMetadataReader();

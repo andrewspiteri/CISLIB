@@ -9,5 +9,5 @@ public sealed class StopDrainProcessTests
     public static IEnumerable<object[]> Modes => LifecycleProcessChecks.Modes("stop-drain", CIS.Tests.DiscoveryFixture.StopDrainExpectations.Modes);
     [TestMethod]
     [DynamicData(nameof(Modes))]
-    public async Task ActualSharedStopRunsInAnExactRuntimeChild(string mode) => await LifecycleProcessChecks.Run("stop-drain", mode, TestContext);
+    public async Task ActualSharedStopRunsInAnExactRuntimeChild(string mode) => await LifecycleProcessChecks.RunFunctional("stop-drain", mode, TestContext);
 }

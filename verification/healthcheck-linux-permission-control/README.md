@@ -1,5 +1,37 @@
 # Bounded Linux permission controls
 
+## Current-candidate mode
+
+Add `--current-policy <absolute candidate-root/workspace/implementations/csharp/verification/mutation/healthcheck/composite-policy.json>`
+to the existing invocation below. Without this option the historical route keeps
+its frozen checker/helper, recipe and 27-root requirements.
+
+Current mode uses the checker and executed helper actually pinned in that
+candidate's toolchain. The maintained receiver validates the captured policy's
+stable semantic roles and current source/witness inputs. All six mutation tuples
+and their UTF-16 selectors come from that policy; the historical `requirements.json`
+is not a second current mutation catalogue. The five physical cases, actual UID0
+and nobody journals, native killers, restoration, cleanup, deadlines and storage
+limits are unchanged. Explicit owned roots are deduplicated and measured; their
+count is not a campaign identity.
+
+The next candidate must capture this existing producer's `Program.cs`, project,
+`requirements.json` and README. The actual source copies, portable outputs and
+DLL/PDB source identity must agree with its successful build receipt. Current
+mode uses the same build-receipt schema with `compilerPlatform: "linux-x64"`;
+actual compiler/runtime paths and bytes must also belong to the frozen native
+toolchain. Build on the pinned SDK10.0.401/runtime10.0.12, supplying
+`-p:FrozenRunnerRoot=<current candidate checker/helper directory>`. No caller hash
+override or Windows build is needed. The original Windows build observation is
+still required by historical mode.
+
+The output remains `cis.healthcheck.linux-permission-native-proof/v1` and adds no
+module scope or score. A source change or successful compilation is readiness,
+not execution. Focused controls and a bounded actual current pilot remain
+required before expansion.
+
+## Historical invocation
+
 This supplemental C# operator qualifies six Unix transport mutation controls on a separately prepared current candidate. It is outside the base candidate archive and does not contribute mutation population, kills, score, or completed module scope. It does not qualify either failed whole-Linux-Pipes attempt.
 
 Build the project with the approved private SDK10.0.401, supplying `-p:FrozenRunnerRoot=<qualified 0bb/a84 runner directory>`. The project references only the pinned development helper binary. Retain source, project, `requirements.json`, actual build arguments, compiler/runtime and portable assembly/PDB hashes. The JSON data declares the six source-bound control tuples; C# derives their locations from the three actual selectors. No Core or checker sources are linked or rebuilt as operator dependencies.

@@ -49,7 +49,82 @@ The fixed pilot contains `HealthDiagnostic.cs`, `HealthMeasurement.cs`,
 `IHealthCollector.cs` and `HealthExecutionBinder.cs`. The remaining runtime group
 excludes those pilot files.
 
-The commands below retain the original same-host grouped execution and receiving route. The separately qualified [composite analysis consumer](../../../../../verification/healthcheck-grouped-acceptance/README.md) is an additional explicit route: whole Linux pilot/runtime/HTTP and whole Windows Pipes, with exactly matching original maintained inputs. It requires the bounded six-tuple Linux permission proof and the completed child-v4 transaction. The Linux supplement supplies no module population, kill, denominator or scope credit, and neither route qualifies a failed whole-Linux-Pipes attempt. The native executor remains unchanged; supplemental consumer/operator source, producer builds and portable PDB/output identities are pinned separately from the original native archive.
+The commands below retain the original same-host grouped execution and receiving route. The separately qualified [composite analysis consumer](../../../../../verification/healthcheck-grouped-acceptance/README.md) preserves its historical accepted09g purpose and fixed native identities. It is not the receiver for a new candidate.
+
+### Prospective composite receiving
+
+The maintained checker also accepts an explicit composite manifest with the
+captured [current policy](composite-policy.json). This mode selects whole Linux
+pilot/runtime/HTTP groups and whole Windows Pipes; it does not choose a better
+platform per definition. The policy is an actual candidate input, rather than a
+caller-supplied approval or a campaign-specific C# digest. Current compiled
+checker/helper bytes must match the producing toolchains and portable evidence.
+Exact ordered source/test/build/policy membership replaces historical file-count
+assumptions. Original Windows input digests retain their producing line endings;
+receiving compares the actual tuples without rewriting a raw receipt.
+
+```powershell
+$policy = [IO.Path]::GetFullPath('verification/mutation/healthcheck/composite-policy.json')
+dotnet $checker healthcheck-grouped-mutation receive --repo-root ../.. --candidate-root $candidate --composite-manifest $manifest --policy $policy --output-root "$candidate/composite-review"
+```
+
+`$manifest` is an absolute JSON path with schema
+`cis.healthcheck.composite-native-inputs/v3`. Its `groups` array contains unique
+objects with `group` and `platform`: Linux entries name an absolute
+`candidateRoot`; Windows Pipes names the absolute exported `proof.json` in
+`proof`. It also supplies absolute `reviewAuthority`, `reviewFiles` (an array),
+`linuxPermissionProof` and `childControls` paths. A pilot-only manifest may omit
+the last two inputs. Its incomplete result exits one and has no final score, but
+the unchanged native pilot remains eligible for the later matching whole union.
+Each review retains its actual origin candidate, definition, raw outcome,
+requirement, delegated reviewer and rationale.
+
+Full qualification requires the complete dynamic disjoint source inventory,
+including zero-definition files, all six source-bound Unix permission kills,
+seven actual Windows controls and both real HTTP/probe child activations.
+Stable obligation IDs bind the shipping method and named behavioral witness
+roles. Same-count role, source-method or witness substitutions are rejected.
+Actual mutation identities, source hashes, operators, replacements and spans
+remain reviewed policy data, matched to the unchanged native definitions;
+there is no per-campaign C# mutation catalogue. Complete source coverage is
+reported separately from healthy runtime completion.
+Both native passing contexts, exact commands, tool inputs, witness IDs, source
+bytes, actual UID/SID context, restoration and cleanup are checked. The Linux
+supplement and child controls add no module population or kills. Raw and
+reviewed-equivalence-adjusted conservative scores are separate; timeouts retain
+zero kill credit. Missing or inadmissible evidence cannot be supplied by a
+passing partial selection or by the historical bridge.
+
+The original permission and child-v4 producers still contain historical checker
+bindings. A fresh candidate needs their narrowly updated current-mode adapters
+before producing new proofs; this receiver does not relabel their old output.
+The permission adapter must retain its existing v1 proof shape and bounded
+600-second execution, six exact reviewed obligations, five passing baseline and
+restored cases, actual UID journals, complete retained-file pins, current
+candidate/toolchain and actually executed checker/helper pins. It must derive
+these from the frozen current candidate, not accept unchecked hash arguments.
+
+For composite mode, `childControls` names a
+`cis.healthcheck.composite-child-controls/v1` object. It records the current
+`candidateIdentity`, actual `producerSha256`/`helperSha256`, observed
+`buildProperties`/`environment`, `controls` (the existing two `ChildControl`
+rows), `baselineContext` and `restoredContext` objects each containing the original TRX
+`path`/`sha256` and actual `command` record. The commands use the existing
+three policy cases, fixed Release/no-build/no-restore context, current pinned
+host and actual test assembly. The envelope also retains `budgetSeconds: 600`,
+`restorationReserveSeconds: 90`, actual `seconds`, `restored: true`,
+`processCleanupHealthy: true`, `temporaryCleanup: "owned short temp removed"`
+and an empty `failures` array. These flags alone supply no admission: the
+receiver rechecks both exact passing TRXs, configuration, current source/tools,
+original prepared/started/completed native bindings and the maintained real
+child activation/lifecycle audit. The current-mode producer adapter is still
+required to create this record from actual execution. Historical operator
+build constants and receipts do not stand in for it.
+Compile and run the focused `HealthcheckGroupedMutationTests` and
+`HealthcheckPlatformProofTests` before a bounded current native correctness pilot.
+That pilot must establish a healthy baseline, genuine kill and survivor/control,
+infrastructure-failure rejection, and healthy restoration. No execution or
+fresh-candidate acceptance is implied by the source implementation alone.
 
 The four disjoint groups are `pilot`, `runtime`, `http` and `pipes`. Every group
 uses Complete mutation without method/operator exclusions. HTTP/Pipes select

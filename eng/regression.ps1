@@ -9,6 +9,7 @@ param(
     [string] $ApiDotnet = ''
 )
 $ErrorActionPreference = 'Stop'
+$commandClock = [Diagnostics.Stopwatch]::StartNew()
 $repository = Split-Path $PSScriptRoot -Parent
 $language = Join-Path $repository 'implementations/csharp'
 $output = if ($OutputRoot) { [IO.Path]::GetFullPath($OutputRoot) } else { Join-Path $repository ('.artifacts/csharp/regression/' + [guid]::NewGuid().ToString('N')) }
@@ -40,6 +41,17 @@ try {
     if ($selectedApiDotnet) { $arguments += @('--api-dotnet', $selectedApiDotnet) }
     if ($selectedPreparation) { $arguments += @('--preparation-root', $selectedPreparation) }
     & dotnet (Join-Path $runner 'CIS.DependencyChecker.dll') @arguments
-    exit $LASTEXITCODE
+    $result = $LASTEXITCODE
+    $summaryPath = Join-Path $output 'summary.json'
+    if (Test-Path -LiteralPath $summaryPath) {
+        $summary = Get-Content -LiteralPath $summaryPath -Raw | ConvertFrom-Json -AsHashtable
+        $summary.commandSeconds = $commandClock.Elapsed.TotalSeconds
+        $summary.commandMeasurement = 'Supported launcher wall, including bootstrap, runner materialization, preflight, preparation if requested, native work and checker postflight; excludes PowerShell process startup.'
+        $summary.commandTargetSeconds = 300
+        $summary.commandTargetMet = $summary.correctnessComplete -eq $true -and $summary.commandSeconds -le 300
+        $summary | ConvertTo-Json -Depth 100 | Set-Content -LiteralPath $summaryPath -Encoding utf8NoBOM
+        Write-Host "Regression command: $($summary.commandSeconds) s; 300-second command target met: $($summary.commandTargetMet)."
+    }
+    exit $result
 }
 finally { Pop-Location }

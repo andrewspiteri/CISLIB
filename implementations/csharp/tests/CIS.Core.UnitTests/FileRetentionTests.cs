@@ -12,6 +12,8 @@ namespace CIS.Tests.UnitTests;
 [TestClass]
 public sealed class FileRetentionTests
 {
+    public TestContext TestContext { get; set; } = null!;
+
     [TestMethod]
     [DataRow(LogOutputFormat.JsonLines, 1)]
     [DataRow(LogOutputFormat.JsonLines, 2)]
@@ -23,6 +25,7 @@ public sealed class FileRetentionTests
     {
         using var root = new TemporaryDirectory(); string path = Path.Combine(root.Path, "active.log");
         int total = retained + 6, restart = retained + 2; string? group = null;
+        int timestampChecks = 0, timestampUpdates = 0;
         for (int phase = 0; phase < 2; phase++)
         {
             byte[]? previous = File.Exists(path + ".cis.inventory.json") ? File.ReadAllBytes(path + ".cis.inventory.json") : null;
@@ -37,11 +40,25 @@ public sealed class FileRetentionTests
                     int expectedId = first + index; bool active = expectedId == id; string name = active ? "active.log" : Name(group, expectedId, "closed");
                     Assert.AreEqual((long)expectedId, segments[index]!["id"]!.GetValue<long>()); Assert.AreEqual(name, segments[index]!["fileName"]!.GetValue<string>()); Assert.AreEqual(active ? "active" : "closed", segments[index]!["state"]!.GetValue<string>());
                     CollectionAssert.AreEqual(Record(format, expectedId), Read(Path.Combine(root.Path, name)));
-                    if (!active) { File.SetLastWriteTimeUtc(Path.Combine(root.Path, name), new DateTime(2030, 1, 1, 0, 0, 0, DateTimeKind.Utc).AddDays(-expectedId)); }
+                    if (!active)
+                    {
+                        string closedPath = Path.Combine(root.Path, name);
+                        DateTime expectedTime = new DateTime(2030, 1, 1, 0, 0, 0, DateTimeKind.Utc).AddDays(-expectedId);
+                        DateTime observedTime = File.GetLastWriteTimeUtc(closedPath);
+                        timestampChecks++;
+                        if (observedTime != expectedTime)
+                        {
+                            File.SetLastWriteTimeUtc(closedPath, expectedTime);
+                            timestampUpdates++;
+                            observedTime = File.GetLastWriteTimeUtc(closedPath);
+                        }
+                        Assert.AreEqual(expectedTime, observedTime);
+                    }
                 }
                 Assert.AreEqual(segments.Count - 1, Directory.EnumerateFiles(root.Path, "*.closed").Count()); Assert.IsTrue(segments.Count - 1 <= retained);
             }
         }
+        TestContext.WriteLine($"Retention timestamp checks: {timestampChecks}; updates: {timestampUpdates}.");
     }
 
     [TestMethod]

@@ -25,7 +25,10 @@ internal static class SourceInventory
         ["README.md", "AGENTS.md", ".gitignore", ".gitattributes", ".editorconfig", ".globalconfig", "global.json", "Directory.Build.props", "Directory.Build.targets", "Directory.Build.rsp", "Directory.Packages.props", "NuGet.config",
             "planning/logging/plan-amendments.md",
             "planning/logging/sources/core-library-implementation-guide-v1.md", "planning/logging/sources/core-library-implementation-plan-v1.md",
-            "planning/logging/sources/core-library-backlog-v1.json", "planning/healthcheck/baseline.json", "planning/logging/evidence/wp01-s03/unit-tests.trx"];
+            "planning/logging/sources/core-library-backlog-v1.json", "planning/healthcheck/baseline.json", "planning/logging/evidence/wp01-s03/unit-tests.trx",
+            "verification/healthcheck-linux-permission-control/Program.cs", "verification/healthcheck-linux-permission-control/LinuxPermissionControl.csproj",
+            "verification/healthcheck-linux-permission-control/requirements.json", "verification/healthcheck-linux-permission-control/README.md",
+            "verification/healthcheck-child-control-v4/Program.cs", "verification/healthcheck-child-control-v4/ChildOperator.csproj", "verification/healthcheck-child-control-v4/README.md"];
     private static readonly HashSet<string> VerificationOutputDirectories = new(StringComparer.OrdinalIgnoreCase)
         { ".git", ".artifacts", "bin", "obj", ".vs", "TestResults", "StrykerOutput", ".stryker-tmp", "__pycache__" };
 

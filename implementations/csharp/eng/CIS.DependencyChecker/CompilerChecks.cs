@@ -13,10 +13,10 @@ internal static partial class CompilerChecks
 
     internal static async Task<int> RunAsync(string[] args)
     {
-        if (args.Length is < 3 or > 4 || args[0] is not ("startup" or "samples" or "log-values") ||
-            (args[0] == "samples" ? args.Length != 4 : args.Length != 3))
+        if (args.Length is < 3 or > 5 || args[0] is not ("startup" or "samples" or "log-values") ||
+            (args[0] == "samples" ? args.Length is not (4 or 5) : args[0] == "startup" ? args.Length is not (3 or 4) : args.Length != 3))
         {
-            Console.Error.WriteLine("Usage: compiler-checks <startup|samples|log-values> <language-root> <output-root> [startup-root]");
+            Console.Error.WriteLine("Usage: compiler-checks startup <language-root> <output-root> [prior-startup-root]; samples <language-root> <output-root> <startup-root> [prior-samples-root]; log-values <language-root> <output-root>");
             return 2;
         }
         string language = Path.GetFullPath(args[1]), output = Path.GetFullPath(args[2]);
@@ -37,15 +37,21 @@ internal static partial class CompilerChecks
             ["controls"] = new JsonArray(),
             ["detail"] = null
         };
+        if (File.Exists(Path.Combine(output, "summary.json")))
+        {
+            Console.Error.WriteLine("Use a fresh compiler-control output root.");
+            return 2;
+        }
         Directory.CreateDirectory(output);
         try
         {
             switch (args[0])
             {
-                case "startup": await Startup(language, output, report); break;
-                case "samples": await Samples(language, output, Path.GetFullPath(args[3]), report); break;
+                case "startup": await Startup(language, output, report, args.Length == 4 ? Path.GetFullPath(args[3]) : null); break;
+                case "samples": await Samples(language, output, Path.GetFullPath(args[3]), report, args.Length == 5 ? Path.GetFullPath(args[4]) : null); break;
                 default: await LogValues(language, output, report); break;
             }
+            if (args[0] is "startup" or "samples") { RecordCompilerOutputs(language, output, report); }
             report["status"] = "Passed";
             report["exitCode"] = 0;
         }
@@ -80,7 +86,7 @@ internal static partial class CompilerChecks
         return path;
     }
 
-    private static async Task Startup(string language, string output, JsonObject report)
+    private static async Task Startup(string language, string output, JsonObject report, string? prior)
     {
         string source = Path.Combine(language, "verification/contracts/startup");
         JsonNode approved = Read(Path.Combine(language, "eng/runtime-dependencies.json"))["packages"]!.AsArray()
@@ -92,16 +98,33 @@ internal static partial class CompilerChecks
         string logging = LoggingReference(assets, key, compile[0]);
         report["approvedCompileReference"] = new JsonObject { ["package"] = Text(approved, "id"), ["version"] = Text(approved, "version"), ["asset"] = compile[0], ["sha256"] = Hash(logging) };
         report["source"] = Inputs(language, source, true);
+        CompilerReuse? reuse = TryReadCompilerReuse(language, output, prior, "startup", report);
         string directory = Path.Combine(output, "reference");
         CopySurface(source, directory);
         string referenceWorkspace = Path.Combine(output, "compiler/reference");
         CopySurface(source, referenceWorkspace);
         PreparedCompiler referenceCompiler = await PrepareCompiler(language, output, report, "reference", referenceWorkspace, "Reference.csproj", logging);
-        await CompilePrepared(language, output, report, referenceCompiler, "reference-only-specification", directory, Surfaces);
-        report["referenceAssembly"] = Reference(output, Path.Combine(directory, "bin/Release/net10.0/CIS.Core.ContractSpecification.dll"), "dotnet.reference-assembly/v1");
+        if (reuse is null) { await ReferenceControl(); }
+        else
+        {
+            string staged = Path.Combine(referenceWorkspace, "bin/Release/net10.0/CIS.Core.ContractSpecification.dll");
+            Directory.CreateDirectory(Path.GetDirectoryName(staged)!);
+            File.Copy(VerifiedReference(reuse.Root, reuse.Report["referenceAssembly"]!), staged, true);
+        }
         string consumerWorkspace = Path.Combine(output, "compiler/consumer");
         CopyConsumer(source, consumerWorkspace, "Consumer.cs");
         PreparedCompiler consumerCompiler = await PrepareCompiler(language, output, report, "consumer", consumerWorkspace, "Consumer.csproj", logging);
+        JsonObject inputs = CompilerInputs(language, output, "startup", report, referenceCompiler, consumerCompiler);
+        if (reuse is not null && TryReuseCompilerControls(output, report, inputs, reuse)) { return; }
+        if (reuse is not null)
+        {
+            // A changed evaluated command must prepare its consumer against the newly compiled reference.
+            await ReferenceControl();
+            report["compilerPreparations"]!.AsArray().RemoveAt(1);
+            consumerCompiler = await PrepareCompiler(language, output, report, "consumer", consumerWorkspace, "Consumer.csproj", logging);
+            inputs = CompilerInputs(language, output, "startup", report, referenceCompiler, consumerCompiler);
+        }
+        RecordCompilerInputs(output, report, inputs);
         foreach ((string id, string file) in new[] { ("positive-consumer", "Consumer.cs"), ("event-consumer", "EventConsumer.cs"), ("runtime-consumer", "RuntimeConsumer.cs"), ("provider-consumer", "ProviderConsumer.cs") })
         {
             string consumer = Path.Combine(output, id == "positive-consumer" ? "positive" : id);
@@ -114,9 +137,15 @@ internal static partial class CompilerChecks
             CopyConsumer(source, consumer, Text(item!, "file"));
             await CompilePrepared(language, output, report, consumerCompiler, id, consumer, ["Consumer.cs"], Text(item!, "expectedDiagnostic"));
         }
+
+        async Task ReferenceControl()
+        {
+            await CompilePrepared(language, output, report, referenceCompiler, "reference-only-specification", directory, Surfaces);
+            report["referenceAssembly"] = Reference(output, Path.Combine(directory, "bin/Release/net10.0/CIS.Core.ContractSpecification.dll"), "dotnet.reference-assembly/v1");
+        }
     }
 
-    private static async Task Samples(string language, string output, string startupRoot, JsonObject report)
+    private static async Task Samples(string language, string output, string startupRoot, JsonObject report, string? prior)
     {
         report["mutations"] = new JsonArray();
         JsonObject startup = Read(Path.Combine(startupRoot, "summary.json"));
@@ -133,6 +162,7 @@ internal static partial class CompilerChecks
         report["approvedCompileReference"] = approved.DeepClone();
         string source = Path.Combine(language, "verification/compatibility/samples"), surface = Path.Combine(language, "verification/contracts/startup");
         report["source"] = Inputs(language, source, true);
+        CompilerReuse? reuse = TryReadCompilerReuse(language, output, prior, "samples", report);
         JsonObject catalog = Read(Path.Combine(source, "catalog.json"));
         string referenceWorkspace = Path.Combine(output, "compiler/reference");
         CopySurface(surface, referenceWorkspace);
@@ -143,6 +173,9 @@ internal static partial class CompilerChecks
         Directory.CreateDirectory(Path.GetDirectoryName(stagedReference)!);
         File.Copy(baseline, stagedReference, true);
         PreparedCompiler consumerCompiler = await PrepareCompiler(language, output, report, "consumer", consumerWorkspace, "Consumer.csproj", logging, stagedReference);
+        JsonObject inputs = CompilerInputs(language, output, "samples", report, referenceCompiler, consumerCompiler);
+        if (reuse is not null && TryReuseCompilerControls(output, report, inputs, reuse)) { return; }
+        RecordCompilerInputs(output, report, inputs);
         foreach (JsonNode? consumer in catalog["sources"]!.AsArray())
         {
             await Consumer(Text(consumer!, "id"), Text(consumer!, "file"), baseline, null);
