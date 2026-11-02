@@ -636,6 +636,96 @@ public sealed class HealthExecutionBinderTests
     }
 
     [TestMethod]
+    public async Task DisposalDoesNotRequireDispatchOnTheSynchronouslyWaitingCallerContext()
+    {
+        TimeSpan guard = TimeSpan.FromSeconds(5);
+        var context = new HeldBindingContext();
+        HealthcheckService service = CreateService();
+        IHealthExecutionBinding binding = HealthExecutionBinder.Bind(service, Failures(), Options(Guid.NewGuid()));
+        IHealthCollectionState collections = ((IHealthStateAccess)service).CollectionState;
+        HealthCollectionTarget target = collections.RegisterCollection(binding.MonitorId, Guid.NewGuid(), new HealthCollectorOptions());
+        HealthCollectionReservation reservation = collections.TryReserve(target).Reservation!;
+        var requested = new TaskCompletionSource<Task>(TaskCreationOptions.RunContinuationsAsynchronously);
+        var returned = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        var caller = new Thread(() =>
+        {
+            SynchronizationContext? previous = SynchronizationContext.Current;
+            Exception? failure = null;
+            try
+            {
+                SynchronizationContext.SetSynchronizationContext(context);
+                Task actual = binding.DisposeAsync().AsTask();
+                requested.TrySetResult(actual);
+                actual.GetAwaiter().GetResult();
+            }
+            catch (Exception error) { failure = error; }
+            finally { SynchronizationContext.SetSynchronizationContext(previous); }
+            if (failure is null) { returned.TrySetResult(); }
+            else { returned.TrySetException(failure); }
+        }) { IsBackground = true };
+        bool started = false, completed = false;
+        Task? disposal = null;
+        Exception? primary = null;
+        try
+        {
+            Assert.IsTrue(collections.TryEnter(reservation));
+            caller.Start();
+            started = true;
+            await Task.WhenAny(requested.Task, returned.Task).WaitAsync(guard);
+            if (!requested.Task.IsCompletedSuccessfully) { await returned.Task.WaitAsync(guard); }
+            disposal = await requested.Task.WaitAsync(guard);
+            Assert.IsFalse(disposal.IsCompleted, "The entered real reservation still owns the binding's actual settlement.");
+            Task settled = collections.WaitForSettlementAsync(reservation);
+            Assert.IsFalse(settled.IsCompleted);
+            Assert.IsFalse(context.Posted.Task.IsCompleted);
+
+            collections.Complete(reservation, new HealthCollectionCompletion(HealthCollectionCompletionReason.Settled, Epoch));
+            completed = true;
+            await settled.WaitAsync(guard);
+            await Task.WhenAny(returned.Task, context.Posted.Task).WaitAsync(guard);
+            Assert.IsFalse(context.Posted.Task.IsCompleted,
+                "Actual binding settlement must not require dispatch on its synchronously waiting caller's context.");
+            await returned.Task.WaitAsync(guard);
+            Assert.IsTrue(disposal.IsCompletedSuccessfully);
+            Assert.AreEqual(0, service.CaptureSnapshot().MonitorCounts.Active);
+        }
+        catch (Exception error) { primary = error; throw; }
+        finally
+        {
+            // A captured continuation is an assertion failure above. Release it
+            // only for cleanup, so the actual owned caller can still exit.
+            context.Release();
+            if (disposal is null && requested.Task.IsCompletedSuccessfully) { disposal = requested.Task.Result; }
+            Task[] cleanup =
+            [
+                Task.Run(() =>
+                {
+                    if (!completed)
+                    {
+                        collections.Complete(reservation, new HealthCollectionCompletion(HealthCollectionCompletionReason.Settled, Epoch));
+                        completed = true;
+                    }
+                }),
+                Task.Run(() => collections.WaitForSettlementAsync(reservation)),
+                Task.Run(() => binding.DisposeAsync().AsTask()),
+                Task.Run(() => service.DisposeAsync().AsTask()),
+                Task.Run(() =>
+                {
+                    if (started) { Assert.IsTrue(caller.Join(guard), "The actual fixture-owned caller thread must exit."); }
+                }),
+                started ? returned.Task : Task.CompletedTask,
+                disposal ?? Task.CompletedTask
+            ];
+            try { await Task.WhenAll(cleanup).WaitAsync(guard); }
+            catch (Exception error)
+            {
+                if (primary is not null) { throw new AggregateException("The binding context assertion and actual cleanup both failed.", primary, error); }
+                throw;
+            }
+        }
+    }
+
+    [TestMethod]
     public async Task RetirementCancellationCallbackCanObserveBindingRetirementFromAnotherThread()
     {
         await using HealthcheckService service = CreateService();
@@ -899,6 +989,33 @@ public sealed class HealthExecutionBinderTests
             GC.WaitForPendingFinalizers();
             GC.Collect();
         }
+    }
+
+    private sealed class HeldBindingContext : SynchronizationContext
+    {
+        private readonly object gate = new();
+        private readonly Queue<(SendOrPostCallback Callback, object? State)> pending = new();
+        private bool released;
+        internal TaskCompletionSource Posted { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
+        public override void Post(SendOrPostCallback callback, object? state)
+        {
+            lock (gate)
+            {
+                Posted.TrySetResult();
+                if (!released) { pending.Enqueue((callback, state)); return; }
+            }
+            Queue((callback, state));
+        }
+        internal void Release()
+        {
+            lock (gate)
+            {
+                released = true;
+                while (pending.TryDequeue(out var item)) { Queue(item); }
+            }
+        }
+        private static void Queue((SendOrPostCallback Callback, object? State) item)
+            => ThreadPool.UnsafeQueueUserWorkItem(static work => work.Callback(work.State), item, preferLocal: false);
     }
 
     private sealed class ForeignMonitor : IConsecutiveFailureMonitor
