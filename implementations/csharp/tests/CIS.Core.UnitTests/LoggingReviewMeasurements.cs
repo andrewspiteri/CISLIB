@@ -28,7 +28,7 @@ public sealed class LoggingReviewMeasurements
         { rows.Add(await RuntimeAsync(mode)); }
         foreach ((int capacity, int entryLimit) in new[] { (128, 16384), (1024, 65536) })
         { rows.Add(await SaturationAsync(capacity, entryLimit)); }
-        string path = Path.Combine(TestContext.TestResultsDirectory!, "logging-review-measurements.json");
+        string path = Path.Combine(Directory.CreateTempSubdirectory("cis-measurements-").FullName, "logging-review-measurements.json");
         await File.WriteAllTextAsync(path, JsonSerializer.Serialize(new
         {
             schema = "cis.logging-review-measurements/v1",
@@ -39,6 +39,7 @@ public sealed class LoggingReviewMeasurements
             measurements = rows,
             limits = "One process/run; total managed allocations include workers. Warm-up is 64 records per runtime mode. Throughput includes batch flush and physical file I/O where enabled. Retention is a forced-GC managed-heap delta while one writer is held. No statistical or production-memory guarantee."
         }, new JsonSerializerOptions { WriteIndented = true }));
+        TestContext.WriteLine("CIS measurement artifact: " + path);
         TestContext.AddResultFile(path);
     }
 

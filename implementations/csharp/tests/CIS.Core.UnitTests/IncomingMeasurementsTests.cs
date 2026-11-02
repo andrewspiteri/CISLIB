@@ -34,7 +34,7 @@ public sealed class IncomingMeasurementsTests
         foreach (string mode in new[] { "quiet", "full", "contended" }) { rows.Add(await RingAsync(capacity, level, mode)); }
         rows.Add(await CallerAsync(capacity, level));
         rows.Add(await CallerAsync(capacity, level, withLegacyFactory: true));
-        string path = Path.Combine(TestContext.TestResultsDirectory!, $"incoming-{capacity}-{level}.json");
+        string path = Path.Combine(Directory.CreateTempSubdirectory("cis-measurements-").FullName, $"incoming-{capacity}-{level}.json");
         await File.WriteAllTextAsync(path, JsonSerializer.Serialize(new
         {
             schema = "cis.logging-frontend-measurements/v1",
@@ -48,6 +48,7 @@ public sealed class IncomingMeasurementsTests
             measurements = rows,
             limits = "One Windows/native process observation, not a statistical or release gate. Ring latency excludes payload capture; thread allocation includes occurrence construction. Quiet driver claims after each call; full driver pauses consumption; contended driver uses four producers and one polling consumer of the real ring. Process CPU includes driver/consumer/CLR work. Logical producer RMW counts are derived from actual admissions/evictions and audited source sites (6 per admission plus 1 per eviction), not hardware instruction counters. Complete-caller rows include owned capture with the actual runtime consumer paused; the legacy-factory row separately records its simple callback's duration within total caller latency. These are not arbitrary application callback costs. Sampling buffers belong to the harness, not production storage."
         }, new JsonSerializerOptions { WriteIndented = true }));
+        TestContext.WriteLine("CIS measurement artifact: " + path);
         TestContext.AddResultFile(path);
     }
 
@@ -243,7 +244,7 @@ public sealed class IncomingMeasurementsTests
             Assert.AreEqual(LogWriteOutcome.Accepted, logger.Info("quiet sample").Outcome);
             samples[index] = await observed.Task.WaitAsync(TimeSpan.FromSeconds(10)) - started;
         }
-        string path = Path.Combine(TestContext.TestResultsDirectory!, $"incoming-poll-{intervalMilliseconds}.json");
+        string path = Path.Combine(Directory.CreateTempSubdirectory("cis-measurements-").FullName, $"incoming-poll-{intervalMilliseconds}.json");
         await File.WriteAllTextAsync(path, JsonSerializer.Serialize(new
         {
             schema = "cis.logging-frontend-polling/v1",
@@ -253,6 +254,7 @@ public sealed class IncomingMeasurementsTests
             latency = Latency(samples),
             scope = "Actual runtime: call start to custom writer callback after quiet periods; includes capture, lazy polling, backend encoding and writer scheduling. Idle process CPU includes CLR/harness work. One observation, no latency threshold or hard scheduling bound."
         }, new JsonSerializerOptions { WriteIndented = true }));
+        TestContext.WriteLine("CIS measurement artifact: " + path);
         TestContext.AddResultFile(path);
     }
 
@@ -271,7 +273,7 @@ public sealed class IncomingMeasurementsTests
         sorted.Release(); ClearRing(ring); Collect();
         int released = references.Count(reference => reference.TryGetTarget(out _));
         Assert.AreEqual(0, released);
-        string path = Path.Combine(TestContext.TestResultsDirectory!, "incoming-memory.json");
+        string path = Path.Combine(Directory.CreateTempSubdirectory("cis-measurements-").FullName, "incoming-memory.json");
         File.WriteAllText(path, JsonSerializer.Serialize(new
         {
             schema = "cis.logging-frontend-memory/v1",
@@ -281,6 +283,7 @@ public sealed class IncomingMeasurementsTests
             retainedAfterRelease = released,
             scope = "Forced-GC occurrence reachability: sole test producer, fixed ring and held old index; no in-flight consumer."
         }));
+        TestContext.WriteLine("CIS measurement artifact: " + path);
         TestContext.AddResultFile(path);
     }
 

@@ -47,7 +47,7 @@ public sealed class InterpolationMeasurementsTests
             Assert.AreEqual(mode == "ordinary" ? 0 : count, truncated);
             rows.Add(new { mode, count, captureTicks, captureBytes, renderTicks, renderBytes, retainedUtf16Characters = scalars, truncated });
         }
-        string path = Path.Combine(TestContext.TestResultsDirectory!, "interpolation-costs.json");
+        string path = Path.Combine(Directory.CreateTempSubdirectory("cis-measurements-").FullName, "interpolation-costs.json");
         File.WriteAllText(path, JsonSerializer.Serialize(new
         {
             schema = "cis.logging-interpolation-measurements/v1",
@@ -57,6 +57,7 @@ public sealed class InterpolationMeasurementsTests
             rows,
             scope = "Actual owned capture and rendering helpers, warmed synchronous single-thread observations. No queue, I/O or application callback time. Render rows include assertion and immutable-facts construction cost. Allocations are current-thread observations, not retained memory or an allocation SLA. User-defined formatter cost is outside these built-in-scalar rows."
         }, new JsonSerializerOptions { WriteIndented = true }));
+        TestContext.WriteLine("CIS measurement artifact: " + path);
         TestContext.AddResultFile(path);
     }
 
