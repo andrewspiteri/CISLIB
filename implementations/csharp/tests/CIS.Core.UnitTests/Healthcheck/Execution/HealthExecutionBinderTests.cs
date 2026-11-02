@@ -662,7 +662,8 @@ public sealed class HealthExecutionBinderTests
             finally { SynchronizationContext.SetSynchronizationContext(previous); }
             if (failure is null) { returned.TrySetResult(); }
             else { returned.TrySetException(failure); }
-        }) { IsBackground = true };
+        })
+        { IsBackground = true };
         bool started = false, completed = false;
         Task? disposal = null;
         Exception? primary = null;
