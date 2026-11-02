@@ -40,6 +40,10 @@
     <Compile Include="Healthcheck/Reporting/HealthReportFormatterMutationQualificationTests.cs" />
     <Compile Include="Healthcheck/Reporting/HealthReportFormatterTests.cs" />
   </ItemGroup>
+  <!-- Both explicit Healthcheck selections need this non-test fixture helper. -->
+  <ItemGroup Condition="'$(CisMutationTesting)' == 'true' and '$(CisHealthcheckMutationCohort)' == 'true'">
+    <Compile Include="QualificationFixtureInputs.cs" />
+  </ItemGroup>
   <!-- Apply after cohort selections: this is an explicit privileged Linux platform lane. -->
   <ItemGroup Condition="'$(CisLinuxIdentityQualification)' != 'true'">
     <Compile Remove="Healthcheck/Reporting/HealthPipeForeignOwnerBoundaryTests.cs" />
