@@ -254,6 +254,7 @@ public sealed class HealthCollectorRunnerResourceCoverageTests
             return Task.CompletedTask;
         });
         using var observation = new ObservedInterruption(withdrawing.Thread);
+        ThreadInterruptedException? interrupted = null;
         Task? disposal = null, stop = null, requestedDisposal = null;
         InvalidOperationException? expectedStopFailure = null;
         IHealthCollectionRegistration? replacement = null;
@@ -268,10 +269,7 @@ public sealed class HealthCollectorRunnerResourceCoverageTests
                 Assert.IsFalse(disposal.IsCompleted);
 
                 withdrawing.Thread.Interrupt();
-                var interrupted = observation.Thrown.Task.WaitAsync(Deadline).GetAwaiter().GetResult();
-                Assert.IsNotNull(interrupted.StackTrace);
-                StringAssert.Contains(interrupted.StackTrace, "HealthStateCoordinator.WithdrawCollection",
-                    "Only interruption at the real coordinator's withdrawal admission is the intended boundary.");
+                interrupted = observation.Thrown.Task.WaitAsync(Deadline).GetAwaiter().GetResult();
                 Assert.IsTrue(SpinWait.SpinUntil(() => withdrawing.Returned.Task.IsCompleted ||
                     (withdrawing.Thread.ThreadState & ThreadState.WaitSleepJoin) != 0, Deadline));
                 Assert.IsFalse(disposal.IsCompleted, "A failed admission cannot acknowledge registration disposal.");
@@ -280,6 +278,12 @@ public sealed class HealthCollectorRunnerResourceCoverageTests
             requestedDisposal = await withdrawing.Returned.Task.WaitAsync(Deadline);
             await withdrawing.JoinAsync().WaitAsync(Deadline);
             await requestedDisposal.WaitAsync(Deadline);
+            // FirstChance publishes before the exception trace finishes unwinding.
+            // The actual caller has joined before this thread inspects that trace.
+            Assert.IsNotNull(interrupted);
+            Assert.IsNotNull(interrupted.StackTrace);
+            StringAssert.Contains(interrupted.StackTrace, "HealthStateCoordinator.WithdrawCollection",
+                "Only interruption at the real coordinator's withdrawal admission is the intended boundary.");
             await disposal!.WaitAsync(Deadline);
             Assert.IsTrue(target.Retirement.IsCancellationRequested,
                 "The actual state-issued retirement token must close before its registration acknowledges disposal.");
