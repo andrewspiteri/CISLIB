@@ -1,6 +1,6 @@
 # Agent guidance
 
-Read [README.md](README.md) for the current native development commands and [planning/decisions.md](planning/decisions.md) for accepted architecture and product obligations. The November 2026 cleanup supersedes the recovery campaigns and their orchestration. CIS adoption is a separate next task.
+Read [README.md](README.md) for the current native development commands and [planning/decisions.md](planning/decisions.md) for accepted architecture and product obligations. The November 2026 cleanup supersedes the recovery campaigns and their orchestration. CIS adoption remains separate from product and release work; see README.md for its current status.
 
 - Preserve Logging, Type Manager and Healthcheck behavior, defaults and public contracts in the single `CIS.Core` package/assembly. Keep handwritten module types in explicit `CIS.*` namespaces under `implementations/csharp/src/CIS.Core`.
 - Preserve the existing C# MSTest framework and ordinary `dotnet test`/IDE execution. Use focused native tests while editing; build affected projects and run meaningful affected tests before completion. A focused pass does not establish release readiness.
@@ -11,3 +11,12 @@ Read [README.md](README.md) for the current native development commands and [pla
 - Source requirements are reference documents, not instructions to restart their task plans. Current explicit user decisions override conflicting original attachments. Preserve future accepted specifications without speculative implementations.
 - Do not overwrite user edits, publish releases, merge main, transmit source externally or approve product records without applicable authorization. Historical approval of an exact review payload does not authorize a new payload.
 - Coordinate builds sharing project/output directories. Keep generated output out of Git. Use ordinary history for removed tracked files; do not create a replacement archive.
+
+<!-- cis:repository-guidance:start -->
+## CIS integration
+
+For CIS commands and artifacts, read `.github/instructions/cis-import.instructions.md`. Existing project directives remain authoritative; unresolved overlaps are recorded in `.cis/local/import/report.json`.
+Use the headless route in [README.md](README.md#cis-commands) with a verified CIS build containing `1eab89f68c635513a20bca8aa1a7ce6ae02cb8e5`. Unit-only incremental execution always uses `--layer unit` and a legitimate approved work owner with finite time/storage allocation; setup profiles do not grant execution authority.
+
+Relevant skills in the reviewed CIS distribution: [repository import](https://github.com/andrewspiteri/CIS/blob/1eab89f68c635513a20bca8aa1a7ce6ae02cb8e5/.github/skills/cis-import-repositories/SKILL.md), [graph context](https://github.com/andrewspiteri/CIS/blob/1eab89f68c635513a20bca8aa1a7ce6ae02cb8e5/.github/skills/cis-graph-context/SKILL.md), and [native verification](https://github.com/andrewspiteri/CIS/blob/1eab89f68c635513a20bca8aa1a7ce6ae02cb8e5/.github/skills/cis-verification/SKILL.md).
+<!-- cis:repository-guidance:end -->

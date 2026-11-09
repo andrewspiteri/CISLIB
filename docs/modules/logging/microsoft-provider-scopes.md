@@ -1,3 +1,11 @@
+---
+title: 'Microsoft provider scope capture'
+type: document
+status: unknown
+cis:
+  stable_id: cislib.document.modules.logging.microsoft.provider.scopes
+---
+
 # Microsoft provider scope capture
 
 CoreLoggerProvider implements ISupportExternalScope in the existing CIS.Core assembly. SetScopeProvider borrows an IExternalScopeProvider; it never pushes or disposes host handles. These owned-scope rules describe direct CreateLogger calls; host qualification covers actual LoggerFactory-driven routing. Replacing that source applies to later calls. Each Log call freezes one source reference, so an in-flight call can finish using its original source. Registration and provider disposal share a small lock; callbacks run outside it. Null registration throws ArgumentNullException before the disposed guard. Registration after provider disposal throws ObjectDisposedException. Disposal releases the source reference and leaves runtime and host scope lifetime with their owners.

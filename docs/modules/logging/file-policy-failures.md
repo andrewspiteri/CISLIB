@@ -1,3 +1,11 @@
+---
+title: 'Terminal file-policy failures'
+type: document
+status: unknown
+cis:
+  stable_id: cislib.document.modules.logging.file.policy.failures
+---
+
 Current behavior is amended by the [15 October review corrections](review-contract-2026-10-15.md), including intent-first retirement, full-group recovery, bounded candidate cleanup and monotonic completion timing.
 
 # Terminal file-policy failures

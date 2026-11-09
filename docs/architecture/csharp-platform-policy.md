@@ -1,3 +1,11 @@
+---
+title: 'C# platform and release boundary'
+type: architecture
+status: unknown
+cis:
+  stable_id: cislib.architecture.architecture.csharp.platform.policy
+---
+
 # C# platform and release boundary
 
 The implemented target is `net10.0`, with SDK10.0.401 pinned by `global.json`; the selected qualification runtime is10.0.12. Core requires both `Microsoft.NETCore.App` and the approved `Microsoft.AspNetCore.App` shared framework.

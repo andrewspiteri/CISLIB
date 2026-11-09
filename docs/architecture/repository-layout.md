@@ -1,3 +1,11 @@
+---
+title: 'Repository layout'
+type: architecture
+status: unknown
+cis:
+  stable_id: cislib.architecture.architecture.repository.layout
+---
+
 # Repository layout
 
 | Directory | Purpose |

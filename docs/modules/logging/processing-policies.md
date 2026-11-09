@@ -1,3 +1,11 @@
+---
+title: 'Logging processing policies'
+type: document
+status: unknown
+cis:
+  stable_id: cislib.document.modules.logging.processing.policies
+---
+
 # Logging processing policies
 
 Configure `LogProcessingOptions` at runtime creation. Callback lists and registrations are captured at startup. Existing `Create()` and `Create(writers)` calls have no processing callbacks and no duplicate suppression.

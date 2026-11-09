@@ -1,3 +1,11 @@
+---
+title: 'Logging admission, results and runtime ownership'
+type: document
+status: unknown
+cis:
+  stable_id: cislib.document.modules.logging.runtime.contract
+---
+
 # Logging admission, results and runtime ownership
 
 The [C# interpolation API](interpolation.md) adds compiler-backed handler overloads under the existing logger method names. Built-in values are captured for consumer-side invariant formatting; optional typed attributes remain independent structured context. Ordinary string, event-data and legacy callback contracts remain available.

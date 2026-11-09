@@ -1,3 +1,11 @@
+---
+title: 'Microsoft provider ownership'
+type: document
+status: unknown
+cis:
+  stable_id: cislib.document.modules.logging.microsoft.provider.ownership
+---
+
 # Microsoft provider ownership
 
 `CoreLoggerProvider(CoreLogRuntime)` always borrows the application runtime. `Dispose` is idempotent: it disables this provider's future logging calls and releases its borrowed external scope-source reference. It never stops or disposes Core, closes its file output, releases its file-group lease, or disposes a borrowed host scope source. There is no owning constructor option or extra lifecycle service.

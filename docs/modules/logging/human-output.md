@@ -1,3 +1,11 @@
+---
+title: 'Human output (WP05-S01-T02)'
+type: document
+status: unknown
+cis:
+  stable_id: cislib.document.modules.logging.human.output
+---
+
 # Human output (WP05-S01-T02)
 
 The internal human renderer reads the runtime-owned `EncodedEvent.JsonLine`. It renders the same already captured and bounded v1 facts without accessing the caller, ambient scope/activity, environment configuration, clock or exception again. No public renderer/factory, new dependency or output worker is introduced.

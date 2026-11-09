@@ -1,3 +1,11 @@
+---
+title: 'Explicit C# log values'
+type: document
+status: unknown
+cis:
+  stable_id: cislib.document.modules.logging.log.values
+---
+
 # Explicit C# log values
 
 `CIS.Logging.LogValue` implements explicit typed values and fixed `LogValueKind` numbers in the [shipping source](../../../implementations/csharp/src/CIS.Core/Logging/LogValue.cs). Eleven factories create real immutable values: Null(), Boolean(bool), String(string), Number(double), Integer(long), IntegerString(string), DecimalString(string), Uuid(Guid), Timestamp(DateTimeOffset), Array(IEnumerable<LogValue>) and Map(IReadOnlyDictionary<string, LogValue>). Public properties expose Kind and IsTruncated; payload storage stays internal. UUID/timestamp factories retain the specified kind numbers and store their normalized text immutably.

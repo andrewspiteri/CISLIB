@@ -1,3 +1,11 @@
+---
+title: 'CountryList development example'
+type: document
+status: unknown
+cis:
+  stable_id: cislib.document.modules.healthcheck.country.list
+---
+
 # CountryList development example
 
 The [CountryList source](../../../implementations/csharp/examples/healthcheck/CountryList/Program.cs) is an application-owned startup and shutdown composition using the real Core service, binder, collector runner and reporting adapters. It uses a deterministic local data source in place of an application's remote data client. The project references Core source for development. It must not be advertised as an exact-package reference example until compiled and executed against that exact verified package.

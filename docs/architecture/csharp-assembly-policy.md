@@ -1,3 +1,11 @@
+---
+title: 'C# assembly versioning and signing policy'
+type: architecture
+status: unknown
+cis:
+  stable_id: cislib.architecture.architecture.csharp.assembly.policy
+---
+
 # C# assembly versioning and signing policy
 
 Selected 10 October 2026 for `WP01-S01-T03`, under the user's request to document the foundation decisions. This adopts the supplied guide's section 13 assembly-identity proposal after assessing the current consumer and loader scope. It is a repository decision before publication, not evidence of a released or compatible logging runtime.

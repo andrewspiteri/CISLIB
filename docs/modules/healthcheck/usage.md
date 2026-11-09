@@ -1,3 +1,11 @@
+---
+title: 'Usage and configuration'
+type: document
+status: unknown
+cis:
+  stable_id: cislib.document.modules.healthcheck.usage
+---
+
 # Usage and configuration
 
 Create one application-owned service and retain each monitor for its actual owner lifetime. Construction starts no endpoint, collector, polling, or business initialization.

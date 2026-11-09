@@ -1,3 +1,11 @@
+---
+title: 'Retained segments and restart order'
+type: document
+status: unknown
+cis:
+  stable_id: cislib.document.modules.logging.file.retention
+---
+
 Current behavior is amended by the [15 October review corrections](review-contract-2026-10-15.md), including intent-first retirement, full-group recovery, bounded candidate cleanup and monotonic completion timing.
 
 # Retained segments and restart order

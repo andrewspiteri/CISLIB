@@ -1,3 +1,11 @@
+---
+title: 'Periodic file timer lifetime'
+type: document
+status: unknown
+cis:
+  stable_id: cislib.document.modules.logging.file.timer.lifecycle
+---
+
 # Periodic file timer lifetime
 
 WP05-S09-T03 detaches the owned periodic timer when file admission closes or the file output faults. It starts one suppressed-context asynchronous timer-disposal task per acquired timer. Repeated closure, fault and terminal worker cleanup reuse that task. Timer callbacks continue to register only existing fixed-boundary controls; no I/O or per-tick task is introduced.

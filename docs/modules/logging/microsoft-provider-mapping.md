@@ -1,3 +1,11 @@
+---
+title: 'Microsoft event mappings'
+type: document
+status: unknown
+cis:
+  stable_id: cislib.document.modules.logging.microsoft.provider.mapping
+---
+
 # Microsoft event mappings
 
 CoreLoggerProvider maps every defined Microsoft severity to the matching Core severity. Trace, Debug, Information, Warning, Error and Critical project as trace, debug, info, warn, error and critical. None has no destination interest and does not invoke the formatter. The existing category validation and undefined-level exceptions remain unchanged.

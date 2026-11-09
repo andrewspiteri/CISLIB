@@ -1,3 +1,11 @@
+---
+title: 'Healthcheck'
+type: document
+status: unknown
+cis:
+  stable_id: cislib.document.modules.healthcheck.readme
+---
+
 # Healthcheck
 
 `CIS.Healthcheck` records application-owned health facts in the single `CIS.Core` assembly. Services create monitor handles, capture immutable snapshots and record explicit startup/stopping facts. Snapshot and transport reads do not invoke collectors or change health.

@@ -1,3 +1,11 @@
+---
+title: 'Event and scope precedence (WP04-S04-T02)'
+type: document
+status: unknown
+cis:
+  stable_id: cislib.document.modules.logging.event.precedence
+---
+
 # Event and scope precedence (WP04-S04-T02)
 
 The actual EventProjection uses the already captured outer-to-inner scope view, then explicit LogEventData attributes. Last matching ordinal key wins as a whole typed value. It does not recursively merge maps, concatenate arrays, fold key casing, normalize Unicode keys or treat explicit LogValue.Null as absence. Null/empty event Attributes preserve the scope view. All eleven typed value kinds can replace a scope value without coercion.

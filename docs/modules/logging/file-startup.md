@@ -1,3 +1,11 @@
+---
+title: 'File and console startup'
+type: document
+status: unknown
+cis:
+  stable_id: cislib.document.modules.logging.file.startup
+---
+
 # File and console startup
 
 WP05-S05-T03 composes both configured outputs through the internal `CoreLogRuntime.CreateConfiguredQueued` entry. It copies the consumed thresholds, path, formats/detail, entry cap, queue capacity and file bounds before selecting streams or starting workers. Application startup prepares options first; this entry requires an absolute enabled-file path. Public runtime creation and bounded lifecycle remain later tasks.

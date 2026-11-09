@@ -1,3 +1,11 @@
+---
+title: 'Collection, binding, and ownership'
+type: document
+status: unknown
+cis:
+  stable_id: cislib.document.modules.healthcheck.lifetime
+---
+
 # Collection, binding, and ownership
 
 The service registry keeps detached state and weak references. The component must retain its monitor handle for as long as its contribution should exist. A runner similarly does not strongly retain an idle owner-held registration: retain the `IHealthCollectionRegistration` alongside the component. An unretained handle may be collected and its monitor withdrawn; repeated snapshots are not a lifetime mechanism.

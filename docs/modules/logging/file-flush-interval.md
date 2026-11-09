@@ -1,3 +1,11 @@
+---
+title: 'File flush interval scheduling'
+type: document
+status: unknown
+cis:
+  stable_id: cislib.document.modules.logging.file.flush.interval
+---
+
 # File flush interval scheduling
 
 WP05-S09-T01 adds one periodic TimeProvider timer to an enabled, fully initialized configured file runtime. CORE_LOG_FLUSH_INTERVAL_MS populates EnvironmentOptions.Logging.FlushIntervalMilliseconds; the runtime captures that value before output acquisition. Its default is 1,000 ms and supported range is 10–60,000 ms. Later mutation of the supplied options does not change the owned timer. Disabled file output allocates no interval timer.

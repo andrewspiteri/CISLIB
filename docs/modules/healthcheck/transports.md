@@ -1,3 +1,11 @@
+---
+title: 'Reporting and deployment'
+type: document
+status: unknown
+cis:
+  stable_id: cislib.document.modules.healthcheck.transports
+---
+
 # Reporting and deployment
 
 Both transports read one immutable snapshot, use the shared bounded formatter, and expose recorded facts. They do not invoke collectors, retry business work, mutate a monitor, or reclassify failures. A legitimate unhealthy report is distinct from a transport/formatting error.

@@ -1,3 +1,11 @@
+---
+title: 'Borrowed console streams (WP05-S04-T02)'
+type: document
+status: unknown
+cis:
+  stable_id: cislib.document.modules.logging.console.ownership
+---
+
 # Borrowed console streams (WP05-S04-T02)
 
 Console composition borrows the selected standard stream. Runtime admission closure, successful draining and terminal write failure never close or dispose it. The application retains ownership. The existing concrete ConsoleOutputWriter holds the stream and supplies WriteAsync; it has no disposal operation. One OutputEventQueue worker awaits each complete record write before starting the next, outside the admission gate. This task makes that rule explicit and qualifies the actual implementation without adding another lifetime or synchronization framework, shipping API or dependency.

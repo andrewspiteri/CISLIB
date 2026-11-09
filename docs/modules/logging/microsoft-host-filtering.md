@@ -1,3 +1,11 @@
+---
+title: 'Microsoft host filtering'
+type: document
+status: unknown
+cis:
+  stable_id: cislib.document.modules.logging.microsoft.host.filtering
+---
+
 # Microsoft host filtering
 
 Core's console and file thresholds are independent. The Microsoft host applies its own provider/category filter before calling `CoreLoggerProvider`. Set that host filter at least as verbose as the most verbose enabled Core destination. A Warning host filter silently removes Debug file diagnostics; Core cannot recover or count events it never receives.

@@ -1,3 +1,11 @@
+---
+title: 'Operation scope foundation'
+type: document
+status: unknown
+cis:
+  stable_id: cislib.document.modules.logging.operation.scopes
+---
+
 # Operation scope foundation
 
 Current integration (WP07-S01-T01): `CoreLogRuntime.BeginScope(OperationContextData)` now exposes this store through the public runtime. It validates null before checking closed admission and copies the context using the existing bounded store. Calls begun after closure fail; a call already copying may finish during closure. Existing handles remain disposable after stop. The creator-disposes/LIFO/idempotence rules and inherited-context detection limits below are unchanged. Public-runtime tests and asynchronous business processes are recorded in functional reconciliation. Earlier task paragraphs below retain their historical scope.

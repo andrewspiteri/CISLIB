@@ -1,3 +1,11 @@
+---
+title: 'Complete-record size rotation'
+type: document
+status: unknown
+cis:
+  stable_id: cislib.document.modules.logging.file.rotation
+---
+
 # Complete-record size rotation
 
 WP05-S06-T01 replaces the temporary post-start capacity fault with rotation in the existing sequential file worker. It starts the active byte count from the acquired file's actual length, compares the complete prepared record including UTF-8 escaping and LF with the remaining bytes, and advances the count only after the awaited write succeeds. An exact fit stays active; the next record rotates before any of its bytes are written. This applies to JSONL and Human output independently of console rendering.

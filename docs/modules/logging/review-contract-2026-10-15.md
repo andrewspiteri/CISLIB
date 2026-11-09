@@ -1,3 +1,11 @@
+---
+title: 'Logging review corrections — 15 October 2026'
+type: document
+status: unknown
+cis:
+  stable_id: cislib.document.modules.logging.review.contract.2026.10.15
+---
+
 # Logging review corrections — 15 October 2026
 
 This current unpublished behavior addendum preserves the accepted file, scope, rendering, deadline and queue corrections. It supersedes contradictory earlier implementation narratives. Historical reviews and campaign receipts are retired; current development follows README and current decisions.

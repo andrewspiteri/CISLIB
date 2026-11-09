@@ -1,3 +1,11 @@
+---
+title: 'Interrupted file transitions'
+type: document
+status: unknown
+cis:
+  stable_id: cislib.document.modules.logging.file.transition.recovery
+---
+
 # Interrupted file transitions
 
 Rotation and partial recovery publish schema-2 intent before any retirement. It names the exact old/new inventories, original active bytes and planned retirement IDs/names/lengths/hashes. Restart validates all surviving members before resuming only that exact retirement/rename/publication/fresh-active sequence. The oldest planned prefix may be partly or wholly absent; a missing survivor or changed retirement still fails. Legacy schema-1 intent retains its already-retired-prefix rule. A full retention group can recover by retiring its oldest owned member and preserving the complete partial active as damaged.

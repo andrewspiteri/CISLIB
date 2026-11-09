@@ -120,3 +120,56 @@ Final affected-project build: **PASS, zero warnings/errors**. Focused tests: **4
 The earlier solution build, pack and **7,961-case** results above remain historical evidence with their original scope; they were **not rerun** for this correction. No whole-suite run, coverage/mutation campaign, benchmark or platform qualification was added.
 
 **Cleanup is complete; CIS adoption is next.** Release/performance obligations remain separately open. Neither CIS adoption nor the separate CIS proportionality amendment is implemented here, and no new prerequisite or recovery campaign is introduced.
+
+## Minimal CIS adoption preparation — 9 November 2026
+
+**Prepared, but step 1 is blocked and not complete.** CISLIB baseline is `2f5100ff6a14938b4dca4fe0d99c62c044993876`. CIS was rebuilt from the clean reviewed `1eab89f68c635513a20bca8aa1a7ce6ae02cb8e5` source; the actual host reports `0.3.0+1eab89f68c635513a20bca8aa1a7ce6ae02cb8e5` and SHA-256 `e2cd83872c92bd41e38cd36a81dd006edfe154be57ef604552255bd2d3ec3cf9`. That host, rather than an executable guessed from PATH, was used below. Its build passed with zero warnings/errors. CISLIB's SDK 10.0.401 and .NET/ASP.NET 10.0.12 pins are unchanged.
+
+Minimal import was reviewed and applied with its actual input-bound hash `sha256:8f1fecce294d1c6257c9b66364d844511e406e56b0ff71974e836a60e5e4ac38` and supported `--merge-edits`. The existing `cis` ecosystem, `cislib` authority/product/repository, `docs` root, owned participation and `none` relationship are preserved. Runtime profiles, scoped import guidance, catalogue/navigation and five native suite bindings were added. The bindings were corrected to the C# working directory, Release and actual TRX paths, and remain configured/unverified. No fixture/example became a new shipping module.
+
+The first graph was partial solely because 42 existing guides were uncatalogued. They received catalogue entries and minimal metadata with their original inferred IDs/types and `unknown` lifecycle; every original body was preserved byte-for-byte. This registers existing human-authored source, without approving or generating product specifications. Product source, assertions, package layout and build machinery are unchanged.
+
+The complete machine-specific unit-only profile is ignored local configuration at `.cis/local/testing/profiles/healthcheck-diagnostic-unit.json`, SHA-256 `1c36079948f05414698317527c72591140f2b46cdffa17cfb0f6e86d4fed02e4`. It declares `Healthcheck/Contracts/HealthDiagnostic.cs`, the existing `HealthDiagnosticRuntimeAcceptanceBoundaryTests.cs`, 21 configuration/dependency inputs and 15 verified absolute tool files. Its expected two Boolean DataRows exercise real Unicode sanitization, explicit caller-message projection, detached values and scalar bounds. The configured native command would build current Unit inputs with compatible restored assets and intersect the selected class filter with both ordinary exclusions; no mutation/canary/pilot/recovery command is configured. The graph conservatively finds 76 candidate test files and includes `UnicodeScalarText.cs`; the final native filter and Unit project restrict execution to the selected two-case class. Static candidates are not runtime coverage or assertion-quality proof.
+
+## CIS tooling evidence
+
+`cis` below denotes the verified invocation described in [README](../../README.md#cis-commands). These exact argument sets were used with the absolute local CISLIB path as `--repo`/`--workspace` (shown as `.` here to keep machine paths out of published guidance):
+
+```text
+cis repo import --workspace . --source . --root docs --participation owned --relationship none --guidance-mode minimal --dry-run --format json
+cis repo import --workspace . --source . --root docs --participation owned --relationship none --guidance-mode minimal --merge-review sha256:8f1fecce294d1c6257c9b66364d844511e406e56b0ff71974e836a60e5e4ac38 --merge-edits .cis/local/import/reviewed-edits.json --yes --format json
+cis repo doctor --repo . --root docs --format agent
+cis repo doctor --repo . --root docs --format json
+cis test inventory --repo . --format agent
+cis test validate --repo . --strict --format agent
+cis docs validate --repo . --strict --format agent
+cis graph build --repo . --format agent
+cis graph status --repo . --format agent
+cis test incremental plan --repo . --profile .cis/local/testing/profiles/healthcheck-diagnostic-unit.json --format json
+cis test incremental status --repo . --profile .cis/local/testing/profiles/healthcheck-diagnostic-unit.json --format agent
+cis artifacts inventory --repo . --format agent
+```
+
+| Acceptance item | Actual evidence |
+| --- | --- |
+| Baseline and minimal import | Verified host/source above; native apply status `imported`, `applied=true`, no errors/collisions. Native apply/assessment results remain in `.cis/local/import/`. |
+| Binding and setup validation | Five suites inventory/strict validation PASS; strict docs validation PASS for 50 catalogue entries/documents, zero warnings/errors. Skill inventory/strict validation/local-only audit PASS with zero installed skills; no full skill library was installed. A leftover empty skill directory was removed after verifying it contained no data. |
+| Graph | Fresh and complete, 19,276 nodes / 73,259 edges, zero errors/warnings; build `sha256:44dd24a7452b6fa49610dc772aed8f2700ae31b19a6664bb26d3a7cae9418ee8`. |
+| Actual execution | BLOCKED: no approved adoption change/task, adopted accounting, finite owner allocation or inherited `CIS_WORK_*` context exists. No native unit run or TRX was fabricated. |
+| Reuse | UNPROVEN: plan/status return `pendingUnitBatches=1`, `pendingMutationBatches=0`, `executedUnitBatches=0`, `reusedUnitBatches=0`, `unitCurrent=false`, `scopeComplete=false`. |
+| Output control | Existing native inventory reports protected graph output and no archives/candidates. `ownedStorageStatus=unaccounted`; time/storage ownership and remaining capacity are unknown without a legitimate allocation, not zero. Necessary local configuration and native metadata remain; redundant import preview/edit payloads were removed after successful apply. |
+| Honest scope | Other native families are configured/unverified through CIS. The historical 7,961-case cleanup and four-case closure results are not new adoption results or CIS reuse receipts. No mutation, coverage, stress, benchmark, package or platform qualification ran. |
+
+The precise failed prerequisite command was:
+
+```text
+cis change create --title "Minimal CISLIB native-workflow adoption" --outcome "Execute one governed unit slice and prove unchanged reuse" --repo . --format json
+```
+
+It returned **exit 2, `applied=false`**: missing Active/current canonical product technical intent; missing Active/current overall solution design and component sheet; and missing Active/current high-level UI applicability/direction. The original result is `.cis/local/import/change-prerequisite.json`. These workspace-foundation gates apply independently of fixture/frontend classification. A legitimate no-visual-UI record is possible, but requires its own valid governance; this failure does not require implementing UI features in CISLIB. Module source requirements are not substitutes for those approval records.
+
+The next required decision is an existing legitimate approved adoption change/task association, authority and finite time/storage allocation, or separately authorized governance/accounting setup through supported CIS controls. Inspect existing work with `cis change list --repo . --format json` and foundation state with `cis technical-intent status --workspace . --format json`; the current results are an empty change list and missing canonical technical intent. A timeout, provider profile, invented approval, removed workspace marker or unaccounted diagnostic run cannot provide that authority. Full reconciliation and CIS product/proportionality changes were not used as workarounds. No product-gap inventory or feature work started.
+
+`cis generate not applicable: this change registers and binds the existing native workflow; it does not generate product code or specifications.` The local usage ledger is `.cis/local/feedback/tool-usage.jsonl`. Doctor's final result is valid configuration with zero errors and 21 warnings for classification review, optional index/local-AI setup, security and standards capabilities. Those pending capabilities were left explicit. No governed unit run ID exists, and `cis test reconcile` was not run without native results. The accounting/settlement and unchanged-result acceptance rows must pass before step 1 can close.
+
+Strict `cis agent evidence validate` returns warnings (exit 5) because the changed suite binding is test-related and no native run ID/reconciliation exists. This is recorded as outstanding, not satisfied with a placeholder or a fabricated run. A model-assisted, context-limited reader check correctly identified the incomplete step, zero executed/reused unit cases, legitimate governance decision, optional no-visual-UI route and installation-specific profile; two wording clarifications were applied. This is a comprehension check, not human approval.

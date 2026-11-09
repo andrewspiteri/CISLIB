@@ -1,3 +1,11 @@
+---
+title: 'Event and value contract (WP02-S02)'
+type: document
+status: unknown
+cis:
+  stable_id: cislib.document.modules.logging.event.contract
+---
+
 # Event and value contract (WP02-S02)
 
 The unpublished v1 [schema](../../../contracts/logging/v1/event.schema.json) defines structural constraints; the [semantic catalog](../../../contracts/logging/v1/event-contract.json) supplies additional bounds and rules. The user-selected configurable default and truncation policy supersede the original fixed-limit/reject proposal. Shipping C# types and native behavior tests implement these contracts; original specifications are reference inputs, not execution claims.

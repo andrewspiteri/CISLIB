@@ -1,3 +1,11 @@
+---
+title: 'Owned event/resource projection (WP04-S04-T01)'
+type: document
+status: unknown
+cis:
+  stable_id: cislib.document.modules.logging.event.projection
+---
+
 # Owned event/resource projection (WP04-S04-T01)
 
 The actual `CIS.Logging.LogEventData` is a caller-owned named input with EventName, Message, optional MessageTemplate/OperationId, typed Attributes and optional Exception. It matches the preserved C# reference shape. Severity comes exclusively from the method argument; the DTO has no severity field. The internal EventProjection converts logging-owned EventMetadata, an already captured scope view, component name, severity and DTO into immutable CapturedEventFacts. No logger/runtime placeholder or public captured-event constructor is introduced.

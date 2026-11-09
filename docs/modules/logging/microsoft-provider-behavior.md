@@ -1,3 +1,11 @@
+---
+title: 'Microsoft provider interest and rejection'
+type: document
+status: unknown
+cis:
+  stable_id: cislib.document.modules.logging.microsoft.provider.behavior
+---
+
 # Microsoft provider interest and rejection
 
 ILogger.IsEnabled delegates to Core after validating the level. None, no interested output, closed admission, a disposed provider, and all interested outputs faulted return false. A full queue remains interested: Log still formats and captures once, then Core counts each full output without admitting a ticket. Each healthy interested output admits independently; a faulted output does not prevent another output from accepting the same capture. There is no automatic writer retry or replacement.

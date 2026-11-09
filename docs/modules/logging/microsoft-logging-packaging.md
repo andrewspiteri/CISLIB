@@ -1,3 +1,11 @@
+---
+title: 'Microsoft logging packaging'
+type: document
+status: unknown
+cis:
+  stable_id: cislib.document.modules.logging.microsoft.logging.packaging
+---
+
 # Microsoft logging packaging
 
 Logging and its Microsoft adapter ship in the single `CIS.Core` project, assembly and package. The library's root namespace is `CIS`; logging uses `CIS.Logging`, and the adapter uses `CIS.Logging.MicrosoftLogger`. The implementation folders mirror those namespaces under `implementations/csharp/src/CIS.Core/Logging`. There is no separate `Core.MicrosoftLogging` or `CIS.Core.MicrosoftLogging` package. This applies the user's repository/package decision recorded before implementation; the original supplied plan is preserved as source material.

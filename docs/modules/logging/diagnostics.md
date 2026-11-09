@@ -1,3 +1,11 @@
+---
+title: 'Public live diagnostics and S03 qualification'
+type: document
+status: unknown
+cis:
+  stable_id: cislib.document.modules.logging.diagnostics
+---
+
 Current behavior includes public creation, bounded stop and LastStopResult; [review corrections](review-contract-2026-10-15.md) add InFlight/Buffered. The development qualification narrative below retains its original task chronology.
 
 # Public live diagnostics and S03 qualification

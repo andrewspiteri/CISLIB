@@ -1,3 +1,11 @@
+---
+title: 'Exception capture foundation'
+type: document
+status: unknown
+cis:
+  stable_id: cislib.document.modules.logging.exception.projection
+---
+
 # Exception capture foundation
 
 WP04-S02-T01 implements internal `CIS.Logging.Exceptions.ExceptionProjection.Capture` and an owned `CapturedException` model in CIS.Core. They prepare the exception part of later event capture; there is no new public exception API, logger, queue or shipping serializer. The [original guide](../../../planning/logging/sources/core-library-implementation-guide-v1.md) supplies the declared fields and bounds. The [plan amendments](../../../planning/logging/plan-amendments.md) preserve the user's truncation direction.

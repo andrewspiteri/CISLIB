@@ -1,3 +1,11 @@
+---
+title: 'Consuming a completed Type Manager catalog'
+type: document
+status: unknown
+cis:
+  stable_id: cislib.document.modules.type.management.configuration.boundary
+---
+
 # Consuming a completed Type Manager catalog
 
 The host prepares one `ITypeManager` before building its container. A consumer

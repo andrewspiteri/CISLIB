@@ -1,3 +1,11 @@
+---
+title: 'EnvironmentOptions'
+type: document
+status: unknown
+cis:
+  stable_id: cislib.document.modules.logging.environment.options
+---
+
 # EnvironmentOptions
 
 `CIS.EnvironmentOptions` remains a static container. Its static constructor runs automatically on first access: it populates defaults, applies known environment-variable overrides, validates the selected identities, and interns ApplicationName, EnvironmentName, BuildVersion and ServiceVersion. Getters then return stored values. Construction starts no logger, opens no output and creates no directory.

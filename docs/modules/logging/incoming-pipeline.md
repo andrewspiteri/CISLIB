@@ -1,3 +1,11 @@
+---
+title: 'Rotating incoming logging frontend'
+type: document
+status: unknown
+cis:
+  stable_id: cislib.document.modules.logging.incoming.pipeline
+---
+
 # Rotating incoming logging frontend
 
 Public `CoreLogRuntime.Create` and `TryCreate` overloads use the rotating frontend followed by the existing backend. The caller performs early threshold/state checks and owned capture, including an approved legacy factory/provider formatter at most once on the caller. The frontend receives an already-created immutable occurrence. Backend filtering, encoding/rendering, routing, duplicate suppression and writer work remain on the separate consumer.

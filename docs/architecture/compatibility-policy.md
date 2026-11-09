@@ -1,3 +1,11 @@
+---
+title: 'Published compatibility'
+type: architecture
+status: unknown
+cis:
+  stable_id: cislib.architecture.architecture.compatibility.policy
+---
+
 # Published compatibility
 
 Preserve every supported contract indefinitely from its first actual publication, including prereleases and intermediate releases. A major-version change does not waive preservation. Keep supported source, binary, configuration, wire, behavior/defaults and target commitments; assess fixes against actual consumers. Do not add warning-producing deprecation to supported calls used by warnings-as-errors consumers.

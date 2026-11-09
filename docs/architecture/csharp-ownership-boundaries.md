@@ -1,3 +1,11 @@
+---
+title: 'Ownership and dependency boundaries'
+type: architecture
+status: unknown
+cis:
+  stable_id: cislib.architecture.architecture.csharp.ownership.boundaries
+---
+
 # Ownership and dependency boundaries
 
 Applications own runtimes and external resources. Loggers and the Microsoft provider borrow their runtime. Custom writers are borrowed unless ownership is explicitly transferred by successful startup; failed startup leaves caller ownership intact. Keep resources alive until real worker/cleanup completion, including after a bounded stop times out.

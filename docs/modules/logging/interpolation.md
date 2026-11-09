@@ -1,3 +1,11 @@
+---
+title: 'C# interpolated logging'
+type: document
+status: unknown
+cis:
+  stable_id: cislib.document.modules.logging.interpolation
+---
+
 # C# interpolated logging
 
 The severity methods accept C# interpolated expressions directly:

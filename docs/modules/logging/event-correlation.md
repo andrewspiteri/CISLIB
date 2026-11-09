@@ -1,3 +1,11 @@
+---
+title: 'Event UTC time and W3C correlation (WP04-S04-T03)'
+type: document
+status: unknown
+cis:
+  stable_id: cislib.document.modules.logging.event.correlation
+---
+
 # Event UTC time and W3C correlation (WP04-S04-T03)
 
 EventProjection now owns a UTC DateTimeOffset and optional trace/span strings in CapturedEventFacts. It reads Activity.Current once, copies that activity's own W3C TraceId and SpanId, and accepts only exact lowercase hex lengths 32/16 with each ID nonzero. Missing, hierarchical or invalid activity produces neither ID. A zero trace with a nonzero current span is reachable through public .NET Activity; comparison against a default ID struct does not reliably detect an explicitly stored zero string. OperationId retains the separate event-over-scope rule. Nested free-form timestamp/trace_id/span_id/operation_id values cannot replace protected facts. Activity names, tags, baggage and links are not copied.

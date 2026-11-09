@@ -1,3 +1,11 @@
+---
+title: 'Bounded JSONL event encoding (WP04-S04-T04)'
+type: document
+status: unknown
+cis:
+  stable_id: cislib.document.modules.logging.event.encoding
+---
+
 # Bounded JSONL event encoding (WP04-S04-T04)
 
 The internal encoder consumes owned `CapturedEventFacts` and an explicitly supplied `LoggingOptions.MaxEntryBytes`. It starts no runtime and opens no outputs. It produces one owned UTF-8 JSON object followed by LF, without BOM or raw multiline content. The configured range remains 16384-16777216 bytes with a 65536-byte default. The cap includes every escape, delimiter and the final LF.

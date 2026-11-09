@@ -1,3 +1,11 @@
+---
+title: 'Approved C# dependencies'
+type: architecture
+status: unknown
+cis:
+  stable_id: cislib.architecture.architecture.csharp.dependency.policy
+---
+
 # Approved C# dependencies
 
 `CIS.Core` is the single shipping package. Its approved runtime closure contains `Microsoft.Extensions.Logging.Abstractions` and `Microsoft.Extensions.DependencyInjection.Abstractions`, both 10.0.12, with their approved closure recorded in [runtime-dependencies.json](../../implementations/csharp/eng/runtime-dependencies.json). A Microsoft-looking prefix alone does not approve a new dependency. Changing the selected runtime closure requires an explicit repository decision.
