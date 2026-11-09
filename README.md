@@ -4,8 +4,11 @@ CisLib implements Logging, Type Manager and Healthcheck in one C# `CIS.Core` pac
 
 Run commands from `implementations/csharp` so `global.json` selects SDK **10.0.401**. The selected qualification runtime is **10.0.12**; install its ASP.NET Core shared framework as well.
 
+The full Compatibility suite also needs **.NET 8.0.31** for the pinned ApiCompat tool. For a private installation, set `CIS_COMPAT_API_DOTNET` to that runtime's `dotnet.exe`; this machine's verified host is `.artifacts/tool-host-8.0.31/dotnet.exe` under the repository root. SDK and product commands continue to use ordinary `dotnet`.
+
 ```powershell
 cd implementations/csharp
+dotnet tool restore --configfile eng/Tools.NuGet.config
 dotnet restore CisLib.slnx --locked-mode
 dotnet build CisLib.slnx -c Release --no-restore
 dotnet test CisLib.slnx -c Release --no-build --no-restore

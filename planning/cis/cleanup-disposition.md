@@ -1,6 +1,6 @@
 # CISLIB cleanup disposition — 9 November 2026
 
-Baseline: `f04d97c636c498e0e0ce686a87a3106660cf752e`, refreshed against origin on 9 November; origin/main remains `153c898bd2fdfe02801a306fca5149d0acb05ba3`. Work is isolated on `codex/cislib-cleanup-2026-11-09`. The resulting source revision and scoped verification are recorded below when complete. No merge, remote push or release is included.
+Baseline: `f04d97c636c498e0e0ce686a87a3106660cf752e`, refreshed against origin on 9 November; origin/main remains `153c898bd2fdfe02801a306fca5149d0acb05ba3`. Resulting implementation revision: **`5db09f135becf2f3e84cf6bd88b0ae2d38a26229`**, on `codex/cislib-cleanup-2026-11-09`; the follow-up commit updates only operating guidance and this final record. Review source with `git diff f04d97c6..5db09f13` and the complete cleanup with `git diff f04d97c6..codex/cislib-cleanup-2026-11-09`. No merge, remote push or release is included.
 
 | Decision | Group | Accepted purpose and applied change |
 | --- | --- | --- |
@@ -20,6 +20,7 @@ Baseline: `f04d97c636c498e0e0ce686a87a3106660cf752e`, refreshed against origin o
 Run from `implementations/csharp` with SDK 10.0.401 and runtime/ASP.NET framework 10.0.12 installed:
 
 ```powershell
+dotnet tool restore --configfile eng/Tools.NuGet.config
 dotnet restore CisLib.slnx --locked-mode
 dotnet build CisLib.slnx -c Release --no-restore
 dotnet test CisLib.slnx -c Release --no-build --no-restore
@@ -60,7 +61,7 @@ The following exact CISLIB-owned historical output scopes were removed after the
 
 The old CIS canary patch inside `hc-unit-full-20261026` is already represented in the current CIS implementation (`omittedCanaryFile`); it is not uncommitted product work. No remote host, shared resource, Docker data, outside-workspace path or Git history is deleted.
 
-The separately inspected `.artifacts/hcg` contained 1,474 top-level old HC12 transfer archives (5,073,471,909 bytes) and 860 extracted duplicate campaign directories. Samples included old active182 readbacks and a193 mutation sessions/controller source; these belonged to the same retired Healthcheck campaigns, with no current claim or live use. This path was omitted from the first approval list; after automatic approval review required separate authorization, the user explicitly approved its deletion. Deletion is in progress. A full recursive size scan was stopped because it was disproportionate; extracted-directory byte totals are unavailable and will not be invented.
+The separately inspected `.artifacts/hcg` contained 1,474 top-level old HC12 transfer archives (5,073,471,909 bytes) and 860 extracted duplicate campaign directories. Samples included old active182 readbacks and a193 mutation sessions/controller source; these belonged to the same retired Healthcheck campaigns, with no current claim or live use. This path was omitted from the first approval list; after automatic approval review required separate authorization, the user explicitly approved its deletion. The entire directory is now removed. A full recursive size scan was stopped because it was disproportionate; extracted-directory byte totals are unavailable and are excluded from the measurement.
 
 ## Verification and current gaps
 
@@ -89,10 +90,12 @@ There are **7,961 distinct passing native cases across these scoped runs**; the 
 
 Tracked files fell from **53,151 to 1,107**. Counts exclude generated `bin`, `obj`, TestResults and vendor output; maintained test files include actual frozen compatibility input assets. Lines use the same source/config extensions in both measurements, excluding prose/binaries. The retained C# verification directory holds actual frozen contract/consumer inputs plus one coverage configuration and two mutation configurations; it does not retain a campaign engine.
 
-Measured deleted old local generated-file payloads total **17,086,322,170 bytes**; the guidance/spec cleanup separately measured **3,578,295,606 bytes** of deleted tracked working-tree files. Root historical operators add 297,389 measured bytes. These figures exclude unmeasured source/tool deletions and the unfinished hcg total, and do not describe reduced Git history or filesystem allocation. Newly created and disposed verification outputs/download ZIPs are not counted as reclaimed pre-existing data. No replacement archive was created.
+Measured deleted old local generated-file payloads total **17,086,322,170 bytes**; the guidance/spec cleanup separately measured **3,578,295,606 bytes** of deleted tracked working-tree files. Root historical operators add 297,389 measured bytes, and hcg's measured top-level archives add 5,073,471,909 bytes. Thus **at least 25,738,387,074 bytes of old file payloads were removed**. Unmeasured extracted hcg copies and source/tool deletions are excluded. These are logical file bytes, not a claim about filesystem allocation or reduced Git history. Newly created and disposed verification outputs/download ZIPs are not counted as reclaimed pre-existing data. No replacement archive was created.
 
 Retained custom verification is limited to native assertions and necessary fixtures: frozen consumers/schema/wire bytes preserve actual development compatibility; byte/reference/IL/reflection assertions protect accepted package, ownership and no-loading invariants that native build alone cannot assert; deterministic clocks/writers and bounded process drain/cleanup exercise real behavior; and the small mutation child adapter propagates instrumented Core plus its active selector into an actual child. Plain build/test tooling cannot supply those product-specific expectations. The obsolete supporting campaign mechanisms are removed.
 
 The retained [current decisions](../decisions.md) preserve coverage 95% line/90% conservative branch and mutation 90% conservative obligations, real child activation, platform/consumer compatibility and publication decisions. Full current release qualification, external Heartbeat/startup-provider integration and current performance targets remain open. No governed budget, approval or old failed result is changed.
+
+No cleanup exception remains blocked. The untracked-output access restriction was resolved by explicit user authorization; significant user chat exports remain preserved. The open product/acceptance work above remains separate from completed cleanup.
 
 The next CIS task should connect to the ordinary solution/projects and native commands, package build assets, retained behavioral tests and current obligations. It should not recreate retired command names, receipts, archive protocols or recovery campaigns, and should not implement another module as part of adoption.
